@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH1-2 GTM 的三個核心概念｜GTM 實務演練</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#8c8880;
+  --c-a1:#b5703a; --c-a2:#c9963a; --c-a3:#5a7a5a; --c-a4:#6b7fa3;
+  --radius:6px; --radius-sm:4px; --content-w:780px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+
+/* ── 頂部列 ── */
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a1);border:1px solid rgba(181,112,58,.3);background:rgba(181,112,58,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+
+/* ── 閱讀進度 ── */
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a1);width:0%;transition:width .1s;}
+
+/* ── Hero ── */
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a1);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-a1);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a1);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-a1);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a1);margin-top:8px;flex-shrink:0;}
+
+/* ── 主內容 ── */
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-a1);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+
+/* ── Callout ── */
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25);}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout.key{background:rgba(181,112,58,.07);border:1px solid rgba(181,112,58,.25);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text);}
+.callout-body strong{font-weight:700;}
+.inline-code{font-family:'Courier New',monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 6px;border-radius:3px;}
+
+/* ── 概念卡片 ── */
+.concept-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:28px 0;}
+.concept-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:22px 20px;}
+.concept-num{font-family:'Shippori Mincho',serif;font-size:1.5rem;font-weight:700;color:var(--c-a1);margin-bottom:8px;line-height:1;}
+.concept-title{font-size:.85rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.concept-desc{font-size:.78rem;color:var(--c-muted);line-height:1.7;}
+
+/* ── 大引言 ── */
+.big-quote{font-family:'Shippori Mincho',serif;font-size:1.3rem;font-weight:700;line-height:1.65;color:var(--c-text);padding:28px 32px;background:var(--c-card);border:1px solid var(--c-border);border-left:4px solid var(--c-a1);border-radius:var(--radius);margin:28px 0;}
+.big-quote span{color:var(--c-a1);}
+
+/* ── 類比框 ── */
+.analogy-box{padding:28px 32px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:28px 0;}
+.analogy-label{font-size:.68rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:12px;}
+.analogy-text{font-size:.92rem;color:var(--c-text);line-height:1.9;}
+
+/* ── 列表 ── */
+.custom-list{list-style:none;margin:20px 0;}
+.custom-list li{position:relative;padding-left:24px;margin-bottom:12px;font-size:.95rem;color:var(--c-text);}
+.custom-list li::before{content:"•";position:absolute;left:8px;color:var(--c-a1);font-weight:bold;}
+.custom-list li strong{color:var(--c-a1);}
+
+/* ── 底部導航 ── */
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-a1);}
+.nav-btn.prev{justify-content:flex-start;text-align:left;}
+.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.nav-spacer{flex:1;}
+
+/* ── 頁尾 ── */
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+
+/* ── 動態進場系統 ── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.lesson-hero .back-link      { animation:fadeUp .4s ease both; }
+.lesson-hero .hero-meta      { animation:fadeUp .45s .08s ease both; }
+.lesson-hero .lesson-title   { animation:fadeUp .55s .15s ease both; }
+.lesson-hero .lesson-tagline { animation:fadeUp .5s  .26s ease both; }
+.lesson-hero .outcomes       { animation:fadeUp .45s .36s ease both; }
+
+/* Scroll reveal */
+.reveal {
+  opacity:0;
+  transform:translateY(22px);
+  transition:opacity .65s cubic-bezier(.16,1,.3,1), transform .65s cubic-bezier(.16,1,.3,1);
+}
+.reveal.in { opacity:1; transform:translateY(0); }
+
+/* section-rule 展開 */
+.section-rule {
+  transform-origin: left center;
+  opacity:0;
+  transition: opacity .4s ease, transform .6s cubic-bezier(.16,1,.3,1);
+  transform: scaleX(.3);
+}
+.section-rule.in { opacity:1; transform:scaleX(1); }
+
+/* 卡片 hover 精化 */
+.concept-card {
+  transition:transform .22s cubic-bezier(.16,1,.3,1), box-shadow .22s ease;
+}
+.concept-card:hover {
+  transform:translateY(-4px);
+  box-shadow:0 12px 28px rgba(0,0,0,.09);
+}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero{padding:40px 20px 36px;}.lesson-title{font-size:1.55rem;}.lesson-body{padding:0 20px 60px;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="logo" href="../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">GTM 實務演練</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH1-2</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="progressFill"></div></div>
+
+<section class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程目錄</a>
+  <div class="hero-meta">
+    <span class="hero-part">PART 1 · GTM 是什麼？為什麼要用它？</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">1.2</span>
+  </div>
+  <h1 class="lesson-title">掌握 GTM 的靈魂：<br>代碼、觸發條件與變數</h1>
+  <p class="lesson-tagline">這是整個 GTM 最核心的觀念。只要弄懂這三個名詞的關係與分工，你就能在 GTM 裡完成 90% 以上的追蹤設定，不會再被複雜的介面嚇到。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學完這節，你會</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>理解「代碼 (Tag)」負責做什麼</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>理解「觸發條件 (Trigger)」負責決定何時做</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>理解「變數 (Variable)」負責提供額外細節資訊</div>
+  </div>
+</section>
+
+<main class="lesson-body">
+
+  <!-- S1 -->
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 01</div>
+    <h2 class="section-heading">運作的<em>黃金公式</em></h2>
+    <p class="body-text">在 GTM 中，每一次成功的資料追蹤，都離不開一個簡單的邏輯公式：</p>
+    
+    <div class="big-quote">
+      當<span>「觸發條件」</span>發生的時候，<br>啟動<span>「代碼」</span>，並帶上<span>「變數」</span>的資訊（非必填）。
+    </div>
+
+    <div class="analogy-box">
+      <div class="analogy-label">用「大樓警報系統」來理解</div>
+      <div class="analogy-text">
+        假設你在管理一棟大樓的警報系統：<br><br>
+        <strong>1. 觸發條件 (Trigger)：</strong>就像是「煙霧感測器」。它平時在睡覺，只有當它偵測到濃煙時，才會發出信號。<br>
+        <strong>2. 代碼 (Tag)：</strong>就像是「警報喇叭與通報機」。當它收到感測器的信號，就會開始大叫，並打電話給消防局。<br>
+        <strong>3. 變數 (Variable)：</strong>就像是「樓層號碼牌」。當打給消防局時，它負責補充說明：「現在是『三樓』發生火災。」
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- S2 -->
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 02</div>
+    <h2 class="section-heading">1. 觸發條件 (<em>Trigger</em>)：監聽警衛</h2>
+    <p class="body-text"><strong>觸發條件</strong>是整個追蹤行為的起點。它是負責「監聽」網頁狀態的警衛，決定某個代碼<strong>什麼時候</strong>應該要啟動（Fire）。</p>
+    <p class="body-text">GTM 內建了非常多種觸發條件供你選擇，行銷人最常用的有：</p>
+    <ul class="custom-list">
+      <li><strong>Page View (網頁瀏覽)：</strong>當使用者打開某個網頁時。</li>
+      <li><strong>Click (點擊)：</strong>當使用者點擊了某個連結或按鈕時。</li>
+      <li><strong>Form Submission (表單送出)：</strong>當使用者成功送出諮詢表單時。</li>
+      <li><strong>Scroll Depth (捲動深度)：</strong>當使用者把網頁往下滑到 50% 或 90% 時。</li>
+    </ul>
+    
+    <div class="callout tip">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body">
+        <strong>提示：</strong>觸發條件可以設定限制。例如，你不會希望「點擊任何東西」都啟動代碼，你可以設定條件為：「只有當點擊的按鈕文字是『加入購物車』時」，才算觸發。
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- S3 -->
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 03</div>
+    <h2 class="section-heading">2. 代碼 (<em>Tag</em>)：傳遞信差</h2>
+    <p class="body-text"><strong>代碼</strong>是一段 JavaScript 程式碼，但你在 GTM 裡不需要自己寫程式，只需填寫表單即可。它是負責<strong>傳遞資料</strong>的信差，告訴第三方系統（如 GA4、Meta）「剛剛發生了什麼事」。</p>
+    <p class="body-text">常見的代碼類型有：</p>
+    <div class="concept-grid">
+      <div class="concept-card">
+        <div class="concept-num">01</div>
+        <div class="concept-title">Google Analytics 4</div>
+        <div class="concept-desc">設定代碼或事件代碼，用來將瀏覽與互動數據送進 GA4 報表。</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-num">02</div>
+        <div class="concept-title">Google Ads</div>
+        <div class="concept-desc">轉換追蹤代碼或再行銷代碼，用來評估廣告成效與收集名單。</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-num">03</div>
+        <div class="concept-title">自訂 HTML</div>
+        <div class="concept-desc">如果 GTM 沒有內建你要的平台（例如 Meta Pixel 或 Line Tag），你可以直接貼上他們的原始碼。</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- S4 -->
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 04</div>
+    <h2 class="section-heading">3. 變數 (<em>Variable</em>)：情報員</h2>
+    <p class="body-text"><strong>變數</strong>是一個「會變動的值」，它是負責提供<strong>細節資訊</strong>的情報員。在代碼或觸發條件中，我們經常需要變數來做精準的判斷或資料傳遞。</p>
+    <p class="body-text">例如，我們追蹤了使用者的點擊行為，但我們想知道他具體點了什麼，這時候就需要變數：</p>
+    <ul class="custom-list">
+      <li><strong>Page URL (網頁網址)：</strong>告訴我們事件發生在哪個網頁（如：/product-a）。</li>
+      <li><strong>Click Text (點擊文字)：</strong>告訴我們使用者點的按鈕上面寫了什麼字（如：立即購買）。</li>
+      <li><strong>Click URL (點擊網址)：</strong>告訴我們這個按鈕會把使用者帶去哪個連結。</li>
+    </ul>
+
+    <div class="callout key">
+      <div class="callout-icon">★</div>
+      <div class="callout-body">
+        <strong>結合起來看一個真實案例：</strong><br>
+        為了追蹤某個行銷活動，我們設定了：當 <strong>觸發條件</strong>（Click，且 <strong>變數</strong> Click Text 等於「領取優惠碼」）發生時，啟動 <strong>代碼</strong>（發送一個名為 get_promo 的 GA4 事件）。
+      </div>
+    </div>
+    <p class="body-text">這就是整個 GTM 運作的精髓！理解了這三者的關係，下一節我們將直接比較「傳統埋碼」與「GTM 埋碼」在網頁原始碼上的實際差異。</p>
+  </div>
+
+</main>
+
+<nav class="lesson-nav">
+  <a class="nav-btn prev" href="CH1-1.html">
+    <span>←</span>
+    <div>
+      <div class="nav-btn-label">上一節</div>
+      <div class="nav-btn-title">1.1 認識 GTM 的角色與優點</div>
+    </div>
+  </a>
+  <div class="nav-spacer"></div>
+  <a class="nav-btn next" href="CH1-3.html">
+    <div>
+      <div class="nav-btn-label">下一節</div>
+      <div class="nav-btn-title">1.3 GTM vs 直接埋碼的差異對比</div>
+    </div>
+    <span>→</span>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">Part 1 · 2 of 3</div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const d = document.documentElement;
+  const pct = d.scrollHeight - d.clientHeight > 0
+    ? (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100 : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+});
+
+(function(){
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, { threshold: .1, rootMargin: '0px 0px -48px 0px' });
+
+  document.querySelectorAll('.lesson-section, .section-rule').forEach(el => {
+    el.classList.add('reveal');
+    io.observe(el);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1.2 Cloudflare Tunnel 設定｜AI 資料工廠</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#8c8880;
+  --c-a4:#6b7fa3; --radius:6px; --content-w:720px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.08);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a4);width:0%;transition:width .1s;}
+.step-hero{max-width:var(--content-w);margin:0 auto;padding:56px 48px 40px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px;}
+.back-link:hover{color:var(--c-a4);}
+.hero-meta{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.hero-section{font-size:.7rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-sep{width:1px;height:12px;background:var(--c-border);}
+.hero-num{font-size:.7rem;color:var(--c-a4);letter-spacing:1px;font-weight:500;}
+.step-title{font-family:'Shippori Mincho',serif;font-size:1.9rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:12px;}
+.step-subtitle{font-size:.93rem;color:var(--c-muted);line-height:1.8;max-width:560px;margin-bottom:20px;}
+.meta-bar{display:flex;gap:20px;align-items:center;}
+.meta-item{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--c-muted);}
+.meta-icon{font-size:.9rem;}
+.step-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 32px;}
+.step-block{display:flex;gap:24px;margin-bottom:40px;position:relative;}
+.step-block:not(:last-child)::after{content:'';position:absolute;left:19px;top:48px;width:2px;height:calc(100% - 16px);background:var(--c-border);}
+.step-num-col{flex-shrink:0;display:flex;flex-direction:column;align-items:center;}
+.step-circle{width:40px;height:40px;border-radius:50%;background:rgba(107,127,163,.1);border:2px solid var(--c-a4);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-a4);flex-shrink:0;}
+.step-content{flex:1;padding-top:6px;}
+.step-label{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:8px;line-height:1.3;}
+.step-desc{font-size:.9rem;color:var(--c-text);line-height:1.9;margin-bottom:12px;}
+.screenshot{background:var(--c-surface);border:1.5px dashed var(--c-border);border-radius:var(--radius);padding:32px 24px;margin:14px 0;text-align:center;}
+.screenshot-icon{font-size:1.6rem;margin-bottom:8px;opacity:.5;}
+.screenshot-cap{font-size:.78rem;color:var(--c-muted);line-height:1.6;}
+.step-tip{display:flex;gap:12px;padding:14px 18px;border-radius:var(--radius);margin:12px 0;font-size:.85rem;line-height:1.75;}
+.step-tip.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.22);}
+.step-tip.warning{background:rgba(201,150,58,.06);border:1px solid rgba(201,150,58,.25);}
+.step-tip.success{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.tip-icon{flex-shrink:0;font-size:1rem;margin-top:1px;}
+.tip-text{color:var(--c-text);}
+.tip-text strong{font-weight:700;}
+.ic{font-family:'Courier New',monospace;font-size:.82em;background:rgba(107,127,163,.1);padding:1px 6px;border-radius:3px;}
+.code-block{background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.85rem;padding:16px 20px;border-radius:var(--radius);margin:12px 0;line-height:1.7;overflow-x:auto;}
+.code-block .cmd{color:#a8c4d4;}
+.code-block .comment{color:#6b7fa3;font-style:italic;}
+.verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:22px 26px;margin:8px 0 32px;}
+.verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px;}
+.verify-title{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:8px;}
+.verify-desc{font-size:.88rem;color:var(--c-text);line-height:1.8;}
+.trouble-section{margin:0 0 48px;}
+.trouble-head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;}
+.trouble-title{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-text);}
+.trouble-line{flex:1;height:1px;background:var(--c-border);}
+.trouble-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;margin-bottom:10px;}
+.trouble-problem{font-size:.85rem;font-weight:700;color:var(--c-text);margin-bottom:6px;display:flex;align-items:flex-start;gap:8px;}
+.trouble-problem::before{content:'Q';font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-a4);font-weight:700;flex-shrink:0;margin-top:1px;}
+.trouble-solution{font-size:.83rem;color:var(--c-muted);line-height:1.75;padding-left:20px;}
+.step-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--c-border);padding-top:28px;}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a4);text-decoration:none;padding:10px 20px;border:1px solid rgba(107,127,163,.3);border-radius:var(--radius);transition:background .2s;}
+.nav-btn:hover{background:rgba(107,127,163,.07);}
+.nav-btn.primary{background:var(--c-a4);color:#fff;border-color:var(--c-a4);}
+.nav-btn.primary:hover{opacity:.85;background:var(--c-a4);}
+.context-box{background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a4);border-radius:var(--radius);padding:18px 22px;margin:0 0 32px;}
+.context-label{font-size:.68rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:8px;}
+.context-text{font-size:.88rem;color:var(--c-text);line-height:1.75;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-div{width:1px;height:14px;background:var(--c-border);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 資料工廠</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">1.2 實作步驟</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="step-hero">
+  <a href="module1.html" class="back-link">← 返回 Module 1</a>
+  <div class="hero-meta">
+    <span class="hero-section">Module 01</span>
+    <div class="hero-sep"></div>
+    <span class="hero-num">SECTION 1.2</span>
+  </div>
+  <h1 class="step-title">Cloudflare Tunnel 設定</h1>
+  <p class="step-subtitle">為本機 n8n 建立一個公開網址，讓 Make、Google Forms 等雲端服務可以傳送 Webhook 到你的電腦，完成雲地協作的關鍵橋接。</p>
+  <div class="meta-bar">
+    <div class="meta-item"><span class="meta-icon">⏱</span><span>預估時間：15–20 分鐘</span></div>
+    <div class="meta-item"><span class="meta-icon">📋</span><span>7 個步驟</span></div>
+    <div class="meta-item"><span class="meta-icon">✅</span><span>前置：完成 1.1 n8n 安裝</span></div>
+  </div>
+</div>
+
+<div class="step-body">
+
+  <div class="context-box">
+    <div class="context-label">為什麼需要這個步驟</div>
+    <p class="context-text">n8n 裝在你的電腦裡，但 Make 或 Google Forms 在網際網路上「看不到」你的電腦——它沒有公開的 IP，也沒有網址。Cloudflare Tunnel 解決這個問題：它幫你的本機 n8n 建立一個公開網址，雲端服務就能透過這個網址把任務傳進來。</p>
+  </div>
+
+  <!-- Step 1 -->
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">1</div></div>
+    <div class="step-content">
+      <div class="step-label">建立或登入 Cloudflare 帳號</div>
+      <p class="step-desc">前往 Cloudflare 官網，若尚未有帳號請先免費註冊。完成後，從儀表板左側導覽點擊進入「Zero Trust」（也可能顯示為「One」）。Zero Trust 是管理 Tunnel 的入口，完全免費使用。</p>
+      <div class="screenshot">
+        <div class="screenshot-icon">☁️</div>
+        <div class="screenshot-cap">Cloudflare 儀表板，左側找到 Zero Trust 入口</div>
+      </div>
+      <div class="step-tip info">
+        <span class="tip-icon">💡</span>
+        <span class="tip-text">Cloudflare 免費方案已包含完整的 Tunnel 功能，無需升級付費方案。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">2</div></div>
+    <div class="step-content">
+      <div class="step-label">建立新的 Tunnel</div>
+      <p class="step-desc">進入 Zero Trust 後，從左側選擇「Networks」→「Tunnels」→「Create a tunnel」。選擇「Cloudflared」作為連線方式，為 Tunnel 命名（例如 <span class="ic">n8n-local</span>），點擊「Save tunnel」繼續。</p>
+      <div class="screenshot">
+        <div class="screenshot-icon">🔧</div>
+        <div class="screenshot-cap">Zero Trust → Networks → Tunnels，點擊「Create a tunnel」，輸入名稱</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">3</div></div>
+    <div class="step-content">
+      <div class="step-label">安裝 cloudflared 程式（Mac）</div>
+      <p class="step-desc">Cloudflare 會依你的作業系統顯示安裝指令。Mac 用戶最簡單的方法是用 Homebrew 安裝：打開終端機（Terminal），輸入以下指令並按 Enter。若尚未安裝 Homebrew，請先至 brew.sh 安裝。</p>
+      <div class="code-block">
+        <span class="cmd">brew install cloudflared</span>
+      </div>
+      <div class="step-tip info">
+        <span class="tip-icon">💡</span>
+        <span class="tip-text">不熟悉終端機？找到 Mac 的「終端機」(Terminal) App，直接貼上指令按 Enter 即可。過程中輸入的內容不會顯示星號，這是正常的。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3b Windows -->
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">3b</div></div>
+    <div class="step-content">
+      <div class="step-label">安裝 cloudflared 程式（Windows）</div>
+      <p class="step-desc">Windows 用戶從 Cloudflare 提供的頁面直接下載 <span class="ic">cloudflared.exe</span> 執行檔，放到容易找到的資料夾（例如 <span class="ic">C:\cloudflared\</span>）。接著打開命令提示字元（搜尋 cmd），切換到該資料夾後執行安裝指令。</p>
+      <div class="code-block">
+        <span class="comment"># 切換到 cloudflared 所在目錄</span><br>
+        <span class="cmd">cd C:\cloudflared</span><br>
+        <span class="comment"># 執行 Cloudflare 頁面提供的 token 指令</span><br>
+        <span class="cmd">cloudflared.exe service install &lt;你的token&gt;</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">4</div></div>
+    <div class="step-content">
+      <div class="step-label">執行 Tunnel 連線指令</div>
+      <p class="step-desc">回到 Cloudflare 的設定頁面，複製頁面上顯示的完整啟動指令（包含你的 Token），貼到終端機並按 Enter 執行。成功後終端機會持續顯示連線狀態，表示 Tunnel 正在運作中。</p>
+      <div class="screenshot">
+        <div class="screenshot-icon">⚡️</div>
+        <div class="screenshot-cap">終端機執行 cloudflared 指令後，顯示「Connection registered」或「Connected」的成功訊息</div>
+      </div>
+      <div class="step-tip warning">
+        <span class="tip-icon">⚠️</span>
+        <span class="tip-text"><strong>保持終端機開著：</strong>只要 Tunnel 在跑，這個終端機視窗就不能關閉，否則連線會中斷。課程進行時請讓它在背景運作。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 5 -->
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">5</div></div>
+    <div class="step-content">
+      <div class="step-label">設定 Public Hostname 指向 n8n</div>
+      <p class="step-desc">回到 Cloudflare Tunnel 頁面，進入「Public Hostnames」分頁，點擊「Add a public hostname」。設定一個子網域名稱（例如 <span class="ic">n8n-webhook</span>），Service 類型選「HTTP」，URL 填入 <span class="ic">localhost:5678</span>（n8n Desktop 的預設連接埠），儲存。</p>
+      <div class="screenshot">
+        <div class="screenshot-icon">🌐</div>
+        <div class="screenshot-cap">Public Hostname 設定：子網域名稱、Service 選 HTTP、URL 填 localhost:5678</div>
+      </div>
+      <div class="step-tip info">
+        <span class="tip-icon">📌</span>
+        <span class="tip-text"><span class="ic">5678</span> 是 n8n Desktop 的預設 port。若你有更改過 n8n 的設定，請填入對應的 port 號。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 6 -->
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">6</div></div>
+    <div class="step-content">
+      <div class="step-label">取得並記錄你的 Tunnel 網址</div>
+      <p class="step-desc">完成 Public Hostname 設定後，Cloudflare 會產生一個公開網址，格式為 <span class="ic">你的子網域.你的網域.com</span>（若無自訂網域則為 Cloudflare 提供的預設格式）。複製這個網址並記下來——這是後續讓 Make 找到你 n8n 的核心地址。</p>
+      <div class="screenshot">
+        <div class="screenshot-icon">🔗</div>
+        <div class="screenshot-cap">Tunnel 設定完成後，Public Hostname 列表顯示你的公開網址</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 7 -->
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">7</div></div>
+    <div class="step-content">
+      <div class="step-label">測試：從外部觸發本機 n8n Webhook</div>
+      <p class="step-desc">開啟 n8n Desktop，進入你的測試 Workflow，點擊 Webhook 節點並選擇「Test step」進入等待狀態。將步驟 6 取得的 Tunnel 網址加上 <span class="ic">/webhook-test/</span> 和你的 Webhook 路徑，貼到瀏覽器新分頁訪問。n8n 若顯示收到資料，代表整個通道已打通。</p>
+      <div class="screenshot">
+        <div class="screenshot-icon">🎉</div>
+        <div class="screenshot-cap">n8n Webhook 節點成功接收到來自 Cloudflare Tunnel 網址的資料</div>
+      </div>
+      <div class="step-tip success">
+        <span class="tip-icon">✅</span>
+        <span class="tip-text"><strong>雲地通道打通：</strong>你現在可以在 Make.com 的 HTTP 模組中填入這個 Tunnel 網址，讓 Make 的流程觸發你本機 n8n 的 Webhook，雲地協作正式成立。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verify -->
+  <div class="verify-box">
+    <div class="verify-label">完成驗證 CHECKPOINT</div>
+    <div class="verify-title">你應該看到這個畫面才算成功</div>
+    <p class="verify-desc">透過 Cloudflare Tunnel 提供的公開網址，成功觸發本機 n8n 的 Webhook 節點，n8n 顯示已接收到外部資料。此時若在 Make.com 的 HTTP 模組填入此網址並執行，也應能同樣觸發 n8n 接收資料。</p>
+  </div>
+
+  <!-- Troubleshoot -->
+  <div class="trouble-section">
+    <div class="trouble-head">
+      <span class="trouble-title">常見問題</span>
+      <div class="trouble-line"></div>
+    </div>
+    <div class="trouble-item">
+      <div class="trouble-problem">Tunnel 網址無法連線（瀏覽器顯示錯誤）</div>
+      <div class="trouble-solution">優先檢查：(1) 終端機的 cloudflared 是否仍在執行（視窗有無關閉）；(2) Zero Trust 的 Public Hostname 中 localhost 的 port 是否設定為 5678；(3) n8n Desktop 應用程式是否有在運作中。</div>
+    </div>
+    <div class="trouble-item">
+      <div class="trouble-problem">Cloudflare 頁面找不到 Zero Trust 或 Tunnels 選項</div>
+      <div class="trouble-solution">Cloudflare 介面偶有改版。若找不到「Zero Trust」，可嘗試搜尋「Cloudflare One」或在帳號儀表板頂部搜尋「Tunnel」。也可直接至 one.dash.cloudflare.com 進入。</div>
+    </div>
+    <div class="trouble-item">
+      <div class="trouble-problem">Make.com 的 HTTP 模組打到 Tunnel 網址沒反應</div>
+      <div class="trouble-solution">確認在 Make 模組中填入的是完整網址（含 https://），且 n8n 的 Webhook 節點已進入「Waiting for test event」等待狀態。Make 的測試執行預設有 30 秒 timeout，確保在時間內完成觸發。</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="step-nav">
+  <a href="m1-1-setup.html" class="nav-btn">← 上一節：n8n Desktop 安裝</a>
+  <a href="module1.html" class="nav-btn primary">返回 Module 1 繼續 →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">淡江大學 · 生成式AI工作坊</span>
+</footer>
+
+<script>
+const fill = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  fill.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + '%';
+});
+</script>
+</body>
+</html>

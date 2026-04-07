@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GTM 事件追蹤確認清單｜GTM 實務演練</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--radius:6px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a1);border:1px solid rgba(181,112,58,.3);background:rgba(181,112,58,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+
+.hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 48px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a1);}
+.hero-eyebrow{font-size:.72rem;color:var(--c-a1);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:12px;}
+.hero-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;margin-bottom:16px;}
+.hero-desc{font-size:.92rem;color:var(--c-muted);line-height:1.9;max-width:560px;margin-bottom:12px;}
+.hero-divider{width:40px;height:2px;background:var(--c-a1);margin-top:8px;}
+
+.progress-bar-wrap{max-width:var(--content-w);margin:0 auto;padding:0 48px 36px;}
+.progress-bar-track{height:6px;background:var(--c-surface);border-radius:99px;overflow:hidden;}
+.progress-bar-fill{height:100%;background:var(--c-a1);border-radius:99px;width:0%;transition:width .4s ease;}
+.progress-label{font-size:.75rem;color:var(--c-muted);margin-top:8px;display:flex;justify-content:space-between;}
+
+.content{max-width:var(--content-w);margin:0 auto;padding:0 48px 100px;}
+
+.cl-section{margin-bottom:56px;}
+.cl-section-header{display:flex;align-items:center;gap:14px;margin-bottom:20px;}
+.cl-section-badge{font-size:.7rem;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;padding:3px 10px;border-radius:99px;}
+.badge-once{background:rgba(181,112,58,.1);color:var(--c-a1);border:1px solid rgba(181,112,58,.25);}
+.badge-each{background:rgba(107,127,163,.1);color:var(--c-a4);border:1px solid rgba(107,127,163,.25);}
+.badge-verify{background:rgba(90,122,90,.1);color:var(--c-a3);border:1px solid rgba(90,122,90,.25);}
+.cl-section-title{font-family:'Shippori Mincho',serif;font-size:1.25rem;font-weight:700;}
+
+.cl-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;transition:border-color .2s;}
+.cl-item:has(.cl-check:checked){border-color:var(--c-a3);background:rgba(90,122,90,.03);}
+
+.cl-row{display:flex;align-items:flex-start;gap:14px;padding:18px 20px;}
+.cl-check{width:18px;height:18px;accent-color:var(--c-a3);cursor:pointer;flex-shrink:0;margin-top:3px;}
+.cl-main{flex:1;min-width:0;}
+.cl-title{font-size:.95rem;font-weight:500;color:var(--c-text);margin-bottom:2px;line-height:1.5;}
+.cl-subtitle{font-size:.8rem;color:var(--c-muted);}
+.cl-item:has(.cl-check:checked) .cl-title{color:var(--c-a3);}
+.cl-item:has(.cl-check:checked) .cl-title::after{content:" ✓";font-size:.8rem;}
+
+details.cl-detail{border-top:1px solid var(--c-border);}
+details.cl-detail summary{list-style:none;padding:12px 20px;font-size:.8rem;color:var(--c-a1);cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none;}
+details.cl-detail summary::-webkit-details-marker{display:none;}
+details.cl-detail summary::before{content:"▸";transition:transform .2s;display:inline-block;}
+details[open].cl-detail summary::before{transform:rotate(90deg);}
+details.cl-detail summary:hover{background:rgba(181,112,58,.04);}
+.cl-detail-body{padding:4px 20px 20px 20px;border-top:1px dashed var(--c-border);}
+
+.detail-step{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--c-surface);}
+.detail-step:last-child{border-bottom:none;}
+.detail-step-num{width:22px;height:22px;border-radius:50%;background:var(--c-surface);border:1px solid var(--c-border);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:var(--c-muted);flex-shrink:0;margin-top:2px;}
+.detail-step-text{font-size:.85rem;color:var(--c-text);line-height:1.75;}
+.detail-step-text strong{font-weight:600;}
+.detail-note{margin-top:12px;padding:12px 16px;background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.2);border-radius:4px;font-size:.82rem;color:var(--c-text);line-height:1.75;}
+.inline-code{font-family:'Courier New',monospace;font-size:.82em;background:rgba(107,127,163,.12);padding:1px 5px;border-radius:3px;}
+
+.reset-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;font-size:.8rem;color:var(--c-muted);border:1px solid var(--c-border);border-radius:var(--radius);background:none;cursor:pointer;font-family:inherit;margin-bottom:32px;}
+.reset-btn:hover{border-color:var(--c-a1);color:var(--c-a1);}
+
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;}.topbar-sub,.topbar-divider{display:none;}.hero{padding:40px 20px 32px;}.hero-title{font-size:1.5rem;}.progress-bar-wrap{padding:0 20px 28px;}.content{padding:0 20px 80px;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="logo" href="../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">GTM 實務演練</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">參考工具</div>
+</header>
+
+<section class="hero">
+  <a class="back-link" href="index.html">← 回到課程總覽</a>
+  <div class="hero-eyebrow">Checklist · 確認清單</div>
+  <h1 class="hero-title">GTM 事件追蹤<br>完整確認清單</h1>
+  <p class="hero-desc">每次設定追蹤事件時，照著這份清單逐步完成，確保 GTM 與 GA4 之間的資料能正確串連，不遺漏任何必要步驟。</p>
+  <div class="hero-divider"></div>
+</section>
+
+<div class="progress-bar-wrap">
+  <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+  <div class="progress-label"><span>完成進度</span><span id="progressText">0 / 13</span></div>
+</div>
+
+<main class="content">
+
+  <button class="reset-btn" onclick="resetAll()">↺ 重置所有勾選</button>
+
+  <!-- Section A -->
+  <div class="cl-section">
+    <div class="cl-section-header">
+      <span class="cl-section-badge badge-once">只做一次</span>
+      <span class="cl-section-title">A. 網站初始化</span>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-row">
+        <input class="cl-check" type="checkbox" id="a1">
+        <div class="cl-main">
+          <label class="cl-title" for="a1">GTM 容器代碼安裝到網站</label>
+          <div class="cl-subtitle">兩段代碼分別放在 &lt;head&gt; 與 &lt;body&gt; 開頭</div>
+        </div>
+      </div>
+      <details class="cl-detail">
+        <summary>查看詳細步驟</summary>
+        <div class="cl-detail-body">
+          <div class="detail-step"><div class="detail-step-num">1</div><div class="detail-step-text">登入 <strong>GTM</strong> → 點選容器 → 右上角「安裝 Google 代碼管理工具」</div></div>
+          <div class="detail-step"><div class="detail-step-num">2</div><div class="detail-step-text">將第一段代碼貼入網站每個頁面的 <strong>&lt;head&gt; 區塊盡量靠近頂部</strong></div></div>
+          <div class="detail-step"><div class="detail-step-num">3</div><div class="detail-step-text">將第二段代碼貼入 <strong>&lt;body&gt; 開頭標籤後</strong>（此段為 noscript 備援）</div></div>
+          <div class="detail-step"><div class="detail-step-num">4</div><div class="detail-step-text">開啟 GTM Preview，確認頁面出現「Tag Assistant Connected」即安裝成功</div></div>
+          <div class="detail-note">WordPress 使用者可用 <strong>Insert Headers and Footers</strong> 外掛或直接編輯佈景主題的 functions.php 插入代碼，不需手動改原始碼。</div>
+        </div>
+      </details>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-row">
+        <input class="cl-check" type="checkbox" id="a2">
+        <div class="cl-main">
+          <label class="cl-title" for="a2">GA4 設定代碼建立（Google 代碼）</label>
+          <div class="cl-subtitle">GTM 內建立一個「Google 代碼」類型的代碼，填入評估 ID</div>
+        </div>
+      </div>
+      <details class="cl-detail">
+        <summary>查看詳細步驟</summary>
+        <div class="cl-detail-body">
+          <div class="detail-step"><div class="detail-step-num">1</div><div class="detail-step-text">在 <strong>GA4</strong> → 管理 → 資料串流，找到評估 ID（格式：<span class="inline-code">G-XXXXXXXX</span>），複製備用</div></div>
+          <div class="detail-step"><div class="detail-step-num">2</div><div class="detail-step-text">在 <strong>GTM</strong> → 代碼 → 新增，類型選「Google 代碼」</div></div>
+          <div class="detail-step"><div class="detail-step-num">3</div><div class="detail-step-text">貼上評估 ID，觸發條件設定為「All Pages（網頁瀏覽）」</div></div>
+          <div class="detail-step"><div class="detail-step-num">4</div><div class="detail-step-text">儲存並用 Preview 確認每次載入頁面時這個代碼都會觸發</div></div>
+          <div class="detail-note">這個代碼是所有 GA4 事件代碼的基礎，必須先建立且正常運作，後續的事件追蹤才有意義。</div>
+        </div>
+      </details>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-row">
+        <input class="cl-check" type="checkbox" id="a3">
+        <div class="cl-main">
+          <label class="cl-title" for="a3">啟用所需的內建變數</label>
+          <div class="cl-subtitle">Click URL、Click Element、Click Classes、Click Text 等</div>
+        </div>
+      </div>
+      <details class="cl-detail">
+        <summary>查看詳細步驟</summary>
+        <div class="cl-detail-body">
+          <div class="detail-step"><div class="detail-step-num">1</div><div class="detail-step-text">GTM → 變數 → 內建變數 → 右上角「設定」</div></div>
+          <div class="detail-step"><div class="detail-step-num">2</div><div class="detail-step-text">勾選以下常用項目：<strong>Click URL、Click Element、Click Classes、Click ID、Click Text、Form URL、Scroll Depth Threshold</strong></div></div>
+          <div class="detail-step"><div class="detail-step-num">3</div><div class="detail-step-text">儲存。這些變數之後在觸發條件和代碼參數中都可以直接取用（格式：<span class="inline-code">{{Click URL}}</span>）</div></div>
+          <div class="detail-note">不確定要開哪些？建議全部點擊相關的都先啟用，多開不影響效能，之後用不到的忽略即可。</div>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- Section B -->
+  <div class="cl-section">
+    <div class="cl-section-header">
+      <span class="cl-section-badge badge-each">每個事件都要做</span>
+      <span class="cl-section-title">B. 事件設定流程</span>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-row">
+        <input class="cl-check" type="checkbox" id="b1">
+        <div class="cl-main">
+          <label class="cl-title" for="b1">用 GTM Preview 確認 Click Element 是哪一層</label>
+          <div class="cl-subtitle">GTM 捕捉到的是最內層被點擊的元素，不一定是你以為的那個</div>
+        </div>
+      </div>
+      <details class="cl-detail">
+        <summary>查看詳細步驟</summary>
+        <div class="cl-detail-body">
+          <div class="detail-step"><div class="detail-step-num">1</div><div class="detail-step-text">開啟 GTM Preview，點擊目標元素（按鈕、連結等）</div></div>
+          <div class="detail-step"><div class="detail-step-num">2</div><div class="detail-step-text">在 Tag Assistant 面板切換到 <strong>Variables 分頁</strong>，找到 <span class="inline-code">Click Element</span></div></div>
+          <div class="detail-step"><div class="detail-step-num">3</div><div class="detail-step-text">確認它顯示的是哪個 HTML 元素（例如 <span class="inline-code">&lt;a class="uagb-buttons-repeater"&gt;</span>），記下元素類型與 class 名稱</div></div>
+          <div class="detail-step"><div class="detail-step-num">4</div><div class="detail-step-text">同時查看 <span class="inline-code">Click URL</span>、<span class="inline-code">Click Text</span> 等其他變數，確認值是否符合預期</div></div>
+          <div class="detail-note">常見陷阱：按鈕外層是 <span class="inline-code">div.btn-wrap</span>，但 GTM 抓到的是內層的 <span class="inline-code">a.btn</span>。若直接用外層 class 當觸發條件，會永遠無法觸發。</div>
+        </div>
+      </details>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-row">
+        <input class="cl-check" type="checkbox" id="b2">
+        <div class="cl-main">
+          <label class="cl-title" for="b2">建立觸發條件</label>
+          <div class="cl-subtitle">依據事件類型選擇正確的觸發類型與篩選條件</div>
+        </div>
+      </div>
+      <details class="cl-detail">
+        <summary>查看詳細步驟</summary>
+        <div class="cl-detail-body">
+          <div class="detail-step"><div class="detail-step-num">1</div><div class="detail-step-text">GTM → 觸發條件 → 新增，選擇對應的觸發類型：</div></div>
+          <div class="detail-step"><div class="detail-step-num">2</div><div class="detail-step-text"><strong>按鈕/連結點擊</strong>：選「所有元素」，條件設 Click Element 符合 CSS 選擇器（如 <span class="inline-code">.promo-btn-01 a.uagb-buttons-repeater</span>）</div></div>
+          <div class="detail-step"><div class="detail-step-num">3</div><div class="detail-step-text"><strong>外部連結</strong>：選「僅連結」，條件設 Click URL 包含 <span class="inline-code">http</span> 且不包含自己的網域</div></div>
+          <div class="detail-step"><div class="detail-step-num">4</div><div class="detail-step-text"><strong>電話點擊</strong>：選「僅連結」，條件設 Click URL 開頭為 <span class="inline-code">tel:</span></div></div>
+          <div class="detail-step"><div class="detail-step-num">5</div><div class="detail-step-text"><strong>AJAX 表單送出</strong>：選「元素可見度」，CSS 選擇器填感謝訊息的 class（需先用瀏覽器「檢查」確認，不同外掛名稱不同）</div></div>
+          <div class="detail-step"><div class="detail-step-num">6</div><div class="detail-step-text"><strong>捲動深度</strong>：選「捲動深度」，設定百分比門檻（如 25%、50%、75%、100%）</div></div>
+          <div class="detail-note">觸發條件的篩選邏輯建議「精確」勝於「寬鬆」——條件越具體，越不容易誤觸發或遺漏。</div>
+        </div>
+      </details>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-row">
+        <input class="cl-check" type="checkbox" id="b3">
+        <div class="cl-main">
+          <label class="cl-title" for="b3">GTM Preview 驗證觸發條件正確觸發</label>
+          <div class="cl-subtitle">確認觸發條件在正確的操作下才會啟動，不多觸發也不漏觸發</div>
+        </div>
+      </div>
+      <details class="cl-detail">
+        <summary>查看詳細步驟</summary>
+        <div class="cl-detail-body">
+          <div class="detail-step"><div class="detail-step-num">1</div><div class="detail-step-text">開啟 GTM Preview，在網站上執行目標操作</div></div>
+          <div class="detail-step"><div class="detail-step-num">2</div><div class="detail-step-text">在 Tag Assistant 左側事件清單確認有對應事件出現（如 <strong>Click</strong>、<strong>Element Visibility</strong>）</div></div>
+          <div class="detail-step"><div class="detail-step-num">3</div><div class="detail-step-text">點進該事件，切換到 <strong>Triggers 分頁</strong>，確認你設定的觸發條件顯示為「已觸發（Fired）」而非「未觸發（Not Fired）」</div></div>
+          <div class="detail-step"><div class="detail-step-num">4</div><div class="detail-step-text">同時確認沒有意外觸發：對其他元素做同樣操作時，這個觸發條件<strong>不應該</strong>出現在已觸發清單中</div></div>
+        </div>
+      </details>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-row">
+        <input class="cl-check" type="checkbox" id="b4">
+        <div class="cl-main">
+          <label class="cl-title" for="b4">建立 GA4 事件代碼</label>
+          <div class="cl-subtitle">設定事件名稱、選擇觸發條件、加入必要的事件參數</div>
+        </div>
+      </div>
+      <details class="cl-detail">
+        <summary>查看詳細步驟</summary>
+        <div class="cl-detail-body">
+          <div class="detail-step"><div class="detail-step-num">1</div><div class="detail-step-text">GTM → 代碼 → 新增，類型選「Google Analytics：GA4 事件」</div></div>
+          <div class="detail-step"><div class="detail-step-num">2</div><div class="detail-step-text">評估 ID 選擇已建立的 Google 代碼（或直接填 <span class="inline-code">G-XXXXXXXX</span>）</div></div>
+          <div class="detail-step"><div class="detail-step-num">3</div><div class="detail-step-text">事件名稱依照語意命名（建議格式：<span class="inline-code">動詞_受詞</span>，例如 <span class="inline-code">click_phone_number</span>、<span class="inline-code">submit_contact_form</span>、<span class="inline-code">click_external_link</span>）</div></div>
+          <div class="detail-step"><div class="detail-step-num">4</div><div class="detail-step-text">視需要新增事件參數，將有意義的資訊帶入 GA4。常見參數：<br>
+            · <span class="inline-code">phone_number</span> = <span class="inline-code">{{Click URL}}</span>（電話點擊）<br>
+            · <span class="inline-code">link_url</span> = <span class="inline-code">{{Click URL}}</span>（外部連結）<br>
+            · <span class="inline-code">scroll_depth</span> = <span class="inline-code">{{Scroll Depth Threshold}}</span>（捲動追蹤）
+          </div></div>
+          <div class="detail-step"><div class="detail-step-num">5</div><div class="detail-step-text">觸發條件選擇剛才建立的那個，儲存</div></div>
+          <div class="detail-note">事件名稱全小寫、用底線分隔，不用空格或駝峰式命名。GA4 事件名稱有區分大小寫。</div>
+        </div>
+      </details>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-row">
+        <input class="cl-check" type="checkbox" id="b5">
+        <div class="cl-main">
+          <label class="cl-title" for="b5">GTM Preview 確認代碼觸發與參數值</label>
+          <div class="cl-subtitle">確認 GA4 事件代碼有被正確觸發，且參數帶入的值符合預期</div>
+        </div>
+      </div>
+      <details class="cl-detail">
+        <summary>查看詳細步驟</summary>
+        <div class="cl-detail-body">
+          <div class="detail-step"><div class="detail-step-num">1</div><div class="detail-step-text">重新整理 GTM Preview（建立代碼後需重新連線），執行目標操作</div></div>
+          <div class="detail-step"><div class="detail-step-num">2</div><div class="detail-step-text">在 Tag Assistant 左側找到對應事件，切換到 <strong>Tags 分頁</strong>，確認你的 GA4 事件代碼出現在「已觸發」清單中</div></div>
+          <div class="detail-step"><div class="detail-step-num">3</div><div class="detail-step-text">點進該代碼，展開查看事件參數的實際值（例如 <span class="inline-code">phone_number: tel:+886912345678</span>），確認資料正確</div></div>
+          <div class="detail-note">若代碼沒出現在已觸發清單，先回頭確認觸發條件是否正確設定；若代碼出現但參數值是 undefined，表示對應的變數沒有被正確啟用。</div>
+        </div>
+      </details>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-row">
+        <input class="cl-check" type="checkbox" id="b6">
+        <div class="cl-main">
+          <label class="cl-title" for="b6">GA4 DebugView 確認事件與參數已收到</label>
+          <div class="cl-subtitle">在 GA4 即時確認事件資料有傳送過來，含所有參數值</div>
+        </div>
+      </div>
+      <details class="cl-detail">
+        <summary>查看詳細步驟</summary>
+        <div class="cl-detail-body">
+          <div class="detail-step"><div class="detail-step-num">1</div><div class="detail-step-text">保持 GTM Preview 連線狀態（此時瀏覽器帶有 debug cookie，GA4 會將你的行為導入 DebugView）</div></div>
+          <div class="detail-step"><div class="detail-step-num">2</div><div class="detail-step-text">開啟 GA4 → 管理 → <strong>DebugView</strong></div></div>
+          <div class="detail-step"><div class="detail-step-num">3</div><div class="detail-step-text">回到網站執行目標操作，切回 GA4 DebugView 頁面，應在時間軸中看到對應的事件名稱出現</div></div>
+          <div class="detail-step"><div class="detail-step-num">4</div><div class="detail-step-text">點進事件，展開確認事件參數的值（如 <span class="inline-code">phone_number</span> 欄位有正確的電話號碼）</div></div>
+          <div class="detail-note">DebugView 顯示的是即時原始資料，不受 24 小時延遲影響。這是驗證追蹤是否正確最快速的方式。</div>
+        </div>
+      </details>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-row">
+        <input class="cl-check" type="checkbox" id="b7">
+        <div class="cl-main">
+          <label class="cl-title" for="b7">GA4 自訂維度：登錄自訂事件參數</label>
+          <div class="cl-subtitle">若有自訂參數（如 phone_number），必須登錄才能在報表中查詢</div>
+        </div>
+      </div>
+      <details class="cl-detail">
+        <summary>查看詳細步驟</summary>
+        <div class="cl-detail-body">
+          <div class="detail-step"><div class="detail-step-num">1</div><div class="detail-step-text">GA4 → 管理 → 自訂定義 → 建立自訂維度</div></div>
+          <div class="detail-step"><div class="detail-step-num">2</div><div class="detail-step-text">「維度名稱」填入人可讀的顯示名稱（例如「電話號碼」），「範圍」選「事件」</div></div>
+          <div class="detail-step"><div class="detail-step-num">3</div><div class="detail-step-text">「事件參數」填入 GTM 中設定的<strong>完全相同</strong>的參數名稱（例如 <span class="inline-code">phone_number</span>）——大小寫需一致</div></div>
+          <div class="detail-step"><div class="detail-step-num">4</div><div class="detail-step-text">儲存。約 <strong>24 小時後</strong>，此維度會出現在「探索」報表的維度選單中</div></div>
+          <div class="detail-note">GA4 預設只追蹤事件名稱，事件參數不會自動開放查詢。每個想在報表中分析的自訂參數，都需要單獨登錄自訂維度。</div>
+        </div>
+      </details>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-row">
+        <input class="cl-check" type="checkbox" id="b8">
+        <div class="cl-main">
+          <label class="cl-title" for="b8">GTM 發布容器版本</label>
+          <div class="cl-subtitle">Preview 確認無誤後，正式發布讓所有訪客的行為都被追蹤</div>
+        </div>
+      </div>
+      <details class="cl-detail">
+        <summary>查看詳細步驟</summary>
+        <div class="cl-detail-body">
+          <div class="detail-step"><div class="detail-step-num">1</div><div class="detail-step-text">在 GTM 右上角點選「提交」</div></div>
+          <div class="detail-step"><div class="detail-step-num">2</div><div class="detail-step-text">填寫版本名稱（建議格式：日期 + 功能，例如「20250407 新增電話點擊追蹤」）與描述</div></div>
+          <div class="detail-step"><div class="detail-step-num">3</div><div class="detail-step-text">點選「發布」，確認版本號碼更新</div></div>
+          <div class="detail-note">未發布的代碼只在 Preview 模式下運作，一般訪客不會觸發。記得發布才算正式上線。</div>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- Section C -->
+  <div class="cl-section">
+    <div class="cl-section-header">
+      <span class="cl-section-badge badge-verify">驗收</span>
+      <span class="cl-section-title">C. 正式報表驗收</span>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-row">
+        <input class="cl-check" type="checkbox" id="c1">
+        <div class="cl-main">
+          <label class="cl-title" for="c1">GA4 即時報表：確認事件出現</label>
+          <div class="cl-subtitle">發布後用真實訪客身分觸發事件，在即時報表確認資料流入</div>
+        </div>
+      </div>
+      <details class="cl-detail">
+        <summary>查看詳細步驟</summary>
+        <div class="cl-detail-body">
+          <div class="detail-step"><div class="detail-step-num">1</div><div class="detail-step-text">關閉 GTM Preview 模式（避免影響數據），用正常瀏覽器開啟網站</div></div>
+          <div class="detail-step"><div class="detail-step-num">2</div><div class="detail-step-text">執行目標操作，切換到 GA4 → 報表 → <strong>即時</strong></div></div>
+          <div class="detail-step"><div class="detail-step-num">3</div><div class="detail-step-text">在「事件計數（依事件名稱）」區塊確認對應的事件名稱出現</div></div>
+          <div class="detail-note">即時報表約有 5–10 秒延遲，若沒看到事件，稍等後重新整理即時報表頁面。</div>
+        </div>
+      </details>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-row">
+        <input class="cl-check" type="checkbox" id="c2">
+        <div class="cl-main">
+          <label class="cl-title" for="c2">GA4 探索報表：確認自訂維度可查詢</label>
+          <div class="cl-subtitle">自訂維度登錄 24 小時後，確認可在探索報表中使用</div>
+        </div>
+      </div>
+      <details class="cl-detail">
+        <summary>查看詳細步驟</summary>
+        <div class="cl-detail-body">
+          <div class="detail-step"><div class="detail-step-num">1</div><div class="detail-step-text">等待自訂維度登錄後至少 24 小時（若不到 24 小時，維度選單可能還未出現）</div></div>
+          <div class="detail-step"><div class="detail-step-num">2</div><div class="detail-step-text">GA4 → 探索 → 建立新探索，點選「維度」旁的「＋」</div></div>
+          <div class="detail-step"><div class="detail-step-num">3</div><div class="detail-step-text">搜尋你登錄的維度名稱（例如「電話號碼」），確認出現在清單中並可加入</div></div>
+          <div class="detail-step"><div class="detail-step-num">4</div><div class="detail-step-text">搭配對應的事件名稱建立維度交叉分析，確認各號碼的被撥次數有資料顯示</div></div>
+          <div class="detail-note">若超過 48 小時仍看不到維度，請回頭確認「事件參數名稱」與「自訂維度登錄的參數名稱」是否完全一致（包含大小寫）。</div>
+        </div>
+      </details>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-row">
+        <input class="cl-check" type="checkbox" id="c3">
+        <div class="cl-main">
+          <label class="cl-title" for="c3">事件命名健檢：確認命名符合規範</label>
+          <div class="cl-subtitle">統一命名格式，確保 GA4 報表長期可讀、可維護</div>
+        </div>
+      </div>
+      <details class="cl-detail">
+        <summary>查看詳細步驟</summary>
+        <div class="cl-detail-body">
+          <div class="detail-step"><div class="detail-step-num">1</div><div class="detail-step-text">事件名稱格式：<strong>全小寫 + 底線分隔</strong>（如 <span class="inline-code">click_phone_number</span>、<span class="inline-code">submit_contact_form</span>）</div></div>
+          <div class="detail-step"><div class="detail-step-num">2</div><div class="detail-step-text">確認沒有重複或容易混淆的名稱（如同時存在 <span class="inline-code">phone_click</span> 和 <span class="inline-code">click_phone</span>）</div></div>
+          <div class="detail-step"><div class="detail-step-num">3</div><div class="detail-step-text">避免使用 GA4 保留事件名稱（如 <span class="inline-code">session_start</span>、<span class="inline-code">first_visit</span> 等 GA4 內建名稱）</div></div>
+          <div class="detail-note">良好的命名規範能讓半年後接手的人（或你自己）看到報表就知道代表什麼，不需要查文件才能理解。</div>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">GTM 實務演練 · 事件追蹤確認清單</div>
+</footer>
+
+<script>
+const TOTAL = 13;
+const STORAGE_KEY = 'gtm_checklist';
+
+function saveState() {
+  const state = {};
+  document.querySelectorAll('.cl-check').forEach(cb => { state[cb.id] = cb.checked; });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  updateProgress();
+}
+
+function loadState() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+  const state = JSON.parse(raw);
+  Object.keys(state).forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.checked = state[id];
+  });
+  updateProgress();
+}
+
+function updateProgress() {
+  const checked = document.querySelectorAll('.cl-check:checked').length;
+  const pct = Math.round((checked / TOTAL) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = checked + ' / ' + TOTAL;
+}
+
+function resetAll() {
+  document.querySelectorAll('.cl-check').forEach(cb => { cb.checked = false; });
+  localStorage.removeItem(STORAGE_KEY);
+  updateProgress();
+}
+
+document.querySelectorAll('.cl-check').forEach(cb => cb.addEventListener('change', saveState));
+loadState();
+</script>
+</body>
+</html>

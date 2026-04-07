@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4.3 AI 計劃生成器（壓軸）｜AI 資料工廠</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a4:#6b7fa3;--radius:6px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.08);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a4);width:0%;transition:width .1s;}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px;}
+.back-link:hover{color:var(--c-a4);}
+.hero-eyebrow{font-size:.7rem;color:var(--c-a4);letter-spacing:2px;font-weight:500;margin-bottom:12px;}
+.page-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:12px;}
+.page-subtitle{font-size:.95rem;color:var(--c-muted);line-height:1.85;max-width:560px;}
+.final-banner{max-width:var(--content-w);margin:0 auto;padding:0 48px 32px;}
+.banner-inner{background:rgba(107,127,163,.08);border:1px solid rgba(107,127,163,.3);border-radius:var(--radius);padding:24px 28px;}
+.banner-label{font-size:.68rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:12px;}
+.project-steps{display:flex;flex-direction:column;gap:8px;}
+.project-step{display:flex;align-items:flex-start;gap:12px;font-size:.88rem;color:var(--c-text);}
+.ps-num{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-a4);width:22px;flex-shrink:0;}
+.steps-wrap{max-width:var(--content-w);margin:0 auto;padding:8px 48px 48px;}
+.step-block{display:flex;gap:24px;margin-bottom:44px;position:relative;}
+.step-block:not(:last-child)::after{content:'';position:absolute;left:19px;top:48px;width:2px;height:calc(100% - 16px);background:var(--c-border);}
+.step-circle{width:40px;height:40px;border-radius:50%;background:rgba(107,127,163,.1);border:2px solid var(--c-a4);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-weight:700;font-size:.95rem;color:var(--c-a4);flex-shrink:0;}
+.step-content{flex:1;padding-top:6px;}
+.step-heading{font-family:'Shippori Mincho',serif;font-size:1.15rem;font-weight:700;color:var(--c-text);margin-bottom:10px;}
+.step-body{font-size:.9rem;color:var(--c-text);line-height:1.9;margin-bottom:12px;}
+.code-block{background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.83rem;padding:20px 22px;border-radius:var(--radius);white-space:pre;overflow-x:auto;margin:12px 0;}
+.code-block .cm{color:#6b9b8a;}
+.code-block .ky{color:#9bb4d4;}
+.code-block .st{color:#b8d4a0;}
+.code-block .vr{color:#d4c08a;}
+.step-tip{font-size:.82rem;color:var(--c-muted);background:var(--c-surface);border-left:3px solid var(--c-border);padding:10px 14px;border-radius:0 var(--radius) var(--radius) 0;line-height:1.7;}
+.step-tip strong{color:var(--c-a4);font-weight:500;}
+.section-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:24px;}
+.prompt-box{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 24px;margin:16px 0;}
+.prompt-label{font-size:.68rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:12px;}
+.prompt-text{font-size:.87rem;color:var(--c-text);line-height:1.85;font-style:italic;border-left:3px solid var(--c-a4);padding-left:16px;}
+.verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:24px 28px;margin:40px 0;}
+.verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px;}
+.verify-text{font-size:.9rem;color:var(--c-text);line-height:1.85;}
+.completion-box{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25);border-radius:var(--radius);padding:28px 32px;margin:40px 0;text-align:center;}
+.comp-title{font-family:'Shippori Mincho',serif;font-size:1.4rem;font-weight:700;color:var(--c-text);margin-bottom:12px;}
+.comp-text{font-size:.92rem;color:var(--c-muted);line-height:1.9;}
+.comp-text strong{color:var(--c-a4);}
+.troubleshoot{margin:40px 0;}
+.ts-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:16px;}
+.ts-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 22px;margin-bottom:10px;}
+.ts-q{font-size:.87rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.ts-a{font-size:.85rem;color:var(--c-muted);line-height:1.75;}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a4);text-decoration:none;padding:10px 20px;border:1px solid rgba(107,127,163,.3);border-radius:var(--radius);transition:background .2s;}
+.nav-btn:hover{background:rgba(107,127,163,.07);}
+.nav-btn.primary{background:var(--c-a4);color:#fff;border-color:var(--c-a4);}
+.nav-btn.primary:hover{background:#5c6f91;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-div{width:1px;height:14px;background:var(--c-border);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 資料工廠</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">4.3 AI 計劃生成器（壓軸）</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="page-hero">
+  <a href="module4.html" class="back-link">← 返回 Module 4</a>
+  <div class="hero-eyebrow">FINAL PROJECT · 4.3</div>
+  <h1 class="page-title">AI 計劃生成器：課程壓軸實戰</h1>
+  <p class="page-subtitle">整合所有 Module 的技能——Webhook 接收需求，Gemini 生成完整行動計劃，自動存檔並發送通知。從一個點子到成品，全程自動。</p>
+</div>
+
+<div class="final-banner">
+  <div class="banner-inner">
+    <div class="banner-label">最終成果 · 完整流程</div>
+    <div class="project-steps">
+      <div class="project-step"><span class="ps-num">①</span><span>用手機填寫 Google 表單，輸入一個活動點子（如「2026 校慶科技展」）</span></div>
+      <div class="project-step"><span class="ps-num">②</span><span>Make 接收表單資料，HTTP 轉送到本機 n8n</span></div>
+      <div class="project-step"><span class="ps-num">③</span><span>n8n 呼叫 Gemini API，AI 生成結構化行動計劃（JSON 格式）</span></div>
+      <div class="project-step"><span class="ps-num">④</span><span>解析 AI 回傳，自動格式化成 Markdown 任務清單</span></div>
+      <div class="project-step"><span class="ps-num">⑤</span><span>Write File 儲存到本機，HTTP 回傳 Make → Gmail 發送完成通知</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="steps-wrap">
+  <div class="section-label">STEP BY STEP · 操作步驟</div>
+
+  <div class="step-block">
+    <div class="step-circle">1</div>
+    <div class="step-content">
+      <div class="step-heading">Google Forms：建立計劃需求表單</div>
+      <div class="step-body">建立新的 Google Forms 表單，加入以下欄位：<strong>專案名稱</strong>（如「2026 校慶科技展」）、<strong>目標</strong>（如「吸引 500 人參與，展示 AI 應用成果」）、<strong>期望交付物</strong>（如「活動企劃書、分工表、時程表」）、<strong>負責人</strong>。提交後由 Make 接收並轉送到 n8n（方法與 4.1 相同）。</div>
+      <div class="step-tip"><strong>提示：</strong>如果已完成 4.1，可以直接在原有表單加入「目標」和「期望交付物」欄位，Apps Script 會自動帶入所有欄位。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">2</div>
+    <div class="step-content">
+      <div class="step-heading">設計能穩定輸出 JSON 的 Prompt</div>
+      <div class="step-body">Prompt Engineering 是本步驟的核心。要讓 Gemini 穩定回傳可解析的 JSON，必須在 Prompt 中明確指定格式、禁止 markdown，並提供欄位範例。</div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt 範本</div>
+        <div class="prompt-text">你是一位專業的專案管理顧問。請針對以下專案需求，生成一個詳細的行動計劃，並以純 JSON 格式回傳（不要包含 markdown 標記或額外說明文字）。
+
+專案名稱：[專案名稱]
+目標：[目標]
+期望交付物：[期望交付物]
+
+JSON 格式如下：
+{"project": "...", "objective": "...", "tasks": [{"task": "任務名稱", "owner": "建議負責人角色", "start": "YYYY-MM-DD", "end": "YYYY-MM-DD", "status": "未開始", "deliverable": "產出"}]}</div>
+      </div>
+      <div class="step-tip"><strong>提示：</strong>明確寫「不要包含 markdown 標記」是關鍵。若 Gemini 仍然輸出 ```json ... ```，在 Code 節點加入清除 markdown 的邏輯。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">3</div>
+    <div class="step-content">
+      <div class="step-heading">HTTP Request 節點：呼叫 Gemini API 生成計劃</div>
+      <div class="step-body">在 n8n Webhook 後新增「HTTP Request」節點，呼叫 Gemini API。將表單欄位動態插入 Prompt，讓 AI 針對這次的具體需求生成計劃。</div>
+      <div class="code-block"><span class="cm">// HTTP Request 設定</span>
+Method: POST
+URL:    https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=YOUR_KEY
+
+<span class="cm">// Body（JSON）</span>
+{
+  <span class="ky">"contents"</span>: [{
+    <span class="ky">"parts"</span>: [{
+      <span class="ky">"text"</span>: <span class="st">"你是一位專業的專案管理顧問。請針對專案「{{ $json.body.project_name }}」，目標「{{ $json.body.objective }}」，期望交付物「{{ $json.body.deliverables }}」，生成詳細行動計劃。以純 JSON 格式回傳，不要包含 markdown：{\"project\":\"...\",\"tasks\":[{\"task\":\"...\",\"owner\":\"...\",\"start\":\"YYYY-MM-DD\",\"end\":\"YYYY-MM-DD\",\"status\":\"未開始\",\"deliverable\":\"...\"}]}"</span>
+    }]
+  }]
+}</div>
+      <div class="step-tip"><strong>提示：</strong>Gemini 2.0 Flash 速度快且免費，適合這類結構化輸出任務。若需要更複雜的計劃，改用 gemini-2.5-pro。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">4</div>
+    <div class="step-content">
+      <div class="step-heading">Code 節點：解析 AI 回傳並格式化成 Markdown</div>
+      <div class="step-body">用 Code 節點解析 Gemini 回傳的 JSON，然後把結構化任務清單轉換為易讀的 Markdown 格式——包含標題、目標說明、任務表格，以及任務狀態清單。</div>
+      <div class="code-block"><span class="cm">// Code 節點</span>
+<span class="ky">const</span> raw = $input.item.json.candidates[0].content.parts[0].text;
+<span class="ky">const</span> clean = raw.replace(/```[\w]*\n?|\n?```/g, <span class="st">''</span>).trim();
+<span class="ky">const</span> plan = JSON.parse(clean);
+
+<span class="ky">let</span> <span class="vr">md</span> = `# 行動計劃：${plan.project}\n\n`;
+<span class="vr">md</span> += `**目標：** ${plan.objective ?? <span class="st">'未指定'</span>}\n\n`;
+<span class="vr">md</span> += `## 任務清單\n\n`;
+
+plan.tasks.forEach(t => {
+  <span class="ky">const</span> done = t.status === <span class="st">'已完成'</span> ? <span class="st">'x'</span> : <span class="st">' '</span>;
+  <span class="vr">md</span> += `- [${done}] **${t.task}**\n`;
+  <span class="vr">md</span> += `  - 負責人：${t.owner}　期間：${t.start} ~ ${t.end}\n`;
+  <span class="vr">md</span> += `  - 產出：${t.deliverable}\n\n`;
+});
+
+<span class="ky">const</span> ts = <span class="ky">new</span> Date().toISOString().slice(0,10).replace(/-/g,<span class="st">''</span>);
+<span class="ky">const</span> fileName = `${ts}_${plan.project.replace(/\s/g,'_')}.md`;
+
+return [{ json: { md, fileName, project: plan.project } }];</div>
+      <div class="step-tip"><strong>提示：</strong><code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">?.（Optional Chaining）</code> 在這裡很有用——如果 AI 漏掉某個欄位，不會導致整個流程崩潰（例如 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">t.owner ?? '待指派'</code>）。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">5</div>
+    <div class="step-content">
+      <div class="step-heading">Write File 儲存計劃文件</div>
+      <div class="step-body">用「Convert to File」節點把 Markdown 字串轉為二進位，再用「Write Binary File」儲存到本機的計劃資料夾。檔名包含日期和專案名，格式如 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">20260402_校慶科技展.md</code>。</div>
+      <div class="code-block"><span class="cm">// Write Binary File 設定</span>
+File Name: /Users/你的名稱/Documents/AI計劃/{{ $json.fileName }}
+Data:      data（Convert to File 的輸出）</div>
+      <div class="step-tip"><strong>提示：</strong>Markdown 文件可以直接在 VS Code、Typora 或 GitHub 開啟並渲染，比純 txt 更專業。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">6</div>
+    <div class="step-content">
+      <div class="step-heading">回傳 Make → 發送 Gmail 完成通知</div>
+      <div class="step-body">最後，n8n 把計劃檔名和專案名回傳給 Make（方法與 4.2 相同），Make 發送 Gmail 通知，告知計劃已生成完畢，並附上檔案儲存位置的說明。</div>
+      <div class="code-block"><span class="cm">// n8n → Make 回傳 Body</span>
+{
+  <span class="ky">"status"</span>:    <span class="st">"success"</span>,
+  <span class="ky">"project"</span>:   <span class="st">"{{ $json.project }}"</span>,
+  <span class="ky">"fileName"</span>:  <span class="st">"{{ $json.fileName }}"</span>
+}</div>
+      <div class="step-tip"><strong>提示：</strong>這是整個課程最後一個節點！完成後可以嘗試用手機填表，全程不碰電腦，看著文件自動生成。</div>
+    </div>
+  </div>
+
+  <div class="verify-box">
+    <div class="verify-label">完成驗證 · VERIFY</div>
+    <div class="verify-text">填寫 Google Forms 提交後：<strong>（1）</strong>本機「AI計劃」資料夾出現 Markdown 文件，<strong>（2）</strong>打開文件確認任務清單結構完整（有任務名稱、負責人、日期），<strong>（3）</strong>Gmail 收到完成通知。三點全部達成，代表課程壓軸實戰成功。</div>
+  </div>
+
+  <div class="completion-box">
+    <div class="comp-title">恭喜完成整門課程</div>
+    <div class="comp-text">你已整合了 Module 1 的環境建置、Module 2 的數據引用與邏輯判斷、Module 3 的批次文件處理，以及 Module 4 的雲地協作與 AI 生成——打造出一套屬於自己的<strong>全自動 AI 工作流程</strong>。<br>這不是終點，而是你探索更多可能性的起點。</div>
+  </div>
+
+  <div class="troubleshoot">
+    <div class="ts-label">常見問題 · TROUBLESHOOT</div>
+    <div class="ts-item">
+      <div class="ts-q">Gemini 回傳的 JSON 格式不穩定，有時包含 markdown 有時不包含？</div>
+      <div class="ts-a">在 Code 節點加入標準化清除邏輯：<code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">const clean = raw.replace(/```[\w]*\n?|\n?```/g, '').trim()</code>，無論有沒有 markdown 包裝都能安全解析。同時把 JSON.parse 包在 try-catch 中，失敗時記錄原始 raw 方便 debug。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">AI 生成的任務清單只有 2-3 項，感覺不夠詳細？</div>
+      <div class="ts-a">在 Prompt 中加入數量要求，如「請生成至少 6 個具體任務」。另外在「目標」欄位填入更多細節，AI 會根據輸入的豐富程度調整輸出深度。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">整個流程跑到一半停了，不知道哪個節點出錯？</div>
+      <div class="ts-a">在 n8n 的「Executions」頁籤查看最近的執行記錄，點擊失敗的執行可以看到每個節點的輸入/輸出，找到第一個紅色錯誤節點逐一排查。</div>
+    </div>
+  </div>
+</div>
+
+<div class="nav-footer">
+  <a href="m4-2-hybrid.html" class="nav-btn">← 4.2 雙引擎協作</a>
+  <a href="index.html" class="nav-btn primary">返回課程總覽 →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">淡江大學 · 生成式AI工作坊</span>
+</footer>
+
+<script>
+const fill = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  fill.style.width = pct + '%';
+});
+</script>
+</body>
+</html>

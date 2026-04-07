@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRAC2-1 GA4 事件命名健檢表｜GTM 實務演練</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#8c8880;
+  --c-a1:#b5703a; --c-a2:#c9963a; --c-a3:#5a7a5a; --c-a4:#6b7fa3;
+  --radius:6px; --radius-sm:4px; --content-w:780px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a2);border:1px solid rgba(201,150,58,.3);background:rgba(201,150,58,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a2);width:0%;transition:width .1s;}
+
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a2);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-a2);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+
+/* ── 互動工具 UI ── */
+.app-container{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:40px;box-shadow:0 12px 32px rgba(0,0,0,.03);margin-bottom:48px;}
+.app-title{font-family:'Shippori Mincho',serif;font-size:1.3rem;font-weight:700;color:var(--c-text);margin-bottom:8px;}
+.app-desc{font-size:.85rem;color:var(--c-muted);margin-bottom:24px;}
+
+.input-group{margin-bottom:24px;}
+.input-label{display:block;font-size:.85rem;font-weight:700;margin-bottom:8px;color:var(--c-text);}
+.text-input{width:100%;padding:14px 16px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:monospace;font-size:1.1rem;color:var(--c-text);outline:none;transition:border-color .2s;background:var(--c-bg);}
+.text-input:focus{border-color:var(--c-a2);background:#fff;}
+
+.result-box{padding:20px;border-radius:var(--radius-sm);border:1px solid transparent;display:flex;align-items:flex-start;gap:12px;opacity:0;transform:translateY(10px);transition:all .3s;}
+.result-box.show{opacity:1;transform:translateY(0);}
+
+.result-box.success{background:rgba(90,122,90,.08);border-color:rgba(90,122,90,.3);}
+.result-box.success .icon{color:#5a7a5a;}
+
+.result-box.error{background:rgba(181,112,58,.08);border-color:rgba(181,112,58,.3);}
+.result-box.error .icon{color:#b5703a;}
+
+.result-icon{font-size:1.2rem;margin-top:2px;}
+.result-content{flex:1;}
+.result-title{font-size:.95rem;font-weight:700;margin-bottom:4px;}
+.result-box.success .result-title{color:#3d563d;}
+.result-box.error .result-title{color:#8f5020;}
+.result-msg{font-size:.85rem;line-height:1.6;}
+.result-box.success .result-msg{color:#5a7a5a;}
+.result-box.error .result-msg{color:#b5703a;}
+
+.rule-list{margin-top:40px;padding-top:32px;border-top:1px solid var(--c-border);}
+.rule-list h4{font-size:.9rem;font-weight:700;margin-bottom:12px;}
+.rule-list ul{list-style:none;font-size:.85rem;color:var(--c-muted);}
+.rule-list li{margin-bottom:6px;padding-left:16px;position:relative;}
+.rule-list li::before{content:"•";position:absolute;left:0;color:var(--c-a2);}
+
+.quiz-section{margin-bottom:48px;}
+.quiz-intro{font-size:.88rem;color:var(--c-muted);margin-bottom:24px;line-height:1.8;}
+.quiz-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;}
+.quiz-q{padding:18px 20px;font-size:.9rem;line-height:1.6;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;user-select:none;}
+.quiz-q:hover{background:var(--c-surface);}
+.quiz-q-text{flex:1;}
+.quiz-tag{font-size:.7rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.07);padding:2px 10px;border-radius:99px;white-space:nowrap;flex-shrink:0;transition:all .2s;}
+.quiz-reveal{display:none;padding:16px 20px;border-top:1px solid var(--c-border);background:rgba(90,122,90,.05);}
+.quiz-reveal.open{display:block;}
+.quiz-answer{font-family:monospace;font-size:1.05rem;color:var(--c-a3);font-weight:700;margin-bottom:6px;}
+.quiz-explain{font-size:.82rem;color:var(--c-muted);line-height:1.65;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.3rem;font-weight:700;color:var(--c-text);margin-bottom:12px;}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-a2);}
+.nav-btn.prev{justify-content:flex-start;text-align:left;}
+.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.nav-spacer{flex:1;}
+
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.lesson-hero { animation:fadeUp .4s ease both; }
+.app-container { animation:fadeUp .5s .15s ease both; }
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero{padding:40px 20px 36px;}.lesson-title{font-size:1.55rem;}.lesson-body{padding:0 20px 60px;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="logo" href="../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">GTM 實務演練</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">PRACTICE</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="progressFill"></div></div>
+
+<section class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程目錄</a>
+  <div class="hero-meta">
+    <span class="hero-part">PART 2 · 基礎追蹤與 Chrome 工具運用</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">演練 1</span>
+  </div>
+  <h1 class="lesson-title">GA4 事件命名健檢表</h1>
+  <p class="lesson-tagline">在 GA4 中，事件命名如果隨心所欲（例如中英夾雜、大小寫混用），後續整理報表時會非常痛苦。請使用下方的工具，測試你心裡想的事件名稱是否符合國際標準的「蛇形命名法 (snake_case)」。</p>
+</section>
+
+<main class="lesson-body">
+
+  <div class="quiz-section">
+    <h2 class="section-heading">情境練習：你會怎麼命名？</h2>
+    <p class="quiz-intro">以下是 5 個常見的追蹤情境。先在腦中想好事件名稱，再點擊展開答案。沒有唯一正解，但必須符合 snake_case 規範。</p>
+
+    <div class="quiz-card">
+      <div class="quiz-q" onclick="toggleQuiz(this)">
+        <span class="quiz-q-text">你要追蹤首頁「立即報名」按鈕被點擊的行為</span>
+        <span class="quiz-tag">點擊展開</span>
+      </div>
+      <div class="quiz-reveal">
+        <div class="quiz-answer">sign_up_click</div>
+        <div class="quiz-explain">click_register_btn 也可接受。重點是全小寫、底線分隔，命名能清楚表達這是「報名」動作。</div>
+      </div>
+    </div>
+
+    <div class="quiz-card">
+      <div class="quiz-q" onclick="toggleQuiz(this)">
+        <span class="quiz-q-text">你要追蹤聯絡頁面上的電話號碼被點擊（tel: 連結）</span>
+        <span class="quiz-tag">點擊展開</span>
+      </div>
+      <div class="quiz-reveal">
+        <div class="quiz-answer">click_phone_number</div>
+        <div class="quiz-explain">phone_click 也可接受，但 clickPhoneNumber（駝峰式）不符合規範。</div>
+      </div>
+    </div>
+
+    <div class="quiz-card">
+      <div class="quiz-q" onclick="toggleQuiz(this)">
+        <span class="quiz-q-text">你要追蹤「下載免費指南」PDF 的按鈕點擊</span>
+        <span class="quiz-tag">點擊展開</span>
+      </div>
+      <div class="quiz-reveal">
+        <div class="quiz-answer">download_guide</div>
+        <div class="quiz-explain">file_download 是 GA4 的自動追蹤事件名稱，建議另立自訂名稱以區別手動與自動追蹤。</div>
+      </div>
+    </div>
+
+    <div class="quiz-card">
+      <div class="quiz-q" onclick="toggleQuiz(this)">
+        <span class="quiz-q-text">表單送出成功後，頁面出現「感謝您的訊息」字樣</span>
+        <span class="quiz-tag">點擊展開</span>
+      </div>
+      <div class="quiz-reveal">
+        <div class="quiz-answer">generate_lead</div>
+        <div class="quiz-explain">GA4 的建議標準事件名稱，代表產生潛在客戶線索。使用標準命名有助於未來整合 Google Ads 轉換追蹤。</div>
+      </div>
+    </div>
+
+    <div class="quiz-card">
+      <div class="quiz-q" onclick="toggleQuiz(this)">
+        <span class="quiz-q-text">你要追蹤連到粉絲專頁的 Facebook 圖示被點擊</span>
+        <span class="quiz-tag">點擊展開</span>
+      </div>
+      <div class="quiz-reveal">
+        <div class="quiz-answer">click_social_facebook</div>
+        <div class="quiz-explain">加上平台名稱（facebook）有助於後續在 GA4 過濾各平台的社群連結點擊數據。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <div class="app-title">輸入你想設定的事件名稱</div>
+    <div class="app-desc">即時檢測是否符合 GA4 最佳實踐</div>
+
+    <div class="input-group">
+      <input type="text" id="eventNameInput" class="text-input" placeholder="例如: click_promo_btn" autocomplete="off" spellcheck="false">
+    </div>
+
+    <div id="resultBox" class="result-box">
+      <div id="resultIcon" class="result-icon"></div>
+      <div class="result-content">
+        <div id="resultTitle" class="result-title"></div>
+        <div id="resultMsg" class="result-msg"></div>
+      </div>
+    </div>
+
+    <div class="rule-list">
+      <h4>GA4 命名黃金守則</h4>
+      <ul>
+        <li>只能使用<strong>小寫英文字母</strong>與<strong>數字</strong>。</li>
+        <li>單字與單字之間，只能使用<strong>底線 (_)</strong> 連接。</li>
+        <li>禁止使用空格、中文字、大寫字母、連字號 (-) 或其他特殊符號。</li>
+      </ul>
+    </div>
+  </div>
+
+</main>
+
+<nav class="lesson-nav">
+  <a class="nav-btn prev" href="CH2-3.html">
+    <span>←</span>
+    <div>
+      <div class="nav-btn-label">上一節</div>
+      <div class="nav-btn-title">2.3 精準按鈕點擊追蹤</div>
+    </div>
+  </a>
+  <div class="nav-spacer"></div>
+  <a class="nav-btn next" href="../part3/CH3-1.html">
+    <div>
+      <div class="nav-btn-label">下一節：進入 PART 3</div>
+      <div class="nav-btn-title">3.1 追蹤表單送出</div>
+    </div>
+    <span>→</span>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">互動演練工具</div>
+</footer>
+
+<script>
+function toggleQuiz(el) {
+  const reveal = el.nextElementSibling;
+  const tag = el.querySelector('.quiz-tag');
+  const isOpen = reveal.classList.contains('open');
+  reveal.classList.toggle('open', !isOpen);
+  tag.textContent = isOpen ? '點擊展開' : '收起';
+}
+
+window.addEventListener('scroll', () => {
+  const d = document.documentElement;
+  const pct = d.scrollHeight - d.clientHeight > 0
+    ? (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100 : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+});
+
+const input = document.getElementById('eventNameInput');
+const box = document.getElementById('resultBox');
+const icon = document.getElementById('resultIcon');
+const title = document.getElementById('resultTitle');
+const msg = document.getElementById('resultMsg');
+
+input.addEventListener('input', (e) => {
+  const val = e.target.value;
+  
+  if (!val) {
+    box.classList.remove('show', 'success', 'error');
+    return;
+  }
+
+  box.classList.add('show');
+  box.classList.remove('success', 'error');
+
+  // 驗證邏輯
+  const hasUpperCase = /[A-Z]/.test(val);
+  const hasSpace = /\s/.test(val);
+  const hasHyphen = /-/.test(val);
+  const hasSpecial = /[^a-z0-9_]/.test(val);
+  
+  let errors = [];
+  if (hasUpperCase) errors.push('包含大寫字母');
+  if (hasSpace) errors.push('包含空格');
+  if (hasHyphen) errors.push('使用了連字號 (-) 而不是底線');
+  if (hasSpecial && !hasUpperCase && !hasSpace && !hasHyphen) errors.push('包含不允許的特殊符號或中文字');
+
+  if (errors.length > 0) {
+    box.classList.add('error');
+    icon.textContent = '❌';
+    title.textContent = '命名不合格';
+    
+    // 提供建議
+    let suggestion = val.toLowerCase().replace(/\s+/g, '_').replace(/-/g, '_').replace(/[^a-z0-9_]/g, '');
+    msg.innerHTML = `錯誤：${errors.join('、')}。<br>建議修改為：<strong>${suggestion || '請重新輸入'}</strong>`;
+  } else {
+    box.classList.add('success');
+    icon.textContent = '✅';
+    title.textContent = '完美的命名！';
+    msg.textContent = '完全符合 GA4 的 snake_case 標準，請安心使用。';
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH2-1 全站頁面瀏覽與 GA4 設定代碼｜GTM 實務演練</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#8c8880;
+  --c-a1:#b5703a; --c-a2:#c9963a; --c-a3:#5a7a5a; --c-a4:#6b7fa3;
+  --radius:6px; --radius-sm:4px; --content-w:780px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a2);border:1px solid rgba(201,150,58,.3);background:rgba(201,150,58,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a2);width:0%;transition:width .1s;}
+
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a2);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-a2);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a2);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-a2);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a2);margin-top:8px;flex-shrink:0;}
+
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-a2);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+
+.step-list{display:flex;flex-direction:column;gap:16px;margin:28px 0;}
+.step-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:24px;display:flex;gap:20px;align-items:flex-start;}
+.step-num{font-family:'Shippori Mincho',serif;font-size:1.8rem;font-weight:700;color:var(--c-a2);line-height:1;margin-top:2px;}
+.step-content{flex:1;}
+.step-title{font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:8px;}
+.step-desc{font-size:.88rem;color:var(--c-muted);line-height:1.7;}
+
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout.key{background:rgba(181,112,58,.07);border:1px solid rgba(181,112,58,.25);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text);}
+.inline-code{font-family:'Courier New',monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 6px;border-radius:3px;}
+
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-a2);}
+.nav-btn.prev{justify-content:flex-start;text-align:left;}
+.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.nav-spacer{flex:1;}
+
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.lesson-hero .back-link      { animation:fadeUp .4s ease both; }
+.lesson-hero .hero-meta      { animation:fadeUp .45s .08s ease both; }
+.lesson-hero .lesson-title   { animation:fadeUp .55s .15s ease both; }
+.lesson-hero .lesson-tagline { animation:fadeUp .5s  .26s ease both; }
+.lesson-hero .outcomes       { animation:fadeUp .45s .36s ease both; }
+
+.reveal {
+  opacity:0;
+  transform:translateY(22px);
+  transition:opacity .65s cubic-bezier(.16,1,.3,1), transform .65s cubic-bezier(.16,1,.3,1);
+}
+.reveal.in { opacity:1; transform:translateY(0); }
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero{padding:40px 20px 36px;}.lesson-title{font-size:1.55rem;}.lesson-body{padding:0 20px 60px;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="logo" href="../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">GTM 實務演練</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH2-1</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="progressFill"></div></div>
+
+<section class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程目錄</a>
+  <div class="hero-meta">
+    <span class="hero-part">PART 2 · 基礎追蹤與 Chrome 工具運用</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">2.1</span>
+  </div>
+  <h1 class="lesson-title">第一張代碼：<br>全站頁面瀏覽與 GA4 設定</h1>
+  <p class="lesson-tagline">數據追蹤的起手式！我們要設定一個貫穿全站的「底層代碼」，這也是所有進階追蹤與電子商務事件能夠順利運作的地基。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學完這節，你會</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>在 GTM 中建立「Google 代碼 (Google Tag)」</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>完成第一個「All Pages」觸發設定</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>在 GTM 預覽模式中確認代碼已成功啟動</div>
+  </div>
+</section>
+
+<main class="lesson-body">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 01</div>
+    <h2 class="section-heading">為什麼要追蹤<em>頁面瀏覽</em>？</h2>
+    <p class="body-text">「頁面瀏覽 (Page View)」是所有追蹤的基礎。如果連使用者看了哪些頁面都不知道，就更別提後續的點擊、轉化或購買分析了。</p>
+    <p class="body-text">在 GTM 中，我們只需設定一次「Google 代碼」，它就會自動涵蓋全站的所有頁面，並作為日後所有 GA4 事件的設定基礎。</p>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 02</div>
+    <h2 class="section-heading">開始設定：<em>建立 Google 代碼</em></h2>
+    <p class="body-text">請依照以下步驟，在 GTM 後台完成設定：</p>
+
+    <div class="step-list">
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <div class="step-title">新增代碼</div>
+          <div class="step-desc">點擊左側選單的「代碼 (Tags)」，然後點擊右上角的「新增 (New)」。將代碼命名為 <strong>「GA4 - 設定 - 全站瀏覽」</strong>。</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <div class="step-title">代碼設定</div>
+          <div class="step-desc">點擊「代碼設定」，選擇 <strong>「Google 代碼 (Google Tag)」</strong>。在「代碼 ID」欄位中填入你從 GA4 後台取得的衡量 ID（格式如：G-XXXXXXXX）。</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <div class="step-title">觸發條件</div>
+          <div class="step-desc">點擊下方的「觸發條件」。因為我們要追蹤全站，所以直接選擇系統內建的 <strong>「All Pages (所有網頁瀏覽)」</strong>，然後點擊右上角的「儲存」。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 03</div>
+    <h2 class="section-heading">預覽：<em>確認代碼有運作嗎？</em></h2>
+    <p class="body-text">完成設定後，我們要立刻測試，確保這張重要的地基代碼真的有打出去。</p>
+
+    <div class="callout tip">
+      <div class="callout-icon">🔍</div>
+      <div class="callout-body">
+        <strong>測試步驟：</strong>點擊 GTM 頂部的「預覽 (Preview)」。在彈出視窗輸入測試網址並連線後，回到 Tag Assistant 畫面。<br><br>
+        點擊左側時間軸最上方的「Container Loaded」事件，看右邊的 <strong>Tags Fired</strong> 區塊，如果出現了「GA4 - 設定 - 全站瀏覽」，恭喜你，設定成功了！
+      </div>
+    </div>
+
+    <p class="body-text">有了這個地基，下一節我們將化身為「網頁外科醫生」，學習如何拆解網頁上的按鈕結構，準備進行精準的點擊追蹤。</p>
+  </div>
+
+</main>
+
+<nav class="lesson-nav">
+  <a class="nav-btn prev" href="../part1/CH1-4.html">
+    <span>←</span>
+    <div>
+      <div class="nav-btn-label">上一節</div>
+      <div class="nav-btn-title">1.4 安裝 GTM 容器碼</div>
+    </div>
+  </a>
+  <div class="nav-spacer"></div>
+  <a class="nav-btn next" href="CH2-2.html">
+    <div>
+      <div class="nav-btn-label">下一節</div>
+      <div class="nav-btn-title">2.2 看懂網頁骨架：CSS 選擇器基礎</div>
+    </div>
+    <span>→</span>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">Part 2 · 1 of 3</div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const d = document.documentElement;
+  const pct = d.scrollHeight - d.clientHeight > 0
+    ? (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100 : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+});
+
+(function(){
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, { threshold: .1, rootMargin: '0px 0px -48px 0px' });
+
+  document.querySelectorAll('.lesson-section, .section-rule').forEach(el => {
+    el.classList.add('reveal');
+    io.observe(el);
+  });
+})();
+</script>
+</body>
+</html>

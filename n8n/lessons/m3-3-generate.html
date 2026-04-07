@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3.3 Excel 轉 Word 批次生成｜AI 資料工廠</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a4:#6b7fa3;--radius:6px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.08);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a4);width:0%;transition:width .1s;}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px;}
+.back-link:hover{color:var(--c-a4);}
+.hero-eyebrow{font-size:.7rem;color:var(--c-a4);letter-spacing:2px;font-weight:500;margin-bottom:12px;}
+.page-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:12px;}
+.page-subtitle{font-size:.95rem;color:var(--c-muted);line-height:1.85;max-width:560px;}
+.analogy-box{max-width:var(--content-w);margin:0 auto;padding:0 48px 32px;}
+.analogy-inner{padding:24px 28px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);}
+.analogy-label{font-size:.68rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:10px;}
+.analogy-text{font-size:.92rem;color:var(--c-text);line-height:1.9;}
+.steps-wrap{max-width:var(--content-w);margin:0 auto;padding:32px 48px 48px;}
+.step-block{display:flex;gap:24px;margin-bottom:44px;position:relative;}
+.step-block:not(:last-child)::after{content:'';position:absolute;left:19px;top:48px;width:2px;height:calc(100% - 16px);background:var(--c-border);}
+.step-circle{width:40px;height:40px;border-radius:50%;background:rgba(107,127,163,.1);border:2px solid var(--c-a4);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-weight:700;font-size:.95rem;color:var(--c-a4);flex-shrink:0;}
+.step-content{flex:1;padding-top:6px;}
+.step-heading{font-family:'Shippori Mincho',serif;font-size:1.15rem;font-weight:700;color:var(--c-text);margin-bottom:10px;}
+.step-body{font-size:.9rem;color:var(--c-text);line-height:1.9;margin-bottom:12px;}
+.code-block{background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.83rem;padding:20px 22px;border-radius:var(--radius);white-space:pre;overflow-x:auto;margin:12px 0;}
+.code-block .cm{color:#6b9b8a;}
+.code-block .ky{color:#9bb4d4;}
+.code-block .st{color:#b8d4a0;}
+.code-block .vr{color:#d4c08a;}
+.step-tip{font-size:.82rem;color:var(--c-muted);background:var(--c-surface);border-left:3px solid var(--c-border);padding:10px 14px;border-radius:0 var(--radius) var(--radius) 0;line-height:1.7;}
+.step-tip strong{color:var(--c-a4);font-weight:500;}
+.section-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:24px;}
+.excel-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.85rem;}
+.excel-table th{background:var(--c-surface);border:1px solid var(--c-border);padding:8px 14px;text-align:left;font-weight:600;color:var(--c-a4);font-size:.78rem;letter-spacing:.5px;}
+.excel-table td{border:1px solid var(--c-border);padding:8px 14px;color:var(--c-text);}
+.excel-table tr:nth-child(even) td{background:var(--c-surface);}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:16px 0;}
+.callout.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25);}
+.callout-icon{font-size:1rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.87rem;line-height:1.8;color:var(--c-text);}
+.verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:24px 28px;margin:40px 0;}
+.verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px;}
+.verify-text{font-size:.9rem;color:var(--c-text);line-height:1.85;}
+.troubleshoot{margin:40px 0;}
+.ts-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:16px;}
+.ts-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 22px;margin-bottom:10px;}
+.ts-q{font-size:.87rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.ts-a{font-size:.85rem;color:var(--c-muted);line-height:1.75;}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a4);text-decoration:none;padding:10px 20px;border:1px solid rgba(107,127,163,.3);border-radius:var(--radius);transition:background .2s;}
+.nav-btn:hover{background:rgba(107,127,163,.07);}
+.nav-btn.primary{background:var(--c-a4);color:#fff;border-color:var(--c-a4);}
+.nav-btn.primary:hover{background:#5c6f91;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-div{width:1px;height:14px;background:var(--c-border);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 資料工廠</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">3.3 Excel 轉 Word</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="page-hero">
+  <a href="module3.html" class="back-link">← 返回 Module 3</a>
+  <div class="hero-eyebrow">DOCUMENT GENERATION · 3.3</div>
+  <h1 class="page-title">Excel 轉 Word：批次生成客製文件</h1>
+  <p class="page-subtitle">自動化邀請函、結業證書等客製化文件生成——一份 Excel 名單，一鍵產出 100 份完整文件。</p>
+</div>
+
+<div class="analogy-box">
+  <div class="analogy-inner">
+    <div class="analogy-label">生活類比 · ANALOGY</div>
+    <div class="analogy-text">想像你要寄出 100 份邀請函，每份只有姓名和時間不同。以前你需要一份一份修改。現在，你只需要準備一份「範本」（Word）和一份「名單」（Excel），n8n 的 Loop 就像一條生產線，自動將每筆數據填入範本，一鍵產出 100 份完整文件。</div>
+  </div>
+</div>
+
+<div class="steps-wrap">
+  <div class="section-label">STEP BY STEP · 操作步驟</div>
+
+  <div class="step-block">
+    <div class="step-circle">1</div>
+    <div class="step-content">
+      <div class="step-heading">準備 Excel 名單（格式規範）</div>
+      <div class="step-body">在開始建流程之前，先確認 Excel 檔案的格式正確。第一行必須是欄位標題（Header），後面每一行是一筆數據。以下是本範例使用的欄位結構：</div>
+      <table class="excel-table">
+        <thead>
+          <tr><th>姓名</th><th>單位</th><th>日期</th><th>課程名稱</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>王小明</td><td>資訊工程系</td><td>2026-04-15</td><td>生成式AI工作坊</td></tr>
+          <tr><td>李美華</td><td>企業管理系</td><td>2026-04-15</td><td>生成式AI工作坊</td></tr>
+          <tr><td>張建國</td><td>外語學院</td><td>2026-04-15</td><td>生成式AI工作坊</td></tr>
+        </tbody>
+      </table>
+      <div class="step-tip"><strong>提示：</strong>欄位名稱（第一行）不要有空格或特殊符號，後續在 n8n 中用 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">{{ $json.姓名 }}</code> 直接引用。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">2</div>
+    <div class="step-content">
+      <div class="step-heading">Read Excel File 節點：讀取 Excel 名單</div>
+      <div class="step-body">新增「Read Excel File」節點。在「File Path」填入 Excel 完整路徑，勾選「First Row is Header」讓 n8n 用第一行作為 JSON 的欄位名稱。執行後，每一行數據會變成一個獨立的 JSON 物件。</div>
+      <div class="code-block"><span class="cm">// 節點設定</span>
+File Path:          /Users/你的名稱/Documents/名單.xlsx
+First Row is Header: ✓ 勾選
+Sheet Name:         Sheet1（或留空使用第一個工作表）
+
+<span class="cm">// 輸出範例（每行數據）</span>
+{
+  <span class="ky">"姓名"</span>: <span class="st">"王小明"</span>,
+  <span class="ky">"單位"</span>: <span class="st">"資訊工程系"</span>,
+  <span class="ky">"日期"</span>: <span class="st">"2026-04-15"</span>,
+  <span class="ky">"課程名稱"</span>: <span class="st">"生成式AI工作坊"</span>
+}</div>
+      <div class="step-tip"><strong>提示：</strong>若讀取失敗，確認 Excel 格式是 .xlsx（不是 .xls 或 .csv），且檔案沒有被其他程式開啟鎖定。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">3</div>
+    <div class="step-content">
+      <div class="step-heading">Loop Over Items 節點：迭代每一筆資料</div>
+      <div class="step-body">連接「Loop Over Items」節點。這個節點會把 Excel 輸出的多筆資料，一筆一筆送進後面的節點處理——第一次送王小明的資料，第二次送李美華的，依此類推，直到所有人都處理完畢。</div>
+      <div class="callout info">
+        <span class="callout-icon">💡</span>
+        <div class="callout-body">Loop Over Items 是批次處理的核心。它不需要特別設定，直接連接到 Read Excel File 輸出即可。n8n 會自動偵測有多少項目並依序迭代。</div>
+      </div>
+      <div class="step-tip"><strong>提示：</strong>Loop 內的節點每次只處理「當前那一筆」的資料，用 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">{{ $json.欄位名 }}</code> 即可取得當次資料。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">4</div>
+    <div class="step-content">
+      <div class="step-heading">Code 節點：組合文件內容字串</div>
+      <div class="step-body">在 Loop 內新增「Code」節點，把當前這筆 Excel 資料組合成完整的文件文字內容。這個文字就是最終文件的主體——你可以根據需求改成邀請函、結業證書或通知書格式。</div>
+      <div class="code-block"><span class="cm">// Code 節點 - 組合文件內容</span>
+<span class="ky">const</span> <span class="vr">name</span> = $input.item.json[<span class="st">'姓名'</span>];
+<span class="ky">const</span> <span class="vr">dept</span> = $input.item.json[<span class="st">'單位'</span>];
+<span class="ky">const</span> <span class="vr">date</span> = $input.item.json[<span class="st">'日期'</span>];
+<span class="ky">const</span> <span class="vr">course</span> = $input.item.json[<span class="st">'課程名稱'</span>];
+
+<span class="ky">const</span> content = `結業證書
+
+茲證明 ${name} 同學（${dept}）
+已完成「${course}」課程，
+修習日期：${date}，
+特頒此證書，以資證明。
+
+                淡江大學 生成式AI工作坊`;
+
+<span class="ky">const</span> fileName = `${name}_結業證書.txt`;
+
+return [{ json: { content, fileName, name, dept, date, course } }];</div>
+      <div class="step-tip"><strong>提示：</strong>n8n 原生不支援直接產生 .docx，建議先輸出 .txt 純文字檔，或使用 HTTP Request 呼叫 Google Docs API 填入範本文件。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">5</div>
+    <div class="step-content">
+      <div class="step-heading">Write Binary File 節點：儲存文件到本機</div>
+      <div class="step-body">新增「Write Binary File」節點。先用「Convert to File」節點把文字轉為二進位，再在 Write Binary File 的「File Name」填入動態檔名，將每份文件儲存到指定的輸出資料夾。</div>
+      <div class="code-block"><span class="cm">// Convert to File 節點</span>
+Source Data:  JSON
+Field:        content（Code 節點產生的字串）
+
+<span class="cm">// Write Binary File 節點</span>
+File Name:    /Users/你的名稱/Documents/結業證書/{{ $json.fileName }}
+Data:         data（Convert to File 的輸出）</div>
+      <div class="step-tip"><strong>提示：</strong>確保輸出資料夾（如「結業證書」）已存在，n8n 不會自動建立資料夾。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">6</div>
+    <div class="step-content">
+      <div class="step-heading">批次驗證：確認產出數量與內容</div>
+      <div class="step-body">執行完整流程後，打開輸出資料夾，確認生成的文件數量是否與 Excel 名單的總行數相符。隨機開啟幾份文件，確認每份裡的姓名、單位、日期都正確填入了對應那個人的資料。</div>
+      <div class="step-tip"><strong>提示：</strong>在 Loop Over Items 節點的執行記錄中，可以看到總共跑了幾次迭代，與 Excel 行數對照確認無誤。</div>
+    </div>
+  </div>
+
+  <div class="verify-box">
+    <div class="verify-label">完成驗證 · VERIFY</div>
+    <div class="verify-text">輸出資料夾中的檔案數量與 Excel 名單行數完全一致（例如 3 筆資料 → 3 個文件）。每份文件的<strong>姓名、單位、日期</strong>都正確替換，不存在任何顯示 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">undefined</code> 或空白的欄位。</div>
+  </div>
+
+  <div class="troubleshoot">
+    <div class="ts-label">常見問題 · TROUBLESHOOT</div>
+    <div class="ts-item">
+      <div class="ts-q">Excel 讀取後欄位顯示 undefined 或找不到欄位？</div>
+      <div class="ts-a">請確認 Read Excel File 節點有勾選「First Row is Header」。若欄位名稱含有空格（如「學 生 姓 名」），在 Code 節點中用 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">$input.item.json['學 生 姓 名']</code> 方括號語法取值（而非點語法）。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">Loop 只執行了一次，只產出一份文件？</div>
+      <div class="ts-a">確認 Read Excel File 節點輸出的是多個 items（Output 面板右上角顯示「3 items」等）。若輸出只有 1 item（整個 Excel 是一個陣列），需要在 Loop 前加一個「Split Out」節點先把陣列拆開成個別 items。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">Write Binary File 失敗，說資料夾不存在？</div>
+      <div class="ts-a">手動在 Finder（Mac）或檔案總管（Windows）中先建立好輸出資料夾。n8n 的 Write Binary File 節點不會自動建立不存在的資料夾。</div>
+    </div>
+  </div>
+</div>
+
+<div class="nav-footer">
+  <a href="m3-2-rename.html" class="nav-btn">← 3.2 PDF 批次改名</a>
+  <a href="module4.html" class="nav-btn primary">前往 Module 4 →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">淡江大學 · 生成式AI工作坊</span>
+</footer>
+
+<script>
+const fill = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  fill.style.width = pct + '%';
+});
+</script>
+</body>
+</html>

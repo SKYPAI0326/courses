@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH3-3 追蹤網頁捲動深度｜GTM 實務演練</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#8c8880;
+  --c-a1:#b5703a; --c-a2:#c9963a; --c-a3:#5a7a5a; --c-a4:#6b7fa3;
+  --radius:6px; --radius-sm:4px; --content-w:780px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a3);border:1px solid rgba(90,122,90,.3);background:rgba(90,122,90,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a3);width:0%;transition:width .1s;}
+
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a3);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-a3);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a3);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-a3);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a3);margin-top:8px;flex-shrink:0;}
+
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-a3);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+
+.step-list{display:flex;flex-direction:column;gap:16px;margin:28px 0;}
+.step-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:24px;display:flex;gap:20px;align-items:flex-start;}
+.step-num{font-family:'Shippori Mincho',serif;font-size:1.8rem;font-weight:700;color:var(--c-a3);line-height:1;margin-top:2px;}
+.step-content{flex:1;}
+.step-title{font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:8px;}
+.step-desc{font-size:.88rem;color:var(--c-muted);line-height:1.7;}
+
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout.key{background:rgba(181,112,58,.07);border:1px solid rgba(181,112,58,.25);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text);}
+.inline-code{font-family:'Courier New',monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 6px;border-radius:3px;}
+
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-a3);}
+.nav-btn.prev{justify-content:flex-start;text-align:left;}
+.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.nav-spacer{flex:1;}
+
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.lesson-hero .back-link      { animation:fadeUp .4s ease both; }
+.lesson-hero .hero-meta      { animation:fadeUp .45s .08s ease both; }
+.lesson-hero .lesson-title   { animation:fadeUp .55s .15s ease both; }
+.lesson-hero .lesson-tagline { animation:fadeUp .5s  .26s ease both; }
+.lesson-hero .outcomes       { animation:fadeUp .45s .36s ease both; }
+
+.reveal {
+  opacity:0;
+  transform:translateY(22px);
+  transition:opacity .65s cubic-bezier(.16,1,.3,1), transform .65s cubic-bezier(.16,1,.3,1);
+}
+.reveal.in { opacity:1; transform:translateY(0); }
+.section-rule {
+  transform-origin: left center;
+  opacity:0;
+  transition: opacity .4s ease, transform .6s cubic-bezier(.16,1,.3,1);
+  transform: scaleX(.3);
+}
+.section-rule.in { opacity:1; transform:scaleX(1); }
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero{padding:40px 20px 36px;}.lesson-title{font-size:1.55rem;}.lesson-body{padding:0 20px 60px;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="logo" href="../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">GTM 實務演練</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH3-3</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="progressFill"></div></div>
+
+<section class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程目錄</a>
+  <div class="hero-meta">
+    <span class="hero-part">PART 3 · 進階互動與轉換追蹤</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">3.3</span>
+  </div>
+  <h1 class="lesson-title">評估閱讀品質：<br>追蹤網頁捲動深度 (Scroll Depth)</h1>
+  <p class="lesson-tagline">使用者在首頁停留了 3 分鐘，但他到底有沒有看到最底部的「價格方案」？透過設定捲動深度追蹤，你能確切知道內容的吸引力在哪裡中斷。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學完這節，你會</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>開啟並運用 GTM 的「捲動深度變數」</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>設定多個百分比的捲動觸發條件 (25%, 50%, 90%)</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>將百分比資料作為事件參數送進 GA4</div>
+  </div>
+</section>
+
+<main class="lesson-body">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 01</div>
+    <h2 class="section-heading">開啟<em>捲動變數</em></h2>
+    <p class="body-text">老規矩，GTM 預設是不知道使用者捲了多深的。我們需要去「變數 (Variables)」分頁把相關功能打開。</p>
+    <p class="body-text">在內建變數的清單中，往下拉找到 <strong>「捲動 (Scrolling)」</strong> 區塊，將 <span class="inline-code">Scroll Depth Threshold</span>（捲動深度門檻值）打勾開啟。</p>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 02</div>
+    <h2 class="section-heading">設定<em>多段式</em>捲動觸發條件</h2>
+    <p class="body-text">GTM 的捲動追蹤非常聰明，你可以在一個條件裡設定多個「檢查點」。</p>
+
+    <div class="step-list">
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <div class="step-title">新增捲動觸發條件</div>
+          <div class="step-desc">新增觸發條件，選擇 <strong>「捲動深度 (Scroll Depth)」</strong>。</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <div class="step-title">輸入檢查百分比</div>
+          <div class="step-desc">勾選「垂直捲動深度」，選擇「百分比」，然後輸入：<strong><span class="inline-code">25, 50, 75, 90</span></strong>（數字間用逗號分隔）。</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <div class="step-title">限制特定頁面</div>
+          <div class="step-desc">因為並非每個頁面都很長，建議將觸發條件設定在「部分頁面」，例如 <strong>Page Path</strong> 等於首頁或特定的長版銷售頁。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 03</div>
+    <h2 class="section-heading">傳送<em>動態百分比</em>至 GA4</h2>
+    <p class="body-text">當使用者往下捲到 50% 時，這個觸發條件會啟動一次；捲到 90% 時，會再啟動一次。我們要怎麼讓 GA4 知道「這次是捲到多少」？</p>
+
+    <ul class="body-text" style="padding-left: 20px;">
+      <li>建立 GA4 事件代碼，事件名稱設定為 <span class="inline-code">scroll_depth</span>。</li>
+      <li>展開「事件參數」，新增一個參數名為 <span class="inline-code">percent_scrolled</span>。</li>
+      <li>在參數的值，點擊右邊的樂高積木圖示，選擇剛剛開啟的變數 <strong>{{Scroll Depth Threshold}}</strong>。</li>
+    </ul>
+
+    <div class="callout tip">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body">
+        <strong>魔法發生了：</strong><br>
+        透過帶入變數，GTM 會在使用者捲到 50% 時，自動把 <code>percent_scrolled = 50</code> 傳給 GA4。這樣你只需要寫一個代碼，就能記錄所有的捲動深度！
+      </div>
+    </div>
+
+    <div class="callout key">
+      <div class="callout-icon">★</div>
+      <div class="callout-body">
+        <strong>PART 3 實戰階段結束！</strong><br>
+        我們已經能捕捉點擊、表單、與捲動等各種互動。在接下來的 PART 4，我們將進入 GTM 的最深層——「資料層 (Data Layer)」，一窺那些隱藏在網頁背後的珍密數據。
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<nav class="lesson-nav">
+  <a class="nav-btn prev" href="CH3-2.html">
+    <span>←</span>
+    <div>
+      <div class="nav-btn-label">上一節</div>
+      <div class="nav-btn-title">3.2 追蹤外部連結與電話點擊</div>
+    </div>
+  </a>
+  <div class="nav-spacer"></div>
+  <a class="nav-btn next" href="../part4/CH4-1.html">
+    <div>
+      <div class="nav-btn-label">下一節：進入 PART 4</div>
+      <div class="nav-btn-title">4.1 什麼是資料層 (Data Layer)？</div>
+    </div>
+    <span>→</span>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">Part 3 · 3 of 3 (完結)</div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const d = document.documentElement;
+  const pct = d.scrollHeight - d.clientHeight > 0
+    ? (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100 : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+});
+
+(function(){
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, { threshold: .1, rootMargin: '0px 0px -48px 0px' });
+
+  document.querySelectorAll('.lesson-section, .section-rule').forEach(el => {
+    el.classList.add('reveal');
+    io.observe(el);
+  });
+})();
+</script>
+</body>
+</html>

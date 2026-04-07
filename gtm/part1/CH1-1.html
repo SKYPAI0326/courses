@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH1-1 認識 GTM 的角色與優點｜GTM 實務演練</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#8c8880;
+  --c-a1:#b5703a; --c-a2:#c9963a; --c-a3:#5a7a5a; --c-a4:#6b7fa3;
+  --radius:6px; --radius-sm:4px; --content-w:780px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+
+/* ── 頂部列 ── */
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a1);border:1px solid rgba(181,112,58,.3);background:rgba(181,112,58,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+
+/* ── 閱讀進度 ── */
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a1);width:0%;transition:width .1s;}
+
+/* ── Hero ── */
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a1);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-a1);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a1);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-a1);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a1);margin-top:8px;flex-shrink:0;}
+
+/* ── 主內容 ── */
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-a1);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+
+/* ── 對比格 ── */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0;}
+.compare-card{padding:24px 26px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);}
+.compare-card.highlight{border-color:rgba(181,112,58,.4);background:rgba(181,112,58,.04);}
+.compare-label{font-size:.7rem;font-weight:500;letter-spacing:1px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--c-border);}
+.compare-card .compare-label{color:var(--c-muted);}
+.compare-card.highlight .compare-label{color:var(--c-a1);}
+.compare-item{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;color:var(--c-text);margin-bottom:10px;line-height:1.6;}
+
+/* ── Callout ── */
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25);}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout.key{background:rgba(181,112,58,.07);border:1px solid rgba(181,112,58,.25);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text);}
+.callout-body strong{font-weight:700;}
+.inline-code{font-family:'Courier New',monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 6px;border-radius:3px;}
+
+/* ── 概念卡片 ── */
+.concept-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:28px 0;}
+.concept-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:22px 20px;}
+.concept-num{font-family:'Shippori Mincho',serif;font-size:1.5rem;font-weight:700;color:var(--c-a1);margin-bottom:8px;line-height:1;}
+.concept-title{font-size:.85rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.concept-desc{font-size:.78rem;color:var(--c-muted);line-height:1.7;}
+
+/* ── 大引言 ── */
+.big-quote{font-family:'Shippori Mincho',serif;font-size:1.3rem;font-weight:700;line-height:1.65;color:var(--c-text);padding:28px 32px;background:var(--c-card);border:1px solid var(--c-border);border-left:4px solid var(--c-a1);border-radius:var(--radius);margin:28px 0;}
+.big-quote span{color:var(--c-a1);}
+
+/* ── 類比框 ── */
+.analogy-box{padding:28px 32px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:28px 0;}
+.analogy-label{font-size:.68rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:12px;}
+.analogy-text{font-size:.92rem;color:var(--c-text);line-height:1.9;}
+
+/* ── 底部導航 ── */
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-a1);}
+.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.nav-spacer{flex:1;}
+
+/* ── 頁尾 ── */
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+
+/* ── 動態進場系統 ── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.lesson-hero .back-link      { animation:fadeUp .4s ease both; }
+.lesson-hero .hero-meta      { animation:fadeUp .45s .08s ease both; }
+.lesson-hero .lesson-title   { animation:fadeUp .55s .15s ease both; }
+.lesson-hero .lesson-tagline { animation:fadeUp .5s  .26s ease both; }
+.lesson-hero .outcomes       { animation:fadeUp .45s .36s ease both; }
+
+/* Scroll reveal */
+.reveal {
+  opacity:0;
+  transform:translateY(22px);
+  transition:opacity .65s cubic-bezier(.16,1,.3,1), transform .65s cubic-bezier(.16,1,.3,1);
+}
+.reveal.in { opacity:1; transform:translateY(0); }
+
+/* section-rule 展開 */
+.section-rule {
+  transform-origin: left center;
+  opacity:0;
+  transition: opacity .4s ease, transform .6s cubic-bezier(.16,1,.3,1);
+  transform: scaleX(.3);
+}
+.section-rule.in { opacity:1; transform:scaleX(1); }
+
+/* 卡片 hover 精化 */
+.concept-card {
+  transition:transform .22s cubic-bezier(.16,1,.3,1), box-shadow .22s ease;
+}
+.concept-card:hover {
+  transform:translateY(-4px);
+  box-shadow:0 12px 28px rgba(0,0,0,.09);
+}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero{padding:40px 20px 36px;}.lesson-title{font-size:1.55rem;}.lesson-body{padding:0 20px 60px;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="logo" href="../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">GTM 實務演練</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH1-1</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="progressFill"></div></div>
+
+<section class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程目錄</a>
+  <div class="hero-meta">
+    <span class="hero-part">PART 1 · GTM 是什麼？為什麼要用它？</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">1.1</span>
+  </div>
+  <h1 class="lesson-title">認識 GTM 的角色與優點：<br>不再煩惱工程師，<br>掌控追蹤的主導權</h1>
+  <p class="lesson-tagline">身為行銷人員，你是否曾為了埋設一個追蹤碼，在工程師的排程表中等上兩週？這一節，我們要介紹行銷人的「神兵利器」—— Google Tag Manager。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學完這節，你會</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>理解 GTM 作為「代碼容器」的核心角色</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>掌握 GTM 相比直接埋碼的四大優勢</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>理解為什麼在本機環境（LocalWP）練習是最好的開始</div>
+  </div>
+</section>
+
+<main class="lesson-body">
+
+  <!-- S1 -->
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 01</div>
+    <h2 class="section-heading">行銷人的<em>追蹤痛點</em></h2>
+    <p class="body-text">在沒有 GTM 的年代，如果你想追蹤網站上的「點擊」或「購買」，流程通常是這樣的：</p>
+    <p class="body-text">寫下需求文件 → 交給工程師 → 進入開發排程 → 等待測試環境上線 → 確認無誤後正式發布。這個過程可能耗時數天甚至數週，且容易因為溝通誤差導致追蹤失敗。</p>
+
+    <div class="callout tip">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body">
+        <strong>重點在於：</strong>傳統方式讓行銷策略受限於技術開發的頻寬。當你想快速驗證一個廣告活動的成效時，這種延遲是致命的。
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- S2 -->
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 02</div>
+    <h2 class="section-heading">GTM：你的<em>代碼收納盒</em></h2>
+    <p class="body-text">Google Tag Manager（GTM）不是用來產生數據的工具，它是一個<strong>管理工具</strong>。你可以把它想像成一個安裝在網站上的「透明收納袋」。</p>
+    <p class="body-text">一旦你把這個收納袋裝在網站上，以後想放任何追蹤碼（GA4、FB Pixel、Line Tag），都不需要再去動網站的原始碼，只需要把代碼「丟進這個收納袋」即可。</p>
+
+    <div class="analogy-box">
+      <div class="analogy-label">換個方式理解</div>
+      <div class="analogy-text">
+        <strong>直接埋碼：</strong>就像每次想換電燈泡，都要請水電工來拆開牆壁重新接線。<br><br>
+        <strong>使用 GTM：</strong>就像先請水電工裝好「延長線插槽」，以後你想換什麼電器（追蹤碼），自己插上去就好了。
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- S3 -->
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 03</div>
+    <h2 class="section-heading">為什麼這門課要搭配 <em>LocalWP</em>？</h2>
+    <p class="body-text">在公司的正式官網上練習 GTM 是非常危險的。一不小心放錯代碼，可能會導致網站當機或數據污染。</p>
+
+    <div class="concept-grid">
+      <div class="concept-card">
+        <div class="concept-num">01</div>
+        <div class="concept-title">絕對安全</div>
+        <div class="concept-desc">在本機電腦練習，就算搞砸了也不會影響任何人，隨時可以重來。</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-num">02</div>
+        <div class="concept-title">完全控制</div>
+        <div class="concept-desc">你自己就是工程師，可以隨意修改網站內容來測試不同的追蹤場景。</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-num">03</div>
+        <div class="concept-title">極速反饋</div>
+        <div class="concept-desc">不需要上傳伺服器，修改完立刻重新整理就能看到結果，學習效率最高。</div>
+      </div>
+    </div>
+
+    <p class="body-text">透過 LocalWP，我們在 Part 2 就會親手蓋出一個完整的 WordPress 網站，並將它作為我們的 GTM 實驗室。</p>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- S4 -->
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 04</div>
+    <h2 class="section-heading"><em>前後對比</em>：有 GTM 差在哪？</h2>
+    
+    <div class="compare-grid">
+      <div class="compare-card">
+        <div class="compare-label">❌ 傳統直接埋碼</div>
+        <div class="compare-item"><span>·</span> 修改代碼需動用網站原始碼</div>
+        <div class="compare-item"><span>·</span> 依賴工程師排程</div>
+        <div class="compare-item"><span>·</span> 代碼分散各處，難以管理</div>
+        <div class="compare-item"><span>·</span> 容易因代碼衝突導致網頁錯誤</div>
+      </div>
+      <div class="compare-card highlight">
+        <div class="compare-label">✦ 使用 GTM 管理</div>
+        <div class="compare-item"><span>·</span> 透過介面修改，不需動原始碼</div>
+        <div class="compare-item"><span>·</span> 行銷人員可自主部署</div>
+        <div class="compare-item"><span>·</span> 統一後台管理，一目瞭然</div>
+        <div class="compare-item"><span>·</span> 內建預覽模式，發布前先測試</div>
+      </div>
+    </div>
+
+    <div class="big-quote">
+      GTM 讓追蹤回歸到行銷人的手中。<br><span>「想追蹤什麼，就自己動手做。」</span>
+    </div>
+  </div>
+
+</main>
+
+<nav class="lesson-nav">
+  <div class="nav-spacer"></div>
+  <a class="nav-btn next" href="CH1-2.html">
+    <div>
+      <div class="nav-btn-label">下一節</div>
+      <div class="nav-btn-title">1.2 GTM 核心概念：代碼、觸發、變數</div>
+    </div>
+    <span>→</span>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">Part 1 · 1 of 4</div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const d = document.documentElement;
+  const pct = d.scrollHeight - d.clientHeight > 0
+    ? (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100 : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+});
+
+(function(){
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, { threshold: .1, rootMargin: '0px 0px -48px 0px' });
+
+  document.querySelectorAll('.lesson-section, .section-rule').forEach(el => {
+    el.classList.add('reveal');
+    io.observe(el);
+  });
+})();
+</script>
+</body>
+</html>

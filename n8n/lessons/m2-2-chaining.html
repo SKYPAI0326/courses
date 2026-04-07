@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2.2 Optional Chaining ?.｜AI 資料工廠</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a4:#6b7fa3;--radius:6px;--content-w:720px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.08);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a4);width:0%;transition:width .1s;}
+.step-hero{max-width:var(--content-w);margin:0 auto;padding:56px 48px 40px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px;}
+.back-link:hover{color:var(--c-a4);}
+.hero-meta{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.hero-section{font-size:.7rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-sep{width:1px;height:12px;background:var(--c-border);}
+.hero-num{font-size:.7rem;color:var(--c-a4);letter-spacing:1px;font-weight:500;}
+.step-title{font-family:'Shippori Mincho',serif;font-size:1.9rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:12px;}
+.step-subtitle{font-size:.93rem;color:var(--c-muted);line-height:1.8;max-width:560px;margin-bottom:20px;}
+.meta-bar{display:flex;gap:20px;align-items:center;flex-wrap:wrap;}
+.meta-item{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--c-muted);}
+.step-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 32px;}
+.step-block{display:flex;gap:24px;margin-bottom:44px;position:relative;}
+.step-block:not(:last-child)::after{content:'';position:absolute;left:19px;top:48px;width:2px;height:calc(100% - 16px);background:var(--c-border);}
+.step-num-col{flex-shrink:0;}
+.step-circle{width:40px;height:40px;border-radius:50%;background:rgba(107,127,163,.1);border:2px solid var(--c-a4);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-a4);}
+.step-content{flex:1;padding-top:6px;}
+.step-label{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:8px;}
+.step-desc{font-size:.9rem;color:var(--c-text);line-height:1.9;margin-bottom:12px;}
+.screenshot{background:var(--c-surface);border:1.5px dashed var(--c-border);border-radius:var(--radius);padding:28px 24px;margin:14px 0;text-align:center;}
+.screenshot-icon{font-size:1.5rem;margin-bottom:8px;opacity:.5;}
+.screenshot-cap{font-size:.78rem;color:var(--c-muted);line-height:1.6;}
+.step-tip{display:flex;gap:12px;padding:14px 18px;border-radius:var(--radius);margin:12px 0;font-size:.85rem;line-height:1.75;}
+.step-tip.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.22);}
+.step-tip.warning{background:rgba(201,150,58,.06);border:1px solid rgba(201,150,58,.25);}
+.step-tip.success{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.tip-icon{flex-shrink:0;font-size:1rem;margin-top:1px;}
+.tip-text{color:var(--c-text);}
+.tip-text strong{font-weight:700;}
+.ic{font-family:'Courier New',monospace;font-size:.82em;background:rgba(107,127,163,.1);padding:1px 6px;border-radius:3px;}
+.code-block{background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.83rem;padding:20px 22px;border-radius:var(--radius);margin:14px 0;line-height:1.85;overflow-x:auto;white-space:pre;}
+.code-block .bad{color:#e07070;}
+.code-block .good{color:#98c48c;}
+.code-block .expr{color:#d4a0c8;}
+.code-block .comment{color:#6b8080;font-style:italic;}
+.code-block .result{color:#a8c4d4;}
+.analogy-box{padding:22px 26px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:14px 0;}
+.analogy-label{font-size:.68rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:8px;}
+.analogy-text{font-size:.88rem;color:var(--c-text);line-height:1.85;}
+.verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:22px 26px;margin:8px 0 32px;}
+.verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px;}
+.verify-title{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:8px;}
+.verify-desc{font-size:.88rem;color:var(--c-text);line-height:1.8;}
+.trouble-section{margin:0 0 48px;}
+.trouble-head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;}
+.trouble-title{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-text);}
+.trouble-line{flex:1;height:1px;background:var(--c-border);}
+.trouble-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;margin-bottom:10px;}
+.trouble-problem{font-size:.85rem;font-weight:700;color:var(--c-text);margin-bottom:6px;display:flex;gap:8px;}
+.trouble-problem::before{content:'Q';font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-a4);font-weight:700;flex-shrink:0;}
+.trouble-solution{font-size:.83rem;color:var(--c-muted);line-height:1.75;padding-left:20px;}
+.step-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--c-border);padding-top:28px;}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a4);text-decoration:none;padding:10px 20px;border:1px solid rgba(107,127,163,.3);border-radius:var(--radius);transition:background .2s;}
+.nav-btn:hover{background:rgba(107,127,163,.07);}
+.nav-btn.primary{background:var(--c-a4);color:#fff;border-color:var(--c-a4);}
+.nav-btn.primary:hover{opacity:.85;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-div{width:1px;height:14px;background:var(--c-border);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a href="../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 資料工廠</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">2.2 實作步驟</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="step-hero">
+  <a href="module2.html" class="back-link">← 返回 Module 2</a>
+  <div class="hero-meta">
+    <span class="hero-section">Module 02</span>
+    <div class="hero-sep"></div>
+    <span class="hero-num">SECTION 2.2</span>
+  </div>
+  <h1 class="step-title">Optional Chaining <span class="ic" style="font-size:1.4rem;">?.</span>（自動防斷機制）</h1>
+  <p class="step-subtitle">一個符號，讓流程從脆弱變得堅韌。資料有缺漏時不再當機，繼續往下跑。</p>
+  <div class="meta-bar">
+    <div class="meta-item"><span>⏱</span><span>預估時間：15 分鐘</span></div>
+    <div class="meta-item"><span>📋</span><span>4 個步驟</span></div>
+    <div class="meta-item"><span>✅</span><span>前置：完成 2.1</span></div>
+  </div>
+</div>
+
+<div class="step-body">
+
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">1</div></div>
+    <div class="step-content">
+      <div class="step-label">空值地雷：示範一個會當機的流程</div>
+      <p class="step-desc">先親眼看一次問題才能理解解法的價值。建立一個讀取客戶地址的 Set 節點，然後故意送一筆沒有 <span class="ic">address</span> 欄位的資料進去，看看 n8n 會出現什麼錯誤。</p>
+      <div class="code-block"><span class="comment">// 送入資料（故意缺少 address 欄位）：</span>
+{ "客戶姓名": "陳大明", "電話": "0912-345-678" }
+
+<span class="comment">// Set 節點嘗試讀取：</span>
+<span class="bad">{{ $json.address.city }}</span>
+
+<span class="comment">// 結果：TypeError: Cannot read properties of undefined</span>
+<span class="comment">// 流程中斷，後續所有節點全部停止執行</span></div>
+      <div class="step-tip warning">
+        <span class="tip-icon">⚠️</span>
+        <span class="tip-text">現實中，表單填寫、API 回傳、上傳的 Excel 都可能有缺漏欄位。若不處理，一筆缺漏資料就能讓整批 1,000 筆的工作流程全部中斷。</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">2</div></div>
+    <div class="step-content">
+      <div class="step-label"><span class="ic">?.</span> 語法：有就讀，沒有就跳過</div>
+      <p class="step-desc">在可能不存在的欄位後面加上 <span class="ic">?.</span>，n8n 遇到空值時不會報錯，而是直接回傳 <span class="ic">undefined</span> 並繼續執行。你在哪層欄位不確定是否存在，就在哪層加上 <span class="ic">?.</span>。</p>
+      <div class="analogy-box">
+        <div class="analogy-label">生活類比</div>
+        <div class="analogy-text">一般語法像直接開門：門不存在就撞牆當機。<span class="ic">?.</span> 的語法像是：「如果這扇門存在，進去；不存在，就安靜繼續走。」流程不會因為一筆缺漏資料而整批停擺。</div>
+      </div>
+      <div class="code-block"><span class="comment">// 原本會報錯的寫法：</span>
+<span class="bad">{{ $json.address.city }}</span>
+
+<span class="comment">// 加上 ?. 後，address 不存在時回傳 undefined，不報錯：</span>
+<span class="good">{{ $json.address?.city }}</span>
+
+<span class="comment">// 多層巢狀也可以每層都加：</span>
+<span class="good">{{ $json.客戶?.聯絡方式?.電子郵件 }}</span></div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">3</div></div>
+    <div class="step-content">
+      <div class="step-label">搭配 <span class="ic">??</span> 提供預設值，讓輸出更乾淨</div>
+      <p class="step-desc"><span class="ic">?.</span> 讓流程不報錯，但空值仍然是 <span class="ic">undefined</span>，下游節點可能顯示空白或繼續出問題。搭配 <span class="ic">??</span>（雙問號）指定一個預設值，當欄位是空值時自動填入，輸出結果更完整。</p>
+      <div class="code-block"><span class="comment">// 語法：{{ 可能為空的值 ?? '預設值' }}</span>
+
+<span class="expr">{{ $json.address?.city ?? '未填寫' }}</span>
+<span class="result">→ address 有值：顯示城市名稱</span>
+<span class="result">→ address 為空：顯示 "未填寫"</span>
+
+<span class="expr">{{ $json.客戶?.聯絡方式?.電話 ?? '無聯絡電話' }}</span>
+<span class="result">→ 電話有值：顯示電話號碼</span>
+<span class="result">→ 電話為空：顯示 "無聯絡電話"</span>
+
+<span class="expr">{{ $json.合約金額 ?? 0 }}</span>
+<span class="result">→ 金額有值：顯示金額數字</span>
+<span class="result">→ 金額為空：顯示 0（數字型別，不是字串）</span></div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">4</div></div>
+    <div class="step-content">
+      <div class="step-label">實際練習：處理可能缺漏欄位的客戶表單</div>
+      <p class="step-desc">建立一個 Set 節點，處理從 Google 表單收到的客戶資料。表單有姓名、電話、Email、地址四個欄位，但都是選填。用 <span class="ic">?.</span> 和 <span class="ic">??</span> 讓每個欄位在空值時都有合理的預設值，再送給下一個節點處理。</p>
+      <div class="code-block"><span class="comment">// Set 節點，四個輸出欄位：</span>
+
+<span class="result">姓名：</span>  <span class="expr">{{ $json.姓名 ?? '未提供' }}</span>
+<span class="result">電話：</span>  <span class="expr">{{ $json.聯絡資訊?.電話 ?? '無電話' }}</span>
+<span class="result">Email：</span> <span class="expr">{{ $json.聯絡資訊?.email ?? '無Email' }}</span>
+<span class="result">城市：</span>  <span class="expr">{{ $json.地址?.縣市 ?? '未填寫' }}</span></div>
+      <div class="step-tip success">
+        <span class="tip-icon">✅</span>
+        <span class="tip-text">完成後，試著送兩筆資料：一筆填完整、一筆故意留空。確認兩筆都能成功通過，且空值欄位顯示預設值，流程沒有中斷。</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="verify-box">
+    <div class="verify-label">完成驗證 CHECKPOINT</div>
+    <div class="verify-title">流程對完整和缺漏資料都能順利執行</div>
+    <p class="verify-desc">送入一筆缺漏 <span class="ic">address</span> 欄位的資料，Set 節點不報錯，輸出顯示你設定的預設值（如「未填寫」）；送入完整資料時，正常顯示真實欄位值。這代表 <span class="ic">?.</span> 和 <span class="ic">??</span> 已正確運作。</p>
+  </div>
+
+  <div class="trouble-section">
+    <div class="trouble-head"><span class="trouble-title">常見問題</span><div class="trouble-line"></div></div>
+    <div class="trouble-item">
+      <div class="trouble-problem">加了 ?. 還是報錯</div>
+      <div class="trouble-solution">確認 <span class="ic">?.</span> 加在正確的層級。例如 <span class="ic">$json.客戶?.地址.城市</span> 只保護了「地址」這層，若「客戶」本身不存在仍然報錯。應改為 <span class="ic">$json.客戶?.地址?.城市</span>，每個不確定的層都要加。</div>
+    </div>
+    <div class="trouble-item">
+      <div class="trouble-problem">預設值沒有出現，還是顯示 undefined</div>
+      <div class="trouble-solution"><span class="ic">??</span> 只對 <span class="ic">null</span> 和 <span class="ic">undefined</span> 生效。若欄位值是空字串 <span class="ic">""</span>（使用者送出空表單），<span class="ic">??</span> 不會觸發，欄位仍然是空字串。若要同時處理空字串，改用 <span class="ic">|| '預設值'</span>（但要注意 <span class="ic">||</span> 對數字 0 也會觸發，依情況選擇）。</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="step-nav">
+  <a href="m2-1-reference.html" class="nav-btn">← 上一節：相對/絕對引用</a>
+  <a href="m2-3-logic.html" class="nav-btn primary">下一節：邏輯判斷節點 →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">淡江大學 · 生成式AI工作坊</span>
+</footer>
+<script>
+const fill=document.getElementById('prog');
+window.addEventListener('scroll',()=>{const h=document.documentElement;fill.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';});
+</script>
+</body>
+</html>

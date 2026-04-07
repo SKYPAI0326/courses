@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH2-2 看懂網頁骨架：CSS 選擇器基礎｜GTM 實務演練</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#8c8880;
+  --c-a1:#b5703a; --c-a2:#c9963a; --c-a3:#5a7a5a; --c-a4:#6b7fa3;
+  --radius:6px; --radius-sm:4px; --content-w:780px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a2);border:1px solid rgba(201,150,58,.3);background:rgba(201,150,58,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a2);width:0%;transition:width .1s;}
+
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a2);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-a2);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a2);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-a2);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a2);margin-top:8px;flex-shrink:0;}
+
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-a2);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+
+.code-block{background:#2c2b28;color:#f5f3ee;padding:20px 24px;border-radius:var(--radius);font-family:'Courier New',monospace;font-size:.85rem;line-height:1.6;overflow-x:auto;margin:24px 0;}
+.code-comment{color:#8c8880;}
+.code-tag{color:#7a9ea3;}
+.code-string{color:#c9963a;}
+
+.step-list{display:flex;flex-direction:column;gap:16px;margin:28px 0;}
+.step-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:24px;display:flex;gap:20px;align-items:flex-start;}
+.step-num{font-family:'Shippori Mincho',serif;font-size:1.8rem;font-weight:700;color:var(--c-a2);line-height:1;margin-top:2px;}
+.step-content{flex:1;}
+.step-title{font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:8px;}
+.step-desc{font-size:.88rem;color:var(--c-muted);line-height:1.7;}
+
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout.key{background:rgba(181,112,58,.07);border:1px solid rgba(181,112,58,.25);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text);}
+.inline-code{font-family:'Courier New',monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 6px;border-radius:3px;}
+
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-a2);}
+.nav-btn.prev{justify-content:flex-start;text-align:left;}
+.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.nav-spacer{flex:1;}
+
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.lesson-hero .back-link      { animation:fadeUp .4s ease both; }
+.lesson-hero .hero-meta      { animation:fadeUp .45s .08s ease both; }
+.lesson-hero .lesson-title   { animation:fadeUp .55s .15s ease both; }
+.lesson-hero .lesson-tagline { animation:fadeUp .5s  .26s ease both; }
+.lesson-hero .outcomes       { animation:fadeUp .45s .36s ease both; }
+
+.reveal {
+  opacity:0;
+  transform:translateY(22px);
+  transition:opacity .65s cubic-bezier(.16,1,.3,1), transform .65s cubic-bezier(.16,1,.3,1);
+}
+.reveal.in { opacity:1; transform:translateY(0); }
+.section-rule {
+  transform-origin: left center;
+  opacity:0;
+  transition: opacity .4s ease, transform .6s cubic-bezier(.16,1,.3,1);
+  transform: scaleX(.3);
+}
+.section-rule.in { opacity:1; transform:scaleX(1); }
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero{padding:40px 20px 36px;}.lesson-title{font-size:1.55rem;}.lesson-body{padding:0 20px 60px;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="logo" href="../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">GTM 實務演練</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH2-2</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="progressFill"></div></div>
+
+<section class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程目錄</a>
+  <div class="hero-meta">
+    <span class="hero-part">PART 2 · 基礎追蹤與 Chrome 工具運用</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">2.2</span>
+  </div>
+  <h1 class="lesson-title">脫離工程師的必殺技：<br>看懂網頁骨架與 CSS 選擇器</h1>
+  <p class="lesson-tagline">如果網頁上有兩個按鈕都叫「立即購買」，GTM 該怎麼分辨你要追蹤哪一個？答案就藏在網頁的原始碼裡。這節課我們要學會使用 Chrome 開發者工具，讓你具備「透視」網頁的能力。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學完這節，你會</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>學會使用 Chrome 「檢查 (Inspect)」工具</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>看懂什麼是 HTML 的 id 與 class</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>掌握撰寫 CSS 選擇器的基本規則（含複合選擇器）</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>用 GTM 預覽模式驗證「真正被點擊的是哪一層」</div>
+  </div>
+</section>
+
+<main class="lesson-body">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 01</div>
+    <h2 class="section-heading">呼叫透視鏡：<em>Chrome 檢查工具</em></h2>
+    <p class="body-text">在你的測試網站上，找到那個我們準備好的「特定按鈕」。對著它 <strong>按擊滑鼠右鍵</strong>，選擇最下方的 <strong>「檢查 (Inspect)」</strong>。</p>
+    <p class="body-text">這時畫面右側或下方會彈出一個充滿程式碼的面板。別慌！Chrome 已經幫你把剛才點擊的那個按鈕對應的程式碼標示為底色了。</p>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 02</div>
+    <h2 class="section-heading">尋找獨一無二的<em>身分證</em></h2>
+    <p class="body-text">在那段被標底色的程式碼中，我們要在 <span class="inline-code">&lt;a&gt;</span>（連結）或 <span class="inline-code">&lt;button&gt;</span>（按鈕）標籤裡，尋找兩個關鍵字：<strong>id</strong> 或 <strong>class</strong>。</p>
+
+<div class="code-block">
+<span class="code-comment">&lt;!-- ① 外層 div：我們加的自訂名稱在這裡 --&gt;</span><br>
+<span class="code-tag">&lt;div</span> class=<span class="code-string">"uagb-buttons__outer-wrap <strong>promo-btn-01</strong>"</span><span class="code-tag">&gt;</span><br>
+&nbsp;&nbsp;<span class="code-comment">&lt;!-- ② 內層 a：使用者實際「點到」的那層 --&gt;</span><br>
+&nbsp;&nbsp;<span class="code-tag">&lt;a</span> class=<span class="code-string">"uagb-buttons-repeater wp-block-button__link"</span> href=<span class="code-string">"#"</span><span class="code-tag">&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;領取優惠券<br>
+&nbsp;&nbsp;<span class="code-tag">&lt;/a&gt;</span><br>
+<span class="code-tag">&lt;/div&gt;</span>
+</div>
+
+    <div class="step-list">
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <div class="step-title">ID (身分證字號)</div>
+          <div class="step-desc">如果標籤上有 <code>id="..."</code> 屬性，這是最精準的追蹤標的，因為 ID 在整個頁面中必須唯一。不過許多頁面編輯器（包含 Spectra）預設不加 ID，而是將自訂名稱放在 <code>class</code> 裡。</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <div class="step-title">Class (制服 / 特徵)</div>
+          <div class="step-desc">我們的練習網站就是這個情況。在 Spectra 的「進階」設定中加入的自訂名稱 <code>promo-btn-01</code>，會出現在<strong>外層 <code>&lt;div&gt;</code></strong> 的 class 裡——但注意：這只是「識別這個按鈕區塊的標籤」，不代表使用者點擊時 GTM 記錄的就是這一層。</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <div class="step-title">用 GTM 預覽模式確認真正的點擊層</div>
+          <div class="step-desc">進入 GTM 預覽模式後，點擊一次按鈕。在 Tag Assistant 左側點擊「Click」事件，切換到「Variables」分頁，找到 <strong>Click Element</strong> 這一列，看它顯示的是哪個標籤與 class——那個才是你之後要填入選擇器的依據。如果 Click Element 顯示的是 <code>&lt;a class="uagb-buttons-repeater..."&gt;</code>，代表你需要把 <code>&lt;a&gt;</code> 那層也寫進去。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 03</div>
+    <h2 class="section-heading">如何寫成 <em>CSS 選擇器</em>？</h2>
+    <p class="body-text">在 GTM 裡，如果我們想告訴系統「我要抓有這個特徵的東西」，我們必須用 CSS 選擇器（CSS Selector）的語法來寫。規則超級簡單：</p>
+
+    <div class="callout key">
+      <div class="callout-icon">★</div>
+      <div class="callout-body">
+        <strong>記住這三個寫法：</strong><br>
+        1. 如果是 <strong>ID</strong>，前面加井字號 <code>#</code>。例如：<span class="inline-code">#main-cta</span><br>
+        2. 如果是 <strong>Class</strong>，前面加小點 <code>.</code>。例如：<span class="inline-code">.promo-btn-01</span><br>
+        3. 如果點擊層在<strong>外層元素的內部</strong>，用空格串接兩層。例如：<span class="inline-code">.promo-btn-01 a.uagb-buttons-repeater</span>（意思是「在 .promo-btn-01 裡面、帶有 uagb-buttons-repeater class 的 &lt;a&gt;」）
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon">✓</div>
+      <div class="callout-body">
+        <strong>實際填寫前先用 GTM Preview 確認：</strong>看 Click Element 顯示的是哪一層，選擇器就寫到那一層為止。外層 class 只是幫你「定位」這個按鈕區塊，真正要比對的是使用者手指碰到的那個元素。
+      </div>
+    </div>
+
+    <p class="body-text">把 GTM 預覽模式確認過的選擇器記錄下來，下一節我們要把它填入觸發條件。</p>
+  </div>
+
+</main>
+
+<nav class="lesson-nav">
+  <a class="nav-btn prev" href="CH2-1.html">
+    <span>←</span>
+    <div>
+      <div class="nav-btn-label">上一節</div>
+      <div class="nav-btn-title">2.1 全站瀏覽與 GA4 設定</div>
+    </div>
+  </a>
+  <div class="nav-spacer"></div>
+  <a class="nav-btn next" href="CH2-3.html">
+    <div>
+      <div class="nav-btn-label">下一節</div>
+      <div class="nav-btn-title">2.3 精準按鈕點擊追蹤</div>
+    </div>
+    <span>→</span>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">Part 2 · 2 of 3</div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const d = document.documentElement;
+  const pct = d.scrollHeight - d.clientHeight > 0
+    ? (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100 : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+});
+
+(function(){
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, { threshold: .1, rootMargin: '0px 0px -48px 0px' });
+
+  document.querySelectorAll('.lesson-section, .section-rule').forEach(el => {
+    el.classList.add('reveal');
+    io.observe(el);
+  });
+})();
+</script>
+</body>
+</html>

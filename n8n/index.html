@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 資料工廠｜弄一下工作室</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:      #f5f3ee;
+  --c-surface: #edeae3;
+  --c-card:    #ffffff;
+  --c-border:  #d8d4cb;
+  --c-text:    #2c2b28;
+  --c-muted:   #8c8880;
+  --c-a4:      #6b7fa3;
+  --radius:    6px;
+  --radius-sm: 4px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);min-height:100vh;}
+
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.08);padding:3px 12px;border-radius:99px;font-weight:500;}
+
+.hero{padding:80px 48px 64px;max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:16px;}
+.hero-eyebrow{font-size:.78rem;color:var(--c-a4);letter-spacing:2px;text-transform:uppercase;font-weight:500;}
+.hero-title{font-family:'Shippori Mincho',serif;font-size:3rem;font-weight:700;line-height:1.2;color:var(--c-text);letter-spacing:.02em;}
+.hero-title span{color:var(--c-a4);}
+.hero-sub{font-family:'Shippori Mincho',serif;font-size:1.3rem;font-weight:500;color:var(--c-muted);line-height:1.5;}
+.hero-desc{font-size:.95rem;color:var(--c-muted);line-height:1.85;max-width:540px;}
+.hero-divider{width:40px;height:1px;background:var(--c-a4);margin-top:4px;}
+.hero-stats{display:flex;gap:40px;margin-top:8px;}
+.stat{display:flex;flex-direction:column;gap:4px;}
+.stat-num{font-family:'Shippori Mincho',serif;font-size:1.6rem;font-weight:700;color:var(--c-text);}
+.stat-lbl{font-size:.73rem;color:var(--c-muted);}
+.hero-cta{margin-top:8px;}
+.btn-primary{display:inline-flex;align-items:center;gap:8px;background:var(--c-a4);color:#fff;padding:12px 28px;border-radius:var(--radius);font-size:.9rem;font-weight:500;text-decoration:none;transition:opacity .2s;}
+.btn-primary:hover{opacity:.85;}
+
+.section{max-width:960px;margin:0 auto;padding:0 48px 72px;}
+.section-head{display:flex;align-items:baseline;gap:14px;margin-bottom:28px;}
+.section-title{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);}
+.section-line{flex:1;height:1px;background:var(--c-border);}
+
+.tools-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.tool-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:28px 24px;}
+.tool-icon{font-size:1.6rem;margin-bottom:14px;}
+.tool-name{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:8px;}
+.tool-badge{display:inline-block;font-size:.65rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);padding:1px 8px;border-radius:99px;margin-bottom:10px;font-weight:500;}
+.tool-desc{font-size:.82rem;color:var(--c-muted);line-height:1.75;}
+
+.modules-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+.module-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;text-decoration:none;color:inherit;transition:transform .2s,box-shadow .2s;display:flex;flex-direction:column;}
+.module-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.07);}
+.module-band{height:4px;background:var(--c-a4);}
+.module-body{padding:24px;flex:1;}
+.module-num{font-size:.7rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:10px;}
+.module-title{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin-bottom:8px;line-height:1.35;}
+.module-desc{font-size:.82rem;color:var(--c-muted);line-height:1.65;}
+.module-footer{padding:14px 24px;border-top:1px solid var(--c-border);display:flex;align-items:center;}
+.module-arrow{margin-left:auto;font-size:.8rem;color:var(--c-a4);font-weight:500;opacity:0;transition:opacity .2s,transform .2s;}
+.module-card:hover .module-arrow{opacity:1;transform:translateX(3px);}
+
+.highlight-strip{background:var(--c-surface);border-top:1px solid var(--c-border);border-bottom:1px solid var(--c-border);padding:48px 0;margin-bottom:0;}
+.highlight-inner{max-width:960px;margin:0 auto;padding:0 48px;display:grid;grid-template-columns:repeat(3,1fr);gap:32px;}
+.highlight-item{display:flex;flex-direction:column;gap:8px;}
+.highlight-label{font-size:.7rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;text-transform:uppercase;}
+.highlight-title{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);}
+.highlight-desc{font-size:.82rem;color:var(--c-muted);line-height:1.7;}
+
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-div{width:1px;height:14px;background:var(--c-border);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="#" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">生成式AI工作坊</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">進階工作坊</span>
+</header>
+
+<div class="hero">
+  <div class="hero-eyebrow">Make 進階搭檔 · n8n Desktop 本機執行</div>
+  <h1 class="hero-title">AI 資料工廠<br><span>大規模文件處理實戰</span></h1>
+  <p class="hero-sub">Make 搞定雲端訊號，n8n Desktop 接管本機任務</p>
+  <div class="hero-divider"></div>
+  <p class="hero-desc">你已經學會用 Make 串接雲端服務——但 Make 有執行次數限制，也無法直接讀取你電腦裡的資料夾和檔案。這門課將教你用 n8n Desktop 補上這塊缺口：在自己電腦上無限次執行、直接操作本機文件，讓 Make 與 n8n 分工協作，打造完整的雲地自動化系統。</p>
+  <div class="hero-stats">
+    <div class="stat"><span class="stat-num">4</span><span class="stat-lbl">個模組</span></div>
+    <div class="stat"><span class="stat-num">完全</span><span class="stat-lbl">免費工具</span></div>
+    <div class="stat"><span class="stat-num">本機</span><span class="stat-lbl">檔案讀寫</span></div>
+    <div class="stat"><span class="stat-num">無限</span><span class="stat-lbl">執行次數</span></div>
+  </div>
+  <div class="hero-cta">
+    <a href="lessons/index.html" class="btn-primary">進入課程 →</a>
+  </div>
+</div>
+
+<div class="highlight-strip">
+  <div class="highlight-inner">
+    <div class="highlight-item">
+      <span class="highlight-label">Make 做不到的事</span>
+      <span class="highlight-title">讀取本機檔案系統</span>
+      <p class="highlight-desc">Make 無法主動監控你電腦裡的資料夾、讀取本機 PDF 或寫入本地文件。n8n Desktop 可以——這是兩者最關鍵的分界線。</p>
+    </div>
+    <div class="highlight-item">
+      <span class="highlight-label">Zero Cost</span>
+      <span class="highlight-title">完全免費，無次數上限</span>
+      <p class="highlight-desc">Make 免費版每月僅 1,000 次 operations。n8n Desktop 完全免費，跑再多次也不扣點，適合大量批次任務。</p>
+    </div>
+    <div class="highlight-item">
+      <span class="highlight-label">雲地協作</span>
+      <span class="highlight-title">Make + n8n 雙引擎</span>
+      <p class="highlight-desc">Make 負責接收雲端事件（Gmail、Line、Google Forms），n8n 負責在本機執行重型任務。兩者分工，發揮各自最大優勢。</p>
+    </div>
+  </div>
+</div>
+
+<div style="height:64px;"></div>
+
+<div class="section">
+  <div class="section-head">
+    <span class="section-title">核心工具</span>
+    <div class="section-line"></div>
+    <span style="font-size:.78rem;color:var(--c-muted);">3 個</span>
+  </div>
+  <div class="tools-grid">
+    <div class="tool-card">
+      <div class="tool-icon">⚙️</div>
+      <div class="tool-name">n8n Desktop</div>
+      <div class="tool-badge">本機執行 · 無次數限制</div>
+      <p class="tool-desc">安裝在自己電腦的視覺化自動化中樞，完全免費且無執行次數上限。能直接讀寫本機資料夾與檔案，是 Make 無法取代的本機執行引擎。</p>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon">🚇</div>
+      <div class="tool-name">Cloudflare Tunnel</div>
+      <div class="tool-badge">雲地橋接 · 免月費</div>
+      <p class="tool-desc">讓 Make、Google Forms 等雲端服務能夠「找到」你電腦裡的 n8n 並傳送任務。完全免費，不需申請固定 IP 或設定路由器，是雲地協作的關鍵橋樑。</p>
+    </div>
+    <div class="tool-card">
+      <div class="tool-icon">✨</div>
+      <div class="tool-name">Google AI Studio</div>
+      <div class="tool-badge">多模態辨識</div>
+      <p class="tool-desc">提供最強大的免費多模態辨識大腦，連圖片檔也能讀。透過 Gemini API，為自動化流程注入 AI 理解與生成能力。</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-head">
+    <span class="section-title">課程模組</span>
+    <div class="section-line"></div>
+    <span style="font-size:.78rem;color:var(--c-muted);">4 個 Module</span>
+  </div>
+  <div class="modules-grid">
+    <a href="lessons/module1.html" class="module-card">
+      <div class="module-band"></div>
+      <div class="module-body">
+        <div class="module-num">MODULE 01</div>
+        <div class="module-title">環境建置與雲地橋接</div>
+        <p class="module-desc">安裝 n8n Desktop，並用 Cloudflare Tunnel 讓 Make 能夠觸達本機 n8n。補充 JSON 基礎與 Prompting 技巧，打通雲地協作的第一哩路。</p>
+      </div>
+      <div class="module-footer">
+        <span style="font-size:.73rem;color:var(--c-muted);">n8n · Cloudflare · JSON</span>
+        <span class="module-arrow">→</span>
+      </div>
+    </a>
+    <a href="lessons/module2.html" class="module-card">
+      <div class="module-band"></div>
+      <div class="module-body">
+        <div class="module-num">MODULE 02</div>
+        <div class="module-title">點名抓取法與複雜邏輯</div>
+        <p class="module-desc">精準抓取！讓電腦在幾千格資料中，一眼看到你要的那一個。相對引用、Optional Chaining <code style="font-size:.8em;background:rgba(107,127,163,.1);padding:0 4px;border-radius:3px;">?.</code>、邏輯判斷節點。</p>
+      </div>
+      <div class="module-footer">
+        <span style="font-size:.73rem;color:var(--c-muted);">Expressions · 邏輯判斷</span>
+        <span class="module-arrow">→</span>
+      </div>
+    </a>
+    <a href="lessons/module3.html" class="module-card">
+      <div class="module-band"></div>
+      <div class="module-body">
+        <div class="module-num">MODULE 03</div>
+        <div class="module-title">重型文件工廠：批次處理大師</div>
+        <p class="module-desc">對付成千上萬的 PDF！學會「迴圈（Looping）」思考術。資料夾自動守衛、PDF 批次改名、Excel 轉 Word 批量生成。</p>
+      </div>
+      <div class="module-footer">
+        <span style="font-size:.73rem;color:var(--c-muted);">Loop · PDF · Excel→Word</span>
+        <span class="module-arrow">→</span>
+      </div>
+    </a>
+    <a href="lessons/module4.html" class="module-card">
+      <div class="module-band"></div>
+      <div class="module-body">
+        <div class="module-num">MODULE 04</div>
+        <div class="module-title">綜合實戰：一站式行動辦公室</div>
+        <p class="module-desc">將點子轉化為成果的最後一哩路。Google 表單手機遙控、Make + n8n 雙引擎協作、全自動 AI 企劃書產出流程。</p>
+      </div>
+      <div class="module-footer">
+        <span style="font-size:.73rem;color:var(--c-muted);">Make · n8n · Google Forms</span>
+        <span class="module-arrow">→</span>
+      </div>
+    </a>
+  </div>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">淡江大學 · 生成式AI工作坊 · 進階課程</span>
+</footer>
+
+</body>
+</html>

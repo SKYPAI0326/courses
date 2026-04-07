@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4.1 Google Forms 遠端遙控 n8n｜AI 資料工廠</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a4:#6b7fa3;--radius:6px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.08);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a4);width:0%;transition:width .1s;}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px;}
+.back-link:hover{color:var(--c-a4);}
+.hero-eyebrow{font-size:.7rem;color:var(--c-a4);letter-spacing:2px;font-weight:500;margin-bottom:12px;}
+.page-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:12px;}
+.page-subtitle{font-size:.95rem;color:var(--c-muted);line-height:1.85;max-width:560px;}
+.context-box{max-width:var(--content-w);margin:0 auto;padding:0 48px 32px;}
+.context-inner{background:rgba(107,127,163,.06);border:1px solid rgba(107,127,163,.2);border-left:3px solid var(--c-a4);border-radius:var(--radius);padding:20px 24px;}
+.context-label{font-size:.68rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:8px;}
+.context-text{font-size:.88rem;color:var(--c-text);line-height:1.8;}
+.flow-chain{max-width:var(--content-w);margin:0 auto;padding:0 48px 32px;}
+.flow-inner{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 24px;}
+.flow-label{font-size:.68rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:14px;}
+.flow-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.flow-node{padding:6px 14px;border-radius:var(--radius);font-size:.8rem;font-weight:500;}
+.fn-forms{background:rgba(52,168,83,.1);border:1px solid rgba(52,168,83,.3);color:#2d7a3a;}
+.fn-make{background:rgba(107,127,163,.1);border:1px solid rgba(107,127,163,.3);color:var(--c-a4);}
+.fn-cf{background:rgba(249,150,2,.1);border:1px solid rgba(249,150,2,.3);color:#8a6010;}
+.fn-n8n{background:rgba(235,100,30,.1);border:1px solid rgba(235,100,30,.3);color:#8a3a10;}
+.flow-arr{color:var(--c-muted);font-size:.85rem;}
+.steps-wrap{max-width:var(--content-w);margin:0 auto;padding:8px 48px 48px;}
+.step-block{display:flex;gap:24px;margin-bottom:44px;position:relative;}
+.step-block:not(:last-child)::after{content:'';position:absolute;left:19px;top:48px;width:2px;height:calc(100% - 16px);background:var(--c-border);}
+.step-circle{width:40px;height:40px;border-radius:50%;background:rgba(107,127,163,.1);border:2px solid var(--c-a4);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-weight:700;font-size:.95rem;color:var(--c-a4);flex-shrink:0;}
+.step-content{flex:1;padding-top:6px;}
+.step-heading{font-family:'Shippori Mincho',serif;font-size:1.15rem;font-weight:700;color:var(--c-text);margin-bottom:10px;}
+.step-body{font-size:.9rem;color:var(--c-text);line-height:1.9;margin-bottom:12px;}
+.code-block{background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.83rem;padding:20px 22px;border-radius:var(--radius);white-space:pre;overflow-x:auto;margin:12px 0;}
+.code-block .cm{color:#6b9b8a;}
+.code-block .ky{color:#9bb4d4;}
+.code-block .st{color:#b8d4a0;}
+.step-tip{font-size:.82rem;color:var(--c-muted);background:var(--c-surface);border-left:3px solid var(--c-border);padding:10px 14px;border-radius:0 var(--radius) var(--radius) 0;line-height:1.7;}
+.step-tip strong{color:var(--c-a4);font-weight:500;}
+.section-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:24px;}
+.verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:24px 28px;margin:40px 0;}
+.verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px;}
+.verify-text{font-size:.9rem;color:var(--c-text);line-height:1.85;}
+.troubleshoot{margin:40px 0;}
+.ts-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:16px;}
+.ts-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 22px;margin-bottom:10px;}
+.ts-q{font-size:.87rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.ts-a{font-size:.85rem;color:var(--c-muted);line-height:1.75;}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a4);text-decoration:none;padding:10px 20px;border:1px solid rgba(107,127,163,.3);border-radius:var(--radius);transition:background .2s;}
+.nav-btn:hover{background:rgba(107,127,163,.07);}
+.nav-btn.primary{background:var(--c-a4);color:#fff;border-color:var(--c-a4);}
+.nav-btn.primary:hover{background:#5c6f91;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-div{width:1px;height:14px;background:var(--c-border);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 資料工廠</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">4.1 Google Forms 遙控</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="page-hero">
+  <a href="module4.html" class="back-link">← 返回 Module 4</a>
+  <div class="hero-eyebrow">REMOTE CONTROL · 4.1</div>
+  <h1 class="page-title">Google Forms 遠端遙控 n8n</h1>
+  <p class="page-subtitle">填表單 = 下指令。用手機提交 Google Forms，Make 接力轉送，本機 n8n 立刻啟動對應的文件處理任務。</p>
+</div>
+
+<div class="flow-chain">
+  <div class="flow-inner">
+    <div class="flow-label">完整資料流向 · FLOW</div>
+    <div class="flow-row">
+      <div class="flow-node fn-forms">Google Forms</div>
+      <span class="flow-arr">→</span>
+      <div class="flow-node fn-make">Make.com Webhook</div>
+      <span class="flow-arr">→</span>
+      <div class="flow-node fn-make">Make HTTP Request</div>
+      <span class="flow-arr">→</span>
+      <div class="flow-node fn-cf">Cloudflare Tunnel</div>
+      <span class="flow-arr">→</span>
+      <div class="flow-node fn-n8n">n8n Webhook</div>
+      <span class="flow-arr">→</span>
+      <div class="flow-node fn-n8n">If / Switch 判斷</div>
+    </div>
+  </div>
+</div>
+
+<div class="steps-wrap">
+  <div class="section-label">STEP BY STEP · 操作步驟</div>
+
+  <div class="step-block">
+    <div class="step-circle">1</div>
+    <div class="step-content">
+      <div class="step-heading">建立 Google Forms 表單（遙控介面）</div>
+      <div class="step-body">開啟 Google Forms 建立一個新表單。加入以下三個欄位：<strong>申請人</strong>（簡短答案）、<strong>文件類型</strong>（選擇題：報告 / 企劃 / 合約）、<strong>截止日期</strong>（日期）。所有欄位設為必填，確保資料完整。</div>
+      <div class="step-tip"><strong>提示：</strong>表單標題建議取名「文件處理申請」，讓填表人清楚知道提交後的效果。完成後複製表單連結，之後可直接用手機開啟填寫。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">2</div>
+    <div class="step-content">
+      <div class="step-heading">Make.com：建立 Webhook 接收表單資料</div>
+      <div class="step-body">在 Make.com 建立新 Scenario，第一個模組選「Webhooks → Custom webhook」。點擊「Add」建立新 Webhook，複製產生的 Webhook URL。Make 會進入 Listening 狀態等待第一筆測試資料。</div>
+      <div class="step-tip"><strong>提示：</strong>先不要關閉 Make Scenario，保持 Listening 狀態。接下來設定 Google Forms → Make 的連接，送出測試資料後 Make 會自動識別欄位結構。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">3</div>
+    <div class="step-content">
+      <div class="step-heading">連接 Google Forms → Make（用 Apps Script）</div>
+      <div class="step-body">在 Google Forms 點擊右上角「⋮」→「Apps Script」，貼入以下程式碼，將 Make 的 Webhook URL 填入。儲存後設定觸發條件：「表單提交時」執行 onSubmit 函數。</div>
+      <div class="code-block"><span class="cm">// 替換為你的 Make Webhook URL</span>
+<span class="ky">const</span> MAKE_WEBHOOK = <span class="st">'https://hook.make.com/YOUR_WEBHOOK_ID'</span>;
+
+<span class="ky">function</span> onSubmit(e) {
+  <span class="ky">const</span> vals = e.namedValues;
+  <span class="ky">const</span> payload = {
+    applicant:     vals[<span class="st">'申請人'</span>][0],
+    document_type: vals[<span class="st">'文件類型'</span>][0],
+    due_date:      vals[<span class="st">'截止日期'</span>][0]
+  };
+  UrlFetchApp.fetch(MAKE_WEBHOOK, {
+    method:      <span class="st">'post'</span>,
+    contentType: <span class="st">'application/json'</span>,
+    payload:     JSON.stringify(payload)
+  });
+}</div>
+      <div class="step-tip"><strong>提示：</strong>設定觸發條件：Apps Script 左側「觸發條件」→「+ 新增觸發條件」→ 函數選 onSubmit，觸發事件選「表單提交時」。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">4</div>
+    <div class="step-content">
+      <div class="step-heading">n8n：設定 Webhook 觸發節點</div>
+      <div class="step-body">在 n8n 建立新 Workflow，新增「Webhook」觸發節點。Method 設為 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">POST</code>，Path 可自訂（如 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">form-request</code>）。n8n 會產生一個本機 URL（<code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">localhost:5678/webhook/form-request</code>），透過 Cloudflare Tunnel 對外暴露。</div>
+      <div class="code-block"><span class="cm">// n8n Webhook 本機 URL</span>
+http://localhost:5678/webhook/form-request
+
+<span class="cm">// 透過 Cloudflare Tunnel 的對外 URL（Module 1 設定的）</span>
+https://YOUR-TUNNEL-NAME.trycloudflare.com/webhook/form-request</div>
+      <div class="step-tip"><strong>提示：</strong>確認 Cloudflare Tunnel 仍在運行（命令列視窗還開著）。若 Tunnel 重新啟動，URL 會改變，需更新 Make 的 HTTP Request 目標。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">5</div>
+    <div class="step-content">
+      <div class="step-heading">Make：新增 HTTP Request 轉發資料到 n8n</div>
+      <div class="step-body">在 Make Scenario 的 Webhook 之後，新增「HTTP → Make a request」模組。Method 選 POST，URL 填入 n8n 透過 Cloudflare Tunnel 的外部 URL。Header 加入 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">Content-Type: application/json</code>，Body 把 Webhook 收到的欄位轉送。</div>
+      <div class="code-block"><span class="cm">// Make HTTP Request Body（Raw JSON）</span>
+{
+  <span class="ky">"applicant"</span>:     <span class="st">"{{1.applicant}}"</span>,
+  <span class="ky">"document_type"</span>: <span class="st">"{{1.document_type}}"</span>,
+  <span class="ky">"due_date"</span>:      <span class="st">"{{1.due_date}}"</span>
+}</div>
+      <div class="step-tip"><strong>提示：</strong>Body Type 選「Raw」→ Content Type 選「JSON (application/json)」，才能讓 n8n 正確解析傳入的資料。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">6</div>
+    <div class="step-content">
+      <div class="step-heading">n8n：用 If/Switch 節點根據文件類型分流</div>
+      <div class="step-body">在 n8n Webhook 節點後加入「Switch」節點，設定以 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">{{ $json.body.document_type }}</code> 作為判斷值，建立三個 Case（報告 / 企劃 / 合約），每個 Case 連接對應的處理流程（可接 Module 3 學過的任何節點）。</div>
+      <div class="code-block"><span class="cm">// Switch 節點設定</span>
+Value:   {{ $json.body.document_type }}
+Case 1:  報告   → 連接報告產生流程
+Case 2:  企劃   → 連接企劃產生流程
+Case 3:  合約   → 連接合約產生流程</div>
+      <div class="step-tip"><strong>提示：</strong>提交表單後，先點 n8n Webhook 節點的「Test URL」，讓節點進入接收狀態。Make 送出資料後，n8n 會顯示收到的完整 JSON，確認結構正確再繼續。</div>
+    </div>
+  </div>
+
+  <div class="verify-box">
+    <div class="verify-label">完成驗證 · VERIFY</div>
+    <div class="verify-text">用手機填寫 Google Forms（選擇任一文件類型）並提交。Make Scenario 的執行記錄顯示「Success」，n8n Webhook 節點有收到資料，Switch 節點正確進入對應的分支。若以上三點均成功，代表遠端遙控鏈路已全線打通。</div>
+  </div>
+
+  <div class="troubleshoot">
+    <div class="ts-label">常見問題 · TROUBLESHOOT</div>
+    <div class="ts-item">
+      <div class="ts-q">Make 收到 Google Forms 資料但 HTTP 轉送失敗（n8n 沒收到）？</div>
+      <div class="ts-a">確認 Cloudflare Tunnel 仍在運行。若 Tunnel URL 失效，重新啟動 cloudflared 並更新 Make HTTP Request 的目標 URL。另外確認 n8n Workflow 已切換到 Active 狀態。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">n8n 收到資料但欄位路徑不對（取不到 applicant）？</div>
+      <div class="ts-a">Make 送來的資料會包在 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">$json.body</code> 下，因此完整路徑是 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">{{ $json.body.applicant }}</code>。在 n8n Webhook 的 Output 面板確認實際 JSON 結構再調整引用路徑。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">Apps Script 執行時顯示「未經授權」錯誤？</div>
+      <div class="ts-a">第一次執行時 Google 會要求授權。在 Apps Script 點「Run」→ 在彈出視窗同意授權。之後設定好觸發條件，就不需要再手動執行。</div>
+    </div>
+  </div>
+</div>
+
+<div class="nav-footer">
+  <a href="module4.html" class="nav-btn">← 返回 Module 4</a>
+  <a href="m4-2-hybrid.html" class="nav-btn primary">4.2 雙引擎協作 →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">淡江大學 · 生成式AI工作坊</span>
+</footer>
+
+<script>
+const fill = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  fill.style.width = pct + '%';
+});
+</script>
+</body>
+</html>

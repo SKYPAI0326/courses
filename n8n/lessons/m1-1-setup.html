@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1.1 n8n Desktop 安裝｜AI 資料工廠</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#8c8880;
+  --c-a4:#6b7fa3; --radius:6px; --content-w:720px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.08);padding:3px 12px;border-radius:99px;font-weight:500;}
+
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a4);width:0%;transition:width .1s;}
+
+/* Hero */
+.step-hero{max-width:var(--content-w);margin:0 auto;padding:56px 48px 40px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px;}
+.back-link:hover{color:var(--c-a4);}
+.hero-meta{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.hero-section{font-size:.7rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-sep{width:1px;height:12px;background:var(--c-border);}
+.hero-num{font-size:.7rem;color:var(--c-a4);letter-spacing:1px;font-weight:500;}
+.step-title{font-family:'Shippori Mincho',serif;font-size:1.9rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:12px;}
+.step-subtitle{font-size:.93rem;color:var(--c-muted);line-height:1.8;max-width:560px;margin-bottom:20px;}
+.meta-bar{display:flex;gap:20px;align-items:center;}
+.meta-item{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--c-muted);}
+.meta-icon{font-size:.9rem;}
+
+/* Steps */
+.step-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 32px;}
+
+.step-block{display:flex;gap:24px;margin-bottom:40px;position:relative;}
+.step-block:not(:last-child)::after{content:'';position:absolute;left:19px;top:48px;width:2px;height:calc(100% - 16px);background:var(--c-border);}
+.step-num-col{flex-shrink:0;display:flex;flex-direction:column;align-items:center;}
+.step-circle{width:40px;height:40px;border-radius:50%;background:rgba(107,127,163,.1);border:2px solid var(--c-a4);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-a4);flex-shrink:0;}
+.step-content{flex:1;padding-top:6px;}
+.step-label{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:8px;line-height:1.3;}
+.step-desc{font-size:.9rem;color:var(--c-text);line-height:1.9;margin-bottom:12px;}
+
+/* Screenshot placeholder */
+.screenshot{background:var(--c-surface);border:1.5px dashed var(--c-border);border-radius:var(--radius);padding:32px 24px;margin:14px 0;text-align:center;}
+.screenshot-icon{font-size:1.6rem;margin-bottom:8px;opacity:.5;}
+.screenshot-cap{font-size:.78rem;color:var(--c-muted);line-height:1.6;}
+
+/* Tip */
+.step-tip{display:flex;gap:12px;padding:14px 18px;border-radius:var(--radius);margin:12px 0;font-size:.85rem;line-height:1.75;}
+.step-tip.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.22);}
+.step-tip.warning{background:rgba(201,150,58,.06);border:1px solid rgba(201,150,58,.25);}
+.step-tip.success{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.tip-icon{flex-shrink:0;font-size:1rem;margin-top:1px;}
+.tip-text{color:var(--c-text);}
+.tip-text strong{font-weight:700;}
+
+/* Inline code */
+.ic{font-family:'Courier New',monospace;font-size:.82em;background:rgba(107,127,163,.1);padding:1px 6px;border-radius:3px;}
+
+/* Verify box */
+.verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:22px 26px;margin:8px 0 32px;}
+.verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px;}
+.verify-title{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:8px;}
+.verify-desc{font-size:.88rem;color:var(--c-text);line-height:1.8;}
+
+/* Troubleshoot */
+.trouble-section{margin:0 0 48px;}
+.trouble-head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;}
+.trouble-title{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-text);}
+.trouble-line{flex:1;height:1px;background:var(--c-border);}
+.trouble-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;margin-bottom:10px;}
+.trouble-problem{font-size:.85rem;font-weight:700;color:var(--c-text);margin-bottom:6px;display:flex;align-items:flex-start;gap:8px;}
+.trouble-problem::before{content:'Q';font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-a4);font-weight:700;flex-shrink:0;margin-top:1px;}
+.trouble-solution{font-size:.83rem;color:var(--c-muted);line-height:1.75;padding-left:20px;}
+
+/* Nav */
+.step-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--c-border);padding-top:28px;}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a4);text-decoration:none;padding:10px 20px;border:1px solid rgba(107,127,163,.3);border-radius:var(--radius);transition:background .2s;}
+.nav-btn:hover{background:rgba(107,127,163,.07);}
+.nav-btn.primary{background:var(--c-a4);color:#fff;border-color:var(--c-a4);}
+.nav-btn.primary:hover{opacity:.85;background:var(--c-a4);}
+
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-div{width:1px;height:14px;background:var(--c-border);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 資料工廠</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">1.1 實作步驟</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="step-hero">
+  <a href="module1.html" class="back-link">← 返回 Module 1</a>
+  <div class="hero-meta">
+    <span class="hero-section">Module 01</span>
+    <div class="hero-sep"></div>
+    <span class="hero-num">SECTION 1.1</span>
+  </div>
+  <h1 class="step-title">n8n Desktop 安裝</h1>
+  <p class="step-subtitle">在這節課，你將完成 n8n Desktop 的安裝與啟動，認識基本操作介面，並建立第一個可接收 Webhook 的工作流程。</p>
+  <div class="meta-bar">
+    <div class="meta-item"><span class="meta-icon">⏱</span><span>預估時間：15–20 分鐘</span></div>
+    <div class="meta-item"><span class="meta-icon">📋</span><span>7 個步驟</span></div>
+    <div class="meta-item"><span class="meta-icon">🔧</span><span>需要：電腦、瀏覽器</span></div>
+  </div>
+</div>
+
+<div class="step-body">
+
+  <!-- Step 1 -->
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">1</div></div>
+    <div class="step-content">
+      <div class="step-label">前往官網下載 n8n Desktop</div>
+      <p class="step-desc">打開瀏覽器，前往 n8n 官方網站。找到 Desktop 版本的下載連結，根據你的作業系統選擇對應的版本並下載安裝包。Mac 用戶下載 <span class="ic">.dmg</span> 檔案，Windows 用戶下載 <span class="ic">.exe</span> 檔案。</p>
+      <div class="screenshot">
+        <div class="screenshot-icon">🖥</div>
+        <div class="screenshot-cap">n8n 官網首頁，找到「Download Desktop App」按鈕，選擇對應作業系統版本</div>
+      </div>
+      <div class="step-tip info">
+        <span class="tip-icon">💡</span>
+        <span class="tip-text">Mac 下載 <span class="ic">.dmg</span>，Windows 下載 <span class="ic">.exe</span>。若官網找不到 Desktop 下載，可搜尋「n8n desktop app download」。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">2</div></div>
+    <div class="step-content">
+      <div class="step-label">執行安裝程序</div>
+      <p class="step-desc">下載完成後，執行安裝檔。Windows 用戶直接雙擊 <span class="ic">.exe</span>，按照提示完成安裝。Mac 用戶打開 <span class="ic">.dmg</span> 後，將 n8n 圖示拖曳到應用程式（Applications）資料夾中。</p>
+      <div class="screenshot">
+        <div class="screenshot-icon">📦</div>
+        <div class="screenshot-cap">Mac：拖曳 n8n 圖示到 Applications 資料夾的畫面</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">3</div></div>
+    <div class="step-content">
+      <div class="step-label">Mac 用戶：解除系統安全性限制</div>
+      <p class="step-desc">Mac 第一次開啟 n8n 時，系統可能出現「無法驗證開發者」的警告而拒絕啟動。請前往「系統設定」→「隱私權與安全性」→「安全性」，找到 n8n 的警告訊息，點擊「仍要打開」或「強制打開」。</p>
+      <div class="screenshot">
+        <div class="screenshot-icon">🔐</div>
+        <div class="screenshot-cap">Mac 系統設定 → 隱私權與安全性 → 安全性，出現允許 n8n 的選項</div>
+      </div>
+      <div class="step-tip warning">
+        <span class="tip-icon">⚠️</span>
+        <span class="tip-text"><strong>Mac 用戶必做：</strong>跳過此步驟的話 n8n 將無法啟動。Windows 用戶可直接跳到步驟 4。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">4</div></div>
+    <div class="step-content">
+      <div class="step-label">第一次啟動 n8n Desktop</div>
+      <p class="step-desc">點擊 n8n 圖示啟動應用程式。第一次啟動需要稍等片刻（約 10–30 秒），程式會在背景準備本機服務。完成後，應用程式視窗會顯示 n8n 的主介面，或自動在瀏覽器中開啟。</p>
+      <div class="screenshot">
+        <div class="screenshot-icon">🚀</div>
+        <div class="screenshot-cap">n8n Desktop 啟動後的主介面，左側有 Workflows 導覽</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 5 -->
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">5</div></div>
+    <div class="step-content">
+      <div class="step-label">認識 n8n 三大區域</div>
+      <p class="step-desc">n8n 介面主要分三塊：左側的 <strong>Workflows</strong> 是建立和管理流程的地方（對應 Make 的 Scenarios）；<strong>Credentials</strong> 管理服務連線帳號（對應 Make 的 Connections）；<strong>Settings</strong> 是應用程式設定。</p>
+      <div class="screenshot">
+        <div class="screenshot-icon">🗂</div>
+        <div class="screenshot-cap">n8n 介面，左側導覽欄標示出 Workflows、Credentials、Settings 三個位置</div>
+      </div>
+      <div class="step-tip info">
+        <span class="tip-icon">🔄</span>
+        <span class="tip-text"><strong>對應 Make 的概念：</strong>n8n 的 Workflow = Make 的 Scenario，n8n 的 Node = Make 的 Module，概念一致、操作邏輯相近。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 6 -->
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">6</div></div>
+    <div class="step-content">
+      <div class="step-label">建立並命名第一個 Workflow</div>
+      <p class="step-desc">點擊左側「Workflows」→「New Workflow」建立空白流程。點擊上方預設名稱（如 My workflow），輸入自訂名稱例如「n8n 測試流程」，按 Enter 確認。這個命名習慣有助於日後管理多個流程。</p>
+      <div class="screenshot">
+        <div class="screenshot-icon">📝</div>
+        <div class="screenshot-cap">點擊 New Workflow 後，進入空白編輯畫面，並在頂端命名 Workflow</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 7 -->
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">7</div></div>
+    <div class="step-content">
+      <div class="step-label">新增 Webhook 節點並測試接收</div>
+      <p class="step-desc">在空白流程中，點擊畫面中央的「+」或「Add first step」，搜尋並選擇「Webhook」節點作為觸發器。點擊節點後選擇「Test step」，n8n 會產生一個測試用的 Webhook URL。複製這個網址，貼到瀏覽器新分頁並按 Enter，回到 n8n 確認節點是否出現綠色的「成功接收」提示。</p>
+      <div class="screenshot">
+        <div class="screenshot-icon">🔗</div>
+        <div class="screenshot-cap">左：Webhook 節點設定畫面，複製 Test URL；右：節點顯示綠色「Waiting for test event」後收到資料的狀態</div>
+      </div>
+      <div class="step-tip success">
+        <span class="tip-icon">✅</span>
+        <span class="tip-text"><strong>為什麼先測 Webhook：</strong>這個動作確認 n8n 本機服務正常運作。下一節的 Cloudflare Tunnel 就是要讓外部服務（Make）也能送資料到這個 Webhook，而不只是你自己的瀏覽器。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verify -->
+  <div class="verify-box">
+    <div class="verify-label">完成驗證 CHECKPOINT</div>
+    <div class="verify-title">你應該看到這個畫面才算成功</div>
+    <p class="verify-desc">n8n 的 Webhook 節點在你用瀏覽器訪問它的 URL 後，顯示綠色的成功提示，並在節點下方出現接收到的資料結構（即使只是空物件 <span class="ic">{}</span>）。這代表 n8n Desktop 安裝正常，本機服務可以接收 HTTP 請求。</p>
+  </div>
+
+  <!-- Troubleshoot -->
+  <div class="trouble-section">
+    <div class="trouble-head">
+      <span class="trouble-title">常見問題</span>
+      <div class="trouble-line"></div>
+    </div>
+    <div class="trouble-item">
+      <div class="trouble-problem">n8n 無法啟動（Mac）</div>
+      <div class="trouble-solution">再次確認「系統設定 → 隱私權與安全性 → 安全性」中是否已允許 n8n 執行。有時需要先嘗試開啟一次被拒絕，才會在設定頁面出現「允許」按鈕。</div>
+    </div>
+    <div class="trouble-item">
+      <div class="trouble-problem">Webhook 節點沒有收到測試資料</div>
+      <div class="trouble-solution">確認已點擊節點後選擇「Test step」（或「Listen for test event」），讓節點進入等待狀態（出現「Waiting for test event」提示）後，再用瀏覽器訪問 URL。若仍無反應，嘗試重新啟動 n8n Desktop。</div>
+    </div>
+    <div class="trouble-item">
+      <div class="trouble-problem">介面顯示英文，看不懂</div>
+      <div class="trouble-solution">n8n 目前不支援中文介面，但操作邏輯與 Make 高度相似。本課程所有步驟均會附上對應的介面截圖與說明，對照操作即可。</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="step-nav">
+  <a href="module1.html" class="nav-btn">← 返回 Module 1 概覽</a>
+  <a href="m1-2-tunnel.html" class="nav-btn primary">下一節：Cloudflare Tunnel 設定 →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">淡江大學 · 生成式AI工作坊</span>
+</footer>
+
+<script>
+const fill = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  fill.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + '%';
+});
+</script>
+</body>
+</html>

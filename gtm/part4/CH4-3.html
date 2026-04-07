@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH4-3 預覽模式與發布守則｜GTM 實務演練</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#8c8880;
+  --c-a1:#b5703a; --c-a2:#c9963a; --c-a3:#5a7a5a; --c-a4:#6b7fa3;
+  --radius:6px; --radius-sm:4px; --content-w:780px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a4);width:0%;transition:width .1s;}
+
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a4);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-a4);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a4);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a4);margin-top:8px;flex-shrink:0;}
+
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-a4);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+
+/* ── 列表 ── */
+.custom-list{list-style:none;margin:20px 0;}
+.custom-list li{position:relative;padding-left:24px;margin-bottom:12px;font-size:.95rem;color:var(--c-text);}
+.custom-list li::before{content:"•";position:absolute;left:8px;color:var(--c-a4);font-weight:bold;}
+
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25);}
+.callout.key{background:rgba(181,112,58,.07);border:1px solid rgba(181,112,58,.25);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text);}
+.inline-code{font-family:'Courier New',monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 6px;border-radius:3px;}
+
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-a4);}
+.nav-btn.prev{justify-content:flex-start;text-align:left;}
+.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.nav-spacer{flex:1;}
+
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.lesson-hero .back-link      { animation:fadeUp .4s ease both; }
+.lesson-hero .hero-meta      { animation:fadeUp .45s .08s ease both; }
+.lesson-hero .lesson-title   { animation:fadeUp .55s .15s ease both; }
+.lesson-hero .lesson-tagline { animation:fadeUp .5s  .26s ease both; }
+.lesson-hero .outcomes       { animation:fadeUp .45s .36s ease both; }
+
+.reveal {
+  opacity:0;
+  transform:translateY(22px);
+  transition:opacity .65s cubic-bezier(.16,1,.3,1), transform .65s cubic-bezier(.16,1,.3,1);
+}
+.reveal.in { opacity:1; transform:translateY(0); }
+.section-rule {
+  transform-origin: left center;
+  opacity:0;
+  transition: opacity .4s ease, transform .6s cubic-bezier(.16,1,.3,1);
+  transform: scaleX(.3);
+}
+.section-rule.in { opacity:1; transform:scaleX(1); }
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero{padding:40px 20px 36px;}.lesson-title{font-size:1.55rem;}.lesson-body{padding:0 20px 60px;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="logo" href="../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">GTM 實務演練</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH4-3</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="progressFill"></div></div>
+
+<section class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程目錄</a>
+  <div class="hero-meta">
+    <span class="hero-part">PART 4 · 資料管理與品質控制</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">4.3</span>
+  </div>
+  <h1 class="lesson-title">確保萬無一失：<br>預覽模式與版本發布守則</h1>
+  <p class="lesson-tagline">在 GTM 中，如果設定錯誤，錯誤的數據就會直接灌進你的 GA4 報表裡，而且「無法修改或刪除」。因此，在按下那個藍色的提交按鈕前，你必須經過嚴格的測試與紀錄。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學完這節，你會</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>熟練運用 Tag Assistant 判斷「未觸發」的原因</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>了解「環境與版本管理」的概念</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>掌握專業行銷人的 GTM 發布 SOP</div>
+  </div>
+</section>
+
+<main class="lesson-body">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 01</div>
+    <h2 class="section-heading">預覽模式是你的<em>沙盒</em></h2>
+    <p class="body-text">每次在 GTM 做完任何修改（哪怕只是改了一個變數的拼字），都應該點擊右上角的 <strong>「預覽 (Preview)」</strong>。</p>
+    <p class="body-text">在 Tag Assistant 中，最實用的排錯技巧是點開 <strong>Tags Not Fired (未觸發的代碼)</strong>：</p>
+    <ul class="custom-list">
+      <li>點擊它，往下拉到「觸發條件」。</li>
+      <li>GTM 會用一個<strong>紅色的叉叉 (❌)</strong> 告訴你：「是哪一個過濾條件沒有被滿足」。</li>
+      <li>例如：你設定 Click Text 要等於「馬上購買」，但網頁上的字其實是「立即購買」，GTM 就會在這裡明確指出錯誤。</li>
+    </ul>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 02</div>
+    <h2 class="section-heading">版本管理的<em>救命恩人</em></h2>
+    <p class="body-text">確認測試都沒問題後，回到 GTM 點擊右上角的藍色 <strong>「提交 (Submit)」</strong> 按鈕。此時會彈出一個要求你填寫「版本名稱」與「說明」的視窗。</p>
+
+    <div class="callout tip">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body">
+        <strong>絕對不要空白！</strong><br>
+        請養成寫 Release Note 的好習慣。例如：<br>
+        <strong>版本名稱：</strong> <code>v1.2 - 新增 SureForms 追蹤與對照表</code><br>
+        <strong>說明：</strong> <code>1. 新增 generate_lead 事件 2. 加入 Lookup Table 處理表單網址</code>
+      </div>
+    </div>
+
+    <p class="body-text">為什麼這很重要？因為如果明天你發現網站追蹤整個掛掉了，你可以進到 GTM 的「版本」分頁，一鍵 <strong>「還原 (Restore)」</strong> 到昨天正常的版本。如果你沒寫名稱，你根本不知道該還原到哪一個版本！</p>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 03</div>
+    <h2 class="section-heading">結語：<em>你的專屬追蹤流</em></h2>
+    <p class="body-text">恭喜你完成了所有課程的核心知識點！現在你已經掌握了：</p>
+
+    <div style="display:flex; flex-direction:column; gap:8px; margin: 24px 0;">
+      <div style="padding:16px 20px; background:var(--c-surface); border-radius:var(--radius); font-size:.9rem;">
+        <strong>1. 工具運用：</strong> Chrome 檢查工具、Tag Assistant
+      </div>
+      <div style="padding:16px 20px; background:var(--c-surface); border-radius:var(--radius); font-size:.9rem;">
+        <strong>2. 基礎追蹤：</strong> 頁面瀏覽、按鈕點擊 (CSS Selector)
+      </div>
+      <div style="padding:16px 20px; background:var(--c-surface); border-radius:var(--radius); font-size:.9rem;">
+        <strong>3. 進階轉換：</strong> AJAX 表單可見度、外部連結、電話點擊
+      </div>
+      <div style="padding:16px 20px; background:var(--c-surface); border-radius:var(--radius); font-size:.9rem;">
+        <strong>4. 數據整理：</strong> Data Layer 概念、Lookup Table 翻譯對照表
+      </div>
+    </div>
+
+    <div class="callout key">
+      <div class="callout-icon">★</div>
+      <div class="callout-body">
+        <strong>下一節：期末考時間！</strong><br>
+        我們將用一個「綜合演練」的清單，帶你把所有知識串聯起來，模擬一次「老闆交代需求」到「最終上線發布」的真實工作流程。
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<nav class="lesson-nav">
+  <a class="nav-btn prev" href="CH4-2.html">
+    <span>←</span>
+    <div>
+      <div class="nav-btn-label">上一節</div>
+      <div class="nav-btn-title">4.2 運用 Lookup Table 整理數據</div>
+    </div>
+  </a>
+  <div class="nav-spacer"></div>
+  <a class="nav-btn next" href="PRAC4-1.html">
+    <div>
+      <div class="nav-btn-label">最後一節：綜合演練</div>
+      <div class="nav-btn-title">專案執行全流程 (需求到上線)</div>
+    </div>
+    <span>→</span>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">Part 4 · 3 of 3 (完結)</div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const d = document.documentElement;
+  const pct = d.scrollHeight - d.clientHeight > 0
+    ? (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100 : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+});
+
+(function(){
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, { threshold: .1, rootMargin: '0px 0px -48px 0px' });
+
+  document.querySelectorAll('.lesson-section, .section-rule').forEach(el => {
+    el.classList.add('reveal');
+    io.observe(el);
+  });
+})();
+</script>
+</body>
+</html>

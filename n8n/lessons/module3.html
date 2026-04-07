@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 3：重型文件工廠｜AI 資料工廠</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#8c8880;
+  --c-a4:#6b7fa3; --radius:6px; --content-w:780px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.08);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a4);width:0%;transition:width .1s;}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a4);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-a4);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a4);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a4);margin-top:8px;flex-shrink:0;}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-a4);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25);}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout.key{background:rgba(107,127,163,.1);border:1px solid rgba(107,127,163,.35);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text);}
+.callout-body strong{font-weight:700;}
+.concept-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:28px 0;}
+.concept-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:22px 20px;}
+.concept-num{font-family:'Shippori Mincho',serif;font-size:1.5rem;font-weight:700;color:var(--c-a4);margin-bottom:8px;line-height:1;}
+.concept-title{font-size:.85rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.concept-desc{font-size:.78rem;color:var(--c-muted);line-height:1.7;}
+.big-quote{font-family:'Shippori Mincho',serif;font-size:1.3rem;font-weight:700;line-height:1.65;color:var(--c-text);padding:28px 32px;background:var(--c-card);border:1px solid var(--c-border);border-left:4px solid var(--c-a4);border-radius:var(--radius);margin:28px 0;}
+.big-quote span{color:var(--c-a4);}
+.analogy-box{padding:28px 32px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:28px 0;}
+.analogy-label{font-size:.68rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:12px;}
+.analogy-text{font-size:.92rem;color:var(--c-text);line-height:1.9;}
+.flow-wrap{margin:32px 0;padding:32px 28px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);}
+.flow-title{font-size:.7rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:24px;}
+.flow-steps{display:flex;align-items:flex-start;overflow-x:auto;}
+.flow-step{display:flex;flex-direction:column;align-items:center;flex:1;min-width:90px;text-align:center;}
+.flow-node{width:48px;height:48px;border-radius:50%;background:var(--c-surface);border:1.5px solid var(--c-border);display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:12px;}
+.flow-step.active .flow-node{background:rgba(107,127,163,.1);border-color:var(--c-a4);}
+.flow-connector{flex:0 0 24px;height:48px;display:flex;align-items:center;justify-content:center;color:var(--c-border);font-size:.85rem;}
+.flow-label{font-size:.75rem;font-weight:700;color:var(--c-text);margin-bottom:4px;line-height:1.3;}
+.flow-sub{font-size:.68rem;color:var(--c-muted);line-height:1.4;padding:0 4px;}
+.inline-code{font-family:'Courier New',monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 6px;border-radius:3px;}
+.example-box{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:24px 28px;margin:24px 0;}
+.example-label{font-size:.68rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:12px;}
+.example-row{display:flex;align-items:center;gap:16px;font-size:.88rem;color:var(--c-text);margin-bottom:8px;}
+.example-before{color:var(--c-muted);flex:1;}
+.example-arrow{color:var(--c-a4);font-weight:700;flex-shrink:0;}
+.example-after{flex:1;font-weight:500;}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a4);text-decoration:none;padding:10px 20px;border:1px solid rgba(107,127,163,.3);border-radius:var(--radius);transition:background .2s;}
+.nav-btn:hover{background:rgba(107,127,163,.07);}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-div{width:1px;height:14px;background:var(--c-border);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 資料工廠</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">Module 03</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a href="index.html" class="back-link">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">AI 資料工廠</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">MODULE 03</span>
+  </div>
+  <h1 class="lesson-title">重型文件工廠：批次處理大師</h1>
+  <p class="lesson-tagline">對付成千上萬的 PDF！學會「迴圈（Looping）」思考術。當別人在手動改名時，你已一鍵處理完一整年的存檔。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習目標 OUTCOMES</div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>設定資料夾監控，自動觸發文件處理工作流程</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>實現 PDF 文件的批次自動改名，AI 讀取內容並按規則命名</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>運用 Excel 數據批次生成 Word 文件，自動產出 100 份客製化文件</span></div>
+  </div>
+</div>
+
+<div class="lesson-body">
+
+  <div class="lesson-section" id="monitoring">
+    <div class="section-eyebrow">Automated Monitoring · 3.1</div>
+    <h2 class="section-heading">資料夾監控：<em>Make 做不到的本機觸發</em></h2>
+    <p class="body-text">這是 n8n Desktop 相較於 Make 最關鍵的能力差異：Make 只能被動等待雲端訊號（如 Gmail 收信、Google Forms 提交），但它無法主動監控你電腦裡的資料夾。n8n 的「Watch Folder」節點可以——只要你把新檔案丟進指定資料夾，n8n 立刻偵測到並自動啟動處理流程，完全不需人工介入。</p>
+    <p class="body-text">透過實作，你將能夠設計出以「本機資料夾」為起點的全自動文件處理系統：發票 PDF 一放進資料夾，AI 自動讀取內容、改名、歸檔，甚至發送通知，整個流程在你的電腦上完成。</p>
+    <div class="callout tip">
+      <span class="callout-icon">📂</span>
+      <div class="callout-body"><strong>Watch Folder 觸發模式：</strong>支持即時監聽（文件一落地立刻觸發）或定時掃描（每隔 N 分鐘檢查一次），可依業務需求靈活配置。這個功能在 Make 中沒有對應節點，是 n8n Desktop 的獨有優勢。</div>
+    </div>
+    <div class="concept-grid">
+      <a href="m3-1-watch.html" class="concept-card" style="text-decoration:none;color:inherit;display:block;cursor:pointer;transition:box-shadow .2s,border-color .2s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(107,127,163,.18)';this.style.borderColor='rgba(107,127,163,.5)'" onmouseout="this.style.boxShadow='';this.style.borderColor=''">
+        <div class="concept-num">01</div>
+        <div class="concept-title">Watch Folder 節點實作 →</div>
+        <div class="concept-desc">配置 Watch Folder 節點監控資料夾，加入 If 篩選 PDF，建立完整本機觸發流程。</div>
+      </a>
+      <div class="concept-card" style="opacity:.55">
+        <div class="concept-num">02</div>
+        <div class="concept-title">觸發模式選擇</div>
+        <div class="concept-desc">理解即時監聽與定時掃描的差異，根據任務緊急程度選擇適合的策略。<br><small>（步驟頁面建置中）</small></div>
+      </div>
+      <div class="concept-card" style="opacity:.55">
+        <div class="concept-num">03</div>
+        <div class="concept-title">文件類型過濾</div>
+        <div class="concept-desc">設定只監控特定副檔名（如 .pdf、.xlsx），避免非目標文件觸發流程。<br><small>（步驟頁面建置中）</small></div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section" id="rename">
+    <div class="section-eyebrow">File Management · 3.2</div>
+    <h2 class="section-heading">PDF 批次改名：<em>依規則自動命名</em></h2>
+    <p class="body-text">大量 PDF 文件的命名管理常令人頭疼。本節將教你如何利用 n8n 結合 Google AI Studio，從 PDF 內容中提取關鍵資訊，並按照規則實現文件的批次自動改名。</p>
+    <div class="example-box">
+      <div class="example-label">實際案例 EXAMPLE</div>
+      <div class="example-row">
+        <span class="example-before">scan_20260315_001.pdf</span>
+        <span class="example-arrow">→</span>
+        <span class="example-after">2026_合約_廠商A_50萬.pdf</span>
+      </div>
+      <div class="example-row">
+        <span class="example-before">document_final_v3.pdf</span>
+        <span class="example-arrow">→</span>
+        <span class="example-after">2026_採購單_供應商B_3.2萬.pdf</span>
+      </div>
+    </div>
+    <p class="body-text">無論是根據廠商名稱、合約金額或日期，你都能為文件設定一套智能的命名邏輯，確保所有文件都以統一且具意義的方式命名，易於搜尋與歸檔。</p>
+    <div class="callout key">
+      <span class="callout-icon">🏷️</span>
+      <div class="callout-body"><strong>AI 辨識 + Prompting：</strong>透過 Google AI Studio 讀取 PDF 內容，搭配結構化 Prompt 讓 AI 回傳 JSON 格式的命名資訊，再由 n8n 組合成最終檔名。</div>
+    </div>
+    <div class="concept-grid">
+      <a href="m3-2-rename.html" class="concept-card" style="text-decoration:none;color:inherit;display:block;cursor:pointer;transition:box-shadow .2s,border-color .2s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(107,127,163,.18)';this.style.borderColor='rgba(107,127,163,.5)'" onmouseout="this.style.boxShadow='';this.style.borderColor=''">
+        <div class="concept-num">01</div>
+        <div class="concept-title">AI 辨識自動命名實戰 →</div>
+        <div class="concept-desc">Read Binary → Gemini API → Code 解析 → Move File，五步驟完成 PDF 智慧改名。</div>
+      </a>
+      <div class="concept-card" style="opacity:.55">
+        <div class="concept-num">02</div>
+        <div class="concept-title">命名規則設計</div>
+        <div class="concept-desc">設計統一命名規則（日期_類型_對象_金額），確保一致性與可搜尋性。<br><small>（步驟頁面建置中）</small></div>
+      </div>
+      <div class="concept-card" style="opacity:.55">
+        <div class="concept-num">03</div>
+        <div class="concept-title">批次重命名</div>
+        <div class="concept-desc">利用 n8n 的 Loop 與檔案操作節點，將 AI 提取的資訊組合成新檔名並批次執行。<br><small>（步驟頁面建置中）</small></div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section" id="generation">
+    <div class="section-eyebrow">Document Generation · 3.3</div>
+    <h2 class="section-heading">Excel 轉 Word：<em>批次生成客製文件</em></h2>
+    <p class="body-text">重複性的文件生成工作佔用了許多寶貴時間。本節將展示如何運用 n8n，將 Excel 表格中的結構化數據，批次轉換並填充至 Word 範本中，自動生成大量客製化的文件——例如邀請函、合約或結業證明書。</p>
+    <div class="analogy-box">
+      <div class="analogy-label">生活類比 ANALOGY</div>
+      <p class="analogy-text">想像你要寄出 100 份邀請函，每份只有姓名和時間不同。以前你需要一份一份修改。現在，你只需要準備一份「範本」（Word）和一份「名單」（Excel），n8n 的 Loop 思維就像一條生產線，自動將每筆數據填入範本，一鍵產出 100 份完整文件。</p>
+    </div>
+    <div class="callout info">
+      <span class="callout-icon">📄</span>
+      <div class="callout-body"><strong>範本設計技巧：</strong>將 Word 文件中需要替換的欄位以特殊標記表示（如 <span class="inline-code">{{姓名}}</span>、<span class="inline-code">{{日期}}</span>），n8n 會自動將 Excel 對應欄位的值填入。</div>
+    </div>
+    <div class="concept-grid">
+      <a href="m3-3-generate.html" class="concept-card" style="text-decoration:none;color:inherit;display:block;cursor:pointer;transition:box-shadow .2s,border-color .2s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(107,127,163,.18)';this.style.borderColor='rgba(107,127,163,.5)'" onmouseout="this.style.boxShadow='';this.style.borderColor=''">
+        <div class="concept-num">01</div>
+        <div class="concept-title">Excel 轉 Word 批次生成 →</div>
+        <div class="concept-desc">Read Excel → Loop → Code 組合 → Write File，六步驟自動產出 100 份客製文件。</div>
+      </a>
+      <div class="concept-card" style="opacity:.55">
+        <div class="concept-num">02</div>
+        <div class="concept-title">Word 範本設計</div>
+        <div class="concept-desc">掌握設計帶有佔位符的 Word 範本，為數據填充做準備。<br><small>（步驟頁面建置中）</small></div>
+      </div>
+      <div class="concept-card" style="opacity:.55">
+        <div class="concept-num">03</div>
+        <div class="concept-title">Loop 批次產出</div>
+        <div class="concept-desc">利用 n8n 的 Loop 節點迭代每一筆 Excel 數據，批次生成並儲存文件。<br><small>（步驟頁面建置中）</small></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow-wrap">
+    <div class="flow-title">MODULE 03 · 文件處理自動化流程</div>
+    <div class="flow-steps">
+      <div class="flow-step active">
+        <div class="flow-node">📂</div>
+        <div class="flow-label">資料夾守衛</div>
+        <div class="flow-sub">新文件觸發自動化</div>
+      </div>
+      <div class="flow-connector">→</div>
+      <div class="flow-step active">
+        <div class="flow-node">🤖</div>
+        <div class="flow-label">AI 讀取內容</div>
+        <div class="flow-sub">辨識廠商、金額、日期</div>
+      </div>
+      <div class="flow-connector">→</div>
+      <div class="flow-step active">
+        <div class="flow-node">✏️</div>
+        <div class="flow-label">智能改名</div>
+        <div class="flow-sub">按規則重命名存檔</div>
+      </div>
+      <div class="flow-connector">→</div>
+      <div class="flow-step active">
+        <div class="flow-node">📑</div>
+        <div class="flow-label">批量文件</div>
+        <div class="flow-sub">Excel→100份Word</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="big-quote">文件如流水，自動化為壩，<span>高效處理，盡在掌握。</span></div>
+
+</div>
+
+<div class="nav-footer">
+  <a href="module2.html" class="nav-btn">← Module 2：點名抓取法</a>
+  <a href="module4.html" class="nav-btn">Module 4：綜合實戰 →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">淡江大學 · 生成式AI工作坊</span>
+</footer>
+
+<script>
+const fill = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  fill.style.width = pct + '%';
+});
+</script>
+</body>
+</html>

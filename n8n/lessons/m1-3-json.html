@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1.3 JSON 基礎與 Prompting 技巧｜AI 資料工廠</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#8c8880;
+  --c-a4:#6b7fa3; --radius:6px; --content-w:720px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.08);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a4);width:0%;transition:width .1s;}
+.step-hero{max-width:var(--content-w);margin:0 auto;padding:56px 48px 40px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px;}
+.back-link:hover{color:var(--c-a4);}
+.hero-meta{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.hero-section{font-size:.7rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-sep{width:1px;height:12px;background:var(--c-border);}
+.hero-num{font-size:.7rem;color:var(--c-a4);letter-spacing:1px;font-weight:500;}
+.step-title{font-family:'Shippori Mincho',serif;font-size:1.9rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:12px;}
+.step-subtitle{font-size:.93rem;color:var(--c-muted);line-height:1.8;max-width:560px;margin-bottom:20px;}
+.meta-bar{display:flex;gap:20px;align-items:center;flex-wrap:wrap;}
+.meta-item{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--c-muted);}
+.meta-icon{font-size:.9rem;}
+.step-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 32px;}
+.step-block{display:flex;gap:24px;margin-bottom:44px;position:relative;}
+.step-block:not(:last-child)::after{content:'';position:absolute;left:19px;top:48px;width:2px;height:calc(100% - 16px);background:var(--c-border);}
+.step-num-col{flex-shrink:0;}
+.step-circle{width:40px;height:40px;border-radius:50%;background:rgba(107,127,163,.1);border:2px solid var(--c-a4);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-a4);flex-shrink:0;}
+.step-content{flex:1;padding-top:6px;}
+.step-label{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:8px;line-height:1.3;}
+.step-desc{font-size:.9rem;color:var(--c-text);line-height:1.9;margin-bottom:12px;}
+.screenshot{background:var(--c-surface);border:1.5px dashed var(--c-border);border-radius:var(--radius);padding:28px 24px;margin:14px 0;text-align:center;}
+.screenshot-icon{font-size:1.6rem;margin-bottom:8px;opacity:.5;}
+.screenshot-cap{font-size:.78rem;color:var(--c-muted);line-height:1.6;}
+.step-tip{display:flex;gap:12px;padding:14px 18px;border-radius:var(--radius);margin:12px 0;font-size:.85rem;line-height:1.75;}
+.step-tip.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.22);}
+.step-tip.warning{background:rgba(201,150,58,.06);border:1px solid rgba(201,150,58,.25);}
+.step-tip.success{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.tip-icon{flex-shrink:0;font-size:1rem;margin-top:1px;}
+.tip-text{color:var(--c-text);}
+.tip-text strong{font-weight:700;}
+.ic{font-family:'Courier New',monospace;font-size:.82em;background:rgba(107,127,163,.1);padding:1px 6px;border-radius:3px;}
+.code-block{background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.83rem;padding:20px 22px;border-radius:var(--radius);margin:14px 0;line-height:1.8;overflow-x:auto;white-space:pre;}
+.code-block .key{color:#a8c4d4;}
+.code-block .val{color:#c4a86e;}
+.code-block .str{color:#98c48c;}
+.code-block .comment{color:#6b8080;font-style:italic;}
+.code-block .expr{color:#d4a0c8;}
+.analogy-box{padding:22px 26px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:14px 0;}
+.analogy-label{font-size:.68rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:8px;}
+.analogy-text{font-size:.88rem;color:var(--c-text);line-height:1.85;}
+.verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:22px 26px;margin:8px 0 32px;}
+.verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px;}
+.verify-title{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:8px;}
+.verify-desc{font-size:.88rem;color:var(--c-text);line-height:1.8;}
+.trouble-section{margin:0 0 48px;}
+.trouble-head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;}
+.trouble-title{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-text);}
+.trouble-line{flex:1;height:1px;background:var(--c-border);}
+.trouble-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;margin-bottom:10px;}
+.trouble-problem{font-size:.85rem;font-weight:700;color:var(--c-text);margin-bottom:6px;display:flex;align-items:flex-start;gap:8px;}
+.trouble-problem::before{content:'Q';font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-a4);font-weight:700;flex-shrink:0;margin-top:1px;}
+.trouble-solution{font-size:.83rem;color:var(--c-muted);line-height:1.75;padding-left:20px;}
+.step-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--c-border);padding-top:28px;}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a4);text-decoration:none;padding:10px 20px;border:1px solid rgba(107,127,163,.3);border-radius:var(--radius);transition:background .2s;}
+.nav-btn:hover{background:rgba(107,127,163,.07);}
+.nav-btn.primary{background:var(--c-a4);color:#fff;border-color:var(--c-a4);}
+.nav-btn.primary:hover{opacity:.85;background:var(--c-a4);}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-div{width:1px;height:14px;background:var(--c-border);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 資料工廠</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">1.3 實作步驟</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="step-hero">
+  <a href="module1.html" class="back-link">← 返回 Module 1</a>
+  <div class="hero-meta">
+    <span class="hero-section">Module 01</span>
+    <div class="hero-sep"></div>
+    <span class="hero-num">SECTION 1.3</span>
+  </div>
+  <h1 class="step-title">JSON 基礎與 Prompting 技巧</h1>
+  <p class="step-subtitle">學會理解 JSON 這種通用資料格式，掌握在 n8n 中讀寫數據的語法，並用 Prompting 讓 AI 穩定輸出結構化資料，讓後續節點能自動處理。</p>
+  <div class="meta-bar">
+    <div class="meta-item"><span class="meta-icon">⏱</span><span>預估時間：45 分鐘</span></div>
+    <div class="meta-item"><span class="meta-icon">📋</span><span>7 個步驟</span></div>
+    <div class="meta-item"><span class="meta-icon">💡</span><span>不需寫程式背景</span></div>
+  </div>
+</div>
+
+<div class="step-body">
+
+  <!-- Step 1 -->
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">1</div></div>
+    <div class="step-content">
+      <div class="step-label">什麼是 JSON？資料的「名牌標籤」</div>
+      <p class="step-desc">JSON 是電腦之間傳遞資料的通用格式。想像每件商品都有一張名牌，上面寫著品名、價格、顏色——JSON 就是這種結構化的「名牌」，讓不同的服務（n8n、Make、Google AI Studio）能讀懂彼此傳過來的資料，不會雞同鴨講。</p>
+      <div class="analogy-box">
+        <div class="analogy-label">生活類比</div>
+        <div class="analogy-text">一張合約如果只是純文字，電腦不知道哪段是「廠商名稱」、哪段是「金額」。但如果用 JSON 格式，就像幫每個資訊貼上標籤：<span class="ic">"廠商": "台積電"</span>、<span class="ic">"金額": 50000</span>，電腦立刻知道要讀哪個欄位。</div>
+      </div>
+      <div class="step-tip info">
+        <span class="tip-icon">💡</span>
+        <span class="tip-text">n8n 的每個節點之間傳遞的資料都是 JSON 格式。學會讀懂 JSON，就等於學會看懂 n8n 的「數據流」。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">2</div></div>
+    <div class="step-content">
+      <div class="step-label">認識 JSON 物件 <span class="ic">{}</span> 與陣列 <span class="ic">[]</span></div>
+      <p class="step-desc">JSON 有兩種基本結構。<strong>物件</strong>（大括號 <span class="ic">{}</span>）用來描述「一筆資料」，裡面是一組組的「欄位名稱 : 值」。<strong>陣列</strong>（中括號 <span class="ic">[]</span>）則是「多筆資料的清單」，裡面可以放很多個物件。以下是一個真實的訂單範例：</p>
+      <div class="code-block"><span class="comment">// 一筆完整的訂單資料（物件 + 陣列）</span>
+{
+  <span class="key">"客戶姓名"</span>: <span class="str">"王小明"</span>,
+  <span class="key">"訂單編號"</span>: <span class="str">"A20260315-001"</span>,
+  <span class="key">"總金額"</span>: <span class="val">3150</span>,
+  <span class="key">"商品列表"</span>: [
+    { <span class="key">"名稱"</span>: <span class="str">"無線耳機"</span>, <span class="key">"數量"</span>: <span class="val">1</span>, <span class="key">"單價"</span>: <span class="val">2800</span> },
+    { <span class="key">"名稱"</span>: <span class="str">"充電線"</span>, <span class="key">"數量"</span>: <span class="val">1</span>, <span class="key">"單價"</span>: <span class="val">350</span> }
+  ]
+}</div>
+      <div class="screenshot">
+        <div class="screenshot-icon">🗂</div>
+        <div class="screenshot-cap">n8n 節點輸出視窗中，展開 JSON 結構，看到物件欄位與陣列清單</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">3</div></div>
+    <div class="step-content">
+      <div class="step-label">用 Expression 讀取 JSON 欄位</div>
+      <p class="step-desc">在 n8n 的任何欄位裡，點擊右側齒輪圖示切換到 Expression 模式，就可以用 <span class="ic">{{ $json.欄位名稱 }}</span> 的語法讀取資料。若要讀取巢狀欄位（物件裡面的物件），用「.」點下去一層層讀取。</p>
+      <div class="code-block"><span class="comment">// 以上方的訂單資料為例</span>
+
+<span class="expr">{{ $json.客戶姓名 }}</span>        <span class="comment">→ "王小明"</span>
+<span class="expr">{{ $json.訂單編號 }}</span>        <span class="comment">→ "A20260315-001"</span>
+<span class="expr">{{ $json.總金額 }}</span>          <span class="comment">→ 3150</span></div>
+      <div class="screenshot">
+        <div class="screenshot-icon">✏️</div>
+        <div class="screenshot-cap">n8n 節點欄位切換到 Expression 模式，輸入 {{ $json.客戶姓名 }} 後顯示預覽值</div>
+      </div>
+      <div class="step-tip info">
+        <span class="tip-icon">🔄</span>
+        <span class="tip-text"><strong>對應 Make 的概念：</strong>這就像 Make 中在欄位裡點擊變數、選擇要帶入的資料欄位，只是 n8n 用文字語法表達，更靈活。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">4</div></div>
+    <div class="step-content">
+      <div class="step-label">讀取陣列中的特定項目</div>
+      <p class="step-desc">陣列的索引從 <span class="ic">0</span> 開始，<span class="ic">[0]</span> 是第一筆，<span class="ic">[1]</span> 是第二筆。讀取陣列裡某個物件的欄位，語法是：先用中括號指定第幾筆，再用點號讀取欄位名稱。</p>
+      <div class="code-block"><span class="comment">// 讀取商品列表中的第一筆和第二筆</span>
+
+<span class="expr">{{ $json.商品列表[0].名稱 }}</span>   <span class="comment">→ "無線耳機"</span>
+<span class="expr">{{ $json.商品列表[0].單價 }}</span>   <span class="comment">→ 2800</span>
+<span class="expr">{{ $json.商品列表[1].名稱 }}</span>   <span class="comment">→ "充電線"</span>
+<span class="expr">{{ $json.商品列表[1].單價 }}</span>   <span class="comment">→ 350</span></div>
+      <div class="step-tip warning">
+        <span class="tip-icon">⚠️</span>
+        <span class="tip-text">陣列索引從 0 開始，不是 1。要取第一筆用 <span class="ic">[0]</span>，這是初學者最常犯的錯誤。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 5 -->
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">5</div></div>
+    <div class="step-content">
+      <div class="step-label">用 Set 節點組合新的 JSON 物件</div>
+      <p class="step-desc">當你需要把從不同地方讀到的資料重新組合，可以用 n8n 的 <strong>Set 節點</strong>。點擊「Add field」，設定欄位名稱，值的欄位切換成 Expression 後填入對應語法，就能組出一個全新的 JSON 物件，傳給後續節點使用。</p>
+      <div class="code-block"><span class="comment">// 在 Set 節點新增以下三個欄位：</span>
+
+<span class="key">欄位名</span>: <span class="str">客戶簡報</span>
+<span class="key">值</span>（Expression）: <span class="expr">{{ $json.客戶姓名 }}</span>
+
+<span class="key">欄位名</span>: <span class="str">消費總額</span>
+<span class="key">值</span>（Expression）: <span class="expr">{{ $json.總金額 }}</span>
+
+<span class="key">欄位名</span>: <span class="str">訂單編號</span>
+<span class="key">值</span>（Expression）: <span class="expr">{{ $json.訂單編號 }}</span></div>
+      <div class="screenshot">
+        <div class="screenshot-icon">🔧</div>
+        <div class="screenshot-cap">n8n Set 節點介面，Add Field 後設定欄位名稱與 Expression 值</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 6 -->
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">6</div></div>
+    <div class="step-content">
+      <div class="step-label">Prompting 技巧：讓 AI 回傳結構化 JSON</div>
+      <p class="step-desc">直接問 AI 問題，通常得到的是一段自由格式的文字，n8n 沒辦法自動讀取。解法是在 Prompt 中明確要求 AI 以 JSON 格式回覆，並附上你想要的格式範例——AI 就會照著結構輸出，後續節點才能精準讀取每個欄位。</p>
+      <div class="code-block"><span class="comment">// Prompt 範本：讓 AI 讀合約並輸出結構化資料</span>
+
+請讀取以下合約文字，並以 JSON 格式回覆，
+格式如下，不要包含其他說明文字：
+
+{
+  <span class="key">"廠商名稱"</span>: <span class="str">"字串"</span>,
+  <span class="key">"合約金額"</span>: <span class="val">數字（不含符號）</span>,
+  <span class="key">"簽約日期"</span>: <span class="str">"YYYY-MM-DD"</span>,
+  <span class="key">"合約類型"</span>: <span class="str">"採購單 | 服務合約 | 其他"</span>
+}
+
+合約文字如下：
+<span class="expr">{{ $json.contract_text }}</span></div>
+      <div class="screenshot">
+        <div class="screenshot-icon">🤖</div>
+        <div class="screenshot-cap">n8n 中連接 Google AI Studio 節點，Prompt 欄位填入上方範本</div>
+      </div>
+      <div class="step-tip success">
+        <span class="tip-icon">✅</span>
+        <span class="tip-text"><strong>關鍵句型：</strong>「不要包含其他說明文字」這句很重要——沒有這句，AI 可能會在 JSON 前後加上「以下是回覆：」等文字，導致 JSON Parse 失敗。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 7 -->
+  <div class="step-block">
+    <div class="step-num-col"><div class="step-circle">7</div></div>
+    <div class="step-content">
+      <div class="step-label">用 JSON Parse 節點解析 AI 回傳的字串</div>
+      <p class="step-desc">AI 輸出的 JSON 在 n8n 裡通常是一段「文字字串」，不能直接用 <span class="ic">$json.廠商名稱</span> 讀取。需要先接一個 <strong>JSON Parse</strong> 節點（搜尋「JSON」可找到），選擇 AI 輸出的欄位，它會把字串轉換成 n8n 可以操作的 JSON 物件。</p>
+      <div class="code-block"><span class="comment">// 設定 JSON Parse 節點</span>
+<span class="comment">// Mode: Parse JSON</span>
+<span class="comment">// JSON String: 選擇 AI 輸出的文字欄位</span>
+<span class="comment">//   例如 {{ $json.message.content }} 或 {{ $json.text }}</span>
+
+<span class="comment">// 解析後，下一個節點就可以直接讀取：</span>
+<span class="expr">{{ $json.廠商名稱 }}</span>   <span class="comment">→ "台積電"</span>
+<span class="expr">{{ $json.合約金額 }}</span>   <span class="comment">→ 50000</span>
+<span class="expr">{{ $json.簽約日期 }}</span>   <span class="comment">→ "2026-03-15"</span></div>
+      <div class="screenshot">
+        <div class="screenshot-icon">🔄</div>
+        <div class="screenshot-cap">JSON Parse 節點設定，選擇 AI 輸出的字串欄位，執行後下一節點可讀取個別欄位值</div>
+      </div>
+      <div class="step-tip warning">
+        <span class="tip-icon">⚠️</span>
+        <span class="tip-text"><strong>AI 輸出不穩定時：</strong>如果 JSON Parse 偶爾報錯，通常是 AI 在 JSON 外加了說明文字。解法是在 Prompt 前後加上 <span class="ic">```json ... ```</span> 的格式要求，或加一個 Code 節點先用正規表達式截取 JSON 部分。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verify -->
+  <div class="verify-box">
+    <div class="verify-label">完成驗證 CHECKPOINT</div>
+    <div class="verify-title">你應該能做到這些才算完成</div>
+    <p class="verify-desc">在 n8n 中建立一個測試 Workflow：Webhook 接收資料 → Set 節點讀取並組合欄位 → JSON Parse 節點解析一個模擬的 AI 輸出字串，最後確認所有欄位值都能正確讀取。能做到這三件事，JSON 基礎就算通關。</p>
+  </div>
+
+  <!-- Troubleshoot -->
+  <div class="trouble-section">
+    <div class="trouble-head">
+      <span class="trouble-title">常見問題</span>
+      <div class="trouble-line"></div>
+    </div>
+    <div class="trouble-item">
+      <div class="trouble-problem">Expression 顯示 undefined 或空白</div>
+      <div class="trouble-solution">通常是欄位名稱拼錯（包含大小寫），或路徑層級有誤。在 n8n Expression 編輯器的左側面板會列出前一節點的實際資料結構，可以直接點擊欄位名稱自動帶入，避免手打錯誤。</div>
+    </div>
+    <div class="trouble-item">
+      <div class="trouble-problem">JSON Parse 節點報錯：Invalid JSON</div>
+      <div class="trouble-solution">AI 在 JSON 前後加了說明文字（如「以下是結果：」）。在 Prompt 中加上「只回覆 JSON，不要任何說明文字」，並測試幾次確認 AI 穩定遵守。若問題持續，加一個 Code 節點，用 <span class="ic">JSON.parse(input.match(/\{[\s\S]*\}/)[0])</span> 先截取 JSON 部分。</div>
+    </div>
+    <div class="trouble-item">
+      <div class="trouble-problem">AI 回傳的數字欄位變成字串</div>
+      <div class="trouble-solution">在 Prompt 中明確標示哪些欄位是數字（number），例如 <span class="ic">"合約金額": 數字（不含貨幣符號）</span>。若 AI 仍回傳字串，在 Set 節點中用 <span class="ic">{{ parseInt($json.合約金額) }}</span> 強制轉換成數字型別。</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="step-nav">
+  <a href="m1-2-tunnel.html" class="nav-btn">← 上一節：Cloudflare Tunnel</a>
+  <a href="module2.html" class="nav-btn primary">前往 Module 2 →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">淡江大學 · 生成式AI工作坊</span>
+</footer>
+
+<script>
+const fill = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  fill.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + '%';
+});
+</script>
+</body>
+</html>

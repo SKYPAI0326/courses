@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH1-4 安裝 GTM 容器碼｜GTM 實務演練</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#8c8880;
+  --c-a1:#b5703a; --c-a2:#c9963a; --c-a3:#5a7a5a; --c-a4:#6b7fa3;
+  --radius:6px; --radius-sm:4px; --content-w:780px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a1);border:1px solid rgba(181,112,58,.3);background:rgba(181,112,58,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a1);width:0%;transition:width .1s;}
+
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a1);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-a1);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a1);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-a1);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a1);margin-top:8px;flex-shrink:0;}
+
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-a1);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+
+.step-list{display:flex;flex-direction:column;gap:16px;margin:28px 0;}
+.step-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:24px;display:flex;gap:20px;align-items:flex-start;}
+.step-num{font-family:'Shippori Mincho',serif;font-size:1.8rem;font-weight:700;color:var(--c-a1);line-height:1;margin-top:2px;}
+.step-content{flex:1;}
+.step-title{font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:8px;}
+.step-desc{font-size:.88rem;color:var(--c-muted);line-height:1.7;}
+
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout.key{background:rgba(181,112,58,.07);border:1px solid rgba(181,112,58,.25);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text);}
+.inline-code{font-family:'Courier New',monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 6px;border-radius:3px;}
+
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-a1);}
+.nav-btn.prev{justify-content:flex-start;text-align:left;}
+.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.nav-spacer{flex:1;}
+
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.lesson-hero .back-link      { animation:fadeUp .4s ease both; }
+.lesson-hero .hero-meta      { animation:fadeUp .45s .08s ease both; }
+.lesson-hero .lesson-title   { animation:fadeUp .55s .15s ease both; }
+.lesson-hero .lesson-tagline { animation:fadeUp .5s  .26s ease both; }
+.lesson-hero .outcomes       { animation:fadeUp .45s .36s ease both; }
+
+.reveal {
+  opacity:0;
+  transform:translateY(22px);
+  transition:opacity .65s cubic-bezier(.16,1,.3,1), transform .65s cubic-bezier(.16,1,.3,1);
+}
+.reveal.in { opacity:1; transform:translateY(0); }
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero{padding:40px 20px 36px;}.lesson-title{font-size:1.55rem;}.lesson-body{padding:0 20px 60px;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="logo" href="../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">GTM 實務演練</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH1-4</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="progressFill"></div></div>
+
+<section class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程目錄</a>
+  <div class="hero-meta">
+    <span class="hero-part">PART 1 · 觀念建構與環境準備</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">1.4</span>
+  </div>
+  <h1 class="lesson-title">串接容器：<br>將 GTM 容器碼安裝到網站中</h1>
+  <p class="lesson-tagline">網站就緒後，這是我們最後一步基礎建設。我們將去 Google 取得專屬的「容器碼」，並透過超強的 GTM4WP 外掛，不寫任何程式碼就完成專業級的埋設。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學完這節，你會</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>學會如何從 GTM 後台建立並複製容器 ID</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>掌握 GTM4WP 外掛的基本設定與啟動方式</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>使用 Tag Assistant 確認 GTM 是否成功連線</div>
+  </div>
+</section>
+
+<main class="lesson-body">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 01</div>
+    <h2 class="section-heading">第一步：取得 <em>GTM 容器 ID</em></h2>
+    <p class="body-text">請先前往 <span class="inline-code">tagmanager.google.com</span> 並登入你的 Google 帳號。建立一個新的容器（帳戶名稱填寫你的公司，容器類型選擇「網頁」）。</p>
+    <p class="body-text">建立完成後，系統會自動彈出一個包含程式碼的視窗，但你<strong>不需要</strong>複製那一大串程式碼。</p>
+
+    <div class="callout tip">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body">
+        <strong>重點資訊：</strong>關閉那個視窗。請看 GTM 介面頂端的藍色橫幅，那裡有一組像是 <strong>GTM-XXXXXXX</strong> 的字串。這就是你的容器 ID，請把它複製下來，在 WordPress 裡我們只需要這個 ID 就夠了。
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 02</div>
+    <h2 class="section-heading">第二步：設定 <em>GTM4WP</em> 外掛</h2>
+    <p class="body-text">為了避免手動修改程式碼出錯，以及為了未來能輕鬆抓取「資料層 (Data Layer)」的高級數據，我們在範例網站中已經幫你預裝了由 Thomas Geiger 開發的神級外掛：<strong>GTM4WP</strong>。</p>
+
+    <div class="step-list">
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <div class="step-title">進入設定畫面</div>
+          <div class="step-desc">登入你的測試網站後台。點擊左側選單的 <strong>設定 > Google Tag Manager</strong>。</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <div class="step-title">填入 GTM ID</div>
+          <div class="step-desc">在「Google Tag Manager ID」欄位中，貼上你剛剛複製的 <strong>GTM-XXXXXXX</strong>。</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <div class="step-title">啟動容器並儲存</div>
+          <div class="step-desc">確定下方的「Container code on/off」狀態是勾選為 <strong>ON</strong>。拉到頁面最下方，點擊「儲存設定」。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 03</div>
+    <h2 class="section-heading">驗證：<em>成功了嗎？</em></h2>
+    <p class="body-text">最簡單的驗證方式是回到 GTM 後台，點擊右上角的 <strong>「預覽 (Preview)」</strong> 按鈕。</p>
+    
+    <ul class="body-text" style="padding-left: 20px;">
+      <li>在彈出的視窗中輸入你本機測試網站的網址（如 http://teaching-demo.local）。</li>
+      <li>如果順利彈出一個新視窗，且原視窗顯示 <strong>"Connected!"</strong>，這代表 GTM 已經成功進駐你的網站了！</li>
+    </ul>
+
+    <div class="callout key">
+      <div class="callout-icon">🎉</div>
+      <div class="callout-body">
+        <strong>恭喜完成基礎建設！</strong><br>
+        PART 1 正式結束。現在你已經擁有一個完全由你掌控、且正確掛載 GTM 的實驗室。準備好迎接 PART 2，我們要把真實的數據送到 GA4 囉！
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<nav class="lesson-nav">
+  <a class="nav-btn prev" href="CH1-3.html">
+    <span>←</span>
+    <div>
+      <div class="nav-btn-label">上一節</div>
+      <div class="nav-btn-title">1.3 匯入課程專用網站</div>
+    </div>
+  </a>
+  <div class="nav-spacer"></div>
+  <a class="nav-btn next" href="../part2/CH2-1.html">
+    <div>
+      <div class="nav-btn-label">下一節：進入 PART 2</div>
+      <div class="nav-btn-title">2.1 全站瀏覽與 GA4 設定</div>
+    </div>
+    <span>→</span>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">Part 1 · 4 of 4 (完結)</div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const d = document.documentElement;
+  const pct = d.scrollHeight - d.clientHeight > 0
+    ? (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100 : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+});
+
+(function(){
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, { threshold: .1, rootMargin: '0px 0px -48px 0px' });
+
+  document.querySelectorAll('.lesson-section, .section-rule').forEach(el => {
+    el.classList.add('reveal');
+    io.observe(el);
+  });
+})();
+</script>
+</body>
+</html>

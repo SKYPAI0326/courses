@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 4：綜合實戰｜AI 資料工廠</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#8c8880;
+  --c-a4:#6b7fa3; --radius:6px; --content-w:780px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.08);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a4);width:0%;transition:width .1s;}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a4);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-a4);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a4);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a4);margin-top:8px;flex-shrink:0;}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-a4);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25);}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout.key{background:rgba(107,127,163,.1);border:1px solid rgba(107,127,163,.35);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text);}
+.callout-body strong{font-weight:700;}
+.concept-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:28px 0;}
+.concept-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:22px 20px;}
+.concept-num{font-family:'Shippori Mincho',serif;font-size:1.5rem;font-weight:700;color:var(--c-a4);margin-bottom:8px;line-height:1;}
+.concept-title{font-size:.85rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.concept-desc{font-size:.78rem;color:var(--c-muted);line-height:1.7;}
+.big-quote{font-family:'Shippori Mincho',serif;font-size:1.3rem;font-weight:700;line-height:1.65;color:var(--c-text);padding:28px 32px;background:var(--c-card);border:1px solid var(--c-border);border-left:4px solid var(--c-a4);border-radius:var(--radius);margin:28px 0;}
+.big-quote span{color:var(--c-a4);}
+.analogy-box{padding:28px 32px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:28px 0;}
+.analogy-label{font-size:.68rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:12px;}
+.analogy-text{font-size:.92rem;color:var(--c-text);line-height:1.9;}
+.flow-wrap{margin:32px 0;padding:32px 28px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);}
+.flow-title{font-size:.7rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:24px;}
+.flow-steps{display:flex;align-items:flex-start;overflow-x:auto;}
+.flow-step{display:flex;flex-direction:column;align-items:center;flex:1;min-width:90px;text-align:center;}
+.flow-node{width:48px;height:48px;border-radius:50%;background:var(--c-surface);border:1.5px solid var(--c-border);display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:12px;}
+.flow-step.active .flow-node{background:rgba(107,127,163,.1);border-color:var(--c-a4);}
+.flow-connector{flex:0 0 24px;height:48px;display:flex;align-items:center;justify-content:center;color:var(--c-border);font-size:.85rem;}
+.flow-label{font-size:.75rem;font-weight:700;color:var(--c-text);margin-bottom:4px;line-height:1.3;}
+.flow-sub{font-size:.68rem;color:var(--c-muted);line-height:1.4;padding:0 4px;}
+.inline-code{font-family:'Courier New',monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 6px;border-radius:3px;}
+.dual-engine{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0;}
+.engine-card{padding:24px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);}
+.engine-badge{font-size:.68rem;color:var(--c-a4);letter-spacing:1px;font-weight:500;margin-bottom:10px;display:block;}
+.engine-name{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin-bottom:12px;}
+.engine-list{list-style:none;display:flex;flex-direction:column;gap:6px;}
+.engine-list li{font-size:.82rem;color:var(--c-muted);padding-left:12px;position:relative;line-height:1.5;}
+.engine-list li::before{content:'·';position:absolute;left:0;color:var(--c-a4);}
+.final-project{background:rgba(107,127,163,.06);border:1px solid rgba(107,127,163,.2);border-radius:var(--radius);padding:28px 32px;margin:28px 0;}
+.project-label{font-size:.7rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:16px;}
+.project-title{font-family:'Shippori Mincho',serif;font-size:1.2rem;font-weight:700;color:var(--c-text);margin-bottom:12px;}
+.project-steps{display:flex;flex-direction:column;gap:8px;}
+.project-step{display:flex;align-items:flex-start;gap:12px;font-size:.88rem;color:var(--c-text);}
+.step-num{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-a4);width:24px;flex-shrink:0;}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a4);text-decoration:none;padding:10px 20px;border:1px solid rgba(107,127,163,.3);border-radius:var(--radius);transition:background .2s;}
+.nav-btn:hover{background:rgba(107,127,163,.07);}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-div{width:1px;height:14px;background:var(--c-border);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 資料工廠</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">Module 04</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a href="index.html" class="back-link">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">AI 資料工廠</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">MODULE 04</span>
+  </div>
+  <h1 class="lesson-title">綜合實戰：一站式行動辦公室</h1>
+  <p class="lesson-tagline">課程最終章：整合前三個 Module 的所有技能，讓你在上一階段學的 Make 與本課程的 n8n 正式合體——Make 接收世界，n8n 執行任務，AI 產出成果。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習目標 OUTCOMES</div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>用 Google 表單作為觸發介面，透過 Make 把任務傳送到本機 n8n 執行</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>理解 Make 與 n8n 各自的分工角色，設計合理的雲地協作架構</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>結合 Google AI Studio，實現從一個點子到完整企劃書的全自動產出流程</span></div>
+  </div>
+</div>
+
+<div class="lesson-body">
+
+  <div class="lesson-section" id="remote">
+    <div class="section-eyebrow">Remote Control · 4.1</div>
+    <h2 class="section-heading">Google 表單遙控：<em>觸發遠端自動化任務</em></h2>
+    <p class="body-text">本節將展示如何將 Google 表單轉變為強大的遠端遙控器。當你在外出差，只需用手機填寫一個 Google 表單，家中電腦的 n8n 立刻開始跑高強度的文件處理任務。這就是「表單 = 遙控器」的概念。</p>
+    <p class="body-text">你將學習配置 Google 表單的 Webhook，使其在每次提交時，自動向 n8n 發送數據，進而觸發預先設計好的自動化流程。無論是遠端部署任務、觸發文件生成，還是更新數據，一個表單就能搞定。</p>
+    <div class="callout tip">
+      <span class="callout-icon">📱</span>
+      <div class="callout-body"><strong>Google 表單的優勢：</strong>完全免費、不需安裝任何 App、手機電腦均可使用，是最輕量級且易於部署的用戶介面，適合多種遠端觸發情境。</div>
+    </div>
+    <div class="concept-grid">
+      <a href="m4-1-remote.html" class="concept-card" style="text-decoration:none;color:inherit;display:block;cursor:pointer;transition:box-shadow .2s,border-color .2s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(107,127,163,.18)';this.style.borderColor='rgba(107,127,163,.5)'" onmouseout="this.style.boxShadow='';this.style.borderColor=''">
+        <div class="concept-num">01</div>
+        <div class="concept-title">Google Forms 遠端遙控 →</div>
+        <div class="concept-desc">Apps Script → Make Webhook → Cloudflare → n8n，六步驟串通整條遙控鏈路。</div>
+      </a>
+      <div class="concept-card" style="opacity:.55">
+        <div class="concept-num">02</div>
+        <div class="concept-title">表單數據接收</div>
+        <div class="concept-desc">掌握 n8n 如何接收並解析 Google 表單傳送的數據，轉化為流程參數。<br><small>（步驟頁面建置中）</small></div>
+      </div>
+      <div class="concept-card" style="opacity:.55">
+        <div class="concept-num">03</div>
+        <div class="concept-title">遠端指令控制</div>
+        <div class="concept-desc">運用表單數據作為參數，遠端觸發並控制 n8n 自動化流程的執行。<br><small>（步驟頁面建置中）</small></div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section" id="hybrid">
+    <div class="section-eyebrow">Hybrid Automation · 4.2</div>
+    <h2 class="section-heading">Make + n8n 雙引擎：<em>強強聯手</em></h2>
+    <p class="body-text">你在上一階段課程學的 Make，與這門課學的 n8n，不是替代關係——而是互補關係。Make 的強項是廣泛串接雲端服務（Gmail、Line、Slack、Airtable），n8n 的強項是在本機執行複雜任務、讀寫本機檔案、無限次跑大量迴圈。兩者結合，你能做到任何一個平台單獨都辦不到的事。</p>
+    <div class="dual-engine">
+      <div class="engine-card">
+        <span class="engine-badge">CLOUD</span>
+        <div class="engine-name">Make.com</div>
+        <ul class="engine-list">
+          <li>廣泛的 SaaS 應用連接（1000+ 服務）</li>
+          <li>雲端接收 Webhook、觸發事件</li>
+          <li>視覺化的場景設計</li>
+          <li>不需要本機環境</li>
+        </ul>
+      </div>
+      <div class="engine-card">
+        <span class="engine-badge">LOCAL</span>
+        <div class="engine-name">n8n Desktop</div>
+        <ul class="engine-list">
+          <li>地端執行，資料不離身</li>
+          <li>複雜邏輯與大量數據處理</li>
+          <li>讀取本機檔案系統</li>
+          <li>完全免費、無次數限制</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout key">
+      <span class="callout-icon">🤝</span>
+      <div class="callout-body"><strong>協作模式：</strong>Make 負責「雲端接收」——接收來自 Gmail、Slack 等雲端服務的事件；n8n 負責「地端處理」——執行高強度文件處理、資料庫操作等本地任務。</div>
+    </div>
+    <div class="concept-grid">
+      <a href="m4-2-hybrid.html" class="concept-card" style="text-decoration:none;color:inherit;display:block;cursor:pointer;transition:box-shadow .2s,border-color .2s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(107,127,163,.18)';this.style.borderColor='rgba(107,127,163,.5)'" onmouseout="this.style.boxShadow='';this.style.borderColor=''">
+        <div class="concept-num">01</div>
+        <div class="concept-title">雙引擎協作實戰 →</div>
+        <div class="concept-desc">n8n 本機處理 → HTTP 回傳 → Make 發 Gmail，完成任務進來到通知發出的完整閉環。</div>
+      </a>
+      <div class="concept-card" style="opacity:.55">
+        <div class="concept-num">02</div>
+        <div class="concept-title">API 串接</div>
+        <div class="concept-desc">透過 Webhook 或 HTTP API，實現 Make 與 n8n 之間的數據交換與任務傳遞。<br><small>（步驟頁面建置中）</small></div>
+      </div>
+      <div class="concept-card" style="opacity:.55">
+        <div class="concept-num">03</div>
+        <div class="concept-title">任務分流協作</div>
+        <div class="concept-desc">設計雙平台協作模式，將不同類型的任務分配給最適用的平台處理。<br><small>（步驟頁面建置中）</small></div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section" id="ai-output">
+    <div class="section-eyebrow">Final Project · 4.3</div>
+    <h2 class="section-heading">全自動企劃產出：<em>結合 AI 智慧生成</em></h2>
+    <p class="body-text">這是整個課程的壓軸實戰。你將整合前三個 Module 的所有技能，結合 Google AI Studio 的 Gemini 模型，打造一條全自動的「點子 → 成品」生產線。</p>
+    <div class="final-project">
+      <div class="project-label">實作任務 FINAL PROJECT</div>
+      <div class="project-title">全自動企劃產出流</div>
+      <div class="project-steps">
+        <div class="project-step"><span class="step-num">①</span><span>用手機填寫 Google 表單，輸入一個活動點子（如「2026 校慶科技展」）</span></div>
+        <div class="project-step"><span class="step-num">②</span><span>Make 接收表單資料，觸發 n8n 本機流程</span></div>
+        <div class="project-step"><span class="step-num">③</span><span>n8n 將點子傳送至 Google AI Studio（Gemini），AI 生成完整企劃書內容</span></div>
+        <div class="project-step"><span class="step-num">④</span><span>自動建立 Google Docs，將企劃書內容填入並排版</span></div>
+        <div class="project-step"><span class="step-num">⑤</span><span>同步生成行銷文案、海報文字，存入指定資料夾</span></div>
+        <div class="project-step"><span class="step-num">⑥</span><span>完成後自動發送通知（Email / Line），整個流程無需人工介入</span></div>
+      </div>
+    </div>
+    <div class="callout info">
+      <span class="callout-icon">🤖</span>
+      <div class="callout-body"><strong>Prompt Engineering 的重要性：</strong>精準的提示詞能引導 AI 產出高品質、結構化的企劃內容。我們將學習如何設計能穩定輸出 JSON 格式企劃架構的 Prompt，確保後續節點能正確解析。</div>
+    </div>
+    <div class="concept-grid">
+      <a href="m4-3-ai.html" class="concept-card" style="text-decoration:none;color:inherit;display:block;cursor:pointer;transition:box-shadow .2s,border-color .2s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(107,127,163,.18)';this.style.borderColor='rgba(107,127,163,.5)'" onmouseout="this.style.boxShadow='';this.style.borderColor=''">
+        <div class="concept-num">01</div>
+        <div class="concept-title">AI 計劃生成器（壓軸）→</div>
+        <div class="concept-desc">Gemini 生成 JSON 計劃 → Code 解析格式化 → 本機存檔 → Gmail 通知，課程最終實戰。</div>
+      </a>
+      <div class="concept-card" style="opacity:.55">
+        <div class="concept-num">02</div>
+        <div class="concept-title">Prompt Engineering</div>
+        <div class="concept-desc">掌握提示詞工程技巧，引導 AI 產出結構化、可解析的企劃內容。<br><small>（步驟頁面建置中）</small></div>
+      </div>
+      <div class="concept-card" style="opacity:.55">
+        <div class="concept-num">03</div>
+        <div class="concept-title">Google Docs 輸出</div>
+        <div class="concept-desc">自動建立 Google Docs，將 AI 生成的內容填入並格式化，一鍵完成整份企劃書。<br><small>（步驟頁面建置中）</small></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow-wrap">
+    <div class="flow-title">MODULE 04 · 全自動企劃產出完整流程</div>
+    <div class="flow-steps">
+      <div class="flow-step active">
+        <div class="flow-node">📱</div>
+        <div class="flow-label">手機表單</div>
+        <div class="flow-sub">輸入點子，遠端觸發</div>
+      </div>
+      <div class="flow-connector">→</div>
+      <div class="flow-step active">
+        <div class="flow-node">☁️</div>
+        <div class="flow-label">Make 接收</div>
+        <div class="flow-sub">雲端中繼，傳遞任務</div>
+      </div>
+      <div class="flow-connector">→</div>
+      <div class="flow-step active">
+        <div class="flow-node">🤖</div>
+        <div class="flow-label">AI 生成</div>
+        <div class="flow-sub">Gemini 產出企劃</div>
+      </div>
+      <div class="flow-connector">→</div>
+      <div class="flow-step active">
+        <div class="flow-node">📄</div>
+        <div class="flow-label">成品輸出</div>
+        <div class="flow-sub">Docs + 文案自動完成</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="big-quote">表單為鍵，雙引擎為心，AI 為腦，<span>自動企劃，應運而生。</span></div>
+
+</div>
+
+<div class="nav-footer">
+  <a href="module3.html" class="nav-btn">← Module 3：重型文件工廠</a>
+  <a href="index.html" class="nav-btn">返回課程總覽 →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">淡江大學 · 生成式AI工作坊</span>
+</footer>
+
+<script>
+const fill = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  fill.style.width = pct + '%';
+});
+</script>
+</body>
+</html>

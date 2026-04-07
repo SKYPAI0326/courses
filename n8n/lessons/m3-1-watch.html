@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3.1 Watch Folder 節點實作｜AI 資料工廠</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a4:#6b7fa3;--radius:6px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.08);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a4);width:0%;transition:width .1s;}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px;}
+.back-link:hover{color:var(--c-a4);}
+.hero-eyebrow{font-size:.7rem;color:var(--c-a4);letter-spacing:2px;font-weight:500;margin-bottom:12px;}
+.page-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:12px;}
+.page-subtitle{font-size:.95rem;color:var(--c-muted);line-height:1.85;max-width:560px;}
+.context-box{max-width:var(--content-w);margin:0 auto;padding:0 48px 32px;}
+.context-inner{background:rgba(107,127,163,.06);border:1px solid rgba(107,127,163,.2);border-left:3px solid var(--c-a4);border-radius:var(--radius);padding:20px 24px;}
+.context-label{font-size:.68rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:8px;}
+.context-text{font-size:.88rem;color:var(--c-text);line-height:1.8;}
+.steps-wrap{max-width:var(--content-w);margin:0 auto;padding:8px 48px 48px;}
+.step-block{display:flex;gap:24px;margin-bottom:44px;position:relative;}
+.step-block:not(:last-child)::after{content:'';position:absolute;left:19px;top:48px;width:2px;height:calc(100% - 16px);background:var(--c-border);}
+.step-circle{width:40px;height:40px;border-radius:50%;background:rgba(107,127,163,.1);border:2px solid var(--c-a4);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-weight:700;font-size:.95rem;color:var(--c-a4);flex-shrink:0;}
+.step-content{flex:1;padding-top:6px;}
+.step-heading{font-family:'Shippori Mincho',serif;font-size:1.15rem;font-weight:700;color:var(--c-text);margin-bottom:10px;}
+.step-body{font-size:.9rem;color:var(--c-text);line-height:1.9;margin-bottom:12px;}
+.code-block{background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.83rem;padding:20px 22px;border-radius:var(--radius);white-space:pre;overflow-x:auto;margin:12px 0;}
+.step-tip{font-size:.82rem;color:var(--c-muted);background:var(--c-surface);border-left:3px solid var(--c-border);padding:10px 14px;border-radius:0 var(--radius) var(--radius) 0;line-height:1.7;}
+.step-tip strong{color:var(--c-a4);font-weight:500;}
+.section-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:24px;}
+.verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:24px 28px;margin:40px 0;}
+.verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px;}
+.verify-text{font-size:.9rem;color:var(--c-text);line-height:1.85;}
+.troubleshoot{margin:40px 0;}
+.ts-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:16px;}
+.ts-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 22px;margin-bottom:10px;}
+.ts-q{font-size:.87rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.ts-a{font-size:.85rem;color:var(--c-muted);line-height:1.75;}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a4);text-decoration:none;padding:10px 20px;border:1px solid rgba(107,127,163,.3);border-radius:var(--radius);transition:background .2s;}
+.nav-btn:hover{background:rgba(107,127,163,.07);}
+.nav-btn.primary{background:var(--c-a4);color:#fff;border-color:var(--c-a4);}
+.nav-btn.primary:hover{background:#5c6f91;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-div{width:1px;height:14px;background:var(--c-border);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 資料工廠</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">3.1 Watch Folder</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="page-hero">
+  <a href="module3.html" class="back-link">← 返回 Module 3</a>
+  <div class="hero-eyebrow">AUTOMATED MONITORING · 3.1</div>
+  <h1 class="page-title">Watch Folder 節點：讓資料夾成為自動化的觸發器</h1>
+  <p class="page-subtitle">Make 做不到的本機觸發，n8n 輕鬆搞定。只要把檔案丟進資料夾，流程自動啟動。</p>
+</div>
+
+<div class="context-box">
+  <div class="context-inner">
+    <div class="context-label">為什麼這很重要 · WHY THIS MATTERS</div>
+    <div class="context-text">Make.com 只能被動等待雲端訊號（如 Gmail 收信、Google Forms 提交），<strong>無法監控你電腦裡的資料夾</strong>。n8n 的 Watch Folder 節點可以——新檔案一落地，流程立刻觸發，完全不需人工介入。這是 n8n Desktop 最關鍵的本機優勢。</div>
+  </div>
+</div>
+
+<div class="steps-wrap">
+  <div class="section-label">STEP BY STEP · 操作步驟</div>
+
+  <div class="step-block">
+    <div class="step-circle">1</div>
+    <div class="step-content">
+      <div class="step-heading">新增 Watch Folder 節點並配置監控路徑</div>
+      <div class="step-body">在 n8n 工作流程中，點擊「+」搜尋並新增「Watch Folder」節點。在「Path to Watch」欄位填入你想監控的資料夾完整路徑，設定「Polling Interval」為 5 秒，「Events」選擇「Created」（新檔案建立時觸發）。</div>
+      <div class="code-block">Mac:     /Users/你的名稱/Documents/待處理PDF
+Windows: C:\Users\你的名稱\Documents\待處理PDF</div>
+      <div class="step-tip"><strong>提示：</strong>確保監控資料夾已存在，且 n8n 有讀取該資料夾的權限，否則觸發會靜默失敗。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">2</div>
+    <div class="step-content">
+      <div class="step-heading">啟用流程並測試觸發</div>
+      <div class="step-body">儲存工作流程後，點擊右上角切換鍵將流程設為「Active」（啟用狀態）。然後手動將一個任意檔案（例如 test.txt）拖曳放入監控資料夾，觀察 n8n 介面是否顯示執行記錄。</div>
+      <div class="step-tip"><strong>提示：</strong>每次測試請使用不同的檔名，已觸發過的檔案名稱 n8n 會記住，重複放入不會再次觸發。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">3</div>
+    <div class="step-content">
+      <div class="step-heading">檢視觸發資料，確認輸出結構</div>
+      <div class="step-body">點擊 Watch Folder 節點查看執行結果。在 Output 面板中，找到觸發事件的 JSON 資料，定位到 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">data.name</code>（檔名）和 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">data.path</code>（完整路徑）兩個關鍵欄位，後續步驟都依賴這兩個值。</div>
+      <div class="code-block">{{ $json.data.name }}   // 檔名，例如：report.pdf
+{{ $json.data.path }}   // 完整路徑，例如：/Users/.../report.pdf</div>
+      <div class="step-tip"><strong>提示：</strong>這兩個欄位是後續所有節點操作檔案的關鍵，務必確認能正確讀到。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">4</div>
+    <div class="step-content">
+      <div class="step-heading">加入 If 節點，篩選只處理 PDF 檔案</div>
+      <div class="step-body">在 Watch Folder 後面連接一個「If」節點。設定條件：Value 1 填入 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">{{ $json.data.name.endsWith('.pdf') }}</code>，Operation 選「Is True」。這樣只有 PDF 檔案才會進入 True 分支繼續處理。</div>
+      <div class="code-block">// If 節點條件設定
+Value 1:    {{ $json.data.name.endsWith('.pdf') }}
+Operation:  Is True</div>
+      <div class="step-tip"><strong>提示：</strong>使用 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">endsWith()</code> 是判斷副檔名最簡潔有效的方式，注意大小寫（PDF 與 pdf 不同）。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">5</div>
+    <div class="step-content">
+      <div class="step-heading">測試 If 節點過濾效果</div>
+      <div class="step-body">先放入一個 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">document.txt</code>，確認流程在 If 節點停止（走 False 分支，後面沒有連接任何節點即停止）。再放入一個 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">report.pdf</code>，確認流程通過 True 分支正常繼續執行。</div>
+      <div class="step-tip"><strong>提示：</strong>同時確認 If 節點的 False 分支可連接通知節點（如 Send Email），以便知道有非 PDF 檔案被放入。</div>
+    </div>
+  </div>
+
+  <div class="verify-box">
+    <div class="verify-label">完成驗證 · VERIFY</div>
+    <div class="verify-text">放入 <strong>.pdf</strong> 檔案時，流程能順利通過 If 節點的 True 分支並有執行記錄；放入 <strong>.txt</strong> 或其他類型檔案時，流程在 If 節點停止，不繼續執行後續步驟。兩種情況下執行記錄顯示正常（無紅色錯誤）。</div>
+  </div>
+
+  <div class="troubleshoot">
+    <div class="ts-label">常見問題 · TROUBLESHOOT</div>
+    <div class="ts-item">
+      <div class="ts-q">Watch Folder 沒有觸發，放入檔案沒有反應？</div>
+      <div class="ts-a">請先確認流程已切換到「Active」啟用狀態（非 Inactive）。再檢查設定的路徑是否正確（注意 Mac 路徑用 /，Windows 用 \）。可以先點「Test Workflow」強制執行一次，再重新放入檔案測試。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">If 節點沒有篩選出 PDF，所有檔案都走 True 分支？</div>
+      <div class="ts-a">請確認 If 節點的 Value 1 表達式輸入正確，且選用 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">Is True</code> 而非 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">Equal</code>。另外注意副檔名大小寫：如果你的 PDF 是大寫 .PDF，改用 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">$json.data.name.toLowerCase().endsWith('.pdf')</code>。</div>
+    </div>
+  </div>
+</div>
+
+<div class="nav-footer">
+  <a href="module3.html" class="nav-btn">← 返回 Module 3</a>
+  <a href="m3-2-rename.html" class="nav-btn primary">3.2 PDF 批次改名 →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">淡江大學 · 生成式AI工作坊</span>
+</footer>
+
+<script>
+const fill = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  fill.style.width = pct + '%';
+});
+</script>
+</body>
+</html>

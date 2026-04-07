@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH2-3 精準按鈕點擊追蹤｜GTM 實務演練</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#8c8880;
+  --c-a1:#b5703a; --c-a2:#c9963a; --c-a3:#5a7a5a; --c-a4:#6b7fa3;
+  --radius:6px; --radius-sm:4px; --content-w:780px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a2);border:1px solid rgba(201,150,58,.3);background:rgba(201,150,58,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a2);width:0%;transition:width .1s;}
+
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a2);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-a2);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a2);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-a2);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a2);margin-top:8px;flex-shrink:0;}
+
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-a2);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+
+.step-list{display:flex;flex-direction:column;gap:16px;margin:28px 0;}
+.step-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:24px;display:flex;gap:20px;align-items:flex-start;}
+.step-num{font-family:'Shippori Mincho',serif;font-size:1.8rem;font-weight:700;color:var(--c-a2);line-height:1;margin-top:2px;}
+.step-content{flex:1;}
+.step-title{font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:8px;}
+.step-desc{font-size:.88rem;color:var(--c-muted);line-height:1.7;}
+
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text);}
+.inline-code{font-family:'Courier New',monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 6px;border-radius:3px;}
+
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-a2);}
+.nav-btn.prev{justify-content:flex-start;text-align:left;}
+.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.nav-spacer{flex:1;}
+
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.lesson-hero .back-link      { animation:fadeUp .4s ease both; }
+.lesson-hero .hero-meta      { animation:fadeUp .45s .08s ease both; }
+.lesson-hero .lesson-title   { animation:fadeUp .55s .15s ease both; }
+.lesson-hero .lesson-tagline { animation:fadeUp .5s  .26s ease both; }
+.lesson-hero .outcomes       { animation:fadeUp .45s .36s ease both; }
+
+.reveal {
+  opacity:0;
+  transform:translateY(22px);
+  transition:opacity .65s cubic-bezier(.16,1,.3,1), transform .65s cubic-bezier(.16,1,.3,1);
+}
+.reveal.in { opacity:1; transform:translateY(0); }
+.section-rule {
+  transform-origin: left center;
+  opacity:0;
+  transition: opacity .4s ease, transform .6s cubic-bezier(.16,1,.3,1);
+  transform: scaleX(.3);
+}
+.section-rule.in { opacity:1; transform:scaleX(1); }
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero{padding:40px 20px 36px;}.lesson-title{font-size:1.55rem;}.lesson-body{padding:0 20px 60px;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="logo" href="../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">GTM 實務演練</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH2-3</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="progressFill"></div></div>
+
+<section class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程目錄</a>
+  <div class="hero-meta">
+    <span class="hero-part">PART 2 · 基礎追蹤與 Chrome 工具運用</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">2.3</span>
+  </div>
+  <h1 class="lesson-title">互動追蹤：<br>精準捕捉按鈕點擊事件</h1>
+  <p class="lesson-tagline">有了上一節取得的 CSS 選擇器，現在我們要教 GTM 認識這個特徵。我們將建立一個專屬的觸發條件，並將其轉化為 GA4 報表中的互動事件。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學完這節，你會</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>開啟 GTM 的「內建點擊變數」</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>運用 CSS 選擇器設定「特定元素」的觸發條件</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>建立並命名規範的 GA4 事件代碼</div>
+  </div>
+</section>
+
+<main class="lesson-body">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 01</div>
+    <h2 class="section-heading">喚醒 <em>點擊變數</em></h2>
+    <p class="body-text">GTM 預設處於省電模式，不會去紀錄點擊的細節（如 Class 或 ID）。在開始設定前，我們必須先把這些變數「打開」。</p>
+    
+    <div class="step-list">
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <div class="step-title">進入變數設定</div>
+          <div class="step-desc">點擊 GTM 左側選單的「變數 (Variables)」，然後點擊右上角的「設定 (Configure)」。</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <div class="step-title">勾選點擊相關變數</div>
+          <div class="step-desc">在右側滑出的清單中找到「點擊 (Clicks)」區塊，將裡面所有的選項（如 Click Element, Click Classes, Click ID）全部打勾，然後關閉清單。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 02</div>
+    <h2 class="section-heading">建立帶有條件的 <em>Trigger</em></h2>
+    <p class="body-text">接下來，我們要告訴 GTM：「只有當點擊的按鈕符合我們上一節找到的特徵時，才算數」。</p>
+
+    <div class="step-list">
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <div class="step-title">新增觸發條件</div>
+          <div class="step-desc">點擊「觸發條件」>「新增」。命名為 <strong>「點擊 - 特定優惠按鈕」</strong>。類型選擇 <strong>「點擊 - 所有元素 (All Elements)」</strong>。</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <div class="step-title">設定過濾條件</div>
+          <div class="step-desc">將設定改為「部分點擊 (Some Clicks)」。下拉選單選擇 <strong>「Click Element」</strong>，中間的條件選擇 <strong>「符合 CSS 選擇器 (matches CSS selector)」</strong>。</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <div class="step-title">填入特徵字串</div>
+          <div class="step-desc">在最後一個欄位，填入上一節找到的值。如果是 ID，填寫 <span class="inline-code">#你的ID</span>；如果是 Class，填寫 <span class="inline-code">.你的Class</span>。我們練習網站的按鈕填寫：<span class="inline-code">.promo-btn-01 a.uagb-buttons-repeater</span>。儲存！</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <div class="callout-icon">🔎</div>
+      <div class="callout-body">
+        <strong>為何要指定到子層 <span class="inline-code">a</span>？</strong><br>
+        當你點擊一個按鈕，瀏覽器記錄的「Click Element」是你<em>實際碰到的那層</em>——通常是最內層的 <span class="inline-code">&lt;a&gt;</span>，而不是包在外面的 div。如果選擇器只寫 <span class="inline-code">.promo-btn-01</span>，GTM 比對時找不到這個 class，事件就不會觸發。用 Chrome 的 Inspect 看到哪一層被 highlight，就寫到哪一層。
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 03</div>
+    <h2 class="section-heading">發射 <em>GA4 事件代碼</em></h2>
+    <p class="body-text">萬事俱備，只欠東風。我們要把剛剛建立的觸發條件，綁定到一個負責發送資料的代碼上：</p>
+
+    <ul class="body-text" style="padding-left: 20px; margin-bottom: 24px;">
+      <li>新增代碼，類型選擇 <strong>「Google Analytics: GA4 事件」</strong>。</li>
+      <li>測量 ID：填寫你的 GA4 ID。</li>
+      <li>事件名稱：填寫 <span class="inline-code">click_promo_button</span>。（⚠️請養成使用全小寫英文加底線的好習慣）</li>
+      <li>觸發條件：選擇剛剛建立好的 <strong>「點擊 - 特定優惠按鈕」</strong>。儲存。</li>
+    </ul>
+
+    <div class="callout info">
+      <div class="callout-icon">⚡</div>
+      <div class="callout-body">
+        <strong>按鈕有 <span class="inline-code">href</span> 連結時的注意事項</strong><br>
+        若按鈕點擊後會跳頁，瀏覽器可能在 GTM 來得及發送事件前就離開了當前頁面。有兩種解法：<br>
+        ① 在 GA4 事件代碼的「更多設定」中，加入欄位 <span class="inline-code">transport_type</span>，值設為 <span class="inline-code">beacon</span>，讓瀏覽器在背景完成發送再跳頁。<br>
+        ② 或把觸發條件類型改為「<strong>點擊 - 僅連結 (Just Links)</strong>」，GTM 會自動等事件發出後才放行跳頁。
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon">🔍</div>
+      <div class="callout-body">
+        <strong>驗收時間：</strong>打開預覽模式，去網站上點擊那個按鈕，看看 Tag Assistant 的時間軸中，這個 GA4 事件代碼是否成功跳到了 <strong>Tags Fired</strong> 區塊？
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<nav class="lesson-nav">
+  <a class="nav-btn prev" href="CH2-2.html">
+    <span>←</span>
+    <div>
+      <div class="nav-btn-label">上一節</div>
+      <div class="nav-btn-title">2.2 看懂網頁骨架與 CSS</div>
+    </div>
+  </a>
+  <div class="nav-spacer"></div>
+  <a class="nav-btn next" href="PRAC2-1.html">
+    <div>
+      <div class="nav-btn-label">下一節：互動演練</div>
+      <div class="nav-btn-title">實例演練 1：事件命名健檢表</div>
+    </div>
+    <span>→</span>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">Part 2 · 3 of 3 (完結)</div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const d = document.documentElement;
+  const pct = d.scrollHeight - d.clientHeight > 0
+    ? (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100 : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+});
+
+(function(){
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, { threshold: .1, rootMargin: '0px 0px -48px 0px' });
+
+  document.querySelectorAll('.lesson-section, .section-rule').forEach(el => {
+    el.classList.add('reveal');
+    io.observe(el);
+  });
+})();
+</script>
+</body>
+</html>

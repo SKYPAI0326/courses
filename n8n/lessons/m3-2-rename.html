@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3.2 PDF 批次改名｜AI 資料工廠</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a4:#6b7fa3;--radius:6px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.08);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a4);width:0%;transition:width .1s;}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px;}
+.back-link:hover{color:var(--c-a4);}
+.hero-eyebrow{font-size:.7rem;color:var(--c-a4);letter-spacing:2px;font-weight:500;margin-bottom:12px;}
+.page-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:12px;}
+.page-subtitle{font-size:.95rem;color:var(--c-muted);line-height:1.85;max-width:560px;}
+.context-box{max-width:var(--content-w);margin:0 auto;padding:0 48px 32px;}
+.context-inner{background:rgba(107,127,163,.06);border:1px solid rgba(107,127,163,.2);border-left:3px solid var(--c-a4);border-radius:var(--radius);padding:20px 24px;}
+.context-label{font-size:.68rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:8px;}
+.context-text{font-size:.88rem;color:var(--c-text);line-height:1.8;}
+.example-box{max-width:var(--content-w);margin:0 auto;padding:0 48px 8px;}
+.example-inner{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 24px;}
+.example-label{font-size:.68rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:14px;}
+.example-row{display:flex;align-items:center;gap:16px;font-size:.88rem;color:var(--c-text);margin-bottom:8px;}
+.example-before{color:var(--c-muted);flex:1;font-family:monospace;}
+.example-arrow{color:var(--c-a4);font-weight:700;flex-shrink:0;}
+.example-after{flex:1;font-weight:500;font-family:monospace;}
+.steps-wrap{max-width:var(--content-w);margin:0 auto;padding:32px 48px 48px;}
+.step-block{display:flex;gap:24px;margin-bottom:44px;position:relative;}
+.step-block:not(:last-child)::after{content:'';position:absolute;left:19px;top:48px;width:2px;height:calc(100% - 16px);background:var(--c-border);}
+.step-circle{width:40px;height:40px;border-radius:50%;background:rgba(107,127,163,.1);border:2px solid var(--c-a4);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-weight:700;font-size:.95rem;color:var(--c-a4);flex-shrink:0;}
+.step-content{flex:1;padding-top:6px;}
+.step-heading{font-family:'Shippori Mincho',serif;font-size:1.15rem;font-weight:700;color:var(--c-text);margin-bottom:10px;}
+.step-body{font-size:.9rem;color:var(--c-text);line-height:1.9;margin-bottom:12px;}
+.code-block{background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.83rem;padding:20px 22px;border-radius:var(--radius);white-space:pre;overflow-x:auto;margin:12px 0;}
+.code-block .cm{color:#6b9b8a;}
+.code-block .ky{color:#9bb4d4;}
+.code-block .st{color:#b8d4a0;}
+.step-tip{font-size:.82rem;color:var(--c-muted);background:var(--c-surface);border-left:3px solid var(--c-border);padding:10px 14px;border-radius:0 var(--radius) var(--radius) 0;line-height:1.7;}
+.step-tip strong{color:var(--c-a4);font-weight:500;}
+.section-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:24px;}
+.flow-mini{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:16px 0 20px;}
+.flow-node-mini{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:6px 14px;font-size:.78rem;font-weight:500;color:var(--c-text);}
+.flow-node-mini.active{border-color:rgba(107,127,163,.5);background:rgba(107,127,163,.06);color:var(--c-a4);}
+.flow-arr{color:var(--c-muted);font-size:.85rem;}
+.verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:24px 28px;margin:40px 0;}
+.verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px;}
+.verify-text{font-size:.9rem;color:var(--c-text);line-height:1.85;}
+.troubleshoot{margin:40px 0;}
+.ts-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:16px;}
+.ts-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 22px;margin-bottom:10px;}
+.ts-q{font-size:.87rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.ts-a{font-size:.85rem;color:var(--c-muted);line-height:1.75;}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a4);text-decoration:none;padding:10px 20px;border:1px solid rgba(107,127,163,.3);border-radius:var(--radius);transition:background .2s;}
+.nav-btn:hover{background:rgba(107,127,163,.07);}
+.nav-btn.primary{background:var(--c-a4);color:#fff;border-color:var(--c-a4);}
+.nav-btn.primary:hover{background:#5c6f91;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-div{width:1px;height:14px;background:var(--c-border);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 資料工廠</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">3.2 PDF 批次改名</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="page-hero">
+  <a href="module3.html" class="back-link">← 返回 Module 3</a>
+  <div class="hero-eyebrow">FILE MANAGEMENT · 3.2</div>
+  <h1 class="page-title">PDF 批次改名：AI 辨識內容自動命名</h1>
+  <p class="page-subtitle">結合 Gemini API，讓 AI 讀取 PDF 內容、提取廠商名稱與金額，自動按規則重命名整批文件。</p>
+</div>
+
+<div class="example-box">
+  <div class="example-inner">
+    <div class="example-label">實際效果 · BEFORE / AFTER</div>
+    <div class="example-row">
+      <span class="example-before">scan_20260315_001.pdf</span>
+      <span class="example-arrow">→</span>
+      <span class="example-after">2026_合約_廠商A_50萬.pdf</span>
+    </div>
+    <div class="example-row">
+      <span class="example-before">document_final_v3.pdf</span>
+      <span class="example-arrow">→</span>
+      <span class="example-after">2026_採購單_供應商B_3.2萬.pdf</span>
+    </div>
+  </div>
+</div>
+
+<div class="steps-wrap">
+  <div class="section-label">STEP BY STEP · 操作步驟</div>
+
+  <div style="margin-bottom:32px;">
+    <div class="section-label" style="margin-bottom:12px;">本節流程概覽</div>
+    <div class="flow-mini">
+      <div class="flow-node-mini active">Watch Folder</div>
+      <span class="flow-arr">→</span>
+      <div class="flow-node-mini">If (.pdf)</div>
+      <span class="flow-arr">→</span>
+      <div class="flow-node-mini active">Read Binary</div>
+      <span class="flow-arr">→</span>
+      <div class="flow-node-mini active">HTTP Request (Gemini)</div>
+      <span class="flow-arr">→</span>
+      <div class="flow-node-mini active">Code (解析)</div>
+      <span class="flow-arr">→</span>
+      <div class="flow-node-mini active">Rename File</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">1</div>
+    <div class="step-content">
+      <div class="step-heading">Read Binary File 節點：讀取 PDF 為二進位資料</div>
+      <div class="step-body">承接 3.1 的 If 節點 True 分支，新增「Read Binary File」節點。在「File Path」欄位，使用 Watch Folder 傳來的路徑：<code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">{{ $json.data.path }}</code>。執行後，PDF 會被讀取為 Base64 編碼的二進位字串，儲存在 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">$binary.data.data</code>。</div>
+      <div class="step-tip"><strong>提示：</strong>此節點將 PDF 轉換為 Base64，這是上傳至 Gemini API 所需的格式。在 Output 面板確認 binary 欄位已出現。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">2</div>
+    <div class="step-content">
+      <div class="step-heading">HTTP Request 節點：呼叫 Gemini API 辨識 PDF</div>
+      <div class="step-body">新增「HTTP Request」節點，Method 設為 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">POST</code>，URL 填入 Gemini API 端點（含你的 API Key）。Body 類型選「JSON」，貼入以下結構，讓 Gemini 讀取 PDF 並回傳結構化 JSON。</div>
+      <div class="code-block"><span class="cm">// URL（替換 YOUR_API_KEY）</span>
+https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=YOUR_API_KEY
+
+<span class="cm">// Body（JSON 格式）</span>
+{
+  "contents": [{
+    "parts": [
+      {
+        <span class="ky">"text"</span>: <span class="st">"請解析此 PDF，提取以下資訊並以 JSON 格式回傳，不要包含 markdown：{\"vendor\": \"廠商名稱\", \"amount\": \"金額\", \"date\": \"日期YYYYMMDD\", \"type\": \"文件類型\"}"</span>
+      },
+      {
+        <span class="ky">"inlineData"</span>: {
+          <span class="ky">"mimeType"</span>: <span class="st">"application/pdf"</span>,
+          <span class="ky">"data"</span>: <span class="st">"{{ $binary.data.data }}"</span>
+        }
+      }
+    ]
+  }]
+}</div>
+      <div class="step-tip"><strong>提示：</strong>在 Google AI Studio 的「Get API Key」取得免費 API Key。Gemini 2.0 Flash 可直接讀取 PDF 圖文內容，不需要額外 OCR 節點。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">3</div>
+    <div class="step-content">
+      <div class="step-heading">Code 節點：解析 Gemini 回傳的 JSON</div>
+      <div class="step-body">新增「Code」節點（Language 選 JavaScript），從 HTTP Request 的回傳中提取 AI 辨識結果。Gemini 的回傳結構為 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">candidates[0].content.parts[0].text</code>，將其解析為 JSON 物件。</div>
+      <div class="code-block"><span class="cm">// Code 節點內容</span>
+<span class="ky">const</span> rawText = $input.item.json.candidates[0].content.parts[0].text;
+<span class="ky">const</span> info = JSON.parse(rawText);
+<span class="ky">const</span> originalPath = $('<span class="st">Watch Folder</span>').item.json.data.path;
+<span class="ky">const</span> dir = originalPath.substring(0, originalPath.lastIndexOf('/'));
+
+<span class="cm">// 組合新檔名</span>
+<span class="ky">const</span> newName = `${info.date}_${info.type}_${info.vendor}_${info.amount}.pdf`;
+<span class="ky">const</span> newPath = `${dir}/${newName}`;
+
+return [{ json: { originalPath, newPath, newName, ...info } }];</div>
+      <div class="step-tip"><strong>提示：</strong>若 Gemini 回傳的文字包含 ```json ... ``` 標記，可用 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">rawText.replace(/```json\n?|\n?```/g, '')</code> 先清除再 JSON.parse。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">4</div>
+    <div class="step-content">
+      <div class="step-heading">Move/Rename File 節點：依 AI 結果重命名</div>
+      <div class="step-body">新增「Move File」節點。「Source Path」填入原始路徑 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">{{ $json.originalPath }}</code>，「Destination Path」填入新路徑 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">{{ $json.newPath }}</code>。執行後，原 PDF 檔案將在原位被重命名。</div>
+      <div class="step-tip"><strong>提示：</strong>若想保留原始檔案，在 Move File 前先用「Copy File」節點備份到另一個資料夾，再對備份執行重命名。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">5</div>
+    <div class="step-content">
+      <div class="step-heading">用 Loop 節點批次處理多個 PDF</div>
+      <div class="step-body">若需要一次處理資料夾內所有已存在的 PDF，在流程開始改用「Read All Files In Folder」節點取得檔案清單，然後連接「Loop Over Items」節點，將步驟 1-4 的節點包在 Loop 內，即可自動迭代處理每一個 PDF 檔案。</div>
+      <div class="code-block"><span class="cm">// Read All Files In Folder 設定</span>
+Path:            /Users/你的名稱/Documents/待處理PDF
+File Extension:  pdf
+Return:          File paths as strings</div>
+      <div class="step-tip"><strong>提示：</strong>Watch Folder 每次觸發處理單一新增檔案；若要批次處理已有的 PDF，改用 Read All Files + Loop 的組合。</div>
+    </div>
+  </div>
+
+  <div class="verify-box">
+    <div class="verify-label">完成驗證 · VERIFY</div>
+    <div class="verify-text">放入一個 PDF 後，觀察資料夾中的檔名是否從原始亂名變成如 <strong>20260315_合約_台積電_500萬.pdf</strong> 的格式。若 Gemini 辨識的資訊欄位回傳 "未知"，代表 PDF 內容不清晰，可調整 Prompt 加上「若無法辨識請回傳 unknown」。</div>
+  </div>
+
+  <div class="troubleshoot">
+    <div class="ts-label">常見問題 · TROUBLESHOOT</div>
+    <div class="ts-item">
+      <div class="ts-q">Gemini API 回傳 400 錯誤，或說 inlineData 格式不正確？</div>
+      <div class="ts-a">確認 HTTP Request 節點的 Body 類型是「JSON」而非「Form Data」。另外檢查 <code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">$binary.data.data</code> 是否有值（在 Read Binary File 的 Output 面板確認有 binary 欄位）。API Key 是否正確放在 URL 參數中。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">Code 節點 JSON.parse 失敗，報錯 SyntaxError？</div>
+      <div class="ts-a">Gemini 有時會在 JSON 外包 markdown 標記（```json ... ```）。在 Code 節點加入清除邏輯：<code style="font-family:monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 5px;border-radius:3px;">const clean = rawText.replace(/```[\w]*\n?/g, '').trim()</code>，再對 clean 做 JSON.parse。</div>
+    </div>
+  </div>
+</div>
+
+<div class="nav-footer">
+  <a href="m3-1-watch.html" class="nav-btn">← 3.1 Watch Folder</a>
+  <a href="m3-3-generate.html" class="nav-btn primary">3.3 Excel 轉 Word →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">淡江大學 · 生成式AI工作坊</span>
+</footer>
+
+<script>
+const fill = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  fill.style.width = pct + '%';
+});
+</script>
+</body>
+</html>
