@@ -123,12 +123,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def _api_courses(self):
         courses = []
-        skip = {'講義建立', '素材', '_規範', '_outlines', '_進度'}
-        for name in sorted(os.listdir(PROJECT_ROOT)):
-            full = os.path.join(PROJECT_ROOT, name)
+        courses_dir = os.path.join(PROJECT_ROOT, 'courses')
+        if not os.path.isdir(courses_dir):
+            self.send_json(courses)
+            return
+        for name in sorted(os.listdir(courses_dir)):
+            full = os.path.join(courses_dir, name)
             if (os.path.isdir(full)
                     and not name.startswith('.')
-                    and name not in skip
                     and os.path.exists(os.path.join(full, 'index.html'))):
                 outline_path = os.path.join(OUTLINES_DIR, f'{name}.md')
                 courses.append({'slug': name, 'has_outline': os.path.exists(outline_path)})

@@ -1,9 +1,28 @@
 # 課程資料夾對照表
 
+## 資料夾結構
+
+```
+課程專用網頁/           ← 根目錄：規則、工具、統一入口
+├── index.html          ← 統一課程入口
+├── CLAUDE.md
+├── COURSES.md
+├── _outlines/          ← 課程大綱（Markdown）
+├── _規範/              ← 設計規範（本地參考）
+├── _進度/              ← 進度追蹤
+├── 素材/               ← 教學素材
+├── 講義建立/           ← 講義製作器（server.py + index.html）
+└── courses/            ← 所有課程
+    ├── ai-workshop/
+    ├── gemini-ai/
+    ├── gtm/
+    ├── n8n/
+    └── office-ai/
+```
+
 ## 命名規範
 
-- 資料夾名稱：全小寫英文，以連字號分隔（kebab-case）
-- 以工具名稱或主題縮寫為主，不使用通用名稱（如 `course/`）
+- 課程資料夾：全小寫英文，連字號分隔（kebab-case），統一放在 `courses/`
 - 每門課根目錄放 `index.html`（課程總覽頁）
 
 ## 課程大綱資料夾

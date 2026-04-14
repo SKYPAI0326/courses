@@ -61,7 +61,7 @@
 
 - **專案名稱**：弄一下工作室（課程專用網頁）
 - **專案路徑**：`/Users/paichenwei/Library/Mobile Documents/com~apple~CloudDocs/01-PROJECTS/課程專用網頁`
-- **課程資料夾**：`gemini-ai/`、`gtm/`、`n8n/`、`office-ai/`
+- **課程資料夾**：`courses/` 下的 `ai-workshop/`、`gemini-ai/`、`gtm/`、`n8n/`、`office-ai/`
 - **命名對照表**：`COURSES.md`（各課程資料夾說明）
 - **規範資料夾**：`_規範/`（本地參考用，已 gitignore）
 
