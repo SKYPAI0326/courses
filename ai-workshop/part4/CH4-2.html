@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CH4-2 個人AI資產管理系統 — AI 實務全攻略</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--c-accent:#6b7fa3;--c-accent-light:#e8ecf3;--c-text:#1a1a1a;--c-sub:#5a5a5a;--c-border:#d8dce6;--c-bg:#fafafa;--content-w:780px;--r:6px;font-size:16px}
+body{font-family:'Noto Sans TC',sans-serif;color:var(--c-text);background:var(--c-bg);line-height:1.7}
+.topbar{position:sticky;top:0;z-index:100;background:#fff;border-bottom:1px solid var(--c-border);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.back-link{font-size:.85rem;color:var(--c-accent);text-decoration:none}
+.back-link:hover{text-decoration:underline}
+.topbar-title{font-size:.9rem;font-weight:500;color:var(--c-sub)}
+.progress-bar{height:3px;background:var(--c-accent-light);position:sticky;top:52px;z-index:99}
+.progress-fill{height:100%;background:var(--c-accent);width:0;transition:width .2s}
+.hero{background:var(--c-accent-light);border-bottom:1px solid var(--c-border);padding:48px 24px 36px}
+.hero-inner{max-width:var(--content-w);margin:0 auto}
+.ch-label{font-size:.75rem;font-weight:700;letter-spacing:.12em;color:var(--c-accent);text-transform:uppercase;margin-bottom:10px}
+.hero h1{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;margin-bottom:12px}
+.hero-desc{font-size:1rem;color:var(--c-sub);max-width:560px;line-height:1.8}
+main{max-width:var(--content-w);margin:0 auto;padding:40px 24px 80px}
+section{margin-bottom:52px;opacity:0;transform:translateY(18px);transition:opacity .5s,transform .5s}
+section.visible{opacity:1;transform:none}
+.sec-title{font-family:'Shippori Mincho',serif;font-size:1.2rem;font-weight:600;margin-bottom:20px;padding-bottom:8px;border-bottom:2px solid var(--c-accent)}
+/* asset tiers */
+.asset-wrap{display:flex;flex-direction:column;gap:12px}
+.asset-tier{border:1px solid var(--c-border);border-radius:var(--r);background:#fff;overflow:hidden}
+.asset-tier-head{display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--c-accent-light);border-bottom:1px solid var(--c-border)}
+.tier-badge{font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--c-accent);color:#fff;white-space:nowrap}
+.asset-tier-name{font-weight:700;font-size:.95rem}
+.asset-tier-body{padding:14px 18px;font-size:.9rem;color:var(--c-sub);line-height:1.7}
+.asset-examples{margin-top:6px;font-size:.85rem;color:var(--c-accent);font-weight:500}
+/* concept grid */
+.concept-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.concept-card{border:1px solid var(--c-border);border-radius:var(--r);padding:16px;background:#fff;text-align:center}
+.concept-icon{font-size:1.6rem;margin-bottom:8px}
+.concept-name{font-weight:700;font-size:.9rem;margin-bottom:6px}
+.concept-desc{font-size:.82rem;color:var(--c-sub);line-height:1.6}
+/* steps */
+.steps-list{display:flex;flex-direction:column;gap:0}
+.step-item{display:flex;gap:16px;padding:18px 0;border-bottom:1px solid var(--c-border)}
+.step-item:last-child{border-bottom:none}
+.step-num{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:var(--c-accent);color:#fff;font-weight:700;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+.step-body{}
+.step-title{font-weight:700;margin-bottom:4px}
+.step-desc{font-size:.9rem;color:var(--c-sub);line-height:1.7}
+/* analogy box */
+.analogy-box{background:var(--c-accent-light);border-left:3px solid var(--c-accent);border-radius:var(--r);padding:18px 20px}
+.analogy-title{font-weight:700;margin-bottom:8px;font-size:.95rem}
+.analogy-list{display:flex;flex-direction:column;gap:6px}
+.analogy-item{font-size:.9rem;color:var(--c-sub);line-height:1.6;padding-left:14px;position:relative}
+.analogy-item::before{content:'▸';position:absolute;left:0;color:var(--c-accent)}
+/* naming table */
+.naming-table{width:100%;border-collapse:collapse;font-size:.9rem}
+.naming-table th{background:var(--c-accent-light);padding:10px 14px;text-align:left;font-weight:700;border:1px solid var(--c-border)}
+.naming-table td{padding:10px 14px;border:1px solid var(--c-border);vertical-align:top;line-height:1.6}
+.naming-table tr:nth-child(even) td{background:#f7f8fb}
+/* nav */
+.page-nav{display:flex;justify-content:space-between;align-items:center;padding:24px 0 0;border-top:1px solid var(--c-border);margin-top:8px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.9rem;color:var(--c-accent);text-decoration:none;font-weight:500}
+.nav-btn:hover{text-decoration:underline}
+@media(max-width:600px){.concept-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <a href="../index.html" class="back-link">← 課程總覽</a>
+    <span class="topbar-title">CH4-2 個人AI資產管理系統</span>
+  </div>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="prog"></div></div>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="ch-label">Chapter 4-2 · Part 4</div>
+    <h1>個人AI資產管理系統</h1>
+    <p class="hero-desc">Prompt、工具、模板、設定——這些都是你的 AI 資產。學會系統性整理，讓每一份努力都能複用、累積、持續增值。</p>
+  </div>
+</div>
+
+<main>
+
+  <section>
+    <div class="sec-title">什麼是 AI 資產？</div>
+    <div class="asset-wrap">
+      <div class="asset-tier">
+        <div class="asset-tier-head">
+          <span class="tier-badge">Tier 1</span>
+          <span class="asset-tier-name">Prompt 庫</span>
+        </div>
+        <div class="asset-tier-body">
+          經過測試、穩定產出好結果的指令模板。這是最直接可以複用的資產，每次使用都能節省反覆嘗試的時間。
+          <div class="asset-examples">例：週報 Prompt、會議摘要 Prompt、客訴回覆模板</div>
+        </div>
+      </div>
+      <div class="asset-tier">
+        <div class="asset-tier-head">
+          <span class="tier-badge">Tier 2</span>
+          <span class="asset-tier-name">HTML 工具庫</span>
+        </div>
+        <div class="asset-tier-body">
+          在 Part 3 建立的計算器、流程工具、查詢工具等。放在固定資料夾，需要時直接雙擊開啟。
+          <div class="asset-examples">例：費用計算器、SOP 檢查表、工作日計算工具</div>
+        </div>
+      </div>
+      <div class="asset-tier">
+        <div class="asset-tier-head">
+          <span class="tier-badge">Tier 3</span>
+          <span class="asset-tier-name">個人 Profile 系統</span>
+        </div>
+        <div class="asset-tier-body">
+          在 CH1-3 建立的角色設定、語調偏好、常用背景資訊。貼入新對話即可讓 AI 快速了解你的背景。
+          <div class="asset-examples">例：職位、產業、常用術語、偏好語氣</div>
+        </div>
+      </div>
+      <div class="asset-tier">
+        <div class="asset-tier-head">
+          <span class="tier-badge">Tier 4</span>
+          <span class="asset-tier-name">學習筆記與踩坑記錄</span>
+        </div>
+        <div class="asset-tier-body">
+          使用 AI 過程中發現的規律、失敗原因、有效做法。這些記錄本身就是你的 AI 使用能力沉澱。
+          <div class="asset-examples">例：某類任務 AI 容易犯的錯、需要人工驗證的情境</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-title">資產管理三原則</div>
+    <div class="concept-grid">
+      <div class="concept-card">
+        <div class="concept-icon">📁</div>
+        <div class="concept-name">統一存放位置</div>
+        <div class="concept-desc">建立一個固定資料夾（如「AI資產庫」），所有資產都放在這裡，不散落在不同地方。</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-icon">🏷️</div>
+        <div class="concept-name">清楚命名規則</div>
+        <div class="concept-desc">檔名包含：用途 + 類型 + 版本，例如「週報摘要-prompt-v2」。一眼看出是什麼。</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-icon">🔄</div>
+        <div class="concept-name">定期維護更新</div>
+        <div class="concept-desc">每季檢視一次，淘汰過時的資產，記錄新的有效做法。資產要活用才有價值。</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-title">命名規則建議</div>
+    <table class="naming-table">
+      <thead><tr><th>資產類型</th><th>命名格式</th><th>範例</th></tr></thead>
+      <tbody>
+        <tr><td>Prompt</td><td>[情境]-prompt-v[版本]</td><td>週報摘要-prompt-v3</td></tr>
+        <tr><td>HTML 工具</td><td>[功能名稱]-tool</td><td>差旅費計算-tool</td></tr>
+        <tr><td>文書模板</td><td>[文件類型]-template</td><td>客訴回覆-template</td></tr>
+        <tr><td>Profile</td><td>profile-[角色/場景]</td><td>profile-業務主管</td></tr>
+        <tr><td>學習筆記</td><td>note-[主題]-[YYYYMM]</td><td>note-圖表生成-202501</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <div class="sec-title">建立資產庫的五步驟</div>
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">建立資料夾結構</div>
+          <div class="step-desc">在桌面或雲端硬碟建立「AI資產庫」主資料夾，下面建 Prompts / Tools / Templates / Profile / Notes 五個子資料夾。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">盤點現有資產</div>
+          <div class="step-desc">把課程中建立的 Prompt、HTML 工具、Profile 全部找出來，依命名規則重新命名後放入對應資料夾。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">建立索引清單</div>
+          <div class="step-desc">用一份試算表或 Notion 頁面列出所有資產：名稱、用途、最後更新日期。讓你快速找到需要的資產。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">設定觸發機制</div>
+          <div class="step-desc">決定什麼時候會用到哪些資產，例如「每週一上午 → 打開週報 Prompt」，建立習慣性使用的流程。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-title">設定季度維護時間</div>
+          <div class="step-desc">在行事曆設定每季一次的「AI資產盤點」，30 分鐘，淘汰過時資產，整理新收集的有效 Prompt 與工具。</div>
+        </div>
+      </div>
+    </div>
+    <div class="analogy-box" style="margin-top:20px">
+      <div class="analogy-title">AI 資產庫 vs 傳統工具箱</div>
+      <div class="analogy-list">
+        <div class="analogy-item">Prompt 庫 = 常用工具（錘子、螺絲起子），拿起來就能用</div>
+        <div class="analogy-item">HTML 工具 = 特製治具，解決特定重複性工作</div>
+        <div class="analogy-item">Profile = 工作証明，讓 AI 知道你是誰、需要什麼</div>
+        <div class="analogy-item">學習筆記 = 使用手冊，記錄每個工具的使用訣竅</div>
+      </div>
+    </div>
+  </section>
+
+  <nav class="page-nav">
+    <a href="CH4-1.html" class="nav-btn">← CH4-1</a>
+    <a href="CH4-3.html" class="nav-btn">CH4-3 →</a>
+  </nav>
+
+</main>
+
+<script>
+const prog=document.getElementById('prog');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;
+  prog.style.width=pct+'%';
+});
+const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');})},{threshold:.12});
+document.querySelectorAll('section').forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>

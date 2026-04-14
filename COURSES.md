@@ -12,6 +12,7 @@
 
 | 資料夾 | 課程名稱（中文） | 狀態 | 備注 |
 |--------|----------------|------|------|
+| `ai-workshop/` | AI 實務全攻略（12h/18h） | 完成 | 4 Parts，12 CH + 4 PRAC + 4 WS + index，主色霧藍 --c-a4 |
 | `gemini-ai/` | Gemini 零代碼 AI 實戰課 | 完成 | 4 Parts，12 單元，含 PRAC 頁 |
 | `gtm/` | GTM 實務演練 | 完成 | 4 Parts，13 單元 |
 | `office-ai/` | 辦公室 AI 工具實務應用 | 製作中 | 6 章，章節頁待建 |
@@ -20,6 +21,16 @@
 ---
 
 ## 各課程子結構
+
+### ai-workshop/
+```
+ai-workshop/
+├── index.html          課程總覽（12h/18h 版本切換）
+├── part1/              CH1-1~3, PRAC1, WS1-A
+├── part2/              CH2-1~3, PRAC2, WS2-A
+├── part3/              CH3-1~3, PRAC3, WS3-A
+└── part4/              CH4-1~3, PRAC4, WS4-A
+```
 
 ### gemini-ai/
 ```
@@ -81,4 +92,4 @@ n8n/
 
 ---
 
-*最後更新：2026-04-03*
+*最後更新：2026-04-14*
