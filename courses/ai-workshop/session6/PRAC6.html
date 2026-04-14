@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRAC6 Session 6 實作練習｜AI 實務全攻略</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-accent:#6b7fa3;--radius:6px;--radius-sm:4px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Noto Serif TC',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-accent);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.07);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-accent);width:0%;transition:width .1s}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px}
+.back-link:hover{color:var(--c-accent)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border)}
+.hero-num{font-size:.72rem;color:var(--c-accent);letter-spacing:1px;font-weight:500}
+.lesson-title{font-family:'Noto Serif TC',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px}
+.prog-dots{display:flex;gap:10px;margin-bottom:36px;flex-wrap:wrap}
+.prog-dot{width:10px;height:10px;border-radius:50%;background:var(--c-border)}
+.prog-dot.done{background:var(--c-accent)}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px}
+.lesson-section{margin-bottom:72px}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px}
+.section-heading{font-family:'Noto Serif TC',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35}
+.section-heading em{font-style:normal;color:var(--c-accent)}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0}
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0}
+.callout.key{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25)}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text)}
+.callout-body strong{font-weight:700}
+.task-block{margin-bottom:56px}
+.task-header{display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid var(--c-accent)}
+.task-num{width:32px;height:32px;border-radius:50%;background:var(--c-accent);color:#fff;font-weight:700;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.task-title{font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;color:var(--c-text)}
+.field-group{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px;display:flex;flex-direction:column;gap:14px}
+.field-row{display:flex;flex-direction:column;gap:6px}
+.field-label{font-size:.8rem;font-weight:700;color:var(--c-muted)}
+.field-row input,.field-row select,.field-row textarea{border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:10px 12px;font-family:'Noto Sans TC',sans-serif;font-size:.9rem;color:var(--c-text);background:var(--c-bg);width:100%}
+.field-row input:focus,.field-row select:focus,.field-row textarea:focus{outline:none;border-color:var(--c-accent);background:var(--c-card)}
+.gen-btn{background:var(--c-accent);color:#fff;border:none;border-radius:var(--radius);padding:11px 28px;font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:opacity .15s;align-self:flex-start}
+.gen-btn:hover{opacity:.85}
+.output-box{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);padding:14px 16px;font-size:.85rem;font-family:'Courier New',monospace;white-space:pre-wrap;word-break:break-all;min-height:100px;color:var(--c-text);line-height:1.7;display:none}
+.copy-btn{background:var(--c-card);color:var(--c-accent);border:1px solid rgba(107,127,163,.4);border-radius:var(--radius-sm);padding:6px 16px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;margin-top:6px;display:none}
+.copy-btn:hover{background:rgba(107,127,163,.06)}
+.asset-rows{display:flex;flex-direction:column;gap:10px;margin-bottom:10px}
+.asset-row{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:center;border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:10px 12px;background:var(--c-card)}
+.asset-row input{border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:7px 10px;font-size:.85rem;font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);width:100%;color:var(--c-text)}
+.asset-row input:focus{outline:none;border-color:var(--c-accent)}
+.asset-row select{border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:7px 8px;font-size:.83rem;font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text)}
+.add-row-btn{background:rgba(107,127,163,.06);color:var(--c-accent);border:1px dashed rgba(107,127,163,.4);border-radius:var(--radius);padding:8px 18px;font-size:.83rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif}
+.add-row-btn:hover{background:rgba(107,127,163,.1)}
+.plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.plan-field{display:flex;flex-direction:column;gap:6px}
+.plan-field label{font-size:.8rem;font-weight:700;color:var(--c-muted)}
+.plan-field input,.plan-field textarea,.plan-field select{border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:10px 12px;font-family:'Noto Sans TC',sans-serif;font-size:.88rem;color:var(--c-text);background:var(--c-bg);width:100%}
+.plan-field input:focus,.plan-field textarea:focus{outline:none;border-color:var(--c-accent);background:var(--c-card)}
+.plan-field.full{grid-column:1/-1}
+.action-card{background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius);padding:20px 24px;margin-bottom:14px}
+.action-day{font-size:.7rem;font-weight:700;color:var(--c-accent);letter-spacing:1.5px;margin-bottom:6px}
+.action-field{width:100%;border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:10px 12px;font-family:'Noto Sans TC',sans-serif;font-size:.9rem;color:var(--c-text);background:var(--c-bg)}
+.action-field:focus{outline:none;border-color:var(--c-accent);background:var(--c-card)}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1}
+.nav-btn:hover{border-color:var(--c-accent)}
+.nav-btn.next{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px}
+.nav-btn-title{font-weight:500}
+.nav-spacer{flex:1}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Noto Serif TC',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1)}
+.reveal.in{opacity:1;transform:translateY(0)}
+.section-rule{transform-origin:left center;opacity:0;transition:opacity .4s,transform .6s cubic-bezier(.16,1,.3,1);transform:scaleX(.3)}
+.section-rule.in{opacity:1;transform:scaleX(1)}
+.lesson-hero .back-link{animation:fadeUp .4s ease both}
+.lesson-hero .hero-meta{animation:fadeUp .45s .08s ease both}
+.lesson-hero .lesson-title{animation:fadeUp .55s .15s ease both}
+.lesson-hero .lesson-tagline{animation:fadeUp .5s .26s ease both}
+.lesson-hero .prog-dots{animation:fadeUp .45s .36s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.section-dots{position:fixed;left:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:40;opacity:0;transition:opacity .4s}
+.section-dots.visible{opacity:1}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--c-border);cursor:pointer;transition:background .3s,transform .3s;border:none;padding:0}
+.sdot.active{background:var(--c-accent);transform:scale(1.5)}
+@media(max-width:1100px){.section-dots{display:none}}
+@media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero{padding:56px 32px 40px}.lesson-body{padding:0 32px 80px}.lesson-nav{padding:0 32px 80px}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:40px 20px 36px}.lesson-title{font-size:1.55rem}.lesson-body{padding:0 20px 60px}.lesson-nav{padding:0 20px 60px;flex-direction:column}.nav-btn{flex:none}.footer{padding:20px}.plan-grid{grid-template-columns:1fr}.asset-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">AI 實務全攻略</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">PRAC 6</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="progressFill"></div></div>
+<nav class="section-dots" id="sectionDots" aria-label="章節導航"></nav>
+
+<section class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程目錄</a>
+  <div class="hero-meta">
+    <span class="hero-part">SESSION 6 · 個人 AI 工作系統整合</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">實作練習</span>
+  </div>
+  <h1 class="lesson-title">Session 6 實作練習<br>+ 72 小時行動卡</h1>
+  <p class="lesson-tagline">最後一節的實作練習，同時也是你個人 AI 工作系統的啟動儀式。完成 72 小時行動卡，讓課程所學在真實工作中落地。</p>
+  <div class="prog-dots" id="prog-dots">
+    <div class="prog-dot" id="dot-1" title="任務1：Prompt 生成器"></div>
+    <div class="prog-dot" id="dot-2" title="任務2：AI 資產清單"></div>
+    <div class="prog-dot" id="dot-3" title="任務3：四週落地計畫"></div>
+    <div class="prog-dot" id="dot-4" title="任務4：72 小時行動卡"></div>
+  </div>
+</section>
+
+<main class="lesson-body">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Task 01</div>
+    <h2 class="section-heading">圖表 Prompt<em>生成器</em></h2>
+
+    <div class="task-block">
+      <div class="task-header">
+        <div class="task-num">1</div>
+        <div class="task-title">生成你的圖表 Prompt</div>
+      </div>
+      <div class="field-group">
+        <div class="field-row">
+          <div class="field-label">圖表標題</div>
+          <input type="text" id="chart-title" placeholder="例：上半年業績走勢" oninput="saveData()">
+        </div>
+        <div class="field-row">
+          <div class="field-label">圖表類型</div>
+          <select id="chart-type" onchange="saveData()">
+            <option value="折線圖">折線圖（趨勢）</option>
+            <option value="長條圖">長條圖（比較）</option>
+            <option value="圓餅圖">圓餅圖（佔比）</option>
+            <option value="散點圖">散點圖（相關性）</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field-label">X 軸資料（用頓號分隔）</div>
+          <input type="text" id="chart-x" placeholder="例：1月、2月、3月、4月、5月、6月" oninput="saveData()">
+        </div>
+        <div class="field-row">
+          <div class="field-label">Y 軸數值（用逗號分隔）</div>
+          <input type="text" id="chart-y" placeholder="例：120, 145, 132, 168, 190, 175" oninput="saveData()">
+        </div>
+        <div class="field-row">
+          <div class="field-label">Y 軸單位 / 說明</div>
+          <input type="text" id="chart-unit" placeholder="例：萬元、人次、件數" oninput="saveData()">
+        </div>
+        <div class="field-row">
+          <div class="field-label">互動功能需求（可選）</div>
+          <input type="text" id="chart-interactive" placeholder="例：hover 顯示精確數值、可切換顯示/隱藏資料系列" oninput="saveData()">
+        </div>
+        <button class="gen-btn" onclick="generateChartPrompt()">生成圖表 Prompt</button>
+        <div class="output-box" id="chart-output"></div>
+        <button class="copy-btn" id="chart-copy" onclick="copyOutput('chart-output','chart-copy')">複製 Prompt</button>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Task 02</div>
+    <h2 class="section-heading">AI <em>資產清單</em></h2>
+
+    <div class="task-block">
+      <div class="task-header">
+        <div class="task-num">2</div>
+        <div class="task-title">列出課程中建立或盤點的 AI 資產</div>
+      </div>
+      <p class="body-text" style="font-size:.88rem;margin-bottom:14px">記錄名稱、類型與存放位置，建立你的資產索引。</p>
+      <div class="asset-rows" id="asset-rows">
+        <div class="asset-row">
+          <input type="text" placeholder="資產名稱（如：週報摘要-prompt-v1）" oninput="saveData()">
+          <select onchange="saveData()">
+            <option value="Prompt">Prompt</option>
+            <option value="HTML工具">HTML 工具</option>
+            <option value="模板">模板</option>
+            <option value="Profile">Profile</option>
+            <option value="筆記">學習筆記</option>
+          </select>
+          <input type="text" placeholder="存放位置" style="max-width:160px" oninput="saveData()">
+        </div>
+      </div>
+      <button class="add-row-btn" onclick="addAssetRow()">＋ 新增資產</button>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Task 03</div>
+    <h2 class="section-heading">個人四週<em>落地計畫</em></h2>
+
+    <div class="task-block">
+      <div class="task-header">
+        <div class="task-num">3</div>
+        <div class="task-title">填寫個人四週落地計畫</div>
+      </div>
+      <div class="plan-grid">
+        <div class="plan-field">
+          <label>第一週：我要用 AI 完成的任務</label>
+          <input type="text" id="plan-w1" placeholder="例：用 AI 幫我草擬每週業績週報" oninput="saveData()">
+        </div>
+        <div class="plan-field">
+          <label>最希望節省時間的工作</label>
+          <input type="text" id="plan-timesave" placeholder="例：每週花在整理報告的 2 小時" oninput="saveData()">
+        </div>
+        <div class="plan-field full">
+          <label>第二週：要優化的 Prompt 或工具</label>
+          <input type="text" id="plan-w2" placeholder="例：優化週報 Prompt，讓輸出可以直接貼給主管" oninput="saveData()">
+        </div>
+        <div class="plan-field">
+          <label>第三週：要擴展的兩個新場景</label>
+          <textarea id="plan-w3" rows="3" placeholder="場景1：&#10;場景2：" oninput="saveData()"></textarea>
+        </div>
+        <div class="plan-field">
+          <label>第四週：資產庫整理與下一個 90 天目標</label>
+          <textarea id="plan-w4" rows="3" placeholder="整理計畫：&#10;90 天目標：" oninput="saveData()"></textarea>
+        </div>
+        <div class="plan-field full">
+          <label>今天離開後的第一個行動（具體到明天幾點要做什麼）</label>
+          <input type="text" id="plan-first" placeholder="例：明天早上 9 點，用週報 Prompt 草擬本週業績摘要" oninput="saveData()">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Task 04</div>
+    <h2 class="section-heading">72 小時<em>行動卡</em></h2>
+    <p class="body-text">課程結束後的 72 小時是習慣建立的黃金窗口。填寫三個時間節點，把「想做的事」變成「已排定的事」。</p>
+
+    <div class="task-block">
+      <div class="task-header">
+        <div class="task-num">4</div>
+        <div class="task-title">72 小時內，我要做的三件事</div>
+      </div>
+      <div class="action-card">
+        <div class="action-day">24 小時內（今天或明天）</div>
+        <input class="action-field" type="text" id="action-24h" placeholder="例：建立 AI 資產庫資料夾，把課程中的 Prompt 全部整理進去" oninput="saveData()">
+      </div>
+      <div class="action-card">
+        <div class="action-day">48 小時內（這週內）</div>
+        <input class="action-field" type="text" id="action-48h" placeholder="例：用週報 Prompt 實際跑一遍，記錄哪裡有效、哪裡需要調整" oninput="saveData()">
+      </div>
+      <div class="action-card">
+        <div class="action-day">72 小時內（本週末前）</div>
+        <input class="action-field" type="text" id="action-72h" placeholder="例：選出一個最值得工具化的場景，開始建第一版 HTML 工具" oninput="saveData()">
+      </div>
+    </div>
+
+    <div class="callout key">
+      <div class="callout-icon">★</div>
+      <div class="callout-body"><strong>完成這四件事，你就完成了課程：</strong>有了圖表 Prompt、有了資產清單、有了四週計畫、有了 72 小時行動卡。接下來的事，不是學更多——而是把學到的用起來。</div>
+    </div>
+  </div>
+
+</main>
+
+<nav class="lesson-nav">
+  <a class="nav-btn prev" href="WS6-A.html"><span>←</span><div><div class="nav-btn-label">上一節</div><div class="nav-btn-title">個人系統整合工作坊</div></div></a>
+  <div class="nav-spacer"></div>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">Session 6 · 4 of 4</div>
+</footer>
+
+<script>
+window.addEventListener('scroll',()=>{const d=document.documentElement;const p=d.scrollHeight-d.clientHeight>0?(d.scrollTop/(d.scrollHeight-d.clientHeight))*100:0;document.getElementById('progressFill').style.width=p+'%'});
+(function(){const io=new IntersectionObserver(e=>{e.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.1,rootMargin:'0px 0px -48px 0px'});document.querySelectorAll('.lesson-section,.section-rule').forEach(el=>{el.classList.add('reveal');io.observe(el)})})();
+(function(){const s=Array.from(document.querySelectorAll('.lesson-section'));const n=document.getElementById('sectionDots');if(!s.length||!n)return;s.forEach((sec,i)=>{const b=document.createElement('button');b.className='sdot';b.title=sec.querySelector('.section-heading')?.textContent?.trim().slice(0,20)||'';b.addEventListener('click',()=>sec.scrollIntoView({behavior:'smooth',block:'start'}));n.appendChild(b)});const di=new IntersectionObserver(e=>{e.forEach(e=>{const i=s.indexOf(e.target);if(i>=0)n.children[i]?.classList.toggle('active',e.isIntersecting)});n.classList.toggle('visible',Array.from(n.children).some(d=>d.classList.contains('active')))},{threshold:.3});s.forEach(s=>di.observe(s))})();
+
+const KEY='aiws-prac6';
+
+function generateChartPrompt(){
+  const title=document.getElementById('chart-title').value.trim()||'我的圖表';
+  const type=document.getElementById('chart-type').value;
+  const x=document.getElementById('chart-x').value.trim()||'（請填入X軸資料）';
+  const y=document.getElementById('chart-y').value.trim()||'（請填入數值）';
+  const unit=document.getElementById('chart-unit').value.trim();
+  const interactive=document.getElementById('chart-interactive').value.trim();
+  let prompt=`請用 HTML + Chart.js 建立一個${type}，規格如下：\n\n圖表標題：「${title}」\nX 軸資料：${x}\nY 軸數值：${y}`;
+  if(unit) prompt+=`\nY 軸單位：${unit}`;
+  if(interactive) prompt+=`\n互動功能：${interactive}`;
+  prompt+=`\n\n請輸出單一 HTML 檔，Chart.js 用 CDN 引入，不需要其他外部套件。中文介面，UTF-8 編碼。`;
+  const out=document.getElementById('chart-output');
+  out.textContent=prompt;out.style.display='block';
+  const copyBtn=document.getElementById('chart-copy');copyBtn.style.display='inline-block';
+  updateDot(1);saveData();
+}
+
+function copyOutput(outputId,btnId){
+  const text=document.getElementById(outputId).textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn=document.getElementById(btnId);const orig=btn.textContent;
+    btn.textContent='已複製！';setTimeout(()=>{btn.textContent=orig},1500);
+  }).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    const btn=document.getElementById(btnId);btn.textContent='已複製！';setTimeout(()=>{btn.textContent='複製 Prompt'},1500);
+  });
+}
+
+function addAssetRow(){
+  const rows=document.getElementById('asset-rows');
+  const row=document.createElement('div');row.className='asset-row';
+  row.innerHTML=`<input type="text" placeholder="資產名稱" oninput="saveData()"><select onchange="saveData()"><option>Prompt</option><option>HTML工具</option><option>模板</option><option>Profile</option><option>筆記</option></select><input type="text" placeholder="存放位置" style="max-width:160px" oninput="saveData()">`;
+  rows.appendChild(row);updateDot(2);saveData();
+}
+
+function updateDot(n){document.getElementById('dot-'+n)?.classList.add('done')}
+
+function saveData(){
+  try{
+    const d={};
+    ['chart-title','chart-x','chart-y','chart-unit','chart-interactive','plan-w1','plan-timesave','plan-w2','plan-w3','plan-w4','plan-first','action-24h','action-48h','action-72h'].forEach(id=>{const el=document.getElementById(id);if(el)d[id]=el.value});
+    d['chart-type']=document.getElementById('chart-type').value;
+    const out=document.getElementById('chart-output');d['chart-output']=out.textContent;d['chart-output-visible']=out.style.display;
+    const rows=document.getElementById('asset-rows');const assetData=[];
+    rows.querySelectorAll('.asset-row').forEach(row=>{const inputs=row.querySelectorAll('input');const sel=row.querySelector('select');assetData.push({name:inputs[0]?inputs[0].value:'',type:sel?sel.value:'',loc:inputs[1]?inputs[1].value:''})});
+    d['assets']=assetData;
+    const dots=['dot-1','dot-2','dot-3','dot-4'].map(id=>document.getElementById(id)?.classList.contains('done'));d['dots']=dots;
+    localStorage.setItem(KEY,JSON.stringify(d));checkAllDone();
+  }catch(e){}
+}
+
+function checkAllDone(){
+  if(document.getElementById('plan-w1')?.value.trim()&&document.getElementById('plan-first')?.value.trim()) updateDot(3);
+  if(document.getElementById('action-24h')?.value.trim()&&document.getElementById('action-72h')?.value.trim()) updateDot(4);
+}
+
+function loadData(){
+  try{
+    const d=JSON.parse(localStorage.getItem(KEY)||'{}');
+    ['chart-title','chart-x','chart-y','chart-unit','chart-interactive','plan-w1','plan-timesave','plan-w2','plan-w3','plan-w4','plan-first','action-24h','action-48h','action-72h'].forEach(id=>{const el=document.getElementById(id);if(el&&d[id])el.value=d[id]});
+    if(d['chart-type']) document.getElementById('chart-type').value=d['chart-type'];
+    if(d['chart-output']){const out=document.getElementById('chart-output');out.textContent=d['chart-output'];out.style.display=d['chart-output-visible']||'none';if(d['chart-output-visible']==='block') document.getElementById('chart-copy').style.display='inline-block'}
+    if(d['assets']&&d['assets'].length){const rows=document.getElementById('asset-rows');rows.innerHTML='';d['assets'].forEach(a=>{const row=document.createElement('div');row.className='asset-row';row.innerHTML=`<input type="text" value="${a.name||''}" placeholder="資產名稱" oninput="saveData()"><select onchange="saveData()"><option${a.type==='Prompt'?' selected':''}>Prompt</option><option${a.type==='HTML工具'?' selected':''}>HTML工具</option><option${a.type==='模板'?' selected':''}>模板</option><option${a.type==='Profile'?' selected':''}>Profile</option><option${a.type==='筆記'?' selected':''}>筆記</option></select><input type="text" value="${a.loc||''}" placeholder="存放位置" style="max-width:160px" oninput="saveData()">`;rows.appendChild(row)})}
+    if(d['dots']) d['dots'].forEach((on,i)=>{if(on) document.getElementById('dot-'+(i+1))?.classList.add('done')});
+  }catch(e){}
+}
+
+loadData();
+</script>
+</body>
+</html>

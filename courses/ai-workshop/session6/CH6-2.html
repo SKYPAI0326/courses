@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH6-2 工作流整合設計｜AI 實務全攻略</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-accent:#6b7fa3;--radius:6px;--radius-sm:4px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Noto Serif TC',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-accent);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.07);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-accent);width:0%;transition:width .1s}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px}
+.back-link:hover{color:var(--c-accent)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border)}
+.hero-num{font-size:.72rem;color:var(--c-accent);letter-spacing:1px;font-weight:500}
+.lesson-title{font-family:'Noto Serif TC',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius)}
+.outcomes-label{font-size:.7rem;color:var(--c-accent);letter-spacing:1.5px;font-weight:500;margin-bottom:4px}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text)}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-accent);margin-top:8px;flex-shrink:0}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px}
+.lesson-section{margin-bottom:72px}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px}
+.section-heading{font-family:'Noto Serif TC',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35}
+.section-heading em{font-style:normal;color:var(--c-accent)}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px}
+.body-text strong{font-weight:700}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0}
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0}
+.callout.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25)}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2)}
+.callout.key{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25)}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text)}
+.callout-body strong{font-weight:700}
+.big-quote{font-family:'Noto Serif TC',serif;font-size:1.3rem;font-weight:700;line-height:1.65;color:var(--c-text);padding:28px 32px;background:var(--c-card);border:1px solid var(--c-border);border-left:4px solid var(--c-accent);border-radius:var(--radius);margin:28px 0}
+.big-quote span{color:var(--c-accent)}
+.analogy-box{padding:28px 32px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:28px 0}
+.analogy-label{font-size:.68rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:12px}
+.analogy-text{font-size:.92rem;color:var(--c-text);line-height:1.9}
+.roadmap{display:flex;flex-direction:column;gap:0;margin:28px 0}
+.roadmap-week{display:flex;gap:20px;padding:20px 0;border-bottom:1px solid var(--c-border)}
+.roadmap-week:last-child{border-bottom:none}
+.week-badge{flex-shrink:0;width:56px;text-align:center}
+.week-label{font-size:.68rem;font-weight:700;color:var(--c-accent);letter-spacing:.06em}
+.week-num{font-family:'Noto Serif TC',serif;font-size:1.4rem;font-weight:700;line-height:1.1;color:var(--c-text)}
+.week-body{flex:1}
+.week-title{font-weight:700;margin-bottom:6px;font-size:.95rem;color:var(--c-text)}
+.week-desc{font-size:.88rem;color:var(--c-muted);line-height:1.75}
+.week-tasks{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
+.week-task{font-size:.75rem;background:rgba(107,127,163,.08);color:var(--c-accent);padding:3px 10px;border-radius:99px;font-weight:600;border:1px solid rgba(107,127,163,.2)}
+.habit-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:28px 0}
+.habit-card{border:1px solid var(--c-border);border-radius:var(--radius);padding:18px;background:var(--c-card)}
+.habit-freq{font-size:.7rem;font-weight:700;color:var(--c-accent);letter-spacing:.06em;margin-bottom:4px}
+.habit-name{font-weight:700;font-size:.95rem;margin-bottom:6px;color:var(--c-text)}
+.habit-why{font-size:.85rem;color:var(--c-muted);line-height:1.65}
+.milestone-list{display:flex;flex-direction:column;gap:10px;margin:28px 0}
+.milestone-item{display:flex;align-items:flex-start;gap:14px;padding:14px 18px;border:1px solid var(--c-border);border-radius:var(--radius);background:var(--c-card)}
+.milestone-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--c-accent);flex-shrink:0;margin-top:2px}
+.milestone-title{font-weight:700;font-size:.9rem;color:var(--c-text)}
+.milestone-desc{font-size:.83rem;color:var(--c-muted);margin-top:2px;line-height:1.6}
+.steps-list{display:flex;flex-direction:column;gap:0;margin:32px 0}
+.step-item{display:flex;gap:0;position:relative}
+.step-item:not(:last-child)::before{content:'';position:absolute;left:20px;top:44px;bottom:0;width:1px;background:var(--c-border)}
+.step-num{width:40px;height:40px;border-radius:50%;background:var(--c-card);border:1.5px solid var(--c-border);display:flex;align-items:center;justify-content:center;font-family:'Noto Serif TC',serif;font-size:.9rem;font-weight:700;color:var(--c-text);flex-shrink:0}
+.step-body{flex:1;padding:4px 0 32px 24px}
+.step-title{font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.step-desc{font-size:.85rem;color:var(--c-muted);line-height:1.75}
+.step-desc strong{color:var(--c-text);font-weight:700}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1}
+.nav-btn:hover{border-color:var(--c-accent)}
+.nav-btn.next{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px}
+.nav-btn-title{font-weight:500}
+.nav-spacer{flex:1}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Noto Serif TC',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1)}
+.reveal.in{opacity:1;transform:translateY(0)}
+.section-rule{transform-origin:left center;opacity:0;transition:opacity .4s,transform .6s cubic-bezier(.16,1,.3,1);transform:scaleX(.3)}
+.section-rule.in{opacity:1;transform:scaleX(1)}
+.lesson-hero .back-link{animation:fadeUp .4s ease both}
+.lesson-hero .hero-meta{animation:fadeUp .45s .08s ease both}
+.lesson-hero .lesson-title{animation:fadeUp .55s .15s ease both}
+.lesson-hero .lesson-tagline{animation:fadeUp .5s .26s ease both}
+.lesson-hero .outcomes{animation:fadeUp .45s .36s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.section-dots{position:fixed;left:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:40;opacity:0;transition:opacity .4s}
+.section-dots.visible{opacity:1}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--c-border);cursor:pointer;transition:background .3s,transform .3s;border:none;padding:0}
+.sdot.active{background:var(--c-accent);transform:scale(1.5)}
+@media(max-width:1100px){.section-dots{display:none}}
+@media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero{padding:56px 32px 40px}.lesson-body{padding:0 32px 80px}.lesson-nav{padding:0 32px 80px}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:40px 20px 36px}.lesson-title{font-size:1.55rem}.lesson-body{padding:0 20px 60px}.lesson-nav{padding:0 20px 60px;flex-direction:column}.nav-btn{flex:none}.footer{padding:20px}.habit-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">AI 實務全攻略</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH 6-2</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="progressFill"></div></div>
+<nav class="section-dots" id="sectionDots" aria-label="章節導航"></nav>
+
+<section class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程目錄</a>
+  <div class="hero-meta">
+    <span class="hero-part">SESSION 6 · 個人 AI 工作系統整合</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">6.2</span>
+  </div>
+  <h1 class="lesson-title">工作流整合設計：<br>找出最高價值的 AI 介入節點</h1>
+  <p class="lesson-tagline">AI 能做很多事，但不是每件事都值得 AI 介入。這一節教你用系統性方法找出工作流中真正能省時省力的 AI 介入點。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學完這節，你會</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>理解「學了沒用上」的三個根本原因，並知道如何破解</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>掌握四週落地路線圖，從啟動到固化，有具體行動步驟</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>建立日常、每週、每月、每季的 AI 習慣設計，讓改變持續發生</div>
+  </div>
+</section>
+
+<main class="lesson-body">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 01</div>
+    <h2 class="section-heading">為什麼學了<em>還是沒用上</em>？</h2>
+    <p class="body-text">很多人在課程中掌握了技能，課程結束後卻慢慢回到原來的工作方式。這不是意志力問題，而是系統設計問題。</p>
+
+    <div class="analogy-box">
+      <div class="analogy-label">三個常見落地失敗原因</div>
+      <div class="analogy-text">
+        <strong>1. 沒有明確的第一步</strong><br>
+        知道 AI 可以幫忙，但不知道今天就能開始用在哪裡，所以一直「等到需要的時候再說」。<br><br>
+        <strong>2. 試了一次沒出好結果就放棄</strong><br>
+        第一次 Prompt 沒達到預期，就認定「AI 對我沒用」，缺少迭代改進的耐心。<br><br>
+        <strong>3. 缺乏日常觸發點</strong><br>
+        沒有把 AI 工具嵌入現有工作流程，只在「想到的時候」才用，很快就忘記。
+      </div>
+    </div>
+
+    <div class="big-quote">
+      落地失敗不是因為<span>技能不夠</span>，<br>是因為沒有設計<span>觸發機制</span>。
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 02</div>
+    <h2 class="section-heading">四週落地<em>路線圖</em></h2>
+    <p class="body-text">課程結束後的四週，是習慣是否成形的關鍵窗口。每週有明確目標與具體任務：</p>
+
+    <div class="roadmap">
+      <div class="roadmap-week">
+        <div class="week-badge">
+          <div class="week-label">WEEK</div>
+          <div class="week-num">1</div>
+        </div>
+        <div class="week-body">
+          <div class="week-title">啟動：找到第一個真實應用</div>
+          <div class="week-desc">從本週實際工作中選一件重複性高的任務（如每週要寫的報告），用課程中的 Prompt 模板實際跑一遍，記錄「有幫助的地方」與「還需要調整的地方」。</div>
+          <div class="week-tasks"><span class="week-task">選定一個任務</span><span class="week-task">跑一遍 Prompt</span><span class="week-task">記錄結果</span></div>
+        </div>
+      </div>
+      <div class="roadmap-week">
+        <div class="week-badge">
+          <div class="week-label">WEEK</div>
+          <div class="week-num">2</div>
+        </div>
+        <div class="week-body">
+          <div class="week-title">優化：讓工具更符合自己需求</div>
+          <div class="week-desc">根據第一週的記錄，修改 Prompt 或 HTML 工具，讓輸出更接近你真正需要的格式。這週目標是讓工具「可以直接用，不需要大幅修改輸出」。</div>
+          <div class="week-tasks"><span class="week-task">優化 Prompt ×1</span><span class="week-task">升級工具品質</span><span class="week-task">存入資產庫</span></div>
+        </div>
+      </div>
+      <div class="roadmap-week">
+        <div class="week-badge">
+          <div class="week-label">WEEK</div>
+          <div class="week-num">3</div>
+        </div>
+        <div class="week-body">
+          <div class="week-title">擴展：再找兩個新應用場景</div>
+          <div class="week-desc">把學到的框架套用到另外兩個工作場景，不求完美，先試試看哪些有效。這週重點是「拓寬應用邊界」，發現 AI 在你工作中更多的可能性。</div>
+          <div class="week-tasks"><span class="week-task">新場景 ×2</span><span class="week-task">嘗試工具串接</span><span class="week-task">更新資產索引</span></div>
+        </div>
+      </div>
+      <div class="roadmap-week">
+        <div class="week-badge">
+          <div class="week-label">WEEK</div>
+          <div class="week-num">4</div>
+        </div>
+        <div class="week-body">
+          <div class="week-title">固化：建立長期習慣</div>
+          <div class="week-desc">回顧四週成果，整理有效的工具與 Prompt 到資產庫，設定季度維護行事曆，決定下一個 90 天要深入的方向。</div>
+          <div class="week-tasks"><span class="week-task">整理資產庫</span><span class="week-task">設定季度維護</span><span class="week-task">訂定 90 天計畫</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 03</div>
+    <h2 class="section-heading">長期習慣<em>設計</em></h2>
+    <p class="body-text">四週之後，需要的是可以持續運作的習慣系統。按照頻率設計，每個層級有一個明確的行動：</p>
+
+    <div class="habit-grid">
+      <div class="habit-card">
+        <div class="habit-freq">每日</div>
+        <div class="habit-name">AI 輔助一件事</div>
+        <div class="habit-why">每天選一件本來要自己做的事，試著先問 AI 一次。不求完美，只求養成習慣性使用的直覺。</div>
+      </div>
+      <div class="habit-card">
+        <div class="habit-freq">每週</div>
+        <div class="habit-name">記錄一個有效發現</div>
+        <div class="habit-why">把這週發現「有用的 Prompt 技巧」或「AI 的限制」記錄一條進學習筆記，累積個人知識庫。</div>
+      </div>
+      <div class="habit-card">
+        <div class="habit-freq">每月</div>
+        <div class="habit-name">升級一個工具</div>
+        <div class="habit-why">選一個最常使用的 HTML 工具或 Prompt，根據實際使用經驗做一次優化，保持工具的新鮮度與實用性。</div>
+      </div>
+      <div class="habit-card">
+        <div class="habit-freq">每季</div>
+        <div class="habit-name">資產庫盤點</div>
+        <div class="habit-why">30 分鐘盤點：淘汰已不用的資產，整理新增的有效做法，確認資產庫反映當前工作需求。</div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon">✦</div>
+      <div class="callout-body"><strong>關鍵原則：</strong>習慣不靠意志力維持，靠系統設計。把 AI 工具嵌入你現有的工作流程節點——讓使用 AI 成為完成某件事的「標準步驟」，而不是額外的選項。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 04</div>
+    <h2 class="section-heading">課程結束的<em>里程碑</em></h2>
+    <p class="body-text">用以下里程碑確認你已具備完整的 AI 工作能力，而不只是「上過一堂課」：</p>
+
+    <div class="milestone-list">
+      <div class="milestone-item">
+        <div class="milestone-check"></div>
+        <div class="milestone-body">
+          <div class="milestone-title">我建立了個人 AI Profile</div>
+          <div class="milestone-desc">可以快速貼入任何對話，讓 AI 立即了解我的背景與需求。</div>
+        </div>
+      </div>
+      <div class="milestone-item">
+        <div class="milestone-check"></div>
+        <div class="milestone-body">
+          <div class="milestone-title">我有 3 個以上可立即使用的 Prompt 模板</div>
+          <div class="milestone-desc">對應我最常見的工作場景，不需要每次從頭想指令。</div>
+        </div>
+      </div>
+      <div class="milestone-item">
+        <div class="milestone-check"></div>
+        <div class="milestone-body">
+          <div class="milestone-title">我有至少 1 個自製 HTML 工具</div>
+          <div class="milestone-desc">可以離線使用、不需網路，解決我的某個重複性工作問題。</div>
+        </div>
+      </div>
+      <div class="milestone-item">
+        <div class="milestone-check"></div>
+        <div class="milestone-body">
+          <div class="milestone-title">我建立了 AI 資產庫</div>
+          <div class="milestone-desc">所有資產放在固定位置，有清楚命名，可以快速找到需要的工具。</div>
+        </div>
+      </div>
+      <div class="milestone-item">
+        <div class="milestone-check"></div>
+        <div class="milestone-body">
+          <div class="milestone-title">我訂出了四週落地計畫的第一步</div>
+          <div class="milestone-desc">明確知道離開課程後，今天下午或明天早上要做什麼。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<nav class="lesson-nav">
+  <a class="nav-btn prev" href="CH6-1.html"><span>←</span><div><div class="nav-btn-label">上一節</div><div class="nav-btn-title">6.1 個人 AI 指令資產庫</div></div></a>
+  <a class="nav-btn next" href="WS6-A.html"><div><div class="nav-btn-label">下一節</div><div class="nav-btn-title">個人系統整合工作坊</div></div><span>→</span></a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">Session 6 · 2 of 4</div>
+</footer>
+
+<script>
+window.addEventListener('scroll',()=>{const d=document.documentElement;const p=d.scrollHeight-d.clientHeight>0?(d.scrollTop/(d.scrollHeight-d.clientHeight))*100:0;document.getElementById('progressFill').style.width=p+'%'});
+(function(){const io=new IntersectionObserver(e=>{e.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.1,rootMargin:'0px 0px -48px 0px'});document.querySelectorAll('.lesson-section,.section-rule').forEach(el=>{el.classList.add('reveal');io.observe(el)})})();
+(function(){const s=Array.from(document.querySelectorAll('.lesson-section'));const n=document.getElementById('sectionDots');if(!s.length||!n)return;s.forEach((sec,i)=>{const b=document.createElement('button');b.className='sdot';b.title=sec.querySelector('.section-heading')?.textContent?.trim().slice(0,20)||'';b.addEventListener('click',()=>sec.scrollIntoView({behavior:'smooth',block:'start'}));n.appendChild(b)});const di=new IntersectionObserver(e=>{e.forEach(e=>{const i=s.indexOf(e.target);if(i>=0)n.children[i]?.classList.toggle('active',e.isIntersecting)});n.classList.toggle('visible',Array.from(n.children).some(d=>d.classList.contains('active')))},{threshold:.3});s.forEach(s=>di.observe(s))})();
+</script>
+</body>
+</html>

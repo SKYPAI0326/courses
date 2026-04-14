@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRAC3 Session 3 實作練習｜AI 實務全攻略</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-accent:#6b7fa3;--radius:6px;--radius-sm:4px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Noto Serif TC',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-accent);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.07);padding:3px 12px;border-radius:99px;font-weight:500}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px}
+.back-link:hover{color:var(--c-accent)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border)}
+.hero-num{font-size:.72rem;color:var(--c-accent);letter-spacing:1px;font-weight:500}
+.lesson-title{font-family:'Noto Serif TC',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:16px}
+.hero-note{font-size:.8rem;color:var(--c-accent);padding:12px 16px;background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.2);border-radius:var(--radius)}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px}
+.task-block{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin-bottom:24px}
+.task-header{padding:16px 24px;background:var(--c-surface);border-bottom:1px solid var(--c-border);display:flex;align-items:center;gap:14px}
+.task-num{font-family:'Noto Serif TC',serif;font-size:1.1rem;font-weight:700;color:var(--c-accent)}
+.task-title{font-size:.95rem;font-weight:700;color:var(--c-text)}
+.task-status{margin-left:auto;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--c-border);background:var(--c-bg);display:flex;align-items:center;justify-content:center;font-size:.8rem;cursor:pointer;transition:all .2s;flex-shrink:0}
+.task-status.done{background:var(--c-accent);border-color:var(--c-accent);color:#fff}
+.task-body{padding:24px}
+.task-desc{font-size:.88rem;color:var(--c-muted);line-height:1.8;margin-bottom:20px}
+.field-label{font-size:.72rem;color:var(--c-accent);letter-spacing:1px;font-weight:500;margin-bottom:6px}
+.field-hint{font-size:.7rem;color:var(--c-muted);margin-bottom:8px}
+.field-input{width:100%;padding:10px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:.85rem;color:var(--c-text);background:var(--c-bg);transition:border-color .2s;margin-bottom:14px}
+.field-input:focus{outline:none;border-color:var(--c-accent)}
+.field-input::placeholder{color:var(--c-muted)}
+.field-textarea{width:100%;padding:10px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:.85rem;color:var(--c-text);background:var(--c-bg);resize:vertical;min-height:90px;line-height:1.7;transition:border-color .2s;margin-bottom:14px}
+.field-textarea:focus{outline:none;border-color:var(--c-accent)}
+.field-textarea::placeholder{color:var(--c-muted)}
+/* 情報整理 SOP 步驟核對 */
+.sop-checklist{display:flex;flex-direction:column;gap:10px}
+.sop-item{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);cursor:pointer;transition:border-color .2s}
+.sop-item:hover{border-color:rgba(107,127,163,.4)}
+.sop-item.checked{background:rgba(107,127,163,.04);border-color:rgba(107,127,163,.3)}
+.sop-check{width:20px;height:20px;border:1.5px solid var(--c-border);border-radius:4px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:.75rem;transition:all .2s}
+.sop-item.checked .sop-check{background:var(--c-accent);border-color:var(--c-accent);color:#fff}
+.sop-label{font-size:.87rem;color:var(--c-text);line-height:1.6;flex:1}
+.sop-item.checked .sop-label{color:var(--c-muted)}
+/* NotebookLM 設定 */
+.notebook-checklist{display:flex;flex-direction:column;gap:10px}
+.nb-item{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);cursor:pointer;transition:border-color .2s}
+.nb-item:hover{border-color:rgba(107,127,163,.4)}
+.nb-item.checked{background:rgba(107,127,163,.04);border-color:rgba(107,127,163,.3)}
+.nb-check{width:20px;height:20px;border:1.5px solid var(--c-border);border-radius:4px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:.75rem;transition:all .2s}
+.nb-item.checked .nb-check{background:var(--c-accent);border-color:var(--c-accent);color:#fff}
+.nb-label{font-size:.87rem;color:var(--c-text);line-height:1.6;flex:1}
+.nb-item.checked .nb-label{color:var(--c-muted)}
+/* 進度 */
+.progress-summary{background:var(--c-card);border:1px solid rgba(107,127,163,.3);border-radius:var(--radius);padding:24px 28px;margin-top:32px}
+.ps-title{font-size:.78rem;color:var(--c-accent);letter-spacing:1px;font-weight:500;margin-bottom:16px}
+.ps-items{display:flex;flex-direction:column;gap:10px}
+.ps-item{display:flex;align-items:center;gap:12px;font-size:.85rem}
+.ps-dot{width:8px;height:8px;border-radius:50%;background:var(--c-border);flex-shrink:0;transition:background .3s}
+.ps-dot.done{background:var(--c-accent)}
+.ps-text{color:var(--c-muted);transition:color .3s}
+.ps-text.done{color:var(--c-text)}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1}
+.nav-btn:hover{border-color:var(--c-accent)}
+.nav-btn.next{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px}
+.nav-btn-title{font-weight:500}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Noto Serif TC',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.lesson-hero .back-link{animation:fadeUp .4s ease both}
+.lesson-hero .hero-meta{animation:fadeUp .45s .08s ease both}
+.lesson-hero .lesson-title{animation:fadeUp .55s .15s ease both}
+.lesson-hero .lesson-tagline{animation:fadeUp .5s .26s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero{padding:56px 32px 40px}.lesson-body{padding:0 32px 80px}.lesson-nav{padding:0 32px 80px}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;.lesson-tagline{max-width:100%}}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:40px 20px 36px}.lesson-title{font-size:1.55rem}.lesson-body{padding:0 20px 60px}.lesson-nav{padding:0 20px 60px;flex-direction:column}.nav-btn{flex:none}.footer{padding:20px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">AI 實務全攻略</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">PRAC 3</div>
+</header>
+
+<section class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程目錄</a>
+  <div class="hero-meta">
+    <span class="hero-part">SESSION 3 · 情報分析 × 知識管理</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">實作練習</span>
+  </div>
+  <h1 class="lesson-title">Session 3 實作練習</h1>
+  <p class="lesson-tagline">完成本節的三道實作題，建立你的個人情報整理系統。</p>
+  <div class="hero-note">所有輸入內容自動存入瀏覽器本機，重新打開頁面仍在。</div>
+</section>
+
+<main class="lesson-body">
+
+  <!-- 任務一 -->
+  <div class="task-block">
+    <div class="task-header">
+      <div class="task-num">01</div>
+      <div class="task-title">我的情報來源清單</div>
+      <div class="task-status" id="status1" onclick="toggleTask(1)">✓</div>
+    </div>
+    <div class="task-body">
+      <div class="task-desc">對應 CH3-2 的「收集」步驟。列出你每週固定追蹤的 3–5 個情報來源，並說明每個來源的類型與更新頻率。</div>
+      <div class="field-label">來源 01：名稱 + 類型 + 頻率</div>
+      <input class="field-input" id="src1" placeholder="例：某產業協會週報 · 產業報告 · 每週" oninput="saveSrc()">
+      <div class="field-label">來源 02：名稱 + 類型 + 頻率</div>
+      <input class="field-input" id="src2" placeholder="" oninput="saveSrc()">
+      <div class="field-label">來源 03：名稱 + 類型 + 頻率</div>
+      <input class="field-input" id="src3" placeholder="" oninput="saveSrc()">
+      <div class="field-label">來源 04（選填）</div>
+      <input class="field-input" id="src4" placeholder="" oninput="saveSrc()">
+      <div class="field-label">來源 05（選填）</div>
+      <input class="field-input" id="src5" placeholder="" oninput="saveSrc()">
+      <div class="field-label">我的情報整理時間（固定幾？幾點？）</div>
+      <input class="field-input" id="src_time" placeholder="例：每週五下午 3 點，30 分鐘" oninput="saveSrc()">
+    </div>
+  </div>
+
+  <!-- 任務二 -->
+  <div class="task-block">
+    <div class="task-header">
+      <div class="task-num">02</div>
+      <div class="task-title">我的 Prompt 模板（客製化版）</div>
+      <div class="task-status" id="status2" onclick="toggleTask(2)">✓</div>
+    </div>
+    <div class="task-body">
+      <div class="task-desc">對應 CH3-2 的「過濾」與「摘要」步驟。根據你的產業與部門，客製化兩個 Prompt，讓它更符合你的實際需求。</div>
+      <div class="field-label">我的產業 / 部門</div>
+      <input class="field-input" id="p_industry" placeholder="例：科技業 · 行銷部門" oninput="savePrompts()">
+      <div class="field-label">我的快速過濾 Prompt（填入你的主題關鍵字）</div>
+      <textarea class="field-textarea" id="p_filter" placeholder="請用三句話摘要以下文件，並評估其與[你的主題]的相關程度（高/中/低）：" oninput="savePrompts()"></textarea>
+      <div class="field-label">我的結構化摘要 Prompt（填入你的產業/部門）</div>
+      <textarea class="field-textarea" id="p_summary" placeholder="請根據以下文件回答：1.背景是什麼 2.關鍵數據或發現 3.對我們（[你的產業/部門]）的影響 4.建議的下一步行動" oninput="savePrompts()"></textarea>
+      <div class="field-label">我希望這套 SOP 解決的核心問題</div>
+      <input class="field-input" id="p_problem" placeholder="例：每週花太多時間找競品資訊，但找到的又不確定是否重要" oninput="savePrompts()">
+    </div>
+  </div>
+
+  <!-- 任務三 -->
+  <div class="task-block">
+    <div class="task-header">
+      <div class="task-num">03</div>
+      <div class="task-title">我的情報知識庫設定記錄</div>
+      <div class="task-status" id="status3" onclick="toggleTask(3)">✓</div>
+    </div>
+    <div class="task-body">
+      <div class="task-desc">對應 CH3-1 與 CH3-2 的整合。記錄你建立的情報知識庫設定，作為日後維護的參考。</div>
+      <div class="field-label">知識庫主題</div>
+      <input class="field-input" id="nb_topic" placeholder="例：競品動態 2025 / 產業趨勢追蹤" oninput="saveNB()">
+      <div class="field-label">已上傳的摘要文件（條列）</div>
+      <textarea class="field-textarea" id="nb_docs" placeholder="例：&#10;· 某報告結構化摘要（2025-04）&#10;· 競品 A 分析摘要（2025-04）" oninput="saveNB()"></textarea>
+      <div class="field-label">步驟核對清單</div>
+      <div class="notebook-checklist" id="nbChecklist">
+        <div class="nb-item" onclick="toggleNB(this)"><div class="nb-check">✓</div><div class="nb-label">已在 notebooklm.google.com 建立情報知識庫 Notebook</div></div>
+        <div class="nb-item" onclick="toggleNB(this)"><div class="nb-check">✓</div><div class="nb-label">已上傳至少 2 份結構化摘要（不是原始文件）</div></div>
+        <div class="nb-item" onclick="toggleNB(this)"><div class="nb-check">✓</div><div class="nb-label">已測試跨文件查詢，確認回答品質</div></div>
+        <div class="nb-item" onclick="toggleNB(this)"><div class="nb-check">✓</div><div class="nb-label">已設定每週固定更新時間</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="progress-summary">
+    <div class="ps-title">SESSION 3 完成度</div>
+    <div class="ps-items">
+      <div class="ps-item"><div class="ps-dot" id="dot1"></div><div class="ps-text" id="ptext1">任務一：情報來源清單</div></div>
+      <div class="ps-item"><div class="ps-dot" id="dot2"></div><div class="ps-text" id="ptext2">任務二：客製化 Prompt 模板</div></div>
+      <div class="ps-item"><div class="ps-dot" id="dot3"></div><div class="ps-text" id="ptext3">任務三：情報知識庫設定記錄</div></div>
+    </div>
+  </div>
+
+</main>
+
+<nav class="lesson-nav">
+  <a class="nav-btn" href="WS3-A.html">
+    <span>←</span>
+    <div>
+      <div class="nav-btn-label">返回</div>
+      <div class="nav-btn-title">情報分析實戰演練</div>
+    </div>
+  </a>
+  <a class="nav-btn next" href="../session4/CH4-1.html">
+    <div>
+      <div class="nav-btn-label">下一節</div>
+      <div class="nav-btn-title">S4 零代碼開發循環</div>
+    </div>
+    <span>→</span>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">Session 3 · 4 of 4</div>
+</footer>
+
+<script>
+const KEY='aiws-prac3';
+
+function g(id){return localStorage.getItem(KEY+'_'+id)||''}
+function s(id,v){localStorage.setItem(KEY+'_'+id,v)}
+
+function load(){
+  ['src1','src2','src3','src4','src5','src_time','p_industry','p_filter','p_summary','p_problem','nb_topic','nb_docs'].forEach(id=>{const el=document.getElementById(id);if(el&&g(id))el.value=g(id)});
+  [1,2,3].forEach(n=>{if(g('task'+n)==='1')setDone(n,true)});
+  const nbChecks=g('nbChecks');if(nbChecks){const arr=JSON.parse(nbChecks);document.querySelectorAll('.nb-item').forEach((el,i)=>{if(arr[i])el.classList.add('checked')})}
+}
+
+function saveSrc(){['src1','src2','src3','src4','src5','src_time'].forEach(id=>{const el=document.getElementById(id);if(el)s(id,el.value)})}
+function savePrompts(){['p_industry','p_filter','p_summary','p_problem'].forEach(id=>{const el=document.getElementById(id);if(el)s(id,el.value)})}
+function saveNB(){['nb_topic','nb_docs'].forEach(id=>{const el=document.getElementById(id);if(el)s(id,el.value)})}
+
+function toggleTask(n){const done=g('task'+n)!=='1';s('task'+n,done?'1':'');setDone(n,done)}
+function setDone(n,done){document.getElementById('status'+n).classList.toggle('done',done);document.getElementById('dot'+n).classList.toggle('done',done);document.getElementById('ptext'+n).classList.toggle('done',done)}
+
+function toggleNB(el){el.classList.toggle('checked');const arr=Array.from(document.querySelectorAll('.nb-item')).map(e=>e.classList.contains('checked'));s('nbChecks',JSON.stringify(arr))}
+
+load();
+</script>
+</body>
+</html>
