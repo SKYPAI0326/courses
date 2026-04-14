@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH1-2 提示工程基礎｜CCS 生成式AI研習</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a1:#5a7a5a;--c-a2:#c9963a;--c-a3:#6b7fa3;--c-a4:#b5703a;--c-a5:#7a9ea3;--radius:6px;--radius-sm:4px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a1);border:1px solid rgba(90,122,90,.3);background:rgba(90,122,90,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a1);width:0%;transition:width .1s;}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a1);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-a1);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a1);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-a1);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a1);margin-top:8px;flex-shrink:0;}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:64px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-a1);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:64px 0;}
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25);}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout.key{background:rgba(90,122,90,.08);border:1px solid rgba(90,122,90,.3);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text);}
+.callout-body strong{font-weight:700;}
+.shot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:28px 0;}
+.shot-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:22px 20px;}
+.shot-card.hi{border-color:rgba(90,122,90,.4);background:rgba(90,122,90,.04);}
+.shot-num{font-family:'Shippori Mincho',serif;font-size:1.3rem;font-weight:700;color:var(--c-a1);margin-bottom:8px;}
+.shot-title{font-size:.85rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.shot-en{font-size:.72rem;color:var(--c-muted);margin-bottom:10px;letter-spacing:.5px;}
+.shot-desc{font-size:.78rem;color:var(--c-muted);line-height:1.7;}
+.prompt-box{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 22px;margin:16px 0;font-size:.88rem;line-height:1.8;color:var(--c-text);}
+.prompt-box .pl{font-size:.68rem;color:var(--c-a1);font-weight:700;letter-spacing:1px;margin-bottom:8px;display:block;}
+.prompt-box code{font-family:'Courier New',monospace;font-size:.9em;}
+.four-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:28px 0;}
+.four-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 18px;position:relative;}
+.four-card::before{content:attr(data-n);position:absolute;top:16px;right:18px;font-family:'Shippori Mincho',serif;font-size:1.6rem;font-weight:700;color:var(--c-a1);opacity:.15;}
+.four-lbl{font-size:.7rem;color:var(--c-a1);font-weight:700;letter-spacing:1px;margin-bottom:6px;}
+.four-title{font-size:.88rem;font-weight:700;color:var(--c-text);margin-bottom:8px;}
+.four-desc{font-size:.78rem;color:var(--c-muted);line-height:1.7;}
+.analogy-box{padding:24px 28px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:24px 0;}
+.analogy-label{font-size:.68rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:10px;}
+.analogy-text{font-size:.92rem;color:var(--c-text);line-height:1.9;}
+.before-after{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:24px 0;}
+.ba-card{border-radius:var(--radius);padding:18px 20px;}
+.ba-card.before{background:rgba(200,150,150,.08);border:1px solid rgba(200,100,100,.2);}
+.ba-card.after{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.ba-label{font-size:.68rem;font-weight:700;letter-spacing:1px;margin-bottom:8px;}
+.ba-card.before .ba-label{color:#a06060;}
+.ba-card.after .ba-label{color:var(--c-a1);}
+.ba-text{font-size:.83rem;line-height:1.7;color:var(--c-text);}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-a1);}
+.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}
+.nav-btn-title{font-weight:500;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1);}
+.reveal.in{opacity:1;transform:translateY(0);}
+.section-rule{opacity:0;transform:scaleX(.3);transform-origin:left;transition:opacity .4s,transform .6s cubic-bezier(.16,1,.3,1);}
+.section-rule.in{opacity:1;transform:scaleX(1);}
+@media(max-width:768px){.topbar{padding:0 16px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero{padding:40px 20px 36px;}.lesson-title{font-size:1.55rem;}.lesson-body{padding:0 20px 60px;}.shot-grid{grid-template-columns:1fr;}.four-grid{grid-template-columns:1fr;}.before-after{grid-template-columns:1fr;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="logo" href="../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">CCS 認證研習</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">CH 1-2</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="progressFill"></div></div>
+
+<section class="lesson-hero">
+  <a class="back-link" href="index.html">← 返回課程目錄</a>
+  <div class="hero-meta">
+    <span class="hero-part">Part 1 · 生成式 AI 通用觀念</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 1-2</span>
+  </div>
+  <h1 class="lesson-title">提示工程基礎：<br>Zero-Shot、Few-Shot<br>與提示詞的四大要素</h1>
+  <p class="lesson-tagline">「提示詞」是你與 AI 溝通的語言。寫得模糊，AI 就隨機猜；寫得精確，AI 就精準執行。這章建立提示工程的基礎框架，讓你理解 CCS 考綱二的核心邏輯。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學完這章，你會</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>區分 Zero-Shot、One-Shot、Few-Shot 的差異與適用情境</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>掌握高品質提示詞的四大要素（角色、指令、上下文、約束）</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>判斷提示詞是否「完整」，避免 AI 產生偏移的輸出</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>理解多模態輸入的組合應用</div>
+  </div>
+</section>
+
+<article class="lesson-body">
+
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 01</div>
+    <h2 class="section-heading">三種射擊模式：<em>Zero / One / Few-Shot</em></h2>
+    <p class="body-text">「Shot」是指提示詞中提供給 AI 的範例數量。範例越多，AI 對任務的理解越精確；範例為零，AI 就靠自身訓練資料猜測你要什麼。</p>
+
+    <div class="shot-grid">
+      <div class="shot-card">
+        <div class="shot-num">0</div>
+        <div class="shot-title">Zero-Shot</div>
+        <div class="shot-en">無範例提示</div>
+        <div class="shot-desc">直接給任務，不提供任何範例。AI 完全依靠訓練知識推斷格式與風格。<br><br>適合：簡單任務、格式不重要的場景</div>
+      </div>
+      <div class="shot-card">
+        <div class="shot-num">1</div>
+        <div class="shot-title">One-Shot</div>
+        <div class="shot-en">單範例提示</div>
+        <div class="shot-desc">提供一個完整的輸入-輸出範例，告訴 AI「像這樣」。<br><br>適合：有特定格式要求，但範例不多的場景</div>
+      </div>
+      <div class="shot-card hi">
+        <div class="shot-num">3+</div>
+        <div class="shot-title">Few-Shot</div>
+        <div class="shot-en">多範例提示</div>
+        <div class="shot-desc">提供多個範例，讓 AI 從中學習規律。輸出品質最高、風格最一致。<br><br>適合：需要特定語調、格式要求高的場景</div>
+      </div>
+    </div>
+
+    <div class="analogy-box">
+      <div class="analogy-label">直覺類比</div>
+      <div class="analogy-text">想像你要請一位新員工幫你寫週報。Zero-Shot 是說「幫我寫週報」；One-Shot 是「幫我寫週報，像這個範例這樣」；Few-Shot 是「這是三份過去的週報，照這個風格幫我寫本週的」。Few-Shot 的輸出最貼近你的期望。</div>
+    </div>
+
+    <div class="callout key">
+      <div class="callout-icon">📌</div>
+      <div class="callout-body"><strong>考試應用（Q48）：</strong>當 AI 生成的格式不符合預期，且同一對話中已有正確格式的過去貼文時 → 應說「請修改貼文，使其看起來像之前生成的貼文」。這就是 Few-Shot 的應用：利用對話上下文作為範例。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 02</div>
+    <h2 class="section-heading">高品質提示詞的<em>四大要素</em></h2>
+    <p class="body-text">Q20 是考綱二最重要的題目，它直接點出了「一個好提示詞」需要包含的四個組成部分。記住這個框架，你就能判斷任何提示詞是否完整。</p>
+
+    <div class="four-grid">
+      <div class="four-card" data-n="A">
+        <div class="four-lbl">ROLE</div>
+        <div class="four-title">生成式 AI 假定角色</div>
+        <div class="four-desc">定義 AI 的身份與專業背景。「你是一位有豐富經驗的高級行銷經理」。角色設定決定了 AI 的語氣、知識深度與視角。</div>
+      </div>
+      <div class="four-card" data-n="B">
+        <div class="four-lbl">INSTRUCTION</div>
+        <div class="four-title">特定指令</div>
+        <div class="four-desc">明確的任務描述。「根據客戶對新產品的喜好程度，為他們生成郵件」。指令越具體，輸出越精準。</div>
+      </div>
+      <div class="four-card" data-n="C">
+        <div class="four-lbl">CONTEXT</div>
+        <div class="four-title">完整的上下文</div>
+        <div class="four-desc">提供背景資料。「我們需要為清單（連結）中的每個人生成郵件」。上下文提供了 AI 需要的數據與情境。</div>
+      </div>
+      <div class="four-card" data-n="D">
+        <div class="four-lbl">CONSTRAINTS</div>
+        <div class="four-title">約束條件及舉例</div>
+        <div class="four-desc">規定語氣、格式、長度限制。「語態上應模仿一個有好消息要告訴你的摯友」。約束條件讓輸出符合使用場景。</div>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <div class="callout-icon">ℹ️</div>
+      <div class="callout-body"><strong>記憶口訣：</strong>角色（R）→ 指令（I）→ 上下文（C）→ 約束（C）= <strong>RICC</strong>。或者用另一個框架記：Role + Task + Skills + Workflow + Constraints（R.T.S.W.C.），這是提示詞的完整公式，將在 CH1-4 深入討論。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 03</div>
+    <h2 class="section-heading">提示詞完整性：<em>缺什麼就答什麼</em></h2>
+    <p class="body-text">Q21 考的是：給你一個任務需求，哪個提示詞「覆蓋了所有需求維度」？判斷方法很簡單——把需求拆成幾個維度，逐一核對哪個選項都包含了。</p>
+
+    <div class="before-after">
+      <div class="ba-card before">
+        <div class="ba-label">❌ 不完整的提示詞</div>
+        <div class="ba-text">「制定一個旅行行程，包括飛往美國西部並參觀當地的景點。」<br><br>缺少：天數（幾天？）、具體交通方式（租車？）、類型（戶外景點？）</div>
+      </div>
+      <div class="ba-card after">
+        <div class="ba-label">✓ 完整的提示詞</div>
+        <div class="ba-text">「制定一個為期十天的旅行行程，包括飛往距離其中一個景點相對較近的機場，並租車遊覽美國西部的多個著名景點。」<br><br>覆蓋：天數、交通選擇、活動類型、地理範圍</div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body"><strong>判斷技巧：</strong>考題列出「需求條件 1、2、3、4」，你要找的選項就是「涵蓋最多條件的那個」。Q21 的正確答案是 A，因為它是唯一同時包含天數、地點、交通、活動的選項。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 04</div>
+    <h2 class="section-heading">AI 拒絕假設：<em>永遠顯性化你的需求</em></h2>
+    <p class="body-text">Q39-4 是最容易錯的觀念：「假定 AI 系統了解專案的一般背景，這樣就減少了提供詳細解釋的需求」——答案是 <strong>X（錯誤）</strong>。</p>
+
+    <div class="analogy-box">
+      <div class="analogy-label">核心原則</div>
+      <div class="analogy-text">AI 沒有「常識」。它沒有辦公室、不認識你的老闆、不知道你的產業背景。你所有認為「理所當然」的事，對 AI 來說都是未知資訊。你必須把所有背景假設都寫進提示詞。<br><br>「AI 是真空環境中的天才」——它的知識廣博，但對你的具體情境一無所知。</div>
+    </div>
+
+    <p class="body-text">這個原則延伸出的提示詞黃金法則（Q39 全題）：</p>
+
+    <div class="prompt-box">
+      <span class="pl">提示詞黃金法則 ✓ O</span>
+      1. 需要特定場景時，提供全面的視覺和敘述性描述<br>
+      2. 明確定義要求——指定影片類型、目標受眾和要點<br>
+      3. 包括詳細背景資料、基調和風格<br>
+      4. <strong>不要假定 AI 了解背景</strong>（這是最大的誤區）<br>
+      5. 使用直白語言，盡可能減少誤解
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 05</div>
+    <h2 class="section-heading">任務類型分類：<em>總結 vs 創作 vs 分析 vs 程式</em></h2>
+    <p class="body-text">Q22 考的是「哪些提示詞屬於總結（Summarization）任務」。認識任務類型，才能判斷 AI 的能力邊界。</p>
+
+    <div class="shot-grid" style="grid-template-columns:repeat(2,1fr);">
+      <div class="shot-card">
+        <div class="shot-title">總結（Summarization）</div>
+        <div class="shot-desc">壓縮並保留現有資訊的重點。<br>範例：「概括魔戒的情節（500字）」、「摘錄本次會議的必要資訊」</div>
+      </div>
+      <div class="shot-card">
+        <div class="shot-title">創作（Generation）</div>
+        <div class="shot-desc">從無到有產生新內容。<br>範例：「寫一首關於魔法兔子的詩」、「為我的度假生成景點建議」</div>
+      </div>
+      <div class="shot-card">
+        <div class="shot-title">分析（Analysis）</div>
+        <div class="shot-desc">對輸入資料進行深度解讀。<br>範例：「分析散點圖，說明趨勢」、「識別提示詞中的偏見」</div>
+      </div>
+      <div class="shot-card">
+        <div class="shot-title">程式碼生成（Code）</div>
+        <div class="shot-desc">生成可執行的程式碼（而非直接執行）。<br>範例：「編寫一個 Python 程式，詢問生日並計算年齡」</div>
+      </div>
+    </div>
+  </div>
+
+</article>
+
+<nav class="lesson-nav">
+  <a class="nav-btn" href="CH1-1.html">
+    <span>←</span>
+    <div><div class="nav-btn-label">上一單元</div><div class="nav-btn-title">CH1-1 · AI 方法論基礎</div></div>
+  </a>
+  <a class="nav-btn next" href="CH1-3.html">
+    <div><div class="nav-btn-label">下一單元</div><div class="nav-btn-title">CH1-3 · 進階提示技巧</div></div>
+    <span>→</span>
+  </a>
+</nav>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <span class="footer-note">· CCS 生成式 AI 認證研習 · CH1-2 提示工程基礎</span>
+</footer>
+
+<script>
+const fill = document.getElementById('progressFill');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = h.scrollTop / (h.scrollHeight - h.clientHeight) * 100;
+  fill.style.width = Math.min(pct, 100) + '%';
+});
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); obs.unobserve(e.target); } });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal, .section-rule').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>

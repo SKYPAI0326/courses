@@ -42,6 +42,7 @@
 | `gtm/` | GTM 實務演練 | 完成 | 4 Parts，13 單元 |
 | `office-ai/` | 辦公室 AI 工具實務應用 | 製作中 | 6 章，章節頁待建 |
 | `n8n/` | n8n 自動化實戰課 | 完成 | 4 Modules，含 landing page |
+| `ccs-foundations/` | CCS 生成式 AI 認證研習 | 完成 | 13 頁（index + CH0 + CH1-1~5 + CH2-1~4 + CH3 + CH4），扁平結構，含 80 題模擬測驗與提示詞範本庫，主色灰藍綠 --c-a5 |
 
 ---
 
