@@ -110,7 +110,7 @@ n8n/
 
 ---
 
-| `digital-marketing-70h/` | 數位行銷人才培訓（70hr） | 建置中 | 10 模組 52 單元，主色芥末黃 --c-a2，M1 module1.html 完成，整合 gtm/ + ntub-seo-ga4/ + ai-workshop/ |
+| `digital-marketing-70h/` | 數位行銷人才培訓（70hr） | 完成 | 10 模組 52 單元，主色芥末黃 --c-a2，整合 GTM/SEO/GA4/廣告/Email 全模組 |
 
 ## 待加入課程（預留位置）
 
