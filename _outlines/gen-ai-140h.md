@@ -1,6 +1,6 @@
 ---
 slug: gen-ai-140h
-name: 140小時生成式AI實務應用課程
+name: 生成式AI職訓實務應用班
 color: "#b5703a"
 audience: 有基礎 AI 工具使用經驗，希望系統化提升、具備開發與部署能力的職場工作者
 institution: 弄一下工作室
