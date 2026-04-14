@@ -20,6 +20,7 @@ COURSES = {
     "n8n":             ("n8n_auth",     "825e2dce35d14124f94b648f6ab2ab60c9db1d8f393c2b61722fe02412b9a199"),
     "ntub-seo-ga4":    ("ntub_auth",    "1c0d96ab18b0574bb4e6c04b2c4baff23637a70205a6b651ccdd6f2c9b638c81"),
     "office-ai":       ("officeai_auth","6ab0aa487f1730f54a645b5ac78f9118d45255eed7e62414cbc37108a848e5e4"),
+    "digital-marketing-70h": ("digimkt_auth", "6d9278e29c0d1ab888cfabe6a73a06f54c124fb0a4bb3dfccd7720d3e80d9eb7"),
 }
 
 GATE_TEMPLATE = '''\
