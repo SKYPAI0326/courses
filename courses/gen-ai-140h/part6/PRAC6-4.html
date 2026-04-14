@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRAC6-4 Streaming 回應改造｜140小時生成式 AI 實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-accent:#6b7fa3;--radius:6px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}.topbar-sub{font-size:.8rem;color:var(--c-muted);}.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-accent);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+.prac-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}.back-link:hover{color:var(--c-accent);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-badge{font-size:.72rem;color:var(--c-accent);letter-spacing:1px;font-weight:500;}
+.prac-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.prac-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.mission-box{padding:22px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius);}
+.mission-label{font-size:.7rem;color:var(--c-accent);letter-spacing:1.5px;font-weight:500;margin-bottom:8px;text-transform:uppercase;}
+.mission-text{font-size:.92rem;line-height:1.85;color:var(--c-text);}
+.prac-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 48px;}
+.steps-list{display:flex;flex-direction:column;gap:0;margin-bottom:48px;}
+.step-item{display:flex;gap:20px;padding:24px 0;border-bottom:1px solid var(--c-border);position:relative;}
+.step-item:last-child{border-bottom:none;}
+.step-left{display:flex;flex-direction:column;align-items:center;gap:0;flex-shrink:0;width:36px;}
+.step-num{width:36px;height:36px;border-radius:50%;background:var(--c-card);border:2px solid var(--c-accent);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-weight:700;font-size:.95rem;color:var(--c-accent);flex-shrink:0;}
+.step-line{flex:1;width:1px;background:var(--c-border);margin-top:8px;}
+.step-item:last-child .step-line{display:none;}
+.step-content{flex:1;padding-top:6px;}
+.step-title{font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:8px;}
+.step-desc{font-size:.88rem;color:var(--c-muted);line-height:1.8;margin-bottom:12px;}
+.step-desc strong{color:var(--c-text);font-weight:700;}
+.step-desc code{font-family:'Courier New',monospace;font-size:.82rem;background:rgba(107,127,163,.1);color:#4a5f8a;padding:1px 5px;border-radius:3px;}
+.step-note{font-size:.82rem;padding:12px 16px;background:rgba(107,127,163,.05);border:1px solid rgba(107,127,163,.2);border-radius:var(--radius);color:var(--c-text);line-height:1.7;}
+.tool-wrap{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin-bottom:48px;}
+.tool-toolbar{display:flex;align-items:center;padding:10px 16px;background:var(--c-surface);border-bottom:1px solid var(--c-border);gap:8px;}
+.dot{width:11px;height:11px;border-radius:50%;}.dot.r{background:#ff5f57;}.dot.y{background:#febc2e;}.dot.g{background:#28c840;}
+.tool-toolbar-title{font-size:.78rem;color:var(--c-muted);margin-left:8px;font-weight:500;}
+.tool-body{padding:28px 32px;}
+.diff-view{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+.diff-col{border-radius:var(--radius);overflow:hidden;}
+.diff-header{padding:10px 16px;font-size:.78rem;font-weight:700;letter-spacing:.5px;}
+.diff-header.before{background:#fee2e2;color:#b91c1c;}
+.diff-header.after{background:#dcfce7;color:#166534;}
+.diff-code{background:#1e1e1e;color:#d4d4d4;padding:16px;font-family:'Courier New',monospace;font-size:.76rem;line-height:1.7;overflow-x:auto;}
+.diff-code .del{color:#f87171;text-decoration:line-through;background:rgba(248,113,113,.1);}
+.diff-code .ins{color:#86efac;background:rgba(134,239,172,.08);}
+.diff-code .neu{color:#d4d4d4;}
+.diff-code .kw{color:#569cd6;}.diff-code .str{color:#ce9178;}.diff-code .cmt{color:#6a9955;}
+.demo-wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0;}
+.demo-col{padding:20px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);}
+.demo-col-title{font-size:.78rem;font-weight:700;color:var(--c-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;}
+.demo-output{min-height:80px;font-size:.88rem;line-height:1.8;color:var(--c-text);border:1px solid var(--c-border);border-radius:4px;background:#fff;padding:12px 14px;}
+.demo-status{font-size:.72rem;color:var(--c-muted);margin-top:6px;}
+.action-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 24px;background:var(--c-accent);color:#fff;border:none;border-radius:var(--radius);font-family:'Noto Sans TC',sans-serif;font-size:.9rem;font-weight:500;cursor:pointer;transition:opacity .2s;}
+.action-btn:hover{opacity:.88;}.action-btn:disabled{opacity:.5;cursor:not-allowed;}
+.cursor{display:inline-block;width:2px;height:1em;background:var(--c-accent);vertical-align:text-bottom;animation:blink .7s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+.challenge-wrap{padding:0 48px 80px;max-width:var(--content-w);margin:0 auto;}
+.challenge-title{font-family:'Shippori Mincho',serif;font-size:1.2rem;font-weight:700;color:var(--c-text);margin-bottom:16px;}
+.challenge-list{display:flex;flex-direction:column;gap:10px;}
+.challenge-item{display:flex;align-items:flex-start;gap:12px;padding:14px 18px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);cursor:pointer;transition:border-color .2s;}
+.challenge-item:hover{border-color:var(--c-accent);}
+.challenge-item input[type="checkbox"]{width:16px;height:16px;accent-color:var(--c-accent);flex-shrink:0;margin-top:3px;}
+.challenge-item-text{font-size:.88rem;line-height:1.7;color:var(--c-text);}
+.challenge-item.done .challenge-item-text{color:var(--c-muted);text-decoration:line-through;}
+.progress-bar-wrap{height:6px;background:var(--c-surface);border-radius:99px;margin-bottom:20px;overflow:hidden;}
+.progress-bar-fill{height:100%;background:var(--c-accent);border-radius:99px;transition:width .4s;}
+.progress-label{font-size:.78rem;color:var(--c-muted);margin-bottom:8px;}
+.complete-banner{padding:24px 28px;background:rgba(107,127,163,.08);border:1px solid rgba(107,127,163,.25);border-radius:var(--radius);margin-top:20px;text-align:center;}
+.complete-banner-title{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin-bottom:8px;}
+.complete-banner-sub{font-size:.88rem;color:var(--c-muted);line-height:1.7;}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-accent);}.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}.footer-note{font-size:.75rem;color:var(--c-muted);}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1);}.reveal.in{opacity:1;transform:translateY(0);}
+@media(max-width:768px){.topbar{padding:0 16px;}.topbar-sub,.topbar-divider{display:none;}.prac-hero{padding:40px 20px 36px;}.prac-title{font-size:1.55rem;}.prac-body{padding:0 20px 48px;}.tool-body{padding:20px;}.diff-view{grid-template-columns:1fr;}.demo-wrap{grid-template-columns:1fr;}.challenge-wrap{padding:0 20px 60px;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="logo" href="../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">140 小時生成式 AI 實務應用課程</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">PRAC 6.4 · Part 6</div>
+</header>
+
+<div class="prac-hero">
+  <a class="back-link" href="../index.html">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">PART 6 · AI 應用開發進階</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-badge">PRAC 6.4 · 1.5 小時</span>
+  </div>
+  <h1 class="prac-title">Streaming 回應改造</h1>
+  <p class="prac-tagline">把一個「等待型」AI 工具升級為「打字機效果」串流回應。閱讀 Before/After 程式碼差異，體驗兩種 UX 的感知差距。</p>
+  <div class="mission-box">
+    <div class="mission-label">任務目標</div>
+    <div class="mission-text">理解非 Streaming 與 Streaming 的程式碼差異，知道後端需要設定哪些 HTTP Headers、前端如何接收 SSE 事件，並完成 Part 6 的最後驗收清單。</div>
+  </div>
+</div>
+
+<div class="prac-body">
+  <div class="steps-list reveal">
+    <div class="step-item">
+      <div class="step-left"><div class="step-num">1</div><div class="step-line"></div></div>
+      <div class="step-content">
+        <div class="step-title">比較 Before / After 程式碼</div>
+        <div class="step-desc">非 Streaming 版本等模型生成完才一次送出，Streaming 版本設定 <code>Content-Type: text/event-stream</code> 並逐 chunk 送出。兩版本的後端改動不超過 10 行，但使用者體驗差距明顯。</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-left"><div class="step-num">2</div><div class="step-line"></div></div>
+      <div class="step-content">
+        <div class="step-title">體驗兩種 UX 的感知差距</div>
+        <div class="step-desc">點擊下方「同時開始」，觀察「等待型」和「串流型」在相同模擬延遲下的視覺差異。注意哪個版本讓你感覺 AI 回應更快——即使實際完成時間相同。</div>
+        <div class="step-note"><strong>感知速度 ≠ 實際速度。</strong>串流讓使用者在等待期間有「進度感」，這是讓 AI 應用感覺更好用的最低成本優化之一。</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-left"><div class="step-num">3</div><div class="step-line"></div></div>
+      <div class="step-content">
+        <div class="step-title">記下三個關鍵改動點</div>
+        <div class="step-desc">Streaming 升級需要改動三個地方：① <strong>後端 HTTP Headers</strong>（text/event-stream）、② <strong>後端逐 chunk 寫出</strong>（res.write 而非 res.json）、③ <strong>前端接收方式</strong>（EventSource 或 fetch ReadableStream）。</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-left"><div class="step-num">4</div><div class="step-line"></div></div>
+      <div class="step-content">
+        <div class="step-title">完成 Part 6 驗收清單</div>
+        <div class="step-desc">這是 Part 6 的最後一個 PRAC。完成下方清單後，你已掌握 API 呼叫、RAG、Agent 工具鏈、Streaming 四大核心技術，可以開始構建完整的 AI 應用。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="max-width:var(--content-w);margin:0 auto;padding:0 48px 32px;">
+  <div class="tool-wrap reveal">
+    <div class="tool-toolbar">
+      <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+      <div class="tool-toolbar-title">程式碼差異：Before → After</div>
+    </div>
+    <div class="tool-body">
+      <p style="font-size:.82rem;color:var(--c-muted);margin-bottom:16px;">後端 Express 路由的改造：</p>
+      <div class="diff-view">
+        <div class="diff-col">
+          <div class="diff-header before">Before（非 Streaming）</div>
+          <div class="diff-code">
+<span class="kw">app</span>.<span class="neu">post</span>(<span class="str">'/api/ask'</span>, <span class="kw">async</span> (<span class="neu">req, res</span>) => {
+  <span class="kw">const</span> <span class="neu">msg</span> = <span class="kw">await</span> <span class="neu">client.messages.create</span>({
+    model: <span class="str">'claude-haiku-4-5-20251001'</span>,
+    max_tokens: <span class="neu">1024</span>,
+    messages: [{ role: <span class="str">'user'</span>,
+      content: req.body.prompt }]
+  });
+  <span class="del">res.json({ result: msg.content[0].text });</span>
+});
+          </div>
+        </div>
+        <div class="diff-col">
+          <div class="diff-header after">After（Streaming）</div>
+          <div class="diff-code">
+<span class="kw">app</span>.<span class="neu">post</span>(<span class="str">'/api/stream'</span>, <span class="kw">async</span> (<span class="neu">req, res</span>) => {
+  <span class="ins">res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');</span>
+  <span class="kw">const</span> <span class="neu">stream</span> = <span class="kw">await</span> <span class="neu">client.messages.stream</span>({
+    model: <span class="str">'claude-haiku-4-5-20251001'</span>,
+    max_tokens: <span class="neu">1024</span>,
+    messages: [{ role: <span class="str">'user'</span>,
+      content: req.body.prompt }]
+  });
+  <span class="ins">for await (const chunk of stream) {
+    if (chunk.type === 'content_block_delta')
+      res.write(`data: ${chunk.delta.text}\n\n`);
+  }
+  res.write('data: [DONE]\n\n');
+  res.end();</span>
+});
+          </div>
+        </div>
+      </div>
+
+      <p style="font-size:.82rem;color:var(--c-muted);margin:16px 0 8px;">前端接收方式（EventSource）：</p>
+      <div style="background:#1e1e1e;color:#d4d4d4;border-radius:var(--radius);padding:16px;font-family:'Courier New',monospace;font-size:.78rem;line-height:1.7;overflow-x:auto;">
+<span class="cmt" style="color:#6a9955;">// 前端：用 fetch 接收 Streaming（支援 POST）</span>
+<span style="color:#569cd6;">const</span> res = <span style="color:#569cd6;">await</span> fetch(<span style="color:#ce9178;">'/api/stream'</span>, {
+  method: <span style="color:#ce9178;">'POST'</span>,
+  headers: { <span style="color:#ce9178;">'Content-Type'</span>: <span style="color:#ce9178;">'application/json'</span> },
+  body: JSON.stringify({ prompt: userInput })
+});
+<span style="color:#569cd6;">const</span> reader = res.body.getReader();
+<span style="color:#569cd6;">const</span> decoder = <span style="color:#569cd6;">new</span> TextDecoder();
+<span style="color:#569cd6;">let</span> output = <span style="color:#ce9178;">''</span>;
+<span style="color:#569cd6;">while</span> (<span style="color:#569cd6;">true</span>) {
+  <span style="color:#569cd6;">const</span> { done, value } = <span style="color:#569cd6;">await</span> reader.read();
+  <span style="color:#569cd6;">if</span> (done) <span style="color:#569cd6;">break</span>;
+  <span style="color:#569cd6;">const</span> text = decoder.decode(value);
+  text.split(<span style="color:#ce9178;">'\n'</span>).forEach(line => {
+    <span style="color:#569cd6;">if</span> (line.startsWith(<span style="color:#ce9178;">'data: '</span>) && line !== <span style="color:#ce9178;">'data: [DONE]'</span>) {
+      output += line.slice(<span style="color:#9cdcfe;">6</span>);
+      outputEl.textContent = output; <span style="color:#6a9955;">// 即時更新 DOM</span>
+    }
+  });
+}
+      </div>
+    </div>
+  </div>
+
+  <div class="tool-wrap reveal">
+    <div class="tool-toolbar">
+      <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+      <div class="tool-toolbar-title">UX 體驗對比（模擬）</div>
+    </div>
+    <div class="tool-body">
+      <button class="action-btn" onclick="startBothDemos()" id="demo-btn">同時開始兩種模式</button>
+      <div class="demo-wrap">
+        <div class="demo-col">
+          <div class="demo-col-title">等待型（非 Streaming）</div>
+          <div class="demo-output" id="demo-before">等待中…</div>
+          <div class="demo-status" id="status-before">尚未開始</div>
+        </div>
+        <div class="demo-col">
+          <div class="demo-col-title">串流型（Streaming）</div>
+          <div class="demo-output" id="demo-after"></div>
+          <div class="demo-status" id="status-after">尚未開始</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="challenge-wrap">
+  <div class="reveal">
+    <div class="progress-label" id="prog-label">完成進度：0 / 6</div>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog-bar" style="width:0%"></div></div>
+    <div class="challenge-title">Part 6 完結驗收清單</div>
+    <div class="challenge-list" id="check-list">
+      <label class="challenge-item" id="ci-0"><input type="checkbox" onchange="updateProgress()"><span class="challenge-item-text">理解 Streaming 的三個關鍵改動：Headers、res.write 逐 chunk、前端 ReadableStream</span></label>
+      <label class="challenge-item" id="ci-1"><input type="checkbox" onchange="updateProgress()"><span class="challenge-item-text">體驗過 UX 對比，能向別人說明為什麼「感知速度」比「實際速度」更重要</span></label>
+      <label class="challenge-item" id="ci-2"><input type="checkbox" onchange="updateProgress()"><span class="challenge-item-text">（回顧）PRAC6-1：能解釋 temperature、max_tokens 對輸出的影響</span></label>
+      <label class="challenge-item" id="ci-3"><input type="checkbox" onchange="updateProgress()"><span class="challenge-item-text">（回顧）PRAC6-2：能描述 RAG 的四個步驟：切 chunk → 搜尋 → 組 Prompt → 生成</span></label>
+      <label class="challenge-item" id="ci-4"><input type="checkbox" onchange="updateProgress()"><span class="challenge-item-text">（回顧）PRAC6-3：能說明 Agent Loop 的 Observe-Think-Act 循環</span></label>
+      <label class="challenge-item" id="ci-5"><input type="checkbox" onchange="updateProgress()"><span class="challenge-item-text">心智模型建立：能在腦中畫出「API → 後端代理 → Streaming → 前端」的完整流程圖</span></label>
+    </div>
+    <div id="complete-banner" class="complete-banner" style="display:none;">
+      <div class="complete-banner-title">Part 6 完成！</div>
+      <div class="complete-banner-sub">你已掌握 AI 應用開發的核心技術棧：API 整合、RAG 知識問答、Agent 工具鏈、Streaming UX。<br>下一站：Part 7 專題衝刺，把這些技術整合成一個完整的個人 AI 應用。</div>
+    </div>
+  </div>
+</div>
+
+<nav class="lesson-nav">
+  <a class="nav-btn" href="PRAC6-3.html">
+    <span>←</span>
+    <div><div class="nav-btn-label">上一個</div><div class="nav-btn-title">PRAC6-3 Agent 工具鏈小案例</div></div>
+  </a>
+  <a class="nav-btn next" href="../index.html">
+    <div><div class="nav-btn-label">返回</div><div class="nav-btn-title">課程總覽</div></div>
+    <span>→</span>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="topbar-divider"></div>
+  <div class="footer-note">140 小時生成式 AI 實務應用課程 · Part 6 AI 應用開發進階</div>
+  <div class="spacer"></div>
+  <div class="footer-note">PRAC 6.4</div>
+</footer>
+
+<script>
+const sampleText = 'Streaming 讓使用者在等待期間有進度感，這是提升 AI 應用體驗的最低成本優化。後端只需三行設定：Content-Type: text/event-stream、Cache-Control: no-cache、Connection: keep-alive，再改用 res.write 逐 token 推送，前端用 ReadableStream 接收即可。感知速度遠比實際速度更影響使用者對 AI 的印象。';
+
+function startBothDemos() {
+  const btn = document.getElementById('demo-btn');
+  btn.disabled = true;
+  btn.textContent = '執行中…';
+
+  const beforeEl = document.getElementById('demo-before');
+  const afterEl = document.getElementById('demo-after');
+  const statusBefore = document.getElementById('status-before');
+  const statusAfter = document.getElementById('status-after');
+
+  beforeEl.textContent = '';
+  afterEl.textContent = '';
+  const startTime = Date.now();
+
+  // Non-streaming: wait full delay then show all at once
+  statusBefore.textContent = '等待中…';
+  statusAfter.textContent = '開始串流中…';
+
+  const totalDelay = 2800;
+  const charDelay = totalDelay / sampleText.length;
+  let charIdx = 0;
+
+  // Streaming: show chars one by one
+  const streamInterval = setInterval(() => {
+    if (charIdx < sampleText.length) {
+      afterEl.textContent = sampleText.substring(0, charIdx + 1);
+      afterEl.innerHTML = sampleText.substring(0, charIdx + 1) + '<span class="cursor"></span>';
+      charIdx++;
+    } else {
+      clearInterval(streamInterval);
+      afterEl.textContent = sampleText;
+      statusAfter.textContent = `完成（${((Date.now() - startTime)/1000).toFixed(1)}s 後首字出現）`;
+    }
+  }, charDelay);
+
+  // Non-streaming: show all at once after delay
+  setTimeout(() => {
+    beforeEl.textContent = sampleText;
+    statusBefore.textContent = `完成（等待 ${((Date.now() - startTime)/1000).toFixed(1)}s 後才出現）`;
+    btn.disabled = false;
+    btn.textContent = '再次體驗';
+  }, totalDelay + 200);
+}
+
+function updateProgress() {
+  const items = document.querySelectorAll('.challenge-item input[type="checkbox"]');
+  let done = 0;
+  items.forEach((cb, i) => {
+    const item = document.getElementById('ci-' + i);
+    if (cb.checked) { done++; item.classList.add('done'); }
+    else { item.classList.remove('done'); }
+  });
+  document.getElementById('prog-label').textContent = `完成進度：${done} / ${items.length}`;
+  document.getElementById('prog-bar').style.width = (done / items.length * 100) + '%';
+  document.getElementById('complete-banner').style.display = done === items.length ? 'block' : 'none';
+}
+
+const reveals = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+}, { threshold: 0.06 });
+reveals.forEach(el => io.observe(el));
+</script>
+</body>
+</html>

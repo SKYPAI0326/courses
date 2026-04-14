@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH7-1 選題與 MVP 拆解｜140小時生成式 AI 實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-a5:#7a9ea3;--c-accent:#7a9ea3;--radius:6px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}.topbar-sub{font-size:.8rem;color:var(--c-muted);}.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-accent);border:1px solid rgba(122,158,163,.3);background:rgba(122,158,163,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}.progress-fill{height:100%;background:var(--c-accent);width:0%;transition:width .1s;}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}.back-link:hover{color:var(--c-accent);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-accent);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-accent);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;}.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-accent);margin-top:8px;flex-shrink:0;}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-accent);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.tip{background:rgba(122,158,163,.06);border:1px solid rgba(122,158,163,.2);}
+.callout.warn{background:rgba(201,150,58,.06);border:1px solid rgba(201,150,58,.2);}
+.callout.key{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text);}.callout-body strong{font-weight:700;}
+.user-problem-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0;}
+.upg-card{padding:18px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);}
+.upg-label{font-size:.68rem;color:var(--c-accent);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;}
+.upg-q{font-size:.88rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.upg-hint{font-size:.8rem;color:var(--c-muted);line-height:1.6;}
+.mvp-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.85rem;}
+.mvp-table th{font-size:.72rem;font-weight:700;color:var(--c-muted);letter-spacing:.5px;text-transform:uppercase;padding:10px 14px;background:var(--c-surface);border-bottom:1px solid var(--c-border);text-align:left;}
+.mvp-table td{padding:12px 14px;border-bottom:1px solid var(--c-border);vertical-align:top;line-height:1.7;}
+.mvp-table tr:last-child td{border-bottom:none;}
+.mvp-table .in{color:#4a7a4a;font-weight:600;}.mvp-table .out{color:#8c8880;text-decoration:line-through;}
+.direction-list{display:flex;flex-direction:column;gap:10px;margin:24px 0;}
+.direction-item{display:flex;gap:14px;padding:16px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);align-items:flex-start;}
+.direction-item input{font-size:.88rem;color:var(--c-accent);flex-shrink:0;margin-top:2px;}
+.direction-icon{font-size:1rem;flex-shrink:0;margin-top:2px;}
+.direction-body{flex:1;}.direction-title{font-size:.9rem;font-weight:700;color:var(--c-text);margin-bottom:3px;}
+.direction-sub{font-size:.8rem;color:var(--c-muted);line-height:1.6;}
+.io-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;margin:24px 0;}
+.io-box{padding:18px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);}
+.io-box-label{font-size:.68rem;color:var(--c-accent);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;}
+.io-box-items{display:flex;flex-direction:column;gap:6px;}
+.io-item{font-size:.85rem;color:var(--c-text);line-height:1.6;}
+.io-arrow{font-size:1.5rem;color:var(--c-muted);text-align:center;}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-accent);}.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}.footer-note{font-size:.75rem;color:var(--c-muted);}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1);}.reveal.in{opacity:1;transform:translateY(0);}
+.section-rule{transform-origin:left center;opacity:0;transition:opacity .4s ease,transform .6s;transform:scaleX(.3);}.section-rule.in{opacity:1;transform:scaleX(1);}
+@media(max-width:768px){.topbar{padding:0 16px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero{padding:40px 20px 36px;}.lesson-title{font-size:1.55rem;}.lesson-body{padding:0 20px 60px;}.user-problem-grid{grid-template-columns:1fr;}.io-grid{grid-template-columns:1fr;}.io-arrow{transform:rotate(90deg);}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="logo" href="../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">140 小時生成式 AI 實務應用課程</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH 7.1 · Part 7</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">PART 7 · 專題衝刺與成果發表</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 7.1 · 2 小時</span>
+  </div>
+  <h1 class="lesson-title">選題與 MVP 拆解</h1>
+  <p class="lesson-tagline">好的專題不是功能最多的，而是邊界最清晰的。這一章幫你決定「做什麼」，以及更重要的——「不做什麼」。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學完你會</div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>用使用者 / 問題 / 場景三個問題定義你的專題</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>區分「MVP 核心功能」與「先不做」的邊界</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>設計輸入 / AI 處理 / 輸出的基本架構</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>選定一個方向並寫出一句話專題說明</span></div>
+  </div>
+</div>
+
+<div class="lesson-body">
+
+  <!-- Section 1 -->
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 01</div>
+    <h2 class="section-heading">三個問題定義你的專題：<em>使用者、問題、場景</em></h2>
+    <p class="body-text">很多人一開始就想「功能」，但功能是解決方案，不是問題本身。先想清楚這三件事，功能自然會浮現。</p>
+
+    <div class="user-problem-grid reveal">
+      <div class="upg-card">
+        <div class="upg-label">使用者是誰</div>
+        <div class="upg-q">這個工具給誰用？</div>
+        <div class="upg-hint">越具體越好。「給我自己用」是合法答案。「給所有人用」通常是功能失焦的前兆。</div>
+      </div>
+      <div class="upg-card">
+        <div class="upg-label">解決什麼問題</div>
+        <div class="upg-q">他們現在怎麼解決這個問題？</div>
+        <div class="upg-hint">如果現在的方式已經夠好，這個工具就沒必要。說清楚「痛點在哪、現有方案的缺口是什麼」。</div>
+      </div>
+      <div class="upg-card">
+        <div class="upg-label">什麼場景使用</div>
+        <div class="upg-q">他們在哪個情境下會打開這個工具？</div>
+        <div class="upg-hint">場景決定設計：是手機上快速查詢，還是桌面上慢慢編輯？是自用工具，還是要給別人看的展示？</div>
+      </div>
+    </div>
+
+    <div class="callout tip reveal">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body"><strong>一句話專題說明模板：</strong>「這是一個給 [使用者] 的工具，讓他們不需要 [現在的痛苦做法]，就能 [達成目標]。」寫出來給不懂技術的朋友看，如果他們秒懂，你的定義就夠清楚了。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <!-- Section 2 -->
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 02</div>
+    <h2 class="section-heading">MVP 拆解：<em>先做什麼、明確不做什麼</em></h2>
+    <p class="body-text">MVP（最小可行產品）不是「做一個爛版本」，而是「只做核心路徑上最少的功能，讓核心價值跑通」。</p>
+
+    <table class="mvp-table reveal">
+      <thead>
+        <tr><th>功能</th><th>核心路徑？</th><th>MVP 決策</th><th>理由</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>接收使用者輸入</td>
+          <td>是</td>
+          <td class="in">做</td>
+          <td>沒有輸入就沒有工具</td>
+        </tr>
+        <tr>
+          <td>AI 處理並輸出結果</td>
+          <td>是</td>
+          <td class="in">做</td>
+          <td>核心價值所在</td>
+        </tr>
+        <tr>
+          <td>基本錯誤提示</td>
+          <td>是</td>
+          <td class="in">做（簡單版）</td>
+          <td>空白輸入要擋住，不需要完美措辭</td>
+        </tr>
+        <tr>
+          <td>複製結果按鈕</td>
+          <td>否（但方便）</td>
+          <td class="out">先不做</td>
+          <td>使用者可以手動複製，不影響核心</td>
+        </tr>
+        <tr>
+          <td>歷史記錄</td>
+          <td>否</td>
+          <td class="out">先不做</td>
+          <td>需要資料庫，複雜度跳升，MVP 不需要</td>
+        </tr>
+        <tr>
+          <td>登入 / 帳號系統</td>
+          <td>否</td>
+          <td class="out">先不做</td>
+          <td>MVP 不需要帳號，開放存取即可</td>
+        </tr>
+        <tr>
+          <td>多語言支援</td>
+          <td>否</td>
+          <td class="out">先不做</td>
+          <td>先鎖定一種語言確認核心值</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn reveal">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body"><strong>「先不做」不是永遠不做。</strong>寫下來的目的是讓你自己清楚邊界，不要在衝刺過程中被「順便做一下」的念頭拉走。每個「順便」都是時間成本。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <!-- Section 3 -->
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 03</div>
+    <h2 class="section-heading">六個可選專題方向</h2>
+    <p class="body-text">每個方向都符合「有輸入 → AI 處理 → 有用輸出」的基本結構，也都在 Part 1~6 的技術範圍內可以完成。</p>
+
+    <div class="direction-list reveal">
+      <div class="direction-item">
+        <div class="direction-icon">✍️</div>
+        <div class="direction-body">
+          <div class="direction-title">AI 文案助手</div>
+          <div class="direction-sub">輸入：品牌名稱、訴求、目標客群 → 輸出：3–5 個不同風格的文案版本。核心技術：multi-shot prompt + temperature 控制。</div>
+        </div>
+      </div>
+      <div class="direction-item">
+        <div class="direction-icon">📄</div>
+        <div class="direction-body">
+          <div class="direction-title">AI 摘要整理器</div>
+          <div class="direction-sub">輸入：長文或貼上的逐字稿 → 輸出：重點摘要 + 行動項目。核心技術：長 context 處理 + 結構化輸出。</div>
+        </div>
+      </div>
+      <div class="direction-item">
+        <div class="direction-icon">📋</div>
+        <div class="direction-body">
+          <div class="direction-title">AI 履歷優化工具</div>
+          <div class="direction-sub">輸入：職缺說明 + 個人經歷 → 輸出：針對該職缺優化的履歷段落。核心技術：角色扮演 + 格式化輸出。</div>
+        </div>
+      </div>
+      <div class="direction-item">
+        <div class="direction-icon">🎓</div>
+        <div class="direction-body">
+          <div class="direction-title">AI 課程企劃助手</div>
+          <div class="direction-sub">輸入：課程主題 + 目標學員 + 時數 → 輸出：結構化課程大綱含學習目標。核心技術：System Prompt 定義角色 + 階層式輸出。</div>
+        </div>
+      </div>
+      <div class="direction-item">
+        <div class="direction-icon">✈️</div>
+        <div class="direction-body">
+          <div class="direction-title">AI 旅遊行程規劃器</div>
+          <div class="direction-sub">輸入：目的地、天數、偏好（文化/美食/自然）→ 輸出：每日行程 + 注意事項。核心技術：條件式輸出 + Streaming 顯示。</div>
+        </div>
+      </div>
+      <div class="direction-item">
+        <div class="direction-icon">🔧</div>
+        <div class="direction-body">
+          <div class="direction-title">自選方向</div>
+          <div class="direction-sub">只要符合「使用者有明確問題 + 輸入清楚 + 輸出有用」就可以。這個方向最能反映你的工作情境與需求。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <!-- Section 4 -->
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 04</div>
+    <h2 class="section-heading">設計輸入 / AI / 輸出架構</h2>
+    <p class="body-text">確定方向後，把你的專題拆解成這三個元件。這個結構圖是後續所有開發決策的基礎。</p>
+
+    <div class="io-grid reveal">
+      <div class="io-box">
+        <div class="io-box-label">輸入</div>
+        <div class="io-box-items">
+          <div class="io-item">使用者輸入什麼？</div>
+          <div class="io-item">文字 / 上傳 / 選擇題？</div>
+          <div class="io-item">必填 vs 選填欄位？</div>
+          <div class="io-item">輸入驗證規則？</div>
+        </div>
+      </div>
+      <div class="io-arrow">→</div>
+      <div class="io-box" style="border-left:3px solid var(--c-accent);">
+        <div class="io-box-label">AI 處理</div>
+        <div class="io-box-items">
+          <div class="io-item">用哪個模型？</div>
+          <div class="io-item">System Prompt 設定什麼角色？</div>
+          <div class="io-item">temperature 設多少？</div>
+          <div class="io-item">需要 RAG 或 Function Calling？</div>
+        </div>
+      </div>
+      <div class="io-arrow">→</div>
+      <div class="io-box">
+        <div class="io-box-label">輸出</div>
+        <div class="io-box-items">
+          <div class="io-item">輸出什麼格式？</div>
+          <div class="io-item">純文字 / Markdown / JSON？</div>
+          <div class="io-item">輸出幾個版本？</div>
+          <div class="io-item">需要後製（格式化）嗎？</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout key reveal">
+      <div class="callout-icon">🔑</div>
+      <div class="callout-body"><strong>黃金問題：你的工具在什麼情況下會輸出錯誤或無用的結果？</strong>現在就想好，比等上線後遇到更划算。這個問題的答案會直接指引 CH7-3 的測試案例設計。</div>
+    </div>
+  </div>
+
+</div>
+
+<nav class="lesson-nav">
+  <a class="nav-btn" href="../index.html">
+    <span>←</span>
+    <div><div class="nav-btn-label">返回</div><div class="nav-btn-title">課程總覽</div></div>
+  </a>
+  <a class="nav-btn next" href="CH7-2.html">
+    <div><div class="nav-btn-label">下一章</div><div class="nav-btn-title">CH7-2 架構設計 Checklist</div></div>
+    <span>→</span>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="topbar-divider"></div>
+  <div class="footer-note">140 小時生成式 AI 實務應用課程 · Part 7 專題衝刺與成果發表</div>
+  <div class="spacer"></div>
+  <div class="footer-note">CH 7.1</div>
+</footer>
+
+<script>
+const prog = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const d = document.documentElement;
+  const pct = (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100;
+  prog.style.width = Math.min(pct, 100) + '%';
+});
+const reveals = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+}, { threshold: 0.08 });
+reveals.forEach(el => io.observe(el));
+</script>
+</body>
+</html>

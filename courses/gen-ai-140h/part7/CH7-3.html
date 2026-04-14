@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH7-3 測試與 UX 優化｜140小時生成式 AI 實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-a5:#7a9ea3;--c-accent:#7a9ea3;--radius:6px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}.topbar-sub{font-size:.8rem;color:var(--c-muted);}.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-accent);border:1px solid rgba(122,158,163,.3);background:rgba(122,158,163,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}.progress-fill{height:100%;background:var(--c-accent);width:0%;transition:width .1s;}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}.back-link:hover{color:var(--c-accent);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-accent);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-accent);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;}.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-accent);margin-top:8px;flex-shrink:0;}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-accent);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.tip{background:rgba(122,158,163,.06);border:1px solid rgba(122,158,163,.2);}
+.callout.warn{background:rgba(201,150,58,.06);border:1px solid rgba(201,150,58,.2);}
+.callout.key{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text);}.callout-body strong{font-weight:700;}
+.test-categories{display:flex;flex-direction:column;gap:12px;margin:24px 0;}
+.test-cat{padding:18px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);}
+.test-cat-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.test-cat-label{font-size:.75rem;padding:2px 10px;border-radius:99px;font-weight:600;}
+.test-cat-label.normal{background:rgba(90,122,90,.1);color:#3a5a3a;}
+.test-cat-label.edge{background:rgba(201,150,58,.1);color:#7a5a10;}
+.test-cat-label.error{background:rgba(181,60,60,.1);color:#8a2020;}
+.test-cat-title{font-size:.9rem;font-weight:700;color:var(--c-text);}
+.test-cases{display:flex;flex-direction:column;gap:4px;}
+.test-case{font-size:.82rem;color:var(--c-muted);line-height:1.6;display:flex;gap:8px;}
+.test-case::before{content:'→';color:var(--c-accent);flex-shrink:0;}
+.ux-issue-list{display:flex;flex-direction:column;gap:14px;margin:24px 0;}
+.ux-issue{padding:18px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);}
+.ux-issue-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.ux-badge{font-size:.68rem;padding:2px 8px;border-radius:99px;font-weight:500;background:rgba(201,150,58,.08);color:#7a5010;border:1px solid rgba(201,150,58,.25);}
+.ux-title{font-size:.88rem;font-weight:700;color:var(--c-text);}
+.ux-bad{font-size:.82rem;color:var(--c-muted);margin-bottom:6px;line-height:1.7;}
+.ux-fix{font-size:.82rem;color:var(--c-a3);font-weight:500;}
+.ux-fix code{font-family:'Courier New',monospace;font-size:.78rem;background:rgba(90,122,90,.1);color:#3a5a3a;padding:1px 5px;border-radius:3px;}
+.feedback-steps{display:flex;flex-direction:column;gap:0;margin:24px 0;}
+.feedback-step{display:flex;gap:16px;padding:16px 20px;background:var(--c-card);border:1px solid var(--c-border);border-top:none;align-items:flex-start;}
+.feedback-step:first-child{border-top:1px solid var(--c-border);border-radius:var(--radius) var(--radius) 0 0;}
+.feedback-step:last-child{border-radius:0 0 var(--radius) var(--radius);}
+.feedback-num{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-accent);flex-shrink:0;width:24px;}
+.feedback-body{flex:1;}.feedback-title{font-size:.88rem;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.feedback-desc{font-size:.82rem;color:var(--c-muted);line-height:1.7;}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-accent);}.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}.footer-note{font-size:.75rem;color:var(--c-muted);}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1);}.reveal.in{opacity:1;transform:translateY(0);}
+.section-rule{transform-origin:left center;opacity:0;transition:opacity .4s ease,transform .6s;transform:scaleX(.3);}.section-rule.in{opacity:1;transform:scaleX(1);}
+@media(max-width:768px){.topbar{padding:0 16px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero{padding:40px 20px 36px;}.lesson-title{font-size:1.55rem;}.lesson-body{padding:0 20px 60px;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="logo" href="../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">140 小時生成式 AI 實務應用課程</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH 7.3 · Part 7</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">PART 7 · 專題衝刺與成果發表</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 7.3 · 2 小時</span>
+  </div>
+  <h1 class="lesson-title">測試與 UX 優化</h1>
+  <p class="lesson-tagline">工具能跑不代表好用。測試讓你找到問題，UX 優化讓非技術使用者也能順暢使用。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學完你會</div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>設計 10 個涵蓋正常、邊界、錯誤情境的測試案例</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>辨識並修正四個常見 UX 問題</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>知道如何讓非技術朋友試用並給出有效反饋</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>設計有意義的錯誤訊息，不讓使用者看到 undefined</span></div>
+  </div>
+</div>
+
+<div class="lesson-body">
+
+  <!-- Section 1 -->
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 01</div>
+    <h2 class="section-heading">10 個測試案例：<em>正常、邊界、錯誤三類</em></h2>
+    <p class="body-text">好的測試不是隨機輸入，而是刻意設計的場景。10 個案例的建議分配：4 個正常情境 + 4 個邊界情境 + 2 個錯誤情境。</p>
+
+    <div class="test-categories reveal">
+      <div class="test-cat">
+        <div class="test-cat-header">
+          <span class="test-cat-label normal">正常情境（4 個）</span>
+          <div class="test-cat-title">核心使用路徑</div>
+        </div>
+        <div class="test-cases">
+          <div class="test-case">最典型的「教科書式輸入」：清楚、完整、格式正確</div>
+          <div class="test-case">輸入比較短的案例（100 字以內），確認輸出不過於簡短</div>
+          <div class="test-case">輸入比較長的案例（超過 1000 字），確認輸出品質穩定</div>
+          <div class="test-case">中文輸入（如果你的工具設計給中文使用者）</div>
+        </div>
+      </div>
+      <div class="test-cat">
+        <div class="test-cat-header">
+          <span class="test-cat-label edge">邊界情境（4 個）</span>
+          <div class="test-cat-title">極端但合法的輸入</div>
+        </div>
+        <div class="test-cases">
+          <div class="test-case">剛好到輸入字數上限的內容</div>
+          <div class="test-case">包含特殊字元（標點、Emoji、換行符）的輸入</div>
+          <div class="test-case">只有一個關鍵字的極短輸入</div>
+          <div class="test-case">輸入跟你設計的使用情境完全不相關（但合法）的內容</div>
+        </div>
+      </div>
+      <div class="test-cat">
+        <div class="test-cat-header">
+          <span class="test-cat-label error">錯誤情境（2 個）</span>
+          <div class="test-cat-title">應該要被擋住的輸入</div>
+        </div>
+        <div class="test-cases">
+          <div class="test-case">空白輸入（或只有空格）：應顯示提示，不應送 API</div>
+          <div class="test-case">超長輸入（故意超出你設的上限）：應截斷或提示，不應讓 API 超出 token 限制</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout tip reveal">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body"><strong>把測試結果記下來。</strong>PRAC7-4 的部署驗收需要提交測試記錄。不需要正式的測試框架，一個表格（輸入 → 預期輸出 → 實際輸出 → 通過/失敗）就夠了。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <!-- Section 2 -->
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 02</div>
+    <h2 class="section-heading">四個常見 UX 問題<em>及修正方式</em></h2>
+
+    <div class="ux-issue-list reveal">
+      <div class="ux-issue">
+        <div class="ux-issue-header">
+          <span class="ux-badge">問題一</span>
+          <div class="ux-title">沒有 Loading 狀態</div>
+        </div>
+        <div class="ux-bad">使用者點了按鈕沒有任何反應，不知道 AI 是否在處理，可能重複點擊或以為壞掉。</div>
+        <div class="ux-fix">修正：點擊後按鈕變灰色 + 文字改為「處理中…」，回應後恢復。若用 Streaming 則顯示逐字輸出即可。</div>
+      </div>
+      <div class="ux-issue">
+        <div class="ux-issue-header">
+          <span class="ux-badge">問題二</span>
+          <div class="ux-title">空值時的 undefined 或崩潰</div>
+        </div>
+        <div class="ux-bad">使用者沒有輸入就送出，或 API 回傳非預期格式，頁面顯示 <code>undefined</code> 或直接白畫面。</div>
+        <div class="ux-fix">修正：送出前先驗證輸入（<code>if (!input.trim())</code>），API 回應用 optional chaining（<code>msg?.content?.[0]?.text ?? ''</code>）安全取值。</div>
+      </div>
+      <div class="ux-issue">
+        <div class="ux-issue-header">
+          <span class="ux-badge">問題三</span>
+          <div class="ux-title">輸出過長沒有截斷提示</div>
+        </div>
+        <div class="ux-bad">輸出 2000 字全部顯示在一個 div 裡，使用者需要捲動很長才能看完，也不知道如何使用結果。</div>
+        <div class="ux-fix">修正：加「複製全文」按鈕；如果有多個輸出版本用分頁或卡片呈現；考慮只顯示前 300 字 + 展開按鈕。</div>
+      </div>
+      <div class="ux-issue">
+        <div class="ux-issue-header">
+          <span class="ux-badge">問題四</span>
+          <div class="ux-title">錯誤訊息不友善</div>
+        </div>
+        <div class="ux-bad">API 呼叫失敗時顯示技術錯誤訊息（如 <code>Error: 429 Too Many Requests</code>），使用者不知道該怎麼辦。</div>
+        <div class="ux-fix">修正：把錯誤碼轉為人話——<code>429 → 「請稍等一下再試」</code>，<code>500 → 「系統忙碌，請重新整理後再試」</code>，<code>401 → 「服務暫時無法使用」</code>。</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <!-- Section 3 -->
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 03</div>
+    <h2 class="section-heading">讓非技術朋友試用：<em>如何收到有效反饋</em></h2>
+    <p class="body-text">你自己測試找不到問題，因為你太熟悉這個工具了。讓完全不了解你開發過程的人試用，是找出最真實 UX 問題的唯一方法。</p>
+
+    <div class="feedback-steps reveal">
+      <div class="feedback-step">
+        <div class="feedback-num">1</div>
+        <div class="feedback-body">
+          <div class="feedback-title">只給 URL，不給說明</div>
+          <div class="feedback-desc">把網址傳給朋友，說「這是一個工具，你覺得它是做什麼的？」——如果他們猜不出來，你的頁面說明需要改。</div>
+        </div>
+      </div>
+      <div class="feedback-step">
+        <div class="feedback-num">2</div>
+        <div class="feedback-body">
+          <div class="feedback-title">請他們邊用邊說出想法（放聲思考）</div>
+          <div class="feedback-desc">「你正在想什麼？」「這個按鈕你預期它做什麼？」「你現在感到困惑嗎？」——不要解釋，只聽。</div>
+        </div>
+      </div>
+      <div class="feedback-step">
+        <div class="feedback-num">3</div>
+        <div class="feedback-body">
+          <div class="feedback-title">最後問三個問題</div>
+          <div class="feedback-desc">① 這個工具最有用的地方是什麼？② 你最困惑的一個地方是哪裡？③ 如果要改一件事，你希望改什麼？</div>
+        </div>
+      </div>
+      <div class="feedback-step">
+        <div class="feedback-num">4</div>
+        <div class="feedback-body">
+          <div class="feedback-title">把問題列表排優先順序</div>
+          <div class="feedback-desc">不是每個問題都要修，先修「影響核心使用路徑的問題」，次要美觀和進階功能。PRAC7-3 的第二輪衝刺就從這份清單開始。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout warn reveal">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body"><strong>不要在試用時幫使用者解釋。</strong>如果他們做不到某件事，你的第一反應是解釋「你應該先點這個」——這個解釋本身就是 UX 問題。把解釋寫進介面，不要靠口頭說明。</div>
+    </div>
+  </div>
+
+</div>
+
+<nav class="lesson-nav">
+  <a class="nav-btn" href="CH7-2.html">
+    <span>←</span>
+    <div><div class="nav-btn-label">上一章</div><div class="nav-btn-title">CH7-2 架構設計 Checklist</div></div>
+  </a>
+  <a class="nav-btn next" href="CH7-4.html">
+    <div><div class="nav-btn-label">下一章</div><div class="nav-btn-title">CH7-4 發表敘事與作品集頁建置</div></div>
+    <span>→</span>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="topbar-divider"></div>
+  <div class="footer-note">140 小時生成式 AI 實務應用課程 · Part 7 專題衝刺與成果發表</div>
+  <div class="spacer"></div>
+  <div class="footer-note">CH 7.3</div>
+</footer>
+
+<script>
+const prog = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const d = document.documentElement;
+  const pct = (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100;
+  prog.style.width = Math.min(pct, 100) + '%';
+});
+const reveals = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+}, { threshold: 0.08 });
+reveals.forEach(el => io.observe(el));
+</script>
+</body>
+</html>

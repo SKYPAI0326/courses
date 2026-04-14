@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH3-1 表格資料清理｜140小時生成式AI實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a3:#5a7a5a;--radius:6px;--radius-sm:4px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a3);border:1px solid rgba(90,122,90,.3);background:rgba(90,122,90,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a3);width:0%;transition:width .1s;}
+.side-nav{position:fixed;right:32px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:40;}
+.side-dot{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--c-border);background:transparent;cursor:pointer;transition:background .2s,border-color .2s;}
+.side-dot.active{background:var(--c-a3);border-color:var(--c-a3);}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a3);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-a3);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a3);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-a3);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a3);margin-top:8px;flex-shrink:0;}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;opacity:0;transform:translateY(18px);transition:opacity .5s,transform .5s;}
+.lesson-section.visible{opacity:1;transform:translateY(0);}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-a3);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;}
+.callout.key{background:rgba(90,122,90,.07);border:1px solid rgba(90,122,90,.25);}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25);}
+.callout-icon{font-size:1rem;flex-shrink:0;margin-top:3px;}
+.callout-body{font-size:.87rem;line-height:1.8;color:var(--c-text);}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0;}
+.compare-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 22px;}
+.compare-card.highlight{border-color:rgba(90,122,90,.4);background:rgba(90,122,90,.03);}
+.cc-label{font-size:.67rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:6px;}
+.cc-title{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:10px;}
+.cc-list{display:flex;flex-direction:column;gap:5px;}
+.cc-item{font-size:.81rem;color:var(--c-muted);display:flex;align-items:flex-start;gap:6px;}
+.cc-item::before{content:'·';color:var(--c-a3);flex-shrink:0;font-size:1rem;}
+.data-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.83rem;}
+.data-table th{background:rgba(90,122,90,.08);color:var(--c-text);font-weight:700;padding:10px 14px;text-align:left;border:1px solid var(--c-border);}
+.data-table td{padding:10px 14px;border:1px solid var(--c-border);color:var(--c-text);line-height:1.6;vertical-align:top;}
+.data-table tr:nth-child(even) td{background:rgba(245,243,238,.6);}
+.code-block{background:#1e1e1e;border-radius:var(--radius);margin:20px 0;overflow:hidden;}
+.cb-header{padding:10px 16px;background:#2a2a2a;display:flex;align-items:center;gap:10px;border-bottom:1px solid #333;}
+.cb-badge{font-size:.65rem;color:#5a7a5a;background:rgba(90,122,90,.15);border:1px solid rgba(90,122,90,.3);padding:2px 8px;border-radius:99px;font-weight:500;}
+.cb-body{padding:18px 20px;}
+.cb-body pre{font-family:'Menlo','Monaco','Consolas',monospace;font-size:.8rem;color:#d4d0c8;line-height:1.7;white-space:pre-wrap;word-break:break-word;}
+.concept-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0;}
+.concept-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;}
+.concept-card-num{font-size:.67rem;color:var(--c-a3);letter-spacing:1.5px;font-weight:500;margin-bottom:6px;}
+.concept-card-title{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.concept-card-desc{font-size:.81rem;color:var(--c-muted);line-height:1.7;}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a3);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius);transition:background .2s;}
+.nav-btn:hover{background:rgba(90,122,90,.06);}
+.nav-btn.primary{background:var(--c-a3);color:#fff;border-color:var(--c-a3);}
+.nav-btn.primary:hover{background:#496349;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-div{width:1px;height:14px;background:var(--c-border);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+@media(max-width:640px){.topbar,.lesson-hero,.lesson-body,.nav-footer{padding-left:24px;padding-right:24px;}.side-nav{display:none;}.compare-grid,.concept-grid{grid-template-columns:1fr;}.data-table{display:block;overflow-x:auto;}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a href="../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">140小時生成式AI實務應用課程</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">CH 3-1 · 3h</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<nav class="side-nav">
+  <div class="side-dot active" data-sec="0"></div>
+  <div class="side-dot" data-sec="1"></div>
+  <div class="side-dot" data-sec="2"></div>
+  <div class="side-dot" data-sec="3"></div>
+</nav>
+
+<div class="lesson-hero">
+  <a href="../index.html" class="back-link">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">PART 3 · 把資料變成流程</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 3-1 · 3H</span>
+  </div>
+  <h1 class="lesson-title">表格資料清理：<br>CSV / Excel 不再手動修</h1>
+  <p class="lesson-tagline">資料不整理乾淨，後面任何步驟都在做白工。這節課教你看穿一份混亂 CSV 的問題在哪，並用 AI 設計出可重複執行的清理流程。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果 · OUTCOMES</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能辨識結構化 vs 非結構化資料，並選擇正確處理方式</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能針對五種常見欄位問題設計對應的 AI 清理指令</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能在清理流程中設計人工覆核節點，避免 AI 靜默出錯</div>
+  </div>
+</div>
+
+<div class="lesson-body">
+
+  <section class="lesson-section" id="sec-0">
+    <div class="section-eyebrow">Section 01 · Data Types</div>
+    <h2 class="section-heading">結構化 vs 非結構化：<em>你的資料現在在哪一側？</em></h2>
+    <p class="body-text">結構化資料指的是有欄位名稱、可以直接排序與篩選的表格格式。非結構化資料則是自由文字、圖片、語音——人類看得懂，但機器難以直接處理。AI 在兩種格式上能做的事情截然不同，清理的方法也不一樣。</p>
+    <div class="compare-grid">
+      <div class="compare-card">
+        <div class="cc-label">非結構化（原始狀態）</div>
+        <div class="cc-title">還沒辦法讓 AI 處理</div>
+        <div class="cc-list">
+          <div class="cc-item">客戶留言（自由文字，格式各異）</div>
+          <div class="cc-item">PDF 掃描（圖片，無法搜尋）</div>
+          <div class="cc-item">WhatsApp 對話（片段、口語化）</div>
+          <div class="cc-item">Excel 空值（不知道是未填還是真的空）</div>
+        </div>
+      </div>
+      <div class="compare-card highlight">
+        <div class="cc-label">結構化（清理後）</div>
+        <div class="cc-title">可以直接餵給 AI 處理</div>
+        <div class="cc-list">
+          <div class="cc-item">每列一筆紀錄，不混用</div>
+          <div class="cc-item">欄位名稱統一，無同義詞</div>
+          <div class="cc-item">格式標準化（日期、金額、分類）</div>
+          <div class="cc-item">空值有明確標記（null / N/A 統一）</div>
+        </div>
+      </div>
+    </div>
+    <div class="callout key">
+      <span class="callout-icon">◆</span>
+      <div class="callout-body"><strong>資料清理的第一步不是打開 AI，而是先決定你要什麼結構。</strong>欄位怎麼命名、每列代表什麼——這些問題 AI 不會幫你問，但你不問它就亂答。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <section class="lesson-section" id="sec-1">
+    <div class="section-eyebrow">Section 02 · Five Problems</div>
+    <h2 class="section-heading">五大欄位問題，<em>你的表格中了幾個？</em></h2>
+    <p class="body-text">真實工作中的表格很少是乾淨的。以下五種問題在 90% 的工作表格中都會出現，每一種都有對應的 AI 清理指令方向和人工確認要點。</p>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>問題類型</th>
+          <th>症狀</th>
+          <th>AI 清理指令方向</th>
+          <th>人工確認要點</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>格式不統一</strong></td>
+          <td>「2024/1/1」「Jan 1 2024」「20240101」混雜</td>
+          <td>請統一為 YYYY-MM-DD</td>
+          <td>確認時區正確</td>
+        </tr>
+        <tr>
+          <td><strong>空值未標記</strong></td>
+          <td>空格、「N/A」、「-」、「無」同時存在</td>
+          <td>請將空值統一標為 null</td>
+          <td>確認空值是真的空還是未填</td>
+        </tr>
+        <tr>
+          <td><strong>欄位命名混亂</strong></td>
+          <td>「手機」「電話」「mobile」同為聯絡方式</td>
+          <td>根據以下規則統一欄位名稱…</td>
+          <td>確認合併欄位無遺漏</td>
+        </tr>
+        <tr>
+          <td><strong>分類標籤不一致</strong></td>
+          <td>「行銷」「Marketing」「mrk」代表同一分類</td>
+          <td>建立標準化標籤清單後重新標記</td>
+          <td>確認新舊標籤對應正確</td>
+        </tr>
+        <tr>
+          <td><strong>複合欄位</strong></td>
+          <td>「台北市信義區忠孝東路100號」在同一欄</td>
+          <td>請拆分為縣市、行政區、街道三欄</td>
+          <td>確認少數例外地址處理方式</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <hr class="section-rule">
+
+  <section class="lesson-section" id="sec-2">
+    <div class="section-eyebrow">Section 03 · AI Prompt Design</div>
+    <h2 class="section-heading">設計給 AI 的清理指令：<em>結構比創意更重要</em></h2>
+    <p class="body-text">清理資料的 Prompt 和一般對話型 Prompt 不同——它需要高度精確，因為 AI 的任何「自由發揮」都可能在你的表格裡留下你不想要的資料。好的清理指令長得像規格書，不像聊天訊息。</p>
+    <div class="callout info">
+      <span class="callout-icon">ℹ</span>
+      <div class="callout-body"><strong>清理指令的三個必填要素：</strong>① 輸入格式說明（欄位名稱與範例），② 輸出格式規範（包含例外情況的處理規則），③ 要求輸出 CSV 或 JSON（不要讓它輸出自然語言說明）。</div>
+    </div>
+    <div class="code-block">
+      <div class="cb-header"><span class="cb-badge">PROMPT TEMPLATE</span></div>
+      <div class="cb-body"><pre>你是一個資料清理助手。請根據以下規則處理我提供的 CSV 資料：
+
+## 輸入欄位說明
+- date：日期，格式不一，可能是「YYYY/MM/DD」、「MM-DD-YYYY」或「YYYYMMDD」
+- status：狀態，可能的值包括「完成」「已完成」「done」「OK」（都代表相同狀態）
+- amount：金額，可能包含「$」符號或中文「元」字
+
+## 清理規則
+- date → 統一輸出 ISO 8601 格式（YYYY-MM-DD）
+- status → 統一輸出 "completed" / "pending" / "unknown"（無法判斷時輸出 unknown）
+- amount → 移除符號，輸出純數字（浮點數，保留兩位小數）
+
+## 輸出要求
+- 保留原欄位名稱
+- 以 CSV 格式輸出（第一行為標題行）
+- 例外情況：若某值無法清理，在該欄輸出 "ERROR:原始值"
+
+## 資料如下：
+[貼上 CSV 內容]</pre></div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <section class="lesson-section" id="sec-3">
+    <div class="section-eyebrow">Section 04 · Human Review</div>
+    <h2 class="section-heading">人工覆核節點：<em>哪些地方不能完全信任 AI？</em></h2>
+    <p class="body-text">AI 不會告訴你它不確定——它會選一個看起來合理的答案。設計「人工覆核節點」的目的，就是在流程中明確指定哪些地方需要人眼確認。以下四種情況是最常見的 AI 清理風險點。</p>
+    <div class="concept-grid">
+      <div class="concept-card">
+        <div class="concept-card-num">風險 01</div>
+        <div class="concept-card-title">數量異常</div>
+        <div class="concept-card-desc">AI 輸出的列數和輸入不一致，有遺漏。清理前後必須對比列數。</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-card-num">風險 02</div>
+        <div class="concept-card-title">類別模糊</div>
+        <div class="concept-card-desc">相似但不同的標籤被合併，AI 猜錯分類而你沒發現。</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-card-num">風險 03</div>
+        <div class="concept-card-title">格式錯誤</div>
+        <div class="concept-card-desc">少數資料不符合輸出規格，例如日期格式仍有例外沒被處理到。</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-card-num">風險 04</div>
+        <div class="concept-card-title">靜默填補</div>
+        <div class="concept-card-desc">AI 自行補了空值，但你沒察覺，導致資料被污染。</div>
+      </div>
+    </div>
+    <div class="callout tip">
+      <span class="callout-icon">✦</span>
+      <div class="callout-body"><strong>最快的驗證方法：</strong>清理前後分別用 Excel 的 COUNTIF / COUNTBLANK 確認空值數量是否合理；對照清理前後的列數是否一致；隨機抽樣 10 筆人工比對。</div>
+    </div>
+  </section>
+
+</div>
+
+<div class="nav-footer">
+  <a href="../part2/CH2-4.html" class="nav-btn">← CH 2-4 多模態輸入</a>
+  <a href="CH3-2.html" class="nav-btn primary">CH 3-2 工作流設計 →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">140小時生成式AI實務應用課程</span>
+</footer>
+
+<script>
+const progFill = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  progFill.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + '%';
+});
+const sections = document.querySelectorAll('.lesson-section');
+const dots = document.querySelectorAll('.side-dot');
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting){
+      e.target.classList.add('visible');
+      const i = [...sections].indexOf(e.target);
+      dots.forEach((d,j) => d.classList.toggle('active', i===j));
+    }
+  });
+}, {threshold:.15});
+sections.forEach(s => io.observe(s));
+dots.forEach(d => d.addEventListener('click', () => {
+  document.getElementById('sec-'+d.dataset.sec).scrollIntoView({behavior:'smooth'});
+}));
+</script>
+</body>
+</html>

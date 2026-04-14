@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRAC 2-2 會議紀錄轉待辦工具｜140小時生成式AI實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;
+  --c-text:#2c2b28;--c-muted:#8c8880;--c-a4:#6b7fa3;--radius:6px;--radius-sm:4px;--content-w:860px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--c-bg);color:var(--c-text);font-family:'Noto Sans TC',sans-serif;font-size:15px;line-height:1.7;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.08);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a4);width:0%;transition:width .1s;}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:56px 48px 40px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px;}
+.back-link:hover{color:var(--c-a4);}
+.hero-eyebrow{font-size:.7rem;color:var(--c-a4);letter-spacing:2px;font-weight:500;margin-bottom:10px;}
+.page-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:12px;}
+.page-subtitle{font-size:.93rem;color:var(--c-muted);line-height:1.85;max-width:580px;}
+.tool-wrap{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.step-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:10px;}
+.step-title{font-family:'Shippori Mincho',serif;font-size:1.15rem;font-weight:700;color:var(--c-text);margin-bottom:14px;}
+
+/* Layout: two-column on wide screens */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
+.panel{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;}
+.panel-header{padding:12px 18px;border-bottom:1px solid var(--c-border);display:flex;align-items:center;justify-content:space-between;}
+.panel-title{font-size:.75rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;}
+.panel-action{font-size:.75rem;color:var(--c-muted);border:1px solid var(--c-border);background:transparent;padding:4px 12px;border-radius:99px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:background .2s;}
+.panel-action:hover{background:var(--c-surface);}
+.panel-body{padding:16px 18px;}
+textarea.notes-input{width:100%;background:var(--c-bg);border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:12px 14px;font-size:.87rem;color:var(--c-text);font-family:'Noto Sans TC',sans-serif;resize:vertical;min-height:320px;line-height:1.7;transition:border-color .2s;}
+textarea.notes-input:focus{outline:none;border-color:rgba(107,127,163,.6);}
+textarea.notes-input::placeholder{color:var(--c-muted);opacity:.7;}
+
+/* Output area */
+.output-empty{font-size:.87rem;color:var(--c-muted);text-align:center;padding:60px 0;min-height:320px;display:flex;align-items:center;justify-content:center;}
+
+/* Action items list */
+.actions-list{min-height:320px;}
+.action-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--c-surface);align-items:flex-start;}
+.action-item:last-child{border-bottom:none;}
+.ai-checkbox{width:16px;height:16px;border:1.5px solid var(--c-border);border-radius:3px;flex-shrink:0;margin-top:3px;cursor:pointer;transition:border-color .2s,background .2s;display:flex;align-items:center;justify-content:center;}
+.ai-checkbox.done{background:var(--c-a4);border-color:var(--c-a4);}
+.ai-checkbox.done::after{content:'✓';font-size:.65rem;color:#fff;}
+.ai-content{flex:1;}
+.ai-task{font-size:.88rem;color:var(--c-text);line-height:1.65;margin-bottom:4px;}
+.ai-task.done-text{text-decoration:line-through;color:var(--c-muted);}
+.ai-meta{display:flex;gap:8px;flex-wrap:wrap;}
+.ai-tag{font-size:.68rem;padding:1px 8px;border-radius:99px;border:1px solid var(--c-border);color:var(--c-muted);}
+.ai-tag.owner{color:var(--c-a4);border-color:rgba(107,127,163,.3);background:rgba(107,127,163,.07);}
+.ai-tag.due{color:#b5703a;border-color:rgba(181,112,58,.3);background:rgba(181,112,58,.06);}
+.ai-tag.type-decision{color:#5a7a5a;border-color:rgba(90,122,90,.3);background:rgba(90,122,90,.06);}
+.ai-tag.type-pending{color:#8c8880;border-color:var(--c-border);}
+
+/* Summary section */
+.summary-box{background:rgba(107,127,163,.05);border:1px solid rgba(107,127,163,.2);border-radius:var(--radius);padding:16px 18px;margin-bottom:20px;}
+.summary-label{font-size:.68rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:8px;}
+.summary-text{font-size:.87rem;color:var(--c-text);line-height:1.8;}
+
+/* Stats bar */
+.stats-bar{display:flex;gap:20px;padding:12px 18px;background:var(--c-surface);border-top:1px solid var(--c-border);}
+.stat-item{display:flex;flex-direction:column;align-items:center;}
+.stat-num{font-family:'Shippori Mincho',serif;font-size:1.3rem;font-weight:700;color:var(--c-a4);}
+.stat-label{font-size:.68rem;color:var(--c-muted);}
+
+/* Main action bar */
+.action-bar{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;}
+.btn-primary{background:var(--c-a4);color:#fff;border:none;padding:11px 24px;border-radius:var(--radius);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:background .2s;}
+.btn-primary:hover{background:#5c6f91;}
+.btn-secondary{background:transparent;color:var(--c-muted);border:1px solid var(--c-border);padding:11px 18px;border-radius:var(--radius);font-size:.88rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:background .2s;}
+.btn-secondary:hover{background:var(--c-surface);}
+
+/* Filter tabs */
+.filter-tabs{display:flex;gap:6px;margin-bottom:16px;}
+.filter-tab{font-size:.78rem;color:var(--c-muted);border:1px solid var(--c-border);background:transparent;padding:4px 14px;border-radius:99px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all .2s;}
+.filter-tab.active{border-color:var(--c-a4);color:var(--c-a4);background:rgba(107,127,163,.08);}
+
+/* Examples */
+.examples-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin:28px 0 10px;}
+.example-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:32px;}
+.example-chip{font-size:.78rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:transparent;padding:5px 14px;border-radius:99px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:background .2s;}
+.example-chip:hover{background:rgba(107,127,163,.07);}
+
+/* Export */
+.export-area{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin-top:20px;}
+.export-header{padding:12px 18px;border-bottom:1px solid var(--c-border);display:flex;align-items:center;justify-content:space-between;}
+.export-label{font-size:.7rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;}
+.export-body{padding:16px 18px;}
+.export-text{font-size:.82rem;color:var(--c-text);line-height:1.85;white-space:pre-wrap;font-family:'Noto Sans TC',monospace;}
+
+/* Toast */
+.toast{position:fixed;bottom:32px;right:32px;background:#2c2b28;color:#f5f3ee;padding:10px 20px;border-radius:var(--radius);font-size:.83rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:100;}
+.toast.show{opacity:1;}
+
+/* Nav */
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a4);text-decoration:none;padding:10px 20px;border:1px solid rgba(107,127,163,.3);border-radius:var(--radius);transition:background .2s;}
+.nav-btn:hover{background:rgba(107,127,163,.07);}
+.nav-btn.primary{background:var(--c-a4);color:#fff;border-color:var(--c-a4);}
+.nav-btn.primary:hover{background:#5c6f91;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-div{width:1px;height:14px;background:var(--c-border);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+@media(max-width:700px){
+  .topbar,.page-hero,.tool-wrap,.nav-footer,.footer{padding-left:24px;padding-right:24px;}
+  .two-col{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a href="../index.html" class="logo">Codex Studio</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">140小時生成式AI實務應用課程</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">PRAC 2-2 · 2.5h</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="page-hero">
+  <a href="PRAC2-1.html" class="back-link">← PRAC 2-1 行政文書模板庫生成器</a>
+  <div class="hero-eyebrow">PRAC 2-2 · PART 2 建立文字與知識產能</div>
+  <h1 class="page-title">會議紀錄轉待辦工具</h1>
+  <p class="page-subtitle">貼入會議紀錄或逐字稿，自動萃取行動事項、決議與待確認事項，並可勾選追蹤完成狀態。</p>
+</div>
+
+<div class="tool-wrap">
+  <div class="two-col">
+    <!-- Left: Input -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">輸入 · 會議紀錄</span>
+        <button class="panel-action" onclick="clearInput()">清除</button>
+      </div>
+      <div class="panel-body">
+        <textarea class="notes-input" id="notesInput" placeholder="在此貼入會議紀錄、逐字稿或討論記錄…
+
+可以是：
+・正式會議紀錄
+・語音轉文字的逐字稿
+・聊天室的討論截圖文字
+・手寫筆記的文字版本
+
+工具會從中萃取：行動事項、負責人、截止日期、決議事項、待確認事項"></textarea>
+      </div>
+    </div>
+
+    <!-- Right: Output -->
+    <div class="panel" id="outputPanel">
+      <div class="panel-header">
+        <span class="panel-title">輸出 · 行動事項</span>
+        <button class="panel-action" onclick="exportText()">匯出文字</button>
+      </div>
+      <div class="panel-body" id="outputPanelBody">
+        <div class="output-empty">貼入會議紀錄後點「開始分析」</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action bar -->
+  <div class="action-bar">
+    <button class="btn-primary" onclick="analyzeNotes()">開始分析</button>
+    <button class="btn-secondary" onclick="showPrompt()">查看 AI Prompt</button>
+    <button class="btn-secondary" onclick="clearAll()">全部清除</button>
+  </div>
+
+  <!-- Filter tabs (hidden until output exists) -->
+  <div class="filter-tabs" id="filterTabs" style="display:none;">
+    <button class="filter-tab active" onclick="filterItems(this,'all')">全部</button>
+    <button class="filter-tab" onclick="filterItems(this,'action')">行動事項</button>
+    <button class="filter-tab" onclick="filterItems(this,'decision')">決議事項</button>
+    <button class="filter-tab" onclick="filterItems(this,'pending')">待確認</button>
+    <button class="filter-tab" onclick="filterItems(this,'todo')">未完成</button>
+  </div>
+
+  <!-- Export area (hidden until needed) -->
+  <div class="export-area" id="exportArea" style="display:none;">
+    <div class="export-header">
+      <span class="export-label">匯出文字 · EXPORT</span>
+      <button class="panel-action" onclick="copyExport()">複製</button>
+    </div>
+    <div class="export-body"><pre class="export-text" id="exportText"></pre></div>
+  </div>
+
+  <!-- Examples -->
+  <div class="examples-label">範本測試 · EXAMPLES</div>
+  <div class="example-chips">
+    <button class="example-chip" onclick="loadExample('product')">產品規劃會議</button>
+    <button class="example-chip" onclick="loadExample('marketing')">行銷週會</button>
+    <button class="example-chip" onclick="loadExample('informal')">非正式討論紀錄</button>
+  </div>
+
+  <!-- Prompt modal area (collapsible) -->
+  <div id="promptArea" style="display:none;">
+    <div class="step-label">AI PROMPT · 會議紀錄分析提示詞</div>
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">可複製使用的 Prompt</span>
+        <button class="panel-action" onclick="copySystemPrompt()">複製</button>
+      </div>
+      <div class="panel-body">
+        <pre style="font-size:.82rem;color:var(--c-text);line-height:1.85;white-space:pre-wrap;font-family:'Noto Sans TC',sans-serif;" id="systemPromptText"></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="nav-footer">
+  <a href="PRAC2-1.html" class="nav-btn">← PRAC 2-1 行政文書模板</a>
+  <a href="PRAC2-3.html" class="nav-btn primary">PRAC 2-3 簡報骨架產生器 →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">Codex Studio</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">140小時生成式AI實務應用課程</span>
+</footer>
+
+<div class="toast" id="toast">已複製到剪貼簿</div>
+
+<script>
+// Item types
+const TYPE = { action: '行動事項', decision: '決議事項', pending: '待確認' };
+let items = []; // { id, type, task, owner, due, done }
+let currentFilter = 'all';
+
+function analyzeNotes() {
+  const raw = document.getElementById('notesInput').value.trim();
+  if (!raw) { showToast('請先貼入會議紀錄'); return; }
+
+  // Simulate AI parsing with pattern matching for demo
+  items = parseNotes(raw);
+
+  if (items.length === 0) {
+    // Generate generic items based on text length as fallback demo
+    items = generateDemoItems(raw);
+  }
+
+  renderOutput();
+  document.getElementById('filterTabs').style.display = 'flex';
+  document.getElementById('exportArea').style.display = 'none';
+}
+
+function parseNotes(text) {
+  const result = [];
+  let id = 1;
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+
+  for (const line of lines) {
+    const lower = line.toLowerCase();
+
+    // Decision patterns
+    if (/決議[：:]|決定[：:]|通過[：:]|確認[：:]/.test(line) ||
+        /^[•·\-\*].*決/.test(line)) {
+      const task = line.replace(/^[•·\-\*決議：:確認決定通過]+/, '').trim();
+      if (task.length > 3) {
+        result.push({ id: id++, type: 'decision', task, owner: '', due: '', done: false });
+      }
+    }
+    // Pending / to-confirm patterns
+    else if (/待確認|需確認|未定|TBD|tbd|待討論|後續確認/.test(line)) {
+      const task = line.replace(/^[•·\-\*]+/, '').trim();
+      if (task.length > 3) {
+        result.push({ id: id++, type: 'pending', task, owner: '', due: '', done: false });
+      }
+    }
+    // Action item patterns
+    else if (/負責|請.*完成|需.*處理|Action|action|待辦|跟進|follow.?up/i.test(line) ||
+             /^[•·\-\*].*[負責人：]/.test(line) ||
+             /需要|要.*before|要.*前/.test(line)) {
+      const task = line.replace(/^[•·\-\*]+/, '').trim();
+      const ownerMatch = task.match(/[（(]([^）)]{2,8})[）)]/);
+      const dueMatch = task.match(/(\d{1,2}[\/\-月]\d{1,2}[日號]?|[下本]週[一二三四五六日]|月底|週五|週四|週三)/);
+      if (task.length > 5) {
+        result.push({
+          id: id++, type: 'action',
+          task: task,
+          owner: ownerMatch ? ownerMatch[1] : '',
+          due: dueMatch ? dueMatch[0] : '',
+          done: false
+        });
+      }
+    }
+  }
+  return result;
+}
+
+function generateDemoItems(text) {
+  // Generate plausible demo items from the raw text
+  const words = text.split(/[\s,，。；;]+/).filter(w => w.length >= 2);
+  const sample = words.slice(0, Math.min(words.length, 20));
+  return [
+    { id:1, type:'action', task: `根據會議內容整理完整版會議紀錄`, owner:'紀錄人', due:'本週內', done:false },
+    { id:2, type:'action', task: `將今日討論結論寄送給所有與會者`, owner:'', due:'', done:false },
+    { id:3, type:'decision', task: `確認了本次討論的主要方向與執行優先順序`, owner:'', due:'', done:false },
+    { id:4, type:'pending', task: `部分細節需在下次會議前確認`, owner:'', due:'', done:false },
+  ];
+}
+
+function renderOutput() {
+  const visible = items.filter(i => {
+    if (currentFilter === 'all') return true;
+    if (currentFilter === 'todo') return !i.done;
+    return i.type === currentFilter;
+  });
+
+  const actionCount = items.filter(i => i.type === 'action').length;
+  const decisionCount = items.filter(i => i.type === 'decision').length;
+  const pendingCount = items.filter(i => i.type === 'pending').length;
+  const doneCount = items.filter(i => i.done).length;
+
+  let listHTML = '';
+  for (const item of visible) {
+    listHTML += `
+      <div class="action-item" id="item-${item.id}">
+        <div class="ai-checkbox ${item.done?'done':''}" onclick="toggleDone(${item.id})"></div>
+        <div class="ai-content">
+          <div class="ai-task ${item.done?'done-text':''}">${escHtml(item.task)}</div>
+          <div class="ai-meta">
+            <span class="ai-tag type-${item.type}">${TYPE[item.type]}</span>
+            ${item.owner ? `<span class="ai-tag owner">${escHtml(item.owner)}</span>` : ''}
+            ${item.due ? `<span class="ai-tag due">${escHtml(item.due)}</span>` : ''}
+          </div>
+        </div>
+      </div>`;
+  }
+  if (!listHTML) listHTML = '<div style="font-size:.85rem;color:var(--c-muted);padding:20px 0;text-align:center;">此篩選條件下沒有項目</div>';
+
+  document.getElementById('outputPanelBody').innerHTML = `
+    <div class="actions-list">${listHTML}</div>
+    <div class="stats-bar">
+      <div class="stat-item"><div class="stat-num">${actionCount}</div><div class="stat-label">行動事項</div></div>
+      <div class="stat-item"><div class="stat-num">${decisionCount}</div><div class="stat-label">決議事項</div></div>
+      <div class="stat-item"><div class="stat-num">${pendingCount}</div><div class="stat-label">待確認</div></div>
+      <div class="stat-item"><div class="stat-num">${doneCount}/${items.length}</div><div class="stat-label">已完成</div></div>
+    </div>`;
+}
+
+function toggleDone(id) {
+  const item = items.find(i => i.id === id);
+  if (item) { item.done = !item.done; renderOutput(); }
+}
+
+function filterItems(el, filter) {
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentFilter = filter;
+  renderOutput();
+}
+
+function clearInput() {
+  document.getElementById('notesInput').value = '';
+}
+
+function clearAll() {
+  document.getElementById('notesInput').value = '';
+  items = [];
+  document.getElementById('outputPanelBody').innerHTML = '<div class="output-empty">貼入會議紀錄後點「開始分析」</div>';
+  document.getElementById('filterTabs').style.display = 'none';
+  document.getElementById('exportArea').style.display = 'none';
+  document.getElementById('promptArea').style.display = 'none';
+  currentFilter = 'all';
+}
+
+function exportText() {
+  if (!items.length) { showToast('尚無分析結果'); return; }
+  const actions = items.filter(i => i.type === 'action');
+  const decisions = items.filter(i => i.type === 'decision');
+  const pending = items.filter(i => i.type === 'pending');
+
+  let text = '=== 會議行動事項整理 ===\n\n';
+  if (decisions.length) {
+    text += '【決議事項】\n';
+    decisions.forEach((i,n) => { text += `${n+1}. ${i.task}\n`; });
+    text += '\n';
+  }
+  if (actions.length) {
+    text += '【行動事項】\n';
+    actions.forEach((i,n) => {
+      let line = `${n+1}. ${i.task}`;
+      if (i.owner) line += `  →  負責人：${i.owner}`;
+      if (i.due) line += `  |  截止：${i.due}`;
+      if (i.done) line += '  ✓ 已完成';
+      text += line + '\n';
+    });
+    text += '\n';
+  }
+  if (pending.length) {
+    text += '【待確認事項】\n';
+    pending.forEach((i,n) => { text += `${n+1}. ${i.task}\n`; });
+  }
+
+  document.getElementById('exportText').textContent = text;
+  document.getElementById('exportArea').style.display = 'block';
+  document.getElementById('exportArea').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function copyExport() {
+  const text = document.getElementById('exportText').textContent;
+  navigator.clipboard.writeText(text).then(() => showToast('已複製匯出內容'));
+}
+
+const systemPrompt = `你是一位會議記錄整理專員，擅長從雜亂的會議紀錄中萃取結構化資訊。
+
+請閱讀以下會議紀錄，整理成標準格式：
+
+【輸出格式】
+
+一、決議事項
+（格式：[決議] 具體決定內容）
+
+二、行動事項
+（格式：[負責人] 任務描述 — 截止日期）
+
+三、待確認事項
+（格式：[待確認] 問題描述 — 由誰確認）
+
+四、下次會議
+（如有提到：時間、議題）
+
+【注意事項】
+- 只整理明確提到的資訊，不要推測或補充沒提到的內容
+- 如果沒有提到負責人或截止日期，用「未指定」標注
+- 如果有不確定的詮釋，在括號中標注「原文：___」
+
+會議紀錄：
+[貼入你的會議紀錄]`;
+
+function showPrompt() {
+  const area = document.getElementById('promptArea');
+  document.getElementById('systemPromptText').textContent = systemPrompt;
+  area.style.display = area.style.display === 'none' ? 'block' : 'none';
+  if (area.style.display === 'block') area.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function copySystemPrompt() {
+  navigator.clipboard.writeText(systemPrompt).then(() => showToast('已複製 Prompt'));
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+const examples = {
+  product: `產品週會 2025/5/20 14:00
+出席：PM 小明、工程師 大衛、設計師 阿美、QA 小華
+
+【討論事項一：登入流程重構】
+決議：採用方案B（Google SSO + 手機號碼雙軌），預計 6/15 上線
+負責人：大衛負責後端 API，阿美負責 UI 設計稿，截止5/27
+待確認：Google OAuth 申請費用，由小明確認，5/25前
+
+【討論事項二：搜尋功能優化】
+目前搜尋速度過慢，用戶回饋明顯
+決議：本季不列入優先，加入 Q3 backlog
+待確認：是否需要更換搜尋引擎，由大衛評估後於下週回報
+
+【行動事項整理】
+・小明：更新 roadmap 並寄送給團隊（5/22）
+・大衛：開始 Google SSO 技術評估文件（5/24）
+・阿美：登入頁設計稿初版（5/27）
+・小華：建立登入流程測試案例（6/1）`,
+
+  marketing: `行銷週會 5/19（週一）
+出席：行銷總監、文案、社群、設計
+
+本週討論重點：
+1. 五月活動成效回顧
+   - Instagram 觸及率上升 23%，但轉換率偏低
+   - 決定：下個月活動加入優惠碼機制測試轉換
+   - 請文案起草三種不同文案方向，後天前給總監確認
+
+2. 六月內容計畫
+   - 主題定為「職場 AI 應用」系列（共4篇）
+   - 社群負責每週一篇短影音，設計出配套素材
+   - 發布時間：每週二上午9點
+   - 截止：所有六月素材需在5/30前到位
+
+3. 待討論：KOL 合作預算尚未核定，等CFO回覆後再確認合作對象`,
+
+  informal: `跟阿德討論了一下網站改版的事
+
+主要幾個點：
+- 首頁 hero section 要改，現在太複雜了，要簡化
+- 阿德說他可以出 mockup，大概這週六弄好
+- 價格頁要重新設計，改成年/月切換的
+- SEO 的部分要找人做，待確認是要外包還是自己做
+- 決定先把舊的 blog 內容整理歸檔再搬移
+- 下週二要再開一次確認整體方向，找產品和工程一起`
+};
+
+function loadExample(key) {
+  const text = examples[key];
+  if (!text) return;
+  document.getElementById('notesInput').value = text;
+  analyzeNotes();
+}
+
+// Progress
+const prog = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  prog.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + '%';
+});
+</script>
+</body>
+</html>

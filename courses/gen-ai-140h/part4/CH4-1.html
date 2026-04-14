@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>讓 AI 生成有輸入有運算有輸出的工具 · CH4-1｜140小時生成式AI實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a4:#6b7fa3;--radius:6px;--radius-sm:4px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a4);width:0%;transition:width .1s;}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a4);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-a4);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:8px;}
+.lesson-sub{font-size:.82rem;color:var(--c-muted);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a4);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a4);margin-top:8px;flex-shrink:0;}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.lesson-section.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1);}
+.lesson-section.reveal.in{opacity:1;transform:translateY(0);}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:16px;line-height:1.35;}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:28px 0;}
+.anatomy-card{background:var(--c-card);border:1px solid var(--c-border);border-top:3px solid var(--c-a4);border-radius:var(--radius);padding:22px 20px;}
+.anatomy-tag{font-size:.65rem;font-weight:700;letter-spacing:1px;color:var(--c-a4);margin-bottom:8px;}
+.anatomy-title{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:10px;}
+.anatomy-list{list-style:none;display:flex;flex-direction:column;gap:6px;}
+.anatomy-list li{font-size:.8rem;color:var(--c-muted);line-height:1.6;padding-left:12px;position:relative;}
+.anatomy-list li::before{content:'→';position:absolute;left:0;color:var(--c-a4);font-size:.7rem;}
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.key{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25);}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text);}
+.callout-body strong{font-weight:700;}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0;}
+.compare-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:22px 20px;}
+.compare-card.highlight{border-color:rgba(107,127,163,.5);background:rgba(107,127,163,.04);}
+.compare-tag{font-size:.65rem;font-weight:700;letter-spacing:.5px;padding:2px 10px;border-radius:99px;margin-bottom:12px;display:inline-block;}
+.tag-muted{background:var(--c-surface);color:var(--c-muted);}
+.tag-accent{background:rgba(107,127,163,.12);color:var(--c-a4);}
+.compare-text{font-size:.85rem;color:var(--c-text);line-height:1.75;}
+.compare-text em{font-style:normal;color:var(--c-a4);font-weight:500;}
+.concept-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:28px 0;}
+.concept-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 18px;}
+.concept-title{font-size:.88rem;font-weight:700;color:var(--c-text);margin-bottom:8px;}
+.concept-desc{font-size:.8rem;color:var(--c-muted);line-height:1.7;}
+.concept-code{font-size:.75rem;color:var(--c-a4);font-family:'Courier New',monospace;background:rgba(107,127,163,.08);padding:2px 6px;border-radius:3px;}
+.step-list{display:flex;flex-direction:column;gap:0;margin:28px 0;}
+.step-item{display:flex;gap:20px;align-items:flex-start;padding:22px 0;border-bottom:1px solid var(--c-border);}
+.step-item:last-child{border-bottom:none;}
+.step-num{font-family:'Shippori Mincho',serif;font-size:1.4rem;font-weight:700;color:var(--c-a4);min-width:28px;line-height:1;padding-top:2px;}
+.step-content{}
+.step-title{font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.step-desc{font-size:.85rem;color:var(--c-muted);line-height:1.75;}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-a4);}
+.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero{padding:40px 20px 36px;}.lesson-title{font-size:1.55rem;}.lesson-body{padding:0 20px 60px;}.three-col{grid-template-columns:1fr;}.compare-grid{grid-template-columns:1fr;}.concept-grid{grid-template-columns:1fr;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">140 小時生成式 AI 實務應用課程</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH 4-1</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a class="back-link" href="../index.html">← 回課程目錄</a>
+  <div class="hero-meta">
+    <div class="hero-part">PART 4 · 零代碼工具工坊</div>
+    <div class="hero-divider-v"></div>
+    <div class="hero-num">CH 4-1</div>
+  </div>
+  <h1 class="lesson-title">讓 AI 生成有輸入、有運算、有輸出的工具</h1>
+  <div class="lesson-sub">3 小時 · Part 4 · 零代碼工具工坊</div>
+  <p class="lesson-tagline">用 AI 寫程式不是魔法，而是一種需要學習的對話技術。這節課教你如何把「我想要一個能做 X 的工具」精確地告訴 AI，讓它生出能直接跑的 HTML 工具頁面。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果</div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>掌握工具頁面的基本結構：輸入區、運算/AI 呼叫、輸出區三段</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>能將工作需求轉譯成 AI 能執行的工具生成指令</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>能對 AI 的第一稿進行「二次生成」，修正欄位和邏輯</span></div>
+  </div>
+</div>
+
+<div class="lesson-body">
+
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 1 · Tool Anatomy</div>
+    <h2 class="section-heading">工具頁的三段結構：輸入、運算、輸出</h2>
+    <p class="body-text">任何一個有用的 HTML 工具頁，不管看起來多複雜，都可以拆成三個部分。了解這個結構，你就能清楚地告訴 AI 你要什麼。</p>
+
+    <div class="three-col">
+      <div class="anatomy-card">
+        <div class="anatomy-tag">INPUT</div>
+        <div class="anatomy-title">輸入區</div>
+        <ul class="anatomy-list">
+          <li>文字輸入框（textarea/input）</li>
+          <li>下拉選單（select）</li>
+          <li>滑桿（range）</li>
+          <li>勾選框（checkbox）</li>
+          <li>每個欄位需要：名稱、預設值、輸入驗證</li>
+        </ul>
+      </div>
+      <div class="anatomy-card">
+        <div class="anatomy-tag">PROCESS</div>
+        <div class="anatomy-title">運算 / 邏輯</div>
+        <ul class="anatomy-list">
+          <li>計算（加減乘除、條件判斷）</li>
+          <li>格式轉換（單位換算、日期計算）</li>
+          <li>AI 呼叫（把輸入組成 Prompt，送給 Claude/GPT）</li>
+          <li>以 JS 函式實現，由按鈕觸發</li>
+        </ul>
+      </div>
+      <div class="anatomy-card">
+        <div class="anatomy-tag">OUTPUT</div>
+        <div class="anatomy-title">輸出區</div>
+        <ul class="anatomy-list">
+          <li>純文字顯示、格式化卡片、表格</li>
+          <li>複製按鈕</li>
+          <li>空狀態（未輸入時顯示什麼）</li>
+          <li>載入狀態（等待時顯示什麼）</li>
+          <li>錯誤狀態（出錯時顯示什麼）</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout key">
+      <div class="callout-icon">◆</div>
+      <div class="callout-body"><strong>告訴 AI 你想要的工具時，不需要說「用 flex 還是 grid」，而是說「我想要左邊輸入、右邊顯示結果」。</strong>描述你要的行為，讓 AI 決定怎麼實作。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 2 · From Requirement to Prompt</div>
+    <h2 class="section-heading">怎麼把需求轉譯成工具生成指令</h2>
+    <p class="body-text">工具生成指令和一般對話不同——你需要描述的是「行為」，不是「外觀」。精確的指令讓 AI 可以直接動手，模糊的指令只會讓 AI 猜來猜去。</p>
+
+    <div class="compare-grid">
+      <div class="compare-card">
+        <span class="compare-tag tag-muted">模糊需求（AI 猜來猜去）</span>
+        <div class="compare-text">「做一個幫我算薪資的工具」</div>
+      </div>
+      <div class="compare-card highlight">
+        <span class="compare-tag tag-accent">精確指令（AI 可以直接做）</span>
+        <div class="compare-text">「做一個 HTML 頁面工具，包含：<em>① 基本薪資輸入框（數字，預設28000）② 加班時數輸入框（數字，預設0）③ 加班費率下拉選單（1.34倍/1.67倍/2倍）④ 按下「計算」按鈕後，顯示：每小時工資（基本薪資÷240）和本月加班費（時薪×時數×費率）⑤ 輸出區要有複製到剪貼簿按鈕</em>」</div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon">◎</div>
+      <div class="callout-body"><strong>精確指令的四個要素：</strong><br>① 每個輸入欄位（類型 + 標籤 + 預設值）<br>② 運算邏輯（公式或條件，用自然語言寫）<br>③ 輸出格式（數字/文字/表格？需不需要複製按鈕？）<br>④ 驗證規則（什麼情況不能送出？）</div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 3 · Error Design</div>
+    <h2 class="section-heading">重設、驗證、錯誤訊息：讓工具不怕被亂用</h2>
+    <p class="body-text">你只需要用中文說「當 XX 欄位是空的時，不要讓使用者送出，顯示『請先填寫 XX』」，AI 就會幫你加入驗證邏輯。</p>
+
+    <div class="concept-grid">
+      <div class="concept-card">
+        <div class="concept-title">輸入驗證</div>
+        <div class="concept-desc">「欄位不能是空的」「數字必須大於0」「日期必須是今天或以後」<br><br>告訴 AI 規則，它會寫 if 判斷。</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-title">重設功能</div>
+        <div class="concept-desc">「加一個清除按鈕，點下去清空所有輸入和輸出」<br><br>最簡單的功能，AI 一行就能做到。</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-title">錯誤訊息</div>
+        <div class="concept-desc">「輸入不合法時，用紅色文字提示，不要彈出 alert」<br><br>指定訊息位置和樣式，讓工具有好的 UX。</div>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <div class="callout-icon">ℹ</div>
+      <div class="callout-body">不要讓工具在輸入空的時候輸出空白或錯誤。設計一個清楚的「必填但未填」提示，比事後解釋為什麼沒有結果更好用。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 4 · Second Generation</div>
+    <h2 class="section-heading">二次生成：怎麼要求 AI 改到你要的樣子</h2>
+    <p class="body-text">AI 的第一稿幾乎不可能完全符合你的期望——這不是失敗，而是流程的一部分。二次生成的技巧決定了你最終能不能拿到真正可用的工具。</p>
+
+    <div class="step-list">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">先測功能，再改外觀</div>
+          <div class="step-desc">確認計算邏輯和 AI 呼叫正確後再調整視覺。在基礎功能跑通前改 CSS 是浪費時間。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">精確描述問題</div>
+          <div class="step-desc">不說「這個按鈕看起來不好」，說「確認按鈕太小，請改為全寬（width: 100%），背景色用霧藍（#6b7fa3），文字改成白色」。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">要求改局部，不要全部重生</div>
+          <div class="step-desc">「只改輸出卡片的部分，保持其他不動」比「重新生成整個工具」更穩定，也更省時間。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <div class="step-title">版本備份</div>
+          <div class="step-desc">每次收到可用的版本先存一份，再開始下一輪修改。不要讓 AI 改到最後連可用版本也沒有了。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<nav class="lesson-nav">
+  <a class="nav-btn" href="../part3/PRAC3-4.html">
+    <div>
+      <div class="nav-btn-label">← Part 3</div>
+      <div class="nav-btn-title">PRAC3-4：工作流文件化</div>
+    </div>
+  </a>
+  <a class="nav-btn next" href="CH4-2.html">
+    <div>
+      <div class="nav-btn-label">下一節 →</div>
+      <div class="nav-btn-title">CH4-2：用 UI/UX 要求讓工具變好用</div>
+    </div>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">140 小時生成式 AI 實務應用課程 · Part 4</div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const total = document.body.scrollHeight - window.innerHeight;
+  if (total > 0) document.getElementById('prog').style.width = (window.scrollY / total * 100) + '%';
+});
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); observer.unobserve(e.target); } });
+}, {threshold: 0.1});
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

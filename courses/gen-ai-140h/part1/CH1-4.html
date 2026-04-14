@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH1-4 System Prompt 設計｜140小時生成式 AI 實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#8c8880;
+  --c-a1:#b5703a; --c-a2:#c9963a; --c-a3:#5a7a5a; --c-a4:#6b7fa3;
+  --radius:6px; --radius-sm:4px; --content-w:780px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a1);border:1px solid rgba(181,112,58,.3);background:rgba(181,112,58,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a1);width:0%;transition:width .1s;}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a1);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-a1);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-title em{font-style:normal;color:var(--c-a1);}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a1);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-a1);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a1);margin-top:8px;flex-shrink:0;}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-a1);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0;}
+.compare-card{padding:24px 26px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);}
+.compare-card.highlight{border-color:rgba(181,112,58,.4);background:rgba(181,112,58,.04);}
+.compare-label{font-size:.7rem;font-weight:500;letter-spacing:1px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--c-border);}
+.compare-card .compare-label{color:var(--c-muted);}
+.compare-card.highlight .compare-label{color:var(--c-a1);}
+.compare-item{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;color:var(--c-text);margin-bottom:10px;line-height:1.6;}
+.compare-dot{width:4px;height:4px;border-radius:50%;background:var(--c-muted);margin-top:9px;flex-shrink:0;}
+.compare-card.highlight .compare-dot{background:var(--c-a1);}
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25);}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout.key{background:rgba(181,112,58,.07);border:1px solid rgba(181,112,58,.25);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text);}
+.callout-body strong{font-weight:700;}
+.sp-structure{display:flex;flex-direction:column;gap:10px;margin:28px 0;}
+.sp-block{display:flex;gap:16px;align-items:flex-start;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;}
+.sp-tag{font-size:.65rem;color:var(--c-a1);background:rgba(181,112,58,.1);border:1px solid rgba(181,112,58,.2);padding:3px 9px;border-radius:99px;font-weight:500;white-space:nowrap;align-self:center;}
+.sp-content{flex:1;}
+.sp-label{font-size:.8rem;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.sp-desc{font-size:.78rem;color:var(--c-muted);line-height:1.65;}
+.sp-example{font-size:.75rem;color:var(--c-text);background:var(--c-surface);border-radius:var(--radius-sm);padding:8px 10px;margin-top:8px;line-height:1.6;font-family:'Courier New',monospace;}
+.code-block{background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.83rem;padding:20px 22px;border-radius:var(--radius);white-space:pre-wrap;overflow-x:auto;margin:16px 0;line-height:1.7;}
+.code-block .cm{color:#6b9b8a;}
+.step-list{display:flex;flex-direction:column;gap:16px;margin:24px 0;}
+.step-item{display:flex;gap:16px;align-items:flex-start;}
+.step-num{width:28px;height:28px;border-radius:50%;background:rgba(181,112,58,.1);border:1.5px solid var(--c-a1);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:.82rem;font-weight:700;color:var(--c-a1);flex-shrink:0;margin-top:2px;}
+.step-text{font-size:.9rem;color:var(--c-text);line-height:1.85;}
+.step-text strong{font-weight:700;}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-a1);}
+.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}
+.nav-btn-title{font-weight:500;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1);}
+.reveal.in{opacity:1;transform:translateY(0);}
+.section-rule{transform-origin:left center;opacity:0;transition:opacity .4s ease,transform .6s cubic-bezier(.16,1,.3,1);transform:scaleX(.3);}
+.section-rule.in{opacity:1;transform:scaleX(1);}
+.section-dots{position:fixed;left:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:40;opacity:0;transition:opacity .4s ease;}
+.section-dots.visible{opacity:1;}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--c-border);cursor:pointer;transition:background .3s,transform .3s;border:none;padding:0;}
+.sdot.active{background:var(--c-a1);transform:scale(1.5);}
+@media(max-width:1100px){.section-dots{display:none;}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero,.lesson-body{padding-left:20px;padding-right:20px;}.lesson-title{font-size:1.55rem;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.compare-grid{grid-template-columns:1fr;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+
+<nav class="section-dots" id="sdots">
+  <button class="sdot" data-sec="s1" title="什麼是 System Prompt"></button>
+  <button class="sdot" data-sec="s2" title="四個結構元素"></button>
+  <button class="sdot" data-sec="s3" title="跨輪穩定性"></button>
+  <button class="sdot" data-sec="s4" title="實際設定方法"></button>
+</nav>
+
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">140 小時生成式 AI 實務應用課程</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH 1.4 · Part 1</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">Part 1 · 解鎖 AI 工作模式</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 1.4 · 3 小時</span>
+  </div>
+  <h1 class="lesson-title">System Prompt：<br><em>給工具用的提示詞設計</em></h1>
+  <p class="lesson-tagline">前三節教你怎麼每次都寫好的提示詞。這節課進一步：怎麼設計一個「一次配置、永久有效」的 AI 助手——讓 AI 記住你是誰、它的角色是什麼、應該怎麼回應你。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果 · OUTCOMES</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>理解對話型 Prompt 與應用型 System Prompt 的根本差異</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能寫出包含四個結構元素的 System Prompt</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能在 ChatGPT Custom Instructions 和 Claude Projects 實際完成設定</div>
+  </div>
+</div>
+
+<main class="lesson-body">
+
+  <section class="lesson-section reveal" id="s1">
+    <div class="section-eyebrow">Section 1 · What Is System Prompt</div>
+    <h2 class="section-heading">對話型 vs 應用型：<em>兩種完全不同的用法</em></h2>
+    <p class="body-text">你在聊天框打的每一句話，是「對話型提示詞」——它只影響這一次的回應。而 System Prompt 不同，它是在對話開始之前就設定好的「規則書」——定義了 AI 在整個工作情境中的角色、行為規範和輸出格式。</p>
+    <div class="compare-grid">
+      <div class="compare-card">
+        <div class="compare-label">對話型 Prompt（你每次打的）</div>
+        <div class="compare-item"><div class="compare-dot"></div>每次對話需重新說明背景</div>
+        <div class="compare-item"><div class="compare-dot"></div>角色設定只維持一輪</div>
+        <div class="compare-item"><div class="compare-dot"></div>適合一次性、臨時性任務</div>
+        <div class="compare-item"><div class="compare-dot"></div>沒有持久記憶</div>
+      </div>
+      <div class="compare-card highlight">
+        <div class="compare-label">System Prompt（背後的設定）</div>
+        <div class="compare-item"><div class="compare-dot"></div>一次設定，所有對話都生效</div>
+        <div class="compare-item"><div class="compare-dot"></div>角色和規則跨輪持續</div>
+        <div class="compare-item"><div class="compare-dot"></div>適合固定工作場景的 AI 助手</div>
+        <div class="compare-item"><div class="compare-dot"></div>可儲存背景資訊、格式規範</div>
+      </div>
+    </div>
+    <div class="callout key">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body"><strong>類比：</strong>對話型 Prompt 是每次開工前的口頭交辦；System Prompt 是員工手冊——寫好了，每次新開的對話都知道規則。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <section class="lesson-section reveal" id="s2">
+    <div class="section-eyebrow">Section 2 · Structure</div>
+    <h2 class="section-heading">System Prompt 的<em>四個結構元素</em></h2>
+    <p class="body-text">一個好的 System Prompt 不是一段自我介紹，而是一份清楚的工作說明書。以下四個元素缺一個都會讓 AI 表現打折。</p>
+    <div class="sp-structure">
+      <div class="sp-block">
+        <div class="sp-tag">Persona</div>
+        <div class="sp-content">
+          <div class="sp-label">角色設定：AI 是誰</div>
+          <div class="sp-desc">定義 AI 的職業背景、專業能力、溝通風格。越具體越好——「資深行銷企劃」比「助理」有用得多。</div>
+          <div class="sp-example">你是一位有 8 年 B2B 行銷經驗的企劃顧問，熟悉科技產業的提案邏輯，語氣專業但不拘謹。</div>
+        </div>
+      </div>
+      <div class="sp-block">
+        <div class="sp-tag">Task Boundary</div>
+        <div class="sp-content">
+          <div class="sp-label">任務邊界：應該做什麼、不做什麼</div>
+          <div class="sp-desc">明確界定 AI 的服務範圍——它應該只處理哪類問題，對哪類問題應該拒絕或轉介。</div>
+          <div class="sp-example">你只協助行銷相關的寫作和分析任務。如果被問到財務、法律問題，請說明這超出你的範疇。</div>
+        </div>
+      </div>
+      <div class="sp-block">
+        <div class="sp-tag">Output Lock</div>
+        <div class="sp-content">
+          <div class="sp-label">輸出鎖定：格式和風格規範</div>
+          <div class="sp-desc">指定所有輸出的預設格式——語言、長度、格式結構。這樣你就不需要每次都重複說明。</div>
+          <div class="sp-example">所有輸出使用繁體中文。除非特別要求，回應控制在 300 字以內。需要列點時，使用條列格式。</div>
+        </div>
+      </div>
+      <div class="sp-block">
+        <div class="sp-tag">Refusal</div>
+        <div class="sp-content">
+          <div class="sp-label">拒絕策略：邊界外的處理方式</div>
+          <div class="sp-desc">設定當 AI 遇到不適合的問題時，應該怎麼回應——直接拒絕？還是引導到正確方向？</div>
+          <div class="sp-example">如果問題超出行銷範疇，請說「建議諮詢相關專業人士」，不要硬給答案。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <section class="lesson-section reveal" id="s3">
+    <div class="section-eyebrow">Section 3 · Stability</div>
+    <h2 class="section-heading">讓 AI 記住格式：<em>跨輪對話的穩定性</em></h2>
+    <p class="body-text">System Prompt 設計好之後，最常碰到的問題是：「為什麼 AI 過幾輪就忘了格式要求？」有幾個原因，也有對應解法。</p>
+    <div class="step-list">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-text"><strong>把關鍵規則放在最前面</strong>——AI 在長對話中對最前面的內容記憶最穩定。越重要的規則越要放開頭。</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-text"><strong>用明確指令語氣，不用建議語氣</strong>——「請用繁體中文」比「最好用繁體中文」效果更穩定。System Prompt 是規則，不是建議。</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-text"><strong>定期用「重置」指令</strong>——對話很長時，說「請回顧你的設定，確認你仍然在角色中」即可重整。</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-text"><strong>把 System Prompt 和對話型 Prompt 分開管理</strong>——System Prompt 存在設定裡，每次對話型 Prompt 只說「當前任務」，不重複說明背景。</div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <section class="lesson-section reveal" id="s4">
+    <div class="section-eyebrow">Section 4 · Setup Guide</div>
+    <h2 class="section-heading">在哪裡設定？<em>ChatGPT 與 Claude 的操作方法</em></h2>
+    <div class="callout info">
+      <div class="callout-icon">⚙️</div>
+      <div class="callout-body">
+        <strong>ChatGPT — Custom Instructions：</strong><br>
+        右上角頭像 → Settings → Personalization → Custom Instructions。分兩個欄位：「About you」（你是誰）和「How should ChatGPT respond」（AI 怎麼回應）。合計約 1500 字元上限。
+      </div>
+    </div>
+    <div class="callout info">
+      <div class="callout-icon">⚙️</div>
+      <div class="callout-body">
+        <strong>Claude — Projects：</strong><br>
+        左側邊欄 → Projects → 建立新 Project → Project Instructions。可設定角色、規則、格式，還可上傳參考文件（風格指南、術語表）。這是 Claude 最強大的個人化功能。
+      </div>
+    </div>
+    <p class="body-text">以下是可以直接複製的 System Prompt 範本，適合一般知識工作者：</p>
+    <div class="code-block"><span class="cm">## 角色</span>
+你是我的工作助理，專門協助文件寫作、資訊整理和任務分析。
+
+<span class="cm">## 輸出規範</span>
+- 使用繁體中文
+- 除非我要求，回應控制在 300 字以內
+- 需要列點時，使用「- 」格式
+- 不要用過度客套的開場和結尾
+
+<span class="cm">## 工作背景</span>
+我的職務是 [你的職稱]，主要處理 [你的主要工作類型]。
+
+<span class="cm">## 邊界</span>
+如果問題超出工作輔助範圍，請直接說明而非硬給答案。</div>
+    <div class="callout tip">
+      <div class="callout-icon">✅</div>
+      <div class="callout-body"><strong>本節帶走產出（PRAC 1.4 任務）：</strong>為你自己的工作角色設計一份 System Prompt，在 ChatGPT 和 Claude 各設定一次，測試邊界：試圖讓 AI 跳出設定，觀察並修正弱點。</div>
+    </div>
+  </section>
+
+</main>
+
+<div class="lesson-nav">
+  <a class="nav-btn" href="CH1-3.html">
+    <div>
+      <div class="nav-btn-label">← 上一單元</div>
+      <div class="nav-btn-title">CH 1.3 Prompt 除錯</div>
+    </div>
+  </a>
+  <a class="nav-btn next" href="PRAC1-1.html">
+    <div>
+      <div class="nav-btn-label">下一單元 →</div>
+      <div class="nav-btn-title">PRAC 1.1 黃金公式組合台</div>
+    </div>
+  </a>
+</div>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">140 小時生成式 AI 實務應用課程 · Part 1</div>
+</footer>
+
+<script>
+const prog = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  prog.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + '%';
+});
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal, .section-rule').forEach(r => observer.observe(r));
+const sdots = document.getElementById('sdots');
+const sections = document.querySelectorAll('[id^="s"]');
+window.addEventListener('scroll', () => {
+  sdots.classList.toggle('visible', window.scrollY > 300);
+  let cur = '';
+  sections.forEach(s => { if (s.offsetTop - 120 <= window.scrollY) cur = s.id; });
+  document.querySelectorAll('.sdot').forEach(d => d.classList.toggle('active', d.dataset.sec === cur));
+});
+document.querySelectorAll('.sdot').forEach(d => {
+  d.addEventListener('click', () => document.getElementById(d.dataset.sec)?.scrollIntoView({ behavior:'smooth', block:'start' }));
+});
+</script>
+</body>
+</html>

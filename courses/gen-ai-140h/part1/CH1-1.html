@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH1-1 AI 不只是聊天工具｜140小時生成式 AI 實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#8c8880;
+  --c-a1:#b5703a; --c-a2:#c9963a; --c-a3:#5a7a5a; --c-a4:#6b7fa3;
+  --radius:6px; --radius-sm:4px; --content-w:780px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+
+/* ── 頂部列 ── */
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a1);border:1px solid rgba(181,112,58,.3);background:rgba(181,112,58,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+
+/* ── 閱讀進度條 ── */
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a1);width:0%;transition:width .1s;}
+
+/* ── Hero ── */
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a1);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-a1);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a1);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-a1);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a1);margin-top:8px;flex-shrink:0;}
+
+/* ── 主內容 ── */
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-a1);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+
+/* ── 對比格 ── */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0;}
+.compare-card{padding:24px 26px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);}
+.compare-card.highlight{border-color:rgba(181,112,58,.4);background:rgba(181,112,58,.04);}
+.compare-label{font-size:.7rem;font-weight:500;letter-spacing:1px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--c-border);}
+.compare-card .compare-label{color:var(--c-muted);}
+.compare-card.highlight .compare-label{color:var(--c-a1);}
+.compare-item{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;color:var(--c-text);margin-bottom:10px;line-height:1.6;}
+.compare-dot{width:4px;height:4px;border-radius:50%;background:var(--c-muted);margin-top:9px;flex-shrink:0;}
+.compare-card.highlight .compare-dot{background:var(--c-a1);}
+
+/* ── Callout ── */
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25);}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout.key{background:rgba(181,112,58,.07);border:1px solid rgba(181,112,58,.25);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text);}
+.callout-body strong{font-weight:700;}
+
+/* ── 工具卡片 ── */
+.tool-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:28px 0;}
+.tool-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:22px 20px;}
+.tool-name{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.tool-badge{display:inline-block;font-size:.65rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.07);padding:2px 9px;border-radius:99px;font-weight:500;margin-bottom:14px;}
+.tool-items{display:flex;flex-direction:column;gap:7px;margin-bottom:14px;}
+.tool-item{display:flex;align-items:flex-start;gap:8px;font-size:.82rem;color:var(--c-text);line-height:1.5;}
+.tool-check{color:var(--c-a3);font-size:.8rem;flex-shrink:0;margin-top:1px;}
+.tool-note{font-size:.75rem;color:var(--c-muted);line-height:1.6;padding-top:12px;border-top:1px solid var(--c-border);}
+
+/* ── 使用型態卡片 ── */
+.usage-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:28px 0;}
+.usage-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:22px 20px;}
+.usage-icon{font-size:1.6rem;margin-bottom:12px;}
+.usage-type{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:8px;}
+.usage-desc{font-size:.8rem;color:var(--c-text);line-height:1.7;margin-bottom:10px;}
+.usage-when{font-size:.75rem;color:var(--c-a3);background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);padding:6px 10px;border-radius:var(--radius-sm);line-height:1.5;}
+.usage-when-label{font-weight:700;}
+
+/* ── 大引言 ── */
+.big-quote{font-family:'Shippori Mincho',serif;font-size:1.3rem;font-weight:700;line-height:1.65;color:var(--c-text);padding:28px 32px;background:var(--c-card);border:1px solid var(--c-border);border-left:4px solid var(--c-a1);border-radius:var(--radius);margin:28px 0;}
+.big-quote span{color:var(--c-a1);}
+
+/* ── 類比框 ── */
+.analogy-box{padding:28px 32px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:28px 0;}
+.analogy-label{font-size:.68rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:12px;}
+.analogy-text{font-size:.92rem;color:var(--c-text);line-height:1.9;}
+
+/* ── 課程預告 ── */
+.preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:24px 0;}
+.preview-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;display:flex;align-items:flex-start;gap:14px;}
+.preview-icon{font-size:1.3rem;flex-shrink:0;}
+.preview-part{font-size:.68rem;color:var(--c-muted);margin-bottom:4px;}
+.preview-name{font-size:.85rem;font-weight:700;color:var(--c-text);line-height:1.4;}
+
+/* ── 底部導航 ── */
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-a1);}
+.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.nav-spacer{flex:1;}
+
+/* ── 頁尾 ── */
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+
+/* ── 動態進場 ── */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1);}
+.reveal.in{opacity:1;transform:translateY(0);}
+.section-rule{transform-origin:left center;opacity:0;transition:opacity .4s ease,transform .6s cubic-bezier(.16,1,.3,1);transform:scaleX(.3);}
+.section-rule.in{opacity:1;transform:scaleX(1);}
+
+/* ── 側邊章節導航 ── */
+.section-dots{position:fixed;left:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:40;opacity:0;transition:opacity .4s ease;}
+.section-dots.visible{opacity:1;}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--c-border);cursor:pointer;transition:background .3s ease,transform .3s ease;border:none;padding:0;}
+.sdot.active{background:var(--c-a1);transform:scale(1.5);}
+@media(max-width:1100px){.section-dots{display:none;}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero{padding:40px 20px 36px;}.lesson-title{font-size:1.55rem;}.lesson-body{padding:0 20px 60px;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.compare-grid,.tool-grid,.usage-grid,.preview-grid{grid-template-columns:1fr;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+
+<!-- 側邊章節導航 -->
+<nav class="section-dots" id="sdots">
+  <button class="sdot" data-sec="s1" title="AI 的真正定位"></button>
+  <button class="sdot" data-sec="s2" title="工具比較"></button>
+  <button class="sdot" data-sec="s3" title="三種使用型態"></button>
+  <button class="sdot" data-sec="s4" title="成本與額度"></button>
+  <button class="sdot" data-sec="s5" title="環境建置"></button>
+</nav>
+
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">140 小時生成式 AI 實務應用課程</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH 1.1 · Part 1</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">Part 1 · 解鎖 AI 工作模式</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 1.1 · 2 小時</span>
+  </div>
+  <h1 class="lesson-title">AI 不只是聊天工具，<br>而是你的<em>工作介面</em></h1>
+  <p class="lesson-tagline">大多數人用 AI 的方式，只發揮了它 10% 的潛力。這節課要幫你打破「AI = 聊天機器人」的認知框架，理解它能嵌入哪些工作任務、用哪種方式使用，以及如何在課程中建立你自己的工作環境。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果 · OUTCOMES</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能說出 ChatGPT、Claude、Gemini 三大工具的定位差異，並根據任務選擇合適工具</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>理解 Web、Desktop、API 三種使用型態的差別與各自適合的情境</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>完成個人課程工作資料夾建置，建立可維持全課程的命名與整理規則</div>
+  </div>
+</div>
+
+<main class="lesson-body">
+
+  <!-- Section 1 -->
+  <section class="lesson-section reveal" id="s1">
+    <div class="section-eyebrow">Section 1 · Mindset Shift</div>
+    <h2 class="section-heading">你用 AI 的方式，<em>可能還停在第一關</em></h2>
+    <p class="body-text">很多人第一次用 ChatGPT，是請它聊天、回答問題，或者問它「今天吃什麼好」。這沒有錯——但如果只停在這裡，就像你買了一台高效能筆電，卻只拿來看 YouTube。</p>
+    <p class="body-text">生成式 AI 的核心能力是<strong>文字生成與轉換</strong>：它可以把你的模糊需求變成清楚的格式，把一大段文字濃縮成摘要，把會議內容轉成待辦清單，把你的工作場景自動化。換句話說，它是你的<strong>工作介面</strong>，不只是對話框。</p>
+
+    <div class="compare-grid">
+      <div class="compare-card">
+        <div class="compare-label">一般人的用法</div>
+        <div class="compare-item"><div class="compare-dot"></div>問問題、聊天、娛樂</div>
+        <div class="compare-item"><div class="compare-dot"></div>用一次就關掉</div>
+        <div class="compare-item"><div class="compare-dot"></div>回答好不好靠運氣</div>
+        <div class="compare-item"><div class="compare-dot"></div>輸出格式無法控制</div>
+        <div class="compare-item"><div class="compare-dot"></div>每次重新說明背景</div>
+      </div>
+      <div class="compare-card highlight">
+        <div class="compare-label">工作者的用法</div>
+        <div class="compare-item"><div class="compare-dot"></div>摘要、改寫、分類、轉格式</div>
+        <div class="compare-item"><div class="compare-dot"></div>建立可重複使用的提示詞</div>
+        <div class="compare-item"><div class="compare-dot"></div>指定角色、限制、輸出格式</div>
+        <div class="compare-item"><div class="compare-dot"></div>輸出 JSON、表格、SOP、Email</div>
+        <div class="compare-item"><div class="compare-dot"></div>配置 System Prompt 保持一致性</div>
+      </div>
+    </div>
+
+    <div class="callout key">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body"><strong>關鍵觀念：</strong>AI 的輸出品質，90% 取決於你的輸入品質。這門課的核心，是教你怎麼輸入，而不是 AI 怎麼運作。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 2 -->
+  <section class="lesson-section reveal" id="s2">
+    <div class="section-eyebrow">Section 2 · Tool Selection</div>
+    <h2 class="section-heading">ChatGPT、Claude、Gemini，<em>用哪個？</em></h2>
+    <p class="body-text">三大主流 AI 工具各有定位，沒有「最好的那一個」，只有「最適合這個任務的那一個」。初期不需要全部都用，但要知道它們的差異，才能在對的情況選對工具。</p>
+
+    <div class="tool-grid">
+      <div class="tool-card">
+        <div class="tool-name">ChatGPT</div>
+        <div class="tool-badge">通用對話 · OpenAI</div>
+        <div class="tool-items">
+          <div class="tool-item"><span class="tool-check">✓</span>日常提問、快速草稿</div>
+          <div class="tool-item"><span class="tool-check">✓</span>生成圖像（DALL·E）</div>
+          <div class="tool-item"><span class="tool-check">✓</span>執行 Python 程式碼（Code Interpreter）</div>
+          <div class="tool-item"><span class="tool-check">✓</span>Plugin 與 GPT 生態系整合</div>
+        </div>
+        <div class="tool-note">付費版（Plus/Team）功能差距大，免費版有次數限制。</div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-name">Claude</div>
+        <div class="tool-badge">長文分析 · Anthropic</div>
+        <div class="tool-items">
+          <div class="tool-item"><span class="tool-check">✓</span>長文件摘要與分析（200K token）</div>
+          <div class="tool-item"><span class="tool-check">✓</span>指令跟隨能力強、格式穩定</div>
+          <div class="tool-item"><span class="tool-check">✓</span>寫作風格一致性高</div>
+          <div class="tool-item"><span class="tool-check">✓</span>Projects 功能可設定 AI 助手</div>
+        </div>
+        <div class="tool-note">處理大量文字任務的首選，免費版每日有訊息上限。</div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-name">Gemini</div>
+        <div class="tool-badge">多模態 · Google</div>
+        <div class="tool-items">
+          <div class="tool-item"><span class="tool-check">✓</span>圖片、PDF、影片輸入分析</div>
+          <div class="tool-item"><span class="tool-check">✓</span>與 Google Workspace 深度整合</div>
+          <div class="tool-item"><span class="tool-check">✓</span>超長脈絡窗口（1.5M token）</div>
+          <div class="tool-item"><span class="tool-check">✓</span>即時網路搜尋能力</div>
+        </div>
+        <div class="tool-note">有 Google 帳號即可使用，與 Drive、Docs 整合是最大優勢。</div>
+      </div>
+    </div>
+
+    <div class="analogy-box">
+      <div class="analogy-label">類比理解 · ANALOGY</div>
+      <div class="analogy-text">把這三個工具想成三種不同的同事：<strong>ChatGPT</strong> 是那種什麼都會一點、很好用的萬用助理；<strong>Claude</strong> 是讀過很多書、特別擅長看文件和寫長報告的研究員；<strong>Gemini</strong> 是能幫你看圖、看影片、又剛好認識 Google 全家桶的人。你不需要每件事都找同一個人，學會分工才是高效。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 3 -->
+  <section class="lesson-section reveal" id="s3">
+    <div class="section-eyebrow">Section 3 · Usage Types</div>
+    <h2 class="section-heading">Web、Desktop、API：<em>三種使用型態</em>差在哪？</h2>
+    <p class="body-text">同一個 AI 模型，可以用三種完全不同的方式存取。理解這三種型態，是後面課程學習 API 串接和後端部署的基礎。</p>
+
+    <div class="usage-grid">
+      <div class="usage-card">
+        <div class="usage-icon">🌐</div>
+        <div class="usage-type">Web 介面</div>
+        <div class="usage-desc">打開瀏覽器就能用，不需安裝任何東西。有登入帳號、有對話紀錄，操作最直覺。</div>
+        <div class="usage-when"><span class="usage-when-label">適合：</span>日常工作任務、快速測試、多模態輸入（上傳檔案）</div>
+      </div>
+      <div class="usage-card">
+        <div class="usage-icon">💻</div>
+        <div class="usage-type">Desktop App</div>
+        <div class="usage-desc">安裝在電腦上的應用程式，可以呼叫螢幕截圖、本地檔案，有些支援快捷鍵直接呼出。</div>
+        <div class="usage-when"><span class="usage-when-label">適合：</span>需要結合本地工作流程、快速叫出 AI 輔助</div>
+      </div>
+      <div class="usage-card">
+        <div class="usage-icon">⚙️</div>
+        <div class="usage-type">API 呼叫</div>
+        <div class="usage-desc">用程式碼直接呼叫模型，可以整合進自己的工具或自動化流程，是課程後段的核心技術。</div>
+        <div class="usage-when"><span class="usage-when-label">適合：</span>製作自己的 AI 工具、自動化任務、串接後端服務</div>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <div class="callout-icon">📌</div>
+      <div class="callout-body"><strong>本課程的進程：</strong>Part 1–4 主要在 Web 介面操作；Part 5 開始接觸 Desktop 工具（VS Code）；Part 6 開始學 API 呼叫。不要跳過前面的基礎，因為 API 的提示詞邏輯和 Web 介面完全一樣。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 4 -->
+  <section class="lesson-section reveal" id="s4">
+    <div class="section-eyebrow">Section 4 · Cost Awareness</div>
+    <h2 class="section-heading">免費版、付費版、Credits：<em>你需要知道的成本觀念</em></h2>
+    <p class="body-text">生成式 AI 的計費單位是 <strong>token</strong>（約等於半個英文單字或 1–2 個中文字）。Web 介面的免費版有每日訊息上限，付費版（約 $20 美元/月）有更高的次數和更強的模型。API 呼叫則是按實際使用量計費，每 1000 個 token 約 $0.001–$0.015 美元不等，視模型而定。</p>
+    <p class="body-text">對本課程的初學者來說，免費版足夠應付前四個 Part 的學習。Part 5 之後如果需要 API 呼叫，可以申請免費 credits 或用最小模型測試，控制在 $5 美元以內完成所有實作。</p>
+
+    <div class="callout tip">
+      <div class="callout-icon">💰</div>
+      <div class="callout-body"><strong>成本控管原則（現在先記住，後面課程會詳細說明）：</strong>測試用小模型、生產用大模型；能用 Prompt 解決的不要用 RAG；不要在前端直接裸露 API 金鑰。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 5 -->
+  <section class="lesson-section reveal" id="s5">
+    <div class="section-eyebrow">Section 5 · Setup</div>
+    <h2 class="section-heading">在開始之前：<em>建立你的工作環境</em></h2>
+    <p class="body-text">好的工作環境能讓你在課程中更有效率，也能讓你的學習成果有地方可以累積。這個步驟看起來很基礎，但它是讓每個產出都能被找回、被修改、被複用的關鍵。</p>
+
+    <div class="big-quote">「沒有整理的輸出，就像沒有存檔的進度——<span>下次還得從頭來過</span>。」</div>
+
+    <p class="body-text">本節的實作任務很簡單：</p>
+
+    <div class="callout info">
+      <div class="callout-icon">📁</div>
+      <div class="callout-body">
+        <strong>工作資料夾建立規則：</strong><br>
+        建立一個頂層資料夾命名為 <code style="font-family:'Courier New',monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 6px;border-radius:3px;">AI課程-[你的名字]</code>，底下建立 7 個子資料夾對應 7 個 Part（如 <code style="font-family:'Courier New',monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 6px;border-radius:3px;">Part1-解鎖工作模式</code>）。每次有產出就放進對應資料夾，並用日期當開頭命名（如 <code style="font-family:'Courier New',monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 6px;border-radius:3px;">20250101-prompt練習.txt</code>）。
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon">✅</div>
+      <div class="callout-body"><strong>本節帶走產出：</strong>課程工作資料夾（7個子目錄）+ 工具登入清單（至少完成 ChatGPT 和 Claude 帳號）。這兩個東西在接下來所有單元都會用到。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- 課程預告 -->
+  <section class="lesson-section reveal">
+    <div class="section-eyebrow">Next Up · 下一節預告</div>
+    <h2 class="section-heading">接下來要學什麼？</h2>
+    <p class="body-text">現在你知道 AI 能做什麼、工具怎麼選、環境怎麼建。下一節要進入這門課最核心的技能：<strong>怎麼寫出讓 AI 真的聽懂你的提示詞</strong>。</p>
+    <div class="preview-grid">
+      <div class="preview-card">
+        <div class="preview-icon">✍️</div>
+        <div>
+          <div class="preview-part">CH 1.2 · 下一節</div>
+          <div class="preview-name">黃金提示詞公式：角色、任務、限制、輸出</div>
+        </div>
+      </div>
+      <div class="preview-card">
+        <div class="preview-icon">🛠️</div>
+        <div>
+          <div class="preview-part">PRAC 1.1 · 演練</div>
+          <div class="preview-name">Prompt 黃金公式組合台——實際練習改寫 5 種格式</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="lesson-nav">
+  <div class="nav-spacer"></div>
+  <a class="nav-btn next" href="CH1-2.html">
+    <div>
+      <div class="nav-btn-label">下一單元 →</div>
+      <div class="nav-btn-title">CH 1.2 黃金提示詞公式</div>
+    </div>
+  </a>
+</div>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">140 小時生成式 AI 實務應用課程 · Part 1</div>
+</footer>
+
+<script>
+// 閱讀進度條
+const prog = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  prog.style.width = pct + '%';
+});
+
+// Scroll reveal
+const reveals = document.querySelectorAll('.reveal, .section-rule');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+}, { threshold: 0.1 });
+reveals.forEach(r => observer.observe(r));
+
+// 側邊章節導航
+const sdots = document.getElementById('sdots');
+const sections = document.querySelectorAll('[id^="s"]');
+window.addEventListener('scroll', () => {
+  const scrollY = window.scrollY;
+  sdots.classList.toggle('visible', scrollY > 300);
+  let current = '';
+  sections.forEach(s => { if (s.offsetTop - 120 <= scrollY) current = s.id; });
+  document.querySelectorAll('.sdot').forEach(d => {
+    d.classList.toggle('active', d.dataset.sec === current);
+  });
+});
+document.querySelectorAll('.sdot').forEach(d => {
+  d.addEventListener('click', () => {
+    document.getElementById(d.dataset.sec)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH6-1 API、後端代理與錯誤處理｜140小時生成式 AI 實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#8c8880;
+  --c-a1:#b5703a; --c-a2:#c9963a; --c-a3:#5a7a5a; --c-a4:#6b7fa3;
+  --c-accent:#c9963a;
+  --radius:6px; --radius-sm:4px; --content-w:780px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-accent);border:1px solid rgba(201,150,58,.3);background:rgba(201,150,58,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-accent);width:0%;transition:width .1s;}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-accent);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-accent);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-accent);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-accent);margin-top:8px;flex-shrink:0;}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-accent);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+.big-quote{font-family:'Shippori Mincho',serif;font-size:1.3rem;font-weight:700;line-height:1.65;color:var(--c-text);padding:28px 32px;background:var(--c-card);border:1px solid var(--c-border);border-left:4px solid var(--c-accent);border-radius:var(--radius);margin:28px 0;}
+.big-quote span{color:var(--c-accent);}
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25);}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout.key{background:rgba(201,150,58,.07);border:1px solid rgba(201,150,58,.25);}
+.callout.warn{background:rgba(181,60,60,.05);border:1px solid rgba(181,60,60,.2);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text);}
+.callout-body strong{font-weight:700;}
+.callout-body code{font-family:'Courier New',monospace;font-size:.8rem;background:rgba(201,150,58,.1);padding:1px 6px;border-radius:3px;}
+.code-block{background:#1e1e1e;border-radius:var(--radius);margin:24px 0;overflow:hidden;}
+.code-block-header{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;background:#2a2a2a;border-bottom:1px solid #333;}
+.code-block-lang{font-size:.7rem;color:#888;letter-spacing:1px;font-weight:500;}
+.code-block-label{font-size:.72rem;color:#aaa;}
+.code-block pre{padding:20px 18px;overflow-x:auto;font-family:'Courier New',Courier,monospace;font-size:.82rem;line-height:1.75;color:#d4d4d4;}
+.code-comment{color:#6a9955;} .code-str{color:#ce9178;} .code-keyword{color:#c586c0;} .code-num{color:#b5cea8;} .code-out{color:#aaa;}
+.concept-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin:28px 0;}
+.concept-card{padding:20px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);}
+.concept-card.accent{border-color:rgba(201,150,58,.4);background:rgba(201,150,58,.04);}
+.concept-title{font-size:.85rem;font-weight:700;color:var(--c-text);margin-bottom:8px;}
+.concept-card.accent .concept-title{color:var(--c-accent);}
+.concept-body{font-size:.82rem;color:var(--c-muted);line-height:1.7;}
+.concept-body code{font-family:'Courier New',monospace;font-size:.78rem;background:rgba(201,150,58,.1);padding:1px 5px;border-radius:3px;}
+.err-table{width:100%;border-collapse:collapse;margin:28px 0;font-size:.85rem;}
+.err-table thead tr{background:var(--c-surface);}
+.err-table th{text-align:left;padding:12px 14px;font-size:.72rem;color:var(--c-muted);letter-spacing:1px;border-bottom:1px solid var(--c-border);}
+.err-table td{padding:12px 14px;border-bottom:1px solid var(--c-border);line-height:1.65;vertical-align:top;}
+.err-table tr:last-child td{border-bottom:none;}
+.badge-err{display:inline-block;font-size:.7rem;padding:2px 8px;border-radius:99px;font-weight:500;}
+.badge-4xx{background:rgba(201,150,58,.12);color:#a07820;border:1px solid rgba(201,150,58,.3);}
+.badge-5xx{background:rgba(181,60,60,.08);color:#b03030;border:1px solid rgba(181,60,60,.25);}
+.token-calc{padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);margin:28px 0;}
+.token-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--c-border);font-size:.88rem;}
+.token-row:last-child{border-bottom:none;font-weight:700;}
+.token-label{color:var(--c-muted);}
+.token-val{font-family:'Courier New',monospace;color:var(--c-accent);}
+.section-dots{position:fixed;left:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:40;opacity:0;transition:opacity .4s ease;}
+.section-dots.visible{opacity:1;}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--c-border);cursor:pointer;transition:all .3s;border:none;padding:0;}
+.sdot.active{background:var(--c-accent);transform:scale(1.5);}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-accent);}
+.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1);}
+.reveal.in{opacity:1;transform:translateY(0);}
+.section-rule{transform-origin:left center;opacity:0;transition:opacity .4s ease,transform .6s cubic-bezier(.16,1,.3,1);transform:scaleX(.3);}
+.section-rule.in{opacity:1;transform:scaleX(1);}
+@media(max-width:1100px){.section-dots{display:none;}}
+@media(max-width:768px){.topbar{padding:0 16px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero{padding:40px 20px 36px;}.lesson-title{font-size:1.55rem;}.lesson-body{padding:0 20px 60px;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.concept-grid{grid-template-columns:1fr;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+<nav class="section-dots" id="sdots">
+  <button class="sdot" data-sec="s1" title="API 核心概念"></button>
+  <button class="sdot" data-sec="s2" title="Token 成本意識"></button>
+  <button class="sdot" data-sec="s3" title="Rate Limit 與重試策略"></button>
+  <button class="sdot" data-sec="s4" title="錯誤處理與使用者體驗"></button>
+</nav>
+<header class="topbar">
+  <a class="logo" href="../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">140 小時生成式 AI 實務應用課程</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH 6.1 · Part 6</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">Part 6 · AI 應用開發進階</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 6.1 · 3 小時</span>
+  </div>
+  <h1 class="lesson-title">API、後端代理<br>與<em>錯誤處理</em></h1>
+  <p class="lesson-tagline">你在 Part 5 學會了部署後端代理。這節課往下一層：理解 API 呼叫的每個環節、Token 如何影響成本、以及當 API 出錯時如何讓使用者感覺不到。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果 · OUTCOMES</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能解釋 API request/response 的結構，知道 headers、body、status code 各自的角色</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>理解 token 計算方式，能預估一次 API 呼叫的成本</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>知道 rate limit 是什麼，能實作簡單的指數退避重試</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能區分 4xx 和 5xx 錯誤，為每種錯誤設計適合的使用者體驗</div>
+  </div>
+</div>
+
+<main class="lesson-body">
+
+  <section class="lesson-section reveal" id="s1">
+    <div class="section-eyebrow">Section 1 · API Fundamentals</div>
+    <h2 class="section-heading">API 核心概念：<br><em>Request、Response 與 Headers</em></h2>
+    <p class="body-text">每一次呼叫 AI API，本質上都是一次 HTTP 請求。理解這個請求的結構，你才能看懂錯誤訊息、調整行為、控制成本。</p>
+
+    <div class="concept-grid">
+      <div class="concept-card accent">
+        <div class="concept-title">Request（你送出的）</div>
+        <div class="concept-body">包含 <code>method</code>（POST）、<code>URL</code>（API 端點）、<code>headers</code>（身份驗證、內容格式）、<code>body</code>（你的 prompt 和參數）。</div>
+      </div>
+      <div class="concept-card accent">
+        <div class="concept-title">Response（你收到的）</div>
+        <div class="concept-body">包含 <code>status code</code>（成功/失敗）、<code>headers</code>（速率限制剩餘量）、<code>body</code>（模型的回應 JSON）。</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-title">Headers</div>
+        <div class="concept-body">最重要的兩個：<code>Authorization: Bearer YOUR_KEY</code>（身份驗證）和 <code>Content-Type: application/json</code>（告訴 API 你送的是 JSON）。</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-title">Status Code</div>
+        <div class="concept-body"><code>200</code> 成功、<code>400</code> 你的請求有問題、<code>401</code> 金鑰錯誤、<code>429</code> 超過速率限制、<code>500</code> 伺服器端出錯。</div>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block-header"><span class="code-block-lang">HTTP</span><span class="code-block-label">一次典型的 Anthropic API 請求結構</span></div>
+      <pre>POST https://api.anthropic.com/v1/messages
+
+<span class="code-comment">// Headers</span>
+x-api-key: sk-ant-api03-...
+anthropic-version: 2023-06-01
+content-type: application/json
+
+<span class="code-comment">// Body（JSON）</span>
+{
+  <span class="code-str">"model"</span>: <span class="code-str">"claude-haiku-4-5-20251001"</span>,
+  <span class="code-str">"max_tokens"</span>: <span class="code-num">1024</span>,
+  <span class="code-str">"messages"</span>: [
+    { <span class="code-str">"role"</span>: <span class="code-str">"user"</span>, <span class="code-str">"content"</span>: <span class="code-str">"你好，請介紹自己"</span> }
+  ]
+}</pre>
+    </div>
+
+    <div class="callout info">
+      <div class="callout-icon">ℹ️</div>
+      <div class="callout-body"><strong>為什麼後端代理是必要的？</strong>因為 <code>x-api-key</code> 這個 header 必須放在 request 裡。如果前端直接呼叫 API，任何人打開 DevTools 的 Network tab 就能看到你的金鑰。後端代理的作用是把這個 header 藏在伺服器端。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <section class="lesson-section reveal" id="s2">
+    <div class="section-eyebrow">Section 2 · Token Cost</div>
+    <h2 class="section-heading">Token 成本意識：<br><em>每個字都在計費</em></h2>
+    <p class="body-text">AI API 不是按「次」計費，而是按「token」計費。Token 是模型處理文字的基本單位——大約 1 個英文單字 = 1.3 個 token，1 個中文字 = 1.5 ~ 2 個 token。</p>
+
+    <div class="big-quote">你付費的不只是輸出的回應，<span>輸入的 prompt 也計費</span>。一個包含長 System Prompt 的工具，每次呼叫的成本可能比你想的高三倍。</div>
+
+    <div class="token-calc">
+      <div class="token-row"><span class="token-label">System Prompt（300 tokens）</span><span class="token-val">× $0.0008 / 1K = $0.00024</span></div>
+      <div class="token-row"><span class="token-label">User Message（50 tokens）</span><span class="token-val">× $0.0008 / 1K = $0.00004</span></div>
+      <div class="token-row"><span class="token-label">Model Response（200 tokens）</span><span class="token-val">× $0.004 / 1K = $0.00080</span></div>
+      <div class="token-row"><span class="token-label">單次呼叫合計</span><span class="token-val">≈ $0.00108</span></div>
+      <div class="token-row"><span class="token-label">1000 次呼叫</span><span class="token-val">≈ $1.08</span></div>
+    </div>
+
+    <p class="body-text">控制 Token 成本的三個方法：</p>
+    <div class="concept-grid">
+      <div class="concept-card">
+        <div class="concept-title">設定 max_tokens 上限</div>
+        <div class="concept-body">在 API 呼叫時指定 <code>max_tokens</code>，防止模型輸出超長回應。根據你的工具需求設定合理上限，不要用預設值。</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-title">選對模型</div>
+        <div class="concept-body">簡單任務（分類、擷取、格式轉換）用 Haiku。複雜推理才用 Sonnet 或 Opus。成本差距可以到 10 ~ 100 倍。</div>
+      </div>
+      <div class="concept-card accent">
+        <div class="concept-title">Prompt Caching</div>
+        <div class="concept-body">對長且固定的 System Prompt 啟用 cache，後續呼叫的輸入 token 成本降低 90%。高頻工具必用。</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-title">回傳 usage 欄位</div>
+        <div class="concept-body">API response 裡有 <code>usage.input_tokens</code> 和 <code>usage.output_tokens</code>，記錄下來才能知道實際用了多少。</div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <section class="lesson-section reveal" id="s3">
+    <div class="section-eyebrow">Section 3 · Rate Limit</div>
+    <h2 class="section-heading">Rate Limit 與<em>指數退避重試</em></h2>
+    <p class="body-text">每個 AI API 都有速率限制（Rate Limit）：每分鐘最多幾個 request、每分鐘最多幾個 token。超過限制就會收到 <code style="font-family:monospace;background:rgba(201,150,58,.1);padding:1px 6px;border-radius:3px;">429 Too Many Requests</code>。</p>
+    <p class="body-text">解法不是「等一秒再試」，而是<strong>指數退避（Exponential Backoff）</strong>：第一次失敗等 1 秒，第二次等 2 秒，第三次等 4 秒……每次等待時間加倍，避免所有重試同時湧入讓問題更嚴重。</p>
+
+    <div class="code-block">
+      <div class="code-block-header"><span class="code-block-lang">JAVASCRIPT</span><span class="code-block-label">指數退避重試實作</span></div>
+      <pre><span class="code-keyword">async function</span> callWithRetry(fn, maxRetries = <span class="code-num">3</span>) {
+  <span class="code-keyword">for</span> (<span class="code-keyword">let</span> attempt = <span class="code-num">0</span>; attempt &lt; maxRetries; attempt++) {
+    <span class="code-keyword">try</span> {
+      <span class="code-keyword">return await</span> fn();
+    } <span class="code-keyword">catch</span> (err) {
+      <span class="code-keyword">if</span> (err.status === <span class="code-num">429</span> &amp;&amp; attempt &lt; maxRetries - <span class="code-num">1</span>) {
+        <span class="code-keyword">const</span> delay = Math.pow(<span class="code-num">2</span>, attempt) * <span class="code-num">1000</span>; <span class="code-comment">// 1s, 2s, 4s</span>
+        console.log(<span class="code-str">`Rate limited, retrying in ${delay}ms...`</span>);
+        <span class="code-keyword">await new</span> Promise(r => setTimeout(r, delay));
+      } <span class="code-keyword">else</span> {
+        <span class="code-keyword">throw</span> err; <span class="code-comment">// 其他錯誤或超過重試次數，直接拋出</span>
+      }
+    }
+  }
+}</pre>
+    </div>
+
+    <div class="callout key">
+      <div class="callout-icon">🔑</div>
+      <div class="callout-body"><strong>Response Headers 裡藏著剩餘配額：</strong>Anthropic 的回應 headers 包含 <code>anthropic-ratelimit-requests-remaining</code> 和 <code>anthropic-ratelimit-tokens-remaining</code>。在高流量工具裡可以主動監控這些數值，在接近上限前就減速。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <section class="lesson-section reveal" id="s4">
+    <div class="section-eyebrow">Section 4 · Error Handling</div>
+    <h2 class="section-heading">錯誤碼處理：<br><em>4xx vs 5xx</em>，不同的應對策略</h2>
+    <p class="body-text">API 錯誤分兩大類。<strong>4xx</strong> 代表你的請求有問題（可以修正）；<strong>5xx</strong> 代表 API 伺服器端出問題（你只能等待或重試）。錯誤處理的設計原則：4xx 告訴使用者可以做什麼，5xx 告訴使用者你在處理中。</p>
+
+    <table class="err-table">
+      <thead><tr><th>狀態碼</th><th>原因</th><th>使用者看到的訊息</th><th>你的處理方式</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge-err badge-4xx">400</span></td><td>請求格式錯誤（缺少必填欄位、JSON 格式不對）</td><td>「輸入有問題，請重新確認後送出」</td><td>檢查你的輸入驗證邏輯</td></tr>
+        <tr><td><span class="badge-err badge-4xx">401</span></td><td>API 金鑰無效或過期</td><td>「服務暫時無法使用，請聯繫管理員」（不要暴露金鑰問題）</td><td>檢查 .env 設定，更新金鑰</td></tr>
+        <tr><td><span class="badge-err badge-4xx">413</span></td><td>輸入內容太長，超過 context window</td><td>「輸入文字太長，請縮短後再試（建議 2000 字以內）」</td><td>在前端加上字數限制</td></tr>
+        <tr><td><span class="badge-err badge-4xx">429</span></td><td>速率限制</td><td>「目前使用人數較多，請稍後再試」</td><td>指數退避重試</td></tr>
+        <tr><td><span class="badge-err badge-5xx">500</span></td><td>API 伺服器內部錯誤</td><td>「AI 服務暫時無法使用，請稍後再試」</td><td>重試 1~2 次後放棄，記錄 log</td></tr>
+        <tr><td><span class="badge-err badge-5xx">529</span></td><td>API 過載（Anthropic 特有）</td><td>「AI 服務目前負載較高，請稍後再試」</td><td>等待 30 秒後重試</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body"><strong>UX 原則：永遠給使用者一個「下一步」。</strong>不要只顯示「發生錯誤」。是可重試的就說「請稍後再試」；是使用者可以修正的就說「請縮短輸入」；是需要等待的就顯示 loading 狀態，讓使用者知道你沒有卡住。</div>
+    </div>
+  </section>
+
+</main>
+
+<nav class="lesson-nav">
+  <a class="nav-btn" href="../index.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    <div><div class="nav-btn-label">返回</div><div class="nav-btn-title">課程總覽</div></div>
+  </a>
+  <a class="nav-btn next" href="CH6-2.html">
+    <div><div class="nav-btn-label">下一節</div><div class="nav-btn-title">CH6-2 Embedding 與向量搜尋基礎</div></div>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">140 小時生成式 AI 實務應用課程 · Part 6 AI 應用開發進階</div>
+</footer>
+
+<script>
+const prog = document.getElementById('prog');
+window.addEventListener('scroll', () => { const st=window.scrollY,dh=document.documentElement.scrollHeight-window.innerHeight; prog.style.width=(dh>0?(st/dh)*100:0)+'%'; });
+document.querySelectorAll('.reveal').forEach(el => new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');}}),{threshold:0.08}).observe(el));
+const sdots=document.getElementById('sdots');
+const sections=['s1','s2','s3','s4'].map(id=>document.getElementById(id));
+const dotBtns=document.querySelectorAll('.sdot');
+new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){dotBtns.forEach(d=>d.classList.remove('active'));const i=sections.indexOf(x.target);if(i>=0)dotBtns[i].classList.add('active');}}),{threshold:0.4}).observe&&sections.forEach(s=>s&&new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){dotBtns.forEach(d=>d.classList.remove('active'));const i=sections.indexOf(x.target);if(i>=0)dotBtns[i].classList.add('active');}}),{threshold:0.4}).observe(s));
+window.addEventListener('scroll',()=>sdots.classList.toggle('visible',window.scrollY>200));
+dotBtns.forEach(btn=>btn.addEventListener('click',()=>{const s=document.getElementById(btn.dataset.sec);if(s)s.scrollIntoView({behavior:'smooth',block:'start'});}));
+</script>
+</body>
+</html>

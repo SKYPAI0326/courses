@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>履歷 / 自傳段落整理器 · 實例演練 3｜140小時生成式AI實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#8c8880;
+  --c-a1:#b5703a; --c-a2:#c9963a; --c-a3:#5a7a5a; --c-a4:#6b7fa3;
+  --radius:6px; --radius-sm:4px; --content-w:780px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a4);width:0%;transition:width .1s;}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a4);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-a4);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a4);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a4);margin-top:8px;flex-shrink:0;}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+.tool-wrap{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:32px 0;}
+.tool-topbar{background:var(--c-surface);border-bottom:1px solid var(--c-border);padding:10px 16px;display:flex;align-items:center;gap:8px;}
+.tool-dot{width:10px;height:10px;border-radius:50%;}
+.tool-dot-r{background:#ff6058;} .tool-dot-y{background:#ffbd2e;} .tool-dot-g{background:#28c840;}
+.tool-label{flex:1;font-size:.72rem;color:var(--c-muted);font-family:'Courier New',monospace;}
+.tool-body{padding:32px 36px;}
+.copy-btn{font-size:.72rem;color:var(--c-a4);background:none;border:1px solid rgba(107,127,163,.3);padding:3px 12px;border-radius:99px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;}
+.copy-btn:hover{background:rgba(107,127,163,.08);}
+.form-field{margin-bottom:20px;}
+.form-label{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;margin-bottom:8px;}
+.req{color:var(--c-a1);}
+.form-input{width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:.88rem;color:var(--c-text);background:var(--c-bg);transition:border-color .15s;}
+.form-input:focus{outline:none;border-color:var(--c-a4);}
+.form-input.error{border-color:var(--c-a1);}
+.form-textarea{width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:.88rem;color:var(--c-text);background:var(--c-bg);min-height:88px;resize:vertical;line-height:1.75;transition:border-color .15s;}
+.form-textarea:focus{outline:none;border-color:var(--c-a4);}
+.form-textarea.error{border-color:var(--c-a1);}
+.form-hint{font-size:.75rem;color:var(--c-muted);margin-top:5px;line-height:1.6;}
+.form-error-msg{font-size:.75rem;color:var(--c-a1);margin-top:5px;display:none;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-divider{border:none;border-top:1px dashed var(--c-border);margin:24px 0;}
+.version-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.version-btn{padding:12px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);background:var(--c-bg);cursor:pointer;font-family:'Noto Sans TC',sans-serif;text-align:left;transition:all .15s;}
+.version-btn:hover{border-color:var(--c-a4);}
+.version-btn.selected{border-color:var(--c-a4);background:rgba(107,127,163,.08);}
+.vb-title{font-size:.87rem;font-weight:700;color:var(--c-text);margin-bottom:3px;}
+.vb-desc{font-size:.74rem;color:var(--c-muted);line-height:1.5;}
+.version-btn.selected .vb-title{color:var(--c-a4);}
+.tone-row{display:flex;gap:8px;flex-wrap:wrap;}
+.tone-btn{padding:7px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);background:var(--c-bg);cursor:pointer;font-family:'Noto Sans TC',sans-serif;font-size:.8rem;color:var(--c-text);transition:all .15s;}
+.tone-btn:hover{border-color:var(--c-a4);}
+.tone-btn.selected{border-color:var(--c-a4);background:rgba(107,127,163,.08);color:var(--c-a4);font-weight:500;}
+.gen-btn{width:100%;margin-top:20px;padding:13px;background:var(--c-a4);color:#fff;border:none;border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:.9rem;font-weight:500;cursor:pointer;}
+.gen-btn:hover{opacity:.88;}
+.validation-box{display:none;padding:16px 20px;background:rgba(181,112,58,.06);border:1px solid rgba(181,112,58,.25);border-radius:var(--radius-sm);margin-top:16px;}
+.validation-title{font-size:.8rem;font-weight:700;color:var(--c-a1);margin-bottom:10px;}
+.validation-list{display:flex;flex-direction:column;gap:6px;}
+.validation-item{display:flex;align-items:flex-start;gap:8px;font-size:.82rem;color:var(--c-a1);}
+.vi-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a1);margin-top:7px;flex-shrink:0;}
+.output-wrap{display:none;margin-top:28px;}
+.output-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.output-label{font-size:.7rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;}
+.output-card{background:var(--c-bg);border:1px solid var(--c-border);border-radius:var(--radius);padding:24px 28px;}
+.output-card-tag{font-size:.7rem;color:var(--c-a4);letter-spacing:1px;font-weight:500;margin-bottom:10px;}
+.output-text{font-size:.92rem;line-height:2.1;color:var(--c-text);white-space:pre-wrap;}
+.output-footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px;}
+.char-count{font-size:.75rem;color:var(--c-muted);}
+.output-warn{font-size:.77rem;color:var(--c-muted);line-height:1.7;margin-top:12px;padding:12px 16px;background:var(--c-surface);border-radius:var(--radius-sm);}
+.steps-list{display:flex;flex-direction:column;gap:0;margin:32px 0;}
+.step-item{display:flex;gap:0;position:relative;}
+.step-item:not(:last-child)::before{content:'';position:absolute;left:20px;top:44px;bottom:0;width:1px;background:var(--c-border);}
+.step-num-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:40px;padding-top:4px;}
+.step-num{width:40px;height:40px;border-radius:50%;background:var(--c-card);border:1.5px solid var(--c-border);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-text);}
+.step-body{flex:1;padding:4px 0 32px 24px;}
+.step-title{font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.step-desc{font-size:.85rem;color:var(--c-muted);line-height:1.75;}
+.step-desc strong{color:var(--c-text);font-weight:700;}
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.tip{background:rgba(107,127,163,.06);border:1px solid rgba(107,127,163,.2);}
+.callout.warn{background:rgba(201,150,58,.06);border:1px solid rgba(201,150,58,.2);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;}
+.callout-body strong{font-weight:700;}
+.result-box{background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.82rem;line-height:1.85;padding:22px 24px;border-radius:var(--radius-sm);white-space:pre-wrap;word-break:break-word;}
+.challenge-box{padding:28px 32px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:28px 0;}
+.challenge-label{font-size:.7rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:16px;}
+.challenge-list{display:flex;flex-direction:column;gap:12px;}
+.challenge-item{display:flex;align-items:flex-start;gap:12px;font-size:.88rem;line-height:1.7;}
+.ci-num{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-a4);flex-shrink:0;width:20px;}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-a4);}
+.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero{padding:40px 20px 36px;}.lesson-title{font-size:1.55rem;}.lesson-body{padding:0 20px 60px;}.form-row{grid-template-columns:1fr;}.version-grid{grid-template-columns:1fr;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">140 小時生成式 AI 實務應用課程</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">實例演練</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a class="back-link" href="../index.html">← 回課程目錄</a>
+  <div class="hero-meta">
+    <div class="hero-part">PART 4 · 零代碼工具工坊</div>
+    <div class="hero-divider-v"></div>
+    <div class="hero-num">實例演練 3</div>
+  </div>
+  <h1 class="lesson-title">履歷 / 自傳<br>段落整理器</h1>
+  <p class="lesson-tagline">輸入你的學歷、工作經歷、技能與特質，選擇段落類型與語氣風格，工具自動整理成對應版本。素材不夠時會明確告訴你缺什麼，不會幫你亂填。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">PRACTICE GOALS</div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>理解「輸入驗證」的設計邏輯：工具要能判斷素材夠不夠，不夠就報錯</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>練習「同一份素材 × 多版本輸出」的工具結構設計</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>做出一個你自己可以實際拿來用的履歷整理工具頁</span></div>
+  </div>
+</div>
+
+<div class="lesson-body">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">TOOL · 互動工具</div>
+    <h2 class="section-heading">填入個人素材，選版本，生成段落</h2>
+    <p class="body-text">把你的背景資料填進去，不需要寫完整句子，條列式關鍵詞即可。標 <span class="req">*</span> 為必填。素材不足時工具會列出缺什麼，而不是硬生一份空洞段落。</p>
+
+    <div class="tool-wrap">
+      <div class="tool-topbar">
+        <div class="tool-dot tool-dot-r"></div>
+        <div class="tool-dot tool-dot-y"></div>
+        <div class="tool-dot tool-dot-g"></div>
+        <div class="tool-label">resume-builder.html</div>
+      </div>
+      <div class="tool-body">
+
+        <div class="form-field">
+          <div class="form-label">最高學歷 <span class="req">*</span></div>
+          <input class="form-input" id="f-edu" type="text" placeholder="例：國立台灣大學企業管理學系，2020 年畢業">
+          <div class="form-error-msg" id="err-edu">請填入學歷（至少包含學校與科系）</div>
+        </div>
+
+        <div class="form-field">
+          <div class="form-label">工作經歷 <span class="req">*</span>　<span style="font-weight:400;letter-spacing:0;">每行一份：公司 / 職稱 / 年資 / 負責事項</span></div>
+          <textarea class="form-textarea" id="f-exp" placeholder="例：&#10;OO 科技 / 行銷企劃 / 2 年 / 社群內容規劃、廣告投放、活動執行&#10;XX 顧問 / 業務助理 / 1.5 年 / 客戶聯絡、報價、訂單追蹤"></textarea>
+          <div class="form-error-msg" id="err-exp">請填入至少一份工作經歷（描述需多於 10 個字）</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">核心技能 <span class="req">*</span></div>
+            <textarea class="form-textarea" id="f-skills" style="min-height:76px;" placeholder="例：Excel、PowerPoint&#10;Google Analytics&#10;英文（多益 800）、日文 N3"></textarea>
+            <div class="form-error-msg" id="err-skills">請填入至少 2 項技能（逗號或換行分隔）</div>
+          </div>
+          <div class="form-field">
+            <div class="form-label">個人特質或亮點</div>
+            <textarea class="form-textarea" id="f-traits" style="min-height:76px;" placeholder="例：抗壓性強、擅長跨部門溝通&#10;曾帶 5 人小組、服務優良獎"></textarea>
+            <div class="form-hint">選填，有填段落說服力更強</div>
+          </div>
+        </div>
+
+        <div class="form-divider"></div>
+
+        <div class="form-field">
+          <div class="form-label">段落類型 <span class="req">*</span></div>
+          <div class="version-grid" id="version-grid">
+            <button class="version-btn selected" data-v="intro" onclick="selectVersion(this)">
+              <div class="vb-title">履歷自我介紹</div>
+              <div class="vb-desc">100–150 字，正式書面，放在履歷最上方</div>
+            </button>
+            <button class="version-btn" data-v="bio" onclick="selectVersion(this)">
+              <div class="vb-title">自傳段落</div>
+              <div class="vb-desc">300–400 字，完整敘述背景與動機</div>
+            </button>
+            <button class="version-btn" data-v="interview" onclick="selectVersion(this)">
+              <div class="vb-title">面試一分鐘自介</div>
+              <div class="vb-desc">口語版本，約 180–220 字，可直接念</div>
+            </button>
+            <button class="version-btn" data-v="cover" onclick="selectVersion(this)">
+              <div class="vb-title">求職信開場段</div>
+              <div class="vb-desc">80–100 字，說明動機與最強亮點</div>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <div class="form-label">語氣風格</div>
+          <div class="tone-row" id="tone-row">
+            <button class="tone-btn selected" data-t="general" onclick="selectTone(this)">一般通用</button>
+            <button class="tone-btn" data-t="tech" onclick="selectTone(this)">科技 / 新創</button>
+            <button class="tone-btn" data-t="corp" onclick="selectTone(this)">傳統大企業</button>
+            <button class="tone-btn" data-t="edu" onclick="selectTone(this)">教育 / 非營利</button>
+          </div>
+          <div class="form-hint">影響用詞的正式程度與強調重點</div>
+        </div>
+
+        <button class="gen-btn" onclick="generate()">整理段落 →</button>
+
+        <div class="validation-box" id="validation-box">
+          <div class="validation-title">素材不足，請補充以下資訊：</div>
+          <div class="validation-list" id="validation-list"></div>
+        </div>
+
+        <div class="output-wrap" id="output-wrap">
+          <div class="output-header">
+            <div class="output-label">生成結果</div>
+            <button class="copy-btn" onclick="copyOutput()">複製段落</button>
+          </div>
+          <div class="output-card">
+            <div class="output-card-tag" id="output-tag"></div>
+            <div class="output-text" id="output-text"></div>
+            <div class="output-footer">
+              <div class="char-count" id="char-count"></div>
+            </div>
+          </div>
+          <div class="output-warn">⚠ 請核對段落中的公司名稱、職稱、年資等事實是否正確。這份草稿的結構由工具整理，內容的準確性需要你親自確認後再使用。</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body">
+        <strong>「輸入驗證」是工具設計的基本素養。</strong>素材不足時，好工具會告訴使用者缺什麼，而不是硬生一份空洞的結果。設計工具時先問自己：「哪些欄位是生成的最低必要條件？空白時工具應該做什麼？」——把這個判斷邏輯寫進 Prompt，工具就會有這個能力。
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-icon">⚠</div>
+      <div class="callout-body">
+        <strong>工具的輸出是草稿，不是最終版。</strong>這個工具幫你把素材整理成段落結構，但裡面的數字、事實與說法，必須你自己確認是否正確。把 AI 的輸出當成「初稿」，而不是「可以直接送出的版本」。
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">HOW TO REPLICATE · 如何自己做出這個工具</div>
+    <h2 class="section-heading">讓 AI 建一個有「輸入驗證」的多版本生成工具</h2>
+    <p class="body-text">這個工具的關鍵設計有兩點：<strong>輸入驗證</strong>（素材不足時報錯而不是亂生）和<strong>多版本輸出</strong>（同樣素材產出不同格式的段落）。把這兩個需求說清楚，AI 就能幫你建出完整的工具。</p>
+
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">1</div></div>
+        <div class="step-body">
+          <div class="step-title">先列清楚：哪些欄位必填、哪些選填、輸出幾種版本</div>
+          <div class="step-desc">寫 Prompt 之前，先在紙上整理工具的「輸入結構」和「輸出清單」。<strong>輸入結構想清楚了，Prompt 就只是把它說出來而已。</strong>不要在 Prompt 裡邊想邊說。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">2</div></div>
+        <div class="step-body">
+          <div class="step-title">在 Prompt 中明確說明每個必填欄位的驗證條件</div>
+          <div class="step-desc">不要只說「必填」，要說具體判斷標準：<strong>「工作經歷少於 10 個字就報錯」「技能少於 2 項就報錯」</strong>。條件越具體，工具的反應越準確，越不會有意外狀況。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">3</div></div>
+        <div class="step-body">
+          <div class="step-title">說明每個輸出版本的差異（字數、語氣、用途）</div>
+          <div class="step-desc">不同版本的差異要說清楚：履歷版要簡潔有力、面試版要口語自然、自傳版要完整有脈絡。<strong>說清楚差異，AI 才能做出真正不同的版本，而不是四個一樣的段落。</strong></div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">4</div></div>
+        <div class="step-body">
+          <div class="step-title">把這個「驗證 + 多版本」框架換成你的題目</div>
+          <div class="step-desc">把「履歷素材」換成你需要整理的任何內容：活動資訊（輸出 Email 版、公告版、IG 版）、產品特色（輸出官網版、簡報版、銷售話術版）。<strong>結構通用，換題目就能用。</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tool-wrap">
+      <div class="tool-topbar">
+        <div class="tool-dot tool-dot-r"></div>
+        <div class="tool-dot tool-dot-y"></div>
+        <div class="tool-dot tool-dot-g"></div>
+        <div class="tool-label">→ 複製這段 Prompt 貼入 AI</div>
+        <button class="copy-btn" style="margin-left:auto;" onclick="copyPrompt()">複製指令</button>
+      </div>
+      <div class="tool-body" style="padding:24px 28px;">
+        <div class="result-box" id="prompt-box">你是一位擅長製作實用工具的前端工程師。
+
+請製作一個「履歷 / 自傳段落整理器」的單頁 HTML 工具。
+
+【輸入欄位】
+必填（空白時不允許生成，顯示明確的錯誤提示）：
+- 最高學歷（單行文字）
+- 工作經歷（多行，每行格式：公司 / 職稱 / 年資 / 負責事項）
+- 核心技能（多行或逗號分隔，至少 2 項）
+
+選填：
+- 個人特質或亮點（多行文字）
+
+【版本選擇（單選按鈕）】
+- 履歷自我介紹：100–150 字，正式書面
+- 自傳段落：300–400 字，完整敘述背景與動機
+- 面試一分鐘自介：180–220 字，口語自然，可直接念
+- 求職信開場段：80–100 字，強調動機與最強亮點
+
+【語氣風格（單選按鈕）】
+- 一般通用 / 科技新創 / 傳統大企業 / 教育非營利
+
+【驗證邏輯（生成前先執行）】
+- 學歷為空 → 提示「請填入學歷」
+- 工作經歷少於 10 個字 → 提示「請補充工作內容」
+- 技能少於 2 項 → 提示「請至少填入 2 項技能」
+- 任一未通過 → 顯示紅色提示區塊，列出所有缺少的項目，不執行生成
+
+【輸出】
+- 根據素材組合產出對應版本的段落文字
+- 顯示字數統計
+- 顯示「複製」按鈕
+- 重新生成時更新輸出區（不疊加）
+- 輸出下方加提醒：「請確認段落中的事實是否正確後再使用」
+
+【設計規格】
+- 無印良品風格：背景 #f5f3ee，卡片 #fff，邊框 #d8d4cb
+- 強調色：霧藍 #6b7fa3
+- 字體：Shippori Mincho + Noto Sans TC（Google Fonts）
+- 圓角 6px，無漸層，無 box-shadow
+
+請輸出完整的單一 HTML 檔案。</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">CHALLENGE · 進階挑戰</div>
+    <h2 class="section-heading">讓整理器更聰明、更能實際使用</h2>
+    <div class="challenge-box">
+      <div class="challenge-label">PRACTICE VARIATIONS</div>
+      <div class="challenge-list">
+        <div class="challenge-item">
+          <div class="ci-num">01</div>
+          <div>加入「應徵職位」欄位。輸入目標職位後，工具在生成時能根據關鍵字決定強調哪些經歷和技能，讓同一份素材快速產出針對不同職位的客製版本。</div>
+        </div>
+        <div class="challenge-item">
+          <div class="ci-num">02</div>
+          <div>加入「字數範圍警示」：每個版本旁顯示目前字數，超出或未達建議範圍時顯示橘色提醒，讓使用者知道需要精簡或補充。</div>
+        </div>
+        <div class="challenge-item">
+          <div class="ci-num">03</div>
+          <div>把「驗證 + 多版本輸出」的架構換成另一個主題：活動企劃快速整理器（輸入活動名稱、時間、主題、目標族群，輸出 Email 版、IG 版、公告版三種文案）。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<nav class="lesson-nav">
+  <a class="nav-btn" href="PRAC4-2.html">
+    <div>
+      <div class="nav-btn-label">← 上一個演練</div>
+      <div class="nav-btn-title">實例演練 2：排班與時區協調工具</div>
+    </div>
+  </a>
+  <a class="nav-btn next" href="PRAC4-4.html">
+    <div>
+      <div class="nav-btn-label">下一個演練 →</div>
+      <div class="nav-btn-title">實例演練 4：個人複合工具頁</div>
+    </div>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">140 小時生成式 AI 實務應用課程 · Part 4 實例演練</div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const total = document.body.scrollHeight - window.innerHeight;
+  document.getElementById('prog').style.width = (window.scrollY / total * 100) + '%';
+});
+
+let selectedVersion = 'intro';
+let selectedTone = 'general';
+
+function selectVersion(btn) {
+  document.querySelectorAll('#version-grid .version-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedVersion = btn.dataset.v;
+}
+function selectTone(btn) {
+  document.querySelectorAll('#tone-row .tone-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedTone = btn.dataset.t;
+}
+
+function validate() {
+  const edu = document.getElementById('f-edu').value.trim();
+  const exp = document.getElementById('f-exp').value.trim();
+  const skills = document.getElementById('f-skills').value.trim();
+  const skillList = skills.split(/[,，、\n]/).map(s => s.trim()).filter(Boolean);
+
+  ['f-edu','f-exp','f-skills'].forEach(id => document.getElementById(id).classList.remove('error'));
+  document.querySelectorAll('.form-error-msg').forEach(e => e.style.display = 'none');
+
+  const errors = [];
+  if (!edu) errors.push({ field:'f-edu', err:'err-edu', msg:'學歷（學校與科系）' });
+  if (exp.length < 10) errors.push({ field:'f-exp', err:'err-exp', msg:'工作經歷（請描述職稱與工作內容）' });
+  if (skillList.length < 2) errors.push({ field:'f-skills', err:'err-skills', msg:'核心技能（至少 2 項）' });
+
+  if (errors.length) {
+    errors.forEach(e => {
+      document.getElementById(e.field).classList.add('error');
+      document.getElementById(e.err).style.display = 'block';
+    });
+    const vBox = document.getElementById('validation-box');
+    document.getElementById('validation-list').innerHTML = errors.map(e =>
+      `<div class="validation-item"><div class="vi-dot"></div><span>請補充：${e.msg}</span></div>`
+    ).join('');
+    vBox.style.display = 'block';
+    vBox.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    return false;
+  }
+  document.getElementById('validation-box').style.display = 'none';
+  return true;
+}
+
+const toneAdj = { general:'積極踏實', tech:'具備快速學習與創新思維', corp:'嚴謹負責、注重細節', edu:'以服務為導向、具備團隊協作精神' };
+const versionLabel = { intro:'履歷自我介紹', bio:'自傳段落', interview:'面試一分鐘自介', cover:'求職信開場段' };
+const toneLabel = { general:'一般通用', tech:'科技/新創', corp:'傳統大企業', edu:'教育/非營利' };
+
+function buildText(edu, exp, skills, traits, version, tone) {
+  const expLines = exp.split('\n').map(l => l.trim()).filter(Boolean);
+  const first = expLines[0] || '';
+  const p = first.split('/').map(x => x.trim());
+  const co = p[0]||'相關公司', role = p[1]||'專業職務', dur = p[2]||'數年', duty = p[3]||'相關業務';
+  const skillList = skills.split(/[,，、\n]/).map(s => s.trim()).filter(Boolean);
+  const top3 = skillList.slice(0,3).join('、');
+  const traitSuffix = traits.trim() ? `，${traits.trim()}` : '';
+  const adj = toneAdj[tone] || toneAdj.general;
+
+  if (version === 'intro') {
+    return `畢業於${edu}，曾於${co}擔任${role}約${dur}，負責${duty}，具備${top3}等核心能力${traitSuffix}。做事${adj}，擅長將所學落實於工作成果，期待在新環境持續貢獻所長。`;
+  }
+  if (version === 'bio') {
+    const allLines = expLines.map(l => {
+      const q = l.split('/').map(x => x.trim());
+      return `在 ${q[0]||'相關公司'} 擔任 ${q[1]||'相關職位'} 約 ${q[2]||'一段時間'}，主要負責 ${q[3]||'相關業務'}`;
+    });
+    return `畢業於${edu}，在求學期間奠定了紮實的專業基礎。\n\n工作後，${allLines.join('；')}。這些經歷讓我深入理解實務運作，也培養了${top3}等關鍵能力${traitSuffix}。\n\n我一直保持${adj}的工作態度，相信主動承擔與持續學習是成長的核心動力。未來希望能在貴公司持續發揮所長，共同創造更大的價值。`;
+  }
+  if (version === 'interview') {
+    return `大家好，我叫（您的姓名），畢業於${edu}。\n\n我有 ${expLines.length} 段工作經驗，最近在${co}擔任${role}，主要負責${duty}，大約${dur}。\n\n我的專業能力包含${top3}${traitSuffix}，做事風格${adj}，在需要跨部門協作的環境中也很能適應。\n\n我對這個職位很感興趣，認為自己的背景和能力跟這個位置很吻合，也期待有機會進一步了解這個團隊。謝謝。`;
+  }
+  if (version === 'cover') {
+    return `您好，我是（您的姓名），畢業於${edu}，具備${top3}等專業能力${traitSuffix}，做事${adj}。看到貴公司此次招募，認為與我的背景高度契合，誠摯希望能有機會加入，共同成長。`;
+  }
+  return '';
+}
+
+function generate() {
+  if (!validate()) return;
+  const edu = document.getElementById('f-edu').value.trim();
+  const exp = document.getElementById('f-exp').value.trim();
+  const skills = document.getElementById('f-skills').value.trim();
+  const traits = document.getElementById('f-traits').value.trim();
+  const text = buildText(edu, exp, skills, traits, selectedVersion, selectedTone);
+  const tag = `${versionLabel[selectedVersion]}・${toneLabel[selectedTone]}語氣`;
+
+  document.getElementById('output-tag').textContent = tag;
+  document.getElementById('output-text').textContent = text;
+  document.getElementById('char-count').textContent = `字數：${text.replace(/\s/g,'').length} 字`;
+
+  const wrap = document.getElementById('output-wrap');
+  wrap.style.display = 'block';
+  wrap.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+function copyOutput() {
+  const text = document.getElementById('output-text').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    btn.textContent = '已複製！';
+    setTimeout(() => btn.textContent = '複製段落', 1800);
+  });
+}
+
+function copyPrompt() {
+  const text = document.getElementById('prompt-box').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    btn.textContent = '已複製！';
+    setTimeout(() => btn.textContent = '複製指令', 1800);
+  });
+}
+</script>
+</body>
+</html>

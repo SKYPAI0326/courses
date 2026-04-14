@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH6-4 Function Calling 與 Agent 工具鏈設計｜140小時生成式 AI 實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-accent:#b5703a;--radius:6px;--radius-sm:4px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}.topbar-sub{font-size:.8rem;color:var(--c-muted);}.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-accent);border:1px solid rgba(181,112,58,.3);background:rgba(181,112,58,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}.progress-fill{height:100%;background:var(--c-accent);width:0%;transition:width .1s;}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}.back-link:hover{color:var(--c-accent);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-accent);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-accent);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;}.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-accent);margin-top:8px;flex-shrink:0;}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-accent);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.tip{background:rgba(181,112,58,.06);border:1px solid rgba(181,112,58,.2);}
+.callout.warn{background:rgba(201,150,58,.06);border:1px solid rgba(201,150,58,.2);}
+.callout.key{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text);}.callout-body strong{font-weight:700;}
+.concept-box{padding:22px 26px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);margin:20px 0;}
+.concept-box-title{font-size:.78rem;font-weight:700;color:var(--c-accent);letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase;}
+.concept-box p{font-size:.9rem;line-height:1.85;color:var(--c-text);}
+.concept-box code{font-family:'Courier New',monospace;font-size:.82rem;background:rgba(181,112,58,.1);color:#8a4a1a;padding:1px 5px;border-radius:3px;}
+.react-loop{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:28px 0;}
+.react-step{padding:20px 16px;background:var(--c-card);border:1px solid var(--c-border);text-align:center;position:relative;}
+.react-step:first-child{border-radius:var(--radius) 0 0 var(--radius);}
+.react-step:last-child{border-radius:0 var(--radius) var(--radius) 0;}
+.react-step.active{background:rgba(181,112,58,.06);border-color:rgba(181,112,58,.35);}
+.react-arrow{position:absolute;right:-12px;top:50%;transform:translateY(-50%);font-size:.75rem;color:var(--c-muted);z-index:1;background:var(--c-bg);padding:2px 0;}
+.react-icon{font-size:1.4rem;margin-bottom:8px;}
+.react-label{font-size:.78rem;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.react-desc{font-size:.72rem;color:var(--c-muted);line-height:1.5;}
+.tool-schema{background:#1e1e1e;color:#d4d4d4;border-radius:var(--radius);padding:20px 24px;font-family:'Courier New',monospace;font-size:.8rem;line-height:1.7;overflow-x:auto;margin:20px 0;}
+.tool-schema .kw{color:#569cd6;}.tool-schema .str{color:#ce9178;}.tool-schema .key{color:#9cdcfe;}.tool-schema .cmt{color:#6a9955;}
+.trap-list{display:flex;flex-direction:column;gap:14px;margin:28px 0;}
+.trap-item{padding:18px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);}
+.trap-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.trap-badge{font-size:.68rem;padding:2px 8px;border-radius:99px;font-weight:500;background:rgba(181,60,60,.08);color:#b03030;border:1px solid rgba(181,60,60,.25);}
+.trap-title{font-size:.88rem;font-weight:700;color:var(--c-text);}
+.trap-cause{font-size:.82rem;color:var(--c-muted);margin-bottom:6px;line-height:1.7;}
+.trap-fix{font-size:.82rem;color:var(--c-a3);font-weight:500;}
+.tool-compare{width:100%;border-collapse:collapse;margin:20px 0;font-size:.85rem;}
+.tool-compare th{font-size:.72rem;font-weight:700;color:var(--c-muted);letter-spacing:.5px;text-transform:uppercase;padding:10px 14px;background:var(--c-surface);border-bottom:1px solid var(--c-border);text-align:left;}
+.tool-compare td{padding:12px 14px;border-bottom:1px solid var(--c-border);vertical-align:top;line-height:1.7;}
+.tool-compare tr:last-child td{border-bottom:none;}
+.tool-compare td:first-child{font-weight:600;white-space:nowrap;}
+.tool-compare .yes{color:#4a7a4a;font-weight:500;}.tool-compare .no{color:#8c8880;}
+.flow-steps{display:flex;flex-direction:column;gap:0;margin:28px 0;}
+.flow-step{display:flex;gap:16px;padding:18px 20px;background:var(--c-card);border:1px solid var(--c-border);border-top:none;align-items:flex-start;}
+.flow-step:first-child{border-top:1px solid var(--c-border);border-radius:var(--radius) var(--radius) 0 0;}
+.flow-step:last-child{border-radius:0 0 var(--radius) var(--radius);}
+.flow-step-num{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-accent);flex-shrink:0;width:28px;text-align:right;}
+.flow-step-body{flex:1;}.flow-step-title{font-size:.88rem;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.flow-step-desc{font-size:.82rem;color:var(--c-muted);line-height:1.7;}
+.flow-step-desc code{font-family:'Courier New',monospace;font-size:.78rem;background:rgba(181,112,58,.1);color:#8a4a1a;padding:1px 5px;border-radius:3px;}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-accent);}.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}.footer-note{font-size:.75rem;color:var(--c-muted);}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1);}.reveal.in{opacity:1;transform:translateY(0);}
+.section-rule{transform-origin:left center;opacity:0;transition:opacity .4s ease,transform .6s;transform:scaleX(.3);}.section-rule.in{opacity:1;transform:scaleX(1);}
+@media(max-width:768px){.topbar{padding:0 16px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero{padding:40px 20px 36px;}.lesson-title{font-size:1.55rem;}.lesson-body{padding:0 20px 60px;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.react-loop{grid-template-columns:repeat(2,1fr);}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="logo" href="../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">140 小時生成式 AI 實務應用課程</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH 6.4 · Part 6</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">PART 6 · AI 應用開發進階</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 6.4 · 3 小時</span>
+  </div>
+  <h1 class="lesson-title">Function Calling 與<br>Agent 工具鏈設計</h1>
+  <p class="lesson-tagline">讓模型不只「說話」，還能「動手」。本章從工具定義到 Agent Loop，帶你建構能呼叫外部功能的 AI 應用。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學完你會</div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>理解 Function Calling 的運作機制，知道模型何時觸發工具</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>能用 JSON Schema 定義工具，讓模型正確輸出結構化參數</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>掌握 ReAct Agent Loop 架構，設計多步驟工具鏈</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>辨識三種常見 Agent 陷阱，並知道對應的防禦策略</span></div>
+  </div>
+</div>
+
+<div class="lesson-body">
+
+  <!-- Section 1 -->
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 01</div>
+    <h2 class="section-heading">Function Calling 是什麼？<em>模型不執行程式，只輸出意圖</em></h2>
+    <p class="body-text">一個常見誤解：Function Calling 讓 AI 直接執行程式。實際上，模型只做一件事——<strong>輸出結構化的函式呼叫意圖</strong>，真正的執行權永遠在你的程式碼手上。</p>
+
+    <div class="concept-box reveal">
+      <div class="concept-box-title">運作三步驟</div>
+      <p>① 你定義工具（名稱 + 參數 Schema）→ ② 模型決定「要呼叫哪個工具、帶什麼參數」並回傳 JSON → ③ 你的程式接收 JSON、真正執行，再把結果送回模型繼續對話。</p>
+    </div>
+
+    <p class="body-text">這個設計的好處是安全且可控：模型無法自行呼叫網路、讀取檔案或操作資料庫，所有副作用都經過你的程式碼過濾。</p>
+
+    <div class="tool-schema reveal">
+<span class="cmt">// Anthropic Claude 工具定義範例</span>
+{
+  <span class="key">"name"</span>: <span class="str">"get_weather"</span>,
+  <span class="key">"description"</span>: <span class="str">"查詢指定城市的當前天氣"</span>,
+  <span class="key">"input_schema"</span>: {
+    <span class="key">"type"</span>: <span class="str">"object"</span>,
+    <span class="key">"properties"</span>: {
+      <span class="key">"city"</span>: {
+        <span class="key">"type"</span>: <span class="str">"string"</span>,
+        <span class="key">"description"</span>: <span class="str">"城市名稱，例如 台北"</span>
+      },
+      <span class="key">"unit"</span>: {
+        <span class="key">"type"</span>: <span class="str">"string"</span>,
+        <span class="key">"enum"</span>: [<span class="str">"celsius"</span>, <span class="str">"fahrenheit"</span>]
+      }
+    },
+    <span class="key">"required"</span>: [<span class="str">"city"</span>]
+  }
+}
+    </div>
+
+    <div class="callout tip reveal">
+      <div class="callout-icon">✍️</div>
+      <div class="callout-body"><strong>description 欄位決定觸發精準度。</strong>模型靠 description 判斷「這個工具適不適合用」，寫得越清晰，觸發越準確。把它當成寫給模型看的說明文件，不是給人類看的注釋。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <!-- Section 2 -->
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 02</div>
+    <h2 class="section-heading">ReAct Agent Loop：<em>觀察 → 思考 → 行動 → 觀察</em></h2>
+    <p class="body-text">單次工具呼叫解決不了複雜任務。Agent Loop 讓模型在「思考與行動」之間循環，直到任務完成。ReAct（Reasoning + Acting）是目前最常見的架構。</p>
+
+    <div class="react-loop reveal">
+      <div class="react-step active">
+        <div class="react-arrow">→</div>
+        <div class="react-icon">👁</div>
+        <div class="react-label">Observe</div>
+        <div class="react-desc">接收環境狀態、工具回傳結果、使用者輸入</div>
+      </div>
+      <div class="react-step">
+        <div class="react-arrow">→</div>
+        <div class="react-icon">💭</div>
+        <div class="react-label">Think</div>
+        <div class="react-desc">模型推理下一步應該做什麼、呼叫哪個工具</div>
+      </div>
+      <div class="react-step">
+        <div class="react-arrow">→</div>
+        <div class="react-icon">⚡</div>
+        <div class="react-label">Act</div>
+        <div class="react-desc">輸出工具呼叫 JSON，程式執行並取得結果</div>
+      </div>
+      <div class="react-step active">
+        <div class="react-icon">🔄</div>
+        <div class="react-label">Observe</div>
+        <div class="react-desc">結果送回模型，進入下一輪循環直到完成</div>
+      </div>
+    </div>
+
+    <div class="flow-steps reveal">
+      <div class="flow-step">
+        <div class="flow-step-num">1</div>
+        <div class="flow-step-body">
+          <div class="flow-step-title">設定系統提示詞與工具清單</div>
+          <div class="flow-step-desc">告訴模型它的角色、可用工具，以及何時應該使用工具而非直接回答。</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">2</div>
+        <div class="flow-step-body">
+          <div class="flow-step-title">傳入使用者訊息，呼叫模型 API</div>
+          <div class="flow-step-desc">模型回傳 <code>stop_reason: "tool_use"</code>（Claude）或 <code>finish_reason: "tool_calls"</code>（OpenAI），代表它想用工具。</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">3</div>
+        <div class="flow-step-body">
+          <div class="flow-step-title">解析工具呼叫，執行對應函式</div>
+          <div class="flow-step-desc">從回應中取出 <code>tool_use</code> 區塊，把 <code>input</code> 傳入你的本地函式，取得結果。</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">4</div>
+        <div class="flow-step-body">
+          <div class="flow-step-title">把工具結果附回對話繼續</div>
+          <div class="flow-step-desc">以 <code>tool_result</code> 角色把執行結果送回模型，讓它繼續推理或輸出最終答案。</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">5</div>
+        <div class="flow-step-body">
+          <div class="flow-step-title">重複直到 stop_reason 為 end_turn</div>
+          <div class="flow-step-desc">只要模型還在要求工具就繼續循環。最終模型輸出文字答案，結束 Loop。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout key reveal">
+      <div class="callout-icon">🔑</div>
+      <div class="callout-body"><strong>Agent Loop 的本質是狀態機。</strong>你的程式負責維護對話歷史（messages array），模型每次都看到完整歷史，所以能「記住」前幾輪的工具結果繼續推理。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <!-- Section 3 -->
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 03</div>
+    <h2 class="section-heading">三種常見 Agent 陷阱<em>及防禦策略</em></h2>
+    <p class="body-text">Agent 很強大，但也引入了新的失敗模式。以下是生產環境中最常遇到的三種問題。</p>
+
+    <div class="trap-list reveal">
+      <div class="trap-item">
+        <div class="trap-header">
+          <div class="trap-badge">陷阱一</div>
+          <div class="trap-title">無限迴圈（Infinite Loop）</div>
+        </div>
+        <div class="trap-cause">模型反覆呼叫同一工具卻未收斂，或工具回傳的錯誤讓模型陷入重試循環，導致 API 費用暴增與程式卡死。</div>
+        <div class="trap-fix">防禦：設定最大迭代次數（如 max_turns = 10），超過就強制中斷並回傳錯誤訊息；監控同一工具在同一對話中被呼叫的次數。</div>
+      </div>
+      <div class="trap-item">
+        <div class="trap-header">
+          <div class="trap-badge">陷阱二</div>
+          <div class="trap-title">工具幻覺（Tool Hallucination）</div>
+        </div>
+        <div class="trap-cause">模型呼叫了不存在的工具名稱，或傳入格式錯誤的參數（如把字串傳給 integer 欄位），導致程式拋出異常。</div>
+        <div class="trap-fix">防禦：呼叫前先驗證工具名稱是否在清單中；用 JSON Schema 驗證參數；錯誤時把清楚的錯誤訊息送回模型讓它自我修正，而不是直接拋出 500。</div>
+      </div>
+      <div class="trap-item">
+        <div class="trap-header">
+          <div class="trap-badge">陷阱三</div>
+          <div class="trap-title">工具呼叫失敗未處理（Unhandled Failure）</div>
+        </div>
+        <div class="trap-cause">外部 API 返回錯誤、網路逾時、或資料庫查無結果，程式未正確處理就送回模型，模型在不完整資訊下繼續推理，輸出錯誤答案。</div>
+        <div class="trap-fix">防禦：工具函式永遠回傳結構化結果（success: true/false + 錯誤說明），讓模型看到「查詢失敗，原因是…」而不是空值；善用 try/catch。</div>
+      </div>
+    </div>
+
+    <div class="callout warn reveal">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body"><strong>不要讓工具有副作用的操作無限重試。</strong>寫入資料庫、發送郵件、扣款等不可逆操作，必須在工具實作層加冪等保護（idempotency key），避免重試時重複執行。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <!-- Section 4 -->
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 04</div>
+    <h2 class="section-heading">實務工具選擇：<em>程式 API vs 低代碼 Agent 平台</em></h2>
+    <p class="body-text">Function Calling 有兩種實作路線：寫程式碼直接呼叫 API，或使用低代碼 Agent 平台（如 n8n）。選哪條路取決於你的需求。</p>
+
+    <table class="tool-compare reveal">
+      <thead>
+        <tr>
+          <th>面向</th>
+          <th>程式碼（Claude / OpenAI API）</th>
+          <th>n8n AI Agent 節點</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>工具定義</td>
+          <td>手寫 JSON Schema，完全自訂</td>
+          <td>拖拉節點，平台管理 Schema</td>
+        </tr>
+        <tr>
+          <td>自訂程度</td>
+          <td class="yes">最高，可精控每個參數</td>
+          <td class="no">中，受限平台支援的工具</td>
+        </tr>
+        <tr>
+          <td>整合難度</td>
+          <td class="no">需自行處理 Loop、狀態、錯誤</td>
+          <td class="yes">低，平台處理迴圈與錯誤</td>
+        </tr>
+        <tr>
+          <td>適用情境</td>
+          <td>需嵌入現有系統、高度客製化工具鏈</td>
+          <td>快速自動化、整合 SaaS 服務</td>
+        </tr>
+        <tr>
+          <td>成本控制</td>
+          <td class="yes">可自訂 max_turns、token 限制</td>
+          <td class="no">依平台設定，彈性較低</td>
+        </tr>
+        <tr>
+          <td>除錯體驗</td>
+          <td>查 console log、API 回應</td>
+          <td class="yes">視覺化執行歷史，較直觀</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip reveal">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body"><strong>建議路線：</strong>先用 n8n AI Agent 節點快速驗證工具鏈邏輯，確認流程可行後，再視需求用程式碼重實作高性能或需嵌入既有系統的部分。這樣可以節省大量試錯時間。</div>
+    </div>
+  </div>
+
+</div>
+
+<nav class="lesson-nav">
+  <a class="nav-btn" href="CH6-3.html">
+    <span>←</span>
+    <div><div class="nav-btn-label">上一章</div><div class="nav-btn-title">CH6-3 RAG 實作與品質調優</div></div>
+  </a>
+  <a class="nav-btn next" href="CH6-5.html">
+    <div><div class="nav-btn-label">下一章</div><div class="nav-btn-title">CH6-5 Streaming、Evals 與成本控管</div></div>
+    <span>→</span>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="topbar-divider"></div>
+  <div class="footer-note">140 小時生成式 AI 實務應用課程 · Part 6 AI 應用開發進階</div>
+  <div class="spacer"></div>
+  <div class="footer-note">CH 6.4</div>
+</footer>
+
+<script>
+const prog = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const d = document.documentElement;
+  const pct = (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100;
+  prog.style.width = Math.min(pct, 100) + '%';
+});
+const reveals = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+}, { threshold: 0.08 });
+reveals.forEach(el => io.observe(el));
+</script>
+</body>
+</html>

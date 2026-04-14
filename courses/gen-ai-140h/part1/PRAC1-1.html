@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRAC 1-1 Prompt 黃金公式組合台｜140小時生成式AI實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee;
+  --c-surface:#edeae3;
+  --c-card:#ffffff;
+  --c-border:#d8d4cb;
+  --c-text:#2c2b28;
+  --c-muted:#8c8880;
+  --c-a4:#6b7fa3;
+  --radius:6px;
+  --radius-sm:4px;
+  --content-w:860px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--c-bg);color:var(--c-text);font-family:'Noto Sans TC',sans-serif;font-size:15px;line-height:1.7;}
+
+/* Topbar */
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.08);padding:3px 12px;border-radius:99px;font-weight:500;}
+
+/* Progress bar */
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a4);width:0%;transition:width .1s;}
+
+/* Hero */
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px;}
+.back-link:hover{color:var(--c-a4);}
+.hero-eyebrow{font-size:.7rem;color:var(--c-a4);letter-spacing:2px;font-weight:500;margin-bottom:12px;}
+.page-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:12px;}
+.page-subtitle{font-size:.95rem;color:var(--c-muted);line-height:1.85;max-width:600px;}
+
+/* Hero badges */
+.hero-meta{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;}
+.meta-badge{font-size:.75rem;color:var(--c-muted);background:var(--c-surface);border:1px solid var(--c-border);padding:4px 12px;border-radius:99px;}
+.meta-badge strong{color:var(--c-a4);}
+
+/* Tool wrap */
+.tool-wrap{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+
+/* Section label */
+.section-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:20px;margin-top:40px;}
+
+/* Builder card */
+.builder-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px;}
+.builder-header{padding:18px 24px;border-bottom:1px solid var(--c-border);display:flex;align-items:center;gap:12px;}
+.builder-num{width:28px;height:28px;border-radius:50%;background:rgba(107,127,163,.12);border:1.5px solid var(--c-a4);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:.85rem;font-weight:700;color:var(--c-a4);flex-shrink:0;}
+.builder-label{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);}
+.builder-hint{font-size:.78rem;color:var(--c-muted);margin-left:auto;}
+.builder-body{padding:16px 24px;}
+.builder-textarea{width:100%;border:1px solid var(--c-border);border-radius:var(--radius-sm);background:var(--c-bg);padding:12px 14px;font-family:'Noto Sans TC',sans-serif;font-size:.88rem;color:var(--c-text);line-height:1.75;resize:vertical;min-height:80px;outline:none;transition:border-color .2s;}
+.builder-textarea:focus{border-color:var(--c-a4);background:#fff;}
+.builder-textarea::placeholder{color:var(--c-muted);}
+
+/* Format buttons */
+.format-label{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;margin-bottom:10px;font-weight:500;}
+.format-btns{display:flex;flex-wrap:wrap;gap:8px;}
+.fmt-btn{font-size:.78rem;color:var(--c-a4);background:rgba(107,127,163,.08);border:1px solid rgba(107,127,163,.25);padding:5px 14px;border-radius:99px;cursor:pointer;transition:background .15s,border-color .15s;font-family:'Noto Sans TC',sans-serif;}
+.fmt-btn:hover{background:rgba(107,127,163,.15);border-color:rgba(107,127,163,.45);}
+.fmt-btn.active{background:var(--c-a4);color:#fff;border-color:var(--c-a4);}
+
+/* Action row */
+.action-row{display:flex;gap:12px;margin:24px 0;}
+.btn-build{flex:1;padding:14px;background:var(--c-a4);color:#fff;border:none;border-radius:var(--radius);font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;cursor:pointer;transition:background .2s;letter-spacing:.04em;}
+.btn-build:hover{background:#5c6f91;}
+.btn-clear{padding:14px 24px;background:transparent;color:var(--c-muted);border:1px solid var(--c-border);border-radius:var(--radius);font-size:.88rem;cursor:pointer;transition:background .2s;font-family:'Noto Sans TC',sans-serif;}
+.btn-clear:hover{background:var(--c-surface);}
+
+/* Output area */
+.output-card{background:var(--c-card);border:1.5px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin-bottom:24px;}
+.output-header{padding:14px 20px;border-bottom:1px solid var(--c-border);display:flex;align-items:center;justify-content:space-between;}
+.output-title{font-size:.8rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;}
+.btn-copy{font-size:.78rem;color:var(--c-a4);background:rgba(107,127,163,.08);border:1px solid rgba(107,127,163,.25);padding:5px 14px;border-radius:99px;cursor:pointer;transition:background .15s;font-family:'Noto Sans TC',sans-serif;}
+.btn-copy:hover{background:rgba(107,127,163,.18);}
+.output-body{padding:20px 24px;min-height:120px;font-size:.9rem;line-height:1.85;color:var(--c-text);white-space:pre-wrap;font-family:'Noto Sans TC',sans-serif;}
+.output-placeholder{color:var(--c-muted);font-style:normal;font-size:.88rem;}
+
+/* Output highlight */
+.out-section{margin-bottom:12px;}
+.out-tag{display:inline-block;font-size:.7rem;color:var(--c-a4);background:rgba(107,127,163,.1);padding:2px 8px;border-radius:3px;margin-bottom:4px;font-weight:500;letter-spacing:.5px;}
+.out-text{font-size:.9rem;line-height:1.85;color:var(--c-text);}
+
+/* Templates */
+.tpl-section{margin:40px 0;}
+.tpl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
+.tpl-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:16px 18px;cursor:pointer;transition:border-color .2s,box-shadow .2s;}
+.tpl-card:hover{border-color:rgba(107,127,163,.45);box-shadow:0 2px 12px rgba(107,127,163,.12);}
+.tpl-num{font-size:.68rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:6px;}
+.tpl-name{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.tpl-desc{font-size:.78rem;color:var(--c-muted);line-height:1.6;}
+
+/* Progress tracker */
+.tracker-section{margin:40px 0;}
+.tracker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;}
+.tracker-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:10px;}
+.tracker-check{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--c-border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s,border-color .2s;font-size:.75rem;color:transparent;}
+.tracker-item.done .tracker-check{background:rgba(90,122,90,.15);border-color:#5a7a5a;color:#5a7a5a;}
+.tracker-name{font-size:.8rem;color:var(--c-text);}
+.tracker-item.done .tracker-name{color:var(--c-muted);text-decoration:line-through;}
+
+/* Callout */
+.callout{display:flex;gap:16px;padding:16px 20px;border-radius:var(--radius);margin:20px 0;}
+.callout.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25);}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout-icon{font-size:1rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.87rem;line-height:1.8;color:var(--c-text);}
+
+/* Nav Footer */
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a4);text-decoration:none;padding:10px 20px;border:1px solid rgba(107,127,163,.3);border-radius:var(--radius);transition:background .2s;}
+.nav-btn:hover{background:rgba(107,127,163,.07);}
+.nav-btn.primary{background:var(--c-a4);color:#fff;border-color:var(--c-a4);}
+.nav-btn.primary:hover{background:#5c6f91;}
+
+/* Footer */
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-div{width:1px;height:14px;background:var(--c-border);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+
+/* Toast */
+.toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(20px);background:#2c2b28;color:#f5f3ee;font-size:.82rem;padding:10px 22px;border-radius:99px;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:100;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* Char counter */
+.char-count{font-size:.72rem;color:var(--c-muted);text-align:right;margin-top:4px;}
+
+@media(max-width:600px){
+  .topbar{padding:0 20px;}
+  .page-hero,.tool-wrap{padding-left:24px;padding-right:24px;}
+  .nav-footer{padding-left:24px;padding-right:24px;}
+  .tpl-grid{grid-template-columns:1fr 1fr;}
+  .tracker-grid{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- Topbar -->
+<header class="topbar">
+  <a href="../index.html" class="logo">Codex Studio</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">140小時生成式AI實務應用課程</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">PRAC 1-1 組合台</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<!-- Hero -->
+<div class="page-hero">
+  <a href="../index.html" class="back-link">← 返回課程總覽</a>
+  <div class="hero-eyebrow">PRAC 1-1 · INTERACTIVE TOOL</div>
+  <h1 class="page-title">Prompt 黃金公式組合台</h1>
+  <p class="page-subtitle">把角色、任務、限制、輸出格式四個元素組合成一條完整 Prompt。從範本出發，調整成你需要的形式。</p>
+  <div class="hero-meta">
+    <span class="meta-badge"><strong>2.5h</strong> 工具實作</span>
+    <span class="meta-badge">Part 1 · 解鎖 AI 工作模式</span>
+    <span class="meta-badge">互動練習</span>
+  </div>
+</div>
+
+<!-- Tool -->
+<div class="tool-wrap">
+
+  <div class="callout info">
+    <span class="callout-icon">●</span>
+    <div class="callout-body"><strong>使用方式：</strong>在下方四個欄位填入你的需求，或先點選「載入範本」，再點「組合 Prompt」查看完整輸出。把輸出貼入 ChatGPT、Claude 或 Gemini 測試效果。</div>
+  </div>
+
+  <!-- Input section -->
+  <div class="section-label">STEP 1 · 填入四個元素</div>
+
+  <!-- 1. 角色 -->
+  <div class="builder-card">
+    <div class="builder-header">
+      <div class="builder-num">1</div>
+      <div class="builder-label">角色 Role</div>
+      <div class="builder-hint">你希望 AI 扮演什麼身份？</div>
+    </div>
+    <div class="builder-body">
+      <textarea class="builder-textarea" id="inp-role" rows="3" placeholder="你是一位資深的行銷文案撰寫師，專精 B2B SaaS 產品的內容行銷。你熟悉目標受眾的痛點，擅長用簡潔有力的語言傳遞價值主張。"></textarea>
+      <div class="char-count"><span id="cnt-role">0</span> 字</div>
+    </div>
+  </div>
+
+  <!-- 2. 任務 -->
+  <div class="builder-card">
+    <div class="builder-header">
+      <div class="builder-num">2</div>
+      <div class="builder-label">任務 Task</div>
+      <div class="builder-hint">具體要求 AI 做什麼？</div>
+    </div>
+    <div class="builder-body">
+      <textarea class="builder-textarea" id="inp-task" rows="3" placeholder="請為我們的新功能「自動化工作流程」撰寫一篇 LinkedIn 貼文。這個功能能將重複性工作時間減少 70%，目標受眾是中小企業的營運主管。"></textarea>
+      <div class="char-count"><span id="cnt-task">0</span> 字</div>
+    </div>
+  </div>
+
+  <!-- 3. 限制 -->
+  <div class="builder-card">
+    <div class="builder-header">
+      <div class="builder-num">3</div>
+      <div class="builder-label">限制 Constraint</div>
+      <div class="builder-hint">有哪些規則或邊界？</div>
+    </div>
+    <div class="builder-body">
+      <textarea class="builder-textarea" id="inp-constraint" rows="3" placeholder="字數控制在 200 字以內。語調專業但不生硬，不要使用行話術語。必須包含一個明確的行動號召 (CTA)。不要使用過多 emoji。"></textarea>
+      <div class="char-count"><span id="cnt-constraint">0</span> 字</div>
+    </div>
+  </div>
+
+  <!-- 4. 輸出格式 -->
+  <div class="builder-card">
+    <div class="builder-header">
+      <div class="builder-num">4</div>
+      <div class="builder-label">輸出格式 Output</div>
+      <div class="builder-hint">希望結果長什麼樣子？</div>
+    </div>
+    <div class="builder-body">
+      <div class="format-label">快速選格式：</div>
+      <div class="format-btns" id="fmt-btns">
+        <button class="fmt-btn" onclick="insertFormat('表格')">表格</button>
+        <button class="fmt-btn" onclick="insertFormat('JSON')">JSON</button>
+        <button class="fmt-btn" onclick="insertFormat('SOP 步驟清單')">SOP步驟</button>
+        <button class="fmt-btn" onclick="insertFormat('Email 格式（主旨、正文、結尾）')">Email</button>
+        <button class="fmt-btn" onclick="insertFormat('條列重點，每點不超過 20 字')">條列重點</button>
+        <button class="fmt-btn" onclick="insertFormat('簡報頁綱（標題 + 3 個要點）')">簡報頁綱</button>
+      </div>
+      <textarea class="builder-textarea" id="inp-output" rows="3" style="margin-top:12px;" placeholder="直接輸出貼文內容，不要加說明或標題。如果有多個版本，請用「版本 A：」「版本 B：」區隔。"></textarea>
+      <div class="char-count"><span id="cnt-output">0</span> 字</div>
+    </div>
+  </div>
+
+  <!-- Action row -->
+  <div class="action-row">
+    <button class="btn-build" onclick="buildPrompt()">組合 Prompt</button>
+    <button class="btn-clear" onclick="clearAll()">清除全部</button>
+  </div>
+
+  <!-- Output -->
+  <div class="section-label">STEP 2 · 完整 Prompt 輸出</div>
+  <div class="output-card">
+    <div class="output-header">
+      <span class="output-title">PROMPT OUTPUT</span>
+      <button class="btn-copy" onclick="copyPrompt()">複製</button>
+    </div>
+    <div class="output-body" id="output-area">
+      <span class="output-placeholder">填入四個欄位後，點「組合 Prompt」即可在此看到完整輸出。</span>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <span class="callout-icon">●</span>
+    <div class="callout-body"><strong>測試技巧：</strong>把輸出的 Prompt 貼入 AI 工具後，注意觀察哪個元素對結果影響最大。通常「角色」決定語調，「限制」決定精準度，「輸出格式」決定可用性。</div>
+  </div>
+
+  <!-- Templates -->
+  <div class="tpl-section">
+    <div class="section-label">STEP 3 · 從範本出發（點擊載入）</div>
+    <div class="tpl-grid">
+      <div class="tpl-card" onclick="loadTemplate('meeting')">
+        <div class="tpl-num">TPL 01</div>
+        <div class="tpl-name">會議摘要</div>
+        <div class="tpl-desc">將逐字稿整理成結構化的會議記錄與待辦</div>
+      </div>
+      <div class="tpl-card" onclick="loadTemplate('email')">
+        <div class="tpl-num">TPL 02</div>
+        <div class="tpl-name">商業郵件</div>
+        <div class="tpl-desc">撰寫專業、有溫度的商業往來郵件</div>
+      </div>
+      <div class="tpl-card" onclick="loadTemplate('report')">
+        <div class="tpl-num">TPL 03</div>
+        <div class="tpl-name">數據報告</div>
+        <div class="tpl-desc">將數字轉換成有洞察、有行動建議的報告</div>
+      </div>
+      <div class="tpl-card" onclick="loadTemplate('classify')">
+        <div class="tpl-num">TPL 04</div>
+        <div class="tpl-name">內容分類</div>
+        <div class="tpl-desc">大量文字資料的快速分類與標籤化</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress tracker -->
+  <div class="tracker-section">
+    <div class="section-label">練習進度 · 完成 5 種格式</div>
+    <div class="tracker-grid" id="tracker">
+      <div class="tracker-item" id="tr-table">
+        <div class="tracker-check">✓</div>
+        <div class="tracker-name">表格輸出</div>
+      </div>
+      <div class="tracker-item" id="tr-json">
+        <div class="tracker-check">✓</div>
+        <div class="tracker-name">JSON 格式</div>
+      </div>
+      <div class="tracker-item" id="tr-sop">
+        <div class="tracker-check">✓</div>
+        <div class="tracker-name">SOP 步驟</div>
+      </div>
+      <div class="tracker-item" id="tr-email">
+        <div class="tracker-check">✓</div>
+        <div class="tracker-name">Email 格式</div>
+      </div>
+      <div class="tracker-item" id="tr-list">
+        <div class="tracker-check">✓</div>
+        <div class="tracker-name">條列重點</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /tool-wrap -->
+
+<!-- Nav Footer -->
+<div class="nav-footer">
+  <a href="CH1-4.html" class="nav-btn">← CH 1-4 System Prompt 設計</a>
+  <a href="PRAC1-2.html" class="nav-btn primary">PRAC 1-2 指令品質健診器 →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">Codex Studio</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">140小時生成式AI實務應用課程</span>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// Progress bar
+const fill = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  fill.style.width = pct + '%';
+});
+
+// Char counters
+['role','task','constraint','output'].forEach(k => {
+  const el = document.getElementById('inp-'+k);
+  const cnt = document.getElementById('cnt-'+k);
+  el.addEventListener('input', () => { cnt.textContent = el.value.length; });
+});
+
+// Format insert
+function insertFormat(fmt) {
+  const el = document.getElementById('inp-output');
+  const current = el.value.trim();
+  el.value = current ? current + '\n' + fmt : fmt;
+  document.getElementById('cnt-output').textContent = el.value.length;
+  // mark tracker
+  const map = {'表格':'table','JSON':'json','SOP 步驟清單':'sop','Email 格式（主旨、正文、結尾）':'email','條列重點，每點不超過 20 字':'list','簡報頁綱（標題 + 3 個要點）':'list'};
+  if(map[fmt]) markDone('tr-'+map[fmt]);
+  el.focus();
+}
+
+// Build prompt
+function buildPrompt() {
+  const role = document.getElementById('inp-role').value.trim();
+  const task = document.getElementById('inp-task').value.trim();
+  const con  = document.getElementById('inp-constraint').value.trim();
+  const out  = document.getElementById('inp-output').value.trim();
+
+  if(!role && !task && !con && !out) {
+    showToast('請填入至少一個欄位');
+    return;
+  }
+
+  const area = document.getElementById('output-area');
+  area.innerHTML = '';
+
+  const sections = [
+    {tag:'ROLE · 角色', val: role},
+    {tag:'TASK · 任務', val: task},
+    {tag:'CONSTRAINT · 限制', val: con},
+    {tag:'OUTPUT · 輸出格式', val: out}
+  ];
+
+  sections.forEach(s => {
+    if(!s.val) return;
+    const div = document.createElement('div');
+    div.className = 'out-section';
+    div.innerHTML = `<div class="out-tag">${s.tag}</div><div class="out-text">${escHtml(s.val)}</div>`;
+    area.appendChild(div);
+  });
+}
+
+// Clear all
+function clearAll() {
+  ['role','task','constraint','output'].forEach(k => {
+    document.getElementById('inp-'+k).value = '';
+    document.getElementById('cnt-'+k).textContent = '0';
+  });
+  document.getElementById('output-area').innerHTML = '<span class="output-placeholder">填入四個欄位後，點「組合 Prompt」即可在此看到完整輸出。</span>';
+}
+
+// Copy
+function copyPrompt() {
+  const role = document.getElementById('inp-role').value.trim();
+  const task = document.getElementById('inp-task').value.trim();
+  const con  = document.getElementById('inp-constraint').value.trim();
+  const out  = document.getElementById('inp-output').value.trim();
+
+  const parts = [];
+  if(role) parts.push('【角色】\n' + role);
+  if(task) parts.push('【任務】\n' + task);
+  if(con)  parts.push('【限制】\n' + con);
+  if(out)  parts.push('【輸出格式】\n' + out);
+
+  if(!parts.length){ showToast('沒有內容可複製'); return; }
+
+  navigator.clipboard.writeText(parts.join('\n\n')).then(() => {
+    showToast('已複製到剪貼簿');
+  }).catch(() => {
+    showToast('複製失敗，請手動選取');
+  });
+}
+
+// Templates
+const templates = {
+  meeting: {
+    role: '你是一位專業的會議記錄員，擅長提煉重點、識別決策與行動項目。',
+    task: '請根據以下會議逐字稿，整理出結構化的會議記錄。\n\n[貼上你的逐字稿]',
+    constraint: '只保留關鍵資訊，不要摘錄閒聊內容。待辦事項必須標明負責人和截止日期。如果逐字稿不清楚，請標注「待確認」。',
+    output: '按以下結構輸出：\n1. 會議摘要（3句以內）\n2. 主要決策（條列）\n3. 待辦事項（負責人｜內容｜截止日）\n4. 下次會議議題'
+  },
+  email: {
+    role: '你是一位具備商業溝通專長的寫作助理，能根據情境調整語氣，在專業與親切間取得平衡。',
+    task: '請幫我撰寫一封[情況描述，例如：回覆客戶的合作邀約]的郵件。\n背景：[補充相關背景]',
+    constraint: '語氣正式但不冷漠。不要用過於官方的套語。長度適中，不超過 250 字。必須有明確的下一步行動。',
+    output: 'Email 格式（主旨、正文、結尾）\n主旨需簡潔有力，15字以內。正文分段。結尾留有開放性的互動空間。'
+  },
+  report: {
+    role: '你是一位數據分析師，擅長從數字中提煉洞察，並將複雜分析轉化為主管易讀的報告。',
+    task: '請根據以下數據，撰寫一份執行摘要報告。\n\n數據：[貼上你的數據或指標]',
+    constraint: '避免只描述數字，每個指標都要說明「為什麼重要」。建議要具體可行，不要泛泛而談。使用繁體中文。',
+    output: '按以下結構輸出：\n1. 核心發現（2-3點）\n2. 數據解讀\n3. 行動建議（優先順序排列）\n可加入簡單的比較表格'
+  },
+  classify: {
+    role: '你是一位資訊分類專家，能快速識別文本的類別、情感與關鍵主題。',
+    task: '請對以下[類型，例如：客戶回饋/新聞標題/社群評論]進行分類。\n\n資料：\n[貼上要分類的內容，每行一筆]',
+    constraint: '每筆資料必須分類到預定的類別中，如無法判斷請標記「其他」。保持一致的分類標準。',
+    output: 'JSON 格式\n每筆資料回傳：{"原文": "...", "類別": "...", "信心度": "高/中/低"}\n最後加總計各類別數量'
+  }
+};
+
+function loadTemplate(key) {
+  const t = templates[key];
+  if(!t) return;
+  document.getElementById('inp-role').value = t.role;
+  document.getElementById('inp-task').value = t.task;
+  document.getElementById('inp-constraint').value = t.constraint;
+  document.getElementById('inp-output').value = t.output;
+  ['role','task','constraint','output'].forEach(k => {
+    document.getElementById('cnt-'+k).textContent = document.getElementById('inp-'+k).value.length;
+  });
+  showToast('已載入範本：' + {meeting:'會議摘要',email:'商業郵件',report:'數據報告',classify:'內容分類'}[key]);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// Tracker
+function markDone(id) {
+  const el = document.getElementById(id);
+  if(el && !el.classList.contains('done')) el.classList.add('done');
+}
+
+// Toast
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// Escape HTML
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>表單送件→AI摘要→通知回傳 · PRAC 3-3｜140小時生成式AI實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a3:#5a7a5a;--radius:6px;--radius-sm:4px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a3);border:1px solid rgba(90,122,90,.3);background:rgba(90,122,90,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a3);width:0%;transition:width .1s;}
+.prac-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a3);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-a3);letter-spacing:1px;font-weight:500;}
+.prac-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:16px;}
+.prac-desc{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:32px;}
+.mission-box{display:flex;align-items:center;gap:24px;padding:20px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a3);border-radius:var(--radius);}
+.mission-label{font-size:.7rem;color:var(--c-a3);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.mission-val{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);}
+.mission-divider{width:1px;height:36px;background:var(--c-border);}
+.prac-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:64px 0;}
+.steps-list{display:flex;flex-direction:column;gap:0;margin:32px 0;}
+.step-item{display:flex;gap:0;position:relative;}
+.step-item:not(:last-child)::before{content:'';position:absolute;left:20px;top:44px;bottom:0;width:1px;background:var(--c-border);}
+.step-num-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:40px;padding-top:4px;}
+.step-num{width:40px;height:40px;border-radius:50%;background:var(--c-card);border:1.5px solid var(--c-a3);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-a3);}
+.step-body{flex:1;padding:4px 0 32px 24px;}
+.step-title{font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.step-hint{font-size:.85rem;color:var(--c-muted);line-height:1.75;}
+.tool-wrap{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:32px 0;}
+.tool-topbar{background:var(--c-surface);border-bottom:1px solid var(--c-border);padding:10px 16px;display:flex;align-items:center;gap:8px;}
+.tool-dot{width:10px;height:10px;border-radius:50%;}
+.tool-dot-r{background:#ff6058;} .tool-dot-y{background:#ffbd2e;} .tool-dot-g{background:#28c840;}
+.tool-title{flex:1;font-size:.75rem;color:var(--c-muted);font-weight:500;font-family:'Noto Sans TC',sans-serif;}
+.tool-body{padding:32px 36px;}
+.field-group{margin-bottom:20px;}
+.field-label{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;margin-bottom:8px;}
+.field-input{width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:.88rem;color:var(--c-text);background:var(--c-bg);}
+.field-input:focus{outline:none;border-color:var(--c-a3);}
+.field-select{width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:.88rem;color:var(--c-text);background:var(--c-bg);appearance:none;cursor:pointer;}
+.field-select:focus{outline:none;border-color:var(--c-a3);}
+.field-textarea{width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:.88rem;color:var(--c-text);background:var(--c-bg);min-height:80px;resize:vertical;line-height:1.7;}
+.field-textarea:focus{outline:none;border-color:var(--c-a3);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.checkbox-group{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;}
+.checkbox-tag{display:flex;align-items:center;gap:6px;font-size:.83rem;color:var(--c-text);}
+.checkbox-tag input[type=checkbox]{width:14px;height:14px;accent-color:var(--c-a3);cursor:pointer;}
+.gen-btn{width:100%;padding:12px;background:var(--c-a3);color:#fff;border:none;border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:.87rem;font-weight:500;cursor:pointer;}
+.gen-btn:hover{opacity:.88;}
+.output-area{display:none;margin-top:28px;}
+.output-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.output-label{font-size:.7rem;color:var(--c-a3);letter-spacing:1.5px;font-weight:500;}
+.copy-btn{font-size:.72rem;color:var(--c-a3);background:none;border:1px solid rgba(90,122,90,.3);padding:3px 12px;border-radius:99px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;}
+.copy-btn:hover{background:rgba(90,122,90,.08);}
+.output-doc{background:var(--c-bg);border:1px solid var(--c-border);border-radius:var(--radius);padding:28px 32px;white-space:pre-wrap;font-size:.85rem;line-height:2;color:var(--c-text);font-family:'Noto Sans TC',sans-serif;}
+.challenge-wrap{padding:28px 32px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:32px 0;}
+.challenge-progress{margin-bottom:20px;}
+.challenge-progress-bar{height:4px;background:var(--c-border);border-radius:99px;overflow:hidden;margin-top:8px;}
+.challenge-progress-fill{height:100%;background:var(--c-a3);width:0%;transition:width .3s;}
+.challenge-progress-label{font-size:.72rem;color:var(--c-muted);display:flex;justify-content:space-between;}
+.challenge-label{font-size:.7rem;color:var(--c-a3);letter-spacing:1.5px;font-weight:500;margin-bottom:16px;}
+.challenge-list{display:flex;flex-direction:column;gap:12px;}
+.challenge-item{display:flex;align-items:flex-start;gap:12px;font-size:.88rem;line-height:1.7;}
+.challenge-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--c-a3);cursor:pointer;flex-shrink:0;margin-top:3px;}
+.challenge-item label{cursor:pointer;color:var(--c-text);}
+.challenge-item.done label{color:var(--c-muted);text-decoration:line-through;}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-a3);}
+.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;}.topbar-sub,.topbar-divider{display:none;}.prac-hero{padding:40px 20px 36px;}.prac-title{font-size:1.55rem;}.prac-body{padding:0 20px 60px;}.mission-box{flex-direction:column;align-items:flex-start;gap:12px;}.mission-divider{display:none;}.field-row{grid-template-columns:1fr;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">140 小時生成式 AI 實務應用課程</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">PRAC</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="prac-hero">
+  <a class="back-link" href="../index.html">← 回課程目錄</a>
+  <div class="hero-meta">
+    <div class="hero-part">PART 3 · 把資料變成流程</div>
+    <div class="hero-divider-v"></div>
+    <div class="hero-num">PRAC 3-3</div>
+  </div>
+  <h1 class="prac-title">表單送件 → AI 摘要<br>→ 通知回傳</h1>
+  <p class="prac-desc">在 Make 或 n8n 完成第一條真正跑起來的 AI 自動化鏈。</p>
+  <div class="mission-box">
+    <div>
+      <div class="mission-label">任務步驟</div>
+      <div class="mission-val">5 個步驟</div>
+    </div>
+    <div class="mission-divider"></div>
+    <div>
+      <div class="mission-label">預計時數</div>
+      <div class="mission-val">3 小時</div>
+    </div>
+    <div class="mission-divider"></div>
+    <div>
+      <div class="mission-label">所屬單元</div>
+      <div class="mission-val">Part 3</div>
+    </div>
+  </div>
+</div>
+
+<div class="prac-body">
+
+  <div class="section-eyebrow">STEPS · 任務步驟</div>
+  <h2 class="section-heading">依序完成這五個步驟</h2>
+
+  <div class="steps-list">
+    <div class="step-item">
+      <div class="step-num-col"><div class="step-num">1</div></div>
+      <div class="step-body">
+        <div class="step-title">建立 Google 表單</div>
+        <div class="step-hint">設計一個情境表單（如「課後回饋」或「需求申請」），連結到 Google Sheets。確保 Sheets 有一個「回應」工作表，作為後續觸發的資料來源。</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num-col"><div class="step-num">2</div></div>
+      <div class="step-body">
+        <div class="step-title">在 Make/n8n 建立流程</div>
+        <div class="step-hint">新增「Google Sheets → 觸發」節點，設定監聽新列。Make 使用「Watch Rows」，n8n 使用「Google Sheets Trigger」。</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num-col"><div class="step-num">3</div></div>
+      <div class="step-body">
+        <div class="step-title">加入 AI 摘要節點</div>
+        <div class="step-hint">呼叫 Claude 或 GPT，輸入表單回答，輸出一段結構化摘要。System Prompt 要明確說明摘要格式（例如：主題、關鍵點、建議行動）。</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num-col"><div class="step-num">4</div></div>
+      <div class="step-body">
+        <div class="step-title">設定輸出目的地</div>
+        <div class="step-hint">將摘要寫回 Sheets 的新欄位，同時發 Email 或 Slack 通知。兩個輸出可以並行，用「Router」或「Branch」節點分叉。</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num-col"><div class="step-num">5</div></div>
+      <div class="step-body">
+        <div class="step-title">執行測試</div>
+        <div class="step-hint">實際提交表單一次，確認整條鏈路跑通。在 Make/n8n 的執行紀錄中確認每個節點都成功，沒有錯誤訊息。</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="section-eyebrow">TOOL · 互動工具</div>
+  <h2 class="section-heading">流程規格書產生器</h2>
+
+  <div class="tool-wrap">
+    <div class="tool-topbar">
+      <div class="tool-dot tool-dot-r"></div>
+      <div class="tool-dot tool-dot-y"></div>
+      <div class="tool-dot tool-dot-g"></div>
+      <div class="tool-title">流程規格書產生器</div>
+    </div>
+    <div class="tool-body">
+
+      <div class="field-row">
+        <div class="field-group" style="margin-bottom:0;">
+          <div class="field-label">應用情境</div>
+          <select class="field-select" id="scenario">
+            <option value="課後回饋收集">課後回饋收集</option>
+            <option value="需求申請審核">需求申請審核</option>
+            <option value="客戶詢問分類">客戶詢問分類</option>
+            <option value="自訂">自訂</option>
+          </select>
+        </div>
+        <div class="field-group" style="margin-bottom:0;">
+          <div class="field-label">AI 模型</div>
+          <select class="field-select" id="ai-model">
+            <option value="claude-haiku-20240307">claude-haiku</option>
+            <option value="claude-sonnet-20241022">claude-sonnet</option>
+            <option value="gpt-4o-mini">gpt-4o-mini</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-group" style="margin-top:20px;">
+        <div class="field-label">表單觸發來源（Google Sheets 試算表名稱）</div>
+        <input class="field-input" id="sheet-name" type="text" placeholder="例：2024 課後回饋表單（回應）">
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">AI 處理任務</div>
+        <textarea class="field-textarea" id="ai-task" placeholder="例：將回饋分類為正面/負面，並摘要 3 個重點，以條列格式輸出"></textarea>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">輸出方式（可多選）</div>
+        <div class="checkbox-group">
+          <label class="checkbox-tag"><input type="checkbox" id="out-sheets" value="sheets" checked> 寫回 Sheets</label>
+          <label class="checkbox-tag"><input type="checkbox" id="out-email" value="email"> 發 Email</label>
+          <label class="checkbox-tag"><input type="checkbox" id="out-slack" value="slack"> 發 Slack</label>
+        </div>
+      </div>
+
+      <button class="gen-btn" onclick="generateFlowSpec()">生成流程規格書</button>
+
+      <div class="output-area" id="output-area">
+        <div class="output-header">
+          <div class="output-label">FLOW SPEC</div>
+          <button class="copy-btn" onclick="copySpec()">複製</button>
+        </div>
+        <div class="output-doc" id="output-doc"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="section-eyebrow">CHALLENGE · 驗收清單</div>
+  <h2 class="section-heading">完成所有項目才算過關</h2>
+
+  <div class="challenge-wrap">
+    <div class="challenge-progress">
+      <div class="challenge-progress-label">
+        <span class="challenge-label">CHECKLIST</span>
+        <span id="progress-text">0 / 5</span>
+      </div>
+      <div class="challenge-progress-bar"><div class="challenge-progress-fill" id="challenge-fill"></div></div>
+    </div>
+    <div class="challenge-list">
+      <div class="challenge-item" id="ci-1">
+        <input type="checkbox" id="c1" onchange="updateChallenge()">
+        <label for="c1">Google 表單已建立，與 Sheets 連結正常</label>
+      </div>
+      <div class="challenge-item" id="ci-2">
+        <input type="checkbox" id="c2" onchange="updateChallenge()">
+        <label for="c2">Make/n8n 流程建立完成，節點連接無誤</label>
+      </div>
+      <div class="challenge-item" id="ci-3">
+        <input type="checkbox" id="c3" onchange="updateChallenge()">
+        <label for="c3">AI 節點設定完成，System Prompt 已寫好</label>
+      </div>
+      <div class="challenge-item" id="ci-4">
+        <input type="checkbox" id="c4" onchange="updateChallenge()">
+        <label for="c4">實際提交表單，流程成功執行（有執行紀錄）</label>
+      </div>
+      <div class="challenge-item" id="ci-5">
+        <input type="checkbox" id="c5" onchange="updateChallenge()">
+        <label for="c5">AI 輸出的摘要符合期望格式，已寫回 Sheets 或發出通知</label>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<nav class="lesson-nav">
+  <a class="nav-btn" href="PRAC3-2.html">
+    <div>
+      <div class="nav-btn-label">← 上一個</div>
+      <div class="nav-btn-title">PRAC3-2：客戶意見分類板</div>
+    </div>
+  </a>
+  <a class="nav-btn next" href="PRAC3-4.html">
+    <div>
+      <div class="nav-btn-label">下一個 →</div>
+      <div class="nav-btn-title">PRAC3-4：工作流文件化</div>
+    </div>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">140 小時生成式 AI 實務應用課程 · Part 3</div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const total = document.body.scrollHeight - window.innerHeight;
+  if (total > 0) document.getElementById('prog').style.width = (window.scrollY / total * 100) + '%';
+});
+
+function generateFlowSpec() {
+  const scenario = document.getElementById('scenario').value;
+  const sheetName = document.getElementById('sheet-name').value.trim() || '（未填寫）';
+  const aiTask = document.getElementById('ai-task').value.trim() || '（未填寫）';
+  const aiModel = document.getElementById('ai-model').value;
+  const outSheets = document.getElementById('out-sheets').checked;
+  const outEmail = document.getElementById('out-email').checked;
+  const outSlack = document.getElementById('out-slack').checked;
+
+  const outputs = [];
+  if (outSheets) outputs.push('寫回 Google Sheets 新欄位');
+  if (outEmail) outputs.push('發送 Email 通知');
+  if (outSlack) outputs.push('發送 Slack 訊息');
+  if (outputs.length === 0) outputs.push('（未選擇輸出方式）');
+
+  const modelNote = aiModel === 'claude-haiku-20240307'
+    ? '速度快、成本低，適合大量摘要任務'
+    : aiModel === 'claude-sonnet-20241022'
+    ? '平衡速度與品質，適合需要一定分析深度的任務'
+    : '成本低、速度快，適合簡單分類和摘要';
+
+  const doc = `【流程規格書】
+應用情境：${scenario}
+建立日期：${new Date().toLocaleDateString('zh-TW')}
+
+═══════════════════════════════
+一、觸發條件
+═══════════════════════════════
+觸發來源：Google Sheets
+試算表名稱：${sheetName}
+觸發時機：偵測到新列寫入（Watch New Rows）
+輪詢間隔：建議設定 5 分鐘（Make）或 Webhook 即時觸發（n8n）
+
+═══════════════════════════════
+二、AI 設定
+═══════════════════════════════
+使用模型：${aiModel}
+模型說明：${modelNote}
+
+System Prompt 建議：
+你是一位專業的資料分析助手。請根據以下表單回答內容，${aiTask}。
+輸出格式要求：
+- 使用繁體中文
+- 每個重點獨立一行，用「・」開頭
+- 最後加一行「建議行動：XXX」
+
+輸入變數：
+將 Sheets 的各欄位值組合成一段文字，作為 User Message 傳入
+
+═══════════════════════════════
+三、輸出配置
+═══════════════════════════════
+${outputs.map((o, i) => `${i + 1}. ${o}`).join('\n')}
+
+${outSheets ? '→ Sheets 輸出：在原始資料列的最後新增「AI摘要」欄，寫入 AI 回傳的文字\n' : ''}${outEmail ? '→ Email 設定：收件人建議為流程管理者；主旨格式：「[AI摘要] ' + scenario + ' - {{時間戳記}}」\n' : ''}${outSlack ? '→ Slack 設定：發送到指定頻道；訊息格式建議附上表單填寫者名稱和摘要內容\n' : ''}
+═══════════════════════════════
+四、注意事項與錯誤處理
+═══════════════════════════════
+1. API 費用：每次呼叫 ${aiModel} 約消耗少量 Token，高頻率觸發時注意費用控管
+2. 錯誤處理：建議在 AI 節點後加入錯誤路徑，若 API 失敗則寫入「處理失敗，請人工確認」
+3. 資料安全：確認表單內容不含個資或機密資訊後再傳入 AI API
+4. 測試建議：先用測試資料執行一次，確認輸出格式符合預期再上線`;
+
+  document.getElementById('output-doc').textContent = doc;
+  document.getElementById('output-area').style.display = 'block';
+  window._specText = doc;
+}
+
+function copySpec() {
+  if (!window._specText) return;
+  navigator.clipboard.writeText(window._specText).then(() => {
+    const btn = event.target; btn.textContent = '已複製！';
+    setTimeout(() => btn.textContent = '複製', 1800);
+  });
+}
+
+function updateChallenge() {
+  const items = document.querySelectorAll('.challenge-item');
+  let done = 0;
+  items.forEach(item => { const cb = item.querySelector('input[type=checkbox]'); if (cb.checked) { item.classList.add('done'); done++; } else item.classList.remove('done'); });
+  document.getElementById('progress-text').textContent = done + ' / ' + items.length;
+  document.getElementById('challenge-fill').style.width = (done / items.length * 100) + '%';
+}
+</script>
+</body>
+</html>

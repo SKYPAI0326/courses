@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH6-3 RAG 實作與品質調優｜140小時生成式 AI 實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-accent:#6b7fa3;--radius:6px;--radius-sm:4px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}.topbar-sub{font-size:.8rem;color:var(--c-muted);}.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-accent);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}.progress-fill{height:100%;background:var(--c-accent);width:0%;transition:width .1s;}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}.back-link:hover{color:var(--c-accent);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-accent);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-accent);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;}.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-accent);margin-top:8px;flex-shrink:0;}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-accent);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.tip{background:rgba(107,127,163,.06);border:1px solid rgba(107,127,163,.2);}
+.callout.warn{background:rgba(201,150,58,.06);border:1px solid rgba(201,150,58,.2);}
+.callout.key{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text);}.callout-body strong{font-weight:700;}
+.flow-pipeline{display:flex;align-items:stretch;gap:0;margin:28px 0;flex-wrap:wrap;}
+.pipe-step{flex:1;min-width:120px;padding:18px 16px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-align:center;position:relative;}
+.pipe-step.accent{border-color:rgba(107,127,163,.4);background:rgba(107,127,163,.05);}
+.pipe-step-num{font-family:'Shippori Mincho',serif;font-size:1.2rem;font-weight:700;color:var(--c-accent);margin-bottom:6px;}
+.pipe-step-name{font-size:.82rem;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.pipe-step-desc{font-size:.74rem;color:var(--c-muted);line-height:1.6;}
+.pipe-arrow{display:flex;align-items:center;padding:0 8px;font-size:.8rem;color:var(--c-muted);}
+.chunk-list{display:flex;flex-direction:column;gap:12px;margin:28px 0;}
+.chunk-item{padding:18px 22px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius);}
+.chunk-title{font-size:.88rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.chunk-detail{font-size:.82rem;color:var(--c-muted);line-height:1.7;}
+.chunk-detail code{font-family:'Courier New',monospace;font-size:.78rem;background:rgba(107,127,163,.1);color:#4a5f8a;padding:1px 5px;border-radius:3px;}
+.failure-list{display:flex;flex-direction:column;gap:14px;margin:28px 0;}
+.failure-item{padding:18px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);}
+.failure-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.failure-badge{font-size:.68rem;padding:2px 8px;border-radius:99px;font-weight:500;background:rgba(181,60,60,.08);color:#b03030;border:1px solid rgba(181,60,60,.25);}
+.failure-title{font-size:.88rem;font-weight:700;color:var(--c-text);}
+.failure-cause{font-size:.82rem;color:var(--c-muted);margin-bottom:6px;line-height:1.7;}
+.failure-fix{font-size:.82rem;color:var(--c-a3);font-weight:500;}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-accent);}.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}.footer-note{font-size:.75rem;color:var(--c-muted);}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1);}.reveal.in{opacity:1;transform:translateY(0);}
+.section-rule{transform-origin:left center;opacity:0;transition:opacity .4s ease,transform .6s;transform:scaleX(.3);}.section-rule.in{opacity:1;transform:scaleX(1);}
+@media(max-width:768px){.topbar{padding:0 16px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero{padding:40px 20px 36px;}.lesson-title{font-size:1.55rem;}.lesson-body{padding:0 20px 60px;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.flow-pipeline{flex-direction:column;}.pipe-arrow{transform:rotate(90deg);}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="logo" href="../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">140 小時生成式 AI 實務應用課程</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH 6.3 · Part 6</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">Part 6 · AI 應用開發進階</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 6.3 · 3 小時</span>
+  </div>
+  <h1 class="lesson-title">RAG 實作與<em>品質調優</em></h1>
+  <p class="lesson-tagline">知道 Embedding 是什麼之後，下一步是把它串成完整的問答系統。RAG（Retrieval-Augmented Generation）讓 AI 能夠「讀你的文件回答問題」，而不是靠訓練資料猜答案。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果 · OUTCOMES</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能描述 RAG 的完整流程：文件讀取→切塊→索引→檢索→生成</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>理解 Chunking 策略的取捨：大 chunk 保留 context，小 chunk 檢索精準</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>知道 Metadata 過濾和 Reranking 如何提升回答品質</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能辨識 RAG 的三種常見失敗模式並知道如何修正</div>
+  </div>
+</div>
+
+<main class="lesson-body">
+
+  <section class="lesson-section reveal">
+    <div class="section-eyebrow">Section 1 · RAG Pipeline</div>
+    <h2 class="section-heading">RAG 完整流程：<br>五個<em>必經環節</em></h2>
+    <p class="body-text">RAG 分兩個大階段：<strong>索引（離線，只做一次）</strong>和<strong>查詢（線上，每次回答）</strong>。理解這個區分，你才知道哪裡出問題要去哪裡修。</p>
+
+    <div class="flow-pipeline">
+      <div class="pipe-step">
+        <div class="pipe-step-num">01</div>
+        <div class="pipe-step-name">文件讀取</div>
+        <div class="pipe-step-desc">PDF、Word、網頁轉成純文字</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step">
+        <div class="pipe-step-num">02</div>
+        <div class="pipe-step-name">切塊</div>
+        <div class="pipe-step-desc">Chunking：切成適當大小的段落</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step accent">
+        <div class="pipe-step-num">03</div>
+        <div class="pipe-step-name">Embedding</div>
+        <div class="pipe-step-desc">每個 chunk 轉成向量，存入資料庫</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step accent">
+        <div class="pipe-step-num">04</div>
+        <div class="pipe-step-name">檢索</div>
+        <div class="pipe-step-desc">問題轉向量，找最近的 k 個 chunk</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step">
+        <div class="pipe-step-num">05</div>
+        <div class="pipe-step-name">生成</div>
+        <div class="pipe-step-desc">把問題 + 檢索結果送給 LLM 生成答案</div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body"><strong>01–03 是離線步驟（Indexing）：</strong>文件更新才需要重跑。<strong>04–05 是線上步驟（Querying）：</strong>每次使用者提問都會執行。效能瓶頸通常在 04（向量搜尋速度）和 05（LLM 回應時間）。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <section class="lesson-section reveal">
+    <div class="section-eyebrow">Section 2 · Chunking Strategy</div>
+    <h2 class="section-heading">Chunking 策略：<br><em>切多大才對？</em></h2>
+    <p class="body-text">Chunking 是 RAG 品質最關鍵的決策之一。切太小：每個 chunk 缺乏上下文，AI 找到了但看不懂。切太大：向量無法精確代表語義，找到的東西不夠相關。</p>
+
+    <div class="chunk-list">
+      <div class="chunk-item">
+        <div class="chunk-title">固定大小切塊（最常用的起點）</div>
+        <div class="chunk-detail">設定 <code>chunk_size=512</code>（tokens），<code>overlap=50</code>（重疊 tokens 保留跨塊語義）。適合大多數文件，起步先用這個，再根據品質調整。</div>
+      </div>
+      <div class="chunk-item">
+        <div class="chunk-title">依語意邊界切塊（段落、標題）</div>
+        <div class="chunk-detail">按照文件的自然結構切——在換行、標題、段落符號處切割。好處是每個 chunk 語義完整；缺點是 chunk 大小不均。</div>
+      </div>
+      <div class="chunk-item">
+        <div class="chunk-title">Markdown-aware 切法（結構化文件）</div>
+        <div class="chunk-detail">針對 Markdown 文件，按 <code>##</code>、<code>###</code> 標題層級切塊，把每個小節當一個 chunk，同時保留父標題作為 metadata。知識庫、技術文件特別適合。</div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body"><strong>重疊（overlap）很重要。</strong>如果 chunk A 在第 500 個 token 結束，chunk B 從第 450 個 token 開始，它們共享 50 個 token 的內容。這讓一個跨越切割點的概念不會因為切塊而丟失語義。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <section class="lesson-section reveal">
+    <div class="section-eyebrow">Section 3 · Quality Tuning</div>
+    <h2 class="section-heading">品質調優：<br><em>Metadata 過濾與 Reranking</em></h2>
+    <p class="body-text">基本 RAG「找最近的 k 個向量」只是起點。當你的知識庫大了、複雜了，需要兩個進階技術來提升回答品質。</p>
+
+    <div class="chunk-list">
+      <div class="chunk-item">
+        <div class="chunk-title">Metadata 過濾</div>
+        <div class="chunk-detail">在每個 chunk 上附加 metadata（文件名稱、日期、章節、作者）。查詢時先用 metadata 過濾（「只找 2024 年以後的文件」），再做向量相似度搜尋。這大幅縮小搜尋範圍，同時讓回答可以引用來源。</div>
+      </div>
+      <div class="chunk-item">
+        <div class="chunk-title">Reranking（二次排序）</div>
+        <div class="chunk-detail">向量搜尋找到 top-20 個 chunk，再用一個小型 cross-encoder 模型對這 20 個做精細排序，取 top-3 送給 LLM。第一階段用向量搜尋（快但粗糙），第二階段用 reranker（慢但精準）。</div>
+      </div>
+    </div>
+
+    <div class="callout key">
+      <div class="callout-icon">🔑</div>
+      <div class="callout-body"><strong>實務優先順序：</strong>先把基本 RAG 跑起來，再觀察失敗案例。如果是「找到了不相關的內容」→ 加 Metadata 過濾。如果是「找到的內容相關但順序不對」→ 加 Reranking。不要一開始就全部加上去。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <section class="lesson-section reveal">
+    <div class="section-eyebrow">Section 4 · Failure Patterns</div>
+    <h2 class="section-heading">常見<em>失敗模式</em>診斷</h2>
+    <p class="body-text">RAG 出問題通常表現為三種症狀。知道症狀對應的根本原因，才能對症下藥。</p>
+
+    <div class="failure-list">
+      <div class="failure-item">
+        <div class="failure-header"><span class="failure-badge">幻覺</span><div class="failure-title">AI 回答了，但內容不在文件裡</div></div>
+        <div class="failure-cause">原因：檢索失敗（沒找到相關 chunk），但 AI 仍根據訓練資料「補腦」生成答案。</div>
+        <div class="failure-fix">修正：在 System Prompt 加上「如果在提供的文件中找不到答案，明確說『文件中沒有此資訊』，不要自行猜測」。</div>
+      </div>
+      <div class="failure-item">
+        <div class="failure-header"><span class="failure-badge">漏找</span><div class="failure-title">文件裡有答案，但 AI 說找不到</div></div>
+        <div class="failure-cause">原因：Chunking 把關鍵資訊切斷了，或查詢向量與相關 chunk 的向量距離太遠（換了說法）。</div>
+        <div class="failure-fix">修正：增加 top-k 數量（從 3 改到 10）、加大 overlap、或對查詢做 query expansion（用 LLM 把問題改寫成多種說法再分別搜尋）。</div>
+      </div>
+      <div class="failure-item">
+        <div class="failure-header"><span class="failure-badge">找到但沒用</span><div class="failure-title">正確的 chunk 被檢索到，但 AI 回答時忽略了</div></div>
+        <div class="failure-cause">原因：LLM 的 context 裡有太多無關 chunk，稀釋了關鍵資訊的影響力（Lost in the Middle 問題）。</div>
+        <div class="failure-fix">修正：減少 top-k 數量、使用 Reranking 確保最相關的 chunk 排在前面、或在 prompt 中明確指示「以下是最相關的文件片段，請優先參考」。</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<nav class="lesson-nav">
+  <a class="nav-btn" href="CH6-2.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    <div><div class="nav-btn-label">上一節</div><div class="nav-btn-title">CH6-2 Embedding 與向量搜尋基礎</div></div>
+  </a>
+  <a class="nav-btn next" href="CH6-4.html">
+    <div><div class="nav-btn-label">下一節</div><div class="nav-btn-title">CH6-4 Function Calling 與 Agent 工具鏈設計</div></div>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+  </a>
+</nav>
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">140 小時生成式 AI 實務應用課程 · Part 6 AI 應用開發進階</div>
+</footer>
+<script>
+const prog=document.getElementById('prog');
+window.addEventListener('scroll',()=>{const st=window.scrollY,dh=document.documentElement.scrollHeight-window.innerHeight;prog.style.width=(dh>0?(st/dh)*100:0)+'%';});
+document.querySelectorAll('.reveal').forEach(el=>new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in');}),{threshold:0.08}).observe(el));
+</script>
+</body>
+</html>

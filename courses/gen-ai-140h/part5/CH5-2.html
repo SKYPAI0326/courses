@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH5-2 與 AI 協作改頁面，而不是盲貼程式碼｜140小時生成式 AI 實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#8c8880;
+  --c-a1:#b5703a; --c-a2:#c9963a; --c-a3:#5a7a5a; --c-a4:#6b7fa3;
+  --c-accent:#c9963a;
+  --radius:6px; --radius-sm:4px; --content-w:780px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+
+/* ── 頂部列 ── */
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-accent);border:1px solid rgba(201,150,58,.3);background:rgba(201,150,58,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+
+/* ── 閱讀進度條 ── */
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-accent);width:0%;transition:width .1s;}
+
+/* ── Hero ── */
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-accent);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-accent);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-accent);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-accent);margin-top:8px;flex-shrink:0;}
+
+/* ── 主內容 ── */
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-accent);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+
+/* ── 對比格 ── */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0;}
+.compare-card{padding:24px 26px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);}
+.compare-card.highlight{border-color:rgba(201,150,58,.4);background:rgba(201,150,58,.04);}
+.compare-label{font-size:.7rem;font-weight:500;letter-spacing:1px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--c-border);}
+.compare-card .compare-label{color:var(--c-muted);}
+.compare-card.highlight .compare-label{color:var(--c-accent);}
+.compare-item{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;color:var(--c-text);margin-bottom:10px;line-height:1.6;}
+.compare-dot{width:4px;height:4px;border-radius:50%;background:var(--c-muted);margin-top:9px;flex-shrink:0;}
+.compare-card.highlight .compare-dot{background:var(--c-accent);}
+
+/* ── Callout ── */
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25);}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout.key{background:rgba(201,150,58,.07);border:1px solid rgba(201,150,58,.25);}
+.callout.warn{background:rgba(181,60,60,.05);border:1px solid rgba(181,60,60,.2);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text);}
+.callout-body strong{font-weight:700;}
+
+/* ── 程式碼區塊 ── */
+.code-block{background:#1e1e1e;border-radius:var(--radius);margin:24px 0;overflow:hidden;}
+.code-block-header{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;background:#2a2a2a;border-bottom:1px solid #333;}
+.code-block-lang{font-size:.7rem;color:#888;letter-spacing:1px;font-weight:500;}
+.code-block-label{font-size:.72rem;color:#aaa;}
+.code-block pre{padding:20px 18px;overflow-x:auto;font-family:'Courier New',Courier,monospace;font-size:.82rem;line-height:1.75;color:#d4d4d4;}
+.code-comment{color:#6a9955;}
+.code-str{color:#ce9178;}
+.code-keyword{color:#c586c0;}
+
+/* ── 三要素卡片 ── */
+.triad-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:28px 0;}
+.triad-card{padding:22px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-align:center;}
+.triad-num{font-family:'Shippori Mincho',serif;font-size:1.6rem;font-weight:700;color:var(--c-accent);margin-bottom:10px;line-height:1;}
+.triad-title{font-size:.88rem;font-weight:700;color:var(--c-text);margin-bottom:8px;}
+.triad-desc{font-size:.8rem;color:var(--c-muted);line-height:1.7;}
+
+/* ── 步驟清單 ── */
+.step-list{display:flex;flex-direction:column;gap:14px;margin:24px 0;}
+.step-item{display:flex;align-items:flex-start;gap:16px;padding:16px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);}
+.step-num{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-accent);flex-shrink:0;min-width:24px;}
+.step-body{font-size:.88rem;color:var(--c-text);line-height:1.75;}
+.step-body strong{font-weight:700;}
+
+/* ── 技巧清單 ── */
+.technique-list{display:flex;flex-direction:column;gap:12px;margin:28px 0;}
+.technique-item{padding:18px 22px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius);}
+.technique-title{font-size:.88rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.technique-code{font-family:'Courier New',monospace;font-size:.8rem;color:var(--c-accent);background:rgba(201,150,58,.08);padding:2px 8px;border-radius:3px;display:inline-block;margin-bottom:8px;}
+.technique-desc{font-size:.83rem;color:var(--c-muted);line-height:1.7;}
+
+/* ── Bug 描述拆解 ── */
+.bug-anatomy{padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);margin:28px 0;}
+.bug-row{display:grid;grid-template-columns:100px 1fr;gap:12px;align-items:start;padding:12px 0;border-bottom:1px solid var(--c-border);}
+.bug-row:last-child{border-bottom:none;padding-bottom:0;}
+.bug-label{font-size:.72rem;font-weight:500;letter-spacing:1px;color:var(--c-accent);}
+.bug-content{font-size:.87rem;color:var(--c-text);line-height:1.7;}
+
+/* ── 工具比較表 ── */
+.tool-table{width:100%;border-collapse:collapse;margin:28px 0;font-size:.85rem;}
+.tool-table thead tr{background:var(--c-surface);}
+.tool-table th{text-align:left;padding:12px 14px;font-size:.72rem;color:var(--c-muted);letter-spacing:1px;border-bottom:1px solid var(--c-border);}
+.tool-table td{padding:14px;border-bottom:1px solid var(--c-border);line-height:1.65;vertical-align:top;}
+.tool-table td:first-child{font-weight:700;color:var(--c-text);white-space:nowrap;}
+.tool-table tr:last-child td{border-bottom:none;}
+.tool-tag{display:inline-block;font-size:.7rem;padding:2px 8px;border-radius:99px;margin-right:4px;margin-bottom:2px;}
+.tool-tag.edit{background:rgba(201,150,58,.1);color:#a07820;border:1px solid rgba(201,150,58,.3);}
+.tool-tag.chat{background:rgba(107,127,163,.1);color:#4a5f8a;border:1px solid rgba(107,127,163,.3);}
+.tool-tag.inline{background:rgba(90,122,90,.1);color:#3a6a3a;border:1px solid rgba(90,122,90,.3);}
+
+/* ── 大引言 ── */
+.big-quote{font-family:'Shippori Mincho',serif;font-size:1.3rem;font-weight:700;line-height:1.65;color:var(--c-text);padding:28px 32px;background:var(--c-card);border:1px solid var(--c-border);border-left:4px solid var(--c-accent);border-radius:var(--radius);margin:28px 0;}
+.big-quote span{color:var(--c-accent);}
+
+/* ── 課程預告 ── */
+.preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:24px 0;}
+.preview-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;display:flex;align-items:flex-start;gap:14px;}
+.preview-icon{font-size:1.3rem;flex-shrink:0;}
+.preview-part{font-size:.68rem;color:var(--c-muted);margin-bottom:4px;}
+.preview-name{font-size:.85rem;font-weight:700;color:var(--c-text);line-height:1.4;}
+
+/* ── 底部導航 ── */
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-accent);}
+.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* ── 頁尾 ── */
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+
+/* ── 動態進場 ── */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1);}
+.reveal.in{opacity:1;transform:translateY(0);}
+.section-rule{transform-origin:left center;opacity:0;transition:opacity .4s ease,transform .6s cubic-bezier(.16,1,.3,1);transform:scaleX(.3);}
+.section-rule.in{opacity:1;transform:scaleX(1);}
+
+/* ── 側邊章節導航 ── */
+.section-dots{position:fixed;left:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:40;opacity:0;transition:opacity .4s ease;}
+.section-dots.visible{opacity:1;}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--c-border);cursor:pointer;transition:background .3s ease,transform .3s ease;border:none;padding:0;}
+.sdot.active{background:var(--c-accent);transform:scale(1.5);}
+@media(max-width:1100px){.section-dots{display:none;}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero{padding:40px 20px 36px;}.lesson-title{font-size:1.55rem;}.lesson-body{padding:0 20px 60px;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.compare-grid,.preview-grid,.triad-grid{grid-template-columns:1fr;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+
+<!-- 側邊章節導航 -->
+<nav class="section-dots" id="sdots">
+  <button class="sdot" data-sec="s1" title="拆解需求：從「我想要」到 AI 能執行的指令"></button>
+  <button class="sdot" data-sec="s2" title="範圍控制：只改這裡，不動其他地方"></button>
+  <button class="sdot" data-sec="s3" title="Bug 修復：用結構化語言讓 AI 找到問題"></button>
+  <button class="sdot" data-sec="s4" title="工具選擇：Cursor / Copilot / Claude Code"></button>
+</nav>
+
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">140 小時生成式 AI 實務應用課程</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH 5.2 · Part 5</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a class="back-link" href="../../../index.html">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">Part 5 · 前端與部署實戰</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 5.2 · 3 小時</span>
+  </div>
+  <h1 class="lesson-title">與 AI 協作改頁面，<br>而不是<em>盲貼程式碼</em></h1>
+  <p class="lesson-tagline">讓 AI 幫你改頁面不難——難的是讓它只改你要改的地方。這節課教你把改版需求拆成 AI 看得懂的指令，讓每次修改都精準有效，不再改了這裡壞了那裡。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果 · OUTCOMES</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能將頁面改版需求拆解成具體、可執行的 AI 指令，包含位置、意圖與限制三個要素</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>知道如何對 AI 指定修改範圍，避免它「改過頭」動到不該動的區塊</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能用結構化方式描述 bug，讓 AI 快速定位問題並提出可用的修復方案</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>了解 Cursor、GitHub Copilot、Claude Code 各自的使用場景，知道什麼時候選哪個工具</div>
+  </div>
+</div>
+
+<main class="lesson-body">
+
+  <!-- Section 1 -->
+  <section class="lesson-section reveal" id="s1">
+    <div class="section-eyebrow">Section 1 · Decompose</div>
+    <h2 class="section-heading">拆解需求：從「我想要...」<br>到 <em>AI 能執行的指令</em></h2>
+    <p class="body-text">「幫我讓這個頁面更好看」——這是最常見的 AI 改版指令，也是最容易讓你崩潰的一種。AI 動了字型、換了顏色、調了整體排版，然後你發現它把你精心設計的 Hero 區塊也一起重構了。</p>
+    <p class="body-text">問題不在 AI，而在指令。<strong>AI 沒有你腦子裡的那個頁面樣貌——它只能根據你給的描述推斷你的意圖。</strong>描述越模糊，AI 的「自由發揮」空間越大。</p>
+
+    <div class="big-quote">好的 AI 改版指令有三個要素：<span>位置</span>、<span>意圖</span>、<span>限制</span>。缺一不可。</div>
+
+    <div class="triad-grid">
+      <div class="triad-card">
+        <div class="triad-num">01</div>
+        <div class="triad-title">位置</div>
+        <div class="triad-desc">指定要改的是哪個元素、哪個區塊。用 CSS class、HTML 標籤或描述性的結構名稱都行。</div>
+      </div>
+      <div class="triad-card">
+        <div class="triad-num">02</div>
+        <div class="triad-title">意圖</div>
+        <div class="triad-desc">說清楚你要達到什麼視覺或功能效果。「更大」「更明顯」不夠——要說「從 16px 改到 20px」或「讓按鈕在頁面上更突出」。</div>
+      </div>
+      <div class="triad-card">
+        <div class="triad-num">03</div>
+        <div class="triad-title">限制</div>
+        <div class="triad-desc">說明什麼地方不能動。這是最常被省略卻最重要的部分——它幫 AI 設定邊界，防止過度修改。</div>
+      </div>
+    </div>
+
+    <p class="body-text">把這三個要素組合起來，就能寫出有效的改版指令：</p>
+
+    <div class="compare-grid">
+      <div class="compare-card">
+        <div class="compare-label">模糊指令（容易出錯）</div>
+        <div class="compare-item"><div class="compare-dot"></div>「幫我改一下這個頁面的設計」</div>
+        <div class="compare-item"><div class="compare-dot"></div>「讓按鈕更好看」</div>
+        <div class="compare-item"><div class="compare-dot"></div>「把顏色調整一下」</div>
+        <div class="compare-item"><div class="compare-dot"></div>「標題字體改大一點」</div>
+      </div>
+      <div class="compare-card highlight">
+        <div class="compare-label">精準指令（位置＋意圖＋限制）</div>
+        <div class="compare-item"><div class="compare-dot"></div>「只修改 .hero 區塊，把標題從 32px 改成 40px，其他不動」</div>
+        <div class="compare-item"><div class="compare-dot"></div>「.submit-btn 的背景色從 #999 改成 #2a7a5a，只改這一個按鈕」</div>
+        <div class="compare-item"><div class="compare-dot"></div>「nav 連結的顏色統一改成 #333，保持原有 hover 效果不變」</div>
+        <div class="compare-item"><div class="compare-dot"></div>「.card-title 的 font-size 從 1rem 改成 1.15rem，不改其他 card 樣式」</div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body"><strong>從視覺到語言的轉譯練習：</strong>看到頁面上某個你不滿意的地方，試著用「位置＋意圖＋限制」三要素描述它。這個練習做幾次之後會變成直覺——你會越來越快地把視覺感受翻譯成可執行的文字指令。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <!-- Section 2 -->
+  <section class="lesson-section reveal" id="s2">
+    <div class="section-eyebrow">Section 2 · Scope Control</div>
+    <h2 class="section-heading">範圍控制：<em>只改這裡</em>，不動其他地方</h2>
+    <p class="body-text">即使你的指令有位置、意圖、限制，AI 有時仍會「改過頭」——特別是當你把整份程式碼貼給它時。AI 看到的是完整的 context，它的訓練讓它傾向於「提供全面改善」，而不只是點對點修改。</p>
+    <p class="body-text">三個技巧可以有效控制修改範圍：</p>
+
+    <div class="technique-list">
+      <div class="technique-item">
+        <div class="technique-title">技巧一：只貼你要改的那段程式碼</div>
+        <div class="technique-code">貼出 .hero 的 CSS，而不是整份 style</div>
+        <div class="technique-desc">AI 看不到其他部分，自然無法「順手改掉」。當你提問時，從 DevTools 或檔案裡複製對應的片段貼入即可。</div>
+      </div>
+      <div class="technique-item">
+        <div class="technique-title">技巧二：明確聲明不動的範圍</div>
+        <div class="technique-code">「除了我列出的部分，其他 CSS 保持原樣，不要重構」</div>
+        <div class="technique-desc">在指令結尾加上這句話，相當於給 AI 設置一道防護欄。不需要每次都精確列出所有不能動的地方，一句「其他保持原樣」就夠了。</div>
+      </div>
+      <div class="technique-item">
+        <div class="technique-title">技巧三：要求 AI 只回傳差異，不回傳全文</div>
+        <div class="technique-code">「只給我要修改的那幾行，不要貼出完整檔案」</div>
+        <div class="technique-desc">這讓你更容易辨認 AI 改了什麼，也避免你在複製貼上時不小心覆蓋掉你自己的其他修改。</div>
+      </div>
+    </div>
+
+    <p class="body-text">實際操作的情境：你想改頁面上的一個按鈕顏色，但不想動按鈕的大小、圓角和 hover 效果。以下是典型的指令示範：</p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">PROMPT</span>
+        <span class="code-block-label">精準範圍指令範例</span>
+      </div>
+      <pre>我想修改這個 CSS 片段中 .btn-primary 的背景顏色，
+從 #6b7fa3 改成 #5a7a5a。
+
+<span class="code-str">只改 background 這一個屬性。</span>
+border-radius、padding、font-size、hover 效果都不要動。
+只回傳修改後的 .btn-primary 規則，不要貼出其他 CSS。
+
+---
+.btn-primary {
+  background: #6b7fa3;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: .9rem;
+  cursor: pointer;
+}
+.btn-primary:hover {
+  background: #5a6d8f;
+}</pre>
+    </div>
+
+    <div class="callout key">
+      <div class="callout-icon">🔑</div>
+      <div class="callout-body"><strong>核心原則：</strong>你給 AI 的上下文決定了它能「看到」什麼、能影響什麼。控制你貼進去的內容，就是控制 AI 的修改邊界。這不是技巧，是工作習慣。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <!-- Section 3 -->
+  <section class="lesson-section reveal" id="s3">
+    <div class="section-eyebrow">Section 3 · Debug</div>
+    <h2 class="section-heading">Bug 修復：用<em>結構化語言</em>讓 AI 找到問題</h2>
+    <p class="body-text">「這個按鈕點了沒有反應」——這是最常見的 bug 回報方式，也是讓 AI 最難幫你的方式。AI 需要知道：它哪裡沒反應？你期待它做什麼？什麼情況下才會沒反應？</p>
+    <p class="body-text">一個有效的 bug 描述由三個部分組成：</p>
+
+    <div class="bug-anatomy">
+      <div class="bug-row">
+        <div class="bug-label">現象</div>
+        <div class="bug-content">你實際觀察到的行為。盡可能具體：「點了沒有反應」→「點擊 #submit-btn 後頁面沒有任何變化，沒有顯示結果，也沒有錯誤提示」</div>
+      </div>
+      <div class="bug-row">
+        <div class="bug-label">預期</div>
+        <div class="bug-content">你期待應該發生什麼。「應該要在 #output 區塊顯示使用者輸入的文字」</div>
+      </div>
+      <div class="bug-row">
+        <div class="bug-label">觸發條件</div>
+        <div class="bug-content">什麼時候、什麼情況下會發生這個問題。「每次點擊都這樣，不是偶發」或「只有在輸入框為空時才會這樣」</div>
+      </div>
+    </div>
+
+    <p class="body-text">把這三個要素組合成一段問題描述，再附上相關的程式碼片段，AI 解決問題的成功率會大幅提升：</p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">PROMPT</span>
+        <span class="code-block-label">結構化 bug 描述範例</span>
+      </div>
+      <pre><span class="code-comment">現象：</span>點擊 id="submit-btn" 的按鈕之後，頁面完全沒有反應。
+<span class="code-comment">預期：</span>應該要把 id="user-input" 的輸入值顯示在 id="output" 的段落裡。
+<span class="code-comment">觸發條件：</span>不論輸入框有沒有內容，每次點擊都沒有反應。
+
+以下是我的 JavaScript，請找出問題並告訴我哪裡出錯，
+然後只修改有問題的地方：
+
+document.getElementById('submit-btn').onclick = function() {
+  let value = document.getElementById('user-input').val();
+  document.getElementById('output').textContent = value;
+};</pre>
+    </div>
+
+    <div class="callout info">
+      <div class="callout-icon">ℹ️</div>
+      <div class="callout-body"><strong>善用 Console 錯誤訊息：</strong>打開瀏覽器的開發者工具（F12），點 Console 標籤，然後重現 bug。如果有紅色錯誤訊息，直接複製貼進你的 AI 問題裡。Console 錯誤通常包含檔案名稱、行號和錯誤類型，是 AI 定位問題最快的線索。</div>
+    </div>
+
+    <p class="body-text">進階技巧：當你不確定 bug 的原因，可以先請 AI <strong>解釋邏輯</strong>，不要急著要它修改。「請逐行說明這段 JavaScript 在做什麼」——這讓你先理解程式流程，再判斷哪裡和你的預期不符，最後才針對性地要求修復。</p>
+
+    <div class="step-list">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-body"><strong>讓 AI 解釋</strong>「請逐行說明這段程式碼在做什麼」——先建立你對程式流程的理解</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-body"><strong>定位差異</strong>「這裡的邏輯和我的預期不符」——找到問題所在的步驟</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-body"><strong>針對性修復</strong>「只修改第 3 步的部分，其他保持不變」——精準修復，不引入新問題</div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body"><strong>避免「修了又壞」的循環：</strong>不要直接貼整份程式碼讓 AI「全面修復 bug」。這容易讓 AI 為了解決一個問題而修改了其他正常的部分，結果修了一個 bug 又引入兩個新問題。保持「最小範圍修改」的原則。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <!-- Section 4 -->
+  <section class="lesson-section reveal" id="s4">
+    <div class="section-eyebrow">Section 4 · Tools</div>
+    <h2 class="section-heading">工具選擇：<em>Cursor / Copilot / Claude Code</em><br>各自適合什麼</h2>
+    <p class="body-text">AI 協作開發工具不只一種，而且每種工具的設計哲學不同。了解它們的差異，能幫你選到最適合當下任務的工具，而不是用同一個工具做所有事。</p>
+
+    <table class="tool-table">
+      <thead>
+        <tr>
+          <th>工具</th>
+          <th>互動方式</th>
+          <th>最適合的場景</th>
+          <th>限制</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Cursor</td>
+          <td><span class="tool-tag edit">編輯器內嵌</span></td>
+          <td>你已有一個專案，需要在編輯器裡直接修改程式碼。AI 能看到完整的專案結構和多個檔案，適合跨檔案的修改與重構。</td>
+          <td>需要安裝桌面應用程式；對初次使用者有一定的設定成本。</td>
+        </tr>
+        <tr>
+          <td>GitHub Copilot</td>
+          <td><span class="tool-tag inline">打字補全</span></td>
+          <td>你邊寫邊想，需要即時的程式碼補全建議。適合有基礎但需要加速的開發者，在 VS Code 或 JetBrains 裡直接運作。</td>
+          <td>是補全工具而非對話工具；不適合「解釋這段程式碼」這類需求。</td>
+        </tr>
+        <tr>
+          <td>Claude Code</td>
+          <td><span class="tool-tag chat">對話式</span></td>
+          <td>你不想打開編輯器，或需要大量解釋說明。適合用自然語言描述需求、一次性修改特定檔案、或需要 AI 說明程式邏輯。</td>
+          <td>需要透過指令介面操作；對習慣 GUI 的使用者有學習曲線。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout key">
+      <div class="callout-icon">🔑</div>
+      <div class="callout-body"><strong>選擇原則：</strong>不要同時用多個工具，先選一個熟。大多數人從 Claude Code 入門最順——對話介面直接，不需要安裝設定，而且本課程的其他單元也都在這個環境裡操作。等你對「怎麼跟 AI 說話」有了感覺，再考慮是否切換到 Cursor 或 Copilot。</div>
+    </div>
+
+    <p class="body-text">工具本身不是瓶頸，<strong>你描述需求的能力才是</strong>。這節課的位置、意圖、限制三要素，以及範圍控制和 bug 描述的方法，在任何 AI 工具上都通用。學好這些方法，換工具只是換介面，不是換技能。</p>
+
+    <div class="big-quote">「盲貼程式碼」是把 AI 當成黑盒子；「協作改頁面」是把 AI 當成你的<span>執行夥伴</span>——你負責判斷和決策，它負責實作。</div>
+
+    <p class="body-text" style="margin-top:28px;">掌握了這節課的方法，你已經能夠有效地讓 AI 幫你修改現有頁面。接下來的 CH5-3 和 CH5-4，我們要解決另一個問題：<strong>改到壞掉了怎麼辦、改好了放到哪裡讓別人看到？</strong></p>
+
+    <div class="preview-grid">
+      <div class="preview-card">
+        <div class="preview-icon">📦</div>
+        <div>
+          <div class="preview-part">CH 5.3 · 下一節</div>
+          <div class="preview-name">Git 與版本保存——改錯了也能回到上一步</div>
+        </div>
+      </div>
+      <div class="preview-card">
+        <div class="preview-icon">🚀</div>
+        <div>
+          <div class="preview-part">CH 5.4 · 之後</div>
+          <div class="preview-name">含後端服務的完整部署——讓你的頁面有個公開網址</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<nav class="lesson-nav">
+  <a class="nav-btn" href="CH5-1.html">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div>
+      <div class="nav-btn-label">上一節</div>
+      <div class="nav-btn-title">CH5-1 看懂 HTML / CSS / JS 的最低必要知識</div>
+    </div>
+  </a>
+  <a class="nav-btn next" href="CH5-3.html">
+    <div>
+      <div class="nav-btn-label">下一節</div>
+      <div class="nav-btn-title">CH5-3 Git 與版本保存</div>
+    </div>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">140 小時生成式 AI 實務應用課程 · Part 5 · CH5-2</div>
+</footer>
+
+<script>
+// 閱讀進度條
+const prog = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  prog.style.width = Math.min(pct, 100) + '%';
+});
+
+// 動態進場
+const revealEls = document.querySelectorAll('.reveal');
+const ro = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); ro.unobserve(e.target); } });
+}, { threshold: 0.08 });
+revealEls.forEach(el => ro.observe(el));
+
+// 側邊章節導航
+const sdots = document.getElementById('sdots');
+const sections = ['s1','s2','s3','s4'].map(id => document.getElementById(id));
+const dots = document.querySelectorAll('.sdot');
+let scrollTimer;
+window.addEventListener('scroll', () => {
+  clearTimeout(scrollTimer);
+  scrollTimer = setTimeout(() => {
+    const mid = window.scrollY + window.innerHeight / 2;
+    let active = 0;
+    sections.forEach((s, i) => { if (s && s.offsetTop <= mid) active = i; });
+    dots.forEach((d, i) => d.classList.toggle('active', i === active));
+  }, 60);
+  sdots.classList.toggle('visible', window.scrollY > 200);
+});
+dots.forEach(d => {
+  d.addEventListener('click', () => {
+    const el = document.getElementById(d.dataset.sec);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+</script>
+</body>
+</html>

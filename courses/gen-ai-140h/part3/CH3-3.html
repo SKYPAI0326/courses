@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH3-3 表單、自動化工具與 Webhook｜140小時生成式AI實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a3:#5a7a5a;--radius:6px;--radius-sm:4px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a3);border:1px solid rgba(90,122,90,.3);background:rgba(90,122,90,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a3);width:0%;transition:width .1s;}
+.side-nav{position:fixed;right:32px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:40;}
+.side-dot{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--c-border);background:transparent;cursor:pointer;transition:background .2s,border-color .2s;}
+.side-dot.active{background:var(--c-a3);border-color:var(--c-a3);}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a3);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-a3);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a3);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-a3);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a3);margin-top:8px;flex-shrink:0;}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;opacity:0;transform:translateY(18px);transition:opacity .5s,transform .5s;}
+.lesson-section.visible{opacity:1;transform:translateY(0);}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-a3);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;}
+.callout.key{background:rgba(90,122,90,.07);border:1px solid rgba(90,122,90,.25);}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25);}
+.callout-icon{font-size:1rem;flex-shrink:0;margin-top:3px;}
+.callout-body{font-size:.87rem;line-height:1.8;color:var(--c-text);}
+.concept-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0;}
+.concept-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;}
+.concept-card-num{font-size:.67rem;color:var(--c-a3);letter-spacing:1.5px;font-weight:500;margin-bottom:6px;}
+.concept-card-title{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.concept-card-desc{font-size:.81rem;color:var(--c-muted);line-height:1.7;}
+.step-flow{display:flex;gap:14px;margin:20px 0;}
+.step-item{flex:1;background:var(--c-card);border:1px solid var(--c-border);border-top:3px solid var(--c-a3);border-radius:var(--radius);padding:18px 18px 20px;}
+.step-label{font-size:.65rem;color:var(--c-a3);letter-spacing:1.5px;font-weight:500;margin-bottom:6px;}
+.step-title{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:8px;}
+.step-desc{font-size:.8rem;color:var(--c-muted);line-height:1.7;}
+.step-example{font-size:.75rem;color:var(--c-a3);margin-top:8px;line-height:1.6;border-top:1px solid var(--c-border);padding-top:8px;}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0;}
+.compare-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 22px;}
+.compare-card.highlight{border-color:rgba(90,122,90,.4);background:rgba(90,122,90,.03);}
+.cc-label{font-size:.67rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:6px;}
+.cc-title{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:10px;}
+.cc-list{display:flex;flex-direction:column;gap:5px;}
+.cc-item{font-size:.81rem;color:var(--c-muted);display:flex;align-items:flex-start;gap:6px;}
+.cc-item::before{content:'·';color:var(--c-a3);flex-shrink:0;font-size:1rem;}
+.big-quote{background:var(--c-card);border:1px solid var(--c-border);border-left:4px solid var(--c-a3);border-radius:var(--radius);padding:24px 28px;margin:20px 0;}
+.big-quote-text{font-family:'Shippori Mincho',serif;font-size:1.05rem;color:var(--c-text);line-height:1.8;font-style:normal;}
+.step-flow-v{display:flex;flex-direction:column;gap:0;margin:20px 0;}
+.sfv-item{display:flex;gap:14px;align-items:flex-start;}
+.sfv-step{display:flex;flex-direction:column;align-items:center;}
+.sfv-circle{width:32px;height:32px;border-radius:50%;background:rgba(90,122,90,.1);border:2px solid var(--c-a3);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:.85rem;font-weight:700;color:var(--c-a3);flex-shrink:0;}
+.sfv-line{width:2px;flex:1;min-height:24px;background:var(--c-border);margin:0 auto;}
+.sfv-content{padding:4px 0 24px;}
+.sfv-title{font-size:.9rem;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.sfv-desc{font-size:.83rem;color:var(--c-muted);line-height:1.7;}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a3);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius);transition:background .2s;}
+.nav-btn:hover{background:rgba(90,122,90,.06);}
+.nav-btn.primary{background:var(--c-a3);color:#fff;border-color:var(--c-a3);}
+.nav-btn.primary:hover{background:#496349;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-div{width:1px;height:14px;background:var(--c-border);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+@media(max-width:640px){.topbar,.lesson-hero,.lesson-body,.nav-footer{padding-left:24px;padding-right:24px;}.side-nav{display:none;}.step-flow{flex-direction:column;}.compare-grid,.concept-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a href="../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">140小時生成式AI實務應用課程</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">CH 3-3 · 2h</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<nav class="side-nav">
+  <div class="side-dot active" data-sec="0"></div>
+  <div class="side-dot" data-sec="1"></div>
+  <div class="side-dot" data-sec="2"></div>
+  <div class="side-dot" data-sec="3"></div>
+</nav>
+
+<div class="lesson-hero">
+  <a href="../index.html" class="back-link">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">PART 3 · 把資料變成流程</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 3-3 · 2H</span>
+  </div>
+  <h1 class="lesson-title">表單、自動化工具<br>與 Webhook 基礎</h1>
+  <p class="lesson-tagline">自動化不是黑魔法，而是把你每次手動做的步驟告訴一個工具，讓它幫你重複執行。這節課拆解 Make 和 n8n 的核心邏輯，以及讓流程自動觸發的關鍵概念：Webhook。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果 · OUTCOMES</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>理解觸發 → 處理 → 輸出的自動化三段結構</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能說明 Webhook 的工作原理，並在實際流程中正確使用</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能在 Make / n8n 中設計最小可行的 AI 自動化鏈</div>
+  </div>
+</div>
+
+<div class="lesson-body">
+
+  <section class="lesson-section" id="sec-0">
+    <div class="section-eyebrow">Section 01 · Form Data</div>
+    <h2 class="section-heading">Google 表單的資料結構：<em>自動化的起點</em></h2>
+    <p class="body-text">Google 表單是自動化流程最常見的觸發起點——免費、熟悉、不需要寫程式。理解表單怎麼存資料，才能知道自動化工具怎麼接它。</p>
+    <div class="concept-grid">
+      <div class="concept-card">
+        <div class="concept-card-num">結構 01</div>
+        <div class="concept-card-title">表單 → 試算表</div>
+        <div class="concept-card-desc">每次提交在 Google Sheets 新增一列，欄位名稱就是表單的題目。這是自動化工具讀取資料的標準入口。</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-card-num">結構 02</div>
+        <div class="concept-card-title">時間戳記</div>
+        <div class="concept-card-desc">每筆紀錄都有自動生成的提交時間，是觸發自動化的判斷依據——「新資料出現」就從這裡判斷。</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-card-num">結構 03</div>
+        <div class="concept-card-title">欄位格式</div>
+        <div class="concept-card-desc">短答案 → 文字；選擇題 → 固定選項值（注意 AI 清理時的一致性）；評分 → 數字。格式決定後續處理方式。</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-card-num">結構 04</div>
+        <div class="concept-card-title">觸發時機</div>
+        <div class="concept-card-desc">「收到新提交」是最常用的觸發條件；也可以用「試算表有新列」觸發，彈性更高。</div>
+      </div>
+    </div>
+    <div class="callout key">
+      <span class="callout-icon">◆</span>
+      <div class="callout-body"><strong>選擇自動化入口的原則：</strong>用你最常用、最熟悉的格式當輸入。Google Sheets 是絕大多數零代碼自動化的最佳起點。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <section class="lesson-section" id="sec-1">
+    <div class="section-eyebrow">Section 02 · Make and n8n</div>
+    <h2 class="section-heading">Make / n8n 的流程邏輯：<em>三步驟就能理解</em></h2>
+    <p class="body-text">Make 和 n8n 這類工具的核心邏輯非常一致——無論介面怎麼設計，所有流程都可以用同一個框架理解。掌握這個框架，任何自動化工具都能快速上手。</p>
+    <div class="step-flow">
+      <div class="step-item">
+        <div class="step-label">觸發 · TRIGGER</div>
+        <div class="step-title">什麼事件讓流程開始？</div>
+        <div class="step-desc">每條流程都從一個觸發事件開始，沒有觸發就不會執行。</div>
+        <div class="step-example">Google 表單新提交 / 定時排程 / Webhook 收到資料 / Email 收到信</div>
+      </div>
+      <div class="step-item">
+        <div class="step-label">處理 · ACTION</div>
+        <div class="step-title">要做什麼動作？</div>
+        <div class="step-desc">觸發後執行的一個或多個動作，可以串接、可以加條件判斷。</div>
+        <div class="step-example">呼叫 AI API / 讀取試算表 / 發送 Email / 格式轉換 / 條件判斷</div>
+      </div>
+      <div class="step-item">
+        <div class="step-label">輸出 · OUTPUT</div>
+        <div class="step-title">結果放哪？</div>
+        <div class="step-desc">處理完成後，把結果送到目的地或觸發下一個動作。</div>
+        <div class="step-example">寫回試算表 / 發送 Slack / 寄 Email / 觸發另一條流程</div>
+      </div>
+    </div>
+    <div class="compare-grid">
+      <div class="compare-card highlight">
+        <div class="cc-label">Make.com 特色</div>
+        <div class="cc-title">適合初學者的視覺化工具</div>
+        <div class="cc-list">
+          <div class="cc-item">視覺化模組連接，直覺易懂</div>
+          <div class="cc-item">適合無程式基礎的初學者</div>
+          <div class="cc-item">有豐富的 app 連接器（1000+）</div>
+          <div class="cc-item">付費版功能較完整</div>
+        </div>
+      </div>
+      <div class="compare-card">
+        <div class="cc-label">n8n 特色</div>
+        <div class="cc-title">開源彈性高的自架工具</div>
+        <div class="cc-list">
+          <div class="cc-item">開源可自架，完全掌控資料</div>
+          <div class="cc-item">程式碼節點彈性高</div>
+          <div class="cc-item">可免費自架，無限執行次數</div>
+          <div class="cc-item">社群模板豐富</div>
+        </div>
+      </div>
+    </div>
+    <div class="callout tip">
+      <span class="callout-icon">✦</span>
+      <div class="callout-body"><strong>初學者建議先用 Make.com，</strong>因為視覺化拖拉比較直觀。有 IT 基礎或想自架的人考慮 n8n。兩者的流程邏輯幾乎一樣，學會一個就很容易轉換。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <section class="lesson-section" id="sec-2">
+    <div class="section-eyebrow">Section 03 · Webhook</div>
+    <h2 class="section-heading">Webhook：<em>讓外部事件直接通知你的流程</em></h2>
+    <p class="body-text">Webhook 是自動化工具裡最重要、也最容易讓人困惑的概念。先從一個類比開始理解它：</p>
+    <div class="big-quote">
+      <p class="big-quote-text">Webhook 就像快遞的「到貨簡訊」。你不需要一直打電話問「快遞到了嗎」——而是告訴快遞公司一個手機號碼（Webhook URL），包裹一到就自動傳訊息給你。Webhook URL 就是你的手機號碼，外部事件發生就是包裹到達。</p>
+    </div>
+    <div class="concept-grid">
+      <div class="concept-card">
+        <div class="concept-card-num">概念 01</div>
+        <div class="concept-card-title">Webhook URL</div>
+        <div class="concept-card-desc">Make / n8n 自動生成的唯一網址，是「接收資料」的入口。複製這個網址，貼到觸發來源。</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-card-num">概念 02</div>
+        <div class="concept-card-title">誰來發送</div>
+        <div class="concept-card-desc">任何能發送 HTTP 請求的系統——表單、網站、另一個自動化工具、你自己的程式都可以。</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-card-num">概念 03</div>
+        <div class="concept-card-title">資料格式</div>
+        <div class="concept-card-desc">通常是 JSON，包含事件的詳細資訊（觸發時間、資料內容等）。Make / n8n 會自動解析。</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-card-num">概念 04</div>
+        <div class="concept-card-title">觸發即執行</div>
+        <div class="concept-card-desc">Webhook 收到資料的瞬間，流程就啟動，不需要排程。即時性是 Webhook 最大的優點。</div>
+      </div>
+    </div>
+    <div class="callout info">
+      <span class="callout-icon">ℹ</span>
+      <div class="callout-body"><strong>在 Make / n8n 設定的第一步，</strong>就是複製 Webhook URL 貼到觸發來源（如 Google 表單的回覆通知、付款系統等）。之後這條路就會自動通了。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <section class="lesson-section" id="sec-3">
+    <div class="section-eyebrow">Section 04 · Debugging</div>
+    <h2 class="section-heading">流程失敗時：<em>三種常見原因與除錯方式</em></h2>
+    <p class="body-text">自動化流程第一次不成功很正常。好消息是失敗的模式通常就那幾種，學會識別就能快速修復。不要一看到失敗就全部重來——先定位問題在哪一段。</p>
+    <div class="step-flow-v">
+      <div class="sfv-item">
+        <div class="sfv-step"><div class="sfv-circle">1</div><div class="sfv-line"></div></div>
+        <div class="sfv-content">
+          <div class="sfv-title">觸發沒有收到</div>
+          <div class="sfv-desc">Webhook URL 貼錯、表單設定連結錯誤 → 在 Make / n8n 用「手動觸發」或「Send Test」確認是否收到資料。先確認資料有進來，再看後面的步驟。</div>
+        </div>
+      </div>
+      <div class="sfv-item">
+        <div class="sfv-step"><div class="sfv-circle">2</div><div class="sfv-line"></div></div>
+        <div class="sfv-content">
+          <div class="sfv-title">AI 節點失敗</div>
+          <div class="sfv-desc">API 金鑰錯誤、請求格式不對、回應解析失敗 → 先在 API 測試工具確認呼叫成功，再回來接流程。不要在流程裡 debug API，太費時。</div>
+        </div>
+      </div>
+      <div class="sfv-item">
+        <div class="sfv-step"><div class="sfv-circle">3</div></div>
+        <div class="sfv-content">
+          <div class="sfv-title">輸出寫入失敗</div>
+          <div class="sfv-desc">試算表欄位名稱不一致、權限未開放 → 確認試算表已授權工具存取，欄位對應用「動態欄位」而非手動輸入名稱。</div>
+        </div>
+      </div>
+    </div>
+    <div class="callout tip">
+      <span class="callout-icon">✦</span>
+      <div class="callout-body"><strong>除錯最重要的心態：</strong>一次只改一個地方，確認後再改下一個。同時改多個地方不知道是哪個修好了，下次遇到同樣問題還是不會。</div>
+    </div>
+  </section>
+
+</div>
+
+<div class="nav-footer">
+  <a href="CH3-2.html" class="nav-btn">← CH 3-2 工作流設計</a>
+  <a href="PRAC3-1.html" class="nav-btn primary">PRAC 3-1 動手練習 →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">140小時生成式AI實務應用課程</span>
+</footer>
+
+<script>
+const progFill = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  progFill.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + '%';
+});
+const sections = document.querySelectorAll('.lesson-section');
+const dots = document.querySelectorAll('.side-dot');
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting){
+      e.target.classList.add('visible');
+      const i = [...sections].indexOf(e.target);
+      dots.forEach((d,j) => d.classList.toggle('active', i===j));
+    }
+  });
+}, {threshold:.15});
+sections.forEach(s => io.observe(s));
+dots.forEach(d => d.addEventListener('click', () => {
+  document.getElementById('sec-'+d.dataset.sec).scrollIntoView({behavior:'smooth'});
+}));
+</script>
+</body>
+</html>

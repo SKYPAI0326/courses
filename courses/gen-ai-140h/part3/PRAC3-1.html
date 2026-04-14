@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>混亂資料清理器 · PRAC 3-1｜140小時生成式AI實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a3:#5a7a5a;--radius:6px;--radius-sm:4px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a3);border:1px solid rgba(90,122,90,.3);background:rgba(90,122,90,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a3);width:0%;transition:width .1s;}
+.prac-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a3);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-a3);letter-spacing:1px;font-weight:500;}
+.prac-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:16px;}
+.prac-desc{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:32px;}
+.mission-box{display:flex;align-items:center;gap:24px;padding:20px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a3);border-radius:var(--radius);}
+.mission-label{font-size:.7rem;color:var(--c-a3);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.mission-val{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);}
+.mission-divider{width:1px;height:36px;background:var(--c-border);}
+.prac-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:64px 0;}
+.steps-list{display:flex;flex-direction:column;gap:0;margin:32px 0;}
+.step-item{display:flex;gap:0;position:relative;}
+.step-item:not(:last-child)::before{content:'';position:absolute;left:20px;top:44px;bottom:0;width:1px;background:var(--c-border);}
+.step-num-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:40px;padding-top:4px;}
+.step-num{width:40px;height:40px;border-radius:50%;background:var(--c-card);border:1.5px solid var(--c-a3);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-a3);}
+.step-body{flex:1;padding:4px 0 32px 24px;}
+.step-title{font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.step-hint{font-size:.85rem;color:var(--c-muted);line-height:1.75;}
+.tool-wrap{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:32px 0;}
+.tool-topbar{background:var(--c-surface);border-bottom:1px solid var(--c-border);padding:10px 16px;display:flex;align-items:center;gap:8px;}
+.tool-dot{width:10px;height:10px;border-radius:50%;}
+.tool-dot-r{background:#ff6058;} .tool-dot-y{background:#ffbd2e;} .tool-dot-g{background:#28c840;}
+.tool-title{flex:1;font-size:.75rem;color:var(--c-muted);font-weight:500;font-family:'Noto Sans TC',sans-serif;}
+.tool-body{padding:32px 36px;}
+.field-group{margin-bottom:20px;}
+.field-label{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;margin-bottom:8px;}
+.field-input{width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:.88rem;color:var(--c-text);background:var(--c-bg);}
+.field-input:focus{outline:none;border-color:var(--c-a3);}
+.field-textarea{width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:.88rem;color:var(--c-text);background:var(--c-bg);min-height:90px;resize:vertical;line-height:1.7;}
+.field-textarea:focus{outline:none;border-color:var(--c-a3);}
+.checkbox-group{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.checkbox-row{display:flex;align-items:center;gap:10px;font-size:.88rem;color:var(--c-text);}
+.checkbox-row input[type=checkbox]{width:15px;height:15px;accent-color:var(--c-a3);cursor:pointer;flex-shrink:0;}
+.gen-btn{width:100%;padding:12px;background:var(--c-a3);color:#fff;border:none;border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:.87rem;font-weight:500;cursor:pointer;}
+.gen-btn:hover{opacity:.88;}
+.output-area{display:none;margin-top:28px;}
+.output-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.output-label{font-size:.7rem;color:var(--c-a3);letter-spacing:1.5px;font-weight:500;}
+.copy-btn{font-size:.72rem;color:var(--c-a3);background:none;border:1px solid rgba(90,122,90,.3);padding:3px 12px;border-radius:99px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;}
+.copy-btn:hover{background:rgba(90,122,90,.08);}
+.output-text{background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.82rem;line-height:1.85;padding:22px 24px;border-radius:var(--radius-sm);white-space:pre-wrap;word-break:break-word;}
+.challenge-wrap{padding:28px 32px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:32px 0;}
+.challenge-progress{margin-bottom:20px;}
+.challenge-progress-bar{height:4px;background:var(--c-border);border-radius:99px;overflow:hidden;margin-top:8px;}
+.challenge-progress-fill{height:100%;background:var(--c-a3);width:0%;transition:width .3s;}
+.challenge-progress-label{font-size:.72rem;color:var(--c-muted);display:flex;justify-content:space-between;}
+.challenge-label{font-size:.7rem;color:var(--c-a3);letter-spacing:1.5px;font-weight:500;margin-bottom:16px;}
+.challenge-list{display:flex;flex-direction:column;gap:12px;}
+.challenge-item{display:flex;align-items:flex-start;gap:12px;font-size:.88rem;line-height:1.7;}
+.challenge-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--c-a3);cursor:pointer;flex-shrink:0;margin-top:3px;}
+.challenge-item label{cursor:pointer;color:var(--c-text);}
+.challenge-item.done label{color:var(--c-muted);text-decoration:line-through;}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-a3);}
+.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;}.topbar-sub,.topbar-divider{display:none;}.prac-hero{padding:40px 20px 36px;}.prac-title{font-size:1.55rem;}.prac-body{padding:0 20px 60px;}.mission-box{flex-direction:column;align-items:flex-start;gap:12px;}.mission-divider{display:none;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">140 小時生成式 AI 實務應用課程</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">PRAC</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="prac-hero">
+  <a class="back-link" href="../index.html">← 回課程目錄</a>
+  <div class="hero-meta">
+    <div class="hero-part">PART 3 · 把資料變成流程</div>
+    <div class="hero-divider-v"></div>
+    <div class="hero-num">PRAC 3-1</div>
+  </div>
+  <h1 class="prac-title">混亂資料清理器</h1>
+  <p class="prac-desc">把一份格式混亂的資料，用精確的 AI 清理指令變成可交付的乾淨表格。</p>
+  <div class="mission-box">
+    <div>
+      <div class="mission-label">任務步驟</div>
+      <div class="mission-val">3 個步驟</div>
+    </div>
+    <div class="mission-divider"></div>
+    <div>
+      <div class="mission-label">預計時數</div>
+      <div class="mission-val">2.5 小時</div>
+    </div>
+    <div class="mission-divider"></div>
+    <div>
+      <div class="mission-label">所屬單元</div>
+      <div class="mission-val">Part 3</div>
+    </div>
+  </div>
+</div>
+
+<div class="prac-body">
+
+  <div class="section-eyebrow">STEPS · 任務步驟</div>
+  <h2 class="section-heading">依序完成這四個步驟</h2>
+
+  <div class="steps-list">
+    <div class="step-item">
+      <div class="step-num-col"><div class="step-num">1</div></div>
+      <div class="step-body">
+        <div class="step-title">準備你的混亂資料</div>
+        <div class="step-hint">從工作中取一份有問題的 CSV，或用工具內建的範例資料。不需要完美的檔案，越混亂越好練習。</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num-col"><div class="step-num">2</div></div>
+      <div class="step-body">
+        <div class="step-title">診斷資料問題</div>
+        <div class="step-hint">識別有哪些欄位問題：格式不一、空值未標記、欄位命名混亂、分類標籤不一致、複合欄位需拆分。把問題清單列出來。</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num-col"><div class="step-num">3</div></div>
+      <div class="step-body">
+        <div class="step-title">設計清理指令</div>
+        <div class="step-hint">根據診斷結果，用下方工具產生對應的 AI 清理 Prompt。每一種問題對應不同的清理規則，工具會幫你組合。</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num-col"><div class="step-num">4</div></div>
+      <div class="step-body">
+        <div class="step-title">驗收</div>
+        <div class="step-hint">比對清理前後，確認問題已解決、沒有新問題引入。同時寫下這份資料的「欄位規格表」，讓未來維護有依據。</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="section-eyebrow">TOOL · 互動工具</div>
+  <h2 class="section-heading">資料清理指令產生器</h2>
+
+  <div class="tool-wrap">
+    <div class="tool-topbar">
+      <div class="tool-dot tool-dot-r"></div>
+      <div class="tool-dot tool-dot-y"></div>
+      <div class="tool-dot tool-dot-g"></div>
+      <div class="tool-title">資料清理指令產生器</div>
+    </div>
+    <div class="tool-body">
+
+      <div class="field-group">
+        <div class="field-label">問題類型（可多選）</div>
+        <div class="checkbox-group" id="problem-checks">
+          <label class="checkbox-row"><input type="checkbox" value="format"> 格式不統一（日期、數字、電話等）</label>
+          <label class="checkbox-row"><input type="checkbox" value="null"> 空值未標記（空格、"-"、"N/A" 混用）</label>
+          <label class="checkbox-row"><input type="checkbox" value="naming"> 欄位命名混亂（大小寫不一、中英混用）</label>
+          <label class="checkbox-row"><input type="checkbox" value="label"> 分類標籤不一致（如「台北」「臺北」「Taipei」並存）</label>
+          <label class="checkbox-row"><input type="checkbox" value="split"> 複合欄位需拆分（如「姓名+職稱」在同一格）</label>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">目標欄位名稱（告訴 AI 你要的乾淨欄位名）</div>
+        <input class="field-input" id="col-names" type="text" placeholder="例：姓名, 電話, 入職日期, 部門, 職位">
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">範例資料（貼入 2-3 列原始資料，讓 AI 理解格式）</div>
+        <textarea class="field-textarea" id="sample-data" placeholder="例：&#10;王小明,0912-345678,2023/3/1,研發部,工程師&#10;李美華,0923456789,103年5月,研發,senior engineer&#10;,09-8765-4321,2022.12.31,人資,HR"></textarea>
+      </div>
+
+      <button class="gen-btn" onclick="generateCleaningPrompt()">產生清理指令</button>
+
+      <div class="output-area" id="output-area">
+        <div class="output-header">
+          <div class="output-label">GENERATED PROMPT</div>
+          <button class="copy-btn" onclick="copyOutput()">複製</button>
+        </div>
+        <div class="output-text" id="output-text"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="section-eyebrow">CHALLENGE · 驗收清單</div>
+  <h2 class="section-heading">完成所有項目才算過關</h2>
+
+  <div class="challenge-wrap">
+    <div class="challenge-progress">
+      <div class="challenge-progress-label">
+        <span class="challenge-label">CHECKLIST</span>
+        <span id="progress-text">0 / 5</span>
+      </div>
+      <div class="challenge-progress-bar"><div class="challenge-progress-fill" id="challenge-fill"></div></div>
+    </div>
+    <div class="challenge-list" id="challenge-list">
+      <div class="challenge-item" id="ci-1">
+        <input type="checkbox" id="c1" onchange="updateChallenge()">
+        <label for="c1">成功診斷出資料中至少 2 種問題類型</label>
+      </div>
+      <div class="challenge-item" id="ci-2">
+        <input type="checkbox" id="c2" onchange="updateChallenge()">
+        <label for="c2">用清理指令產生器產生了格式化的 AI Prompt</label>
+      </div>
+      <div class="challenge-item" id="ci-3">
+        <input type="checkbox" id="c3" onchange="updateChallenge()">
+        <label for="c3">將 Prompt 貼給 AI，取得清理後的結果</label>
+      </div>
+      <div class="challenge-item" id="ci-4">
+        <input type="checkbox" id="c4" onchange="updateChallenge()">
+        <label for="c4">比對清理前後，確認格式已統一</label>
+      </div>
+      <div class="challenge-item" id="ci-5">
+        <input type="checkbox" id="c5" onchange="updateChallenge()">
+        <label for="c5">寫下這次清理的「欄位規格表」（每個欄位預期格式）</label>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<nav class="lesson-nav">
+  <a class="nav-btn" href="CH3-3.html">
+    <div>
+      <div class="nav-btn-label">← 上一個</div>
+      <div class="nav-btn-title">CH3-3</div>
+    </div>
+  </a>
+  <a class="nav-btn next" href="PRAC3-2.html">
+    <div>
+      <div class="nav-btn-label">下一個 →</div>
+      <div class="nav-btn-title">PRAC3-2：客戶意見分類板</div>
+    </div>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">140 小時生成式 AI 實務應用課程 · Part 3</div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const total = document.body.scrollHeight - window.innerHeight;
+  if (total > 0) document.getElementById('prog').style.width = (window.scrollY / total * 100) + '%';
+});
+
+function generateCleaningPrompt() {
+  const checks = document.querySelectorAll('#problem-checks input[type=checkbox]:checked');
+  const colNames = document.getElementById('col-names').value.trim();
+  const sampleData = document.getElementById('sample-data').value.trim();
+
+  if (checks.length === 0) { alert('請至少勾選一種問題類型。'); return; }
+
+  const problems = Array.from(checks).map(c => c.value);
+  let prompt = '你是一位資料清理專家。請依照以下規則，清理我提供的資料，並以乾淨的 CSV 格式輸出。\n\n';
+
+  prompt += '【清理規則】\n';
+
+  if (problems.includes('format')) {
+    prompt += '1. 格式統一：\n';
+    prompt += '   - 日期統一為 YYYY-MM-DD 格式（如 2023-03-01）\n';
+    prompt += '   - 電話號碼統一為 09XX-XXX-XXX 格式（去除多餘符號）\n';
+    prompt += '   - 數字欄位移除千分位逗號，保留數字本身\n';
+  }
+
+  if (problems.includes('null')) {
+    prompt += (problems.includes('format') ? '' : '1. ') + '空值處理：\n';
+    prompt += '   - 空格、"-"、"N/A"、"無"、"/" 等，統一替換為空字串（什麼都不填）\n';
+    prompt += '   - 缺失的必填欄位標記為 NULL（大寫）\n';
+  }
+
+  if (problems.includes('naming')) {
+    prompt += '欄位命名統一：\n';
+    prompt += '   - 所有欄位標題改為中文，移除多餘的空格和特殊符號\n';
+    if (colNames) prompt += `   - 輸出欄位名稱請使用：${colNames}\n`;
+  }
+
+  if (problems.includes('label')) {
+    prompt += '分類標籤統一：\n';
+    prompt += '   - 相同意義的標籤統一為繁體中文（如「台北」「臺北」「Taipei」→「台北」）\n';
+    prompt += '   - 同一欄位的標籤值整理成一致格式後列在輸出前\n';
+  }
+
+  if (problems.includes('split')) {
+    prompt += '複合欄位拆分：\n';
+    prompt += '   - 識別同一格中包含多個資訊的欄位，拆分成獨立欄位\n';
+    prompt += '   - 拆分後的欄位名稱請命名為「原欄位名_1」「原欄位名_2」，或更語義化的名稱\n';
+  }
+
+  if (colNames) {
+    prompt += '\n【目標欄位】\n';
+    prompt += `輸出結果請包含以下欄位（按順序）：${colNames}\n`;
+  }
+
+  if (sampleData) {
+    prompt += '\n【原始資料】\n';
+    prompt += '以下是需要清理的資料（CSV 格式）：\n\n';
+    prompt += sampleData + '\n';
+  }
+
+  prompt += '\n【輸出要求】\n';
+  prompt += '- 第一行為欄位標題\n';
+  prompt += '- 資料用逗號分隔，每列一行\n';
+  prompt += '- 輸出前先列出你發現的問題摘要（編號條列）\n';
+  prompt += '- 輸出後附上「清理說明」，說明每個問題如何處理\n';
+
+  const outputArea = document.getElementById('output-area');
+  const outputText = document.getElementById('output-text');
+  outputText.textContent = prompt;
+  outputArea.style.display = 'block';
+}
+
+function copyOutput() {
+  const text = document.getElementById('output-text').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    btn.textContent = '已複製！';
+    setTimeout(() => btn.textContent = '複製', 1800);
+  });
+}
+
+function updateChallenge() {
+  const items = document.querySelectorAll('#challenge-list .challenge-item');
+  let done = 0;
+  items.forEach((item, i) => {
+    const cb = item.querySelector('input[type=checkbox]');
+    if (cb.checked) { item.classList.add('done'); done++; } else { item.classList.remove('done'); }
+  });
+  const total = items.length;
+  document.getElementById('progress-text').textContent = done + ' / ' + total;
+  document.getElementById('challenge-fill').style.width = (done / total * 100) + '%';
+}
+</script>
+</body>
+</html>

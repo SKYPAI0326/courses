@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH7-2 架構設計 Checklist｜140小時生成式 AI 實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-a5:#7a9ea3;--c-accent:#7a9ea3;--radius:6px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}.topbar-sub{font-size:.8rem;color:var(--c-muted);}.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-accent);border:1px solid rgba(122,158,163,.3);background:rgba(122,158,163,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}.progress-fill{height:100%;background:var(--c-accent);width:0%;transition:width .1s;}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}.back-link:hover{color:var(--c-accent);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-accent);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-accent);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;}.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-accent);margin-top:8px;flex-shrink:0;}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-accent);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.tip{background:rgba(122,158,163,.06);border:1px solid rgba(122,158,163,.2);}
+.callout.warn{background:rgba(201,150,58,.06);border:1px solid rgba(201,150,58,.2);}
+.callout.key{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text);}.callout-body strong{font-weight:700;}
+.arch-layer{display:flex;flex-direction:column;gap:0;margin:24px 0;}
+.arch-item{padding:18px 22px;background:var(--c-card);border:1px solid var(--c-border);border-top:none;display:flex;gap:16px;align-items:flex-start;}
+.arch-item:first-child{border-top:1px solid var(--c-border);border-radius:var(--radius) var(--radius) 0 0;}
+.arch-item:last-child{border-radius:0 0 var(--radius) var(--radius);}
+.arch-icon{font-size:1.1rem;flex-shrink:0;margin-top:2px;}
+.arch-body{flex:1;}
+.arch-title{font-size:.9rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.arch-questions{display:flex;flex-direction:column;gap:4px;}
+.arch-q{font-size:.82rem;color:var(--c-muted);line-height:1.6;}
+.arch-q code{font-family:'Courier New',monospace;font-size:.78rem;background:rgba(122,158,163,.1);color:#3a7080;padding:1px 5px;border-radius:3px;}
+.decision-tree{display:flex;flex-direction:column;gap:12px;margin:24px 0;}
+.dt-row{display:flex;gap:12px;align-items:flex-start;}
+.dt-q{flex:1;padding:14px 18px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);font-size:.88rem;font-weight:600;color:var(--c-text);}
+.dt-arrow{font-size:.8rem;color:var(--c-muted);padding-top:14px;flex-shrink:0;}
+.dt-a{flex:1;padding:14px 18px;border-radius:var(--radius);font-size:.85rem;line-height:1.7;}
+.dt-a.yes{background:rgba(122,158,163,.08);border:1px solid rgba(122,158,163,.25);color:var(--c-text);}
+.dt-a.no{background:var(--c-surface);border:1px solid var(--c-border);color:var(--c-muted);}
+.dt-a-label{font-size:.68rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;}
+.dt-a.yes .dt-a-label{color:var(--c-accent);}
+.security-list{display:flex;flex-direction:column;gap:10px;margin:24px 0;}
+.sec-item{display:flex;gap:14px;padding:16px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);}
+.sec-icon{font-size:1rem;flex-shrink:0;margin-top:2px;}
+.sec-title{font-size:.88rem;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.sec-desc{font-size:.82rem;color:var(--c-muted);line-height:1.65;}
+.sec-desc code{font-family:'Courier New',monospace;font-size:.78rem;background:rgba(122,158,163,.1);color:#3a7080;padding:1px 5px;border-radius:3px;}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-accent);}.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}.footer-note{font-size:.75rem;color:var(--c-muted);}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1);}.reveal.in{opacity:1;transform:translateY(0);}
+.section-rule{transform-origin:left center;opacity:0;transition:opacity .4s ease,transform .6s;transform:scaleX(.3);}.section-rule.in{opacity:1;transform:scaleX(1);}
+@media(max-width:768px){.topbar{padding:0 16px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero{padding:40px 20px 36px;}.lesson-title{font-size:1.55rem;}.lesson-body{padding:0 20px 60px;}.dt-row{flex-direction:column;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="logo" href="../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">140 小時生成式 AI 實務應用課程</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH 7.2 · Part 7</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">PART 7 · 專題衝刺與成果發表</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 7.2 · 2 小時</span>
+  </div>
+  <h1 class="lesson-title">架構設計 Checklist</h1>
+  <p class="lesson-tagline">開始寫程式之前，先用六個面向把架構想清楚。每少問一個問題，後面就多一個意外。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學完你會</div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>用六層架構 Checklist 評估你的專題設計</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>判斷你的專題是否需要後端，以及後端要做什麼</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>知道開始開發前必須確認的安全與成本決策</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>選定部署平台並知道為什麼</span></div>
+  </div>
+</div>
+
+<div class="lesson-body">
+
+  <!-- Section 1 -->
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 01</div>
+    <h2 class="section-heading">六層架構 Checklist</h2>
+    <p class="body-text">在動手前把這六個面向問清楚。每個面向都會影響開發決策，跳過任何一個都可能導致中途返工。</p>
+
+    <div class="arch-layer reveal">
+      <div class="arch-item">
+        <div class="arch-icon">🖥</div>
+        <div class="arch-body">
+          <div class="arch-title">前端</div>
+          <div class="arch-questions">
+            <div class="arch-q">頁面要幾個？一頁工具還是多頁應用？</div>
+            <div class="arch-q">輸入區放什麼元件（textarea / select / file upload）？</div>
+            <div class="arch-q">輸出如何呈現（直接顯示文字 / 格式化 / 複製按鈕）？</div>
+            <div class="arch-q">Loading 狀態如何顯示？Streaming 還是 spinner？</div>
+          </div>
+        </div>
+      </div>
+      <div class="arch-item">
+        <div class="arch-icon">⚙️</div>
+        <div class="arch-body">
+          <div class="arch-title">後端</div>
+          <div class="arch-questions">
+            <div class="arch-q">需不需要後端？（沒有 API Key 保護需求 → 考慮 Vercel 靜態 + 環境變數）</div>
+            <div class="arch-q">如果需要，後端負責什麼？（代理 API / 資料處理 / RAG 管線）</div>
+            <div class="arch-q">用 Express / Vercel Functions / Render？</div>
+          </div>
+        </div>
+      </div>
+      <div class="arch-item">
+        <div class="arch-icon">🤖</div>
+        <div class="arch-body">
+          <div class="arch-title">AI</div>
+          <div class="arch-questions">
+            <div class="arch-q">用哪個模型？Haiku（快/便宜）/ Sonnet（平衡）/ Opus（最強）？</div>
+            <div class="arch-q">System Prompt 定義什麼角色與限制？</div>
+            <div class="arch-q">temperature 設多少（創意 → 0.7–1.0 / 精確 → 0–0.3）？</div>
+            <div class="arch-q">輸出格式要求是什麼（純文字 / JSON / Markdown）？</div>
+          </div>
+        </div>
+      </div>
+      <div class="arch-item">
+        <div class="arch-icon">🗄</div>
+        <div class="arch-body">
+          <div class="arch-title">資料</div>
+          <div class="arch-questions">
+            <div class="arch-q">需不需要知識庫？（RAG）</div>
+            <div class="arch-q">需不需要工具呼叫？（Function Calling / n8n）</div>
+            <div class="arch-q">需不需要儲存使用者輸入或歷史記錄？（大多數 MVP 不需要）</div>
+          </div>
+        </div>
+      </div>
+      <div class="arch-item">
+        <div class="arch-icon">🚀</div>
+        <div class="arch-body">
+          <div class="arch-title">部署</div>
+          <div class="arch-questions">
+            <div class="arch-q">靜態只有前端 → Vercel / Netlify（免費，秒部署）</div>
+            <div class="arch-q">含後端 → Render / Railway（免費方案有睡眠機制）</div>
+            <div class="arch-q">自訂網域 / HTTPS / 環境變數在哪裡設定？</div>
+          </div>
+        </div>
+      </div>
+      <div class="arch-item">
+        <div class="arch-icon">🔒</div>
+        <div class="arch-body">
+          <div class="arch-title">安全</div>
+          <div class="arch-questions">
+            <div class="arch-q">API Key 放後端環境變數，絕不放前端 JS 程式碼</div>
+            <div class="arch-q">輸入驗證：空值 / 超長輸入 / 惡意注入怎麼擋？</div>
+            <div class="arch-q">設每日使用量上限，防止費用爆炸</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <!-- Section 2 -->
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 02</div>
+    <h2 class="section-heading">需不需要後端？<em>決策樹</em></h2>
+    <p class="body-text">這是最常讓初學者卡關的決策。不是所有 AI 應用都需要後端，但有些情況不加後端會有安全風險。</p>
+
+    <div class="decision-tree reveal">
+      <div class="dt-row">
+        <div class="dt-q">需要保護 API Key 不暴露在前端？</div>
+        <div class="dt-arrow">→</div>
+        <div class="dt-a yes"><div class="dt-a-label">是</div>需要後端（Express 代理或 Vercel Functions）把 API Key 放環境變數</div>
+        <div class="dt-arrow">|</div>
+        <div class="dt-a no"><div class="dt-a-label">否（內部工具/個人用）</div>可用前端直呼，但務必不要把含 Key 的程式碼推上 GitHub</div>
+      </div>
+      <div class="dt-row">
+        <div class="dt-q">需要處理資料庫、RAG 管線或複雜運算？</div>
+        <div class="dt-arrow">→</div>
+        <div class="dt-a yes"><div class="dt-a-label">是</div>後端是必要的，前端不適合做重型資料處理</div>
+        <div class="dt-arrow">|</div>
+        <div class="dt-a no"><div class="dt-a-label">否</div>靜態部署 + Vercel Functions 可能就足夠</div>
+      </div>
+      <div class="dt-row">
+        <div class="dt-q">需要使用者上傳檔案並在伺服器端處理？</dt>
+        <div class="dt-arrow">→</div>
+        <div class="dt-a yes"><div class="dt-a-label">是</div>需要後端接收 multipart/form-data，處理後送 AI</div>
+        <div class="dt-arrow">|</div>
+        <div class="dt-a no"><div class="dt-a-label">否（純文字輸入）</div>無後端方案完全可行</div>
+      </div>
+    </div>
+
+    <div class="callout tip reveal">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body"><strong>MVP 建議：從靜態開始，有需要再加後端。</strong>很多人一開始就假設需要後端，結果花了大量時間在基礎設施上，核心功能反而做不完。先讓工具跑起來，再考慮安全與擴展。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <!-- Section 3 -->
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 03</div>
+    <h2 class="section-heading">安全 Checklist：<em>開始開發前必須確認的四件事</em></h2>
+
+    <div class="security-list reveal">
+      <div class="sec-item">
+        <div class="sec-icon">🔑</div>
+        <div>
+          <div class="sec-title">API Key 絕對不放前端</div>
+          <div class="sec-desc">不管多急，API Key 都不能出現在前端 JS 程式碼。一旦推上 GitHub 或被 DevTools 看到，就算馬上刪除也可能已被爬蟲抓走。用 <code>.env</code> 放後端，用 <code>.gitignore</code> 擋掉。</div>
+        </div>
+      </div>
+      <div class="sec-item">
+        <div class="sec-icon">✅</div>
+        <div>
+          <div class="sec-title">輸入驗證在送 API 之前</div>
+          <div class="sec-desc">空值、超長輸入（建議 5000 字以下）、特殊字元都要在送 API 前處理。不只防惡意輸入，也避免 token 超出上限導致的 API 錯誤。</div>
+        </div>
+      </div>
+      <div class="sec-item">
+        <div class="sec-icon">💰</div>
+        <div>
+          <div class="sec-title">設 API 使用量上限</div>
+          <div class="sec-desc">在 Anthropic / OpenAI 後台設定每月預算上限。同時在程式碼中設合理的 <code>max_tokens</code>（不是越大越好），避免單次呼叫消耗過多 token。</div>
+        </div>
+      </div>
+      <div class="sec-item">
+        <div class="sec-icon">🛡</div>
+        <div>
+          <div class="sec-title">System Prompt 邊界設定</div>
+          <div class="sec-desc">在 System Prompt 中明確告訴模型「只做什麼」，而非只說「不做什麼」。正向定義邊界比負向禁止更有效，也讓模型更容易遵守。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <!-- Section 4 -->
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 04</div>
+    <h2 class="section-heading">AI 設定決策：<em>模型、溫度、輸出格式</em></h2>
+    <p class="body-text">這三個設定決定你的 AI 表現。不用猜，先設定一個合理的起點，實際測試後再調整。</p>
+
+    <div class="arch-layer reveal">
+      <div class="arch-item">
+        <div class="arch-icon">🏃</div>
+        <div class="arch-body">
+          <div class="arch-title">模型選擇起點</div>
+          <div class="arch-questions">
+            <div class="arch-q">先用 <code>claude-haiku-4-5-20251001</code> 開發和測試：最快、最便宜，適合迭代</div>
+            <div class="arch-q">輸出品質不夠時才換 Sonnet；換前先確認是 Prompt 問題還是模型限制</div>
+            <div class="arch-q">同樣任務 Haiku 已夠好 → 不要為了「感覺更好」換貴的模型</div>
+          </div>
+        </div>
+      </div>
+      <div class="arch-item">
+        <div class="arch-icon">🌡</div>
+        <div class="arch-body">
+          <div class="arch-title">Temperature 起點</div>
+          <div class="arch-questions">
+            <div class="arch-q">創意類（文案、故事、腦力激盪）：0.7–1.0</div>
+            <div class="arch-q">分析類（摘要、分類、提取）：0.1–0.3</div>
+            <div class="arch-q">結構化輸出（JSON、清單）：0 或 0.1</div>
+            <div class="arch-q">不確定 → 先設 0.5，測試後再調</div>
+          </div>
+        </div>
+      </div>
+      <div class="arch-item">
+        <div class="arch-icon">📝</div>
+        <div class="arch-body">
+          <div class="arch-title">輸出格式定義</div>
+          <div class="arch-questions">
+            <div class="arch-q">純文字：最簡單，適合摘要、建議</div>
+            <div class="arch-q">Markdown：標題、清單、粗體，前端用 marked.js 轉 HTML</div>
+            <div class="arch-q">JSON：需要後製處理時使用，在 System Prompt 明確要求 JSON Schema</div>
+            <div class="arch-q">多個版本：讓模型輸出編號清單，前端切割顯示</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout key reveal">
+      <div class="callout-icon">🔑</div>
+      <div class="callout-body"><strong>架構設計完成的標誌：</strong>你能在 5 分鐘內向另一個人說清楚「這個工具的前端是什麼、後端做什麼、AI 的角色是什麼、部署在哪、API Key 怎麼保護」。說不清楚的地方就是架構還沒想清楚的地方。</div>
+    </div>
+  </div>
+
+</div>
+
+<nav class="lesson-nav">
+  <a class="nav-btn" href="CH7-1.html">
+    <span>←</span>
+    <div><div class="nav-btn-label">上一章</div><div class="nav-btn-title">CH7-1 選題與 MVP 拆解</div></div>
+  </a>
+  <a class="nav-btn next" href="CH7-3.html">
+    <div><div class="nav-btn-label">下一章</div><div class="nav-btn-title">CH7-3 測試與 UX 優化</div></div>
+    <span>→</span>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="topbar-divider"></div>
+  <div class="footer-note">140 小時生成式 AI 實務應用課程 · Part 7 專題衝刺與成果發表</div>
+  <div class="spacer"></div>
+  <div class="footer-note">CH 7.2</div>
+</footer>
+
+<script>
+const prog = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const d = document.documentElement;
+  const pct = (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100;
+  prog.style.width = Math.min(pct, 100) + '%';
+});
+const reveals = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+}, { threshold: 0.08 });
+reveals.forEach(el => io.observe(el));
+</script>
+</body>
+</html>

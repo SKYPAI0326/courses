@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH2-2 文書工作流：Email、公告、週報、會議紀錄｜140小時生成式AI實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a1:#b5703a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--radius:6px;--radius-sm:4px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a1);border:1px solid rgba(181,112,58,.3);background:rgba(181,112,58,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a1);width:0%;transition:width .1s;}
+.side-nav{position:fixed;right:32px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:40;}
+.side-dot{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--c-border);background:transparent;cursor:pointer;transition:background .2s,border-color .2s;}
+.side-dot.active{background:var(--c-a1);border-color:var(--c-a1);}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a1);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-a1);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a1);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-a1);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a1);margin-top:8px;flex-shrink:0;}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;opacity:0;transform:translateY(18px);transition:opacity .5s,transform .5s;}
+.lesson-section.visible{opacity:1;transform:translateY(0);}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-a1);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+/* Email types */
+.email-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:24px 0;}
+.email-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;}
+.ec-type{font-size:.68rem;color:var(--c-a1);letter-spacing:1.5px;font-weight:500;margin-bottom:6px;}
+.ec-title{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.ec-struct{font-size:.8rem;color:var(--c-muted);line-height:1.65;}
+/* Prompt examples */
+.prompt-example{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:20px 0;}
+.pe-header{padding:12px 18px;border-bottom:1px solid var(--c-border);display:flex;align-items:center;gap:10px;}
+.pe-badge{font-size:.65rem;color:var(--c-a1);background:rgba(181,112,58,.1);border:1px solid rgba(181,112,58,.2);padding:2px 8px;border-radius:99px;font-weight:500;}
+.pe-label{font-size:.8rem;font-weight:700;color:var(--c-text);}
+.pe-body{padding:14px 18px;}
+.pe-prompt{font-size:.83rem;color:var(--c-text);line-height:1.8;background:rgba(181,112,58,.04);border-left:2px solid rgba(181,112,58,.3);padding:10px 14px;border-radius:0 var(--radius-sm) var(--radius-sm) 0;margin-bottom:8px;}
+.pe-note{font-size:.78rem;color:var(--c-muted);line-height:1.7;}
+/* Meeting flow */
+.meeting-flow{display:flex;flex-direction:column;gap:0;margin:24px 0;}
+.mf-item{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--c-surface);}
+.mf-item:last-child{border-bottom:none;}
+.mf-arrow{font-size:.9rem;color:var(--c-muted);flex-shrink:0;width:20px;text-align:center;padding-top:2px;}
+.mf-content{flex:1;}
+.mf-title{font-size:.9rem;font-weight:700;color:var(--c-text);margin-bottom:3px;}
+.mf-desc{font-size:.83rem;color:var(--c-muted);line-height:1.65;}
+/* Callout */
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;}
+.callout.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25);}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout.key{background:rgba(181,112,58,.07);border:1px solid rgba(181,112,58,.25);}
+.callout-icon{font-size:1rem;flex-shrink:0;margin-top:3px;}
+.callout-body{font-size:.87rem;line-height:1.8;color:var(--c-text);}
+/* Style matrix */
+.style-table{width:100%;border-collapse:collapse;margin:20px 0;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;}
+.style-table th{padding:12px 14px;font-size:.73rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;text-align:left;border-bottom:1px solid var(--c-border);background:var(--c-surface);}
+.style-table td{padding:11px 14px;font-size:.85rem;color:var(--c-text);border-bottom:1px solid var(--c-surface);vertical-align:top;line-height:1.65;}
+.style-table tr:last-child td{border-bottom:none;}
+/* Nav Footer */
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a1);text-decoration:none;padding:10px 20px;border:1px solid rgba(181,112,58,.3);border-radius:var(--radius);transition:background .2s;}
+.nav-btn:hover{background:rgba(181,112,58,.06);}
+.nav-btn.primary{background:var(--c-a1);color:#fff;border-color:var(--c-a1);}
+.nav-btn.primary:hover{background:#9e6030;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-div{width:1px;height:14px;background:var(--c-border);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+@media(max-width:640px){.topbar,.lesson-hero,.lesson-body,.nav-footer{padding-left:24px;padding-right:24px;}.side-nav{display:none;}.email-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a href="../index.html" class="logo">Codex Studio</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">140小時生成式AI實務應用課程</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">CH 2-2 · 2.5h</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<nav class="side-nav">
+  <div class="side-dot active" data-sec="0"></div>
+  <div class="side-dot" data-sec="1"></div>
+  <div class="side-dot" data-sec="2"></div>
+  <div class="side-dot" data-sec="3"></div>
+</nav>
+
+<div class="lesson-hero">
+  <a href="CH2-1.html" class="back-link">← CH 2-1 四大核心任務</a>
+  <div class="hero-meta">
+    <span class="hero-part">PART 2 · 建立文字與知識產能</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 2-2 · 2.5H</span>
+  </div>
+  <h1 class="lesson-title">文書工作流：<br>Email、公告、週報、會議紀錄</h1>
+  <p class="lesson-tagline">把職場最耗時的四種文書任務，從「每次從零開始」變成「有 Prompt 模板的可重複工作流」。一次建好，終身受用。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果 · OUTCOMES</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能建立四種 Email 類型（確認/拒絕/請示/跟進）的可複用 Prompt 模板</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能設計「會議記錄 → 待辦清單」的標準轉換流程</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能用 AI 快速生成組織一致語氣的週報和公告</div>
+  </div>
+</div>
+
+<div class="lesson-body">
+
+  <section class="lesson-section" id="sec-0">
+    <div class="section-eyebrow">Section 01</div>
+    <h2 class="section-heading">Email 的四種類型<em>模板化</em></h2>
+    <p class="body-text">Email 是知識工作中最耗時、重複性最高的文書任務之一。大多數商業 Email 都可以歸類為四種類型，每種類型都有固定的結構和語氣模式。建立這四種 Prompt 模板，你可以把「回一封 Email 的時間」從 20 分鐘壓縮到 3 分鐘。</p>
+    <div class="email-grid">
+      <div class="email-card">
+        <div class="ec-type">TYPE 01 · 確認</div>
+        <div class="ec-title">確認回覆</div>
+        <div class="ec-struct">開場：感謝 + 確認收到 → 確認內容重點 → 說明後續步驟 → 結尾邀請</div>
+      </div>
+      <div class="email-card">
+        <div class="ec-type">TYPE 02 · 拒絕</div>
+        <div class="ec-title">婉拒回覆</div>
+        <div class="ec-struct">感謝提案 → 表達遺憾 → 說明原因（可省略）→ 保留未來合作可能 → 祝福結尾</div>
+      </div>
+      <div class="email-card">
+        <div class="ec-type">TYPE 03 · 請示</div>
+        <div class="ec-title">請示/詢問回覆</div>
+        <div class="ec-struct">說明背景 → 明確提問（不超過3個問題）→ 說明截止時間 → 說明影響範圍</div>
+      </div>
+      <div class="email-card">
+        <div class="ec-type">TYPE 04 · 跟進</div>
+        <div class="ec-title">跟進提醒</div>
+        <div class="ec-struct">引用前次溝通 → 說明目前狀態 → 具體的下一步請求 → 給出決策截止時間</div>
+      </div>
+    </div>
+
+    <div class="prompt-example">
+      <div class="pe-header">
+        <span class="pe-badge">Email · 通用模板</span>
+        <span class="pe-label">可複用的 Email Prompt 框架</span>
+      </div>
+      <div class="pe-body">
+        <div class="pe-prompt">你是我的商業郵件撰寫助理。請幫我撰寫一封【類型：確認/拒絕/請示/跟進】類型的 Email。
+
+收件人：[姓名或職稱]
+關係：[上下屬/客戶/合作夥伴/同事]
+情境：[說明這封信的背景]
+核心訊息：[你最想傳達的主旨]
+語氣：[正式/親切/中性]
+
+格式要求：
+- 主旨：15字以內，清楚說明信件目的
+- 正文：200字以內
+- 結尾：明確的下一步行動
+- 不要使用「敬啟者」或「謹此敬告」等過時套語</div>
+        <div class="pe-note">把類型、收件人、情境填入，即可快速生成符合語境的 Email 初稿，只需微調個人化細節。</div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <section class="lesson-section" id="sec-1">
+    <div class="section-eyebrow">Section 02</div>
+    <h2 class="section-heading">會議記錄的<em>轉換邏輯</em></h2>
+    <p class="body-text">會議記錄最大的問題不是「怎麼記」，而是「記了沒有用」——因為記錄沒有轉換成行動。AI 最能幫上忙的地方，正是把雜亂的會議記錄或逐字稿，轉換成有負責人、有截止日期的結構化待辦清單。</p>
+    <div class="meeting-flow">
+      <div class="mf-item">
+        <div class="mf-arrow">1</div>
+        <div class="mf-content">
+          <div class="mf-title">輸入：原始記錄</div>
+          <div class="mf-desc">逐字稿、手寫筆記截圖、或你自己的速記（不需要整理，直接貼入）</div>
+        </div>
+      </div>
+      <div class="mf-item">
+        <div class="mf-arrow">→</div>
+        <div class="mf-content">
+          <div class="mf-title">AI 處理：萃取結構</div>
+          <div class="mf-desc">識別決策、待辦事項、後續問題、值得存檔的資訊</div>
+        </div>
+      </div>
+      <div class="mf-item">
+        <div class="mf-arrow">→</div>
+        <div class="mf-content">
+          <div class="mf-title">輸出：可用格式</div>
+          <div class="mf-desc">結構化待辦清單（負責人 + 事項 + 截止日）+ 決議摘要 + 下次議題</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prompt-example">
+      <div class="pe-header">
+        <span class="pe-badge">會議記錄</span>
+        <span class="pe-label">逐字稿 → 結構化待辦</span>
+      </div>
+      <div class="pe-body">
+        <div class="pe-prompt">以下是一場會議的逐字稿（或筆記），請：
+1. 列出所有決議事項（每項一行）
+2. 列出所有待辦事項，格式：【負責人】任務內容 → 截止日期
+3. 列出所有「待確認」或「下次討論」的問題
+4. 生成一段 100 字以內的會議摘要，可直接轉寄給未出席者
+
+如果某欄位沒有資訊，寫「本次無」。
+
+逐字稿：
+[貼上逐字稿或筆記]</div>
+        <div class="pe-note">關鍵設計：強迫 AI 用你設定的格式輸出，讓結果可以直接貼入任務管理工具或轉寄 Email。</div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <section class="lesson-section" id="sec-2">
+    <div class="section-eyebrow">Section 03</div>
+    <h2 class="section-heading">週報的<em>快速生成框架</em></h2>
+    <p class="body-text">週報的難點不在「寫不出來」，而在「每次都要重新回憶這週做了什麼」。解決方法是建立一個「週報 Prompt 模板」，每週只需填入本週的亮點和數字，讓 AI 負責組裝成可讀的報告格式。</p>
+
+    <div class="prompt-example">
+      <div class="pe-header">
+        <span class="pe-badge">週報</span>
+        <span class="pe-label">結構化週報生成模板</span>
+      </div>
+      <div class="pe-body">
+        <div class="pe-prompt">你是我的週報撰寫助理。請根據以下原始資料，生成本週工作週報。
+
+格式要求：
+- 標題：[週次] 工作週報
+- 本週完成：條列，每項 20 字以內
+- 本週亮點：1-2 項有成果感的事，可附數字
+- 未完成/延後：列出原因
+- 下週計畫：3-5 項
+- 需要支援：如有則列出，無則略去
+
+語氣：正式、具體、有自信。避免「持續推進」「積極跟進」這類模糊說法。
+
+本週原始筆記：
+[貼上你的速記、完成清單或關鍵數字]</div>
+        <div class="pe-note">建議：把這個 Prompt 存成你的 System Prompt 或 Claude Project 指令，每週五花 5 分鐘填入速記，即可生成週報。</div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <section class="lesson-section" id="sec-3">
+    <div class="section-eyebrow">Section 04</div>
+    <h2 class="section-heading">文風一致化：<em>讓組織說同一種語言</em></h2>
+    <p class="body-text">當一個組織有多個人在撰寫對外文件時，常見的問題是每個人的語氣、措辭、稱謂方式都不一樣。AI 可以作為「文風校準器」，把任何人撰寫的初稿，對齊到同一套組織語言標準。</p>
+    <table class="style-table">
+      <thead>
+        <tr><th>文件類型</th><th>需要對齊的語言元素</th><th>AI 任務</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>對外公告</td><td>稱謂（貴賓/各位）、措辭正式度、結尾用語</td><td>改寫為組織標準格式</td></tr>
+        <tr><td>客戶郵件</td><td>開場白、語氣（親切/正式）、行動號召語</td><td>批次校準語氣一致性</td></tr>
+        <tr><td>部門通知</td><td>標題格式、標準說明結構、時間日期格式</td><td>套用模板並填入資訊</td></tr>
+        <tr><td>社群貼文</td><td>品牌語氣、用詞偏好、hashtag 風格</td><td>根據品牌指南改寫</td></tr>
+      </tbody>
+    </table>
+
+    <div class="prompt-example">
+      <div class="pe-header">
+        <span class="pe-badge">文風校準</span>
+        <span class="pe-label">把草稿校準到組織語言標準</span>
+      </div>
+      <div class="pe-body">
+        <div class="pe-prompt">以下是一份公告初稿，請按照我們組織的語言標準改寫：
+
+語言標準：
+- 稱謂：統一使用「各位同仁」
+- 語氣：正式但不生硬，有溫度
+- 段落：每段不超過 3 句
+- 結尾：「如有疑問，請聯絡 [部門]，謝謝。」
+- 避免：「茲通知」「敬希遵照」等公文語
+
+初稿：
+[貼上原始草稿]
+
+請同時提供修改說明，列出哪些地方做了調整和原因。</div>
+      </div>
+    </div>
+
+    <div class="callout key">
+      <span class="callout-icon">◆</span>
+      <div class="callout-body"><strong>進階應用：</strong>把你組織的「語言標準」整理成 3-5 條規則，存入 System Prompt。之後所有對外文件的草稿，直接交給 AI 校準，不需要每次重新說明標準。這是從「省時間」升級到「提升組織文字品質」的關鍵步驟。</div>
+    </div>
+  </section>
+
+</div>
+
+<div class="nav-footer">
+  <a href="CH2-1.html" class="nav-btn">← CH 2-1 四大核心任務</a>
+  <a href="CH2-3.html" class="nav-btn primary">CH 2-3 研究整理與簡報 →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">Codex Studio</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">140小時生成式AI實務應用課程</span>
+</footer>
+
+<script>
+const progFill = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  progFill.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + '%';
+});
+const sections = document.querySelectorAll('.lesson-section');
+const dots = document.querySelectorAll('.side-dot');
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting){
+      e.target.classList.add('visible');
+      const i = [...sections].indexOf(e.target);
+      dots.forEach((d,j) => d.classList.toggle('active', i===j));
+    }
+  });
+}, {threshold:.15});
+sections.forEach(s => io.observe(s));
+dots.forEach(d => d.addEventListener('click', () => {
+  document.getElementById('sec-'+d.dataset.sec).scrollIntoView({behavior:'smooth'});
+}));
+</script>
+</body>
+</html>

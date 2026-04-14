@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>報價試算器 · PRAC 4-1｜140小時生成式AI實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a4:#6b7fa3;--radius:6px;--radius-sm:4px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a4);width:0%;transition:width .1s;}
+.prac-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a4);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-a4);letter-spacing:1px;font-weight:500;}
+.prac-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:16px;}
+.prac-desc{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:32px;}
+.mission-box{display:flex;align-items:center;gap:24px;padding:20px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a4);border-radius:var(--radius);}
+.mission-label{font-size:.7rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.mission-val{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);}
+.mission-divider{width:1px;height:36px;background:var(--c-border);}
+.prac-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:64px 0;}
+.steps-list{display:flex;flex-direction:column;gap:0;margin:32px 0;}
+.step-item{display:flex;gap:0;position:relative;}
+.step-item:not(:last-child)::before{content:'';position:absolute;left:20px;top:44px;bottom:0;width:1px;background:var(--c-border);}
+.step-num-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:40px;padding-top:4px;}
+.step-num{width:40px;height:40px;border-radius:50%;background:var(--c-card);border:1.5px solid var(--c-a4);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-a4);}
+.step-body{flex:1;padding:4px 0 32px 24px;}
+.step-title{font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.step-hint{font-size:.85rem;color:var(--c-muted);line-height:1.75;}
+.tool-wrap{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:32px 0;}
+.tool-topbar{background:var(--c-surface);border-bottom:1px solid var(--c-border);padding:10px 16px;display:flex;align-items:center;gap:8px;}
+.tool-dot{width:10px;height:10px;border-radius:50%;}
+.tool-dot-r{background:#ff6058;} .tool-dot-y{background:#ffbd2e;} .tool-dot-g{background:#28c840;}
+.tool-title{flex:1;font-size:.75rem;color:var(--c-muted);font-weight:500;font-family:'Noto Sans TC',sans-serif;}
+.tool-body{padding:32px 36px;}
+.field-section{margin-bottom:28px;}
+.field-section-label{font-size:.68rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--c-border);}
+.field-group{margin-bottom:16px;}
+.field-label{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;margin-bottom:6px;}
+.field-input{width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:.88rem;color:var(--c-text);background:var(--c-bg);}
+.field-input:focus{outline:none;border-color:var(--c-a4);}
+.field-select{width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:.88rem;color:var(--c-text);background:var(--c-bg);appearance:none;cursor:pointer;}
+.field-select:focus{outline:none;border-color:var(--c-a4);}
+.field-textarea{width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:.88rem;color:var(--c-text);background:var(--c-bg);min-height:70px;resize:vertical;line-height:1.7;}
+.field-textarea:focus{outline:none;border-color:var(--c-a4);}
+.field-textarea:disabled{opacity:.4;cursor:not-allowed;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.checkbox-group{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;}
+.checkbox-tag{display:flex;align-items:center;gap:6px;font-size:.83rem;color:var(--c-text);}
+.checkbox-tag input[type=checkbox]{width:14px;height:14px;accent-color:var(--c-a4);cursor:pointer;}
+.gen-btn{width:100%;padding:12px;background:var(--c-a4);color:#fff;border:none;border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:.87rem;font-weight:500;cursor:pointer;margin-top:8px;}
+.gen-btn:hover{opacity:.88;}
+.output-area{display:none;margin-top:28px;}
+.output-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.output-label{font-size:.7rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;}
+.copy-btn{font-size:.72rem;color:var(--c-a4);background:none;border:1px solid rgba(107,127,163,.3);padding:3px 12px;border-radius:99px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;}
+.copy-btn:hover{background:rgba(107,127,163,.08);}
+.output-text{background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.82rem;line-height:1.85;padding:22px 24px;border-radius:var(--radius-sm);white-space:pre-wrap;word-break:break-word;}
+.challenge-wrap{padding:28px 32px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:32px 0;}
+.challenge-progress{margin-bottom:20px;}
+.challenge-progress-bar{height:4px;background:var(--c-border);border-radius:99px;overflow:hidden;margin-top:8px;}
+.challenge-progress-fill{height:100%;background:var(--c-a4);width:0%;transition:width .3s;}
+.challenge-progress-label{font-size:.72rem;color:var(--c-muted);display:flex;justify-content:space-between;}
+.challenge-label{font-size:.7rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:16px;}
+.challenge-list{display:flex;flex-direction:column;gap:12px;}
+.challenge-item{display:flex;align-items:flex-start;gap:12px;font-size:.88rem;line-height:1.7;}
+.challenge-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--c-a4);cursor:pointer;flex-shrink:0;margin-top:3px;}
+.challenge-item label{cursor:pointer;color:var(--c-text);}
+.challenge-item.done label{color:var(--c-muted);text-decoration:line-through;}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-a4);}
+.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;}.topbar-sub,.topbar-divider{display:none;}.prac-hero{padding:40px 20px 36px;}.prac-title{font-size:1.55rem;}.prac-body{padding:0 20px 60px;}.mission-box{flex-direction:column;align-items:flex-start;gap:12px;}.mission-divider{display:none;}.field-row{grid-template-columns:1fr;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">140 小時生成式 AI 實務應用課程</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">PRAC</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="prac-hero">
+  <a class="back-link" href="../index.html">← 回課程目錄</a>
+  <div class="hero-meta">
+    <div class="hero-part">PART 4 · 零代碼工具工坊</div>
+    <div class="hero-divider-v"></div>
+    <div class="hero-num">PRAC 4-1</div>
+  </div>
+  <h1 class="prac-title">報價試算器</h1>
+  <p class="prac-desc">從需求分析開始，用 AI 做出一個有條件計算、稅金、折扣功能的可交付報價工具。</p>
+  <div class="mission-box">
+    <div>
+      <div class="mission-label">任務步驟</div>
+      <div class="mission-val">5 個步驟</div>
+    </div>
+    <div class="mission-divider"></div>
+    <div>
+      <div class="mission-label">預計時數</div>
+      <div class="mission-val">3 小時</div>
+    </div>
+    <div class="mission-divider"></div>
+    <div>
+      <div class="mission-label">所屬單元</div>
+      <div class="mission-val">Part 4</div>
+    </div>
+  </div>
+</div>
+
+<div class="prac-body">
+
+  <div class="section-eyebrow">STEPS · 任務步驟</div>
+  <h2 class="section-heading">依序完成這五個步驟</h2>
+
+  <div class="steps-list">
+    <div class="step-item">
+      <div class="step-num-col"><div class="step-num">1</div></div>
+      <div class="step-body">
+        <div class="step-title">定義你的報價工具需求</div>
+        <div class="step-hint">你的行業有哪些收費項目？稅率是多少？有沒有折扣條件？先把這些釐清，用下方工具設計規格。</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num-col"><div class="step-num">2</div></div>
+      <div class="step-body">
+        <div class="step-title">寫工具生成指令</div>
+        <div class="step-hint">依照 CH4-1 的方式，精確描述欄位、運算邏輯和輸出格式。下方工具會幫你生成完整的指令文字。</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num-col"><div class="step-num">3</div></div>
+      <div class="step-body">
+        <div class="step-title">用 AI 生成第一版</div>
+        <div class="step-hint">把指令貼給 Claude 或 ChatGPT，生成 HTML 工具。儲存這個版本作為基礎，不要直接開始修改。</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num-col"><div class="step-num">4</div></div>
+      <div class="step-body">
+        <div class="step-title">測試並提出修改要求</div>
+        <div class="step-hint">測試邊界值（0、負數、非常大的數），提出二次修改。每次修改請求要精確（參考 CH4-1 的二次生成技巧）。</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num-col"><div class="step-num">5</div></div>
+      <div class="step-body">
+        <div class="step-title">完成版本二</div>
+        <div class="step-hint">加入進階功能：條件折扣、列印功能、複製到剪貼簿。完成後儲存最終版本。</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="section-eyebrow">TOOL · 互動工具</div>
+  <h2 class="section-heading">報價工具規格設計器</h2>
+
+  <div class="tool-wrap">
+    <div class="tool-topbar">
+      <div class="tool-dot tool-dot-r"></div>
+      <div class="tool-dot tool-dot-y"></div>
+      <div class="tool-dot tool-dot-g"></div>
+      <div class="tool-title">報價工具規格設計器</div>
+    </div>
+    <div class="tool-body">
+
+      <div class="field-section">
+        <div class="field-section-label">組一 · 服務項目</div>
+        <div class="field-row">
+          <div class="field-group">
+            <div class="field-label">服務類型</div>
+            <input class="field-input" id="service-type" type="text" placeholder="如設計稿、網頁開發、顧問服務">
+          </div>
+          <div class="field-group">
+            <div class="field-label">計費方式</div>
+            <select class="field-select" id="billing-method">
+              <option value="按件計費">按件計費</option>
+              <option value="按小時計費">按小時計費</option>
+              <option value="按月計費">按月計費</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="field-label">基本單價</div>
+          <input class="field-input" id="base-price" type="number" placeholder="如 3000">
+        </div>
+      </div>
+
+      <div class="field-section">
+        <div class="field-section-label">組二 · 費用計算</div>
+        <div class="field-row">
+          <div class="field-group">
+            <div class="field-label">稅率</div>
+            <select class="field-select" id="tax-rate">
+              <option value="0">0%（免稅）</option>
+              <option value="5">5%</option>
+              <option value="10" selected>10%</option>
+              <option value="custom">自訂</option>
+            </select>
+          </div>
+          <div class="field-group" style="display:flex;align-items:center;gap:8px;padding-top:24px;">
+            <label class="checkbox-tag"><input type="checkbox" id="has-discount" onchange="toggleDiscount()"> 有折扣功能</label>
+          </div>
+        </div>
+        <div class="field-group" id="discount-group" style="display:none;">
+          <div class="field-label">折扣條件說明</div>
+          <textarea class="field-textarea" id="discount-rule" placeholder="如「訂購超過5件打九折」「新客戶首單九五折」"></textarea>
+        </div>
+      </div>
+
+      <div class="field-section">
+        <div class="field-section-label">組三 · 輸出設計</div>
+        <div class="field-group">
+          <div class="field-label">需要哪些功能（可多選）</div>
+          <div class="checkbox-group">
+            <label class="checkbox-tag"><input type="checkbox" id="feat-copy" value="copy"> 複製到剪貼簿</label>
+            <label class="checkbox-tag"><input type="checkbox" id="feat-print" value="print"> 列印</label>
+            <label class="checkbox-tag"><input type="checkbox" id="feat-detail" value="detail"> 顯示明細表</label>
+            <label class="checkbox-tag"><input type="checkbox" id="feat-calc" value="calc"> 顯示單價×數量計算過程</label>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="field-label">設計風格</div>
+          <select class="field-select" id="design-style">
+            <option value="簡潔專業">簡潔專業</option>
+            <option value="溫暖活潑">溫暖活潑</option>
+            <option value="科技感">科技感</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="gen-btn" onclick="generateToolSpec()">產生工具生成指令</button>
+
+      <div class="output-area" id="output-area">
+        <div class="output-header">
+          <div class="output-label">TOOL SPEC PROMPT</div>
+          <button class="copy-btn" onclick="copySpec()">複製</button>
+        </div>
+        <div class="output-text" id="output-text"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="section-eyebrow">CHALLENGE · 驗收清單</div>
+  <h2 class="section-heading">完成所有項目才算過關</h2>
+
+  <div class="challenge-wrap">
+    <div class="challenge-progress">
+      <div class="challenge-progress-label">
+        <span class="challenge-label">CHECKLIST</span>
+        <span id="progress-text">0 / 5</span>
+      </div>
+      <div class="challenge-progress-bar"><div class="challenge-progress-fill" id="challenge-fill"></div></div>
+    </div>
+    <div class="challenge-list">
+      <div class="challenge-item" id="ci-1">
+        <input type="checkbox" id="c1" onchange="updateChallenge()">
+        <label for="c1">完成工具需求分析，填寫了工具規格設計器</label>
+      </div>
+      <div class="challenge-item" id="ci-2">
+        <input type="checkbox" id="c2" onchange="updateChallenge()">
+        <label for="c2">生成了工具生成指令並貼給 AI，取得第一版 HTML</label>
+      </div>
+      <div class="challenge-item" id="ci-3">
+        <input type="checkbox" id="c3" onchange="updateChallenge()">
+        <label for="c3">開啟 HTML 測試，確認計算邏輯正確（稅率、折扣計算正確）</label>
+      </div>
+      <div class="challenge-item" id="ci-4">
+        <input type="checkbox" id="c4" onchange="updateChallenge()">
+        <label for="c4">提出至少一個修改要求，完成二次生成</label>
+      </div>
+      <div class="challenge-item" id="ci-5">
+        <input type="checkbox" id="c5" onchange="updateChallenge()">
+        <label for="c5">工具有輸入驗證（空值不能送出）和重設功能</label>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<nav class="lesson-nav">
+  <a class="nav-btn" href="CH4-2.html">
+    <div>
+      <div class="nav-btn-label">← 上一節</div>
+      <div class="nav-btn-title">CH4-2：用 UI/UX 要求讓工具變好用</div>
+    </div>
+  </a>
+  <a class="nav-btn next" href="PRAC4-2.html">
+    <div>
+      <div class="nav-btn-label">下一個 →</div>
+      <div class="nav-btn-title">PRAC4-2</div>
+    </div>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">140 小時生成式 AI 實務應用課程 · Part 4</div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const total = document.body.scrollHeight - window.innerHeight;
+  if (total > 0) document.getElementById('prog').style.width = (window.scrollY / total * 100) + '%';
+});
+
+function toggleDiscount() {
+  const show = document.getElementById('has-discount').checked;
+  document.getElementById('discount-group').style.display = show ? 'block' : 'none';
+}
+
+function generateToolSpec() {
+  const serviceType = document.getElementById('service-type').value.trim() || '（未填寫）';
+  const billingMethod = document.getElementById('billing-method').value;
+  const basePrice = document.getElementById('base-price').value.trim() || '（未填寫）';
+  const taxRate = document.getElementById('tax-rate').value;
+  const hasDiscount = document.getElementById('has-discount').checked;
+  const discountRule = document.getElementById('discount-rule').value.trim();
+  const designStyle = document.getElementById('design-style').value;
+
+  const features = [];
+  if (document.getElementById('feat-copy').checked) features.push('複製到剪貼簿按鈕');
+  if (document.getElementById('feat-print').checked) features.push('列印功能（window.print()）');
+  if (document.getElementById('feat-detail').checked) features.push('費用明細表（每個項目獨立一行）');
+  if (document.getElementById('feat-calc').checked) features.push('顯示計算過程（單價 × 數量 = 小計）');
+
+  const taxRateDisplay = taxRate === 'custom' ? '（自訂，請在工具加入稅率輸入欄）' : taxRate + '%';
+
+  const styleGuide = {
+    '簡潔專業': '整體色調使用白底深色文字，強調色使用單一藍色（#1e2d40 或類似），字型選用無襯線字體，避免裝飾性元素',
+    '溫暖活潑': '使用暖色系背景（米白或淡黃），強調色用橘色或磚紅，圓角較大（10-12px），按鈕帶輕微陰影',
+    '科技感': '使用深色背景（#1a1a2e 或 #0f0f23），強調色用霓虹藍或青色，字體等寬或科技感字型，卡片有發光邊框效果'
+  };
+
+  let prompt = `請幫我生成一個「${serviceType}報價試算器」的單頁 HTML 工具。以下是完整的功能規格：\n\n`;
+
+  prompt += `【基本資訊】\n`;
+  prompt += `- 服務類型：${serviceType}\n`;
+  prompt += `- 計費方式：${billingMethod}\n`;
+  prompt += `- 基本單價：${basePrice} 元\n\n`;
+
+  prompt += `【輸入欄位】\n`;
+  if (billingMethod === '按件計費') {
+    prompt += `1. 服務項目名稱（文字輸入，預設值：${serviceType}）\n`;
+    prompt += `2. 數量（數字輸入，最小值 1，預設值 1）\n`;
+    prompt += `3. 單價（數字輸入，預設值 ${basePrice}）\n`;
+  } else if (billingMethod === '按小時計費') {
+    prompt += `1. 服務項目名稱（文字輸入，預設值：${serviceType}）\n`;
+    prompt += `2. 工時（數字輸入，單位：小時，最小值 0.5，預設值 1）\n`;
+    prompt += `3. 時薪（數字輸入，預設值 ${basePrice}）\n`;
+  } else {
+    prompt += `1. 服務項目名稱（文字輸入，預設值：${serviceType}）\n`;
+    prompt += `2. 月數（數字輸入，最小值 1，預設值 1）\n`;
+    prompt += `3. 月費（數字輸入，預設值 ${basePrice}）\n`;
+  }
+  prompt += `4. 備註（可選填，文字輸入）\n\n`;
+
+  prompt += `【運算邏輯】\n`;
+  prompt += `1. 小計 = 單價（或時薪/月費）× 數量（或工時/月數）\n`;
+  if (hasDiscount && discountRule) {
+    prompt += `2. 折扣規則：${discountRule}\n`;
+    prompt += `3. 折後金額 = 小計 × 折扣率\n`;
+    prompt += `4. 稅金 = 折後金額 × ${taxRateDisplay}\n`;
+    prompt += `5. 總計 = 折後金額 + 稅金\n`;
+  } else {
+    prompt += `2. 稅金 = 小計 × ${taxRateDisplay}\n`;
+    prompt += `3. 總計 = 小計 + 稅金\n`;
+  }
+  prompt += `\n輸入驗證：數量/工時/月數不能為 0 或空，單價不能為負數。違反時在對應欄位下方顯示紅色錯誤提示，不執行計算。\n`;
+  prompt += `加入「清除」按鈕，點擊後重置所有輸入欄位和輸出結果。\n\n`;
+
+  prompt += `【輸出格式】\n`;
+  prompt += `在輸出卡片中顯示：\n`;
+  prompt += `- 服務項目名稱（大標題）\n`;
+  prompt += `- 計算摘要（小計、稅金、合計各一行，合計用大字 1.4rem 加粗）\n`;
+  if (features.length > 0) {
+    prompt += `- 附加功能：${features.join('、')}\n`;
+  }
+  prompt += `- 空狀態提示：未填寫時顯示「請填入上方資訊後點擊計算」\n\n`;
+
+  prompt += `【設計風格】\n`;
+  prompt += styleGuide[designStyle] + '\n\n';
+
+  prompt += `【技術要求】\n`;
+  prompt += `- 純 HTML + CSS + JavaScript，單一檔案，不依賴外部函式庫\n`;
+  prompt += `- 所有樣式寫在 <style> 標籤內，所有 JS 寫在 <script> 標籤內\n`;
+  prompt += `- 行動裝置友善（RWD，手機上單欄顯示）\n`;
+  prompt += `- 禁止使用 CSS 漸層（background: linear-gradient），背景使用純色`;
+
+  document.getElementById('output-text').textContent = prompt;
+  document.getElementById('output-area').style.display = 'block';
+  window._specText = prompt;
+}
+
+function copySpec() {
+  if (!window._specText) return;
+  navigator.clipboard.writeText(window._specText).then(() => {
+    const btn = event.target; btn.textContent = '已複製！';
+    setTimeout(() => btn.textContent = '複製', 1800);
+  });
+}
+
+function updateChallenge() {
+  const items = document.querySelectorAll('.challenge-item');
+  let done = 0;
+  items.forEach(item => { const cb = item.querySelector('input[type=checkbox]'); if (cb.checked) { item.classList.add('done'); done++; } else item.classList.remove('done'); });
+  document.getElementById('progress-text').textContent = done + ' / ' + items.length;
+  document.getElementById('challenge-fill').style.width = (done / items.length * 100) + '%';
+}
+</script>
+</body>
+</html>

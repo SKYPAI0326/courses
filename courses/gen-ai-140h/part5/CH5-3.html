@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH5-3 Git 與版本保存｜140小時生成式 AI 實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#8c8880;
+  --c-a1:#b5703a; --c-a2:#c9963a; --c-a3:#5a7a5a; --c-a4:#6b7fa3;
+  --c-accent:#5a7a5a;
+  --radius:6px; --radius-sm:4px; --content-w:780px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+
+/* ── 頂部列 ── */
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-accent);border:1px solid rgba(90,122,90,.3);background:rgba(90,122,90,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+
+/* ── 閱讀進度條 ── */
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-accent);width:0%;transition:width .1s;}
+
+/* ── Hero ── */
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-accent);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-accent);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-accent);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-accent);margin-top:8px;flex-shrink:0;}
+
+/* ── 主內容 ── */
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-accent);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+
+/* ── 大引言 ── */
+.big-quote{font-family:'Shippori Mincho',serif;font-size:1.3rem;font-weight:700;line-height:1.65;color:var(--c-text);padding:28px 32px;background:var(--c-card);border:1px solid var(--c-border);border-left:4px solid var(--c-accent);border-radius:var(--radius);margin:28px 0;}
+.big-quote span{color:var(--c-accent);}
+
+/* ── Callout ── */
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25);}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout.key{background:rgba(201,150,58,.07);border:1px solid rgba(201,150,58,.25);}
+.callout.warn{background:rgba(181,60,60,.05);border:1px solid rgba(181,60,60,.2);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text);}
+.callout-body strong{font-weight:700;}
+
+/* ── 程式碼區塊 ── */
+.code-block{background:#1e1e1e;border-radius:var(--radius);margin:24px 0;overflow:hidden;}
+.code-block-header{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;background:#2a2a2a;border-bottom:1px solid #333;}
+.code-block-lang{font-size:.7rem;color:#888;letter-spacing:1px;font-weight:500;}
+.code-block-label{font-size:.72rem;color:#aaa;}
+.code-block pre{padding:20px 18px;overflow-x:auto;font-family:'Courier New',Courier,monospace;font-size:.82rem;line-height:1.75;color:#d4d4d4;}
+.code-comment{color:#6a9955;}
+.code-str{color:#ce9178;}
+.code-keyword{color:#c586c0;}
+.code-cmd{color:#9cdcfe;}
+.code-out{color:#aaa;}
+
+/* ── 步驟清單 ── */
+.step-list{display:flex;flex-direction:column;gap:14px;margin:24px 0;}
+.step-item{display:flex;align-items:flex-start;gap:16px;padding:16px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);}
+.step-num{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-accent);flex-shrink:0;min-width:24px;}
+.step-body{font-size:.88rem;color:var(--c-text);line-height:1.75;}
+.step-body strong{font-weight:700;}
+.step-body code{font-family:'Courier New',monospace;font-size:.8rem;background:rgba(90,122,90,.1);color:#3a6a3a;padding:1px 6px;border-radius:3px;}
+
+/* ── 指令速查表 ── */
+.cmd-table{width:100%;border-collapse:collapse;margin:28px 0;font-size:.85rem;}
+.cmd-table thead tr{background:var(--c-surface);}
+.cmd-table th{text-align:left;padding:12px 14px;font-size:.72rem;color:var(--c-muted);letter-spacing:1px;border-bottom:1px solid var(--c-border);}
+.cmd-table td{padding:14px;border-bottom:1px solid var(--c-border);line-height:1.65;vertical-align:top;}
+.cmd-table td:first-child{font-family:'Courier New',monospace;font-size:.82rem;color:#3a6a3a;background:rgba(90,122,90,.06);white-space:nowrap;}
+.cmd-table tr:last-child td{border-bottom:none;}
+
+/* ── 比較格 ── */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0;}
+.compare-card{padding:24px 26px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);}
+.compare-card.highlight{border-color:rgba(90,122,90,.4);background:rgba(90,122,90,.04);}
+.compare-label{font-size:.7rem;font-weight:500;letter-spacing:1px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--c-border);}
+.compare-card .compare-label{color:var(--c-muted);}
+.compare-card.highlight .compare-label{color:var(--c-accent);}
+.compare-item{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;color:var(--c-text);margin-bottom:10px;line-height:1.6;}
+.compare-dot{width:4px;height:4px;border-radius:50%;background:var(--c-muted);margin-top:9px;flex-shrink:0;}
+.compare-card.highlight .compare-dot{background:var(--c-accent);}
+
+/* ── 狀態圖 ── */
+.state-flow{display:flex;align-items:center;gap:0;margin:28px 0;flex-wrap:wrap;}
+.state-box{flex:1;min-width:140px;padding:18px 16px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-align:center;}
+.state-box.active{border-color:rgba(90,122,90,.5);background:rgba(90,122,90,.05);}
+.state-label{font-size:.68rem;color:var(--c-muted);letter-spacing:1px;margin-bottom:6px;}
+.state-name{font-size:.9rem;font-weight:700;color:var(--c-text);}
+.state-box.active .state-name{color:var(--c-accent);}
+.state-arrow{font-size:.75rem;color:var(--c-muted);padding:0 10px;flex-shrink:0;align-self:center;}
+.state-cmd{font-family:'Courier New',monospace;font-size:.72rem;color:var(--c-accent);margin-top:4px;}
+
+/* ── 提醒卡片 ── */
+.tip-card{padding:20px 24px;background:var(--c-card);border:1px solid var(--c-border);border-top:3px solid var(--c-accent);border-radius:var(--radius);margin:24px 0;}
+.tip-card-title{font-size:.78rem;font-weight:700;color:var(--c-accent);letter-spacing:1px;margin-bottom:10px;}
+.tip-card-body{font-size:.87rem;color:var(--c-text);line-height:1.8;}
+.tip-card-body code{font-family:'Courier New',monospace;font-size:.8rem;background:rgba(90,122,90,.1);color:#3a6a3a;padding:1px 6px;border-radius:3px;}
+
+/* ── GitHub 操作流程 ── */
+.gh-flow{display:flex;flex-direction:column;gap:12px;margin:28px 0;}
+.gh-step{display:flex;gap:20px;align-items:flex-start;padding:16px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);}
+.gh-step-num{width:28px;height:28px;border-radius:50%;background:var(--c-accent);color:#fff;font-size:.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.gh-step-content{flex:1;}
+.gh-step-title{font-size:.88rem;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.gh-step-desc{font-size:.83rem;color:var(--c-muted);line-height:1.7;}
+.gh-step-desc code{font-family:'Courier New',monospace;font-size:.8rem;background:rgba(90,122,90,.1);color:#3a6a3a;padding:1px 6px;border-radius:3px;}
+
+/* ── 課程預告 ── */
+.preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:24px 0;}
+.preview-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;display:flex;align-items:flex-start;gap:14px;}
+.preview-icon{font-size:1.3rem;flex-shrink:0;}
+.preview-part{font-size:.68rem;color:var(--c-muted);margin-bottom:4px;}
+.preview-name{font-size:.85rem;font-weight:700;color:var(--c-text);line-height:1.4;}
+
+/* ── 底部導航 ── */
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-accent);}
+.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* ── 頁尾 ── */
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+
+/* ── 動態進場 ── */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1);}
+.reveal.in{opacity:1;transform:translateY(0);}
+.section-rule{transform-origin:left center;opacity:0;transition:opacity .4s ease,transform .6s cubic-bezier(.16,1,.3,1);transform:scaleX(.3);}
+.section-rule.in{opacity:1;transform:scaleX(1);}
+
+/* ── 側邊章節導航 ── */
+.section-dots{position:fixed;left:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:40;opacity:0;transition:opacity .4s ease;}
+.section-dots.visible{opacity:1;}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--c-border);cursor:pointer;transition:background .3s ease,transform .3s ease;border:none;padding:0;}
+.sdot.active{background:var(--c-accent);transform:scale(1.5);}
+@media(max-width:1100px){.section-dots{display:none;}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero{padding:40px 20px 36px;}.lesson-title{font-size:1.55rem;}.lesson-body{padding:0 20px 60px;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.compare-grid,.preview-grid{grid-template-columns:1fr;}.state-flow{flex-direction:column;}.state-arrow{transform:rotate(90deg);}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+
+<!-- 側邊章節導航 -->
+<nav class="section-dots" id="sdots">
+  <button class="sdot" data-sec="s1" title="版本控制的核心概念"></button>
+  <button class="sdot" data-sec="s2" title="Git 三步驟：init、add、commit"></button>
+  <button class="sdot" data-sec="s3" title="查看與回溯：log 與 checkout"></button>
+  <button class="sdot" data-sec="s4" title="推送到 GitHub：連接遠端 repo"></button>
+</nav>
+
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">140 小時生成式 AI 實務應用課程</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH 5.3 · Part 5</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a class="back-link" href="../../../index.html">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">Part 5 · 前端與部署實戰</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 5.3 · 2 小時</span>
+  </div>
+  <h1 class="lesson-title">Git 與版本保存：<br>讓<em>每一步都可以反悔</em></h1>
+  <p class="lesson-tagline">你有多少次改了頁面，然後想回到昨天的版本，卻發現完全回不去？Git 解決的就是這個問題——不是讓你不犯錯，而是讓每一個錯都有後路。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果 · OUTCOMES</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>理解版本控制的核心思維：為什麼存檔不夠，需要「快照」</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能在本機執行 Git 的基本操作：init、add、commit、log</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>知道如何用 git log 查看修改紀錄，並用 git checkout 回到特定版本</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能在 GitHub 建立 repo 並將本機程式碼推送上去</div>
+  </div>
+</div>
+
+<main class="lesson-body">
+
+  <!-- Section 1 -->
+  <section class="lesson-section reveal" id="s1">
+    <div class="section-eyebrow">Section 1 · Why Git</div>
+    <h2 class="section-heading">版本控制的核心概念：<br>為什麼<em>存檔不夠</em>？</h2>
+    <p class="body-text">你可能已經有「存檔」的習慣。每次修改前複製一份，取名 <code style="font-family:monospace;background:rgba(90,122,90,.1);color:#3a6a3a;padding:1px 6px;border-radius:3px;">index_備份.html</code>，或是 <code style="font-family:monospace;background:rgba(90,122,90,.1);color:#3a6a3a;padding:1px 6px;border-radius:3px;">index_0414最終版.html</code>。這個習慣說明你已經在思考版本——只是用了一個很脆弱的方式。</p>
+    <p class="body-text">問題來了：改了五次之後，你有五個備份檔。你知道第三個版本的按鈕顏色是什麼嗎？你知道從第二個到第三個，改了哪些地方嗎？你能在十秒內回到「兩天前按鈕還沒壞掉的那個狀態」嗎？</p>
+
+    <div class="big-quote">Git 不是「備份工具」，是<span>時間機器</span>。每次 commit，你拍下一張快照——帶著時間戳記、作者、你自己寫的說明。</div>
+
+    <div class="compare-grid">
+      <div class="compare-card">
+        <div class="compare-label">手動備份的問題</div>
+        <div class="compare-item"><div class="compare-dot"></div>檔名越來越混亂，不知道哪個才是「正確版」</div>
+        <div class="compare-item"><div class="compare-dot"></div>無法追蹤「這次改了什麼」，只知道有新版本</div>
+        <div class="compare-item"><div class="compare-dot"></div>回溯需要手動比對兩個檔案的差異</div>
+        <div class="compare-item"><div class="compare-dot"></div>多人協作時，不同人的修改容易互相覆蓋</div>
+      </div>
+      <div class="compare-card highlight">
+        <div class="compare-label">Git 的解法</div>
+        <div class="compare-item"><div class="compare-dot"></div>只有一個工作目錄，版本紀錄在 .git 資料夾裡</div>
+        <div class="compare-item"><div class="compare-dot"></div>每個 commit 都有說明，記錄「為什麼改」</div>
+        <div class="compare-item"><div class="compare-dot"></div>一行指令回到任何歷史版本</div>
+        <div class="compare-item"><div class="compare-dot"></div>多人協作時自動追蹤誰改了什麼，衝突可手動解決</div>
+      </div>
+    </div>
+
+    <p class="body-text">Git 有三個概念區域，是理解所有指令的基礎：</p>
+
+    <div class="state-flow">
+      <div class="state-box">
+        <div class="state-label">工作區</div>
+        <div class="state-name">Working Directory</div>
+        <div class="state-cmd">你正在編輯的檔案</div>
+      </div>
+      <div class="state-arrow">→ git add →</div>
+      <div class="state-box active">
+        <div class="state-label">暫存區</div>
+        <div class="state-name">Staging Area</div>
+        <div class="state-cmd">準備要提交的修改</div>
+      </div>
+      <div class="state-arrow">→ git commit →</div>
+      <div class="state-box">
+        <div class="state-label">版本庫</div>
+        <div class="state-name">Repository</div>
+        <div class="state-cmd">永久保存的快照紀錄</div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body"><strong>暫存區（Staging Area）的用途：</strong>讓你在「commit 之前」先決定這次要包含哪些修改。你可以改了五個檔案，但只把其中三個加入這次的 commit——這讓每個 commit 的說明能更精確。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <!-- Section 2 -->
+  <section class="lesson-section reveal" id="s2">
+    <div class="section-eyebrow">Section 2 · Basic Commands</div>
+    <h2 class="section-heading">第一次使用 Git：<br><em>init、add、commit</em> 三步驟</h2>
+    <p class="body-text">打開終端機，切換到你的專案目錄。以下三個指令就是你 90% 的日常 Git 操作——先學熟這三個，其他的慢慢補。</p>
+
+    <div class="step-list">
+      <div class="step-item">
+        <div class="step-num">01</div>
+        <div class="step-body">
+          <strong>初始化 Git 追蹤</strong>（只需做一次）<br>
+          在你的專案目錄下執行 <code>git init</code>。這會建立一個隱藏的 <code>.git</code> 資料夾，從此這個目錄的所有修改都能被追蹤。
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">02</div>
+        <div class="step-body">
+          <strong>把修改加入暫存區</strong><br>
+          執行 <code>git add 檔案名稱</code>，或用 <code>git add .</code> 一次加入所有修改。這是告訴 Git：「這些東西我要納入下一次的快照。」
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">03</div>
+        <div class="step-body">
+          <strong>提交快照並寫說明</strong><br>
+          執行 <code>git commit -m "說明文字"</code>。說明文字很重要——未來你需要回溯時，靠的就是這段文字判斷每個版本做了什麼。
+        </div>
+      </div>
+    </div>
+
+    <p class="body-text">完整的第一次操作流程如下：</p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">BASH</span>
+        <span class="code-block-label">第一次初始化並提交</span>
+      </div>
+      <pre><span class="code-comment"># 進入你的專案目錄</span>
+cd ~/Desktop/my-tool
+
+<span class="code-comment"># 初始化 Git（只做一次）</span>
+git init
+
+<span class="code-comment"># 查看目前哪些檔案有修改（養成習慣）</span>
+git status
+
+<span class="code-comment"># 把所有檔案加入暫存區</span>
+git add .
+
+<span class="code-comment"># 提交第一個快照</span>
+git commit -m <span class="code-str">"初始版本：工具頁面基本架構完成"</span></pre>
+    </div>
+
+    <p class="body-text">之後每次改完，重複 <code style="font-family:monospace;background:rgba(90,122,90,.1);color:#3a6a3a;padding:1px 6px;border-radius:3px;">git add .</code> 和 <code style="font-family:monospace;background:rgba(90,122,90,.1);color:#3a6a3a;padding:1px 6px;border-radius:3px;">git commit -m "說明"</code> 兩個步驟即可。以下是完整的常用指令速查表：</p>
+
+    <table class="cmd-table">
+      <thead>
+        <tr>
+          <th>指令</th>
+          <th>用途</th>
+          <th>什麼時候用</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>git init</td>
+          <td>在目前目錄建立 Git 版本庫</td>
+          <td>專案第一次設定</td>
+        </tr>
+        <tr>
+          <td>git status</td>
+          <td>查看哪些檔案有修改、哪些在暫存區</td>
+          <td>add 前養成習慣先確認</td>
+        </tr>
+        <tr>
+          <td>git add .</td>
+          <td>把所有修改加入暫存區</td>
+          <td>要提交前</td>
+        </tr>
+        <tr>
+          <td>git add 檔案</td>
+          <td>只把特定檔案加入暫存區</td>
+          <td>只想提交部分修改時</td>
+        </tr>
+        <tr>
+          <td>git commit -m "說明"</td>
+          <td>提交暫存區的內容成為一個版本快照</td>
+          <td>每次完成一個小段落就提交</td>
+        </tr>
+        <tr>
+          <td>git log --oneline</td>
+          <td>查看簡短的版本歷史</td>
+          <td>需要找回特定版本時</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body"><strong>commit 說明寫什麼？</strong>寫「改了什麼」沒那麼重要——Git 自己記得你改了哪些行。寫「為什麼改」才是關鍵。<br>差別：<code style="font-family:monospace;font-size:.8rem;background:rgba(181,60,60,.08);padding:1px 6px;border-radius:3px;">update button</code> vs <code style="font-family:monospace;font-size:.8rem;background:rgba(90,122,90,.1);color:#3a6a3a;padding:1px 6px;border-radius:3px;">修正送出按鈕在 iOS Safari 無法點擊的問題</code>。三個月後翻紀錄，前者毫無幫助。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <!-- Section 3 -->
+  <section class="lesson-section reveal" id="s3">
+    <div class="section-eyebrow">Section 3 · Time Travel</div>
+    <h2 class="section-heading">查看與回溯：<br><em>log、diff 與 checkout</em></h2>
+    <p class="body-text">Git 最有價值的能力不是「存檔」，而是讓你在任何時候回到任何版本。掌握這三個指令，你就擁有了真正的反悔能力。</p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">BASH</span>
+        <span class="code-block-label">查看版本歷史</span>
+      </div>
+      <pre><span class="code-comment"># 顯示完整的 commit 歷史</span>
+git log
+
+<span class="code-comment"># 每個 commit 只顯示一行（ID + 說明）</span>
+git log --oneline
+
+<span class="code-out"># 輸出範例：
+# a3f8c12 修正 iOS Safari 送出按鈕無法點擊
+# 7d2e901 新增聯絡表單，調整版面
+# 4b1a034 完成首頁 Hero 區塊設計
+# c9e2f57 初始版本：工具頁面基本架構完成</span></pre>
+    </div>
+
+    <p class="body-text">每個 commit 都有一個獨特的 ID（上面的 <code style="font-family:monospace;background:rgba(90,122,90,.1);color:#3a6a3a;padding:1px 6px;border-radius:3px;">a3f8c12</code> 這類的短碼）。你可以用這個 ID 做三件事：</p>
+
+    <div class="step-list">
+      <div class="step-item">
+        <div class="step-num">查</div>
+        <div class="step-body">
+          <strong>查看兩個版本之間的差異</strong><br>
+          <code>git diff 4b1a034 a3f8c12</code> — 會顯示從第一個 commit 到第二個 commit，每一行程式碼的新增（綠色 +）與刪除（紅色 -）。
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">回</div>
+        <div class="step-body">
+          <strong>回到某個舊版本來查看</strong><br>
+          <code>git checkout 4b1a034</code> — 你的工作目錄會暫時變成那個版本的狀態。看完後用 <code>git checkout main</code> 回到現在。
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">還</div>
+        <div class="step-body">
+          <strong>正式回到舊版本（產生一個新 commit）</strong><br>
+          <code>git revert a3f8c12</code> — 這會「反轉」指定的 commit，把它的修改撤銷，同時產生一筆新的紀錄。這是最安全的回溯方式，不會破壞歷史。
+        </div>
+      </div>
+    </div>
+
+    <div class="callout key">
+      <div class="callout-icon">🔑</div>
+      <div class="callout-body"><strong>revert vs reset：</strong>初學者請優先使用 <code style="font-family:monospace;font-size:.8rem;background:rgba(201,150,58,.1);padding:1px 6px;border-radius:3px;">git revert</code>——它在現有歷史上疊加「撤銷」，不破壞任何既有紀錄。<code style="font-family:monospace;font-size:.8rem;background:rgba(201,150,58,.1);padding:1px 6px;border-radius:3px;">git reset --hard</code> 雖然「更徹底」，但會直接刪除歷史，操作錯誤的話真的回不來。</div>
+    </div>
+
+    <p class="body-text">實際情境：你在 AI 協助下改了頁面，改到一半發現整個壞掉，但又不確定是哪步出錯。這時候的標準流程：</p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">BASH</span>
+        <span class="code-block-label">找出問題版本並回溯</span>
+      </div>
+      <pre><span class="code-comment"># 第一步：查看最近幾個 commit</span>
+git log --oneline
+
+<span class="code-out"># b2c4d8e 用 AI 調整整體排版（壞了）
+# a3f8c12 修正送出按鈕
+# 7d2e901 新增聯絡表單</span>
+
+<span class="code-comment"># 第二步：回到「新增聯絡表單」這個版本查看</span>
+git checkout 7d2e901
+
+<span class="code-comment"># 確認是這個版本還好的？ 執行撤銷</span>
+git checkout main  <span class="code-comment"># 先回來</span>
+git revert b2c4d8e  <span class="code-comment"># 撤銷那個壞掉的 commit</span></pre>
+    </div>
+
+    <div class="tip-card">
+      <div class="tip-card-title">BEST PRACTICE · 提交頻率</div>
+      <div class="tip-card-body">不要等「全部完成」才提交。每完成一個小功能就 commit——改好了一個按鈕、加完了一段文字、測試通過了一個功能。<strong>commit 越小越具體，回溯就越精準。</strong>「改了一百個地方」的 commit 是 Git 最難利用的一種。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <!-- Section 4 -->
+  <section class="lesson-section reveal" id="s4">
+    <div class="section-eyebrow">Section 4 · GitHub</div>
+    <h2 class="section-heading">推送到 GitHub：<br>讓程式碼<em>存在雲端</em></h2>
+    <p class="body-text">到目前為止，所有的 Git 歷史只存在你的電腦裡。如果電腦壞了、或你想在另一台電腦繼續工作，你需要一個遠端 repo——GitHub 就是最常用的服務。</p>
+    <p class="body-text">GitHub 上的 repo 是你本機 Git 版本庫的「雲端鏡像」。你用 <code style="font-family:monospace;background:rgba(90,122,90,.1);color:#3a6a3a;padding:1px 6px;border-radius:3px;">git push</code> 把本機的 commit 上傳，用 <code style="font-family:monospace;background:rgba(90,122,90,.1);color:#3a6a3a;padding:1px 6px;border-radius:3px;">git pull</code> 把雲端的更新同步下來。</p>
+
+    <div class="gh-flow">
+      <div class="gh-step">
+        <div class="gh-step-num">1</div>
+        <div class="gh-step-content">
+          <div class="gh-step-title">在 GitHub 建立新 repo</div>
+          <div class="gh-step-desc">前往 github.com，點右上角的 + → New repository。填入名稱（如 <code>my-tool</code>），選 Public 或 Private，不要勾選 Initialize with README（因為你本機已有檔案了）。</div>
+        </div>
+      </div>
+      <div class="gh-step">
+        <div class="gh-step-num">2</div>
+        <div class="gh-step-content">
+          <div class="gh-step-title">連接本機與遠端 repo</div>
+          <div class="gh-step-desc">GitHub 建完後會給你一段指令。在終端機執行：<code>git remote add origin https://github.com/你的帳號/my-tool.git</code></div>
+        </div>
+      </div>
+      <div class="gh-step">
+        <div class="gh-step-num">3</div>
+        <div class="gh-step-content">
+          <div class="gh-step-title">第一次推送</div>
+          <div class="gh-step-desc">執行 <code>git push -u origin main</code>。<code>-u</code> 參數讓往後可以直接用 <code>git push</code> 而不需每次指定目標。</div>
+        </div>
+      </div>
+      <div class="gh-step">
+        <div class="gh-step-num">4</div>
+        <div class="gh-step-content">
+          <div class="gh-step-title">之後的日常操作</div>
+          <div class="gh-step-desc">改了東西 → <code>git add .</code> → <code>git commit -m "說明"</code> → <code>git push</code>。三個步驟，15 秒，程式碼就安全存在雲端了。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">BASH</span>
+        <span class="code-block-label">完整的初始推送流程</span>
+      </div>
+      <pre><span class="code-comment"># 確認本機已有 commit（沒有的話先 git add . && git commit）</span>
+git log --oneline
+
+<span class="code-comment"># 連接遠端（只做一次）</span>
+git remote add origin https://github.com/yourname/my-tool.git
+
+<span class="code-comment"># 重新命名預設分支（如果需要）</span>
+git branch -M main
+
+<span class="code-comment"># 第一次推送（-u 設定追蹤關係）</span>
+git push -u origin main
+
+<span class="code-comment"># 往後的日常推送</span>
+git add .
+git commit -m <span class="code-str">"修正首頁 RWD 在手機橫向的顯示問題"</span>
+git push</pre>
+    </div>
+
+    <div class="callout info">
+      <div class="callout-icon">ℹ️</div>
+      <div class="callout-body"><strong>GitHub 推送需要驗證：</strong>第一次推送時，GitHub 可能要求你輸入帳號密碼或設定 Personal Access Token（PAT）。2021 年後 GitHub 已停用密碼驗證——建議在 Settings → Developer settings → Personal access tokens 產生一個 token，用 token 代替密碼。</div>
+    </div>
+
+    <p class="body-text">把程式碼推上 GitHub 之後，你同時得到了兩個額外好處：第一，下一節課（CH5-4）我們會從 GitHub 直接連接到部署平台，讓你的頁面有公開網址。第二，GitHub 本身就是你的作品集——面試、接案、展示，都可以直接分享 repo 連結。</p>
+
+    <div class="preview-grid">
+      <div class="preview-card">
+        <div class="preview-icon">🚀</div>
+        <div>
+          <div class="preview-part">下一節</div>
+          <div class="preview-name">CH5-4 含後端服務的完整部署</div>
+        </div>
+      </div>
+      <div class="preview-card">
+        <div class="preview-icon">🛠️</div>
+        <div>
+          <div class="preview-part">即將練習</div>
+          <div class="preview-name">PRAC5-2 靜態頁面部署到 Vercel / Netlify</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<nav class="lesson-nav">
+  <a class="nav-btn" href="CH5-2.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    <div>
+      <div class="nav-btn-label">上一節</div>
+      <div class="nav-btn-title">CH5-2 與 AI 協作改頁面</div>
+    </div>
+  </a>
+  <a class="nav-btn next" href="CH5-4.html">
+    <div>
+      <div class="nav-btn-label">下一節</div>
+      <div class="nav-btn-title">CH5-4 含後端服務的完整部署</div>
+    </div>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">140 小時生成式 AI 實務應用課程 · Part 5 前端與部署實戰</div>
+</footer>
+
+<script>
+// 閱讀進度條
+const prog = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const st = window.scrollY;
+  const dh = document.documentElement.scrollHeight - window.innerHeight;
+  prog.style.width = (dh > 0 ? (st / dh) * 100 : 0) + '%';
+});
+
+// Reveal on scroll
+const revealEls = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+}, { threshold: 0.08 });
+revealEls.forEach(el => io.observe(el));
+
+// 側邊章節導航
+const sdots = document.getElementById('sdots');
+const sections = ['s1','s2','s3','s4'].map(id => document.getElementById(id));
+const dotBtns = document.querySelectorAll('.sdot');
+const sio = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      dotBtns.forEach(d => d.classList.remove('active'));
+      const idx = sections.indexOf(e.target);
+      if (idx >= 0) dotBtns[idx].classList.add('active');
+    }
+  });
+}, { threshold: 0.4 });
+sections.forEach(s => s && sio.observe(s));
+window.addEventListener('scroll', () => {
+  sdots.classList.toggle('visible', window.scrollY > 200);
+});
+dotBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const sec = document.getElementById(btn.dataset.sec);
+    if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH1-3 Prompt 除錯｜140小時生成式 AI 實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#8c8880;
+  --c-a1:#b5703a; --c-a2:#c9963a; --c-a3:#5a7a5a; --c-a4:#6b7fa3;
+  --radius:6px; --radius-sm:4px; --content-w:780px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a1);border:1px solid rgba(181,112,58,.3);background:rgba(181,112,58,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a1);width:0%;transition:width .1s;}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a1);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-a1);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-title em{font-style:normal;color:var(--c-a1);}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a1);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-a1);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a1);margin-top:8px;flex-shrink:0;}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-a1);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+/* 問題診斷卡 */
+.bug-list{display:flex;flex-direction:column;gap:12px;margin:24px 0;}
+.bug-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 22px;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:start;}
+.bug-tag{font-size:.68rem;color:#b03a3a;background:rgba(176,58,58,.08);border:1px solid rgba(176,58,58,.2);padding:2px 9px;border-radius:99px;font-weight:500;white-space:nowrap;}
+.bug-title{font-size:.9rem;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.bug-fix{font-size:.82rem;color:var(--c-muted);line-height:1.65;}
+.bug-fix strong{color:var(--c-a3);font-weight:500;}
+/* Callout */
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25);}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout.key{background:rgba(181,112,58,.07);border:1px solid rgba(181,112,58,.25);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text);}
+.callout-body strong{font-weight:700;}
+/* 迭代流程圖 */
+.iter-flow{display:flex;align-items:center;gap:0;margin:28px 0;overflow-x:auto;}
+.iter-node{flex:1;min-width:100px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:16px 14px;text-align:center;}
+.iter-node.active{border-color:rgba(181,112,58,.4);background:rgba(181,112,58,.04);}
+.iter-num{font-family:'Shippori Mincho',serif;font-size:1.2rem;font-weight:700;color:var(--c-a1);opacity:.5;margin-bottom:4px;}
+.iter-label{font-size:.78rem;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.iter-desc{font-size:.7rem;color:var(--c-muted);line-height:1.5;}
+.iter-arr{font-size:.9rem;color:var(--c-border);padding:0 8px;flex-shrink:0;}
+/* 版本對比 */
+.version-block{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:24px 0;}
+.version-header{display:flex;align-items:center;gap:12px;padding:12px 18px;background:var(--c-surface);border-bottom:1px solid var(--c-border);}
+.version-tag{font-size:.68rem;font-weight:500;padding:2px 9px;border-radius:99px;}
+.v1-tag{color:var(--c-muted);background:var(--c-surface);border:1px solid var(--c-border);}
+.v2-tag{color:var(--c-a1);background:rgba(181,112,58,.08);border:1px solid rgba(181,112,58,.25);}
+.version-body{padding:16px 18px;font-size:.85rem;color:var(--c-text);line-height:1.8;}
+.version-note{font-size:.75rem;color:var(--c-muted);padding:10px 18px;border-top:1px solid var(--c-border);background:rgba(0,0,0,.01);}
+/* 步驟清單 */
+.step-list{display:flex;flex-direction:column;gap:16px;margin:24px 0;}
+.step-item{display:flex;gap:16px;align-items:flex-start;}
+.step-num{width:28px;height:28px;border-radius:50%;background:rgba(181,112,58,.1);border:1.5px solid var(--c-a1);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:.82rem;font-weight:700;color:var(--c-a1);flex-shrink:0;margin-top:2px;}
+.step-text{font-size:.9rem;color:var(--c-text);line-height:1.85;}
+.step-text strong{font-weight:700;}
+/* 導航 */
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-a1);}
+.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}
+.nav-btn-title{font-weight:500;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1);}
+.reveal.in{opacity:1;transform:translateY(0);}
+.section-rule{transform-origin:left center;opacity:0;transition:opacity .4s ease,transform .6s cubic-bezier(.16,1,.3,1);transform:scaleX(.3);}
+.section-rule.in{opacity:1;transform:scaleX(1);}
+.section-dots{position:fixed;left:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:40;opacity:0;transition:opacity .4s ease;}
+.section-dots.visible{opacity:1;}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--c-border);cursor:pointer;transition:background .3s,transform .3s;border:none;padding:0;}
+.sdot.active{background:var(--c-a1);transform:scale(1.5);}
+@media(max-width:1100px){.section-dots{display:none;}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero,.lesson-body{padding-left:20px;padding-right:20px;}.lesson-title{font-size:1.55rem;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.bug-card{grid-template-columns:1fr;}.iter-flow{gap:4px;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+
+<nav class="section-dots" id="sdots">
+  <button class="sdot" data-sec="s1" title="常見問題診斷"></button>
+  <button class="sdot" data-sec="s2" title="多輪修正節奏"></button>
+  <button class="sdot" data-sec="s3" title="版本意識"></button>
+  <button class="sdot" data-sec="s4" title="AI 自我檢查"></button>
+</nav>
+
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">140 小時生成式 AI 實務應用課程</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH 1.3 · Part 1</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">Part 1 · 解鎖 AI 工作模式</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 1.3 · 2 小時</span>
+  </div>
+  <h1 class="lesson-title">Prompt 除錯：<br>怎麼讓 AI <em>越改越準</em></h1>
+  <p class="lesson-tagline">第一次的輸出幾乎從來不是最好的。這節課教你診斷問題出在哪裡、用什麼節奏修正、以及如何要求 AI 自我重寫——讓每一輪對話都比上一輪更接近你要的結果。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果 · OUTCOMES</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能識別 5 種常見的 Prompt 問題類型並知道對應修法</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>掌握「先對、再好、再快」的多輪修正節奏</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能要求 AI 做自我檢查、自我重寫、版本比較</div>
+  </div>
+</div>
+
+<main class="lesson-body">
+
+  <section class="lesson-section reveal" id="s1">
+    <div class="section-eyebrow">Section 1 · Bug Taxonomy</div>
+    <h2 class="section-heading">五種最常見的 Prompt 問題，<em>以及怎麼修</em></h2>
+    <p class="body-text">當 AI 的輸出不對的時候，問題幾乎都出在提示詞的某一個面向。先學會診斷問題類型，才能精準修正——不是每次都需要重寫整個 Prompt。</p>
+    <div class="bug-list">
+      <div class="bug-card">
+        <div class="bug-tag">太空泛</div>
+        <div>
+          <div class="bug-title">輸出太籠統，沒有具體資訊</div>
+          <div class="bug-fix">修法：加上「請給出具體的數字、案例或步驟」，或用 few-shot 給範例。<strong>根本原因</strong>：任務太模糊，AI 只能給通則。</div>
+        </div>
+      </div>
+      <div class="bug-card">
+        <div class="bug-tag">太冗長</div>
+        <div>
+          <div class="bug-title">輸出過長，摻雜不必要的廢話</div>
+          <div class="bug-fix">修法：在 Prompt 結尾加「不超過 X 字」「只輸出核心內容，不需要前言和總結」。<strong>根本原因</strong>：沒有設長度限制。</div>
+        </div>
+      </div>
+      <div class="bug-card">
+        <div class="bug-tag">格式錯</div>
+        <div>
+          <div class="bug-title">輸出格式不是你要的</div>
+          <div class="bug-fix">修法：明確指定格式，如「以 Markdown 表格輸出」「輸出純 JSON，不含說明文字」。<strong>根本原因</strong>：格式要素缺失。</div>
+        </div>
+      </div>
+      <div class="bug-card">
+        <div class="bug-tag">不準確</div>
+        <div>
+          <div class="bug-title">內容有錯誤或與事實不符</div>
+          <div class="bug-fix">修法：加上「如果你不確定，請說不知道而不是猜測」「請標注你的資訊來源或信心程度」。<strong>根本原因</strong>：AI 幻覺，需要驗證節點。</div>
+        </div>
+      </div>
+      <div class="bug-card">
+        <div class="bug-tag">不照角色</div>
+        <div>
+          <div class="bug-title">AI 沒有維持你設定的角色或語氣</div>
+          <div class="bug-fix">修法：把角色描述移到 Prompt 最前面，並加上「請全程維持這個角色，不要跳出角色說明你的想法」。<strong>根本原因</strong>：角色約束不夠強。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <section class="lesson-section reveal" id="s2">
+    <div class="section-eyebrow">Section 2 · Iteration Rhythm</div>
+    <h2 class="section-heading">多輪修正的節奏：<em>先對，再好，再快</em></h2>
+    <p class="body-text">很多人拿到不滿意的輸出，直覺是重寫整個 Prompt。這通常不是最有效率的做法。建議用三階段節奏修正：</p>
+
+    <div class="iter-flow">
+      <div class="iter-node active">
+        <div class="iter-num">1</div>
+        <div class="iter-label">先對</div>
+        <div class="iter-desc">確認方向、內容、事實正確</div>
+      </div>
+      <div class="iter-arr">→</div>
+      <div class="iter-node">
+        <div class="iter-num">2</div>
+        <div class="iter-label">再好</div>
+        <div class="iter-desc">改善語氣、格式、細節品質</div>
+      </div>
+      <div class="iter-arr">→</div>
+      <div class="iter-node">
+        <div class="iter-num">3</div>
+        <div class="iter-label">再快</div>
+        <div class="iter-desc">把成功的 Prompt 存起來複用</div>
+      </div>
+    </div>
+
+    <p class="body-text">不要在第一輪就要求「正確且漂亮且精簡」。先讓 AI 把方向對了（第一輪），再要求品質（第二輪），最後把這個 Prompt 存成模板（第三步）。這樣的迭代比每次重來更有效率。</p>
+    <div class="callout key">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body"><strong>關鍵心態：</strong>在 AI 時代，「修改提示詞」本身就是一種工作技能。不要覺得第一次沒成功是失敗——那只是第一輪草稿。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <section class="lesson-section reveal" id="s3">
+    <div class="section-eyebrow">Section 3 · Version Control</div>
+    <h2 class="section-heading">建立 Prompt <em>版本意識</em></h2>
+    <p class="body-text">當你對同一個任務做了多輪修正，你需要記錄「改了什麼、為什麼改、結果有沒有變好」。這就是 Prompt 版本意識——它讓你的提示詞可以持續進步，而不是每次重來。</p>
+
+    <div class="version-block">
+      <div class="version-header">
+        <span class="version-tag v1-tag">v1 初稿</span>
+        <span style="font-size:.78rem;color:var(--c-muted);">幫我寫一份工作週報</span>
+      </div>
+      <div class="version-body">輸出：一份通用的週報模板，格式不固定，語氣偏正式，沒有包含我的工作內容。</div>
+      <div class="version-note">問題：任務太模糊，無角色，無格式，無限制。</div>
+    </div>
+
+    <div class="version-block">
+      <div class="version-header">
+        <span class="version-tag v2-tag">v2 改善</span>
+        <span style="font-size:.78rem;color:var(--c-muted);">你是行政助理，請根據以下工作紀錄，整理成週報格式，包含：本週完成事項（條列）、待確認事項（條列）、下週計畫（條列），語氣簡潔，每項不超過 30 字。</span>
+      </div>
+      <div class="version-body">輸出：結構清楚的週報，三個區塊都在，長度剛好，可以直接寄出。</div>
+      <div class="version-note">改進：加了角色、加了格式、加了三個區塊要求、加了長度限制。</div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon">📝</div>
+      <div class="callout-body"><strong>工具建議：</strong>用 Google Doc 或 Notion 建一個「Prompt 庫」，每個模板記錄：任務名稱、v1 → v2 的差異、最終版本。這是你在這門課最重要的學習產出之一。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <section class="lesson-section reveal" id="s4">
+    <div class="section-eyebrow">Section 4 · Self-Review</div>
+    <h2 class="section-heading">讓 AI 自己檢查、<em>自己重寫</em></h2>
+    <p class="body-text">你不一定要親自重寫 Prompt——你可以直接要求 AI 批評自己的輸出，然後重寫一個更好的版本。這個技巧特別適合你知道輸出有問題但說不清楚哪裡不對的情況。</p>
+
+    <div class="step-list">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-text"><strong>自我檢查：</strong>「請檢查你剛才的輸出，有哪些地方不夠準確、不夠清楚、或不符合我的需求？列出 3 個問題。」</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-text"><strong>自我重寫：</strong>「根據你列出的問題，重新寫一個改善版本。」——這讓 AI 帶著批評意識重寫，品質通常比第一版高。</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-text"><strong>版本比較：</strong>「請給我版本 A 和版本 B，並說明你認為哪個更好及原因。」——讓 AI 給你多個選擇，再由你做最終決定。</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-text"><strong>一致性測試：</strong>把同一個 Prompt 發送 3 次，比較輸出是否穩定。如果每次結果差很多，說明 Prompt 還需要加更多限制條件。</div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon">✅</div>
+      <div class="callout-body"><strong>本節帶走產出：</strong>Prompt 除錯紀錄單——選一個你最常用的工作任務，做 3 輪 Prompt 優化，記錄每一輪的問題、修改點、輸出差異。這份紀錄就是你自己的 Prompt 除錯指南。</div>
+    </div>
+  </section>
+
+</main>
+
+<div class="lesson-nav">
+  <a class="nav-btn" href="CH1-2.html">
+    <div>
+      <div class="nav-btn-label">← 上一單元</div>
+      <div class="nav-btn-title">CH 1.2 黃金提示詞公式</div>
+    </div>
+  </a>
+  <a class="nav-btn next" href="CH1-4.html">
+    <div>
+      <div class="nav-btn-label">下一單元 →</div>
+      <div class="nav-btn-title">CH 1.4 System Prompt 設計</div>
+    </div>
+  </a>
+</div>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">140 小時生成式 AI 實務應用課程 · Part 1</div>
+</footer>
+
+<script>
+const prog = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  prog.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + '%';
+});
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal, .section-rule').forEach(r => observer.observe(r));
+const sdots = document.getElementById('sdots');
+const sections = document.querySelectorAll('[id^="s"]');
+window.addEventListener('scroll', () => {
+  sdots.classList.toggle('visible', window.scrollY > 300);
+  let cur = '';
+  sections.forEach(s => { if (s.offsetTop - 120 <= window.scrollY) cur = s.id; });
+  document.querySelectorAll('.sdot').forEach(d => d.classList.toggle('active', d.dataset.sec === cur));
+});
+document.querySelectorAll('.sdot').forEach(d => {
+  d.addEventListener('click', () => document.getElementById(d.dataset.sec)?.scrollIntoView({ behavior:'smooth', block:'start' }));
+});
+</script>
+</body>
+</html>

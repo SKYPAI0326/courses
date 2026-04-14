@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRAC 1-4 個人 AI 助手配置實作｜140小時生成式AI實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee;
+  --c-surface:#edeae3;
+  --c-card:#ffffff;
+  --c-border:#d8d4cb;
+  --c-text:#2c2b28;
+  --c-muted:#8c8880;
+  --c-a4:#6b7fa3;
+  --radius:6px;
+  --radius-sm:4px;
+  --content-w:860px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--c-bg);color:var(--c-text);font-family:'Noto Sans TC',sans-serif;font-size:15px;line-height:1.7;}
+
+/* Topbar */
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.08);padding:3px 12px;border-radius:99px;font-weight:500;}
+
+/* Progress bar */
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a4);width:0%;transition:width .1s;}
+
+/* Hero */
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 40px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px;}
+.back-link:hover{color:var(--c-a4);}
+.hero-eyebrow{font-size:.7rem;color:var(--c-a4);letter-spacing:2px;font-weight:500;margin-bottom:12px;}
+.page-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:12px;}
+.page-subtitle{font-size:.95rem;color:var(--c-muted);line-height:1.85;max-width:600px;}
+.hero-meta{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;}
+.meta-badge{font-size:.75rem;color:var(--c-muted);background:var(--c-surface);border:1px solid var(--c-border);padding:4px 12px;border-radius:99px;}
+.meta-badge strong{color:var(--c-a4);}
+
+/* Tool wrap */
+.tool-wrap{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.section-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:20px;margin-top:40px;}
+
+/* Callout */
+.callout{display:flex;gap:16px;padding:16px 20px;border-radius:var(--radius);margin:20px 0;}
+.callout.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25);}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout.key{background:rgba(107,127,163,.1);border:1px solid rgba(107,127,163,.35);}
+.callout-icon{font-size:1rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.87rem;line-height:1.8;color:var(--c-text);}
+
+/* Role selector */
+.role-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px;}
+.role-card{background:var(--c-card);border:1.5px solid var(--c-border);border-radius:var(--radius);padding:16px 18px;cursor:pointer;transition:border-color .2s,box-shadow .2s;}
+.role-card:hover{border-color:rgba(107,127,163,.4);box-shadow:0 2px 10px rgba(107,127,163,.1);}
+.role-card.selected{border-color:var(--c-a4);background:rgba(107,127,163,.04);}
+.rc-icon{font-size:1.4rem;margin-bottom:8px;}
+.rc-name{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.rc-desc{font-size:.78rem;color:var(--c-muted);line-height:1.6;}
+
+/* Personality selector */
+.personality-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
+.pers-btn{padding:7px 16px;border-radius:99px;font-size:.82rem;font-family:'Noto Sans TC',sans-serif;cursor:pointer;border:1px solid var(--c-border);background:var(--c-card);color:var(--c-muted);transition:background .15s,border-color .15s;}
+.pers-btn:hover{border-color:rgba(107,127,163,.4);color:var(--c-a4);}
+.pers-btn.selected{background:var(--c-a4);color:#fff;border-color:var(--c-a4);}
+
+/* Custom fields */
+.field-group{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px;}
+.fg-header{padding:14px 20px;border-bottom:1px solid var(--c-border);}
+.fg-label{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-text);}
+.fg-hint{font-size:.78rem;color:var(--c-muted);margin-top:2px;}
+.fg-body{padding:14px 20px;}
+.fg-input{width:100%;border:1px solid var(--c-border);border-radius:var(--radius-sm);background:var(--c-bg);padding:10px 12px;font-family:'Noto Sans TC',sans-serif;font-size:.87rem;color:var(--c-text);outline:none;transition:border-color .2s;}
+.fg-input:focus{border-color:var(--c-a4);background:#fff;}
+.fg-input::placeholder{color:var(--c-muted);}
+.fg-textarea{width:100%;border:1px solid var(--c-border);border-radius:var(--radius-sm);background:var(--c-bg);padding:10px 12px;font-family:'Noto Sans TC',sans-serif;font-size:.87rem;color:var(--c-text);line-height:1.75;resize:vertical;min-height:80px;outline:none;transition:border-color .2s;}
+.fg-textarea:focus{border-color:var(--c-a4);background:#fff;}
+.fg-textarea::placeholder{color:var(--c-muted);}
+
+/* Toggle switches */
+.toggle-list{display:flex;flex-direction:column;gap:12px;}
+.toggle-item{display:flex;align-items:center;gap:12px;}
+.toggle-sw{position:relative;width:40px;height:22px;flex-shrink:0;}
+.toggle-sw input{opacity:0;width:0;height:0;position:absolute;}
+.toggle-track{position:absolute;inset:0;background:var(--c-border);border-radius:11px;cursor:pointer;transition:background .2s;}
+.toggle-sw input:checked + .toggle-track{background:var(--c-a4);}
+.toggle-track::after{content:'';position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s;}
+.toggle-sw input:checked + .toggle-track::after{left:21px;}
+.toggle-name{font-size:.87rem;color:var(--c-text);}
+.toggle-desc{font-size:.78rem;color:var(--c-muted);margin-top:1px;}
+
+/* Generate button */
+.btn-generate{width:100%;padding:16px;background:var(--c-a4);color:#fff;border:none;border-radius:var(--radius);font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;cursor:pointer;transition:background .2s;margin-top:8px;letter-spacing:.04em;}
+.btn-generate:hover{background:#5c6f91;}
+
+/* Output */
+.output-wrap{margin-top:32px;display:none;}
+.output-wrap.visible{display:block;}
+.out-tabs{display:flex;gap:0;border-bottom:2px solid var(--c-border);margin-bottom:0;}
+.out-tab{padding:10px 20px;font-size:.83rem;color:var(--c-muted);background:none;border:none;cursor:pointer;font-family:'Noto Sans TC',sans-serif;border-bottom:2px solid transparent;margin-bottom:-2px;transition:color .2s;}
+.out-tab:hover{color:var(--c-a4);}
+.out-tab.active{color:var(--c-a4);font-weight:700;border-bottom-color:var(--c-a4);}
+.out-panel{display:none;padding-top:20px;}
+.out-panel.active{display:block;}
+
+/* System prompt output */
+.sp-output{background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.83rem;padding:22px 24px;border-radius:var(--radius);white-space:pre-wrap;line-height:1.85;margin-bottom:12px;overflow-x:auto;}
+.copy-row{display:flex;justify-content:flex-end;gap:8px;margin-bottom:20px;}
+.btn-copy-sp{font-size:.78rem;color:var(--c-a4);background:rgba(107,127,163,.08);border:1px solid rgba(107,127,163,.25);padding:6px 16px;border-radius:99px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;}
+.btn-copy-sp:hover{background:rgba(107,127,163,.18);}
+
+/* Setup steps */
+.setup-steps{display:flex;flex-direction:column;gap:0;}
+.ss-item{display:flex;gap:20px;padding:20px 0;border-bottom:1px solid var(--c-surface);}
+.ss-item:last-child{border-bottom:none;}
+.ss-num{width:32px;height:32px;border-radius:50%;background:rgba(107,127,163,.1);border:1.5px solid var(--c-a4);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-weight:700;font-size:.85rem;color:var(--c-a4);flex-shrink:0;margin-top:2px;}
+.ss-content{flex:1;}
+.ss-title{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.ss-body{font-size:.87rem;color:var(--c-muted);line-height:1.75;}
+.ss-platforms{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.plat-tag{font-size:.72rem;color:var(--c-a4);background:rgba(107,127,163,.08);border:1px solid rgba(107,127,163,.2);padding:3px 10px;border-radius:99px;}
+
+/* Test checklist */
+.check-list{display:flex;flex-direction:column;gap:8px;}
+.check-item{display:flex;align-items:flex-start;gap:12px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:14px 16px;cursor:pointer;}
+.check-item:hover{border-color:rgba(107,127,163,.3);}
+.check-box{width:20px;height:20px;border:1.5px solid var(--c-border);border-radius:4px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:background .15s,border-color .15s;}
+.check-item.checked .check-box{background:var(--c-a4);border-color:var(--c-a4);color:#fff;font-size:.75rem;}
+.check-name{font-size:.87rem;color:var(--c-text);line-height:1.6;}
+.check-item.checked .check-name{color:var(--c-muted);text-decoration:line-through;}
+
+/* Nav Footer */
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a4);text-decoration:none;padding:10px 20px;border:1px solid rgba(107,127,163,.3);border-radius:var(--radius);transition:background .2s;}
+.nav-btn:hover{background:rgba(107,127,163,.07);}
+.nav-btn.primary{background:var(--c-a4);color:#fff;border-color:var(--c-a4);}
+.nav-btn.primary:hover{background:#5c6f91;}
+
+/* Footer */
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-div{width:1px;height:14px;background:var(--c-border);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+
+/* Toast */
+.toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(20px);background:#2c2b28;color:#f5f3ee;font-size:.82rem;padding:10px 22px;border-radius:99px;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:100;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+@media(max-width:600px){
+  .topbar{padding:0 20px;}
+  .page-hero,.tool-wrap,.nav-footer{padding-left:24px;padding-right:24px;}
+  .role-grid{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- Topbar -->
+<header class="topbar">
+  <a href="../index.html" class="logo">Codex Studio</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">140小時生成式AI實務應用課程</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">PRAC 1-4 助手配置</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<!-- Hero -->
+<div class="page-hero">
+  <a href="../index.html" class="back-link">← 返回課程總覽</a>
+  <div class="hero-eyebrow">PRAC 1-4 · INTERACTIVE TOOL</div>
+  <h1 class="page-title">個人 AI 助手配置實作</h1>
+  <p class="page-subtitle">用這個工具設計你專屬的 System Prompt，生成可直接貼入 ChatGPT、Claude 或 Gemini 的完整助手配置，讓 AI 從第一句話就進入你的工作頻道。</p>
+  <div class="hero-meta">
+    <span class="meta-badge"><strong>3h</strong> 工具實作</span>
+    <span class="meta-badge">Part 1 · 解鎖 AI 工作模式</span>
+    <span class="meta-badge">Part 1 收尾</span>
+  </div>
+</div>
+
+<!-- Tool -->
+<div class="tool-wrap">
+
+  <div class="callout info">
+    <span class="callout-icon">●</span>
+    <div class="callout-body"><strong>本節目標：</strong>完成這個工具後，你將擁有一份可立即使用的個人 AI 助手 System Prompt，以及在三個平台的設定方法。這是 Part 1 的最終成果。</div>
+  </div>
+
+  <!-- Step 1: Role -->
+  <div class="section-label">STEP 1 · 選擇你的主要使用情境</div>
+  <div class="role-grid" id="role-grid">
+    <div class="role-card" onclick="selectRole(this,'pm')">
+      <div class="rc-icon">◆</div>
+      <div class="rc-name">專案管理</div>
+      <div class="rc-desc">會議記錄、任務追蹤、進度報告、風險評估</div>
+    </div>
+    <div class="role-card" onclick="selectRole(this,'marketing')">
+      <div class="rc-icon">◆</div>
+      <div class="rc-name">行銷內容</div>
+      <div class="rc-desc">文案撰寫、社群貼文、活動企劃、品牌溝通</div>
+    </div>
+    <div class="role-card" onclick="selectRole(this,'design')">
+      <div class="rc-icon">◆</div>
+      <div class="rc-name">設計創意</div>
+      <div class="rc-desc">設計簡報、創意概念發想、客戶提案、靈感整理</div>
+    </div>
+    <div class="role-card" onclick="selectRole(this,'edu')">
+      <div class="rc-icon">◆</div>
+      <div class="rc-name">教育訓練</div>
+      <div class="rc-desc">課程設計、教材製作、學習評量、培訓規劃</div>
+    </div>
+    <div class="role-card" onclick="selectRole(this,'ops')">
+      <div class="rc-icon">◆</div>
+      <div class="rc-name">營運管理</div>
+      <div class="rc-desc">流程優化、數據分析、報表整理、跨部門協作</div>
+    </div>
+    <div class="role-card" onclick="selectRole(this,'custom')">
+      <div class="rc-icon">◆</div>
+      <div class="rc-name">自訂情境</div>
+      <div class="rc-desc">填寫你自己的工作類型與主要任務</div>
+    </div>
+  </div>
+
+  <div id="custom-role-wrap" style="display:none;margin-bottom:20px;">
+    <div class="field-group">
+      <div class="fg-header"><div class="fg-label">自訂工作情境</div></div>
+      <div class="fg-body">
+        <input class="fg-input" id="custom-role-input" placeholder="例：我是自由接案的UI設計師，主要工作是接案專案管理與客戶溝通" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Personality -->
+  <div class="section-label">STEP 2 · 選擇助手語氣風格</div>
+  <div class="personality-row" id="personality-row">
+    <button class="pers-btn" onclick="togglePersonality(this,'precise')">精準簡潔</button>
+    <button class="pers-btn" onclick="togglePersonality(this,'friendly')">親切有溫度</button>
+    <button class="pers-btn" onclick="togglePersonality(this,'critical')">批判性思考</button>
+    <button class="pers-btn" onclick="togglePersonality(this,'structured')">結構化條列</button>
+    <button class="pers-btn" onclick="togglePersonality(this,'creative')">創意發散</button>
+    <button class="pers-btn" onclick="togglePersonality(this,'conservative')">保守穩健</button>
+  </div>
+
+  <!-- Step 3: Custom details -->
+  <div class="section-label">STEP 3 · 填入個人細節</div>
+  <div class="field-group">
+    <div class="fg-header">
+      <div class="fg-label">工作背景</div>
+      <div class="fg-hint">讓 AI 理解你的情境，才能給出貼近實際工作的建議</div>
+    </div>
+    <div class="fg-body">
+      <textarea class="fg-textarea" id="fg-background" placeholder="例：我是一家 50 人科技新創的產品經理，負責 B2B SaaS 產品的規劃與跨部門協作。公司使用 Notion 和 Slack。"></textarea>
+    </div>
+  </div>
+  <div class="field-group">
+    <div class="fg-header">
+      <div class="fg-label">常用詞彙 / 產業術語</div>
+      <div class="fg-hint">列出你工作中常用的詞彙，讓 AI 使用一致的語言</div>
+    </div>
+    <div class="fg-body">
+      <input class="fg-input" id="fg-vocab" placeholder="例：sprint、PRD、user story、OKR、NPS、stakeholder" />
+    </div>
+  </div>
+  <div class="field-group">
+    <div class="fg-header">
+      <div class="fg-label">明確的禁止事項</div>
+      <div class="fg-hint">告訴 AI 什麼是你不想要的</div>
+    </div>
+    <div class="fg-body">
+      <input class="fg-input" id="fg-avoid" placeholder="例：不要使用 emoji；不要給出沒有根據的建議；不要假設我的受眾是一般消費者" />
+    </div>
+  </div>
+
+  <!-- Step 4: Toggles -->
+  <div class="section-label">STEP 4 · 進階選項</div>
+  <div class="field-group">
+    <div class="fg-header"><div class="fg-label">功能開關</div></div>
+    <div class="fg-body">
+      <div class="toggle-list">
+        <div class="toggle-item">
+          <label class="toggle-sw">
+            <input type="checkbox" id="tog-lang" checked />
+            <div class="toggle-track"></div>
+          </label>
+          <div>
+            <div class="toggle-name">使用繁體中文回答</div>
+            <div class="toggle-desc">除非使用者用其他語言問，否則一律以繁體中文回應</div>
+          </div>
+        </div>
+        <div class="toggle-item">
+          <label class="toggle-sw">
+            <input type="checkbox" id="tog-length" checked />
+            <div class="toggle-track"></div>
+          </label>
+          <div>
+            <div class="toggle-name">控制回應長度</div>
+            <div class="toggle-desc">預設回應不超過 300 字，除非被要求展開</div>
+          </div>
+        </div>
+        <div class="toggle-item">
+          <label class="toggle-sw">
+            <input type="checkbox" id="tog-ask" />
+            <div class="toggle-track"></div>
+          </label>
+          <div>
+            <div class="toggle-name">不確定時主動提問</div>
+            <div class="toggle-desc">遇到模糊需求，AI 會先問清楚再執行</div>
+          </div>
+        </div>
+        <div class="toggle-item">
+          <label class="toggle-sw">
+            <input type="checkbox" id="tog-cite" />
+            <div class="toggle-track"></div>
+          </label>
+          <div>
+            <div class="toggle-name">標明資訊來源或不確定性</div>
+            <div class="toggle-desc">當 AI 不確定時，明確說明「這是推測」而非直接陳述</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generate -->
+  <button class="btn-generate" onclick="generateSP()">生成我的 System Prompt</button>
+
+  <!-- Output -->
+  <div class="output-wrap" id="output-wrap">
+    <div class="section-label" style="margin-top:40px;">你的個人 AI 助手 System Prompt</div>
+
+    <div class="out-tabs">
+      <button class="out-tab active" onclick="switchOutTab('sp')">System Prompt</button>
+      <button class="out-tab" onclick="switchOutTab('setup')">如何設定</button>
+      <button class="out-tab" onclick="switchOutTab('test')">驗收清單</button>
+    </div>
+
+    <!-- SP Tab -->
+    <div class="out-panel active" id="out-sp">
+      <div class="sp-output" id="sp-output"></div>
+      <div class="copy-row">
+        <button class="btn-copy-sp" onclick="copySP()">複製全部</button>
+        <button class="btn-copy-sp" onclick="downloadSP()">下載為 .txt</button>
+      </div>
+      <div class="callout tip">
+        <span class="callout-icon">●</span>
+        <div class="callout-body"><strong>建議：</strong>貼入平台後，用三個測試任務驗收效果（見「驗收清單」），並在使用一週後根據實際體驗微調。</div>
+      </div>
+    </div>
+
+    <!-- Setup Tab -->
+    <div class="out-panel" id="out-setup">
+      <div class="setup-steps">
+        <div class="ss-item">
+          <div class="ss-num">1</div>
+          <div class="ss-content">
+            <div class="ss-title">ChatGPT — 自訂指示</div>
+            <div class="ss-body">點右上角頭像 → 「自訂 ChatGPT」→「自訂指示」標籤 → 在「您希望 ChatGPT 知道哪些關於您的訊息？」欄位貼上 System Prompt → 儲存。<br><br>此設定對所有新對話生效。也可建立「GPT」（右上角 Explore GPTs → 建立 GPT）貼入作為 instructions，只在這個 GPT 中生效。</div>
+            <div class="ss-platforms"><span class="plat-tag">ChatGPT Web</span><span class="plat-tag">ChatGPT App</span></div>
+          </div>
+        </div>
+        <div class="ss-item">
+          <div class="ss-num">2</div>
+          <div class="ss-content">
+            <div class="ss-title">Claude — Projects</div>
+            <div class="ss-body">在 Claude.ai 左側欄點「Projects」→「建立專案」→ 在「Project instructions」欄位貼上 System Prompt → 儲存。<br><br>往後在此專案內的所有對話都會帶入這份設定。建議替不同工作類型建立不同的 Project（如：文案撰寫、會議記錄、程式碼審查）。</div>
+            <div class="ss-platforms"><span class="plat-tag">Claude.ai Web</span><span class="plat-tag">Claude App</span></div>
+          </div>
+        </div>
+        <div class="ss-item">
+          <div class="ss-num">3</div>
+          <div class="ss-content">
+            <div class="ss-title">Gemini — Gems</div>
+            <div class="ss-body">在 Gemini 左側欄點「Gems」→「建立 Gem」→ 填入名稱、在「Instructions」欄位貼上 System Prompt → 儲存 → 建立對話。<br><br>Gems 是 Gemini 的自訂助手功能，類似 Claude Projects 或 ChatGPT GPTs。同一份 System Prompt 可在三個平台各建立一個，比較差異。</div>
+            <div class="ss-platforms"><span class="plat-tag">Gemini Web</span><span class="plat-tag">需 Google 帳號</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Test Tab -->
+    <div class="out-panel" id="out-test">
+      <div style="font-size:.88rem;color:var(--c-muted);line-height:1.75;margin-bottom:20px;">完成設定後，用以下任務驗收你的助手是否按照預期運作。點擊勾選完成的項目。</div>
+      <div class="check-list" id="check-list">
+        <div class="check-item" onclick="toggleCheck(this)">
+          <div class="check-box"></div>
+          <div class="check-name">語言測試：用中文提問，確認 AI 用繁體中文回答（如有開啟此選項）</div>
+        </div>
+        <div class="check-item" onclick="toggleCheck(this)">
+          <div class="check-box"></div>
+          <div class="check-name">角色測試：詢問「你的主要工作是什麼？」，確認 AI 能正確描述你設定的工作情境</div>
+        </div>
+        <div class="check-item" onclick="toggleCheck(this)">
+          <div class="check-box"></div>
+          <div class="check-name">語氣測試：請 AI 幫你寫一封簡短的工作郵件，確認語氣符合你選擇的風格</div>
+        </div>
+        <div class="check-item" onclick="toggleCheck(this)">
+          <div class="check-box"></div>
+          <div class="check-name">限制測試：確認你的禁止事項被遵守（例如：確認沒有出現 emoji）</div>
+        </div>
+        <div class="check-item" onclick="toggleCheck(this)">
+          <div class="check-box"></div>
+          <div class="check-name">長度測試：問一個開放性問題，確認回應長度在合理範圍內</div>
+        </div>
+        <div class="check-item" onclick="toggleCheck(this)">
+          <div class="check-box"></div>
+          <div class="check-name">實際任務：用你這週真實的工作任務測試，確認輸出品質符合預期</div>
+        </div>
+      </div>
+      <div style="margin-top:20px;padding:16px 20px;background:rgba(107,127,163,.05);border:1px solid rgba(107,127,163,.2);border-radius:var(--radius);">
+        <div style="font-size:.82rem;color:var(--c-text);line-height:1.75;"><strong style="color:var(--c-a4);">完成後：</strong>記錄哪些地方不如預期，回到 System Prompt 修改，這就是 CH 1-3 教的迭代節奏。Part 1 的學習目標在這一步正式達成。</div>
+      </div>
+    </div>
+
+  </div><!-- /output-wrap -->
+
+</div><!-- /tool-wrap -->
+
+<!-- Nav Footer -->
+<div class="nav-footer">
+  <a href="PRAC1-3.html" class="nav-btn">← PRAC 1-3 第一個工具</a>
+  <a href="../index.html" class="nav-btn primary">返回課程總覽 →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">Codex Studio</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">140小時生成式AI實務應用課程</span>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// Progress bar
+const fill = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  fill.style.width = pct + '%';
+});
+
+// State
+let selectedRole = '';
+let selectedPersonalities = [];
+
+// Role templates
+const roleTemplates = {
+  pm: {
+    title: '專案管理師',
+    tasks: '主要協助工作包括：會議記錄與摘要、任務清單整理、進度報告撰寫、風險識別與分析、跨部門溝通郵件。'
+  },
+  marketing: {
+    title: '行銷內容創作者',
+    tasks: '主要協助工作包括：行銷文案撰寫、社群媒體貼文、活動企劃書、品牌溝通稿件、內容行事曆規劃。'
+  },
+  design: {
+    title: '設計師',
+    tasks: '主要協助工作包括：設計簡報與提案整理、創意概念描述、客戶溝通文件、設計決策說明、靈感整理與分類。'
+  },
+  edu: {
+    title: '教育訓練設計師',
+    tasks: '主要協助工作包括：課程大綱設計、教材內容撰寫、學習評量題目、培訓計畫書、學習成果描述。'
+  },
+  ops: {
+    title: '營運管理人員',
+    tasks: '主要協助工作包括：流程文件撰寫、數據摘要與解讀、會議簡報、跨部門協作文件、例行報表整理。'
+  },
+  custom: {
+    title: '工作助理',
+    tasks: '主要協助工作包括：文件撰寫、資訊整理、任務分析和溝通輔助。'
+  }
+};
+
+const personalityDesc = {
+  precise: '語氣簡潔精準，避免多餘的修飾語，直接給出結論再補充說明',
+  friendly: '語氣親切有溫度，使用自然的繁體中文表達，適當給予正向回饋',
+  critical: '主動提出不同觀點和潛在問題，不只給答案，也指出可能的盲點',
+  structured: '回應以清晰的結構呈現，優先使用條列格式，重要資訊加粗顯示',
+  creative: '在可能範圍內提供多樣化的方案和創意選項，不受限於標準答案',
+  conservative: '建議以穩健可行為優先，不提沒有把握的方案，不確定時明確說明'
+};
+
+function selectRole(el, key) {
+  document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedRole = key;
+  document.getElementById('custom-role-wrap').style.display = key === 'custom' ? 'block' : 'none';
+}
+
+function togglePersonality(el, key) {
+  el.classList.toggle('selected');
+  if(el.classList.contains('selected')) {
+    if(!selectedPersonalities.includes(key)) selectedPersonalities.push(key);
+  } else {
+    selectedPersonalities = selectedPersonalities.filter(k => k !== key);
+  }
+}
+
+function generateSP() {
+  if(!selectedRole) {
+    showToast('請先選擇使用情境');
+    return;
+  }
+
+  const template = roleTemplates[selectedRole];
+  const customRole = selectedRole === 'custom' ? document.getElementById('custom-role-input').value.trim() : '';
+  const background = document.getElementById('fg-background').value.trim();
+  const vocab = document.getElementById('fg-vocab').value.trim();
+  const avoid = document.getElementById('fg-avoid').value.trim();
+  const useLang = document.getElementById('tog-lang').checked;
+  const useLength = document.getElementById('tog-length').checked;
+  const useAsk = document.getElementById('tog-ask').checked;
+  const useCite = document.getElementById('tog-cite').checked;
+
+  const titleText = selectedRole === 'custom' && customRole ? customRole : `${template.title}的工作助理`;
+
+  let sp = `## 角色\n你是我的${titleText}，${template.tasks}\n`;
+
+  if(background) {
+    sp += `\n## 工作背景\n${background}\n`;
+  }
+
+  if(vocab) {
+    sp += `\n## 常用詞彙\n在我的工作中，以下詞彙有特定含義，請熟悉並一致使用：${vocab}\n`;
+  }
+
+  if(selectedPersonalities.length) {
+    sp += `\n## 溝通風格\n`;
+    selectedPersonalities.forEach(key => {
+      sp += `- ${personalityDesc[key]}\n`;
+    });
+  }
+
+  sp += `\n## 回應規範\n`;
+  if(useLang) sp += `- 使用繁體中文回應，除非使用者用其他語言提問\n`;
+  if(useLength) sp += `- 回應長度預設控制在 300 字以內，除非使用者要求詳細展開\n`;
+  if(useAsk) sp += `- 當需求不明確時，先以一個問題確認再執行，不要憑猜測行動\n`;
+  if(useCite) sp += `- 當你不確定某個資訊的準確性時，明確標示「這是推測」或「建議確認」\n`;
+  if(avoid) sp += `- 禁止事項：${avoid}\n`;
+
+  sp += `\n## 工作原則\n- 優先理解需求的背後目的，再給出建議\n- 給建議時附上理由，幫助我做出有依據的決定\n- 如果我的需求有更好的實現方式，主動提出`;
+
+  document.getElementById('sp-output').textContent = sp;
+  const wrap = document.getElementById('output-wrap');
+  wrap.classList.add('visible');
+  setTimeout(() => wrap.scrollIntoView({behavior:'smooth'}), 100);
+  showToast('System Prompt 已生成');
+}
+
+function switchOutTab(id) {
+  document.querySelectorAll('.out-tab').forEach((b,i) => {
+    b.classList.toggle('active', ['sp','setup','test'][i] === id);
+  });
+  document.querySelectorAll('.out-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('out-'+id).classList.add('active');
+}
+
+function copySP() {
+  const text = document.getElementById('sp-output').textContent;
+  navigator.clipboard.writeText(text).then(() => showToast('已複製到剪貼簿'));
+}
+
+function downloadSP() {
+  const text = document.getElementById('sp-output').textContent;
+  const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'my-ai-system-prompt.txt';
+  a.click();
+  showToast('已下載');
+}
+
+function toggleCheck(el) {
+  el.classList.toggle('checked');
+  const checkBox = el.querySelector('.check-box');
+  checkBox.textContent = el.classList.contains('checked') ? '✓' : '';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>

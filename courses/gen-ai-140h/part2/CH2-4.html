@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH2-4 多模態輸入｜140小時生成式AI實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a1:#b5703a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--radius:6px;--radius-sm:4px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a1);border:1px solid rgba(181,112,58,.3);background:rgba(181,112,58,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a1);width:0%;transition:width .1s;}
+.side-nav{position:fixed;right:32px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:40;}
+.side-dot{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--c-border);background:transparent;cursor:pointer;transition:background .2s,border-color .2s;}
+.side-dot.active{background:var(--c-a1);border-color:var(--c-a1);}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a1);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-a1);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a1);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-a1);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a1);margin-top:8px;flex-shrink:0;}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;opacity:0;transform:translateY(18px);transition:opacity .5s,transform .5s;}
+.lesson-section.visible{opacity:1;transform:translateY(0);}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-a1);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+.prompt-example{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:20px 0;}
+.pe-header{padding:12px 18px;border-bottom:1px solid var(--c-border);display:flex;align-items:center;gap:10px;}
+.pe-badge{font-size:.65rem;color:var(--c-a1);background:rgba(181,112,58,.1);border:1px solid rgba(181,112,58,.2);padding:2px 8px;border-radius:99px;font-weight:500;}
+.pe-label{font-size:.8rem;font-weight:700;color:var(--c-text);}
+.pe-body{padding:14px 18px;}
+.pe-prompt{font-size:.83rem;color:var(--c-text);line-height:1.8;background:rgba(181,112,58,.04);border-left:2px solid rgba(181,112,58,.3);padding:10px 14px;border-radius:0 var(--radius-sm) var(--radius-sm) 0;margin-bottom:8px;}
+.pe-note{font-size:.78rem;color:var(--c-muted);line-height:1.7;}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;}
+.callout.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25);}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout.key{background:rgba(181,112,58,.07);border:1px solid rgba(181,112,58,.25);}
+.callout-icon{font-size:1rem;flex-shrink:0;margin-top:3px;}
+.callout-body{font-size:.87rem;line-height:1.8;color:var(--c-text);}
+/* Input type grid */
+.input-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0;}
+.input-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;}
+.ic-type{font-size:.67rem;color:var(--c-a1);letter-spacing:1.5px;font-weight:500;margin-bottom:6px;}
+.ic-title{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:8px;}
+.ic-uses{display:flex;flex-direction:column;gap:4px;}
+.ic-use{font-size:.8rem;color:var(--c-muted);display:flex;align-items:flex-start;gap:6px;}
+.ic-use::before{content:'→';color:var(--c-a1);flex-shrink:0;}
+/* Flow chain */
+.flow-chain{display:flex;flex-direction:column;gap:0;margin:20px 0;}
+.fc-item{display:flex;gap:14px;align-items:flex-start;}
+.fc-step{display:flex;flex-direction:column;align-items:center;gap:0;}
+.fc-circle{width:32px;height:32px;border-radius:50%;background:rgba(181,112,58,.1);border:2px solid var(--c-a1);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:.85rem;font-weight:700;color:var(--c-a1);flex-shrink:0;}
+.fc-line{width:2px;flex:1;min-height:24px;background:var(--c-border);margin:0 auto;}
+.fc-content{padding:4px 0 24px;}
+.fc-title{font-size:.9rem;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.fc-desc{font-size:.83rem;color:var(--c-muted);line-height:1.7;}
+/* Context window compare */
+.cw-compare{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0;}
+.cw-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;}
+.cw-card.highlight{border-color:rgba(181,112,58,.4);background:rgba(181,112,58,.03);}
+.cw-label{font-size:.67rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:6px;}
+.cw-title{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:10px;}
+.cw-list{display:flex;flex-direction:column;gap:5px;}
+.cw-item{font-size:.81rem;color:var(--c-muted);display:flex;align-items:flex-start;gap:6px;}
+.cw-item::before{content:'·';color:var(--c-a1);flex-shrink:0;font-size:1rem;}
+/* Nav Footer */
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a1);text-decoration:none;padding:10px 20px;border:1px solid rgba(181,112,58,.3);border-radius:var(--radius);transition:background .2s;}
+.nav-btn:hover{background:rgba(181,112,58,.06);}
+.nav-btn.primary{background:var(--c-a1);color:#fff;border-color:var(--c-a1);}
+.nav-btn.primary:hover{background:#9e6030;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-div{width:1px;height:14px;background:var(--c-border);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+@media(max-width:640px){.topbar,.lesson-hero,.lesson-body,.nav-footer{padding-left:24px;padding-right:24px;}.side-nav{display:none;}.input-grid,.cw-compare{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a href="../index.html" class="logo">Codex Studio</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">140小時生成式AI實務應用課程</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">CH 2-4 · 2.5h</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<nav class="side-nav">
+  <div class="side-dot active" data-sec="0"></div>
+  <div class="side-dot" data-sec="1"></div>
+  <div class="side-dot" data-sec="2"></div>
+  <div class="side-dot" data-sec="3"></div>
+</nav>
+
+<div class="lesson-hero">
+  <a href="CH2-3.html" class="back-link">← CH 2-3 研究整理與簡報生成</a>
+  <div class="hero-meta">
+    <span class="hero-part">PART 2 · 建立文字與知識產能</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 2-4 · 2.5H</span>
+  </div>
+  <h1 class="lesson-title">多模態輸入：<br>圖片、PDF、語音的 AI 處理</h1>
+  <p class="lesson-tagline">現代 AI 不只能讀文字，還能看圖、讀文件、聽語音。這一節教你把這三種輸入型態整合進工作流程，讓 AI 幫你處理原本需要人工閱讀的各種格式。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果 · OUTCOMES</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能把圖片、截圖、白板照傳給 AI 進行結構化分析與文字萃取</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能用 AI 對 PDF 文件做結構化摘要、重點萃取、條款整理</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能建立「語音 → 文字 → AI 處理」的完整工作鏈</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能判斷長文脈模型（Gemini 1.5M / Claude 200K）與 RAG 的使用時機</div>
+  </div>
+</div>
+
+<div class="lesson-body">
+
+  <section class="lesson-section" id="sec-0">
+    <div class="section-eyebrow">Section 01</div>
+    <h2 class="section-heading">圖片輸入：<em>把視覺資訊變成可處理的文字</em></h2>
+    <p class="body-text">把圖片傳給 AI 是最直覺的多模態應用——你不需要先打字描述圖片，直接上傳讓 AI 「看」。這個能力在工作中有哪些真實使用場景？</p>
+    <div class="input-grid">
+      <div class="input-card">
+        <div class="ic-type">場景 A</div>
+        <div class="ic-title">商品照與設計稿</div>
+        <div class="ic-uses">
+          <div class="ic-use">提取色彩代碼與設計規格</div>
+          <div class="ic-use">描述產品特徵供文案使用</div>
+          <div class="ic-use">比較設計稿與實際截圖的差異</div>
+        </div>
+      </div>
+      <div class="input-card">
+        <div class="ic-type">場景 B</div>
+        <div class="ic-title">截圖與介面操作</div>
+        <div class="ic-uses">
+          <div class="ic-use">解釋錯誤訊息截圖</div>
+          <div class="ic-use">根據畫面截圖生成操作 SOP</div>
+          <div class="ic-use">從報表截圖萃取數字與趨勢</div>
+        </div>
+      </div>
+      <div class="input-card">
+        <div class="ic-type">場景 C</div>
+        <div class="ic-title">白板照與手寫筆記</div>
+        <div class="ic-uses">
+          <div class="ic-use">把手寫架構圖轉成文字大綱</div>
+          <div class="ic-use">整理討論便利貼成結構化清單</div>
+          <div class="ic-use">辨識手繪流程圖並生成描述</div>
+        </div>
+      </div>
+      <div class="input-card">
+        <div class="ic-type">場景 D</div>
+        <div class="ic-title">表格截圖</div>
+        <div class="ic-uses">
+          <div class="ic-use">無法複製的 PDF 表格轉文字</div>
+          <div class="ic-use">把圖片中的表格轉成 CSV 格式</div>
+          <div class="ic-use">對比兩張表格找出差異</div>
+        </div>
+      </div>
+    </div>
+    <div class="prompt-example">
+      <div class="pe-header">
+        <span class="pe-badge">圖片分析</span>
+        <span class="pe-label">白板照轉結構化大綱</span>
+      </div>
+      <div class="pe-body">
+        <div class="pe-prompt">（上傳白板照片）
+
+請分析這張白板照片，執行以下任務：
+1. 辨識所有文字內容（包括潦草或不清晰的部分，標注「可能是___」）
+2. 識別圖形元素（方框、箭頭、圓圈等）並理解它們的關係
+3. 將白板內容整理成結構化的大綱格式
+4. 如果有流程圖或架構圖，用文字描述其邏輯關係
+
+輸出格式：
+- 大綱格式（Markdown）
+- 最後加一段「主要討論主題摘要」（2-3 句）</div>
+        <div class="pe-note">Claude 和 Gemini 都支援直接貼圖或上傳圖片。ChatGPT 需要 GPT-4V 或以上版本。</div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <section class="lesson-section" id="sec-1">
+    <div class="section-eyebrow">Section 02</div>
+    <h2 class="section-heading">PDF 文件分析：<em>結構化摘要、重點萃取、條款整理</em></h2>
+    <p class="body-text">PDF 是工作中最常見但最難處理的文件格式——它看起來像文字，但實際上是「固定版面的圖」，無法直接複製貼上。AI 讓這個問題消失了。你可以直接上傳 PDF，讓 AI 讀懂並幫你萃取需要的資訊。</p>
+    <p class="body-text">三種最實用的 PDF 處理任務：</p>
+    <div class="prompt-example">
+      <div class="pe-header">
+        <span class="pe-badge">PDF 處理</span>
+        <span class="pe-label">結構化摘要（適合報告、研究文件）</span>
+      </div>
+      <div class="pe-body">
+        <div class="pe-prompt">（上傳 PDF）
+
+請閱讀這份文件，生成一份結構化摘要，包含：
+- 文件類型與目的（1 句）
+- 核心主張或結論（3-5 點條列）
+- 關鍵數據或事實（如有）
+- 我需要採取行動的項目（如有）
+- 需要進一步確認的不確定內容
+
+摘要長度控制在 300 字以內。</div>
+        <div class="pe-note">「需要進一步確認」這一欄位強迫 AI 標出它不確定的內容，是防幻覺的重要機制。</div>
+      </div>
+    </div>
+    <div class="prompt-example">
+      <div class="pe-header">
+        <span class="pe-badge">PDF 處理</span>
+        <span class="pe-label">條款整理（適合合約、規範文件）</span>
+      </div>
+      <div class="pe-body">
+        <div class="pe-prompt">（上傳合約 PDF）
+
+請閱讀這份合約，整理出以下項目：
+1. 雙方義務摘要（甲方義務 / 乙方義務各列 3-5 點）
+2. 重要日期與截止期限
+3. 金額、付款條件與違約金條款
+4. 終止合約的條件
+5. 任何「不尋常」或「需要特別注意」的條款
+
+請用表格呈現第 1 點，其餘用條列。
+如果某些條款措辭不清晰，請標注「條款不明確，建議確認」。</div>
+        <div class="pe-note">注意：AI 能幫你整理和理解合約結構，但不能替代法律意見。重要合約仍需律師審核。</div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <section class="lesson-section" id="sec-2">
+    <div class="section-eyebrow">Section 03</div>
+    <h2 class="section-heading">語音轉文字後<em>再 AI 處理的完整鏈</em></h2>
+    <p class="body-text">語音是最自然的輸入方式，但「語音 → 可用資訊」需要兩個步驟：先轉文字（STT），再用 AI 處理文字。這個工作鏈一旦建立，會議錄音、語音備忘、訪談錄音都能自動轉化成結構化的可交付成果。</p>
+    <div class="flow-chain">
+      <div class="fc-item">
+        <div class="fc-step"><div class="fc-circle">1</div><div class="fc-line"></div></div>
+        <div class="fc-content">
+          <div class="fc-title">語音輸入</div>
+          <div class="fc-desc">會議錄音、語音備忘、訪談錄音——任何 .mp3 / .m4a / .wav 格式的音訊檔案</div>
+        </div>
+      </div>
+      <div class="fc-item">
+        <div class="fc-step"><div class="fc-circle">2</div><div class="fc-line"></div></div>
+        <div class="fc-content">
+          <div class="fc-title">STT 工具轉文字</div>
+          <div class="fc-desc"><strong>Whisper（OpenAI）</strong>：免費、支援中文、可本機運行；<strong>MacWhisper</strong>：Mac 原生介面，一鍵轉錄；<strong>Gemini</strong>：可直接上傳音訊，同時轉錄與分析；<strong>Otter.ai</strong>：有分說話者識別</div>
+        </div>
+      </div>
+      <div class="fc-item">
+        <div class="fc-step"><div class="fc-circle">3</div><div class="fc-line"></div></div>
+        <div class="fc-content">
+          <div class="fc-title">AI 處理逐字稿</div>
+          <div class="fc-desc">把轉錄文字貼入 Claude / ChatGPT / Gemini，用對應的 Prompt 處理（會議紀錄、訪談摘要、待辦事項等）</div>
+        </div>
+      </div>
+      <div class="fc-item">
+        <div class="fc-step"><div class="fc-circle">4</div></div>
+        <div class="fc-content">
+          <div class="fc-title">輸出可交付成果</div>
+          <div class="fc-desc">結構化會議紀錄、行動事項清單、訪談摘要報告——可直接分享或貼入文件</div>
+        </div>
+      </div>
+    </div>
+    <div class="prompt-example">
+      <div class="pe-header">
+        <span class="pe-badge">語音處理</span>
+        <span class="pe-label">逐字稿 → 會議紀錄</span>
+      </div>
+      <div class="pe-body">
+        <div class="pe-prompt">以下是一段會議的逐字稿，內容可能有口語化表達、重複語句或語音辨識錯誤。請幫我處理成正式會議紀錄。
+
+輸出格式：
+- 會議基本資訊（日期/出席者/主題，如逐字稿有提到）
+- 討論重點摘要（按主題分段）
+- 決議事項（條列，格式：「[決議] 內容」）
+- 行動項目（格式：「[負責人] 任務內容 — 截止 [日期]」）
+- 待確認事項（格式：「[待確認] 問題描述」）
+
+逐字稿：
+[貼上逐字稿]</div>
+        <div class="pe-note">Gemini 支援直接上傳音訊檔（.mp3/.m4a），可跳過 STT 步驟，直接輸出處理結果。</div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <section class="lesson-section" id="sec-3">
+    <div class="section-eyebrow">Section 04</div>
+    <h2 class="section-heading">長文脈模型 vs RAG：<em>什麼時候用哪個</em></h2>
+    <p class="body-text">當文件量很大時，你會遇到一個問題：文件太長，貼不進 AI 的輸入框。有兩種解決方案——<strong>長文脈模型</strong>（直接丟進去）和 <strong>RAG</strong>（檢索增強生成，只取相關片段）。選錯工具會讓你白費工夫。</p>
+    <div class="cw-compare">
+      <div class="cw-card highlight">
+        <div class="cw-label">方案 A · 長文脈模型</div>
+        <div class="cw-title">Gemini 1.5M / Claude 200K</div>
+        <div class="cw-list">
+          <div class="cw-item">一次讀入整份文件，不需要預處理</div>
+          <div class="cw-item">適合需要「跨章節理解」的任務（如合約條款互相參照）</div>
+          <div class="cw-item">適合單份大文件（100-1000 頁）</div>
+          <div class="cw-item">費用較高，但操作最簡單</div>
+          <div class="cw-item">適合一次性任務，不適合重複查詢</div>
+        </div>
+      </div>
+      <div class="cw-card">
+        <div class="cw-label">方案 B · RAG</div>
+        <div class="cw-title">向量資料庫 + 嵌入搜尋</div>
+        <div class="cw-list">
+          <div class="cw-item">預先建立索引，每次只取相關段落</div>
+          <div class="cw-item">適合大量文件庫（上千份文件）</div>
+          <div class="cw-item">適合需要頻繁查詢的知識庫場景</div>
+          <div class="cw-item">建置成本高，但查詢成本低</div>
+          <div class="cw-item">需要技術建置，不適合一般用戶直接使用</div>
+        </div>
+      </div>
+    </div>
+    <div class="callout key">
+      <span class="callout-icon">◆</span>
+      <div class="callout-body"><strong>選擇原則：</strong>如果你是個人用戶、任務是一次性的、文件數量在幾十份以內——直接用長文脈模型（Gemini 或 Claude）最省事。RAG 是企業知識庫的解法，不是個人工作流程的首選。</div>
+    </div>
+    <div class="callout tip">
+      <span class="callout-icon">◆</span>
+      <div class="callout-body"><strong>PRAC 2-4 預告：</strong>下一個動手練習就是建立一套「文件分析工作流」——上傳真實的 PDF 或圖片，完成摘要、重點萃取、格式轉換，體驗多模態 AI 的完整潛力。</div>
+    </div>
+  </section>
+
+</div>
+
+<div class="nav-footer">
+  <a href="CH2-3.html" class="nav-btn">← CH 2-3 研究整理與簡報生成</a>
+  <a href="../index.html" class="nav-btn primary">返回課程總覽 →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">Codex Studio</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">140小時生成式AI實務應用課程</span>
+</footer>
+
+<script>
+const progFill = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  progFill.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + '%';
+});
+const sections = document.querySelectorAll('.lesson-section');
+const dots = document.querySelectorAll('.side-dot');
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting){
+      e.target.classList.add('visible');
+      const i = [...sections].indexOf(e.target);
+      dots.forEach((d,j) => d.classList.toggle('active', i===j));
+    }
+  });
+}, {threshold:.15});
+sections.forEach(s => io.observe(s));
+dots.forEach(d => d.addEventListener('click', () => {
+  document.getElementById('sec-'+d.dataset.sec).scrollIntoView({behavior:'smooth'});
+}));
+</script>
+</body>
+</html>

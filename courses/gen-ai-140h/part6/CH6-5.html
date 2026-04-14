@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH6-5 Streaming、Evals 與成本控管｜140小時生成式 AI 實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-accent:#c9963a;--radius:6px;--radius-sm:4px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}.topbar-sub{font-size:.8rem;color:var(--c-muted);}.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-accent);border:1px solid rgba(201,150,58,.3);background:rgba(201,150,58,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}.progress-fill{height:100%;background:var(--c-accent);width:0%;transition:width .1s;}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}.back-link:hover{color:var(--c-accent);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-accent);letter-spacing:1px;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-accent);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;}.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-accent);margin-top:8px;flex-shrink:0;}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-accent);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.tip{background:rgba(201,150,58,.06);border:1px solid rgba(201,150,58,.2);}
+.callout.warn{background:rgba(201,150,58,.06);border:1px solid rgba(201,150,58,.25);}
+.callout.key{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;color:var(--c-text);}.callout-body strong{font-weight:700;}
+.code-block{background:#1e1e1e;color:#d4d4d4;border-radius:var(--radius);padding:20px 24px;font-family:'Courier New',monospace;font-size:.8rem;line-height:1.7;overflow-x:auto;margin:20px 0;}
+.code-block .kw{color:#569cd6;}.code-block .str{color:#ce9178;}.code-block .key{color:#9cdcfe;}.code-block .cmt{color:#6a9955;}.code-block .fn{color:#dcdcaa;}
+.stream-compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0;}
+.stream-col{padding:20px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);}
+.stream-col-title{font-size:.78rem;font-weight:700;color:var(--c-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;}
+.stream-col.better .stream-col-title{color:var(--c-accent);}
+.stream-col ul{list-style:none;display:flex;flex-direction:column;gap:8px;}
+.stream-col li{font-size:.85rem;line-height:1.7;color:var(--c-text);display:flex;align-items:flex-start;gap:8px;}
+.stream-col li::before{content:'·';color:var(--c-accent);flex-shrink:0;margin-top:1px;}
+.stream-col.bad li::before{color:var(--c-muted);}
+.eval-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:28px 0;}
+.eval-card{padding:18px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);}
+.eval-card-title{font-size:.82rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.eval-card-type{font-size:.68rem;color:var(--c-accent);font-weight:500;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;}
+.eval-card-desc{font-size:.8rem;color:var(--c-muted);line-height:1.65;}
+.cost-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.85rem;}
+.cost-table th{font-size:.72rem;font-weight:700;color:var(--c-muted);letter-spacing:.5px;text-transform:uppercase;padding:10px 14px;background:var(--c-surface);border-bottom:1px solid var(--c-border);text-align:left;}
+.cost-table td{padding:12px 14px;border-bottom:1px solid var(--c-border);vertical-align:top;line-height:1.7;}
+.cost-table tr:last-child td{border-bottom:none;}
+.cost-table .saving{color:#4a7a4a;font-size:.8rem;}
+.guard-list{display:flex;flex-direction:column;gap:12px;margin:28px 0;}
+.guard-item{display:flex;gap:14px;padding:16px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);}
+.guard-num{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-accent);flex-shrink:0;width:24px;text-align:center;}
+.guard-body{flex:1;}.guard-title{font-size:.88rem;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.guard-desc{font-size:.82rem;color:var(--c-muted);line-height:1.7;}
+.guard-desc code{font-family:'Courier New',monospace;font-size:.78rem;background:rgba(201,150,58,.1);color:#8a5a0a;padding:1px 5px;border-radius:3px;}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-accent);}.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}.footer-note{font-size:.75rem;color:var(--c-muted);}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1);}.reveal.in{opacity:1;transform:translateY(0);}
+.section-rule{transform-origin:left center;opacity:0;transition:opacity .4s ease,transform .6s;transform:scaleX(.3);}.section-rule.in{opacity:1;transform:scaleX(1);}
+@media(max-width:768px){.topbar{padding:0 16px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero{padding:40px 20px 36px;}.lesson-title{font-size:1.55rem;}.lesson-body{padding:0 20px 60px;}.stream-compare{grid-template-columns:1fr;}.eval-grid{grid-template-columns:1fr;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="logo" href="../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">140 小時生成式 AI 實務應用課程</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH 6.5 · Part 6</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">PART 6 · AI 應用開發進階</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 6.5 · 2 小時</span>
+  </div>
+  <h1 class="lesson-title">Streaming、Evals<br>與成本控管</h1>
+  <p class="lesson-tagline">讓回應體驗更流暢、品質有數據依據、帳單在你掌控之中。這三件事決定一個 AI 應用能不能長期運營。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學完你會</div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>實作 SSE Streaming，讓使用者看到逐字回應而非等待</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>理解 Evals 評估框架，用數據判斷模型品質而非憑感覺</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>掌握五種成本控管策略，讓 API 費用可預測</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>知道何時加 Guardrails，以及如何不過度限制模型能力</span></div>
+  </div>
+</div>
+
+<div class="lesson-body">
+
+  <!-- Section 1 -->
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 01</div>
+    <h2 class="section-heading">Streaming：<em>別讓使用者盯著空白等</em></h2>
+    <p class="body-text">預設的 API 呼叫是「等全部生成完才回傳」，對使用者而言就是一段沉默。Streaming 透過 Server-Sent Events（SSE）把 token 逐個推送，大幅提升感知速度。</p>
+
+    <div class="stream-compare reveal">
+      <div class="stream-col bad">
+        <div class="stream-col-title">非 Streaming（預設）</div>
+        <ul>
+          <li>等待 3–15 秒，畫面空白</li>
+          <li>突然出現完整文字</li>
+          <li>使用者不確定 AI 是否在處理</li>
+          <li>適合批次處理、背景任務</li>
+        </ul>
+      </div>
+      <div class="stream-col better">
+        <div class="stream-col-title">Streaming（推薦 UX）</div>
+        <ul>
+          <li>首個 token 在 < 1 秒內出現</li>
+          <li>逐字顯示，像打字機效果</li>
+          <li>使用者感覺 AI 正在「思考回答」</li>
+          <li>適合聊天介面、即時問答</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="code-block reveal">
+<span class="cmt">// Express 後端：開啟 Streaming 模式</span>
+app.<span class="fn">post</span>(<span class="str">'/api/stream'</span>, <span class="kw">async</span> (req, res) => {
+  res.<span class="fn">setHeader</span>(<span class="str">'Content-Type'</span>, <span class="str">'text/event-stream'</span>);
+  res.<span class="fn">setHeader</span>(<span class="str">'Cache-Control'</span>, <span class="str">'no-cache'</span>);
+  res.<span class="fn">setHeader</span>(<span class="str">'Connection'</span>, <span class="str">'keep-alive'</span>);
+
+  <span class="kw">const</span> stream = <span class="kw">await</span> client.messages.<span class="fn">stream</span>({
+    model: <span class="str">'claude-haiku-4-5-20251001'</span>,
+    max_tokens: <span class="str">1024</span>,
+    messages: [{ role: <span class="str">'user'</span>, content: req.body.prompt }]
+  });
+
+  <span class="kw">for await</span> (<span class="kw">const</span> chunk <span class="kw">of</span> stream) {
+    <span class="kw">if</span> (chunk.type === <span class="str">'content_block_delta'</span>) {
+      res.<span class="fn">write</span>(<span class="str">`data: </span>${chunk.delta.text}<span class="str">\n\n`</span>);
+    }
+  }
+  res.<span class="fn">write</span>(<span class="str">'data: [DONE]\n\n'</span>);
+  res.<span class="fn">end</span>();
+});
+    </div>
+
+    <div class="callout tip reveal">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body"><strong>前端用 EventSource 接收。</strong>建立 <code>new EventSource('/api/stream?prompt=...')</code>，在 <code>onmessage</code> 事件中把每個 chunk 附加到 DOM，就能實現打字機效果。注意 EventSource 只支援 GET，若需 POST 改用 <code>fetch</code> 搭配 ReadableStream。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <!-- Section 2 -->
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 02</div>
+    <h2 class="section-heading">Evals：<em>用數據評估品質，不靠感覺</em></h2>
+    <p class="body-text">改了 Prompt 以後，真的變好了嗎？沒有評估框架的話，你只能憑主觀印象猜測。Evals 讓你用可重現的方式量化模型輸出品質。</p>
+
+    <p class="body-text">評估可分為四個層次，由易到難：</p>
+
+    <div class="eval-grid reveal">
+      <div class="eval-card">
+        <div class="eval-card-type">Level 1 · 最快</div>
+        <div class="eval-card-title">精確匹配（Exact Match）</div>
+        <div class="eval-card-desc">回答必須完全等於預期答案。適合分類任務、是/否問題、固定格式輸出（JSON、代碼）。</div>
+      </div>
+      <div class="eval-card">
+        <div class="eval-card-type">Level 2 · 常用</div>
+        <div class="eval-card-title">語義相似度（Semantic Similarity）</div>
+        <div class="eval-card-desc">用 Embedding 計算回答與標準答案的餘弦相似度，容許同義表達。適合問答、摘要。</div>
+      </div>
+      <div class="eval-card">
+        <div class="eval-card-type">Level 3 · 更準</div>
+        <div class="eval-card-title">LLM 作為評審（LLM-as-Judge）</div>
+        <div class="eval-card-desc">讓另一個模型（通常更強）評分。提供評分 Rubric，讓評審模型給出 1–5 分與理由。</div>
+      </div>
+      <div class="eval-card">
+        <div class="eval-card-type">Level 4 · 最貴</div>
+        <div class="eval-card-title">人工評估（Human Eval）</div>
+        <div class="eval-card-desc">由領域專家手動評分。最準但最慢最貴，通常只用於驗收關鍵里程碑或校準 LLM-Judge。</div>
+      </div>
+    </div>
+
+    <div class="callout key reveal">
+      <div class="callout-icon">🔑</div>
+      <div class="callout-body"><strong>實務建議：先建黃金測試集（Golden Set）。</strong>收集 20–50 個代表性的「輸入 → 預期輸出」配對，每次改動 Prompt 或換模型都跑一次 eval，確保不退步。這是 AI 應用品質管理的最小可行實踐。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <!-- Section 3 -->
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 03</div>
+    <h2 class="section-heading">成本控管：<em>五個策略讓帳單可預測</em></h2>
+    <p class="body-text">API 費用按 token 計算，input token + output token 各有單價。應用上線後，成本很容易在不知不覺中放大。以下五個策略可系統性降低費用。</p>
+
+    <table class="cost-table reveal">
+      <thead>
+        <tr><th>策略</th><th>做法</th><th>節省潛力</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>選對模型</td>
+          <td>Haiku 處理簡單分類/摘要，Sonnet 處理複雜推理，Opus 只用在最關鍵任務</td>
+          <td class="saving">60–90% ↓</td>
+        </tr>
+        <tr>
+          <td>Prompt 快取</td>
+          <td>把不變的系統提示詞標記為 cache_control，重複呼叫時 input cost 降 90%（Claude）</td>
+          <td class="saving">40–70% ↓</td>
+        </tr>
+        <tr>
+          <td>限制 max_tokens</td>
+          <td>依任務設定合理上限，分類任務設 50、摘要設 300，避免模型輸出冗長回答</td>
+          <td class="saving">20–50% ↓</td>
+        </tr>
+        <tr>
+          <td>Server-side 快取</td>
+          <td>對相同或高度相似的輸入快取回應（Redis、記憶體），直接略過 API 呼叫</td>
+          <td class="saving">視命中率</td>
+        </tr>
+        <tr>
+          <td>設每日預算上限</td>
+          <td>在 API 後台設 Usage Limit，超過後自動停止，防止 bug 或濫用造成帳單爆炸</td>
+          <td class="saving">風險控管</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn reveal">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body"><strong>帳單爆炸最常見原因：Agent Loop 沒有 max_turns 限制。</strong>一個失控的 Agent 可以在幾分鐘內消耗數百美元的 token。上線前一定要確認 Loop 有退出條件，並在 API 後台設好預算警示。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <!-- Section 4 -->
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">Section 04</div>
+    <h2 class="section-heading">Guardrails：<em>保護應用，但不過度限制</em></h2>
+    <p class="body-text">Guardrails 是在模型輸入或輸出上加的防護層，用來攔截有害內容、防止越獄、確保輸出格式合規。但加太多會讓應用變得不好用。</p>
+
+    <div class="guard-list reveal">
+      <div class="guard-item">
+        <div class="guard-num">1</div>
+        <div class="guard-body">
+          <div class="guard-title">輸入過濾（Input Guard）</div>
+          <div class="guard-desc">在送入模型前先掃描使用者輸入。可用關鍵字黑名單、另一個輕量模型分類，或 Anthropic Constitutional AI 等機制。攔截明顯惡意請求，減少不必要的 API 呼叫。</div>
+        </div>
+      </div>
+      <div class="guard-item">
+        <div class="guard-num">2</div>
+        <div class="guard-body">
+          <div class="guard-title">系統提示詞約束（System Prompt Constraint）</div>
+          <div class="guard-desc">在 system prompt 中明確定義「這個 AI 只做什麼、不做什麼」。比硬編碼過濾更靈活，也讓模型理解邊界而不只是被阻擋。例如：<code>你只回答與台灣稅務相關的問題，其他問題請禮貌拒絕。</code></div>
+        </div>
+      </div>
+      <div class="guard-item">
+        <div class="guard-num">3</div>
+        <div class="guard-body">
+          <div class="guard-title">輸出驗證（Output Validation）</div>
+          <div class="guard-desc">對模型輸出做格式或內容驗證，確保符合預期結構（如要求 JSON 就驗證 JSON 格式）。若驗證失敗，可重試或回傳降級結果，而非直接崩潰。</div>
+        </div>
+      </div>
+      <div class="guard-item">
+        <div class="guard-num">4</div>
+        <div class="guard-body">
+          <div class="guard-title">速率限制（Rate Limiting）</div>
+          <div class="guard-desc">對每個使用者設定每分鐘/每日呼叫上限，防止單一使用者濫用或惡意探測。搭配 API Gateway 或自行用 Redis 實作計數器。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout tip reveal">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body"><strong>Guardrails 的黃金原則：少即是多。</strong>過度防護會讓正常請求也被攔截，使用者體驗下降，你反而要花更多時間處理誤判申訴。先從系統提示詞約束開始，只在有明確需要時才加額外層。</div>
+    </div>
+  </div>
+
+</div>
+
+<nav class="lesson-nav">
+  <a class="nav-btn" href="CH6-4.html">
+    <span>←</span>
+    <div><div class="nav-btn-label">上一章</div><div class="nav-btn-title">CH6-4 Function Calling 與 Agent 工具鏈設計</div></div>
+  </a>
+  <a class="nav-btn next" href="PRAC6-1.html">
+    <div><div class="nav-btn-label">下一個</div><div class="nav-btn-title">PRAC6-1 API 呼叫測試頁</div></div>
+    <span>→</span>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="topbar-divider"></div>
+  <div class="footer-note">140 小時生成式 AI 實務應用課程 · Part 6 AI 應用開發進階</div>
+  <div class="spacer"></div>
+  <div class="footer-note">CH 6.5</div>
+</footer>
+
+<script>
+const prog = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const d = document.documentElement;
+  const pct = (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100;
+  prog.style.width = Math.min(pct, 100) + '%';
+});
+const reveals = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+}, { threshold: 0.08 });
+reveals.forEach(el => io.observe(el));
+</script>
+</body>
+</html>

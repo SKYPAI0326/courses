@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>含後端代理的完整部署 · 實例演練 5.4｜140小時生成式AI實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#8c8880;
+  --c-a1:#b5703a; --c-a2:#c9963a; --c-a3:#5a7a5a; --c-a4:#6b7fa3;
+  --c-accent:#6b7fa3;
+  --radius:6px; --radius-sm:4px; --content-w:780px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-accent);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-accent);width:0%;transition:width .1s;}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-accent);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-accent);letter-spacing:1px;font-weight:500;}
+.prac-badge-hero{display:inline-flex;align-items:center;font-size:.72rem;color:var(--c-accent);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.07);padding:4px 12px;border-radius:99px;font-weight:500;margin-bottom:20px;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-title em{font-style:normal;color:var(--c-accent);}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-accent);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-accent);margin-top:8px;flex-shrink:0;}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-accent);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.tip{background:rgba(107,127,163,.06);border:1px solid rgba(107,127,163,.2);}
+.callout.warn{background:rgba(201,150,58,.06);border:1px solid rgba(201,150,58,.2);}
+.callout.key{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;}
+.callout-body strong{font-weight:700;}
+.callout-body code{font-family:'Courier New',monospace;font-size:.8rem;background:rgba(107,127,163,.1);color:#4a5f8a;padding:1px 6px;border-radius:3px;}
+.steps-list{display:flex;flex-direction:column;gap:0;margin:32px 0;}
+.step-item{display:flex;gap:0;position:relative;}
+.step-item:not(:last-child)::before{content:'';position:absolute;left:20px;top:44px;bottom:0;width:1px;background:var(--c-border);}
+.step-num-col{flex-shrink:0;width:40px;padding-top:4px;}
+.step-num{width:40px;height:40px;border-radius:50%;background:var(--c-card);border:1.5px solid var(--c-border);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-text);}
+.step-body{flex:1;padding:4px 0 32px 24px;}
+.step-title{font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.step-desc{font-size:.85rem;color:var(--c-muted);line-height:1.75;}
+.step-desc strong{color:var(--c-text);font-weight:700;}
+.step-desc code{font-family:'Courier New',monospace;font-size:.8rem;background:rgba(107,127,163,.1);color:#4a5f8a;padding:1px 6px;border-radius:3px;}
+/* ── 工具：部署狀態追蹤 ── */
+.tool-wrap{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:32px 0;}
+.tool-topbar{background:var(--c-surface);border-bottom:1px solid var(--c-border);padding:10px 16px;display:flex;align-items:center;gap:8px;}
+.tool-dot{width:10px;height:10px;border-radius:50%;}
+.tool-dot-r{background:#ff6058;}.tool-dot-y{background:#ffbd2e;}.tool-dot-g{background:#28c840;}
+.tool-label{flex:1;font-size:.72rem;color:var(--c-muted);font-family:'Courier New',monospace;}
+.tool-body{padding:28px 32px;}
+.phase{margin-bottom:28px;}
+.phase-title{font-size:.78rem;font-weight:700;color:var(--c-muted);letter-spacing:1px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--c-border);}
+.check-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--c-border);}
+.check-item:last-child{border-bottom:none;}
+.check-cb{width:18px;height:18px;border:1.5px solid var(--c-border);border-radius:4px;flex-shrink:0;cursor:pointer;appearance:none;background:var(--c-bg);transition:all .15s;margin-top:2px;}
+.check-cb:checked{background:var(--c-accent);border-color:var(--c-accent);}
+.check-cb:checked::after{content:'✓';display:block;text-align:center;color:#fff;font-size:.75rem;line-height:16px;}
+.check-text{font-size:.87rem;color:var(--c-text);line-height:1.7;}
+.check-text.done{color:var(--c-muted);text-decoration:line-through;}
+.check-text code{font-family:'Courier New',monospace;font-size:.8rem;background:rgba(107,127,163,.1);color:#4a5f8a;padding:1px 5px;border-radius:3px;}
+.progress-row{display:flex;align-items:center;gap:12px;margin-top:4px;padding-top:16px;border-top:1px solid var(--c-border);}
+.progress-bar-bg{flex:1;height:6px;background:var(--c-surface);border-radius:99px;overflow:hidden;}
+.progress-bar-fill{height:100%;background:var(--c-accent);border-radius:99px;transition:width .3s;}
+.progress-label{font-size:.78rem;color:var(--c-muted);white-space:nowrap;}
+.code-block{background:#1e1e1e;border-radius:var(--radius);margin:24px 0;overflow:hidden;}
+.code-block-header{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;background:#2a2a2a;border-bottom:1px solid #333;}
+.code-block-lang{font-size:.7rem;color:#888;letter-spacing:1px;font-weight:500;}
+.code-block-label{font-size:.72rem;color:#aaa;}
+.code-block pre{padding:20px 18px;overflow-x:auto;font-family:'Courier New',Courier,monospace;font-size:.82rem;line-height:1.75;color:#d4d4d4;}
+.code-comment{color:#6a9955;}
+.code-str{color:#ce9178;}
+.challenge-box{padding:28px 32px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:28px 0;}
+.challenge-label{font-size:.7rem;color:var(--c-accent);letter-spacing:1.5px;font-weight:500;margin-bottom:16px;}
+.challenge-list{display:flex;flex-direction:column;gap:12px;}
+.challenge-item{display:flex;align-items:flex-start;gap:12px;font-size:.88rem;line-height:1.7;}
+.ci-num{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-accent);flex-shrink:0;width:20px;}
+.part-complete{padding:28px 32px;background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-radius:var(--radius);margin:28px 0;text-align:center;}
+.part-complete-title{font-family:'Shippori Mincho',serif;font-size:1.3rem;font-weight:700;color:var(--c-a3);margin-bottom:10px;}
+.part-complete-body{font-size:.9rem;color:var(--c-muted);line-height:1.8;}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-accent);}
+.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1);}
+.reveal.in{opacity:1;transform:translateY(0);}
+.section-rule{transform-origin:left center;opacity:0;transition:opacity .4s ease,transform .6s;transform:scaleX(.3);}
+.section-rule.in{opacity:1;transform:scaleX(1);}
+@media(max-width:768px){.topbar{padding:0 16px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero,.lesson-body,.lesson-nav{padding-left:20px;padding-right:20px;}.lesson-nav{flex-direction:column;}.nav-btn{flex:none;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">140 小時生成式 AI 實務應用課程</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">PRAC 5.4 · Part 5</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a class="back-link" href="../../../index.html">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">Part 5 · 前端與部署實戰</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">PRAC 5.4 · 2.5 小時</span>
+  </div>
+  <div class="prac-badge-hero">實例演練 · 全端部署</div>
+  <h1 class="lesson-title">含後端代理的<em>完整部署</em></h1>
+  <p class="lesson-tagline">把 CH5-4 學到的後端架構實際跑一遍：建立代理伺服器、設定環境變數、推到 GitHub、部署到 Railway 或 Render。完成後你的 AI 工具就有了可公開的網址，且金鑰安全保存在雲端。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">產出目標 · DELIVERABLE</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>本機可運行的後端伺服器（Node.js 或 Python）</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>含後端的工具已部署到 Railway 或 Render</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>公開網址可正常呼叫 AI API，且金鑰不暴露在前端</div>
+  </div>
+</div>
+
+<main class="lesson-body">
+
+  <section class="lesson-section reveal">
+    <div class="section-eyebrow">Task Overview</div>
+    <h2 class="section-heading">任務說明</h2>
+    <p class="body-text">這次任務是把 CH5-4 的知識完整實作一遍。你可以選擇用 Node.js（Express）或 Python（Flask）——兩種語言的後端架構在 CH5-4 都有說明，選你比較熟悉的那個。</p>
+    <p class="body-text">如果你在 Part 4 已經有一個直接在前端呼叫 AI API 的工具，這次就把它「升級」成後端代理版本。如果沒有，建立一個新的最小後端工具也完全可以。</p>
+
+    <div class="callout tip">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body"><strong>從 CH5-4 的程式碼開始：</strong>不需要從零開始寫。複製 CH5-4 頁面裡的 <code>server.js</code> 範例作為起點，修改 prompt 和回應格式就好。</div>
+    </div>
+
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">1</div></div>
+        <div class="step-body">
+          <div class="step-title">建立專案目錄，初始化後端</div>
+          <div class="step-desc">在桌面或任意位置建立一個新資料夾，例如 <code>my-ai-backend</code>。在終端機進入該目錄，執行 <code>npm init -y</code> 初始化 Node.js 專案。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">2</div></div>
+        <div class="step-body">
+          <div class="step-title">安裝套件，複製後端程式碼</div>
+          <div class="step-desc">執行 <code>npm install express @anthropic-ai/sdk dotenv</code>。建立 <code>server.js</code>，貼入 CH5-4 的程式碼，根據你的工具調整 prompt 邏輯。前端 HTML 放在 <code>public/</code> 目錄。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">3</div></div>
+        <div class="step-body">
+          <div class="step-title">建立 .env 和 .gitignore</div>
+          <div class="step-desc">建立 <code>.env</code> 填入金鑰，建立 <code>.gitignore</code> 加入 <code>.env</code> 和 <code>node_modules/</code>。建立 <code>.env.example</code> 作為範本（可進 git）。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">4</div></div>
+        <div class="step-body">
+          <div class="step-title">本機測試</div>
+          <div class="step-desc">執行 <code>node server.js</code>，開啟 <code>http://localhost:3000</code>，確認工具能正常呼叫 AI 並顯示結果。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">5</div></div>
+        <div class="step-body">
+          <div class="step-title">推送到 GitHub，部署到 Railway / Render</div>
+          <div class="step-desc">確認 <code>.env</code> 不在 git 追蹤中後，<code>git init</code>、<code>git add .</code>、<code>git commit</code>、<code>git push</code>。在 Railway 或 Render 連接 repo，<strong>在環境變數頁面填入 API 金鑰</strong>，等待部署完成。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <section class="lesson-section reveal">
+    <div class="section-eyebrow">Tool · 部署進度追蹤</div>
+    <h2 class="section-heading">全端部署<em>檢查清單</em></h2>
+
+    <div class="tool-wrap">
+      <div class="tool-topbar">
+        <div class="tool-dot tool-dot-r"></div><div class="tool-dot tool-dot-y"></div><div class="tool-dot tool-dot-g"></div>
+        <div class="tool-label">fullstack-deploy-checklist.tool</div>
+      </div>
+      <div class="tool-body">
+        <div class="phase">
+          <div class="phase-title">本機開發</div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateP()"><div class="check-text">專案目錄已建立，<code>npm init -y</code> 完成</div></div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateP()"><div class="check-text">套件已安裝（express、@anthropic-ai/sdk、dotenv）</div></div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateP()"><div class="check-text"><code>server.js</code> 已建立，<code>/api/ask</code> 路由正常</div></div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateP()"><div class="check-text">前端 HTML 放在 <code>public/</code>，使用 fetch 呼叫 <code>/api/ask</code></div></div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateP()"><div class="check-text"><code>.env</code> 建立完成，填入 API 金鑰</div></div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateP()"><div class="check-text">本機 <code>node server.js</code> 正常啟動，工具可使用</div></div>
+        </div>
+        <div class="phase">
+          <div class="phase-title">GitHub 準備</div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateP()"><div class="check-text"><code>.gitignore</code> 包含 <code>.env</code> 和 <code>node_modules/</code></div></div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateP()"><div class="check-text"><code>.env.example</code> 建立（空值範本，可進 git）</div></div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateP()"><div class="check-text"><code>package.json</code> 包含 <code>"start": "node server.js"</code></div></div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateP()"><div class="check-text">git commit 並推送到 GitHub，<code>.env</code> 未出現在追蹤清單</div></div>
+        </div>
+        <div class="phase">
+          <div class="phase-title">雲端部署</div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateP()"><div class="check-text">Railway 或 Render 連接 GitHub repo</div></div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateP()"><div class="check-text">在平台環境變數頁面填入 <code>ANTHROPIC_API_KEY</code></div></div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateP()"><div class="check-text">部署成功，取得公開網址</div></div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateP()"><div class="check-text">在瀏覽器開啟公開網址，工具功能正常（AI 回應正確）</div></div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateP()"><div class="check-text">用 DevTools 確認：前端 JS 程式碼中看不到任何 API 金鑰</div></div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-bar-bg"><div class="progress-bar-fill" id="pBar" style="width:0%"></div></div>
+          <div class="progress-label" id="pLabel">0 / 15</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body"><strong>Railway 常見問題：</strong>若部署失敗，先看 Deployment Logs。常見原因是 <code>package.json</code> 缺少 <code>start</code> 指令，或 <code>PORT</code> 環境變數沒有用 <code>process.env.PORT</code> 讀取（Railway 會動態分配 port）。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <section class="lesson-section reveal">
+    <div class="section-eyebrow">Deliverable</div>
+    <h2 class="section-heading">產出確認</h2>
+
+    <div class="part-complete">
+      <div class="part-complete-title">Part 5 完成</div>
+      <div class="part-complete-body">完成 PRAC5-4 後，你已經走完 Part 5 的完整旅程：<br>看懂程式碼 → AI 協作改版 → Git 保存 → 靜態部署 → 含後端的完整部署。</div>
+    </div>
+
+    <div class="challenge-box">
+      <div class="challenge-label">完成清單 · CHECKLIST</div>
+      <div class="challenge-list">
+        <div class="challenge-item"><div class="ci-num">01</div><div>含後端的 AI 工具已部署，有可公開訪問的網址</div></div>
+        <div class="challenge-item"><div class="ci-num">02</div><div>在 DevTools 的 Network tab 確認：前端只向你的後端發 request，沒有直接呼叫 Anthropic API</div></div>
+        <div class="challenge-item"><div class="ci-num">03</div><div>進階：加上簡單的輸入驗證（空白輸入時回傳錯誤訊息）</div></div>
+        <div class="challenge-item"><div class="ci-num">04</div><div>進階：設定 CORS，讓後端只接受來自你的前端網址的請求</div></div>
+        <div class="challenge-item"><div class="ci-num">05</div><div>把這個工具的網址加入 PRAC5-3 的作品集首頁</div></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<nav class="lesson-nav">
+  <a class="nav-btn" href="PRAC5-3.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    <div><div class="nav-btn-label">上一個演練</div><div class="nav-btn-title">PRAC5-3 個人作品展示首頁</div></div>
+  </a>
+  <a class="nav-btn next" href="../../../index.html">
+    <div><div class="nav-btn-label">返回</div><div class="nav-btn-title">課程總覽 · 繼續 Part 6</div></div>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">140 小時生成式 AI 實務應用課程 · Part 5 前端與部署實戰</div>
+</footer>
+
+<script>
+const prog = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const st = window.scrollY, dh = document.documentElement.scrollHeight - window.innerHeight;
+  prog.style.width = (dh > 0 ? (st/dh)*100 : 0) + '%';
+});
+document.querySelectorAll('.reveal').forEach(el => {
+  new IntersectionObserver(e => e.forEach(x => { if(x.isIntersecting) x.target.classList.add('in'); }), {threshold:0.08}).observe(el);
+});
+function updateP() {
+  const cbs = document.querySelectorAll('.check-cb');
+  const checked = Array.from(cbs).filter(c => c.checked).length;
+  const total = cbs.length;
+  document.getElementById('pBar').style.width = (checked/total*100) + '%';
+  document.getElementById('pLabel').textContent = checked + ' / ' + total;
+  cbs.forEach(cb => cb.nextElementSibling.classList.toggle('done', cb.checked));
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRAC 2-1 行政文書模板庫生成器｜140小時生成式AI實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;
+  --c-text:#2c2b28;--c-muted:#8c8880;--c-a4:#6b7fa3;--radius:6px;--radius-sm:4px;--content-w:860px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--c-bg);color:var(--c-text);font-family:'Noto Sans TC',sans-serif;font-size:15px;line-height:1.7;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.08);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a4);width:0%;transition:width .1s;}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:56px 48px 40px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px;}
+.back-link:hover{color:var(--c-a4);}
+.hero-eyebrow{font-size:.7rem;color:var(--c-a4);letter-spacing:2px;font-weight:500;margin-bottom:10px;}
+.page-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:12px;}
+.page-subtitle{font-size:.93rem;color:var(--c-muted);line-height:1.85;max-width:580px;}
+.tool-wrap{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+
+/* Doc type selector */
+.step-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:14px;}
+.step-title{font-family:'Shippori Mincho',serif;font-size:1.15rem;font-weight:700;color:var(--c-text);margin-bottom:16px;}
+.doc-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:32px;}
+.doc-card{background:var(--c-card);border:2px solid var(--c-border);border-radius:var(--radius);padding:14px 12px;cursor:pointer;transition:border-color .2s,background .2s;text-align:center;}
+.doc-card:hover{border-color:rgba(107,127,163,.5);background:rgba(107,127,163,.04);}
+.doc-card.active{border-color:var(--c-a4);background:rgba(107,127,163,.07);}
+.doc-icon{font-size:1.4rem;margin-bottom:6px;}
+.doc-name{font-size:.78rem;font-weight:700;color:var(--c-text);}
+.doc-desc{font-size:.7rem;color:var(--c-muted);margin-top:3px;line-height:1.4;}
+
+/* Field area */
+.field-area{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:28px 28px 20px;margin-bottom:20px;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.field-row.full{grid-template-columns:1fr;}
+.field-group{display:flex;flex-direction:column;gap:6px;}
+.field-label{font-size:.75rem;color:var(--c-muted);font-weight:500;letter-spacing:.5px;}
+.field-input{background:var(--c-bg);border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:9px 12px;font-size:.87rem;color:var(--c-text);font-family:'Noto Sans TC',sans-serif;resize:none;transition:border-color .2s;}
+.field-input:focus{outline:none;border-color:rgba(107,127,163,.6);}
+.field-input::placeholder{color:var(--c-muted);opacity:.7;}
+textarea.field-input{min-height:72px;line-height:1.7;}
+
+/* Tone selector */
+.tone-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.tone-btn{font-size:.78rem;color:var(--c-muted);border:1px solid var(--c-border);background:var(--c-card);padding:5px 14px;border-radius:99px;cursor:pointer;transition:border-color .2s,color .2s,background .2s;}
+.tone-btn.active{border-color:var(--c-a4);color:var(--c-a4);background:rgba(107,127,163,.08);}
+
+/* Actions */
+.action-bar{display:flex;gap:10px;margin-bottom:28px;}
+.btn-gen{background:var(--c-a4);color:#fff;border:none;padding:11px 28px;border-radius:var(--radius);font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:background .2s;}
+.btn-gen:hover{background:#5c6f91;}
+.btn-clear{background:transparent;color:var(--c-muted);border:1px solid var(--c-border);padding:11px 20px;border-radius:var(--radius);font-size:.9rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:background .2s;}
+.btn-clear:hover{background:var(--c-surface);}
+
+/* Output */
+.output-panel{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;}
+.output-header{padding:12px 18px;border-bottom:1px solid var(--c-border);display:flex;align-items:center;justify-content:space-between;}
+.output-label{font-size:.7rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;}
+.copy-btn{font-size:.75rem;color:var(--c-muted);border:1px solid var(--c-border);background:transparent;padding:4px 12px;border-radius:99px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:background .2s;}
+.copy-btn:hover{background:var(--c-surface);}
+.output-body{padding:20px 22px;min-height:180px;}
+.output-empty{font-size:.88rem;color:var(--c-muted);text-align:center;padding:40px 0;}
+.output-section{margin-bottom:16px;}
+.out-tag{display:inline-block;font-size:.65rem;color:var(--c-a4);background:rgba(107,127,163,.1);border:1px solid rgba(107,127,163,.2);padding:1px 8px;border-radius:99px;font-weight:500;margin-bottom:6px;}
+.out-text{font-size:.87rem;color:var(--c-text);line-height:1.85;white-space:pre-wrap;}
+
+/* Template examples */
+.examples-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin:32px 0 12px;}
+.example-chips{display:flex;gap:8px;flex-wrap:wrap;}
+.example-chip{font-size:.78rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:transparent;padding:5px 14px;border-radius:99px;cursor:pointer;transition:background .2s;font-family:'Noto Sans TC',sans-serif;}
+.example-chip:hover{background:rgba(107,127,163,.07);}
+
+/* Toast */
+.toast{position:fixed;bottom:32px;right:32px;background:#2c2b28;color:#f5f3ee;padding:10px 20px;border-radius:var(--radius);font-size:.83rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:100;}
+.toast.show{opacity:1;}
+
+/* Nav */
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a4);text-decoration:none;padding:10px 20px;border:1px solid rgba(107,127,163,.3);border-radius:var(--radius);transition:background .2s;}
+.nav-btn:hover{background:rgba(107,127,163,.07);}
+.nav-btn.primary{background:var(--c-a4);color:#fff;border-color:var(--c-a4);}
+.nav-btn.primary:hover{background:#5c6f91;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-div{width:1px;height:14px;background:var(--c-border);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+@media(max-width:640px){
+  .topbar,.page-hero,.tool-wrap,.nav-footer,.footer{padding-left:24px;padding-right:24px;}
+  .doc-grid{grid-template-columns:repeat(2,1fr);}
+  .field-row{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a href="../index.html" class="logo">Codex Studio</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">140小時生成式AI實務應用課程</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">PRAC 2-1 · 2.5h</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="page-hero">
+  <a href="../index.html" class="back-link">← 返回課程總覽</a>
+  <div class="hero-eyebrow">PRAC 2-1 · PART 2 建立文字與知識產能</div>
+  <h1 class="page-title">行政文書模板庫生成器</h1>
+  <p class="page-subtitle">選擇文書類型、填入關鍵資訊，即刻生成可直接貼入 AI 的完整提示詞。建立你的個人行政文書 Prompt 模板庫。</p>
+</div>
+
+<div class="tool-wrap">
+  <!-- Step 1: 文書類型 -->
+  <div class="step-label">STEP 01 · 選擇文書類型</div>
+  <div class="doc-grid">
+    <div class="doc-card active" data-type="email" onclick="selectDoc(this,'email')">
+      <div class="doc-icon">✉</div>
+      <div class="doc-name">商務 Email</div>
+      <div class="doc-desc">請求、通知、跟進</div>
+    </div>
+    <div class="doc-card" data-type="memo" onclick="selectDoc(this,'memo')">
+      <div class="doc-icon">📋</div>
+      <div class="doc-name">內部公告</div>
+      <div class="doc-desc">政策變更、活動通知</div>
+    </div>
+    <div class="doc-card" data-type="agenda" onclick="selectDoc(this,'agenda')">
+      <div class="doc-icon">📅</div>
+      <div class="doc-name">會議議程</div>
+      <div class="doc-desc">討論項目、時間分配</div>
+    </div>
+    <div class="doc-card" data-type="report" onclick="selectDoc(this,'report')">
+      <div class="doc-icon">📊</div>
+      <div class="doc-name">工作週報</div>
+      <div class="doc-desc">進度、障礙、下週計畫</div>
+    </div>
+    <div class="doc-card" data-type="sop" onclick="selectDoc(this,'sop')">
+      <div class="doc-icon">📝</div>
+      <div class="doc-name">操作 SOP</div>
+      <div class="doc-desc">步驟、注意事項、驗證</div>
+    </div>
+    <div class="doc-card" data-type="proposal" onclick="selectDoc(this,'proposal')">
+      <div class="doc-icon">💡</div>
+      <div class="doc-name">提案簡述</div>
+      <div class="doc-desc">背景、方案、預算</div>
+    </div>
+    <div class="doc-card" data-type="feedback" onclick="selectDoc(this,'feedback')">
+      <div class="doc-icon">💬</div>
+      <div class="doc-name">績效回饋</div>
+      <div class="doc-desc">優點、改善、建議</div>
+    </div>
+    <div class="doc-card" data-type="decline" onclick="selectDoc(this,'decline')">
+      <div class="doc-icon">🙏</div>
+      <div class="doc-name">婉拒信函</div>
+      <div class="doc-desc">感謝、婉拒、維繫關係</div>
+    </div>
+    <div class="doc-card" data-type="handover" onclick="selectDoc(this,'handover')">
+      <div class="doc-icon">🔄</div>
+      <div class="doc-name">交接文件</div>
+      <div class="doc-desc">任務狀態、聯絡人、注意事項</div>
+    </div>
+    <div class="doc-card" data-type="announce" onclick="selectDoc(this,'announce')">
+      <div class="doc-icon">📢</div>
+      <div class="doc-name">對外公告</div>
+      <div class="doc-desc">新聞稿、官方聲明</div>
+    </div>
+  </div>
+
+  <!-- Step 2: 填寫資訊 -->
+  <div class="step-label">STEP 02 · 填寫關鍵資訊</div>
+  <div class="field-area" id="fieldArea">
+    <!-- dynamically filled by JS -->
+  </div>
+
+  <!-- Step 3: 文風 -->
+  <div class="step-label">STEP 03 · 選擇文風</div>
+  <div class="tone-row" id="toneRow">
+    <button class="tone-btn active" onclick="selectTone(this,'正式專業')">正式專業</button>
+    <button class="tone-btn" onclick="selectTone(this,'親切有溫度')">親切有溫度</button>
+    <button class="tone-btn" onclick="selectTone(this,'簡潔俐落')">簡潔俐落</button>
+    <button class="tone-btn" onclick="selectTone(this,'謙遜委婉')">謙遜委婉</button>
+    <button class="tone-btn" onclick="selectTone(this,'積極正向')">積極正向</button>
+  </div>
+
+  <!-- Actions -->
+  <div class="action-bar">
+    <button class="btn-gen" onclick="generatePrompt()">生成 Prompt</button>
+    <button class="btn-clear" onclick="clearAll()">清除重填</button>
+  </div>
+
+  <!-- Output -->
+  <div class="output-panel">
+    <div class="output-header">
+      <span class="output-label">AI PROMPT · 生成結果</span>
+      <button class="copy-btn" onclick="copyPrompt()">複製</button>
+    </div>
+    <div class="output-body" id="outputBody">
+      <div class="output-empty">選擇文書類型並填寫資訊後，點「生成 Prompt」即可產生可用提示詞</div>
+    </div>
+  </div>
+
+  <!-- Examples -->
+  <div class="examples-label">範本快填 · EXAMPLES</div>
+  <div class="example-chips">
+    <button class="example-chip" onclick="loadExample('deadline')">跟進截止日提醒</button>
+    <button class="example-chip" onclick="loadExample('newpolicy')">新政策通知</button>
+    <button class="example-chip" onclick="loadExample('weeklyreport')">工程師週報</button>
+    <button class="example-chip" onclick="loadExample('meeting')">跨部門會議議程</button>
+    <button class="example-chip" onclick="loadExample('decline')">婉拒合作提案</button>
+  </div>
+</div>
+
+<div class="nav-footer">
+  <a href="../index.html" class="nav-btn">← 返回課程總覽</a>
+  <a href="PRAC2-2.html" class="nav-btn primary">PRAC 2-2 會議紀錄轉待辦 →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">Codex Studio</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">140小時生成式AI實務應用課程</span>
+</footer>
+
+<div class="toast" id="toast">已複製到剪貼簿</div>
+
+<script>
+let currentDoc = 'email';
+let currentTone = '正式專業';
+
+const docFields = {
+  email: [
+    {id:'sender',label:'寄件人身份',placeholder:'例：產品部專案經理',type:'input'},
+    {id:'recipient',label:'收件人身份',placeholder:'例：工程部門主管',type:'input'},
+    {id:'subject',label:'信件主旨',placeholder:'例：Q3 產品功能確認請求',type:'input'},
+    {id:'purpose',label:'信件目的',placeholder:'例：請求確認三個功能的開發優先順序',type:'input'},
+    {id:'context',label:'背景說明',placeholder:'例：下週五前需要確認，以便安排 Sprint 規劃',type:'textarea'},
+    {id:'cta',label:'期望對方行動',placeholder:'例：請於週三前回覆確認',type:'input'},
+  ],
+  memo: [
+    {id:'org',label:'發佈單位',placeholder:'例：人資部',type:'input'},
+    {id:'audience',label:'通知對象',placeholder:'例：全體員工',type:'input'},
+    {id:'topic',label:'公告主題',placeholder:'例：遠端辦公政策調整',type:'input'},
+    {id:'content',label:'主要內容',placeholder:'例：自 5 月起，每週二可遠端辦公，需提前在系統申請',type:'textarea'},
+    {id:'effective',label:'生效日期',placeholder:'例：2025 年 5 月 1 日',type:'input'},
+  ],
+  agenda: [
+    {id:'meetingName',label:'會議名稱',placeholder:'例：Q3 行銷策略討論會',type:'input'},
+    {id:'date',label:'日期與時間',placeholder:'例：5 月 20 日 14:00-16:00',type:'input'},
+    {id:'attendees',label:'出席人員',placeholder:'例：行銷團隊 + 產品團隊，共 8 人',type:'input'},
+    {id:'topics',label:'討論議題（每行一個）',placeholder:'例：上季活動回顧\nQ3 預算分配\n新品上市計畫',type:'textarea'},
+    {id:'goal',label:'會議目標',placeholder:'例：確定 Q3 三大行銷方向與預算分配',type:'input'},
+  ],
+  report: [
+    {id:'person',label:'撰寫人',placeholder:'例：軟體工程師 王小明',type:'input'},
+    {id:'period',label:'報告週期',placeholder:'例：2025/5/13-5/17',type:'input'},
+    {id:'done',label:'本週完成事項',placeholder:'例：完成登入頁重構；修復 3 個 bug',type:'textarea'},
+    {id:'blocked',label:'遇到的問題或阻礙',placeholder:'例：API 文件不完整，等待後端確認',type:'textarea'},
+    {id:'next',label:'下週計畫',placeholder:'例：完成 dashboard 資料串接；開始撰寫測試',type:'textarea'},
+  ],
+  sop: [
+    {id:'task',label:'操作任務名稱',placeholder:'例：新員工 Google Workspace 帳號開通',type:'input'},
+    {id:'executor',label:'執行人員',placeholder:'例：IT 管理員',type:'input'},
+    {id:'tools',label:'使用工具或系統',placeholder:'例：Google Admin Console、員工資料庫',type:'input'},
+    {id:'steps',label:'主要步驟（條列）',placeholder:'例：1. 登入 Admin Console\n2. 建立新帳號\n3. 設定群組權限',type:'textarea'},
+    {id:'notes',label:'注意事項',placeholder:'例：帳號建立後 24 小時內完成群組指派',type:'input'},
+  ],
+  proposal: [
+    {id:'title',label:'提案名稱',placeholder:'例：導入 AI 客服助手可行性評估',type:'input'},
+    {id:'background',label:'背景與問題',placeholder:'例：客服回應時間平均 4 小時，客戶滿意度下降',type:'textarea'},
+    {id:'solution',label:'解決方案',placeholder:'例：在官網導入 AI 聊天機器人處理 FAQ，預計減少 40% 人工回覆',type:'textarea'},
+    {id:'budget',label:'預算與時間',placeholder:'例：預算 15 萬，3 個月實施',type:'input'},
+    {id:'audience',label:'提案對象',placeholder:'例：營運長',type:'input'},
+  ],
+  feedback: [
+    {id:'relation',label:'關係',placeholder:'例：主管給下屬的季度回饋',type:'input'},
+    {id:'person',label:'對象姓名（可選）',placeholder:'例：小明',type:'input'},
+    {id:'strengths',label:'優點（條列）',placeholder:'例：主動溝通；對細節有高度要求；能如期交付',type:'textarea'},
+    {id:'improve',label:'需要改善的面向',placeholder:'例：跨部門溝通頻率不足；文件整理習慣待加強',type:'textarea'},
+    {id:'next',label:'下一步建議',placeholder:'例：建議主動安排每週跨部門 sync 會議',type:'input'},
+  ],
+  decline: [
+    {id:'from',label:'我的身份',placeholder:'例：行銷部主任',type:'input'},
+    {id:'to',label:'對方身份',placeholder:'例：合作廠商業務',type:'input'},
+    {id:'request',label:'對方的請求',placeholder:'例：邀請我們贊助年度展覽',type:'input'},
+    {id:'reason',label:'婉拒原因',placeholder:'例：今年預算已分配完畢，無法新增贊助項目',type:'textarea'},
+    {id:'maintain',label:'希望維繫關係的方式',placeholder:'例：期待未來有機會合作，請保持聯繫',type:'input'},
+  ],
+  handover: [
+    {id:'from',label:'交接人',placeholder:'例：陳小華',type:'input'},
+    {id:'to',label:'接手人',placeholder:'例：李大明',type:'input'},
+    {id:'tasks',label:'目前進行中的任務（條列）',placeholder:'例：A 客戶提案（截止 5/25）\nB 系統維護合約續簽（進行中）',type:'textarea'},
+    {id:'contacts',label:'重要聯絡人',placeholder:'例：A 客戶窗口：王總 0912-xxx；IT 廠商：陳工 ext.305',type:'textarea'},
+    {id:'notes',label:'特別注意事項',placeholder:'例：A 客戶很在意回應速度，務必當天回覆',type:'textarea'},
+  ],
+  announce: [
+    {id:'org',label:'發佈機構/品牌',placeholder:'例：Codex Studio',type:'input'},
+    {id:'type',label:'公告類型',placeholder:'例：服務更新公告 / 合作聲明',type:'input'},
+    {id:'core',label:'核心訊息',placeholder:'例：我們正式推出 AI 培訓課程，首期招生名額 30 名',type:'textarea'},
+    {id:'audience',label:'目標受眾',placeholder:'例：企業 HR 主管與培訓專員',type:'input'},
+    {id:'cta',label:'號召行動',placeholder:'例：點擊報名連結，或來信索取課程大綱',type:'input'},
+  ],
+};
+
+function renderFields(type) {
+  const fields = docFields[type] || docFields['email'];
+  const area = document.getElementById('fieldArea');
+  let html = '';
+  for (let i = 0; i < fields.length; i += 2) {
+    const f1 = fields[i], f2 = fields[i+1];
+    if (!f2 || f1.type === 'textarea') {
+      html += `<div class="field-row full"><div class="field-group">
+        <label class="field-label">${f1.label}</label>
+        ${f1.type==='textarea'
+          ? `<textarea class="field-input" id="f_${f1.id}" placeholder="${f1.placeholder}" rows="3"></textarea>`
+          : `<input class="field-input" id="f_${f1.id}" type="text" placeholder="${f1.placeholder}">`}
+      </div></div>`;
+    } else {
+      html += `<div class="field-row">
+        <div class="field-group"><label class="field-label">${f1.label}</label>
+          <input class="field-input" id="f_${f1.id}" type="text" placeholder="${f1.placeholder}"></div>
+        <div class="field-group"><label class="field-label">${f2.label}</label>
+          <input class="field-input" id="f_${f2.id}" type="text" placeholder="${f2.placeholder}"></div>
+      </div>`;
+    }
+  }
+  // Render textareas that were paired but skipped
+  const allIds = fields.map(f=>f.id);
+  // Re-render all fields cleanly in simple loop
+  area.innerHTML = renderFieldsClean(fields);
+}
+
+function renderFieldsClean(fields) {
+  let html = '';
+  for (const f of fields) {
+    const isTA = f.type === 'textarea';
+    html += `<div class="field-row full"><div class="field-group">
+      <label class="field-label">${f.label}</label>
+      ${isTA
+        ? `<textarea class="field-input" id="f_${f.id}" placeholder="${f.placeholder}" rows="3"></textarea>`
+        : `<input class="field-input" id="f_${f.id}" type="text" placeholder="${f.placeholder}">`
+      }
+    </div></div>`;
+  }
+  return html;
+}
+
+function selectDoc(el, type) {
+  document.querySelectorAll('.doc-card').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  currentDoc = type;
+  renderFields(type);
+  document.getElementById('outputBody').innerHTML = '<div class="output-empty">選擇文書類型並填寫資訊後，點「生成 Prompt」即可產生可用提示詞</div>';
+}
+
+function selectTone(el, tone) {
+  document.querySelectorAll('.tone-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  currentTone = tone;
+}
+
+const docMeta = {
+  email: {name:'商務 Email', role:'資深商務寫作助手', format:'標準商務 Email 格式（主旨、稱謂、正文、署名）'},
+  memo:  {name:'內部公告', role:'企業內部溝通專員', format:'公告格式（標題、收件人、日期、正文、生效日）'},
+  agenda:{name:'會議議程', role:'會議主持人與記錄專員', format:'會議議程格式（基本資訊、討論項目含時間分配、預期成果）'},
+  report:{name:'工作週報', role:'職場溝通寫作助手', format:'週報格式（本週完成、遭遇問題、下週計畫）'},
+  sop:   {name:'操作 SOP', role:'流程文件撰寫專員', format:'SOP 格式（目的、適用範圍、步驟、注意事項、驗證方式）'},
+  proposal:{name:'提案簡述', role:'商業提案寫作顧問', format:'提案格式（背景、問題、解決方案、預期效益、預算與時間）'},
+  feedback:{name:'績效回饋', role:'HR 與管理溝通顧問', format:'回饋格式（優點、改善建議、下一步）'},
+  decline:{name:'婉拒信函', role:'職場溝通寫作助手', format:'婉拒格式（感謝、理解、婉拒、保持聯繫）'},
+  handover:{name:'交接文件', role:'工作交接文件撰寫助手', format:'交接格式（任務清單、聯絡人、未完成事項、注意事項）'},
+  announce:{name:'對外公告', role:'品牌溝通與公關寫作助手', format:'對外公告格式（標題、正文、號召行動、聯絡資訊）'},
+};
+
+function getFieldValues() {
+  const fields = docFields[currentDoc] || [];
+  const values = {};
+  for (const f of fields) {
+    const el = document.getElementById('f_'+f.id);
+    values[f.id] = el ? el.value.trim() : '';
+  }
+  return values;
+}
+
+function buildPromptText(values) {
+  const meta = docMeta[currentDoc];
+  const fields = docFields[currentDoc];
+  let infoBlock = '';
+  for (const f of fields) {
+    const v = values[f.id];
+    if (v) infoBlock += `【${f.label}】${v}\n`;
+  }
+  if (!infoBlock) infoBlock = '（請填寫上方的文書資訊）\n';
+
+  return `你是一位${meta.role}，請幫我撰寫一份${meta.name}。
+
+文風要求：${currentTone}
+輸出格式：${meta.format}
+
+以下是這份文書的相關資訊：
+${infoBlock}
+撰寫要求：
+- 用繁體中文撰寫
+- 文字精準，避免空泛語句
+- 長度適中，以清晰傳達為優先
+- 如有不確定的資訊，請用「[請補充：___]」標注`;
+}
+
+function generatePrompt() {
+  const values = getFieldValues();
+  const prompt = buildPromptText(values);
+  const body = document.getElementById('outputBody');
+  body.innerHTML = `
+    <div class="output-section">
+      <span class="out-tag">PROMPT</span>
+      <div class="out-text">${escHtml(prompt)}</div>
+    </div>`;
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function clearAll() {
+  const fields = docFields[currentDoc];
+  for (const f of fields) {
+    const el = document.getElementById('f_'+f.id);
+    if (el) el.value = '';
+  }
+  document.getElementById('outputBody').innerHTML = '<div class="output-empty">選擇文書類型並填寫資訊後，點「生成 Prompt」即可產生可用提示詞</div>';
+}
+
+function copyPrompt() {
+  const body = document.getElementById('outputBody');
+  const text = body.querySelector('.out-text');
+  if (!text) return;
+  navigator.clipboard.writeText(text.innerText).then(() => showToast('已複製到剪貼簿'));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+const examples = {
+  deadline: {
+    type:'email',
+    fields:{sender:'專案經理',recipient:'跨部門成員',subject:'Q3 報告截止提醒',purpose:'提醒本週五是 Q3 成果報告繳交截止日',context:'這份報告將在下週高管會議使用，請確保數據正確並附上圖表',cta:'請於週五下班前寄到 pm@company.com'},
+    tone:'積極正向'
+  },
+  newpolicy: {
+    type:'memo',
+    fields:{org:'人資部',audience:'全體員工',topic:'工作時間彈性申請辦法',content:'即日起員工可申請彈性工時，核心時間為早上 10 點至下午 4 點，其餘 4 小時可自行安排，需在 HR 系統提前申請',effective:'2025 年 6 月 1 日'},
+    tone:'正式專業'
+  },
+  weeklyreport: {
+    type:'report',
+    fields:{person:'前端工程師 陳大維',period:'2025/5/13-5/17',done:'完成購物車頁面重構（符合新設計稿）；修復 iOS Safari 相容性問題（共 3 個 bug）；完成 API 整合文件初稿',blocked:'支付頁面需要等後端 API 完成，預計延後一天',next:'完成支付頁串接；進行 UAT 測試準備；開始撰寫 E2E 測試腳本'},
+    tone:'簡潔俐落'
+  },
+  meeting: {
+    type:'agenda',
+    fields:{meetingName:'Q3 跨部門產品策略會',date:'5 月 22 日 14:00-16:30',attendees:'產品、工程、行銷、客服各部門代表，共 12 人',topics:'上季產品 KPI 回顧（20 分）\nQ3 功能優先順序討論（45 分）\n行銷與上市計畫對齊（30 分）\n下一步行動確認（15 分）',goal:'確定 Q3 三大功能的開發優先順序與各部門配合事項'},
+    tone:'正式專業'
+  },
+  decline: {
+    type:'decline',
+    fields:{from:'行銷部主任',to:'活動公司業務',request:'邀請我們成為年度科技展覽的共同主辦方並贊助 30 萬',reason:'今年的合作預算已提前分配完畢，無法承接新的贊助承諾；且依據今年策略方向，重點放在線上活動經營',maintain:'非常感謝邀約，展覽主題與我們高度相關，期待明年有機會合作，屆時歡迎再次聯繫'},
+    tone:'謙遜委婉'
+  },
+};
+
+function loadExample(key) {
+  const ex = examples[key];
+  if (!ex) return;
+  // Select doc type
+  const card = document.querySelector(`.doc-card[data-type="${ex.type}"]`);
+  if (card) selectDoc(card, ex.type);
+  // Set fields
+  setTimeout(() => {
+    for (const [id, val] of Object.entries(ex.fields)) {
+      const el = document.getElementById('f_'+id);
+      if (el) el.value = val;
+    }
+    // Set tone
+    document.querySelectorAll('.tone-btn').forEach(b => {
+      b.classList.toggle('active', b.textContent === ex.tone);
+    });
+    currentTone = ex.tone;
+    generatePrompt();
+  }, 50);
+}
+
+// Init
+renderFields('email');
+
+// Progress
+const prog = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  prog.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + '%';
+});
+</script>
+</body>
+</html>

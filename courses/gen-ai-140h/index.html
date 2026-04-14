@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>140 小時生成式 AI 實務應用課程｜弄一下工作室</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:      #f5f3ee;
+  --c-surface: #edeae3;
+  --c-card:    #ffffff;
+  --c-border:  #d8d4cb;
+  --c-text:    #2c2b28;
+  --c-muted:   #8c8880;
+  --c-a1:      #b5703a;
+  --c-a2:      #c9963a;
+  --c-a3:      #5a7a5a;
+  --c-a4:      #6b7fa3;
+  --c-a5:      #7a9ea3;
+  --radius:    6px;
+  --radius-sm: 4px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);min-height:100vh;}
+
+/* ── 頂部列 ── */
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a1);border:1px solid rgba(181,112,58,.3);background:rgba(181,112,58,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+
+/* ── 主視覺 ── */
+.hero{padding:72px 48px 48px;max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:14px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--c-muted);text-decoration:none;margin-bottom:4px;}
+.back-link:hover{color:var(--c-a1);}
+.hero-eyebrow{font-size:.75rem;color:var(--c-a1);letter-spacing:2px;text-transform:uppercase;font-weight:500;}
+.hero-title{font-family:'Shippori Mincho',serif;font-size:2.4rem;font-weight:700;line-height:1.25;color:var(--c-text);}
+.hero-desc{font-size:.92rem;color:var(--c-muted);line-height:1.85;max-width:500px;}
+.hero-divider{width:40px;height:1px;background:var(--c-a1);margin-top:4px;}
+.hero-stats{display:flex;gap:32px;margin-top:4px;}
+.stat{display:flex;flex-direction:column;gap:3px;}
+.stat-num{font-family:'Shippori Mincho',serif;font-size:1.5rem;font-weight:700;color:var(--c-text);}
+.stat-lbl{font-size:.73rem;color:var(--c-muted);}
+
+/* ── 進度列 ── */
+.section{max-width:960px;margin:0 auto;padding:0 48px 64px;}
+.progress-bar-wrap{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 24px;margin-bottom:36px;display:flex;align-items:center;gap:20px;}
+.prog-label{font-size:.82rem;color:var(--c-muted);white-space:nowrap;}
+.prog-track{flex:1;height:5px;background:var(--c-surface);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--c-a1);border-radius:99px;width:0%;transition:width .6s ease;}
+.prog-pct{font-size:.82rem;font-weight:500;color:var(--c-a1);white-space:nowrap;}
+
+/* ── 章節群組 ── */
+.part-head{display:flex;align-items:baseline;gap:14px;margin-bottom:16px;}
+.part-label{font-size:.7rem;color:var(--c-a1);font-weight:500;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;}
+.part-title{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);}
+.part-line{flex:1;height:1px;background:var(--c-border);}
+.part-count{font-size:.75rem;color:var(--c-muted);}
+
+/* ── 課程列表（縱向） ── */
+.lesson-list{display:flex;flex-direction:column;gap:10px;margin-bottom:40px;}
+.lesson-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);display:flex;align-items:center;gap:0;text-decoration:none;color:inherit;transition:transform .15s,box-shadow .15s;overflow:hidden;}
+.lesson-card:hover{transform:translateX(4px);box-shadow:0 4px 16px rgba(0,0,0,.06);}
+.lesson-card.locked{opacity:.5;cursor:not-allowed;}
+.lesson-card.locked:hover{transform:none;box-shadow:none;}
+.lesson-band{width:4px;align-self:stretch;flex-shrink:0;}
+.band-1{background:var(--c-a1);}
+.band-2{background:var(--c-a2);}
+.band-3{background:var(--c-a3);}
+.band-4{background:var(--c-a4);}
+.lesson-body{padding:16px 20px;flex:1;display:flex;align-items:center;gap:16px;}
+.lesson-num{font-size:.7rem;color:var(--c-muted);white-space:nowrap;letter-spacing:.5px;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:.98rem;font-weight:700;flex:1;line-height:1.4;}
+.lesson-status{font-size:.68rem;padding:2px 10px;border-radius:99px;font-weight:500;white-space:nowrap;}
+.status-available{background:rgba(181,112,58,.1);border:1px solid rgba(181,112,58,.25);color:var(--c-a1);}
+.status-lock{background:var(--c-surface);border:1px solid var(--c-border);color:var(--c-muted);}
+.prac-card-5{background:rgba(122,158,163,.04);border:1px solid rgba(122,158,163,.18);}
+.prac-card-5:hover{transform:translateX(4px);border-color:rgba(122,158,163,.4);}
+.prac-band-5{width:3px;align-self:stretch;flex-shrink:0;background:var(--c-a5);opacity:.5;}
+.prac-num-5{font-size:.68rem;color:var(--c-a5);white-space:nowrap;letter-spacing:.5px;}
+.prac-badge-5{font-size:.65rem;padding:2px 9px;border-radius:99px;background:rgba(122,158,163,.1);border:1px solid rgba(122,158,163,.2);color:var(--c-a5);white-space:nowrap;}
+.prac-arrow-5{font-size:.78rem;color:var(--c-a5);padding:0 18px;opacity:0;transition:opacity .15s,transform .15s;}
+.prac-card-5:hover .prac-arrow-5{opacity:1;transform:translateX(3px);}
+.diff-easy{background:rgba(90,122,90,.08);border-color:rgba(90,122,90,.2);color:var(--c-a3);}
+.diff-mid{background:rgba(201,150,58,.08);border-color:rgba(201,150,58,.2);color:var(--c-a2);}
+.diff-adv{background:rgba(181,112,58,.08);border-color:rgba(181,112,58,.25);color:var(--c-a1);}
+.lesson-arrow{font-size:.8rem;color:var(--c-a1);font-weight:500;padding:0 20px;opacity:0;transition:opacity .15s,transform .15s;}
+.lesson-card:hover .lesson-arrow{opacity:1;transform:translateX(3px);}
+
+/* ── 實例演練區塊 ── */
+.prac-head{display:flex;align-items:center;gap:12px;margin-bottom:12px;margin-top:-4px;}
+.prac-label{font-size:.68rem;color:var(--c-a4);font-weight:500;letter-spacing:1px;white-space:nowrap;}
+.prac-line{flex:1;height:1px;background:rgba(107,127,163,.2);border-style:dashed;}
+.prac-list{display:flex;flex-direction:column;gap:8px;margin-bottom:40px;}
+.prac-card{background:rgba(107,127,163,.04);border:1px solid rgba(107,127,163,.18);border-radius:var(--radius);display:flex;align-items:center;gap:0;text-decoration:none;color:inherit;transition:transform .15s,border-color .15s;overflow:hidden;}
+.prac-card:hover{transform:translateX(4px);border-color:rgba(107,127,163,.4);}
+.prac-band{width:3px;align-self:stretch;flex-shrink:0;background:var(--c-a4);opacity:.5;}
+.prac-body{padding:13px 18px;flex:1;display:flex;align-items:center;gap:14px;}
+.prac-num{font-size:.68rem;color:var(--c-a4);white-space:nowrap;letter-spacing:.5px;}
+.prac-title{font-size:.9rem;font-weight:500;flex:1;line-height:1.4;color:var(--c-text);}
+.prac-badge{font-size:.65rem;padding:2px 9px;border-radius:99px;background:rgba(107,127,163,.1);border:1px solid rgba(107,127,163,.2);color:var(--c-a4);white-space:nowrap;}
+.prac-arrow{font-size:.78rem;color:var(--c-a4);padding:0 18px;opacity:0;transition:opacity .15s,transform .15s;}
+.prac-card:hover .prac-arrow{opacity:1;transform:translateX(3px);}
+
+/* ── 頁尾 ── */
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+
+/* ── 通知 ── */
+.toast{position:fixed;bottom:28px;right:28px;background:var(--c-text);color:#fff;padding:10px 18px;border-radius:var(--radius-sm);font-size:.82rem;font-weight:500;transform:translateY(60px);opacity:0;transition:all .35s cubic-bezier(.34,1.56,.64,1);z-index:999;}
+.toast.show{transform:none;opacity:1;}
+/* ── 路徑選擇區 ── */
+.path-divider{border:none;border-top:2px dashed var(--c-border);margin:8px 0 32px;}
+.path-choice-wrap{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:24px 28px;margin-bottom:40px;}
+.path-choice-title{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;margin-bottom:6px;}
+.path-choice-desc{font-size:.85rem;color:var(--c-muted);margin-bottom:18px;line-height:1.7;}
+.path-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.path-card{border:1px solid var(--c-border);border-radius:var(--radius);padding:16px 20px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:8px;transition:border-color .15s,transform .15s;}
+.path-card:hover{transform:translateY(-2px);}
+.path-card.pc-worker{border-left:3px solid var(--c-a2);}
+.path-card.pc-worker:hover{border-color:var(--c-a2);}
+.path-card.pc-dev{border-left:3px solid var(--c-a5);}
+.path-card.pc-dev:hover{border-color:var(--c-a5);}
+.pc-tag{font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
+.pc-worker .pc-tag{color:var(--c-a2);}
+.pc-dev .pc-tag{color:var(--c-a5);}
+.pc-title{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;}
+.pc-desc{font-size:.8rem;color:var(--c-muted);line-height:1.6;}
+.env-setup-link{display:inline-flex;align-items:center;gap:8px;background:rgba(122,158,163,.08);border:1px solid rgba(122,158,163,.3);border-radius:var(--radius);padding:10px 18px;font-size:.85rem;font-weight:500;color:var(--c-a5);text-decoration:none;margin-top:14px;}
+.env-setup-link:hover{background:rgba(122,158,163,.15);}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;}.topbar-sub,.topbar-divider{display:none;}.hero{padding:40px 20px 32px;}.hero-title{font-size:1.6rem;}.section{padding:0 20px 48px;}.footer{padding:20px;}.path-cards{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="logo" href="../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">140 小時生成式 AI 實務應用課程：從工作流到 AI Web App</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">完整訓練班</div>
+</header>
+
+<section class="hero">
+  <a class="back-link" href="../../index.html">← 所有課程</a>
+  <div class="hero-eyebrow">Course · Generative AI Bootcamp</div>
+  <h1 class="hero-title">140 小時生成式 AI 實務應用課程：<br>從基礎登入、提示詞、工作流，<br>到完成小型 AI Web App</h1>
+  <p class="hero-desc">這不是一門只介紹工具名稱的概論課，而是一套完整訓練。從 AI 基本操作、文書與知識工作、自動化與零代碼工具，到前端、API、RAG、評估與專題，最後做出可展示的 AI 應用作品。</p>
+  <div class="hero-divider"></div>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">7</div>
+      <div class="stat-lbl">學習部分</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">56</div>
+      <div class="stat-lbl">學習單元</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">140h</div>
+      <div class="stat-lbl">課程時數</div>
+    </div>
+  </div>
+</section>
+
+<main class="section">
+
+  <div class="progress-bar-wrap">
+    <div class="prog-label">整體進度</div>
+    <div class="prog-track"><div class="prog-fill"></div></div>
+    <div class="prog-pct">0 / 56</div>
+  </div>
+
+  <!-- Part 1 -->
+  <div class="part-head">
+    <div class="part-label">Part 1</div>
+    <div class="part-title">解鎖 AI 工作模式</div>
+    <div class="part-line"></div>
+    <div class="part-count">8 / 8 · 20h</div>
+  </div>
+  <div class="lesson-list">
+    <a class="lesson-card" href="part1/CH1-1.html">
+      <div class="lesson-band band-1"></div>
+      <div class="lesson-body">
+        <div class="lesson-num">CH 1.1 · 2h</div>
+        <div class="lesson-title">AI 不只是聊天工具，而是你的工作介面</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+    <a class="lesson-card" href="part1/CH1-2.html">
+      <div class="lesson-band band-1"></div>
+      <div class="lesson-body">
+        <div class="lesson-num">CH 1.2 · 3h</div>
+        <div class="lesson-title">黃金提示詞公式：角色、任務、限制、輸出</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+    <a class="lesson-card" href="part1/CH1-3.html">
+      <div class="lesson-band band-1"></div>
+      <div class="lesson-body">
+        <div class="lesson-num">CH 1.3 · 2h</div>
+        <div class="lesson-title">Prompt 除錯：怎麼讓 AI 越改越準</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+    <a class="lesson-card" href="part1/CH1-4.html">
+      <div class="lesson-band band-1"></div>
+      <div class="lesson-body">
+        <div class="lesson-num">CH 1.4 · 3h</div>
+        <div class="lesson-title">System Prompt：給工具用的提示詞設計</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+  </div>
+
+  <div class="prac-head">
+    <div class="prac-label">PRACTICE · 實例演練</div>
+    <div class="prac-line"></div>
+  </div>
+  <div class="prac-list">
+    <a class="prac-card" href="part1/PRAC1-1.html">
+      <div class="prac-band"></div>
+      <div class="prac-body"><div class="prac-num">PRAC 1.1 · 2.5h</div><div class="prac-title">Prompt 黃金公式組合台</div><div class="prac-badge">互動工具</div></div>
+      <div class="prac-arrow">→</div>
+    </a>
+    <a class="prac-card" href="part1/PRAC1-2.html">
+      <div class="prac-band"></div>
+      <div class="prac-body"><div class="prac-num">PRAC 1.2 · 2h</div><div class="prac-title">指令品質健診器</div><div class="prac-badge">評分工具</div></div>
+      <div class="prac-arrow">→</div>
+    </a>
+    <a class="prac-card" href="part1/PRAC1-3.html">
+      <div class="prac-band"></div>
+      <div class="prac-body"><div class="prac-num">PRAC 1.3 · 2.5h</div><div class="prac-title">第一個工具：會議倒數計時器 / 報價試算器</div><div class="prac-badge">生成工具</div></div>
+      <div class="prac-arrow">→</div>
+    </a>
+    <a class="prac-card" href="part1/PRAC1-4.html">
+      <div class="prac-band"></div>
+      <div class="prac-body"><div class="prac-num">PRAC 1.4 · 3h</div><div class="prac-title">個人 AI 助手配置實作</div><div class="prac-badge">System Prompt</div></div>
+      <div class="prac-arrow">→</div>
+    </a>
+  </div>
+
+  <!-- Part 2 -->
+  <div class="part-head">
+    <div class="part-label">Part 2</div>
+    <div class="part-title">建立文字與知識產能</div>
+    <div class="part-line"></div>
+    <div class="part-count">8 / 8 · 20h</div>
+  </div>
+  <div class="lesson-list">
+    <a class="lesson-card" href="part2/CH2-1.html">
+      <div class="lesson-band band-2"></div>
+      <div class="lesson-body">
+        <div class="lesson-num">CH 2.1 · 2.5h</div>
+        <div class="lesson-title">摘要、分類、改寫、擴寫四大核心任務</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+    <a class="lesson-card" href="part2/CH2-2.html">
+      <div class="lesson-band band-2"></div>
+      <div class="lesson-body">
+        <div class="lesson-num">CH 2.2 · 2.5h</div>
+        <div class="lesson-title">文書工作流：Email、公告、週報、會議紀錄</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+    <a class="lesson-card" href="part2/CH2-3.html">
+      <div class="lesson-band band-2"></div>
+      <div class="lesson-body">
+        <div class="lesson-num">CH 2.3 · 2.5h</div>
+        <div class="lesson-title">研究整理與簡報生成：從資料到可交付提案</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+    <a class="lesson-card" href="part2/CH2-4.html">
+      <div class="lesson-band band-2"></div>
+      <div class="lesson-body">
+        <div class="lesson-num">CH 2.4 · 2.5h</div>
+        <div class="lesson-title">多模態輸入：圖片、PDF、語音的 AI 處理</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+  </div>
+
+  <div class="prac-head">
+    <div class="prac-label">PRACTICE · 實例演練</div>
+    <div class="prac-line"></div>
+  </div>
+  <div class="prac-list">
+    <a class="prac-card" href="part2/PRAC2-1.html">
+      <div class="prac-band"></div>
+      <div class="prac-body"><div class="prac-num">PRAC 2.1 · 2.5h</div><div class="prac-title">行政文書模板庫生成器</div><div class="prac-badge">模板工具</div></div>
+      <div class="prac-arrow">→</div>
+    </a>
+    <a class="prac-card" href="part2/PRAC2-2.html">
+      <div class="prac-band"></div>
+      <div class="prac-body"><div class="prac-num">PRAC 2.2 · 2.5h</div><div class="prac-title">會議紀錄轉待辦工具</div><div class="prac-badge">工作流</div></div>
+      <div class="prac-arrow">→</div>
+    </a>
+    <a class="prac-card" href="part2/PRAC2-3.html">
+      <div class="prac-band"></div>
+      <div class="prac-body"><div class="prac-num">PRAC 2.3 · 2.5h</div><div class="prac-title">8 頁提案簡報骨架產生器</div><div class="prac-badge">提案工具</div></div>
+      <div class="prac-arrow">→</div>
+    </a>
+    <a class="prac-card" href="part2/PRAC2-4.html">
+      <div class="prac-band"></div>
+      <div class="prac-body"><div class="prac-num">PRAC 2.4 · 2.5h</div><div class="prac-title">文件分析工作流實作</div><div class="prac-badge">多模態</div></div>
+      <div class="prac-arrow">→</div>
+    </a>
+  </div>
+
+  <!-- Part 3 -->
+  <div class="part-head">
+    <div class="part-label">Part 3</div>
+    <div class="part-title">把資料變成流程</div>
+    <div class="part-line"></div>
+    <div class="part-count">7 / 7 · 18h</div>
+  </div>
+  <div class="lesson-list">
+    <a class="lesson-card" href="part3/CH3-1.html">
+      <div class="lesson-band band-3"></div>
+      <div class="lesson-body">
+        <div class="lesson-num">CH 3.1 · 3h</div>
+        <div class="lesson-title">表格資料清理：CSV / Excel 不再手動修</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+    <a class="lesson-card" href="part3/CH3-2.html">
+      <div class="lesson-band band-3"></div>
+      <div class="lesson-body">
+        <div class="lesson-num">CH 3.2 · 3h</div>
+        <div class="lesson-title">從單次任務變成工作流：輸入、AI 處理、輸出</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+    <a class="lesson-card" href="part3/CH3-3.html">
+      <div class="lesson-band band-3"></div>
+      <div class="lesson-body">
+        <div class="lesson-num">CH 3.3 · 2h</div>
+        <div class="lesson-title">表單、自動化工具與 Webhook 基礎</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+  </div>
+
+  <div class="prac-head">
+    <div class="prac-label">PRACTICE · 實例演練</div>
+    <div class="prac-line"></div>
+  </div>
+  <div class="prac-list">
+    <a class="prac-card" href="part3/PRAC3-1.html">
+      <div class="prac-band"></div>
+      <div class="prac-body"><div class="prac-num">PRAC 3.1 · 2.5h</div><div class="prac-title">混亂資料清理器</div><div class="prac-badge">資料工具</div></div>
+      <div class="prac-arrow">→</div>
+    </a>
+    <a class="prac-card" href="part3/PRAC3-2.html">
+      <div class="prac-band"></div>
+      <div class="prac-body"><div class="prac-num">PRAC 3.2 · 2.5h</div><div class="prac-title">客戶意見分類板</div><div class="prac-badge">分類流程</div></div>
+      <div class="prac-arrow">→</div>
+    </a>
+    <a class="prac-card" href="part3/PRAC3-3.html">
+      <div class="prac-band"></div>
+      <div class="prac-body"><div class="prac-num">PRAC 3.3 · 3h</div><div class="prac-title">表單送件 → AI 摘要 → 通知回傳</div><div class="prac-badge">自動化</div></div>
+      <div class="prac-arrow">→</div>
+    </a>
+    <a class="prac-card" href="part3/PRAC3-4.html">
+      <div class="prac-band"></div>
+      <div class="prac-body"><div class="prac-num">PRAC 3.4 · 2h</div><div class="prac-title">工作流文件化：把重複任務變 SOP</div><div class="prac-badge">SOP 設計</div></div>
+      <div class="prac-arrow">→</div>
+    </a>
+  </div>
+
+  <!-- Part 4 -->
+  <div class="part-head">
+    <div class="part-label">Part 4</div>
+    <div class="part-title">零代碼工具工坊</div>
+    <div class="part-line"></div>
+    <div class="part-count">7 / 7 · 20h</div>
+  </div>
+  <div class="lesson-list">
+    <a class="lesson-card" href="part4/CH4-1.html">
+      <div class="lesson-band band-4"></div>
+      <div class="lesson-body">
+        <div class="lesson-num">CH 4.1 · 3h</div>
+        <div class="lesson-title">讓 AI 生成有輸入、有運算、有輸出的工具</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+    <a class="lesson-card" href="part4/CH4-2.html">
+      <div class="lesson-band band-4"></div>
+      <div class="lesson-body">
+        <div class="lesson-num">CH 4.2 · 3h</div>
+        <div class="lesson-title">用 UI / UX 要求讓工具變好用</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+    <a class="lesson-card" href="part4/CH4-3.html">
+      <div class="lesson-band band-4"></div>
+      <div class="lesson-body">
+        <div class="lesson-num">CH 4.3 · 2h</div>
+        <div class="lesson-title">一句話改造介面風格：從能用進化到可展示</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+  </div>
+
+  <div class="prac-head">
+    <div class="prac-label">PRACTICE · 實例演練</div>
+    <div class="prac-line"></div>
+  </div>
+  <div class="prac-list">
+    <a class="prac-card" href="part4/PRAC4-1.html">
+      <div class="prac-band"></div>
+      <div class="prac-body"><div class="prac-num">PRAC 4.1 · 3h</div><div class="prac-title">報價試算器</div><div class="prac-badge">計算工具</div></div>
+      <div class="prac-arrow">→</div>
+    </a>
+    <a class="prac-card" href="part4/PRAC4-2.html">
+      <div class="prac-band"></div>
+      <div class="prac-body"><div class="prac-num">PRAC 4.2 · 3h</div><div class="prac-title">排班與時區協調工具</div><div class="prac-badge">邏輯工具</div></div>
+      <div class="prac-arrow">→</div>
+    </a>
+    <a class="prac-card" href="part4/PRAC4-3.html">
+      <div class="prac-band"></div>
+      <div class="prac-body"><div class="prac-num">PRAC 4.3 · 3h</div><div class="prac-title">履歷 / 自傳段落整理器</div><div class="prac-badge">文字工具</div></div>
+      <div class="prac-arrow">→</div>
+    </a>
+    <a class="prac-card" href="part4/PRAC4-4.html">
+      <div class="prac-band"></div>
+      <div class="prac-body"><div class="prac-num">PRAC 4.4 · 3h</div><div class="prac-title">個人複合工具頁</div><div class="prac-badge">綜合挑戰</div></div>
+      <div class="prac-arrow">→</div>
+    </a>
+  </div>
+
+  <!-- 路徑選擇 -->
+  <hr class="path-divider">
+  <div class="path-choice-wrap">
+    <div class="path-choice-title">Part 1–4 已完成？選擇你的下一步路徑</div>
+    <div class="path-choice-desc">Part 5 起進入開發實作，需要在電腦上執行程式碼。如果你還沒設定環境，先看環境設定指南；如果你已準備好，直接進入 Part 5。</div>
+    <div class="path-cards">
+      <div class="path-card pc-worker">
+        <div class="pc-tag">AI 工作應用路徑</div>
+        <div class="pc-title">Part 1–4 已夠用</div>
+        <div class="pc-desc">如果你的目標是用 AI 提升工作效率、建立自動化流程，Part 1–4 已涵蓋核心技能。可以回頭深化已學單元，或繼續探索 Part 5+。</div>
+      </div>
+      <a class="path-card pc-dev" href="ENV-SETUP.html">
+        <div class="pc-tag">AI 應用開發路徑</div>
+        <div class="pc-title">準備開發環境 →</div>
+        <div class="pc-desc">Part 5–7 需要 Node.js、VS Code、.env 設定。點此閱讀「開發環境設定指南」，完成後即可解鎖完整的開發課程。</div>
+      </a>
+    </div>
+    <a class="env-setup-link" href="ENV-SETUP.html">⚙ 開發環境設定指南（Node.js · VS Code · API 金鑰）→</a>
+  </div>
+
+  <!-- Part 5 -->
+  <div class="part-head" style="margin-top:16px;">
+    <div class="part-label">Part 5</div>
+    <div class="part-title">前端與部署實戰</div>
+    <div class="part-line"></div>
+    <div class="part-count">8 / 8 · 20h</div>
+  </div>
+  <div class="lesson-list">
+    <a class="lesson-card" href="part5/CH5-1.html">
+      <div class="lesson-band band-1"></div>
+      <div class="lesson-body">
+        <div class="lesson-num">CH 5.1 · 3h</div>
+        <div class="lesson-title">看懂 HTML / CSS / JavaScript 的最低必要知識</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+    <a class="lesson-card" href="part5/CH5-2.html">
+      <div class="lesson-band band-2"></div>
+      <div class="lesson-body">
+        <div class="lesson-num">CH 5.2 · 3h</div>
+        <div class="lesson-title">與 AI 協作改頁面，而不是盲貼程式碼</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+    <a class="lesson-card" href="part5/CH5-3.html">
+      <div class="lesson-band band-3"></div>
+      <div class="lesson-body">
+        <div class="lesson-num">CH 5.3 · 2h</div>
+        <div class="lesson-title">Git 與版本保存</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+    <a class="lesson-card" href="part5/CH5-4.html">
+      <div class="lesson-band band-4"></div>
+      <div class="lesson-body">
+        <div class="lesson-num">CH 5.4 · 2h</div>
+        <div class="lesson-title">含後端服務的完整部署</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+  </div>
+
+  <div class="prac-head">
+    <div class="prac-label">PRACTICE · 實例演練</div>
+    <div class="prac-line"></div>
+  </div>
+  <div class="prac-list">
+    <a class="prac-card" href="part5/PRAC5-1.html">
+      <div class="prac-band"></div>
+      <div class="prac-body"><div class="prac-num">PRAC 5.1 · 2.5h</div><div class="prac-title">單頁工具 v2 改版任務</div><div class="prac-badge">頁面改版</div></div>
+      <div class="prac-arrow">→</div>
+    </a>
+    <a class="prac-card" href="part5/PRAC5-2.html">
+      <div class="prac-band"></div>
+      <div class="prac-body"><div class="prac-num">PRAC 5.2 · 2.5h</div><div class="prac-title">靜態頁面部署到 Vercel / Netlify</div><div class="prac-badge">部署練習</div></div>
+      <div class="prac-arrow">→</div>
+    </a>
+    <a class="prac-card" href="part5/PRAC5-3.html">
+      <div class="prac-band"></div>
+      <div class="prac-body"><div class="prac-num">PRAC 5.3 · 2.5h</div><div class="prac-title">個人作品展示首頁</div><div class="prac-badge">作品集</div></div>
+      <div class="prac-arrow">→</div>
+    </a>
+    <a class="prac-card" href="part5/PRAC5-4.html">
+      <div class="prac-band"></div>
+      <div class="prac-body"><div class="prac-num">PRAC 5.4 · 2.5h</div><div class="prac-title">含後端代理的完整部署</div><div class="prac-badge">全端部署</div></div>
+      <div class="prac-arrow">→</div>
+    </a>
+  </div>
+
+  <!-- Part 6 -->
+  <div class="part-head" style="margin-top:16px;">
+    <div class="part-label">Part 6</div>
+    <div class="part-title">AI 應用開發進階</div>
+    <div class="part-line"></div>
+    <div class="part-count">9 / 9 · 22h</div>
+  </div>
+  <div class="lesson-list">
+    <a class="lesson-card" href="part6/CH6-1.html">
+      <div class="lesson-band band-2"></div>
+      <div class="lesson-body">
+        <div class="lesson-num">CH 6.1 · 3h</div>
+        <div class="lesson-title">API、後端代理與錯誤處理</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+    <a class="lesson-card" href="part6/CH6-2.html">
+      <div class="lesson-band band-3"></div>
+      <div class="lesson-body">
+        <div class="lesson-num">CH 6.2 · 3h</div>
+        <div class="lesson-title">Embedding 與向量搜尋基礎</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+    <a class="lesson-card" href="part6/CH6-3.html">
+      <div class="lesson-band band-4"></div>
+      <div class="lesson-body">
+        <div class="lesson-num">CH 6.3 · 3h</div>
+        <div class="lesson-title">RAG 實作與品質調優</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+    <a class="lesson-card" href="part6/CH6-4.html">
+      <div class="lesson-band band-1"></div>
+      <div class="lesson-body">
+        <div class="lesson-num">CH 6.4 · 3h</div>
+        <div class="lesson-title">Function Calling 與 Agent 工具鏈設計</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+    <a class="lesson-card" href="part6/CH6-5.html">
+      <div class="lesson-band band-2"></div>
+      <div class="lesson-body">
+        <div class="lesson-num">CH 6.5 · 2h</div>
+        <div class="lesson-title">Streaming、Evals、Guardrails 與成本控管</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+  </div>
+
+  <div class="prac-head">
+    <div class="prac-label">PRACTICE · 實例演練</div>
+    <div class="prac-line"></div>
+  </div>
+  <div class="prac-list">
+    <a class="prac-card" href="part6/PRAC6-1.html">
+      <div class="prac-band"></div>
+      <div class="prac-body"><div class="prac-num">PRAC 6.1 · 2h</div><div class="prac-title">API 呼叫測試頁</div><div class="prac-badge">開發練習</div></div>
+      <div class="prac-arrow">→</div>
+    </a>
+    <a class="prac-card" href="part6/PRAC6-2.html">
+      <div class="prac-band"></div>
+      <div class="prac-body"><div class="prac-num">PRAC 6.2 · 2.5h</div><div class="prac-title">最小文件問答器</div><div class="prac-badge">RAG 入門</div></div>
+      <div class="prac-arrow">→</div>
+    </a>
+    <a class="prac-card" href="part6/PRAC6-3.html">
+      <div class="prac-band"></div>
+      <div class="prac-body"><div class="prac-num">PRAC 6.3 · 2h</div><div class="prac-title">Agent 工具鏈小案例</div><div class="prac-badge">工具呼叫</div></div>
+      <div class="prac-arrow">→</div>
+    </a>
+    <a class="prac-card" href="part6/PRAC6-4.html">
+      <div class="prac-band"></div>
+      <div class="prac-body"><div class="prac-num">PRAC 6.4 · 1.5h</div><div class="prac-title">Streaming 回應改造</div><div class="prac-badge">串流輸出</div></div>
+      <div class="prac-arrow">→</div>
+    </a>
+  </div>
+
+  <!-- Part 7 -->
+  <div class="part-head" style="margin-top:16px;">
+    <div class="part-label" style="color:var(--c-a5);">Part 7</div>
+    <div class="part-title">專題衝刺與成果發表</div>
+    <div class="part-line"></div>
+    <div class="part-count">9 / 9 · 20h</div>
+  </div>
+  <p style="font-size:.85rem;color:var(--c-muted);line-height:1.8;margin-bottom:20px;">最後一段不只是交作業，而是一個結構化的產品開發週期：有定義、有衝刺、有中期審查、有修正、有部署、有發表。</p>
+
+  <div class="lesson-list" style="margin-bottom:20px;">
+    <a class="lesson-card" href="part7/CH7-1.html">
+      <div class="lesson-band" style="width:4px;align-self:stretch;flex-shrink:0;background:var(--c-a5);opacity:.6;"></div>
+      <div class="lesson-body">
+        <div class="lesson-num" style="color:var(--c-a5);">CH 7.1 · 2h</div>
+        <div class="lesson-title">選題與 MVP 拆解</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+    <a class="lesson-card" href="part7/CH7-2.html">
+      <div class="lesson-band" style="width:4px;align-self:stretch;flex-shrink:0;background:var(--c-a5);opacity:.6;"></div>
+      <div class="lesson-body">
+        <div class="lesson-num" style="color:var(--c-a5);">CH 7.2 · 2h</div>
+        <div class="lesson-title">架構設計 Checklist</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+    <a class="lesson-card" href="part7/CH7-3.html">
+      <div class="lesson-band" style="width:4px;align-self:stretch;flex-shrink:0;background:var(--c-a5);opacity:.6;"></div>
+      <div class="lesson-body">
+        <div class="lesson-num" style="color:var(--c-a5);">CH 7.3 · 2h</div>
+        <div class="lesson-title">上線前的最低品質標準</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+    <a class="lesson-card" href="part7/CH7-4.html">
+      <div class="lesson-band" style="width:4px;align-self:stretch;flex-shrink:0;background:var(--c-a5);opacity:.6;"></div>
+      <div class="lesson-body">
+        <div class="lesson-num" style="color:var(--c-a5);">CH 7.4 · 2h</div>
+        <div class="lesson-title">怎麼說明你做了什麼：Demo 與發表技巧</div>
+        <div class="lesson-status status-available">可學習</div>
+      </div>
+      <div class="lesson-arrow">→</div>
+    </a>
+  </div>
+
+  <div class="prac-head">
+    <div class="prac-label" style="color:var(--c-a5);">CAPSTONE · 專題衝刺</div>
+    <div class="prac-line" style="border-color:rgba(122,158,163,.2);"></div>
+  </div>
+  <div class="prac-list">
+    <a class="prac-card prac-card-5" href="part7/PRAC7-1.html">
+      <div class="prac-band-5"></div>
+      <div class="prac-body"><div class="prac-num-5">PRAC 7.1 · 4h</div><div class="prac-title">開發衝刺第一輪</div><div class="prac-badge-5 diff-easy">開發</div></div>
+      <div class="prac-arrow-5">→</div>
+    </a>
+    <a class="prac-card prac-card-5" href="part7/PRAC7-2.html">
+      <div class="prac-band-5"></div>
+      <div class="prac-body"><div class="prac-num-5">PRAC 7.2 · 3h</div><div class="prac-title">中期 Demo + 同儕審查</div><div class="prac-badge-5 diff-easy">審查</div></div>
+      <div class="prac-arrow-5">→</div>
+    </a>
+    <a class="prac-card prac-card-5" href="part7/PRAC7-3.html">
+      <div class="prac-band-5"></div>
+      <div class="prac-body"><div class="prac-num-5">PRAC 7.3 · 3h</div><div class="prac-title">開發衝刺第二輪</div><div class="prac-badge-5 diff-mid">優化</div></div>
+      <div class="prac-arrow-5">→</div>
+    </a>
+    <a class="prac-card prac-card-5" href="part7/PRAC7-4.html">
+      <div class="prac-band-5"></div>
+      <div class="prac-body"><div class="prac-num-5">PRAC 7.4 · 1h</div><div class="prac-title">部署與驗收</div><div class="prac-badge-5 diff-mid">部署</div></div>
+      <div class="prac-arrow-5">→</div>
+    </a>
+    <a class="prac-card prac-card-5" href="part7/PRAC7-5.html">
+      <div class="prac-band-5"></div>
+      <div class="prac-body"><div class="prac-num-5">PRAC 7.5 · 1h</div><div class="prac-title">成果發表</div><div class="prac-badge-5 diff-adv">發表</div></div>
+      <div class="prac-arrow-5">→</div>
+    </a>
+  </div>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">持續更新中 · 每個單元都值得慢慢學</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+document.querySelectorAll('.lesson-card.locked').forEach(card=>{
+  card.addEventListener('click',e=>{e.preventDefault();showToast('此單元尚未開放');});
+});
+</script>
+</body>
+</html>

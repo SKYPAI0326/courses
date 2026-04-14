@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRAC 2-4 完整專案：週報自動生成器｜140小時生成式AI實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a4:#6b7fa3;--radius:6px;--radius-sm:4px;--content-w:860px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--c-bg);color:var(--c-text);font-family:'Noto Sans TC',sans-serif;font-size:15px;line-height:1.7;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.08);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a4);width:0%;transition:width .1s;}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px;}
+.back-link:hover{color:var(--c-a4);}
+.hero-eyebrow{font-size:.7rem;color:var(--c-a4);letter-spacing:2px;font-weight:500;margin-bottom:12px;}
+.page-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:12px;}
+.page-subtitle{font-size:.95rem;color:var(--c-muted);line-height:1.85;max-width:600px;}
+.hero-meta{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;}
+.meta-badge{font-size:.75rem;color:var(--c-muted);background:var(--c-surface);border:1px solid var(--c-border);padding:4px 12px;border-radius:99px;}
+.meta-badge strong{color:var(--c-a4);}
+.steps-wrap{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.section-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:20px;margin-top:36px;}
+.step-block{display:flex;gap:24px;margin-bottom:44px;position:relative;}
+.step-block:not(:last-of-type)::after{content:'';position:absolute;left:19px;top:48px;width:2px;height:calc(100% - 16px);background:var(--c-border);}
+.step-circle{width:40px;height:40px;border-radius:50%;background:rgba(107,127,163,.1);border:2px solid var(--c-a4);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-weight:700;font-size:.95rem;color:var(--c-a4);flex-shrink:0;}
+.step-content{flex:1;padding-top:6px;}
+.step-heading{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin-bottom:8px;}
+.step-body{font-size:.9rem;color:var(--c-text);line-height:1.9;margin-bottom:10px;}
+.step-tip{font-size:.82rem;color:var(--c-muted);background:var(--c-surface);border-left:3px solid var(--c-border);padding:10px 14px;border-radius:0 var(--radius) var(--radius) 0;line-height:1.7;}
+.step-tip strong{color:var(--c-a4);font-weight:500;}
+.code-block{background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.82rem;padding:20px 22px;border-radius:var(--radius);white-space:pre-wrap;overflow-x:auto;margin:12px 0;line-height:1.7;}
+.callout{display:flex;gap:16px;padding:16px 20px;border-radius:var(--radius);margin:20px 0;}
+.callout.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25);}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout.key{background:rgba(107,127,163,.1);border:1px solid rgba(107,127,163,.35);}
+.callout-icon{font-size:1rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.87rem;line-height:1.8;color:var(--c-text);}
+/* Architecture overview */
+.arch-card{background:var(--c-card);border:1.5px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:20px 0;}
+.arch-header{padding:14px 20px;border-bottom:1px solid var(--c-border);font-size:.72rem;color:var(--c-muted);letter-spacing:1.5px;}
+.arch-body{padding:20px;}
+.arch-row{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
+.arch-node{font-size:.78rem;padding:7px 12px;border-radius:var(--radius-sm);border:1px solid;white-space:nowrap;}
+.arch-node.source{background:rgba(181,112,58,.07);border-color:rgba(181,112,58,.3);color:#8a5a2a;}
+.arch-node.process{background:rgba(107,127,163,.07);border-color:rgba(107,127,163,.3);color:var(--c-a4);}
+.arch-node.ai{background:rgba(139,111,163,.08);border-color:rgba(139,111,163,.3);color:#6b4a8a;}
+.arch-node.output{background:rgba(90,122,90,.07);border-color:rgba(90,122,90,.3);color:#4a7a4a;}
+.arch-arr{font-size:.75rem;color:var(--c-muted);}
+/* Verify */
+.verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:24px 28px;margin:36px 0;}
+.verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px;}
+.verify-text{font-size:.9rem;color:var(--c-text);line-height:1.85;}
+/* Checklist */
+.check-list{display:flex;flex-direction:column;gap:8px;margin:16px 0;}
+.check-item{font-size:.87rem;color:var(--c-text);padding-left:20px;position:relative;line-height:1.7;}
+.check-item::before{content:'□';position:absolute;left:0;color:var(--c-a4);}
+/* Part summary */
+.part-summary{background:rgba(107,127,163,.04);border:1.5px solid rgba(107,127,163,.2);border-radius:var(--radius);padding:28px 32px;margin:40px 0;}
+.ps-label{font-size:.7rem;color:var(--c-a4);letter-spacing:2px;font-weight:500;margin-bottom:14px;}
+.ps-title{font-family:'Shippori Mincho',serif;font-size:1.2rem;font-weight:700;color:var(--c-text);margin-bottom:12px;}
+.ps-skills{display:flex;flex-wrap:wrap;gap:8px;}
+.ps-skill{font-size:.78rem;color:var(--c-a4);background:rgba(107,127,163,.1);border:1px solid rgba(107,127,163,.25);padding:4px 12px;border-radius:99px;}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a4);text-decoration:none;padding:10px 20px;border:1px solid rgba(107,127,163,.3);border-radius:var(--radius);transition:background .2s;}
+.nav-btn:hover{background:rgba(107,127,163,.07);}
+.nav-btn.primary{background:var(--c-a4);color:#fff;border-color:var(--c-a4);}
+.nav-btn.primary:hover{background:#5c6f91;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-div{width:1px;height:14px;background:var(--c-border);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+@media(max-width:600px){.topbar,.page-hero,.steps-wrap,.nav-footer{padding-left:24px;padding-right:24px;}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a href="../index.html" class="logo">Codex Studio</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">140小時生成式AI實務應用課程</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">PRAC 2-4 · 4h</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="page-hero">
+  <a href="PRAC2-3.html" class="back-link">← PRAC 2-3 多觸發條件</a>
+  <div class="hero-eyebrow">PRAC 2-4 · CAPSTONE PROJECT</div>
+  <h1 class="page-title">完整專案：週報自動生成器</h1>
+  <p class="page-subtitle">Part 2 的整合專案。把 PRAC 2-1 到 2-3 學到的所有技術組合成一個端對端的自動化系統：每週五自動從多個來源收集資料，用 AI 生成週報，發送給指定名單。</p>
+  <div class="hero-meta">
+    <span class="meta-badge"><strong>4h</strong> 整合專案</span>
+    <span class="meta-badge">Part 2 · 工作流程自動化入門</span>
+    <span class="meta-badge">Part 2 收尾</span>
+  </div>
+</div>
+
+<div class="steps-wrap">
+
+  <div class="callout key">
+    <span class="callout-icon">●</span>
+    <div class="callout-body"><strong>專案目標：</strong>建立一條每週五下午 5:00 自動執行的流程，從 Google Sheets、Google Calendar、Gmail 收集本週資料，用 AI 生成結構化週報，自動發送 Email。同時加入錯誤處理和執行確認機制。</div>
+  </div>
+
+  <div class="section-label">系統架構</div>
+  <div class="arch-card">
+    <div class="arch-header">ARCHITECTURE · 系統架構</div>
+    <div class="arch-body">
+      <div class="arch-row">
+        <div class="arch-node source">Schedule 觸發<br>週五 17:00</div>
+        <div class="arch-arr">→</div>
+        <div class="arch-node process">讀取 Calendar<br>本週會議</div>
+        <div class="arch-arr">+</div>
+        <div class="arch-node process">讀取 Sheets<br>本週任務完成</div>
+        <div class="arch-arr">+</div>
+        <div class="arch-node process">讀取 Gmail<br>本週重要郵件</div>
+      </div>
+      <div class="arch-row">
+        <div class="arch-arr" style="padding-left:0;">↓</div>
+      </div>
+      <div class="arch-row">
+        <div class="arch-node process">資料彙整<br>Text Aggregator</div>
+        <div class="arch-arr">→</div>
+        <div class="arch-node ai">AI 生成週報<br>OpenAI / Claude</div>
+        <div class="arch-arr">→</div>
+        <div class="arch-node output">Email 發送<br>+ Notion 存檔</div>
+      </div>
+      <div class="arch-row">
+        <div class="arch-arr" style="padding-left:0;">↓（失敗時）</div>
+      </div>
+      <div class="arch-row">
+        <div class="arch-node source">Error Handler<br>發送警示</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">STEP BY STEP · 建置步驟</div>
+
+  <div class="step-block">
+    <div class="step-circle">1</div>
+    <div class="step-content">
+      <div class="step-heading">準備資料來源</div>
+      <div class="step-body">確認以下三個資料來源已設定好授權：（1）Google Calendar — 你的工作行事曆；（2）Google Sheets — 你的任務追蹤表，至少有「任務名稱」和「完成日期」欄位；（3）Gmail — 需要設定搜尋條件來篩選「重要」郵件（建議用標籤）。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">2</div>
+    <div class="step-content">
+      <div class="step-heading">建立主 Scenario 並設定觸發器</div>
+      <div class="step-body">在 Make 建立新 Scenario，觸發器選「Schedule」，設定為：每週、週五、17:00。如果要立即測試，先選「Run once」，觸發後再改回排程。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">3</div>
+    <div class="step-content">
+      <div class="step-heading">加入三個資料讀取節點</div>
+      <div class="step-body">並行加入三個「搜尋/讀取」節點，分別從三個來源收集本週資料：</div>
+      <div class="code-block">節點 1：Google Calendar - Search Events
+- Calendar: [你的行事曆]
+- Time range: 本週一 00:00 ~ 本週五 23:59
+  （用 Make 的 date formula: {{formatDate(now; "YYYY-MM-DD"}} 搭配減法）
+
+節點 2：Google Sheets - Search Rows
+- Spreadsheet: 任務追蹤表
+- Filter: 完成日期 >= 本週一
+
+節點 3：Gmail - Search Emails
+- Search query: label:important after:{{本週一}} before:{{本週五}}</div>
+      <div class="step-tip"><strong>提示：</strong>Make 提供日期函數（如 addDays、formatDate）來計算相對日期。點選節點的日期欄位，輸入 {{}} 後可以看到可用的函數清單。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">4</div>
+    <div class="step-content">
+      <div class="step-heading">用 Text Aggregator 彙整資料</div>
+      <div class="step-body">加入「Tools」→「Text Aggregator」節點，把三個來源的資料整合成一個文字塊，作為 AI 的輸入。設定格式：</div>
+      <div class="code-block">彙整模板：
+=== 本週會議 ===
+{{calendar_events}}
+
+=== 完成的任務 ===
+{{completed_tasks}}
+
+=== 重要郵件 ===
+{{important_emails}}</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">5</div>
+    <div class="step-content">
+      <div class="step-heading">加入 AI 週報生成節點</div>
+      <div class="step-body">加入 OpenAI 節點，用以下 Prompt 生成週報：</div>
+      <div class="code-block">System:
+你是一位工作週報撰寫助理。根據提供的原始資料，生成一份清晰的工作週報。
+格式要求：
+- 使用繁體中文
+- 標題：{{本週週次}} 工作週報
+- 結構：本週完成事項 / 重要溝通摘要 / 待辦延續 / 下週重點
+
+User:
+以下是本週的工作原始資料：
+{{aggregated_data}}
+
+請生成週報。如果某個類別沒有資料，寫「本週無」。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">6</div>
+    <div class="step-content">
+      <div class="step-heading">加入錯誤處理機制</div>
+      <div class="step-body">在 AI 節點和 Email 節點上右鍵，設定 Error Handler：選擇「Break」，然後在錯誤路由中加入一個 Gmail「Send an Email」節點，發送錯誤通知給自己。錯誤 Email 的主旨設為「[週報系統] 自動化流程失敗」，Body 包含錯誤節點名稱和錯誤時間。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">7</div>
+    <div class="step-content">
+      <div class="step-heading">發送週報 + 存入 Notion</div>
+      <div class="step-body">最後加入兩個並行節點：（1）Gmail「Send an Email」—— 把 AI 生成的週報以 HTML 格式發送給週報訂閱名單；（2）Notion「Create a Page」—— 把週報存入 Notion 的「週報存檔」資料庫，方便日後搜尋查閱。</div>
+      <div class="step-tip"><strong>提示：</strong>Notion 頁面標題可以用 {{formatDate(now; "YYYY-MM-DD")}} 帶入日期，讓每份週報有唯一標題。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">8</div>
+    <div class="step-content">
+      <div class="step-heading">測試完整流程</div>
+      <div class="step-body">點「Run once」執行完整流程測試。確認：資料讀取節點成功取得本週資料 → AI 節點生成了合理的週報內容 → Email 正確送出 → Notion 存入了新頁面。確認無誤後啟用排程。</div>
+    </div>
+  </div>
+
+  <div class="verify-box">
+    <div class="verify-label">完成驗收 · VERIFY</div>
+    <div class="verify-text">
+      手動觸發一次流程 → 你的信箱收到了格式完整的週報 Email → Notion 存入了對應日期的週報頁面 → 測試錯誤處理：暫時斷開一個連接，重新執行，確認你收到了錯誤通知 Email。
+    </div>
+  </div>
+
+  <div class="part-summary">
+    <div class="ps-label">PART 2 SUMMARY · 你完成了什麼</div>
+    <div class="ps-title">Part 2 工作流程自動化入門——已完成</div>
+    <div class="ps-skills">
+      <span class="ps-skill">觸發器設計</span>
+      <span class="ps-skill">條件路由</span>
+      <span class="ps-skill">AI 節點整合</span>
+      <span class="ps-skill">多觸發流程</span>
+      <span class="ps-skill">錯誤處理</span>
+      <span class="ps-skill">資料彙整</span>
+      <span class="ps-skill">排程自動化</span>
+      <span class="ps-skill">Make 實戰操作</span>
+    </div>
+  </div>
+
+</div>
+
+<div class="nav-footer">
+  <a href="PRAC2-3.html" class="nav-btn">← PRAC 2-3 多觸發條件</a>
+  <a href="../index.html" class="nav-btn primary">返回課程總覽 →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">Codex Studio</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">140小時生成式AI實務應用課程</span>
+</footer>
+
+<script>
+const fill = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  fill.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + '%';
+});
+</script>
+</body>
+</html>

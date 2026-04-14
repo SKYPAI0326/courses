@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRAC6-3 Agent 工具鏈小案例｜140小時生成式 AI 實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-accent:#5a7a5a;--radius:6px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}.topbar-sub{font-size:.8rem;color:var(--c-muted);}.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-accent);border:1px solid rgba(90,122,90,.3);background:rgba(90,122,90,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+.prac-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}.back-link:hover{color:var(--c-accent);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-badge{font-size:.72rem;color:var(--c-accent);letter-spacing:1px;font-weight:500;}
+.prac-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.prac-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.mission-box{padding:22px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius);}
+.mission-label{font-size:.7rem;color:var(--c-accent);letter-spacing:1.5px;font-weight:500;margin-bottom:8px;text-transform:uppercase;}
+.mission-text{font-size:.92rem;line-height:1.85;color:var(--c-text);}
+.prac-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 48px;}
+.steps-list{display:flex;flex-direction:column;gap:0;margin-bottom:48px;}
+.step-item{display:flex;gap:20px;padding:24px 0;border-bottom:1px solid var(--c-border);position:relative;}
+.step-item:last-child{border-bottom:none;}
+.step-left{display:flex;flex-direction:column;align-items:center;gap:0;flex-shrink:0;width:36px;}
+.step-num{width:36px;height:36px;border-radius:50%;background:var(--c-card);border:2px solid var(--c-accent);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-weight:700;font-size:.95rem;color:var(--c-accent);flex-shrink:0;}
+.step-line{flex:1;width:1px;background:var(--c-border);margin-top:8px;}
+.step-item:last-child .step-line{display:none;}
+.step-content{flex:1;padding-top:6px;}
+.step-title{font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:8px;}
+.step-desc{font-size:.88rem;color:var(--c-muted);line-height:1.8;margin-bottom:12px;}
+.step-desc strong{color:var(--c-text);font-weight:700;}
+.step-desc code{font-family:'Courier New',monospace;font-size:.82rem;background:rgba(90,122,90,.12);color:#3a5a3a;padding:1px 5px;border-radius:3px;}
+.step-note{font-size:.82rem;padding:12px 16px;background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);border-radius:var(--radius);color:var(--c-text);line-height:1.7;}
+.tool-wrap{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin-bottom:48px;}
+.tool-toolbar{display:flex;align-items:center;padding:10px 16px;background:var(--c-surface);border-bottom:1px solid var(--c-border);gap:8px;}
+.dot{width:11px;height:11px;border-radius:50%;}.dot.r{background:#ff5f57;}.dot.y{background:#febc2e;}.dot.g{background:#28c840;}
+.tool-toolbar-title{font-size:.78rem;color:var(--c-muted);margin-left:8px;font-weight:500;}
+.tool-body{padding:28px 32px;}
+.scenario-tabs{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;}
+.scenario-tab{padding:8px 16px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:99px;font-size:.82rem;cursor:pointer;color:var(--c-muted);transition:all .2s;}
+.scenario-tab.active{background:var(--c-accent);color:#fff;border-color:var(--c-accent);}
+.scenario-panel{display:none;}.scenario-panel.active{display:block;}
+.tool-def-card{padding:16px 20px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin-bottom:12px;}
+.tool-def-name{font-size:.88rem;font-weight:700;color:var(--c-accent);font-family:'Courier New',monospace;margin-bottom:4px;}
+.tool-def-desc{font-size:.82rem;color:var(--c-muted);margin-bottom:8px;line-height:1.6;}
+.tool-def-params{font-size:.78rem;color:var(--c-text);font-family:'Courier New',monospace;background:rgba(90,122,90,.06);padding:8px 10px;border-radius:4px;}
+.loop-visualizer{margin:20px 0;}
+.loop-step{display:flex;gap:12px;padding:12px 16px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);margin-bottom:8px;position:relative;}
+.loop-step.agent{border-left:3px solid var(--c-a4);}
+.loop-step.tool{border-left:3px solid var(--c-accent);}
+.loop-step.result{border-left:3px solid var(--c-a2);}
+.loop-step-icon{font-size:1rem;flex-shrink:0;margin-top:2px;}
+.loop-step-content{flex:1;}
+.loop-step-label{font-size:.68rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px;}
+.loop-step.agent .loop-step-label{color:var(--c-a4);}
+.loop-step.tool .loop-step-label{color:var(--c-accent);}
+.loop-step.result .loop-step-label{color:var(--c-a2);}
+.loop-step-text{font-size:.85rem;color:var(--c-text);line-height:1.7;}
+.loop-step-text code{font-family:'Courier New',monospace;font-size:.8rem;background:rgba(90,122,90,.1);color:#3a5a3a;padding:1px 5px;border-radius:3px;}
+.run-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 24px;background:var(--c-accent);color:#fff;border:none;border-radius:var(--radius);font-family:'Noto Sans TC',sans-serif;font-size:.9rem;font-weight:500;cursor:pointer;transition:opacity .2s;margin-bottom:16px;}
+.run-btn:hover{opacity:.88;}
+.field-label{font-size:.78rem;font-weight:700;color:var(--c-text);margin-bottom:6px;display:block;}
+textarea{width:100%;font-family:'Noto Sans TC',sans-serif;font-size:.88rem;padding:10px 14px;border:1px solid var(--c-border);border-radius:var(--radius);background:#fff;color:var(--c-text);outline:none;transition:border-color .2s;resize:vertical;line-height:1.7;}
+textarea:focus{border-color:var(--c-accent);}
+.challenge-wrap{padding:0 48px 80px;max-width:var(--content-w);margin:0 auto;}
+.challenge-title{font-family:'Shippori Mincho',serif;font-size:1.2rem;font-weight:700;color:var(--c-text);margin-bottom:16px;}
+.challenge-list{display:flex;flex-direction:column;gap:10px;}
+.challenge-item{display:flex;align-items:flex-start;gap:12px;padding:14px 18px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);cursor:pointer;transition:border-color .2s;}
+.challenge-item:hover{border-color:var(--c-accent);}
+.challenge-item input[type="checkbox"]{width:16px;height:16px;accent-color:var(--c-accent);flex-shrink:0;margin-top:3px;}
+.challenge-item-text{font-size:.88rem;line-height:1.7;color:var(--c-text);}
+.challenge-item.done .challenge-item-text{color:var(--c-muted);text-decoration:line-through;}
+.progress-bar-wrap{height:6px;background:var(--c-surface);border-radius:99px;margin-bottom:20px;overflow:hidden;}
+.progress-bar-fill{height:100%;background:var(--c-accent);border-radius:99px;transition:width .4s;}
+.progress-label{font-size:.78rem;color:var(--c-muted);margin-bottom:8px;}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-accent);}.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}.footer-note{font-size:.75rem;color:var(--c-muted);}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1);}.reveal.in{opacity:1;transform:translateY(0);}
+@media(max-width:768px){.topbar{padding:0 16px;}.topbar-sub,.topbar-divider{display:none;}.prac-hero{padding:40px 20px 36px;}.prac-title{font-size:1.55rem;}.prac-body{padding:0 20px 48px;}.tool-body{padding:20px;}.challenge-wrap{padding:0 20px 60px;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.nav-btn{flex:none;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="logo" href="../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">140 小時生成式 AI 實務應用課程</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">PRAC 6.3 · Part 6</div>
+</header>
+
+<div class="prac-hero">
+  <a class="back-link" href="../index.html">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">PART 6 · AI 應用開發進階</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-badge">PRAC 6.3 · 2 小時</span>
+  </div>
+  <h1 class="prac-title">Agent 工具鏈小案例</h1>
+  <p class="prac-tagline">從「定義工具」到「觀察 Loop 執行」，用三個小案例理解 Agent 如何決策、何時呼叫工具、如何從結果繼續推理。</p>
+  <div class="mission-box">
+    <div class="mission-label">任務目標</div>
+    <div class="mission-text">選擇一個情境案例，閱讀工具定義、模擬 Agent Loop 的執行過程，並設計你自己版本的工具 Schema。理解「模型決策 → 工具呼叫 → 結果回傳 → 繼續推理」的完整循環。</div>
+  </div>
+</div>
+
+<div class="prac-body">
+  <div class="steps-list reveal">
+    <div class="step-item">
+      <div class="step-left"><div class="step-num">1</div><div class="step-line"></div></div>
+      <div class="step-content">
+        <div class="step-title">選擇一個情境，閱讀工具定義</div>
+        <div class="step-desc">三個情境代表不同複雜度的 Agent 應用。每個情境都有 2–3 個工具。注意每個工具的 <strong>description 欄位</strong>——這是模型決定「要不要用這個工具」的依據。</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-left"><div class="step-num">2</div><div class="step-line"></div></div>
+      <div class="step-content">
+        <div class="step-title">觀察模擬 Loop 執行過程</div>
+        <div class="step-desc">點擊「執行模擬」，觀察 Agent 如何在「思考 → 呼叫工具 → 收到結果 → 再思考」之間循環。特別注意：<strong>模型在哪個步驟決定不再呼叫工具，直接回答？</strong></div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-left"><div class="step-num">3</div><div class="step-line"></div></div>
+      <div class="step-content">
+        <div class="step-title">設計你自己的工具</div>
+        <div class="step-desc">在「自訂工具設計」區填入你想要的工具名稱、描述和參數。思考：這個工具的 description 寫得夠清楚嗎？模型會在正確的時機觸發它嗎？</div>
+        <div class="step-note">好的工具 description 應該包含：<strong>什麼時候用</strong>（觸發條件）、<strong>用來做什麼</strong>（目的）、<strong>回傳什麼</strong>（輸出格式）。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="max-width:var(--content-w);margin:0 auto;padding:0 48px 32px;">
+  <div class="tool-wrap reveal">
+    <div class="tool-toolbar">
+      <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+      <div class="tool-toolbar-title">Agent Loop 模擬器</div>
+    </div>
+    <div class="tool-body">
+      <div class="scenario-tabs">
+        <div class="scenario-tab active" onclick="switchScenario(0)">情境一：行程助理</div>
+        <div class="scenario-tab" onclick="switchScenario(1)">情境二：客服機器人</div>
+        <div class="scenario-tab" onclick="switchScenario(2)">情境三：資料分析助理</div>
+      </div>
+
+      <!-- Scenario 0 -->
+      <div class="scenario-panel active" id="sc-0">
+        <p style="font-size:.88rem;color:var(--c-muted);margin-bottom:16px;line-height:1.7;">使用者詢問「下週二下午我有沒有空開一小時的會？」Agent 需要查行事曆、找空檔、回覆建議。</p>
+        <div class="tool-def-card">
+          <div class="tool-def-name">get_calendar_events</div>
+          <div class="tool-def-desc">查詢指定日期範圍內的所有行事曆事件。當使用者詢問某段時間的行程或空檔時使用。</div>
+          <div class="tool-def-params">params: { date_from: string, date_to: string }</div>
+        </div>
+        <div class="tool-def-card">
+          <div class="tool-def-name">find_free_slots</div>
+          <div class="tool-def-desc">在指定日期找出連續空閒時間段。必須先呼叫 get_calendar_events 取得現有行程後才能使用。</div>
+          <div class="tool-def-params">params: { date: string, duration_minutes: number, existing_events: array }</div>
+        </div>
+        <button class="run-btn" onclick="runLoop(0)">執行模擬</button>
+        <div id="loop-0" class="loop-visualizer" style="display:none;"></div>
+      </div>
+
+      <!-- Scenario 1 -->
+      <div class="scenario-panel" id="sc-1">
+        <p style="font-size:.88rem;color:var(--c-muted);margin-bottom:16px;line-height:1.7;">使用者說「我的訂單 #12345 到了嗎？」Agent 需要查訂單狀態、取得物流資訊、回覆使用者。</p>
+        <div class="tool-def-card">
+          <div class="tool-def-name">get_order_status</div>
+          <div class="tool-def-desc">查詢指定訂單的狀態（處理中/已出貨/已送達）。使用者詢問訂單相關問題時呼叫。回傳訂單狀態和出貨時間。</div>
+          <div class="tool-def-params">params: { order_id: string }</div>
+        </div>
+        <div class="tool-def-card">
+          <div class="tool-def-name">get_shipping_details</div>
+          <div class="tool-def-desc">取得訂單的物流追蹤號碼和預計送達日期。只在訂單狀態為「已出貨」時才呼叫。</div>
+          <div class="tool-def-params">params: { order_id: string }</div>
+        </div>
+        <div class="tool-def-card">
+          <div class="tool-def-name">create_support_ticket</div>
+          <div class="tool-def-desc">建立客服工單。當訂單有問題（如延遲超過 7 天）或使用者要求人工協助時使用。</div>
+          <div class="tool-def-params">params: { order_id: string, issue_type: string, description: string }</div>
+        </div>
+        <button class="run-btn" onclick="runLoop(1)">執行模擬</button>
+        <div id="loop-1" class="loop-visualizer" style="display:none;"></div>
+      </div>
+
+      <!-- Scenario 2 -->
+      <div class="scenario-panel" id="sc-2">
+        <p style="font-size:.88rem;color:var(--c-muted);margin-bottom:16px;line-height:1.7;">使用者說「幫我分析上個月的銷售數據，找出最高銷售的三個產品。」Agent 需要查數據、計算、產出報告。</p>
+        <div class="tool-def-card">
+          <div class="tool-def-name">query_sales_data</div>
+          <div class="tool-def-desc">從資料庫查詢指定時間範圍的銷售記錄。回傳 JSON 格式的訂單清單含產品名稱和金額。</div>
+          <div class="tool-def-params">params: { start_date: string, end_date: string, group_by?: "product"|"date"|"region" }</div>
+        </div>
+        <div class="tool-def-card">
+          <div class="tool-def-name">calculate_ranking</div>
+          <div class="tool-def-desc">對銷售數據進行排序和統計計算。需要先取得原始數據後才能呼叫。回傳排名和各項統計指標。</div>
+          <div class="tool-def-params">params: { data: array, metric: "revenue"|"units", top_n: number }</div>
+        </div>
+        <button class="run-btn" onclick="runLoop(2)">執行模擬</button>
+        <div id="loop-2" class="loop-visualizer" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Tool Design -->
+  <div class="tool-wrap reveal">
+    <div class="tool-toolbar">
+      <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+      <div class="tool-toolbar-title">自訂工具設計練習</div>
+    </div>
+    <div class="tool-body">
+      <p style="font-size:.88rem;color:var(--c-muted);margin-bottom:20px;line-height:1.7;">設計一個你自己的工具。想想你正在做的工作中，有哪個重複性查詢或操作可以變成工具？</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div>
+          <label class="field-label">工具名稱（英文，用底線）</label>
+          <textarea rows="1" id="custom-name" placeholder="例如：search_knowledge_base"></textarea>
+        </div>
+        <div>
+          <label class="field-label">必要參數（用逗號分隔）</label>
+          <textarea rows="1" id="custom-params" placeholder="例如：query, top_k, filter_tag"></textarea>
+        </div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <label class="field-label">工具描述（告訴模型何時使用、回傳什麼）</label>
+        <textarea rows="3" id="custom-desc" placeholder="例如：在知識庫中搜尋相關文件。當使用者詢問公司政策、產品規格或流程說明時使用。回傳最相關的 3 篇文件標題和摘要。"></textarea>
+      </div>
+      <button class="run-btn" onclick="previewTool()">預覽工具 Schema</button>
+      <pre id="tool-preview" style="display:none;margin-top:12px;padding:16px;background:#1e1e1e;color:#d4d4d4;border-radius:var(--radius);font-size:.8rem;font-family:'Courier New',monospace;line-height:1.7;white-space:pre-wrap;"></pre>
+    </div>
+  </div>
+</div>
+
+<div class="challenge-wrap">
+  <div class="reveal">
+    <div class="progress-label" id="prog-label">完成進度：0 / 5</div>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog-bar" style="width:0%"></div></div>
+    <div class="challenge-title">實戰驗收清單</div>
+    <div class="challenge-list" id="check-list">
+      <label class="challenge-item" id="ci-0"><input type="checkbox" onchange="updateProgress()"><span class="challenge-item-text">觀察完至少一個情境的 Agent Loop 模擬，能說明每個步驟的作用</span></label>
+      <label class="challenge-item" id="ci-1"><input type="checkbox" onchange="updateProgress()"><span class="challenge-item-text">注意到模型「選擇不呼叫某個工具」的決策，理解 description 如何影響觸發條件</span></label>
+      <label class="challenge-item" id="ci-2"><input type="checkbox" onchange="updateProgress()"><span class="challenge-item-text">設計一個自訂工具並生成 Schema，description 清楚說明觸發條件和回傳格式</span></label>
+      <label class="challenge-item" id="ci-3"><input type="checkbox" onchange="updateProgress()"><span class="challenge-item-text">能指出你設計的工具鏈中，哪個環節最容易發生「工具幻覺」</span></label>
+      <label class="challenge-item" id="ci-4"><input type="checkbox" onchange="updateProgress()"><span class="challenge-item-text">思考：如果你的工具鏈有一個不可逆操作（如發信），你會在哪裡加確認步驟？</span></label>
+    </div>
+  </div>
+</div>
+
+<nav class="lesson-nav">
+  <a class="nav-btn" href="PRAC6-2.html">
+    <span>←</span>
+    <div><div class="nav-btn-label">上一個</div><div class="nav-btn-title">PRAC6-2 最小文件問答器</div></div>
+  </a>
+  <a class="nav-btn next" href="PRAC6-4.html">
+    <div><div class="nav-btn-label">下一個</div><div class="nav-btn-title">PRAC6-4 Streaming 回應改造</div></div>
+    <span>→</span>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="topbar-divider"></div>
+  <div class="footer-note">140 小時生成式 AI 實務應用課程 · Part 6 AI 應用開發進階</div>
+  <div class="spacer"></div>
+  <div class="footer-note">PRAC 6.3</div>
+</footer>
+
+<script>
+const loops = [
+  [
+    {type:'agent', icon:'💭', label:'模型思考', text:'使用者問下週二是否有空。我需要先取得下週二的行事曆，才能判斷。→ 呼叫 get_calendar_events'},
+    {type:'tool', icon:'⚡', label:'工具呼叫', text:'get_calendar_events({ date_from: "2026-04-21", date_to: "2026-04-21" })'},
+    {type:'result', icon:'📋', label:'工具結果', text:'回傳：[{ title: "週會", time: "10:00-11:00" }, { title: "客戶簡報", time: "14:00-15:30" }]'},
+    {type:'agent', icon:'💭', label:'模型思考', text:'已有行事曆資料。下午 13:00-14:00 和 15:30 後有空。再呼叫 find_free_slots 確認一小時連續空檔。'},
+    {type:'tool', icon:'⚡', label:'工具呼叫', text:'find_free_slots({ date: "2026-04-21", duration_minutes: 60, existing_events: [...] })'},
+    {type:'result', icon:'📋', label:'工具結果', text:'回傳：[{ start: "13:00", end: "14:00" }, { start: "16:00", end: "18:00" }]'},
+    {type:'agent', icon:'✅', label:'最終回答', text:'下週二下午您有空檔。建議時間：① 13:00–14:00，② 16:00–18:00。請問哪個時段方便？'},
+  ],
+  [
+    {type:'agent', icon:'💭', label:'模型思考', text:'使用者詢問訂單 #12345 狀態。先查詢訂單。→ 呼叫 get_order_status'},
+    {type:'tool', icon:'⚡', label:'工具呼叫', text:'get_order_status({ order_id: "12345" })'},
+    {type:'result', icon:'📋', label:'工具結果', text:'回傳：{ status: "已出貨", shipped_at: "2026-04-12", carrier: "黑貓宅配" }'},
+    {type:'agent', icon:'💭', label:'模型思考', text:'訂單已出貨。需要取得追蹤號碼給使用者。→ 呼叫 get_shipping_details'},
+    {type:'tool', icon:'⚡', label:'工具呼叫', text:'get_shipping_details({ order_id: "12345" })'},
+    {type:'result', icon:'📋', label:'工具結果', text:'回傳：{ tracking_no: "7A8B9C0D1E", estimated_arrival: "2026-04-15" }'},
+    {type:'agent', icon:'💭', label:'模型思考', text:'資訊足夠，不需要建立工單。直接回覆使用者。（create_support_ticket 未觸發，因訂單正常）'},
+    {type:'agent', icon:'✅', label:'最終回答', text:'您的訂單 #12345 已於 4/12 出貨（黑貓宅配），追蹤號碼：7A8B9C0D1E，預計 4/15 送達。'},
+  ],
+  [
+    {type:'agent', icon:'💭', label:'模型思考', text:'使用者要上個月銷售數據排名。先查詢原始資料。→ 呼叫 query_sales_data'},
+    {type:'tool', icon:'⚡', label:'工具呼叫', text:'query_sales_data({ start_date: "2026-03-01", end_date: "2026-03-31", group_by: "product" })'},
+    {type:'result', icon:'📋', label:'工具結果', text:'回傳：[{product:"A型錄",revenue:120000},{product:"B工具包",revenue:85000},{product:"C課程",revenue:210000},...]'},
+    {type:'agent', icon:'💭', label:'模型思考', text:'取得原始資料。需要計算排名取前三名。→ 呼叫 calculate_ranking'},
+    {type:'tool', icon:'⚡', label:'工具呼叫', text:'calculate_ranking({ data: [...], metric: "revenue", top_n: 3 })'},
+    {type:'result', icon:'📋', label:'工具結果', text:'回傳：[#1 C課程 $210,000, #2 A型錄 $120,000, #3 B工具包 $85,000]'},
+    {type:'agent', icon:'✅', label:'最終回答', text:'上個月銷售前三名：① C課程（$210,000）② A型錄（$120,000）③ B工具包（$85,000）。C課程佔總營收約 49%。'},
+  ]
+];
+
+let currentScenario = 0;
+function switchScenario(i) {
+  currentScenario = i;
+  document.querySelectorAll('.scenario-tab').forEach((t, idx) => t.classList.toggle('active', idx === i));
+  document.querySelectorAll('.scenario-panel').forEach((p, idx) => p.classList.toggle('active', idx === i));
+}
+
+function runLoop(idx) {
+  const container = document.getElementById('loop-' + idx);
+  container.innerHTML = '';
+  container.style.display = 'block';
+  const steps = loops[idx];
+  steps.forEach((step, i) => {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'loop-step ' + step.type;
+      el.innerHTML = `<div class="loop-step-icon">${step.icon}</div><div class="loop-step-content"><div class="loop-step-label">${step.label}</div><div class="loop-step-text">${step.text}</div></div>`;
+      el.style.opacity = '0';
+      el.style.transform = 'translateX(-12px)';
+      el.style.transition = 'opacity .35s, transform .35s';
+      container.appendChild(el);
+      requestAnimationFrame(() => { el.style.opacity = '1'; el.style.transform = 'translateX(0)'; });
+    }, i * 400);
+  });
+}
+
+function previewTool() {
+  const name = document.getElementById('custom-name').value.trim() || 'my_tool';
+  const desc = document.getElementById('custom-desc').value.trim() || '工具描述';
+  const paramsRaw = document.getElementById('custom-params').value.trim();
+  const params = paramsRaw ? paramsRaw.split(',').map(p => p.trim()).filter(Boolean) : ['query'];
+  const props = {};
+  params.forEach(p => { props[p] = { type: 'string', description: `${p} 參數` }; });
+  const schema = { name, description: desc, input_schema: { type: 'object', properties: props, required: [params[0]] } };
+  const pre = document.getElementById('tool-preview');
+  pre.textContent = JSON.stringify(schema, null, 2);
+  pre.style.display = 'block';
+}
+
+function updateProgress() {
+  const items = document.querySelectorAll('.challenge-item input[type="checkbox"]');
+  let done = 0;
+  items.forEach((cb, i) => {
+    const item = document.getElementById('ci-' + i);
+    if (cb.checked) { done++; item.classList.add('done'); }
+    else { item.classList.remove('done'); }
+  });
+  document.getElementById('prog-label').textContent = `完成進度：${done} / ${items.length}`;
+  document.getElementById('prog-bar').style.width = (done / items.length * 100) + '%';
+}
+
+const reveals = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+}, { threshold: 0.06 });
+reveals.forEach(el => io.observe(el));
+</script>
+</body>
+</html>

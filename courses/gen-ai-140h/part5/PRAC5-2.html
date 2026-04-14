@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>靜態頁面部署到 Vercel / Netlify · 實例演練 5.2｜140小時生成式AI實務應用課程</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#8c8880;
+  --c-a1:#b5703a; --c-a2:#c9963a; --c-a3:#5a7a5a; --c-a4:#6b7fa3;
+  --c-accent:#6b7fa3;
+  --radius:6px; --radius-sm:4px; --content-w:780px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-accent);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-accent);width:0%;transition:width .1s;}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-accent);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-size:.72rem;color:var(--c-accent);letter-spacing:1px;font-weight:500;}
+.prac-badge-hero{display:inline-flex;align-items:center;font-size:.72rem;color:var(--c-accent);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.07);padding:4px 12px;border-radius:99px;font-weight:500;margin-bottom:20px;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;}
+.lesson-title em{font-style:normal;color:var(--c-accent);}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius);}
+.outcomes-label{font-size:.7rem;color:var(--c-accent);letter-spacing:1.5px;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-accent);margin-top:8px;flex-shrink:0;}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:72px;}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.55rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35;}
+.section-heading em{font-style:normal;color:var(--c-accent);}
+.body-text{font-size:.95rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:72px 0;}
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0;}
+.callout.tip{background:rgba(107,127,163,.06);border:1px solid rgba(107,127,163,.2);}
+.callout.warn{background:rgba(201,150,58,.06);border:1px solid rgba(201,150,58,.2);}
+.callout.key{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.88rem;line-height:1.8;}
+.callout-body strong{font-weight:700;}
+.steps-list{display:flex;flex-direction:column;gap:0;margin:32px 0;}
+.step-item{display:flex;gap:0;position:relative;}
+.step-item:not(:last-child)::before{content:'';position:absolute;left:20px;top:44px;bottom:0;width:1px;background:var(--c-border);}
+.step-num-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:40px;padding-top:4px;}
+.step-num{width:40px;height:40px;border-radius:50%;background:var(--c-card);border:1.5px solid var(--c-border);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-text);}
+.step-body{flex:1;padding:4px 0 32px 24px;}
+.step-title{font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.step-desc{font-size:.85rem;color:var(--c-muted);line-height:1.75;}
+.step-desc strong{color:var(--c-text);font-weight:700;}
+.step-desc code{font-family:'Courier New',monospace;font-size:.8rem;background:rgba(107,127,163,.1);color:#4a5f8a;padding:1px 6px;border-radius:3px;}
+/* ── 工具：部署檢查清單 ── */
+.tool-wrap{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:32px 0;}
+.tool-topbar{background:var(--c-surface);border-bottom:1px solid var(--c-border);padding:10px 16px;display:flex;align-items:center;gap:8px;}
+.tool-dot{width:10px;height:10px;border-radius:50%;}
+.tool-dot-r{background:#ff6058;}.tool-dot-y{background:#ffbd2e;}.tool-dot-g{background:#28c840;}
+.tool-label{flex:1;font-size:.72rem;color:var(--c-muted);font-family:'Courier New',monospace;}
+.tool-body{padding:28px 32px;}
+.checklist-group{margin-bottom:24px;}
+.checklist-group-title{font-size:.78rem;font-weight:700;color:var(--c-muted);letter-spacing:1px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--c-border);}
+.check-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--c-border);}
+.check-item:last-child{border-bottom:none;}
+.check-cb{width:18px;height:18px;border:1.5px solid var(--c-border);border-radius:4px;flex-shrink:0;cursor:pointer;appearance:none;background:var(--c-bg);transition:all .15s;margin-top:2px;}
+.check-cb:checked{background:var(--c-accent);border-color:var(--c-accent);}
+.check-cb:checked::after{content:'✓';display:block;text-align:center;color:#fff;font-size:.75rem;line-height:16px;}
+.check-text{font-size:.87rem;color:var(--c-text);line-height:1.7;}
+.check-text.done{color:var(--c-muted);text-decoration:line-through;}
+.progress-row{display:flex;align-items:center;gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid var(--c-border);}
+.progress-bar-bg{flex:1;height:6px;background:var(--c-surface);border-radius:99px;overflow:hidden;}
+.progress-bar-fill{height:100%;background:var(--c-accent);border-radius:99px;transition:width .3s;}
+.progress-label{font-size:.78rem;color:var(--c-muted);white-space:nowrap;}
+.challenge-box{padding:28px 32px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:28px 0;}
+.challenge-label{font-size:.7rem;color:var(--c-accent);letter-spacing:1.5px;font-weight:500;margin-bottom:16px;}
+.challenge-list{display:flex;flex-direction:column;gap:12px;}
+.challenge-item{display:flex;align-items:flex-start;gap:12px;font-size:.88rem;line-height:1.7;}
+.ci-num{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-accent);flex-shrink:0;width:20px;}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-accent);}
+.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1);}
+.reveal.in{opacity:1;transform:translateY(0);}
+.section-rule{transform-origin:left center;opacity:0;transition:opacity .4s ease,transform .6s;transform:scaleX(.3);}
+.section-rule.in{opacity:1;transform:scaleX(1);}
+@media(max-width:768px){.topbar{padding:0 16px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero,.lesson-body,.lesson-nav{padding-left:20px;padding-right:20px;}.lesson-nav{flex-direction:column;}.nav-btn{flex:none;}.footer{padding:20px;}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">140 小時生成式 AI 實務應用課程</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">PRAC 5.2 · Part 5</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a class="back-link" href="../../../index.html">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">Part 5 · 前端與部署實戰</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">PRAC 5.2 · 2.5 小時</span>
+  </div>
+  <div class="prac-badge-hero">實例演練 · 部署練習</div>
+  <h1 class="lesson-title">靜態頁面部署到<br><em>Vercel / Netlify</em></h1>
+  <p class="lesson-tagline">從你的電腦到全球可訪問的公開網址，只需要把 GitHub repo 連接到部署平台。這次演練讓你完成第一次真正的靜態部署。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">產出目標 · DELIVERABLE</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>工具頁已推送到 GitHub repo</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>Vercel 或 Netlify 成功連接 repo 並完成部署</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>取得公開網址，所有功能與本機一致</div>
+  </div>
+</div>
+
+<main class="lesson-body">
+
+  <section class="lesson-section reveal">
+    <div class="section-eyebrow">Task Overview</div>
+    <h2 class="section-heading">任務說明</h2>
+    <p class="body-text">靜態部署只需要兩個東西：一個 GitHub repo，和一個部署平台帳號。Vercel 和 Netlify 都是免費的，本次演練你只需要選一個。以下步驟適用兩個平台，操作介面稍有不同，但流程完全相同。</p>
+
+    <div class="callout tip">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body"><strong>前置條件：</strong>完成 CH5-3 的 GitHub 推送操作，確認你的工具頁已在 GitHub repo 上。如果還沒推送，先回去完成那個步驟。</div>
+    </div>
+
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">1</div></div>
+        <div class="step-body">
+          <div class="step-title">確認 GitHub repo 已有最新版本</div>
+          <div class="step-desc">在終端機執行 <code>git status</code> 確認沒有未提交的修改，然後 <code>git push</code> 確保 GitHub 上是最新版。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">2</div></div>
+        <div class="step-body">
+          <div class="step-title">在 Vercel 或 Netlify 建立新專案</div>
+          <div class="step-desc">登入 vercel.com 或 netlify.com → 點「Add New Project」或「Import from Git」→ 選擇 GitHub → 授權後選你的 repo。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">3</div></div>
+        <div class="step-body">
+          <div class="step-title">確認部署設定</div>
+          <div class="step-desc">純 HTML/CSS/JS 靜態頁面不需要任何設定。平台會自動偵測到 <strong>index.html</strong> 作為首頁。直接點「Deploy」。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">4</div></div>
+        <div class="step-body">
+          <div class="step-title">等待部署完成，測試網址</div>
+          <div class="step-desc">部署通常在 30 秒到 2 分鐘內完成。完成後點開平台給你的網址，測試頁面的所有功能是否正常。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">5</div></div>
+        <div class="step-body">
+          <div class="step-title">（選用）設定自訂網址</div>
+          <div class="step-desc">兩個平台都允許你把預設的 <code>.vercel.app</code> 或 <code>.netlify.app</code> 換成更好記的名稱，在專案設定的 Domains 頁面修改。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <section class="lesson-section reveal">
+    <div class="section-eyebrow">Tool · 部署進度追蹤</div>
+    <h2 class="section-heading">部署<em>檢查清單</em></h2>
+    <p class="body-text">按照以下清單逐一勾選，確保每個步驟都完成。</p>
+
+    <div class="tool-wrap">
+      <div class="tool-topbar">
+        <div class="tool-dot tool-dot-r"></div><div class="tool-dot tool-dot-y"></div><div class="tool-dot tool-dot-g"></div>
+        <div class="tool-label">deployment-checklist.tool</div>
+      </div>
+      <div class="tool-body">
+        <div class="checklist-group">
+          <div class="checklist-group-title">GITHUB 準備</div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateProgress()"><div class="check-text">工具頁 HTML 檔案已在本機</div></div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateProgress()"><div class="check-text">已執行 git add . 和 git commit</div></div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateProgress()"><div class="check-text">已推送到 GitHub（git push）</div></div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateProgress()"><div class="check-text">在 GitHub 網頁確認檔案已存在</div></div>
+        </div>
+        <div class="checklist-group">
+          <div class="checklist-group-title">VERCEL / NETLIFY 部署</div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateProgress()"><div class="check-text">已建立 Vercel 或 Netlify 帳號</div></div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateProgress()"><div class="check-text">已連接 GitHub repo</div></div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateProgress()"><div class="check-text">部署成功（平台顯示 Ready / Published）</div></div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateProgress()"><div class="check-text">已取得公開網址</div></div>
+        </div>
+        <div class="checklist-group">
+          <div class="checklist-group-title">功能測試</div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateProgress()"><div class="check-text">在瀏覽器開啟公開網址，頁面正常顯示</div></div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateProgress()"><div class="check-text">工具的核心功能（輸入、送出、顯示結果）全部正常</div></div>
+          <div class="check-item"><input type="checkbox" class="check-cb" onchange="updateProgress()"><div class="check-text">在手機上確認 RWD 正常（開啟網址或用 DevTools 模擬）</div></div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-bar-bg"><div class="progress-bar-fill" id="progBar" style="width:0%"></div></div>
+          <div class="progress-label" id="progLabel">0 / 11</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body"><strong>部署後頁面空白？</strong>常見原因：HTML 裡引用的 CSS 或 JS 檔案路徑不對（例如用了絕對路徑 <code>/Users/你的名字/...</code>）。檢查所有 src 和 href，確認都是相對路徑。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <section class="lesson-section reveal">
+    <div class="section-eyebrow">Deliverable</div>
+    <h2 class="section-heading">產出確認</h2>
+    <div class="challenge-box">
+      <div class="challenge-label">完成清單 · CHECKLIST</div>
+      <div class="challenge-list">
+        <div class="challenge-item"><div class="ci-num">01</div><div>取得一個公開可訪問的靜態工具網址</div></div>
+        <div class="challenge-item"><div class="ci-num">02</div><div>在手機上確認頁面能正常開啟</div></div>
+        <div class="challenge-item"><div class="ci-num">03</div><div>進階：把網址分享給一個朋友或同學，讓他們試用並給一個反饋</div></div>
+        <div class="challenge-item"><div class="ci-num">04</div><div>進階：修改任一文字，推送 git commit，觀察平台是否自動重新部署</div></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<nav class="lesson-nav">
+  <a class="nav-btn" href="PRAC5-1.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    <div><div class="nav-btn-label">上一個演練</div><div class="nav-btn-title">PRAC5-1 單頁工具 v2 改版任務</div></div>
+  </a>
+  <a class="nav-btn next" href="PRAC5-3.html">
+    <div><div class="nav-btn-label">下一個演練</div><div class="nav-btn-title">PRAC5-3 個人作品展示首頁</div></div>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+  </a>
+</nav>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">140 小時生成式 AI 實務應用課程 · Part 5 前端與部署實戰</div>
+</footer>
+
+<script>
+const prog = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const st = window.scrollY, dh = document.documentElement.scrollHeight - window.innerHeight;
+  prog.style.width = (dh > 0 ? (st/dh)*100 : 0) + '%';
+});
+document.querySelectorAll('.reveal').forEach(el => {
+  new IntersectionObserver(entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in'); }), {threshold:0.08}).observe(el);
+});
+function updateProgress() {
+  const cbs = document.querySelectorAll('.check-cb');
+  const checked = Array.from(cbs).filter(c => c.checked).length;
+  const total = cbs.length;
+  document.getElementById('progBar').style.width = (checked/total*100) + '%';
+  document.getElementById('progLabel').textContent = checked + ' / ' + total;
+  cbs.forEach(cb => {
+    const text = cb.nextElementSibling;
+    text.classList.toggle('done', cb.checked);
+  });
+}
+</script>
+</body>
+</html>
