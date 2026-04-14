@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4-1 爬取與索引｜數位行銷實務 SEO × GA4</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a6:#8a7a9e;--radius:6px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-a6);border:1px solid rgba(138,122,158,.3);background:rgba(138,122,158,.08);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-a6);width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-a6)}
+.hero-eyebrow{font-size:.7rem;color:var(--c-a6);letter-spacing:2px;font-weight:500;margin-bottom:12px}
+.page-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:12px}
+.page-subtitle{font-size:.95rem;color:var(--c-muted);line-height:1.85;max-width:560px}
+.context-box{max-width:var(--content-w);margin:0 auto;padding:0 48px 32px}
+.context-inner{background:rgba(138,122,158,.06);border:1px solid rgba(138,122,158,.2);border-left:3px solid var(--c-a6);border-radius:var(--radius);padding:20px 24px}
+.context-label{font-size:.68rem;color:var(--c-a6);letter-spacing:1.5px;font-weight:500;margin-bottom:8px}
+.context-text{font-size:.88rem;color:var(--c-text);line-height:1.8}
+.steps-wrap{max-width:var(--content-w);margin:0 auto;padding:8px 48px 48px}
+.section-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:24px}
+.step-block{display:flex;gap:24px;margin-bottom:44px;position:relative}
+.step-block:not(:last-child)::after{content:'';position:absolute;left:19px;top:48px;width:2px;height:calc(100% - 16px);background:var(--c-border)}
+.step-circle{width:40px;height:40px;border-radius:50%;background:rgba(138,122,158,.1);border:2px solid var(--c-a6);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-weight:700;font-size:.95rem;color:var(--c-a6);flex-shrink:0}
+.step-content{flex:1;padding-top:6px}
+.step-heading{font-family:'Shippori Mincho',serif;font-size:1.15rem;font-weight:700;color:var(--c-text);margin-bottom:10px}
+.step-body{font-size:.9rem;color:var(--c-text);line-height:1.9;margin-bottom:12px}
+.step-tip{font-size:.82rem;color:var(--c-muted);background:var(--c-surface);border-left:3px solid var(--c-border);padding:10px 14px;border-radius:0 var(--radius) var(--radius) 0;line-height:1.7}
+.step-tip strong{color:var(--c-a6);font-weight:500}
+.inline-code{font-family:'Courier New',monospace;font-size:.85em;background:rgba(138,122,158,.1);padding:1px 6px;border-radius:3px}
+.code-block{background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.83rem;padding:18px 20px;border-radius:var(--radius);white-space:pre;overflow-x:auto;margin:12px 0;line-height:1.7}
+.flow-mini{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:20px 0;padding:20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.flow-node-mini{font-size:.82rem;padding:8px 14px;border:1px solid var(--c-border);border-radius:var(--radius);color:var(--c-muted);background:var(--c-bg)}
+.flow-node-mini.active{border-color:var(--c-a6);color:var(--c-a6);background:rgba(138,122,158,.08);font-weight:500}
+.flow-arr{color:var(--c-muted);font-size:.82rem}
+.verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:24px 28px;margin:40px 0}
+.verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px}
+.verify-text{font-size:.9rem;color:var(--c-text);line-height:1.85}
+.troubleshoot{margin:40px 0}
+.ts-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:16px}
+.ts-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 22px;margin-bottom:10px}
+.ts-q{font-size:.87rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.ts-a{font-size:.85rem;color:var(--c-muted);line-height:1.75}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a6);text-decoration:none;padding:10px 20px;border:1px solid rgba(138,122,158,.3);border-radius:var(--radius);transition:background .2s}
+.nav-btn:hover{background:rgba(138,122,158,.07)}
+.nav-btn.primary{background:var(--c-a6);color:#fff;border-color:var(--c-a6)}
+.nav-btn.primary:hover{background:#76688a}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+@media(max-width:600px){.topbar,.page-hero,.context-box,.steps-wrap,.nav-footer,.footer{padding-left:24px;padding-right:24px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">數位行銷實務 SEO × GA4</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">4-1 爬取與索引</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="page-hero">
+  <a href="module4.html" class="back-link">← 返回 Module 4</a>
+  <div class="hero-eyebrow">SECTION 4.1</div>
+  <h1 class="page-title">Crawl Budget、Robots.txt、Noindex、Sitemap</h1>
+  <p class="page-subtitle">頁面的存在不代表 Google 看得到它——本節學會控制 Google 爬蟲「能看哪些頁面、不能看哪些頁面」，以及如何告訴 Google 你的網站結構。</p>
+</div>
+
+<div class="context-box">
+  <div class="context-inner">
+    <div class="context-label">為什麼這很重要 · WHY THIS MATTERS</div>
+    <div class="context-text">很多新手以為「只要頁面存在，Google 就會自動收錄」。現實是：Google 爬蟲每天能爬取的頁面有限（Crawl Budget），若網站結構混亂、充斥無用頁面，重要頁面反而被遺漏。學會這四個工具，就能確保 Google 把資源花在你想被收錄的頁面上。</div>
+  </div>
+</div>
+
+<div class="steps-wrap">
+  <div class="section-label">CONCEPT BY CONCEPT · 概念拆解</div>
+
+  <div class="step-block">
+    <div class="step-circle">1</div>
+    <div class="step-content">
+      <div class="step-heading">Google 收錄流程：爬取 → 索引 → 排名</div>
+      <div class="step-body">Google 把網頁放到搜尋結果前，要經過三個階段：</div>
+      <div class="flow-mini">
+        <div class="flow-node-mini active">爬取 Crawling</div><span class="flow-arr">→</span>
+        <div class="flow-node-mini active">索引 Indexing</div><span class="flow-arr">→</span>
+        <div class="flow-node-mini active">排名 Ranking</div>
+      </div>
+      <div class="step-body">爬取：Googlebot 訪問網頁，讀取內容。索引：把頁面加入 Google 的資料庫（不是所有爬到的頁面都會被索引）。排名：根據演算法決定出現在哪個位置。任何一個環節出問題，頁面都不會出現在搜尋結果。</div>
+      <div class="step-tip"><strong>提示：</strong>GSC（Google Search Console）的「覆蓋率報告」可以看哪些頁面被索引、哪些被排除以及原因。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">2</div>
+    <div class="step-content">
+      <div class="step-heading">Crawl Budget：爬取預算</div>
+      <div class="step-body">每個網站每天只有固定次數的「Googlebot 造訪次數」，稱為 Crawl Budget。小型網站的預算不多，若網站充斥無用頁面（重複頁、參數 URL、測試頁），Googlebot 花時間爬這些，就沒時間爬重要頁面。常見消耗 Crawl Budget 的元凶：URL 參數（<span class="inline-code">?sort=&page=</span>）、無限滾動、Session ID URL、大量重複標籤頁。</div>
+      <div style="background:rgba(138,122,158,.06);border:1px solid rgba(138,122,158,.25);border-left:3px solid var(--c-a6);border-radius:var(--radius);padding:14px 18px;margin:12px 0">
+        <div style="font-size:.68rem;color:var(--c-a6);letter-spacing:1.5px;font-weight:500;margin-bottom:10px">WORDPRESS 特有的 Crawl Budget 消耗症狀</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:10px 14px">
+            <div style="font-size:.78rem;font-weight:700;color:var(--c-text);margin-bottom:4px">標籤頁爆炸</div>
+            <div style="font-size:.76rem;color:var(--c-muted);line-height:1.65">每篇文章加 10 個標籤 = 10 個額外 URL（<span style="font-family:'Courier New',monospace;font-size:.8em">/tag/xxx/</span>）。100 篇 × 10 標籤 = 1,000 個低品質標籤頁，全部消耗爬取預算。<br><strong style="color:var(--c-text)">修復：</strong>Yoast → 進階 → 標籤頁設為 noindex。</div>
+          </div>
+          <div style="background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:10px 14px">
+            <div style="font-size:.78rem;font-weight:700;color:var(--c-text);margin-bottom:4px">分類分頁 URL</div>
+            <div style="font-size:.76rem;color:var(--c-muted);line-height:1.65">分類頁分頁生成 <span style="font-family:'Courier New',monospace;font-size:.8em">/category/xxx/page/2/</span> 等大量 URL，內容幾乎相同。<br><strong style="color:var(--c-text)">修復：</strong>Canonical 指向第一頁，或設為 noindex。</div>
+          </div>
+          <div style="background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:10px 14px">
+            <div style="font-size:.78rem;font-weight:700;color:var(--c-text);margin-bottom:4px">搜尋結果頁</div>
+            <div style="font-size:.76rem;color:var(--c-muted);line-height:1.65">WordPress 內建搜尋功能會生成 <span style="font-family:'Courier New',monospace;font-size:.8em">/?s=關鍵字</span> URL，每次搜尋一個新頁面。<br><strong style="color:var(--c-text)">修復：</strong>robots.txt 加 <span style="font-family:'Courier New',monospace;font-size:.8em">Disallow: /?s=</span></div>
+          </div>
+          <div style="background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:10px 14px">
+            <div style="font-size:.78rem;font-weight:700;color:var(--c-text);margin-bottom:4px">作者存檔頁</div>
+            <div style="font-size:.76rem;color:var(--c-muted);line-height:1.65">單人部落格只有一個作者，但 <span style="font-family:'Courier New',monospace;font-size:.8em">/author/admin/</span> 存檔頁仍會被建立並消耗預算。<br><strong style="color:var(--c-text)">修復：</strong>Yoast → 進階 → 作者存檔設為 noindex。</div>
+          </div>
+        </div>
+      </div>
+      <div class="step-tip"><strong>提示：</strong>中小型網站（幾百頁以內）通常不需要擔心 Crawl Budget，但電商有大量商品篩選 URL 時要特別注意。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">3</div>
+    <div class="step-content">
+      <div class="step-heading">Robots.txt：告訴爬蟲哪裡不能去</div>
+      <div class="step-body"><span class="inline-code">robots.txt</span> 是放在網站根目錄的文字檔，用來指示爬蟲哪些路徑不要爬。注意：<span class="inline-code">Disallow</span> 只是建議，不是強制——Google 通常遵守，但不保證。更重要的是：即使 Disallow，如果其他網站有連結指向該頁面，Google 仍可能索引它（只是沒有看過頁面內容）。</div>
+      <div class="code-block">User-agent: *
+Disallow: /wp-admin/
+Disallow: /wp-login.php
+Allow: /wp-admin/admin-ajax.php
+
+Sitemap: https://yourdomain.com/sitemap.xml</div>
+      <div class="step-tip"><strong>提示：</strong>LocalWP 的 ntub-demo 站，可以在 Yoast SEO → 工具 → 檔案編輯器查看和編輯 robots.txt。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">4</div>
+    <div class="step-content">
+      <div class="step-heading">Noindex：告訴 Google 不要收錄這頁</div>
+      <div class="step-body">在頁面的 <span class="inline-code">&lt;head&gt;</span> 加入 <span class="inline-code">&lt;meta name="robots" content="noindex"&gt;</span>，Google 爬到後就不會把這頁放進搜尋結果。適合用在：後台登入頁、謝謝頁（感謝訂單）、測試頁、標籤/分類頁（避免稀釋 Crawl Budget）。Yoast SEO 可以按頁/篇文章單獨設定 noindex，不需要手動改 HTML。</div>
+      <div class="step-tip"><strong>提示：</strong>Robots.txt Disallow ≠ Noindex。Disallow 是「不要爬」，Noindex 是「爬了但不要收錄」。若要確保某頁不進索引，用 Noindex 更可靠。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">5</div>
+    <div class="step-content">
+      <div class="step-heading">Sitemap.xml：提交網站地圖</div>
+      <div class="step-body">Sitemap 是一個 XML 檔案，列出你希望 Google 收錄的所有頁面 URL，讓 Googlebot 更有效率地找到你的內容。Yoast SEO 啟用後會自動生成 <span class="inline-code">yourdomain.com/sitemap.xml</span>。下一節學完 GSC 後，要把這個 URL 提交給 Google。</div>
+      <div class="step-tip"><strong>提示：</strong>Sitemap 是「邀請 Google 來看」，不是保證收錄。提交後 Google 可能仍選擇不收錄某些頁面（內容品質不足、重複等）。</div>
+    </div>
+  </div>
+
+  <div class="verify-box">
+    <div class="verify-label">完成驗證 · VERIFY</div>
+    <div class="verify-text">能說出 Robots.txt 和 Noindex 的差異，以及 Sitemap 的用途。在 Yoast SEO 找到 robots.txt 編輯器，確認 <span class="inline-code">/wp-admin/</span> 已被 Disallow。</div>
+  </div>
+
+  <div class="troubleshoot">
+    <div class="ts-label">常見問題 · TROUBLESHOOT</div>
+    <div class="ts-item">
+      <div class="ts-q">我的整個網站都被 Noindex 了怎麼辦？</div>
+      <div class="ts-a">WordPress 後台 → 設定 → 閱讀，確認「搜尋引擎可見性」沒有勾選「阻擋搜尋引擎」。很多新站建置時為避免被收錄不完整頁面而勾選，上線後忘記取消。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">LocalWP 的站要如何驗證 robots.txt？</div>
+      <div class="ts-a">在瀏覽器打 <span class="inline-code">http://ntub-demo.local/robots.txt</span>，可以直接看到檔案內容。雖然 Google 爬不到本地站，但邏輯驗證用這個方法。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">多久 Google 才會重新爬取更新後的 robots.txt？</div>
+      <div class="ts-a">Google 通常 24 小時內重新讀取 robots.txt，但生效時間不固定。若要立即清除快取，可在 GSC 的「robots.txt 測試工具」請求重新整理。</div>
+    </div>
+  </div>
+</div>
+
+<div class="nav-footer">
+  <a href="module4.html" class="nav-btn">← Module 4 總覽</a>
+  <a href="m4-2-gsc.html" class="nav-btn primary">4-2 Google Search Console →</a>
+</div>
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">台北商業大學 · 2026 春季</span>
+</footer>
+<script>const fill=document.getElementById('prog');window.addEventListener('scroll',()=>{const h=document.documentElement;fill.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100+'%'});</script>
+</body>
+</html>

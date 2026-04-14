@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GTM 容器建立與 LocalWP 佈建｜NTUB SEO & GA4</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--c-bg);color:var(--c-text);font-family:'Noto Sans TC',sans-serif;font-size:15px;line-height:1.7}
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#fff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a6:#8a7a9e;--radius:6px;--content-w:780px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-a6);border:1px solid rgba(138,122,158,.3);background:rgba(138,122,158,.08);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-a6);width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-a6)}
+.hero-eyebrow{font-size:.7rem;color:var(--c-a6);letter-spacing:2px;font-weight:500;margin-bottom:12px}
+.page-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:12px}
+.page-subtitle{font-size:.95rem;color:var(--c-muted);line-height:1.85;max-width:560px}
+.context-box{max-width:var(--content-w);margin:0 auto;padding:0 48px 32px}
+.context-inner{background:rgba(138,122,158,.06);border:1px solid rgba(138,122,158,.2);border-left:3px solid var(--c-a6);border-radius:var(--radius);padding:20px 24px}
+.context-label{font-size:.68rem;color:var(--c-a6);letter-spacing:1.5px;font-weight:500;margin-bottom:8px}
+.context-text{font-size:.88rem;color:var(--c-text);line-height:1.8}
+.steps-wrap{max-width:var(--content-w);margin:0 auto;padding:8px 48px 48px}
+.section-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:24px}
+.step-block{display:flex;gap:24px;margin-bottom:44px;position:relative}
+.step-block:not(:last-child)::after{content:'';position:absolute;left:19px;top:48px;width:2px;height:calc(100% - 16px);background:var(--c-border)}
+.step-circle{width:40px;height:40px;border-radius:50%;background:rgba(138,122,158,.1);border:2px solid var(--c-a6);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-weight:700;font-size:.95rem;color:var(--c-a6);flex-shrink:0}
+.step-content{flex:1;padding-top:6px}
+.step-heading{font-family:'Shippori Mincho',serif;font-size:1.15rem;font-weight:700;color:var(--c-text);margin-bottom:10px}
+.step-body{font-size:.9rem;color:var(--c-text);line-height:1.9;margin-bottom:12px}
+.code-block{background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.83rem;padding:20px 22px;border-radius:var(--radius);white-space:pre;overflow-x:auto;margin:12px 0}
+.step-tip{font-size:.82rem;color:var(--c-muted);background:var(--c-surface);border-left:3px solid var(--c-border);padding:10px 14px;border-radius:0 var(--radius) var(--radius) 0;line-height:1.7}
+.step-tip strong{color:var(--c-a6);font-weight:500}
+.verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:24px 28px;margin:40px 0}
+.verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px}
+.verify-text{font-size:.9rem;color:var(--c-text);line-height:1.85}
+.troubleshoot{margin:40px 0}
+.ts-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:16px}
+.ts-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 22px;margin-bottom:10px}
+.ts-q{font-size:.87rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.ts-a{font-size:.85rem;color:var(--c-muted);line-height:1.75}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a6);text-decoration:none;padding:10px 20px;border:1px solid rgba(138,122,158,.3);border-radius:var(--radius);transition:background .2s}
+.nav-btn:hover{background:rgba(138,122,158,.07)}
+.nav-btn.primary{background:var(--c-a6);color:#fff;border-color:var(--c-a6)}
+.nav-btn.primary:hover{background:#76688a}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+@media(max-width:600px){.topbar,.page-hero,.context-box,.steps-wrap,.nav-footer,.footer{padding-left:24px;padding-right:24px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">SEO & GA4 實戰課程</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">9.2 GTM 設定</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="page-hero">
+  <a href="module9.html" class="back-link">← 返回 Module 9</a>
+  <div class="hero-eyebrow">MODULE 9 · SECTION 9.2</div>
+  <h1 class="page-title">GTM 容器建立與 LocalWP 佈建</h1>
+  <p class="page-subtitle">從零開始建立 GTM 帳戶與容器，將追蹤碼正確安裝到 LocalWP WordPress 網站，並透過 GTM 部署 GA4 追蹤。</p>
+</div>
+
+<div class="context-box">
+  <div class="context-inner">
+    <div class="context-label">為什麼這很重要 · WHY THIS MATTERS</div>
+    <div class="context-text">GTM 的價值在實際安裝後才能體會：所有追蹤標籤集中管理、改動不需接觸網站程式碼、可以在發布前預覽測試。正確安裝 GTM 容器是後續所有標籤管理的基礎，這個步驟做對了，Module 9.3 的事件追蹤才能順利進行。</div>
+  </div>
+</div>
+
+<div class="steps-wrap">
+  <div class="section-label">STEP BY STEP · 操作步驟</div>
+
+  <div class="step-block">
+    <div class="step-circle">1</div>
+    <div class="step-content">
+      <div class="step-heading">建立 GTM 帳戶與容器</div>
+      <div class="step-body">前往 tagmanager.google.com，使用 Google 帳戶登入。點擊「建立帳戶」，填入：帳戶名稱（你的組織名稱，如「NTUB Demo」）、國家/地區（台灣）。接著建立容器：容器名稱（輸入網站 URL 或名稱，如「ntub-demo.local」）、目標平台選「網頁」。同意條款後，GTM 會顯示兩段追蹤碼。</div>
+      <div class="step-tip"><strong>帳戶 vs 容器：</strong>一個 GTM 帳戶可以管理多個容器（如：主網站、行動版 App、AMP 頁面各一個容器）。通常一個網站對應一個容器。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">2</div>
+    <div class="step-content">
+      <div class="step-heading">複製 GTM 容器代碼（兩段）</div>
+      <div class="step-body">GTM 提供的兩段代碼各有用途：第一段放在 &lt;head&gt; 標籤內，儘量靠前，確保標籤管理器在頁面載入初期就初始化；第二段放在 &lt;body&gt; 開頭後，是給瀏覽器不支援 JavaScript 時的 noscript 備援。兩段都需要安裝才算完整。</div>
+      <div class="code-block"><span style="color:#6b9b8a">/* 第一段：放在 &lt;head&gt; 內 */</span>
+&lt;!-- Google Tag Manager --&gt;
+&lt;script&gt;(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-XXXXXXX');&lt;/script&gt;
+&lt;!-- End Google Tag Manager --&gt;
+
+<span style="color:#6b9b8a">/* 第二段：放在 &lt;body&gt; 開頭後 */</span>
+&lt;!-- Google Tag Manager (noscript) --&gt;
+&lt;noscript&gt;&lt;iframe src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXXXX"
+height="0" width="0" style="display:none;visibility:hidden"&gt;&lt;/iframe&gt;&lt;/noscript&gt;
+&lt;!-- End Google Tag Manager (noscript) --&gt;</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">3</div>
+    <div class="step-content">
+      <div class="step-heading">在 LocalWP WordPress 安裝 GTM</div>
+      <div class="step-body">方法 A（外掛）：在 WordPress 管理後台搜尋安裝外掛「GTM4WP」（Google Tag Manager for WordPress）。啟用後，到外掛設定頁面，輸入你的容器 ID（格式：GTM-XXXXXXX），儲存。外掛會自動將兩段代碼插入正確位置。方法 B（手動）：在 WordPress 佈景主題編輯器中，直接編輯 header.php 和 header.php，分別貼入兩段代碼。推薦使用方法 A，更安全且在佈景主題更新後不會失效。</div>
+      <div class="step-tip"><strong>安全提醒：</strong>手動編輯 header.php 時，若語法錯誤可能導致白版（WSOD）。建議先備份佈景主題，或使用子佈景主題進行修改。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">4</div>
+    <div class="step-content">
+      <div class="step-heading">在 GTM 中建立 GA4 設定標籤</div>
+      <div class="step-body">若你原本用 gtag.js 直接追蹤 GA4，現在改為透過 GTM 管理。在 GTM 容器中：標籤 → 新建 → 選擇「Google Analytics: GA4 設定」，填入你的 GA4 測量 ID（格式：G-XXXXXXXXXX）。觸發條件選「All Pages（所有頁面）」，儲存。記得同時移除網站中直接嵌入的 gtag.js 代碼，避免重複計算。</div>
+      <div class="step-tip"><strong>重要：</strong>GTM 的改動必須先「預覽」測試，確認無誤後再「提交發布」，否則變更不會對訪客生效。</div>
+      <div style="background:rgba(138,122,158,.06);border:1px solid rgba(138,122,158,.25);border-left:3px solid var(--c-a6);border-radius:var(--radius);padding:16px 20px;margin-top:14px">
+        <div style="font-size:.68rem;color:var(--c-a6);letter-spacing:1.5px;font-weight:500;margin-bottom:8px">CONSENT MODE V2 · 同意模式設定（不可忽略）</div>
+        <div style="font-size:.87rem;color:var(--c-text);line-height:1.8;margin-bottom:10px">Google Consent Mode v2 是 2024 年 Google 推出的隱私合規機制。即使是台灣站，若你未來要跑 Google Ads 再行銷或使用 GA4 的轉換建模功能，都需要正確設定，否則 GA4 的轉換數據會比實際少計 10–40%。</div>
+        <div style="font-size:.87rem;color:var(--c-text);line-height:1.8;margin-bottom:10px"><strong>在 GTM 中設定同意模式的最快方法：</strong></div>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:.84rem;color:var(--c-text);line-height:1.7">
+          <div style="display:flex;gap:8px"><span style="color:var(--c-a6);font-weight:700;flex-shrink:0">①</span><span>在 GTM 容器中新增「同意總覽」設定：標籤 → 新建 → 同意初始化 → 選「Google 代碼」，設定預設值：<code style="font-family:'Courier New',monospace;font-size:.82em;background:rgba(138,122,158,.1);padding:1px 5px;border-radius:3px">analytics_storage: denied</code>、<code style="font-family:'Courier New',monospace;font-size:.82em;background:rgba(138,122,158,.1);padding:1px 5px;border-radius:3px">ad_storage: denied</code></span></div>
+          <div style="display:flex;gap:8px"><span style="color:var(--c-a6);font-weight:700;flex-shrink:0">②</span><span>安裝 Cookie 同意管理外掛（如 Complianz 或 CookieYes），外掛會在使用者接受 Cookie 時自動更新同意狀態</span></div>
+          <div style="display:flex;gap:8px"><span style="color:var(--c-a6);font-weight:700;flex-shrink:0">③</span><span>在 GA4 資源設定中確認「Google 信號資料收集」已啟用，讓 Consent Mode 的建模功能生效</span></div>
+        </div>
+        <div style="font-size:.8rem;color:var(--c-muted);margin-top:10px;line-height:1.6">LocalWP 練習環境不需要嚴格執行，但在正式上線的網站中，這個設定影響廣告轉換數據的完整性，屬於上線前必做清單的一部分。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">5</div>
+    <div class="step-content">
+      <div class="step-heading">使用 GTM 預覽模式驗證安裝</div>
+      <div class="step-body">在 GTM 容器頁面右上角點擊「預覽」，輸入你的 LocalWP 網站 URL（如 http://ntub-demo.local）。GTM 會開啟一個除錯視窗（Google Tag Assistant），在底部面板顯示已觸發的標籤、觸發條件狀態、DataLayer 事件流。確認「GA4 設定」標籤出現在「已觸發的標籤」清單中，代表安裝成功。</div>
+      <div class="step-tip"><strong>預覽模式特點：</strong>預覽模式只在你的瀏覽器生效，其他訪客看不到你的測試標籤，是安全的測試環境。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">6</div>
+    <div class="step-content">
+      <div class="step-heading">發布容器版本</div>
+      <div class="step-body">預覽確認無誤後，點擊右上角「提交」按鈕。填入版本名稱（如「v1.0 初始安裝 GA4」）和版本說明，點擊「發布」。GTM 會建立一個版本記錄，讓你日後可以回滾到任何歷史版本。發布後，用 GA4 即時報表確認是否有資料進入（造訪 LocalWP 網站後，GA4 應顯示即時活躍使用者）。</div>
+      <div class="step-tip"><strong>版本命名習慣：</strong>每次發布都加上日期和變更摘要（如「2026-04-15 新增電話點擊追蹤」），方便日後查閱歷史。</div>
+    </div>
+  </div>
+
+  <div class="verify-box">
+    <div class="verify-label">完成驗證 · VERIFY</div>
+    <div class="verify-text">GTM 預覽模式中能看到 GA4 設定標籤在所有頁面觸發，且 GA4 即時報表在造訪 LocalWP 網站後顯示活躍使用者。GTM 容器已成功發布第一個版本。</div>
+  </div>
+
+  <div class="troubleshoot">
+    <div class="ts-label">常見問題 · TROUBLESHOOT</div>
+    <div class="ts-item">
+      <div class="ts-q">GTM 預覽模式無法連線到 LocalWP 網站</div>
+      <div class="ts-a">確認 LocalWP 網站正在運行（LocalWP 軟體中網站狀態為「Running」），且網站 URL 正確（通常是 http://網站名稱.local）。若使用 HTTPS，需確認 LocalWP 的 SSL 憑證已設定並被瀏覽器信任（LocalWP 選單 → Trust 按鈕）。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">GTM 安裝後 GA4 開始收到重複的 page_view 事件</div>
+      <div class="ts-a">這代表網站同時存在 gtag.js 直接追蹤和 GTM 的 GA4 標籤，兩者都在發送 page_view。解決方法：移除網站中直接嵌入的 gtag.js 代碼（或移除 GTM4WP 以外的其他 GA4 外掛），只保留 GTM 管理的 GA4 標籤。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">GTM4WP 外掛安裝後，WordPress 後台顯示白版</div>
+      <div class="ts-a">通常是外掛與其他外掛或佈景主題衝突。嘗試停用其他外掛逐一測試。若問題持續，改用方法 B（手動安裝），透過 phpMyAdmin 或 FTP 直接修改 header.php 檔案。</div>
+    </div>
+  </div>
+</div>
+
+<div class="nav-footer">
+  <a href="m9-1-gtm-concept.html" class="nav-btn">← GTM 概念</a>
+  <a href="m9-3-gtm-events.html" class="nav-btn primary">事件追蹤實作 →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">台北商業大學 · SEO & GA4 實戰課程 2026</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+window.addEventListener('scroll',()=>{const h=document.documentElement;fill.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100+'%'});
+</script>
+</body>
+</html>

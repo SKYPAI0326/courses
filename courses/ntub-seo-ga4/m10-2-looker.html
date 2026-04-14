@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Looker Studio 儀表板建置｜NTUB SEO & GA4</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--c-bg);color:var(--c-text);font-family:'Noto Sans TC',sans-serif;font-size:15px;line-height:1.7}
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#fff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a6:#8a7a9e;--radius:6px;--content-w:780px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-a6);border:1px solid rgba(138,122,158,.3);background:rgba(138,122,158,.08);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-a6);width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-a6)}
+.hero-eyebrow{font-size:.7rem;color:var(--c-a6);letter-spacing:2px;font-weight:500;margin-bottom:12px}
+.page-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:12px}
+.page-subtitle{font-size:.95rem;color:var(--c-muted);line-height:1.85;max-width:560px}
+.context-box{max-width:var(--content-w);margin:0 auto;padding:0 48px 32px}
+.context-inner{background:rgba(138,122,158,.06);border:1px solid rgba(138,122,158,.2);border-left:3px solid var(--c-a6);border-radius:var(--radius);padding:20px 24px}
+.context-label{font-size:.68rem;color:var(--c-a6);letter-spacing:1.5px;font-weight:500;margin-bottom:8px}
+.context-text{font-size:.88rem;color:var(--c-text);line-height:1.8}
+.steps-wrap{max-width:var(--content-w);margin:0 auto;padding:8px 48px 48px}
+.section-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:24px}
+.step-block{display:flex;gap:24px;margin-bottom:44px;position:relative}
+.step-block:not(:last-child)::after{content:'';position:absolute;left:19px;top:48px;width:2px;height:calc(100% - 16px);background:var(--c-border)}
+.step-circle{width:40px;height:40px;border-radius:50%;background:rgba(138,122,158,.1);border:2px solid var(--c-a6);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-weight:700;font-size:.95rem;color:var(--c-a6);flex-shrink:0}
+.step-content{flex:1;padding-top:6px}
+.step-heading{font-family:'Shippori Mincho',serif;font-size:1.15rem;font-weight:700;color:var(--c-text);margin-bottom:10px}
+.step-body{font-size:.9rem;color:var(--c-text);line-height:1.9;margin-bottom:12px}
+.step-tip{font-size:.82rem;color:var(--c-muted);background:var(--c-surface);border-left:3px solid var(--c-border);padding:10px 14px;border-radius:0 var(--radius) var(--radius) 0;line-height:1.7}
+.step-tip strong{color:var(--c-a6);font-weight:500}
+.dashboard-layout{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:16px;margin:12px 0}
+.dashboard-row{display:grid;gap:8px;margin-bottom:8px}
+.dashboard-row.cols-3{grid-template-columns:1fr 1fr 1fr}
+.dashboard-row.cols-2{grid-template-columns:2fr 1fr}
+.dashboard-row.cols-1{grid-template-columns:1fr}
+.db-card{background:var(--c-surface);border-radius:4px;padding:10px 12px}
+.db-card-label{font-size:.68rem;color:var(--c-muted);letter-spacing:1px;margin-bottom:2px}
+.db-card-title{font-size:.82rem;color:var(--c-text);font-weight:500}
+.verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:24px 28px;margin:40px 0}
+.verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px}
+.verify-text{font-size:.9rem;color:var(--c-text);line-height:1.85}
+.troubleshoot{margin:40px 0}
+.ts-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:16px}
+.ts-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 22px;margin-bottom:10px}
+.ts-q{font-size:.87rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.ts-a{font-size:.85rem;color:var(--c-muted);line-height:1.75}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a6);text-decoration:none;padding:10px 20px;border:1px solid rgba(138,122,158,.3);border-radius:var(--radius);transition:background .2s}
+.nav-btn:hover{background:rgba(138,122,158,.07)}
+.nav-btn.primary{background:var(--c-a6);color:#fff;border-color:var(--c-a6)}
+.nav-btn.primary:hover{background:#76688a}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+@media(max-width:600px){.topbar,.page-hero,.context-box,.steps-wrap,.nav-footer,.footer{padding-left:24px;padding-right:24px}.dashboard-row.cols-3,.dashboard-row.cols-2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">SEO & GA4 實戰課程</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">10.2 Looker Studio</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="page-hero">
+  <a href="module10.html" class="back-link">← 返回 Module 10</a>
+  <div class="hero-eyebrow">MODULE 10 · SECTION 10.2</div>
+  <h1 class="page-title">Looker Studio 儀表板建置</h1>
+  <p class="page-subtitle">將 GA4 資料連接到 Looker Studio，建立可分享的 SEO 監控儀表板，讓每月的例行分析從「打開一堆報表」變成「一頁看清楚全貌」。</p>
+</div>
+
+<div class="context-box">
+  <div class="context-inner">
+    <div class="context-label">為什麼這很重要 · WHY THIS MATTERS</div>
+    <div class="context-text">GA4 的內建報表強大但分散，每次分析都要點選多個頁面。Looker Studio（原名 Data Studio）免費，能把 GA4、Search Console 的資料整合在一個視覺化頁面，30 秒看完關鍵指標，而且可以分享給客戶或主管，不需要對方有 GA4 帳號。</div>
+  </div>
+</div>
+
+<div class="steps-wrap">
+  <div class="section-label">STEP BY STEP · 操作步驟</div>
+
+  <div class="step-block">
+    <div class="step-circle">1</div>
+    <div class="step-content">
+      <div class="step-heading">建立 Looker Studio 帳戶並連接 GA4</div>
+      <div class="step-body">前往 lookerstudio.google.com，用與 GA4 相同的 Google 帳號登入。點擊「空白報表」，系統會要求你新增資料來源。選擇「Google Analytics」，找到你的 GA4 資源（帳戶名稱 → 資源名稱），點擊「連接」。連接成功後，GA4 的所有維度和指標都會變成 Looker Studio 可用的欄位。</div>
+      <div class="step-tip"><strong>提示：</strong>Looker Studio 還可以連接 Google Search Console，讓你在同一個儀表板中看到 GSC 的關鍵字資料和 GA4 的行為資料。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">2</div>
+    <div class="step-content">
+      <div class="step-heading">設計 SEO 月報儀表板版面</div>
+      <div class="step-body">一個實用的 SEO 月報儀表板建議分三個區塊排列：</div>
+      <div class="dashboard-layout">
+        <div class="dashboard-row cols-3">
+          <div class="db-card"><div class="db-card-label">關鍵指標卡片</div><div class="db-card-title">Organic 使用者數</div></div>
+          <div class="db-card"><div class="db-card-label">關鍵指標卡片</div><div class="db-card-title">Organic 轉換次數</div></div>
+          <div class="db-card"><div class="db-card-label">關鍵指標卡片</div><div class="db-card-title">平均參與時間</div></div>
+        </div>
+        <div class="dashboard-row cols-2">
+          <div class="db-card"><div class="db-card-label">折線圖</div><div class="db-card-title">Organic 流量趨勢（近 90 天）</div></div>
+          <div class="db-card"><div class="db-card-label">圓餅圖</div><div class="db-card-title">流量來源分布</div></div>
+        </div>
+        <div class="dashboard-row cols-1">
+          <div class="db-card"><div class="db-card-label">表格</div><div class="db-card-title">Top 10 頁面（自然搜尋 × 參與率 × 轉換）</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">3</div>
+    <div class="step-content">
+      <div class="step-heading">新增「只看 Organic Search」的篩選器</div>
+      <div class="step-body">在 Looker Studio 中，所有元件預設顯示全管道流量。要讓儀表板只顯示 SEO 相關數據，需要新增資料篩選器。資源欄位 → 篩選器 → 新增篩選器 → 命名為「Organic Only」→ 條件設為「工作階段的預設頻道分組 等於 Organic Search」。將此篩選器套用到所有元件（或只套用到想隔離的圖表），就能直接看到純 SEO 的表現。</div>
+      <div class="step-tip"><strong>技巧：</strong>在儀表板上加入「日期範圍控制器」，讓使用者可以自由調整查看的時間段，無需每次回到編輯模式修改。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">4</div>
+    <div class="step-content">
+      <div class="step-heading">加入 Search Console 資料來源</div>
+      <div class="step-body">回到編輯模式，點擊右上角「新增資料」，選擇 Google Search Console，連接你的 GSC 資源（選「網站曝光次數」資料集）。在儀表板新增一個表格，來源選 Search Console，維度選「查詢（關鍵字）」，指標選「點擊次數、曝光次數、點擊率、平均排名」。這樣就能在同一個儀表板中，從關鍵字層面監控 SEO 健康狀況。</div>
+      <div class="step-tip"><strong>注意：</strong>GA4 和 Search Console 是兩個獨立的資料來源，Looker Studio 的單一圖表只能使用一個來源。若想合併，可使用 Looker Studio 的「混合資料」功能，但需要注意兩者的連接維度（通常用 landing_page = page_path）。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">5</div>
+    <div class="step-content">
+      <div class="step-heading">設定自動排程與分享</div>
+      <div class="step-body">Looker Studio 報表建立後，可以設定自動發送排程，讓儀表板快照每月自動以 PDF 寄送給指定電子郵件。路徑：右上角「分享」→「排定傳送」→ 設定頻率（每月第一天）和收件人。分享方式還有：「取得連結」（有 GA4 帳號的人可以看到即時資料）和「嵌入報表」（可以嵌入到任何網頁中，連結為公開或限制存取）。</div>
+      <div class="step-tip"><strong>使用情境：</strong>若你為客戶或主管做 SEO 月報，設定每月自動發送 PDF 快照，可以省去每次手動匯出報表的工作。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">6</div>
+    <div class="step-content">
+      <div class="step-heading">善用模板庫快速建立儀表板</div>
+      <div class="step-body">Looker Studio 有社群分享的報表模板庫。在首頁點擊「模板庫」，搜尋「SEO Dashboard」或「GA4 Report」，找到合適的模板後點擊「使用範本」，只需替換成你自己的資料來源即可。Google 官方也提供 GA4 和 Search Console 的標準模板，節省從零設計的時間，尤其適合快速為客戶建立第一份報表。</div>
+      <div class="step-tip"><strong>推薦：</strong>Google 官方模板「GA4 Report」提供基本的頁面瀏覽、使用者、事件報表，是最快上手的起點。</div>
+    </div>
+  </div>
+
+  <div class="verify-box">
+    <div class="verify-label">完成驗證 · VERIFY</div>
+    <div class="verify-text">成功建立一個 Looker Studio 儀表板，包含至少 3 個 GA4 指標卡片、一個流量趨勢折線圖、一個設有 Organic Search 篩選器的頁面表格。儀表板可以透過連結分享給他人瀏覽。</div>
+  </div>
+
+  <div class="troubleshoot">
+    <div class="ts-label">常見問題 · TROUBLESHOOT</div>
+    <div class="ts-item">
+      <div class="ts-q">Looker Studio 顯示「資料處理錯誤」或「無資料」</div>
+      <div class="ts-a">確認 GA4 資料來源連接的是「網站」串流（而非 App 串流），且你的 Google 帳號對該 GA4 資源有至少「檢視者」權限。若 GA4 資源是新建的（不到 48 小時），可能需要等待資料累積。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">找不到「Organic Search 工作階段」相關的維度</div>
+      <div class="ts-a">在 Looker Studio 的 GA4 資料來源中，搜尋「Session default channel group」（英文）或「工作階段的預設頻道分組」，此即對應 GA4 流量來源分類的維度，值為「Organic Search」代表自然搜尋。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">儀表板分享後，他人無法看到資料</div>
+      <div class="ts-a">Looker Studio 有兩層權限：報表存取權（由你的分享設定控制）和資料來源存取權（由 GA4 帳號權限控制）。若對方沒有 GA4 帳號的存取權，需要在 Looker Studio 的資料來源中開啟「授予所有報表使用者訪客憑證」，讓資料可以公開存取（適合公開報表，不適合含有敏感業務數據的報表）。</div>
+    </div>
+  </div>
+</div>
+
+<div class="nav-footer">
+  <a href="m10-1-integration.html" class="nav-btn">← 閉環模型</a>
+  <a href="m10-3-final.html" class="nav-btn primary">期末整合報告 →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">台北商業大學 · SEO & GA4 實戰課程 2026</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+window.addEventListener('scroll',()=>{const h=document.documentElement;fill.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100+'%'});
+</script>
+</body>
+</html>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>自訂事件設計與建立｜NTUB SEO & GA4</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--c-bg);color:var(--c-text);font-family:'Noto Sans TC',sans-serif;font-size:15px;line-height:1.7}
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#fff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a6:#8a7a9e;--radius:6px;--content-w:780px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-a6);border:1px solid rgba(138,122,158,.3);background:rgba(138,122,158,.08);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-a6);width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-a6)}
+.hero-eyebrow{font-size:.7rem;color:var(--c-a6);letter-spacing:2px;font-weight:500;margin-bottom:12px}
+.page-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:12px}
+.page-subtitle{font-size:.95rem;color:var(--c-muted);line-height:1.85;max-width:560px}
+.context-box{max-width:var(--content-w);margin:0 auto;padding:0 48px 32px}
+.context-inner{background:rgba(138,122,158,.06);border:1px solid rgba(138,122,158,.2);border-left:3px solid var(--c-a6);border-radius:var(--radius);padding:20px 24px}
+.context-label{font-size:.68rem;color:var(--c-a6);letter-spacing:1.5px;font-weight:500;margin-bottom:8px}
+.context-text{font-size:.88rem;color:var(--c-text);line-height:1.8}
+.steps-wrap{max-width:var(--content-w);margin:0 auto;padding:8px 48px 48px}
+.section-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:24px}
+.step-block{display:flex;gap:24px;margin-bottom:44px;position:relative}
+.step-block:not(:last-child)::after{content:'';position:absolute;left:19px;top:48px;width:2px;height:calc(100% - 16px);background:var(--c-border)}
+.step-circle{width:40px;height:40px;border-radius:50%;background:rgba(138,122,158,.1);border:2px solid var(--c-a6);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-weight:700;font-size:.95rem;color:var(--c-a6);flex-shrink:0}
+.step-content{flex:1;padding-top:6px}
+.step-heading{font-family:'Shippori Mincho',serif;font-size:1.15rem;font-weight:700;color:var(--c-text);margin-bottom:10px}
+.step-body{font-size:.9rem;color:var(--c-text);line-height:1.9;margin-bottom:12px}
+.code-block{background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.83rem;padding:20px 22px;border-radius:var(--radius);white-space:pre;overflow-x:auto;margin:12px 0}
+.step-tip{font-size:.82rem;color:var(--c-muted);background:var(--c-surface);border-left:3px solid var(--c-border);padding:10px 14px;border-radius:0 var(--radius) var(--radius) 0;line-height:1.7}
+.step-tip strong{color:var(--c-a6);font-weight:500}
+.verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:24px 28px;margin:40px 0}
+.verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px}
+.verify-text{font-size:.9rem;color:var(--c-text);line-height:1.85}
+.troubleshoot{margin:40px 0}
+.ts-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:16px}
+.ts-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 22px;margin-bottom:10px}
+.ts-q{font-size:.87rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.ts-a{font-size:.85rem;color:var(--c-muted);line-height:1.75}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a6);text-decoration:none;padding:10px 20px;border:1px solid rgba(138,122,158,.3);border-radius:var(--radius);transition:background .2s}
+.nav-btn:hover{background:rgba(138,122,158,.07)}
+.nav-btn.primary{background:var(--c-a6);color:#fff;border-color:var(--c-a6)}
+.nav-btn.primary:hover{background:#76688a}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.naming-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+.naming-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:14px 16px}
+.naming-card.good{border-left:3px solid #5a7a5a}
+.naming-card.bad{border-left:3px solid #b05050}
+.naming-label{font-size:.68rem;letter-spacing:1.5px;font-weight:500;margin-bottom:8px}
+.naming-card.good .naming-label{color:#5a7a5a}
+.naming-card.bad .naming-label{color:#b05050}
+.naming-ex{font-family:'Courier New',monospace;font-size:.82rem;color:var(--c-text);line-height:1.8}
+@media(max-width:600px){.topbar,.page-hero,.context-box,.steps-wrap,.nav-footer,.footer{padding-left:24px;padding-right:24px}.naming-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">SEO & GA4 實戰課程</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">7.2 自訂事件</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="page-hero">
+  <a href="module7.html" class="back-link">← 返回 Module 7</a>
+  <div class="hero-eyebrow">MODULE 7 · SECTION 7.2</div>
+  <h1 class="page-title">自訂事件設計與建立</h1>
+  <p class="page-subtitle">當 GA4 內建事件無法滿足業務需求時，透過自訂事件追蹤任何使用者行為，並將其轉化為轉換指標。</p>
+</div>
+
+<div class="context-box">
+  <div class="context-inner">
+    <div class="context-label">為什麼這很重要 · WHY THIS MATTERS</div>
+    <div class="context-text">GA4 的自動收集事件只能涵蓋通用行為（頁面瀏覽、點擊、捲動），但每個網站的核心價值都不同。電商需要追蹤「加入購物車」，部落格需要追蹤「文章閱讀完成率」，服務型網站需要追蹤「表單提交」。自訂事件讓你將業務目標直接翻譯成 GA4 可量化的數據，是 GA4 分析深度的核心所在。</div>
+  </div>
+</div>
+
+<div class="steps-wrap">
+  <div class="section-label">STEP BY STEP · 操作步驟</div>
+
+  <div class="step-block">
+    <div class="step-circle">1</div>
+    <div class="step-content">
+      <div class="step-heading">判斷是否需要自訂事件</div>
+      <div class="step-body">進入 GA4 → 管理員 → 事件，先確認「現有事件」清單。GA4 預設已收集 page_view、scroll、click、form_submit 等事件。只有在這些事件無法區分你真正想追蹤的行為時，才需要自訂事件。例如：你需要區分「點擊電話連結」與「點擊一般連結」，預設的 click 事件無法做到，就需要自訂。</div>
+      <div class="step-tip"><strong>原則：</strong>先窮舉內建事件，再決定是否自訂，避免產生重複或無意義的事件。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">2</div>
+    <div class="step-content">
+      <div class="step-heading">設計事件命名與參數架構</div>
+      <div class="step-body">GA4 事件名稱必須遵守命名規則，否則事件無法正確建立或報表顯示異常。建議使用「動詞_名詞」格式，全部小寫，以底線分隔單字。每個事件最多可附帶 25 個參數，每個參數值上限 100 字元。</div>
+      <div class="naming-grid">
+        <div class="naming-card good">
+          <div class="naming-label">正確命名範例</div>
+          <div class="naming-ex">form_submit_contact<br>video_play_hero<br>download_pdf_brochure<br>click_phone_link<br>scroll_depth_75</div>
+        </div>
+        <div class="naming-card bad">
+          <div class="naming-label">錯誤命名（避免）</div>
+          <div class="naming-ex">FormSubmit（大寫）<br>form-submit（連字號）<br>ga_session（ga_ 保留）<br>firebase_xxx（保留前綴）<br>event name（空格）</div>
+        </div>
+      </div>
+      <div class="step-tip"><strong>注意：</strong>以 ga_、google_、firebase_ 開頭的名稱是保留字，GA4 不接受。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">3</div>
+    <div class="step-content">
+      <div class="step-heading">在 GA4 介面中建立自訂事件（以現有事件為基礎）</div>
+      <div class="step-body">GA4 提供一個「從現有事件建立新事件」的功能，不需修改追蹤碼。適合用於：將某一類 click 事件（特定連結 class）單獨命名為新事件。路徑：管理員 → 資源欄 → 事件 → 建立事件 → 建立。</div>
+      <div class="code-block"><span style="color:#6b9b8a">// 建立條件範例：
+// 將點擊電話連結的行為獨立為 click_phone_link</span>
+
+條件 1：event_name  等於  click
+條件 2：link_url    包含  tel:
+
+新事件名稱：click_phone_link
+複製條件中的參數：✅ 勾選</div>
+      <div class="step-tip"><strong>提示：</strong>「複製條件中的參數」務必勾選，這樣原始 click 的 link_url 等參數才會被帶入新事件。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">4</div>
+    <div class="step-content">
+      <div class="step-heading">透過 gtag.js 直接傳送自訂事件</div>
+      <div class="step-body">若需要追蹤更複雜的行為（如：影片觀看完成、特定 div 可見、表單欄位填寫），需在網站程式碼中加入 gtag 呼叫。LocalWP 環境可直接在佈景主題的 footer.php 或透過 WordPress 外掛「Head & Footer Code」注入。</div>
+      <div class="code-block"><span style="color:#6b9b8a">// 範例 1：追蹤電話連結點擊</span>
+document.querySelectorAll('a[href^="tel:"]').forEach(el => {
+  el.addEventListener('click', () => {
+    gtag('event', 'click_phone_link', {
+      'phone_number': el.href.replace('tel:', '')
+    });
+  });
+});
+
+<span style="color:#6b9b8a">// 範例 2：追蹤表單送出</span>
+document.getElementById('contact-form').addEventListener('submit', () => {
+  gtag('event', 'form_submit_contact', {
+    'form_location': 'homepage'
+  });
+});</div>
+      <div class="step-tip"><strong>注意：</strong>gtag 函式必須在 GA4 追蹤碼載入後才能呼叫，確保你的自訂腳本放在 gtag.js 之後。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">5</div>
+    <div class="step-content">
+      <div class="step-heading">將自訂事件標記為轉換</div>
+      <div class="step-body">不是每個自訂事件都值得成為轉換。轉換代表「業務核心目標達成」，通常是：表單提交、電話點擊、購買完成、下載完成。在 GA4 中標記轉換：管理員 → 資源欄 → 轉換 → 新增轉換事件，輸入你的自訂事件名稱（如 form_submit_contact），儲存後該事件就會出現在轉換報表中。</div>
+      <div class="step-tip"><strong>限制：</strong>GA4 每個資源最多可標記 30 個轉換事件（含預設的 purchase）。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">6</div>
+    <div class="step-content">
+      <div class="step-heading">在即時報表確認事件送出</div>
+      <div class="step-body">完成設定後，開啟另一個瀏覽器視窗（或無痕模式）造訪你的 LocalWP 網站，實際觸發你設定的行為（點擊電話連結、送出表單）。切換回 GA4 → 報表 → 即時，觀察「事件計數（依事件名稱）」區塊，應該能在 1–2 分鐘內看到自訂事件名稱出現。</div>
+      <div class="step-tip"><strong>提示：</strong>GA4 的自訂事件最多需要 24–48 小時才會出現在「事件」報表清單，但即時報表是立即的。</div>
+    </div>
+  </div>
+
+  <div class="verify-box">
+    <div class="verify-label">完成驗證 · VERIFY</div>
+    <div class="verify-text">在 GA4 即時報表中確認自訂事件（如 click_phone_link 或 form_submit_contact）已出現在事件清單。若設定了轉換，在「轉換」頁籤中也應能看到對應事件名稱。DebugView 會在下一節進行更完整的驗證。</div>
+  </div>
+
+  <div class="troubleshoot">
+    <div class="ts-label">常見問題 · TROUBLESHOOT</div>
+    <div class="ts-item">
+      <div class="ts-q">即時報表看不到自訂事件</div>
+      <div class="ts-a">確認 gtag.js 追蹤碼已正確載入（打開 DevTools → Network，搜尋 collect 或 analytics.js），且自訂事件腳本放在 gtag 載入之後。LocalWP 網站需確認外掛「Head & Footer Code」已啟用並儲存。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">GA4 介面建立的新事件為何沒有觸發？</div>
+      <div class="ts-a">以現有事件為基礎的「建立事件」功能需要 1–2 天才會生效，且前提是原始的 click 事件確實有觸發。先在即時報表確認 click 事件有出現，再回頭設定條件。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">轉換事件的資料從何時開始計算？</div>
+      <div class="ts-a">GA4 的轉換標記只對「標記後」的新資料生效，無法回溯過去的事件。因此建議儘早設定轉換，讓資料從課程學習期間就開始累積。</div>
+    </div>
+  </div>
+</div>
+
+<div class="nav-footer">
+  <a href="m7-1-data-model.html" class="nav-btn">← GA4 資料模型</a>
+  <a href="m7-3-debugview.html" class="nav-btn primary">DebugView 驗證 →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">台北商業大學 · SEO & GA4 實戰課程 2026</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+window.addEventListener('scroll',()=>{const h=document.documentElement;fill.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100+'%'});
+</script>
+</body>
+</html>

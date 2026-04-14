@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>漏斗與路徑分析實作｜NTUB SEO & GA4</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--c-bg);color:var(--c-text);font-family:'Noto Sans TC',sans-serif;font-size:15px;line-height:1.7}
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#fff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a6:#8a7a9e;--radius:6px;--content-w:780px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-a6);border:1px solid rgba(138,122,158,.3);background:rgba(138,122,158,.08);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-a6);width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-a6)}
+.hero-eyebrow{font-size:.7rem;color:var(--c-a6);letter-spacing:2px;font-weight:500;margin-bottom:12px}
+.page-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:12px}
+.page-subtitle{font-size:.95rem;color:var(--c-muted);line-height:1.85;max-width:560px}
+.context-box{max-width:var(--content-w);margin:0 auto;padding:0 48px 32px}
+.context-inner{background:rgba(138,122,158,.06);border:1px solid rgba(138,122,158,.2);border-left:3px solid var(--c-a6);border-radius:var(--radius);padding:20px 24px}
+.context-label{font-size:.68rem;color:var(--c-a6);letter-spacing:1.5px;font-weight:500;margin-bottom:8px}
+.context-text{font-size:.88rem;color:var(--c-text);line-height:1.8}
+.steps-wrap{max-width:var(--content-w);margin:0 auto;padding:8px 48px 48px}
+.section-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:24px}
+.step-block{display:flex;gap:24px;margin-bottom:44px;position:relative}
+.step-block:not(:last-child)::after{content:'';position:absolute;left:19px;top:48px;width:2px;height:calc(100% - 16px);background:var(--c-border)}
+.step-circle{width:40px;height:40px;border-radius:50%;background:rgba(138,122,158,.1);border:2px solid var(--c-a6);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-weight:700;font-size:.95rem;color:var(--c-a6);flex-shrink:0}
+.step-content{flex:1;padding-top:6px}
+.step-heading{font-family:'Shippori Mincho',serif;font-size:1.15rem;font-weight:700;color:var(--c-text);margin-bottom:10px}
+.step-body{font-size:.9rem;color:var(--c-text);line-height:1.9;margin-bottom:12px}
+.step-tip{font-size:.82rem;color:var(--c-muted);background:var(--c-surface);border-left:3px solid var(--c-border);padding:10px 14px;border-radius:0 var(--radius) var(--radius) 0;line-height:1.7}
+.step-tip strong{color:var(--c-a6);font-weight:500}
+.funnel-demo{display:flex;flex-direction:column;gap:6px;margin:16px 0}
+.funnel-step{display:flex;align-items:center;gap:12px}
+.funnel-bar-wrap{flex:1;background:var(--c-surface);border-radius:4px;overflow:hidden;height:32px}
+.funnel-bar{height:100%;background:rgba(138,122,158,.35);display:flex;align-items:center;padding:0 12px;font-size:.82rem;color:var(--c-text);font-weight:500;transition:width .3s}
+.funnel-label{font-size:.82rem;color:var(--c-muted);min-width:100px;text-align:right}
+.funnel-pct{font-size:.78rem;color:var(--c-a6);font-weight:700;min-width:42px}
+.verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:24px 28px;margin:40px 0}
+.verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px}
+.verify-text{font-size:.9rem;color:var(--c-text);line-height:1.85}
+.troubleshoot{margin:40px 0}
+.ts-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:16px}
+.ts-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 22px;margin-bottom:10px}
+.ts-q{font-size:.87rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.ts-a{font-size:.85rem;color:var(--c-muted);line-height:1.75}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a6);text-decoration:none;padding:10px 20px;border:1px solid rgba(138,122,158,.3);border-radius:var(--radius);transition:background .2s}
+.nav-btn:hover{background:rgba(138,122,158,.07)}
+.nav-btn.primary{background:var(--c-a6);color:#fff;border-color:var(--c-a6)}
+.nav-btn.primary:hover{background:#76688a}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+@media(max-width:600px){.topbar,.page-hero,.context-box,.steps-wrap,.nav-footer,.footer{padding-left:24px;padding-right:24px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">SEO & GA4 實戰課程</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">8.3 漏斗與路徑</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="page-hero">
+  <a href="module8.html" class="back-link">← 返回 Module 8</a>
+  <div class="hero-eyebrow">MODULE 8 · SECTION 8.3</div>
+  <h1 class="page-title">漏斗與路徑分析實作</h1>
+  <p class="page-subtitle">實際操作漏斗探索與路徑探索，找出使用者流失的關鍵節點，並發掘高轉換的自然瀏覽路徑。</p>
+</div>
+
+<div class="context-box">
+  <div class="context-inner">
+    <div class="context-label">為什麼這很重要 · WHY THIS MATTERS</div>
+    <div class="context-text">流量再多，若使用者在轉換前一步流失，SEO 的投資就無法變現。漏斗分析讓你精確定位流失點，路徑分析讓你發現使用者自發找到的最佳路徑，兩者結合就能從「帶進流量」進化到「把流量轉成業績」。</div>
+  </div>
+</div>
+
+<div class="steps-wrap">
+  <div class="section-label">STEP BY STEP · 操作步驟</div>
+
+  <div class="step-block">
+    <div class="step-circle">1</div>
+    <div class="step-content">
+      <div class="step-heading">建立漏斗探索：定義轉換流程步驟</div>
+      <div class="step-body">探索 → 模板庫 → 漏斗探索。在左側「步驟」欄位，點擊「新增步驟」，依照你網站的轉換流程逐一加入。每個步驟可以用「事件」或「頁面瀏覽」來定義。以服務型網站為例，三步驟漏斗可能是：</div>
+      <div class="funnel-demo">
+        <div class="funnel-step">
+          <div class="funnel-label">首頁造訪</div>
+          <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%">1,000 使用者</div></div>
+          <div class="funnel-pct">100%</div>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-label">服務頁瀏覽</div>
+          <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:62%">620 使用者</div></div>
+          <div class="funnel-pct">62%</div>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-label">聯絡表單送出</div>
+          <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:18%">180 使用者</div></div>
+          <div class="funnel-pct">18%</div>
+        </div>
+      </div>
+      <div class="step-tip"><strong>提示：</strong>步驟間若下降超過 50%，就是值得深入調查的流失點。上例中服務頁到表單的轉換率（18/620 ≈ 29%）可能偏低，需要改善聯絡頁面的設計。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">2</div>
+    <div class="step-content">
+      <div class="step-heading">切換「開放式」與「封閉式」漏斗</div>
+      <div class="step-body">漏斗探索有兩種模式：「封閉式」漏斗要求使用者必須按照設定的步驟順序通過，不允許跳過；「開放式」漏斗允許使用者在任意步驟進入流程。SEO 分析通常使用開放式漏斗，因為自然搜尋使用者可能直接從文章頁或服務頁進入，而非從首頁開始。在設定面板的「漏斗類型」切換即可。</div>
+      <div class="step-tip"><strong>判斷原則：</strong>若你的轉換流程是線性的（如電商結帳必須依序進行），用封閉式；若使用者有多種入口，用開放式。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">3</div>
+    <div class="step-content">
+      <div class="step-heading">在漏斗中加入「區隔比較」</div>
+      <div class="step-body">在漏斗探索的「細分」功能中，可以將結果按來源分組（如：比較自然搜尋 vs 付費廣告的使用者，在各步驟的通過率是否有差異）。操作：設定面板 → 「細分」欄位 → 拖入「工作階段預設頻道分組」維度。這樣就能直接看出 SEO 帶來的使用者在轉換漏斗中的表現，與其他管道相比是否更好或更差。</div>
+      <div class="step-tip"><strong>洞見範例：</strong>若自然搜尋使用者在服務頁的停留率比付費廣告使用者高 20%，說明 SEO 吸引的使用者對內容更有興趣，但可能需要改善 CTA 設計來提升最後的轉換步驟。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">4</div>
+    <div class="step-content">
+      <div class="step-heading">建立路徑探索：從起點追蹤行為</div>
+      <div class="step-body">探索 → 路徑探索。路徑探索以視覺化樹狀圖呈現使用者的前後行為。設定起點：選擇「事件」或「頁面路徑」作為分析起點。例如：起點設為「流覽部落格文章頁（page_view where page_path contains /blog/）」，路徑圖就會顯示使用者看完文章後最常去的下一個頁面，以及之後的路徑。</div>
+      <div class="step-tip"><strong>SEO 應用：</strong>找到高流量的部落格文章，用路徑探索看看使用者看完後是否前往你希望他們去的頁面（如：服務頁、定價頁）。若大多數人直接離開，可能需要在文章底部加入更明確的 CTA。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">5</div>
+    <div class="step-content">
+      <div class="step-heading">從終點反向追蹤：找出轉換前的路徑</div>
+      <div class="step-body">路徑探索也支援反向分析（從終點往前看）。設定終點為「form_submit_contact 事件」，路徑圖就會顯示填寫表單前，使用者最常經歷的頁面序列。這能幫助你找出「高轉換路徑」——哪些頁面的組合是促成轉換的關鍵，進而在這些頁面上加強 SEO 優化或加入更多連結。</div>
+      <div class="step-tip"><strong>操作：</strong>在路徑探索設定面板中，將「開始點」改為「結束點」，並選擇你的轉換事件作為終點。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">6</div>
+    <div class="step-content">
+      <div class="step-heading">將洞見轉化為 SEO 行動</div>
+      <div class="step-body">分析本身不是目的，決策才是。整理漏斗與路徑分析的發現，對應具體的 SEO 優化行動：流失率高的步驟 → 改善該頁面的 UX 與 CTA 文案；高轉換前置頁面 → 加強這些頁面的關鍵字排名；部落格文章看完就離開 → 在文章內加入內部連結指向高轉換頁面。</div>
+      <div style="background:rgba(138,122,158,.06);border:1px solid rgba(138,122,158,.25);border-left:3px solid var(--c-a6);border-radius:var(--radius);padding:16px 20px;margin:12px 0">
+        <div style="font-size:.68rem;color:var(--c-a6);letter-spacing:1.5px;font-weight:500;margin-bottom:10px">CASE STUDY · 電話點擊追蹤修正案例</div>
+        <div style="font-size:.85rem;color:var(--c-text);line-height:1.8;margin-bottom:10px">某台灣牙醫診所設定 GA4 轉換追蹤：只追蹤「線上預約表單送出」。月底報告顯示 SEO 帶來的轉換率僅 3%，老闆認為 SEO 效果差。</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div style="background:rgba(200,80,80,.06);border:1px solid rgba(200,80,80,.2);border-radius:var(--radius);padding:10px 14px">
+            <div style="font-size:.7rem;color:#c85050;font-weight:700;letter-spacing:1px;margin-bottom:4px">修正前</div>
+            <div style="font-size:.8rem;color:var(--c-text);line-height:1.6">只追蹤表單送出<br>轉換率：3%<br>結論：SEO 無效</div>
+          </div>
+          <div style="background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-radius:var(--radius);padding:10px 14px">
+            <div style="font-size:.7rem;color:#5a7a5a;font-weight:700;letter-spacing:1px;margin-bottom:4px">修正後</div>
+            <div style="font-size:.8rem;color:var(--c-text);line-height:1.6">加入電話點擊事件追蹤<br>轉換率：14%（表單 3% + 電話 11%）<br>結論：SEO ROI 正確反映</div>
+          </div>
+        </div>
+        <div style="font-size:.78rem;color:var(--c-muted);line-height:1.7">行動服務業（醫療、法律、裝潢）的訪客偏好直接致電，而非填表。GTM 設定：追蹤 <span style="font-family:'Courier New',monospace;font-size:.85em;background:rgba(138,122,158,.1);padding:1px 5px;border-radius:3px">a[href^="tel:"]</span> 的點擊事件，推送到 GA4 作為額外轉換目標，才能正確呈現 SEO 的完整貢獻。</div>
+      </div>
+      <div class="step-tip"><strong>原則：</strong>每次分析結束後，至少寫出 1–2 個「因此我要做」的具體行動，否則分析只是消耗時間而非創造價值。</div>
+    </div>
+  </div>
+
+  <div class="verify-box">
+    <div class="verify-label">完成驗證 · VERIFY</div>
+    <div class="verify-text">成功建立一個至少三步驟的漏斗探索，能識別出流失率最高的步驟。另建立一個路徑探索，起點設為高流量頁面或結束點設為轉換事件，並能說明路徑圖所呈現的主要洞見與對應行動。</div>
+  </div>
+
+  <div class="troubleshoot">
+    <div class="ts-label">常見問題 · TROUBLESHOOT</div>
+    <div class="ts-item">
+      <div class="ts-q">漏斗的每個步驟都顯示「0 使用者」</div>
+      <div class="ts-a">確認步驟的定義條件是否正確。若用「事件名稱等於 page_view」且「頁面路徑包含 /contact/」，確認你的網站路徑確實含有這個字串（用報表 → 頁面和畫面確認實際路徑格式）。LocalWP 網站的路徑可能包含 port 號碼，需確認格式一致。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">路徑探索顯示節點太多，難以閱讀</div>
+      <div class="ts-a">在設定面板的「節點類型」從「頁面標題」改為「頁面路徑」，並開啟「重新命名路徑節點」功能，可以將長路徑縮短顯示。另外，點擊某個節點可以「折疊」小流量路徑，只保留主要路徑顯示。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">漏斗探索中，後面步驟的使用者數反而比前面步驟多（違反邏輯）</div>
+      <div class="ts-a">這是「開放式漏斗」的正常現象——後期步驟允許直接入場的使用者（例如直接造訪結帳頁）。若要確保邏輯一致性，切換為「封閉式漏斗」，或重新設計起點條件讓所有路徑都從相同起點開始。</div>
+    </div>
+  </div>
+</div>
+
+<div class="nav-footer">
+  <a href="m8-2-explore-types.html" class="nav-btn">← 探索報表五型</a>
+  <a href="module8.html" class="nav-btn primary">返回 Module 8 →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">台北商業大學 · SEO & GA4 實戰課程 2026</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+window.addEventListener('scroll',()=>{const h=document.documentElement;fill.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100+'%'});
+</script>
+</body>
+</html>

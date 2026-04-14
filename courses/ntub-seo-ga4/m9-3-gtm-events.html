@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>事件追蹤實作｜NTUB SEO & GA4</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--c-bg);color:var(--c-text);font-family:'Noto Sans TC',sans-serif;font-size:15px;line-height:1.7}
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#fff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a6:#8a7a9e;--radius:6px;--content-w:780px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-a6);border:1px solid rgba(138,122,158,.3);background:rgba(138,122,158,.08);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-a6);width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-a6)}
+.hero-eyebrow{font-size:.7rem;color:var(--c-a6);letter-spacing:2px;font-weight:500;margin-bottom:12px}
+.page-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:12px}
+.page-subtitle{font-size:.95rem;color:var(--c-muted);line-height:1.85;max-width:560px}
+.context-box{max-width:var(--content-w);margin:0 auto;padding:0 48px 32px}
+.context-inner{background:rgba(138,122,158,.06);border:1px solid rgba(138,122,158,.2);border-left:3px solid var(--c-a6);border-radius:var(--radius);padding:20px 24px}
+.context-label{font-size:.68rem;color:var(--c-a6);letter-spacing:1.5px;font-weight:500;margin-bottom:8px}
+.context-text{font-size:.88rem;color:var(--c-text);line-height:1.8}
+.steps-wrap{max-width:var(--content-w);margin:0 auto;padding:8px 48px 48px}
+.section-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:24px}
+.step-block{display:flex;gap:24px;margin-bottom:44px;position:relative}
+.step-block:not(:last-child)::after{content:'';position:absolute;left:19px;top:48px;width:2px;height:calc(100% - 16px);background:var(--c-border)}
+.step-circle{width:40px;height:40px;border-radius:50%;background:rgba(138,122,158,.1);border:2px solid var(--c-a6);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-weight:700;font-size:.95rem;color:var(--c-a6);flex-shrink:0}
+.step-content{flex:1;padding-top:6px}
+.step-heading{font-family:'Shippori Mincho',serif;font-size:1.15rem;font-weight:700;color:var(--c-text);margin-bottom:10px}
+.step-body{font-size:.9rem;color:var(--c-text);line-height:1.9;margin-bottom:12px}
+.code-block{background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.83rem;padding:20px 22px;border-radius:var(--radius);white-space:pre;overflow-x:auto;margin:12px 0}
+.step-tip{font-size:.82rem;color:var(--c-muted);background:var(--c-surface);border-left:3px solid var(--c-border);padding:10px 14px;border-radius:0 var(--radius) var(--radius) 0;line-height:1.7}
+.step-tip strong{color:var(--c-a6);font-weight:500}
+.event-table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.83rem}
+.event-table th{background:var(--c-surface);padding:8px 12px;text-align:left;font-weight:700;color:var(--c-text);border-bottom:2px solid var(--c-border)}
+.event-table td{padding:8px 12px;border-bottom:1px solid var(--c-border);color:var(--c-text);vertical-align:top}
+.event-table tr:last-child td{border-bottom:none}
+.event-table code{font-family:'Courier New',monospace;font-size:.82rem;background:rgba(138,122,158,.1);padding:1px 5px;border-radius:3px}
+.verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:24px 28px;margin:40px 0}
+.verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px}
+.verify-text{font-size:.9rem;color:var(--c-text);line-height:1.85}
+.troubleshoot{margin:40px 0}
+.ts-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:16px}
+.ts-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 22px;margin-bottom:10px}
+.ts-q{font-size:.87rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.ts-a{font-size:.85rem;color:var(--c-muted);line-height:1.75}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a6);text-decoration:none;padding:10px 20px;border:1px solid rgba(138,122,158,.3);border-radius:var(--radius);transition:background .2s}
+.nav-btn:hover{background:rgba(138,122,158,.07)}
+.nav-btn.primary{background:var(--c-a6);color:#fff;border-color:var(--c-a6)}
+.nav-btn.primary:hover{background:#76688a}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+@media(max-width:600px){.topbar,.page-hero,.context-box,.steps-wrap,.nav-footer,.footer{padding-left:24px;padding-right:24px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">SEO & GA4 實戰課程</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">9.3 GTM 事件</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="page-hero">
+  <a href="module9.html" class="back-link">← 返回 Module 9</a>
+  <div class="hero-eyebrow">MODULE 9 · SECTION 9.3</div>
+  <h1 class="page-title">事件追蹤實作</h1>
+  <p class="page-subtitle">用 GTM 建立三種常見事件追蹤：按鈕點擊、PDF 下載、表單提交。掌握觸發條件設計與 DataLayer 的基礎用法。</p>
+</div>
+
+<div class="context-box">
+  <div class="context-inner">
+    <div class="context-label">為什麼這很重要 · WHY THIS MATTERS</div>
+    <div class="context-text">前兩節建立了 GTM 的概念和容器基礎，這一節是真正的實戰。點擊追蹤、下載追蹤、表單追蹤涵蓋了大多數服務型網站的核心轉換路徑。學完這三種追蹤模式，你就能舉一反三，應對絕大多數業務場景的追蹤需求。</div>
+  </div>
+</div>
+
+<div class="steps-wrap">
+  <div class="section-label">STEP BY STEP · 操作步驟</div>
+
+  <div class="step-block">
+    <div class="step-circle">1</div>
+    <div class="step-content">
+      <div class="step-heading">啟用 GTM 的內建變數</div>
+      <div class="step-body">在建立觸發條件前，先啟用 GTM 的內建變數，讓你可以在觸發條件中使用「Click URL」、「Click Classes」、「Click Element」等資訊。路徑：GTM 容器 → 變數 → 內建變數 → 設定 → 勾選所有「點擊」類別的變數（Click Element、Click Classes、Click ID、Click Target、Click URL、Click Text）。這是設定點擊追蹤的前提條件。</div>
+      <div class="step-tip"><strong>提示：</strong>也建議同時啟用「表單」類別的內建變數（Form Element、Form Classes、Form ID、Form Target、Form URL、Form Text），為後續的表單追蹤做準備。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">2</div>
+    <div class="step-content">
+      <div class="step-heading">實作一：追蹤特定按鈕點擊</div>
+      <div class="step-body">以追蹤「聯絡我們」按鈕點擊為例。首先，在 LocalWP 網站用 Chrome DevTools 確認按鈕的 HTML 屬性（class 名稱或 id）。然後在 GTM 中：新建觸發條件 → 選「點擊 - 所有元素」→ 觸發條件設為「部分點擊」→ 條件設定「Click Classes 包含 contact-btn」。新建標籤 → GA4 事件 → 事件名稱填 click_contact_btn → 觸發條件選剛才建立的觸發條件。</div>
+      <div class="code-block"><span style="color:#6b9b8a">// GTM 觸發條件設定邏輯</span>
+觸發條件類型：點擊 - 所有元素
+觸發設定：部分點擊
+
+條件 1：Click Classes  包含  contact-btn
+<span style="color:#6b9b8a">// 或使用 ID：</span>
+條件 1：Click ID  等於  contact-button
+
+<span style="color:#6b9b8a">// 對應標籤</span>
+標籤類型：Google Analytics: GA4 事件
+設定標籤：（選擇已建立的 GA4 設定標籤）
+事件名稱：click_contact_btn</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">3</div>
+    <div class="step-content">
+      <div class="step-heading">實作二：追蹤 PDF 下載</div>
+      <div class="step-body">GA4 加強型評估的「檔案下載」功能已能追蹤常見格式（pdf, docx, xlsx 等），但若需要區分不同 PDF 的下載，或記錄特定參數，可以用 GTM 建立更精確的追蹤。觸發條件：點擊 - 僅連結 → 部分點擊 → Click URL 包含 .pdf。</div>
+      <div class="code-block"><span style="color:#6b9b8a">// PDF 下載追蹤設定</span>
+觸發條件類型：點擊 - 僅連結
+觸發設定：部分點擊
+
+條件 1：Click URL  包含  .pdf
+
+<span style="color:#6b9b8a">// 標籤設定（加入參數記錄檔名）</span>
+標籤類型：GA4 事件
+事件名稱：download_pdf
+事件參數：
+  file_name  →  {{Click URL}}
+  page_location  →  {{Page URL}}</div>
+      <div class="step-tip"><strong>與 GA4 加強型評估的差異：</strong>加強型評估的 file_download 事件已能自動記錄 file_name 和 file_extension，只有在需要額外自訂參數時才值得用 GTM 另建。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">4</div>
+    <div class="step-content">
+      <div class="step-heading">實作三：追蹤表單提交</div>
+      <div class="step-body">表單追蹤比點擊追蹤複雜，因為需要區分「嘗試提交」與「成功提交」。GTM 提供「表單提交」觸發條件類型，在使用者點擊送出按鈕時觸發（不論是否成功）。若需要只追蹤「成功提交」，需要搭配 WordPress 表單外掛的成功頁面 URL 或成功回調函式。</div>
+      <div class="code-block"><span style="color:#6b9b8a">// 方法 1：追蹤所有表單提交嘗試</span>
+觸發條件類型：表單提交
+觸發設定：部分表單
+條件：Form ID  等於  wpcf7-f1-p2-o1
+
+<span style="color:#6b9b8a">// 方法 2：追蹤成功後跳轉頁面（更準確）</span>
+觸發條件類型：頁面瀏覽
+條件：Page Path  等於  /contact/thank-you/
+事件名稱：form_submit_contact</div>
+      <div class="step-tip"><strong>最佳實踐：</strong>方法 2（追蹤感謝頁面瀏覽）是最準確的表單提交追蹤方式，因為它確認使用者真正完成了提交流程。若表單沒有跳轉頁面，可以用 Contact Form 7 的 wpcf7submit JavaScript 事件搭配 DataLayer push。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">5</div>
+    <div class="step-content">
+      <div class="step-heading">在預覽模式驗證三個追蹤標籤</div>
+      <div class="step-body">建立完三個標籤後，進入 GTM 預覽模式，在 LocalWP 網站上逐一觸發各個事件：點擊「聯絡我們」按鈕、點擊 PDF 連結、送出聯絡表單。每次操作後，在 GTM Tag Assistant 面板確認對應標籤出現在「已觸發的標籤」清單（而非「未觸發的標籤」）。同時在 GA4 DebugView 確認事件資料和參數是否正確。</div>
+      <div class="event-table">
+        <table>
+          <thead>
+            <tr><th>事件名稱</th><th>觸發方式</th><th>應看到的參數</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>click_contact_btn</code></td><td>點擊聯絡按鈕</td><td>page_location</td></tr>
+            <tr><td><code>download_pdf</code></td><td>點擊 PDF 連結</td><td>file_name、page_location</td></tr>
+            <tr><td><code>form_submit_contact</code></td><td>造訪感謝頁面</td><td>page_path</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">6</div>
+    <div class="step-content">
+      <div class="step-heading">發布並標記為轉換</div>
+      <div class="step-body">預覽確認無誤後，在 GTM 提交並發布新版本（建議命名「v1.1 新增點擊/下載/表單追蹤」）。回到 GA4 管理員 → 轉換，將 click_contact_btn 和 form_submit_contact 標記為轉換事件。之後在 GA4 的轉換報表中，就能看到透過 GTM 追蹤到的轉換次數，與流量來源交叉分析時，就能評估 SEO 的實際轉換貢獻。</div>
+      <div class="step-tip"><strong>課程重點回顧：</strong>SEO 帶流量 → GA4 追蹤行為 → GTM 精確記錄轉換 → 探索報表分析路徑。這三個工具的整合就是 Module 10 的主題。</div>
+    </div>
+  </div>
+
+  <div class="verify-box">
+    <div class="verify-label">完成驗證 · VERIFY</div>
+    <div class="verify-text">GTM 中建立三個事件追蹤標籤（點擊/下載/表單），預覽模式確認全部正常觸發，GA4 DebugView 能看到對應事件與參數，容器已發布新版本，兩個關鍵轉換已在 GA4 中標記。</div>
+  </div>
+
+  <div class="troubleshoot">
+    <div class="ts-label">常見問題 · TROUBLESHOOT</div>
+    <div class="ts-item">
+      <div class="ts-q">GTM 預覽模式中，標籤顯示為「未觸發」</div>
+      <div class="ts-a">檢查觸發條件的設定是否與實際元素匹配。用 DevTools 的 Elements 面板確認按鈕的 class 名稱（可能包含多個 class，GTM 的「包含」條件需要完整的 class 名稱）。也可以在 Tag Assistant 點擊「點擊」事件，查看實際傳入的 Click Classes 值是什麼。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">表單提交觸發條件設定後，頁面跳轉時 GTM 標籤沒有觸發</div>
+      <div class="ts-a">若使用「頁面瀏覽」作為感謝頁面追蹤，確認感謝頁面的 URL 路徑與條件設定完全一致（注意結尾的 / 斜線）。若使用「表單提交」觸發條件但沒有跳轉頁面，需要確認「等待標籤觸發完成」選項已勾選，否則頁面可能在標籤傳送前就完成。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">GTM 預覽的 Tag Assistant 沒有出現，瀏覽器顯示連線拒絕</div>
+      <div class="ts-a">GTM Tag Assistant 需要 Chrome 擴充功能支援，確認已安裝「Google Tag Assistant Legacy」或使用 Chrome 的 GTM 內建預覽功能。若 LocalWP 網站使用 HTTPS，需確認憑證被瀏覽器信任（看到 https:// 旁邊是鎖頭圖示而非警告）。</div>
+    </div>
+  </div>
+</div>
+
+<div class="nav-footer">
+  <a href="m9-2-gtm-setup.html" class="nav-btn">← GTM 容器建立</a>
+  <a href="module9.html" class="nav-btn primary">返回 Module 9 →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">台北商業大學 · SEO & GA4 實戰課程 2026</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+window.addEventListener('scroll',()=>{const h=document.documentElement;fill.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100+'%'});
+</script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7-1 GA4 資料模型｜數位行銷實務 SEO × GA4</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a6:#8a7a9e;--radius:6px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-a6);border:1px solid rgba(138,122,158,.3);background:rgba(138,122,158,.08);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-a6);width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-a6)}
+.hero-eyebrow{font-size:.7rem;color:var(--c-a6);letter-spacing:2px;font-weight:500;margin-bottom:12px}
+.page-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:12px}
+.page-subtitle{font-size:.95rem;color:var(--c-muted);line-height:1.85;max-width:560px}
+.context-box{max-width:var(--content-w);margin:0 auto;padding:0 48px 32px}
+.context-inner{background:rgba(138,122,158,.06);border:1px solid rgba(138,122,158,.2);border-left:3px solid var(--c-a6);border-radius:var(--radius);padding:20px 24px}
+.context-label{font-size:.68rem;color:var(--c-a6);letter-spacing:1.5px;font-weight:500;margin-bottom:8px}
+.context-text{font-size:.88rem;color:var(--c-text);line-height:1.8}
+.steps-wrap{max-width:var(--content-w);margin:0 auto;padding:8px 48px 48px}
+.section-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:24px}
+.step-block{display:flex;gap:24px;margin-bottom:44px;position:relative}
+.step-block:not(:last-child)::after{content:'';position:absolute;left:19px;top:48px;width:2px;height:calc(100% - 16px);background:var(--c-border)}
+.step-circle{width:40px;height:40px;border-radius:50%;background:rgba(138,122,158,.1);border:2px solid var(--c-a6);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-weight:700;font-size:.95rem;color:var(--c-a6);flex-shrink:0}
+.step-content{flex:1;padding-top:6px}
+.step-heading{font-family:'Shippori Mincho',serif;font-size:1.15rem;font-weight:700;color:var(--c-text);margin-bottom:10px}
+.step-body{font-size:.9rem;color:var(--c-text);line-height:1.9;margin-bottom:12px}
+.step-tip{font-size:.82rem;color:var(--c-muted);background:var(--c-surface);border-left:3px solid var(--c-border);padding:10px 14px;border-radius:0 var(--radius) var(--radius) 0;line-height:1.7}
+.step-tip strong{color:var(--c-a6);font-weight:500}
+.inline-code{font-family:'Courier New',monospace;font-size:.85em;background:rgba(138,122,158,.1);padding:1px 6px;border-radius:3px}
+.flow-mini{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:20px 0;padding:20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.flow-node-mini{font-size:.82rem;padding:8px 14px;border:1px solid var(--c-border);border-radius:var(--radius);color:var(--c-muted);background:var(--c-bg)}
+.flow-node-mini.active{border-color:var(--c-a6);color:var(--c-a6);background:rgba(138,122,158,.08);font-weight:500}
+.flow-arr{color:var(--c-muted);font-size:.82rem}
+.verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:24px 28px;margin:40px 0}
+.verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px}
+.verify-text{font-size:.9rem;color:var(--c-text);line-height:1.85}
+.troubleshoot{margin:40px 0}
+.ts-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:16px}
+.ts-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 22px;margin-bottom:10px}
+.ts-q{font-size:.87rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.ts-a{font-size:.85rem;color:var(--c-muted);line-height:1.75}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a6);text-decoration:none;padding:10px 20px;border:1px solid rgba(138,122,158,.3);border-radius:var(--radius);transition:background .2s}
+.nav-btn:hover{background:rgba(138,122,158,.07)}
+.nav-btn.primary{background:var(--c-a6);color:#fff;border-color:var(--c-a6)}
+.nav-btn.primary:hover{background:#76688a}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+@media(max-width:600px){.topbar,.page-hero,.context-box,.steps-wrap,.nav-footer,.footer{padding-left:24px;padding-right:24px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">數位行銷實務 SEO × GA4</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">7-1 資料模型</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="page-hero">
+  <a href="module7.html" class="back-link">← 返回 Module 7</a>
+  <div class="hero-eyebrow">SECTION 7.1</div>
+  <h1 class="page-title">GA4 資料模型：使用者、工作階段、事件、參數、轉換</h1>
+  <p class="page-subtitle">GA4 的所有報表都建立在這五個概念上。搞清楚它們的關係，GA4 的任何數字才看得懂。</p>
+</div>
+
+<div class="context-box">
+  <div class="context-inner">
+    <div class="context-label">為什麼這很重要 · WHY THIS MATTERS</div>
+    <div class="context-text">GA4 和舊版 Universal Analytics 最大的差異就是資料模型：從「頁面瀏覽為核心」變成「事件為核心」。不理解這個轉變，在 GA4 裡看任何報表都會覺得數字怪怪的。這一節先把五個核心概念講清楚，之後建立自訂事件和看報表才有依據。</div>
+  </div>
+</div>
+
+<div class="steps-wrap">
+  <div class="section-label">CONCEPT BY CONCEPT · 五個核心概念</div>
+
+  <div class="step-block">
+    <div class="step-circle">1</div>
+    <div class="step-content">
+      <div class="step-heading">使用者（User）：誰在訪問</div>
+      <div class="step-body">GA4 辨識使用者的方法（依優先順序）：(1) User-ID（你的系統登入識別）；(2) Google 信號（使用者登入 Google）；(3) Client ID（瀏覽器 Cookie，<span class="inline-code">_ga</span> cookie）；(4) Device ID（App 的廣告識別碼）。GA4 報表中的「使用者」是「估算的唯一個體數量」，因為 Cookie 被清除或跨裝置，實際可能一個人被算成多個使用者。</div>
+      <div class="step-tip"><strong>提示：</strong>「新使用者」= 第一次訪問（沒有 _ga cookie）；「回訪使用者」= 之前來過。GA4 預設保留 Cookie 730 天（2 年）。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">2</div>
+    <div class="step-content">
+      <div class="step-heading">工作階段（Session）：一次完整訪問</div>
+      <div class="step-body">一個工作階段代表使用者的「一次完整訪問」，從第一個頁面到離開（或超過 30 分鐘無操作）。同一個使用者可以有多個工作階段（不同天的訪問）。GA4 的工作階段計算和 UA 有所不同：GA4 的工作階段是基於「session_start 事件」觸發，而 UA 是基於頁面瀏覽加 30 分鐘 Timeout。</div>
+      <div class="step-tip"><strong>提示：</strong>「每工作階段頁面數」是衡量網站黏著度的指標之一。如果使用者每次只看一頁就離開，可能是內容不吸引人或內部連結不足。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">3</div>
+    <div class="step-content">
+      <div class="step-heading">事件（Event）：使用者的每一個動作</div>
+      <div class="step-body">GA4 的核心變革：所有東西都是「事件」。頁面瀏覽是 <span class="inline-code">page_view</span> 事件；捲動到 90% 是 <span class="inline-code">scroll</span> 事件；點外部連結是 <span class="inline-code">click</span> 事件；購買是 <span class="inline-code">purchase</span> 事件。事件四個類型：</div>
+      <div class="flow-mini">
+        <div class="flow-node-mini active">自動收集</div><span class="flow-arr">→</span>
+        <div class="flow-node-mini active">加強型評估</div><span class="flow-arr">→</span>
+        <div class="flow-node-mini active">建議事件</div><span class="flow-arr">→</span>
+        <div class="flow-node-mini active">自訂事件</div>
+      </div>
+      <div class="step-tip"><strong>提示：</strong>建議事件（Recommended Events）有固定命名規則（如 <span class="inline-code">add_to_cart</span>、<span class="inline-code">begin_checkout</span>），遵循命名規則才能使用 GA4 預建的電商報表。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">4</div>
+    <div class="step-content">
+      <div class="step-heading">參數（Parameter）：事件的細節描述</div>
+      <div class="step-body">每個事件可以附帶最多 25 個「參數」，描述事件的詳細資訊。例如 <span class="inline-code">page_view</span> 事件的參數：<span class="inline-code">page_title</span>（頁面名稱）、<span class="inline-code">page_location</span>（完整 URL）、<span class="inline-code">page_referrer</span>（從哪個頁面來）。自訂事件的自訂參數需要在 GA4「自訂定義」中「登錄」，才會出現在報表裡。</div>
+      <div class="step-tip"><strong>提示：</strong>GA4 免費版每個資源最多 50 個自訂維度和 50 個自訂指標，超過要用 GA4 360（付費）。規劃自訂事件時要考慮這個上限。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">5</div>
+    <div class="step-content">
+      <div class="step-heading">轉換（Conversion）：被標記為「重要」的事件</div>
+      <div class="step-body">轉換不是一種特別的事件，而是「你把某個事件標記為轉換」的設定。在 GA4 管理 → 事件，對任何事件按下「標記為轉換」，它就會出現在轉換報表中。免費版最多 30 個轉換事件。常見的轉換事件：<span class="inline-code">purchase</span>（購買）、<span class="inline-code">generate_lead</span>（填表）、<span class="inline-code">sign_up</span>（訂閱）。</div>
+      <div class="step-tip"><strong>提示：</strong>GA4 預設把 <span class="inline-code">purchase</span> 和 <span class="inline-code">first_visit</span> 標記為轉換。依你的商業目標，新增或移除轉換標記。</div>
+    </div>
+  </div>
+
+  <div class="verify-box">
+    <div class="verify-label">完成驗證 · VERIFY</div>
+    <div class="verify-text">能用自己的話說出：一個使用者在你的電商網站「瀏覽商品頁 → 加入購物車 → 完成購買」的整個流程，會在 GA4 產生哪些事件？每個事件有哪些關鍵參數？哪個事件應該被標記為轉換？</div>
+  </div>
+
+  <div class="troubleshoot">
+    <div class="ts-label">常見問題 · TROUBLESHOOT</div>
+    <div class="ts-item">
+      <div class="ts-q">GA4 的工作階段數為什麼比 UA 少很多？</div>
+      <div class="ts-a">GA4 和 UA 的工作階段計算方式不同，GA4 更準確但計數偏低。跨夜工作階段的處理也不同（GA4 不在午夜重設工作階段）。這是系統設計差異，不代表流量減少了。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">自訂參數為什麼在報表裡看不到？</div>
+      <div class="ts-a">需要先在 GA4「管理 → 資源 → 自訂定義」登錄這個參數，報表中才會出現。登錄後，只有「登錄之後收集的資料」才會顯示，歷史資料無法回填。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">轉換次數和使用者數量哪個更重要？</div>
+      <div class="ts-a">看商業目標。電商最重視轉換次數（購買）和轉換率（轉換/工作階段）；品牌認知類型網站更重視使用者數量和回訪率；SaaS 最重視「試用轉付費」的轉換率。沒有通用答案，但「轉換率」通常比「使用者數量」更能反映策略效果。</div>
+    </div>
+  </div>
+</div>
+
+<div class="nav-footer">
+  <a href="module7.html" class="nav-btn">← Module 7 總覽</a>
+  <a href="m7-2-custom-events.html" class="nav-btn primary">7-2 自訂事件設計 →</a>
+</div>
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">台北商業大學 · 2026 春季</span>
+</footer>
+<script>const fill=document.getElementById('prog');window.addEventListener('scroll',()=>{const h=document.documentElement;fill.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100+'%'});</script>
+</body>
+</html>

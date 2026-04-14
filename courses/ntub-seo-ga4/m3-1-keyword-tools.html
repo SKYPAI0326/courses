@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3-1 關鍵字規劃工具實作｜數位行銷實務 SEO × GA4</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a6:#8a7a9e;--radius:6px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-a6);border:1px solid rgba(138,122,158,.3);background:rgba(138,122,158,.08);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-a6);width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-a6)}
+.hero-eyebrow{font-size:.7rem;color:var(--c-a6);letter-spacing:2px;font-weight:500;margin-bottom:12px}
+.page-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:12px}
+.page-subtitle{font-size:.95rem;color:var(--c-muted);line-height:1.85;max-width:560px}
+.context-box{max-width:var(--content-w);margin:0 auto;padding:0 48px 32px}
+.context-inner{background:rgba(138,122,158,.06);border:1px solid rgba(138,122,158,.2);border-left:3px solid var(--c-a6);border-radius:var(--radius);padding:20px 24px}
+.context-label{font-size:.68rem;color:var(--c-a6);letter-spacing:1.5px;font-weight:500;margin-bottom:8px}
+.context-text{font-size:.88rem;color:var(--c-text);line-height:1.8}
+.steps-wrap{max-width:var(--content-w);margin:0 auto;padding:8px 48px 48px}
+.section-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:24px}
+.step-block{display:flex;gap:24px;margin-bottom:44px;position:relative}
+.step-block:not(:last-child)::after{content:'';position:absolute;left:19px;top:48px;width:2px;height:calc(100% - 16px);background:var(--c-border)}
+.step-circle{width:40px;height:40px;border-radius:50%;background:rgba(138,122,158,.1);border:2px solid var(--c-a6);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-weight:700;font-size:.95rem;color:var(--c-a6);flex-shrink:0}
+.step-content{flex:1;padding-top:6px}
+.step-heading{font-family:'Shippori Mincho',serif;font-size:1.15rem;font-weight:700;color:var(--c-text);margin-bottom:10px}
+.step-body{font-size:.9rem;color:var(--c-text);line-height:1.9;margin-bottom:12px}
+.step-tip{font-size:.82rem;color:var(--c-muted);background:var(--c-surface);border-left:3px solid var(--c-border);padding:10px 14px;border-radius:0 var(--radius) var(--radius) 0;line-height:1.7}
+.step-tip strong{color:var(--c-a6);font-weight:500}
+.inline-code{font-family:'Courier New',monospace;font-size:.85em;background:rgba(138,122,158,.1);padding:1px 6px;border-radius:3px}
+.code-block{background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.83rem;padding:18px 20px;border-radius:var(--radius);white-space:pre;overflow-x:auto;margin:12px 0;line-height:1.7}
+.verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:24px 28px;margin:40px 0}
+.verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px}
+.verify-text{font-size:.9rem;color:var(--c-text);line-height:1.85}
+.troubleshoot{margin:40px 0}
+.ts-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:16px}
+.ts-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 22px;margin-bottom:10px}
+.ts-q{font-size:.87rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.ts-a{font-size:.85rem;color:var(--c-muted);line-height:1.75}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a6);text-decoration:none;padding:10px 20px;border:1px solid rgba(138,122,158,.3);border-radius:var(--radius);transition:background .2s}
+.nav-btn:hover{background:rgba(138,122,158,.07)}
+.nav-btn.primary{background:var(--c-a6);color:#fff;border-color:var(--c-a6)}
+.nav-btn.primary:hover{background:#76688a}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+@media(max-width:600px){.topbar,.page-hero,.context-box,.steps-wrap,.nav-footer,.footer{padding-left:24px;padding-right:24px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">數位行銷實務 SEO × GA4</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">3-1 關鍵字工具</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="page-hero">
+  <a href="module3.html" class="back-link">← 返回 Module 3</a>
+  <div class="hero-eyebrow">SECTION 3.1</div>
+  <h1 class="page-title">Google Ads 關鍵字規劃工具實作</h1>
+  <p class="page-subtitle">用 Google 的免費工具，找出真正有搜尋量的關鍵字、評估競爭程度，產出一份可以直接交作業的 50 組關鍵字清單。</p>
+</div>
+
+<div class="context-box">
+  <div class="context-inner">
+    <div class="context-label">為什麼這很重要 · WHY THIS MATTERS</div>
+    <div class="context-text">關鍵字研究不是「腦力激盪出一堆詞」，而是用數據驗證「真的有人在搜尋這個詞、競爭強度可以攀登」。Google Ads 關鍵字規劃工具（Keyword Planner）是業界最常用的免費入門工具，本節手把手帶你用。</div>
+  </div>
+</div>
+
+<div class="steps-wrap">
+  <div class="section-label">STEP BY STEP · 操作步驟</div>
+
+  <div class="step-block">
+    <div class="step-circle">1</div>
+    <div class="step-content">
+      <div class="step-heading">進入 Google Ads 並開啟關鍵字規劃工具</div>
+      <div class="step-body">前往 <span class="inline-code">ads.google.com</span>，用 Google 帳號登入。若是第一次使用，系統會要你建立廣告活動——選「切換到專家模式」→「不使用廣告活動建立帳戶」略過。進入後台後，點上方「工具與設定」→「規劃」→「關鍵字規劃工具」。</div>
+      <div class="step-tip"><strong>提示：</strong>不需要真的投廣告，帳號不輸入信用卡也能使用關鍵字規劃工具的查詢功能。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">2</div>
+    <div class="step-content">
+      <div class="step-heading">用「探索新關鍵字」擴展詞庫</div>
+      <div class="step-body">點「探索新關鍵字」，輸入你的演練網站行業的 3–5 個核心詞（例如電商：「客製化文具」「禮品訂製」「企業送禮」）。語言選「中文（繁體）」，地區選「台灣」，點「取得結果」。系統會回傳數十個相關詞及月均搜尋量。</div>
+      <div class="step-tip"><strong>提示：</strong>若帳號沒有投放過廣告，搜尋量會顯示「100–1K」這類區間，而非精確數字。已投過廣告的帳號才有精確數據。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">3</div>
+    <div class="step-content">
+      <div class="step-heading">讀懂關鍵欄位</div>
+      <div class="step-body">關鍵字清單中有幾個欄位必須看懂：<span class="inline-code">平均每月搜尋量</span>：愈高流量潛力愈大；<span class="inline-code">競爭程度</span>：低/中/高，這是廣告競爭，不完全等同 SEO 難度，但有參考價值；<span class="inline-code">頁面最高出價（低）</span>：間接反映商業價值，出價高的詞通常值得 SEO 投入；<span class="inline-code">三個月趨勢</span>：辨別季節性或衰退詞。</div>
+      <div style="background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);padding:16px 20px;margin:12px 0;overflow-x:auto">
+        <div style="font-size:.68rem;color:var(--c-a6);letter-spacing:1.5px;font-weight:500;margin-bottom:12px">TOOL COMPARE · Ahrefs vs Semrush vs Google 規劃工具</div>
+        <table style="width:100%;border-collapse:collapse;font-size:.8rem">
+          <thead>
+            <tr style="background:rgba(138,122,158,.1)">
+              <th style="text-align:left;padding:8px 12px;border:1px solid var(--c-border);font-weight:700;color:var(--c-text)">功能</th>
+              <th style="text-align:left;padding:8px 12px;border:1px solid var(--c-border);font-weight:700;color:var(--c-text)">Google 規劃工具</th>
+              <th style="text-align:left;padding:8px 12px;border:1px solid var(--c-border);font-weight:700;color:var(--c-text)">Ahrefs</th>
+              <th style="text-align:left;padding:8px 12px;border:1px solid var(--c-border);font-weight:700;color:var(--c-text)">Semrush</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding:7px 12px;border:1px solid var(--c-border);color:var(--c-text)">費用</td>
+              <td style="padding:7px 12px;border:1px solid var(--c-border);color:var(--c-muted)">免費</td>
+              <td style="padding:7px 12px;border:1px solid var(--c-border);color:var(--c-muted)">$129/月起</td>
+              <td style="padding:7px 12px;border:1px solid var(--c-border);color:var(--c-muted)">$139/月起</td>
+            </tr>
+            <tr style="background:rgba(138,122,158,.04)">
+              <td style="padding:7px 12px;border:1px solid var(--c-border);color:var(--c-text)">搜尋量數據</td>
+              <td style="padding:7px 12px;border:1px solid var(--c-border);color:var(--c-muted)">區間（非精確）</td>
+              <td style="padding:7px 12px;border:1px solid var(--c-border);color:var(--c-muted)">精確月搜尋量</td>
+              <td style="padding:7px 12px;border:1px solid var(--c-border);color:var(--c-muted)">精確月搜尋量</td>
+            </tr>
+            <tr>
+              <td style="padding:7px 12px;border:1px solid var(--c-border);color:var(--c-text)">SEO 難度（KD）</td>
+              <td style="padding:7px 12px;border:1px solid var(--c-border);color:var(--c-muted)">廣告競爭，非 SEO</td>
+              <td style="padding:7px 12px;border:1px solid var(--c-border);color:var(--c-muted)">KD 0–100，精準</td>
+              <td style="padding:7px 12px;border:1px solid var(--c-border);color:var(--c-muted)">KD 0–100，精準</td>
+            </tr>
+            <tr style="background:rgba(138,122,158,.04)">
+              <td style="padding:7px 12px;border:1px solid var(--c-border);color:var(--c-text)">反向連結分析</td>
+              <td style="padding:7px 12px;border:1px solid var(--c-border);color:var(--c-muted)">無</td>
+              <td style="padding:7px 12px;border:1px solid var(--c-border);color:var(--c-muted)">最大資料庫</td>
+              <td style="padding:7px 12px;border:1px solid var(--c-border);color:var(--c-muted)">強大</td>
+            </tr>
+            <tr>
+              <td style="padding:7px 12px;border:1px solid var(--c-border);color:var(--c-text)">最適用於</td>
+              <td style="padding:7px 12px;border:1px solid var(--c-border);color:var(--c-muted)">課程練習、初步研究</td>
+              <td style="padding:7px 12px;border:1px solid var(--c-border);color:var(--c-muted)">SEO 專業工作</td>
+              <td style="padding:7px 12px;border:1px solid var(--c-border);color:var(--c-muted)">SEO + 競爭分析</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="step-tip"><strong>提示：</strong>出價越高不一定要做，但可以用來判斷「這個詞帶來的訪客有沒有消費力」。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">4</div>
+    <div class="step-content">
+      <div class="step-heading">勾選並下載關鍵字</div>
+      <div class="step-body">勾選你認為值得的關鍵字（目標 50 組），點「新增至計畫」→ 右上角點「計畫概覽」→「下載關鍵字創意」匯出 CSV。這份 CSV 就是作業的原始資料。</div>
+      <div class="step-tip"><strong>提示：</strong>搜尋量 100–1K 的詞也值得收錄，尤其是意圖精準的長尾詞。不要只挑搜尋量最高的詞——那些通常競爭最激烈。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">5</div>
+    <div class="step-content">
+      <div class="step-heading">整理成關鍵字清單（作業格式）</div>
+      <div class="step-body">打開 CSV，用 Excel 或 Google Sheets 整理成作業格式：</div>
+      <div class="code-block">關鍵字 | 月搜尋量 | 意圖類型 | 分類(通用/品類/品牌) | 優先級(高/中/低) | 備註
+客製化禮物  | 1K–10K  | 商業型   | 品類                  | 高               | 競爭強，長期布局
+公司尾牙禮品 | 100–1K  | 交易型   | 品類                  | 高               | 季節性11–12月</div>
+      <div class="step-tip"><strong>提示：</strong>優先級判斷原則：意圖明確（商業/交易型）+ 搜尋量合理 + 競爭低/中 = 高優先。</div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-circle">6</div>
+    <div class="step-content">
+      <div class="step-heading">補充：Google 搜尋自動完成 + Related Searches</div>
+      <div class="step-body">規劃工具以外，還有兩個免費補充來源：在 Google 搜尋框輸入核心詞後，觀察「自動完成建議」（使用者真實搜尋行為）；捲到搜尋結果頁最底部的「相關搜尋」（Google 認為相關的延伸詞）。這兩個來源往往能找到工具裡沒有的長尾詞。</div>
+      <div class="step-tip"><strong>提示：</strong>自動完成建議是基於大量真實搜尋資料，通常比你腦力激盪出來的詞更貼近使用者語言。</div>
+    </div>
+  </div>
+
+  <div class="verify-box">
+    <div class="verify-label">完成驗證 · VERIFY</div>
+    <div class="verify-text">能從 Google Ads 規劃工具匯出 50 組以上的關鍵字，並完成「意圖類型、分類、優先級」三欄標記。這份清單是本週結束後繳交的關鍵字作業（佔 20%）的主要內容。</div>
+  </div>
+
+  <div class="troubleshoot">
+    <div class="ts-label">常見問題 · TROUBLESHOOT</div>
+    <div class="ts-item">
+      <div class="ts-q">規劃工具要求我填信用卡？</div>
+      <div class="ts-a">在建立帳戶流程中，選「切換到專家模式」→「先不建立廣告活動」→「確認帳戶設定」，這個流程可以跳過付款設定，直接進入後台使用規劃工具。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">搜尋量都顯示「0」或「N/A」？</div>
+      <div class="ts-a">通常是語言或地區設定錯誤，或輸入的詞太生僻。確認語言設「中文（繁體）」、地區設「台灣」。若詞真的搜尋量為零，表示沒有人在搜尋這個詞，換更常見的說法試試。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">只找到 20 組，找不到 50 組？</div>
+      <div class="ts-a">嘗試換角度：用競爭對手的品牌名查詢、輸入你的產品應用場景（例如「婚禮伴手禮」而非只輸入「禮品」）、或用「相關產品」替換輸入詞。也可以把搜尋量門檻降到「10以上」。</div>
+    </div>
+  </div>
+</div>
+
+<div class="nav-footer">
+  <a href="module3.html" class="nav-btn">← Module 3 總覽</a>
+  <a href="m3-2-algorithm-history.html" class="nav-btn primary">3-2 Google 演算法史 →</a>
+</div>
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">台北商業大學 · 2026 春季</span>
+</footer>
+<script>const fill=document.getElementById('prog');window.addEventListener('scroll',()=>{const h=document.documentElement;fill.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100+'%'});</script>
+</body>
+</html>
