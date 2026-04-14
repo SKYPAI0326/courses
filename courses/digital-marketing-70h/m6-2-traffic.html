@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>6-2 流量分析｜Module 6 GA4 數據分析｜數位行銷人才培訓</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a2:#c9963a;--radius:6px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-a2);border:1px solid rgba(201,150,58,.3);background:rgba(201,150,58,.08);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-a2);width:0%;transition:width .1s}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px}
+.back-link:hover{color:var(--c-a2)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border)}
+.hero-num{font-size:.72rem;color:var(--c-a2);letter-spacing:1px;font-weight:500}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:620px;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a2);border-radius:var(--radius)}
+.outcomes-label{font-size:.7rem;color:var(--c-a2);letter-spacing:1.5px;font-weight:500;margin-bottom:4px}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text)}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a2);margin-top:8px;flex-shrink:0}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px}
+.lesson-section{margin-bottom:64px}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.5rem;font-weight:700;color:var(--c-text);margin-bottom:18px;line-height:1.4}
+.section-heading em{font-style:normal;color:var(--c-a2)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.95;margin-bottom:16px}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:20px 0}
+.callout.info{background:rgba(201,150,58,.06);border:1px solid rgba(201,150,58,.25)}
+.callout.key{background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a2)}
+.callout-icon{font-size:1rem;flex-shrink:0;margin-top:2px}
+.callout-body{font-size:.87rem;line-height:1.8;color:var(--c-text)}
+.callout-body strong{color:var(--c-a2)}
+.source-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.82rem}
+.source-table th{background:rgba(201,150,58,.08);color:var(--c-a2);font-size:.7rem;letter-spacing:1px;font-weight:600;text-transform:uppercase;padding:10px 14px;border:1px solid var(--c-border);text-align:left}
+.source-table td{padding:10px 14px;border:1px solid var(--c-border);color:var(--c-text);line-height:1.7;vertical-align:top}
+.source-table tr:nth-child(even) td{background:rgba(245,243,238,.5)}
+.utm-block{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:20px 0}
+.utm-header{background:rgba(201,150,58,.06);padding:10px 16px;border-bottom:1px solid var(--c-border);font-size:.7rem;color:var(--c-a2);font-weight:600;letter-spacing:1px;text-transform:uppercase}
+.utm-url{padding:14px 18px;font-family:'Courier New',monospace;font-size:.8rem;color:var(--c-text);line-height:1.9;word-break:break-all;border-bottom:1px solid var(--c-border)}
+.utm-params{padding:14px 18px;display:flex;flex-direction:column;gap:8px}
+.utm-row{display:grid;grid-template-columns:130px 1fr;gap:10px;font-size:.82rem}
+.utm-key{font-family:'Courier New',monospace;color:var(--c-a2);font-weight:600}
+.utm-val{color:var(--c-text)}
+.naming-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.82rem}
+.naming-table th{background:rgba(201,150,58,.08);color:var(--c-a2);font-size:.7rem;letter-spacing:1px;font-weight:600;text-transform:uppercase;padding:10px 14px;border:1px solid var(--c-border);text-align:left}
+.naming-table td{padding:10px 14px;border:1px solid var(--c-border);color:var(--c-text);line-height:1.7;font-family:'Courier New',monospace;font-size:.8rem}
+.naming-table tr:nth-child(even) td{background:rgba(245,243,238,.5)}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a2);text-decoration:none;padding:10px 20px;border:1px solid rgba(201,150,58,.3);border-radius:var(--radius);transition:background .2s}
+.nav-btn:hover{background:rgba(201,150,58,.07)}
+.nav-btn.primary{background:var(--c-a2);color:#fff;border-color:var(--c-a2)}
+.nav-btn.primary:hover{background:#a87a28}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+@media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero,.lesson-body,.nav-footer{padding-left:32px;padding-right:32px}}
+@media(max-width:600px){.topbar{padding:0 16px}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:40px 20px 32px}.lesson-title{font-size:1.6rem}.lesson-body{padding:0 20px 64px}.nav-footer{flex-direction:column;padding:0 20px 48px}.nav-btn{width:100%;justify-content:center}.utm-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<!-- PASSWORD GATE: inject via inject_gate.py -->
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">數位行銷人才培訓</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">6-2 · 流量分析</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a href="module6.html" class="back-link">← 返回 Module 6</a>
+  <div class="hero-meta">
+    <span class="hero-part">M6 · GA4 數據分析</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">單元 6-2</span>
+  </div>
+  <h1 class="lesson-title">流量分析：流量從哪來、值不值得</h1>
+  <p class="lesson-tagline">「流量報告」是 GA4 最常被看的報告，也是最常被誤讀的。「Direct 流量暴增」「Organic 突然下降」——這些數字背後的意義，往往和直覺相反。這節課教你正確解讀來源/媒介，以及用 UTM 讓每一個行銷活動的流量都可追蹤。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習目標 OUTCOMES</div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>能解釋 GA4 六種主要流量來源（Organic Search / Direct / Referral / Paid / Social / Email）的定義與常見誤讀</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>能為行銷活動建立符合規範的 UTM 追蹤碼，並在 GA4 中驗證是否正確進入</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>能從流量報告中識別異常數據，並提出至少兩種可能的原因與驗證方法</span></div>
+  </div>
+</div>
+
+<div class="lesson-body">
+
+<div class="lesson-section">
+  <div class="section-eyebrow">TRAFFIC SOURCES · 流量來源解讀</div>
+  <h2 class="section-heading">六種來源，<em>各有各的故事</em></h2>
+
+  <table class="source-table">
+    <thead>
+      <tr>
+        <th>來源 / 媒介</th>
+        <th>定義</th>
+        <th>常見誤讀與注意事項</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Organic Search</strong></td>
+        <td>用戶透過 Google、Bing 等搜尋引擎自然搜尋到達</td>
+        <td>下降可能是 SEO 問題、也可能是被 AI Overview 截流。需與 GSC 資料比對確認。</td>
+      </tr>
+      <tr>
+        <td><strong>Direct</strong></td>
+        <td>直接輸入網址、書籤、或來源無法辨識</td>
+        <td>Direct 暴增常是「未加 UTM 的行銷活動流量」被誤分類。不代表品牌知名度真的提升。</td>
+      </tr>
+      <tr>
+        <td><strong>Referral</strong></td>
+        <td>來自其他網站的連結點擊</td>
+        <td>查看是哪個網站，評估是否有反向連結效益或合作夥伴流量。注意排除內部子網域。</td>
+      </tr>
+      <tr>
+        <td><strong>Paid Search</strong></td>
+        <td>Google Ads 等搜尋廣告的點擊</td>
+        <td>需要連結 Google Ads 帳號才能看到完整廣告細節。確認廣告有自動標記（Auto-tagging）。</td>
+      </tr>
+      <tr>
+        <td><strong>Organic Social</strong></td>
+        <td>來自 Facebook、IG、Threads 等社群的自然貼文點擊</td>
+        <td>很多社群 App 不傳遞 referrer，流量會被歸類為 Direct。需用 UTM 解決。</td>
+      </tr>
+      <tr>
+        <td><strong>Email</strong></td>
+        <td>來自電子報或行銷 Email 的點擊</td>
+        <td>Email 客戶端不傳遞 referrer，若不加 UTM，幾乎所有 Email 流量都會進入 Direct。</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="lesson-section">
+  <div class="section-eyebrow">UTM TRACKING · UTM 追蹤碼</div>
+  <h2 class="section-heading">行銷活動的<em>身分證</em></h2>
+  <p class="body-text">UTM（Urchin Tracking Module）是附加在網址後面的參數，告訴 GA4「這個訪客從哪個活動來的」。所有對外的行銷連結（Email、社群貼文、廣告），都應該加上 UTM。</p>
+
+  <div class="utm-block">
+    <div class="utm-header">UTM 範例解析</div>
+    <div class="utm-url">https://yoursite.com/product?<span style="color:var(--c-a2)">utm_source=instagram&utm_medium=social&utm_campaign=summer2025&utm_content=reels_top</span></div>
+    <div class="utm-params">
+      <div class="utm-row">
+        <div class="utm-key">utm_source</div>
+        <div class="utm-val">流量來源平台（instagram、facebook、newsletter、google）</div>
+      </div>
+      <div class="utm-row">
+        <div class="utm-key">utm_medium</div>
+        <div class="utm-val">行銷媒介類型（social、email、cpc、referral）</div>
+      </div>
+      <div class="utm-row">
+        <div class="utm-key">utm_campaign</div>
+        <div class="utm-val">活動名稱（summer2025、newproduct、brandweek）</div>
+      </div>
+      <div class="utm-row">
+        <div class="utm-key">utm_content</div>
+        <div class="utm-val">區分同一活動中不同素材（reels_top、story_link、post_bio）</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="body-text"><strong>命名規範建議</strong>——全公司統一命名格式，否則 GA4 報告會出現同一活動有 10 種拼法的混亂：</p>
+
+  <table class="naming-table">
+    <thead>
+      <tr>
+        <th>參數</th>
+        <th>✓ 推薦格式</th>
+        <th>✗ 避免</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>utm_source</td>
+        <td>instagram、facebook、google、newsletter</td>
+        <td>IG、FB、ig、Instagram（大小寫混用）</td>
+      </tr>
+      <tr>
+        <td>utm_medium</td>
+        <td>social、email、cpc、referral、banner</td>
+        <td>Social Media、paid、廣告</td>
+      </tr>
+      <tr>
+        <td>utm_campaign</td>
+        <td>summer2025、q2-launch（小寫連字號）</td>
+        <td>Summer 2025、Q2 Launch（空格大寫）</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout key">
+    <div class="callout-icon">🔧</div>
+    <div class="callout-body"><strong>工具推薦：</strong>Google 提供免費的「Campaign URL Builder」（搜尋即可找到），填入各參數後自動生成完整 UTM 網址，複製貼上即可使用。</div>
+  </div>
+</div>
+
+</div>
+
+<nav class="nav-footer">
+  <a href="m6-1-setup.html" class="nav-btn">← 6-1 GA4 建置</a>
+  <a href="m6-3-audience.html" class="nav-btn primary">6-3 受眾與行為報告 →</a>
+</nav>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">數位行銷人才培訓 · Module 6</span>
+</footer>
+<script>
+const p=document.getElementById('prog');
+window.addEventListener('scroll',()=>{const h=document.documentElement;p.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%'});
+</script>
+</body>
+</html>

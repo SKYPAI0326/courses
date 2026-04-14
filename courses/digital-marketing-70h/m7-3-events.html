@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7-3 自訂事件追蹤｜Module 7 GTM｜數位行銷人才培訓</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a2:#c9963a;--radius:6px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-a2);border:1px solid rgba(201,150,58,.3);background:rgba(201,150,58,.08);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-a2);width:0%;transition:width .1s}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px}
+.back-link:hover{color:var(--c-a2)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border)}
+.hero-num{font-size:.72rem;color:var(--c-a2);letter-spacing:1px;font-weight:500}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:620px;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a2);border-radius:var(--radius)}
+.outcomes-label{font-size:.7rem;color:var(--c-a2);letter-spacing:1.5px;font-weight:500;margin-bottom:4px}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text)}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a2);margin-top:8px;flex-shrink:0}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px}
+.lesson-section{margin-bottom:64px}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.5rem;font-weight:700;color:var(--c-text);margin-bottom:18px;line-height:1.4}
+.section-heading em{font-style:normal;color:var(--c-a2)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.95;margin-bottom:16px}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:20px 0}
+.callout.info{background:rgba(201,150,58,.06);border:1px solid rgba(201,150,58,.25)}
+.callout.key{background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a2)}
+.callout-icon{font-size:1rem;flex-shrink:0;margin-top:2px}
+.callout-body{font-size:.87rem;line-height:1.8;color:var(--c-text)}
+.callout-body strong{color:var(--c-a2)}
+.event-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);margin:14px 0;overflow:hidden}
+.event-header{display:grid;grid-template-columns:50px 1fr;border-bottom:1px solid var(--c-border)}
+.event-num{background:rgba(201,150,58,.06);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-a2);border-right:1px solid var(--c-border)}
+.event-title-area{padding:12px 16px}
+.event-name{font-size:.88rem;font-weight:700;color:var(--c-text);margin-bottom:2px}
+.event-trigger{font-size:.74rem;color:var(--c-muted)}
+.event-body{padding:14px 18px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.event-col-label{font-size:.68rem;color:var(--c-a2);letter-spacing:1px;font-weight:600;text-transform:uppercase;margin-bottom:6px}
+.event-steps{list-style:none;display:flex;flex-direction:column;gap:4px}
+.event-steps li{font-size:.8rem;color:var(--c-text);line-height:1.6;padding-left:16px;position:relative}
+.event-steps li::before{content:"·";position:absolute;left:0;color:var(--c-a2)}
+.naming-list{display:flex;flex-direction:column;gap:8px;margin:20px 0}
+.naming-row{display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;font-size:.8rem}
+.naming-bad{padding:10px 14px;color:#a05a2c;border-right:1px solid var(--c-border);font-family:'Courier New',monospace}
+.naming-good{padding:10px 14px;color:#3d6b3d;font-family:'Courier New',monospace}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a2);text-decoration:none;padding:10px 20px;border:1px solid rgba(201,150,58,.3);border-radius:var(--radius);transition:background .2s}
+.nav-btn:hover{background:rgba(201,150,58,.07)}
+.nav-btn.primary{background:var(--c-a2);color:#fff;border-color:var(--c-a2)}
+.nav-btn.primary:hover{background:#a87a28}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+@media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero,.lesson-body,.nav-footer{padding-left:32px;padding-right:32px}.event-body{grid-template-columns:1fr}.naming-row{grid-template-columns:1fr}.naming-bad{border-right:none;border-bottom:1px solid var(--c-border)}}
+@media(max-width:600px){.topbar{padding:0 16px}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:40px 20px 32px}.lesson-title{font-size:1.6rem}.lesson-body{padding:0 20px 64px}.nav-footer{flex-direction:column;padding:0 20px 48px}.nav-btn{width:100%;justify-content:center}}
+</style>
+</head>
+<body>
+<!-- PASSWORD GATE: inject via inject_gate.py -->
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">數位行銷人才培訓</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">7-3 · 自訂事件追蹤</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a href="module7.html" class="back-link">← 返回 Module 7</a>
+  <div class="hero-meta">
+    <span class="hero-part">M7 · GTM</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">單元 7-3</span>
+  </div>
+  <h1 class="lesson-title">自訂事件追蹤：按鈕、表單、捲動、連結</h1>
+  <p class="lesson-tagline">增強型評估涵蓋不了所有行為。當你需要追蹤「特定按鈕點擊」「表單成功送出」「50% 捲動深度」這些自訂行為時，就需要在 GTM 手動建立觸發條件和事件代碼。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習目標 OUTCOMES</div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>能在 GTM 中建立按鈕點擊追蹤（透過 Click ID 或 Click Text 觸發）</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>能設定自訂捲動深度追蹤（25%/50%/75%/100%）</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>能建立事件命名規範，確保 GA4 報告中事件名稱一致且可讀</span></div>
+  </div>
+</div>
+
+<div class="lesson-body">
+
+<div class="lesson-section">
+  <div class="section-eyebrow">CUSTOM EVENTS · 四種常見自訂追蹤</div>
+  <h2 class="section-heading">GTM 實作，<em>四種最常用的自訂追蹤</em></h2>
+
+  <div class="event-card">
+    <div class="event-header">
+      <div class="event-num">01</div>
+      <div class="event-title-area">
+        <div class="event-name">按鈕點擊追蹤</div>
+        <div class="event-trigger">觸發條件：所有元素點擊 + 篩選條件</div>
+      </div>
+    </div>
+    <div class="event-body">
+      <div>
+        <div class="event-col-label">GTM 設定步驟</div>
+        <ul class="event-steps">
+          <li>啟用內建變數：Click ID、Click Classes、Click Text</li>
+          <li>新增觸發條件 → 點擊：所有元素</li>
+          <li>加入篩選條件：Click ID 等於 cta-button（或用 Click Text 等於按鈕文字）</li>
+          <li>建立 GA4 事件代碼，事件名稱填 button_click</li>
+        </ul>
+      </div>
+      <div>
+        <div class="event-col-label">事件參數建議</div>
+        <ul class="event-steps">
+          <li>button_text：{{Click Text}}（記錄按了哪顆按鈕）</li>
+          <li>button_location：手動填入（如 hero_section）</li>
+          <li>在 GA4 自訂維度中新增 button_text，才能在報告看到</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="event-card">
+    <div class="event-header">
+      <div class="event-num">02</div>
+      <div class="event-title-area">
+        <div class="event-name">表單送出追蹤</div>
+        <div class="event-trigger">觸發條件：表單提交（Form Submission）</div>
+      </div>
+    </div>
+    <div class="event-body">
+      <div>
+        <div class="event-col-label">GTM 設定步驟</div>
+        <ul class="event-steps">
+          <li>啟用內建變數：Form ID、Form Classes</li>
+          <li>新增觸發條件 → 表單提交</li>
+          <li>勾選「等待表單提交」確保送出後才觸發</li>
+          <li>加入篩選：Form ID 等於你的表單 ID</li>
+        </ul>
+      </div>
+      <div>
+        <div class="event-col-label">常見問題</div>
+        <ul class="event-steps">
+          <li>若表單用 AJAX 送出，GTM 的表單觸發不會觸發，需用「感謝頁面 URL」追蹤</li>
+          <li>感謝頁面法：觸發條件 = 頁面瀏覽，URL 包含 /thank-you</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="event-card">
+    <div class="event-header">
+      <div class="event-num">03</div>
+      <div class="event-title-area">
+        <div class="event-name">自訂捲動深度追蹤</div>
+        <div class="event-trigger">觸發條件：捲動深度</div>
+      </div>
+    </div>
+    <div class="event-body">
+      <div>
+        <div class="event-col-label">GTM 設定步驟</div>
+        <ul class="event-steps">
+          <li>新增觸發條件 → 捲動深度</li>
+          <li>勾選「垂直捲動深度」</li>
+          <li>設定觸發時間點：25、50、75、100（百分比）</li>
+          <li>GA4 事件名稱：scroll_depth</li>
+        </ul>
+      </div>
+      <div>
+        <div class="event-col-label">事件參數建議</div>
+        <ul class="event-steps">
+          <li>scroll_depth_threshold：{{Scroll Depth Threshold}}（25/50/75/100）</li>
+          <li>比對不同百分比的觸發次數，找出讀者的放棄點</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="event-card">
+    <div class="event-header">
+      <div class="event-num">04</div>
+      <div class="event-title-area">
+        <div class="event-name">外部連結點擊追蹤</div>
+        <div class="event-trigger">觸發條件：連結點擊 + 外部網域篩選</div>
+      </div>
+    </div>
+    <div class="event-body">
+      <div>
+        <div class="event-col-label">GTM 設定步驟</div>
+        <ul class="event-steps">
+          <li>啟用內建變數：Click URL</li>
+          <li>新增觸發條件 → 點擊：僅連結</li>
+          <li>篩選條件：Click URL 不包含 yourdomain.com</li>
+          <li>GA4 事件名稱：outbound_link_click</li>
+        </ul>
+      </div>
+      <div>
+        <div class="event-col-label">應用場景</div>
+        <ul class="event-steps">
+          <li>追蹤用戶點擊合作夥伴連結</li>
+          <li>追蹤社群媒體連結點擊</li>
+          <li>事件參數 link_url：{{Click URL}} 記錄去哪了</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="lesson-section">
+  <div class="section-eyebrow">NAMING CONVENTION · 事件命名規範</div>
+  <h2 class="section-heading">好的命名，<em>讓報告自己說話</em></h2>
+  <p class="body-text">GA4 的事件名稱會直接出現在報告中。如果命名不一致，同一個按鈕點擊可能有三種不同名稱，讓報告難以解讀。以下是標準命名規範：</p>
+
+  <div class="callout key">
+    <div class="callout-icon">📋</div>
+    <div class="callout-body"><strong>命名規則：</strong>全小寫、用底線分隔、動詞_名詞格式。例：button_click、form_submit、video_start、file_download、scroll_depth</div>
+  </div>
+
+  <div class="naming-list">
+    <div class="naming-row">
+      <div class="naming-bad">❌ CTA Button Click</div>
+      <div class="naming-good">✓ button_click</div>
+    </div>
+    <div class="naming-row">
+      <div class="naming-bad">❌ Form Submitted</div>
+      <div class="naming-good">✓ form_submit</div>
+    </div>
+    <div class="naming-row">
+      <div class="naming-bad">❌ PDF download clicked</div>
+      <div class="naming-good">✓ file_download</div>
+    </div>
+    <div class="naming-row">
+      <div class="naming-bad">❌ 電話點擊</div>
+      <div class="naming-good">✓ phone_click</div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<nav class="nav-footer">
+  <a href="m7-2-ga4-setup.html" class="nav-btn">← 7-2 GA4 × GTM 整合</a>
+  <a href="m7-4-advanced.html" class="nav-btn primary">7-4 進階追蹤 →</a>
+</nav>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">數位行銷人才培訓 · Module 7</span>
+</footer>
+<script>
+const p=document.getElementById('prog');
+window.addEventListener('scroll',()=>{const h=document.documentElement;p.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%'});
+</script>
+</body>
+</html>

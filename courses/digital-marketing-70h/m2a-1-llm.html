@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2A-1 LLM 原理｜Module 2 生成式 AI｜數位行銷人才培訓</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a2:#c9963a;--radius:6px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-a2);border:1px solid rgba(201,150,58,.3);background:rgba(201,150,58,.08);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-a2);width:0%;transition:width .1s}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px}
+.back-link:hover{color:var(--c-a2)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border)}
+.hero-num{font-size:.72rem;color:var(--c-a2);letter-spacing:1px;font-weight:500}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:620px;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a2);border-radius:var(--radius)}
+.outcomes-label{font-size:.7rem;color:var(--c-a2);letter-spacing:1.5px;font-weight:500;margin-bottom:4px}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text)}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a2);margin-top:8px;flex-shrink:0}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px}
+.lesson-section{margin-bottom:64px}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.5rem;font-weight:700;color:var(--c-text);margin-bottom:18px;line-height:1.4}
+.section-heading em{font-style:normal;color:var(--c-a2)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.95;margin-bottom:16px}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:20px 0}
+.callout.info{background:rgba(201,150,58,.06);border:1px solid rgba(201,150,58,.25)}
+.callout.warn{background:rgba(181,112,58,.06);border:1px solid rgba(181,112,58,.25)}
+.callout.key{background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a2)}
+.callout-icon{font-size:1rem;flex-shrink:0;margin-top:2px}
+.callout-body{font-size:.87rem;line-height:1.8;color:var(--c-text)}
+.callout-body strong{color:var(--c-a2)}
+.concept-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}
+.concept-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 18px}
+.concept-label{font-size:.68rem;color:var(--c-a2);letter-spacing:1px;font-weight:500;text-transform:uppercase;margin-bottom:8px}
+.concept-body{font-size:.83rem;color:var(--c-text);line-height:1.75}
+.analogy-box{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);padding:24px 22px;margin:20px 0}
+.analogy-label{font-size:.68rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;text-transform:uppercase;margin-bottom:10px}
+.analogy-text{font-size:.9rem;color:var(--c-text);line-height:1.85}
+.token-demo{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 22px;margin:20px 0;font-family:'Courier New',monospace;font-size:.88rem;line-height:2}
+.tok{display:inline-block;padding:2px 6px;border-radius:3px;margin:2px;border:1px solid}
+.tok-1{background:rgba(201,150,58,.12);border-color:rgba(201,150,58,.35);color:#7a5a1a}
+.tok-2{background:rgba(90,122,90,.1);border-color:rgba(90,122,90,.3);color:#3a5a3a}
+.tok-3{background:rgba(107,127,163,.1);border-color:rgba(107,127,163,.3);color:#3a4a6a}
+.tok-4{background:rgba(138,122,158,.1);border-color:rgba(138,122,158,.3);color:#4a3a5a}
+.hallucination-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.85rem}
+.hallucination-table th{text-align:left;padding:10px 14px;background:var(--c-surface);border:1px solid var(--c-border);font-weight:600;font-size:.78rem;color:var(--c-text)}
+.hallucination-table td{padding:10px 14px;border:1px solid var(--c-border);color:var(--c-text);vertical-align:top;line-height:1.65}
+.hallucination-table tr:nth-child(even) td{background:rgba(245,243,238,.5)}
+.implication-list{display:flex;flex-direction:column;gap:10px;margin:20px 0}
+.implication-item{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.impl-num{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-a2);flex-shrink:0;min-width:24px}
+.impl-body{font-size:.85rem;color:var(--c-text);line-height:1.75}
+.impl-body strong{display:block;margin-bottom:3px}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a2);text-decoration:none;padding:10px 20px;border:1px solid rgba(201,150,58,.3);border-radius:var(--radius);transition:background .2s}
+.nav-btn:hover{background:rgba(201,150,58,.07)}
+.nav-btn.primary{background:var(--c-a2);color:#fff;border-color:var(--c-a2)}
+.nav-btn.primary:hover{background:#a87a28}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+@media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero,.lesson-body,.nav-footer{padding-left:32px;padding-right:32px}.concept-row{grid-template-columns:1fr}}
+@media(max-width:600px){.topbar{padding:0 16px}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:40px 20px 32px}.lesson-title{font-size:1.6rem}.lesson-body{padding:0 20px 64px}.nav-footer{flex-direction:column;padding:0 20px 48px}.nav-btn{width:100%;justify-content:center}}
+</style>
+</head>
+<body>
+<!-- PASSWORD GATE: inject via inject_gate.py -->
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">數位行銷人才培訓</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">2A-1 · LLM 原理</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a href="module2.html" class="back-link">← 返回 Module 2</a>
+  <div class="hero-meta">
+    <span class="hero-part">M2A · AI 基礎素養</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">單元 2A-1</span>
+  </div>
+  <h1 class="lesson-title">LLM 如何「思考」</h1>
+  <p class="lesson-tagline">AI 為什麼能寫文章、回答問題、生成圖片？又為什麼會一本正經地說出根本不存在的事？理解語言模型的運作機制，你才能知道什麼時候可以信任它的輸出，什麼時候必須驗證。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習目標 OUTCOMES</div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>能用「預測下一個 token」解釋 LLM 的核心運作，不需要懂數學或程式</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>能舉例說明幻覺的成因，並列出在行銷工作中使用 AI 的驗證習慣</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>能根據 LLM 的特性調整 Prompt 設計策略（如提供上下文、指定輸出格式）</span></div>
+  </div>
+</div>
+
+<div class="lesson-body">
+
+<div class="lesson-section">
+  <div class="section-eyebrow">FOUNDATION · LLM 是什麼</div>
+  <h2 class="section-heading">不是資料庫，不是搜尋引擎，<em>是預測機器</em></h2>
+  <p class="body-text">很多人以為 ChatGPT 是一個超大型的資料庫——你問什麼，它去「查」答案再回傳給你。這個理解是錯的，也是導致大多數 AI 誤用的根源。</p>
+  <p class="body-text">LLM（Large Language Model，大型語言模型）的核心機制只有一件事：<strong>預測下一個最可能出現的 token</strong>。它從來不「知道」什麼，它只是根據大量訓練資料學會了「什麼樣的文字序列在統計上最常一起出現」。</p>
+  <div class="analogy-box">
+    <div class="analogy-label">類比理解</div>
+    <div class="analogy-text">想像你在打手機時，輸入「早安，今天天氣」，鍵盤會預測你下一個字可能是「真好」、「不錯」或「很差」。LLM 做的是同樣的事，只是規模大了幾億倍——它不只預測下一個字，而是預測下一個最符合整個對話脈絡的 token，一個接一個，直到輸出完整的回應。</div>
+  </div>
+  <p class="body-text">這個機制有一個重要含義：AI 的輸出是「統計上最合理的文字序列」，而不是「事實正確的陳述」。這兩件事有時候一致，有時候根本不同。</p>
+</div>
+
+<div class="lesson-section">
+  <div class="section-eyebrow">MECHANICS · Token 是什麼</div>
+  <h2 class="section-heading">AI 看到的不是「字」，<em>是 Token</em></h2>
+  <p class="body-text">LLM 處理文字的基本單位不是字母、不是字，而是 <strong>Token</strong>——大約對應英文的一個詞或半個詞、中文的一到兩個字。理解 Token 幫助你更有效率地設計 Prompt。</p>
+  <div class="token-demo">
+    <span>"</span><span class="tok tok-1">數位</span><span class="tok tok-2">行銷</span><span class="tok tok-3">的核心</span><span class="tok tok-4">是了解</span><span class="tok tok-1">消費者</span><span class="tok tok-2">心理</span><span>"</span><br>
+    <span style="font-size:.75rem;color:var(--c-muted);font-family:'Noto Sans TC',sans-serif">↑ 這句話大約被切成 6～8 個 token，每個顏色代表一個 token 的大致範圍</span>
+  </div>
+  <div class="concept-row">
+    <div class="concept-card">
+      <div class="concept-label">Context Window（上下文視窗）</div>
+      <div class="concept-body">LLM 一次能「看到」的 token 數量上限。超過這個上限，較早的對話內容會被遺忘。這就是為什麼超長對話中 AI 有時會「忘記」前面說的事。<br><br>現代模型的上下文視窗從 8K 到 200K+ token 不等，約等於 6,000 到 150,000 個中文字。</div>
+    </div>
+    <div class="concept-card">
+      <div class="concept-label">Temperature（溫度）</div>
+      <div class="concept-body">控制輸出「隨機性」的參數。溫度低（接近 0）→ AI 傾向選最高機率的 token，輸出保守、一致；溫度高（接近 1）→ AI 有更多機率選擇非最高機率的 token，輸出更有創意但也更不穩定。<br><br>寫行銷文案適合中高溫度，生成結構化資料適合低溫度。</div>
+    </div>
+  </div>
+</div>
+
+<div class="lesson-section">
+  <div class="section-eyebrow">HALLUCINATION · 為什麼 AI 會說謊</div>
+  <h2 class="section-heading">它不是在說謊，<em>它只是在預測</em></h2>
+  <p class="body-text">「幻覺」（Hallucination）是 LLM 最著名的問題：AI 用極度自信的語氣，描述一個完全不存在的事實——一篇假論文、一個錯誤的數字、一個捏造的歷史事件。</p>
+  <p class="body-text">重要的是：AI 並不知道自己在說謊。它沒有「我知道這件事是假的但我還是說了」的意圖。它只是根據訓練資料，預測出「在這個語境下，統計上最可能出現的文字序列」——而那個序列恰好是錯的。</p>
+  <table class="hallucination-table">
+    <tr>
+      <th>幻覺類型</th>
+      <th>常見情境</th>
+      <th>行銷場景的風險</th>
+    </tr>
+    <tr>
+      <td>捏造數據</td>
+      <td>「根據 2024 年的研究，有 78% 的消費者…」</td>
+      <td>在報告或廣告文案中引用了不存在的統計數字</td>
+    </tr>
+    <tr>
+      <td>假引用</td>
+      <td>「哈佛商業評論的某篇文章指出…」</td>
+      <td>引用不存在的文獻，損害品牌可信度</td>
+    </tr>
+    <tr>
+      <td>事實錯誤</td>
+      <td>品牌歷史、創辦人背景、產品規格</td>
+      <td>對外發布錯誤的品牌或競品資訊</td>
+    </tr>
+    <tr>
+      <td>過時資訊</td>
+      <td>法規、市場數據、競品現況</td>
+      <td>根據已改變的事實制定行銷策略</td>
+    </tr>
+  </table>
+  <div class="callout warn">
+    <span class="callout-icon">⚠</span>
+    <div class="callout-body"><strong>黃金守則：AI 輸出越「聽起來很權威」，越需要驗證。</strong><br>幻覺最危險的地方不在於 AI 說出明顯荒謬的事——那你很容易發現。危險在於 AI 說出「90% 正確但關鍵細節是錯的」的內容，而你因為其他部分都正確，就對整體降低了警惕。</div>
+  </div>
+</div>
+
+<div class="lesson-section">
+  <div class="section-eyebrow">IMPLICATIONS · 對行銷工作的實際影響</div>
+  <h2 class="section-heading">理解機制後，<em>用法就不同了</em></h2>
+  <div class="implication-list">
+    <div class="implication-item">
+      <div class="impl-num">①</div>
+      <div class="impl-body">
+        <strong>把 AI 當草稿機，不當事實庫</strong>
+        讓 AI 生成結構、框架、文字草稿，再由你補充正確的數據、品牌細節、產品規格。AI 最擅長「形式」，你負責「事實」。
+      </div>
+    </div>
+    <div class="implication-item">
+      <div class="impl-num">②</div>
+      <div class="impl-body">
+        <strong>提供上下文，減少幻覺</strong>
+        Prompt 中提供越多正確的背景資訊（你的品牌資料、真實數字、競品名稱），AI 就越少需要「自己編」。知識 = 你提供的，創意 = AI 負責的。
+      </div>
+    </div>
+    <div class="implication-item">
+      <div class="impl-num">③</div>
+      <div class="impl-body">
+        <strong>敏感內容一律 Google 驗證</strong>
+        任何會對外發布的數字、引用、事實聲明，必須用搜尋引擎或原始資料來源確認。這不是懷疑 AI，這是專業工作習慣。
+      </div>
+    </div>
+    <div class="implication-item">
+      <div class="impl-num">④</div>
+      <div class="impl-body">
+        <strong>了解知識截止日期</strong>
+        每個 LLM 都有訓練資料的截止日期，之後的事件它「不知道」。行銷場景中，競品動態、平台演算法更新、市場趨勢——這些需要你用即時資訊補充，不能只靠 AI。
+      </div>
+    </div>
+    <div class="implication-item">
+      <div class="impl-num">⑤</div>
+      <div class="impl-body">
+        <strong>讓 AI 說明它的不確定性</strong>
+        在 Prompt 中加入「如果你不確定某個資訊，請明確告知而非猜測」，可以顯著降低幻覺。AI 的「自信語氣」不等於「確定性」——你要求它區分這兩件事。
+      </div>
+    </div>
+  </div>
+  <div class="callout key">
+    <span class="callout-icon">◎</span>
+    <div class="callout-body"><strong>本單元的核心洞察</strong><br>AI 是一個極度善於「聽起來正確」的預測系統。把它用在創意、框架、草稿、改寫——它會讓你快10倍。把它用在需要確認事實的場景而不加驗證——它會讓你出錯。知道這個邊界，你就能安全地把 AI 整合進行銷工作流。</div>
+  </div>
+</div>
+
+</div>
+
+<div class="nav-footer">
+  <a href="module2.html" class="nav-btn">← Module 2 總覽</a>
+  <a href="m2a-2-tools.html" class="nav-btn primary">下一單元：AI 工具生態全景 →</a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">數位行銷人才培訓 · M2A-1 · LLM 原理</span>
+</footer>
+<script>
+const fill=document.getElementById('prog');
+window.addEventListener('scroll',()=>{const h=document.documentElement;fill.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100+'%'});
+</script>
+</body>
+</html>
