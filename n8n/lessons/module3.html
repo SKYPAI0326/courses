@@ -109,7 +109,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
     <div class="outcomes-label">學習目標 OUTCOMES</div>
     <div class="outcome-item"><div class="outcome-dot"></div><span>設定資料夾監控，自動觸發文件處理工作流程</span></div>
     <div class="outcome-item"><div class="outcome-dot"></div><span>實現 PDF 文件的批次自動改名，AI 讀取內容並按規則命名</span></div>
-    <div class="outcome-item"><div class="outcome-dot"></div><span>運用 Excel 數據批次生成 Word 文件，自動產出 100 份客製化文件</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>設定 Schedule Trigger 定時排程，n8n 自主掃描資料夾並以 AI 生成每日摘要日報</span></div>
   </div>
 </div>
 
@@ -189,32 +189,29 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
   <hr class="section-rule">
 
   <div class="lesson-section" id="generation">
-    <div class="section-eyebrow">Document Generation · 3.3</div>
-    <h2 class="section-heading">Excel 轉 Word：<em>批次生成客製文件</em></h2>
-    <p class="body-text">重複性的文件生成工作佔用了許多寶貴時間。本節將展示如何運用 n8n，將 Excel 表格中的結構化數據，批次轉換並填充至 Word 範本中，自動生成大量客製化的文件——例如邀請函、合約或結業證明書。</p>
-    <div class="analogy-box">
-      <div class="analogy-label">生活類比 ANALOGY</div>
-      <p class="analogy-text">想像你要寄出 100 份邀請函，每份只有姓名和時間不同。以前你需要一份一份修改。現在，你只需要準備一份「範本」（Word）和一份「名單」（Excel），n8n 的 Loop 思維就像一條生產線，自動將每筆數據填入範本，一鍵產出 100 份完整文件。</p>
-    </div>
+    <div class="section-eyebrow">Scheduled Report · 3.3</div>
+    <h2 class="section-heading">定時彙整日報：<em>排程掃描 × AI 摘要</em></h2>
+    <p class="body-text">這是 n8n 最能展現自主性的場景：完全不依賴任何外部訊號，n8n 自己按時啟動、自己讀取資料夾、自己送給 AI 處理、自己存檔。Make 做不到這件事，因為 Make 必須等待雲端事件才能開始。</p>
+    <p class="body-text">本節將用 Schedule Trigger 設定每日排程，配合 Code 節點讀取整個資料夾的文件，由 Gemini AI 生成結構化摘要，最終將 Markdown 日報自動存入指定目錄。設定好後，不需要任何人按下按鈕。</p>
     <div class="callout info">
-      <span class="callout-icon">📄</span>
-      <div class="callout-body"><strong>範本設計技巧：</strong>將 Word 文件中需要替換的欄位以特殊標記表示（如 <span class="inline-code">{{姓名}}</span>、<span class="inline-code">{{日期}}</span>），n8n 會自動將 Excel 對應欄位的值填入。</div>
+      <span class="callout-icon">⏱</span>
+      <div class="callout-body"><strong>Schedule Trigger vs Watch Folder：</strong>3.1 的 Watch Folder 是「有新檔案才觸發」，而 Schedule Trigger 是「到時間就觸發」，兩者是不同情境的本機觸發策略，各有適用場合。</div>
     </div>
     <div class="concept-grid">
       <a href="m3-3-generate.html" class="concept-card" style="text-decoration:none;color:inherit;display:block;cursor:pointer;transition:box-shadow .2s,border-color .2s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(107,127,163,.18)';this.style.borderColor='rgba(107,127,163,.5)'" onmouseout="this.style.boxShadow='';this.style.borderColor=''">
         <div class="concept-num">01</div>
-        <div class="concept-title">Excel 轉 Word 批次生成 →</div>
-        <div class="concept-desc">Read Excel → Loop → Code 組合 → Write File，六步驟自動產出 100 份客製文件。</div>
+        <div class="concept-title">定時 AI 日報實戰 →</div>
+        <div class="concept-desc">Schedule Trigger → Code（讀取資料夾）→ Gemini → Write File，五步驟建立每日自動日報。</div>
       </a>
       <div class="concept-card" style="opacity:.55">
         <div class="concept-num">02</div>
-        <div class="concept-title">Word 範本設計</div>
-        <div class="concept-desc">掌握設計帶有佔位符的 Word 範本，為數據填充做準備。<br><small>（步驟頁面建置中）</small></div>
+        <div class="concept-title">排程策略設計</div>
+        <div class="concept-desc">每日、每週、每月不同排程模式的設定方法，以及 Cron 語法的使用時機。<br><small>（步驟頁面建置中）</small></div>
       </div>
       <div class="concept-card" style="opacity:.55">
         <div class="concept-num">03</div>
-        <div class="concept-title">Loop 批次產出</div>
-        <div class="concept-desc">利用 n8n 的 Loop 節點迭代每一筆 Excel 數據，批次生成並儲存文件。<br><small>（步驟頁面建置中）</small></div>
+        <div class="concept-title">多格式文件掃描</div>
+        <div class="concept-desc">擴展掃描範圍至 PDF、Excel 等格式，搭配 AI 辨識生成跨格式彙整日報。<br><small>（步驟頁面建置中）</small></div>
       </div>
     </div>
   </div>
@@ -241,9 +238,9 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
       </div>
       <div class="flow-connector">→</div>
       <div class="flow-step active">
-        <div class="flow-node">📑</div>
-        <div class="flow-label">批量文件</div>
-        <div class="flow-sub">Excel→100份Word</div>
+        <div class="flow-node">📋</div>
+        <div class="flow-label">AI 日報</div>
+        <div class="flow-sub">每日自動生成</div>
       </div>
     </div>
   </div>
