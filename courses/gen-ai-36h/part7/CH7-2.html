@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH7-2 實作衝刺｜生成式 AI 工作應用班（36h）</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-a5:#7a9ea3;--c-main:#7a9ea3;--radius:6px;--radius-sm:4px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.85}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-main);border:1px solid rgba(122,158,163,.35);background:rgba(122,158,163,.08);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-main);width:0%;transition:width .1s}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-main)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border)}
+.hero-num{font-size:.72rem;color:var(--c-main);letter-spacing:1px;font-weight:500}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.35;color:var(--c-text);margin-bottom:18px}
+.lesson-title em{font-style:normal;color:var(--c-main)}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:32px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:22px 26px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-main);border-radius:var(--radius)}
+.outcomes-label{font-size:.7rem;color:var(--c-main);letter-spacing:1.5px;font-weight:500;margin-bottom:4px}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);line-height:1.7}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-main);margin-top:9px;flex-shrink:0}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px}
+.lesson-section{margin-bottom:56px}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:18px;line-height:1.4}
+.section-heading em{font-style:normal;color:var(--c-main)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.95;margin-bottom:16px}
+.body-text strong{font-weight:700}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:56px 0}
+.sprint-grid{display:flex;flex-direction:column;gap:10px;margin:20px 0}
+.sprint-row{display:grid;grid-template-columns:120px 1fr;gap:14px;padding:14px 18px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);align-items:start}
+.sprint-time{font-family:'Shippori Mincho',serif;font-size:.85rem;color:var(--c-main);font-weight:700}
+.sprint-goal{font-size:.85rem;color:var(--c-text);line-height:1.7}
+.sprint-goal strong{color:var(--c-text);font-weight:700}
+.block-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:24px 0}
+.block-card{padding:20px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.block-card.warn{border-left:3px solid var(--c-a1)}
+.block-card.tip{border-left:3px solid var(--c-a3)}
+.block-name{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:8px}
+.block-desc{font-size:.83rem;color:var(--c-text);line-height:1.75;margin-bottom:10px}
+.block-action{font-size:.78rem;color:var(--c-muted);background:var(--c-surface);padding:10px 12px;border-radius:var(--radius-sm);line-height:1.7;border-left:2px solid var(--c-border)}
+.block-action strong{color:var(--c-main);font-weight:500}
+.question-list{margin:20px 0}
+.q-item{display:grid;grid-template-columns:24px 1fr;gap:12px;padding:10px 14px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);margin-bottom:8px;align-items:start}
+.q-num{font-family:'Shippori Mincho',serif;font-size:.9rem;color:var(--c-main);font-weight:700}
+.q-text{font-size:.85rem;color:var(--c-text);line-height:1.7}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:20px 0}
+.callout.info{background:rgba(122,158,163,.07);border:1px solid rgba(122,158,163,.25)}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2)}
+.callout.warn{background:rgba(181,112,58,.05);border:1px solid rgba(181,112,58,.2)}
+.callout-icon{font-size:1rem;flex-shrink:0;margin-top:2px}
+.callout-body{font-size:.86rem;line-height:1.85;color:var(--c-text)}
+.callout-body strong{font-weight:700}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;gap:14px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1}
+.nav-btn:hover{border-color:var(--c-main)}
+.nav-btn.next{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+@media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero{padding:48px 32px 36px}.lesson-body{padding:0 32px 56px}.lesson-nav{padding:0 32px 56px}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:36px 20px 28px}.lesson-title{font-size:1.5rem}.lesson-body{padding:0 20px 48px}.lesson-nav{padding:0 20px 48px;flex-direction:column}.nav-btn{flex:none}.block-grid{grid-template-columns:1fr}.sprint-row{grid-template-columns:1fr;gap:4px}.footer{padding:20px}}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='gen36_auth',H='2eeb336fddc0ac7aa5ce7ff9aa2b3a51db0f7ad83fd07d4e7d877dfc1d2b9089';if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">生成式 AI 工作應用班（36h）</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH 7.2 · Part 7</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">Part 7 · 結業專題</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 7.2 · 2 小時</span>
+  </div>
+  <h1 class="lesson-title">實作衝刺：<br><em>2 小時做出 MVP</em></h1>
+  <p class="lesson-tagline">提案通過後，本節教你用時間盒衝刺節奏把 MVP 做出來。含 4 段時間管理、4 種卡關的應對、以及「向教師尋求幫助」的正確方式。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果 · OUTCOMES</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>用 4 段 30 分鐘的衝刺節奏管理時間，避免「做到一半忘了目標」</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>遇到 4 種常見卡關（需求不清 / 工具不會 / AI 不聽話 / 範圍爆炸）能快速應對</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>會用「結構化求助」向老師 / ChatGPT / Claude 問對問題，快速拿到幫助</div>
+  </div>
+</div>
+
+<div class="lesson-body">
+
+  <!-- Section 1 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow">SECTION 01 · 衝刺節奏</div>
+    <h2 class="section-heading">把 2 小時<em>切成 4 段</em></h2>
+    <p class="body-text">不要 2 小時一口氣做——人會累、會忘掉目標。切成 4 段 30 分鐘，每段結束強制站起來、看提案書、確認方向。</p>
+
+    <div class="sprint-grid">
+      <div class="sprint-row">
+        <div class="sprint-time">0-30 分鐘</div>
+        <div class="sprint-goal"><strong>第 1 段：骨架衝出來</strong>｜目標是有「能看到的第一版」——就算很醜、少功能都沒關係。<br>做法：把提案書「核心功能」欄的第 1 項做出來。丟 prompt 給 Claude，拿到 Artifact，確認能跑。</div>
+      </div>
+      <div class="sprint-row">
+        <div class="sprint-time">30-60 分鐘</div>
+        <div class="sprint-goal"><strong>第 2 段：補足核心功能</strong>｜把「核心功能」欄剩下的 2-3 項補完。<br>做法：直接在 Claude 繼續追問「加上 X 功能」「把 Y 欄位改成 Z」。用 CH 4.2 的微調腳本。</div>
+      </div>
+      <div class="sprint-row">
+        <div class="sprint-time">60-90 分鐘</div>
+        <div class="sprint-goal"><strong>第 3 段：套風格 + 測試</strong>｜用 CH 4.4 的風格範本套一次（無印 / 蘋果 / 暗黑）。準備的 3-5 筆測試資料實際跑一次。<br>做法：發現不對勁的地方立刻追問修。錯誤優先級：「不能用 &gt; 不準確 &gt; 不好看」，照這順序修。</div>
+      </div>
+      <div class="sprint-row">
+        <div class="sprint-time">90-120 分鐘</div>
+        <div class="sprint-goal"><strong>第 4 段：部署 + 寫 demo 腳本</strong>｜下載 HTML、丟到 GitHub Pages、取得永久網址。寫 3 分鐘 demo 腳本（下節會用）。<br>做法：若部署卡關，至少存 Artifact 分享連結 + 截圖 + 螢幕錄影當 demo 備案。</div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon">⏱</div>
+      <div class="callout-body"><strong>番茄鐘工具：</strong>用 Part 4 你做的「簡報計時器」或 pomodoro app，每段結束響鈴 = 強制停、看提案書、決定下一段焦點。比「想到哪做到哪」效率高 3 倍。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 2 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow">SECTION 02 · 4 種卡關應對</div>
+    <h2 class="section-heading">卡住了？<em>先判斷哪種卡</em></h2>
+
+    <div class="block-grid">
+      <div class="block-card warn">
+        <div class="block-name">卡關 1：需求不清</div>
+        <div class="block-desc">「我到底要做什麼？」第一段 10 分鐘內就在此打轉——表示提案書沒填好。</div>
+        <div class="block-action"><strong>應對：</strong>停下來，回 CH 7.1 的提案書 8 欄、自檢 8 問，補完再動手。別邊想邊做。</div>
+      </div>
+      <div class="block-card warn">
+        <div class="block-name">卡關 2：工具不會</div>
+        <div class="block-desc">「這個功能我不知道怎麼做。」如：不會在 Artifact 裡加 localStorage、不知道 Make 某個模組怎麼設。</div>
+        <div class="block-action"><strong>應對：</strong>直接貼問題給 Claude「我的 Artifact 要加 localStorage 存使用者偏好，怎麼做？」它會給你可貼上的程式碼。<strong>別自己硬查文件</strong>，浪費時間。</div>
+      </div>
+      <div class="block-card warn">
+        <div class="block-name">卡關 3：AI 不聽話</div>
+        <div class="block-desc">Claude 生出的東西不是你要的，改了 5 次還沒到位。</div>
+        <div class="block-action"><strong>應對：</strong>重開新對話、<strong>用更具體的 prompt</strong>。複製 Artifact 當下狀態 → 告訴 AI「目前的版本是這樣，我要改成：」，附截圖更快。不要在一個對話硬改 10 次。</div>
+      </div>
+      <div class="block-card warn">
+        <div class="block-name">卡關 4：範圍爆炸</div>
+        <div class="block-desc">做到一半發現「好像還差 3 個功能才好用」——<strong>99% 的人在此失敗</strong>。</div>
+        <div class="block-action"><strong>應對：</strong>強制記得「MVP = 最少可用」。新想到的 feature 全部寫進「v2 待辦」不做。<strong>時間到就停</strong>，不完美但能 demo 的版本，勝過追求完美但做不完。</div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body"><strong>最危險的一句話：</strong>「我就再加一個功能好了。」——每次都是這句話後開始爆炸。若聽到自己說這句，立刻停手 30 秒，想清楚：這個功能「現在不做會影響 demo 嗎？」95% 不會。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 3 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow">SECTION 03 · 結構化求助</div>
+    <h2 class="section-heading">向老師 / AI <em>問對問題</em></h2>
+    <p class="body-text">不管是問老師還是問 AI，「問對問題」比「問很多問題」重要。用以下結構化格式，對方一看就懂、回答更準。</p>
+
+    <div class="question-list">
+      <div class="q-item">
+        <div class="q-num">1</div>
+        <div class="q-text"><strong>我要做的事：</strong>[一句話描述最終目標]</div>
+      </div>
+      <div class="q-item">
+        <div class="q-num">2</div>
+        <div class="q-text"><strong>現在狀態：</strong>[目前做到哪、有什麼東西，附截圖或程式碼]</div>
+      </div>
+      <div class="q-item">
+        <div class="q-num">3</div>
+        <div class="q-text"><strong>期望輸出：</strong>[我期待看到的樣子，盡量具體]</div>
+      </div>
+      <div class="q-item">
+        <div class="q-num">4</div>
+        <div class="q-text"><strong>我試過：</strong>[已經試了哪些方法，各自為什麼失敗]</div>
+      </div>
+      <div class="q-item">
+        <div class="q-num">5</div>
+        <div class="q-text"><strong>具體問題：</strong>[用問句，只問一個問題]</div>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body"><strong>範例（壞）：</strong>「老師，Artifact 壞掉了。」<br><strong>範例（好）：</strong>「我要做報價試算器（輸入方案 + 數量，輸出總額）。現在已經有 UI 能跑，但按『計算』後沒反應（附截圖）。期望：按下後下方顯示總額。我試過重寫計算函式、改 event listener，都沒用。問題：是否 Claude Artifact 內的 JS 要用特定寫法才會執行？」</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 4 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow">SECTION 04 · 教師輔導節奏</div>
+    <h2 class="section-heading">老師 <em>能幫你什麼</em></h2>
+    <p class="body-text">若這是有授課的 36h 課程，第 60 分鐘是「教師巡場」時間。<strong>不要不好意思求助</strong>——沒問的人往往做不完。問老師之前要先：</p>
+
+    <div class="block-grid">
+      <div class="block-card tip">
+        <div class="block-name">老師能幫什麼</div>
+        <div class="block-desc">① 判斷你的方向對不對（省你再多花 1 小時做錯）<br>② 給你「這個卡點該怎麼繞過」的捷徑<br>③ 幫你砍多餘 feature，聚焦核心<br>④ 給 demo 建議</div>
+      </div>
+      <div class="block-card warn">
+        <div class="block-name">老師不會幫你的</div>
+        <div class="block-desc">① 幫你寫 prompt（要自己練）<br>② 幫你複製貼上（太細節）<br>③ 幫你決定題目（CH 7.1 該做完了）<br>④ 代你 demo（你的作品你要會講）</div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon">🎯</div>
+      <div class="callout-body"><strong>問老師前 3 分鐘：</strong>① 自己再試一次 ② 用 Section 3 的結構化格式整理問題 ③ 準備好截圖。<strong>花 3 分鐘準備，換來老師 2 分鐘精準建議</strong>，比直接問浪費 5 分鐘才講清楚問題有效。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 5 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow">SECTION 05 · 收尾優先順序</div>
+    <h2 class="section-heading">最後 30 分鐘：<em>不能做完怎麼辦</em></h2>
+    <p class="body-text">時間快到但還有 feature 沒做完，按以下優先順序放棄或保留：</p>
+
+    <div class="sprint-grid">
+      <div class="sprint-row">
+        <div class="sprint-time">必保留</div>
+        <div class="sprint-goal"><strong>核心功能能跑一次</strong>——至少 1 條路徑（輸入 → 處理 → 輸出）完整。沒這個就沒 demo。</div>
+      </div>
+      <div class="sprint-row">
+        <div class="sprint-time">次保留</div>
+        <div class="sprint-goal"><strong>風格套到及格</strong>——至少符合辦公情境（不要藍紫漸層）。不完美沒關係，專業即可。</div>
+      </div>
+      <div class="sprint-row">
+        <div class="sprint-time">次保留</div>
+        <div class="sprint-goal"><strong>有可分享的連結或檔案</strong>——Claude Artifact 分享連結 or HTML 檔下載，<strong>至少其一</strong>。</div>
+      </div>
+      <div class="sprint-row">
+        <div class="sprint-time">可放棄</div>
+        <div class="sprint-goal"><strong>GitHub Pages 部署</strong>——若時間不夠，留作業後再部署。先有能 demo 的東西最重要。</div>
+      </div>
+      <div class="sprint-row">
+        <div class="sprint-time">可放棄</div>
+        <div class="sprint-goal"><strong>額外 feature（選填項）</strong>——第 2、3 個 feature 做不完，直接記進 v2 待辦，不要硬塞。</div>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <div class="callout-icon">📝</div>
+      <div class="callout-body"><strong>下一節預告：</strong>CH 7.3「成果展示與同儕回饋」——MVP 做完了，下節教你 3 分鐘怎麼展示、同儕該怎麼給回饋、自己該怎麼收回饋。最後 1 小時，是本課最有儀式感的部分。</div>
+    </div>
+  </section>
+
+</div>
+
+<div class="lesson-nav">
+  <a class="nav-btn" href="CH7-1.html">
+    <div><div class="nav-btn-label">← 上一節</div><div class="nav-btn-title">CH 7.1 · 專題提案</div></div>
+  </a>
+  <a class="nav-btn next" href="CH7-3.html">
+    <div><div class="nav-btn-label">下一節 →</div><div class="nav-btn-title">CH 7.3 · 成果展示與回饋</div></div>
+  </a>
+</div>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">CH 7.2 · 生成式 AI 工作應用班（36h）</div>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+window.addEventListener('scroll',()=>{const h=document.documentElement;fill.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%'});
+</script>
+</body>
+</html>

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRAC6 個人 AI 系統圖譜｜生成式 AI 工作應用班（36h）</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-a5:#7a9ea3;--c-main:#7a9ea3;--radius:6px;--radius-sm:4px;--content-w:880px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.85}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-main);border:1px solid rgba(122,158,163,.35);background:rgba(122,158,163,.08);padding:3px 12px;border-radius:99px;font-weight:500}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 40px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-main)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border)}
+.hero-num{font-size:.72rem;color:var(--c-main);letter-spacing:1px;font-weight:500}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.35;color:var(--c-text);margin-bottom:18px}
+.lesson-title em{font-style:normal;color:var(--c-main)}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;max-width:620px;margin-bottom:28px}
+.howto{padding:18px 22px;background:rgba(122,158,163,.06);border:1px solid rgba(122,158,163,.22);border-radius:var(--radius);font-size:.86rem;line-height:1.8}
+.howto strong{color:var(--c-main);font-weight:700}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px}
+
+.tool-head{display:flex;align-items:baseline;gap:14px;margin:48px 0 18px}
+.tool-num{font-family:'Shippori Mincho',serif;font-size:.72rem;color:var(--c-main);letter-spacing:2px;font-weight:500}
+.tool-title{font-family:'Shippori Mincho',serif;font-size:1.3rem;font-weight:700;color:var(--c-text)}
+.tool-line{flex:1;height:1px;background:var(--c-border)}
+.tool-intro{font-size:.88rem;color:var(--c-muted);line-height:1.85;margin-bottom:24px;padding:16px 20px;background:var(--c-surface);border-radius:var(--radius)}
+
+.toolbox-table{border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin-bottom:14px}
+.tb-row{display:grid;grid-template-columns:60px 1fr 1fr 120px;background:var(--c-card);border-bottom:1px solid var(--c-border);align-items:center}
+.tb-row:last-child{border-bottom:none}
+.tb-row.head{background:var(--c-surface);font-weight:700;font-size:.78rem;color:var(--c-text)}
+.tb-cell{padding:12px 14px;font-size:.8rem;line-height:1.65;border-right:1px solid var(--c-border)}
+.tb-cell:last-child{border-right:none}
+.tb-id{font-family:'Courier New',monospace;color:var(--c-main);font-weight:600;font-size:.76rem}
+.tb-name{font-family:'Shippori Mincho',serif;font-weight:700;color:var(--c-text)}
+.tb-trigger{color:var(--c-muted);font-size:.76rem}
+.tb-loc{font-size:.72rem;color:var(--c-main);background:rgba(122,158,163,.06);text-align:center}
+
+.timeline-block{display:flex;flex-direction:column;gap:10px;margin:20px 0}
+.tl-row{display:grid;grid-template-columns:130px 1fr;gap:14px;padding:14px 18px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);align-items:start}
+.tl-time{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-main);font-weight:700}
+.tl-time-sub{font-size:.72rem;color:var(--c-muted);font-weight:normal;margin-top:2px}
+.tl-task-list{display:flex;flex-direction:column;gap:5px}
+.tl-task{display:flex;gap:8px;align-items:center;font-size:.8rem;color:var(--c-text);line-height:1.55}
+.tl-task-icon{width:5px;height:5px;border-radius:50%;background:var(--c-main);flex-shrink:0}
+.tl-task strong{color:var(--c-main);font-weight:500;font-size:.72rem}
+
+.map-matrix{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:20px 0}
+.matrix-col{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:16px 18px}
+.matrix-head{font-family:'Shippori Mincho',serif;font-size:.85rem;color:var(--c-main);font-weight:700;text-align:center;padding-bottom:10px;border-bottom:1px solid var(--c-border);margin-bottom:10px}
+.matrix-item{padding:8px 10px;margin-bottom:6px;background:var(--c-surface);border-radius:var(--radius-sm);font-size:.76rem;line-height:1.55}
+.matrix-item strong{display:block;font-size:.72rem;color:var(--c-main);font-weight:600;margin-bottom:2px}
+
+.dashboard-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}
+.db-card{padding:18px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.db-label{font-family:'Shippori Mincho',serif;font-size:.7rem;color:var(--c-main);letter-spacing:1.5px;font-weight:700;margin-bottom:8px}
+.db-value{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:4px}
+.db-sub{font-size:.78rem;color:var(--c-muted);line-height:1.7}
+.db-sub code{font-family:'Courier New',monospace;background:var(--c-surface);padding:1px 6px;border-radius:3px;font-size:.85em;color:var(--c-text)}
+
+.checklist{padding:20px 24px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);margin-top:14px}
+.checklist-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px dashed var(--c-border);font-size:.86rem;color:var(--c-text);line-height:1.7}
+.checklist-item:last-child{border-bottom:none}
+.checklist-box{width:18px;height:18px;border:1.5px solid var(--c-main);border-radius:3px;flex-shrink:0;margin-top:3px}
+.checklist-item strong{color:var(--c-text);font-weight:700}
+
+.print-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:var(--c-main);color:#fff;border:none;border-radius:var(--radius);font-size:.82rem;font-family:inherit;cursor:pointer;font-weight:500;margin-top:14px;transition:background .2s}
+.print-btn:hover{background:#6a8e93}
+
+.outro{margin:48px 0 0;padding:24px 26px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-main);border-radius:var(--radius)}
+.outro-title{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;margin-bottom:10px;color:var(--c-text)}
+.outro-text{font-size:.88rem;color:var(--c-text);line-height:1.85}
+
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;gap:14px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1}
+.nav-btn:hover{border-color:var(--c-main)}
+.nav-btn.next{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+@media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero{padding:48px 32px 32px}.lesson-body{padding:24px 32px 56px}.lesson-nav{padding:0 32px 56px}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:36px 20px 24px}.lesson-title{font-size:1.5rem}.lesson-body{padding:20px 20px 48px}.lesson-nav{padding:0 20px 48px;flex-direction:column}.nav-btn{flex:none}.tb-row{grid-template-columns:1fr;border-bottom:2px solid var(--c-border)}.tb-cell{border-right:none;border-bottom:1px solid var(--c-border)}.tb-cell:last-child{border-bottom:none}.tl-row{grid-template-columns:1fr;gap:6px}.map-matrix,.dashboard-grid{grid-template-columns:1fr}.footer{padding:20px}}
+@media print{.topbar,.lesson-nav,.back-link,.print-btn,.footer,.howto,.outro{display:none !important}.lesson-body{padding:0}.lesson-hero{padding:20px 0}.tool-head{margin:20px 0 10px}.lesson-title{font-size:1.5rem}}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='gen36_auth',H='2eeb336fddc0ac7aa5ce7ff9aa2b3a51db0f7ad83fd07d4e7d877dfc1d2b9089';if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">生成式 AI 工作應用班（36h）</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">PRAC 6 · Part 6</div>
+</header>
+
+<div class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">Part 6 · 帶走範本</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">PRAC 6 · 含於 Part 6 共 4h</span>
+  </div>
+  <h1 class="lesson-title">個人 AI 系統圖譜<br><em>4 合 1 工作手冊</em></h1>
+  <p class="lesson-tagline">Part 6 的成果——把你的個人 AI 系統視覺化成「一份可列印、可貼桌面、可隨時查」的工作手冊，含 4 區塊：① 工具箱目錄 ② 一日時間軸地圖 ③ 任務類型矩陣 ④ 快捷儀表盤。</p>
+  <div class="howto">
+    <strong>怎麼使用：</strong>① 本頁是你的個人化範本——<strong>把裡面的佔位符換成你自己的內容</strong>。② 填完後點右下的「列印」印成 A3 貼桌面，或存 PDF 手機隨身帶。③ 每月更新一次，系統會隨工作演進。
+    <button class="print-btn" onclick="window.print()">🖨 列印 / 存 PDF</button>
+  </div>
+</div>
+
+<div class="lesson-body">
+
+  <!-- Tool A: 工具箱目錄 -->
+  <div class="tool-head">
+    <div class="tool-num">區塊 01</div>
+    <div class="tool-title">我的 AI 工具箱目錄</div>
+    <div class="tool-line"></div>
+  </div>
+  <div class="tool-intro">
+    你所有的 AI 工具（Claude Project、Artifacts、Make scenarios、NotebookLM、零代碼工具）集中管理在此。共 15-20 格，夠用一個上班族半年。填寫時依頻率排，最常用的排前面。
+  </div>
+
+  <div class="toolbox-table">
+    <div class="tb-row head">
+      <div class="tb-cell">編號</div>
+      <div class="tb-cell">工具名稱 / 用途</div>
+      <div class="tb-cell">觸發情境</div>
+      <div class="tb-cell">部署位置</div>
+    </div>
+    <div class="tb-row">
+      <div class="tb-cell tb-id">T01</div>
+      <div class="tb-cell"><div class="tb-name">[工具名]</div><div class="tb-trigger">用途：[用一句話]</div></div>
+      <div class="tb-cell tb-trigger">[遇到什麼情境時用]</div>
+      <div class="tb-cell tb-loc">Claude Project</div>
+    </div>
+    <div class="tb-row">
+      <div class="tb-cell tb-id">T02</div>
+      <div class="tb-cell"><div class="tb-name">[工具名]</div><div class="tb-trigger">用途：[用一句話]</div></div>
+      <div class="tb-cell tb-trigger">[遇到什麼情境時用]</div>
+      <div class="tb-cell tb-loc">Artifacts</div>
+    </div>
+    <div class="tb-row">
+      <div class="tb-cell tb-id">T03</div>
+      <div class="tb-cell"><div class="tb-name">[工具名]</div><div class="tb-trigger">用途：[用一句話]</div></div>
+      <div class="tb-cell tb-trigger">[遇到什麼情境時用]</div>
+      <div class="tb-cell tb-loc">GitHub Pages</div>
+    </div>
+    <div class="tb-row">
+      <div class="tb-cell tb-id">T04</div>
+      <div class="tb-cell"><div class="tb-name">[工具名]</div><div class="tb-trigger">用途：[用一句話]</div></div>
+      <div class="tb-cell tb-trigger">[遇到什麼情境時用]</div>
+      <div class="tb-cell tb-loc">Make</div>
+    </div>
+    <div class="tb-row">
+      <div class="tb-cell tb-id">T05</div>
+      <div class="tb-cell"><div class="tb-name">[工具名]</div><div class="tb-trigger">用途：[用一句話]</div></div>
+      <div class="tb-cell tb-trigger">[遇到什麼情境時用]</div>
+      <div class="tb-cell tb-loc">n8n</div>
+    </div>
+    <div class="tb-row">
+      <div class="tb-cell tb-id">T06</div>
+      <div class="tb-cell"><div class="tb-name">[工具名]</div><div class="tb-trigger">用途：[用一句話]</div></div>
+      <div class="tb-cell tb-trigger">[遇到什麼情境時用]</div>
+      <div class="tb-cell tb-loc">NotebookLM</div>
+    </div>
+    <div class="tb-row">
+      <div class="tb-cell tb-id">T07</div>
+      <div class="tb-cell"><div class="tb-name">[工具名]</div><div class="tb-trigger">用途：[用一句話]</div></div>
+      <div class="tb-cell tb-trigger">[遇到什麼情境時用]</div>
+      <div class="tb-cell tb-loc">Claude Project</div>
+    </div>
+    <div class="tb-row">
+      <div class="tb-cell tb-id">T08</div>
+      <div class="tb-cell"><div class="tb-name">[預留]</div><div class="tb-trigger">—</div></div>
+      <div class="tb-cell tb-trigger">—</div>
+      <div class="tb-cell tb-loc">—</div>
+    </div>
+  </div>
+
+  <!-- Tool B: 一日時間軸地圖 -->
+  <div class="tool-head">
+    <div class="tool-num">區塊 02</div>
+    <div class="tool-title">我的一日 AI 工作時間軸</div>
+    <div class="tool-line"></div>
+  </div>
+  <div class="tool-intro">
+    把你典型一天的「AI 介入時刻」畫出來。不用每個時段都填滿——空白也是資訊（那是「還沒整合 AI」的時段）。
+  </div>
+
+  <div class="timeline-block">
+    <div class="tl-row">
+      <div class="tl-time">09:00<div class="tl-time-sub">晨間啟動</div></div>
+      <div class="tl-task-list">
+        <div class="tl-task"><div class="tl-task-icon"></div><span>[列第一件要用 AI 做的事]</span></div>
+        <div class="tl-task"><div class="tl-task-icon"></div><span>[第二件] <strong>→ T0X</strong></span></div>
+        <div class="tl-task"><div class="tl-task-icon"></div><span>[第三件] <strong>→ T0X</strong></span></div>
+      </div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-time">10:00-12:00<div class="tl-time-sub">會議密集</div></div>
+      <div class="tl-task-list">
+        <div class="tl-task"><div class="tl-task-icon"></div><span>會前準備 <strong>→ T0X</strong></span></div>
+        <div class="tl-task"><div class="tl-task-icon"></div><span>會中錄音 <strong>→ T0X</strong></span></div>
+        <div class="tl-task"><div class="tl-task-icon"></div><span>會後紀錄 email <strong>→ T0X</strong></span></div>
+      </div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-time">13:00-17:00<div class="tl-time-sub">產出時段</div></div>
+      <div class="tl-task-list">
+        <div class="tl-task"><div class="tl-task-icon"></div><span>[主要產出任務 1] <strong>→ T0X</strong></span></div>
+        <div class="tl-task"><div class="tl-task-icon"></div><span>[主要產出任務 2] <strong>→ T0X</strong></span></div>
+        <div class="tl-task"><div class="tl-task-icon"></div><span>[資料查詢 / 分析] <strong>→ T0X</strong></span></div>
+      </div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-time">17:00-18:00<div class="tl-time-sub">收尾歸檔</div></div>
+      <div class="tl-task-list">
+        <div class="tl-task"><div class="tl-task-icon"></div><span>更新 KPI <strong>→ T0X</strong></span></div>
+        <div class="tl-task"><div class="tl-task-icon"></div><span>今日知識萃取 <strong>→ T0X</strong></span></div>
+        <div class="tl-task"><div class="tl-task-icon"></div><span>檢查自動化 log <strong>→ T0X</strong></span></div>
+      </div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-time">背景<div class="tl-time-sub">24/7 自動</div></div>
+      <div class="tl-task-list">
+        <div class="tl-task"><div class="tl-task-icon"></div><span>[自動化流程 1] <strong>→ T0X</strong></span></div>
+        <div class="tl-task"><div class="tl-task-icon"></div><span>[自動化流程 2] <strong>→ T0X</strong></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tool C: 任務類型矩陣 -->
+  <div class="tool-head">
+    <div class="tool-num">區塊 03</div>
+    <div class="tool-title">任務類型對應矩陣</div>
+    <div class="tool-line"></div>
+  </div>
+  <div class="tool-intro">
+    從另一個視角看：相似類型的任務是否都用同工具？缺口在哪？每格最多 3-4 個項目，精簡才好記。
+  </div>
+
+  <div class="map-matrix">
+    <div class="matrix-col">
+      <div class="matrix-head">輸入 / 讀取</div>
+      <div class="matrix-item"><strong>讀長 PDF</strong>→ NotebookLM</div>
+      <div class="matrix-item"><strong>聽會議錄音</strong>→ NotebookLM</div>
+      <div class="matrix-item"><strong>拍照轉文字</strong>→ Gemini</div>
+      <div class="matrix-item"><strong>[你的]</strong>→ [工具]</div>
+    </div>
+    <div class="matrix-col">
+      <div class="matrix-head">思考 / 產出</div>
+      <div class="matrix-item"><strong>寫 email</strong>→ Claude Project</div>
+      <div class="matrix-item"><strong>做小工具</strong>→ Artifacts</div>
+      <div class="matrix-item"><strong>畫圖</strong>→ ChatGPT</div>
+      <div class="matrix-item"><strong>[你的]</strong>→ [工具]</div>
+    </div>
+    <div class="matrix-col">
+      <div class="matrix-head">流動 / 通知</div>
+      <div class="matrix-item"><strong>表單觸發</strong>→ Make</div>
+      <div class="matrix-item"><strong>批次處理</strong>→ n8n</div>
+      <div class="matrix-item"><strong>LINE Bot</strong>→ Make webhook</div>
+      <div class="matrix-item"><strong>[你的]</strong>→ [工具]</div>
+    </div>
+  </div>
+
+  <!-- Tool D: 快捷儀表盤 -->
+  <div class="tool-head">
+    <div class="tool-num">區塊 04</div>
+    <div class="tool-title">快捷儀表盤（Top 5）</div>
+    <div class="tool-line"></div>
+  </div>
+  <div class="tool-intro">
+    最重要的 5 個工具 / 資源，每天都該能 1 秒打開。連結、快捷鍵、瀏覽器 bookmark 一目了然。
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="db-card">
+      <div class="db-label">TOP 01 · 最常用工具</div>
+      <div class="db-value">[工具名]</div>
+      <div class="db-sub">連結：<code>[網址]</code><br>Bookmark：<code>✍ 回信</code></div>
+    </div>
+    <div class="db-card">
+      <div class="db-label">TOP 02 · 次常用</div>
+      <div class="db-value">[工具名]</div>
+      <div class="db-sub">連結：<code>[網址]</code><br>Bookmark：<code>📊 週報</code></div>
+    </div>
+    <div class="db-card">
+      <div class="db-label">TOP 03 · 會議用</div>
+      <div class="db-value">[工具名]</div>
+      <div class="db-sub">連結：<code>[網址]</code><br>Bookmark：<code>🎙 會議</code></div>
+    </div>
+    <div class="db-card">
+      <div class="db-label">TOP 04 · 知識庫</div>
+      <div class="db-value">[工具名]</div>
+      <div class="db-sub">連結：<code>[網址]</code><br>Bookmark：<code>📚 知識</code></div>
+    </div>
+    <div class="db-card">
+      <div class="db-label">TOP 05 · 自動化</div>
+      <div class="db-value">[Make scenario 名]</div>
+      <div class="db-sub">連結：<code>make.com/...</code><br>Bookmark：<code>⚙ 自動</code></div>
+    </div>
+    <div class="db-card">
+      <div class="db-label">工具箱頁面</div>
+      <div class="db-value">[Notion / Obsidian 頁面]</div>
+      <div class="db-sub">連結：<code>[網址]</code><br>Bookmark：<code>🎯 工具箱</code></div>
+    </div>
+  </div>
+
+  <!-- 填寫 Checklist -->
+  <div class="tool-head">
+    <div class="tool-num">檢核</div>
+    <div class="tool-title">填寫檢查清單</div>
+    <div class="tool-line"></div>
+  </div>
+
+  <div class="checklist">
+    <div class="checklist-item"><div class="checklist-box"></div><div><strong>工具箱目錄</strong>：至少填 5 格，每格含用途 + 觸發情境 + 部署位置</div></div>
+    <div class="checklist-item"><div class="checklist-box"></div><div><strong>時間軸地圖</strong>：每個時段至少 2 件事，都有對應工具編號</div></div>
+    <div class="checklist-item"><div class="checklist-box"></div><div><strong>任務矩陣</strong>：每欄至少 3 項，發現至少 1 個缺口（某欄少於 2 項 = 該補工具）</div></div>
+    <div class="checklist-item"><div class="checklist-box"></div><div><strong>Top 5 儀表盤</strong>：所有連結實際能打開、bookmark 已加到 Chrome 快捷列</div></div>
+    <div class="checklist-item"><div class="checklist-box"></div><div><strong>列印 / 存 PDF</strong>：列印一份貼辦公桌，或手機存 PDF 隨時查</div></div>
+    <div class="checklist-item"><div class="checklist-box"></div><div><strong>月更</strong>：行事曆每月最後一週設重複事件「更新 AI 系統圖譜」</div></div>
+  </div>
+
+  <!-- Outro -->
+  <div class="outro">
+    <div class="outro-title">恭喜完成 Part 6 ✓</div>
+    <div class="outro-text">你從「一堆零散 AI 工具」變成「有系統的個人 AI 工作流」——這張圖譜就是你的個人版「工作作業系統」，工具與情境連結成網，運作時不用思考，直覺就能用對。<br><br>下一個 Part 進入「結業專題」（Part 7，4h），會帶你從本課所有內容挑一個「我要解決的真實痛點」，做出一個可展示給主管 / 客戶 / 社群的完整作品——這是本課 36 小時訓練最後的濃縮展現。</div>
+  </div>
+
+</div>
+
+<div class="lesson-nav">
+  <a class="nav-btn" href="CH6-2.html">
+    <div><div class="nav-btn-label">← 上一節</div><div class="nav-btn-title">CH 6.2 · 工作場景地圖</div></div>
+  </a>
+  <a class="nav-btn next" href="../index.html">
+    <div><div class="nav-btn-label">完成 Part 6 →</div><div class="nav-btn-title">返回課程總覽</div></div>
+  </a>
+</div>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">PRAC 6 · 生成式 AI 工作應用班（36h）</div>
+</footer>
+
+</body>
+</html>

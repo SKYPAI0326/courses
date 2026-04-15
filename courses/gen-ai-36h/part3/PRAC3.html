@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRAC3 NotebookLM 知識庫起手式｜生成式 AI 工作應用班（36h）</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-a5:#7a9ea3;--c-main:#7a9ea3;--radius:6px;--radius-sm:4px;--content-w:880px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.85}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-main);border:1px solid rgba(122,158,163,.35);background:rgba(122,158,163,.08);padding:3px 12px;border-radius:99px;font-weight:500}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 40px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-main)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border)}
+.hero-num{font-size:.72rem;color:var(--c-main);letter-spacing:1px;font-weight:500}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.35;color:var(--c-text);margin-bottom:18px}
+.lesson-title em{font-style:normal;color:var(--c-main)}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;max-width:620px;margin-bottom:28px}
+.howto{padding:18px 22px;background:rgba(122,158,163,.06);border:1px solid rgba(122,158,163,.22);border-radius:var(--radius);font-size:.86rem;line-height:1.8}
+.howto strong{color:var(--c-main);font-weight:700}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px}
+.tool-head{display:flex;align-items:baseline;gap:14px;margin:48px 0 18px}
+.tool-num{font-family:'Shippori Mincho',serif;font-size:.72rem;color:var(--c-main);letter-spacing:2px;font-weight:500}
+.tool-title{font-family:'Shippori Mincho',serif;font-size:1.3rem;font-weight:700;color:var(--c-text)}
+.tool-line{flex:1;height:1px;background:var(--c-border)}
+.tool-intro{font-size:.88rem;color:var(--c-muted);line-height:1.85;margin-bottom:24px;padding:16px 20px;background:var(--c-surface);border-radius:var(--radius)}
+
+/* Notebook starter cards */
+.nb-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.nb-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 22px;display:flex;flex-direction:column}
+.nb-tag{font-size:.7rem;color:var(--c-main);letter-spacing:1px;font-weight:500;margin-bottom:4px}
+.nb-name{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:8px}
+.nb-purpose{font-size:.83rem;color:var(--c-muted);line-height:1.75;margin-bottom:14px;padding-bottom:12px;border-bottom:1px dashed var(--c-border)}
+.nb-list-label{font-size:.72rem;color:var(--c-text);font-weight:700;margin-bottom:6px}
+.nb-list{font-size:.8rem;color:var(--c-text);line-height:1.75;margin-bottom:12px;padding-left:14px}
+.nb-list li{margin-bottom:3px;list-style:disc}
+.nb-rhythm{font-size:.78rem;color:var(--c-text);background:var(--c-surface);padding:10px 12px;border-radius:var(--radius-sm);line-height:1.65;border-left:2px solid var(--c-border);margin-top:auto}
+.nb-rhythm strong{color:var(--c-main);font-weight:500}
+
+/* Prompt cards */
+.prompt-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 22px;margin-bottom:14px}
+.pc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:6px}
+.pc-info{flex:1}
+.pc-num{font-family:'Shippori Mincho',serif;font-size:.7rem;color:var(--c-main);letter-spacing:1px;font-weight:500;margin-bottom:4px}
+.pc-name{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.pc-when{font-size:.78rem;color:var(--c-muted);line-height:1.6;margin-bottom:12px}
+.pc-prompt{font-family:'Courier New',monospace;font-size:.78rem;color:var(--c-text);background:var(--c-surface);padding:12px 14px;border-radius:var(--radius-sm);line-height:1.7;white-space:pre-wrap;overflow-x:auto}
+.copy-btn-mini{padding:6px 12px;background:var(--c-main);color:#fff;border:none;border-radius:var(--radius-sm);font-size:.72rem;font-family:inherit;cursor:pointer;font-weight:500;flex-shrink:0;transition:background .2s}
+.copy-btn-mini:hover{background:#6a8e93}
+.copy-btn-mini.copied{background:var(--c-a3)}
+
+/* Demo box */
+.demo-block{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:24px 26px;margin-top:14px}
+.demo-step{display:flex;align-items:flex-start;gap:14px;padding:16px 0;position:relative}
+.demo-step:not(:last-child)::after{content:'';position:absolute;left:14px;top:46px;width:2px;height:calc(100% - 18px);background:var(--c-border)}
+.demo-circle{width:30px;height:30px;border-radius:50%;background:var(--c-card);border:1.5px solid var(--c-main);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-weight:700;font-size:.8rem;color:var(--c-main);flex-shrink:0;z-index:1}
+.demo-content{flex:1;padding-top:3px}
+.demo-name{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.demo-desc{font-size:.83rem;color:var(--c-muted);line-height:1.7;margin-bottom:10px}
+
+.full-prompt-wrap{position:relative;margin:14px 0}
+.full-prompt{padding:18px 22px;background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.78rem;border-radius:var(--radius);line-height:1.75;white-space:pre-wrap;overflow-x:auto}
+.full-prompt .lbl{color:#7a9ea3;font-weight:700}
+.full-prompt .var{color:#c9963a}
+.copy-btn-tl{position:absolute;top:8px;right:8px;padding:5px 11px;background:rgba(122,158,163,.85);color:#fff;border:none;border-radius:var(--radius-sm);font-size:.7rem;font-family:inherit;cursor:pointer;font-weight:500;z-index:2;transition:background .2s}
+.copy-btn-tl:hover{background:rgba(122,158,163,1)}
+.copy-btn-tl.copied{background:var(--c-a3)}
+
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:20px 0}
+.callout.info{background:rgba(122,158,163,.07);border:1px solid rgba(122,158,163,.25)}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2)}
+.callout-icon{font-size:1rem;flex-shrink:0;margin-top:2px}
+.callout-body{font-size:.86rem;line-height:1.85;color:var(--c-text)}
+.callout-body strong{font-weight:700}
+
+.outro{margin:48px 0 0;padding:24px 26px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-main);border-radius:var(--radius)}
+.outro-title{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;margin-bottom:10px;color:var(--c-text)}
+.outro-text{font-size:.88rem;color:var(--c-text);line-height:1.85}
+
+.toast{position:fixed;bottom:28px;right:28px;background:var(--c-text);color:#fff;padding:10px 18px;border-radius:var(--radius-sm);font-size:.82rem;font-weight:500;transform:translateY(60px);opacity:0;transition:all .35s cubic-bezier(.34,1.56,.64,1);z-index:999}
+.toast.show{transform:none;opacity:1}
+
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;gap:14px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1}
+.nav-btn:hover{border-color:var(--c-main)}
+.nav-btn.next{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+@media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero{padding:48px 32px 32px}.lesson-body{padding:24px 32px 56px}.lesson-nav{padding:0 32px 56px}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:36px 20px 24px}.lesson-title{font-size:1.5rem}.lesson-body{padding:20px 20px 48px}.lesson-nav{padding:0 20px 48px;flex-direction:column}.nav-btn{flex:none}.nb-grid{grid-template-columns:1fr}.footer{padding:20px}}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='gen36_auth',H='2eeb336fddc0ac7aa5ce7ff9aa2b3a51db0f7ad83fd07d4e7d877dfc1d2b9089';if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">生成式 AI 工作應用班（36h）</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">PRAC 3 · Part 3</div>
+</header>
+
+<div class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">Part 3 · 帶走範本</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">PRAC 3 · 含於 Part 3 共 4h</span>
+  </div>
+  <h1 class="lesson-title">NotebookLM 知識庫<br><em>起手式 + Podcast Demo</em></h1>
+  <p class="lesson-tagline">Part 3 的成果，三件可立刻動手的工具：<strong>Tool A</strong> 5 個建議 Notebook 結構（從專案到知識庫）；<strong>Tool B</strong> 5 個知識萃取 prompt（一鍵複製）；<strong>Tool C</strong> Podcast 生成 Demo（含自訂指令範本）。</p>
+  <div class="howto">
+    <strong>怎麼使用：</strong>① Tool A 找你接下來會立刻建的 Notebook 結構照抄。② Tool B 配合「待消化資料夾 → 沉澱區」流程使用，每週 30 分鐘消化時用。③ Tool C 挑一份你最近沒時間讀的長文件，跑一次 Podcast，通勤時聽完。
+  </div>
+</div>
+
+<div class="lesson-body">
+
+  <!-- Tool A · Notebook 結構 -->
+  <div class="tool-head">
+    <div class="tool-num">TOOL A</div>
+    <div class="tool-title">5 個建議 Notebook 起手結構</div>
+    <div class="tool-line"></div>
+  </div>
+  <div class="tool-intro">
+    這 5 個是上班族最高頻會建的 Notebook 類型。每張卡列出：用途、建議放的 Sources、查問模式、消化節奏。你不必全部建——挑 1-2 個立刻可以動手的開始。
+  </div>
+
+  <div class="nb-grid">
+
+    <div class="nb-card">
+      <div class="nb-tag">類型 01</div>
+      <div class="nb-name">客戶 Profile（一客戶一 Notebook）</div>
+      <div class="nb-purpose">追蹤特定客戶的所有互動歷史，提案前快速復習對方背景與在意點。</div>
+      <div class="nb-list-label">放什麼：</div>
+      <ul class="nb-list">
+        <li>客戶官網內容（用 URL）</li>
+        <li>過去往來 email（複製貼上）</li>
+        <li>會議錄音 / 紀錄</li>
+        <li>對方公開財報、新聞</li>
+        <li>產業分析報告</li>
+      </ul>
+      <div class="nb-rhythm"><strong>節奏：</strong>每次互動後立刻丟資料進去；提案前 10 分鐘問 5 個問題復盤</div>
+    </div>
+
+    <div class="nb-card">
+      <div class="nb-tag">類型 02</div>
+      <div class="nb-name">專案案件（一案一 Notebook）</div>
+      <div class="nb-purpose">從 kickoff 到結案的所有資料，案子結束後抽精華進「踩坑沉澱」Notebook 後封存。</div>
+      <div class="nb-list-label">放什麼：</div>
+      <ul class="nb-list">
+        <li>客戶需求文件 / RFP</li>
+        <li>提案、合約、修訂版本</li>
+        <li>會議錄音 / 紀錄（按週順序）</li>
+        <li>內部溝通紀錄</li>
+        <li>交付物草稿與 final</li>
+      </ul>
+      <div class="nb-rhythm"><strong>節奏：</strong>專案進行中每週更新；結案 1 週內做 retrospective</div>
+    </div>
+
+    <div class="nb-card">
+      <div class="nb-tag">類型 03</div>
+      <div class="nb-name">學習 / 認證準備</div>
+      <div class="nb-purpose">考一個證照、學一個新領域，把所有教材集中問答。</div>
+      <div class="nb-list-label">放什麼：</div>
+      <ul class="nb-list">
+        <li>教科書 / 講義 PDF</li>
+        <li>上課簡報</li>
+        <li>YouTube 相關影片連結</li>
+        <li>考古題 + 解析</li>
+        <li>自己整理的筆記</li>
+      </ul>
+      <div class="nb-rhythm"><strong>節奏：</strong>每週讀完一章就丟進去，請 AI 出模擬題；考前用 Audio Overview 通勤聽複習</div>
+    </div>
+
+    <div class="nb-card">
+      <div class="nb-tag">類型 04</div>
+      <div class="nb-name">產業情報追蹤</div>
+      <div class="nb-purpose">追蹤特定產業 / 主題的最新動態，每月做趨勢分析。</div>
+      <div class="nb-list-label">放什麼：</div>
+      <ul class="nb-list">
+        <li>主要競品官網（用 URL）</li>
+        <li>產業媒體文章連結</li>
+        <li>研究機構報告 PDF</li>
+        <li>分析師預測</li>
+        <li>主管 / 客戶提及的相關討論</li>
+      </ul>
+      <div class="nb-rhythm"><strong>節奏：</strong>每週固定 30 分鐘追蹤 → 加進去；每月做一次趨勢摘要</div>
+    </div>
+
+    <div class="nb-card">
+      <div class="nb-tag">類型 05</div>
+      <div class="nb-name">個人知識庫總覽</div>
+      <div class="nb-purpose">每季匯入沉澱區所有筆記，做為「外接記憶」可任意搜尋。</div>
+      <div class="nb-list-label">放什麼：</div>
+      <ul class="nb-list">
+        <li>Notion / Obsidian 匯出的所有筆記</li>
+        <li>過去重要 email 摘要</li>
+        <li>讀書筆記</li>
+        <li>個人專案 retrospective</li>
+        <li>個人方法論文件</li>
+      </ul>
+      <div class="nb-rhythm"><strong>節奏：</strong>每季更新一次（舊版可保留為 2026Q1、2026Q2 不同 Notebook）</div>
+    </div>
+
+  </div>
+
+  <!-- Tool B · Prompt 萃取 -->
+  <div class="tool-head">
+    <div class="tool-num">TOOL B</div>
+    <div class="tool-title">5 個知識萃取 prompt</div>
+    <div class="tool-line"></div>
+  </div>
+  <div class="tool-intro">
+    這 5 個 prompt 都是「給 Claude 用」（NotebookLM 不需要這類複雜 prompt，直接問就好）。配合每週 30 分鐘消化流程使用：把待消化資料丟給 Claude，跑這些 prompt 萃取後，再貼進你的沉澱區。
+  </div>
+
+  <div class="prompt-card">
+    <div class="pc-head">
+      <div class="pc-info">
+        <div class="pc-num">PROMPT 01</div>
+        <div class="pc-name">三段式知識卡（最常用）</div>
+        <div class="pc-when">適合：文章、報告片段、會議重點，要存進長期沉澱區的</div>
+      </div>
+      <button class="copy-btn-mini">複製</button>
+    </div>
+    <div class="pc-prompt">你是知識管理助理。把以下內容萃取成個人知識庫的標準筆記。
+
+原文：
+"""
+[貼上原文]
+"""
+
+格式（嚴格遵守）：
+
+## TL;DR
+[20 字內，這份內容的核心]
+
+## 三個重點
+1. xxx
+2. xxx
+3. xxx
+
+## 我的觀察
+[2-3 句：對我（具體場景）有什麼意義？跟我已知什麼相關？]
+
+## 將來什麼情境會用到
+[列 1-2 個具體情境]
+
+## 標籤
+#xxx #yyy
+
+限制：不要照抄原文，要重新組織；標籤最多 5 個</div>
+  </div>
+
+  <div class="prompt-card">
+    <div class="pc-head">
+      <div class="pc-info">
+        <div class="pc-num">PROMPT 02</div>
+        <div class="pc-name">課後 / 演講消化卡</div>
+        <div class="pc-when">適合：上完課、聽完演講、看完影片，要把學到的轉成可操作知識</div>
+      </div>
+      <button class="copy-btn-mini">複製</button>
+    </div>
+    <div class="pc-prompt">你是學習教練。把以下我做的課堂筆記，整理成可實踐的學習卡。
+
+我的筆記（可能很亂）：
+"""
+[貼上筆記]
+"""
+
+格式：
+
+## 學到了什麼（觀念層）
+[1-2 段話：用我自己的話講一遍]
+
+## 跟我之前認知的差別
+[原本以為 X，現在發現 Y]
+
+## 立刻可以用的 3 個動作
+1. xxx（具體可執行）
+2. xxx
+3. xxx
+
+## 還沒搞懂、需要追問的問題
+- xxx
+- xxx
+
+## 標籤
+#xxx #yyy</div>
+  </div>
+
+  <div class="prompt-card">
+    <div class="pc-head">
+      <div class="pc-info">
+        <div class="pc-num">PROMPT 03</div>
+        <div class="pc-name">客戶互動精煉卡</div>
+        <div class="pc-when">適合：每次跟特定客戶互動後，萃取「下次跟這個客戶可以怎麼用」的精華</div>
+      </div>
+      <button class="copy-btn-mini">複製</button>
+    </div>
+    <div class="pc-prompt">你是業務 / 客戶經理顧問。從以下這次互動內容，萃取「客戶 Profile 卡」要更新的資訊。
+
+互動內容（會議紀錄 / email / 訪談）：
+"""
+[貼上內容]
+"""
+
+客戶名：[<填客戶名>]
+
+格式：
+
+## 客戶說了什麼新東西（事實）
+- xxx
+- xxx
+
+## 客戶在意 / 反覆提到的議題
+- xxx：[他怎麼說的關鍵句]
+
+## 客戶的偏好（語氣 / 流程 / 決策方式）
+- xxx
+
+## 我下次該注意 / 該準備的事
+- xxx
+- xxx
+
+## 客戶的雷區（不能踩的話題）
+- xxx
+
+## 標籤
+#客戶互動 #[客戶名] #YYYY-MM</div>
+  </div>
+
+  <div class="prompt-card">
+    <div class="pc-head">
+      <div class="pc-info">
+        <div class="pc-num">PROMPT 04</div>
+        <div class="pc-name">案件 retrospective 卡</div>
+        <div class="pc-when">適合：專案結案後做反省，把「下次別再犯 / 下次該怎樣做更好」存成沉澱</div>
+      </div>
+      <button class="copy-btn-mini">複製</button>
+    </div>
+    <div class="pc-prompt">你是專案經理顧問。從以下我整理的案件回顧，萃取成「踩坑沉澱卡」可長期保留。
+
+案件名：[<填案名>]
+我的回顧：
+"""
+[貼上你的回顧內容，可亂序]
+"""
+
+格式：
+
+## 案件 1 句摘要
+[時程 / 客戶 / 結果]
+
+## 做對的 3 件事（要繼續做）
+1. xxx：為什麼有效
+2. xxx
+3. xxx
+
+## 踩的坑（下次別再犯）
+- 坑：xxx
+- 為什麼會踩：xxx
+- 下次預防方法：xxx
+
+## 我學到的方法論（可跨案件用）
+- xxx
+
+## 對團隊 / 流程的改善建議
+- xxx
+
+## 標籤
+#retrospective #[案件類型] #YYYY</div>
+  </div>
+
+  <div class="prompt-card">
+    <div class="pc-head">
+      <div class="pc-info">
+        <div class="pc-num">PROMPT 05</div>
+        <div class="pc-name">月度 / 季度回顧（最重要）</div>
+        <div class="pc-when">適合：每月最後一週，把整個月的所有筆記丟進去，做高層次回顧</div>
+      </div>
+      <button class="copy-btn-mini">複製</button>
+    </div>
+    <div class="pc-prompt">你是知識管理顧問。我給你我這個月的所有筆記（標題與重點），請幫我做月度回顧。
+
+我的月度筆記摘要：
+"""
+[把這個月所有筆記的標題與 TL;DR 貼進來，用條列即可]
+"""
+
+格式：
+
+## 這個月的核心主題（3-5 個）
+- 主題：xxx（出現次數、相關筆記數）
+- 主題：xxx
+
+## 我的關注點是否有變化
+[對比上個月，我這個月明顯多想 / 少想了什麼？]
+
+## 沒注意但值得追蹤的點
+[從筆記裡抓出我自己可能沒意識到的訊號或趨勢]
+
+## 下個月該優先深入的 1-2 件事
+- xxx：理由
+- xxx：理由
+
+## 該整理進長期沉澱區的 3 個高價值筆記
+- xxx
+- xxx
+- xxx</div>
+  </div>
+
+  <!-- Tool C · Podcast Demo -->
+  <div class="tool-head">
+    <div class="tool-num">TOOL C</div>
+    <div class="tool-title">Podcast 生成 Demo（5 步驟）</div>
+    <div class="tool-line"></div>
+  </div>
+  <div class="tool-intro">
+    挑一份你「最近想看但沒時間」的長文件（PDF、報告、論文皆可），跑這個 5 步驟，10 分鐘後你會收到一個可以通勤聽的 Podcast。第一次跑完會驚訝：「原來這份報告可以被講得這麼有趣。」
+  </div>
+
+  <div class="demo-block">
+
+    <div class="demo-step">
+      <div class="demo-circle">1</div>
+      <div class="demo-content">
+        <div class="demo-name">建一個新 Notebook</div>
+        <div class="demo-desc">命名：「[Demo] [文件主題] Podcast 測試」</div>
+      </div>
+    </div>
+
+    <div class="demo-step">
+      <div class="demo-circle">2</div>
+      <div class="demo-content">
+        <div class="demo-name">上傳 1-3 份相關資料</div>
+        <div class="demo-desc">建議 1 份主文件 + 1-2 份補充資料（如同主題的另一篇文章、官網介紹）。<strong>太單薄會讓 Podcast 內容空泛</strong>。</div>
+      </div>
+    </div>
+
+    <div class="demo-step">
+      <div class="demo-circle">3</div>
+      <div class="demo-content">
+        <div class="demo-name">點 Studio → Audio Overview → Customize</div>
+        <div class="demo-desc">不要直接用 default 設定。點「Customize」後輸入指令，可決定 Podcast 的主題、深度、受眾、要強調的點。</div>
+        <div class="full-prompt-wrap">
+          <button class="copy-btn-tl" data-target="podcast-prompt">複製整段</button>
+          <div class="full-prompt" id="podcast-prompt">Please create an audio overview with these specifications:
+
+<span class="lbl"># Audience</span>
+A busy office worker with no prior knowledge of this specific topic,
+but who is intelligent and curious. Imagine they're listening on their
+commute. Use simple English with slow pacing. Briefly explain key Chinese
+terms in English when they appear (e.g., "this concept, called X in
+Chinese, basically means Y").
+
+<span class="lbl"># Focus</span>
+Focus on:
+- The main argument or finding (one core insight)
+- Why it matters in practice for office workers
+- 2-3 concrete actionable takeaways
+Skip:
+- Detailed methodology
+- Statistical jargon
+- Background that's not essential to understanding
+
+<span class="lbl"># Tone</span>
+Conversational, warm, like two friends chatting over coffee. Use
+analogies. The hosts can briefly disagree or push back to add depth.
+
+<span class="lbl"># Length</span>
+Around 10-12 minutes.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="demo-step">
+      <div class="demo-circle">4</div>
+      <div class="demo-content">
+        <div class="demo-name">點 Generate，等 3-5 分鐘</div>
+        <div class="demo-desc">NotebookLM 會在背景生成。可以先去做別的事。完成後會通知。</div>
+      </div>
+    </div>
+
+    <div class="demo-step">
+      <div class="demo-circle">5</div>
+      <div class="demo-content">
+        <div class="demo-name">下載 / 線上聽</div>
+        <div class="demo-desc">點播放即可，或下載 mp3 檔到手機。<strong>建議：通勤時用 1.25x 速度聽</strong>，你會發現 12 分鐘就能掌握一份 50 頁文件的核心。</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-icon">🎧</div>
+    <div class="callout-body"><strong>進階 Customize 範本：</strong>除了通用版本，可以針對不同情境調整指令。例如：「<strong>Make it a critical analysis</strong>」會讓兩位主持人對文件提出質疑與反駁；「<strong>Compare and contrast</strong>」會讓他們專注比較兩份 source 的差異；「<strong>Beginner explanation</strong>」會用最淺白的方式講解技術術語。</div>
+  </div>
+
+  <!-- Outro -->
+  <div class="outro">
+    <div class="outro-title">恭喜完成 Part 3 ✓</div>
+    <div class="outro-text">你現在有：5 個 Notebook 起手結構、5 個知識萃取 prompt、Podcast 生成完整流程。建議今天就先做兩件事——① 建一個「客戶 Profile」或「學習主題」Notebook，丟 3-5 份資料進去；② 跑一個 Podcast Demo，通勤時聽。<br><br>下一個 Part 進入「零代碼 AI 工具開發」（Part 4，8 小時），會是整個課程最有成就感的一段——學完你能用 AI 直接生出可以上線的小工具，不寫程式。</div>
+  </div>
+
+</div>
+
+<div class="lesson-nav">
+  <a class="nav-btn" href="CH3-2.html">
+    <div><div class="nav-btn-label">← 上一節</div><div class="nav-btn-title">CH 3.2 · 個人知識庫</div></div>
+  </a>
+  <a class="nav-btn next" href="../index.html">
+    <div><div class="nav-btn-label">完成 Part 3 →</div><div class="nav-btn-title">返回課程總覽</div></div>
+  </a>
+</div>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">PRAC 3 · 生成式 AI 工作應用班（36h）</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function copyText(text){return navigator.clipboard.writeText(text)}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
+document.querySelectorAll('.copy-btn-mini').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const promptEl=btn.parentElement.parentElement.querySelector('.pc-prompt');
+    if(!promptEl)return;
+    copyText(promptEl.innerText).then(()=>{
+      const orig=btn.textContent;btn.textContent='✓';btn.classList.add('copied');
+      showToast('已複製');
+      setTimeout(()=>{btn.textContent=orig;btn.classList.remove('copied')},1800);
+    });
+  });
+});
+document.querySelectorAll('.copy-btn-tl').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const target=document.getElementById(btn.dataset.target);
+    if(!target)return;
+    copyText(target.innerText).then(()=>{
+      const orig=btn.textContent;btn.textContent='✓ 已複製';btn.classList.add('copied');
+      showToast('已複製整段');
+      setTimeout(()=>{btn.textContent=orig;btn.classList.remove('copied')},1800);
+    });
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH5-2 n8n Desktop 與 Cloudflare Tunnel｜生成式 AI 工作應用班（36h）</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-a5:#7a9ea3;--c-main:#7a9ea3;--radius:6px;--radius-sm:4px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.85}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-main);border:1px solid rgba(122,158,163,.35);background:rgba(122,158,163,.08);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-main);width:0%;transition:width .1s}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-main)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border)}
+.hero-num{font-size:.72rem;color:var(--c-main);letter-spacing:1px;font-weight:500}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.35;color:var(--c-text);margin-bottom:18px}
+.lesson-title em{font-style:normal;color:var(--c-main)}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:32px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:22px 26px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-main);border-radius:var(--radius)}
+.outcomes-label{font-size:.7rem;color:var(--c-main);letter-spacing:1.5px;font-weight:500;margin-bottom:4px}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);line-height:1.7}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-main);margin-top:9px;flex-shrink:0}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px}
+.lesson-section{margin-bottom:56px}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:18px;line-height:1.4}
+.section-heading em{font-style:normal;color:var(--c-main)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.95;margin-bottom:16px}
+.body-text strong{font-weight:700}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:56px 0}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:24px 0}
+.compare-card{padding:20px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.compare-card.a{border-left:3px solid var(--c-a4)}
+.compare-card.b{border-left:3px solid var(--c-a3)}
+.compare-name{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:4px}
+.compare-tag{display:inline-block;font-size:.65rem;background:rgba(0,0,0,.04);padding:2px 9px;border-radius:99px;font-weight:500;margin-bottom:10px}
+.compare-card.a .compare-tag{color:var(--c-a4)}
+.compare-card.b .compare-tag{color:var(--c-a3)}
+.compare-list{font-size:.82rem;color:var(--c-text);line-height:1.7}
+.compare-list li{margin-left:14px;list-style:disc;margin-bottom:4px}
+.install-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0}
+.install-card{padding:18px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.install-card.featured{border-color:rgba(122,158,163,.45);background:rgba(122,158,163,.04)}
+.install-name{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:4px}
+.install-tag{display:inline-block;font-size:.62rem;color:var(--c-main);background:rgba(122,158,163,.08);border:1px solid rgba(122,158,163,.25);padding:1px 7px;border-radius:99px;font-weight:500;margin-bottom:8px}
+.install-desc{font-size:.76rem;color:var(--c-muted);line-height:1.65;margin-bottom:8px}
+.install-when{font-size:.74rem;color:var(--c-text);background:var(--c-surface);padding:6px 10px;border-radius:var(--radius-sm);line-height:1.55}
+.steps-list{margin:24px 0}
+.step-row{display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid var(--c-border)}
+.step-row:last-child{border-bottom:none}
+.step-circle{width:30px;height:30px;border-radius:50%;background:rgba(122,158,163,.1);border:1.5px solid var(--c-main);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-weight:700;font-size:.8rem;color:var(--c-main);flex-shrink:0;margin-top:2px}
+.step-content{flex:1}
+.step-name{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.step-desc{font-size:.85rem;color:var(--c-text);line-height:1.8}
+.step-desc code{font-family:'Courier New',monospace;background:var(--c-surface);padding:1px 6px;border-radius:3px;font-size:.85em}
+.code-block{margin:20px 0;padding:22px 24px;background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.81rem;border-radius:var(--radius);line-height:1.8;white-space:pre-wrap;overflow-x:auto}
+.code-block .lbl{color:#7a9ea3;font-weight:700}
+.code-block .var{color:#c9963a}
+.code-block .com{color:#8a8a8a;font-style:italic}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:20px 0}
+.callout.info{background:rgba(122,158,163,.07);border:1px solid rgba(122,158,163,.25)}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2)}
+.callout.warn{background:rgba(181,112,58,.05);border:1px solid rgba(181,112,58,.2)}
+.callout-icon{font-size:1rem;flex-shrink:0;margin-top:2px}
+.callout-body{font-size:.86rem;line-height:1.85;color:var(--c-text)}
+.callout-body strong{font-weight:700}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;gap:14px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1}
+.nav-btn:hover{border-color:var(--c-main)}
+.nav-btn.next{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+@media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero{padding:48px 32px 36px}.lesson-body{padding:0 32px 56px}.lesson-nav{padding:0 32px 56px}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:36px 20px 28px}.lesson-title{font-size:1.5rem}.lesson-body{padding:0 20px 48px}.lesson-nav{padding:0 20px 48px;flex-direction:column}.nav-btn{flex:none}.compare-grid,.install-grid{grid-template-columns:1fr}.footer{padding:20px}}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='gen36_auth',H='2eeb336fddc0ac7aa5ce7ff9aa2b3a51db0f7ad83fd07d4e7d877dfc1d2b9089';if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">生成式 AI 工作應用班（36h）</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH 5.2 · Part 5</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">Part 5 · 自動化流程設計</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 5.2 · 2 小時</span>
+  </div>
+  <h1 class="lesson-title">n8n Desktop + <em>Cloudflare Tunnel</em></h1>
+  <p class="lesson-tagline">Make 免費額度有限、付費每月 $9 起。n8n 是開源替代方案——跑在你自己電腦，完全免費、無限制。本節教你安裝 n8n、跑第一個 workflow、用 Cloudflare Tunnel 讓它能接外部 webhook。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果 · OUTCOMES</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>理解 n8n 與 Make 的定位差異，知道什麼時候該用哪個</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能在本機安裝 n8n（Desktop / Docker / npm 三選一）並跑第一個 workflow</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>會用 Cloudflare Tunnel 把本機 n8n 暴露給外部（接 LINE Bot、Webhook、Stripe 付款通知）</div>
+  </div>
+</div>
+
+<div class="lesson-body">
+
+  <!-- Section 1 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow">SECTION 01 · 為什麼學 n8n</div>
+    <h2 class="section-heading">跟 Make 比，<em>多了什麼、少了什麼</em></h2>
+
+    <div class="compare-grid">
+      <div class="compare-card a">
+        <div class="compare-name">Make.com</div>
+        <div class="compare-tag">雲端 SaaS</div>
+        <ul class="compare-list">
+          <li>✓ 零安裝、瀏覽器打開就能用</li>
+          <li>✓ 整合 app 數量最多（1,800+）</li>
+          <li>✓ UI 最直觀、學習成本低</li>
+          <li>✗ 有額度限制（免費 1,000 ops/月）</li>
+          <li>✗ 付費從 $9 USD/月起跳</li>
+          <li>✗ 資料會經過 Make 伺服器（隱私）</li>
+        </ul>
+      </div>
+      <div class="compare-card b">
+        <div class="compare-name">n8n</div>
+        <div class="compare-tag">開源自架</div>
+        <ul class="compare-list">
+          <li>✓ 完全免費、無限制</li>
+          <li>✓ 資料在自己電腦，不經第三方</li>
+          <li>✓ 可讀取本機檔案（Make 做不到）</li>
+          <li>✓ 可以用 JavaScript / Python 寫邏輯</li>
+          <li>✗ 要自己安裝、維護</li>
+          <li>✗ 電腦關機 = workflow 停擺</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <div class="callout-icon">🧭</div>
+      <div class="callout-body"><strong>實務建議：</strong>不要「二選一」。很多情況是「Make 跑輕量雲端流程，n8n 跑本機 / 高頻 / 隱私需求」並用。這節學會後，下一節 CH 5.4 會深入「雙引擎協作」——什麼情境用哪個、怎麼互相串接。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 2 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow">SECTION 02 · 三種安裝方式</div>
+    <h2 class="section-heading">n8n 裝在你<em>電腦上的 3 種方法</em></h2>
+
+    <div class="install-grid">
+      <div class="install-card featured">
+        <div class="install-name">n8n Desktop</div>
+        <div class="install-tag">本課推薦</div>
+        <div class="install-desc">Mac / Windows 官方 app，雙擊安裝、開啟即用。適合 80% 個人使用者。</div>
+        <div class="install-when"><strong>選：</strong>你是個人使用、想立刻能開始</div>
+      </div>
+      <div class="install-card">
+        <div class="install-name">Docker</div>
+        <div class="install-tag">穩定</div>
+        <div class="install-desc">容器化部署，適合想放在公司伺服器或 NAS。要懂一點 Docker 指令。</div>
+        <div class="install-when"><strong>選：</strong>公司 IT 支援、24/7 運作</div>
+      </div>
+      <div class="install-card">
+        <div class="install-name">npm</div>
+        <div class="install-tag">開發者</div>
+        <div class="install-desc"><code>npx n8n</code> 一指令跑起，適合偶爾跑一次、或開發環境測試。</div>
+        <div class="install-when"><strong>選：</strong>已有 Node.js 環境、臨時試用</div>
+      </div>
+    </div>
+
+    <h2 class="section-heading" style="margin-top:32px">n8n Desktop <em>安裝 4 步</em></h2>
+    <div class="steps-list">
+      <div class="step-row">
+        <div class="step-circle">1</div>
+        <div class="step-content">
+          <div class="step-name">下載 n8n Desktop</div>
+          <div class="step-desc">到 <code>n8n.io/download</code>，依你的系統（Mac / Windows / Linux）下載安裝檔。</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-circle">2</div>
+        <div class="step-content">
+          <div class="step-name">安裝並啟動</div>
+          <div class="step-desc">Mac 拖到 Applications → 第一次開啟會要輸入 email 建本機帳號（資料在本機，email 只是登入用）。</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-circle">3</div>
+        <div class="step-content">
+          <div class="step-name">開啟 n8n 介面</div>
+          <div class="step-desc">啟動後會打開 <code>http://localhost:5678</code>，這就是 n8n 的工作區。介面跟 Make 類似但更密一點（節點較多）。</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-circle">4</div>
+        <div class="step-content">
+          <div class="step-name">建第一個 workflow</div>
+          <div class="step-desc">左上角「New workflow」→ 開始拖節點。n8n 的節點叫「nodes」，功能跟 Make 的 modules 一樣。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 3 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow">SECTION 03 · 第一個 workflow</div>
+    <h2 class="section-heading">在 n8n 做<em>同一個 Gmail → Sheet</em></h2>
+    <p class="body-text">為了對照 CH 5.1，做完全一樣的流程看介面差異：</p>
+
+    <div class="steps-list">
+      <div class="step-row">
+        <div class="step-circle">1</div>
+        <div class="step-content">
+          <div class="step-name">加 Gmail Trigger</div>
+          <div class="step-desc">左側搜尋「Gmail」→ 拖「Gmail Trigger」節點到畫布。點它 → Add Credential → 照精靈走（需要 Google Cloud Console 建 OAuth app）。這步是 n8n 門檻最高的部分，<strong>第一次要花 30 分鐘</strong>，之後一勞永逸。</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-circle">2</div>
+        <div class="step-content">
+          <div class="step-name">加 IF 節點（相當於 Make 的 Filter）</div>
+          <div class="step-desc">拖「IF」節點 → Condition: <code>{{ $json.subject }}</code> contains <code>詢價</code>。n8n 用雙花括號 <code>{{ }}</code> 取值，這個語法你會反覆用到。</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-circle">3</div>
+        <div class="step-content">
+          <div class="step-name">加 Google Sheets 節點</div>
+          <div class="step-desc">接在 IF 的「true」輸出後 → Google Sheets → Action: Append Row → 選試算表與 sheet → 欄位用 <code>{{ $json.sender }}</code> 等拖入。</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-circle">4</div>
+        <div class="step-content">
+          <div class="step-name">Execute workflow 測試</div>
+          <div class="step-desc">右上角「Execute workflow」→ 看到每個節點出現綠色勾勾就是通過。打開 Sheet 確認有新增一行。</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-circle">5</div>
+        <div class="step-content">
+          <div class="step-name">切換為 Active</div>
+          <div class="step-desc">右上角開關從 Inactive → Active。從此 n8n 會每 1 分鐘檢查 Gmail（比 Make 免費版的 15 分鐘快 15 倍）。<strong>但前提是你的電腦要開著</strong>。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body"><strong>電腦關機的影響：</strong>n8n Desktop 依賴你的電腦。若你會下班後關機，n8n 也會停。解決方式：① 放在永遠開機的桌機 ② 裝在 Mac mini / NAS ③ 改用 Docker 部署到公司伺服器 ④ 付費用 n8n Cloud（每月 $20 起）。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 4 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow">SECTION 04 · Cloudflare Tunnel</div>
+    <h2 class="section-heading">讓本機 n8n <em>接外部 Webhook</em></h2>
+    <p class="body-text">n8n 跑在 <code>localhost:5678</code>，只有你自己電腦能連。但如果想用 n8n 當「Line Bot 後端」「Stripe 付款通知接收器」「Google Form 送出觸發」這些外部服務要能 call 進來，就需要把本機 n8n 暴露到公網。</p>
+    <p class="body-text">最簡單的方法是 <strong>Cloudflare Tunnel</strong>——免費、安全、不用設定路由器 port forwarding。</p>
+
+    <div class="steps-list">
+      <div class="step-row">
+        <div class="step-circle">1</div>
+        <div class="step-content">
+          <div class="step-name">註冊 Cloudflare 帳號</div>
+          <div class="step-desc">到 <code>cloudflare.com</code> 註冊（免費）。不需要有自己的網域（2.0 版 Quick Tunnels 可以用他們提供的隨機網址）。</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-circle">2</div>
+        <div class="step-content">
+          <div class="step-name">安裝 cloudflared</div>
+          <div class="step-desc">Mac: <code>brew install cloudflared</code><br>Windows: 到官方下載 .exe。安裝完在終端機確認：<code>cloudflared --version</code></div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-circle">3</div>
+        <div class="step-content">
+          <div class="step-name">啟動 Quick Tunnel</div>
+          <div class="step-desc">終端機輸入：<code>cloudflared tunnel --url http://localhost:5678</code><br>會印出一個類似 <code>https://random-words-1234.trycloudflare.com</code> 的網址，這就是你 n8n 的公開入口。</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-circle">4</div>
+        <div class="step-content">
+          <div class="step-name">在 n8n 用 Webhook 節點</div>
+          <div class="step-desc">workflow 第一個節點選「Webhook」→ Webhook URL 會顯示 <code>http://localhost:5678/webhook/xxx</code> → 你要給外部服務的網址是把 <code>localhost:5678</code> 換成 Cloudflare 給的網址。</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-circle">5</div>
+        <div class="step-content">
+          <div class="step-name">測試</div>
+          <div class="step-desc">在另一個終端機執行：<code>curl -X POST https://random-words-1234.trycloudflare.com/webhook/xxx -d '{"test":"hello"}'</code> — 如果 n8n 收到訊息並觸發 workflow，就成功。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon">⚡</div>
+      <div class="callout-body"><strong>實用情境：</strong>① LINE Bot — 在 LINE Developers 填 webhook URL 指向 Cloudflare 網址；② Stripe 付款通知 — 訂閱 webhook event；③ Google Form — 用 Apps Script 送出時 POST 到 webhook；④ Notion 資料庫變動 — 透過 Notion automation webhook。</div>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body"><strong>Quick Tunnel 的限制：</strong>網址每次重啟都會變。要固定網址需綁自己的網域 + Named Tunnel（稍複雜但一勞永逸）。個人測試用 Quick Tunnel 即可。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 5 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow">SECTION 05 · JSON 與節點邏輯</div>
+    <h2 class="section-heading">比 Make 更進階：<em>用 JS 處理資料</em></h2>
+    <p class="body-text">n8n 的資料在節點間是以 JSON 格式流動的。看到 <code>{{ $json.subject }}</code> 就是「取上個節點輸出的 subject 欄位」。Make 把這層包裝得很漂亮，n8n 直接讓你看 JSON——<strong>一開始嚇人，熟了才發現超好用</strong>。</p>
+
+    <div class="code-block"><span class="lbl"># n8n 節點間傳遞的 JSON 長這樣</span>
+{
+  "sender": "客戶 A &lt;a@example.com&gt;",
+  "subject": "關於產品 X 的詢價",
+  "date": "2026-04-15T10:30:00Z",
+  "body": "您好，想了解 X 產品..."
+}
+
+<span class="lbl"># 要取欄位的寫法</span>
+<span class="var">{{ $json.sender }}</span>      <span class="com">// 取寄件人</span>
+<span class="var">{{ $json.subject }}</span>     <span class="com">// 取主旨</span>
+<span class="var">{{ $json.body.substring(0, 100) }}</span>  <span class="com">// 取內文前 100 字</span></div>
+
+    <p class="body-text">要做「Make 做不到」的複雜邏輯時，加一個「Code」節點（或 Function 節點），直接寫 JS：</p>
+
+    <div class="code-block"><span class="lbl"># Code 節點範例：從 email 主旨萃取金額</span>
+<span class="com">// n8n 的 Code 節點裡寫 JavaScript</span>
+const subject = $input.first().json.subject;
+
+<span class="com">// 用 regex 找「$數字」或「NT$數字」</span>
+const match = subject.match(/\$?([\d,]+)/);
+const amount = match ? parseInt(match[1].replace(/,/g, '')) : 0;
+
+<span class="com">// 依金額分類</span>
+let priority = 'low';
+if (amount &gt; 100000) priority = 'high';
+else if (amount &gt; 20000) priority = 'medium';
+
+return [{
+  json: {
+    ...$input.first().json,
+    extracted_amount: amount,
+    priority: priority
+  }
+}];</div>
+
+    <div class="callout info">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body"><strong>不會 JS 怎麼辦？</strong>讓 Claude 幫你寫。貼給 Claude：「我在 n8n 的 Code 節點，輸入是 JSON（含 subject 欄位），我要從 subject 中取出金額並分類優先級為 high/medium/low，請給我 JS」——它會直接給可貼上的程式碼。你不用學 JS，只要學「怎麼跟 AI 描述你的需求」。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 6 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow">SECTION 06 · 本節行動</div>
+    <h2 class="section-heading">課後練習：<em>n8n 從 0 到 webhook</em></h2>
+    <p class="body-text">這節技術細節多，務必動手跑一次：</p>
+    <ol style="font-size:.92rem;color:var(--c-text);line-height:1.95;margin:0 0 16px 22px;">
+      <li>安裝 n8n Desktop（約 10 分鐘）</li>
+      <li>做一個 <strong>Webhook → Slack / Telegram / Email 通知</strong>的 workflow（不必做 Gmail，太複雜的 OAuth）</li>
+      <li>跑 Cloudflare Tunnel 取得公開網址</li>
+      <li>用手機瀏覽器 / Postman call 一下 webhook，看是否觸發通知</li>
+    </ol>
+    <p class="body-text"><strong>這個練習完成 = 你有一個可以接任何外部事件的「自動化大腦」</strong>，後面幾節會把它用起來。</p>
+
+    <div class="callout info">
+      <div class="callout-icon">📝</div>
+      <div class="callout-body"><strong>下一節預告：</strong>CH 5.3「AI × 自動化典型工作流」——工具學會了，下節看「真正有價值的場景」：表單送件 → AI 分類 → 自動回信 / 歸檔；會議錄音上傳 → AI 摘要 → 寄紀錄；客訴 email → AI 判斷嚴重度 → 分派處理人。每個都給完整 workflow 設計圖。</div>
+    </div>
+  </section>
+
+</div>
+
+<div class="lesson-nav">
+  <a class="nav-btn" href="CH5-1.html">
+    <div><div class="nav-btn-label">← 上一節</div><div class="nav-btn-title">CH 5.1 · Make.com 入門</div></div>
+  </a>
+  <a class="nav-btn next" href="CH5-3.html">
+    <div><div class="nav-btn-label">下一節 →</div><div class="nav-btn-title">CH 5.3 · AI × 自動化工作流</div></div>
+  </a>
+</div>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">CH 5.2 · 生成式 AI 工作應用班（36h）</div>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+window.addEventListener('scroll',()=>{const h=document.documentElement;fill.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%'});
+</script>
+</body>
+</html>

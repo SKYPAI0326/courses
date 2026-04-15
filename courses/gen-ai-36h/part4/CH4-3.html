@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH4-3 資料視覺化｜生成式 AI 工作應用班（36h）</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-a5:#7a9ea3;--c-main:#7a9ea3;--radius:6px;--radius-sm:4px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.85}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-main);border:1px solid rgba(122,158,163,.35);background:rgba(122,158,163,.08);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-main);width:0%;transition:width .1s}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-main)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border)}
+.hero-num{font-size:.72rem;color:var(--c-main);letter-spacing:1px;font-weight:500}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.35;color:var(--c-text);margin-bottom:18px}
+.lesson-title em{font-style:normal;color:var(--c-main)}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:32px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:22px 26px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-main);border-radius:var(--radius)}
+.outcomes-label{font-size:.7rem;color:var(--c-main);letter-spacing:1.5px;font-weight:500;margin-bottom:4px}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);line-height:1.7}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-main);margin-top:9px;flex-shrink:0}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px}
+.lesson-section{margin-bottom:56px}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:18px;line-height:1.4}
+.section-heading em{font-style:normal;color:var(--c-main)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.95;margin-bottom:16px}
+.body-text strong{font-weight:700}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:56px 0}
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:24px 0}
+.chart-card{padding:20px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.chart-name{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.chart-when{font-size:.78rem;color:var(--c-muted);line-height:1.7;margin-bottom:8px}
+.chart-eg{font-size:.78rem;color:var(--c-text);background:var(--c-surface);padding:8px 12px;border-radius:var(--radius-sm);line-height:1.6;border-left:2px solid var(--c-border)}
+.code-block{margin:20px 0;padding:22px 24px;background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.81rem;border-radius:var(--radius);line-height:1.8;white-space:pre-wrap;overflow-x:auto}
+.code-block .lbl{color:#7a9ea3;font-weight:700}
+.code-block .var{color:#c9963a}
+.code-block-wrap{position:relative;margin:20px 0}
+.copy-btn-tl{position:absolute;top:8px;right:8px;padding:5px 11px;background:rgba(122,158,163,.85);color:#fff;border:none;border-radius:var(--radius-sm);font-size:.7rem;font-family:inherit;cursor:pointer;font-weight:500;z-index:2;transition:background .2s}
+.copy-btn-tl:hover{background:rgba(122,158,163,1)}
+.copy-btn-tl.copied{background:var(--c-a3)}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:20px 0}
+.callout.info{background:rgba(122,158,163,.07);border:1px solid rgba(122,158,163,.25)}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2)}
+.callout.warn{background:rgba(181,112,58,.05);border:1px solid rgba(181,112,58,.2)}
+.callout-icon{font-size:1rem;flex-shrink:0;margin-top:2px}
+.callout-body{font-size:.86rem;line-height:1.85;color:var(--c-text)}
+.callout-body strong{font-weight:700}
+.lib-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0}
+.lib-card{padding:16px 18px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.lib-name{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:4px}
+.lib-tag{display:inline-block;font-size:.62rem;color:var(--c-main);background:rgba(122,158,163,.08);border:1px solid rgba(122,158,163,.25);padding:1px 7px;border-radius:99px;font-weight:500;margin-bottom:8px}
+.lib-desc{font-size:.76rem;color:var(--c-muted);line-height:1.65}
+.refine-grid{display:flex;flex-direction:column;gap:8px;margin:20px 0}
+.refine-row{display:grid;grid-template-columns:170px 1fr;gap:14px;padding:12px 16px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);align-items:start}
+.refine-trigger{font-size:.82rem;font-weight:700;color:var(--c-text);line-height:1.55}
+.refine-prompt{font-size:.82rem;color:var(--c-muted);line-height:1.7;font-family:'Courier New',monospace;background:var(--c-surface);padding:8px 10px;border-radius:var(--radius-sm)}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;gap:14px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1}
+.nav-btn:hover{border-color:var(--c-main)}
+.nav-btn.next{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.toast{position:fixed;bottom:28px;right:28px;background:var(--c-text);color:#fff;padding:10px 18px;border-radius:var(--radius-sm);font-size:.82rem;font-weight:500;transform:translateY(60px);opacity:0;transition:all .35s cubic-bezier(.34,1.56,.64,1);z-index:999}
+.toast.show{transform:none;opacity:1}
+@media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero{padding:48px 32px 36px}.lesson-body{padding:0 32px 56px}.lesson-nav{padding:0 32px 56px}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:36px 20px 28px}.lesson-title{font-size:1.5rem}.lesson-body{padding:0 20px 48px}.lesson-nav{padding:0 20px 48px;flex-direction:column}.nav-btn{flex:none}.chart-grid,.lib-grid{grid-template-columns:1fr}.refine-row{grid-template-columns:1fr;gap:6px}.footer{padding:20px}}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='gen36_auth',H='2eeb336fddc0ac7aa5ce7ff9aa2b3a51db0f7ad83fd07d4e7d877dfc1d2b9089';if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">生成式 AI 工作應用班（36h）</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH 4.3 · Part 4</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">Part 4 · 零代碼 AI 工具開發</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 4.3 · 2 小時</span>
+  </div>
+  <h1 class="lesson-title">資料視覺化：<br><em>SVG 互動圖表與 Dashboard</em></h1>
+  <p class="lesson-tagline">把一份 Excel 數據變成可互動的 dashboard，給主管看會被記得 3 個月。本節學會 6 種常用圖表的選用、3 個實戰 dashboard 的 prompt、以及 hover / filter / drill down 等互動微調腳本。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果 · OUTCOMES</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>分得清 6 種常用圖表的適用情境，避免「漂亮但講不清楚」</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能把一份 CSV 數據貼進 Claude，30 秒內生出可互動 dashboard</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>學會 hover tooltip / filter / 動態切換等互動微調，讓 dashboard 真的「好用」</div>
+  </div>
+</div>
+
+<div class="lesson-body">
+
+  <!-- Section 1 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow">SECTION 01 · 為什麼 AI 做圖表強</div>
+    <h2 class="section-heading">不用學 Chart.js / D3，<em>直接描述要看到什麼</em></h2>
+    <p class="body-text">過去做互動圖表得學 Chart.js、Plotly、D3 這類函式庫，門檻不低。現在你只需要：把資料貼給 Claude，描述要看的圖表類型 + 互動行為，它直接給你成品（背後會選用合適的函式庫，你不用管）。</p>
+    <p class="body-text">關鍵在「<strong>選對圖表</strong>」。同一份數據用錯圖會說錯故事，主管會看不懂或下錯結論。</p>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-name">📊 長條圖 / Bar Chart</div>
+        <div class="chart-when">比較不同類別的數量大小</div>
+        <div class="chart-eg"><strong>適用：</strong>各部門業績、產品銷售排行、不同月份對比</div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-name">📈 折線圖 / Line Chart</div>
+        <div class="chart-when">時間序列、趨勢變化</div>
+        <div class="chart-eg"><strong>適用：</strong>月度營收趨勢、流量變化、KPI 追蹤</div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-name">🥧 圓餅圖 / Pie Chart</div>
+        <div class="chart-when">組成比例（5 類以下）</div>
+        <div class="chart-eg"><strong>適用：</strong>客戶分群、預算分配、流量來源（不要超過 5 類，否則用堆疊長條）</div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-name">📍 散布圖 / Scatter</div>
+        <div class="chart-when">兩變數的關聯</div>
+        <div class="chart-eg"><strong>適用：</strong>價格 vs 銷量、廣告花費 vs 轉換、滿意度 vs 留存</div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-name">🔥 熱力圖 / Heatmap</div>
+        <div class="chart-when">兩維度的密度</div>
+        <div class="chart-eg"><strong>適用：</strong>每日每時段流量、課程排班滿載度、員工 X 技能矩陣</div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-name">📐 進度條 / 儀表盤</div>
+        <div class="chart-when">單一指標 vs 目標</div>
+        <div class="chart-eg"><strong>適用：</strong>業績達成率、專案完成度、KPI 進度</div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body"><strong>選錯圖的代價：</strong>用圓餅圖比較 8 個項目，沒人看得懂；用折線圖呈現「不同類別比較」，會誤導讀者以為有時序關係。<strong>選圖比設計重要 10 倍。</strong></div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 2 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow">SECTION 02 · 工具與函式庫</div>
+    <h2 class="section-heading">AI 會幫你選<em>哪個函式庫</em></h2>
+    <p class="body-text">你不需要知道差別，但理解一下能跟 AI 溝通更精準：</p>
+
+    <div class="lib-grid">
+      <div class="lib-card">
+        <div class="lib-name">純 SVG / Canvas</div>
+        <div class="lib-tag">最輕量</div>
+        <div class="lib-desc">不引入函式庫，AI 直接寫 SVG。適合：簡單進度條、單一圖表、要嵌入 PPT 簡報。</div>
+      </div>
+      <div class="lib-card">
+        <div class="lib-name">Chart.js</div>
+        <div class="lib-tag">最常見</div>
+        <div class="lib-desc">免費、易用、6 種主流圖表都很美。適合：80% 商務 dashboard 需求。</div>
+      </div>
+      <div class="lib-card">
+        <div class="lib-name">Recharts / Plotly</div>
+        <div class="lib-tag">最強互動</div>
+        <div class="lib-desc">複雜互動、3D 圖、地理圖。適合：要 zoom / drill down 的進階分析工具。</div>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body"><strong>讓 AI 自己選：</strong>Prompt 裡寫「請選最適合的視覺化函式庫」即可。Claude 通常會挑 Chart.js（穩、廣相容）或純 SVG（如果是進度條這類簡單視覺）。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 3 · Tool 1 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow">DASHBOARD 01</div>
+    <h2 class="section-heading">業績達成率<em>視覺化</em></h2>
+    <p class="body-text">場景：每月底要給主管看「業務團隊本月達成率」。用儀表盤 + 排行 + 進度條組合，10 秒抓到全貌。</p>
+
+    <div class="code-block-wrap">
+      <button class="copy-btn-tl" data-target="d1-prompt">複製 prompt</button>
+      <div class="code-block" id="d1-prompt"><span class="lbl"># 完整 prompt</span>
+請幫我做一個業績達成率視覺化 dashboard，HTML 單檔可預覽。
+
+<span class="var">資料</span>
+請用以下示範資料（我會自己改數字）：
+業務員 | 目標 | 實際
+小王 | 100 | 87
+小李 | 100 | 112
+小陳 | 100 | 65
+小林 | 100 | 95
+小張 | 100 | 130
+（單位：萬元）
+
+<span class="var">視覺需求</span>
+頂端：團隊整體達成率（大字 + 儀表盤，顯示 X%）
+中段：每位業務員的水平進度條，按達成率高到低排序
+- 達成率 ≥ 100% 綠色
+- 80-99% 黃色
+- &lt; 80% 紅色
+- 進度條顯示「實際 / 目標 (達成 X%)」
+底部：迷你長條圖（高度差異化），3 句話文字摘要
+
+<span class="var">互動</span>
+- 滑鼠 hover 進度條，顯示詳細數字
+- 點業務員姓名展開該員「過去 3 個月趨勢」（用 mock data）
+- 右上角「下載成 PNG」按鈕
+
+<span class="var">設計</span>
+- 米白底 #f5f3ee
+- 主色 #7a9ea3
+- 字體 Noto Sans TC
+- 卡片風格、無漸層、簡潔商務感</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 4 · Tool 2 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow">DASHBOARD 02</div>
+    <h2 class="section-heading">月度<em>銷售趨勢分析</em></h2>
+    <p class="body-text">場景：要對比過去 12 個月的營收 vs 訂單數，並標出異常月份讓主管追問。</p>
+
+    <div class="code-block-wrap">
+      <button class="copy-btn-tl" data-target="d2-prompt">複製 prompt</button>
+      <div class="code-block" id="d2-prompt"><span class="lbl"># 完整 prompt</span>
+請做一個月度銷售趨勢 dashboard，HTML 單檔可預覽，用 Chart.js。
+
+<span class="var">資料</span>
+12 個月（2025/05 - 2026/04），請用合理的隨機示範數據：
+月份 | 營收（萬元） | 訂單數
+（每月營收約 800-1500，訂單 50-120）
+
+<span class="var">視覺需求</span>
+主圖：雙軸折線圖
+- 左 Y 軸：營收（藍 #6b7fa3 折線）
+- 右 Y 軸：訂單數（綠 #5a7a5a 折線）
+- X 軸：12 個月
+- 過去 3 個月用實線、再之前用淡色
+
+下方 3 個 KPI 卡片（並列）：
+- 12 個月總營收 + 同比成長率
+- 平均每月訂單數 + 趨勢箭頭
+- 異常月份警示（自動找出與平均差超過 1.5 個標準差的月份）
+
+<span class="var">互動</span>
+- Hover 顯示該月詳細：營收、訂單、客單價
+- 切換按鈕：可切「營收」「訂單」「客單價」三個視角
+- 下方文字摘要區，用 AI 寫法：「過去 12 個月⋯⋯」自動生成 3 句話分析
+
+<span class="var">設計</span>
+- 米白底，卡片留白多
+- 折線粗細適中，hover 時加大
+- 響應式（手機要垂直堆疊）</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 5 · Tool 3 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow">DASHBOARD 03</div>
+    <h2 class="section-heading">客戶<em>分群熱力圖</em></h2>
+    <p class="body-text">場景：要看「客戶價值 × 互動頻率」的分布，找出「高價值但少互動」的需要關注的客戶。</p>
+
+    <div class="code-block-wrap">
+      <button class="copy-btn-tl" data-target="d3-prompt">複製 prompt</button>
+      <div class="code-block" id="d3-prompt"><span class="lbl"># 完整 prompt</span>
+請做一個客戶分群熱力圖 dashboard，HTML 單檔可預覽。
+
+<span class="var">資料</span>
+30 個示範客戶，每個含：
+- 客戶名（C01-C30）
+- 年合作金額（10-500 萬，請用合理分布）
+- 互動次數（過去 90 天，0-50 次）
+
+<span class="var">視覺需求</span>
+主圖：散布圖
+- X 軸：互動次數
+- Y 軸：年合作金額
+- 用四象限（中位數切分）：
+  - 右上：高金額 + 高互動 → 綠色「核心客戶」
+  - 右下：低金額 + 高互動 → 黃色「潛在開發」
+  - 左上：高金額 + 低互動 → 紅色「需關注」（重點）
+  - 左下：低金額 + 低互動 → 灰色「邊緣」
+- 每點大小 = 年合作金額（圓越大金額越高）
+
+<span class="var">互動</span>
+- Hover 點顯示客戶名、金額、互動數
+- 點擊點 → 標記「需聯繫」（背景變色 + 加列到右側清單）
+- 右側「需關注客戶清單」：列出左上象限所有客戶，可勾選
+- 底部 Action：「複製為待辦清單」「匯出聯繫名單 CSV」
+
+<span class="var">設計</span>
+- 主色 #7a9ea3
+- 四象限用淺色背景區分
+- 標籤清楚，不要過度裝飾</div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon">⚡</div>
+      <div class="callout-body"><strong>用真實資料的方法：</strong>跑出第一版後，再給 AI 你的真實 CSV：「請用以下我的真實資料替換示範資料」。AI 會自動處理欄位對應與型態轉換。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 6 · 微調 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow">SECTION 06 · 互動微調</div>
+    <h2 class="section-heading">把 dashboard 從「看」變成<em>「能用」</em></h2>
+    <p class="body-text">第一版通常是「能看不能用」。以下 6 個追問腳本，把它變成主管會主動點開的工具：</p>
+
+    <div class="refine-grid">
+      <div class="refine-row"><div class="refine-trigger">加 hover tooltip</div><div class="refine-prompt">每個資料點滑鼠 hover 時顯示完整資訊（含其他衍生指標如環比、同比）</div></div>
+      <div class="refine-row"><div class="refine-trigger">加 filter</div><div class="refine-prompt">頂端加篩選器：時間範圍、部門、產品線多選；改變後圖表即時重繪</div></div>
+      <div class="refine-row"><div class="refine-trigger">加 drill down</div><div class="refine-prompt">點某類別後展開子類別圖表（如點「華南區」後出現該區各業務員圖表）</div></div>
+      <div class="refine-row"><div class="refine-trigger">加 對比模式</div><div class="refine-prompt">頂端「vs 上期」開關，打開後同圖疊加比較線（虛線代表上期）</div></div>
+      <div class="refine-row"><div class="refine-trigger">加 預警標記</div><div class="refine-prompt">自動標出異常值（超過 1.5 標準差），並附「可能原因」提示文字</div></div>
+      <div class="refine-row"><div class="refine-trigger">加 文字摘要</div><div class="refine-prompt">圖表下方加 AI 生成的 3 句話摘要：第一句講趨勢、第二句講異常、第三句講行動建議</div></div>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body"><strong>不要過度設計：</strong>互動越多 ≠ 越好用。每增加一個互動，使用者要學一次。先做最重要的 1-2 個（hover + 1 個 filter），確認被用之後再加。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 7 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow">SECTION 07 · 本節行動</div>
+    <h2 class="section-heading">課後練習：<em>把你手邊一份 Excel 變成 dashboard</em></h2>
+    <p class="body-text">挑你最近正在追蹤的數據（業績、流量、訂單、客戶滿意度⋯⋯），用以下流程：</p>
+    <p class="body-text">① 打開 Excel，複製 3-4 欄關鍵資料（不超過 50 行）<br>② 貼到 Claude，說「請幫我把這份資料做成 dashboard，重點是 [你想看的故事]」<br>③ AI 給第一版後，跑 2-3 輪互動微調<br>④ 把分享連結發給主管 / 同事看，收集反饋</p>
+
+    <div class="callout info">
+      <div class="callout-icon">📝</div>
+      <div class="callout-body"><strong>下一節預告：</strong>CH 4.4「UI/UX 風格覆寫與部署」——前 3 節做出來的工具，預設視覺都不錯但「不是你公司的風格」。下節教你用一句話改造整個工具的視覺風格（無印良品風 / 蘋果風 / 暗黑風），並把 HTML 部署到 GitHub Pages 變成永久可分享的網址。</div>
+    </div>
+  </section>
+
+</div>
+
+<div class="lesson-nav">
+  <a class="nav-btn" href="CH4-2.html">
+    <div><div class="nav-btn-label">← 上一節</div><div class="nav-btn-title">CH 4.2 · 商務工具實戰</div></div>
+  </a>
+  <a class="nav-btn next" href="CH4-4.html">
+    <div><div class="nav-btn-label">下一節 →</div><div class="nav-btn-title">CH 4.4 · UI/UX 與部署</div></div>
+  </a>
+</div>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">CH 4.3 · 生成式 AI 工作應用班（36h）</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const fill=document.getElementById('prog');
+window.addEventListener('scroll',()=>{const h=document.documentElement;fill.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%'});
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
+document.querySelectorAll('.copy-btn-tl').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const target=document.getElementById(btn.dataset.target);
+    if(!target)return;
+    navigator.clipboard.writeText(target.innerText).then(()=>{
+      const orig=btn.textContent;btn.textContent='✓ 已複製';btn.classList.add('copied');
+      showToast('Prompt 已複製');
+      setTimeout(()=>{btn.textContent=orig;btn.classList.remove('copied')},1800);
+    });
+  });
+});
+</script>
+</body>
+</html>

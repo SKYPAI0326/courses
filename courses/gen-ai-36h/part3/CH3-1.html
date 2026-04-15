@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH3-1 NotebookLM 深入｜生成式 AI 工作應用班（36h）</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-a5:#7a9ea3;--c-main:#7a9ea3;--radius:6px;--radius-sm:4px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.85}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-main);border:1px solid rgba(122,158,163,.35);background:rgba(122,158,163,.08);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-main);width:0%;transition:width .1s}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-main)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border)}
+.hero-num{font-size:.72rem;color:var(--c-main);letter-spacing:1px;font-weight:500}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.35;color:var(--c-text);margin-bottom:18px}
+.lesson-title em{font-style:normal;color:var(--c-main)}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:32px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:22px 26px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-main);border-radius:var(--radius)}
+.outcomes-label{font-size:.7rem;color:var(--c-main);letter-spacing:1.5px;font-weight:500;margin-bottom:4px}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);line-height:1.7}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-main);margin-top:9px;flex-shrink:0}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px}
+.lesson-section{margin-bottom:56px}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:18px;line-height:1.4}
+.section-heading em{font-style:normal;color:var(--c-main)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.95;margin-bottom:16px}
+.body-text strong{font-weight:700}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:56px 0}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:24px 0}
+.compare-card{padding:20px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.compare-card.bad{border-left:3px solid var(--c-a1);background:rgba(181,112,58,.03)}
+.compare-card.good{border-left:3px solid var(--c-a3);background:rgba(90,122,90,.03)}
+.compare-label{font-size:.7rem;font-weight:700;letter-spacing:1px;margin-bottom:10px}
+.compare-card.bad .compare-label{color:var(--c-a1)}
+.compare-card.good .compare-label{color:var(--c-a3)}
+.compare-text{font-size:.85rem;color:var(--c-text);line-height:1.8}
+.feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:24px 0}
+.feat-card{padding:20px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.feat-name{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:8px}
+.feat-desc{font-size:.85rem;color:var(--c-muted);line-height:1.75;margin-bottom:10px}
+.feat-when{font-size:.78rem;color:var(--c-text);background:var(--c-surface);padding:10px 12px;border-radius:var(--radius-sm);line-height:1.65;border-left:2px solid var(--c-border)}
+.feat-when strong{color:var(--c-main);font-weight:500}
+.steps-list{margin:24px 0}
+.step-row{display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid var(--c-border)}
+.step-row:last-child{border-bottom:none}
+.step-circle{width:30px;height:30px;border-radius:50%;background:rgba(122,158,163,.1);border:1.5px solid var(--c-main);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-weight:700;font-size:.8rem;color:var(--c-main);flex-shrink:0;margin-top:2px}
+.step-content{flex:1}
+.step-name{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.step-desc{font-size:.85rem;color:var(--c-text);line-height:1.8}
+.step-desc em{font-style:normal;color:var(--c-main);font-weight:500}
+.code-block{margin:20px 0;padding:22px 24px;background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.83rem;border-radius:var(--radius);line-height:1.8;white-space:pre-wrap;overflow-x:auto}
+.code-block .lbl{color:#7a9ea3;font-weight:700}
+.code-block .var{color:#c9963a}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:20px 0}
+.callout.info{background:rgba(122,158,163,.07);border:1px solid rgba(122,158,163,.25)}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2)}
+.callout.warn{background:rgba(181,112,58,.05);border:1px solid rgba(181,112,58,.2)}
+.callout-icon{font-size:1rem;flex-shrink:0;margin-top:2px}
+.callout-body{font-size:.86rem;line-height:1.85;color:var(--c-text)}
+.callout-body strong{font-weight:700}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;gap:14px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1}
+.nav-btn:hover{border-color:var(--c-main)}
+.nav-btn.next{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+@media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero{padding:48px 32px 36px}.lesson-body{padding:0 32px 56px}.lesson-nav{padding:0 32px 56px}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:36px 20px 28px}.lesson-title{font-size:1.5rem}.lesson-body{padding:0 20px 48px}.lesson-nav{padding:0 20px 48px;flex-direction:column}.nav-btn{flex:none}.compare-grid,.feature-grid{grid-template-columns:1fr}.footer{padding:20px}}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='gen36_auth',H='2eeb336fddc0ac7aa5ce7ff9aa2b3a51db0f7ad83fd07d4e7d877dfc1d2b9089';if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">生成式 AI 工作應用班（36h）</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH 3.1 · Part 3</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">Part 3 · 知識管理與會議協作</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 3.1 · 2 小時</span>
+  </div>
+  <h1 class="lesson-title">NotebookLM：<br><em>逐字稿 · 結構化筆記 · Podcast</em></h1>
+  <p class="lesson-tagline">NotebookLM 是 Google 為「讀文件」打造的專屬 AI——它只回答你給的資料裡有的內容，不會編造。本節從基礎用法到進階技巧（含 Podcast 神技），一次帶你進階成 NotebookLM 重度使用者。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果 · OUTCOMES</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>分得清 NotebookLM 與一般 AI 聊天工具的差異，知道什麼時候該用哪個</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能完整操作 NotebookLM 的 Sources / Chat / Notebook / Audio Overview 四大功能</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能從會議錄音 / 多份 PDF 直接生成 Podcast 對談，10 分鐘讓自己「聽進」一份報告</div>
+  </div>
+</div>
+
+<div class="lesson-body">
+
+  <!-- Section 1 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow">SECTION 01 · NotebookLM 的本質</div>
+    <h2 class="section-heading">不是聊天機器人，是<em>「讀文件」機器人</em></h2>
+    <p class="body-text">大多數人初次使用 NotebookLM 會困惑——為什麼它「答不出」一些常識問題？因為它根本不打算回答常識問題。它的核心定位是：<strong>只回答你提供的資料（Sources）裡有的內容</strong>。</p>
+
+    <div class="compare-grid">
+      <div class="compare-card bad">
+        <div class="compare-label">✗ 一般 AI（Claude / ChatGPT / Gemini）</div>
+        <div class="compare-text">用「全網知識」回答你<br>會根據訓練資料補充背景<br>不確定時可能編造（幻覺）<br>每次對話需重新貼資料<br><strong>適合：</strong>創作、寫作、討論、寫程式</div>
+      </div>
+      <div class="compare-card good">
+        <div class="compare-label">✓ NotebookLM</div>
+        <div class="compare-text">只用你給的資料回答<br>每個答案附「來源頁碼引用」<br>資料沒寫的會說「找不到」<br>同一筆資料可一直問<br><strong>適合：</strong>研究、合約、政策、學習</div>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <div class="callout-icon">🧭</div>
+      <div class="callout-body"><strong>什麼時候用 NotebookLM？</strong>當你需要「以特定資料為唯一依據」時——讀合約、研究市場、整理會議、學習考試、做文獻回顧、policy 查詢。簡單判斷：<strong>「我希望 AI 嚴格只用我給的資料」</strong>就用 NotebookLM。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 2 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow">SECTION 02 · 四大功能總覽</div>
+    <h2 class="section-heading">介面拆解：<em>4 個區塊各自的角色</em></h2>
+    <p class="body-text">NotebookLM 的介面分四塊，搞懂每塊的角色，使用節奏會順很多。</p>
+
+    <div class="feature-grid">
+      <div class="feat-card">
+        <div class="feat-name">① Sources（資料來源）</div>
+        <div class="feat-desc">所有你上傳的資料：PDF、Google Docs、網址、YouTube 連結、音檔、貼上的文字。最多 50 個 source / 每個 500,000 字。</div>
+        <div class="feat-when"><strong>實用做法：</strong>同一專案的相關資料放一個 Notebook（如「合約 A 案」放合約 + 雙方往來信件 + 會議錄音 + 業界比對範本）</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-name">② Chat（問答區）</div>
+        <div class="feat-desc">向 sources 提問。回答都附「[1][2][3]」的引用標記，點開可跳到原文位置驗證。</div>
+        <div class="feat-when"><strong>實用做法：</strong>提問先具體、後概念。先「找出第 3 頁的金額」這類精準問題，再「整體有哪些風險」這類概念性問題</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-name">③ Notes（筆記）</div>
+        <div class="feat-desc">把 Chat 的有用回答「Save to note」。也可以手動加入自己的觀察、待追問的問題。</div>
+        <div class="feat-when"><strong>實用做法：</strong>每次問答有用就立刻 save，不要「再說」。一個 Notebook 累積 20-50 個 notes 後就成了你的個人知識卡</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-name">④ Audio Overview（Podcast）</div>
+        <div class="feat-desc">兩個 AI 主持人對談你的資料，產生 5-15 分鐘的英語 Podcast。可指定主題、深度、目標聽眾。</div>
+        <div class="feat-when"><strong>實用做法：</strong>通勤、運動時聽，比讀更輕鬆。對學新領域、複雜報告、技術文件特別好用</div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 3 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow">SECTION 03 · 工作流 1 會議錄音</div>
+    <h2 class="section-heading">會議錄音的<em>完整處理流程</em></h2>
+    <p class="body-text">這條流程在 PRAC2 給過完整 prompt，這裡帶你看 NotebookLM 介面的實際操作節奏。</p>
+
+    <div class="steps-list">
+      <div class="step-row">
+        <div class="step-circle">1</div>
+        <div class="step-content">
+          <div class="step-name">建一個專屬 Notebook</div>
+          <div class="step-desc">命名格式：「[YYYY-MM-DD] [客戶名] [會議主題]」。一個會議一個 Notebook，<em>不要混在一起</em>。</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-circle">2</div>
+        <div class="step-content">
+          <div class="step-name">上傳音檔到 Sources</div>
+          <div class="step-desc">點 「+ Add source」→ Audio。最大 200MB（約 3-4 小時錄音）。等 1-3 分鐘自動轉逐字稿。<em>同時可上傳會議議程、相關報告</em>當作上下文。</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-circle">3</div>
+        <div class="step-content">
+          <div class="step-name">讓 NotebookLM 自動產生「Briefing Doc」</div>
+          <div class="step-desc">在右側 Studio 點「Briefing doc」，自動產出結構化會議摘要（含主題、決議、待解問題）。<em>這份比你自己寫快 5 倍。</em></div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-circle">4</div>
+        <div class="step-content">
+          <div class="step-name">在 Chat 追問細節</div>
+          <div class="step-desc">向 NotebookLM 問：「找出所有客戶承諾要做的事」「哪些金額被提到？」「我方有沒有答應任何條件變更？」。每題答案都附引用，<em>可即時驗證</em>。</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-circle">5</div>
+        <div class="step-content">
+          <div class="step-name">把關鍵問答 Save to note</div>
+          <div class="step-desc">每個有價值的回答按「Save to note」，這份 Notebook 就成了「這場會議的可搜尋知識庫」。一週後想複查任何細節，直接打開來問。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon">⚡</div>
+      <div class="callout-body"><strong>進階：「會議比對」用法。</strong>把連續 4 週的客戶會議錄音都丟進同一個 Notebook，問「客戶對 X 議題的態度，這幾週有變化嗎？」NotebookLM 會幫你做趨勢分析，這是傳統 AI 做不到的。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 4 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow">SECTION 04 · 工作流 2 多文件比對</div>
+    <h2 class="section-heading">多份 PDF 同時讀：<em>研究員模式</em></h2>
+    <p class="body-text">NotebookLM 真正的力量在「跨文件理解」。一次丟 10-20 份相關文件進去，問跨文件的綜合性問題。</p>
+
+    <div class="code-block"><span class="lbl"># 場景：競品研究</span>
+Sources：
+- 競品 A 公司年報 PDF
+- 競品 A 最新財報
+- 競品 A 官網所有產品頁（用 URL 加進來）
+- 競品 A 的 5 篇媒體報導
+- 我們公司去年的市場分析報告
+
+可以問：
+1. 「比較我們和競品 A 在 [產品線] 的定價策略差異」
+2. 「過去 12 個月競品 A 釋出的所有新產品，按時間排序」
+3. 「找出競品 A 沒做但我們做了的 3 個服務項目」
+4. 「競品 A 的客戶回饋（從媒體報導中）有哪些常見抱怨？」
+5. 「給我一份競品 A 的 SWOT 分析，每點附原文引用」</div>
+
+    <div class="code-block"><span class="lbl"># 場景：學習 / 認證考試</span>
+Sources：
+- 教科書 PDF
+- 上課簡報
+- 老師發的補充資料
+- 考古題（YouTube 解題影片連結）
+- 你自己整理的筆記
+
+可以問：
+1. 「給我這個章節的 10 題模擬考，附答案與來源頁碼」
+2. 「[某概念] 在哪些 source 都被提到？比較不同來源的講法」
+3. 「整理一份這個主題的『常考重點 + 易混淆概念』表格」
+4. 「我不太懂 [某段內容]，用簡單比喻解釋給我聽」</div>
+
+    <div class="callout warn">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body"><strong>限制：</strong>NotebookLM 不會幫你「補充外部知識」。如果你問「業界的標準做法是什麼？」它會說「找不到」（除非你有上傳業界標準的文件）。它的長處是「精準引用你給的資料」，不是「帶來新觀點」。需要新觀點時，把答案複製到 Claude 接續對話。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 5 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow">SECTION 05 · Audio Overview 神技</div>
+    <h2 class="section-heading">兩個 AI 主持人，<em>把你的資料變成 Podcast</em></h2>
+    <p class="body-text">這是 NotebookLM 最被瘋傳的功能。在 Studio 區點「Audio Overview」，AI 會生成 8-15 分鐘的英語對談 Podcast，兩位主持人輕鬆討論你的資料。</p>
+
+    <div class="body-text">2024 年中後新增了「自訂」功能，可以指定：</div>
+
+    <div class="feature-grid">
+      <div class="feat-card">
+        <div class="feat-name">主題聚焦</div>
+        <div class="feat-desc">「請主要討論第 3 章與第 7 章的內容，跳過附錄」</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-name">深度層級</div>
+        <div class="feat-desc">「請以給高中生聽的程度講解，避免術語」<br>or「請用業界專家對談的深度」</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-name">受眾對象</div>
+        <div class="feat-desc">「對象是不熟此領域的高階主管，重點放在『為什麼要關心這件事』」</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-name">特定問題</div>
+        <div class="feat-desc">「請特別深入討論：X、Y、Z 三個議題的成本影響」</div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon">🎧</div>
+      <div class="callout-body"><strong>3 個最強用法：</strong><br>① <strong>通勤學習</strong>：把 5 篇技術論文丟進去，生成 15 分鐘 Podcast，通勤路上聽完，回辦公室直接能討論<br>② <strong>主管簡報前</strong>：把你要報的資料丟進去，生成 Podcast，自己先聽過——你會聽到 AI 抓的重點，可能跟你準備的不一樣<br>③ <strong>跨部門溝通</strong>：技術文件丟進去要求「給業務部聽的版本」，再寄連結給對方，比寫 email 解釋有效</div>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body"><strong>目前限制：</strong>Podcast 主持人只有英語版本（中文版預計 2026 年下半年上線）。對中文使用者來說，可以「指定用簡單英語、慢速、重要術語附中文對照」來緩解。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 6 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow">SECTION 06 · 本節行動</div>
+    <h2 class="section-heading">課後練習：<em>建第一個專屬 Notebook</em></h2>
+    <p class="body-text">挑一個你「最近一直拖著沒整理」的主題（合約、研究案、考試準備、客戶資料）：</p>
+
+    <div class="steps-list">
+      <div class="step-row">
+        <div class="step-circle">1</div>
+        <div class="step-content">
+          <div class="step-name">建 Notebook，命名清楚</div>
+          <div class="step-desc">格式：「[類別] [專案名] [日期]」，例：「客戶 王小姐 A 案 2026-04」</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-circle">2</div>
+        <div class="step-content">
+          <div class="step-name">丟 5-10 個 source 進去</div>
+          <div class="step-desc">PDF、Doc、會議錄音、相關 URL 都可以。一次到位，不要分批</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-circle">3</div>
+        <div class="step-content">
+          <div class="step-name">問 5 個你「真的想知道」的問題</div>
+          <div class="step-desc">不是測試 AI，是用它解你工作上的疑問。每個答案有用就 Save to note</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-circle">4</div>
+        <div class="step-content">
+          <div class="step-name">生成一個 Audio Overview</div>
+          <div class="step-desc">指定「給不熟此案的同事聽」。回家通勤時聽，看看抓到哪些你沒注意的點</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <div class="callout-icon">📝</div>
+      <div class="callout-body"><strong>下一節預告：</strong>CH 3.2「個人知識庫建立與檢索」——這節學會「一個專案一個 Notebook」，下節進階到「跨專案的個人知識體系」：怎麼用 NotebookLM + Obsidian 建立可以長期累積的知識庫，讓 5 年前讀過的東西現在還能調出來用。</div>
+    </div>
+  </section>
+
+</div>
+
+<div class="lesson-nav">
+  <a class="nav-btn" href="../part2/PRAC2.html">
+    <div><div class="nav-btn-label">← 上一節</div><div class="nav-btn-title">PRAC 2 · 文書工作包</div></div>
+  </a>
+  <a class="nav-btn next" href="CH3-2.html">
+    <div><div class="nav-btn-label">下一節 →</div><div class="nav-btn-title">CH 3.2 · 個人知識庫建立與檢索</div></div>
+  </a>
+</div>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">CH 3.1 · 生成式 AI 工作應用班（36h）</div>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+window.addEventListener('scroll',()=>{const h=document.documentElement;fill.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%'});
+</script>
+</body>
+</html>

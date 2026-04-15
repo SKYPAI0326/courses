@@ -21,6 +21,7 @@ COURSES = {
     "ntub-seo-ga4":    ("ntub_auth",    "1c0d96ab18b0574bb4e6c04b2c4baff23637a70205a6b651ccdd6f2c9b638c81"),
     "office-ai":       ("officeai_auth","6ab0aa487f1730f54a645b5ac78f9118d45255eed7e62414cbc37108a848e5e4"),
     "digital-marketing-70h": ("digimkt_auth", "6d9278e29c0d1ab888cfabe6a73a06f54c124fb0a4bb3dfccd7720d3e80d9eb7"),
+    "gen-ai-36h":      ("gen36_auth",   "2eeb336fddc0ac7aa5ce7ff9aa2b3a51db0f7ad83fd07d4e7d877dfc1d2b9089"),
 }
 
 GATE_TEMPLATE = '''\

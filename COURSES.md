@@ -43,6 +43,7 @@
 | `office-ai/` | 辦公室 AI 工具實務應用 | 製作中 | 6 章，章節頁待建 |
 | `n8n/` | n8n 自動化實戰課 | 完成 | 4 Modules，含 landing page |
 | `ccs-foundations/` | CCS 生成式 AI 認證研習 | 完成 | 13 頁（index + CH0 + CH1-1~5 + CH2-1~4 + CH3 + CH4），扁平結構，含 80 題模擬測驗與提示詞範本庫，主色灰藍綠 --c-a5 |
+| `gen-ai-36h/` | 生成式 AI 工作應用班（36h） | 完成 ✅ | 7 Parts，21 CH + 7 PRAC，28/28 全部完成，140h 上班族濃縮版，零基礎不寫程式，主色灰藍綠 --c-a5 |
 
 ---
 

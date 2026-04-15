@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH1-3 System Prompt 與提示詞除錯｜生成式 AI 工作應用班（36h）</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-a5:#7a9ea3;--c-main:#7a9ea3;--radius:6px;--radius-sm:4px;--content-w:820px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.85}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-main);border:1px solid rgba(122,158,163,.35);background:rgba(122,158,163,.08);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-main);width:0%;transition:width .1s}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-main)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border)}
+.hero-num{font-size:.72rem;color:var(--c-main);letter-spacing:1px;font-weight:500}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.35;color:var(--c-text);margin-bottom:18px}
+.lesson-title em{font-style:normal;color:var(--c-main)}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;max-width:620px;margin-bottom:28px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:22px 26px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-main);border-radius:var(--radius);margin-bottom:18px}
+.outcomes-label{font-size:.7rem;color:var(--c-main);letter-spacing:1.5px;font-weight:500;margin-bottom:4px}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);line-height:1.7}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-main);margin-top:9px;flex-shrink:0}
+.agenda{padding:18px 22px;background:var(--c-surface);border-radius:var(--radius);font-size:.82rem;color:var(--c-text);line-height:1.8}
+.agenda strong{color:var(--c-main);font-weight:700}
+.agenda-row{display:grid;grid-template-columns:90px 1fr;gap:14px;padding:4px 0}
+.agenda-time{font-family:'Shippori Mincho',serif;font-size:.76rem;color:var(--c-main);font-weight:700}
+.agenda-topic{font-size:.8rem}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px}
+.lesson-section{margin-bottom:48px}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.section-time{font-size:.68rem;color:var(--c-main);background:rgba(122,158,163,.08);padding:2px 8px;border-radius:99px;letter-spacing:.5px;font-weight:600}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:18px;line-height:1.4}
+.section-heading em{font-style:normal;color:var(--c-main)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.95;margin-bottom:14px}
+.body-text strong{font-weight:700}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:48px 0}
+.subhead{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin:28px 0 14px;padding-left:12px;border-left:3px solid var(--c-main)}
+.concept-box{padding:18px 22px;background:rgba(122,158,163,.06);border:1px solid rgba(122,158,163,.22);border-radius:var(--radius);margin:14px 0}
+.concept-label{font-size:.7rem;color:var(--c-main);letter-spacing:1.5px;font-weight:700;margin-bottom:6px}
+.concept-text{font-size:.86rem;color:var(--c-text);line-height:1.8}
+.concept-text strong{color:var(--c-text);font-weight:700}
+.layer-diagram{margin:18px 0;padding:20px 24px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.layer-row{display:grid;grid-template-columns:140px 1fr;gap:18px;padding:14px 0;border-bottom:1px solid var(--c-border);align-items:start}
+.layer-row:last-child{border-bottom:none}
+.layer-name{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-main)}
+.layer-when{font-size:.72rem;color:var(--c-muted);margin-top:3px}
+.layer-desc{font-size:.86rem;color:var(--c-text);line-height:1.75}
+.layer-desc strong{color:var(--c-text);font-weight:700}
+.tool-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}
+.tool-card{padding:18px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.tool-name{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.tool-where{font-size:.78rem;color:var(--c-muted);line-height:1.7;margin-bottom:8px}
+.tool-steps{font-size:.75rem;color:var(--c-main);background:rgba(122,158,163,.08);border:1px solid rgba(122,158,163,.25);padding:8px 10px;border-radius:var(--radius-sm);line-height:1.6}
+.tool-steps code{font-family:'Courier New',monospace;background:#fff;padding:1px 4px;border-radius:3px;font-size:.9em;color:var(--c-text)}
+.full-prompt-wrap{position:relative;margin:16px 0}
+.full-prompt{padding:20px 24px;background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.8rem;border-radius:var(--radius);line-height:1.8;white-space:pre-wrap;overflow-x:auto}
+.full-prompt .lbl{color:#7a9ea3;font-weight:700}
+.full-prompt .var{color:#c9963a}
+.full-prompt .com{color:#8a8a8a;font-style:italic}
+.copy-btn-tl{position:absolute;top:10px;right:10px;padding:5px 12px;background:rgba(122,158,163,.85);color:#fff;border:none;border-radius:var(--radius-sm);font-size:.7rem;font-family:inherit;cursor:pointer;font-weight:500;z-index:2;transition:background .2s}
+.copy-btn-tl:hover{background:rgba(122,158,163,1)}
+.copy-btn-tl.copied{background:var(--c-a3)}
+.debug-grid{display:flex;flex-direction:column;gap:12px;margin:20px 0}
+.debug-row{padding:16px 20px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a1);border-radius:var(--radius)}
+.debug-sym{font-family:'Shippori Mincho',serif;font-size:.92rem;font-weight:700;color:var(--c-text);margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.debug-num{font-size:.68rem;color:var(--c-a1);background:rgba(181,112,58,.1);border:1px solid rgba(181,112,58,.25);padding:2px 8px;border-radius:99px;font-weight:500}
+.debug-cause{font-size:.82rem;color:var(--c-muted);line-height:1.7;margin-bottom:8px}
+.debug-cause strong{color:var(--c-a1);font-weight:700}
+.debug-fix{font-size:.82rem;color:var(--c-text);line-height:1.7;padding:10px 12px;background:var(--c-surface);border-radius:var(--radius-sm);border-left:2px solid var(--c-a3)}
+.debug-fix strong{color:var(--c-a3);font-weight:700}
+.debug-fix code{font-family:'Courier New',monospace;background:#fff;padding:1px 6px;border-radius:3px;font-size:.9em}
+.story-card{padding:18px 22px;background:var(--c-surface);border-radius:var(--radius);margin:14px 0;line-height:1.8}
+.story-label{font-family:'Shippori Mincho',serif;font-size:.72rem;color:var(--c-main);letter-spacing:1.5px;font-weight:700;margin-bottom:8px}
+.story-text{font-size:.88rem;color:var(--c-text)}
+.story-text em{font-style:italic;color:var(--c-muted)}
+.practice-box{margin:24px 0;padding:22px 26px;background:rgba(201,150,58,.05);border:1px solid rgba(201,150,58,.3);border-radius:var(--radius)}
+.practice-label{font-family:'Shippori Mincho',serif;font-size:.72rem;color:var(--c-a2);letter-spacing:2px;font-weight:700;margin-bottom:8px}
+.practice-title{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:12px}
+.practice-task{font-size:.9rem;color:var(--c-text);line-height:1.8;margin-bottom:14px}
+.practice-task strong{color:var(--c-text);font-weight:700}
+.practice-hint{font-size:.82rem;color:var(--c-muted);line-height:1.75;margin-bottom:12px;padding:10px 14px;background:rgba(255,255,255,.5);border-radius:var(--radius-sm)}
+.practice-hint strong{color:var(--c-a2);font-weight:700}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:18px 0}
+.callout.info{background:rgba(122,158,163,.07);border:1px solid rgba(122,158,163,.25)}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2)}
+.callout.warn{background:rgba(181,112,58,.05);border:1px solid rgba(181,112,58,.2)}
+.callout-icon{font-size:1rem;flex-shrink:0;margin-top:2px}
+.callout-body{font-size:.86rem;line-height:1.85;color:var(--c-text)}
+.callout-body strong{font-weight:700}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;gap:14px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1}
+.nav-btn:hover{border-color:var(--c-main)}
+.nav-btn.next{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.toast{position:fixed;bottom:28px;right:28px;background:var(--c-text);color:#fff;padding:10px 18px;border-radius:var(--radius-sm);font-size:.82rem;font-weight:500;transform:translateY(60px);opacity:0;transition:all .35s cubic-bezier(.34,1.56,.64,1);z-index:999}
+.toast.show{transform:none;opacity:1}
+@media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero{padding:48px 32px 36px}.lesson-body{padding:0 32px 56px}.lesson-nav{padding:0 32px 56px}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:36px 20px 28px}.lesson-title{font-size:1.5rem}.lesson-body{padding:0 20px 48px}.lesson-nav{padding:0 20px 48px;flex-direction:column}.nav-btn{flex:none}.tool-grid{grid-template-columns:1fr}.layer-row,.agenda-row{grid-template-columns:1fr;gap:4px}.footer{padding:20px}}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='gen36_auth',H='2eeb336fddc0ac7aa5ce7ff9aa2b3a51db0f7ad83fd07d4e7d877dfc1d2b9089';if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">生成式 AI 工作應用班（36h）</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH 1.3 · Part 1</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero">
+  <a class="back-link" href="../index.html">← 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">Part 1 · AI 基礎與提示詞</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 1.3 · 1 小時（60 分鐘）</span>
+  </div>
+  <h1 class="lesson-title">System Prompt 與<br><em>提示詞除錯</em></h1>
+  <p class="lesson-tagline">前節你學會寫 4 欄公式。但若每次寫信都要重貼一遍 300 字的 prompt，太累。本節教你「把 prompt 嵌進工具裡」變成專屬助手——之後只需丟素材、AI 自動套用你的設定。還會教你當 AI 產出不對勁時，怎麼 5 秒內找出是哪一欄的問題。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果 · OUTCOMES</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>分得清 System Prompt 與 User Prompt，知道哪些內容該放哪一層</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>會在 Claude Projects / ChatGPT GPTs / Gemini Gems 設定 System Prompt</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>遇到爛輸出時，能用 6 種症狀對應找出該補哪一欄</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>掌握「迭代而非重打」的除錯心法，節省 50% 修 prompt 的時間</div>
+  </div>
+  <div class="agenda">
+    <strong>本節 60 分鐘時間規劃</strong>
+    <div class="agenda-row"><div class="agenda-time">0-10 分</div><div class="agenda-topic">兩層 Prompt 的概念：System vs User</div></div>
+    <div class="agenda-row"><div class="agenda-time">10-25 分</div><div class="agenda-topic">三大工具實作：Claude Projects / GPTs / Gems</div></div>
+    <div class="agenda-row"><div class="agenda-time">25-45 分</div><div class="agenda-topic">提示詞除錯 · 6 種症狀對應表 + 除錯 SOP</div></div>
+    <div class="agenda-row"><div class="agenda-time">45-55 分</div><div class="agenda-topic">2 個 Guided Practice</div></div>
+    <div class="agenda-row"><div class="agenda-time">55-60 分</div><div class="agenda-topic">課後行動：建第 1 個專屬助手</div></div>
+  </div>
+</div>
+
+<div class="lesson-body">
+
+  <!-- Section 1 · 兩層概念 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow"><span>SECTION 01 · 兩層 Prompt</span><span class="section-time">10 分鐘</span></div>
+    <h2 class="section-heading">System 是「<em>長期身份</em>」，User 是「<em>當下任務</em>」</h2>
+
+    <p class="body-text">所有 AI 工具底下都有兩層提示詞——一層是「<strong>永久設定</strong>」、一層是「<strong>單次任務</strong>」。理解這個分層，你的 prompt 使用方式會從「每次重複」進化成「一次設定、長期使用」。</p>
+
+    <div class="layer-diagram">
+      <div class="layer-row">
+        <div><div class="layer-name">System Prompt</div><div class="layer-when">永久 · 設定一次</div></div>
+        <div class="layer-desc">告訴 AI <strong>「你是誰、你要怎麼工作」</strong>。寫進去後，這個對話視窗 / 這個 GPT / 這個 Claude Project 裡<strong>每次提問 AI 都會自動套用</strong>。<br><br><strong>適合放：</strong>角色（Role）、語氣、產業背景、固定格式、禁忌事項、知識邊界——這些<strong>不會每次改變</strong>的東西。</div>
+      </div>
+      <div class="layer-row">
+        <div><div class="layer-name">User Prompt</div><div class="layer-when">單次 · 每次都寫</div></div>
+        <div class="layer-desc">告訴 AI <strong>「這次具體要做什麼」</strong>。每次提問都要寫，內容隨任務變化。<br><br><strong>適合放：</strong>任務內容、當次的限制（字數、受眾）、這次輸出想要的格式——這些<strong>每次都會變</strong>的東西。</div>
+      </div>
+    </div>
+
+    <div class="concept-box">
+      <div class="concept-label">類比 · 像員工的「職務說明書」 vs 「每日工作指令」</div>
+      <div class="concept-text">System Prompt 像是員工的「<strong>職務說明書</strong>」——說明他是會計、要遵守會計準則、用台幣、回覆語氣專業但親切。User Prompt 像是主管每天交辦的「<strong>工作指令</strong>」——「處理一下這份報帳」「整理昨天客戶的發票」。因為員工知道自己是會計（System），所以你每次交辦只要說「處理一下這份報帳」（User）即可——不用重講「你是會計、要遵守準則⋯⋯」這些背景。</div>
+    </div>
+
+    <div class="story-card">
+      <div class="story-label">案例 · 行銷 Lily 的一個月變化</div>
+      <div class="story-text">Lily 以前每次要 Claude 改文案都貼 300 字 prompt（「你是資深文案編輯⋯⋯品牌調性⋯⋯目標受眾⋯⋯」）。一天改 5 篇文案、光貼 prompt 就花 15 分鐘。<em>後來她把那 300 字的 Role + Constraints 放進一個 Claude Project「品牌文案助手」，每次只要貼原文 + 一句「請改」即可</em>。一個月下來<strong>省下 7.5 小時</strong>，幾乎等於多出整整一天。</div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon">🎯</div>
+      <div class="callout-body"><strong>怎麼判斷哪些放 System、哪些放 User？</strong>問自己一個問題：<strong>「這個資訊下一次用還會一樣嗎？」</strong>。一樣 → 放 System；每次變 → 放 User。「你是行銷顧問」永遠一樣 → System。「這次幫我改 X 文案」每次變 → User。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 2 · 三大工具實作 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow"><span>SECTION 02 · 三大工具實作</span><span class="section-time">15 分鐘</span></div>
+    <h2 class="section-heading">Claude / ChatGPT / Gemini <em>怎麼設定 System Prompt</em></h2>
+
+    <p class="body-text">三大工具都有 System Prompt 設定入口，名稱不一樣但概念相同。以下是<strong>本節會實際演練</strong>的三個操作。建議你邊讀邊跟著設好自己的第一個。</p>
+
+    <div class="tool-grid">
+      <div class="tool-card">
+        <div class="tool-name">Claude</div>
+        <div class="tool-where">功能名稱：Projects<br>位置：左側選單 → Projects</div>
+        <div class="tool-steps">① 點「+ New project」建專案<br>② 專案名稱如「Email 助理」<br>③ 點「Edit project details」<br>④ 在「Project instructions」欄位貼入 System Prompt<br>⑤ 之後在此 project 內所有對話<br>　 都自動套用</div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-name">ChatGPT</div>
+        <div class="tool-where">功能名稱：GPTs（自訂 GPT）<br>位置：左下角 「Explore GPTs」→「Create」</div>
+        <div class="tool-steps">① 「Create a GPT」<br>② 用對話式設定引導（Configure tab）<br>③ Instructions 欄位貼 System Prompt<br>④ 可加 Knowledge（上傳文件）<br>⑤ 發佈後從 Sidebar 直接進入</div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-name">Gemini</div>
+        <div class="tool-where">功能名稱：Gems<br>位置：左側選單 → Gem manager</div>
+        <div class="tool-steps">① 「New Gem」建 Gem<br>② Name 填 Gem 名稱<br>③ Instructions 欄位貼 System Prompt<br>④ 可選是否加入 file references<br>⑤ 可切換 Gem 當對話時套用</div>
+      </div>
+    </div>
+
+    <h3 class="subhead">完整 System Prompt 範例 · Email 草稿助理</h3>
+
+    <p class="body-text">下面是一份實戰可用的 System Prompt——貼進 Claude Projects 的 Instructions 欄位，就變成你的「專屬 Email 助理」。之後只需告訴它「幫我回這封信」並貼上對方信件，它就會用下面的設定回覆：</p>
+
+    <div class="full-prompt-wrap">
+      <button class="copy-btn-tl" data-target="email-helper">複製完整 System Prompt</button>
+      <div class="full-prompt" id="email-helper"><span class="lbl"># 角色設定</span>
+你是 5 年資歷的行政專員，協助我寫中文商務 email。
+
+<span class="lbl"># 固定原則</span>
+- 語氣：專業、簡潔、有同理心
+- 開頭：直接切入主題，不寫「希望您一切安好」這類套話
+- 結尾：用「謝謝，[我的名字]」
+- 字數：控制在 200 字內（不含問候與署名）
+- 若我的指令模糊，先問清楚再寫，不要自己腦補
+
+<span class="lbl"># 禁用詞清單</span>
+不要使用：首先、其次、綜上所述、敬請查照、不便之處敬請見諒、
+萬分抱歉、煩請撥冗、惠請、敬請、謹此等制式套話
+
+<span class="lbl"># 我的身份</span>
+- 姓名：王小明
+- 職稱：弄一下工作室 業務經理
+- 常往來對象：客戶、供應商、內部同事
+
+<span class="lbl"># 回覆流程</span>
+1. 先讀懂我貼給你的客戶信（或需求描述）
+2. 按上述原則寫回信草稿
+3. 附註「若要調整語氣 / 加減內容，請告訴我」</div>
+    </div>
+
+    <div class="concept-box">
+      <div class="concept-label">使用示範 · 設定好之後怎麼用</div>
+      <div class="concept-text">設定完成後，你的對話變得超簡單：<br><br>
+      <strong>過去（沒 System Prompt）：</strong>每次要貼 300 字 prompt + 100 字客戶信，共 400 字<br>
+      <strong>現在（有 System Prompt）：</strong>只需說「<strong>幫我回這封</strong>」+ 貼 100 字客戶信，共 110 字<br><br>
+      省下的 290 字 × 每天 5 次 = 一天省 1,450 字的打字時間，大約 10 分鐘；一週省下 50 分鐘。</div>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body"><strong>資安邊界：不要把敏感資料放 System Prompt</strong>。客戶名單、未公開財報、員工薪資、帳密——這些都不要寫進 System Prompt，因為這層設定會跟著對話一起送到 AI 平台。免費版更要小心（可能用來訓練模型）。<strong>System Prompt 放「怎麼做事」而非「做事的資料」</strong>。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 3 · 除錯 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow"><span>SECTION 03 · 提示詞除錯</span><span class="section-time">20 分鐘</span></div>
+    <h2 class="section-heading">AI 產出不對勁時，<em>用症狀找原因</em></h2>
+
+    <p class="body-text">即使你寫了完整 4 欄 prompt，AI 有時還是會給你不滿意的東西。這時不是「prompt 沒救」——通常是<strong>某一欄沒寫清楚</strong>。下面 6 種症狀是新手最常遇到，每種都有對應的「怎麼診斷 + 怎麼修」方法。</p>
+
+    <div class="debug-grid">
+
+      <div class="debug-row">
+        <div class="debug-sym"><span class="debug-num">症狀 01</span>產出太「萬用」、像罐頭範本</div>
+        <div class="debug-cause"><strong>症狀：</strong>產出感覺「每個字都對但沒什麼用」——就像範本填字練習，沒有行業特性、沒有決策點、沒有你公司的影子。<br><strong>根因：</strong>缺 <strong>Role</strong>（身份不明）或 <strong>受眾描述</strong>（不知道給誰看）。AI 只能用「最安全」的版本回答。</div>
+        <div class="debug-fix"><strong>修法：</strong>補一句具體 Role：<code>「你是 X 行業 Y 職務的 Z 年資顧問」</code>。再補受眾：<code>「對象是不懂技術的董事長」</code>。兩句下去產出立刻有差。</div>
+      </div>
+
+      <div class="debug-row">
+        <div class="debug-sym"><span class="debug-num">症狀 02</span>產出太長、重點散落</div>
+        <div class="debug-cause"><strong>症狀：</strong>你要 200 字，它給 800 字；你要一句話結論，它給 5 段話。AI 的默認寫法是「全面性」——但你多數時候需要的是「精簡」。<br><strong>根因：</strong>缺 <strong>字數限制</strong> 與 <strong>格式指定</strong>。</div>
+        <div class="debug-fix"><strong>修法：</strong>明確指定：<code>「200 字內 / 用 3 個 bullet point / 結論寫在第一行」</code>。越具體越好。若它還是給你一坨，追問「請再精簡一半」。</div>
+      </div>
+
+      <div class="debug-row">
+        <div class="debug-sym"><span class="debug-num">症狀 03</span>用詞太「AI 味」、套話多</div>
+        <div class="debug-cause"><strong>症狀：</strong>出現「首先」「其次」「綜上所述」「敬請」「不便之處」——同事一看就知道你用 AI 寫的。<br><strong>根因：</strong>缺明確的 <strong>禁用詞清單</strong>。AI 預設用「最禮貌、最學術」的寫法，但那不是職場實用的語氣。</div>
+        <div class="debug-fix"><strong>修法：</strong>限制區加禁用清單：<code>「不要用『首先』『其次』『綜上所述』『敬請』『不便之處』這類套話」</code>。可以建一個你的「個人禁詞清單」貼在 System Prompt。</div>
+      </div>
+
+      <div class="debug-row">
+        <div class="debug-sym"><span class="debug-num">症狀 04</span>方向完全不對 · 跟你想的差十萬八千里</div>
+        <div class="debug-cause"><strong>症狀：</strong>你要的是 A 調性，它給你 B 調性；你要的是工程角度，它寫成行銷角度。<br><strong>根因：</strong>你的描述太抽象，AI 自行腦補。<strong>缺 Few-shot 範例</strong>。</div>
+        <div class="debug-fix"><strong>修法：</strong>給 1-2 個「我要的樣子」範例，比寫 100 字描述還有效。<code>「請參考以下範例的寫法：[範例 1] [範例 2]。現在請用同樣風格處理新的：[新素材]」</code>。AI 會「模仿」範例風格。</div>
+      </div>
+
+      <div class="debug-row">
+        <div class="debug-sym"><span class="debug-num">症狀 05</span>AI 編造資訊 · 幻覺 · 講出不存在的事</div>
+        <div class="debug-cause"><strong>症狀：</strong>AI 回答得很有自信，但資料是假的——講出根本不存在的條款、數字、人名。處理合約、法規、事實性資料時特別危險。<br><strong>根因：</strong>沒設 <strong>知識邊界</strong>。AI 被訓練成「盡量有幫助」，即使不知道也會猜。</div>
+        <div class="debug-fix"><strong>修法：</strong>限制區強制加：<code>「資料不足時直接說『我沒有這個資訊』，不要推測或編造」</code>。處理文件時最好改用 <strong>NotebookLM</strong>（它只會回答你給的資料裡有的內容）。</div>
+      </div>
+
+      <div class="debug-row">
+        <div class="debug-sym"><span class="debug-num">症狀 06</span>第二輪回答跟第一輪矛盾</div>
+        <div class="debug-cause"><strong>症狀：</strong>第一輪說「建議 A」，你追問「為什麼不是 B」，它立刻說「您說的對，B 才對」——然後下次又說 A。AI 為了迎合你不斷變立場。<br><strong>根因：</strong>AI 被訓練成「配合使用者」，缺乏「堅持觀點」的指示。</div>
+        <div class="debug-fix"><strong>修法：</strong>要求它「<strong>扮演批判顧問</strong>」：<code>「請扮演嚴格的顧問，若你認為我的看法錯，請明確反駁；即使我追問，也要堅持你認為對的立場，除非我提出新證據」</code>。</div>
+      </div>
+
+    </div>
+
+    <h3 class="subhead">除錯 SOP · 追問代替重打</h3>
+
+    <div class="concept-box">
+      <div class="concept-label">5 步除錯流程</div>
+      <div class="concept-text">
+      <strong>1.</strong> 看到爛輸出時 <strong>不要重開新對話</strong>——重開會丟掉 AI 已累積的 context<br>
+      <strong>2.</strong> 先問自己「是哪一欄的問題？」（6 症狀對應表）<br>
+      <strong>3.</strong> 在同一對話裡追問「修正指示」：<code>「剛剛那版：① 太長 ② 有套話 ③ 方向偏。請重寫，限制 200 字、去套話、角度改成 X」</code><br>
+      <strong>4.</strong> AI 會帶著前文 context 修改，通常 2-3 輪內可解決<br>
+      <strong>5.</strong> 若是 <strong>System Prompt 問題</strong>（每次都犯同樣毛病），改 System Prompt 而非追問 User——<strong>追問是短期修正，改 System 是長期治本</strong>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body"><strong>什麼時候該重開？</strong>若發現「整個方向都錯了」「Role 本身設錯了」「對象想錯了」——這時 context 已污染，重開比較快。但若只是「某段不對」「語氣稍偏」「字數過長」——永遠追問，不重開。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 4 · Practice -->
+  <section class="lesson-section">
+    <div class="section-eyebrow"><span>SECTION 04 · 課堂動手</span><span class="section-time">10 分鐘</span></div>
+
+    <div class="practice-box">
+      <div class="practice-label">PRACTICE 01 · 建第一個 Claude Project</div>
+      <div class="practice-title">把 CH 1.2 寫的週報 prompt 變成永久助手</div>
+      <div class="practice-task"><strong>題目：</strong>把 CH 1.2 Practice 01 中你寫的「週報 prompt」，<strong>放進 Claude Project 的 Instructions 欄位</strong>，建出「我的週報助手」。之後每週只需貼流水帳就能生成週報。</div>
+      <div class="practice-hint"><strong>提示：</strong>① 打開 claude.ai → 左側 Projects → New project ② 命名「週報助手」③ Edit project details → Instructions 貼入整段 prompt（含 Role + Constraints + Format）④ 儲存後在該 Project 內新開對話，貼你本週流水帳試跑一次</div>
+    </div>
+
+    <div class="practice-box">
+      <div class="practice-label">PRACTICE 02 · 除錯診斷</div>
+      <div class="practice-title">對照 6 症狀，診斷你過去的爛輸出</div>
+      <div class="practice-task"><strong>題目：</strong>打開你最近一次對 AI 結果「不滿意」的對話。對照 6 症狀表，找出<strong>「是哪幾項症狀」</strong>；然後寫一段「修正追問」貼回該對話，看結果是否變好。</div>
+      <div class="practice-hint"><strong>提示：</strong>若最近 AI 對話都還滿意——恭喜，你已經寫 prompt 寫得比 80% 的人好了。可以找一個<strong>故意模糊的 prompt</strong>（「幫我寫一段 AI 的好處」）跑一次，體驗各種症狀一次發作，再用追問修回來。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 5 · 課後行動 -->
+  <section class="lesson-section">
+    <div class="section-eyebrow"><span>SECTION 05 · 課後行動</span><span class="section-time">5 分鐘</span></div>
+    <h2 class="section-heading">建 3 個<em>專屬助手</em></h2>
+
+    <p class="body-text">Part 1 到這裡，你已經累積了 3 個可以永久使用的 prompt（CH 1.2 Practice 01 + 02 + 03 的成果）。本節課後就是把這 3 個 prompt 全部「扎進」對應工具：</p>
+
+    <div class="layer-diagram">
+      <div class="layer-row">
+        <div><div class="layer-name">Action 1</div><div class="layer-when">15 分鐘</div></div>
+        <div class="layer-desc">在 Claude Projects 建 3 個 Project：<strong>Email 助理、週報助理、會議紀錄整理助理</strong>。每個 Project 的 Instructions 貼入對應 prompt。</div>
+      </div>
+      <div class="layer-row">
+        <div><div class="layer-name">Action 2</div><div class="layer-when">下週實測</div></div>
+        <div class="layer-desc">下週遇到對應情境時<strong>實際使用這 3 個 Project</strong>，而非開新對話。紀錄「省下多少時間」。這個紀錄是 PRAC 1 要用到的素材。</div>
+      </div>
+      <div class="layer-row">
+        <div><div class="layer-name">Action 3</div><div class="layer-when">3 天後</div></div>
+        <div class="layer-desc">回顧實測結果，<strong>調整 System Prompt</strong>。若某個 Project 產出總是某個毛病——回去改 Instructions（而非每次追問修）。這叫<strong>「治本」的除錯</strong>。</div>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <div class="callout-icon">📝</div>
+      <div class="callout-body"><strong>下一節預告：</strong>PRAC 1「辦公室提示詞範本卡」——Part 1 的成果整合。會給你 <strong>20 個上班族最常用情境</strong>的完整 prompt 範本（每個都是 4 欄公式寫好），以及「一鍵複製到 Claude Project 的操作流程」。整個 Part 1 學到的東西會變成你隨身 20 張卡片，未來 6 個月反覆用。</div>
+    </div>
+  </section>
+
+</div>
+
+<div class="lesson-nav">
+  <a class="nav-btn" href="CH1-2.html">
+    <div><div class="nav-btn-label">← 上一節</div><div class="nav-btn-title">CH 1.2 · 黃金提示詞公式</div></div>
+  </a>
+  <a class="nav-btn next" href="PRAC1.html">
+    <div><div class="nav-btn-label">下一節 →</div><div class="nav-btn-title">PRAC 1 · 辦公室提示詞範本卡</div></div>
+  </a>
+</div>
+
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">CH 1.3 · 生成式 AI 工作應用班（36h）</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const fill=document.getElementById('prog');
+window.addEventListener('scroll',()=>{const h=document.documentElement;fill.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%'});
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
+document.querySelectorAll('.copy-btn-tl').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const target=document.getElementById(btn.dataset.target);
+    if(!target)return;
+    navigator.clipboard.writeText(target.innerText).then(()=>{
+      const orig=btn.textContent;btn.textContent='✓ 已複製';btn.classList.add('copied');
+      showToast('Prompt 已複製');
+      setTimeout(()=>{btn.textContent=orig;btn.classList.remove('copied')},1800);
+    });
+  });
+});
+</script>
+</body>
+</html>
