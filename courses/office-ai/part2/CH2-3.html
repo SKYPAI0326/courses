@@ -81,6 +81,29 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 .tag-bad{color:#b5703a}
 .tag-good{color:#5a7a5a}
 .error-text{font-size:.83rem;color:var(--c-text);line-height:1.75;font-family:'Courier New',monospace}
+.drill-card{background:var(--c-surface);border:1px solid var(--c-border);border-left:3px solid var(--c-a1);border-radius:var(--radius);margin:32px 0;overflow:hidden}
+.drill-header{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--c-border);background:rgba(181,112,58,.05)}
+.drill-badge{font-size:.68rem;font-weight:700;letter-spacing:1.5px;color:var(--c-a1);background:rgba(181,112,58,.1);border:1px solid rgba(181,112,58,.25);padding:2px 10px;border-radius:99px}
+.drill-section-ref{font-size:.72rem;color:var(--c-muted)}
+.drill-step{padding:18px 20px;border-top:1px dashed var(--c-border)}
+.drill-step:first-of-type{border-top:none}
+.drill-step-label{font-size:.68rem;font-weight:700;letter-spacing:1px;color:var(--c-a1);margin-bottom:8px}
+.drill-q{font-size:.88rem;color:var(--c-text);line-height:1.75}
+.drill-scene{font-size:.85rem;color:var(--c-text);line-height:1.8;margin-bottom:12px}
+.drill-prompt-wrap{margin:12px 0 8px}
+.drill-prompt-version{font-size:.68rem;color:var(--c-muted);margin-bottom:5px;font-weight:500}
+.drill-prompt-box{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:12px 14px;font-family:'Courier New',monospace;font-size:.82rem;color:var(--c-text);line-height:1.7;white-space:pre-wrap}
+.drill-action-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.drill-hint{font-size:.78rem;color:var(--c-muted);margin-top:10px;line-height:1.6}
+.btn-drill-copy{font-size:.78rem;color:var(--c-a2);background:rgba(107,127,163,.08);border:1px solid rgba(107,127,163,.25);padding:5px 14px;border-radius:var(--radius-sm);cursor:pointer;font-family:inherit}
+.btn-drill-copy:hover{background:rgba(107,127,163,.18)}
+.btn-drill-gemini{font-size:.78rem;color:var(--c-a1);background:rgba(181,112,58,.08);border:1px solid rgba(181,112,58,.25);padding:5px 14px;border-radius:var(--radius-sm);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+.btn-drill-gemini:hover{background:rgba(181,112,58,.18)}
+.drill-reveal-btn{font-size:.82rem;font-weight:500;color:var(--c-a2);background:none;border:1px solid rgba(107,127,163,.3);padding:7px 16px;border-radius:var(--radius-sm);cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit}
+.drill-reveal-btn:hover{background:rgba(107,127,163,.08)}
+.drill-reveal-content{display:none;margin-top:14px;padding:14px 16px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius-sm);font-size:.85rem;color:var(--c-text);line-height:1.85}
+.drill-reveal-content.open{display:block}
+.drill-reveal-content strong{font-weight:700;color:var(--c-a1)}
 @media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero{padding:56px 32px 40px}.lesson-body{padding:0 32px 80px}.lesson-nav{padding:0 32px 80px}}
 @media(max-width:768px){.topbar{padding:0 16px;gap:8px;.lesson-tagline{max-width:100%}}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:40px 20px 40px}.lesson-title{font-size:1.6rem}.lesson-body{padding:0 20px 60px}.lesson-nav{padding:0 20px 60px;flex-direction:column}.footer{padding:20px}.concept-grid{grid-template-columns:1fr}.step-item{flex-direction:column;gap:12px}.step-num{width:auto}}
 /* 側邊章節導航 */
@@ -163,6 +186,48 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
           <div class="concept-desc">頁數、時間、工具，決定深度</div>
         </div>
       </div>
+
+      <div class="drill-card">
+        <div class="drill-header">
+          <span class="drill-badge">DRILL · 隨堂演練</span>
+          <span class="drill-section-ref">對應 Section 01</span>
+        </div>
+        <div class="drill-step">
+          <div class="drill-step-label">STEP 1 · 想一想</div>
+          <div class="drill-q">同樣主題「本月業績回顧」，只改「對象」一個變數，AI 給出的大綱方向會差到像兩份簡報。親自跑一次最有感。</div>
+        </div>
+        <div class="drill-step">
+          <div class="drill-step-label">STEP 2 · 試試看</div>
+          <div class="drill-scene">兩版分別送進 Gemini，比較第 1 頁與最後 1 頁的重點擺法差多少。</div>
+
+          <div class="drill-prompt-wrap">
+            <div class="drill-prompt-version">版本 A（對象：直屬主管）</div>
+            <div class="drill-prompt-box" id="d1a-text">請幫我生成一份 8 頁的簡報大綱，主題是「本月業績回顧」，對象是直屬主管，重點放在數據與問題對策，每頁列出：標題 + 一句重點 + 建議放的內容類型（數據/圖表/文字）。</div>
+            <div class="drill-action-row">
+              <button class="btn-drill-copy" onclick="drillCopy(document.getElementById('d1a-text').textContent, this)">複製 A</button>
+              <a class="btn-drill-gemini" href="https://gemini.google.com/app" target="_blank" rel="noopener">開啟 Gemini ↗</a>
+            </div>
+          </div>
+
+          <div class="drill-prompt-wrap">
+            <div class="drill-prompt-version">版本 B（對象：全體同仁）</div>
+            <div class="drill-prompt-box" id="d1b-text">請幫我生成一份 8 頁的簡報大綱，主題是「本月業績回顧」，對象是全體同仁（含非業務部門），重點放在「部門共同努力的成果」與「大家怎麼一起繼續推進」，每頁列出：標題 + 一句重點 + 建議放的內容類型（數據/圖表/文字）。</div>
+            <div class="drill-action-row">
+              <button class="btn-drill-copy" onclick="drillCopy(document.getElementById('d1b-text').textContent, this)">複製 B</button>
+            </div>
+            <div class="drill-hint">提示：同樣 8 頁，對象改了，第 1 頁主旨、最後 1 頁結尾會大不相同。</div>
+          </div>
+        </div>
+        <div class="drill-step">
+          <div class="drill-step-label">STEP 3 · 對照一下</div>
+          <button class="drill-reveal-btn" onclick="drillReveal('d1-reveal', this)">▸ 查看解析</button>
+          <div class="drill-reveal-content" id="d1-reveal">
+            <strong>A 版（給主管）：</strong>第 1 頁通常是「本月關鍵數字」開門見山；中段會放「差異分析 + 根因」；末頁是「下月對策與需要的資源」。主管要的是決策素材。<br><br>
+            <strong>B 版（給全員）：</strong>第 1 頁改成「本月我們一起完成的事」；中段放「跨部門故事／被看見的努力」；末頁是「下個月每個人可以怎麼幫忙」。全員要的是歸屬感與具體行動。<br><br>
+            <strong>關鍵學習：</strong>「對象」不是佔位符——它決定了第 1 頁要放什麼、最後 1 頁要收在哪。跑一次 AI 看它怎麼自動換頻道，自己以後就懂怎麼一句話切換對象。
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="lesson-section">
@@ -198,6 +263,48 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
           <div class="step-content">
             <div class="step-title">匯入 Google 簡報</div>
             <div class="step-desc">把大綱貼到 Google 簡報的備忘稿，逐頁填入內容。建議先只放標題和一句重點，確認整體邏輯後再展開。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="drill-card">
+        <div class="drill-header">
+          <span class="drill-badge">DRILL · 隨堂演練</span>
+          <span class="drill-section-ref">對應 Section 02（Step 3 修正大綱）</span>
+        </div>
+        <div class="drill-step">
+          <div class="drill-step-label">STEP 1 · 想一想</div>
+          <div class="drill-q">AI 第一版大綱幾乎不會百分百對，因為它不知道你的「背景資訊」。關鍵在於怎麼把「背景差異」用一句話補給 AI 重做。</div>
+        </div>
+        <div class="drill-step">
+          <div class="drill-step-label">STEP 2 · 試試看</div>
+          <div class="drill-scene">接續上一張卡的 A 版「本月業績回顧給主管」。假設 AI 第一版很中規中矩，把「業績下滑」平均分散在各頁講。現在你要導正方向。</div>
+
+          <div class="drill-prompt-wrap">
+            <div class="drill-prompt-version">版本 A（模糊修正）</div>
+            <div class="drill-prompt-box" id="d2a-text">第三頁不太對，再修一下</div>
+            <div class="drill-action-row">
+              <button class="btn-drill-copy" onclick="drillCopy(document.getElementById('d2a-text').textContent, this)">複製 A</button>
+              <a class="btn-drill-gemini" href="https://gemini.google.com/app" target="_blank" rel="noopener">開啟 Gemini ↗</a>
+            </div>
+          </div>
+
+          <div class="drill-prompt-wrap">
+            <div class="drill-prompt-version">版本 B（補背景 + 指方向）</div>
+            <div class="drill-prompt-box" id="d2b-text">補充背景：本月業績下滑 18% 的主因是 Q3 大客戶 A 公司因組織調整暫停訂單一個月，預計下個月回補。請依此調整大綱：第 3 頁改成「業績主要缺口來源分析（含 A 公司特殊原因）」；第 5 頁新增「下月 A 公司訂單回補的可預期影響」；其他頁維持不動。最後重新輸出完整 8 頁大綱。</div>
+            <div class="drill-action-row">
+              <button class="btn-drill-copy" onclick="drillCopy(document.getElementById('d2b-text').textContent, this)">複製 B</button>
+            </div>
+            <div class="drill-hint">提示：在同一個 Gemini 對話視窗內接續送出，才能帶上前面的大綱上下文。</div>
+          </div>
+        </div>
+        <div class="drill-step">
+          <div class="drill-step-label">STEP 3 · 對照一下</div>
+          <button class="drill-reveal-btn" onclick="drillReveal('d2-reveal', this)">▸ 查看解析</button>
+          <div class="drill-reveal-content" id="d2-reveal">
+            <strong>A 版的問題：</strong>AI 不知道「不對」是邏輯不對、資料不對、還是順序不對，只好亂改一通，常常越改越糟。<br><br>
+            <strong>B 版三個關鍵：</strong>（1）補給 AI 它原本不知道的<strong>背景</strong>（A 公司原因）；（2）指定<strong>哪幾頁要動、怎麼動</strong>；（3）要求<strong>輸出完整版</strong>（而非只輸出修改頁，避免順序混亂）。<br><br>
+            <strong>修改大綱口訣：</strong>缺什麼背景 → 補；要改哪些頁 → 指名；結尾加一句「請輸出完整版本」。少一項都可能讓第二版比第一版更糟。
           </div>
         </div>
       </div>
@@ -294,6 +401,8 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
     function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2200)}
     function copyEx(id,btn){var el=document.getElementById(id);var text=el.childNodes[0].textContent;navigator.clipboard.writeText(text.trim()).then(function(){showToast('已複製')})}
     function copyOutput(id){var el=document.getElementById(id);navigator.clipboard.writeText(el.textContent.trim()).then(function(){showToast('已複製')})}
+    function drillCopy(text,btn){navigator.clipboard.writeText(text).then(function(){var orig=btn.textContent;btn.textContent='已複製';setTimeout(function(){btn.textContent=orig},1500)})}
+    function drillReveal(id,btn){var el=document.getElementById(id);var open=el.classList.toggle('open');btn.innerHTML=open?'▾ 收起解析':'▸ 查看解析'}
   </script>
 </body>
 </html>
