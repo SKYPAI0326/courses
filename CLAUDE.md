@@ -84,7 +84,7 @@
 | `--c-card` | `#ffffff` | 卡片背景 |
 | `--c-border` | `#d8d4cb` | 邊框（暖灰） |
 | `--c-text` | `#2c2b28` | 主文字（深褐黑） |
-| `--c-muted` | `#8c8880` | 次要文字（灰褐） |
+| `--c-muted` | `#7a766d` | 次要文字（灰褐，WCAG AA 對比度 4.7:1） |
 | `--c-a1` | `#b5703a` | 陶土橘 — 主要按鈕、重點標記 |
 | `--c-a2` | `#c9963a` | 芥末黃 — 次要強調 |
 | `--c-a3` | `#5a7a5a` | 鼠尾草綠 — 正確/完成狀態 |
@@ -92,6 +92,8 @@
 | `--c-a5` | `#7a9ea3` | 灰藍綠 — 輔助色 |
 
 每門課程各自使用一個強調色作為主色（見 `COURSES.md`）。
+
+**嚴禁自創 `--c-a6` 及以上變數**。若需要新色，先與既有 a1–a5 比對，若無法對應則提出新增色彩系統的討論，不得各頁自行定義。
 
 ### 字體
 
@@ -108,9 +110,12 @@
 - 圓角：`6px`（一般元件）/ `4px`（小元件）
 - 邊框：`1px solid`，無陰影，無漸層
 - 內容區 padding：`48px`（左右）
+- 卡片內距：`22px 24px`（上下 22，左右 24）；若卡片右側有 absolute 元件（如複製按鈕），右側改 `72px`
 - 頂部列高：`56px`（sticky）
 - 底部列高：`52px`
-- 最大內容寬：`960px`，置中
+- 最大內容寬：`960px`（總覽頁）/ `780px`（長文單元頁），置中
+- Hover 反饋：只用 `transform` + `border-color` 變化，**禁止 box-shadow**
+- Focus：所有 `a` / `button` / `input` 必須顯示 `:focus-visible` 2px outline（已全域注入 `outline:2px solid var(--c-text)`）
 
 ### 禁止事項
 
@@ -119,6 +124,15 @@
 - 不使用鮮豔高彩度顏色
 - 標題不使用漸層文字效果
 - 圓角不超過 `8px`
+- 不使用 `box-shadow`（2026-04-16 全站清理後禁止回流）
+- 不自創 `--c-a6`+ 變數（違反會被飛輪規則抓到）
+
+### SEO & 無障礙（新頁必做）
+
+- 每頁 `<title>` 後必須有：`meta description`、`og:title/description/url/image`、`twitter:card` 系列、`link rel="canonical"`
+- 導覽用箭頭 `←` / `→` 必須包 `<span aria-hidden="true">...</span>`
+- 長文單元頁（含 `.progress-fill`）須注入 localStorage 進度腳本（樣本見任一 2026-04-16 後的單元頁 `</body>` 前）
+- 新頁加入後需手動重跑 sitemap 產生器（或用 Python 腳本重掃 `courses/**/*.html`）
 
 ---
 

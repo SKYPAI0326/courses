@@ -4,9 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Module 7：GA4 資料模型與自訂事件｜數位行銷實務 SEO × GA4</title>
+<meta name="description" content="把 GA4 的資料結構徹底搞懂：使用者、工作階段、事件、參數、轉換。然後動手建自訂事件，並用 DebugView 即時驗證事件正確送達。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="Module 7：GA4 資料模型與自訂事件｜數位行銷實務 SEO × GA4">
+<meta property="og:description" content="把 GA4 的資料結構徹底搞懂：使用者、工作階段、事件、參數、轉換。然後動手建自訂事件，並用 DebugView 即時驗證事件正確送達。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/ntub-seo-ga4/module7.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Module 7：GA4 資料模型與自訂事件｜數位行銷實務 SEO × GA4">
+<meta name="twitter:description" content="把 GA4 的資料結構徹底搞懂：使用者、工作階段、事件、參數、轉換。然後動手建自訂事件，並用 DebugView 即時驗證事件正確送達。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/ntub-seo-ga4/module7.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a6:#c9963a;--radius:6px;--content-w:780px}
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#7a766d;--c-a2:#c9963a;--radius:6px;--content-w:780px}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
@@ -15,34 +27,34 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 .topbar-divider{width:1px;height:18px;background:var(--c-border)}
 .topbar-sub{font-size:.8rem;color:var(--c-muted)}
 .spacer{flex:1}
-.topbar-tag{font-size:.75rem;color:var(--c-a6);border:1px solid rgba(201,150,58,.3);background:rgba(201,150,58,.08);padding:3px 12px;border-radius:99px;font-weight:500}
+.topbar-tag{font-size:.75rem;color:var(--c-a2);border:1px solid rgba(201,150,58,.3);background:rgba(201,150,58,.08);padding:3px 12px;border-radius:99px;font-weight:500}
 .progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49}
-.progress-fill{height:100%;background:var(--c-a6);width:0%;transition:width .1s}
+.progress-fill{height:100%;background:var(--c-a2);width:0%;transition:width .1s}
 .page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
 .back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
-.back-link:hover{color:var(--c-a6)}
-.hero-eyebrow{font-size:.7rem;color:var(--c-a6);letter-spacing:2px;font-weight:500;margin-bottom:12px}
+.back-link:hover{color:var(--c-a2)}
+.hero-eyebrow{font-size:.7rem;color:var(--c-a2);letter-spacing:2px;font-weight:500;margin-bottom:12px}
 .page-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:12px}
 .page-subtitle{font-size:.95rem;color:var(--c-muted);line-height:1.85;max-width:560px}
 .context-box{max-width:var(--content-w);margin:0 auto;padding:0 48px 32px}
-.context-inner{background:rgba(201,150,58,.06);border:1px solid rgba(201,150,58,.2);border-left:3px solid var(--c-a6);border-radius:var(--radius);padding:20px 24px}
-.context-label{font-size:.68rem;color:var(--c-a6);letter-spacing:1.5px;font-weight:500;margin-bottom:8px}
+.context-inner{background:rgba(201,150,58,.06);border:1px solid rgba(201,150,58,.2);border-left:3px solid var(--c-a2);border-radius:var(--radius);padding:20px 24px}
+.context-label{font-size:.68rem;color:var(--c-a2);letter-spacing:1.5px;font-weight:500;margin-bottom:8px}
 .context-text{font-size:.88rem;color:var(--c-text);line-height:1.8}
 .steps-wrap{max-width:var(--content-w);margin:0 auto;padding:8px 48px 48px}
 .section-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:24px}
 .step-block{display:flex;gap:24px;margin-bottom:44px;position:relative}
 .step-block:not(:last-child)::after{content:'';position:absolute;left:19px;top:48px;width:2px;height:calc(100% - 16px);background:var(--c-border)}
-.step-circle{width:40px;height:40px;border-radius:50%;background:rgba(201,150,58,.1);border:2px solid var(--c-a6);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-weight:700;font-size:.95rem;color:var(--c-a6);flex-shrink:0}
+.step-circle{width:40px;height:40px;border-radius:50%;background:rgba(201,150,58,.1);border:2px solid var(--c-a2);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-weight:700;font-size:.95rem;color:var(--c-a2);flex-shrink:0}
 .step-content{flex:1;padding-top:6px}
 .step-heading{font-family:'Shippori Mincho',serif;font-size:1.15rem;font-weight:700;color:var(--c-text);margin-bottom:10px}
 .step-body{font-size:.9rem;color:var(--c-text);line-height:1.9;margin-bottom:12px}
 .step-tip{font-size:.82rem;color:var(--c-muted);background:var(--c-surface);border-left:3px solid var(--c-border);padding:10px 14px;border-radius:0 var(--radius) var(--radius) 0;line-height:1.7}
-.step-tip strong{color:var(--c-a6);font-weight:500}
+.step-tip strong{color:var(--c-a2);font-weight:500}
 .inline-code{font-family:'Courier New',monospace;font-size:.85em;background:rgba(201,150,58,.1);padding:1px 6px;border-radius:3px}
 .code-block{font-family:'Courier New',monospace;font-size:.82rem;background:#2c2b28;color:#edeae3;padding:16px 20px;border-radius:var(--radius);margin:12px 0;line-height:1.7;overflow-x:auto;white-space:pre-wrap}
 .zone-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0}
 .zone{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:14px 16px}
-.zone-t{font-size:.82rem;font-weight:700;color:var(--c-a6);margin-bottom:4px}
+.zone-t{font-size:.82rem;font-weight:700;color:var(--c-a2);margin-bottom:4px}
 .zone-d{font-size:.78rem;color:var(--c-muted);line-height:1.7}
 .verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:24px 28px;margin:40px 0}
 .verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px}
@@ -54,12 +66,12 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 .ts-a{font-size:.85rem;color:var(--c-muted);line-height:1.75}
 .flow-mini{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:20px 0;padding:20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
 .flow-node-mini{font-size:.82rem;padding:8px 14px;border:1px solid var(--c-border);border-radius:var(--radius);color:var(--c-muted);background:var(--c-bg)}
-.flow-node-mini.active{border-color:var(--c-a6);color:var(--c-a6);background:rgba(201,150,58,.08);font-weight:500}
+.flow-node-mini.active{border-color:var(--c-a2);color:var(--c-a2);background:rgba(201,150,58,.08);font-weight:500}
 .flow-arr{color:var(--c-muted);font-size:.82rem}
 .nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
-.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a6);text-decoration:none;padding:10px 20px;border:1px solid rgba(201,150,58,.3);border-radius:var(--radius);transition:background .2s}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a2);text-decoration:none;padding:10px 20px;border:1px solid rgba(201,150,58,.3);border-radius:var(--radius);transition:background .2s}
 .nav-btn:hover{background:rgba(201,150,58,.07)}
-.nav-btn.primary{background:var(--c-a6);color:#fff;border-color:var(--c-a6)}
+.nav-btn.primary{background:var(--c-a2);color:#fff;border-color:var(--c-a2)}
 .nav-btn.primary:hover{background:#a37b2f}
 .footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
 .footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
@@ -69,18 +81,18 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 .hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px}
 .hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500}
 .hero-divider-v{width:1px;height:14px;background:var(--c-border)}
-.hero-num{font-size:.72rem;color:var(--c-a6);letter-spacing:1px;font-weight:500}
+.hero-num{font-size:.72rem;color:var(--c-a2);letter-spacing:1px;font-weight:500}
 .lesson-title{font-family:'Shippori Mincho',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px}
 .lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:600px;margin-bottom:36px}
-.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a6);border-radius:var(--radius)}
-.outcomes-label{font-size:.7rem;color:var(--c-a6);letter-spacing:1.5px;font-weight:500;margin-bottom:4px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a2);border-radius:var(--radius)}
+.outcomes-label{font-size:.7rem;color:var(--c-a2);letter-spacing:1.5px;font-weight:500;margin-bottom:4px}
 .outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text)}
-.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a6);margin-top:8px;flex-shrink:0}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a2);margin-top:8px;flex-shrink:0}
 .lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px}
 .lesson-section{margin-bottom:64px}
 .section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px}
 .section-heading{font-family:'Shippori Mincho',serif;font-size:1.5rem;font-weight:700;color:var(--c-text);margin-bottom:18px;line-height:1.4}
-.section-heading em{font-style:normal;color:var(--c-a6)}
+.section-heading em{font-style:normal;color:var(--c-a2)}
 .body-text{font-size:.92rem;color:var(--c-text);line-height:1.95;margin-bottom:16px}
 .callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:20px 0}
 .callout.info{background:rgba(201,150,58,.07);border:1px solid rgba(201,150,58,.25)}
@@ -88,13 +100,16 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 .callout-icon{font-size:1rem;flex-shrink:0;margin-top:2px}
 .callout-body{font-size:.87rem;line-height:1.8;color:var(--c-text)}
 .concept-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:24px 0}
-.concept-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:22px 20px;text-decoration:none;color:inherit;display:block;transition:box-shadow .2s,border-color .2s}
-.concept-card:hover{box-shadow:0 4px 16px rgba(201,150,58,.18);border-color:rgba(201,150,58,.5)}
-.concept-num{font-family:'Shippori Mincho',serif;font-size:1.5rem;font-weight:700;color:var(--c-a6);margin-bottom:8px;line-height:1}
+.concept-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:22px 20px;text-decoration:none;color:inherit;display:block;transition:border-color .2s}
+.concept-card:hover{border-color:rgba(201,150,58,.5)}
+.concept-num{font-family:'Shippori Mincho',serif;font-size:1.5rem;font-weight:700;color:var(--c-a2);margin-bottom:8px;line-height:1}
 .concept-title{font-size:.88rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
 .concept-desc{font-size:.78rem;color:var(--c-muted);line-height:1.7}
 @media(max-width:1024px){.concept-grid{grid-template-columns:1fr}.zone-grid{grid-template-columns:1fr}}
 @media(max-width:600px){.topbar,.page-hero,.context-box,.steps-wrap,.nav-footer,.footer,.lesson-hero,.lesson-body{padding-left:24px;padding-right:24px}.nav-footer{flex-direction:column}.nav-btn{width:100%;justify-content:center}}
+
+/* a11y: focus-visible ring */
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
 </style>
 </head>
 <body>
@@ -132,7 +147,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 <div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
 
 <div class="lesson-hero">
-  <a href="index.html" class="back-link">← 返回課程總覽</a>
+  <a href="index.html" class="back-link"><span aria-hidden="true">←</span> 返回課程總覽</a>
   <div class="hero-meta">
     <span class="hero-part">第 7 週 · 3 小時</span>
     <div class="hero-divider-v"></div>
@@ -200,8 +215,8 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 </div>
 
 <div class="nav-footer">
-  <a href="module6.html" class="nav-btn">← Module 6 總覽</a>
-  <a href="m7-1-data-model.html" class="nav-btn primary">開始 7-1 GA4 資料模型 →</a>
+  <a href="module6.html" class="nav-btn"><span aria-hidden="true">←</span> Module 6 總覽</a>
+  <a href="m7-1-data-model.html" class="nav-btn primary">開始 7-1 GA4 資料模型 <span aria-hidden="true">→</span></a>
 </div>
 
 <footer class="footer">
@@ -213,6 +228,20 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 <script>
 const fill=document.getElementById('prog');
 window.addEventListener('scroll',()=>{const h=document.documentElement;fill.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100+'%'});
+</script>
+
+<script>
+// 閱讀進度持久化（localStorage）— 2026-04-16 UI refresh
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
 </script>
 </body>
 </html>

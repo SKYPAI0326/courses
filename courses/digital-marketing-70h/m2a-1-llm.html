@@ -4,9 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>2A-1 LLM 原理｜Module 2 生成式 AI｜數位行銷人才培訓</title>
+<meta name="description" content="AI 為什麼能寫文章、回答問題、生成圖片？又為什麼會一本正經地說出根本不存在的事？理解語言模型的運作機制，你才能知道什麼時候可以信任它的輸出，什麼時候必須驗證。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="2A-1 LLM 原理｜Module 2 生成式 AI｜數位行銷人才培訓">
+<meta property="og:description" content="AI 為什麼能寫文章、回答問題、生成圖片？又為什麼會一本正經地說出根本不存在的事？理解語言模型的運作機制，你才能知道什麼時候可以信任它的輸出，什麼時候必須驗證。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/digital-marketing-70h/m2a-1-llm.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="2A-1 LLM 原理｜Module 2 生成式 AI｜數位行銷人才培訓">
+<meta name="twitter:description" content="AI 為什麼能寫文章、回答問題、生成圖片？又為什麼會一本正經地說出根本不存在的事？理解語言模型的運作機制，你才能知道什麼時候可以信任它的輸出，什麼時候必須驗證。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/digital-marketing-70h/m2a-1-llm.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a2:#c9963a;--radius:6px;--content-w:780px}
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#7a766d;--c-a2:#c9963a;--radius:6px;--content-w:780px}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
@@ -77,6 +89,9 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 .footer-note{font-size:.75rem;color:var(--c-muted)}
 @media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero,.lesson-body,.nav-footer{padding-left:32px;padding-right:32px}.concept-row{grid-template-columns:1fr}}
 @media(max-width:600px){.topbar{padding:0 16px}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:40px 20px 32px}.lesson-title{font-size:1.6rem}.lesson-body{padding:0 20px 64px}.nav-footer{flex-direction:column;padding:0 20px 48px}.nav-btn{width:100%;justify-content:center}}
+
+/* a11y: focus-visible ring */
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
 </style>
 </head>
 <body>
@@ -114,7 +129,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 <div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
 
 <div class="lesson-hero">
-  <a href="module2.html" class="back-link">← 返回 Module 2</a>
+  <a href="module2.html" class="back-link"><span aria-hidden="true">←</span> 返回 Module 2</a>
   <div class="hero-meta">
     <span class="hero-part">M2A · AI 基礎素養</span>
     <div class="hero-divider-v"></div>
@@ -251,8 +266,8 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 </div>
 
 <div class="nav-footer">
-  <a href="module2.html" class="nav-btn">← Module 2 總覽</a>
-  <a href="m2a-2-tools.html" class="nav-btn primary">下一單元：AI 工具生態全景 →</a>
+  <a href="module2.html" class="nav-btn"><span aria-hidden="true">←</span> Module 2 總覽</a>
+  <a href="m2a-2-tools.html" class="nav-btn primary">下一單元：AI 工具生態全景 <span aria-hidden="true">→</span></a>
 </div>
 
 <footer class="footer">
@@ -263,6 +278,20 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 <script>
 const fill=document.getElementById('prog');
 window.addEventListener('scroll',()=>{const h=document.documentElement;fill.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100+'%'});
+</script>
+
+<script>
+// 閱讀進度持久化（localStorage）— 2026-04-16 UI refresh
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
 </script>
 </body>
 </html>

@@ -4,9 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PRAC6-2 最小文件問答器｜生成式AI職訓實務應用班</title>
+<meta name="description" content="把一份文件切成段落、手動模擬向量搜尋、組出 RAG Prompt，讓模型只從你給的文件回答問題。理解 RAG 流程的最快方法是親手走一遍。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="PRAC6-2 最小文件問答器｜生成式AI職訓實務應用班">
+<meta property="og:description" content="把一份文件切成段落、手動模擬向量搜尋、組出 RAG Prompt，讓模型只從你給的文件回答問題。理解 RAG 流程的最快方法是親手走一遍。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/gen-ai-140h/part6/PRAC6-2.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="PRAC6-2 最小文件問答器｜生成式AI職訓實務應用班">
+<meta name="twitter:description" content="把一份文件切成段落、手動模擬向量搜尋、組出 RAG Prompt，讓模型只從你給的文件回答問題。理解 RAG 流程的最快方法是親手走一遍。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/gen-ai-140h/part6/PRAC6-2.html">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#8c8880;--c-a1:#6b7fa3;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-accent:#c9963a;--radius:6px;--content-w:780px}
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#7a766d;--c-a1:#6b7fa3;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-accent:#c9963a;--radius:6px;--content-w:780px}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
 .topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
 .logo{font-family:'Noto Serif TC',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
@@ -79,6 +91,9 @@ textarea{resize:vertical;line-height:1.7}
 .reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1)}.reveal.in{opacity:1;transform:translateY(0)}
 @media(max-width:1024px){.topbar{padding:0 32px}.step-hero{padding:40px 32px 32px}.step-body{padding:0 32px 32px}.step-nav{padding:0 32px 48px}}
 @media(max-width:768px){.topbar{padding:0 16px}.topbar-sub,.topbar-divider{display:none}.prac-hero{padding:40px 20px 36px}.prac-title{font-size:1.55rem}.prac-body{padding:0 20px 48px}.tool-body{padding:20px}.challenge-wrap{padding:0 20px 60px}.lesson-nav{padding:0 20px 60px;flex-direction:column}.nav-btn{flex:none}.footer{padding:20px}}
+
+/* a11y: focus-visible ring */
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
 </style>
 </head>
 <body>
@@ -114,7 +129,7 @@ textarea{resize:vertical;line-height:1.7}
 </header>
 
 <div class="prac-hero">
-  <a class="back-link" href="../index.html">← 返回課程總覽</a>
+  <a class="back-link" href="../index.html"><span aria-hidden="true">←</span> 返回課程總覽</a>
   <div class="hero-meta">
     <span class="hero-part">PART 6 · AI 應用開發進階</span>
     <div class="hero-divider-v"></div>
