@@ -133,6 +133,20 @@
 - 導覽用箭頭 `←` / `→` 必須包 `<span aria-hidden="true">...</span>`
 - 長文單元頁（含 `.progress-fill`）須注入 localStorage 進度腳本（樣本見任一 2026-04-16 後的單元頁 `</body>` 前）
 - 新頁加入後需手動重跑 sitemap 產生器（或用 Python 腳本重掃 `courses/**/*.html`）
+- 每頁 `<body>` 起始第一個元素（或 gate 之後）必須是 `<a href="#main" class="skip-link">跳至主要內容</a>`，主要內容區塊用 `<main id="main">` 包起來
+- 搜尋索引：新頁加入後需手動重跑 `docs/build-search-index.py`（產生 `search-index.json`）
+
+### 單元頁範本（新增單元頁必用）
+
+新建任何 `CH*-*.html` / `PRAC*-*.html` / `m*-*-*.html` 單元頁：
+
+1. **先複製** `_規範/lesson-template.html` 為新檔（不要從零寫）
+2. **逐一取代** `{{SECTION_NO}}` / `{{ACCENT_VAR}}` / `{{ACCENT_HEX}}` 等所有佔位符
+3. **保留**：skip-link、`<main id="main">`、focus-visible 規則、progress-fill、localStorage 進度腳本
+4. **禁止**：回流自創 `--c-a6+` 變數、box-shadow、漸層、刪除 `aria-hidden` 的箭頭 span
+5. **完成後** 重跑 sitemap + search-index 產生器
+
+⚠️ 既有單元頁已於 2026-04-16 批次對齊基準標準（SEO meta、focus-visible、localStorage 進度、aria-hidden 箭頭）。新增頁缺任一項視為 regression。
 
 ---
 
