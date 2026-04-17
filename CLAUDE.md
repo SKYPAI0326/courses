@@ -2,6 +2,36 @@
 
 ---
 
+## ⚡ 頁面合規檢查（所有 HTML 檢查/修正先讀這裡）
+
+任何 HTML 頁面的**結構、SEO、設計系統、禁用組件**檢查 **一律跑 lint**，不靠自己 grep：
+
+```bash
+python3 docs/lint-page.py <file.html>     # 單頁
+python3 docs/lint-page.py courses/<slug>/ # 整課
+python3 docs/lint-page.py --all           # 全站
+python3 docs/lint-page.py --changed       # 只查 git staged 檔
+```
+
+- **Exit 0** = 無 BLOCKER，可放行
+- **Exit 1** = 有 BLOCKER，看輸出修正
+- `--no-warn` 只看 BLOCKER + ERROR
+- `--summary` 只看統計
+
+**`docs/lint-page.py` 是所有 HTML 規則的唯一真相源**。要改規則去改那個腳本，不要在本檔或 skill 文件追加散文規則。
+
+### 頁面修正完、commit 前
+
+- `python3 docs/build-search-index.py`（重建搜尋索引）
+- `python3 docs/build-sitemap.py`（重建 sitemap）
+- `git commit`（pre-commit hook 自動再跑一次 lint，BLOCKER 會擋下）
+
+### 新課上線
+
+見 `_規範/課程製作團隊系統手冊.md` v2.0，或直接跑 `/course-register <slug>`。
+
+---
+
 ## 課程建立觸發流程
 
 看到「課程、講義、工作坊、教材、Module、章節、步驟頁」等關鍵詞，**主動詢問後執行**，不等 `/build-course-page`。
