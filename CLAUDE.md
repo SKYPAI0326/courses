@@ -20,22 +20,7 @@
 
 ## 飛輪規則
 
-每當 Claude 犯錯（格式不對、命名跑掉、連結失效、邏輯錯誤），立刻將該錯誤轉為一條具體規則加入此文件的對應區塊。CLAUDE.md 會因此持續進化，同樣的錯誤不再發生第二次。
-
-### 複製按鈕定位規則
-
-- **絕對定位的複製按鈕必須同步設定父容器 padding-right**：若 `.step-example-copy`（或同類 copy button）使用 `position:absolute;top:Xpx;right:Ypx`，其父容器必須加 `padding-right:72px`，否則文字會被按鈕覆蓋
-- 格式：`padding:14px 72px 14px 16px`（四值寫法，保留左側 16px 不變）
-- 建立新頁面時，有 absolute copy button 的地方一律加 `padding-right:72px`
-
-### WordPress 資料庫操作規則
-
-- **禁止**用 Python mysql.connector 讀出 `post_content` 再寫回——會雙重跳脫 `\n` 與 `\u002d`（`--`），導致排版崩潰與 CSS 變數失效
-- **必須**用 MySQL `REPLACE()` 直接在資料庫內操作，例如：
-  ```sql
-  UPDATE wp_posts SET post_content = REPLACE(post_content, '舊值', '新值') WHERE ID=N;
-  ```
-- 修改後用 `HEX()` 確認關鍵字元（換行應為 `0A`，連字符應為 `2D`）
+錯誤轉規則的累積清單已移至 `_規範/飛輪規則.md`。發生新錯誤時補一條至該檔，不寫在 CLAUDE.md。
 
 ---
 
