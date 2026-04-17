@@ -44,6 +44,7 @@
 | `n8n/` | n8n 自動化實戰課 | 完成 | 4 Modules，含 landing page |
 | `ccs-foundations/` | CCS 生成式 AI 認證研習 | 完成 | 13 頁（index + CH0 + CH1-1~5 + CH2-1~4 + CH3 + CH4），扁平結構，含 80 題模擬測驗與提示詞範本庫，主色灰藍綠 --c-a5 |
 | `gen-ai-36h/` | 生成式 AI 工作應用班（36h） | 完成 ✅ | 7 Parts，21 CH + 7 PRAC，28/28 全部完成，140h 上班族濃縮版，零基礎不寫程式，主色灰藍綠 --c-a5 |
+| `prompt-basic/` | 從「問 AI」到「交辦 AI」（6h） | 製作中 | 5 Parts，10 CH + 5 PRAC，公部門行政人員，主色灰藍綠 --c-a5 |
 
 ---
 
@@ -122,4 +123,17 @@ n8n/
 
 ---
 
-*最後更新：2026-04-14*
+### prompt-basic/
+```
+prompt-basic/
+├── index.html          課程總覽
+├── part1/              CH1-1, CH1-2, PRAC1（從問到交辦）
+├── part2/              CH2-1, CH2-2, PRAC2（背景資料與資安）
+├── part3/              CH3-1, PRAC3（三招技巧）
+├── part4/              CH4-1, CH4-2, PRAC4（控制輸出）
+└── part5/              CH5-1, CH5-2, PRAC5（檢查與借力改造）
+```
+
+---
+
+*最後更新：2026-04-17*

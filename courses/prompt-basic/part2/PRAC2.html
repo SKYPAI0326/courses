@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRAC2 會議紀錄去識別化練習｜從「問 AI」到「交辦 AI」：六小時學會跟 AI 好好合作</title>
+<meta name="description" content="實作練習：拿到一份含個資陷阱的跨局處協調會議紀錄，用系統化方式找出五類陷阱並完成去識別化，再整理為格式正確的行動清單。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="PRAC2 會議紀錄去識別化練習｜從「問 AI」到「交辦 AI」">
+<meta property="og:description" content="實作練習：拿到一份含個資陷阱的跨局處協調會議紀錄，用系統化方式找出五類陷阱並完成去識別化，再整理為格式正確的行動清單。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/prompt-basic/part2/PRAC2.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="PRAC2 會議紀錄去識別化練習｜從「問 AI」到「交辦 AI」">
+<meta name="twitter:description" content="實作練習：拿到一份含個資陷阱的跨局處協調會議紀錄，用系統化方式找出五類陷阱並完成去識別化，再整理為格式正確的行動清單。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/prompt-basic/part2/PRAC2.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#7a766d;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-a5:#7a9ea3;--radius:6px;--radius-sm:4px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.85}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 var(--radius) 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-a5);border:1px solid rgba(122,158,163,.3);background:rgba(122,158,163,.08);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-a5);width:0%;transition:width .1s}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 40px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-a5)}
+.hero-eyebrow{font-size:.7rem;color:var(--c-a5);letter-spacing:2px;font-weight:500;margin-bottom:12px}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.35;color:var(--c-text);margin-bottom:14px}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:28px}
+.meta-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.meta-item{font-size:.78rem;color:var(--c-muted)}
+.meta-item strong{color:var(--c-a5);font-weight:500}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:16px 48px 64px}
+.section{margin-bottom:52px}
+.section-label{font-size:.68rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:20px;padding-bottom:8px;border-bottom:1px solid var(--c-border)}
+/* hook 區塊 */
+.hook-box{background:rgba(122,158,163,.06);border:1px solid rgba(122,158,163,.2);border-left:4px solid var(--c-a5);border-radius:var(--radius);padding:22px 26px;font-size:.92rem;line-height:1.9;color:var(--c-text)}
+/* 概念定義卡 */
+.tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tool-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px}
+.tool-card-label{font-size:.68rem;color:var(--c-a5);letter-spacing:1.5px;font-weight:500;margin-bottom:6px}
+.tool-card-name{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:8px}
+.tool-card-desc{font-size:.84rem;color:var(--c-muted);line-height:1.75}
+/* 操作示範表格 */
+.demo-intro{font-size:.88rem;color:var(--c-muted);line-height:1.8;margin-bottom:16px}
+.data-table{width:100%;border-collapse:collapse;font-size:.86rem}
+.data-table th{background:var(--c-surface);padding:10px 14px;text-align:left;font-weight:500;color:var(--c-text);border-bottom:2px solid var(--c-border)}
+.data-table td{padding:10px 14px;border-bottom:1px solid var(--c-border);color:var(--c-text);vertical-align:top;line-height:1.7}
+.data-table tr:last-child td{border-bottom:none}
+.data-table td:first-child{font-weight:500;color:var(--c-a5);white-space:nowrap}
+/* 步驟流程 */
+.step-block{display:flex;gap:20px;margin-bottom:40px;position:relative}
+.step-block:not(:last-child)::after{content:'';position:absolute;left:19px;top:44px;width:2px;height:calc(100% - 16px);background:var(--c-border)}
+.step-circle{width:40px;height:40px;border-radius:50%;background:rgba(122,158,163,.1);border:2px solid var(--c-a5);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-weight:700;font-size:.95rem;color:var(--c-a5);flex-shrink:0}
+.step-content{flex:1;padding-top:6px}
+.step-heading{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:8px}
+.step-meta{font-size:.75rem;color:var(--c-a5);font-weight:500;margin-bottom:8px}
+.step-body{font-size:.88rem;color:var(--c-text);line-height:1.9}
+.step-ext{font-size:.82rem;color:var(--c-muted);background:var(--c-surface);border-left:3px solid var(--c-border);padding:10px 14px;border-radius:0 var(--radius) var(--radius) 0;line-height:1.7;margin-top:10px}
+/* 練習素材區 */
+.exercise-intro{font-size:.88rem;color:var(--c-muted);line-height:1.8;margin-bottom:20px}
+.rule-table{width:100%;border-collapse:collapse;font-size:.85rem;margin-bottom:28px}
+.rule-table th{background:var(--c-a5);color:#fff;padding:10px 14px;text-align:left;font-weight:500}
+.rule-table td{padding:10px 14px;border-bottom:1px solid var(--c-border);color:var(--c-text);vertical-align:top;line-height:1.65}
+.rule-table tr:last-child td{border-bottom:none}
+.rule-table tr:nth-child(even) td{background:var(--c-surface)}
+/* 會議紀錄素材 */
+.doc-wrap{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin-bottom:8px}
+.doc-header{background:var(--c-surface);padding:12px 20px;border-bottom:1px solid var(--c-border);display:flex;align-items:center;justify-content:space-between}
+.doc-header-label{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500}
+.doc-body{padding:28px 32px;font-size:.87rem;line-height:2;color:var(--c-text)}
+.doc-body h3{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;text-align:center;margin-bottom:6px;color:var(--c-text)}
+.doc-body .doc-meta{text-align:center;font-size:.85rem;color:var(--c-muted);margin-bottom:20px;line-height:1.8}
+.doc-section-title{font-weight:700;color:var(--c-text);margin:20px 0 8px;font-size:.9rem}
+.doc-table{width:100%;border-collapse:collapse;font-size:.84rem;margin:8px 0 16px}
+.doc-table th{background:var(--c-surface);padding:8px 12px;text-align:left;font-weight:500;color:var(--c-text);border:1px solid var(--c-border)}
+.doc-table td{padding:8px 12px;border:1px solid var(--c-border);color:var(--c-text);vertical-align:top;line-height:1.65}
+.trap{background:rgba(181,112,58,.12);border-radius:2px;padding:0 2px}
+.doc-hr{border:none;border-top:1px solid var(--c-border);margin:18px 0}
+/* 預期成果 */
+.outcomes{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);border-left:4px solid var(--c-a3);border-radius:var(--radius);padding:22px 26px;margin-top:20px}
+.outcomes-label{font-size:.68rem;color:var(--c-a3);letter-spacing:1.5px;font-weight:500;margin-bottom:14px}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;font-size:.88rem;color:var(--c-text);line-height:1.75}
+.outcome-item:last-child{margin-bottom:0}
+.outcome-check{width:18px;height:18px;border-radius:3px;border:1.5px solid rgba(90,122,90,.4);background:rgba(90,122,90,.06);flex-shrink:0;margin-top:2px}
+/* 常見錯誤 */
+.scenario-grid{display:flex;flex-direction:column;gap:14px}
+.scenario-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden}
+.sc-head{padding:14px 20px;background:rgba(201,150,58,.05);border-bottom:1px solid var(--c-border)}
+.sc-tag{font-size:.68rem;color:var(--c-a2);letter-spacing:1.5px;font-weight:500;margin-bottom:4px}
+.sc-name{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text)}
+.sc-body{padding:18px 20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.sc-col-label{font-size:.68rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;margin-bottom:6px}
+.sc-col-text{font-size:.84rem;color:var(--c-text);line-height:1.75}
+/* 檢核題 */
+.quiz-grid{display:flex;flex-direction:column;gap:20px}
+.quiz-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:22px 24px}
+.quiz-num{font-size:.68rem;color:var(--c-a5);letter-spacing:1.5px;font-weight:500;margin-bottom:10px}
+.quiz-q{font-family:'Shippori Mincho',serif;font-size:.98rem;font-weight:700;color:var(--c-text);line-height:1.6;margin-bottom:16px}
+.quiz-opt{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;cursor:pointer;font-size:.88rem;color:var(--c-text);line-height:1.7}
+.quiz-opt:last-of-type{margin-bottom:0}
+.quiz-opt input[type="radio"]{margin-top:3px;accent-color:var(--c-a5);flex-shrink:0}
+.quiz-feedback{margin-top:14px;padding:12px 16px;border-radius:var(--radius);font-size:.84rem;line-height:1.75;display:none}
+.quiz-feedback.correct{background:rgba(90,122,90,.08);border:1px solid rgba(90,122,90,.25);color:var(--c-a3)}
+.quiz-feedback.wrong{background:rgba(181,112,58,.07);border:1px solid rgba(181,112,58,.25);color:var(--c-a1)}
+.quiz-open{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);padding:16px 18px;font-size:.86rem;color:var(--c-muted);line-height:1.8;margin-top:8px}
+.quiz-open strong{color:var(--c-text)}
+/* 試跑包 */
+.tool-grid-assets{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tool-card-assets{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;display:flex;gap:14px;align-items:flex-start}
+.asset-icon{width:36px;height:36px;border-radius:var(--radius-sm);background:rgba(122,158,163,.1);border:1px solid rgba(122,158,163,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.9rem;color:var(--c-a5);font-weight:700}
+.asset-text{}
+.asset-name{font-family:'Shippori Mincho',serif;font-size:.92rem;font-weight:700;color:var(--c-text);margin-bottom:4px}
+.asset-desc{font-size:.8rem;color:var(--c-muted);line-height:1.65}
+/* metadata footer */
+.meta-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 32px}
+.meta-footer-inner{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);padding:14px 20px;display:flex;gap:24px;flex-wrap:wrap}
+.meta-pair{font-size:.75rem;color:var(--c-muted)}
+.meta-pair strong{color:var(--c-text);font-weight:500}
+/* nav */
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;gap:14px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1}
+.nav-btn:hover{border-color:var(--c-a5)}
+.nav-btn.next-btn{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px}
+.nav-btn-title{font-weight:500;color:var(--c-text)}
+.nav-arrow{font-size:1.1rem;color:var(--c-a5);flex-shrink:0}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+@media(max-width:600px){.topbar,.lesson-hero,.lesson-body,.meta-footer,.lesson-nav,.footer{padding-left:24px;padding-right:24px}.tool-grid{grid-template-columns:1fr}.tool-grid-assets{grid-template-columns:1fr}.sc-body{grid-template-columns:1fr}.meta-footer-inner{flex-direction:column;gap:10px}}
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">從「問 AI」到「交辦 AI」</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">PRAC2 去識別化練習</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<!-- ═══ HERO ═══ -->
+<div class="lesson-hero">
+  <a href="../index.html" class="back-link"><span aria-hidden="true">←</span> 返回課程總覽</a>
+  <div class="hero-eyebrow">SECTION PRAC2 · 實作練習</div>
+  <h1 class="lesson-title">會議紀錄去識別化練習</h1>
+  <p class="lesson-tagline">一份約 1,500 字的跨局處協調會議紀錄，裡頭預埋了五類個資陷阱。你的任務：系統化掃描、逐一替換，再整理為可以交給 AI 的行動清單。</p>
+  <div class="meta-row">
+    <span class="meta-item"><strong>時間</strong> 25 分鐘</span>
+    <span class="meta-item"><strong>前置</strong> CH2-2 貼之前先確認</span>
+    <span class="meta-item"><strong>平台</strong> ChatGPT / Gemini 網頁版</span>
+  </div>
+</div>
+
+<div class="lesson-body">
+
+  <!-- ═══ SECTION 1：為什麼做這個練習 ═══ -->
+  <section class="lesson-section section">
+    <div class="section-label">HOOK · 為什麼這個練習</div>
+    <div class="hook-box">
+      你剛收到一份跨局處協調會議的會議紀錄，要請 AI 幫你整理行動清單、起草追蹤函。你打開文件，全文貼進去——然後想到 CH2-2 說的話：「上面有沒有不能貼的東西？」<br><br>
+      這份紀錄大約 1,500 字。你會怎麼掃？從哪裡開始？<br><br>
+      這個練習的目的不是「找到」就好——而是練習用系統化的方式一次掃完，不漏掉、也不過度刪改到影響後續作業。
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 2：操作前確認概念 ═══ -->
+  <section class="lesson-section section">
+    <div class="section-label">CONCEPTS · 操作前確認定義</div>
+    <div class="tool-grid">
+      <div class="tool-card">
+        <div class="tool-card-label">概念 1</div>
+        <div class="tool-card-name">個人識別資訊（PII）</div>
+        <div class="tool-card-desc">可用來直接或間接識別特定個人的資料，包含姓名、電話、身分證字號、地址等。</div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-card-label">概念 2</div>
+        <div class="tool-card-name">去識別化替換</div>
+        <div class="tool-card-desc">以「○○○」「[移除]」「某機關」等佔位符取代原始資料，使文件無法直接指向特定人或案件。</div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-card-label">概念 3</div>
+        <div class="tool-card-name">敏感業務資訊</div>
+        <div class="tool-card-desc">未公開的預算數字、內部案號、決策草案等，不得貼入公共 AI 平台。</div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-card-label">概念 4</div>
+        <div class="tool-card-name">行動清單</div>
+        <div class="tool-card-desc">從決議事項提煉的格式化追蹤清單，每條必須包含「負責人 + 事項 + 期限」三要素。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 3：操作示範 ═══ -->
+  <section class="lesson-section section">
+    <div class="section-label">DEMO · 尋找個資的系統化順序（老師說明 30 秒）</div>
+    <p class="demo-intro">掃會議紀錄時，依序找這五類。找完一類、換下一類，不要跳著掃。</p>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>順序</th>
+          <th>找什麼</th>
+          <th>出現位置</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>完整姓名</td>
+          <td>出席人員、發言記錄</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>電話 / 手機號碼</td>
+          <td>聯絡方式討論、附件說明</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td>身分證字號</td>
+          <td>陳情人資料、附件說明</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>未公開預算 / 金額</td>
+          <td>討論事項、報告段落</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td>內部案號</td>
+          <td>標題、決議、附件</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="demo-intro">找到之後，套用下方替換規則卡——<strong>每個陷阱只換一次，不要改到其他無關文字</strong>。</p>
+  </section>
+
+  <!-- ═══ SECTION 4：動手練習 ═══ -->
+  <section class="lesson-section section">
+    <div class="section-label">HANDS-ON · 動手練習（25 分鐘）</div>
+
+    <!-- 步驟流程 -->
+    <div class="step-block">
+      <div class="step-circle">1</div>
+      <div class="step-content">
+        <div class="step-heading">閱讀原文，圈出個資陷阱</div>
+        <div class="step-meta">8 分鐘</div>
+        <div class="step-body">閱讀下方「練習素材：會議紀錄原文」，用筆在紙本上圈出所有個資陷阱。對照「五類尋找清單」依序掃一次，確認五類都掃過。</div>
+      </div>
+    </div>
+
+    <div class="step-block">
+      <div class="step-circle">2</div>
+      <div class="step-content">
+        <div class="step-heading">依替換規則卡完成去識別化</div>
+        <div class="step-meta">7 分鐘</div>
+        <div class="step-body">依下方「替換規則卡」，將原文中找到的陷阱逐一替換為去識別化版本。可在紙本上直接塗改或手寫覆蓋。</div>
+      </div>
+    </div>
+
+    <div class="step-block">
+      <div class="step-circle">3</div>
+      <div class="step-content">
+        <div class="step-heading">整理行動清單</div>
+        <div class="step-meta">7 分鐘</div>
+        <div class="step-body">閱讀原文「決議事項」與「待辦事項」兩段，整理為行動清單。每條格式：<strong>負責單位 + 事項 + 期限</strong>，三要素缺一不可。</div>
+      </div>
+    </div>
+
+    <div class="step-block">
+      <div class="step-circle">4</div>
+      <div class="step-content">
+        <div class="step-heading">延伸：寫交辦單，請 AI 起草追蹤函</div>
+        <div class="step-meta">延伸 3 分鐘（有餘力再做）</div>
+        <div class="step-body">將步驟 3 的行動清單，用四欄格式寫一份交辦單，請 AI 幫你起草跨局處追蹤函草稿。</div>
+        <div class="step-ext">注意：交辦單的「背景資料」欄貼入的是<strong>步驟 2 已替換完成的行動清單</strong>，不是原始紀錄。</div>
+      </div>
+    </div>
+
+    <!-- 替換規則卡 -->
+    <h3 style="font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);margin:32px 0 14px">替換規則卡</h3>
+    <table class="rule-table">
+      <thead>
+        <tr>
+          <th>原始資料類型</th>
+          <th>替換格式</th>
+          <th>範例</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>完整姓名</td>
+          <td>姓○○ + 職稱</td>
+          <td>陳○○ 科長</td>
+        </tr>
+        <tr>
+          <td>電話 / 手機號碼</td>
+          <td>[聯絡電話已移除]</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>身分證字號</td>
+          <td>[身分證字號已移除]</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>未公開預算金額</td>
+          <td>[預算金額已移除]</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>內部案號</td>
+          <td>[案號已移除]</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 會議紀錄原文 -->
+    <h3 style="font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);margin:32px 0 14px">練習素材：會議紀錄原文（約 1,500 字）</h3>
+    <p class="exercise-intro">以下為完整原文，含五個個資陷阱（以底色標示位置僅供本頁參考；紙本學員版不標示，需自行找出）。</p>
+
+    <div class="doc-wrap">
+      <div class="doc-header">
+        <span class="doc-header-label">練習素材 · 原始版本（含個資陷阱）</span>
+        <span style="font-size:.72rem;color:var(--c-a5);font-weight:500">可列印 / 截圖使用</span>
+      </div>
+      <div class="doc-body">
+        <h3>某縣市政府環境管理局跨局處協調會議紀錄</h3>
+        <div class="doc-meta">
+          <strong>會議名稱</strong>：某縣市政府環境管理局一一三年度第二次跨局處協調會議<br>
+          <strong>召開日期</strong>：中華民國一一三年九月十八日（星期三）上午十時<br>
+          <strong>召開地點</strong>：某縣市政府環境管理局四樓第一會議室<br>
+          <strong>主持人</strong>：環境管理局局長 <span class="trap">黃建國</span>
+        </div>
+
+        <hr class="doc-hr">
+
+        <div class="doc-section-title">出席人員</div>
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th>機關</th>
+              <th>姓名</th>
+              <th>職稱</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>環境管理局</td><td><span class="trap">黃建國</span></td><td>局長（主持人）</td></tr>
+            <tr><td>環境管理局</td><td><span class="trap">陳志明</span></td><td>科長</td></tr>
+            <tr><td>環境管理局</td><td><span class="trap">林佳蓉</span></td><td>股長</td></tr>
+            <tr><td>都市發展局</td><td><span class="trap">吳俊宏</span></td><td>副局長</td></tr>
+            <tr><td>都市發展局</td><td><span class="trap">蔡雅婷</span></td><td>科員</td></tr>
+            <tr><td>工務局</td><td><span class="trap">鄭文正</span></td><td>科長</td></tr>
+            <tr><td>工務局</td><td><span class="trap">許淑惠</span></td><td>技士</td></tr>
+            <tr><td>法制室</td><td><span class="trap">王哲仁</span></td><td>主任</td></tr>
+            <tr><td>法制室</td><td><span class="trap">張俊賢</span></td><td>科員</td></tr>
+          </tbody>
+        </table>
+
+        <p><strong>列席</strong>：<br>
+        環境管理局秘書室 <span class="trap">劉美玲</span> 組長<br>
+        公所代表 <span class="trap">李明達</span> 主任（建設課）</p>
+        <p style="margin-top:8px"><strong>記錄</strong>：環境管理局業務科 <span class="trap">江怡萱</span> 約僱人員</p>
+
+        <hr class="doc-hr">
+
+        <div class="doc-section-title">壹、主席致詞</div>
+        <p>主席<span class="trap">黃建國</span>局長開會後致詞表示，爰本次會議旨在協調本府各局處就轄區廢棄物處置場選址評估事宜達成初步共識，並確認各局處後續作業分工。請各與會代表依序說明各局處立場與困難，以利後續推動。</p>
+
+        <hr class="doc-hr">
+
+        <div class="doc-section-title">貳、討論事項</div>
+        <p><strong>第一案：廢棄物處置場選址評估報告審查</strong></p>
+        <p style="margin-top:8px"><strong>提案機關</strong>：環境管理局</p>
+        <p style="margin-top:8px"><strong>說明</strong>：<br>
+        本局委託顧問公司執行之廢棄物處置場選址評估，初稿報告業經完成，爰提請各局處審閱並提具意見。本案涉及跨局處業務，茲就各局處職掌說明如下：</p>
+        <p style="margin-top:8px">一、環境管理局負責廢棄物法規適用性審查，並彙整各局處意見後送請法制室辦理法規諮詢。</p>
+        <p>二、都市發展局就候選場址之土地使用分區、容積率限制提供書面意見，期限為本會議後兩週。</p>
+        <p>三、工務局就場址之交通動線、地質條件提供技術評估，並注意<span class="trap">本局字第 11301287354 號</span>前案之相關建議事項。</p>
+        <p>四、法制室就環境影響評估程序所需公告期間、閱覽要件提供法律意見。</p>
+        <p style="margin-top:12px"><strong>討論</strong>：</p>
+        <p style="margin-top:8px"><span class="trap">吳俊宏</span>副局長表示，都市發展局就候選場址 A（位於○○鄉）之土地使用分區現為農業用地，若要作為廢棄物處置場，恐需申請土地使用變更，程序至少需要十四個月，建議優先考量候選場址 B。</p>
+        <p style="margin-top:8px"><span class="trap">陳志明</span>科長回應，候選場址 B 面積較小，<span class="trap">本局明年度預算草案擬編列新臺幣三千二百萬元</span>，若場址確定後尚需追加用地費用，恐有困難，需請主計室確認容納空間。</p>
+        <p style="margin-top:8px"><span class="trap">鄭文正</span>科長補充，無論選擇哪個場址，交通動線改善均需配合道路拓寬工程，預估施工期約六至八個月，工務局可於評估報告定稿前完成交通量測作業。</p>
+        <p style="margin-top:12px"><strong>決議</strong>：</p>
+        <ul style="margin:8px 0 0 20px;font-size:.87rem;line-height:2">
+          <li>環境管理局彙整初稿意見並進行第二版修訂，期限：本會議後三週（即一一三年十月九日前）</li>
+          <li>都市發展局就土地使用分區疑義提具正式書面意見，期限：本會議後兩週（即一一三年十月二日前）</li>
+          <li>工務局完成交通量測作業，期限：一一三年十月十五日前</li>
+        </ul>
+
+        <hr class="doc-hr">
+
+        <p><strong>第二案：民眾陳情案件後續處理確認</strong></p>
+        <p style="margin-top:8px"><strong>提案機關</strong>：環境管理局</p>
+        <p style="margin-top:8px"><strong>說明</strong>：<br>
+        本局前接獲民眾陳情，反映轄區廢棄物不當傾倒情形。陳情人<span class="trap">陳豐源</span>先生（身分證字號：<span class="trap">A123456789</span>）已於今年七月提交書面陳情書，請求本局就相關場址加強稽查，並要求書面說明稽查結果。</p>
+        <p style="margin-top:8px">前次稽查於八月二十三日完成，結果為「未發現違規傾倒事證」。惟陳情人就稽查結果表示不服，來電（<span class="trap">0912-847-923</span>）表達希望與局長面談，並再次要求書面說明，目前由<span class="trap">陳志明</span>科長負責聯繫協調。</p>
+        <p style="margin-top:12px"><strong>討論</strong>：</p>
+        <p style="margin-top:8px"><span class="trap">王哲仁</span>主任表示，依行政程序法，機關對於人民陳情案件應於收受之日起三十日內告知處理情形，本案自接獲第二次要求起算，告知期限為一一三年九月二十八日，請環境管理局確認。</p>
+        <p style="margin-top:8px"><span class="trap">陳志明</span>科長確認，目前已起草書面回函草稿，將請局長批閱後發文，預計九月二十五日前完成發文程序。若陳情人仍希望面談，建議安排十月初辦理。</p>
+        <p style="margin-top:12px"><strong>決議</strong>：</p>
+        <ul style="margin:8px 0 0 20px;font-size:.87rem;line-height:2">
+          <li>環境管理局完成陳情回函並發文，期限：一一三年九月二十五日前</li>
+          <li>如陳情人要求面談，由<span class="trap">陳志明</span>科長協調排定時間，建議日期：一一三年十月七日至十日之間</li>
+        </ul>
+
+        <hr class="doc-hr">
+
+        <p><strong>第三案：跨局處聯繫窗口更新確認</strong></p>
+        <p style="margin-top:8px"><strong>說明</strong>：<br>
+        因近期各局處人事異動，跨局處聯繫清單需更新。本局業務科<span class="trap">林佳蓉</span>股長表示，現行名冊中工務局聯絡窗口仍為前任人員，建議本次會議更新。</p>
+        <p style="margin-top:8px"><strong>討論</strong>：</p>
+        <p style="margin-top:8px"><span class="trap">許淑惠</span>技士表示，工務局本案聯絡窗口更新為本人，如有任何問題可直接聯繫；電話為 <span class="trap">0928-334-117</span>，電子郵件另以公文往來。</p>
+        <p style="margin-top:8px"><span class="trap">劉美玲</span>組長表示，秘書室將於會議後一週內完成各局處聯繫清單更新，並發文各局處確認。</p>
+        <p style="margin-top:12px"><strong>決議</strong>：</p>
+        <ul style="margin:8px 0 0 20px;font-size:.87rem;line-height:2">
+          <li>秘書室完成聯繫清單更新並發文，期限：一一三年九月二十五日前</li>
+        </ul>
+
+        <hr class="doc-hr">
+
+        <div class="doc-section-title">參、待辦事項彙整</div>
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th>序號</th>
+              <th>負責單位</th>
+              <th>事項</th>
+              <th>期限</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>環境管理局</td><td>彙整選址評估意見、完成第二版報告修訂</td><td>一一三年十月九日</td></tr>
+            <tr><td>2</td><td>都市發展局</td><td>提具土地使用分區書面意見</td><td>一一三年十月二日</td></tr>
+            <tr><td>3</td><td>工務局</td><td>完成交通量測作業</td><td>一一三年十月十五日</td></tr>
+            <tr><td>4</td><td>環境管理局</td><td>完成陳情回函並發文</td><td>一一三年九月二十五日</td></tr>
+            <tr><td>5</td><td>環境管理局</td><td>如陳情人要求面談，協調排定時間</td><td>一一三年十月七至十日</td></tr>
+            <tr><td>6</td><td>秘書室</td><td>更新跨局處聯繫清單並發文</td><td>一一三年九月二十五日</td></tr>
+          </tbody>
+        </table>
+
+        <div class="doc-section-title">肆、散會</div>
+        <p>會議於上午十二時許散會。</p>
+        <p style="margin-top:8px">本紀錄業經與會人員確認，如有疑義請於三日內向本局秘書室提出更正申請。</p>
+        <p style="margin-top:8px;color:var(--c-muted)">環境管理局業務科 敬啟</p>
+      </div>
+    </div>
+
+    <!-- 陷阱提示 -->
+    <div style="margin-top:14px;padding:12px 16px;background:rgba(181,112,58,.06);border:1px solid rgba(181,112,58,.2);border-radius:var(--radius);font-size:.8rem;color:var(--c-muted);line-height:1.75">
+      <strong style="color:var(--c-a1)">頁面提示（學員列印版不顯示）：</strong>橘色底色標示位置即為個資陷阱所在。共 5 類陷阱：完整姓名（正文中反覆出現）、電話號碼（2 處）、身分證字號（1 處）、未公開預算金額（1 處）、內部案號（1 處）。
+    </div>
+
+    <!-- 預期成果 -->
+    <div class="outcomes">
+      <div class="outcomes-label">完成標準（自我檢核）</div>
+      <div class="outcome-item">
+        <div class="outcome-check"></div>
+        <span>步驟 1：在紙本標記出 5 個陷阱，每個指出類型（姓名 / 電話 / 身分證 / 預算 / 案號）</span>
+      </div>
+      <div class="outcome-item">
+        <div class="outcome-check"></div>
+        <span>步驟 2：5 個陷阱全部替換，無漏項，使用規則卡指定格式（不自行發明替換詞）</span>
+      </div>
+      <div class="outcome-item">
+        <div class="outcome-check"></div>
+        <span>步驟 3：整理出 6 條行動清單，每條含負責單位 + 事項 + 期限，格式統一</span>
+      </div>
+      <div class="outcome-item">
+        <div class="outcome-check"></div>
+        <span>步驟 4（延伸）：交辦單的背景資料欄中不再有任何原始個資</span>
+      </div>
+    </div>
+
+    <!-- 老師確認 -->
+    <div style="margin-top:20px;padding:18px 22px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);font-size:.84rem;color:var(--c-muted);line-height:1.8">
+      <strong style="color:var(--c-text)">老師確認流程</strong>：學員完成後，請 2 位學員唸出自己找到的陷阱清單。全班確認：找出的 5 個陷阱是否無漏項、每個陷阱是否使用規定的替換格式、行動清單每條是否有三要素。
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 5：試跑包需求 ═══ -->
+  <section class="lesson-section section">
+    <div class="section-label">ASSETS · 試跑包需求清單</div>
+    <div class="tool-grid-assets">
+      <div class="tool-card-assets">
+        <div class="asset-icon">印</div>
+        <div class="asset-text">
+          <div class="asset-name">會議紀錄原文（紙本）</div>
+          <div class="asset-desc">A4，每人一份。學員版不標示陷阱底色。</div>
+        </div>
+      </div>
+      <div class="tool-card-assets">
+        <div class="asset-icon">卡</div>
+        <div class="asset-text">
+          <div class="asset-name">替換規則卡</div>
+          <div class="asset-desc">A5 或折疊卡，每人一份。含五類陷阱替換格式。</div>
+        </div>
+      </div>
+      <div class="tool-card-assets">
+        <div class="asset-icon">答</div>
+        <div class="asset-text">
+          <div class="asset-name">老師標準答案（獨立印刷）</div>
+          <div class="asset-desc">含 5 個陷阱標準替換版本 + 參考行動清單。印刷時從學員版拆開。</div>
+        </div>
+      </div>
+      <div class="tool-card-assets">
+        <div class="asset-icon">AI</div>
+        <div class="asset-text">
+          <div class="asset-name">ChatGPT / Gemini 網頁版</div>
+          <div class="asset-desc">延伸步驟用。學員自備帳號，無需 API 或付費方案。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 6：常見錯誤 ═══ -->
+  <section class="lesson-section section">
+    <div class="section-label">PITFALLS · 常見錯誤</div>
+    <div class="scenario-grid">
+      <div class="scenario-card">
+        <div class="sc-head">
+          <div class="sc-tag">常見錯誤 1</div>
+          <div class="sc-name">只替換名單表格，漏掉正文段落</div>
+        </div>
+        <div class="sc-body">
+          <div>
+            <div class="sc-col-label">錯誤現象</div>
+            <div class="sc-col-text">只替換「出席人員名單」欄位的姓名，忽略正文段落中再次出現的姓名（如「陳志明科長回應」「吳俊宏副局長表示」）。</div>
+          </div>
+          <div>
+            <div class="sc-col-label">原因</div>
+            <div class="sc-col-text">視覺上先掃完表格就覺得「姓名已處理」，沒有繼續掃正文段落。</div>
+          </div>
+          <div>
+            <div class="sc-col-label">解法</div>
+            <div class="sc-col-text">依段落順序從頭掃到尾，不按資料類型跳著掃；或在表格處理完後，搜尋原始姓名是否還出現在其他段落。</div>
+          </div>
+        </div>
+      </div>
+      <div class="scenario-card">
+        <div class="sc-head">
+          <div class="sc-tag">常見錯誤 2</div>
+          <div class="sc-name">把原文已通用化的「○○鄉」當個資陷阱移除</div>
+        </div>
+        <div class="sc-body">
+          <div>
+            <div class="sc-col-label">錯誤現象</div>
+            <div class="sc-col-text">把「候選場址 A（位於○○鄉）」的「○○」當成個資陷阱，一起移除或替換。</div>
+          </div>
+          <div>
+            <div class="sc-col-label">原因</div>
+            <div class="sc-col-text">誤以為「○○」是需要處理的真實資訊，但原文就已用「○○鄉」通用化地名。</div>
+          </div>
+          <div>
+            <div class="sc-col-label">解法</div>
+            <div class="sc-col-text">只處理「出現真實可識別資料」的位置。「○○鄉」是原文就已去識別化的地名，不是陷阱。</div>
+          </div>
+        </div>
+      </div>
+      <div class="scenario-card">
+        <div class="sc-head">
+          <div class="sc-tag">常見錯誤 3</div>
+          <div class="sc-name">行動清單只寫事項，漏掉負責單位或期限</div>
+        </div>
+        <div class="sc-body">
+          <div>
+            <div class="sc-col-label">錯誤現象</div>
+            <div class="sc-col-text">行動清單只寫「事項」，漏掉「負責單位」或「期限」，例如只寫「完成交通量測作業」。</div>
+          </div>
+          <div>
+            <div class="sc-col-label">原因</div>
+            <div class="sc-col-text">直接複製待辦表格的「事項」欄，沒有確認三要素都在。</div>
+          </div>
+          <div>
+            <div class="sc-col-label">解法</div>
+            <div class="sc-col-text">整理前先在紙本上標記三個欄位頭（負責 / 事項 / 期限），每條填完都確認三格都有字。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 7：檢核題 ═══ -->
+  <section class="lesson-section section">
+    <div class="section-label">QUIZ · 檢核題</div>
+    <div class="quiz-grid">
+
+      <div class="quiz-item">
+        <div class="quiz-num">Q1 · 概念驗證</div>
+        <div class="quiz-q">下列哪一項屬於「必須去識別化才能貼入公共 AI 平台」的資料？</div>
+        <label class="quiz-opt"><input type="radio" name="q1" value="A"> 會議名稱（如「一一三年度第二次跨局處協調會議」）</label>
+        <label class="quiz-opt"><input type="radio" name="q1" value="B"> 決議事項中的期限（如「十月九日前完成」）</label>
+        <label class="quiz-opt"><input type="radio" name="q1" value="C"> 機關明年度預算草案擬編列金額（尚未公告）</label>
+        <label class="quiz-opt"><input type="radio" name="q1" value="D"> 會議召開地點（如「四樓第一會議室」）</label>
+        <div class="quiz-feedback correct" id="q1-correct">正確。預算草案的擬編列金額尚未公開定稿，屬未公開敏感業務資訊，不得貼入公共 AI 平台。其他選項均屬公開或不具識別性的資料。</div>
+        <div class="quiz-feedback wrong" id="q1-wrong">再想想。重點在「尚未公告」這四個字——這類資訊一旦流出，可能造成資訊洩漏風險，與個人識別無關，但仍屬必須去識別化的敏感業務資訊。</div>
+      </div>
+
+      <div class="quiz-item">
+        <div class="quiz-num">Q2 · 應用驗證</div>
+        <div class="quiz-q">你拿到一份會議紀錄，正文中有這段話：「鄭文正科長表示，請各局處聯繫本局窗口，電話 0928-334-117，案號本局字第 11301287354 號。」打算去識別化後請 AI 整理，應如何處理這段話？</div>
+        <div class="quiz-open">
+          <strong>預期答案要點（請對照確認）：</strong><br>
+          1. 「鄭文正科長」→ 替換為「鄭○○科長」（完整姓名去識別化）<br>
+          2. 電話「0928-334-117」→ 替換為「[聯絡電話已移除]」<br>
+          3. 案號「本局字第 11301287354 號」→ 替換為「本局字第 [案號已移除] 號」<br>
+          4. 替換後確認句意仍通順，再交給 AI 處理
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</div><!-- /lesson-body -->
+
+<!-- ═══ METADATA FOOTER ═══ -->
+<div class="meta-footer">
+  <div class="meta-footer-inner">
+    <span class="meta-pair"><strong>單元</strong> PRAC2</span>
+    <span class="meta-pair"><strong>課程</strong> prompt-basic</span>
+    <span class="meta-pair"><strong>時數</strong> 25 min</span>
+    <span class="meta-pair" data-platform-version="ChatGPT / Gemini 2026-Q2"><strong>平台版本</strong> ChatGPT / Gemini 2026-Q2</span>
+    <span class="meta-pair" data-built-at="2026-04-17"><strong>製作日期</strong> 2026-04-17</span>
+    <span class="meta-pair"><strong>機構</strong> 弄一下工作室</span>
+  </div>
+</div>
+
+<!-- ═══ NAV ═══ -->
+<nav class="lesson-nav" aria-label="單元導覽">
+  <a href="CH2-3.html" class="nav-btn">
+    <span class="nav-arrow" aria-hidden="true">←</span>
+    <div>
+      <div class="nav-btn-label">上一單元</div>
+      <div class="nav-btn-title">2-3 不同場景應用</div>
+    </div>
+  </a>
+  <a href="../part3/CH3-1.html" class="nav-btn next-btn">
+    <div>
+      <div class="nav-btn-label">下一單元</div>
+      <div class="nav-btn-title">3-1 三招技巧</div>
+    </div>
+    <span class="nav-arrow" aria-hidden="true">→</span>
+  </a>
+</nav>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">從「問 AI」到「交辦 AI」· 2026 春季</span>
+</footer>
+
+<script>
+// 頁首閱讀進度條
+const fill=document.getElementById('prog');
+window.addEventListener('scroll',()=>{const h=document.documentElement;fill.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100+'%'});
+</script>
+
+<script>
+// 閱讀進度持久化（localStorage）— 刷新頁面自動回到上次閱讀位置
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+
+<script>
+// 檢核題互動
+(function(){
+  var correct='C';
+  document.querySelectorAll('input[name="q1"]').forEach(function(r){
+    r.addEventListener('change',function(){
+      document.getElementById('q1-correct').style.display='none';
+      document.getElementById('q1-wrong').style.display='none';
+      if(r.value===correct){
+        document.getElementById('q1-correct').style.display='block';
+      } else {
+        document.getElementById('q1-wrong').style.display='block';
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>
