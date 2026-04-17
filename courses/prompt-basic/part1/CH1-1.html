@@ -97,7 +97,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 .quiz-opt{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.92rem;color:var(--c-text);line-height:1.65;transition:border-color .2s,background .2s}
 .quiz-opt:hover{border-color:var(--c-main);background:rgba(122,158,163,.04)}
 .quiz-opt input[type="radio"]{margin-top:4px;accent-color:var(--c-main);flex-shrink:0}
-.quiz-opt.correct{border-color:var(--c-a3);background:rgba(90,122,90,.06)}
+.quiz-opt.correct{border-color:var(--c-a3);background:rgba(90,122,90,.06)}.quiz-opt.wrong{border-color:var(--c-a1);background:rgba(181,112,58,.05)}
 .quiz-ans{font-size:.85rem}
 .quiz-ans summary{color:var(--c-main);font-weight:500;cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px}
 .quiz-ans summary::before{content:'▸ ';color:var(--c-main)}
@@ -421,7 +421,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
           <input type="radio" name="q1" value="A">
           <span>A. 問問題思維用中文，交辦思維用英文</span>
         </label>
-        <label class="quiz-opt correct">
+        <label class="quiz-opt" data-correct="true">
           <input type="radio" name="q1" value="B">
           <span>B. 問問題思維期待 AI 猜到你要什麼，交辦思維是自己決定要什麼並說清楚</span>
         </label>
@@ -451,7 +451,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
           <input type="radio" name="q2" value="B">
           <span>B. 公文太長，AI 讀不完</span>
         </label>
-        <label class="quiz-opt correct">
+        <label class="quiz-opt" data-correct="true">
           <input type="radio" name="q2" value="C">
           <span>C. 缺少格式說明（幾字、哪種語氣、幾點條列）和身分說明（公文情境），「簡短」是模糊詞，需換成具體字數</span>
         </label>
@@ -487,6 +487,30 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <script>
 const fill=document.getElementById('prog');
 window.addEventListener('scroll',()=>{const h=document.documentElement;fill.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100+'%'});
+</script>
+<script>
+// 選擇題互動：點選後高亮正確答案，「查看答案」打開時也顯示
+(function(){
+  document.querySelectorAll('details.quiz-ans').forEach(function(det){
+    det.addEventListener('toggle',function(){
+      if(!det.open) return;
+      var opts=det.previousElementSibling;
+      if(opts&&opts.classList.contains('quiz-opts')){
+        var c=opts.querySelector('[data-correct="true"]');
+        if(c) c.classList.add('correct');
+      }
+    });
+  });
+  document.querySelectorAll('.quiz-opts input[type="radio"]').forEach(function(inp){
+    inp.addEventListener('change',function(){
+      var opts=inp.closest('.quiz-opts');
+      if(!opts) return;
+      opts.querySelectorAll('.quiz-opt').forEach(function(l){l.classList.remove('correct','wrong');});
+      var lbl=inp.closest('.quiz-opt');
+      if(lbl) lbl.classList.add(lbl.dataset.correct==='true'?'correct':'wrong');
+    });
+  });
+})();
 </script>
 
 <script>
