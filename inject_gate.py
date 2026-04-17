@@ -22,6 +22,7 @@ COURSES = {
     "office-ai":       ("officeai_auth","6ab0aa487f1730f54a645b5ac78f9118d45255eed7e62414cbc37108a848e5e4"),
     "digital-marketing-70h": ("digimkt_auth", "6d9278e29c0d1ab888cfabe6a73a06f54c124fb0a4bb3dfccd7720d3e80d9eb7"),
     "gen-ai-36h":      ("gen36_auth",   "2eeb336fddc0ac7aa5ce7ff9aa2b3a51db0f7ad83fd07d4e7d877dfc1d2b9089"),
+    "prompt-basic":    ("pbasic_auth",  "f9be9b95884b731054cc95fa9e6fd80b5407004a08a203effc20a9d28212a555"),
 }
 
 GATE_TEMPLATE = '''\
