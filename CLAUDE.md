@@ -90,78 +90,17 @@ python3 docs/lint-page.py --changed       # 只查 git staged 檔
 
 ## 設計系統
 
-### 色彩系統
+**色彩 / 字型 / 版面 / 禁用 / SEO / 單元頁範本**規則 **不在本檔列出**，一律以下列真相源為準：
 
-| 變數名 | 色碼 | 用途 |
-|--------|------|------|
-| `--c-bg` | `#f5f3ee` | 背景（米白） |
-| `--c-surface` | `#edeae3` | 側欄背景（淺灰米） |
-| `--c-card` | `#ffffff` | 卡片背景 |
-| `--c-border` | `#d8d4cb` | 邊框（暖灰） |
-| `--c-text` | `#2c2b28` | 主文字（深褐黑） |
-| `--c-muted` | `#7a766d` | 次要文字（灰褐，WCAG AA 對比度 4.7:1） |
-| `--c-a1` | `#b5703a` | 陶土橘 — 主要按鈕、重點標記 |
-| `--c-a2` | `#c9963a` | 芥末黃 — 次要強調 |
-| `--c-a3` | `#5a7a5a` | 鼠尾草綠 — 正確/完成狀態 |
-| `--c-a4` | `#6b7fa3` | 霧藍 — 資訊、程式碼關鍵字 |
-| `--c-a5` | `#7a9ea3` | 灰藍綠 — 輔助色 |
+| 真相源 | 用途 |
+|-------|------|
+| `_規範/design-tokens.md` | 設計系統人類閱讀版（CSS 變數、字型 8 階、組件白名單、SEO 模板、metadata 規格） |
+| `_規範/lesson-template.html` | 單元頁骨架，新增頁面一律從這份複製 |
+| `docs/lint-page.py` | 機器強制版（BLOCKER/ERROR/WARN 規則）。`python3 docs/lint-page.py <file>` 自動驗 |
 
-每門課程各自使用一個強調色作為主色（見 `COURSES.md`）。
+**要調整規則？** 改 `design-tokens.md` + `lint-page.py`。**不要**在本檔或 skill 文件追加散文規則。
 
-**嚴禁自創 `--c-a6` 及以上變數**。若需要新色，先與既有 a1–a5 比對，若無法對應則提出新增色彩系統的討論，不得各頁自行定義。
-
-### 字體
-
-| 用途 | 字體 | Weight |
-|------|------|--------|
-| 標題 | Shippori Mincho（明朝體） | 700 |
-| 內文 | Noto Sans TC | 400 / 500 |
-| 程式碼 | Courier New | — |
-
-從 Google Fonts 載入：`Shippori+Mincho:wght@400;500;700` 和 `Noto+Sans+TC:wght@400;500;700`
-
-### 版面規則
-
-- 圓角：`6px`（一般元件）/ `4px`（小元件）
-- 邊框：`1px solid`，無陰影，無漸層
-- 內容區 padding：`48px`（左右）
-- 卡片內距：`22px 24px`（上下 22，左右 24）；若卡片右側有 absolute 元件（如複製按鈕），右側改 `72px`
-- 頂部列高：`56px`（sticky）
-- 底部列高：`52px`
-- 最大內容寬：`960px`（總覽頁）/ `780px`（長文單元頁），置中
-- Hover 反饋：只用 `transform` + `border-color` 變化，**禁止 box-shadow**
-- Focus：所有 `a` / `button` / `input` 必須顯示 `:focus-visible` 2px outline（已全域注入 `outline:2px solid var(--c-text)`）
-
-### 禁止事項
-
-- 不使用漸層（gradient）
-- 不使用深色背景
-- 不使用鮮豔高彩度顏色
-- 標題不使用漸層文字效果
-- 圓角不超過 `8px`
-- 不使用 `box-shadow`（2026-04-16 全站清理後禁止回流）
-- 不自創 `--c-a6`+ 變數（違反會被飛輪規則抓到）
-
-### SEO & 無障礙（新頁必做）
-
-- 每頁 `<title>` 後必須有：`meta description`、`og:title/description/url/image`、`twitter:card` 系列、`link rel="canonical"`
-- 導覽用箭頭 `←` / `→` 必須包 `<span aria-hidden="true">...</span>`
-- 長文單元頁（含 `.progress-fill`）須注入 localStorage 進度腳本（樣本見任一 2026-04-16 後的單元頁 `</body>` 前）
-- 新頁加入後需手動重跑 sitemap 產生器（或用 Python 腳本重掃 `courses/**/*.html`）
-- 每頁 `<body>` 起始第一個元素（或 gate 之後）必須是 `<a href="#main" class="skip-link">跳至主要內容</a>`，主要內容區塊用 `<main id="main">` 包起來
-- 搜尋索引：新頁加入後需手動重跑 `docs/build-search-index.py`（產生 `search-index.json`）
-
-### 單元頁範本（新增單元頁必用）
-
-新建任何 `CH*-*.html` / `PRAC*-*.html` / `m*-*-*.html` 單元頁：
-
-1. **先複製** `_規範/lesson-template.html` 為新檔（不要從零寫）
-2. **逐一取代** `{{SECTION_NO}}` / `{{ACCENT_VAR}}` / `{{ACCENT_HEX}}` 等所有佔位符
-3. **保留**：skip-link、`<main id="main">`、focus-visible 規則、progress-fill、localStorage 進度腳本
-4. **禁止**：回流自創 `--c-a6+` 變數、box-shadow、漸層、刪除 `aria-hidden` 的箭頭 span
-5. **完成後** 重跑 sitemap + search-index 產生器
-
-⚠️ 既有單元頁已於 2026-04-16 批次對齊基準標準（SEO meta、focus-visible、localStorage 進度、aria-hidden 箭頭）。新增頁缺任一項視為 regression。
+**新建單元頁？** 複製 `_規範/lesson-template.html` → 填佔位符 → 跑 lint → 跑 `build-search-index.py` + `build-sitemap.py`。
 
 ---
 
