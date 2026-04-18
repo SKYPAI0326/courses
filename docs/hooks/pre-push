@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Git pre-push hook — 課程網頁
+# ─────────────────────────────────────
+# push 前跑 build-all.py（lint + search-index + sitemap）。
+# 任一步失敗 = 擋 push。
+#
+# 安裝：
+#   bash docs/hooks/install.sh
+# 或手動：
+#   cp docs/hooks/pre-push .git/hooks/pre-push
+#   chmod +x .git/hooks/pre-push
+#
+# 暫時跳過（只在緊急時用）：
+#   git push --no-verify
+
+set -e
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+echo "🚀 push 前總建置（lint --baseline + search-index + sitemap）..."
+python3 docs/build-all.py
+
+EXIT=$?
+if [ $EXIT -ne 0 ]; then
+    echo ""
+    echo "❌ build-all 失敗，push 被擋下。"
+    echo "   修正後再 push；或 git push --no-verify 略過（不建議）。"
+    exit 1
+fi
+
+# 若有未 commit 的索引變動，提醒
+if ! git diff --quiet search-index.json sitemap.xml 2>/dev/null; then
+    echo "⚠ search-index.json / sitemap.xml 有未 commit 的變動，請 commit 後再 push。"
+    exit 1
+fi
+
+exit 0

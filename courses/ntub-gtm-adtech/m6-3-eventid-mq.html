@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>6.3 event_id 去重 + Event Match Quality｜數位行銷實務 II GTM × 廣告科技</title>
+<meta name="description" content="Browser + CAPI 雙軌的代價是可能雙算——event_id 讓 Meta 去重；EMQ 6+ 讓廣告效能回歸。"
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="6.3 event_id 去重 + Event Match Quality｜數位行銷實務 II GTM × 廣告科技">
+<meta property="og:description" content="Browser + CAPI 雙軌的代價是可能雙算——event_id 讓 Meta 去重；EMQ 6+ 讓廣告效能回歸。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/ntub-gtm-adtech/m6-3-eventid-mq.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="6.3 event_id 去重 + Event Match Quality｜數位行銷實務 II GTM × 廣告科技">
+<meta name="twitter:description" content="Browser + CAPI 雙軌的代價是可能雙算——event_id 讓 Meta 去重；EMQ 6+ 讓廣告效能回歸。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/ntub-gtm-adtech/m6-3-eventid-mq.html">>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#7a766d;--c-a2:#c9963a;--radius:6px;--content-w:780px}
+body{background:var(--c-bg);color:var(--c-text);font-family:'Noto Sans TC',sans-serif;font-size:15px;line-height:1.7}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-a2);border:1px solid rgba(201,150,58,.3);background:rgba(201,150,58,.08);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-a2);width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-a2)}
+.hero-eyebrow{font-size:.7rem;color:var(--c-a2);letter-spacing:2px;font-weight:500;margin-bottom:12px}
+.page-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:12px}
+.page-subtitle{font-size:.95rem;color:var(--c-muted);line-height:1.85;max-width:600px}
+.context-box{max-width:var(--content-w);margin:0 auto;padding:0 48px 32px}
+.context-inner{background:rgba(201,150,58,.06);border:1px solid rgba(201,150,58,.2);border-left:3px solid var(--c-a2);border-radius:var(--radius);padding:20px 24px}
+.context-label{font-size:.68rem;color:var(--c-a2);letter-spacing:1.5px;font-weight:500;margin-bottom:8px}
+.context-text{font-size:.88rem;color:var(--c-text);line-height:1.8}
+.steps-wrap{max-width:var(--content-w);margin:0 auto;padding:8px 48px 48px}
+.section-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:24px}
+.step-block{display:flex;gap:24px;margin-bottom:44px;position:relative}
+.step-block:not(:last-child)::after{content:'';position:absolute;left:19px;top:48px;width:2px;height:calc(100% - 16px);background:var(--c-border)}
+.step-circle{width:40px;height:40px;border-radius:50%;background:rgba(201,150,58,.1);border:2px solid var(--c-a2);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-weight:700;font-size:.95rem;color:var(--c-a2);flex-shrink:0}
+.step-content{flex:1;padding-top:6px}
+.step-heading{font-family:'Shippori Mincho',serif;font-size:1.15rem;font-weight:700;color:var(--c-text);margin-bottom:10px}
+.step-body{font-size:.9rem;color:var(--c-text);line-height:1.9;margin-bottom:12px}
+.step-tip{font-size:.82rem;color:var(--c-muted);background:var(--c-surface);border-left:3px solid var(--c-border);padding:10px 14px;border-radius:0 var(--radius) var(--radius) 0;line-height:1.7}
+.step-tip strong{color:var(--c-a2);font-weight:500}
+.inline-code{font-family:'Courier New',monospace;font-size:.85em;background:rgba(201,150,58,.1);padding:1px 6px;border-radius:3px}
+.code-block{font-family:'Courier New',monospace;font-size:.82rem;background:#2c2b28;color:#edeae3;padding:16px 20px;border-radius:var(--radius);margin:12px 0;line-height:1.7;overflow-x:auto;white-space:pre-wrap}
+.verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:24px 28px;margin:40px 0}
+.verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px}
+.verify-text{font-size:.9rem;color:var(--c-text);line-height:1.85}
+.troubleshoot{margin:40px 0}
+.ts-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:16px}
+.ts-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 22px;margin-bottom:10px}
+.ts-q{font-size:.87rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.ts-a{font-size:.85rem;color:var(--c-muted);line-height:1.75}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a2);text-decoration:none;padding:10px 20px;border:1px solid rgba(201,150,58,.3);border-radius:var(--radius);transition:background .2s}
+.nav-btn:hover{background:rgba(201,150,58,.07)}
+.nav-btn.primary{background:var(--c-a2);color:#fff;border-color:var(--c-a2)}
+.nav-btn.primary:hover{background:#a37b2f}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+@media(max-width:600px){.topbar,.page-hero,.context-box,.steps-wrap,.nav-footer,.footer{padding-left:24px;padding-right:24px}}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Shippori Mincho',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#c9963a;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#c9963a;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#a37b2f}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='ntub_auth',H='1c0d96ab18b0574bb4e6c04b2c4baff23637a70205a6b651ccdd6f2c9b638c81';if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">數位行銷實務 II GTM × 廣告科技</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">6.3 event_id 去重 + Ev</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="page-hero" id="main">
+  <a href="module6.html" class="back-link"><span aria-hidden="true">←</span> 返回 Module 6</a>
+  <div class="hero-eyebrow">MODULE 6 · SECTION 6.3</div>
+  <h1 class="page-title">event_id 去重 + Event Match Quality</h1>
+  <p class="page-subtitle">Browser + CAPI 雙軌的代價是可能雙算——event_id 讓 Meta 去重；EMQ 6+ 讓廣告效能回歸。</p>
+</div>
+
+<div class="context-box">
+  <div class="context-inner">
+    <div class="context-label">為什麼這很重要 · WHY THIS MATTERS</div>
+    <div class="context-text">CAPI 裝好不等於完事——EMQ 分數低代表 Meta 認不出使用者，廣告最佳化沒效。這節把『做對』推到『做好』。</div>
+  </div>
+</div>
+
+<div class="steps-wrap">
+  <div class="section-label">STEP BY STEP · 本節重點</div>
+  <div class="step-block"><div class="step-circle">1</div><div class="step-content"><div class="step-heading">1 event_id 生命週期</div><div class="step-body"><strong>產生</strong>：前端 purchase 時 crypto.randomUUID() → 寫 sessionStorage + push dataLayer。<strong>傳到 Browser Pixel</strong>：fbq('track', 'Purchase', {}, {eventID: 'xxx'})。<strong>傳到 server</strong>：寫進訂單 meta（order_item_meta）。<strong>CAPI 呼叫時</strong>：從 order meta 讀出 → event_id 欄位帶入。四步都對才能去重。</div><div class="step-tip">用 order_id 當 event_id 是替代方案但不如 UUID 安全（可被猜測）。</div></div></div>
+  <div class="step-block"><div class="step-circle">2</div><div class="step-content"><div class="step-heading">2 去重驗證：Events Manager</div><div class="step-body">Events Manager → 選 Pixel → Overview → 找 Purchase 事件 → 看『Deduplication』欄：應該顯示『Server + Browser 事件去重成功，X% 重複』。<strong>X% 在 10% 以下健康</strong>；超過 30% 代表 event_id 沒對上。</div><div class="step-tip">另一個常見錯誤：event_id 有帶但格式不一樣（前端 UUID v4、後端 UUID v5）。統一用一種。</div></div></div>
+  <div class="step-block"><div class="step-circle">3</div><div class="step-content"><div class="step-heading">3 Event Match Quality（EMQ）分數</div><div class="step-body">0–10 分，衡量 Meta 把事件匹配到 Facebook 使用者的能力。計算方式：傳了多少 user data（em/ph/fn/ln/ge/db/ct/st/zp/country）× hash 正確 × fbc/fbp cookie 有無。<strong>目標 ≥ 6.0</strong>——低於 4.0 廣告效能會明顯受損。</div><div class="step-tip">拆開看每個事件的 EMQ——通常 Purchase 分數最低（需要 match 實際購買者），Lead 次之。ViewContent 反而容易高（匿名瀏覽也算）。</div></div></div>
+  <div class="step-block"><div class="step-circle">4</div><div class="step-content"><div class="step-heading">4 提升 EMQ 六招</div><div class="step-body">① 補 email（最有效）；② 補 phone；③ 補 first/last name；④ 前端正確放 _fbp cookie；⑤ 從 URL 抓 _fbc 參數（Meta 廣告導流帶）並送出；⑥ 補地區資訊（ct/st/zp/country）。每補一項 EMQ 通常 +0.5 到 +1.0。</div><div class="step-tip">Hash 要用 SHA-256，不是 SHA-1 或 MD5。email 要先 trim + 小寫再 hash。phone 要先移除非數字再 hash（E.164 格式）。</div></div></div>
+  <div class="step-block"><div class="step-circle">5</div><div class="step-content"><div class="step-heading">5 完整 user data payload 範例</div><div class="step-body"><pre class="code-block">user_data: {
+  em: sha256(lowercase(trim(email))),
+  ph: sha256(only_digits(phone)),
+  fn: sha256(lowercase(first_name)),
+  ln: sha256(lowercase(last_name)),
+  fbc: cookie._fbc,  // 不要 hash
+  fbp: cookie._fbp,  // 不要 hash
+  client_ip_address: $_SERVER.REMOTE_ADDR,
+  client_user_agent: $_SERVER.HTTP_USER_AGENT
+}</pre></div><div class="step-tip">fbc/fbp 是 Meta 的 cookie 不能 hash（hash 後就對不到 Meta 端紀錄）。email/phone/name 一定要 hash。</div></div></div>
+
+  <div class="step-block"><div class="step-circle">6</div><div class="step-content"><div class="step-heading">實戰案例｜EMQ 從 4 拉到 8 的具體手法</div><div class="step-body">某健康食品電商 EMQ 一直卡在 4.2，CAPI 部署完毫無效果。逐一補齊：(1) 加 email hash（+0.8）；(2) 加 phone hash（+0.7）；(3) 帶 <span class="inline-code">fbp/fbc</span> cookie（+1.2）；(4) 帶 <span class="inline-code">client_ip_address + client_user_agent</span>（+0.6）；(5) 加 <span class="inline-code">external_id</span>（你的會員 ID hash）（+0.5）。<strong>EMQ 4.2 → 8.0</strong>，ROAS 同步 +45%。</div><div class="step-tip">email/phone 要 SHA-256 hash、小寫、去空白。沒 hash 直接傳明碼 Meta 會拒收。PHP：<span class="inline-code">hash('sha256', strtolower(trim($email)))</span>。EMQ ≥ 7 是及格線、≥ 8 是優等生。</div></div></div>
+
+  <div class="verify-box">
+    <div class="verify-label">完成驗證 · VERIFY</div>
+    <div class="verify-text">Events Manager 顯示 Purchase 事件 EMQ ≥ 6.0、去重率 ≤ 10%，並截圖存證。</div>
+  </div>
+
+  <div class="troubleshoot">
+    <div class="ts-label">常見問題 · TROUBLESHOOT</div>
+    <div class="ts-item"><div class="ts-q">email 做 Advanced Matching 合法嗎？</div><div class="ts-a">Meta TOS 允許，但你的站必須有明確的 privacy policy 告知會做廣告比對。在歐盟需 Consent Mode 管理。</div></div>
+    <div class="ts-item"><div class="ts-q">測試流量也有 EMQ 嗎？</div><div class="ts-a">有，但通常很低（沒真實 email）。EMQ 要看正式流量才有意義。測試用的就看『事件有進來』即可。</div></div>
+    <div class="ts-item"><div class="ts-q">EMQ 一直 3.x 怎麼辦？</div><div class="ts-a">先確認 fbp cookie 有送（用 DevTools 看 _fbp cookie 存在）。再看 email/phone 有無 hash（明文會被判無效）。最後查 Hash 用的是 SHA-256。</div></div>
+  </div>
+</div>
+
+<div class="nav-footer">
+  <a href="m6-2-capi.html" class="nav-btn"><span aria-hidden="true">←</span> 6.2 CAPI 部署</a>
+  <a href="module7.html" class="nav-btn primary">Module 7 Ads × LINE × TikTok <span aria-hidden="true">→</span></a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">2026 秋季 · 下學期 · 數位行銷實務 II</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+window.addEventListener('scroll',()=>{const h=document.documentElement;fill.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100+'%'});
+(function(){var k='progress:'+location.pathname;var saved=parseInt(localStorage.getItem(k)||'0',10);if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}var t;window.addEventListener('scroll',function(){clearTimeout(t);t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);},{passive:true});})();
+</script>
+</body>
+</html>

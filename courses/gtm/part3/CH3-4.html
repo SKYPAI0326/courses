@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH3-4 dataLayer.push 自訂事件｜GTM 實務演練</title>
+<meta name="description" content="SPA、AJAX 表單、動態載入內容，單靠 GTM 內建觸發條件抓不到。這一節教你用 dataLayer.push 讓 GTM 接得住任何前端事件。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="CH3-4 dataLayer.push 自訂事件｜GTM 實務演練">
+<meta property="og:description" content="SPA、AJAX 表單、動態載入內容，用 dataLayer.push 讓 GTM 接得住任何前端事件。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/gtm/part3/CH3-4.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CH3-4 dataLayer.push 自訂事件｜GTM 實務演練">
+<meta name="twitter:description" content="讓 GTM 接得住任何前端事件。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/gtm/part3/CH3-4.html">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#7a766d;--c-a1:#5a7a5a;--radius:6px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Noto Serif TC',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-a1);border:1px solid rgba(90,122,90,.3);background:rgba(90,122,90,.07);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-a1);width:0%;transition:width .1s}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px}
+.back-link:hover{color:var(--c-a1)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border)}
+.hero-num{font-size:.72rem;color:var(--c-a1);letter-spacing:1px;font-weight:500}
+.lesson-title{font-family:'Noto Serif TC',serif;font-size:2.2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a1);border-radius:var(--radius)}
+.outcomes-label{font-size:.7rem;color:var(--c-a1);letter-spacing:1.5px;font-weight:500;margin-bottom:4px}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a1);margin-top:8px;flex-shrink:0}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px}
+.lesson-section{margin-bottom:64px}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px}
+.section-heading{font-family:'Noto Serif TC',serif;font-size:1.55rem;font-weight:700;margin-bottom:20px;line-height:1.35}
+.section-heading em{font-style:normal;color:var(--c-a1)}
+.body-text{font-size:.95rem;line-height:1.95;margin-bottom:20px}
+.body-text strong{font-weight:700}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:64px 0}
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0}
+.callout.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25)}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2)}
+.callout.warn{background:rgba(181,112,58,.08);border:1px solid rgba(181,112,58,.3)}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px}
+.callout-body{font-size:.88rem;line-height:1.8}
+.inline-code{font-family:'Courier New',monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 6px;border-radius:3px}
+.code-block{background:#2c2b28;color:#f5f3ee;border-radius:var(--radius);padding:18px 20px;font-family:'Courier New',monospace;font-size:.82rem;line-height:1.7;margin:20px 0;overflow-x:auto;white-space:pre}
+.code-block .k{color:#c9963a}.code-block .s{color:#a8c090}.code-block .c{color:#7a766d;font-style:italic}.code-block .f{color:#8dc0d8}
+.step-list{counter-reset:step;margin:24px 0;padding:0;list-style:none}
+.step-list li{counter-increment:step;position:relative;padding-left:44px;margin-bottom:18px;font-size:.9rem;line-height:1.8}
+.step-list li::before{content:counter(step);position:absolute;left:0;top:2px;width:28px;height:28px;border-radius:50%;background:var(--c-a1);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;flex:1}
+.nav-btn:hover{border-color:var(--c-a1)}
+.nav-btn.next{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px}
+.nav-btn-title{font-weight:500}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;gap:16px}
+.footer-logo{font-family:'Noto Serif TC',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:40px 20px 36px}.lesson-title{font-size:1.55rem}.lesson-body{padding:0 20px 60px}.lesson-nav{padding:0 20px 60px;flex-direction:column}.footer{padding:20px}}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;outline:none;text-align:center;letter-spacing:.15em}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate"><div id="_gate-box"><div id="_gate-title">弄一下工作室</div><div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div><input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off"><button id="_gate-btn" onclick="_gc()">進入課程</button><div id="_gate-err"></div></div></div>
+<script>(function(){const K='gtm_auth',H='5142d1f99cbf6f9db528ce5aee5fab62c299fafabfeef9e5e0fa9a1dbff5f151';if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">GTM 實務演練</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH3-4</div>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="pf"></div></div>
+
+<section class="lesson-hero" id="main">
+  <a class="back-link" href="../index.html"><span aria-hidden="true">←</span> 返回課程目錄</a>
+  <div class="hero-meta">
+    <span class="hero-part">PART 3 · 進階互動與自訂事件</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">3.4</span>
+  </div>
+  <h1 class="lesson-title">dataLayer.push：<br>讓 GTM 接得住<em style="color:#5a7a5a;font-style:normal">任何</em>前端事件</h1>
+  <p class="lesson-tagline">React / Vue 的 SPA、AJAX 送表單、Shopify 動態結帳，這些場景 GTM 內建觸發條件都抓不到。解法是讓前端「主動通知」GTM。這一節我們把 dataLayer 從黑盒打開。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學完這節，你會</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>寫出符合 GA4 推薦格式的 <span class="inline-code">dataLayer.push</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div>在 GTM 建立對應的 Custom Event 觸發條件 + Data Layer Variable</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>排除 SPA route 切換抓不到 page_view 的經典問題</div>
+  </div>
+</section>
+
+<main class="lesson-body">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 01</div>
+    <h2 class="section-heading">什麼時候<em>非用 dataLayer.push 不可</em></h2>
+    <p class="body-text">GTM 內建觸發條件（Click、Form Submit、Element Visibility）解決得了 80% 場景，但以下情境它幫不了你：</p>
+    <ul class="step-list">
+      <li><strong>SPA 路由切換</strong>：React/Vue 用 <span class="inline-code">history.pushState</span> 切頁，瀏覽器不重載，GTM 的 Page View 觸發不會再開槍</li>
+      <li><strong>AJAX 表單送出</strong>：表單用 fetch/XHR 送出，沒有真正的 form submit 事件，GTM Form Submit 觸發抓不到</li>
+      <li><strong>第三方結帳回跳</strong>：綠界 / TapPay / Stripe 結帳完跳回 thank-you 頁，但訂單細節要從前端變數拿</li>
+      <li><strong>動態載入內容</strong>：無限捲動載入的文章、彈窗開啟、影片章節切換</li>
+    </ul>
+    <div class="callout tip">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body">
+        共通特徵：<strong>DOM 上沒有對應的「自然」事件可以監聽</strong>。解法是讓前端工程師在事件發生的那一刻，主動 push 一筆資料到 GTM 的資料層。
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 02</div>
+    <h2 class="section-heading">dataLayer.push 的<em>標準結構</em></h2>
+    <p class="body-text">GTM 會監聽全域變數 <span class="inline-code">window.dataLayer</span>，任何人 push 進去的物件，GTM 都能讀到。GA4 推薦的格式長這樣：</p>
+    <div class="code-block"><span class="c">// 前端工程師在事件發生時呼叫</span>
+<span class="f">window.dataLayer</span> = <span class="f">window.dataLayer</span> || [];
+<span class="f">window.dataLayer</span>.push({
+  <span class="k">event</span>: <span class="s">'generate_lead'</span>,  <span class="c">// 事件名（對應 GTM 觸發條件）</span>
+  <span class="k">form_id</span>: <span class="s">'contact_main'</span>,
+  <span class="k">form_location</span>: <span class="s">'footer'</span>,
+  <span class="k">value</span>: <span class="s">1</span>,
+  <span class="k">currency</span>: <span class="s">'TWD'</span>
+});</div>
+    <p class="body-text">三個要件：<strong>① <span class="inline-code">event</span> 鍵必填</strong>（GTM 用這個辨識）、<strong>② 其他鍵是自訂參數</strong>（給 GA4 report 用）、<strong>③ 參數命名遵守 1.4 的字典</strong>。</p>
+    <div class="callout warn">
+      <div class="callout-icon">⚠</div>
+      <div class="callout-body">
+        <strong>順序超重要：</strong>如果前端在 GTM 容器碼載入「之前」就 push，資料會遺失。SPA 場景通常把 <span class="inline-code">dataLayer = []</span> 的初始化放在 &lt;head&gt; 最上方，早於 GTM snippet。
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 03</div>
+    <h2 class="section-heading">GTM 端<em>三步接球</em></h2>
+    <p class="body-text">前端 push 出來後，GTM 裡需要配三個元件：</p>
+    <ul class="step-list">
+      <li><strong>建立 Data Layer Variable</strong>：變數類型選「資料層變數」，名稱填 <span class="inline-code">form_id</span>。之後在 GTM 裡可以用 <span class="inline-code">{{DLV - form_id}}</span> 引用</li>
+      <li><strong>建立 Custom Event 觸發條件</strong>：觸發類型選「自訂事件」，事件名稱填 <span class="inline-code">generate_lead</span>（與 dataLayer.push 的 event 值一字不差）</li>
+      <li><strong>建立 GA4 Event Tag</strong>：Event Name 填 <span class="inline-code">generate_lead</span>，Parameters 加入 <span class="inline-code">form_id = {{DLV - form_id}}</span>，觸發器掛上剛建好的 Custom Event</li>
+    </ul>
+    <div class="callout info">
+      <div class="callout-icon">ℹ</div>
+      <div class="callout-body">
+        驗證：打開 GTM 預覽模式 → 操作前端 → 在 Preview 面板左側應該看到 <span class="inline-code">generate_lead</span> 事件出現，右側 Data Layer 面板能看到你 push 的所有欄位。看不到就是前端沒 push 成功，先去 Console 跑 <span class="inline-code">dataLayer</span> 檢查。
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 04</div>
+    <h2 class="section-heading">SPA 經典坑：<em>page_view 只開一次</em></h2>
+    <p class="body-text">React/Vue 站最常見 bug：用戶從首頁點到商品頁，網址變了、內容變了，但 GA4 只記錄到一次 page_view。原因：GTM 的 Page View 觸發條件綁在瀏覽器 <span class="inline-code">DOMContentLoaded</span>，SPA 只觸發一次。</p>
+    <p class="body-text">解法：攔截 <span class="inline-code">history.pushState</span>，每次路由切換時 push 一筆虛擬 page_view：</p>
+    <div class="code-block"><span class="c">// 放在 Vue Router / React Router 的 afterEach hook</span>
+<span class="f">router</span>.afterEach((to) => {
+  <span class="f">window.dataLayer</span>.push({
+    <span class="k">event</span>: <span class="s">'virtual_page_view'</span>,
+    <span class="k">page_path</span>: to.<span class="f">fullPath</span>,
+    <span class="k">page_title</span>: <span class="f">document</span>.<span class="k">title</span>
+  });
+});</div>
+    <p class="body-text">然後在 GTM 建 Custom Event 觸發「virtual_page_view」，綁 GA4 的 <span class="inline-code">page_view</span> 事件 —— GA4 報表就能正確看到每個前端路由的流量。</p>
+  </div>
+
+</main>
+
+<nav class="lesson-nav">
+  <a class="nav-btn" href="CH3-3.html"><span>←</span><div><div class="nav-btn-label">上一節</div><div class="nav-btn-title">3.3 捲動/影片/下載</div></div></a>
+  <a class="nav-btn next" href="../part5/CH5-1.html"><div><div class="nav-btn-label">下一節</div><div class="nav-btn-title">4.1 Meta Pixel</div></div><span>→</span></a>
+</nav>
+<footer class="footer"><div class="footer-logo">弄一下工作室</div><div class="footer-note">Part 3 · 4 of 4</div></footer>
+<script>
+window.addEventListener('scroll',()=>{const d=document.documentElement;document.getElementById('pf').style.width=(d.scrollTop/(d.scrollHeight-d.clientHeight||1))*100+'%'});
+(function(){var k='progress:'+location.pathname,s=parseInt(localStorage.getItem(k)||'0',10);if(s>0)window.addEventListener('load',()=>window.scrollTo(0,s));var t;window.addEventListener('scroll',()=>{clearTimeout(t);t=setTimeout(()=>localStorage.setItem(k,String(window.scrollY)),200)},{passive:true})})();
+</script>
+</body>
+</html>

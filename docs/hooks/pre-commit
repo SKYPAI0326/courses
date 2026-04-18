@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Git pre-commit hook — 課程網頁
+# ─────────────────────────────────────
+# 對 staged 的 HTML 檔跑 lint-page.py，有 BLOCKER 擋 commit。
+#
+# 安裝：
+#   bash docs/hooks/install.sh
+# 或手動：
+#   cp docs/hooks/pre-commit .git/hooks/pre-commit
+#   chmod +x .git/hooks/pre-commit
+#
+# 暫時跳過：
+#   git commit --no-verify   （只在緊急時用）
+
+set -e
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+# 只跑有 HTML 變動的 commit
+STAGED_HTML=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.html$' || true)
+if [ -z "$STAGED_HTML" ]; then
+    exit 0
+fi
+
+echo "🔍 執行課程頁合規檢查 (lint-page.py --changed --baseline)..."
+python3 docs/lint-page.py --changed --no-warn --baseline
+
+EXIT=$?
+if [ $EXIT -ne 0 ]; then
+    echo ""
+    echo "❌ 有 BLOCKER，commit 被擋下。"
+    echo "   修正後重 stage 再 commit；或 git commit --no-verify 略過（不建議）。"
+    exit 1
+fi
+
+echo "✅ lint 通過。"
+exit 0

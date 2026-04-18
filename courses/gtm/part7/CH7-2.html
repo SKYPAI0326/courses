@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH7-2 Looker Studio 報表交付｜GTM 實務演練</title>
+<meta name="description" content="交付給業主、長官看的那張表。把 GA4、Google Ads、Meta 三邊數據合成一張動態儀表板。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="CH7-2 Looker Studio 報表交付｜GTM 實務演練">
+<meta property="og:description" content="三平台合併儀表板 + 報表模板。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/gtm/part7/CH7-2.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CH7-2 Looker Studio 報表交付｜GTM 實務演練">
+<meta name="twitter:description" content="報表交付模板。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/gtm/part7/CH7-2.html">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#fff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#7a766d;--c-a1:#6b7fa3;--radius:6px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Noto Serif TC',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);text-decoration:none;letter-spacing:.05em}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}.topbar-sub{font-size:.8rem;color:var(--c-muted)}.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-a1);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.08);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49}.progress-fill{height:100%;background:var(--c-a1);width:0%}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px}
+.back-link{display:inline-flex;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;align-items:center}.back-link:hover{color:var(--c-a1)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px}.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:1px;font-weight:500}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border)}.hero-num{font-size:.72rem;color:var(--c-a1);letter-spacing:1px;font-weight:500}
+.lesson-title{font-family:'Noto Serif TC',serif;font-size:2.2rem;font-weight:700;line-height:1.3;margin-bottom:20px}
+.lesson-tagline{font-size:.97rem;color:var(--c-muted);line-height:1.9;max-width:580px;margin-bottom:36px}
+.outcomes{padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a1);border-radius:var(--radius);display:flex;flex-direction:column;gap:10px}
+.outcomes-label{font-size:.7rem;color:var(--c-a1);letter-spacing:1.5px;font-weight:500}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem}.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a1);margin-top:8px;flex-shrink:0}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px}.lesson-section{margin-bottom:64px}
+.section-eyebrow{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin-bottom:10px}
+.section-heading{font-family:'Noto Serif TC',serif;font-size:1.55rem;font-weight:700;margin-bottom:20px;line-height:1.35}.section-heading em{font-style:normal;color:var(--c-a1)}
+.body-text{font-size:.95rem;line-height:1.95;margin-bottom:20px}.body-text strong{font-weight:700}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:64px 0}
+.callout{display:flex;gap:16px;padding:20px 24px;border-radius:var(--radius);margin:24px 0}
+.callout.info{background:rgba(107,127,163,.07);border:1px solid rgba(107,127,163,.25)}
+.callout.tip{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2)}
+.callout.warn{background:rgba(181,112,58,.08);border:1px solid rgba(181,112,58,.3)}
+.callout.key{background:rgba(201,150,58,.07);border:1px solid rgba(201,150,58,.25)}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px}.callout-body{font-size:.88rem;line-height:1.8}
+.inline-code{font-family:'Courier New',monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 6px;border-radius:3px}
+.code-block{background:#2c2b28;color:#f5f3ee;border-radius:var(--radius);padding:18px 20px;font-family:'Courier New',monospace;font-size:.82rem;line-height:1.7;margin:20px 0;overflow-x:auto;white-space:pre}
+.code-block .k{color:#c9963a}.code-block .s{color:#a8c090}.code-block .c{color:#7a766d;font-style:italic}
+.rule-table{width:100%;border-collapse:collapse;margin:24px 0;font-size:.85rem;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden}
+.rule-table th{background:var(--c-surface);font-weight:700;text-align:left;padding:12px 14px;border-bottom:1px solid var(--c-border);font-size:.8rem}
+.rule-table td{padding:12px 14px;border-bottom:1px solid var(--c-border);vertical-align:top;line-height:1.7}
+.rule-table tr:last-child td{border-bottom:none}.rule-table td.mono{font-family:'Courier New',monospace;font-size:.82rem}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;flex:1}
+.nav-btn:hover{border-color:var(--c-a1)}.nav-btn.next{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px}.nav-btn-title{font-weight:500}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;gap:16px}
+.footer-logo{font-family:'Noto Serif TC',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}.footer-note{font-size:.75rem;color:var(--c-muted)}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:40px 20px 36px}.lesson-title{font-size:1.55rem}.lesson-body{padding:0 20px 60px}.lesson-nav{padding:0 20px 60px;flex-direction:column}.footer{padding:20px}}
+a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}
+</style>
+</head>
+<body>
+<style id="_gs">#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;margin-bottom:8px}#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;outline:none;text-align:center;letter-spacing:.15em}#_gate-input:focus{border-color:#6b7fa3;background:#fff}#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer}#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}</style>
+<div id="_gate"><div id="_gate-box"><div id="_gate-title">弄一下工作室</div><div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div><input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off"><button id="_gate-btn" onclick="_gc()">進入課程</button><div id="_gate-err"></div></div></div>
+<script>(function(){const K='gtm_auth',H='5142d1f99cbf6f9db528ce5aee5fab62c299fafabfeef9e5e0fa9a1dbff5f151';if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+<header class="topbar"><a class="logo" href="../../../index.html">弄一下工作室</a><div class="topbar-divider"></div><div class="topbar-sub">GTM 實務演練</div><div class="spacer"></div><div class="topbar-tag">CH7-2</div></header>
+<div class="progress-strip"><div class="progress-fill" id="pf"></div></div>
+
+<section class="lesson-hero" id="main">
+  <a class="back-link" href="../index.html"><span aria-hidden="true">←</span> 返回課程目錄</a>
+  <div class="hero-meta"><span class="hero-part">PART 7 · 分析與交付</span><div class="hero-divider-v"></div><span class="hero-num">7.2</span></div>
+  <h1 class="lesson-title">Looker Studio：<br>三平台<em>合成一張表</em></h1>
+  <p class="lesson-tagline">GA4 報表給分析師看、Google Ads 給操盤手看、Meta Ads Manager 給投手看。客戶 / 老闆只想看一張彙整過的，且每週自動更新。Looker Studio（原 Data Studio）就是為這個場景生的。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學完這節，你會</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>串接 GA4、Google Ads、Meta（透過第三方 connector）資料源</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>寫計算欄位做 Blended ROAS、CPC、Funnel conversion rate</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>套用一套可重複使用的「五頁交付模板」</div>
+  </div>
+</section>
+
+<main class="lesson-body">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 01</div>
+    <h2 class="section-heading">資料源<em>三種接法</em></h2>
+    <table class="rule-table">
+      <thead><tr><th>資料源</th><th>接法</th><th>注意</th></tr></thead>
+      <tbody>
+        <tr><td>GA4</td><td>原生 connector（免費）</td><td>快但欄位受限，某些維度（hostname、某些 item_*）要用 BigQuery</td></tr>
+        <tr><td>Google Ads</td><td>原生 connector（免費）</td><td>直接拉 campaign / ad_group 層級費用</td></tr>
+        <tr><td>Meta / TikTok / LINE</td><td>付費 connector：Supermetrics / Funnel.io / Windsor.ai</td><td>每個資料源大約 $29–99/月。或用 n8n / Make 自接 API 寫入 Sheet</td></tr>
+        <tr><td>Sheets（合併媒體花費）</td><td>Google Sheets connector</td><td>最便宜的跨平台整合：每週一手動貼廣告費到 Sheet，Looker 拉這張</td></tr>
+      </tbody>
+    </table>
+    <div class="callout tip">
+      <div class="callout-icon">✓</div>
+      <div class="callout-body"><strong>省錢解：</strong>小預算客戶（月廣告費 &lt; 15 萬）用 Google Sheets 手動彙整。投手每週填一次廣告花費，Looker 自動算 Blended ROAS。付 Supermetrics 等自動方案一年省下的錢未必打平。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 02</div>
+    <h2 class="section-heading">計算欄位（Calculated Field）<em>常用公式</em></h2>
+    <p class="body-text">圖表右上「新增欄位」輸入公式：</p>
+    <div class="code-block"><span class="c">-- ROAS</span>
+SUM(purchase_revenue) / SUM(ad_cost)
+
+<span class="c">-- Blended ROAS（跨 Sheet 整合）</span>
+SUM(total_revenue_from_ga4) / SUM(meta_spend + google_spend + line_spend)
+
+<span class="c">-- CPC 自算（Meta 平台已經有，但不同來源對齊用）</span>
+SUM(spend) / SUM(clicks)
+
+<span class="c">-- Funnel 轉換率</span>
+SUM(purchase_count) / SUM(view_item_count)
+
+<span class="c">-- 營收占比（各渠道）</span>
+SUM(revenue) / SUM(revenue) TOTAL
+
+<span class="c">-- CASE 分組</span>
+CASE
+  WHEN source_medium = <span class="s">'google / cpc'</span> THEN <span class="s">'Google Ads'</span>
+  WHEN source_medium CONTAINS <span class="s">'facebook'</span> THEN <span class="s">'Meta'</span>
+  WHEN source_medium = <span class="s">'(direct) / (none)'</span> THEN <span class="s">'Direct'</span>
+  ELSE <span class="s">'Others'</span>
+END</div>
+    <div class="callout warn">
+      <div class="callout-icon">⚠</div>
+      <div class="callout-body"><strong>除以 0 陷阱：</strong>ROAS 公式在花費為 0 時會錯誤。加 <span class="inline-code">NULLIF</span>：<span class="inline-code">SUM(revenue) / NULLIF(SUM(spend), 0)</span>。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 03</div>
+    <h2 class="section-heading">交付用<em>五頁模板</em></h2>
+    <p class="body-text">可以當作固定交付結構，每個客戶都 clone 一份改配色 / Logo 即可：</p>
+    <table class="rule-table">
+      <thead><tr><th>頁</th><th>內容</th><th>受眾</th></tr></thead>
+      <tbody>
+        <tr><td>1. Overview</td><td>四大 KPI scorecard（營收、訂單、ROAS、CPA） + 日趨勢折線</td><td>老闆、客戶</td></tr>
+        <tr><td>2. Media Performance</td><td>各平台花費 vs 營收 bar + ROAS 表格</td><td>投手、老闆</td></tr>
+        <tr><td>3. Funnel</td><td>Sankey / 漏斗圖：view → cart → checkout → purchase</td><td>優化團隊</td></tr>
+        <tr><td>4. Product</td><td>Top 20 商品銷量、毛利、庫存警示</td><td>採購、商品部</td></tr>
+        <tr><td>5. Campaign Detail</td><td>活動 × 廣告組 × 素材 drill-down</td><td>投手自己看</td></tr>
+      </tbody>
+    </table>
+    <div class="callout info">
+      <div class="callout-icon">ℹ</div>
+      <div class="callout-body">每頁加 <strong>日期篩選器</strong>（預設「過去 28 天」） + <strong>活動 / 品牌篩選器</strong>。頂部寫資料更新時間（用 <span class="inline-code">CURRENT_DATE()</span> 或「Data last refreshed」原生欄位）。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">Section 04</div>
+    <h2 class="section-keyword section-heading">自動化<em>分發與權限</em></h2>
+    <p class="body-text">Looker Studio 報表做完後兩種發送方式：</p>
+    <ul style="margin:20px 0 20px 24px;font-size:.9rem;line-height:2">
+      <li><strong>排程電郵</strong>（Schedule delivery）：每週一早上 9 點把 PDF 寄給 CEO + 業主 + 客戶。設定 → 檔案 → 排程傳送</li>
+      <li><strong>共享連結</strong>：客戶要即時看最新數據時，設「擁有連結者可檢視」。但注意 — 連結內的資料源權限若是你的帳號，客戶看到的是你看得到的資料</li>
+    </ul>
+    <div class="callout key">
+      <div class="callout-icon">◆</div>
+      <div class="callout-body"><strong>交付清單（SOP）：</strong>(1) 把報表複本存給客戶自己的 Google 帳號當 owner；(2) 連資料源連到客戶自己的 GA4 / Google Ads（用服務專案也可）；(3) PDF 與 Live Link 都寄；(4) 附一份「五張表怎麼看」的說明文件 —— 客戶才知道哪個數字代表什麼。省略這步，客戶第二週開始就不看了。</div>
+    </div>
+  </div>
+
+</main>
+
+<nav class="lesson-nav">
+  <a class="nav-btn" href="CH7-1.html"><span>←</span><div><div class="nav-btn-label">上一節</div><div class="nav-btn-title">7.1 GA4 分析與受眾</div></div></a>
+  <a class="nav-btn next" href="PRAC7-1.html"><div><div class="nav-btn-label">下一節</div><div class="nav-btn-title">演練 5 完整專案交付</div></div><span>→</span></a>
+</nav>
+<footer class="footer"><div class="footer-logo">弄一下工作室</div><div class="footer-note">Part 7 · 2 of 3</div></footer>
+<script>
+window.addEventListener('scroll',()=>{const d=document.documentElement;document.getElementById('pf').style.width=(d.scrollTop/(d.scrollHeight-d.clientHeight||1))*100+'%'});
+(function(){var k='progress:'+location.pathname,s=parseInt(localStorage.getItem(k)||'0',10);if(s>0)window.addEventListener('load',()=>window.scrollTo(0,s));var t;window.addEventListener('scroll',()=>{clearTimeout(t);t=setTimeout(()=>localStorage.setItem(k,String(window.scrollY)),200)},{passive:true})})();
+</script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>9.3 受眾建模 + 平台同步｜數位行銷實務 II GTM × 廣告科技</title>
+<meta name="description" content="GA4 的 event-based / sequential / predictive 三種受眾——建完直接同步到 Google Ads + Meta 做再行銷。"
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="9.3 受眾建模 + 平台同步｜數位行銷實務 II GTM × 廣告科技">
+<meta property="og:description" content="GA4 的 event-based / sequential / predictive 三種受眾——建完直接同步到 Google Ads + Meta 做再行銷。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/ntub-gtm-adtech/m9-3-audience.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="9.3 受眾建模 + 平台同步｜數位行銷實務 II GTM × 廣告科技">
+<meta name="twitter:description" content="GA4 的 event-based / sequential / predictive 三種受眾——建完直接同步到 Google Ads + Meta 做再行銷。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/ntub-gtm-adtech/m9-3-audience.html">>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-text:#2c2b28;--c-muted:#7a766d;--c-a2:#c9963a;--radius:6px;--content-w:780px}
+body{background:var(--c-bg);color:var(--c-text);font-family:'Noto Sans TC',sans-serif;font-size:15px;line-height:1.7}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-a2);border:1px solid rgba(201,150,58,.3);background:rgba(201,150,58,.08);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:3px;background:var(--c-surface);position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-a2);width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-a2)}
+.hero-eyebrow{font-size:.7rem;color:var(--c-a2);letter-spacing:2px;font-weight:500;margin-bottom:12px}
+.page-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:12px}
+.page-subtitle{font-size:.95rem;color:var(--c-muted);line-height:1.85;max-width:600px}
+.context-box{max-width:var(--content-w);margin:0 auto;padding:0 48px 32px}
+.context-inner{background:rgba(201,150,58,.06);border:1px solid rgba(201,150,58,.2);border-left:3px solid var(--c-a2);border-radius:var(--radius);padding:20px 24px}
+.context-label{font-size:.68rem;color:var(--c-a2);letter-spacing:1.5px;font-weight:500;margin-bottom:8px}
+.context-text{font-size:.88rem;color:var(--c-text);line-height:1.8}
+.steps-wrap{max-width:var(--content-w);margin:0 auto;padding:8px 48px 48px}
+.section-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:24px}
+.step-block{display:flex;gap:24px;margin-bottom:44px;position:relative}
+.step-block:not(:last-child)::after{content:'';position:absolute;left:19px;top:48px;width:2px;height:calc(100% - 16px);background:var(--c-border)}
+.step-circle{width:40px;height:40px;border-radius:50%;background:rgba(201,150,58,.1);border:2px solid var(--c-a2);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-weight:700;font-size:.95rem;color:var(--c-a2);flex-shrink:0}
+.step-content{flex:1;padding-top:6px}
+.step-heading{font-family:'Shippori Mincho',serif;font-size:1.15rem;font-weight:700;color:var(--c-text);margin-bottom:10px}
+.step-body{font-size:.9rem;color:var(--c-text);line-height:1.9;margin-bottom:12px}
+.step-tip{font-size:.82rem;color:var(--c-muted);background:var(--c-surface);border-left:3px solid var(--c-border);padding:10px 14px;border-radius:0 var(--radius) var(--radius) 0;line-height:1.7}
+.step-tip strong{color:var(--c-a2);font-weight:500}
+.inline-code{font-family:'Courier New',monospace;font-size:.85em;background:rgba(201,150,58,.1);padding:1px 6px;border-radius:3px}
+.code-block{font-family:'Courier New',monospace;font-size:.82rem;background:#2c2b28;color:#edeae3;padding:16px 20px;border-radius:var(--radius);margin:12px 0;line-height:1.7;overflow-x:auto;white-space:pre-wrap}
+.verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:24px 28px;margin:40px 0}
+.verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px}
+.verify-text{font-size:.9rem;color:var(--c-text);line-height:1.85}
+.troubleshoot{margin:40px 0}
+.ts-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:16px}
+.ts-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 22px;margin-bottom:10px}
+.ts-q{font-size:.87rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.ts-a{font-size:.85rem;color:var(--c-muted);line-height:1.75}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a2);text-decoration:none;padding:10px 20px;border:1px solid rgba(201,150,58,.3);border-radius:var(--radius);transition:background .2s}
+.nav-btn:hover{background:rgba(201,150,58,.07)}
+.nav-btn.primary{background:var(--c-a2);color:#fff;border-color:var(--c-a2)}
+.nav-btn.primary:hover{background:#a37b2f}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+@media(max-width:600px){.topbar,.page-hero,.context-box,.steps-wrap,.nav-footer,.footer{padding-left:24px;padding-right:24px}}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Shippori Mincho',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#c9963a;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#c9963a;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#a37b2f}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='ntub_auth',H='1c0d96ab18b0574bb4e6c04b2c4baff23637a70205a6b651ccdd6f2c9b638c81';if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">數位行銷實務 II GTM × 廣告科技</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">9.3 受眾建模 + 平台同步</span>
+</header>
+<div class="progress-strip"><div class="progress-fill" id="prog"></div></div>
+
+<div class="page-hero" id="main">
+  <a href="module9.html" class="back-link"><span aria-hidden="true">←</span> 返回 Module 9</a>
+  <div class="hero-eyebrow">MODULE 9 · SECTION 9.3</div>
+  <h1 class="page-title">受眾建模 + 平台同步</h1>
+  <p class="page-subtitle">GA4 的 event-based / sequential / predictive 三種受眾——建完直接同步到 Google Ads + Meta 做再行銷。</p>
+</div>
+
+<div class="context-box">
+  <div class="context-inner">
+    <div class="context-label">為什麼這很重要 · WHY THIS MATTERS</div>
+    <div class="context-text">廣告的最高效率不是找新客——是『把已經快轉換的人推一把』。受眾建模就是找那群人。</div>
+  </div>
+</div>
+
+<div class="steps-wrap">
+  <div class="section-label">STEP BY STEP · 本節重點</div>
+  <div class="step-block"><div class="step-circle">1</div><div class="step-content"><div class="step-heading">1 Event-based 受眾：最基礎</div><div class="step-body">條件：『30 天內做過 add_to_cart 但沒 purchase』。GA4 → Configure → Audiences → New → Event / 設條件。建完會追溯過去 30 天找符合者，未來符合的自動進。</div><div class="step-tip">Event-based 是入門，95% 再行銷受眾用這個就夠。但要小心 event 欄位命名——一改舊受眾可能中斷。</div></div></div>
+  <div class="step-block"><div class="step-circle">2</div><div class="step-content"><div class="step-heading">2 Sequential：『先做 A 再做 B』</div><div class="step-body">條件：『先 view_item 再 add_to_cart 但沒 purchase』。比 Event-based 精準——只抓真正有漏斗意圖的。GA4 → Audience → New → Sequence → 加兩個以上步驟。</div><div class="step-tip">Sequence 有 time window（步驟 B 必須在 A 後 X 分鐘內）——通常設 30 分鐘到 1 天。太短會漏真客戶；太長會含進不相關的。</div></div></div>
+  <div class="step-block"><div class="step-circle">3</div><div class="step-content"><div class="step-heading">3 Predictive：機器學習受眾</div><div class="step-body">GA4 會自動建『可能在 7 天內購買』、『可能在 7 天內流失』等 Predictive audiences——前提是你的 property 有足夠資料（1000+ event 正/反例）。小店不會有這個功能。</div><div class="step-tip">Predictive 同步到 Ads 做『加值競價』效果顯著——但要小客戶累積 6 個月資料量才用得上。</div></div></div>
+  <div class="step-block"><div class="step-circle">4</div><div class="step-content"><div class="step-heading">4 同步到 Google Ads</div><div class="step-body">GA4 Admin → Product links → Google Ads → 連接 Ads 帳戶（要同一個 Google 帳戶管）→ 受眾自動同步。Ads 端 Audience Manager 就看得到 GA4 的受眾列表。</div><div class="step-tip">同步有 24–48 小時延遲。Ads 端看到『成員數 &lt; 1000』狀態時不能投——繼續累積。</div></div></div>
+  <div class="step-block"><div class="step-circle">5</div><div class="step-content"><div class="step-heading">5 同步到 Meta / TikTok / LINE</div><div class="step-body">GA4 原生<strong>不支援</strong>直接送到 Meta/TikTok/LINE。方案：① 在這些平台內用『網站自訂受眾』建（用 Pixel 事件）；② 第三方工具（如 Segment、mParticle）做中轉；③ CSV 匯出 email 清單上傳。</div><div class="step-tip">第①是主流——反正 Pixel 事件已經在送了，平台自己能建。不用繞 GA4。</div></div></div>
+
+  <div class="step-block"><div class="step-circle">6</div><div class="step-content"><div class="step-heading">實戰案例｜RFM 分群再行銷 ROAS 翻倍</div><div class="step-body">某服飾電商以前只做『瀏覽未購買 30 天』這一種再行銷受眾。導入 <strong>RFM 分群</strong>後拆成 6 個：(1) 高價值會員（R<30, F>5, M>5000）→ 推新品；(2) 流失高價值（R>90, F>3）→ 召回折扣；(3) 新客（F=1）→ 推次購折價；(4) 沉睡（R>180）→ 大折扣刺激；(5) 加購未購 → 信任廣告；(6) 廣泛相似受眾。<strong>整體再行銷 ROAS 從 3.8 → 8.2</strong>，特別是(2)流失高價值 ROAS 14.0。</div><div class="step-tip">RFM 分群要用 BigQuery 或 Looker Studio 算，GA4 介面做不出來。SQL：<span class="inline-code">NTILE(5) OVER (ORDER BY recency DESC)</span>分 5 等分。分群完透過 Google Ads Customer Match + Meta Custom Audience 上傳——至少 1000 人起跳才能投放。</div></div></div>
+
+  <div class="verify-box">
+    <div class="verify-label">完成驗證 · VERIFY</div>
+    <div class="verify-text">GA4 建至少 3 組受眾（1 event-based、1 sequential、1 其他條件），同步到 Google Ads 截圖存證；Meta 內建相同邏輯的 3 組自訂受眾。</div>
+  </div>
+
+  <div class="troubleshoot">
+    <div class="ts-label">常見問題 · TROUBLESHOOT</div>
+    <div class="ts-item"><div class="ts-q">受眾最低成員數是多少？</div><div class="ts-a">Google Ads 展示/搜尋廣告各有下限（Display 100、Search 1000、YouTube 1000）。低於不能投。</div></div>
+    <div class="ts-item"><div class="ts-q">受眾可以共用跨帳戶嗎？</div><div class="ts-a">同一 GA4 property 的受眾可以共用到所有連接的 Ads 帳戶。不同 property 要各自建。</div></div>
+    <div class="ts-item"><div class="ts-q">歐盟使用者 Consent denied 的會進受眾嗎？</div><div class="ts-a">不會。Consent denied 的流量本身不記錄進 GA4 使用者身份——自然不會進受眾。Consent Mode v2 會壓低受眾 size。</div></div>
+  </div>
+</div>
+
+<div class="nav-footer">
+  <a href="m9-2-attribution.html" class="nav-btn"><span aria-hidden="true">←</span> 9.2 歸因模型</a>
+  <a href="module10.html" class="nav-btn primary">Module 10 Looker × 期末專案 <span aria-hidden="true">→</span></a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">2026 秋季 · 下學期 · 數位行銷實務 II</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+window.addEventListener('scroll',()=>{const h=document.documentElement;fill.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100+'%'});
+(function(){var k='progress:'+location.pathname;var saved=parseInt(localStorage.getItem(k)||'0',10);if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}var t;window.addEventListener('scroll',function(){clearTimeout(t);t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);},{passive:true});})();
+</script>
+</body>
+</html>
