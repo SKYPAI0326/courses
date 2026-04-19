@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH5-2 迭代實戰｜CCS 認證研習</title>
+<meta name="description" content="學會讀 AI 輸出、用五維診斷找問題、逐輪改 prompt——三輪對話把爛輸出救回來，這是實務使用 AI 的核心肌力。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="CH5-2 迭代實戰｜CCS 認證研習">
+<meta property="og:description" content="學會讀 AI 輸出、用五維診斷找問題、逐輪改 prompt——三輪對話把爛輸出救回來，這是實務使用 AI 的核心肌力。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/ccs-foundations/CH5-2.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CH5-2 迭代實戰｜CCS 認證研習">
+<meta name="twitter:description" content="學會讀 AI 輸出、用五維診斷找問題、逐輪改 prompt——三輪對話把爛輸出救回來，這是實務使用 AI 的核心肌力。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/ccs-foundations/CH5-2.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-a5:#7a9ea3;--radius:4px;--radius-sm:3px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 4px 0;font-size:.85rem;text-decoration:none;}
+.skip-link:focus{left:0;}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-a5);border:1px solid rgba(122,158,163,.3);background:rgba(122,158,163,.08);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-a5);width:0%;transition:width .1s;}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-a5);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.73rem;color:var(--c-muted);letter-spacing:.08em;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-a5);letter-spacing:.1em;font-weight:500;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;}
+.lesson-tagline{font-size:.92rem;color:var(--c-muted);line-height:1.9;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);}
+.outcomes-label{font-size:.73rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.9rem;color:var(--c-text);}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a5);margin-top:8px;flex-shrink:0;}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:64px;}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em;}
+.section-heading em{font-style:normal;color:var(--c-text);}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:64px 0;}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text);}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.9rem;line-height:1.8;color:var(--c-text);}
+.callout-body strong{font-weight:700;}
+.diag-table{width:100%;border-collapse:collapse;margin:24px 0;}
+.diag-table th{font-size:.73rem;color:var(--c-muted);font-weight:500;padding:10px 16px;border-bottom:2px solid var(--c-border);text-align:left;}
+.diag-table td{font-size:.85rem;padding:12px 16px;border-bottom:1px solid var(--c-border);vertical-align:top;line-height:1.65;}
+.diag-table tr:last-child td{border-bottom:none;}
+.diag-table .dim-label{font-weight:700;color:var(--c-a5);}
+.iter-block{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);margin:20px 0;overflow:hidden;}
+.iter-header{display:flex;align-items:center;gap:12px;padding:14px 20px;background:var(--c-surface);border-bottom:1px solid var(--c-border);}
+.iter-badge{font-size:.7rem;font-weight:700;letter-spacing:1px;padding:3px 10px;border-radius:99px;background:rgba(122,158,163,.12);border:1px solid rgba(122,158,163,.3);color:var(--c-a5);}
+.iter-title{font-size:.9rem;font-weight:700;color:var(--c-text);}
+.iter-dim-tag{margin-left:auto;font-size:.73rem;color:var(--c-a5);font-weight:500;}
+.iter-body{padding:18px 20px;}
+.iter-row{display:flex;gap:8px;margin-bottom:10px;}
+.iter-row:last-child{margin-bottom:0;}
+.iter-label{font-size:.73rem;font-weight:700;color:var(--c-muted);letter-spacing:.05em;min-width:52px;padding-top:2px;flex-shrink:0;}
+.iter-content{font-size:.85rem;color:var(--c-text);line-height:1.7;background:var(--c-surface);border-radius:var(--radius-sm);padding:8px 12px;flex:1;}
+.iter-diagnosis{font-size:.82rem;color:var(--c-muted);line-height:1.65;margin-top:8px;padding:8px 12px;border-left:2px solid var(--c-border);}
+.iter-diagnosis strong{color:var(--c-text);}
+.iter-changed{display:inline-block;font-size:.7rem;font-weight:700;color:var(--c-a5);background:rgba(122,158,163,.08);border:1px solid rgba(122,158,163,.25);border-radius:99px;padding:2px 8px;margin-bottom:6px;}
+.practice-block{background:rgba(122,158,163,.05);border:1px solid rgba(122,158,163,.2);border-left:3px solid var(--c-a5);border-radius:var(--radius);padding:24px 28px;margin:28px 0;}
+.practice-label{font-size:.7rem;color:var(--c-a5);letter-spacing:1.5px;font-weight:700;margin-bottom:12px;}
+.practice-body{font-size:.9rem;color:var(--c-text);line-height:1.85;}
+.practice-body ol{padding-left:20px;margin-top:8px;}
+.practice-body ol li{margin-bottom:8px;}
+.error-list{margin:20px 0;}
+.error-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 22px;margin-bottom:12px;}
+.error-item:last-child{margin-bottom:0;}
+.error-num{font-size:.7rem;font-weight:700;color:var(--c-muted);letter-spacing:.1em;margin-bottom:6px;}
+.error-title{font-size:.9rem;font-weight:700;color:var(--c-text);margin-bottom:8px;}
+.error-meta{display:flex;flex-direction:column;gap:4px;}
+.error-row{font-size:.82rem;color:var(--c-muted);line-height:1.65;}
+.error-row strong{color:var(--c-text);font-weight:600;}
+.quiz-list{margin:20px 0;}
+.quiz-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:22px 24px;margin-bottom:14px;}
+.quiz-item:last-child{margin-bottom:0;}
+.quiz-q-label{font-size:.7rem;font-weight:700;color:var(--c-a5);letter-spacing:.1em;margin-bottom:8px;}
+.quiz-q{font-size:.92rem;color:var(--c-text);line-height:1.8;margin-bottom:14px;font-weight:500;}
+.quiz-a-label{font-size:.7rem;font-weight:700;color:var(--c-muted);letter-spacing:.1em;margin-bottom:6px;}
+.quiz-a{font-size:.85rem;color:var(--c-muted);line-height:1.8;}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-a5);}
+.nav-btn.next{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}
+.nav-btn-title{font-weight:500;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1);}
+.reveal.in{opacity:1;transform:translateY(0);}
+.section-rule{opacity:0;transform:scaleX(.3);transform-origin:left;transition:opacity .4s,transform .6s cubic-bezier(.16,1,.3,1);}
+.section-rule.in{opacity:1;transform:scaleX(1);}
+@media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important;}}
+@media(max-width:768px){.topbar{padding:0 16px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero{padding:40px 20px 36px;}.lesson-title{font-size:1.45rem;}.lesson-body{padding:0 20px 60px;}.lesson-nav{padding:0 20px 60px;flex-direction:column;}.footer{padding:20px;}.diag-table{display:block;overflow-x:auto;}.iter-header{flex-wrap:wrap;}.iter-dim-tag{margin-left:0;}}
+</style>
+</head>
+<body>
+
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif;}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center;}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.45rem;font-weight:700;color:#2c2b28;margin-bottom:8px;}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7;}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.92rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box;}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff;}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s;}
+#_gate-btn:hover{background:#5c6f91;}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px;}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='ccs_auth',H='f195a697efb749102d1eee6c7071180ece0bba71b6df57eb92fe857fc61cb4d8';if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return;}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none';}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次';}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc();});})()</script>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+<header class="topbar">
+  <a class="logo" href="../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">CCS 認證研習</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">CH 5-2</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="progressFill"></div></div>
+
+<section class="lesson-hero" id="main">
+  <a class="back-link" href="index.html"><span aria-hidden="true">←</span> 返回課程目錄</a>
+  <div class="hero-meta">
+    <span class="hero-part">第五部分 · 實務應用篇</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 5-2</span>
+  </div>
+  <h1 class="lesson-title">迭代實戰 — 三輪對話把爛輸出救回來</h1>
+  <p class="lesson-tagline">真實使用 AI 的 80% 時間，不是寫第一句 prompt，而是讀輸出、找問題、改 prompt 再試。這堂課教你建立診斷語言，讓每一輪迭代都精準有效。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學完這章，你會</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>用五個維度拆解 AI 輸出的具體問題</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>每輪只改一個維度，避免失控</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>把「感覺怪怪的」轉換成可執行的 prompt 修改指令</div>
+  </div>
+</section>
+
+<article class="lesson-body">
+
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">(01)</div>
+    <h2 class="section-heading">為什麼迭代比第一次寫好更重要</h2>
+
+    <p class="body-text">真實使用 AI 的 80% 時間不是在寫第一句 prompt，而是在<strong>讀輸出、發現哪裡不對、回去改 prompt</strong>。CCS 認證只考「一次性 prompt 寫得好不好」，但實務上幾乎沒有人第一次就寫得完美——<strong>會不會迭代</strong>才是實務能力的核心。</p>
+
+    <p class="body-text">很多人的迭代方式是這樣的：看到輸出不滿意 → 「再幫我寫得更好一點」→ 再不滿意 → 「再更好一點」→ 結果 AI 只在原輸出上加花邊，本質沒有變好。</p>
+
+    <div class="callout key">
+      <div class="callout-icon" aria-hidden="true">📌</div>
+      <div class="callout-body">問題出在：<strong>沒有診斷語言，只有情緒語言。</strong>「更好一點」是主觀形容詞，AI 不知道你認為哪裡不夠好。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">(02)</div>
+    <h2 class="section-heading">輸出診斷五維：讀輸出時依序檢查這五件事</h2>
+
+    <p class="body-text">拿到一份 AI 輸出，不要只憑感覺說「不夠好」——先把它放進這張表格逐維掃描：</p>
+
+    <table class="diag-table">
+      <thead>
+        <tr>
+          <th>維度</th>
+          <th>問自己</th>
+          <th>如果不對，prompt 該加什麼</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="dim-label">1. 事實</td>
+          <td>有沒有編造 / 誇大 / 過時資訊？</td>
+          <td>加「不確定的地方請標註，不要猜」</td>
+        </tr>
+        <tr>
+          <td class="dim-label">2. 範圍</td>
+          <td>有沒有離題 / 沒答到問題 / 多答不需要的？</td>
+          <td>加限制「只回答 X，不要討論 Y」</td>
+        </tr>
+        <tr>
+          <td class="dim-label">3. 深度</td>
+          <td>是不是只講表面、沒有洞察？</td>
+          <td>加「每個論點要舉一個具體例子」或「請深入分析原因」</td>
+        </tr>
+        <tr>
+          <td class="dim-label">4. 格式</td>
+          <td>長度、結構、段落、條列符不符合你要的？</td>
+          <td>加明確格式要求「三段、每段不超過 80 字、條列式」</td>
+        </tr>
+        <tr>
+          <td class="dim-label">5. 語氣</td>
+          <td>太客套 / 太技術 / 太親密？</td>
+          <td>指定角色「用高中老師對學生的口吻」</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <div class="callout-icon" aria-hidden="true">💡</div>
+      <div class="callout-body"><strong>關鍵原則：</strong>每次迭代只改一個維度，不要一次改五個——否則你不知道哪個改動有效，下次遇到同樣問題還是不會處理。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">(03)</div>
+    <h2 class="section-heading">三輪救援示範：從空泛爛輸出到可用稿</h2>
+
+    <p class="body-text"><strong>場景：</strong>學生要寫一份報告，主題是「為什麼 Z 世代不用 Facebook」。</p>
+
+    <div class="iter-block reveal">
+      <div class="iter-header">
+        <span class="iter-badge">第一輪</span>
+        <span class="iter-title">原始輸出 — 空泛無用</span>
+      </div>
+      <div class="iter-body">
+        <div class="iter-row">
+          <span class="iter-label">Prompt</span>
+          <div class="iter-content">幫我寫一段關於 Z 世代不用 Facebook 的分析。</div>
+        </div>
+        <div class="iter-row">
+          <span class="iter-label">輸出</span>
+          <div class="iter-content">Z 世代不用 Facebook 的原因有很多，包括介面老舊、長輩太多、功能無趣等。他們更喜歡 Instagram、TikTok 等新平台…（300 字空泛敘述）</div>
+        </div>
+        <div class="iter-diagnosis"><strong>診斷：</strong>維度 3（深度）不夠——只有表面原因清單，沒有洞察；維度 2（範圍）過於廣泛，沒有聚焦點；缺少具體數據或現象。</div>
+      </div>
+    </div>
+
+    <div class="iter-block reveal">
+      <div class="iter-header">
+        <span class="iter-badge">第二輪</span>
+        <span class="iter-title">加深度 — 問題浮現</span>
+        <span class="iter-dim-tag">改動：維度 3（深度）+ 維度 2（範圍）</span>
+      </div>
+      <div class="iter-body">
+        <div class="iter-changed">本輪改動</div>
+        <div class="iter-row">
+          <span class="iter-label">Prompt</span>
+          <div class="iter-content">請針對「Z 世代不用 Facebook」寫一段分析，要求：(1) 聚焦在 2023 年後的行為轉變；(2) 每個論點要引用一個具體現象或數據；(3) 不要一般性敘述，舉實例。</div>
+        </div>
+        <div class="iter-row">
+          <span class="iter-label">輸出</span>
+          <div class="iter-content">Z 世代（1997–2012 年生）對 Facebook 的使用率自 2021 年起大幅下滑。根據 Pew Research 2023 調查，13–17 歲使用率從 2015 年的 71% 降至 32%…（但這個數字很可能是 AI 幻覺！）</div>
+        </div>
+        <div class="iter-diagnosis"><strong>診斷：</strong>深度夠了，但維度 1（事實）出問題——具體百分比、年份、引用出處 AI 常常幻覺，這類數字不能直接用。</div>
+      </div>
+    </div>
+
+    <div class="iter-block reveal">
+      <div class="iter-header">
+        <span class="iter-badge">第三輪</span>
+        <span class="iter-title">加事實防護 — 可用稿</span>
+        <span class="iter-dim-tag">改動：維度 1（事實）</span>
+      </div>
+      <div class="iter-body">
+        <div class="iter-changed">本輪改動</div>
+        <div class="iter-row">
+          <span class="iter-label">Prompt</span>
+          <div class="iter-content">（同前段）另外，請明確標註哪些數據是你能確認的、哪些是你猜測的。猜測的部分請說「此數據需查證」。</div>
+        </div>
+        <div class="iter-row">
+          <span class="iter-label">輸出</span>
+          <div class="iter-content">…根據公開討論資料（此數據需查證：具體百分比請上 Pew Research 官網確認），Z 世代使用率有明顯下降趨勢…</div>
+        </div>
+        <div class="iter-diagnosis"><strong>結論：</strong>三輪內把一個空泛爛輸出救到可用。關鍵是每輪只改一維、診斷講具體——這才是有效迭代。</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">(04)</div>
+    <h2 class="section-heading">動手練習</h2>
+
+    <div class="practice-block">
+      <div class="practice-label">HANDS-ON · 10 分鐘</div>
+      <div class="practice-body">
+        <p>給你一份「第一版爛輸出」（例：一段寫得很平的自傳），要求：</p>
+        <ol>
+          <li>先在輸出上標註五維中哪些維度有問題（至少找出兩個）</li>
+          <li>寫出第二輪 prompt，指定只修其中<strong>一個</strong>維度</li>
+          <li>執行並檢查輸出是否改善——改善點是否與你改的維度對應？</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">(05)</div>
+    <h2 class="section-heading">三個常見錯誤</h2>
+
+    <div class="error-list">
+      <div class="error-item">
+        <div class="error-num">錯誤 01</div>
+        <div class="error-title">「再寫得更好一點」</div>
+        <div class="error-meta">
+          <div class="error-row"><strong>現象：</strong>用模糊詞請 AI 改，每次輸出都差不多。</div>
+          <div class="error-row"><strong>原因：</strong>沒有診斷語言，只有情緒語言——AI 不知道哪裡需要改。</div>
+          <div class="error-row"><strong>解法：</strong>改成「第二段太空泛，請改寫為三個具體例子 + 來源」。</div>
+        </div>
+      </div>
+      <div class="error-item">
+        <div class="error-num">錯誤 02</div>
+        <div class="error-title">一次改五維</div>
+        <div class="error-meta">
+          <div class="error-row"><strong>現象：</strong>第二輪 prompt 同時加長度限制、格式要求、語氣指定、事實要求、深度要求。</div>
+          <div class="error-row"><strong>原因：</strong>想一步到位，但失控時不知道哪裡出問題。</div>
+          <div class="error-row"><strong>解法：</strong>每輪只改一維。改好才加下一維。</div>
+        </div>
+      </div>
+      <div class="error-item">
+        <div class="error-num">錯誤 03</div>
+        <div class="error-title">對幻覺不設防</div>
+        <div class="error-meta">
+          <div class="error-row"><strong>現象：</strong>AI 給出很肯定的數字、人名、引用，學生直接貼進作業。</div>
+          <div class="error-row"><strong>原因：</strong>以為 AI 說得像模像樣就是真的。</div>
+          <div class="error-row"><strong>解法：</strong>任何<strong>具體數字、人名、年份、引用出處</strong>都視為可疑，另行查證。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">(06)</div>
+    <h2 class="section-heading">檢核題</h2>
+
+    <div class="quiz-list">
+      <div class="quiz-item">
+        <div class="quiz-q-label">題目 01</div>
+        <div class="quiz-q">AI 寫了一段介紹某景點的文案，你覺得「感覺怪怪的但說不上來」。請用五維架構拆出具體問題。</div>
+        <div class="quiz-a-label">示範答</div>
+        <div class="quiz-a">維度 1（事實）——景點營業時間、地址等是否正確；維度 3（深度）——有沒有只講表面「環境優美」缺乏洞察；維度 5（語氣）——是 IG 旅遊帳風格還是旅遊雜誌風格，是否貼合受眾。</div>
+      </div>
+      <div class="quiz-item">
+        <div class="quiz-q-label">題目 02</div>
+        <div class="quiz-q">為什麼「再寫得詳細一點」是失敗的迭代 prompt？該改成什麼？</div>
+        <div class="quiz-a-label">示範答</div>
+        <div class="quiz-a">「詳細」是主觀形容詞，AI 會胡亂加字，不知道你真正需要什麼。應改為具體可驗收的指令，例：「請把第 2 段擴充為 3 個子論點，每個子論點 2–3 句話，並各舉一個 2020 年後的實例」。</div>
+      </div>
+    </div>
+  </div>
+
+</article>
+
+<nav class="lesson-nav">
+  <a class="nav-btn" href="CH5-1.html">
+    <span><span aria-hidden="true">←</span></span>
+    <div><div class="nav-btn-label">上一單元</div><div class="nav-btn-title">CH5-1 · 從任務到技巧</div></div>
+  </a>
+  <a class="nav-btn next" href="CH5-3.html">
+    <div><div class="nav-btn-label">下一單元</div><div class="nav-btn-title">CH5-3 · 範本改寫工作坊</div></div>
+    <span><span aria-hidden="true">→</span></span>
+  </a>
+</nav>
+
+<footer class="footer" data-platform-version="ChatGPT GPT-4o / Gemini 2.5" data-built-at="2026-04-19">
+  <span class="footer-logo">弄一下工作室</span>
+  <span class="footer-note">· CCS 生成式 AI 認證研習 · CH5-2 迭代實戰</span>
+</footer>
+
+<script>
+const fill = document.getElementById('progressFill');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = h.scrollTop / (h.scrollHeight - h.clientHeight) * 100;
+  fill.style.width = Math.min(pct, 100) + '%';
+});
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); obs.unobserve(e.target); } });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal, .section-rule').forEach(el => obs.observe(el));
+</script>
+
+<script>
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+</body>
+</html>

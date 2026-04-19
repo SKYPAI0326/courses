@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH5-4 多輪 × 多工具｜CCS 生成式 AI 認證研習</title>
+<meta name="description" content="能為一個「做不完的大任務」設計工作流——判斷哪一段該用哪個 AI 工具、何時該開新對話、何時該把前段結果餵回下一段。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="CH5-4 多輪 × 多工具｜CCS 生成式 AI 認證研習">
+<meta property="og:description" content="能為一個「做不完的大任務」設計工作流——判斷哪一段該用哪個 AI 工具、何時該開新對話、何時該把前段結果餵回下一段。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/ccs-foundations/CH5-4.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CH5-4 多輪 × 多工具｜CCS 生成式 AI 認證研習">
+<meta name="twitter:description" content="能為一個「做不完的大任務」設計工作流——判斷哪一段該用哪個 AI 工具、何時該開新對話、何時該把前段結果餵回下一段。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/ccs-foundations/CH5-4.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-a5:#7a9ea3;--c-main:#7a9ea3;--radius:4px;--radius-sm:3px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 var(--radius) 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:var(--c-main);border:1px solid rgba(122,158,163,.3);background:transparent;padding:3px 12px;border-radius:99px;font-weight:500;letter-spacing:.06em}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px;font-variant-numeric:tabular-nums}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;max-width:22ch}
+.lesson-tagline{font-size:.92rem;color:var(--c-muted);line-height:1.9;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);margin-top:28px}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
+.outcome-item{font-size:.85rem;color:var(--c-muted);line-height:1.8}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-heading em{font-style:normal;color:var(--c-text)}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-body{font-size:.9rem;line-height:1.85}
+.callout-body strong{font-weight:700}
+/* tool-grid（模型選擇表卡片）*/
+.tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:28px 0}
+.tool-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 18px}
+.tool-name{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.tool-tag{font-size:.72rem;color:var(--c-main);border:1px solid rgba(122,158,163,.25);background:transparent;display:inline-block;padding:2px 10px;border-radius:99px;font-weight:500;letter-spacing:.05em;margin-bottom:10px}
+.tool-summary{font-size:.85rem;color:var(--c-muted);line-height:1.7;margin-bottom:10px}
+.tool-list{display:flex;flex-direction:column;gap:6px}
+.tool-list-item{font-size:.85rem;color:var(--c-text);line-height:1.6;display:flex;align-items:flex-start;gap:8px}
+.tool-check{color:var(--c-main);flex-shrink:0;font-weight:700}
+/* concept-grid（上下文三時機）*/
+.concept-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin:28px 0}
+.concept-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 18px}
+.concept-num{font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-faint);letter-spacing:.1em;margin-bottom:8px;font-variant-numeric:tabular-nums}
+.concept-title{font-size:.92rem;font-weight:700;color:var(--c-text);margin-bottom:8px;line-height:1.4}
+.concept-desc{font-size:.85rem;color:var(--c-muted);line-height:1.7}
+/* chain-flow（串聯/並聯工作流）*/
+.chain-flow{display:flex;gap:0;align-items:flex-start;margin:28px 0;padding:24px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow-x:auto}
+.chain-node{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);padding:14px 16px;min-width:120px;text-align:center;flex:1}
+.chain-node.hi{background:rgba(122,158,163,.08);border-color:rgba(122,158,163,.3)}
+.chain-label{font-size:.72rem;color:var(--c-muted);margin-bottom:4px}
+.chain-title{font-size:.85rem;font-weight:700;color:var(--c-text)}
+.chain-arrow{display:flex;align-items:center;padding:0 8px;color:rgba(122,158,163,.6);font-size:1rem;flex-shrink:0}
+.parallel-flow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:16px 0}
+.parallel-node{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);padding:12px 14px;text-align:center}
+.parallel-label{font-size:.72rem;color:var(--c-muted);margin-bottom:4px}
+.parallel-title{font-size:.85rem;font-weight:700;color:var(--c-text)}
+.merge-row{display:flex;align-items:center;justify-content:center;gap:8px;margin:12px 0;color:var(--c-faint);font-size:.85rem}
+.merge-node{background:rgba(122,158,163,.08);border:1px solid rgba(122,158,163,.3);border-radius:var(--radius);padding:12px 20px;text-align:center;font-size:.85rem;font-weight:700;color:var(--c-text)}
+/* diff-table（期末報告拆分表）*/
+.diff-table{width:100%;border-collapse:collapse;margin:24px 0}
+.diff-table th{font-size:.72rem;color:var(--c-muted);font-weight:500;padding:10px 14px;border-bottom:2px solid var(--c-border);text-align:left}
+.diff-table td{font-size:.85rem;padding:11px 14px;border-bottom:1px solid var(--c-border-soft);vertical-align:top;line-height:1.65}
+.diff-table tr:last-child td{border-bottom:none}
+.diff-table .h{font-weight:700;color:var(--c-text)}
+/* scenario-grid（常見錯誤）*/
+.scenario-grid{margin:24px 0;display:flex;flex-direction:column;gap:0}
+.scenario-row{display:grid;grid-template-columns:160px 1fr;border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin-bottom:10px}
+.scenario-task{padding:16px;background:var(--c-surface);font-size:.85rem;color:var(--c-text);font-weight:500;line-height:1.6;border-right:1px solid var(--c-border)}
+.scenario-pick{padding:16px;font-size:.85rem;color:var(--c-text);line-height:1.7}
+.scenario-pick strong{font-weight:700}
+/* quiz */
+.quiz-item{margin-bottom:28px}
+.quiz-q{font-size:.92rem;font-weight:700;color:var(--c-text);margin-bottom:14px;line-height:1.7}
+.quiz-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.quiz-opt{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);cursor:pointer;font-size:.85rem;color:var(--c-text);transition:border-color .15s,background .15s;line-height:1.6}
+.quiz-opt:hover{border-color:var(--c-main);background:rgba(122,158,163,.04)}
+.quiz-opt input[type="radio"]{margin:2px 0 0;accent-color:var(--c-main);flex-shrink:0}
+.quiz-opt input[type="radio"]:checked+span{color:var(--c-main);font-weight:500}
+.quiz-ans{margin-top:8px;font-size:.85rem}
+.quiz-ans summary{cursor:pointer;color:var(--c-muted);padding:6px 0;font-size:.82rem}
+.quiz-ans>div{padding:12px 16px;background:var(--c-surface);border-radius:var(--radius);margin-top:8px;line-height:1.8;color:var(--c-text)}
+/* nav-footer */
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(122,158,163,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
+.nav-btn:hover{background:rgba(122,158,163,.07);border-color:var(--c-main)}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main)}
+.nav-btn.primary:hover{filter:brightness(.92)}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.tool-grid{grid-template-columns:1fr}.concept-grid{grid-template-columns:1fr}.parallel-flow{grid-template-columns:1fr}.chain-flow{flex-direction:column}.chain-arrow{transform:rotate(90deg)}.scenario-row{grid-template-columns:1fr}.scenario-task{border-right:none;border-bottom:1px solid var(--c-border)}}
+</style>
+</head>
+<body>
+
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.45rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.92rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#7a9ea3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#7a9ea3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#6a8e93}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='ccs_auth',H='f195a697efb749102d1eee6c7071180ece0bba71b6df57eb92fe857fc61cb4d8';if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">CCS 認證研習</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">CH 5-4</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<div class="page-hero">
+  <a href="index.html" class="back-link"><span aria-hidden="true">←</span> 返回課程目錄</a>
+  <div class="hero-eyebrow">第五部分 · 實務應用篇</div>
+  <h1 class="lesson-title">多輪 × 多工具 — 長任務怎麼分 ChatGPT / Gemini / Copilot</h1>
+  <p class="lesson-tagline">單一工具做全套不是最佳解。這一章教你判斷哪一段交給哪個 AI、什麼時候要開新對話、怎麼把上一段的結果餵進下一段——讓長任務真正跑得完。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果</div>
+    <div class="outcome-item">依任務性質（超長文件、即時資訊、Office 產出）選對 AI 工具</div>
+    <div class="outcome-item">掌握「繼續對話 / 開新對話 / summarize 再續」三個時機的判斷原則</div>
+    <div class="outcome-item">為一個真實長任務設計串聯式或並聯式工作流</div>
+  </div>
+</div>
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(01)</div>
+  <h2 class="section-heading">長任務的三道<em>新難題</em></h2>
+  <div class="intro-band">
+    <div class="intro-label">為什麼要教這個</div>
+    <div class="intro-text">CCS 認證與前面四章都聚焦在「單輪 prompt」。但真實任務（期末報告、社團企劃、打工接案）幾乎都是長任務——做一小時以上、涉及多個步驟、要處理附件與外部資料。這些任務會遇到三個單輪課程沒教的新問題。</div>
+  </div>
+  <div class="concept-grid">
+    <div class="concept-card">
+      <div class="concept-num">(01)</div>
+      <div class="concept-title">模型選擇</div>
+      <div class="concept-desc">一個工具做全套不是最佳解。不同模型各有強項，盲目選一個會白白浪費能力。</div>
+    </div>
+    <div class="concept-card">
+      <div class="concept-num">(02)</div>
+      <div class="concept-title">上下文管理</div>
+      <div class="concept-desc">對話拉太長，AI 會開始忘記前面的設定、變慢、甚至胡言亂語。</div>
+    </div>
+    <div class="concept-card">
+      <div class="concept-num">(03)</div>
+      <div class="concept-title">工作流設計</div>
+      <div class="concept-desc">什麼步驟接什麼步驟、結果怎麼在工具之間傳遞，決定整個任務能不能跑完。</div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(02)</div>
+  <h2 class="section-heading">模型選擇表：<em>2026 Q2 現況</em></h2>
+  <p class="body-text">四大工具各有擅長的戰場。長任務的關鍵不是「誰最強」，而是「這一段做什麼、哪個最順手」。</p>
+  <div class="tool-grid">
+    <div class="tool-card">
+      <div class="tool-name">ChatGPT GPT-4o</div>
+      <div class="tool-tag">推理 · 多模態</div>
+      <div class="tool-summary">起始對話、圖像解析、一般推理</div>
+      <div class="tool-list">
+        <div class="tool-list-item"><span class="tool-check">✓</span>多模態（看圖、語音）</div>
+        <div class="tool-list-item"><span class="tool-check">✓</span>推理能力平衡</div>
+        <div class="tool-list-item"><span class="tool-check">✗</span>免費版 context 較短</div>
+      </div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-name">Gemini 2.5</div>
+      <div class="tool-tag">超長文件 · Google</div>
+      <div class="tool-summary">吃大量文件的摘要、跨多份資料比對</div>
+      <div class="tool-list">
+        <div class="tool-list-item"><span class="tool-check">✓</span>超長 context（100 萬 token）</div>
+        <div class="tool-list-item"><span class="tool-check">✓</span>整合 Google Drive</div>
+        <div class="tool-list-item"><span class="tool-check">✗</span>有時過度客套</div>
+      </div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-name">Microsoft Copilot</div>
+      <div class="tool-tag">Office · 成品產出</div>
+      <div class="tool-summary">最後成品產出階段（Word 報告、PPT 簡報）</div>
+      <div class="tool-list">
+        <div class="tool-list-item"><span class="tool-check">✓</span>深度整合 Word / Excel / PPT</div>
+        <div class="tool-list-item"><span class="tool-check">✗</span>離開 Office 後功能受限</div>
+      </div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-name">Grok 3</div>
+      <div class="tool-tag">即時資訊 · X 平台</div>
+      <div class="tool-summary">需要最新新聞 / 熱門話題的片段</div>
+      <div class="tool-list">
+        <div class="tool-list-item"><span class="tool-check">✓</span>即時網路資訊</div>
+        <div class="tool-list-item"><span class="tool-check">✓</span>X 平台社群數據</div>
+        <div class="tool-list-item"><span class="tool-check">✗</span>資料偏向英文社群</div>
+      </div>
+    </div>
+  </div>
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">💡</div>
+    <div class="callout-body"><strong>選工具的核心邏輯：</strong>依「這一步做什麼」選工具，而非哪個工具整體評分最高。同一個任務不同步驟，可以用三個不同的 AI。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(03)</div>
+  <h2 class="section-heading">上下文管理的<em>三個時機</em></h2>
+  <p class="body-text">對話是有限資源。知道「繼續用 / 開新的 / summarize 再接」三個時機，能讓長任務不在一半翻車。</p>
+  <div class="concept-grid">
+    <div class="concept-card">
+      <div class="concept-num">繼續同一對話</div>
+      <div class="concept-title">任務有延續性</div>
+      <div class="concept-desc">前面的結論是後面的基礎；對話還短（少於 20 輪）；AI 還記得你的設定。這種情況直接繼續，不用開新對話。</div>
+    </div>
+    <div class="concept-card">
+      <div class="concept-num">開新對話</div>
+      <div class="concept-title">換領域或對話太長</div>
+      <div class="concept-desc">對話超過 30–40 輪、AI 開始前後不一致；換了完全不同的任務領域；或累積了太多失敗嘗試的雜訊。</div>
+    </div>
+    <div class="concept-card">
+      <div class="concept-num">Summarize 再續</div>
+      <div class="concept-title">想開新對話但要留結論</div>
+      <div class="concept-desc">在舊對話請 AI「把我們的結論用 5 點總結」<span aria-hidden="true">→</span> 複製貼到新對話開頭當 context，再繼續。</div>
+    </div>
+  </div>
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">📌</div>
+    <div class="callout-body"><strong>黃金原則：</strong>超過 30 輪就主動請 AI summarize——不要等到它已經亂掉再補救。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(04)</div>
+  <h2 class="section-heading">工作流骨架：<em>串聯式</em>與並聯式</h2>
+  <p class="body-text">長任務的工作流有兩種基本骨架，可以單用也可以混用。</p>
+
+  <p class="body-text"><strong>串聯式（一段餵一段）</strong>：上一步的輸出直接當下一步的輸入，適合有明確前後依賴的任務。</p>
+  <div class="chain-flow">
+    <div class="chain-node hi">
+      <div class="chain-label">步驟 1 · Gemini</div>
+      <div class="chain-title">摘要 10 篇論文</div>
+    </div>
+    <div class="chain-arrow"><span aria-hidden="true">→</span></div>
+    <div class="chain-node hi">
+      <div class="chain-label">步驟 2 · ChatGPT</div>
+      <div class="chain-title">根據摘要畫心智圖</div>
+    </div>
+    <div class="chain-arrow"><span aria-hidden="true">→</span></div>
+    <div class="chain-node hi">
+      <div class="chain-label">步驟 3 · Copilot</div>
+      <div class="chain-title">心智圖寫進 Word 報告</div>
+    </div>
+  </div>
+
+  <p class="body-text" style="margin-top:24px"><strong>並聯式（多角度同時問，最後整合）</strong>：幾個工具從不同視角分析同一問題，再交給一個工具整合。適合需要多元觀點的任務。</p>
+  <div style="background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:24px;margin:0 0 16px">
+    <div class="parallel-flow">
+      <div class="parallel-node">
+        <div class="parallel-label">Gemini</div>
+        <div class="parallel-title">從學術角度分析</div>
+      </div>
+      <div class="parallel-node">
+        <div class="parallel-label">Grok</div>
+        <div class="parallel-title">從社群風向分析</div>
+      </div>
+      <div class="parallel-node">
+        <div class="parallel-label">ChatGPT</div>
+        <div class="parallel-title">從商業角度分析</div>
+      </div>
+    </div>
+    <div class="merge-row">
+      <span aria-hidden="true">↓ ↓ ↓</span>
+    </div>
+    <div style="display:flex;justify-content:center">
+      <div class="merge-node">ChatGPT 整合三方觀點，產出結論</div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(05)</div>
+  <h2 class="section-heading">實例示範：期末報告<em>五步拆法</em></h2>
+  <p class="body-text"><strong>任務</strong>：寫一份「生成式 AI 對高等教育的影響」期末報告，3000 字。以下是完整的工具分工與理由。</p>
+  <table class="diff-table">
+    <thead>
+      <tr>
+        <th>步驟</th>
+        <th>工具</th>
+        <th>做什麼</th>
+        <th>為什麼選這個</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="h">1 · 蒐資料</td>
+        <td>Gemini</td>
+        <td>丟 8 篇 PDF 論文進去，產出「每篇主要論點 + 共通觀點 + 分歧處」</td>
+        <td>超長 context，吃得下 8 份 PDF</td>
+      </tr>
+      <tr>
+        <td class="h">2 · 找時事</td>
+        <td>Grok</td>
+        <td>問「2026 年大學界對 AI 的最新討論有什麼？」</td>
+        <td>即時網路資訊</td>
+      </tr>
+      <tr>
+        <td class="h">3 · 產大綱</td>
+        <td>ChatGPT</td>
+        <td>把步驟 1+2 的摘要貼進去，產出報告大綱</td>
+        <td>推理平衡、結構感好</td>
+      </tr>
+      <tr>
+        <td class="h">4 · 寫草稿</td>
+        <td>ChatGPT（同對話）</td>
+        <td>照大綱逐段寫，用 CH5-2 的迭代技巧救爛輸出</td>
+        <td>延續上下文，不用重交代大綱</td>
+      </tr>
+      <tr>
+        <td class="h">5 · 潤稿排版</td>
+        <td>Copilot in Word</td>
+        <td>把草稿貼進 Word，請 Copilot 調格式、加標題樣式、產生目錄</td>
+        <td>深度整合 Office，省 30% 排版時間</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">📌</div>
+    <div class="callout-body">
+      <strong>三個關鍵決策點：</strong><br>
+      步驟 3<span aria-hidden="true">→</span>4 留在同一對話（延續性強，大綱與草稿強相依）<br>
+      步驟 5 換工具不換內容（工具各司其職，內容是同一份）<br>
+      若步驟 4 的對話超過 30 輪亂掉 <span aria-hidden="true">→</span> 請 AI 總結 <span aria-hidden="true">→</span> 開新對話重啟
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(06)</div>
+  <h2 class="section-heading">動手練習：設計你的<em>長任務工作流</em></h2>
+  <p class="body-text">自訂一個你真實面對的長任務（例：辦一場 50 人社團活動的企劃書），完成以下三件事：</p>
+  <div class="scenario-grid">
+    <div class="scenario-row">
+      <div class="scenario-task">步驟 1</div>
+      <div class="scenario-pick">列出任務的 <strong>5–7 個步驟</strong>（從開始到最終成品）</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">步驟 2</div>
+      <div class="scenario-pick">為每個步驟 <strong>指定工具</strong>，並說明「為什麼選這個工具」</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">步驟 3</div>
+      <div class="scenario-pick">標出哪些步驟 <strong>留同一對話</strong>、哪些 <strong>開新對話</strong>、哪些要 <strong>summarize 轉交</strong></div>
+    </div>
+  </div>
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">💡</div>
+    <div class="callout-body"><strong>練習提示：</strong>不必每步都換工具。如果某幾步之間有強依賴（後面需要前面的結論），就留同一工具同一對話；只有在「換戰場」或「對話太長」時才換。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(07)</div>
+  <h2 class="section-heading">常見錯誤：<em>三個坑</em>要提前繞開</h2>
+  <div class="scenario-grid">
+    <div class="scenario-row">
+      <div class="scenario-task">一個工具做到底</div>
+      <div class="scenario-pick"><strong>現象：</strong>所有事情都在 ChatGPT 裡做<br><strong>原因：</strong>懶得切換<br><strong>解法：</strong>至少把「最終成品產出」交給 Copilot（若是 Word/PPT），能省 30% 排版時間</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">上下文爆炸</div>
+      <div class="scenario-pick"><strong>現象：</strong>對話拉到 60 輪，AI 開始忘記設定、重複回答<br><strong>原因：</strong>覺得「一鎖到底」比較方便<br><strong>解法：</strong>超過 30 輪就主動請 AI summarize，開新對話貼上摘要再續</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">資訊斷層</div>
+      <div class="scenario-pick"><strong>現象：</strong>在 A 工具得到的結論，丟到 B 工具時沒有交代完整<br><strong>原因：</strong>以為兩邊都「知道情境」<br><strong>解法：</strong>每次換工具，第一句 prompt 都要重新交代「任務是 X、我在哪一步、前面已有結論 Y」</div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(08)</div>
+  <h2 class="section-heading">自我檢核題</h2>
+  <div class="quiz-item">
+    <div class="quiz-q">Q1：你要用 AI 協助準備一場辯論賽（主題：AI 是否該全面開放進校園）。下列哪個工作流最合理？</div>
+    <div class="quiz-opts">
+      <label class="quiz-opt"><input type="radio" name="q1"><span>A. 全程用 ChatGPT，因為它最通用</span></label>
+      <label class="quiz-opt"><input type="radio" name="q1"><span>B. 全程用 Gemini，因為它 context 最長</span></label>
+      <label class="quiz-opt correct"><input type="radio" name="q1"><span>C. ①Grok 找近期正反論點 <span aria-hidden="true">→</span> ②Gemini 讀學術論文找深度論據 <span aria-hidden="true">→</span> ③ChatGPT 模擬對手論點並要你回答 <span aria-hidden="true">→</span> ④ChatGPT 同對話整理成辯論講稿</span></label>
+      <label class="quiz-opt"><input type="radio" name="q1"><span>D. 先用 Copilot 製作 PPT，再用 ChatGPT 補充內容</span></label>
+    </div>
+    <details class="quiz-ans"><summary>顯示答案</summary>
+      <div>正確答案：<strong>C</strong>。依任務特性選工具：時事找 Grok、學術文件給 Gemini、推理與整合交 ChatGPT。步驟 ③④ 留同一對話因為延續性強。</div>
+    </details>
+  </div>
+  <div class="quiz-item">
+    <div class="quiz-q">Q2：你發現 AI 在第 40 輪對話開始重複說過的話、忘記你早先的設定。有哪三個選項可以處理？</div>
+    <div class="quiz-opts">
+      <label class="quiz-opt"><input type="radio" name="q2"><span>A. 繼續用，等它自己恢復</span></label>
+      <label class="quiz-opt correct"><input type="radio" name="q2"><span>B. (a) 直接開新對話重打 prompt；(b) 請 AI 把結論 summarize 成 5 點貼到新對話當 context；(c) 繼續用但每次補一句「提醒你：先前設定是 X」手動餵回關鍵 context</span></label>
+      <label class="quiz-opt"><input type="radio" name="q2"><span>C. 換一個 AI 工具，因為這個工具壞了</span></label>
+      <label class="quiz-opt"><input type="radio" name="q2"><span>D. 刪除對話紀錄，重新開始</span></label>
+    </div>
+    <details class="quiz-ans"><summary>顯示答案</summary>
+      <div>正確答案：<strong>B</strong>。三個選項都有效，程度依輕重：(c) 最輕量（繼續但手動補 context）、(b) 中等（開新對話但保留摘要）、(a) 最徹底（完全重啟）。選哪個取決於任務還剩多少、對話雜訊有多嚴重。</div>
+    </details>
+  </div>
+</section>
+
+</main>
+
+<nav class="nav-footer">
+  <a href="CH5-3.html" class="nav-btn"><span aria-hidden="true">←</span> CH5-3 · 範本改寫工作坊</a>
+  <a href="index.html" class="nav-btn primary">返回課程目錄 <span aria-hidden="true">→</span></a>
+</nav>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">淡江大學</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">CCS 生成式 AI 認證研習 · CH5-4</span>
+  <span class="footer-meta" data-platform-version="ChatGPT GPT-4o / Gemini 2.5 / Microsoft Copilot / Grok 3" data-built-at="2026-04-19">本頁以 ChatGPT GPT-4o / Gemini 2.5 / Microsoft Copilot / Grok 3 製作，2026-04</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+</script>
+<script>
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+</body>
+</html>

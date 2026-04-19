@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH5-3 範本改寫工作坊｜CCS 生成式AI研習</title>
+<meta name="description" content="能拿一個現成的提示詞範本，辨識出「可替換零件」與「不可動的骨架」，在 5 分鐘內改寫成自己場景的版本。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="CH5-3 範本改寫工作坊｜CCS 生成式AI研習">
+<meta property="og:description" content="能拿一個現成的提示詞範本，辨識出「可替換零件」與「不可動的骨架」，在 5 分鐘內改寫成自己場景的版本。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/ccs-foundations/CH5-3.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CH5-3 範本改寫工作坊｜CCS 生成式AI研習">
+<meta name="twitter:description" content="能拿一個現成的提示詞範本，辨識出「可替換零件」與「不可動的骨架」，在 5 分鐘內改寫成自己場景的版本。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/ccs-foundations/CH5-3.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-a1:#7a9ea3;--c-main:#7a9ea3;--radius:4px;--radius-sm:3px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.75rem;color:var(--c-main);border:1px solid rgba(122,158,163,.3);background:rgba(122,158,163,.07);padding:3px 12px;border-radius:99px;font-weight:500;}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-text);width:0%;transition:width .1s;opacity:.75;}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px;}
+.back-link:hover{color:var(--c-text);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.73rem;color:var(--c-muted);letter-spacing:.08em;font-weight:500;font-variant-numeric:tabular-nums;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-main);letter-spacing:.1em;font-weight:500;font-variant-numeric:tabular-nums;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;}
+.lesson-tagline{font-size:.92rem;color:var(--c-muted);line-height:1.9;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);}
+.outcomes-label{font-size:.73rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.9rem;color:var(--c-text);}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-main);margin-top:8px;flex-shrink:0;}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;}
+.lesson-section{margin-bottom:64px;}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em;}
+.section-heading em{font-style:normal;color:var(--c-text);}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.95;margin-bottom:20px;}
+.body-text strong{font-weight:700;}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:64px 0;}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text);}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text);}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px;}
+.callout-body{font-size:.9rem;line-height:1.8;color:var(--c-text);}
+.callout-body strong{font-weight:700;}
+.concept-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin:28px 0;border-top:1px solid var(--c-border-soft);}
+.concept-card{padding:24px 20px;border-right:1px solid var(--c-border-soft);border-bottom:1px solid var(--c-border-soft);}
+.concept-card:last-child{border-right:none;}
+.concept-num{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-faint);margin-bottom:8px;line-height:1;font-variant-numeric:tabular-nums;}
+.concept-title{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:500;color:var(--c-text);margin-bottom:6px;}
+.concept-desc{font-size:.8rem;color:var(--c-muted);line-height:1.8;}
+.concept-desc ul{margin-left:14px;margin-top:4px;}
+.concept-desc li{margin-bottom:3px;}
+.prompt-box{background:var(--c-surface);border-left:2px solid var(--c-text);border-radius:var(--radius);padding:20px 22px;margin:20px 0;font-size:.9rem;line-height:1.85;color:var(--c-text);}
+.prompt-box .pl{font-size:.7rem;color:var(--c-text);font-weight:500;letter-spacing:.12em;margin-bottom:8px;display:block;}
+.prompt-box code{font-family:'Courier New',monospace;font-size:.9em;}
+.scenario-table{width:100%;border-collapse:collapse;margin:24px 0;font-size:.85rem;}
+.scenario-table th{font-family:'Shippori Mincho',serif;font-size:.7rem;font-weight:500;color:var(--c-muted);letter-spacing:.08em;padding:10px 12px;border-bottom:1px solid var(--c-border);text-align:left;background:var(--c-surface);}
+.scenario-table td{padding:12px 12px;border-bottom:1px solid var(--c-border-soft);color:var(--c-text);line-height:1.7;vertical-align:top;}
+.scenario-table tr:last-child td{border-bottom:none;}
+.scenario-table tr:hover td{background:rgba(122,158,163,.04);}
+.scenario-table .patch{font-size:.78rem;color:var(--c-muted);font-style:italic;}
+.big-quote{font-family:'Shippori Mincho',serif;font-size:1.2rem;font-weight:500;color:var(--c-text);padding:20px 0 20px 24px;border-left:2px solid var(--c-text);margin:28px 0;line-height:1.6;}
+.steps-wrap{display:flex;flex-direction:column;gap:0;margin:24px 0;}
+.step-block{display:flex;gap:20px;padding:20px 0;border-bottom:1px solid var(--c-border-soft);}
+.step-block:last-child{border-bottom:none;}
+.step-circle{width:32px;height:32px;border-radius:50%;border:1px solid var(--c-border);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:.78rem;font-weight:500;color:var(--c-muted);flex-shrink:0;margin-top:2px;}
+.step-content{flex:1;}
+.step-heading{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:500;color:var(--c-text);margin-bottom:6px;}
+.step-body{font-size:.85rem;color:var(--c-muted);line-height:1.8;}
+.scenario-grid{display:grid;grid-template-columns:160px 1fr;gap:0;margin:24px 0;}
+.scenario-row{display:contents;}
+.scenario-task{padding:14px 16px;background:var(--c-surface);border-bottom:1px solid var(--c-border-soft);font-size:.85rem;font-weight:500;color:var(--c-text);}
+.scenario-pick{padding:14px 16px;border-bottom:1px solid var(--c-border-soft);font-size:.85rem;color:var(--c-text);line-height:1.7;}
+.scenario-row:last-child .scenario-task,.scenario-row:last-child .scenario-pick{border-bottom:none;}
+.quiz-item{margin-bottom:32px;}
+.quiz-q{font-size:.92rem;font-weight:500;color:var(--c-text);margin-bottom:12px;line-height:1.7;}
+.quiz-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+.quiz-opt{padding:10px 16px;border:1px solid var(--c-border);border-radius:var(--radius);font-size:.85rem;color:var(--c-text);cursor:default;line-height:1.6;}
+.quiz-opt.correct{border-color:var(--c-main);background:rgba(122,158,163,.08);}
+.quiz-ans{font-size:.85rem;color:var(--c-muted);line-height:1.8;padding:12px 16px;background:var(--c-surface);border-radius:var(--radius);}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px;}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1;}
+.nav-btn:hover{border-color:var(--c-text);}
+.nav-btn.primary{justify-content:flex-end;text-align:right;}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px;}
+.nav-btn-title{font-weight:500;}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-div{width:1px;height:14px;background:var(--c-border);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+.footer-meta{font-size:.75rem;color:var(--c-faint);}
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1);}
+.reveal.in{opacity:1;transform:translateY(0);}
+.section-rule{opacity:0;transform:scaleX(.3);transform-origin:left;transition:opacity .4s,transform .6s cubic-bezier(.16,1,.3,1);}
+.section-rule.in{opacity:1;transform:scaleX(1);}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px;}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none;}
+.skip-link:focus{left:0;}
+@media(max-width:600px){.topbar{padding:0 16px;}.topbar-sub,.topbar-divider{display:none;}.lesson-hero{padding:40px 20px 36px;}.lesson-title{font-size:1.45rem;}.lesson-body{padding:0 20px 60px;}.concept-grid{grid-template-columns:1fr;}.concept-card{border-right:none;}.scenario-table{font-size:.76rem;}.scenario-table th,.scenario-table td{padding:8px 8px;}.nav-footer{padding:0 20px 60px;flex-direction:column;}.footer{padding:20px;}}
+@media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important;}}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.45rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.92rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#7a9ea3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#7a9ea3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#6a8e93}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='ccs_auth',H='f195a697efb749102d1eee6c7071180ece0bba71b6df57eb92fe857fc61cb4d8';if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+<header class="topbar">
+  <a class="logo" href="../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">CCS 認證研習</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">CH 5-3</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="progressFill"></div></div>
+
+<section class="lesson-hero" id="main">
+  <a class="back-link" href="index.html"><span aria-hidden="true">←</span> 返回課程目錄</a>
+  <div class="hero-meta">
+    <span class="hero-part">第五部分 · 實務應用篇</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">(05·03)</span>
+  </div>
+  <h1 class="lesson-title">範本改寫工作坊 — 同一模板套 5 個不同場景</h1>
+  <p class="lesson-tagline">能拿一個現成的提示詞範本，辨識出「可替換零件」與「不可動的骨架」，在 5 分鐘內改寫成自己場景的版本。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學完這章，你會</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>拆解任何範本的三層結構：骨架、可替換零件、場景補丁</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>在改寫時不動骨架，只換零件與加補丁</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>對照 5 個真實場景，看懂「改了哪些、沒改哪些」的差異</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>獨立完成一次分析類範本的改寫練習</div>
+  </div>
+</section>
+
+<article class="lesson-body" id="lesson-content">
+
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">(01)</div>
+    <h2 class="section-heading">為什麼「照抄範本」通常行不通</h2>
+    <p class="body-text">CH4 範本庫提供了 4 個場景模板，但你在實務上遇到的場景不會剛好是這 4 個。80% 的「用範本」都是<strong>改寫</strong>，不是照抄。</p>
+    <p class="body-text">問題是：學生不會改。改出來常常改到骨架（把結構搞壞），或是沒改到位（只換了主詞，結果語氣完全不通順）。這章要解決這個問題。</p>
+    <div class="callout key">
+      <div class="callout-icon" aria-hidden="true">📌</div>
+      <div class="callout-body"><strong>前置條件：</strong>本章預設你已熟悉 CH4 範本庫的基本結構，以及 CH5-1 的任務決策思路。遇到不熟悉的範本格式，先回去看 CH4。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">(02)</div>
+    <h2 class="section-heading">核心概念：範本的<em>三層結構</em></h2>
+    <p class="body-text">任何提示詞範本都可以拆成三層。理解這三層，你就知道改寫時哪裡可以動、哪裡不能動。</p>
+
+    <div class="concept-grid">
+      <div class="concept-card">
+        <div class="concept-num">01</div>
+        <div class="concept-title">骨架（不動）</div>
+        <div class="concept-desc">範本之所以有效的核心結構。包含：
+          <ul>
+            <li>任務類型：「你是 X 專家」「請幫我 Y」</li>
+            <li>輸出結構：「分三段」「先列要點再給細節」</li>
+            <li>驗收標準：「字數不超過 300」「避免籠統敘述」</li>
+          </ul>
+          動了骨架 = 等於重寫，不叫「改範本」。
+        </div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-num">02</div>
+        <div class="concept-title">可替換零件（改）</div>
+        <div class="concept-desc">依場景替換的變數。常見的零件有：
+          <ul>
+            <li>角色：專家 <span aria-hidden="true">→</span> 老師 / 學長 / 部落客</li>
+            <li>領域：行銷 <span aria-hidden="true">→</span> 財務 / 醫療 / 教育</li>
+            <li>受眾：一般大眾 <span aria-hidden="true">→</span> 高中生 / 主管 / 同行</li>
+            <li>語氣：正式 <span aria-hidden="true">→</span> 口語 / 活潑</li>
+            <li>舉例風格：國際品牌 <span aria-hidden="true">→</span> 本土案例</li>
+          </ul>
+        </div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-num">03</div>
+        <div class="concept-title">場景補丁（加）</div>
+        <div class="concept-desc">改寫最後補上的在地化條件。範本是通用版，補丁讓它貼合你的場景：
+          <ul>
+            <li>「本校是私立大學，舉例請用我們能接觸到的場景」</li>
+            <li>「我是新手，請避開專業術語，要解釋就附白話版」</li>
+          </ul>
+          改寫最後一定要問自己：「我的場景有什麼特殊條件範本沒涵蓋？」
+        </div>
+      </div>
+    </div>
+
+    <div class="big-quote">骨架留、零件換、場景補</div>
+
+    <div class="callout tip">
+      <div class="callout-icon" aria-hidden="true">💡</div>
+      <div class="callout-body"><strong>記憶方法：</strong>把範本想像成一份合約範本。條款結構（骨架）不能亂改，但簽約方名稱、金額、日期（零件）當然要換。特殊附加條款（場景補丁）則視你的情況加入。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">(03)</div>
+    <h2 class="section-heading">示範：一個範本套 <em>5 個場景</em></h2>
+    <p class="body-text">下面是一個來自 CH4 的行銷文案範本。我們要把它改寫成 5 個完全不同的場景版本，同時確保骨架（三段式結構、字數限制、要有實例）一字不動。</p>
+
+    <div class="prompt-box">
+      <span class="pl">原範本（CH4 行銷文案類型）</span>
+      你是一位 [行銷] 領域的專家。請針對 [產品] 寫一則 [文案]，<br>
+      要求：<br>
+      1. 三段式結構：痛點 <span aria-hidden="true">→</span> 解方 <span aria-hidden="true">→</span> 行動呼籲<br>
+      2. 每段不超過 60 字<br>
+      3. 口吻符合 [目標受眾] 的語感<br>
+      4. 避免籠統形容詞，要有具體數字或實例
+    </div>
+
+    <p class="body-text">注意骨架（四條 requirement）在所有改寫版本中都保留不動。以下是五個場景的改寫對照：</p>
+
+    <table class="scenario-table">
+      <thead>
+        <tr>
+          <th>場景</th>
+          <th>領域</th>
+          <th>產品</th>
+          <th>文案</th>
+          <th>受眾</th>
+          <th>場景補丁</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>社團招生</strong></td>
+          <td>校園社團</td>
+          <td>攝影社</td>
+          <td>IG 限動文案</td>
+          <td>大一新生</td>
+          <td class="patch">加「用新鮮人會懂的語言，不要說術語」</td>
+        </tr>
+        <tr>
+          <td><strong>打工履歷</strong></td>
+          <td>求職</td>
+          <td>我自己</td>
+          <td>履歷自我介紹</td>
+          <td>咖啡店老闆</td>
+          <td class="patch">加「要凸顯抗壓與學習力，不要炫耀成績」</td>
+        </tr>
+        <tr>
+          <td><strong>社群貼文</strong></td>
+          <td>學習歷程</td>
+          <td>我的程式作品</td>
+          <td>LinkedIn 分享文</td>
+          <td>工程師前輩</td>
+          <td class="patch">加「承認新手身分，請教而不是展示」</td>
+        </tr>
+        <tr>
+          <td><strong>問卷招募</strong></td>
+          <td>學術研究</td>
+          <td>期末專題問卷</td>
+          <td>FB 貼文邀請</td>
+          <td>同校學生</td>
+          <td class="patch">加「強調只花 3 分鐘，結果會回饋給填答者」</td>
+        </tr>
+        <tr>
+          <td><strong>道歉信</strong></td>
+          <td>人際</td>
+          <td>弄丟朋友東西</td>
+          <td>道歉訊息</td>
+          <td>好朋友</td>
+          <td class="patch">加「要誠懇不要客套，承認錯誤不要找藉口」</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout info">
+      <div class="callout-icon" aria-hidden="true">ℹ️</div>
+      <div class="callout-body"><strong>關鍵觀察：</strong>每一個改寫版本，骨架（三段式、60 字、要有實例）都沒動，只改了零件跟加補丁。但產出的文案感覺完全不同——因為受眾、語氣、場景都換了。這就是改寫的精髓。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">(04)</div>
+    <h2 class="section-heading">動手練習：改寫一個分析類範本</h2>
+    <p class="body-text">現在換你練習。以下是一個「分析類」範本，用於文件摘要任務。請完成三個步驟：</p>
+
+    <div class="prompt-box">
+      <span class="pl">練習用範本（分析類 · 文件摘要）</span>
+      你是一位 [文件分析] 領域的專家。請閱讀以下 [文件]，<br>
+      要求：<br>
+      1. 找出三個最重要的核心論點<br>
+      2. 每個論點用兩句話說明（不超過 50 字）<br>
+      3. 最後給一句整體評語
+    </div>
+
+    <div class="steps-wrap">
+      <div class="step-block">
+        <div class="step-circle">1</div>
+        <div class="step-content">
+          <div class="step-heading">標記骨架與零件</div>
+          <div class="step-body">閱讀範本，用紙筆或心中標記：哪些是骨架（三要點、字數限制、評語結尾），哪些是零件（文件分析、文件這兩個詞）。</div>
+        </div>
+      </div>
+      <div class="step-block">
+        <div class="step-circle">2</div>
+        <div class="step-content">
+          <div class="step-heading">改寫為期末報告版本</div>
+          <div class="step-body">目標：把範本改成「分析我的期末報告初稿，指出三個該改善的地方」。替換零件，並加上場景補丁（例如：你是大學生、寫作能力中等、報告主題是 OO）。</div>
+        </div>
+      </div>
+      <div class="step-block">
+        <div class="step-circle">3</div>
+        <div class="step-content">
+          <div class="step-heading">執行並對比差異</div>
+          <div class="step-body">用原範本跑一次，用你改寫後的版本再跑一次，貼相同的一段文字進去。對比兩個輸出：哪個版本更貼近你的需求？差異在哪裡？</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">(05)</div>
+    <h2 class="section-heading">常見錯誤</h2>
+
+    <div class="scenario-grid">
+      <div class="scenario-row">
+        <div class="scenario-task">錯誤 1<br>改到骨架</div>
+        <div class="scenario-pick"><strong>現象：</strong>學生把「三段式結構」改成「想寫幾段寫幾段」。<br><strong>原因：</strong>覺得骨架太死，想要更自由。<br><strong>解法：</strong>骨架是範本之所以有效的原因。動骨架等於重寫，那就不叫「改範本」了。如果骨架真的不適合，應該換一個範本，不是硬改。</div>
+      </div>
+      <div class="scenario-row">
+        <div class="scenario-task">錯誤 2<br>沒換受眾</div>
+        <div class="scenario-pick"><strong>現象：</strong>套用「給高階主管看的報告」範本去寫「給同學看的分享文」，結果產出滿是商業術語。<br><strong>原因：</strong>只換了主題，沒換受眾。<br><strong>解法：</strong>受眾是關鍵零件，幾乎每次都要換。受眾決定了語氣、詞彙、舉例風格。</div>
+      </div>
+      <div class="scenario-row">
+        <div class="scenario-task">錯誤 3<br>漏掉補丁</div>
+        <div class="scenario-pick"><strong>現象：</strong>產出「技術上完美但跟你的場景格格不入」。<br><strong>原因：</strong>範本是通用版，沒有補上在地化條件。<br><strong>解法：</strong>改寫最後一定要問自己：「我的場景有什麼特殊條件範本沒涵蓋？」加一兩條場景補丁。</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule reveal">
+
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">(06)</div>
+    <h2 class="section-heading">檢核題</h2>
+
+    <div class="quiz-item">
+      <div class="quiz-q">1. 請拿 CH4「會議紀要整理」範本，改寫成「整理社團幹部會議錄音為 IG 限動公告」的版本。你需要改哪些零件？加哪些補丁？</div>
+      <details>
+        <summary class="quiz-opt correct" style="list-style:none;cursor:pointer;">點此查看示範答案</summary>
+        <div class="quiz-ans">
+          <strong>零件替換：</strong><br>
+          領域：會議紀要 <span aria-hidden="true">→</span> 社群貼文；文件類型：文字紀錄 <span aria-hidden="true">→</span> 錄音轉文字；受眾：公司同仁 <span aria-hidden="true">→</span> 社員（大學生）；輸出格式：條列紀要 <span aria-hidden="true">→</span> IG 限動文案格式（短句、視覺化）。<br><br>
+          <strong>場景補丁：</strong><br>
+          加「語氣輕鬆活潑，符合大學生社群風格」；加「重點只取行動項目和活動公告，不需要討論過程」；加「字數限制在 50 字以內，適合限動展示」。<br><br>
+          <strong>骨架保留：</strong>原範本的「先找重點、再整理輸出」結構不動。
+        </div>
+      </details>
+    </div>
+
+    <div class="quiz-item">
+      <div class="quiz-q">2. 為什麼「骨架留」是改寫最重要的原則？如果你真的覺得骨架不適合你的場景，該怎麼做？</div>
+      <details>
+        <summary class="quiz-opt correct" style="list-style:none;cursor:pointer;">點此查看示範答案</summary>
+        <div class="quiz-ans">
+          骨架承載了範本的結構效能（例如：三段式確保訊息層次清晰，字數限制避免冗長）。動了骨架等於丟了範本的核心價值，輸出品質無法保證。<br><br>
+          如果骨架真的不適合你的場景，代表這個範本不是正確的範本。正確做法是：換一個更適合的範本，或是自己重寫 prompt。不要硬改現有骨架——那只是浪費時間又破壞結構。
+        </div>
+      </details>
+    </div>
+  </div>
+
+</article>
+
+<nav class="nav-footer">
+  <a class="nav-btn" href="CH5-2.html">
+    <span aria-hidden="true">←</span>
+    <div><div class="nav-btn-label">上一單元</div><div class="nav-btn-title">CH5-2 · 迭代實戰</div></div>
+  </a>
+  <a class="nav-btn primary" href="CH5-4.html">
+    <div><div class="nav-btn-label">下一單元</div><div class="nav-btn-title">CH5-4 · 多輪 × 多工具</div></div>
+    <span aria-hidden="true">→</span>
+  </a>
+</nav>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <span class="footer-div"></span>
+  <span class="footer-note">CCS 生成式 AI 認證研習 · CH5-3 範本改寫工作坊</span>
+  <span class="footer-div"></span>
+  <span class="footer-meta" data-platform-version="ChatGPT GPT-4o / Gemini 2.5" data-built-at="2026-04-19">本頁以 ChatGPT GPT-4o / Gemini 2.5 製作，2026-04</span>
+</footer>
+
+<script>
+const fill = document.getElementById('progressFill');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = h.scrollTop / (h.scrollHeight - h.clientHeight) * 100;
+  fill.style.width = Math.min(pct, 100) + '%';
+});
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); obs.unobserve(e.target); } });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal, .section-rule').forEach(el => obs.observe(el));
+</script>
+
+<script>
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+</body>
+</html>
