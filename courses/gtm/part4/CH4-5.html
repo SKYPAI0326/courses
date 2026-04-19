@@ -63,7 +63,7 @@ html{scroll-behavior:smooth}body{font-family:'Noto Sans TC',sans-serif;backgroun
 @media(max-width:768px){.topbar{padding:0 16px;gap:8px}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:40px 20px 36px}.lesson-title{font-size:1.45rem}.lesson-body{padding:0 20px 60px}.lesson-nav{padding:0 20px 60px;flex-direction:column}.footer{padding:20px}}
 a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
 .skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}
-</style>
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 16px}.table-scroll>table{min-width:100%}</style>
 </head>
 <body>
 <style id="_gs">#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}#_gate-title{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;margin-bottom:8px}#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.92rem;font-family:inherit;background:#f5f3ee;outline:none;text-align:center;letter-spacing:.15em}#_gate-input:focus{border-color:#6b7fa3;background:#fff}#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer}#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}</style>
@@ -93,7 +93,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
     <div class="section-eyebrow">(01)</div>
     <h2 class="section-heading">五層<em>排查順序</em></h2>
     <p class="body-text">埋碼出問題時，從最接近瀏覽器的那一端往回找：</p>
-    <table class="rule-table">
+    <div class="table-scroll"><table class="rule-table">
       <thead><tr><th>層</th><th>工具</th><th>看什麼</th></tr></thead>
       <tbody>
         <tr><td>1. dataLayer</td><td>DevTools Console 打 <span class="inline-code">dataLayer</span></td><td>事件 push 進來了嗎？欄位對嗎？</td></tr>
@@ -102,7 +102,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
         <tr><td>4. Request</td><td>DevTools Network <span aria-hidden="true">→</span> 過濾 <span class="inline-code">collect</span>/<span class="inline-code">tr</span></td><td>實際 HTTP request 的 payload 對嗎？</td></tr>
         <tr><td>5. 後端（CAPI）</td><td>Server log / Meta Events Manager Test Events</td><td>後端 API 有成功接到嗎？</td></tr>
       </tbody>
-    </table>
+    </table></div>
     <div class="callout tip">
       <div class="callout-icon" aria-hidden="true">✓</div>
       <div class="callout-body"><strong>排查原則：</strong>從 1 往 5 逐層找。若 Layer 2 沒事件 <span aria-hidden="true">→</span> 回頭查 Layer 1；Layer 3 沒收到 <span aria-hidden="true">→</span> 查 Layer 4 request。不要亂跳。</div>
@@ -143,7 +143,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
     <div class="section-eyebrow">(04)</div>
     <h2 class="section-heading">最硬核：<em>DevTools Network</em></h2>
     <p class="body-text">所有工具都說 OK 但數據就是不對？打開 DevTools <span aria-hidden="true">→</span> Network，用關鍵字過濾看實際 HTTP request：</p>
-    <table class="rule-table">
+    <div class="table-scroll"><table class="rule-table">
       <thead><tr><th>平台</th><th>過濾字串</th><th>檢查重點</th></tr></thead>
       <tbody>
         <tr><td>GA4</td><td class="mono">collect</td><td>Query String 看 <span class="inline-code">en</span>（event name）、<span class="inline-code">ep.xxx</span>（event params）、<span class="inline-code">tid</span>（Measurement ID）</td></tr>
@@ -151,7 +151,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
         <tr><td>Google Ads</td><td class="mono">google-analytics.com/g/collect</td><td>看 <span class="inline-code">_et</span>（conversion tracking）與 <span class="inline-code">tid</span> 開頭 <span class="inline-code">AW-</span></td></tr>
         <tr><td>TikTok</td><td class="mono">analytics.tiktok.com</td><td>看 POST body 的 event、properties</td></tr>
       </tbody>
-    </table>
+    </table></div>
     <div class="callout key">
       <div class="callout-icon" aria-hidden="true">◆</div>
       <div class="callout-body"><strong>疑難雜症指南：</strong>(1) GA4 事件沒進 <span aria-hidden="true">→</span> 檢查 <span class="inline-code">tid</span> 是否對應正確 property；(2) Meta value 為 0 <span aria-hidden="true">→</span> 常是 DLV 取不到值，回 GTM Preview 確認；(3) Pixel fire 兩次 <span aria-hidden="true">→</span> 找重複 Tag 或 DOM 連續觸發事件；(4) CAPI 跟 Pixel dedup 失敗 <span aria-hidden="true">→</span> <span class="inline-code">event_id</span> 必須兩邊完全一樣（字串、大小寫、前後空白）。</div>

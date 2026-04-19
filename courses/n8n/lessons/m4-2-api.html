@@ -78,7 +78,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 
 /* a11y: focus-visible ring */
 a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
-.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}</style>
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 16px}.table-scroll>table{min-width:100%}</style>
 </head>
 <body>
 <style id="_gs">
@@ -154,14 +154,14 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
   <div class="section-head">Make <span aria-hidden="true">→</span> n8n：傳送資料到 n8n</div>
   <p class="body-text">在 Make 中用「HTTP · Make a request」模組，向 n8n 的 Webhook URL 發送 POST 請求：</p>
-  <table class="ref-table">
+  <div class="table-scroll"><table class="ref-table">
     <tr><th>設定項目</th><th>值</th><th>說明</th></tr>
     <tr><td>URL</td><td>n8n Webhook URL（含 Cloudflare 網域）</td><td>從 n8n Webhook 節點複製，格式：<span class="ic">https://你的域名/webhook/路徑</span></td></tr>
     <tr><td>Method</td><td>POST</td><td>固定用 POST，n8n Webhook 節點預設接受 POST</td></tr>
     <tr><td>Body type</td><td>JSON（application/json）</td><td>n8n 解析 JSON Body，不要用 Form Data</td></tr>
     <tr><td>Headers</td><td>Content-Type: application/json</td><td>Make 通常自動加，但確認一下</td></tr>
     <tr><td>Timeout</td><td>40 秒（免費）/ 60 秒（付費）</td><td>超過時間 Make 會報錯；長時任務用非同步方案</td></tr>
-  </table>
+  </table></div>
   <div class="code-block"><span class="cm">// Make 傳送的 JSON Body 範例</span>
 {
   <span class="ky">"task_type"</span>: <span class="str">"企劃書"</span>,
@@ -186,7 +186,7 @@ Body:
 }</div>
 
   <div class="section-head">認證方案對比</div>
-  <table class="ref-table">
+  <div class="table-scroll"><table class="ref-table">
     <tr><th>方案</th><th>設定方法</th><th>適合場景</th></tr>
     <tr>
       <td><strong>無認證</strong></td>
@@ -203,7 +203,7 @@ Body:
       <td>Make 發送時加 Header <span class="ic">X-Secret: 密碼</span>；n8n 驗證 <span class="ic">$request.headers['x-secret']</span></td>
       <td>較規範的 API 安全方案</td>
     </tr>
-  </table>
+  </table></div>
   <div class="code-block"><span class="cm">// n8n 驗證 Token 的 Code 節點（放在 Webhook 後第一個節點）</span>
 const expectedToken = <span class="str">'your-secret-token'</span>;
 const receivedToken = $input.item.json.query?.token;
@@ -217,14 +217,14 @@ const receivedToken = $input.item.json.query?.token;
 return [$input.item];</div>
 
   <div class="section-head">常見問題排查</div>
-  <table class="ref-table">
+  <div class="table-scroll"><table class="ref-table">
     <tr><th>問題</th><th>原因</th><th>解決方法</th></tr>
     <tr><td>Make 顯示「Connection refused」</td><td>n8n 未啟動，或 Cloudflare Tunnel 斷線</td><td>確認 n8n 在執行；確認 cloudflared 進程存在（<span class="ic">ps aux | grep cloudflared</span>）</td></tr>
     <tr><td>Make 顯示「Timeout」</td><td>n8n 流程執行超過 Make 等待時間</td><td>改用非同步方案：立即回傳 accepted，完成後 Push</td></tr>
     <tr><td>n8n 收到空 Body</td><td>Make 傳送了 Form Data 而非 JSON</td><td>Make 的 Body type 改為 JSON</td></tr>
     <tr><td>n8n 解析欄位失敗（undefined）</td><td>欄位名稱拼錯，或 JSON 結構層級不對</td><td>在 n8n Webhook 節點的 Last execution 確認實際收到的 JSON 結構</td></tr>
     <tr><td>Make 收到 n8n 回傳的 HTML 錯誤頁</td><td>n8n Workflow 未啟用（Active），Webhook 回傳 404</td><td>確認 n8n Workflow 右上角 Toggle 為 Active</td></tr>
-  </table>
+  </table></div>
 
   <div class="step-tip success">
     <span class="tip-icon">✅</span>
