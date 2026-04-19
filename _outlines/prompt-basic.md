@@ -10,7 +10,7 @@ prac: true
 # === 課程製作團隊系統擴充欄位 ===
 course_type: skill-operation
 pilot: false
-platform_version: ChatGPT / Gemini 2026-Q2
+platform_version: ChatGPT / Gemini
 # === 課程特殊備注 ===
 # current_client: 水利署（2026 首跑）
 # reuse_policy: 情境保持通用公部門，不寫入水利署專屬術語；未來可抽換機關名稱

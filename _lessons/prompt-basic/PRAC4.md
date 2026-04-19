@@ -7,7 +7,7 @@ duration: 25min
 learning_objective: 能將 CH4-2 的格式規格加入 PRAC1 的交辦單，比較加入前後的 AI 輸出品質差異
 prerequisites: [CH4-2]
 style_guide: _outlines/prompt-basic.style-guide.md
-platform_version: ChatGPT / Gemini 2026-Q2
+platform_version: ChatGPT / Gemini
 ---
 
 ## 教學流程（Teaching Flow）

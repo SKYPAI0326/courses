@@ -7,7 +7,7 @@ duration: 25min
 learning_objective: 能獨立完成陳情回函、長文摘要、開會通知三種公務情境的四欄交辦單填寫
 prerequisites: [CH1-2]
 style_guide: _outlines/prompt-basic.style-guide.md
-platform_version: ChatGPT / Gemini 2026-Q2
+platform_version: ChatGPT / Gemini
 ---
 
 ## 教學流程（Teaching Flow）

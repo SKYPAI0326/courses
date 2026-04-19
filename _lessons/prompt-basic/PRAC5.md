@@ -7,7 +7,7 @@ duration: 10min
 learning_objective: 學員離開時手上有一份整合四欄交辦單、三件事自檢清單、借力改造四步驟的單頁可列印工具卡，可在工作中立即使用
 prerequisites: [CH5-1, CH5-2]
 style_guide: _outlines/prompt-basic.style-guide.md
-platform_version: ChatGPT / Gemini 2026-Q2
+platform_version: ChatGPT / Gemini
 ---
 
 ## 教學流程（Teaching Flow）

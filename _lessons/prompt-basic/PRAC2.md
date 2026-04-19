@@ -7,7 +7,7 @@ duration: 25min
 learning_objective: 能對含個資陷阱的會議紀錄完成去識別化，並整理為可交給 AI 處理的行動清單
 prerequisites: [CH2-2]
 style_guide: _outlines/prompt-basic.style-guide.md
-platform_version: ChatGPT / Gemini 2026-Q2
+platform_version: ChatGPT / Gemini
 ---
 
 ## 教學流程（Teaching Flow）

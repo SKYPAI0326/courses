@@ -7,7 +7,7 @@ duration: 35min
 learning_objective: 能用三種技巧輔助，對 10 件陳情案正確分類（本局權管／應轉他局／重複陳情／訴求不合理），並說明使用哪種技巧及理由
 prerequisites: [CH3-1]
 style_guide: _outlines/prompt-basic.style-guide.md
-platform_version: ChatGPT / Gemini 2026-Q2
+platform_version: ChatGPT / Gemini
 ---
 
 ## 教學流程（Teaching Flow）
