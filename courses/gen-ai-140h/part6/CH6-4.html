@@ -124,25 +124,11 @@
 .mini-prac-check input:checked ~ span{color:var(--c-muted);text-decoration:line-through}
 
 /* 演練範本 · prac-sample */
-.prac-sample{background:#fcfbf6;border:1px dashed var(--c-border);border-radius:var(--radius);padding:18px 20px;margin:0 0 18px}
-.ps-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
-.ps-eyebrow{font-size:.7rem;letter-spacing:1.5px;color:var(--c-a2);font-weight:500;text-transform:uppercase}
-.ps-hint{font-size:.72rem;color:var(--c-muted);line-height:1.6}
-.ps-block{margin-bottom:12px}
-.ps-block:last-child{margin-bottom:0}
-.ps-label{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.72rem;color:var(--c-text);font-weight:500;letter-spacing:.5px;margin-bottom:6px}
-.ps-label-tag{font-size:.7rem;color:var(--c-muted);border:1px solid var(--c-border);padding:1px 8px;border-radius:99px;font-weight:400;letter-spacing:.5px}
-.ps-material{background:var(--c-surface);border-radius:var(--radius-sm);padding:12px 14px;font-size:.8rem;line-height:1.75;color:var(--c-text);white-space:pre-wrap}
-.ps-prompt{background:#2c2b28;color:#e8e6df;font-family:ui-monospace,'SF Mono',Menlo,monospace;padding:14px 16px 14px;border-radius:var(--radius-sm);font-size:.8rem;line-height:1.7;white-space:pre-wrap;overflow-x:auto;position:relative}
-.copy-btn{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.08);color:#e8e6df;border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:3px 10px;font-size:.7rem;letter-spacing:.5px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:background .15s}
-.copy-btn:hover{background:rgba(255,255,255,.15)}
-.copy-btn.copied{background:var(--c-a2);color:#fff;border-color:var(--c-a2)}
-.ps-expect{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:12px 14px;font-size:.8rem;line-height:1.75;color:var(--c-muted)}
-.ps-expect strong{color:var(--c-text);font-weight:500}
 
 /* a11y: focus-visible ring */
 a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
 .skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 16px}.table-scroll>table{min-width:100%}</style>
+<link rel="stylesheet" href="../_assets/prac-sample.css">
 </head>
 <body>
 <style id="_gs">
@@ -330,11 +316,11 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>設 max_turns=5 保護機制，超過就強制跳出。</span></div>
         <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span>丟一個需要兩步的問題（例：「台北比東京熱幾度？」），觀察模型是否真的依序呼叫 get_weather 兩次再算差。</span></div>
       </div>
-      <div class="prac-sample">
-        <div class="ps-head">
+      <details class="prac-sample">
+        <summary class="ps-head">
           <span class="ps-eyebrow">範本素材</span>
           <span class="ps-hint">直接給你兩個 tool schema + mock function，讓 AI 幫你組出完整的 Agent Loop 骨架。</span>
-        </div>
+        </summary>
         <div class="ps-block">
           <div class="ps-label">原始素材 · 兩個工具 schema + 兩個 mock 函式<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
           <div class="ps-material">【Tool Schemas（Anthropic 格式）】
@@ -400,7 +386,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <div class="ps-block">
           <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>[turn 1] stop_reason=tool_use<br>&nbsp;&nbsp;→ get_weather({"city":"台北"}) = {"city":"台北","temp_c":28}<br>&nbsp;&nbsp;→ get_weather({"city":"東京"}) = {"city":"東京","temp_c":15}<br>[turn 2] stop_reason=tool_use<br>&nbsp;&nbsp;→ calculator({"expression":"28 - 15"}) = {"result":13}<br>[turn 3] stop_reason=end_turn<br>Final: 台北目前 28°C，東京 15°C，台北比東京熱 13°C。<br>觀察：模型通常會把兩個 get_weather 放在同一輪平行呼叫，calculator 放在第二輪，最後一輪才 end_turn 輸出文字。若你的模型每輪只叫一次工具，換到 Claude 3.5+ 或 Haiku 4.5 觀察差異。</div>
         </div>
-      </div>
+      </details>
       <div class="mini-prac-output">
         <div class="mini-prac-output-label">成果產出</div>
         <div class="mini-prac-output-text">Agent loop 程式碼 + 一段 console log，顯示每輪的 stop_reason、tool_use、tool_result，以及最終文字答案。</div>
@@ -467,11 +453,11 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>未處理失敗：讓 get_weather 故意拋 exception，確保回傳 {success:false, error:'...'} 給模型而不是 500。</span></div>
         <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span>整理一張「陷阱 <span aria-hidden="true">→</span> 症狀 <span aria-hidden="true">→</span> 防禦」對照表，回寫到你的 Agent README 或 docstring。</span></div>
       </div>
-      <div class="prac-sample">
-        <div class="ps-head">
+      <details class="prac-sample">
+        <summary class="ps-head">
           <span class="ps-eyebrow">範本素材</span>
           <span class="ps-hint">三段刻意觸發的誘導對話，對應三種陷阱。你不需要自己設計爛情境，直接用這組測試。</span>
-        </div>
+        </summary>
         <div class="ps-block">
           <div class="ps-label">原始素材 · 三段壓測腳本（對應無限迴圈 / 工具幻覺 / 未處理失敗）<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
           <div class="ps-material">【壓測腳本 A · 無限迴圈】
@@ -529,7 +515,7 @@ get_weather 的 mock 改成 throw new Error('upstream 503')。
         <div class="ps-block">
           <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>A：沒防禦會無限呼叫 calculator，每輪消耗 input+output token；10 輪可能燒掉 &gt; $1。修法：const callCount = {}; if (++callCount[name] &gt; 3) throw new Error('tool called too many times'); + 外層 if (turn &gt;= MAX_TURNS) break;<br>B：沒防禦會讓 SDK 直接 throw 'unknown tool'；進程中斷。修法：const TOOLS = new Set(['get_weather','calculator']); if (!TOOLS.has(name)) return {success:false, error:`tool "${name}" not available. Available: ${[...TOOLS].join(', ')}`};<br>C：沒防禦整個 agent crash。修法：try { result = mock[name](input); } catch (e) { result = {success:false, error:e.message}; }<br>| 陷阱 | 症狀 | 位置 | 修法 |<br>| A | token 累積、同工具重複 | while loop 進入前 | MAX_TURNS + callCount |<br>| B | tool name 不在清單 | tool dispatch 前 | whitelist + structured error |<br>| C | SDK throw 中斷 | tool execution 內 | try/catch + success flag |<br>上線前檢查：1) MAX_TURNS 寫死不吃使用者輸入 2) 所有工具都 try/catch 3) 白名單集中在一個 const 4) 有 callCount 防同工具濫用 5) 錯誤訊息回給模型而非前端</div>
         </div>
-      </div>
+      </details>
       <div class="mini-prac-output">
         <div class="mini-prac-output-label">成果產出</div>
         <div class="mini-prac-output-text">三段測試 log（每種陷阱一段）+ 一張三列對照表，說明每個防禦對應到程式的哪一段。</div>
@@ -647,31 +633,6 @@ reveals.forEach(el => io.observe(el));
   });
 })();
 
-// 範本 Prompt 複製按鈕
-document.addEventListener('click',function(e){
-  var btn=e.target.closest('.copy-btn');
-  if(!btn)return;
-  var prompt=btn.parentElement;
-  if(!prompt||!prompt.classList.contains('ps-prompt'))return;
-  var text=prompt.textContent.replace(/複製\s*$/,'').trim();
-  var done=function(){
-    var original=btn.textContent;
-    btn.textContent='已複製';
-    btn.classList.add('copied');
-    btn.setAttribute('aria-label','已複製到剪貼簿');
-    setTimeout(function(){btn.textContent=original;btn.classList.remove('copied');btn.setAttribute('aria-label','複製此範例 Prompt 到剪貼簿');},1800);
-  };
-  if(navigator.clipboard&&navigator.clipboard.writeText){
-    navigator.clipboard.writeText(text).then(done).catch(function(){
-      var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();
-      try{document.execCommand('copy');done();}catch(err){}finally{document.body.removeChild(ta);}
-    });
-  }else{
-    var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();
-    try{document.execCommand('copy');done();}catch(err){}finally{document.body.removeChild(ta);}
-  }
-});
-
 // 閱讀進度持久化（localStorage）— 2026-04-16 UI refresh
 (function(){
   var k='progress:'+location.pathname;
@@ -684,5 +645,6 @@ document.addEventListener('click',function(e){
   },{passive:true});
 })();
 </script>
+<script src="../_assets/prac-sample.js" defer></script>
 </body>
 </html>

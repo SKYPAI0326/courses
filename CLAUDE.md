@@ -95,12 +95,12 @@ python3 docs/lint-page.py --changed       # 只查 git staged 檔
 | 真相源 | 用途 |
 |-------|------|
 | `_規範/design-tokens.md` | 設計系統人類閱讀版（CSS 變數、字型 8 階、組件白名單、SEO 模板、metadata 規格） |
-| `_規範/lesson-template.html` | 單元頁骨架，新增頁面一律從這份複製 |
+| `_規範/lesson-template-v3.html` | 單元頁骨架，新增頁面一律從這份複製 |
 | `docs/lint-page.py` | 機器強制版（BLOCKER/ERROR/WARN 規則）。`python3 docs/lint-page.py <file>` 自動驗 |
 
 **要調整規則？** 改 `design-tokens.md` + `lint-page.py`。**不要**在本檔或 skill 文件追加散文規則。
 
-**新建單元頁？** 複製 `_規範/lesson-template.html` → 填佔位符 → 跑 lint → 跑 `build-search-index.py` + `build-sitemap.py`。
+**新建單元頁？** 複製 `_規範/lesson-template-v3.html` → 填佔位符 → 跑 lint → 跑 `build-search-index.py` + `build-sitemap.py`。
 
 ---
 

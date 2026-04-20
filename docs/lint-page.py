@@ -256,21 +256,42 @@ def check_callout_cap(html: str) -> list:
 
 
 def check_font_size_tier(html: str) -> list:
-    """檢測非 8 階字型值。"""
-    allowed = {"2rem", "1.45rem", "1.2rem", "1.1rem", "1.05rem",
-               ".92rem", "0.92rem", ".85rem", "0.85rem", ".7rem", "0.7rem",
-               # 實務常見不標準但暫容許的
-               ".8rem", "0.8rem", ".9rem", "0.9rem", "1rem",
-               ".75rem", "0.75rem", ".78rem", "0.78rem", ".76rem", "0.76rem",
-               ".68rem", "0.68rem", ".73rem", "0.73rem"}
+    """檢測非 V4 15 階字型值。
+    真相源：_規範/design-tokens.md §2 字型尺寸階（V4 標準）。
+    改一處 = 改兩處（tokens + 此白名單）。
+    """
+    # V4 標準 14 階 + 1 舊相容（1.2rem）。兩種寫法（.9rem / 0.9rem）都允許。
+    allowed = {
+        # 標題組
+        "2rem",
+        "1.45rem",
+        "1.2rem",    # 舊相容 (.big-quote)
+        "1.1rem",
+        "1.05rem",
+        # 內文組
+        ".95rem", "0.95rem",
+        ".92rem", "0.92rem",
+        ".9rem", "0.9rem",
+        ".88rem", "0.88rem",
+        # 說明組
+        ".85rem", "0.85rem",
+        ".82rem", "0.82rem",
+        ".8rem", "0.8rem",
+        # 註解組
+        ".75rem", "0.75rem",
+        ".72rem", "0.72rem",
+        ".7rem", "0.7rem",
+    }
+    # 淘汰清單（明確報 WARN 給升級訊號）：.78 / .76 / .73 / .68 / 1rem
+    # 不加入 allowed，lint 會報它們。
     # 抓所有 font-size: Xrem
     matches = re.findall(r'font-size\s*:\s*([\d.]+rem)', html)
     bad = [m for m in matches if m not in allowed]
     if bad:
         unique = sorted(set(bad))
         if len(unique) > 3:
-            return [("WARN", f"非標準 font-size 階（8 階外）：{', '.join(unique[:3])} 等 {len(unique)} 個")]
-        return [("WARN", f"非標準 font-size 階（8 階外）：{', '.join(unique)}")]
+            return [("WARN", f"非 V4 15 階字型值（tokens §2 外）：{', '.join(unique[:3])} 等 {len(unique)} 個")]
+        return [("WARN", f"非 V4 15 階字型值（tokens §2 外）：{', '.join(unique)}")]
     return []
 
 
