@@ -106,6 +106,23 @@
 .mini-prac-check input{margin-top:5px;accent-color:var(--c-a2);flex-shrink:0;cursor:pointer}
 .mini-prac-check input:checked ~ span{color:var(--c-muted);text-decoration:line-through}
 
+/* 演練範本 · prac-sample */
+.prac-sample{background:#fcfbf6;border:1px dashed var(--c-border);border-radius:var(--radius);padding:18px 20px;margin:0 0 18px}
+.ps-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.ps-eyebrow{font-size:.7rem;letter-spacing:1.5px;color:var(--c-a2);font-weight:500;text-transform:uppercase}
+.ps-hint{font-size:.72rem;color:var(--c-muted);line-height:1.6}
+.ps-block{margin-bottom:12px}
+.ps-block:last-child{margin-bottom:0}
+.ps-label{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.72rem;color:var(--c-text);font-weight:500;letter-spacing:.5px;margin-bottom:6px}
+.ps-label-tag{font-size:.7rem;color:var(--c-muted);border:1px solid var(--c-border);padding:1px 8px;border-radius:99px;font-weight:400;letter-spacing:.5px}
+.ps-material{background:var(--c-surface);border-radius:var(--radius-sm);padding:12px 14px;font-size:.8rem;line-height:1.75;color:var(--c-text);white-space:pre-wrap}
+.ps-prompt{background:#2c2b28;color:#e8e6df;font-family:ui-monospace,'SF Mono',Menlo,monospace;padding:14px 16px 14px;border-radius:var(--radius-sm);font-size:.8rem;line-height:1.7;white-space:pre-wrap;overflow-x:auto;position:relative}
+.copy-btn{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.08);color:#e8e6df;border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:3px 10px;font-size:.7rem;letter-spacing:.5px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:background .15s}
+.copy-btn:hover{background:rgba(255,255,255,.15)}
+.copy-btn.copied{background:var(--c-a2);color:#fff;border-color:var(--c-a2)}
+.ps-expect{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:12px 14px;font-size:.8rem;line-height:1.75;color:var(--c-muted)}
+.ps-expect strong{color:var(--c-text);font-weight:500}
+
 /* a11y: focus-visible ring */
 a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
 .skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}</style>
@@ -248,6 +265,69 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>擬 5 個真實查詢（使用者真的會問的問題），對三個版本各跑一次 top-3 retrieval。</span></div>
         <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span>用「找到 / 找對一半 / 找錯」三檔評分，算出每個策略的命中率，選出當前最適合的方案。</span></div>
       </div>
+      <div class="prac-sample">
+        <div class="ps-head">
+          <span class="ps-eyebrow">範本素材</span>
+          <span class="ps-hint">手邊沒有 SOP 文件？用這份模擬版「員工請假流程 SOP」當實驗對象，已附 5 組查詢。</span>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">原始素材 · 某公司請假 SOP（Markdown，約 380 字）+ 5 組測試查詢<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
+          <div class="ps-material">## 請假政策總覽
+本公司正職員工一年享有事假 7 天、病假 14 天、特休依年資遞增。所有請假需於系統登錄並取得主管簽核。
+
+## 事假申請流程
+- 2 天以內：請假前 24 小時系統申請，主管線上核准即可
+- 3 天以上：需提前 3 個工作日申請，並檢附工作交接書
+- 跨月事假：人資另需審核，處理時間 3–5 工作日
+
+## 病假申請流程
+- 1 天以內：當日補辦即可，無需診斷證明
+- 2 天以上：需檢附醫療院所診斷證明
+- 連續超過 7 天：轉為留職停薪評估，通知人資部
+
+## 特休假規則
+- 年資滿半年：3 天
+- 年資滿 1 年：7 天
+- 年資每增加 1 年：再加 1 天，最多 30 天
+- 未休完：可折算薪資，於當年 12/31 結清
+
+## 查詢五題
+Q1 我想請 3 天事假要提前多久？
+Q2 病假超過一週會怎樣？
+Q3 特休沒休完怎麼處理？
+Q4 跨月的長假誰審？
+Q5 年資 2 年 10 個月，特休有幾天？</div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">範例 Prompt · 三策略切塊比較腳本產生器<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
+          <div class="ps-prompt">你是一位 RAG 系統工程師。請為下方文件產出一段 Python 實驗腳本，比較三種 chunking 策略的 retrieval 品質。
+
+三種策略：
+A. 固定 chunk_size=256 tokens, overlap=30
+B. 固定 chunk_size=512 tokens, overlap=50
+C. Markdown 標題感知（以 ## 為切點），每塊同時附上 metadata: {section: "<H2 標題>"}
+
+實作要求：
+1. 使用 langchain.text_splitter 的 RecursiveCharacterTextSplitter（A/B）與 MarkdownHeaderTextSplitter（C）
+2. 用 Chroma + 預設 embedding 建三個 collection：collA、collB、collC
+3. 對 5 組查詢各跑 top-3 retrieval
+4. 輸出 Markdown 表格：每列是一個查詢，欄位為「策略 A top-1 | B top-1 | C top-1」，每格填「命中章節 ✓ / 勉強相關 △ / 錯 ✗」
+5. 最後一行：三個策略的命中率（✓ 的比例）
+6. 結尾附一句「若 Q5 這類需要組合條件的查詢表現差，建議改用 X 策略並加 _____」
+
+輸出規範：
+- 單檔 Python，不超過 60 行
+- 每個策略切塊後印一次「共切成 N 個 chunk，平均長度 X tokens」當 sanity check
+
+文件與查詢：
+[貼上上方原始素材]
+
+<button class="copy-btn" type="button">複製</button></div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>策略 A 共切 12 塊，平均 230 tokens<br>策略 B 共切 6 塊，平均 510 tokens<br>策略 C 共切 4 塊（每個 ## 一塊）<br>| 查詢 | A | B | C |<br>| Q1 | ✓ | ✓ | ✓ |<br>| Q2 | △ | ✓ | ✓ |<br>| Q3 | ✓ | ✓ | ✓ |<br>| Q4 | △ | △ | ✓ |（跨月事假線索分散，Markdown 切法因 metadata 最精準）<br>| Q5 | ✗ | △ | ✓ |（需組合「滿 2 年 + 每年加 1 天」邏輯）<br>命中率：A 40% / B 60% / C 90%<br>建議：Q5 這類組合條件查詢，Markdown 切法+保留 section metadata 最有效；若仍不足可加 parent-child chunking。</div>
+        </div>
+      </div>
       <div class="mini-prac-output">
         <div class="mini-prac-output-label">成果產出</div>
         <div class="mini-prac-output-text">一張「策略 × 查詢」評分表 + 一段 100 字內的判斷：「這份文件目前採用 X 策略，因為 ___」。</div>
@@ -323,6 +403,65 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>對每個失敗案例貼標籤：幻覺 / 漏找 / 找到但沒用，並寫一句原因。</span></div>
         <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span>依標籤對應本節的修正處方（system prompt 約束 / top-k 提高 / reranking / metadata 過濾），選一項下週實驗。</span></div>
       </div>
+      <div class="prac-sample">
+        <div class="ps-head">
+          <span class="ps-eyebrow">範本素材</span>
+          <span class="ps-hint">沒有現成 RAG 原型？給你一段模擬的「3 個 chunk + 3 個使用者問題 + 3 個實際回答」，讓 AI 幫你標失敗類型與處方。</span>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">原始素材 · 模擬 RAG 執行記錄（3 組失敗案例）<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
+          <div class="ps-material">【知識庫現有 chunks（僅列出本次 retrieved 的）】
+C1 [product-spec.md §2.3] 旗艦款 X1 保固 2 年，標配充電器一顆；非原廠配件不在保固範圍。
+C2 [faq.md §退貨] 消費者依消保法享有 7 天鑑賞期，鑑賞期非試用期，商品須保持全新。
+C3 [shipping.md §5] 離島訂單加收 250 元運費，寄送時效為本島 +2 工作日。
+
+【Case 1】
+Q: 「X1 這款用久了電池衰退明顯，有沒有保固延長方案？」
+Retrieved top-3: C1, (C2), (C3)  ← 括號代表低相關
+A: 「X1 提供 3 年延長保固，費用 $1,200，可直接在官網加購。」
+（實際知識庫完全沒有延長保固方案的資料）
+
+【Case 2】
+Q: 「我買了東西還沒拆封，幾天內可以退？」
+Retrieved top-3: C1, C3, (low-scored chunk about warranty)  ← C2 未進入 top-3
+A: 「抱歉，目前我找不到這方面的資訊，建議您聯絡客服。」
+（知識庫其實有 C2 涵蓋答案，但 retriever 漏抓）
+
+【Case 3】
+Q: 「我住澎湖，這台會加收運費嗎？多久到？」
+Retrieved top-3: C1, C2, C3  ← C3 在第 3 位
+A: 「本商品享有 7 天鑑賞期，保固期為 2 年，若您有任何問題請聯絡客服。」
+（C3 有答案但被前面兩個弱相關 chunk 稀釋，模型忽略）</div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">範例 Prompt · RAG 失敗案例診斷器<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
+          <div class="ps-prompt">你是一位 RAG 系統除錯顧問。請針對下方 3 個案例做失敗類型診斷與處方建議。
+
+對每個 Case 輸出：
+1. 失敗類型標籤（擇一）：
+   - [HALLUCINATE] 幻覺：檢索失敗 + 模型補腦捏造
+   - [MISS] 漏找：知識庫有答案但沒被 retrieved
+   - [LOST] 找到但沒用：正確 chunk 被檢索到卻被稀釋忽略
+2. 根因分析（不超過 30 字）
+3. 建議處方（擇一或多）：
+   - [PROMPT] 在 system prompt 加「找不到就說不知道」
+   - [TOPK] 提高 top-k 從 3 到 10
+   - [EXPAND] query expansion，用 LLM 改寫成多種說法
+   - [METAFILTER] 加 metadata 過濾（例：doc_type、section）
+   - [RERANK] 加 cross-encoder reranker
+4. 為何不選其他處方（1 行）
+
+最後輸出一張「3 案例 × 類型 × 處方」對照表，並建議「下一步先實驗哪一個處方、為什麼」。
+
+資料：
+[貼上上方原始素材]
+
+<button class="copy-btn" type="button">複製</button></div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>Case 1: [HALLUCINATE] 根因：retrieved 相關度都低，模型卻生成了具體數字。處方：[PROMPT] 強制「找不到就說 找不到」，避免模型捏造。不選 RERANK 因問題不在排序而在模型覆寫。<br>Case 2: [MISS] 根因：查詢「還沒拆封幾天內可以退」與 C2 的「鑑賞期 7 天」表層詞彙差很多。處方：[EXPAND] + [TOPK]。不選 RERANK 因 C2 根本沒進 top-3。<br>Case 3: [LOST] 根因：C3 在第 3 位被前面弱相關 chunk 稀釋。處方：[RERANK] 把 C3 提到第 1 位。不選 EXPAND 因檢索已經命中。<br>| Case | 類型 | 處方 |<br>| 1 | HALLUCINATE | PROMPT |<br>| 2 | MISS | EXPAND + TOPK |<br>| 3 | LOST | RERANK |<br>下一步：先做 [PROMPT] 約束，因為零成本、擋住最危險的幻覺類型。</div>
+        </div>
+      </div>
       <div class="mini-prac-output">
         <div class="mini-prac-output-label">成果產出</div>
         <div class="mini-prac-output-text">一份 10 題診斷表（欄位：問題｜retrieved 摘要｜回答｜失敗類型｜處方），加一句「下一步我要先試 ___」。</div>
@@ -370,6 +509,30 @@ document.querySelectorAll('.reveal').forEach(el=>new IntersectionObserver(e=>e.f
     });
   });
 })();
+
+// 範本 Prompt 複製按鈕
+document.addEventListener('click',function(e){
+  var btn=e.target.closest('.copy-btn');
+  if(!btn)return;
+  var prompt=btn.parentElement;
+  if(!prompt||!prompt.classList.contains('ps-prompt'))return;
+  var text=prompt.textContent.replace(/複製\s*$/,'').trim();
+  var done=function(){
+    var original=btn.textContent;
+    btn.textContent='已複製';
+    btn.classList.add('copied');
+    setTimeout(function(){btn.textContent=original;btn.classList.remove('copied');},1800);
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(function(){
+      var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();
+      try{document.execCommand('copy');done();}catch(err){}finally{document.body.removeChild(ta);}
+    });
+  }else{
+    var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');done();}catch(err){}finally{document.body.removeChild(ta);}
+  }
+});
 
 // 閱讀進度持久化（localStorage）— 2026-04-16 UI refresh
 (function(){

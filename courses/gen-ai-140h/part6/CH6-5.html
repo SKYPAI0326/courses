@@ -113,6 +113,23 @@
 .mini-prac-check input{margin-top:5px;accent-color:var(--c-a2);flex-shrink:0;cursor:pointer}
 .mini-prac-check input:checked ~ span{color:var(--c-muted);text-decoration:line-through}
 
+/* 演練範本 · prac-sample */
+.prac-sample{background:#fcfbf6;border:1px dashed var(--c-border);border-radius:var(--radius);padding:18px 20px;margin:0 0 18px}
+.ps-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.ps-eyebrow{font-size:.7rem;letter-spacing:1.5px;color:var(--c-a2);font-weight:500;text-transform:uppercase}
+.ps-hint{font-size:.72rem;color:var(--c-muted);line-height:1.6}
+.ps-block{margin-bottom:12px}
+.ps-block:last-child{margin-bottom:0}
+.ps-label{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.72rem;color:var(--c-text);font-weight:500;letter-spacing:.5px;margin-bottom:6px}
+.ps-label-tag{font-size:.7rem;color:var(--c-muted);border:1px solid var(--c-border);padding:1px 8px;border-radius:99px;font-weight:400;letter-spacing:.5px}
+.ps-material{background:var(--c-surface);border-radius:var(--radius-sm);padding:12px 14px;font-size:.8rem;line-height:1.75;color:var(--c-text);white-space:pre-wrap}
+.ps-prompt{background:#2c2b28;color:#e8e6df;font-family:ui-monospace,'SF Mono',Menlo,monospace;padding:14px 16px 14px;border-radius:var(--radius-sm);font-size:.8rem;line-height:1.7;white-space:pre-wrap;overflow-x:auto;position:relative}
+.copy-btn{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.08);color:#e8e6df;border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:3px 10px;font-size:.7rem;letter-spacing:.5px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:background .15s}
+.copy-btn:hover{background:rgba(255,255,255,.15)}
+.copy-btn.copied{background:var(--c-a2);color:#fff;border-color:var(--c-a2)}
+.ps-expect{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:12px 14px;font-size:.8rem;line-height:1.75;color:var(--c-muted)}
+.ps-expect strong{color:var(--c-text);font-weight:500}
+
 /* a11y: focus-visible ring */
 a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
 .skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 16px}.table-scroll>table{min-width:100%}</style>
@@ -279,6 +296,72 @@ app.<span class="fn">post</span>(<span class="str">'/api/stream'</span>, <span c
         <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>印出通過率、失敗案例清單、平均相似度分數。</span></div>
         <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span>把這個分數記下來當 baseline，下次改 prompt 或換模型時重跑比對。</span></div>
       </div>
+      <div class="prac-sample">
+        <div class="ps-head">
+          <span class="ps-eyebrow">範本素材</span>
+          <span class="ps-hint">沒有自己的工具？用這份「發票分類助理」的情境與 6 題種子測試，讓 AI 幫你擴展到 20 題並產出 eval 腳本。</span>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">原始素材 · 工具背景 + 6 題種子測試<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
+          <div class="ps-material">【工具背景】
+名稱：發票分類助理
+任務：接收一句使用者描述的消費，輸出 JSON {category: "...", amount: ...}
+category 限定六類：餐飲、交通、差旅、辦公用品、雲服務、其他
+若模型無法判斷，category 應填 "其他"
+
+【6 題種子測試（input → expected）】
+T1 input: "今天午餐便當 95"
+   expected: {"category":"餐飲","amount":95}
+T2 input: "搭高鐵去台中來回 2400"
+   expected: {"category":"交通","amount":2400}
+T3 input: "買了 5 包影印紙 450 元"
+   expected: {"category":"辦公用品","amount":450}
+T4 input: "Claude Pro 月費 20 鎂換成台幣大約 640"
+   expected: {"category":"雲服務","amount":640}
+T5 input: "東京出差住宿三晚共 12000"
+   expected: {"category":"差旅","amount":12000}
+T6 input: "送給同事的生日卡片 150"
+   expected: {"category":"其他","amount":150}
+
+【模型設定】
+- 模型：claude-haiku-4-5-20251001
+- max_tokens: 200
+- system prompt: "你是發票分類助理。根據使用者輸入輸出 JSON。category 只能是：餐飲/交通/差旅/辦公用品/雲服務/其他。若無法判斷 category 填其他。"</div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">範例 Prompt · 擴展黃金集 + Eval 腳本產生器<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
+          <div class="ps-prompt">你是一位 LLM 應用的品質工程師。請根據下方工具背景與 6 題種子測試，產出完整的 20 題黃金集與 eval 腳本。
+
+任務一：擴展到 20 題
+- 每個 category 至少 2 題
+- 至少 4 題是邊界情境（金額混寫法、英文混中、模糊描述、可能誤判）
+- 至少 2 題是「理應填『其他』」的陷阱題
+- 輸出 JSON 陣列，欄位 id, input, expected
+
+任務二：eval.py 腳本
+- 讀 golden_set.json
+- 對每題呼叫 Claude API（模型與設定如素材），解析回傳 JSON
+- 評分：
+  - Level 1 精確匹配：category 與 expected.category 相同 → 1 分
+  - Level 2 金額容差：amount 與 expected.amount 絕對誤差 &lt; 5 → 1 分
+  - 最終通過：兩者同時符合
+- 輸出：
+  - 通過率 X/20
+  - 失敗案例前 3 筆（含 expected vs actual）
+  - 各 category 的通過率
+
+任務三：結尾建議
+- 1 句：「下次 prompt 迭代後，什麼分數視為 regression？」
+
+素材：
+[貼上上方原始素材]
+
+<button class="copy-btn" type="button">複製</button></div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>golden_set.json: [{"id":1,"input":"今天午餐便當 95","expected":{"category":"餐飲","amount":95}}, ... 20 筆]<br>eval.py 片段：<br>for item in golden: actual = json.loads(call_claude(item['input'])); cat_ok = actual['category'] == item['expected']['category']; amt_ok = abs(actual['amount']-item['expected']['amount'])&lt;5; results.append(cat_ok and amt_ok)<br>baseline 結果範例：<br>通過率 17/20 (85%)<br>失敗案例：T12 'Notion 年繳 9600 台幣' actual=其他/9600, expected=雲服務/9600（category 錯）<br>各 category 通過率：餐飲 3/3 交通 3/3 差旅 2/3 辦公 3/3 雲服務 2/3 其他 4/5<br>regression 門檻：通過率低於 80% 視為退步，立即 rollback 改動。</div>
+        </div>
+      </div>
       <div class="mini-prac-output">
         <div class="mini-prac-output-label">成果產出</div>
         <div class="mini-prac-output-text">golden_set.json（或 .csv）+ eval.py 腳本 + 一張 baseline 結果表（通過率 / 平均相似度 / 失敗案例前 3 筆）。</div>
@@ -350,6 +433,77 @@ app.<span class="fn">post</span>(<span class="str">'/api/stream'</span>, <span c
         <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span>選兩個策略套用：例如「Sonnet <span aria-hidden="true">→</span> Haiku」+「max_tokens 降到實際需求」，或「開 prompt caching」+「server-side cache」。</span></div>
         <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>再跑 10 次，記錄新版本的 token 與成本，並跑 golden set 確認品質沒退步。</span></div>
         <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span>算出節省百分比，並在 API 後台設一個「每日 $X」的 usage limit 作為最後保險。</span></div>
+      </div>
+      <div class="prac-sample">
+        <div class="ps-head">
+          <span class="ps-eyebrow">範本素材</span>
+          <span class="ps-hint">一組前版 usage 統計 + 工具特性，讓 AI 幫你挑出兩個最該先動的成本槓桿。</span>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">原始素材 · 某內部 SOP 查詢助理的前版成本數據（10 次呼叫平均）<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
+          <div class="ps-material">【工具基本資料】
+名稱：內部 SOP 查詢助理
+模型：claude-sonnet-4-5-20250929
+max_tokens: 2048
+每天呼叫次數：約 300 次
+是否已開 prompt caching：否
+是否有 server-side cache：否
+
+【System Prompt 特徵】
+- 長度：約 2400 字（含 8 段 SOP 摘要、4 個拒答規則、3 個輸出格式範例）
+- 每次呼叫內容完全一致
+
+【典型呼叫 10 次平均 usage】
+input_tokens: 3800
+output_tokens: 520
+單次成本（Sonnet in $3/M + out $15/M）：≈ $0.0192
+每日成本：300 × 0.0192 = $5.76
+月成本：≈ $172.8
+
+【品質 baseline】
+golden set 20 題通過率：18/20 (90%)
+
+【已知現象】
+- 約 70% 的查詢其實只需要簡單的關鍵字比對 + 模板回覆
+- output 常常超過 300 tokens 但實際有用資訊不到一半
+- 使用者問題中約 15% 是同一天問過的 FAQ</div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">範例 Prompt · 成本瘦身策略 + A/B 測試計畫產生器<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
+          <div class="ps-prompt">你是一位 LLM 應用成本優化顧問。請針對下方工具的前版狀態，產出成本瘦身策略。
+
+輸出三個區塊：
+
+## 一、五策略評分表
+對「選對模型 / Prompt caching / 限制 max_tokens / Server-side cache / 每日預算上限」五個策略各自給出：
+- 可行性（1–5）
+- 預期節省百分比（具體數字區間）
+- 對品質的風險（低/中/高）
+- 一句話根因依據（從素材中哪個線索判斷）
+
+## 二、Top 2 組合建議
+挑出最該先動的兩個策略，說明：
+- 為什麼這兩個一起做效益 &gt; 單做
+- 實作順序（哪個先、為什麼）
+- 上線前必做的品質檢查
+
+## 三、A/B 實驗規劃
+給出一張表：
+| 版本 | 模型 | max_tokens | caching | server cache | 預期單次成本 | 預期月成本 |
+| 前版 | ... | ... | ... | ... | ... | ... |
+| 候選 A | ... | ... | ... | ... | ... | ... |
+| 候選 B | ... | ... | ... | ... | ... | ... |
+
+最後 1 行：什麼樣的 golden set 退步幅度會讓你立即回滾？
+
+素材：
+[貼上上方原始素材]
+
+<button class="copy-btn" type="button">複製</button></div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>一、評分表：<br>選對模型 5/5，節省 60–80%，品質風險中（Sonnet→Haiku 有機會但需 golden set 驗證；70% 查詢是簡單匹配支持此判斷）<br>Prompt caching 5/5，節省 40–50%，品質風險低（system prompt 2400 字且每次一致，是 cache 最甜蜜點）<br>限制 max_tokens 4/5，節省 15–25%，品質風險低（output 冗長已確認）<br>Server-side cache 4/5，節省 10–15%，品質風險低（15% 重複問題可直接命中）<br>每日預算上限 3/5，無直接節省，屬風險控管<br>二、Top 2：Prompt caching + 模型降級。先開 caching（零風險即時省 45%），再跑 golden set 驗證 Haiku 能否維持 90% 通過率；可維持則降級再省 60–70%。<br>三、A/B 表：<br>| 前版 | Sonnet | 2048 | off | off | $0.0192 | $172.8 |<br>| A | Sonnet | 500 | on | on | $0.0080 | $72 |<br>| B | Haiku | 500 | on | on | $0.0018 | $16.2 |<br>回滾門檻：golden set 通過率跌破 85%（下降 &gt; 5 個百分點）立即 rollback。</div>
+        </div>
       </div>
       <div class="mini-prac-output">
         <div class="mini-prac-output-label">成果產出</div>
@@ -456,6 +610,30 @@ reveals.forEach(el => io.observe(el));
     });
   });
 })();
+
+// 範本 Prompt 複製按鈕
+document.addEventListener('click',function(e){
+  var btn=e.target.closest('.copy-btn');
+  if(!btn)return;
+  var prompt=btn.parentElement;
+  if(!prompt||!prompt.classList.contains('ps-prompt'))return;
+  var text=prompt.textContent.replace(/複製\s*$/,'').trim();
+  var done=function(){
+    var original=btn.textContent;
+    btn.textContent='已複製';
+    btn.classList.add('copied');
+    setTimeout(function(){btn.textContent=original;btn.classList.remove('copied');},1800);
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(function(){
+      var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();
+      try{document.execCommand('copy');done();}catch(err){}finally{document.body.removeChild(ta);}
+    });
+  }else{
+    var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');done();}catch(err){}finally{document.body.removeChild(ta);}
+  }
+});
 
 // 閱讀進度持久化（localStorage）— 2026-04-16 UI refresh
 (function(){

@@ -123,6 +123,21 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 .mini-prac-check label{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;line-height:1.7;color:var(--c-text);cursor:pointer}
 .mini-prac-check input{margin-top:5px;accent-color:var(--c-a2);flex-shrink:0;cursor:pointer}
 .mini-prac-check input:checked ~ span{color:var(--c-muted);text-decoration:line-through}
+.prac-sample{background:#fcfbf6;border:1px dashed var(--c-border);border-radius:var(--radius);padding:18px 20px;margin:0 0 18px}
+.ps-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.ps-eyebrow{font-size:.7rem;letter-spacing:1.5px;color:var(--c-a2);font-weight:500;text-transform:uppercase}
+.ps-hint{font-size:.72rem;color:var(--c-muted);line-height:1.6}
+.ps-block{margin-bottom:12px}
+.ps-block:last-child{margin-bottom:0}
+.ps-label{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.72rem;color:var(--c-text);font-weight:500;letter-spacing:.5px;margin-bottom:6px}
+.ps-label-tag{font-size:.7rem;color:var(--c-muted);border:1px solid var(--c-border);padding:1px 8px;border-radius:99px;font-weight:400;letter-spacing:.5px}
+.ps-material{background:var(--c-surface);border-radius:var(--radius-sm);padding:12px 14px;font-size:.8rem;line-height:1.75;color:var(--c-text);white-space:pre-wrap}
+.ps-prompt{background:#2c2b28;color:#e8e6df;font-family:ui-monospace,'SF Mono',Menlo,monospace;padding:14px 16px 14px;border-radius:var(--radius-sm);font-size:.8rem;line-height:1.7;white-space:pre-wrap;overflow-x:auto;position:relative}
+.copy-btn{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.08);color:#e8e6df;border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:3px 10px;font-size:.7rem;letter-spacing:.5px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:background .15s}
+.copy-btn:hover{background:rgba(255,255,255,.15)}
+.copy-btn.copied{background:var(--c-a2);color:#fff;border-color:var(--c-a2)}
+.ps-expect{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:12px 14px;font-size:.8rem;line-height:1.75;color:var(--c-muted)}
+.ps-expect strong{color:var(--c-text);font-weight:500}
 
 /* a11y: focus-visible ring */
 a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
@@ -280,6 +295,60 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span>每個方框寫一行：具體工具（例：Google 表單、OpenAI、Google Sheets）＋ 動作（新提交、分類、寫入）。</span></div>
         <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>在箭頭上標「傳遞什麼資料」（例：原始回饋文字 <span aria-hidden="true">→</span> 分類結果 JSON）。</span></div>
       </div>
+      <div class="prac-sample">
+        <div class="ps-head">
+          <span class="ps-eyebrow">範本素材</span>
+          <span class="ps-hint">接續 CH3-2 的「社群留言分類」任務，用下方情境讓 AI 幫你把三段流程節點寫成可貼的節點卡片清單，感受「畫圖前先寫清單」怎麼省掉在 Make 裡面反覆拖元件。</span>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">原始素材 · 社群留言分類工作流情境（約 200 字）<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
+          <div class="ps-material">## 任務
+每週一處理上週 Facebook 粉專留言，分類情緒與主題後寫回試算表，若客訴超標則通知主管。
+
+## 輸入
+- 來源：Google Sheets「留言匯入」分頁（FB 後台 CSV 手動貼入，每週 60–100 筆）
+- 觸發：每週一 09:00 定時排程
+- 欄位：timestamp / user / content / post_url
+
+## 處理
+- 工具：OpenAI API（gpt-4.1, temperature 0.2）
+- Prompt：將每筆留言分類為 sentiment（pos/neg/neu）、topic（product/event/complaint/other）
+- 輸出格式：JSON array，每筆包含 row_id + sentiment + topic
+
+## 輸出
+- 目的地：Google Sheets「已分類」分頁
+- 欄位對應：A=row_id, B=sentiment, C=topic, D=處理時間
+- 通知條件：complaint + product 合計比例 &gt; 20% → Slack 通知 #marketing-alerts 頻道</div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">範例 Prompt · 三節點流程草圖節點卡清單<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
+          <div class="ps-prompt">你是一位自動化流程顧問。請根據下方工作流情境，產出「觸發 → 處理 → 輸出」三節點的節點卡清單，讓我能直接拿去在 Make / n8n 拖元件。
+
+## 輸出要求（Markdown 表格 + 箭頭標註）
+| 節點 | 工具 | 動作 | 關鍵設定 |
+|---|---|---|---|
+| 觸發 | ... | ... | ... |
+| 處理 | ... | ... | ... |
+| 輸出 | ... | ... | ... |
+
+表格下方補兩行箭頭標註：
+- 觸發 → 處理：傳遞什麼資料（欄位名與型態）
+- 處理 → 輸出：傳遞什麼資料（欄位名與型態）
+
+## 規則
+- 工具欄必須寫具體名稱（Google Sheets、OpenAI API、Slack），禁止寫「AI」「雲端」「自動化」這類泛稱
+- 若流程包含條件分支（如通知條件），在輸出節點後補一行 "分支：條件 → 動作"
+- 不要輸出解釋段落
+
+## 工作流情境如下：
+[貼上上方素材]
+
+<button class="copy-btn" type="button">複製</button></div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>| 觸發 | Google Sheets（Watch Rows）| 監聽「留言匯入」分頁新列 | 排程每週一 09:00，或列數變化觸發 |<br>| 處理 | OpenAI API（Chat Completion）| 對每筆呼叫分類 Prompt | model=gpt-4.1, temperature=0.2, 輸出 JSON |<br>| 輸出 | Google Sheets（Add Row）| 寫入「已分類」分頁 | 欄位對應 A–D |<br>觸發 → 處理：row_id(int) + content(string) 的 array<br>處理 → 輸出：row_id + sentiment + topic 的 JSON array<br>分支：complaint+product 比例 &gt; 20% → Slack 發訊到 #marketing-alerts</div>
+        </div>
+      </div>
       <div class="mini-prac-output">
         <div class="mini-prac-output-label">成果產出</div>
         <div class="mini-prac-output-text">一張三節點流程草圖（拍照或 Excalidraw 也可），節點清楚標示工具＋動作，箭頭標示資料型態。</div>
@@ -341,6 +410,60 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span>按下「Run once / Listen for test event」讓它等待接收。</span></div>
         <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>把 Webhook URL 後面加 ?name=test&amp;msg=hello 貼到瀏覽器網址列按 Enter（或用 curl 發 POST）。</span></div>
         <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span>回到 Make / n8n，確認節點顯示收到資料，截圖保存欄位對應結構。</span></div>
+      </div>
+      <div class="prac-sample">
+        <div class="ps-head">
+          <span class="ps-eyebrow">範本素材</span>
+          <span class="ps-hint">第一次碰 Webhook 不知道要送什麼資料？用下方某客服表單的 payload 範例送到你的 Webhook URL，感受 JSON 欄位怎麼對應到 Make / n8n 的動態欄位。</span>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">原始素材 · 客服表單提交 payload（約 220 字）<span class="ps-label-tag">送進你的 Webhook URL</span></div>
+          <div class="ps-material">## 測試用 JSON payload（POST body，Content-Type: application/json）
+{
+  "submission_id": "FM-20260420-0031",
+  "submitted_at": "2026-04-20T14:32:11+08:00",
+  "customer": {
+    "name": "某客戶",
+    "email": "customer@example.com",
+    "phone": "0912345678"
+  },
+  "issue": {
+    "category": "product_defect",
+    "priority": "high",
+    "content": "上週購買的產品使用三天後出現異常，希望安排更換或退款。"
+  },
+  "meta": {
+    "source": "web_form",
+    "user_agent": "Mozilla/5.0"
+  }
+}
+
+## 或用 GET 方式測試（瀏覽器直接貼）
+在你的 Webhook URL 後加：?submission_id=FM-20260420-0031&name=某客戶&priority=high&category=product_defect</div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">範例 Prompt · Webhook 測試與欄位對應 checklist 生成器<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
+          <div class="ps-prompt">你是一位自動化工程師。我要在 Make / n8n 建立一個 Webhook 接收下方 payload。請幫我產出「測試與欄位對應 checklist」，讓我能一步步驗證 Webhook 設定正確。
+
+## 輸出要求
+1. 給兩種測試方式（GET 網址列 / POST curl 指令），curl 請給可直接貼終端機的完整指令（URL 用 [YOUR_WEBHOOK_URL] 占位）
+2. 列出 Make / n8n 接收後會看到的欄位路徑（dot notation，例如 customer.name）
+3. 給 5 條驗證 checklist（打勾式），每條要具體可執行，不要寫「確認正常」這類模糊敘述
+4. 最後補一行「下一步」：建議接哪個節點處理這份 payload
+
+## 規則
+- GET 測試的 query string 需 URL-encode 中文
+- curl 指令需包含 Content-Type header
+- 欄位路徑請含 meta 與 customer 的巢狀結構
+
+## payload 如下：
+[貼上上方 JSON]
+
+<button class="copy-btn" type="button">複製</button></div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>curl -X POST [YOUR_WEBHOOK_URL] -H "Content-Type: application/json" -d '{"submission_id":"FM-20260420-0031",...}'<br>欄位路徑：submission_id / customer.name / customer.email / issue.priority / issue.content / meta.source<br>Checklist：□ Webhook 顯示「Accepted」狀態碼 200 □ customer.name 欄位有值（非 undefined）□ issue.priority 值為 high/medium/low 其中之一 □ submitted_at 能解析為有效 ISO 8601 □ meta.source 等於 "web_form"<br>下一步：接 Router 節點依 issue.priority 分流，high 走即時通知，其他走排程處理</div>
+        </div>
       </div>
       <div class="mini-prac-output">
         <div class="mini-prac-output-label">成果產出</div>
@@ -446,6 +569,30 @@ window.addEventListener('scroll', () => {
     });
   });
 })();
+
+// 範本 Prompt 複製按鈕
+document.addEventListener('click',function(e){
+  var btn=e.target.closest('.copy-btn');
+  if(!btn)return;
+  var prompt=btn.parentElement;
+  if(!prompt||!prompt.classList.contains('ps-prompt'))return;
+  var text=prompt.textContent.replace(/複製\s*$/,'').trim();
+  var done=function(){
+    var original=btn.textContent;
+    btn.textContent='已複製';
+    btn.classList.add('copied');
+    setTimeout(function(){btn.textContent=original;btn.classList.remove('copied');},1800);
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(function(){
+      var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();
+      try{document.execCommand('copy');done();}catch(err){}finally{document.body.removeChild(ta);}
+    });
+  }else{
+    var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');done();}catch(err){}finally{document.body.removeChild(ta);}
+  }
+});
 
 // 閱讀進度持久化（localStorage）— 2026-04-16 UI refresh
 (function(){
