@@ -125,6 +125,21 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 .mini-prac-check label{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;line-height:1.7;color:var(--c-text);cursor:pointer}
 .mini-prac-check input{margin-top:5px;accent-color:var(--c-a2);flex-shrink:0;cursor:pointer}
 .mini-prac-check input:checked ~ span{color:var(--c-muted);text-decoration:line-through}
+.prac-sample{background:#fcfbf6;border:1px dashed var(--c-border);border-radius:var(--radius);padding:18px 20px;margin:0 0 18px}
+.ps-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.ps-eyebrow{font-size:.7rem;letter-spacing:1.5px;color:var(--c-a2);font-weight:500;text-transform:uppercase}
+.ps-hint{font-size:.72rem;color:var(--c-muted);line-height:1.6}
+.ps-block{margin-bottom:12px}
+.ps-block:last-child{margin-bottom:0}
+.ps-label{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.72rem;color:var(--c-text);font-weight:500;letter-spacing:.5px;margin-bottom:6px}
+.ps-label-tag{font-size:.7rem;color:var(--c-muted);border:1px solid var(--c-border);padding:1px 8px;border-radius:99px;font-weight:400;letter-spacing:.5px}
+.ps-material{background:var(--c-surface);border-radius:var(--radius-sm);padding:12px 14px;font-size:.8rem;line-height:1.75;color:var(--c-text);white-space:pre-wrap}
+.ps-prompt{background:#2c2b28;color:#e8e6df;font-family:ui-monospace,'SF Mono',Menlo,monospace;padding:14px 16px 14px;border-radius:var(--radius-sm);font-size:.8rem;line-height:1.7;white-space:pre-wrap;overflow-x:auto;position:relative}
+.copy-btn{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.08);color:#e8e6df;border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:3px 10px;font-size:.7rem;letter-spacing:.5px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:background .15s}
+.copy-btn:hover{background:rgba(255,255,255,.15)}
+.copy-btn.copied{background:var(--c-a2);color:#fff;border-color:var(--c-a2)}
+.ps-expect{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:12px 14px;font-size:.8rem;line-height:1.75;color:var(--c-muted)}
+.ps-expect strong{color:var(--c-text);font-weight:500}
 
 /* a11y: focus-visible ring */
 a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
@@ -267,6 +282,50 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span>列出輸入欄位：每欄寫「標籤 · 類型 · 預設值」三件事，至少 2 欄。</span></div>
         <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>用自然語言寫出運算邏輯（公式、條件、AI 呼叫）和輸出格式（數字？卡片？要不要複製按鈕？）。</span></div>
       </div>
+      <div class="prac-sample">
+        <div class="ps-head">
+          <span class="ps-eyebrow">範本素材</span>
+          <span class="ps-hint">先跑這份體感一次，再把痛點換成你自己的</span>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">原始素材 · n8n 流程節點成本小試算（約 160 字）<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
+          <div class="ps-material">痛點：每次設計 n8n 自動化流程前，主管會問「這條 flow 一個月跑幾次、會花多少錢」。目前是打開計算機手算，常把觸發次數乘錯，花 5 分鐘。
+目前已知的資訊：
+- 流程觸發頻率：每日 X 次（由使用者輸入）
+- 每次流程平均呼叫 OpenAI API：2 次，單次費用 0.02 USD
+- 每次流程寫入 Google Sheets：1 次，不計費
+- 每次流程發送 LINE Notify：0 或 1 次（下拉選）
+- 匯率：1 USD = 32 TWD（預設值，可改）</div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">範例 Prompt · 工具生成指令<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
+          <div class="ps-prompt">你是熟悉 HTML 工具製作的前端助理。請把下方「原始素材」做成單一檔案 HTML 工具：
+
+【輸入欄位】
+1. 每日觸發次數（數字，預設 30，最小 0）
+2. 每次是否發送 LINE Notify（下拉：是 / 否，預設：是）
+3. 匯率 USD→TWD（數字，預設 32）
+
+【運算邏輯】
+- 每次流程成本（USD）＝ 2 × 0.02 USD；若發 LINE Notify 則不另加費
+- 每月成本（USD）＝ 每次成本 × 每日觸發次數 × 30
+- 每月成本（TWD）＝ 上述 × 匯率
+
+【輸出區】
+- 以卡片顯示：每月觸發總次數、每月成本（USD，小數兩位）、每月成本（TWD，整數四捨五入）
+- 卡片下方附一顆「複製報價摘要」按鈕，點擊後複製一行文字：每月 N 次，約 TWD X 元
+- 欄位空或為負時，輸出區顯示「請先填寫每日觸發次數」，不要彈 alert
+
+請以 Part 4 的霧藍（#6b7fa3）為主色，背景米白，按鈕全寬。
+
+【原始素材】
+（貼上上方原始素材）
+<button class="copy-btn" type="button">複製</button></div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>一份可直接存檔打開的 HTML，頁面包含 3 個輸入欄位與「試算」按鈕<br>按下後顯示：每月觸發 900 次 · 成本 36.00 USD · 約 TWD 1,152 元<br>下方「複製報價摘要」按鈕，點擊後剪貼簿出現一行摘要文字<br>未填每日次數時，結果區顯示灰字「請先填寫每日觸發次數」</div>
+        </div>
+      </div>
       <div class="mini-prac-output">
         <div class="mini-prac-output-label">成果產出</div>
         <div class="mini-prac-output-text">一份可以直接貼給 Claude / GPT 的工具生成指令（約 150–250 字），結尾附驗證規則一行。</div>
@@ -318,6 +377,46 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <div class="mini-prac-step"><span class="mini-prac-step-num">1</span><span>為每個輸入欄位寫一條驗證規則（空值？負數？超出上限？），用中文描述即可。</span></div>
         <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span>加上「清除所有輸入與輸出」的重設按鈕需求。</span></div>
         <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>指定錯誤訊息顯示位置與樣式（紅字？欄位正下方？不要 alert）。</span></div>
+      </div>
+      <div class="prac-sample">
+        <div class="ps-head">
+          <span class="ps-eyebrow">範本素材</span>
+          <span class="ps-hint">接續練習 1 的試算器，補護欄</span>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">原始素材 · 上一版工具已知的漏洞清單（約 140 字）<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
+          <div class="ps-material">目前「n8n 流程成本試算器」測試時發現的狀況：
+1. 同事把「每日觸發次數」留空直接按「試算」，結果顯示 NaN TWD
+2. 有人把匯率填成 0，導致成本變 0 元，明顯錯誤沒有提醒
+3. 有人把每日次數填成 -5，工具照算出負成本
+4. 有人快速連按兩次「試算」按鈕，不確定有沒有重複計算
+5. 目前錯誤訊息是用瀏覽器 alert 彈窗，手機上會卡一下</div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">範例 Prompt · 補驗證與重設<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
+          <div class="ps-prompt">這是對上一版工具的追加指令。請只改下列項目，其他保持不動：
+
+【驗證規則】
+- 每日觸發次數：必填、數字、不可為負、不可大於 10000。空值時顯示「請先填寫每日觸發次數」
+- 匯率 USD→TWD：必填、大於 0、合理範圍 20–50。不在範圍時顯示「匯率不在合理範圍（20–50），請確認」
+- 每個欄位的錯誤訊息顯示在該欄位正下方，紅字（#b5703a），不要用 alert
+
+【重設按鈕】
+- 在「試算」按鈕右邊加一顆「清除」按鈕（次要樣式，邊框灰色）
+- 點下後：所有輸入回到預設值，結果卡片清空，所有錯誤訊息消失
+
+【防手快連點】
+- 試算按鈕按下後，0.3 秒內不可再次觸發（按鈕暫時 disabled）
+
+請沿用霧藍主色與米白背景。
+
+【原始素材】
+（貼上上方漏洞清單）
+<button class="copy-btn" type="button">複製</button></div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>清空每日次數後按試算：欄位下方出現紅字「請先填寫每日觸發次數」<br>匯率填 100：欄位下方紅字「匯率不在合理範圍（20–50），請確認」<br>點「清除」：所有欄位回到預設值、結果區恢復初始提示<br>快按兩次「試算」：第二次不觸發，按鈕短暫灰化</div>
+        </div>
       </div>
       <div class="mini-prac-output">
         <div class="mini-prac-output-label">成果產出</div>
@@ -382,6 +481,43 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span>先測功能（數字對不對、錯誤訊息有沒有出現），把第一個發現的問題寫成一句話。</span></div>
         <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>用「只改 X，其他不動」的句型追加指令，跑第二輪，比對兩版差異。</span></div>
       </div>
+      <div class="prac-sample">
+        <div class="ps-head">
+          <span class="ps-eyebrow">範本素材</span>
+          <span class="ps-hint">v1 先跑出來，再下第二輪精準指令</span>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">原始素材 · v1 實測發現的問題（約 150 字）<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
+          <div class="ps-material">把練習 2 的升級指令丟給 AI 後，第一稿 v1.html 打開瀏覽器實測，發現：
+- 試算邏輯正確，但結果卡片上「每月成本（TWD）」的數字沒有千分位逗號，顯示成 1152 而不是 1,152，不好讀
+- 欄位錯誤訊息出現後，修改欄位內容時紅字不會消失，要再按一次試算才清掉
+- 手機（寬度 375px）上看，兩顆按鈕（試算／清除）擠在同一行且文字被截斷
+- 桌面版 OK，色彩與版面都沒問題，不要動
+決定這一輪只修這三項，不擴增新功能。</div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">範例 Prompt · v2 精準修正<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
+          <div class="ps-prompt">這是針對 v1 的二次生成。請只修下列三處，其他保持完全不動（尤其色彩、版型、既有驗證規則）：
+
+【修正 1 · 數字格式】
+結果卡片上「每月成本（TWD）」顯示時加上千分位逗號，例如 1,152。USD 保持小數兩位。
+
+【修正 2 · 錯誤訊息自動清除】
+當使用者在有錯誤訊息的欄位輸入新值（input 事件）時，立刻清除該欄位下方的紅字，不必等下次按試算。
+
+【修正 3 · 手機按鈕換行】
+螢幕寬度小於 600px 時，「試算」與「清除」兩顆按鈕改為上下排列（各佔一行全寬），桌面版維持原本並排。
+
+請回傳完整 HTML（v2），不要只給 diff。
+
+【原始素材】
+（貼上上方實測清單）
+<button class="copy-btn" type="button">複製</button></div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>v2 打開後，試算結果顯示「約 TWD 1,152 元」（有千分位）<br>欄位報紅字後，打字進去紅字立刻消失<br>把瀏覽器拉到 375px 寬：兩顆按鈕改成上下兩行，各自全寬<br>比對 v1 / v2：色彩、版面、其他文字完全沒動</div>
+        </div>
+      </div>
       <div class="mini-prac-output">
         <div class="mini-prac-output-label">成果產出</div>
         <div class="mini-prac-output-text">v1.html 與 v2.html 兩份檔案，加一張一行筆記：「這次最難讓 AI 改對的是 ____」。</div>
@@ -441,6 +577,30 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
     });
   });
 })();
+
+// 範本 Prompt 複製按鈕
+document.addEventListener('click',function(e){
+  var btn=e.target.closest('.copy-btn');
+  if(!btn)return;
+  var prompt=btn.parentElement;
+  if(!prompt||!prompt.classList.contains('ps-prompt'))return;
+  var text=prompt.textContent.replace(/複製\s*$/,'').trim();
+  var done=function(){
+    var original=btn.textContent;
+    btn.textContent='已複製';
+    btn.classList.add('copied');
+    setTimeout(function(){btn.textContent=original;btn.classList.remove('copied');},1800);
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(function(){
+      var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();
+      try{document.execCommand('copy');done();}catch(err){}finally{document.body.removeChild(ta);}
+    });
+  }else{
+    var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');done();}catch(err){}finally{document.body.removeChild(ta);}
+  }
+});
 
 // 閱讀進度持久化（localStorage）— 2026-04-16 UI refresh
 (function(){

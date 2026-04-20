@@ -120,6 +120,21 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 .mini-prac-check label{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;line-height:1.7;color:var(--c-text);cursor:pointer}
 .mini-prac-check input{margin-top:5px;accent-color:var(--c-a2);flex-shrink:0;cursor:pointer}
 .mini-prac-check input:checked ~ span{color:var(--c-muted);text-decoration:line-through}
+.prac-sample{background:#fcfbf6;border:1px dashed var(--c-border);border-radius:var(--radius);padding:18px 20px;margin:0 0 18px}
+.ps-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.ps-eyebrow{font-size:.7rem;letter-spacing:1.5px;color:var(--c-a2);font-weight:500;text-transform:uppercase}
+.ps-hint{font-size:.72rem;color:var(--c-muted);line-height:1.6}
+.ps-block{margin-bottom:12px}
+.ps-block:last-child{margin-bottom:0}
+.ps-label{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.72rem;color:var(--c-text);font-weight:500;letter-spacing:.5px;margin-bottom:6px}
+.ps-label-tag{font-size:.7rem;color:var(--c-muted);border:1px solid var(--c-border);padding:1px 8px;border-radius:99px;font-weight:400;letter-spacing:.5px}
+.ps-material{background:var(--c-surface);border-radius:var(--radius-sm);padding:12px 14px;font-size:.8rem;line-height:1.75;color:var(--c-text);white-space:pre-wrap}
+.ps-prompt{background:#2c2b28;color:#e8e6df;font-family:ui-monospace,'SF Mono',Menlo,monospace;padding:14px 16px 14px;border-radius:var(--radius-sm);font-size:.8rem;line-height:1.7;white-space:pre-wrap;overflow-x:auto;position:relative}
+.copy-btn{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.08);color:#e8e6df;border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:3px 10px;font-size:.7rem;letter-spacing:.5px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:background .15s}
+.copy-btn:hover{background:rgba(255,255,255,.15)}
+.copy-btn.copied{background:var(--c-a2);color:#fff;border-color:var(--c-a2)}
+.ps-expect{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:12px 14px;font-size:.8rem;line-height:1.75;color:var(--c-muted)}
+.ps-expect strong{color:var(--c-text);font-weight:500}
 
 /* a11y: focus-visible ring */
 a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
@@ -236,6 +251,48 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span>選「差距最明顯」的 2 個問題，每個寫一條修正指令（只說要的效果，不寫 CSS）。</span></div>
         <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>把兩條指令合併送給 AI 跑一次修正，打開新檔案比對。</span></div>
       </div>
+      <div class="prac-sample">
+        <div class="ps-head">
+          <span class="ps-eyebrow">範本素材</span>
+          <span class="ps-hint">先用這份示範案例做一次 UX 稽核</span>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">原始素材 · v1 工具實測觀察清單（約 200 字）<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
+          <div class="ps-material">工具名稱：n8n 流程成本試算器 v1
+實測情境：請一位沒參與設計的同事用一次，觀察到下列狀況。
+差距 1｜欄位說明：「每日觸發次數」輸入框下沒有任何說明，同事停 3 秒問「是指一天跑幾次還是一小時？」
+差距 2｜按鈕動詞：主按鈕文字是「送出」，同事沒按因為不確定會不會直接把資料寄出去
+差距 3｜輸出層次：TWD、USD、觸發次數三個數字一樣大，看不出哪個是重點
+差距 4｜錯誤訊息：空欄位按下去，只顯示「輸入錯誤」四個字，同事不知道是哪一欄
+差距 5｜空狀態：還沒按按鈕時，結果區完全空白，看起來像壞掉
+最想先修：差距 3（輸出層次）與差距 4（錯誤訊息）</div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">範例 Prompt · UX 修正指令<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
+          <div class="ps-prompt">這是對上一版工具的 UX 追加指令。請只改下列兩項，其他完全不動：
+
+【修正 1 · 輸出層次】
+結果卡片上的三個數字，重要性不同，請改為：
+- 主要數字「每月成本（TWD）」放最上方，使用較大字級（比正文大，約 1.45rem 感覺），深色加粗
+- 次要數字「每月成本（USD）」「每月觸發總次數」並列在下方，字級比正文略小（約 .85rem 感覺），灰色
+- 三者之間用細分隔線或留白區分，不要同樣大小擠在一起
+
+【修正 2 · 錯誤訊息具體化】
+把目前籠統的「輸入錯誤」換成以下具體句子，顯示在對應欄位正下方（紅字 #b5703a，不要 alert）：
+- 每日觸發次數為空：「請先填寫每日觸發次數（例如 30）」
+- 每日觸發次數為負或超過 10000：「請輸入 0 到 10000 之間的整數」
+- 匯率不在 20–50 範圍：「匯率不在合理範圍，請確認（例如 32）」
+
+請回傳完整 v2 HTML。
+
+【原始素材】
+（貼上上方觀察清單）
+<button class="copy-btn" type="button">複製</button></div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>結果卡片：TWD 1,152 元（大字深色）置頂<br>下方並列較小字：USD 36.00 · 每月觸發 900 次（灰色）<br>空每日次數按試算：欄位正下方紅字「請先填寫每日觸發次數（例如 30）」<br>把匯率改 100：欄位下紅字「匯率不在合理範圍，請確認（例如 32）」</div>
+        </div>
+      </div>
       <div class="mini-prac-output">
         <div class="mini-prac-output-label">成果產出</div>
         <div class="mini-prac-output-text">一張「UX 稽核表」（5 項打勾 + 2 條修正指令）＋ 修正後的 v2 工具檔。</div>
@@ -328,6 +385,54 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span>指定主色 1 個 + 強調色 1 個（最多 2 色），說明強調色用在哪（按鈕？重要數字？）。</span></div>
         <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>用「大小／顏色／間距」三個維度描述卡片、說明文字、按鈕各要什麼感覺。</span></div>
       </div>
+      <div class="prac-sample">
+        <div class="ps-head">
+          <span class="ps-eyebrow">範本素材</span>
+          <span class="ps-hint">用意圖語言升級視覺，不寫 CSS 屬性</span>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">原始素材 · 這個工具的使用情境與調性（約 130 字）<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
+          <div class="ps-material">工具名稱：n8n 流程成本試算器 v2
+使用對象：會議中給主管看報價依據，也會自己在辦公室試算
+使用情境：主要在筆電，偶爾在手機開
+目前調性：很像 Excel 的灰白色系，功能沒問題，但「拿出來秀不夠體面」
+希望調整：
+- 版型選擇：單欄（行動優先）
+- 色彩：主色 1 個 + 強調色 1 個，不要第 3 色
+- 主色傾向：霧藍（沉穩、專業）
+- 強調色用在：主按鈕與最重要的那個數字
+- 整體氣質：編輯式、留白多、不要卡片疊卡片</div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">範例 Prompt · 視覺升級指令（不含 CSS 屬性名）<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
+          <div class="ps-prompt">這是對 v2 的視覺升級指令。功能與驗證邏輯完全保持，只動外觀。請遵守下列描述：
+
+【版型】
+採單欄版型（行動優先）。上半部是輸入區，下半部是結果區，中間留一條淡色分隔線。桌面版最大寬度約 780px，置中。
+
+【色彩】
+主色使用霧藍，用在主按鈕底色、結果卡片的重要數字、標題底線。
+強調色只用 1 個：溫暖的琥珀黃，用在「每月成本（TWD）」那組主要數字上，其他地方不要出現。
+背景用米白，輸入區卡片用純白，不要漸層、不要陰影過重。
+
+【大小／顏色／間距】
+- 主要數字：比正文大很多（視覺上是一眼就看到的層級），琥珀黃色
+- 欄位說明文字：比正文小一點，灰色，行距寬鬆
+- 按鈕：全寬、厚一點、霧藍底白字
+- 卡片內部：上下內距要寬鬆（有呼吸感），不要擠
+
+手機上（寬度小於 600px）所有元素自動堆疊為單欄，按鈕仍維持全寬。
+
+不要用任何 CSS 屬性名稱回覆，直接改出 HTML v3。
+
+【原始素材】
+（貼上上方調性說明）
+<button class="copy-btn" type="button">複製</button></div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>v3 打開後：頁面中央單欄、米白背景、白色輸入卡<br>主要數字「TWD 1,152」用琥珀黃、明顯較大<br>主按鈕霧藍全寬，其他按鈕維持次要樣式<br>欄位說明文字小一級、灰色、行距寬鬆<br>手機寬度下所有元素仍然好點、好讀</div>
+        </div>
+      </div>
       <div class="mini-prac-output">
         <div class="mini-prac-output-label">成果產出</div>
         <div class="mini-prac-output-text">一段 80–120 字的視覺升級指令，貼給 AI 後可直接跑出 v3 版工具。</div>
@@ -398,6 +503,44 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span>改寫題 B：「加一個 @keyframes fadeIn，animation-duration 400ms」。</span></div>
         <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>用手機（或把瀏覽器拉窄到 &lt;600px）開一次你的工具，記一條最需要加的 RWD 修正（用意圖語言描述）。</span></div>
       </div>
+      <div class="prac-sample">
+        <div class="ps-head">
+          <span class="ps-eyebrow">範本素材</span>
+          <span class="ps-hint">把技術語翻成設計意圖，再加一條手機實測</span>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">原始素材 · 三條原始技術指令 + 手機實測筆記（約 140 字）<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
+          <div class="ps-material">原始（技術語）：
+A.「把 container 的 display 改成 grid，template-columns 設 1fr 1fr」
+B.「加一個 @keyframes fadeIn，animation-duration 400ms」
+手機實測（iPhone SE 寬 375px）：
+- 結果卡片上「每月觸發總次數 / USD / TWD」三個數字被硬擠成同一行，靠右那個被切斷
+- 試算按鈕與主內容之間幾乎沒留白，看起來很擠
+- 欄位標籤字太小，戶外光線下讀不清</div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">範例 Prompt · 意圖語言改寫<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
+          <div class="ps-prompt">請把下列三條需求，統一用「設計意圖語言」重新表達並合併成一段追加指令（不要出現 display、grid、template、@keyframes、animation-duration 等任何 CSS 屬性名）：
+
+A. 原始：把 container 的 display 改成 grid，template-columns 設 1fr 1fr
+意圖預期：輸入欄位在桌面版左右並列，每欄各佔一半寬
+
+B. 原始：加一個 @keyframes fadeIn，animation-duration 400ms
+意圖預期：結果出現時淡入，不要一瞬間跳出來，約半秒左右
+
+C. 新增（手機實測）：
+把手機下結果卡片三個數字改成上下堆疊（每個一行），按鈕與內容區之間多留一段呼吸空間，欄位標籤字級比目前大一級。
+
+請輸出整合後的「設計意圖指令」，讓同事貼給 AI 後可以直接改工具。
+
+【原始素材】
+（貼上上方技術指令與手機實測）
+<button class="copy-btn" type="button">複製</button></div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>A：桌面版兩欄並列各佔一半，手機自動堆疊成單欄<br>B：結果出現時溫和淡入約半秒，不要突然跳出<br>C：手機下三個數字上下排列、按鈕上方多留白、欄位標籤字級放大一級<br>通篇沒有 display / grid / keyframes 等字</div>
+        </div>
+      </div>
       <div class="mini-prac-output">
         <div class="mini-prac-output-label">成果產出</div>
         <div class="mini-prac-output-text">三條改寫後的意圖指令（A / B / RWD），每條 20–40 字，不含 CSS 屬性名。</div>
@@ -455,6 +598,30 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
     });
   });
 })();
+
+// 範本 Prompt 複製按鈕
+document.addEventListener('click',function(e){
+  var btn=e.target.closest('.copy-btn');
+  if(!btn)return;
+  var prompt=btn.parentElement;
+  if(!prompt||!prompt.classList.contains('ps-prompt'))return;
+  var text=prompt.textContent.replace(/複製\s*$/,'').trim();
+  var done=function(){
+    var original=btn.textContent;
+    btn.textContent='已複製';
+    btn.classList.add('copied');
+    setTimeout(function(){btn.textContent=original;btn.classList.remove('copied');},1800);
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(function(){
+      var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();
+      try{document.execCommand('copy');done();}catch(err){}finally{document.body.removeChild(ta);}
+    });
+  }else{
+    var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');done();}catch(err){}finally{document.body.removeChild(ta);}
+  }
+});
 
 // 閱讀進度持久化（localStorage）— 2026-04-16 UI refresh
 (function(){
