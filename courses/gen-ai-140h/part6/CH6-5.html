@@ -282,11 +282,11 @@ app.<span class="fn">post</span>(<span class="str">'/api/stream'</span>, <span c
         <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>印出通過率、失敗案例清單、平均相似度分數。</span></div>
         <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span>把這個分數記下來當 baseline，下次改 prompt 或換模型時重跑比對。</span></div>
       </div>
-      <div class="prac-sample">
-        <div class="ps-head">
+      <details class="prac-sample">
+        <summary class="ps-head">
           <span class="ps-eyebrow">範本素材</span>
           <span class="ps-hint">沒有自己的工具？用這份「發票分類助理」的情境與 6 題種子測試，讓 AI 幫你擴展到 20 題並產出 eval 腳本。</span>
-        </div>
+        </summary>
         <div class="ps-block">
           <div class="ps-label">原始素材 · 工具背景 + 6 題種子測試<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
           <div class="ps-material">【工具背景】
@@ -347,7 +347,7 @@ T6 input: "送給同事的生日卡片 150"
         <div class="ps-block">
           <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>golden_set.json: [{"id":1,"input":"今天午餐便當 95","expected":{"category":"餐飲","amount":95}}, ... 20 筆]<br>eval.py 片段：<br>for item in golden: actual = json.loads(call_claude(item['input'])); cat_ok = actual['category'] == item['expected']['category']; amt_ok = abs(actual['amount']-item['expected']['amount'])&lt;5; results.append(cat_ok and amt_ok)<br>baseline 結果範例：<br>通過率 17/20 (85%)<br>失敗案例：T12 'Notion 年繳 9600 台幣' actual=其他/9600, expected=雲服務/9600（category 錯）<br>各 category 通過率：餐飲 3/3 交通 3/3 差旅 2/3 辦公 3/3 雲服務 2/3 其他 4/5<br>regression 門檻：通過率低於 80% 視為退步，立即 rollback 改動。</div>
         </div>
-      </div>
+      </details>
       <div class="mini-prac-output">
         <div class="mini-prac-output-label">成果產出</div>
         <div class="mini-prac-output-text">golden_set.json（或 .csv）+ eval.py 腳本 + 一張 baseline 結果表（通過率 / 平均相似度 / 失敗案例前 3 筆）。</div>
@@ -420,11 +420,11 @@ T6 input: "送給同事的生日卡片 150"
         <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>再跑 10 次，記錄新版本的 token 與成本，並跑 golden set 確認品質沒退步。</span></div>
         <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span>算出節省百分比，並在 API 後台設一個「每日 $X」的 usage limit 作為最後保險。</span></div>
       </div>
-      <div class="prac-sample">
-        <div class="ps-head">
+      <details class="prac-sample">
+        <summary class="ps-head">
           <span class="ps-eyebrow">範本素材</span>
           <span class="ps-hint">一組前版 usage 統計 + 工具特性，讓 AI 幫你挑出兩個最該先動的成本槓桿。</span>
-        </div>
+        </summary>
         <div class="ps-block">
           <div class="ps-label">原始素材 · 某內部 SOP 查詢助理的前版成本數據（10 次呼叫平均）<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
           <div class="ps-material">【工具基本資料】
@@ -490,7 +490,7 @@ golden set 20 題通過率：18/20 (90%)
         <div class="ps-block">
           <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>一、評分表：<br>選對模型 5/5，節省 60–80%，品質風險中（Sonnet→Haiku 有機會但需 golden set 驗證；70% 查詢是簡單匹配支持此判斷）<br>Prompt caching 5/5，節省 40–50%，品質風險低（system prompt 2400 字且每次一致，是 cache 最甜蜜點）<br>限制 max_tokens 4/5，節省 15–25%，品質風險低（output 冗長已確認）<br>Server-side cache 4/5，節省 10–15%，品質風險低（15% 重複問題可直接命中）<br>每日預算上限 3/5，無直接節省，屬風險控管<br>二、Top 2：Prompt caching + 模型降級。先開 caching（零風險即時省 45%），再跑 golden set 驗證 Haiku 能否維持 90% 通過率；可維持則降級再省 60–70%。<br>三、A/B 表：<br>| 前版 | Sonnet | 2048 | off | off | $0.0192 | $172.8 |<br>| A | Sonnet | 500 | on | on | $0.0080 | $72 |<br>| B | Haiku | 500 | on | on | $0.0018 | $16.2 |<br>回滾門檻：golden set 通過率跌破 85%（下降 &gt; 5 個百分點）立即 rollback。</div>
         </div>
-      </div>
+      </details>
       <div class="mini-prac-output">
         <div class="mini-prac-output-label">成果產出</div>
         <div class="mini-prac-output-text">一張「前 / 後」對照表（input tokens｜output tokens｜單次成本｜品質分數），加一句結論「這版省了 X%，品質維持在 Y」。</div>

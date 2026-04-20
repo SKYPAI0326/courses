@@ -302,11 +302,11 @@ content-type: application/json
         <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>對照你打算用的模型（Haiku / Sonnet / Opus）單價，算出單次成本與月成本（500 次/天 × 30 天）。</span></div>
         <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span>判斷三個可優化點：system prompt 能不能瘦身？有沒有機會開 prompt caching？能不能降級到更便宜的模型？</span></div>
       </div>
-      <div class="prac-sample">
-        <div class="ps-head">
+      <details class="prac-sample">
+        <summary class="ps-head">
           <span class="ps-eyebrow">範本素材</span>
           <span class="ps-hint">手上沒有現成工具？拿這份「客服 FAQ 回覆助理」當案例，跑一次成本估算。</span>
-        </div>
+        </summary>
         <div class="ps-block">
           <div class="ps-label">原始素材 · 某電商客服助理的 System Prompt（約 320 字）<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
           <div class="ps-material">【工具：客服 FAQ 回覆助理】
@@ -367,7 +367,7 @@ content-type: application/json
         <div class="ps-block">
           <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>System Prompt 約 320 字 × 1.5 ≈ 480 tokens<br>User Input 40 字 × 1.5 ≈ 60 tokens<br>Output 120 字 × 1.5 ≈ 180 tokens<br>Haiku 單次 ≈ $0.00115，月 ≈ $17.3<br>Sonnet 單次 ≈ $0.00432，月 ≈ $64.8<br>建議 1：System Prompt 前半（工作範圍）可濃縮至條列關鍵字，省 ~40% input token<br>建議 2：高頻的 System Prompt 開 prompt caching，長期 input cost 降 90%<br>第一優先：開 prompt caching（投入小、效益最大、不傷品質）</div>
         </div>
-      </div>
+      </details>
       <div class="mini-prac-output">
         <div class="mini-prac-output-label">成果產出</div>
         <div class="mini-prac-output-text">一張成本估算表（欄位：項目｜token 數｜單價｜小計），加上「預估月成本 $X」與三條瘦身建議。</div>
@@ -426,11 +426,11 @@ content-type: application/json
         <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>在 console.log 印出「第 N 次重試，等待 Xms」，方便觀察實際行為。</span></div>
         <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span>寫個小腳本快速發 20 次請求（或把 max_tokens 設超低逼 API 出錯），驗證退避真的有觸發。</span></div>
       </div>
-      <div class="prac-sample">
-        <div class="ps-head">
+      <details class="prac-sample">
+        <summary class="ps-head">
           <span class="ps-eyebrow">範本素材</span>
           <span class="ps-hint">還沒有現成的後端代理？這份是一個乾淨的 Express + Anthropic SDK 原始版本，讓 AI 幫你加重試包裝層。</span>
-        </div>
+        </summary>
         <div class="ps-block">
           <div class="ps-label">原始素材 · 沒有重試的 Express 後端代理（約 40 行）<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
           <div class="ps-material">// server.js — 目前還沒有重試保護
@@ -485,7 +485,7 @@ app.listen(3000);</div>
         <div class="ps-block">
           <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>// [ADD] 重試包裝函式<br>async function callWithRetry(fn, maxRetries = 3) { ... for (let attempt = 0; attempt &lt; maxRetries; attempt++) { ... if ([429,500,502,503,504,529].includes(err.status)) { ... const delay = Math.pow(2, attempt) * 1000; console.log(`[retry] attempt ${attempt+1}, waiting ${delay}ms, reason: ${err.status}`); ... } else { throw err; } } }<br>// [CHANGED] 原本的 messages.create 被 callWithRetry 包起來<br>const response = await callWithRetry(() =&gt; client.messages.create({...}));<br>// [ADD] 結構化錯誤回應<br>if (err.status &amp;&amp; err.status &gt;= 400 &amp;&amp; err.status &lt; 500) res.status(err.status).json({ error: err.message });<br>// 測試腳本：for i in {1..20}; do curl -X POST ... & done</div>
         </div>
-      </div>
+      </details>
       <div class="mini-prac-output">
         <div class="mini-prac-output-label">成果產出</div>
         <div class="mini-prac-output-text">修改後的後端 handler 程式碼 + 一段 console 日誌截圖，顯示「Rate limited, retrying in 1000ms / 2000ms / 4000ms」。</div>
