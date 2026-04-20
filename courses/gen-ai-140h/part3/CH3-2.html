@@ -454,6 +454,215 @@ ChatGPT Plus（GPT-4.1）、Google Sheets、Make.com</div>
 
   <hr class="section-rule">
 
+  <style>
+  .quiz-grid{display:grid;grid-template-columns:repeat(1,1fr);gap:14px;margin-top:20px}
+  .quiz-item{background:#fafaf5;border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:16px 18px}
+  .quiz-q{font-size:.9rem;font-weight:700;color:var(--c-text);line-height:1.7;margin-bottom:12px}
+  .quiz-q-num{display:inline-block;width:22px;height:22px;border-radius:50%;background:rgba(90,122,90,.12);color:var(--c-a3);font-size:.72rem;font-weight:700;line-height:22px;text-align:center;margin-right:8px;font-family:'Shippori Mincho',serif}
+  .quiz-options{display:flex;flex-direction:column;gap:8px;margin-left:30px}
+  .quiz-options label{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;line-height:1.7;color:var(--c-text);cursor:pointer;padding:6px 10px;border-radius:var(--radius-sm);transition:background .15s}
+  .quiz-options label:hover{background:rgba(90,122,90,.06)}
+  .quiz-options input{margin-top:4px;accent-color:var(--c-a3);flex-shrink:0;cursor:pointer}
+  .quiz-item.answered label[data-pick="correct"]{background:rgba(90,122,90,.12);color:#5a7a5a;font-weight:500}
+  .quiz-item.answered label[data-pick="wrong"]{background:rgba(180,80,60,.08);color:#b44040;text-decoration:line-through}
+  .quiz-explain{margin-top:10px;margin-left:30px;padding:10px 14px;background:rgba(90,122,90,.06);border-left:2px solid var(--c-a3);border-radius:var(--radius-sm);font-size:.8rem;line-height:1.75;color:var(--c-text);display:none}
+  .quiz-item.answered .quiz-explain{display:block}
+  </style>
+
+  <section class="lesson-section" id="sec-ext">
+    <div class="section-eyebrow">(EXT) · Scenario Drill</div>
+    <h2 class="section-heading">兩個情境演練：<em>把工作流從想像落地</em></h2>
+    <p class="body-text">前面講了工作流的結構與文件化，這節用兩個你八成每週都在做的情境——週報撰寫與客服常問題回覆——把 Prompt、流程步驟、驗收格式整套跑一次，讓你今天就能複製到自己的工作上。</p>
+
+    <details class="prac-sample" open>
+      <summary class="ps-head">
+        <span class="ps-eyebrow">情境 A</span>
+        <span class="ps-hint">每週花 30 分鐘手寫週報？把它 SOP 化，讓 AI 產草稿、你只做 5 分鐘審校。</span>
+      </summary>
+      <div class="ps-block">
+        <div class="ps-label">情境說明 · 週報撰寫 SOP 化<span class="ps-label-tag">任務背景</span></div>
+        <div class="ps-material">## 任務背景
+你是行銷小組成員，每週五下午花 30 分鐘手寫一份「這週做了什麼、下週要做什麼、有什麼卡關」的週報，主管要看、自己要存檔。每週題目差不多、格式一樣、只有內容換。
+
+## 輸入資料
+- 本週的 Google Calendar 事件清單（週一到週五）
+- 本週完成的 Trello / Notion 任務卡（標記 done）
+- 下週已排定的會議與截止日
+- 一行卡關描述（自行口述，AI 幫忙潤飾）
+
+## 期望產出
+一份 300–400 字週報，含三區塊：本週成果、下週計畫、卡關與需支援事項。主管讀完 2 分鐘能掌握重點。</div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-label">實作 Prompt · 週報草稿生成器<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
+        <div class="ps-prompt">你是我的週報助理，要把一週的原始資料整理成主管好讀的週報草稿。
+
+## 角色與語氣
+- 第一人稱「我」敘述
+- 語氣專業但不冗長，禁止「敬請指教」「不勝感激」這類套語
+- 每句話不超過 40 字
+
+## 三段式結構（固定順序，不可對調）
+### 本週成果
+- 條列 3–5 項，每項一行
+- 格式：[動詞] + [具體產出] + [量化結果或狀態]
+- 範例：完成 5 月活動 landing page，已上線，首週 UV 1,240
+
+### 下週計畫
+- 條列 3–5 項，每項要有明確交付物與預計完成日
+- 禁止寫「繼續推進」「持續優化」這類虛字
+
+### 卡關與需支援
+- 若無卡關，寫「本週無阻塞事項」
+- 若有卡關，每項寫：卡在哪一步 + 需要誰的哪種支援 + 影響什麼
+
+## 例外處理
+- 若某區塊原始資料不足，標「資料待補」不要編造
+- 若事件清單裡有私人事項（看醫生、請假），自動過濾不寫入
+
+## 原始資料如下
+[貼上行事曆 + 任務卡 + 下週排程 + 卡關一行描述]
+
+<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
+      </div>
+      <div class="ps-expect"><strong>預期輸出格式（供對照）</strong><br>### 本週成果<br>- 完成 5 月活動 landing page，已上線，首週 UV 1,240<br>- 發送電子報 2 封，開信率 32%（上月平均 28%）<br>- 社群貼文排程 6 則，預約至下週三<br>### 下週計畫<br>- 5/20 前產出活動後測問卷分析報告<br>- 5/22 完成 6 月電子報選題與大綱<br>### 卡關與需支援<br>- 活動照片版權未授權 → 需法務 5/18 前回覆是否可用 → 影響後測問卷寄送素材</div>
+    </details>
+
+    <details class="prac-sample" open>
+      <summary class="ps-head">
+        <span class="ps-eyebrow">情境 B</span>
+        <span class="ps-hint">客服常問題總是同樣 10 題，把它們建成檢索式回覆模板，新人也能秒回。</span>
+      </summary>
+      <div class="ps-block">
+        <div class="ps-label">情境說明 · 客服常問題自動回覆<span class="ps-label-tag">任務背景</span></div>
+        <div class="ps-material">## 任務背景
+你是電商客服組長，每天處理 80–120 則 LINE / Email 諮詢，其中約 70% 落在 10 個固定題型（退貨怎麼辦、商品延遲、發票補開、尺寸怎麼選、會員點數…）。新人每次都重新寫，回覆時間慢、語氣也不一致。
+
+## 輸入資料
+- FAQ 10 題清單（問題 + 標準答案 + 附加說明）
+- 客人實際訊息（自然語言，不一定跟 FAQ 題目用詞一樣）
+
+## 期望產出
+AI 讀完客人訊息後，先判斷是否落在 10 題 FAQ 的任何一題（語意比對，不是關鍵字），若是則套對應模板回覆；若不是則標「需人工」並附上判斷理由。</div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-label">實作 Prompt · FAQ 檢索式回覆助手<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
+        <div class="ps-prompt">你是電商客服助理。請根據下方 FAQ 清單，為客人訊息選出最適配的回覆模板；若 10 題都不符合，標記為「需人工」。
+
+## 處理步驟（依序執行）
+1. 讀懂客人訊息的核心需求（不是關鍵字，而是「他真正想解決的事」）
+2. 將需求與 10 題 FAQ 逐一做語意比對，給每題 0–100 信心分數
+3. 若最高分 ≥ 70，套用該題模板並填入客人姓名與訂單編號；若最高分 < 70，標記「需人工」
+
+## 輸出格式（JSON，禁止多餘說明文字）
+{
+  "matched_faq_id": "Q03 或 null",
+  "confidence": 0–100,
+  "reply_text": "最終要貼給客人的訊息，禁止開頭寫「親愛的客戶」這類套話",
+  "needs_human": true/false,
+  "reason": "若 needs_human=true，說明為何 10 題都不符（例：客人問的是還沒上線的新功能）"
+}
+
+## 回覆語氣規則
+- 使用「你」這類親近代稱，不用過度尊稱，親切但專業
+- 每則回覆 80–150 字，不超過 3 段
+- 禁止使用「小編」自稱，一律用「我們」
+- 禁止保證時效（「馬上處理」「立即解決」），改用「今天內回覆你」
+
+## FAQ 清單與客人訊息如下
+[貼上 FAQ 10 題 + 客人訊息]
+
+<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
+      </div>
+      <div class="ps-expect"><strong>預期輸出格式（供對照）</strong><br>{<br>&nbsp;&nbsp;"matched_faq_id": "Q02",<br>&nbsp;&nbsp;"confidence": 88,<br>&nbsp;&nbsp;"reply_text": "王小姐你好，訂單 #A20426 目前在物流中心等候出貨，預計 4/22 送達。我們已加急處理，今天內會再給你一次更新通知。",<br>&nbsp;&nbsp;"needs_human": false,<br>&nbsp;&nbsp;"reason": ""<br>}</div>
+    </details>
+
+    <div class="callout tip">
+      <span class="callout-icon">✦</span>
+      <div class="callout-body"><strong>延伸挑戰 · 把重複任務工作流化</strong>
+      <br>1. 挑一個你每週重複 3 次以上的任務，用三段結構寫成工作流草圖（輸入 → AI 處理 → 輸出），24 小時內完成。
+      <br>2. 把草圖變成完整 Prompt + FAQ 模板，實跑 5 次後記錄「AI 產草稿到你滿意」的平均耗時。
+      <br>3. 把 SOP 交給團隊另一位同事試跑一次，記錄他卡住的點，回來補進文件的「例外處理」區。</div>
+    </div>
+
+    <div class="quiz-grid">
+      <div class="quiz-item" data-correct="b">
+        <div class="quiz-q"><span class="quiz-q-num">1</span>單次任務與工作流最關鍵的差別是？</div>
+        <div class="quiz-options">
+          <label><input type="radio" name="qext1" value="a"><span>工作流一定要用 Make 或 n8n，單次任務只能手動做</span></label>
+          <label><input type="radio" name="qext1" value="b"><span>工作流有明確的輸入規格、處理邏輯、輸出格式、例外處理，別人照文件能跑出同樣結果</span></label>
+          <label><input type="radio" name="qext1" value="c"><span>工作流比較花時間，單次任務比較快</span></label>
+          <label><input type="radio" name="qext1" value="d"><span>工作流一定要有 AI 參與，單次任務不需要</span></label>
+        </div>
+        <div class="quiz-explain">正解 B。工作流的本質是「可複製性」——不是要不要用工具、也不是有沒有 AI，而是這件事有沒有被文件化到別人照著做能得到相近結果。沒文件就是單次任務，即使天天在做。</div>
+      </div>
+
+      <div class="quiz-item" data-correct="c">
+        <div class="quiz-q"><span class="quiz-q-num">2</span>寫 SOP 時最常被忽略卻最影響穩定度的是？</div>
+        <div class="quiz-options">
+          <label><input type="radio" name="qext2" value="a"><span>標題要取得漂亮</span></label>
+          <label><input type="radio" name="qext2" value="b"><span>要用高階模型不要用便宜的</span></label>
+          <label><input type="radio" name="qext2" value="c"><span>例外處理：AI 無法判斷、資料缺漏、格式錯誤時該怎麼辦</span></label>
+          <label><input type="radio" name="qext2" value="d"><span>字數要寫越多越好</span></label>
+        </div>
+        <div class="quiz-explain">正解 C。順利路徑大家都會寫，真正讓工作流撐得住的是「遇到沒想過的狀況時往哪條路走」。沒寫例外處理的 SOP，跑到第三週必然失控。</div>
+      </div>
+
+      <div class="quiz-item" data-correct="a">
+        <div class="quiz-q"><span class="quiz-q-num">3</span>判斷一個任務「能不能被工作流化」的最實用捷徑？</div>
+        <div class="quiz-options">
+          <label><input type="radio" name="qext3" value="a"><span>你能寫出一份別人照著做能得到相近結果的 SOP 嗎？能就適合</span></label>
+          <label><input type="radio" name="qext3" value="b"><span>只要常做就適合，不用管能不能寫 SOP</span></label>
+          <label><input type="radio" name="qext3" value="c"><span>只要 AI 能做就適合</span></label>
+          <label><input type="radio" name="qext3" value="d"><span>只要老闆想看自動化就適合</span></label>
+        </div>
+        <div class="quiz-explain">正解 A。能寫 SOP 等於你能用文字說清楚輸入、步驟、輸出、例外。說不清楚的任務硬套工作流會做越快錯越多，因為 AI 也只能按你說得清的部分做。</div>
+      </div>
+
+      <div class="quiz-item" data-correct="d">
+        <div class="quiz-q"><span class="quiz-q-num">4</span>AI 週報草稿的「審校時間」從 30 分壓到 5 分的前提是什麼？</div>
+        <div class="quiz-options">
+          <label><input type="radio" name="qext4" value="a"><span>換更強的 AI 模型</span></label>
+          <label><input type="radio" name="qext4" value="b"><span>每週都重寫一次 Prompt</span></label>
+          <label><input type="radio" name="qext4" value="c"><span>不審校直接送出</span></label>
+          <label><input type="radio" name="qext4" value="d"><span>Prompt 把格式、語氣、字數、禁用詞寫死，AI 輸出已經接近最終版</span></label>
+        </div>
+        <div class="quiz-explain">正解 D。審校時間長是因為 AI 輸出離你想要的太遠。把格式規則寫死（段落結構、語氣、禁用詞、字數）之後，AI 回來的初稿你只需要校事實而非改文字風格，才能把 30 分壓到 5 分。</div>
+      </div>
+
+      <div class="quiz-item" data-correct="b">
+        <div class="quiz-q"><span class="quiz-q-num">5</span>工作流文件需要版本管理（v1.0 / v1.1）的主要理由？</div>
+        <div class="quiz-options">
+          <label><input type="radio" name="qext5" value="a"><span>看起來比較專業</span></label>
+          <label><input type="radio" name="qext5" value="b"><span>改壞時可回溯、交接時新人知道你改過什麼、Prompt 調整能對比效果</span></label>
+          <label><input type="radio" name="qext5" value="c"><span>方便申請補助款</span></label>
+          <label><input type="radio" name="qext5" value="d"><span>老闆要求才做，不然不用</span></label>
+        </div>
+        <div class="quiz-explain">正解 B。工作流是活文件，每次微調（改 Prompt、加欄位、換工具）都會影響輸出。沒版號等於沒辦法 debug——「上週還好好的，這週壞了」找不到是哪次改動造成的。</div>
+      </div>
+    </div>
+
+    <script>
+    (function(){
+      document.querySelectorAll('.quiz-grid .quiz-item').forEach(function(item){
+        if(item.dataset.quizBound)return;item.dataset.quizBound='1';
+        var correct=item.dataset.correct;
+        item.querySelectorAll('input[type=radio]').forEach(function(radio){
+          radio.addEventListener('change',function(){
+            item.classList.add('answered');
+            item.querySelectorAll('.quiz-options label').forEach(function(lbl){
+              var v=lbl.querySelector('input').value;
+              lbl.setAttribute('data-pick',v===correct?'correct':(lbl.querySelector('input').checked?'wrong':''));
+            });
+          });
+        });
+      });
+    })();
+    </script>
+  </section>
+
+  <hr class="section-rule">
+
   <section class="lesson-section" id="sec-3">
     <div class="section-eyebrow">(04) · Failure Paths</div>
     <h2 class="section-heading">失敗路徑設計：<em>工作流遇到 AI 出錯怎麼辦</em></h2>

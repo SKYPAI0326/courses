@@ -549,6 +549,295 @@ golden set 20 題通過率：18/20 (90%)
     </div>
   </div>
 
+  <hr class="section-rule reveal">
+
+  <div class="lesson-section reveal">
+    <div class="section-eyebrow">(05)</div>
+    <h2 class="section-heading">實戰演練：<em>把 Streaming 變成會打字的聊天介面</em></h2>
+    <p class="body-text">理論講完了，現在補一段完整可跑的路徑：後端用 Server-Sent Events 把 AI 回覆一段段推給前端；前端把每個 chunk append 到 DOM，變成打字機效果，還要加一個 Cancel 按鈕讓使用者隨時中斷。兩個情境串在一起，就是一個小規模的 ChatGPT UI。</p>
+
+    <style>
+    .quiz-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:20px}
+    .quiz-item{background:#fafaf5;border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:16px 18px}
+    .quiz-q{font-size:.9rem;font-weight:700;color:var(--c-text);line-height:1.7;margin-bottom:12px}
+    .quiz-q-num{display:inline-block;width:22px;height:22px;border-radius:50%;background:rgba(201,150,58,.12);color:var(--c-a2);font-size:.72rem;font-weight:700;line-height:22px;text-align:center;margin-right:8px;font-family:'Shippori Mincho',serif}
+    .quiz-options{display:flex;flex-direction:column;gap:8px;margin-left:30px}
+    .quiz-options label{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;line-height:1.7;color:var(--c-text);cursor:pointer;padding:6px 10px;border-radius:var(--radius-sm)}
+    .quiz-options label:hover{background:rgba(201,150,58,.06)}
+    .quiz-options input{margin-top:4px;accent-color:var(--c-a2);flex-shrink:0;cursor:pointer}
+    .quiz-item.answered label[data-pick="correct"]{background:rgba(90,122,90,.12);color:#3a5a3a;font-weight:500}
+    .quiz-item.answered label[data-pick="wrong"]{background:rgba(180,80,60,.08);color:#b44040;text-decoration:line-through}
+    .quiz-explain{margin-top:10px;margin-left:30px;padding:10px 14px;background:rgba(201,150,58,.06);border-left:2px solid var(--c-a2);border-radius:var(--radius-sm);font-size:.8rem;line-height:1.75;color:var(--c-text);display:none}
+    .quiz-item.answered .quiz-explain{display:block}
+    </style>
+
+    <details class="prac-sample" open>
+      <summary class="ps-head">
+        <span class="ps-eyebrow">情境 A</span>
+        <span class="ps-hint">Server-Sent Events 把 AI 回覆串流給前端 — 後端 POST + 前端 fetch ReadableStream</span>
+      </summary>
+      <div class="ps-block">
+        <div class="ps-label">任務背景 + 工具棧<span class="ps-label-tag">從一次性回傳升級成串流</span></div>
+        <div class="ps-material">【情境】
+你在 CH6-2 的 /api/chat 現在是等 AI 全部回完才一次把文字吐出來，長回答時使用者要空等好幾秒。這次改用 SSE：後端邊收到 token 邊推給前端，前端邊收邊印。
+
+【工具棧】
+- Node.js 20+ / Express 後端（承接 CH6-2 的 server.js）
+- OpenAI SDK 的 stream: true 模式
+- 前端用 fetch + ReadableStream 讀（不用 EventSource，因為要 POST）
+- 一個簡單的 HTML 頁面當前端測試台
+
+【成功條件】
+- DevTools Network 看到 /api/stream 是 event-stream、狀態 200、回應持續 ping
+- 前端畫面會一段段累積文字，不是等 5 秒後一次跳出</div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-label">程式碼 · 後端 SSE + 前端 fetch 串流<span class="ps-label-tag">javascript</span></div>
+        <div class="ps-prompt">// server.js — 新增 /api/stream
+app.post('/api/stream', async (req, res) => {
+  const { prompt } = req.body || {};
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  try {
+    const stream = await client.chat.completions.create({
+      model: 'ChatGPT',
+      messages: [{ role: 'user', content: prompt }],
+      stream: true,
+    });
+    for await (const chunk of stream) {
+      const delta = chunk.choices[0]?.delta?.content || '';
+      if (delta) res.write(`data: ${JSON.stringify({ delta })}\n\n`);
+    }
+    res.write('data: [DONE]\n\n');
+  } catch (err) {
+    res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
+  } finally {
+    res.end();
+  }
+});
+
+// index.html — 前端最小版（<script type="module">）
+const out = document.querySelector('#out');
+async function ask(prompt){
+  out.textContent = '';
+  const res = await fetch('/api/stream', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ prompt }),
+  });
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    // SSE 以雙換行分隔事件
+    const parts = buffer.split('\n\n');
+    buffer = parts.pop();
+    for (const p of parts) {
+      const line = p.replace(/^data:\s*/, '');
+      if (line === '[DONE]') return;
+      try {
+        const { delta } = JSON.parse(line);
+        if (delta) out.textContent += delta;
+      } catch {}
+    }
+  }
+}
+
+<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-expect"><strong>預期輸出（DevTools 片段）</strong><br>Network · /api/stream<br>Status 200 · Type event-stream · Time 一直跳<br>Response 分段累積：<br>data: {"delta":"好"}<br>data: {"delta":"的"}<br>data: {"delta":"，我"}<br>...（持續推送 1~2 秒）...<br>data: [DONE]<br>前端畫面會看到文字逐字浮現，不是等 5 秒才一次跳出；若後端丟出 data: {"error":"..."} 也會被同一個 parser 接住處理。</div>
+      </div>
+    </details>
+
+    <details class="prac-sample" open>
+      <summary class="ps-head">
+        <span class="ps-eyebrow">情境 B</span>
+        <span class="ps-hint">打字機 UI + Cancel 按鈕 — CSS 游標閃爍、AbortController 中斷</span>
+      </summary>
+      <div class="ps-block">
+        <div class="ps-label">任務背景 + 工具棧<span class="ps-label-tag">把 chunk 變成 UX</span></div>
+        <div class="ps-material">【情境】
+情境 A 能收到 stream 了，但使用者體驗還沒完整：回答太長時沒辦法中斷、畫面少了「正在打字」的視覺暗示。這一節補兩件事：
+- 游標閃爍動畫（像 ChatGPT 的白色方塊）
+- 一個 Cancel 按鈕，按下去立刻中斷 fetch
+
+【工具棧】
+- 同情境 A 的前後端
+- 純 CSS keyframes 做游標動畫
+- AbortController 來中斷 fetch
+- 一個送出按鈕 + 一個取消按鈕（狀態互斥）
+
+【成功條件】
+- 正在收 stream 時畫面尾端有閃爍游標
+- 按 Cancel 0.5 秒內停止，游標消失，畫面留下已收到的片段
+- 中斷後再送新 prompt 能正常 work，不會累積壞狀態</div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-label">程式碼 · 打字機動畫 + Cancel<span class="ps-label-tag">html + javascript</span></div>
+        <div class="ps-prompt">&lt;!-- 在 index.html 加這段 --&gt;
+&lt;style&gt;
+.out{font-family:system-ui;line-height:1.8;min-height:2em}
+.out.streaming::after{
+  content:'';display:inline-block;width:.55em;height:1em;
+  background:currentColor;margin-left:2px;vertical-align:-2px;
+  animation:cursor 1s steps(2,end) infinite;
+}
+@keyframes cursor{50%{opacity:0}}
+@media(prefers-reduced-motion:reduce){.out.streaming::after{animation:none;opacity:.6}}
+&lt;/style&gt;
+&lt;button id=\"send\"&gt;送出&lt;/button&gt;
+&lt;button id=\"cancel\" disabled&gt;取消&lt;/button&gt;
+&lt;div id=\"out\" class=\"out\"&gt;&lt;/div&gt;
+
+&lt;script type=\"module\"&gt;
+const sendBtn = document.querySelector('#send');
+const cancelBtn = document.querySelector('#cancel');
+const out = document.querySelector('#out');
+let controller = null;
+
+async function ask(prompt){
+  controller = new AbortController();
+  sendBtn.disabled = true; cancelBtn.disabled = false;
+  out.textContent = ''; out.classList.add('streaming');
+  try {
+    const res = await fetch('/api/stream', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ prompt }),
+      signal: controller.signal,
+    });
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const parts = buffer.split('\n\n');
+      buffer = parts.pop();
+      for (const p of parts) {
+        const line = p.replace(/^data:\s*/, '');
+        if (line === '[DONE]') return;
+        const obj = JSON.parse(line);
+        if (obj.delta) out.textContent += obj.delta;
+      }
+    }
+  } catch (err) {
+    if (err.name !== 'AbortError') out.textContent += `\n[錯誤] ${err.message}`;
+  } finally {
+    out.classList.remove('streaming');
+    sendBtn.disabled = false; cancelBtn.disabled = true;
+    controller = null;
+  }
+}
+
+sendBtn.onclick = () => ask('請用 3 點介紹台北的早餐文化，每點 60 字。');
+cancelBtn.onclick = () => controller?.abort();
+&lt;/script&gt;
+
+<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-expect"><strong>預期輸出（畫面行為）</strong><br>按送出：按鈕變灰、取消按鈕啟用、游標方塊在文字尾端一閃一閃。<br>輸出累積：「台北的早餐文化可分為三個面向：1. 傳統……」邊收邊長、頁面不阻塞。<br>中途按取消：0.3 秒內游標消失、按鈕狀態互換；DevTools Network 對應那個 request 狀態變 (canceled)。<br>再按送出一次：清空舊內容重新開始收，不會接在舊文字後面。<br>prefers-reduced-motion 開啟時游標變成半透明不閃，符合 a11y。</div>
+      </div>
+    </details>
+
+    <div class="callout tip">
+      <div class="callout-icon" aria-hidden="true">💡</div>
+      <div class="callout-body"><strong>延伸挑戰（挑 1–2 條，約 30 分鐘）</strong>
+        <ul style="margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:8px">
+          <li><strong>接上你 Part 5 的聊天介面</strong>：把原本的一次性 /api/chat 換成 /api/stream + 情境 B 的打字機邏輯。打開新舊版各跑一次長回答，錄一段 10 秒影片比對 UX 差異。</li>
+          <li><strong>首 token 延遲量測</strong>：在情境 A 的前端加一個 calc，記錄「送出 → 收到第一個 delta」的毫秒數，連打 10 次取平均。寫成一張表比較 ChatGPT / Claude / Gemini 哪個首 token 最快。</li>
+          <li><strong>網路壞掉時的 UI</strong>：用 DevTools 的 Network throttling 選 Offline，在 streaming 中途切掉，檢查你的前端會不會卡在 streaming 狀態、會不會顯示有意義的錯誤。補上 timeout + 重連提示。</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="quiz-grid" id="ch65-quiz">
+      <div class="quiz-item" data-correct="b">
+        <div class="quiz-q"><span class="quiz-q-num">1</span>AI 聊天應用要串流輸出，SSE 跟 WebSocket 該選哪個？</div>
+        <div class="quiz-options">
+          <label><input type="radio" name="q1" value="a"><span>一定要選 WebSocket，效能比較好</span></label>
+          <label><input type="radio" name="q1" value="b"><span>SSE 就夠了：單向推播、走 HTTP、自動重連、不用額外基礎設施；只有雙向即時互動才需要 WebSocket</span></label>
+          <label><input type="radio" name="q1" value="c"><span>SSE 已被淘汰，現代應用不用了</span></label>
+          <label><input type="radio" name="q1" value="d"><span>兩個都開，讓使用者自己選</span></label>
+        </div>
+        <div class="quiz-explain">AI 聊天回覆是「伺服器 → 客戶端」單向推播，SSE 是為此設計的，走普通 HTTP 所以 CDN / proxy 普遍支援、還會自動重連。WebSocket 需要額外 upgrade、很多雲端反向代理要特別設定，沒有雙向需求開它只是徒增複雜度。</div>
+      </div>
+
+      <div class="quiz-item" data-correct="c">
+        <div class="quiz-q"><span class="quiz-q-num">2</span>使用者按「取消」按鈕要中斷一個進行中的 stream，最乾淨的做法是？</div>
+        <div class="quiz-options">
+          <label><input type="radio" name="q2" value="a"><span>window.location.reload() 整頁重載</span></label>
+          <label><input type="radio" name="q2" value="b"><span>設一個全域 flag，在 while 迴圈裡檢查，是 true 就 break</span></label>
+          <label><input type="radio" name="q2" value="c"><span>fetch 時帶 AbortController signal，按取消時呼叫 controller.abort()，TCP 連線會真的中斷、後端收到客戶端斷線</span></label>
+          <label><input type="radio" name="q2" value="d"><span>等它自然跑完，按鈕只改文字不做事</span></label>
+        </div>
+        <div class="quiz-explain">整頁重載會丟掉所有狀態、體驗很糟；flag + break 只是前端跳出迴圈，後端仍會繼續產生 token、繼續計費。AbortController 是唯一能真正斷連線、同時省錢的做法，後端也要讓 handler 監聽 req 的 close/abort 事件提前結束上游呼叫。</div>
+      </div>
+
+      <div class="quiz-item" data-correct="d">
+        <div class="quiz-q"><span class="quiz-q-num">3</span>中介層負責把 token chunk 推給前端時，如果 client 收太慢，最可能發生什麼？</div>
+        <div class="quiz-options">
+          <label><input type="radio" name="q3" value="a"><span>Node 會自動幫你壓縮 buffer，不會有問題</span></label>
+          <label><input type="radio" name="q3" value="b"><span>token 會直接丟失</span></label>
+          <label><input type="radio" name="q3" value="c"><span>後端效能會變更好</span></label>
+          <label><input type="radio" name="q3" value="d"><span>backpressure：Node 的 socket buffer 滿會導致 res.write 持續排隊、記憶體累積，最終拖慢整個 server</span></label>
+        </div>
+        <div class="quiz-explain">Node 的 writable stream 是「能寫就寫」，client 收不走時資料會在 server 端 buffer 堆積。實務上要監聽 res.writableNeedDrain 或用 pipe 管理 backpressure；SSE 情境更要偵測 req 斷線時立刻終止上游呼叫，否則每個掛掉的 client 都在燒你的 API 費用。</div>
+      </div>
+
+      <div class="quiz-item" data-correct="a">
+        <div class="quiz-q"><span class="quiz-q-num">4</span>stream 中途上游丟出錯誤，前端 UI 該怎麼處理最合適？</div>
+        <div class="quiz-options">
+          <label><input type="radio" name="q4" value="a"><span>保留已收到的片段、在尾端顯示「回覆中斷，請重試」並附重試按鈕；不要清掉已有文字</span></label>
+          <label><input type="radio" name="q4" value="b"><span>整段文字清空當作沒發生過</span></label>
+          <label><input type="radio" name="q4" value="c"><span>彈出 alert 讓使用者自己去 console 看錯誤</span></label>
+          <label><input type="radio" name="q4" value="d"><span>讓頁面卡在打字中狀態，反正等久就會好</span></label>
+        </div>
+        <div class="quiz-explain">已經產出的內容對使用者是有價值的（半段答案總比沒有好），而且回傳那些 token 也花了錢不該浪費。清空會讓人覺得應用不可靠；alert 現在幾乎沒人這樣做體驗很差；卡住不給反饋是最糟的——使用者會反覆重整，反而觸發更多 request。</div>
+      </div>
+
+      <div class="quiz-item" data-correct="c">
+        <div class="quiz-q"><span class="quiz-q-num">5</span>要判斷串流體驗好不好，哪個指標最關鍵？</div>
+        <div class="quiz-options">
+          <label><input type="radio" name="q5" value="a"><span>完整回答的總 token 數</span></label>
+          <label><input type="radio" name="q5" value="b"><span>後端 CPU 使用率</span></label>
+          <label><input type="radio" name="q5" value="c"><span>Time to First Token（TTFT，送出到第一個字出現的時間），目標 &lt; 1 秒</span></label>
+          <label><input type="radio" name="q5" value="d"><span>字體大小有沒有隨裝置調整</span></label>
+        </div>
+        <div class="quiz-explain">Streaming 的賣點是「感知速度」，TTFT 就是量它的指標。使用者不會感受到總 token、也不關心後端 CPU；只要第一個字在 1 秒內出現，他就覺得系統活著；如果首 token 要 3 秒以上，不管後面多快都已經輸了。TTFT 應該跟 golden set 一起定期 eval。</div>
+      </div>
+    </div>
+
+    <script>
+    (function(){
+      var grid=document.getElementById('ch65-quiz');
+      if(!grid)return;
+      grid.querySelectorAll('.quiz-item').forEach(function(item){
+        var correct=item.dataset.correct;
+        item.querySelectorAll('input[type="radio"]').forEach(function(input){
+          input.addEventListener('change',function(){
+            item.classList.add('answered');
+            item.querySelectorAll('label').forEach(function(lbl){
+              var v=lbl.querySelector('input').value;
+              if(v===correct){lbl.dataset.pick='correct';}
+              else if(lbl.contains(input)){lbl.dataset.pick='wrong';}
+            });
+          });
+        });
+      });
+    })();
+    </script>
+  </div>
+
 </div>
 
 <nav class="lesson-nav">

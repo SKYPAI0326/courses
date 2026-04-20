@@ -173,7 +173,39 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 .peer-check label{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;line-height:1.7;color:var(--c-text);cursor:pointer}
 .peer-check input{margin-top:5px;accent-color:#b5703a;flex-shrink:0;cursor:pointer}
 .peer-check input:checked ~ span{color:var(--c-muted);text-decoration:line-through}
-@media(max-width:600px){.peer-activity{padding:24px 22px}}</style>
+@media(max-width:600px){.peer-activity{padding:24px 22px}}
+
+/* lesson-section · 對齊 CH6-X */
+.lesson-section{max-width:var(--content-w);margin:0 auto 48px;padding:0 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-muted);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-heading em{font-style:normal;color:inherit}
+.section-lede{font-size:.9rem;color:var(--c-muted);line-height:1.85;margin-bottom:24px}
+@media(max-width:600px){.lesson-section{padding:0 24px}}
+
+/* callout · info/tip/key 三階 */
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-a2)}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px}
+.callout-body{font-size:.9rem;line-height:1.8;color:var(--c-text)}
+.callout-body strong{font-weight:700}
+.ext-list{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:8px}
+.ext-list li{font-size:.85rem;line-height:1.8;color:var(--c-text)}
+
+/* quiz-grid · 5 題 4 選 1 */
+.quiz-grid{display:grid;grid-template-columns:repeat(1,1fr);gap:14px;margin-top:20px}
+.quiz-item{background:#fafaf5;border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:16px 18px}
+.quiz-q{font-size:.9rem;font-weight:700;color:var(--c-text);line-height:1.7;margin-bottom:12px}
+.quiz-q-num{display:inline-block;width:22px;height:22px;border-radius:50%;background:rgba(201,150,58,.12);color:var(--c-a2);font-size:.72rem;font-weight:700;line-height:22px;text-align:center;margin-right:8px;font-family:'Shippori Mincho',serif}
+.quiz-options{display:flex;flex-direction:column;gap:8px;margin-left:30px}
+.quiz-options label{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;line-height:1.7;color:var(--c-text);cursor:pointer;padding:6px 10px;border-radius:var(--radius-sm);transition:background .15s}
+.quiz-options label:hover{background:rgba(201,150,58,.06)}
+.quiz-options input{margin-top:4px;accent-color:var(--c-a2);flex-shrink:0;cursor:pointer}
+.quiz-item.answered label[data-pick="correct"]{background:rgba(90,122,90,.12);color:#3a5a3a;font-weight:500}
+.quiz-item.answered label[data-pick="wrong"]{background:rgba(180,80,60,.08);color:#b44040;text-decoration:line-through}
+.quiz-explain{margin-top:10px;margin-left:30px;padding:10px 14px;background:rgba(201,150,58,.06);border-left:2px solid var(--c-a2);border-radius:var(--radius-sm);font-size:.8rem;line-height:1.75;color:var(--c-text);display:none}
+.quiz-item.answered .quiz-explain{display:block}</style>
+<link rel="stylesheet" href="../_assets/prac-sample.css">
 </head>
 <body>
 <style id="_gs">
@@ -644,6 +676,206 @@ Golden set 20 題 pass 率：
 </div>
 <!-- /同儕互評 -->
 
+<!-- Section · RAG 文件問答系統實戰 + Quiz -->
+<section class="lesson-section" id="sec-rag-doc-qa">
+  <div class="section-eyebrow">(C) · RAG Doc QA Drills</div>
+  <h2 class="section-heading">RAG 文件問答系統：<em>兩個情境、一條 pipeline</em></h2>
+  <p class="section-lede">RAG（Retrieval-Augmented Generation）把內部文件切 chunk、做 embedding、存向量庫，提問時先檢索再餵給 LLM 回答。下面兩個情境貼近真實辦公場景——公司 FAQ 與會議紀錄——都附完整 pipeline 步驟、可貼上跑的 prompt、預期輸出與來源引用格式。每情境約 22 分鐘，兩情境＋延伸＋quiz 共約 58 分鐘，做完你會有一條可直接改吃自家文件的 RAG 雛型。</p>
+
+  <details class="prac-sample" open>
+    <summary class="ps-head">
+      <span class="ps-eyebrow">情境 A · 公司 FAQ RAG</span>
+      <span class="ps-hint">30 篇 FAQ MD 檔 <span aria-hidden="true">→</span> chunk <span aria-hidden="true">→</span> embedding <span aria-hidden="true">→</span> 問答，取代「每次問 HR」的內耗。</span>
+    </summary>
+
+    <div class="ps-block">
+      <div class="ps-label">資料來源｜資料量｜query 範例<span class="ps-label-tag">FAQ · RAG</span></div>
+      <div class="ps-material">【資料來源】公司內部 Notion / Confluence 匯出的 30 篇 FAQ Markdown（HR 政策、IT 帳號、差旅、報銷、合約流程），單篇 400–1,500 字，合計約 28,000 字 / 約 42,000 tokens。
+
+【資料量】
+- 30 篇原始檔，切 chunk 後約 180–240 個 chunk（每 chunk 180–220 字，overlap 40 字）
+- 向量維度 1024（用 voyage-3 或 text-embedding-3-large 皆可）
+- 向量庫用本機 Chroma 或 sqlite-vec 起手，量小不用雲端
+
+【query 範例】
+Q1「新人到職第一週要辦哪些帳號？」（跨 2–3 篇）
+Q2「出差日支費 500 元包含哪些項目？需要附發票嗎？」（單篇細項）
+Q3「合約金額超過 30 萬要走誰核可？」（需要抓金額門檻）
+Q4「公司有沒有寵物假？」（資料沒有，要會拒答）
+
+【成功標準】前 3 題命中正確 FAQ 且 answer 有引用來源；Q4 要答「FAQ 中沒有相關規定」而不是硬掰。</div>
+    </div>
+
+    <div class="ps-block">
+      <div class="ps-label">RAG pipeline 步驟 + 關鍵 Prompt</div>
+      <div class="ps-prompt">【Pipeline 步驟】
+1. Ingest：讀 30 個 .md 檔，保留 filename、section_heading 當 metadata
+2. Chunk：按 H2 標題先切大段，每段再按 200 字 + 40 overlap 切小塊，保留 { doc_id, heading, chunk_id } metadata
+3. Embed：每個 chunk 丟 embedding model，存向量 + metadata 到 Chroma
+4. Retrieve：query embedding → top_k=5 相似度搜尋 → similarity 低於 0.35 的 chunk 直接丟掉
+5. Generate：把 top_k chunks 按順序拼進 system prompt，要求答案必附 [doc_id#heading]
+
+【關鍵 System Prompt】
+你是公司內部 FAQ 助理。嚴格遵守以下規則：
+
+【規則】
+- 只能根據下方【參考資料】回答，不得引用訓練資料或自行推論
+- 每句主張後面必附來源標註，格式為 [檔名#段落標題]，多來源用逗號分隔
+- 若【參考資料】中沒有答案，或相似度過低，直接回答「FAQ 中沒有相關規定，建議聯絡 HR（hr@company.com）」
+- 金額、天數、條款編號一律照抄原文，不得換算、不得四捨五入
+- 回答控制在 120 字以內，先給結論再給依據
+
+【參考資料】
+{{ retrieved_chunks_with_metadata }}
+
+【使用者問題】
+{{ user_question }}<button class="copy-btn" type="button">複製</button></div>
+      <div class="ps-expect"><strong>預期 answer + 來源引用格式</strong><br>
+<code>Q:「新人到職第一週要辦哪些帳號？」<br>
+A: 第一週需辦三組帳號：① Google Workspace（到職當日由 IT 建立）[onboarding.md#帳號開通]；② VPN 與內網 AD（到職第二日至 IT 櫃台領卡）[onboarding.md#帳號開通]；③ 人資系統 HRMS（到職第三日由 HR 發連結自行設密碼）[hr-system.md#新進流程]。超過三日未收到請聯絡 it@company.com。<br>
+sources: ["onboarding.md#帳號開通", "hr-system.md#新進流程"]<br>
+retrieved_top_k: 5, used: 2, similarity_range: [0.78, 0.62]</code><br>
+<strong>判讀重點</strong>：答案每句都能對回 <code>[檔名#段落]</code>；Q4「寵物假」應回拒答版本且 <code>retrieved_top_k</code> 最高相似度低於 0.35。若出現沒有 source 標記的句子 = 幻覺，立刻回去改 prompt 加強「每句必附來源」指令。</div>
+    </div>
+  </details>
+
+  <details class="prac-sample" open>
+    <summary class="ps-head">
+      <span class="ps-eyebrow">情境 B · 會議紀錄問答機器人</span>
+      <span class="ps-hint">一年會議檔案按日期檢索，答「Q1 decisions 有哪些」「上次 pricing 討論誰反對」。</span>
+    </summary>
+
+    <div class="ps-block">
+      <div class="ps-label">資料來源｜資料量｜query 範例<span class="ps-label-tag">Meeting Notes · RAG</span></div>
+      <div class="ps-material">【資料來源】過去 12 個月的產品團隊會議紀錄，包含週會、雙週 roadmap review、季度 OKR 檢討，格式為 Markdown，每篇含 frontmatter（date、attendees、meeting_type）＋ 正文（agenda、discussion、decisions、action_items）。
+
+【資料量】
+- 約 120 篇會議紀錄（週會 48 + 雙週 26 + 月會 12 + 季度 4 + 臨時 30），平均 600 字 / 篇，合計約 72,000 字 / 110,000 tokens
+- chunk 策略：按 section（discussion / decisions / action_items）切，decisions 段不再切小塊（因為決議完整性很重要），其他段 200 字 + 30 overlap
+- metadata 必備：date（YYYY-MM-DD）、meeting_type、section_type、attendees_count；檢索時可按日期區間過濾
+
+【query 範例】
+Q1「Q1 有哪些產品決策？列出決策內容與日期」（要按日期範圍過濾 + 只抓 decisions section）
+Q2「上次 pricing 模型討論的結論是什麼？誰反對？」（要找最近一次相關會議）
+Q3「這季 action items 還有哪些沒做完？」（要交叉比對多場會議）
+Q4「agile 導入相關會議有幾場？分別討論了什麼？」（跨月份 aggregation）
+
+【成功標準】每則回答附「日期 + 會議類型 + 發言人（如有）」三元組；跨會議彙整題要列清單不要混成一段。</div>
+    </div>
+
+    <div class="ps-block">
+      <div class="ps-label">RAG pipeline 步驟 + 關鍵 Prompt</div>
+      <div class="ps-prompt">【Pipeline 步驟】
+1. Ingest：parse frontmatter 抽 date / type / attendees，正文按 section 切（## Discussion / ## Decisions / ## Action Items）
+2. Chunk：decisions 整段保留不切；discussion 按 200 字切；action_items 按 item 切，每筆一個 chunk
+3. Embed：chunk 前面 prepend「[日期 meeting_type section_type]」讓日期與類型進向量空間
+4. Retrieve：若 query 含「Q1／上次／這季／今年」等時間詞，先用 metadata filter（date 範圍）再做相似度；top_k=8，decisions section 加 0.1 權重
+5. Generate：按日期倒序排序 chunks，要求回答必附「日期 + meeting_type」
+
+【關鍵 System Prompt】
+你是產品團隊的會議知識助理。嚴格遵守：
+
+【規則】
+- 只根據【參考資料】回答，每則回答必附「（YYYY-MM-DD · meeting_type）」時間戳
+- 多會議彙整題用清單列出，不要寫成一整段
+- 若問題涉及「誰反對 / 誰提議」，只在原文明確有發言人名稱時引用，否則寫「紀錄未記錄發言人」
+- 時間詞（上次 / 這季 / Q1）若與 retrieved 日期不符，明確告知「最近一次是 YYYY-MM-DD」再回答
+- 若【參考資料】為空或相似度過低，回答「過去一年會議紀錄中未找到相關討論」
+
+【參考資料】（按日期倒序）
+{{ retrieved_chunks_sorted_by_date }}
+
+【使用者問題】
+{{ user_question }}<button class="copy-btn" type="button">複製</button></div>
+      <div class="ps-expect"><strong>預期 answer + 來源引用格式</strong><br>
+<code>Q:「Q1 有哪些產品決策？」<br>
+A: 2026 Q1（01/01–03/31）共 4 項主要產品決策：<br>
+1. 採用 usage-based pricing 模型，2026/04 上線（2026-03-14 · 季度 OKR 檢討）<br>
+2. 凍結新功能開發兩週，優先修穩定性 bug（2026-02-20 · 雙週 roadmap）<br>
+3. 行動端 App 改走 PWA 而非 native（2026-02-06 · 月會）<br>
+4. Onboarding 流程縮短到 3 步（2026-01-25 · 週會）<br>
+sources: [<br>
+  {"date":"2026-03-14","type":"季度 OKR 檢討","section":"decisions"},<br>
+  {"date":"2026-02-20","type":"雙週 roadmap","section":"decisions"},<br>
+  {"date":"2026-02-06","type":"月會","section":"decisions"},<br>
+  {"date":"2026-01-25","type":"週會","section":"decisions"}<br>
+]<br>
+metadata_filter_used: date &gt;= 2026-01-01 AND date &lt;= 2026-03-31, section = decisions</code><br>
+<strong>判讀重點</strong>：檢查 <code>metadata_filter_used</code>——若時間詞沒轉成 date filter，答案會把 Q2 / Q3 的決策也混進來。跨會議題要用清單不要混文；出現「團隊成員表示…」沒名字的敘述 = 幻覺，改 prompt 強化「無發言人時明寫未記錄」。</div>
+    </div>
+  </details>
+
+  <div class="callout tip">
+    <div class="callout-icon" aria-hidden="true">💡</div>
+    <div class="callout-body">
+      <strong>延伸挑戰（約 12 分鐘）</strong>
+      <ul class="ext-list">
+        <li><strong>做一個你公司 20 份文件的 RAG</strong>：挑 20 份你真的每天會翻的文件（SOP、規格、合約模板、FAQ），走完 ingest <span aria-hidden="true">→</span> chunk <span aria-hidden="true">→</span> embed <span aria-hidden="true">→</span> retrieve <span aria-hidden="true">→</span> generate 全流程。</li>
+        <li><strong>測 10 題準確率</strong>：列 10 題同事平常會問的題目（7 題資料內有、3 題資料外），跑完記 pass / fail，目標是資料內題 ≥ 8/7 準確、資料外題 3/3 正確拒答。</li>
+        <li><strong>加「我不知道」fallback</strong>：檢索最高相似度低於 0.35（或你自己調出來的閾值）時，強制模型回「本 RAG 知識庫中未找到相關內容，建議聯絡 XX」——沒有這層 fallback 的 RAG 就是幻覺製造機。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="quiz-grid" id="prac61-rag-quiz">
+    <div class="quiz-item" data-correct="c">
+      <div class="quiz-q"><span class="quiz-q-num">1</span>RAG chunk 大小要怎麼選？</div>
+      <div class="quiz-options">
+        <label><input type="radio" name="rq1" value="a"><span>越大越好，把整份文件當成一個 chunk 最完整</span></label>
+        <label><input type="radio" name="rq1" value="b"><span>越小越好，切到單句才能精準檢索</span></label>
+        <label><input type="radio" name="rq1" value="c"><span>在「語意完整」與「檢索精確」之間取平衡：一般 150–300 字，搭配 10–20% overlap，關鍵段落（如決議、條款）整段不切</span></label>
+        <label><input type="radio" name="rq1" value="d"><span>固定切 512 tokens 就好，不用看內容</span></label>
+      </div>
+      <div class="quiz-explain">chunk 太大會把不相關資訊一起檢索出來、稀釋 top_k 相關度；chunk 太小會把一個完整論點切碎、檢索到片段但答不出來。實務做法是主體 150–300 字 + overlap 避免切在論點中間，再針對「必須完整」的段（合約條款、會議決議）特別處理整段不切。</div>
+    </div>
+
+    <div class="quiz-item" data-correct="b">
+      <div class="quiz-q"><span class="quiz-q-num">2</span>檢索出來的 chunk 相關性很差（similarity 都很低），該怎麼處理？</div>
+      <div class="quiz-options">
+        <label><input type="radio" name="rq2" value="a"><span>把 top_k 從 5 調到 20，多抓一點總會對</span></label>
+        <label><input type="radio" name="rq2" value="b"><span>設 similarity 閾值（例如 0.35），低於閾值的 chunk 直接丟掉、觸發 fallback 回「沒有相關資訊」</span></label>
+        <label><input type="radio" name="rq2" value="c"><span>還是把 chunks 丟給 LLM，讓它自己判斷要不要用</span></label>
+        <label><input type="radio" name="rq2" value="d"><span>直接換一個更強的 LLM 來補救</span></label>
+      </div>
+      <div class="quiz-explain">把爛 chunks 丟給 LLM，LLM 會基於不相關的片段硬湊答案——這就是 RAG 的典型幻覺源頭。正確做法是設 similarity 閾值（每個 embedding 模型要自己跑一輪校正閾值）＋觸發明確的「沒有相關資訊」fallback。加大 top_k 只會讓雜訊更多。</div>
+    </div>
+
+    <div class="quiz-item" data-correct="a">
+      <div class="quiz-q"><span class="quiz-q-num">3</span>RAG 系統要怎麼避免 hallucination？</div>
+      <div class="quiz-options">
+        <label><input type="radio" name="rq3" value="a"><span>system prompt 強制每句話必附來源標註；檢索失敗或相似度過低時明確回「我不知道」，不准模型自行補充</span></label>
+        <label><input type="radio" name="rq3" value="b"><span>用 temperature=0 就不會有幻覺</span></label>
+        <label><input type="radio" name="rq3" value="c"><span>只要 chunks 相關度夠高就不會有幻覺，不需特別處理</span></label>
+        <label><input type="radio" name="rq3" value="d"><span>換最貴的模型自然就沒幻覺</span></label>
+      </div>
+      <div class="quiz-explain">RAG 幻覺的兩大來源：① 檢索對但模型仍加油添醋；② 檢索不到但模型不肯說不知道。兩者都要靠 prompt 硬約束——強制來源引用讓加油添醋的句子無法產生（因為沒來源可標）；強制 fallback 讓「我不知道」變成合法答案。temperature 0 不會解決語意層幻覺。</div>
+    </div>
+
+    <div class="quiz-item" data-correct="d">
+      <div class="quiz-q"><span class="quiz-q-num">4</span>embedding 向量該什麼時候重跑？</div>
+      <div class="quiz-options">
+        <label><input type="radio" name="rq4" value="a"><span>每天重跑一次最保險</span></label>
+        <label><input type="radio" name="rq4" value="b"><span>跑完一次就不用管了，embedding 是永久的</span></label>
+        <label><input type="radio" name="rq4" value="c"><span>只有使用者抱怨結果不準時才跑</span></label>
+        <label><input type="radio" name="rq4" value="d"><span>兩種時機：① 底層資料大量更新（例如新增一批文件、舊文件大改）；② embedding 模型升級換版（舊向量跟新 query 在不同向量空間，必須全量重建）</span></label>
+      </div>
+      <div class="quiz-explain">embedding 是有「版本」的——換模型（text-embedding-3-small <span aria-hidden="true">→</span> large，或換 voyage-3）等於換向量空間，舊向量跟新 query 不能比。增量更新要補新 chunk 的 embedding，大改 / 模型升級要全量重建。每天跑是浪費成本，不跑又會踩舊向量。</div>
+    </div>
+
+    <div class="quiz-item" data-correct="d">
+      <div class="quiz-q"><span class="quiz-q-num">5</span>RAG 系統最常見的失敗模式是哪一類？</div>
+      <div class="quiz-options">
+        <label><input type="radio" name="rq5" value="a"><span>只有「檢索不到」一種，加大 top_k 就能解決</span></label>
+        <label><input type="radio" name="rq5" value="b"><span>只有 LLM 不夠強，換 Opus 就沒事</span></label>
+        <label><input type="radio" name="rq5" value="c"><span>只有 chunk 太大，切小一點就好</span></label>
+        <label><input type="radio" name="rq5" value="d"><span>三種都會：① 檢索不到正確 chunk（retrieval miss）；② 檢索到但 LLM 在 generation 時忽略 / 誤讀；③ LLM 過度依賴檢索結果反而忽略通識（例：檢索到 2022 舊資料，LLM 不知道要說「可能過時」）</span></label>
+      </div>
+      <div class="quiz-explain">RAG 的 debug 要分三段看：retrieval（有沒有拿到對的 chunk）、grounding（拿到後有沒有真的用它）、generation（有沒有適當平衡檢索內容與常識）。只看最終答案錯就歸因於「LLM 笨」會走錯方向——要先看 retrieved chunks，再對照 answer 判斷是哪一段出問題。</div>
+    </div>
+  </div>
+</section>
+<!-- /Section RAG Doc QA -->
+
 <nav class="lesson-nav">
   <a class="nav-btn" href="CH6-5.html">
     <span><span aria-hidden="true">←</span></span>
@@ -755,6 +987,28 @@ reveals.forEach(el => io.observe(el));
       var k='peer:'+id+':'+i;
       if(localStorage.getItem(k)==='1')cb.checked=true;
       cb.addEventListener('change',function(){localStorage.setItem(k,cb.checked?'1':'0');});
+    });
+  });
+})();
+</script>
+
+<script src="../_assets/prac-sample.js" defer></script>
+
+<script>
+// Quiz 互動：點選即揭曉正解
+(function(){
+  var grid=document.getElementById('prac61-rag-quiz');
+  if(!grid)return;
+  grid.querySelectorAll('.quiz-item').forEach(function(item){
+    var correct=item.dataset.correct;
+    item.querySelectorAll('input[type="radio"]').forEach(function(input){
+      input.addEventListener('change',function(){
+        item.classList.add('answered');
+        item.querySelectorAll('label').forEach(function(lbl){
+          var v=lbl.querySelector('input').value;
+          lbl.setAttribute('data-pick',v===correct?'correct':(lbl.querySelector('input').checked?'wrong':''));
+        });
+      });
     });
   });
 })();

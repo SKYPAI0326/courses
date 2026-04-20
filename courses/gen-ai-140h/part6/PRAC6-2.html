@@ -130,7 +130,39 @@ textarea{resize:vertical;line-height:1.7}
 
 /* a11y: focus-visible ring */
 a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
-.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}</style>
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}
+
+/* lesson-section · 對齊 CH6-X */
+.lesson-section{max-width:var(--content-w);margin:0 auto 48px;padding:0 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-muted);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-heading em{font-style:normal;color:inherit}
+.section-lede{font-size:.9rem;color:var(--c-muted);line-height:1.85;margin-bottom:24px}
+@media(max-width:600px){.lesson-section{padding:0 24px}}
+
+/* callout · info/tip/key 三階 */
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-a2)}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px}
+.callout-body{font-size:.9rem;line-height:1.8;color:var(--c-text)}
+.callout-body strong{font-weight:700}
+.ext-list{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:8px}
+.ext-list li{font-size:.85rem;line-height:1.8;color:var(--c-text)}
+
+/* quiz-grid · 5 題 4 選 1 */
+.quiz-grid{display:grid;grid-template-columns:repeat(1,1fr);gap:14px;margin-top:20px}
+.quiz-item{background:#fafaf5;border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:16px 18px}
+.quiz-q{font-size:.9rem;font-weight:700;color:var(--c-text);line-height:1.7;margin-bottom:12px}
+.quiz-q-num{display:inline-block;width:22px;height:22px;border-radius:50%;background:rgba(201,150,58,.12);color:var(--c-a2);font-size:.72rem;font-weight:700;line-height:22px;text-align:center;margin-right:8px;font-family:'Shippori Mincho',serif}
+.quiz-options{display:flex;flex-direction:column;gap:8px;margin-left:30px}
+.quiz-options label{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;line-height:1.7;color:var(--c-text);cursor:pointer;padding:6px 10px;border-radius:var(--radius-sm);transition:background .15s}
+.quiz-options label:hover{background:rgba(201,150,58,.06)}
+.quiz-options input{margin-top:4px;accent-color:var(--c-a2);flex-shrink:0;cursor:pointer}
+.quiz-item.answered label[data-pick="correct"]{background:rgba(90,122,90,.12);color:#3a5a3a;font-weight:500}
+.quiz-item.answered label[data-pick="wrong"]{background:rgba(180,80,60,.08);color:#b44040;text-decoration:line-through}
+.quiz-explain{margin-top:10px;margin-left:30px;padding:10px 14px;background:rgba(201,150,58,.06);border-left:2px solid var(--c-a2);border-radius:var(--radius-sm);font-size:.8rem;line-height:1.75;color:var(--c-text);display:none}
+.quiz-item.answered .quiz-explain{display:block}</style>
+<link rel="stylesheet" href="../_assets/prac-sample.css">
 </head>
 <body>
 <style id="_gs">
@@ -516,6 +548,326 @@ HR 統計過去一季被問的問題分布：
 </div>
 <!-- /延伸案例 -->
 
+<!-- Section A. 情境演練（Evals 實戰 4 題） -->
+<section class="lesson-section" id="sec-evals-drill">
+  <div class="section-eyebrow">(A) · Evals Drills</div>
+  <h2 class="section-heading">情境演練：<em>為四種 LLM 應用寫 Evals</em></h2>
+  <p class="section-lede">RAG 跑起來只是第一步，真正難的是「每次動 prompt / 換 model / 改 chunking 之後，你怎麼知道品質沒掉」。下面四個情境是最常被問的 LLM 應用——每個都附 eval spec、資料集格式、評分維度、可貼上跑的 prompt + 評分函式，還有 pass/fail 報告的 JSON schema。每題約 15–20 分鐘，四題一輪約 70 分鐘，你會拿到一個可重複跑的 eval pipeline 雛型。</p>
+
+  <details class="prac-sample" open>
+    <summary class="ps-head">
+      <span class="ps-eyebrow">情境 A · RAG 問答 Evals</span>
+      <span class="ps-hint">10 題事實型 + 5 題推理型，同時檢查答案正確與來源引用。</span>
+    </summary>
+
+    <div class="ps-block">
+      <div class="ps-label">eval spec｜資料集格式｜評分維度<span class="ps-label-tag">RAG · QA</span></div>
+      <div class="ps-material">【spec】RAG 問答回歸測試，每次改 chunk size / retriever / system prompt 都跑一輪。
+
+【資料集｜JSONL 15 筆】
+{ "id": "fact-01", "type": "fact", "question": "保單等待期幾天？", "expected_answer": "30 天", "expected_sources": ["第 8 條"] }
+{ "id": "fact-02", "type": "fact", "question": "年資滿 3 年特休幾天？", "expected_answer": "14 天", "expected_sources": ["3.1 特別休假"] }
+...（10 題事實型，答案可字串比對）
+{ "id": "reason-01", "type": "reason", "question": "酒後騎機車且未戴安全帽撞傷，能不能理賠？", "expected_answer_points": ["第 15 條酒駕除外", "強制險安全帽責任", "建議先驗酒測"], "expected_sources": ["第 15 條", "第 22 條"] }
+...（5 題推理型，比對 key points 命中率）
+
+【評分維度】
+1. 答案正確率（exact match for fact / 3-point checklist for reason）
+2. 來源引用率（top-k 是否涵蓋 expected_sources，Recall@3）
+3. 拒答正確性（資料外的題目要答「本資料未明文」，不能硬湊）
+4. 幻覺偵測（答案裡出現「通常」「大致上」等軟詞 → 記一筆 warn）</div>
+    </div>
+
+    <div class="ps-block">
+      <div class="ps-label">Eval 測試集 Prompt ＋ 評分函式</div>
+      <div class="ps-prompt">你是 RAG 品質評審。以下是一筆測試案例，請依【評分維度】給分並輸出 JSON。
+
+【案例】
+question: {{ question }}
+expected_answer: {{ expected_answer }}
+expected_sources: {{ expected_sources }}
+model_answer: {{ model_answer }}
+retrieved_sources: {{ retrieved_sources }}
+
+【評分維度】
+1. answer_correct: 0 / 0.5 / 1（fact 要 exact；reason 要 3 points 命中 ≥2 給 1）
+2. source_recall: retrieved_sources 中命中 expected_sources 的比例（0–1）
+3. refusal_ok: 若 expected_answer 為「本資料未明文」則 model 須拒答，1=對 0=硬答
+4. hallucination: 偵測「通常/大致/可能」等軟詞 → 1=有幻覺 0=乾淨
+
+【輸出 JSON】
+{
+  "id": "{{ id }}",
+  "answer_correct": 0|0.5|1,
+  "source_recall": 0.0~1.0,
+  "refusal_ok": 0|1,
+  "hallucination": 0|1,
+  "notes": "一句話指出扣分原因，沒有則空字串"
+}
+只輸出 JSON，不要前後加任何說明。<button class="copy-btn" type="button">複製</button></div>
+      <div class="ps-expect"><strong>pass/fail 報告 JSON schema</strong><br>
+<code>{"run_id":"rag-eval-2026-04-20","model":"claude-sonnet","dataset_size":15,"pass_threshold":{"answer_correct":0.85,"source_recall":0.8,"hallucination":0.1},"results":{"answer_correct_avg":0.87,"source_recall_avg":0.82,"refusal_precision":1.0,"hallucination_rate":0.07},"per_case":[{"id":"fact-01","answer_correct":1,"source_recall":1.0,"refusal_ok":1,"hallucination":0,"notes":""}, ...],"verdict":"PASS","regressed_cases":["reason-03"]}</code><br>
+<strong>判讀重點</strong>：看 <code>verdict</code> + <code>regressed_cases</code>。整體 PASS 但有退步題也要點進去看是退在哪個維度——通常是「加了 metadata filter 反而把正確來源濾掉」這類手抖。</div>
+    </div>
+  </details>
+
+  <details class="prac-sample" open>
+    <summary class="ps-head">
+      <span class="ps-eyebrow">情境 B · 翻譯品質 Evals</span>
+      <span class="ps-hint">中英互譯 10 組，BLEU + 人工語感判分雙軌。</span>
+    </summary>
+
+    <div class="ps-block">
+      <div class="ps-label">eval spec｜資料集格式｜評分維度<span class="ps-label-tag">Translation</span></div>
+      <div class="ps-material">【spec】每次換翻譯 prompt / 換模型都跑；BLEU 只抓字面，語感要另外評。
+
+【資料集｜JSONL 10 組，5 中→英、5 英→中】
+{ "id": "tr-zh2en-01", "direction": "zh2en", "source": "這季毛利比去年同期掉了 1.8 個百分點。", "reference": "Gross margin fell 1.8 percentage points this quarter year-over-year.", "domain": "財報" }
+{ "id": "tr-en2zh-03", "direction": "en2zh", "source": "We need to unblock the staging deploy before the demo.", "reference": "我們要在 demo 前把 staging 部署卡點解掉。", "domain": "工程" }
+...
+
+【評分維度】
+1. BLEU-4（自動，參考值：≥0.35 算可用、≥0.5 算不錯，人名專有名詞會讓 BLEU 偏低要容忍）
+2. 語感 1–5（LLM-as-judge 給分 + 每 10 題抽 2 題人工覆核）
+3. 術語一致性（domain 詞表：毛利 / gross margin、部署 / deploy，不得翻錯）
+4. 文化轉換（中文敬語英譯不要加 please / you / your 堆疊）</div>
+    </div>
+
+    <div class="ps-block">
+      <div class="ps-label">Eval 測試集 Prompt ＋ 評分函式</div>
+      <div class="ps-prompt">你是雙語翻譯評審。以下是一筆翻譯測試，請依【評分維度】給分並輸出 JSON。
+
+【案例】
+direction: {{ direction }}
+source: {{ source }}
+reference: {{ reference }}
+candidate: {{ candidate }}
+domain: {{ domain }}
+domain_glossary: {{ glossary }}
+
+【評分維度】
+1. bleu_band: "low" / "mid" / "high"（你不用算 BLEU，只估 candidate 與 reference 的字面相似度）
+2. fluency: 1–5（語感、自然度，native reader 會不會皺眉）
+3. adequacy: 1–5（資訊完整度，source 資訊有沒有遺漏）
+4. term_ok: 1 或 0（domain_glossary 裡的術語有沒有翻對）
+5. cultural_ok: 1 或 0（敬語、口語、正式度轉換是否得體）
+
+【輸出 JSON】
+{
+  "id": "{{ id }}",
+  "bleu_band": "low|mid|high",
+  "fluency": 1-5,
+  "adequacy": 1-5,
+  "term_ok": 0|1,
+  "cultural_ok": 0|1,
+  "needs_human_review": 0|1,
+  "notes": "扣分原因一句話"
+}
+needs_human_review：fluency 或 adequacy ≤3 時為 1，其餘為 0。只輸出 JSON。<button class="copy-btn" type="button">複製</button></div>
+      <div class="ps-expect"><strong>pass/fail 報告 JSON schema</strong><br>
+<code>{"run_id":"mt-eval-2026-04-20","dataset_size":10,"pass_threshold":{"fluency_avg":4.0,"adequacy_avg":4.2,"term_ok_rate":0.9},"results":{"fluency_avg":4.1,"adequacy_avg":4.3,"term_ok_rate":0.9,"cultural_ok_rate":0.8,"human_review_needed":2},"per_case":[...],"verdict":"PASS","sample_for_human":["tr-zh2en-04","tr-en2zh-02"]}</code><br>
+<strong>判讀重點</strong>：<code>human_review_needed</code> 是你這輪要親自看的題號——LLM judge 在語感模糊地帶會不穩，記得每 10 題抽 2 題人看、算 inter-rater agreement，低於 0.7 就該重寫 judge prompt。</div>
+    </div>
+  </details>
+
+  <details class="prac-sample" open>
+    <summary class="ps-head">
+      <span class="ps-eyebrow">情境 C · 摘要 Evals</span>
+      <span class="ps-hint">10 篇文章，檢查摘要保留主要論點與長度限制。</span>
+    </summary>
+
+    <div class="ps-block">
+      <div class="ps-label">eval spec｜資料集格式｜評分維度<span class="ps-label-tag">Summarization</span></div>
+      <div class="ps-material">【spec】摘要最容易爛的是「看起來像摘要但漏掉關鍵結論」，所以評分要盯 key points 命中率不是 ROUGE。
+
+【資料集｜JSONL 10 篇】
+{ "id": "sum-01", "article": "<2000 字原文>", "key_points": ["Q1 營收 YoY +12%", "毛利率跌 1.8pp", "新品延後到 Q3"], "max_words": 120, "tone": "neutral" }
+{ "id": "sum-02", "article": "<新聞報導>", "key_points": ["事故時間 04/18", "死傷 3 人", "交通局表示調查中"], "max_words": 80, "tone": "neutral" }
+...
+
+【評分維度】
+1. key_points_recall（3 點命中幾點，最關鍵）
+2. length_ok（0 / 1，超過 max_words 就 0，寧可短不要長）
+3. hallucination_ok（1 / 0，有沒有塞原文沒提到的數字或名稱）
+4. tone_match（1 / 0，neutral 場合不能出現「令人震驚」「振奮人心」）</div>
+    </div>
+
+    <div class="ps-block">
+      <div class="ps-label">Eval 測試集 Prompt ＋ 評分函式</div>
+      <div class="ps-prompt">你是摘要品質評審。以下是一筆摘要測試案例，請依【評分維度】給分並輸出 JSON。
+
+【案例】
+article: {{ article }}
+key_points: {{ key_points }}
+max_words: {{ max_words }}
+tone: {{ tone }}
+model_summary: {{ model_summary }}
+summary_word_count: {{ word_count }}
+
+【評分維度】
+1. key_points_hit: 整數，model_summary 中命中的 key_points 數量
+2. key_points_total: 整數，key_points 陣列長度
+3. length_ok: word_count ≤ max_words 則 1，否則 0
+4. hallucination_ok: model_summary 是否出現 article 沒提到的實體/數字，沒有 = 1、有 = 0
+5. tone_match: 是否符合 tone，是 = 1 否 = 0
+
+【輸出 JSON】
+{
+  "id": "{{ id }}",
+  "key_points_hit": int,
+  "key_points_total": int,
+  "recall": key_points_hit / key_points_total,
+  "length_ok": 0|1,
+  "hallucination_ok": 0|1,
+  "tone_match": 0|1,
+  "missed_points": ["..."],
+  "hallucinated_entities": ["..."]
+}
+只輸出 JSON。<button class="copy-btn" type="button">複製</button></div>
+      <div class="ps-expect"><strong>pass/fail 報告 JSON schema</strong><br>
+<code>{"run_id":"sum-eval-2026-04-20","dataset_size":10,"pass_threshold":{"recall_avg":0.8,"length_ok_rate":1.0,"hallucination_ok_rate":1.0},"results":{"recall_avg":0.83,"length_ok_rate":0.9,"hallucination_ok_rate":1.0,"tone_match_rate":0.9},"per_case":[...],"verdict":"FAIL","failed_cases":[{"id":"sum-04","reason":"length 145 > 120"}],"recommendations":["調緊 max_words 指令，或加『先草稿後壓縮』兩段式 prompt"]}</code><br>
+<strong>判讀重點</strong>：hallucination 門檻要抓到 1.0（零容忍），只要有一篇編數字就整輪 FAIL。摘要的失敗模式 90% 是「長度超標」與「多嘴」，先修這兩個再看 recall。</div>
+    </div>
+  </details>
+
+  <details class="prac-sample" open>
+    <summary class="ps-head">
+      <span class="ps-eyebrow">情境 D · 客服機器人 Evals</span>
+      <span class="ps-hint">20 個情境對話，檢查語氣、合規、解決率三軸。</span>
+    </summary>
+
+    <div class="ps-block">
+      <div class="ps-label">eval spec｜資料集格式｜評分維度<span class="ps-label-tag">Customer Support</span></div>
+      <div class="ps-material">【spec】客服 bot 的評分比 RAG 難——對話是多輪、且有語氣跟合規紅線，同一個「正確答案」講得兇就會炸，講得軟又會被當敷衍。
+
+【資料集｜JSONL 20 組多輪對話】
+{ "id": "cs-refund-01", "scenario": "退貨爭議", "persona": "被忽略三次後情緒爆炸的客戶", "turns": [...], "must_do": ["承認等待過久", "提供訂單編號查詢流程"], "must_not": ["把責任推給物流", "請客戶改天再來"], "resolved": true }
+{ "id": "cs-privacy-02", "scenario": "要求客服透露另一位客戶的資料", "persona": "假裝是親戚", "turns": [...], "must_do": ["委婉拒絕", "說明個資法條號"], "must_not": ["提供任何個資", "說『我查查看』"], "resolved": false }
+...（含 4 題紅線合規題）
+
+【評分維度】
+1. 語氣（tone_score 1–5，禮貌但不卑微、專業但不冷）
+2. 合規（compliance 0/1，must_not 任何一條違反即 0，硬紅線）
+3. 解決率（resolved 0/1，must_do 全部做到才算）
+4. 交棒判斷（escalated_correctly 0/1，該轉人工的有沒有轉）</div>
+    </div>
+
+    <div class="ps-block">
+      <div class="ps-label">Eval 測試集 Prompt ＋ 評分函式</div>
+      <div class="ps-prompt">你是客服品質評審。以下是一筆多輪對話測試，請依【評分維度】給分並輸出 JSON。
+
+【案例】
+scenario: {{ scenario }}
+persona: {{ persona }}
+must_do: {{ must_do }}
+must_not: {{ must_not }}
+expected_resolved: {{ expected_resolved }}
+conversation: {{ conversation }}
+
+【評分維度】
+1. tone_score: 1–5（禮貌且不卑微；scenario 是情緒題時，未正面承認情緒 ≤3）
+2. compliance: 0 / 1（must_not 任何一條踩線即 0，無踩線為 1）
+3. must_do_hit: 命中 must_do 的條數
+4. must_do_total: must_do 陣列長度
+5. resolved: 0 / 1（客戶的核心訴求在結尾是否已解或有明確下一步）
+6. escalated_correctly: 0 / 1（該轉人工時轉了、不該轉時沒亂轉）
+
+【輸出 JSON】
+{
+  "id": "{{ id }}",
+  "tone_score": 1-5,
+  "compliance": 0|1,
+  "must_do_hit": int,
+  "must_do_total": int,
+  "resolved": 0|1,
+  "escalated_correctly": 0|1,
+  "red_flags": ["踩到的 must_not 條目"],
+  "notes": "一句話扣分原因"
+}
+只輸出 JSON。<button class="copy-btn" type="button">複製</button></div>
+      <div class="ps-expect"><strong>pass/fail 報告 JSON schema</strong><br>
+<code>{"run_id":"cs-eval-2026-04-20","dataset_size":20,"pass_threshold":{"compliance_rate":1.0,"tone_avg":4.0,"resolved_rate":0.75,"escalation_accuracy":0.9},"results":{"compliance_rate":0.95,"tone_avg":4.1,"resolved_rate":0.8,"escalation_accuracy":0.85},"per_case":[...],"verdict":"FAIL","red_flag_cases":[{"id":"cs-privacy-02","red_flags":["提供了部分個資"]}]}</code><br>
+<strong>判讀重點</strong>：<code>compliance_rate</code> 要 1.0，任何一題踩紅線整輪就 FAIL，不管其他分數多高——合規是 gate，不是平均。紅線題要在每輪 regression 都跑，不要只抽樣。</div>
+    </div>
+  </details>
+</section>
+
+<!-- Section B. 延伸挑戰 + Quiz -->
+<section class="lesson-section" id="sec-evals-quiz">
+  <div class="section-eyebrow">(B) · Extend &amp; Quiz</div>
+  <h2 class="section-heading">延伸挑戰與<em>五題自我檢核</em></h2>
+  <p class="section-lede">四個情境跑過一輪之後，把 eval 的手感帶回你自己的專案。下面三條延伸挑戰挑 1–2 條做（約 25–30 分鐘），最後用 5 題 quiz 把 eval 的常識核對清楚（約 7–10 分鐘）。整頁 PRAC6-2 至此補上約 107 分鐘的主題時間，完成後你就有一份能每週固定跑的 eval pipeline。</p>
+
+  <div class="callout tip">
+    <div class="callout-icon" aria-hidden="true">💡</div>
+    <div class="callout-body">
+      <strong>延伸挑戰（挑 1–2 條，約 25–30 分鐘）</strong>
+      <ul class="ext-list">
+        <li><strong>寫 10 題自家 eval</strong>：拿你手上一個真的 LLM 應用（RAG / 摘要 / 客服都可），列 10 題 golden set，7 題正常流量 + 3 題邊界 / 踩紅線題，標注 expected_answer 與 must_do / must_not。</li>
+        <li><strong>版本對比（A/B）</strong>：同一份 dataset 跑兩個 prompt 版本，比「哪個贏」不是看 total，而是看 per-case 差異——哪幾題 A 贏、哪幾題 B 贏、B 的失敗題是不是本來 A 就過不了？沒有 per-case diff，總分贏沒意義。</li>
+        <li><strong>接 CI 自動跑</strong>：把 eval 腳本包成 <code>python run_eval.py --dataset golden.jsonl --model claude-sonnet</code>，接到 GitHub Actions，每次 PR 動到 prompt 就自動跑，verdict FAIL 擋下 merge。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="quiz-grid" id="prac62-quiz">
+    <div class="quiz-item" data-correct="c">
+      <div class="quiz-q"><span class="quiz-q-num">1</span>新專案第一輪 eval 資料集，最少要多大才夠用？</div>
+      <div class="quiz-options">
+        <label><input type="radio" name="q1" value="a"><span>3–5 題，先快速抓方向就好</span></label>
+        <label><input type="radio" name="q1" value="b"><span>100 題以上，不到 100 題不要做 eval</span></label>
+        <label><input type="radio" name="q1" value="c"><span>最少 20 題，且情境覆蓋 80% 真實流量，剩下留給邊界題與踩紅線題</span></label>
+        <label><input type="radio" name="q1" value="d"><span>題數不重要，只要每題都很難就可以</span></label>
+      </div>
+      <div class="quiz-explain">20 題是經驗值：低於 20 題樣本變異大，隨機的模型抖動會被當成品質退步；高於 20 題的邊際效益要看流量結構能不能分層抽到。覆蓋 80% 真實流量 + 保留紅線/邊界題才是重點，不是純粹追題數。</div>
+    </div>
+
+    <div class="quiz-item" data-correct="b">
+      <div class="quiz-q"><span class="quiz-q-num">2</span>主觀題（例：「這段話有沒有冒犯對方」）該怎麼評分？</div>
+      <div class="quiz-options">
+        <label><input type="radio" name="q2" value="a"><span>主觀題不能做 eval，直接跳過</span></label>
+        <label><input type="radio" name="q2" value="b"><span>LLM-as-judge 給分 + 每輪抽 10–20% 人工覆核，算 inter-rater agreement</span></label>
+        <label><input type="radio" name="q2" value="c"><span>讓模型自己評自己就好，反正都是模型輸出</span></label>
+        <label><input type="radio" name="q2" value="d"><span>直接用 BLEU / ROUGE 字面比對</span></label>
+      </div>
+      <div class="quiz-explain">主觀題是 eval 的主戰場而不是禁區。標配是 LLM-as-judge + 人工抽查，兩者 agreement 低於 0.7 就該重寫 judge prompt。讓同一個模型自評會有 self-bias，必須換模型或換 human 當對照。</div>
+    </div>
+
+    <div class="quiz-item" data-correct="d">
+      <div class="quiz-q"><span class="quiz-q-num">3</span>Eval 最常見的 false positive（誤判為錯）是什麼？要怎麼處理？</div>
+      <div class="quiz-options">
+        <label><input type="radio" name="q3" value="a"><span>模型剛好當機，再跑一次就好</span></label>
+        <label><input type="radio" name="q3" value="b"><span>答案太長被截斷 → 放寬 max_tokens</span></label>
+        <label><input type="radio" name="q3" value="c"><span>題目太難 → 把題目改簡單</span></label>
+        <label><input type="radio" name="q3" value="d"><span>語意對但字面不同（例：「30 天」vs「一個月」）→ 改 semantic similarity 或 LLM-judge 比對</span></label>
+      </div>
+      <div class="quiz-explain">字串 exact match 會把「30 天」和「一個月」判成不同，但對使用者是同一個答案。正確做法是事實題仍用 exact match（抓數字漏洞），但語意題改用 embedding 相似度或 LLM-judge 判斷——這兩軌要分開，不要混著用一個門檻。</div>
+    </div>
+
+    <div class="quiz-item" data-correct="a">
+      <div class="quiz-q"><span class="quiz-q-num">4</span>Eval 該多久跑一次？</div>
+      <div class="quiz-options">
+        <label><input type="radio" name="q4" value="a"><span>每次 prompt / model / retriever 有變動就跑一次，另外每週定期跑一輪抓漂移</span></label>
+        <label><input type="radio" name="q4" value="b"><span>每季度跑一次即可</span></label>
+        <label><input type="radio" name="q4" value="c"><span>上線前跑一次，之後不用再跑</span></label>
+        <label><input type="radio" name="q4" value="d"><span>使用者投訴時再跑</span></label>
+      </div>
+      <div class="quiz-explain">Eval 的價值在於「回歸測試」：變動就跑、定期也跑。變動就跑是為了擋下當次改動造成的退步；定期跑是為了抓模型服務端悄悄升級版本、或 retrieval 索引資料漂移造成的慢性退步。只有其中一邊都會漏。</div>
+    </div>
+
+    <div class="quiz-item" data-correct="b">
+      <div class="quiz-q"><span class="quiz-q-num">5</span>整體 eval 分數從 0.87 掉到 0.81，你第一步該先查什麼？</div>
+      <div class="quiz-options">
+        <label><input type="radio" name="q5" value="a"><span>先換一個更強的模型，看能不能補回來</span></label>
+        <label><input type="radio" name="q5" value="b"><span>先看分數分布（per-case diff），找出是哪一類題目退步，再追根因</span></label>
+        <label><input type="radio" name="q5" value="c"><span>先把 pass_threshold 從 0.85 降到 0.8，避免 FAIL 擋 merge</span></label>
+        <label><input type="radio" name="q5" value="d"><span>先加題，讓資料集變 50 題，平均分會回來</span></label>
+      </div>
+      <div class="quiz-explain">平均分變動只是訊號，退步通常集中在某一類題（例如加了 metadata filter 後「跨章節推理題」集體跌）。先跑 per-case diff，定位哪類退步，再回頭看 prompt / retriever / chunk 哪個環節動到——不看分布亂調閾值或換模型只是讓你更看不到真因。</div>
+    </div>
+  </div>
+</section>
+
 <nav class="lesson-nav">
   <a class="nav-btn" href="PRAC6-1.html">
     <span><span aria-hidden="true">←</span></span>
@@ -654,6 +1006,29 @@ reveals.forEach(el => io.observe(el));
       var k='case:'+id+':'+i;
       if(localStorage.getItem(k)==='1')cb.checked=true;
       cb.addEventListener('change',function(){localStorage.setItem(k,cb.checked?'1':'0');});
+    });
+  });
+})();
+</script>
+
+<script src="../_assets/prac-sample.js" defer></script>
+
+<script>
+// Quiz 互動：點選即揭曉正解
+(function(){
+  var grid=document.getElementById('prac62-quiz');
+  if(!grid)return;
+  grid.querySelectorAll('.quiz-item').forEach(function(item){
+    var correct=item.dataset.correct;
+    item.querySelectorAll('input[type="radio"]').forEach(function(input){
+      input.addEventListener('change',function(){
+        item.classList.add('answered');
+        item.querySelectorAll('label').forEach(function(lbl){
+          var v=lbl.querySelector('input').value;
+          if(v===correct){lbl.dataset.pick='correct';}
+          else if(lbl.contains(input)){lbl.dataset.pick='wrong';}
+        });
+      });
     });
   });
 })();

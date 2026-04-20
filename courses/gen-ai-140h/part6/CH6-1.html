@@ -524,6 +524,256 @@ app.listen(3000);</div>
     </div>
   </section>
 
+  <hr class="section-rule reveal">
+
+  <section class="lesson-section reveal" id="s5">
+    <div class="section-eyebrow">(05) · Hands-on Lab</div>
+    <h2 class="section-heading">實戰演練：<br><em>第一次打 API，再比對模型差異</em></h2>
+    <p class="body-text">看再多文件不如自己打一次。這一節用兩個情境把前面的概念全部串起來：先用 curl 打通 ChatGPT API，再寫一小段程式碼把同一個 prompt 丟進三個不同模型，比對它們的輸出差異。</p>
+
+    <style>
+    .quiz-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:20px}
+    .quiz-item{background:#fafaf5;border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:16px 18px}
+    .quiz-q{font-size:.9rem;font-weight:700;color:var(--c-text);line-height:1.7;margin-bottom:12px}
+    .quiz-q-num{display:inline-block;width:22px;height:22px;border-radius:50%;background:rgba(201,150,58,.12);color:var(--c-a2);font-size:.72rem;font-weight:700;line-height:22px;text-align:center;margin-right:8px;font-family:'Shippori Mincho',serif}
+    .quiz-options{display:flex;flex-direction:column;gap:8px;margin-left:30px}
+    .quiz-options label{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;line-height:1.7;color:var(--c-text);cursor:pointer;padding:6px 10px;border-radius:var(--radius-sm)}
+    .quiz-options label:hover{background:rgba(201,150,58,.06)}
+    .quiz-options input{margin-top:4px;accent-color:var(--c-a2);flex-shrink:0;cursor:pointer}
+    .quiz-item.answered label[data-pick="correct"]{background:rgba(90,122,90,.12);color:#3a5a3a;font-weight:500}
+    .quiz-item.answered label[data-pick="wrong"]{background:rgba(180,80,60,.08);color:#b44040;text-decoration:line-through}
+    .quiz-explain{margin-top:10px;margin-left:30px;padding:10px 14px;background:rgba(201,150,58,.06);border-left:2px solid var(--c-a2);border-radius:var(--radius-sm);font-size:.8rem;line-height:1.75;color:var(--c-text);display:none}
+    .quiz-item.answered .quiz-explain{display:block}
+    </style>
+
+    <details class="prac-sample" open>
+      <summary class="ps-head">
+        <span class="ps-eyebrow">情境 A</span>
+        <span class="ps-hint">第一次用 curl 打 ChatGPT API — API key、headers、body、status code 一次看懂</span>
+      </summary>
+      <div class="ps-block">
+        <div class="ps-label">任務背景 + 工具棧<span class="ps-label-tag">先把環境備好</span></div>
+        <div class="ps-material">【情境】
+你拿到一組 ChatGPT API key，想在自己的電腦上打通第一次呼叫。不寫後端、不寫前端，就純用 curl 確認：
+- API key 可以用
+- headers / body 格式正確
+- 成功回應長什麼樣、失敗回應又長什麼樣
+
+【工具棧】
+- Terminal（macOS / Linux 內建；Windows 用 WSL 或 Git Bash）
+- curl（系統內建）
+- 一組 ChatGPT API key，存在環境變數 OPENAI_API_KEY
+- 端點：https://api.openai.com/v1/chat/completions
+
+【成功條件】
+印出 200 OK + 一段完整的 JSON，並能指認 choices[0].message.content、usage.prompt_tokens、usage.completion_tokens 三個欄位。</div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-label">程式碼 · 一段可直接貼 Terminal 的 curl<span class="ps-label-tag">bash</span></div>
+        <div class="ps-prompt"># 1) 先把 API key 放進環境變數（千萬不要寫在腳本裡提交 git）
+export OPENAI_API_KEY="sk-..."
+
+# 2) 打一次基本呼叫
+curl https://api.openai.com/v1/chat/completions \
+  -H "Authorization: Bearer $OPENAI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "ChatGPT",
+    "messages": [
+      {"role": "system", "content": "你是一位繁體中文客服助理，回答不超過 80 字。"},
+      {"role": "user", "content": "請用三點說明為什麼要用環境變數存 API key。"}
+    ],
+    "max_tokens": 200,
+    "temperature": 0.3
+  }' -i
+
+# 3) -i 會把 response headers 一起印出來
+#    觀察 x-ratelimit-remaining-requests / x-ratelimit-remaining-tokens
+#    如果 status 401 → key 錯；429 → 被限流；400 → body 格式錯
+
+<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-expect"><strong>預期輸出（console 片段）</strong><br>HTTP/1.1 200 OK<br>x-ratelimit-remaining-requests: 499<br>x-ratelimit-remaining-tokens: 59820<br>content-type: application/json<br>{<br>&nbsp;&nbsp;"id": "chatcmpl-xxxx",<br>&nbsp;&nbsp;"choices": [{"message": {"role":"assistant","content":"1. 避免金鑰寫進 git…\n2. 換 key 不用改程式…\n3. 可以分環境切換…"}}],<br>&nbsp;&nbsp;"usage": {"prompt_tokens": 62, "completion_tokens": 74, "total_tokens": 136}<br>}<br>常見錯誤：401 invalid_api_key（key 打錯或被撤銷）、400 invalid_request_error（model 名稱錯、messages 欄位缺）。</div>
+      </div>
+    </details>
+
+    <details class="prac-sample" open>
+      <summary class="ps-head">
+        <span class="ps-eyebrow">情境 B</span>
+        <span class="ps-hint">同一個 prompt 打 ChatGPT / Claude / Gemini — 用程式碼做一張對照表</span>
+      </summary>
+      <div class="ps-block">
+        <div class="ps-label">任務背景 + 工具棧<span class="ps-label-tag">比感覺更可靠的是數字</span></div>
+        <div class="ps-material">【情境】
+你要幫公司挑一個預設模型給內部問答工具用。不要靠「感覺 Claude 比較會寫中文」這種模糊印象，直接用同一段 prompt 丟三個模型，把回覆、token 數、延遲與成本排成一張表。
+
+【工具棧】
+- Python 3.10+
+- openai、anthropic、google-genai 三個 SDK（pip 安裝）
+- 三組 API key（環境變數 OPENAI_API_KEY / ANTHROPIC_API_KEY / GOOGLE_API_KEY）
+- 一個固定 prompt + 固定 temperature 0
+
+【成功條件】
+跑完後能輸出一張 3×5 的表：模型｜回覆前 60 字｜prompt_tokens｜completion_tokens｜單次成本（USD）。</div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-label">程式碼 · 多模型比較腳本<span class="ps-label-tag">python</span></div>
+        <div class="ps-prompt">import os, time
+from openai import OpenAI
+from anthropic import Anthropic
+from google import genai
+
+PROMPT = "請用三點說明為什麼 LLM 會產生幻覺，每點不超過 20 字。"
+
+def call_openai():
+    c = OpenAI()
+    t = time.time()
+    r = c.chat.completions.create(
+        model="ChatGPT",
+        messages=[{"role":"user","content":PROMPT}],
+        temperature=0, max_tokens=300,
+    )
+    return {
+        "model": "ChatGPT",
+        "text": r.choices[0].message.content,
+        "pt": r.usage.prompt_tokens,
+        "ct": r.usage.completion_tokens,
+        "lat": round(time.time()-t, 2),
+    }
+
+def call_claude():
+    c = Anthropic()
+    t = time.time()
+    r = c.messages.create(
+        model="Claude",
+        max_tokens=300, temperature=0,
+        messages=[{"role":"user","content":PROMPT}],
+    )
+    return {
+        "model": "Claude",
+        "text": r.content[0].text,
+        "pt": r.usage.input_tokens,
+        "ct": r.usage.output_tokens,
+        "lat": round(time.time()-t, 2),
+    }
+
+def call_gemini():
+    c = genai.Client()
+    t = time.time()
+    r = c.models.generate_content(
+        model="Gemini",
+        contents=PROMPT,
+    )
+    return {
+        "model": "Gemini",
+        "text": r.text,
+        "pt": r.usage_metadata.prompt_token_count,
+        "ct": r.usage_metadata.candidates_token_count,
+        "lat": round(time.time()-t, 2),
+    }
+
+rows = [call_openai(), call_claude(), call_gemini()]
+print(f"{'model':&lt;10}{'pt':&gt;6}{'ct':&gt;6}{'lat':&gt;7}  preview")
+for r in rows:
+    print(f"{r['model']:&lt;10}{r['pt']:&gt;6}{r['ct']:&gt;6}{r['lat']:&gt;7}  {r['text'][:60]}")
+
+<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-expect"><strong>預期輸出（console 片段）</strong><br>model        pt    ct    lat  preview<br>ChatGPT      32    88   1.42  1. 訓練資料不完整 2. 模型只學分布不學真偽 3. 推論時沒即時查核…<br>Claude       34    96   1.78  1. 缺乏事實查核能力 2. 模式匹配優先於真實性 3. 訓練資料有偏誤…<br>Gemini       30    82   0.98  1. 機率最佳非事實最佳 2. 知識有截止日 3. 對模糊題傾向編造細節…<br>觀察：三個模型都抓到同一個核心概念，延遲落差 1.5 倍，token 落差 20%。挑預設模型要同時看品質、延遲與成本，不能只看「誰寫得順」。</div>
+      </div>
+    </details>
+
+    <div class="callout tip">
+      <div class="callout-icon" aria-hidden="true">💡</div>
+      <div class="callout-body"><strong>延伸挑戰（挑 1–2 條，約 30 分鐘）</strong>
+        <ul style="margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:8px">
+          <li><strong>同題 × 三溫度</strong>：拿情境 A 的 curl，把 temperature 依序設 0、0.7、1.2 各打一次，比對輸出風格與 usage tokens。寫一句結論：「哪個 temperature 最適合我的客服工具？」</li>
+          <li><strong>故意打壞</strong>：把 API key 後 3 碼改掉、把 model 名稱寫錯、把 messages 欄位刪掉，分別觀察 401 / 404 / 400 的錯誤訊息差在哪，為將來除錯建索引。</li>
+          <li><strong>加計成本欄</strong>：把情境 B 的腳本加一欄 cost，依三個模型的公開單價把 pt / ct 換算成單次成本，並推算「每天 1000 次要多少錢」。</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="quiz-grid" id="ch61-quiz">
+      <div class="quiz-item" data-correct="c">
+        <div class="quiz-q"><span class="quiz-q-num">1</span>API key 最安全的存放方式是？</div>
+        <div class="quiz-options">
+          <label><input type="radio" name="q1" value="a"><span>直接寫在前端 JS 裡方便除錯</span></label>
+          <label><input type="radio" name="q1" value="b"><span>存在 GitHub repo 裡但把 repo 設 private</span></label>
+          <label><input type="radio" name="q1" value="c"><span>放在後端的環境變數（.env 且加入 .gitignore），只有伺服器能讀</span></label>
+          <label><input type="radio" name="q1" value="d"><span>寫在 README 提醒自己不要外流</span></label>
+        </div>
+        <div class="quiz-explain">只要金鑰能被瀏覽器或公開 repo 讀到就算洩漏。private repo 被 clone 過後一樣會外洩；README 更是公開。唯一安全路徑：放伺服器環境變數 + .gitignore + 洩漏時立刻撤銷換新。</div>
+      </div>
+
+      <div class="quiz-item" data-correct="b">
+        <div class="quiz-q"><span class="quiz-q-num">2</span>呼叫 API 回 401 Unauthorized，最該先檢查什麼？</div>
+        <div class="quiz-options">
+          <label><input type="radio" name="q2" value="a"><span>網路連線是否正常</span></label>
+          <label><input type="radio" name="q2" value="b"><span>Authorization header 是否帶對、key 是否過期或被撤銷</span></label>
+          <label><input type="radio" name="q2" value="c"><span>model 名稱是否拼錯</span></label>
+          <label><input type="radio" name="q2" value="d"><span>max_tokens 是否設太大</span></label>
+        </div>
+        <div class="quiz-explain">401 是身份驗證失敗，與 model / token 無關。排查順序：先 echo 環境變數看有沒有讀到、再看 header 格式（Bearer 前綴要有）、最後登入後台確認 key 沒被撤銷。model 拼錯回的是 404 或 400 不是 401。</div>
+      </div>
+
+      <div class="quiz-item" data-correct="d">
+        <div class="quiz-q"><span class="quiz-q-num">3</span>收到 429 Too Many Requests 時，下列哪個處理最妥當？</div>
+        <div class="quiz-options">
+          <label><input type="radio" name="q3" value="a"><span>立即重試，每秒打一次直到成功</span></label>
+          <label><input type="radio" name="q3" value="b"><span>直接回報失敗給使用者，讓他自己晚點再試</span></label>
+          <label><input type="radio" name="q3" value="c"><span>換一組 API key 繼續打</span></label>
+          <label><input type="radio" name="q3" value="d"><span>用指數退避（1s → 2s → 4s）重試最多 3 次，超過再告知使用者</span></label>
+        </div>
+        <div class="quiz-explain">429 代表你打太快。立即重試會讓問題更糟；換 key 規避限流違反 ToS；直接放棄體驗差。標準做法是指數退避：每次等待時間加倍、限制最大重試次數、超過才回報失敗。</div>
+      </div>
+
+      <div class="quiz-item" data-correct="a">
+        <div class="quiz-q"><span class="quiz-q-num">4</span>什麼情境最適合開 streaming 而不是一次性回應？</div>
+        <div class="quiz-options">
+          <label><input type="radio" name="q4" value="a"><span>使用者正在看畫面的聊天介面，輸出會超過 3 秒</span></label>
+          <label><input type="radio" name="q4" value="b"><span>要回傳結構化 JSON 給另一支程式解析</span></label>
+          <label><input type="radio" name="q4" value="c"><span>在背景批次處理 1000 張圖片的標題</span></label>
+          <label><input type="radio" name="q4" value="d"><span>任何情境都該開 streaming，越快越好</span></label>
+        </div>
+        <div class="quiz-explain">Streaming 的價值是「感知速度」，使用者有在看畫面才有意義。結構化 JSON 要等全部齊了才能 parse，streaming 反而要多寫拼接；背景批次沒人在等，streaming 只會讓程式變複雜。能省等待焦慮的情境才開。</div>
+      </div>
+
+      <div class="quiz-item" data-correct="b">
+        <div class="quiz-q"><span class="quiz-q-num">5</span>估算單次 API 呼叫成本，下列哪個算法正確？</div>
+        <div class="quiz-options">
+          <label><input type="radio" name="q5" value="a"><span>只看 completion_tokens × output 單價，input 不計費</span></label>
+          <label><input type="radio" name="q5" value="b"><span>(prompt_tokens × input 單價) + (completion_tokens × output 單價)，兩者分開算再加總</span></label>
+          <label><input type="radio" name="q5" value="c"><span>total_tokens × output 單價（一律用輸出單價算最保險）</span></label>
+          <label><input type="radio" name="q5" value="d"><span>依模型總計費分鐘數計算</span></label>
+        </div>
+        <div class="quiz-explain">輸入與輸出 token 單價不同（輸出通常是輸入的 3–5 倍），且兩者都會計費。把它們合併算會嚴重低估或高估；主流 API 也不是按時間計費。正確做法是從 usage 欄位分別拿 input / output token，乘以各自單價再加總。</div>
+      </div>
+    </div>
+
+    <script>
+    (function(){
+      var grid=document.getElementById('ch61-quiz');
+      if(!grid)return;
+      grid.querySelectorAll('.quiz-item').forEach(function(item){
+        var correct=item.dataset.correct;
+        item.querySelectorAll('input[type="radio"]').forEach(function(input){
+          input.addEventListener('change',function(){
+            item.classList.add('answered');
+            item.querySelectorAll('label').forEach(function(lbl){
+              var v=lbl.querySelector('input').value;
+              if(v===correct){lbl.dataset.pick='correct';}
+              else if(lbl.contains(input)){lbl.dataset.pick='wrong';}
+            });
+          });
+        });
+      });
+    })();
+    </script>
+  </section>
+
 </main>
 
 <nav class="lesson-nav">

@@ -466,6 +466,239 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
   <hr class="section-rule">
 
+  <style>
+  .quiz-grid{display:grid;grid-template-columns:repeat(1,1fr);gap:14px;margin-top:20px}
+  .quiz-item{background:#fafaf5;border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:16px 18px}
+  .quiz-q{font-size:.9rem;font-weight:700;color:var(--c-text);line-height:1.7;margin-bottom:12px}
+  .quiz-q-num{display:inline-block;width:22px;height:22px;border-radius:50%;background:rgba(90,122,90,.12);color:var(--c-a3);font-size:.72rem;font-weight:700;line-height:22px;text-align:center;margin-right:8px;font-family:'Shippori Mincho',serif}
+  .quiz-options{display:flex;flex-direction:column;gap:8px;margin-left:30px}
+  .quiz-options label{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;line-height:1.7;color:var(--c-text);cursor:pointer;padding:6px 10px;border-radius:var(--radius-sm);transition:background .15s}
+  .quiz-options label:hover{background:rgba(90,122,90,.06)}
+  .quiz-options input{margin-top:4px;accent-color:var(--c-a3);flex-shrink:0;cursor:pointer}
+  .quiz-item.answered label[data-pick="correct"]{background:rgba(90,122,90,.12);color:#5a7a5a;font-weight:500}
+  .quiz-item.answered label[data-pick="wrong"]{background:rgba(180,80,60,.08);color:#b44040;text-decoration:line-through}
+  .quiz-explain{margin-top:10px;margin-left:30px;padding:10px 14px;background:rgba(90,122,90,.06);border-left:2px solid var(--c-a3);border-radius:var(--radius-sm);font-size:.8rem;line-height:1.75;color:var(--c-text);display:none}
+  .quiz-item.answered .quiz-explain{display:block}
+  </style>
+
+  <section class="lesson-section" id="sec-ext">
+    <div class="section-eyebrow">(EXT) · Webhook Drill</div>
+    <h2 class="section-heading">兩個情境演練：<em>把 Webhook 從「好像懂」變成「接得起來」</em></h2>
+    <p class="body-text">Webhook 不是讀懂概念就會用，要看過一條完整鏈才知道每段該填什麼。這節用兩條真實世界常見的鏈——Typeform 報名通知、Google Form 建 Notion 卡——把 payload 結構、錯誤碼、retry 邏輯一次攤給你看。</p>
+
+    <details class="prac-sample" open>
+      <summary class="ps-head">
+        <span class="ps-eyebrow">情境 A</span>
+        <span class="ps-hint">Typeform 收到線上報名 → Webhook 進 Make → 推一條訊息到 Slack 的 #signups 頻道。</span>
+      </summary>
+      <div class="ps-block">
+        <div class="ps-label">情境說明 · Typeform → Webhook → Slack<span class="ps-label-tag">任務背景</span></div>
+        <div class="ps-material">## 任務背景
+你辦一場週末實體工作坊，用 Typeform 收報名。過去每次有人報名都要自己登後台看，常常晚看半天。目標：每有新報名，3 秒內推一則 Slack 訊息到 #signups 頻道，讓行政組立刻處理候補與付款提醒。
+
+## 輸入資料
+- Typeform 表單欄位：姓名、Email、電話、是否曾上過課、預計到場人數、備註
+- Typeform Webhook 設定頁（Connect → Webhooks → Add webhook）
+- 你在 Make / n8n 建立的 Webhook URL
+- Slack #signups 頻道 Incoming Webhook URL
+
+## 期望產出
+Slack 訊息格式固定：一行標題「🆕 新報名：某姓名（n 人）」+ 四行欄位摘要 + 一顆「👀 我來處理」按鈕（Slack block kit）。錯誤時推到 #ops-alerts 頻道。</div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-label">流程步驟 · Typeform → Webhook → Slack 完整鏈<span class="ps-label-tag">可貼進 Make / n8n 當配置備忘</span></div>
+        <div class="ps-prompt">## 第 1 步：在 Make 建立 Custom Webhook 觸發
+- 新 Scenario → Webhook → Custom Webhook → Add → 取名 typeform-signup
+- 複製產生的 URL，格式類似 https://hook.eu2.make.com/abc123xyz
+- Data structure：留空（第一次跑會自動推斷）
+
+## 第 2 步：Typeform 端綁定 Webhook
+- Typeform 後台 → Connect → Webhooks → Add a webhook
+- Endpoint：貼上第 1 步的 URL
+- 點 Test → Typeform 會送一筆 mock payload 過來
+- Save and activate
+
+## 第 3 步：在 Make 內查看 payload 結構
+預期 payload（POST body, Content-Type: application/json）：
+{
+  "event_id": "01FYZ...",
+  "event_type": "form_response",
+  "form_response": {
+    "form_id": "abcd1234",
+    "submitted_at": "2026-04-20T09:12:00Z",
+    "answers": [
+      {"field": {"ref": "name"}, "type": "text", "text": "某學員"},
+      {"field": {"ref": "email"}, "type": "email", "email": "x@example.com"},
+      {"field": {"ref": "headcount"}, "type": "number", "number": 2}
+    ]
+  }
+}
+
+## 第 4 步：加 Slack 發訊節點
+- Action：Slack → Create a Message
+- Channel：#signups
+- Text：🆕 新報名：{{form_response.answers[0].text}}（{{form_response.answers[2].number}} 人）
+- Blocks：用 block kit 貼一顆 button，value 帶 event_id
+
+## 第 5 步：加錯誤路由（Router → Error handler）
+- 右鍵 Slack 節點 → Add error handler → Resume / Rollback
+- 錯誤路徑接第二個 Slack 節點 → 發到 #ops-alerts，文字包含 error.message 與 event_id
+
+## 第 6 步：啟用排程 + 測試
+- Scheduling 設 On（Immediately as data arrives）
+- 實際送一筆 Typeform 報名，確認 #signups 與 payload 時間差 < 5 秒
+
+<button class="copy-btn" type="button" aria-label="複製此流程備忘到剪貼簿">複製</button></div>
+      </div>
+      <div class="ps-expect"><strong>預期輸出格式（Slack 訊息供對照）</strong><br>🆕 新報名：某學員（2 人）<br>Email · x@example.com<br>電話 · 0912-xxx-xxx<br>是否曾上過課 · 是<br>備註 · 需要素食便當<br>[👀 我來處理] 按鈕（value=01FYZ...）</div>
+    </details>
+
+    <details class="prac-sample" open>
+      <summary class="ps-head">
+        <span class="ps-eyebrow">情境 B</span>
+        <span class="ps-hint">Google Form 送出 → AI 判斷需求類型 → 自動在 Notion 對應 Database 建卡 + 指派負責人。</span>
+      </summary>
+      <div class="ps-block">
+        <div class="ps-label">情境說明 · Google Form → AI 分派 → Notion 建卡<span class="ps-label-tag">任務背景</span></div>
+        <div class="ps-material">## 任務背景
+你是行銷組長，對外開一張 Google Form 當「需求收件箱」——合作提案、採訪邀約、客訴、一般詢問都從這進。過去每天要手動分類再丟到 Notion 不同 Database，每天耗 40 分。目標：送出 → 30 秒內 AI 判斷類別 → 自動進 Notion 正確資料庫 + 指派對應負責人。
+
+## 輸入資料
+- Google Form 欄位：姓名、單位、聯絡方式、需求類型（下拉選）、內容描述
+- Notion 4 個 Database：合作提案 / 媒體採訪 / 客訴處理 / 一般詢問，各有不同欄位結構
+- 負責人對照表：合作→Amy、採訪→Ben、客訴→Cindy、一般→Dan
+
+## 期望產出
+送出表單 30 秒內：Notion 對應 Database 多一張卡、Title 為「YYYYMMDD 單位名稱 需求摘要」、指派欄位自動填入負責人、Status=New。若 AI 判斷信心度 < 80% 則建到「待分類」資料庫並 Slack 通知組長手動分。</div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-label">流程步驟 · Google Form → AI → Notion 完整鏈<span class="ps-label-tag">可貼進 Make / n8n 當配置備忘</span></div>
+        <div class="ps-prompt">## 第 1 步：Google Form 綁試算表，Make 監聽新列
+- Form 回應連結到 Google Sheet「需求收件箱」分頁
+- Make 建 Scenario → Google Sheets → Watch New Rows → 選該 Sheet
+- 排程：Every 1 min（Google Sheet 不直接發 Webhook，用輪詢）
+
+## 第 2 步：OpenAI 分類節點
+- Action：OpenAI → Create a Completion（Chat）
+- Temperature：0.1（分類要穩定）
+- Prompt：
+  你是需求分流員。請把下方訊息分到 [合作提案/媒體採訪/客訴處理/一般詢問] 四類其一，
+  並給信心度 0–100。禁止回覆其他類別。
+  輸出 JSON：{"category":"...","confidence":85,"summary":"12 字內摘要"}
+  訊息：{{內容描述}}
+- Parse JSON：在下一步用 JSON → Parse JSON
+
+## 第 3 步：Router 分支
+- 分支 1：confidence >= 80 → 走對應 Notion Database
+- 分支 2：confidence < 80 → 走「待分類」Database + Slack 通知
+
+## 第 4 步：Notion Create a Database Item
+- 4 個分支各接一個 Notion 節點，資料庫 ID 寫死
+- Title：{{now | formatDate "YYYYMMDD"}} {{單位}} {{AI 摘要}}
+- Assignee：照對照表（Amy/Ben/Cindy/Dan 的 Notion user ID）
+- Status：New
+
+## 第 5 步：錯誤處理與 retry
+- Notion 節點右鍵 → Add error handler → 類型選 Break
+- Break 設定 Retry 3 次、每次間隔 60 秒（Notion 偶爾 429 rate limit）
+- 3 次都失敗 → Slack 通知 + 把原始列標「需人工」寫回 Sheet
+
+## 第 6 步：401 錯誤排查
+- 若 Notion 回 401：Integration 沒被邀進 Database（Notion Database → Share → 邀請你的 Integration）
+- 若 OpenAI 回 401：API key 過期或 Make 連接器要重新授權
+- 每次 401 都在錯誤處理節點記到 Sheet「錯誤紀錄」分頁，週末盤點
+
+<button class="copy-btn" type="button" aria-label="複製此流程備忘到剪貼簿">複製</button></div>
+      </div>
+      <div class="ps-expect"><strong>預期輸出格式（Notion 卡片供對照）</strong><br>Title：20260420 某企業 合作提案 Podcast 冠名<br>Assignee：Amy<br>Status：New<br>Category：合作提案（信心度 92）<br>Source：Google Form 20260420 09:12<br>Summary：Podcast 冠名合作 6 月檔期詢價</div>
+    </details>
+
+    <div class="callout tip">
+      <span class="callout-icon">✦</span>
+      <div class="callout-body"><strong>延伸挑戰 · 架一條真實 Webhook 鏈</strong>
+      <br>1. 挑你工作中一個「收到訊息就要手動做事」的情境（新報名、新客訴、新需求），用今天學的 Webhook 概念架出第一條真實鏈，24 小時內送出第一筆測試資料。
+      <br>2. 故意把 Webhook URL 改錯一個字元、把 API key 拿掉、把欄位格式塞錯資料，看看會跳什麼錯誤碼（401 / 404 / 500），把錯誤處理節點加進去。
+      <br>3. 壓力測試：一次送 20 筆測試資料進 Webhook，看 Make / n8n 有沒有掉單、retry 有沒有生效、錯誤 log 有沒有留下來。</div>
+    </div>
+
+    <div class="quiz-grid">
+      <div class="quiz-item" data-correct="c">
+        <div class="quiz-q"><span class="quiz-q-num">1</span>Webhook 最核心的定位是？</div>
+        <div class="quiz-options">
+          <label><input type="radio" name="qext1" value="a"><span>一種資料庫</span></label>
+          <label><input type="radio" name="qext1" value="b"><span>AI 模型的類型之一</span></label>
+          <label><input type="radio" name="qext1" value="c"><span>事件觸發點——某系統發生事件時，透過 HTTP 請求主動通知另一個系統</span></label>
+          <label><input type="radio" name="qext1" value="d"><span>加密通訊協定</span></label>
+        </div>
+        <div class="quiz-explain">正解 C。Webhook 本質是「事件發生 → 主動 POST 一包資料到某 URL」，對照組是「輪詢（polling）—— 我每分鐘問你一次有沒有新東西」。輪詢費流量又慢，Webhook 省資源又即時。</div>
+      </div>
+
+      <div class="quiz-item" data-correct="b">
+        <div class="quiz-q"><span class="quiz-q-num">2</span>GET 與 POST 在 Webhook 測試時的差別？</div>
+        <div class="quiz-options">
+          <label><input type="radio" name="qext2" value="a"><span>沒有差別，隨便用</span></label>
+          <label><input type="radio" name="qext2" value="b"><span>GET 參數在 URL 的 query string（適合簡單測試），POST 把資料放 body（適合結構化 JSON，實戰主流）</span></label>
+          <label><input type="radio" name="qext2" value="c"><span>GET 是正式用、POST 是測試用</span></label>
+          <label><input type="radio" name="qext2" value="d"><span>POST 比較貴、GET 比較便宜</span></label>
+        </div>
+        <div class="quiz-explain">正解 B。GET 瀏覽器網址列就能測（?name=xx&msg=yy），但中文要 URL-encode、長度有限。POST 能塞 JSON 結構、欄位巢狀、資料量大，是所有真實 SaaS Webhook 的標準做法。</div>
+      </div>
+
+      <div class="quiz-item" data-correct="a">
+        <div class="quiz-q"><span class="quiz-q-num">3</span>收到 Webhook 的 JSON payload 後，第一件事應該做什麼？</div>
+        <div class="quiz-options">
+          <label><input type="radio" name="qext3" value="a"><span>看清楚欄位路徑（例：customer.name、issue.priority），再決定怎麼接下游</span></label>
+          <label><input type="radio" name="qext3" value="b"><span>直接把整包往下一個節點丟</span></label>
+          <label><input type="radio" name="qext3" value="c"><span>把它壓縮再傳</span></label>
+          <label><input type="radio" name="qext3" value="d"><span>忽略 payload 內容</span></label>
+        </div>
+        <div class="quiz-explain">正解 A。Webhook 到的資料往往是巢狀結構（customer.name、issue.priority、meta.source），Make / n8n 要看懂路徑才能在下游動態引用。不先看結構就拖元件，填錯欄位後流程跑一半掉資料，debug 會非常痛苦。</div>
+      </div>
+
+      <div class="quiz-item" data-correct="d">
+        <div class="quiz-q"><span class="quiz-q-num">4</span>Webhook 回傳 401 時，最可能的原因與處理？</div>
+        <div class="quiz-options">
+          <label><input type="radio" name="qext4" value="a"><span>網址打錯，改 URL 即可</span></label>
+          <label><input type="radio" name="qext4" value="b"><span>伺服器壞掉，換機房</span></label>
+          <label><input type="radio" name="qext4" value="c"><span>找不到頁面，忽略即可</span></label>
+          <label><input type="radio" name="qext4" value="d"><span>身分驗證失敗——檢查 API key 是否過期、Integration 是否被邀進目標資料庫、授權是否被撤銷</span></label>
+        </div>
+        <div class="quiz-explain">正解 D。401 Unauthorized 就是「我不認識你 / 你沒權限」。常見原因：API key 輪替後沒更新、Notion Integration 沒被加到該 Database、OAuth token 過期。對照：404 是網址錯（找不到路徑）、500 是伺服器自己炸。</div>
+      </div>
+
+      <div class="quiz-item" data-correct="b">
+        <div class="quiz-q"><span class="quiz-q-num">5</span>下游節點偶爾失敗，retry 機制的關鍵設計原則？</div>
+        <div class="quiz-options">
+          <label><input type="radio" name="qext5" value="a"><span>一失敗就無限重試到成功為止</span></label>
+          <label><input type="radio" name="qext5" value="b"><span>限次數（例 3 次）+ 遞增間隔（例 30s / 60s / 120s）+ 最終失敗要通知人 + 保留原始 payload 可手動重跑</span></label>
+          <label><input type="radio" name="qext5" value="c"><span>不設 retry，失敗就算了</span></label>
+          <label><input type="radio" name="qext5" value="d"><span>每 1 秒重試一次直到成功</span></label>
+        </div>
+        <div class="quiz-explain">正解 B。無限 retry 在對方 429（rate limit）時只會把自己封更久；不 retry 等於一小波網路抖動就掉單。實戰模板是「有限次數 + 指數退避 + 失敗通知 + 原始資料留底」，每個元素少一個都會在凌晨炸出問題。</div>
+      </div>
+    </div>
+
+    <script>
+    (function(){
+      document.querySelectorAll('.quiz-grid .quiz-item').forEach(function(item){
+        if(item.dataset.quizBound)return;item.dataset.quizBound='1';
+        var correct=item.dataset.correct;
+        item.querySelectorAll('input[type=radio]').forEach(function(radio){
+          radio.addEventListener('change',function(){
+            item.classList.add('answered');
+            item.querySelectorAll('.quiz-options label').forEach(function(lbl){
+              var v=lbl.querySelector('input').value;
+              lbl.setAttribute('data-pick',v===correct?'correct':(lbl.querySelector('input').checked?'wrong':''));
+            });
+          });
+        });
+      });
+    })();
+    </script>
+  </section>
+
+  <hr class="section-rule">
+
   <section class="lesson-section" id="sec-3">
     <div class="section-eyebrow">(04) · Debugging</div>
     <h2 class="section-heading">流程失敗時：<em>三種常見原因與除錯方式</em></h2>

@@ -17,6 +17,7 @@
 <meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <link rel="canonical" href="https://skypai0326.github.io/courses/courses/gen-ai-140h/part1/PRAC1-3.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../_assets/prac-sample.css">
 <style>
 :root {
   --c-bg:#f5f3ee;
@@ -668,6 +669,287 @@ explanation - 解釋
 </div>
 <!-- /延伸案例 -->
 
+<!-- ═══ Section A · 情境演練：4 個工具 Prompt 起手式 ═══ -->
+<section class="lesson-section" id="sec-scenarios" style="max-width:var(--content-w);margin:0 auto;padding:40px 48px 16px">
+  <div style="font-size:.7rem;color:var(--c-a4);letter-spacing:2px;font-weight:500;margin-bottom:10px">(04) · 情境演練</div>
+  <h2 style="font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:10px;letter-spacing:.5px">四個你今天就能生出來的小工具</h2>
+  <p style="font-size:.92rem;color:var(--c-muted);line-height:1.85;margin-bottom:28px">四個情境都是工具三要素（輸入 → 運算 → 輸出）的最小可行版。每個情境附需求描述、建議 Prompt 起手式、預期產出規格。挑一個最貼近你當下需求的先做，跑通之後再換下一個。複製 Prompt、貼到 AI、把產出的 HTML 存成 .html 雙擊打開就能用。</p>
+
+  <details class="prac-sample" open>
+    <summary class="ps-head">
+      <span class="ps-eyebrow">情境 A · 時間管理</span>
+      <span class="ps-hint">點擊展開完整起手式</span>
+    </summary>
+
+    <div class="ps-block">
+      <div class="ps-label">情境 A｜番茄鐘計時器</div>
+      <div class="ps-material">輸入：無（打開就能開始）
+運算：25 分鐘工作倒數 → 5 分鐘休息倒數 → 自動循環，第 4 輪休息 15 分鐘
+輸出：大字倒數顯示 + 目前是工作/休息的標籤 + 已完成幾輪
+延伸需求：切換階段時響一聲（Web Audio 簡單 beep）、按空白鍵暫停/繼續</div>
+    </div>
+
+    <div class="ps-block">
+      <div class="ps-label">建議 Prompt 起手式<span class="ps-label-tag">貼到 AI 即可</span></div>
+      <div class="ps-prompt">你是前端工程師，擅長用單檔 HTML 做實用小工具。
+
+請幫我做一個「番茄鐘計時器」，功能如下：
+- 預設 25 分鐘工作、5 分鐘休息，自動循環切換
+- 每完成 4 個工作段，休息改為 15 分鐘
+- 頁面正中央大字顯示 mm:ss 倒數，上方標示「工作中」或「休息中」
+- 下方顯示「今日已完成 X 輪」
+- 提供「開始/暫停」「重置」兩個按鈕
+- 空白鍵可暫停/繼續
+
+技術限制：
+- 單一 .html 檔，雙擊即用，不引入任何外部套件
+- 用 setInterval 每秒更新畫面
+- 背景 #f5f3ee、強調色 #6b7fa3、字型 Noto Sans TC
+- 禁止漸層與 box-shadow
+
+直接輸出完整 HTML 程式碼，從 &lt;!DOCTYPE html&gt; 開始，不要說明。</div>
+      <button type="button" class="copy-btn" aria-label="複製此 Prompt 到剪貼簿">複製</button>
+    </div>
+
+    <div class="ps-expect"><strong>預期產出規格：</strong>
+· 外層 &lt;div&gt; 置中顯示大字倒數（font-size ≥ 3rem 級距）
+· 一組 &lt;button&gt; 控制 start / pause / reset
+· JS 內一個 setInterval、state 變數 mode（work/break）、round（計輪數）
+· 切換階段用 if 判斷 round % 4 === 0 決定短休或長休
+· 空白鍵用 document.addEventListener('keydown', ...)</div>
+  </details>
+
+  <details class="prac-sample" open>
+    <summary class="ps-head">
+      <span class="ps-eyebrow">情境 B · 業務報價</span>
+      <span class="ps-hint">點擊展開完整起手式</span>
+    </summary>
+
+    <div class="ps-block">
+      <div class="ps-label">情境 B｜課程報價試算器</div>
+      <div class="ps-material">輸入：學員人數、上課時數、每小時單價、折扣率（0–30%）
+運算：小計 = 人數 × 時數 × 單價；折扣金額 = 小計 × 折扣率；總計 = 小計 − 折扣金額
+輸出：分行顯示小計、折扣金額、總計；總計用強調色放大
+延伸需求：折扣率超過 30% 顯示錯誤提示、按鈕「複製為純文字報價」</div>
+    </div>
+
+    <div class="ps-block">
+      <div class="ps-label">建議 Prompt 起手式<span class="ps-label-tag">貼到 AI 即可</span></div>
+      <div class="ps-prompt">你是前端工程師，擅長用單檔 HTML 做實用小工具。
+
+請幫我做一個「課程報價試算器」，功能如下：
+- 四個輸入欄位：學員人數、上課時數、每小時單價（NT$）、折扣率（%）
+- 自動即時計算並顯示三行結果：
+  · 小計（人數 × 時數 × 單價）
+  · 折扣金額（小計 × 折扣率）
+  · 總計（小計 − 折扣金額），金額放大、顏色強調
+- 折扣率超過 30% 時，結果區改顯示紅字提示「折扣率過高，請確認」
+- 折扣率為負數或非數字時，整體當作 0 處理，不要崩潰
+- 提供「複製為純文字報價」按鈕，格式如：
+  課程報價｜學員 X 人 × Y 小時 × NT$ Z／人＝小計 NT$ ...
+
+技術限制：
+- 單一 .html 檔，不引入任何外部套件
+- 金額用 toLocaleString('zh-TW') 加千分位
+- 背景 #f5f3ee、強調色 #6b7fa3、字型 Noto Sans TC
+- 禁止漸層與 box-shadow
+
+直接輸出完整 HTML，從 &lt;!DOCTYPE html&gt; 開始，不要說明。</div>
+      <button type="button" class="copy-btn" aria-label="複製此 Prompt 到剪貼簿">複製</button>
+    </div>
+
+    <div class="ps-expect"><strong>預期產出規格：</strong>
+· 4 個 &lt;input type="number"&gt;，每個都綁 input 事件重算
+· 一支 calc() 函式，回傳 {subtotal, discount, total}
+· 結果區 3 行 &lt;div&gt;，總計那行 font-size 放大、color 用強調色
+· 「複製為純文字報價」按鈕用 navigator.clipboard.writeText()
+· 折扣率驗證：parseFloat 拿值、Number.isNaN 判斷、>30 顯示警告</div>
+  </details>
+
+  <details class="prac-sample" open>
+    <summary class="ps-head">
+      <span class="ps-eyebrow">情境 C · 個人財務</span>
+      <span class="ps-hint">點擊展開完整起手式</span>
+    </summary>
+
+    <div class="ps-block">
+      <div class="ps-label">情境 C｜小費與分帳試算</div>
+      <div class="ps-material">輸入：餐費金額、小費率（10%/15%/20% 快選 + 自訂）、分帳人數
+運算：小費金額 = 餐費 × 小費率；含小費總額 = 餐費 + 小費；每人應付 = 含小費總額 ÷ 人數
+輸出：三行金額：小費金額、含小費總額、每人應付（每人應付放大）
+延伸需求：每人金額四捨五入到個位、分帳人數最少 1 人</div>
+    </div>
+
+    <div class="ps-block">
+      <div class="ps-label">建議 Prompt 起手式<span class="ps-label-tag">貼到 AI 即可</span></div>
+      <div class="ps-prompt">你是前端工程師，擅長用單檔 HTML 做實用小工具。
+
+請幫我做一個「小費與分帳試算」，功能如下：
+- 欄位一：餐費金額（NT$ 整數）
+- 欄位二：小費率——三顆快選按鈕 10% / 15% / 20%，以及一個「自訂」數字欄位
+- 欄位三：分帳人數（最小值 1）
+- 即時顯示三行結果：
+  · 小費金額（餐費 × 小費率）
+  · 含小費總額（餐費 + 小費）
+  · 每人應付（含小費總額 ÷ 人數，四捨五入到整數）
+- 每人應付用大字強調顯示
+- 快選按鈕點下去會高亮（視覺上看得出是哪個被選）
+
+技術限制：
+- 單一 .html 檔，不引入任何外部套件
+- 背景 #f5f3ee、強調色 #6b7fa3、字型 Noto Sans TC
+- 分帳人數低於 1 視為 1；餐費空白視為 0
+- 禁止漸層與 box-shadow
+
+直接輸出完整 HTML，從 &lt;!DOCTYPE html&gt; 開始，不要說明。</div>
+      <button type="button" class="copy-btn" aria-label="複製此 Prompt 到剪貼簿">複製</button>
+    </div>
+
+    <div class="ps-expect"><strong>預期產出規格：</strong>
+· 快選按鈕用 &lt;button&gt; + data-rate 屬性，被選的加 active class
+· 「自訂」欄位是 &lt;input type="number"&gt;，輸入時清除快選 active
+· 一支 calc() 函式拿到所有值、回傳三筆金額
+· 每人應付用 Math.round() 四捨五入
+· 分帳人數用 Math.max(1, parseInt(value) || 1) 保底</div>
+  </details>
+
+  <details class="prac-sample" open>
+    <summary class="ps-head">
+      <span class="ps-eyebrow">情境 D · 學習工具</span>
+      <span class="ps-hint">點擊展開完整起手式</span>
+    </summary>
+
+    <div class="ps-block">
+      <div class="ps-label">情境 D｜單字背誦卡</div>
+      <div class="ps-material">輸入：預先寫好 20 筆 {中文, 英文} 的 array 在 JS 頂部
+運算：從 array 隨機抽一張，先顯示中文；按「顯示英文」翻到背面顯示英文
+輸出：卡片 UI（中文大字、按鈕翻面）、下方「下一張」按鈕換新卡、右上角顯示「剩 X 張」
+延伸需求：每張卡只出一次，出完全部顯示「本輪結束」；鍵盤 Enter 翻面、空白鍵下一張</div>
+    </div>
+
+    <div class="ps-block">
+      <div class="ps-label">建議 Prompt 起手式<span class="ps-label-tag">貼到 AI 即可</span></div>
+      <div class="ps-prompt">你是前端工程師，擅長用單檔 HTML 做實用小工具。
+
+請幫我做一個「單字背誦卡」，功能如下：
+- 在 JS 頂部宣告 words 陣列，有 20 筆 {zh, en}（我會自己替換，請先用範例資料填滿）
+- 頁面中央一張卡片：
+  · 正面顯示中文（大字置中）
+  · 按「顯示英文」翻到背面顯示對應英文
+  · 按「下一張」隨機抽下一張（同一輪內不重複）
+- 右上角顯示「剩 X 張」
+- 當這一輪全部抽完，顯示「本輪結束」並出現「再來一輪」按鈕重置順序
+- 鍵盤操作：Enter 翻面、空白鍵下一張
+
+技術限制：
+- 單一 .html 檔，不引入任何外部套件
+- 用一個 remaining 陣列追蹤未出過的索引，每次 splice 抽掉
+- 背景 #f5f3ee、強調色 #6b7fa3、字型 Noto Sans TC
+- 禁止漸層與 box-shadow
+
+直接輸出完整 HTML，從 &lt;!DOCTYPE html&gt; 開始，不要說明。</div>
+      <button type="button" class="copy-btn" aria-label="複製此 Prompt 到剪貼簿">複製</button>
+    </div>
+
+    <div class="ps-expect"><strong>預期產出規格：</strong>
+· const words = [{zh,en}, ...] 20 筆在 JS 頂端
+· state：remaining（尚未抽過的 index 陣列）、current（當前索引）、flipped（是否翻面）
+· render() 依 flipped 決定顯示 zh 或 en
+· 翻面按鈕切 flipped；下一張按鈕從 remaining 隨機 splice
+· document.addEventListener('keydown', e=&gt;{ if(e.key==='Enter')... })</div>
+  </details>
+</section>
+
+<!-- ═══ Section B · 延伸挑戰 + Quiz ═══ -->
+<section class="lesson-section" id="sec-challenge" style="max-width:var(--content-w);margin:0 auto;padding:24px 48px 48px">
+  <div style="font-size:.7rem;color:var(--c-a4);letter-spacing:2px;font-weight:500;margin-bottom:10px">(05) · 延伸挑戰與檢核</div>
+  <h2 style="font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:10px;letter-spacing:.5px">把四個工具都做完，再加一點自己的味道</h2>
+  <p style="font-size:.92rem;color:var(--c-muted);line-height:1.85;margin-bottom:24px">工具三要素跑過一次，剩下就是量的累積。把四個情境都跑一輪，你會發現 Prompt 寫法開始穩定：輸入、運算、輸出三段一貼，AI 就能給你堪用成品。之後的改造與優化，就是把「堪用」推到「你自己會想天天用」。</p>
+
+  <div class="callout tip" style="background:rgba(107,127,163,.06);border:1px solid rgba(107,127,163,.2);border-left:4px solid var(--c-a4)">
+    <span class="callout-icon" aria-hidden="true">●</span>
+    <div class="callout-body">
+      <strong style="display:block;margin-bottom:10px;font-size:.92rem;color:var(--c-text)">延伸挑戰（約 20 分鐘）</strong>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:.85rem;line-height:1.85"><strong style="color:var(--c-a4)">挑戰 1｜把四個工具都做出來。</strong>每個情境抓 15–20 分鐘：複製 Prompt、送給 AI、存檔、實測。四個做完你手上就有四個能用的小工具，也會知道哪一類需求 AI 一次就到位、哪一類要再補資訊。</div>
+        <div style="font-size:.85rem;line-height:1.85"><strong style="color:var(--c-a4)">挑戰 2｜改造成你自己的版本。</strong>挑一個情境換成你真實工作會用到的需求。例：把情境 B 的「課程報價」換成你家行業的報價公式（接案設計師算工時 × 時薪、補習班算月費 × 月數 × 堂數、物流算重量 × 距離 × 單價）。重點不是 Prompt 完全照抄，而是把「輸入什麼、算什麼、輸出什麼」三段換掉。</div>
+        <div style="font-size:.85rem;line-height:1.85"><strong style="color:var(--c-a4)">挑戰 3｜加一個優化。</strong>挑其中一個工具，加上以下任一項並再送一次 Prompt 讓 AI 改：<br>
+        · <strong>重置按鈕</strong>：一鍵把所有欄位與狀態回到初始值<br>
+        · <strong>深色模式</strong>：加一顆切換按鈕，切換 body class 對應深淺色 token<br>
+        · <strong>錯誤提示</strong>：輸入不合理時顯示紅字提示（不是用 alert，要就地顯示在欄位下方）</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin:40px 0 16px">QUIZ · 工具三要素觀念檢核</div>
+
+  <div class="quiz-grid" style="display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:24px">
+
+    <div class="quiz-card" data-correct="C" style="background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 24px">
+      <div style="font-size:.72rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:8px">Q1 · 概念</div>
+      <p style="font-size:.92rem;font-weight:700;color:var(--c-text);line-height:1.7;margin-bottom:14px">你要請 AI 幫你做一個小工具。以下哪一組是「工具三要素」的正確描述？</p>
+      <div style="display:grid;gap:8px">
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.85rem;line-height:1.6;color:var(--c-text)"><input type="radio" name="q1" value="A" style="margin-top:2px;accent-color:var(--c-a4);flex-shrink:0"> A. 標題、內文、按鈕</label>
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.85rem;line-height:1.6;color:var(--c-text)"><input type="radio" name="q1" value="B" style="margin-top:2px;accent-color:var(--c-a4);flex-shrink:0"> B. HTML、CSS、JavaScript</label>
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.85rem;line-height:1.6;color:var(--c-text)"><input type="radio" name="q1" value="C" style="margin-top:2px;accent-color:var(--c-a4);flex-shrink:0"> C. 輸入、運算、輸出</label>
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.85rem;line-height:1.6;color:var(--c-text)"><input type="radio" name="q1" value="D" style="margin-top:2px;accent-color:var(--c-a4);flex-shrink:0"> D. 設計、開發、測試</label>
+      </div>
+    </div>
+
+    <div class="quiz-card" data-correct="B" style="background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 24px">
+      <div style="font-size:.72rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:8px">Q2 · 技術選擇</div>
+      <p style="font-size:.92rem;font-weight:700;color:var(--c-text);line-height:1.7;margin-bottom:14px">你希望 AI 產出的工具是「存成 .html 雙擊就能打開用」。你應該要求 AI 用什麼語言？</p>
+      <div style="display:grid;gap:8px">
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.85rem;line-height:1.6;color:var(--c-text)"><input type="radio" name="q2" value="A" style="margin-top:2px;accent-color:var(--c-a4);flex-shrink:0"> A. Python + Flask（後端框架）</label>
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.85rem;line-height:1.6;color:var(--c-text)"><input type="radio" name="q2" value="B" style="margin-top:2px;accent-color:var(--c-a4);flex-shrink:0"> B. HTML + CSS + JavaScript（單檔網頁）</label>
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.85rem;line-height:1.6;color:var(--c-text)"><input type="radio" name="q2" value="C" style="margin-top:2px;accent-color:var(--c-a4);flex-shrink:0"> C. React + Next.js（需編譯）</label>
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.85rem;line-height:1.6;color:var(--c-text)"><input type="radio" name="q2" value="D" style="margin-top:2px;accent-color:var(--c-a4);flex-shrink:0"> D. Node.js + Express（伺服器應用）</label>
+      </div>
+    </div>
+
+    <div class="quiz-card" data-correct="A" style="background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 24px">
+      <div style="font-size:.72rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:8px">Q3 · API 認識</div>
+      <p style="font-size:.92rem;font-weight:700;color:var(--c-text);line-height:1.7;margin-bottom:14px">番茄鐘要每秒更新畫面上的倒數數字。你應該請 AI 用哪個 JavaScript API？</p>
+      <div style="display:grid;gap:8px">
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.85rem;line-height:1.6;color:var(--c-text)"><input type="radio" name="q3" value="A" style="margin-top:2px;accent-color:var(--c-a4);flex-shrink:0"> A. setInterval（每隔固定時間重複執行）</label>
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.85rem;line-height:1.6;color:var(--c-text)"><input type="radio" name="q3" value="B" style="margin-top:2px;accent-color:var(--c-a4);flex-shrink:0"> B. localStorage（瀏覽器本地儲存）</label>
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.85rem;line-height:1.6;color:var(--c-text)"><input type="radio" name="q3" value="C" style="margin-top:2px;accent-color:var(--c-a4);flex-shrink:0"> C. fetch（發送網路請求）</label>
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.85rem;line-height:1.6;color:var(--c-text)"><input type="radio" name="q3" value="D" style="margin-top:2px;accent-color:var(--c-a4);flex-shrink:0"> D. addEventListener（監聽事件）</label>
+      </div>
+    </div>
+
+    <div class="quiz-card" data-correct="D" style="background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 24px">
+      <div style="font-size:.72rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:8px">Q4 · 邊界條件</div>
+      <p style="font-size:.92rem;font-weight:700;color:var(--c-text);line-height:1.7;margin-bottom:14px">你做了報價試算器，上線後同事回報：有人在折扣率欄位輸入「150」，結果總計變負數。Prompt 補強最合理的做法是？</p>
+      <div style="display:grid;gap:8px">
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.85rem;line-height:1.6;color:var(--c-text)"><input type="radio" name="q4" value="A" style="margin-top:2px;accent-color:var(--c-a4);flex-shrink:0"> A. 不管它，是使用者自己輸入錯</label>
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.85rem;line-height:1.6;color:var(--c-text)"><input type="radio" name="q4" value="B" style="margin-top:2px;accent-color:var(--c-a4);flex-shrink:0"> B. 把欄位改成 disabled，不讓人輸入</label>
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.85rem;line-height:1.6;color:var(--c-text)"><input type="radio" name="q4" value="C" style="margin-top:2px;accent-color:var(--c-a4);flex-shrink:0"> C. 用 alert 跳出警告</label>
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.85rem;line-height:1.6;color:var(--c-text)"><input type="radio" name="q4" value="D" style="margin-top:2px;accent-color:var(--c-a4);flex-shrink:0"> D. Prompt 加一條：折扣率超過 30% 時，結果區就地顯示錯誤提示，不計算總計</label>
+      </div>
+    </div>
+
+    <div class="quiz-card" data-correct="B" style="background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 24px">
+      <div style="font-size:.72rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:8px">Q5 · 除錯判斷</div>
+      <p style="font-size:.92rem;font-weight:700;color:var(--c-text);line-height:1.7;margin-bottom:14px">AI 給你一份 HTML，你雙擊打開卻是「整頁空白」。最該先檢查什麼？</p>
+      <div style="display:grid;gap:8px">
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.85rem;line-height:1.6;color:var(--c-text)"><input type="radio" name="q5" value="A" style="margin-top:2px;accent-color:var(--c-a4);flex-shrink:0"> A. 網路連線是否正常</label>
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.85rem;line-height:1.6;color:var(--c-text)"><input type="radio" name="q5" value="B" style="margin-top:2px;accent-color:var(--c-a4);flex-shrink:0"> B. 打開瀏覽器 DevTools 的 Console，看 JS 錯誤；以及檢查 HTML 是否漏了結束標籤</label>
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.85rem;line-height:1.6;color:var(--c-text)"><input type="radio" name="q5" value="C" style="margin-top:2px;accent-color:var(--c-a4);flex-shrink:0"> C. 把整份貼回 AI，叫它重做一次</label>
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.85rem;line-height:1.6;color:var(--c-text)"><input type="radio" name="q5" value="D" style="margin-top:2px;accent-color:var(--c-a4);flex-shrink:0"> D. 重新開機</label>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="quiz-result" style="display:none;background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.22);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:18px 22px;margin-bottom:8px">
+    <div style="font-size:.72rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:6px">QUIZ 結果</div>
+    <div id="quiz-score" style="font-size:.92rem;color:var(--c-text);line-height:1.8"></div>
+  </div>
+
+  <button type="button" onclick="checkQuiz()" style="padding:12px 28px;background:var(--c-a4);color:#fff;border:none;border-radius:var(--radius);font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;cursor:pointer;transition:background .2s">提交答案</button>
+</section>
+
 <!-- Nav Footer -->
 <div class="nav-footer">
   <a href="PRAC1-2.html" class="nav-btn"><span aria-hidden="true">←</span> PRAC 1-2 健診器</a>
@@ -933,6 +1215,37 @@ function escHtml(s) {
     });
   });
 })();
+</script>
+
+<script src="../_assets/prac-sample.js" defer></script>
+
+<script>
+// Quiz 判分
+function checkQuiz(){
+  var cards=document.querySelectorAll('.quiz-card[data-correct]');
+  var total=cards.length, got=0, wrong=[];
+  cards.forEach(function(card,idx){
+    var correct=card.dataset.correct;
+    var picked=card.querySelector('input[type="radio"]:checked');
+    card.style.borderColor='var(--c-border)';
+    if(picked && picked.value===correct){
+      got++;
+      card.style.borderColor='rgba(90,122,90,.5)';
+    }else{
+      wrong.push(idx+1);
+      card.style.borderColor='rgba(180,80,60,.5)';
+    }
+  });
+  var box=document.getElementById('quiz-result');
+  var msg=document.getElementById('quiz-score');
+  box.style.display='block';
+  if(got===total){
+    msg.innerHTML='<strong>答對 '+got+' / '+total+'</strong>　全對！工具三要素的觀念已經站穩，接下來去做四個情境吧。';
+  }else{
+    msg.innerHTML='<strong>答對 '+got+' / '+total+'</strong>　錯的是第 '+wrong.join('、')+' 題，回去重看對應情境的 Prompt 起手式與預期產出規格。';
+  }
+  box.scrollIntoView({behavior:'smooth',block:'center'});
+}
 </script>
 
 <script>
