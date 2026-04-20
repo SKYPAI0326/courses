@@ -298,7 +298,7 @@ S5 | 今天台北下大雨，通勤族記得帶傘
 句子：
 [貼上上方原始素材]
 
-<button class="copy-btn" type="button">複製</button></div>
+<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
         </div>
         <div class="ps-block">
           <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br># 1. 讀 API key 並初始化 client<br>client = OpenAI()<br># 2. 批次取得 embeddings<br>vecs = [client.embeddings.create(model='text-embedding-3-small', input=s).data[0].embedding for s in sentences]<br># 3. cosine similarity 矩陣<br>sim = cosine_similarity(np.array(vecs))<br>print(pd.DataFrame(sim, index=['S1','S2','S3','S4','S5'], columns=['S1','S2','S3','S4','S5']).round(3))<br># 典型結果：sim[S1,S2] ≈ 0.72，sim[S3,S4] ≈ 0.78，sim[S1,S3] ≈ 0.18<br># 觀察指引：若 S1-S2 偏低（&lt; 0.5），可能是模型跨語言能力不足，建議改用 text-embedding-3-large 或 voyage-multilingual-2</div>
@@ -400,7 +400,7 @@ Q6 今天午餐吃什麼（誘餌題，無相關資料）</div>
 資料：
 [貼上上方原始素材]
 
-<button class="copy-btn" type="button">複製</button></div>
+<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
         </div>
         <div class="ps-block">
           <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>import chromadb<br>client = chromadb.PersistentClient(path='./chroma_store')<br>col = client.get_or_create_collection('demo')<br>col.add(ids=[f'D{i+1}' for i in range(10)], documents=docs)<br>for qi, q in enumerate(queries, 1):<br>&nbsp;&nbsp;r = col.query(query_texts=[q], n_results=3)<br>&nbsp;&nbsp;print(f'Q{qi} {q}', list(zip(r["ids"][0], [round(d,3) for d in r["distances"][0]])))<br>典型結果：<br>Q1 top-1 D1 dist 0.21（命中）<br>Q3 top-1 D10 dist 0.28（命中）<br>Q4 top-1 D9 dist 0.82（應視為無答案）<br>Q6 top-1 D3 dist 0.91（誘餌題正確被識別）<br>判斷：若 Q4 Q6 dist &lt; 0.5，代表 embedding 空間對這類查詢區分度不夠，需要更高品質模型或加 threshold 過濾。</div>
@@ -488,7 +488,8 @@ document.addEventListener('click',function(e){
     var original=btn.textContent;
     btn.textContent='已複製';
     btn.classList.add('copied');
-    setTimeout(function(){btn.textContent=original;btn.classList.remove('copied');},1800);
+    btn.setAttribute('aria-label','已複製到剪貼簿');
+    setTimeout(function(){btn.textContent=original;btn.classList.remove('copied');btn.setAttribute('aria-label','複製此範例 Prompt 到剪貼簿');},1800);
   };
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(text).then(done).catch(function(){
