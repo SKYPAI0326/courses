@@ -381,24 +381,33 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
       </div>
       <div class="ps-block">
         <div class="ps-label">範例 Prompt · 後端必要性判斷<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
-        <div class="ps-prompt">你是全端架構顧問。
-任務：對下方 3 個點子，分別回答「需不需要後端」並給理由。
-判斷三題框架：
-1. 要不要藏 API key？（有就需要後端）
-2. 要不要持久化使用者資料？（有就需要後端或 BaaS）
-3. 要不要跨裝置 / 多人同步？（有就需要後端或 BaaS）
-輸出格式（Markdown 表格）：
-| 點子 | 需要後端？ | 關鍵那一題 | 最小架構建議 |
-規則：
-- 「需要後端」欄位只寫：需要 / 不需要 / BaaS 足夠
-- 最小架構建議不要超過 20 字
-- 最後加 1 句總提醒（例如金鑰保護為何不能只靠前端混淆）
-原始素材：
+        <div class="ps-prompt">你是資深全端架構顧問，專長是幫內容工作者判斷「這個需求該用靜態頁、BaaS 還是真後端」，避免為了小功能架一整套伺服器。
+溝通風格：直接給結論，不說「看你需求」「都可以」這種模糊話；拒絕過度設計。
+任務：對下方 3 個點子，用「需不需要後端」判斷三題框架，分別給決定與最小架構。
+判斷三題框架（任一題為 Yes 就需要後端或 BaaS）：
+1. 要不要藏 API key？（機敏金鑰不能放前端）
+2. 要不要持久化使用者資料？（關掉瀏覽器還在）
+3. 要不要跨裝置 / 多人同步？（不同裝置看到同一份資料）
+步驟：
+1. 對每個點子逐一跑三題判斷
+2. 在表格裡填入決定（需要 / 不需要 / BaaS 足夠）
+3. 標出「關鍵那一題」——第一個 Yes 的題目
+4. 給最小架構建議（具體到工具名，例：「GitHub Pages 純靜態」「前端 + Supabase」）
+輸出限制：
+- 格式：Markdown 表格，欄位固定「點子 | 需要後端？ | 關鍵那一題 | 最小架構建議」
+- 「需要後端」欄位只能寫：需要 / 不需要 / BaaS 足夠
+- 最小架構建議 ≤ 20 字
+- 最後加 1 句總提醒，特別說「只靠前端 obfuscate API key 為何沒用」
+- 不要推薦框架（React / Vue），這些點子都不需要
 
-<button class="copy-btn" type="button">複製</button></div>
+---
+【任務素材】
+原始素材（貼在這一行下方）：
+
+<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
       </div>
       <div class="ps-block">
-        <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>| A 履歷頁 | 不需要 | 三題全否 | 純靜態 + GitHub Pages |<br>| B 報名表 | BaaS 足夠 | 要存資料 | 前端 + Google Sheet / Supabase |<br>| C 潤稿工具 | 需要 | 要藏 API key | 前端 + 最薄後端代理 |<br>總提醒：只靠前端 obfuscate API key 沒用，打開 devtools 就看得到。</div>
+        <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>| 點子 | 需要後端？ | 關鍵那一題 | 最小架構建議 |<br>| A 履歷頁 | 不需要 | 三題全否 | 純靜態 + GitHub Pages / Netlify |<br>| B 報名表 | BaaS 足夠 | 要存資料（Q2 Yes）| 前端 + Google Sheet 或 Supabase |<br>| C 潤稿工具 | 需要 | 要藏 API key（Q1 Yes）| 前端 + 最薄後端代理（Railway / Render） |<br><br>總提醒：只靠前端 obfuscate（混淆）API key 完全沒用——任何使用者打開 DevTools 的 Network 或 Sources 面板都看得到明碼字串。要藏 key 只有一條路：把呼叫 API 的那段程式碼放在後端，由後端讀 env var 再呼叫第三方 API，前端只跟你自己的後端講話。<br><br><strong>對照重點</strong><br>1. 「BaaS 足夠」不等於「不需要後端」——BaaS（Supabase / Firebase）本質上就是託管後端，只是不用自己寫 server code<br>2. 判斷 Q1（藏 API key）時要分清楚：付費服務的 key 必須藏；免費 demo key 放前端也行但要設使用上限<br>3. 履歷頁雖然三題全否，但若未來想加「訪客留言板」就會升級為 Q2 Yes，架構要預留彈性</div>
       </div>
     </div>
     <div class="mini-prac-output">
@@ -503,22 +512,36 @@ PORT=<span class="code-num">3000</span></pre>
       </div>
       <div class="ps-block">
         <div class="ps-label">範例 Prompt · API key 安全 SOP<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
-        <div class="ps-prompt">你是資訊安全顧問，面對的是不熟 git 的全端新手。
-任務：根據下方情境，產出三份文件：
-1. 新專案開工前必做 SOP（3 項，順序不可亂）
-2. 金鑰外洩 5 分鐘急救流程（3-5 步，第一步一定是 revoke key）
-3. 專案 README 警語區塊（3-5 行，Markdown）
-規則：
-- 所有步驟具體可執行，不要寫「注意安全」這種口號
-- 指令要能直接複製（例如 git rm --cached .env）
-- 提醒為什麼「刪檔再 commit」不夠（git 歷史仍保留）
-- 不要用 emoji
-原始素材：
+        <div class="ps-prompt">你是資深資訊安全顧問，面對的是不熟 git 但需要使用各種 API key 的全端新手（課程講師、獨立開發者）。
+溝通風格：嚴格、指令導向，不用「建議」「或許」這類模糊詞；所有指令都要能直接複製貼上。
+任務：根據下方情境，產出三份可直接貼進工具書的文件，讓使用者下次建新專案時照 SOP 走就不會外洩 key。
+步驟：
+1. 新專案開工前必做 SOP：
+   - 列 3 項，順序不可亂（第一項必須是建 .gitignore，不是 git init）
+   - 每項一行指令 + 一句目的
+2. 金鑰外洩 5 分鐘急救流程：
+   - 3-5 步，時間順序
+   - 第一步必須是「revoke key」，不是處理 git（因為 git 無論怎麼處理，那把 key 的流量都已經發生）
+   - 每步寫明「要在哪個平台哪個頁面操作」
+   - 最後一步必須是「產新 key 並更新 .env」
+3. 專案 README 警語區塊：
+   - 3-5 行 Markdown
+   - 要有明顯的警示標題（例如 `## 安全警告`）
+   - 寫清楚「哪些檔案絕對不推」、「看到別人的 repo 有 .env 怎麼辦」
+輸出限制：
+- 所有步驟要具體可執行，不寫「注意安全」「小心 key 保管」這種口號
+- 指令要能直接複製（例 `git rm --cached .env`、`git filter-repo`）
+- 必須提醒「刪檔再 commit」為何不夠（git 歷史還在）
+- 不用 emoji、不用粗體裝飾、用 Markdown 標題分段
 
-<button class="copy-btn" type="button">複製</button></div>
+---
+【任務素材】
+原始素材（貼在這一行下方）：
+
+<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
       </div>
       <div class="ps-block">
-        <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>開工 SOP：<br>1. 先建 .gitignore 寫入 .env、node_modules、.DS_Store<br>2. git init 後先做一次空 commit 驗證 ignore 生效<br>3. 確認 .env.example 進 git、.env 不進 git<br>急救流程首步：立刻到 OpenAI dashboard revoke 外洩的 key，不要先處理 git</div>
+        <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>## 開工 SOP（順序不可亂）<br>1. `echo -e ".env\nnode_modules/\n.DS_Store" &gt; .gitignore`  # 先建 .gitignore 再 init<br>2. `git init &amp;&amp; git add .gitignore &amp;&amp; git commit -m "chore: init with gitignore"`  # 先把 ignore 規則入庫<br>3. 建 .env.example（列出欄位、不填值）→ `git add .env.example`  # 確認 .env 真的被忽略<br><br>## 金鑰外洩 5 分鐘急救<br>1. 立刻到 OpenAI dashboard（platform.openai.com/api-keys）revoke 外洩那把 key——先斷流量再說<br>2. 檢查帳單頁面（Usage）看是否已有異常請求、金額<br>3. `git rm --cached .env &amp;&amp; git commit -m "chore: untrack .env"`  # 從未來追蹤移除<br>4. 歷史清除：`git filter-repo --path .env --invert-paths`  # 或整個砍 repo 重推<br>5. 產新 key、更新本地 .env、部署平台 env var 也要換<br><br>## README 安全警告區塊<br>```<br>## 安全警告<br>- 此 repo 不含任何 API key，所有金鑰放在 .env（已加入 .gitignore）<br>- 若看到任何 commit 包含 .env 內容，請立即通報 issue 並 rotate 所有金鑰<br>- 刪檔再 commit 不等於清除——git 歷史永遠保留，需用 git filter-repo 才真正移除<br>```<br><br><strong>對照重點</strong><br>1. 急救第一步必須是 revoke key，不是處理 git——因為 key 從外洩那一秒開始就持續在被掃<br>2. `git rm --cached` 只是停止追蹤，歷史紀錄仍保留；要真正清歷史要用 git filter-repo 或 BFG<br>3. 部署平台（Railway / Render / Vercel）的 env var 面板也要換，很多人只換了本地 .env 就以為解決了</div>
       </div>
     </div>
     <div class="mini-prac-output">
@@ -790,19 +813,33 @@ Environment variables missing: ANTHROPIC_API_KEY</div>
       </div>
       <div class="ps-block">
         <div class="ps-label">範例 Prompt · 分析 Railway 部署失敗<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
-        <div class="ps-prompt">你是 Railway 部署專家。
-任務：分析下方部署 log，回答三件事：
-1. 這次部署失敗的主因是什麼？（一句話）
-2. 需要在本機改哪 1-2 個檔案 / 跑什麼指令才能修好？
-3. log 下方有另一個警示（環境變數缺失），要在 Railway 哪個頁面補上？
-規則：
-- 不要逐行翻譯 log
-- 修正建議要能直接複製（package.json 該多哪一行、要跑什麼 npm 指令）
-- 區分「必修」和「補齊就能上線但不修也不會 crash」的兩類問題
-- 最後給一句下次部署前的 pre-flight checklist（< 30 字）
-原始素材：
+        <div class="ps-prompt">你是資深 Railway 部署專家，專長是把冗長的部署 log 翻成「哪一行該改」的可執行動作。
+溝通風格：不翻譯 log、不解釋 npm / nixpacks 基礎概念、直接給 diff 級別的修正指令。
+任務：分析下方部署 log，回答三件事並給 pre-flight checklist。
+步驟：
+1. 這次部署失敗的主因：
+   - 一句話，要點出錯誤類型（Cannot find module / ECONNREFUSED / build failed）
+   - 標出是「程式碼問題」「依賴問題」還是「環境問題」
+2. 本機要改什麼才能修好：
+   - 指出要改的檔案（package.json 的哪個欄位）
+   - 要跑的指令（要能直接複製，含 flag）
+   - 改完後 push 前要跑什麼驗證
+3. log 下方的警示（環境變數缺失）：
+   - 點出缺失的變數名稱
+   - 說要在 Railway 哪個頁面補上（專案 → Variables 分頁）
+   - 提醒「value 不要貼到程式碼、不要 commit」
+輸出限制：
+- 不要逐行翻譯 log（使用者只想知道結論）
+- 修正建議要能直接複製（例：`npm install @anthropic-ai/sdk --save`）
+- 明確區分「必修（不修會繼續 crash）」與「補齊（不補也能跑但功能不全）」
+- 最後給 1 句下次部署前的 pre-flight checklist，&lt; 30 字
+- 用 Markdown 編號回答
 
-<button class="copy-btn" type="button">複製</button></div>
+---
+【任務素材】
+原始素材（貼在這一行下方）：
+
+<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
       </div>
       <div class="ps-block">
         <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>主因：package.json 沒把 @anthropic-ai/sdk 加進 dependencies，雲端安裝時找不到<br>必修：本機跑 npm install @anthropic-ai/sdk --save，再 git commit + push<br>補齊：Railway 專案 → Variables 分頁 → New Variable 加 ANTHROPIC_API_KEY<br>Pre-flight：push 前先刪本地 node_modules 再 npm install 驗證 package.json 完整。</div>
@@ -909,7 +946,8 @@ document.addEventListener('click',function(e){
     var original=btn.textContent;
     btn.textContent='已複製';
     btn.classList.add('copied');
-    setTimeout(function(){btn.textContent=original;btn.classList.remove('copied');},1800);
+    btn.setAttribute('aria-label','已複製到剪貼簿');
+    setTimeout(function(){btn.textContent=original;btn.classList.remove('copied');btn.setAttribute('aria-label','複製此範例 Prompt 到剪貼簿');},1800);
   };
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(text).then(done).catch(function(){

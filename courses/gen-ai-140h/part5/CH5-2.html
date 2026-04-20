@@ -367,18 +367,31 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
       </div>
       <div class="ps-block">
         <div class="ps-label">範例 Prompt · 四段式結構化指令<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
-        <div class="ps-prompt">你是前端工程師，我要你改下方活動頁的樣式。
-目標：把「立即報名」按鈕視覺權重拉到最顯眼，引導點擊
-位置：只改 .btn-signup 以及它的 hover 樣式
-不要動：.hero-event 的背景與 padding、標題字級、顏色主色系（#6b7fa3 這個藍保留）
-驗收：
-1. 桌機版按鈕比現在大約 1.3 倍，但不超出 .hero-event 容器
-2. 游標移上去時要有明顯反饋（顏色加深或外框）
-3. 行動版（寬度 < 480px）不要爆版
-請只回傳修改後的 CSS 片段與 1 句改動說明，不要貼整段 HTML。
-原始素材：
+        <div class="ps-prompt">你是資深前端工程師，對「最小改動達成目標」有堅持，不會順手重構其他東西。
+溝通風格：只回增補的 CSS 片段，不貼整段 HTML、不改不相干的類別、不引入任何 framework。
+任務：用「目標 + 位置 + 範圍 + 驗收」四段式指令，改下方活動頁的「立即報名」按鈕樣式。
+目標：把「立即報名」按鈕視覺權重拉到最顯眼，引導點擊，同時保留既有主色系不偏離品牌
+位置限定：只能改 .btn-signup 與它的 :hover、:focus-visible 以及 @media 內相關宣告
+禁止動到：
+1. .hero-event 的 background 與 padding
+2. .event-title 的字級與字重
+3. 主色 #6b7fa3（可加深、可做 hover 變體，但不得換色系）
+4. HTML 結構（不新增元素、不改 class 名稱）
+驗收條件（每條都要自己驗過）：
+1. 桌機版按鈕視覺面積約現在的 1.3 倍，但寬度不超出 .hero-event 的內距邊界
+2. hover 有明顯反饋：背景加深或加 outline，transition ≤ 0.2s
+3. 鍵盤 tab focus 時有 focus-visible outline（無障礙必備）
+4. 行動版（max-width:480px）不可超出螢幕、不可被截斷
+輸出限制：
+- 只回傳修改後的 CSS 片段（≤ 10 行）
+- 最後附 1 句改動說明，講「為什麼這樣改」不是「你改了什麼」
+- 不解釋 CSS 基礎、不貼整段 HTML
 
-<button class="copy-btn" type="button">複製</button></div>
+---
+【任務素材】
+原始素材（貼在這一行下方）：
+
+<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
       </div>
       <div class="ps-block">
         <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>.btn-signup{padding:16px 40px;font-size:1.05rem;font-weight:500;transition:background .18s}<br>.btn-signup:hover{background:#5a6d8f}<br>@media(max-width:480px){.btn-signup{padding:14px 28px;font-size:1rem}}<br>改動說明：只放大按鈕內距與字級、加 hover 深色、手機版限制尺寸。</div>
@@ -567,22 +580,32 @@ Uncaught TypeError: document.getElementById(...).val is not a function
       </div>
       <div class="ps-block">
         <div class="ps-label">範例 Prompt · 五段式 bug 報告<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
-        <div class="ps-prompt">你是前端 debug 夥伴。我要回報一個 bug，請先指出原因，再給最小修改。
+        <div class="ps-prompt">你是資深前端 debug 夥伴，專長是從簡短的 Console 錯誤訊息定位到最小修改點，拒絕重寫一堆不相關的程式碼。
+溝通風格：先給結論（錯在哪），再給最小 diff，不貼整段、不加額外功能、不順手重構。
+任務：我要回報一個 bug，請根據下方五段式資訊判斷原因，並給可直接貼的最小修改。
 ① 重現步驟：在輸入框打「測試」，點「送出」按鈕
 ② 預期：&lt;p id="output"&gt; 顯示「測試」兩個字
 ③ 實際：畫面完全沒變化，output 仍是空的
-④ 環境：Chrome 135 on macOS 15，純靜態 HTML（沒用任何框架）
-⑤ Console：出現紅字 TypeError: ... .val is not a function（行號 42）
-規則：
-1. 只修改有問題的那一行，其他保持不動
-2. 先用一句話說「錯在哪」，再給 diff，不要貼整段
-3. 如果還有第二個潛在問題，分開列出
-原始素材：
+④ 環境：Chrome 135 on macOS 15，純靜態 HTML（無任何 framework、無 jQuery）
+⑤ Console：紅字 TypeError: ... .val is not a function（行號 42）
+步驟：
+1. 用 1 句話說「錯在哪」（要點出是哪個 API 不存在，不要只說「有錯」）
+2. 給最小 diff（`- 刪除行 / + 新增行` 格式，只動問題那一行）
+3. 檢查有沒有第二個潛在問題（例：空字串、race condition），有就分開列出並給建議修改
+輸出限制：
+- 不要教 DOM 基礎、不要推薦用 jQuery（故意不用）
+- 不要貼整段 HTML 或整段 JS，只貼要改的那幾行
+- 不要加 try / catch 包整段（小修就好）
+- 用 Markdown 編號回答、diff 放在 code block
 
-<button class="copy-btn" type="button">複製</button></div>
+---
+【任務素材】
+原始素材（貼在這一行下方）：
+
+<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
       </div>
       <div class="ps-block">
-        <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>錯在哪：.val() 是 jQuery 寫法，原生 DOM 要用 .value 屬性。<br>修改：let value = document.getElementById('user-input').value;<br>第二個潛在問題：沒有處理空字串，建議加 .trim() 再判斷。</div>
+        <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>錯在哪：.val() 是 jQuery 的 API，原生 DOM 的 input 元素要用 .value 屬性（沒有括號）。Console 的 TypeError 就是在說「這個物件上沒有 val 這個 function」。<br>最小修改（diff）：<br>- let value = document.getElementById('user-input').val();<br>+ let value = document.getElementById('user-input').value;<br>第二個潛在問題（不 crash 但體驗差）：<br>沒處理空字串，建議改為<br>const raw = document.getElementById('user-input').value.trim();<br>if (!raw) return;  // 空字串就不輸出<br><br><strong>對照重點</strong><br>1. 看 TypeError 要先找「X is not a function」前面那個物件是什麼（這裡是 input 元素）——這是定位 bug 的關鍵動作<br>2. 不要看到 jQuery 寫法就整個改成 jQuery，原生 DOM 改回 .value 就好、不新增依賴<br>3. 空字串檢查要用 .trim() 後再判斷，否則只有空白字元會被誤判為有效輸入</div>
       </div>
     </div>
     <div class="mini-prac-output">
@@ -695,16 +718,26 @@ Uncaught TypeError: document.getElementById(...).val is not a function
       </div>
       <div class="ps-block">
         <div class="ps-label">範例 Prompt · 推薦主力 + 次要工具<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
-        <div class="ps-prompt">你是 AI 編碼工具顧問。
-任務：根據下方使用者描述，在 Cursor / GitHub Copilot / Claude Code / ChatGPT Canvas 四個選項中推薦「主力 1 個 + 次要 1 個」。
-規則：
-1. 先用一句話總結這個使用者的關鍵特徵
-2. 推薦格式：工具名 + 3 點理由 + 1 點限制
-3. 寫 2-3 條「什麼情境我會切到次要工具」的判斷規則（要具體，不要「感覺不順時」）
-4. 最後給 1 句收尾：主力工具的第一週該做什麼熟悉它
-原始素材：
+        <div class="ps-prompt">你是資深 AI 編碼工具顧問，服務對象是「不寫程式但經常需要請 AI 改程式」的知識工作者（課程講師、內容創作者、行銷人員）。
+溝通風格：推薦帶決定性，不說「看情況」「都可以試試」這種模糊話；拒絕推薦最流行的，優先推薦「最適合這個人今年會用到的」。
+任務：根據下方使用者描述，在 Cursor / GitHub Copilot / Claude Code / ChatGPT Canvas 四個選項中，推薦「主力 1 個 + 次要 1 個」的工具組合。
+步驟：
+1. 先用一句話總結這個使用者的關鍵特徵（技術底、任務型態、最痛的點）
+2. 主力工具：名稱 + 3 點理由（對應到他的具體任務）+ 1 點限制
+3. 次要工具：名稱 + 3 點理由 + 1 點限制
+4. 寫 2-3 條「什麼情境我會切到次要工具」的判斷規則，要具體到可直接執行（例：「單檔超過 300 行時」），不要寫「感覺不順時」這種主觀詞
+5. 最後給 1 句收尾：主力工具的第一週該做 1 件什麼事熟悉它（具體到動作）
+輸出限制：
+- 格式：Markdown 條列 + 粗體工具名
+- 不要把 4 個工具全部分析一遍，只推 2 個
+- 不要寫「可能」「或許」「建議試試看」，要果斷
+- 總字數 ≤ 350 字
 
-<button class="copy-btn" type="button">複製</button></div>
+---
+【任務素材】
+原始素材（貼在這一行下方）：
+
+<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
       </div>
       <div class="ps-block">
         <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>關鍵：單檔靜態 HTML 為主、怕被 AI 重寫整份、不想裝編輯器外掛<br>主力：Claude Code｜對話介面、可以只貼片段、能嚴格指定「只改這段」<br>次要：ChatGPT Canvas｜適合 Notion widget 這種一次性短片段<br>切換規則：<br>1. 需要跨 3 個檔案以上的修改 → 切 Cursor 試用<br>2. 單檔但超過 300 行 → 切 Claude Code 分段改<br>3. 只想產 20 行以內片段 → 留在 Canvas</div>
@@ -809,7 +842,8 @@ document.addEventListener('click',function(e){
     var original=btn.textContent;
     btn.textContent='已複製';
     btn.classList.add('copied');
-    setTimeout(function(){btn.textContent=original;btn.classList.remove('copied');},1800);
+    btn.setAttribute('aria-label','已複製到剪貼簿');
+    setTimeout(function(){btn.textContent=original;btn.classList.remove('copied');btn.setAttribute('aria-label','複製此範例 Prompt 到剪貼簿');},1800);
   };
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(text).then(done).catch(function(){

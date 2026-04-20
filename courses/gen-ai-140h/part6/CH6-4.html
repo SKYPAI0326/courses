@@ -395,7 +395,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 工具與 mock：
 [貼上上方原始素材]
 
-<button class="copy-btn" type="button">複製</button></div>
+<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
         </div>
         <div class="ps-block">
           <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>[turn 1] stop_reason=tool_use<br>&nbsp;&nbsp;→ get_weather({"city":"台北"}) = {"city":"台北","temp_c":28}<br>&nbsp;&nbsp;→ get_weather({"city":"東京"}) = {"city":"東京","temp_c":15}<br>[turn 2] stop_reason=tool_use<br>&nbsp;&nbsp;→ calculator({"expression":"28 - 15"}) = {"result":13}<br>[turn 3] stop_reason=end_turn<br>Final: 台北目前 28°C，東京 15°C，台北比東京熱 13°C。<br>觀察：模型通常會把兩個 get_weather 放在同一輪平行呼叫，calculator 放在第二輪，最後一輪才 end_turn 輸出文字。若你的模型每輪只叫一次工具，換到 Claude 3.5+ 或 Haiku 4.5 觀察差異。</div>
@@ -524,7 +524,7 @@ get_weather 的 mock 改成 throw new Error('upstream 503')。
 壓測腳本：
 [貼上上方原始素材]
 
-<button class="copy-btn" type="button">複製</button></div>
+<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
         </div>
         <div class="ps-block">
           <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>A：沒防禦會無限呼叫 calculator，每輪消耗 input+output token；10 輪可能燒掉 &gt; $1。修法：const callCount = {}; if (++callCount[name] &gt; 3) throw new Error('tool called too many times'); + 外層 if (turn &gt;= MAX_TURNS) break;<br>B：沒防禦會讓 SDK 直接 throw 'unknown tool'；進程中斷。修法：const TOOLS = new Set(['get_weather','calculator']); if (!TOOLS.has(name)) return {success:false, error:`tool "${name}" not available. Available: ${[...TOOLS].join(', ')}`};<br>C：沒防禦整個 agent crash。修法：try { result = mock[name](input); } catch (e) { result = {success:false, error:e.message}; }<br>| 陷阱 | 症狀 | 位置 | 修法 |<br>| A | token 累積、同工具重複 | while loop 進入前 | MAX_TURNS + callCount |<br>| B | tool name 不在清單 | tool dispatch 前 | whitelist + structured error |<br>| C | SDK throw 中斷 | tool execution 內 | try/catch + success flag |<br>上線前檢查：1) MAX_TURNS 寫死不吃使用者輸入 2) 所有工具都 try/catch 3) 白名單集中在一個 const 4) 有 callCount 防同工具濫用 5) 錯誤訊息回給模型而非前端</div>
@@ -658,7 +658,8 @@ document.addEventListener('click',function(e){
     var original=btn.textContent;
     btn.textContent='已複製';
     btn.classList.add('copied');
-    setTimeout(function(){btn.textContent=original;btn.classList.remove('copied');},1800);
+    btn.setAttribute('aria-label','已複製到剪貼簿');
+    setTimeout(function(){btn.textContent=original;btn.classList.remove('copied');btn.setAttribute('aria-label','複製此範例 Prompt 到剪貼簿');},1800);
   };
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(text).then(done).catch(function(){
