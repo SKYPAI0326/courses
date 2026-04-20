@@ -136,6 +136,23 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 .mini-prac-check input{margin-top:5px;accent-color:var(--c-a2);flex-shrink:0;cursor:pointer}
 .mini-prac-check input:checked ~ span{color:var(--c-muted);text-decoration:line-through}
 
+/* 演練範本 · prac-sample */
+.prac-sample{background:#fcfbf6;border:1px dashed var(--c-border);border-radius:var(--radius);padding:18px 20px;margin:0 0 18px}
+.ps-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.ps-eyebrow{font-size:.7rem;letter-spacing:1.5px;color:var(--c-a2);font-weight:500;text-transform:uppercase}
+.ps-hint{font-size:.72rem;color:var(--c-muted);line-height:1.6}
+.ps-block{margin-bottom:12px}
+.ps-block:last-child{margin-bottom:0}
+.ps-label{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.72rem;color:var(--c-text);font-weight:500;letter-spacing:.5px;margin-bottom:6px}
+.ps-label-tag{font-size:.7rem;color:var(--c-muted);border:1px solid var(--c-border);padding:1px 8px;border-radius:99px;font-weight:400;letter-spacing:.5px}
+.ps-material{background:var(--c-surface);border-radius:var(--radius-sm);padding:12px 14px;font-size:.8rem;line-height:1.75;color:var(--c-text);white-space:pre-wrap}
+.ps-prompt{background:#2c2b28;color:#e8e6df;font-family:ui-monospace,'SF Mono',Menlo,monospace;padding:14px 16px 14px;border-radius:var(--radius-sm);font-size:.8rem;line-height:1.7;white-space:pre-wrap;overflow-x:auto;position:relative}
+.copy-btn{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.08);color:#e8e6df;border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:3px 10px;font-size:.7rem;letter-spacing:.5px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:background .15s}
+.copy-btn:hover{background:rgba(255,255,255,.15)}
+.copy-btn.copied{background:var(--c-a2);color:#fff;border-color:var(--c-a2)}
+.ps-expect{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:12px 14px;font-size:.8rem;line-height:1.75;color:var(--c-muted)}
+.ps-expect strong{color:var(--c-text);font-weight:500}
+
 /* a11y: focus-visible ring */
 a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
 .skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 16px}.table-scroll>table{min-width:100%}</style>
@@ -299,6 +316,72 @@ content-type: application/json
         <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>對照你打算用的模型（Haiku / Sonnet / Opus）單價，算出單次成本與月成本（500 次/天 × 30 天）。</span></div>
         <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span>判斷三個可優化點：system prompt 能不能瘦身？有沒有機會開 prompt caching？能不能降級到更便宜的模型？</span></div>
       </div>
+      <div class="prac-sample">
+        <div class="ps-head">
+          <span class="ps-eyebrow">範本素材</span>
+          <span class="ps-hint">手上沒有現成工具？拿這份「客服 FAQ 回覆助理」當案例，跑一次成本估算。</span>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">原始素材 · 某電商客服助理的 System Prompt（約 320 字）<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
+          <div class="ps-material">【工具：客服 FAQ 回覆助理】
+你是某電商平台的第一線客服助理，負責處理顧客的售前與售後詢問。
+
+工作範圍：
+1. 商品規格、庫存、運送時間查詢
+2. 訂單狀態、退換貨流程說明
+3. 會員點數、優惠券使用規則
+4. 不處理：金流爭議、個資變更、法律申訴（一律轉接真人）
+
+回覆規則：
+- 一律使用繁體中文，語氣禮貌但簡潔，不超過 150 字
+- 先給結論再給步驟，條列時用「・」開頭
+- 若資訊不在 FAQ 知識庫中，回覆「這部分我不確定，我幫您轉真人客服」
+- 不主動揣測顧客意圖，不要給出 FAQ 以外的建議
+
+每次回覆結尾固定加：「還有其他我可以協助的嗎？」
+
+典型 user 訊息：「我昨天下單的商品什麼時候會到？訂單編號 A12345」
+典型 output：約 80~120 tokens 的禮貌說明</div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">範例 Prompt · 成本估算 + 瘦身建議生成器<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
+          <div class="ps-prompt">你是一位 LLM 應用成本分析師。請針對下方「工具素材」估算單次 API 呼叫成本、月成本，並提出三條瘦身建議。
+
+規則：
+1. 中文字數以 ×1.5 換算 tokens，英文依 ×1.3
+2. 輸入與輸出分開列，不要合併
+3. 假設 user input 平均 40 字、output 平均 120 字
+4. 月成本假設 = 500 次/天 × 30 天
+5. 對比三種模型：Haiku（in $0.80 / out $4.00 每 1M tokens）、Sonnet（in $3.00 / out $15.00）、Opus（in $15.00 / out $75.00）
+
+輸出格式：
+## 一、Token 估算表
+| 項目 | 字數 | tokens | 備註 |
+| --- | --- | --- | --- |
+| System Prompt | ... | ... | ... |
+| User Input | ... | ... | ... |
+| Model Output | ... | ... | ... |
+
+## 二、單次 / 月成本對照
+| 模型 | 單次 $ | 月成本 $ |
+| --- | --- | --- |
+
+## 三、三條瘦身建議（依效益排序）
+1. ...（預期節省 X%）
+2. ...
+3. ...
+
+## 四、第一優先該動哪一條？為什麼？
+
+工具素材：
+[貼上上方原始素材]
+
+<button class="copy-btn" type="button">複製</button></div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>System Prompt 約 320 字 × 1.5 ≈ 480 tokens<br>User Input 40 字 × 1.5 ≈ 60 tokens<br>Output 120 字 × 1.5 ≈ 180 tokens<br>Haiku 單次 ≈ $0.00115，月 ≈ $17.3<br>Sonnet 單次 ≈ $0.00432，月 ≈ $64.8<br>建議 1：System Prompt 前半（工作範圍）可濃縮至條列關鍵字，省 ~40% input token<br>建議 2：高頻的 System Prompt 開 prompt caching，長期 input cost 降 90%<br>第一優先：開 prompt caching（投入小、效益最大、不傷品質）</div>
+        </div>
+      </div>
       <div class="mini-prac-output">
         <div class="mini-prac-output-label">成果產出</div>
         <div class="mini-prac-output-text">一張成本估算表（欄位：項目｜token 數｜單價｜小計），加上「預估月成本 $X」與三條瘦身建議。</div>
@@ -356,6 +439,66 @@ content-type: application/json
         <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span>區分錯誤：只對 429 和 5xx 退避重試，4xx（除 429 外）直接 throw 給前端。</span></div>
         <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>在 console.log 印出「第 N 次重試，等待 Xms」，方便觀察實際行為。</span></div>
         <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span>寫個小腳本快速發 20 次請求（或把 max_tokens 設超低逼 API 出錯），驗證退避真的有觸發。</span></div>
+      </div>
+      <div class="prac-sample">
+        <div class="ps-head">
+          <span class="ps-eyebrow">範本素材</span>
+          <span class="ps-hint">還沒有現成的後端代理？這份是一個乾淨的 Express + Anthropic SDK 原始版本，讓 AI 幫你加重試包裝層。</span>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">原始素材 · 沒有重試的 Express 後端代理（約 40 行）<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
+          <div class="ps-material">// server.js — 目前還沒有重試保護
+import express from 'express';
+import Anthropic from '@anthropic-ai/sdk';
+
+const app = express();
+app.use(express.json());
+
+const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+app.post('/api/chat', async (req, res) => {
+  try {
+    const response = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1024,
+      messages: [{ role: 'user', content: req.body.prompt }]
+    });
+    res.json({ text: response.content[0].text });
+  } catch (err) {
+    // 所有錯誤都回 500，前端看不到錯誤類型
+    console.error(err);
+    res.status(500).json({ error: 'server error' });
+  }
+});
+
+app.listen(3000);</div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">範例 Prompt · 指數退避重試重構器<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
+          <div class="ps-prompt">你是一位資深 Node.js 後端工程師。請改寫下方 Express 程式，加上對 429 / 5xx 的指數退避重試，並讓 4xx（除 429 外）的錯誤訊息能正確回傳前端。
+
+需求：
+1. 實作 callWithRetry(fn, maxRetries=3) 包裝函式
+2. 只對 429、500、502、503、504、529 重試，其他 4xx 立即拋出
+3. 退避時間：1s → 2s → 4s（2^attempt * 1000ms）
+4. 每次重試前印出 console.log('[retry] attempt N, waiting Xms, reason: statusCode')
+5. 超過 maxRetries 後回傳 503，body 為 { error: 'upstream unavailable after retries' }
+6. 4xx 錯誤（非 429）保留 Anthropic 回傳的 status code 與 error message，轉給前端
+7. 保留原有路由結構與 env 變數名稱
+
+輸出規範：
+- 完整可執行的 server.js
+- 每個修改處加一行 // [ADD] 或 // [CHANGED] 註解
+- 結尾附一段 10 行內的「測試腳本」（curl 或 node 程式），教我怎麼刻意觸發 429 觀察退避
+
+程式：
+[貼上上方原始素材]
+
+<button class="copy-btn" type="button">複製</button></div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>// [ADD] 重試包裝函式<br>async function callWithRetry(fn, maxRetries = 3) { ... for (let attempt = 0; attempt &lt; maxRetries; attempt++) { ... if ([429,500,502,503,504,529].includes(err.status)) { ... const delay = Math.pow(2, attempt) * 1000; console.log(`[retry] attempt ${attempt+1}, waiting ${delay}ms, reason: ${err.status}`); ... } else { throw err; } } }<br>// [CHANGED] 原本的 messages.create 被 callWithRetry 包起來<br>const response = await callWithRetry(() =&gt; client.messages.create({...}));<br>// [ADD] 結構化錯誤回應<br>if (err.status &amp;&amp; err.status &gt;= 400 &amp;&amp; err.status &lt; 500) res.status(err.status).json({ error: err.message });<br>// 測試腳本：for i in {1..20}; do curl -X POST ... & done</div>
+        </div>
       </div>
       <div class="mini-prac-output">
         <div class="mini-prac-output-label">成果產出</div>
@@ -437,6 +580,30 @@ dotBtns.forEach(btn=>btn.addEventListener('click',()=>{const s=document.getEleme
     });
   });
 })();
+
+// 範本 Prompt 複製按鈕
+document.addEventListener('click',function(e){
+  var btn=e.target.closest('.copy-btn');
+  if(!btn)return;
+  var prompt=btn.parentElement;
+  if(!prompt||!prompt.classList.contains('ps-prompt'))return;
+  var text=prompt.textContent.replace(/複製\s*$/,'').trim();
+  var done=function(){
+    var original=btn.textContent;
+    btn.textContent='已複製';
+    btn.classList.add('copied');
+    setTimeout(function(){btn.textContent=original;btn.classList.remove('copied');},1800);
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(function(){
+      var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();
+      try{document.execCommand('copy');done();}catch(err){}finally{document.body.removeChild(ta);}
+    });
+  }else{
+    var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');done();}catch(err){}finally{document.body.removeChild(ta);}
+  }
+});
 
 // 閱讀進度持久化（localStorage）— 2026-04-16 UI refresh
 (function(){
