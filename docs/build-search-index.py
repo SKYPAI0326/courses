@@ -33,6 +33,7 @@ COURSE_LABEL = {
     "ntub-seo-ga4": "SEO × GA4",
     "office-ai": "Office AI",
     "prompt-basic": "AI 交辦方法（6h）",
+    "simple-ai": "創業 AI 入門（3h）",
 }
 
 TITLE_RE = re.compile(r"<title>(.*?)</title>", re.IGNORECASE | re.DOTALL)

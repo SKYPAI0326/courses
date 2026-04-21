@@ -45,6 +45,7 @@
 | `ccs-foundations/` | CCS 生成式 AI 認證研習 | 完成 | 13 頁（index + CH0 + CH1-1~5 + CH2-1~4 + CH3 + CH4），扁平結構，含 80 題模擬測驗與提示詞範本庫，主色灰藍綠 --c-a5 |
 | `gen-ai-36h/` | 生成式 AI 工作應用班（36h） | 完成 ✅ | 7 Parts，21 CH + 7 PRAC，28/28 全部完成，140h 上班族濃縮版，零基礎不寫程式，主色灰藍綠 --c-a5 |
 | `prompt-basic/` | 從「問 AI」到「交辦 AI」（6h） | 製作中 | 5 Parts，10 CH + 5 PRAC，公部門行政人員，主色灰藍綠 --c-a5 |
+| `simple-ai/` | 創業數位化 × 創業懂行銷（3h） | 完成 | 2 Modules，8 CH + Prompt Library（45 Prompt + 10 工作流），新創老闆 / 手機免費版，主色鼠尾草綠 #5a7a5a |
 
 ---
 
@@ -134,6 +135,23 @@ prompt-basic/
 └── part5/              CH5-1, CH5-2, PRAC5（檢查與借力改造）
 ```
 
+### simple-ai/
+```
+simple-ai/
+├── index.html          課程總覽（2 Module 導覽）
+├── module1.html        第一堂：創業數位化（90 分）
+├── module2.html        第二堂：創業懂行銷（90 分）
+├── CH1-1.html          開場 + AI 工具地圖 + 五零件
+├── CH1-2.html          AI 助理設定（記憶體）
+├── CH1-3.html          會議處理（錄音→摘要→待辦）
+├── CH1-4.html          拍照 + Email 自動化
+├── CH2-1.html          NotebookLM 品牌知識庫
+├── CH2-2.html          品牌定位一句話
+├── CH2-3.html          社群內容產線（七則 + A/B + 短影音）
+├── CH2-4.html          FAQ + 資安檢查清單
+└── prompt-library.html 55 條 Prompt 索引（可篩選搜尋）
+```
+
 ---
 
-*最後更新：2026-04-17*
+*最後更新：2026-04-21*
