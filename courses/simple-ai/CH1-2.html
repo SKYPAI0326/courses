@@ -105,6 +105,26 @@ details.material-block{margin:16px 0;border:1px solid var(--c-border);border-rad
 .footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
 @media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important}*{animation:none!important}}
 @media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.concept-grid{grid-template-columns:1fr}.scenario-grid{grid-template-columns:1fr}}
+.fill-prompt{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;margin:16px 0}
+.fill-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.fill-label{font-size:.72rem;color:var(--c-faint);letter-spacing:.12em;font-weight:500;font-family:'Shippori Mincho',serif}
+.fill-hint{font-size:.72rem;color:var(--c-muted);line-height:1.6}
+.fill-template{font-family:'Noto Sans TC',monospace,sans-serif;font-size:.82rem;color:var(--c-text);background:var(--c-surface);border:1px solid var(--c-border-soft);border-radius:var(--radius);padding:14px 16px;line-height:1.95;white-space:pre-wrap;word-break:break-word;margin:0 0 16px;position:relative}
+.fill-template .slot{display:inline;color:var(--c-main);background:rgba(90,122,90,.1);padding:1px 6px;border-radius:4px;font-weight:500;border:1px solid rgba(90,122,90,.25);transition:background .2s,color .2s,border-color .2s}
+.fill-template .slot.filled{color:var(--c-text);background:rgba(90,122,90,.04);border-color:rgba(90,122,90,.15);font-weight:400}
+.fill-form-head{font-size:.72rem;color:var(--c-faint);letter-spacing:.12em;font-weight:500;font-family:'Shippori Mincho',serif;margin:6px 0 10px}
+.fill-fields{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.fill-field{display:flex;flex-direction:column;gap:4px}
+.field-name{font-size:.8rem;color:var(--c-text);font-weight:500}
+.fill-field textarea{font-family:inherit;font-size:.85rem;color:var(--c-text);background:#fff;border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:8px 12px;line-height:1.7;resize:vertical;min-height:36px;outline:none;transition:border-color .2s;box-sizing:border-box;width:100%}
+.fill-field textarea:focus{border-color:var(--c-main)}
+.fill-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:4px;padding-top:12px;border-top:1px solid var(--c-border-soft)}
+.btn-fill-merge{font-size:.82rem;color:#fff;background:var(--c-main);border:1px solid var(--c-main);padding:8px 20px;border-radius:var(--radius);font-family:inherit;cursor:pointer;transition:filter .2s;letter-spacing:.05em;font-weight:500;position:static}
+.btn-fill-merge:hover{filter:brightness(.92)}
+.btn-fill-merge.ok{background:var(--c-text);border-color:var(--c-text)}
+.btn-fill-raw{font-size:.75rem;color:var(--c-muted);background:transparent;border:1px solid var(--c-border);padding:7px 14px;border-radius:var(--radius);font-family:inherit;cursor:pointer;transition:color .2s,border-color .2s;letter-spacing:.05em;position:static}
+.btn-fill-raw:hover{color:var(--c-text);border-color:var(--c-text)}
+.btn-fill-raw.ok{color:var(--c-text);border-color:var(--c-text)}
 </style>
 </head>
 <body>
@@ -341,8 +361,11 @@ document.getElementById('_gate-input').addEventListener('keydown',function(e){if
   <p class="body-text">本 section 備齊所有素材，不需要現場音檔或講師口述，直接複製貼給 AI 就能跑完 EF-01 + EF-05 完整練習。</p>
 
   <p class="body-text" style="margin-top:24px"><strong>EF-01 — 會議錄音 → 摘要＋待辦（建議工具：ChatGPT / Gemini）</strong></p>
-  <div class="code-wrap" id="wrap-ef01">
-    <pre class="code-block">請幫我把這段會議內容整理成三部分：
+  <div class="fill-prompt" id="fill-ef01">
+    <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">把逐字稿貼進下方欄位，按「合併並複製」一次到位</span></div>
+    <pre class="fill-template">請幫我把這段會議內容整理成三部分：
+
+<span class="slot" data-slot="逐字稿" data-ph="[貼上會議逐字稿或錄音文字]">[貼上會議逐字稿或錄音文字]</span>
 
 1. 逐字稿：保留發言順序，刪除口語贅詞（嗯、那個、對啊）
 2. 會議摘要：5 個 bullet points 以內，每點一句話
@@ -351,21 +374,36 @@ document.getElementById('_gate-input').addEventListener('keydown',function(e){if
 若某些資訊不完整（例如聽不清楚時間），標註 [待確認]，不要自行補充。
 
 用繁體中文台灣用語。</pre>
-    <button class="copy-btn" onclick="copyBlock('wrap-ef01',this)">複製</button>
+    <div class="fill-form-head">填入你的內容</div>
+    <div class="fill-fields">
+      <label class="fill-field"><span class="field-name">會議逐字稿 / 錄音文字</span><textarea data-slot-input="逐字稿" rows="5" oninput="_fs(this)" placeholder="把會議逐字稿或手機錄音轉出的文字貼在這裡"></textarea></label>
+    </div>
+    <div class="fill-actions">
+      <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+      <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+    </div>
   </div>
 
   <p class="body-text" style="margin-top:24px"><strong>EF-05 — 長訊息 → 重點摘要（建議工具：ChatGPT 或 Gemini）</strong></p>
-  <div class="code-wrap" id="wrap-ef05">
-    <pre class="code-block">請幫我摘要以下內容：
+  <div class="fill-prompt" id="fill-ef05">
+    <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">把那一長串 LINE / 通訊軟體訊息貼進來</span></div>
+    <pre class="fill-template">請幫我摘要以下內容：
 
-[貼上長訊息]
+<span class="slot" data-slot="長訊息" data-ph="[貼上長訊息]">[貼上長訊息]</span>
 
 輸出要求：
 1. 三句話以內的核心重點
 2. 對方的情緒或立場（憤怒 / 友善 / 商業 / 模糊）
 3. 如果我要回覆，建議我先處理哪一點
 4. 不要加油添醋，只摘要原文有的內容</pre>
-    <button class="copy-btn" onclick="copyBlock('wrap-ef05',this)">複製</button>
+    <div class="fill-form-head">填入你的內容</div>
+    <div class="fill-fields">
+      <label class="fill-field"><span class="field-name">長訊息內容</span><textarea data-slot-input="長訊息" rows="5" oninput="_fs(this)" placeholder="把客戶或合作對象傳來的長訊息完整貼上"></textarea></label>
+    </div>
+    <div class="fill-actions">
+      <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+      <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+    </div>
   </div>
 
   <p class="body-text" style="margin-top:28px"><strong>情境素材 1：2 分鐘虛構會議逐字稿（EF-01 素材）</strong></p>
@@ -728,6 +766,10 @@ document.getElementById('_gate-input').addEventListener('keydown',function(e){if
 
 <script>
 function copyBlock(wrapId,btn){var pre=document.getElementById(wrapId).querySelector('pre');navigator.clipboard.writeText(pre.textContent).then(function(){btn.textContent='已複製';btn.classList.add('copied');setTimeout(function(){btn.textContent='複製';btn.classList.remove('copied');},2000);});}
+function _cpText(text,btn,okLabel){var orig=btn.dataset.orig||(btn.dataset.orig=btn.textContent);var lbl=okLabel||'已複製';if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(function(){btn.textContent=lbl;btn.classList.add('ok');setTimeout(function(){btn.textContent=orig;btn.classList.remove('ok');},2000);});}else{var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');btn.textContent=lbl;btn.classList.add('ok');setTimeout(function(){btn.textContent=orig;btn.classList.remove('ok');},2000);}catch(e){}document.body.removeChild(ta);}}
+function _fs(input){var wrap=input.closest('.fill-prompt');if(!wrap)return;var key=input.dataset.slotInput;var val=input.value;wrap.querySelectorAll('.fill-template .slot[data-slot="'+CSS.escape(key)+'"]').forEach(function(s){if(val.trim()){s.textContent=val;s.classList.add('filled');}else{s.textContent=s.dataset.ph||('['+key+']');s.classList.remove('filled');}});}
+function _fm(btn){var wrap=btn.closest('.fill-prompt');var tpl=wrap.querySelector('.fill-template');if(!tpl)return;_cpText(tpl.textContent,btn,'已複製合併結果');}
+function _fr(btn){var wrap=btn.closest('.fill-prompt');var tpl=wrap.querySelector('.fill-template');if(!tpl)return;var clone=tpl.cloneNode(true);clone.querySelectorAll('.slot').forEach(function(s){s.textContent=s.dataset.ph||s.textContent;});_cpText(clone.textContent,btn,'已複製原始範本');}
 </script>
 <script>
 const fill=document.getElementById('prog');

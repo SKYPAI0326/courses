@@ -120,6 +120,26 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 .copy-btn{font-size:.75rem;color:var(--c-main);background:transparent;border:1px solid rgba(90,122,90,.35);padding:5px 14px;border-radius:var(--radius);font-family:inherit;cursor:pointer;transition:background .2s,color .2s;letter-spacing:.05em}
 .copy-btn:hover{background:rgba(90,122,90,.08)}
 .copy-btn.ok{color:var(--c-text);border-color:var(--c-text)}
+.fill-prompt{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;margin:12px 0}
+.fill-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.fill-label{font-size:.72rem;color:var(--c-faint);letter-spacing:.12em;font-weight:500;font-family:'Shippori Mincho',serif}
+.fill-hint{font-size:.72rem;color:var(--c-muted);line-height:1.6}
+.fill-template{font-family:'Noto Sans TC',monospace,sans-serif;font-size:.82rem;color:var(--c-text);background:var(--c-surface);border:1px solid var(--c-border-soft);border-radius:var(--radius);padding:14px 16px;line-height:1.95;white-space:pre-wrap;word-break:break-word;margin:0 0 16px}
+.fill-template .slot{display:inline;color:var(--c-main);background:rgba(90,122,90,.1);padding:1px 6px;border-radius:4px;font-weight:500;border:1px solid rgba(90,122,90,.25);transition:background .2s,color .2s,border-color .2s}
+.fill-template .slot.filled{color:var(--c-text);background:rgba(90,122,90,.04);border-color:rgba(90,122,90,.15);font-weight:400}
+.fill-form-head{font-size:.72rem;color:var(--c-faint);letter-spacing:.12em;font-weight:500;font-family:'Shippori Mincho',serif;margin:6px 0 10px}
+.fill-fields{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.fill-field{display:flex;flex-direction:column;gap:4px}
+.field-name{font-size:.8rem;color:var(--c-text);font-weight:500}
+.fill-field textarea{font-family:inherit;font-size:.85rem;color:var(--c-text);background:#fff;border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:8px 12px;line-height:1.7;resize:vertical;min-height:36px;outline:none;transition:border-color .2s;box-sizing:border-box;width:100%}
+.fill-field textarea:focus{border-color:var(--c-main)}
+.fill-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:4px;padding-top:12px;border-top:1px solid var(--c-border-soft)}
+.btn-fill-merge{font-size:.82rem;color:#fff;background:var(--c-main);border:1px solid var(--c-main);padding:8px 20px;border-radius:var(--radius);font-family:inherit;cursor:pointer;transition:filter .2s;letter-spacing:.05em;font-weight:500}
+.btn-fill-merge:hover{filter:brightness(.92)}
+.btn-fill-merge.ok{background:var(--c-text);border-color:var(--c-text)}
+.btn-fill-raw{font-size:.75rem;color:var(--c-muted);background:transparent;border:1px solid var(--c-border);padding:7px 14px;border-radius:var(--radius);font-family:inherit;cursor:pointer;transition:color .2s,border-color .2s;letter-spacing:.05em}
+.btn-fill-raw:hover{color:var(--c-text);border-color:var(--c-text)}
+.btn-fill-raw.ok{color:var(--c-text);border-color:var(--c-text)}
 .prac-sample{margin:20px 0}
 .prac-sample summary{cursor:pointer;font-size:.85rem;color:var(--c-muted);padding:10px 14px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);list-style:none;user-select:none}
 .prac-sample summary::-webkit-details-marker{display:none}
@@ -396,17 +416,19 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     </div>
   </div>
   <p class="body-text" style="font-weight:700;margin-top:24px;margin-bottom:8px">EF-08 Prompt 原始碼（建議工具：ChatGPT）</p>
-  <div id="ef08-code" class="code-block">從現在開始，請記住以下設定，之後的對話都依此回應：
+  <div class="fill-prompt" id="ef08-code">
+    <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">下方輸入框填入你的內容，上方示範會即時替換</span></div>
+    <pre class="fill-template">從現在開始，請記住以下設定，之後的對話都依此回應：
 
-我的身份：[你的行業 + 規模 + 創業時間，例：開店 2 年的單店咖啡館老闆]
+我的身份：<span class="slot" data-slot="身份" data-ph="[你的行業 + 規模 + 創業時間]">[你的行業 + 規模 + 創業時間]</span>
 
-我的業務：[你做什麼，一兩句講完]
+我的業務：<span class="slot" data-slot="業務" data-ph="[你做什麼，一兩句講完]">[你做什麼，一兩句講完]</span>
 
-我的主要客戶：[誰會買、他們的特徵]
+我的主要客戶：<span class="slot" data-slot="客戶" data-ph="[誰會買、他們的特徵]">[誰會買、他們的特徵]</span>
 
-我最缺的時間：[最想解決的三個時間黑洞，例：社群貼文、回覆客人 LINE、整理會議紀錄]
+我最缺的時間：<span class="slot" data-slot="時間黑洞" data-ph="[最想解決的三個時間黑洞]">[最想解決的三個時間黑洞]</span>
 
-我的行業避雷區：[我的產業有什麼特殊禁忌或法規，例：食品業不能宣稱療效]
+我的行業避雷區：<span class="slot" data-slot="避雷區" data-ph="[我的產業有什麼特殊禁忌或法規]">[我的產業有什麼特殊禁忌或法規]</span>
 
 回應風格要求：
 1. 繁體中文台灣用語
@@ -415,8 +437,20 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 4. 不用「基於你的需求」「根據以上分析」這類贅詞
 5. 資訊不足時，直接列出還需要知道什麼
 
-確認收到請回覆「已設定，請開始」。</div>
-  <div class="copy-row"><button class="copy-btn" type="button" onclick="_cpId('ef08-code',this)">複製 EF-08</button></div>
+確認收到請回覆「已設定，請開始」。</pre>
+    <div class="fill-form-head">填入你的內容</div>
+    <div class="fill-fields">
+      <label class="fill-field"><span class="field-name">身份</span><textarea data-slot-input="身份" rows="1" oninput="_fs(this)" placeholder="例：開店 2 年的單店咖啡館老闆"></textarea></label>
+      <label class="fill-field"><span class="field-name">業務</span><textarea data-slot-input="業務" rows="1" oninput="_fs(this)" placeholder="你做什麼，一兩句講完"></textarea></label>
+      <label class="fill-field"><span class="field-name">主要客戶</span><textarea data-slot-input="客戶" rows="1" oninput="_fs(this)" placeholder="誰會買、他們的特徵"></textarea></label>
+      <label class="fill-field"><span class="field-name">時間黑洞</span><textarea data-slot-input="時間黑洞" rows="2" oninput="_fs(this)" placeholder="例：社群貼文、回覆客人 LINE、整理會議紀錄"></textarea></label>
+      <label class="fill-field"><span class="field-name">行業避雷區</span><textarea data-slot-input="避雷區" rows="2" oninput="_fs(this)" placeholder="例：食品業不能宣稱療效"></textarea></label>
+    </div>
+    <div class="fill-actions">
+      <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+      <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+    </div>
+  </div>
   <div class="intro-band" style="margin-top:8px;margin-bottom:0">
     <div class="intro-label">必填的三格</div>
     <div class="intro-text">「我的身份」要有行業 + 規模 + 創業時間（不是只寫「老闆」兩個字）。「我的行業避雷區」是防 AI 亂掰的關鍵，懶得寫的人之後最常踩雷。「回應風格要求」預設五條夠用，有特別討厭的用語可直接加一條黑名單。</div>
@@ -800,6 +834,10 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 <script>
 function _cpId(id,btn){var el=document.getElementById(id);if(!el)return;var orig=btn.dataset.orig||(btn.dataset.orig=btn.textContent);var text=el.textContent;if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(function(){btn.textContent='已複製';btn.classList.add('ok');setTimeout(function(){btn.textContent=orig;btn.classList.remove('ok');},1800);});}else{var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');btn.textContent='已複製';btn.classList.add('ok');setTimeout(function(){btn.textContent=orig;btn.classList.remove('ok');},1800);}catch(e){}document.body.removeChild(ta);}}
+function _cpText(text,btn,okLabel){var orig=btn.dataset.orig||(btn.dataset.orig=btn.textContent);var lbl=okLabel||'已複製';if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(function(){btn.textContent=lbl;btn.classList.add('ok');setTimeout(function(){btn.textContent=orig;btn.classList.remove('ok');},2000);});}else{var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');btn.textContent=lbl;btn.classList.add('ok');setTimeout(function(){btn.textContent=orig;btn.classList.remove('ok');},2000);}catch(e){}document.body.removeChild(ta);}}
+function _fs(input){var wrap=input.closest('.fill-prompt');if(!wrap)return;var key=input.dataset.slotInput;var val=input.value;wrap.querySelectorAll('.fill-template .slot[data-slot="'+CSS.escape(key)+'"]').forEach(function(s){if(val.trim()){s.textContent=val;s.classList.add('filled');}else{s.textContent=s.dataset.ph||('['+key+']');s.classList.remove('filled');}});}
+function _fm(btn){var wrap=btn.closest('.fill-prompt');var tpl=wrap.querySelector('.fill-template');if(!tpl)return;_cpText(tpl.textContent,btn,'已複製合併結果');}
+function _fr(btn){var wrap=btn.closest('.fill-prompt');var tpl=wrap.querySelector('.fill-template');if(!tpl)return;var clone=tpl.cloneNode(true);clone.querySelectorAll('.slot').forEach(function(s){s.textContent=s.dataset.ph||s.textContent;});_cpText(clone.textContent,btn,'已複製原始範本');}
 </script>
 <script>
 const fill=document.getElementById('prog');

@@ -114,6 +114,26 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 @media(max-width:720px){.challenge-grid{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.scenario-grid{grid-template-columns:1fr}.scenario-task{border-bottom:none;border-right:none}}
+.fill-prompt{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;margin:16px 0}
+.fill-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.fill-label{font-size:.72rem;color:var(--c-faint);letter-spacing:.12em;font-weight:500;font-family:'Shippori Mincho',serif}
+.fill-hint{font-size:.72rem;color:var(--c-muted);line-height:1.6}
+.fill-template{font-family:'Noto Sans TC',monospace,sans-serif;font-size:.82rem;color:var(--c-text);background:var(--c-surface);border:1px solid var(--c-border-soft);border-radius:var(--radius);padding:14px 16px;line-height:1.95;white-space:pre-wrap;word-break:break-word;margin:0 0 16px;position:relative}
+.fill-template .slot{display:inline;color:var(--c-main);background:rgba(90,122,90,.1);padding:1px 6px;border-radius:4px;font-weight:500;border:1px solid rgba(90,122,90,.25);transition:background .2s,color .2s,border-color .2s}
+.fill-template .slot.filled{color:var(--c-text);background:rgba(90,122,90,.04);border-color:rgba(90,122,90,.15);font-weight:400}
+.fill-form-head{font-size:.72rem;color:var(--c-faint);letter-spacing:.12em;font-weight:500;font-family:'Shippori Mincho',serif;margin:6px 0 10px}
+.fill-fields{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.fill-field{display:flex;flex-direction:column;gap:4px}
+.field-name{font-size:.8rem;color:var(--c-text);font-weight:500}
+.fill-field textarea{font-family:inherit;font-size:.85rem;color:var(--c-text);background:#fff;border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:8px 12px;line-height:1.7;resize:vertical;min-height:36px;outline:none;transition:border-color .2s;box-sizing:border-box;width:100%}
+.fill-field textarea:focus{border-color:var(--c-main)}
+.fill-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:4px;padding-top:12px;border-top:1px solid var(--c-border-soft)}
+.btn-fill-merge{font-size:.82rem;color:#fff;background:var(--c-main);border:1px solid var(--c-main);padding:8px 20px;border-radius:var(--radius);font-family:inherit;cursor:pointer;transition:filter .2s;letter-spacing:.05em;font-weight:500;position:static}
+.btn-fill-merge:hover{filter:brightness(.92)}
+.btn-fill-merge.ok{background:var(--c-text);border-color:var(--c-text)}
+.btn-fill-raw{font-size:.75rem;color:var(--c-muted);background:transparent;border:1px solid var(--c-border);padding:7px 14px;border-radius:var(--radius);font-family:inherit;cursor:pointer;transition:color .2s,border-color .2s;letter-spacing:.05em;position:static}
+.btn-fill-raw:hover{color:var(--c-text);border-color:var(--c-text)}
+.btn-fill-raw.ok{color:var(--c-text);border-color:var(--c-text)}
 </style>
 </head>
 <body>
@@ -279,16 +299,17 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <button class="copy-btn" type="button" onclick="_cp(this)">複製</button>
   </div>
   <p class="body-text"><strong>TK-02 Prompt 原文</strong>（建議工具：延用 CH2-1 的 NotebookLM，或 ChatGPT 把上面這份摘要貼進去當背景資料）：</p>
-  <div class="code-wrap">
-    <pre class="code-block">我需要你協助我萃取品牌定位，濃縮成一句話。
+  <div class="fill-prompt" id="fill-tk02">
+    <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">四格填完，一鍵生 3 種角度定位句</span></div>
+    <pre class="fill-template">我需要你協助我萃取品牌定位，濃縮成一句話。
 
-我的業務：[一兩句話描述你做什麼]
+我的業務：<span class="slot" data-slot="業務" data-ph="[一兩句話描述你做什麼]">[一兩句話描述你做什麼]</span>
 
-我的客戶：[誰會買、他們為什麼買]
+我的客戶：<span class="slot" data-slot="客戶" data-ph="[誰會買、他們為什麼買]">[誰會買、他們為什麼買]</span>
 
-我與競爭對手的差異：[你有什麼別人沒有的]
+我與競爭對手的差異：<span class="slot" data-slot="差異" data-ph="[你有什麼別人沒有的]">[你有什麼別人沒有的]</span>
 
-我不想服務的客戶：[例：殺價型 / 要 24 小時回覆的]
+我不想服務的客戶：<span class="slot" data-slot="避開" data-ph="[例：殺價型 / 要 24 小時回覆的]">[例：殺價型 / 要 24 小時回覆的]</span>
 
 請做三件事：
 
@@ -302,7 +323,17 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 3. 每句控制在 30 字內
 
 不要產出「優質」「專業」「用心」這類泛用形容詞。</pre>
-    <button class="copy-btn" type="button" onclick="_cp(this)">複製</button>
+    <div class="fill-form-head">填入你的內容</div>
+    <div class="fill-fields">
+      <label class="fill-field"><span class="field-name">我的業務</span><textarea data-slot-input="業務" rows="2" oninput="_fs(this)" placeholder="一兩句話描述你做什麼"></textarea></label>
+      <label class="fill-field"><span class="field-name">我的客戶</span><textarea data-slot-input="客戶" rows="2" oninput="_fs(this)" placeholder="誰會買、他們為什麼買"></textarea></label>
+      <label class="fill-field"><span class="field-name">與競爭對手差異</span><textarea data-slot-input="差異" rows="2" oninput="_fs(this)" placeholder="你有什麼別人沒有的"></textarea></label>
+      <label class="fill-field"><span class="field-name">不想服務的客戶</span><textarea data-slot-input="避開" rows="2" oninput="_fs(this)" placeholder="例：殺價型 / 要 24 小時回覆的"></textarea></label>
+    </div>
+    <div class="fill-actions">
+      <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+      <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+    </div>
   </div>
   <p class="body-text"><strong>五零件拆解：</strong></p>
   <div class="scenario-grid">
@@ -823,6 +854,10 @@ window.addEventListener('scroll',()=>{const h=document.documentElement;const pct
 </script>
 <script>
 function _cp(btn){var el=btn.closest('.code-wrap').querySelector('pre,code');if(!el)return;navigator.clipboard.writeText(el.innerText||el.textContent).then(function(){btn.textContent='已複製';btn.classList.add('copied');setTimeout(function(){btn.textContent='複製';btn.classList.remove('copied');},2000);});}
+function _cpText(text,btn,okLabel){var orig=btn.dataset.orig||(btn.dataset.orig=btn.textContent);var lbl=okLabel||'已複製';if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(function(){btn.textContent=lbl;btn.classList.add('ok');setTimeout(function(){btn.textContent=orig;btn.classList.remove('ok');},2000);});}else{var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');btn.textContent=lbl;btn.classList.add('ok');setTimeout(function(){btn.textContent=orig;btn.classList.remove('ok');},2000);}catch(e){}document.body.removeChild(ta);}}
+function _fs(input){var wrap=input.closest('.fill-prompt');if(!wrap)return;var key=input.dataset.slotInput;var val=input.value;wrap.querySelectorAll('.fill-template .slot[data-slot="'+CSS.escape(key)+'"]').forEach(function(s){if(val.trim()){s.textContent=val;s.classList.add('filled');}else{s.textContent=s.dataset.ph||('['+key+']');s.classList.remove('filled');}});}
+function _fm(btn){var wrap=btn.closest('.fill-prompt');var tpl=wrap.querySelector('.fill-template');if(!tpl)return;_cpText(tpl.textContent,btn,'已複製合併結果');}
+function _fr(btn){var wrap=btn.closest('.fill-prompt');var tpl=wrap.querySelector('.fill-template');if(!tpl)return;var clone=tpl.cloneNode(true);clone.querySelectorAll('.slot').forEach(function(s){s.textContent=s.dataset.ph||s.textContent;});_cpText(clone.textContent,btn,'已複製原始範本');}
 </script>
 <script>
 (function(){

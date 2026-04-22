@@ -121,6 +121,26 @@ details[open] summary{color:var(--c-text)}
 
 @media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important}*{animation:none!important}}
 @media(max-width:600px){.topbar{padding:0 20px;gap:8px}.topbar-sub,.topbar-divider{display:none}.topbar-nav{display:none}.page-hero,.lesson-section,.nav-footer,.footer{padding-left:20px;padding-right:20px}.lesson-title{max-width:100%;font-size:1.5rem}}
+.fill-prompt{background:var(--c-surface);border:1px solid var(--c-border-soft);border-radius:var(--radius);padding:14px 16px;margin:8px 0 0}
+.fill-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;flex-wrap:wrap;gap:8px}
+.fill-label{font-size:.7rem;color:var(--c-faint);letter-spacing:.12em;font-weight:500;font-family:'Shippori Mincho',serif}
+.fill-hint{font-size:.7rem;color:var(--c-muted);line-height:1.6}
+.fill-template{font-family:'Noto Sans TC',monospace,sans-serif;font-size:.82rem;color:var(--c-text);background:#fff;border:1px solid var(--c-border-soft);border-radius:var(--radius);padding:12px 14px;line-height:1.9;white-space:pre-wrap;word-break:break-word;margin:0 0 12px}
+.fill-template .slot{display:inline;color:var(--c-main);background:rgba(90,122,90,.1);padding:1px 6px;border-radius:4px;font-weight:500;border:1px solid rgba(90,122,90,.25);transition:background .2s,color .2s,border-color .2s}
+.fill-template .slot.filled{color:var(--c-text);background:rgba(90,122,90,.04);border-color:rgba(90,122,90,.15);font-weight:400}
+.fill-form-head{font-size:.7rem;color:var(--c-faint);letter-spacing:.12em;font-weight:500;font-family:'Shippori Mincho',serif;margin:6px 0 8px}
+.fill-fields{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.fill-field{display:flex;flex-direction:column;gap:3px}
+.field-name{font-size:.78rem;color:var(--c-text);font-weight:500}
+.fill-field textarea{font-family:inherit;font-size:.82rem;color:var(--c-text);background:#fff;border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:7px 10px;line-height:1.6;resize:vertical;min-height:32px;outline:none;transition:border-color .2s;box-sizing:border-box;width:100%}
+.fill-field textarea:focus{border-color:var(--c-main)}
+.fill-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:4px;padding-top:10px;border-top:1px solid var(--c-border-soft)}
+.btn-fill-merge{font-size:.78rem;color:#fff;background:var(--c-main);border:1px solid var(--c-main);padding:6px 14px;border-radius:var(--radius);font-family:inherit;cursor:pointer;transition:filter .2s;letter-spacing:.05em;font-weight:500}
+.btn-fill-merge:hover{filter:brightness(.92)}
+.btn-fill-merge.ok{background:var(--c-text);border-color:var(--c-text)}
+.btn-fill-raw{font-size:.72rem;color:var(--c-muted);background:transparent;border:1px solid var(--c-border);padding:5px 12px;border-radius:var(--radius);font-family:inherit;cursor:pointer;transition:color .2s,border-color .2s;letter-spacing:.05em}
+.btn-fill-raw:hover{color:var(--c-text);border-color:var(--c-text)}
+.btn-fill-raw.ok{color:var(--c-text);border-color:var(--c-text)}
 </style>
 </head>
 <body>
@@ -238,7 +258,11 @@ details[open] summary{color:var(--c-text)}
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">請幫我把這段會議內容整理成三部分：
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">把會議錄音文字貼進去，三分鐘換出逐字稿＋待辦</span></div>
+          <pre class="fill-template">請幫我把這段會議內容整理成三部分：
+
+<span class="slot" data-slot="會議內容" data-ph="[貼上會議錄音轉文字或逐字稿]">[貼上會議錄音轉文字或逐字稿]</span>
 
 1. 逐字稿：保留發言順序，刪除口語贅詞（嗯、那個、對啊）
 2. 會議摘要：5 個 bullet points 以內，每點一句話
@@ -247,7 +271,15 @@ details[open] summary{color:var(--c-text)}
 若某些資訊不完整（例如聽不清楚時間），標註 [待確認]，不要自行補充。
 
 用繁體中文台灣用語。</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">會議內容</span><textarea data-slot-input="會議內容" rows="5" oninput="_fs(this)" placeholder="貼上錄音轉文字、逐字稿或會議記錄，不用先整理"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -270,7 +302,9 @@ details[open] summary{color:var(--c-text)}
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">這張照片是一份 [報價單 / 合約 / 發票 / 收據]。請執行以下步驟：
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">拍照上傳報價單後填四格，直接生確認信</span></div>
+          <pre class="fill-template">這張照片是一份 <span class="slot" data-slot="文件類型" data-ph="[報價單 / 合約 / 發票 / 收據]">[報價單 / 合約 / 發票 / 收據]</span>。請執行以下步驟：
 
 1. 辨識所有文字內容
 2. 整理成結構化資料（欄位：項目、單價、數量、小計、聯絡人、日期）
@@ -278,12 +312,22 @@ details[open] summary{color:var(--c-text)}
 4. 根據結構化資料，草擬一封確認 Email
 
 Email 要求：
-- 收件者：[對方公司的聯絡人]
-- 我的身份：[你的名字 / 公司]
+- 收件者：<span class="slot" data-slot="收件者" data-ph="[對方公司的聯絡人]">[對方公司的聯絡人]</span>
+- 我的身份：<span class="slot" data-slot="我的身份" data-ph="[你的名字 / 公司]">[你的名字 / 公司]</span>
 - 目的：確認上述報價內容並詢問下一步流程
 - 語氣：正式但不僵硬
 - 150 字內</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">文件類型</span><textarea data-slot-input="文件類型" rows="1" oninput="_fs(this)" placeholder="報價單 / 合約 / 發票 / 收據 擇一"></textarea></label>
+            <label class="fill-field"><span class="field-name">收件者</span><textarea data-slot-input="收件者" rows="1" oninput="_fs(this)" placeholder="例：OO 公司王經理"></textarea></label>
+            <label class="fill-field"><span class="field-name">我的身份</span><textarea data-slot-input="我的身份" rows="1" oninput="_fs(this)" placeholder="例：弄一下工作室 小白"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -307,9 +351,11 @@ Email 要求：
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">我今天要處理的事項如下（順序隨機）：
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">把腦中所有雜事倒進來，AI 幫你排順序</span></div>
+          <pre class="fill-template">我今天要處理的事項如下（順序隨機）：
 
-[把所有事情條列出來，不用排序]
+<span class="slot" data-slot="事項清單" data-ph="[把所有事情條列出來，不用排序]">[把所有事情條列出來，不用排序]</span>
 
 請幫我：
 
@@ -318,7 +364,15 @@ Email 要求：
 3. 指出哪些事可以授權、延後或取消（並說明理由）
 
 不要建議我「休息」或「運動」這類生活建議。只處理工作事項。</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">事項清單</span><textarea data-slot-input="事項清單" rows="5" oninput="_fs(this)" placeholder="一行一件，不用排順序，例：&#10;回客戶報價信&#10;整理上週會議紀錄&#10;寫 IG 貼文&#10;報所得稅"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -341,13 +395,15 @@ Email 要求：
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">我要寫一封 [棘手的主題，例：漲價通知 / 婉拒合作 / 催款]。
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">四格背景填進去，一次給你三版語氣</span></div>
+          <pre class="fill-template">我要寫一封 <span class="slot" data-slot="主題" data-ph="[棘手的主題，例：漲價通知 / 婉拒合作 / 催款]">[棘手的主題，例：漲價通知 / 婉拒合作 / 催款]</span>。
 
 背景：
-- 對方是誰：[長期客戶 / 新客戶 / 朋友 / 供應商]
-- 我們的關係：[合作多久、交情如何]
-- 我想達到什麼：[保住關係 / 明確拒絕 / 讓對方付款]
-- 我不想達到什麼：[得罪對方 / 顯得冷漠 / 讓步]
+- 對方是誰：<span class="slot" data-slot="對方" data-ph="[長期客戶 / 新客戶 / 朋友 / 供應商]">[長期客戶 / 新客戶 / 朋友 / 供應商]</span>
+- 我們的關係：<span class="slot" data-slot="關係" data-ph="[合作多久、交情如何]">[合作多久、交情如何]</span>
+- 我想達到什麼：<span class="slot" data-slot="想達到" data-ph="[保住關係 / 明確拒絕 / 讓對方付款]">[保住關係 / 明確拒絕 / 讓對方付款]</span>
+- 我不想達到什麼：<span class="slot" data-slot="不想達到" data-ph="[得罪對方 / 顯得冷漠 / 讓步]">[得罪對方 / 顯得冷漠 / 讓步]</span>
 
 請給我「三個不同語氣」的版本：
 
@@ -356,7 +412,19 @@ B. 溫和 + 堅定：平衡版本
 C. 友善 + 清楚：保留關係感但立場清楚
 
 每則 150 字內。結尾都要給對方一個「下一步行動」。</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">棘手主題</span><textarea data-slot-input="主題" rows="1" oninput="_fs(this)" placeholder="例：漲價通知 / 婉拒合作 / 催款"></textarea></label>
+            <label class="fill-field"><span class="field-name">對方是誰</span><textarea data-slot-input="對方" rows="1" oninput="_fs(this)" placeholder="例：合作 5 年的老客戶"></textarea></label>
+            <label class="fill-field"><span class="field-name">我們的關係</span><textarea data-slot-input="關係" rows="2" oninput="_fs(this)" placeholder="合作多久、交情如何，簡述背景"></textarea></label>
+            <label class="fill-field"><span class="field-name">想達到</span><textarea data-slot-input="想達到" rows="1" oninput="_fs(this)" placeholder="例：保住關係又能漲 15%"></textarea></label>
+            <label class="fill-field"><span class="field-name">不想達到</span><textarea data-slot-input="不想達到" rows="1" oninput="_fs(this)" placeholder="例：顯得冷漠、讓對方覺得被算計"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -379,9 +447,11 @@ C. 友善 + 清楚：保留關係感但立場清楚
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">請幫我摘要以下內容：
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">把客戶原文貼進來，三句話看懂對方要什麼</span></div>
+          <pre class="fill-template">請幫我摘要以下內容：
 
-[貼上長訊息]
+<span class="slot" data-slot="長訊息" data-ph="[貼上長訊息]">[貼上長訊息]</span>
 
 輸出要求：
 
@@ -389,7 +459,15 @@ C. 友善 + 清楚：保留關係感但立場清楚
 2. 對方的情緒或立場（憤怒 / 友善 / 商業 / 模糊）
 3. 如果我要回覆，建議我先處理哪一點
 4. 不要加油添醋，只摘要原文有的內容</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">長訊息</span><textarea data-slot-input="長訊息" rows="5" oninput="_fs(this)" placeholder="貼上客戶私訊、公文、長 email，不用整理"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -412,7 +490,9 @@ C. 友善 + 清楚：保留關係感但立場清楚
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">我有一個想法：[用口語描述你的想法，可以亂講、可以重複]
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">想法講得亂沒關係，AI 幫你長成 5 段提案</span></div>
+          <pre class="fill-template">我有一個想法：<span class="slot" data-slot="想法" data-ph="[用口語描述你的想法，可以亂講、可以重複]">[用口語描述你的想法，可以亂講、可以重複]</span>
 
 請幫我：
 
@@ -427,7 +507,15 @@ C. 友善 + 清楚：保留關係感但立場清楚
 4. 列出三個我應該先回答的關鍵問題
 
 不要加我沒講過的內容。如果某段資訊不夠，標註 [需補充]。</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">我的想法</span><textarea data-slot-input="想法" rows="5" oninput="_fs(this)" placeholder="用口語講你的想法，可以亂講、可以重複，不用先整理"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -450,9 +538,11 @@ C. 友善 + 清楚：保留關係感但立場清楚
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">以下是我 [時間，例：三個月前] 做過某個決定時的相關對話 / 筆記：
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">舊決策忘了原因，AI 幫你還原當時的考量</span></div>
+          <pre class="fill-template">以下是我 <span class="slot" data-slot="時間" data-ph="[時間，例：三個月前]">[時間，例：三個月前]</span> 做過某個決定時的相關對話 / 筆記：
 
-[貼上內容]
+<span class="slot" data-slot="內容" data-ph="[貼上內容]">[貼上內容]</span>
 
 請幫我還原：
 
@@ -462,7 +552,16 @@ C. 友善 + 清楚：保留關係感但立場清楚
 4. 如果今天要重新決定，需要補哪些資訊
 
 用中性語氣，不要評論決策的好壞。</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">時間</span><textarea data-slot-input="時間" rows="1" oninput="_fs(this)" placeholder="例：三個月前 / 今年 2 月"></textarea></label>
+            <label class="fill-field"><span class="field-name">對話 / 筆記</span><textarea data-slot-input="內容" rows="5" oninput="_fs(this)" placeholder="貼上當時的 LINE 訊息、email 來回、筆記，越多越好"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -485,13 +584,15 @@ C. 友善 + 清楚：保留關係感但立場清楚
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">從現在開始，請記住以下設定，之後的對話都依此回應：
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">填一次五格，之後對話 AI 都記得你的身份</span></div>
+          <pre class="fill-template">從現在開始，請記住以下設定，之後的對話都依此回應：
 
-我的身份：[例：一人創業做手工皂的老闆]
-我的業務：[你做什麼，一兩句]
-我的主要客戶：[誰會買、他們的特徵]
-我最缺的時間：[最想解決的三個時間黑洞]
-我的行業避雷區：[我的產業有什麼特殊禁忌或法規]
+我的身份：<span class="slot" data-slot="身份" data-ph="[例：一人創業做手工皂的老闆]">[例：一人創業做手工皂的老闆]</span>
+我的業務：<span class="slot" data-slot="業務" data-ph="[你做什麼，一兩句]">[你做什麼，一兩句]</span>
+我的主要客戶：<span class="slot" data-slot="客戶" data-ph="[誰會買、他們的特徵]">[誰會買、他們的特徵]</span>
+我最缺的時間：<span class="slot" data-slot="時間黑洞" data-ph="[最想解決的三個時間黑洞]">[最想解決的三個時間黑洞]</span>
+我的行業避雷區：<span class="slot" data-slot="避雷區" data-ph="[我的產業有什麼特殊禁忌或法規]">[我的產業有什麼特殊禁忌或法規]</span>
 
 回應風格要求：
 
@@ -502,7 +603,19 @@ C. 友善 + 清楚：保留關係感但立場清楚
 5. 資訊不足時，直接列出還需要知道什麼
 
 確認收到請回覆「已設定，請開始」。</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">我的身份</span><textarea data-slot-input="身份" rows="1" oninput="_fs(this)" placeholder="例：開店 2 年的單店咖啡館老闆（行業 + 規模 + 創業時間）"></textarea></label>
+            <label class="fill-field"><span class="field-name">我的業務</span><textarea data-slot-input="業務" rows="1" oninput="_fs(this)" placeholder="你做什麼，一兩句講完"></textarea></label>
+            <label class="fill-field"><span class="field-name">主要客戶</span><textarea data-slot-input="客戶" rows="1" oninput="_fs(this)" placeholder="誰會買、他們的特徵"></textarea></label>
+            <label class="fill-field"><span class="field-name">時間黑洞</span><textarea data-slot-input="時間黑洞" rows="2" oninput="_fs(this)" placeholder="例：社群貼文、回覆客人 LINE、整理會議紀錄"></textarea></label>
+            <label class="fill-field"><span class="field-name">行業避雷區</span><textarea data-slot-input="避雷區" rows="2" oninput="_fs(this)" placeholder="例：食品業不能宣稱療效"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -527,11 +640,13 @@ C. 友善 + 清楚：保留關係感但立場清楚
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">幫我產出一週（7 則）Instagram 貼文，為品牌建立內容節奏。
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">三格定位＋主題填完，下週 IG 七則草稿一次生</span></div>
+          <pre class="fill-template">幫我產出一週（7 則）Instagram 貼文，為品牌建立內容節奏。
 
-品牌定位：[一句話，可參考 TK-02 產出]
-目標客戶：[具體 TA]
-本週主題：[擇一：新品上市 / 創辦人故事 / 客戶見證 / 使用教學 / 幕後花絮]
+品牌定位：<span class="slot" data-slot="定位" data-ph="[一句話，可參考 TK-02 產出]">[一句話，可參考 TK-02 產出]</span>
+目標客戶：<span class="slot" data-slot="客戶" data-ph="[具體 TA]">[具體 TA]</span>
+本週主題：<span class="slot" data-slot="主題" data-ph="[擇一：新品上市 / 創辦人故事 / 客戶見證 / 使用教學 / 幕後花絮]">[擇一：新品上市 / 創辦人故事 / 客戶見證 / 使用教學 / 幕後花絮]</span>
 
 七則貼文節奏：
 - 週一：週一激勵或打招呼
@@ -548,9 +663,20 @@ C. 友善 + 清楚：保留關係感但立場清楚
 3. CTA（留言 / 分享 / 點連結擇一）
 4. Hashtag（5-8 個，大中小標籤混合，加入在地標籤）
 
-風格：[親切 / 專業 / 幽默 / 文青 擇一]
+風格：<span class="slot" data-slot="風格" data-ph="[親切 / 專業 / 幽默 / 文青 擇一]">[親切 / 專業 / 幽默 / 文青 擇一]</span>
 禁用：限時、必買、錯過終生後悔等誇張行銷詞</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">品牌定位</span><textarea data-slot-input="定位" rows="1" oninput="_fs(this)" placeholder="一句話講你是誰、給誰、為什麼選你"></textarea></label>
+            <label class="fill-field"><span class="field-name">目標客戶</span><textarea data-slot-input="客戶" rows="2" oninput="_fs(this)" placeholder="具體到年齡、職業、在意什麼"></textarea></label>
+            <label class="fill-field"><span class="field-name">本週主題</span><textarea data-slot-input="主題" rows="1" oninput="_fs(this)" placeholder="新品上市 / 創辦人故事 / 客戶見證 / 使用教學 / 幕後花絮"></textarea></label>
+            <label class="fill-field"><span class="field-name">風格</span><textarea data-slot-input="風格" rows="1" oninput="_fs(this)" placeholder="親切 / 專業 / 幽默 / 文青 擇一"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -573,9 +699,11 @@ C. 友善 + 清楚：保留關係感但立場清楚
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">以下是我要發佈的貼文內文：
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">貼完內文，十個不同風格標題一次比</span></div>
+          <pre class="fill-template">以下是我要發佈的貼文內文：
 
-[貼上內文]
+<span class="slot" data-slot="內文" data-ph="[貼上內文]">[貼上內文]</span>
 
 請幫我產出 10 個不同風格的標題（含開頭第一句），分類為：
 
@@ -588,7 +716,15 @@ C. 友善 + 清楚：保留關係感但立場清楚
 每個標題 20 字內，禁用驚嘆號、省略號。
 
 標註每個標題「最可能吸引的客群類型」。</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">貼文內文</span><textarea data-slot-input="內文" rows="5" oninput="_fs(this)" placeholder="貼上你寫好的貼文全文，不用含標題"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -611,12 +747,14 @@ C. 友善 + 清楚：保留關係感但立場清楚
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">幫我寫一支 30 秒短影音腳本。
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">四格填完直接生分鏡＋口白，拍片不發呆</span></div>
+          <pre class="fill-template">幫我寫一支 30 秒短影音腳本。
 
-產品 / 主題：[你的產品或要談的主題]
-目標客群：[誰會看]
-影片目的：[拉新客 / 提升互動 / 導購 / 品牌記憶]
-拍攝場景：[例：工作室、商品特寫、口播]
+產品 / 主題：<span class="slot" data-slot="主題" data-ph="[你的產品或要談的主題]">[你的產品或要談的主題]</span>
+目標客群：<span class="slot" data-slot="客群" data-ph="[誰會看]">[誰會看]</span>
+影片目的：<span class="slot" data-slot="目的" data-ph="[拉新客 / 提升互動 / 導購 / 品牌記憶]">[拉新客 / 提升互動 / 導購 / 品牌記憶]</span>
+拍攝場景：<span class="slot" data-slot="場景" data-ph="[例：工作室、商品特寫、口播]">[例：工作室、商品特寫、口播]</span>
 
 腳本要求：
 - 第一句必須在 3 秒內抓住注意力（否則觀眾滑走）
@@ -629,8 +767,20 @@ C. 友善 + 清楚：保留關係感但立場清楚
 【3-8s】畫面：XXX　口白：「......」
 （以此類推）
 
-風格：[口語 / 正式 / 幽默 / 煽動 擇一]</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+風格：<span class="slot" data-slot="風格" data-ph="[口語 / 正式 / 幽默 / 煽動 擇一]">[口語 / 正式 / 幽默 / 煽動 擇一]</span></pre>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">產品 / 主題</span><textarea data-slot-input="主題" rows="1" oninput="_fs(this)" placeholder="例：新上市薰衣草沐浴球"></textarea></label>
+            <label class="fill-field"><span class="field-name">目標客群</span><textarea data-slot-input="客群" rows="1" oninput="_fs(this)" placeholder="例：25-40 歲晚上想放鬆的上班族"></textarea></label>
+            <label class="fill-field"><span class="field-name">影片目的</span><textarea data-slot-input="目的" rows="1" oninput="_fs(this)" placeholder="拉新客 / 提升互動 / 導購 / 品牌記憶"></textarea></label>
+            <label class="fill-field"><span class="field-name">拍攝場景</span><textarea data-slot-input="場景" rows="1" oninput="_fs(this)" placeholder="例：工作室檯面拍商品＋口播"></textarea></label>
+            <label class="fill-field"><span class="field-name">風格</span><textarea data-slot-input="風格" rows="1" oninput="_fs(this)" placeholder="口語 / 正式 / 幽默 / 煽動 擇一"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -653,9 +803,11 @@ C. 友善 + 清楚：保留關係感但立場清楚
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">以下是我寫的一篇長文：
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">長文貼一次，五平台格式一次生</span></div>
+          <pre class="fill-template">以下是我寫的一篇長文：
 
-[貼上長文]
+<span class="slot" data-slot="長文" data-ph="[貼上長文]">[貼上長文]</span>
 
 請幫我改寫成五種平台格式：
 
@@ -669,7 +821,15 @@ C. 友善 + 清楚：保留關係感但立場清楚
 - 保留原文的核心觀點
 - 每個平台的調性要明顯不同
 - 不要重複同一組 Hashtag</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">長文</span><textarea data-slot-input="長文" rows="5" oninput="_fs(this)" placeholder="貼上你寫好的部落格、電子報全文"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -692,9 +852,11 @@ C. 友善 + 清楚：保留關係感但立場清楚
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">以下是一段客戶的評價 / 私訊：
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">客戶原文貼進來，一次生三版見證文</span></div>
+          <pre class="fill-template">以下是一段客戶的評價 / 私訊：
 
-[貼上客戶原文]
+<span class="slot" data-slot="客戶原文" data-ph="[貼上客戶原文]">[貼上客戶原文]</span>
 
 請幫我改寫成一則可公開張貼的客戶故事。
 
@@ -710,7 +872,15 @@ C. 友善 + 清楚：保留關係感但立場清楚
 A. 文字版（社群用）
 B. 圖卡用短句（50 字內，適合圖片上）
 C. Google 評論回覆版（禮貌感謝）</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">客戶原文</span><textarea data-slot-input="客戶原文" rows="5" oninput="_fs(this)" placeholder="貼上 LINE 私訊、評論、email，逐字貼不用修"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -733,13 +903,15 @@ C. Google 評論回覆版（禮貌感謝）</pre>
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">我要舉辦一場活動。
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">五格活動資訊填完，海報文案到 CTA 一次出</span></div>
+          <pre class="fill-template">我要舉辦一場活動。
 
-活動主題：[例：開店一週年感恩市集]
-時間地點：[具體]
-參加對象：[誰來]
-活動亮點：[3 件事]
-想達到的效果：[新客體驗 / 老客回流 / 品牌記憶]
+活動主題：<span class="slot" data-slot="主題" data-ph="[例：開店一週年感恩市集]">[例：開店一週年感恩市集]</span>
+時間地點：<span class="slot" data-slot="時間地點" data-ph="[具體]">[具體]</span>
+參加對象：<span class="slot" data-slot="對象" data-ph="[誰來]">[誰來]</span>
+活動亮點：<span class="slot" data-slot="亮點" data-ph="[3 件事]">[3 件事]</span>
+想達到的效果：<span class="slot" data-slot="效果" data-ph="[新客體驗 / 老客回流 / 品牌記憶]">[新客體驗 / 老客回流 / 品牌記憶]</span>
 
 請產出三段文案：
 
@@ -751,7 +923,19 @@ C. Google 評論回覆版（禮貌感謝）</pre>
 
 3. 報名 CTA（50 字內）
    要有明確動作指示（加 LINE、點連結、留言），不要「敬請期待」這種空話</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">活動主題</span><textarea data-slot-input="主題" rows="1" oninput="_fs(this)" placeholder="例：開店一週年感恩市集"></textarea></label>
+            <label class="fill-field"><span class="field-name">時間地點</span><textarea data-slot-input="時間地點" rows="1" oninput="_fs(this)" placeholder="例：4/20（六）14:00-18:00，大稻埕工作室"></textarea></label>
+            <label class="fill-field"><span class="field-name">參加對象</span><textarea data-slot-input="對象" rows="1" oninput="_fs(this)" placeholder="例：老客戶、手工皂愛好者、親子家庭"></textarea></label>
+            <label class="fill-field"><span class="field-name">活動亮點</span><textarea data-slot-input="亮點" rows="2" oninput="_fs(this)" placeholder="三件事，例：新品試用、現場手作、老客戶 9 折"></textarea></label>
+            <label class="fill-field"><span class="field-name">想達到效果</span><textarea data-slot-input="效果" rows="1" oninput="_fs(this)" placeholder="新客體驗 / 老客回流 / 品牌記憶"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -774,11 +958,13 @@ C. Google 評論回覆版（禮貌感謝）</pre>
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">請幫我快速研究以下品牌，整理成對比表：
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">列出三個競品名稱與網址，AI 給你對比表</span></div>
+          <pre class="fill-template">請幫我快速研究以下品牌，整理成對比表：
 
-品牌 A：[名稱 + 網址]
-品牌 B：[名稱 + 網址]
-品牌 C：[名稱 + 網址]
+品牌 A：<span class="slot" data-slot="品牌A" data-ph="[名稱 + 網址]">[名稱 + 網址]</span>
+品牌 B：<span class="slot" data-slot="品牌B" data-ph="[名稱 + 網址]">[名稱 + 網址]</span>
+品牌 C：<span class="slot" data-slot="品牌C" data-ph="[名稱 + 網址]">[名稱 + 網址]</span>
 
 對比維度：
 
@@ -792,7 +978,17 @@ C. Google 評論回覆版（禮貌感謝）</pre>
 - 資料請列出來源網址
 - 無法確認的資訊標註 [需查證]，不要編造
 - 用表格呈現</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">品牌 A</span><textarea data-slot-input="品牌A" rows="1" oninput="_fs(this)" placeholder="名稱 + 官網 / IG 網址"></textarea></label>
+            <label class="fill-field"><span class="field-name">品牌 B</span><textarea data-slot-input="品牌B" rows="1" oninput="_fs(this)" placeholder="名稱 + 官網 / IG 網址"></textarea></label>
+            <label class="fill-field"><span class="field-name">品牌 C</span><textarea data-slot-input="品牌C" rows="1" oninput="_fs(this)" placeholder="名稱 + 官網 / IG 網址"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -815,12 +1011,14 @@ C. Google 評論回覆版（禮貌感謝）</pre>
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">幫我為新產品命名。
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">四格產品輪廓填完，一次產 20 個候選名</span></div>
+          <pre class="fill-template">幫我為新產品命名。
 
-產品描述：[一兩句話講清楚這是什麼]
-主要成分 / 特色：[關鍵字]
-目標客群：[誰會買]
-品牌既有命名邏輯：[你其他產品怎麼命名的？有規則嗎？]
+產品描述：<span class="slot" data-slot="描述" data-ph="[一兩句話講清楚這是什麼]">[一兩句話講清楚這是什麼]</span>
+主要成分 / 特色：<span class="slot" data-slot="特色" data-ph="[關鍵字]">[關鍵字]</span>
+目標客群：<span class="slot" data-slot="客群" data-ph="[誰會買]">[誰會買]</span>
+品牌既有命名邏輯：<span class="slot" data-slot="命名邏輯" data-ph="[你其他產品怎麼命名的？有規則嗎？]">[你其他產品怎麼命名的？有規則嗎？]</span>
 
 請產出 20 個名字，分成五類各 4 個：
 
@@ -835,7 +1033,18 @@ C. Google 評論回覆版（禮貌感謝）</pre>
 - 可能的負面聯想（若有）
 
 禁用：「OO 之光」「極致 OO」「頂級 OO」這類老套前綴</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">產品描述</span><textarea data-slot-input="描述" rows="2" oninput="_fs(this)" placeholder="一兩句話講清楚這是什麼"></textarea></label>
+            <label class="fill-field"><span class="field-name">主要成分 / 特色</span><textarea data-slot-input="特色" rows="1" oninput="_fs(this)" placeholder="關鍵字條列，例：薰衣草、低敏、夜用"></textarea></label>
+            <label class="fill-field"><span class="field-name">目標客群</span><textarea data-slot-input="客群" rows="1" oninput="_fs(this)" placeholder="誰會買"></textarea></label>
+            <label class="fill-field"><span class="field-name">既有命名邏輯</span><textarea data-slot-input="命名邏輯" rows="2" oninput="_fs(this)" placeholder="例：過去都用植物名 + 形容詞，或直接寫「沒有規則」"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -858,20 +1067,34 @@ C. Google 評論回覆版（禮貌感謝）</pre>
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">我想用 AI 生一張圖，情境如下：
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">中文描述想要的畫面，AI 翻成英文生圖指令</span></div>
+          <pre class="fill-template">我想用 AI 生一張圖，情境如下：
 
-用途：[社群貼文 / 網站 banner / 產品示意 / 活動海報]
-畫面內容：[中文描述你想看到什麼]
-風格：[文青 / 寫實 / 插畫 / 極簡 / 工業風...]
-色調：[暖色 / 冷色 / 黑白 / 特定顏色]
-要避免：[例：不要有文字、不要有人臉、不要太擁擠]
+用途：<span class="slot" data-slot="用途" data-ph="[社群貼文 / 網站 banner / 產品示意 / 活動海報]">[社群貼文 / 網站 banner / 產品示意 / 活動海報]</span>
+畫面內容：<span class="slot" data-slot="畫面" data-ph="[中文描述你想看到什麼]">[中文描述你想看到什麼]</span>
+風格：<span class="slot" data-slot="風格" data-ph="[文青 / 寫實 / 插畫 / 極簡 / 工業風...]">[文青 / 寫實 / 插畫 / 極簡 / 工業風...]</span>
+色調：<span class="slot" data-slot="色調" data-ph="[暖色 / 冷色 / 黑白 / 特定顏色]">[暖色 / 冷色 / 黑白 / 特定顏色]</span>
+要避免：<span class="slot" data-slot="避免" data-ph="[例：不要有文字、不要有人臉、不要太擁擠]">[例：不要有文字、不要有人臉、不要太擁擠]</span>
 
 請幫我：
 
 1. 把上述需求翻成一個有效的英文 image prompt（給 Gemini 或 ChatGPT 生圖用）
 2. 列出 3 個「可調整的關鍵字」，萬一第一版不滿意可以微調
 3. 提醒我常見的圖片生成陷阱（例：AI 生手容易畸形、中文字無法正確渲染）</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">用途</span><textarea data-slot-input="用途" rows="1" oninput="_fs(this)" placeholder="社群貼文 / 網站 banner / 產品示意 / 活動海報"></textarea></label>
+            <label class="fill-field"><span class="field-name">畫面內容</span><textarea data-slot-input="畫面" rows="3" oninput="_fs(this)" placeholder="用中文描述想看到什麼，越具體越好"></textarea></label>
+            <label class="fill-field"><span class="field-name">風格</span><textarea data-slot-input="風格" rows="1" oninput="_fs(this)" placeholder="文青 / 寫實 / 插畫 / 極簡 / 工業風 等"></textarea></label>
+            <label class="fill-field"><span class="field-name">色調</span><textarea data-slot-input="色調" rows="1" oninput="_fs(this)" placeholder="例：暖色（米、橘、木頭色）"></textarea></label>
+            <label class="fill-field"><span class="field-name">要避免</span><textarea data-slot-input="避免" rows="2" oninput="_fs(this)" placeholder="例：不要文字、不要人臉、不要太擁擠"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -894,12 +1117,14 @@ C. Google 評論回覆版（禮貌感謝）</pre>
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">幫我寫一封新品通知 Email。
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">四格填完，主旨到 P.S. 一次出</span></div>
+          <pre class="fill-template">幫我寫一封新品通知 Email。
 
-新品：[名稱與一句話介紹]
-對象：[名單特徵，例：過去買過單價 500 以上的客戶]
-目的：[讓他們看、讓他們回購、讓他們轉發]
-我的品牌語氣：[可貼一段你過去寫過的文字讓 AI 學]
+新品：<span class="slot" data-slot="新品" data-ph="[名稱與一句話介紹]">[名稱與一句話介紹]</span>
+對象：<span class="slot" data-slot="對象" data-ph="[名單特徵，例：過去買過單價 500 以上的客戶]">[名單特徵，例：過去買過單價 500 以上的客戶]</span>
+目的：<span class="slot" data-slot="目的" data-ph="[讓他們看、讓他們回購、讓他們轉發]">[讓他們看、讓他們回購、讓他們轉發]</span>
+我的品牌語氣：<span class="slot" data-slot="語氣範本" data-ph="[可貼一段你過去寫過的文字讓 AI 學]">[可貼一段你過去寫過的文字讓 AI 學]</span>
 
 Email 結構：
 
@@ -912,7 +1137,18 @@ Email 結構：
 4. P.S. 一句話（Email 的 P.S. 往往比內文更有人看）
 
 禁用：「限時優惠」「錯過不再」「僅此一次」</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">新品</span><textarea data-slot-input="新品" rows="1" oninput="_fs(this)" placeholder="名稱 + 一句話介紹"></textarea></label>
+            <label class="fill-field"><span class="field-name">寄送對象</span><textarea data-slot-input="對象" rows="1" oninput="_fs(this)" placeholder="例：過去買過單價 500 以上的老客戶"></textarea></label>
+            <label class="fill-field"><span class="field-name">目的</span><textarea data-slot-input="目的" rows="1" oninput="_fs(this)" placeholder="讓他們看 / 讓他們回購 / 讓他們轉發"></textarea></label>
+            <label class="fill-field"><span class="field-name">品牌語氣範本</span><textarea data-slot-input="語氣範本" rows="4" oninput="_fs(this)" placeholder="貼一段你以前寫過的貼文 / Email，AI 會模仿你的口吻"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -937,16 +1173,18 @@ Email 結構：
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">幫我建立客戶常見問題的回覆範本庫。
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">五題填完，一鍵生 15 則 FAQ 回覆</span></div>
+          <pre class="fill-template">幫我建立客戶常見問題的回覆範本庫。
 
-我的業務：[一兩句話]
+我的業務：<span class="slot" data-slot="業務" data-ph="[一兩句話]">[一兩句話]</span>
 
 我最常被問的 5 個問題：
-1. [例：可以客製嗎？]
-2. [例：運費怎麼算？]
-3. [例：可以便宜一點嗎？]
-4. [例：多久會到？]
-5. [例：退換貨怎麼辦？]
+1. <span class="slot" data-slot="問題1" data-ph="[例：可以客製嗎？]">[例：可以客製嗎？]</span>
+2. <span class="slot" data-slot="問題2" data-ph="[例：運費怎麼算？]">[例：運費怎麼算？]</span>
+3. <span class="slot" data-slot="問題3" data-ph="[例：可以便宜一點嗎？]">[例：可以便宜一點嗎？]</span>
+4. <span class="slot" data-slot="問題4" data-ph="[例：多久會到？]">[例：多久會到？]</span>
+5. <span class="slot" data-slot="問題5" data-ph="[例：退換貨怎麼辦？]">[例：退換貨怎麼辦？]</span>
 
 每個問題請產出三種語氣的回覆：
 A. 正式版（Email、官網使用）
@@ -958,7 +1196,20 @@ C. 幽默版（社群公開留言使用）
 議價類問題（問題 3）不要直接降價，要給出「為什麼值得這個價」的回應方向。
 
 客訴類問題不要用「請您理解」這種推卸責任的語氣。</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">我的業務</span><textarea data-slot-input="業務" rows="1" oninput="_fs(this)" placeholder="一兩句話講你在做什麼"></textarea></label>
+            <label class="fill-field"><span class="field-name">問題 1</span><textarea data-slot-input="問題1" rows="1" oninput="_fs(this)" placeholder="例：可以客製嗎？"></textarea></label>
+            <label class="fill-field"><span class="field-name">問題 2</span><textarea data-slot-input="問題2" rows="1" oninput="_fs(this)" placeholder="例：運費怎麼算？"></textarea></label>
+            <label class="fill-field"><span class="field-name">問題 3（議價類）</span><textarea data-slot-input="問題3" rows="1" oninput="_fs(this)" placeholder="例：可以便宜一點嗎？"></textarea></label>
+            <label class="fill-field"><span class="field-name">問題 4</span><textarea data-slot-input="問題4" rows="1" oninput="_fs(this)" placeholder="例：多久會到？"></textarea></label>
+            <label class="fill-field"><span class="field-name">問題 5</span><textarea data-slot-input="問題5" rows="1" oninput="_fs(this)" placeholder="例：退換貨怎麼辦？"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -981,9 +1232,11 @@ C. 幽默版（社群公開留言使用）
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">以下是客戶傳給我的訊息：
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">客訴原文貼進來，AI 判分＋三版回應</span></div>
+          <pre class="fill-template">以下是客戶傳給我的訊息：
 
-[貼上客戶訊息]
+<span class="slot" data-slot="客訴" data-ph="[貼上客戶訊息]">[貼上客戶訊息]</span>
 
 請幫我：
 
@@ -1003,7 +1256,15 @@ C. 幽默版（社群公開留言使用）
 4. 建議我選哪個版本，並說明理由
 
 每則回覆 150 字內。不要用「造成您的不便」這種罐頭句。</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">客戶訊息</span><textarea data-slot-input="客訴" rows="5" oninput="_fs(this)" placeholder="貼上客戶完整抱怨原文，不用修字"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -1026,12 +1287,14 @@ C. 幽默版（社群公開留言使用）
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">客戶問了我一個尖銳的問題：
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">尖銳問題三格填進去，一次給你三種接法</span></div>
+          <pre class="fill-template">客戶問了我一個尖銳的問題：
 
-[客戶原話]
+<span class="slot" data-slot="客戶原話" data-ph="[客戶原話]">[客戶原話]</span>
 
-我的真實情況：[你真實的回答，可以誠實寫]
-我不想完全照實說的原因：[商業考量 / 隱私 / 避免比較...]
+我的真實情況：<span class="slot" data-slot="真實情況" data-ph="[你真實的回答，可以誠實寫]">[你真實的回答，可以誠實寫]</span>
+我不想完全照實說的原因：<span class="slot" data-slot="原因" data-ph="[商業考量 / 隱私 / 避免比較...]">[商業考量 / 隱私 / 避免比較...]</span>
 
 請幫我想三個回應策略：
 
@@ -1042,7 +1305,17 @@ C. 幽默版（社群公開留言使用）
 每個版本 100 字內。
 
 所有版本都不能讓對方覺得被打發或敷衍。</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">客戶原話</span><textarea data-slot-input="客戶原話" rows="3" oninput="_fs(this)" placeholder="例：你們成本多少？為什麼比 OO 貴？"></textarea></label>
+            <label class="fill-field"><span class="field-name">真實情況</span><textarea data-slot-input="真實情況" rows="3" oninput="_fs(this)" placeholder="誠實寫，只給 AI 看，不會出現在最終回覆"></textarea></label>
+            <label class="fill-field"><span class="field-name">不想照實說的原因</span><textarea data-slot-input="原因" rows="2" oninput="_fs(this)" placeholder="商業考量 / 隱私 / 避免比較 / 其他"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -1065,12 +1338,14 @@ C. 幽默版（社群公開留言使用）
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">幫我寫一份退換貨處理的客服腳本。
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">三格政策填完，5 種情境腳本一次生</span></div>
+          <pre class="fill-template">幫我寫一份退換貨處理的客服腳本。
 
 我的退換貨政策：
-- 可退換條件：[例：7 天內 + 未拆封]
-- 不可退換條件：[例：客製商品 / 已使用]
-- 運費負擔：[誰付錢]
+- 可退換條件：<span class="slot" data-slot="可退換" data-ph="[例：7 天內 + 未拆封]">[例：7 天內 + 未拆封]</span>
+- 不可退換條件：<span class="slot" data-slot="不可退換" data-ph="[例：客製商品 / 已使用]">[例：客製商品 / 已使用]</span>
+- 運費負擔：<span class="slot" data-slot="運費" data-ph="[誰付錢]">[誰付錢]</span>
 
 腳本要求：
 
@@ -1088,7 +1363,17 @@ C. 幽默版（社群公開留言使用）
 每則 100 字內。
 
 所有回應避免「依我們的規定」「根據政策」這類生硬用語。</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">可退換條件</span><textarea data-slot-input="可退換" rows="2" oninput="_fs(this)" placeholder="例：收到 7 天內、未拆封、包裝完整"></textarea></label>
+            <label class="fill-field"><span class="field-name">不可退換條件</span><textarea data-slot-input="不可退換" rows="2" oninput="_fs(this)" placeholder="例：客製商品、已使用、現場手作商品"></textarea></label>
+            <label class="fill-field"><span class="field-name">運費負擔</span><textarea data-slot-input="運費" rows="1" oninput="_fs(this)" placeholder="例：非瑕疵買家付、瑕疵賣家付"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -1111,23 +1396,34 @@ C. 幽默版（社群公開留言使用）
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">以下是客戶用 [英文 / 日文 / 其他] 傳來的訊息：
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">外語訊息貼進來，中譯＋敬語對齊一起回</span></div>
+          <pre class="fill-template">以下是客戶用 <span class="slot" data-slot="語言" data-ph="[英文 / 日文 / 其他]">[英文 / 日文 / 其他]</span> 傳來的訊息：
 
-[貼上原文]
+<span class="slot" data-slot="原文" data-ph="[貼上原文]">[貼上原文]</span>
 
 請幫我：
 
 1. 把原文翻成中文，並標註重點
 2. 判斷客戶的語氣（正式 / 友善 / 不滿 / 急促）
 3. 草擬兩個版本的回覆：
-   A. 用客戶的原語言（[英文 / 日文]）
+   A. 用客戶的原語言（<span class="slot" data-slot="語言" data-ph="[英文 / 日文]">[英文 / 日文]</span>）
    B. 中英對照（若對方可能也看得懂中文）
 4. 回覆語氣要對齊客戶（他正式我正式，他友善我友善）
 
 注意：若客戶用的是敬語（如日文敬語），我的回覆也要用對等敬語。
 
 不確定的文化禁忌請標註 [需查證]，不要強行回應。</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">客戶語言</span><textarea data-slot-input="語言" rows="1" oninput="_fs(this)" placeholder="英文 / 日文 / 韓文 / 其他"></textarea></label>
+            <label class="fill-field"><span class="field-name">原文</span><textarea data-slot-input="原文" rows="5" oninput="_fs(this)" placeholder="貼上客戶原文訊息（英／日／其他語言）"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -1150,12 +1446,14 @@ C. 幽默版（社群公開留言使用）
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">以下是 Google 上一則評論（公開可見）：
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">負評三格填進去，三版公開回覆一次生</span></div>
+          <pre class="fill-template">以下是 Google 上一則評論（公開可見）：
 
-評論星數：[X 星]
-評論內容：[貼上原文]
+評論星數：<span class="slot" data-slot="星數" data-ph="[X 星]">[X 星]</span>
+評論內容：<span class="slot" data-slot="評論內容" data-ph="[貼上原文]">[貼上原文]</span>
 
-我的回應目的：[表達歉意 / 澄清事實 / 引導私訊處理]
+我的回應目的：<span class="slot" data-slot="目的" data-ph="[表達歉意 / 澄清事實 / 引導私訊處理]">[表達歉意 / 澄清事實 / 引導私訊處理]</span>
 
 請草擬三版公開回覆：
 
@@ -1172,7 +1470,17 @@ C. 接住型（不辯解，純粹承接情緒 + 引導私訊）
 - 不要用「很抱歉讓您有這樣的感受」這種被動句型
 
 額外判斷：這則評論是否建議先請對方刪除 / 修改（若有明顯錯誤）。</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">評論星數</span><textarea data-slot-input="星數" rows="1" oninput="_fs(this)" placeholder="例：2 星"></textarea></label>
+            <label class="fill-field"><span class="field-name">評論內容</span><textarea data-slot-input="評論內容" rows="4" oninput="_fs(this)" placeholder="貼上 Google 評論原文"></textarea></label>
+            <label class="fill-field"><span class="field-name">回應目的</span><textarea data-slot-input="目的" rows="1" oninput="_fs(this)" placeholder="表達歉意 / 澄清事實 / 引導私訊處理"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -1197,14 +1505,16 @@ C. 接住型（不辯解，純粹承接情緒 + 引導私訊）
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">請幫我產出一份 [產業名稱，例：手工皂 / 保養品] 在台灣的近期趨勢快報。
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">五格填完，AI 給你產業快報＋來源</span></div>
+          <pre class="fill-template">請幫我產出一份 <span class="slot" data-slot="產業" data-ph="[產業名稱，例：手工皂 / 保養品]">[產業名稱，例：手工皂 / 保養品]</span> 在台灣的近期趨勢快報。
 
-時間範圍：近 [3 個月 / 6 個月]
+時間範圍：近 <span class="slot" data-slot="時間範圍" data-ph="[3 個月 / 6 個月]">[3 個月 / 6 個月]</span>
 
 我最想知道的三件事：
-1. [例：有沒有新的法規要注意]
-2. [例：有沒有新品牌崛起]
-3. [例：客戶的偏好有沒有變化]
+1. <span class="slot" data-slot="想知道1" data-ph="[例：有沒有新的法規要注意]">[例：有沒有新的法規要注意]</span>
+2. <span class="slot" data-slot="想知道2" data-ph="[例：有沒有新品牌崛起]">[例：有沒有新品牌崛起]</span>
+3. <span class="slot" data-slot="想知道3" data-ph="[例：客戶的偏好有沒有變化]">[例：客戶的偏好有沒有變化]</span>
 
 輸出格式：
 
@@ -1217,7 +1527,19 @@ C. 接住型（不辯解，純粹承接情緒 + 引導私訊）
 - 無法確認的資訊標註 [需查證]
 - 不要列出 3 年前的舊新聞
 - 來源請優先用政府官網、產業報告、主流媒體</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">產業名稱</span><textarea data-slot-input="產業" rows="1" oninput="_fs(this)" placeholder="例：手工皂 / 精品咖啡 / 毛孩食品"></textarea></label>
+            <label class="fill-field"><span class="field-name">時間範圍</span><textarea data-slot-input="時間範圍" rows="1" oninput="_fs(this)" placeholder="3 個月 / 6 個月"></textarea></label>
+            <label class="fill-field"><span class="field-name">想知道 1</span><textarea data-slot-input="想知道1" rows="1" oninput="_fs(this)" placeholder="例：有沒有新的法規要注意"></textarea></label>
+            <label class="fill-field"><span class="field-name">想知道 2</span><textarea data-slot-input="想知道2" rows="1" oninput="_fs(this)" placeholder="例：有沒有新品牌崛起"></textarea></label>
+            <label class="fill-field"><span class="field-name">想知道 3</span><textarea data-slot-input="想知道3" rows="1" oninput="_fs(this)" placeholder="例：客戶偏好有沒有變化"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -1240,7 +1562,9 @@ C. 接住型（不辯解，純粹承接情緒 + 引導私訊）
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">我要做 [具體行為，例：在網站標示「抗敏」字樣 / 辦聯名抽獎 / 寄發電子報]，想確認在台灣有沒有法規問題。
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">要做的事一句話寫清楚，AI 找法條＋案例</span></div>
+          <pre class="fill-template">我要做 <span class="slot" data-slot="行為" data-ph="[具體行為，例：在網站標示「抗敏」字樣 / 辦聯名抽獎 / 寄發電子報]">[具體行為，例：在網站標示「抗敏」字樣 / 辦聯名抽獎 / 寄發電子報]</span>，想確認在台灣有沒有法規問題。
 
 請幫我查詢：
 
@@ -1254,7 +1578,15 @@ C. 接住型（不辯解，純粹承接情緒 + 引導私訊）
 - 所有結論必須附來源（優先政府官網、法務部、各該主管機關）
 - 不確定請標註 [建議詢問律師/會計師]，不要猜
 - 若法規最近有修改（近 1 年），請特別標示</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">具體行為</span><textarea data-slot-input="行為" rows="3" oninput="_fs(this)" placeholder="例：在網站標示「抗敏」字樣、辦聯名抽獎、寄發電子報"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -1277,12 +1609,14 @@ C. 接住型（不辯解，純粹承接情緒 + 引導私訊）
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">我把近 [3 / 6 / 12] 個月的客戶資料整理如下（已去識別化）：
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">貼去識別化的訂單資料，AI 推 2-3 個 persona</span></div>
+          <pre class="fill-template">我把近 <span class="slot" data-slot="月份" data-ph="[3 / 6 / 12]">[3 / 6 / 12]</span> 個月的客戶資料整理如下（已去識別化）：
 
-[貼上資料，例：
+<span class="slot" data-slot="資料" data-ph="[貼上資料，例：&#10;- 客戶 A：單次消費 800，複購 3 次，都買香氛類&#10;- 客戶 B：單次 450，複購 1 次，買入門款&#10;...（至少 10 筆）]">[貼上資料，例：
 - 客戶 A：單次消費 800，複購 3 次，都買香氛類
 - 客戶 B：單次 450，複購 1 次，買入門款
-...（至少 10 筆）]
+...（至少 10 筆）]</span>
 
 請幫我分析：
 
@@ -1295,7 +1629,16 @@ C. 接住型（不辯解，純粹承接情緒 + 引導私訊）
 重要：所有推測都要標註「這是基於資料的推論，實際需要訪談驗證」。
 
 不要把推測講得像事實。</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">時間範圍（月）</span><textarea data-slot-input="月份" rows="1" oninput="_fs(this)" placeholder="3 / 6 / 12"></textarea></label>
+            <label class="fill-field"><span class="field-name">客戶資料</span><textarea data-slot-input="資料" rows="5" oninput="_fs(this)" placeholder="至少 10 筆、已去識別化，例：&#10;- 客戶 A：單次 800、複購 3 次、香氛類&#10;- 客戶 B：單次 450、複購 1 次、入門款"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -1318,22 +1661,34 @@ C. 接住型（不辯解，純粹承接情緒 + 引導私訊）
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">這是一份 [文章類型：產業報告 / 公告 / 文章]：
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">長篇報告貼進來，四層懶人包一次生</span></div>
+          <pre class="fill-template">這是一份 <span class="slot" data-slot="文章類型" data-ph="[文章類型：產業報告 / 公告 / 文章]">[文章類型：產業報告 / 公告 / 文章]</span>：
 
-[貼上全文 或 上傳 PDF]
+<span class="slot" data-slot="全文" data-ph="[貼上全文 或 上傳 PDF]">[貼上全文 或 上傳 PDF]</span>
 
 請幫我產出一份「懶人包」：
 
 1. 30 秒版：3 句話總結全文
 2. 3 分鐘版：5 個重點 bullet
-3. 行動版：「如果我是 [我的身份]，我應該做的 3 件事」
+3. 行動版：「如果我是 <span class="slot" data-slot="身份" data-ph="[我的身份]">[我的身份]</span>，我應該做的 3 件事」
 4. 待查證版：文中有 3 個關鍵數字 / 主張，列出來讓我自己去核對
 
 重要：
 - 懶人包不能省略任何「可能影響我決策」的資訊
 - 原文沒寫的，不要推論
 - 使用 NotebookLM 時，請附每個重點的來源段落引用</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">文章類型</span><textarea data-slot-input="文章類型" rows="1" oninput="_fs(this)" placeholder="產業報告 / 公告 / 文章"></textarea></label>
+            <label class="fill-field"><span class="field-name">全文</span><textarea data-slot-input="全文" rows="5" oninput="_fs(this)" placeholder="貼上全文；若是 PDF 可改在對話中上傳檔案"></textarea></label>
+            <label class="fill-field"><span class="field-name">我的身份</span><textarea data-slot-input="身份" rows="1" oninput="_fs(this)" placeholder="例：一人手工皂品牌主理人"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -1358,13 +1713,15 @@ C. 接住型（不辯解，純粹承接情緒 + 引導私訊）
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">我要對我的 [業務 / 產品 / 新計畫] 做 SWOT 分析。
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">AI 扮顧問一格一格引導，不直接幫你填</span></div>
+          <pre class="fill-template">我要對我的 <span class="slot" data-slot="對象" data-ph="[業務 / 產品 / 新計畫]">[業務 / 產品 / 新計畫]</span> 做 SWOT 分析。
 
 基本資訊：
-- 業務內容：[一兩句話]
-- 市場狀況：[你觀察到的]
-- 手上資源：[人力、預算、時間]
-- 主要競爭對手：[2-3 個]
+- 業務內容：<span class="slot" data-slot="業務" data-ph="[一兩句話]">[一兩句話]</span>
+- 市場狀況：<span class="slot" data-slot="市場" data-ph="[你觀察到的]">[你觀察到的]</span>
+- 手上資源：<span class="slot" data-slot="資源" data-ph="[人力、預算、時間]">[人力、預算、時間]</span>
+- 主要競爭對手：<span class="slot" data-slot="對手" data-ph="[2-3 個]">[2-3 個]</span>
 
 請你扮演一位資深顧問，用 SWOT 架構引導我思考。重點：
 
@@ -1374,7 +1731,19 @@ C. 接住型（不辯解，純粹承接情緒 + 引導私訊）
 4. 等我回答後，再幫我整理成完整的 SWOT 表格
 
 結束時再給我三個「盲點提醒」——我可能沒想到的外部因素。</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">分析對象</span><textarea data-slot-input="對象" rows="1" oninput="_fs(this)" placeholder="業務 / 產品 / 新計畫"></textarea></label>
+            <label class="fill-field"><span class="field-name">業務內容</span><textarea data-slot-input="業務" rows="2" oninput="_fs(this)" placeholder="一兩句話講清楚你在做什麼"></textarea></label>
+            <label class="fill-field"><span class="field-name">市場狀況</span><textarea data-slot-input="市場" rows="2" oninput="_fs(this)" placeholder="你實際觀察到的，例：網拍飽和、實體店回溫"></textarea></label>
+            <label class="fill-field"><span class="field-name">手上資源</span><textarea data-slot-input="資源" rows="2" oninput="_fs(this)" placeholder="人力、預算、時間，具體數字更好"></textarea></label>
+            <label class="fill-field"><span class="field-name">主要對手</span><textarea data-slot-input="對手" rows="1" oninput="_fs(this)" placeholder="2-3 個品牌名稱"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -1397,12 +1766,14 @@ C. 接住型（不辯解，純粹承接情緒 + 引導私訊）
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">我需要你協助我萃取品牌定位，濃縮成一句話。
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">四格填完，三種角度的定位句一次比</span></div>
+          <pre class="fill-template">我需要你協助我萃取品牌定位，濃縮成一句話。
 
-我的業務：[一兩句話描述你做什麼]
-我的客戶：[誰會買、他們為什麼買]
-我與競爭對手的差異：[你有什麼別人沒有的]
-我不想服務的客戶：[例：殺價型 / 要 24 小時回覆的]
+我的業務：<span class="slot" data-slot="業務" data-ph="[一兩句話描述你做什麼]">[一兩句話描述你做什麼]</span>
+我的客戶：<span class="slot" data-slot="客戶" data-ph="[誰會買、他們為什麼買]">[誰會買、他們為什麼買]</span>
+我與競爭對手的差異：<span class="slot" data-slot="差異" data-ph="[你有什麼別人沒有的]">[你有什麼別人沒有的]</span>
+我不想服務的客戶：<span class="slot" data-slot="不想服務" data-ph="[例：殺價型 / 要 24 小時回覆的]">[例：殺價型 / 要 24 小時回覆的]</span>
 
 請做三件事：
 
@@ -1414,7 +1785,18 @@ C. 接住型（不辯解，純粹承接情緒 + 引導私訊）
 3. 每句控制在 30 字內
 
 不要產出「優質」「專業」「用心」這類泛用形容詞。</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">我的業務</span><textarea data-slot-input="業務" rows="2" oninput="_fs(this)" placeholder="一兩句話描述你做什麼"></textarea></label>
+            <label class="fill-field"><span class="field-name">我的客戶</span><textarea data-slot-input="客戶" rows="2" oninput="_fs(this)" placeholder="誰會買、他們為什麼買"></textarea></label>
+            <label class="fill-field"><span class="field-name">跟對手的差異</span><textarea data-slot-input="差異" rows="2" oninput="_fs(this)" placeholder="你有什麼別人沒有的"></textarea></label>
+            <label class="fill-field"><span class="field-name">不想服務的客戶</span><textarea data-slot-input="不想服務" rows="2" oninput="_fs(this)" placeholder="例：殺價型、要 24 小時回 LINE 的、常要求客製到離譜"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -1437,13 +1819,15 @@ C. 接住型（不辯解，純粹承接情緒 + 引導私訊）
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">我在猶豫一個決策：[簡述決策內容]
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">五格猶豫點填完，AI 陪你走五步結構化思考</span></div>
+          <pre class="fill-template">我在猶豫一個決策：<span class="slot" data-slot="決策" data-ph="[簡述決策內容]">[簡述決策內容]</span>
 
 目前我知道的：
-- 選擇 A（做 / 接受）：[預期結果]
-- 選擇 B（不做 / 拒絕）：[預期結果]
-- 我內心傾向：[A / B / 不知道]
-- 我擔心的事：[列出來]
+- 選擇 A（做 / 接受）：<span class="slot" data-slot="A結果" data-ph="[預期結果]">[預期結果]</span>
+- 選擇 B（不做 / 拒絕）：<span class="slot" data-slot="B結果" data-ph="[預期結果]">[預期結果]</span>
+- 我內心傾向：<span class="slot" data-slot="傾向" data-ph="[A / B / 不知道]">[A / B / 不知道]</span>
+- 我擔心的事：<span class="slot" data-slot="擔心" data-ph="[列出來]">[列出來]</span>
 
 請你幫我跑一遍結構化思考：
 
@@ -1454,7 +1838,19 @@ C. 接住型（不辯解，純粹承接情緒 + 引導私訊）
 5. 行動建議：你不要直接給我答案，給我「做決定前要先做的下一步小行動」
 
 重要：不要用「相信自己」「聽從內心」這類雞湯話。</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">決策內容</span><textarea data-slot-input="決策" rows="2" oninput="_fs(this)" placeholder="例：要不要接這個 30 萬的客製單"></textarea></label>
+            <label class="fill-field"><span class="field-name">選擇 A 預期結果</span><textarea data-slot-input="A結果" rows="2" oninput="_fs(this)" placeholder="做 / 接受，會怎樣"></textarea></label>
+            <label class="fill-field"><span class="field-name">選擇 B 預期結果</span><textarea data-slot-input="B結果" rows="2" oninput="_fs(this)" placeholder="不做 / 拒絕，會怎樣"></textarea></label>
+            <label class="fill-field"><span class="field-name">內心傾向</span><textarea data-slot-input="傾向" rows="1" oninput="_fs(this)" placeholder="A / B / 不知道"></textarea></label>
+            <label class="fill-field"><span class="field-name">擔心的事</span><textarea data-slot-input="擔心" rows="3" oninput="_fs(this)" placeholder="列出所有在意的點"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -1477,11 +1873,13 @@ C. 接住型（不辯解，純粹承接情緒 + 引導私訊）
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">我有一個關於 [主題] 的假設：
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">四格填進去，AI 扮魔鬼代言人挑戰你</span></div>
+          <pre class="fill-template">我有一個關於 <span class="slot" data-slot="主題" data-ph="[主題]">[主題]</span> 的假設：
 
-假設內容：[你的假設，例：我的客戶最在意價格]
-這個假設的依據：[你為什麼這麼認為]
-如果假設錯了，我會做什麼不一樣的事：[後果]
+假設內容：<span class="slot" data-slot="假設" data-ph="[你的假設，例：我的客戶最在意價格]">[你的假設，例：我的客戶最在意價格]</span>
+這個假設的依據：<span class="slot" data-slot="依據" data-ph="[你為什麼這麼認為]">[你為什麼這麼認為]</span>
+如果假設錯了，我會做什麼不一樣的事：<span class="slot" data-slot="後果" data-ph="[後果]">[後果]</span>
 
 請扮演魔鬼代言人，幫我挑戰這個假設：
 
@@ -1492,7 +1890,18 @@ C. 接住型（不辯解，純粹承接情緒 + 引導私訊）
 4. 如果只能做一個驗證動作，你建議哪一個？為什麼？
 
 全程不要迎合我，要敢於反駁。</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">主題</span><textarea data-slot-input="主題" rows="1" oninput="_fs(this)" placeholder="例：客戶偏好 / 定價 / 新品方向"></textarea></label>
+            <label class="fill-field"><span class="field-name">假設內容</span><textarea data-slot-input="假設" rows="2" oninput="_fs(this)" placeholder="例：我的客戶最在意價格"></textarea></label>
+            <label class="fill-field"><span class="field-name">依據</span><textarea data-slot-input="依據" rows="3" oninput="_fs(this)" placeholder="你為什麼這樣想？列 2-3 條觀察"></textarea></label>
+            <label class="fill-field"><span class="field-name">錯了會怎樣</span><textarea data-slot-input="後果" rows="2" oninput="_fs(this)" placeholder="假設被推翻後，下一步會做什麼"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -1583,9 +1992,11 @@ C. 接住型（不辯解，純粹承接情緒 + 引導私訊）
     <details>
       <summary>展開完整 Prompt</summary>
       <div class="prompt-body">
-        <pre class="prompt-pre">根據我提供的所有來源，寫一則新的 Instagram 貼文。
+        <div class="fill-prompt">
+          <div class="fill-head"><span class="fill-label">結構示範（綠框即填入欄位）</span><span class="fill-hint">NotebookLM 讀舊貼文，新 IG 文模仿你語氣</span></div>
+          <pre class="fill-template">根據我提供的所有來源，寫一則新的 Instagram 貼文。
 
-主題：[你要寫的主題]
+主題：<span class="slot" data-slot="主題" data-ph="[你要寫的主題]">[你要寫的主題]</span>
 字數：150 字內
 語氣要求：必須與我過去的貼文一致
 
@@ -1597,7 +2008,15 @@ C. 接住型（不辯解，純粹承接情緒 + 引導私訊）
 4. 如果我要的主題在來源中完全沒先例，直接說「你之前沒寫過這類主題，這則會是新嘗試」，並標註哪些部分是新創
 
 禁用：「限時」「必買」「錯過終生後悔」等我過去從未用過的詞。</pre>
-        <div class="copy-row"><button class="copy-btn" type="button" onclick="_cp(this)">複製</button></div>
+          <div class="fill-form-head">填入你的內容</div>
+          <div class="fill-fields">
+            <label class="fill-field"><span class="field-name">貼文主題</span><textarea data-slot-input="主題" rows="2" oninput="_fs(this)" placeholder="例：新品上市、客戶見證、工作室搬家"></textarea></label>
+          </div>
+          <div class="fill-actions">
+            <button class="btn-fill-raw" type="button" onclick="_fr(this)">複製原始範本</button>
+            <button class="btn-fill-merge" type="button" onclick="_fm(this)">合併並複製</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -2033,6 +2452,10 @@ function _cp(btn){
     setTimeout(function(){btn.textContent='複製';btn.classList.remove('ok');},1800);
   }
 }
+function _cpText(text,btn,okLabel){var orig=btn.dataset.orig||(btn.dataset.orig=btn.textContent);var lbl=okLabel||'已複製';if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(function(){btn.textContent=lbl;btn.classList.add('ok');setTimeout(function(){btn.textContent=orig;btn.classList.remove('ok');},2000);});}else{var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');btn.textContent=lbl;btn.classList.add('ok');setTimeout(function(){btn.textContent=orig;btn.classList.remove('ok');},2000);}catch(e){}document.body.removeChild(ta);}}
+function _fs(input){var wrap=input.closest('.fill-prompt');if(!wrap)return;var key=input.dataset.slotInput;var val=input.value;wrap.querySelectorAll('.fill-template .slot[data-slot="'+CSS.escape(key)+'"]').forEach(function(s){if(val.trim()){s.textContent=val;s.classList.add('filled');}else{s.textContent=s.dataset.ph||('['+key+']');s.classList.remove('filled');}});}
+function _fm(btn){var wrap=btn.closest('.fill-prompt');var tpl=wrap.querySelector('.fill-template');if(!tpl)return;_cpText(tpl.textContent,btn,'已複製合併結果');}
+function _fr(btn){var wrap=btn.closest('.fill-prompt');var tpl=wrap.querySelector('.fill-template');if(!tpl)return;var clone=tpl.cloneNode(true);clone.querySelectorAll('.slot').forEach(function(s){s.textContent=s.dataset.ph||s.textContent;});_cpText(clone.textContent,btn,'已複製原始範本');}
 </script>
 
 <script>
