@@ -53,33 +53,118 @@ COURSE_META = {
 }
 
 # ── 注入的 @media print CSS（紙本友善）───────────────────────────
+# 關鍵：原站頁面用 .reveal (opacity:0) + JS 加 .in 觸發淡入動畫；
+# 我們砍了所有 <script>，必須用 CSS 強制顯示，否則 PDF 只印得到 hero。
 PRINT_CSS = """
-<style>
-@page { size: A4; margin: 18mm 16mm 18mm 16mm; }
+<style id="print-override">
+/* 強制顯示所有淡入動畫元素（放在 @media print 外，確保任何情境都生效） */
+.reveal, .section-rule, [class*="reveal"] {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+  visibility: visible !important;
+}
+@page { size: A4; margin: 20mm 18mm 18mm 18mm; }
 @media print {
+  /* 所有元素都印背景色（Chrome headless 預設 exact 但有些 UA 會略過） */
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
   html, body { background:#fff !important; }
-  body { font-size:11pt; line-height:1.72; }
+  body { font-size:11pt !important; line-height:1.75 !important;
+    orphans:3; widows:3; }
+
+  /* 移除站點導覽、互動元件 */
   .topbar, .progress-strip, .section-dots,
   .back-link, .lesson-nav, .footer, .copy-btn,
   .copy-row, script { display:none !important; }
-  .lesson-hero { padding:24px 0 20px !important; max-width:none !important; }
+
+  /* 主版面滿版（左右 margin 改靠 @page 留白） */
+  .lesson-hero { padding:16px 0 24px !important; max-width:none !important; }
   .lesson-body { padding:0 !important; max-width:none !important; }
-  .lesson-title { font-size:22pt !important; page-break-after:avoid; }
-  .section-heading { font-size:14pt !important; page-break-after:avoid; }
-  .lesson-section { page-break-inside:auto; margin-bottom:32px !important; }
-  .callout, .code-block, pre, .scenario-grid, .tool-grid,
-  .compare-grid, .compare-card, details, .prac-sample,
-  .material-block, .output-fold, .qa-item {
+  .lesson-title { font-size:22pt !important; line-height:1.35 !important;
+    page-break-after:avoid; }
+  .section-heading { font-size:15pt !important; line-height:1.4 !important;
+    page-break-after:avoid; margin:14px 0 14px !important; }
+  .section-eyebrow { page-break-after:avoid; margin-top:10px !important; }
+  .lesson-section { margin-bottom:26px !important;
+    opacity:1 !important; transform:none !important; page-break-inside:auto; }
+
+  /* 段落控制：允許分頁，但避免標題孤立於頁尾 */
+  p { orphans:3; widows:3; margin:0 0 10px !important; }
+  h2, h3, h4 { page-break-after:avoid; }
+
+  /* 只對小型區塊 avoid-break（避免大區塊被整個推到下頁造成大量留白） */
+  .callout, .big-quote, .quiz-item,
+  .outcome-item, .scenario-card, .tool-card, .compare-card {
     page-break-inside:avoid;
   }
+
+  /* details / prac-sample：允許內部分頁，不要硬撐 */
+  details, .prac-sample, .compare-grid, .scenario-grid, .tool-grid,
+  .material-block, .output-fold, .qa-item {
+    page-break-inside:auto !important;
+  }
   details { margin:14px 0 !important; }
-  details > summary { cursor:default !important; }
-  a { color:#333 !important; text-decoration:none !important; }
-  .code-block, pre { background:#f2f0ea !important; color:#222 !important;
-    border:1px solid #d0ccc2 !important; font-size:9.5pt !important; }
+  details > summary { cursor:default !important; list-style:none !important; }
+  details > summary::-webkit-details-marker { display:none !important; }
+  details > summary::marker { content:'' !important; }
+
+  /* 連結色去除（紙本無法點，藍色反而礙眼） */
+  a { color:#2c2b28 !important; text-decoration:none !important; }
+
+  /* 通用程式區塊（code-block、pre） */
+  .code-block, pre {
+    background:#f2f0ea !important; color:#1a1a1a !important;
+    border:1px solid #d0ccc2 !important;
+    font-size:10pt !important; line-height:1.65 !important;
+    padding:12px 14px !important; page-break-inside:auto !important;
+  }
+
+  /* prac-sample 內部字級 & 紙本友善改色 */
+  .ps-head, summary.ps-head { padding-right:0 !important; }
+  summary.ps-head::after { display:none !important; }
+  .ps-eyebrow { font-size:.78rem !important; }
+  .ps-hint { font-size:10pt !important; line-height:1.7 !important; }
+  .ps-label { font-size:10pt !important; margin-bottom:6px !important; }
+  .ps-label-tag { font-size:9pt !important; }
+  .ps-material {
+    font-size:10.5pt !important; line-height:1.8 !important;
+    background:#f6f3ec !important; padding:12px 14px !important;
+    page-break-inside:auto !important;
+  }
+  /* 深底 Prompt → 淺底黑字（省墨、清楚） */
+  .ps-prompt {
+    background:#f4f1ea !important; color:#1a1a1a !important;
+    border:1px solid #d8d4cb !important;
+    font-size:10pt !important; line-height:1.75 !important;
+    padding:12px 14px !important;
+    font-family:ui-monospace,'SF Mono',Menlo,monospace !important;
+    page-break-inside:auto !important;
+  }
+  .ps-expect {
+    font-size:10pt !important; line-height:1.75 !important;
+    padding:12px 14px !important;
+    page-break-inside:auto !important;
+  }
+  .ps-block { margin-bottom:12px !important; page-break-inside:auto !important; }
+  .prac-sample { padding:16px 18px !important; page-break-inside:auto !important; }
+
+  /* Mini Practice 步驟 */
+  .mini-prac { page-break-inside:auto !important; }
+  .mini-prac-step { page-break-inside:avoid; margin:8px 0 !important; }
+
+  /* Quiz radio 隱藏、option 用紙本圓圈字元代替 */
   input[type="radio"], input[type="checkbox"] { display:none !important; }
-  .quiz-opt::before { content:"○ "; color:#888; margin-right:4px; }
-  .quiz-item { page-break-inside:avoid; margin:14px 0; }
+  .quiz-opt { display:flex !important; align-items:baseline !important;
+    gap:8px !important; padding:4px 0 !important; }
+  .quiz-opt::before { content:"○"; color:#666; flex-shrink:0; }
+  .quiz-item { page-break-inside:avoid; margin:12px 0 !important; }
+
+  /* 圖示（svg/img）若太大縮排 */
+  img, svg { max-width:100% !important; height:auto !important; }
 }
 .print-page-break { page-break-before:always; }
 </style>
