@@ -1,0 +1,71 @@
+# n8n-starter-kit · 弄一下工作室《AI 資料工廠》
+# 用途：在自己電腦跑 n8n（資料庫 + 持久化 + 本機資料夾掛載）
+# 啟動：雙擊 start.command (Mac) 或 start.bat (Windows)
+# 手動：docker compose up -d
+# 停止：docker compose down       （資料保留）
+# 清空：docker compose down -v    （連資料一起刪，謹慎）
+
+services:
+  # ---- PostgreSQL：n8n 資料庫（比預設 SQLite 穩，適合批次處理） ----
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-n8n}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-please_change_me}
+      - POSTGRES_DB=${POSTGRES_DB:-n8n}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-n8n} -d ${POSTGRES_DB:-n8n}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ---- n8n：自動化主程式 ----
+  n8n:
+    image: n8nio/n8n:latest
+    restart: unless-stopped
+    ports:
+      - '5678:5678'
+    environment:
+      # 資料庫連線（接上面 PostgreSQL）
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB:-n8n}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER:-n8n}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD:-please_change_me}
+
+      # 時區（影響 Schedule Trigger / Cron 觸發時間）
+      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE:-Asia/Taipei}
+      - TZ=${GENERIC_TIMEZONE:-Asia/Taipei}
+
+      # Webhook 對外 URL（搭 Cloudflare Tunnel 後改填外部網址）
+      - WEBHOOK_URL=${WEBHOOK_URL:-http://localhost:5678/}
+      - N8N_HOST=${N8N_HOST:-localhost}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=${N8N_PROTOCOL:-http}
+
+      # 用 n8n 內建 Owner Account 登入（首次開 localhost:5678 會引導建立）
+      - N8N_BASIC_AUTH_ACTIVE=false
+
+      # 2026 推薦：啟用 task runners（執行更穩、隔離 workflow code）
+      - N8N_RUNNERS_ENABLED=true
+
+      # 抑制 deprecation 警告
+      - N8N_DIAGNOSTICS_ENABLED=false
+    volumes:
+      # n8n 設定 + workflows + credentials（持久化於 Docker volume）
+      - n8n_data:/home/node/.n8n
+
+      # 本機資料夾掛載：主機 ./shared 對應容器內 /files/shared
+      # 這條為 Module 3 Watch Folder 鋪路 — 把檔案丟進 shared/ 就會被 n8n 看到
+      - ./shared:/files/shared
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  n8n_data:
+  postgres_data:

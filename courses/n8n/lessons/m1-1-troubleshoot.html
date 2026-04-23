@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1.1.3 常見錯誤排查手冊｜AI 資料工廠</title>
+<meta name="description" content="能對照 8 大常見錯誤的症狀自助定位錯誤層級，並套用對應修復步驟，卡死時知道貼哪 3 行診斷給講師">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="1.1.3 常見錯誤排查手冊｜AI 資料工廠">
+<meta property="og:description" content="能對照 8 大常見錯誤的症狀自助定位錯誤層級，並套用對應修復步驟，卡死時知道貼哪 3 行診斷給講師">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/lessons/m1-1-troubleshoot.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="1.1.3 常見錯誤排查手冊｜AI 資料工廠">
+<meta name="twitter:description" content="能對照 8 大常見錯誤的症狀自助定位錯誤層級，並套用對應修復步驟，卡死時知道貼哪 3 行診斷給講師">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/lessons/m1-1-troubleshoot.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-a5:#7a9ea3;--c-main:var(--c-a3);--radius:4px;--radius-sm:3px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 var(--radius) 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:#5a7a5a;border:1px solid rgba(90,122,90,.3);background:transparent;padding:3px 12px;border-radius:99px;font-weight:500;letter-spacing:.06em}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px;font-variant-numeric:tabular-nums}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;max-width:22ch}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);margin-top:28px}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
+.outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-heading em{font-style:normal;color:var(--c-text)}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-body{font-size:.9rem;line-height:1.85}
+/* context box */
+.context-box{background:var(--c-surface);border-radius:var(--radius);padding:24px 28px;margin:0 0 28px}
+.context-inner{border-left:2px solid #5a7a5a;padding-left:20px}
+.context-label{font-size:.72rem;color:#5a7a5a;letter-spacing:.15em;font-weight:500;margin-bottom:8px}
+.context-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+/* toc nav */
+.toc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:20px 0}
+.toc-item{display:flex;align-items:baseline;gap:8px;padding:10px 14px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.88rem;transition:background .2s}
+.toc-item:hover{background:rgba(90,122,90,.06);border-color:#5a7a5a}
+.toc-num{font-family:'Shippori Mincho',serif;font-size:.82rem;color:#5a7a5a;font-weight:700;flex-shrink:0}
+/* troubleshoot / case display */
+.troubleshoot{margin:20px 0}
+.ts-label{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);padding:12px 20px;background:var(--c-surface);border-top:1px solid var(--c-border);border-left:1px solid var(--c-border);border-right:1px solid var(--c-border);border-radius:var(--radius) var(--radius) 0 0;display:flex;align-items:baseline;gap:10px}
+.ts-num{color:#5a7a5a;font-size:1.05rem}
+.ts-item{background:var(--c-card);border:1px solid var(--c-border);border-top:0;padding:0;margin-bottom:20px}
+.ts-item:last-child{border-radius:0 0 var(--radius) var(--radius)}
+.ts-q{display:grid;grid-template-columns:64px 1fr;border-bottom:1px solid var(--c-border-soft)}
+.ts-q:last-child{border-bottom:0}
+.ts-tag{background:var(--c-surface);padding:12px 16px;font-size:.72rem;color:var(--c-muted);font-weight:500;letter-spacing:.08em;align-self:stretch;display:flex;align-items:flex-start;padding-top:14px}
+.ts-a{padding:12px 16px;font-size:.88rem;color:var(--c-text);line-height:1.85}
+.ts-a strong{font-weight:500}
+/* code block */
+.code-block{display:block;background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.88rem;line-height:1.8;padding:18px 20px;border-radius:var(--radius);margin:12px 0;overflow-x:auto;white-space:pre}
+.inline-code{font-family:'Courier New',monospace;font-size:.82em;background:rgba(90,122,90,.1);padding:1px 6px;border-radius:3px;color:var(--c-text)}
+.cm{color:#6b9b8a}
+.ky{color:#9bb4d4}
+/* copy button */
+.code-wrap{position:relative}
+.copy-btn{position:absolute;top:8px;right:8px;font-size:.75rem;color:var(--c-faint);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:var(--radius-sm);padding:4px 10px;cursor:pointer;font-family:inherit;transition:background .2s}
+.copy-btn:hover{background:rgba(255,255,255,.15);color:#e8e4dc}
+/* steps */
+.steps-wrap{display:flex;flex-direction:column;gap:0;margin:20px 0}
+.step-block{display:flex;gap:20px;padding:16px 0;position:relative}
+.step-block:not(:last-child){border-bottom:1px solid var(--c-border-soft)}
+.step-circle{width:32px;height:32px;border-radius:50%;background:rgba(90,122,90,.1);border:1.5px solid #5a7a5a;display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:.88rem;font-weight:700;color:#5a7a5a;flex-shrink:0;margin-top:2px}
+.step-content{flex:1}
+.step-heading{font-size:.92rem;font-weight:500;color:var(--c-text);margin-bottom:6px}
+.step-body{font-size:.9rem;color:var(--c-muted);line-height:1.85}
+/* quiz */
+.quiz-item{margin:20px 0;padding:20px 24px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.quiz-q{font-size:.92rem;font-weight:500;color:var(--c-text);margin-bottom:14px;line-height:1.7}
+.quiz-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.quiz-opt{font-size:.88rem;color:var(--c-muted);padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--radius-sm);background:var(--c-bg)}
+.quiz-opt.correct{border-color:#5a7a5a;background:rgba(90,122,90,.06);color:var(--c-text)}
+.quiz-ans{font-size:.85rem;color:var(--c-muted);line-height:1.75;padding-top:8px;border-top:1px solid var(--c-border-soft)}
+/* scenario grid */
+.scenario-grid{display:grid;grid-template-columns:160px 1fr;gap:0;border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:16px 0}
+.scenario-row{display:contents}
+.scenario-row:not(:last-child) .scenario-task,.scenario-row:not(:last-child) .scenario-pick{border-bottom:1px solid var(--c-border-soft)}
+.scenario-task{background:var(--c-surface);padding:12px 16px;font-size:.82rem;color:var(--c-muted);font-weight:500}
+.scenario-pick{background:var(--c-card);padding:12px 16px;font-size:.88rem;color:var(--c-text);line-height:1.7}
+/* nav */
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:#5a7a5a;text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
+.nav-btn:hover{background:rgba(90,122,90,.07);border-color:#5a7a5a}
+.nav-btn.primary{background:#5a7a5a;color:#fff;border-color:#5a7a5a}
+.nav-btn.primary:hover{filter:brightness(.92)}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+@media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important}*{animation:none!important}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.toc-grid{grid-template-columns:1fr}.scenario-grid{grid-template-columns:1fr}.ts-q{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='n8n_auth',H='825e2dce35d14124f94b648f6ab2ab60c9db1d8f393c2b61722fe02412b9a199';if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 資料工廠</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">1.1.3 排錯手冊</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<div class="page-hero">
+  <a href="m1-1-setup.html" class="back-link"><span aria-hidden="true">←</span> 返回 1.1 環境建置 Hub</a>
+  <div class="hero-eyebrow">(1.1.3)</div>
+  <h1 class="lesson-title">常見錯誤排查手冊</h1>
+  <p class="lesson-tagline">阿凱跑完 start.command，瀏覽器跳出 ERR_CONNECTION_REFUSED。這頁是「卡關時直接導來」的工具書——依症狀找案號，找到就直接跳查。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果</div>
+    <div class="outcome-item">看到錯誤症狀能對照 8 大案號自助定位錯誤層級</div>
+    <div class="outcome-item">套用對應修復步驟，不需求助講師</div>
+    <div class="outcome-item">卡死時知道跑哪 3 行診斷指令，再決定是自查還是貼給講師</div>
+  </div>
+</div>
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(01)</div>
+  <h2 class="section-heading">分層診斷思維</h2>
+  <div class="intro-band">
+    <div class="intro-label">為什麼這很重要</div>
+    <div class="intro-text">同一個症狀（localhost:5678 連不上）可能對應不同原因：容器沒起、埠被佔、防火牆擋。先收集症狀，再下結論——這是本單元唯一要建立的思維。</div>
+  </div>
+  <p class="body-text">從最外層往內查：使用者瀏覽器 → 網路 → 容器 → Docker Engine → 作業系統。每層都有自己的診斷指令，逐層排除。不要看到錯誤就直接跳到最深層。</p>
+
+  <div class="callout key">
+    <div class="callout-icon" aria-hidden="true">!</div>
+    <div class="callout-body"><strong>三行診斷指令</strong>——卡住時先跑這三個，把輸出存下來，再決定是自查還是貼給講師。多數情況看 logs 第一行就找得到答案。
+    <div class="code-wrap" style="margin-top:10px">
+      <pre class="code-block"><span class="cm"># 看容器是否在跑</span>
+docker ps
+<span class="cm"># 看 n8n 最近的錯誤日誌</span>
+docker compose logs n8n --tail 50
+<span class="cm"># 驗證 compose 設定是否解析正確</span>
+docker compose config</pre>
+      <button class="copy-btn" onclick="copyCode(this)" aria-label="複製診斷指令">複製</button>
+    </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(02)</div>
+  <h2 class="section-heading">8 案目錄 — 依症狀跳查</h2>
+  <p class="body-text">依你看到的症狀找對應案號，點擊直接跳到該案。每案結構統一：症狀 → 診斷 → 修復。</p>
+  <div class="toc-grid">
+    <a href="#case1" class="toc-item"><span class="toc-num">案 1</span>Docker Desktop 沒開 / 啟動中卡住</a>
+    <a href="#case2" class="toc-item"><span class="toc-num">案 2</span>5678 埠被佔用</a>
+    <a href="#case3" class="toc-item"><span class="toc-num">案 3</span>Apple Silicon platform mismatch 警告</a>
+    <a href="#case4" class="toc-item"><span class="toc-num">案 4</span>Win WSL2 未啟用 / 版本太舊</a>
+    <a href="#case5" class="toc-item"><span class="toc-num">案 5</span>容器在跑但 localhost:5678 連不上</a>
+    <a href="#case6" class="toc-item"><span class="toc-num">案 6</span>macOS start.command 被 Gatekeeper 擋</a>
+    <a href="#case7" class="toc-item"><span class="toc-num">案 7</span>本機資料夾掛載權限錯誤（macOS）</a>
+    <a href="#case8" class="toc-item"><span class="toc-num">案 8</span>升級後 workflow 不見</a>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(03)</div>
+  <h2 class="section-heading">8 案詳細排查</h2>
+
+  <div class="troubleshoot" id="case1">
+    <div class="ts-label"><span class="ts-num">案 1</span> Docker Desktop 沒開 / 啟動中卡住</div>
+    <div class="ts-item">
+      <div class="ts-q">
+        <div class="ts-tag">症狀</div>
+        <div class="ts-a">跑 <code class="inline-code">start.command</code> / <code class="inline-code">start.bat</code> 跳出對話框「Docker Desktop 未啟動」；或鯨魚圖示顯示 Starting 一直不變綠燈</div>
+      </div>
+      <div class="ts-q">
+        <div class="ts-tag">診斷</div>
+        <div class="ts-a">
+          看選單列 / 通知列鯨魚圖示狀態：Running（綠）/ Starting（黃）/ Stopped（紅）<br>
+          點開 Docker Desktop 主視窗看 Dashboard 是否載入<br>
+          終端機跑 <code class="inline-code">docker info</code>，應看到一大段系統資訊（不是錯誤）
+        </div>
+      </div>
+      <div class="ts-q" style="border-bottom:0">
+        <div class="ts-tag">修復</div>
+        <div class="ts-a">
+          <strong>紅燈</strong> → 手動點 Docker Desktop 啟動<br>
+          <strong>黃燈卡 5 分鐘以上</strong> → Docker Desktop 選單「Restart」<br>
+          <strong>還是卡</strong> → Quit Docker Desktop → 重開<br>
+          <strong>仍不行</strong> → Mac 重開機 / Win 重啟並確認 WSL2 是 v2
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="troubleshoot" id="case2">
+    <div class="ts-label"><span class="ts-num">案 2</span> 5678 埠被佔用</div>
+    <div class="ts-item">
+      <div class="ts-q">
+        <div class="ts-tag">症狀</div>
+        <div class="ts-a">start 腳本跳錯 <code class="inline-code">Bind for 0.0.0.0:5678 failed: port is already allocated</code>；或 localhost:5678 開出來不是 n8n 而是別的服務</div>
+      </div>
+      <div class="ts-q">
+        <div class="ts-tag">診斷</div>
+        <div class="ts-a">
+          Mac / Linux：
+          <div class="code-wrap"><pre class="code-block">lsof -i :5678</pre><button class="copy-btn" onclick="copyCode(this)" aria-label="複製指令">複製</button></div>
+          Win PowerShell：
+          <div class="code-wrap"><pre class="code-block">netstat -ano | findstr :5678</pre><button class="copy-btn" onclick="copyCode(this)" aria-label="複製指令">複製</button></div>
+          會列出佔用 5678 的程式 PID。
+        </div>
+      </div>
+      <div class="ts-q" style="border-bottom:0">
+        <div class="ts-tag">修復</div>
+        <div class="ts-a">
+          <strong>解法 A：關掉佔用程式</strong><br>
+          Mac：<code class="inline-code">kill -9 PID</code>（PID 換成上面查到的數字）<br>
+          Win：工作管理員 → 詳細資料 → 找到 PID 對應程式右鍵結束工作<br><br>
+          <strong>解法 B：改 n8n 用其他埠</strong>（推薦，不影響其他程式）<br>
+          編輯 <code class="inline-code">n8n-compose.yml</code>，把 <code class="inline-code">'5678:5678'</code> 改成 <code class="inline-code">'5680:5678'</code>（冒號前面是電腦對外的埠，後面 5678 是容器內 n8n 的埠，不要動）。改完雙擊 stop 再 start，之後改用 <code class="inline-code">http://localhost:5680</code> 連線。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="troubleshoot" id="case3">
+    <div class="ts-label"><span class="ts-num">案 3</span> Apple Silicon platform mismatch 警告</div>
+    <div class="ts-item">
+      <div class="ts-q">
+        <div class="ts-tag">症狀</div>
+        <div class="ts-a">Apple Silicon Mac 跑容器看到黃色警告 <code class="inline-code">The requested image's platform (linux/amd64) does not match the detected host platform (linux/arm64/v8)</code></div>
+      </div>
+      <div class="ts-q">
+        <div class="ts-tag">診斷</div>
+        <div class="ts-a">跑 <code class="inline-code">docker info</code> 看 Architecture 欄位，Apple Silicon 應顯示 <code class="inline-code">aarch64</code>。警告的 image 是 x86 架構，沒有原生 ARM 版本。</div>
+      </div>
+      <div class="ts-q" style="border-bottom:0">
+        <div class="ts-tag">修復</div>
+        <div class="ts-a">
+          本課程的 <code class="inline-code">n8nio/n8n</code> 與 <code class="inline-code">postgres:16</code> 都有原生 ARM 版本，<strong>不會</strong>出現此警告。<br>
+          若你跑其他 image 看到此警告，影響不大（Rosetta 自動翻譯，效能稍降約 30%）。<br>
+          想抑制警告 → 在 compose 服務下加 <code class="inline-code">platform: linux/amd64</code> 明示用 x86，或找原生 ARM 版本的 image。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="troubleshoot" id="case4">
+    <div class="ts-label"><span class="ts-num">案 4</span> Win WSL2 未啟用 / 版本太舊</div>
+    <div class="ts-item">
+      <div class="ts-q">
+        <div class="ts-tag">症狀</div>
+        <div class="ts-a">Docker Desktop 啟動後一直 Starting 不變綠燈；或安裝時跳錯「WSL2 installation is incomplete」</div>
+      </div>
+      <div class="ts-q">
+        <div class="ts-tag">診斷</div>
+        <div class="ts-a">
+          PowerShell（系統管理員）跑：
+          <div class="code-wrap"><pre class="code-block">wsl --status</pre><button class="copy-btn" onclick="copyCode(this)" aria-label="複製指令">複製</button></div>
+          預期看到「預設版本: 2」。看到「預設版本: 1」或找不到指令就要修。
+        </div>
+      </div>
+      <div class="ts-q" style="border-bottom:0">
+        <div class="ts-tag">修復</div>
+        <div class="ts-a">
+          <strong>步驟 1</strong>：強制升級 WSL 核心
+          <div class="code-wrap"><pre class="code-block">wsl --update</pre><button class="copy-btn" onclick="copyCode(this)" aria-label="複製指令">複製</button></div>
+          <strong>步驟 2</strong>：設定預設版本為 2
+          <div class="code-wrap"><pre class="code-block">wsl --set-default-version 2</pre><button class="copy-btn" onclick="copyCode(this)" aria-label="複製指令">複製</button></div>
+          <strong>步驟 3</strong>：沒裝過 WSL 時
+          <div class="code-wrap"><pre class="code-block">wsl --install</pre><button class="copy-btn" onclick="copyCode(this)" aria-label="複製指令">複製</button></div>
+          完成會要求重啟。<br><br>
+          <strong>步驟 4</strong>：跳「需要啟用虛擬化」→ 工作管理員 → 效能 → CPU 看「虛擬化」是否「已啟用」。沒啟用要進 BIOS 開（重開機按 F2/Del/Esc，找 <code class="inline-code">Intel VT-x</code> / <code class="inline-code">AMD-V</code> / <code class="inline-code">SVM Mode</code> 啟用 → 存檔重啟）
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="troubleshoot" id="case5">
+    <div class="ts-label"><span class="ts-num">案 5</span> 容器在跑但 localhost:5678 連不上</div>
+    <div class="ts-item">
+      <div class="ts-q">
+        <div class="ts-tag">症狀</div>
+        <div class="ts-a"><code class="inline-code">docker ps</code> 看到 n8n 容器 status 是 Up，但瀏覽器開 localhost:5678 顯示 ERR_CONNECTION_REFUSED 或一直轉</div>
+      </div>
+      <div class="ts-q">
+        <div class="ts-tag">診斷</div>
+        <div class="ts-a">
+          <div class="code-wrap"><pre class="code-block"><span class="cm"># 看是否有 startup error</span>
+docker compose logs n8n --tail 50</pre><button class="copy-btn" onclick="copyCode(this)" aria-label="複製指令">複製</button></div>
+          <div class="code-wrap"><pre class="code-block"><span class="cm"># 確認兩容器狀態</span>
+docker compose ps</pre><button class="copy-btn" onclick="copyCode(this)" aria-label="複製指令">複製</button></div>
+          確認 postgres 與 n8n 兩個容器都是 Up (healthy)，不是 Restarting 或 Up (unhealthy)。
+        </div>
+      </div>
+      <div class="ts-q" style="border-bottom:0">
+        <div class="ts-tag">修復</div>
+        <div class="ts-a">
+          <strong>postgres 顯示 Restarting</strong>：通常是密碼設定衝突。停服務 → 刪 volume <code class="inline-code">docker compose down -v</code>（<strong>會清資料，請確認</strong>）→ 重新 start.command，會用 .env 的密碼重建<br><br>
+          <strong>n8n 日誌出現 <code class="inline-code">getaddrinfo EAI_AGAIN postgres</code></strong>：postgres 還沒就緒，等 30 秒重整 <code class="inline-code">docker compose restart n8n</code><br><br>
+          <strong>兩容器都正常但網頁仍連不上</strong>：檢查防火牆是否擋 5678（macOS 系統設定 → 網路 → 防火牆 / Win 防火牆設定）
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="troubleshoot" id="case6">
+    <div class="ts-label"><span class="ts-num">案 6</span> macOS start.command 被 Gatekeeper 擋</div>
+    <div class="ts-item">
+      <div class="ts-q">
+        <div class="ts-tag">症狀</div>
+        <div class="ts-a">雙擊 <code class="inline-code">start.command</code> 跳出「無法打開"start.command"，因為它來自未識別的開發者」</div>
+      </div>
+      <div class="ts-q">
+        <div class="ts-tag">診斷</div>
+        <div class="ts-a">這是 macOS Gatekeeper 第一次擋未簽署的執行檔，<strong>不是檔案壞了</strong>。</div>
+      </div>
+      <div class="ts-q" style="border-bottom:0">
+        <div class="ts-tag">修復</div>
+        <div class="ts-a">
+          <strong>步驟 1</strong>：開「系統設定 → 隱私權與安全性」<br>
+          <strong>步驟 2</strong>：捲到「安全性」區塊<br>
+          <strong>步驟 3</strong>：看到「<code class="inline-code">start.command</code> 已被阻擋使用」<br>
+          <strong>步驟 4</strong>：按「強制打開」→ 輸入密碼確認<br>
+          <strong>步驟 5</strong>：再次雙擊 <code class="inline-code">start.command</code> 就會跑<br><br>
+          <code class="inline-code">stop.command</code> / <code class="inline-code">update.command</code> 第一次也會被擋，做同樣處理即可。之後同檔不會再擋。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="troubleshoot" id="case7">
+    <div class="ts-label"><span class="ts-num">案 7</span> 本機資料夾掛載權限錯誤（macOS）</div>
+    <div class="ts-item">
+      <div class="ts-q">
+        <div class="ts-tag">症狀</div>
+        <div class="ts-a">Module 3 跑 Watch Folder 觸發失敗；或 n8n 日誌出現 <code class="inline-code">EACCES: permission denied</code> 對 <code class="inline-code">/files/shared</code> 的存取</div>
+      </div>
+      <div class="ts-q">
+        <div class="ts-tag">診斷</div>
+        <div class="ts-a">
+          在 <code class="inline-code">n8n-starter-kit/shared/</code> 放一個測試檔，看 n8n 容器能不能讀。<br>
+          macOS 可能在背景擋住 Docker Desktop 對某些資料夾的存取（Files &amp; Folders 權限）。
+        </div>
+      </div>
+      <div class="ts-q" style="border-bottom:0">
+        <div class="ts-tag">修復</div>
+        <div class="ts-a">
+          <strong>步驟 1</strong>：開「系統設定 → 隱私權與安全性 → 檔案與資料夾」<br>
+          <strong>步驟 2</strong>：找「Docker Desktop」（沒看到的話往下找「完整磁碟存取權」）<br>
+          <strong>步驟 3</strong>：確認你的 <code class="inline-code">n8n-starter-kit</code> 所在資料夾的權限有勾選<br>
+          <strong>步驟 4</strong>：不確定就把整個「桌面」「文件」「下載」都勾起來<br>
+          <strong>步驟 5</strong>：重啟 Docker Desktop<br><br>
+          如果問題在 Docker Desktop 設定本身，去 Docker Desktop → Settings → Resources → File sharing 確認 <code class="inline-code">n8n-starter-kit</code> 的父目錄在白名單
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="troubleshoot" id="case8">
+    <div class="ts-label"><span class="ts-num">案 8</span> 升級後 workflow 不見</div>
+    <div class="ts-item">
+      <div class="ts-q">
+        <div class="ts-tag">症狀</div>
+        <div class="ts-a">跑 <code class="inline-code">update.command</code> 之後重新登入 n8n，發現之前建的流程全消失，回到「Create your first workflow」狀態</div>
+      </div>
+      <div class="ts-q">
+        <div class="ts-tag">診斷</div>
+        <div class="ts-a">
+          跑 <code class="inline-code">docker volume ls</code> 確認 <code class="inline-code">n8n-starter-kit_n8n_data</code> 還在。<br>
+          <strong>還在但不見</strong>：可能不小心建了新的 Owner Account，n8n 把你導向新帳號的空間。<br>
+          <strong>不在了</strong>：之前用過 <code class="inline-code">docker compose down -v</code>（<code class="inline-code">-v</code> 會刪 volumes）。
+        </div>
+      </div>
+      <div class="ts-q" style="border-bottom:0">
+        <div class="ts-tag">修復</div>
+        <div class="ts-a">
+          <strong>volume 還在</strong> → 確認登入的 Owner email 跟之前一樣（n8n 1 個 instance 1 個 owner）<br>
+          <strong>volume 不在了</strong> → 救不回來；以後<strong>只用 <code class="inline-code">stop.command</code></strong>（背後是 <code class="inline-code">docker compose down</code>，不刪 volume），不要手動跑 <code class="inline-code">down -v</code><br><br>
+          <strong>預防</strong>：升級用 <code class="inline-code">update.command</code>（拉 image + 重啟，不碰 volume）；停服務用 <code class="inline-code">stop.command</code>（不刪資料）；想全部清掉重來才手動跑 <code class="inline-code">docker compose down -v</code>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(04)</div>
+  <h2 class="section-heading">動手練習 — 故意製造埠衝突再修復</h2>
+
+  <div class="context-box">
+    <div class="context-inner">
+      <div class="context-label">情境</div>
+      <div class="context-text">阿凱要在自己的電腦上重現案 2 的埠衝突，練習用解法 B（改埠號）完成修復，而不是只看過一次就算。</div>
+    </div>
+  </div>
+
+  <p class="body-text">依以下 8 個步驟操作，完成後把 compose 改回原狀。</p>
+
+  <div class="steps-wrap">
+    <div class="step-block">
+      <div class="step-circle">1</div>
+      <div class="step-content">
+        <div class="step-heading">確認 n8n 已停止</div>
+        <div class="step-body">雙擊 <code class="inline-code">stop.command</code> / <code class="inline-code">stop.bat</code></div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">2</div>
+      <div class="step-content">
+        <div class="step-heading">開另一個終端機，佔用 5678</div>
+        <div class="step-body">
+          <div class="code-wrap"><pre class="code-block">python3 -m http.server 5678</pre><button class="copy-btn" onclick="copyCode(this)" aria-label="複製指令">複製</button></div>
+          這會在 5678 起一個假伺服器佔用埠
+        </div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">3</div>
+      <div class="step-content">
+        <div class="step-heading">雙擊 start.command / start.bat</div>
+        <div class="step-body">這時候應該會跳錯</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">4</div>
+      <div class="step-content">
+        <div class="step-heading">確認錯誤訊息</div>
+        <div class="step-body">應看到 <code class="inline-code">port is already allocated</code>——拍下截圖備用</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">5</div>
+      <div class="step-content">
+        <div class="step-heading">依案 2 解法 B 修：改 compose 埠號</div>
+        <div class="step-body">把 <code class="inline-code">n8n-compose.yml</code> 裡的 <code class="inline-code">'5678:5678'</code> 改成 <code class="inline-code">'5680:5678'</code></div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">6</div>
+      <div class="step-content">
+        <div class="step-heading">雙擊 start，應該成功啟動</div>
+        <div class="step-body">等候 30 秒讓容器初始化完成</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">7</div>
+      <div class="step-content">
+        <div class="step-heading">開 http://localhost:5680 確認</div>
+        <div class="step-body">應看到 n8n 主介面——拍下截圖</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">8</div>
+      <div class="step-content">
+        <div class="step-heading">收尾：關掉假伺服器，改回原埠</div>
+        <div class="step-body">在假伺服器的終端機按 Ctrl+C，把 compose 改回 <code class="inline-code">'5678:5678'</code></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-icon" aria-hidden="true">!</div>
+    <div class="callout-body"><strong>預期成果</strong>：練習過程中拍下「跳錯訊息」「修改後的 compose 檔」「成功跑起來的 localhost:5680」三張截圖，並寫下「以後遇到埠衝突，我會先做 _____，再 _____」的兩步流程。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(05)</div>
+  <h2 class="section-heading">學完本單元的指標</h2>
+  <p class="body-text">四項全過，1.1 完成，可以進 1.2 Cloudflare Tunnel。</p>
+  <div class="scenario-grid">
+    <div class="scenario-row">
+      <div class="scenario-task">指標 1</div>
+      <div class="scenario-pick">看到 ERR_CONNECTION_REFUSED 能說出至少 2 個可能原因（容器沒起 / 埠被佔 / 防火牆擋）</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">指標 2</div>
+      <div class="scenario-pick">知道遇到不熟錯誤時要跑哪 3 行診斷指令</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">指標 3</div>
+      <div class="scenario-pick">知道 <code class="inline-code">docker compose down</code> 與 <code class="inline-code">down -v</code> 的差別</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">指標 4</div>
+      <div class="scenario-pick">動手做完埠衝突修復練習，拍下三張截圖</div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(06)</div>
+  <h2 class="section-heading">常見錯誤 3 條</h2>
+  <div class="scenario-grid">
+    <div class="scenario-row">
+      <div class="scenario-task">錯誤 1</div>
+      <div class="scenario-pick"><strong>現象</strong>：看到錯誤訊息就直接舉手問講師，沒先跑三行診斷<br><strong>原因</strong>：覺得錯誤訊息太長看不懂，習慣性求助<br><strong>解法</strong>：卡住時先跑三行存下輸出，再決定是自查還是問人。多數情況看 logs 第一行就找得到答案</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">錯誤 2</div>
+      <div class="scenario-pick"><strong>現象</strong>：為了「修錯」直接跑 <code class="inline-code">docker compose down -v</code>，結果把流程全清掉<br><strong>原因</strong>：沒注意 <code class="inline-code">-v</code> 旗標的意義，只想著「重來一次」<br><strong>解法</strong>：案 8 已強調；<code class="inline-code">down</code> 只停容器，<code class="inline-code">down -v</code> 連 volumes 一起刪</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">錯誤 3</div>
+      <div class="scenario-pick"><strong>現象</strong>：Win 學員跑 <code class="inline-code">wsl --status</code> 顯示一切正常，但 Docker Desktop 還是卡 Starting<br><strong>原因</strong>：WSL 核心版本太舊，<code class="inline-code">--status</code> 沒抓到問題<br><strong>解法</strong>：直接跑 <code class="inline-code">wsl --update</code> 強制升級，多數情況解決；仍不行可能是企業電腦群組原則擋住，需找 IT</div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(07)</div>
+  <h2 class="section-heading">檢核題</h2>
+
+  <div class="quiz-item">
+    <div class="quiz-q">Q1（概念驗證）「分層診斷思維」中，看到 ERR_CONNECTION_REFUSED 應該<em>先</em>檢查哪一層？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt">A. 防火牆設定</div>
+      <div class="quiz-opt">B. n8n 設定檔內容</div>
+      <div class="quiz-opt correct">C. Docker 容器是否在跑（用 docker ps）</div>
+      <div class="quiz-opt">D. 重新安裝 Docker Desktop</div>
+    </div>
+    <details>
+      <summary style="font-size:.85rem;color:var(--c-muted);cursor:pointer;padding:6px 0">查看解析</summary>
+      <div class="quiz-ans">從外層症狀切入最內層執行狀態，先確認容器在不在跑。確認容器狀態是成本最低、資訊量最大的第一步，再依結果往其他層追查。</div>
+    </details>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q">Q2（應用驗證）雯姊跑 update.command 後發現流程全部消失。可能原因是什麼？下次該怎麼做？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt">A. update.command 本身有 bug，不應使用</div>
+      <div class="quiz-opt">B. n8n 版本升級後資料格式不相容，自動清空</div>
+      <div class="quiz-opt correct">C. 之前曾跑過 docker compose down -v，-v 旗標會刪 volumes 連同資料</div>
+      <div class="quiz-opt">D. Docker Desktop 版本太舊需升級</div>
+    </div>
+    <details>
+      <summary style="font-size:.85rem;color:var(--c-muted);cursor:pointer;padding:6px 0">查看解析</summary>
+      <div class="quiz-ans">可能原因：之前曾跑過 <code class="inline-code">docker compose down -v</code>（-v 旗標會刪 volumes 連同資料）。下次預防：只用 <code class="inline-code">stop.command</code>（不加 -v）停服務；想清掉重來才手動跑 <code class="inline-code">down -v</code>。一旦 volumes 被刪資料無法救回；建議重要流程用 n8n 內建 Export 功能定期備份成 JSON。</div>
+    </details>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(08)</div>
+  <h2 class="section-heading">試跑包需求</h2>
+  <p class="body-text">本單元 course_type = skill-operation（排錯導向），不需要學員自備 credential。</p>
+  <div class="scenario-grid">
+    <div class="scenario-row">
+      <div class="scenario-task">講師端</div>
+      <div class="scenario-pick">「錯誤範例展示包」：預先製作的 5678 埠佔用腳本、模擬權限錯誤的測試檔，讓學員在受控環境練排錯</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">示範素材</div>
+      <div class="scenario-pick">8 案的截圖 / 螢幕錄影：每案的症狀畫面，供講義頁與簡報使用</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">速查卡</div>
+      <div class="scenario-pick">「三行診斷」貼紙或速查卡（實體或數位），課程結束後給學員帶走</div>
+    </div>
+  </div>
+
+  <div class="callout info">
+    <div class="callout-icon" aria-hidden="true">!</div>
+    <div class="callout-body"><strong>三行診斷指令（快速複製版）</strong>——卡住時先跑這三個再問人。
+    <div class="code-wrap" style="margin-top:10px">
+      <pre class="code-block"><span class="cm"># 看容器是否在跑</span>
+docker ps
+<span class="cm"># 看 n8n 最近的錯誤日誌</span>
+docker compose logs n8n --tail 50
+<span class="cm"># 驗證 compose 設定是否解析正確</span>
+docker compose config</pre>
+      <button class="copy-btn" onclick="copyCode(this)" aria-label="複製三行診斷指令">複製</button>
+    </div>
+    </div>
+  </div>
+</section>
+
+<div class="nav-footer">
+  <a href="m1-1-launch.html" class="nav-btn"><span aria-hidden="true">←</span> 上一頁：啟動 n8n 首次設定</a>
+  <a href="m1-2-tunnel.html" class="nav-btn primary">下一節：1.2 Cloudflare Tunnel <span aria-hidden="true">→</span></a>
+</div>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">AI 資料工廠 — 弄一下工作室</span>
+  <span class="footer-meta" data-platform-version="Docker Desktop 4.x / n8n latest (Docker image n8nio/n8n)" data-built-at="2026-04-23">本頁以 Docker Desktop 4.x / n8n latest (Docker image n8nio/n8n) 製作，2026-04</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+</script>
+<script>
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+<script>
+function copyCode(btn){
+  var pre=btn.previousElementSibling;
+  if(!pre)return;
+  navigator.clipboard.writeText(pre.textContent).then(function(){
+    var orig=btn.textContent;
+    btn.textContent='已複製';
+    setTimeout(function(){btn.textContent=orig;},1500);
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1.1.2 啟動 n8n 並完成首次設定｜AI 資料工廠</title>
+<meta name="description" content="能用試跑包雙擊腳本啟動 n8n，在 localhost:5678 建立 Owner Account，並跑通一個 Webhook hello-world">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="1.1.2 啟動 n8n 並完成首次設定｜AI 資料工廠">
+<meta property="og:description" content="能用試跑包雙擊腳本啟動 n8n，在 localhost:5678 建立 Owner Account，並跑通一個 Webhook hello-world">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/lessons/m1-1-launch.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="1.1.2 啟動 n8n 並完成首次設定｜AI 資料工廠">
+<meta name="twitter:description" content="能用試跑包雙擊腳本啟動 n8n，在 localhost:5678 建立 Owner Account，並跑通一個 Webhook hello-world">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/lessons/m1-1-launch.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-a5:#7a9ea3;--c-main:#5a7a5a;--radius:4px;--radius-sm:3px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 var(--radius) 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:#5a7a5a;border:1px solid rgba(90,122,90,.3);background:transparent;padding:3px 12px;border-radius:99px;font-weight:500;letter-spacing:.06em}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px;font-variant-numeric:tabular-nums}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;max-width:22ch}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:2px solid #5a7a5a;margin-top:28px}
+.outcomes-label{font-size:.7rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
+.outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-heading em{font-style:normal;color:var(--c-text)}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.7rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-body{font-size:.9rem;line-height:1.85}
+.concept-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0}
+.concept-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px}
+.concept-num{font-family:'Shippori Mincho',serif;font-size:.72rem;color:var(--c-faint);letter-spacing:.1em;margin-bottom:6px}
+.concept-title{font-size:.9rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.concept-desc{font-size:.85rem;color:var(--c-muted);line-height:1.75}
+.steps-wrap{margin:20px 0}
+.step-block{display:flex;gap:24px;margin-bottom:36px;position:relative}
+.step-block:not(:last-child)::after{content:'';position:absolute;left:19px;top:44px;width:2px;height:calc(100% - 12px);background:var(--c-border-soft)}
+.step-circle{width:40px;height:40px;border-radius:50%;background:rgba(90,122,90,.08);border:2px solid #5a7a5a;display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:#5a7a5a;flex-shrink:0}
+.step-content{flex:1;padding-top:6px}
+.step-heading{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:8px;line-height:1.3}
+.step-body{font-size:.9rem;color:var(--c-text);line-height:1.9;margin-bottom:12px}
+.expect-box{background:var(--c-surface);border-left:2px solid var(--c-border);border-radius:var(--radius);padding:12px 16px;margin:12px 0}
+.expect-label{font-size:.72rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:6px}
+.expect-text{font-size:.85rem;color:var(--c-muted);line-height:1.75}
+.code-block{background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.85rem;padding:18px 20px;border-radius:var(--radius);margin:14px 0;overflow-x:auto;line-height:1.65}
+.inline-code{font-family:'Courier New',monospace;font-size:.82em;background:rgba(90,122,90,.1);padding:1px 6px;border-radius:var(--radius-sm)}
+.cm{color:#6b9b8a}
+.ky{color:#9bb4d4}
+.st{color:#b8d4a0}
+.vr{color:#d4c08a}
+.mac-warning{background:rgba(181,112,58,.06);border:1px solid rgba(181,112,58,.3);border-left:3px solid var(--c-a1);border-radius:var(--radius);padding:16px 20px;margin:14px 0}
+.mac-warning-label{font-size:.72rem;color:var(--c-a1);letter-spacing:.1em;font-weight:500;margin-bottom:8px}
+.mac-warning-body{font-size:.85rem;color:var(--c-text);line-height:1.8}
+.mac-warning-body ol{margin:8px 0 0 20px;line-height:2}
+.scenario-grid{display:grid;grid-template-columns:160px 1fr;gap:1px;background:var(--c-border-soft);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:16px 0}
+.scenario-row{display:contents}
+.scenario-task{background:var(--c-surface);padding:14px 16px;font-size:.82rem;font-weight:500;color:var(--c-text)}
+.scenario-pick{background:var(--c-card);padding:14px 16px;font-size:.85rem;color:var(--c-muted);line-height:1.75}
+.verify-box{background:rgba(90,122,90,.05);border:1px solid rgba(90,122,90,.25);border-left:3px solid #5a7a5a;border-radius:var(--radius);padding:22px 26px;margin:16px 0}
+.verify-label{font-size:.7rem;color:#5a7a5a;letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.verify-text{font-size:.9rem;color:var(--c-text);line-height:1.85}
+.verify-text ul{margin:10px 0 0 20px;line-height:2}
+.troubleshoot{margin:16px 0}
+.ts-label{font-size:.72rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:14px}
+.ts-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:16px 20px;margin-bottom:10px}
+.ts-q{font-size:.88rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.ts-a{font-size:.85rem;color:var(--c-muted);line-height:1.75}
+.quiz-item{margin-bottom:24px}
+.quiz-q{font-size:.92rem;font-weight:700;color:var(--c-text);margin-bottom:14px;line-height:1.7}
+.quiz-opts{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{font-size:.9rem;color:var(--c-muted);padding:10px 16px;border:1px solid var(--c-border);border-radius:var(--radius);line-height:1.65}
+.quiz-opt.correct{border-color:rgba(90,122,90,.4);background:rgba(90,122,90,.06);color:var(--c-text)}
+.quiz-ans{margin-top:10px}
+.quiz-ans summary{font-size:.82rem;color:#5a7a5a;cursor:pointer;padding:6px 0}
+.quiz-ans-body{font-size:.88rem;color:var(--c-muted);padding:10px 0 0;line-height:1.8}
+.dl-box{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 24px;margin:20px 0}
+.dl-label{font-size:.72rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px}
+.dl-title{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:12px}
+.dl-desc{font-size:.85rem;color:var(--c-muted);line-height:1.75;margin-bottom:16px}
+.dl-links{display:flex;flex-wrap:wrap;gap:8px}
+.dl-link{font-size:.82rem;color:#5a7a5a;border:1px solid rgba(90,122,90,.3);padding:6px 14px;border-radius:var(--radius);text-decoration:none}
+.dl-link:hover{background:rgba(90,122,90,.07);border-color:#5a7a5a}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
+.nav-btn:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main)}
+.nav-btn.primary:hover{filter:brightness(.92)}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+@media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important}*{animation:none!important}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.concept-grid{grid-template-columns:1fr}.scenario-grid{grid-template-columns:1fr}.dl-links{flex-direction:column}}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='n8n_auth',H='825e2dce35d14124f94b648f6ab2ab60c9db1d8f393c2b61722fe02412b9a199';if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 資料工廠</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">1.1.2 操作示範</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<div class="page-hero">
+  <a href="m1-1-setup.html" class="back-link"><span aria-hidden="true">←</span> 返回 1.1 環境建置 Hub</a>
+  <div class="hero-eyebrow">(1.1.2)</div>
+  <h1 class="lesson-title">啟動 n8n 並完成首次設定</h1>
+  <p class="lesson-tagline">阿凱裝完 Docker Desktop，鯨魚圖示亮了，但 n8n 在哪？這單元 15 分鐘，目標是讓 n8n 從「沒啟動」變成「localhost:5678 主介面開起來 + Webhook 節點亮綠燈」，全程不需要打任何 docker 指令。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果</div>
+    <div class="outcome-item">能雙擊試跑包腳本啟動 n8n，並在瀏覽器開啟 localhost:5678</div>
+    <div class="outcome-item">能完成 Owner Account 首次設定，進入 n8n 主介面</div>
+    <div class="outcome-item">能新增 Webhook 節點、跑通 hello-world 測試請求，確認節點亮綠燈</div>
+  </div>
+</div>
+
+<!-- 試跑包下載 -->
+<section class="lesson-section">
+  <div class="dl-box">
+    <div class="dl-label">試跑包</div>
+    <div class="dl-title">n8n-starter-kit</div>
+    <div class="dl-desc">課程預先準備的「整套可跑設定 + 一鍵腳本」，包含 Docker Compose 配置、.env 範本、各平台雙擊腳本。本單元所有操作都建立在這份試跑包上。</div>
+    <div class="dl-links">
+      <a href="../assets/n8n-starter-kit/README.md" class="dl-link">README.md（說明書）</a>
+      <a href="../assets/n8n-starter-kit/n8n-compose.yml" class="dl-link">n8n-compose.yml</a>
+      <a href="../assets/n8n-starter-kit/.env.example" class="dl-link">.env.example（環境變數範本）</a>
+      <a href="../assets/n8n-starter-kit/start.command" class="dl-link">start.command（Mac）</a>
+      <a href="../assets/n8n-starter-kit/start.bat" class="dl-link">start.bat（Windows）</a>
+      <a href="../assets/n8n-starter-kit/stop.command" class="dl-link">stop.command（Mac）</a>
+      <a href="../assets/n8n-starter-kit/stop.bat" class="dl-link">stop.bat（Windows）</a>
+      <a href="../assets/n8n-starter-kit/update.command" class="dl-link">update.command（Mac）</a>
+      <a href="../assets/n8n-starter-kit/update.bat" class="dl-link">update.bat（Windows）</a>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- Section 01：破題 -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(01)</div>
+  <h2 class="section-heading">為什麼要用<em>試跑包</em></h2>
+  <div class="intro-band">
+    <div class="intro-label">情境</div>
+    <div class="intro-text">阿凱裝完 Docker Desktop，看到鯨魚圖示在右上角發著綠光，但畫面打開只看到一個空空的 Containers 列表。「然後呢？n8n 在哪？」他問雯姊。雯姊把試跑包資料夾傳給他：「下載解壓，雙擊 <span class="inline-code">start.command</span>，剩下交給它。」</div>
+  </div>
+  <p class="body-text">Docker 本身只是容器引擎，不會自動跑 n8n。你需要告訴它「要跑哪個 image、用什麼設定、資料存哪裡」——這份描述就是 Docker Compose 的 yaml 檔。試跑包把這些全打包好，讓你不用手打指令也能啟動完整的 n8n 環境。</p>
+  <p class="body-text">雙擊腳本背後的每一步，本單元都會說明——這樣出問題你才能自己排查，而不是只能重裝。</p>
+</section>
+
+<hr class="section-rule">
+
+<!-- Section 02：關鍵概念 -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(02)</div>
+  <h2 class="section-heading">啟動前需要知道的<em>五個概念</em></h2>
+  <div class="concept-grid">
+    <div class="concept-card">
+      <div class="concept-num">(A)</div>
+      <div class="concept-title">Docker Compose</div>
+      <div class="concept-desc">用一份 yaml 檔描述「要跑哪幾個容器、它們怎麼連、用什麼設定」的工具。本課程的 <span class="inline-code">n8n-compose.yml</span> 就是這份描述。</div>
+    </div>
+    <div class="concept-card">
+      <div class="concept-num">(B)</div>
+      <div class="concept-title">試跑包（Starter Kit）</div>
+      <div class="concept-desc">課程預先準備的「整套可跑設定 + 一鍵腳本」，把 yaml、環境變數範本、雙擊腳本都包好，降低第一次啟動的門檻。</div>
+    </div>
+    <div class="concept-card">
+      <div class="concept-num">(C)</div>
+      <div class="concept-title">.env 檔</div>
+      <div class="concept-desc">環境變數設定檔，存密碼、時區、URL 等敏感或會變動的值。Compose 啟動時自動讀取，讓設定與程式碼分離。</div>
+    </div>
+    <div class="concept-card">
+      <div class="concept-num">(D)</div>
+      <div class="concept-title">Volume（資料卷）</div>
+      <div class="concept-desc">Docker 用來持久化資料的機制。你的 n8n flows 與 credentials 存在 volume 裡，停容器再啟不會消失。</div>
+    </div>
+    <div class="concept-card">
+      <div class="concept-num">(E)</div>
+      <div class="concept-title">Owner Account</div>
+      <div class="concept-desc">n8n 第一次開啟會引導建立的管理者帳號，只存在你本機，不需要真的去收驗證信。</div>
+    </div>
+    <div class="concept-card">
+      <div class="concept-num">(F)</div>
+      <div class="concept-title">Webhook hello-world</div>
+      <div class="concept-desc">最小驗證流程：一個 Webhook 節點等候請求，用瀏覽器打 Test URL 觸發，確認節點能接收外部 HTTP 請求。</div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- Section 03：操作步驟 -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(03)</div>
+  <h2 class="section-heading">六步驟完成<em>啟動與驗證</em></h2>
+  <div class="steps-wrap">
+
+    <!-- 步驟 1 -->
+    <div class="step-block">
+      <div class="step-circle">1</div>
+      <div class="step-content">
+        <div class="step-heading">下載試跑包，解壓到方便管理的位置</div>
+        <p class="step-body">從上方下載連結取得試跑包，解壓後放到：</p>
+        <div class="code-block"><span class="cm"># Mac 建議路徑</span>
+~/n8n-starter-kit/
+
+<span class="cm"># Windows 建議路徑</span>
+C:\Users\你的名字\n8n-starter-kit\</div>
+        <div class="expect-box">
+          <div class="expect-label">預期看到</div>
+          <div class="expect-text">資料夾內含 n8n-compose.yml、.env.example、README.md，以及 start / stop / update 各平台腳本（.command 是 Mac，.bat 是 Windows）。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 步驟 2 -->
+    <div class="step-block">
+      <div class="step-circle">2</div>
+      <div class="step-content">
+        <div class="step-heading">第一次雙擊 start——會自動建 .env，讓你修改密碼</div>
+        <p class="step-body"><strong>Mac</strong>：在 Finder 進入 <span class="inline-code">n8n-starter-kit</span> 資料夾，雙擊 <span class="inline-code">start.command</span></p>
+        <p class="step-body"><strong>Windows</strong>：在檔案總管進入 <span class="inline-code">n8n-starter-kit</span> 資料夾，雙擊 <span class="inline-code">start.bat</span></p>
+
+        <div class="mac-warning">
+          <div class="mac-warning-label">Mac 常見卡點：無法打開，因為來自未識別的開發者</div>
+          <div class="mac-warning-body">
+            這是 macOS Gatekeeper 的正常安全機制，不是錯誤。處理步驟：
+            <ol>
+              <li>開「系統設定 <span aria-hidden="true">→</span> 隱私權與安全性」</li>
+              <li>捲到「安全性」區塊，看到「<span class="inline-code">start.command</span> 已被阻擋使用」</li>
+              <li>按「強制打開」<span aria-hidden="true">→</span> 輸入密碼確認</li>
+              <li>之後同一檔案不會再被擋</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="expect-box">
+          <div class="expect-label">預期看到</div>
+          <div class="expect-text">第一次跑會自動把 <span class="inline-code">.env.example</span> 複製為 <span class="inline-code">.env</span>，並打開文字編輯器讓你編輯，同時跳出提示「請修改 POSTGRES_PASSWORD 為強密碼後存檔」。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 步驟 3 -->
+    <div class="step-block">
+      <div class="step-circle">3</div>
+      <div class="step-content">
+        <div class="step-heading">改 .env 裡的 POSTGRES_PASSWORD，存檔關掉編輯器</div>
+        <p class="step-body"><span class="inline-code">.env</span> 完整內容如下，只需要改 <span class="inline-code">POSTGRES_PASSWORD</span> 那行：</p>
+        <div class="code-block"><span class="vr">GENERIC_TIMEZONE</span>=Asia/Taipei
+<span class="vr">POSTGRES_USER</span>=n8n
+<span class="vr">POSTGRES_PASSWORD</span>=<span class="st">please_change_me_to_a_strong_password</span>   <span class="cm">&lt;--- 改這行</span>
+<span class="vr">POSTGRES_DB</span>=n8n
+<span class="vr">WEBHOOK_URL</span>=http://localhost:5678/
+<span class="vr">N8N_HOST</span>=localhost
+<span class="vr">N8N_PROTOCOL</span>=http</div>
+        <p class="step-body">改成你自己的強密碼，例如：</p>
+        <div class="code-block"><span class="vr">POSTGRES_PASSWORD</span>=<span class="st">NongYiXia_n8n_2026!</span></div>
+        <div class="callout info">
+          <div class="callout-icon" aria-hidden="true">i</div>
+          <div class="callout-body">這密碼只用在你本機 PostgreSQL，不需要記住給別人，但不要用 <span class="inline-code">password</span> 之類的弱密碼。建議 16 字元以上，混合英數符號。存檔後關掉編輯器。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 步驟 4 -->
+    <div class="step-block">
+      <div class="step-circle">4</div>
+      <div class="step-content">
+        <div class="step-heading">再次雙擊 start——等 Docker 拉取 image 並啟動容器</div>
+        <p class="step-body">回到 <span class="inline-code">n8n-starter-kit</span> 資料夾，再次雙擊 <span class="inline-code">start.command</span>（Mac）或 <span class="inline-code">start.bat</span>（Windows）。</p>
+        <div class="expect-box">
+          <div class="expect-label">預期看到（終端機日誌）</div>
+          <div class="expect-text">
+            <div class="code-block" style="margin:8px 0 0">正在啟動 n8n（首次需下載 image，可能花 1-5 分鐘）...
+[+] Pulling 12/12
+ ✔ postgres 16 image 下載完成
+ ✔ n8nio/n8n latest image 下載完成
+[+] Running 3/3
+ ✔ Network n8n-starter-kit_default  Created
+ ✔ Container n8n-starter-kit-postgres-1  Started
+ ✔ Container n8n-starter-kit-n8n-1       Started
+等候 n8n 服務就緒...</div>
+            約 30 秒到 1 分鐘後（首次較久），瀏覽器會自動開到 http://localhost:5678。如果沒有自動開，手動在瀏覽器輸入 <span class="inline-code">http://localhost:5678</span>。
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 步驟 5 -->
+    <div class="step-block">
+      <div class="step-circle">5</div>
+      <div class="step-content">
+        <div class="step-heading">建立 Owner Account，進入 n8n 主介面</div>
+        <p class="step-body">n8n 第一次開啟會引導你建立帳號：</p>
+        <div class="scenario-grid">
+          <div class="scenario-row">
+            <div class="scenario-task">Email</div>
+            <div class="scenario-pick">可以填假信箱（例如 <span class="inline-code">me@local.local</span>），不會真的寄信驗證</div>
+          </div>
+          <div class="scenario-row">
+            <div class="scenario-task">First / Last Name</div>
+            <div class="scenario-pick">隨意填</div>
+          </div>
+          <div class="scenario-row">
+            <div class="scenario-task">Password</div>
+            <div class="scenario-pick">自訂（至少 8 字元，含大小寫與數字）</div>
+          </div>
+        </div>
+        <p class="step-body">按 Next <span aria-hidden="true">→</span> 跳過後續行銷問卷（按 Skip）<span aria-hidden="true">→</span> 進入 n8n 主介面。</p>
+        <div class="expect-box">
+          <div class="expect-label">預期看到</div>
+          <div class="expect-text">左側選單有 Workflows / Credentials / Executions / Templates；中央區塊空白或有「Create your first workflow」按鈕。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 步驟 6 -->
+    <div class="step-block">
+      <div class="step-circle">6</div>
+      <div class="step-content">
+        <div class="step-heading">跑 Webhook hello-world 驗證——確認 n8n 能接收外部請求</div>
+        <p class="step-body">按「Create Workflow」進入空白編輯器，然後：</p>
+        <ol style="margin:0 0 12px 20px;font-size:.9rem;line-height:2;color:var(--c-text)">
+          <li>點 canvas 中央的「+」加節點</li>
+          <li>搜尋 <strong>Webhook</strong>，選 <strong>Webhook</strong> trigger 節點</li>
+          <li>節點設定面板：HTTP Method 選 <strong>GET</strong>，Path 填 <span class="inline-code">hello</span>，其他保留預設</li>
+          <li>按 <strong>Listen for test event</strong>（節點變藍色等候狀態）</li>
+          <li>複製 Test URL（形如 <span class="inline-code">http://localhost:5678/webhook-test/hello</span>）</li>
+          <li>開新分頁貼上 URL 按 Enter</li>
+        </ol>
+
+        <div class="callout key">
+          <div class="callout-icon" aria-hidden="true">*</div>
+          <div class="callout-body"><strong>Webhook 驗證成功的兩個信號：</strong><br>① 剛才開的新分頁顯示 <span class="inline-code">Workflow was started</span><br>② 回到 n8n 編輯器，Webhook 節點變<strong>綠色</strong>，下方 Output 顯示收到的請求資料（headers、query、body）</div>
+        </div>
+
+        <div class="expect-box">
+          <div class="expect-label">恭喜</div>
+          <div class="expect-text">n8n 從零跑到「能接收外部請求」，全程只花了 15 分鐘，且沒打過任何 docker 指令。</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.steps-wrap -->
+</section>
+
+<hr class="section-rule">
+
+<!-- Section 04：進階指令速查 -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(04)</div>
+  <h2 class="section-heading">進階：手動指令速查</h2>
+  <p class="body-text">雙擊腳本背後的指令是 <span class="inline-code">docker compose</span>。如果你想直接在終端機操作，先 cd 到 <span class="inline-code">n8n-starter-kit/</span> 資料夾，再執行：</p>
+  <div class="code-block"><span class="cm"># 啟動所有服務（背景跑）</span>
+<span class="ky">docker compose</span> up -d
+
+<span class="cm"># 停止所有服務（資料保留）</span>
+<span class="ky">docker compose</span> down
+
+<span class="cm"># 停止 + 刪 volumes（資料全清，謹慎使用）</span>
+<span class="ky">docker compose</span> down -v
+
+<span class="cm"># 拉最新 image</span>
+<span class="ky">docker compose</span> pull
+
+<span class="cm"># 看 n8n 即時日誌（Ctrl+C 退出）</span>
+<span class="ky">docker compose</span> logs n8n -f
+
+<span class="cm"># 看跑中的容器狀態</span>
+<span class="ky">docker compose</span> ps</div>
+
+  <div class="scenario-grid">
+    <div class="scenario-row">
+      <div class="scenario-task">Mac：開終端機</div>
+      <div class="scenario-pick">在 Finder 對 <span class="inline-code">n8n-starter-kit</span> 資料夾按右鍵 <span aria-hidden="true">→</span> 服務 <span aria-hidden="true">→</span> 「新終端機（位於資料夾位置）」</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">Windows：開 cmd</div>
+      <div class="scenario-pick">在檔案總管網址列輸入 <span class="inline-code">cmd</span> 按 Enter，會直接以該資料夾為位置開 cmd</div>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-icon" aria-hidden="true">!</div>
+    <div class="callout-body">本課程的 <span class="inline-code">stop.command</span> / <span class="inline-code">stop.bat</span> 都是用 <span class="inline-code">down</span>（不加 <span class="inline-code">-v</span>），只要用這兩個檔停就不會丟資料。想清掉重來才用 <span class="inline-code">down -v</span>。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- Section 05：動手練習 -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(05)</div>
+  <h2 class="section-heading">動手練習：完成六步驟</h2>
+  <p class="body-text">跟著步驟 1–6 走完，最終要看到 n8n Webhook 節點亮綠燈 + 收到測試請求。</p>
+  <div class="verify-box">
+    <div class="verify-label">完成檢核</div>
+    <div class="verify-text">
+      確認以下四件事都成立：
+      <ul>
+        <li>左上角看到「My workflow」（你建的流程）</li>
+        <li>Webhook 節點是綠色，不是紅色或灰色</li>
+        <li>Output 面板看得到 <span class="inline-code">headers</span>、<span class="inline-code">query</span>、<span class="inline-code">body</span> 的資料結構</li>
+        <li>左側 Executions 選單能看到剛才的執行紀錄</li>
+      </ul>
+      四個全過，1.1.2 完成，可以進 1.2 Cloudflare Tunnel。
+    </div>
+  </div>
+
+  <p class="body-text" style="margin-top:20px"><strong>預期成果截圖包含</strong>：一個綠色的 Webhook 節點 + Output 面板顯示 JSON 格式的 headers / query / body。</p>
+</section>
+
+<hr class="section-rule">
+
+<!-- Section 06：常見錯誤 -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(06)</div>
+  <h2 class="section-heading">常見錯誤<em>三條</em></h2>
+  <div class="troubleshoot">
+    <div class="ts-label">遇到問題時先對照這裡</div>
+    <div class="ts-item">
+      <div class="ts-q">雙擊 start.command 跳出「無法打開，因為來自未識別的開發者」</div>
+      <div class="ts-a"><strong>原因</strong>：macOS Gatekeeper 第一次擋未簽署的 .command 檔，正常行為。<br><strong>解法</strong>：開「系統設定 <span aria-hidden="true">→</span> 隱私權與安全性 <span aria-hidden="true">→</span> 安全性」捲到底，看到被擋的 <span class="inline-code">start.command</span>，按「強制打開」<span aria-hidden="true">→</span> 輸入密碼。之後同一檔案不會再被擋。詳見 1.1.3 troubleshoot 案 6。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">start 腳本跑完，瀏覽器打開 localhost:5678 顯示「無法連線」或 ERR_CONNECTION_REFUSED</div>
+      <div class="ts-a"><strong>原因</strong>：n8n 容器還在啟動中（首次拉 image 較慢），或 5678 埠被其他程式佔用。<br><strong>解法</strong>：等 30–60 秒重試。仍不行去 1.1.3 troubleshoot 案 5（容器在跑但連不上）或案 2（埠被佔用）。</div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-q">Owner Account 建好之後，下次重啟 Docker Desktop 發現 flows 不見了</div>
+      <div class="ts-a"><strong>原因</strong>：之前用 <span class="inline-code">docker compose down -v</span> 而非 <span class="inline-code">docker compose down</span>，<span class="inline-code">-v</span> 會刪 volume 連帶刪資料。<br><strong>解法</strong>：本課程的 <span class="inline-code">stop.command</span> / <span class="inline-code">stop.bat</span> 都是用 <span class="inline-code">down</span>（不加 <span class="inline-code">-v</span>），只要用這兩個檔停就不會丟資料。想清掉重來才用 <span class="inline-code">down -v</span>。詳見 1.1.3 troubleshoot 案 8。</div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- Section 07：商業情境 -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(07)</div>
+  <h2 class="section-heading">阿凱的任務</h2>
+  <p class="body-text">阿凱（27 歲，弄一下行銷工作室行銷專員）要把 n8n 從零跑起來，建立第一個能接外部請求的 Webhook 節點，作為後續 1.2 Cloudflare Tunnel 對外公開的基礎。本單元他學會的四件事：用試跑包一鍵啟動、看懂 .env 為什麼要改密碼、知道 Docker volumes 怎麼保存資料、跑通最小驗證流程。</p>
+  <div class="callout info">
+    <div class="callout-icon" aria-hidden="true">i</div>
+    <div class="callout-body">阿凱跑完這個流程之後，他的 n8n 只跑在 <span class="inline-code">localhost:5678</span>，外部服務（例如 Make、Google）還打不進來。1.2 的 Cloudflare Tunnel 才是把這個本機節點「開洞」對外的步驟。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- Section 08：檢核題 -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(08)</div>
+  <h2 class="section-heading">檢核題</h2>
+
+  <div class="quiz-item">
+    <div class="quiz-q">Q1：n8n 的 flows 與 credentials 實際存在哪裡？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt">A. <span class="inline-code">~/n8n-starter-kit/</span> 資料夾的某個檔案</div>
+      <div class="quiz-opt">B. <span class="inline-code">.env</span> 檔</div>
+      <div class="quiz-opt correct">C. Docker volume <span class="inline-code">n8n_data</span>（不在你看得到的硬碟資料夾）</div>
+      <div class="quiz-opt">D. PostgreSQL 容器的記憶體</div>
+    </div>
+    <details class="quiz-ans">
+      <summary>看答案</summary>
+      <div class="quiz-ans-body">答案是 C。n8n 把資料寫進 Docker volume，volume 是 Docker 管理的持久化儲存空間，不是你日常可以在 Finder 或檔案總管看到的資料夾。這也是為什麼 <span class="inline-code">down</span>（不加 <span class="inline-code">-v</span>）停容器後資料不會消失，但 <span class="inline-code">down -v</span> 會把 volume 一起刪掉。</div>
+    </details>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q">Q2：阿凱想把 n8n 升級到最新版本，但又怕升級後 flows 不見。他應該怎麼做？</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt">A. 先手動備份 <span class="inline-code">~/n8n-starter-kit/</span> 整個資料夾，再跑 <span class="inline-code">down -v</span> 後重拉</div>
+      <div class="quiz-opt correct">B. 雙擊 <span class="inline-code">update.command</span>（Mac）或 <span class="inline-code">update.bat</span>（Windows），升級不會碰 volumes</div>
+      <div class="quiz-opt">C. 直接在 Docker Desktop GUI 點「Update image」按鈕</div>
+      <div class="quiz-opt">D. 刪掉整個 <span class="inline-code">n8n-starter-kit</span> 資料夾重新下載試跑包</div>
+    </div>
+    <details class="quiz-ans">
+      <summary>看答案</summary>
+      <div class="quiz-ans-body">答案是 B。<span class="inline-code">update.command</span> / <span class="inline-code">update.bat</span> 背後跑的是 <span class="inline-code">docker compose pull && docker compose up -d</span>，只更新 image，不動 volumes，所以 flows 和 credentials 不受影響。切忌用 <span class="inline-code">down -v</span>——那會刪掉所有資料。</div>
+    </details>
+  </div>
+
+</section>
+
+<div class="nav-footer">
+  <a href="m1-1-install.html" class="nav-btn"><span aria-hidden="true">←</span> 上一節：Docker Desktop 安裝</a>
+  <a href="m1-1-troubleshoot.html" class="nav-btn primary">下一節：常見錯誤排查手冊 <span aria-hidden="true">→</span></a>
+</div>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">2026 春季</span>
+  <span class="footer-meta" data-platform-version="Docker Desktop 4.x / n8n latest (Docker image n8nio/n8n)" data-built-at="2026-04-23">本頁以 Docker Desktop 4.x / n8n latest 製作，2026-04</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+</script>
+<script>
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+</body>
+</html>
