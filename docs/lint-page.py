@@ -80,9 +80,10 @@ def check_box_shadow(html: str) -> list:
 
 def check_custom_color_vars(html: str) -> list:
     issues = []
-    matches = re.findall(r'--c-a([6-9]|\d{2,})\b', html)
+    # --c-a6 已登記於 design-tokens.md（2026-04-24 gen-image 奶茶棕）；允許 a1-a6
+    matches = re.findall(r'--c-a([7-9]|\d{2,})\b', html)
     if matches:
-        issues.append(("BLOCKER", f"自創 --c-a{matches[0]}+ 變數（禁止，只允許 a1-a5）"))
+        issues.append(("BLOCKER", f"自創 --c-a{matches[0]}+ 變數（禁止，只允許 a1-a6）"))
     return issues
 
 
