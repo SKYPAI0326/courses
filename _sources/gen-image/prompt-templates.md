@@ -44,6 +44,8 @@
 - 禁用：{該 preset + 該品牌的禁用項，例：漸層、純黑、霓虹色}
 
 【尺寸】{ratio，預設 1:1}
+
+⚠️ 字體名稱（Shippori Mincho / Noto Sans JP / Helvetica 等）僅為 AI 渲染指令、絕對不要寫進圖中作為文字
 ```
 
 > **風格 preset 速查**：見 `10-industries-brief-library.md` § 風格 preset 對照表（11 種 preset × 配色 / 字體 / 質感 / 業種）。**日系是教學基準預設值**，演練時可替換其他 preset 體驗「結構不變、表象切換」。
