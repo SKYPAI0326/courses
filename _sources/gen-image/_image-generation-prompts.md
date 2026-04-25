@@ -18,7 +18,7 @@
 - **字體**：主標 Shippori Mincho（明朝體粗體）、內文 Noto Sans JP
 - **禁用**：漸層、純黑、霓虹色、過度裝飾、emoji
 - **尺寸**：除非另註明、預設 1:1（1080×1080）
-- **檔案格式**：JPG（品質 90）或 PNG（透明區可不要）
+- **檔案格式**：PNG（Nano Banana 預設輸出、所有 24 張統一 .png）
 - **若 AI 文字渲染失敗**：產出後再用 Canva 補字、或同對話請 AI 重產
 
 ---
@@ -101,7 +101,7 @@
 
 ### 圖 01｜A 主視覺版
 
-- **檔名**：`v01-a-hero.jpg`
+- **檔名**：`v01-a-hero.png`
 - **用途**：CH2-1 § 看段 8 版型對照表的 A 欄
 - **尺寸**：1:1（1080×1080）
 
@@ -136,7 +136,7 @@
 
 ### 圖 02｜B 橫幅版
 
-- **檔名**：`v02-b-banner.jpg`
+- **檔名**：`v02-b-banner.png`
 - **用途**：CH2-1 § 看段 8 版型對照表的 B 欄
 - **尺寸**：16:9（1600×900）
 
@@ -171,7 +171,7 @@
 
 ### 圖 03｜C 社群版
 
-- **檔名**：`v03-c-social.jpg`
+- **檔名**：`v03-c-social.png`
 - **用途**：CH2-1 § 看段 8 版型對照表的 C 欄
 - **尺寸**：1:1（1080×1080）
 
@@ -205,7 +205,7 @@
 
 ### 圖 04｜D 系列版
 
-- **檔名**：`v04-d-series.jpg`
+- **檔名**：`v04-d-series.png`
 - **用途**：CH2-1 § 看段 8 版型對照表的 D 欄
 - **尺寸**：1:1（1080×1080）
 
@@ -249,7 +249,7 @@
 
 ### 圖 05｜E 禮盒版
 
-- **檔名**：`v05-e-giftbox.jpg`
+- **檔名**：`v05-e-giftbox.png`
 - **用途**：CH2-1 § 看段 8 版型對照表的 E 欄
 - **尺寸**：1:1（1080×1080）
 
@@ -286,7 +286,7 @@
 
 ### 圖 06｜F 特寫版
 
-- **檔名**：`v06-f-closeup.jpg`
+- **檔名**：`v06-f-closeup.png`
 - **用途**：CH2-1 § 看段 8 版型對照表的 F 欄
 - **尺寸**：1:1（1080×1080）
 
@@ -313,7 +313,7 @@
 
 ### 圖 07｜G 促銷版
 
-- **檔名**：`v07-g-promo.jpg`
+- **檔名**：`v07-g-promo.png`
 - **用途**：CH2-1 § 看段 8 版型對照表的 G 欄
 - **尺寸**：1:1（1080×1080）
 
@@ -350,7 +350,7 @@
 
 ### 圖 08｜H 生活版
 
-- **檔名**：`v08-h-lifestyle.jpg`
+- **檔名**：`v08-h-lifestyle.png`
 - **用途**：CH2-1 § 看段 8 版型對照表的 H 欄
 - **尺寸**：1:1（1080×1080）
 
@@ -397,7 +397,7 @@
 
 ### 圖 09｜brief 模糊版（典型失敗範例）
 
-- **檔名**：`v09-brief-vague.jpg`
+- **檔名**：`v09-brief-vague.png`
 - **用途**：CH2-2 § 看段步驟 1 對比範例
 - **尺寸**：1:1（1080×1080）
 
@@ -420,7 +420,7 @@
 
 ### 圖 10｜brief 結構化版（六件套填好的成果）
 
-- **檔名**：`v10-brief-structured.jpg`
+- **檔名**：`v10-brief-structured.png`
 - **用途**：CH2-2 § 看段步驟 2 對比範例
 - **尺寸**：1:1（1080×1080）
 
@@ -465,7 +465,7 @@
 
 ### 圖 11｜L4 完稿（被反推的對象）
 
-- **檔名**：`v11-L4-finished.jpg`
+- **檔名**：`v11-L4-finished.png`
 - **用途**：CH3-1 § 看段「L4 完稿」展示
 - **尺寸**：1:1（1080×1080）
 
@@ -507,7 +507,7 @@
 
 ### 圖 12｜L2 線稿 wireframe（反推產出）
 
-- **檔名**：`v12-L2-wireframe.jpg`
+- **檔名**：`v12-L2-wireframe.png`
 - **用途**：CH3-1 § 學段「L2 線稿」展示、配對圖 11
 - **尺寸**：1:1（1080×1080）
 
@@ -592,7 +592,7 @@
 
 ### 圖 13｜跨產業套用 - 美妝精華
 
-- **檔名**：`v13-cross-cosmetic.jpg`
+- **檔名**：`v13-cross-cosmetic.png`
 - **用途**：CH4-1 § 學段範例 1
 - **尺寸**：1:1（1080×1080）
 
@@ -620,7 +620,7 @@
 
 ### 圖 14｜跨產業套用 - 線上課程
 
-- **檔名**：`v14-cross-course.jpg`
+- **檔名**：`v14-cross-course.png`
 - **用途**：CH4-1 § 學段範例 2
 - **尺寸**：1:1（1080×1080）
 
@@ -648,7 +648,7 @@
 
 ### 圖 15｜跨產業套用 - 旅遊地方創生
 
-- **檔名**：`v15-cross-travel.jpg`
+- **檔名**：`v15-cross-travel.png`
 - **用途**：CH4-1 § 學段範例 3
 - **尺寸**：1:1（1080×1080）
 
@@ -682,7 +682,7 @@
 
 ### 圖 16｜品牌系列 - 春季拿鐵
 
-- **檔名**：`v16-brand-spring.jpg`
+- **檔名**：`v16-brand-spring.png`
 - **用途**：CH4-3 § 品牌系列展示 1
 - **尺寸**：1:1（1080×1080）
 
@@ -718,7 +718,7 @@
 
 ### 圖 17｜品牌系列 - 夏季拿鐵
 
-- **檔名**：`v17-brand-summer.jpg`
+- **檔名**：`v17-brand-summer.png`
 - **用途**：CH4-3 § 品牌系列展示 2
 - **尺寸**：1:1（1080×1080）
 
@@ -754,7 +754,7 @@
 
 ### 圖 18｜品牌系列 - 冬季熱可可
 
-- **檔名**：`v18-brand-winter.jpg`
+- **檔名**：`v18-brand-winter.png`
 - **用途**：CH4-3 § 品牌系列展示 3
 - **尺寸**：1:1（1080×1080）
 
@@ -796,7 +796,7 @@
 
 ### 圖 19｜課程封面（index.html hero）
 
-- **檔名**：`v19-course-hero.jpg`
+- **檔名**：`v19-course-hero.png`
 - **用途**：courses/gen-image/index.html 課程總覽頁 hero
 - **尺寸**：16:9（1600×900）
 
@@ -824,7 +824,7 @@
 
 ### 圖 20｜PM 角色概念圖（CH1-1 用）
 
-- **檔名**：`v20-pm-role.jpg`
+- **檔名**：`v20-pm-role.png`
 - **用途**：CH1-1 § 看段或學段、展示 PM 三位一體角色
 - **尺寸**：1:1（1080×1080）
 
@@ -854,7 +854,7 @@
 
 ### 圖 21｜brief 六件套示意（CH2-2 用）
 
-- **檔名**：`v21-brief-six.jpg`
+- **檔名**：`v21-brief-six.png`
 - **用途**：CH2-2 § 學段、brief 六件套概念展示
 - **尺寸**：1:1（1080×1080）
 
@@ -895,7 +895,7 @@
 
 ### 圖 22｜簡約 minimal Lookbook（家具 / 香氛業種）
 
-- **檔名**：`v22-lookbook-minimal.jpg`
+- **檔名**：`v22-lookbook-minimal.png`
 - **用途**：CH5-1 § 進階挑戰 - 簡約風格範例
 - **尺寸**：4:3（1600×1200）
 
@@ -930,7 +930,7 @@
 
 ### 圖 23｜自然 organic Lookbook（保養 / 有機食業種）
 
-- **檔名**：`v23-lookbook-organic.jpg`
+- **檔名**：`v23-lookbook-organic.png`
 - **用途**：CH5-1 § 進階挑戰 - 自然風格範例（**本課程主推風格**）
 - **尺寸**：4:3（1600×1200）
 
@@ -965,7 +965,7 @@
 
 ### 圖 24｜奢華 luxury Lookbook（精品香水業種）
 
-- **檔名**：`v24-lookbook-luxury.jpg`
+- **檔名**：`v24-lookbook-luxury.png`
 - **用途**：CH5-1 § 進階挑戰 - 奢華風格範例（對比展示）
 - **尺寸**：4:3（1600×1200）
 
@@ -1002,30 +1002,30 @@
 
 | # | 檔名 | 用途 | Tier | 狀態 |
 |---|---|---|---|---|
-| 01 | `v01-a-hero.jpg` | A 主視覺版 | 1 | ☐ |
-| 02 | `v02-b-banner.jpg` | B 橫幅版 | 1 | ☐ |
-| 03 | `v03-c-social.jpg` | C 社群版 | 1 | ☐ |
-| 04 | `v04-d-series.jpg` | D 系列版 | 1 | ☐ |
-| 05 | `v05-e-giftbox.jpg` | E 禮盒版 | 1 | ☐ |
-| 06 | `v06-f-closeup.jpg` | F 特寫版 | 1 | ☐ |
-| 07 | `v07-g-promo.jpg` | G 促銷版 | 1 | ☐ |
-| 08 | `v08-h-lifestyle.jpg` | H 生活版 | 1 | ☐ |
-| 09 | `v09-brief-vague.jpg` | brief 模糊版 | 1 | ☐ |
-| 10 | `v10-brief-structured.jpg` | brief 結構化版 | 1 | ☐ |
-| 11 | `v11-L4-finished.jpg` | L4 完稿 | 1 | ☐ |
-| 12 | `v12-L2-wireframe.jpg` | L2 線稿 | 1 | ☐ |
-| 13 | `v13-cross-cosmetic.jpg` | 跨產業 - 美妝 | 2 | ☐ |
-| 14 | `v14-cross-course.jpg` | 跨產業 - 課程 | 2 | ☐ |
-| 15 | `v15-cross-travel.jpg` | 跨產業 - 旅遊 | 2 | ☐ |
-| 16 | `v16-brand-spring.jpg` | 品牌系列 - 春 | 2 | ☐ |
-| 17 | `v17-brand-summer.jpg` | 品牌系列 - 夏 | 2 | ☐ |
-| 18 | `v18-brand-winter.jpg` | 品牌系列 - 冬 | 2 | ☐ |
-| 19 | `v19-course-hero.jpg` | 課程封面 hero | 3 | ☐ |
-| 20 | `v20-pm-role.jpg` | PM 角色概念 | 3 | ☐ |
-| 21 | `v21-brief-six.jpg` | brief 六件套示意 | 3 | ☐ |
-| 22 | `v22-lookbook-minimal.jpg` | 簡約 Lookbook（CH5-1 進階）| 2.5 | ☐ |
-| 23 | `v23-lookbook-organic.jpg` | 自然 Lookbook（CH5-1 進階、本課主推）| 2.5 | ☐ |
-| 24 | `v24-lookbook-luxury.jpg` | 奢華 Lookbook（CH5-1 進階）| 2.5 | ☐ |
+| 01 | `v01-a-hero.png` | A 主視覺版 | 1 | ☐ |
+| 02 | `v02-b-banner.png` | B 橫幅版 | 1 | ☐ |
+| 03 | `v03-c-social.png` | C 社群版 | 1 | ☐ |
+| 04 | `v04-d-series.png` | D 系列版 | 1 | ☐ |
+| 05 | `v05-e-giftbox.png` | E 禮盒版 | 1 | ☐ |
+| 06 | `v06-f-closeup.png` | F 特寫版 | 1 | ☐ |
+| 07 | `v07-g-promo.png` | G 促銷版 | 1 | ☐ |
+| 08 | `v08-h-lifestyle.png` | H 生活版 | 1 | ☐ |
+| 09 | `v09-brief-vague.png` | brief 模糊版 | 1 | ☐ |
+| 10 | `v10-brief-structured.png` | brief 結構化版 | 1 | ☐ |
+| 11 | `v11-L4-finished.png` | L4 完稿 | 1 | ☐ |
+| 12 | `v12-L2-wireframe.png` | L2 線稿 | 1 | ☐ |
+| 13 | `v13-cross-cosmetic.png` | 跨產業 - 美妝 | 2 | ☐ |
+| 14 | `v14-cross-course.png` | 跨產業 - 課程 | 2 | ☐ |
+| 15 | `v15-cross-travel.png` | 跨產業 - 旅遊 | 2 | ☐ |
+| 16 | `v16-brand-spring.png` | 品牌系列 - 春 | 2 | ☐ |
+| 17 | `v17-brand-summer.png` | 品牌系列 - 夏 | 2 | ☐ |
+| 18 | `v18-brand-winter.png` | 品牌系列 - 冬 | 2 | ☐ |
+| 19 | `v19-course-hero.png` | 課程封面 hero | 3 | ☐ |
+| 20 | `v20-pm-role.png` | PM 角色概念 | 3 | ☐ |
+| 21 | `v21-brief-six.png` | brief 六件套示意 | 3 | ☐ |
+| 22 | `v22-lookbook-minimal.png` | 簡約 Lookbook（CH5-1 進階）| 2.5 | ☐ |
+| 23 | `v23-lookbook-organic.png` | 自然 Lookbook（CH5-1 進階、本課主推）| 2.5 | ☐ |
+| 24 | `v24-lookbook-luxury.png` | 奢華 Lookbook（CH5-1 進階）| 2.5 | ☐ |
 
 **目標資料夾**（再次提醒）：
 
