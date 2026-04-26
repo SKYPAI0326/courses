@@ -84,7 +84,7 @@ python3 docs/lint-page.py --changed       # 只查 git staged 檔
 - **專案路徑**：`/Users/paichenwei/Library/Mobile Documents/com~apple~CloudDocs/01-PROJECTS/課程專用網頁`
 - **課程資料夾**：`courses/` 下的 `ai-workshop/`、`gemini-ai/`、`gtm/`、`n8n/`、`office-ai/`
 - **命名對照表**：`COURSES.md`（各課程資料夾說明）
-- **規範資料夾**：`_規範/`（本地參考用，已 gitignore）
+- **規範資料夾**：`_規範/`（v4 重構後進 repo，含 design-tokens / lesson-template / 模板等 SSOT；排除 `_規範/課程密碼對照表.md` 與 `_規範/archive/`）
 
 ---
 
