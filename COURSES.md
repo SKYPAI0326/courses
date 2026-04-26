@@ -1,29 +1,44 @@
 # 課程資料夾對照表
 
+> ⚠️ **本文件為人工備忘錄，非 SSOT。** Codex L3 audit `7dcf26e4` 指出本檔已與實況脫鉤（如 `ai-workshop` 寫「4 Parts」實為 `session1+` 結構、多課寫「4 Parts」實為 5-6 parts）。
+> Phase C 規劃以**機器可讀 course manifest** 取代本檔的「結構描述」職能。在那之前，**請以 `ls courses/<slug>/` 為準**。
+> 本檔暫時保留作為「課程清單 + 命名 + 學員/工具/主色」摘要。
+
 ## 資料夾結構
 
 ```
 課程專用網頁/           ← 根目錄：規則、工具、統一入口
 ├── index.html          ← 統一課程入口
-├── CLAUDE.md
-├── COURSES.md
+├── CLAUDE.md           ← 專案規範
+├── COURSES.md          ← 本檔（課程清單摘要）
 ├── _outlines/          ← 課程大綱（Markdown）
-├── _規範/              ← 設計規範（本地參考）
+├── _規範/              ← 設計規範（design-tokens.md = SSOT）
 ├── _進度/              ← 進度追蹤
+├── _pilots/            ← 試產物（lint exclude，不套合規規則）
 ├── 素材/               ← 教學素材
 ├── 講義建立/           ← 講義製作器（server.py + index.html）
-└── courses/            ← 所有課程
+└── courses/            ← 所有課程（14 門，2026-04-26）
     ├── ai-workshop/
+    ├── ccs-foundations/
+    ├── digital-marketing-70h/
     ├── gemini-ai/
+    ├── gen-ai-140h/
+    ├── gen-ai-36h/
+    ├── gen-image/
     ├── gtm/
     ├── n8n/
-    └── office-ai/
+    ├── ntub-gtm-adtech/
+    ├── ntub-seo-ga4/
+    ├── office-ai/
+    ├── prompt-basic/
+    └── simple-ai/
 ```
 
 ## 命名規範
 
 - 課程資料夾：全小寫英文，連字號分隔（kebab-case），統一放在 `courses/`
 - 每門課根目錄放 `index.html`（課程總覽頁）
+- ⚠️ 既有實況：14 個課程的內部命名實際分多軌（`session/part/module/ch/lessons` 並存），未統一。Phase C 待整理。
 
 ## 課程大綱資料夾
 
@@ -33,71 +48,26 @@
 
 ---
 
-## 現有課程
+## 現有課程（14 門）
 
-| 資料夾 | 課程名稱（中文） | 狀態 | 備注 |
-|--------|----------------|------|------|
-| `ai-workshop/` | AI 實務全攻略（12h/18h） | 完成 | 4 Parts，12 CH + 4 PRAC + 4 WS + index，主色霧藍 --c-a4 |
-| `gemini-ai/` | Gemini 零代碼 AI 實戰課 | 完成 | 4 Parts，12 單元，含 PRAC 頁 |
-| `gtm/` | GTM 實務演練 | 完成 | 4 Parts，13 單元 |
-| `office-ai/` | 辦公室 AI 工具實務應用 | 製作中 | 6 章，章節頁待建 |
-| `n8n/` | n8n 自動化實戰課 | 完成 | 4 Modules，含 landing page |
-| `ccs-foundations/` | CCS 生成式 AI 認證研習 | 完成 | 13 頁（index + CH0 + CH1-1~5 + CH2-1~4 + CH3 + CH4），扁平結構，含 80 題模擬測驗與提示詞範本庫，主色灰藍綠 --c-a5 |
-| `gen-ai-36h/` | 生成式 AI 工作應用班（36h） | 完成 ✅ | 7 Parts，21 CH + 7 PRAC，28/28 全部完成，140h 上班族濃縮版，零基礎不寫程式，主色灰藍綠 --c-a5 |
-| `prompt-basic/` | 從「問 AI」到「交辦 AI」（6h） | 製作中 | 5 Parts，10 CH + 5 PRAC，公部門行政人員，主色灰藍綠 --c-a5 |
-| `simple-ai/` | 創業數位化 × 創業懂行銷（3h） | 完成 | 2 Modules，8 CH + Prompt Library（45 Prompt + 10 工作流），新創老闆 / 手機免費版，主色鼠尾草綠 #5a7a5a |
+| 資料夾 | 課程名稱 | 狀態 | 學員 / 工具 / 主色 |
+|--------|---------|------|-------------------|
+| `ai-workshop/` | AI 實務全攻略（12h/18h） | 完成 | 雙時數版本（index.html + index-12hr.html）；主色霧藍 |
+| `ccs-foundations/` | CCS 生成式 AI 認證研習 | 完成 | 扁平 13 頁，含 80 題模擬測驗與提示詞範本庫；主色灰藍綠；**v4 Editorial 範本** |
+| `digital-marketing-70h/` | 數位行銷人才培訓（70hr） | 完成 | 10 模組 52 單元，整合 GTM/SEO/GA4/廣告/Email；主色芥末黃 |
+| `gemini-ai/` | Gemini 零代碼 AI 實戰課 | 完成 | part1~5（含 PRAC 頁） |
+| `gen-ai-140h/` | 生成式 AI 職訓實務應用班（140h） | 完成 | part1~5，56+12 單元，含 ENV-SETUP；主色陶土橘 |
+| `gen-ai-36h/` | 生成式 AI 工作應用班（36h） | 完成 | part1~6，140h 上班族濃縮版，零基礎不寫程式；主色灰藍綠 |
+| `gen-image/` | 商業用圖片生成 | 完成 | 5 Modules，13 單元，AI 設計流水線 PM 協作；主色奶茶棕；**v4 Editorial 範本** |
+| `gtm/` | GTM 實務演練 | 完成 | part1~6，含 checklist.html |
+| `n8n/` | n8n 自動化實戰課 | 完成 | landing + lessons/，4 Modules |
+| `ntub-gtm-adtech/` | NTUB GTM × 廣告科技 | 完成 | （學員/結構待補） |
+| `ntub-seo-ga4/` | NTUB SEO × GA4 | 完成 | （學員/結構待補） |
+| `office-ai/` | 辦公室 AI 工具實務應用 | 完成 | part1~5 |
+| `prompt-basic/` | 從「問 AI」到「交辦 AI」（6h） | 製作中 | part1~5，公部門行政人員；主色灰藍綠 |
+| `simple-ai/` | 創業數位化 × 創業懂行銷（3h） | 完成 | 2 Modules + 扁平 CH，含 prompt-library.html；主色鼠尾草綠 |
 
----
-
-## 各課程子結構
-
-### ai-workshop/
-```
-ai-workshop/
-├── index.html          課程總覽（12h/18h 版本切換）
-├── part1/              CH1-1~3, PRAC1, WS1-A
-├── part2/              CH2-1~3, PRAC2, WS2-A
-├── part3/              CH3-1~3, PRAC3, WS3-A
-└── part4/              CH4-1~3, PRAC4, WS4-A
-```
-
-### gemini-ai/
-```
-gemini-ai/
-├── index.html          課程總覽
-├── part1/
-│   ├── CH1-1.html      單元頁
-│   └── PRAC1-1.html    實例演練頁
-├── part2/ … part4/
-```
-
-### gtm/
-```
-gtm/
-├── index.html          課程總覽
-├── part1/ … part4/
-```
-
-### office-ai/
-```
-office-ai/
-├── index.html          課程總覽
-├── course-outline.docx 課程大綱（個人參考用）
-├── ch1/
-│   └── CH1.html        單元頁
-├── ch2/ … ch6/
-```
-
-### n8n/
-```
-n8n/
-├── index.html          課程 Landing Page
-└── lessons/
-    ├── index.html      課程總覽
-    ├── module1.html    模組總覽頁
-    ├── m1-1-setup.html 單元頁
-    └── …
-```
+> 上述「狀態」「主色」可能未即時反映實況。「結構描述」一律以 `ls courses/<slug>/` 為準。
 
 ---
 
@@ -105,55 +75,14 @@ n8n/
 
 | 類型 | 格式 | 範例 |
 |------|------|------|
-| 單元頁 | `CH[章]-[節].html` | `CH1-1.html` |
+| 課程總覽 | `index.html` | — |
+| 章節頁 | `CH[章]-[節].html` | `CH1-1.html` |
 | 實例演練頁 | `PRAC[章]-[節].html` | `PRAC1-1.html` |
 | 模組總覽頁 | `module[N].html` | `module1.html` |
-| 課程總覽 | `index.html` | — |
 | 課程大綱文件 | `course-outline.docx` | — |
 
----
-
-| `digital-marketing-70h/` | 數位行銷人才培訓（70hr） | 完成 | 10 模組 52 單元，主色芥末黃 --c-a2，整合 GTM/SEO/GA4/廣告/Email 全模組 |
-
-| `gen-image/` | 商業用圖片生成 | 完成 | 5 Modules，10 CH + 3 PRAC = 13 單元，AI 設計流水線 PM 協作課（不變成設計師、建立需求判定 / 骨架驗收 / 系列把關三位一體），主色奶茶棕 --c-a6 |
-
-## 待加入課程（預留位置）
-
-| 資料夾 | 課程名稱 | 狀態 |
-|--------|---------|------|
-| `gen-ai-140h/` | 生成式AI職訓實務應用班 | 完成 | 7 Parts，56+12 單元，主色陶土橘 --c-a1，含 ENV-SETUP 頁 |
-| `make-com/` | Make.com 自動化入門 | 規劃中 |
+⚠️ 既有實況不全遵守此規則（如 `ai-workshop/session1/`、`gen-ai-140h/ENV-SETUP.html`、`n8n/lessons/`、`simple-ai/prompt-library.html`）。Phase C 將決定「強制統一」或「承認多軌 + 機器 manifest 校驗」。
 
 ---
 
-### prompt-basic/
-```
-prompt-basic/
-├── index.html          課程總覽
-├── part1/              CH1-1, CH1-2, PRAC1（從問到交辦）
-├── part2/              CH2-1, CH2-2, PRAC2（背景資料與資安）
-├── part3/              CH3-1, PRAC3（三招技巧）
-├── part4/              CH4-1, CH4-2, PRAC4（控制輸出）
-└── part5/              CH5-1, CH5-2, PRAC5（檢查與借力改造）
-```
-
-### simple-ai/
-```
-simple-ai/
-├── index.html          課程總覽（2 Module 導覽）
-├── module1.html        第一堂：創業數位化（90 分）
-├── module2.html        第二堂：創業懂行銷（90 分）
-├── CH1-1.html          開場 + AI 工具地圖 + 五零件
-├── CH1-2.html          AI 助理設定（記憶體）
-├── CH1-3.html          會議處理（錄音→摘要→待辦）
-├── CH1-4.html          拍照 + Email 自動化
-├── CH2-1.html          NotebookLM 品牌知識庫
-├── CH2-2.html          品牌定位一句話
-├── CH2-3.html          社群內容產線（七則 + A/B + 短影音）
-├── CH2-4.html          FAQ + 資安檢查清單
-└── prompt-library.html 55 條 Prompt 索引（可篩選搜尋）
-```
-
----
-
-*最後更新：2026-04-21*
+*最後更新：2026-04-26（Codex L3 audit 後重寫，移除過時內容、加 SSOT 警告）*
