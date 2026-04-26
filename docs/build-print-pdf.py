@@ -49,7 +49,18 @@ COURSE_META = {
             6: "Part 6｜AI 應用開發進階",
             7: "Part 7｜專題衝刺與成果發表",
         },
-    }
+    },
+    "office-ai": {
+        "name": "辦公室 AI 工具實務應用",
+        "institution": "弄一下工作室",
+        "parts": {
+            1: "Part 1｜認識 AI 並開口問 AI",
+            2: "Part 2｜文書加速三件事",
+            3: "Part 3｜會議與協作升級",
+            4: "Part 4｜打造我的 AI 工作流",
+            5: "Part 5｜行銷文案 AI 實戰",
+        },
+    },
 }
 
 # ── 注入的 @media print CSS（紙本友善）───────────────────────────
@@ -65,6 +76,8 @@ PRINT_CSS = """
   animation: none !important;
   visibility: visible !important;
 }
+/* 浮水印：螢幕預覽時隱藏，只印 PDF 時顯示 */
+.print-watermark { display: none; }
 @page { size: A4; margin: 20mm 18mm 18mm 18mm; }
 @media print {
   /* 所有元素都印背景色（Chrome headless 預設 exact 但有些 UA 會略過） */
@@ -81,11 +94,21 @@ PRINT_CSS = """
   .back-link, .lesson-nav, .footer, .copy-btn,
   .copy-row, script { display:none !important; }
 
-  /* 主版面滿版（左右 margin 改靠 @page 留白） */
-  .lesson-hero { padding:16px 0 24px !important; max-width:none !important; }
-  .lesson-body { padding:0 !important; max-width:none !important; }
+  /* 主版面滿版（左右 margin 改靠 @page 留白；所有內層 wrapper 清零） */
+  .lesson-hero, .prac-hero {
+    padding:0 0 14px !important; max-width:none !important;
+    margin:0 !important;
+  }
+  .lesson-body, .tool-wrap {
+    padding:0 !important; max-width:none !important; margin:0 !important;
+  }
+  .hero-eyebrow, .hero-meta, .prac-tagline, .lesson-tagline {
+    margin:0 0 6px !important; max-width:none !important;
+  }
+  .prac-title { font-size:22pt !important; line-height:1.35 !important;
+    margin:4px 0 10px !important; page-break-after:avoid; }
   .lesson-title { font-size:22pt !important; line-height:1.35 !important;
-    page-break-after:avoid; }
+    margin:4px 0 10px !important; page-break-after:avoid; }
   .section-heading { font-size:15pt !important; line-height:1.4 !important;
     page-break-after:avoid; margin:14px 0 14px !important; }
   .section-eyebrow { page-break-after:avoid; margin-top:10px !important; }
@@ -163,8 +186,171 @@ PRINT_CSS = """
   .quiz-opt::before { content:"○"; color:#666; flex-shrink:0; }
   .quiz-item { page-break-inside:avoid; margin:12px 0 !important; }
 
+  /* ─── 紙本講義：office-ai 互動元件轉靜態 ─── */
+
+  /* 保險隱藏網頁專屬 UI（DOM 已 decompose，CSS 再補一刀） */
+  .tab-btn, .mode-btn, .tab-row, .mode-row,
+  .drill-reveal-btn, .btn-drill-copy,
+  .prompt-copy, .step-example-copy,
+  .action-row, .toast,
+  button, select {
+    display: none !important;
+  }
+
+  /* 強制展開預設隱藏的內容（tool-panel / reveal / result） */
+  .tool-panel, .drill-reveal-content, .result-area, .result-box {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  /* tool-panel 每個面板的視覺分隔（配 .print-panel-label 小標） */
+  .tool-panel {
+    margin: 0 0 10px !important;
+    padding: 0 !important;
+    page-break-inside: auto !important;
+  }
+  .print-panel-label {
+    font-family: 'Shippori Mincho', serif !important;
+    font-size: 12pt !important; font-weight: 700 !important;
+    color: #2c2b28 !important;
+    margin: 12px 0 6px !important;
+    padding: 4px 10px !important;
+    border-left: 3px solid #b5703a !important;
+    background: #f6f3ec !important;
+    page-break-after: avoid !important;
+  }
+  /* 工具卡：紙本用輕框、小 padding */
+  .tool-card {
+    padding: 10px 12px !important;
+    border: 1px solid #d8d4cb !important;
+    background: #fff !important;
+    margin: 0 0 8px !important;
+    border-radius: 0 !important;
+  }
+  .field-group { gap: 6px !important; margin-bottom: 4px !important;
+    display: block !important; }
+  .field-item { gap: 2px !important; margin-bottom: 6px !important;
+    display: block !important; page-break-inside: avoid; }
+
+  /* 填空：textarea / input 轉為紙本手寫區 */
+  textarea, input[type="text"], input[type="number"],
+  input[type="email"], input[type="tel"] {
+    background: #fff !important;
+    color: #2c2b28 !important;
+    border: 1px solid #c2bdb0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+    font-size: 10.5pt !important;
+    font-family: 'Noto Sans TC', sans-serif !important;
+    width: 100% !important;
+    display: block !important;
+    resize: none !important;
+    margin: 4px 0 10px !important;
+  }
+  /* 單行輸入：低調底線 */
+  input[type="text"], input[type="number"],
+  input[type="email"], input[type="tel"] {
+    border: none !important;
+    border-bottom: 1px solid #7a766d !important;
+    padding: 4px 6px !important;
+    min-height: 1.6em !important;
+  }
+  /* 多行輸入：橫格線引導手寫（高度依 rows 屬性，不再 min-height 強撐） */
+  textarea {
+    min-height: 2.6em !important;
+    padding: 4px 8px !important;
+    line-height: 1.7em !important;
+    margin: 2px 0 4px !important;
+    background-image: repeating-linear-gradient(
+      to bottom, #fff 0, #fff 1.7em,
+      #e0dcd2 1.7em, #e0dcd2 calc(1.7em + 1px)
+    ) !important;
+  }
+  /* placeholder 作為紙本「範例提示」保留為淺灰斜體 */
+  textarea::placeholder, input::placeholder {
+    color: #a7a29a !important; opacity: 1 !important;
+    font-style: italic !important;
+  }
+  .field-label {
+    font-size: 10pt !important;
+    font-weight: 500 !important;
+    color: #5a564f !important;
+    margin: 8px 0 4px !important;
+    display: block !important;
+  }
+  .field-item { margin-bottom: 14px !important; page-break-inside: avoid; }
+
+  /* select 已轉 ul；保險套樣式 */
+  .print-select-options {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 6px 0 12px !important;
+  }
+  .print-select-options li {
+    padding: 3px 0 !important;
+    font-size: 10.5pt !important;
+    line-height: 1.65 !important;
+  }
+
+  /* .result-area / .result-box 已在 clean_html() decompose，這裡保險隱藏殘餘 */
+  .result-area, .result-box, .result-text, .result-label, .result-empty {
+    display: none !important;
+  }
+
+  /* checkbox-item（PRAC3 用）：以 ☐ 符號代替拔掉的 input */
+  .checkbox-item {
+    display: flex !important; align-items: baseline !important;
+    gap: 8px !important; padding: 4px 0 !important;
+  }
+  .checkbox-item::before {
+    content: "☐"; color: #5a564f; flex-shrink: 0;
+  }
+
+  /* discuss-section（小組討論，靜態內容） */
+  .discuss-section {
+    border: 1px solid #d0ccc2 !important;
+    background: #f9f7f1 !important;
+    padding: 12px 14px !important;
+    page-break-inside: auto !important;
+    margin: 14px 0 10px !important;
+    max-width: none !important;
+  }
+  .discuss-title { margin-bottom: 8px !important; font-size: 11pt !important; }
+  .discuss-label { margin-bottom: 4px !important; }
+  .discuss-list { gap: 4px !important; }
+  .discuss-item {
+    padding: 4px 6px !important;
+    background: transparent !important;
+    border-left: 2px solid #d0ccc2 !important;
+    gap: 8px !important;
+  }
+
+  /* lesson-section 間距再收一點（原 26px → 18px） */
+  .lesson-section { margin-bottom: 18px !important; }
+
   /* 圖示（svg/img）若太大縮排 */
   img, svg { max-width:100% !important; height:auto !important; }
+
+  /* 每頁浮水印：position:fixed 元素在 Chrome headless 印 PDF 時會自動重複於每一頁 */
+  .print-watermark {
+    display: block !important;
+    position: fixed !important;
+    top: 50% !important; left: 50% !important;
+    transform: translate(-50%, -50%) rotate(-30deg) !important;
+    font-family: 'Shippori Mincho', serif !important;
+    font-size: 64pt !important;
+    font-weight: 700 !important;
+    color: rgba(44, 43, 40, 0.06) !important;
+    letter-spacing: 0.15em !important;
+    white-space: nowrap !important;
+    pointer-events: none !important;
+    z-index: 9999 !important;
+    user-select: none !important;
+  }
 }
 .print-page-break { page-break-before:always; }
 </style>
@@ -200,21 +386,110 @@ def clean_html(src: Path, dst: Path) -> None:
     for el in soup.find_all("details"):
         el["open"] = ""
 
-    # 5) 移除 copy-btn（.copy-btn / .copy-row）
-    for sel in [".copy-btn", ".copy-row"]:
+    # 5) 移除所有網頁專屬的按鈕列、互動列、以及「AI 生成結果」空框
+    #    （紙本不需要「貼入 Gemini 看結果」的空白區——學員真的要看結果是在 AI 上）
+    for sel in [
+        ".copy-btn", ".copy-row",
+        ".btn-drill-copy", ".prompt-copy", ".step-example-copy",
+        ".btn-drill-gemini", ".btn-drill-chatgpt", ".btn-drill-copilot",
+        ".drill-reveal-btn",
+        ".action-row", ".drill-action-row",
+        ".template-btn", ".tmpl-btn",
+        ".toast",
+        ".result-area", ".result-box",
+    ]:
         for el in soup.select(sel):
             el.decompose()
 
-    # 6) 移除 quiz radio input（label 保留）
+    # 5b) 保險：清除所有 class 帶 btn- 前綴的 <a> 連結（紙本不能點）
+    for el in soup.find_all("a"):
+        classes = el.get("class") or []
+        if any(c.startswith("btn-") for c in classes):
+            el.decompose()
+
+    # 6) 先抓 tab-btn / mode-btn 與 tool-panel 的對應（靠 onclick 的 switchTab('name', ...)）
+    tab_panel_labels: dict[str, str] = {}
+    for btn in soup.select(".tab-btn, .mode-btn"):
+        onclick = btn.get("onclick", "")
+        m = re.search(r"switch(?:Tab|Mode)\(['\"]([^'\"]+)['\"]", onclick)
+        if m:
+            tab_panel_labels[f"panel-{m.group(1)}"] = btn.get_text(strip=True)
+
+    # 7) 在每個 tool-panel 前插入 panel 標題 h4（取代原本的 tab 切換按鈕）
+    for panel in soup.select(".tool-panel"):
+        pid = panel.get("id", "")
+        label = tab_panel_labels.get(pid)
+        if label:
+            h4 = soup.new_tag("h4", attrs={"class": "print-panel-label"})
+            h4.string = label
+            panel.insert_before(h4)
+
+    # 8) 移除 tab/mode 按鈕列（label 已轉為 h4 小標）
+    for sel in [".tab-row", ".mode-row", ".tab-btn", ".mode-btn"]:
+        for el in soup.select(sel):
+            el.decompose()
+
+    # 9) 移除殘留的所有 <button>（lesson-nav / gate / copy 等皆已處理，此為總掃）
+    for el in soup.find_all("button"):
+        el.decompose()
+
+    # 10) 清除互動屬性（onclick / contenteditable / data-toggle 等）
+    for el in soup.find_all(True):
+        for attr in (
+            "onclick", "onchange", "oninput",
+            "onkeyup", "onkeydown", "onsubmit",
+            "onfocus", "onblur",
+            "contenteditable", "data-toggle", "data-action",
+        ):
+            if el.has_attr(attr):
+                del el[attr]
+
+    # 11) 解除預設隱藏的內容區塊（移除 style 中的 display:none 與 hidden 屬性）
+    SHOW_CLASSES = {
+        "drill-reveal-content", "result-area",
+        "tool-panel", "result-box",
+    }
+    for el in soup.find_all(True):
+        if set(el.get("class") or []) & SHOW_CLASSES:
+            if el.has_attr("style"):
+                el["style"] = re.sub(
+                    r"display\s*:\s*none\s*;?", "", el["style"]
+                )
+            if el.has_attr("hidden"):
+                del el["hidden"]
+
+    # 12) <select> 轉為「☐ 選項」勾選清單
+    for sel_el in soup.find_all("select"):
+        ul = soup.new_tag("ul", attrs={"class": "print-select-options"})
+        for opt in sel_el.find_all("option"):
+            text = opt.get_text(strip=True)
+            if not text or text.startswith("請選擇") or text.startswith("--"):
+                continue
+            li = soup.new_tag("li")
+            li.string = f"☐ {text}"
+            ul.append(li)
+        if ul.contents:
+            sel_el.replace_with(ul)
+        else:
+            sel_el.decompose()
+
+    # 13) radio / checkbox：拔掉 input（label 保留；CSS 會替 quiz-opt/checkbox-item 補 ☐/○）
     for el in soup.select('input[type="radio"]'):
         el.decompose()
     for el in soup.select('input[type="checkbox"]'):
         el.decompose()
 
-    # 7) 注入 @media print CSS（放在 </head> 前）
+    # 14) 注入 @media print CSS（放在 </head> 前）
     head = soup.find("head")
     if head:
         head.append(BeautifulSoup(PRINT_CSS, "html.parser"))
+
+    # 15) 注入浮水印 DOM（body 最前端，Chrome headless 印 PDF 時 fixed 元素會每頁重複）
+    body = soup.find("body")
+    if body:
+        watermark = soup.new_tag("div", attrs={"class": "print-watermark"})
+        watermark.string = "弄一下工作室版權所有"
+        body.insert(0, watermark)
 
     dst.write_text(str(soup), encoding="utf-8")
 
@@ -256,9 +531,18 @@ body {{ margin:0; font-family:'Noto Sans TC',sans-serif; color:#2c2b28; backgrou
 .toc li {{ font-size:12pt; padding:8pt 0; border-bottom:1px dotted #d8d4cb;
   display:flex; justify-content:space-between; }}
 .toc li .num {{ font-family:'Shippori Mincho',serif; letter-spacing:.05em; }}
+.print-watermark {{
+  position: fixed; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) rotate(-30deg);
+  font-family: 'Shippori Mincho', serif; font-weight: 700;
+  font-size: 64pt; color: rgba(44, 43, 40, 0.06);
+  letter-spacing: 0.15em; white-space: nowrap;
+  pointer-events: none; z-index: 9999; user-select: none;
+}}
 </style>
 </head>
 <body>
+<div class="print-watermark">弄一下工作室版權所有</div>
 <section class="cover">
   <div class="cover-top">
     <div class="cover-institution">{meta["institution"]}</div>
