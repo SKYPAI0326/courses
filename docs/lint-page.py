@@ -40,6 +40,45 @@ V3_RULE_IDS = {
     "W-v3-1", "W-v3-2", "W-v3-3", "W-v3-4",
 }
 
+# WARN 分桶（2026-04-26 Round 3c 加）— 訊息 keyword 對應到問題類別
+# 用於 --by-bucket 模式，幫助 1000+ WARN 變成可執行清單
+BUCKETS = {
+    "migration-debt": [
+        r"非 V4.*字型",        # 397 條 — v3→v4 字型尺度漂移
+        r"--c-main 在 CSS 中出現",  # 嚴格派遷移後在單元頁的副作用
+        r"Step N",             # 舊文案未本土化
+        r"『您』",              # 文案規範漂移
+    ],
+    "structural": [
+        r"lesson-section 僅",  # < 5 個 section
+        r"callout 有",         # > 4 個 callout
+        r"big-quote 有",        # > 1 個 big-quote
+    ],
+    "metadata": [
+        r"缺 footer metadata",  # 341 + 13 條 — data-built-at / data-platform-version
+        r"缺.*twitter",         # twitter card meta
+    ],
+    "a11y": [
+        r"aria-hidden",         # 47 條 — 箭頭未標 aria-hidden
+        r"focus-visible",       # focus ring
+    ],
+    "motion": [
+        r":hover 同時變化",     # W-v3-4：hover 屬性 > 2
+    ],
+    "v3-misc": [
+        r"\[W-v3-1\]", r"\[W-v3-3\]",  # v3 其他規則
+    ],
+}
+
+
+def bucket_of(msg: str) -> str:
+    """把 WARN 訊息分桶。fallback 為 'other'。"""
+    for bucket, patterns in BUCKETS.items():
+        for p in patterns:
+            if re.search(p, msg):
+                return bucket
+    return "other"
+
 # ── 規則定義 ──────────────────────────────────────────────
 
 # 判斷頁型：有不同嚴格度
@@ -380,16 +419,31 @@ def check_v3_hardcoded_max_width(html: str) -> list:
     return issues
 
 
-def check_v3_main_color_count(html: str) -> list:
-    """W-v3-2: --c-main 出現次數 > 4 → WARN（僅計 CSS 內引用）"""
+def _check_v3_main_color_count_impl(html: str, threshold: int, context_label: str) -> list:
+    """W-v3-2 共用實作；threshold 為 --c-main 在 CSS 中出現次數上限。"""
     style_match = re.search(r'<style[^>]*>(.*?)</style>', html, re.S)
     if not style_match:
         return []
     style = style_match.group(1)
     count = len(re.findall(r'var\s*\(\s*--c-main\s*\)', style))
-    if count > 4:
-        return [("WARN", f"[W-v3-2] --c-main 在 CSS 中出現 {count} 次（v3 建議 ≤ 4）")]
+    if count > threshold:
+        return [("WARN", f"[W-v3-2] --c-main 在 CSS 中出現 {count} 次（{context_label} 建議 ≤ {threshold}）")]
     return []
+
+
+def check_v3_main_color_count(html: str) -> list:
+    """W-v3-2 lesson/module 版（嚴格 ≤ 4）— 單元頁應節制主色用量。"""
+    return _check_v3_main_color_count_impl(html, threshold=4, context_label="lesson v3")
+
+
+def check_v3_main_color_count_index(html: str) -> list:
+    """W-v3-2 root/course-index 版（放寬 ≤ 30）— 2026-04-26 Round 3b 後加。
+    總覽頁的 hero/section/module/topbar 等組件依嚴格派必然 > 4 處 var(--c-main)，
+    視為「異常偵測警戒線」而非容忍上限。30 不是 cap、是 nag threshold：
+    14 個 index.html 實測中 13 個 ≤ 30，唯一超出的 gen-ai-140h（33 處）會繼續觸發 WARN
+    提示為 migration debt，不擋放行（仍是 WARN 不是 ERROR）。
+    """
+    return _check_v3_main_color_count_impl(html, threshold=30, context_label="index v3")
 
 
 def check_v3_section_heading_em_color(html: str) -> list:
@@ -428,12 +482,17 @@ def check_v3_hover_complexity(html: str) -> list:
 # ── 規則套用 ──────────────────────────────────────────────
 
 # 頁型 → 應套用的規則集
-V3_RULES = [
+# V3 規則共用集（不含 W-v3-2，因為 W-v3-2 依頁型 dispatch 嚴格/放寬版本）
+V3_RULES_COMMON = [
     check_v3_lesson_title_br, check_v3_section_eyebrow_format, check_v3_callout_variants,
     check_v3_prefers_reduced_motion, check_v3_progressbar_aria, check_v3_aria_hidden_icons,
-    check_v3_hardcoded_max_width, check_v3_main_color_count,
+    check_v3_hardcoded_max_width,
     check_v3_section_heading_em_color, check_v3_hover_complexity,
 ]
+# V3_RULES：legacy alias（外部可能引用），non-dispatch source。
+# 真正的 dispatch 在下方 RULES_BY_TYPE，會依頁型選 strict 或 relaxed 版的 W-v3-2。
+# 修 lint 規則時請動 V3_RULES_COMMON / RULES_BY_TYPE，不要改本變數。
+V3_RULES = V3_RULES_COMMON + [check_v3_main_color_count]
 
 RULES_BY_TYPE = {
     "lesson": [
@@ -446,29 +505,29 @@ RULES_BY_TYPE = {
         check_twitter_meta, check_platform_metadata, check_focus_visible,
         check_you_form, check_step_n, check_aria_hidden_arrow, check_font_size_tier,
         check_lesson_section_count, check_big_quote_cap, check_callout_cap,
-        # v3（追加，不取代）
-        *V3_RULES,
+        # v3（追加，不取代）— W-v3-2 用嚴格版（≤ 4）
+        *V3_RULES_COMMON, check_v3_main_color_count,
     ],
-    "prac": None,  # 同 lesson
+    "prac": None,  # legacy；classify() 已把 prac* 直接歸 lesson，此分支實際不會被命中
     "module": [
         check_box_shadow, check_custom_color_vars, check_banned_components,
         check_gradient, check_grid_autofit, check_border_radius_max,
         check_skip_link, check_main_wrapper, check_seo_meta,
         check_twitter_meta, check_focus_visible,
-        *V3_RULES,
+        *V3_RULES_COMMON, check_v3_main_color_count,  # 嚴格版
     ],
     "course-index": [
         check_box_shadow, check_custom_color_vars, check_gradient,
         check_border_radius_max,
         check_skip_link, check_main_wrapper, check_seo_meta,
         check_twitter_meta, check_focus_visible,
-        *V3_RULES,
+        *V3_RULES_COMMON, check_v3_main_color_count_index,  # 放寬版（≤ 30）
     ],
     "root": [
         check_box_shadow, check_custom_color_vars, check_gradient,
         check_border_radius_max,
         check_skip_link, check_main_wrapper, check_seo_meta, check_twitter_meta,
-        *V3_RULES,
+        *V3_RULES_COMMON, check_v3_main_color_count_index,  # 放寬版（≤ 30）
     ],
     "search": [
         check_box_shadow, check_custom_color_vars, check_gradient,
@@ -570,7 +629,7 @@ def collect_files(args) -> list:
     if args.all:
         for p in ROOT.rglob("*.html"):
             rel = p.relative_to(ROOT).as_posix()
-            if any(part.startswith("_backup") for part in p.parts):
+            if any(part.startswith("_backup") or part.startswith("_pilots") for part in p.parts):
                 continue
             if "node_modules" in p.parts or ".git" in p.parts:
                 continue
@@ -606,6 +665,8 @@ def main():
     ap.add_argument("--all", action="store_true", help="掃全站")
     ap.add_argument("--changed", action="store_true", help="只掃 git staged 的 HTML（pre-commit 用）")
     ap.add_argument("--summary", action="store_true", help="只印統計摘要")
+    ap.add_argument("--by-bucket", action="store_true",
+                    help="WARN 依類別分桶統計（migration-debt / structural / metadata / a11y / motion / v3-misc / other）")
     ap.add_argument("--no-warn", action="store_true", help="不顯示 WARN 級別")
     ap.add_argument("--baseline", action="store_true",
                     help="套用 baseline（舊違規忽略、新違規照舊 BLOCKER）")
@@ -694,6 +755,8 @@ def main():
     total_grandfathered = 0
     files_with_blocker = []
     details = []
+    bucket_counts = {}  # bucket → count（--by-bucket 用）
+    bucket_files = {}   # bucket → set of relpath（--by-bucket 用）
 
     for f in sorted(files):
         issues = lint_file(f)
@@ -720,6 +783,14 @@ def main():
         total_warn += w
         if b > 0:
             files_with_blocker.append(f)
+        # --by-bucket 累積
+        if args.by_bucket:
+            relpath = f.relative_to(ROOT).as_posix() if f.is_absolute() else str(f)
+            for sev, msg in issues:
+                if sev == "WARN":
+                    bk = bucket_of(msg)
+                    bucket_counts[bk] = bucket_counts.get(bk, 0) + 1
+                    bucket_files.setdefault(bk, set()).add(relpath)
         if issues and not args.summary:
             relpath = f.relative_to(ROOT).as_posix() if f.is_absolute() else str(f)
             details.append((relpath, issues))
@@ -742,6 +813,12 @@ def main():
         print(f"WARN：   {total_warn} 條")
     if args.baseline and total_grandfathered:
         print(f"baseline 壓掉：{total_grandfathered} 條（舊違規、先留）")
+
+    if args.by_bucket and bucket_counts:
+        print(f"\n═══ WARN 分桶 ═══")
+        for bk, c in sorted(bucket_counts.items(), key=lambda x: -x[1]):
+            n_files = len(bucket_files.get(bk, set()))
+            print(f"  {bk:<18} {c:>5} 條 · 跨 {n_files} 檔")
 
     if total_blocker > 0:
         print("\n❌ 有 BLOCKER，不可放行。")

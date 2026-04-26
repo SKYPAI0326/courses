@@ -18,7 +18,7 @@ python3 docs/lint-page.py --changed       # 只查 git staged 檔
 - `--no-warn` 只看 BLOCKER + ERROR
 - `--summary` 只看統計
 
-**`docs/lint-page.py` 是所有 HTML 規則的唯一真相源**。要改規則去改那個腳本，不要在本檔或 skill 文件追加散文規則。
+**`docs/lint-page.py` 是 HTML 規則的機器強制真相源**。設計規範的人類版 SSOT 在 `_規範/design-tokens.md`（見下方「設計系統」表格）。要改規則：人類版改 `design-tokens.md`，機器強制改 `lint-page.py`，**兩者必須同步**。不要在本檔或 skill 文件追加散文規則。
 
 ### 頁面修正完、commit 前
 
@@ -94,8 +94,11 @@ python3 docs/lint-page.py --changed       # 只查 git staged 檔
 
 | 真相源 | 用途 |
 |-------|------|
-| `_規範/design-tokens.md` | 設計系統人類閱讀版（CSS 變數、字型 8 階、組件白名單、SEO 模板、metadata 規格） |
-| `_規範/lesson-template-v3.html` | 單元頁骨架，新增頁面一律從這份複製 |
+| `_規範/design-tokens.md` | 設計系統人類閱讀版（CSS 變數、字型尺度、組件白名單、SEO 模板、metadata 規格、遷移狀態）|
+| `_規範/lesson-template-v3.html` | **單元頁**骨架，新增單元頁從這份複製 |
+| `_規範/course-index-editorial-strict.html` | **總覽頁** SSOT — Editorial 家族（嚴格派 --c-main，新認證/教學課優先採用）|
+| `_規範/course-index-module-landing.html` | **總覽頁** SSOT — Module Landing 家族（landing 性質、含 hero CTA、modules-grid）|
+| `_規範/course-index-lesson-section.html` | **總覽頁** SSOT — Lesson Section 家族（v4 扁平 part + 多色 band + PRAC 區）|
 | `docs/lint-page.py` | 機器強制版（BLOCKER/ERROR/WARN 規則）。`python3 docs/lint-page.py <file>` 自動驗 |
 
 **要調整規則？** 改 `design-tokens.md` + `lint-page.py`。**不要**在本檔或 skill 文件追加散文規則。
