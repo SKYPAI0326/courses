@@ -256,19 +256,27 @@ def check_step_n(html: str) -> list:
 
 
 def check_aria_hidden_arrow(html: str) -> list:
-    """箭頭 ← / → 應包 aria-hidden。"""
-    issues = []
-    # 找文字中的箭頭但未在 aria-hidden span 內
-    pattern = r'[←→](?![^<]*aria-hidden)'
-    # 簡化檢查：若箭頭出現但沒 aria-hidden="true" 在同行附近
-    lines = html.split('\n')
+    """裝飾性箭頭 span / i 應包 aria-hidden。
+
+    2026-04-26 Round 7 修正：原 line-based 規則會誤判內文符號（例如 cycle-bridge
+    內「→ 下一循環」、step-tip 內「→ 解法」等內文視覺符號、不是裝飾元素、
+    不該標 aria-hidden）。改成只抓「裝飾性 span / i 元素」內的箭頭、放過內文。
+
+    判準：
+    - 抓 `<span ...>箭頭文字</span>` 形式的元素
+    - 該 span 屬性無 aria-hidden 才報
+    - 內文段落 / 列表 / blockquote 等內出現的裝飾箭頭符號不抓
+    """
+    # 只抓「純箭頭 span」（內容只有箭頭 + 空白），不抓含內文的 span
+    # 範例：抓 <span>←</span> 但放過 <span>→ 變體 B 上下對調...</span>
+    pattern = r'<span\b[^>]*>\s*[←→]\s*</span>'
     offenders = 0
-    for line in lines:
-        if re.search(r'[←→]', line) and 'aria-hidden' not in line:
+    for m in re.finditer(pattern, html):
+        if 'aria-hidden' not in m.group(0):
             offenders += 1
     if offenders > 0:
-        return [("WARN", f"{offenders} 行含箭頭但無 aria-hidden（a11y）")]
-    return issues
+        return [("WARN", f"{offenders} 處裝飾性箭頭 span 無 aria-hidden（a11y）")]
+    return []
 
 
 def check_lesson_section_count(html: str) -> list:
@@ -432,8 +440,18 @@ def _check_v3_main_color_count_impl(html: str, threshold: int, context_label: st
 
 
 def check_v3_main_color_count(html: str) -> list:
-    """W-v3-2 lesson/module 版（嚴格 ≤ 4）— 單元頁應節制主色用量。"""
-    return _check_v3_main_color_count_impl(html, threshold=4, context_label="lesson v3")
+    """W-v3-2 lesson/module 版（≤ 16）— 異常偵測警戒線。
+
+    2026-04-26 Round 7 修正：原 ≤ 4 上限是給「克制主義」old 設計、針對 hero
+    內 4 個固定位置（左邊線 / tag / progress / section-eyebrow）。但 v4 課程
+    系統實際使用 nav-btn / topbar-tag / outcomes border / step-block hover
+    等多處用 main color、自然會 5-15 次。對 v4 課程而言 ≤4 是錯規則。
+
+    新上限 ≤ 16：覆蓋 v4 課程實際範圍（gen-image lesson 5-11 次、PRAC 6-7
+    次、module 15-16 次都在範圍內）。仍保留「異常偵測」概念：超過 16
+    才報、提示可能有設計失控。
+    """
+    return _check_v3_main_color_count_impl(html, threshold=16, context_label="lesson v3")
 
 
 def check_v3_main_color_count_index(html: str) -> list:
