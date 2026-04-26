@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<!--
+  ═══════════════════════════════════════════════════════════════════════
+  Lesson Section — Course Index SSOT
+  ═══════════════════════════════════════════════════════════════════════
+
+  範本來源：courses/prompt-basic/index.html
+  抽取日期：2026-04-26
+  適用家族：lesson-section（v4 扁平 part-head + lesson-list 結構，含 PRACTICE 區）
+  目前實例（8 門）：
+    ai-workshop / gen-ai-36h / office-ai / prompt-basic / simple-ai
+    （以下 3 門較簡）gemini-ai / gen-ai-140h / gtm
+
+  與其他兩族的差異：
+    - vs editorial-strict：多了 PRAC（PRACTICE）區塊與多色 band 視覺
+    - vs module-landing：本身就是課程目錄頁，沒有 module landing 的 hero CTA / highlight-strip / tools-grid
+    - 結構：hero → intro-box → 多個 part（part-head + lesson-list + prac-head + prac-list）→ footer
+
+  使用方式：
+    1. 複製此檔到 courses/{slug}/index.html
+    2. 全域 search & replace 所有 {{PLACEHOLDER}}
+    3. 動態區塊（PARTS_AND_PRACS）依該課內容客製
+    4. N 個 part 不固定，看課程設計
+    5. 跑 python3 docs/lint-page.py courses/{slug}/index.html 驗合規
+
+  替換點清單：
+    課程基本：{{COURSE_TITLE}} {{COURSE_TITLE_FULL}} {{COURSE_DESC}}
+    URL：    {{COURSE_URL}} {{COURSE_OG_IMAGE}}
+    導覽：    {{COURSE_SUB}} {{COURSE_TAG}}
+    Hero：    {{HERO_EYEBROW}} {{HERO_TITLE_LINE1}} {{HERO_TITLE_LINE2}}（可選 br + 第二行）
+    主題色：  {{COURSE_THEME_HEX}}（嚴格派：直接寫 hex 給 --c-main）
+    密碼：    {{COURSE_PASSWORD_KEY}} {{COURSE_PASSWORD_HASH}}
+    Stats：   4 個 {{HERO_STAT_*}}
+    Intro：   {{INTRO_TITLE}} {{INTRO_DESC}} {{INTRO_TAGS}}（intro-tag x N）
+    Parts：   {{PARTS_AND_PRACS}}（重複的 part-head + lesson-list + prac-head + prac-list 區塊）
+    Footer：  {{FOOTER_NOTE}} {{PLATFORM_VERSION}}
+
+  嚴格派特殊處理 — 多色 band：
+    - 本族視覺特色是「每個 part 用不同色 band」
+    - 為符合嚴格派（禁止 var(--c-a*)），band 顏色直接寫 hex（{{BAND_N_HEX}}）
+    - 預設給 5 個 band 色（與 --c-a1~5 同色但 hex 化），N 個 part 用 N 個 band
+    - 不夠時使用者自己加，如 .band-6{background:#hex6}
+
+  字型：Shippori Mincho（標題）+ Noto Sans TC（內文），禁止 Noto Serif TC
+  ═══════════════════════════════════════════════════════════════════════
+-->
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{COURSE_TITLE_FULL}}</title>
+<meta name="description" content="{{COURSE_DESC}}">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="{{COURSE_TITLE_FULL}}">
+<meta property="og:description" content="{{COURSE_DESC}}">
+<meta property="og:url" content="{{COURSE_URL}}">
+<meta property="og:image" content="{{COURSE_OG_IMAGE}}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{COURSE_TITLE_FULL}}">
+<meta name="twitter:description" content="{{COURSE_DESC}}">
+<meta name="twitter:image" content="{{COURSE_OG_IMAGE}}">
+<link rel="canonical" href="{{COURSE_URL}}">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-border-soft:#e8e4da;
+  --c-text:#2c2b28; --c-muted:#7a766d; --c-faint:#bcb8ae;
+  --c-main:{{COURSE_THEME_HEX}};
+  --radius:4px; --radius-sm:3px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);min-height:100vh}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}
+
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-search{font-size:.78rem;color:var(--c-muted);text-decoration:none;border:1px solid var(--c-border);background:var(--c-card);padding:5px 14px;border-radius:var(--radius);display:inline-flex;align-items:center;gap:6px;transition:border-color .2s,color .2s;margin-right:8px}
+.topbar-search:hover{color:var(--c-text);border-color:var(--c-text)}
+.topbar-tag{font-size:.75rem;color:var(--c-main);border:1px solid var(--c-border);background:var(--c-surface);padding:3px 12px;border-radius:99px;font-weight:500}
+
+/* HERO */
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--c-muted);text-decoration:none;margin-bottom:4px}
+.back-link:hover{color:var(--c-main)}
+.hero{padding:72px 48px 48px;max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.hero-eyebrow{font-size:.75rem;color:var(--c-main);letter-spacing:2px;text-transform:uppercase;font-weight:500}
+.hero-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.25;color:var(--c-text)}
+.hero-desc{font-size:.92rem;color:var(--c-muted);line-height:1.85;max-width:32em}
+.hero-divider{width:40px;height:1px;background:var(--c-main);margin-top:4px}
+.hero-stats{display:flex;gap:32px;margin-top:4px}
+.stat{display:flex;flex-direction:column;gap:3px}
+.stat-num{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text)}
+.stat-lbl{font-size:.73rem;color:var(--c-muted)}
+
+/* SECTION 主體 */
+.section{max-width:960px;margin:0 auto;padding:0 48px 64px}
+
+/* INTRO BOX（這課適合誰）*/
+.intro-box{background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-main);border-radius:var(--radius);padding:22px 26px;margin-bottom:40px}
+.intro-title{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;margin-bottom:10px;color:var(--c-text)}
+.intro-desc{font-size:.85rem;color:var(--c-muted);line-height:1.85}
+.intro-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.intro-tag{font-size:.73rem;color:var(--c-main);background:var(--c-surface);border:1px solid var(--c-border);padding:3px 10px;border-radius:99px}
+
+/* PART HEAD */
+.part-head{display:flex;align-items:baseline;gap:14px;margin-bottom:16px;margin-top:8px}
+.part-label{font-size:.7rem;font-weight:500;letter-spacing:1px;text-transform:uppercase;white-space:nowrap}
+.part-title{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text)}
+.part-line{flex:1;height:1px;background:var(--c-border)}
+.part-count{font-size:.75rem;color:var(--c-muted)}
+
+/* LESSON LIST + CARD */
+.lesson-list{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+.lesson-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);display:flex;align-items:center;gap:0;text-decoration:none;color:inherit;transition:transform .15s,border-color .15s;overflow:hidden}
+.lesson-card:not(.locked):hover{transform:translateX(4px)}
+.lesson-card.locked{opacity:.5;cursor:not-allowed;pointer-events:none}
+.lesson-band{width:4px;align-self:stretch;flex-shrink:0}
+/* 多色 band（嚴格派：直寫 hex；不夠時自加 .band-N{background:#hex}）*/
+.band-1{background:{{BAND_1_HEX}}}
+.band-2{background:{{BAND_2_HEX}}}
+.band-3{background:{{BAND_3_HEX}}}
+.band-4{background:{{BAND_4_HEX}}}
+.band-5{background:{{BAND_5_HEX}}}
+.lesson-body{padding:16px 20px;flex:1;display:flex;align-items:center;gap:16px}
+.lesson-num{font-size:.7rem;color:var(--c-muted);white-space:nowrap;letter-spacing:.5px}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;flex:1;line-height:1.4}
+.lesson-status{font-size:.68rem;padding:2px 10px;border-radius:99px;font-weight:500;white-space:nowrap}
+.status-available{background:var(--c-surface);border:1px solid var(--c-border);color:var(--c-main)}
+.status-lock{background:var(--c-surface);border:1px solid var(--c-border);color:var(--c-muted)}
+.lesson-arrow{font-size:.8rem;color:var(--c-main);font-weight:500;padding:0 20px;opacity:0;transition:opacity .15s,transform .15s}
+.lesson-card:not(.locked):hover .lesson-arrow{opacity:1;transform:translateX(3px)}
+
+/* PRACTICE 區塊 */
+.prac-head{display:flex;align-items:center;gap:12px;margin-bottom:12px;margin-top:-4px}
+.prac-label{font-size:.68rem;color:var(--c-main);font-weight:500;letter-spacing:1px;white-space:nowrap}
+.prac-line{flex:1;height:1px;background:var(--c-border-soft);border-style:dashed}
+.prac-list{display:flex;flex-direction:column;gap:8px;margin-bottom:40px}
+.prac-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);display:flex;align-items:center;gap:0;text-decoration:none;color:inherit;transition:transform .15s,border-color .15s;overflow:hidden}
+.prac-card:not(.locked):hover{transform:translateX(4px);border-color:var(--c-main)}
+.prac-card.locked{opacity:.5;cursor:not-allowed;pointer-events:none}
+.prac-band{width:3px;align-self:stretch;flex-shrink:0;background:var(--c-main);opacity:.55}
+.prac-body{padding:13px 18px;flex:1;display:flex;align-items:center;gap:14px}
+.prac-num{font-size:.68rem;color:var(--c-main);white-space:nowrap;letter-spacing:.5px}
+.prac-title{font-size:.9rem;font-weight:500;flex:1;line-height:1.4;color:var(--c-text)}
+.prac-badge{font-size:.68rem;padding:2px 9px;border-radius:99px;background:var(--c-surface);border:1px solid var(--c-border);color:var(--c-main);white-space:nowrap}
+.prac-arrow{font-size:.78rem;color:var(--c-main);padding:0 18px;opacity:0;transition:opacity .15s,transform .15s}
+.prac-card:not(.locked):hover .prac-arrow{opacity:1;transform:translateX(3px)}
+
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{flex:1}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1!important;transform:none!important;transition:none!important}*{animation:none!important}}
+@media(max-width:1024px){.topbar{padding:0 32px}.hero{padding:56px 32px 40px}.section{padding:0 32px 64px}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px}.topbar-sub,.topbar-divider{display:none}.hero{padding:40px 20px 32px}.hero-title{font-size:1.45rem}.section{padding:0 20px 48px}.footer{padding:20px}}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.92rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:{{COURSE_THEME_HEX}};background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:{{COURSE_THEME_HEX}};color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{filter:brightness(.9)}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='{{COURSE_PASSWORD_KEY}}',H='{{COURSE_PASSWORD_HASH}}';if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()
+</script>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a class="logo" href="../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">{{COURSE_SUB}}</div>
+  <div class="spacer"></div>
+  <a href="../../search.html" class="topbar-search" aria-label="站內搜尋"><span aria-hidden="true">⌕</span>搜尋</a>
+  <div class="topbar-tag">{{COURSE_TAG}}</div>
+</header>
+
+<section class="hero" id="main">
+  <a class="back-link" href="../../index.html"><span aria-hidden="true">←</span> 所有課程</a>
+  <div class="hero-eyebrow">{{HERO_EYEBROW}}</div>
+  <h1 class="hero-title">{{HERO_TITLE_LINE1}}<br>{{HERO_TITLE_LINE2}}</h1>
+  <p class="hero-desc">{{COURSE_DESC}}</p>
+  <div class="hero-divider"></div>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-num">{{HERO_STAT_1_NUM}}</div><div class="stat-lbl">{{HERO_STAT_1_LBL}}</div></div>
+    <div class="stat"><div class="stat-num">{{HERO_STAT_2_NUM}}</div><div class="stat-lbl">{{HERO_STAT_2_LBL}}</div></div>
+    <div class="stat"><div class="stat-num">{{HERO_STAT_3_NUM}}</div><div class="stat-lbl">{{HERO_STAT_3_LBL}}</div></div>
+    <div class="stat"><div class="stat-num">{{HERO_STAT_4_NUM}}</div><div class="stat-lbl">{{HERO_STAT_4_LBL}}</div></div>
+  </div>
+</section>
+
+<main class="section">
+
+  <!-- INTRO BOX（這課適合誰；可移除如不需要）-->
+  <div class="intro-box">
+    <div class="intro-title">{{INTRO_TITLE}}</div>
+    <div class="intro-desc">{{INTRO_DESC}}</div>
+    <div class="intro-tags">
+      {{INTRO_TAGS}}
+      <!-- 每個 intro-tag 結構：<span class="intro-tag">標籤文字</span> -->
+    </div>
+  </div>
+
+  <!-- PARTS_AND_PRACS 動態區塊 -->
+  {{PARTS_AND_PRACS}}
+  <!--
+    每個 part 結構（重複 N 次，N = part 數量）：
+
+      <div class="part-head">
+        <div class="part-label" style="color:{{BAND_N_HEX}}">Part N</div>
+        <div class="part-title">區塊標題</div>
+        <div class="part-line"></div>
+        <div class="part-count">M CH · 1.5h</div>
+      </div>
+      <div class="lesson-list">
+        <a class="lesson-card" href="partN/CH-N-1.html">
+          <div class="lesson-band band-N"></div>
+          <div class="lesson-body">
+            <div class="lesson-num">CH N.1 · 30min</div>
+            <div class="lesson-title">單元標題</div>
+            <div class="lesson-status status-available">可開始學習</div>
+          </div>
+          <div class="lesson-arrow"><span aria-hidden="true">→</span></div>
+        </a>
+        ... 重複每個 lesson
+      </div>
+      <div class="prac-head">
+        <div class="prac-label">PRACTICE · 帶走範本</div>
+        <div class="prac-line"></div>
+      </div>
+      <div class="prac-list">
+        <a class="prac-card" href="partN/PRACN.html">
+          <div class="prac-band"></div>
+          <div class="prac-body">
+            <div class="prac-num">PRAC N · 25min</div>
+            <div class="prac-title">練習標題</div>
+            <div class="prac-badge">標籤</div>
+          </div>
+          <div class="prac-arrow"><span aria-hidden="true">→</span></div>
+        </a>
+      </div>
+
+    範例：見 courses/prompt-basic/index.html line 155-342
+  -->
+
+</main>
+
+<footer class="footer" data-platform-version="{{PLATFORM_VERSION}}">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-div"></div>
+  <div class="footer-note">{{FOOTER_NOTE}}</div>
+</footer>
+
+</body>
+</html>
