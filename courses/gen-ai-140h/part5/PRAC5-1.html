@@ -407,6 +407,41 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <button class="iv-btn iv-btn-primary es-save">存到我的作品集</button>
   </div>
 
+  <div class="debug-loop" data-dk="prac5-1-d1">
+    <div class="dl-eyebrow">DEBUG · 修好這個引用路徑錯誤的 HTML 片段</div>
+    <div class="dl-broken">
+      <label>原始（壞掉的）</label>
+      <pre class="dl-code">&lt;!-- 在 courses/gen-ai-140h/part5/my-tool.html 裡 --&gt;
+&lt;link rel="stylesheet" href="/assets/style.css"&gt;
+&lt;script src="/assets/app.js"&gt;&lt;/script&gt;
+&lt;img src="/images/logo.png" alt="logo"&gt;</pre>
+    </div>
+    <div class="dl-fix">
+      <label>你的修正版（讓這些資源在本機開檔和部署後都能正確載入）</label>
+      <textarea class="dl-input" placeholder="提示：從 part5/my-tool.html 到 _assets/ 要往上幾層？相對路徑和絕對路徑各有什麼問題？"></textarea>
+    </div>
+    <details class="dl-answer">
+      <summary>解法參考（先寫自己的版本再展開）</summary>
+      <div class="dl-answer-body">原版的問題：
+1. 以 `/assets/` 開頭的是「根相對路徑」——在本機用瀏覽器直接開 HTML 檔時，根目錄是你的磁碟根目錄而非專案根目錄，/assets/ 會找不到檔案
+2. 若專案部署在子目錄（如 GitHub Pages 的 /username/repo/），/assets/ 也會指向錯誤位置
+3. img 的路徑同樣有這個問題，圖片會破圖
+
+正確做法（相對路徑）：
+&lt;!-- 從 courses/gen-ai-140h/part5/my-tool.html 往上 3 層到專案根目錄 --&gt;
+&lt;link rel="stylesheet" href="../../../assets/style.css"&gt;
+&lt;script src="../../../assets/app.js"&gt;&lt;/script&gt;
+&lt;img src="../../../images/logo.png" alt="logo"&gt;
+
+或者，若資源和 HTML 放在同一個 part5/ 資料夾：
+&lt;link rel="stylesheet" href="_assets/style.css"&gt;
+
+驗證方式：在終端機用 python3 -m http.server 8080 啟動本機伺服器，用 http://localhost:8080 開頁面——如果這樣可以載入，但直接開 file:// 不行，表示你用了根相對路徑，需改成相對路徑。
+
+關鍵改動：把 /assets/（根相對）→ ../../../assets/（相對路徑）；相對路徑無論在本機、GitHub Pages、Vercel 都能正確解析，因為它是相對於 HTML 檔案自己的位置而非伺服器根目錄。</div>
+    </details>
+  </div>
+
 </div>
 <!-- /peer-handoff -->
 

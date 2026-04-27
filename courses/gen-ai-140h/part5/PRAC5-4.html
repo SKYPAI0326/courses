@@ -393,6 +393,76 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <button class="iv-btn iv-btn-primary es-save">存到我的作品集</button>
   </div>
 
+  <div class="debug-loop" data-dk="prac5-4-d1">
+    <div class="dl-eyebrow">DEBUG · 修好這段環境變數讀取有問題的 Node.js 程式碼</div>
+    <div class="dl-broken">
+      <label>原始（壞掉的）</label>
+      <pre class="dl-code">// server.js
+const express = require('express');
+const app = express();
+
+const API_KEY = "sk-abc123xyz456";  // 直接寫在程式碼裡
+
+app.post('/api/chat', async (req, res) => {
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    headers: { 'Authorization': `Bearer ${API_KEY}` },
+    // ...
+  });
+  res.json(await response.json());
+});
+
+app.listen(3000);</pre>
+    </div>
+    <div class="dl-fix">
+      <label>你的修正版（讓 API key 不出現在程式碼裡，本機和雲端都能正確讀取）</label>
+      <textarea class="dl-input" placeholder="提示：API key 要放在哪裡？.env 檔案怎麼讀取？Vercel 上的環境變數要在哪裡設定？萬一環境變數沒設定怎麼讓程式明確報錯而不是靜默失敗？"></textarea>
+    </div>
+    <details class="dl-answer">
+      <summary>解法參考（先寫自己的版本再展開）</summary>
+      <div class="dl-answer-body">原版的問題：
+1. API key 直接寫在程式碼裡——只要 git push 或分享給任何人，key 就外洩了；即使之後移除，git 歷史記錄裡仍然留著
+2. 沒有使用 .env 檔案，無法在不同環境（本機開發 / Vercel 生產）用不同的 key
+3. 如果環境變數沒設定，process.env.OPENAI_API_KEY 會是 undefined，程式會帶著 undefined 去呼叫 API 並收到 401，錯誤訊息不明確
+
+修正版：
+
+步驟 1：建立 .env 檔（不要 commit 進 git）
+OPENAI_API_KEY=sk-abc123xyz456
+
+步驟 2：確認 .gitignore 有排除 .env
+.env
+.env.local
+node_modules/
+
+步驟 3：server.js 改成讀取環境變數
+// server.js
+require('dotenv').config();  // 本機開發用，Vercel 自動注入不需要
+const express = require('express');
+const app = express();
+
+// 啟動時就檢查，而不是等到被呼叫才發現
+const API_KEY = process.env.OPENAI_API_KEY;
+if (!API_KEY) {
+  console.error('錯誤：OPENAI_API_KEY 環境變數未設定');
+  process.exit(1);  // 明確報錯，不讓程式繼續跑
+}
+
+app.post('/api/chat', async (req, res) => {
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    headers: { 'Authorization': `Bearer ${API_KEY}` },
+  });
+  res.json(await response.json());
+});
+
+app.listen(3000);
+
+步驟 4：Vercel 上設定環境變數
+Vercel Dashboard → 你的專案 → Settings → Environment Variables → 新增 OPENAI_API_KEY
+
+關鍵改動：API key 移到 .env（不進 git）；加 .gitignore 排除 .env；啟動時檢查環境變數存在（process.exit(1) 讓錯誤明確而不是靜默帶 undefined 呼叫 API）；Vercel 上透過 Dashboard 設定（不寫死在程式碼）。</div>
+    </details>
+  </div>
+
 </div>
 <div style="max-width:var(--content-w);margin:0 auto;padding:0 48px 48px">
   <h2 style="font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:8px;letter-spacing:.5px">延伸案例</h2>

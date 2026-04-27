@@ -425,6 +425,46 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <button class="iv-btn iv-btn-primary es-save">存到我的作品集</button>
   </div>
 
+  <div class="debug-loop" data-dk="prac3-2-d1">
+    <div class="dl-eyebrow">DEBUG · 把這個分類維度不清楚的 prompt 修好</div>
+    <div class="dl-broken">
+      <label>原始（壞掉的）</label>
+      <pre class="dl-code">請把以下客戶意見分類：
+- 好評
+- 差評
+- 關於產品的意見
+- 關於服務的意見
+- 需要跟進的意見</pre>
+    </div>
+    <div class="dl-fix">
+      <label>你的修正版（讓分類維度互相排斥、窮舉完整）</label>
+      <textarea class="dl-input" placeholder="提示：好評和差評是「情感」維度，產品和服務是「主題」維度，這兩個維度可以同時成立——想想怎麼設計才能讓每條意見只落進一個類別"></textarea>
+    </div>
+    <details class="dl-answer">
+      <summary>解法參考（先寫自己的版本再展開）</summary>
+      <div class="dl-answer-body">原版的問題：
+1. 分類維度不正交——「好評/差評」是情感軸，「關於產品/服務」是主題軸，一條意見可以同時是「好評」且「關於產品」，AI 不知道該放哪一個
+2. 「需要跟進的意見」是行動標記，不是分類——混在分類裡會讓結果難以後續統計
+3. 沒有設計「多重分類」或「無法分類」的處理方式
+
+參考改法（兩軸獨立分類）：
+你是客服資料分析師（角色）。
+請對以下每條客戶意見，分別標記兩個獨立維度（任務）：
+
+維度 1（情感）：正面 ／ 負面 ／ 中性
+維度 2（主題）：產品功能 ／ 使用體驗 ／ 客服服務 ／ 價格 ／ 其他
+行動旗標（獨立欄位）：需跟進 ／ 不需跟進
+（判斷標準：意見含明確問題、抱怨或詢問 → 需跟進）
+
+輸出格式（每條意見一行 CSV）：
+原文, 情感, 主題, 行動旗標
+
+若一條意見涉及多個主題，取「最主要的」那個；若無法判斷任一維度，填「不確定」。
+
+關鍵改動：把一維分類拆成兩個獨立維度（情感軸 + 主題軸）——現在每條意見在每個軸上只有一個答案；「需跟進」改為獨立欄位（不干擾分類統計，日後可直接 filter 出要跟進的）；加「不確定」選項（讓 AI 不猜測）。</div>
+    </details>
+  </div>
+
 </div>
 <div style="max-width:var(--content-w);margin:0 auto;padding:0 48px 48px">
   <h2 style="font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:8px;letter-spacing:.5px">延伸案例</h2>

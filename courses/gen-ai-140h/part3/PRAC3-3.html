@@ -438,6 +438,48 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <button class="iv-btn iv-btn-primary es-save">存到我的作品集</button>
   </div>
 
+  <div class="debug-loop" data-dk="prac3-3-d1">
+    <div class="dl-eyebrow">DEBUG · 把這個缺 fallback 的 webhook 工作流修好</div>
+    <div class="dl-broken">
+      <label>原始（壞掉的）</label>
+      <pre class="dl-code">觸發：Google 表單收到新填寫
+↓
+步驟 1：把表單內容送給 OpenAI 生成摘要
+↓
+步驟 2：把摘要透過 Line Notify 傳給負責人
+↓
+結束</pre>
+    </div>
+    <div class="dl-fix">
+      <label>你的修正版（加入 fallback 路徑，讓工作流在失敗時也能正確處理）</label>
+      <textarea class="dl-input" placeholder="提示：步驟 1 如果 OpenAI API 失敗怎麼辦？步驟 2 如果 Line Notify 失敗怎麼辦？填寫內容為空怎麼辦？"></textarea>
+    </div>
+    <details class="dl-answer">
+      <summary>解法參考（先寫自己的版本再展開）</summary>
+      <div class="dl-answer-body">原版的問題：
+1. 沒有檢查表單內容是否有效——若必填欄位空白，AI 仍會嘗試生成摘要，產出無意義結果
+2. OpenAI API 呼叫沒有超時設定與錯誤處理——API 掛掉時整條流程靜默失敗，負責人不知道發生了什麼事
+3. Line Notify 發送失敗沒有備援——摘要已生成但通知沒到，負責人毫不知情
+
+參考改法：
+觸發：Google 表單收到新填寫
+↓
+前置檢查：確認「姓名」「問題描述」兩個必填欄位不為空
+  → 若為空：Line Notify 發送「⚠ 收到空白表單，請手動確認：[表單連結]」，終止流程
+↓
+步驟 1：送給 OpenAI 生成摘要（逾時設 20 秒，重試 1 次）
+  → 若仍失敗：Line Notify 發送「⚠ AI 摘要生成失敗，原始內容：[填寫人姓名] 於 [時間] 填寫」，跳到步驟 2b
+↓
+步驟 2a（成功路徑）：Line Notify 傳送 AI 摘要給負責人
+  → 若 Line Notify 失敗：改寄 Email 給負責人（含摘要全文）
+步驟 2b（失敗路徑）：Line Notify 傳送原始表單摘要（非 AI）給負責人
+↓
+步驟 3（所有路徑）：把執行結果（成功/失敗原因）寫入 Google Sheets 紀錄
+
+關鍵改動：前置檢查（避免空白輸入跑完整流程）；API 失敗加重試+通知（讓負責人至少知道發生了什麼）；通知失敗加 Email 備援；所有路徑最後都寫執行紀錄（下次除錯有據可查）。</div>
+    </details>
+  </div>
+
 </div>
 <div style="max-width:var(--content-w);margin:0 auto;padding:0 48px 48px">
   <h2 style="font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:8px;letter-spacing:.5px">延伸案例</h2>

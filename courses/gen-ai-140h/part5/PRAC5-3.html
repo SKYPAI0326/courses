@@ -377,6 +377,63 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <button class="iv-btn iv-btn-primary es-save">存到我的作品集</button>
   </div>
 
+  <div class="debug-loop" data-dk="prac5-3-d1">
+    <div class="dl-eyebrow">DEBUG · 修好這段缺 error handling 的 fetch 程式碼</div>
+    <div class="dl-broken">
+      <label>原始（壞掉的）</label>
+      <pre class="dl-code">async function loadProjects() {
+  const res = await fetch('/api/projects');
+  const data = await res.json();
+  renderProjects(data);
+}
+
+loadProjects();</pre>
+    </div>
+    <div class="dl-fix">
+      <label>你的修正版（讓 API 失敗時使用者看到提示，而不是白畫面或靜默錯誤）</label>
+      <textarea class="dl-input" placeholder="提示：fetch 失敗（網路斷線）和 res.ok 為 false（API 回 404/500）是兩種不同的錯誤——各要怎麼抓？使用者要看到什麼？"></textarea>
+    </div>
+    <details class="dl-answer">
+      <summary>解法參考（先寫自己的版本再展開）</summary>
+      <div class="dl-answer-body">原版的問題：
+1. fetch() 本身不會在 HTTP 4xx/5xx 時 throw error——res.ok 是 false 但程式繼續跑，嘗試解析可能是 HTML 的錯誤頁面為 JSON，導致 JSON parse error
+2. 沒有 try/catch——網路斷線時 fetch() 本身 throw，但沒有被捕捉，會變成 unhandled promise rejection（console 報錯，使用者看到白畫面）
+3. 沒有 loading 狀態和 error 狀態的 UI 回饋——使用者不知道資料在載入中，也不知道失敗了
+
+修正版：
+async function loadProjects() {
+  const container = document.getElementById('projects-container');
+
+  // 顯示 loading 狀態
+  container.innerHTML = '&lt;p class="loading"&gt;載入中…&lt;/p&gt;';
+
+  try {
+    const res = await fetch('/api/projects');
+
+    // 明確檢查 HTTP 狀態碼
+    if (!res.ok) {
+      throw new Error(`API 回傳錯誤：${res.status} ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    renderProjects(data);
+
+  } catch (err) {
+    // 網路失敗 or HTTP 錯誤 or JSON parse 失敗都會到這裡
+    console.error('loadProjects failed:', err);
+    container.innerHTML = `
+      &lt;p class="error"&gt;作品集載入失敗，請重新整理頁面。&lt;/p&gt;
+      &lt;p class="error-detail"&gt;${err.message}&lt;/p&gt;
+    `;
+  }
+}
+
+loadProjects();
+
+關鍵改動：加 if (!res.ok) throw（明確捕捉 HTTP 錯誤）；加 try/catch（捕捉網路錯誤和 JSON parse 錯誤）；loading/error 狀態更新 DOM（使用者有視覺回饋）；console.error 保留技術資訊（方便 debug），但 UI 顯示對使用者友善的訊息。</div>
+    </details>
+  </div>
+
 </div>
 <div style="max-width:var(--content-w);margin:0 auto;padding:0 48px 48px">
   <h2 style="font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:8px;letter-spacing:.5px">延伸案例</h2>

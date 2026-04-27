@@ -466,6 +466,41 @@ User:
     <button class="iv-btn iv-btn-primary es-save">存到我的作品集</button>
   </div>
 
+  <div class="debug-loop" data-dk="prac2-4-d1">
+    <div class="dl-eyebrow">DEBUG · 把這個缺錯誤處理的工作流設計修好</div>
+    <div class="dl-broken">
+      <label>原始（壞掉的）</label>
+      <pre class="dl-code">工作流程：
+1. 每週五下午 5 點自動觸發
+2. 讀取 Google Sheets 上的週工作紀錄
+3. 送給 AI 整理成週報格式
+4. 把週報寄到主管的信箱</pre>
+    </div>
+    <div class="dl-fix">
+      <label>你的修正版（讓工作流在異常情況下也能正確運作）</label>
+      <textarea class="dl-input" placeholder="提示：考慮每個步驟可能失敗的情況——Sheets 空白、AI 超時、信箱寄送失敗，各要怎麼處理？"></textarea>
+    </div>
+    <details class="dl-answer">
+      <summary>解法參考（先寫自己的版本再展開）</summary>
+      <div class="dl-answer-body">原版的問題：
+1. 沒有處理「Google Sheets 當週無資料」的情況——工作流會繼續跑、送空白週報給主管
+2. 沒有處理 AI 呼叫失敗或超時的情況——整個流程直接中斷，沒有通知也沒有重試
+3. 沒有處理信箱寄送失敗的情況——週報已生成但無法得知是否送達
+
+參考改法：
+1. 每週五下午 5 點自動觸發
+2. 讀取 Google Sheets 當週工作紀錄
+   → 若工作表為空或列數 &lt; 3：停止並發送 Slack 通知「本週 Sheets 無資料，工作流已暫停」
+3. 送給 AI 整理成週報格式（逾時設為 30 秒）
+   → 若 AI 呼叫失敗或逾時：重試 1 次；仍失敗則發送 Slack 通知「AI 整理失敗，請手動處理」並附上原始資料連結
+4. 把週報寄到主管信箱
+   → 若寄送失敗：發送 Slack 通知「週報寄送失敗，請手動轉寄」並附上週報草稿連結
+5. 完成後記錄執行結果到 Sheets 的「執行紀錄」分頁（時間、狀態、週報字數）
+
+關鍵改動：每個步驟加 fallback 路徑（空資料→停止通知；AI 失敗→重試→通知；信件失敗→通知+草稿）；加執行紀錄（下次除錯有憑據）。工作流設計的鐵則：成功路徑 1 條，失敗路徑至少 1 條。</div>
+    </details>
+  </div>
+
 </div>
 <div class="tool-wrap" style="max-width:var(--content-w);margin:0 auto;padding:0 48px 48px">
   <h2 style="font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:8px;letter-spacing:.5px">延伸案例</h2>

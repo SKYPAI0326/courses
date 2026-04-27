@@ -509,6 +509,47 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <button class="iv-btn iv-btn-primary es-save">存到我的作品集</button>
 </div>
 
+<div class="debug-loop" style="max-width:var(--content-w);margin:24px auto;padding:0 48px" data-dk="prac4-1-d1">
+  <div class="dl-eyebrow">DEBUG · 把這個沒處理邊界值的報價工具 prompt 修好</div>
+  <div class="dl-broken">
+    <label>原始（壞掉的）</label>
+    <pre class="dl-code">你是報價助理。
+客戶會輸入人數和天數，你計算費用。
+基本費用是 500 元/人/天。</pre>
+  </div>
+  <div class="dl-fix">
+    <label>你的修正版（讓工具處理各種邊界情況，而不是只跑正常路徑）</label>
+    <textarea class="dl-input" placeholder="提示：人數是 0 怎麼辦？天數是負數怎麼辦？輸入的不是數字怎麼辦？有沒有最小起收？"></textarea>
+  </div>
+  <details class="dl-answer">
+    <summary>解法參考（先寫自己的版本再展開）</summary>
+    <div class="dl-answer-body">原版的問題：
+1. 沒有定義人數與天數的有效範圍——若客戶輸入 0 人或負數，AI 會計算出 0 元或負數費用，不合邏輯
+2. 沒有說明如何處理非數字輸入（例如「很多人」「幾天」）——AI 可能自行猜一個數字
+3. 沒有最低費用或起收條件，小單也按比例報價可能造成損失
+
+參考改法：
+你是報價助理（角色）。
+客戶會提供參加人數和天數，請依照以下規則計算報價（任務）：
+
+計算規則：
+- 基本費用：500 元/人/天
+- 最低起收：5,000 元（不足 5,000 元一律收 5,000 元）
+- 有效輸入範圍：人數 1–500 人、天數 1–30 天
+- 若客戶輸入 0、負數、或超出範圍：回覆「請確認輸入：人數需介於 1–500，天數需介於 1–30」，不給報價
+- 若客戶輸入非數字（如「很多人」）：回覆「請輸入具體的數字人數與天數，例如：20 人、3 天」
+
+輸出格式：
+報價明細：
+- 人數：N 人
+- 天數：N 天
+- 計算金額：N × N × 500 = ＿元
+- 實收金額：＿元（低於 5,000 元則顯示「依最低起收 5,000 元計」）
+
+關鍵改動：定義有效範圍（1–500 人、1–30 天）；邊界值給明確錯誤訊息而不是計算錯誤答案；加最低起收邏輯；輸出格式固定（讓客戶可以截圖存證）。</div>
+  </details>
+</div>
+
 <div class="tool-wrap" style="max-width:var(--content-w);margin:0 auto;padding:0 48px 48px">
   <h2 style="font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:8px;letter-spacing:.5px">延伸案例</h2>
   <p style="font-size:.9rem;color:var(--c-muted);line-height:1.85;margin-bottom:32px">報價試算器的核心是把複雜收費邏輯變成客戶自己點幾下就能得到數字的工具。挑一個貼近你本業的情境案例完整做一次，每個案例 40–60 分鐘。</p>

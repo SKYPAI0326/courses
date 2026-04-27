@@ -442,6 +442,41 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <button class="iv-btn iv-btn-primary es-save">存到我的作品集</button>
   </div>
 
+  <div class="debug-loop" data-dk="prac3-1-d1">
+    <div class="dl-eyebrow">DEBUG · 把這個壞掉的資料清理 prompt 修好</div>
+    <div class="dl-broken">
+      <label>原始（壞掉的）</label>
+      <pre class="dl-code">幫我清理這份 CSV 資料。
+有些資料格式不對，幫我修正。
+確保資料是乾淨的。</pre>
+    </div>
+    <div class="dl-fix">
+      <label>你的修正版（讓 AI 只處理你要處理的欄位，不亂動其他資料）</label>
+      <textarea class="dl-input" placeholder="提示：明確指定要清理哪些欄位、每個欄位的標準格式是什麼、遇到無法清理的資料如何標記"></textarea>
+    </div>
+    <details class="dl-answer">
+      <summary>解法參考（先寫自己的版本再展開）</summary>
+      <div class="dl-answer-body">原版的問題：
+1. 「有些資料格式不對」沒有說明哪些欄位、什麼叫「格式不對」——AI 可能把你覺得沒問題的欄位也動了
+2. 「確保資料是乾淨的」是主觀標準——AI 可能把空值刪除、把名稱標準化，而你其實只是要統一日期格式
+3. 沒有說明遇到「無法確定如何清理」的資料時如何處理，AI 可能自行填值（幻覺風險高）
+
+參考改法（以客戶聯絡資料為例）：
+你是資料清理助理（角色）。
+以下是一份客戶聯絡資料的 CSV，請依照下方規則清理指定欄位，其餘欄位不動（任務，範圍明確）：
+
+清理規則：
+- 「電話」欄：統一格式為 09XX-XXX-XXX，去除空格與括號，若無法識別為台灣手機號碼則標記為「[格式異常]」
+- 「Email」欄：轉為全小寫，若不含「@」則標記為「[缺 @]」
+- 「姓名」欄：去除前後空格，不改變內容
+- 其他所有欄位：不動
+
+輸出格式：直接輸出清理後的完整 CSV（含標題列），不要加任何說明文字。
+
+關鍵改動：明確列出「只清理這 3 欄，其餘不動」（避免誤改）；每個欄位給標準格式（可驗證）；用「[格式異常]」標記無法處理的資料而不是猜測（保持透明，下游好追蹤）。</div>
+    </details>
+  </div>
+
 </div>
 <div style="max-width:var(--content-w);margin:0 auto;padding:0 48px 48px">
   <h2 style="font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:8px;letter-spacing:.5px">延伸案例</h2>

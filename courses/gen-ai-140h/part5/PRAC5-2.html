@@ -370,6 +370,46 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <button class="iv-btn iv-btn-primary es-save">存到我的作品集</button>
   </div>
 
+  <div class="debug-loop" data-dk="prac5-2-d1">
+    <div class="dl-eyebrow">DEBUG · 修好這些有問題的 Git 部署指令</div>
+    <div class="dl-broken">
+      <label>原始（壞掉的）</label>
+      <pre class="dl-code"># 把本機修改推到遠端後讓 Vercel 自動部署
+git add .
+git commit -m "update homepage"
+git push origin master</pre>
+    </div>
+    <div class="dl-fix">
+      <label>你的修正版（修正 branch 名稱問題，並補上更好的 commit message 實踐）</label>
+      <textarea class="dl-input" placeholder="提示：現代 Git 預設 branch 是 main 不是 master；commit message 的 'update homepage' 有什麼問題？git add . 有什麼潛在風險？"></textarea>
+    </div>
+    <details class="dl-answer">
+      <summary>解法參考（先寫自己的版本再展開）</summary>
+      <div class="dl-answer-body">原版的問題：
+1. `git push origin master`：GitHub 2020 年後新建 repo 的預設 branch 是 main，推到 master 會失敗（除非你有另外設定）；Vercel/Netlify 追蹤的也是 main，推 master 不會觸發自動部署
+2. `git commit -m "update homepage"`：commit message 太模糊，1 個月後你不知道這次改了什麼；Vercel 部署記錄也會顯示這個 message，對團隊無意義
+3. `git add .`：會把所有未追蹤的檔案都加進去，包括 .env、node_modules（若沒有 .gitignore）、暫存圖片等，有安全風險
+
+修正版：
+# 先確認有 .gitignore，至少排除 .env 和 node_modules
+# git check-ignore -v .env  # 確認 .env 有被排除
+
+git add index.html style.css  # 明確列出要提交的檔案
+git commit -m "feat: update hero section copy and CTA button style"
+git push origin main  # 用 main，不用 master
+
+# 若不確定目前的預設 branch 名稱：
+git branch  # 列出所有本機 branch，有 * 的是目前所在的
+
+補充：若你的舊 repo 用的是 master，可以這樣改名：
+git branch -m master main
+git push -u origin main
+# 然後到 GitHub/Vercel 設定把預設 branch 改成 main
+
+關鍵改動：把 master → main（符合現代預設）；把「update homepage」→ 動詞+範圍的 commit message；把 git add . → 明確列出檔案（避免意外提交敏感資訊）。</div>
+    </details>
+  </div>
+
 </div>
 <div style="max-width:var(--content-w);margin:0 auto;padding:0 48px 48px">
   <h2 style="font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:8px;letter-spacing:.5px">延伸案例</h2>
