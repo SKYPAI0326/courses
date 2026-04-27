@@ -183,7 +183,43 @@
     });
   }
   // Task 6 完成 ↑
-  // function initRealTaskRewrite()  { ... }   ← Task 7
+  function initRealTaskRewrite() {
+    document.querySelectorAll('.real-task-rewrite').forEach(function (el) {
+      const tk = el.getAttribute('data-tk');
+      if (!tk) return;
+      const input = el.querySelector('.rt-input');
+      const saved = el.querySelector('.rt-saved');
+      const saveBtn = el.querySelector('.rt-save');
+      const key = window.GEN140.LS.realtask + tk;
+
+      const v = window.GEN140.lsGetJSON(key, null);
+      if (v && v.text) input.value = v.text;
+
+      const persist = window.GEN140.debounce(function () {
+        window.GEN140.lsSetJSON(key, { text: input.value, savedAt: new Date().toISOString() });
+        if (saved) {
+          saved.hidden = false;
+          saved.textContent = '已儲存 · ' + new Date().toLocaleTimeString('zh-TW');
+        }
+      }, 500);
+      input.addEventListener('input', persist);
+      input.addEventListener('blur', persist);
+
+      if (saveBtn) {
+        saveBtn.addEventListener('click', function () {
+          const ak = 'realtask-' + tk;
+          window.GEN140.lsSetJSON(window.GEN140.LS.artifact + ak, {
+            ak, title: '真實任務改寫 · ' + tk, kind: 'reflection',
+            sourcePage: location.pathname.split('/').slice(-2).join('/'),
+            content: { text: input.value }, savedAt: new Date().toISOString()
+          });
+          window.GEN140.addToArtifactIndex(ak, '真實任務改寫 · ' + tk, 'reflection', location.pathname);
+          saveBtn.textContent = '已存到作品集 ✓';
+        });
+      }
+    });
+  }
+  // Task 7 完成 ↑
   // function initAIRecycler()       { ... }   ← Task 8
   // function initEvidenceSubmit()   { ... }   ← Task 9
 
@@ -197,8 +233,8 @@
     initPeerHandoff();
     // Task 6 已完成：
     initInstructorCheck();
-    // Task 7 完成時取消註解：
-    // initRealTaskRewrite();
+    // Task 7 已完成：
+    initRealTaskRewrite();
     // Task 8 完成時取消註解：
     // initAIRecycler();
     // Task 9 完成時取消註解：
