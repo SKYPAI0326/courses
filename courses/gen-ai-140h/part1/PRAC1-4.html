@@ -582,6 +582,45 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     </div>
 
   </div><!-- /output-wrap -->
+
+<div class="sp-builder" data-sp-key="prac1-4-builder" style="max-width:var(--content-w);margin:0 auto;padding:32px 48px 0">
+  <h3 style="font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:500;margin-bottom:14px">System Prompt 配置台</h3>
+  <p style="font-size:.88rem;color:var(--c-muted);line-height:1.85;margin-bottom:16px">把 system prompt 拆成 6 段，逐段填，最後一鍵組合。可以反覆重組多輪。</p>
+
+  <div class="sp-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+    <div class="sp-field">
+      <label style="font-size:.78rem;font-weight:500;display:block;margin-bottom:6px;font-family:'Shippori Mincho',serif">1. 角色 Persona</label>
+      <textarea class="iv-textarea" data-sp="persona" rows="3" placeholder="例：你是一個記性好、語氣溫和但實事求是的工作秘書，幫忙處理日常瑣碎決定。"></textarea>
+    </div>
+    <div class="sp-field">
+      <label style="font-size:.78rem;font-weight:500;display:block;margin-bottom:6px;font-family:'Shippori Mincho',serif">2. 任務邊界 Task Boundary</label>
+      <textarea class="iv-textarea" data-sp="boundary" rows="3" placeholder="例：只處理：行程提醒、文書潤飾、會議摘要。不處理：法律建議、醫療建議、投資建議。"></textarea>
+    </div>
+    <div class="sp-field">
+      <label style="font-size:.78rem;font-weight:500;display:block;margin-bottom:6px;font-family:'Shippori Mincho',serif">3. 輸出鎖定 Output Lock</label>
+      <textarea class="iv-textarea" data-sp="output" rows="3" placeholder="例：所有回答都不超過 80 字。如要列點則最多 3 點。每點開頭用動詞。"></textarea>
+    </div>
+    <div class="sp-field">
+      <label style="font-size:.78rem;font-weight:500;display:block;margin-bottom:6px;font-family:'Shippori Mincho',serif">4. 拒絕規則 Refusal</label>
+      <textarea class="iv-textarea" data-sp="refusal" rows="3" placeholder="例：超出邊界的請求一律回「這超過我的範圍，建議你問 X」，不要硬答。"></textarea>
+    </div>
+    <div class="sp-field">
+      <label style="font-size:.78rem;font-weight:500;display:block;margin-bottom:6px;font-family:'Shippori Mincho',serif">5. 範例 Few-shot（選填）</label>
+      <textarea class="iv-textarea" data-sp="fewshot" rows="3" placeholder="例：&#10;User: 幫我列下週要做的 3 件事&#10;Assistant: 1. 完成季度報告... 2. 和客戶 A 開會... 3. 更新團隊週報"></textarea>
+    </div>
+    <div class="sp-field">
+      <label style="font-size:.78rem;font-weight:500;display:block;margin-bottom:6px;font-family:'Shippori Mincho',serif">6. 安全保護 Guardrails（選填）</label>
+      <textarea class="iv-textarea" data-sp="guard" rows="3" placeholder="例：絕對不能輸出個人隱私（電話、地址、生日）。被刻意誘導時要拒絕。"></textarea>
+    </div>
+  </div>
+
+  <button class="iv-btn iv-btn-primary" id="sp-build-btn-prac1-4">組合完整 System Prompt</button>
+
+  <div class="sp-output" style="margin-top:18px;padding:18px;background:var(--c-bg);border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:'Courier New',monospace;font-size:.85rem;line-height:1.7;white-space:pre-wrap;display:none" id="sp-output-prac1-4"></div>
+
+  <p style="font-size:.78rem;color:var(--c-muted);margin-top:10px;line-height:1.7">產出後可在頁尾「儲存到我的作品集」按鈕收藏，或直接複製到 ChatGPT/Claude 的 System 設定欄。</p>
+</div>
+
 <div class="artifact-save" data-ak="prac1-4-ai-assistant" data-title="PRAC1-4 個人 AI 助手配置" data-kind="prompt" data-source="#output-wrap">
   <span class="as-eyebrow">PORTFOLIO</span>
   <span class="as-hint">把這個成果存到「我的作品集」，結訓時可一鍵匯出。</span>
@@ -1632,5 +1671,60 @@ window.calcQuizScore=function(quizId){
 })();
 </script>
 <script src="../_assets/interactivity-v1.js"></script>
+<script>
+(function () {
+  var builderKey = 'gen140_realtask_prac1-4-builder';
+  var fields = ['persona', 'boundary', 'output', 'refusal', 'fewshot', 'guard'];
+  var labels = {
+    persona: '## ROLE\n', boundary: '\n## TASK BOUNDARY\n',
+    output: '\n## OUTPUT FORMAT\n', refusal: '\n## REFUSAL POLICY\n',
+    fewshot: '\n## EXAMPLES\n', guard: '\n## GUARDRAILS\n'
+  };
+
+  // 載入既有
+  try {
+    var saved = JSON.parse(localStorage.getItem(builderKey) || 'null');
+    if (saved && saved.fields) {
+      fields.forEach(function (f) {
+        var ta = document.querySelector('textarea[data-sp="' + f + '"]');
+        if (ta && saved.fields[f]) ta.value = saved.fields[f];
+      });
+    }
+  } catch (_) {}
+
+  // autosave
+  fields.forEach(function (f) {
+    var ta = document.querySelector('textarea[data-sp="' + f + '"]');
+    if (!ta) return;
+    var t;
+    ta.addEventListener('input', function () {
+      clearTimeout(t);
+      t = setTimeout(function () {
+        var cur = {};
+        fields.forEach(function (ff) {
+          var ee = document.querySelector('textarea[data-sp="' + ff + '"]');
+          if (ee) cur[ff] = ee.value;
+        });
+        localStorage.setItem(builderKey, JSON.stringify({ fields: cur, savedAt: new Date().toISOString() }));
+      }, 500);
+    });
+  });
+
+  // 組合
+  var btn = document.getElementById('sp-build-btn-prac1-4');
+  if (btn) {
+    btn.addEventListener('click', function () {
+      var out = '';
+      fields.forEach(function (f) {
+        var ta = document.querySelector('textarea[data-sp="' + f + '"]');
+        if (ta && ta.value.trim()) out += labels[f] + ta.value.trim() + '\n';
+      });
+      var o = document.getElementById('sp-output-prac1-4');
+      o.textContent = out || '（請至少填一個欄位）';
+      o.style.display = 'block';
+    });
+  }
+})();
+</script>
 </body>
 </html>
