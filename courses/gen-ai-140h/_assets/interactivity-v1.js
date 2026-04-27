@@ -336,6 +336,22 @@
     });
   }
   // Phase 2.2 完成 ↑
+  function initDebugLoop() {
+    document.querySelectorAll('.debug-loop').forEach(function (el) {
+      const dk = el.getAttribute('data-dk');
+      if (!dk) return;
+      const input = el.querySelector('.dl-input');
+      const key = window.GEN140.LS.realtask + 'debug-' + dk;
+      const v = window.GEN140.lsGetJSON(key, null);
+      if (v && v.text) input.value = v.text;
+      const persist = window.GEN140.debounce(function () {
+        window.GEN140.lsSetJSON(key, { text: input.value, savedAt: new Date().toISOString() });
+      }, 500);
+      input.addEventListener('input', persist);
+      input.addEventListener('blur', persist);
+    });
+  }
+  // Phase 2.4 完成 ↑
 
   // === Init dispatcher === //
   document.addEventListener('DOMContentLoaded', function () {
@@ -355,5 +371,7 @@
     initEvidenceSubmit();
     // Phase 2.2 已完成：
     initCaseRubric();
+    // Phase 2.4 已完成：
+    initDebugLoop();
   });
 })();
