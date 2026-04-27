@@ -149,7 +149,17 @@
     });
   }
   // Task 4 完成 ↑
-  // function initPeerHandoff()      { ... }   ← Task 5
+  function initPeerHandoff() {
+    document.querySelectorAll('.peer-handoff input[type=checkbox][data-pk]').forEach(function (cb) {
+      const pk = cb.getAttribute('data-pk');
+      const key = window.GEN140.LS.peer + pk;
+      if (window.GEN140.lsGet(key, '0') === '1') cb.checked = true;
+      cb.addEventListener('change', function () {
+        window.GEN140.lsSet(key, cb.checked ? '1' : '0');
+      });
+    });
+  }
+  // Task 5 完成 ↑
   // function initInstructorCheck()  { ... }   ← Task 6
   // function initRealTaskRewrite()  { ... }   ← Task 7
   // function initAIRecycler()       { ... }   ← Task 8
@@ -161,8 +171,8 @@
     initInlineReflection();
     // Task 4 已完成：
     initArtifactSave();
-    // Task 5 完成時取消註解：
-    // initPeerHandoff();
+    // Task 5 已完成：
+    initPeerHandoff();
     // Task 6 完成時取消註解：
     // initInstructorCheck();
     // Task 7 完成時取消註解：
