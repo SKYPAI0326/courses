@@ -220,7 +220,65 @@
     });
   }
   // Task 7 完成 ↑
-  // function initAIRecycler()       { ... }   ← Task 8
+  function initAIRecycler() {
+    document.querySelectorAll('.ai-recycler').forEach(function (el) {
+      const rk = el.getAttribute('data-rk');
+      if (!rk) return;
+      const promptText = el.getAttribute('data-prompt') || '';
+      const deeplink = el.querySelector('.ar-deeplink');
+      const copyBtn = el.querySelector('.ar-copy');
+      const pasteEl = el.querySelector('.ar-paste');
+      const reflectEl = el.querySelector('.ar-reflect');
+      const saveBtn = el.querySelector('.ar-save');
+      const key = window.GEN140.LS.recycle + rk;
+
+      if (deeplink && promptText) {
+        deeplink.href = 'https://chat.openai.com/?q=' + encodeURIComponent(promptText);
+        deeplink.target = '_blank';
+        deeplink.rel = 'noopener';
+      }
+      if (copyBtn && promptText) {
+        copyBtn.addEventListener('click', function () {
+          navigator.clipboard.writeText(promptText).then(function () {
+            copyBtn.textContent = '已複製 ✓';
+            setTimeout(function () { copyBtn.textContent = '複製 prompt'; }, 1500);
+          });
+        });
+      }
+
+      const v = window.GEN140.lsGetJSON(key, null);
+      if (v) {
+        if (pasteEl && v.aiResult) pasteEl.value = v.aiResult;
+        if (reflectEl && v.reflection) reflectEl.value = v.reflection;
+      }
+      function persist() {
+        window.GEN140.lsSetJSON(key, {
+          aiResult: pasteEl ? pasteEl.value : '',
+          reflection: reflectEl ? reflectEl.value : '',
+          savedAt: new Date().toISOString()
+        });
+      }
+      const debouncedPersist = window.GEN140.debounce(persist, 500);
+      if (pasteEl) { pasteEl.addEventListener('input', debouncedPersist); pasteEl.addEventListener('blur', debouncedPersist); }
+      if (reflectEl) { reflectEl.addEventListener('input', debouncedPersist); reflectEl.addEventListener('blur', debouncedPersist); }
+
+      if (saveBtn) {
+        saveBtn.addEventListener('click', function () {
+          persist();
+          const ak = 'recycle-' + rk;
+          window.GEN140.lsSetJSON(window.GEN140.LS.artifact + ak, {
+            ak, title: 'AI 回收 · ' + rk, kind: 'prompt',
+            sourcePage: location.pathname.split('/').slice(-2).join('/'),
+            content: { prompt: promptText, aiResult: pasteEl ? pasteEl.value : '', reflection: reflectEl ? reflectEl.value : '' },
+            savedAt: new Date().toISOString()
+          });
+          window.GEN140.addToArtifactIndex(ak, 'AI 回收 · ' + rk, 'prompt', location.pathname);
+          saveBtn.textContent = '已存到作品集 ✓';
+        });
+      }
+    });
+  }
+  // Task 8 完成 ↑
   // function initEvidenceSubmit()   { ... }   ← Task 9
 
   // === Init dispatcher === //
@@ -235,8 +293,8 @@
     initInstructorCheck();
     // Task 7 已完成：
     initRealTaskRewrite();
-    // Task 8 完成時取消註解：
-    // initAIRecycler();
+    // Task 8 已完成：
+    initAIRecycler();
     // Task 9 完成時取消註解：
     // initEvidenceSubmit();
   });
