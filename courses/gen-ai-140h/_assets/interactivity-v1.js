@@ -160,7 +160,29 @@
     });
   }
   // Task 5 完成 ↑
-  // function initInstructorCheck()  { ... }   ← Task 6
+  function initInstructorCheck() {
+    document.querySelectorAll('.instructor-check').forEach(function (el) {
+      const ck = el.querySelector('input[type=checkbox][data-ck]');
+      const fb = el.querySelector('.ic-feedback');
+      if (!ck) return;
+      const ckKey = window.GEN140.LS.check + ck.getAttribute('data-ck');
+      if (window.GEN140.lsGet(ckKey, '0') === '1') ck.checked = true;
+      ck.addEventListener('change', function () {
+        window.GEN140.lsSet(ckKey, ck.checked ? '1' : '0');
+      });
+      if (fb) {
+        const fbKey = ckKey + '_feedback';
+        const v = window.GEN140.lsGet(fbKey, '');
+        if (v) fb.value = v;
+        const save = window.GEN140.debounce(function () {
+          window.GEN140.lsSet(fbKey, fb.value);
+        }, 500);
+        fb.addEventListener('input', save);
+        fb.addEventListener('blur', save);
+      }
+    });
+  }
+  // Task 6 完成 ↑
   // function initRealTaskRewrite()  { ... }   ← Task 7
   // function initAIRecycler()       { ... }   ← Task 8
   // function initEvidenceSubmit()   { ... }   ← Task 9
@@ -173,8 +195,8 @@
     initArtifactSave();
     // Task 5 已完成：
     initPeerHandoff();
-    // Task 6 完成時取消註解：
-    // initInstructorCheck();
+    // Task 6 已完成：
+    initInstructorCheck();
     // Task 7 完成時取消註解：
     // initRealTaskRewrite();
     // Task 8 完成時取消註解：
