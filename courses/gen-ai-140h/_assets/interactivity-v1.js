@@ -352,6 +352,44 @@
     });
   }
   // Phase 2.4 完成 ↑
+  function initResultCompare() {
+    document.querySelectorAll('.result-compare').forEach(function (el) {
+      const rk = el.getAttribute('data-rk');
+      if (!rk) return;
+      const tas = el.querySelectorAll('.rc-col textarea, .rc-pick');
+      const key = window.GEN140.LS.recycle + 'compare-' + rk;
+      const v = window.GEN140.lsGetJSON(key, null);
+      if (v && v.fields) {
+        tas.forEach(function (t, i) {
+          if (v.fields[i] !== undefined) t.value = v.fields[i];
+        });
+      }
+      function persist() {
+        const fields = Array.from(tas).map(t => t.value);
+        window.GEN140.lsSetJSON(key, { fields, savedAt: new Date().toISOString() });
+      }
+      const debouncedPersist = window.GEN140.debounce(persist, 500);
+      tas.forEach(function (t) {
+        t.addEventListener('input', debouncedPersist);
+        t.addEventListener('blur', debouncedPersist);
+      });
+    });
+  }
+  // Phase 3.1 完成 ↑
+  function initGalleryWalk() {
+    document.querySelectorAll('.gallery-walk textarea[data-gk]').forEach(function (ta) {
+      const gk = ta.getAttribute('data-gk');
+      const key = window.GEN140.LS.realtask + 'gallery-' + gk;
+      const v = window.GEN140.lsGetJSON(key, null);
+      if (v && v.text) ta.value = v.text;
+      const persist = window.GEN140.debounce(function () {
+        window.GEN140.lsSetJSON(key, { text: ta.value, savedAt: new Date().toISOString() });
+      }, 500);
+      ta.addEventListener('input', persist);
+      ta.addEventListener('blur', persist);
+    });
+  }
+  // Phase 3.2 完成 ↑
 
   // === Init dispatcher === //
   document.addEventListener('DOMContentLoaded', function () {
@@ -373,5 +411,9 @@
     initCaseRubric();
     // Phase 2.4 已完成：
     initDebugLoop();
+    // Phase 3.1 已完成：
+    initResultCompare();
+    // Phase 3.2 已完成：
+    initGalleryWalk();
   });
 })();
