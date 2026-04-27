@@ -325,6 +325,17 @@
     });
   }
   // Task 9 完成 ↑
+  function initCaseRubric() {
+    document.querySelectorAll('.case-rubric input[type=checkbox][data-cr]').forEach(function (cb) {
+      const cr = cb.getAttribute('data-cr');
+      const key = window.GEN140.LS.check + 'rubric-' + cr;
+      if (window.GEN140.lsGet(key, '0') === '1') cb.checked = true;
+      cb.addEventListener('change', function () {
+        window.GEN140.lsSet(key, cb.checked ? '1' : '0');
+      });
+    });
+  }
+  // Phase 2.2 完成 ↑
 
   // === Init dispatcher === //
   document.addEventListener('DOMContentLoaded', function () {
@@ -342,5 +353,7 @@
     initAIRecycler();
     // Task 9 已完成：
     initEvidenceSubmit();
+    // Phase 2.2 已完成：
+    initCaseRubric();
   });
 })();
