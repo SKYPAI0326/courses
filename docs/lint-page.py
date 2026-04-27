@@ -497,6 +497,93 @@ def check_v3_hover_complexity(html: str) -> list:
     return []
 
 
+# ── gen-ai-140h-specific 規則（2026-04-27 Phase 1 互動性改造）───────
+# 對應 `courses/gen-ai-140h/_報告/2026-04-27-互動性審核.md` v2 §9.7.1 + §10
+# 規則 scope 嚴格篩 'gen-ai-140h' 路徑；其他課程不套。
+# 全部 level 設為 WARN，避免擋既有頁面（pre-commit 不擋 WARN）。
+# 三條規則簽名為 (path, html) — 與通用規則 (html) 不同；在 lint_file
+# 內 dispatch 時會依 callable 簽名選傳參方式。
+
+GEN140_FREE_PRAC = {
+    "PRAC5-5", "PRAC5-6", "PRAC5-7", "PRAC5-8",
+    "PRAC5-9", "PRAC5-10", "PRAC5-11", "PRAC5-12",
+}
+
+
+def _is_gen140(path: Path) -> bool:
+    return "gen-ai-140h" in str(path)
+
+
+def _is_free_prac(path: Path) -> bool:
+    """Part 5 自由演練 PRAC5-5~12（時數/作品集規則豁免）。"""
+    stem = path.stem  # 不含 .html
+    return stem in GEN140_FREE_PRAC
+
+
+def check_gen140_duration(path: Path, html: str) -> list:
+    """gen140-duration（B-4，§9.1）：gen-ai-140h CH/PRAC 頁面 hero-meta 缺時數標示。
+    自由演練 PRAC5-5~12 跳過（時數彈性）。
+
+    實作說明：hero-meta 內含 nested <div>（如 .hero-divider-v），所以不用嚴格
+    `(.*?)</div>` 配對；改抓 hero-meta 起點往後 800 字節內含「小時/H/hour」即視為合格。
+    """
+    if not _is_gen140(path):
+        return []
+    name = path.name
+    if not (name.startswith("CH") or name.startswith("PRAC")):
+        return []
+    if _is_free_prac(path):
+        return []
+    # 找 hero-meta 起點
+    start = re.search(r'<div[^>]*class="[^"]*\bhero-meta\b[^"]*"[^>]*>', html)
+    if not start:
+        return [("WARN", f"{path.name}: hero-meta 缺時數標示（B-4）")]
+    # 取起點後 800 字（hero-meta 區塊長度上限約 300，留餘裕）
+    chunk = html[start.start(): start.start() + 800]
+    has_duration = (
+        'data-duration' in chunk
+        or '小時' in chunk
+        or re.search(r'\bhours?\b', chunk, re.IGNORECASE)
+        or re.search(r'\b\d+\s*[Hh]\b', chunk)
+    )
+    if not has_duration:
+        return [("WARN", f"{path.name}: hero-meta 缺時數標示（B-4）")]
+    return []
+
+
+def check_gen140_portfolio(path: Path, html: str) -> list:
+    """gen140-portfolio（E-2，§3）：gen-ai-140h PRAC 頁缺 .artifact-save 元件。
+    自由演練 PRAC5-5~12 跳過。"""
+    if not _is_gen140(path):
+        return []
+    if not path.name.startswith("PRAC"):
+        return []
+    if _is_free_prac(path):
+        return []
+    if 'artifact-save' not in html:
+        return [("WARN", f"{path.name}: PRAC 頁缺 .artifact-save 元件（E-2）")]
+    return []
+
+
+def check_gen140_iv_script(path: Path, html: str) -> list:
+    """gen140-iv-script（§3 共用資產）：gen-ai-140h 頁面缺 interactivity-v1.js script 引用。
+    例外：index.html（landing）、my-portfolio.html（已內含 logic）。"""
+    if not _is_gen140(path):
+        return []
+    if path.name in ("index.html", "my-portfolio.html"):
+        return []
+    if 'interactivity-v1.js' not in html:
+        return [("WARN", f"{path.name}: 缺 interactivity-v1.js script 引用")]
+    return []
+
+
+GEN140_RULES = [
+    check_gen140_duration,
+    check_gen140_portfolio,
+    check_gen140_iv_script,
+]
+
+
 # ── 規則套用 ──────────────────────────────────────────────
 
 # 頁型 → 應套用的規則集
@@ -570,6 +657,12 @@ def lint_file(path: Path) -> list:
     for rule in rules:
         try:
             issues.extend(rule(html))
+        except Exception as e:
+            issues.append(("WARN", f"規則 {rule.__name__} 執行失敗: {e}"))
+    # gen-ai-140h-specific 規則（path-aware；自帶 scope 篩，不套其他課程）
+    for rule in GEN140_RULES:
+        try:
+            issues.extend(rule(path, html))
         except Exception as e:
             issues.append(("WARN", f"規則 {rule.__name__} 執行失敗: {e}"))
     return issues
