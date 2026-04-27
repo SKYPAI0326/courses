@@ -56,7 +56,53 @@
   window.GEN140 = { LS, lsGet, lsSet, lsGetJSON, lsSetJSON, debounce, addToArtifactIndex };
 
   // === Task 3 之後依序加 init 函式宣告於此處 === //
-  // function initInlineReflection() { ... }   ← Task 3
+  function initInlineReflection() {
+    document.querySelectorAll('.inline-reflection').forEach(function (el) {
+      const rk = el.getAttribute('data-rk');
+      if (!rk) return;
+      const input = el.querySelector('.ir-input');
+      const saved = el.querySelector('.ir-saved');
+      const exportBtn = el.querySelector('.ir-export');
+      const key = window.GEN140.LS.reflect + rk;
+
+      // 載入既有
+      const v = window.GEN140.lsGet(key, '');
+      if (v) input.value = v;
+
+      // autosave on input + blur
+      const save = window.GEN140.debounce(function () {
+        window.GEN140.lsSet(key, input.value);
+        if (saved) {
+          saved.hidden = false;
+          saved.textContent = '已儲存到本機 · ' + new Date().toLocaleTimeString('zh-TW');
+        }
+      }, 500);
+      input.addEventListener('input', save);
+      input.addEventListener('blur', save);
+
+      // 匯出全課所有 reflection 為 .md
+      if (exportBtn) {
+        exportBtn.addEventListener('click', function () {
+          const all = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.startsWith(window.GEN140.LS.reflect)) {
+              all.push({ rk: k.replace(window.GEN140.LS.reflect, ''), text: localStorage.getItem(k) });
+            }
+          }
+          const date = new Date().toISOString().slice(0, 10);
+          const md = '# 我的反思紀錄_' + date + '\n\n' +
+            all.map(r => '## ' + r.rk + '\n\n' + r.text).join('\n\n---\n\n');
+          const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = '我的反思紀錄_' + date + '.md';
+          a.click();
+          URL.revokeObjectURL(a.href);
+        });
+      }
+    });
+  }
   // function initArtifactSave()     { ... }   ← Task 4
   // function initPeerHandoff()      { ... }   ← Task 5
   // function initInstructorCheck()  { ... }   ← Task 6
@@ -66,8 +112,8 @@
 
   // === Init dispatcher === //
   document.addEventListener('DOMContentLoaded', function () {
-    // Task 3 完成時取消註解：
-    // initInlineReflection();
+    // Task 3 已完成：
+    initInlineReflection();
     // Task 4 完成時取消註解：
     // initArtifactSave();
     // Task 5 完成時取消註解：
