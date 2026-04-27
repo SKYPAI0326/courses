@@ -279,7 +279,52 @@
     });
   }
   // Task 8 完成 ↑
-  // function initEvidenceSubmit()   { ... }   ← Task 9
+  function initEvidenceSubmit() {
+    document.querySelectorAll('.evidence-submit').forEach(function (el) {
+      const ek = el.getAttribute('data-ek');
+      if (!ek) return;
+      const url = el.querySelector('.es-url');
+      const screenshot = el.querySelector('.es-screenshot');
+      const code = el.querySelector('.es-code');
+      const saveBtn = el.querySelector('.es-save');
+      const key = window.GEN140.LS.evidence + ek;
+
+      const v = window.GEN140.lsGetJSON(key, null);
+      if (v) {
+        if (url) url.value = v.url || '';
+        if (screenshot) screenshot.value = v.screenshot || '';
+        if (code) code.value = v.code || '';
+      }
+      function persist() {
+        window.GEN140.lsSetJSON(key, {
+          url: url ? url.value : '',
+          screenshot: screenshot ? screenshot.value : '',
+          code: code ? code.value : '',
+          savedAt: new Date().toISOString()
+        });
+      }
+      const debouncedPersist = window.GEN140.debounce(persist, 500);
+      [url, screenshot, code].filter(Boolean).forEach(function (e) {
+        e.addEventListener('input', debouncedPersist);
+        e.addEventListener('blur', debouncedPersist);
+      });
+      if (saveBtn) {
+        saveBtn.addEventListener('click', function () {
+          persist();
+          const ak = 'evidence-' + ek;
+          window.GEN140.lsSetJSON(window.GEN140.LS.artifact + ak, {
+            ak, title: '證據 · ' + ek, kind: 'evidence',
+            sourcePage: location.pathname.split('/').slice(-2).join('/'),
+            content: window.GEN140.lsGetJSON(key, {}),
+            savedAt: new Date().toISOString()
+          });
+          window.GEN140.addToArtifactIndex(ak, '證據 · ' + ek, 'evidence', location.pathname);
+          saveBtn.textContent = '已存到作品集 ✓';
+        });
+      }
+    });
+  }
+  // Task 9 完成 ↑
 
   // === Init dispatcher === //
   document.addEventListener('DOMContentLoaded', function () {
@@ -295,7 +340,7 @@
     initRealTaskRewrite();
     // Task 8 已完成：
     initAIRecycler();
-    // Task 9 完成時取消註解：
-    // initEvidenceSubmit();
+    // Task 9 已完成：
+    initEvidenceSubmit();
   });
 })();
