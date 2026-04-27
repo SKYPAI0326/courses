@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的作品集｜生成式AI職訓實務應用班</title>
+<meta name="description" content="140h 課程累積的所有作品、反思、證據。可一鍵匯出。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="我的作品集｜生成式AI職訓實務應用班">
+<meta property="og:description" content="140h 課程累積的所有作品、反思、證據。可一鍵匯出。">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_assets/interactivity-v1.css">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-main:#b5703a;--radius:4px;--radius-sm:3px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+a{color:var(--c-main)}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);margin-left:auto}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 32px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.page-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;color:var(--c-text);margin-bottom:12px}
+.page-desc{font-size:.95rem;color:var(--c-muted);line-height:1.85;margin-bottom:24px}
+.summary{display:flex;gap:24px;padding:18px 22px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin-bottom:32px;flex-wrap:wrap}
+.summary-item{font-size:.88rem;color:var(--c-muted)}
+.summary-item strong{font-family:'Shippori Mincho',serif;font-size:1.4rem;color:var(--c-text);margin-right:6px}
+.actions{display:flex;gap:12px;margin-bottom:32px;flex-wrap:wrap}
+.list{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px}
+.list h2{font-family:'Shippori Mincho',serif;font-size:1.2rem;margin:32px 0 16px;color:var(--c-text)}
+.item{padding:18px 22px;border:1px solid var(--c-border);border-radius:var(--radius);margin-bottom:12px;background:var(--c-card)}
+.item-title{font-family:'Shippori Mincho',serif;font-size:1.05rem;color:var(--c-text);margin-bottom:6px}
+.item-meta{font-size:.78rem;color:var(--c-muted);margin-bottom:8px}
+.item-content{font-size:.85rem;color:var(--c-text);max-height:120px;overflow:hidden;line-height:1.7;white-space:pre-wrap;font-family:'Courier New',monospace;background:var(--c-bg);padding:10px 12px;border-radius:var(--radius-sm)}
+.empty{text-align:center;padding:64px 24px;color:var(--c-muted);font-size:.95rem}
+.btn-danger{color:#c44 !important;border-color:#c44 !important}
+.btn-danger:hover{background:rgba(196,68,68,.06) !important}
+@media(max-width:600px){.topbar,.page-hero,.list{padding-left:24px;padding-right:24px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a href="index.html" class="logo">弄一下工作室</a>
+  <span class="topbar-sub">我的作品集</span>
+</header>
+<div class="page-hero">
+  <a href="index.html" class="back-link"><span aria-hidden="true">←</span> 返回課程總覽</a>
+  <h1 class="page-title">我的作品集</h1>
+  <p class="page-desc">這裡集中呈現你 140h 課程中所有儲存的作品、反思、證據。資料只存在你的瀏覽器，不上傳。</p>
+  <div class="summary" id="summary">
+    <div class="summary-item"><strong id="sum-artifacts">0</strong>件 作品</div>
+    <div class="summary-item"><strong id="sum-reflections">0</strong>則 反思</div>
+    <div class="summary-item"><strong id="sum-evidences">0</strong>件 證據</div>
+    <div class="summary-item"><strong id="sum-checks">0</strong>處 已檢核</div>
+  </div>
+  <div class="actions">
+    <button class="iv-btn iv-btn-primary" id="btn-export-all">匯出全部 .json</button>
+    <button class="iv-btn" id="btn-export-md">匯出 Markdown 摘要</button>
+    <button class="iv-btn btn-danger" id="btn-clear">清空所有資料（不可復原）</button>
+  </div>
+</div>
+<div class="list" id="list"></div>
+
+<script src="_assets/interactivity-v1.js"></script>
+<script>
+(function () {
+  const LS = window.GEN140.LS;
+  const idx = window.GEN140.lsGetJSON(LS.artifactIndex, []);
+  const reflections = [];
+  const evidences = [];
+  const checks = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (!k) continue;
+    if (k.startsWith(LS.reflect)) reflections.push({ k, v: localStorage.getItem(k) });
+    else if (k.startsWith(LS.evidence)) evidences.push({ k, v: window.GEN140.lsGetJSON(k, null) });
+    else if (k.startsWith(LS.check) && !k.endsWith('_feedback') && localStorage.getItem(k) === '1') checks.push(k);
+  }
+  document.getElementById('sum-artifacts').textContent = idx.length;
+  document.getElementById('sum-reflections').textContent = reflections.length;
+  document.getElementById('sum-evidences').textContent = evidences.length;
+  document.getElementById('sum-checks').textContent = checks.length;
+
+  const list = document.getElementById('list');
+  function escapeHtml(s) { return String(s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
+
+  if (idx.length === 0 && reflections.length === 0 && evidences.length === 0) {
+    list.innerHTML = '<div class="empty">還沒有任何作品。完成 PRAC 後點「儲存到我的作品集」即可累積。</div>';
+  } else {
+    if (idx.length) {
+      const h = document.createElement('h2'); h.textContent = '作品（' + idx.length + '）'; list.appendChild(h);
+      idx.forEach(function (entry) {
+        const a = window.GEN140.lsGetJSON(LS.artifact + entry.ak, null);
+        if (!a) return;
+        const div = document.createElement('div');
+        div.className = 'item';
+        let text = '';
+        if (a.content && typeof a.content.text === 'string') text = a.content.text;
+        else if (a.content && Array.isArray(a.content.fields)) text = a.content.fields.map(f => (f.id || '') + ': ' + f.value).join('\n');
+        else text = JSON.stringify(a.content || {}, null, 2);
+        div.innerHTML =
+          '<div class="item-title">' + escapeHtml(a.title) + '</div>' +
+          '<div class="item-meta">' + escapeHtml(a.kind) + ' · ' + escapeHtml(a.sourcePage) + ' · 存於 ' + new Date(a.savedAt).toLocaleString('zh-TW') + '</div>' +
+          '<div class="item-content">' + escapeHtml(text) + '</div>';
+        list.appendChild(div);
+      });
+    }
+    if (reflections.length) {
+      const h = document.createElement('h2'); h.textContent = '反思（' + reflections.length + '）'; list.appendChild(h);
+      reflections.forEach(r => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = '<div class="item-meta">' + escapeHtml(r.k.replace(LS.reflect, '')) + '</div><div class="item-content">' + escapeHtml(r.v) + '</div>';
+        list.appendChild(div);
+      });
+    }
+  }
+
+  document.getElementById('btn-export-all').onclick = function () {
+    const all = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('gen140_')) all[k] = localStorage.getItem(k);
+    }
+    const blob = new Blob([JSON.stringify(all, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = '我的作品集_' + new Date().toISOString().slice(0, 10) + '.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+  document.getElementById('btn-export-md').onclick = function () {
+    let md = '# 我的 140h 課程作品集\n\n_匯出時間：' + new Date().toLocaleString('zh-TW') + '_\n\n';
+    if (idx.length) {
+      md += '## 作品（' + idx.length + ' 件）\n\n';
+      idx.forEach(function (entry) {
+        const a = window.GEN140.lsGetJSON(LS.artifact + entry.ak, null);
+        if (!a) return;
+        let text = '';
+        if (a.content && typeof a.content.text === 'string') text = a.content.text;
+        else if (a.content && Array.isArray(a.content.fields)) text = a.content.fields.map(f => (f.id || '') + ': ' + f.value).join('\n');
+        else text = JSON.stringify(a.content, null, 2);
+        md += '### ' + a.title + '\n\n*' + a.kind + ' · ' + a.sourcePage + ' · ' + new Date(a.savedAt).toLocaleString('zh-TW') + '*\n\n```\n' + text + '\n```\n\n';
+      });
+    }
+    if (reflections.length) {
+      md += '## 反思紀錄（' + reflections.length + ' 則）\n\n';
+      reflections.forEach(r => { md += '### ' + r.k.replace(LS.reflect, '') + '\n\n' + r.v + '\n\n'; });
+    }
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = '我的作品集_' + new Date().toISOString().slice(0, 10) + '.md';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+  document.getElementById('btn-clear').onclick = function () {
+    if (!confirm('真的清空所有 gen140_ 開頭的資料？這會刪除你所有的作品、反思、檢核紀錄，且無法復原。')) return;
+    const toDel = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('gen140_')) toDel.push(k);
+    }
+    toDel.forEach(k => localStorage.removeItem(k));
+    location.reload();
+  };
+})();
+</script>
+</body>
+</html>

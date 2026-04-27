@@ -103,7 +103,52 @@
       }
     });
   }
-  // function initArtifactSave()     { ... }   ← Task 4
+  function initArtifactSave() {
+    document.querySelectorAll('.artifact-save').forEach(function (el) {
+      const ak = el.getAttribute('data-ak');
+      if (!ak) return;
+      const btn = el.querySelector('.as-btn');
+      if (!btn) return;
+      const sourceSelector = el.getAttribute('data-source');  // 例如 '#prompt-output'
+      const title = el.getAttribute('data-title') || ak;
+      const kind = el.getAttribute('data-kind') || 'tool-page';
+      const key = window.GEN140.LS.artifact + ak;
+
+      // 已存過的狀態
+      if (window.GEN140.lsGet(key, null)) {
+        btn.textContent = '已存到我的作品集 ✓';
+        btn.classList.add('saved');
+      }
+
+      btn.addEventListener('click', function () {
+        let content = {};
+        if (sourceSelector) {
+          const src = document.querySelector(sourceSelector);
+          if (src) {
+            if ('value' in src && src.value !== undefined) content.text = src.value;
+            else content.html = src.innerHTML;
+          }
+        } else {
+          // 沒指定 source，抓頁面內所有 textarea
+          const textareas = document.querySelectorAll('textarea');
+          content.fields = Array.from(textareas)
+            .filter(t => !t.classList.contains('ir-input') && !t.classList.contains('ic-feedback'))
+            .map(t => ({ id: t.id || t.name || '', value: t.value }));
+        }
+        const artifact = {
+          ak, title, kind,
+          sourcePage: location.pathname.split('/').slice(-2).join('/'),
+          content,
+          savedAt: new Date().toISOString()
+        };
+        window.GEN140.lsSetJSON(key, artifact);
+        window.GEN140.addToArtifactIndex(ak, title, kind, artifact.sourcePage);
+        btn.textContent = '已存到我的作品集 ✓';
+        btn.classList.add('saved');
+      });
+    });
+  }
+  // Task 4 完成 ↑
   // function initPeerHandoff()      { ... }   ← Task 5
   // function initInstructorCheck()  { ... }   ← Task 6
   // function initRealTaskRewrite()  { ... }   ← Task 7
@@ -114,8 +159,8 @@
   document.addEventListener('DOMContentLoaded', function () {
     // Task 3 已完成：
     initInlineReflection();
-    // Task 4 完成時取消註解：
-    // initArtifactSave();
+    // Task 4 已完成：
+    initArtifactSave();
     // Task 5 完成時取消註解：
     // initPeerHandoff();
     // Task 6 完成時取消註解：
