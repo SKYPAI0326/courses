@@ -646,11 +646,33 @@ def check_gen140_density(path: Path, html: str) -> list:
     return []
 
 
+def check_gen140_track(path: Path, html: str) -> list:
+    """gen140-track-value（§10.2 Codex 補）：data-track 屬性值合法性。
+
+    合法值（5 個）：
+      - 140h-core / 140h-skip / 180h-extra（§10.2 框架本次新增）
+      - basic / advanced（Phase 3.3 DualPath 既有）
+    其餘值觸發 WARN（不擋）。
+    """
+    if not _is_gen140(path):
+        return []
+    valid = {'140h-core', '140h-skip', '180h-extra', 'basic', 'advanced'}
+    issues = []
+    for v in re.findall(r'data-track="([^"]*)"', html):
+        if v not in valid:
+            issues.append((
+                "WARN",
+                f"{path.name}: data-track=\"{v}\" 不合法（合法：{sorted(valid)}）"
+            ))
+    return issues
+
+
 GEN140_RULES = [
     check_gen140_duration,
     check_gen140_portfolio,
     check_gen140_iv_script,
     check_gen140_density,
+    check_gen140_track,
 ]
 
 
