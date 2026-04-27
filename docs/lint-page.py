@@ -577,10 +577,80 @@ def check_gen140_iv_script(path: Path, html: str) -> list:
     return []
 
 
+def check_gen140_density(path: Path, html: str) -> list:
+    """gen140-interactivity-density（§10.2 Codex 補）：gen-ai-140h 主課頁面互動密度過低。
+
+    加權公式（每實例分數）：
+      debug-loop=5；real-task-rewrite/evidence-submit/sp-builder/mini-deliverable=4；
+      artifact-save/instructor-check/ai-recycler/case-rubric/result-compare/gallery-walk=3；
+      inline-reflection/peer-handoff=2；lone checkbox=1。
+
+    期望門檻：
+      - PRAC 主課：score ≥ 8 × duration_h
+      - CH 主課：  score ≥ 5 × duration_h
+      - 自由演練 PRAC5-5~12 / 入口頁不檢查
+    不達標觸發 WARN（不擋）。
+    """
+    if not _is_gen140(path):
+        return []
+    if _is_free_prac(path):
+        return []
+    name = path.name
+    # 入口/儀表頁不檢查
+    if name in {"index.html", "my-portfolio.html", "my-progress.html",
+                "pre-test.html", "ENV-SETUP.html"}:
+        return []
+    # 只看 CH/PRAC 主課
+    if not (name.startswith("CH") or name.startswith("PRAC")):
+        return []
+    # 抽 data-duration（無則由 gen140-duration 規則處理，這裡跳過）
+    m = re.search(r'data-duration="([0-9.]+)h"', html)
+    if not m:
+        return []
+    try:
+        duration = float(m.group(1))
+    except ValueError:
+        return []
+    if duration <= 0:
+        return []
+    # 加權元件 score
+    weights = {
+        'inline-reflection': 2,
+        'artifact-save': 3,
+        'peer-handoff': 2,
+        'instructor-check': 3,
+        'real-task-rewrite': 4,
+        'ai-recycler': 3,
+        'evidence-submit': 4,
+        'debug-loop': 5,
+        'case-rubric': 3,
+        'result-compare': 3,
+        'gallery-walk': 3,
+        'sp-builder': 4,
+        'mini-deliverable': 4,
+    }
+    score = 0
+    for cls, w in weights.items():
+        # 比對 class="..." 中含目標 class 的實例（允許多 class 共存）
+        count = len(re.findall(
+            r'class="[^"]*\b' + re.escape(cls) + r'\b[^"]*"', html))
+        score += count * w
+    is_prac = name.startswith("PRAC")
+    per_h = 8 if is_prac else 5
+    expected = duration * per_h
+    if score < expected:
+        kind = "PRAC" if is_prac else "CH"
+        return [("WARN",
+                 f"{path.name}: 互動密度 score={score} < 期望 {expected:.0f}"
+                 f"（標 {duration}h，{kind} 期望每 h ≥ {per_h}）")]
+    return []
+
+
 GEN140_RULES = [
     check_gen140_duration,
     check_gen140_portfolio,
     check_gen140_iv_script,
+    check_gen140_density,
 ]
 
 
