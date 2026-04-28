@@ -162,7 +162,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="step-num-col"><div class="step-circle">1</div></div>
     <div class="step-content">
       <div class="step-label">建立或登入 Cloudflare 帳號</div>
-      <p class="step-desc">前往 Cloudflare 官網，若尚未有帳號請先免費註冊。完成後，從儀表板左側導覽點擊進入「Zero Trust」（也可能顯示為「One」）。Zero Trust 是管理 Tunnel 的入口，完全免費使用。</p>
+      <p class="step-desc">前往 Cloudflare 官網註冊帳號（個人使用免費）。完成後，從儀表板左側導覽點擊進入「Zero Trust」（也可能顯示為「One」）。Zero Trust 提供 Tunnel 管理入口，個人開發/教學用途在免費方案內可用（依 Cloudflare 當前規則）。</p>
       <div class="screenshot">
         <div class="screenshot-icon">☁️</div>
         <div class="screenshot-cap">Cloudflare 儀表板，左側找到 Zero Trust 入口</div>
@@ -312,17 +312,29 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <!-- Fallback -->
   <div class="context-box" style="margin-top:32px;">
     <div class="context-label">備用方案 · NGROK FALLBACK</div>
-    <p class="context-text">若 Cloudflare Tunnel 在現場無法順利設定（Homebrew 安裝失敗、網路防火牆限制），可改用 <strong>ngrok</strong>——操作更簡單，效果相同，完全免費。</p>
+    <p class="context-text">若 Cloudflare Tunnel 在現場無法順利設定（Homebrew 安裝失敗、網路防火牆限制），可改用 <strong>ngrok free plan</strong> 作為短期測試替代——操作更簡單，效果相同。正式課程與長期使用仍建議以 Cloudflare Tunnel 或正式網域設定為主。</p>
     <div class="code-block" style="margin:14px 0;">
-<span class="comment"># 1. 前往 ngrok.com 免費註冊，下載後解壓縮</span>
+<span class="comment"># 1. 前往 ngrok.com 註冊（free plan 即可），下載後解壓縮</span>
 <span class="comment"># 2. 在終端機執行（5678 是 n8n 的預設 port）</span>
 <span class="cmd">./ngrok http 5678</span>
 <span class="comment"># 終端機顯示：Forwarding  https://xxxx.ngrok-free.app <span aria-hidden="true">→</span> localhost:5678</span>
 <span class="comment"># 複製 https 網址，填入 Make 的 HTTP Request URL 即可</span></div>
     <div class="step-tip warning" style="margin-top:4px;">
       <span class="tip-icon">⚠️</span>
-      <span class="tip-text"><strong>ngrok 免費版的兩個限制：</strong>（1）每次重啟 URL 會改變，需重新更新 Make 中的目標網址；（2）第一次用瀏覽器訪問會出現警告頁，在 Make 的 HTTP Request Header 加入 <span class="ic">ngrok-skip-browser-warning: true</span> 即可跳過。</span>
+      <span class="tip-text"><strong>ngrok free plan 的兩個限制：</strong>（1）每次重啟 URL 會改變，需重新更新 Make 中的目標網址；（2）第一次用瀏覽器訪問會出現警告頁，在 Make 的 HTTP Request Header 加入 <span class="ic">ngrok-skip-browser-warning: true</span> 即可跳過。其他流量、網域、自訂限制請以 ngrok 官方當前條款為準。</span>
     </div>
+  </div>
+
+  <!-- 安全提醒 -->
+  <div class="context-box" style="margin-top:32px;border-left:4px solid #b54a4a;">
+    <div class="context-label" style="color:#b54a4a;">安全提醒 · TUNNEL SECURITY</div>
+    <p class="context-text">把本機 n8n 透過 Tunnel 暴露到外網等於開了一道對外的門，請記住四件事：</p>
+    <ol style="margin:10px 0 0 20px;line-height:1.95;font-size:.92rem;color:var(--c-text);">
+      <li>測試期可使用隨機 / 不易猜的 webhook path（例如 UUID），降低被機器人掃到的機率。</li>
+      <li>正式使用一定要加驗證——n8n Webhook 節點的 <strong>Header Auth / Basic Auth</strong>、Cloudflare Access 或 token query string 三選一，切勿讓 webhook 裸奔。</li>
+      <li>API key、Webhook secret、token 一律用 n8n <strong>Credentials</strong> 或 <code>.env</code> 管理，<strong>不要</strong>直接寫在節點的文字欄裡（會被 export 出去）。</li>
+      <li>含 credential 的 workflow JSON 不公開分享；分享前用 n8n 內建「Reset Credentials」清除敏感欄位。</li>
+    </ol>
   </div>
 
   <div style="max-width:var(--content-w);margin:48px auto 0;padding:28px 32px;background:rgba(90,122,90,.05);border:1px solid rgba(90,122,90,.3);border-left:4px solid var(--c-a3);border-radius:var(--radius);">
