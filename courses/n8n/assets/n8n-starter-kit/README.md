@@ -1,6 +1,10 @@
 # n8n Starter Kit · 弄一下工作室
 
-《AI 資料工廠》課程的 n8n 本機環境試跑包。在自己電腦跑一個免費、無執行次數限制的 n8n，並能直接讀寫本機資料夾。
+《AI 資料工廠》課程的 n8n 本機環境試跑包。在自己電腦跑一個自架的 n8n，不按執行次數計費，並能直接讀寫本機資料夾。
+
+> **課程測試版本**：n8n `2.17.8`（2026-04-27 依 Docker Hub tags 驗證可用）+ Docker Desktop 4.x。`n8n-compose.yml` 已鎖定此 patch 版本以確保畫面與行為可重現；升級時請重新驗證教材。
+>
+> **免費條件**：n8n Community Edition 採 [Sustainable Use License](https://docs.n8n.io/sustainable-use-license/)——課程中的自架、教學、內部流程與顧問案通常屬允許用途；不可把 n8n 代管成 SaaS、white-label 或嵌入產品對外販售。Docker Desktop 的免費資格另依 [Docker 條款](https://www.docker.com/products/personal/) 判斷，組織規模與用途請逐項對照。
 
 ## 最小執行流程
 
@@ -70,10 +74,20 @@ docker compose config
 - **改本機掛載資料夾**：編輯 `n8n-compose.yml` 的 `- ./shared:/files/shared`，把 `./shared` 改成你要掛的路徑
 - **改時區 / 密碼 / Webhook URL**：編輯 `.env`，重啟容器（雙擊 stop 再 start）
 
-## Sustainable Use License 提醒
+## 授權提醒（兩條獨立判斷）
 
-n8n Community Edition 採 [Sustainable Use License (SUL)](https://docs.n8n.io/sustainable-use-license/)：
-- ✅ 允許你內部商業使用、用 n8n 接顧問案
-- ❌ 禁止把 n8n 包成 SaaS 對外販售、white-label 給客戶
+### 1. n8n Community Edition — Sustainable Use License (SUL)
 
-工作坊範圍內的使用都在允許範圍內，安心用。
+採 [Sustainable Use License](https://docs.n8n.io/sustainable-use-license/)，**重點是用途**（不是組織規模）：
+
+- ✅ 允許：自架使用、教學、內部商業流程、用 n8n 為客戶接顧問案
+- ❌ 禁止：把 n8n 代管成 SaaS、white-label 給其他客戶、嵌入產品對外販售
+
+### 2. Docker Desktop — 免費資格依 Docker 條款
+
+跟 n8n SUL 是**獨立**的兩條規則：
+
+- 個人、教育、小型企業使用通常免費
+- 大型企業、政府機關等請依 [Docker Personal 條款](https://www.docker.com/products/personal/) 自行判斷是否需付費訂閱
+
+工作坊範圍內的個人/教學/小型團隊使用，兩條規則通常都在免費範圍內。若你的組織不確定資格，請逐項對照各自的官方文件。
