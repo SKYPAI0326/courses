@@ -604,7 +604,36 @@ retrieved_sources: {{ retrieved_sources }}
   "hallucination": 0|1,
   "notes": "一句話指出扣分原因，沒有則空字串"
 }
-只輸出 JSON，不要前後加任何說明。<button class="copy-btn" type="button">複製</button></div>
+只輸出 JSON，不要前後加任何說明。
+
+---例子---
+【已評分標準範例 · 看完這筆再評實際案例】
+
+input case:
+{
+  "id": "reason-02",
+  "type": "reason",
+  "question": "酒駕撞傷自己，醫療費能不能由意外險理賠？",
+  "expected_answer_points": ["第 15 條酒駕除外條款", "強制險不適用自損", "建議改走健保"],
+  "expected_sources": ["第 15 條", "第 22 條"],
+  "model_answer": "依保單第 15 條規定，酒駕屬除外條款，意外險不予理賠；強制險僅理賠他人，自損通常需自費，建議走健保。",
+  "retrieved_sources": ["第 15 條"]
+}
+
+預期評分輸出：
+{
+  "id": "reason-02",
+  "answer_correct": 0.5,
+  "source_recall": 0.5,
+  "refusal_ok": 1,
+  "hallucination": 1,
+  "notes": "命中 2/3 key points 給 0.5；retrieved 漏抓第 22 條 → recall 0.5；出現「通常」軟詞記一筆幻覺"
+}
+
+理由：① 答案命中「酒駕除外、自損自費、改走健保」3 點中的 2 點，按規則 ≥2 給 1 但這裡示範半分情境給 0.5 留警示；② retrieved_sources 只有第 15 條，expected 兩條 → 1/2=0.5；③ 「通常需自費」的「通常」是軟詞 → hallucination=1，notes 必註明。
+
+---評實際案例---
+<button class="copy-btn" type="button">複製</button></div>
       <div class="ps-expect"><strong>pass/fail 報告 JSON schema</strong><br>
 <code>{"run_id":"rag-eval-2026-04-20","model":"claude-sonnet","dataset_size":15,"pass_threshold":{"answer_correct":0.85,"source_recall":0.8,"hallucination":0.1},"results":{"answer_correct_avg":0.87,"source_recall_avg":0.82,"refusal_precision":1.0,"hallucination_rate":0.07},"per_case":[{"id":"fact-01","answer_correct":1,"source_recall":1.0,"refusal_ok":1,"hallucination":0,"notes":""}, ...],"verdict":"PASS","regressed_cases":["reason-03"]}</code><br>
 <strong>判讀重點</strong>：看 <code>verdict</code> + <code>regressed_cases</code>。整體 PASS 但有退步題也要點進去看是退在哪個維度——通常是「加了 metadata filter 反而把正確來源濾掉」這類手抖。</div>
@@ -663,7 +692,38 @@ domain_glossary: {{ glossary }}
   "needs_human_review": 0|1,
   "notes": "扣分原因一句話"
 }
-needs_human_review：fluency 或 adequacy ≤3 時為 1，其餘為 0。只輸出 JSON。<button class="copy-btn" type="button">複製</button></div>
+needs_human_review：fluency 或 adequacy ≤3 時為 1，其餘為 0。只輸出 JSON。
+
+---例子---
+【已評分標準範例 · 看完這筆再評實際案例】
+
+input case:
+{
+  "id": "tr-en2zh-05",
+  "direction": "en2zh",
+  "source": "Please kindly note that the staging deploy is blocked by a DB migration.",
+  "reference": "請留意，staging 部署目前卡在 DB migration。",
+  "candidate": "敬請您務必知悉，預備環境的部署因為資料庫遷移而被阻擋了。",
+  "domain": "工程",
+  "domain_glossary": ["staging → staging（保留）", "deploy → 部署", "DB migration → DB migration 或資料庫遷移"]
+}
+
+預期評分輸出：
+{
+  "id": "tr-en2zh-05",
+  "bleu_band": "low",
+  "fluency": 2,
+  "adequacy": 4,
+  "term_ok": 0,
+  "cultural_ok": 0,
+  "needs_human_review": 1,
+  "notes": "敬語堆疊（敬請您務必知悉）過度正式；staging 翻成「預備環境」非工程社群慣例，term_ok=0"
+}
+
+理由：① 工程內部訊息用「敬請您務必知悉」是文化轉換失敗（cultural_ok=0），中文工程師會皺眉；② glossary 明示 staging 保留原文，譯成「預備環境」屬術語不一致（term_ok=0）；③ adequacy 資訊完整給 4，但 fluency 只 2 分；④ fluency≤3 觸發 needs_human_review=1。
+
+---評實際案例---
+<button class="copy-btn" type="button">複製</button></div>
       <div class="ps-expect"><strong>pass/fail 報告 JSON schema</strong><br>
 <code>{"run_id":"mt-eval-2026-04-20","dataset_size":10,"pass_threshold":{"fluency_avg":4.0,"adequacy_avg":4.2,"term_ok_rate":0.9},"results":{"fluency_avg":4.1,"adequacy_avg":4.3,"term_ok_rate":0.9,"cultural_ok_rate":0.8,"human_review_needed":2},"per_case":[...],"verdict":"PASS","sample_for_human":["tr-zh2en-04","tr-en2zh-02"]}</code><br>
 <strong>判讀重點</strong>：<code>human_review_needed</code> 是你這輪要親自看的題號——LLM judge 在語感模糊地帶會不穩，記得每 10 題抽 2 題人看、算 inter-rater agreement，低於 0.7 就該重寫 judge prompt。</div>
@@ -723,7 +783,39 @@ summary_word_count: {{ word_count }}
   "missed_points": ["..."],
   "hallucinated_entities": ["..."]
 }
-只輸出 JSON。<button class="copy-btn" type="button">複製</button></div>
+只輸出 JSON。
+
+---例子---
+【已評分標準範例 · 看完這筆再評實際案例】
+
+input case:
+{
+  "id": "sum-03",
+  "article": "<某科技公司 2026 Q1 法說會逐字稿節錄，約 1800 字，主要敘述 Q1 營收 YoY +12%、毛利率自 38.5% 跌至 36.7%、新品 X1 因供應鏈延後到 Q3 上市、執行長強調 AI 投入加碼>",
+  "key_points": ["Q1 營收 YoY +12%", "毛利率跌 1.8pp", "新品延後到 Q3"],
+  "max_words": 120,
+  "tone": "neutral",
+  "model_summary": "本季公司營收年增 12%，表現亮眼；毛利率下滑至 36.7%。執行長宣布加碼 AI 投資，並預期 X2 新品於今年上市。整體展望振奮人心。",
+  "summary_word_count": 64
+}
+
+預期評分輸出：
+{
+  "id": "sum-03",
+  "key_points_hit": 1,
+  "key_points_total": 3,
+  "recall": 0.33,
+  "length_ok": 1,
+  "hallucination_ok": 0,
+  "tone_match": 0,
+  "missed_points": ["毛利率跌 1.8pp（只給絕對值未給變動幅度）", "新品延後到 Q3"],
+  "hallucinated_entities": ["X2 新品（原文是 X1，且原文說延後不是上市）"]
+}
+
+理由：① 命中 1/3 key points，recall=0.33；② 長度 64 < 120 給 length_ok=1；③ 把 X1 寫成 X2、把延後寫成「今年上市」是編造實體 → hallucination_ok=0；④ tone=neutral 卻用「表現亮眼」「振奮人心」 → tone_match=0；⑤ missed_points 要具體寫缺什麼資訊，不要只寫 key_point 標題。
+
+---評實際案例---
+<button class="copy-btn" type="button">複製</button></div>
       <div class="ps-expect"><strong>pass/fail 報告 JSON schema</strong><br>
 <code>{"run_id":"sum-eval-2026-04-20","dataset_size":10,"pass_threshold":{"recall_avg":0.8,"length_ok_rate":1.0,"hallucination_ok_rate":1.0},"results":{"recall_avg":0.83,"length_ok_rate":0.9,"hallucination_ok_rate":1.0,"tone_match_rate":0.9},"per_case":[...],"verdict":"FAIL","failed_cases":[{"id":"sum-04","reason":"length 145 > 120"}],"recommendations":["調緊 max_words 指令，或加『先草稿後壓縮』兩段式 prompt"]}</code><br>
 <strong>判讀重點</strong>：hallucination 門檻要抓到 1.0（零容忍），只要有一篇編數字就整輪 FAIL。摘要的失敗模式 90% 是「長度超標」與「多嘴」，先修這兩個再看 recall。</div>
@@ -784,7 +876,42 @@ conversation: {{ conversation }}
   "red_flags": ["踩到的 must_not 條目"],
   "notes": "一句話扣分原因"
 }
-只輸出 JSON。<button class="copy-btn" type="button">複製</button></div>
+只輸出 JSON。
+
+---例子---
+【已評分標準範例 · 看完這筆再評實際案例】
+
+input case:
+{
+  "id": "cs-refund-03",
+  "scenario": "退貨爭議",
+  "persona": "等了 5 天沒回應、語氣焦躁的客戶",
+  "must_do": ["承認等待過久並道歉", "請客戶提供訂單編號", "承諾 24 小時內回覆"],
+  "must_not": ["把責任推給物流", "請客戶改天再來", "用『系統規定』搪塞"],
+  "expected_resolved": true,
+  "conversation": [
+    {"role": "user", "text": "我退貨等 5 天了沒人理！"},
+    {"role": "bot", "text": "您好，這是物流端的處理時間，他們有時候會比較慢，建議您再等等看。系統規定一般要 7-10 天，請改天再聯絡我們。"}
+  ]
+}
+
+預期評分輸出：
+{
+  "id": "cs-refund-03",
+  "tone_score": 2,
+  "compliance": 0,
+  "must_do_hit": 0,
+  "must_do_total": 3,
+  "resolved": 0,
+  "escalated_correctly": 0,
+  "red_flags": ["把責任推給物流（『這是物流端的處理時間』）", "請客戶改天再來（『請改天再聯絡我們』）", "用『系統規定』搪塞"],
+  "notes": "情緒題未承認等待過久且踩三條紅線；compliance=0 即整題 FAIL，無論其他分數"
+}
+
+理由：① 情緒題沒承認情緒、沒道歉，tone_score=2（標準裡情緒題未正面承認情緒 ≤3）；② 一段話踩了 3 條 must_not → red_flags 三項全列、compliance=0；③ must_do 三項零命中；④ 沒交棒給人工也沒給訂單查詢流程 → resolved=0、escalated_correctly=0；⑤ 提醒：合規是 gate，這題 compliance=0 不論其他分都算整輪 FAIL。
+
+---評實際案例---
+<button class="copy-btn" type="button">複製</button></div>
       <div class="ps-expect"><strong>pass/fail 報告 JSON schema</strong><br>
 <code>{"run_id":"cs-eval-2026-04-20","dataset_size":20,"pass_threshold":{"compliance_rate":1.0,"tone_avg":4.0,"resolved_rate":0.75,"escalation_accuracy":0.9},"results":{"compliance_rate":0.95,"tone_avg":4.1,"resolved_rate":0.8,"escalation_accuracy":0.85},"per_case":[...],"verdict":"FAIL","red_flag_cases":[{"id":"cs-privacy-02","red_flags":["提供了部分個資"]}]}</code><br>
 <strong>判讀重點</strong>：<code>compliance_rate</code> 要 1.0，任何一題踩紅線整輪就 FAIL，不管其他分數多高——合規是 gate，不是平均。紅線題要在每輪 regression 都跑，不要只抽樣。</div>

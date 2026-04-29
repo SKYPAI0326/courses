@@ -321,6 +321,66 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <hr class="section-rule reveal">
 
   <section class="lesson-section reveal">
+    <div class="section-eyebrow">Practice · LLM Troubleshoot</div>
+    <h2 class="section-heading">部署卡住怎麼辦：把錯誤訊息丟給 LLM <em>除錯</em></h2>
+    <p class="body-text">部署最常炸的點不是「不會用」，是「莫名其妙跑不起來」——build log 一堆紅字、頁面空白、404。這時候不要硬猜，把錯誤訊息整段貼到網頁版 LLM 配合下方 Prompt，平均 2 分鐘可以拿到「原因 → 修法 → 驗證指令」三段回應，比 Google 翻 Stack Overflow 快得多。</p>
+
+    <div style="background:#fafaf5;border:1px solid var(--c-border);border-radius:var(--radius);padding:24px 28px;margin-bottom:20px">
+      <div style="font-size:.72rem;color:var(--c-text);font-weight:600;margin-bottom:10px;letter-spacing:.5px">複製下方 Prompt → 貼到 ChatGPT / Claude / Gemini → 把錯誤訊息與環境資訊填進對應段落</div>
+
+      <div style="position:relative;background:#1f2937;color:#e5e7eb;border-radius:var(--radius);padding:20px 22px;margin-bottom:14px">
+        <button onclick="copyDebugPrompt(this)" style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,.12);color:#e5e7eb;border:1px solid rgba(255,255,255,.2);border-radius:4px;font-size:.72rem;padding:5px 12px;cursor:pointer;font-family:inherit">複製</button>
+<pre style="margin:0;font-family:'Courier New',monospace;font-size:.82rem;line-height:1.85;white-space:pre-wrap;color:#e5e7eb">你是熟悉 Vercel / Netlify / GitHub Pages 的部署 troubleshooter，會用平實語言解釋給只會基本 git 與 VS Code 的人。我會貼一份部署失敗的脈絡，請按以下格式回我：
+
+【1. 最可能原因】（限 1 條，不要列「可能 A 或 B 或 C」，直接押最高機率那條）
+【2. 立即修法】（3-5 步，每步附我可以複製貼到終端機或 GitHub UI 的具體指令／路徑）
+【3. 驗證指令】（修完跑哪一條指令／看哪個畫面，確認真的好了）
+【4. 避免再犯】（1 句話，下次怎麼提早發現）
+
+——我的部署脈絡——
+平台：[Vercel / Netlify / GitHub Pages 擇一]
+
+Repo 結構（貼 ls -la 或 GitHub 檔案列表）：
+[貼這裡]
+
+錯誤訊息（整段貼，不要截）：
+[貼 build log 或 browser console error]
+
+我已經試過：
+[列已嘗試的 1-3 件事，免得 LLM 重複建議]</pre>
+      </div>
+
+      <div style="background:rgba(107,127,163,.08);border:1px solid rgba(107,127,163,.25);border-radius:var(--radius);padding:14px 18px;font-size:.85rem;line-height:1.85;color:var(--c-text);margin-bottom:14px"><strong style="color:var(--c-a4);font-weight:600">期待 LLM 回覆樣本（以「部署後頁面空白」為例）</strong><br><br><strong>1. 最可能原因</strong>：HTML 引用的 CSS／JS 用了絕對路徑 <code>/Users/...</code>，部署到雲端後對應檔案 404，瀏覽器拿不到樣式所以畫面空白。<br><br><strong>2. 立即修法</strong><br>① VS Code 開 index.html，搜尋 <code>/Users</code> 把所有絕對路徑改為相對路徑（如 <code>./style.css</code>）<br>② 終端機執行 <code>git add . &amp;&amp; git commit -m "fix: relative paths" &amp;&amp; git push</code><br>③ Vercel 偵測到 push 自動重新部署，回 dashboard 等綠燈<br><br><strong>3. 驗證指令</strong><br>瀏覽器開公開網址 <span aria-hidden="true">→</span> 開 DevTools (F12) <span aria-hidden="true">→</span> Network 分頁 <span aria-hidden="true">→</span> 重整 <span aria-hidden="true">→</span> 確認所有檔案 status 都是 200，沒有 404<br><br><strong>4. 避免再犯</strong>：建檔時養成全部用相對路徑的習慣，本機 <code>open index.html</code> 跑得起來，雲端就跑得起來。<br><br><span style="color:var(--c-muted);font-size:.82rem">⚠ 若 LLM 回的不是 4 段、或第 1 點變成「可能 A 或 B 或 C」，代表你 prompt 的脈絡段沒填夠——回去補 Repo 結構與錯誤訊息全文再送一次。</span></div>
+
+      <div style="border-top:1px dashed var(--c-border);padding-top:14px">
+        <div style="font-size:.73rem;color:var(--c-muted);letter-spacing:1px;margin-bottom:10px;font-weight:500">演練檢核</div>
+        <label style="display:flex;align-items:flex-start;gap:10px;font-size:.85rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:8px"><input type="checkbox" style="margin-top:5px;accent-color:var(--c-a4);flex-shrink:0"><span>把實際遇到的錯誤訊息（或刻意造一個錯誤）整段填入 prompt 對應段落</span></label>
+        <label style="display:flex;align-items:flex-start;gap:10px;font-size:.85rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:8px"><input type="checkbox" style="margin-top:5px;accent-color:var(--c-a4);flex-shrink:0"><span>LLM 回覆按 4 段格式給齊（沒有就回去補 prompt 上下文）</span></label>
+        <label style="display:flex;align-items:flex-start;gap:10px;font-size:.85rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:8px"><input type="checkbox" style="margin-top:5px;accent-color:var(--c-a4);flex-shrink:0"><span>照「立即修法」第一步試做，不要一次跑完全部</span></label>
+        <label style="display:flex;align-items:flex-start;gap:10px;font-size:.85rem;line-height:1.75;color:var(--c-text);cursor:pointer"><input type="checkbox" style="margin-top:5px;accent-color:var(--c-a4);flex-shrink:0"><span>跑「驗證指令」確認真修好（沒修好回 LLM 補「我做了 X，現在錯誤變 Y」續 debug）</span></label>
+      </div>
+    </div>
+
+    <div class="callout key">
+      <div class="callout-icon" aria-hidden="true">💡</div>
+      <div class="callout-body"><strong>練習小技巧</strong>：就算這次部署沒卡住，刻意製造一個錯誤練一次（改錯路徑、刪某個檔再 push），熟悉這套 LLM debug 流程比真的學會還重要——下次半夜部署炸掉時，這份 prompt 是你最快的救生圈。</div>
+    </div>
+
+    <script>
+    function copyDebugPrompt(btn){
+      const pre = btn.parentElement.querySelector('pre');
+      navigator.clipboard.writeText(pre.textContent).then(function(){
+        const orig = btn.textContent;
+        btn.textContent = '已複製';
+        setTimeout(function(){ btn.textContent = orig; }, 1500);
+      });
+    }
+    </script>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <section class="lesson-section reveal">
     <div class="section-eyebrow">Deliverable</div>
     <h2 class="section-heading">產出確認</h2>
     <div class="challenge-box">

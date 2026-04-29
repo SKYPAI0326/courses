@@ -972,7 +972,7 @@ Markdown，三個 H2 標題對應三份文件</div>
       </div>
       <div class="ps-block">
         <div class="ps-label">實作 Prompt · 週報 SOP v1 文件生成器<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
-        <div class="ps-prompt">你是流程顧問，擅長把老鳥腦袋裡的潛規則變成新人照著能跑的 SOP 文件。請根據下方任務情境產出「週報 SOP v1」，格式與限制如下。
+        <div class="ps-prompt" data-rk-source="prac3-4-recycle">你是流程顧問，擅長把老鳥腦袋裡的潛規則變成新人照著能跑的 SOP 文件。請根據下方任務情境產出「週報 SOP v1」，格式與限制如下。
 
 ## 三要素（文件頂部必填）
 - 角色：誰負責執行、誰負責覆核、誰是最終閱讀者
@@ -1369,6 +1369,21 @@ window.calcQuizScore=function(quizId){
     clearTimeout(t);
     t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
   },{passive:true});
+})();
+</script>
+<script>
+/* P3 去重：把標 data-rk-source 的 ps-prompt 全文同步到對應 ai-recycler.dataset.prompt，
+   讓 ar-copy 按鈕複製出去的內容與頁面上看到的 ps-prompt 一致。
+   必須在 interactivity-v1.js 載入前執行（它會讀 data-prompt 渲染按鈕行為）。*/
+(function(){
+  document.querySelectorAll('.ps-prompt[data-rk-source]').forEach(function(src){
+    var rk = src.dataset.rkSource;
+    var ar = document.querySelector('.ai-recycler[data-rk="' + rk + '"]');
+    if(!ar) return;
+    var clone = src.cloneNode(true);
+    var btn = clone.querySelector('.copy-btn'); if(btn) btn.remove();
+    ar.dataset.prompt = clone.textContent.trim();
+  });
 })();
 </script>
 <script src="../_assets/interactivity-v1.js"></script>
