@@ -284,6 +284,18 @@ Data:      data（Convert to File 的輸出）</div>
       <div class="ts-a">在 n8n 的「Executions」頁籤查看最近的執行記錄，點擊失敗的執行可以看到每個節點的輸入/輸出，找到第一個紅色錯誤節點逐一排查。</div>
     </div>
   </div>
+
+  <div class="troubleshoot" style="margin-top:24px;border-left:4px solid var(--c-a3);background:rgba(90,122,90,.05);">
+    <div class="ts-label" style="color:var(--c-a3);">✅ 完成檢查 · 跑完本節你應該看到</div>
+    <ol style="margin:6px 0 0 20px;line-height:1.95;font-size:.92rem;color:var(--c-text);">
+      <li><strong>n8n 流程節點</strong>：Webhook（觸發）、HTTP Request（Gemini API）、Code（清 markdown 包裝 + JSON.parse）、Google Docs / Drive 節點全部亮綠。</li>
+      <li><strong>Gemini 節點 Output 面板</strong>：可看到結構化 JSON，至少包含 <span class="inline-code">title</span>、<span class="inline-code">tasks[]</span>（每筆有 <span class="inline-code">role</span> / <span class="inline-code">deliverable</span>）、<span class="inline-code">summary</span> 等欄位；不是字串而是 object。</li>
+      <li><strong>本機資料夾</strong>：本演練主要寫雲端，本機沒新增檔案；若你有把 raw response 用 Write Binary File 落地，<span class="inline-code">shared/ai-output/</span> 應出現對應 JSON 檔。</li>
+      <li><strong>外部服務</strong>：Google Drive 出現新建立的 Doc（從模板 Copy + Replace 產生）；標題、佔位符 <span class="inline-code">{{title}}</span> / <span class="inline-code">{{summary}}</span> 都被填入；LINE 通知（若有串）能在 LINE 收到該 Doc 連結。</li>
+      <li><strong>Executions 頁</strong>：本次執行為綠色 Success，沒有 429 / timeout / parse error。</li>
+    </ol>
+    <div style="margin-top:10px;font-size:.82rem;color:var(--c-muted);">任一項對不上 → 對照上方「常見問題」；429 請放慢 Loop + Wait；JSON.parse 失敗請看 Code 節點的清理邏輯。</div>
+  </div>
 </div>
 
   <div style="max-width:var(--content-w);margin:48px auto 0;padding:28px 32px;background:rgba(90,122,90,.05);border:1px solid rgba(90,122,90,.3);border-left:4px solid var(--c-a3);border-radius:var(--radius);">
@@ -291,7 +303,7 @@ Data:      data（Convert to File 的輸出）</div>
     <div style="font-size:.9rem;color:var(--c-text);line-height:1.95;">
       <div style="margin-bottom:10px;"><strong>情境｜</strong>某行銷公司客戶每週要 5 份活動企劃初稿——以前實習生寫 3 天，現在 AI 10 分鐘產完 + 人工 1 小時改。</div>
       <div style="margin-bottom:10px;"><strong>做法｜</strong>n8n 接客戶需求表 <span aria-hidden="true">→</span> Gemini API 生 JSON 結構化企劃 <span aria-hidden="true">→</span> 寫進 Google Docs 套版 <span aria-hidden="true">→</span> LINE 通知客戶。</div>
-      <div><strong>踩雷｜</strong>Gemini 免費版 1,500 次/日 = 每小時平均 62 次。若某小時集中跑批次破限額會 429 錯誤——分散執行或 SplitInBatches 10 + Wait 10 秒控速。</div>
+      <div><strong>踩雷｜</strong>Gemini 免費額度依模型而異（請查 <a href="https://ai.google.dev/gemini-api/docs/rate-limits" target="_blank" rel="noopener">官方 Rate limits 頁面</a>）。集中時段批次跑容易破當前 RPM/RPD 觸發 429——以 Loop Over Items（每批 10）+ Wait 10 秒控速，並把工作量分散到不同小時跑。</div>
     </div>
   </div>
 
