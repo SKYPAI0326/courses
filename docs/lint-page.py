@@ -704,6 +704,28 @@ def check_gen140_widget_after_nav(path: Path, html: str) -> list:
     return issues
 
 
+def check_gen140_nav_required(path: Path, html: str) -> list:
+    """gen140-nav-required（PRAC4-3 orphan-page follow-up）：CH / PRAC 頁必須含
+    nav-footer 或 lesson-nav，否則學員到該頁就斷線（無下一頁、無上一頁）。
+
+    PRAC4-3 在 PR-6 範圍內被發現是孤兒頁（缺 nav 元件），原 lint 沒抓到。
+    PR-6.3 補規則防 regression。
+
+    ERROR 級（baseline 可 grandfather 既有違規）。
+    """
+    if not _is_gen140(path):
+        return []
+    name = path.name
+    if not (name.startswith("CH") or name.startswith("PRAC")):
+        return []
+    has_nav = bool(
+        re.search(r'<(?:div|nav)[^>]*class="[^"]*\b(?:nav-footer|lesson-nav)\b', html)
+    )
+    if not has_nav:
+        return [("ERROR", f"{name}: 缺 .nav-footer 或 .lesson-nav — 學員到此頁將無法導航 (PR-6.3 規則)")]
+    return []
+
+
 GEN140_RULES = [
     check_gen140_duration,
     check_gen140_portfolio,
@@ -711,6 +733,7 @@ GEN140_RULES = [
     check_gen140_density,
     check_gen140_track,
     check_gen140_widget_after_nav,
+    check_gen140_nav_required,
 ]
 
 
