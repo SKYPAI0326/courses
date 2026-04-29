@@ -667,12 +667,73 @@ def check_gen140_track(path: Path, html: str) -> list:
     return issues
 
 
+def check_gen140_widget_after_nav(path: Path, html: str) -> list:
+    """gen140-widget-after-nav（PR-4 結構債防護）：7 個內容 widget class 不應出現在
+    nav-footer / lesson-nav 之後（即跑出 .lesson-body / .prac-body / <main> wrapper 外）。
+
+    Phase 3.1 同源錯誤：widget 被誤放在 body wrapper 結束之後、layout shell 之間。
+    PR #36 (Codex audit 8537bb8f) 修補後加此規則防 regression。
+
+    注意：用 nav-footer 位置作 heuristic，不偵測所有可能的位置錯誤，但 cover Phase 3.1
+    同源 pattern（widget 在 nav 之後 = body 已過早結束）。
+    """
+    if not _is_gen140(path):
+        return []
+
+    widget_classes = ['instructor-check', 'artifact-save', 'real-task-rewrite',
+                      'evidence-submit', 'debug-loop', 'mini-deliverable', 'result-compare']
+
+    # 找最早的 nav-footer 或 lesson-nav（layout shell 起始）
+    nav_match = re.search(r'<(?:div|nav)[^>]*class="(?:nav-footer|lesson-nav)"', html)
+    if not nav_match:
+        return []
+
+    nav_pos = nav_match.start()
+    after_nav = html[nav_pos:]
+
+    issues = []
+    for cls in widget_classes:
+        widget_pattern = r'<div[^>]*class="(?:[^"]*\s)?' + re.escape(cls) + r'(?:\s[^"]*)?"'
+        if re.search(widget_pattern, after_nav):
+            issues.append((
+                "WARN",
+                f"{path.name}: widget '.{cls}' 出現在 nav-footer/lesson-nav 之後 — "
+                f"應放在 .lesson-body / .prac-body / <main> 內（PR-4 結構債防護）"
+            ))
+
+    return issues
+
+
+def check_gen140_nav_required(path: Path, html: str) -> list:
+    """gen140-nav-required（PRAC4-3 orphan-page follow-up）：CH / PRAC 頁必須含
+    nav-footer 或 lesson-nav，否則學員到該頁就斷線（無下一頁、無上一頁）。
+
+    PRAC4-3 在 PR-6 範圍內被發現是孤兒頁（缺 nav 元件），原 lint 沒抓到。
+    PR-6.3 補規則防 regression。
+
+    ERROR 級（baseline 可 grandfather 既有違規）。
+    """
+    if not _is_gen140(path):
+        return []
+    name = path.name
+    if not (name.startswith("CH") or name.startswith("PRAC")):
+        return []
+    has_nav = bool(
+        re.search(r'<(?:div|nav)[^>]*class="[^"]*\b(?:nav-footer|lesson-nav)\b', html)
+    )
+    if not has_nav:
+        return [("ERROR", f"{name}: 缺 .nav-footer 或 .lesson-nav — 學員到此頁將無法導航 (PR-6.3 規則)")]
+    return []
+
+
 GEN140_RULES = [
     check_gen140_duration,
     check_gen140_portfolio,
     check_gen140_iv_script,
     check_gen140_density,
     check_gen140_track,
+    check_gen140_widget_after_nav,
+    check_gen140_nav_required,
 ]
 
 

@@ -151,3 +151,36 @@
 [data-track="180h-extra"]{position:relative;border-left:3px dashed var(--c-faint);padding-left:14px;margin-left:-17px}
 [data-track="180h-extra"]::before{content:"180h 班補充";display:inline-block;font-size:.7rem;color:var(--c-faint);background:transparent;border:1px dashed var(--c-faint);padding:2px 8px;border-radius:99px;margin-bottom:8px;letter-spacing:.05em;font-style:italic}
 [data-track="140h-core"]{} /* 預設核心，不加視覺 */
+/* === solo-practice 進階選配 details 美化 === selector 限定無 class 的 details，不影響 .prac-sample / .case-reference 等 styled details */
+details:not([class]) > summary{list-style:none;cursor:pointer;user-select:none;position:relative;padding-left:18px;display:inline-block;transition:color .2s}
+details:not([class]) > summary::-webkit-details-marker{display:none}
+details:not([class]) > summary::before{content:'＋';position:absolute;left:0;top:50%;transform:translateY(-50%);font-family:'Noto Sans TC',sans-serif;font-weight:400;font-size:.95em;color:var(--c-muted);width:14px;text-align:center;line-height:1;transition:color .2s}
+details:not([class])[open] > summary::before{content:'−'}
+details:not([class]) > summary:hover,details:not([class]) > summary:hover::before{color:var(--c-text)}
+/* peer-handoff 內 details 加 dashed 分隔線，視覺切分「主流程」與「進階選配」，並把 box 上下 padding 視感對稱 */
+.peer-handoff > details:not([class]){margin-top:14px !important;padding-top:12px;border-top:1px dashed var(--c-border)}
+.peer-handoff > details:not([class])[open]{padding-bottom:4px}
+/* === Width Tokens === Codex audit (call_id 1f0ba1ef) — 集中寬度語意，停止散落 max-width hack。
+   分外框（page/content）與正文內欄（reading）兩層；result-compare 與其他 widget 共用 --w-reading
+   以滿足課程方「整體內容寬度一致」要求（--w-compare 預留給未來真需要凸出比較的場景） */
+:root{
+  --w-page: 960px;                                                     /* header / banner / 大區塊 */
+  --w-content: var(--content-w);                                       /* 780px — lesson-body / prac-body 外框 */
+  --w-content-pad-x: 48px;                                             /* desktop padding */
+  --w-content-inner: calc(var(--w-content) - (var(--w-content-pad-x) * 2)); /* 684px */
+  --w-reading: var(--w-content-inner);                                 /* widget / 表單 / 正文 */
+  --w-compare: var(--w-content);                                       /* 預留：需要凸出比較的場景 */
+  --w-nav: 624px;                                                      /* compact 底部導航（如 design 決定）*/
+}
+
+/* widget 寬度對齊 lesson-section 內元素（含 result-compare 為視覺一致）— 取代原散落 max-width 規則 */
+.instructor-check,.artifact-save,.real-task-rewrite,.evidence-submit,.debug-loop,.mini-deliverable,.result-compare{max-width:var(--w-reading);margin-left:auto;margin-right:auto}
+/* result-compare 內部 grid 在 max-width 縮窄後仍能容納 3 欄：minmax(0,1fr) 配合 textarea box-sizing 避免 textarea 預設 cols 寬度撐爆 */
+.rc-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.rc-col textarea{box-sizing:border-box;width:100%;min-width:0}
+/* mobile stack — 各檔 inline style 已有 @media(max-width:700px){.rc-grid{grid-template-columns:1fr}}，
+   但 _assets/ stylesheet 載入順序在 inline 之後會覆蓋它，需在此重申以保留 mobile 1-column 行為（Codex review 37cf2e8b 抓出的 cascade regression）*/
+@media(max-width:700px){.rc-grid{grid-template-columns:1fr}}
+
+/* layout shell — 與 widget 規則分開（Codex 建議）。各檔 inline style 通常已設，這層作 fallback */
+.lesson-nav,.nav-footer,.completion-banner{max-width:var(--w-content);margin-left:auto;margin-right:auto}
