@@ -417,3 +417,27 @@
     initGalleryWalk();
   });
 })();
+
+/* === Codex audit follow-up (call_id 65b54f54): progressbar a11y sync ===
+ * 54 個 lesson 頁的閱讀進度條只有 aria-valuemin / aria-valuemax，
+ * 滾動時 .progress-fill style.width 會變但 aria-valuenow 不更新，
+ * 螢幕閱讀器讀不到當前進度。用 MutationObserver 自動同步。 */
+(function () {
+  'use strict';
+  function syncProgressbar() {
+    var fill = document.querySelector('.progress-fill');
+    var bar = document.querySelector('[role="progressbar"]');
+    if (!fill || !bar) return;
+    function sync() {
+      var pct = Math.round(parseFloat(fill.style.width) || 0);
+      bar.setAttribute('aria-valuenow', String(pct));
+    }
+    sync();
+    new MutationObserver(sync).observe(fill, { attributes: true, attributeFilter: ['style'] });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', syncProgressbar);
+  } else {
+    syncProgressbar();
+  }
+})();
