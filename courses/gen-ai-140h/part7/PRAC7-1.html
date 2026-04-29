@@ -287,6 +287,50 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   </div>
 </div>
 
+<div style="max-width:var(--content-w);margin:0 auto;padding:0 48px 32px;">
+  <div class="reveal" style="background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius);padding:28px 32px">
+    <div style="font-size:.7rem;color:var(--c-accent);letter-spacing:1.5px;font-weight:500;margin-bottom:8px;text-transform:uppercase">步驟 1.5 · 把規格書貼回網頁版 LLM 做需求釐清</div>
+    <h2 style="font-family:'Shippori Mincho',serif;font-size:1.2rem;font-weight:700;color:var(--c-text);margin-bottom:10px;line-height:1.4">先讓 ChatGPT / Claude / Gemini 戳破 spec 的洞</h2>
+    <p style="font-size:.88rem;color:var(--c-muted);line-height:1.85;margin-bottom:20px">v0 規格書最大的風險是「自己看覺得清楚」，但開始寫程式才發現 MVP 邊界沒切乾淨、驗收條件講不出來。先把上方產出的 spec 整段貼到任一網頁版 LLM，讓它扮演產品需求顧問做三層體檢，5 分鐘可以逼出大半規格盲區。</p>
+
+    <div style="font-size:.72rem;color:var(--c-text);font-weight:600;margin-bottom:10px;letter-spacing:.5px">複製下方 Prompt → 貼到 ChatGPT / Claude / Gemini → 把上方規格書內容接在最後一行替換</div>
+
+    <div style="position:relative;background:#1f2937;color:#e5e7eb;border-radius:var(--radius);padding:20px 22px;margin-bottom:14px">
+      <button onclick="copySpecAuditPrompt(this)" style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,.12);color:#e5e7eb;border:1px solid rgba(255,255,255,.2);border-radius:4px;font-size:.72rem;padding:5px 12px;cursor:pointer;font-family:inherit">複製</button>
+<pre style="margin:0;font-family:'Courier New',monospace;font-size:.82rem;line-height:1.85;white-space:pre-wrap;color:#e5e7eb">你是資深產品需求顧問，熟悉 MVP 切割與驗收條件設計。我會給你一份 AI 工具的 v0 規格書，請按以下三步審查：
+
+1. 模糊偵測：列出規格中「字面看似清楚但實作會卡住」的需求，每點寫「原文 → 為何模糊 → 建議改寫」格式（至少 3 點）
+2. MVP 體檢：把目前列的功能分成「MVP 必做」「可砍延後」「越界該移除」三級，理由各 1 句
+3. 驗收條件：為「MVP 必做」的每個功能寫 1 行 GWT 驗收（給定 X，當 Y，則 Z）
+
+最後加一段「最該優先解決的一個問題」結論，限 30 字。
+
+——以下是我的 v0 規格書——
+[貼上專題定義器產出的 spec 全文]</pre>
+    </div>
+
+    <div style="background:rgba(122,158,163,.08);border:1px solid rgba(122,158,163,.25);border-radius:var(--radius);padding:14px 18px;font-size:.85rem;line-height:1.85;color:var(--c-text);margin-bottom:18px"><strong style="color:var(--c-accent);font-weight:600">期待 LLM 回覆會看到</strong><br>① 模糊偵測表（3-5 列，每列含原文／為何模糊／建議改寫三欄）<br>② MVP 三級分類（必做／可砍／越界各帶 1 句理由）<br>③ GWT 驗收條件清單（每個必做功能 1 行）<br>④ 30 字優先級結論<br><br><span style="color:var(--c-muted);font-size:.82rem">⚠ 若 LLM 只回「整體看起來不錯」這種泛用評語，代表 spec 太薄餵不出具體建議——回去重填工具欄位（特別是 System Prompt 與「先不做」欄）再來。</span></div>
+
+    <div style="border-top:1px dashed var(--c-border);padding-top:14px">
+      <div style="font-size:.73rem;color:var(--c-muted);letter-spacing:1px;margin-bottom:10px;font-weight:500">演練檢核</div>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.85rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:8px"><input type="checkbox" style="margin-top:5px;accent-color:var(--c-accent);flex-shrink:0"><span>把規格書貼進網頁版 LLM 並拿到完整三段回覆</span></label>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.85rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:8px"><input type="checkbox" style="margin-top:5px;accent-color:var(--c-accent);flex-shrink:0"><span>至少採納 1 條「模糊偵測」建議改寫 spec</span></label>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.85rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:8px"><input type="checkbox" style="margin-top:5px;accent-color:var(--c-accent);flex-shrink:0"><span>把「越界該移除」清單對照到工具的「先不做」欄位</span></label>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.85rem;line-height:1.75;color:var(--c-text);cursor:pointer"><input type="checkbox" style="margin-top:5px;accent-color:var(--c-accent);flex-shrink:0"><span>把 GWT 驗收條件貼到 README，作為 PRAC7-3 開發日誌的初始驗收線</span></label>
+    </div>
+  </div>
+  <script>
+  function copySpecAuditPrompt(btn){
+    const pre = btn.parentElement.querySelector('pre');
+    navigator.clipboard.writeText(pre.textContent).then(function(){
+      const orig = btn.textContent;
+      btn.textContent = '已複製';
+      setTimeout(function(){ btn.textContent = orig; }, 1500);
+    });
+  }
+  </script>
+</div>
+
 <div class="challenge-wrap">
   <div class="reveal">
     <div class="progress-label" id="prog-label">完成進度：0 / 5</div>

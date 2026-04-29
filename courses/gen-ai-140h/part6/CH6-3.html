@@ -349,6 +349,93 @@ C. Markdown 標題感知（以 ## 為切點），每塊同時附上 metadata: {s
       <div class="callout-icon" aria-hidden="true">🔑</div>
       <div class="callout-body"><strong>實務優先順序：</strong>先把基本 RAG 跑起來，再觀察失敗案例。如果是「找到了不相關的內容」<span aria-hidden="true">→</span> 加 Metadata 過濾。如果是「找到的內容相關但順序不對」<span aria-hidden="true">→</span> 加 Reranking。不要一開始就全部加上去。</div>
     </div>
+
+    <div class="mini-prac" data-mp="ch6-3-mp3">
+      <div class="mini-prac-head">
+        <span class="mini-prac-eyebrow">迷你練習 3</span>
+        <span class="mini-prac-time">約 15 分鐘</span>
+      </div>
+      <div class="mini-prac-title">親手比對「純語義 vs 加 metadata 過濾」的 Top-3</div>
+      <p class="mini-prac-intro">同一份 chunk set、同一個查詢，跑兩次 retrieval：第一次只用語義相似度、第二次加 metadata 過濾條件。觀察 Top-3 結果是否從「被噪聲拉走」變成「精準命中該子集」。</p>
+      <div class="mini-prac-steps">
+        <div class="mini-prac-step"><span class="mini-prac-step-num">1</span><span>把下方範本素材的 8 個 chunk 與 metadata 表貼進 Claude / ChatGPT / Gemini。</span></div>
+        <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span>用範例 Prompt 讓 LLM 模擬兩次 retrieval：A 純語義、B 套 metadata filter（topic=refund AND date≥2026-01-01）。</span></div>
+        <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>對照 Top-3 結果，標出 A 被哪一個 chunk 噪聲拉走、B 是否縮到對的子集。</span></div>
+        <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span>寫一句結論：「對這個查詢，metadata 過濾值得加，因為 ___」。</span></div>
+      </div>
+      <details class="prac-sample" open>
+        <summary class="ps-head">
+          <span class="ps-eyebrow">範本素材</span>
+          <span class="ps-hint">8 個 chunk + 4 種 metadata 軸（topic / date / source / role）+ 1 個容易被舊政策拉走的查詢。</span>
+        </summary>
+        <div class="ps-block">
+          <div class="ps-label">原始素材 · 客服知識庫 8 chunks ＋ metadata<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
+          <div class="ps-material">【查詢】「客戶說商品有瑕疵，現在能退嗎？要付運費嗎？」
+
+【chunks】
+C1 [topic=refund | date=2026-03-12 | source=policy_v3.md | role=cs_agent]
+瑕疵品退貨：自簽收日起 14 日內可退，運費由本公司負擔；非瑕疵退貨需自付來回運費，鑑賞期 7 日。
+
+C2 [topic=refund | date=2024-06-01 | source=policy_v1.md | role=cs_agent]
+（舊政策）退貨需於 7 日內提出，運費一律由消費者自付，瑕疵品另議。
+
+C3 [topic=shipping | date=2026-02-08 | source=ops.md | role=warehouse]
+逆物流流程：客服建立 RMA 單後，黑貓於 2 個工作日上門收件，倉儲驗收後 3 日內入庫。
+
+C4 [topic=refund | date=2026-01-20 | source=faq.md | role=cs_agent]
+退貨步驟：① 客服系統開單 ② 列印退貨單 ③ 等候收件 ④ 驗收完成後 5 日退款。
+
+C5 [topic=warranty | date=2025-11-15 | source=warranty.md | role=cs_agent]
+保固非退貨：商品超過 14 日且非瑕疵，僅提供 1 年保固維修服務，不接受退貨。
+
+C6 [topic=marketing | date=2026-03-01 | source=campaign.md | role=marketing]
+雙 11 活動退貨延長至 30 日，僅限參加活動商品；運費規則同一般退貨政策。
+
+C7 [topic=refund | date=2026-04-05 | source=policy_v3.md | role=cs_agent]
+瑕疵認定原則：外觀刮痕、功能異常、規格不符均屬瑕疵；軟體 bug 不算瑕疵走客服協助。
+
+C8 [topic=hr | date=2026-02-10 | source=handbook.md | role=hr]
+員工購物折扣使用後若申請退貨，折扣不退還現金，僅退實付金額；運費自付。</div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">範例 Prompt · 雙路徑 retrieval 對比器<span class="ps-label-tag">可直接貼 ChatGPT / Claude / Gemini</span></div>
+          <div class="ps-prompt">你是一位 RAG retrieval 模擬器。請依下方查詢與 chunk set 模擬「兩次 retrieval」的 Top-3 結果，並做差異分析。
+
+模擬規則（不用真的算 cosine，只要憑 chunk 內容與查詢的語義相關度排序）：
+
+【路徑 A · 純語義】
+忽略所有 metadata，只看 chunk 內容與查詢「客戶說商品有瑕疵，現在能退嗎？要付運費嗎？」的字面 / 語義相似度，排出 Top-3。
+
+【路徑 B · 加 metadata 過濾】
+先套 filter：topic=refund AND date>=2026-01-01 AND role=cs_agent，剩下的候選再排 Top-3。
+
+【請輸出】
+1. 路徑 A Top-3：列出 chunk id + 一句相關原因
+2. 路徑 B Top-3：列出 chunk id + 一句相關原因
+3. 差異表（Markdown 表格）：欄位「rank | A 結果 | B 結果 | 差在哪」
+4. 失敗案例分析：A 是否被某個 chunk「噪聲拉走」（例：把舊政策、員工折扣、行銷活動誤判為高相關），給出 chunk id 與一句解釋
+5. 最後一行寫「結論：對這個查詢，metadata 過濾 [值得 / 不值得] 加，因為 ___」
+
+chunk set 與 metadata：
+[貼上上方原始素材]
+
+<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>路徑 A Top-3：C1（瑕疵+運費直接命中）、C2（舊政策也提瑕疵與運費，被字面拉進來）、C7（瑕疵認定）<br>路徑 B Top-3：C1（最新瑕疵運費政策）、C7（瑕疵認定，2026-04 有效）、C4（退貨流程細節）<br>| rank | A | B | 差在哪 |<br>| 1 | C1 | C1 | 同 |<br>| 2 | C2（舊政策） | C7（瑕疵認定） | A 被 2024 舊政策拉走，給客戶錯運費規則 |<br>| 3 | C7 | C4 | B 補上流程細節，A 漏掉 |<br>失敗案例：A 把 C2（policy_v1，2024 年）排進 Top-3，照舊政策回客戶會說「運費自付」——直接違反現行 v3 政策。<br>結論：對這個查詢，metadata 過濾值得加，因為「日期 + role」兩軸把過時政策與 HR / 行銷的同詞噪聲擋掉，避免照舊規定回應。</div>
+        </div>
+      </details>
+      <div class="mini-prac-output">
+        <div class="mini-prac-output-label">成果產出</div>
+        <div class="mini-prac-output-text">一張差異表（A vs B 的 Top-3）+ 一句結論「這個查詢加 metadata 值不值得，為什麼」。</div>
+      </div>
+      <div class="mini-prac-check">
+        <span class="mini-prac-check-label">自我檢核</span>
+        <label><input type="checkbox"><span>我能指出 A 路徑被哪個 chunk 噪聲拉走（chunk id + 為什麼）</span></label>
+        <label><input type="checkbox"><span>我寫得出哪兩個 metadata 軸對這個查詢最關鍵，為什麼</span></label>
+        <label><input type="checkbox"><span>我知道 metadata filter 不是萬能：什麼情況反而會把對的 chunk 過濾掉</span></label>
+      </div>
+    </div>
   </section>
 
   <hr class="section-rule reveal">

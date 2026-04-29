@@ -812,10 +812,84 @@ metadata_filter_used: date &gt;= 2026-01-01 AND date &lt;= 2026-03-31, section =
       <ul class="ext-list">
         <li><strong>做一個你公司 20 份文件的 RAG</strong>：挑 20 份你真的每天會翻的文件（SOP、規格、合約模板、FAQ），走完 ingest <span aria-hidden="true">→</span> chunk <span aria-hidden="true">→</span> embed <span aria-hidden="true">→</span> retrieve <span aria-hidden="true">→</span> generate 全流程。</li>
         <li><strong>測 10 題準確率</strong>：列 10 題同事平常會問的題目（7 題資料內有、3 題資料外），跑完記 pass / fail，目標是資料內題 ≥ 8/7 準確、資料外題 3/3 正確拒答。</li>
-        <li><strong>加「我不知道」fallback</strong>：檢索最高相似度低於 0.35（或你自己調出來的閾值）時，強制模型回「本 RAG 知識庫中未找到相關內容，建議聯絡 XX」——沒有這層 fallback 的 RAG 就是幻覺製造機。</li>
+        <li><strong>加「我不知道」fallback</strong>：檢索最高相似度低於 0.35（或你自己調出來的閾值）時，強制模型回「本 RAG 知識庫中未找到相關內容，建議聯絡 XX」——沒有這層 fallback 的 RAG 就是幻覺製造機。下方提供可直接貼上的 fallback prompt。</li>
       </ul>
     </div>
   </div>
+
+  <details class="prac-sample" open>
+    <summary class="ps-head">
+      <span class="ps-eyebrow">補充 · 「文件無答案」fallback prompt</span>
+      <span class="ps-hint">retrieval miss 或最高相似度低於閾值時觸發，強迫模型用標準格式回應而不是腦補。</span>
+    </summary>
+
+    <div class="ps-block">
+      <div class="ps-label">使用情境｜觸發條件｜資料來源<span class="ps-label-tag">RAG · Fallback</span></div>
+      <div class="ps-material">【觸發條件】retrieval 階段任一條成立即進 fallback：
+- top_k 全部 chunks 的最高 similarity 低於 0.35（或你校正過的閾值）
+- top_k 為空（向量庫沒有對應 doc_type 或 metadata filter 過嚴）
+- top_k 雖有結果但 LLM 自評「這些 chunks 都答不到問題」（在 main prompt 加 self-check 步驟）
+
+【為什麼要寫死格式】
+不寫死格式，模型會用「根據一般常識」「通常來說」等軟詞把訓練資料偷渡進來，這就是幻覺洩漏。
+固定 fallback 格式讓使用者看到的是「找不到 X」+「補哪些資訊」，而不是「貌似有答案的編造」。
+
+【資料來源變數】
+{{ user_question }}：使用者原問題
+{{ retrieved_top_score }}：top-1 chunk 的相似度（用於說明信心）
+{{ doc_type_filter }}：query 已套的 metadata filter（讓回答可以建議「換個檢索範圍」）
+{{ knowledge_scope }}：本 RAG 知識庫涵蓋範圍的一句話描述（例：「公司 HR 政策、IT 帳號、差旅報銷三類 FAQ」）</div>
+    </div>
+
+    <div class="ps-block">
+      <div class="ps-label">Fallback Prompt（可直接貼到 system / 拼接在 retrieval 結果為空時）<span class="ps-label-tag">可直接貼 ChatGPT / Claude / Gemini</span></div>
+      <div class="ps-prompt">你是公司內部 RAG 助理。本次檢索沒有找到能回答使用者問題的內容（最高相似度 {{ retrieved_top_score }}，低於 0.35 閾值；或 top_k 為空）。
+
+【硬規則】
+- 嚴禁使用「根據一般常識」「通常來說」「業界普遍」「我猜可能」等任何來自訓練資料的補充
+- 嚴禁編造文件名、條號、金額、日期、人名
+- 嚴禁用「應該是」「大概」「可能是」開頭直接給答案
+- 必須照下方【固定回應格式】輸出，不得自由發揮
+
+【固定回應格式】
+我在【知識庫範圍】中找不到 {{ user_question 的核心關鍵詞 }} 的相關規定。
+
+可能的原因：
+A. 這個主題不在本 RAG 知識庫的涵蓋範圍（目前涵蓋：{{ knowledge_scope }}）
+B. 文件中有相關內容，但你的問法與文件用詞落差較大（例：你說 X，文件寫 Y）
+C. 這份規定可能在更新中或被歸檔，向量庫尚未同步
+
+建議你補充以下資訊讓我能更精準回答（或改聯絡對應窗口）：
+D. 「______」這個關鍵詞改成文件可能用的正式說法（例：請假 → 給假、報銷 → 費用核銷）
+E. 限定範圍（部門 / 文件類型 / 年度），例：「2026 年 HR 政策中關於 ___」
+F. 直接聯絡對應窗口：HR 類 hr@company.com、IT 類 it@company.com、合約類 legal@company.com
+
+【參數】
+user_question: {{ user_question }}
+retrieved_top_score: {{ retrieved_top_score }}
+doc_type_filter: {{ doc_type_filter }}
+knowledge_scope: {{ knowledge_scope }}
+
+只輸出上述固定格式的回應，不附加任何前言、結語、emoji 或 markdown code fence。<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
+      <div class="ps-expect"><strong>標準回覆樣本（好 fallback）</strong><br>
+<code>使用者問：「公司有沒有寵物假？」<br>
+retrieved_top_score: 0.21（低於閾值）<br>
+回應：<br>
+我在【知識庫範圍】中找不到「寵物假」的相關規定。<br><br>
+可能的原因：<br>
+A. 這個主題不在本 RAG 知識庫的涵蓋範圍（目前涵蓋：HR 政策、IT 帳號、差旅報銷三類 FAQ）<br>
+B. 文件中有相關內容，但你的問法與文件用詞落差較大（例：寵物假 → 個人特殊事假）<br>
+C. 這份規定可能在更新中或被歸檔，向量庫尚未同步<br><br>
+建議你補充：<br>
+D. 把「寵物假」改成「個人特殊事假」「家庭照顧假」等正式說法<br>
+E. 限定範圍：「2026 年 HR 假勤政策中關於 ___」<br>
+F. 直接聯絡 hr@company.com 確認</code><br><br>
+<strong>反例（爛 fallback，會洩漏訓練資料）</strong><br>
+<code>❌「根據一般常識，多數公司並未提供寵物假，但部分外商如 Salesforce 有 pet bereavement leave。建議您可以參考勞基法的家庭照顧假規定，每年最多 7 天⋯」</code><br>
+<strong>為什麼這是爛 fallback：</strong>① 引用「Salesforce」「勞基法 7 天」是訓練資料洩漏，不是公司知識庫的內容；② 用「根據一般常識」「建議您可以參考」軟化口氣，使用者會誤以為是公司規定；③ 沒提示使用者「可能是用詞不對」「該聯絡誰」，問題沒被導向正確窗口。<br><br>
+<strong>判讀重點</strong>：合格 fallback 的兩個必要條件——（1）整段沒有任何具體外部數字、條號、人名、公司名；（2）一定有「建議補充 D / 聯絡 F」的下一步出口。少一個都是幻覺孵化器。</div>
+    </div>
+  </details>
 
   <div class="quiz-grid" id="prac61-rag-quiz">
     <div class="quiz-item" data-correct="c">
