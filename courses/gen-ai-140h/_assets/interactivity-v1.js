@@ -441,3 +441,29 @@
     syncProgressbar();
   }
 })();
+
+/* === localStorage namespace migration ===
+ * 之前 inline JS 用裸 key（quiz:xxx / kanban_v2 / heatmap_data），同 origin
+ * 跨課程會撞 key。改加 gen140_ prefix 後，這段把舊 key 資料一次性拷貝到新 key，
+ * 讓既有學員進度不丟失。已 migrated 後設 flag 不再執行。 */
+(function () {
+  'use strict';
+  var FLAG = 'gen140_ls_migrated_v1';
+  if (localStorage.getItem(FLAG)) return;
+  try {
+    var keysToMigrate = Object.keys(localStorage);
+    keysToMigrate.forEach(function (k) {
+      if (k.startsWith('gen140_')) return;
+      var shouldMigrate =
+        k.indexOf('quiz:') === 0 ||
+        k === 'kanban_v2' ||
+        k === 'heatmap_data';
+      if (!shouldMigrate) return;
+      var newKey = 'gen140_' + k;
+      if (localStorage.getItem(newKey) == null) {
+        localStorage.setItem(newKey, localStorage.getItem(k));
+      }
+    });
+    localStorage.setItem(FLAG, '1');
+  } catch (_) { /* private mode / quota issues — silent skip */ }
+})();
