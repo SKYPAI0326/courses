@@ -324,6 +324,10 @@ CH1-1 完成後，以下項目須等實際開課後驗證：
 - 不做學員作業繳交系統（無後端）
 - 不做自動評分（rubric 是給人讀的，不是給機器跑的）
 - 不做 Part 6/7（這兩 Part 整體還在規劃中）
+- **Part 6/7 性質特別、保留待評估**（v0.4 補充記錄 · 2026-05-01）：
+  - **Part 6（AI 應用開發進階）** 性質：API / Function Calling / 後端中介層 — code 比例顯著高於 Part 1-5。學員產出可能是 working backend code、API spec、function schema、整合測試。assignment 設計可能需要：(a) 提供 starter code repo 讓學員 fork (b) 整合 Postman / OpenAI Playground 等外部工具 (c) 涉及 cost monitoring 與 rate limiting 的真實系統思維。**不適合**沿用 Part 1-5 的「prompt 設計 + 文字交付」風格，需單獨腦力激盪設計策略。
+  - **Part 7（專題衝刺與成果發表）** 性質：可能完全不適合「課堂即時作業」這個概念。Part 7 本身就是「畢業專題」— 跨章整合 Part 1-6 所有技能做出單一大型作品。可能改採：(a) 專題提案 brief / milestone 規劃 (b) 簡報設計（呼應 CH2-3 但更深）(c) 同儕互評 / pitch 演練。需重新定位「assignment 在 Part 7 的角色」，可能是「checkpoint」而非「課堂即時練習」。
+  - **待評估時機**：Part 1-5 試教後（收 5+ 學員實作回饋 + 工時實測），再回頭設計 Part 6/7。可能會校準 design doc → v0.5 或另開新文件。
 - ~~不動 CHECKPOINT~~ → v0.3 已批次移除 CHECKPOINT，不再保留
 
 ---
