@@ -209,6 +209,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
 .skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 16px}.table-scroll>table{min-width:100%}</style>
 <link rel="stylesheet" href="../_assets/interactivity-v1.css">
+<link rel="stylesheet" href="../_assets/assignment-v1.css">
 <link rel="stylesheet" href="../_assets/prac-sample.css">
 </head>
 <body>
@@ -902,6 +903,218 @@ Environment variables missing: ANTHROPIC_API_KEY</div>
       <label class="ph-check"><input type="checkbox" data-pk="ch5-4-peer-1"><span>我已跑過 LLM 角色扮演</span></label>
       <details style="margin-top:10px"><summary style="cursor:pointer;font-size:.78rem;color:var(--c-muted);letter-spacing:.5px">進階選配 · 不計入課程時數（給想加練的學員）</summary><div style="padding:8px 0;font-size:.82rem;line-height:1.75;color:var(--c-muted)">把 LLM 對話截圖存到學習資料夾，或貼到工作群組／社群求 review。這些痕跡在轉職投履歷時可作為作品集素材。</div></details>
     </div>
+
+    <hr class="section-rule">
+
+    <!-- 課堂作業 · Assignment（Part 5 跨章 v4 · Part 5 收官）-->
+    <section class="lesson-section reveal" style="padding-top:0">
+      <section class="assignment" data-assignment-id="ch5-4">
+        <header class="assignment-head">
+          <span class="assignment-eyebrow">課堂即時作業 · Assignment · Part 5 跨章 v4 · 收官</span>
+          <span class="assignment-time">⏱ 核心 30 min + 進階 15 min</span>
+          <h3 class="assignment-title">為作品集 v3 加 AI Contact 助手 + 後端代理（Railway 部署）</h3>
+        </header>
+
+        <div class="assignment-context">
+          <p class="assignment-lede">Part 5 收官作業：你的作品集 v3 已上線 GitHub Pages（純前端）。今天加最後一塊：<strong>AI 互動功能 + 後端代理 + 完整部署</strong>，金鑰不外洩。</p>
+          <p class="assignment-lede" style="margin-top:14px;padding:12px 16px;background:var(--c-card);border:1px dashed var(--c-border);border-radius:var(--radius-sm);font-size:.85rem;color:var(--c-muted);line-height:1.85"><strong>v4 範例功能</strong>：訪客在 Contact 區塊問「你接哪種案子？」「報價怎麼算？」→ AI Chatbot 自動回覆（基於你寫的 FAQ 知識）。對訪客是「快速問答助手」，對你是「自動初篩潛在客戶」。</p>
+          <p class="assignment-lede" style="margin-top:14px;padding:12px 16px;background:var(--c-surface);border-left:3px solid var(--c-a1);font-size:.85rem"><strong>本作業拆解</strong>：<br>
+          • <strong>核心 30 min（必做）</strong>：判斷後端必要性 + 設計 /api/ask（5 min · mini-prac 1）+ 寫最小後端（10 min）+ 設 .env + .gitignore（5 min · mini-prac 2）+ Railway 部署（10 min）<br>
+          • <strong>進階 15 min（可選 · 二選一）</strong>：路線 A — 接 OpenAI / Claude API 真的跑出 chatbot 回覆 ｜路線 B — 寫「v4 上線後 30 天監控計畫」（CHatbot 用量 / 成本 / 異常請求）</p>
+        </div>
+
+        <div class="assignment-materials">
+          <div class="materials-label">v4 後端規格 · Materials</div>
+          <div class="material-inline"><strong>後端必要性判斷</strong>（mini-prac 1 學的）：
+
+| 場景 | 需後端嗎？ | 為什麼 |
+|------|:--------:|--------|
+| 純展示靜態頁 | ❌ | GitHub Pages 即可 |
+| 表單送 Email（無附件）| ⚠ 折衷 | Formspree / Netlify Forms 可免後端 |
+| **AI Chatbot（呼叫 OpenAI API）** | ✅ | <strong>API 金鑰不能放前端</strong> |
+| 跨域請求（CORS）| ✅ | 後端做 proxy |
+| 資料庫 CRUD | ✅ | 後端 + DB |
+
+<strong>v4 為何需要後端</strong>：你的 chatbot 要呼叫 OpenAI API，金鑰若放前端 → 任何人 view source 看到 → 1 小時內被刷爆（真實案例：某 indie hacker 過夜被刷 $500）。
+
+<strong>最小後端架構</strong>（Node.js 範例）：
+
+```javascript
+// server.js (約 30 行)
+const express = require('express');
+const OpenAI = require('openai');
+const app = express();
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+app.use(express.json());
+
+app.post('/api/ask', async (req, res) => {
+  const { question } = req.body;
+  // 簡易 rate limit + 內容檢核
+  if (!question || question.length > 500) {
+    return res.status(400).json({ error: 'Invalid input' });
+  }
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [
+      { role: 'system', content: '你是 {{你的名字}} 的 portfolio 助手。只回答接案、報價、技能相關問題。其他主題請說「建議直接 Email」。' },
+      { role: 'user', content: question }
+    ]
+  });
+  res.json({ answer: completion.choices[0].message.content });
+});
+
+app.listen(process.env.PORT || 3000);
+```
+
+<strong>.env 範例</strong>（**不可 commit**）：
+
+```
+OPENAI_API_KEY=sk-proj-xxxxx
+PORT=3000
+```
+
+<strong>.gitignore 必含</strong>（mini-prac 2 學的）：
+
+```
+.env
+.env.local
+.env.*.local
+node_modules/
+.DS_Store
+.vscode/
+*.log
+```
+
+<strong>Railway 部署步驟</strong>：
+
+1. 在 Railway 建新專案 → Deploy from GitHub repo
+2. 選你的 portfolio repo
+3. Settings → Variables：加 `OPENAI_API_KEY=sk-proj-xxx`
+4. Deploy → 取得 URL：`https://my-portfolio-production.up.railway.app`
+5. 在前端 chatbot fetch 這個 URL：`fetch('https://...railway.app/api/ask', {...})`</div>
+        </div>
+
+        <div class="assignment-tasks-label">交付清單 · Tasks</div>
+        <ol class="assignment-tasks">
+          <li><strong>核心 1：判斷後端必要性 + 設計 /api/ask 規格</strong>（5 min · mini-prac 1）— 確認 v4 chatbot 必須走後端（金鑰保護）+ 設計 endpoint：input schema / output schema / rate limit / 拒絕策略</li>
+          <li><strong>核心 2：用 AI 寫最小後端</strong>（10 min）— 給 ChatGPT/Claude 上方範例 prompt，產出 server.js + package.json。**不必自己寫 code**，但要看懂每段做什麼</li>
+          <li><strong>核心 3：設 .env + .gitignore</strong>（5 min · mini-prac 2）— 建 .env 放金鑰、.gitignore 加 .env、git status 驗證 .env 沒被 stage</li>
+          <li><strong>核心 4：Railway 部署</strong>（10 min）— 推到 GitHub → Railway 連 repo → 設 OPENAI_API_KEY 環境變數 → 拿 URL → curl 測試 /api/ask 能跑</li>
+          <li><strong>進階路線 A</strong>：把後端 URL 接到前端 contact 區塊（fetch + 顯示 chatbot UI），實際與 chatbot 對話 3 輪</li>
+          <li><strong>進階路線 B</strong>：寫「v4 上線後 30 天監控計畫」— chatbot 月用量預估、成本上限（如 $20/月）、異常請求偵測（單 IP &gt; 100 次/小時 = 攻擊？）、自動斷線機制</li>
+        </ol>
+
+        <div class="assignment-rubric">
+          <div class="rubric-label">評分標準 · Rubric（基本 4 條）</div>
+          <ul>
+            <li><strong>後端必要性說明清楚</strong>：能解釋「為什麼 chatbot 一定要後端」（金鑰保護不是「比較安全」這種模糊理由）</li>
+            <li><strong>.env 確實未進 git</strong>：`git status` 看不到 .env 檔（gitignore 生效）</li>
+            <li><strong>Railway URL 真的能跑</strong>：curl POST `/api/ask` 收到 JSON 回應</li>
+            <li><strong>有 rate limit + 拒絕策略</strong>：input length 限制、不接受 system prompt 注入、超出 portfolio 主題會婉拒</li>
+          </ul>
+        </div>
+
+        <details class="assignment-answer">
+          <summary>📖 展開參考解答</summary>
+          <div class="answer-body"><strong>核心 1 · /api/ask 規格</strong>
+
+```
+POST /api/ask
+Content-Type: application/json
+
+Request:
+{
+  "question": "你接哪種案子？"  // string, 1-500 字
+}
+
+Response (200):
+{
+  "answer": "我主要接..."
+}
+
+Response (400):
+{
+  "error": "Invalid input"  // 空 question 或 > 500 字
+}
+
+Response (429):
+{
+  "error": "Too many requests"  // rate limit
+}
+
+Rate limit: 10 req / IP / 分鐘
+拒絕策略: System prompt 限定主題（接案、報價、技能），其他婉拒
+```
+
+<strong>核心 2 · server.js（AI 產出 + 你看懂）</strong>
+
+要看懂：
+- `process.env.OPENAI_API_KEY` ：從環境變數讀，不寫死在 code
+- System prompt 限定主題（防被當免費 GPT 用）
+- input length 檢查（防大量 token 攻擊）
+- 沒寫 rate limit ← **AI 通常會漏，你要主動補（可用 express-rate-limit 套件）**
+
+<strong>核心 3 · .env + .gitignore 驗證</strong>
+
+```bash
+# 建 .env
+echo "OPENAI_API_KEY=sk-proj-xxx" > .env
+
+# 建 .gitignore
+cat > .gitignore <<EOF
+.env
+.env.local
+node_modules/
+.DS_Store
+EOF
+
+# 驗證 .env 沒被追蹤
+git status  # 應該只看到 .gitignore 和 server.js，不能看到 .env
+```
+
+<strong>核心 4 · Railway 部署 + 測試</strong>
+
+```bash
+# 部署後拿到 URL
+URL="https://my-portfolio-production.up.railway.app"
+
+# 測試
+curl -X POST $URL/api/ask \
+  -H "Content-Type: application/json" \
+  -d '{"question":"你接哪種案子？"}'
+
+# 預期：
+# {"answer":"我主要接 SaaS 行銷顧問與內容運營..."}
+```
+
+<strong>進階路線 B · 30 天監控計畫範例</strong>
+
+| 指標 | 預估 / 上限 | 偵測方式 | 對策 |
+|------|-----------|---------|------|
+| 月 chatbot 請求數 | 500-2000 / 月 | Railway dashboard | &gt; 5000 = 異常，啟動 alert |
+| 月 OpenAI 成本 | < $5 / 月（gpt-4o-mini）| OpenAI dashboard | 設 hard limit $20 |
+| 單 IP 請求頻率 | 10 / 分鐘 | express-rate-limit | 自動 429 |
+| 非主題詢問比例 | < 10% | log analysis | 調整 system prompt |
+| 平均回應時間 | < 3 秒 | Railway metrics | 優化或換 model |
+
+<strong>常見錯誤（5 條）</strong>
+
+1. <strong>金鑰寫在前端 JS</strong>：view source 立即洩漏，1 小時內被刷爆
+2. <strong>.env 沒進 .gitignore</strong>：push 到 GitHub 公開後金鑰立即洩漏（GitHub 會自動掃 + email 警告，但已晚）
+3. <strong>沒設 rate limit</strong>：被惡意刷會帳單爆掉（OpenAI 每 1M token gpt-4o-mini ~$0.15，被刷 100M token = $15，一晚就 $300+）
+4. <strong>System prompt 沒限定主題</strong>：訪客把 chatbot 當 ChatGPT 免費版用，要它寫程式
+5. <strong>沒測試 curl 就交</strong>：以為 deploy 成功 = 能跑，常見缺環境變數會回 500</div>
+        </details>
+
+        <div class="assignment-variants">
+          <div class="variants-label">想再練？變體版本</div>
+          <ul>
+            <li><strong>變體</strong>：把 chatbot 升級為「**結構化諮詢漏斗**」 — 訪客回答 3 個問題（預算 / 時程 / 範圍），AI 自動評估是否適合接、適合的話寄 calendar invite 給你。挑戰：跨多步驟對話狀態管理。</li>
+          </ul>
+        </div>
+      </section>
+    </section>
   </div>
   <!-- /solo-task -->
 
