@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#09 Gmail 分類通知 設計拆解｜AI 資料工廠</title>
+<meta name="description" content="Lite Pack #09 workflow 設計拆解：Gmail Trigger 每 N 分鐘 polling 新信 → Gemini 分類 4 類（客訴/詢問/合約/其他）→ Switch 多路由 → Telegram 緊急通知。Make 等效但無 ops 上限 + 可換本地 LLM。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="#09 Gmail 分類通知 設計拆解｜AI 資料工廠">
+<meta property="og:description" content="Lite Pack #09 workflow 設計拆解：Gmail 信箱自動分類 + 多路由通知。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/m0-workflow-09-gmail.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="#09 Gmail 分類通知 設計拆解｜AI 資料工廠">
+<meta name="twitter:description" content="Lite Pack #09 workflow 設計拆解。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/m0-workflow-09-gmail.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-main:#5a7a5a;--radius:4px;--content-w:820px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.skip-link{position:absolute;left:-9999px;top:0;background:var(--c-text);color:#fff;padding:10px 16px;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0;z-index:100}
+a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:#5a7a5a;border:1px solid rgba(90,122,90,.3);background:transparent;padding:3px 12px;border-radius:99px}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 36px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;max-width:24ch}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;margin-bottom:28px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);margin-top:16px}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500}
+.outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-body{font-size:.9rem;line-height:1.85}
+.callout.tip{background:rgba(201,150,58,.08);border-left-color:var(--c-a2)}
+.callout.key{background:rgba(181,74,74,.07);border-left-color:#b54a4a}
+.callout.info{background:rgba(90,122,90,.06);border-left-color:var(--c-a3)}
+.flow-diagram{background:var(--c-card);border:1px solid var(--c-border-soft);border-radius:var(--radius);padding:20px 24px;margin:20px 0;font-family:'SF Mono',monospace;font-size:.78rem;line-height:1.9;overflow-x:auto}
+.flow-diagram .arrow{color:var(--c-faint);margin:0 6px}
+.flow-diagram .node{background:rgba(90,122,90,.08);border:1px solid rgba(90,122,90,.2);padding:3px 8px;border-radius:3px;color:var(--c-a3);white-space:nowrap}
+.flow-diagram .node.trigger{background:rgba(107,127,163,.1);border-color:rgba(107,127,163,.25);color:var(--c-a4)}
+.flow-diagram .node.code{background:rgba(181,112,58,.1);border-color:rgba(181,112,58,.25);color:var(--c-a1)}
+.flow-diagram .node.switch{background:rgba(201,150,58,.12);border-color:rgba(201,150,58,.3);color:var(--c-a2)}
+.node-card{background:var(--c-card);border:1px solid var(--c-border-soft);border-left:3px solid var(--c-a3);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
+.node-card.code-node{border-left-color:var(--c-a1)}
+.node-card.trigger-node{border-left-color:var(--c-a4)}
+.node-card.switch-node{border-left-color:var(--c-a2)}
+.node-num{font-family:'Shippori Mincho',serif;font-size:.74rem;color:var(--c-faint);letter-spacing:.1em;font-weight:600;margin-bottom:6px}
+.node-title{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin-bottom:10px}
+.node-meta{display:inline-flex;gap:8px;font-size:.72rem;color:var(--c-muted);margin-bottom:10px;flex-wrap:wrap}
+.node-meta span{padding:1px 8px;background:var(--c-surface);border-radius:99px}
+.node-body{font-size:.88rem;line-height:1.85}
+.node-body ul,.node-body ol{margin:8px 0 8px 22px}
+.node-body code,.node-body .ic{font-family:'SF Mono',monospace;font-size:.86em;background:rgba(90,122,90,.1);padding:1px 6px;border-radius:3px}
+.compare-table{width:100%;border-collapse:collapse;font-size:.84rem;margin:16px 0}
+.compare-table th,.compare-table td{padding:10px 12px;border-bottom:1px solid var(--c-border-soft);text-align:left;vertical-align:top}
+.compare-table th{font-family:'Shippori Mincho',serif;font-weight:700;color:var(--c-text);background:var(--c-surface)}
+.compare-table .y{color:var(--c-a3);font-weight:600}
+.compare-table .n{color:#b54a4a;font-weight:600}
+.compare-table .neutral{color:var(--c-muted)}
+.step-block{margin:18px 0;padding:18px 22px;border:1px solid var(--c-border-soft);border-radius:var(--radius);background:var(--c-card);border-left:3px solid var(--c-a4)}
+.step-num{display:inline-block;font-family:'Shippori Mincho',serif;font-size:.74rem;color:var(--c-a4);letter-spacing:.1em;font-weight:600;margin-bottom:6px}
+.step-title{font-family:'Shippori Mincho',serif;font-size:1.02rem;font-weight:700;color:var(--c-text);margin-bottom:8px}
+.step-body{font-size:.88rem;line-height:1.85}
+.step-body ol,.step-body ul{margin:8px 0 8px 22px}
+.code-block{background:#2c2b28;color:#e8e4dc;font-family:'SF Mono',monospace;font-size:.78rem;padding:12px 16px;border-radius:var(--radius);line-height:1.7;overflow-x:auto;white-space:pre;margin:10px 0}
+.code-block .cm{color:#7e9a85;font-style:italic}
+.mod-list{list-style:none;padding:0;margin:0;counter-reset:mod}
+.mod-list li{counter-increment:mod;position:relative;padding:14px 0 14px 44px;border-bottom:1px dashed var(--c-border-soft);font-size:.9rem;line-height:1.85}
+.mod-list li:last-child{border-bottom:none}
+.mod-list li::before{content:counter(mod,decimal-leading-zero);position:absolute;left:0;top:14px;font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-faint);font-weight:600}
+.mod-list li strong{color:var(--c-text);font-weight:600}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius)}
+.nav-btn:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main)}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}}
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 資料工廠 — 大規模文件處理實戰</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">#09 · gmail · AI</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<div class="page-hero">
+  <a href="m0-workflow-tour.html" class="back-link"><span aria-hidden="true">←</span> 返回工作流總覽</a>
+  <div class="hero-eyebrow">#09 · GMAIL CATEGORIZE · 8 NODES · 進階 · 需 OAuth 設定</div>
+  <h1 class="lesson-title">Make 等效的「信箱分類通知」：但跑你本機 + 沒 ops 上限</h1>
+  <p class="lesson-tagline">Make 經典場景（Gmail Trigger → AI 分類 → 多路由通知）的 n8n 對等實作。8 節點：Gmail polling → AI 分 4 類（客訴/詢問/合約/其他）→ Switch 多路由 → 客訴緊急 Telegram、詢問待辦、合約待歸檔。Lite Pack 唯一需要學員自建 Gmail OAuth credential 的 workflow（Lite Pack 無法幫你建，因為要走 Google Cloud Project + OAuth 授權流程半小時）。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果</div>
+    <div class="outcome-item">能在 Google Cloud Console 建 OAuth 2.0 client + 設 redirect URI 給 n8n 用</div>
+    <div class="outcome-item">能用 Gmail Trigger 節點 polling 新信，配合 Switch 節點做多路由分支</div>
+    <div class="outcome-item">能設計「結構化 JSON 輸出 prompt」讓 AI 回穩定可解析的分類結果</div>
+  </div>
+</div>
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(01) 為什麼這個 workflow 重要</div>
+  <h2 class="section-heading">Make vs n8n 信箱分類對等度誠實對比</h2>
+  <div class="intro-band">
+    <div class="intro-label">為什麼這頁不藏優劣</div>
+    <div class="intro-text">「信箱分類通知」是 Make 真的做得很好的場景。如果你只處理 &lt; 300 封信/月、純雲端 + 不在乎本地 AI、信件不含敏感資料 — 繼續用 Make 沒問題。n8n 的優勢只在 3 個情境，下表是不藏的對比。</div>
+  </div>
+
+  <table class="compare-table">
+    <thead><tr><th>維度</th><th>Make（雲端）</th><th>n8n（本機）</th></tr></thead>
+    <tbody>
+      <tr><td>設定難度</td><td class="y">15 分鐘（Gmail OAuth 一鍵授權）</td><td class="neutral">半小時 + 自建 Google Cloud Project</td></tr>
+      <tr><td>每月處理量</td><td class="n">免費 333 封信（1000 ops/月 ÷ 3 ops/封）</td><td class="y">無上限（你電腦電費 + Gemini API 費用）</td></tr>
+      <tr><td>1000 封/月成本</td><td class="n">$9 USD/月（Pro 10K ops 方案）</td><td class="y">~$0（Gemini Flash 免費 tier 通常足夠）</td></tr>
+      <tr><td>本地 AI 分類</td><td class="n">不能（必打雲端 OpenAI/Claude）</td><td class="y">能（換 jsCode 內 URL 為本機 Ollama）</td></tr>
+      <tr><td>機密信件處理</td><td class="n">內容必離開本機</td><td class="y">用本地 LLM 完全不離開本機</td></tr>
+      <tr><td>附件直接歸檔</td><td class="n">必經 Google Drive 中轉</td><td class="y">直接寫本機資料夾（串 #02 / #03）</td></tr>
+      <tr><td>長期擁有權</td><td class="n">scenario 是 Make 的</td><td class="y">workflow 是你的（開源 + 自家硬碟）</td></tr>
+      <tr><td>當 Make 收掉 / 改價</td><td class="n">工作流斷</td><td class="y">不影響</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout info">
+    <div class="callout-icon" aria-hidden="true">🎯</div>
+    <div class="callout-body"><strong>結論</strong>：低量、不在乎機密、純雲端 → Make 簡單。高量（&gt; 1000 封/月）、機密信件、要串本機檔案歸檔 → n8n 是唯一解。本 workflow 做給後者學員。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(02) GMAIL OAUTH 設定（必做、半小時）</div>
+  <h2 class="section-heading">前置作業：建 Google Cloud Project + OAuth Client</h2>
+  <div class="intro-band">
+    <div class="intro-label">為什麼比 Telegram 麻煩</div>
+    <div class="intro-text">Telegram bot token 是純字串貼上就用。Gmail 屬於 Google 帳號級別權限，必須走 OAuth 授權同意流程，需要你建 Google Cloud Project + OAuth client + 加 redirect URI 對應到本機 n8n。第一次設半小時，之後同個 client 可重用。</div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">STEP 1</div>
+    <div class="step-title">建 Google Cloud Project</div>
+    <div class="step-body">
+      <ol>
+        <li>到 <strong>https://console.cloud.google.com</strong> 登入你 Gmail</li>
+        <li>左上角 Project 下拉 → New Project</li>
+        <li>命名 <code>n8n-lite-pack</code>（隨意）→ Create</li>
+        <li>Project 切到剛建的 n8n-lite-pack</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">STEP 2</div>
+    <div class="step-title">啟用 Gmail API</div>
+    <div class="step-body">
+      <ol>
+        <li>左側選單 → APIs &amp; Services → Library</li>
+        <li>搜尋 <code>Gmail API</code> → 點進去 → 按 <strong>Enable</strong></li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">STEP 3</div>
+    <div class="step-title">設定 OAuth consent screen</div>
+    <div class="step-body">
+      <ol>
+        <li>APIs &amp; Services → OAuth consent screen</li>
+        <li>User Type 選 <strong>External</strong> → Create</li>
+        <li>App name：<code>n8n Lite Pack</code>，User support email：你 Gmail，Developer email：你 Gmail</li>
+        <li>Scopes：先按 Save and Continue 跳過（OAuth 流程會動態請求）</li>
+        <li>Test users：加你自己的 Gmail（要授權的那個）</li>
+        <li>Save → 回 dashboard</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">STEP 4</div>
+    <div class="step-title">建 OAuth 2.0 Client（最關鍵）</div>
+    <div class="step-body">
+      <ol>
+        <li>APIs &amp; Services → Credentials → <strong>Create Credentials → OAuth client ID</strong></li>
+        <li>Application type 選 <strong>Web application</strong></li>
+        <li>Name 隨意（例如 <code>n8n localhost</code>）</li>
+        <li>Authorized redirect URIs → <strong>+ Add URI</strong> → 貼這個（必須 100% 一字不差）：
+          <pre class="code-block">http://localhost:5678/rest/oauth2-credential/callback</pre>
+        </li>
+        <li>Create → 跳出對話框含 <strong>Client ID</strong> + <strong>Client secret</strong></li>
+        <li>把 client_id + client_secret 複製到記事本</li>
+      </ol>
+      <div class="callout key">
+        <div class="callout-icon" aria-hidden="true">🚨</div>
+        <div class="callout-body">redirect URI <strong>不能用 https</strong>（本機 n8n 沒 SSL）、不能省 port（5678 必須在）、不能換 path（必須 <code>/rest/oauth2-credential/callback</code>）。任何字元錯都會在 Step 5 OAuth 流程跳「redirect_uri_mismatch」錯誤。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">STEP 5</div>
+    <div class="step-title">在 n8n 內建 Gmail credential</div>
+    <div class="step-body">
+      <ol>
+        <li>瀏覽器開 n8n（http://localhost:5678）→ 左側 <strong>Credentials</strong> → <strong>+ New</strong></li>
+        <li>搜尋 <code>Gmail OAuth2 API</code> → 選</li>
+        <li>填 Client ID + Client Secret（從 Step 4 複製來的）</li>
+        <li>右下 <strong>Connect my account</strong> → 跳 Google 授權頁</li>
+        <li>選你的 Gmail → 授權同意（會看到「This app isn't verified」警告，因為你是 test user 點 Advanced → Continue）</li>
+        <li>授權完跳回 n8n，credential 顯示 <strong>「Account connected」</strong></li>
+        <li>Save credential，命名 <code>My Gmail</code></li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">STEP 6</div>
+    <div class="step-title">把 #09 workflow 內 Gmail Trigger 節點接到剛建的 credential</div>
+    <div class="step-body">
+      <ol>
+        <li>n8n 進 <span class="ic">09 · Gmail 分類通知</span> workflow</li>
+        <li>雙擊 <strong>Gmail Trigger: 新信 polling</strong> 節點</li>
+        <li>Credential 下拉選 <code>My Gmail</code>（剛建的）</li>
+        <li>Save</li>
+        <li>右上 Active 開關打開（這個 workflow 預設關，要 active 才會 polling）</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(03) WORKFLOW 全貌</div>
+  <h2 class="section-heading">節點與資料流</h2>
+  <div class="flow-diagram">
+    <span class="node trigger">Gmail Trigger（每 N 分鐘 polling）</span>
+    <span class="arrow">→</span>
+    <span class="node code">Code: AI 分類</span>
+    <span class="arrow">→</span>
+    <span class="node switch">Switch: 4 路由</span>
+    <br><br>
+    <span style="margin-left:35ch">↗ 客訴 → <span class="node">Telegram 緊急</span></span><br>
+    <span style="margin-left:35ch">→ 詢問 → <span class="node">Set 待辦</span></span><br>
+    <span style="margin-left:35ch">→ 合約 → <span class="node">Set 待歸檔</span></span><br>
+    <span style="margin-left:35ch">↘ 其他 → <span class="node">Set 略過</span></span>
+  </div>
+  <p class="body-text">8 節點。Gmail Trigger fan-out N 個 items（每封新信一個），Code 對每封打 AI 分類，Switch 按分類結果送到 4 個輸出。當前 workflow 只對「客訴」推 Telegram，其餘 3 路是 Set 節點當「改造佔位點」（學員自己加 Sheets / Notion / 串 #02 #03 等）。</p>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(04) 重點節點拆解</div>
+  <h2 class="section-heading">Code 節點 + Switch 節點是核心</h2>
+
+  <div class="node-card code-node">
+    <div class="node-num">CORE 1 · Code: AI 分類</div>
+    <div class="node-title">用結構化 JSON prompt 讓 AI 回穩定可解析格式</div>
+    <div class="node-body">
+      <p><strong>關鍵 prompt 設計</strong>：</p>
+      <div class="code-block">你是公司客服信箱的分類助手。請對下面這封信分類成 4 類之一：
+- 客訴（angry / 投訴 / 退費 / bug 回報，需立即處理）
+- 詢問（產品問題 / 報價 / 一般問答）
+- 合約（合約 / 報價單 / 含 PDF 附件）
+- 其他（廣告 / 通知 / 系統信 / 訂閱）
+
+回 JSON 格式（不要 markdown 包裹）：
+{"category": "客訴", "urgency": "high", "reason": "包含投訴用語"}
+
+urgency 取值：high / normal / low</div>
+      <p><strong>為什麼要 4 類不是任意分類</strong>：限定 enum 讓 AI 不會發明新類別（如「重要」「待回」這種太模糊的）。下游 Switch 節點才能用固定 4 路精準路由。</p>
+      <p><strong>fallback 設計</strong>：JSON 解析失敗（AI 回了帶解釋的文字 / markdown 包裹）→ 預設 category=「其他」、urgency=「low」。永遠不會炸 workflow。</p>
+    </div>
+  </div>
+
+  <div class="node-card switch-node">
+    <div class="node-num">CORE 2 · Switch: 4 路由</div>
+    <div class="node-title">n8n 的 Switch 節點 vs Make 的 Router</div>
+    <div class="node-body">
+      <p><strong>Switch v3.2 設定</strong>：3 個 rule（客訴/詢問/合約）+ fallbackOutput="extra"（其他）</p>
+      <ul>
+        <li>每個 rule 用 <code>{{ $json.category }} === "客訴"</code> 字串比對</li>
+        <li>fallbackOutput=「extra」表示不匹配前 3 個 rule 的全部走第 4 個 output（其他）</li>
+        <li>renameFallbackOutput 把第 4 個 output 命名為「其他」</li>
+      </ul>
+      <p><strong>vs Make Router</strong>：Make Router 一個 input 多個 output，每個 path 是 filter + 後續模組。功能等效但 Make UI 點點選選比較直觀。n8n 的 Switch 寫得清楚但要懂 expression。</p>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(05) DESIGN RATIONALE</div>
+  <h2 class="section-heading">設計選擇</h2>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">💭</div>
+    <div class="callout-body"><strong>為什麼預設 Active = false</strong>？<br>
+    Gmail Trigger 一打開就會立刻 polling 你 Gmail。Lite Pack import 後如果預設 active，credential 還沒設好會立刻噴錯誤。學員設好 credential + 改 polling 頻率合理後再手動 active。</div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">💭</div>
+    <div class="callout-body"><strong>為什麼 polling 預設「每 1 分鐘」</strong>？<br>
+    測試方便（寄一封信 1 分鐘內看到分類結果）。但生產環境會吃 Gmail API 額度（每次 polling = 1 ops），建議改 5-15 分鐘。教學時讓學員體驗即時感，學員自己改。</div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-icon" aria-hidden="true">⚠️</div>
+    <div class="callout-body"><strong>OAuth Test Mode 限制</strong>：Step 3 設 OAuth consent screen 為 External 但 publishing status 默認是 Testing。Test mode 只允許 Test Users 列表內的 Gmail 授權（最多 100 個）+ refresh token 7 天過期。要永久使用要 publish app（會跳 verify 流程，個人用無所謂）。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(06) 改造方向</div>
+  <h2 class="section-heading">把這個 workflow 改成你業務的 5 種方向</h2>
+
+  <ol class="mod-list">
+    <li><strong>合約路由串 #02 / #03</strong>：合約類信件抽附件 PDF 丟進 <code>~/Downloads/n8n-starter-kit/shared/pdf-inbox/</code> → #02 自動 AI 改名 → 你自動拿到歸檔合約。Make 做不到（附件必經 Drive 中轉）。</li>
+    <li><strong>詢問路由串 Notion / Sheets</strong>：詢問類信件加 row 到 Notion database / Google Sheets 待辦清單，每天早上人工檢視一次（搭 #04 定時 AI 日報摘要 Notion 內容）。</li>
+    <li><strong>換本地 LLM</strong>：把 Code 節點 jsCode 內 Gemini URL 換成本機 Ollama（例如 <code>http://host.docker.internal:11434/api/generate</code> + Llama 3 model）。**信件內容完全不離開本機**，敏感商務信件適用。</li>
+    <li><strong>多 Gmail label 分類</strong>：Gmail Trigger 加 <code>filters.labels</code> 設定，只 polling 特定 label（例如 <code>Important</code>）。或不同 label 跑不同 workflow。</li>
+    <li><strong>定時轉日報</strong>：accumulate 一天的分類結果（寫到本機 JSON 檔），每天 18:00 用 #04 的 Schedule 模式統整成「今日信件分類報告」推 Telegram。</li>
+  </ol>
+
+  <div class="callout info" style="margin-top:24px">
+    <div class="callout-icon" aria-hidden="true">🎯</div>
+    <div class="callout-body">這是 Lite Pack 最後一個 workflow。8 個 workflow（01-09 跳 08）+ #08 Expression 速查表都看完了，你已具備設計任何 n8n + AI 自動化的能力。剩下是改造練手。</div>
+  </div>
+</section>
+
+<div class="nav-footer">
+  <a href="m0-workflow-08-expression.html" class="nav-btn"><span aria-hidden="true">←</span> 上一個：#08 Expression 練習</a>
+  <a href="m0-workflow-tour.html" class="nav-btn primary">回工作流總覽 <span aria-hidden="true">→</span></a>
+</div>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">2026 春季</span>
+  <span class="footer-meta">本頁以 n8n latest (Docker) + Lite Pack v0.9 製作，2026-05</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+</script>
+</body>
+</html>
