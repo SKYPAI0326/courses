@@ -1,0 +1,80 @@
+{
+  "name": "13 · 每日營運快照與異常提醒",
+  "meta": {
+    "_litePackNote": "v0.9：每天 9:00 讀 ops-input/today.csv 內當日營運指標，跟 ops-history/ 內歷史對比，異常時 Telegram 推 AI 摘要。Codex 推薦的 #14（重編號 13）。"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## #13 每日營運快照與異常提醒\n\n**目的**：小團隊每天看訂單數、營收、退款、報名、客服量、廣告花費。痛點是「資料分散 + 異常太晚發現」。這個 workflow 自動讀今日 CSV → 跟歷史對比 → 異常時 AI 摘要 + Telegram 推。\n\n**測試方法**：\n1. 把今日數據 CSV 放進 ~/Downloads/n8n-starter-kit/shared/ops-input/today.csv\n   範例欄位：metric, value（如 orders, 42 / revenue, 35000 / refunds, 2）\n2. 把過去 7 天每天的 CSV 命名 ops-history/2026-04-29.csv ... 2026-05-05.csv 放進 ops-history/\n3. 點 Execute workflow（測試用，正式版掛 Schedule 每天 9:00 跑）\n4. 看 ops-snapshots/snapshot-YYYY-MM-DD.json 寫入今日快照\n5. Telegram 收到「✅ 今日 OK」或「🚨 異常：xxx 比 7 天均值高 50%」\n\n**改造**：把資料來源從本機 CSV 換成你的 API endpoint（HTTP Request 節點抓 Shopify / Google Ads / GA4 API）。",
+        "height": 540,
+        "width": 380
+      },
+      "id": "sticky-13",
+      "name": "📌 使用說明",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-280, 0]
+    },
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "cronExpression", "expression": "0 9 * * *" }] }
+      },
+      "id": "trigger-13", "name": "Schedule: 每天 09:00", "type": "n8n-nodes-base.scheduleTrigger", "typeVersion": 1.2, "position": [240, 300]
+    },
+    {
+      "parameters": { "fileSelector": "/files/shared/ops-input/today.csv", "options": {} },
+      "id": "read-today-13", "name": "Read 今日 CSV", "type": "n8n-nodes-base.readWriteFile", "typeVersion": 1, "position": [440, 300]
+    },
+    {
+      "parameters": { "operation": "csv", "options": {} },
+      "id": "ext-today-13", "name": "Extract 今日 CSV", "type": "n8n-nodes-base.extractFromFile", "typeVersion": 1, "position": [640, 300]
+    },
+    {
+      "parameters": { "fileSelector": "/files/shared/ops-history/*.csv", "options": {} },
+      "id": "read-hist-13", "name": "Read 歷史 CSV", "type": "n8n-nodes-base.readWriteFile", "typeVersion": 1, "position": [440, 480]
+    },
+    {
+      "parameters": { "operation": "csv", "options": {} },
+      "id": "ext-hist-13", "name": "Extract 歷史 CSV", "type": "n8n-nodes-base.extractFromFile", "typeVersion": 1, "position": [640, 480]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// 計算今日 metrics + 7 天均值 + 異常偵測\nconst GEMINI_API_KEY = '__GEMINI_API_KEY__';\n\n// 今日數據（input 來自 Extract 今日 CSV）\nconst todayItems = $('Extract 今日 CSV').all();\nconst today = {};\nfor (const it of todayItems) {\n  const m = it.json.metric;\n  const v = parseFloat(it.json.value);\n  if (m && !isNaN(v)) today[m] = v;\n}\n\n// 歷史數據\nconst histItems = $('Extract 歷史 CSV').all();\nconst histByMetric = {};\nfor (const it of histItems) {\n  const m = it.json.metric;\n  const v = parseFloat(it.json.value);\n  if (m && !isNaN(v)) {\n    if (!histByMetric[m]) histByMetric[m] = [];\n    histByMetric[m].push(v);\n  }\n}\n\n// 計算 7 天均值 + 偏差\nconst metrics = [];\nconst anomalies = [];\nfor (const [m, v] of Object.entries(today)) {\n  const hist = histByMetric[m] || [];\n  const avg = hist.length > 0 ? hist.reduce((s, x) => s + x, 0) / hist.length : null;\n  const max = hist.length > 0 ? Math.max(...hist) : null;\n  const min = hist.length > 0 ? Math.min(...hist) : null;\n  const deviation = avg !== null ? ((v - avg) / avg * 100) : null;\n  const entry = { metric: m, today: v, avg7d: avg, max7d: max, min7d: min, deviation };\n  metrics.push(entry);\n  if (deviation !== null && Math.abs(deviation) > 30) anomalies.push(entry);\n}\n\nconst dateKey = new Date().toISOString().slice(0, 10);\nlet aiSummary = '';\nif (anomalies.length > 0) {\n  const prompt = '你是營運分析助手。下面是今日指標相對 7 天均值的異常（偏差 > 30%）。請用 3 句話分析：(1) 哪些異常最重要 (2) 可能原因 (3) 建議下一步動作。繁中。\\n\\n<異常>\\n' + JSON.stringify(anomalies) + '\\n</異常>';\n  try {\n    const response = await this.helpers.httpRequest({\n      method: 'POST',\n      url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',\n      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },\n      body: {\n        contents: [{ role: 'user', parts: [{ text: prompt }] }],\n        generationConfig: { temperature: 0.4, maxOutputTokens: 400, thinkingConfig: { thinkingBudget: 0 } }\n      },\n      json: true,\n      timeout: 30000\n    });\n    aiSummary = response.candidates?.[0]?.content?.parts?.[0]?.text || '';\n  } catch (err) {}\n}\n\nconst snapshot = { date: dateKey, today, metrics, anomalies, aiSummary, generatedAt: new Date().toISOString() };\n\nconst tgMsg = anomalies.length === 0\n  ? '✅ 今日營運快照（' + dateKey + '）\\n\\n' + metrics.map(m => '· ' + m.metric + '：' + m.today + (m.avg7d ? '（7d avg ' + m.avg7d.toFixed(1) + '）' : '')).join('\\n') + '\\n\\n所有指標都在正常範圍。'\n  : '🚨 今日異常 ' + anomalies.length + ' 項（' + dateKey + '）\\n\\n' + anomalies.map(a => '· ' + a.metric + '：' + a.today + ' vs avg ' + a.avg7d.toFixed(1) + ' (' + (a.deviation > 0 ? '+' : '') + a.deviation.toFixed(1) + '%)').join('\\n') + '\\n\\n📊 AI 分析：\\n' + aiSummary;\n\nreturn [{\n  json: { snapshot, tgMsg, snapshotPath: '/files/shared/ops-snapshots/snapshot-' + dateKey + '.json' },\n  binary: {\n    data: { data: Buffer.from(JSON.stringify(snapshot, null, 2)).toString('base64'), mimeType: 'application/json', fileName: 'snapshot-' + dateKey + '.json' }\n  }\n}];"
+      },
+      "id": "code-13", "name": "Code: 對比 + AI 分析", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [860, 380]
+    },
+    {
+      "parameters": { "operation": "write", "fileName": "={{ $json.snapshotPath }}", "dataPropertyName": "data", "options": {} },
+      "id": "write-snap-13", "name": "Write 快照", "type": "n8n-nodes-base.readWriteFile", "typeVersion": 1, "position": [1080, 320]
+    },
+    {
+      "parameters": {
+        "chatId": "__TELEGRAM_CHAT_ID__",
+        "text": "={{ $json.tgMsg }}",
+        "additionalFields": {}
+      },
+      "id": "tg-13", "name": "Telegram 通知", "type": "n8n-nodes-base.telegram", "typeVersion": 1.2, "position": [1080, 460],
+      "credentials": { "telegramApi": { "id": "lite-pack-telegram", "name": "Lite Pack · Telegram Bot" } },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Schedule: 每天 09:00": { "main": [[{"node": "Read 今日 CSV", "type": "main", "index": 0}, {"node": "Read 歷史 CSV", "type": "main", "index": 0}]] },
+    "Read 今日 CSV": { "main": [[{"node": "Extract 今日 CSV", "type": "main", "index": 0}]] },
+    "Extract 今日 CSV": { "main": [[{"node": "Code: 對比 + AI 分析", "type": "main", "index": 0}]] },
+    "Read 歷史 CSV": { "main": [[{"node": "Extract 歷史 CSV", "type": "main", "index": 0}]] },
+    "Extract 歷史 CSV": { "main": [[{"node": "Code: 對比 + AI 分析", "type": "main", "index": 0}]] },
+    "Code: 對比 + AI 分析": {
+      "main": [[
+        {"node": "Write 快照", "type": "main", "index": 0},
+        {"node": "Telegram 通知", "type": "main", "index": 0}
+      ]]
+    }
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "id": "lite-pack-13-daily-ops-snapshot",
+  "tags": [{"name": "lite-pack", "id": "tag-lite-pack"}, {"name": "module-4", "id": "tag-module-4"}]
+}

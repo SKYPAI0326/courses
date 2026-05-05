@@ -1,0 +1,111 @@
+{
+  "name": "14 · 私有 API 監控與診斷",
+  "meta": {
+    "_litePackNote": "v0.9：Schedule 每 15 分鐘 health check 多個 API endpoints，失敗時 retry → AI 診斷錯誤 → Telegram 推 incident log。Codex 推薦的 #16（重編號 14）。"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## #14 私有 API 監控與診斷\n\n**目的**：你有自家網站、課程頁、表單 endpoint、內部 API。痛點是「壞了才知道，且不知道該查哪裡」。這個 workflow 自動 health check 多個 endpoint → 失敗時 AI 診斷 + Telegram 推 incident log。\n\n**測試方法**：\n1. 編輯 Set 節點「endpoints」清單填入你要監控的 URL（內建範例：localhost:5678/healthz / 你的網站首頁 / 課程頁）\n2. 點 Execute workflow（測試用，正式版掛 Schedule 每 15 分鐘）\n3. 故意把其中 1 個 URL 改成壞的（如 http://localhost:9999），重 Execute\n4. Telegram 收到「🚨 API 異常」+ AI 診斷可能原因\n5. 看 ~/Downloads/n8n-starter-kit/shared/ops-incidents/incident-YYYY-MM-DDTHHMMSS.json\n\n**改造方向**：\n- 加 Bearer token（在 Code 內 headers 填 Authorization）\n- 加 retry 次數（HTTP Request 節點的 retryOnFail）\n- 加自動修復（Execute Command 節點重啟服務 / 跑診斷腳本）",
+        "height": 460,
+        "width": 380
+      },
+      "id": "sticky-14",
+      "name": "📌 使用說明",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-280, 0]
+    },
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "cronExpression", "expression": "*/15 * * * *" }] }
+      },
+      "id": "trigger-14", "name": "Schedule: 每 15 分鐘", "type": "n8n-nodes-base.scheduleTrigger", "typeVersion": 1.2, "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "ep-1", "name": "endpoints", "value": "[{\"name\":\"n8n healthz\",\"url\":\"http://localhost:5678/healthz\"},{\"name\":\"範例網站\",\"url\":\"https://example.com\"}]", "type": "string" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-endpoints-14", "name": "Set: endpoints 清單", "type": "n8n-nodes-base.set", "typeVersion": 3.4, "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// health check + AI 診斷\nconst GEMINI_API_KEY = '__GEMINI_API_KEY__';\nconst endpoints = JSON.parse($input.first().json.endpoints || '[]');\nconst results = [];\nconst incidents = [];\nconst startTime = new Date().toISOString();\n\nfor (const ep of endpoints) {\n  const t0 = Date.now();\n  let status = 0, error = null, body = '';\n  try {\n    const response = await this.helpers.httpRequest({\n      method: 'GET',\n      url: ep.url,\n      timeout: 10000,\n      returnFullResponse: true\n    });\n    status = response.statusCode || 200;\n    body = typeof response.body === 'string' ? response.body.substring(0, 200) : JSON.stringify(response.body || {}).substring(0, 200);\n  } catch (err) {\n    error = err.message || String(err);\n  }\n  const elapsedMs = Date.now() - t0;\n  const ok = !error && status >= 200 && status < 400;\n\n  const record = { name: ep.name, url: ep.url, status, elapsedMs, error, ok, checkedAt: startTime };\n  results.push(record);\n  if (!ok) incidents.push(record);\n}\n\nlet aiDiag = '';\nif (incidents.length > 0) {\n  const prompt = '你是 SRE 助手。下面是 API health check 失敗的 incident。請用 3 句話：(1) 最可能根因（DNS / network / 服務掛 / SSL / timeout 等）(2) 立即可做的診斷指令 (3) 嚴重度 P1/P2/P3。繁中。\\n\\n<incidents>\\n' + JSON.stringify(incidents) + '\\n</incidents>';\n  try {\n    const response = await this.helpers.httpRequest({\n      method: 'POST',\n      url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',\n      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },\n      body: {\n        contents: [{ role: 'user', parts: [{ text: prompt }] }],\n        generationConfig: { temperature: 0.3, maxOutputTokens: 400, thinkingConfig: { thinkingBudget: 0 } }\n      },\n      json: true,\n      timeout: 30000\n    });\n    aiDiag = response.candidates?.[0]?.content?.parts?.[0]?.text || '';\n  } catch (err) {}\n}\n\nconst tsKey = startTime.replace(/[:T]/g, '').slice(0, 14);\nconst tgMsg = incidents.length === 0\n  ? '✅ 所有 ' + endpoints.length + ' 個 endpoint 健康（' + startTime + '）'\n  : '🚨 API 監控異常 ' + incidents.length + '/' + endpoints.length + '\\n\\n' + incidents.map(r => '❌ ' + r.name + '（' + r.url + '）\\n   status=' + r.status + ' err=' + (r.error || '-')).join('\\n\\n') + '\\n\\n🤖 AI 診斷：\\n' + aiDiag;\n\nreturn [{\n  json: {\n    summary: { total: endpoints.length, ok: results.length - incidents.length, fail: incidents.length },\n    results, incidents, aiDiag, tgMsg,\n    incidentPath: incidents.length > 0 ? '/files/shared/ops-incidents/incident-' + tsKey + '.json' : null\n  },\n  binary: incidents.length > 0 ? {\n    data: { data: Buffer.from(JSON.stringify({ results, incidents, aiDiag, startTime }, null, 2)).toString('base64'), mimeType: 'application/json', fileName: 'incident-' + tsKey + '.json' }\n  } : undefined\n}];"
+      },
+      "id": "code-14", "name": "Code: health check + AI 診斷", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [660, 300]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.summary.fail }}",
+                    "rightValue": 0,
+                    "operator": { "type": "number", "operation": "gt" }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "有異常"
+            }
+          ]
+        },
+        "options": { "fallbackOutput": "extra", "renameFallbackOutput": "全部健康" }
+      },
+      "id": "switch-14", "name": "Switch: 有無異常", "type": "n8n-nodes-base.switch", "typeVersion": 3.2, "position": [880, 300]
+    },
+    {
+      "parameters": { "operation": "write", "fileName": "={{ $json.incidentPath }}", "dataPropertyName": "data", "options": {} },
+      "id": "write-incident-14", "name": "Write incident JSON", "type": "n8n-nodes-base.readWriteFile", "typeVersion": 1, "position": [1100, 220]
+    },
+    {
+      "parameters": {
+        "chatId": "__TELEGRAM_CHAT_ID__",
+        "text": "={{ $json.tgMsg }}",
+        "additionalFields": {}
+      },
+      "id": "tg-incident-14", "name": "Telegram: 異常通知", "type": "n8n-nodes-base.telegram", "typeVersion": 1.2, "position": [1100, 360],
+      "credentials": { "telegramApi": { "id": "lite-pack-telegram", "name": "Lite Pack · Telegram Bot" } },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "h-1", "name": "status", "value": "all_healthy", "type": "string" },
+            { "id": "h-2", "name": "checkedAt", "value": "={{ $now.toISO() }}", "type": "string" },
+            { "id": "h-3", "name": "note", "value": "全部 endpoint 健康，未推 Telegram（避免噪音）", "type": "string" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-healthy-14", "name": "Set: 全部健康（不推）", "type": "n8n-nodes-base.set", "typeVersion": 3.4, "position": [1100, 480]
+    }
+  ],
+  "connections": {
+    "Schedule: 每 15 分鐘": { "main": [[{"node": "Set: endpoints 清單", "type": "main", "index": 0}]] },
+    "Set: endpoints 清單": { "main": [[{"node": "Code: health check + AI 診斷", "type": "main", "index": 0}]] },
+    "Code: health check + AI 診斷": { "main": [[{"node": "Switch: 有無異常", "type": "main", "index": 0}]] },
+    "Switch: 有無異常": {
+      "main": [
+        [{"node": "Write incident JSON", "type": "main", "index": 0}, {"node": "Telegram: 異常通知", "type": "main", "index": 0}],
+        [{"node": "Set: 全部健康（不推）", "type": "main", "index": 0}]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "id": "lite-pack-14-api-monitor",
+  "tags": [{"name": "lite-pack", "id": "tag-lite-pack"}, {"name": "module-4", "id": "tag-module-4"}]
+}

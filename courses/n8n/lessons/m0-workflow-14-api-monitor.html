@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#14 私有 API 監控與診斷 設計拆解｜AI 資料工廠</title>
+<meta name="description" content="Lite Pack #14 workflow 設計拆解：Schedule 每 15 分鐘 health check 多 endpoint → 失敗時 AI 診斷可能根因 → Telegram 推 incident log。n8n 接近基礎設施的 ops automation。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="#14 API 監控 設計拆解｜AI 資料工廠">
+<meta property="og:description" content="Lite Pack #14 workflow：lightweight ops automation。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/m0-workflow-14-api-monitor.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="#14 API 監控 設計拆解｜AI 資料工廠">
+<meta name="twitter:description" content="Lite Pack #14 workflow 設計拆解。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/m0-workflow-14-api-monitor.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-main:#5a7a5a;--radius:4px;--content-w:820px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.skip-link{position:absolute;left:-9999px;top:0;background:var(--c-text);color:#fff;padding:10px 16px;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0;z-index:100}
+a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}.topbar-sub{font-size:.8rem;color:var(--c-muted)}.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:#5a7a5a;border:1px solid rgba(90,122,90,.3);padding:3px 12px;border-radius:99px}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 36px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;max-width:24ch}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;margin-bottom:28px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);margin-top:16px}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500}.outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}.callout-body{font-size:.9rem;line-height:1.85}
+.callout.info{background:rgba(90,122,90,.06);border-left-color:var(--c-a3)}
+.flow-diagram{background:var(--c-card);border:1px solid var(--c-border-soft);border-radius:var(--radius);padding:20px 24px;margin:20px 0;font-family:'SF Mono',monospace;font-size:.78rem;line-height:1.9;overflow-x:auto}
+.flow-diagram .arrow{color:var(--c-faint);margin:0 6px}
+.flow-diagram .node{background:rgba(90,122,90,.08);border:1px solid rgba(90,122,90,.2);padding:3px 8px;border-radius:3px;color:var(--c-a3);white-space:nowrap}
+.flow-diagram .node.trigger{background:rgba(107,127,163,.1);border-color:rgba(107,127,163,.25);color:var(--c-a4)}
+.flow-diagram .node.code{background:rgba(181,112,58,.1);border-color:rgba(181,112,58,.25);color:var(--c-a1)}
+.flow-diagram .node.fail{background:rgba(181,74,74,.08);border-color:rgba(181,74,74,.3);color:#b54a4a}
+.node-card{background:var(--c-card);border:1px solid var(--c-border-soft);border-left:3px solid var(--c-a3);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
+.node-card.code-node{border-left-color:var(--c-a1)}
+.node-num{font-family:'Shippori Mincho',serif;font-size:.74rem;color:var(--c-faint);letter-spacing:.1em;font-weight:600;margin-bottom:6px}
+.node-title{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin-bottom:10px}
+.node-body{font-size:.88rem;line-height:1.85}.node-body ul,.node-body ol{margin:8px 0 8px 22px}
+.node-body code,.node-body .ic{font-family:'SF Mono',monospace;font-size:.86em;background:rgba(90,122,90,.1);padding:1px 6px;border-radius:3px}
+.code-block{background:#2c2b28;color:#e8e4dc;font-family:'SF Mono',monospace;font-size:.78rem;padding:12px 16px;border-radius:var(--radius);line-height:1.7;overflow-x:auto;white-space:pre;margin:10px 0}
+.code-block .cm{color:#7e9a85;font-style:italic}
+.mod-list{list-style:none;padding:0;margin:0;counter-reset:mod}
+.mod-list li{counter-increment:mod;position:relative;padding:14px 0 14px 44px;border-bottom:1px dashed var(--c-border-soft);font-size:.9rem;line-height:1.85}
+.mod-list li:last-child{border-bottom:none}
+.mod-list li::before{content:counter(mod,decimal-leading-zero);position:absolute;left:0;top:14px;font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-faint);font-weight:600}
+.mod-list li strong{color:var(--c-text);font-weight:600}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius)}
+.nav-btn:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main)}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}}
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link">跳至主要內容</a>
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a><div class="topbar-divider"></div><span class="topbar-sub">AI 資料工廠 — 大規模文件處理實戰</span><div class="spacer"></div><span class="topbar-tag">#14 · api-monitor · AI</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+<div class="page-hero">
+  <a href="m0-workflow-tour.html" class="back-link"><span aria-hidden="true">←</span> 返回工作流總覽</a>
+  <div class="hero-eyebrow">#14 · API MONITOR · 8 NODES · 進階</div>
+  <h1 class="lesson-title">私有 API 監控與 AI 診斷：自家網站壞了 5 分鐘內知道</h1>
+  <p class="lesson-tagline">創作者 / 顧問 / 小團隊都有自家網站、課程頁、表單 endpoint、內部 API。痛點是「壞了才知道，且不知道該查哪裡」。這個 workflow 每 15 分鐘自動 health check N 個 endpoint → 失敗時 AI 診斷可能根因（DNS / 服務掛 / SSL / timeout）+ 嚴重度分級 + Telegram 推 incident log。<strong>n8n 自架後可以接近基礎設施做 ops automation</strong> — 是 Make 學員不太碰的領域，但對自己擁有服務的人非常有感。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果</div>
+    <div class="outcome-item">能用 helpers.httpRequest 內 returnFullResponse 取 statusCode / body / headers 完整資訊</div>
+    <div class="outcome-item">能用 try/catch 結構化處理 timeout / DNS fail / SSL error 不同類型錯誤</div>
+    <div class="outcome-item">能用 Switch 節點做「有異常才走 incident 路徑」避免無事推 Telegram 變成噪音</div>
+  </div>
+</div>
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(01) WORKFLOW 全貌</div>
+  <h2 class="section-heading">節點與資料流</h2>
+  <div class="flow-diagram">
+    <span class="node trigger">Schedule: 每 15 分鐘</span><span class="arrow">→</span><span class="node">Set: endpoints 清單</span><span class="arrow">→</span><span class="node code">Code: health check + AI 診斷</span><span class="arrow">→</span><span class="node">Switch: 有無異常</span>
+    <br><br>
+    <span style="margin-left:30ch">↗ 有異常 → <span class="node fail">Write incident JSON</span> + <span class="node fail">Telegram 異常通知</span></span><br>
+    <span style="margin-left:30ch">↘ 全部健康 → <span class="node">Set: 不推（避免噪音）</span></span>
+  </div>
+  <p class="body-text">8 節點 + Switch 雙路。健康狀態下不打擾你（不推 Telegram），失敗才推 incident report 含 AI 診斷。</p>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(02) 重點節點拆解</div>
+  <h2 class="section-heading">Code: health check + AI 診斷</h2>
+
+  <div class="node-card code-node">
+    <div class="node-num">CORE</div>
+    <div class="node-title">三段式：endpoints loop → 結構化錯誤 → AI 診斷</div>
+    <div class="node-body">
+      <p><strong>Step 1 · 對每個 endpoint 做 health check</strong>：</p>
+      <div class="code-block">for (const ep of endpoints) {
+  const t0 = Date.now();
+  let status = 0, error = null;
+  try {
+    const response = await this.helpers.httpRequest({
+      method: 'GET', url: ep.url, timeout: 10000,
+      returnFullResponse: true   // ← 取完整 statusCode + body
+    });
+    status = response.statusCode || 200;
+  } catch (err) {
+    error = err.message || String(err);
+  }
+  const elapsedMs = Date.now() - t0;
+  const ok = !error &amp;&amp; status &gt;= 200 &amp;&amp; status &lt; 400;
+  results.push({ ...ep, status, elapsedMs, error, ok });
+}</div>
+
+      <p><strong>Step 2 · 收集 incidents</strong>：</p>
+      <div class="code-block">const incidents = results.filter(r =&gt; !r.ok);</div>
+
+      <p><strong>Step 3 · only on incidents 才打 AI</strong>：</p>
+      <div class="code-block">if (incidents.length &gt; 0) {
+  const prompt = `你是 SRE 助手。下面是 health check 失敗的 incident。請用 3 句話：
+  (1) 最可能根因（DNS / network / 服務掛 / SSL / timeout 等）
+  (2) 立即可做的診斷指令
+  (3) 嚴重度 P1 / P2 / P3`;
+  aiDiag = await this.helpers.httpRequest({ ... });
+}</div>
+      <p><strong>關鍵</strong>：「only on incidents」呼叫 AI — 一個月 30 天平常 29 天沒 incident，省下 N 次 API 呼叫。同 #13 設計哲學。</p>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(03) 改造方向</div>
+  <h2 class="section-heading">5 種改造</h2>
+  <ol class="mod-list">
+    <li><strong>加 Bearer token</strong>：endpoints 清單加 <code>auth</code> 欄位，jsCode 內 headers 帶 Authorization Bearer 監控需要登入的私有 API。</li>
+    <li><strong>加 retry with backoff</strong>：第一次失敗後等 30 秒重試，連續 2 次都失敗才推 Telegram（避免暫時性 network glitch 造成噪音）。</li>
+    <li><strong>加 Execute Command 節點自動修復</strong>：如果某個服務掛了 + 你能 SSH 進對應 server，n8n 加 Execute Command 自動 <code>systemctl restart xxx</code>（Lite Pack 不附但學員可加）。</li>
+    <li><strong>incident dashboard</strong>：incident JSON 累積成歷史 → 每週生 Markdown 報告「過去 7 天有 N 次 incident，主要是 X 服務 Y 次」。</li>
+    <li><strong>分級通知</strong>：P1（服務掛）→ Telegram + email + SMS；P2（response 慢）→ 只 email；P3（warning）→ 只記 log 不通知。</li>
+  </ol>
+  <div class="callout info" style="margin-top:24px">
+    <div class="callout-icon" aria-hidden="true">🎯</div>
+    <div class="callout-body"><strong>所有 14 個 workflow 拆解完成</strong>。最後一頁是進階補充：<a href="m0-local-llm-guide.html">本地 LLM 銜接指引</a> — 把 Lite Pack 內所有 Gemini 呼叫換成本機 Ollama，敏感資料完全不離開本機。</div>
+  </div>
+</section>
+
+<div class="nav-footer">
+  <a href="m0-workflow-13-daily-ops.html" class="nav-btn"><span aria-hidden="true">←</span> 上一個：#13 營運快照</a>
+  <a href="m0-local-llm-guide.html" class="nav-btn primary">補充章節：本地 LLM 銜接 <span aria-hidden="true">→</span></a>
+</div>
+</main>
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span><div class="footer-div"></div><span class="footer-note">2026 春季</span>
+  <span class="footer-meta">本頁以 n8n latest (Docker) + Lite Pack v0.9 製作，2026-05</span>
+</footer>
+<script>const fill=document.getElementById('prog');const strip=document.querySelector('.progress-strip');window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});</script>
+</body>
+</html>

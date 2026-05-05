@@ -1,0 +1,154 @@
+{
+  "name": "10 · 客戶資料夾自動整理",
+  "meta": {
+    "_litePackNote": "v0.9：對 ~/Downloads/n8n-starter-kit/shared/client-inbox/ 內所有檔（PDF/圖/簡報/合約等）做 AI 分類 + 自動命名 + 移到對應子資料夾 + 產 Markdown index。Codex 推薦的 #10。"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## #10 客戶資料夾自動整理與交接包\n\n**目的**：顧問/設計師/課程助教/代操常收到一堆客戶檔案（PDF、圖、簡報、合約）資料夾混亂。這個 workflow 自動分類、命名、歸檔，並產 Markdown index 方便交接。\n\n**測試方法**：\n1. 把客戶各種檔案丟進 ~/Downloads/n8n-starter-kit/shared/client-inbox/\n2. 點 Execute workflow\n3. 看 client-organized/ 內生出 contracts/ invoices/ presentations/ images/ docs/ others/ 6 個分類子資料夾 + 改名後的檔案\n4. 看 client-organized/_index.md 收到一份 Markdown 交接清單\n5. Telegram 收到「✅ 整理完成 N 份檔案」通知\n\n**改造**：把分類規則改成你業務術語（合約/客戶 brief / 設計稿 / 簡報 / 報價單），prompt 換成你的分類定義即可。",
+        "height": 460,
+        "width": 380
+      },
+      "id": "sticky-10",
+      "name": "📌 使用說明",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-280, 0]
+    },
+    {
+      "parameters": {},
+      "id": "trigger-10",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/shared/client-inbox/*",
+        "options": {}
+      },
+      "id": "read-10",
+      "name": "Read 所有檔案",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "options": {}
+      },
+      "id": "extract-10",
+      "name": "Extract 文字（PDF/MD/TXT/DOCX）",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [640, 300],
+      "onError": "continueRegularOutput",
+      "notes": "對非文字類檔（圖片）會 throw 但 onError continueRegular 繼續，後面 Code 用副檔名判斷"
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// v0.9：對每個檔分類 + 命名，產出 newPath\n// 6 個固定分類：contracts / invoices / presentations / images / docs / others\n\nconst GEMINI_API_KEY = '__GEMINI_API_KEY__';\nconst today = new Date().toISOString().slice(0, 10).replace(/-/g, '');\nconst items = $input.all();\nconst allReadItems = $('Read 所有檔案').all();\nconst results = [];\n\nfor (let i = 0; i < items.length; i++) {\n  const item = items[i];\n  const binFileName = item.binary?.data?.fileName;\n  let readItem = allReadItems.find(r => r?.json?.fileName === binFileName) || allReadItems[i];\n  if (!readItem?.binary?.data) continue;\n\n  const originalName = readItem.json.fileName || 'unknown';\n  const fileExt = (readItem.json.fileExtension || '').toLowerCase();\n  const text = (item.json.text || '').substring(0, 1500);\n\n  // 副檔名快速分類（圖片直接歸 images，跳過 AI）\n  const imgExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'svg'];\n  let category = null;\n  if (imgExts.includes(fileExt)) category = 'images';\n\n  let newName = originalName;\n  let aiResp = '';\n\n  if (!category && text) {\n    const prompt = '請對下面的文件分類成 6 類之一：contracts（合約/協議/NDA）、invoices（發票/收據/報價單）、presentations（簡報/投影片）、docs（一般文件/說明/手冊）、others（無法歸類）。同時取一個語意化檔名 YYYYMMDD_類型_關鍵字（繁中）。\\n\\n回 JSON：{\"category\":\"xxx\",\"newName\":\"YYYYMMDD_xxx\"}\\n\\n<文件>\\n檔名：' + originalName + '\\n內容摘要：' + text + '\\n</文件>';\n\n    try {\n      const response = await this.helpers.httpRequest({\n        method: 'POST',\n        url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',\n        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },\n        body: {\n          contents: [{ role: 'user', parts: [{ text: prompt }] }],\n          generationConfig: { temperature: 0.3, maxOutputTokens: 200, thinkingConfig: { thinkingBudget: 0 } }\n        },\n        json: true,\n        timeout: 30000\n      });\n      aiResp = response.candidates?.[0]?.content?.parts?.[0]?.text || '';\n      const m = aiResp.replace(/^```\\w*\\n?/, '').replace(/\\n?```$/, '').match(/\\{[\\s\\S]*?\\}/);\n      if (m) {\n        const parsed = JSON.parse(m[0]);\n        if (['contracts','invoices','presentations','docs','others'].includes(parsed.category)) category = parsed.category;\n        if (parsed.newName) newName = parsed.newName;\n      }\n    } catch (err) {}\n  }\n\n  if (!category) category = 'others';\n  newName = newName.replace(/[\\\\/:*?\"<>|]/g, '_').substring(0, 100);\n  if (!newName.match(/^\\d{8}_/)) newName = today + '_' + newName;\n  if (fileExt && !newName.endsWith('.' + fileExt)) newName = newName + '.' + fileExt;\n\n  results.push({\n    json: {\n      originalName, category, newName,\n      newPath: '/files/shared/client-organized/' + category + '/' + newName,\n      indexLine: '- **' + category + '** · ' + newName + ' ← ' + originalName\n    },\n    binary: readItem.binary\n  });\n}\n\nreturn results;"
+      },
+      "id": "ai-10",
+      "name": "Code: AI 分類 + 命名",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [860, 300]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $json.newPath }}",
+        "dataPropertyName": "data",
+        "options": {}
+      },
+      "id": "write-10",
+      "name": "Write: 移到分類資料夾",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [1080, 240]
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            { "fieldToAggregate": "indexLine" },
+            { "fieldToAggregate": "category" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "agg-10",
+      "name": "Aggregate index lines",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [1080, 380]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// 組 Markdown index + Telegram 通知文\nconst data = $input.first().json;\nconst lines = data.indexLine || [];\nconst cats = data.category || [];\nconst total = lines.length;\nconst counts = {};\nfor (const c of cats) counts[c] = (counts[c] || 0) + 1;\n\nconst today = new Date().toISOString().slice(0, 10);\nconst markdown = '# 客戶資料夾整理交接包 · ' + today + '\\n\\n' +\n  '總共整理 ' + total + ' 份檔案。\\n\\n' +\n  '## 分類統計\\n' + Object.entries(counts).map(([k, v]) => '- ' + k + '：' + v + ' 份').join('\\n') + '\\n\\n' +\n  '## 檔案清單\\n' + lines.join('\\n') + '\\n\\n' +\n  '---\\n_自動產生於 ' + new Date().toLocaleString('zh-TW') + '_';\n\nconst tgMsg = '✅ 客戶資料夾整理完成\\n\\n' +\n  '總計：' + total + ' 份\\n' +\n  Object.entries(counts).map(([k, v]) => k + '：' + v).join(' / ') + '\\n\\n' +\n  '完整清單：shared/client-organized/_index.md';\n\nreturn [{\n  json: { tgMsg, indexPath: '/files/shared/client-organized/_index.md', total },\n  binary: {\n    data: {\n      data: Buffer.from(markdown).toString('base64'),\n      mimeType: 'text/markdown',\n      fileName: '_index.md'\n    }\n  }\n}];"
+      },
+      "id": "code-index-10",
+      "name": "Code: 組 Markdown index + 通知",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1300, 380]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $json.indexPath }}",
+        "dataPropertyName": "data",
+        "options": {}
+      },
+      "id": "write-index-10",
+      "name": "Write: _index.md",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [1520, 320]
+    },
+    {
+      "parameters": {
+        "chatId": "__TELEGRAM_CHAT_ID__",
+        "text": "={{ $json.tgMsg }}",
+        "additionalFields": {}
+      },
+      "id": "tg-10",
+      "name": "Telegram 通知",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1520, 440],
+      "credentials": {
+        "telegramApi": { "id": "lite-pack-telegram", "name": "Lite Pack · Telegram Bot" }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Manual Trigger": { "main": [[{"node": "Read 所有檔案", "type": "main", "index": 0}]] },
+    "Read 所有檔案": { "main": [[{"node": "Extract 文字（PDF/MD/TXT/DOCX）", "type": "main", "index": 0}]] },
+    "Extract 文字（PDF/MD/TXT/DOCX）": { "main": [[{"node": "Code: AI 分類 + 命名", "type": "main", "index": 0}]] },
+    "Code: AI 分類 + 命名": {
+      "main": [[
+        {"node": "Write: 移到分類資料夾", "type": "main", "index": 0},
+        {"node": "Aggregate index lines", "type": "main", "index": 0}
+      ]]
+    },
+    "Aggregate index lines": { "main": [[{"node": "Code: 組 Markdown index + 通知", "type": "main", "index": 0}]] },
+    "Code: 組 Markdown index + 通知": {
+      "main": [[
+        {"node": "Write: _index.md", "type": "main", "index": 0},
+        {"node": "Telegram 通知", "type": "main", "index": 0}
+      ]]
+    }
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "id": "lite-pack-10-folder-organize",
+  "tags": [{"name": "lite-pack", "id": "tag-lite-pack"}, {"name": "module-3", "id": "tag-module-3"}]
+}

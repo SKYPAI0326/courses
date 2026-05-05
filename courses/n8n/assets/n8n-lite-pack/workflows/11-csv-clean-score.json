@@ -1,0 +1,81 @@
+{
+  "name": "11 · 銷售線索 CSV 清洗評分",
+  "meta": {
+    "_litePackNote": "v0.9：對 ~/Downloads/n8n-starter-kit/shared/leads-inbox/leads.csv 做欄位正規化、去重、AI 評分，輸出 cleaned.csv + report.md。Codex 推薦的 #11。"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## #11 銷售線索 CSV 清洗評分\n\n**目的**：團隊從表單/展會/名單工具匯出 CSV，欄位格式不一、電話缺國碼、公司髒資料、重複 email、線索品質無法快速排序。這個 workflow 一鍵清乾淨 + 評分 + 分派。\n\n**測試方法**：\n1. 把 leads.csv 丟進 ~/Downloads/n8n-starter-kit/shared/leads-inbox/\n   CSV 必含欄位：name, email, phone, company（缺值容錯）\n2. 點 Execute workflow\n3. 看 leads-output/leads-cleaned.csv（去重 + 正規化）\n4. 看 leads-output/leads-report.md（AI 評分 + 統計）\n5. Telegram 收到摘要通知\n\n**改造**：把評分標準改成你公司 ICP（產業 / 公司規模 / 預算範圍 / 決策角色）— 改 prompt 即可。",
+        "height": 460,
+        "width": 380
+      },
+      "id": "sticky-11",
+      "name": "📌 使用說明",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-280, 0]
+    },
+    { "parameters": {}, "id": "trigger-11", "name": "Manual Trigger", "type": "n8n-nodes-base.manualTrigger", "typeVersion": 1, "position": [240, 300] },
+    {
+      "parameters": {
+        "fileSelector": "/files/shared/leads-inbox/*.csv",
+        "options": {}
+      },
+      "id": "read-11", "name": "Read CSV", "type": "n8n-nodes-base.readWriteFile", "typeVersion": 1, "position": [440, 300]
+    },
+    {
+      "parameters": { "operation": "csv", "options": {} },
+      "id": "extract-11", "name": "Extract CSV", "type": "n8n-nodes-base.extractFromFile", "typeVersion": 1, "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// v0.9：清洗 + 去重 + AI 評分\nconst GEMINI_API_KEY = '__GEMINI_API_KEY__';\nconst items = $input.all();\nconst rows = items[0]?.json ? items.map(i => i.json) : [];\n\n// Step 1: 欄位正規化\nconst normalize = (r) => {\n  const out = {};\n  out.name = String(r.name || r.Name || r.姓名 || '').trim();\n  out.email = String(r.email || r.Email || '').trim().toLowerCase();\n  let phone = String(r.phone || r.Phone || r.電話 || '').replace(/[^0-9+]/g, '');\n  if (phone.startsWith('09') && phone.length === 10) phone = '+886' + phone.slice(1);\n  if (phone.startsWith('886')) phone = '+' + phone;\n  out.phone = phone;\n  out.company = String(r.company || r.Company || r.公司 || '').trim();\n  out.source = r.source || r.Source || 'unknown';\n  return out;\n};\n\nconst cleaned = rows.map(normalize).filter(r => r.email);\n\n// Step 2: 去重（以 email 為 key）\nconst uniq = {};\nfor (const r of cleaned) if (!uniq[r.email]) uniq[r.email] = r;\nconst dedup = Object.values(uniq);\n\n// Step 3: AI 評分（一次性 prompt，避免 N 次 API call）\nconst sample = dedup.slice(0, 50);\nconst prompt = '你是 B2B 銷售評分助手。對下列每筆 lead 評 hot/warm/cold 三級：\\n\\n標準：\\n- hot：公司名清楚 + email 是企業 domain（非 gmail/yahoo）+ 含完整 phone\\n- warm：以上滿足 2 條\\n- cold：以上少於 2 條，或公司名空白\\n\\n回 JSON array（順序對齊）：[{\"score\":\"hot\"}, {\"score\":\"warm\"}, ...]\\n\\n<leads>\\n' + JSON.stringify(sample.map((r, i) => ({i, name: r.name, email: r.email, phone: r.phone, company: r.company}))) + '\\n</leads>';\n\nlet scores = sample.map(() => 'cold');\ntry {\n  const response = await this.helpers.httpRequest({\n    method: 'POST',\n    url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',\n    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },\n    body: {\n      contents: [{ role: 'user', parts: [{ text: prompt }] }],\n      generationConfig: { temperature: 0.2, maxOutputTokens: 2000, thinkingConfig: { thinkingBudget: 0 } }\n    },\n    json: true,\n    timeout: 60000\n  });\n  const raw = response.candidates?.[0]?.content?.parts?.[0]?.text || '';\n  const m = raw.replace(/^```\\w*\\n?/, '').replace(/\\n?```$/, '').match(/\\[[\\s\\S]*\\]/);\n  if (m) {\n    const arr = JSON.parse(m[0]);\n    scores = arr.map(x => ['hot','warm','cold'].includes(x.score) ? x.score : 'cold');\n  }\n} catch (err) {}\n\nfor (let i = 0; i < sample.length; i++) sample[i].score = scores[i] || 'cold';\nfor (let i = sample.length; i < dedup.length; i++) dedup[i].score = 'cold';\n\nconst hot = dedup.filter(r => r.score === 'hot').length;\nconst warm = dedup.filter(r => r.score === 'warm').length;\nconst cold = dedup.filter(r => r.score === 'cold').length;\n\nreturn [{\n  json: {\n    rowsOriginal: rows.length,\n    rowsAfterClean: cleaned.length,\n    rowsAfterDedup: dedup.length,\n    duplicatesRemoved: cleaned.length - dedup.length,\n    hot, warm, cold,\n    cleanedRows: dedup\n  }\n}];"
+      },
+      "id": "code-11", "name": "Code: 清洗 + 去重 + AI 評分", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [840, 300]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// 組 cleaned CSV + Markdown report + Telegram\nconst d = $input.first().json;\nconst rows = d.cleanedRows || [];\n\n// CSV\nconst headers = ['name','email','phone','company','source','score'];\nconst csvLines = [headers.join(',')];\nfor (const r of rows) {\n  const escape = (v) => '\"' + String(v || '').replace(/\"/g, '\"\"') + '\"';\n  csvLines.push(headers.map(h => escape(r[h])).join(','));\n}\nconst csv = csvLines.join('\\n');\n\n// Markdown report\nconst today = new Date().toISOString().slice(0, 10);\nconst topHot = rows.filter(r => r.score === 'hot').slice(0, 10);\nconst md = '# 線索清洗報告 · ' + today + '\\n\\n' +\n  '## 統計\\n' +\n  '- 原始：' + d.rowsOriginal + ' 筆\\n' +\n  '- 清洗後：' + d.rowsAfterClean + ' 筆（缺 email 自動移除）\\n' +\n  '- 去重後：' + d.rowsAfterDedup + ' 筆（移除 ' + d.duplicatesRemoved + ' 筆重複）\\n\\n' +\n  '## AI 評分\\n' +\n  '- 🔥 hot：' + d.hot + ' 筆\\n' +\n  '- ☀️ warm：' + d.warm + ' 筆\\n' +\n  '- ❄️ cold：' + d.cold + ' 筆\\n\\n' +\n  '## 高優先 hot 線索（前 10）\\n' +\n  topHot.map(r => '- **' + r.name + '** · ' + r.company + ' · ' + r.email + ' · ' + r.phone).join('\\n');\n\nconst tgMsg = '✅ 線索清洗完成\\n\\n' + d.rowsOriginal + ' → ' + d.rowsAfterDedup + ' 筆\\n🔥 hot: ' + d.hot + ' / ☀️ warm: ' + d.warm + ' / ❄️ cold: ' + d.cold + '\\n\\n完整：shared/leads-output/';\n\nreturn [{\n  json: { csvPath: '/files/shared/leads-output/leads-cleaned.csv', mdPath: '/files/shared/leads-output/leads-report.md', tgMsg },\n  binary: {\n    csv: { data: Buffer.from(csv).toString('base64'), mimeType: 'text/csv', fileName: 'leads-cleaned.csv' },\n    md: { data: Buffer.from(md).toString('base64'), mimeType: 'text/markdown', fileName: 'leads-report.md' }\n  }\n}];"
+      },
+      "id": "code-output-11", "name": "Code: 組 CSV + Report", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [1060, 300]
+    },
+    {
+      "parameters": { "operation": "write", "fileName": "={{ $json.csvPath }}", "dataPropertyName": "csv", "options": {} },
+      "id": "write-csv-11", "name": "Write CSV", "type": "n8n-nodes-base.readWriteFile", "typeVersion": 1, "position": [1280, 220]
+    },
+    {
+      "parameters": { "operation": "write", "fileName": "={{ $json.mdPath }}", "dataPropertyName": "md", "options": {} },
+      "id": "write-md-11", "name": "Write Report", "type": "n8n-nodes-base.readWriteFile", "typeVersion": 1, "position": [1280, 360]
+    },
+    {
+      "parameters": {
+        "chatId": "__TELEGRAM_CHAT_ID__",
+        "text": "={{ $json.tgMsg }}",
+        "additionalFields": {}
+      },
+      "id": "tg-11", "name": "Telegram 通知", "type": "n8n-nodes-base.telegram", "typeVersion": 1.2, "position": [1280, 480],
+      "credentials": { "telegramApi": { "id": "lite-pack-telegram", "name": "Lite Pack · Telegram Bot" } },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Manual Trigger": { "main": [[{"node": "Read CSV", "type": "main", "index": 0}]] },
+    "Read CSV": { "main": [[{"node": "Extract CSV", "type": "main", "index": 0}]] },
+    "Extract CSV": { "main": [[{"node": "Code: 清洗 + 去重 + AI 評分", "type": "main", "index": 0}]] },
+    "Code: 清洗 + 去重 + AI 評分": { "main": [[{"node": "Code: 組 CSV + Report", "type": "main", "index": 0}]] },
+    "Code: 組 CSV + Report": {
+      "main": [[
+        {"node": "Write CSV", "type": "main", "index": 0},
+        {"node": "Write Report", "type": "main", "index": 0},
+        {"node": "Telegram 通知", "type": "main", "index": 0}
+      ]]
+    }
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "id": "lite-pack-11-csv-clean-score",
+  "tags": [{"name": "lite-pack", "id": "tag-lite-pack"}, {"name": "module-3", "id": "tag-module-3"}]
+}
