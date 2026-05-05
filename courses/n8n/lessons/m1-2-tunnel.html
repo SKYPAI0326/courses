@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>1.2 Cloudflare Tunnel 設定｜AI 資料工廠</title>
-<meta name="description" content="為本機 n8n 建立一個公開網址，讓 Make、Google Forms 等雲端服務可以傳送 Webhook 到你的電腦，完成雲地協作的關鍵橋接。">
+<meta name="description" content="為本機 n8n 建立一個公開網址，讓 Make、Google Forms 等雲端服務可以傳送 Webhook 到你的電腦。本節主流程用 Cloudflare Quick Tunnel：不需註冊、不需綁卡、不需自有網域，5 分鐘完成。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
 <meta property="og:title" content="1.2 Cloudflare Tunnel 設定｜AI 資料工廠">
-<meta property="og:description" content="為本機 n8n 建立一個公開網址，讓 Make、Google Forms 等雲端服務可以傳送 Webhook 到你的電腦，完成雲地協作的關鍵橋接。">
+<meta property="og:description" content="為本機 n8n 建立一個公開網址，讓 Make、Google Forms 等雲端服務可以傳送 Webhook 到你的電腦。本節主流程用 Cloudflare Quick Tunnel：不需註冊、不需綁卡、不需自有網域，5 分鐘完成。">
 <meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/lessons/m1-2-tunnel.html">
 <meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="1.2 Cloudflare Tunnel 設定｜AI 資料工廠">
-<meta name="twitter:description" content="為本機 n8n 建立一個公開網址，讓 Make、Google Forms 等雲端服務可以傳送 Webhook 到你的電腦，完成雲地協作的關鍵橋接。">
+<meta name="twitter:description" content="為本機 n8n 建立一個公開網址，讓 Make、Google Forms 等雲端服務可以傳送 Webhook 到你的電腦。本節主流程用 Cloudflare Quick Tunnel：不需註冊、不需綁卡、不需自有網域，5 分鐘完成。">
 <meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/lessons/m1-2-tunnel.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -88,6 +88,10 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 .context-box{background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a3);border-radius:var(--radius);padding:18px 22px;margin:0 0 32px}
 .context-label{font-size:.68rem;color:var(--c-a3);letter-spacing:1.5px;font-weight:500;margin-bottom:8px}
 .context-text{font-size:.9rem;color:var(--c-text);line-height:1.75}
+.advanced-details{margin-top:48px;background:rgba(245,243,238,.5);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 24px}
+.advanced-details summary{cursor:pointer;font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);padding:4px 0}
+.advanced-details summary:hover{color:var(--c-a3)}
+.advanced-details-body{margin-top:18px;font-size:.88rem;line-height:1.85;color:var(--c-text)}
 .footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
 .footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
 .footer-div{width:1px;height:14px;background:var(--c-border)}
@@ -142,10 +146,10 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <span class="hero-num">SECTION 1.2</span>
   </div>
   <h1 class="step-title">Cloudflare Tunnel 設定</h1>
-  <p class="step-subtitle">為本機 n8n 建立一個公開網址，讓 Make、Google Forms 等雲端服務可以傳送 Webhook 到你的電腦，完成雲地協作的關鍵橋接。</p>
+  <p class="step-subtitle">為本機 n8n 建立一個公開網址，讓 Make、Google Forms 等雲端服務可以傳送 Webhook 到你的電腦。本節主流程用 Cloudflare Quick Tunnel：不需註冊、不需綁卡、不需自有網域，5 分鐘完成。</p>
   <div class="meta-bar">
-    <div class="meta-item"><span class="meta-icon">⏱</span><span>預估時間：15–20 分鐘</span></div>
-    <div class="meta-item"><span class="meta-icon">📋</span><span>7 個步驟</span></div>
+    <div class="meta-item"><span class="meta-icon">⏱</span><span>主流程 5 分鐘 / 進階 30 分鐘</span></div>
+    <div class="meta-item"><span class="meta-icon">📋</span><span>主流程 3 步驟</span></div>
     <div class="meta-item"><span class="meta-icon">✅</span><span>前置：完成 1.1 n8n 安裝</span></div>
   </div>
 </div>
@@ -155,129 +159,86 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <div class="context-box">
     <div class="context-label">為什麼需要這個步驟</div>
     <p class="context-text">n8n 裝在你的電腦裡，但 Make 或 Google Forms 在網際網路上「看不到」你的電腦——它沒有公開的 IP，也沒有網址。Cloudflare Tunnel 解決這個問題：它幫你的本機 n8n 建立一個公開網址，雲端服務就能透過這個網址把任務傳進來。</p>
+    <p class="context-text" style="margin-top:14px;"><strong>本節主流程</strong>：用 Cloudflare 官方的 <strong>Quick Tunnel</strong>（trycloudflare.com）一行指令拿公開 URL，5 分鐘搞定。<strong>不需 Cloudflare 帳號、不需綁卡、不需自有網域</strong>。代價是 URL 每次重啟會變——對課程練習、課堂演練、開發測試完全夠用。<br>若需要長期穩定的固定網址（生產環境、客戶整合等），請看本頁底部「進階：完整 Tunnel + 自有網域」折疊段落。</p>
   </div>
 
-  <!-- Step 1 -->
+  <!-- ============== 主流程 3 步驟 ============== -->
+
+  <!-- Step 1：安裝 cloudflared -->
   <div class="step-block">
     <div class="step-num-col"><div class="step-circle">1</div></div>
     <div class="step-content">
-      <div class="step-label">建立或登入 Cloudflare 帳號</div>
-      <p class="step-desc">前往 Cloudflare 官網註冊帳號（個人使用免費）。完成後，從儀表板左側導覽點擊進入「Zero Trust」（也可能顯示為「One」）。Zero Trust 提供 Tunnel 管理入口，個人開發/教學用途在免費方案內可用（依 Cloudflare 當前規則）。</p>
-      <div class="screenshot">
-        <div class="screenshot-icon">☁️</div>
-        <div class="screenshot-cap">Cloudflare 儀表板，左側找到 Zero Trust 入口</div>
+      <div class="step-label">安裝 cloudflared 命令列工具</div>
+      <p class="step-desc">cloudflared 是 Cloudflare 的官方工具，負責把本機連到 Cloudflare 邊緣節點建立 Tunnel。Mac 與 Windows 安裝路徑不同。</p>
+      <div class="code-block">
+<span class="comment"># Mac（推薦：Homebrew 安裝。沒裝 Homebrew 先到 brew.sh 裝）</span>
+<span class="cmd">brew install cloudflared</span></div>
+      <div class="step-tip info">
+        <span class="tip-icon">🍎</span>
+        <span class="tip-text"><strong>Mac 不熟悉終端機？</strong>到 <a href="https://github.com/cloudflare/cloudflared/releases" target="_blank" rel="noopener">cloudflared GitHub Releases</a> 下載 <span class="ic">cloudflared-darwin-amd64.tgz</span>（Intel）或 <span class="ic">cloudflared-darwin-arm64.tgz</span>（Apple Silicon），解壓後雙擊安裝。</span>
       </div>
       <div class="step-tip info">
-        <span class="tip-icon">💡</span>
-        <span class="tip-text">Cloudflare 免費方案已包含完整的 Tunnel 功能，無需升級付費方案。</span>
+        <span class="tip-icon">🪟</span>
+        <span class="tip-text"><strong>Windows</strong>：到 <a href="https://github.com/cloudflare/cloudflared/releases" target="_blank" rel="noopener">cloudflared Releases</a> 下載 <span class="ic">cloudflared-windows-amd64.exe</span>，改名為 <span class="ic">cloudflared.exe</span> 放到 <span class="ic">C:\Windows\System32\</span>（這樣命令列任何位置都能呼叫）。</span>
       </div>
+      <p class="step-desc" style="margin-top:14px;"><strong>確認安裝成功</strong>：在終端機 / 命令列輸入 <span class="ic">cloudflared --version</span>，應該顯示版本號（例如 <span class="ic">2026.3.0</span>）。</p>
     </div>
   </div>
 
-  <!-- Step 2 -->
+  <!-- Step 2：雙擊 tunnel-quick 拿 URL -->
   <div class="step-block">
     <div class="step-num-col"><div class="step-circle">2</div></div>
     <div class="step-content">
-      <div class="step-label">建立新的 Tunnel</div>
-      <p class="step-desc">進入 Zero Trust 後，從左側選擇「Networks」<span aria-hidden="true">→</span>「Tunnels」<span aria-hidden="true">→</span>「Create a tunnel」。選擇「Cloudflared」作為連線方式，為 Tunnel 命名（例如 <span class="ic">n8n-local</span>），點擊「Save tunnel」繼續。</p>
-      <div class="screenshot">
-        <div class="screenshot-icon">🔧</div>
-        <div class="screenshot-cap">Zero Trust <span aria-hidden="true">→</span> Networks <span aria-hidden="true">→</span> Tunnels，點擊「Create a tunnel」，輸入名稱</div>
+      <div class="step-label">雙擊 tunnel-quick 取得公開 URL</div>
+      <p class="step-desc"><strong>前置</strong>：n8n 已啟動（雙擊 <span class="ic">start.command</span> 看到「✅ n8n 已啟動」）。在 <span class="ic">~/n8n-starter-kit/</span> 試跑包資料夾雙擊：</p>
+      <ul style="margin:8px 0 0 22px;line-height:1.95;font-size:.92rem;color:var(--c-text);">
+        <li><strong>Mac</strong>：<span class="ic">tunnel-quick.command</span></li>
+        <li><strong>Windows</strong>：<span class="ic">tunnel-quick.bat</span></li>
+      </ul>
+      <p class="step-desc" style="margin-top:14px;">終端機會顯示一行類似：</p>
+      <div class="code-block">
+<span class="cmd">https://recycling-durham-capacity-patches.trycloudflare.com</span></div>
+      <p class="step-desc" style="margin-top:8px;"><strong>請複製這串 URL 保留</strong>——下一步會用到。</p>
+      <div class="step-tip warning">
+        <span class="tip-icon">⚠️</span>
+        <span class="tip-text"><strong>保持終端機視窗開著</strong>，URL 才會持續有效。關閉視窗或按 Ctrl+C → URL 立即失效。每次重新雙擊 URL 都會變。</span>
+      </div>
+      <div class="step-tip warning">
+        <span class="tip-icon">🍎</span>
+        <span class="tip-text"><strong>macOS 第一次雙擊被擋是正常的</strong>：跟你第一次雙擊 <span class="ic">start.command</span> 一樣處理——開「系統設定 <span aria-hidden="true">→</span> 隱私權與安全性」捲到底「安全性」區塊 <span aria-hidden="true">→</span> 看到被擋的 <span class="ic">tunnel-quick.command</span> <span aria-hidden="true">→</span> 按「強制打開」<span aria-hidden="true">→</span> 確認密碼。</span>
+      </div>
+      <div class="step-tip info">
+        <span class="tip-icon">🛠</span>
+        <span class="tip-text"><strong>內建防呆</strong>：腳本預設用 HTTP/2 協議（避開家用 ISP / 公司網路常擋的 QUIC/UDP 7844）。30 秒沒拿到 URL 會自動跳對話框建議改 ngrok 備用方案。</span>
       </div>
     </div>
   </div>
 
-  <!-- Step 3 -->
+  <!-- Step 3：webhook 測試 -->
   <div class="step-block">
     <div class="step-num-col"><div class="step-circle">3</div></div>
     <div class="step-content">
-      <div class="step-label">安裝 cloudflared 程式（Mac）</div>
-      <p class="step-desc">Cloudflare 會依你的作業系統顯示安裝指令。Mac 用戶最簡單的方法是用 Homebrew 安裝：打開終端機（Terminal），輸入以下指令並按 Enter。若尚未安裝 Homebrew，請先至 brew.sh 安裝。</p>
+      <div class="step-label">用 Tunnel URL 觸發本機 n8n Webhook</div>
+      <p class="step-desc">驗證 Tunnel 真的能把外部請求傳到本機 n8n。<strong>順序很重要——5 個動作要連續做完，不能停太久</strong>：</p>
+      <ol style="margin:8px 0 14px 22px;line-height:1.95;font-size:.92rem;color:var(--c-text);">
+        <li>瀏覽器打開 <span class="ic">http://localhost:5678</span> 進入 n8n 編輯器</li>
+        <li>打開 1.1.2 建好的 Webhook workflow</li>
+        <li>按畫面正下方紫色「<strong>Execute workflow</strong>」按鈕（不是節點裡面那個）</li>
+        <li>Webhook 節點變藍色「Listening for test event」（等候狀態，<strong>1 分鐘內有效</strong>）</li>
+        <li><strong>立刻</strong>切到新分頁，貼上你的 Quick Tunnel URL + webhook test path：</li>
+      </ol>
       <div class="code-block">
-        <span class="cmd">brew install cloudflared</span>
-      </div>
-      <div class="step-tip info">
-        <span class="tip-icon">💡</span>
-        <span class="tip-text">不熟悉終端機？可以直接從 Cloudflare 設定頁面下載 <span class="ic">cloudflared.pkg</span> 安裝檔，點兩下安裝即可，完全不需要使用終端機。若選擇 Homebrew 方式，找到 Mac 的「終端機」(Terminal) App，貼上指令按 Enter 即可。</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Step 3b Windows -->
-  <div class="step-block">
-    <div class="step-num-col"><div class="step-circle">3b</div></div>
-    <div class="step-content">
-      <div class="step-label">安裝 cloudflared 程式（Windows）</div>
-      <p class="step-desc">Windows 用戶從 Cloudflare 提供的頁面直接下載 <span class="ic">cloudflared.exe</span> 執行檔，放到容易找到的資料夾（例如 <span class="ic">C:\cloudflared\</span>）。接著打開命令提示字元（搜尋 cmd），切換到該資料夾後執行安裝指令。</p>
+<span class="cmd">https://你的trycloudflare網址.trycloudflare.com/webhook-test/hello</span></div>
+      <p class="step-desc" style="margin-top:8px;">瀏覽器應該顯示：</p>
       <div class="code-block">
-        <span class="comment"># 切換到 cloudflared 所在目錄</span><br>
-        <span class="cmd">cd C:\cloudflared</span><br>
-        <span class="comment"># 執行 Cloudflare 頁面提供的 token 指令</span><br>
-        <span class="cmd">cloudflared.exe service install &lt;你的token&gt;</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Step 4 -->
-  <div class="step-block">
-    <div class="step-num-col"><div class="step-circle">4</div></div>
-    <div class="step-content">
-      <div class="step-label">執行 Tunnel 連線指令</div>
-      <p class="step-desc">回到 Cloudflare 的設定頁面，複製頁面上顯示的完整啟動指令（包含你的 Token），貼到終端機並按 Enter 執行。成功後終端機會持續顯示連線狀態，表示 Tunnel 正在運作中。</p>
-      <div class="screenshot">
-        <div class="screenshot-icon">⚡️</div>
-        <div class="screenshot-cap">終端機執行 cloudflared 指令後，顯示「Connection registered」或「Connected」的成功訊息</div>
-      </div>
-      <div class="step-tip warning">
-        <span class="tip-icon">⚠️</span>
-        <span class="tip-text"><strong>保持終端機開著：</strong>只要 Tunnel 在跑，這個終端機視窗就不能關閉，否則連線會中斷。課程進行時請讓它在背景運作。</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Step 5 -->
-  <div class="step-block">
-    <div class="step-num-col"><div class="step-circle">5</div></div>
-    <div class="step-content">
-      <div class="step-label">設定 Public Hostname 指向 n8n</div>
-      <p class="step-desc">回到 Cloudflare Tunnel 頁面，進入「Public Hostnames」分頁，點擊「Add a public hostname」。設定一個子網域名稱（例如 <span class="ic">n8n-webhook</span>），Service 類型選「HTTP」，URL 填入 <span class="ic">localhost:5678</span>（自架 n8n 的預設連接埠），儲存。</p>
-      <div class="screenshot">
-        <div class="screenshot-icon">🌐</div>
-        <div class="screenshot-cap">Public Hostname 設定：子網域名稱、Service 選 HTTP、URL 填 localhost:5678</div>
-      </div>
-      <div class="step-tip info">
-        <span class="tip-icon">📌</span>
-        <span class="tip-text"><span class="ic">5678</span> 是 自架 n8n 的預設 port。若你有更改過 n8n 的設定，請填入對應的 port 號。</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Step 6 -->
-  <div class="step-block">
-    <div class="step-num-col"><div class="step-circle">6</div></div>
-    <div class="step-content">
-      <div class="step-label">取得並記錄你的 Tunnel 網址</div>
-      <p class="step-desc">完成 Public Hostname 設定後，Cloudflare 會產生一個公開網址，格式為 <span class="ic">你的子網域.你的網域.com</span>（若無自訂網域則為 Cloudflare 提供的預設格式）。複製這個網址並記下來——這是後續讓 Make 找到你 n8n 的核心地址。</p>
-      <div class="screenshot">
-        <div class="screenshot-icon">🔗</div>
-        <div class="screenshot-cap">Tunnel 設定完成後，Public Hostname 列表顯示你的公開網址</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Step 7 -->
-  <div class="step-block">
-    <div class="step-num-col"><div class="step-circle">7</div></div>
-    <div class="step-content">
-      <div class="step-label">測試：從外部觸發本機 n8n Webhook</div>
-      <p class="step-desc">開啟 自架 n8n，進入你的測試 Workflow，點擊 Webhook 節點並選擇「Test step」進入等待狀態。將步驟 6 取得的 Tunnel 網址加上 <span class="ic">/webhook-test/</span> 和你的 Webhook 路徑，貼到瀏覽器新分頁訪問。n8n 若顯示收到資料，代表整個通道已打通。</p>
-      <div class="screenshot">
-        <div class="screenshot-icon">🎉</div>
-        <div class="screenshot-cap">n8n Webhook 節點成功接收到來自 Cloudflare Tunnel 網址的資料</div>
-      </div>
+<span class="cmd">{"message": "Workflow was started"}</span></div>
       <div class="step-tip success">
         <span class="tip-icon">✅</span>
-        <span class="tip-text"><strong>雲地通道打通：</strong>你現在可以在 Make.com 的 HTTP 模組中填入這個 Tunnel 網址，讓 Make 的流程觸發你本機 n8n 的 Webhook，雲地協作正式成立。</span>
+        <span class="tip-text"><strong>切回 n8n 編輯器確認三件事</strong>：(1) Webhook 節點變綠色；(2) Output 面板出現 <span class="ic">headers</span> / <span class="ic">query</span> / <span class="ic">body</span> 資料結構；(3) cloudflared 終端機視窗多了 INF log 紀錄這次 GET 請求。三件事齊備就完成 1.2 驗收。</span>
+      </div>
+      <div class="step-tip warning">
+        <span class="tip-icon">⏱</span>
+        <span class="tip-text"><strong>Test mode 是一次性</strong>：n8n Webhook 收到一次 test event 後等候狀態自動關閉，要再測就重按「Execute workflow」按鈕。要永久接收請把 workflow 切到「Active」並改用 <span class="ic">/webhook/hello</span>（不是 <span class="ic">/webhook-test/hello</span>）。</span>
       </div>
     </div>
   </div>
@@ -285,43 +246,84 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <!-- Verify -->
   <div class="verify-box">
     <div class="verify-label">完成驗證 CHECKPOINT</div>
-    <div class="verify-title">你應該看到這個畫面才算成功</div>
-    <p class="verify-desc">透過 Cloudflare Tunnel 提供的公開網址，成功觸發本機 n8n 的 Webhook 節點，n8n 顯示已接收到外部資料。此時若在 Make.com 的 HTTP 模組填入此網址並執行，也應能同樣觸發 n8n 接收資料。</p>
+    <div class="verify-title">三件事齊備才算 1.2 完成</div>
+    <p class="verify-desc">(1) cloudflared 終端機視窗顯示 <span class="ic">trycloudflare.com</span> URL 並持續運作；(2) 用 Tunnel URL 打 webhook test path，瀏覽器顯示 <span class="ic">{"message": "Workflow was started"}</span>；(3) 切回 n8n 編輯器，Webhook 節點變綠色 + Output 面板有 <span class="ic">headers</span> / <span class="ic">query</span> / <span class="ic">body</span> 資料結構。</p>
   </div>
 
   <!-- Troubleshoot -->
   <div class="trouble-section">
     <div class="trouble-head">
-      <span class="trouble-title">常見問題</span>
+      <span class="trouble-title">主流程常見問題</span>
       <div class="trouble-line"></div>
     </div>
     <div class="trouble-item">
-      <div class="trouble-problem">Tunnel 網址無法連線（瀏覽器顯示錯誤）</div>
-      <div class="trouble-solution">優先檢查：(1) 終端機的 cloudflared 是否仍在執行（視窗有無關閉）；(2) Zero Trust 的 Public Hostname 中 localhost 的 port 是否設定為 5678；(3) 自架 n8n 應用程式是否有在運作中。</div>
+      <div class="trouble-problem">tunnel-quick 跑出 <span class="ic">control stream encountered a failure while serving</span> 連續 retry</div>
+      <div class="trouble-solution">你的網路環境（家用 ISP / 公司網路 / VPN）擋了 cloudflared 預設的 QUIC 協議（UDP 7844）。新版 <span class="ic">tunnel-quick.command</span> 已預設改用 HTTP/2，30 秒沒拿到 URL 會自動跳對話框建議改 ngrok。請先重新從 1.1.2 講義頁下載最新試跑包覆蓋整個資料夾，再雙擊 <span class="ic">tunnel-quick.command</span>。</div>
     </div>
     <div class="trouble-item">
-      <div class="trouble-problem">Cloudflare 頁面找不到 Zero Trust 或 Tunnels 選項</div>
-      <div class="trouble-solution">Cloudflare 介面偶有改版。若找不到「Zero Trust」，可嘗試搜尋「Cloudflare One」或在帳號儀表板頂部搜尋「Tunnel」。也可直接至 one.dash.cloudflare.com 進入。</div>
+      <div class="trouble-problem">瀏覽器打 webhook URL 顯示 <span class="ic">{"code": 404, "message": "The requested webhook 'hello' is not registered"}</span></div>
+      <div class="trouble-solution">n8n Webhook 節點沒有處於「Listening for test event」等候狀態。回 n8n 編輯器按下方紫色「Execute workflow」按鈕，<strong>立刻</strong>（10 秒內）切到瀏覽器分頁打 Tunnel URL。Test webhook 是一次性，每次測都要重按按鈕。</div>
     </div>
     <div class="trouble-item">
-      <div class="trouble-problem">Make.com 的 HTTP 模組打到 Tunnel 網址沒反應</div>
-      <div class="trouble-solution">確認在 Make 模組中填入的是完整網址（含 https://），且 n8n 的 Webhook 節點已進入「Waiting for test event」等待狀態。Make 的測試執行預設有 30 秒 timeout，確保在時間內完成觸發。</div>
+      <div class="trouble-problem">cloudflared 視窗關掉後 URL 失效</div>
+      <div class="trouble-solution">這是預期行為——Quick Tunnel 跟 cloudflared 進程綁定，視窗關閉 URL 就失效。下次再雙擊 <span class="ic">tunnel-quick.command</span> 會拿到<strong>新的不同</strong> URL。如果需要長期穩定 URL，看下方「進階：完整 Tunnel + 自有網域」段落。</div>
+    </div>
+    <div class="trouble-item">
+      <div class="trouble-problem">tunnel-quick 報錯「找不到 cloudflared 指令」</div>
+      <div class="trouble-solution">回 Step 1 確認 cloudflared 安裝成功。終端機跑 <span class="ic">cloudflared --version</span> 應該看到版本號。Mac 用 brew 最穩；Windows 把 cloudflared.exe 放到 <span class="ic">C:\Windows\System32\</span> 才能全域呼叫。</div>
     </div>
   </div>
 
-  <!-- Fallback -->
+  <!-- ============== 進階：完整 Tunnel（折疊） ============== -->
+  <details class="advanced-details">
+    <summary>⚙️ 進階：完整 Tunnel + 自有網域（要長期穩定 URL 才看）</summary>
+    <div class="advanced-details-body">
+      <p style="margin-bottom:14px;"><strong>什麼時候才需要走完整 Tunnel？</strong></p>
+      <ul style="margin:0 0 14px 22px;line-height:1.85;">
+        <li>需要永久穩定的 URL 給客戶 / 第三方整合</li>
+        <li>要把 Make scenario 部署成生產環境（不能每天改網址）</li>
+        <li>需要 Cloudflare Access / Zero Trust 等進階保護</li>
+      </ul>
+
+      <p style="margin-bottom:14px;"><strong>兩層門檻先確認</strong>：</p>
+      <ol style="margin:0 0 14px 22px;line-height:1.85;">
+        <li><strong>需要綁信用卡</strong>：Cloudflare 自 2024 起 Zero Trust 免費方案首次設定要求綁卡作 anti-abuse（不會在免費額度內扣款；50 users / Tunnel 流量無限）</li>
+        <li><strong>需要自有網域</strong>：Public Hostname 要從你已託管在 Cloudflare 的網域選一個（沒網域則買一個 ~$10/年，例如 Namecheap / Cloudflare Registrar）</li>
+      </ol>
+
+      <p style="margin-bottom:8px;"><strong>完整流程（7 步驟）</strong>：</p>
+      <ol style="margin:0 0 14px 22px;line-height:1.85;">
+        <li>建立 Cloudflare 帳號 + 綁卡 → 進入 Zero Trust dashboard（<a href="https://one.dash.cloudflare.com" target="_blank" rel="noopener">one.dash.cloudflare.com</a>）</li>
+        <li>左側 Networks → Tunnels → Create a tunnel → 取名（例如 <span class="ic">n8n-local</span>）</li>
+        <li>跟著頁面提示安裝 cloudflared 並執行 service install 命令（含 Token）。Mac 用 <span class="ic">brew install cloudflared</span>；Windows 下載 <span class="ic">cloudflared.exe</span>，命令提示字元跑 <span class="ic">cloudflared.exe service install &lt;你的token&gt;</span></li>
+        <li>確認 Tunnel 顯示「Connected」（dashboard 連線狀態 + 終端機顯示 Connection registered）</li>
+        <li>Public Hostnames → Add a public hostname → 選你的網域 → 子網域 <span class="ic">n8n-webhook</span> → Service 選 HTTP → URL 填 <span class="ic">localhost:5678</span></li>
+        <li>取得永久網址（如 <span class="ic">n8n-webhook.your-domain.com</span>）</li>
+        <li>用此網址測試 webhook（同主流程 Step 3）</li>
+      </ol>
+
+      <div class="step-tip warning">
+        <span class="tip-icon">⚠️</span>
+        <span class="tip-text"><strong>同樣會碰到 QUIC 被擋的問題</strong>：cloudflared 的 service install 啟動方式預設仍用 QUIC。若連線失敗，需手動加 <span class="ic">--protocol http2</span> 參數，或在 cloudflared config.yml 設定 <span class="ic">protocol: http2</span>。</span>
+      </div>
+
+      <p style="font-size:.85rem;color:var(--c-muted);margin-top:14px;"><strong>進階子單元</strong>：完整 Tunnel 設定後可看 <a href="m1-2-autostart.html">cloudflared 自動啟動</a>（Mac launchd / Win 系統服務）與 <a href="m1-2-hostname.html">多 Hostname 管理</a>。課程主流程跑 Quick Tunnel 不會用到這兩個。</p>
+    </div>
+  </details>
+
+  <!-- 備用方案：ngrok -->
   <div class="context-box" style="margin-top:32px;">
     <div class="context-label">備用方案 · NGROK FALLBACK</div>
-    <p class="context-text">若 Cloudflare Tunnel 在現場無法順利設定（Homebrew 安裝失敗、網路防火牆限制），可改用 <strong>ngrok free plan</strong> 作為短期測試替代——操作更簡單，效果相同。正式課程與長期使用仍建議以 Cloudflare Tunnel 或正式網域設定為主。</p>
-    <div class="code-block" style="margin:14px 0;">
-<span class="comment"># 1. 前往 ngrok.com 註冊（free plan 即可），下載後解壓縮</span>
-<span class="comment"># 2. 在終端機執行（5678 是 n8n 的預設 port）</span>
-<span class="cmd">./ngrok http 5678</span>
-<span class="comment"># 終端機顯示：Forwarding  https://xxxx.ngrok-free.app <span aria-hidden="true">→</span> localhost:5678</span>
-<span class="comment"># 複製 https 網址，填入 Make 的 HTTP Request URL 即可</span></div>
-    <div class="step-tip warning" style="margin-top:4px;">
+    <p class="context-text">若 Quick Tunnel 在你的網路環境完全跑不通（即使 HTTP/2 仍 retry loop），表示 cloudflared outbound 連線被完全擋。改用 ngrok（架構不同，走 TCP HTTPS 反代）通常能繞過。</p>
+    <ol style="margin:14px 0 0 22px;line-height:1.95;font-size:.92rem;color:var(--c-text);">
+      <li>前往 <a href="https://ngrok.com" target="_blank" rel="noopener">ngrok.com</a> 註冊免費帳號（<strong>不需綁卡</strong>）</li>
+      <li>下載 ngrok 並解壓</li>
+      <li>終端機跑 <span class="ic">./ngrok http 5678</span>（5678 是 n8n port）</li>
+      <li>終端機顯示類似 <span class="ic">https://xxxx.ngrok-free.app</span>，把它當主流程 Step 3 的 Tunnel URL 用</li>
+    </ol>
+    <div class="step-tip warning" style="margin-top:14px;">
       <span class="tip-icon">⚠️</span>
-      <span class="tip-text"><strong>ngrok free plan 的兩個限制：</strong>（1）每次重啟 URL 會改變，需重新更新 Make 中的目標網址；（2）第一次用瀏覽器訪問會出現警告頁，在 Make 的 HTTP Request Header 加入 <span class="ic">ngrok-skip-browser-warning: true</span> 即可跳過。其他流量、網域、自訂限制請以 ngrok 官方當前條款為準。</span>
+      <span class="tip-text"><strong>ngrok free plan 兩個限制</strong>：(1) 每次重啟 URL 會變（同 Quick Tunnel）；(2) 第一次用瀏覽器訪問會出現警告頁，加 header <span class="ic">ngrok-skip-browser-warning: true</span> 即可跳過。</span>
     </div>
   </div>
 
@@ -341,8 +343,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div style="font-size:.73rem;color:var(--c-a3);letter-spacing:2px;font-weight:600;margin-bottom:14px;">💼 實戰案例</div>
     <div style="font-size:.9rem;color:var(--c-text);line-height:1.95;">
       <div style="margin-bottom:10px;"><strong>情境｜</strong>某攝影工作室把 Google Forms 客戶訂單表 <span aria-hidden="true">→</span> Cloudflare Tunnel <span aria-hidden="true">→</span> 本機 n8n 自動建專案資料夾 + 下載客戶上傳素材。</div>
-      <div style="margin-bottom:10px;"><strong>做法｜</strong>Cloudflare 免費 Named Tunnel 綁自購網域（約 300 元/年）讓網址永久固定，不怕 Quick Tunnel 每次重啟變網址。</div>
-      <div><strong>踩雷｜</strong>防火牆／公司網路常擋掉 cloudflared 的 outbound 連線——在家能跑、到公司就不行。解法：改用 Public Hostname + DNS CNAME 走 443 port，或先在家設定好再帶筆電去公司。</div>
+      <div style="margin-bottom:10px;"><strong>做法｜</strong>課程演練階段用 Quick Tunnel 驗證流程通暢；正式上線改買網域走完整 Tunnel 拿到永久 URL（一年約 300 元）讓網址不變。</div>
+      <div><strong>踩雷｜</strong>家裡 ISP / 公司網路常擋 cloudflared 預設的 QUIC 協議。新版 starter-kit 預設改 HTTP/2 已解決大部分情境；少數仍擋的環境改用 ngrok 備用方案。</div>
     </div>
   </div>
 

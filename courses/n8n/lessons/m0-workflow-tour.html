@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M0 工作流設計拆解總覽｜AI 資料工廠 — 大規模文件處理實戰</title>
+<meta name="description" content="Lite Pack 8 個 workflow 設計拆解總覽：每個 workflow 做什麼、節點怎麼設計、學員怎麼改造。涵蓋 Webhook hello-world、PDF AI 改名、批次處理錯誤恢復、定時 AI 日報等。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="M0 工作流設計拆解總覽｜AI 資料工廠">
+<meta property="og:description" content="Lite Pack 8 個 workflow 設計拆解總覽：每個 workflow 做什麼、節點怎麼設計、學員怎麼改造。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/m0-workflow-tour.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="M0 工作流設計拆解總覽｜AI 資料工廠">
+<meta name="twitter:description" content="Lite Pack 8 個 workflow 設計拆解總覽：每個 workflow 做什麼、節點怎麼設計、學員怎麼改造。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/m0-workflow-tour.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-a5:#7a9ea3;--c-main:#5a7a5a;--radius:4px;--content-w:980px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 var(--radius) 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:#5a7a5a;border:1px solid rgba(90,122,90,.3);background:transparent;padding:3px 12px;border-radius:99px;font-weight:500;letter-spacing:.06em}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 36px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px;font-variant-numeric:tabular-nums}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;max-width:24ch}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;margin-bottom:28px}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-body{font-size:.9rem;line-height:1.85}
+.callout.info{background:rgba(90,122,90,.06);border-left-color:var(--c-a3)}
+.workflow-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;margin:24px 0}
+.wf-card{background:var(--c-card);border:1px solid var(--c-border-soft);border-left:3px solid var(--c-a3);border-radius:var(--radius);padding:18px 22px;text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s;display:flex;flex-direction:column;gap:6px}
+.wf-card:hover{border-color:var(--c-text)}
+.wf-card.ai{border-left-color:var(--c-a1)}
+.wf-card.tunnel{border-left-color:var(--c-a4)}
+.wf-num{font-family:'Shippori Mincho',serif;font-size:.74rem;color:var(--c-faint);letter-spacing:.1em;font-weight:600}
+.wf-title{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);line-height:1.5;margin-bottom:4px}
+.wf-meta{display:flex;gap:10px;font-size:.75rem;color:var(--c-muted);flex-wrap:wrap;margin-bottom:6px}
+.wf-meta span{padding:1px 8px;background:var(--c-surface);border-radius:99px}
+.wf-meta .ai{background:rgba(181,112,58,.1);color:var(--c-a1)}
+.wf-desc{font-size:.85rem;color:var(--c-muted);line-height:1.7}
+.wf-cta{font-size:.78rem;color:var(--c-a3);margin-top:8px;font-weight:500}
+.wf-card.ai .wf-cta{color:var(--c-a1)}
+.wf-card.tunnel .wf-cta{color:var(--c-a4)}
+.path-card{background:var(--c-card);border:1px solid var(--c-border-soft);border-radius:var(--radius);padding:24px 28px;margin:18px 0}
+.path-num{font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-text);letter-spacing:.15em;font-weight:600;margin-bottom:8px}
+.path-title{font-family:'Shippori Mincho',serif;font-size:1.15rem;font-weight:700;color:var(--c-text);margin-bottom:12px}
+.path-body{font-size:.9rem;line-height:1.9}
+.path-body ol{margin:6px 0 0 22px}
+.path-body a{color:var(--c-a3);text-decoration:none;font-weight:500}
+.path-body a:hover{text-decoration:underline}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
+.nav-btn:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main)}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.workflow-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 資料工廠 — 大規模文件處理實戰</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">M0 · 工作流拆解</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<div class="page-hero">
+  <a href="index.html" class="back-link"><span aria-hidden="true">←</span> 返回課程首頁</a>
+  <div class="hero-eyebrow">M0 · WORKFLOW TOUR</div>
+  <h1 class="lesson-title">8 個 workflow 設計拆解總覽：每個都是一個可改造範本</h1>
+  <p class="lesson-tagline">Lite Pack 給你 8 個現成 workflow 不只是讓你能用，更是讓你看得懂「自動化的設計選擇」。每個拆解頁含 4 個區塊：workflow 全圖 → 節點逐一解釋 → 為什麼這樣設計（含我們踩過的雷）→ 改造方向。讀完這 8 頁你會帶走：「拿到任何業務需求，能拆解成節點鏈 + 知道哪些雷會踩」的能力。</p>
+</div>
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(01) 8 個 workflow 速覽</div>
+  <h2 class="section-heading">點卡片進每個 workflow 的設計拆解</h2>
+
+  <div class="workflow-grid">
+    <a href="m0-workflow-01-webhook.html" class="wf-card">
+      <div class="wf-num">#01</div>
+      <div class="wf-title">Webhook hello-world</div>
+      <div class="wf-meta"><span>3 節點</span><span>基礎</span></div>
+      <div class="wf-desc">最簡 webhook 鏈：外部 POST → 接收 → 回傳。明天課堂第一個示範就是它。</div>
+      <div class="wf-cta">看設計拆解 →</div>
+    </a>
+
+    <a href="m0-workflow-02-pdf-rename.html" class="wf-card ai">
+      <div class="wf-num">#02 · AI 招牌</div>
+      <div class="wf-title">PDF AI 改名</div>
+      <div class="wf-meta"><span class="ai">AI</span><span>5 節點</span><span>進階</span></div>
+      <div class="wf-desc">丟 PDF 進資料夾 → AI 讀內容 → 自動取語意檔名。含 6 層 fallback parser、Gemini 2.5 thinking budget 修補。</div>
+      <div class="wf-cta">看設計拆解 →</div>
+    </a>
+
+    <a href="m0-workflow-03-batch.html" class="wf-card ai">
+      <div class="wf-num">#03 · 資料工廠</div>
+      <div class="wf-title">批次處理錯誤恢復</div>
+      <div class="wf-meta"><span class="ai">AI</span><span>7 節點</span><span>專家</span></div>
+      <div class="wf-desc">100 份混合品質 PDF 自動分流：合法→改名→processed/，壞檔→隔離→failed/。含 5 次迭代學到的 n8n 對齊真相。</div>
+      <div class="wf-cta">看設計拆解 →</div>
+    </a>
+
+    <a href="m0-workflow-04-daily.html" class="wf-card ai">
+      <div class="wf-num">#04</div>
+      <div class="wf-title">定時 AI 日報</div>
+      <div class="wf-meta"><span class="ai">AI</span><span>6 節點</span><span>進階</span></div>
+      <div class="wf-desc">每天 8:00 自動讀 daily-input/ 內所有檔 → AI 摘要 4 段結構化日報 → 寫本機檔。Schedule + Aggregate + AI 整合範例。</div>
+      <div class="wf-cta">看設計拆解 →</div>
+    </a>
+
+    <a href="m0-workflow-05-telegram.html" class="wf-card">
+      <div class="wf-num">#05</div>
+      <div class="wf-title">Telegram 通知</div>
+      <div class="wf-meta"><span>3 節點</span><span>基礎</span></div>
+      <div class="wf-desc">最簡 Telegram bot 鏈：手動觸發 → 組訊息 → 推 Telegram。學員 setup-wizard smoke test 用的就是它。</div>
+      <div class="wf-cta">看設計拆解 →</div>
+    </a>
+
+    <a href="m0-workflow-06-webhook-ai.html" class="wf-card ai">
+      <div class="wf-num">#06 · 雲地橋接</div>
+      <div class="wf-title">Webhook → Gemini → 三輸出</div>
+      <div class="wf-meta"><span class="ai">AI</span><span>5 節點</span><span>進階</span></div>
+      <div class="wf-desc">外部 POST 一個問題 → AI 生答 → 同時寫本機檔 + Telegram 通知 + 回 webhook 200。一個 workflow 三個出口。</div>
+      <div class="wf-cta">看設計拆解 →</div>
+    </a>
+
+    <a href="m0-workflow-07-tunnel.html" class="wf-card tunnel">
+      <div class="wf-num">#07 · Tunnel</div>
+      <div class="wf-title">Quick Tunnel 接收器</div>
+      <div class="wf-meta"><span>4 節點</span><span>進階</span></div>
+      <div class="wf-desc">搭配 Cloudflare Quick Tunnel，把本機 n8n 變成公開 URL，外部（Make / Google Form / Zapier）都能 POST 觸發。</div>
+      <div class="wf-cta">看設計拆解 →</div>
+    </a>
+
+    <a href="m0-workflow-08-expression.html" class="wf-card">
+      <div class="wf-num">#08</div>
+      <div class="wf-title">Expression 練習</div>
+      <div class="wf-meta"><span>4 節點</span><span>基礎</span></div>
+      <div class="wf-desc">n8n Expression 語法集合範例：相對引用、絕對引用、Optional Chaining、JavaScript 內建函式。改造練習素材。</div>
+      <div class="wf-cta">看設計拆解 →</div>
+    </a>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(02) 學習路徑建議</div>
+  <h2 class="section-heading">不要 8 個一次看完，依目標選路徑</h2>
+  <div class="intro-band">
+    <div class="intro-label">為什麼分路徑</div>
+    <div class="intro-text">8 個 workflow 涵蓋的設計概念深淺不同。如果你是「明天課堂前先快速搞懂」，看 3 個就夠；如果你想「徹底改造成自己業務」，那 8 個都要看且要動手改。</div>
+  </div>
+
+  <div class="path-card">
+    <div class="path-num">PATH A · 1 小時速通</div>
+    <div class="path-title">趕時間先看這 3 個</div>
+    <div class="path-body">
+      <p>看完能理解 Lite Pack 主要 wow point + 知道 AI workflow 一般長相。</p>
+      <ol>
+        <li><a href="m0-workflow-02-pdf-rename.html">#2 PDF AI 改名</a> — AI 整合 + fallback 設計</li>
+        <li><a href="m0-workflow-03-batch.html">#3 批次處理錯誤恢復</a> — 多檔批次 + dual-path 路由</li>
+        <li><a href="m0-workflow-06-webhook-ai.html">#6 Webhook → AI → 三輸出</a> — webhook 觸發 + 多分支輸出</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="path-card">
+    <div class="path-num">PATH B · 2-3 小時系統學</div>
+    <div class="path-title">想徹底搞懂 AI 自動化的這 5 個</div>
+    <div class="path-body">
+      <p>看完能 0 起手寫類似 workflow + 知道踩雷時怎麼修。</p>
+      <ol>
+        <li>先看 <a href="m0-workflow-05-telegram.html">#5 Telegram 通知</a> — 最簡 3 節點，理解節點 + binding 概念</li>
+        <li>再看 <a href="m0-workflow-01-webhook.html">#1 Webhook hello-world</a> — Trigger / Code / Respond 三件套</li>
+        <li>進入 <a href="m0-workflow-02-pdf-rename.html">#2 PDF AI 改名</a> — AI 整合的 standard pattern</li>
+        <li>進入 <a href="m0-workflow-04-daily.html">#4 定時 AI 日報</a> — Schedule + Aggregate + AI</li>
+        <li>進階 <a href="m0-workflow-03-batch.html">#3 批次處理</a> — 雙路由 + 容錯（Lite Pack 最複雜的一個）</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="path-card">
+    <div class="path-num">PATH C · 半天動手改</div>
+    <div class="path-title">想改造成自己業務的全部都看</div>
+    <div class="path-body">
+      <p>看完能把 8 個 workflow 改成自己業務的版本（換 prompt、換資料來源、加 webhook 觸發、串自家 API）。</p>
+      <ol>
+        <li>依序看 #1 → #2 → #3 → #4 → #5 → #6 → #7 → #8</li>
+        <li>每看完一個 workflow，去 n8n UI 對照同個 workflow 看 canvas 跟 jsCode</li>
+        <li>每個 workflow 拆解頁最後有「改造方向」清單，挑一個改造練手</li>
+        <li>遇到不懂的節點概念回去看 <a href="../module1.html">Module 1</a> / <a href="../module2.html">Module 2</a> / <a href="../module3.html">Module 3</a> / <a href="../module4.html">Module 4</a> 對應章節</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(03) 設計哲學</div>
+  <h2 class="section-heading">8 個 workflow 共同的設計選擇</h2>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">📐</div>
+    <div class="callout-body"><strong>1. Code Node 取代 HTTP Request Node 打 AI API</strong><br>
+    n8n 的 HTTP Request Node 在 jsonBody 帶 expression 時有解析陷阱（學員 16 連發踩過很多次）。Lite Pack 統一改用 Code Node 內 <span class="ic">this.helpers.httpRequest()</span> 直接打 Gemini API，徹底避開 jsonBody 解析雷。</div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">📐</div>
+    <div class="callout-body"><strong>2. Gemini 2.5 Flash 強制設 thinkingBudget: 0</strong><br>
+    Gemini 2.5 是 thinking model，預設會用 thinking tokens，會吃掉 maxOutputTokens 限額。對「抽取 + 格式化」任務（命名 / 摘要）不需要 thinking，全部 workflow 設 <span class="ic">thinkingConfig: { thinkingBudget: 0 }</span> 確保 AI 真的有 token 輸出實際內容。</div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">📐</div>
+    <div class="callout-body"><strong>3. 多 item 場景手動 loop（不靠 runOnceForEachItem）</strong><br>
+    Code Node typeVersion 2 的 runOnceForEachItem 模式對 binary 處理有限制。處理多份 PDF 場景一律用 default <span class="ic">runOnceForAllItems</span> + 內部 for loop + 從 Read 用 fileName 反查 binary，100% 可控。</div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">📐</div>
+    <div class="callout-body"><strong>4. fileName 對齊不靠 pairedItem</strong><br>
+    n8n 的 pairedItem 在 Extract error 分支會誤標 index = 0（不是真實上游 index）。Lite Pack 統一用 <span class="ic">item.json.fileName</span> 從 Read 反查對應 item 的 binary，避開 pairedItem bug。</div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">📐</div>
+    <div class="callout-body"><strong>5. Telegram 節點不傳 parse_mode</strong><br>
+    n8n Telegram Node typeVersion 1.2 的 Parse Mode dropdown 沒有「None」選項只有 markdown / HTML，AI 動態回應內含 <span class="ic">*</span> <span class="ic">_</span> 字元就會炸 entities error。Lite Pack 全部 telegram 節點 additionalFields 留空（不加 Parse Mode 欄位）+ Code 內對動態內容 strip markdown 字元雙保險。</div>
+  </div>
+
+  <div class="callout info">
+    <div class="callout-icon" aria-hidden="true">🎯</div>
+    <div class="callout-body">這 5 條設計選擇是 16 連發 + 03 五次迭代學到的真相。每個 workflow 拆解頁會講該 workflow 為什麼這樣寫，跟踩過什麼雷。</div>
+  </div>
+</section>
+
+<div class="nav-footer">
+  <a href="m0-install-mac.html" class="nav-btn"><span aria-hidden="true">←</span> 上一步：Mac 安裝</a>
+  <a href="m0-workflow-01-webhook.html" class="nav-btn primary">第一個拆解：#01 Webhook hello-world <span aria-hidden="true">→</span></a>
+</div>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">2026 春季</span>
+  <span class="footer-meta">本頁以 n8n latest (Docker) + Lite Pack v0.9 製作，2026-05</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+</script>
+</body>
+</html>

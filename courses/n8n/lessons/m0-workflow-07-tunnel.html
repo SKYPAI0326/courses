@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#07 Quick Tunnel 接收器 設計拆解｜AI 資料工廠</title>
+<meta name="description" content="Lite Pack #07 workflow 設計拆解：搭配 Cloudflare Quick Tunnel，把本機 n8n 變成公開 URL，外部（Make / Google Form / Zapier）都能 POST 觸發。雲地橋接的入門範例。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="#07 Quick Tunnel 接收器 設計拆解｜AI 資料工廠">
+<meta property="og:description" content="Lite Pack #07 workflow 設計拆解：Cloudflare Quick Tunnel + 雲地橋接。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/m0-workflow-07-tunnel.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="#07 Quick Tunnel 接收器 設計拆解｜AI 資料工廠">
+<meta name="twitter:description" content="Lite Pack #07 workflow 設計拆解。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/m0-workflow-07-tunnel.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-main:#5a7a5a;--radius:4px;--content-w:820px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.skip-link{position:absolute;left:-9999px;top:0;background:var(--c-text);color:#fff;padding:10px 16px;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0;z-index:100}
+a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:#5a7a5a;border:1px solid rgba(90,122,90,.3);background:transparent;padding:3px 12px;border-radius:99px}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 36px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;max-width:24ch}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;margin-bottom:28px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);margin-top:16px}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500}
+.outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-body{font-size:.9rem;line-height:1.85}
+.callout.info{background:rgba(90,122,90,.06);border-left-color:var(--c-a3)}
+.callout.tip{background:rgba(201,150,58,.08);border-left-color:var(--c-a2)}
+.flow-diagram{background:var(--c-card);border:1px solid var(--c-border-soft);border-radius:var(--radius);padding:20px 24px;margin:20px 0;font-family:'SF Mono',monospace;font-size:.78rem;line-height:1.9;overflow-x:auto}
+.flow-diagram .arrow{color:var(--c-faint);margin:0 6px}
+.flow-diagram .node{background:rgba(90,122,90,.08);border:1px solid rgba(90,122,90,.2);padding:3px 8px;border-radius:3px;color:var(--c-a3);white-space:nowrap}
+.flow-diagram .node.trigger{background:rgba(107,127,163,.1);border-color:rgba(107,127,163,.25);color:var(--c-a4)}
+.flow-diagram .node.code{background:rgba(181,112,58,.1);border-color:rgba(181,112,58,.25);color:var(--c-a1)}
+.node-card{background:var(--c-card);border:1px solid var(--c-border-soft);border-left:3px solid var(--c-a3);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
+.node-card.code-node{border-left-color:var(--c-a1)}
+.node-card.trigger-node{border-left-color:var(--c-a4)}
+.node-num{font-family:'Shippori Mincho',serif;font-size:.74rem;color:var(--c-faint);letter-spacing:.1em;font-weight:600;margin-bottom:6px}
+.node-title{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin-bottom:10px}
+.node-meta{display:inline-flex;gap:8px;font-size:.72rem;color:var(--c-muted);margin-bottom:10px;flex-wrap:wrap}
+.node-meta span{padding:1px 8px;background:var(--c-surface);border-radius:99px}
+.node-body{font-size:.88rem;line-height:1.85}
+.node-body ul,.node-body ol{margin:8px 0 8px 22px}
+.node-body code,.node-body .ic{font-family:'SF Mono',monospace;font-size:.86em;background:rgba(90,122,90,.1);padding:1px 6px;border-radius:3px}
+.code-block{background:#2c2b28;color:#e8e4dc;font-family:'SF Mono',monospace;font-size:.78rem;padding:12px 16px;border-radius:var(--radius);line-height:1.7;overflow-x:auto;white-space:pre;margin:10px 0}
+.code-block .cm{color:#7e9a85;font-style:italic}
+.code-block .var{color:#d4c08a}
+.mod-list{list-style:none;padding:0;margin:0;counter-reset:mod}
+.mod-list li{counter-increment:mod;position:relative;padding:14px 0 14px 44px;border-bottom:1px dashed var(--c-border-soft);font-size:.9rem;line-height:1.85}
+.mod-list li:last-child{border-bottom:none}
+.mod-list li::before{content:counter(mod,decimal-leading-zero);position:absolute;left:0;top:14px;font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-faint);font-weight:600}
+.mod-list li strong{color:var(--c-text);font-weight:600}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius)}
+.nav-btn:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main)}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}}
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 資料工廠 — 大規模文件處理實戰</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">#07 · tunnel</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<div class="page-hero">
+  <a href="m0-workflow-tour.html" class="back-link"><span aria-hidden="true">←</span> 返回工作流總覽</a>
+  <div class="hero-eyebrow">#07 · QUICK TUNNEL RECEIVER · 4 NODES · 進階</div>
+  <h1 class="lesson-title">把本機 n8n 變成公開 URL：Cloudflare Quick Tunnel 雲地橋接</h1>
+  <p class="lesson-tagline">本機 n8n 對外只能 localhost:5678 — 別的服務（Make scenario / Google Form / 學員自家網站）打不到。Cloudflare Quick Tunnel 給你一個免費的 *.trycloudflare.com URL（無需 Cloudflare 帳號、無需綁網域），3 秒開通把本機暴露成公開。這個 workflow 是 tunnel 接到後做什麼事的範例 — 收到外部 ping 推 Telegram + 立刻回 pong。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果</div>
+    <div class="outcome-item">能用 starter-kit 的 tunnel-quick.command / .bat 開 Cloudflare Quick Tunnel 取得公開 URL</div>
+    <div class="outcome-item">能設計外部觸發 webhook + 解析請求參數 + 即時回應的 4 節點 pattern</div>
+    <div class="outcome-item">理解 Quick Tunnel 與 Named Tunnel 的差異與適用場景</div>
+  </div>
+</div>
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(01) WORKFLOW 全貌</div>
+  <h2 class="section-heading">節點與資料流</h2>
+  <div class="flow-diagram">
+    <span class="node trigger">Webhook: external-ping</span>
+    <span class="arrow">→</span>
+    <span class="node code">Code: 解析外部請求</span>
+    <br><br>
+    <span style="margin-left:30ch">↗ <span class="node">Telegram 通知</span></span><br>
+    <span style="margin-left:30ch">↘ <span class="node">Respond: pong</span></span>
+  </div>
+  <p class="body-text">4 節點，類似 #06 的 fan-out pattern 但只有 2 條輸出。Webhook path 設 <code>external-ping</code>，搭 Quick Tunnel 後完整公開 URL：<code>https://xxxx.trycloudflare.com/webhook/external-ping</code>。任何服務（Make / curl / 學員手機）打這個 URL 都會觸發 workflow。</p>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(02) NODE BREAKDOWN</div>
+  <h2 class="section-heading">節點逐一拆解</h2>
+
+  <div class="node-card trigger-node">
+    <div class="node-num">NODE 1 / 4</div>
+    <div class="node-title">Webhook: external-ping</div>
+    <div class="node-body">
+      <p>Path <code>external-ping</code>、HTTP Method 接受 GET + POST、Response Mode 設 <code>lastNode</code>。</p>
+      <p>n8n 預設 <code>Respond: When Last Node Finishes</code>，但因為下游有 fan-out 兩條線，n8n 會用「最後執行完的節點」當 response。明確設 Set 節點當 lastNode 比較可控。</p>
+    </div>
+  </div>
+
+  <div class="node-card code-node">
+    <div class="node-num">NODE 2 / 4</div>
+    <div class="node-title">Code: 解析外部請求</div>
+    <div class="node-body">
+      <p>從 webhook 取參數，組合 Telegram 訊息文與回應 JSON：</p>
+      <div class="code-block"><span class="cm">// 從 webhook 取請求方來源</span>
+const webhookData = $input.first().json;
+const source = webhookData.headers?.['user-agent'] || 'unknown';
+const ip = webhookData.headers?.['x-forwarded-for'] || 'unknown';
+const message = webhookData.body?.message || webhookData.query?.message || '(空訊息)';
+const ts = new Date().toISOString();
+
+<span class="cm">// 組 Telegram 通知文</span>
+const tgMsg = '🌐 外部觸發\n\n來源 IP: ' + ip + '\n訊息: ' + message + '\n時間: ' + ts;
+
+<span class="cm">// 組 webhook 回應</span>
+return [{
+  json: {
+    pong: true,
+    received_at: ts,
+    echo_message: message,
+    tgMsg
+  }
+}];</div>
+    </div>
+  </div>
+
+  <div class="node-card">
+    <div class="node-num">NODE 3 / 4</div>
+    <div class="node-title">Telegram 通知</div>
+    <div class="node-body">
+      <p>同 #05 / #06，<code>text: {{ $json.tgMsg }}</code>。每次有人從外部打你的公開 URL 你手機就收到通知 — 像個個人「webhook 監控器」。</p>
+    </div>
+  </div>
+
+  <div class="node-card">
+    <div class="node-num">NODE 4 / 4</div>
+    <div class="node-title">Respond: pong</div>
+    <div class="node-body">
+      <p>Set 節點輸出 <code>{ status: "pong", received_at: ..., echo_message: ... }</code>，n8n 把這個當 webhook response 回給 caller（HTTP 200）。</p>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(03) DESIGN RATIONALE</div>
+  <h2 class="section-heading">Quick Tunnel vs Named Tunnel</h2>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">💭</div>
+    <div class="callout-body"><strong>Quick Tunnel（本課程預設）</strong>：<br>
+    雙擊 <code>tunnel-quick.command</code> / <code>.bat</code>，3 秒開通，給你 <code>https://random-words-123.trycloudflare.com</code> 公開 URL。<br>
+    <strong>優點</strong>：免費、不需要 Cloudflare 帳號、不需要綁自家網域、隨開隨用。<br>
+    <strong>缺點</strong>：URL 每次重啟會變、預設 24 小時自動斷線、不能指定 hostname。<br>
+    <strong>適用</strong>：開發測試、課堂 demo、臨時對外。</div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">💭</div>
+    <div class="callout-body"><strong>Named Tunnel（進階）</strong>：<br>
+    需要 Cloudflare 帳號 + 自家網域 + <code>cloudflared service install</code> 設定，固定 hostname（如 <code>n8n.yourdomain.com</code>）、不會斷線、可永久運作。<br>
+    <strong>適用</strong>：生產環境、長期對外服務。<br>
+    <strong>注意</strong>：會在系統建 launchd / Windows service，要清乾淨需要 <code>cloudflared service uninstall</code>（連發 #11 學員實測）。</div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-icon" aria-hidden="true">⚠️</div>
+    <div class="callout-body"><strong>Quick Tunnel HTTP/2 vs QUIC 的雷</strong>：<br>
+    Cloudflare Quick Tunnel 預設用 QUIC 協議，部分企業網路（含臺灣某些 ISP / 企業 firewall）會擋 QUIC port 7844。本課程 starter-kit 的 <code>tunnel-quick.command</code> 預設加 <code>--protocol http2</code> 強制走 HTTP/2，避開 QUIC 被擋。如果還連不上代表你的網路完全擋 cloudflared，跳 ngrok 備用方案。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(04) 改造方向</div>
+  <h2 class="section-heading">5 種改造方向</h2>
+
+  <ol class="mod-list">
+    <li><strong>Make 觸發 n8n</strong>：Make scenario 結束時 HTTP module POST 到 <code>https://xxx.trycloudflare.com/webhook/external-ping</code>，把 Make 雲端訊號接到本機 n8n 跑批次任務。</li>
+    <li><strong>Google Form → Make → n8n</strong>：學員填表 → Google Sheets 新列 → Make 偵測 → 打 n8n webhook → 本機跑 PDF 生成 / 寄信 / 歸檔。</li>
+    <li><strong>IFTTT / Zapier 接 n8n</strong>：把 n8n 變成 IFTTT 的 webhook target，IFTTT 觸發（時間 / 位置 / iOS 捷徑）→ 本機 n8n 跑事。</li>
+    <li><strong>Telegram bot 指令</strong>：在 BotFather 設 <code>setWebhook</code> 指向 trycloudflare URL，使用者對 bot 發訊息 → Telegram 推到 n8n → n8n 解析指令跑 workflow。</li>
+    <li><strong>個人 dashboard</strong>：寫個簡單 HTML 頁面（GitHub Pages 免費架）含表單，submit 打到 trycloudflare URL，收到 Telegram 通知 + 觸發業務 workflow。</li>
+  </ol>
+
+  <div class="callout info" style="margin-top:24px">
+    <div class="callout-icon" aria-hidden="true">🎯</div>
+    <div class="callout-body">最後一個 <a href="m0-workflow-08-expression.html">#08 Expression 練習</a>是基礎工具集 — 把 n8n 的 expression 語法集合範例放在一個 workflow，當改造其他 workflow 時的速查表。</div>
+  </div>
+</section>
+
+<div class="nav-footer">
+  <a href="m0-workflow-06-webhook-ai.html" class="nav-btn"><span aria-hidden="true">←</span> 上一個：#06 Webhook AI</a>
+  <a href="m0-workflow-08-expression.html" class="nav-btn primary">下一個：#08 Expression 練習 <span aria-hidden="true">→</span></a>
+</div>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">2026 春季</span>
+  <span class="footer-meta">本頁以 n8n latest (Docker) + Lite Pack v0.9 製作，2026-05</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+</script>
+</body>
+</html>

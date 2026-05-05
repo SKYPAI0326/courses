@@ -1,0 +1,122 @@
+{
+  "name": "04 · 定時 AI 日報",
+  "meta": {
+    "_litePackNote": "v0.6：跟 02 同步改 Code-based。HTTP Request node 改用 Code + this.helpers.httpRequest，避開 jsonBody 解析雷。"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## #4 定時 AI 日報（v0.6）\n\n**目的**：每天自動讀指定資料夾內所有文字檔 → AI 摘要 → 寫成 Markdown 日報。\n\n**v0.6 設計**：Code node 直接打 Gemini API（不再用 HTTP Request node），徹底避開 jsonBody 解析雷。\n\n**測試方法**：\n1. Mac Finder 開：~/Downloads/n8n-starter-kit/shared/daily-input/\n2. 丟 1-3 份 .txt / .md / .docx（會議記錄、待辦、筆記）\n3. 點 Execute workflow（測試用，不等到明早 8:00）\n4. 看 ~/Downloads/n8n-starter-kit/shared/daily-output/ 出現 daily-{日期}.md\n\n**改造方向**：\n- 改 Schedule 時間（凌晨 6:00 / 中午 12:00）\n- 加 Telegram 通知日報已產生\n- 改 prompt 換摘要風格（高層用 / 同事用 / 客戶用）",
+        "height": 380,
+        "width": 360
+      },
+      "id": "sticky-04",
+      "name": "📌 使用說明",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-260, 0]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {"field": "cronExpression", "expression": "0 8 * * *"}
+          ]
+        }
+      },
+      "id": "trigger-04",
+      "name": "Schedule: 每天 08:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300],
+      "notes": "Cron: 0 8 * * * = 每天早上 8 點。要測試用 Manual 或改 cron 為 */1 * * * * 每分鐘"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/shared/daily-input/*",
+        "options": {}
+      },
+      "id": "read-04",
+      "name": "Read daily-input 所有檔",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [460, 300],
+      "notes": "fileSelector glob = */ 抓所有檔。每個檔變一個 item（fan-out）"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "options": {}
+      },
+      "id": "extract-04",
+      "name": "Extract 文字",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [680, 300],
+      "notes": "從 binary 抽純文字。.txt / .md / .docx 都支援"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {"fieldToAggregate": "fileName"},
+            {"fieldToAggregate": "text"}
+          ]
+        },
+        "options": {}
+      },
+      "id": "agg-04",
+      "name": "Aggregate 多檔合併",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [900, 300],
+      "notes": "把多個 items 合成 1 個 array，餵給 Gemini 一次摘要全部"
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// v0.6：Code node 直接打 Gemini API + 組 Markdown + 組 binary（合併原本的 HTTP Gemini + Code 兩個節點）\n\nconst GEMINI_API_KEY = '__GEMINI_API_KEY__';\nconst aggregated = $json;\nconst today = new Date().toISOString().slice(0, 10);\n\nconst prompt = '以下是今日多份輸入文件，請整理成結構化日報（繁體中文 Markdown）。包含：重點摘要 3-5 點、待辦事項（含優先級）、關鍵決策、風險或卡點。日期：' + today + '。直接輸出 Markdown，不要 markdown 標記包裹。\\n\\n<輸入文件>\\n' + JSON.stringify(aggregated).substring(0, 8000) + '\\n</輸入文件>';\n\nlet markdown;\nlet aiError = null;\n\ntry {\n  const response = await this.helpers.httpRequest({\n    method: 'POST',\n    url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',\n    headers: {\n      'Content-Type': 'application/json',\n      'x-goog-api-key': GEMINI_API_KEY\n    },\n    body: {\n      contents: [{ role: 'user', parts: [{ text: prompt }] }],\n      generationConfig: { temperature: 0.5, maxOutputTokens: 2000, thinkingConfig: { thinkingBudget: 0 } }\n    },\n    json: true,\n    timeout: 60000\n  });\n  const raw = response.candidates?.[0]?.content?.parts?.[0]?.text || '';\n  markdown = raw.replace(/```markdown\\s*/i, '').replace(/```\\s*$/, '').trim();\n} catch (err) {\n  aiError = err.message || String(err);\n  markdown = '# 日報 - ' + today + '\\n\\n（AI 呼叫失敗：' + aiError + '）\\n\\n## 原始輸入摘要\\n\\n' + JSON.stringify(aggregated).substring(0, 1000);\n}\n\nif (!markdown || markdown.length < 5) {\n  markdown = '# 日報 - ' + today + '\\n\\n（AI 回應為空，可能是輸入太少或 API 限額）';\n}\n\nconst outputPath = '/files/shared/daily-output/daily-' + today + '.md';\n\nreturn [{\n  json: { outputPath, markdown, aiError, today },\n  binary: {\n    data: {\n      data: Buffer.from(markdown).toString('base64'),\n      mimeType: 'text/markdown',\n      fileName: 'daily-' + today + '.md'\n    }\n  }\n}];"
+      },
+      "id": "ai-04",
+      "name": "Code: AI 摘要 + 組 Markdown",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 300],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $json.outputPath }}",
+        "dataPropertyName": "data",
+        "options": {}
+      },
+      "id": "write-04",
+      "name": "Write: daily-output/",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [1340, 300]
+    }
+  ],
+  "connections": {
+    "Schedule: 每天 08:00": {
+      "main": [[{"node": "Read daily-input 所有檔", "type": "main", "index": 0}]]
+    },
+    "Read daily-input 所有檔": {
+      "main": [[{"node": "Extract 文字", "type": "main", "index": 0}]]
+    },
+    "Extract 文字": {
+      "main": [[{"node": "Aggregate 多檔合併", "type": "main", "index": 0}]]
+    },
+    "Aggregate 多檔合併": {
+      "main": [[{"node": "Code: AI 摘要 + 組 Markdown", "type": "main", "index": 0}]]
+    },
+    "Code: AI 摘要 + 組 Markdown": {
+      "main": [[{"node": "Write: daily-output/", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "id": "lite-pack-04-daily-ai-report",
+  "tags": [{"name": "lite-pack", "id": "tag-lite-pack"}, {"name": "module-3", "id": "tag-module-3"}]
+}

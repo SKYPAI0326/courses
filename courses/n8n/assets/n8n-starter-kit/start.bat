@@ -45,7 +45,7 @@ if not exist shared mkdir shared
 
 REM 啟動 n8n
 echo 正在啟動 n8n（首次需下載 image，可能花 1-5 分鐘）...
-docker compose up -d
+docker compose -f n8n-compose.yml up -d
 
 REM 等 n8n 起來（最多 120 秒）
 echo 等候 n8n 服務就緒...
@@ -66,7 +66,7 @@ for /l %%i in (1,1,60) do (
 echo.
 echo n8n 啟動超時（120 秒未回應）。
 echo 請開 PowerShell 進入本資料夾，執行：
-echo   docker compose logs n8n --tail 50
+echo   docker compose -f n8n-compose.yml logs n8n --tail 50
 echo 查看錯誤；或參考課程 1.1.3 排錯手冊頁。
 echo.
 pause

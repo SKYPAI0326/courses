@@ -10,13 +10,20 @@
 
 ### 第一次啟動
 
-1. 先安裝 **Docker Desktop** 並確認已啟動（左上角應看到鯨魚圖示）
+1. 從課程網頁下載 `n8n-starter-kit.zip`，解壓到方便管理位置（建議 `~/n8n-starter-kit/` 或 `C:\Users\你的名字\n8n-starter-kit\`）
+2. 先安裝 **Docker Desktop** 並確認已啟動（左上角應看到鯨魚圖示）
    - Mac：<https://www.docker.com/products/docker-desktop/>（依 Intel / Apple Silicon 下載對應版本）
    - Win：同網址；安裝完需啟用 WSL2（Docker Desktop 安裝精靈會引導）
-2. 雙擊 `start.command`（Mac）或 `start.bat`（Windows）
-3. 第一次會自動把 `.env.example` 複製為 `.env` 並打開讓你編輯，**請改 `POSTGRES_PASSWORD`** 為強密碼後存檔
-4. 再次雙擊 `start.command` / `start.bat`，等約 30 秒（首次需下載 image，可能花 1-5 分鐘）
-5. 瀏覽器自動打開 <http://localhost:5678>，建立你的 Owner Account（信箱 + 密碼，n8n 內建）
+3. **macOS 解壓後必做（一次性）**：開「終端機」→ `cd ~/n8n-starter-kit/` → 跑下列兩行解開瀏覽器下載的執行限制：
+   ```bash
+   chmod +x start.command stop.command update.command
+   xattr -d com.apple.quarantine start.command stop.command update.command 2>/dev/null || true
+   ```
+   不跑這兩行的話，雙擊 `.command` 會跳「無法打開」或「找不到應用」。Windows .bat 不需要這步。
+4. 雙擊 `start.command`（Mac）或 `start.bat`（Windows）
+5. 第一次會自動把 `.env.example` 複製為 `.env` 並打開讓你編輯，**請改 `POSTGRES_PASSWORD`** 為強密碼後存檔
+6. 再次雙擊 `start.command` / `start.bat`，等約 30 秒（首次需下載 image，可能花 1-5 分鐘）
+7. 瀏覽器自動打開 <http://localhost:5678>，建立你的 Owner Account（信箱 + 密碼，n8n 內建）
 
 ### 日常使用
 
@@ -33,9 +40,10 @@
 | `n8n-compose.yml` | Docker Compose 配置，定義 n8n + PostgreSQL 兩個容器 |
 | `.env.example` | 環境變數範本（時區、密碼、Webhook URL） |
 | `.env` | 你的實際設定（首次啟動會從 example 自動複製，**勿提交版控**） |
-| `start.command` / `start.bat` | 一鍵啟動 |
-| `stop.command` / `stop.bat` | 停止服務（資料保留） |
+| `start.command` / `start.bat` | 一鍵啟動 n8n |
+| `stop.command` / `stop.bat` | 停止 n8n（資料保留） |
 | `update.command` / `update.bat` | 升級 n8n image |
+| `tunnel-quick.command` / `tunnel-quick.bat` | 開 Cloudflare Quick Tunnel（不需自有網域、不需綁卡，給 `*.trycloudflare.com` 公開網址） |
 | `shared/` | 本機資料夾，會掛到容器內 `/files/shared`（Module 3 Watch Folder 用） |
 
 ## Mac 第一次執行 .command 被擋怎麼辦
@@ -53,9 +61,35 @@
 
 ```bash
 docker ps
-docker compose logs n8n --tail 50
-docker compose config
+docker compose -f n8n-compose.yml logs n8n --tail 50
+docker compose -f n8n-compose.yml config
 ```
+
+### 常見錯誤：localhost:5678 顯示「Your n8n server is configured to use a secure cookie」
+
+**原因**：你下載的試跑包是 2026-04-30 之前的舊版。
+
+**解法**：去課程網頁 1.1.2 啟動頁重新下載最新 `n8n-starter-kit.zip` 覆蓋整個資料夾，再雙擊 `start.command`。新版本已預設關閉 secure cookie。
+
+**瀏覽器**：用 Chrome / Firefox / Edge（避開 Safari）。
+
+### 常見錯誤：`no configuration file provided: not found`
+
+**原因**：你下載的試跑包是 2026-04-30 之前的舊版。
+
+**解法**：去課程網頁 1.1.2 啟動頁重新下載最新 `n8n-starter-kit.zip` 覆蓋整個資料夾，再雙擊 `start.command`。新版本的腳本已自動指定 compose 檔。
+
+### 常見錯誤：`port is already allocated` / `Bind for 0.0.0.0:5678 failed`
+
+**原因**：之前已啟動過 n8n（可能解壓到不同資料夾啟了多次），舊 container 還佔 5678 port。
+
+**解法**：再雙擊一次 `start.command`，新版會自動偵測並跳對話框問你要不要停掉舊 container，按「停掉並重啟」即可。
+
+### 常見錯誤：`password authentication failed for user "n8n"`
+
+**原因**：你之前啟動過 n8n，postgres 用舊密碼建了資料庫；後來改了 `.env` 密碼，新密碼跟舊資料庫對不上。
+
+**解法**：再雙擊一次 `start.command`，新版腳本會自動偵測這個錯誤，跳對話框問你要不要重置——按「重置並重啟」即可。
 
 ## 資料儲存位置
 

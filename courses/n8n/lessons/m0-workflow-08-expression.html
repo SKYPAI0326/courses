@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#08 Expression 練習 設計拆解｜AI 資料工廠</title>
+<meta name="description" content="Lite Pack #08 workflow 設計拆解：n8n Expression 語法集合範例（相對引用、絕對引用、Optional Chaining、JavaScript 內建函式）。改造其他 workflow 時的速查表。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="#08 Expression 練習 設計拆解｜AI 資料工廠">
+<meta property="og:description" content="Lite Pack #08 workflow 設計拆解：Expression 語法速查表。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/m0-workflow-08-expression.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="#08 Expression 練習 設計拆解｜AI 資料工廠">
+<meta name="twitter:description" content="Lite Pack #08 workflow 設計拆解。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/m0-workflow-08-expression.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-main:#5a7a5a;--radius:4px;--content-w:820px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.skip-link{position:absolute;left:-9999px;top:0;background:var(--c-text);color:#fff;padding:10px 16px;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0;z-index:100}
+a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:#5a7a5a;border:1px solid rgba(90,122,90,.3);background:transparent;padding:3px 12px;border-radius:99px}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 36px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;max-width:24ch}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;margin-bottom:28px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);margin-top:16px}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500}
+.outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-body{font-size:.9rem;line-height:1.85}
+.callout.info{background:rgba(90,122,90,.06);border-left-color:var(--c-a3)}
+.flow-diagram{background:var(--c-card);border:1px solid var(--c-border-soft);border-radius:var(--radius);padding:20px 24px;margin:20px 0;font-family:'SF Mono',monospace;font-size:.78rem;line-height:1.9;overflow-x:auto}
+.flow-diagram .arrow{color:var(--c-faint);margin:0 6px}
+.flow-diagram .node{background:rgba(90,122,90,.08);border:1px solid rgba(90,122,90,.2);padding:3px 8px;border-radius:3px;color:var(--c-a3);white-space:nowrap}
+.flow-diagram .node.trigger{background:rgba(107,127,163,.1);border-color:rgba(107,127,163,.25);color:var(--c-a4)}
+.flow-diagram .node.code{background:rgba(181,112,58,.1);border-color:rgba(181,112,58,.25);color:var(--c-a1)}
+.expr-table{width:100%;border-collapse:collapse;font-size:.82rem;margin:16px 0}
+.expr-table th,.expr-table td{padding:10px 12px;border-bottom:1px solid var(--c-border-soft);text-align:left;vertical-align:top}
+.expr-table th{font-family:'Shippori Mincho',serif;font-weight:700;color:var(--c-text);background:var(--c-surface)}
+.expr-table code{font-family:'SF Mono',monospace;font-size:.84em;background:rgba(90,122,90,.1);padding:1px 6px;border-radius:3px;white-space:nowrap}
+.mod-list{list-style:none;padding:0;margin:0;counter-reset:mod}
+.mod-list li{counter-increment:mod;position:relative;padding:14px 0 14px 44px;border-bottom:1px dashed var(--c-border-soft);font-size:.9rem;line-height:1.85}
+.mod-list li:last-child{border-bottom:none}
+.mod-list li::before{content:counter(mod,decimal-leading-zero);position:absolute;left:0;top:14px;font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-faint);font-weight:600}
+.mod-list li strong{color:var(--c-text);font-weight:600}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius)}
+.nav-btn:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main)}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}}
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 資料工廠 — 大規模文件處理實戰</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">#08 · expression</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<div class="page-hero">
+  <a href="m0-workflow-tour.html" class="back-link"><span aria-hidden="true">←</span> 返回工作流總覽</a>
+  <div class="hero-eyebrow">#08 · EXPRESSION PRACTICE · 4 NODES · 基礎</div>
+  <h1 class="lesson-title">n8n Expression 語法速查表：改造其他 workflow 必看</h1>
+  <p class="lesson-tagline">這個 workflow 不解決業務問題，是「Expression 速查表」— 把 n8n <code>{{ }}</code> 內常用的 10 種寫法集合在一個 workflow，學員可以複製其中任何一個範例直接貼到自己 workflow 的欄位。當你看不懂 #02 / #03 / #06 內某個 expression 寫法時，回來這頁查。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果</div>
+    <div class="outcome-item">能用相對引用 <code>{{ $json.xxx }}</code>、絕對引用 <code>{{ $('NodeName').first().json.xxx }}</code> 取資料</div>
+    <div class="outcome-item">能用 Optional Chaining <code>?.</code> 處理可能缺失的巢狀欄位避免 undefined 錯誤</div>
+    <div class="outcome-item">能用 n8n 內建變數（$now, $itemIndex, $workflow）+ JavaScript 函式（split / map / filter）</div>
+  </div>
+</div>
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(01) WORKFLOW 全貌</div>
+  <h2 class="section-heading">節點與資料流</h2>
+  <div class="flow-diagram">
+    <span class="node trigger">Manual Trigger</span>
+    <span class="arrow">→</span>
+    <span class="node">Set: 假資料（巢狀物件 + array）</span>
+    <span class="arrow">→</span>
+    <span class="node">Set: 10 種 expression 範例</span>
+    <span class="arrow">→</span>
+    <span class="node code">Code: 複合資料處理</span>
+  </div>
+  <p class="body-text">4 節點線性鏈。第 2 節點 Set 假資料當「上游」（含 user / orders / metadata 巢狀結構），第 3 節點 Set 用 10 種 expression 寫法各自抓上游某個欄位（學員看 Output 對照寫法 → 結果），第 4 節點 Code 用 JavaScript 處理同樣資料示範更複雜的邏輯。</p>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(02) 10 種 expression 寫法速查表</div>
+  <h2 class="section-heading">最常用的 10 種，搭配 #08 workflow 看實際輸出</h2>
+
+  <table class="expr-table">
+    <thead><tr><th>用途</th><th>Expression 寫法</th><th>結果範例</th></tr></thead>
+    <tbody>
+      <tr><td>取上一節點的 json 欄位</td><td><code>{{ $json.user.name }}</code></td><td>"小明"</td></tr>
+      <tr><td>取指定節點的 json 欄位</td><td><code>{{ $('Set: 假資料').first().json.user.email }}</code></td><td>"ming@example.com"</td></tr>
+      <tr><td>Optional Chaining（防 undefined）</td><td><code>{{ $json.user?.address?.city ?? "未知" }}</code></td><td>"未知"（如果 address 不存在）</td></tr>
+      <tr><td>取 array 第 N 個元素</td><td><code>{{ $json.orders[0].id }}</code></td><td>"ORD-001"</td></tr>
+      <tr><td>array 長度</td><td><code>{{ $json.orders.length }}</code></td><td>3</td></tr>
+      <tr><td>當前時間 ISO 字串</td><td><code>{{ $now.toISO() }}</code></td><td>"2026-05-06T08:30:00..."</td></tr>
+      <tr><td>當前時間自訂格式</td><td><code>{{ $now.toFormat('yyyy-MM-dd') }}</code></td><td>"2026-05-06"</td></tr>
+      <tr><td>當前 item 的 index（multi-item）</td><td><code>{{ $itemIndex }}</code></td><td>0, 1, 2...</td></tr>
+      <tr><td>workflow 名稱</td><td><code>{{ $workflow.name }}</code></td><td>"08 · Reference 練習"</td></tr>
+      <tr><td>JavaScript 內建函式</td><td><code>{{ $json.user.name.toUpperCase() }}</code></td><td>"小明"（中文不變）/ "MING"</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">💡</div>
+    <div class="callout-body"><strong>n8n Expression 完整能用什麼</strong>：所有 JavaScript 內建（Math / String / Array / Date methods）+ Luxon DateTime（<code>$now / $today</code>）+ n8n 內建變數（<code>$json / $node / $workflow / $execution / $itemIndex</code>）+ 引用語法 <code>$('NodeName').first().json / .all() / .item.json</code>。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(03) DESIGN RATIONALE</div>
+  <h2 class="section-heading">為什麼要把 expression 集合在一個 workflow</h2>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">💭</div>
+    <div class="callout-body"><strong>n8n 文件不錯但散</strong>：<br>
+    n8n 官方有完整 Expression 文件，但分散在 Code Node / Set Node / built-in methods / Luxon DateTime 等多個頁面。學員碰到 <code>{{ $json.xxx?.yyy }}</code> 這種寫法時，要查 5 個頁面才能拼出全貌。#08 把最常用的 10 種放一個 workflow，學員執行一次看 Output 就懂全部。</div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">💭</div>
+    <div class="callout-body"><strong>為什麼要 4 個節點而不是 1 個</strong>：<br>
+    第 2 節點假資料是「上游 context」（學員可改成自己業務資料），第 3 節點 Set 是「expression 表達」（學員可複製貼到自己 workflow 欄位），第 4 節點 Code 是「JavaScript 完整版」（複雜邏輯走 Code Node）。3 種寫法的等效對照讓學員理解同樣事情可以用 expression 寫也可以用 jsCode 寫，依複雜度選工具。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(04) 改造方向</div>
+  <h2 class="section-heading">3 種改造方向</h2>
+
+  <ol class="mod-list">
+    <li><strong>把假資料換成真實業務資料</strong>：第 2 節點改成你業務的 JSON 結構（學員 CRM 資料 / 訂單記錄 / 文章 metadata），第 3 節點重寫 expression 抓你需要的欄位。這就是「我業務專屬的 expression 速查表」。</li>
+    <li><strong>當 sandbox 測試新寫法</strong>：碰到不確定的 expression 寫法，先在這個 workflow 試（Set 節點欄位填 <code>{{ ... }}</code> → Execute → 看 Output）。確認對了再貼到生產 workflow。</li>
+    <li><strong>學 Luxon DateTime</strong>：Set 節點各種 <code>$now.plus({days: 7}).toFormat(...)</code> 寫法測試，做日期計算（這個月最後一天 / 下一個工作日 / 7 天前）。</li>
+  </ol>
+
+  <div class="callout info" style="margin-top:24px">
+    <div class="callout-icon" aria-hidden="true">🎯</div>
+    <div class="callout-body">8 個 workflow 拆解完成。現在去 <a href="m0-install-mac.html">Mac 安裝</a> / <a href="m0-install-win.html">Windows 安裝</a> 把 Lite Pack 跑起來，或者照 <a href="../module1.html">Module 1</a> → <a href="../module4.html">Module 4</a> 的完整路徑學原理。</div>
+  </div>
+</section>
+
+<div class="nav-footer">
+  <a href="m0-workflow-07-tunnel.html" class="nav-btn"><span aria-hidden="true">←</span> 上一個：#07 Quick Tunnel</a>
+  <a href="m0-workflow-tour.html" class="nav-btn primary">回工作流總覽 <span aria-hidden="true">→</span></a>
+</div>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">2026 春季</span>
+  <span class="footer-meta">本頁以 n8n latest (Docker) + Lite Pack v0.9 製作，2026-05</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+</script>
+</body>
+</html>

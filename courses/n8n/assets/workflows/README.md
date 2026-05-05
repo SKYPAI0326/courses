@@ -17,15 +17,16 @@ m{module}-{topic}-{purpose}.json
 
 ## 對應課程單元
 
-| Workflow JSON | 對應單元 | 用途 |
-|---------------|---------|------|
-| `m1-webhook-hello-world.json`（待補） | `m1-1-launch.html` | 第一個能跑通的 webhook |
-| `m2-reference-practice.json`（待補） | `m2-1-reference.html` | 節點間欄位引用練習 |
-| `m3-folder-watch-demo.json`（待補） | `m3-1-watch.html` | Watch Folder 觸發 |
-| `m3-ai-rename-demo.json`（待補） | `m3-2-rename.html` | Gemini PDF 改名 |
-| `m4-google-form-to-n8n-demo.json`（待補） | `m4-1-remote.html` | Form → Webhook → n8n |
+| Workflow JSON | 對應單元 | 用途 | 狀態 |
+|---------------|---------|------|------|
+| `m1-webhook-hello-world.json` | `m1-1-launch.html` | 第一個能跑通的 webhook | 待補 |
+| `m2-reference-practice.json` | `m2-1-reference.html` | 節點間欄位引用練習 | 待補 |
+| `m3-folder-watch-demo.json` | `m3-1-watch.html` | Watch Folder 觸發 | 待補 |
+| `m3-ai-rename-demo.json` | `m3-2-rename.html` | Gemini PDF 改名 | 待補 |
+| `m4-google-form-to-n8n-demo.json` | `m4-1-remote.html` | Form → Webhook → n8n | 待補 |
+| `m4-4-ai-secretary-migration.json` | `m4-4-ai-secretary-migration.html` | Make AI 秘書 → n8n 完整重建（11 節點 / 4 路分發 / 含 Continue On Fail） | ✅ **範本已建（experimental，待學員匯入驗證）** |
 
-> 目前先建立資料夾與命名規則入口；workflow JSON 將分批補齊，每補一支就更新此表並在對應單元頁加「下載練習 workflow」連結。
+> M4-4 範本基於 Codex L3 兩輪審核（CALL_ID 63c0b5f7 / 348da75a）設計；匯入後需重新指定所有 credentials + 修改個人化欄位（Telegram chatId / Gmail 收件人 / ntfy topic / Drive folderId）後才能跑。詳見講義頁與 `_lessons/n8n/m4-4-ai-secretary-migration.md` 教案。
 
 ---
 

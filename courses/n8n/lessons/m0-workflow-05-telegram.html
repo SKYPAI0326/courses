@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#05 Telegram 通知 設計拆解｜AI 資料工廠</title>
+<meta name="description" content="Lite Pack #05 workflow 設計拆解：最簡 Telegram bot 鏈（Manual + Set + Telegram 三節點）。學會 Telegram 節點 parse_mode 雷、@BotFather 申請流程、credentials 設定。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="#05 Telegram 通知 設計拆解｜AI 資料工廠">
+<meta property="og:description" content="Lite Pack #05 workflow 設計拆解：最簡 Telegram bot 鏈。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/m0-workflow-05-telegram.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="#05 Telegram 通知 設計拆解｜AI 資料工廠">
+<meta name="twitter:description" content="Lite Pack #05 workflow 設計拆解。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/m0-workflow-05-telegram.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-main:#5a7a5a;--radius:4px;--content-w:820px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.skip-link{position:absolute;left:-9999px;top:0;background:var(--c-text);color:#fff;padding:10px 16px;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0;z-index:100}
+a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:#5a7a5a;border:1px solid rgba(90,122,90,.3);background:transparent;padding:3px 12px;border-radius:99px}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 36px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;max-width:24ch}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;margin-bottom:28px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);margin-top:16px}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500}
+.outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-body{font-size:.9rem;line-height:1.85}
+.callout.key{background:rgba(181,74,74,.07);border-left-color:#b54a4a}
+.callout.info{background:rgba(90,122,90,.06);border-left-color:var(--c-a3)}
+.flow-diagram{background:var(--c-card);border:1px solid var(--c-border-soft);border-radius:var(--radius);padding:20px 24px;margin:20px 0;font-family:'SF Mono',monospace;font-size:.82rem;line-height:1.9;overflow-x:auto}
+.flow-diagram .arrow{color:var(--c-faint);margin:0 6px}
+.flow-diagram .node{background:rgba(90,122,90,.08);border:1px solid rgba(90,122,90,.2);padding:3px 8px;border-radius:3px;color:var(--c-a3)}
+.flow-diagram .node.trigger{background:rgba(107,127,163,.1);border-color:rgba(107,127,163,.25);color:var(--c-a4)}
+.node-card{background:var(--c-card);border:1px solid var(--c-border-soft);border-left:3px solid var(--c-a3);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
+.node-card.trigger-node{border-left-color:var(--c-a4)}
+.node-num{font-family:'Shippori Mincho',serif;font-size:.74rem;color:var(--c-faint);letter-spacing:.1em;font-weight:600;margin-bottom:6px}
+.node-title{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin-bottom:10px}
+.node-meta{display:inline-flex;gap:8px;font-size:.72rem;color:var(--c-muted);margin-bottom:10px;flex-wrap:wrap}
+.node-meta span{padding:1px 8px;background:var(--c-surface);border-radius:99px}
+.node-body{font-size:.88rem;line-height:1.85}
+.node-body ul,.node-body ol{margin:8px 0 8px 22px}
+.node-body code,.node-body .ic{font-family:'SF Mono',monospace;font-size:.86em;background:rgba(90,122,90,.1);padding:1px 6px;border-radius:3px}
+.mod-list{list-style:none;padding:0;margin:0;counter-reset:mod}
+.mod-list li{counter-increment:mod;position:relative;padding:14px 0 14px 44px;border-bottom:1px dashed var(--c-border-soft);font-size:.9rem;line-height:1.85}
+.mod-list li:last-child{border-bottom:none}
+.mod-list li::before{content:counter(mod,decimal-leading-zero);position:absolute;left:0;top:14px;font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-faint);font-weight:600}
+.mod-list li strong{color:var(--c-text);font-weight:600}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius)}
+.nav-btn:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main)}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}}
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 資料工廠 — 大規模文件處理實戰</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">#05 · telegram</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<div class="page-hero">
+  <a href="m0-workflow-tour.html" class="back-link"><span aria-hidden="true">←</span> 返回工作流總覽</a>
+  <div class="hero-eyebrow">#05 · TELEGRAM NOTIFY · 3 NODES · 基礎</div>
+  <h1 class="lesson-title">最簡 Telegram bot 推訊息：3 節點驗證 credentials 通暢</h1>
+  <p class="lesson-tagline">Lite Pack 最簡單的 workflow，但學員必看 — setup-wizard 的 smoke test 用的就是這個 workflow，跑通就證明 Telegram credentials + chat_id placeholder 替換都正確。明天課堂第一個 demo 也是這個（最快讓學員看到結果）。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果</div>
+    <div class="outcome-item">能用 @BotFather 申請 Telegram bot 取得 token</div>
+    <div class="outcome-item">能在 n8n 設定 Telegram credentials 並串接 Telegram 節點</div>
+    <div class="outcome-item">理解 Telegram 節點 typeVersion 1.2 的 parse_mode 雷與 Lite Pack 的解法</div>
+  </div>
+</div>
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(01) WORKFLOW 全貌</div>
+  <h2 class="section-heading">節點與資料流</h2>
+  <div class="flow-diagram">
+    <span class="node trigger">Manual Trigger</span>
+    <span class="arrow">→</span>
+    <span class="node">Set: 訊息內容</span>
+    <span class="arrow">→</span>
+    <span class="node">Telegram: Send Message</span>
+  </div>
+  <p class="body-text">3 節點線性鏈，零 AI、零外部依賴。Manual Trigger 觸發 → Set 節點組訊息字串 → Telegram 節點呼叫 Telegram Bot API 送訊息到指定 chat_id。setup-wizard 跑完會自動 Execute 一次當 smoke test。</p>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(02) NODE BREAKDOWN</div>
+  <h2 class="section-heading">節點逐一拆解</h2>
+
+  <div class="node-card trigger-node">
+    <div class="node-num">NODE 1 / 3</div>
+    <div class="node-title">Manual Trigger</div>
+    <div class="node-body">
+      <p>跟 #02 一樣，純粹的「點 Execute 觸發」按鈕。沒任何設定。</p>
+    </div>
+  </div>
+
+  <div class="node-card">
+    <div class="node-num">NODE 2 / 3</div>
+    <div class="node-title">Set: 訊息內容</div>
+    <div class="node-meta"><span>set v3.4</span></div>
+    <div class="node-body">
+      <p><strong>用途</strong>：組合一個固定字串當訊息。</p>
+      <p><strong>關鍵設定</strong>：Assignments 區設一個欄位 <code>messageText = "✅ Lite Pack 通知測試成功\n\n如果你看到這則訊息，代表 Telegram bot token + chat_id 都設對了。"</code></p>
+      <p>注意 <code>\n</code> 是真的換行符（Telegram 會解析成換行）。中文字元、emoji 都安全（不會踩 entities 雷）。</p>
+    </div>
+  </div>
+
+  <div class="node-card">
+    <div class="node-num">NODE 3 / 3</div>
+    <div class="node-title">Telegram: Send Message</div>
+    <div class="node-meta"><span>telegram v1.2</span></div>
+    <div class="node-body">
+      <p><strong>關鍵設定</strong>：</p>
+      <ul>
+        <li><code>Resource</code>: Message</li>
+        <li><code>Operation</code>: Send Message</li>
+        <li><code>Chat ID</code>: <code>__TELEGRAM_CHAT_ID__</code>（setup-wizard 自動替換成你的 chat_id）</li>
+        <li><code>Text</code>: <code>{{ $json.messageText }}</code>（從上一節點 Set 取訊息）</li>
+        <li><code>Credential</code>: <code>Lite Pack · Telegram Bot</code>（含 bot token）</li>
+        <li><code>Additional Fields</code>: <strong>留空</strong>（不加 Parse Mode 欄位）</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(03) DESIGN RATIONALE</div>
+  <h2 class="section-heading">為什麼這樣設計（含踩過的雷）</h2>
+
+  <div class="callout key">
+    <div class="callout-icon" aria-hidden="true">🚨</div>
+    <div class="callout-body"><strong>連發 #15 的雷：Telegram parse_mode 沒有 None 選項</strong><br>
+    n8n Telegram Node typeVersion 1.2 的 <code>Parse Mode</code> dropdown 只給 3 個選項：<code>Markdown (Legacy)</code> / <code>MarkdownV2</code> / <code>HTML</code>，<strong>沒有 None</strong>。如果動態訊息內含 <code>*</code> <code>_</code> <code>[</code> 字元（AI 回應常見），任何一種 parse_mode 都會炸 <code>Bad Request: can't parse entities</code>。<br>
+    <strong>解法</strong>：<code>Additional Fields</code> 完全留空（不加 Parse Mode 欄位），這樣 n8n 不傳 parse_mode 給 Telegram API，Telegram API 預設不解析訊息 → markdown 字元當純文字顯示。</div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">💭</div>
+    <div class="callout-body"><strong>為什麼 #05 訊息固定字串而不用 AI 生</strong>？<br>
+    #05 是 setup-wizard 的 smoke test，目的是驗證 credentials + chat_id 串接通暢，不是測 AI。固定字串訊息保證 100% 可預測，學員看到「✅ Lite Pack 通知測試成功」就知道 Telegram 部分成功。AI 動態訊息留給 #06 webhook AI workflow。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(04) 改造方向</div>
+  <h2 class="section-heading">5 種改造方向</h2>
+
+  <ol class="mod-list">
+    <li><strong>串到別的 workflow 當「結尾通知」</strong>：複製這個 Telegram 節點貼到 #02 / #03 / #04 結尾，跑完 workflow 自動推 Telegram「✅ 處理完成 N 份」。</li>
+    <li><strong>改 Resource 推照片 / 檔案</strong>：Telegram 節點可選 <code>Resource: Photo / Document / Audio</code>，從 binary input 推給 Telegram。例如 #02 改名後直接推 PDF 縮圖到 Telegram。</li>
+    <li><strong>串 Webhook 接 Telegram bot 指令</strong>：複製 #06 的 Webhook 節點開 endpoint，加上 Telegram bot 的 setWebhook 設定，讓 bot 收到指令時觸發 workflow（例如打 /report 自動跑 #04 日報）。</li>
+    <li><strong>多 chat 群推</strong>：把 chat_id 設成 array，loop 推到多個個人 / 群組 / channel。</li>
+    <li><strong>替換 Slack / Discord / Line</strong>：n8n 內建 Slack / Discord 節點介面類似，credentials 換掉 + 節點換掉就能轉移。</li>
+  </ol>
+
+  <div class="callout info" style="margin-top:24px">
+    <div class="callout-icon" aria-hidden="true">🎯</div>
+    <div class="callout-body">下一個 <a href="m0-workflow-06-webhook-ai.html">#06 Webhook → AI → 三輸出</a>把 #01 的 webhook + #02 的 AI + #05 的 Telegram 整合成一個 workflow。</div>
+  </div>
+</section>
+
+<div class="nav-footer">
+  <a href="m0-workflow-04-daily.html" class="nav-btn"><span aria-hidden="true">←</span> 上一個：#04 定時 AI 日報</a>
+  <a href="m0-workflow-06-webhook-ai.html" class="nav-btn primary">下一個：#06 Webhook AI <span aria-hidden="true">→</span></a>
+</div>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">2026 春季</span>
+  <span class="footer-meta">本頁以 n8n latest (Docker) + Lite Pack v0.9 製作，2026-05</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+</script>
+</body>
+</html>
