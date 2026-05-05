@@ -287,48 +287,6 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   </div>
 </section>
 
-<hr class="section-rule">
-
-<section class="lesson-section">
-  <div class="section-eyebrow">(03) 設計哲學</div>
-  <h2 class="section-heading">8 個 workflow 共同的設計選擇</h2>
-
-  <div class="callout">
-    <div class="callout-icon" aria-hidden="true">📐</div>
-    <div class="callout-body"><strong>1. Code Node 取代 HTTP Request Node 打 AI API</strong><br>
-    n8n 的 HTTP Request Node 在 jsonBody 帶 expression 時有解析陷阱（學員 16 連發踩過很多次）。Lite Pack 統一改用 Code Node 內 <span class="ic">this.helpers.httpRequest()</span> 直接打 Gemini API，徹底避開 jsonBody 解析雷。</div>
-  </div>
-
-  <div class="callout">
-    <div class="callout-icon" aria-hidden="true">📐</div>
-    <div class="callout-body"><strong>2. Gemini 2.5 Flash 強制設 thinkingBudget: 0</strong><br>
-    Gemini 2.5 是 thinking model，預設會用 thinking tokens，會吃掉 maxOutputTokens 限額。對「抽取 + 格式化」任務（命名 / 摘要）不需要 thinking，全部 workflow 設 <span class="ic">thinkingConfig: { thinkingBudget: 0 }</span> 確保 AI 真的有 token 輸出實際內容。</div>
-  </div>
-
-  <div class="callout">
-    <div class="callout-icon" aria-hidden="true">📐</div>
-    <div class="callout-body"><strong>3. 多 item 場景手動 loop（不靠 runOnceForEachItem）</strong><br>
-    Code Node typeVersion 2 的 runOnceForEachItem 模式對 binary 處理有限制。處理多份 PDF 場景一律用 default <span class="ic">runOnceForAllItems</span> + 內部 for loop + 從 Read 用 fileName 反查 binary，100% 可控。</div>
-  </div>
-
-  <div class="callout">
-    <div class="callout-icon" aria-hidden="true">📐</div>
-    <div class="callout-body"><strong>4. fileName 對齊不靠 pairedItem</strong><br>
-    n8n 的 pairedItem 在 Extract error 分支會誤標 index = 0（不是真實上游 index）。Lite Pack 統一用 <span class="ic">item.json.fileName</span> 從 Read 反查對應 item 的 binary，避開 pairedItem bug。</div>
-  </div>
-
-  <div class="callout">
-    <div class="callout-icon" aria-hidden="true">📐</div>
-    <div class="callout-body"><strong>5. Telegram 節點不傳 parse_mode</strong><br>
-    n8n Telegram Node typeVersion 1.2 的 Parse Mode dropdown 沒有「None」選項只有 markdown / HTML，AI 動態回應內含 <span class="ic">*</span> <span class="ic">_</span> 字元就會炸 entities error。Lite Pack 全部 telegram 節點 additionalFields 留空（不加 Parse Mode 欄位）+ Code 內對動態內容 strip markdown 字元雙保險。</div>
-  </div>
-
-  <div class="callout info">
-    <div class="callout-icon" aria-hidden="true">🎯</div>
-    <div class="callout-body">這 5 條設計選擇是 16 連發 + 03 五次迭代學到的真相。每個 workflow 拆解頁會講該 workflow 為什麼這樣寫，跟踩過什麼雷。</div>
-  </div>
-</section>
-
 <div class="nav-footer">
   <a href="m0-install-mac.html" class="nav-btn"><span aria-hidden="true">←</span> 上一步：Mac 安裝</a>
   <a href="m0-workflow-01-webhook.html" class="nav-btn primary">第一個拆解：#01 Webhook hello-world <span aria-hidden="true">→</span></a>
