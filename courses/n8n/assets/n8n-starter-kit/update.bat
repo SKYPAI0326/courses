@@ -7,10 +7,10 @@ chcp 65001 >nul
 cd /d "%~dp0"
 
 echo 正在拉取最新 n8n image...
-docker compose pull
+docker compose -f n8n-compose.yml pull
 
 echo 重啟服務...
-docker compose up -d
+docker compose -f n8n-compose.yml up -d
 
 echo.
 echo 升級完成。資料已自動延續。

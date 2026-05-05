@@ -1,0 +1,80 @@
+{
+  "name": "01 · Webhook hello-world",
+  "meta": {
+    "_litePackNote": "Lite Pack 第 1 個工作流。最簡單驗證流程：Webhook 收到 GET 請求 → 回應 JSON。學員可拿來驗證 webhook 路徑、Make HTTP 整合、Quick Tunnel 連通。"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## #1 Webhook hello-world\n\n**目的**：驗證 n8n 能接收外部 GET 請求。\n\n**測試方法**：\n1. 點下方紫色 Execute workflow\n2. Webhook 節點變藍色「Listening for test event」\n3. 瀏覽器打 http://localhost:5678/webhook-test/lite-hello （10 秒內）\n4. 預期看到 {\"message\": \"hello from lite pack\"}\n\n**改造方向**：\n- 改 Method 為 POST 收 body\n- Set 節點加更多回應欄位\n- 接 Telegram 節點轉發訊息",
+        "height": 380,
+        "width": 320
+      },
+      "id": "sticky-01",
+      "name": "📌 使用說明",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-200, 0]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "lite-hello",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-01",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "lite-hello-webhook-id"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "msg-01",
+              "name": "message",
+              "value": "hello from lite pack",
+              "type": "string"
+            },
+            {
+              "id": "ts-01",
+              "name": "timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "method-01",
+              "name": "received_method",
+              "value": "={{ $json.headers['x-real-ip'] || $json.headers.host || 'unknown' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-01",
+      "name": "Set: 回應內容",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{"node": "Set: 回應內容", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "lite-pack-01-v1",
+  "id": "lite-pack-01-webhook-hello",
+  "tags": [
+    {"name": "lite-pack", "id": "tag-lite-pack"}
+  ]
+}

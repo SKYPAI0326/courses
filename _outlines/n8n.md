@@ -4,7 +4,7 @@ name: AI 資料工廠 — 大規模文件處理實戰
 color: "#5a7a5a"
 audience: 已熟 Make 基礎、想突破 1000 ops/月限制與本機檔案存取限制的自動化工作者
 institution: 弄一下工作室
-duration: 8h
+duration: 9.5h
 tools: n8n (Community Edition self-host), Docker Desktop, Cloudflare Tunnel, Make
 prac: false
 # === 課程製作團隊系統擴充欄位 ===
@@ -37,7 +37,19 @@ platform_version: n8n latest (Docker image n8nio/n8n) / Docker Desktop / Cloudfl
 
 - **tone_register**：技術友善（清楚、實作導向，不端架子）
 - **mood_keywords**：職人感、可靠、工廠秩序
-- **differentiation**：與其他 AI 課程強調「概念」不同，本課程強調「自架基礎建設能力」— 學員會帶走一個跑在自己電腦上、可永久使用的 n8n 工作站，而不只是工具操作技巧
+- **differentiation**：以較高的技術責任，換取更低的邊際執行成本與本機能力 — 學員會帶走一個跑在自己電腦上、可永久使用的 n8n 工作站，並具備「把雲端 SaaS 自動化轉成本機可控資料管線」的工程化能力
+
+### 文案誠實度規則（Brand Honesty Rules）
+
+依 Codex L3 兩輪審核（CALL_ID 63c0b5f7 / 348da75a）結論，下列三大主張**禁止**用於課程文案、行銷頁、招生敘述：
+
+| ❌ 不要說 | ✅ 改成 |
+|----------|--------|
+| 「無執行次數限制」「免費」 | 「以較高技術責任換取更低邊際執行成本」（self-host 把 SaaS 帳單換成電費/維運/備份/升級的隱性成本，要誠實揭露） |
+| 「機密資料留本機」 | 「支援本機資料處理與可選的本機 AI；若使用雲端 LLM（Gemini API），資料仍會離開本機」（Gmail API 抓信代表資料仍在 Google；Free Tier 還會用資料改善產品） |
+| 「Make → n8n 一鍵搬家」「無腦遷移」 | 「Make ↔ n8n 對等度多在 65–95% 之間，需學會資料形狀轉換、分發 vs 分支差異、JSON Schema 約束、錯誤處理對等」 |
+
+每篇單元教案、首頁 hero、FAQ、招生頁敘述，違反上述規則的文字必須修正。
 
 ## 學習成果（Outcomes，動詞開頭、可驗證）
 
@@ -47,6 +59,7 @@ platform_version: n8n latest (Docker image n8nio/n8n) / Docker Desktop / Cloudfl
 4. **能設計 Watch Folder 工作流**監控本機資料夾、自動觸發批次處理（如 PDF 改名、文件彙整）
 5. **能組合 Make 與 n8n 的雲地協作架構**，把雲端訊號（表單、Webhook）導到本機跑批次任務
 6. **能診斷常見 n8n 自架環境錯誤**（埠衝突、Docker 沒開、權限問題、ERR_CONNECTION_REFUSED）並自助排除
+7. **能把 Make 既有 scenario 在 n8n 完整重建**（含 Aggregate / 分發式路由 / JSON Parse 防禦 / Continue On Fail），並對工作流每一步做威脅模型分析，知道哪些步驟資料離開本機 / 哪些可改用 local LLM
 
 ## 環境風險聲明（必讀）
 
@@ -77,6 +90,7 @@ dependencies:
   CH4-1: [CH1-2, CH2-1]           # Google 表單遙控需要 Tunnel + 引用
   CH4-2: [CH4-1]                  # Make+n8n 雙引擎延伸自表單遙控
   CH4-3: [CH4-2, CH3-2]           # 全自動企劃整合所有
+  CH4-4: [CH1-3, CH2-1, CH2-3, CH3-2, CH4-3]  # AI 秘書遷移整合 prompt + 引用 + 邏輯 + 批次 + AI 整合
 ```
 
 ## 試跑包交付規格（Verification Assets）
@@ -102,7 +116,7 @@ dependencies:
 - M1：Webhook hello-world（驗證 1.1 安裝完成）、Tunnel 測試流（驗證 1.2）
 - M2：Optional Chaining 範例流、If/Switch 分支示例
 - M3：Watch Folder + PDF 改名工作流、定時彙整日報工作流
-- M4：Google 表單遙控完整流、Make + n8n 雙引擎協作流、全自動企劃產出流
+- M4：Google 表單遙控完整流、Make + n8n 雙引擎協作流、全自動企劃產出流、**M4-4 AI 秘書遷移完整流（11 節點 / 4 路分發 / 對應 Make 02_AI秘書_進階 scenario）**
 
 ### Setup Checklist（每單元前置）
 - 需要哪些 credential（Google Drive / Google Sheets / OpenAI 等）
@@ -137,13 +151,17 @@ dependencies:
 - **CH3-2：PDF 批次改名 — 40m** — 能組合 Watch Folder + LLM 抽取內容 + 改檔名，處理大量 PDF 自動歸檔
 - **CH3-3：定時彙整日報（Schedule Trigger + Cron）— 40m** — 能設定 Schedule Trigger / Cron 排程，每日定時跑彙整與多格式輸出
 
-### Module 4：綜合實戰 — 一站式行動辦公室（預計 2h）
+### Module 4：綜合實戰 — 一站式行動辦公室（預計 3.7h）
 
-> M4 是 Make + n8n 雲地協作的最終整合
+> M4 是 Make + n8n 雲地協作的最終整合 + Make 進階遷移黃金 demo
 
 - **CH4-1：Google 表單遙控本機任務 — 40m** — 能用 Google 表單觸發 Make → 透過 Tunnel 打到本機 n8n → 跑批次任務 → 結果回傳
 - **CH4-2：Make + n8n 雙引擎協作 — 40m** — 能規劃哪些步驟放 Make（雲端訊號）、哪些放 n8n（本機批次），並設計 API 介接（含 timeout 處理）
 - **CH4-3：全自動企劃產出（AI + n8n + Docs）— 40m** — 能組合 LLM、n8n、Google Docs 模板，從一個指令產出完整企劃文件
+- **CH4-4：AI 秘書工作流：從 Make 遷移到 n8n（黃金 demo）— 100m** — 能在 n8n 完整重建學員既有的 Make AI 秘書 scenario（Gmail Trigger + Aggregate + Gemini 4 區 JSON + Split Out + IF×4 並排路由 + TG/Email/Docs/HTTP + Continue On Fail），並對工作流每一步做威脅模型分析，知道哪些步驟資料離開本機 / 哪些可改用 local LLM
+  - **設計依據**：Codex L3 兩輪審核（CALL_ID 63c0b5f7 / 348da75a）的 P0-NEW 缺口
+  - **教學重點**：Make ↔ n8n 對等度逐項對照（11 列）+ 4 大心智模型落差（資料形狀 / 分發 vs 分支 / JSON Parse / 錯誤處理）+ 威脅模型決策表
+  - **學員 deliverable**：可帶走的 11 節點 n8n workflow JSON（`m4-4-ai-secretary-migration.json`）+ 機密 NDA 處理變體設計
 
 ---
 

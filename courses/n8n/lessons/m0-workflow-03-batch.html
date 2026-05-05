@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#03 批次處理錯誤恢復 設計拆解｜AI 資料工廠</title>
+<meta name="description" content="Lite Pack #03 workflow 設計拆解：100 份混合品質 PDF 自動分流（合法→AI改名→processed/，壞檔→隔離→failed/）。含 5 次迭代學到的 n8n 對齊真相、pairedItem bug、binary strip 規則。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="#03 批次處理錯誤恢復 設計拆解｜AI 資料工廠">
+<meta property="og:description" content="Lite Pack #03 workflow 設計拆解：dual-path 路由 + 5 次迭代學到的 n8n 對齊真相。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/m0-workflow-03-batch.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="#03 批次處理錯誤恢復 設計拆解｜AI 資料工廠">
+<meta name="twitter:description" content="Lite Pack #03 workflow 設計拆解：dual-path 路由。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/m0-workflow-03-batch.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-main:#5a7a5a;--radius:4px;--content-w:820px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:#5a7a5a;border:1px solid rgba(90,122,90,.3);background:transparent;padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 36px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;max-width:24ch}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;margin-bottom:28px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);margin-top:16px}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
+.outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-body{font-size:.9rem;line-height:1.85}
+.callout.tip{background:rgba(201,150,58,.08);border-left-color:var(--c-a2)}
+.callout.key{background:rgba(181,74,74,.07);border-left-color:#b54a4a}
+.callout.info{background:rgba(90,122,90,.06);border-left-color:var(--c-a3)}
+.flow-diagram{background:var(--c-card);border:1px solid var(--c-border-soft);border-radius:var(--radius);padding:20px 24px;margin:20px 0;overflow-x:auto;font-family:'SF Mono',monospace;font-size:.78rem;line-height:1.9}
+.flow-diagram .arrow{color:var(--c-faint);margin:0 6px}
+.flow-diagram .node{background:rgba(90,122,90,.08);border:1px solid rgba(90,122,90,.2);padding:3px 8px;border-radius:3px;color:var(--c-a3);white-space:nowrap}
+.flow-diagram .node.trigger{background:rgba(107,127,163,.1);border-color:rgba(107,127,163,.25);color:var(--c-a4)}
+.flow-diagram .node.code{background:rgba(181,112,58,.1);border-color:rgba(181,112,58,.25);color:var(--c-a1)}
+.flow-diagram .node.fail{background:rgba(181,74,74,.08);border-color:rgba(181,74,74,.3);color:#b54a4a}
+.node-card{background:var(--c-card);border:1px solid var(--c-border-soft);border-left:3px solid var(--c-a3);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
+.node-card.code-node{border-left-color:var(--c-a1)}
+.node-card.fail-node{border-left-color:#b54a4a}
+.node-num{font-family:'Shippori Mincho',serif;font-size:.74rem;color:var(--c-faint);letter-spacing:.1em;font-weight:600;margin-bottom:6px}
+.node-title{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin-bottom:10px}
+.node-meta{display:inline-flex;gap:8px;font-size:.72rem;color:var(--c-muted);margin-bottom:10px;flex-wrap:wrap}
+.node-meta span{padding:1px 8px;background:var(--c-surface);border-radius:99px}
+.node-body{font-size:.88rem;line-height:1.85}
+.node-body ul,.node-body ol{margin:8px 0 8px 22px}
+.node-body code,.node-body .ic{font-family:'SF Mono',monospace;font-size:.86em;background:rgba(90,122,90,.1);padding:1px 6px;border-radius:3px}
+.iter-table{width:100%;border-collapse:collapse;font-size:.84rem;margin:16px 0}
+.iter-table th,.iter-table td{padding:10px 12px;border-bottom:1px solid var(--c-border-soft);text-align:left;vertical-align:top}
+.iter-table th{font-family:'Shippori Mincho',serif;font-weight:700;color:var(--c-text);background:var(--c-surface)}
+.iter-table .v{font-family:'SF Mono',monospace;font-size:.78rem;color:var(--c-a1);font-weight:600;white-space:nowrap}
+.mod-list{list-style:none;padding:0;margin:0;counter-reset:mod}
+.mod-list li{counter-increment:mod;position:relative;padding:14px 0 14px 44px;border-bottom:1px dashed var(--c-border-soft);font-size:.9rem;line-height:1.85}
+.mod-list li:last-child{border-bottom:none}
+.mod-list li::before{content:counter(mod,decimal-leading-zero);position:absolute;left:0;top:14px;font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-faint);font-weight:600}
+.mod-list li strong{color:var(--c-text);font-weight:600}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius)}
+.nav-btn:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main)}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}}
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 資料工廠 — 大規模文件處理實戰</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">#03 · batch · AI · 專家</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<div class="page-hero">
+  <a href="m0-workflow-tour.html" class="back-link"><span aria-hidden="true">←</span> 返回工作流總覽</a>
+  <div class="hero-eyebrow">#03 · BATCH ERROR RECOVERY · 7 NODES · 專家</div>
+  <h1 class="lesson-title">資料工廠精髓：100 份混合品質 PDF 自動分流，壞檔不會炸整批</h1>
+  <p class="lesson-tagline">本課程最複雜的 workflow，也是 n8n 相對 Make 的核心優勢區。表面看是「批次處理 + 改名」，內裡是 5 次迭代血淚換來的 n8n 對齊真相 — pairedItem bug、binary strip 規則、Code 節點 throw 污染、fileName 反查策略。讀完這頁你會帶走「能設計工程化容錯 workflow」的能力，而不只是「會用 n8n」。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果</div>
+    <div class="outcome-item">能設計 dual-path workflow（success / error 雙分流），用 onError continueErrorOutput 路由壞檔</div>
+    <div class="outcome-item">能診斷 n8n 多 item 場景的 5 大對齊雷（pairedItem 標 0、Extract success 不留 fileName、binary strip、index 對齊飄移、Code throw 污染）</div>
+    <div class="outcome-item">能用 fileName 反查 + items[i] 直接對齊兩條策略保證 binary 對齊 100% 可靠</div>
+  </div>
+</div>
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(01) WORKFLOW 全貌</div>
+  <h2 class="section-heading">節點與資料流（dual-path）</h2>
+  <div class="flow-diagram">
+    <span class="node trigger">Manual Trigger</span>
+    <span class="arrow">→</span>
+    <span class="node">Read 所有 PDF</span>
+    <span class="arrow">→</span>
+    <span class="node">Extract PDF Text</span>
+    <br><br>
+    <span style="margin-left:42ch">↗ <strong style="color:var(--c-a3)">success</strong>: <span class="node code">Code: AI 改名</span> <span class="arrow">→</span> <span class="node">Write processed/</span></span>
+    <br>
+    <span style="margin-left:42ch">↘ <strong style="color:#b54a4a">error</strong>: <span class="node fail">Code: 失敗處理</span> <span class="arrow">→</span> <span class="node fail">Write failed/</span></span>
+  </div>
+  <p class="body-text">7 個節點 + dual-path 結構。Extract 節點設 <code>onError: continueErrorOutput</code>，PDF 解析失敗的 item 走下方紅線到 fail 路徑。重點不在節點數，而在「**如何讓壞檔不污染整批 + 如何讓兩條路徑的資料對齊**」這兩個對 n8n 來說有 5 個雷的設計挑戰。</p>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(02) NODE BREAKDOWN</div>
+  <h2 class="section-heading">節點逐一拆解（重點看第 4 + 第 6）</h2>
+
+  <div class="node-card">
+    <div class="node-num">NODE 1-3 / 7</div>
+    <div class="node-title">Manual Trigger / Read 所有 PDF / Extract PDF Text</div>
+    <div class="node-body">
+      <p>跟 #02 結構一樣，差別只在資料夾路徑（<code>batch-inbox</code> 而非 <code>pdf-inbox</code>）。Extract 節點關鍵設定：<strong><code>onError: continueErrorOutput</code></strong> — 解析失敗的 item 不會炸整批，會走 error 分支到 Code: 失敗處理路徑。</p>
+    </div>
+  </div>
+
+  <div class="node-card code-node">
+    <div class="node-num">NODE 4 / 7</div>
+    <div class="node-title">Code: AI 改名（含 Gemini call）— success 分支</div>
+    <div class="node-meta"><span>code v2</span><span>runOnceForAllItems</span><span>v0.9</span></div>
+    <div class="node-body">
+      <p><strong>結構跟 #02 幾乎一樣</strong>：jsCode 內部 for loop 處理多份 PDF + 打 Gemini + thinkingBudget 0 + 從 Read 反查 binary。差別在這條路只接合法 PDF（壞檔已被 Extract error 抽走）。</p>
+      <p><strong>關鍵差異</strong>：v0.9 的對齊策略 — <code>const binFileName = items[i].binary?.data?.fileName; const readItem = allReadItems.find(r =&gt; r?.json?.fileName === binFileName) || allReadItems[i];</code></p>
+      <p>用 fileName 反查 readItem 而不是用 pairedItem.item，避開下方踩過的 pairedItem 標 0 的雷。</p>
+    </div>
+  </div>
+
+  <div class="node-card">
+    <div class="node-num">NODE 5 / 7</div>
+    <div class="node-title">Write: 移到 processed/</div>
+    <div class="node-body">
+      <p><code>fileName: {{ $json.newPath }}</code> 寫到 <code>shared/batch-inbox/processed/</code>。</p>
+    </div>
+  </div>
+
+  <div class="node-card fail-node">
+    <div class="node-num">NODE 6 / 7</div>
+    <div class="node-title">Code: 失敗處理路徑 — error 分支</div>
+    <div class="node-meta"><span>code v2</span><span>runOnceForAllItems</span><span>v0.9</span></div>
+    <div class="node-body">
+      <p><strong>用途</strong>：對 Extract error 分支送來的壞檔 item，組合 <code>failedPath</code> 給 Write: failed/ 用，並從 Read 反查 binary（因為 Extract error 路徑會 strip binary）。</p>
+      <p><strong>關鍵 jsCode</strong>：</p>
+      <pre class="code-block" style="font-size:.74rem;padding:12px 16px;padding-right:60px"><span class="cm">// fileName 從 input.json 拿（debug 證實 Extract error 保留 fileName）</span>
+const originalName = item.json.fileName || 'unknown.pdf';
+<span class="cm">// binary 從 Read 用 fileName 反查（Extract error strip 了 binary）</span>
+const readItem = allReadItems.find(r =&gt; r?.json?.fileName === originalName);
+results.push({
+  json: { status: 'failed', originalName, errorMsg, failedPath: ... },
+  binary: readItem?.binary || {}
+});</pre>
+    </div>
+  </div>
+
+  <div class="node-card">
+    <div class="node-num">NODE 7 / 7</div>
+    <div class="node-title">Write: 移到 failed/</div>
+    <div class="node-body">
+      <p><code>fileName: {{ $json.failedPath }}</code> 寫到 <code>shared/batch-inbox/failed/</code>，保留原檔名 + 原檔內容（從 Read 反查的 binary）。</p>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(03) 5 次迭代真相</div>
+  <h2 class="section-heading">v0.6 → v0.9 的血淚史</h2>
+  <div class="intro-band">
+    <div class="intro-label">為什麼這段重要</div>
+    <div class="intro-text">很多 n8n 教學講「dual-path」一筆帶過。實際在 multi-item + error branch 場景，n8n 有 5 個非顯性的對齊規則，少踩一個整個 workflow 看起來跑了但結果是錯的（檔名對 + 內容錯，最難 debug 的 silent failure）。下表是 5 次迭代發現的真相。</div>
+  </div>
+
+  <table class="iter-table">
+    <thead><tr><th>版本</th><th>真相</th><th>修法</th></tr></thead>
+    <tbody>
+      <tr><td class="v">v0.6</td><td>Code Node 預設 <code>runOnceForAllItems</code>，多 input 只跑 1 次（4 份 PDF 只處理第 1 份）</td><td>jsCode 改用 for loop 手動處理 <code>$input.all()</code></td></tr>
+      <tr><td class="v">v0.7</td><td>Extract success 分支的 json 不保留 fileName 欄位，<code>item.json.fileName</code> 是 undefined</td><td>從 <code>item.binary?.data?.fileName</code> 拿 fileName</td></tr>
+      <tr><td class="v">v0.8</td><td>n8n 在 Extract error 分支把 <code>pairedItem.item</code> 錯標成 0（不是真實上游 index）→ readItems[0] 對到第一份 PDF 不是壞檔</td><td>放棄 pairedItem，用 <code>item.json.fileName</code> 從 Read 反查（fileName-match）</td></tr>
+      <tr><td class="v">v0.9</td><td>Code: AI 改名 throw 走 onError continueErrorOutput 會污染 fail 分支的 input（input 變成「Code throw 物件」沒 fileName）→ 4 個合法 PDF 都被誤分到 fail</td><td>Code: AI 改名 拿掉 onError continueErrorOutput，throw 直接讓 workflow 失敗（or 用 try/catch + fallback 命名）。fail 分支只接 Extract error</td></tr>
+      <tr><td class="v">v0.9</td><td>Extract error 分支會 strip binary（json.fileName 還在但 binary 沒了）</td><td>Code: 失敗處理 從 Read 用 fileName 反查 binary</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout tip">
+    <div class="callout-icon" aria-hidden="true">⚠️</div>
+    <div class="callout-body"><strong>silent failure 才是最可怕的</strong>：上述 5 個雷大多不是 workflow 直接炸，而是「跑了但結果錯」— 檔名對齊到別人的 binary、success 分支被污染進 fail 分支、4 份 PDF 只處理 1 份。看似 workflow 通過實則資料錯亂。Lite Pack v0.9 在 jsCode 內加 <code>throw new Error('[i=N] No binary. fileName=..., readNames=[...]')</code> 詳細 debug 訊息，當下就能定位是哪個對齊出錯。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(04) 改造方向</div>
+  <h2 class="section-heading">把這個 workflow 改成你業務的 5 種方向</h2>
+
+  <ol class="mod-list">
+    <li><strong>加 summary log</strong>：在 Write processed/ 與 Write failed/ 之後加 Merge 節點 + Code 節點，跑完一批寫一份 <code>_summary-{時間戳}.md</code> 列出「N 個成功 / M 個失敗 / 各檔名清單」。</li>
+    <li><strong>改 Schedule Trigger</strong>：Manual 換成每天凌晨 4:00 自動跑，<code>batch-inbox/</code> 變「下班後丟一堆 PDF，明早來看歸檔結果」工作流。</li>
+    <li><strong>加 retry 機制</strong>：失敗 item 不直接進 failed/，先記到 retry queue，3 分鐘後重試一次（API rate limit 自動恢復），3 次都失敗才進 failed/。</li>
+    <li><strong>串 Telegram 通知</strong>：跑完一批 Telegram 通知「✅ 處理 N 份，X 份成功歸 processed/，Y 份失敗保留 failed/」。</li>
+    <li><strong>換 storage</strong>：processed/ 從本機資料夾換成 Google Drive / Dropbox / S3，做雲端歸檔。</li>
+  </ol>
+
+  <div class="callout info" style="margin-top:24px">
+    <div class="callout-icon" aria-hidden="true">🎯</div>
+    <div class="callout-body">下一個 <a href="m0-workflow-04-daily.html">#04 定時 AI 日報</a>從「批次處理檔案」轉換到「批次處理文字內容 + Schedule + Aggregate」。</div>
+  </div>
+</section>
+
+<div class="nav-footer">
+  <a href="m0-workflow-02-pdf-rename.html" class="nav-btn"><span aria-hidden="true">←</span> 上一個：#02 PDF AI 改名</a>
+  <a href="m0-workflow-04-daily.html" class="nav-btn primary">下一個：#04 定時 AI 日報 <span aria-hidden="true">→</span></a>
+</div>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">2026 春季</span>
+  <span class="footer-meta">本頁以 n8n latest (Docker) + Lite Pack v0.9 製作，2026-05</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+</script>
+</body>
+</html>

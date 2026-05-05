@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M0 從零安裝 Lite Pack（Windows）｜AI 資料工廠 — 大規模文件處理實戰</title>
+<meta name="description" content="60-120 分鐘從零在 Windows 把 n8n 一鍵系統 Lite Pack 安裝完成 + 4 個 AI workflow 全跑通。涵蓋 WSL2 + Docker Desktop 安裝、SmartScreen 解鎖、setup-wizard 自動化、AI 改名實測。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="M0 從零安裝 Lite Pack（Windows）｜AI 資料工廠">
+<meta property="og:description" content="60-120 分鐘從零在 Windows 把 n8n 一鍵系統 Lite Pack 安裝完成 + 4 個 AI workflow 全跑通。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/m0-install-win.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="M0 從零安裝 Lite Pack（Windows）｜AI 資料工廠">
+<meta name="twitter:description" content="60-120 分鐘從零在 Windows 把 n8n 一鍵系統 Lite Pack 安裝完成 + 4 個 AI workflow 全跑通。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/m0-install-win.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-a5:#7a9ea3;--c-main:#5a7a5a;--radius:4px;--radius-sm:3px;--content-w:820px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 var(--radius) 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:#5a7a5a;border:1px solid rgba(90,122,90,.3);background:transparent;padding:3px 12px;border-radius:99px;font-weight:500;letter-spacing:.06em}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px;font-variant-numeric:tabular-nums}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;max-width:22ch}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);margin-top:28px}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
+.outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-body{font-size:.9rem;line-height:1.85}
+.callout.tip{background:rgba(201,150,58,.08);border-left-color:var(--c-a2)}
+.callout.key{background:rgba(181,74,74,.07);border-left-color:#b54a4a}
+.callout.info{background:rgba(90,122,90,.06);border-left-color:var(--c-a3)}
+.step-block{margin:24px 0;padding:20px 24px;border:1px solid var(--c-border-soft);border-radius:var(--radius);background:var(--c-card)}
+.step-num{display:inline-block;font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-a3);letter-spacing:.1em;font-weight:600;margin-bottom:8px}
+.step-title{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin-bottom:12px}
+.step-body{font-size:.9rem;line-height:1.85;color:var(--c-text)}
+.step-body ol,.step-body ul{margin:8px 0 8px 22px;line-height:2}
+.code-wrap{position:relative;margin:14px 0}
+.code-block{background:#2c2b28;color:#e8e4dc;font-family:'SF Mono','Courier New',monospace;font-size:.82rem;padding:16px 20px;padding-right:90px;border-radius:var(--radius);line-height:1.7;overflow-x:auto;white-space:pre}
+.code-block .cm{color:#7e9a85;font-style:italic}
+.code-block .var{color:#d4c08a}
+.copy-btn{position:absolute;top:9px;right:10px;background:rgba(255,255,255,.08);color:#e8e4dc;border:1px solid rgba(255,255,255,.15);font-family:inherit;font-size:.7rem;padding:5px 12px;border-radius:4px;cursor:pointer;letter-spacing:.05em;transition:background .15s}
+.copy-btn:hover{background:rgba(255,255,255,.16)}
+.copy-btn.ok{background:rgba(120,180,120,.25);border-color:rgba(120,180,120,.5);color:#c8e8c8}
+.expect{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:3px solid var(--c-a3);border-radius:var(--radius);padding:11px 16px;margin-top:12px;font-size:.86rem;line-height:1.75}
+.expect-label{font-size:.7rem;color:var(--c-a3);letter-spacing:.1em;font-weight:600;margin-bottom:4px}
+.ic{font-family:'SF Mono','Courier New',monospace;font-size:.86em;background:rgba(90,122,90,.1);padding:1px 6px;border-radius:3px}
+.toc{position:sticky;top:58px;z-index:49;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border-soft);padding:10px 48px;display:flex;gap:6px;overflow-x:auto;flex-wrap:wrap;font-size:.78rem}
+.toc-pill{color:var(--c-muted);text-decoration:none;padding:4px 10px;border:1px solid var(--c-border);border-radius:99px;white-space:nowrap;transition:all .15s}
+.toc-pill:hover{color:var(--c-text);border-color:var(--c-text)}
+.toc-pill.danger{border-color:#b54a4a;color:#b54a4a;font-weight:600}
+.dl-btn{display:inline-flex;align-items:center;gap:8px;background:var(--c-a3);color:#fff;padding:11px 22px;border-radius:var(--radius);text-decoration:none;font-weight:500;font-size:.95rem;margin:8px 8px 8px 0}
+.dl-btn:hover{filter:brightness(.92)}
+.dl-btn.outline{background:transparent;color:var(--c-a3);border:1px solid var(--c-a3)}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
+.nav-btn:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main)}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:600px){.topbar,.toc,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.code-block{font-size:.76rem;padding-right:80px}}
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 資料工廠 — 大規模文件處理實戰</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">M0 · Windows 安裝</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<nav class="toc" aria-label="頁內導覽">
+  <a href="#step0" class="toc-pill danger">Step 0 · 環境歸零</a>
+  <a href="#phaseA" class="toc-pill">Phase A · WSL2 + Docker + n8n</a>
+  <a href="#phaseB" class="toc-pill">Phase B · Lite Pack</a>
+  <a href="#phaseC" class="toc-pill">Phase C · 4 個 AI workflow 驗證</a>
+  <a href="#troubleshoot" class="toc-pill">卡關時看這</a>
+</nav>
+
+<main id="main">
+
+<div class="page-hero">
+  <a href="index.html" class="back-link"><span aria-hidden="true">←</span> 返回課程首頁</a>
+  <div class="hero-eyebrow">M0 · QUICKSTART · WINDOWS</div>
+  <h1 class="lesson-title">從零在 Windows 安裝 Lite Pack：60-120 分鐘到 4 個 AI workflow 全跑通</h1>
+  <p class="lesson-tagline">這是「先用後學」路線的 Windows 入口頁。Windows 比 Mac 多一層 WSL2（Windows Subsystem for Linux 2）— Docker Desktop 在 Windows 跑容器需要 WSL2 當底層，本頁會帶你裝完。建議 Windows 10 21H2 以上 / Windows 11 任何版本，Home 版以上即可（不用 Pro）。完成後跟 Mac 學員拿到一樣的 4 個 AI workflow 在你電腦上跑著。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果</div>
+    <div class="outcome-item">能在 Windows 10/11 從零安裝 WSL2 + Docker Desktop + n8n 並完成首次設定</div>
+    <div class="outcome-item">能用 setup-wizard.bat 自動填入 Gemini API key + Telegram bot 完成 Lite Pack 一鍵安裝</div>
+    <div class="outcome-item">能在自己電腦上跑通 4 個 AI workflow 並驗證輸出（Telegram 通知、PDF 自動改名、AI 日報、Webhook 觸發 AI）</div>
+  </div>
+</div>
+
+<!-- ════════ Step 0 · 環境歸零 ════════ -->
+<section class="lesson-section" id="step0">
+  <div class="section-eyebrow">(00) STEP ZERO · 必做</div>
+  <h2 class="section-heading">先把 Windows 上既有的 n8n / Docker 殘留清乾淨</h2>
+  <div class="intro-band">
+    <div class="intro-label">為什麼這很重要</div>
+    <div class="intro-text">如果你以前裝過 n8n（自己摸索、跟別的教學、舊版 Desktop App），這次重灌會撞 port、撞 volume、撞 cloudflared process — 新跑的 n8n 啟動失敗或行為怪異 90% 是這個原因。把舊的全清掉再從新版下手，比邊裝邊修快得多。</div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-icon" aria-hidden="true">⚠️</div>
+    <div class="callout-body"><strong>會清掉</strong>：所有 n8n / postgres container + volume + network、cloudflared 殘留 process、所有 starter-kit / lite-pack 解壓資料夾、所有殘留 zip。<br><strong>不會動到</strong>：Docker Desktop 本身、Docker image cache（重灌會直接拿 cache，不重新下載 GB 級 image）、WSL2 本身、Telegram bot、Gemini API key、Cloudflare 帳號（這些都在雲端）。</div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">STEP 0-1</div>
+    <div class="step-title">打開 PowerShell（系統管理員權限）</div>
+    <div class="step-body">
+      <p>左下角搜尋「PowerShell」→ <strong>右鍵 →「以系統管理員身分執行」</strong>。後面所有指令都在這個視窗跑。</p>
+      <div class="callout">
+        <div class="callout-icon" aria-hidden="true">💡</div>
+        <div class="callout-body">不用系統管理員的 PowerShell 也能跑大部分指令，但 cloudflared service 卸載必須要管理員權限。一次開好省事。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">STEP 0-2</div>
+    <div class="step-title">確認 Docker Desktop 在跑</div>
+    <div class="step-body">
+      <p>桌面右下角工具列應有鯨魚 icon（不再動畫表示就緒）。沒安裝跳到 Phase A 先裝。</p>
+      <div class="code-wrap">
+        <pre class="code-block" id="cmd-docker-check">docker info | Out-Null
+if ($?) { Write-Host "✅ Docker daemon 正常" -ForegroundColor Green } else { Write-Host "❌ 先打開 Docker Desktop" -ForegroundColor Red }</pre>
+        <button class="copy-btn" data-target="cmd-docker-check">複製</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">STEP 0-3</div>
+    <div class="step-title">清掉所有 n8n / postgres container + volume + network</div>
+    <div class="step-body">
+      <div class="code-wrap">
+        <pre class="code-block" id="cmd-cleanup-1"># 用 docker compose down -v 走正規路徑（如果 starter-kit 還在）
+$kit = "$env:USERPROFILE\Downloads\n8n-starter-kit"
+if (Test-Path "$kit\n8n-compose.yml") {
+  cd $kit
+  docker compose -f n8n-compose.yml down -v 2&gt;$null
+  cd $env:USERPROFILE
+}
+
+# 殘留 container 強制清
+docker ps -a --filter "name=n8n" --format "{{.Names}}" | ForEach-Object { docker rm -f $_ }
+docker ps -a --filter "name=postgres" --format "{{.Names}}" | ForEach-Object { docker rm -f $_ }
+
+# 殘留 volume 清
+docker volume ls --filter "name=n8n" -q | ForEach-Object { docker volume rm $_ }
+docker volume ls --filter "name=postgres" -q | ForEach-Object { docker volume rm $_ }
+
+# 殘留 network 清
+docker network ls --filter "name=n8n" -q | ForEach-Object { docker network rm $_ 2&gt;$null }</pre>
+        <button class="copy-btn" data-target="cmd-cleanup-1">複製</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">STEP 0-4</div>
+    <div class="step-title">殺掉殘留的 cloudflared process</div>
+    <div class="step-body">
+      <div class="code-wrap">
+        <pre class="code-block" id="cmd-cleanup-2"># 之前雙擊 tunnel-quick.bat 開的 cloudflared 可能還在跑
+Get-Process cloudflared -ErrorAction SilentlyContinue | Stop-Process -Force
+Start-Sleep -Seconds 2
+$still = Get-Process cloudflared -ErrorAction SilentlyContinue
+if ($still) { Write-Host "⚠️ 還有殘留 cloudflared，看下方 service 卸載" -ForegroundColor Yellow }
+else { Write-Host "✅ cloudflared 已清乾淨" -ForegroundColor Green }</pre>
+        <button class="copy-btn" data-target="cmd-cleanup-2">複製</button>
+      </div>
+      <div class="callout tip" style="margin-top:12px">
+        <div class="callout-icon" aria-hidden="true">⚠️</div>
+        <div class="callout-body">如果以前裝過 <span class="ic">cloudflared service install</span> 的 Windows service，需要卸載：
+          <pre class="code-block" id="cmd-cleanup-2-svc" style="margin-top:8px;font-size:.78rem;padding-right:80px">cloudflared service uninstall 2&gt;$null
+sc.exe delete cloudflared 2&gt;$null
+Get-Service cloudflared -ErrorAction SilentlyContinue</pre>
+          <button class="copy-btn" data-target="cmd-cleanup-2-svc">複製</button>
+          <p style="margin-top:6px">最後一行如果回 <span class="ic">Cannot find any service</span> 表示已卸載乾淨。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">STEP 0-5</div>
+    <div class="step-title">刪所有解壓資料夾 + 殘留 zip</div>
+    <div class="step-body">
+      <div class="code-wrap">
+        <pre class="code-block" id="cmd-cleanup-3"># 含 Windows 防覆蓋產生的 starter-kit (1) / (2)
+Remove-Item "$env:USERPROFILE\Downloads\n8n-starter-kit*" -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item "$env:USERPROFILE\Desktop\n8n-starter-kit*" -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item "$env:USERPROFILE\Downloads\n8n-lite-pack*" -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item "$env:USERPROFILE\Desktop\n8n-lite-pack*" -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item "$env:USERPROFILE\Downloads\n8n-starter-kit*.zip" -Force -ErrorAction SilentlyContinue
+Remove-Item "$env:USERPROFILE\Downloads\n8n-lite-pack*.zip" -Force -ErrorAction SilentlyContinue
+Write-Host "✅ 解壓資料夾與 zip 已清" -ForegroundColor Green</pre>
+        <button class="copy-btn" data-target="cmd-cleanup-3">複製</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">STEP 0-6</div>
+    <div class="step-title">完全歸零驗證</div>
+    <div class="step-body">
+      <div class="code-wrap">
+        <pre class="code-block" id="cmd-cleanup-verify">Write-Host "── container ──"
+docker ps -a --filter "name=n8n" --format "{{.Names}}"
+docker ps -a --filter "name=postgres" --format "{{.Names}}"
+Write-Host "── volume ──"
+docker volume ls | Select-String "n8n|postgres" || Write-Host "✅ 無殘留 volume"
+Write-Host "── network ──"
+docker network ls | Select-String "n8n" || Write-Host "✅ 無殘留 network"
+Write-Host "── 解壓資料夾 ──"
+Get-ChildItem "$env:USERPROFILE\Downloads\" -ErrorAction SilentlyContinue | Where-Object { $_.Name -match "n8n|lite-pack" } || Write-Host "✅ Downloads 已清乾淨"
+Write-Host "── cloudflared process ──"
+Get-Process cloudflared -ErrorAction SilentlyContinue || Write-Host "✅ cloudflared 已清乾淨"
+Write-Host "── 完成 ──"</pre>
+        <button class="copy-btn" data-target="cmd-cleanup-verify">複製</button>
+      </div>
+      <div class="expect">
+        <div class="expect-label">通過 STEP 0 的判準</div>
+        5 個區塊都顯示 ✅ 已清乾淨。任何一行有殘留就重跑對應 step 0-3 ~ 0-5 的指令。
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ════════ Phase A ════════ -->
+<section class="lesson-section" id="phaseA">
+  <div class="section-eyebrow">(01) PHASE A</div>
+  <h2 class="section-heading">WSL2 + Docker Desktop + n8n 啟動（30-60 分鐘）</h2>
+  <div class="intro-band">
+    <div class="intro-label">這個階段要做的事</div>
+    <div class="intro-text">先確認 / 安裝 WSL2（Docker Desktop 在 Windows 的底層），裝 Docker Desktop，下載 starter-kit zip，雙擊 start.bat 把 n8n 跑起來，建立 Owner Account。完成後瀏覽器打開 localhost:5678 看到 n8n 主介面。</div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">A1</div>
+    <div class="step-title">安裝 / 確認 WSL2</div>
+    <div class="step-body">
+      <p>系統管理員 PowerShell 跑：</p>
+      <div class="code-wrap">
+        <pre class="code-block" id="cmd-wsl-check">wsl --status
+wsl --version</pre>
+        <button class="copy-btn" data-target="cmd-wsl-check">複製</button>
+      </div>
+      <p>如果回 <span class="ic">'wsl' 不是內部或外部命令</span> 或顯示版本 1，跑安裝指令：</p>
+      <div class="code-wrap">
+        <pre class="code-block" id="cmd-wsl-install">wsl --install
+wsl --set-default-version 2</pre>
+        <button class="copy-btn" data-target="cmd-wsl-install">複製</button>
+      </div>
+      <p>跑完<strong>重開機</strong>（Windows 強制要求）。重開後再回來繼續 A2。</p>
+      <div class="callout tip">
+        <div class="callout-icon" aria-hidden="true">⚠️</div>
+        <div class="callout-body">如果 <span class="ic">wsl --install</span> 跳「主機板設定 BIOS Virtualization 沒開」→ 重開進 BIOS 找 <strong>Virtualization Technology / VT-x / SVM</strong> 設成 Enabled 再回來。沒這選項代表你 CPU 不支援虛擬化（極舊 CPU），這種情況本課程整體不適用。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">A2</div>
+    <div class="step-title">安裝 Docker Desktop</div>
+    <div class="step-body">
+      <p>到 <strong>https://www.docker.com/products/docker-desktop/</strong> 下載 Windows 版（會自動偵測 64-bit）。</p>
+      <p>下載 <span class="ic">Docker Desktop Installer.exe</span> → 雙擊 → 預設選項全打勾（特別注意「Use WSL 2 instead of Hyper-V」要打勾）→ 安裝完重開機。</p>
+      <p>重開後第一次啟動 Docker Desktop：</p>
+      <ol>
+        <li>同意服務條款</li>
+        <li>跳註冊頁可以跳過（不註冊也能用本課程所有功能）</li>
+        <li>等鯨魚 icon 不再動畫表示就緒</li>
+      </ol>
+      <p>驗證安裝：PowerShell 跑 <span class="ic">docker --version</span> 應顯示版本號。</p>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">A3</div>
+    <div class="step-title">下載 n8n-starter-kit.zip</div>
+    <div class="step-body">
+      <a href="../assets/n8n-starter-kit.zip" class="dl-btn" download>⬇ 下載 n8n-starter-kit.zip（約 15 KB）</a>
+      <p>下載後在檔案總管 Downloads 找到 zip → 右鍵「全部解壓縮」→ 解壓到同層 <span class="ic">C:\Users\&lt;你的名字&gt;\Downloads\n8n-starter-kit\</span>。</p>
+      <div class="callout tip">
+        <div class="callout-icon" aria-hidden="true">⚠️</div>
+        <div class="callout-body">Windows 解壓預設會多一層資料夾（<span class="ic">n8n-starter-kit\n8n-starter-kit\</span>）。需要把內層的東西搬到外層，最終結構應為 <span class="ic">Downloads\n8n-starter-kit\start.bat</span>（start.bat 直接在資料夾底下）。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">A4</div>
+    <div class="step-title">Windows SmartScreen 解鎖 .bat</div>
+    <div class="step-body">
+      <p>Windows Defender SmartScreen 對網路下載的 .bat 會擋。處理方法：</p>
+      <ol>
+        <li>檔案總管進 <span class="ic">Downloads\n8n-starter-kit\</span></li>
+        <li>對 <span class="ic">start.bat</span> <strong>右鍵 → 內容</strong></li>
+        <li>對話框最下方看到「安全性：這個檔案來自其他電腦，可能被封鎖」 → 勾「<strong>解除封鎖</strong>」 → 確定</li>
+        <li>對 <span class="ic">stop.bat / update.bat / tunnel-quick.bat</span> 重複</li>
+      </ol>
+      <div class="callout">
+        <div class="callout-icon" aria-hidden="true">💡</div>
+        <div class="callout-body">如果右鍵「內容」沒看到「安全性」那欄表示這台 Windows 沒擋（少見），直接跳 A5。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">A5</div>
+    <div class="step-title">第一次雙擊 start.bat（建 .env）</div>
+    <div class="step-body">
+      <p>檔案總管雙擊 <span class="ic">start.bat</span>。第一次會自動把 <span class="ic">.env.example</span> 複製成 <span class="ic">.env</span> 並打開記事本讓你編輯。</p>
+      <div class="callout tip">
+        <div class="callout-icon" aria-hidden="true">⚠️</div>
+        <div class="callout-body"><strong>改密碼</strong>：把 <span class="ic">POSTGRES_PASSWORD=please_change_me_to_a_strong_password</span> 那行的值改成自己的強密碼（至少 16 字元、混合英數字符），存檔關閉。</div>
+      </div>
+      <div class="callout key">
+        <div class="callout-icon" aria-hidden="true">🚨</div>
+        <div class="callout-body"><strong>不要再改第二次</strong>：Postgres 密碼第一次寫進 volume 之後，之後改 .env 不會自動同步，會造成「password authentication failed」。設好就不要再改。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">A6</div>
+    <div class="step-title">再次雙擊 start.bat（真的啟動）</div>
+    <div class="step-body">
+      <p>會拉 Docker image + 啟動 container。<strong>首次需 1-5 分鐘下載 postgres / n8n image</strong>。命令提示字元視窗每 10 秒輸出進度。</p>
+      <div class="expect">
+        <div class="expect-label">預期看到（成功）</div>
+        命令提示字元顯示 <span class="ic">✅ n8n 已啟動：http://localhost:5678</span>，瀏覽器自動開到 n8n 主介面。
+      </div>
+      <div class="callout tip">
+        <div class="callout-icon" aria-hidden="true">⚠️</div>
+        <div class="callout-body">如果跳「Port 5678 已被佔用」或「postgres 認證失敗」對話框，按對話框內的修補按鈕（停掉並重啟 / 重置並重啟）。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">A7</div>
+    <div class="step-title">建立 n8n Owner Account</div>
+    <div class="step-body">
+      <p>瀏覽器（用 <strong>Chrome / Firefox / Edge</strong>，不要用 IE）開 <span class="ic">http://localhost:5678</span>。</p>
+      <ol>
+        <li>Email：填你的（任意，不會驗證）</li>
+        <li>密碼：自定（至少 8 字元含大小寫與數字）</li>
+        <li>跳過行銷問卷</li>
+      </ol>
+      <div class="expect">
+        <div class="expect-label">Phase A 通過判準</div>
+        進入 n8n 主介面（左側選單看到 Workflows / Credentials / Executions / Templates）。
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ════════ Phase B ════════ -->
+<section class="lesson-section" id="phaseB">
+  <div class="section-eyebrow">(02) PHASE B</div>
+  <h2 class="section-heading">Lite Pack 一鍵安裝（10 分鐘）</h2>
+  <div class="intro-band">
+    <div class="intro-label">這個階段要做的事</div>
+    <div class="intro-text">下載 Lite Pack 試跑包，雙擊 setup-wizard.bat，依對話框提示貼入 3 個 key（Gemini API key / Telegram bot token / Telegram chat ID）。setup-wizard 會跑 10 個步驟自動完成：建 credentials、匯入 8 個 workflow、做 Telegram + Gemini smoke test。</div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">📋</div>
+    <div class="callout-body"><strong>事前準備</strong>：開始 setup-wizard 前先把 3 個 key 拿到手放在記事本上。<br>
+    1. <strong>Gemini API key</strong>：到 <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a>（免費）→ Create API key → 複製 <span class="ic">AIza...</span> 開頭那串<br>
+    2. <strong>Telegram bot token</strong>：Telegram 找 <span class="ic">@BotFather</span> → <span class="ic">/newbot</span> → 給名字 → 拿到 <span class="ic">123456:ABC-DEF...</span><br>
+    3. <strong>Telegram chat ID</strong>：對你的 bot 發任意訊息 → 瀏覽器開 <span class="ic">https://api.telegram.org/bot&lt;你的TOKEN&gt;/getUpdates</span> → 找 <span class="ic">chat.id</span> 那串純數字</div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">B1</div>
+    <div class="step-title">下載 Lite Pack zip</div>
+    <div class="step-body">
+      <a href="../assets/n8n-lite-pack.zip" class="dl-btn" download>⬇ 下載 n8n-lite-pack.zip（約 30 KB）</a>
+      <p>下載後右鍵「全部解壓縮」→ 同層產生 <span class="ic">Downloads\n8n-lite-pack\</span>。同樣注意內外兩層問題（最終結構應為 <span class="ic">Downloads\n8n-lite-pack\setup-wizard.bat</span>）。</p>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">B2</div>
+    <div class="step-title">SmartScreen 解鎖 setup-wizard.bat</div>
+    <div class="step-body">
+      <ol>
+        <li>對 <span class="ic">setup-wizard.bat</span> 右鍵 → 內容 → 勾「解除封鎖」 → 確定</li>
+        <li>第一次雙擊執行可能還跳「Windows 已保護你的電腦」 → 點「<strong>其他資訊</strong>」 → 「<strong>仍要執行</strong>」</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">B3</div>
+    <div class="step-title">雙擊 setup-wizard.bat 執行</div>
+    <div class="step-body">
+      <p>會跳 3 個對話框依序問 Gemini key / TG token / TG chat ID。把記事本上 3 個 key 依序貼進去。</p>
+      <p>setup-wizard 跑 10 個步驟（約 1-3 分鐘）：</p>
+      <ol>
+        <li>環境檢查（Docker + n8n 在跑 + 找到 starter-kit）</li>
+        <li>收集 3 個 key</li>
+        <li>偵測 + patch file access 環境變數</li>
+        <li>寫 personalization.env</li>
+        <li>建 sample 資料夾</li>
+        <li>生成 decrypted credentials JSON</li>
+        <li>替換 workflow JSON 內 placeholder</li>
+        <li>n8n CLI 匯入 2 個 credentials</li>
+        <li>n8n CLI 匯入 8 個 workflows</li>
+        <li>Telegram + Gemini smoke test</li>
+      </ol>
+      <div class="expect">
+        <div class="expect-label">Phase B 通過判準</div>
+        命令提示字元跳「Lite Pack 安裝完成」對話框 + 自動開瀏覽器到 n8n。<br>
+        對話框內容應該齊備：✅ 8 workflows ✅ 2 credentials ✅ Telegram 你手機收到「✅ Lite Pack setup-wizard 安裝完成」 ✅ Gemini reply 「OK」
+      </div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">B4</div>
+    <div class="step-title">n8n UI 確認 8 workflow + 2 credentials</div>
+    <div class="step-body">
+      <p>瀏覽器到 <span class="ic">http://localhost:5678</span> → 左側 <strong>Workflows</strong>：應該看到 8 個（編號 01 ~ 08）。<br>
+      左側 <strong>Credentials</strong>：應該看到 2 個 — <span class="ic">Lite Pack · Gemini API</span> + <span class="ic">Lite Pack · Telegram Bot</span>。</p>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ════════ Phase C ════════ -->
+<section class="lesson-section" id="phaseC">
+  <div class="section-eyebrow">(03) PHASE C</div>
+  <h2 class="section-heading">4 個 AI workflow 驗證（30-50 分鐘）</h2>
+  <div class="intro-band">
+    <div class="intro-label">這個階段要做的事</div>
+    <div class="intro-text">逐個跑通 4 個 AI workflow（02 PDF AI 改名 / 03 批次處理 / 04 定時日報 / 06 Webhook AI）+ 1 個 Telegram 通知（05），確認 Lite Pack 在你 Windows 上完整可用。</div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">C1</div>
+    <div class="step-title">準備測試素材</div>
+    <div class="step-body">
+      <p>檔案總管打開 <span class="ic">C:\Users\&lt;你的名字&gt;\Downloads\n8n-starter-kit\shared\</span> 看 7 個子資料夾。</p>
+      <p>從你電腦各處挑：</p>
+      <ul>
+        <li><strong>1-3 份合約 / 發票 / 說明 PDF</strong> 拖進 <span class="ic">shared\pdf-inbox\</span></li>
+        <li><strong>3-5 份 PDF（含 1 份故意是壞檔）</strong> 拖進 <span class="ic">shared\batch-inbox\</span></li>
+        <li><strong>1-2 份 .txt / .md（會議記錄、待辦）</strong> 拖進 <span class="ic">shared\daily-input\</span></li>
+      </ul>
+      <p>建壞檔測試（PowerShell 跑）：</p>
+      <div class="code-wrap">
+        <pre class="code-block" id="cmd-fake-pdf">"this is not a real PDF" | Out-File "$env:USERPROFILE\Downloads\n8n-starter-kit\shared\batch-inbox\壞檔測試.pdf" -Encoding UTF8</pre>
+        <button class="copy-btn" data-target="cmd-fake-pdf">複製</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">C2</div>
+    <div class="step-title">驗證 #5 Telegram 通知（最簡單先測）</div>
+    <div class="step-body">
+      <ol>
+        <li>n8n 左側 Workflows → 點開 <span class="ic">05 · Telegram 通知</span></li>
+        <li>下方紫色 <strong>Execute workflow</strong></li>
+        <li>3 個節點全綠</li>
+      </ol>
+      <div class="expect">
+        <div class="expect-label">通過判準</div>
+        你的 Telegram bot 收到「✅ Lite Pack 通知測試成功」訊息。
+      </div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">C3</div>
+    <div class="step-title">驗證 #2 PDF AI 改名（招牌 demo）</div>
+    <div class="step-body">
+      <ol>
+        <li>確認 <span class="ic">shared\pdf-inbox\</span> 有 1 份 PDF</li>
+        <li>n8n 進 <span class="ic">02 · PDF AI 改名</span> → Execute workflow</li>
+        <li>看 5 個節點全綠</li>
+        <li>點 <strong>Code: AI 改名</strong>節點看 Output：<span class="ic">parseMethod</span> 應該是 <span class="ic">ai-plain</span></li>
+        <li>檔案總管看 <span class="ic">shared\pdf-renamed\</span></li>
+      </ol>
+      <div class="expect">
+        <div class="expect-label">通過判準</div>
+        新檔名長相 <span class="ic">YYYYMMDD_類型_關鍵字.pdf</span>。
+      </div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">C4</div>
+    <div class="step-title">驗證 #3 批次處理錯誤恢復</div>
+    <div class="step-body">
+      <ol>
+        <li>確認 <span class="ic">shared\batch-inbox\</span> 有 3-5 份 PDF（含 1 份壞檔）</li>
+        <li>n8n 進 <span class="ic">03 · 批次處理錯誤恢復</span> → Execute workflow</li>
+        <li>看 canvas 雙路徑：合法 PDF → processed/，壞檔 → failed/</li>
+        <li>檔案總管驗證 <span class="ic">shared\batch-inbox\processed\</span> 與 <span class="ic">shared\batch-inbox\failed\</span></li>
+      </ol>
+      <div class="expect">
+        <div class="expect-label">通過判準</div>
+        processed/ 內合法 PDF 都改名。failed/ 內壞檔 fileName 正確。
+      </div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">C5</div>
+    <div class="step-title">驗證 #4 定時 AI 日報</div>
+    <div class="step-body">
+      <ol>
+        <li>確認 <span class="ic">shared\daily-input\</span> 有至少 1 份 .md / .txt</li>
+        <li>n8n 進 <span class="ic">04 · 定時 AI 日報</span> → Execute workflow（測試用，不等到明早 8:00）</li>
+        <li>檔案總管看 <span class="ic">shared\daily-output\daily-2026-XX-XX.md</span>，記事本打開檢查</li>
+      </ol>
+      <div class="expect">
+        <div class="expect-label">通過判準</div>
+        Markdown 內容含 4 段結構化內容。
+      </div>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-num">C6</div>
+    <div class="step-title">驗證 #6 Webhook AI（外部觸發 AI 鏈）</div>
+    <div class="step-body">
+      <ol>
+        <li>n8n 進 <span class="ic">06 · Webhook → Gemini → 本機檔</span> → Execute workflow（Webhook 變藍色「Listening」）</li>
+        <li>新開 PowerShell（不要關原本的）跑：</li>
+      </ol>
+      <div class="code-wrap">
+        <pre class="code-block" id="cmd-curl-c6">curl.exe -X POST http://localhost:5678/webhook-test/ai-ask -H "Content-Type: application/json" -d "{\"question\":\"什麼是 n8n？三句話內回答。\"}"</pre>
+        <button class="copy-btn" data-target="cmd-curl-c6">複製</button>
+      </div>
+      <div class="callout">
+        <div class="callout-icon" aria-hidden="true">💡</div>
+        <div class="callout-body">PowerShell 用 <span class="ic">curl.exe</span>（不是 <span class="ic">curl</span>，後者在 PowerShell 是 Invoke-WebRequest 別名語法不同）。引號內要 escape <span class="ic">\"</span>。</div>
+      </div>
+      <div class="expect">
+        <div class="expect-label">通過判準（4 件齊備）</div>
+        (1) curl 終端回 <span class="ic">{"status":"ok",...}</span><br>
+        (2) <span class="ic">shared\ai-output\</span> 多 1 份 .md<br>
+        (3) Telegram 收到通知<br>
+        (4) Code 節點 Output 的 <span class="ic">aiError</span> 為 null
+      </div>
+    </div>
+  </div>
+
+  <div class="callout info" style="margin-top:32px">
+    <div class="callout-icon" aria-hidden="true">🎯</div>
+    <div class="callout-body"><strong>Lite Pack 全鏈路通過</strong>：5 個 workflow（C2-C6）都跑完代表你的 Windows 已具備真實的 n8n + AI 工作站。下一步去 <a href="m0-workflow-tour.html">工作流設計拆解</a>學習每個 workflow 怎麼設計、為什麼這樣設計、自己怎麼改造。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ════════ 卡關時看這 ════════ -->
+<section class="lesson-section" id="troubleshoot">
+  <div class="section-eyebrow">(04) TROUBLESHOOT</div>
+  <h2 class="section-heading">卡關時看這（Windows 特有）</h2>
+
+  <div class="step-block">
+    <div class="step-title">A1 wsl --install 失敗 / 重開機後仍說 WSL 沒裝</div>
+    <div class="step-body">
+      <ol>
+        <li>系統管理員 PowerShell 跑 <span class="ic">dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart</span></li>
+        <li>跑 <span class="ic">dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart</span></li>
+        <li>重開機 → 跑 <span class="ic">wsl --set-default-version 2</span></li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-title">A2 Docker Desktop 啟動失敗 / 鯨魚 icon 一直紅燈</div>
+    <div class="step-body">
+      <ol>
+        <li>確認 BIOS Virtualization 開啟（A1 同樣前置）</li>
+        <li>確認 Hyper-V 與 WSL2 都啟用（控制台 → 程式集 → 開啟或關閉 Windows 功能 → 勾「Hyper-V」「Virtual Machine Platform」「Windows Subsystem for Linux」）</li>
+        <li>重開機後重啟 Docker Desktop</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-title">A4 .bat 雙擊閃一下黑視窗就消失</div>
+    <div class="step-body">
+      <p>對 .bat 右鍵 →「以系統管理員身分執行」，這次會留住視窗看錯誤訊息。常見：Docker Desktop 沒開、SmartScreen 沒解鎖、解壓資料夾雙層問題。</p>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-title">A6 終端機顯示「docker: command not found」</div>
+    <div class="step-body">
+      <ol>
+        <li>確認 Docker Desktop 在跑（鯨魚 icon 不動畫）</li>
+        <li>關掉這個 PowerShell 視窗 → 重開（PATH 環境變數要重抓）</li>
+        <li>或重開機後重試</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-title">localhost:5678 顯示亂碼或一片白</div>
+    <div class="step-body">
+      <ol>
+        <li>確認用 Chrome / Firefox / Edge（IE 不支援）</li>
+        <li>清瀏覽器 cache 重整</li>
+        <li>檢查 Windows 防火牆是否擋 localhost（一般情況不會擋，但有時企業環境會）</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-title">PDF 改名 parseMethod 不是 ai-plain</div>
+    <div class="step-body">
+      <p>同 Mac 版處理：點 Code 節點 Output 看 finishReason / aiResponseLength / httpError，依錯誤類型對症下藥。Lite Pack v0.6+ 已預埋 <span class="ic">thinkingConfig: { thinkingBudget: 0 }</span> 修補 Gemini 2.5 thinking token 雷。</p>
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-title">完全卡死 / 想砍掉重練</div>
+    <div class="step-body">
+      <p>回 Step 0 重做歸零 → Phase A 重灌。新版 zip 含所有歷次學員實測修補。「重下 zip + 雙擊」是最快的 reset 動線。</p>
+    </div>
+  </div>
+</section>
+
+<div class="nav-footer">
+  <a href="index.html" class="nav-btn"><span aria-hidden="true">←</span> 課程首頁</a>
+  <a href="m0-workflow-tour.html" class="nav-btn primary">下一步：工作流設計拆解 <span aria-hidden="true">→</span></a>
+</div>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">2026 春季</span>
+  <span class="footer-meta">本頁以 n8n latest (Docker) + Lite Pack v0.9 製作，2026-05</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+</script>
+<script>
+document.querySelectorAll('.copy-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const id=btn.getAttribute('data-target');
+    const code=document.getElementById(id);
+    if(!code)return;
+    navigator.clipboard.writeText(code.innerText).then(()=>{
+      btn.textContent='已複製 ✓';btn.classList.add('ok');
+      setTimeout(()=>{btn.textContent='複製';btn.classList.remove('ok');},1500);
+    });
+  });
+});
+</script>
+</body>
+</html>

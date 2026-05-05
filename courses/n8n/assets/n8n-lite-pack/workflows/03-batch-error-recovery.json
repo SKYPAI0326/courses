@@ -1,0 +1,130 @@
+{
+  "name": "03 · 批次處理錯誤恢復",
+  "meta": {
+    "_litePackNote": "v0.6：跟 02 同步改 Code-based。HTTP Request node 改用 Code + this.helpers.httpRequest，避開 jsonBody 解析雷。dual-path 仍保留：Code 節點 onError continueErrorOutput → 失敗走 fail 分支。"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## #3 批次處理錯誤恢復（資料工廠 v0.6）\n\n**目的**：手動觸發 → 一次處理 batch-inbox/ 下所有 PDF → 成功歸 processed/ → 失敗歸 failed/。\n\n**v0.6 設計**：\n- Code node 直接打 Gemini API（不再用 HTTP Request node）\n- AI 失敗時 Code throw → onError continueErrorOutput → 走 fail 分支\n- 整批不會因為單檔失敗而炸掉\n\n**測試方法**：\n1. ~/Downloads/n8n-starter-kit/shared/batch-inbox/ 一次丟 5-10 份 PDF\n2. 點 Execute workflow\n3. 看 processed/ 有改名後成品 + failed/ 有失敗的（如果有）\n\n**改造方向**：\n- 改 Schedule Trigger 取代手動（每天凌晨自動跑）\n- 加 Telegram 通知 summary 結果\n- 加 retry 機制（失敗檔 3 分鐘後重試一次）",
+        "height": 480,
+        "width": 380
+      },
+      "id": "sticky-03",
+      "name": "📌 使用說明",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-280, 0]
+    },
+    {
+      "parameters": {},
+      "id": "trigger-03",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/shared/batch-inbox/*.pdf",
+        "options": {}
+      },
+      "id": "read-batch-03",
+      "name": "Read 所有 PDF",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [440, 300],
+      "notes": "fileSelector glob *.pdf 一次抓所有。每個檔變一個 item（fan-out）"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "id": "extract-batch-03",
+      "name": "Extract PDF Text",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [640, 300],
+      "onError": "continueErrorOutput",
+      "notes": "PDF 解析失敗 → 走 fail 分支"
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// v0.9：success 分支 — Extract success 不保留 fileName 在 json，改從 Read 用 fileName 反查\n// 反查邏輯：input item 的 binary.data.fileName（如果有）→ fileName 反查 → 都不行就用 Extract success 的 i 直接對齊 Read 排除壞檔後的順序\n\nconst GEMINI_API_KEY = '__GEMINI_API_KEY__';\nconst today = new Date().toISOString().slice(0, 10).replace(/-/g, '');\nconst items = $input.all();\nconst allReadItems = $('Read 所有 PDF').all();\nconst results = [];\n\nfor (let i = 0; i < items.length; i++) {\n  const item = items[i];\n\n  // 找對應 Read item：先用 binary.data.fileName，再用 i 對齊（Extract success 順序跟 Read 一致）\n  let readItem = null;\n  let binarySource = 'unknown';\n  const binFileName = item.binary?.data?.fileName;\n  if (binFileName) {\n    readItem = allReadItems.find(r => r?.json?.fileName === binFileName);\n    binarySource = 'binary-fileName';\n  }\n  if (!readItem) {\n    readItem = allReadItems[i];\n    binarySource = 'index-' + i;\n  }\n\n  const originalName = readItem?.json?.fileName || 'unknown.pdf';\n  const binary = readItem?.binary;\n\n  if (!binary || !binary.data) {\n    throw new Error('[i=' + i + '] No binary. originalName=' + originalName + ', binFileName=' + binFileName + ', readNames=[' + allReadItems.map(r => r?.json?.fileName).join('|') + ']');\n  }\n\n  const pdfText = item.json.text || '';\n\n  const prompt = '分析以下 PDF 文字，生成語意化檔名（不含 .pdf）。格式：YYYYMMDD_主題_關鍵字（繁體中文）。沒日期就用 ' + today + '。直接回檔名一行（不要 markdown）。\\n\\n<PDF>\\n' + pdfText.substring(0, 2500) + '\\n</PDF>';\n\n  let aiResponse = '';\n  try {\n    const response = await this.helpers.httpRequest({\n      method: 'POST',\n      url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',\n      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },\n      body: {\n        contents: [{ role: 'user', parts: [{ text: prompt }] }],\n        generationConfig: { temperature: 0.3, maxOutputTokens: 200, thinkingConfig: { thinkingBudget: 0 } }\n      },\n      json: true,\n      timeout: 30000\n    });\n    aiResponse = response.candidates?.[0]?.content?.parts?.[0]?.text || '';\n  } catch (err) {}\n\n  const trimmed = aiResponse.trim().replace(/^```\\w*\\n?/, '').replace(/\\n?```$/, '').trim();\n  let newFilename;\n  if (trimmed && /^\\d{8}[_\\-]/.test(trimmed)) {\n    newFilename = trimmed.split('\\n')[0];\n  } else {\n    const m = aiResponse.match(/(\\d{8}[_\\-][^\\s\"',\\n]+)/);\n    if (m) { newFilename = m[1]; }\n  }\n  if (!newFilename) {\n    newFilename = today + '_AI解析失敗_' + originalName.replace(/\\.pdf$/i, '');\n  }\n  newFilename = newFilename.replace(/[\\\\/:*?\"<>|]/g, '_').replace(/\\.pdf$/i, '').substring(0, 100);\n\n  results.push({\n    json: {\n      status: 'success',\n      originalName,\n      newFilename,\n      newPath: '/files/shared/batch-inbox/processed/' + newFilename + '.pdf',\n      binarySource\n    },\n    binary\n  });\n}\n\nreturn results;"
+      },
+      "id": "ai-success-03",
+      "name": "Code: AI 改名（含 Gemini call）",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [880, 300]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $json.newPath }}",
+        "dataPropertyName": "data",
+        "options": {}
+      },
+      "id": "write-success-03",
+      "name": "Write: 移到 processed/",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [1100, 220]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// v0.8：fail 分支 — fileName 對齊（不靠 pairedItem，n8n Extract error 分支會標錯到 0）\n// Extract error 保留 fileName 在 json 但 strip binary，所以 fileName 從 input 拿，binary 用 fileName 從 Read 反查\n\nconst items = $input.all();\nconst allReadItems = $('Read 所有 PDF').all();\nconst results = [];\n\nfor (let i = 0; i < items.length; i++) {\n  const item = items[i];\n  const originalName = item.json.fileName || 'unknown.pdf';\n\n  // 用 fileName 反查（pairedItem 在 Extract error 分支不準）\n  const readItem = allReadItems.find(r => r?.json?.fileName === originalName);\n  const binary = readItem?.binary;\n  const binarySource = readItem ? 'fileName-match' : 'NOT_FOUND';\n\n  if (!binary || !binary.data) {\n    throw new Error('[fail i=' + i + '] No binary for fileName=' + originalName + ', readNames=[' + allReadItems.map(r => r?.json?.fileName).join('|') + ']');\n  }\n\n  const errorMsg = item.json.error || JSON.stringify(item.json).substring(0, 500);\n\n  results.push({\n    json: {\n      status: 'failed',\n      originalName,\n      errorMsg,\n      failedPath: '/files/shared/batch-inbox/failed/' + originalName,\n      binarySource\n    },\n    binary\n  });\n}\n\nreturn results;"
+      },
+      "id": "code-fail-03",
+      "name": "Code: 失敗處理路徑",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, 400]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $json.failedPath }}",
+        "dataPropertyName": "data",
+        "options": {}
+      },
+      "id": "write-fail-03",
+      "name": "Write: 移到 failed/",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [1320, 400]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{"node": "Read 所有 PDF", "type": "main", "index": 0}]]
+    },
+    "Read 所有 PDF": {
+      "main": [[{"node": "Extract PDF Text", "type": "main", "index": 0}]]
+    },
+    "Extract PDF Text": {
+      "main": [
+        [{"node": "Code: AI 改名（含 Gemini call）", "type": "main", "index": 0}],
+        [{"node": "Code: 失敗處理路徑", "type": "main", "index": 0}]
+      ]
+    },
+    "Code: AI 改名（含 Gemini call）": {
+      "main": [
+        [{"node": "Write: 移到 processed/", "type": "main", "index": 0}]
+      ]
+    },
+    "Code: 失敗處理路徑": {
+      "main": [[{"node": "Write: 移到 failed/", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "id": "lite-pack-03-batch-error-recovery",
+  "tags": [
+    {"name": "lite-pack", "id": "tag-lite-pack"},
+    {"name": "module-3-4", "id": "tag-module-3-4"}
+  ]
+}

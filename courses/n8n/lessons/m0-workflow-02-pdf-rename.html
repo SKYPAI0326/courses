@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#02 PDF AI 改名 設計拆解｜AI 資料工廠</title>
+<meta name="description" content="Lite Pack #02 workflow 設計拆解：用 Gemini AI 自動讀 PDF 內容取語意化檔名。含 6 層 fallback parser、Gemini 2.5 thinking budget 修補、Code 節點打 API 取代 HTTP Request 節點的設計。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="#02 PDF AI 改名 設計拆解｜AI 資料工廠">
+<meta property="og:description" content="Lite Pack #02 workflow 設計拆解：用 Gemini AI 自動讀 PDF 內容取語意化檔名。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/m0-workflow-02-pdf-rename.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="#02 PDF AI 改名 設計拆解｜AI 資料工廠">
+<meta name="twitter:description" content="Lite Pack #02 workflow 設計拆解。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/m0-workflow-02-pdf-rename.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-main:#5a7a5a;--radius:4px;--content-w:820px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:#5a7a5a;border:1px solid rgba(90,122,90,.3);background:transparent;padding:3px 12px;border-radius:99px;font-weight:500;letter-spacing:.06em}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 36px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px;font-variant-numeric:tabular-nums}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;max-width:24ch}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;margin-bottom:28px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);margin-top:16px}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
+.outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-body{font-size:.9rem;line-height:1.85}
+.callout.tip{background:rgba(201,150,58,.08);border-left-color:var(--c-a2)}
+.callout.key{background:rgba(181,74,74,.07);border-left-color:#b54a4a}
+.callout.info{background:rgba(90,122,90,.06);border-left-color:var(--c-a3)}
+.flow-diagram{background:var(--c-card);border:1px solid var(--c-border-soft);border-radius:var(--radius);padding:20px 24px;margin:20px 0;overflow-x:auto;font-family:'SF Mono',monospace;font-size:.82rem;line-height:1.9}
+.flow-diagram .arrow{color:var(--c-faint);margin:0 6px}
+.flow-diagram .node{background:rgba(90,122,90,.08);border:1px solid rgba(90,122,90,.2);padding:3px 8px;border-radius:3px;color:var(--c-a3);white-space:nowrap}
+.flow-diagram .node.trigger{background:rgba(107,127,163,.1);border-color:rgba(107,127,163,.25);color:var(--c-a4)}
+.flow-diagram .node.code{background:rgba(181,112,58,.1);border-color:rgba(181,112,58,.25);color:var(--c-a1)}
+.node-card{background:var(--c-card);border:1px solid var(--c-border-soft);border-left:3px solid var(--c-a3);border-radius:var(--radius);padding:18px 22px;margin:18px 0}
+.node-card.code-node{border-left-color:var(--c-a1)}
+.node-card.trigger-node{border-left-color:var(--c-a4)}
+.node-num{font-family:'Shippori Mincho',serif;font-size:.74rem;color:var(--c-faint);letter-spacing:.1em;font-weight:600;margin-bottom:6px}
+.node-title{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin-bottom:10px}
+.node-meta{display:inline-flex;gap:8px;font-size:.72rem;color:var(--c-muted);margin-bottom:10px;flex-wrap:wrap}
+.node-meta span{padding:1px 8px;background:var(--c-surface);border-radius:99px}
+.node-body{font-size:.88rem;line-height:1.85}
+.node-body ul,.node-body ol{margin:8px 0 8px 22px}
+.node-body code,.node-body .ic{font-family:'SF Mono',monospace;font-size:.86em;background:rgba(90,122,90,.1);padding:1px 6px;border-radius:3px}
+.code-wrap{position:relative;margin:14px 0}
+.code-block{background:#2c2b28;color:#e8e4dc;font-family:'SF Mono',monospace;font-size:.78rem;padding:14px 18px;padding-right:90px;border-radius:var(--radius);line-height:1.7;overflow-x:auto;white-space:pre}
+.code-block .cm{color:#7e9a85;font-style:italic}
+.copy-btn{position:absolute;top:9px;right:10px;background:rgba(255,255,255,.08);color:#e8e4dc;border:1px solid rgba(255,255,255,.15);font-family:inherit;font-size:.7rem;padding:5px 12px;border-radius:4px;cursor:pointer}
+.copy-btn:hover{background:rgba(255,255,255,.16)}
+.copy-btn.ok{background:rgba(120,180,120,.25);color:#c8e8c8}
+.mod-list{list-style:none;padding:0;margin:0;counter-reset:mod}
+.mod-list li{counter-increment:mod;position:relative;padding:14px 0 14px 44px;border-bottom:1px dashed var(--c-border-soft);font-size:.9rem;line-height:1.85}
+.mod-list li:last-child{border-bottom:none}
+.mod-list li::before{content:counter(mod,decimal-leading-zero);position:absolute;left:0;top:14px;font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-faint);font-weight:600}
+.mod-list li strong{color:var(--c-text);font-weight:600}
+.fallback-table{width:100%;border-collapse:collapse;font-size:.84rem;margin:16px 0}
+.fallback-table th,.fallback-table td{padding:10px 12px;border-bottom:1px solid var(--c-border-soft);text-align:left;vertical-align:top}
+.fallback-table th{font-family:'Shippori Mincho',serif;font-weight:700;color:var(--c-text);background:var(--c-surface)}
+.fallback-table .layer{font-family:'SF Mono',monospace;font-size:.78rem;color:var(--c-a1);font-weight:600}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius);transition:background .2s}
+.nav-btn:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main)}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.code-block{font-size:.72rem;padding-right:80px}}
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 資料工廠 — 大規模文件處理實戰</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">#02 · pdf-rename · AI</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<div class="page-hero">
+  <a href="m0-workflow-tour.html" class="back-link"><span aria-hidden="true">←</span> 返回工作流總覽</a>
+  <div class="hero-eyebrow">#02 · PDF AI 改名 · 5 NODES · AI</div>
+  <h1 class="lesson-title">Lite Pack 招牌：丟 PDF 進資料夾，AI 自動取語意檔名</h1>
+  <p class="lesson-tagline">一個跑得通的 AI 自動化要面對的所有真相，這個 workflow 都有：n8n HTTP Request 節點 jsonBody 解析雷、Gemini 2.5 thinking budget 吃掉輸出 token、Code 節點 binary 對齊、AI 回應格式不穩定要 6 層 fallback parser。讀完這頁你會帶走「能在自己業務 AI 工作流頂得住」的設計直覺。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果</div>
+    <div class="outcome-item">能用 Code Node + this.helpers.httpRequest 直接打 Gemini API（取代 HTTP Request 節點）</div>
+    <div class="outcome-item">能設計 multi-layer fallback parser 處理 AI 回應的 6 種變異格式</div>
+    <div class="outcome-item">能診斷 parseMethod / finishReason / aiResponseLength / httpError 4 個指標定位 AI 失敗根因</div>
+  </div>
+</div>
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(01) WORKFLOW 全貌</div>
+  <h2 class="section-heading">節點與資料流</h2>
+  <div class="flow-diagram">
+    <span class="node trigger">Manual Trigger</span>
+    <span class="arrow">→</span>
+    <span class="node">Read PDF</span>
+    <span class="arrow">→</span>
+    <span class="node">Extract PDF Text</span>
+    <span class="arrow">→</span>
+    <span class="node code">Code: AI 改名（含 Gemini call）</span>
+    <span class="arrow">→</span>
+    <span class="node">Write 改名輸出</span>
+  </div>
+  <p class="body-text">5 個節點線性鏈。資料流：手動觸發 → 從 <code>shared/pdf-inbox/</code> 抓 PDF binary → Extract 解析 PDF 文字 → Code 節點打 Gemini 取新檔名 + 6 層 fallback → 寫到 <code>shared/pdf-renamed/</code>。重點全在第 4 個 Code 節點。</p>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(02) NODE BREAKDOWN</div>
+  <h2 class="section-heading">節點逐一拆解</h2>
+
+  <div class="node-card trigger-node">
+    <div class="node-num">NODE 1 / 5</div>
+    <div class="node-title">Manual Trigger</div>
+    <div class="node-meta"><span>manualTrigger v1</span></div>
+    <div class="node-body">
+      <p>最簡觸發節點：點下方紫色 Execute workflow 按鈕就會跑。沒任何設定。改造方向：之後可換成 Schedule Trigger（定時跑）/ Local File Trigger（資料夾有新檔自動跑）/ Webhook（外部 POST 觸發）。</p>
+    </div>
+  </div>
+
+  <div class="node-card">
+    <div class="node-num">NODE 2 / 5</div>
+    <div class="node-title">Read PDF</div>
+    <div class="node-meta"><span>readWriteFile v1</span></div>
+    <div class="node-body">
+      <p><strong>用途</strong>：用 glob pattern 抓資料夾內 PDF 檔。</p>
+      <p><strong>關鍵設定</strong>：<code>fileSelector: /files/shared/pdf-inbox/*.pdf</code></p>
+      <ul>
+        <li><code>/files/shared/</code> 是 docker-compose 內 bind mount 把本機 <code>~/Downloads/n8n-starter-kit/shared/</code> 對應進 container</li>
+        <li><code>*.pdf</code> glob 抓所有 .pdf 檔。多份 PDF 的話 Read 會 fan-out 成多個 items（每個檔一個 item）</li>
+        <li>Output 結構：<code>json: { fileName, fileSize, fileExtension, mimeType }</code> + <code>binary: { data: { data: 'base64...', fileName, mimeType } }</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="node-card">
+    <div class="node-num">NODE 3 / 5</div>
+    <div class="node-title">Extract PDF Text</div>
+    <div class="node-meta"><span>extractFromFile v1</span><span>operation: pdf</span></div>
+    <div class="node-body">
+      <p><strong>用途</strong>：解析 PDF binary 抽出純文字內容。內部用 pdf-parse library。</p>
+      <p><strong>Output 結構</strong>：<code>json: { numpages, info, metadata, text, ... }</code> + <code>binary: 原 PDF 保留</code></p>
+      <p><strong>注意（連發 #14 的真相）</strong>：Extract success 分支的 <code>json</code> 內<strong>沒有 fileName</strong> 欄位（被 PDF metadata 覆蓋了）。下游 Code 節點要拿 fileName 必須從 <code>binary.data.fileName</code> 或從 <code>$('Read PDF').all()[i]</code> 反查。</p>
+    </div>
+  </div>
+
+  <div class="node-card code-node">
+    <div class="node-num">NODE 4 / 5</div>
+    <div class="node-title">Code: AI 改名（含 Gemini call）</div>
+    <div class="node-meta"><span>code v2</span><span>runOnceForAllItems</span><span>v0.9 多重 fallback</span></div>
+    <div class="node-body">
+      <p><strong>用途</strong>：對每份 PDF 文字打 Gemini API 取新檔名 + 解析 AI 回應 + 多層 fallback。</p>
+      <p><strong>關鍵 jsCode 片段（v0.9）</strong>：</p>
+      <div class="code-wrap">
+        <pre class="code-block" id="cmd-jscode"><span class="cm">// 從 Read 用 binary.data.fileName 反查 readItem（v0.9 真相）</span>
+const items = $input.all();
+const allReadItems = $('Read PDF').all();
+
+for (let i = 0; i &lt; items.length; i++) {
+  const binFileName = items[i].binary?.data?.fileName;
+  let readItem = allReadItems.find(r =&gt; r?.json?.fileName === binFileName)
+              || allReadItems[i];
+
+  <span class="cm">// 打 Gemini（thinkingBudget: 0 是必須的，2.5 thinking 會吃光 token）</span>
+  const response = await this.helpers.httpRequest({
+    method: 'POST',
+    url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+    headers: { 'x-goog-api-key': GEMINI_API_KEY },
+    body: {
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.4,
+        maxOutputTokens: 200,
+        thinkingConfig: { thinkingBudget: 0 }  <span class="cm">// ← 這是關鍵</span>
+      }
+    },
+    json: true
+  });
+
+  <span class="cm">// 6 層 fallback parser（見下表）</span>
+  ...
+  results.push({ json: {...}, binary: readItem?.binary });
+}
+return results;</pre>
+        <button class="copy-btn" data-target="cmd-jscode">複製</button>
+      </div>
+
+      <p style="margin-top:14px"><strong>6 層 fallback parser 表</strong>：</p>
+      <table class="fallback-table">
+        <thead><tr><th>層</th><th>判斷</th><th>結果</th></tr></thead>
+        <tbody>
+          <tr><td class="layer">ai-plain</td><td>AI 純文字 + <code>YYYYMMDD_xxx</code> 格式</td><td>取整段</td></tr>
+          <tr><td class="layer">regex-date</td><td>AI 回應內含 <code>YYYYMMDD_xxx</code> 但混雜文字</td><td>regex 抓出</td></tr>
+          <tr><td class="layer">pdf-title</td><td>AI 沒回應 → 從 PDF 文字抓有意義的標題行</td><td>用 title 命名</td></tr>
+          <tr><td class="layer">fallback-empty</td><td>真的什麼都沒有 → 用今日日期 + AI無回應 + 原檔名</td><td>保底命名</td></tr>
+          <tr><td class="layer">http-error: xxx</td><td>Gemini API 直接 HTTP 錯（key / 額度 / network）</td><td>標 http-error 命名</td></tr>
+          <tr><td class="layer">finish=MAX_TOKENS</td><td>thinking 吃光 token（v0.6 之前的 bug）</td><td>標 finish reason 命名</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="node-card">
+    <div class="node-num">NODE 5 / 5</div>
+    <div class="node-title">Write 改名輸出</div>
+    <div class="node-meta"><span>readWriteFile v1</span><span>operation: write</span></div>
+    <div class="node-body">
+      <p><strong>關鍵設定</strong>：<code>fileName: {{ $json.newPath }}</code> + <code>dataPropertyName: data</code></p>
+      <p>從 Code 節點 return 的 <code>json.newPath</code>（如 <code>/files/shared/pdf-renamed/20260506_說明_Adobe.pdf</code>）寫檔，binary 來自 Code 節點 return 的 <code>binary</code> 欄位。</p>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(03) DESIGN RATIONALE</div>
+  <h2 class="section-heading">為什麼這樣設計（含踩過的雷）</h2>
+
+  <div class="callout key">
+    <div class="callout-icon" aria-hidden="true">🚨</div>
+    <div class="callout-body"><strong>連發 #16 的雷：HTTP Request Node 的 jsonBody 解析陷阱</strong><br>
+    n8n HTTP Request Node 的 jsonBody 欄位用 <code>={{ JSON.stringify(...) }}</code> Expression 帶動態內容時，n8n 會二次解析這個 JSON 字串導致 invalid syntax 錯誤。Lite Pack 試了 5 種寫法都炸，最終決定<strong>完全廢棄 HTTP Request 節點</strong>，改用 Code Node 內 <code>this.helpers.httpRequest()</code> 直接打 API。優點：100% 可控、不會被 n8n 二次解析、debug 容易。</div>
+  </div>
+
+  <div class="callout key">
+    <div class="callout-icon" aria-hidden="true">🚨</div>
+    <div class="callout-body"><strong>連發 #17 的雷：Gemini 2.5 Flash thinking budget 吃光 maxOutputTokens</strong><br>
+    Gemini 2.5 Flash 是 thinking model — 會先「想」再輸出。thinking tokens 算進總 token quota。如果 maxOutputTokens 設 100，全被 thinking 吃光，真實輸出只剩 3 個字「202」就被切斷（finishReason: MAX_TOKENS）。修法：強制設 <code>thinkingConfig: { thinkingBudget: 0 }</code> 完全禁用 thinking，整個 quota 給輸出。對「抽取 + 命名」這種純格式化任務不需要推理，禁掉就好。</div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-icon" aria-hidden="true">⚠️</div>
+    <div class="callout-body"><strong>為什麼 6 層 fallback 而不是 try/catch 一層</strong>？<br>
+    AI 回應有 6 種可能變異：純文字格式對 / 純文字混雜文字 / API 直接掛 / 回應為空 / thinking 吃光 / 回應「我不確定」式廢話。每種都有對應的「次優解」（從 PDF 第一行抓標題、用日期 + 原檔名保底）。一層 try/catch 接住所有情況不夠精準 — 學員看 parseMethod 一眼就知道「現在 AI 處於哪個狀態」做下一步診斷。</div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">💭</div>
+    <div class="callout-body"><strong>為什麼 prompt 要求「直接回檔名一行」</strong>？<br>
+    AI 預設會多話（「好的！這是您要的檔名：xxx，希望對您有幫助」）。在 prompt 末段加「<strong>直接回檔名一行（不要 markdown，不要引號，不要解釋文字）</strong>」能把 90% 的多話 AI 訓練成只回一行格式化字串。剩下 10% 由 fallback 接住。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(04) 改造方向</div>
+  <h2 class="section-heading">把這個 workflow 改成你業務的 5 種方向</h2>
+
+  <ol class="mod-list">
+    <li><strong>換 prompt 改任務</strong>：把 prompt 從「取檔名」換成「抽取合約金額 / 抽取發票統編 / 抽取發票日期 / 摘要 PDF 三句話」。同個架構可變身為 N 種 PDF 處理 workflow。</li>
+    <li><strong>換 Trigger</strong>：Manual Trigger 換成 Local File Trigger，資料夾有新檔自動跑（n8n 學員 #15 的測試）。或換成 Schedule（每天凌晨 4:00 自動跑昨天的 PDF）。</li>
+    <li><strong>串資料庫</strong>：在 Write 節點之後加 PostgreSQL / Notion 節點，記錄每個 PDF 的「原檔名 + 新檔名 + AI 解析方法 + 處理時間」，做歷史紀錄查詢。</li>
+    <li><strong>換 AI</strong>：把 jsCode 內 Gemini URL 換成 OpenAI / Anthropic / 你的 local LLM endpoint。Gemini 2.5 Flash 的 thinkingConfig 換成對方對應的 API spec。</li>
+    <li><strong>加多語言支援</strong>：偵測 PDF 文字是中/英/日，動態切換 prompt 語言。一個 workflow 處理跨語言文件。</li>
+  </ol>
+
+  <div class="callout info" style="margin-top:24px">
+    <div class="callout-icon" aria-hidden="true">🎯</div>
+    <div class="callout-body">下一個 <a href="m0-workflow-03-batch.html">#03 批次處理錯誤恢復</a>把 #02 升級成「資料工廠」：dual-path 路由 + 壞檔分流 + 5 次迭代學到的 n8n 對齊真相。</div>
+  </div>
+</section>
+
+<div class="nav-footer">
+  <a href="m0-workflow-01-webhook.html" class="nav-btn"><span aria-hidden="true">←</span> 上一個：#01 Webhook hello-world</a>
+  <a href="m0-workflow-03-batch.html" class="nav-btn primary">下一個：#03 批次處理 <span aria-hidden="true">→</span></a>
+</div>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">2026 春季</span>
+  <span class="footer-meta">本頁以 n8n latest (Docker) + Lite Pack v0.9 製作，2026-05</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+</script>
+<script>
+document.querySelectorAll('.copy-btn').forEach(btn=>{btn.addEventListener('click',()=>{const id=btn.getAttribute('data-target');const code=document.getElementById(id);if(!code)return;navigator.clipboard.writeText(code.innerText).then(()=>{btn.textContent='已複製 ✓';btn.classList.add('ok');setTimeout(()=>{btn.textContent='複製';btn.classList.remove('ok');},1500);});});});
+</script>
+</body>
+</html>
