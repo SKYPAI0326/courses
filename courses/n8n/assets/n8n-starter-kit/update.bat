@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 REM n8n-starter-kit 升級 n8n image (Windows)
 REM 用法：在檔案總管雙擊本檔
 REM 升級流程：拉最新 image → 重啟容器；資料自動延續（在 Docker volume）

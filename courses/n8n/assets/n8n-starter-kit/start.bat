@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 REM n8n-starter-kit 一鍵啟動 (Windows)
 REM 用法：在檔案總管雙擊本檔
 chcp 65001 >nul

@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 REM n8n-starter-kit 停止服務 (Windows)
 REM 用法：在檔案總管雙擊本檔
 REM 注意：只停容器，資料 (workflows / credentials) 保留在 Docker volume，下次 start 自動恢復

@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 REM Cloudflare Quick Tunnel — 不需自有網域、不需綁卡的公開 URL
 REM 用法：雙擊本檔；命令提示字元會顯示一個 https://xxxx.trycloudflare.com 公開網址
 REM 結束：按 Ctrl+C，URL 即失效
