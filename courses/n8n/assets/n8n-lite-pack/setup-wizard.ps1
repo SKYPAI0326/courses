@@ -1,6 +1,7 @@
-﻿# n8n Lite Pack · setup-wizard.ps1 (Windows) v1.0
+﻿# n8n Lite Pack · setup-wizard.ps1 (Windows) v1.1
 # 由 setup-wizard.bat 呼叫。十步驟自動化安裝。
 # 採納 Codex L3 審核建議：UTF-8 BOM / SecureString token / .Replace() / Invoke-Native exit code 檢查
+# v1.1：Telegram 改為可選（Y/N gate）— 不用 TG 的學員零摩擦過關
 
 $ErrorActionPreference = 'Stop'
 $OutputEncoding = [System.Text.Encoding]::UTF8
@@ -21,7 +22,7 @@ $Log = "$ScriptDir\setup-wizard.log"
 
 Write-Host ""
 Write-Host "═════════════════════════════════════════════════════════════" -ForegroundColor Cyan
-Write-Host "  n8n Lite Pack · setup-wizard for Windows v1.0" -ForegroundColor Cyan
+Write-Host "  n8n Lite Pack · setup-wizard for Windows v1.1" -ForegroundColor Cyan
 Write-Host "  PowerShell: $($PSVersionTable.PSVersion)" -ForegroundColor Gray
 Write-Host "  log: $Log" -ForegroundColor Gray
 Write-Host "═════════════════════════════════════════════════════════════" -ForegroundColor Cyan
@@ -154,18 +155,28 @@ if ($GeminiKey -notmatch '^AIza') {
   exit 1
 }
 
-$TgToken = Read-SecretPlainText "請貼上 Telegram bot token（123456:ABC-DEF... 格式）"
-if ($TgToken -notmatch '^\d+:') {
-  Write-Host "  ❌ Telegram bot token 格式不對" -ForegroundColor Red
-  exit 1
-}
+# Telegram 改成 Y/N 可選（v1.1）— 不用 TG 的學員直接過，省 BotFather 5-10 分鐘
+$useTgRaw = Read-Host "要用 Telegram 接收 workflow 通知嗎？(Y / N，預設 N，可隨時重跑 wizard 補)"
+$UseTelegram = $useTgRaw -match '^[Yy]'
 
-$TgChatId = Read-Host "請貼上 Telegram Chat ID（純數字，可顯示）"
-if ($TgChatId -notmatch '^-?\d+$') {
-  Write-Host "  ❌ Chat ID 應該是純數字" -ForegroundColor Red
-  exit 1
+if ($UseTelegram) {
+  $TgToken = Read-SecretPlainText "請貼上 Telegram bot token（123456:ABC-DEF... 格式）"
+  if ($TgToken -notmatch '^\d+:') {
+    Write-Host "  ❌ Telegram bot token 格式不對" -ForegroundColor Red
+    exit 1
+  }
+  $TgChatId = Read-Host "請貼上 Telegram Chat ID（純數字，可顯示）"
+  if ($TgChatId -notmatch '^-?\d+$') {
+    Write-Host "  ❌ Chat ID 應該是純數字" -ForegroundColor Red
+    exit 1
+  }
+  Write-Host "  ✓ 3 個 personalization 資料收齊（Gemini + Telegram）" -ForegroundColor Green
+} else {
+  $TgToken = ""
+  $TgChatId = ""
+  Write-Host "  ↳ 跳過 Telegram。8 個用 TG 的 workflow（05/06/07/09/10/11/13/14）匯入後仍是 inactive，要用再去 n8n UI 補 credential。" -ForegroundColor DarkGray
+  Write-Host "  ✓ 1 個 personalization 資料收齊（Gemini）" -ForegroundColor Green
 }
-Write-Host "  ✓ 3 個 personalization 資料收齊" -ForegroundColor Green
 
 # ════════ Step 3: file access patch + 重啟 ════════
 Write-Host ""
@@ -221,13 +232,16 @@ if ($RestartNeeded) {
 # ════════ Step 4: personalization.env ════════
 Write-Host ""
 Write-Host "[4/10] 寫入 personalization.env..." -ForegroundColor Yellow
-$EnvContent = @"
-# n8n Lite Pack 個人化設定（setup-wizard 自動產生 $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')）
-# 不要 commit 到 git！
-GEMINI_API_KEY=$GeminiKey
-TELEGRAM_BOT_TOKEN=$TgToken
-TELEGRAM_CHAT_ID=$TgChatId
-"@
+$EnvLines = @(
+  "# n8n Lite Pack 個人化設定（setup-wizard 自動產生 $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'))",
+  "# 不要 commit 到 git！",
+  "GEMINI_API_KEY=$GeminiKey"
+)
+if ($UseTelegram) {
+  $EnvLines += "TELEGRAM_BOT_TOKEN=$TgToken"
+  $EnvLines += "TELEGRAM_CHAT_ID=$TgChatId"
+}
+$EnvContent = $EnvLines -join "`r`n"
 Write-Utf8NoBom "$ScriptDir\personalization.env" $EnvContent
 Write-Host "  ✓ personalization.env 寫入完成" -ForegroundColor Green
 
@@ -262,15 +276,18 @@ $Creds = @(
     name = "Lite Pack · Gemini API"
     type = "httpHeaderAuth"
     data = @{ name = "x-goog-api-key"; value = $GeminiKey }
-  },
-  @{
+  }
+)
+if ($UseTelegram) {
+  $Creds += @{
     id = "lite-pack-telegram"
     name = "Lite Pack · Telegram Bot"
     type = "telegramApi"
     data = @{ accessToken = $TgToken; baseUrl = "https://api.telegram.org" }
   }
-)
-$CredsJson = $Creds | ConvertTo-Json -Depth 10
+}
+# 用 @() 強制陣列形狀（PS 對單元素 array 會 collapse 成單 object）
+$CredsJson = ConvertTo-Json -InputObject @($Creds) -Depth 10
 Write-Utf8NoBom $CredFile $CredsJson
 Write-Host "  ✓ credentials JSON 生成" -ForegroundColor Green
 
@@ -285,9 +302,12 @@ Copy-Item "$ScriptDir\workflows" $WorkflowTmp -Recurse
 Get-ChildItem "$WorkflowTmp\*.json" | ForEach-Object {
   $content = Get-Content $_.FullName -Raw -Encoding UTF8
   # .Replace() 是 literal replace，不會被當 regex 處理（避免 token 含 $ \ 等特殊字元出錯）
-  $content = $content.Replace('__TELEGRAM_CHAT_ID__', $TgChatId)
   $content = $content.Replace('__GEMINI_API_KEY__', $GeminiKey)
-  $content = $content.Replace('__TELEGRAM_BOT_TOKEN__', $TgToken)
+  if ($UseTelegram) {
+    $content = $content.Replace('__TELEGRAM_CHAT_ID__', $TgChatId)
+    $content = $content.Replace('__TELEGRAM_BOT_TOKEN__', $TgToken)
+  }
+  # 不用 TG → 留 placeholder 原樣；workflow 預設 inactive，學員想用再重跑 wizard
   Write-Utf8NoBom $_.FullName $content
   Write-Host "  ✓ $($_.Name) 已替換 placeholders"
 }
@@ -342,17 +362,21 @@ if ($ImportFail -gt 0) {
 Write-Host ""
 Write-Host "[10/10] Telegram + Gemini smoke test..." -ForegroundColor Yellow
 
-# Telegram
-try {
-  $tgBody = @{chat_id=$TgChatId; text="✅ Lite Pack v1.0 setup-wizard 安裝完成！(Windows)"} | ConvertTo-Json -Compress
-  $tgResp = Invoke-RestMethod -Uri "https://api.telegram.org/bot$TgToken/sendMessage" -Method Post -ContentType "application/json; charset=utf-8" -Body $tgBody -TimeoutSec 10
-  if ($tgResp.ok) {
-    Write-Host "  ✓ Telegram 通知測試成功（請看你手機）" -ForegroundColor Green
-  } else {
-    Write-Host "  ⚠ Telegram 回 fail: $($tgResp.description)" -ForegroundColor Yellow
+# Telegram (v1.1：跳過 if 不用 TG)
+if ($UseTelegram) {
+  try {
+    $tgBody = @{chat_id=$TgChatId; text="✅ Lite Pack v1.1 setup-wizard 安裝完成！(Windows)"} | ConvertTo-Json -Compress
+    $tgResp = Invoke-RestMethod -Uri "https://api.telegram.org/bot$TgToken/sendMessage" -Method Post -ContentType "application/json; charset=utf-8" -Body $tgBody -TimeoutSec 10
+    if ($tgResp.ok) {
+      Write-Host "  ✓ Telegram 通知測試成功（請看你手機）" -ForegroundColor Green
+    } else {
+      Write-Host "  ⚠ Telegram 回 fail: $($tgResp.description)" -ForegroundColor Yellow
+    }
+  } catch {
+    Write-Host "  ⚠ Telegram 失敗: $_" -ForegroundColor Yellow
   }
-} catch {
-  Write-Host "  ⚠ Telegram 失敗: $_" -ForegroundColor Yellow
+} else {
+  Write-Host "  ↳ Telegram smoke test 跳過（你選不用 TG）" -ForegroundColor DarkGray
 }
 
 # Gemini
@@ -376,8 +400,14 @@ Write-Host ""
 Write-Host "下一步：" -ForegroundColor Yellow
 Write-Host "  1. 瀏覽器開 http://localhost:5678"
 Write-Host "  2. 左側 Workflows 應該看到 $ImportSuccess 個（編號 01 ~ 14）"
-Write-Host "  3. Credentials 應該看到 2 個（Lite Pack · Gemini API + Telegram Bot）"
-Write-Host "  4. 點 05 · Telegram 通知 → Execute workflow → 確認再次收到通知"
+if ($UseTelegram) {
+  Write-Host "  3. Credentials 應該看到 2 個（Lite Pack · Gemini API + Telegram Bot）"
+  Write-Host "  4. 點 05 · Telegram 通知 → Execute workflow → 確認收到 TG 通知"
+} else {
+  Write-Host "  3. Credentials 應該看到 1 個（Lite Pack · Gemini API）"
+  Write-Host "  4. 不用 TG 的 6 個 workflow 可直接試（01/02/03/04/08/12）"
+  Write-Host "  5. 想用 Telegram 通知再重跑本 wizard（idempotent）"
+}
 Write-Host ""
 Start-Process "http://localhost:5678"
 
