@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>8/8 環境互鎖與自我驗收 — 改 workflow 前先確認在哪跑｜n8n 本機自動化工作坊</title>
+<meta name="description" content="系列終章：self-host vs Cloud 4 點對照、5 條可驗證的自我驗收清單、2 道不給答案的自我練習題。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="8/8 環境互鎖與自我驗收 — 改 workflow 前先確認在哪跑｜n8n 本機自動化工作坊">
+<meta property="og:description" content="系列終章：self-host vs Cloud 4 點對照、5 條可驗證的自我驗收清單、2 道不給答案的自我練習題。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/lessons/post-llm-8-environment.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="8/8 環境互鎖與自我驗收 — 改 workflow 前先確認在哪跑｜n8n 本機自動化工作坊">
+<meta name="twitter:description" content="系列終章：self-host vs Cloud 4 點對照、5 條可驗證的自我驗收清單、2 道不給答案的自我練習題。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/lessons/post-llm-8-environment.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-main:#5a7a5a;--radius:4px;--radius-sm:3px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 var(--radius) 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:var(--c-main);border:1px solid rgba(90,122,90,.3);background:transparent;padding:3px 12px;border-radius:99px;font-weight:500;letter-spacing:.06em}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px;font-variant-numeric:tabular-nums}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;max-width:26ch}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);margin-top:28px}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
+.outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-heading em{font-style:normal;color:var(--c-text)}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-body{font-size:.9rem;line-height:1.85}
+/* 對照表 */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:24px 0}
+.compare-card{padding:20px 24px}
+.compare-card:first-child{border-right:1px solid var(--c-border)}
+.compare-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:16px}
+.compare-item{display:flex;flex-direction:column;gap:14px}
+.compare-row{display:grid;grid-template-columns:1fr;gap:4px;padding-bottom:14px;border-bottom:1px solid var(--c-border-soft)}
+.compare-row:last-child{border-bottom:0;padding-bottom:0}
+.compare-row-label{font-size:.75rem;color:var(--c-faint);letter-spacing:.08em;font-weight:500}
+.compare-row-value{font-size:.88rem;color:var(--c-text);line-height:1.8}
+/* 驗收清單 */
+.checklist{list-style:none;display:flex;flex-direction:column;gap:12px;margin:16px 0}
+.checklist li{display:flex;gap:12px;align-items:flex-start;font-size:.9rem;line-height:1.85;color:var(--c-text)}
+.checklist li::before{content:"□";flex-shrink:0;margin-top:2px;font-size:1rem;color:var(--c-faint)}
+.checklist li strong{font-weight:500}
+.hard-indicator{display:inline-block;font-size:.72rem;color:var(--c-main);border:1px solid rgba(90,122,90,.4);background:rgba(90,122,90,.06);padding:1px 8px;border-radius:99px;font-weight:700;letter-spacing:.08em;margin-left:6px;vertical-align:middle}
+/* 自我練習 */
+.practice-grid{display:flex;flex-direction:column;gap:16px;margin:24px 0}
+.practice-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 24px}
+.practice-card-num{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:8px}
+.practice-card-title{font-size:.95rem;font-weight:500;color:var(--c-text);line-height:1.7;margin-bottom:8px}
+.practice-card-note{font-size:.85rem;color:var(--c-muted);line-height:1.8}
+/* CTA 連結 */
+.cta-link{display:inline-flex;align-items:center;gap:8px;font-size:.88rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.35);border-radius:var(--radius);transition:background .2s,border-color .2s;margin-top:8px}
+.cta-link:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
+/* 結語 */
+.closing-band{padding:28px 32px;background:var(--c-surface);border-radius:var(--radius);margin:24px 0}
+.closing-text{font-size:.92rem;color:var(--c-text);line-height:1.95}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
+.nav-btn:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main)}
+.nav-btn.primary:hover{filter:brightness(.92)}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.compare-grid{grid-template-columns:1fr}.compare-card:first-child{border-right:0;border-bottom:1px solid var(--c-border)}}
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">n8n 本機自動化工作坊</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">補充 · POST-COURSE</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<div class="page-hero">
+  <a href="../index.html" class="back-link"><span aria-hidden="true">←</span> 返回課程總覽</a>
+  <div class="hero-eyebrow">8 頁系列 · 第 8/8 · 系列終章</div>
+  <h1 class="lesson-title">環境互鎖與自我驗收 — 改 workflow 前先確認在哪跑</h1>
+  <p class="lesson-tagline">本系列到這頁結束。在你開始動手之前，先確認執行環境——同一份 LLM 改寫建議，在 self-host 與 Cloud 上適用程度不同。然後用 5 條硬指標驗收自己學到了什麼。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">本頁學習成果</div>
+    <div class="outcome-item">能識別自己跑在 self-host 還是 Cloud，並知道 4 個關鍵差異點</div>
+    <div class="outcome-item">能用 5 條驗收清單自評是否達到本系列學習目標</div>
+    <div class="outcome-item">知道 2 道進階練習題的方向，並能獨立用前 7 頁的方法解題</div>
+  </div>
+</div>
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(01)</div>
+  <h2 class="section-heading">為什麼最後要回到「在哪跑」</h2>
+  <div class="intro-band">
+    <div class="intro-label">前提假設</div>
+    <div class="intro-text">本系列的所有技巧都假設你在 self-host n8n 上跑。如果你準備搬上 Cloud，credential 儲存位置、節點可用性、檔案路徑、execution 配額這四個面向都會有差異——LLM 給的改寫建議不一定能直接沿用。</div>
+  </div>
+  <p class="body-text">改 workflow 前確認執行環境，不是多餘的步驟。LLM 建議「用 Read Binary File 節點讀本機 PDF」，在 self-host 完全可行；同一句話在 Cloud 執行必定失敗，因為 Cloud 環境裡根本沒有「本機」的概念。先知道你在哪裡，才能判斷 LLM 的建議是否有效。</p>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(02)</div>
+  <h2 class="section-heading">self-host vs Cloud — 4 個關鍵差異</h2>
+  <p class="body-text">以下 4 點對照是改造 workflow 時最常踩到的環境邊界，搬遷前先逐點確認。</p>
+
+  <div class="compare-grid">
+    <div class="compare-card">
+      <div class="compare-label">SELF-HOST（本課主路線）</div>
+      <div class="compare-item">
+        <div class="compare-row">
+          <div class="compare-row-label">Credential 儲存位置</div>
+          <div class="compare-row-value">你的電腦或 VPS，由你負責備份與機密管理。加密金鑰遺失即無法復原。</div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-row-label">節點可用性</div>
+          <div class="compare-row-value">全部 community node 可安裝（自負風險）。Read/Write Files、Execute Command、本地 LLM 節點均可用。</div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-row-label">檔案路徑</div>
+          <div class="compare-row-value">可直接指定本機路徑，例如 <code style="font-family:'Courier New',monospace;font-size:.85em;background:var(--c-surface);border:1px solid var(--c-border);padding:1px 6px;border-radius:var(--radius-sm)">/files/</code> 或 <code style="font-family:'Courier New',monospace;font-size:.85em;background:var(--c-surface);border:1px solid var(--c-border);padding:1px 6px;border-radius:var(--radius-sm)">/Users/.../folder</code> 等本機絕對路徑。</div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-row-label">Execution 配額</div>
+          <div class="compare-row-value">無上限，但吃你電腦或 VPS 的資源（電費、CPU、磁碟）。自己控制執行量。</div>
+        </div>
+      </div>
+    </div>
+    <div class="compare-card">
+      <div class="compare-label">N8N CLOUD</div>
+      <div class="compare-item">
+        <div class="compare-row">
+          <div class="compare-row-label">Credential 儲存位置</div>
+          <div class="compare-row-value">n8n 雲端伺服器，由 n8n 負責加密儲存。self-host 加密過的 credential 無法直接匯入，需重設。</div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-row-label">節點可用性</div>
+          <div class="compare-row-value">部分節點受限，community node 需經審核。Read/Write Files、Execute Command、本地 LLM 在 Cloud 環境不可用。</div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-row-label">檔案路徑</div>
+          <div class="compare-row-value">不能直接讀取本機檔案。必須改走 Google Drive、S3 等雲端儲存節點作為中介。</div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-row-label">Execution 配額</div>
+          <div class="compare-row-value">依方案有 monthly execution 上限，超過另計費。大量批次處理需留意配額消耗速度。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout info">
+    <div class="callout-icon" aria-hidden="true">△</div>
+    <div class="callout-body">改 workflow 前，先確認你跑在哪個環境。同一份 LLM 改寫建議，在 self-host 與 Cloud 上適用程度不同。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(03)</div>
+  <h2 class="section-heading">進一步閱讀</h2>
+  <p class="body-text">考慮把 self-host workflow 搬到 Cloud，或想了解 Cloud 版的限制與遷移思路？以下補充教材從環境決策的角度展開，與本頁是官方互鎖點。</p>
+  <a href="post-cloud-n8n.html" class="cta-link"><span aria-hidden="true">→</span> 雲端 n8n 決策 FAQ（補充教材）</a>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(04)</div>
+  <h2 class="section-heading">自我驗收 — 5 條可驗證清單</h2>
+  <div class="intro-band">
+    <div class="intro-label">使用方式</div>
+    <div class="intro-text">這 5 條是本系列的學習目標，以動詞開頭、結果可驗證。逐條對照自己現在能不能做到，不能做到的回去看對應頁。第 5 條是硬指標，建議實際跑過才算。</div>
+  </div>
+  <ul class="checklist">
+    <li>能用 4 格便箋拆解一個改造需求（input / output / 保留節點 / workflow 編號），並能對著別人講 1 分鐘不打結。（對應：第 3 頁，步驟 1）</li>
+    <li>能在不貼 credential 的前提下，把任一 Lite Pack workflow JSON 貼給 LLM 並要求中文流程描述。（對應：第 3 頁，步驟 2）</li>
+    <li>能下指令讓 LLM 只回傳節點區段、不重寫整份 workflow，並在 n8n UI 上正確完成節點替換。（對應：第 3 頁，步驟 3）</li>
+    <li>能用「最小可重現訊息」格式回報錯誤——紅燈訊息全文 + 上一節點 input + 當前 parameter 三件套，不貼整份 workflow 重來。（對應：第 4 頁，步驟 5）</li>
+    <li>能把 #02-pdf-ai-rename 改成處理某種非合約類文件（發票、收據、PO、申請表 4 選 1），跑通 10 筆樣本。<span class="hard-indicator">硬指標</span>（對應：第 6 頁，完整 Walkthrough）</li>
+  </ul>
+  <p class="body-text" style="margin-top:20px">第 5 條建議到課程社群貼出改造成品截圖，讓其他結業學員看到你的進展——這也是最直接的驗收方式。</p>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(05)</div>
+  <h2 class="section-heading">自我練習 — 不給答案的 2 題</h2>
+  <div class="intro-band">
+    <div class="intro-label">設計意圖</div>
+    <div class="intro-text">這兩題沒有附範本答案，也沒有附 prompt 模板。你需要回去用前 7 頁學的方法自己解：拆需求、讀 JSON、限定修改範圍、匯入測試、錯誤回報、收斂。能獨立跑完一輪，才算真正內化了這套流程。</div>
+  </div>
+  <div class="practice-grid">
+    <div class="practice-card">
+      <div class="practice-card-num">練習 1</div>
+      <div class="practice-card-title">把 #04-daily-ai-report 的輸出端從 Google Sheet 改成 Notion Database</div>
+      <div class="practice-card-note">提示：輸出端換新節點類型時，記得先在 n8n UI 拉出一個 Notion 節點、複製出來給 LLM 當「目標形狀」範本，不要讓 LLM 從記憶生成節點 JSON。</div>
+    </div>
+    <div class="practice-card">
+      <div class="practice-card-num">練習 2</div>
+      <div class="practice-card-title">把 #11-csv-clean-score 的評分維度從通用版改成你業務的特定維度，並跑通 10 筆樣本</div>
+      <div class="practice-card-note">提示：先填好 4 格便箋，把「你業務的特定維度是什麼、原本的通用維度是什麼、哪些節點需要改」寫清楚，再開始跟 LLM 對話。需求不清就先別動 JSON。</div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(06)</div>
+  <h2 class="section-heading">系列結語</h2>
+  <div class="closing-band">
+    <p class="closing-text">8 頁學完，下一步是動手。這套流程的核心不是 prompt 技巧，是「縮小範圍、逐步驗收」的工作紀律——第一次走完 6 步可能要花一個下午，第五次就會變成 30 分鐘的例行作業。改造案例歡迎分享到學員社群，你的實際情境對其他結業學員的參考價值，遠比任何教材範例都高。</p>
+  </div>
+</section>
+
+<div class="nav-footer">
+  <a href="post-llm-7-triage.html" class="nav-btn"><span aria-hidden="true">←</span> 上一頁：錯誤分流 SOP</a>
+  <a href="../index.html" class="nav-btn primary">回到課程總覽 <span aria-hidden="true">→</span></a>
+</div>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">2026 春季</span>
+  <span class="footer-meta" data-platform-version="n8n 1.x" data-built-at="2026-05-06">本頁以 n8n 1.x 製作，2026-05</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+</script>
+<script>
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+</body>
+</html>
