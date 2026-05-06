@@ -131,7 +131,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
         <strong>怎麼用</strong>：本機 / NAS / 自家伺服器跑 Docker → 完全免費（Apache 2.0 開源）<br>
         <strong>收費</strong>：$0 軟體費 + 電費 ~$5-15/月 + 你的時間維運<br>
         <strong>計費單位</strong>：無（你電腦能跑多少都行）<br>
-        <strong>優勢</strong>：本機檔案處理、本地 LLM、無 ops 限制、資料完全擁有
+        <strong>優勢</strong>：<strong>檔案不用上傳就能處理</strong>、可選本地 LLM、無 ops 限制
       </div>
     </div>
   </div>
@@ -154,9 +154,9 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
       <tr><td class="dim">執行次數限制</td><td class="n">Starter 5K / Pro 10K+ 每月，超過要升級</td><td class="y">無上限（你電腦能跑多少都行）</td></tr>
       <tr><td class="dim">金錢成本</td><td class="neutral">$20-50+ /月固定支出</td><td class="y">$0 軟體費 + 電費約 $5-15/月</td></tr>
       <tr><td class="dim">時間成本</td><td class="y">≈ 0（n8n 幫你維運）</td><td class="n">升級 / 備份 / 故障排除自己處理</td></tr>
-      <tr><td class="dim">本機檔案存取</td><td class="n">完全做不到（跑在 AWS/GCP）</td><td class="y">可 mount 本機資料夾<br><span class="neutral">（課程 #02/#03/#10/#11/#12/#13 核心優勢）</span></td></tr>
-      <tr><td class="dim">本地 LLM 整合</td><td class="n">沒法接（雲端不認識你 Ollama）</td><td class="y">可接 localhost / NAS Ollama<br><span class="neutral">（敏感資料完全不離開本機）</span></td></tr>
-      <tr><td class="dim">資料隱私</td><td class="neutral">workflow / credentials / 執行 log 都在 n8n 雲</td><td class="y">全部在你硬碟，零外傳</td></tr>
+      <tr><td class="dim">本機檔案處理</td><td class="n">完全做不到（跑在 AWS/GCP）<br><span class="neutral">→ 本機 PDF 必須先上傳 Drive 中轉，多 2-3 步驟</span></td><td class="y">直接讀寫本機資料夾<br><span class="neutral">（課程 #02/#03/#10/#11/#12/#13 核心優勢）</span></td></tr>
+      <tr><td class="dim">本地 LLM 整合</td><td class="n">沒法接（雲端不認識你 Ollama）</td><td class="y">可接 localhost / NAS Ollama<br><span class="neutral">（要真正零外傳必須走這條，詳見 m0-local-llm-guide）</span></td></tr>
+      <tr><td class="dim">資料隱私</td><td class="neutral"><strong>所有東西都在 n8n 雲</strong>：<br>workflow / credentials / 執行 log / 檔案 binary / API 呼叫資料</td><td class="neutral"><strong>檔案 + workflow 在你硬碟</strong>：<br>workflow / credentials / 執行 log / 檔案 binary 在你電腦<br><span style="color:#b54a4a">⚠️ <strong>但呼叫雲端 API 時，prompt 內容仍會送對應服務</strong>（Gemini→Google / Telegram→Telegram）。要真正零外傳必須配本地 LLM（Layer 2，見 m0-local-llm-guide）</span></td></tr>
       <tr><td class="dim">設定難度</td><td class="y">註冊一鍵</td><td class="n">要懂 Docker（本課程 Phase A 教）</td></tr>
       <tr><td class="dim">自動升級</td><td class="y">官方推</td><td class="neutral">自己 <code>docker compose pull</code></td></tr>
       <tr><td class="dim">官方支援</td><td class="y">Pro+ 有付費支援</td><td class="neutral">Community Forum / GitHub Issues</td></tr>
@@ -167,7 +167,15 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 
   <div class="callout tip">
     <div class="callout-icon" aria-hidden="true">⚖️</div>
-    <div class="callout-body"><strong>看到這裡你會發現</strong>：兩條都各有強弱項。Cloud 在「零維運 + 開箱即用 + 企業 feature」贏；self-host 在「本機檔案 / 本地 LLM / 無上限 / 資料擁有」贏。沒有「全面比較好」的選擇。</div>
+    <div class="callout-body"><strong>看到這裡你會發現</strong>：兩條都各有強弱項。Cloud 在「零維運 + 開箱即用 + 企業 feature」贏；self-host 在「本機檔案不用上傳 / 可選本地 LLM / 無 ops 上限」贏。沒有「全面比較好」的選擇。</div>
+  </div>
+
+  <div class="callout key">
+    <div class="callout-icon" aria-hidden="true">🚨</div>
+    <div class="callout-body"><strong>self-host 隱私分層（重要釐清）</strong>：<br>
+    <strong>Layer 1（預設 Lite Pack 設置）</strong> — workflow + 檔案 binary 在你電腦，但呼叫 Gemini API / Telegram 時 prompt 內容 / 訊息會送對應服務。<strong>解決「檔案不用上傳中轉」</strong>，不解決「資料零外傳」。<br><br>
+    <strong>Layer 2（完整零外傳）</strong> — 所有 AI 換本機 Ollama + 不用 Telegram + 不對外 webhook。<strong>真正資料零外傳</strong>，但要走 <a href="m0-local-llm-guide.html">m0-local-llm-guide 補充章節</a>。<br><br>
+    <strong>本課程 Lite Pack 預設是 Layer 1</strong>。對「檔案處理自動化、資料分類整理」這類需求 Layer 1 就夠用（檔案不離開本機，AI 只看 prompt 內容）。要處理合約 / NDA / 員工 PII 才需要 Layer 2。</div>
   </div>
 </section>
 
@@ -183,14 +191,20 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 
   <ol class="scenario-list">
     <li>
-      <strong style="color:var(--c-text)">本機檔案直接處理</strong> — 課程 14 個 workflow 中 6 個（#02 PDF 改名 / #03 批次 dual-path / #10 客戶資料夾 / #11 CSV 清洗 / #12 知識庫 / #13 營運 CSV）都要讀寫本機資料夾。
+      <strong style="color:var(--c-text)">本機檔案不用上傳就能處理</strong>（核心優勢）— 課程 14 個 workflow 中 6 個（#02 PDF 改名 / #03 批次 dual-path / #10 客戶資料夾 / #11 CSV 清洗 / #12 知識庫 / #13 營運 CSV）都要讀寫本機資料夾。
       <br><br>
-      <strong>Cloud 完全做不到</strong>：跑在 AWS / GCP 上的 n8n 看不到你電腦。要處理本機檔必須先全部上傳 Google Drive / Dropbox 中轉，多 2-3 個 ops 而且失去「本機資料管線」的整潔度。
+      <strong>Cloud 必須先上傳 Drive 中轉</strong>：跑在 AWS / GCP 上的 n8n 看不到你電腦。要處理本機檔必須走「<span class="ic">本機 → 上傳 Drive → Cloud n8n 從 Drive 抓 → 處理 → 結果寫回 Drive → 下載到本機</span>」5 步驟，多 2-3 個 ops 而且失去「本機資料管線」的整潔度。
+      <br><br>
+      <strong>self-host 直接讀寫本機資料夾</strong>：「<span class="ic">PDF 丟資料夾 → n8n 處理 → 結果寫資料夾</span>」3 步驟，檔案 binary 始終在你硬碟。
+      <br><br>
+      <span class="neutral">注意：「檔案不上傳」 ≠ 「資料零外傳」。AI 處理時，PDF 內容會以 prompt 形式送 Gemini API 給 Google。檔案本身（PDF binary）沒上傳，但內容文字會給 AI 看。</span>
     </li>
     <li>
-      <strong style="color:var(--c-text)">本地 LLM 整合</strong>（補充章節 <a href="m0-local-llm-guide.html">m0-local-llm-guide.html</a>）— 公司合約 / NDA / 員工資料丟雲端 LLM 違反保密協議。本機 Ollama（Llama 3 / Gemma / Qwen）是唯一解。
+      <strong style="color:var(--c-text)">可選本地 LLM 達成完全零外傳</strong>（進階） — 公司合約 / NDA / 員工資料連 prompt 都不該給 Google。本機 Ollama（Llama 3 / Gemma / Qwen）是唯一解。詳見 <a href="m0-local-llm-guide.html">m0-local-llm-guide</a>。
       <br><br>
       <strong>Cloud 跑在 AWS 上</strong>，你電腦的 Ollama 在 localhost，雲端 n8n 連不到。要用本地 LLM 必須 self-host。
+      <br><br>
+      <strong>本課程預設用 Gemini API</strong>（簡單 + 質量好），對「不含機密的檔案處理」完全夠用。要處理機密資料才換 Ollama。
     </li>
     <li>
       <strong style="color:var(--c-text)">無 execution 上限</strong> — 高量批次（每天處理 1000 + 份文件、5 分鐘 polling 的 monitoring workflow）用 Cloud Starter 5K execution 一週用完。
@@ -227,6 +241,12 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 
     <li><strong class="tag either">混搭</strong> 公司有純雲端 workflow + 本機批次處理
       <br><span class="neutral">→ Cloud 跑雲端那部分（節省維運），self-host 跑本機那部分（補上 Cloud 做不到的）。兩邊用 webhook 串接。</span></li>
+
+    <li><strong class="tag self">SELF-HOST + LAYER 2</strong> 處理合約 / NDA / 員工 PII / 商業戰略文件
+      <br><span class="neutral">→ self-host（檔案不離開本機）+ <strong>本地 LLM Ollama</strong>（連 prompt 內容也不送雲）。詳見 <a href="m0-local-llm-guide.html">m0-local-llm-guide</a>。Layer 1（用 Gemini）會把文件內容送 Google，不適合機密場景。</span></li>
+
+    <li><strong class="tag self">SELF-HOST</strong> 處理一般檔案（公開資料 / 內部紀錄 / 客戶報表）+ 想避免 Drive 中轉麻煩
+      <br><span class="neutral">→ self-host + Gemini（Layer 1）就夠用。檔案 binary 始終在你硬碟，AI 看 prompt 內容不算機密外洩。本課程預設這條。</span></li>
   </ol>
 </section>
 
@@ -260,9 +280,11 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 <section class="lesson-section">
   <div class="section-eyebrow">總結</div>
   <h2 class="section-heading">不藏優劣的選擇</h2>
-  <p class="body-text">本課程選 Docker self-host 不是因為 Cloud 不好，是因為要教學員「Cloud 真的做不到的能力」（本機檔案 / 本地 LLM / 無上限）— 這些是 Make / Cloud n8n / 其他 SaaS 自動化工具都做不到的差異化能力。</p>
-  <p class="body-text">如果你看完上面決策表，發現「我業務真的純雲端 + 不碰本機檔 + 在乎維運心力」，那 n8n Cloud 是更合理的選擇 — 不用為了「課程選 self-host」勉強自己學 Docker。</p>
-  <p class="body-text">課程剩下的內容（14 個 workflow 設計拆解）都是「自動化通用思考方法」— 不管你最後用 Cloud 或 self-host，這些 workflow design pattern 都帶走。</p>
+  <p class="body-text">本課程選 Docker self-host 的核心理由很單純：<strong>對 Make 學員，「本機檔案不用上傳就能處理」是真實業務痛點解方</strong>。Make + Cloud n8n 都要先把 PDF / CSV / 客戶檔案上傳 Google Drive 中轉，多 2-3 步驟、ops 翻倍、失去本機資料夾整潔度。self-host 直接讀寫本機資料夾，學員的工作節奏不被打斷。</p>
+
+  <p class="body-text">至於「資料隱私」，要誠實分清楚 2 件事：<strong>「檔案不上傳」是 Layer 1（Lite Pack 預設達成）</strong>，<strong>「資料零外傳」是 Layer 2（要再走本地 LLM 銜接）</strong>。對「客戶 NDA / 員工 PII / 商業戰略」場景才需要 Layer 2；一般檔案處理 Layer 1 已夠用。</p>
+
+  <p class="body-text">如果你看完上面決策表，發現「我業務真的純雲端 + 不碰本機檔 + 在乎維運心力」，那 n8n Cloud 是更合理的選擇 — 不用為了「課程選 self-host」勉強自己學 Docker。課程剩下的內容（14 個 workflow 設計拆解）都是「自動化通用思考方法」，不管你最後用 Cloud 或 self-host，這些 workflow design pattern 都帶走。</p>
 
   <div class="callout info" style="margin-top:24px">
     <div class="callout-icon" aria-hidden="true">🎯</div>
