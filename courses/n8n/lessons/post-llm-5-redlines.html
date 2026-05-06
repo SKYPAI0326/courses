@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>8 條紅線 — 用 LLM 改 workflow 不能踩｜AI 資料工廠</title>
+<meta name="description" content="LLM 協助改寫 n8n workflow 的 8 條強制安全規範：credential 保護、禁止整份重生、版本漂移處理、destructive 操作 dry-run 等。Codex L3 兩輪審核採納定稿。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="8 條紅線 — 用 LLM 改 workflow 不能踩｜AI 資料工廠">
+<meta property="og:description" content="LLM 協助改寫 n8n workflow 的 8 條強制安全規範：credential 保護、禁止整份重生、版本漂移處理、destructive 操作 dry-run 等。Codex L3 兩輪審核採納定稿。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/post-llm-5-redlines.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="8 條紅線 — 用 LLM 改 workflow 不能踩｜AI 資料工廠">
+<meta name="twitter:description" content="LLM 協助改寫 n8n workflow 的 8 條強制安全規範。Codex L3 兩輪審核採納定稿。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/post-llm-5-redlines.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-main:#5a7a5a;--radius:4px;--radius-sm:3px;--content-w:820px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 var(--radius) 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:var(--c-main);border:1px solid rgba(90,122,90,.3);background:transparent;padding:3px 12px;border-radius:99px;font-weight:500;letter-spacing:.06em}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 36px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px;font-variant-numeric:tabular-nums}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;max-width:26ch}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;margin-bottom:28px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);margin-top:16px}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
+.outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-body{font-size:.9rem;line-height:1.85}
+/* 紅線卡片系列 */
+.redline-grid{display:flex;flex-direction:column;gap:28px;margin-top:8px}
+.redline-card{background:var(--c-card);border:1px solid var(--c-border-soft);border-radius:var(--radius);padding:24px 28px}
+.redline-card.warn{border-left:3px solid #c9963a}
+.redline-card.danger{border-left:3px solid #b54a4a;background:#fdf8f8}
+.redline-card.info{border-left:3px solid var(--c-main)}
+.redline-num{font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-faint);letter-spacing:.1em;font-weight:600;margin-bottom:6px}
+.redline-title{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin-bottom:14px;line-height:1.4}
+.redline-card.danger .redline-title{color:#8a2020}
+.redline-why-label{font-size:.72rem;color:var(--c-muted);letter-spacing:.1em;font-weight:500;margin-bottom:6px}
+.redline-why{font-size:.9rem;color:var(--c-text);line-height:1.85;margin-bottom:0}
+.redline-forbidden{margin-top:16px;padding:14px 18px;background:rgba(181,74,74,.05);border-radius:var(--radius-sm);border:1px solid rgba(181,74,74,.15)}
+.redline-forbidden-label{font-size:.72rem;color:#8a2020;letter-spacing:.1em;font-weight:600;margin-bottom:8px}
+.redline-forbidden ul{margin:0 0 0 18px;padding:0}
+.redline-forbidden li{font-size:.88rem;color:var(--c-text);line-height:1.85;margin-bottom:4px}
+.redline-forbidden li:last-child{margin-bottom:0}
+.redline-steps{margin-top:16px;padding:14px 18px;background:rgba(90,122,90,.05);border-radius:var(--radius-sm);border:1px solid rgba(90,122,90,.15)}
+.redline-steps-label{font-size:.72rem;color:#2a5a2a;letter-spacing:.1em;font-weight:600;margin-bottom:8px}
+.redline-steps ol{margin:0 0 0 18px;padding:0}
+.redline-steps li{font-size:.88rem;color:var(--c-text);line-height:1.85;margin-bottom:4px}
+.redline-steps li:last-child{margin-bottom:0}
+/* cheatsheet 尾段 */
+.cheatsheet-note{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 24px;margin-top:8px}
+.cheatsheet-note p{font-size:.92rem;color:var(--c-muted);line-height:1.9;margin:0}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
+.nav-btn:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main)}
+.nav-btn.primary:hover{filter:brightness(.92)}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+@media(prefers-reduced-motion:reduce){.progress-fill{transition:none!important}*{animation:none!important}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.redline-card{padding:18px 20px}}
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 資料工廠 — 大規模文件處理實戰</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">補充 · POST-COURSE</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<div class="page-hero">
+  <a href="index.html" class="back-link"><span aria-hidden="true">←</span> 返回課程總覽</a>
+  <div class="hero-eyebrow">8 頁系列 · 第 5/8 · 核心安全規範</div>
+  <h1 class="lesson-title">8 條紅線 — 用 LLM 改 workflow 不能踩</h1>
+  <p class="lesson-tagline">8 頁系列 · 第 5/8 · 核心安全規範</p>
+  <div class="outcomes">
+    <div class="outcomes-label">本頁重點</div>
+    <div class="outcome-item">理解每條紅線的具體失效情境，不只知道「不能做」也知道「為什麼」</div>
+    <div class="outcome-item">掌握紅線 2 / 6 的禁止項目清單，在改 workflow 前主動核查</div>
+    <div class="outcome-item">能用紅線 7 / 8 的正確流程，在隔離環境完成驗證再上線</div>
+  </div>
+</div>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(01)</div>
+  <h2 class="section-heading">為什麼有紅線</h2>
+  <div class="intro-band">
+    <div class="intro-label">背景說明</div>
+    <div class="intro-text">LLM 給的 JSON 看起來合理但容易跑出細節錯誤；以下 8 條是 Codex L3 兩輪審核（call_id 765f5530 / f9c18d2c）採納的強制規範，雷區內容「不可模糊化或淡化」。</div>
+  </div>
+  <p class="body-text">這 8 條紅線不是「建議」，是「踩到就出事」的強制邊界。每條都有真實的失效情境：credential 外洩沒得救、production workflow 被未驗證版本接管、destructive 操作寄錯人刪錯檔。逐條讀完，印出貼螢幕邊，每次改 workflow 前掃一眼。</p>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(02)</div>
+  <h2 class="section-heading">8 條紅線</h2>
+
+  <div class="redline-grid">
+
+    <!-- 紅線 1：warn -->
+    <div class="redline-card warn">
+      <div class="redline-num">紅線 01</div>
+      <div class="redline-title">不要把 credential 一起貼給 LLM</div>
+      <div class="redline-why-label">為什麼</div>
+      <p class="redline-why">n8n workflow JSON 內可能包含 API key、Gmail OAuth token、Notion integration secret 等敏感欄位。即使你「信任」某 LLM 服務，貼上去就失去控制權。<strong>永遠用 n8n UI 的「export without credentials」選項</strong>，並在貼給 LLM 前用搜尋確認沒有 <code>apiKey</code> / <code>accessToken</code> / <code>password</code> 字串殘留。</p>
+    </div>
+
+    <!-- 紅線 2：danger，含禁止項目清單 -->
+    <div class="redline-card danger">
+      <div class="redline-num">紅線 02</div>
+      <div class="redline-title">不要讓 LLM 直接產出完整 workflow JSON 當最終答案</div>
+      <div class="redline-why-label">為什麼</div>
+      <p class="redline-why">LLM 從零生成的 workflow JSON 有極高機率出現 typeVersion 過時、節點 ID 衝突、connection 引用錯位、參數 schema 漂移等問題，匯入直接失敗或更糟——匯入成功但跑起來資料形狀不對。<strong>永遠以官方 Lite Pack 或 n8n UI 拉出來的範本為基底，LLM 只在限定範圍內改</strong>。</p>
+      <div class="redline-forbidden">
+        <div class="redline-forbidden-label">特別禁止項目（即使只改一段，這些也不能讓 LLM 自動決定）</div>
+        <ul>
+          <li>webhook URL</li>
+          <li>trigger 類型</li>
+          <li>schedule 排程</li>
+          <li>recipient list（收件人 / 通知對象）</li>
+          <li>任何 delete / update / drop 類資料庫或 API 操作</li>
+        </ul>
+        <p style="font-size:.82rem;color:#8a2020;margin-top:10px;line-height:1.8">任一被誤改 = production 直接出事，沒得救。</p>
+      </div>
+    </div>
+
+    <!-- 紅線 3：info -->
+    <div class="redline-card info">
+      <div class="redline-num">紅線 03</div>
+      <div class="redline-title">版本漂移要先用 n8n UI 的自動升級，不要叫 LLM 改 typeVersion</div>
+      <div class="redline-why-label">為什麼</div>
+      <p class="redline-why">n8n 升大版時，節點的 typeVersion 與 parameter schema 可能變動。LLM 不知道你裝的是哪一版，直接改 typeVersion 數字會把問題從「警告」變成「跑時 crash」。<strong>先在 n8n UI 開啟 → 它會自動處理可升級的部分 → 跑不通再用 LLM 對照新舊 schema 排查</strong>。</p>
+    </div>
+
+    <!-- 紅線 4：warn -->
+    <div class="redline-card warn">
+      <div class="redline-num">紅線 04</div>
+      <div class="redline-title">節點 deprecation 要查官方 changelog，不要相信 LLM 的記憶</div>
+      <div class="redline-why-label">為什麼</div>
+      <p class="redline-why">LLM 訓練資料有 cutoff，可能不知道某節點已被官方改名／拆分／移除（例：n8n 歷史上有過 Gmail node 拆出 Gmail Trigger 的情況）。<strong>遇到「找不到節點」/「節點變灰」時先去 n8n 官方 changelog 與社群論壇查證</strong>，再決定是換新節點、還是用 HTTP Request 直接打 API。</p>
+    </div>
+
+    <!-- 紅線 5：info -->
+    <div class="redline-card info">
+      <div class="redline-num">紅線 05</div>
+      <div class="redline-title">不要把 LLM 輸出當答案，要當草稿</div>
+      <div class="redline-why-label">為什麼</div>
+      <p class="redline-why">LLM 給的 JSON 區段有 90% 機率「看起來合理」但「跑起來細節錯」。一定要走完步驟 4「匯入測試」+ 步驟 6 收斂迴圈。<strong>沒有跑過真實樣本之前，那只是草稿，不是答案</strong>。</p>
+    </div>
+
+    <!-- 紅線 6：danger，含禁止項目 -->
+    <div class="redline-card danger">
+      <div class="redline-num">紅線 06</div>
+      <div class="redline-title">保留節點 ID 與 connection 完整性</div>
+      <div class="redline-why-label">為什麼</div>
+      <p class="redline-why">n8n workflow JSON 裡，節點之間靠 <code>id</code> 與 <code>connections</code> 區段串聯。LLM 在區段改寫時容易動到 ID 或漏掉 connection。<strong>步驟 3 要求 LLM「只回傳節點區段」、學員在 n8n UI 上做替換</strong>就是為了避開這個——不要直接覆蓋整份 JSON 檔。</p>
+      <div class="redline-forbidden">
+        <div class="redline-forbidden-label">重要補述</div>
+        <ul>
+          <li>若確實需要新增或刪除節點（不是修改既有節點），connections 區段必須回到 n8n UI 上手動重接，<strong>不要叫 LLM 寫 connections JSON</strong></li>
+          <li>UI 上拖線 30 秒就完成，LLM 寫錯一個 ID 你 debug 30 分鐘</li>
+          <li>第 7 節「錯誤分流 SOP」的 connections 檢查 checklist，<strong>只有在你改了整份 JSON 或新增／刪除節點時才需要跑</strong>——UI 上區段替換沒動 connections，跳過</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 紅線 7：danger，含正確流程 -->
+    <div class="redline-card danger">
+      <div class="redline-num">紅線 07</div>
+      <div class="redline-title">改完先在隔離環境驗，不在 production workflow 直接測</div>
+      <div class="redline-why-label">為什麼</div>
+      <p class="redline-why">n8n 匯入流程預設保留原 workflow 的 active 狀態，若改的是已開的 production workflow，匯入瞬間就會用未驗證版本接收真實流量／真實檔案。<strong>正確流程</strong>如下，任一步跳過 = 你在用真客戶資料當白老鼠。</p>
+      <div class="redline-steps">
+        <div class="redline-steps-label">正確操作流程</div>
+        <ol>
+          <li>在 n8n UI 點 workflow 右上角「Duplicate」複製一份命名 <code>&lt;原名&gt;-edit</code></li>
+          <li>把 LLM 改的內容套到複本</li>
+          <li>確認複本 trigger 是 OFF（或 Manual）</li>
+          <li>跑通再複製回原 workflow</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 紅線 8：danger，含正確流程 -->
+    <div class="redline-card danger">
+      <div class="redline-num">紅線 08</div>
+      <div class="redline-title">destructive 操作必先 dry-run</div>
+      <div class="redline-why-label">為什麼</div>
+      <p class="redline-why">涉及刪資料（Notion delete page / Drive delete file）、寄信（Gmail / Telegram 發給真實收件人）、更新 CRM（HubSpot / Pipedrive update record）的節點，LLM 改錯一個欄位就是真寄錯人、真刪檔。<strong>寧願多花 5 分鐘做 dry-run，不要省這步</strong>。</p>
+      <div class="redline-steps">
+        <div class="redline-steps-label">正確操作流程</div>
+        <ol>
+          <li>把 destructive 節點先 disable 或換成 console log 等價假動作</li>
+          <li>跑通驗證 input／output 資料形狀</li>
+          <li>改寫 recipient 為自己的測試帳號</li>
+          <li>用 1-3 筆假資料跑</li>
+          <li>全程 OK 才換回真收件人 / 真資料源</li>
+        </ol>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(03)</div>
+  <h2 class="section-heading">Cheatsheet 提醒</h2>
+  <div class="cheatsheet-note">
+    <p>這 8 條建議印成 A4 雙欄一頁貼螢幕邊，每次改 workflow 前快速掃一眼，特別是紅線 1（credential）、紅線 2（禁整份重生）、紅線 7（隔離環境）與紅線 8（dry-run）。</p>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(04)</div>
+  <h2 class="section-heading">本頁小結</h2>
+  <p class="body-text">8 條紅線的核心精神可以用一句話概括：<strong>LLM 是草稿機，你是驗收人</strong>。LLM 給的 JSON 從不是最終答案，credential 的安全責任、production 環境的保護、destructive 操作的 dry-run，都是你的責任，不能外包給 LLM。</p>
+  <p class="body-text">下一頁是完整 walkthrough：把 #02-pdf-ai-rename 改成處理發票，實際走完 6 步流程，並示範紅線 1 與紅線 5 在真實操作中長什麼樣。</p>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(05)</div>
+  <h2 class="section-heading">系列導覽</h2>
+  <div class="intro-band">
+    <div class="intro-label">課後補充 LLM Copilot 系列</div>
+    <div class="intro-text">本系列共 8 頁，從「為什麼要學這套流程」到「完整 walkthrough + 錯誤分流 SOP」，逐步帶你建立用 LLM 安全改 workflow 的能力。本頁是第 5/8，聚焦核心安全規範。</div>
+  </div>
+  <p class="body-text">前一頁：步驟 4-6 詳解（匯入測試、錯誤回報、收斂）含 prompt 模板 4-5。<br>下一頁：Walkthrough — 把 #02 改成處理發票（最完整的實機示範，6,000 字 + 截圖）。</p>
+</section>
+
+<div class="nav-footer">
+  <a href="post-llm-4-steps-import.html" class="nav-btn"><span aria-hidden="true">←</span> 步驟 4-6 詳解</a>
+  <a href="post-llm-6-walkthrough.html" class="nav-btn primary">Walkthrough：改成處理發票 <span aria-hidden="true">→</span></a>
+</div>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">2026 春季</span>
+  <span class="footer-meta" data-platform-version="n8n latest (Docker image n8nio/n8n)" data-built-at="2026-05-06">本頁以 n8n latest (Docker image n8nio/n8n) 製作，2026-05</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+</script>
+<script>
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+</body>
+</html>

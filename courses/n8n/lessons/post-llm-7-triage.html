@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7/8 LLM 給的 workflow 匯不進去？— 3 類錯誤分流 SOP｜n8n 本機自動化工作坊</title>
+<meta name="description" content="匯入失敗先別慌：JSON 格式錯、credential 錯、邏輯錯三類分流決策樹 + checklist，快速找到問題根源。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="7/8 LLM 給的 workflow 匯不進去？— 3 類錯誤分流 SOP｜n8n 本機自動化工作坊">
+<meta property="og:description" content="匯入失敗先別慌：JSON 格式錯、credential 錯、邏輯錯三類分流決策樹 + checklist，快速找到問題根源。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/lessons/post-llm-7-triage.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="7/8 LLM 給的 workflow 匯不進去？— 3 類錯誤分流 SOP｜n8n 本機自動化工作坊">
+<meta name="twitter:description" content="匯入失敗先別慌：JSON 格式錯、credential 錯、邏輯錯三類分流決策樹 + checklist，快速找到問題根源。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/lessons/post-llm-7-triage.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-main:#5a7a5a;--radius:4px;--radius-sm:3px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 var(--radius) 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:var(--c-main);border:1px solid rgba(90,122,90,.3);background:transparent;padding:3px 12px;border-radius:99px;font-weight:500;letter-spacing:.06em}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px;font-variant-numeric:tabular-nums}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;max-width:24ch}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);margin-top:28px}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
+.outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-heading em{font-style:normal;color:var(--c-text)}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-body{font-size:.9rem;line-height:1.85}
+/* 決策樹 pre */
+.decision-tree{font-family:'Courier New',monospace;font-size:.82rem;line-height:1.7;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);padding:24px 28px;margin:24px 0;overflow-x:auto;color:var(--c-text)}
+/* 3 類卡片 */
+.triage-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);margin:24px 0;overflow:hidden}
+.triage-card-header{display:flex;align-items:center;gap:12px;padding:16px 24px}
+.triage-card-num{font-family:'Shippori Mincho',serif;font-size:.72rem;letter-spacing:.12em;font-weight:700;padding:3px 10px;border-radius:99px}
+.triage-card-num.cat1{background:#fef9c3;color:#854d0e;border:1px solid #fde68a}
+.triage-card-num.cat2{background:#ffedd5;color:#9a3412;border:1px solid #fed7aa}
+.triage-card-num.cat3{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
+.triage-card-title{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text)}
+.triage-card-body{padding:0 24px 24px}
+.triage-feature{font-size:.88rem;color:var(--c-muted);line-height:1.9;margin-bottom:16px;padding:12px 16px;background:var(--c-surface);border-radius:var(--radius-sm)}
+.triage-feature-label{font-size:.72rem;color:var(--c-text);letter-spacing:.12em;font-weight:500;margin-bottom:6px}
+/* checklist */
+.checklist{list-style:none;display:flex;flex-direction:column;gap:10px;margin:16px 0}
+.checklist li{display:flex;gap:12px;align-items:flex-start;font-size:.9rem;line-height:1.85;color:var(--c-text)}
+.checklist li::before{content:"□";flex-shrink:0;margin-top:2px;font-size:1rem;color:var(--c-faint)}
+.checklist li strong{font-weight:500}
+.inline-code{font-family:'Courier New',monospace;font-size:.85em;background:var(--c-surface);border:1px solid var(--c-border);padding:1px 6px;border-radius:var(--radius-sm);color:var(--c-text)}
+/* 三步動線 */
+.step-sequence{display:flex;flex-direction:column;gap:6px;margin:8px 0 8px 8px;padding:12px 16px;background:var(--c-bg);border-left:2px solid var(--c-border);border-radius:0 var(--radius-sm) var(--radius-sm) 0}
+.step-sequence-item{font-size:.88rem;color:var(--c-text);line-height:1.8}
+.step-sequence-item span{font-weight:500}
+/* 邏輯錯樣態 */
+.symptom-grid{display:flex;flex-direction:column;gap:12px;margin:16px 0}
+.symptom-item{display:flex;gap:12px;align-items:flex-start;padding:12px 16px;background:var(--c-surface);border-radius:var(--radius-sm)}
+.symptom-num{font-family:'Shippori Mincho',serif;font-size:.82rem;font-weight:700;color:var(--c-faint);flex-shrink:0;margin-top:2px}
+.symptom-desc{font-size:.88rem;color:var(--c-text);line-height:1.85}
+/* 逃生口 */
+.escape-band{padding:20px 24px;margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-main);border-radius:0 var(--radius) var(--radius) 0}
+.escape-label{font-size:.72rem;color:var(--c-main);letter-spacing:.12em;font-weight:700;margin-bottom:8px}
+.escape-text{font-size:.9rem;color:var(--c-text);line-height:1.85}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
+.nav-btn:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main)}
+.nav-btn.primary:hover{filter:brightness(.92)}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.decision-tree{font-size:.75rem;padding:16px}}
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">n8n 本機自動化工作坊</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">補充 · POST-COURSE</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<div class="page-hero">
+  <a href="../index.html" class="back-link"><span aria-hidden="true">←</span> 返回課程總覽</a>
+  <div class="hero-eyebrow">8 頁系列 · 第 7/8 · 錯誤排查</div>
+  <h1 class="lesson-title">LLM 給的 workflow 匯不進去？— 3 類錯誤分流 SOP</h1>
+  <p class="lesson-tagline">匯入失敗先別慌，也別重新請 LLM 整份重寫。先用本頁決策樹定位錯誤類別，再照對應 checklist 逐步排查。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">本頁學習成果</div>
+    <div class="outcome-item">能看錯誤訊息關鍵字，在 30 秒內判斷屬於哪類分流</div>
+    <div class="outcome-item">能依類別 checklist 完成排查，不走回頭路重貼整份 workflow</div>
+    <div class="outcome-item">知道卡超過 30 分鐘時該做什麼，而不是繼續和 LLM 死磕</div>
+  </div>
+</div>
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(01)</div>
+  <h2 class="section-heading">分流決策樹</h2>
+  <div class="intro-band">
+    <div class="intro-label">使用方式</div>
+    <div class="intro-text">從「匯入失敗 / 跑不通 / 結果不對」這個起點往下看，對照你看到的錯誤訊息關鍵字，找到對應類別，跳到該類別的 checklist。每次排查只走一條路，不要同時跑多條。</div>
+  </div>
+<pre class="decision-tree">
+匯入失敗 / 跑不通 / 結果不對
+    │
+    ├─ 訊息含 "Could not parse" / "Invalid JSON" / "Unexpected token"
+    │  或 "node type not found" / "unknown parameter" / "connections"   → 類別 1：JSON / workflow 格式錯
+    │
+    ├─ 訊息含 "Credential" / "Credential not found" / "401 Unauthorized"
+    │  或 "403 Forbidden" / "invalid_grant" / "invalid_client"
+    │  或 "token expired" / "API key" / "OAuth"                         → 類別 2：credential 錯
+    │
+    └─ 匯入成功但 output 不對 / 紅燈在某節點中段
+       或 全綠燈但「資料量縮水 / 寄錯人 / filter 條件錯」               → 類別 3：邏輯錯
+</pre>
+  <div class="callout info">
+    <div class="callout-icon" aria-hidden="true">△</div>
+    <div class="callout-body">看不到明確訊息，或訊息是「執行失敗」這種模糊說法？先點開紅燈節點的輸出面板，找到最後一條展開的錯誤文字，再回來對照。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(02)</div>
+  <h2 class="section-heading">類別 1：JSON / workflow 格式錯</h2>
+
+  <div class="triage-card">
+    <div class="triage-card-header">
+      <span class="triage-card-num cat1">類別 1</span>
+      <span class="triage-card-title">JSON / workflow 格式錯（n8n 進不去）</span>
+    </div>
+    <div class="triage-card-body">
+      <div class="triage-feature">
+        <div class="triage-feature-label">典型特徵</div>
+        n8n 直接拒絕匯入，跳「無效的 workflow」之類視窗，或匯入成功但跳「節點類型不存在」紅字。
+      </div>
+      <ul class="checklist">
+        <li>你是不是「整份覆蓋」而非「在 UI 替換節點」？LLM 給的是區段 JSON，不是整份 workflow。回去走步驟 3，在 n8n UI 上逐節點替換，不要直接覆蓋整份檔案。</li>
+        <li>LLM 給的 JSON 開頭是 <span class="inline-code">{</span> 還是 <span class="inline-code">```json</span>？把 markdown code fence 拿掉，只保留 <span class="inline-code">{</span> 開頭的純 JSON 內容再試一次。</li>
+        <li><strong>此項僅在你改了整份 JSON 或新增／刪除節點時才需檢查。</strong>UI 上區段替換沒動 <span class="inline-code">connections</span> 的話直接跳過，回去檢查節點欄位本身。若確實需要檢查：請 LLM 輸出表格「每個 connection 的來源節點名稱 / 目標節點名稱 / 是否存在於 nodes 陣列」，學員一眼掃完。</li>
+        <li><span class="inline-code">typeVersion</span> 是不是 LLM 自己編的？怎麼查：打開 Lite Pack zip 裡的 <span class="inline-code">workflows/&lt;同類 workflow&gt;.json</span>，用編輯器搜尋同名 node type（例如 <span class="inline-code">"type": "n8n-nodes-base.googleDrive"</span>），抄它的 <span class="inline-code">typeVersion</span> 數字回填到你的 JSON。</li>
+        <li>用 <span class="inline-code">jsonlint.com</span> 或 VS Code 開檔看哪一行壞了，把那行貼給 LLM 修，<strong>不要重寫整份。</strong></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(03)</div>
+  <h2 class="section-heading">類別 2：credential 錯</h2>
+
+  <div class="triage-card">
+    <div class="triage-card-header">
+      <span class="triage-card-num cat2">類別 2</span>
+      <span class="triage-card-title">credential 錯（認證掉了）</span>
+    </div>
+    <div class="triage-card-body">
+      <div class="triage-feature">
+        <div class="triage-feature-label">典型特徵</div>
+        匯入成功但執行紅燈，訊息含 401 / Credential not found。節點的 credential 欄位顯示空白或失效。
+      </div>
+      <ul class="checklist">
+        <li>你是不是不小心把含 credential 的 JSON 貼出去過？若是，三步動線順序不能跳：
+          <div class="step-sequence">
+            <div class="step-sequence-item"><span>1.</span> 立刻去 Google / Notion / OpenAI console 撤銷舊 token</div>
+            <div class="step-sequence-item"><span>2.</span> 重發新 token</div>
+            <div class="step-sequence-item"><span>3.</span> 回 n8n UI 上點該節點 → credential 欄 → 重新選新建的 credential</div>
+          </div>
+          這比修 workflow 急，先做這步。
+        </li>
+        <li>LLM 改完的節點，credential reference 是不是空了？在 n8n UI 上點該節點，credential 欄會顯示「未選擇」，重新指定即可。</li>
+        <li>不要試圖在 JSON 裡用文字找 credential 對應位置。<strong>正確做法：</strong>匯入後直接回 n8n UI 上每個有問題的節點，credential 欄重新選一次（即使顯示是對的也選一次），讓 n8n 重新綁 credential reference。</li>
+        <li>是 self-host 還是 Cloud？某些 credential 類型在 self-host 需要額外配 OAuth callback URL，Cloud 版不需要，確認你的環境。</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(04)</div>
+  <h2 class="section-heading">類別 3：邏輯錯</h2>
+
+  <div class="triage-card">
+    <div class="triage-card-header">
+      <span class="triage-card-num cat3">類別 3</span>
+      <span class="triage-card-title">邏輯錯（最難，最常見）</span>
+    </div>
+    <div class="triage-card-body">
+      <div class="triage-feature">
+        <div class="triage-feature-label">典型特徵</div>
+        匯入成功、credential 也對，但跑出來的結果不是要的。可能長三種樣子：
+      </div>
+      <div class="symptom-grid">
+        <div class="symptom-item">
+          <div class="symptom-num">樣態 1</div>
+          <div class="symptom-desc"><strong>紅燈卡在中段節點。</strong>訊息常見 <span class="inline-code">Cannot read property 'X' of undefined</span> 或 <span class="inline-code">Item is empty</span>。表示某節點試圖讀取一個不存在的欄位。</div>
+        </div>
+        <div class="symptom-item">
+          <div class="symptom-num">樣態 2</div>
+          <div class="symptom-desc"><strong>全綠燈但資料量縮水。</strong>例如預期 200 筆變 50 筆——多半是 filter 條件錯或迴圈邏輯錯。資料沒有報錯，只是被靜默地過濾掉了。</div>
+        </div>
+        <div class="symptom-item">
+          <div class="symptom-num">樣態 3</div>
+          <div class="symptom-desc"><strong>全綠燈但寄錯／存錯。</strong>寄信寄到錯的收件人、檔案存到錯的資料夾、欄位對應顛倒——肉眼比對 input／output 才看得出來。</div>
+        </div>
+      </div>
+      <ul class="checklist">
+        <li>在紅燈節點的上一個節點，看 output panel 的 JSON 結構。是不是和 LLM 預期的資料形狀不同？LLM 假設欄位叫 <span class="inline-code">customer.email</span>，實際可能是 <span class="inline-code">contact.mail</span>。</li>
+        <li>引用的欄位路徑對不對？在 n8n expression 裡用 <span class="inline-code">?.</span> 避免欄位不存在時整個 expression 炸掉。範例：<span class="inline-code">{{ $json.customer?.email }}</span> 取代 <span class="inline-code">{{ $json.customer.email }}</span>——前者沒有 <span class="inline-code">customer</span> 欄位會回 <span class="inline-code">undefined</span>（節點走過），後者直接紅燈。</li>
+        <li>是不是 Trigger 換了之後，下游引用沒跟著改？換 trigger 從 Manual 改成 Google Drive Trigger，下游所有 <span class="inline-code">{{ $json.file }}</span> 引用都要更新，這是最常見的漏改。</li>
+        <li>用步驟 5 的「錯誤回報模板」貼給 LLM，<strong>只貼紅燈那節點 + 上一節點 + 紅燈訊息</strong>，不要貼整份 workflow。</li>
+        <li>LLM 的修法看起來要動 5 個以上欄位？回頭看步驟 1，需求是不是模糊了，需要重新拆。</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(05)</div>
+  <h2 class="section-heading">卡了 30 分鐘還沒解——逃生口</h2>
+  <p class="body-text">排查是有邊界的。如果你在同一個問題上已經跑了三輪 checklist，或者和 LLM 來回超過 5 次還是繞圈子，那不是你的問題，也不是 LLM 的問題——是當前資訊量不足以在對話裡收斂。</p>
+  <div class="escape-band">
+    <div class="escape-label">不建議繼續做的事</div>
+    <div class="escape-text">深夜 1 點繼續和 LLM 死磕。每多一輪對話，你提供的上下文越雜，LLM 越容易往錯的方向猜。停下來比繼續試成功率更高。</div>
+  </div>
+  <p class="body-text">正確的逃生動線：把當前 workflow 截圖 + 你已經跑過的 checklist 項目 + 完整錯誤訊息，一次整理好，貼到課程社群或寄到講師信箱。這份整理對於「明天再看」的你自己也有用——很多問題在睡一覺之後重新看截圖會立刻看出來。</p>
+  <div class="callout tip">
+    <div class="callout-icon" aria-hidden="true">△</div>
+    <div class="callout-body">把「我試過 checklist 哪幾條、結果是什麼」一起說出來，比只貼錯誤截圖省掉 3-5 輪來回確認。講師和社群回應的速度取決於你提供的資訊密度。</div>
+  </div>
+</section>
+
+<div class="nav-footer">
+  <a href="post-llm-6-walkthrough.html" class="nav-btn"><span aria-hidden="true">←</span> 上一頁：完整 Walkthrough</a>
+  <a href="post-llm-8-environment.html" class="nav-btn primary">下一頁：執行環境互鎖 <span aria-hidden="true">→</span></a>
+</div>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">2026 春季</span>
+  <span class="footer-meta" data-platform-version="n8n 1.x" data-built-at="2026-05-06">本頁以 n8n 1.x 製作，2026-05</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+</script>
+<script>
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+</body>
+</html>

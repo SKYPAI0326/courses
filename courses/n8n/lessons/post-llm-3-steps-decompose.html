@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>步驟 1-3 詳解 — 拆需求、讀 JSON、限定範圍｜AI 資料工廠</title>
+<meta name="description" content="安全改 workflow 六步流程前半段詳解：拆需求（學員主導）、讀 JSON（LLM 翻譯）、限定修改範圍（協同），含三個可直接複製的 prompt 模板。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="步驟 1-3 詳解 — 拆需求、讀 JSON、限定範圍｜AI 資料工廠">
+<meta property="og:description" content="安全改 workflow 六步流程前半段詳解：拆需求（學員主導）、讀 JSON（LLM 翻譯）、限定修改範圍（協同），含三個可直接複製的 prompt 模板。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/lessons/post-llm-3-steps-decompose.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="步驟 1-3 詳解 — 拆需求、讀 JSON、限定範圍｜AI 資料工廠">
+<meta name="twitter:description" content="安全改 workflow 六步流程前半段詳解：拆需求（學員主導）、讀 JSON（LLM 翻譯）、限定修改範圍（協同），含三個可直接複製的 prompt 模板。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/lessons/post-llm-3-steps-decompose.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-a5:#7a9ea3;--c-main:#5a7a5a;--radius:4px;--radius-sm:3px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 var(--radius) 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:var(--c-main);border:1px solid rgba(90,122,90,.3);background:transparent;padding:3px 12px;border-radius:99px;font-weight:500;letter-spacing:.06em}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px;font-variant-numeric:tabular-nums}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;max-width:22ch}
+.lesson-tagline{font-size:.92rem;color:var(--c-muted);line-height:1.9;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-main);margin-top:28px}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
+.outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-heading em{font-style:normal;color:var(--c-text)}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-body{font-size:.9rem;line-height:1.85}
+.scenario-grid{display:flex;flex-direction:column;gap:12px;margin:24px 0}
+.scenario-row{display:grid;grid-template-columns:160px 1fr;gap:0;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden}
+.scenario-task{padding:16px 18px;background:var(--c-surface);font-size:.85rem;font-weight:700;color:var(--c-text);line-height:1.6;border-right:1px solid var(--c-border-soft)}
+.scenario-pick{padding:16px 18px;font-size:.85rem;color:var(--c-text);line-height:1.75}
+.inline-code{font-family:'Courier New',monospace;font-size:.85em;background:var(--c-surface);padding:1px 6px;border-radius:var(--radius-sm);color:var(--c-text)}
+.concept-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0}
+.concept-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px}
+.concept-num{font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-faint);font-weight:500;margin-bottom:6px;letter-spacing:.1em}
+.concept-title{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:8px}
+.concept-desc{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.warn-card{background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-text);border-radius:var(--radius);padding:20px 24px;margin:24px 0}
+.warn-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:700;margin-bottom:10px}
+.warn-body{font-size:.9rem;color:var(--c-text);line-height:1.85}
+.prompt-block{margin:24px 0}
+.prompt-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.prompt-label span{font-weight:400;color:var(--c-muted);letter-spacing:0}
+.prompt-copy-wrap{position:relative}
+.prompt-pre{font-family:'Courier New',monospace;font-size:.85rem;line-height:1.75;background:#2c2b28;color:#e8e4dc;padding:20px 24px;border-radius:var(--radius);white-space:pre-wrap;word-break:break-word;margin:0}
+.prompt-copy-btn{position:absolute;top:10px;right:10px;font-size:.72rem;color:var(--c-faint);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:var(--radius-sm);padding:4px 10px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:background .2s,color .2s}
+.prompt-copy-btn:hover{background:rgba(255,255,255,.15);color:#e8e4dc}
+.wrong-example{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 22px;margin:16px 0}
+.wrong-label{font-size:.72rem;color:var(--c-text);letter-spacing:.12em;font-weight:700;margin-bottom:8px}
+.wrong-note{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.four-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:24px 0}
+.four-cell{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px}
+.four-label{font-size:.72rem;color:var(--c-text);letter-spacing:.12em;font-weight:700;margin-bottom:8px}
+.four-body{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
+.nav-btn:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main)}
+.nav-btn.primary:hover{filter:brightness(.92)}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+@media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important}*{animation:none!important}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.concept-grid{grid-template-columns:1fr}.four-grid{grid-template-columns:1fr}.scenario-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 資料工廠</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">補充 · POST-COURSE</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<div class="page-hero">
+  <a href="index.html" class="back-link"><span aria-hidden="true">←</span> 返回課程首頁</a>
+  <div class="hero-eyebrow">8 頁系列 · 第 3/8</div>
+  <h1 class="lesson-title">步驟 1-3 詳解 — 拆需求、讀 JSON、限定範圍</h1>
+  <p class="lesson-tagline">六步流程的前三步是整套 SOP 的地基。第一步刻意不用 LLM；第二步讓 LLM 做它最擅長的事；第三步最容易跳過、也最值得花時間做對。每步都有 prompt 模板可直接複製。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">讀完這頁你會能做到 · OUTCOMES</div>
+    <div class="outcome-item">用 4 格便箋獨立拆解一個改造需求，對著別人講 1 分鐘不打結</div>
+    <div class="outcome-item">在不貼 credential 的前提下，把 workflow JSON 貼給 LLM 並要求它翻成流程描述</div>
+    <div class="outcome-item">下指令讓 LLM 只回傳節點區段，不重寫整份 workflow，並在 n8n UI 上正確完成節點替換</div>
+  </div>
+</div>
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(01)</div>
+  <h2 class="section-heading">步驟 1：拆需求（學員主導，不用 LLM）</h2>
+  <div class="intro-band">
+    <div class="intro-label">為什麼這一步刻意排除 LLM</div>
+    <div class="intro-text">LLM 在需求模糊時會自己腦補。你說「幫我改 #02 處理發票」，LLM 不知道你的發票是什麼格式、想改名成什麼樣子、哪些節點一定要保留——它就開始猜，越改越亂。這一步的工作是你把需求說清楚，讓後面的 LLM 對話能有明確的邊界。</div>
+  </div>
+
+  <div class="scenario-grid">
+    <div class="scenario-row">
+      <div class="scenario-task">動作</div>
+      <div class="scenario-pick">用一句話寫下「我要改成什麼」，再用 3 個追問填滿：input 是什麼 / output 是什麼 / 哪些步驟保留不動。填完之後對著另一個人講 1 分鐘，看能不能講清楚。</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">LLM 做什麼</div>
+      <div class="scenario-pick">不做。這一步刻意排除 LLM，等到 4 格都填好了再請 LLM 進場。</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">你做什麼</div>
+      <div class="scenario-pick">填一張 4 格便箋（下方有範本）：原 workflow 編號、目標 input、目標 output、必保留的節點。如果某格填不出來，代表需求還沒想清楚，先想清楚再繼續。</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">驗收訊號</div>
+      <div class="scenario-pick">4 格都有內容，而且能對著別人講 1 分鐘不打結。如果你只會對自己講、對別人講就說不清楚，通常是 output 那格寫得太模糊。</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">雷區</div>
+      <div class="scenario-pick">跳過這一步直接問 LLM「幫我改 #02 處理發票」是新手最常犯的錯。LLM 拿不到 input/output 的具體形狀，會猜，結果就漂掉——通常你會拿到一份「看起來很像」但細節全錯的 workflow。</div>
+    </div>
+  </div>
+
+  <p class="body-text" style="margin-top:32px;"><strong>4 格便箋範本</strong>（以 Story A 為例）</p>
+  <div class="four-grid">
+    <div class="four-cell">
+      <div class="four-label">原 WORKFLOW 編號</div>
+      <div class="four-body">#02-pdf-ai-rename（合約 PDF 改名版）</div>
+    </div>
+    <div class="four-cell">
+      <div class="four-label">目標 INPUT</div>
+      <div class="four-body">供應商發票 PDF，每月約 200 張，含統編、品項清單、稅後金額、發票日期</div>
+    </div>
+    <div class="four-cell">
+      <div class="four-label">目標 OUTPUT</div>
+      <div class="four-body">改名後的 PDF，命名格式：<span class="inline-code">{供應商名}_{發票日期}_{稅後金額}.pdf</span>，移入 <span class="inline-code">/歸檔/2026/{月份}/</span></div>
+    </div>
+    <div class="four-cell">
+      <div class="four-label">必保留節點</div>
+      <div class="four-body">PDF 讀取節點、Move File 節點（改名後移檔流程保留），不換節點類型</div>
+    </div>
+  </div>
+
+  <div class="prompt-block">
+    <div class="prompt-label">PROMPT 模板 1 <span>— 步驟 1 自我檢查（選用，也可直接手寫便箋）</span></div>
+    <div class="prompt-copy-wrap">
+      <pre class="prompt-pre" id="prompt1">我要改 n8n workflow #{ID}（{原本做什麼}）。
+目標 input：{欄位/格式/來源}
+目標 output：{欄位/格式/去處}
+保留節點：{節點 1, 節點 2}
+請問我的需求有哪一格還沒講清楚？只指出空白，不要幫我補。</pre>
+      <button class="prompt-copy-btn" onclick="copyPrompt('prompt1',this)">複製</button>
+    </div>
+  </div>
+
+  <div class="wrong-example">
+    <div class="wrong-label">常見錯誤示範</div>
+    <div class="wrong-note">直接問：「幫我改 #02，讓它可以處理發票。」<br>問題：沒有 input 格式（你的發票 PDF 長什麼樣？哪些欄位要抽取？）、沒有 output 形狀（改名規則是什麼？要移到哪個資料夾？）。LLM 會補上自己的假設，結果你拿到的 workflow 是它猜出來的版本，不是你要的。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(02)</div>
+  <h2 class="section-heading">步驟 2：讀 JSON（LLM 主導，你來驗收）</h2>
+  <div class="intro-band">
+    <div class="intro-label">讓 LLM 做它最擅長的事</div>
+    <div class="intro-text">非工程師看 n8n workflow JSON 通常只看到一大堆 <span class="inline-code">typeVersion</span>、<span class="inline-code">parameters</span>、<span class="inline-code">credentials</span>——不知道哪個節點做什麼、資料往哪裡流。LLM 把 JSON 翻成人話，速度比你快 50 倍，而且能點出資料流向。這一步你只需要驗收它說得對不對。</div>
+  </div>
+
+  <div class="scenario-grid">
+    <div class="scenario-row">
+      <div class="scenario-task">動作</div>
+      <div class="scenario-pick">把整份 workflow JSON（<strong>移除 credential 後</strong>）貼給 LLM，請它做兩件事：(a) 用一段話描述「這份 workflow 做了什麼」，(b) 列出每個節點的角色與資料流向。</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">LLM 做什麼</div>
+      <div class="scenario-pick">把 JSON 翻成人話。回傳格式大約是：節點名稱 → 它輸出什麼 → 下一個節點吃什麼。這就夠了，不需要它解釋原理或建議改進。</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">你做什麼</div>
+      <div class="scenario-pick">用 n8n UI 對照 LLM 的描述。如果 LLM 說某節點是「傳 Email」但 n8n 介面上明明是「寫 Google Sheet」，代表這份 workflow 結構特殊，後面步驟 3 要更小心。</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">驗收訊號</div>
+      <div class="scenario-pick">你能用自己的話複述 LLM 的描述，而且能在 n8n UI 上一一對應到節點。如果有一個節點你講不清楚它的角色，就回頭問 LLM 那個節點的 input/output 形狀是什麼。</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">雷區</div>
+      <div class="scenario-pick">把 credential 區段一起貼給 LLM。n8n workflow JSON 可能含 API key、Gmail OAuth token、Notion integration secret 等敏感欄位。<strong>永遠用 n8n UI 的「Export without credentials」選項</strong>，貼出去前也搜尋一次確認沒有 <span class="inline-code">apiKey</span> / <span class="inline-code">accessToken</span> / <span class="inline-code">password</span> 字串殘留。</div>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-icon" aria-hidden="true">i</div>
+    <div class="callout-body"><strong>匯出步驟</strong>：在 n8n UI 開啟 workflow → 右上角三點選單 → 「Download」→ 選「Without credentials」。下載的 JSON 就是安全可以給 LLM 的版本。每次都用這個選項，不要手動刪欄位，因為 credential 欄位散落在各節點內、容易漏刪。</div>
+  </div>
+
+  <div class="prompt-block">
+    <div class="prompt-label">PROMPT 模板 2 <span>— 步驟 2 讀 JSON</span></div>
+    <div class="prompt-copy-wrap">
+      <pre class="prompt-pre" id="prompt2">我是 n8n 非工程師使用者，請以結果為主、不解釋原理。
+以下是一份 n8n workflow JSON（已移除 credential）。請：
+1. 用一段話講它做了什麼。
+2. 列出每個節點的角色與資料流向（節點名稱 → 它輸出什麼 → 下一個節點吃什麼）。
+不要建議改進、不要寫程式碼。
+[貼 JSON]</pre>
+      <button class="prompt-copy-btn" onclick="copyPrompt('prompt2',this)">複製</button>
+    </div>
+  </div>
+
+  <div class="wrong-example">
+    <div class="wrong-label">常見錯誤示範</div>
+    <div class="wrong-note">直接貼 JSON 問：「這個 workflow 我要怎麼改成處理發票？」<br>問題：把步驟 2（讀 JSON）和步驟 3（限定修改範圍）混在一起問，LLM 會跳過「幫你理解現況」直接開始改，而你還沒確認它描述的現況是不是正確的。先讓 LLM 描述，你驗收，再進步驟 3。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(03)</div>
+  <h2 class="section-heading">步驟 3：限定修改範圍（學員 + LLM 協同）</h2>
+  <div class="intro-band">
+    <div class="intro-label">最容易跳過、最值得做對的一步</div>
+    <div class="intro-text">大多數改 workflow 出問題，都是因為讓 LLM 改的範圍太大——它多動了幾個節點、加了你沒要求的防禦邏輯、重寫了整份 JSON 但 typeVersion 對不上你裝的版本。這一步的核心原則是：<strong>告訴 LLM 只改哪幾個節點，要它只回傳那幾個節點的 JSON 區段，不是整份</strong>。</div>
+  </div>
+
+  <div class="scenario-grid">
+    <div class="scenario-row">
+      <div class="scenario-task">動作</div>
+      <div class="scenario-pick">把步驟 1 的需求 + 步驟 2 的節點清單，明確告訴 LLM「只改節點 X、Y、Z，其他不動」，並請 LLM 回傳「修改後的這幾個節點 JSON 區段」，不是整份。</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">LLM 做什麼</div>
+      <div class="scenario-pick">產出指定節點的區段 JSON。你拿到的應該是一個或幾個節點的 JSON 物件，不是完整的 workflow JSON（即不應該有最外層的 <span class="inline-code">"nodes": [...]</span> 包住整份）。</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">你做什麼</div>
+      <div class="scenario-pick">先在 n8n UI 上把要改的節點選起來、複製、貼到一個臨時筆記檔當備份。LLM 改完後，在 n8n UI 上用「複製貼上節點」功能替換這幾個節點（不是改檔案）。</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">驗收訊號</div>
+      <div class="scenario-pick">n8n UI 上節點還在原位、連線沒斷、其他節點原樣。只有你指定要改的節點有變動。</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">雷區（示範形狀法）</div>
+      <div class="scenario-pick">如果改動牽涉換新類型的節點（例如要把 Google Sheet 節點換成 Notion 節點），<strong>先在 n8n UI 拉一個目標節點、隨便填、複製出來給 LLM 當形狀範本</strong>，不要讓 LLM 從記憶生成節點 JSON。LLM 的記憶會造成 typeVersion 錯——它以為是 2.x，但你裝的版本是 3.x，匯入就壞。</div>
+    </div>
+  </div>
+
+  <div class="warn-card">
+    <div class="warn-label">核心原則 — 只回傳節點區段，不重寫整份</div>
+    <div class="warn-body">n8n workflow JSON 裡，節點之間靠 <span class="inline-code">id</span> 與 <span class="inline-code">connections</span> 區段串聯。LLM 在整份重寫時極容易動到 ID 或漏掉 connection，你匯入後會發現節點全斷線。<br><br>
+    要求 LLM「只回傳節點區段」+ 你在 n8n UI 上做替換，就是為了繞開這個坑。整個 connections 結構保持不動，只換節點本身的設定。<br><br>
+    若你確實需要新增或刪除節點（不是修改既有節點），connections 必須回到 n8n UI 上手動重接——UI 拖線 30 秒，LLM 寫錯一個 ID 你 debug 30 分鐘。</div>
+  </div>
+
+  <div class="prompt-block">
+    <div class="prompt-label">PROMPT 模板 3 <span>— 步驟 3 限定修改範圍</span></div>
+    <div class="prompt-copy-wrap">
+      <pre class="prompt-pre" id="prompt3">我是 n8n 非工程師使用者，請以結果為主、不解釋原理。
+基於剛才那份 workflow，只改節點 {X, Y, Z}，不動其他。
+我要的修改：{具體描述，含 input/output 形狀}
+{若換新節點類型，附：以下是我從 n8n UI 拉出來的目標節點形狀範本：[貼節點 JSON]}
+請回傳「只有這 3 個節點」的 JSON 區段。
+不要重寫整份 workflow、不要改其他節點。</pre>
+      <button class="prompt-copy-btn" onclick="copyPrompt('prompt3',this)">複製</button>
+    </div>
+  </div>
+
+  <div class="wrong-example">
+    <div class="wrong-label">常見錯誤示範</div>
+    <div class="wrong-note">問：「基於剛才那份 workflow，幫我改成處理發票，給我完整的 JSON。」<br>問題一：沒有指定只改哪幾個節點，LLM 會自由發揮，可能重寫整份。<br>問題二：要求「完整的 JSON」正好踩了你最不想踩的雷——LLM 從記憶產出的完整 workflow，typeVersion 漂移、connections 引用錯位，匯入直接失敗，或更糟：匯入成功但資料形狀全錯。</div>
+  </div>
+
+  <p class="body-text" style="margin-top:28px;">如果你收到 LLM 給的 JSON，不確定它是「區段」還是「整份」，有個快速判斷法：看 JSON 最外層有沒有 <span class="inline-code">"name"</span> 和 <span class="inline-code">"nodes"</span> 兩個頂層 key——有的話代表它回傳了整份 workflow。這時要回頭再問一次：「你給的是整份 workflow。請只給我節點 {X, Y, Z} 的 JSON 物件，不要其他內容。」</p>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(04)</div>
+  <h2 class="section-heading">銜接下一頁</h2>
+  <p class="body-text">前三步打好地基之後，步驟 4–6 是匯入測試、錯誤回報、收斂迴圈。下一頁繼續，含 prompt 模板 4–5。</p>
+</section>
+
+<div class="nav-footer">
+  <a href="post-llm-2-flow.html" class="nav-btn"><span aria-hidden="true">←</span> 上一頁：6 步流程總覽</a>
+  <a href="post-llm-4-steps-import.html" class="nav-btn primary">下一頁：步驟 4-6 詳解 <span aria-hidden="true">→</span></a>
+</div>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">2026 春季</span>
+  <span class="footer-meta" data-platform-version="n8n latest (Docker image n8nio/n8n) / Docker Desktop / Cloudflare Tunnel free tier" data-built-at="2026-05-06">本頁以 n8n latest (Docker image n8nio/n8n) 製作，2026-05</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+</script>
+<script>
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+<script>
+function copyPrompt(id,btn){
+  var pre=document.getElementById(id);
+  if(!pre)return;
+  var text=pre.textContent;
+  navigator.clipboard.writeText(text).then(function(){
+    var orig=btn.textContent;
+    btn.textContent='已複製';
+    setTimeout(function(){btn.textContent=orig;},1500);
+  }).catch(function(){
+    var sel=window.getSelection();
+    var range=document.createRange();
+    range.selectNodeContents(pre);
+    sel.removeAllRanges();
+    sel.addRange(range);
+  });
+}
+</script>
+</body>
+</html>
