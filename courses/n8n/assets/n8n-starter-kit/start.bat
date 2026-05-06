@@ -29,14 +29,36 @@ if errorlevel 1 (
   exit /b 1
 )
 
+REM 確認 n8n-compose.yml 存在（避免在錯目錄雙擊）
+if not exist n8n-compose.yml (
+  echo.
+  echo 找不到 n8n-compose.yml。
+  echo 請確認你是在 n8n-starter-kit 資料夾內雙擊 start.bat。
+  echo 如果你只看到 start.bat 而沒看到 n8n-compose.yml，
+  echo 表示你的 zip 解壓位置不對 - 重新下載 zip 並雙擊解壓。
+  echo.
+  pause
+  exit /b 1
+)
+
 REM 確認 .env 存在
 if not exist .env (
+  if not exist .env.example (
+    echo.
+    echo 找不到 .env.example，無法建立 .env。
+    echo 試跑包不完整，請重新下載 n8n-starter-kit.zip
+    echo.
+    pause
+    exit /b 1
+  )
   copy .env.example .env >nul
   echo.
   echo 已從 .env.example 建立 .env 檔。
-  echo 請修改 POSTGRES_PASSWORD 為強密碼後存檔，然後再次執行 start.bat。
+  echo 即將打開記事本讓你修改 POSTGRES_PASSWORD 為強密碼。
+  echo 改完存檔關閉記事本，然後再次雙擊 start.bat 真正啟動 n8n。
   echo.
   notepad .env
+  pause
   exit /b 0
 )
 
@@ -46,6 +68,16 @@ if not exist shared mkdir shared
 REM 啟動 n8n
 echo 正在啟動 n8n（首次需下載 image，可能花 1-5 分鐘）...
 docker compose -f n8n-compose.yml up -d
+if errorlevel 1 (
+  echo.
+  echo docker compose 啟動失敗。請截圖上方錯誤訊息給講師看。
+  echo 常見原因：postgres 密碼跟 volume 內舊密碼不一致 - 改用：
+  echo   docker compose -f n8n-compose.yml down -v
+  echo 清 volume 後重雙擊 start.bat
+  echo.
+  pause
+  exit /b 1
+)
 
 REM 等 n8n 起來（最多 120 秒）
 echo 等候 n8n 服務就緒...
