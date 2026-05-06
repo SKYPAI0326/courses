@@ -61,25 +61,8 @@ function Invoke-Native {
   return $true
 }
 
-# Python 3 偵測（按 Codex 建議：py -3 → python → python3）
-function Get-PythonCommand {
-  $candidates = @(
-    @("py", "-3"),
-    @("python"),
-    @("python3")
-  )
-  foreach ($cmd in $candidates) {
-    try {
-      $exe = $cmd[0]
-      $verArgs = @($cmd[1..($cmd.Count - 1)]) + @("-c", "import sys; print(sys.version_info[0])")
-      $result = & $exe @verArgs 2>$null
-      if ($LASTEXITCODE -eq 0 -and $result -eq "3") {
-        return $cmd
-      }
-    } catch {}
-  }
-  return $null
-}
+# 註：本 PS1 完全不需要 Python（credentials JSON 用 ConvertTo-Json，placeholder 替換用 .Replace()）
+# 如果你看到舊版 .command 內 Python 步驟，那是 bash 版本的限制，PS 版本已內建處理
 
 # ════════ Step 1: 環境檢查 ════════
 Write-Host "[1/10] 環境檢查..." -ForegroundColor Yellow
@@ -104,18 +87,7 @@ try {
 }
 Write-Host "  ✓ Docker daemon 正常" -ForegroundColor Green
 
-# 1c. Python 3（採納 Codex 建議的偵測順序）
-$PythonCmd = Get-PythonCommand
-if (-not $PythonCmd) {
-  Write-Host "  ❌ 找不到可用的 Python 3" -ForegroundColor Red
-  Write-Host "  請到 https://python.org 下載安裝（安裝時勾 'Add python.exe to PATH'）" -ForegroundColor Red
-  Write-Host "  或 Microsoft Store 搜尋 'Python 3' 安裝" -ForegroundColor Red
-  exit 1
-}
-$pyVer = & $PythonCmd[0] @($PythonCmd[1..($PythonCmd.Count - 1)]) --version 2>&1
-Write-Host "  ✓ Python 3: $pyVer (cmd: $($PythonCmd -join ' '))" -ForegroundColor Green
-
-# 1d. n8n 在跑
+# 1c. n8n 在跑
 try {
   $resp = Invoke-WebRequest -Uri "http://localhost:5678/healthz" -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
   if ($resp.StatusCode -ne 200) { throw "n8n not healthy" }

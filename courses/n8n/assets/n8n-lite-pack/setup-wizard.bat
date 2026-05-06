@@ -28,7 +28,7 @@ if errorlevel 1 (
   echo 常見原因：
   echo   1. Docker Desktop 沒啟動 - 先打開 Docker Desktop
   echo   2. n8n 沒在跑 - 到 starter-kit 雙擊 start.bat
-  echo   3. 沒裝 Python 3 - 到 Microsoft Store 搜尋 Python 安裝
+  echo   3. n8n Owner Account 沒建 - 到 http://localhost:5678 完成首次設定
   echo.
   pause
   exit /b 1
