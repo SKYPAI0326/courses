@@ -1,20 +1,20 @@
 {
   "name": "10 · 客戶資料夾自動整理",
   "meta": {
-    "_litePackNote": "v1.1：v1.0 的 Execute Command 節點被 n8n 2.17.8 拒絕（unrecognized node type）。改回不依賴該節點，靠 setup-wizard 在 host 端先建好 6 個分類子夾。"
+    "_litePackNote": "v1.2：(1) 加 Switch by extension（PDF / 純文字分流）跟 #04 對齊 (2) Code 修欄位 bug：原本讀 item.json.text 但 operation:text 輸出在 .data → 全部 fallback others (3) 加檔名 fallback：無內文時 AI 用檔名+副檔名分類 (4) 過濾二進制亂碼"
   },
   "nodes": [
     {
       "parameters": {
-        "content": "## #10 客戶資料夾自動整理與交接包（v1.1）\n\n**目的**：顧問/設計師/課程助教/代操常收到一堆客戶檔案（PDF、圖、簡報、合約）資料夾混亂。這個 workflow 自動分類、命名、歸檔，並產 Markdown index 方便交接。\n\n**前置（setup-wizard 已自動處理）**：必須先有 6 個分類子夾在 client-organized/ 底下：contracts/ invoices/ presentations/ images/ docs/ others/。setup-wizard.bat / setup-wizard.command 已自動建好。\n\n**自定分類時**：如果你改 prompt 用自己的業務分類（如「合約 / 設計稿 / 報價單」），記得手動 mkdir 對應子夾，否則 Write 節點會撞「The file or directory does not exist」。\n\n**測試方法**：\n1. 把客戶各種檔案丟進 ~/Downloads/n8n-starter-kit/shared/client-inbox/\n2. 點 Execute workflow\n3. 看 client-organized/ 內 6 個分類子資料夾被填入改名後的檔案\n4. 看 client-organized/_index.md 收到一份 Markdown 交接清單\n5. Telegram 收到「✅ 整理完成 N 份檔案」通知",
-        "height": 460,
+        "content": "## #10 客戶資料夾自動整理與交接包（v1.2）\n\n**目的**：顧問/設計師/課程助教/代操常收到一堆客戶檔案（PDF、圖、簡報、合約）資料夾混亂。這個 workflow 自動分類、命名、歸檔，並產 Markdown index 方便交接。\n\n**v1.2 修補**：\n- Switch by extension：PDF → Extract PDF；其他 → Extract 純文字\n- Code 修欄位 bug（v1.1 原本全部 fallback 到 others）\n- AI 改善：無內文時用檔名+副檔名分類，.docx / .xlsx 也分得進對的桶\n\n**前置（setup-wizard 已自動處理）**：6 個分類子夾在 client-organized/ 底下：contracts/ invoices/ presentations/ images/ docs/ others/\n\n**支援的內文擷取**：.pdf（pdfjs 解析）、.txt / .md / .csv（UTF-8）、圖片（直接歸 images，跳過 AI）\n\n**部分支援（憑檔名分類）**：.docx / .xlsx / .pptx — 內文無法擷取（n8n 2.17 沒內建 Office 解析），但 AI 會用檔名分類，所以「合約_NDA.docx」仍會進 contracts/。\n\n**測試**：\n1. 把客戶各種檔案丟進 client-inbox/\n2. 點 Execute workflow\n3. 看 client-organized/ 6 個子夾被填入分類後的檔案\n4. 看 _index.md + Telegram 通知",
+        "height": 540,
         "width": 380
       },
       "id": "sticky-10",
       "name": "📌 使用說明",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [-280, 0]
+      "position": [-280, -40]
     },
     {
       "parameters": {},
@@ -37,27 +37,78 @@
     },
     {
       "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $binary.data.fileExtension }}",
+                    "rightValue": "pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PDF"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "其他（含 docx/圖/CSV）"
+        }
+      },
+      "id": "switch-10",
+      "name": "Switch: 副檔名分流",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "id": "extract-pdf-10",
+      "name": "Extract PDF",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [860, 200],
+      "notes": "operation:pdf → pdfjs 解析。輸出 json.text"
+    },
+    {
+      "parameters": {
         "operation": "text",
         "options": {}
       },
-      "id": "extract-10",
-      "name": "Extract 文字（PDF/MD/TXT/DOCX）",
+      "id": "extract-text-10",
+      "name": "Extract 純文字",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1,
-      "position": [640, 300],
+      "position": [860, 400],
       "onError": "continueRegularOutput",
-      "notes": "對非文字類檔（圖片）會 throw 但 onError continueRegular 繼續，後面 Code 用副檔名判斷"
+      "notes": "operation:text → UTF-8 純文字讀取。.txt/.md/.csv 都行；.docx/圖會輸出二進制亂碼，下游 Code 用副檔名+亂碼偵測過濾"
     },
     {
       "parameters": {
         "language": "javaScript",
-        "jsCode": "// v0.9：對每個檔分類 + 命名，產出 newPath\n// 6 個固定分類：contracts / invoices / presentations / images / docs / others\n\nconst GEMINI_API_KEY = '__GEMINI_API_KEY__';\nconst today = new Date().toISOString().slice(0, 10).replace(/-/g, '');\nconst items = $input.all();\nconst allReadItems = $('Read 所有檔案').all();\nconst results = [];\n\nfor (let i = 0; i < items.length; i++) {\n  const item = items[i];\n  const binFileName = item.binary?.data?.fileName;\n  let readItem = allReadItems.find(r => r?.json?.fileName === binFileName) || allReadItems[i];\n  if (!readItem?.binary?.data) continue;\n\n  const originalName = readItem.json.fileName || 'unknown';\n  const fileExt = (readItem.json.fileExtension || '').toLowerCase();\n  const text = (item.json.text || '').substring(0, 1500);\n\n  // 副檔名快速分類（圖片直接歸 images，跳過 AI）\n  const imgExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'svg'];\n  let category = null;\n  if (imgExts.includes(fileExt)) category = 'images';\n\n  let newName = originalName;\n  let aiResp = '';\n\n  if (!category && text) {\n    const prompt = '請對下面的文件分類成 6 類之一：contracts（合約/協議/NDA）、invoices（發票/收據/報價單）、presentations（簡報/投影片）、docs（一般文件/說明/手冊）、others（無法歸類）。同時取一個語意化檔名 YYYYMMDD_類型_關鍵字（繁中）。\\n\\n回 JSON：{\"category\":\"xxx\",\"newName\":\"YYYYMMDD_xxx\"}\\n\\n<文件>\\n檔名：' + originalName + '\\n內容摘要：' + text + '\\n</文件>';\n\n    try {\n      const response = await this.helpers.httpRequest({\n        method: 'POST',\n        url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',\n        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },\n        body: {\n          contents: [{ role: 'user', parts: [{ text: prompt }] }],\n          generationConfig: { temperature: 0.3, maxOutputTokens: 200, thinkingConfig: { thinkingBudget: 0 } }\n        },\n        json: true,\n        timeout: 30000\n      });\n      aiResp = response.candidates?.[0]?.content?.parts?.[0]?.text || '';\n      const m = aiResp.replace(/^```\\w*\\n?/, '').replace(/\\n?```$/, '').match(/\\{[\\s\\S]*?\\}/);\n      if (m) {\n        const parsed = JSON.parse(m[0]);\n        if (['contracts','invoices','presentations','docs','others'].includes(parsed.category)) category = parsed.category;\n        if (parsed.newName) newName = parsed.newName;\n      }\n    } catch (err) {}\n  }\n\n  if (!category) category = 'others';\n  newName = newName.replace(/[\\\\/:*?\"<>|]/g, '_').substring(0, 100);\n  if (!newName.match(/^\\d{8}_/)) newName = today + '_' + newName;\n  if (fileExt && !newName.endsWith('.' + fileExt)) newName = newName + '.' + fileExt;\n\n  results.push({\n    json: {\n      originalName, category, newName,\n      newPath: '/files/shared/client-organized/' + category + '/' + newName,\n      indexLine: '- **' + category + '** · ' + newName + ' ← ' + originalName\n    },\n    binary: readItem.binary\n  });\n}\n\nreturn results;"
+        "jsCode": "// v1.2：兩條分支匯入。PDF 路徑 json.text，純文字路徑 json.data。\n// 加亂碼偵測（.docx/圖等二進制讀進來會在 .data 出現大量非可印字）+ 檔名 fallback。\n\nconst GEMINI_API_KEY = '__GEMINI_API_KEY__';\nconst today = new Date().toISOString().slice(0, 10).replace(/-/g, '');\nconst items = $input.all();\nconst allReadItems = $('Read 所有檔案').all();\nconst results = [];\n\nfor (let i = 0; i < items.length; i++) {\n  const item = items[i];\n  const binFileName = item.binary?.data?.fileName;\n  let readItem = allReadItems.find(r => r?.json?.fileName === binFileName) || allReadItems[i];\n  if (!readItem?.binary?.data) continue;\n\n  const originalName = readItem.json.fileName || 'unknown';\n  const fileExt = (readItem.json.fileExtension || '').toLowerCase();\n\n  // 副檔名快速分類（圖片直接歸 images，跳過 AI）\n  const imgExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'svg', 'bmp', 'tiff'];\n  let category = null;\n  if (imgExts.includes(fileExt)) category = 'images';\n\n  let newName = originalName;\n  let aiResp = '';\n  let aiError = null;\n\n  if (!category) {\n    // 取內文 — PDF 路徑在 .text，純文字路徑在 .data\n    let rawText = item.json.text ?? item.json.data ?? '';\n    if (typeof rawText !== 'string') rawText = String(rawText);\n\n    // 亂碼偵測：算可印字（中英數標點全形等）佔比；< 70% 視為二進制亂碼，丟掉\n    let usableText = '';\n    if (rawText.length > 0) {\n      const printableMatches = rawText.match(/[\\u4e00-\\u9fff\\u3000-\\u303f\\uff00-\\uffefa-zA-Z0-9\\s.,!?;:()\\[\\]{}\\-+=\"'\\/_*&%$#@~|<>]/g);\n      const ratio = printableMatches ? printableMatches.length / rawText.length : 0;\n      if (ratio > 0.7) usableText = rawText.substring(0, 1500);\n    }\n\n    // 組 prompt — 永遠包含檔名 + 副檔名；有內文才補上\n    const docxHint = ['docx', 'xlsx', 'pptx'].includes(fileExt) ? '\\n注意：這是 Office 檔（' + fileExt + '），無法擷取內文，請用檔名分類。' : '';\n    const contentPart = usableText \n      ? '\\n內容摘要：' + usableText \n      : '\\n（無法擷取內文，請憑檔名與副檔名分類）';\n    const prompt = '請對下面的文件分類成 6 類之一：contracts（合約/協議/NDA）、invoices（發票/收據/報價單/估價單）、presentations（簡報/投影片）、docs（一般文件/說明/手冊/筆記）、images（圖片/設計稿）、others（無法歸類）。同時取一個語意化檔名 YYYYMMDD_類型_關鍵字（繁中）。\\n\\n回 JSON：{\"category\":\"xxx\",\"newName\":\"YYYYMMDD_xxx\"}\\n\\n<文件>\\n檔名：' + originalName + '\\n副檔名：' + fileExt + docxHint + contentPart + '\\n</文件>';\n\n    try {\n      const response = await this.helpers.httpRequest({\n        method: 'POST',\n        url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',\n        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },\n        body: {\n          contents: [{ role: 'user', parts: [{ text: prompt }] }],\n          generationConfig: { temperature: 0.3, maxOutputTokens: 200, thinkingConfig: { thinkingBudget: 0 } }\n        },\n        json: true,\n        timeout: 30000\n      });\n      aiResp = response.candidates?.[0]?.content?.parts?.[0]?.text || '';\n      const m = aiResp.replace(/^```\\w*\\n?/, '').replace(/\\n?```$/, '').match(/\\{[\\s\\S]*?\\}/);\n      if (m) {\n        const parsed = JSON.parse(m[0]);\n        if (['contracts','invoices','presentations','docs','images','others'].includes(parsed.category)) category = parsed.category;\n        if (parsed.newName) newName = parsed.newName;\n      }\n    } catch (err) {\n      aiError = err.message || String(err);\n    }\n  }\n\n  if (!category) category = 'others';\n  newName = newName.replace(/[\\\\/:*?\"<>|]/g, '_').substring(0, 100);\n  if (!newName.match(/^\\d{8}_/)) newName = today + '_' + newName;\n  if (fileExt && !newName.toLowerCase().endsWith('.' + fileExt)) newName = newName + '.' + fileExt;\n\n  results.push({\n    json: {\n      originalName, category, newName,\n      newPath: '/files/shared/client-organized/' + category + '/' + newName,\n      indexLine: '- **' + category + '** · ' + newName + ' ← ' + originalName,\n      aiError,\n      aiRespPreview: aiResp.substring(0, 200)\n    },\n    binary: readItem.binary\n  });\n}\n\nreturn results;"
       },
       "id": "ai-10",
       "name": "Code: AI 分類 + 命名",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [860, 300]
+      "position": [1080, 300]
     },
     {
       "parameters": {
@@ -70,7 +121,7 @@
       "name": "Write: 移到分類資料夾",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
-      "position": [1080, 240]
+      "position": [1300, 240]
     },
     {
       "parameters": {
@@ -86,7 +137,7 @@
       "name": "Aggregate index lines",
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
-      "position": [1080, 380]
+      "position": [1300, 380]
     },
     {
       "parameters": {
@@ -97,7 +148,7 @@
       "name": "Code: 組 Markdown index + 通知",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1300, 380]
+      "position": [1520, 380]
     },
     {
       "parameters": {
@@ -110,7 +161,7 @@
       "name": "Write: _index.md",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
-      "position": [1520, 320]
+      "position": [1740, 320]
     },
     {
       "parameters": {
@@ -122,7 +173,7 @@
       "name": "Telegram 通知",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [1520, 440],
+      "position": [1740, 440],
       "credentials": {
         "telegramApi": { "id": "lite-pack-telegram", "name": "Lite Pack · Telegram Bot" }
       },
@@ -131,8 +182,15 @@
   ],
   "connections": {
     "Manual Trigger": { "main": [[{"node": "Read 所有檔案", "type": "main", "index": 0}]] },
-    "Read 所有檔案": { "main": [[{"node": "Extract 文字（PDF/MD/TXT/DOCX）", "type": "main", "index": 0}]] },
-    "Extract 文字（PDF/MD/TXT/DOCX）": { "main": [[{"node": "Code: AI 分類 + 命名", "type": "main", "index": 0}]] },
+    "Read 所有檔案": { "main": [[{"node": "Switch: 副檔名分流", "type": "main", "index": 0}]] },
+    "Switch: 副檔名分流": {
+      "main": [
+        [{"node": "Extract PDF", "type": "main", "index": 0}],
+        [{"node": "Extract 純文字", "type": "main", "index": 0}]
+      ]
+    },
+    "Extract PDF": { "main": [[{"node": "Code: AI 分類 + 命名", "type": "main", "index": 0}]] },
+    "Extract 純文字": { "main": [[{"node": "Code: AI 分類 + 命名", "type": "main", "index": 0}]] },
     "Code: AI 分類 + 命名": {
       "main": [[
         {"node": "Write: 移到分類資料夾", "type": "main", "index": 0},
