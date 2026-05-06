@@ -41,7 +41,15 @@ function Read-SecretPlainText {
   }
 }
 
-# native command wrapper with exit code check
+# 寫純 UTF-8（無 BOM）— PS 5.1 的 Set-Content -Encoding UTF8 會加 BOM 導致 JSON parser 炸
+function Write-Utf8NoBom {
+  param([string]$Path, [string]$Content)
+  $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+  [System.IO.File]::WriteAllText($Path, $Content, $utf8NoBom)
+}
+
+# native command wrapper：顯示輸出給學員看 + 寫 log + exit code 檢查
+# 用 [void] 包呼叫避免 return value 印到 console
 function Invoke-Native {
   param(
     [string]$Label,
@@ -49,13 +57,18 @@ function Invoke-Native {
     [string[]]$NativeArgs,
     [switch]$ContinueOnError
   )
-  & $FilePath @NativeArgs 2>&1 | Tee-Object -FilePath $Log -Append
+  $output = & $FilePath @NativeArgs 2>&1
+  # 顯示輸出讓學員看到實際錯誤訊息
+  if ($output) {
+    $output | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+  }
+  $output | Out-File -FilePath $Log -Append -Encoding UTF8
   if ($LASTEXITCODE -ne 0) {
     if ($ContinueOnError) {
       Write-Host "  ⚠ $Label 失敗（exit $LASTEXITCODE），繼續往下" -ForegroundColor Yellow
       return $false
     } else {
-      throw "$Label 失敗，exit code: $LASTEXITCODE"
+      throw "$Label 失敗，exit code: $LASTEXITCODE`n看上方 docker 輸出找根因。常見：n8n Owner Account 沒建（到 http://localhost:5678 完成首次設定後重跑）"
     }
   }
   return $true
@@ -169,7 +182,7 @@ if ($ComposeContent -match 'N8N_RESTRICT_FILE_ACCESS_TO') {
     'N8N_BASIC_AUTH_ACTIVE=false',
     "N8N_BASIC_AUTH_ACTIVE=false`n      - N8N_RESTRICT_FILE_ACCESS_TO=/files/shared`n      - N8N_BLOCK_FILE_ACCESS_TO_N8N_FILES=false"
   )
-  Set-Content $Compose $patched -Encoding UTF8 -NoNewline
+  Write-Utf8NoBom $Compose $patched
   Write-Host "  ✓ patch 完成（加入 N8N_RESTRICT_FILE_ACCESS_TO + N8N_BLOCK_FILE_ACCESS_TO_N8N_FILES）" -ForegroundColor Green
   $RestartNeeded = $true
 }
@@ -215,7 +228,7 @@ GEMINI_API_KEY=$GeminiKey
 TELEGRAM_BOT_TOKEN=$TgToken
 TELEGRAM_CHAT_ID=$TgChatId
 "@
-Set-Content "$ScriptDir\personalization.env" $EnvContent -Encoding UTF8
+Write-Utf8NoBom "$ScriptDir\personalization.env" $EnvContent
 Write-Host "  ✓ personalization.env 寫入完成" -ForegroundColor Green
 
 # ════════ Step 5: 建 sample 資料夾 ════════
@@ -254,7 +267,8 @@ $Creds = @(
     data = @{ accessToken = $TgToken; baseUrl = "https://api.telegram.org" }
   }
 )
-$Creds | ConvertTo-Json -Depth 10 | Set-Content $CredFile -Encoding UTF8
+$CredsJson = $Creds | ConvertTo-Json -Depth 10
+Write-Utf8NoBom $CredFile $CredsJson
 Write-Host "  ✓ credentials JSON 生成" -ForegroundColor Green
 
 # ════════ Step 7: 替換 placeholder（採納 Codex 建議用 .Replace 而非 -replace）════════
@@ -271,22 +285,26 @@ Get-ChildItem "$WorkflowTmp\*.json" | ForEach-Object {
   $content = $content.Replace('__TELEGRAM_CHAT_ID__', $TgChatId)
   $content = $content.Replace('__GEMINI_API_KEY__', $GeminiKey)
   $content = $content.Replace('__TELEGRAM_BOT_TOKEN__', $TgToken)
-  Set-Content $_.FullName $content -Encoding UTF8 -NoNewline
+  Write-Utf8NoBom $_.FullName $content
   Write-Host "  ✓ $($_.Name) 已替換 placeholders"
 }
 
-# ════════ Step 8: import credentials（採納 Codex 建議檢查 exit code）════════
+# ════════ Step 8: import credentials ════════
 Write-Host ""
 Write-Host "[8/10] 匯入 credentials 到 n8n..." -ForegroundColor Yellow
 
-Invoke-Native "docker cp credentials" "docker" @("cp", $CredFile, "${N8nContainer}:/tmp/credentials.json")
-$credResult = Invoke-Native "n8n import:credentials" "docker" @("exec", "-u", "node", $N8nContainer, "n8n", "import:credentials", "--input=/tmp/credentials.json")
-if (-not $credResult) {
+try {
+  [void](Invoke-Native "docker cp credentials" "docker" @("cp", $CredFile, "${N8nContainer}:/tmp/credentials.json"))
+  [void](Invoke-Native "n8n import:credentials" "docker" @("exec", "-u", "node", $N8nContainer, "n8n", "import:credentials", "--input=/tmp/credentials.json"))
+  Write-Host "  ✓ credentials 匯入成功" -ForegroundColor Green
+} catch {
   Write-Host "  ❌ credentials 匯入失敗" -ForegroundColor Red
-  Write-Host "  常見原因：n8n 沒建 Owner Account。先到 http://localhost:5678 完成 owner setup 後重跑" -ForegroundColor Yellow
+  Write-Host "  看上方 docker exec 輸出找根因。常見：" -ForegroundColor Yellow
+  Write-Host "    - n8n Owner Account 沒建 → 到 http://localhost:5678 完成首次設定" -ForegroundColor Yellow
+  Write-Host "    - JSON 解析錯（BOM）→ 已用 Write-Utf8NoBom 寫入無 BOM，理應已修" -ForegroundColor Yellow
+  Write-Host "    - 完整錯誤 log: $Log" -ForegroundColor Yellow
   exit 1
 }
-Write-Host "  ✓ credentials 匯入成功" -ForegroundColor Green
 
 # ════════ Step 9: import workflows ════════
 Write-Host ""
@@ -297,6 +315,7 @@ $ImportFail = 0
 Get-ChildItem "$WorkflowTmp\*.json" | Sort-Object Name | ForEach-Object {
   $f = $_.Name
   $copied = Invoke-Native "docker cp $f" "docker" @("cp", $_.FullName, "${N8nContainer}:/tmp/$f") -ContinueOnError
+  [void]$copied  # 避免 True 印 console
   if (-not $copied) { $ImportFail++; return }
   $imported = Invoke-Native "import:workflow $f" "docker" @("exec", "-u", "node", $N8nContainer, "n8n", "import:workflow", "--input=/tmp/$f") -ContinueOnError
   if ($imported) {
