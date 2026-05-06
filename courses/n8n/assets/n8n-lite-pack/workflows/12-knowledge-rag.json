@@ -1,13 +1,13 @@
 {
   "name": "12 · 本地知識庫問答",
   "meta": {
-    "_litePackNote": "v1.0：加 Web UI 分支（GET /kb-ui 回 HTML 表單頁），學員瀏覽器開 http://localhost:5678/webhook/kb-ui 即可問問題。原 POST /kb-ask 給程式呼叫端用。"
+    "_litePackNote": "v1.1：Part A 加 3-way Switch + filterPrintable，office/binary 不索引避免亂碼。"
   },
   "nodes": [
     {
       "parameters": {
-        "content": "## #12 本地知識庫問答（v1.0 加 Web UI）\n\n**目的**：公司 SOP / 講義 / 合約範本 / 客服手冊 / FAQ 等 PDF/MD/TXT 文件，常見痛點是「資料都在但問問題時找不到」。\n\n**3 條鏈**（同一個 workflow）：\n\n**Part A：建索引**（Manual Trigger）\n點 Execute Workflow → 掃 knowledge-docs/ → 切 chunk → 寫 knowledge-index.jsonl\n\n**Part B：問答 API**（Webhook POST）\nPOST `/webhook/kb-ask` body 含 `{\"question\": \"...\"}` → 回 JSON 含 answer + sources\n（適合給其他系統呼叫；workflow 必須 Active = ON）\n\n**Part C：問答 UI**（Webhook GET）— 給學員/員工用的瀏覽器介面\n瀏覽器開 `http://localhost:5678/webhook/kb-ui` → 看到表單頁面 → 輸入問題 → 答覆\n（不需要懂 curl，只要點按鈕；workflow 必須 Active = ON）\n\n**測試流程**：\n1. 把 SOP/手冊 .md/.txt/.pdf 丟進 `knowledge-docs/`\n2. n8n UI 點 Execute Workflow（跑 Part A）→ knowledge-index.jsonl 生出來\n3. **workflow 右上 Active toggle 開 ON**（讓 production webhook 接受請求）\n4. 瀏覽器開 `http://localhost:5678/webhook/kb-ui` → 看到問答介面\n5. 輸入問題（例如「退款政策？」）→ 點問 → 看到答覆 + 來源\n\n**簡化說明**：窮人版 RAG，用關鍵字 match 取代 embeddings。",
-        "height": 700,
+        "content": "## #12 本地知識庫問答（v1.1）\n\n**目的**：公司 SOP / 講義 / 合約 / FAQ → 問問題 AI 從文件找答案 + 標來源。\n\n**v1.1 修補**：Part A 加 3-way Switch + filterPrintable\n- .pdf → Extract PDF（pdfjs 解析）\n- .txt/.md/.csv/.json/.log/.xml/.html/.rtf → Extract 純文字\n- **其他（.docx/.pptx/.xlsx/圖檔）→ Drop 不索引**（避免亂碼污染 jsonl）\n\n修 v1.0 學員把 .docx 等放進 knowledge-docs 時 jsonl 含亂碼導致問答 500 bug。\n\n**3 條鏈**（同一個 workflow）：\n\n**Part A：建索引**（Manual Trigger）\n點 Manual: 建索引 → Execute → knowledge-index.jsonl 生出\n看 Code 切 chunk 節點的 _stats：indexed / skipped / totalChunks\n\n**Part B：問答 API**（Webhook POST /webhook/kb-ask）\nPOST 含 {\"question\": \"...\"} → 回 JSON 含 answer + sources\n\n**Part C：問答 UI**（Webhook GET /webhook/kb-ui）\n瀏覽器開 → 表單頁 → 輸入問題 → 答覆 + 來源\n\n**測試流程**：\n1. 把 .md/.txt/.pdf 丟進 knowledge-docs/（**.docx/.pptx 會被略過**，先轉 PDF 或匯出 .md）\n2. 點 Manual: 建索引 → Execute Workflow（test mode 就行）\n3. 看 _stats 確認 indexed > 0\n4. workflow 點右上 **Publish**（不是「Active toggle」— 新版 n8n 改用 Publish 流程）\n5. 瀏覽器開 http://localhost:5678/webhook/kb-ui → 問問題 → 答覆\n\n**簡化說明**：窮人版 RAG，用關鍵字 match 取代 embeddings。",
+        "height": 760,
         "width": 380
       },
       "id": "sticky-12",
@@ -50,18 +50,20 @@
         "options": {}
       },
       "id": "extract-index",
-      "name": "Extract 文字",
+      "name": "Extract 純文字",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1,
       "position": [
-        640,
-        200
-      ]
+        860,
+        280
+      ],
+      "onError": "continueRegularOutput",
+      "notes": "operation:text — 只接純文字 ext"
     },
     {
       "parameters": {
         "language": "javaScript",
-        "jsCode": "// 切 chunk + 寫 JSONL 索引（文字索引，不用 embeddings）\nconst items = $input.all();\nconst allReadItems = $('Read 知識文件').all();\nconst chunks = [];\n\nfor (let i = 0; i < items.length; i++) {\n  const text = items[i].json.text || '';\n  const binFileName = items[i].binary?.data?.fileName;\n  const readItem = allReadItems.find(r => r?.json?.fileName === binFileName) || allReadItems[i];\n  const fileName = readItem?.json?.fileName || 'unknown';\n  if (!text) continue;\n\n  // 簡單切：每 500 字一個 chunk，重疊 50 字保留語境\n  const size = 500, overlap = 50;\n  for (let p = 0; p < text.length; p += (size - overlap)) {\n    const chunk = text.substring(p, p + size).trim();\n    if (chunk.length < 50) continue;\n    chunks.push({\n      source: fileName,\n      pos: p,\n      text: chunk,\n      indexedAt: new Date().toISOString()\n    });\n  }\n}\n\n// JSONL 格式（一行一個 chunk）\nconst jsonl = chunks.map(c => JSON.stringify(c)).join('\\n');\n\nreturn [{\n  json: { chunkCount: chunks.length, indexPath: '/files/shared/knowledge-index/knowledge-index.jsonl' },\n  binary: {\n    data: { data: Buffer.from(jsonl).toString('base64'), mimeType: 'application/jsonl', fileName: 'knowledge-index.jsonl' }\n  }\n}];"
+        "jsCode": "// v1.1：從 allReadItems 迭代 + textMap 查表 + filterPrintable 過濾亂碼\n\nconst items = $input.all();\nconst allReadItems = $('Read 知識文件').all();\n\nfunction filterPrintable(text) {\n  if (!text || typeof text !== 'string') return '';\n  const printableMatches = text.match(/[\\u4e00-\\u9fff\\u3000-\\u303f\\uff00-\\uffefa-zA-Z0-9\\s.,!?;:()\\[\\]{}\\-+=\"'\\/_*&%$#@~|<>\\n]/g);\n  const ratio = printableMatches ? printableMatches.length / text.length : 0;\n  return ratio > 0.7 ? text : '';\n}\n\nconst textMap = new Map();\nfor (const it of items) {\n  const fn = it.binary?.data?.fileName;\n  if (!fn) continue;\n  const t = it.json?.text ?? it.json?.data;\n  if (t != null) textMap.set(fn, String(t));\n}\n\nconst chunks = [];\nconst stats = { totalFiles: allReadItems.length, indexed: 0, skipped: 0, totalChunks: 0 };\n\nfor (let i = 0; i < allReadItems.length; i++) {\n  const readItem = allReadItems[i];\n  if (!readItem?.binary?.data) { stats.skipped++; continue; }\n\n  const fileName = readItem.json.fileName || ('unknown-' + (i + 1));\n  const rawText = textMap.get(fileName) ?? '';\n  const cleanText = filterPrintable(rawText);\n\n  if (!cleanText || cleanText.length < 50) {\n    stats.skipped++;\n    continue;\n  }\n\n  stats.indexed++;\n  const size = 500, overlap = 50;\n  for (let p = 0; p < cleanText.length; p += (size - overlap)) {\n    const chunk = cleanText.substring(p, p + size).trim();\n    if (chunk.length < 50) continue;\n    chunks.push({ source: fileName, pos: p, text: chunk, indexedAt: new Date().toISOString() });\n  }\n}\n\nstats.totalChunks = chunks.length;\nconst jsonl = chunks.map(c => JSON.stringify(c)).join('\\n');\n\nreturn [{\n  json: { chunkCount: chunks.length, indexPath: '/files/shared/knowledge-index/knowledge-index.jsonl', _stats: stats },\n  binary: { data: { data: Buffer.from(jsonl).toString('base64'), mimeType: 'application/jsonl', fileName: 'knowledge-index.jsonl' } }\n}];"
       },
       "id": "code-chunk",
       "name": "Code: 切 chunk + 組 JSONL",
@@ -228,6 +230,84 @@
         680,
         720
       ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ ($binary.data.fileExtension || '').toLowerCase() }}",
+                    "rightValue": "pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PDF"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ ['txt','md','csv','log','json','yml','yaml','xml','html','rtf'].includes(($binary.data.fileExtension || '').toLowerCase()) }}",
+                    "rightValue": "true",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "純文字"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Drop（不索引）"
+        }
+      },
+      "id": "switch-12",
+      "name": "Switch: 3-way 副檔名分流",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        640,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "id": "extract-pdf-12",
+      "name": "Extract PDF",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        860,
+        120
+      ]
     }
   ],
   "connections": {
@@ -246,18 +326,7 @@
       "main": [
         [
           {
-            "node": "Extract 文字",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Extract 文字": {
-      "main": [
-        [
-          {
-            "node": "Code: 切 chunk + 組 JSONL",
+            "node": "Switch: 3-way 副檔名分流",
             "type": "main",
             "index": 0
           }
@@ -324,6 +393,46 @@
         [
           {
             "node": "Respond UI: HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: 3-way 副檔名分流": {
+      "main": [
+        [
+          {
+            "node": "Extract PDF",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract 純文字",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract PDF": {
+      "main": [
+        [
+          {
+            "node": "Code: 切 chunk + 組 JSONL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract 純文字": {
+      "main": [
+        [
+          {
+            "node": "Code: 切 chunk + 組 JSONL",
             "type": "main",
             "index": 0
           }
