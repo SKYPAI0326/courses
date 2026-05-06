@@ -1,9 +1,8 @@
 #!/bin/bash
-# n8n Lite Pack · setup-wizard v0.4 (macOS)
+# n8n Lite Pack · setup-wizard v1.1 (macOS)
 # 「下載安裝後設兩個 key 即用」最短路徑
-# v0.4 新增：file access patch 自動化 / 自動重啟 / Telegram + Gemini smoke test
-# 設計依據：courses/n8n/_reviews/n8n-credentials-api-research-2026-05-02.md
-#         + Codex 第三輪審核 CALL_ID 8e4fb72e
+# v0.4：file access patch 自動化 / 自動重啟 / Telegram + Gemini smoke test
+# v1.1：Telegram 改為可選（GUI 對話框 Y/N gate）— 不用 TG 的學員零摩擦過關
 # 用法：在 Finder 雙擊本檔；首次被 Gatekeeper 擋請去「系統設定 → 隱私權與安全性 → 強制打開」
 
 cd "$(dirname "$0")"
@@ -15,7 +14,7 @@ LOG="/tmp/n8n-lite-setup-$$.log"
 exec > >(tee -a "$LOG") 2>&1
 
 echo "═════════════════════════════════════════════════════════════"
-echo "  n8n Lite Pack · setup-wizard v0.4"
+echo "  n8n Lite Pack · setup-wizard v1.1"
 echo "  log: $LOG"
 echo "═════════════════════════════════════════════════════════════"
 
@@ -72,18 +71,30 @@ if [[ ! "$GEMINI_KEY" =~ ^AIza ]]; then
   exit 1
 fi
 
-TG_TOKEN=$(osascript -e 'text returned of (display dialog "請貼上你的 Telegram bot token（格式如 123456:ABC-DEF...）\n\n沒有？到 Telegram 找 @BotFather → /newbot → 拿 token。" default answer "" with hidden answer)' 2>/dev/null) || exit 1
-if [[ ! "$TG_TOKEN" =~ ^[0-9]+: ]]; then
-  osascript -e 'display dialog "Telegram bot token 格式不對。" buttons {"知道了"} default button 1 with icon stop'
-  exit 1
-fi
+# Telegram 改成可選（v1.1）— GUI 對話框 Y/N gate
+TG_CHOICE=$(osascript -e 'set theChoice to button returned of (display dialog "要用 Telegram 接收 workflow 通知嗎？\n\n• 用 Telegram：要先有 BotFather token + chat ID（5-10 分鐘設定）\n• 略過：只要 Gemini key 就能跑非 TG 的 6 個 workflow（01-04 / 08 / 12）\n\n隨時可重跑 wizard 補 Telegram 設定。" buttons {"略過（預設）", "用 Telegram"} default button 1)' 2>/dev/null) || exit 1
+USE_TELEGRAM=false
+TG_TOKEN=""
+TG_CHAT_ID=""
 
-TG_CHAT_ID=$(osascript -e 'text returned of (display dialog "請貼上你的 Telegram Chat ID（一串數字）\n\n找方法：對你的 bot 發任意訊息後，瀏覽器開：\nhttps://api.telegram.org/bot你的TOKEN/getUpdates\n找 chat.id 那串數字。" default answer "")' 2>/dev/null) || exit 1
-if [[ ! "$TG_CHAT_ID" =~ ^-?[0-9]+$ ]]; then
-  osascript -e 'display dialog "Chat ID 應該是純數字。" buttons {"知道了"} default button 1 with icon stop'
-  exit 1
+if [[ "$TG_CHOICE" == "用 Telegram" ]]; then
+  USE_TELEGRAM=true
+  TG_TOKEN=$(osascript -e 'text returned of (display dialog "請貼上你的 Telegram bot token（格式如 123456:ABC-DEF...）\n\n沒有？到 Telegram 找 @BotFather → /newbot → 拿 token。" default answer "" with hidden answer)' 2>/dev/null) || exit 1
+  if [[ ! "$TG_TOKEN" =~ ^[0-9]+: ]]; then
+    osascript -e 'display dialog "Telegram bot token 格式不對。" buttons {"知道了"} default button 1 with icon stop'
+    exit 1
+  fi
+
+  TG_CHAT_ID=$(osascript -e 'text returned of (display dialog "請貼上你的 Telegram Chat ID（一串數字）\n\n找方法：對你的 bot 發任意訊息後，瀏覽器開：\nhttps://api.telegram.org/bot你的TOKEN/getUpdates\n找 chat.id 那串數字。" default answer "")' 2>/dev/null) || exit 1
+  if [[ ! "$TG_CHAT_ID" =~ ^-?[0-9]+$ ]]; then
+    osascript -e 'display dialog "Chat ID 應該是純數字。" buttons {"知道了"} default button 1 with icon stop'
+    exit 1
+  fi
+  echo "  ✓ 3 個 personalization 資料收齊（Gemini + Telegram）"
+else
+  echo "  ↳ 跳過 Telegram。8 個用 TG 的 workflow（05/06/07/09/10/11/13/14）匯入後仍是 inactive，要用再去 n8n UI 補 credential。"
+  echo "  ✓ 1 個 personalization 資料收齊（Gemini）"
 fi
-echo "  ✓ 3 個 personalization 資料收齊"
 
 # ═════════ Step 3: file access patch + 重啟 n8n ═════════
 echo ""
@@ -139,13 +150,15 @@ fi
 echo ""
 echo "[4/10] 寫入 personalization.env..."
 
-cat > personalization.env <<EOF
-# n8n Lite Pack 個人化設定（setup-wizard v0.4 自動產生 $(date '+%Y-%m-%d %H:%M:%S')）
-# 不要 commit 到 git！
-GEMINI_API_KEY=$GEMINI_KEY
-TELEGRAM_BOT_TOKEN=$TG_TOKEN
-TELEGRAM_CHAT_ID=$TG_CHAT_ID
-EOF
+{
+  echo "# n8n Lite Pack 個人化設定（setup-wizard v1.1 自動產生 $(date '+%Y-%m-%d %H:%M:%S'))"
+  echo "# 不要 commit 到 git！"
+  echo "GEMINI_API_KEY=$GEMINI_KEY"
+  if [ "$USE_TELEGRAM" = "true" ]; then
+    echo "TELEGRAM_BOT_TOKEN=$TG_TOKEN"
+    echo "TELEGRAM_CHAT_ID=$TG_CHAT_ID"
+  fi
+} > personalization.env
 chmod 600 personalization.env
 echo "  ✓ personalization.env 寫入完成"
 
@@ -174,7 +187,8 @@ echo "  ✓ 24 個 shared/ 子資料夾建好（含 #10 客戶分類 6 個子夾
 echo ""
 echo "[6/10] 生成 decrypted credentials JSON..."
 
-python3 - <<EOF > "$CRED_FILE"
+if [ "$USE_TELEGRAM" = "true" ]; then
+  python3 - <<EOF > "$CRED_FILE"
 import json
 creds = [
     {
@@ -192,6 +206,20 @@ creds = [
 ]
 print(json.dumps(creds, indent=2, ensure_ascii=False))
 EOF
+else
+  python3 - <<EOF > "$CRED_FILE"
+import json
+creds = [
+    {
+        "id": "lite-pack-gemini",
+        "name": "Lite Pack · Gemini API",
+        "type": "httpHeaderAuth",
+        "data": {"name": "x-goog-api-key", "value": "$GEMINI_KEY"}
+    }
+]
+print(json.dumps(creds, indent=2, ensure_ascii=False))
+EOF
+fi
 
 if [ ! -s "$CRED_FILE" ]; then
   osascript -e "display dialog \"credentials JSON 生成失敗。log: $LOG\" buttons {\"知道了\"} default button 1 with icon stop"
@@ -211,12 +239,16 @@ import os
 tmp = "$WORKFLOW_TMP"
 chat_id = "$TG_CHAT_ID"
 gemini_key = "$GEMINI_KEY"
+tg_token = "$TG_TOKEN"
+use_tg = "$USE_TELEGRAM" == "true"
 for fname in os.listdir(tmp):
     if not fname.endswith('.json'): continue
     fpath = os.path.join(tmp, fname)
     with open(fpath, 'r', encoding='utf-8') as f:
         content = f.read()
-    new_content = content.replace('__TELEGRAM_CHAT_ID__', chat_id).replace('__GEMINI_API_KEY__', gemini_key)
+    new_content = content.replace('__GEMINI_API_KEY__', gemini_key)
+    if use_tg:
+        new_content = new_content.replace('__TELEGRAM_CHAT_ID__', chat_id).replace('__TELEGRAM_BOT_TOKEN__', tg_token)
     if new_content != content:
         with open(fpath, 'w', encoding='utf-8') as f:
             f.write(new_content)
@@ -227,9 +259,10 @@ EOF
 echo ""
 echo "[8/10] 匯入 credentials 到 n8n..."
 
+CRED_LABEL=$([ "$USE_TELEGRAM" = "true" ] && echo "2 個 credentials（Gemini + Telegram）" || echo "1 個 credential（Gemini）")
 docker cp "$CRED_FILE" "$N8N_CONTAINER:/tmp/lite-pack-cred.json"
 if docker exec -u node "$N8N_CONTAINER" n8n import:credentials --input=/tmp/lite-pack-cred.json 2>&1 | tee -a "$LOG"; then
-  echo "  ✓ 2 個 credentials 匯入完成"
+  echo "  ✓ $CRED_LABEL 匯入完成"
 else
   osascript -e "display dialog \"credentials 匯入失敗。log: $LOG\n\n常見原因：n8n 沒建 owner account。先到 http://localhost:5678 完成 owner setup。\" buttons {\"知道了\"} default button 1 with icon stop"
   exit 1
@@ -257,15 +290,20 @@ done
 echo ""
 echo "[10/10] 跑 smoke tests..."
 
-# Telegram smoke test
-echo "  · Telegram bot..."
-TG_TEST=$(curl -sf -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" -H "Content-Type: application/json" -d "{\"chat_id\":\"${TG_CHAT_ID}\",\"text\":\"✅ Lite Pack v0.4 setup-wizard 安裝完成！\"}" 2>&1)
-if echo "$TG_TEST" | grep -q '"ok":true'; then
-  echo "    ✓ Telegram 收到測試訊息"
-  TG_OK=true
+# Telegram smoke test (v1.1：跳過 if 不用 TG)
+if [ "$USE_TELEGRAM" = "true" ]; then
+  echo "  · Telegram bot..."
+  TG_TEST=$(curl -sf -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" -H "Content-Type: application/json" -d "{\"chat_id\":\"${TG_CHAT_ID}\",\"text\":\"✅ Lite Pack v1.1 setup-wizard 安裝完成！\"}" 2>&1)
+  if echo "$TG_TEST" | grep -q '"ok":true'; then
+    echo "    ✓ Telegram 收到測試訊息"
+    TG_OK=true
+  else
+    echo "    ✗ Telegram 失敗：$TG_TEST"
+    TG_OK=false
+  fi
 else
-  echo "    ✗ Telegram 失敗：$TG_TEST"
-  TG_OK=false
+  echo "  · Telegram bot 跳過（你選不用 TG）"
+  TG_OK=skip
 fi
 
 # Gemini smoke test（簡單 prompt 看 API 是否真能 work）
@@ -294,27 +332,37 @@ echo ""
 echo "═════════════════════════════════════════════════════════════"
 echo "  完成回報"
 echo "═════════════════════════════════════════════════════════════"
-echo "  Credentials  ：2 個（Gemini + Telegram）"
+CRED_COUNT_LABEL=$([ "$USE_TELEGRAM" = "true" ] && echo "2 個（Gemini + Telegram）" || echo "1 個（Gemini）")
+TG_REPORT_LABEL=$([ "$TG_OK" = "skip" ] && echo "↳ 跳過（你選不用 TG）" || ([ "$TG_OK" = "true" ] && echo "✅ 收到訊息" || echo "❌ 失敗"))
+NEXT_STEP_LABEL=$([ "$USE_TELEGRAM" = "true" ] && echo "從 #5 Telegram 通知開始驗證。" || echo "從不用 TG 的 6 個 workflow（01-04 / 08 / 12）開始試。想用 Telegram 重跑本 wizard 即可。")
+
+echo "  Credentials  ：$CRED_COUNT_LABEL"
 echo "  Workflows    ：成功 $WF_OK / 失敗 $WF_FAIL"
 echo "  File access  ：已 patch /files/shared 白名單"
-echo "  Telegram test：$([ "$TG_OK" = "true" ] && echo "✅ 收到訊息" || echo "❌ 失敗")"
+echo "  Telegram test：$TG_REPORT_LABEL"
 echo "  Gemini test  ：$([ "$GEMINI_OK" = "true" ] && echo "✅ API 正常" || echo "⚠️ 回應異常（看 /tmp/gemini-diagnostic.json）")"
 echo "  Container    ：$N8N_CONTAINER"
 echo "  Log          ：$LOG"
 echo "═════════════════════════════════════════════════════════════"
 
 # GUI 結果對話框
-SUMMARY="✅ Lite Pack v0.4 安裝完成！
+SUMMARY="✅ Lite Pack v1.1 安裝完成！
 
-• 2 個 credentials 已建立並加密儲存
+• $CRED_COUNT_LABEL credentials 已建立並加密儲存
 • $WF_OK 個 workflows 已匯入並自動關聯 credentials
 • File access 環境變數已 patch（/files/shared 可讀寫）
-• Telegram 測試：$([ "$TG_OK" = "true" ] && echo "✅ 收到" || echo "❌ 失敗")
+• Telegram 測試：$TG_REPORT_LABEL
 • Gemini 測試：$([ "$GEMINI_OK" = "true" ] && echo "✅ 正常" || echo "⚠️ 回應異常")
 
-下一步：打開 n8n 看左側 Workflows 清單，從 #5 Telegram 通知開始驗證。"
+下一步：打開 n8n 看左側 Workflows 清單，$NEXT_STEP_LABEL"
 
-if [ $WF_FAIL -eq 0 ] && [ "$TG_OK" = "true" ] && [ "$GEMINI_OK" = "true" ]; then
+# v1.1：TG_OK=skip 也算通過（學員選擇不用 TG 不是失敗）
+TG_PASS=true
+if [ "$USE_TELEGRAM" = "true" ] && [ "$TG_OK" != "true" ]; then
+  TG_PASS=false
+fi
+
+if [ $WF_FAIL -eq 0 ] && [ "$TG_PASS" = "true" ] && [ "$GEMINI_OK" = "true" ]; then
   osascript -e "display dialog \"$SUMMARY\" buttons {\"打開 n8n\"} default button 1"
   open "$N8N_URL"
 else
