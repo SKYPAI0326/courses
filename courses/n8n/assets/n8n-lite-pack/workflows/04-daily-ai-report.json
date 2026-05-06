@@ -14,13 +14,19 @@
       "name": "📌 使用說明",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [-280, -40]
+      "position": [
+        -280,
+        -40
+      ]
     },
     {
       "parameters": {
         "rule": {
           "interval": [
-            {"field": "cronExpression", "expression": "0 8 * * *"}
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * *"
+            }
           ]
         }
       },
@@ -28,7 +34,10 @@
       "name": "Schedule: 每天 08:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [240, 300],
+      "position": [
+        240,
+        300
+      ],
       "notes": "Cron: 0 8 * * * = 每天早上 8 點。要測試用 Manual 或改 cron 為 */1 * * * * 每分鐘"
     },
     {
@@ -40,7 +49,10 @@
       "name": "Read daily-input 所有檔",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
-      "position": [460, 300],
+      "position": [
+        460,
+        300
+      ],
       "notes": "fileSelector glob = */ 抓所有檔。每個檔變一個 item（fan-out）"
     },
     {
@@ -80,7 +92,10 @@
       "name": "Switch: 副檔名分流",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
-      "position": [680, 300],
+      "position": [
+        680,
+        300
+      ],
       "notes": "按 binary.data.fileExtension 分流：pdf 走上路徑，其他走下路徑（純文字 fallback）"
     },
     {
@@ -92,7 +107,10 @@
       "name": "Extract PDF",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1,
-      "position": [900, 180],
+      "position": [
+        900,
+        180
+      ],
       "notes": "operation:pdf → pdfjs 解析。輸出 json.text + numpages + info + metadata"
     },
     {
@@ -104,7 +122,10 @@
       "name": "Extract 純文字",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1,
-      "position": [900, 420],
+      "position": [
+        900,
+        420
+      ],
       "notes": "operation:text → UTF-8 純文字讀取。輸出 json.data。.txt/.md/.csv 都行；丟 PDF 進來會出亂碼，所以前面 Switch 已分流"
     },
     {
@@ -118,19 +139,25 @@
       "name": "Aggregate 多檔合併",
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
-      "position": [1140, 300],
+      "position": [
+        1140,
+        300
+      ],
       "notes": "allItemData 模式：把兩條分支的 items 全部塞進 files[] 陣列。下游 Code 正規化欄位"
     },
     {
       "parameters": {
         "language": "javaScript",
-        "jsCode": "// v0.7：正規化異質欄位（PDF 路徑 json.text vs 純文字路徑 json.data）+ 打 Gemini API + 組 Markdown\n\nconst GEMINI_API_KEY = '__GEMINI_API_KEY__';\nconst aggregated = $json;\nconst rawFiles = aggregated.files || [];\nconst today = new Date().toISOString().slice(0, 10);\n\n// 正規化：兩條分支欄位不同，統一成 { fileName, text }\nconst files = rawFiles.map((it, idx) => {\n  const text = it.text ?? it.data ?? '';\n  const fileName = it.fileName ?? it.info?.Title ?? ('檔案-' + (idx + 1));\n  const pages = it.numpages ?? null;\n  return { fileName, text: typeof text === 'string' ? text : String(text), pages };\n}).filter(f => f.text && f.text.length >= 10);\n\nif (files.length === 0) {\n  return [{\n    json: {\n      outputPath: '/files/shared/daily-output/daily-' + today + '.md',\n      markdown: '# 日報 - ' + today + '\\n\\n（沒有可摘要的檔案。請確認 daily-input/ 內有 .pdf / .txt / .md / .csv）',\n      today,\n      filesCount: 0\n    },\n    binary: {\n      data: {\n        data: Buffer.from('# 日報 - ' + today + '\\n\\n（沒有可摘要的檔案）').toString('base64'),\n        mimeType: 'text/markdown',\n        fileName: 'daily-' + today + '.md'\n      }\n    }\n  }];\n}\n\n// 組 prompt（每檔截 2500 字、總長截 8000 字以保 token 預算）\nlet promptCorpus = '';\nfor (const f of files) {\n  const chunk = '【' + f.fileName + (f.pages ? '（' + f.pages + ' 頁）' : '') + '】\\n' + f.text.substring(0, 2500) + '\\n\\n';\n  if ((promptCorpus + chunk).length > 8000) break;\n  promptCorpus += chunk;\n}\n\nconst prompt = '以下是今日多份輸入文件，請整理成結構化日報（繁體中文 Markdown）。包含：重點摘要 3-5 點、待辦事項（含優先級）、關鍵決策、風險或卡點。日期：' + today + '。直接輸出 Markdown，不要 markdown 標記包裹。\\n\\n<輸入文件>\\n' + promptCorpus + '\\n</輸入文件>';\n\nlet markdown;\nlet aiError = null;\n\ntry {\n  const response = await this.helpers.httpRequest({\n    method: 'POST',\n    url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',\n    headers: {\n      'Content-Type': 'application/json',\n      'x-goog-api-key': GEMINI_API_KEY\n    },\n    body: {\n      contents: [{ role: 'user', parts: [{ text: prompt }] }],\n      generationConfig: { temperature: 0.5, maxOutputTokens: 2000, thinkingConfig: { thinkingBudget: 0 } }\n    },\n    json: true,\n    timeout: 60000\n  });\n  const raw = response.candidates?.[0]?.content?.parts?.[0]?.text || '';\n  markdown = raw.replace(/```markdown\\s*/i, '').replace(/```\\s*$/, '').trim();\n} catch (err) {\n  aiError = err.message || String(err);\n  markdown = '# 日報 - ' + today + '\\n\\n（AI 呼叫失敗：' + aiError + '）\\n\\n## 原始輸入摘要\\n\\n' + files.map(f => '- ' + f.fileName + '（' + f.text.length + ' 字）').join('\\n');\n}\n\nif (!markdown || markdown.length < 5) {\n  markdown = '# 日報 - ' + today + '\\n\\n（AI 回應為空，可能是輸入太少或 API 限額）';\n}\n\nconst outputPath = '/files/shared/daily-output/daily-' + today + '.md';\n\nreturn [{\n  json: {\n    outputPath,\n    markdown,\n    aiError,\n    today,\n    filesCount: files.length,\n    filesProcessed: files.map(f => f.fileName)\n  },\n  binary: {\n    data: {\n      data: Buffer.from(markdown).toString('base64'),\n      mimeType: 'text/markdown',\n      fileName: 'daily-' + today + '.md'\n    }\n  }\n}];"
+        "jsCode": "// v0.7：正規化異質欄位（PDF 路徑 json.text vs 純文字路徑 json.data）+ 打 Gemini API + 組 Markdown\n\nconst GEMINI_API_KEY = '__GEMINI_API_KEY__';\nconst aggregated = $json;\nconst rawFiles = aggregated.files || [];\nconst today = new Date().toISOString().slice(0, 10);\n\n// 正規化：兩條分支欄位不同，統一成 { fileName, text }\nconst files = rawFiles.map((it, idx) => {\n  const text = it.text ?? it.data ?? '';\n  const fileName = it.fileName ?? it.info?.Title ?? ('檔案-' + (idx + 1));\n  const pages = it.numpages ?? null;\n  return { fileName, text: typeof text === 'string' ? text : String(text), pages };\n}).filter(f => f.text && f.text.length >= 10);\n\nif (files.length === 0) {\n  return [{\n    json: {\n      outputPath: '/files/shared/daily-output/daily-' + today + '.md',\n      markdown: '# 日報 - ' + today + '\\n\\n（沒有可摘要的檔案。請確認 daily-input/ 內有 .pdf / .txt / .md / .csv）',\n      today,\n      filesCount: 0\n    },\n    binary: {\n      data: {\n        data: Buffer.from('\\ufeff' + ('# 日報 - ' + today + '\\n\\n（沒有可摘要的檔案）'), 'utf-8').toString('base64'),\n        mimeType: 'text/markdown',\n        fileName: 'daily-' + today + '.md'\n      }\n    }\n  }];\n}\n\n// 組 prompt（每檔截 2500 字、總長截 8000 字以保 token 預算）\nlet promptCorpus = '';\nfor (const f of files) {\n  const chunk = '【' + f.fileName + (f.pages ? '（' + f.pages + ' 頁）' : '') + '】\\n' + f.text.substring(0, 2500) + '\\n\\n';\n  if ((promptCorpus + chunk).length > 8000) break;\n  promptCorpus += chunk;\n}\n\nconst prompt = '以下是今日多份輸入文件，請整理成結構化日報（繁體中文 Markdown）。包含：重點摘要 3-5 點、待辦事項（含優先級）、關鍵決策、風險或卡點。日期：' + today + '。直接輸出 Markdown，不要 markdown 標記包裹。\\n\\n<輸入文件>\\n' + promptCorpus + '\\n</輸入文件>';\n\nlet markdown;\nlet aiError = null;\n\ntry {\n  const response = await this.helpers.httpRequest({\n    method: 'POST',\n    url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',\n    headers: {\n      'Content-Type': 'application/json',\n      'x-goog-api-key': GEMINI_API_KEY\n    },\n    body: {\n      contents: [{ role: 'user', parts: [{ text: prompt }] }],\n      generationConfig: { temperature: 0.5, maxOutputTokens: 2000, thinkingConfig: { thinkingBudget: 0 } }\n    },\n    json: true,\n    timeout: 60000\n  });\n  const raw = response.candidates?.[0]?.content?.parts?.[0]?.text || '';\n  markdown = raw.replace(/```markdown\\s*/i, '').replace(/```\\s*$/, '').trim();\n} catch (err) {\n  aiError = err.message || String(err);\n  markdown = '# 日報 - ' + today + '\\n\\n（AI 呼叫失敗：' + aiError + '）\\n\\n## 原始輸入摘要\\n\\n' + files.map(f => '- ' + f.fileName + '（' + f.text.length + ' 字）').join('\\n');\n}\n\nif (!markdown || markdown.length < 5) {\n  markdown = '# 日報 - ' + today + '\\n\\n（AI 回應為空，可能是輸入太少或 API 限額）';\n}\n\nconst outputPath = '/files/shared/daily-output/daily-' + today + '.md';\n\nreturn [{\n  json: {\n    outputPath,\n    markdown,\n    aiError,\n    today,\n    filesCount: files.length,\n    filesProcessed: files.map(f => f.fileName)\n  },\n  binary: {\n    data: {\n      data: Buffer.from('\\ufeff' + (markdown), 'utf-8').toString('base64'),\n      mimeType: 'text/markdown',\n      fileName: 'daily-' + today + '.md'\n    }\n  }\n}];"
       },
       "id": "ai-04",
       "name": "Code: AI 摘要 + 組 Markdown",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1380, 300],
+      "position": [
+        1380,
+        300
+      ],
       "onError": "continueRegularOutput"
     },
     {
@@ -144,37 +171,111 @@
       "name": "Write: daily-output/",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
-      "position": [1620, 300]
+      "position": [
+        1620,
+        300
+      ]
     }
   ],
   "connections": {
     "Schedule: 每天 08:00": {
-      "main": [[{"node": "Read daily-input 所有檔", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Read daily-input 所有檔",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Read daily-input 所有檔": {
-      "main": [[{"node": "Switch: 副檔名分流", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Switch: 副檔名分流",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Switch: 副檔名分流": {
       "main": [
-        [{"node": "Extract PDF", "type": "main", "index": 0}],
-        [{"node": "Extract 純文字", "type": "main", "index": 0}]
+        [
+          {
+            "node": "Extract PDF",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract 純文字",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Extract PDF": {
-      "main": [[{"node": "Aggregate 多檔合併", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Aggregate 多檔合併",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Extract 純文字": {
-      "main": [[{"node": "Aggregate 多檔合併", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Aggregate 多檔合併",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Aggregate 多檔合併": {
-      "main": [[{"node": "Code: AI 摘要 + 組 Markdown", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Code: AI 摘要 + 組 Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Code: AI 摘要 + 組 Markdown": {
-      "main": [[{"node": "Write: daily-output/", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Write: daily-output/",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
-  "settings": {"executionOrder": "v1"},
+  "settings": {
+    "executionOrder": "v1"
+  },
   "id": "lite-pack-04-daily-ai-report",
-  "tags": [{"name": "lite-pack", "id": "tag-lite-pack"}, {"name": "module-3", "id": "tag-module-3"}]
+  "tags": [
+    {
+      "name": "lite-pack",
+      "id": "tag-lite-pack"
+    },
+    {
+      "name": "module-3",
+      "id": "tag-module-3"
+    }
+  ]
 }

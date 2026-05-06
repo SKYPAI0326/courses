@@ -14,27 +14,79 @@
       "name": "📌 使用說明",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [-280, 0]
-    },
-    { "parameters": {}, "id": "trigger-index", "name": "Manual: 建索引", "type": "n8n-nodes-base.manualTrigger", "typeVersion": 1, "position": [240, 200] },
-    {
-      "parameters": { "fileSelector": "/files/shared/knowledge-docs/*", "options": {} },
-      "id": "read-index", "name": "Read 知識文件", "type": "n8n-nodes-base.readWriteFile", "typeVersion": 1, "position": [440, 200]
+      "position": [
+        -280,
+        0
+      ]
     },
     {
-      "parameters": { "operation": "text", "options": {} },
-      "id": "extract-index", "name": "Extract 文字", "type": "n8n-nodes-base.extractFromFile", "typeVersion": 1, "position": [640, 200]
+      "parameters": {},
+      "id": "trigger-index",
+      "name": "Manual: 建索引",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/shared/knowledge-docs/*",
+        "options": {}
+      },
+      "id": "read-index",
+      "name": "Read 知識文件",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        440,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "options": {}
+      },
+      "id": "extract-index",
+      "name": "Extract 文字",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        640,
+        200
+      ]
     },
     {
       "parameters": {
         "language": "javaScript",
         "jsCode": "// 切 chunk + 寫 JSONL 索引（文字索引，不用 embeddings）\nconst items = $input.all();\nconst allReadItems = $('Read 知識文件').all();\nconst chunks = [];\n\nfor (let i = 0; i < items.length; i++) {\n  const text = items[i].json.text || '';\n  const binFileName = items[i].binary?.data?.fileName;\n  const readItem = allReadItems.find(r => r?.json?.fileName === binFileName) || allReadItems[i];\n  const fileName = readItem?.json?.fileName || 'unknown';\n  if (!text) continue;\n\n  // 簡單切：每 500 字一個 chunk，重疊 50 字保留語境\n  const size = 500, overlap = 50;\n  for (let p = 0; p < text.length; p += (size - overlap)) {\n    const chunk = text.substring(p, p + size).trim();\n    if (chunk.length < 50) continue;\n    chunks.push({\n      source: fileName,\n      pos: p,\n      text: chunk,\n      indexedAt: new Date().toISOString()\n    });\n  }\n}\n\n// JSONL 格式（一行一個 chunk）\nconst jsonl = chunks.map(c => JSON.stringify(c)).join('\\n');\n\nreturn [{\n  json: { chunkCount: chunks.length, indexPath: '/files/shared/knowledge-index/knowledge-index.jsonl' },\n  binary: {\n    data: { data: Buffer.from(jsonl).toString('base64'), mimeType: 'application/jsonl', fileName: 'knowledge-index.jsonl' }\n  }\n}];"
       },
-      "id": "code-chunk", "name": "Code: 切 chunk + 組 JSONL", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [860, 200]
+      "id": "code-chunk",
+      "name": "Code: 切 chunk + 組 JSONL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        200
+      ]
     },
     {
-      "parameters": { "operation": "write", "fileName": "={{ $json.indexPath }}", "dataPropertyName": "data", "options": {} },
-      "id": "write-index", "name": "Write 索引", "type": "n8n-nodes-base.readWriteFile", "typeVersion": 1, "position": [1080, 200]
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $json.indexPath }}",
+        "dataPropertyName": "data",
+        "options": {}
+      },
+      "id": "write-index",
+      "name": "Write 索引",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1080,
+        200
+      ]
     },
     {
       "parameters": {
@@ -43,45 +95,178 @@
         "responseMode": "lastNode",
         "options": {}
       },
-      "id": "webhook-ask", "name": "Webhook: kb-ask", "type": "n8n-nodes-base.webhook", "typeVersion": 2, "position": [240, 460], "webhookId": "lite-pack-12-kb-ask"
+      "id": "webhook-ask",
+      "name": "Webhook: kb-ask",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        460
+      ],
+      "webhookId": "lite-pack-12-kb-ask"
     },
     {
-      "parameters": { "fileSelector": "/files/shared/knowledge-index/knowledge-index.jsonl", "options": {} },
-      "id": "read-existing-index", "name": "Read 索引檔", "type": "n8n-nodes-base.readWriteFile", "typeVersion": 1, "position": [440, 460]
+      "parameters": {
+        "fileSelector": "/files/shared/knowledge-index/knowledge-index.jsonl",
+        "options": {}
+      },
+      "id": "read-existing-index",
+      "name": "Read 索引檔",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        440,
+        460
+      ]
     },
     {
       "parameters": {
         "language": "javaScript",
         "jsCode": "// 關鍵字 match + AI 生答（窮人版 RAG）\nconst GEMINI_API_KEY = '__GEMINI_API_KEY__';\nconst question = $('Webhook: kb-ask').first().json.body?.question || $('Webhook: kb-ask').first().json.query?.question || '請告訴我你能回答什麼？';\n\n// 讀 JSONL 索引\nconst indexFile = $input.first().binary?.data?.data || '';\nconst jsonlText = Buffer.from(indexFile, 'base64').toString('utf-8');\nconst chunks = jsonlText.split('\\n').filter(l => l).map(l => JSON.parse(l));\n\n// 關鍵字 score（簡化版：question 的字 vs chunk 的 overlap）\nconst qWords = question.split(/[\\s，。？！,\\.\\?]/).filter(w => w.length >= 2);\nconst scored = chunks.map(c => ({\n  ...c,\n  score: qWords.reduce((s, w) => s + (c.text.includes(w) ? 1 : 0), 0)\n})).filter(c => c.score > 0).sort((a, b) => b.score - a.score).slice(0, 5);\n\nif (scored.length === 0) {\n  return [{ json: { answer: '知識庫內找不到相關內容。請改問其他問題或重建索引。', sources: [], question } }];\n}\n\n// 餵給 Gemini\nconst context = scored.map((c, i) => '[' + (i+1) + '] (' + c.source + ')\\n' + c.text).join('\\n\\n');\nconst prompt = '你是企業知識庫問答助手。根據下面 context 回答用戶問題（繁體中文）。如果 context 不足以回答，誠實說「資料庫內無此資訊」。每段答覆引用來源編號 [1] [2] 等。\\n\\n<question>' + question + '</question>\\n\\n<context>\\n' + context + '\\n</context>';\n\nlet answer = '';\ntry {\n  const response = await this.helpers.httpRequest({\n    method: 'POST',\n    url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',\n    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },\n    body: {\n      contents: [{ role: 'user', parts: [{ text: prompt }] }],\n      generationConfig: { temperature: 0.4, maxOutputTokens: 800, thinkingConfig: { thinkingBudget: 0 } }\n    },\n    json: true,\n    timeout: 60000\n  });\n  answer = response.candidates?.[0]?.content?.parts?.[0]?.text || 'AI 無回應';\n} catch (err) {\n  answer = '查詢失敗：' + (err.message || err);\n}\n\nreturn [{\n  json: {\n    question, answer,\n    sources: scored.map((c, i) => ({ ref: i+1, file: c.source, snippet: c.text.substring(0, 100) }))\n  }\n}];"
       },
-      "id": "code-rag", "name": "Code: 檢索 + AI 生答", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [660, 460]
+      "id": "code-rag",
+      "name": "Code: 檢索 + AI 生答",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        460
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
-            { "id": "k-1", "name": "status", "value": "ok", "type": "string" },
-            { "id": "k-2", "name": "question", "value": "={{ $json.question }}", "type": "string" },
-            { "id": "k-3", "name": "answer", "value": "={{ $json.answer }}", "type": "string" },
-            { "id": "k-4", "name": "sources", "value": "={{ $json.sources }}", "type": "object" }
+            {
+              "id": "k-1",
+              "name": "status",
+              "value": "ok",
+              "type": "string"
+            },
+            {
+              "id": "k-2",
+              "name": "question",
+              "value": "={{ $json.question }}",
+              "type": "string"
+            },
+            {
+              "id": "k-3",
+              "name": "answer",
+              "value": "={{ $json.answer }}",
+              "type": "string"
+            },
+            {
+              "id": "k-4",
+              "name": "sources",
+              "value": "={{ $json.sources }}",
+              "type": "object"
+            }
           ]
         },
         "options": {}
       },
-      "id": "respond-12", "name": "Respond: 回答 + 來源", "type": "n8n-nodes-base.set", "typeVersion": 3.4, "position": [880, 460]
+      "id": "respond-12",
+      "name": "Respond: 回答 + 來源",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        880,
+        460
+      ]
     }
   ],
   "connections": {
-    "Manual: 建索引": { "main": [[{"node": "Read 知識文件", "type": "main", "index": 0}]] },
-    "Read 知識文件": { "main": [[{"node": "Extract 文字", "type": "main", "index": 0}]] },
-    "Extract 文字": { "main": [[{"node": "Code: 切 chunk + 組 JSONL", "type": "main", "index": 0}]] },
-    "Code: 切 chunk + 組 JSONL": { "main": [[{"node": "Write 索引", "type": "main", "index": 0}]] },
-    "Webhook: kb-ask": { "main": [[{"node": "Read 索引檔", "type": "main", "index": 0}]] },
-    "Read 索引檔": { "main": [[{"node": "Code: 檢索 + AI 生答", "type": "main", "index": 0}]] },
-    "Code: 檢索 + AI 生答": { "main": [[{"node": "Respond: 回答 + 來源", "type": "main", "index": 0}]] }
+    "Manual: 建索引": {
+      "main": [
+        [
+          {
+            "node": "Read 知識文件",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read 知識文件": {
+      "main": [
+        [
+          {
+            "node": "Extract 文字",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract 文字": {
+      "main": [
+        [
+          {
+            "node": "Code: 切 chunk + 組 JSONL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: 切 chunk + 組 JSONL": {
+      "main": [
+        [
+          {
+            "node": "Write 索引",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook: kb-ask": {
+      "main": [
+        [
+          {
+            "node": "Read 索引檔",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read 索引檔": {
+      "main": [
+        [
+          {
+            "node": "Code: 檢索 + AI 生答",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: 檢索 + AI 生答": {
+      "main": [
+        [
+          {
+            "node": "Respond: 回答 + 來源",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
   "active": false,
-  "settings": {"executionOrder": "v1"},
+  "settings": {
+    "executionOrder": "v1"
+  },
   "id": "lite-pack-12-knowledge-rag",
-  "tags": [{"name": "lite-pack", "id": "tag-lite-pack"}, {"name": "module-3", "id": "tag-module-3"}]
+  "tags": [
+    {
+      "name": "lite-pack",
+      "id": "tag-lite-pack"
+    },
+    {
+      "name": "module-3",
+      "id": "tag-module-3"
+    }
+  ]
 }

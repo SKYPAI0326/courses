@@ -14,7 +14,10 @@
       "name": "📌 使用說明",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [-280, 0]
+      "position": [
+        -280,
+        0
+      ]
     },
     {
       "parameters": {
@@ -27,19 +30,25 @@
       "name": "Webhook: ai-ask",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [240, 300],
+      "position": [
+        240,
+        300
+      ],
       "webhookId": "lite-pack-06-ai-ask"
     },
     {
       "parameters": {
         "language": "javaScript",
-        "jsCode": "// v0.6：Code node 直接打 Gemini API + 組 Markdown + 組 binary + 組通知文（合併原本三個節點）\n\nconst GEMINI_API_KEY = '__GEMINI_API_KEY__';\nconst webhookData = $input.first().json;\nconst question = webhookData.body?.question || webhookData.query?.question || '請告訴我什麼是 n8n？';\nconst ts = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '').replace(/-/g, '');\n\nconst prompt = '請回答以下問題（繁體中文，300 字內，結構化分點）：\\n\\n' + question;\n\nlet raw;\nlet aiError = null;\n\ntry {\n  const response = await this.helpers.httpRequest({\n    method: 'POST',\n    url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',\n    headers: {\n      'Content-Type': 'application/json',\n      'x-goog-api-key': GEMINI_API_KEY\n    },\n    body: {\n      contents: [{ role: 'user', parts: [{ text: prompt }] }],\n      generationConfig: { temperature: 0.6, maxOutputTokens: 800, thinkingConfig: { thinkingBudget: 0 } }\n    },\n    json: true,\n    timeout: 60000\n  });\n  raw = response.candidates?.[0]?.content?.parts?.[0]?.text || '（AI 沒回應）';\n} catch (err) {\n  aiError = err.message || String(err);\n  raw = '（AI 呼叫失敗：' + aiError + '）';\n}\n\nconst markdown = '# AI 回應 - ' + new Date().toLocaleString('zh-TW') + '\\n\\n## 問題\\n' + question + '\\n\\n## 回答\\n' + raw + '\\n';\nconst outputPath = '/files/shared/ai-output/ai-' + ts + '.md';\n// strip Telegram markdown legacy 解析字元，避免 entities error\nconst stripMD = (s) => String(s).replace(/[*_`\\[\\]]/g, '');\nconst tgMsg = '🤖 AI 回應已產生\\n\\n問：' + stripMD(question.substring(0, 100)) + '\\n\\n答：' + stripMD(raw.substring(0, 200)) + '...\\n\\n完整檔：' + outputPath;\n\nreturn [{\n  json: { outputPath, tgMsg, question, answer: raw, aiError },\n  binary: {\n    data: {\n      data: Buffer.from(markdown).toString('base64'),\n      mimeType: 'text/markdown',\n      fileName: 'ai-' + ts + '.md'\n    }\n  }\n}];"
+        "jsCode": "// v0.6：Code node 直接打 Gemini API + 組 Markdown + 組 binary + 組通知文（合併原本三個節點）\n\nconst GEMINI_API_KEY = '__GEMINI_API_KEY__';\nconst webhookData = $input.first().json;\nconst question = webhookData.body?.question || webhookData.query?.question || '請告訴我什麼是 n8n？';\nconst ts = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '').replace(/-/g, '');\n\nconst prompt = '請回答以下問題（繁體中文，300 字內，結構化分點）：\\n\\n' + question;\n\nlet raw;\nlet aiError = null;\n\ntry {\n  const response = await this.helpers.httpRequest({\n    method: 'POST',\n    url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',\n    headers: {\n      'Content-Type': 'application/json',\n      'x-goog-api-key': GEMINI_API_KEY\n    },\n    body: {\n      contents: [{ role: 'user', parts: [{ text: prompt }] }],\n      generationConfig: { temperature: 0.6, maxOutputTokens: 800, thinkingConfig: { thinkingBudget: 0 } }\n    },\n    json: true,\n    timeout: 60000\n  });\n  raw = response.candidates?.[0]?.content?.parts?.[0]?.text || '（AI 沒回應）';\n} catch (err) {\n  aiError = err.message || String(err);\n  raw = '（AI 呼叫失敗：' + aiError + '）';\n}\n\nconst markdown = '# AI 回應 - ' + new Date().toLocaleString('zh-TW') + '\\n\\n## 問題\\n' + question + '\\n\\n## 回答\\n' + raw + '\\n';\nconst outputPath = '/files/shared/ai-output/ai-' + ts + '.md';\n// strip Telegram markdown legacy 解析字元，避免 entities error\nconst stripMD = (s) => String(s).replace(/[*_`\\[\\]]/g, '');\nconst tgMsg = '🤖 AI 回應已產生\\n\\n問：' + stripMD(question.substring(0, 100)) + '\\n\\n答：' + stripMD(raw.substring(0, 200)) + '...\\n\\n完整檔：' + outputPath;\n\nreturn [{\n  json: { outputPath, tgMsg, question, answer: raw, aiError },\n  binary: {\n    data: {\n      data: Buffer.from('\\ufeff' + (markdown), 'utf-8').toString('base64'),\n      mimeType: 'text/markdown',\n      fileName: 'ai-' + ts + '.md'\n    }\n  }\n}];"
       },
       "id": "ai-06",
       "name": "Code: AI 生答 + 組 Markdown",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [460, 300],
+      "position": [
+        460,
+        300
+      ],
       "onError": "continueRegularOutput"
     },
     {
@@ -53,7 +62,10 @@
       "name": "Write: ai-output/",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
-      "position": [680, 220]
+      "position": [
+        680,
+        220
+      ]
     },
     {
       "parameters": {
@@ -65,7 +77,10 @@
       "name": "Telegram 通知",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [680, 380],
+      "position": [
+        680,
+        380
+      ],
       "credentials": {
         "telegramApi": {
           "id": "lite-pack-telegram",
@@ -78,9 +93,24 @@
       "parameters": {
         "assignments": {
           "assignments": [
-            {"id": "r-06", "name": "status", "value": "ok", "type": "string"},
-            {"id": "r-q-06", "name": "question", "value": "={{ $('Code: AI 生答 + 組 Markdown').first().json.question }}", "type": "string"},
-            {"id": "r-a-06", "name": "answer", "value": "={{ $('Code: AI 生答 + 組 Markdown').first().json.answer }}", "type": "string"}
+            {
+              "id": "r-06",
+              "name": "status",
+              "value": "ok",
+              "type": "string"
+            },
+            {
+              "id": "r-q-06",
+              "name": "question",
+              "value": "={{ $('Code: AI 生答 + 組 Markdown').first().json.question }}",
+              "type": "string"
+            },
+            {
+              "id": "r-a-06",
+              "name": "answer",
+              "value": "={{ $('Code: AI 生答 + 組 Markdown').first().json.answer }}",
+              "type": "string"
+            }
           ]
         },
         "options": {}
@@ -89,21 +119,59 @@
       "name": "Respond: 回 webhook 200",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [900, 300]
+      "position": [
+        900,
+        300
+      ]
     }
   ],
   "connections": {
-    "Webhook: ai-ask": {"main": [[{"node": "Code: AI 生答 + 組 Markdown", "type": "main", "index": 0}]]},
+    "Webhook: ai-ask": {
+      "main": [
+        [
+          {
+            "node": "Code: AI 生答 + 組 Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Code: AI 生答 + 組 Markdown": {
-      "main": [[
-        {"node": "Write: ai-output/", "type": "main", "index": 0},
-        {"node": "Telegram 通知", "type": "main", "index": 0},
-        {"node": "Respond: 回 webhook 200", "type": "main", "index": 0}
-      ]]
+      "main": [
+        [
+          {
+            "node": "Write: ai-output/",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Telegram 通知",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Respond: 回 webhook 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
-  "settings": {"executionOrder": "v1"},
+  "settings": {
+    "executionOrder": "v1"
+  },
   "id": "lite-pack-06-webhook-gemini-file",
-  "tags": [{"name": "lite-pack", "id": "tag-lite-pack"}, {"name": "module-1", "id": "tag-module-1"}]
+  "tags": [
+    {
+      "name": "lite-pack",
+      "id": "tag-lite-pack"
+    },
+    {
+      "name": "module-1",
+      "id": "tag-module-1"
+    }
+  ]
 }
