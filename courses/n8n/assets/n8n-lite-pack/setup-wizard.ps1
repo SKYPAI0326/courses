@@ -240,6 +240,9 @@ $Folders = @(
   'batch-inbox','batch-inbox\processed','batch-inbox\failed',
   'daily-input','daily-output','ai-output',
   'client-inbox','client-organized',
+  # v1.1：#10 客戶分類 6 個子夾預建（n8n writeFile 不會自動建父目錄）
+  'client-organized\contracts','client-organized\invoices','client-organized\presentations',
+  'client-organized\images','client-organized\docs','client-organized\others',
   'leads-inbox','leads-output',
   'knowledge-docs','knowledge-index',
   'ops-input','ops-history','ops-snapshots','ops-incidents'

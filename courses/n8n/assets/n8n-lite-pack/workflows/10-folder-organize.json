@@ -1,13 +1,13 @@
 {
   "name": "10 · 客戶資料夾自動整理",
   "meta": {
-    "_litePackNote": "v1.0：開頭加 Execute Command mkdir -p 6 個分類子資料夾，修「The file or directory does not exist」錯誤。原 v0.9 假設 setup-wizard 建好分類子夾，但 wizard 只建到 client-organized/ 本身。"
+    "_litePackNote": "v1.1：v1.0 的 Execute Command 節點被 n8n 2.17.8 拒絕（unrecognized node type）。改回不依賴該節點，靠 setup-wizard 在 host 端先建好 6 個分類子夾。"
   },
   "nodes": [
     {
       "parameters": {
-        "content": "## #10 客戶資料夾自動整理與交接包（v1.0）\n\n**目的**：顧問/設計師/課程助教/代操常收到一堆客戶檔案（PDF、圖、簡報、合約）資料夾混亂。這個 workflow 自動分類、命名、歸檔，並產 Markdown index 方便交接。\n\n**v1.0 修補**：開頭加「建 6 個分類資料夾」節點（mkdir -p）。原 v0.9 學員實測會撞「The file or directory does not exist」— n8n writeFile 不會自動建父目錄。\n\n**測試方法**：\n1. 把客戶各種檔案丟進 ~/Downloads/n8n-starter-kit/shared/client-inbox/\n2. 點 Execute workflow\n3. 看 client-organized/ 內生出 contracts/ invoices/ presentations/ images/ docs/ others/ 6 個分類子資料夾 + 改名後的檔案\n4. 看 client-organized/_index.md 收到一份 Markdown 交接清單\n5. Telegram 收到「✅ 整理完成 N 份檔案」通知\n\n**改造**：把分類規則改成你業務術語（合約/客戶 brief / 設計稿 / 簡報 / 報價單），prompt 換成你的分類定義即可。**記得同步改 mkdir 節點的子資料夾名稱**，否則寫檔會撞同一個 ENOENT 錯。",
-        "height": 500,
+        "content": "## #10 客戶資料夾自動整理與交接包（v1.1）\n\n**目的**：顧問/設計師/課程助教/代操常收到一堆客戶檔案（PDF、圖、簡報、合約）資料夾混亂。這個 workflow 自動分類、命名、歸檔，並產 Markdown index 方便交接。\n\n**前置（setup-wizard 已自動處理）**：必須先有 6 個分類子夾在 client-organized/ 底下：contracts/ invoices/ presentations/ images/ docs/ others/。setup-wizard.bat / setup-wizard.command 已自動建好。\n\n**自定分類時**：如果你改 prompt 用自己的業務分類（如「合約 / 設計稿 / 報價單」），記得手動 mkdir 對應子夾，否則 Write 節點會撞「The file or directory does not exist」。\n\n**測試方法**：\n1. 把客戶各種檔案丟進 ~/Downloads/n8n-starter-kit/shared/client-inbox/\n2. 點 Execute workflow\n3. 看 client-organized/ 內 6 個分類子資料夾被填入改名後的檔案\n4. 看 client-organized/_index.md 收到一份 Markdown 交接清單\n5. Telegram 收到「✅ 整理完成 N 份檔案」通知",
+        "height": 460,
         "width": 380
       },
       "id": "sticky-10",
@@ -26,17 +26,6 @@
     },
     {
       "parameters": {
-        "command": "mkdir -p /files/shared/client-organized/contracts /files/shared/client-organized/invoices /files/shared/client-organized/presentations /files/shared/client-organized/images /files/shared/client-organized/docs /files/shared/client-organized/others"
-      },
-      "id": "mkdir-10",
-      "name": "建 6 個分類資料夾",
-      "type": "n8n-nodes-base.executeCommand",
-      "typeVersion": 1,
-      "position": [440, 300],
-      "notes": "mkdir -p 是 idempotent — 已存在不會錯。修 v0.9 學員實測踩雷：n8n writeFile 不會自動建父目錄"
-    },
-    {
-      "parameters": {
         "fileSelector": "/files/shared/client-inbox/*",
         "options": {}
       },
@@ -44,7 +33,7 @@
       "name": "Read 所有檔案",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
-      "position": [640, 300]
+      "position": [440, 300]
     },
     {
       "parameters": {
@@ -55,7 +44,7 @@
       "name": "Extract 文字（PDF/MD/TXT/DOCX）",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1,
-      "position": [840, 300],
+      "position": [640, 300],
       "onError": "continueRegularOutput",
       "notes": "對非文字類檔（圖片）會 throw 但 onError continueRegular 繼續，後面 Code 用副檔名判斷"
     },
@@ -68,7 +57,7 @@
       "name": "Code: AI 分類 + 命名",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1060, 300]
+      "position": [860, 300]
     },
     {
       "parameters": {
@@ -81,7 +70,7 @@
       "name": "Write: 移到分類資料夾",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
-      "position": [1280, 240]
+      "position": [1080, 240]
     },
     {
       "parameters": {
@@ -97,7 +86,7 @@
       "name": "Aggregate index lines",
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
-      "position": [1280, 380]
+      "position": [1080, 380]
     },
     {
       "parameters": {
@@ -108,7 +97,7 @@
       "name": "Code: 組 Markdown index + 通知",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1500, 380]
+      "position": [1300, 380]
     },
     {
       "parameters": {
@@ -121,7 +110,7 @@
       "name": "Write: _index.md",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
-      "position": [1720, 320]
+      "position": [1520, 320]
     },
     {
       "parameters": {
@@ -133,7 +122,7 @@
       "name": "Telegram 通知",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [1720, 440],
+      "position": [1520, 440],
       "credentials": {
         "telegramApi": { "id": "lite-pack-telegram", "name": "Lite Pack · Telegram Bot" }
       },
@@ -141,8 +130,7 @@
     }
   ],
   "connections": {
-    "Manual Trigger": { "main": [[{"node": "建 6 個分類資料夾", "type": "main", "index": 0}]] },
-    "建 6 個分類資料夾": { "main": [[{"node": "Read 所有檔案", "type": "main", "index": 0}]] },
+    "Manual Trigger": { "main": [[{"node": "Read 所有檔案", "type": "main", "index": 0}]] },
     "Read 所有檔案": { "main": [[{"node": "Extract 文字（PDF/MD/TXT/DOCX）", "type": "main", "index": 0}]] },
     "Extract 文字（PDF/MD/TXT/DOCX）": { "main": [[{"node": "Code: AI 分類 + 命名", "type": "main", "index": 0}]] },
     "Code: AI 分類 + 命名": {

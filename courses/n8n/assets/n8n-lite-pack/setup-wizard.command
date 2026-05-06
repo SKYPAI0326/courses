@@ -154,10 +154,21 @@ echo ""
 echo "[5/10] 建 sample 資料夾..."
 
 SHARED="$STARTER_KIT/shared"
-for sub in pdf-inbox pdf-renamed batch-inbox batch-inbox/processed batch-inbox/failed daily-input daily-output ai-output; do
+# v1.1：完整 24 個 shared 子資料夾（與 Win 版同步）+ #10 客戶分類 6 個子夾預建
+for sub in \
+  pdf-inbox pdf-renamed \
+  batch-inbox batch-inbox/processed batch-inbox/failed \
+  daily-input daily-output ai-output \
+  client-inbox \
+  client-organized \
+  client-organized/contracts client-organized/invoices client-organized/presentations \
+  client-organized/images client-organized/docs client-organized/others \
+  leads-inbox leads-output \
+  knowledge-docs knowledge-index \
+  ops-input ops-history ops-snapshots ops-incidents; do
   mkdir -p "$SHARED/$sub"
 done
-echo "  ✓ 7 個 shared/ 子資料夾建好（位於 $SHARED）"
+echo "  ✓ 24 個 shared/ 子資料夾建好（含 #10 客戶分類 6 個子夾，位於 $SHARED）"
 
 # ═════════ Step 6: 生成 credentials JSON（含 id 欄位）═════════
 echo ""
