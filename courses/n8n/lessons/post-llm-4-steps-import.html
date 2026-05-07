@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>步驟 4-6 詳解 — 匯入測試、錯誤回報、收斂｜AI 資料工廠</title>
-<meta name="description" content="LLM 協助改寫 n8n workflow 六步流程後半段：步驟 4 隔離環境匯入測試、步驟 5 最小可重現錯誤回報、步驟 6 收斂迴圈，含 prompt 模板 4-5 與紅線 7/8 操作要點。">
+<title>步驟 4-6 真詳解 — 匯入測試、錯誤回報、收斂｜AI 資料工廠</title>
+<meta name="description" content="LLM 協助改寫 n8n workflow 六步流程後半段：步驟 4 verify Duplicate 三硬指標、步驟 5 精準型回報 vs 太模糊三變體、步驟 6 可數 proxy 收斂表，含 prompt 模板 4-5。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
-<meta property="og:title" content="步驟 4-6 詳解 — 匯入測試、錯誤回報、收斂｜AI 資料工廠">
-<meta property="og:description" content="LLM 協助改寫 n8n workflow 六步流程後半段：步驟 4 隔離環境匯入測試、步驟 5 最小可重現錯誤回報、步驟 6 收斂迴圈，含 prompt 模板 4-5。">
+<meta property="og:title" content="步驟 4-6 真詳解 — 匯入測試、錯誤回報、收斂｜AI 資料工廠">
+<meta property="og:description" content="LLM 協助改寫 n8n workflow 六步流程後半段：步驟 4 verify Duplicate 三硬指標、步驟 5 精準型回報 vs 太模糊三變體、步驟 6 可數 proxy 收斂表，含 prompt 模板 4-5。">
 <meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/lessons/post-llm-4-steps-import.html">
 <meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="步驟 4-6 詳解 — 匯入測試、錯誤回報、收斂｜AI 資料工廠">
-<meta name="twitter:description" content="LLM 協助改寫 n8n workflow 六步流程後半段，含 prompt 模板 4-5 與紅線 7/8 操作要點。">
+<meta name="twitter:title" content="步驟 4-6 真詳解 — 匯入測試、錯誤回報、收斂｜AI 資料工廠">
+<meta name="twitter:description" content="LLM 協助改寫 n8n workflow 六步流程後半段，含 prompt 模板 4-5 與可數 proxy 收斂表。">
 <meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/lessons/post-llm-4-steps-import.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -39,7 +39,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 .hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px;font-variant-numeric:tabular-nums}
 .lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;max-width:22ch}
 .lesson-tagline{font-size:.92rem;color:var(--c-muted);line-height:1.9;margin-bottom:36px}
-.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-main);margin-top:28px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);margin-top:28px}
 .outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
 .outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
 .lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
@@ -88,6 +88,11 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 .step-row:last-child{border-bottom:none}
 .step-circle{display:flex;align-items:center;justify-content:center;background:var(--c-surface);font-family:'Shippori Mincho',serif;font-size:.82rem;font-weight:700;color:var(--c-faint);border-right:1px solid var(--c-border-soft);min-height:52px}
 .step-content{padding:14px 18px;font-size:.88rem;color:var(--c-text);line-height:1.75}
+.proxy-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.87rem}
+.proxy-table th{text-align:left;padding:9px 14px;background:var(--c-surface);border:1px solid var(--c-border-soft);font-family:'Shippori Mincho',serif;font-size:.8rem;font-weight:700;color:var(--c-text);letter-spacing:.04em}
+.proxy-table td{padding:10px 14px;border:1px solid var(--c-border-soft);vertical-align:top;line-height:1.7;color:var(--c-text)}
+.proxy-table .near{color:#2a5a2a;font-weight:600}
+.proxy-table .far{color:#8a2020;font-weight:600}
 .nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
 .nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
 .nav-btn:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
@@ -99,7 +104,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 .footer-note{font-size:.75rem;color:var(--c-muted)}
 .footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
 @media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important}*{animation:none!important}}
-@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.scenario-row{grid-template-columns:1fr}.step-table{font-size:.82rem}.step-row{grid-template-columns:36px 1fr}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.scenario-row{grid-template-columns:1fr}.step-table,.proxy-table{font-size:.82rem}.step-row{grid-template-columns:36px 1fr}}
 </style>
 </head>
 <body>
@@ -142,130 +147,156 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 <div class="page-hero">
   <a href="index.html" class="back-link"><span aria-hidden="true">←</span> 返回課程首頁</a>
-  <div class="hero-eyebrow">8 頁系列 · 第 4/8 · 步驟 4-6 詳解</div>
-  <h1 class="lesson-title">步驟 4-6 詳解 — 匯入測試、錯誤回報、收斂</h1>
-  <p class="lesson-tagline">LLM 給了你改好的節點區段，接下來是你的主場。步驟 4-6 是流程裡最考驗耐心的段落：每次只跑 1 筆、出錯就精準回報、三輪收斂不過就退回起點。這三步做好，改出來的 workflow 才真的能用。</p>
+  <div class="hero-eyebrow">8 頁系列 · 第 4/8 · 步驟 4-6 真詳解</div>
+  <h1 class="lesson-title">步驟 4-6 真詳解 — 匯入測試、錯誤回報、收斂</h1>
+  <p class="lesson-tagline">LLM 給了你改好的節點區段，接下來是你的主場。步驟 4 verify 你的 Duplicate 有沒有做對；步驟 5 學會分辨「精準回答」和「太模糊」；步驟 6 用可數的 proxy 判斷「比上輪更近還是更遠」，每輪有憑有據。</p>
   <div class="outcomes">
     <div class="outcomes-label">本頁重點 · OUTCOMES</div>
-    <div class="outcome-item">掌握步驟 4 隔離環境動線（紅線 7），確保改動不碰到 production 流量</div>
-    <div class="outcome-item">能用「三件套」格式（紅燈訊息＋input＋parameter）精準回報錯誤，不再整份貼給 LLM 重寫</div>
-    <div class="outcome-item">懂得在步驟 6 判斷「LLM 越改越複雜」的訊號，並用模板 5 強制收斂</div>
+    <div class="outcome-item">步驟 4：verify Duplicate 三硬指標（節點數 / credentials / Active OFF），確認複本健全再跑</div>
+    <div class="outcome-item">步驟 5：用「三件套」格式回報，並能分辨精準型 vs 太模糊三種變體，知道各自怎麼追問</div>
+    <div class="outcome-item">步驟 6：用可數 proxy 表（紅燈數 / null 數 / 行數 / 動節點數）判斷近遠，全量跑完走 Executions tab 驗收</div>
   </div>
 </div>
 
+<!-- Phase C anchor — 教學對照說明 -->
+<section class="lesson-section" id="phase-c-anchor">
+  <div class="callout" style="background:rgba(201,150,58,.07);border-left:2px solid #c9963a;">
+    <div class="callout-icon" aria-hidden="true">!</div>
+    <div class="callout-body">
+      <strong>和第 6 章 Phase C walkthrough 的順序不同，請以本章為準。</strong><br>
+      第 6 章 Phase C 為了示範「學員第一次很可能忘記順序」這個常見錯誤，故意演了「先替換到原版才想到要 Duplicate」的劇情並補救。<strong>那是教學示範，不是 best practice。</strong><br>
+      本章（第 3 + 4 章）教的流程是：<strong>先 Duplicate（第 3 章 step 6）→ 替換節點 → 再來本頁 verify</strong>。正確順序以本章為準。
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
 <section class="lesson-section">
   <div class="section-eyebrow">(01)</div>
-  <h2 class="section-heading">步驟 4：匯入測試（隔離環境，學員主導）</h2>
+  <h2 class="section-heading">步驟 4：匯入測試（全人工，約 10 分鐘）</h2>
   <div class="intro-band">
-    <div class="intro-label">為什麼這步不讓 LLM 介入</div>
-    <div class="intro-text">步驟 4 是六步流程唯一一個 LLM 完全不在的步驟。你從步驟 3 拿到 LLM 給的節點區段、在 n8n UI 替換完之後，剩下的事只有一件：用最小樣本跑一次，看對不對。這步不需要 AI，需要你的眼睛。</div>
+    <div class="intro-label">Duplicate 已在第 3 章 step 6 做完，本步只 verify</div>
+    <div class="intro-text">你從步驟 3 拿到 LLM 給的節點區段、在 n8n UI 替換進 -edit 複本之後，下一件事不是直接點 Execute——而是先確認複本本身是健全的。三條硬指標任一不過，退回第 3 章 step 6 重做 Duplicate，不要跳過。</div>
   </div>
 
-  <table class="step-table">
-    <thead>
-      <tr>
-        <th>面向</th>
-        <th>說明</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><strong>動作</strong></td>
-        <td>在 n8n UI 點「Execute Workflow」，或用 trigger 餵一筆樣本資料，跑一次完整流程。</td>
-      </tr>
-      <tr>
-        <td><strong>LLM 做什麼</strong></td>
-        <td>不做。LLM 在這步沒有角色。</td>
-      </tr>
-      <tr>
-        <td><strong>你做什麼</strong></td>
-        <td>用最小樣本（1 個檔案 / 1 列資料 / 1 封信）跑一次。逐一檢查每個節點的 output panel，確認資料形狀符合預期。</td>
-      </tr>
-      <tr>
-        <td><strong>驗收訊號</strong></td>
-        <td>所有節點都綠燈，最後一個節點的 output 結構與步驟 1 便箋上寫的「目標 output」一致。</td>
-      </tr>
-      <tr>
-        <td><strong>雷區</strong></td>
-        <td>用大批量測試（例：直接把 200 張發票全丟進去）——錯誤會被埋在中段，難以追蹤。<strong>永遠先用 1 筆。</strong></td>
-      </tr>
-    </tbody>
-  </table>
-
-  <h3 class="section-heading" style="font-size:1.1rem;margin-top:36px;margin-bottom:16px;">隔離環境動線（紅線 7）</h3>
-  <p class="body-text">這是步驟 4 最容易被跳過、後果也最嚴重的一個細節。n8n 匯入流程預設保留原 workflow 的 active 狀態，如果你直接在 production workflow 上替換節點、馬上跑，就是用未驗證版本接收真實流量或真實檔案。</p>
-  <p class="body-text"><strong>正確的隔離環境動線（紅線 7）</strong>，依序做這四步，一步不能跳：</p>
+  <h3 class="section-heading" style="font-size:1.1rem;margin-top:0;margin-bottom:16px;">4.1 — verify Duplicate 結果（三硬指標）</h3>
+  <p class="body-text">在 n8n UI Workflows 列表找到 <span class="inline-code">02-pdf-ai-rename-edit</span>，點開，依序確認：</p>
 
   <div class="steps-list">
     <div class="step-row">
       <div class="step-circle">a</div>
-      <div class="step-content">在 n8n UI 對著原 workflow 點右上角「Duplicate」，複製一份，命名為 <span class="inline-code">&lt;原名&gt;-edit</span>（例：<span class="inline-code">02-pdf-ai-rename-edit</span>）</div>
+      <div class="step-content">
+        <strong>節點數與原版一致</strong><br>
+        在原版開一個分頁對照數一遍。例如原版 5 個節點，-edit 也要是 5 個。
+        <div style="margin-top:8px;font-size:.82rem;color:var(--c-muted);">驗收：兩個分頁節點數字相同</div>
+      </div>
     </div>
     <div class="step-row">
       <div class="step-circle">b</div>
-      <div class="step-content">把 LLM 改好的節點區段套到這個複本上，不碰原 workflow</div>
+      <div class="step-content">
+        <strong>credentials 跟著來了</strong><br>
+        點任一含 credential 的節點（例：HTTP Request、Gemini、Google Drive），看 Credentials 欄位是否還掛著原本那個。n8n Duplicate 預設會繼承；若顯示「Select Credential」表示沒繼承，要手動選回去。
+        <div style="margin-top:8px;font-size:.82rem;color:var(--c-muted);">驗收：Credentials 欄位顯示具體帳號名，不是「Select Credential」</div>
+      </div>
     </div>
     <div class="step-row">
       <div class="step-circle">c</div>
-      <div class="step-content">確認複本的 trigger 是 OFF 或 Manual——開著的 trigger 會在你不注意時自動執行</div>
-    </div>
-    <div class="step-row">
-      <div class="step-circle">d</div>
-      <div class="step-content">複本跑通、結果驗收 OK 之後，才把改動複製回原 workflow</div>
+      <div class="step-content">
+        <strong>Active 開關是灰色 OFF</strong><br>
+        Duplicate 預設關，但仍要肉眼確認。看 workflow 右上角的 Active 開關。
+        <div style="margin-top:8px;font-size:.82rem;color:var(--c-muted);">驗收：開關文字顯示「Inactive」或「OFF」，灰色</div>
+      </div>
     </div>
   </div>
 
   <div class="warn-box">
-    <div class="warn-box-label">任一步跳過的代價</div>
-    <div class="warn-box-text">你在用真客戶資料、真收件人、真資料庫當白老鼠。寄錯信、刪錯檔、寫錯記錄——這些操作沒有 Ctrl+Z。隔離環境不是多做一步，是省掉收拾爛攤子的幾個小時。</div>
+    <div class="warn-box-label">任一條不過 → 退回</div>
+    <div class="warn-box-text">退回第 3 章 step 6 重做 Duplicate，不要在不健全的複本上繼續跑。複本有問題，後面所有步驟的結果都不可信。</div>
   </div>
 
-  <p class="body-text">步驟 4 這步學員完全手動操作，不需要任何 prompt，跳過「模板」直接進 n8n UI 執行。</p>
+  <h3 class="section-heading" style="font-size:1.1rem;margin-top:36px;margin-bottom:16px;">4.2 — 準備測試樣本並執行</h3>
+
+  <div class="steps-list">
+    <div class="step-row">
+      <div class="step-circle">1</div>
+      <div class="step-content">
+        <strong>準備 1 張測試 PDF</strong><br>
+        把 1 張你已經有的真實供應商發票（或任何舊合約 PDF 當煙霧測試）放到 <span class="inline-code">/files/pdf-inbox/</span>。<br>
+        <span style="font-size:.82rem;color:var(--c-muted);">驗收：n8n UI 上 Read PDF 節點點 Execute Step 能列出這張 PDF</span>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-circle">2</div>
+      <div class="step-content">
+        <strong>點 Execute Workflow</strong><br>
+        n8n UI 下方紫色「Execute Workflow」按鈕。<br>
+        <span style="font-size:.82rem;color:var(--c-muted);">驗收：5 個節點全部變綠燈</span>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-circle">3</div>
+      <div class="step-content">
+        <strong>點每個節點看 output panel</strong><br>
+        點節點 → 右側 panel 上方 4 個 tab：Input / Output / Settings / 其他 → 切到 <strong>Output</strong> → 看 JSON 樹。<br>
+        <span style="font-size:.82rem;color:var(--c-muted);">驗收：最後一個節點 (Write) output 裡，<span class="inline-code">newFilename</span> 欄位值符合便箋上寫的命名規則</span>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-circle">4</div>
+      <div class="step-content">
+        <strong>去 Finder 確認</strong><br>
+        打開 <span class="inline-code">/files/pdf-renamed/</span>。<br>
+        <span style="font-size:.82rem;color:var(--c-muted);">驗收：看到 1 張改好名的 PDF，檔名是預期格式</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="body-text">步驟 4 全程手動，不需要任何 prompt。跳過「模板」直接進 n8n UI 執行。</p>
 </section>
 
 <hr class="section-rule">
 
 <section class="lesson-section">
   <div class="section-eyebrow">(02)</div>
-  <h2 class="section-heading">步驟 5：錯誤回報（最小可重現訊息）</h2>
+  <h2 class="section-heading">步驟 5：錯誤回報（5–15 分鐘 / 輪）</h2>
   <div class="intro-band">
-    <div class="intro-label">這步的核心原則</div>
-    <div class="intro-text">步驟 4 出現紅燈，你要做的不是把整份 workflow 重貼給 LLM。你要做的是「把 LLM 帶到紅燈的那一節點前」，讓它看到同樣的輸入和同樣的錯誤——這叫「最小可重現訊息」。範圍越小，LLM 診斷越準，你修的次數越少。</div>
+    <div class="intro-label">進場條件：步驟 4 出現紅燈節點，或 output 裡有 null / 空字串</div>
+    <div class="intro-text">你要做的不是把整份 workflow 重貼給 LLM。你要做的是「把 LLM 帶到紅燈的那一節點前」，讓它看到同樣的輸入和同樣的錯誤。範圍越小，LLM 診斷越準，你修的次數越少。</div>
   </div>
 
-  <table class="step-table">
-    <thead>
-      <tr>
-        <th>面向</th>
-        <th>說明</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><strong>動作</strong></td>
-        <td>步驟 4 失敗時，學員組裝「最小可重現訊息」給 LLM，請它指出問題在哪個欄位、最小修改是什麼。</td>
-      </tr>
-      <tr>
-        <td><strong>LLM 做什麼</strong></td>
-        <td>根據錯誤訊息三件套提出診斷，指出問題節點和欄位。若 LLM 回「我不確定」，代表你提供的資訊不夠，要補資料而不是換另一個 LLM。</td>
-      </tr>
-      <tr>
-        <td><strong>你做什麼</strong></td>
-        <td>複製<strong>三件事</strong>貼給 LLM：(a) 紅燈節點的錯誤訊息全文，(b) 該節點的 input panel 內容或 JSON，(c) 該節點當前的 parameter 設定 JSON（已移除 credential）。</td>
-      </tr>
-      <tr>
-        <td><strong>驗收訊號</strong></td>
-        <td>LLM 能明確指出問題在哪個節點、哪個欄位。如果無法指出，說明回報資訊不足，補充資料後再問一次。</td>
-      </tr>
-      <tr>
-        <td><strong>雷區</strong></td>
-        <td>兩個：(1) 只說「跑不出來」沒有附任何訊息；(2) 把整份 workflow 重貼給 LLM 請它重寫。兩者都讓 LLM 從頭猜，等於退回步驟 3 以前。</td>
-      </tr>
-    </tbody>
-  </table>
+  <h3 class="section-heading" style="font-size:1.1rem;margin-top:0;margin-bottom:16px;">三件套：怎麼收集 + 怎麼貼</h3>
+
+  <div class="steps-list">
+    <div class="step-row">
+      <div class="step-circle">1</div>
+      <div class="step-content">
+        <strong>複製錯誤訊息全文</strong><br>
+        點紅燈節點 → 下方面板跳出紅字 → 滑鼠選取整段 → Cmd+C。<br>
+        <span style="font-size:.82rem;color:var(--c-muted);">驗收：複製到的文字含「Error:」或具體訊息（如「Cannot read property 'X' of undefined」）</span>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-circle">2</div>
+      <div class="step-content">
+        <strong>複製該節點 input panel（SOP-B）</strong><br>
+        點紅燈節點 → 右側 panel 切到 <strong>Input</strong> tab → toggle 切到 <strong>JSON</strong> 模式（不是 Schema / Table）→ 右上角複製按鈕。<br>
+        若 items &gt; 3 筆：只貼前 2 筆，刪掉 binary 大段 base64，搜尋刪掉 <span class="inline-code">apiKey</span> / <span class="inline-code">accessToken</span> / <span class="inline-code">Bearer</span>。<br>
+        <span style="font-size:.82rem;color:var(--c-muted);">驗收：你能讀懂這段 JSON 的鍵名 + 範例值</span>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-circle">3</div>
+      <div class="step-content">
+        <strong>複製該節點 parameter（SOP-C）</strong><br>
+        點節點本身 → Cmd+C（n8n 複製整個節點 JSON）；或點 ⋮ → 「Copy parameters」。<br>
+        貼之前搜尋 <span class="inline-code">apiKey</span> / <span class="inline-code">accessToken</span> / <span class="inline-code">password</span> / <span class="inline-code">token</span>：全找不到才貼，找到就把 value 改成 <span class="inline-code">"REDACTED"</span>。<br>
+        <span style="font-size:.82rem;color:var(--c-muted);">驗收：JSON 開頭是 <span class="inline-code">&#123; "parameters": ...</span> 或 <span class="inline-code">&#123; "name": "...", "parameters": ...</span></span>
+      </div>
+    </div>
+  </div>
 
   <h3 class="section-heading" style="font-size:1.1rem;margin-top:36px;margin-bottom:16px;">模板 4：錯誤回報模板</h3>
-  <p class="body-text">以下是步驟 5 的標準 prompt。三件套缺一件，LLM 的診斷品質就會明顯下降。</p>
 
   <div class="prompt-box">
     <div class="prompt-box-header">
@@ -274,29 +305,65 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     </div>
     <div class="prompt-box-body">
       <div class="code-block"><span class="cm">我是 n8n 非工程師使用者，請以結果為主、不解釋原理。</span>
-我把節點 <span class="vr">{N}</span> 替換成你上一輪給的內容後，匯入跑不過。
-錯誤訊息：<span class="st">{紅燈節點訊息全文}</span>
-該節點 input：<span class="st">{input panel 內容/JSON}</span>
-該節點當前 parameter：<span class="st">{節點 parameter JSON，已移除 credential}</span>
-請只指出：問題在哪個欄位、最小修改是什麼。
-不要重寫節點、不要建議換做法。</div>
+我把節點「Code: AI 改名」替換成你上一輪給的內容後，匯入跑不過。
+
+錯誤訊息（紅燈節點底下的紅字全文）：
+<span class="st">[貼錯誤訊息]</span>
+
+該節點 input（從 Input panel 複製的 JSON）：
+<span class="st">[貼 input JSON]</span>    ← 走 SOP-B（前 2 筆、刪 binary、刪 credential）
+
+該節點當前 parameter（從 Settings 複製的 JSON，已移除 credential）：
+<span class="st">[貼 parameter JSON]</span>    ← 走 SOP-C（搜尋 apiKey 等 4 字串確認都找不到）
+
+請只指出：
+1. 問題在哪個欄位（精確到行）
+2. 最小修改是什麼（給出具體新值）
+
+不要重寫整個節點、不要建議換做法、不要加 try/catch。</div>
       <div class="prompt-wrong">
         <div class="prompt-wrong-label">常見錯誤示範</div>
-        <div class="prompt-wrong-text">直接說「你給我的東西跑不過，請幫我重新改一次」——LLM 只會再猜一版，可能和原本一樣或更離題。沒有三件套，LLM 無從診斷，你只是在消耗輪次。</div>
+        <div class="prompt-wrong-text">直接說「你給我的東西跑不過，請幫我重新改一次」——LLM 只會再猜一版，可能和原本一樣或更離題。三件套缺一件，LLM 無從診斷，你只是在消耗輪次。</div>
       </div>
     </div>
   </div>
 
-  <h3 class="section-heading" style="font-size:1.1rem;margin-top:36px;margin-bottom:16px;">兩條不能踩的雷</h3>
+  <h3 class="section-heading" style="font-size:1.1rem;margin-top:36px;margin-bottom:16px;">LLM 回應辨認：精準型 vs 太模糊三變體</h3>
+  <p class="body-text">貼出模板 4 之後，LLM 的回應大致分四種。辨認方法如下：</p>
 
-  <div class="scenario-grid">
-    <div class="scenario-row">
-      <div class="scenario-task">不貼 credential</div>
-      <div class="scenario-pick">把 parameter JSON 複製出來前，搜尋確認沒有 <span class="inline-code">apiKey</span>、<span class="inline-code">accessToken</span>、<span class="inline-code">password</span> 這類字串殘留。n8n UI 匯出時選「export without credentials」已幫你過濾，但節點 parameter 要手動確認。</div>
+  <div class="ok-box">
+    <div class="ok-box-label">精準型（過關）— 長這樣</div>
+    <div class="ok-box-text">
+      <em>「問題在 parameter 的 jsCode 第 3 行的 prompt 字串。第 3 行目前寫：const prompt = '請從以下發票文字抽取：供應商名稱、稅後金額...'；input panel 顯示 pdfTextPreview 的內容是『賣方：XX 公司，稅後合計：1234 元』。最小修改：第 3 行的『供應商名稱』改成『賣方公司全名』，『稅後金額』改成『稅後合計』。其他不動。」</em><br><br>
+      <strong>三要素都有</strong>：(a) 指出具體欄位名 (b) 給出具體修改值 (c) 引用 input 內容當證據。
     </div>
-    <div class="scenario-row">
-      <div class="scenario-task">不貼整份 workflow</div>
-      <div class="scenario-pick">「整份重貼請 LLM 重寫」是紅線 2 的違反，同時也是步驟 5 最常見的跳步。錯誤回報的價值在「縮小範圍到單一節點」——範圍縮小了，修改範圍才能精準，才不會一改又壞掉其他節點。</div>
+  </div>
+
+  <div class="warn-box">
+    <div class="warn-box-label">變體 X — 純機率判斷（最常見，要追問）</div>
+    <div class="warn-box-text">
+      <em>「這個錯誤訊息看起來是 Gemini API 沒有正確回傳預期格式。建議檢查 Code 節點的 prompt 寫法，可能要重新調整提示詞，或者考慮加上錯誤處理機制讓流程更穩定。」</em><br><br>
+      <strong>辨認訊號</strong>：出現「可能」「建議」「看起來」「或許」「考慮加上」+ 沒指具體欄位名 + 沒給具體新值。<br>
+      <strong>追問</strong>：「請告訴我具體是 prompt 的哪一行需要改、改成什麼新字串。不要建議『調整提示詞』，給我精確的修改。」
+    </div>
+  </div>
+
+  <div class="warn-box">
+    <div class="warn-box-label">變體 Y — 列多個可能根因（要追問）</div>
+    <div class="warn-box-text">
+      <em>「這個錯誤可能的原因有以下幾個：1. prompt 不夠精確，2. PDF 解析可能有問題，3. JSON.parse 失敗，4. fallback 邏輯沒處理某些邊界情況。不排除是綜合因素，建議逐一排除。」</em><br><br>
+      <strong>辨認訊號</strong>：「可能的原因有以下幾個」+ 條列 3 條以上 + 結尾「不排除」「綜合因素」「建議逐一排除」。你不是工程師，沒有時間「逐一排除」。<br>
+      <strong>追問</strong>：「請看『錯誤訊息全文 + input panel』兩件事，<strong>只挑 1 個最可能的根因</strong>告訴我，並指出 parameter 的哪一行要改成什麼。如果你不確定，請告訴我『需要再給你哪個面板才能判斷』，不要列 4 個可能性讓我自己挑。」
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">i</div>
+    <div class="callout-body">
+      <strong>變體 Z — LLM 反問要更多面板（合理，但回得對）</strong><br>
+      <em>「我需要再看一下：Read PDF 節點的 output 是否真的有 pdfTextPreview 欄位？不然光看 Code 節點的 input 我無法判斷是上游沒給對還是 Code 節點本身寫錯。」</em><br><br>
+      這是好回應，不亂猜。但你要用「模板 4-延伸」：問 LLM「為什麼需要看這個——一句話」，並只給那 1 個節點對應的面板，<strong>不貼整份 workflow</strong>。<br>
+      模板 4-延伸：「你需要看上下游節點才能診斷？請告訴我你想看的是哪個節點的哪個面板，以及為什麼。我只貼那一個節點，不貼整份 workflow。」
     </div>
   </div>
 </section>
@@ -305,63 +372,70 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 <section class="lesson-section">
   <div class="section-eyebrow">(03)</div>
-  <h2 class="section-heading">步驟 6：收斂（10 筆 → 200 筆）</h2>
+  <h2 class="section-heading">步驟 6：收斂（最多 3 輪 + 全量執行）</h2>
   <div class="intro-band">
-    <div class="intro-label">收斂是六步流程的最後一哩</div>
-    <div class="intro-text">步驟 3-5 是可以反覆迴圈的：改節點 → 測試失敗 → 精準回報 → 再改。步驟 6 的任務是管控這個迴圈不要無限延伸——最多三輪，三輪不過就退回步驟 1 重看需求。通過之後，從 1 筆小樣本擴大到 10 筆、再到全量。</div>
+    <div class="intro-label">你是把關人，每輪結束問自己「比上輪更近還是更遠」</div>
+    <div class="intro-text">測試-回報-收斂這 3 步是「迴圈閥」：LLM 給的 JSON 是草稿，跑過真實樣本才是答案。每輪結束用下方可數 proxy 表決定「近 / 遠 / 持平」，不靠感覺判斷。</div>
   </div>
 
-  <table class="step-table">
+  <h3 class="section-heading" style="font-size:1.1rem;margin-top:0;margin-bottom:16px;">6.1 — 可數 proxy 表：「近」vs「遠」判斷</h3>
+
+  <table class="proxy-table">
     <thead>
       <tr>
-        <th>面向</th>
-        <th>說明</th>
+        <th>指標</th>
+        <th class="near">近（= 進展）</th>
+        <th class="far">遠（= 停下檢查）</th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td><strong>動作</strong></td>
-        <td>重複步驟 3-5 直到通過，每次迴圈不超過三輪。三輪不過停下來，退回步驟 1 重看需求，不是繼續跑第四輪。</td>
+        <td><strong>紅燈節點數</strong></td>
+        <td class="near">比上輪少（例：2 → 1）</td>
+        <td class="far">出現上輪沒有的新紅燈（問題被搬家，不是進展）</td>
       </tr>
       <tr>
-        <td><strong>LLM 做什麼</strong></td>
-        <td>在步驟 3（限定修改範圍）和步驟 5（錯誤回報）內被呼叫。步驟 6 本身是你的判斷，不是 LLM 的。</td>
+        <td><strong>output null / 空字串數</strong></td>
+        <td class="near">欄位從 null 變成有值（即使值不對也算近）</td>
+        <td class="far">原本有值的欄位變成 null（退步）</td>
       </tr>
       <tr>
-        <td><strong>你做什麼</strong></td>
-        <td>每輪結束問自己「我比上一輪更接近目標嗎？」如果答否，停。先跑 10 筆真實樣本，output 全對之後才放全量（例：200 張發票）。</td>
+        <td><strong>jsCode 行數</strong></td>
+        <td class="near">持平或變少</td>
+        <td class="far">比上輪多 30% 以上（LLM 在加防禦邏輯，不是改根因）</td>
       </tr>
       <tr>
-        <td><strong>驗收訊號</strong></td>
-        <td>用真實樣本（≥ 10 筆）跑通，output 結構與步驟 1 便箋一致。通過之後才跑全量。</td>
-      </tr>
-      <tr>
-        <td><strong>雷區</strong></td>
-        <td>「LLM 越改越複雜」——LLM 傾向加防禦邏輯與分支。如果第三次回覆比第一次長 30%，停下來用模板 5 強制收斂。</td>
+        <td><strong>LLM 動到的節點數</strong></td>
+        <td class="near">比上輪少（逼近根因）</td>
+        <td class="far">比上輪多（範圍蔓延）</td>
       </tr>
     </tbody>
   </table>
 
-  <h3 class="section-heading" style="font-size:1.1rem;margin-top:36px;margin-bottom:16px;">學員姿態示範：當 LLM 想加 try/catch</h3>
-  <p class="body-text">收斂過程中很容易遇到這個情境：你在步驟 5 回報了一個錯誤，LLM 給你的不只是修正，還附上 try/catch 防禦邏輯、條件分支、額外的 error handler 節點。這不一定是壞事，但它讓你的 workflow 變複雜，驗收難度也跟著升高。</p>
+  <p class="body-text">紅燈數一樣 + null 欄位一樣 + 行數差不多 → 算「持平」，記為 1 輪但不算進步。持平 2 輪也要停下退回步驟 1 重看便箋。</p>
 
-  <p class="body-text">學員應有的姿態：</p>
+  <h3 class="section-heading" style="font-size:1.1rem;margin-top:36px;margin-bottom:16px;">6.2 — 接受 / 拒絕判斷樹</h3>
 
   <div class="scenario-grid">
     <div class="scenario-row">
-      <div class="scenario-task">LLM 說的</div>
-      <div class="scenario-pick">「我幫你加了一個 try/catch，如果 PDF 讀取失敗會自動記錄到 error log，並繼續處理下一筆。」</div>
+      <div class="scenario-task" style="color:#8a2020;">拒絕</div>
+      <div class="scenario-pick">LLM 提案動到「節點數量」（新增 / 刪除節點）→ 立刻拒絕，用模板 5</div>
     </div>
     <div class="scenario-row">
-      <div class="scenario-task">你的回覆</div>
-      <div class="scenario-pick">「謝謝，但我目前只需要修好剛才那個欄位錯誤，不需要加防禦邏輯。請保留最小修改，移除你新增的 try/catch 和 error handler，再給我一次。」</div>
+      <div class="scenario-task" style="color:#8a2020;">拒絕</div>
+      <div class="scenario-pick">LLM 提案加 try/catch、if 條件、error handler、retry → 拒絕</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task" style="color:#2a5a2a;">可接受</div>
+      <div class="scenario-pick">LLM 只改原節點裡的「值」（字串、數字、欄位 expression）→ 可接受</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task" style="color:#2a5a2a;">可接受</div>
+      <div class="scenario-pick">LLM 在現有 Code 節點裡加 console.log 幫你 debug → 可接受（debug 後記得刪）</div>
     </div>
   </div>
 
-  <p class="body-text" style="margin-top:20px;">這個「學員拒絕 LLM 的建議」不是在跟 AI 鬥嘴，是在保護你自己：越簡單的 workflow 越好驗收、越好 debug。防禦邏輯留到你對這個 workflow 的基本行為已經完全掌握之後，再加也不遲。</p>
-
   <h3 class="section-heading" style="font-size:1.1rem;margin-top:36px;margin-bottom:16px;">模板 5：收斂止血，當 LLM 越改越複雜時用</h3>
-  <p class="body-text">這個模板的使用時機是：你發現 LLM 的最新版本比最初版本長了很多，或者多了很多你原本需求裡沒有提到的節點和邏輯。</p>
 
   <div class="prompt-box">
     <div class="prompt-box-header">
@@ -369,19 +443,53 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
       <span class="prompt-box-name">模板 5 — 搭配步驟 6（收斂止血）</span>
     </div>
     <div class="prompt-box-body">
-      <div class="code-block">請用一句話比較你最早給我的版本與現在這版，
-哪些是「為了原始需求必要的」、哪些是「你新增的防禦邏輯」？
-請保留必要的、移除新增的，再給我一次。</div>
+      <div class="code-block">請用一句話比較你最早給我的版本與現在這版：
+- 哪些是「為了我原始需求必要的」？
+- 哪些是「你新增的防禦邏輯」（try/catch、if 條件、error handler、新節點）？
+
+請保留必要的、移除新增的，再給我一次「只有 Code 節點」的 JSON 區段。</div>
       <div class="prompt-wrong">
         <div class="prompt-wrong-label">常見錯誤示範</div>
-        <div class="prompt-wrong-text">讓 LLM 一直加：每次報錯就接受 LLM 加的所有防禦措施，到第三輪時 workflow 已經是原本的兩倍大，你完全不知道哪個部分是為了你的需求、哪個部分是 LLM 自己的防禦習慣。這時想退回去很難。</div>
+        <div class="prompt-wrong-text">每次報錯就接受 LLM 加的所有防禦措施，到第三輪時 workflow 已經是原本的兩倍大，你完全不知道哪個部分是為了你的需求、哪個部分是 LLM 自己的防禦習慣。這時想退回去很難。</div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="section-heading" style="font-size:1.1rem;margin-top:36px;margin-bottom:16px;">6.3 — 3 輪不收斂的處理</h3>
+  <p class="body-text">停止 LLM 對話 → 退回步驟 1，看 4 格便箋是否有「目標 input」格寫得太模糊。常見原因：input 那格只寫「發票 PDF」沒寫具體欄位。通常三輪收不斂，問題都在步驟 1 的便箋沒填清楚。</p>
+
+  <h3 class="section-heading" style="font-size:1.1rem;margin-top:36px;margin-bottom:16px;">6.4 — 小批量 → 全量驗收動線</h3>
+
+  <div class="steps-list">
+    <div class="step-row">
+      <div class="step-circle">1</div>
+      <div class="step-content">
+        <strong>小批量測試（10 筆）</strong><br>
+        從 200 張裡隨機挑 10 張不同供應商的發票放 <span class="inline-code">/files/pdf-inbox/</span>，Execute Workflow。<br>
+        <span style="font-size:.82rem;color:var(--c-muted);">驗收三條：(a) 10 張全綠燈 (b) 10 張的 newFilename 都符合便箋格式 (c) 沒有 null</span>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-circle">2</div>
+      <div class="step-content">
+        <strong>全量執行（200 張）</strong><br>
+        把 200 張全放 <span class="inline-code">/files/pdf-inbox/</span>，Execute Workflow。<br>
+        <span style="font-size:.82rem;color:var(--c-muted);">驗收三條：(a) 200 張全綠燈 (b) 抽查 5 張隨機 output 命名正確 (c) Finder pdf-renamed 資料夾數量是 200</span>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-circle">3</div>
+      <div class="step-content">
+        <strong>Executions tab 驗收動線（不等 UI 即時 200 燈）</strong><br>
+        在 n8n 工作區右側點「Executions」分頁 → 等所有 200 筆狀態 column 變成「Success」（綠 ✓）。若有「Failed」（紅 ✗）或「Cancelled」（灰），把那筆 timestamp 記下，回去看哪個節點掛了。<br>
+        <span style="font-size:.82rem;color:var(--c-muted);">200 筆會在 Executions 分頁輪流刷新，大約 7-8 分鐘才全跑完，跑完後再看 list，不要等 UI 即時顯示 200 個綠燈。</span>
       </div>
     </div>
   </div>
 
   <div class="ok-box" style="margin-top:28px;">
     <div class="ok-box-label">三輪收斂上限的意義</div>
-    <div class="ok-box-text">三輪迴圈（步驟 3 → 4 → 5）不過，不是你失敗了，是需求或方向出了問題。退回步驟 1 的便箋，重看「input / output / 保留節點」有沒有哪格寫模糊。通常三輪收不斂，問題都在步驟 1 的便箋沒填清楚。</div>
+    <div class="ok-box-text">三輪迴圈（步驟 3 → 4 → 5）不過，不是你失敗了，是需求或方向出了問題。退回步驟 1 的便箋，重看「input / output / 保留節點」有沒有哪格寫模糊。</div>
   </div>
 </section>
 
@@ -391,16 +499,46 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <div class="section-eyebrow">(04)</div>
   <h2 class="section-heading">收斂後的 Destructive 操作補充（紅線 8）</h2>
   <p class="body-text">步驟 6 跑通之後，還有一個容易被忽略的環節：如果你的 workflow 裡有任何「會對真實世界產生不可逆影響」的節點——刪資料（Notion delete / Drive delete）、寄信（Gmail / Telegram 發給真實收件人）、更新記錄（HubSpot / Pipedrive update）——在切換到全量之前，<strong>必須先做 dry-run（紅線 8）</strong>。</p>
-
-  <p class="body-text">10 筆樣本跑通只代表「資料形狀對了」，不代表「收件人對了」或「刪的是你要刪的那筆記錄」。紅線 8 的正確流程：先把 destructive 節點 disable 或換成 console log 等價假動作，確認 input/output 資料形狀全程正確之後，再把收件人改成自己的測試帳號跑 1-3 筆，最後才換回真收件人 / 真資料源。省掉這 5 分鐘，後果可能要花幾小時甚至幾天補救。</p>
+  <p class="body-text">dry-run 的意思：<strong>先把寄信節點的收件人改成你自己的測試信箱跑 1 次</strong>；如果是刪檔節點，先把它 disable 換成 console.log 假動作。確認 input/output 資料形狀全程正確之後，才換回真收件人 / 真資料源。10 筆樣本跑通只代表「資料形狀對了」，不代表「收件人對了」。省掉這 5 分鐘，後果可能要花幾小時甚至幾天補救。</p>
 </section>
 
 <hr class="section-rule">
 
 <section class="lesson-section">
   <div class="section-eyebrow">(05)</div>
+  <h2 class="section-heading">常見錯誤 + 怎麼解</h2>
+
+  <div class="scenario-grid">
+    <div class="scenario-row">
+      <div class="scenario-task">錯誤 1</div>
+      <div class="scenario-pick">「我點 Execute Workflow 直接在 production workflow 上跑了」<br><strong>解</strong>：立刻關掉 Active 開關。在 Executions tab 看歷史確認 production 有沒有被新版本覆蓋。下次嚴格用 -edit 複本。</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">錯誤 2</div>
+      <div class="scenario-pick">「我貼模板 4，LLM 又給我整份 workflow 重寫」<br><strong>解</strong>：模板 4 結尾「不要重寫整個節點」是關鍵。如果 LLM 還是重寫，加一句：「我只要『修改第 X 行的 Y 字串為 Z』這種句型的回答，不要 JSON」。</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">錯誤 3</div>
+      <div class="scenario-pick">「LLM 第二輪建議我加 try/catch，我拒絕了，第三輪它又建議加 if 條件」<br><strong>解</strong>：用模板 5 強制收斂。這是 LLM 的「helpful 病」。如果第 4 輪還在加，停——換一個新對話 session 重啟。</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">錯誤 4</div>
+      <div class="scenario-pick">「跑了 200 張，發現有 3 張改名失敗（檔名出現 null）」<br><strong>解</strong>：(a) 檢查那 3 張原始 PDF 是不是格式異常（掃描品質差、欄位名不同）(b) 不要改 workflow，改去人工處理那 3 張（80/20 原則）(c) 在 workflow 描述欄記下「3 張邊界 case 已人工處理：[檔名]」。</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">錯誤 5</div>
+      <div class="scenario-pick">「全量跑完，Finder 顯示 195 張不是 200」<br><strong>解</strong>：(a) 打開 n8n UI 的 Executions tab 看「Failed」筆數 (b) 點失敗的 execution 看是哪幾筆 PDF (c) 對應到 pdf-inbox 找原檔，人工處理 / 二次跑。</div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(06)</div>
   <h2 class="section-heading">下一頁預告</h2>
-  <p class="body-text">你已經走完六步流程的後半段。下一頁是「8 條紅線」單頁聚焦：把整份教材的安全規範濃縮成一張清單，建議動手改 workflow 前先看一遍。</p>
+  <p class="body-text">你已經走完六步流程的後半段。下一頁是「8 條紅線」單頁聚焦：把整份教材的安全規範濃縮成一張清單，建議動手改 workflow 前先看一遍。特別注意紅線 1、2、7、8。</p>
+  <p class="body-text">如果你卡在錯誤一直收斂不了：去第 7 章看分流（先看訊息字串對哪一類）。如果你的 workflow 有刪資料 / 寄信節點：第 5 章紅線 8 必看（dry-run 流程）。</p>
 </section>
 
 <div class="nav-footer">
@@ -414,7 +552,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">2026 春季</span>
-  <span class="footer-meta" data-platform-version="n8n 1.x" data-built-at="2026-05-06">本頁以 n8n 1.x 製作，2026-05</span>
+  <span class="footer-meta" data-platform-version="n8n 1.x" data-built-at="2026-05-07">本頁以 n8n 1.x 製作，2026-05</span>
 </footer>
 
 <script>

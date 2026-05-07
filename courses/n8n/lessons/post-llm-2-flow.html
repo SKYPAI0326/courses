@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>6 步流程總覽 — 安全改 workflow 的骨架｜AI 資料工廠</title>
-<meta name="description" content="用 LLM 安全改寫 n8n workflow 的六步骨架：拆需求、讀 JSON、限定修改範圍、匯入測試、錯誤回報、收斂。每步說明 LLM 做什麼、學員做什麼、驗收訊號。">
+<meta name="description" content="用 LLM 安全改寫 n8n workflow 的六步骨架：拆需求、讀 JSON、限定修改範圍、匯入測試、錯誤回報、收斂。兩個迴圈結構、每步 30 秒動作摘要、進場與出場條件。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
 <meta property="og:title" content="6 步流程總覽 — 安全改 workflow 的骨架｜AI 資料工廠">
-<meta property="og:description" content="用 LLM 安全改寫 n8n workflow 的六步骨架：拆需求、讀 JSON、限定修改範圍、匯入測試、錯誤回報、收斂。每步說明 LLM 做什麼、學員做什麼、驗收訊號。">
+<meta property="og:description" content="用 LLM 安全改寫 n8n workflow 的六步骨架：拆需求、讀 JSON、限定修改範圍、匯入測試、錯誤回報、收斂。兩個迴圈結構、每步 30 秒動作摘要、進場與出場條件。">
 <meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/lessons/post-llm-2-flow.html">
 <meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="6 步流程總覽 — 安全改 workflow 的骨架｜AI 資料工廠">
-<meta name="twitter:description" content="用 LLM 安全改寫 n8n workflow 的六步骨架：拆需求、讀 JSON、限定修改範圍、匯入測試、錯誤回報、收斂。每步說明 LLM 做什麼、學員做什麼、驗收訊號。">
+<meta name="twitter:description" content="用 LLM 安全改寫 n8n workflow 的六步骨架：拆需求、讀 JSON、限定修改範圍、匯入測試、錯誤回報、收斂。兩個迴圈結構、每步 30 秒動作摘要、進場與出場條件。">
 <meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/lessons/post-llm-2-flow.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -39,7 +39,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 .hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px;font-variant-numeric:tabular-nums}
 .lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;max-width:22ch}
 .lesson-tagline{font-size:.92rem;color:var(--c-muted);line-height:1.9;margin-bottom:36px}
-.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-main);margin-top:28px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);margin-top:28px}
 .outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
 .outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
 .lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
@@ -56,6 +56,19 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 .callout-icon{flex-shrink:0;font-size:1.1rem}
 .callout-body{font-size:.9rem;line-height:1.85}
 .inline-code{font-family:'Courier New',monospace;font-size:.85em;background:var(--c-surface);padding:1px 6px;border-radius:var(--radius-sm);color:var(--c-text)}
+/* 兩大區塊概念圖 */
+.two-block-diagram{display:grid;grid-template-columns:1fr auto 1fr;gap:0;margin:28px 0;align-items:stretch}
+.block-prep,.block-verify{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 22px}
+.block-prep{border-right:none;border-radius:var(--radius) 0 0 var(--radius)}
+.block-verify{border-left:none;border-radius:0 var(--radius) var(--radius) 0;position:relative}
+.block-arrow{display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--c-surface);border-top:1px solid var(--c-border);border-bottom:1px solid var(--c-border);width:44px;font-size:1.1rem;color:var(--c-faint)}
+.block-label{font-family:'Shippori Mincho',serif;font-size:.72rem;letter-spacing:.12em;font-weight:700;color:var(--c-faint);margin-bottom:10px}
+.block-steps{display:flex;flex-direction:column;gap:6px}
+.block-step{font-size:.85rem;color:var(--c-text);line-height:1.6;display:flex;gap:8px;align-items:baseline}
+.block-step-num{font-family:'Shippori Mincho',serif;font-size:.72rem;color:var(--c-faint);flex-shrink:0;min-width:16px}
+.block-condition{margin-top:14px;font-size:.75rem;color:var(--c-muted);line-height:1.7;padding-top:12px;border-top:1px solid var(--c-border-soft)}
+.loop-badge{display:inline-block;font-size:.7rem;color:var(--c-muted);border:1px dashed var(--c-border);border-radius:var(--radius-sm);padding:1px 6px;margin-top:8px}
+/* 流程節點 */
 .flow-timeline{display:flex;flex-direction:column;gap:0;margin:28px 0;position:relative}
 .flow-timeline::before{content:'';position:absolute;left:28px;top:44px;bottom:44px;width:2px;background:var(--c-border-soft)}
 .flow-node{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;position:relative;z-index:1}
@@ -66,12 +79,30 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 .flow-node-title{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:4px}
 .flow-node-sub{font-size:.82rem;color:var(--c-muted);line-height:1.6}
 .flow-node-body{padding:0 20px 18px 20px}
-.flow-mini-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:4px}
-.flow-mini-table th{text-align:left;color:var(--c-faint);font-weight:500;font-size:.72rem;letter-spacing:.08em;padding:6px 10px 4px;border-bottom:1px solid var(--c-border-soft)}
-.flow-mini-table td{padding:7px 10px;color:var(--c-text);line-height:1.6;vertical-align:top;border-bottom:1px solid var(--c-border-soft)}
-.flow-mini-table tr:last-child td{border-bottom:none}
-.flow-mini-table td:first-child{color:var(--c-muted);white-space:nowrap;width:90px}
+.flow-two-row{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:4px}
+.flow-two-row td{padding:7px 10px;color:var(--c-text);line-height:1.6;vertical-align:top;border-bottom:1px solid var(--c-border-soft)}
+.flow-two-row tr:last-child td{border-bottom:none}
+.flow-two-row td:first-child{color:var(--c-muted);white-space:nowrap;width:120px;font-size:.78rem;letter-spacing:.04em}
 .flow-loop-note{font-size:.82rem;color:var(--c-muted);margin:4px 0 20px 56px;padding-left:20px;border-left:2px dashed var(--c-border)}
+.flow-stoploss{font-size:.82rem;color:var(--c-a1);margin:8px 0 0;padding:10px 14px;background:rgba(181,112,58,.06);border-left:2px solid rgba(181,112,58,.4);border-radius:0 var(--radius-sm) var(--radius-sm) 0}
+/* LLM 回應範例 box */
+.sample-box{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);padding:16px 20px;margin:16px 0;font-size:.82rem;line-height:1.8;color:var(--c-text)}
+.sample-box-label{font-size:.7rem;color:var(--c-faint);letter-spacing:.12em;font-weight:500;margin-bottom:8px}
+.sample-box pre{white-space:pre-wrap;word-break:break-all;font-family:'Noto Sans TC',sans-serif;margin:0}
+/* 跳步表格 */
+.skip-table{width:100%;border-collapse:collapse;font-size:.88rem;margin:24px 0}
+.skip-table th{text-align:left;padding:8px 14px;background:var(--c-surface);border:1px solid var(--c-border);font-weight:700;color:var(--c-text);font-size:.82rem}
+.skip-table td{padding:10px 14px;border:1px solid var(--c-border-soft);color:var(--c-text);line-height:1.7;vertical-align:top}
+.skip-table td:first-child{color:var(--c-muted);font-weight:700;white-space:nowrap}
+.skip-table .err-string{font-family:'Courier New',monospace;font-size:.8em;background:var(--c-surface);padding:1px 6px;border-radius:var(--radius-sm);color:var(--c-a1)}
+/* 每步 prompt 縮影 */
+.prompt-strip{display:flex;flex-direction:column;gap:4px;margin:20px 0;padding:16px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.prompt-strip-label{font-size:.7rem;color:var(--c-faint);letter-spacing:.12em;font-weight:500;margin-bottom:8px}
+.prompt-row{display:grid;grid-template-columns:180px 1fr;gap:12px;font-size:.82rem;padding:4px 0;border-bottom:1px solid var(--c-border-soft)}
+.prompt-row:last-child{border-bottom:none}
+.prompt-row-step{color:var(--c-muted);font-size:.78rem}
+.prompt-row-text{color:var(--c-text);line-height:1.6;font-style:italic}
+/* 跳讀指引 */
 .link-list{display:flex;flex-direction:column;gap:10px;margin:24px 0}
 .link-item{display:grid;grid-template-columns:1fr 80px;gap:12px;align-items:center;padding:14px 18px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
 .link-item-body{}
@@ -80,10 +111,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 .link-item-title a:hover{color:var(--c-main)}
 .link-item-desc{font-size:.82rem;color:var(--c-muted);line-height:1.6}
 .link-item-pages{font-size:.75rem;color:var(--c-faint);text-align:right;white-space:nowrap}
-.skip-table{width:100%;border-collapse:collapse;font-size:.88rem;margin:24px 0}
-.skip-table th{text-align:left;padding:8px 14px;background:var(--c-surface);border:1px solid var(--c-border);font-weight:700;color:var(--c-text);font-size:.82rem}
-.skip-table td{padding:10px 14px;border:1px solid var(--c-border-soft);color:var(--c-text);line-height:1.7;vertical-align:top}
-.skip-table td:first-child{color:var(--c-muted);font-weight:700;white-space:nowrap}
+/* nav */
 .nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
 .nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
 .nav-btn:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
@@ -95,7 +123,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 .footer-note{font-size:.75rem;color:var(--c-muted)}
 .footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
 @media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important}*{animation:none!important}}
-@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.flow-mini-table td:first-child{white-space:normal;width:auto}.link-item{grid-template-columns:1fr}.link-item-pages{text-align:left}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.two-block-diagram{grid-template-columns:1fr;grid-template-rows:auto auto auto}.block-prep{border-right:1px solid var(--c-border);border-radius:var(--radius) var(--radius) 0 0}.block-verify{border-left:1px solid var(--c-border);border-radius:0 0 var(--radius) var(--radius)}.block-arrow{width:100%;height:36px;flex-direction:row}.flow-two-row td:first-child{white-space:normal;width:auto}.link-item{grid-template-columns:1fr}.link-item-pages{text-align:left}.prompt-row{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -139,35 +167,57 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div class="page-hero">
   <a href="post-llm-1-overview.html" class="back-link"><span aria-hidden="true">←</span> 返回第 1 頁：開場與設計取捨</a>
   <div class="hero-eyebrow">8 頁系列 · 第 2/8 · 流程總覽</div>
-  <h1 class="lesson-title">6 步流程總覽 — 安全改 workflow 的骨架</h1>
+  <h1 class="lesson-title">六步流程一頁就上手</h1>
   <p class="lesson-tagline">8 頁系列 · 第 2/8 · 補充 · POST-COURSE</p>
   <div class="outcomes">
     <div class="outcomes-label">讀完這頁你會知道 · OUTCOMES</div>
-    <div class="outcome-item">整套六步流程的完整骨架，以及每步「LLM 做什麼 / 你做什麼 / 驗收訊號」的三欄分工</div>
-    <div class="outcome-item">流程的內在邏輯：為什麼這六步順序不能調換，哪幾步之間存在迴圈</div>
+    <div class="outcome-item">6 步流程的真正結構是「2 個迴圈」：動工前 3 步準備 + 動工後 3 步驗收，以及進場與出場條件各是什麼</div>
+    <div class="outcome-item">每步你要做的 30 秒動作、完成後下一步的進場條件，以及步驟 5 失敗後迴圈只回步驟 3（不是步驟 1）</div>
     <div class="outcome-item">哪一頁深入講哪幾步，讓你知道下一步從哪裡跳讀</div>
   </div>
 </div>
 
 <section class="lesson-section">
   <div class="section-eyebrow">(01)</div>
-  <h2 class="section-heading">為什麼是這 6 步</h2>
+  <h2 class="section-heading">不是「6 件事」，是「2 個迴圈」</h2>
   <div class="intro-band">
-    <div class="intro-label">設計原則</div>
-    <div class="intro-text">LLM 給的東西看起來合理，但容易跑出細節錯。這六步的設計目的不是「讓 LLM 幫你做更多」，而是「在控制風險的前提下，精準榨取 LLM 的翻譯與局部改寫能力」。</div>
+    <div class="intro-label">核心 mental model</div>
+    <div class="intro-text">前 3 步（拆需求、讀 JSON、限定範圍）是進入動工前的準備迴圈。後 3 步（測試、回報、收斂）是動工後的驗收迴圈。前 3 步沒做好，後 3 步會無限跑。</div>
   </div>
-  <p class="body-text">改一個 n8n workflow 最常犯的錯是把所有事情都丟給 LLM：「幫我把 #02 改成處理發票。」LLM 拿不到足夠的脈絡，會自己腦補 input/output 形狀，回傳一份看起來能用但細節全錯的 JSON。結果不是花時間 debug，就是直接放棄。</p>
-  <p class="body-text">六步流程的設計邏輯是：<strong>讓學員主導邊界、讓 LLM 執行翻譯和局部改寫、讓測試驗收結果</strong>。每一步都有明確的角色分工，避免學員在錯誤的步驟把決定權交給 LLM，也避免在正確的步驟重複做 LLM 已經能做的事。</p>
+  <p class="body-text"><strong>進場條件</strong>：你已經 export 了 #02 的 JSON，知道你要改成處理發票（或任何新目標），有至少 1 張真實樣本可以測試。</p>
+  <p class="body-text"><strong>出場條件</strong>：pdf-renamed（或你設定的目標資料夾）裡有正確改名的檔案，10 筆樣本全部對，才能擴大到 200 張全量。</p>
+
+  <div class="two-block-diagram" role="img" aria-label="兩大區塊：動工前步驟 1-3 與動工後步驟 4-6 含迴圈">
+    <div class="block-prep">
+      <div class="block-label">動工前 · 準備區塊</div>
+      <div class="block-steps">
+        <div class="block-step"><span class="block-step-num">01</span> 拆需求（4 格便箋）</div>
+        <div class="block-step"><span class="block-step-num">02</span> 讀 JSON（LLM 翻成人話）</div>
+        <div class="block-step"><span class="block-step-num">03</span> 限定修改範圍</div>
+      </div>
+      <div class="block-condition">做好這 3 步，LLM 才拿得到足夠脈絡。跳任何一步，後面都會補票。</div>
+    </div>
+    <div class="block-arrow" aria-hidden="true">→</div>
+    <div class="block-verify">
+      <div class="block-label">動工後 · 驗收區塊</div>
+      <div class="block-steps">
+        <div class="block-step"><span class="block-step-num">04</span> 匯入測試（隔離，1 筆）</div>
+        <div class="block-step"><span class="block-step-num">05</span> 錯誤回報（三件套）</div>
+        <div class="block-step"><span class="block-step-num">06</span> 收斂（10 筆 → 全量）</div>
+      </div>
+      <div class="block-condition">步驟 5 失敗 → 回步驟 3（最小修改）。超過 3 輪不收斂 → 退回步驟 1。<span class="loop-badge">迴圈</span></div>
+    </div>
+  </div>
 </section>
 
 <hr class="section-rule">
 
 <section class="lesson-section">
   <div class="section-eyebrow">(02)</div>
-  <h2 class="section-heading">6 步流程主圖</h2>
+  <h2 class="section-heading">6 步流程：每步 30 秒動作</h2>
   <div class="intro-band">
     <div class="intro-label">讀圖方式</div>
-    <div class="intro-text">步驟 1 到 4 是線性推進。步驟 5 出現錯誤時，只迴圈回步驟 3（不退回步驟 1）。超過三輪無法收斂，才需要退回步驟 1 重新拆需求。步驟 6 是收斂與驗收，不是「再改一輪」的起點。</div>
+    <div class="intro-text">每步只看「你做什麼」和「做完才能往下走的進場條件」。細節、prompt 模板、踩雷實例在第 3–4 頁展開。</div>
   </div>
 
   <div class="flow-timeline">
@@ -177,16 +227,14 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <div class="flow-node-num"><span class="flow-node-num-inner" aria-hidden="true">01</span></div>
         <div class="flow-node-title-wrap">
           <div class="flow-node-title">拆需求（4 格便箋）</div>
-          <div class="flow-node-sub">這一步刻意不用 LLM。需求模糊時 LLM 會自己腦補，越改越亂。</div>
+          <div class="flow-node-sub">這步刻意不用 LLM。需求模糊時 LLM 會自己腦補，越改越亂。</div>
         </div>
       </div>
       <div class="flow-node-body">
-        <table class="flow-mini-table">
-          <thead><tr><th>角色</th><th>動作</th></tr></thead>
+        <table class="flow-two-row">
           <tbody>
-            <tr><td>LLM 做什麼</td><td>不做。這步完全由你主導。</td></tr>
-            <tr><td>你做什麼</td><td>填一張 4 格便箋：原 workflow 編號、目標 input、目標 output、必保留的節點。</td></tr>
-            <tr><td>驗收訊號</td><td>4 格能對著別人講 1 分鐘還不打結。</td></tr>
+            <tr><td>你做什麼</td><td>用紙或便條填 4 格：原 workflow 編號、目標 input（例：發票 PDF）、目標 output（例：改名後存到 invoice-renamed）、必保留的節點（例：Gemini API 節點）。</td></tr>
+            <tr><td>下一步進場條件</td><td>4 格能對著另一個人講 1 分鐘不打結，就可以往步驟 2。</td></tr>
           </tbody>
         </table>
       </div>
@@ -196,19 +244,33 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
       <div class="flow-node-header">
         <div class="flow-node-num"><span class="flow-node-num-inner" aria-hidden="true">02</span></div>
         <div class="flow-node-title-wrap">
-          <div class="flow-node-title">讀 JSON（LLM 翻譯成中文流程）</div>
-          <div class="flow-node-sub">把 workflow JSON 貼給 LLM，請它用人話描述這份 workflow 做了什麼。移除 credential 是硬規則。</div>
+          <div class="flow-node-title">讀 JSON（LLM 翻成人話）</div>
+          <div class="flow-node-sub">把 workflow JSON 貼給 LLM，請它描述這份 workflow 做了什麼。移除 credential 欄位（<span class="inline-code">credentials</span> 整個 key）是硬規則。</div>
         </div>
       </div>
       <div class="flow-node-body">
-        <table class="flow-mini-table">
-          <thead><tr><th>角色</th><th>動作</th></tr></thead>
+        <table class="flow-two-row">
           <tbody>
-            <tr><td>LLM 做什麼</td><td>把 JSON 翻成一段人話描述，列出每個節點的角色與資料流向。</td></tr>
-            <tr><td>你做什麼</td><td>用 n8n UI 對照 LLM 的描述，確認它沒有講錯哪個節點的角色。</td></tr>
-            <tr><td>驗收訊號</td><td>你能用自己的話複述一遍 LLM 的描述，不用看 JSON。</td></tr>
+            <tr><td>你做什麼</td><td>貼 prompt：「請把這份 workflow 翻成人話，列每個節點的輸入 / 輸出」。收到回應後，用 n8n UI 對照確認節點數量對得上。</td></tr>
+            <tr><td>下一步進場條件</td><td>你能用 3 句話說出：原 workflow 吃什麼 input、中間做了什麼、產出什麼 output——不用看 JSON 也能說。能說得出就進步驟 3。</td></tr>
           </tbody>
         </table>
+
+        <div class="sample-box">
+          <div class="sample-box-label">SAMPLE — 步驟 2 的 LLM 回應長這樣（#02 PDF AI 改名範例）</div>
+          <pre>這份 workflow 做什麼：
+從 pdf-inbox 資料夾讀取所有 PDF，用 Gemini 分析內文後給每張 PDF 一個語意化檔名，
+並把檔案改名後存到 pdf-renamed 資料夾。整套流程是手動觸發。
+
+節點清單：
+1. Manual Trigger — 手動觸發點，不接受輸入。
+2. Read PDF — 讀 /files/pdf-inbox/ 資料夾，輸出每張 PDF 的二進位內容。
+3. Extract PDF Text — 把二進位 PDF 轉成純文字。
+4. Code: AI 改名 — 用 Gemini API 分析 PDF 文字，產出 newFilename 字串。
+5. Write — 把原 PDF 用 newFilename 改名後存到 /files/pdf-renamed/。
+
+資料流向：Manual Trigger → Read PDF → Extract PDF Text → Code → Write</pre>
+        </div>
       </div>
     </div>
 
@@ -217,18 +279,26 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <div class="flow-node-num"><span class="flow-node-num-inner" aria-hidden="true">03</span></div>
         <div class="flow-node-title-wrap">
           <div class="flow-node-title">限定修改範圍（只回節點區段）</div>
-          <div class="flow-node-sub">告訴 LLM「只改節點 X、Y、Z」，要求它只回傳這幾個節點的 JSON 區段，不是整份。</div>
+          <div class="flow-node-sub">告訴 LLM「只改節點 X、Y」，要求它只回傳這幾個節點的 JSON 區段，不是整份。這步是防止 LLM 亂動你沒叫它碰的地方。</div>
         </div>
       </div>
       <div class="flow-node-body">
-        <table class="flow-mini-table">
-          <thead><tr><th>角色</th><th>動作</th></tr></thead>
+        <table class="flow-two-row">
           <tbody>
-            <tr><td>LLM 做什麼</td><td>產出指定節點的 JSON 區段（不是整份 workflow）。</td></tr>
-            <tr><td>你做什麼</td><td>先在 n8n UI 選起要改的節點、複製備份。LLM 改完後，在 UI 上替換這幾個節點。</td></tr>
-            <tr><td>驗收訊號</td><td>n8n UI 上節點還在原位、連線沒斷、其他節點原樣。</td></tr>
+            <tr><td>你做什麼</td><td>貼 prompt：「只改節點 X，回傳區段 JSON，不重寫整份」。在 n8n UI 先選起要改的節點、複製備份。LLM 回傳後，在 UI 替換這幾個節點。</td></tr>
+            <tr><td>下一步進場條件</td><td>n8n UI 上節點還在原位、連線沒斷、其他節點原樣，才往步驟 4。</td></tr>
           </tbody>
         </table>
+
+        <div class="callout tip" style="margin-top:12px">
+          <div class="callout-icon" aria-hidden="true">i</div>
+          <div class="callout-body">
+            <strong>「限定範圍」是指哪個節點？</strong> — 對非工程師容易卡的問題，兩個具體例子幫你判斷：<br><br>
+            <strong>例 1（#02 改成處理發票）</strong>：你要改的是「Code: AI 改名」節點裡的 Gemini prompt，讓它分析發票而非通用文件。其他節點（Read PDF、Extract Text、Write）不需要動。指令：「只改節點 <span class="inline-code">Code: AI 改名</span>，回傳這個節點的 JSON 區段」。<br><br>
+            <strong>例 2（要改存檔路徑）</strong>：你要把 <span class="inline-code">pdf-renamed</span> 改成 <span class="inline-code">invoice-renamed</span>。這只在「Write」節點的 <span class="inline-code">fileName</span> 欄位。指令：「只改節點 <span class="inline-code">Write</span> 的 fileName 參數，其他欄位原樣，只回這個節點區段」。<br><br>
+            <strong>判斷原則</strong>：在 n8n UI 點開節點，看哪個節點的哪個欄位需要變——能指名欄位最好，至少要指名節點名稱。
+          </div>
+        </div>
       </div>
     </div>
 
@@ -237,16 +307,14 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <div class="flow-node-num"><span class="flow-node-num-inner" aria-hidden="true">04</span></div>
         <div class="flow-node-title-wrap">
           <div class="flow-node-title">匯入測試（隔離環境，1 筆樣本）</div>
-          <div class="flow-node-sub">先在複本上跑。永遠先用 1 筆最小樣本，不用大批量。</div>
+          <div class="flow-node-sub">先在複本上跑。永遠先用 1 筆最小樣本，不用大批量。這步不需要 LLM。</div>
         </div>
       </div>
       <div class="flow-node-body">
-        <table class="flow-mini-table">
-          <thead><tr><th>角色</th><th>動作</th></tr></thead>
+        <table class="flow-two-row">
           <tbody>
-            <tr><td>LLM 做什麼</td><td>不做。這步完全由你在 n8n UI 操作。</td></tr>
-            <tr><td>你做什麼</td><td>在 n8n UI 把原 workflow 複製成 <span class="inline-code">&lt;原名&gt;-edit</span>，確認 trigger 是 OFF，餵 1 筆樣本跑一次。</td></tr>
-            <tr><td>驗收訊號</td><td>所有節點綠燈，output 結構符合步驟 1 便箋裡寫的目標 output。</td></tr>
+            <tr><td>你做什麼</td><td>在 n8n UI 把原 workflow 複製成 <span class="inline-code">&lt;原名&gt;-edit</span>，確認 trigger 是 OFF，餵 1 筆樣本跑一次。看每個節點的燈號。</td></tr>
+            <tr><td>下一步進場條件</td><td>所有節點綠燈，且 output 結構符合步驟 1 便箋裡寫的目標 output，才往步驟 6 收斂。有紅燈就進步驟 5。</td></tr>
           </tbody>
         </table>
       </div>
@@ -256,39 +324,35 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
       <div class="flow-node-header">
         <div class="flow-node-num"><span class="flow-node-num-inner" aria-hidden="true">05</span></div>
         <div class="flow-node-title-wrap">
-          <div class="flow-node-title">錯誤回報（最小可重現訊息）</div>
-          <div class="flow-node-sub">步驟 4 失敗時才進入。不要把整份 workflow 重貼，只貼三件事：紅燈訊息、input panel、節點 parameter。</div>
+          <div class="flow-node-title">錯誤回報（三件套：錯誤 + input + parameter）</div>
+          <div class="flow-node-sub">步驟 4 出現紅燈才進入。不要重貼整份 workflow，只貼三件事。</div>
         </div>
       </div>
       <div class="flow-node-body">
-        <table class="flow-mini-table">
-          <thead><tr><th>角色</th><th>動作</th></tr></thead>
+        <table class="flow-two-row">
           <tbody>
-            <tr><td>LLM 做什麼</td><td>根據最小可重現訊息提出診斷，指出問題在哪個節點、哪個欄位。</td></tr>
-            <tr><td>你做什麼</td><td>複製三件事給 LLM：(a) 紅燈節點的錯誤訊息全文，(b) 該節點的 input panel JSON，(c) 該節點當前的 parameter JSON（移除 credential）。</td></tr>
-            <tr><td>驗收訊號</td><td>LLM 能指出問題在哪個欄位。如果 LLM 也不確定，代表回報資訊不夠，補資料，不是換 LLM。</td></tr>
+            <tr><td>你做什麼</td><td>複製三件事給 LLM：(a) 紅燈節點的錯誤訊息全文，(b) 該節點的 input panel JSON，(c) 該節點當前的 parameter JSON（移除 <span class="inline-code">credentials</span> key）。貼完問：「請只指出錯哪格」。</td></tr>
+            <tr><td>下一步進場條件</td><td>LLM 能指出問題在哪個欄位。拿到診斷後，回步驟 3 做最小修改，再跑步驟 4。</td></tr>
           </tbody>
         </table>
+        <div class="flow-loop-note">步驟 5 找到問題後，回到步驟 3 做最小修改 → 再跑步驟 4 驗收。每輪問自己「比上一輪更接近目標嗎？」</div>
+        <div class="flow-stoploss">停損訊號：如果你已經跑了 4 輪 LLM 對話還沒收斂，停止往下改。退回步驟 1，看便箋的 4 格哪一格寫得模糊——通常是「目標 output 的格式沒寫清楚」或「限定範圍的節點挑錯了」。</div>
       </div>
     </div>
-
-    <div class="flow-loop-note">步驟 5 找到問題後，回到步驟 3 做最小修改 → 再跑步驟 4 驗收。每輪問自己「比上一輪更接近目標嗎？」超過 3 輪沒有收斂，退回步驟 1 重新拆需求。</div>
 
     <div class="flow-node">
       <div class="flow-node-header">
         <div class="flow-node-num"><span class="flow-node-num-inner" aria-hidden="true">06</span></div>
         <div class="flow-node-title-wrap">
-          <div class="flow-node-title">收斂（10 筆 → 200 筆）</div>
-          <div class="flow-node-sub">用真實樣本跑通 10 筆後，才擴大到全量。這一步的重點是「停止繼續迴圈」。</div>
+          <div class="flow-node-title">收斂（10 筆 → 全量）</div>
+          <div class="flow-node-sub">步驟 4 綠燈後，用 10 筆真實樣本驗證，才擴大到全量。這步的重點是「停止繼續迴圈」。</div>
         </div>
       </div>
       <div class="flow-node-body">
-        <table class="flow-mini-table">
-          <thead><tr><th>角色</th><th>動作</th></tr></thead>
+        <table class="flow-two-row">
           <tbody>
-            <tr><td>LLM 做什麼</td><td>在步驟 3 / 5 內被呼叫，步驟 6 本身 LLM 不再介入。</td></tr>
-            <tr><td>你做什麼</td><td>用 10 筆真實樣本跑通後，確認 output 對，才換回全量（例：200 張發票）。如果 LLM 越改越複雜，要求它「保留最小修改、移除新增的防禦邏輯」。</td></tr>
-            <tr><td>驗收訊號</td><td>10 筆樣本全數綠燈，output 與步驟 1 便箋的目標一致。全量跑完無報錯。</td></tr>
+            <tr><td>你做什麼</td><td>從你的 200 張裡隨機挑 10 張（或你手上全部，最少 5 張），跑通後確認 output 對，才換回全量。如果 LLM 越改越複雜，告訴它：「請保留最小修改，移除你新增的防禦邏輯」。</td></tr>
+            <tr><td>出場條件</td><td>10 筆樣本全數綠燈，output 與步驟 1 便箋的目標一致，全量跑完無報錯。這就是整個流程的出場條件。</td></tr>
           </tbody>
         </table>
       </div>
@@ -306,30 +370,34 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 <section class="lesson-section">
   <div class="section-eyebrow">(03)</div>
-  <h2 class="section-heading">每步深入連結</h2>
-  <p class="body-text">總覽頁的每步說明都刻意控制在 120 字以內。細節、prompt 模板、踩雷實例在以下各頁展開。</p>
+  <h2 class="section-heading">每步的 1 行 prompt 縮影</h2>
+  <p class="body-text">完整 prompt 模板在第 3–4 頁。這裡先給風格預覽，讓你知道每步 prompt 的長相。</p>
 
-  <div class="link-list">
-    <div class="link-item">
-      <div class="link-item-body">
-        <div class="link-item-title"><a href="post-llm-3-steps-decompose.html">步驟 1–3 詳解：拆需求、讀 JSON、限定修改範圍</a></div>
-        <div class="link-item-desc">4 格便箋範本、LLM 讀 JSON 的 prompt 模板、示範形狀法說明，以及每步常見跳步後果</div>
-      </div>
-      <div class="link-item-pages">第 3 頁</div>
+  <div class="prompt-strip">
+    <div class="prompt-strip-label">PROMPT STYLE — 每步縮影</div>
+    <div class="prompt-row">
+      <div class="prompt-row-step">步驟 1（拆需求）</div>
+      <div class="prompt-row-text">不用 LLM，用便條自己填。</div>
     </div>
-    <div class="link-item">
-      <div class="link-item-body">
-        <div class="link-item-title"><a href="post-llm-4-steps-import.html">步驟 4–6 詳解：匯入測試、錯誤回報、收斂</a></div>
-        <div class="link-item-desc">隔離環境操作步驟、最小可重現訊息三件套、收斂迴圈的停損判斷，以及對應 prompt 模板 4–5</div>
-      </div>
-      <div class="link-item-pages">第 4 頁</div>
+    <div class="prompt-row">
+      <div class="prompt-row-step">步驟 2（讀 JSON）</div>
+      <div class="prompt-row-text">「請把這份 workflow 翻成人話，列每節點輸出 / 輸入」</div>
     </div>
-    <div class="link-item">
-      <div class="link-item-body">
-        <div class="link-item-title"><a href="post-llm-5-redlines.html">安全紅線 8 條：每步對應的不能做清單</a></div>
-        <div class="link-item-desc">credential 外洩、整份重寫、typeVersion 亂改、destructive 操作未 dry-run 等 8 條強制紅線，可印出貼螢幕旁</div>
-      </div>
-      <div class="link-item-pages">第 5 頁</div>
+    <div class="prompt-row">
+      <div class="prompt-row-step">步驟 3（限定範圍）</div>
+      <div class="prompt-row-text">「只改節點 X，回傳區段 JSON，不重寫整份」</div>
+    </div>
+    <div class="prompt-row">
+      <div class="prompt-row-step">步驟 4（匯入測試）</div>
+      <div class="prompt-row-text">不用 LLM，在 n8n UI 跑。</div>
+    </div>
+    <div class="prompt-row">
+      <div class="prompt-row-step">步驟 5（錯誤回報）</div>
+      <div class="prompt-row-text">「貼錯誤訊息 + input + parameter，請只指出錯哪格」</div>
+    </div>
+    <div class="prompt-row">
+      <div class="prompt-row-step">步驟 6（收斂）</div>
+      <div class="prompt-row-text">「請保留最小修改，移除你新增的防禦邏輯」</div>
     </div>
   </div>
 </section>
@@ -348,32 +416,69 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <thead>
       <tr>
         <th>跳過哪一步</th>
-        <th>常見後果</th>
+        <th>你會看到什麼</th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <td>步驟 1<br>拆需求</td>
-        <td>LLM 拿不到 input/output 的具體形狀，會自己腦補方向。結果往往是「改的方向對但細節全錯」，改好了卻不是你要的版本。</td>
+        <td>LLM 拿不到 input/output 的具體形狀，自己腦補方向。workflow 跑出來但欄位是 <span class="err-string">null</span>，或者輸出路徑對但檔名格式全錯——因為 LLM 猜了一個「看起來合理」的格式，而不是你要的那個。</td>
       </tr>
       <tr>
         <td>步驟 3<br>限定範圍</td>
-        <td>LLM 會把整份 workflow 一起改。覆蓋整份 JSON 時，節點 ID 對不上、connections 斷掉、你的自訂設定全部不見。匯入直接失敗是最好的情況；匯入成功但靜默跑錯是最壞的。</td>
+        <td>LLM 把整份 workflow 一起改，覆蓋整份 JSON。匯入時最常見的報錯是紅字 <span class="err-string">invalid JSON format</span> 或節點跳 <span class="err-string">node type not found</span>（這類錯誤去第 7 章「類別 1」查）。更壞的情況是匯入成功但靜默跑錯，200 張全部存到錯的路徑，事後才發現。</td>
       </tr>
       <tr>
         <td>步驟 4<br>匯入測試</td>
-        <td>直接上 production workflow 跑。若 workflow 本來是開著的，改完瞬間就用未驗證版本接真實流量、讀真實檔案。一個欄位對應錯，200 張發票全部存到錯的路徑。</td>
+        <td>直接在 production workflow 改，trigger 若是 ON，改完瞬間就用未驗證版本接真實資料。一個欄位對應錯，200 張發票可能全部存到 <span class="err-string">undefined</span> 路徑或覆蓋原檔。</td>
       </tr>
       <tr>
         <td>步驟 6<br>收斂</td>
-        <td>用 1 筆樣本跑通就直接上全量。中段有隱藏錯誤時，200 筆全部默默失敗，事後才發現輸出有問題卻不知道從哪開始追查。</td>
+        <td>用 1 筆綠燈就直接上 200 張全量。中段有隱藏錯誤時，200 筆全部默默失敗。事後翻 execution log 你會看到每筆都有 <span class="err-string">Cannot read property of undefined</span>，但不知道從哪一張開始追查。</td>
       </tr>
     </tbody>
   </table>
 
   <div class="callout key">
     <div class="callout-icon" aria-hidden="true">*</div>
-    <div class="callout-body">這六步對有程式背景的人來說看起來很保守。但這份手冊的對象是「不會寫程式、不熟悉 JSON 結構的結業學員」——保守的流程讓第一次走就能成功，成功一次之後就會內化成直覺，後來自然會縮短步驟。</div>
+    <div class="callout-body">這六步對有程式背景的人看起來保守。但這份手冊的對象是「不會寫程式、不熟悉 JSON 結構的結業學員」——保守的流程讓第一次走就能成功。成功兩三次之後自然會縮短步驟，這是之後的事。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(05)</div>
+  <h2 class="section-heading">往哪走 — 下一章為什麼接著這樣排</h2>
+  <div class="intro-band">
+    <div class="intro-label">課程動線</div>
+    <div class="intro-text">第 2 章給了你整個骨架。下一步是讓每步真正能動手——細節、模板、示範在第 3–4 章。</div>
+  </div>
+  <p class="body-text">第 3 章（步驟 1–3 詳解）是你下一頁應該讀的。它會把 4 格便箋的格式給你、教你讀 JSON 的完整 prompt、說明如何用「示範形狀法」讓 LLM 不亂改結構。讀完第 3 章，你就能走完動工前的準備區塊。</p>
+  <p class="body-text">如果你急著動手，第 3 章 + 第 4 章合起來就是完整的六步操作指南，可以照著跑第一遍。第 5 章（安全紅線）和第 7 章（錯誤分類手冊）是 reference，遇到問題再翻。</p>
+
+  <div class="link-list">
+    <div class="link-item">
+      <div class="link-item-body">
+        <div class="link-item-title"><a href="post-llm-3-steps-decompose.html">步驟 1–3 詳解：拆需求、讀 JSON、限定修改範圍</a></div>
+        <div class="link-item-desc">4 格便箋範本、LLM 讀 JSON 的 prompt 模板、示範形狀法說明，以及每步常見跳步後果</div>
+      </div>
+      <div class="link-item-pages">第 3 頁</div>
+    </div>
+    <div class="link-item">
+      <div class="link-item-body">
+        <div class="link-item-title"><a href="post-llm-4-steps-import.html">步驟 4–6 詳解：匯入測試、錯誤回報、收斂</a></div>
+        <div class="link-item-desc">隔離環境操作步驟、三件套完整說明、收斂迴圈的停損判斷，以及 prompt 模板 4–5</div>
+      </div>
+      <div class="link-item-pages">第 4 頁</div>
+    </div>
+    <div class="link-item">
+      <div class="link-item-body">
+        <div class="link-item-title"><a href="post-llm-5-redlines.html">安全紅線 8 條：每步對應的不能做清單</a></div>
+        <div class="link-item-desc">credential 外洩、整份重寫、typeVersion 亂改、destructive 操作未 dry-run 等 8 條強制紅線</div>
+      </div>
+      <div class="link-item-pages">第 5 頁</div>
+    </div>
   </div>
 </section>
 
@@ -388,7 +493,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">2026 春季</span>
-  <span class="footer-meta" data-platform-version="n8n latest (Docker image n8nio/n8n) / Docker Desktop / Cloudflare Tunnel free tier" data-built-at="2026-05-06">本頁以 n8n latest (Docker image n8nio/n8n) 製作，2026-05</span>
+  <span class="footer-meta" data-platform-version="n8n latest (Docker image n8nio/n8n) / Docker Desktop / Cloudflare Tunnel free tier" data-built-at="2026-05-07">本頁以 n8n latest (Docker image n8nio/n8n) 製作，2026-05</span>
 </footer>
 
 <script>
