@@ -2,7 +2,7 @@
 
 《AI 資料工廠》課程的 n8n 本機環境試跑包。在自己電腦跑一個自架的 n8n，不按執行次數計費，並能直接讀寫本機資料夾。
 
-> **版本**：v1.0.1（2026-05-07）— 將 n8n editor 限制為本機存取（127.0.0.1），公開 wifi 場景下其他人無法連到你的 n8n。詳見 [變更紀錄](#變更紀錄)。
+> **版本**：v1.0.2（2026-05-07）— 補完整「安全設定」章節 + `.env.example` 預留 BASIC_AUTH 三行（前一版 v1.0.1 已將 n8n editor 限制為本機存取）。詳見 [變更紀錄](#變更紀錄)。
 >
 > **課程測試版本**：n8n `2.17.8`（2026-04-27 依 Docker Hub tags 驗證可用）+ Docker Desktop 4.x。`n8n-compose.yml` 已鎖定此 patch 版本以確保畫面與行為可重現；升級時請重新驗證教材。
 >
@@ -93,6 +93,66 @@ docker compose -f n8n-compose.yml config
 
 **解法**：再雙擊一次 `start.command`，新版腳本會自動偵測這個錯誤，跳對話框問你要不要重置——按「重置並重啟」即可。
 
+## 安全設定
+
+> 本段一次講清楚「在公開 wifi / 共享辦公室 / 咖啡店等場景下，怎麼安全跑這份 starter-kit」。預設組合已經把多數風險擋掉，只要不亂改設定即可。
+
+### 預設安全組合（不需改任何東西）
+
+| 防線 | 怎麼擋 | 設定來源 |
+|---|---|---|
+| 同網段他人連不到你的 n8n | n8n editor port 綁 `127.0.0.1`（v1.0.1 起） | `n8n-compose.yml` |
+| 第一個打開 n8n 的人就是 owner | n8n 內建 Owner Account（首次打開 localhost:5678 會引導建立） | n8n 預設 |
+| Postgres 不對外 | compose 沒寫 ports（只在 Docker 內網讓 n8n 連） | `n8n-compose.yml` |
+| 環境變數不誤入 git | `.gitignore` 預設排除 `.env` | starter-kit 同層或上層 repo |
+
+照預設走，純 localhost 使用情境下你不需要再改任何設定。
+
+### 三條紅線（千萬不要做）
+
+1. **不要把 `n8n-compose.yml` 的 port 改回 `'5678:5678'`**（沒有 `127.0.0.1:` 前綴）。一旦改回，Docker 會綁到 `0.0.0.0`（全網卡）→ 同網段任何人輸入 `http://你的IP:5678` 就能登入你的 n8n 看 credentials。
+2. **不要對外暴露 Postgres port**。compose 沒寫 postgres 的 ports 是故意的；任何「我幫你加 ports: - '5432:5432'」的建議都要拒絕，那等於把資料庫直接擺在網路上。
+3. **不要在 Cloudflare Tunnel 開著的時候不設 BASIC_AUTH**。詳見下一段。
+
+### 想從手機 / 別台機器測試？走 Cloudflare Tunnel + BASIC_AUTH
+
+純 localhost 不夠用的場景（例：要從手機觸發 webhook、要 demo 給客戶看、要接外部 API callback），**正確路線**：
+
+1. 雙擊 `tunnel-quick.command`（Mac）或 `tunnel-quick.bat`（Win）→ 給你一個 `https://*.trycloudflare.com` 公開 URL
+2. **務必先在 `.env` 設 BASIC_AUTH 三行**（範本已預留為註解，把開頭 `#` 拿掉）：
+
+   ```
+   N8N_BASIC_AUTH_ACTIVE=true
+   N8N_BASIC_AUTH_USER=your_username
+   N8N_BASIC_AUTH_PASSWORD=replace_with_strong_password
+   ```
+
+3. 重啟容器（`stop.command` → `start.command`）讓設定生效
+
+這樣即使 Tunnel URL 被自動掃描程式探測到（trycloudflare 子網段已知會被掃），攻擊者仍會被 Basic Auth 擋在 Owner Account 之前。**不設 BASIC_AUTH 就開 Tunnel = 把無密碼 n8n 推到全球網際網路**。
+
+### Tunnel 用完記得關
+
+`tunnel-quick.command` 開的 Tunnel 持續到你關 cloudflared process 為止。**Demo 完務必關**（在 Terminal 視窗按 `Ctrl+C`），避免幾天後忘記、Tunnel URL 流外。
+
+### 我怎麼知道現在 n8n 的曝露狀態？
+
+```bash
+# Mac/Linux：看 5678 port 綁誰
+lsof -nP -iTCP:5678 -sTCP:LISTEN
+
+# 預期（v1.0.1 安全狀態）：TCP 127.0.0.1:5678 (LISTEN)
+# 危險狀態：TCP *:5678 (LISTEN) 或 0.0.0.0:5678
+```
+
+```bash
+# 看 Docker container 的 port binding
+docker inspect $(docker ps -q --filter name=n8n) --format '{{json .HostConfig.PortBindings}}'
+
+# 預期（v1.0.1 安全狀態）：{"5678/tcp":[{"HostIp":"127.0.0.1","HostPort":"5678"}]}
+# 危險狀態：{"HostIp":"","HostPort":"5678"}（HostIp 空 = 0.0.0.0）
+```
+
 ## 資料儲存位置
 
 | 項目 | 位置 | 備註 |
@@ -111,6 +171,16 @@ docker compose -f n8n-compose.yml config
 - **改時區 / 密碼 / Webhook URL**：編輯 `.env`，重啟容器（雙擊 stop 再 start）
 
 ## 變更紀錄
+
+### v1.0.2（2026-05-07）
+
+**安全強化（接續 v1.0.1）**：補完整安全設定文件 + 啟用 BASIC_AUTH 通道。
+
+- 新增 README「安全設定」章節：預設安全組合 / 三條紅線（不要做的事）/ Cloudflare Tunnel 對外路線 / 自我檢測指令
+- `.env.example`：新增 BASIC_AUTH 三行（`N8N_BASIC_AUTH_ACTIVE` / `_USER` / `_PASSWORD`）預留為註解，學員開 Cloudflare Tunnel 對外時 uncomment 即生效
+- `n8n-compose.yml`：BASIC_AUTH 環境變數從 hardcoded `false` 改成讀 `.env`（`${N8N_BASIC_AUTH_ACTIVE:-false}` 等）— 之前學員即使在 .env 改也不會生效
+
+教學體驗：純 localhost 使用零變化；要對外暴露的進階學員多一條安全路線。
 
 ### v1.0.1（2026-05-07）
 
