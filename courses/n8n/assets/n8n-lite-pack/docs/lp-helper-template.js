@@ -10,6 +10,14 @@
 //
 // 換 LLM provider（Gemini → Claude / OpenAI）：只改 lpCall 內的 url/headers/body shape，
 // 業務邏輯不動。
+//
+// === lpCall 適用範圍（v1.2.2 確認）===
+// 8 workflows 用 lpCall：#02 #03 #04 #06 #09 #12 #13 #14（單 prompt → text 形態）
+// 2 workflows 故意保留各自 helper（不統一）：
+//   #10 folder-organize：用 callGeminiBatch chunk batch + ruleFallback，保留以保持 batch 控制 / 部分失敗語意
+//   #11 csv-clean-score：用一次性 batch prompt（50 leads 一起評分），保留以避免拆 token 分段
+// 即未來新增「需要 chunk / batch / streaming / multi-turn」的 workflow，可保留各自 helper，
+// 不必硬塞 lpCall。lpCall 設計目標是「單 prompt 短回應」場景。
 // ════════════════════════════════════════════════════════════
 const LP = {
   apiKey: '__GEMINI_API_KEY__',
