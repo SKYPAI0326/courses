@@ -1,8 +1,9 @@
-﻿# n8n Lite Pack · setup-wizard.ps1 (Windows) v1.2.3
+﻿# n8n Lite Pack · setup-wizard.ps1 (Windows) v1.2.4
 # 由 setup-wizard.bat 呼叫。十步驟自動化安裝。
 # 採納 Codex L3 審核建議：UTF-8 BOM / SecureString token / .Replace() / Invoke-Native exit code 檢查
 # v1.1：Telegram 改為可選（Y/N gate）— 不用 TG 的學員零摩擦過關
 # v1.2.3：版號對齊（Win 版本身的 Gemini smoke test 已正確帶 thinkingConfig.thinkingBudget=0；本次只 bump 版號跟 Mac 對齊）
+# v1.2.4：#14 endpoints 解析 robust（兼容 string / array / 單一 object）；版號 bump（本檔本身 wizard 邏輯不變）
 
 $ErrorActionPreference = 'Stop'
 $OutputEncoding = [System.Text.Encoding]::UTF8
