@@ -1,5 +1,5 @@
 #!/bin/bash
-# n8n Lite Pack · setup-wizard v1.2.3 (macOS)
+# n8n Lite Pack · setup-wizard v1.2.4 (macOS)
 # 「下載安裝後設兩個 key 即用」最短路徑
 # v0.4：file access patch 自動化 / 自動重啟 / Telegram + Gemini smoke test
 # v1.1：Telegram 改為可選（GUI 對話框 Y/N gate）— 不用 TG 的學員零摩擦過關
@@ -7,6 +7,8 @@
 #         （Win 版 setup-wizard.ps1:386 早就有，Mac 版這條漏 patch）
 #         Gemini 2.5 Flash 預設啟用 thinking，maxOutputTokens=20 會被 thinking 吃光
 #         → response candidates[0].content 沒 parts.text → 回 EMPTY → smoke 誤報異常
+# v1.2.4：#14 endpoints 解析 robust（兼容 string / array / 單一 object）；
+#         版號 bump（本檔本身 wizard 邏輯不變）
 # 用法：在 Finder 雙擊本檔；首次被 Gatekeeper 擋請去「系統設定 → 隱私權與安全性 → 強制打開」
 
 cd "$(dirname "$0")"
