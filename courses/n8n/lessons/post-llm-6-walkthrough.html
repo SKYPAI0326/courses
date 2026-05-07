@@ -4,21 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Walkthrough — 把 #02 改成處理發票｜AI 資料工廠</title>
-<meta name="description" content="完整示範如何把 #02-pdf-ai-rename 從合約改名版改造成發票歸檔版，走完拆需求→讀 JSON→限定修改→匯入測試→錯誤回報→收斂六步流程。本頁含實機錄製佔位符，部分對話與截圖待補入。">
+<meta name="description" content="完整 LLM 對話劇本，從零跟讀到通，含 4 個故意岔路示範學員會踩的雷。行銷企劃 A 用 ChatGPT 改 #02 workflow 處理 200 張供應商發票的逐步實錄。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
 <meta property="og:title" content="Walkthrough — 把 #02 改成處理發票｜AI 資料工廠">
-<meta property="og:description" content="完整示範如何把 #02-pdf-ai-rename 改造成發票歸檔版，走完安全改 workflow 六步流程。">
+<meta property="og:description" content="完整 LLM 對話劇本，從零跟讀到通，含 4 個故意岔路示範學員會踩的雷。">
 <meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/post-llm-6-walkthrough.html">
 <meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Walkthrough — 把 #02 改成處理發票｜AI 資料工廠">
-<meta name="twitter:description" content="完整示範把 #02-pdf-ai-rename 改造成發票歸檔版的六步流程。">
+<meta name="twitter:description" content="完整 LLM 對話劇本，從零跟讀到通，含 4 個故意岔路示範學員會踩的雷。">
 <meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/post-llm-6-walkthrough.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-a3:#5a7a5a;--c-main:#5a7a5a;--radius:4px;--radius-sm:3px;--content-w:820px}
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-main:#5a7a5a;--radius:4px;--radius-sm:3px;--content-w:820px}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
@@ -33,10 +33,6 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 .topbar-tag{font-size:.72rem;color:var(--c-main);border:1px solid rgba(90,122,90,.3);background:transparent;padding:3px 12px;border-radius:99px;font-weight:500;letter-spacing:.06em}
 .progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
 .progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
-/* 頁面頂端警示 banner */
-.wip-banner{background:rgba(181,74,74,.08);border-bottom:2px dashed #b54a4a;padding:12px 48px;display:flex;align-items:center;gap:12px}
-.wip-banner-text{font-size:.85rem;color:#b54a4a;font-weight:500;line-height:1.6}
-.wip-banner-icon{font-size:1.1rem;flex-shrink:0}
 .page-hero{max-width:var(--content-w);margin:0 auto;padding:56px 48px 36px}
 .back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
 .back-link:hover{color:var(--c-text)}
@@ -54,19 +50,45 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 .intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
 .intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
 .intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+/* 統一單色 callout */
 .callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
 .callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
 .callout-icon{flex-shrink:0;font-size:1.1rem}
 .callout-body{font-size:.9rem;line-height:1.85}
-/* placeholder 樣式 */
-.placeholder-dialog,.screenshot-placeholder{background:rgba(181,74,74,.05);border:2px dashed #b54a4a;color:#b54a4a;padding:20px;margin:16px 0;font-family:'SF Mono','Courier New',monospace;font-size:.85rem;text-align:center;border-radius:6px}
-.placeholder-dialog::before,.screenshot-placeholder::before{content:'[佔位符]  ';font-weight:700;opacity:.7}
+/* 對話卡片系統 — 4 種角色 */
+/* A 自填便箋：紙本便箋風，米黃底、左黑邊 */
+.turn-note{background:#faf8f2;border:1px solid var(--c-border);border-left:3px solid var(--c-text);border-radius:var(--radius);padding:20px 24px;margin:16px 0}
+.turn-note-label{font-size:.7rem;color:var(--c-muted);letter-spacing:.12em;font-weight:500;margin-bottom:10px;text-transform:uppercase}
+.turn-note-body{font-family:'Shippori Mincho',serif;font-size:.9rem;color:var(--c-text);line-height:1.9;white-space:pre-wrap}
+/* A 貼 ChatGPT prompt：藍色 code block */
+.turn-prompt{background:#f0f3fa;border:1px solid #c6d0e8;border-left:3px solid #6b7fa3;border-radius:var(--radius);padding:20px 24px;margin:16px 0}
+.turn-prompt-label{font-size:.7rem;color:#6b7fa3;letter-spacing:.12em;font-weight:500;margin-bottom:10px}
+.turn-prompt-hint{font-size:.75rem;color:#6b7fa3;background:rgba(107,127,163,.1);border:1px solid rgba(107,127,163,.25);border-radius:3px;padding:3px 10px;display:inline-block;margin-bottom:12px}
+.turn-prompt-body{font-family:'SF Mono','Courier New',monospace;font-size:.82rem;color:#2c2b28;line-height:1.8;white-space:pre-wrap;word-break:break-word}
+/* ChatGPT 回應（理想版）：綠邊 callout */
+.turn-llm-ok{background:#f2f7f2;border:1px solid #b8d4b8;border-left:3px solid #5a7a5a;border-radius:var(--radius);padding:20px 24px;margin:16px 0}
+.turn-llm-ok-label{font-size:.7rem;color:#5a7a5a;letter-spacing:.12em;font-weight:500;margin-bottom:10px}
+.turn-llm-ok-body{font-family:'SF Mono','Courier New',monospace;font-size:.82rem;color:#2c2b28;line-height:1.8;white-space:pre-wrap;word-break:break-word}
+/* ChatGPT 回應（歪掉變體）：黃邊 callout */
+.turn-llm-bad{background:#faf6ed;border:1px solid #e0d0a0;border-left:3px solid #c9963a;border-radius:var(--radius);padding:20px 24px;margin:16px 0}
+.turn-llm-bad-label{font-size:.7rem;color:#c9963a;letter-spacing:.12em;font-weight:500;margin-bottom:10px}
+.turn-llm-bad-tag{font-size:.72rem;background:rgba(201,150,58,.15);color:#a07a20;border:1px solid rgba(201,150,58,.4);border-radius:3px;padding:2px 8px;display:inline-block;margin-left:8px;vertical-align:middle}
+.turn-llm-bad-body{font-family:'SF Mono','Courier New',monospace;font-size:.82rem;color:#2c2b28;line-height:1.8;white-space:pre-wrap;word-break:break-word}
+/* A 動作說明：灰色說明文 */
+.turn-action{background:var(--c-surface);border-left:2px solid var(--c-faint);border-radius:0 var(--radius) var(--radius) 0;padding:14px 20px;margin:16px 0}
+.turn-action-label{font-size:.7rem;color:var(--c-muted);letter-spacing:.12em;font-weight:500;margin-bottom:6px}
+.turn-action-body{font-size:.88rem;color:var(--c-muted);line-height:1.85}
+/* 岔路 section 標題 */
+.detour-heading{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:#c9963a;margin:28px 0 8px;padding:10px 16px;background:rgba(201,150,58,.07);border:1px solid rgba(201,150,58,.25);border-radius:var(--radius)}
+.detour-heading::before{content:'⚠ 岔路示範 — ';font-weight:500}
 /* 候選對照表 */
 .compare-table{width:100%;border-collapse:collapse;margin:24px 0;font-size:.88rem}
 .compare-table th{background:var(--c-surface);color:var(--c-text);font-weight:500;padding:10px 14px;text-align:left;border-bottom:1px solid var(--c-border)}
 .compare-table td{padding:10px 14px;border-bottom:1px solid var(--c-border-soft);vertical-align:top;line-height:1.8}
 .compare-table tr:last-child td{border-bottom:none}
 .compare-table .verdict{color:var(--c-main);font-weight:500}
+.compare-table .ok{color:#5a7a5a;font-weight:500}
+.compare-table .bad{color:#b54a4a;font-weight:500}
 /* 便箋卡 */
 .note-card{background:var(--c-card);border:1px solid var(--c-border-soft);border-radius:var(--radius);padding:24px 28px;margin:24px 0}
 .note-card-title{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:16px}
@@ -81,12 +103,32 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 .step-content{flex:1}
 .step-heading{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:8px}
 .step-body{font-size:.9rem;color:var(--c-muted);line-height:1.85}
-/* 段落標籤 */
+/* 截圖佔位符 */
+.screenshot-placeholder{background:rgba(90,122,90,.04);border:1.5px dashed rgba(90,122,90,.35);color:var(--c-muted);padding:16px 20px;margin:16px 0;font-size:.8rem;text-align:center;border-radius:var(--radius)}
+.screenshot-placeholder::before{content:'[實機需錄] ';font-weight:600;opacity:.7}
+/* 時間分配表 */
+.time-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.87rem}
+.time-table th{background:var(--c-surface);color:var(--c-text);font-weight:500;padding:8px 14px;text-align:left;border-bottom:1px solid var(--c-border);font-family:'Shippori Mincho',serif}
+.time-table td{padding:8px 14px;border-bottom:1px solid var(--c-border-soft);vertical-align:top;line-height:1.7}
+.time-table tr:last-child td{border-bottom:none;font-weight:700;background:var(--c-surface)}
+.time-table .warn-tag{font-size:.7rem;background:rgba(201,150,58,.12);color:#a07a20;border:1px solid rgba(201,150,58,.3);border-radius:3px;padding:1px 6px;margin-left:4px;white-space:nowrap}
+/* Phase C 章末提醒卡片 */
+.reminder-list{display:flex;flex-direction:column;gap:12px;margin:20px 0}
+.reminder-item{display:flex;gap:16px;background:var(--c-card);border:1px solid var(--c-border-soft);border-radius:var(--radius);padding:16px 20px}
+.reminder-num{flex-shrink:0;width:28px;height:28px;border-radius:50%;background:var(--c-main);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:.82rem;font-weight:700}
+.reminder-body{font-size:.9rem;color:var(--c-text);line-height:1.8}
+.reminder-body strong{color:var(--c-text)}
+/* 驗收訊號標籤 */
+.check-tag{display:inline-block;font-size:.72rem;color:#5a7a5a;background:rgba(90,122,90,.1);border:1px solid rgba(90,122,90,.3);border-radius:3px;padding:2px 8px;margin:2px 0}
+/* 段落小標籤 */
 .inline-label{font-size:.72rem;color:var(--c-main);letter-spacing:.1em;font-weight:500;display:inline-block;margin-right:8px}
-/* 維運提醒 */
-.maintainer-note{background:rgba(181,74,74,.04);border:1px solid rgba(181,74,74,.25);border-radius:var(--radius);padding:16px 20px;margin:24px 0}
-.maintainer-note-label{font-size:.72rem;color:#b54a4a;letter-spacing:.1em;font-weight:500;margin-bottom:8px}
-.maintainer-note-body{font-size:.88rem;color:#b54a4a;line-height:1.8}
+/* role card */
+.role-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 24px;margin:0 0 24px}
+.role-card-eyebrow{font-size:.7rem;color:var(--c-faint);letter-spacing:.12em;font-weight:500;margin-bottom:8px}
+.role-card-name{font-family:'Shippori Mincho',serif;font-size:1.15rem;font-weight:700;color:var(--c-text);margin-bottom:10px}
+.role-card-items{font-size:.88rem;color:var(--c-muted);line-height:1.9}
+/* sub-step heading inside section */
+.sub-step{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);margin:28px 0 12px;padding-bottom:4px;border-bottom:1px solid var(--c-border-soft)}
 .nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
 .nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
 .nav-btn:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
@@ -98,7 +140,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 .footer-note{font-size:.75rem;color:var(--c-muted)}
 .footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer,.wip-banner{padding-left:24px;padding-right:24px}.note-grid{grid-template-columns:1fr}.lesson-title{max-width:100%}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.note-grid{grid-template-columns:1fr}.lesson-title{max-width:100%}.turn-prompt-body,.turn-llm-ok-body,.turn-llm-bad-body,.turn-note-body{font-size:.78rem}}
 </style>
 </head>
 <body>
@@ -137,34 +179,30 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 </header>
 <div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
 
-<div class="wip-banner">
-  <span class="wip-banner-icon" aria-hidden="true">⚠</span>
-  <span class="wip-banner-text">本頁含實機錄製佔位符 — 部分 LLM 對話與截圖待維運實機補入。搜尋 <code>[需錄製：</code> 或 <code>[需截圖：</code> 可定位全部位置。</span>
-</div>
-
 <main id="main">
 
 <div class="page-hero">
   <a href="post-llm-1-overview.html" class="back-link"><span aria-hidden="true">←</span> 返回系列總覽</a>
   <div class="hero-eyebrow">(06) · 8 頁系列 · 第 6/8</div>
   <h1 class="lesson-title">Walkthrough — 把 #02 改成處理發票</h1>
-  <p class="lesson-tagline">實作示範（建構中）— 從合約 PDF 改名版出發，完整走完六步安全改 workflow 流程，最終產出可處理 200 張供應商發票的自動歸檔版本。</p>
+  <p class="lesson-tagline">完整 LLM 對話劇本，從零跟讀到通。行銷企劃 A 用 ChatGPT 把 #02-pdf-ai-rename 改成處理 200 張供應商發票——含 4 個故意岔路示範你最可能踩的雷，以及「我可以了」拐點的完整示範。</p>
   <div class="outcomes">
     <div class="outcomes-label">本頁學習成果</div>
-    <div class="outcome-item">能填出 4 格便箋（input / output / 保留節點 / 編號），對改造需求做出清晰定義</div>
-    <div class="outcome-item">能讓 LLM 只回傳指定節點的 JSON 區段，不重寫整份 workflow</div>
-    <div class="outcome-item">能用最小可重現訊息格式回報錯誤，讓 LLM 精準定位問題欄位</div>
+    <div class="outcome-item">能填出 4 格便箋並對人講 1 分鐘不打結</div>
+    <div class="outcome-item">能讓 LLM 只回傳指定節點 JSON 區段，發現「給整份」時知道怎麼追問</div>
+    <div class="outcome-item">能用三件套回報錯誤，並用紅綠對照表判斷 LLM 回應是精準型還是模糊型</div>
   </div>
 </div>
 
 <hr class="section-rule">
 
+<!-- ======== SECTION 01：為什麼選 #02 ======== -->
 <section class="lesson-section">
   <div class="section-eyebrow">(01)</div>
   <h2 class="section-heading">為什麼選 #02-pdf-ai-rename</h2>
   <div class="intro-band">
     <div class="intro-label">選案邏輯</div>
-    <div class="intro-text">這份 walkthrough 要示範「安全改 workflow 的六步流程」，選案標準是：改造張力高、LLM 介入的價值大、新手第一次走完不會被 typeVersion 雷區打斷信心。以下是三個候選方案的完整對照。</div>
+    <div class="intro-text">這份 walkthrough 示範「安全改 workflow 的六步流程」。選案標準：改造張力高、LLM 介入的價值大、新手第一次走完不會被 typeVersion 雷區打斷信心。</div>
   </div>
 
   <table class="compare-table">
@@ -206,108 +244,211 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
   <p class="body-text">（a）對應 Story A——行銷企劃 A 接到 200 張發票任務，是結業後最高頻的改造情境，學員看到就有即視感。</p>
   <p class="body-text">（b）不需要換節點類型，整條 workflow 維持 Manual Trigger → Read PDF → Extract PDF Text → Code（AI 改名）→ Write 五節點結構，只需改 Code 節點裡的 prompt 區段與檔名 template，學員第一次走六步流程時不會被 typeVersion 或 connections 雷區打斷。</p>
   <p class="body-text">（c）#02 的核心修改對象是 Code 節點裡的一段 prompt 字串——這是「LLM 幫你改 LLM 看的 prompt」的 meta 操作，新手看一次就記住「LLM 是 JSON 代讀工具」這個核心概念。</p>
-  <p class="body-text">（d）改完的驗收訊號清晰——輸出的 PDF 檔名從「YYYYMMDD_合約_XXX.pdf」變成「YYYYMMDD_發票_XXX.pdf」，一眼就看出對不對，不需要進 n8n UI 比對資料形狀。</p>
+  <p class="body-text">（d）改完的驗收訊號清晰——輸出的 PDF 檔名從「YYYYMMDD_合約_XXX.pdf」變成「YYYYMMDD_發票_XXX.pdf」，一眼就看出對不對。</p>
 </section>
 
 <hr class="section-rule">
 
+<!-- ======== SECTION 02：主角設定 ======== -->
 <section class="lesson-section">
   <div class="section-eyebrow">(02)</div>
-  <h2 class="section-heading">設定情境</h2>
-  <div class="intro-band">
-    <div class="intro-label">學員視角</div>
-    <div class="intro-text">這份教材的主角是行銷企劃 A——她代表「結業後一到兩週、遇到具體工作任務才回來翻教材」的典型結業學員。</div>
+  <h2 class="section-heading">主角設定與設定情境</h2>
+
+  <div class="role-card">
+    <div class="role-card-eyebrow">本章主角 — 對應第 1 章 Timeline Story A</div>
+    <div class="role-card-name">行銷企劃 A</div>
+    <div class="role-card-items">結業 3 週，今天上午接到主管轉信：每月 200 張供應商發票要按 <code>/檔案/2026/發票/{月份}/{供應商名}_{稅後金額}.pdf</code> 歸檔。<br>手邊有：n8n self-host（Docker Desktop），#02-pdf-ai-rename 已跑通合約版本。<br>用網頁版 ChatGPT，沒有 Claude Code。手邊先有 1 張上週收到的測試發票。</div>
   </div>
 
-  <p class="body-text">行銷企劃 A 三週前完成了 n8n 課程，用 #02-pdf-ai-rename 跑通了合約 PDF 的自動改名流程，感覺良好地交出成果。</p>
-  <p class="body-text">今天早上，主管轉來一封信：「這個月開始，財務要求所有供應商發票都統一歸在 <code>/檔案/2026/發票/{月份}/{供應商名}_{稅後金額}.pdf</code>，現在手邊有一批 200 張 PDF，你來處理一下。」</p>
-  <p class="body-text">A 打開 n8n，找到 #02，看了一下 Code 節點裡的 prompt：「請為這份 PDF 文件取一個語意化檔名（繁體中文）。格式：YYYYMMDD_類型_關鍵字……類型 2-4 字（合約 / 發票 / 報告 / 說明……）」她意識到：現在的 prompt 是針對合約設計的，欄位是「甲乙方 + 合約金額 + 簽訂日」，但發票需要抽的是「供應商統編、品項、稅後金額、發票日期」。</p>
-  <p class="body-text">她想到課程教的六步流程——第一步不是直接問 LLM，而是先把需求寫清楚。她打開便箋 app，準備填 4 格。</p>
-  <p class="body-text">A 知道自己的弱點：上次用 Make 時，她直接跟 AI 說「幫我改這個 workflow 讓它處理發票」，AI 給了一份看起來很長的 JSON，她照貼進去，匯入時 n8n 跳了一個「不支援的格式」錯誤，折騰了一個下午才放棄。這次她決定照著教材走完每一步。</p>
-  <p class="body-text">這是這份 walkthrough 的起點：不是「我不會用 n8n」，而是「我會用 n8n，但我不知道 LLM 在這套流程裡該扮演什麼角色」。六步流程就是為了回答這個問題。</p>
+  <p class="body-text">行銷企劃 A 三週前完成了 n8n 課程，用 #02-pdf-ai-rename 跑通了合約 PDF 的自動改名流程。今天早上主管轉來一封信：「這個月開始，財務要求所有供應商發票都統一歸在 <code>/檔案/2026/發票/{月份}/{供應商名}_{稅後金額}.pdf</code>，現在手邊有一批 200 張 PDF，你來處理一下。」</p>
+  <p class="body-text">A 打開 n8n，找到 #02，看了一下 Code 節點裡的 prompt：裡面抓的是「甲乙方、合約金額、簽訂日」。但發票需要抽的是「賣方、稅後合計、發票日期」。她想到課程教的六步流程——第一步不是直接問 LLM，而是先把需求寫清楚。</p>
+  <p class="body-text">她知道自己的弱點：上次用 Make 時直接跟 AI 說「幫我改這個 workflow 讓它處理發票」，AI 給了一份很長的 JSON，照貼進去，匯入時跳了一個「不支援的格式」錯誤，折騰了一個下午才放棄。這次她決定照著教材走完每一步。</p>
+
+  <div class="turn-action">
+    <div class="turn-action-label">A 在 ChatGPT 開新對話視窗</div>
+    <div class="turn-action-body">A 在 ChatGPT 上點「New Chat」開新視窗。這個視窗會貫穿整個 walkthrough——不要在中途開新視窗，LLM 需要前面的 context。</div>
+  </div>
+
+  <div class="turn-prompt">
+    <div class="turn-prompt-label">A 貼 ChatGPT — 開場 Prompt（環境感知 prefix）</div>
+    <div class="turn-prompt-hint">複製 → 貼 ChatGPT</div>
+    <div class="turn-prompt-body">我用 n8n self-host (Docker Desktop)，n8n 版本 latest。
+我要把 #02-pdf-ai-rename workflow（合約改名版）改成處理供應商發票，
+每月 200 張，要產出 {YYYYMMDD}_發票_{賣方名}_{稅後合計}.pdf 檔名格式。
+我會貼模板和 JSON 給你，請以結果為主、不解釋原理。
+你準備好了嗎？</div>
+  </div>
+
+  <div class="turn-llm-ok">
+    <div class="turn-llm-ok-label">ChatGPT 回應（理想版）</div>
+    <div class="turn-llm-ok-body">好的，我準備好了。請貼第一個任務的內容，我會以結果為主，不寫程式碼解釋。</div>
+  </div>
+
+  <div class="turn-action">
+    <div class="turn-action-label">這個開場 turn 的價值</div>
+    <div class="turn-action-body">把環境（self-host Docker）、目的（200 張發票）、語氣（不解釋原理）一次傳給 LLM。後面每個 turn 都不用重述。</div>
+  </div>
 </section>
 
 <hr class="section-rule">
 
+<!-- ======== SECTION 03：步驟 1 拆需求 ======== -->
 <section class="lesson-section">
   <div class="section-eyebrow">(03)</div>
-  <h2 class="section-heading">步驟 1：拆需求</h2>
+  <h2 class="section-heading">步驟 1：拆需求（A 自己填便箋，不對 LLM）</h2>
   <div class="intro-band">
     <div class="intro-label">學員主導，LLM 不介入</div>
     <div class="intro-text">步驟 1 刻意不用 LLM。需求模糊時 LLM 會腦補，越改越偏。逼自己填這 4 格，後面的每個步驟才有參照點。</div>
   </div>
 
-  <p class="body-text">A 拿起便箋，把四格填完。以下就是她填的內容——這不是空白範本，是真的填了一次：</p>
+  <p class="body-text">A 打開 macOS 的 Notes app，建一條新筆記，貼上 4 格範本。她邊看 #02 的 Code 節點 prompt（看到「甲乙方+合約金額+簽訂日」字樣）邊填。10 分鐘後，4 格內容如下：</p>
 
-  <div class="note-card">
-    <div class="note-card-title">4 格便箋範本 — 本次改造</div>
-    <div class="note-grid">
-      <div class="note-cell">
-        <div class="note-cell-label">原 Workflow 編號</div>
-        <div class="note-cell-body">#02-pdf-ai-rename（合約版，v0.6）<br>目前 prompt 抓：甲乙方、合約金額、簽訂日</div>
-      </div>
-      <div class="note-cell">
-        <div class="note-cell-label">目標 Input</div>
-        <div class="note-cell-body">供應商發票 PDF（每月 200 張）<br>來源資料夾：/files/shared/pdf-inbox/<br>每張 PDF 含：供應商名稱、統編、品項明細、稅後金額、發票日期</div>
-      </div>
-      <div class="note-cell">
-        <div class="note-cell-label">目標 Output</div>
-        <div class="note-cell-body">改名後 PDF，格式：<br>YYYYMMDD_發票_{供應商名}_{稅後金額}.pdf<br>存至：/files/shared/pdf-renamed/</div>
-      </div>
-      <div class="note-cell">
-        <div class="note-cell-label">必須保留的節點</div>
-        <div class="note-cell-body">Manual Trigger（保留）<br>Read PDF（保留）<br>Extract PDF Text（保留）<br>Write: 改名輸出（保留路徑邏輯）<br>只改：Code node 裡的 prompt 字串與檔名 template</div>
-      </div>
-    </div>
+  <div class="turn-note">
+    <div class="turn-note-label">A 自填 — 4 格便箋（非 ChatGPT prompt）</div>
+    <div class="turn-note-body">【4 格便箋 — 把 #02 改成處理發票】
+
+1. 原 workflow 編號
+   #02-pdf-ai-rename（v0.6 合約版）
+   目前 prompt 抓：甲乙方、合約金額、簽訂日
+
+2. 目標 input
+   供應商發票 PDF（每月 200 張，目前手邊先 1 張測試）
+   來源資料夾：/files/pdf-inbox/
+   每張 PDF 含：
+   - 賣方公司全名（PDF 上中文寫「賣方」）
+   - 統編（8 碼）
+   - 品項清單（多行）
+   - 稅後合計（PDF 上寫「稅後合計」，含元字）
+   - 發票日期（YYYY/MM/DD）
+
+3. 目標 output
+   改名後 PDF，命名格式：
+   {YYYYMMDD}_發票_{賣方名}_{稅後合計}.pdf
+   例：20260506_發票_弄一下工作室股份有限公司_15750.pdf
+   存到：/files/pdf-renamed/2026/{月份}/
+
+4. 必保留的節點
+   Manual Trigger（保留）
+   Read PDF（保留）
+   Extract PDF Text（保留）
+   Write 改名輸出（保留路徑邏輯）
+   只改：Code: AI 改名 節點裡的 prompt 字串 + 檔名 template</div>
   </div>
 
-  <p class="body-text">驗收訊號：A 把這 4 格唸給同事聽，1 分鐘內講完不打結。同事問「供應商名稱要全名還是簡稱？」——A 補記：取 PDF 第一頁的公司名稱全名，不截短。這個細節後來在步驟 3 的 prompt 裡會用到。</p>
+  <p class="body-text">A 把這 4 格唸給隔壁工位的 B 聽，1 分鐘內講完。B 問：「賣方公司全名要不要去掉『股份有限公司』後綴？」A 想了 5 秒，回到便箋第 2 格補一行：</p>
+
+  <div class="turn-note">
+    <div class="turn-note-label">A 補記 — 第 2 格追加一行</div>
+    <div class="turn-note-body">- 賣方公司全名：保留「股份有限公司」「有限公司」等後綴，不截短</div>
+  </div>
 
   <div class="callout key">
-    <div class="callout-icon" aria-hidden="true">⚠</div>
-    <div class="callout-body"><strong>常見跳步錯誤：</strong>直接跟 LLM 說「幫我把 #02 改成處理發票」，沒有給 input/output 的具體形狀。LLM 拿不到「供應商統編、品項、稅後金額、發票日期」這些欄位名，會自己猜——猜出來的欄位名如果跟 PDF 裡的欄位對不上，Code 節點的 prompt 就會抓錯資料，改名結果一塌糊塗。</div>
+    <div class="callout-icon" aria-hidden="true">✓</div>
+    <div class="callout-body"><span class="check-tag">驗收訊號達成</span> 對人講 1 分鐘沒打結，對方追問的細節能補進便箋。這是步驟 1 唯一的驗收標準。</div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-icon" aria-hidden="true">💡</div>
+    <div class="callout-body"><strong>常見跳步錯誤：</strong>直接跟 LLM 說「幫我把 #02 改成處理發票」，沒有給 input/output 的具體形狀。LLM 拿不到「賣方、稅後合計、發票日期」這些欄位名，會自己猜——猜出來的欄位名如果跟 PDF 裡的對不上，Code 節點的 prompt 就會抓錯資料。</div>
   </div>
 </section>
 
 <hr class="section-rule">
 
+<!-- ======== SECTION 04：步驟 2 讀 JSON ======== -->
 <section class="lesson-section">
   <div class="section-eyebrow">(04)</div>
   <h2 class="section-heading">步驟 2：讀 JSON</h2>
   <div class="intro-band">
     <div class="intro-label">LLM 主導翻譯，學員驗收</div>
-    <div class="intro-text">把 #02 的 JSON（移除 credential 後）貼給 LLM，要它翻成人話：這份 workflow 做了什麼、每個節點的角色與資料流向。LLM 做這件事比學員快 50 倍。</div>
+    <div class="intro-text">把 #02 的 JSON（移除 credential 後）貼給 LLM，要它翻成人話。LLM 做這件事比學員快 50 倍。</div>
   </div>
 
-  <p class="body-text">A 在 n8n UI 裡找到 #02，點右上角「...」→「Export」→ 確認選了「Export without credentials」（預設就是這個，但要確認一下）。下載得到 <code>02-pdf-ai-rename.json</code>。</p>
-  <p class="body-text">她用文字編輯器打開，先搜尋 <code>apiKey</code>、<code>accessToken</code>、<code>password</code> 三個字串——確認找不到後，才把整份 JSON 貼到 LLM 的對話框。</p>
+  <h3 class="sub-step">2.1 A 在 n8n UI export #02</h3>
+  <p class="body-text">打開 n8n UI（<code>http://localhost:5678</code>）→ 進到 #02 → 點右上角 <code>⋮</code> → 選 Download → 跳出視窗，下拉選單原本是「Default」，A 切到「<strong>Without credentials</strong>」→ 點 Download。下載到 <code>02-pdf-ai-rename.json</code>。</p>
 
-  <p class="body-text">她使用的 prompt 是教材第 3 頁提供的模板 2：</p>
-  <div class="note-card">
-    <div class="note-card-title">模板 2 — 步驟 2 讀 JSON</div>
-    <div class="note-cell-body" style="font-family:'SF Mono','Courier New',monospace;font-size:.85rem;line-height:1.8;padding:8px 0">我是 n8n 非工程師使用者，請以結果為主、不解釋原理。<br>以下是一份 n8n workflow JSON（已移除 credential）。請：<br>1. 用一段話講它做了什麼。<br>2. 列出每個節點的角色與資料流向（節點名稱 → 它輸出什麼 → 下一個節點吃什麼）。<br>不要建議改進、不要寫程式碼。<br>[貼 JSON]</div>
+  <h3 class="sub-step">2.2 A 用 VS Code 搜尋 4 個字串</h3>
+  <p class="body-text">A 在 VS Code 打開 .json，按 Cmd+F：</p>
+  <p class="body-text">搜 <code>apiKey</code> → 0 個結果 ✓　搜 <code>accessToken</code> → 0 個結果 ✓　搜 <code>password</code> → 0 個結果 ✓　搜 <code>token</code> → 0 個結果 ✓</p>
+  <p class="body-text"><strong>4 字串全 0，過關。</strong>才把整份 JSON 貼到 ChatGPT。</p>
+
+  <h3 class="sub-step">2.3 A 貼模板 2 給 ChatGPT</h3>
+
+  <div class="turn-prompt">
+    <div class="turn-prompt-label">A 貼 ChatGPT — 模板 2（讀 JSON）</div>
+    <div class="turn-prompt-hint">複製 → 貼 ChatGPT（接在開場視窗後）</div>
+    <div class="turn-prompt-body">我是 n8n 非工程師使用者，請以結果為主、不解釋原理。
+以下是一份 n8n workflow JSON（已移除 credential）。請：
+1. 用一段話講它做了什麼。
+2. 列出每個節點的角色與資料流向（節點名稱 → 它輸出什麼 → 下一個節點吃什麼）。
+不要建議改進、不要寫程式碼。
+
+{
+  "name": "02-pdf-ai-rename",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      ... (整份 JSON 約 200 行) ...
+    }
+  ],
+  "connections": { ... }
+}</div>
   </div>
 
-  <p class="body-text">LLM 應該會回傳 #02 的結構摘要——大致是「讀 PDF 資料夾裡所有 PDF → 用 Gemini API 分析內文並產出語意化檔名 → 把 PDF 用新檔名存到 renamed 資料夾」，並列出 5 個節點的角色與資料流向。下方是這個對話的佔位符，待維運時補入實機截圖。</p>
+  <h3 class="sub-step">2.4 ChatGPT 回應（sample）</h3>
 
-  <div class="placeholder-dialog">
-    [需錄製：LLM 對話截圖 — 步驟 2 翻譯回應。內容應包含：(1) 學員貼入 JSON + 模板 2 prompt；(2) LLM 回傳 #02 的流程摘要「Manual Trigger → Read PDF → Extract PDF Text → Code（Gemini 改名）→ Write 改名輸出，5 節點」；(3) 學員在 n8n UI 上對照確認節點順序正確]
+  <div class="turn-llm-ok">
+    <div class="turn-llm-ok-label">ChatGPT 回應（理想版）</div>
+    <div class="turn-llm-ok-body">這份 workflow 做什麼：
+從 /files/pdf-inbox/ 讀取資料夾內所有 PDF，用 Gemini API 分析每份 PDF 的
+文字內容後產出一個語意化檔名（格式 YYYYMMDD_類型_關鍵字），最後把原 PDF
+用新檔名移到 /files/pdf-renamed/ 資料夾。整套流程是手動觸發。
+
+節點清單（5 個）：
+1. Manual Trigger
+   - 角色：手動觸發點
+   - 輸出：空訊息（觸發訊號）
+   - 下一個節點吃：觸發訊號
+
+2. Read PDF
+   - 角色：列出 /files/pdf-inbox/ 內所有 .pdf 檔
+   - 輸出：每張 PDF 的 binary data + 原始檔名
+   - 下一個節點吃：binary
+
+3. Extract PDF Text
+   - 角色：把 PDF binary 轉成純文字
+   - 輸出：pdfTextPreview 欄位（純文字）
+   - 下一個節點吃：pdfTextPreview
+
+4. Code: AI 改名（內含 Gemini call）
+   - 角色：呼叫 Gemini API，根據 PDF 文字產出新檔名字串
+   - 輸出：newFilename 欄位（字串）
+   - 下一個節點吃：newFilename + 原 binary
+
+5. Write
+   - 角色：把原 PDF 用 newFilename 改名後寫到 /files/pdf-renamed/
+   - 輸出：寫入結果（成功/失敗）
+   - 下一個節點：（流程結束）
+
+資料流向：Manual Trigger → Read PDF → Extract PDF Text → Code → Write</div>
   </div>
 
-  <figure class="screenshot-placeholder">
-    [需截圖：n8n UI 畫面 — #02 workflow 全景，顯示 5 個節點的位置與連線，供學員對照 LLM 描述]
-  </figure>
+  <h3 class="sub-step">2.5 A 對照 n8n UI 確認</h3>
+  <p class="body-text">A 切回 n8n UI 的 #02 編輯畫面，照著 ChatGPT 給的清單確認：節點數量 5 ✓、節點順序和我看到的左到右一致 ✓、「Code: AI 改名」描述「內含 Gemini call」對得上 ✓。</p>
 
-  <p class="body-text">對照確認重點：LLM 說的「Code 節點做什麼」是否與 n8n UI 上顯示的一致。如果 LLM 說「HTTP Request 節點打 Gemini API」但 n8n UI 上顯示的是「Code 節點（內含 helpers.httpRequest）」，代表 LLM 讀到的是舊版結構——這個版本（v0.6）已經把 HTTP Request 節點合進 Code 節點了。這種小不一致不影響後續，但要記下來，步驟 3 限定修改範圍時要明確說「我只要改 Code 節點裡的 prompt 字串」。</p>
+  <div class="screenshot-placeholder">圖 1 — n8n UI 畫面：#02 workflow 全景，顯示 5 個節點位置與連線，供學員對照 LLM 描述</div>
 
   <div class="callout tip">
     <div class="callout-icon" aria-hidden="true">💡</div>
-    <div class="callout-body">驗收訊號：A 用自己的話複述了一遍 LLM 的描述，確認能講出「這份 workflow 讀 pdf-inbox 資料夾的 PDF，用 Gemini 分析內文後給出新檔名，存到 pdf-renamed 資料夾」。這句話她 30 秒就說完了，而且準確——步驟 2 完成。</div>
+    <div class="callout-body"><span class="check-tag">驗收訊號達成</span> 80% 以上節點對得上。A 用自己的話複述：「讀 inbox 資料夾的 PDF，用 Gemini 給檔名，存到 renamed 資料夾。」30 秒講完。</div>
   </div>
 </section>
 
 <hr class="section-rule">
 
+<!-- ======== SECTION 05：步驟 3 限定修改範圍 ======== -->
 <section class="lesson-section">
   <div class="section-eyebrow">(05)</div>
   <h2 class="section-heading">步驟 3：限定修改範圍</h2>
@@ -316,64 +457,170 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
     <div class="intro-text">這一步是六步流程裡最容易犯錯的地方。「叫 LLM 幫你改」不是「貼 JSON 說你要什麼」——而是「告訴 LLM 只動指定區段，其他節點一律不碰，並且只回傳那幾個節點的 JSON」。</div>
   </div>
 
-  <p class="body-text">A 根據步驟 2 的確認，決定只改一個節點：<strong>Code: AI 改名（內含 Gemini call）</strong>，也就是 id 為 <code>ai-02</code> 的節點。改動範圍如下：</p>
+  <h3 class="sub-step">3.1 A 決定只動 1 個節點</h3>
+  <p class="body-text">回到 4 格便箋第 4 格「必保留節點」，看到只有 Code 節點是要改的。其他 4 個節點完全不動。</p>
 
-  <div class="steps-wrap">
-    <div class="step-block">
-      <div class="step-circle">1</div>
-      <div class="step-content">
-        <div class="step-heading">備份 Code 節點</div>
-        <div class="step-body">在 n8n UI 上選中 Code 節點，點右鍵「Copy」，把節點 JSON 貼到一個臨時 .txt 檔案存起來。這是萬一 LLM 給的內容改壞了，可以立刻貼回去的保險。</div>
-      </div>
-    </div>
-    <div class="step-block">
-      <div class="step-circle">2</div>
-      <div class="step-content">
-        <div class="step-heading">用模板 3 下指令</div>
-        <div class="step-body">基於剛才的對話（LLM 已經讀過 #02 了），用模板 3 明確告訴 LLM：只改 Code 節點裡的 prompt 字串，不動其他任何節點，回傳「只有 Code 節點」的 JSON 區段。</div>
-      </div>
-    </div>
-    <div class="step-block">
-      <div class="step-circle">3</div>
-      <div class="step-content">
-        <div class="step-heading">確認 LLM 回傳的是區段，不是整份</div>
-        <div class="step-body">如果 LLM 回傳的 JSON 開頭是 <code>{&nbsp;"nodes":&nbsp;[</code>，代表它給了整份 workflow——這不是你要的，要求它只給 Code 節點本身。這是這個步驟最常犯的反例，後面有示範。</div>
-      </div>
-    </div>
+  <h3 class="sub-step">3.2 A 在 n8n UI 備份 Code 節點</h3>
+  <p class="body-text">點 Code 節點 → Cmd+C → 在 macOS Notes 開一條新筆記 <code>code-backup-2026-05-07.txt</code> → 貼上。看到內容開頭是 <code>{ "parameters": ...</code>，存檔。這是萬一 LLM 給的內容改壞了，可以立刻貼回去的保險。</p>
+
+  <h3 class="sub-step">3.3 A 貼模板 3 給 ChatGPT</h3>
+
+  <div class="turn-prompt">
+    <div class="turn-prompt-label">A 貼 ChatGPT — 模板 3（限定修改範圍）</div>
+    <div class="turn-prompt-hint">複製 → 貼 ChatGPT</div>
+    <div class="turn-prompt-body">基於剛才那份 workflow，只改節點「Code: AI 改名」（其他節點不動）。
+我要的修改：
+- prompt 字串改成抽取賣方公司全名（保留「股份有限公司」等後綴）、
+  稅後合計（純數字，不含元）、發票日期（YYYYMMDD 格式）
+- 檔名 template 改成：{YYYYMMDD}_發票_{賣方名}_{稅後合計}.pdf
+- 類型欄位固定填「發票」，不要讓 AI 自己判斷
+- 其他邏輯（fallback、parseMethod、httpError 處理）全部保留
+
+請回傳「只有這個 Code 節點」的 JSON 區段（不要整份 workflow）。
+回應格式：直接給 JSON 物件，最外層 { 後面第二行是 "parameters":，
+不要 markdown code fence。</div>
   </div>
 
-  <p class="body-text">A 使用的 prompt（模板 3 填入版）：</p>
-  <div class="note-card">
-    <div class="note-card-title">模板 3 填入 — 步驟 3 限定修改範圍</div>
-    <div class="note-cell-body" style="font-family:'SF Mono','Courier New',monospace;font-size:.85rem;line-height:1.8;padding:8px 0">我是 n8n 非工程師使用者，請以結果為主、不解釋原理。<br>基於剛才那份 workflow，只改節點「Code: AI 改名（內含 Gemini call）」，不動其他節點。<br>我要的修改：<br>- prompt 字串改成抽取供應商名稱（公司全名）、稅後金額（數字含元）、發票日期（YYYYMMDD 格式）<br>- 檔名 template 改成：YYYYMMDD_發票_{供應商名}_{稅後金額}.pdf<br>- 類型欄位固定填「發票」，不要讓 AI 自己判斷類型<br>- 其他邏輯（fallback、parseMethod、httpError 處理）全部保留不動<br>請回傳「只有這個 Code 節點」的 JSON 區段（不要整份 workflow）。</div>
+  <p class="body-text">A 送出後等待 ChatGPT 回應。這是六步流程最容易出現「岔路」的地方——下面先看岔路，再看正確結果。</p>
+
+  <!-- 岔路 1 -->
+  <div class="detour-heading">步驟 3 — ChatGPT 第 1 輪給整份（最常見反例）</div>
+
+  <div class="turn-llm-bad">
+    <div class="turn-llm-bad-label">ChatGPT 回應（歪掉）<span class="turn-llm-bad-tag">整份 workflow 反例</span></div>
+    <div class="turn-llm-bad-body">好的，這是改造後的 workflow：
+
+{
+  "name": "02-pdf-ai-rename-invoice",
+  "nodes": [
+    { "parameters": {...}, "name": "Manual Trigger", ... },
+    { "parameters": {...}, "name": "Read PDF", ... },
+    { "parameters": {...}, "name": "Extract PDF Text", ... },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "..."
+      },
+      "name": "Code: AI 改名",
+      ...
+    },
+    { "parameters": {...}, "name": "Write", ... }
+  ],
+  "connections": {
+    "Manual Trigger": { "main": [[{"node": "Read PDF", ...}]] },
+    ...
+  }
+}
+
+希望這份能直接匯入！</div>
   </div>
 
-  <p class="body-text"><strong>第一輪的對話佔位符：</strong></p>
-  <div class="placeholder-dialog">
-    [需錄製：LLM 對話截圖 — 步驟 3 第一輪。內容應顯示：(1) A 貼入模板 3 填入版；(2) LLM 回傳 Code 節點 JSON 區段（只有 Code 節點，不是整份 workflow）；(3) 回傳的 prompt 字串已正確改成抽取「供應商名稱、稅後金額、發票日期」，檔名 template 改成 YYYYMMDD_發票_{供應商名}_{稅後金額}.pdf]
+  <div class="turn-action">
+    <div class="turn-action-label">A 立刻發現問題</div>
+    <div class="turn-action-body">A 用驗收硬指標 1：看 LLM 回的開頭，第一行 {，第二行 "name":，第三行 "nodes": ——這是整份 workflow，不是區段。A 心想：好險我看到「nodes」陣列了，要追問。</div>
   </div>
 
-  <p class="body-text">但這裡有個常見反例要示範——如果 LLM 第一輪回傳的是整份 workflow 怎麼辦？A 可能會遇到這樣的回應：LLM 貼回一個長 JSON，最外層是 <code>{ "nodes": [...], "connections": {...} }</code>，看起來像整份 workflow。這時候要追問：</p>
-
-  <div class="note-card">
-    <div class="note-card-title">反例修正追問</div>
-    <div class="note-cell-body" style="font-family:'SF Mono','Courier New',monospace;font-size:.85rem;line-height:1.8;padding:8px 0">你給的 JSON 是整份 workflow 還是只有 Code 節點的區段？<br>我只要那個 Code 節點本身（一個 JSON 物件，從 { "parameters": 開始），不要整份 workflow。<br>請重新只給 Code 節點。</div>
+  <div class="turn-prompt">
+    <div class="turn-prompt-label">A 用追問模板</div>
+    <div class="turn-prompt-hint">複製 → 貼 ChatGPT（同一視窗）</div>
+    <div class="turn-prompt-body">你給的是整份 workflow（最外層有 "name" 和 "nodes"）。
+我只要 Code 節點的單個 JSON 物件（從 { "parameters": 開始，到 } 結束）。
+請重新只給這個節點。</div>
   </div>
 
-  <div class="placeholder-dialog">
-    [需錄製：LLM 對話截圖 — 步驟 3 修正後。內容應顯示：(1) A 追問「你給的是整份還是區段」；(2) LLM 修正後只回傳 Code 節點 JSON 物件（從 { "parameters": {...} 開始的單個節點物件）；(3) A 確認這是她要的格式]
+  <!-- 正確結果 3.7 -->
+  <h3 class="sub-step">3.7 ChatGPT 第 2 輪修正（正確）</h3>
+
+  <div class="turn-llm-ok">
+    <div class="turn-llm-ok-label">ChatGPT 回應（理想版）— 第 2 輪修正</div>
+    <div class="turn-llm-ok-body">抱歉理解錯。這次只給 Code 節點：
+
+{
+  "parameters": {
+    "mode": "runOnceForEachItem",
+    "jsCode": "const text = $input.item.json.pdfTextPreview;\nconst prompt = `請從以下發票文字抽取：賣方公司全名（保留「股份有限公司」後綴）、稅後合計（純數字，不含元字）、發票日期（YYYYMMDD 格式）。回傳 JSON：{seller, totalAmount, invoiceDate}。發票文字：${text}`;\n\ntry {\n  const response = await this.helpers.httpRequest({\n    method: 'POST',\n    url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent',\n    body: { contents: [{ parts: [{ text: prompt }] }] },\n    json: true\n  });\n  const result = JSON.parse(response.candidates[0].content.parts[0].text);\n  const newFilename = `${result.invoiceDate}_發票_${result.seller}_${result.totalAmount}.pdf`;\n  return { json: { newFilename, ...result } };\n} catch (e) {\n  return { json: { newFilename: `${$input.item.json.fileName}_unparsed.pdf`, error: e.message } };\n}"
+  },
+  "name": "Code: AI 改名",
+  "type": "n8n-nodes-base.code",
+  "typeVersion": 2,
+  "position": [820, 300]
+}</div>
   </div>
 
-  <p class="body-text">確認格式正確後，A 回到 n8n UI：在 Code 節點上點右鍵「Paste」，把 LLM 給的內容貼上去替換掉原本的 Code。然後點一下 Code 節點，進入編輯模式，眼掃一遍 prompt 字串——確認「甲乙方、合約金額、簽訂日」這幾個字已經消失，換成了「供應商名稱、稅後金額、發票日期」。</p>
+  <!-- 3.7.1 歪掉變體 -->
+  <p class="body-text">現實是 LLM 第二輪修正不會永遠像上面這麼乾淨。你<strong>可能</strong>會看到下面 3 種「歪掉但常見」的回應，學員必須能辨認後決定下一步：</p>
+
+  <div class="turn-llm-bad">
+    <div class="turn-llm-bad-label">ChatGPT 回應（歪掉）<span class="turn-llm-bad-tag">變體 A：夾雜其他節點說明</span></div>
+    <div class="turn-llm-bad-body">抱歉理解錯。這次我給你 Code 節點。但在那之前，建議你先確認 Read PDF
+節點的 fileExtensions 設定是 .pdf；另外 Manual Trigger 不需要任何設定，
+Extract PDF Text 你可以選 raw 或 structured 模式⋯⋯
+
+{ "parameters": { ... }, "name": "Code: AI 改名", ... }</div>
+  </div>
+
+  <div class="turn-action">
+    <div class="turn-action-label">辨認訊號 + 學員下一步（變體 A）</div>
+    <div class="turn-action-body">辨認訊號：回應字數突然變多、提到 Trigger / Read PDF / Extract PDF Text 等你模板 3 已經寫「不動」的節點。<br>學員下一步：再貼一次「精簡追問」：「請只回我問的 Code 節點 JSON，不要說明其他節點。」不要試圖從這段 mixed response 裡摘出 Code 節點。</div>
+  </div>
+
+  <div class="turn-llm-bad">
+    <div class="turn-llm-bad-label">ChatGPT 回應（歪掉）<span class="turn-llm-bad-tag">變體 B：漏了欄位</span></div>
+    <div class="turn-llm-bad-body">{
+  "parameters": {
+    "mode": "runOnceForEachItem",
+    "jsCode": "..."
+  },
+  "name": "Code: AI 改名",
+  "type": "n8n-nodes-base.code"
+}</div>
+  </div>
+
+  <div class="turn-action">
+    <div class="turn-action-label">辨認訊號 + 學員下一步（變體 B）</div>
+    <div class="turn-action-body">辨認訊號：對照 3.7 的完整版，發現少了 typeVersion 與 position 兩行。<br>學員下一步：不用再叫 LLM 重來，自己手補回去就好（從 3.2 的 backup 抓 "typeVersion": 2 與 "position": [820, 300] 兩行貼回來）。LLM 第 3 輪重做的成本比手補高。</div>
+  </div>
+
+  <div class="turn-llm-bad">
+    <div class="turn-llm-bad-label">ChatGPT 回應（歪掉）<span class="turn-llm-bad-tag">變體 C：先說設計考量</span></div>
+    <div class="turn-llm-bad-body">針對你的需求，我先說明設計考量：因為發票 PDF 的格式變化大，所以我把 prompt
+寫得比較具體；同時為了避免 Gemini 回 JSON 解析失敗，我保留了原本的 fallback
+邏輯⋯⋯（接著一整段說明）
+
+{ "parameters": { ... }, "name": "Code: AI 改名", ... }</div>
+  </div>
+
+  <div class="turn-action">
+    <div class="turn-action-label">辨認訊號 + 學員下一步（變體 C）</div>
+    <div class="turn-action-body">辨認訊號：回應第 1 段是「設計考量／我這樣做是為了⋯⋯」這類說明文，不是直接 JSON。<br>學員下一步：把這段說明文整段忽略，直接 scroll 找 { "parameters": 開頭那段 code 拿來貼。不需要再追問，這只是 LLM 想多講話而已。</div>
+  </div>
+
+  <div class="callout key">
+    <div class="callout-icon" aria-hidden="true">💡</div>
+    <div class="callout-body"><strong>這 3 種變體的共通教學價值：</strong>LLM 第 2 輪不會永遠乾淨，但<strong>乾淨與否其實不影響學員能不能完成任務</strong>——只要你能辨認「這段是垃圾、那段是我要的 Code 節點」，剩下的動作（追問 / 手補 / 直接拿 code 段）都很短。卡學員的不是 LLM 不乾淨，是學員以為「LLM 一回不乾淨就要重新來過」。</div>
+  </div>
+
+  <h3 class="sub-step">3.8 A 驗收</h3>
+  <p class="body-text">A 看：第一行 { ✓、第二行 "parameters": ✓（是區段格式）、節點 name 是「Code: AI 改名」（沒被改名）✓、typeVersion 2（跟原 #02 一致）✓。</p>
+
+  <h3 class="sub-step">3.9 A 替換到 n8n UI</h3>
+
+  <div class="callout key">
+    <div class="callout-icon" aria-hidden="true">⚠</div>
+    <div class="callout-body"><strong>學員容易卡 5-10 分鐘的點：</strong>n8n UI 的 Code 節點切換到 JS 模式 → 全選清空 → 貼新 code 這個動作對非工程師不直觀。建議第一次跑時：<strong>保留舊 Code 節點 disabled（右鍵 → Deactivate）放旁邊，不要直接覆蓋</strong>——在原 workflow 上新增一個 Code 節點，把 ChatGPT 給的內容貼到新節點，跑通後再把舊的刪除。這樣壞了能 fallback。</div>
+  </div>
+
+  <p class="body-text">n8n UI 上點 Code 節點 → 點節點 → 右鍵 → Paste → 貼 ChatGPT 給的內容。看 5 個節點還在原位、連線實線沒斷 ✓。點開 Code 節點看 jsCode，搜尋「賣方」— 出現了 ✓；搜尋「合約」「甲方」— 都不見了 ✓。</p>
 
   <div class="callout tip">
     <div class="callout-icon" aria-hidden="true">💡</div>
-    <div class="callout-body">驗收訊號：在 n8n UI 上，Manual Trigger → Read PDF → Extract PDF Text → Code → Write 五個節點還在原位，連線沒斷，其他四個節點的內容原樣。只有 Code 節點的 prompt 字串改了。</div>
+    <div class="callout-body"><span class="check-tag">驗收訊號達成</span> 區段格式 + 節點原位 + 連線完整 + 字串內容正確替換。</div>
   </div>
 </section>
 
 <hr class="section-rule">
 
+<!-- ======== SECTION 06：步驟 4 匯入測試 ======== -->
 <section class="lesson-section">
   <div class="section-eyebrow">(06)</div>
   <h2 class="section-heading">步驟 4：匯入測試</h2>
@@ -382,89 +629,230 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
     <div class="intro-text">永遠先用 1 筆測試。用 200 張發票直接測會把錯誤埋在中段，debug 成本乘以 200。</div>
   </div>
 
-  <p class="body-text">A 先在 n8n UI 右上角點「Duplicate」，複製一份命名 <code>02-pdf-ai-rename-invoice-edit</code>。這是為了確保原本的 #02（合約版）在改造期間不受影響——紅線 7 要求：不在 production workflow 上直接測試。</p>
+  <h3 class="sub-step">4.1 A Duplicate workflow</h3>
+  <p class="body-text">n8n UI workflow 列表 → #02 那條右側三點 → Duplicate → 跳出新 workflow 名為「02-pdf-ai-rename copy」→ A 改名為「02-pdf-ai-rename-invoice-edit」。</p>
 
-  <p class="body-text">接著，她在 pdf-inbox 資料夾裡放了一張供應商發票 PDF（是真的發票 PDF，不是合約）。然後在 n8n UI 上打開剛複製的 <code>02-pdf-ai-rename-invoice-edit</code>，確認 trigger 是 Manual（不是 Active），點下紫色「Execute Workflow」按鈕。</p>
-
-  <p class="body-text">第一次執行的動線截圖：</p>
-
-  <figure class="screenshot-placeholder">
-    [需截圖：n8n UI 畫面 — 複製後的 workflow 名稱顯示「02-pdf-ai-rename-invoice-edit」，右上角 Active 開關是關的，workflow 處於 Manual 模式]
-  </figure>
-
-  <figure class="screenshot-placeholder">
-    [需截圖：n8n UI 畫面 — 點下 Execute Workflow 後，各節點狀態顯示。理想情況：Manual Trigger 綠燈、Read PDF 綠燈、Extract PDF Text 綠燈，Code 節點顯示執行中或已完成。若有紅燈節點在 Code 或 Write 上，截圖此狀態並進入步驟 5]
-  </figure>
-
-  <figure class="screenshot-placeholder">
-    [需截圖：n8n UI 畫面 — 點擊 Code 節點查看 output panel，顯示 json.newFilename 的值，應為「YYYYMMDD_發票_{供應商名}_{稅後金額}.pdf」格式，確認改名結果]
-  </figure>
-
-  <p class="body-text">如果所有節點都綠燈，A 會去 pdf-renamed 資料夾確認新檔名格式是否符合「YYYYMMDD_發票_{供應商名}_{稅後金額}.pdf」。如果格式對了，步驟 4 完成，可以跳到步驟 6 收斂。如果有紅燈，進步驟 5。</p>
+  <h3 class="sub-step">4.2 A 驗收 Duplicate</h3>
+  <p class="body-text">回 workflow 列表，看到原 <code>02-pdf-ai-rename</code> + 新 <code>02-pdf-ai-rename-invoice-edit</code> 兩條 ✓。進到 -edit 版，看右上角 Active 開關：<strong>灰色 OFF</strong> ✓（n8n Duplicate 時預設不啟用）。</p>
 
   <div class="callout key">
     <div class="callout-icon" aria-hidden="true">⚠</div>
-    <div class="callout-body"><strong>這份 walkthrough 故意安排了一個錯誤</strong>：Code 節點的 prompt 裡，LLM 用了「甲方」這個欄位名稱的慣性——它改成了「供應商」，但實際 PDF 裡這個欄位的顯示文字是「賣方」（台灣電子發票的法定用語）。這造成 Gemini 在發票裡找不到「供應商」，改名時抽出的金額是 null，最後產出 <code>20260506_發票_null_null.pdf</code>。進步驟 5 示範如何回報這個錯誤。</div>
+    <div class="callout-body"><strong>教學示範：A 這次的順序顛倒了，正確做法是「先 Duplicate 再改」</strong><br>非工程師第一次走流程，很常順序顛倒——在原 #02 上先動了刀，跑到這 step 才想起要 Duplicate。劇本如實呈現這個現實 case，並示範「順序顛倒了還是有救」的還原動線。<br><br><strong>正確的下次順序（請寫進肌肉記憶）：</strong><br>1. 先在 workflow 列表 Duplicate 原 workflow 變 -edit 版<br>2. 檢查 -edit 版 Active 開關 OFF（灰色）<br>3. 在 -edit 版上改 Code 節點（不是在原 workflow 上改）<br>4. 跑通後才考慮把 -edit 版改名為 v2、原版改名為 v1-archived</div>
+  </div>
+
+  <p class="body-text">剛才 3.9 是改在原 #02——A 意識到紅線 7 說「不在 production 上改」。為了補救：在原 #02 上把 Code 節點 Cmd+C，切到 -edit 版，點 Code 節點 → Cmd+V → 替換。同時把原 #02 的 Code 節點還原回 backup（用 macOS Notes 那份 code-backup）。</p>
+
+  <h3 class="sub-step">4.3-4.5 準備測試 PDF 並執行</h3>
+  <p class="body-text">把上週收到的 1 張測試發票 PDF（<code>inv_20260430_001.pdf</code>）放到 <code>/files/pdf-inbox/</code>。n8n UI 下方紫色按鈕 Execute Workflow。</p>
+
+  <div class="screenshot-placeholder">圖 2 — n8n UI 畫面：02-pdf-ai-rename-invoice-edit，右上角 Active 開關灰色 OFF</div>
+
+  <!-- 岔路 2 -->
+  <div class="detour-heading">步驟 4 — 跑出 null_null（劇情錯誤示範）</div>
+
+  <p class="body-text">5 個節點全綠燈。A 開心了 2 秒。她點 Code 節點看 Output panel：</p>
+
+  <div class="turn-llm-bad">
+    <div class="turn-llm-bad-label">n8n Code 節點 Output（問題版）<span class="turn-llm-bad-tag">null_null 岔路</span></div>
+    <div class="turn-llm-bad-body">{
+  "newFilename": "20260506_發票_null_null.pdf",
+  "originalFilename": "inv_20260430_001.pdf",
+  "seller": null,
+  "totalAmount": null,
+  "invoiceDate": "20260506"
+}</div>
+  </div>
+
+  <p class="body-text"><code>seller: null</code>、<code>totalAmount: null</code>！A 心想：「綠燈不代表對啊」（紅線 5：LLM 輸出當草稿）。她去 <code>/files/pdf-renamed/</code> 看——真的多了一個 <code>20260506_發票_null_null.pdf</code>。進入 Step 5 錯誤回報。</p>
+
+  <div class="callout key">
+    <div class="callout-icon" aria-hidden="true">💡</div>
+    <div class="callout-body"><strong>這個劇情 null_null 的教學價值：</strong>第 4 章紅線 5 講「LLM 輸出當草稿」是抽象的；這裡 A 實際看到「全綠燈但 null_null」是具象的。學員看完內化「綠燈不等於對，要看 output 內容」。</div>
   </div>
 </section>
 
 <hr class="section-rule">
 
+<!-- ======== SECTION 07：步驟 5 錯誤回報 ======== -->
 <section class="lesson-section">
   <div class="section-eyebrow">(07)</div>
   <h2 class="section-heading">步驟 5：錯誤回報</h2>
   <div class="intro-band">
     <div class="intro-label">學員 + LLM 協同，最小可重現訊息</div>
-    <div class="intro-text">步驟 5 的核心原則：不要把整份 workflow 重貼 LLM 說「幫我重改」，要只回報「哪個節點、哪個欄位、出了什麼問題」。縮小範圍才能讓 LLM 給出精準修補，而不是產出一份新的整體草稿。</div>
+    <div class="intro-text">步驟 5 的核心原則：不要把整份 workflow 重貼 LLM 說「幫我重改」，要只回報「哪個節點、哪個欄位、出了什麼問題」。縮小範圍才能讓 LLM 給出精準修補。</div>
   </div>
 
-  <p class="body-text">A 看到輸出的檔名是 <code>20260506_發票_null_null.pdf</code>——null 出現了兩次，代表供應商名稱和稅後金額都沒有被正確抽出來。</p>
+  <div class="callout key">
+    <div class="callout-icon" aria-hidden="true">⚠</div>
+    <div class="callout-body"><strong>學員容易卡 10-15 分鐘的點（涵蓋 5.1-5.3）：</strong>n8n UI 的「View input / View output / Debug」面板切換邏輯 + JSON 結構閱讀，對非工程師是雙重門檻。建議：<strong>跟 #02 已經跑過的成功 output 開兩個視窗對照看</strong>——左邊放 #02 合約版的 output panel、右邊放 -invoice-edit 版的 output panel，你會立刻發現「合約版有完整 seller 字串、發票版是 null」這個差異。</div>
+  </div>
 
-  <p class="body-text">她的操作步驟：</p>
+  <h3 class="sub-step">5.1 A 找到問題節點</h3>
+  <p class="body-text">雖然沒紅燈，但 A 知道問題在 Code 節點（output 是 null）。她點 Code 節點，看 Input panel：</p>
+
+  <div class="turn-note">
+    <div class="turn-note-label">n8n Code 節點 Input（pdfTextPreview）</div>
+    <div class="turn-note-body">{
+  "pdfTextPreview": "電子發票...賣方：弄一下工作室股份有限公司...統一編號：12345678...品項：n8n 工作坊...稅後合計：15,750 元...發票日期：2026/04/30..."
+}</div>
+  </div>
+
+  <p class="body-text">A 看到 <strong>PDF 上的關鍵字是「賣方」（不是「供應商」）和「稅後合計」（不是「稅後金額」）</strong>。她在 Step 1 便箋裡寫過「PDF 上中文寫『賣方』」，但 Step 3 給 ChatGPT 的模板 3 用的是「賣方公司全名」——ChatGPT 在 jsCode 的 prompt 字串裡可能擅自改了詞。</p>
+
+  <h3 class="sub-step">5.2 A 複製三件套</h3>
   <div class="steps-wrap">
     <div class="step-block">
       <div class="step-circle">1</div>
       <div class="step-content">
-        <div class="step-heading">找到 Code 節點的 output</div>
-        <div class="step-body">點 Code 節點，在右側 output panel 找到 json.aiResponsePreview——確認 Gemini 的回應字串長什麼樣，看它有沒有抓到欄位。</div>
+        <div class="step-heading">錯誤訊息</div>
+        <div class="step-body">沒有紅燈訊息，但 output 顯示 seller: null, totalAmount: null——這就是「軟錯誤」。她直接寫「不是紅燈，但 output 的 seller 和 totalAmount 都是 null」。</div>
       </div>
     </div>
     <div class="step-block">
       <div class="step-circle">2</div>
       <div class="step-content">
-        <div class="step-heading">找 pdfTextPreview</div>
-        <div class="step-body">同樣在 output panel 找 json.pdfTextPreview，看 PDF 實際抽出來的文字長什麼樣——這裡會看到是「賣方」而不是「供應商」。</div>
+        <div class="step-heading">input panel JSON</div>
+        <div class="step-body">上面那段 pdfTextPreview 全文。</div>
       </div>
     </div>
     <div class="step-block">
       <div class="step-circle">3</div>
       <div class="step-content">
-        <div class="step-heading">用模板 4 組裝錯誤回報</div>
-        <div class="step-body">把「節點名稱 + 錯誤訊息 + input 情況 + 當前 parameter」三件套貼給 LLM，不貼整份 workflow，不說「幫我重改」。</div>
+        <div class="step-heading">parameter（jsCode 全文）</div>
+        <div class="step-body">點 Code 節點旁齒輪 → 看到 jsCode 全文，用 Cmd+A 複製。<strong>搜尋 apiKey/accessToken/password/token 都 0 個結果</strong> ✓ 才能貼。</div>
       </div>
     </div>
   </div>
 
-  <p class="body-text">A 組裝的錯誤回報（模板 4 填入版）：</p>
-  <div class="note-card">
-    <div class="note-card-title">模板 4 填入 — 步驟 5 錯誤回報</div>
-    <div class="note-cell-body" style="font-family:'SF Mono','Courier New',monospace;font-size:.85rem;line-height:1.8;padding:8px 0">我是 n8n 非工程師使用者，請以結果為主、不解釋原理。<br>我把 Code 節點替換成你上一輪給的內容後，跑出來的檔名是 20260506_發票_null_null.pdf。<br>問題：供應商名稱和稅後金額都是 null。<br>我看了 pdfTextPreview，PDF 裡的欄位是「賣方」（不是「供應商」）和「稅後合計」（不是「稅後金額」）。<br>目前 prompt 用的字是「供應商名稱」和「稅後金額」，但發票 PDF 裡對應的中文是「賣方」和「稅後合計」。<br>請只修改 prompt 裡這兩個欄位的中文名稱，其他不動，再給我 Code 節點區段一次。</div>
+  <h3 class="sub-step">5.3 A 貼模板 4 給 ChatGPT</h3>
+
+  <div class="turn-prompt">
+    <div class="turn-prompt-label">A 貼 ChatGPT — 模板 4（錯誤回報）</div>
+    <div class="turn-prompt-hint">複製 → 貼 ChatGPT（同一視窗）</div>
+    <div class="turn-prompt-body">我把節點「Code: AI 改名」替換成你上一輪給的內容後，跑了 1 張測試發票。
+不是紅燈，但 Code 節點 output 顯示：
+  seller: null
+  totalAmount: null
+
+該節點 input（pdfTextPreview 摘要）：
+"電子發票...賣方：弄一下工作室股份有限公司...統一編號：12345678...
+品項：n8n 工作坊...稅後合計：15,750 元...發票日期：2026/04/30..."
+
+該節點當前 parameter 的 jsCode（搜尋過無 credential）：
+const text = $input.item.json.pdfTextPreview;
+const prompt = `請從以下發票文字抽取：賣方公司全名（保留「股份有限公司」後綴）、
+稅後合計（純數字，不含元字）、發票日期（YYYYMMDD 格式）。
+回傳 JSON：{seller, totalAmount, invoiceDate}。
+發票文字：${text}`;
+... (httpRequest 邏輯保留) ...
+
+請只指出：
+1. 問題在哪個欄位（精確到行）
+2. 最小修改是什麼（給出具體新值）
+
+不要重寫整個節點、不要建議換做法、不要加 try/catch。</div>
   </div>
 
-  <div class="placeholder-dialog">
-    [需錄製：LLM 對話截圖 — 步驟 5 錯誤回報與修補。內容應顯示：(1) A 貼入模板 4 填入版（含「賣方」vs「供應商」的欄位名稱差異說明）；(2) LLM 指出問題欄位，給出 prompt 字串修正後的 Code 節點區段；(3) 修正後的 prompt 使用「賣方」和「稅後合計」兩個正確欄位名稱]
+  <!-- 岔路 3：精準 vs 模糊對比 -->
+  <div class="detour-heading">步驟 5 — LLM 模糊回應 vs 精準回應（對比示範）</div>
+
+  <h3 class="sub-step">5.4 ChatGPT 第 1 輪「精準診斷」（sample）</h3>
+
+  <div class="turn-llm-ok">
+    <div class="turn-llm-ok-label">ChatGPT 回應（精準型）</div>
+    <div class="turn-llm-ok-body">從你貼的 input / output 看，問題應該在 prompt 字串對「格式轉換」的指示
+不夠明確，不是 jsCode 解析邏輯本身錯。具體來說——你看 jsCode 的 prompt
+字串第 2-4 行寫「稅後合計（純數字，不含元字）」、「發票日期（YYYYMMDD
+格式）」，這兩條指示對 Gemini 來說太模糊。
+
+input panel 的 pdfTextPreview 你貼的內容是：
+- PDF 用「稅後合計：15,750 元」— 帶千分位逗號
+- PDF 用「發票日期：2026/04/30」— 是 YYYY/MM/DD 不是 YYYYMMDD
+
+Gemini 看到 prompt 只說「純數字」沒講「去除逗號」，回的 JSON 很可能是
+"totalAmount": "15,750"（字串帶逗號），jsCode 拿去組檔名變成 null 或
+parseInt 掉精度。同樣 invoiceDate 沒給轉換規則，Gemini 多半直接回原字串
+"2026/04/30"，組檔名時 jsCode 認不出。所以根因是 prompt 對 Gemini 的
+格式轉換指示不夠具體，而不是 jsCode 的 try/catch 或 fallback 壞掉。
+
+修法 A（建議）：在 prompt 字串第 3-4 行加明確的「轉換動作 + 範例」：
+
+新 prompt（第 3-5 行替換成下面 3 行）：
+  「賣方公司全名（保留「股份有限公司」後綴）」
+  「稅後合計（去除逗號和「元」字，只保留純數字。例：「15,750 元」→ 15750）」
+  「發票日期（從 YYYY/MM/DD 格式轉成 YYYYMMDD。例：「2026/04/30」→ 20260430）」
+
+其他不動。</div>
   </div>
 
-  <p class="body-text">A 把修補後的 Code 節點貼回 n8n UI，重跑一次——這次 output 應該是正確的發票公司名稱和金額。如果還是 null，代表回報資訊不夠，她應該繼續補資料（多貼一部分 pdfTextPreview），不是換一個 LLM 重試。</p>
+  <!-- 5.4.1 紅綠對照表 -->
+  <h3 class="sub-step">5.4.1 紅綠對照表（看完 LLM 回應立刻判斷）</h3>
+  <p class="body-text">5.4 那段 sample 之所以叫「精準型」，不是因為它讀起來順，是因為它<strong>同時滿足 3 條訊號</strong>。學員下次貼模板 4 拿到回應時，先用這張表判斷再決定要不要採用：</p>
+
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th>訊號</th>
+        <th class="ok">精準型有</th>
+        <th class="bad">模糊型沒有</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>指出<strong>具體欄位</strong>（newFilename / parseMethod / prompt 第幾行 / jsCode 哪個變數）</td>
+        <td class="ok">✓「在 jsCode 的 prompt 字串第 2-4 行」</td>
+        <td class="bad">✗「請檢查 prompt 描述是否清楚」</td>
+      </tr>
+      <tr>
+        <td>引用你貼的 <strong>input / output 內容</strong>當證據</td>
+        <td class="ok">✓「你貼的 pdfTextPreview 顯示『稅後合計：15,750 元』」</td>
+        <td class="bad">✗「PDF 內容看起來⋯⋯」（沒引用具體字串）</td>
+      </tr>
+      <tr>
+        <td>給可<strong>直接貼上</strong>的新值（新字串 / 新 code 段）</td>
+        <td class="ok">✓「把第 3 行替換成：『稅後合計（去除逗號和「元」字，只保留純數字。例：「15,750 元」→ 15750）』」</td>
+        <td class="bad">✗「建議讓 prompt 結構更明確」（沒給文字）</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout key">
+    <div class="callout-icon" aria-hidden="true">💡</div>
+    <div class="callout-body"><strong>判斷規則（30 秒內做完）：</strong><br>
+    3 條全綠 → 直接信、貼、再驗收。<br>
+    任一紅 → 再貼模板 4 一次，把缺的訊號補成具體要求：缺欄位 → 加「請指出具體在哪個欄位 / 哪一行」；缺 input 引用 → 加「請引用我貼的 pdfTextPreview 原文當證據」；缺新值 → 加「請給可直接貼上的新字串 / 新 code，不要只給方向」。<br>
+    3 條全紅（最壞情況）→ <strong>換對話視窗從頭開始</strong>（這個對話已經被你前面幾輪的 context 帶歪了）。</div>
+  </div>
+
+  <h3 class="sub-step">5.5-5.6 A 驗收並替換重跑</h3>
+  <p class="body-text">A 用第 4 章驗收硬指標：(a) 指出具體欄位 ✓（jsCode 的 prompt 字串第 2-4 行）(b) 給出具體修改值 ✓（兩段新指示文字）(c) 引用 input 內容當證據 ✓（PDF 上是「2026/04/30」）——這是精準型回應。</p>
+
+  <p class="body-text">A 在 n8n UI Code 節點裡，把 prompt 字串第 3-5 行手動改成 LLM 給的新版。重跑：5 節點全綠 ✓。Code Output：</p>
+
+  <div class="turn-llm-ok">
+    <div class="turn-llm-ok-label">n8n Code 節點 Output（修正後）</div>
+    <div class="turn-llm-ok-body">{
+  "newFilename": "20260430_發票_弄一下工作室股份有限公司_15750.pdf",
+  "originalFilename": "inv_20260430_001.pdf",
+  "seller": "弄一下工作室股份有限公司",
+  "totalAmount": 15750,
+  "invoiceDate": "20260430"
+}</div>
+  </div>
+
+  <p class="body-text"><code>/files/pdf-renamed/</code> 多一個 <code>20260430_發票_弄一下工作室股份有限公司_15750.pdf</code> ✓。</p>
+
+  <div class="screenshot-placeholder">圖 3 — n8n UI 畫面：Code 節點 output panel，顯示 newFilename 格式正確</div>
 
   <div class="callout tip">
     <div class="callout-icon" aria-hidden="true">💡</div>
-    <div class="callout-body">驗收訊號：LLM 能指出「問題在 prompt 裡的欄位名稱與 PDF 中的文字不一致」，並給出只改那兩個欄位名稱的修正版——沒有重寫整個 Code 節點，沒有建議換節點架構。這就是「最小可重現訊息的價值在縮小範圍」的實際效果。</div>
+    <div class="callout-body"><span class="check-tag">驗收訊號達成</span> 1 張測試 PDF 改名成功。</div>
   </div>
 </section>
 
 <hr class="section-rule">
 
+<!-- ======== SECTION 08：步驟 6 收斂 ======== -->
 <section class="lesson-section">
   <div class="section-eyebrow">(08)</div>
   <h2 class="section-heading">步驟 6：收斂</h2>
@@ -473,64 +861,261 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
     <div class="intro-text">步驟 3–5 迴圈，每輪問自己「比上一輪更接近目標嗎？」超過 3 輪沒收斂，退回步驟 1 重看需求。</div>
   </div>
 
-  <p class="body-text">修補欄位名稱後，A 重跑一次單張發票測試——這次輸出了正確格式的檔名。她確認後，把 pdf-inbox 裡的樣本換成 10 張不同供應商的發票（測試集），重新 Execute Workflow，觀察 10 個 output 的 newFilename 是否都符合「YYYYMMDD_發票_{賣方全名}_{稅後合計}.pdf」格式。</p>
+  <h3 class="sub-step">6.1 換 10 張不同供應商發票測試</h3>
+  <p class="body-text">A 把 pdf-inbox 換成 10 張不同供應商的真實發票，Execute Workflow。跑完：5 節點全綠 ✓。10 張 newFilename 看：9 張正常（例：<code>20260415_發票_AA有限公司_8420.pdf</code>）；1 張有問題：<code>20260420_發票_BB商業有限公司_0.pdf</code>——稅後合計 0 元。A 翻 BB 公司那張原 PDF——是退款單，稅後合計欄位真的是 <code>NT$ 0</code>。</p>
 
-  <p class="body-text">9 張正確，1 張出現 <code>20260506_發票_台灣商業發票有限公司_稅後合計_0.pdf</code>——稅後金額變成了 0。A 去翻那張 PDF 的原始文字，發現那張發票的「稅後合計」欄位是「NT$ 0（退款單）」，LLM 把「0」抽出來是正確行為，但金額是 0 代表那是一張退款單，不是一般發票。她決定這個邊界情況不在這次的改造範圍內，記了一筆備注給未來的自己。</p>
+  <h3 class="sub-step">6.2 A 決定不改流程，記備注</h3>
+  <p class="body-text">A 想：「這是邊界 case，本次 200 張裡退款單可能有 1-2 張，數量不大。我不要為了 1 張改流程，記備注就好。」</p>
 
-  <p class="body-text">此時 LLM 在對話裡提出了一個建議，這個對話很典型，需要示範：</p>
+  <p class="body-text">她在 n8n UI 上點 -edit 版的 workflow → 找 Settings 或 Description 欄 → 寫：</p>
 
-  <div class="placeholder-dialog">
-    [需錄製：LLM 對話截圖 — 收斂迴圈，含 try/catch 拒絕。內容應顯示：(1) LLM 主動建議「如果稅後合計是 0，可以加一個 try/catch 包住整個 API call，並在 catch 裡加一個 skip 邏輯跳過退款單」；(2) A 回應「我不需要 try/catch，原本的 Code 節點已經有 httpError 處理，退款單是邊界情況先記備注，這次不改」；(3) LLM 確認並收斂，不再追加防禦邏輯]
+  <div class="turn-note">
+    <div class="turn-note-label">A 自填 — n8n workflow Description 備注</div>
+    <div class="turn-note-body">備注（2026-05-07）：
+邊界 case：稅後合計 0 元 = 退款單，本版照 0 元改名（不過濾），人工檢查時注意。
+範例：20260420_發票_BB商業有限公司_0.pdf</div>
   </div>
 
-  <p class="body-text">這段對話展示了「LLM 傾向加防禦邏輯」的本性——每多一輪對話，LLM 就多一點想把方案做得更完整。A 的做法是對的：明確說「不需要 try/catch，保留最小修改」。教材設計提案第 3 節步驟 6 的紅線原文：「LLM 第 3 次回覆比第 1 次長 30%，停下來，要求它保留最小修改、移除新增的防禦邏輯。」</p>
+  <h3 class="sub-step">6.3 A 找 ChatGPT 確認</h3>
 
-  <p class="body-text">10 張測試通過（退款單邊界情況已記備注，不納入本次改造範圍），A 進入驗收交付步驟。</p>
+  <div class="turn-prompt">
+    <div class="turn-prompt-label">A 貼 ChatGPT — 邊界 case 確認</div>
+    <div class="turn-prompt-hint">複製 → 貼 ChatGPT</div>
+    <div class="turn-prompt-body">我跑了 10 張，9 張過，1 張是退款單稅後合計 0。
+我打算不改流程（人工注意 0 元的）。你覺得 OK 嗎？</div>
+  </div>
+
+  <p class="body-text">ChatGPT 在這個對話脈絡下（A 從 Step 3 起一路明確說「只動 X 欄位」「不要加 try/catch」「不要建議換做法」），實際多半會回得很收斂：</p>
+
+  <div class="turn-llm-ok">
+    <div class="turn-llm-ok-label">ChatGPT 回應（收斂版）</div>
+    <div class="turn-llm-ok-body">9/10 通過 + 退款單人工處理是合理選擇。本次規模 10 張、退款單比例 1/10
+本來就低，不值得為這個 case 加流程複雜度。維持現狀即可。</div>
+  </div>
+
+  <!-- 岔路 4：try/catch 假設情境框 -->
+  <div class="detour-heading">步驟 6 — LLM 主動建議加 try/catch（假設情境示範）</div>
+
+  <p class="body-text">在我們這個對話脈絡下，ChatGPT 多半不會自己加 try/catch。但你<strong>可能</strong>遇到下面 2 種情況，建議仍會冒出來：</p>
+  <p class="body-text">情況一：<strong>換用 Claude / Gemini 同樣問法</strong>——他們對 robustness 的偏好比 ChatGPT 高，可能會主動建議「我幫你加個 try/catch 防 PDF 解析失敗」「順便加個 _refund 後綴自動標記退款單」。</p>
+  <p class="body-text">情況二：<strong>同 ChatGPT 但你 prompt 給得鬆</strong>——如果 Step 3 模板 3 沒寫「只動 X」、Step 5 模板 4 沒寫「不要加 try/catch」，ChatGPT 看到你問「你覺得 OK 嗎」也可能順手建議加防禦。</p>
+
+  <div class="turn-llm-bad">
+    <div class="turn-llm-bad-label">ChatGPT 回應（假設擴張版）<span class="turn-llm-bad-tag">此情境較少見，但換 LLM 或 prompt 鬆了就會出現</span></div>
+    <div class="turn-llm-bad-body">9/10 通過不錯！但既然你有退款單的邊界 case，我建議同時加個 try/catch
+把整個 API call 包起來，並在 catch 裡加一個判斷：如果 totalAmount 是 0
+就在檔名加上 _refund 後綴，方便你之後篩選。這樣更 robust，程式碼改動
+也不多，要不要我給你修改後的版本？</div>
+  </div>
+
+  <p class="body-text">不論哪一個 LLM 主動建議擴張，<strong>答案永遠是用模板 5 拒絕</strong>：</p>
+
+  <div class="turn-prompt">
+    <div class="turn-prompt-label">A 用模板 5 拒絕 LLM 擴張</div>
+    <div class="turn-prompt-hint">複製 → 貼 ChatGPT</div>
+    <div class="turn-prompt-body">請用一句話比較你最早給我的版本與現在這個建議：
+- 哪些是「為了我原始需求必要的」？
+- 哪些是「你新增的防禦邏輯」（try/catch、新欄位、新邏輯）？
+
+請保留必要的、移除新增的。我這次只要 9/10 過 + 人工處理 1 張，
+不需要 _refund 自動標記。</div>
+  </div>
+
+  <div class="turn-llm-ok">
+    <div class="turn-llm-ok-label">ChatGPT 收斂回應</div>
+    <div class="turn-llm-ok-body">比較：
+
+必要的（保留）：
+- prompt 字串的欄位修正（賣方/稅後合計）
+- prompt 對日期格式 YYYY/MM/DD → YYYYMMDD 的轉換指示
+
+新增的防禦邏輯（移除）：
+- try/catch 包住整個 API call
+- _refund 後綴自動標記
+
+清理後的版本就是你現在用的版本，不需要再改。9/10 過 + 人工處理 1 張是合理選擇。</div>
+  </div>
+
+  <div class="callout key">
+    <div class="callout-icon" aria-hidden="true">💡</div>
+    <div class="callout-body"><strong>這個 turn 的教學價值：</strong>示範學員如何「對 LLM 說不」。LLM 不一定每次都主動擴張，但只要它擴張，學員就要會踩煞車。理由：學員自己沒測過的 try/catch 反而會吃掉錯誤訊號讓 debug 更難。模板 5 是煞車。</div>
+  </div>
 </section>
 
 <hr class="section-rule">
 
+<!-- ======== SECTION 09：全量執行 + 驗收交付 ======== -->
 <section class="lesson-section">
   <div class="section-eyebrow">(09)</div>
-  <h2 class="section-heading">驗收交付</h2>
+  <h2 class="section-heading">步驟 7：全量執行 + 驗收交付</h2>
   <div class="intro-band">
     <div class="intro-label">真實樣本 → 全量執行</div>
     <div class="intro-text">10 筆測試通過後，才用全量樣本跑。這是六步流程的最後一個安全門。</div>
   </div>
 
-  <p class="body-text">10 張測試通過後，A 把整批 200 張發票 PDF 複製到 pdf-inbox 資料夾，在 n8n UI 上點 Execute Workflow——這次是真正的全量執行。</p>
+  <h3 class="sub-step">7.1-7.2 放入 200 張全量跑</h3>
+  <p class="body-text">從共享資料夾複製當月 200 張供應商發票到 <code>/files/pdf-inbox/</code>。n8n UI 點 Execute Workflow。等了 4 分鐘（每張 PDF 平均 1.2 秒）。</p>
 
-  <p class="body-text">改造後的 workflow 結構與原 #02 完全相同：Manual Trigger → Read PDF → Extract PDF Text → Code: AI 改名（內含 Gemini call）→ Write: 改名輸出，五個節點，連線完整，其他四個節點未動。唯一的差異是 Code 節點裡的 prompt 字串：原本抓「甲乙方、合約金額、簽訂日」，現在改成抓「賣方（公司全名）、稅後合計、發票日期」，並且把類型欄位固定為「發票」，不讓 AI 自行判斷。</p>
+  <h3 class="sub-step">7.3 看執行結果</h3>
+  <p class="body-text">n8n UI 下方執行紀錄：Read PDF 200 張全部讀取 ✓、Extract PDF Text 200 張全部 ✓、Code: AI 改名 199 張綠燈，<strong>1 張紅燈</strong> ✗、Write 199 張寫入。</p>
+  <p class="body-text">點紅燈那張 Code 節點 → 看到錯誤訊息：<code>SyntaxError: JSON.parse failed at position 42</code>。A 看 input——那張 PDF 的 pdfTextPreview 是「[圖片，無文字]」——是純掃描的圖片發票，OCR 沒抽到文字。</p>
 
-  <p class="body-text">執行完成後，pdf-renamed 資料夾裡應該出現 200 張以「YYYYMMDD_發票_{賣方名}_{金額}.pdf」命名的檔案。A 用 Finder 的排序功能確認：所有檔案都有正確的日期前綴，類型欄位全部是「發票」，公司名稱和金額的組合看起來合理。退款單那一張（稅後合計為 0）也正確改名為 <code>20260506_發票_{賣方名}_0.pdf</code>，沒有跑錯，只是備注裡記了「這張是退款單，金額欄位邏輯正確」。</p>
+  <h3 class="sub-step">7.4 A 處理 1 張失敗</h3>
+  <p class="body-text">A 把那張 PDF 從 pdf-inbox 移到 <code>_manual_review/</code> 子資料夾，記到 workflow Description：</p>
 
-  <p class="body-text">最後，A 在 n8n UI 把 <code>02-pdf-ai-rename-invoice-edit</code> 這份測試複本，把 workflow 名稱改成 <code>#02-pdf-invoice-rename（v1.0）</code> 並標記為已驗收，原本的 <code>#02-pdf-ai-rename</code>（合約版）保持不動，下次處理合約還是用原版。</p>
+  <div class="turn-note">
+    <div class="turn-note-label">A 補記 — workflow Description 全量備注</div>
+    <div class="turn-note-body">備注 (2026-05-07 全量跑)：
+1 張掃描圖片發票無文字內容，已移到 _manual_review/，需人工處理。</div>
+  </div>
 
-  <p class="body-text">改造後的 workflow 截圖與輸出資料夾截圖佔位符：</p>
+  <h3 class="sub-step">7.5 Finder 確認</h3>
+  <p class="body-text">打開 Finder，去 <code>/files/pdf-renamed/</code>：199 個檔案（不是 200，因為 1 張失敗）。抽查 5 個檔名格式：</p>
+  <p class="body-text"><code>20260415_發票_AA有限公司_8420.pdf</code> ✓<br><code>20260420_發票_BB商業有限公司_0.pdf</code> ✓（退款單，已記備注）<br><code>20260425_發票_CC企業股份有限公司_3450.pdf</code> ✓<br><code>20260428_發票_DD國際有限公司_22100.pdf</code> ✓<br><code>20260430_發票_弄一下工作室股份有限公司_15750.pdf</code> ✓（測試那張）</p>
 
-  <figure class="screenshot-placeholder">
-    [需截圖：n8n UI 畫面 — 改造後的 workflow「#02-pdf-invoice-rename（v1.0）」，顯示 5 個節點結構（Manual Trigger → Read PDF → Extract PDF Text → Code → Write），所有節點綠燈，Code 節點 output panel 顯示 newFilename 格式正確]
-  </figure>
+  <p class="body-text">格式全部正確，<strong>驗收交付通過</strong>。</p>
 
-  <figure class="screenshot-placeholder">
-    [需截圖：Finder / 檔案總管畫面 — pdf-renamed 資料夾，顯示 200 張改名後的 PDF，前幾個檔名可見，格式為「YYYYMMDD_發票_{公司名}_{金額}.pdf」，確認批量改名成功]
-  </figure>
+  <div class="screenshot-placeholder">圖 4 — Finder / 檔案總管畫面：pdf-renamed 資料夾，顯示 199 張改名後的 PDF，格式 YYYYMMDD_發票_{公司名}_{金額}.pdf</div>
+
+  <h3 class="sub-step">7.6 整理 workflow 版本</h3>
+  <p class="body-text">A 在 n8n UI workflow 列表：把 <code>02-pdf-ai-rename-invoice-edit</code> 改名為 <code>#02b-pdf-invoice-rename (v1.0)</code>；原 <code>02-pdf-ai-rename</code> 改名為 <code>#02-pdf-contract-rename (v0.6)</code> 並維持 OFF（之後處理合約還是用這個）。兩條 workflow 同時存在，將來合約 / 發票任務各用對應版本。</p>
 
   <div class="callout key">
     <div class="callout-icon" aria-hidden="true">✓</div>
-    <div class="callout-body"><strong>這份 walkthrough 的勝利條件：</strong>A 完成了行銷主管的任務——200 張供應商發票都已改名歸檔，格式符合財務要求。她用了六步流程，總共花了不到 40 分鐘（不包括 200 張發票跑完的時間），過程中只讓 LLM 動了 Code 節點裡的一段 prompt，其他 4 個節點沒有碰。這就是「安全改 workflow」的完整示範。</div>
+    <div class="callout-body"><strong>這份 walkthrough 的勝利條件：</strong>A 完成了行銷主管的任務——199 張供應商發票都已改名歸檔（1 張掃描圖片發票人工處理），格式符合財務要求。她用了六步流程，總計 90 分鐘，過程中只讓 LLM 動了 Code 節點裡的一段 prompt，其他 4 個節點沒有碰。</div>
   </div>
 </section>
 
 <hr class="section-rule">
 
+<!-- ======== SECTION 10：6 步時間分配回顧 ======== -->
 <section class="lesson-section">
   <div class="section-eyebrow">(10)</div>
-  <h2 class="section-heading">對製作者的提醒</h2>
+  <h2 class="section-heading">回顧：6 步流程時間分配</h2>
+  <div class="intro-band">
+    <div class="intro-label">學員預期區間</div>
+    <div class="intro-text">A 是工程背景偏弱的非工程師、第 1 次走完整流程，總計 90 分鐘。多數非工程師學員第一次走，會落在 90-120 分鐘區間，更接近 120 端。</div>
+  </div>
 
-  <div class="maintainer-note">
-    <div class="maintainer-note-label">維運備注</div>
-    <div class="maintainer-note-body">本頁 placeholder 由 course-lesson-writer 預埋，補入時搜尋 <code>[需錄製：</code> 與 <code>[需截圖：</code> 兩字串可定位全部位置。共計：對話佔位符 5 個、截圖佔位符 6 個，合計 11 個 placeholder。補入流程建議：開一個真實的 LLM session，用真的 #02 workflow JSON 和真的發票 PDF 樣本，照著本頁的六步流程實機操作，截圖並替換各佔位符。</div>
+  <table class="time-table">
+    <thead>
+      <tr>
+        <th>步驟</th>
+        <th>動作</th>
+        <th>A 實際時間</th>
+        <th>學員預期區間</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>拆需求（4 格便箋 + 對 B 講 + 補一格）</td>
+        <td>15 分鐘</td>
+        <td>15-20 分鐘</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>讀 JSON（export + 4 字串搜尋 + LLM 翻譯）</td>
+        <td>10 分鐘</td>
+        <td>10-15 分鐘</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>限定範圍（備份 + LLM 第 1 輪整份 + 追問 + 替換 UI）</td>
+        <td>20 分鐘</td>
+        <td>25-35 分鐘 <span class="warn-tag">容易卡</span></td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>匯入測試（Duplicate + 1 張測試 + 發現 null_null）</td>
+        <td>10 分鐘</td>
+        <td>10-15 分鐘</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>錯誤回報（找問題 + 三件套 + LLM 精準診斷 + 重跑通過）</td>
+        <td>15 分鐘</td>
+        <td>20-30 分鐘 <span class="warn-tag">容易卡</span></td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td>收斂（10 張測試 + 1 張退款邊界 + LLM 擴張拒絕）</td>
+        <td>10 分鐘</td>
+        <td>10-15 分鐘</td>
+      </tr>
+      <tr>
+        <td>7</td>
+        <td>全量 + 驗收（200 張跑 4 分鐘 + 1 張失敗處理 + Finder 確認）</td>
+        <td>10 分鐘</td>
+        <td>10-15 分鐘</td>
+      </tr>
+      <tr>
+        <td><strong>合計</strong></td>
+        <td></td>
+        <td><strong>90 分鐘</strong></td>
+        <td><strong>90-120 分鐘</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="body-text">容易卡點的 Step 3 與 Step 5 原因見各 step 段首的「學員容易卡」標籤——不是 LLM 對話的問題，是 n8n UI 操作 + JSON / Output panel 閱讀對非工程師是雙重門檻。</p>
+
+  <p class="body-text">A 心算：第 2 次再做這種改造（例：把另一個 workflow 改成處理收據），預估 30-40 分鐘。她在便箋最後寫：</p>
+
+  <div class="turn-note">
+    <div class="turn-note-label">A 自填 — 便箋心得</div>
+    <div class="turn-note-body">心得：90-120 分鐘的首次投資，省下 200 張 × 30 秒手動分類 = 100 分鐘（單次）。
+但更重要：下個月 200 張、再下個月 200 張⋯⋯一年省 20 小時。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ======== SECTION 11：彩蛋 + 章末提醒 ======== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(11)</div>
+  <h2 class="section-heading">A 給其他學員的 5 個提醒</h2>
+  <div class="intro-band">
+    <div class="intro-label">章末總結</div>
+    <div class="intro-text">走完整份 walkthrough 後，A 整理了 5 條她希望開始之前就知道的事。</div>
+  </div>
+
+  <div class="reminder-list">
+    <div class="reminder-item">
+      <div class="reminder-num">1</div>
+      <div class="reminder-body"><strong>第 1 步別跳：</strong>4 格便箋花 15 分鐘，省下後面 60-90 分鐘。跳了步驟 1 直接貼 LLM，LLM 會猜欄位名稱，猜錯了你不知道為什麼 null_null。</div>
+    </div>
+    <div class="reminder-item">
+      <div class="reminder-num">2</div>
+      <div class="reminder-body"><strong>LLM 第 1 輪很常給整份：</strong>別怕，用追問模板要它重給就好。給歪的變體（混入其他節點 / 漏欄位 / 一堆說明文）見步驟 3 的三種辨認法——乾淨與否不影響你能不能完成任務。</div>
+    </div>
+    <div class="reminder-item">
+      <div class="reminder-num">3</div>
+      <div class="reminder-body"><strong>綠燈不等於對：</strong>永遠看 output 的關鍵欄位是不是 null。全綠但 null_null 是「軟錯誤」，進步驟 5 用三件套回報。</div>
+    </div>
+    <div class="reminder-item">
+      <div class="reminder-num">4</div>
+      <div class="reminder-body"><strong>LLM 不一定每次都建議加 try/catch</strong>（ChatGPT 在你明確說「只動 X」時多半收斂；換 Claude / Gemini 或 prompt 鬆了它就會擴張）：<strong>只要它建議擴張，就用模板 5 拒絕。</strong>保持簡單才好驗收。</div>
+    </div>
+    <div class="reminder-item">
+      <div class="reminder-num">5</div>
+      <div class="reminder-body"><strong>20 / 80 原則：</strong>邊界 case（退款單、掃描圖片）先記備注人工處理，不為 1-2 張改流程。改流程增加複雜度，反而讓下次 debug 更難。</div>
+    </div>
+  </div>
+
+  <h3 class="sub-step">彩蛋：A 的便箋備注怎麼存</h3>
+  <p class="body-text">走完這份 walkthrough，你手邊會有一份填好的 4 格便箋。這份便箋是這個改造案例的「設計記錄」。三個地方可以存：</p>
+  <p class="body-text">（a）<strong>n8n workflow 描述欄</strong>——最直接，打開 workflow 就看到，不怕遺失。</p>
+  <p class="body-text">（b）<strong>實體便利貼</strong>——貼在螢幕邊框，下個月發票批次跑之前先看一眼。</p>
+  <p class="body-text">（c）<strong>團隊文檔（Notion / Google Doc）</strong>——如果這個流程將來要交給別人，共用文檔比 workflow 描述欄好找。</p>
+  <p class="body-text">A 選了（a）+ （b）：workflow 描述欄存技術細節（邊界 case / 失敗案例），便利貼存「上次跑的日期 + 200 張 / 199 張」，讓下次批次跑之前 10 秒就能確認狀態。</p>
+
+  <div class="callout tip">
+    <div class="callout-icon" aria-hidden="true">💡</div>
+    <div class="callout-body"><strong>接下來的動線：</strong><br>
+    走完了 → 第 8 頁自我驗收（5 條對照 + 進階 2 題）<br>
+    卡在某一步 → 第 7 頁錯誤分流 SOP<br>
+    想再改別的 workflow → 第 8 頁進階練習 1（#04 改 Notion）+ 進階練習 2（#11 改評分維度）</div>
   </div>
 </section>
 
@@ -545,7 +1130,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">2026 春季</span>
-  <span class="footer-meta" data-platform-version="n8n latest (Docker image n8nio/n8n)" data-built-at="2026-05-06">本頁以 n8n latest (Docker image n8nio/n8n) 製作，2026-05</span>
+  <span class="footer-meta" data-platform-version="n8n latest (Docker image n8nio/n8n)" data-built-at="2026-05-07">本頁以 n8n latest (Docker image n8nio/n8n) 製作，2026-05</span>
 </footer>
 
 <script>

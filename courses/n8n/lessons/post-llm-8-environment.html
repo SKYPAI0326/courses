@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>8/8 環境互鎖與自我驗收 — 改 workflow 前先確認在哪跑｜n8n 本機自動化工作坊</title>
-<meta name="description" content="系列終章：self-host vs Cloud 4 點對照、5 條可驗證的自我驗收清單、2 道不給答案的自我練習題。">
+<title>8/8 環境互鎖與真實驗收 — 改 workflow 前先確認在哪跑｜n8n 本機自動化工作坊</title>
+<meta name="description" content="系列終章：每次動 workflow 前 30 秒掃的 4 項環境檢查表、Active 開關警示、真實下游驗收（Telegram / Sheet / Drive）、5 條可量化自評清單。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
-<meta property="og:title" content="8/8 環境互鎖與自我驗收 — 改 workflow 前先確認在哪跑｜n8n 本機自動化工作坊">
-<meta property="og:description" content="系列終章：self-host vs Cloud 4 點對照、5 條可驗證的自我驗收清單、2 道不給答案的自我練習題。">
+<meta property="og:title" content="8/8 環境互鎖與真實驗收 — 改 workflow 前先確認在哪跑｜n8n 本機自動化工作坊">
+<meta property="og:description" content="系列終章：每次動 workflow 前 30 秒掃的 4 項環境檢查表、Active 開關警示、真實下游驗收（Telegram / Sheet / Drive）、5 條可量化自評清單。">
 <meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/lessons/post-llm-8-environment.html">
 <meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="8/8 環境互鎖與自我驗收 — 改 workflow 前先確認在哪跑｜n8n 本機自動化工作坊">
-<meta name="twitter:description" content="系列終章：self-host vs Cloud 4 點對照、5 條可驗證的自我驗收清單、2 道不給答案的自我練習題。">
+<meta name="twitter:title" content="8/8 環境互鎖與真實驗收 — 改 workflow 前先確認在哪跑｜n8n 本機自動化工作坊">
+<meta name="twitter:description" content="系列終章：每次動 workflow 前 30 秒掃的 4 項環境檢查表、Active 開關警示、真實下游驗收（Telegram / Sheet / Drive）、5 條可量化自評清單。">
 <meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/lessons/post-llm-8-environment.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -51,10 +51,46 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 .intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
 .intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
 .intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+/* callout 統一單色 */
 .callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
 .callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
 .callout-icon{flex-shrink:0;font-size:1.1rem}
 .callout-body{font-size:.9rem;line-height:1.85}
+/* 章首 framing callout（藍底） */
+.callout-framing{background:#e8eef5;border-left:3px solid #6b7fa3;border-radius:var(--radius);padding:20px 24px;margin:24px 0}
+.callout-framing-label{font-size:.72rem;color:#6b7fa3;letter-spacing:.15em;font-weight:700;margin-bottom:8px}
+.callout-framing-body{font-size:.92rem;color:var(--c-text);line-height:1.95}
+/* Active 開關 warning callout（橘底強調） */
+.callout-warning{background:#fdf0e6;border-left:3px solid #b5703a;border-radius:var(--radius);padding:20px 24px;margin:24px 0}
+.callout-warning-label{font-size:.72rem;color:#b5703a;letter-spacing:.15em;font-weight:700;margin-bottom:8px}
+.callout-warning-body{font-size:.92rem;color:var(--c-text);line-height:1.95}
+/* 環境檢查 table */
+.env-check-table{width:100%;border-collapse:collapse;margin:24px 0;font-size:.88rem}
+.env-check-table thead tr{background:var(--c-surface)}
+.env-check-table th{padding:10px 14px;text-align:left;font-size:.75rem;font-weight:700;color:var(--c-text);letter-spacing:.08em;border-bottom:1px solid var(--c-border)}
+.env-check-table td{padding:10px 14px;border-bottom:1px solid var(--c-border-soft);vertical-align:top;line-height:1.75}
+.env-check-table tr:last-child td{border-bottom:0}
+.env-check-table .col-item{font-weight:500;color:var(--c-text);min-width:90px}
+.env-check-table .col-where{color:var(--c-muted);min-width:120px}
+.env-check-table .col-ok{color:#3d6b3d;min-width:120px}
+.env-check-table .col-warn{color:#a05030}
+.ok-pill{display:inline-block;background:#eaf2ea;color:#3d6b3d;border-radius:99px;padding:1px 8px;font-size:.75rem;font-weight:700;letter-spacing:.05em;margin-right:4px}
+.warn-pill{display:inline-block;background:#fdf0e6;color:#a05030;border-radius:99px;padding:1px 8px;font-size:.75rem;font-weight:700;letter-spacing:.05em;margin-right:4px}
+/* Anti-pattern 提醒卡片 */
+.anti-card{background:var(--c-card);border:1px solid var(--c-border);border-left:2px solid var(--c-border);border-radius:var(--radius);padding:14px 18px;margin:10px 0}
+.anti-card-label{font-size:.72rem;color:var(--c-faint);letter-spacing:.12em;font-weight:600;margin-bottom:6px}
+.anti-card-body{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+/* Active 開關特別段 */
+.active-toggle-block{border:1px solid var(--c-border);border-radius:var(--radius);padding:24px;margin:24px 0;background:var(--c-card)}
+.active-toggle-title{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin-bottom:12px}
+.toggle-demo{display:flex;align-items:center;gap:20px;padding:14px 18px;background:var(--c-surface);border-radius:var(--radius);margin:16px 0}
+.toggle-item{display:flex;align-items:center;gap:8px;font-size:.88rem}
+.toggle-off{display:inline-block;width:36px;height:20px;background:#c8c4bc;border-radius:8px;position:relative;flex-shrink:0}
+.toggle-off::after{content:'';position:absolute;left:3px;top:3px;width:14px;height:14px;background:#fff;border-radius:8px}
+.toggle-on{display:inline-block;width:36px;height:20px;background:#3a7fd5;border-radius:8px;position:relative;flex-shrink:0}
+.toggle-on::after{content:'';position:absolute;right:3px;top:3px;width:14px;height:14px;background:#fff;border-radius:8px}
+.toggle-label-off{color:var(--c-muted)}
+.toggle-label-on{color:#3a5a8a;font-weight:500}
 /* 對照表 */
 .compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:24px 0}
 .compare-card{padding:20px 24px}
@@ -65,18 +101,34 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 .compare-row:last-child{border-bottom:0;padding-bottom:0}
 .compare-row-label{font-size:.75rem;color:var(--c-faint);letter-spacing:.08em;font-weight:500}
 .compare-row-value{font-size:.88rem;color:var(--c-text);line-height:1.8}
+/* LLM 應對表 */
+.llm-table{width:100%;border-collapse:collapse;margin:24px 0;font-size:.88rem}
+.llm-table th{padding:10px 14px;text-align:left;font-size:.75rem;font-weight:700;color:var(--c-text);letter-spacing:.08em;border-bottom:1px solid var(--c-border);background:var(--c-surface)}
+.llm-table td{padding:10px 14px;border-bottom:1px solid var(--c-border-soft);vertical-align:top;line-height:1.75}
+.llm-table tr:last-child td{border-bottom:0}
+.llm-table code{font-family:'Courier New',monospace;font-size:.82em;background:var(--c-surface);border:1px solid var(--c-border);padding:1px 5px;border-radius:var(--radius-sm)}
 /* 驗收清單 */
-.checklist{list-style:none;display:flex;flex-direction:column;gap:12px;margin:16px 0}
+.checklist{list-style:none;display:flex;flex-direction:column;gap:16px;margin:16px 0}
 .checklist li{display:flex;gap:12px;align-items:flex-start;font-size:.9rem;line-height:1.85;color:var(--c-text)}
 .checklist li::before{content:"□";flex-shrink:0;margin-top:2px;font-size:1rem;color:var(--c-faint)}
 .checklist li strong{font-weight:500}
+.check-detail{margin-top:6px;padding:8px 12px;background:var(--c-surface);border-radius:var(--radius-sm);font-size:.85rem;color:var(--c-muted);line-height:1.8}
+.check-pass{font-size:.8rem;color:#3d6b3d;margin-top:4px}
 .hard-indicator{display:inline-block;font-size:.72rem;color:var(--c-main);border:1px solid rgba(90,122,90,.4);background:rgba(90,122,90,.06);padding:1px 8px;border-radius:99px;font-weight:700;letter-spacing:.08em;margin-left:6px;vertical-align:middle}
-/* 自我練習 */
+/* 進階練習 */
 .practice-grid{display:flex;flex-direction:column;gap:16px;margin:24px 0}
 .practice-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 24px}
 .practice-card-num{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:8px}
-.practice-card-title{font-size:.95rem;font-weight:500;color:var(--c-text);line-height:1.7;margin-bottom:8px}
-.practice-card-note{font-size:.85rem;color:var(--c-muted);line-height:1.8}
+.practice-card-title{font-size:.95rem;font-weight:500;color:var(--c-text);line-height:1.7;margin-bottom:12px}
+.practice-pass-list{list-style:none;display:flex;flex-direction:column;gap:6px;padding:10px 14px;background:var(--c-surface);border-radius:var(--radius-sm)}
+.practice-pass-list li{font-size:.85rem;color:var(--c-muted);line-height:1.75;display:flex;gap:8px}
+.practice-pass-list li::before{content:"(a)";flex-shrink:0;font-variant-numeric:tabular-nums;color:var(--c-faint)}
+.practice-pass-list li:nth-child(2)::before{content:"(b)"}
+.practice-pass-list li:nth-child(3)::before{content:"(c)"}
+.practice-pass-list li:nth-child(4)::before{content:"(d)"}
+.practice-pass-list li:nth-child(5)::before{content:"(e)"}
+/* 環境感知 prompt */
+.code-block{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);padding:16px 20px;margin:16px 0;font-family:'Courier New',monospace;font-size:.85rem;line-height:1.8;color:var(--c-text);white-space:pre-wrap;word-break:break-word}
 /* CTA 連結 */
 .cta-link{display:inline-flex;align-items:center;gap:8px;font-size:.88rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.35);border-radius:var(--radius);transition:background .2s,border-color .2s;margin-top:8px}
 .cta-link:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
@@ -94,13 +146,21 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 .footer-note{font-size:.75rem;color:var(--c-muted)}
 .footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.compare-grid{grid-template-columns:1fr}.compare-card:first-child{border-right:0;border-bottom:1px solid var(--c-border)}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.compare-grid{grid-template-columns:1fr}.compare-card:first-child{border-right:0;border-bottom:1px solid var(--c-border)}.env-check-table{display:block;overflow-x:auto}}
+@media print{
+  .topbar,.progress-strip,.nav-footer,.footer,.back-link,.skip-link{display:none!important}
+  .env-check-table{page-break-inside:avoid;break-inside:avoid}
+  .env-check-table,table{width:100%;font-size:.78rem}
+  body{background:#fff;color:#000}
+  .anti-card,.callout-framing,.callout-warning,.active-toggle-block{page-break-inside:avoid;break-inside:avoid}
+  .section-rule{border-top:1px solid #ccc}
+}
 </style>
 </head>
 <body>
 <style id="_gs">
 #_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
-#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:4px;text-align:center}
 #_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
 #_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
 #_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
@@ -138,81 +198,93 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div class="page-hero">
   <a href="../index.html" class="back-link"><span aria-hidden="true">←</span> 返回課程總覽</a>
   <div class="hero-eyebrow">8 頁系列 · 第 8/8 · 系列終章</div>
-  <h1 class="lesson-title">環境互鎖與自我驗收 — 改 workflow 前先確認在哪跑</h1>
-  <p class="lesson-tagline">本系列到這頁結束。在你開始動手之前，先確認執行環境——同一份 LLM 改寫建議，在 self-host 與 Cloud 上適用程度不同。然後用 5 條硬指標驗收自己學到了什麼。</p>
+  <h1 class="lesson-title">環境互鎖 + 真實驗收 — 改 workflow 前先確認在哪跑</h1>
+  <p class="lesson-tagline">每次動 workflow 前，先花 30 秒掃 4 項環境狀態。環境對了，第 7 章的分流才會帶你走對方向。跑完後，不是看 Code 綠燈就算過——Telegram 真收到、Sheet 真寫入、Drive 真產出，才是完整驗收。</p>
   <div class="outcomes">
     <div class="outcomes-label">本頁學習成果</div>
-    <div class="outcome-item">能識別自己跑在 self-host 還是 Cloud，並知道 4 個關鍵差異點</div>
-    <div class="outcome-item">能用 5 條驗收清單自評是否達到本系列學習目標</div>
-    <div class="outcome-item">知道 2 道進階練習題的方向，並能獨立用前 7 頁的方法解題</div>
+    <div class="outcome-item">能在 30 秒內掃完 4 項環境檢查（Local/Cloud、-edit/production、Active 開關、上次 Execution 時間）</div>
+    <div class="outcome-item">理解 Active 開關對非工程師的具體風險，建立「坐下就看 toggle 顏色」習慣</div>
+    <div class="outcome-item">能區分「Code 綠燈」與「真實驗收」的差異，完成下游輸出端的 5 條驗收</div>
   </div>
 </div>
 
 <section class="lesson-section">
   <div class="section-eyebrow">(01)</div>
-  <h2 class="section-heading">為什麼最後要回到「在哪跑」</h2>
-  <div class="intro-band">
-    <div class="intro-label">前提假設</div>
-    <div class="intro-text">本系列的所有技巧都假設你在 self-host n8n 上跑。如果你準備搬上 Cloud，credential 儲存位置、節點可用性、檔案路徑、execution 配額這四個面向都會有差異——LLM 給的改寫建議不一定能直接沿用。</div>
+  <h2 class="section-heading">為什麼這章排在第 7 章後——但每次都要先做</h2>
+
+  <div class="callout-framing">
+    <div class="callout-framing-label">章節順序說明</div>
+    <div class="callout-framing-body">
+      <strong>教學順序</strong>：先教錯誤分流（第 7 章）讓你能自救，<strong>但實機操作時請先做本章 8.X 環境檢查，再進第 7 章分流</strong>。<br><br>
+      理由：環境錯時，第 7 章分流會帶你走錯方向——你以為是 typeVersion 對不上，實際是你在 Cloud 上，而 LLM 給的是 local 才有的節點；或你以為節點壞了，實際是 production workflow 的 Active 開關被觸發，跑掉的是正式資料。<br><br>
+      <strong>建議把 8.X 的環境檢查表列印出來，貼在螢幕邊。每次坐下動 workflow 前 30 秒掃過去。</strong>
+    </div>
   </div>
-  <p class="body-text">改 workflow 前確認執行環境，不是多餘的步驟。LLM 建議「用 Read Binary File 節點讀本機 PDF」，在 self-host 完全可行；同一句話在 Cloud 執行必定失敗，因為 Cloud 環境裡根本沒有「本機」的概念。先知道你在哪裡，才能判斷 LLM 的建議是否有效。</p>
+
+  <p class="body-text">本頁的核心是兩件事：(1) 動手前，確認你在哪個環境；(2) 跑完後，確認下游真的收到你以為送出去的東西。這兩件事都不靠直覺判斷——有具體的「看哪裡、看到什麼字串算對」。</p>
 </section>
 
 <hr class="section-rule">
 
 <section class="lesson-section">
   <div class="section-eyebrow">(02)</div>
-  <h2 class="section-heading">self-host vs Cloud — 4 個關鍵差異</h2>
-  <p class="body-text">以下 4 點對照是改造 workflow 時最常踩到的環境邊界，搬遷前先逐點確認。</p>
+  <h2 class="section-heading">8.X 環境檢查 4 項 — 每次動 workflow 前 30 秒掃過</h2>
 
-  <div class="compare-grid">
-    <div class="compare-card">
-      <div class="compare-label">SELF-HOST（本課主路線）</div>
-      <div class="compare-item">
-        <div class="compare-row">
-          <div class="compare-row-label">Credential 儲存位置</div>
-          <div class="compare-row-value">你的電腦或 VPS，由你負責備份與機密管理。加密金鑰遺失即無法復原。</div>
-        </div>
-        <div class="compare-row">
-          <div class="compare-row-label">節點可用性</div>
-          <div class="compare-row-value">全部 community node 可安裝（自負風險）。Read/Write Files、Execute Command、本地 LLM 節點均可用。</div>
-        </div>
-        <div class="compare-row">
-          <div class="compare-row-label">檔案路徑</div>
-          <div class="compare-row-value">可直接指定本機路徑，例如 <code style="font-family:'Courier New',monospace;font-size:.85em;background:var(--c-surface);border:1px solid var(--c-border);padding:1px 6px;border-radius:var(--radius-sm)">/files/</code> 或 <code style="font-family:'Courier New',monospace;font-size:.85em;background:var(--c-surface);border:1px solid var(--c-border);padding:1px 6px;border-radius:var(--radius-sm)">/Users/.../folder</code> 等本機絕對路徑。</div>
-        </div>
-        <div class="compare-row">
-          <div class="compare-row-label">Execution 配額</div>
-          <div class="compare-row-value">無上限，但吃你電腦或 VPS 的資源（電費、CPU、磁碟）。自己控制執行量。</div>
-        </div>
-      </div>
-    </div>
-    <div class="compare-card">
-      <div class="compare-label">N8N CLOUD</div>
-      <div class="compare-item">
-        <div class="compare-row">
-          <div class="compare-row-label">Credential 儲存位置</div>
-          <div class="compare-row-value">n8n 雲端伺服器，由 n8n 負責加密儲存。self-host 加密過的 credential 無法直接匯入，需重設。</div>
-        </div>
-        <div class="compare-row">
-          <div class="compare-row-label">節點可用性</div>
-          <div class="compare-row-value">部分節點受限，community node 需經審核。Read/Write Files、Execute Command、本地 LLM 在 Cloud 環境不可用。</div>
-        </div>
-        <div class="compare-row">
-          <div class="compare-row-label">檔案路徑</div>
-          <div class="compare-row-value">不能直接讀取本機檔案。必須改走 Google Drive、S3 等雲端儲存節點作為中介。</div>
-        </div>
-        <div class="compare-row">
-          <div class="compare-row-label">Execution 配額</div>
-          <div class="compare-row-value">依方案有 monthly execution 上限，超過另計費。大量批次處理需留意配額消耗速度。</div>
-        </div>
-      </div>
-    </div>
+  <div class="intro-band">
+    <div class="intro-label">使用方式</div>
+    <div class="intro-text">4 項全部看完才算掃過。順序不重要，重要的是每次都做。下方 anti-pattern 是最常踩的坑，第一次看完就知道為什麼要這樣。</div>
   </div>
 
-  <div class="callout info">
-    <div class="callout-icon" aria-hidden="true">△</div>
-    <div class="callout-body">改 workflow 前，先確認你跑在哪個環境。同一份 LLM 改寫建議，在 self-host 與 Cloud 上適用程度不同。</div>
+  <table class="env-check-table" aria-label="環境檢查 4 項">
+    <thead>
+      <tr>
+        <th>檢查項</th>
+        <th>在 n8n UI 哪裡看</th>
+        <th>看到什麼算對</th>
+        <th>看到什麼要警覺</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="col-item">Local vs Cloud</td>
+        <td class="col-where">瀏覽器網址列</td>
+        <td class="col-ok"><span class="ok-pill">OK</span><code style="font-family:'Courier New',monospace;font-size:.82em;background:var(--c-surface);border:1px solid var(--c-border);padding:1px 5px;border-radius:3px">localhost:5678/workflow/...</code>（local）</td>
+        <td class="col-warn"><span class="warn-pill">注意</span><code style="font-family:'Courier New',monospace;font-size:.82em;background:var(--c-surface);border:1px solid var(--c-border);padding:1px 5px;border-radius:3px">*.app.n8n.cloud/...</code>（Cloud — LLM 建議的節點是否 Cloud 支援？）</td>
+      </tr>
+      <tr>
+        <td class="col-item">-edit vs production</td>
+        <td class="col-where">工作區左上角 workflow 名稱 + 瀏覽器 tab title</td>
+        <td class="col-ok"><span class="ok-pill">OK</span>名稱結尾有 <code style="font-family:'Courier New',monospace;font-size:.82em;background:var(--c-surface);border:1px solid var(--c-border);padding:1px 5px;border-radius:3px">-edit</code>，例如 <code style="font-family:'Courier New',monospace;font-size:.82em;background:var(--c-surface);border:1px solid var(--c-border);padding:1px 5px;border-radius:3px">02-pdf-ai-rename-edit</code></td>
+        <td class="col-warn"><span class="warn-pill">警覺</span>無 <code style="font-family:'Courier New',monospace;font-size:.82em;background:var(--c-surface);border:1px solid var(--c-border);padding:1px 5px;border-radius:3px">-edit</code>（是 production）— 立刻 Cmd+Z 退出，不要動</td>
+      </tr>
+      <tr>
+        <td class="col-item">Active 開關</td>
+        <td class="col-where">工作區右上角 toggle</td>
+        <td class="col-ok"><span class="ok-pill">OK</span>灰色 OFF（schedule / trigger 不會自動跑）</td>
+        <td class="col-warn"><span class="warn-pill">警覺</span>藍色 ON（一動到就可能被 trigger 觸發 — 對 -edit 版應關閉）</td>
+      </tr>
+      <tr>
+        <td class="col-item">上次 Execution 時間</td>
+        <td class="col-where">工作區右側 Executions 分頁第一筆 timestamp</td>
+        <td class="col-ok"><span class="ok-pill">OK</span>時間跟你預期執行時間一致（手動跑就是剛才）</td>
+        <td class="col-warn"><span class="warn-pill">警覺</span>比預期早 / 你沒跑卻有新 execution = trigger 自己跑了，查 Active 開關</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="anti-card">
+    <div class="anti-card-label">LOCAL VS CLOUD ANTI-PATTERN</div>
+    <div class="anti-card-body">跨環境學員（公司 VPS 一個 n8n、家裡 Docker 又一個）：看到 <code style="font-family:'Courier New',monospace;font-size:.82em">n8n.yourcompany.com</code> 這類自架域名，要當 self-host 處理，不是 Cloud。記下「我這個域名背後實際是 self-host 還是 Cloud」，否則 LLM 對話應對會走錯。</div>
+  </div>
+
+  <div class="anti-card">
+    <div class="anti-card-label">-EDIT VS PRODUCTION ANTI-PATTERN</div>
+    <div class="anti-card-body">Duplicate 出 <code style="font-family:'Courier New',monospace;font-size:.82em">-edit</code> 後，左上角名稱會顯示新名稱，但<strong>有些版本 tab title 還停在舊名</strong>幾秒鐘才刷新。這時不要急著動，重新整理一次再開始。</div>
+  </div>
+
+  <div class="anti-card">
+    <div class="anti-card-label">EXECUTIONS 時間 ANTI-PATTERN</div>
+    <div class="anti-card-body">隔天回來，Executions 第一筆是凌晨某個時間、不是你跑的——表示有 schedule trigger 在自動跑。回頭查 Active 開關 + trigger 節點設定，否則你跑出的數會跟自動跑的混在一起。</div>
   </div>
 </section>
 
@@ -220,49 +292,219 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 <section class="lesson-section">
   <div class="section-eyebrow">(03)</div>
-  <h2 class="section-heading">進一步閱讀</h2>
-  <p class="body-text">考慮把 self-host workflow 搬到 Cloud，或想了解 Cloud 版的限制與遷移思路？以下補充教材從環境決策的角度展開，與本頁是官方互鎖點。</p>
-  <a href="post-cloud-n8n.html" class="cta-link"><span aria-hidden="true">→</span> 雲端 n8n 決策 FAQ（補充教材）</a>
+  <h2 class="section-heading">Active 開關 — 4 項中對非工程師最關鍵的一項</h2>
+
+  <div class="callout-warning">
+    <div class="callout-warning-label">重要習慣</div>
+    <div class="callout-warning-body">
+      <strong>Toggle 一點就反。每次坐下來，先花 3 秒看右上角顏色。</strong><br><br>
+      灰色 = OFF = 安全。藍色 = ON = 危險（trigger 可能隨時自動跑）。<br>
+      對 <code style="font-family:'Courier New',monospace;font-size:.9em">-edit</code> 版 workflow，Active 一定要關；對 production 版，看你需求——但你在改測試的時候，production 最好也是 OFF。
+    </div>
+  </div>
+
+  <div class="active-toggle-block">
+    <div class="active-toggle-title">Toggle 狀態對照</div>
+    <div class="toggle-demo">
+      <div class="toggle-item">
+        <span class="toggle-off" aria-hidden="true"></span>
+        <span class="toggle-label-off">灰色 OFF — schedule 不自動跑，手動執行才跑</span>
+      </div>
+    </div>
+    <div class="toggle-demo">
+      <div class="toggle-item">
+        <span class="toggle-on" aria-hidden="true"></span>
+        <span class="toggle-label-on">藍色 ON — trigger 隨時可能觸發，schedule 定時跑</span>
+      </div>
+    </div>
+    <p style="font-size:.88rem;color:var(--c-muted);line-height:1.8;margin-top:14px">第一次 Duplicate <code style="font-family:'Courier New',monospace;font-size:.85em">-edit</code> 完，新 workflow 預設 Active OFF——但學員容易在後續操作中不小心點到。每次坐下繼續做之前，30 秒看一眼 toggle 顏色。</p>
+  </div>
+
+  <div class="callout info">
+    <div class="callout-icon" aria-hidden="true">△</div>
+    <div class="callout-body">如果你的 workflow 有 Telegram trigger 或 Webhook，Active ON 就表示外部訊息一進來就會觸發——即使你正在改節點。改節點前先把 Active 關掉，改完測試通過再打開。</div>
+  </div>
 </section>
 
 <hr class="section-rule">
 
 <section class="lesson-section">
   <div class="section-eyebrow">(04)</div>
-  <h2 class="section-heading">自我驗收 — 5 條可驗證清單</h2>
-  <div class="intro-band">
-    <div class="intro-label">使用方式</div>
-    <div class="intro-text">這 5 條是本系列的學習目標，以動詞開頭、結果可驗證。逐條對照自己現在能不能做到，不能做到的回去看對應頁。第 5 條是硬指標，建議實際跑過才算。</div>
+  <h2 class="section-heading">self-host vs Cloud — 4 個關鍵差異 + LLM 對話應對</h2>
+  <p class="body-text">確認你在哪個環境之後，下面這 4 點對照決定 LLM 給的建議是否能直接套用。</p>
+
+  <table class="llm-table" aria-label="self-host vs Cloud 對照 + LLM 應對">
+    <thead>
+      <tr>
+        <th>差異點</th>
+        <th>Self-host</th>
+        <th>n8n Cloud</th>
+        <th>LLM 對話應對</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Credential 儲存</strong></td>
+        <td>你電腦/VPS，自己備份</td>
+        <td>n8n 雲端，n8n 加密</td>
+        <td>LLM 給「整份匯入」建議時，Cloud 用戶要追問「credential 部分我要重建嗎」</td>
+      </tr>
+      <tr>
+        <td><strong>節點可用性</strong></td>
+        <td>全部 community node 可用</td>
+        <td>部分受限</td>
+        <td>LLM 建議 <code>Read Binary File</code> / <code>Execute Command</code> / <code>LocalAI</code> 等本地節點時，Cloud 用戶說：「我在 Cloud，這節點不能用，請改成 Google Drive Read File 等雲端節點」</td>
+      </tr>
+      <tr>
+        <td><strong>檔案路徑</strong></td>
+        <td><code>/files/</code> 等本機絕對路徑 OK</td>
+        <td>不能直接讀本機</td>
+        <td>LLM 給的 path（例：<code>/files/pdf-inbox/</code>），Cloud 用戶說：「我在 Cloud，請改成 Google Drive 路徑或 S3 bucket」</td>
+      </tr>
+      <tr>
+        <td><strong>Execution 配額</strong></td>
+        <td>無上限（吃自己資源）</td>
+        <td>月配額，超用另計費</td>
+        <td>全量跑前先估算（例：200 張 × 每張 1 次 Gemini = 200 次 execution），看是否超 plan 上限</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout info">
+    <div class="callout-icon" aria-hidden="true">△</div>
+    <div class="callout-body">每次 LLM 對話開頭，加一行環境聲明（見第 6 節的 prompt prefix），LLM 就會自動避開你環境不支援的建議。不要每次都等到 LLM 建議了不能用的節點才補說。</div>
   </div>
-  <ul class="checklist">
-    <li>能用 4 格便箋拆解一個改造需求（input / output / 保留節點 / workflow 編號），並能對著別人講 1 分鐘不打結。（對應：第 3 頁，步驟 1）</li>
-    <li>能在不貼 credential 的前提下，把任一 Lite Pack workflow JSON 貼給 LLM 並要求中文流程描述。（對應：第 3 頁，步驟 2）</li>
-    <li>能下指令讓 LLM 只回傳節點區段、不重寫整份 workflow，並在 n8n UI 上正確完成節點替換。（對應：第 3 頁，步驟 3）</li>
-    <li>能用「最小可重現訊息」格式回報錯誤——紅燈訊息全文 + 上一節點 input + 當前 parameter 三件套，不貼整份 workflow 重來。（對應：第 4 頁，步驟 5）</li>
-    <li>能把 #02-pdf-ai-rename 改成處理某種非合約類文件（發票、收據、PO、申請表 4 選 1），跑通 10 筆樣本。<span class="hard-indicator">硬指標</span>（對應：第 6 頁，完整 Walkthrough）</li>
-  </ul>
-  <p class="body-text" style="margin-top:20px">第 5 條建議到課程社群貼出改造成品截圖，讓其他結業學員看到你的進展——這也是最直接的驗收方式。</p>
 </section>
 
 <hr class="section-rule">
 
 <section class="lesson-section">
   <div class="section-eyebrow">(05)</div>
-  <h2 class="section-heading">自我練習 — 不給答案的 2 題</h2>
+  <h2 class="section-heading">真實驗收 — 不只 Code 綠燈，下游要真的收到</h2>
+
+  <div class="intro-band">
+    <div class="intro-label">為什麼 Code 綠燈不夠</div>
+    <div class="intro-text">n8n UI 的綠燈只代表節點執行沒有拋出錯誤。但「節點執行成功」不等於「下游真的收到你以為送出去的東西」。Telegram 顯示 sent 但訊息沒到、Sheet 寫入節點回傳 OK 但實際 row 是空的、Drive 上傳回傳 file ID 但檔案損毀——這些都是 Code 綠燈但驗收失敗的情況。</div>
+  </div>
+
+  <ul class="checklist">
+    <li>
+      <div>
+        <strong>Code 全綠燈</strong>：n8n UI 上每個節點的執行結果都沒有紅色錯誤框。
+        <div class="check-detail">自評動作：點開每個節點的 Execution 結果，確認沒有 Error 欄位。</div>
+        <div class="check-pass">過關：0 個節點顯示紅框。</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>Telegram 真收到</strong>（有用 Telegram 輸出端的 workflow）：拿手機打開 Telegram，實際看到機器人送出的訊息。
+        <div class="check-detail">自評動作：跑完 30 秒內，打開 Telegram 目標 chat 確認有新訊息，訊息格式跟你設計的一致。</div>
+        <div class="check-pass">過關：手機上看到訊息，訊息內文不是亂碼也不是空字串。</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>Sheet 真寫入</strong>（有用 Google Sheets 輸出端的 workflow）：打開 Google Sheets 實際看到新 row 被寫入，欄位值跟 input 對應。
+        <div class="check-detail">自評動作：跑完後切到瀏覽器開 Sheet，確認最後幾行有新資料，抽一個欄位值比對 input。</div>
+        <div class="check-pass">過關：有新 row，至少 1 個欄位值可對應到你跑的 input 資料。</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>Drive 真產出檔</strong>（有用 Google Drive 輸出端的 workflow）：打開 Google Drive 目標資料夾，確認有新檔案，檔案可以正常開啟。
+        <div class="check-detail">自評動作：跑完後進 Drive 目標資料夾，確認有新檔案，點開確認內容不是空白或損毀。</div>
+        <div class="check-pass">過關：Drive 有新檔案，可以正常預覽或開啟。</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>檔名格式符合便箋設計</strong>（針對 #02 或任何有改名邏輯的 workflow）：輸出的 newFilename 符合你便箋上定的格式，0 個 null 欄位。
+        <div class="check-detail">自評動作：抽 3 筆 output 的 newFilename，對著便箋格式逐字比對。</div>
+        <div class="check-pass">過關：3 筆全部符合格式，0 個 null 值。</div>
+      </div>
+    </li>
+  </ul>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(06)</div>
+  <h2 class="section-heading">自我驗收 — 5 條可量化清單</h2>
+  <div class="intro-band">
+    <div class="intro-label">使用方式</div>
+    <div class="intro-text">5 條都給了自評動作（5 分鐘內可做）和過關標準（可量化驗收）。逐條對照，不能做到的回去看對應頁。第 5 條是硬指標，建議實際跑過才算。</div>
+  </div>
+  <ul class="checklist">
+    <li>
+      <div>
+        <strong>能用 4 格便箋拆解一個改造需求</strong>（input / output / 保留節點 / workflow 編號），並能對著別人講 1 分鐘不打結。（對應：第 3 頁，步驟 1）
+        <div class="check-detail">自評動作：選一個你還沒做的 Lite Pack workflow（例：#04），花 5 分鐘填 4 格便箋，然後對著手機錄音講 1 分鐘。</div>
+        <div class="check-pass">過關：4 格全填具體值（input 有 4-6 個欄位名）+ 講話沒打結。</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>能在不貼 credential 的前提下，把任一 Lite Pack workflow JSON 貼給 LLM</strong> 並要求中文流程描述。（對應：第 3 頁，步驟 2）
+        <div class="check-detail">自評動作：從 n8n UI export 任一 workflow，用 VS Code 搜尋 4 個字串（apiKey / accessToken / password / token）。</div>
+        <div class="check-pass">過關：4 個字串全部 0 個結果。</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>能下指令讓 LLM 只回傳節點區段、不重寫整份 workflow</strong>，並在 n8n UI 上正確完成節點替換。（對應：第 3 頁，步驟 3）
+        <div class="check-detail">自評動作：對 LLM 貼模板 3，要求改某個節點，看 LLM 回的 JSON 第二行。</div>
+        <div class="check-pass">過關：LLM 回的 JSON 第二行是 <code style="font-family:'Courier New',monospace;font-size:.85em">"parameters":</code>（不是 <code style="font-family:'Courier New',monospace;font-size:.85em">"name":</code> 或 <code style="font-family:'Courier New',monospace;font-size:.85em">"nodes":</code>）。</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>能用三件套格式回報錯誤</strong>——紅燈訊息全文 + 上一節點 input + 當前 parameter。（對應：第 4 頁，步驟 5）
+        <div class="check-detail">自評動作：故意製造一個錯誤（把 #02 的 Code 節點 prompt 字串隨便刪掉幾行）→ 跑紅燈 → 用模板 4 回報。</div>
+        <div class="check-pass">過關：LLM 給的回應指出「具體哪一行哪個欄位」（不是「建議重新檢查」）。</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>能把 #02-pdf-ai-rename 改成處理某種非合約類文件</strong>（發票 / 收據 / PO / 申請表 4 選 1），跑通 10 筆樣本。<span class="hard-indicator">硬指標</span>（對應：第 6 頁，完整 Walkthrough）
+        <div class="check-detail">自評動作：選一種文件類型，照第 6 章 walkthrough 跑完整六步。</div>
+        <div class="check-pass">過關 3 條：(a) 10 張全綠燈 (b) 10 張的 newFilename 全部符合便箋格式 (c) 0 張 null 欄位。強烈建議：跑通後到課程社群貼 Finder 截圖（10 張改名後的 PDF）。</div>
+      </div>
+    </li>
+  </ul>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(07)</div>
+  <h2 class="section-heading">進階練習 — 不給答案的 2 題（給過關條件）</h2>
   <div class="intro-band">
     <div class="intro-label">設計意圖</div>
-    <div class="intro-text">這兩題沒有附範本答案，也沒有附 prompt 模板。你需要回去用前 7 頁學的方法自己解：拆需求、讀 JSON、限定修改範圍、匯入測試、錯誤回報、收斂。能獨立跑完一輪，才算真正內化了這套流程。</div>
+    <div class="intro-text">沒有附範本答案，也沒有附 prompt 模板。你需要回去用前 7 頁學的方法自己解：拆需求、讀 JSON、限定修改範圍、匯入測試、錯誤回報、收斂。每題給「過關 5 條」，你做出來的東西要符合這 5 條才算過。</div>
   </div>
   <div class="practice-grid">
     <div class="practice-card">
       <div class="practice-card-num">練習 1</div>
       <div class="practice-card-title">把 #04-daily-ai-report 的輸出端從 Google Sheet 改成 Notion Database</div>
-      <div class="practice-card-note">提示：輸出端換新節點類型時，記得先在 n8n UI 拉出一個 Notion 節點、複製出來給 LLM 當「目標形狀」範本，不要讓 LLM 從記憶生成節點 JSON。</div>
+      <ul class="practice-pass-list">
+        <li>4 格便箋有「目標 Notion Database 的 schema」具體欄位名</li>
+        <li>用「示範形狀法」：在 n8n UI 拉 Notion 節點 → 隨便填 → 複製 JSON → 貼給 LLM 當形狀範本（不讓 LLM 從記憶生成）</li>
+        <li>整套流程用 <code style="font-family:'Courier New',monospace;font-size:.85em">-edit</code> 版做，不動原 #04</li>
+        <li>跑通 5 筆測試 daily report</li>
+        <li>在 Notion Database 看到 5 筆有結構的 record（不是 5 條空白 row）</li>
+      </ul>
     </div>
     <div class="practice-card">
       <div class="practice-card-num">練習 2</div>
-      <div class="practice-card-title">把 #11-csv-clean-score 的評分維度從通用版改成你業務的特定維度，並跑通 10 筆樣本</div>
-      <div class="practice-card-note">提示：先填好 4 格便箋，把「你業務的特定維度是什麼、原本的通用維度是什麼、哪些節點需要改」寫清楚，再開始跟 LLM 對話。需求不清就先別動 JSON。</div>
+      <div class="practice-card-title">把 #11-csv-clean-score 的評分維度從通用版改成你業務的特定維度</div>
+      <ul class="practice-pass-list">
+        <li>4 格便箋有「你業務的特定維度」清單（至少 3 個維度）</li>
+        <li>對比原 #11 的通用維度，明確標出哪些保留 / 哪些換掉 / 哪些新增</li>
+        <li>只改 Code 節點裡的 prompt + 評分邏輯，不改 trigger / 不改輸出端</li>
+        <li>跑通 10 筆真實 CSV 樣本</li>
+        <li>抽查 3 筆 output 的評分結果，肉眼看分數合不合理</li>
+      </ul>
     </div>
   </div>
 </section>
@@ -270,7 +512,27 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <hr class="section-rule">
 
 <section class="lesson-section">
-  <div class="section-eyebrow">(06)</div>
+  <div class="section-eyebrow">(08)</div>
+  <h2 class="section-heading">環境感知 prompt prefix — 每次對話開頭加</h2>
+  <p class="body-text">把這段加在每次 LLM 對話的最開頭，LLM 就會自動避開你環境不支援的節點，不需要等到踩雷才說。</p>
+  <div class="code-block">我用 n8n [Cloud / self-host with Docker / self-host with Cloudflare Tunnel]，n8n 版本 [latest / 1.x.x]。
+我的工作流程是 [改造目的]。
+
+[後面接其他 prompt 模板]</div>
+  <p class="body-text">LLM 回應範例：</p>
+  <div class="code-block">明白，你在 n8n Cloud 上，所以我會避免建議：
+- Read/Write Files 節點（用 Google Drive 替代）
+- Execute Command 節點（不可用）
+- 本機絕對路徑（用 Google Drive folder ID 或 S3 bucket）
+
+進行你的改造需求 [...]</div>
+  <a href="post-cloud-n8n.html" class="cta-link"><span aria-hidden="true">→</span> 雲端 n8n 決策 FAQ（補充教材，選讀）</a>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(09)</div>
   <h2 class="section-heading">系列結語</h2>
   <div class="closing-band">
     <p class="closing-text">8 頁學完，下一步是動手。這套流程的核心不是 prompt 技巧，是「縮小範圍、逐步驗收」的工作紀律——第一次走完 6 步可能要花一個下午，第五次就會變成 30 分鐘的例行作業。改造案例歡迎分享到學員社群，你的實際情境對其他結業學員的參考價值，遠比任何教材範例都高。</p>
@@ -288,7 +550,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">2026 春季</span>
-  <span class="footer-meta" data-platform-version="n8n 1.x" data-built-at="2026-05-06">本頁以 n8n 1.x 製作，2026-05</span>
+  <span class="footer-meta" data-platform-version="n8n 1.x" data-built-at="2026-05-07">本頁以 n8n 1.x 製作，2026-05</span>
 </footer>
 
 <script>

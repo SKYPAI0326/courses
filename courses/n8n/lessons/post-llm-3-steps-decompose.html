@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>步驟 1-3 詳解 — 拆需求、讀 JSON、限定範圍｜AI 資料工廠</title>
-<meta name="description" content="安全改 workflow 六步流程前半段詳解：拆需求（學員主導）、讀 JSON（LLM 翻譯）、限定修改範圍（協同），含三個可直接複製的 prompt 模板。">
+<meta name="description" content="安全改 workflow 六步流程前半段詳解：拆需求（學員主導）、讀 JSON（LLM 翻譯）、限定修改範圍（協同），含三個可直接複製的 prompt 模板與完整 LLM 回應範例。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
 <meta property="og:title" content="步驟 1-3 詳解 — 拆需求、讀 JSON、限定範圍｜AI 資料工廠">
-<meta property="og:description" content="安全改 workflow 六步流程前半段詳解：拆需求（學員主導）、讀 JSON（LLM 翻譯）、限定修改範圍（協同），含三個可直接複製的 prompt 模板。">
+<meta property="og:description" content="安全改 workflow 六步流程前半段詳解：拆需求（學員主導）、讀 JSON（LLM 翻譯）、限定修改範圍（協同），含三個可直接複製的 prompt 模板與完整 LLM 回應範例。">
 <meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/lessons/post-llm-3-steps-decompose.html">
 <meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="步驟 1-3 詳解 — 拆需求、讀 JSON、限定範圍｜AI 資料工廠">
-<meta name="twitter:description" content="安全改 workflow 六步流程前半段詳解：拆需求（學員主導）、讀 JSON（LLM 翻譯）、限定修改範圍（協同），含三個可直接複製的 prompt 模板。">
+<meta name="twitter:description" content="安全改 workflow 六步流程前半段詳解：拆需求（學員主導）、讀 JSON（LLM 翻譯）、限定修改範圍（協同），含三個可直接複製的 prompt 模板與完整 LLM 回應範例。">
 <meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/lessons/post-llm-3-steps-decompose.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -55,6 +55,10 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 .callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
 .callout-icon{flex-shrink:0;font-size:1.1rem}
 .callout-body{font-size:.9rem;line-height:1.85}
+.callout-danger{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:#fff5f5;border:1px solid #e8c0c0;border-left:4px solid #c00}
+.callout-danger .callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-danger .callout-body{font-size:.9rem;line-height:1.85;color:#5a0000}
+.callout-danger strong{color:#c00}
 .scenario-grid{display:flex;flex-direction:column;gap:12px;margin:24px 0}
 .scenario-row{display:grid;grid-template-columns:160px 1fr;gap:0;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden}
 .scenario-task{padding:16px 18px;background:var(--c-surface);font-size:.85rem;font-weight:700;color:var(--c-text);line-height:1.6;border-right:1px solid var(--c-border-soft)}
@@ -82,6 +86,43 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 .four-cell{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px}
 .four-label{font-size:.72rem;color:var(--c-text);letter-spacing:.12em;font-weight:700;margin-bottom:8px}
 .four-body{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.step-list{list-style:none;margin:20px 0;display:flex;flex-direction:column;gap:12px}
+.step-item{display:grid;grid-template-columns:28px 1fr;gap:12px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:16px 18px}
+.step-num{font-family:'Shippori Mincho',serif;font-size:.85rem;font-weight:700;color:var(--c-faint);padding-top:2px}
+.step-body{font-size:.9rem;color:var(--c-text);line-height:1.85}
+.step-body strong{font-weight:700}
+.accept-list{list-style:none;margin:12px 0;display:flex;flex-direction:column;gap:6px}
+.accept-item{display:flex;gap:10px;font-size:.88rem;line-height:1.8;padding:8px 12px;border-radius:var(--radius-sm);background:var(--c-surface)}
+.accept-item.ok{border-left:3px solid #5a7a5a;color:var(--c-text)}
+.accept-item.ng{border-left:3px solid #b5703a;color:var(--c-text)}
+.accept-badge{flex-shrink:0;font-weight:700;font-size:.8rem;min-width:20px}
+.accept-badge.ok{color:#5a7a5a}
+.accept-badge.ng{color:#b5703a}
+.variants-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0}
+.variant-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden}
+.variant-header{padding:10px 16px;background:var(--c-surface);border-bottom:1px solid var(--c-border);display:flex;align-items:center;gap:8px}
+.variant-badge{font-size:.72rem;font-weight:700;letter-spacing:.1em;color:var(--c-text)}
+.variant-status{font-size:.72rem;padding:2px 8px;border-radius:99px;border:1px solid}
+.variant-status.pass{color:#5a7a5a;border-color:rgba(90,122,90,.4);background:rgba(90,122,90,.07)}
+.variant-status.fail{color:#b5703a;border-color:rgba(181,112,58,.4);background:rgba(181,112,58,.07)}
+.variant-body{padding:14px 16px;font-size:.83rem;line-height:1.75;color:var(--c-text)}
+.variant-body pre{font-family:'Courier New',monospace;font-size:.8rem;background:#2c2b28;color:#e8e4dc;padding:12px 14px;border-radius:var(--radius-sm);white-space:pre-wrap;word-break:break-word;margin:8px 0}
+.variant-note{font-size:.83rem;color:var(--c-muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--c-border-soft);line-height:1.75}
+.sop-box{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);margin:24px 0;overflow:hidden}
+.sop-header{padding:10px 18px;background:var(--c-surface);border-bottom:1px solid var(--c-border)}
+.sop-label{font-size:.72rem;font-weight:700;letter-spacing:.15em;color:var(--c-text)}
+.sop-body{padding:16px 18px}
+.sop-steps{list-style:none;display:flex;flex-direction:column;gap:8px}
+.sop-step{display:flex;gap:10px;font-size:.88rem;color:var(--c-text);line-height:1.8}
+.sop-step-num{flex-shrink:0;font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-faint);font-weight:700;min-width:20px;padding-top:2px}
+.checklist{list-style:none;margin:16px 0;display:flex;flex-direction:column;gap:8px}
+.check-item{display:flex;gap:10px;font-size:.9rem;color:var(--c-text);line-height:1.8;padding:10px 14px;background:var(--c-surface);border-radius:var(--radius-sm)}
+.check-box{flex-shrink:0;width:18px;height:18px;border:1.5px solid var(--c-border);border-radius:3px;margin-top:2px}
+.error-list{display:flex;flex-direction:column;gap:16px;margin:20px 0}
+.error-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 22px}
+.error-tag{font-size:.72rem;font-weight:700;letter-spacing:.12em;color:var(--c-muted);margin-bottom:6px}
+.error-title{font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:8px}
+.error-fix{font-size:.88rem;color:var(--c-muted);line-height:1.8}
 .nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
 .nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
 .nav-btn:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
@@ -93,7 +134,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 .footer-note{font-size:.75rem;color:var(--c-muted)}
 .footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
 @media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important}*{animation:none!important}}
-@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.concept-grid{grid-template-columns:1fr}.four-grid{grid-template-columns:1fr}.scenario-row{grid-template-columns:1fr}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.concept-grid{grid-template-columns:1fr}.four-grid{grid-template-columns:1fr}.scenario-row{grid-template-columns:1fr}.variants-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -137,77 +178,128 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div class="page-hero">
   <a href="index.html" class="back-link"><span aria-hidden="true">←</span> 返回課程首頁</a>
   <div class="hero-eyebrow">8 頁系列 · 第 3/8</div>
-  <h1 class="lesson-title">步驟 1-3 詳解 — 拆需求、讀 JSON、限定範圍</h1>
-  <p class="lesson-tagline">六步流程的前三步是整套 SOP 的地基。第一步刻意不用 LLM；第二步讓 LLM 做它最擅長的事；第三步最容易跳過、也最值得花時間做對。每步都有 prompt 模板可直接複製。</p>
+  <h1 class="lesson-title">步驟 1-3 真詳解 — 拆需求、讀 JSON、限定範圍</h1>
+  <p class="lesson-tagline">前 3 步是整套 SOP 的地基。步驟 1 寫不清楚，後面 LLM 會自己補；步驟 2 沒驗收，後面改錯沒人發現；步驟 3 不限範圍，LLM 會重寫整份。地基歪了，後面全白費。每步都有可直接複製的 prompt 模板與具體 LLM 回應範例。</p>
   <div class="outcomes">
     <div class="outcomes-label">讀完這頁你會能做到 · OUTCOMES</div>
-    <div class="outcome-item">用 4 格便箋獨立拆解一個改造需求，對著別人講 1 分鐘不打結</div>
-    <div class="outcome-item">在不貼 credential 的前提下，把 workflow JSON 貼給 LLM 並要求它翻成流程描述</div>
-    <div class="outcome-item">下指令讓 LLM 只回傳節點區段，不重寫整份 workflow，並在 n8n UI 上正確完成節點替換</div>
+    <div class="outcome-item">用 4 格便箋獨立拆解一個改造需求，填出含具體欄位名的 input/output，對著別人講 1 分鐘不打結</div>
+    <div class="outcome-item">在不貼 credential 的前提下，把 workflow JSON 貼給 LLM、驗收節點清單 80% 正確率</div>
+    <div class="outcome-item">下指令讓 LLM 只回傳節點區段，判斷回應是「區段」還是「整份」，在 -edit workflow 上完成替換</div>
   </div>
 </div>
 
+<!-- ======================================================
+     (01) 步驟 1：拆需求
+     ====================================================== -->
 <section class="lesson-section">
   <div class="section-eyebrow">(01)</div>
-  <h2 class="section-heading">步驟 1：拆需求（學員主導，不用 LLM）</h2>
+  <h2 class="section-heading">步驟 1：拆需求（10-15 分鐘，全人工）</h2>
   <div class="intro-band">
     <div class="intro-label">為什麼這一步刻意排除 LLM</div>
     <div class="intro-text">LLM 在需求模糊時會自己腦補。你說「幫我改 #02 處理發票」，LLM 不知道你的發票是什麼格式、想改名成什麼樣子、哪些節點一定要保留——它就開始猜，越改越亂。這一步的工作是你把需求說清楚，讓後面的 LLM 對話能有明確的邊界。</div>
   </div>
 
-  <div class="scenario-grid">
-    <div class="scenario-row">
-      <div class="scenario-task">動作</div>
-      <div class="scenario-pick">用一句話寫下「我要改成什麼」，再用 3 個追問填滿：input 是什麼 / output 是什麼 / 哪些步驟保留不動。填完之後對著另一個人講 1 分鐘，看能不能講清楚。</div>
-    </div>
-    <div class="scenario-row">
-      <div class="scenario-task">LLM 做什麼</div>
-      <div class="scenario-pick">不做。這一步刻意排除 LLM，等到 4 格都填好了再請 LLM 進場。</div>
-    </div>
-    <div class="scenario-row">
-      <div class="scenario-task">你做什麼</div>
-      <div class="scenario-pick">填一張 4 格便箋（下方有範本）：原 workflow 編號、目標 input、目標 output、必保留的節點。如果某格填不出來，代表需求還沒想清楚，先想清楚再繼續。</div>
-    </div>
-    <div class="scenario-row">
-      <div class="scenario-task">驗收訊號</div>
-      <div class="scenario-pick">4 格都有內容，而且能對著別人講 1 分鐘不打結。如果你只會對自己講、對別人講就說不清楚，通常是 output 那格寫得太模糊。</div>
-    </div>
-    <div class="scenario-row">
-      <div class="scenario-task">雷區</div>
-      <div class="scenario-pick">跳過這一步直接問 LLM「幫我改 #02 處理發票」是新手最常犯的錯。LLM 拿不到 input/output 的具體形狀，會猜，結果就漂掉——通常你會拿到一份「看起來很像」但細節全錯的 workflow。</div>
-    </div>
-  </div>
+  <p class="body-text"><strong>打開 4 格便箋範本</strong>（紙、Notes、便利貼皆可），依序填完以下 4 格：</p>
 
-  <p class="body-text" style="margin-top:32px;"><strong>4 格便箋範本</strong>（以 Story A 為例）</p>
+  <ul class="step-list">
+    <li class="step-item">
+      <span class="step-num">1</span>
+      <div class="step-body">
+        <strong>填第 1 格「原 workflow 編號」</strong><br>
+        動作：寫「#XX-XXX」+ 一行「目前在做什麼」<br>
+        <ul class="accept-list" style="margin-top:10px;">
+          <li class="accept-item ok"><span class="accept-badge ok">✅</span>「我要拿 #02 PDF AI rename 改成處理發票」— 直接寫 workflow 編號 + 業務目標一行</li>
+          <li class="accept-item ok"><span class="accept-badge ok">✅</span>「複製一份 #02 → 改 prompt 加分類欄位」— 說明改什麼也算</li>
+          <li class="accept-item ng"><span class="accept-badge ng">❌</span>「PDF 工作流」— 沒指名是 #02 還是 #06，不算對；請補 workflow 編號</li>
+        </ul>
+      </div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">2</span>
+      <div class="step-body">
+        <strong>填第 2 格「目標 input」</strong><br>
+        動作：寫「文件類型 + 數量 + 來源資料夾 + 4-6 個關鍵欄位名」<br>
+        <strong>驗收硬指標</strong>：填好的 input 必須包含「具體欄位名」（例：「賣方統編」「稅後合計」），不能只寫「發票資訊」
+      </div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">3</span>
+      <div class="step-body">
+        <strong>填第 3 格「目標 output」</strong><br>
+        動作：寫「成品檔案/紀錄的格式 + 命名規則 + 存放位置」<br>
+        <strong>驗收硬指標</strong>：output 規則要寫到「肉眼比對能驗證」的程度。例：<span class="inline-code">{供應商名}_{發票日期}_{稅後金額}.pdf</span> 完整可變數
+      </div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">4</span>
+      <div class="step-body">
+        <strong>填第 4 格「必保留的節點」</strong><br>
+        動作：在 n8n UI 看一眼 workflow，把「不應該動」的節點名稱抄下來<br>
+        驗收：至少寫出 trigger 名 + 1 個其他節點，避免後續 LLM 重寫整份
+      </div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">5</span>
+      <div class="step-body">
+        <strong>自驗：對人講 1 分鐘</strong><br>
+        動作：對另一個人/或對著手機錄音講一遍 4 格內容<br>
+        <ul class="accept-list" style="margin-top:10px;">
+          <li class="accept-item ok"><span class="accept-badge ok">✅</span>你能在 60 秒內，依序講出「原 workflow 編號 #02 → input 是供應商發票 PDF（200 張/月，4 個欄位：賣方/統編/稅後合計/發票日期）→ output 改名為 <span class="inline-code">{YYYYMMDD}_發票_{賣方名}_{稅後合計}.pdf</span> → 必保留 4 個 trigger/節點」 — 結構完整 + 可量化</li>
+          <li class="accept-item ok"><span class="accept-badge ok">✅</span>對方聽完不需要追問，能複述「你要把 200 張供應商發票改名」</li>
+          <li class="accept-item ng"><span class="accept-badge ng">❌</span>你講超過 90 秒還沒講完 4 格 → 表示便箋寫太散</li>
+          <li class="accept-item ng"><span class="accept-badge ng">❌</span>對方追問「你說的『發票資訊』是什麼意思？」「output 的格式怎麼長的？」→ 便箋第 2/3 格寫太抽象，回去補具體欄位名 / 命名格式</li>
+        </ul>
+      </div>
+    </li>
+  </ul>
+
+  <p class="body-text" style="margin-top:32px;"><strong>4 格便箋範本</strong>（以 Story A：#02 PDF 改名 → 供應商發票為例）</p>
   <div class="four-grid">
     <div class="four-cell">
       <div class="four-label">原 WORKFLOW 編號</div>
-      <div class="four-body">#02-pdf-ai-rename（合約 PDF 改名版）</div>
+      <div class="four-body">#02-pdf-ai-rename（合約改名版，目前抓甲乙方+合約金額+簽訂日）</div>
     </div>
     <div class="four-cell">
       <div class="four-label">目標 INPUT</div>
-      <div class="four-body">供應商發票 PDF，每月約 200 張，含統編、品項清單、稅後金額、發票日期</div>
+      <div class="four-body">供應商發票 PDF，每月 200 張，每張含：賣方公司全名、統編、品項清單、稅後合計（金額含元）、發票日期（YYYYMMDD）</div>
     </div>
     <div class="four-cell">
       <div class="four-label">目標 OUTPUT</div>
-      <div class="four-body">改名後的 PDF，命名格式：<span class="inline-code">{供應商名}_{發票日期}_{稅後金額}.pdf</span>，移入 <span class="inline-code">/歸檔/2026/{月份}/</span></div>
+      <div class="four-body">改名後 PDF，命名格式：<span class="inline-code">{YYYYMMDD}_發票_{賣方名}_{稅後合計}.pdf</span>，存到 <span class="inline-code">/files/pdf-renamed/</span></div>
     </div>
     <div class="four-cell">
       <div class="four-label">必保留節點</div>
-      <div class="four-body">PDF 讀取節點、Move File 節點（改名後移檔流程保留），不換節點類型</div>
+      <div class="four-body">Manual Trigger、Read PDF、Extract PDF Text、Write（4 個都不能換掉）</div>
     </div>
   </div>
 
   <div class="prompt-block">
     <div class="prompt-label">PROMPT 模板 1 <span>— 步驟 1 自我檢查（選用，也可直接手寫便箋）</span></div>
     <div class="prompt-copy-wrap">
-      <pre class="prompt-pre" id="prompt1">我要改 n8n workflow #{ID}（{原本做什麼}）。
-目標 input：{欄位/格式/來源}
-目標 output：{欄位/格式/去處}
-保留節點：{節點 1, 節點 2}
+      <pre class="prompt-pre" id="prompt1">我要改 n8n workflow #02-pdf-ai-rename（合約改名版，目前抓甲乙方+合約金額+簽訂日）。
+目標 input：供應商發票 PDF，每月 200 張，每張含：
+  - 賣方公司全名
+  - 統編
+  - 品項清單
+  - 稅後合計（金額含元）
+  - 發票日期（YYYYMMDD）
+目標 output：改名後 PDF，命名格式 {YYYYMMDD}_發票_{賣方名}_{稅後合計}.pdf，存到 /files/pdf-renamed/
+必保留節點：Manual Trigger、Read PDF、Extract PDF Text、Write（4 個都不能換掉）
+
 請問我的需求有哪一格還沒講清楚？只指出空白，不要幫我補。</pre>
       <button class="prompt-copy-btn" onclick="copyPrompt('prompt1',this)">複製</button>
     </div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-icon" aria-hidden="true">i</div>
+    <div class="callout-body"><strong>模板 1 的 LLM 回應長什麼樣？</strong><br>
+    好的 LLM 回應只指出空白，不自己補。例：<br><br>
+    「你的需求有 2 個地方還沒講清楚：<br>
+    1. 『賣方公司全名』格式要不要去除『股份有限公司』後綴？<br>
+    2. 『稅後合計』如果是 0 元（退款單）要怎麼處理？<br>
+    請補完這 2 點再進步驟 2。其他 4 格內容已足夠。」<br><br>
+    你只需要針對指出的空白補完，不需要重新填整份。</div>
   </div>
 
   <div class="wrong-example">
@@ -218,52 +310,155 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 <hr class="section-rule">
 
+<!-- ======================================================
+     (02) 步驟 2：讀 JSON
+     ====================================================== -->
 <section class="lesson-section">
   <div class="section-eyebrow">(02)</div>
-  <h2 class="section-heading">步驟 2：讀 JSON（LLM 主導，你來驗收）</h2>
+  <h2 class="section-heading">步驟 2：讀 JSON（5-10 分鐘，學員 + LLM）</h2>
   <div class="intro-band">
     <div class="intro-label">讓 LLM 做它最擅長的事</div>
     <div class="intro-text">非工程師看 n8n workflow JSON 通常只看到一大堆 <span class="inline-code">typeVersion</span>、<span class="inline-code">parameters</span>、<span class="inline-code">credentials</span>——不知道哪個節點做什麼、資料往哪裡流。LLM 把 JSON 翻成人話，速度比你快 50 倍，而且能點出資料流向。這一步你只需要驗收它說得對不對。</div>
   </div>
 
-  <div class="scenario-grid">
-    <div class="scenario-row">
-      <div class="scenario-task">動作</div>
-      <div class="scenario-pick">把整份 workflow JSON（<strong>移除 credential 後</strong>）貼給 LLM，請它做兩件事：(a) 用一段話描述「這份 workflow 做了什麼」，(b) 列出每個節點的角色與資料流向。</div>
-    </div>
-    <div class="scenario-row">
-      <div class="scenario-task">LLM 做什麼</div>
-      <div class="scenario-pick">把 JSON 翻成人話。回傳格式大約是：節點名稱 → 它輸出什麼 → 下一個節點吃什麼。這就夠了，不需要它解釋原理或建議改進。</div>
-    </div>
-    <div class="scenario-row">
-      <div class="scenario-task">你做什麼</div>
-      <div class="scenario-pick">用 n8n UI 對照 LLM 的描述。如果 LLM 說某節點是「傳 Email」但 n8n 介面上明明是「寫 Google Sheet」，代表這份 workflow 結構特殊，後面步驟 3 要更小心。</div>
-    </div>
-    <div class="scenario-row">
-      <div class="scenario-task">驗收訊號</div>
-      <div class="scenario-pick">你能用自己的話複述 LLM 的描述，而且能在 n8n UI 上一一對應到節點。如果有一個節點你講不清楚它的角色，就回頭問 LLM 那個節點的 input/output 形狀是什麼。</div>
-    </div>
-    <div class="scenario-row">
-      <div class="scenario-task">雷區</div>
-      <div class="scenario-pick">把 credential 區段一起貼給 LLM。n8n workflow JSON 可能含 API key、Gmail OAuth token、Notion integration secret 等敏感欄位。<strong>永遠用 n8n UI 的「Export without credentials」選項</strong>，貼出去前也搜尋一次確認沒有 <span class="inline-code">apiKey</span> / <span class="inline-code">accessToken</span> / <span class="inline-code">password</span> 字串殘留。</div>
-    </div>
-  </div>
+  <ul class="step-list">
+    <li class="step-item">
+      <span class="step-num">1</span>
+      <div class="step-body">
+        <strong>n8n UI export workflow（不含 credential）</strong><br>
+        動作：在 workflow 開啟畫面，點右上角三個點 → Download → 確認跳出視窗的選項是「Without credentials」（如果不是，切換）<br>
+        <strong>驗收硬指標</strong>：下載到的 .json 檔，用 VS Code 或記事本打開，按 Cmd+F 搜尋這 4 個字串：<span class="inline-code">apiKey</span>、<span class="inline-code">accessToken</span>、<span class="inline-code">password</span>、<span class="inline-code">token</span>，<strong>4 個全部找不到</strong>才算過
+      </div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">2</span>
+      <div class="step-body"><strong>打開你慣用的網頁版 LLM</strong>（ChatGPT / Claude / Gemini）</div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">3</span>
+      <div class="step-body">
+        <strong>貼模板 2 + JSON</strong>（見下方 SOP-A 取得整份 JSON 的步驟，再接模板 2）
+      </div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">4</span>
+      <div class="step-body">
+        <strong>驗收 LLM 回應</strong><br>
+        動作：讀 LLM 回的「節點清單」，到 n8n UI 對照「節點數量是否一致 + 名稱對得上」<br>
+        <strong>驗收硬指標 (a) 節點數量正確</strong>：n8n UI 編輯器畫面數一遍節點圖示有幾個（5 個就 5 個），LLM 回的清單編號也要 5。差 1 個都不行。<br>
+        <strong>驗收硬指標 (b) 至少 80% 節點角色對得上</strong>（5 個裡至少 4 個算對）：
+        <ul class="accept-list" style="margin-top:10px;">
+          <li class="accept-item ok"><span class="accept-badge ok">✅</span>LLM 說「Read PDF — 讀 /files/pdf-inbox/ 內所有 PDF，輸出每張的 binary」→ 你在 n8n UI 看到節點名是「Read PDF」+ parameter 的 path 是 <span class="inline-code">/files/pdf-inbox/</span> → 完全對應 = 算對</li>
+          <li class="accept-item ok"><span class="accept-badge ok">✅</span>（容許小落差）LLM 說「Code 節點打 Gemini API」實際你看到 Code 節點裡用 <span class="inline-code">this.helpers.httpRequest</span> 呼叫 Gemini → 核心動作（呼叫 Gemini）對 + 細節有落差 = 算對</li>
+          <li class="accept-item ng"><span class="accept-badge ng">❌</span>LLM 說「Read PDF — 從 Google Drive 讀 PDF」實際你看到 path 是 <span class="inline-code">/files/pdf-inbox/</span>（本機路徑）→ 資料來源根本講錯 = 不算對，回頭追問：「Read PDF 節點的 path 寫的是 /files/pdf-inbox/，不是 Google Drive，請重講這個節點的角色」</li>
+          <li class="accept-item ng"><span class="accept-badge ng">❌</span>LLM 把「Code: AI 改名」說成「Code: 一般資料處理」→ 節點意圖完全失準 = 不算對，回頭追問</li>
+        </ul>
+        <p style="margin-top:8px;font-size:.85rem;color:var(--c-muted);">量化方式：3 個（60%）以下表示 LLM 看 JSON 的能力對你的 workflow 不可靠，換另一家 LLM（或重貼模板 2 + 補一段 workflow 中文描述）</p>
+      </div>
+    </li>
+  </ul>
 
-  <div class="callout tip">
-    <div class="callout-icon" aria-hidden="true">i</div>
-    <div class="callout-body"><strong>匯出步驟</strong>：在 n8n UI 開啟 workflow → 右上角三點選單 → 「Download」→ 選「Without credentials」。下載的 JSON 就是安全可以給 LLM 的版本。每次都用這個選項，不要手動刪欄位，因為 credential 欄位散落在各節點內、容易漏刪。</div>
+  <!-- SOP-A -->
+  <div class="sop-box">
+    <div class="sop-header"><span class="sop-label">SOP-A · 整份 workflow JSON 怎麼擷取（模板 2 用）</span></div>
+    <div class="sop-body">
+      <ol class="sop-steps">
+        <li class="sop-step"><span class="sop-step-num">1.</span>n8n UI 點該 workflow → 編輯器右上角 ⋮ 三點按鈕 → <strong>Download</strong></li>
+        <li class="sop-step"><span class="sop-step-num">2.</span>跳出對話框，<strong>勾選「Without credentials」</strong>（如果預設沒勾，自己勾起來）→ 確認下載</li>
+        <li class="sop-step"><span class="sop-step-num">3.</span>下載到的 <span class="inline-code">.json</span> 檔，用 VS Code 或記事本打開 → Cmd+A 全選 → Cmd+C 複製</li>
+        <li class="sop-step"><span class="sop-step-num">4.</span><strong>貼之前最後檢查</strong>（搜尋 4 個字串都應找不到）：<span class="inline-code">apiKey</span> / <span class="inline-code">accessToken</span> / <span class="inline-code">password</span> / <span class="inline-code">token</span> — 任一個搜得到 = 你下載時沒勾「Without credentials」，重做步驟 1-2</li>
+        <li class="sop-step"><span class="sop-step-num">5.</span>token 量參考：典型 5-10 節點 workflow JSON 在 5K-30K tokens 之間，貼 ChatGPT/Claude/Gemini 的網頁版都吃得下；若超過 50K（>40 個節點），分段貼</li>
+      </ol>
+    </div>
   </div>
 
   <div class="prompt-block">
-    <div class="prompt-label">PROMPT 模板 2 <span>— 步驟 2 讀 JSON</span></div>
+    <div class="prompt-label">PROMPT 模板 2 <span>— 步驟 2 讀 JSON（SOP-A 完成後，把 JSON 貼在 [貼 JSON] 處）</span></div>
     <div class="prompt-copy-wrap">
       <pre class="prompt-pre" id="prompt2">我是 n8n 非工程師使用者，請以結果為主、不解釋原理。
 以下是一份 n8n workflow JSON（已移除 credential）。請：
 1. 用一段話講它做了什麼。
 2. 列出每個節點的角色與資料流向（節點名稱 → 它輸出什麼 → 下一個節點吃什麼）。
 不要建議改進、不要寫程式碼。
-[貼 JSON]</pre>
+
+[貼 JSON]    ← 這是 SOP-A 步驟 3 複製到的整份 workflow JSON</pre>
       <button class="prompt-copy-btn" onclick="copyPrompt('prompt2',this)">複製</button>
+    </div>
+  </div>
+
+  <!-- 步驟 2 四變體 -->
+  <p class="body-text" style="margin-top:32px;"><strong>步驟 2 LLM 回應的 4 種變體</strong>（貼模板 2 後你可能拿到這 4 種之一）：</p>
+  <div class="variants-grid">
+    <div class="variant-card">
+      <div class="variant-header">
+        <span class="variant-badge">變體 A</span>
+        <span class="variant-status pass">過關 — 直接進步驟 3</span>
+      </div>
+      <div class="variant-body">
+        <pre>這份 workflow 做什麼：
+從 pdf-inbox 資料夾讀取所有 PDF，用 Gemini
+分析內文後給每張 PDF 一個語意化檔名，並把
+檔案改名後存到 pdf-renamed 資料夾。手動觸發。
+
+節點清單：
+1. Manual Trigger — 手動觸發，不接收 input。
+2. Read PDF — 讀 /files/pdf-inbox/ 內所有 PDF，
+   輸出每張的 binary。
+3. Extract PDF Text — binary 轉純文字。
+4. Code: AI 改名 — 用 Gemini API 分析文字，
+   輸出 newFilename。
+5. Write — 把 PDF 用 newFilename 改名後寫入。
+
+資料流向：Manual Trigger → Read PDF → Extract
+PDF Text → Code → Write</pre>
+        <div class="variant-note">理想型：節點數量對、角色對、資料流向清楚。直接進步驟 3。</div>
+      </div>
+    </div>
+    <div class="variant-card">
+      <div class="variant-header">
+        <span class="variant-badge">變體 B</span>
+        <span class="variant-status fail">歪掉 — 補一句追問</span>
+      </div>
+      <div class="variant-body">
+        <pre>節點清單：
+1. Manual Trigger (n8n-nodes-base.manualTrigger,
+   typeVersion: 1) — emits empty trigger payload,
+   fires on UI button click...
+2. Read Binary Files (n8n-nodes-base.readBinaryFiles,
+   typeVersion: 1) — uses fs.readdirSync internally...
+[後面繼續講 typeVersion / position / 內部實作細節]</pre>
+        <div class="variant-note"><strong>辨認訊號</strong>：每個節點後面括號開始出現 <span class="inline-code">typeVersion</span>、<span class="inline-code">n8n-nodes-base.xxx</span>、講「internally」「under the hood」<br><strong>下一步</strong>：追問「請只用我看得懂的中文形容詞描述每個節點做什麼，不要列 typeVersion、不要講內部實作」</div>
+      </div>
+    </div>
+    <div class="variant-card">
+      <div class="variant-header">
+        <span class="variant-badge">變體 C</span>
+        <span class="variant-status fail">歪掉 — 補一句追問</span>
+      </div>
+      <div class="variant-body">
+        <pre>節點清單：
+1. Manual Trigger — 手動觸發。
+2. PDF 讀取與處理 — 讀 inbox 內 PDF 並轉成文字。
+3. Code 節點 — 呼叫 Gemini 分析文字並命名後寫檔。</pre>
+        <div class="variant-note"><strong>辨認訊號</strong>：你 n8n UI 上實際看到 5 個節點，LLM 卻只列 3 個；或把「Read PDF + Extract PDF Text」合併成一條<br><strong>下一步</strong>：追問「我在 n8n UI 看到 5 個節點，你只列了 3 個。請逐個列出並『不合併』。我會貼節點名給你對照：[貼 5 個節點名]」</div>
+      </div>
+    </div>
+    <div class="variant-card">
+      <div class="variant-header">
+        <span class="variant-badge">變體 D</span>
+        <span class="variant-status fail">歪掉 — 忽略建議段</span>
+      </div>
+      <div class="variant-body">
+        <pre>節點清單：
+[5 個節點正確列出]
+
+不過我發現這個 workflow 有幾個可以改進
+的地方：
+1. 建議加上 try/catch 處理 PDF 讀取失敗
+2. 建議用 Switch 節點分流不同類型的 PDF
+3. Code 節點的 prompt 可以加上 few-shot 範例...</pre>
+        <div class="variant-note"><strong>辨認訊號</strong>：LLM 給完節點清單後，自動接一段「不過 / 此外 / 建議」<br><strong>下一步</strong>：忽略「建議」段落，<strong>只用節點清單那段進步驟 3</strong>。模板 2 已寫「不要建議改進」但 LLM 偶爾犯規 — 不必追問，這次過了就好</div>
+      </div>
     </div>
   </div>
 
@@ -275,34 +470,210 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 <hr class="section-rule">
 
+<!-- ======================================================
+     (03) 步驟 3：限定修改範圍
+     ====================================================== -->
 <section class="lesson-section">
   <div class="section-eyebrow">(03)</div>
-  <h2 class="section-heading">步驟 3：限定修改範圍（學員 + LLM 協同）</h2>
+  <h2 class="section-heading">步驟 3：限定修改範圍（10-15 分鐘，學員 + LLM 多輪）</h2>
   <div class="intro-band">
     <div class="intro-label">最容易跳過、最值得做對的一步</div>
     <div class="intro-text">大多數改 workflow 出問題，都是因為讓 LLM 改的範圍太大——它多動了幾個節點、加了你沒要求的防禦邏輯、重寫了整份 JSON 但 typeVersion 對不上你裝的版本。這一步的核心原則是：<strong>告訴 LLM 只改哪幾個節點，要它只回傳那幾個節點的 JSON 區段，不是整份</strong>。</div>
   </div>
 
-  <div class="scenario-grid">
-    <div class="scenario-row">
-      <div class="scenario-task">動作</div>
-      <div class="scenario-pick">把步驟 1 的需求 + 步驟 2 的節點清單，明確告訴 LLM「只改節點 X、Y、Z，其他不動」，並請 LLM 回傳「修改後的這幾個節點 JSON 區段」，不是整份。</div>
+  <ul class="step-list">
+    <li class="step-item">
+      <span class="step-num">1</span>
+      <div class="step-body">
+        <strong>決定「我要動哪幾個節點」</strong>（基於步驟 1 的便箋）<br>
+        動作：在 4 格便箋的「目標 output」對照節點清單，圈出 1-3 個要改的節點名
+      </div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">2</span>
+      <div class="step-body">
+        <strong>在 n8n UI 備份這幾個節點</strong><br>
+        動作：點要改的節點 → Cmd+C → 貼到一個 .txt 檔（命名 <span class="inline-code">XX-backup.txt</span>）<br>
+        驗收：.txt 檔有節點 JSON 內容（看到 <span class="inline-code">{ "parameters": ...</span>）
+      </div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">3</span>
+      <div class="step-body">
+        <strong>貼模板 3 給 LLM</strong>（見下方，含具體填法示範）<br>
+        注意：模板 3 的 <span class="inline-code">[貼 JSON]</span> 位置對應 SOP-B 取得的節點 JSON
+      </div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">4</span>
+      <div class="step-body">
+        <strong>驗收 LLM 回的 JSON</strong><br>
+        <strong>驗收硬指標 1（區段 vs 整份）</strong>：看 LLM 回的第一個非空白字元和第二行：
+        <ul class="accept-list" style="margin-top:8px;">
+          <li class="accept-item ok"><span class="accept-badge ok">✅</span>第一行 <span class="inline-code">{</span> 第二行 <span class="inline-code">"parameters":</span> → 單個節點區段（OK）</li>
+          <li class="accept-item ok"><span class="accept-badge ok">✅</span>第一行 <span class="inline-code">[</span> → 多個節點陣列（OK）</li>
+          <li class="accept-item ng"><span class="accept-badge ng">❌</span>第一行 <span class="inline-code">{</span> 第二行 <span class="inline-code">"name":</span> → 整份（要追問）</li>
+        </ul>
+        <br>
+        <strong>驗收硬指標 2（節點名沒被改）</strong>：LLM 回的節點裡 <span class="inline-code">"name":</span> 那行的值，必須跟你 n8n UI 上看到的節點名一字不差。LLM 偶爾會「順手」改名（例：把「Code」改成「Code: AI 改名」）— 這會讓步驟 5 的回報失準
+      </div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">5</span>
+      <div class="step-body">
+        <strong>如果是整份 JSON</strong>：用模板 3-追問要它重給（見下方）
+      </div>
+    </li>
+  </ul>
+
+  <!-- 紅字硬規則 callout -->
+  <div class="callout-danger">
+    <div class="callout-icon" aria-hidden="true">!</div>
+    <div class="callout-body">
+      <strong>硬性前置：步驟 3 所有替換動作只發生在 -edit workflow，不動原版</strong><br><br>
+      你要替換的 JSON 是 LLM 草稿，跑壞會壞節點 / 連線 / 甚至 n8n 編輯器顯示。在 production workflow 上直接貼，等於拿活的訂單系統當實驗田 — 一旦不小心又把 Active 切回 ON（n8n 介面手滑常事），就真的觸發 200 張 LLM API call 燒錢、或誤改 production 資料庫。<br><br>
+      <strong>先 Duplicate 再替換</strong> — 這是強制規定，不是建議。
     </div>
-    <div class="scenario-row">
-      <div class="scenario-task">LLM 做什麼</div>
-      <div class="scenario-pick">產出指定節點的區段 JSON。你拿到的應該是一個或幾個節點的 JSON 物件，不是完整的 workflow JSON（即不應該有最外層的 <span class="inline-code">"nodes": [...]</span> 包住整份）。</div>
+  </div>
+
+  <!-- SOP-B: Duplicate -edit workflow -->
+  <div class="sop-box">
+    <div class="sop-header"><span class="sop-label">SOP-B · Duplicate -edit workflow（替換前必做）</span></div>
+    <div class="sop-body">
+      <ol class="sop-steps">
+        <li class="sop-step"><span class="sop-step-num">1.</span>n8n UI 左側選單 → Workflows → 找到原 #02 → 滑鼠移到該行 → 右側出現 ⋮ 三點按鈕</li>
+        <li class="sop-step"><span class="sop-step-num">2.</span>點 ⋮ → 選「<strong>Duplicate</strong>」（不是 Open / Share / Delete，看清楚）</li>
+        <li class="sop-step"><span class="sop-step-num">3.</span>n8n 自動產生新檔，預設名稱長這樣：<span class="inline-code">02-pdf-ai-rename Copy</span></li>
+        <li class="sop-step"><span class="sop-step-num">4.</span>點該新 workflow 的標題 → 進編輯器 → 點頂部標題列 → 改名為 <span class="inline-code">02-pdf-ai-rename-edit</span>（<strong>結尾加 <span class="inline-code">-edit</span> 後綴</strong>，這是全課統一規約，第 4 章測試時要靠它識別）</li>
+        <li class="sop-step"><span class="sop-step-num">5.</span>確認新 workflow 右上角 Active 開關是「<strong>灰色 OFF</strong>」（Duplicate 預設會關，但仍要肉眼確認一次）</li>
+      </ol>
+      <ul class="accept-list" style="margin-top:14px;">
+        <li class="accept-item ok"><span class="accept-badge ok">✅</span>Workflows 列表現在有兩條：原版 <span class="inline-code">02-pdf-ai-rename</span> + 新版 <span class="inline-code">02-pdf-ai-rename-edit</span></li>
+        <li class="accept-item ok"><span class="accept-badge ok">✅</span>你接下來貼 JSON 的瀏覽器分頁，網址列尾巴的 workflow ID 不是原版的 ID</li>
+        <li class="accept-item ng"><span class="accept-badge ng">❌</span>如果你發現自己正在原版 workflow 上要按 Paste，<strong>Cmd+Z 撤銷 → 退回此步重做</strong></li>
+      </ul>
     </div>
-    <div class="scenario-row">
-      <div class="scenario-task">你做什麼</div>
-      <div class="scenario-pick">先在 n8n UI 上把要改的節點選起來、複製、貼到一個臨時筆記檔當備份。LLM 改完後，在 n8n UI 上用「複製貼上節點」功能替換這幾個節點（不是改檔案）。</div>
+  </div>
+
+  <!-- SOP-C: 替換到 -edit workflow -->
+  <div class="sop-box">
+    <div class="sop-header"><span class="sop-label">SOP-C · 替換到 -edit workflow 的 n8n UI</span></div>
+    <div class="sop-body">
+      <ol class="sop-steps">
+        <li class="sop-step"><span class="sop-step-num">1.</span><strong>確認你在 <span class="inline-code">-edit</span> workflow 編輯器</strong>（看頂部標題列）</li>
+        <li class="sop-step"><span class="sop-step-num">2.</span>點要改的節點 → 右鍵 Paste → 貼上 LLM 給的 JSON</li>
+        <li class="sop-step"><span class="sop-step-num">3.</span>驗收：節點還在原位、連線沒斷、節點名相同</li>
+        <li class="sop-step"><span class="sop-step-num">4.</span><strong>再驗一次</strong>：頂部標題列必須顯示 <span class="inline-code">02-pdf-ai-rename-edit</span>（不是原版名）</li>
+      </ol>
     </div>
-    <div class="scenario-row">
-      <div class="scenario-task">驗收訊號</div>
-      <div class="scenario-pick">n8n UI 上節點還在原位、連線沒斷、其他節點原樣。只有你指定要改的節點有變動。</div>
+  </div>
+
+  <!-- Prompt 模板 3 -->
+  <div class="prompt-block">
+    <div class="prompt-label">PROMPT 模板 3 <span>— 步驟 3 限定修改範圍</span></div>
+    <div class="prompt-copy-wrap">
+      <pre class="prompt-pre" id="prompt3">我是 n8n 非工程師使用者，請以結果為主、不解釋原理。
+基於剛才那份 workflow，只改節點「Code: AI 改名」（其他節點不動）。
+我要的修改：
+- prompt 字串改成抽取賣方公司全名、稅後合計（純數字）、發票日期（YYYYMMDD 格式）
+- 檔名 template 改成：{YYYYMMDD}_發票_{賣方名}_{稅後合計}.pdf
+- 類型欄位固定填「發票」，不要讓 AI 自己判斷
+- 其他邏輯（fallback、parseMethod、httpError 處理）全部保留
+
+請回傳「只有這個 Code 節點」的 JSON 區段（不要整份 workflow）。
+回應格式要求：直接給 JSON 物件，最外層 { 後面第二行是 "parameters":，不要 markdown code fence。</pre>
+      <button class="prompt-copy-btn" onclick="copyPrompt('prompt3',this)">複製</button>
     </div>
-    <div class="scenario-row">
-      <div class="scenario-task">雷區（示範形狀法）</div>
-      <div class="scenario-pick">如果改動牽涉換新類型的節點（例如要把 Google Sheet 節點換成 Notion 節點），<strong>先在 n8n UI 拉一個目標節點、隨便填、複製出來給 LLM 當形狀範本</strong>，不要讓 LLM 從記憶生成節點 JSON。LLM 的記憶會造成 typeVersion 錯——它以為是 2.x，但你裝的版本是 3.x，匯入就壞。</div>
+  </div>
+
+  <div class="prompt-block">
+    <div class="prompt-label">PROMPT 模板 3-追問 <span>— LLM 給整份時用這個</span></div>
+    <div class="prompt-copy-wrap">
+      <pre class="prompt-pre" id="prompt3b">你給的 JSON 是整份 workflow（最外層有 "name" 和 "nodes"）。
+我只要 Code 節點的單個 JSON 物件（從 { "parameters": 開始，到 } 結束）。
+請重新只給這個節點。</pre>
+      <button class="prompt-copy-btn" onclick="copyPrompt('prompt3b',this)">複製</button>
+    </div>
+  </div>
+
+  <!-- 步驟 3 四變體 -->
+  <p class="body-text" style="margin-top:32px;"><strong>步驟 3 LLM 回應的 4 種變體</strong>（貼模板 3 後你可能拿到這 4 種之一）：</p>
+  <div class="variants-grid">
+    <div class="variant-card">
+      <div class="variant-header">
+        <span class="variant-badge">變體 A</span>
+        <span class="variant-status pass">過關 — 直接 Paste 到 -edit</span>
+      </div>
+      <div class="variant-body">
+        <pre>{
+  "parameters": {
+    "mode": "runOnceForEachItem",
+    "jsCode": "const text = $input.item.json.pdfTextPreview;\nconst prompt = `請從以下發票文字抽取：賣方公司全名、稅後合計（純數字）、發票日期（YYYYMMDD 格式）。回傳 JSON：{seller, totalAmount, invoiceDate}。發票文字：${text}`;\n// ... 後續呼叫 Gemini 與 fallback 邏輯保留 ...\nconst newFilename = `${invoiceDate}_發票_${seller}_${totalAmount}.pdf`;\nreturn { json: { newFilename, ... } };"
+  },
+  "name": "Code: AI 改名",
+  "type": "n8n-nodes-base.code",
+  "typeVersion": 2,
+  "position": [820, 300]
+}</pre>
+        <div class="variant-note">第一行 <span class="inline-code">{</span>，第二行 <span class="inline-code">"parameters":</span>，節點名沒被改。直接複製 → Paste 到 -edit workflow 對應節點。</div>
+      </div>
+    </div>
+    <div class="variant-card">
+      <div class="variant-header">
+        <span class="variant-badge">變體 B</span>
+        <span class="variant-status fail">歪掉 — 整份，用模板 3-追問</span>
+      </div>
+      <div class="variant-body">
+        <pre>{
+  "name": "02-pdf-ai-rename-invoice",
+  "nodes": [
+    { "parameters": { ... }, "name": "Manual Trigger", ... },
+    { "parameters": { ... }, "name": "Read PDF", ... },
+    ...
+  ],
+  "connections": { ... }
+}</pre>
+        <div class="variant-note"><strong>辨認訊號</strong>：第一行 <span class="inline-code">{</span> 後第二行是 <span class="inline-code">"name":</span>（不是 <span class="inline-code">"parameters":</span>）+ 看到 <span class="inline-code">"nodes":</span> 陣列 + 看到 <span class="inline-code">"connections":</span><br><strong>下一步</strong>：用「模板 3-追問」要它重給單節點區段；不要 Paste 這整份到 n8n</div>
+      </div>
+    </div>
+    <div class="variant-card">
+      <div class="variant-header">
+        <span class="variant-badge">變體 C</span>
+        <span class="variant-status fail">歪掉 — 有 fence，手動切</span>
+      </div>
+      <div class="variant-body">
+        <pre>這是修改後的 Code 節點：
+
+```json
+{
+  "parameters": { ... },
+  "name": "Code: AI 改名",
+  ...
+}
+```
+
+修改說明：
+- prompt 改成抽取發票欄位...</pre>
+        <div class="variant-note"><strong>辨認訊號</strong>：JSON 前後有 `` ``` `` 圍住、JSON 前後有中文段落<br><strong>下一步</strong>：複製 JSON 時<strong>只複製 `` ``` `` 之間那段</strong>（n8n 的 Paste 不吃 markdown fence）；不需要追問 LLM，自己手動切就好</div>
+      </div>
+    </div>
+    <div class="variant-card">
+      <div class="variant-header">
+        <span class="variant-badge">變體 D</span>
+        <span class="variant-status fail">歪掉 — JSON 中有 // 中文注解</span>
+      </div>
+      <div class="variant-body">
+        <pre>{
+  "parameters": {
+    "mode": "runOnceForEachItem",
+    "jsCode": "const text = ...;  // 從 PDF 讀取的文字\nconst prompt = `...`;  // 改成發票欄位\n..."
+    // 這裡保留原本的 fallback 邏輯
+  },
+  "name": "Code: AI 改名",
+  ...
+}</pre>
+        <div class="variant-note"><strong>辨認訊號</strong>：JSON 結構層出現 <span class="inline-code">// 中文註解</span>（JSON 規格不允許 <span class="inline-code">//</span> 注釋，n8n Paste 進去會直接報語法錯誤）<br><strong>下一步</strong>：追問「JSON 規格不允許 // 注解，請移除所有 JSON 結構層的 // 那行 + 行內注解（jsCode 字串裡的 // 是 JS 注解可保留）。重給一次純 JSON。」</div>
+      </div>
     </div>
   </div>
 
@@ -312,34 +683,75 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     要求 LLM「只回傳節點區段」+ 你在 n8n UI 上做替換，就是為了繞開這個坑。整個 connections 結構保持不動，只換節點本身的設定。<br><br>
     若你確實需要新增或刪除節點（不是修改既有節點），connections 必須回到 n8n UI 上手動重接——UI 拖線 30 秒，LLM 寫錯一個 ID 你 debug 30 分鐘。</div>
   </div>
-
-  <div class="prompt-block">
-    <div class="prompt-label">PROMPT 模板 3 <span>— 步驟 3 限定修改範圍</span></div>
-    <div class="prompt-copy-wrap">
-      <pre class="prompt-pre" id="prompt3">我是 n8n 非工程師使用者，請以結果為主、不解釋原理。
-基於剛才那份 workflow，只改節點 {X, Y, Z}，不動其他。
-我要的修改：{具體描述，含 input/output 形狀}
-{若換新節點類型，附：以下是我從 n8n UI 拉出來的目標節點形狀範本：[貼節點 JSON]}
-請回傳「只有這 3 個節點」的 JSON 區段。
-不要重寫整份 workflow、不要改其他節點。</pre>
-      <button class="prompt-copy-btn" onclick="copyPrompt('prompt3',this)">複製</button>
-    </div>
-  </div>
-
-  <div class="wrong-example">
-    <div class="wrong-label">常見錯誤示範</div>
-    <div class="wrong-note">問：「基於剛才那份 workflow，幫我改成處理發票，給我完整的 JSON。」<br>問題一：沒有指定只改哪幾個節點，LLM 會自由發揮，可能重寫整份。<br>問題二：要求「完整的 JSON」正好踩了你最不想踩的雷——LLM 從記憶產出的完整 workflow，typeVersion 漂移、connections 引用錯位，匯入直接失敗，或更糟：匯入成功但資料形狀全錯。</div>
-  </div>
-
-  <p class="body-text" style="margin-top:28px;">如果你收到 LLM 給的 JSON，不確定它是「區段」還是「整份」，有個快速判斷法：看 JSON 最外層有沒有 <span class="inline-code">"name"</span> 和 <span class="inline-code">"nodes"</span> 兩個頂層 key——有的話代表它回傳了整份 workflow。這時要回頭再問一次：「你給的是整份 workflow。請只給我節點 {X, Y, Z} 的 JSON 物件，不要其他內容。」</p>
 </section>
 
 <hr class="section-rule">
 
+<!-- ======================================================
+     (04) 驗收標準
+     ====================================================== -->
 <section class="lesson-section">
   <div class="section-eyebrow">(04)</div>
+  <h2 class="section-heading">整章驗收清單</h2>
+  <p class="body-text">完成步驟 1-3 後，以下 6 項全部過關才算這章完成：</p>
+  <ul class="checklist">
+    <li class="check-item"><span class="check-box"></span>4 格便箋每格都填了具體值（不是「發票」這種模糊詞）</li>
+    <li class="check-item"><span class="check-box"></span>自驗對人講 1 分鐘沒有打結（或對手機錄音回放確認）</li>
+    <li class="check-item"><span class="check-box"></span>從 n8n UI export 出 .json 檔，搜尋 <span class="inline-code">apiKey</span> / <span class="inline-code">accessToken</span> / <span class="inline-code">password</span> / <span class="inline-code">token</span> 全部找不到</li>
+    <li class="check-item"><span class="check-box"></span>貼模板 2 後，LLM 回的節點清單和 n8n UI 對得上 80% 以上（5 個節點裡至少 4 個對）</li>
+    <li class="check-item"><span class="check-box"></span>貼模板 3 後拿到的 JSON 開頭符合「<span class="inline-code">{</span> + <span class="inline-code">"parameters":</span>」格式</li>
+    <li class="check-item"><span class="check-box"></span>替換到 n8n <span class="inline-code">-edit</span> workflow 後，節點數量沒變、連線沒斷、標題列確認是 <span class="inline-code">-edit</span> 版本</li>
+  </ul>
+</section>
+
+<hr class="section-rule">
+
+<!-- ======================================================
+     (05) 常見錯誤
+     ====================================================== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(05)</div>
+  <h2 class="section-heading">常見錯誤 + 怎麼解</h2>
+  <div class="error-list">
+    <div class="error-item">
+      <div class="error-tag">錯誤 1 · 步驟 1</div>
+      <div class="error-title">「填 4 格時，input 那格我寫『發票』就好」</div>
+      <div class="error-fix">「發票」不夠。LLM 看到「發票」會自己腦補欄位（你以為發票上有「品項」但實際上你的發票沒有品項，只有總額）。最低限度要寫出 4-6 個欄位名 + 該欄位在 PDF 上的中文寫法（「賣方」不是「供應商」）。</div>
+    </div>
+    <div class="error-item">
+      <div class="error-tag">錯誤 2 · 步驟 2</div>
+      <div class="error-title">「我貼了模板 2，LLM 卻直接開始建議改進」</div>
+      <div class="error-fix">模板 2 最後一行是「不要建議改進、不要寫程式碼」。如果 LLM 還是建議，追問：「你建議的改進我不需要，請只回答 1 和 2 兩題（描述 + 節點清單）」。</div>
+    </div>
+    <div class="error-item">
+      <div class="error-tag">錯誤 3 · 步驟 3</div>
+      <div class="error-title">「LLM 給的 JSON 看起來怪怪的，我不確定是區段還是整份」</div>
+      <div class="error-fix">用驗收硬指標 1 的判斷法（看第二行）。如果還不確定，把 LLM 回應前 5 行貼回去問：「我給你看你回應的前 5 行，這是整份還是單節點區段？」</div>
+    </div>
+    <div class="error-item">
+      <div class="error-tag">錯誤 4 · 步驟 3</div>
+      <div class="error-title">「LLM 把節點改名了，我不知道」</div>
+      <div class="error-fix">步驟 3 替換到 n8n UI 後，<strong>用 Cmd+F 搜尋你便箋上記的「必保留節點名」</strong>——如果搜不到，代表 LLM 改名了，要回頭追問。</div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ======================================================
+     (06) 回到課程動線
+     ====================================================== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(06)</div>
   <h2 class="section-heading">銜接下一頁</h2>
   <p class="body-text">前三步打好地基之後，步驟 4–6 是匯入測試、錯誤回報、收斂迴圈。下一頁繼續，含 prompt 模板 4–5。</p>
+  <div class="callout tip">
+    <div class="callout-icon" aria-hidden="true">i</div>
+    <div class="callout-body">
+      <strong>如果你卡在步驟 3 LLM 一直給整份</strong>：用模板 3-追問（上方） + 第 5 章紅線 6<br>
+      <strong>如果你卡在 credential 處理</strong>：看第 5 章紅線 1 + 第 7 章類別 2
+    </div>
+  </div>
 </section>
 
 <div class="nav-footer">
@@ -353,7 +765,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">2026 春季</span>
-  <span class="footer-meta" data-platform-version="n8n latest (Docker image n8nio/n8n) / Docker Desktop / Cloudflare Tunnel free tier" data-built-at="2026-05-06">本頁以 n8n latest (Docker image n8nio/n8n) 製作，2026-05</span>
+  <span class="footer-meta" data-platform-version="n8n latest (Docker image n8nio/n8n) / Docker Desktop / Cloudflare Tunnel free tier" data-built-at="2026-05-07">本頁以 n8n latest (Docker image n8nio/n8n) 製作，2026-05</span>
 </footer>
 
 <script>

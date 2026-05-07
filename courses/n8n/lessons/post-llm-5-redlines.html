@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>8 條紅線 — 用 LLM 改 workflow 不能踩｜AI 資料工廠</title>
-<meta name="description" content="LLM 協助改寫 n8n workflow 的 8 條強制安全規範：credential 保護、禁止整份重生、版本漂移處理、destructive 操作 dry-run 等。Codex L3 兩輪審核採納定稿。">
+<title>10 條紅線 — 用 LLM 改 workflow 不能踩｜AI 資料工廠</title>
+<meta name="description" content="用 LLM 改 n8n workflow 的 10 條強制安全規範：credential 保護、禁止整份重生、版本漂移、deprecation 4 步動線、destructive dry-run、secret rotate SOP、高風險節點審查。含列印用 cheat sheet。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
-<meta property="og:title" content="8 條紅線 — 用 LLM 改 workflow 不能踩｜AI 資料工廠">
-<meta property="og:description" content="LLM 協助改寫 n8n workflow 的 8 條強制安全規範：credential 保護、禁止整份重生、版本漂移處理、destructive 操作 dry-run 等。Codex L3 兩輪審核採納定稿。">
+<meta property="og:title" content="10 條紅線 — 用 LLM 改 workflow 不能踩｜AI 資料工廠">
+<meta property="og:description" content="用 LLM 改 n8n workflow 的 10 條強制安全規範：credential 保護、禁止整份重生、版本漂移、deprecation 4 步動線、destructive dry-run、secret rotate SOP、高風險節點審查。含列印用 cheat sheet。">
 <meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/post-llm-5-redlines.html">
 <meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="8 條紅線 — 用 LLM 改 workflow 不能踩｜AI 資料工廠">
-<meta name="twitter:description" content="LLM 協助改寫 n8n workflow 的 8 條強制安全規範。Codex L3 兩輪審核採納定稿。">
+<meta name="twitter:title" content="10 條紅線 — 用 LLM 改 workflow 不能踩｜AI 資料工廠">
+<meta name="twitter:description" content="用 LLM 改 n8n workflow 的 10 條強制安全規範。含列印用 cheat sheet。">
 <meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/post-llm-5-redlines.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -54,30 +54,94 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 .callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
 .callout-icon{flex-shrink:0;font-size:1.1rem}
 .callout-body{font-size:.9rem;line-height:1.85}
-/* 紅線卡片系列 */
+
+/* ── 紅線卡片 ── */
 .redline-grid{display:flex;flex-direction:column;gap:28px;margin-top:8px}
 .redline-card{background:var(--c-card);border:1px solid var(--c-border-soft);border-radius:var(--radius);padding:24px 28px}
-.redline-card.warn{border-left:3px solid #c9963a}
-.redline-card.danger{border-left:3px solid #b54a4a;background:#fdf8f8}
-.redline-card.info{border-left:3px solid var(--c-main)}
+.redline-card.danger{border-left:4px solid #b54a4a;background:#fdf8f8}
+.redline-card.warn{border-left:4px solid #c9963a}
+.redline-card.safe{border-left:4px solid var(--c-main)}
 .redline-num{font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-faint);letter-spacing:.1em;font-weight:600;margin-bottom:6px}
 .redline-title{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin-bottom:14px;line-height:1.4}
 .redline-card.danger .redline-title{color:#8a2020}
-.redline-why-label{font-size:.72rem;color:var(--c-muted);letter-spacing:.1em;font-weight:500;margin-bottom:6px}
-.redline-why{font-size:.9rem;color:var(--c-text);line-height:1.85;margin-bottom:0}
-.redline-forbidden{margin-top:16px;padding:14px 18px;background:rgba(181,74,74,.05);border-radius:var(--radius-sm);border:1px solid rgba(181,74,74,.15)}
-.redline-forbidden-label{font-size:.72rem;color:#8a2020;letter-spacing:.1em;font-weight:600;margin-bottom:8px}
-.redline-forbidden ul{margin:0 0 0 18px;padding:0}
-.redline-forbidden li{font-size:.88rem;color:var(--c-text);line-height:1.85;margin-bottom:4px}
-.redline-forbidden li:last-child{margin-bottom:0}
-.redline-steps{margin-top:16px;padding:14px 18px;background:rgba(90,122,90,.05);border-radius:var(--radius-sm);border:1px solid rgba(90,122,90,.15)}
-.redline-steps-label{font-size:.72rem;color:#2a5a2a;letter-spacing:.1em;font-weight:600;margin-bottom:8px}
-.redline-steps ol{margin:0 0 0 18px;padding:0}
-.redline-steps li{font-size:.88rem;color:var(--c-text);line-height:1.85;margin-bottom:4px}
-.redline-steps li:last-child{margin-bottom:0}
-/* cheatsheet 尾段 */
-.cheatsheet-note{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 24px;margin-top:8px}
-.cheatsheet-note p{font-size:.92rem;color:var(--c-muted);line-height:1.9;margin:0}
+
+/* 危險動作 — 紅色區塊 */
+.danger-box{margin-top:14px;padding:14px 18px;background:rgba(181,74,74,.06);border-radius:var(--radius-sm);border:1px solid rgba(181,74,74,.2)}
+.danger-box-label{font-size:.72rem;color:#8a2020;letter-spacing:.1em;font-weight:700;margin-bottom:8px}
+.danger-box p,.danger-box ul{font-size:.88rem;color:var(--c-text);line-height:1.85}
+.danger-box ul{margin:0 0 0 18px;padding:0}
+.danger-box li{margin-bottom:4px}
+.danger-box li:last-child{margin-bottom:0}
+
+/* 為什麼 — 中性區塊 */
+.why-box{margin-top:12px;padding:12px 18px;background:var(--c-surface);border-radius:var(--radius-sm)}
+.why-box-label{font-size:.72rem;color:var(--c-muted);letter-spacing:.1em;font-weight:600;margin-bottom:6px}
+.why-box p{font-size:.88rem;color:var(--c-text);line-height:1.85}
+
+/* 安全替代路徑 — 綠色區塊 */
+.safe-box{margin-top:12px;padding:14px 18px;background:rgba(90,122,90,.06);border-radius:var(--radius-sm);border:1px solid rgba(90,122,90,.2)}
+.safe-box-label{font-size:.72rem;color:#2a5a2a;letter-spacing:.1em;font-weight:700;margin-bottom:8px}
+.safe-box ol,.safe-box ul{margin:0 0 0 18px;padding:0}
+.safe-box li{font-size:.88rem;color:var(--c-text);line-height:1.85;margin-bottom:5px}
+.safe-box li:last-child{margin-bottom:0}
+.safe-box p{font-size:.88rem;color:var(--c-text);line-height:1.85}
+
+/* 驗收硬指標 */
+.verify-tag{display:inline-block;font-size:.72rem;color:#2a5a2a;background:rgba(90,122,90,.1);border:1px solid rgba(90,122,90,.25);border-radius:99px;padding:2px 10px;margin-top:10px;font-weight:600;letter-spacing:.06em}
+
+/* deprecation 4 步流程圖 */
+.flow-steps{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.flow-step{display:flex;gap:14px;align-items:flex-start}
+.flow-step-num{flex-shrink:0;width:28px;height:28px;border-radius:50%;background:var(--c-main);color:#fff;font-size:.78rem;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;margin-top:2px}
+.flow-step-num.fallback{background:#c9963a}
+.flow-step-content{flex:1}
+.flow-step-title{font-size:.88rem;font-weight:700;color:var(--c-text);margin-bottom:3px}
+.flow-step-body{font-size:.85rem;color:var(--c-muted);line-height:1.8}
+.flow-step-body code{font-size:.8rem;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;color:#2a5a2a}
+.flow-arrow{font-size:.75rem;color:var(--c-faint);margin-left:14px}
+
+/* checklist（紅線 8 執行前 3 件事） */
+.checklist{list-style:none;margin:0;padding:0}
+.checklist li{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);line-height:1.85;padding:8px 0;border-bottom:1px solid var(--c-border-soft)}
+.checklist li:last-child{border-bottom:0}
+.check-icon{flex-shrink:0;width:20px;height:20px;border:1.5px solid rgba(90,122,90,.5);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:var(--c-main);margin-top:2px}
+
+/* 4 欄並排 service rotate 卡片（紅線 9） */
+.rotate-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px}
+.rotate-card{background:var(--c-card);border:1px solid var(--c-border-soft);border-radius:var(--radius);padding:14px 16px}
+.rotate-card-title{font-size:.78rem;font-weight:700;color:var(--c-text);margin-bottom:8px;letter-spacing:.04em}
+.rotate-card ol{margin:0 0 0 16px;padding:0}
+.rotate-card li{font-size:.82rem;color:var(--c-muted);line-height:1.7;margin-bottom:3px}
+.rotate-card li:last-child{margin-bottom:0}
+.rotate-card code{font-size:.76rem;background:var(--c-surface);padding:1px 4px;border-radius:2px;color:var(--c-text)}
+
+/* inline code badge（紅線 10 高風險節點） */
+code{font-size:.82rem;background:var(--c-surface);padding:2px 6px;border-radius:3px;color:var(--c-text);font-family:'SF Mono',Menlo,Consolas,monospace}
+.node-badge{display:inline-block;font-size:.78rem;background:rgba(181,74,74,.08);border:1px solid rgba(181,74,74,.2);color:#7a1a1a;padding:2px 8px;border-radius:3px;font-family:'SF Mono',Menlo,Consolas,monospace;margin:2px 3px}
+
+/* 章末對照表 */
+.ref-table-wrap{overflow-x:auto;margin-top:12px}
+.ref-table{width:100%;border-collapse:collapse;font-size:.84rem}
+.ref-table th{font-family:'Shippori Mincho',serif;font-size:.76rem;font-weight:700;color:var(--c-text);text-align:left;padding:10px 12px;border-bottom:2px solid var(--c-border);letter-spacing:.04em;background:var(--c-surface)}
+.ref-table td{padding:9px 12px;border-bottom:1px solid var(--c-border-soft);vertical-align:top;line-height:1.7}
+.ref-table tr:last-child td{border-bottom:0}
+.ref-table .redline-badge{display:inline-block;font-size:.72rem;font-weight:700;background:#fdf1f1;color:#8a2020;border:1px solid rgba(181,74,74,.25);border-radius:3px;padding:1px 7px}
+
+/* 快速檢查 cheatsheet */
+.quick-check{background:var(--c-card);border:2px solid var(--c-main);border-radius:var(--radius);padding:22px 26px;margin-top:8px}
+.quick-check-title{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-main);margin-bottom:14px}
+.quick-check ul{list-style:none;margin:0;padding:0}
+.quick-check li{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-text);line-height:1.85;padding:7px 0;border-bottom:1px solid var(--c-border-soft)}
+.quick-check li:last-child{border-bottom:0}
+.qc-box{flex-shrink:0;width:18px;height:18px;border:1.5px solid rgba(90,122,90,.5);border-radius:3px;margin-top:3px}
+
+/* 列印提醒 callout */
+.print-callout{background:#fff8f0;border:2px dashed #c9963a;border-radius:var(--radius);padding:16px 20px;margin:24px 0;display:flex;gap:14px;align-items:flex-start}
+.print-callout-icon{font-size:1.2rem;flex-shrink:0;margin-top:1px}
+.print-callout-body{font-size:.9rem;line-height:1.85}
+.print-callout-body strong{color:#8a4a00}
+
+/* nav / footer */
 .nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
 .nav-btn:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
@@ -88,8 +152,37 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 .footer-div{width:1px;height:14px;background:var(--c-border)}
 .footer-note{font-size:.75rem;color:var(--c-muted)}
 .footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+
 @media(prefers-reduced-motion:reduce){.progress-fill{transition:none!important}*{animation:none!important}}
-@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.redline-card{padding:18px 20px}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.redline-card{padding:18px 20px}.rotate-grid{grid-template-columns:1fr}}
+
+/* ── 列印樣式 ── */
+@media print{
+  body{background:#fff;color:#000;font-size:10pt}
+  .topbar,.progress-strip,.back-link,.nav-footer,.footer,.print-hide{display:none!important}
+  #_gate{display:none!important}
+  .lesson-title{font-size:16pt}
+  .section-heading{font-size:12pt}
+  .page-hero{padding:20px 16px 10px}
+  .lesson-section{padding:12px 16px;max-width:100%}
+  .section-rule{margin:14px auto}
+  .redline-grid{gap:14px}
+  .redline-card{page-break-inside:avoid;padding:12px 14px;border-radius:2px;background:#fff!important}
+  .redline-card.danger{border-left:4px solid #b54a4a;background:#fff!important}
+  .danger-box{background:#fff;border:1px solid #b54a4a;page-break-inside:avoid}
+  .safe-box{background:#fff;border:1px solid #2a5a2a;page-break-inside:avoid}
+  .why-box{background:#f5f5f5}
+  .rotate-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .rotate-card{page-break-inside:avoid;background:#fff;border:1px solid #ccc}
+  .flow-steps{page-break-inside:avoid}
+  .quick-check{page-break-inside:avoid;border:2px solid #2a5a2a;background:#fff}
+  .ref-table-wrap{page-break-inside:avoid}
+  .ref-table{font-size:8.5pt}
+  .print-callout{page-break-inside:avoid;border:1px solid #c9963a;background:#fff}
+  /* 雙欄列印 layout for ref table section */
+  .print-two-col{column-count:2;column-gap:20px;font-size:8.5pt}
+  .print-two-col .ref-table-wrap{column-span:all}
+}
 </style>
 </head>
 <body>
@@ -116,7 +209,6 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 <script>
 (function(){const K='n8n_auth',H='825e2dce35d14124f94b648f6ab2ab60c9db1d8f393c2b61722fe02412b9a199';if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
 
-
 <a href="#main" class="skip-link">跳至主要內容</a>
 
 <header class="topbar">
@@ -133,135 +225,375 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 <div class="page-hero">
   <a href="index.html" class="back-link"><span aria-hidden="true">←</span> 返回課程總覽</a>
   <div class="hero-eyebrow">8 頁系列 · 第 5/8 · 核心安全規範</div>
-  <h1 class="lesson-title">8 條紅線 — 用 LLM 改 workflow 不能踩</h1>
-  <p class="lesson-tagline">8 頁系列 · 第 5/8 · 核心安全規範</p>
+  <h1 class="lesson-title">10 條紅線 — 用 LLM 改 workflow 不能踩</h1>
+  <p class="lesson-tagline">每條紅線：危險動作 + 為什麼 + 安全替代路徑。印出貼螢幕邊，每次改 workflow 前掃一眼。</p>
   <div class="outcomes">
     <div class="outcomes-label">本頁重點</div>
-    <div class="outcome-item">理解每條紅線的具體失效情境，不只知道「不能做」也知道「為什麼」</div>
-    <div class="outcome-item">掌握紅線 2 / 6 的禁止項目清單，在改 workflow 前主動核查</div>
-    <div class="outcome-item">能用紅線 7 / 8 的正確流程，在隔離環境完成驗證再上線</div>
+    <div class="outcome-item">對每條紅線說出「危險動作 + 安全替代路徑」兩件事（不只知道禁止）</div>
+    <div class="outcome-item">掌握 deprecation 4 步動線、destructive 執行前 3 件事、secret rotate SOP</div>
+    <div class="outcome-item">印出章末對照表 + 動手前 6 條快速檢查貼螢幕邊，每次改前掃 30 秒</div>
   </div>
+</div>
+
+<div class="print-callout print-hide">
+  <div class="print-callout-icon" aria-hidden="true">&#x1F5A8;</div>
+  <div class="print-callout-body"><strong>本章設計為列印 cheat sheet</strong>，按 <kbd>&#x2318;P</kbd>（Mac）或 <kbd>Ctrl+P</kbd>（Windows）列印，A4 直向即可貼螢幕邊。章末對照表 + 6 條快速檢查會自動避免跨頁斷行。</div>
 </div>
 
 <hr class="section-rule">
 
+<!-- (01) 為什麼有紅線 -->
 <section class="lesson-section">
   <div class="section-eyebrow">(01)</div>
   <h2 class="section-heading">為什麼有紅線</h2>
   <div class="intro-band">
-    <div class="intro-label">背景說明</div>
-    <div class="intro-text">LLM 給的 JSON 看起來合理但容易跑出細節錯誤；以下 8 條是 Codex L3 兩輪審核（call_id 765f5530 / f9c18d2c）採納的強制規範，雷區內容「不可模糊化或淡化」。</div>
+    <div class="intro-label">核心觀念</div>
+    <div class="intro-text">紅線 ≠ 禁忌。紅線 = 「LLM 在這做容易錯」+「正確路徑你自己（或在 n8n UI 上）做才安全」。每條紅線都有替代動線。</div>
   </div>
-  <p class="body-text">這 8 條紅線不是「建議」，是「踩到就出事」的強制邊界。每條都有真實的失效情境：credential 外洩沒得救、production workflow 被未驗證版本接管、destructive 操作寄錯人刪錯檔。逐條讀完，印出貼螢幕邊，每次改 workflow 前掃一眼。</p>
+  <p class="body-text">10 條紅線是踩到就出事的強制邊界，不是「建議」。每條都有真實的失效情境：credential 外洩沒得救、production workflow 被未驗證版本接管、destructive 操作刪錯資料。但更重要的是，每條都告訴你「正確要做什麼」。</p>
 </section>
 
 <hr class="section-rule">
 
+<!-- (02) 10 條紅線 -->
 <section class="lesson-section">
   <div class="section-eyebrow">(02)</div>
-  <h2 class="section-heading">8 條紅線</h2>
+  <h2 class="section-heading">10 條紅線</h2>
 
   <div class="redline-grid">
 
-    <!-- 紅線 1：warn -->
-    <div class="redline-card warn">
+    <!-- 紅線 1 -->
+    <div class="redline-card danger">
       <div class="redline-num">紅線 01</div>
       <div class="redline-title">不要把 credential 一起貼給 LLM</div>
-      <div class="redline-why-label">為什麼</div>
-      <p class="redline-why">n8n workflow JSON 內可能包含 API key、Gmail OAuth token、Notion integration secret 等敏感欄位。即使你「信任」某 LLM 服務，貼上去就失去控制權。<strong>永遠用 n8n UI 的「export without credentials」選項</strong>，並在貼給 LLM 前用搜尋確認沒有 <code>apiKey</code> / <code>accessToken</code> / <code>password</code> 字串殘留。</p>
-    </div>
-
-    <!-- 紅線 2：danger，含禁止項目清單 -->
-    <div class="redline-card danger">
-      <div class="redline-num">紅線 02</div>
-      <div class="redline-title">不要讓 LLM 直接產出完整 workflow JSON 當最終答案</div>
-      <div class="redline-why-label">為什麼</div>
-      <p class="redline-why">LLM 從零生成的 workflow JSON 有極高機率出現 typeVersion 過時、節點 ID 衝突、connection 引用錯位、參數 schema 漂移等問題，匯入直接失敗或更糟——匯入成功但跑起來資料形狀不對。<strong>永遠以官方 Lite Pack 或 n8n UI 拉出來的範本為基底，LLM 只在限定範圍內改</strong>。</p>
-      <div class="redline-forbidden">
-        <div class="redline-forbidden-label">特別禁止項目（即使只改一段，這些也不能讓 LLM 自動決定）</div>
-        <ul>
-          <li>webhook URL</li>
-          <li>trigger 類型</li>
-          <li>schedule 排程</li>
-          <li>recipient list（收件人 / 通知對象）</li>
-          <li>任何 delete / update / drop 類資料庫或 API 操作</li>
-        </ul>
-        <p style="font-size:.82rem;color:#8a2020;margin-top:10px;line-height:1.8">任一被誤改 = production 直接出事，沒得救。</p>
+      <div class="danger-box">
+        <div class="danger-box-label">危險動作</div>
+        <p>把含 <code>apiKey</code> / <code>accessToken</code> / <code>password</code> 的 workflow JSON 直接貼進 LLM 對話。</p>
+      </div>
+      <div class="why-box">
+        <div class="why-box-label">為什麼</div>
+        <p>貼上去 = 失去控制權。LLM 服務的對話歷史可能被訓練、被洩漏、或在團隊 plan 被同事看到。</p>
+      </div>
+      <div class="safe-box">
+        <div class="safe-box-label">安全替代路徑</div>
+        <ol>
+          <li>n8n UI 開啟 workflow → 右上角 <code>⋮</code> → Download → 跳出視窗選「<strong>Without credentials</strong>」（不是 Default）</li>
+          <li>下載的 .json 檔，用 VS Code 或記事本打開，<strong>Cmd+F 搜尋這 4 個字串都要找不到</strong>：<code>apiKey</code>、<code>accessToken</code>、<code>password</code>、<code>token</code></li>
+          <li>如果還是找到 → 該欄位手動改成 <code>"REDACTED"</code> 再貼 LLM</li>
+        </ol>
+        <div class="verify-tag">驗收：搜尋 4 個字串都 0 個結果</div>
       </div>
     </div>
 
-    <!-- 紅線 3：info -->
-    <div class="redline-card info">
-      <div class="redline-num">紅線 03</div>
-      <div class="redline-title">版本漂移要先用 n8n UI 的自動升級，不要叫 LLM 改 typeVersion</div>
-      <div class="redline-why-label">為什麼</div>
-      <p class="redline-why">n8n 升大版時，節點的 typeVersion 與 parameter schema 可能變動。LLM 不知道你裝的是哪一版，直接改 typeVersion 數字會把問題從「警告」變成「跑時 crash」。<strong>先在 n8n UI 開啟 → 它會自動處理可升級的部分 → 跑不通再用 LLM 對照新舊 schema 排查</strong>。</p>
+    <!-- 紅線 2 -->
+    <div class="redline-card danger">
+      <div class="redline-num">紅線 02</div>
+      <div class="redline-title">不要讓 LLM 直接產出完整 workflow JSON</div>
+      <div class="danger-box">
+        <div class="danger-box-label">危險動作</div>
+        <p>對 LLM 說「給我完整 workflow JSON 我直接匯入」。</p>
+      </div>
+      <div class="why-box">
+        <div class="why-box-label">為什麼</div>
+        <p>LLM 從記憶生成的 JSON 有 90% 機率出現 typeVersion 過時 / 節點 ID 衝突 / connection 引用錯位 — 匯入直接失敗或更糟（成功但靜默跑錯）。下列 5 項更是 LLM 不能碰的：webhook URL、trigger 類型、schedule 排程、recipient list、delete/update/drop 操作。</p>
+      </div>
+      <div class="safe-box">
+        <div class="safe-box-label">安全替代路徑（每種動作各有對應）</div>
+        <ol>
+          <li><strong>改節點內容</strong>：用模板 3 + 在 n8n UI 上區段替換</li>
+          <li><strong>改 webhook URL</strong>：n8n UI 點 webhook 節點 → 旁邊「Copy Test/Production URL」按鈕 → 自己 copy 自己貼</li>
+          <li><strong>改 trigger 類型</strong>：n8n UI 手動拖新 trigger 節點 → 接線 → 舊 Manual Trigger disable / 刪除</li>
+          <li><strong>改 schedule 排程</strong>：Schedule Trigger 節點的 Cron Expression 欄位 → 自己 Google「cron 每天 9 點」貼 expression</li>
+          <li><strong>改 recipient list</strong>：Gmail 節點 To 欄位 → 自己貼 email，不讓 LLM 從上下文猜</li>
+          <li><strong>改 delete/update 操作</strong>：先 disable 該節點跑通其他流程，最後人工開啟並走紅線 8 dry-run</li>
+        </ol>
+      </div>
     </div>
 
-    <!-- 紅線 4：warn -->
+    <!-- 紅線 3 -->
+    <div class="redline-card warn">
+      <div class="redline-num">紅線 03</div>
+      <div class="redline-title">不要叫 LLM 改 typeVersion</div>
+      <div class="danger-box">
+        <div class="danger-box-label">危險動作</div>
+        <p>要求 LLM 把節點 typeVersion 從 2 改成 3 來「修升級錯誤」。</p>
+      </div>
+      <div class="why-box">
+        <div class="why-box-label">為什麼</div>
+        <p>typeVersion 對應到 n8n 裝的版本，LLM 不知道你裝哪版。猜錯就 crash。</p>
+      </div>
+      <div class="safe-box">
+        <div class="safe-box-label">安全替代路徑</div>
+        <ol>
+          <li>n8n UI 開啟舊 workflow → 頂部黃色橫條「This workflow contains nodes that need to be updated」→ 點「<strong>Update</strong>」按鈕</li>
+          <li>UI 自動升級到當前裝的版本（比 LLM 準）</li>
+          <li>升級後仍跑不過：把「升級前 vs 升級後 parameter」兩段 JSON 貼 LLM，問「哪個欄位格式變了」</li>
+        </ol>
+        <div class="verify-tag">驗收：黃色橫條消失，節點不再變灰</div>
+      </div>
+    </div>
+
+    <!-- 紅線 4 -->
     <div class="redline-card warn">
       <div class="redline-num">紅線 04</div>
-      <div class="redline-title">節點 deprecation 要查官方 changelog，不要相信 LLM 的記憶</div>
-      <div class="redline-why-label">為什麼</div>
-      <p class="redline-why">LLM 訓練資料有 cutoff，可能不知道某節點已被官方改名／拆分／移除（例：n8n 歷史上有過 Gmail node 拆出 Gmail Trigger 的情況）。<strong>遇到「找不到節點」/「節點變灰」時先去 n8n 官方 changelog 與社群論壇查證</strong>，再決定是換新節點、還是用 HTTP Request 直接打 API。</p>
+      <div class="redline-title">節點 deprecation — 不要直接問 LLM，走 4 步動線</div>
+      <div class="danger-box">
+        <div class="danger-box-label">危險動作</div>
+        <p>n8n UI 上某節點變灰跳「This node is deprecated」，直接問 LLM「我要換成什麼節點」。</p>
+      </div>
+      <div class="why-box">
+        <div class="why-box-label">為什麼</div>
+        <p>LLM 訓練資料 cutoff 可能比你裝的 n8n 版本舊。LLM 說「換成 X 節點」可能那節點也被 deprecated。</p>
+      </div>
+      <div class="safe-box">
+        <div class="safe-box-label">安全替代路徑（5–10 分鐘可走完，4 步順序固定，LLM 是最後 fallback）</div>
+        <div class="flow-steps">
+          <div class="flow-step">
+            <div class="flow-step-num" aria-hidden="true">1</div>
+            <div class="flow-step-content">
+              <div class="flow-step-title">確認真的是 deprecated（30 秒）</div>
+              <div class="flow-step-body">在 n8n UI 點該節點 → 點齒輪 ⚙ → 看 typeVersion 欄位數字 + 看節點顏色是否比旁邊節點深灰。typeVersion 是 1 而其他類似節點是 2/3，加上顏色變灰 → 99% 確認是 deprecated。</div>
+            </div>
+          </div>
+          <div class="flow-arrow" aria-hidden="true">↓ 若確認</div>
+          <div class="flow-step">
+            <div class="flow-step-num" aria-hidden="true">2</div>
+            <div class="flow-step-content">
+              <div class="flow-step-title">在 n8n UI 內找替代（2 分鐘）</div>
+              <div class="flow-step-body">n8n UI 左側 / 右上角 <strong>+ Add Node</strong> 搜尋 box → 輸入舊節點名稱 → 看搜尋結果是否有同名節點後面標 <code>(new)</code> 或 <code>v2</code>/<code>v3</code> → 直接從搜尋結果拖一個出來。</div>
+            </div>
+          </div>
+          <div class="flow-arrow" aria-hidden="true">↓ 若第 2 步沒有 (new)/v2 結果</div>
+          <div class="flow-step">
+            <div class="flow-step-num" aria-hidden="true">3</div>
+            <div class="flow-step-content">
+              <div class="flow-step-title">看官方 docs banner（3 分鐘）</div>
+              <div class="flow-step-body">到 <code>docs.n8n.io/integrations/builtin/&lt;category&gt;/n8n-nodes-base.&lt;nodename&gt;/</code>，頁面頂端若有黃/紅 banner 寫「This node is deprecated. Use [新節點名] instead.」→ 把新節點名抄回 n8n UI 第 2 步搜尋。</div>
+            </div>
+          </div>
+          <div class="flow-arrow" aria-hidden="true">↓ 若第 1–3 步都沒結果才用</div>
+          <div class="flow-step">
+            <div class="flow-step-num fallback" aria-hidden="true">4</div>
+            <div class="flow-step-content">
+              <div class="flow-step-title">LLM 候選清單 fallback（5 分鐘）</div>
+              <div class="flow-step-body">把第 1–3 步的事實貼 LLM，<strong>只要候選節點名 + 每個適合什麼場景一句話，不要 JSON / 不要改 workflow</strong>。拿到清單後回 n8n UI + Add Node 搜尋每個候選，看哪個拖出來不變灰能正常設定 → 用那個。</div>
+            </div>
+          </div>
+        </div>
+        <div class="verify-tag">驗收：找到的替代節點在 n8n UI 拖出來不變灰、能正常設定</div>
+      </div>
     </div>
 
-    <!-- 紅線 5：info -->
-    <div class="redline-card info">
+    <!-- 紅線 5 -->
+    <div class="redline-card safe">
       <div class="redline-num">紅線 05</div>
-      <div class="redline-title">不要把 LLM 輸出當答案，要當草稿</div>
-      <div class="redline-why-label">為什麼</div>
-      <p class="redline-why">LLM 給的 JSON 區段有 90% 機率「看起來合理」但「跑起來細節錯」。一定要走完步驟 4「匯入測試」+ 步驟 6 收斂迴圈。<strong>沒有跑過真實樣本之前，那只是草稿，不是答案</strong>。</p>
+      <div class="redline-title">LLM 輸出是草稿，不是答案 — 必走 Duplicate 驗證動線</div>
+      <div class="danger-box">
+        <div class="danger-box-label">危險動作</div>
+        <p>LLM 給 JSON → 直接在原 workflow 點 Active 開關上線。</p>
+      </div>
+      <div class="why-box">
+        <div class="why-box-label">為什麼</div>
+        <p>LLM 給的 JSON 有 90% 機率「看起來合理但跑起來細節錯」。沒有跑過真實樣本，那只是草稿，不是答案。</p>
+      </div>
+      <div class="safe-box">
+        <div class="safe-box-label">安全替代路徑（強制動線）</div>
+        <ol>
+          <li><strong>禁止</strong>：直接在原 workflow 點 Active</li>
+          <li><strong>必走</strong>：Duplicate 成 <code>&lt;原名&gt;-edit</code> → 確認 Active 開關 OFF → 套 LLM 內容 → 跑 1 筆 → 跑 10 筆 → 全量跑通 → 才換回原 workflow</li>
+        </ol>
+        <div class="verify-tag">驗收：workflow 列表同時有原版 + -edit 版；只有跑通 10 筆後才合併</div>
+      </div>
     </div>
 
-    <!-- 紅線 6：danger，含禁止項目 -->
+    <!-- 紅線 6 -->
     <div class="redline-card danger">
       <div class="redline-num">紅線 06</div>
       <div class="redline-title">保留節點 ID 與 connection 完整性</div>
-      <div class="redline-why-label">為什麼</div>
-      <p class="redline-why">n8n workflow JSON 裡，節點之間靠 <code>id</code> 與 <code>connections</code> 區段串聯。LLM 在區段改寫時容易動到 ID 或漏掉 connection。<strong>步驟 3 要求 LLM「只回傳節點區段」、學員在 n8n UI 上做替換</strong>就是為了避開這個——不要直接覆蓋整份 JSON 檔。</p>
-      <div class="redline-forbidden">
-        <div class="redline-forbidden-label">重要補述</div>
-        <ul>
-          <li>若確實需要新增或刪除節點（不是修改既有節點），connections 區段必須回到 n8n UI 上手動重接，<strong>不要叫 LLM 寫 connections JSON</strong></li>
-          <li>UI 上拖線 30 秒就完成，LLM 寫錯一個 ID 你 debug 30 分鐘</li>
-          <li>第 7 節「錯誤分流 SOP」的 connections 檢查 checklist，<strong>只有在你改了整份 JSON 或新增／刪除節點時才需要跑</strong>——UI 上區段替換沒動 connections，跳過</li>
-        </ul>
+      <div class="danger-box">
+        <div class="danger-box-label">危險動作</div>
+        <p>用文字編輯器打開 workflow.json 直接改、或覆蓋整份 JSON 讓 LLM 重寫 connections 區段。</p>
+      </div>
+      <div class="why-box">
+        <div class="why-box-label">為什麼</div>
+        <p>節點 ID 對不上 → 匯入後節點變灰 / connections 引用錯 → 連線斷。連 1 個逗號錯整份炸。</p>
+      </div>
+      <div class="safe-box">
+        <div class="safe-box-label">安全替代路徑</div>
+        <ol>
+          <li><strong>不要</strong>：用文字編輯器直接改結構</li>
+          <li><strong>要</strong>：在 n8n UI 上做所有「結構變動」（新增 / 刪除節點 / 重接連線）</li>
+          <li><strong>重接連線具體動作</strong>：在 n8n UI 上，把上一個節點右側的小圓點 → 按住滑鼠拖到下一個節點左側的小圓點 → 放開 → 出現一條線就接好了</li>
+        </ol>
+        <div class="verify-tag">驗收：n8n UI 上所有節點之間都有實線（不是虛線、不是斷線）</div>
       </div>
     </div>
 
-    <!-- 紅線 7：danger，含正確流程 -->
+    <!-- 紅線 7 -->
     <div class="redline-card danger">
       <div class="redline-num">紅線 07</div>
-      <div class="redline-title">改完先在隔離環境驗，不在 production workflow 直接測</div>
-      <div class="redline-why-label">為什麼</div>
-      <p class="redline-why">n8n 匯入流程預設保留原 workflow 的 active 狀態，若改的是已開的 production workflow，匯入瞬間就會用未驗證版本接收真實流量／真實檔案。<strong>正確流程</strong>如下，任一步跳過 = 你在用真客戶資料當白老鼠。</p>
-      <div class="redline-steps">
-        <div class="redline-steps-label">正確操作流程</div>
+      <div class="redline-title">改完先在隔離環境驗，不在 production 直接測</div>
+      <div class="danger-box">
+        <div class="danger-box-label">危險動作</div>
+        <p>在 production workflow 上直接改 + 跑 → 用真客戶資料當白老鼠。</p>
+      </div>
+      <div class="why-box">
+        <div class="why-box-label">為什麼</div>
+        <p>n8n 匯入流程預設保留 active 狀態，瞬間就接真實流量。</p>
+      </div>
+      <div class="safe-box">
+        <div class="safe-box-label">安全替代路徑（self-host 與 n8n Cloud 動線相同）</div>
         <ol>
-          <li>在 n8n UI 點 workflow 右上角「Duplicate」複製一份命名 <code>&lt;原名&gt;-edit</code></li>
-          <li>把 LLM 改的內容套到複本</li>
-          <li>確認複本 trigger 是 OFF（或 Manual）</li>
-          <li>跑通再複製回原 workflow</li>
+          <li>n8n UI workflow 列表 → 原 workflow 右側三點 → <strong>Duplicate</strong></li>
+          <li>改名為 <code>&lt;原名&gt;-edit</code></li>
+          <li>點開 -edit 版，右上角 Active 開關確認 <strong>OFF</strong>（灰色）</li>
+          <li>套 LLM 改的內容到 -edit 版</li>
+          <li>跑 1 筆 → 跑 10 筆 → 通過後 → 改名為 <code>&lt;原名&gt;-v2</code> 並 Active；原版改名 <code>&lt;原名&gt;-v1-archived</code> 並 OFF</li>
         </ol>
+        <p style="font-size:.82rem;color:var(--c-muted);margin-top:8px"><strong>Cloud 用戶注意</strong>：Cloud 也有 Duplicate，n8n UI 操作一致。找不到時用「Export without credentials → New workflow → Import」三步替代。</p>
+        <div class="verify-tag">驗收：workflow 列表同時看到原版 + -edit 版；Active 狀態切得乾淨</div>
       </div>
     </div>
 
-    <!-- 紅線 8：danger，含正確流程 -->
+    <!-- 紅線 8 -->
     <div class="redline-card danger">
       <div class="redline-num">紅線 08</div>
       <div class="redline-title">destructive 操作必先 dry-run</div>
-      <div class="redline-why-label">為什麼</div>
-      <p class="redline-why">涉及刪資料（Notion delete page / Drive delete file）、寄信（Gmail / Telegram 發給真實收件人）、更新 CRM（HubSpot / Pipedrive update record）的節點，LLM 改錯一個欄位就是真寄錯人、真刪檔。<strong>寧願多花 5 分鐘做 dry-run，不要省這步</strong>。</p>
-      <div class="redline-steps">
-        <div class="redline-steps-label">正確操作流程</div>
+      <div class="danger-box">
+        <div class="danger-box-label">危險動作清單</div>
+        <ul>
+          <li>Gmail / Outlook / Telegram / Slack 節點：發訊到真實收件人</li>
+          <li>Notion / HubSpot / Salesforce 節點：delete / update record</li>
+          <li>Google Drive / Dropbox / S3 節點：delete file / overwrite file</li>
+          <li>SQL 節點：DELETE / UPDATE / DROP</li>
+        </ul>
+      </div>
+      <div class="why-box">
+        <div class="why-box-label">為什麼</div>
+        <p>LLM 改錯一個欄位 = 真寄信 / 真刪檔 / 真改 CRM。沒得救。</p>
+      </div>
+      <div class="safe-box">
+        <div class="safe-box-label">執行前 3 件事（至少做 1 件，用來限縮傷害在可恢復範圍）</div>
+        <ul class="checklist">
+          <li>
+            <div class="check-icon" aria-hidden="true">1</div>
+            <div><strong>目標資料先備份</strong>：SQL → <code>mysqldump</code>/<code>pg_dump</code>；Google Sheet → File → Make a copy；Notion/HubSpot/Salesforce → Export CSV；Drive/Dropbox/S3 → 複製整個目標資料夾到 <code>&lt;原名&gt;-backup-YYYY-MM-DD</code></div>
+          </li>
+          <li>
+            <div class="check-icon" aria-hidden="true">2</div>
+            <div><strong>限範圍跑</strong>：SQL DELETE 加 <code>LIMIT 10</code> 或 <code>WHERE id IN (1,2,3,4,5)</code>；Notion/HubSpot update 在前一個 Filter 節點加 limit=5；Gmail/Telegram 發訊加 IF 節點只發 5 筆</div>
+          </li>
+          <li>
+            <div class="check-icon" aria-hidden="true">3</div>
+            <div><strong>跑完手動 spot check 5 筆</strong>：SQL 開 DB client 查那 5 筆；Sheet 直接打開看；CRM 開 UI 找那 5 筆 record；Drive 用 Finder / 網頁端看檔案；Gmail/Telegram 去自己（或測試帳號）收件夾確認</div>
+          </li>
+        </ul>
+        <div class="safe-box-label" style="margin-top:14px">等價假動作（dry-run 時把 destructive 換成這些）</div>
+        <ul>
+          <li><strong>Gmail 發訊</strong>：把 To 欄位改成你自己的私人信箱字面值（例 <code>yourself@gmail.com</code>）</li>
+          <li><strong>Notion delete</strong>：先換成 Notion read（讀同一個 page，不刪）</li>
+          <li><strong>Drive delete</strong>：先換成 Drive list（列出資料夾內容，不刪）</li>
+          <li><strong>SQL DELETE</strong>：先換成 SELECT 同樣 WHERE 條件（看會 select 出哪幾筆）</li>
+        </ul>
+        <div class="verify-tag">驗收：dry-run 階段你的私人信箱收到 1–3 封測試信，無任何真實收件人收到信；備份/限範圍/spot check 至少做了 1 件</div>
+      </div>
+    </div>
+
+    <!-- 紅線 9 -->
+    <div class="redline-card danger">
+      <div class="redline-num">紅線 09</div>
+      <div class="redline-title">不要把 credentials / .env / webhook secret 貼給 LLM</div>
+      <div class="danger-box">
+        <div class="danger-box-label">危險動作</div>
+        <ul>
+          <li>貼 credentials JSON（含 <code>apiKey</code> / OAuth refresh token / service account JSON）</li>
+          <li>貼 <code>.env</code> 內容（postgres 密碼 / <code>N8N_BASIC_AUTH_PASSWORD</code> / Telegram bot token / Gemini API key）</li>
+          <li>貼含 secret query param 的 webhook URL（例 <code>https://…/webhook/abc?token=xxx</code>）</li>
+        </ul>
+      </div>
+      <div class="why-box">
+        <div class="why-box-label">為什麼</div>
+        <p>LLM 對話會被廠商記錄。「不要假設你貼給 LLM 的東西不會出現在訓練語料 / log analyst 螢幕上」是合理 default。一次 paste，這個 secret 必須當作已 leaked、立刻 rotate — 不要心存僥倖。</p>
+      </div>
+      <div class="safe-box">
+        <div class="safe-box-label">安全替代路徑</div>
         <ol>
-          <li>把 destructive 節點先 disable 或換成 console log 等價假動作</li>
-          <li>跑通驗證 input／output 資料形狀</li>
-          <li>改寫 recipient 為自己的測試帳號</li>
-          <li>用 1-3 筆假資料跑</li>
-          <li>全程 OK 才換回真收件人 / 真資料源</li>
+          <li><strong>想讓 LLM 看 workflow 形狀</strong>：用 placeholder 替換實值 — <code>"apiKey": "__GEMINI_API_KEY__"</code>、<code>"botToken": "&lt;YOUR_TG_TOKEN&gt;"</code>、<code>"password": "&lt;YOUR_PG_PASSWORD&gt;"</code></li>
+          <li><strong>需要 LLM 解 .env 結構</strong>：給 KEY 列表（不貼實值），例：「我有 <code>N8N_BASIC_AUTH_PASSWORD</code> / <code>GEMINI_API_KEY</code> / <code>TG_BOT_TOKEN</code>，請說每個 KEY 應該長什麼樣」</li>
+          <li><strong>webhook URL 也要去 secret</strong>：截掉 <code>?token=xxx</code> 段，只留 <code>https://&lt;host&gt;/webhook/&lt;id&gt;</code></li>
+          <li><strong>不小心 paste 了</strong>：立刻去對應服務 rotate — 見下方 4 種 SOP</li>
         </ol>
+        <div class="safe-box-label" style="margin-top:14px">4 種 Service Rotate SOP</div>
+        <div class="rotate-grid">
+          <div class="rotate-card">
+            <div class="rotate-card-title">Google AI (Gemini)</div>
+            <ol>
+              <li>開 Google AI Studio</li>
+              <li>左側 API Key</li>
+              <li>點 Regenerate</li>
+              <li>更新 n8n credential</li>
+            </ol>
+          </div>
+          <div class="rotate-card">
+            <div class="rotate-card-title">Telegram Bot Token</div>
+            <ol>
+              <li>在 Telegram 找 @BotFather</li>
+              <li>傳 <code>/revoke</code></li>
+              <li>選該 bot</li>
+              <li>取新 token → 更新 n8n</li>
+            </ol>
+          </div>
+          <div class="rotate-card">
+            <div class="rotate-card-title">Postgres</div>
+            <ol>
+              <li><code>ALTER USER &lt;user&gt;</code></li>
+              <li><code>WITH PASSWORD '&lt;新密碼&gt;'</code></li>
+              <li>更新 n8n credential</li>
+              <li>重啟相關服務</li>
+            </ol>
+          </div>
+          <div class="rotate-card">
+            <div class="rotate-card-title">n8n Basic Auth</div>
+            <ol>
+              <li>改 <code>.env</code> 的 <code>N8N_BASIC_AUTH_PASSWORD</code></li>
+              <li>重啟 n8n container</li>
+              <li>更新 n8n credential</li>
+              <li>通知所有使用者</li>
+            </ol>
+          </div>
+        </div>
+        <div class="verify-tag">驗收：貼進 LLM 的內容 Cmd+F 搜尋 apiKey / token / password / secret / AIzaSy / sk- → 0 個結果，或只搜到 placeholder 字串（<code>__X__</code> / <code>&lt;YOUR_X&gt;</code>）</div>
+      </div>
+    </div>
+
+    <!-- 紅線 10 -->
+    <div class="redline-card danger">
+      <div class="redline-num">紅線 10</div>
+      <div class="redline-title">不要匯入或執行來路不明的 workflow JSON</div>
+      <div class="danger-box">
+        <div class="danger-box-label">危險動作</div>
+        <p>從 Reddit / GitHub gist / Discord 撿到的 workflow JSON 直接匯入並執行。尤其含下列 5 個高風險節點 type 時：</p>
+        <p style="margin-top:8px">
+          <span class="node-badge">n8n-nodes-base.httpRequest</span>
+          <span class="node-badge">n8n-nodes-base.code</span>
+          <span class="node-badge">n8n-nodes-base.executeCommand</span>
+          <span class="node-badge">n8n-nodes-base.readWriteFile</span>
+          <span class="node-badge">n8n-nodes-base.emailSend</span>
+        </p>
+      </div>
+      <div class="why-box">
+        <div class="why-box-label">為什麼</div>
+        <p>n8n workflow 是你 n8n 帳號權限的延伸 — 匯入後你的 credentials 自動是它的 credentials。陌生 workflow JSON 從技術上等同陌生人寄你一個 .exe 叫你雙擊。可能的後果：打外部 server exfiltrate 你的資料、刪你的本地檔案、用你的名義發 email / Telegram。</p>
+      </div>
+      <div class="safe-box">
+        <div class="safe-box-label">安全替代路徑</div>
+        <ol>
+          <li><strong>來源限制</strong>：只匯入「課程提供」/「自己親手寫」/「你親自審完每個節點」的 workflow</li>
+          <li><strong>匯入前</strong>：用 VS Code 打開 JSON，搜尋上方 5 個高風險節點 type，若有 → 逐一看它做什麼（HTTP 打哪 / Code 寫什麼 / 讀寫哪個檔）</li>
+          <li><strong>第一次跑</strong>：把 Active 開關 OFF + Trigger 換成 Manual Trigger，不讓它一匯入就自動跑</li>
+          <li><strong>用測試 credentials 先試一輪</strong>：在 n8n 裡開一個 "test" credential（測試 API key、測試 DB），workflow credential 切到測試版跑，行為符合預期才換回正式 credential</li>
+        </ol>
+        <div class="verify-tag">驗收：匯入前 5 個高風險節點 type 都看過 + 第一次跑時 Active OFF + Trigger 是 Manual + credential 是測試版</div>
       </div>
     </div>
 
@@ -270,33 +602,176 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 
 <hr class="section-rule">
 
+<!-- (03) 動手前 6 條快速檢查 -->
 <section class="lesson-section">
   <div class="section-eyebrow">(03)</div>
-  <h2 class="section-heading">Cheatsheet 提醒</h2>
-  <div class="cheatsheet-note">
-    <p>這 8 條建議印成 A4 雙欄一頁貼螢幕邊，每次改 workflow 前快速掃一眼，特別是紅線 1（credential）、紅線 2（禁整份重生）、紅線 7（隔離環境）與紅線 8（dry-run）。</p>
+  <h2 class="section-heading">動手前 6 條快速檢查</h2>
+  <p class="body-text">每次改 workflow 前掃這 6 條，30 秒確認沒踩雷。</p>
+  <div class="quick-check">
+    <div class="quick-check-title">動手前快速檢查 — 每次必掃</div>
+    <ul>
+      <li>
+        <div class="qc-box" aria-hidden="true"></div>
+        <div>我用了 <strong>export without credentials</strong> 並搜尋 <code>apiKey</code>/<code>accessToken</code>/<code>password</code>/<code>token</code> 都找不到 <span style="font-size:.78rem;color:var(--c-muted)">（紅線 1）</span></div>
+      </li>
+      <li>
+        <div class="qc-box" aria-hidden="true"></div>
+        <div>我<strong>沒有</strong>把 credentials / .env / webhook secret 貼給 LLM <span style="font-size:.78rem;color:#8a2020">（紅線 9 — secret leak 比 prompt 改錯嚴重一級）</span></div>
+      </li>
+      <li>
+        <div class="qc-box" aria-hidden="true"></div>
+        <div>我在 <strong>-edit 版</strong>做事，不在 production <span style="font-size:.78rem;color:var(--c-muted)">（紅線 7）</span></div>
+      </li>
+      <li>
+        <div class="qc-box" aria-hidden="true"></div>
+        <div>我請 LLM 給「<strong>節點區段</strong>」，不是「整份 workflow JSON」 <span style="font-size:.78rem;color:var(--c-muted)">（紅線 2）</span></div>
+      </li>
+      <li>
+        <div class="qc-box" aria-hidden="true"></div>
+        <div>我有 <strong>destructive 節點</strong>時，先 disable 或改 dry-run <span style="font-size:.78rem;color:var(--c-muted)">（紅線 8）</span></div>
+      </li>
+      <li>
+        <div class="qc-box" aria-hidden="true"></div>
+        <div>我 <strong>10 筆樣本跑通</strong>才放全量 <span style="font-size:.78rem;color:var(--c-muted)">（紅線 5）</span></div>
+      </li>
+    </ul>
   </div>
 </section>
 
 <hr class="section-rule">
 
+<!-- (04) 章末對照表 8.5 -->
 <section class="lesson-section">
   <div class="section-eyebrow">(04)</div>
-  <h2 class="section-heading">本頁小結</h2>
-  <p class="body-text">8 條紅線的核心精神可以用一句話概括：<strong>LLM 是草稿機，你是驗收人</strong>。LLM 給的 JSON 從不是最終答案，credential 的安全責任、production 環境的保護、destructive 操作的 dry-run，都是你的責任，不能外包給 LLM。</p>
-  <p class="body-text">下一頁是完整 walkthrough：把 #02-pdf-ai-rename 改成處理發票，實際走完 6 步流程，並示範紅線 1 與紅線 5 在真實操作中長什麼樣。</p>
+  <h2 class="section-heading">業務改動需求 → 對應紅線 → 安全路徑</h2>
+  <p class="body-text">用「我想做 X」思考，查這張表找安全路徑，1–2 分鐘 quick scan。</p>
+  <div class="ref-table-wrap">
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th style="width:28%">我想做什麼</th>
+          <th style="width:10%">紅線</th>
+          <th>安全路徑（去本章哪段看）</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>把測試 webhook URL 換成正式環境</td>
+          <td><span class="redline-badge">#2</span></td>
+          <td>紅線 2 安全替代 step 2（n8n UI Copy Test/Production URL 按鈕，自己 copy 自己貼）</td>
+        </tr>
+        <tr>
+          <td>把 schedule trigger 從每 15 分鐘改成每天 8am</td>
+          <td><span class="redline-badge">#2</span></td>
+          <td>紅線 2 安全替代 step 4（自己照 Google 查到的 cron expression 貼）</td>
+        </tr>
+        <tr>
+          <td>把通知信收件人從 me@example.com 改成同事</td>
+          <td><span class="redline-badge">#2</span></td>
+          <td>紅線 2 安全替代 step 5（n8n UI Gmail 節點 To 欄位自己貼，不讓 LLM 從上下文猜）</td>
+        </tr>
+        <tr>
+          <td>節點在新版 n8n 變灰 / 提示 deprecated</td>
+          <td><span class="redline-badge">#4</span></td>
+          <td>紅線 4 安全替代 4 步（UI ⚙ 看 typeVersion → UI + Add Node 搜尋 (new) → docs.n8n.io banner → LLM 候選清單 fallback）</td>
+        </tr>
+        <tr>
+          <td>想升級節點 typeVersion</td>
+          <td><span class="redline-badge">#3</span></td>
+          <td>紅線 3 安全替代（n8n UI 黃色橫條 Update 按鈕，不叫 LLM 猜版本）</td>
+        </tr>
+        <tr>
+          <td>workflow 要 SQL DELETE / Notion delete / Drive 刪檔</td>
+          <td><span class="redline-badge">#8</span></td>
+          <td>紅線 8「執行前 3 件事」（備份 / 限範圍 / spot check 5 筆）+ 等價假動作</td>
+        </tr>
+        <tr>
+          <td>想把整個 .env 貼給 LLM 排錯</td>
+          <td><span class="redline-badge">#9</span></td>
+          <td>紅線 9 安全替代 step 2（給 KEY 列表描述，不貼實值）</td>
+        </tr>
+        <tr>
+          <td>不小心把 API key 貼進 ChatGPT 對話了</td>
+          <td><span class="redline-badge">#9</span></td>
+          <td>紅線 9 安全替代 step 4（立刻 rotate / regenerate，不心存僥倖）</td>
+        </tr>
+        <tr>
+          <td>同事 / 網友傳了個 workflow JSON 想匯進來</td>
+          <td><span class="redline-badge">#10</span></td>
+          <td>紅線 10 安全替代 4 步（來源限制 → 看 5 個高風險節點 → Manual Trigger → 測試 credential）</td>
+        </tr>
+        <tr>
+          <td>想直接讓 LLM 改 trigger 類型</td>
+          <td><span class="redline-badge">#1</span> <span class="redline-badge">#2</span></td>
+          <td>紅線 1（先 export without credentials）+ 紅線 2 安全替代 step 3（n8n UI 手動換 trigger）</td>
+        </tr>
+        <tr>
+          <td>想把 LLM 給的 JSON 直接點 Active 上線</td>
+          <td><span class="redline-badge">#5</span></td>
+          <td>紅線 5 安全替代（Duplicate → OFF → 跑 1+10 → 才合併）</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </section>
 
 <hr class="section-rule">
 
+<!-- (05) 常見錯誤 -->
 <section class="lesson-section">
   <div class="section-eyebrow">(05)</div>
+  <h2 class="section-heading">常見錯誤 + 怎麼解</h2>
+
+  <div class="scenario-grid" style="display:flex;flex-direction:column;gap:16px;margin-top:8px">
+
+    <div style="background:var(--c-card);border:1px solid var(--c-border-soft);border-radius:var(--radius);padding:18px 22px">
+      <div style="font-size:.78rem;font-weight:700;color:var(--c-muted);letter-spacing:.08em;margin-bottom:8px">錯誤 1</div>
+      <div style="font-size:.92rem;font-weight:700;color:var(--c-text);margin-bottom:8px">「我看到紅線 4 deprecation，去 Google 半天找不到答案」</div>
+      <div style="font-size:.88rem;color:var(--c-muted);line-height:1.85">商業培訓學員不要花超過 15 分鐘 Google。15 分鐘沒解 → 截圖 + 描述貼課程社群。LLM / Google 不是 unique solution。</div>
+    </div>
+
+    <div style="background:var(--c-card);border:1px solid var(--c-border-soft);border-radius:var(--radius);padding:18px 22px">
+      <div style="font-size:.78rem;font-weight:700;color:var(--c-muted);letter-spacing:.08em;margin-bottom:8px">錯誤 2</div>
+      <div style="font-size:.92rem;font-weight:700;color:var(--c-text);margin-bottom:8px">「我做了紅線 7 的 Duplicate，但忘了關 Active 開關，差點上 production」</div>
+      <div style="font-size:.88rem;color:var(--c-muted);line-height:1.85">Duplicate 完成後<strong>第一個動作就是檢查 Active 開關</strong>。嚴格走「Duplicate → 開關 OFF → 改名」這個固定動線，不省略。</div>
+    </div>
+
+    <div style="background:var(--c-card);border:1px solid var(--c-border-soft);border-radius:var(--radius);padding:18px 22px">
+      <div style="font-size:.78rem;font-weight:700;color:var(--c-muted);letter-spacing:.08em;margin-bottom:8px">錯誤 3</div>
+      <div style="font-size:.92rem;font-weight:700;color:var(--c-text);margin-bottom:8px">「Cloud 沒有 Duplicate 按鈕」</div>
+      <div style="font-size:.88rem;color:var(--c-muted);line-height:1.85">Cloud 也有，在 workflow 列表 / 開啟畫面右上角 <code>⋮</code>。真的找不到 → 「Export without credentials → New workflow → Import」三步替代。</div>
+    </div>
+
+    <div style="background:var(--c-card);border:1px solid var(--c-border-soft);border-radius:var(--radius);padding:18px 22px">
+      <div style="font-size:.78rem;font-weight:700;color:var(--c-muted);letter-spacing:.08em;margin-bottom:8px">錯誤 4</div>
+      <div style="font-size:.92rem;font-weight:700;color:var(--c-text);margin-bottom:8px">「dry-run 我把 To 改成自己信箱跑了，結果沒收到信」</div>
+      <div style="font-size:.88rem;color:var(--c-muted);line-height:1.85">(a) Gmail credential 是否還有效？看節點 credential 欄位是否亮綠 (b) 自己的信箱是否在垃圾郵件 (c) 是否真的執行了那個 Gmail 節點（看 n8n UI execution 紀錄）</div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- (06) 本頁小結 -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(06)</div>
+  <h2 class="section-heading">本頁小結</h2>
+  <p class="body-text">10 條紅線的核心精神一句話：<strong>LLM 是草稿機，你是驗收人</strong>。credential 的安全責任、production 環境的保護、destructive 操作的 dry-run，都是你的責任，不能外包給 LLM。</p>
+  <p class="body-text">印出本頁的「動手前 6 條快速檢查」和「業務改動需求對照表」貼螢幕邊，每次改 workflow 前掃 30 秒。下一頁是完整 walkthrough：把 #02 改成處理發票，實際走完 6 步流程。</p>
+</section>
+
+<hr class="section-rule">
+
+<!-- (07) 系列導覽 -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(07)</div>
   <h2 class="section-heading">系列導覽</h2>
   <div class="intro-band">
     <div class="intro-label">課後補充 LLM Copilot 系列</div>
     <div class="intro-text">本系列共 8 頁，從「為什麼要學這套流程」到「完整 walkthrough + 錯誤分流 SOP」，逐步帶你建立用 LLM 安全改 workflow 的能力。本頁是第 5/8，聚焦核心安全規範。</div>
   </div>
-  <p class="body-text">前一頁：步驟 4-6 詳解（匯入測試、錯誤回報、收斂）含 prompt 模板 4-5。<br>下一頁：Walkthrough — 把 #02 改成處理發票（最完整的實機示範，6,000 字 + 截圖）。</p>
+  <p class="body-text">前一頁：步驟 4–6 詳解（匯入測試、錯誤回報、收斂）含 prompt 模板 4–5。<br>下一頁：Walkthrough — 把 #02 改成處理發票（最完整的實機示範，6,000 字 + 截圖）。</p>
 </section>
 
 <div class="nav-footer">
@@ -310,7 +785,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">2026 春季</span>
-  <span class="footer-meta" data-platform-version="n8n latest (Docker image n8nio/n8n)" data-built-at="2026-05-06">本頁以 n8n latest (Docker image n8nio/n8n) 製作，2026-05</span>
+  <span class="footer-meta" data-platform-version="n8n latest (Docker image n8nio/n8n)" data-built-at="2026-05-07">本頁以 n8n latest (Docker image n8nio/n8n) 製作，2026-05</span>
 </footer>
 
 <script>
