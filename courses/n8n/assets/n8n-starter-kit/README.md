@@ -2,6 +2,8 @@
 
 《AI 資料工廠》課程的 n8n 本機環境試跑包。在自己電腦跑一個自架的 n8n，不按執行次數計費，並能直接讀寫本機資料夾。
 
+> **版本**：v1.0.1（2026-05-07）— 將 n8n editor 限制為本機存取（127.0.0.1），公開 wifi 場景下其他人無法連到你的 n8n。詳見 [變更紀錄](#變更紀錄)。
+>
 > **課程測試版本**：n8n `2.17.8`（2026-04-27 依 Docker Hub tags 驗證可用）+ Docker Desktop 4.x。`n8n-compose.yml` 已鎖定此 patch 版本以確保畫面與行為可重現；升級時請重新驗證教材。
 >
 > **免費條件**：n8n Community Edition 採 [Sustainable Use License](https://docs.n8n.io/sustainable-use-license/)——課程中的自架、教學、內部流程與顧問案通常屬允許用途；不可把 n8n 代管成 SaaS、white-label 或嵌入產品對外販售。Docker Desktop 的免費資格另依 [Docker 條款](https://www.docker.com/products/personal/) 判斷，組織規模與用途請逐項對照。
@@ -104,9 +106,24 @@ docker compose -f n8n-compose.yml config
 
 ## 如果想自訂
 
-- **改埠號**（5678 被佔用時）：編輯 `n8n-compose.yml` 的 `ports: - '5678:5678'`，把第一個 5678 改成其他（如 `'5680:5678'`），重啟後改用 <http://localhost:5680>
+- **改埠號**（5678 被佔用時）：編輯 `n8n-compose.yml` 的 `ports: - '127.0.0.1:5678:5678'`，把中間的 5678 改成其他（如 `'127.0.0.1:5680:5678'`），重啟後改用 <http://localhost:5680>。**保留 `127.0.0.1:` 前綴**，否則會把 n8n editor 暴露到全網卡（公開 wifi 同網段他人可未授權登入）
 - **改本機掛載資料夾**：編輯 `n8n-compose.yml` 的 `- ./shared:/files/shared`，把 `./shared` 改成你要掛的路徑
 - **改時區 / 密碼 / Webhook URL**：編輯 `.env`，重啟容器（雙擊 stop 再 start）
+
+## 變更紀錄
+
+### v1.0.1（2026-05-07）
+
+**安全修補**：將 n8n editor 限制為本機存取。
+
+- `n8n-compose.yml`：`ports: - '5678:5678'` → `ports: - '127.0.0.1:5678:5678'`
+- 影響：學員瀏覽器仍可正常開 <http://localhost:5678>（教學體驗零差別）；公開 wifi / 共享辦公室 / 咖啡店同網段他人無法連到你的 n8n。
+- 已下載 v1.0 舊版的學員：建議先 `docker compose down`，重下本 zip 覆蓋，重新雙擊 `start.command`。Owner Account 與 workflows 存在 Docker volume，不會因為換資料夾而丟。
+
+### v1.0（2026-04-27）
+
+初版：n8n 2.17.8 + PostgreSQL 16，Mac/Win 雙平台啟動腳本，Cloudflare Quick Tunnel 一鍵對外，shared/ 資料夾掛載。
+
 
 ## 授權提醒（兩條獨立判斷）
 
