@@ -1,8 +1,12 @@
 #!/bin/bash
-# n8n Lite Pack · setup-wizard v1.1 (macOS)
+# n8n Lite Pack · setup-wizard v1.2.3 (macOS)
 # 「下載安裝後設兩個 key 即用」最短路徑
 # v0.4：file access patch 自動化 / 自動重啟 / Telegram + Gemini smoke test
 # v1.1：Telegram 改為可選（GUI 對話框 Y/N gate）— 不用 TG 的學員零摩擦過關
+# v1.2.3：修 Mac/Win 不對齊 — Gemini smoke test 加 thinkingConfig.thinkingBudget=0
+#         （Win 版 setup-wizard.ps1:386 早就有，Mac 版這條漏 patch）
+#         Gemini 2.5 Flash 預設啟用 thinking，maxOutputTokens=20 會被 thinking 吃光
+#         → response candidates[0].content 沒 parts.text → 回 EMPTY → smoke 誤報異常
 # 用法：在 Finder 雙擊本檔；首次被 Gatekeeper 擋請去「系統設定 → 隱私權與安全性 → 強制打開」
 
 cd "$(dirname "$0")"
@@ -308,7 +312,7 @@ fi
 
 # Gemini smoke test（簡單 prompt 看 API 是否真能 work）
 echo "  · Gemini API（最小 prompt）..."
-GEMINI_TEST=$(curl -sf -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent" -H "Content-Type: application/json" -H "x-goog-api-key: ${GEMINI_KEY}" -d '{"contents":[{"parts":[{"text":"Reply exactly: OK"}]}],"generationConfig":{"temperature":0.1,"maxOutputTokens":20}}' 2>&1)
+GEMINI_TEST=$(curl -sf -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent" -H "Content-Type: application/json" -H "x-goog-api-key: ${GEMINI_KEY}" -d '{"contents":[{"parts":[{"text":"Reply exactly: OK"}]}],"generationConfig":{"temperature":0.1,"maxOutputTokens":20,"thinkingConfig":{"thinkingBudget":0}}}' 2>&1)
 GEMINI_REPLY=$(echo "$GEMINI_TEST" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('candidates',[{}])[0].get('content',{}).get('parts',[{}])[0].get('text','EMPTY'))" 2>/dev/null || echo "PARSE_ERROR")
 echo "    Gemini 回應：$GEMINI_REPLY"
 if [[ "$GEMINI_REPLY" == *"OK"* ]]; then
