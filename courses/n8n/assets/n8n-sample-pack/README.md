@@ -1,5 +1,7 @@
-# n8n Lite Pack 演練素材包 v1.3
+# n8n Lite Pack 演練素材包 v1.4
 
+> **v1.4 改動**（2026-05-08）：`batch-inbox/` 內預先建好 `processed/` 與 `failed/` 兩個空子資料夾。先前學員 `cp -R sample-pack/batch-inbox starter-kit/shared/` 會蓋掉 setup-wizard 預建的這兩個子資料夾，下次跑 #03 batch-error-recovery 撞 ENOENT。現在 cp 過去後子結構完整，#03 直接可跑。
+>
 > **v1.3 改動**（2026-05-07）：替換 `pdf-inbox/` 內 doc-001/002/003.pdf 為 TTF 字型 embedded 的繁中商業 PDF（合約 / 業務月報 / 出貨清單）。先前 image-only PDF 導致 n8n Read PDF / pdf-parse 抽不到文字 → AI 看不到 PDF 內容只能瞎猜檔名。現在 #02 端到端能正確讀內容生成檔名。
 
 對應 14 個 workflow 的測試素材。把對應子資料夾的內容**複製**到你的 starter-kit 內（**不要動原本的 shared 資料夾結構**）：
