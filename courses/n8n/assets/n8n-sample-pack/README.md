@@ -1,8 +1,12 @@
-# n8n Lite Pack 演練素材包 v1.4
+# n8n Lite Pack 演練素材包 v1.5
 
-> **v1.4 改動**（2026-05-08）：`batch-inbox/` 內預先建好 `processed/` 與 `failed/` 兩個空子資料夾。先前學員 `cp -R sample-pack/batch-inbox starter-kit/shared/` 會蓋掉 setup-wizard 預建的這兩個子資料夾，下次跑 #03 batch-error-recovery 撞 ENOENT。現在 cp 過去後子結構完整，#03 直接可跑。
+> **v1.5 改動**（2026-05-08）：`batch-inbox/` 加 4 個有效繁中商業 PDF（採購訂單 / 結案報告 / 員工手冊 / 產品規格書），讓 #03 batch-error-recovery 的 success 路徑能跑通。先前只有 `not-a-pdf.pdf` 被讀取（其他 .txt / .bin 副檔名被 fileSelector `*.pdf` 過濾掉），processed/ 永遠為空、學員體感像 workflow 壞了。同時移除誤導的 `good-01~04.txt`（副檔名連 read 都不會 read）+ `corrupted.bin` + `empty.txt`。
 >
-> **v1.3 改動**（2026-05-07）：替換 `pdf-inbox/` 內 doc-001/002/003.pdf 為 TTF 字型 embedded 的繁中商業 PDF（合約 / 業務月報 / 出貨清單）。先前 image-only PDF 導致 n8n Read PDF / pdf-parse 抽不到文字 → AI 看不到 PDF 內容只能瞎猜檔名。現在 #02 端到端能正確讀內容生成檔名。
+> **v1.4 改動**（2026-05-08）：`batch-inbox/` 預先建好 `processed/` 與 `failed/` 空子資料夾，避免 cp -R 蓋掉 setup-wizard 建的子結構造成 #03 ENOENT。
+>
+> **v1.3 改動**（2026-05-07）：替換 `pdf-inbox/` 內 doc-001/002/003.pdf 為 TTF 字型 embedded 的繁中商業 PDF（合約 / 業務月報 / 出貨清單）。先前 image-only PDF 導致 n8n Read PDF / pdf-parse 抽不到文字。
+>
+> **設計原則提醒**：#03 workflow 設計上**只處理 PDF**（fileSelector `*.pdf` + Extract PDF Text node）。其他格式（Word / Excel / 圖片 / 純文字）走 #10 folder-organize（混合格式分類）或自行改 fileSelector + 換 Extract 策略。
 
 對應 14 個 workflow 的測試素材。把對應子資料夾的內容**複製**到你的 starter-kit 內（**不要動原本的 shared 資料夾結構**）：
 
