@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>跨格式改寫 — 從 PDF 跨到 Word / Excel / 圖片 / 純文字｜AI 資料工廠</title>
+<meta name="description" content="商業學員真實業務拿到的不只 PDF — 教你把 #03 改造處理 Word / Excel / 圖片 / 純文字的 5 種格式 dispatch 策略">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="跨格式改寫 — 從 PDF 跨到 Word / Excel / 圖片 / 純文字｜AI 資料工廠">
+<meta property="og:description" content="商業學員真實業務拿到的不只 PDF — 教你把 #03 改造處理 Word / Excel / 圖片 / 純文字的 5 種格式 dispatch 策略">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/lessons/post-llm-9-format-adapt.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="跨格式改寫 — 從 PDF 跨到 Word / Excel / 圖片 / 純文字｜AI 資料工廠">
+<meta name="twitter:description" content="商業學員真實業務拿到的不只 PDF — 教你把 #03 改造處理 Word / Excel / 圖片 / 純文字的 5 種格式 dispatch 策略">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/lessons/post-llm-9-format-adapt.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-a5:#7a9ea3;--c-main:#5a7a5a;--radius:4px;--radius-sm:3px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 var(--radius) 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:var(--c-main);border:1px solid rgba(90,122,90,.3);background:transparent;padding:3px 12px;border-radius:99px;font-weight:500;letter-spacing:.06em}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px;font-variant-numeric:tabular-nums}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;max-width:26ch}
+.lesson-tagline{font-size:.92rem;color:var(--c-muted);line-height:1.9;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);margin-top:28px}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
+.outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-heading em{font-style:normal;color:var(--c-text)}
+.sub-heading{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin:28px 0 12px;line-height:1.4}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+/* callout 統一單色 */
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-body{font-size:.9rem;line-height:1.85}
+/* 警告 callout（橘底）*/
+.callout-warning{background:#fdf0e6;border-left:3px solid #b5703a;border-radius:var(--radius);padding:20px 24px;margin:24px 0}
+.callout-warning-label{font-size:.72rem;color:#b5703a;letter-spacing:.15em;font-weight:700;margin-bottom:8px}
+.callout-warning-body{font-size:.92rem;color:var(--c-text);line-height:1.95}
+/* 表格 */
+.data-table{width:100%;border-collapse:collapse;margin:24px 0;font-size:.88rem}
+.data-table thead tr{background:var(--c-surface)}
+.data-table th{padding:10px 14px;text-align:left;font-size:.75rem;font-weight:700;color:var(--c-text);letter-spacing:.08em;border-bottom:1px solid var(--c-border)}
+.data-table td{padding:10px 14px;border-bottom:1px solid var(--c-border-soft);vertical-align:top;line-height:1.75}
+.data-table tr:last-child td{border-bottom:0}
+.data-table code{font-family:'Courier New',monospace;font-size:.82em;background:var(--c-surface);border:1px solid var(--c-border);padding:1px 5px;border-radius:var(--radius-sm)}
+/* 4層分層表 強調 */
+.layer-table{width:100%;border-collapse:collapse;margin:24px 0;font-size:.88rem}
+.layer-table th{padding:12px 16px;text-align:left;font-size:.75rem;font-weight:700;color:var(--c-text);letter-spacing:.08em;border-bottom:2px solid var(--c-border);background:var(--c-surface)}
+.layer-table td{padding:12px 16px;border-bottom:1px solid var(--c-border-soft);vertical-align:top;line-height:1.75}
+.layer-table tr:last-child td{border-bottom:0}
+.layer-table .layer-name{font-weight:700;color:var(--c-text)}
+.layer-table .layer-nodyn{background:#eaf2ea;color:#3d6b3d;border-radius:99px;padding:2px 10px;font-size:.78rem;font-weight:700;display:inline-block}
+.layer-table .layer-dyn{background:#fdf0e6;color:#b5703a;border-radius:99px;padding:2px 10px;font-size:.78rem;font-weight:700;display:inline-block}
+/* 步驟列表 */
+.step-list{list-style:none;margin:20px 0;display:flex;flex-direction:column;gap:12px}
+.step-item{display:grid;grid-template-columns:28px 1fr;gap:12px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:16px 18px}
+.step-num{font-family:'Shippori Mincho',serif;font-size:.85rem;font-weight:700;color:var(--c-faint);padding-top:2px}
+.step-body{font-size:.9rem;color:var(--c-text);line-height:1.85}
+.step-body strong{font-weight:700}
+/* code block */
+.code-block{background:#2c2b28;color:#e8e4dc;border-radius:var(--radius);padding:18px 22px;margin:16px 0;font-family:'Courier New',monospace;font-size:.83rem;line-height:1.8;white-space:pre-wrap;word-break:break-word;overflow-x:auto}
+.code-block-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:700;margin-bottom:6px;margin-top:16px}
+.code-wrap{position:relative;margin:16px 0}
+.copy-btn{position:absolute;top:8px;right:8px;font-size:.72rem;color:var(--c-faint);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:var(--radius-sm);padding:4px 10px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:background .2s,color .2s}
+.copy-btn:hover{background:rgba(255,255,255,.15);color:#e8e4dc}
+/* 模板區塊 */
+.template-block{margin:28px 0;border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden}
+.template-header{padding:10px 18px;background:var(--c-surface);border-bottom:1px solid var(--c-border);display:flex;align-items:center;gap:10px}
+.template-label{font-size:.72rem;font-weight:700;letter-spacing:.12em;color:var(--c-text)}
+.template-tag{font-size:.72rem;padding:2px 8px;border-radius:99px;border:1px solid rgba(90,122,90,.4);color:var(--c-main);background:rgba(90,122,90,.07)}
+.template-body{padding:0}
+/* 驗收清單 */
+.checklist{list-style:none;display:flex;flex-direction:column;gap:12px;margin:16px 0}
+.checklist li{display:flex;gap:12px;align-items:flex-start;font-size:.9rem;line-height:1.85;color:var(--c-text)}
+.checklist li::before{content:"□";flex-shrink:0;margin-top:2px;font-size:1rem;color:var(--c-faint)}
+.checklist li strong{font-weight:500}
+.check-detail{margin-top:6px;font-size:.85rem;color:var(--c-muted);line-height:1.8}
+/* 變體對照表 */
+.variants-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0}
+.variant-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden}
+.variant-header{padding:10px 16px;background:var(--c-surface);border-bottom:1px solid var(--c-border);display:flex;align-items:center;gap:8px}
+.variant-badge{font-size:.72rem;font-weight:700;letter-spacing:.1em;color:var(--c-text)}
+.variant-status{font-size:.72rem;padding:2px 8px;border-radius:99px;border:1px solid}
+.variant-status.pass{color:#5a7a5a;border-color:rgba(90,122,90,.4);background:rgba(90,122,90,.07)}
+.variant-status.fail{color:#b5703a;border-color:rgba(181,112,58,.4);background:rgba(181,112,58,.07)}
+.variant-body{padding:14px 16px;font-size:.83rem;line-height:1.75;color:var(--c-text)}
+.variant-note{font-size:.83rem;color:var(--c-muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--c-border-soft);line-height:1.75}
+/* 常見錯誤 */
+.error-list{display:flex;flex-direction:column;gap:16px;margin:20px 0}
+.error-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 24px}
+.error-tag{font-size:.72rem;font-weight:700;letter-spacing:.12em;color:var(--c-muted);margin-bottom:6px}
+.error-title{font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:10px}
+.error-section-label{font-size:.75rem;font-weight:700;color:var(--c-text);letter-spacing:.08em;margin-top:12px;margin-bottom:4px}
+.error-body{font-size:.88rem;color:var(--c-muted);line-height:1.85}
+/* 路線決策 grid */
+.route-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+.route-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px}
+.route-label{font-size:.72rem;font-weight:700;letter-spacing:.12em;color:var(--c-text);margin-bottom:8px}
+.route-title{font-size:.92rem;font-weight:700;color:var(--c-text);margin-bottom:8px}
+.route-body{font-size:.85rem;color:var(--c-muted);line-height:1.8}
+.route-card.recommended{border-color:rgba(90,122,90,.4);background:rgba(90,122,90,.04)}
+.route-card.recommended .route-label{color:var(--c-main)}
+/* 章末導引表 */
+.nav-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.88rem}
+.nav-table th{padding:10px 14px;text-align:left;font-size:.75rem;font-weight:700;color:var(--c-text);letter-spacing:.08em;border-bottom:1px solid var(--c-border);background:var(--c-surface)}
+.nav-table td{padding:10px 14px;border-bottom:1px solid var(--c-border-soft);vertical-align:top;line-height:1.75}
+.nav-table tr:last-child td{border-bottom:0}
+/* cheat sheet dispatch 表（列印友善）*/
+.cheat-table{width:100%;border-collapse:collapse;margin:24px 0;font-size:.83rem}
+.cheat-table th{padding:10px 12px;text-align:left;font-size:.73rem;font-weight:700;color:var(--c-text);letter-spacing:.07em;border-bottom:2px solid var(--c-border);background:var(--c-surface)}
+.cheat-table td{padding:9px 12px;border-bottom:1px solid var(--c-border-soft);vertical-align:top;line-height:1.7}
+.cheat-table tr:last-child td{border-bottom:0}
+.cheat-table code{font-family:'Courier New',monospace;font-size:.82em;background:var(--c-surface);border:1px solid var(--c-border);padding:1px 4px;border-radius:var(--radius-sm)}
+.cheat-nodyn{display:inline-block;background:#eaf2ea;color:#3d6b3d;border-radius:99px;padding:1px 8px;font-size:.75rem;font-weight:700}
+.cheat-dyn{display:inline-block;background:#fdf0e6;color:#b5703a;border-radius:99px;padding:1px 8px;font-size:.75rem;font-weight:700}
+/* inline code */
+code{font-family:'Courier New',monospace;font-size:.85em;background:var(--c-surface);border:1px solid var(--c-border);padding:1px 5px;border-radius:var(--radius-sm)}
+/* 格式區段 anchor box */
+.format-anchor{display:block;padding:14px 18px;background:var(--c-surface);border-radius:var(--radius);margin:24px 0;border-left:3px solid var(--c-text)}
+.format-anchor-label{font-size:.72rem;letter-spacing:.15em;font-weight:700;color:var(--c-text);margin-bottom:4px}
+.format-anchor-title{font-size:1.05rem;font-weight:700;font-family:'Shippori Mincho',serif;color:var(--c-text)}
+/* nav footer */
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
+.nav-btn:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main)}
+.nav-btn.primary:hover{filter:brightness(.92)}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:600px){
+  .topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}
+  .lesson-title{max-width:100%}
+  .route-grid{grid-template-columns:1fr}
+  .variants-grid{grid-template-columns:1fr}
+  .data-table,.layer-table,.cheat-table{display:block;overflow-x:auto}
+}
+@media print{
+  .topbar,.progress-strip,.nav-footer,.footer,.back-link,.skip-link{display:none!important}
+  body{background:#fff;color:#000}
+  .cheat-table{page-break-inside:avoid;break-inside:avoid}
+  .layer-table{page-break-inside:avoid;break-inside:avoid}
+  .template-block{page-break-inside:avoid;break-inside:avoid}
+  .error-item{page-break-inside:avoid;break-inside:avoid}
+  .checklist{page-break-inside:avoid;break-inside:avoid}
+  .data-table{page-break-inside:avoid;break-inside:avoid}
+  .route-grid{page-break-inside:avoid;break-inside:avoid}
+  .variants-grid{page-break-inside:avoid;break-inside:avoid}
+  .section-rule{border-top:1px solid #ccc}
+  .code-block{background:#f0f0f0;color:#000;border:1px solid #ccc;white-space:pre-wrap;font-size:.78rem}
+  .callout-warning{background:#fff9f5;border-left:3px solid #b5703a}
+}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:4px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='n8n_auth',H='825e2dce35d14124f94b648f6ab2ab60c9db1d8f393c2b61722fe02412b9a199';if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 資料工廠</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">POST 9/9</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<!-- ===== HERO ===== -->
+<div class="page-hero">
+  <a href="../index.html" class="back-link"><span aria-hidden="true">←</span> 返回課程總覽</a>
+  <div class="hero-eyebrow">9 頁系列 · 第 9/9 · post-llm 末章</div>
+  <h1 class="lesson-title">跨格式改寫 — 從 PDF 跨到 Word / Excel / 圖片 / 純文字</h1>
+  <p class="lesson-tagline">結業後第一個業務需求很少還是「PDF 改名」。Word 報價單、Excel 客戶清單、LINE 截圖、業務 CSV 匯出——本章教你把 #03 改造成處理這 5 種格式的具體做法：只動 4 層中的前 3 層，業務規則層永遠不動。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">讀完這頁你會能做到 · OUTCOMES</div>
+    <div class="outcome-item">看到任一格式（docx / xlsx / png / csv / txt / md），30 分鐘內把 #03 改成處理該格式，業務規則層 0 動</div>
+    <div class="outcome-item">看到 LLM 回應 30 秒內辨認「純前 3 層改造」還是「擴張到業務規則層」，後者直接拒絕</div>
+    <div class="outcome-item">列印本章 dispatch 對照表貼螢幕邊，每次跨格式改寫前掃 30 秒</div>
+  </div>
+</div>
+
+<!-- ===== (01) 學員此時的痛點 ===== -->
+<section class="lesson-section" id="s01">
+  <div class="section-eyebrow">(01)</div>
+  <h2 class="section-heading">結業後你拿到的不會是 PDF</h2>
+  <div class="intro-band">
+    <div class="intro-label">學員課後問卷最常出現的版本</div>
+    <div class="intro-text">「我有 50 個 Word 報價單要照 #03 那種方式改名 + 分類」<br>「主管丟了 200 列的 Excel 客戶清單，要我用 AI 幫每筆寫個 follow-up 摘要」<br>「同事傳了一資料夾 LINE 截圖（.png）要我整理成檔案名」<br>「業務每天匯出 .csv 我要做摘要寄給主管」</div>
+  </div>
+  <p class="body-text">學員打開 #02 / #03 看——整個 workflow 從 <code>fileSelector *.pdf</code> 到 Extract 節點 <code>operation: pdf</code> 全在處理 PDF。心理卡住的地方通常是三個：</p>
+  <ul class="step-list">
+    <li class="step-item">
+      <span class="step-num">1</span>
+      <div class="step-body"><strong>「我要把這份改成 .docx，第一步動哪？」</strong><br>不知道「改格式」要動哪幾個節點，感覺要大改。</div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">2</span>
+      <div class="step-body"><strong>「我問 ChatGPT 怎麼改，它一口氣把整份 workflow 重寫」</strong><br>看不出哪裡是「我要的」哪裡是「它順手加的」，不敢貼進去。</div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">3</span>
+      <div class="step-body"><strong>「跑了一張綠燈，但 AI 改名出來變 <code>null_null.png</code>」</strong><br>input 是圖片，不知道從哪 debug，跟發票那次症狀一樣但原因不同。</div>
+    </li>
+  </ul>
+  <p class="body-text">本章給你一個統一的心智模型（4 層分層），以及 5 種格式各自的具體做法。讀完加上第 6 章 walkthrough，你的課後改寫場景有 90% 被涵蓋。</p>
+</section>
+
+<hr class="section-rule">
+
+<!-- ===== (02) 4層分層表 - 核心觀念 ===== -->
+<section class="lesson-section" id="s02">
+  <div class="section-eyebrow">(02)</div>
+  <h2 class="section-heading">核心觀念：4 層分層，跨格式只動前 3 層</h2>
+  <p class="body-text">把 #03 workflow 想成 4 層堆疊。跨格式改寫的所有操作，都只在前 3 層——業務規則層永遠不動。</p>
+
+  <table class="layer-table" aria-label="4 層分層表">
+    <thead>
+      <tr>
+        <th>層</th>
+        <th>內容</th>
+        <th>跨格式時</th>
+        <th>具體到哪個節點 / 欄位</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="layer-name">入口層</td>
+        <td>fileSelector（讀哪些檔）</td>
+        <td><span class="layer-dyn">必動</span> 換副檔名</td>
+        <td>Read 節點 → File Selector 欄位</td>
+      </tr>
+      <tr>
+        <td class="layer-name">Extract / Decode 層</td>
+        <td>Extract from File operation / Read 直接拿 string</td>
+        <td><span class="layer-dyn">通常動</span> 換 operation 或跳過（disable）</td>
+        <td>Extract from File 節點 → Operation 欄位</td>
+      </tr>
+      <tr>
+        <td class="layer-name">lpCall helper 層</td>
+        <td>retry / 429 / RPM throttle 工具層</td>
+        <td><span class="layer-dyn">只有圖片需動</span> 加 <code>contents</code> 參數（2 行 patch）</td>
+        <td>Code 節點頂部 lpCall 函式定義（line 30-60 區）</td>
+      </tr>
+      <tr>
+        <td class="layer-name">業務規則層</td>
+        <td>prompt 目標 / 改名規則 / Write 路徑</td>
+        <td><span class="layer-nodyn">完全不動</span></td>
+        <td>Code 節點的 prompt 字串、newFilename 拼接、results.push、Write 節點 fileName</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout key">
+    <div class="callout-icon" aria-hidden="true">■</div>
+    <div class="callout-body">
+      <strong>新口號：「業務規則層不動」</strong><br>
+      prompt 目標字串、newFilename 拼接邏輯、Write 節點 fileName 表達式——這 3 件事永遠不動。跨格式只動上面 3 層（最多 3 個欄位；圖片格式多加 2 行 lpCall helper patch）。<br><br>
+      LLM 回應裡只要動到這 3 件事其中一個，就是「擴張到業務規則層」——用模板 5 拒絕。
+    </div>
+  </div>
+
+  <p class="body-text">這跟第 5 章紅線 2「不要讓 LLM 直接產出完整 workflow JSON」直接呼應——前 3 層只動 2-3 個欄位（圖片再加 2 行），根本不需要整份重寫。</p>
+
+  <h3 class="sub-heading">動線總覽（4 步固定，不論格式）</h3>
+  <ul class="step-list">
+    <li class="step-item">
+      <span class="step-num">1</span>
+      <div class="step-body"><strong>判斷格式</strong>——學員手上的檔案副檔名是什麼？有文字層（docx / xlsx / txt / csv）還是無文字層（png / jpg / 掃描 PDF）？</div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">2</span>
+      <div class="step-body"><strong>選 Extract 策略</strong>——對照本章第 (08) 節「5 格式 dispatch 對照表」，找到對應策略。</div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">3</span>
+      <div class="step-body"><strong>動前 3 層（最多 3 個地方）</strong>——入口層 fileSelector 副檔名 + Extract/Decode 層設定 + （只有圖片）lpCall helper 層加 contents 參數。</div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">4</span>
+      <div class="step-body"><strong>業務規則層保持原狀</strong>——Code 節點裡 prompt 目標字串、改名規則、Write 節點 fileName 表達式全部不動。</div>
+    </li>
+  </ul>
+
+  <div class="callout info">
+    <div class="callout-icon" aria-hidden="true">△</div>
+    <div class="callout-body"><strong>跟第 6 章的差別：</strong>第 6 章 walkthrough 是「同格式（PDF）但業務目標換」，動的是業務規則層。本章是「業務目標一樣但格式換」，動的是前 3 層。兩章合起來涵蓋學員 90% 的課後改寫場景。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ===== (03) 格式 A：docx ===== -->
+<section class="lesson-section" id="s03-docx">
+  <div class="section-eyebrow">(03)</div>
+  <h2 class="section-heading">格式 A：.docx — 用「中介格式策略」</h2>
+
+  <div class="callout-warning">
+    <div class="callout-warning-label">n8n 沒有 docx 原生 operation</div>
+    <div class="callout-warning-body">
+      n8n Extract from File <strong>沒有 docx 專屬 operation</strong>（n8n 1.x 確認）。直接用 <code>text</code> operation 會抽到 zip XML 結構不是內文——Word .docx 是 zip + XML 結構，學員拿到 <code>&lt;?xml version="1.0"?&gt;...</code> 開頭的亂碼。<br>
+      所以 .docx 不能跟 .pdf 一樣「換 Extract operation 就好」，要走<strong>中介格式策略</strong>。
+    </div>
+  </div>
+
+  <div class="route-grid">
+    <div class="route-card recommended">
+      <div class="route-label">路線 1 · 推薦給商業學員</div>
+      <div class="route-title">手動 batch 轉 PDF 再走 #03</div>
+      <div class="route-body">
+        Word / Pages / LibreOffice 內建批次 export PDF：<br>
+        · <strong>Word</strong>：檔案 → 另存新檔 → 選 PDF（或 macOS 自動化動作 / Win 巨集 batch 跑）<br>
+        · <strong>Pages（Mac）</strong>：批次匯出 → PDF<br>
+        · <strong>LibreOffice</strong>：Tools → Macros → 批次 ConvertDocuments<br><br>
+        轉完直接用既有 #03。<strong>零 workflow 改動。</strong>
+      </div>
+    </div>
+    <div class="route-card">
+      <div class="route-label">路線 2 · 進階學員</div>
+      <div class="route-title">HTTP Request 接 Microsoft Graph / Google Docs API</div>
+      <div class="route-body">
+        不在本章範圍（屬於 #06 webhook + 外部 API 整合教學）。如果學員量大或要全自動化才走這條。
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub-heading">不要走的死路（學員會踩的雷）</h3>
+  <p class="body-text">❌ 把 #03 fileSelector 改 <code>*.docx</code> + Extract operation 留 <code>text</code> → 會抽到 zip XML 亂碼，AI 拿到 <code>&lt;?xml version="1.0"?&gt;...</code> 亂猜檔名<br>
+  ❌ 試圖叫 LLM 寫 docx parser 進 Code 節點 → mammoth 之類的 npm 模組 n8n 預設沒裝，學員裝不了<br>
+  ❌ 用 Read 直接拿 binary 後 Code 節點手寫 unzip → 走進工程地獄</p>
+
+  <h3 class="sub-heading">模板 9-A（可直接複製貼上）</h3>
+  <div class="template-block">
+    <div class="template-header">
+      <span class="template-label">TEMPLATE 9-A</span>
+      <span class="template-tag">docx → 中介格式策略</span>
+    </div>
+    <div class="template-body">
+      <div class="code-wrap">
+        <pre class="code-block">我有一批 .docx 想用 #03 batch-error-recovery 改名 + 分類。
+我已知 n8n Extract from File 沒有 docx 專屬 operation，也不能用 text operation 直抽
+（會拿到 zip XML 亂碼）。請走路線 1：批次轉 PDF 再走 #03。
+
+請只回我兩件事：
+1. 在 Mac / Windows 上怎麼批次把 .docx 一次 export 成 PDF（給最快做法）
+2. 轉完後 #03 要不要動任何設定（我認為不用，請確認）
+
+⚠️ 紅字硬規則：
+- 不要建議我改 fileSelector 成 *.docx
+- 不要建議我把 Extract operation 改成 text（會抽 zip XML 亂碼）
+- 不要建議我寫 Code 節點手 parse docx
+- 業務規則層 0 改動（我跑既有 #03 就好）
+
+不要 JSON、不要重寫 workflow。</pre>
+        <button class="copy-btn" onclick="copyCode(this)" aria-label="複製模板 9-A">複製</button>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub-heading">驗收硬指標（3 條）</h3>
+  <ul class="checklist">
+    <li><div><strong>批次轉檔完成</strong><div class="check-detail">.docx 全部已透過 Word / Pages / LibreOffice batch export 成 .pdf，丟 batch-inbox</div></div></li>
+    <li><div><strong>#03 零改動</strong><div class="check-detail">fileSelector / Extract operation / Code 節點 / Write 節點全部 0 改動</div></div></li>
+    <li><div><strong>跑通驗收</strong><div class="check-detail">跑 1 份轉好的 PDF → AI 改名輸出合理（例：<code>20260508_報價單_AA有限公司</code>）— 跟原 PDF 路線輸出一致</div></div></li>
+  </ul>
+</section>
+
+<hr class="section-rule">
+
+<!-- ===== (04) 格式 B：xlsx ===== -->
+<section class="lesson-section" id="s04-xlsx">
+  <div class="section-eyebrow">(04)</div>
+  <h2 class="section-heading">格式 B：.xlsx — 多一層：處理多 sheet 邏輯</h2>
+
+  <p class="body-text"><strong>改造點：</strong><code>fileSelector: "*.pdf"</code> → <code>"*.xlsx"</code>、<code>operation: "pdf"</code> → <code>"xlsx"</code>（這個 enum n8n 真有）。</p>
+
+  <p class="body-text"><strong>比 .docx 多的那一層</strong>：Excel 檔通常有多個 sheet。n8n Extract from File 的 xlsx operation 預設行為是「讀第一張 sheet」——但學員業務 case 常常不是「永遠取第一張」。</p>
+
+  <div class="route-grid">
+    <div class="route-card recommended">
+      <div class="route-label">策略 B-1 · 推薦（強制第一次走這條）</div>
+      <div class="route-title">取第一張 sheet</div>
+      <div class="route-body">
+        適合「.xlsx 永遠單 sheet」或「我手動把要處理的 sheet 移到第一張」的場景。Extract operation 設 <code>xlsx</code>，n8n 預設給第一張。<br><br>
+        業務規則層拿到的是第一張 sheet 的 row array——下方 prompt、改名、Write 完全不動。
+      </div>
+    </div>
+    <div class="route-card">
+      <div class="route-label">策略 B-2 · 進階（熟了再升級）</div>
+      <div class="route-title">多 sheet 都要</div>
+      <div class="route-body">
+        Extract 節點 Options → Sheet → All，output 是「sheet 名稱 → row array」物件。<br><br>
+        <strong>注意：這會踩到業務規則層</strong>——prompt 需要加 sheet 名稱。對非工程師學員，B-1 的成本（手動移 sheet）遠比業務規則層被污染好維護。
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub-heading">模板 9-B（可直接複製貼上）</h3>
+  <div class="template-block">
+    <div class="template-header">
+      <span class="template-label">TEMPLATE 9-B</span>
+      <span class="template-tag">xlsx → B-1 單 sheet</span>
+    </div>
+    <div class="template-body">
+      <div class="code-wrap">
+        <pre class="code-block">我要把 #03 batch-error-recovery 改成處理 .xlsx 客戶清單，每月 1 份檔案。
+我手動把目標 sheet 移到第一張，所以你只要處理「取第一張 sheet」策略（B-1），
+不要建議多 sheet 處理。
+
+請只回兩個前 3 層的設定變更：
+1. Read 節點 fileSelector
+2. Extract from File 節點 operation
+
+⚠️ 紅字硬規則：業務規則層 0 改動。AI 改名 prompt 若提到「PDF」這種對人類描述用詞也保持原樣。
+我要的是「同一套業務規則處理不同入口」，不是「為 xlsx 客製化新邏輯」。
+
+不要 JSON、不要重寫 workflow、不要加 row filter / 空白檢查（我跑通後再決定）。</pre>
+        <button class="copy-btn" onclick="copyCode(this)" aria-label="複製模板 9-B">複製</button>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub-heading">LLM 最常做的擴張——辨認 + 拒絕</h3>
+  <p class="body-text">LLM 通常會額外「順手」加 row filter 邏輯（典型擴張）：</p>
+  <div class="variants-grid">
+    <div class="variant-card">
+      <div class="variant-header">
+        <span class="variant-badge">理想回應</span>
+        <span class="variant-status pass">接受</span>
+      </div>
+      <div class="variant-body">
+        條列 2 條：<br>
+        1. <code>fileSelector</code> 改成 <code>*.xlsx</code><br>
+        2. <code>operation</code> 改成 <code>xlsx</code><br>
+        <div class="variant-note">只動入口層 + Extract/Decode 層兩個欄位，業務規則層完全沒提。</div>
+      </div>
+    </div>
+    <div class="variant-card">
+      <div class="variant-header">
+        <span class="variant-badge">歪掉變體</span>
+        <span class="variant-status fail">拒絕</span>
+      </div>
+      <div class="variant-body">
+        1. fileSelector 改成 *.xlsx<br>
+        2. operation 改成 xlsx<br><br>
+        <strong>【建議：Code 節點 prompt 補一段】</strong><br>
+        原本 prompt：「分析以下 PDF 文字，生成語意化檔名」<br>
+        改成：「分析以下 Excel 客戶清單（每筆 row 是一個客戶），生成語意化檔名」<br><br>
+        <strong>【建議】加 row 過濾：</strong><br>
+        <code>if (!rows.客戶名 || rows.客戶名.trim() === '') return [];</code>
+        <div class="variant-note">辨認訊號：動到 Code 節點業務規則層。用下方拒絕模板。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="code-block-label">拒絕擴張的模板（直接貼回 LLM）</div>
+  <div class="code-wrap">
+    <pre class="code-block">比較你最早的版本（單純改 fileSelector + operation）和現在這個建議：
+- 必要的（保留）：fileSelector + operation 兩條
+- 新增的擴張（移除）：prompt 字串改寫、空白 row 過濾
+
+我這次只要「同一套業務規則換成跑 xlsx」。row 過濾 / prompt 強化我自己用 #03 跑通後再決定要不要做。請只回 1 和 2。</pre>
+    <button class="copy-btn" onclick="copyCode(this)" aria-label="複製拒絕模板">複製</button>
+  </div>
+
+  <h3 class="sub-heading">驗收硬指標（4 條）</h3>
+  <ul class="checklist">
+    <li><div><strong>fileSelector 是 <code>*.xlsx</code></strong></div></li>
+    <li><div><strong>Extract operation 是 <code>xlsx</code></strong></div></li>
+    <li><div><strong>跑 1 個多 sheet .xlsx → Extract output 是第一張 sheet 的 row array</strong><div class="check-detail">不是全部 sheet 攤平、不是 binary</div></div></li>
+    <li><div><strong>AI 改名後檔名格式合理</strong><div class="check-detail">例：<code>20260415_客戶清單_AA有限公司</code>——業務規則層確實沒動，輸出結構跟跑 PDF 時一致</div></div></li>
+  </ul>
+</section>
+
+<hr class="section-rule">
+
+<!-- ===== (05) 格式 C：圖片 ===== -->
+<section class="lesson-section" id="s05-image">
+  <div class="section-eyebrow">(05)</div>
+  <h2 class="section-heading">格式 C：.png / .jpg — 最大轉折，要動 lpCall 用 multimodal</h2>
+
+  <div class="callout key">
+    <div class="callout-icon" aria-hidden="true">■</div>
+    <div class="callout-body">
+      <strong>為什麼圖片格式特殊：</strong>前面所有格式（pdf / docx / xlsx / csv / txt / md）都有「文字層」——n8n Extract from File 抽得出文字，Code 節點業務規則層拿到的 input 是字串。<br><br>
+      圖片完全相反：<strong>沒有文字層。</strong>掃描的收據、LINE 截圖、產品照片——Extract from File 出來只有 binary，沒文字。<br><br>
+      所以策略要轉折：<strong>不再走 Extract from File，改用 LLM multimodal。</strong>把圖片 base64 餵進 Gemini 2.5 Flash（lpCall helper），它「真的看圖」回你內容描述。
+    </div>
+  </div>
+
+  <h3 class="sub-heading">lpCall 路線選擇</h3>
+  <div class="route-grid">
+    <div class="route-card recommended">
+      <div class="route-label">路線 C-1 · 強制走這條</div>
+      <div class="route-title">小幅改 lpCall helper（2 行 patch）</div>
+      <div class="route-body">
+        在 lpCall 函式內加一段 <code>if (contents) use contents; else use text</code>。<br><br>
+        優點：lpCall 從此同時支援 text 和 multimodal，未來其他 workflow 都能用。改動只有 2 行。<br><br>
+        <strong>為什麼強制走這條：</strong>lpCall 加 2 行是「infrastructure 一次性升級」，升級完整個 #03 / #02 / 未來圖片 workflow 都受惠。
+      </div>
+    </div>
+    <div class="route-card">
+      <div class="route-label">路線 C-2 · 不建議</div>
+      <div class="route-title">外面構好 contents 直接 httpRequest</div>
+      <div class="route-body">
+        放棄 lpCall，在圖片 workflow 直接 <code>this.helpers.httpRequest</code>。<br><br>
+        看起來「不動 lpCall」，但失去 lpCall 內建的 retry / 429 / RPM throttle / size check——對每月 200 張掃描收據的學員會撞 RPM 限額。<br><br>
+        <strong>C-2 看起來簡單，但代價是地雷。</strong>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub-heading">步驟 1：fileSelector 設定（避開 brace expansion 風險）</h3>
+  <p class="body-text">n8n docs 只保證 <code>*</code> <code>**</code> <code>?</code> 三個 wildcard。<code>*.{png,jpg}</code> brace expansion 在不同 fileSelector 實作可能不 match。穩妥做法 2 選 1：</p>
+  <div class="route-grid">
+    <div class="route-card recommended">
+      <div class="route-label">方案 A · 推薦</div>
+      <div class="route-title">統一副檔名</div>
+      <div class="route-body">把 jpg 全 export 成 png（macOS Preview / Win 內建檢視器都能 export 成 png），fileSelector 統一用 <code>*.png</code>。</div>
+    </div>
+    <div class="route-card">
+      <div class="route-label">方案 B</div>
+      <div class="route-title">混合 png/jpg：兩個 Read node</div>
+      <div class="route-body">加第二個 Read 節點走 <code>*.jpg</code>，再用 Merge node 合流。Workflow 多 2 個節點但能處理混合。</div>
+    </div>
+  </div>
+  <p class="body-text">❌ <strong>不要做的事：</strong>直接用 <code>*.{png,jpg}</code> 不測試就交付學員；用 <code>*</code> 然後 Code 節點過濾副檔名（multimodal 對 .pdf / .txt 等非圖片會直接撞 API 錯誤）。</p>
+
+  <h3 class="sub-heading">步驟 2：lpCall helper patch（before / after 完整對照，2 行改動）</h3>
+  <p class="body-text">打開 #03 的 Code 節點，找到 lpCall 函式定義（line 30-60 區）。下方 before/after <strong>只示範改動的兩行段落</strong>（<code>// ...省略...</code> 處保持原 jsCode 不動）——學員照位置對齊改即可，不是把整段 paste 取代。</p>
+
+  <div class="code-block-label">BEFORE（保留 PDF / 文字模式）</div>
+  <div class="code-wrap">
+    <pre class="code-block">async function lpCall({ prompt, gen = {}, _att = 0 }) {
+  if (!prompt || typeof prompt !== 'string') return { ok: false, text: '', error: 'empty prompt' };
+  try {
+    const r = await this.helpers.httpRequest({
+      // ...省略...
+      body: {
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        // ...省略...
+      },
+    });
+    // ...</pre>
+  </div>
+
+  <div class="code-block-label">AFTER（同時相容 PDF/文字 + 圖片 multimodal）—— 只動 2 行</div>
+  <div class="code-wrap">
+    <pre class="code-block">async function lpCall({ prompt, contents, gen = {}, _att = 0 }) {
+  // 雙路徑：圖片用 contents，文字用 prompt
+  if (!prompt && !contents) return { ok: false, text: '', error: 'empty input' };
+  try {
+    const r = await this.helpers.httpRequest({
+      // ...省略...
+      body: {
+        contents: contents || [{ role: 'user', parts: [{ text: prompt }] }],
+        // ...省略...
+      },
+    });
+    // ...</pre>
+  </div>
+  <p class="body-text"><strong>改動只有 2 行</strong>（簽名加 <code>contents</code> 參數、body.contents 改條件）。其他 helper 邏輯（retry / 429 / RPM throttle）完全不動。</p>
+
+  <h3 class="sub-heading">步驟 3：Code 節點業務段呼叫 multimodal lpCall（完整替換段）</h3>
+  <p class="body-text">把原本（PDF 路線）的 prompt 構造 + lpCall 呼叫，替換成以下段落：</p>
+  <div class="code-wrap">
+    <pre class="code-block">const imgBase64 = item.binary.data.data;
+const imgMime = item.binary.data.mimeType || 'image/png';
+
+if (!lpSizeOK(imgBase64)) {
+  results.push({ json: { status: 'failed', originalName, errorMsg: '圖片超過 18MB' } });
+  continue;
+}
+
+const lpResult = await lpCall.call(this, {
+  contents: [{
+    role: 'user',
+    parts: [
+      { text: '分析以下圖片內容，生成語意化檔名（不含副檔名）。格式：YYYYMMDD_主題_關鍵字（繁體中文）。沒日期用 ' + today + '。直接回檔名一行。' },
+      { inlineData: { mimeType: imgMime, data: imgBase64 } }
+    ]
+  }],
+  gen: { temperature: 0.3, maxOutputTokens: 200 }
+});
+
+// 下方 lpResult.text 解析、檔名清理、results.push 全部不動（業務規則層 0 動）</pre>
+    <button class="copy-btn" onclick="copyCode(this)" aria-label="複製 multimodal 呼叫段">複製</button>
+  </div>
+
+  <div class="callout info">
+    <div class="callout-icon" aria-hidden="true">△</div>
+    <div class="callout-body"><strong>圖片大小注意：</strong>lpCall 內建 <code>lpSizeOK()</code>（上限 18MB）。✅ LINE 截圖、手機拍的名片收據（通常 &lt; 2MB）。❌ 動畫 GIF（常 10-30MB）、300dpi 以上全頁掃描（常 15-25MB）、HEIC（iPhone 預設）——這些要學員預先轉格式或降解析度。</div>
+  </div>
+
+  <h3 class="sub-heading">模板 9-C（可直接複製貼上）</h3>
+  <div class="template-block">
+    <div class="template-header">
+      <span class="template-label">TEMPLATE 9-C</span>
+      <span class="template-tag">圖片 → multimodal，路線 C-1</span>
+    </div>
+    <div class="template-body">
+      <div class="code-wrap">
+        <pre class="code-block">我要把 #03 batch-error-recovery 改成處理圖片（.png — 走方案 A，jpg 我會先 export 成 png），
+用 Gemini 2.5 Flash multimodal 看圖回語意化檔名。
+請走路線 C-1（lpCall helper 加 contents 參數，不要走 C-2 自寫 httpRequest）。
+
+請給我三件事：
+
+1. 入口節點變更
+   - fileSelector：改成 *.png（不要用 *.{png,jpg} brace expansion，n8n docs 只保證 * ** ?）
+   - Extract from File 節點：disable / 刪除 / 換 operation 三選一並說明
+
+2. lpCall helper patch（給完整 before/after 對照，2 行改動）
+   lpCall 函式定義那段 before 與 after 完整貼出來（包含函式簽名 + body.contents 那行）。
+
+3. Code 節點業務段呼叫端 multimodal contents 替換段
+   給可直接複製貼上的「const imgBase64 = ...; const lpResult = await lpCall.call({ contents: [...] })」整段。
+
+⚠️ 紅字硬規則：
+- 業務規則層 0 改動（lpResult.text 解析、檔名清理、results.push、Write 節點全部保留）
+- 不要重寫整個 Code 節點
+- 不要建議自動檔案類型偵測（我另開一條圖片專用 workflow）
+- 不要加圖片預處理（resize / grayscale）
+- 不要加 retry / try/catch（lpCall 內建已經有）
+
+不要 JSON、不要重寫 workflow。</pre>
+        <button class="copy-btn" onclick="copyCode(this)" aria-label="複製模板 9-C">複製</button>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub-heading">9-C：LLM 可能歪掉的 5 種樣子</h3>
+  <table class="data-table" aria-label="9-C 歪掉變體 5 種">
+    <thead>
+      <tr>
+        <th>變體</th>
+        <th>LLM 回應症狀</th>
+        <th>學員下一步</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>A 重寫整份</strong></td>
+        <td>回 5+ 個節點 JSON，動到 Read / Write / Switch 等不該動的</td>
+        <td>「請只回 lpCall 函式 patch 的 before/after，其他節點不要動」</td>
+      </tr>
+      <tr>
+        <td><strong>B 漏改簽名</strong></td>
+        <td>給的 contents 構造對，但 lpCall 函式定義沒加 <code>contents</code> 參數</td>
+        <td>「你忘了在 lpCall 函式簽名加 contents 參數，請補完整 patch」</td>
+      </tr>
+      <tr>
+        <td><strong>C 只傳 text 沒傳 inlineData</strong></td>
+        <td>contents 只有 <code>{ parts: [{ text: '分析圖片...' }] }</code>，沒給圖片資料</td>
+        <td>「prompt 沒帶圖片 base64 等於 LLM 看不到圖片，請補 inlineData 段」</td>
+      </tr>
+      <tr>
+        <td><strong>D 加 streaming 高玩</strong></td>
+        <td>加 <code>streamGenerateContent</code> / <code>responseSchema</code> 等本工作流不需要的進階參數</td>
+        <td>「我們不需要 streaming，請維持原本 generateContent endpoint」</td>
+      </tr>
+      <tr>
+        <td><strong>E 自寫 retry/try-catch</strong></td>
+        <td>在 Code 節點業務規則層加 try/catch 包 lpCall（lpCall 已有 retry）</td>
+        <td>「lpCall helper 已內建 retry，請移除這層 try-catch」</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 class="sub-heading">驗收硬指標（5 條）</h3>
+  <ul class="checklist">
+    <li><div><strong>fileSelector 走方案 A（<code>*.png</code>）或方案 B（兩個 Read node）</strong><div class="check-detail">不是 <code>*.{png,jpg}</code> brace expansion。跑 1 張測試圖片有抓到。</div></div></li>
+    <li><div><strong>Extract from File 節點被 disable</strong><div class="check-detail">灰色，旁邊有暫停圖示。連線從 Read → Code 直連。</div></div></li>
+    <li><div><strong>lpCall 函式簽名加了 <code>contents</code> 參數</strong><div class="check-detail">呼叫端傳 contents 時走 multimodal、傳 prompt 時走原邏輯（兩種都能跑）。</div></div></li>
+    <li><div><strong>業務規則層保留</strong><div class="check-detail">lpCall 的 retry / lpThrottle / lpSizeOK / 檔名清理 + Write 節點都沒動。</div></div></li>
+    <li><div><strong>真的「看內容」測試通過</strong><div class="check-detail">拿一張簡單名片或收據截圖跑 → AI 改名是「能反映內容語意」的合理檔名（例：<code>20260508_名片_張先生</code>、<code>20260508_收據_全聯_385元</code>）——不是檔案 metadata 隨機字串、不是 null_null。</div></div></li>
+  </ul>
+</section>
+
+<hr class="section-rule">
+
+<!-- ===== (06) 格式 D/E：純文字 ===== -->
+<section class="lesson-section" id="s06-text">
+  <div class="section-eyebrow">(06)</div>
+  <h2 class="section-heading">格式 D/E：.csv / .txt / .md — 最簡單，跳過 Extract</h2>
+
+  <p class="body-text">.txt / .md 本身是純文字檔，n8n Read 節點讀進來 binary 解 utf8 就拿到字串——<strong>不需要 Extract from File 節點</strong>。.csv 有專屬 operation <code>csv</code>，但很多商業 case 只要「整段 CSV 字串塞給 LLM 讓它語意化摘要」——不需要結構化解析，同樣跳過 Extract。</p>
+
+  <div class="route-grid">
+    <div class="route-card recommended">
+      <div class="route-label">路線 D-1 · 推薦（強制第一次走這條）</div>
+      <div class="route-title">純文字 + 跳過 Extract</div>
+      <div class="route-body">
+        適合 .txt / .md / .csv「整段當字串餵給 LLM」場景。<br>
+        · fileSelector：<code>*.txt</code>（單一副檔名）<br>
+        · Extract from File：disable（保留節點 placeholder）<br>
+        · 連線：Read → Code 直連<br>
+        · Code 節點 Extract/Decode 滲入段：binary 解 utf8 拿字串 → 餵 <code>lpCall.prompt</code>
+      </div>
+    </div>
+    <div class="route-card">
+      <div class="route-label">路線 D-2 · 進階</div>
+      <div class="route-title">CSV 結構化 + Extract csv operation</div>
+      <div class="route-body">
+        適合「.csv 每一 row 各跑一次 LLM」場景。<br>
+        Extract operation = <code>csv</code>，output 是 row array。<br>
+        <strong>注意：這踩到業務規則層</strong>（input 從字串變 row 物件 array，要 loop 每 row 跑 lpCall）。第一次跨 .csv 強制走 D-1。
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub-heading">binary 解 utf8 — 最小 patch（Code 節點 Extract/Decode 滲入段）</h3>
+  <div class="code-block-label">原本（PDF 路線）</div>
+  <div class="code-wrap">
+    <pre class="code-block">const pdfText = item.json.text || '';</pre>
+  </div>
+  <div class="code-block-label">替換成（純文字路線 D-1）</div>
+  <div class="code-wrap">
+    <pre class="code-block">const rawBinary = item.binary?.data?.data;
+const pdfText = rawBinary
+  ? Buffer.from(rawBinary, 'base64').toString('utf8')
+  : '';
+// 注：變數名仍叫 pdfText 是為了業務規則層下方所有引用都不用改
+// 雖然語意上現在裝的是 .txt / .md / .csv 內容，
+// 但「同一套業務規則處理不同入口格式」就是要讓變數名穩定</pre>
+    <button class="copy-btn" onclick="copyCode(this)" aria-label="複製 binary decode patch">複製</button>
+  </div>
+
+  <div class="callout-warning">
+    <div class="callout-warning-label">brace expansion 同等風險</div>
+    <div class="callout-warning-body">混合 .txt / .md / .csv 三副檔名一起跑：不要用 <code>*.{txt,md,csv}</code> brace expansion（與 .png/.jpg 同風險）。改用 3 個 Read node 各走一個副檔名 + Merge 合流，或第一次先統一成單一副檔名跑通再擴充。</div>
+  </div>
+
+  <h3 class="sub-heading">LLM 最常做的擴張——辨認 + 拒絕</h3>
+  <div class="variants-grid">
+    <div class="variant-card">
+      <div class="variant-header">
+        <span class="variant-badge">理想回應（9-D）</span>
+        <span class="variant-status pass">接受</span>
+      </div>
+      <div class="variant-body">
+        1. fileSelector：<code>/files/shared/batch-inbox/*.txt</code><br>
+        2. Extract from File 節點：建議 disable（右鍵 Deactivate），保留節點 placeholder。連線 Read 直接到 Code。<br>
+        3. Code 節點最小 patch：<br>
+        <code>const rawBinary = item.binary?.data?.data;<br>const pdfText = rawBinary ? Buffer.from(rawBinary, 'base64').toString('utf8') : '';</code>
+        <div class="variant-note">下方 prompt 構造、lpCall、檔名清理、results.push 全部不動。</div>
+      </div>
+    </div>
+    <div class="variant-card">
+      <div class="variant-header">
+        <span class="variant-badge">歪掉變體（9-D）</span>
+        <span class="variant-status fail">拒絕</span>
+      </div>
+      <div class="variant-body">
+        <strong>「為了讓 code 更可讀，我建議：</strong><br>
+        · <code>pdfText</code> 改名為 <code>fileContent</code>（更通用）<br>
+        · 把 binary 解 utf8 抽成 helper 函式<br>
+        · 加一段檢查 binary 編碼（萬一不是 utf8 而是 big5）」<br>
+        <div class="variant-note">辨認訊號：主動 refactor 變數名、抽 helper、加編碼檢查——全部學員沒要求的。<br>拒絕：「我故意保留 pdfText 變數名，下方有十幾處引用——改名等於動到業務規則層整段。」</div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub-heading">模板 9-D（.csv 純文字）</h3>
+  <div class="template-block">
+    <div class="template-header">
+      <span class="template-label">TEMPLATE 9-D</span>
+      <span class="template-tag">csv → 純文字路線 D-1</span>
+    </div>
+    <div class="template-body">
+      <div class="code-wrap">
+        <pre class="code-block">我要把 #03 batch-error-recovery 改成處理 .csv（每月匯出的業務報表，整段內容當字串
+餵給 Gemini 做摘要 + 改名）。請走路線 D-1（純文字、不要結構化 row 解析）。
+
+請只回三件事：
+1. fileSelector 怎麼寫
+2. Extract from File 節點處理方式（disable / 刪除 / 換 operation 三選一）
+3. Code 節點 Extract/Decode 滲入段「拿 pdfText」那行的最小 patch（從 binary 解 utf8）
+
+⚠️ 紅字硬規則：
+- 變數名 pdfText 不要改
+- 業務規則層（prompt 構造、lpCall、檔名清理、Write）0 改動
+- 不要建議 refactor、抽 helper、加編碼偵測
+
+不要 JSON、不要重寫 workflow。</pre>
+        <button class="copy-btn" onclick="copyCode(this)" aria-label="複製模板 9-D">複製</button>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub-heading">模板 9-E（.txt / .md 多副檔名）</h3>
+  <div class="template-block">
+    <div class="template-header">
+      <span class="template-label">TEMPLATE 9-E</span>
+      <span class="template-tag">txt/md → 純文字路線 D-1</span>
+    </div>
+    <div class="template-body">
+      <div class="code-wrap">
+        <pre class="code-block">我要把 #03 batch-error-recovery 改成同時處理 .txt 和 .md 純文字檔（會議紀錄、筆記、待辦清單），
+整段內容當字串餵給 Gemini 做摘要 + 改名。
+
+請只回三件事：
+1. fileSelector 同時匹配 .txt 和 .md 怎麼寫（注意 brace expansion 風險）
+2. Extract from File 節點處理方式
+3. Code 節點 Extract/Decode 滲入段「拿 pdfText」那行的最小 patch
+
+⚠️ 紅字硬規則：
+- 變數名 pdfText 保留（下方有 10 多處引用，動了等於動業務規則層）
+- 業務規則層（prompt 字串、改名 template、Write）全部 0 改動
+- 不要建議「為了可讀性」改名或 refactor
+
+不要 JSON、不要重寫 workflow。</pre>
+        <button class="copy-btn" onclick="copyCode(this)" aria-label="複製模板 9-E">複製</button>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub-heading">驗收硬指標（4 條）</h3>
+  <ul class="checklist">
+    <li><div><strong>fileSelector 用單一副檔名</strong><div class="check-detail"><code>*.txt</code>（或 <code>*.md</code> / <code>*.csv</code> 擇一）——不用 brace expansion</div></div></li>
+    <li><div><strong>Extract from File 是 disable 狀態</strong><div class="check-detail">不是刪除，連線 Read → Code 直連</div></div></li>
+    <li><div><strong>Code 節點 jsCode 只動了 <code>pdfText</code> 那一行的取值方式</strong><div class="check-detail">從 <code>item.json.text</code> 改成 binary 解 utf8——業務規則層（prompt 構造、lpCall、檔名清理、results.push）下方完全沒動</div></div></li>
+    <li><div><strong>跑 1 個 .txt → AI 改名輸出合理</strong><div class="check-detail">例：<code>20260508_會議紀錄_週會筆記</code></div></div></li>
+  </ul>
+</section>
+
+<hr class="section-rule">
+
+<!-- ===== (07) LLM 回應辨認查找表 ===== -->
+<section class="lesson-section" id="s07-signals">
+  <div class="section-eyebrow">(07)</div>
+  <h2 class="section-heading">LLM 回應辨認查找表 — 看到這些就拒絕</h2>
+
+  <div class="intro-band">
+    <div class="intro-label">使用方式</div>
+    <div class="intro-text">拿到 LLM 回應後先掃這張表 30 秒，辨認自己拿到的是哪型，再決定接受還是拒絕。</div>
+  </div>
+
+  <table class="data-table" aria-label="LLM 回應辨認查找表">
+    <thead>
+      <tr>
+        <th>模板</th>
+        <th>ideal 回應特徵</th>
+        <th>最常見歪掉變體</th>
+        <th>學員下一步</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>9-A docx</strong></td>
+        <td>條列 2 條：批次轉 PDF 做法 + 確認 #03 不動</td>
+        <td>建議改 fileSelector 成 <code>*.docx</code> + Extract operation=text（會抽 zip XML 亂碼）</td>
+        <td>拒絕，要求走中介格式策略路線 1</td>
+      </tr>
+      <tr>
+        <td><strong>9-B xlsx</strong></td>
+        <td>條列 2 條：fileSelector + operation=xlsx</td>
+        <td>加 row filter / 空白檢查（業務沒要）</td>
+        <td>用拒絕模板，只要 1 和 2</td>
+      </tr>
+      <tr>
+        <td><strong>9-C 圖片</strong></td>
+        <td>三段：入口變更（<code>*.png</code>）+ lpCall 2 行 before/after patch + Code 段呼叫端替換</td>
+        <td>重寫整個 Code 節點 / 漏改 lpCall 簽名 / 只給 text 沒給 inlineData / 加 streaming / 自寫 retry</td>
+        <td>拒絕，要求回到 before/after 完整對照</td>
+      </tr>
+      <tr>
+        <td><strong>9-D csv</strong></td>
+        <td>三段：fileSelector + Extract disable + binary 解 utf8 patch</td>
+        <td>改變數名 / 抽 helper / 加編碼偵測</td>
+        <td>拒絕，pdfText 變數名保留</td>
+      </tr>
+      <tr>
+        <td><strong>9-E txt/md</strong></td>
+        <td>三段（同 9-D）</td>
+        <td>同 9-D + brace expansion 用法不穩定</td>
+        <td>同 9-D</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout key">
+    <div class="callout-icon" aria-hidden="true">■</div>
+    <div class="callout-body">
+      <strong>辨認訊號通用版（不分模板）：</strong>LLM 回應裡只要出現下面任一關鍵字，就是擴張——用模板 5 拒絕：<br>
+      · 「為了相容性 / 可讀性 / 可維護性」<br>
+      · 「順手 / 另外建議 / 同時建議」<br>
+      · 「重寫整個 / 全新 / 改造後的完整 workflow」<br>
+      · 「加 try/catch / retry / fallback」（lpCall 內建已有）<br>
+      · 「自動偵測檔案類型」（學員沒要混合相容）
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ===== (08) 5 格式 dispatch 對照表 ===== -->
+<section class="lesson-section" id="s08-dispatch">
+  <div class="section-eyebrow">(08)</div>
+  <h2 class="section-heading">5 格式 dispatch 對照表 — 建議列印貼螢幕邊</h2>
+
+  <div class="intro-band">
+    <div class="intro-label">列印建議</div>
+    <div class="intro-text">把這張表 + 第 (07) 節「LLM 回應辨認訊號」+ 5 條模板各一張印 A4，雙欄排版，貼螢幕邊。每次要跨格式改寫前掃 30 秒。</div>
+  </div>
+
+  <table class="cheat-table" aria-label="5 格式 dispatch 對照表（cheat sheet）">
+    <thead>
+      <tr>
+        <th>格式</th>
+        <th>fileSelector 範例</th>
+        <th>Extract 策略</th>
+        <th>動 lpCall helper？</th>
+        <th>動業務規則層？</th>
+        <th>注意事項</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>.pdf</strong></td>
+        <td><code>*.pdf</code></td>
+        <td>Extract operation=<code>pdf</code></td>
+        <td><span class="cheat-nodyn">不動</span></td>
+        <td><span class="cheat-nodyn">不動</span></td>
+        <td>預設 #02/#03 路線</td>
+      </tr>
+      <tr>
+        <td><strong>.docx</strong></td>
+        <td><code>*.pdf</code>（中介策略）</td>
+        <td><strong>不能用 Extract</strong> — Word/Pages/LibreOffice 批次 export PDF 再走既有 #03</td>
+        <td><span class="cheat-nodyn">不動</span></td>
+        <td><span class="cheat-nodyn">不動</span></td>
+        <td>Extract from File 沒有 docx operation；<code>text</code> operation 直抽會拿到 zip XML 亂碼</td>
+      </tr>
+      <tr>
+        <td><strong>.xlsx</strong></td>
+        <td><code>*.xlsx</code></td>
+        <td>Extract operation=<code>xlsx</code></td>
+        <td><span class="cheat-nodyn">不動</span></td>
+        <td><span class="cheat-nodyn">不動</span>（B-1 單 sheet）</td>
+        <td>預設取第一張 sheet；多 sheet 強制走 B-1（手動把目標 sheet 移第一）；B-2 多 sheet 會踩到業務規則層</td>
+      </tr>
+      <tr>
+        <td><strong>.csv（純字串）</strong></td>
+        <td><code>*.csv</code></td>
+        <td>Extract disable，Read → Code 直連</td>
+        <td><span class="cheat-nodyn">不動</span></td>
+        <td><span class="cheat-dyn">動 1 行</span>（pdfText 取值）</td>
+        <td>整段 CSV 當文字餵 LLM；不結構化解析</td>
+      </tr>
+      <tr>
+        <td><strong>.csv（結構化）</strong></td>
+        <td><code>*.csv</code></td>
+        <td>Extract operation=<code>csv</code></td>
+        <td><span class="cheat-nodyn">不動</span></td>
+        <td><span class="cheat-dyn">動</span>（loop row 跑 lpCall）</td>
+        <td>進階用法，初次強制走純字串路線</td>
+      </tr>
+      <tr>
+        <td><strong>.txt / .md</strong></td>
+        <td><code>*.txt</code>（單一）或兩個 Read 各走 <code>*.txt</code> / <code>*.md</code></td>
+        <td>Extract disable，Read → Code 直連</td>
+        <td><span class="cheat-nodyn">不動</span></td>
+        <td><span class="cheat-dyn">動 1 行</span>（pdfText 取值）</td>
+        <td>⚠️ 不要用 <code>*.{txt,md}</code> brace expansion；binary 解 utf8 即可</td>
+      </tr>
+      <tr>
+        <td><strong>.png / .jpg</strong></td>
+        <td><code>*.png</code>（方案 A）或兩個 Read 各走 <code>*.png</code> / <code>*.jpg</code>（方案 B）</td>
+        <td>Extract disable，Read → Code 直連</td>
+        <td><span class="cheat-dyn">動</span>（lpCall 加 contents 參數，2 行 patch）</td>
+        <td><span class="cheat-dyn">動</span>（呼叫端 prompt 改 contents + inlineData；lpResult.text 解析以下不動）</td>
+        <td>⚠️ 不要用 <code>*.{png,jpg}</code> brace expansion；18MB 上限；HEIC / 高解析掃描 / 動畫 GIF 要預先處理</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<hr class="section-rule">
+
+<!-- ===== (09) 通用驗收 5 條 ===== -->
+<section class="lesson-section" id="s09-checklist">
+  <div class="section-eyebrow">(09)</div>
+  <h2 class="section-heading">通用驗收 5 條 — 不分格式都要過</h2>
+  <p class="body-text">跨格式改寫不論走哪條路線，學員自驗時都要對這 5 條：</p>
+  <ul class="checklist">
+    <li>
+      <div>
+        <strong>前 3 層改了，業務規則層沒動</strong>
+        <div class="check-detail">n8n UI 點 Code 節點 → 看 jsCode 的 prompt 字串、改名 template、results.push 結構——跟原 #03 完全一樣（除了圖片或 D-1 純文字路線那 1 行 binary 取值是 Extract/Decode 層滲入，不算業務規則層）</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>fileSelector 對得上格式</strong>
+        <div class="check-detail">副檔名清單跟學員手上實際檔案副檔名一字不差</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>Extract 節點該 disable 的 disable，該換 operation 的換</strong>
+        <div class="check-detail">對照第 (08) 節 dispatch 對照表的「Extract 策略」欄</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>跑 1 個測試檔通過 + AI 改名肉眼看合理</strong>
+        <div class="check-detail">不是 null_null、不是 binary garbage 截字串、檔名語意能反映檔案內容</div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>跑 5-10 個測試檔通過率 ≥ 80%</strong>
+        <div class="check-detail">少數邊界 case（圖片是純圖無可辨識內容、xlsx 第一張 sheet 真的是空目錄）記備注人工處理，不為 1-2 張改流程（紅線 8 / 第 6 章 walkthrough Step 6）</div>
+      </div>
+    </li>
+  </ul>
+</section>
+
+<hr class="section-rule">
+
+<!-- ===== (10) 常見錯誤 4 條 ===== -->
+<section class="lesson-section" id="s10-errors">
+  <div class="section-eyebrow">(10)</div>
+  <h2 class="section-heading">常見錯誤 + 怎麼解</h2>
+
+  <div class="error-list">
+    <div class="error-item">
+      <div class="error-tag">錯誤 1</div>
+      <div class="error-title">「.docx 我把 fileSelector 改 *.docx + Extract operation 改 text，AI 改名輸出亂猜的字」</div>
+      <div class="error-section-label">症狀</div>
+      <div class="error-body">fileSelector + operation 都改了，Extract 沒紅燈，但 AI 改名出來變成 <code>20260508_文件_xml1document</code> 這種看似有抓到內容但跟原 docx 內文無關的字串。</div>
+      <div class="error-section-label">根因</div>
+      <div class="error-body">n8n 的 <code>text</code> operation 不會「自動偵測類型抽純文字」——它把檔案 binary 當純文字解。Word .docx 是 zip + XML 結構，<code>text</code> operation 會抽到 zip 內部的 <code>&lt;?xml version="1.0"?&gt;...</code> XML 標籤亂碼。AI 拿到的 input 不是 docx 內文，是 zip XML。</div>
+      <div class="error-section-label">解法</div>
+      <div class="error-body">放棄直抽路線，走 <strong>9-A 中介格式策略路線 1</strong>——Word / Pages / LibreOffice 批次 export 成 PDF，再走既有 #03（fileSelector / Extract operation / 業務規則層全部回到 PDF 路線預設）。</div>
+      <div class="error-section-label">預防</div>
+      <div class="error-body">把第 (08) 節 dispatch 對照表貼螢幕邊——.docx 那行明確寫「不能用 Extract」+ 走中介策略。</div>
+    </div>
+
+    <div class="error-item">
+      <div class="error-tag">錯誤 2</div>
+      <div class="error-title">「圖片 multimodal 沒看 maxInlineBytes，撞 Gemini 20MB API limit」</div>
+      <div class="error-section-label">症狀</div>
+      <div class="error-body">跑了 10 張圖，前 8 張綠燈、第 9 張紅燈，Code 節點錯誤 <code>Request too large</code> 或 <code>Payload exceeds maximum size</code>。</div>
+      <div class="error-section-label">根因</div>
+      <div class="error-body">第 9 張可能是 HEIC（iPhone 拍）或 300dpi 全頁掃描，binary &gt; 20 MB。</div>
+      <div class="error-section-label">解法</div>
+      <div class="error-body">短期：把那張圖在 macOS Preview 開 → File → Export → 選 JPG 80% 品質，重新放回 inbox。長期：lpCall 內建 <code>lpSizeOK()</code> 預檢已經會把這類撞上限的標 <code>failed</code>——確認 Code 節點呼叫端有用 <code>lpSizeOK(imgBase64)</code> 預檢（看第 (05) 節步驟 3 的範例段落）。</div>
+      <div class="error-section-label">預防</div>
+      <div class="error-body">模板 9-C 的 ideal 回應段落有 <code>lpSizeOK</code> 預檢，學員替換 Code 節點時不要把這段砍掉。</div>
+    </div>
+
+    <div class="error-item">
+      <div class="error-tag">錯誤 3</div>
+      <div class="error-title">「.xlsx 多 sheet 不知道 LLM 拿到哪張，AI 改名跑出莫名其妙的內容」</div>
+      <div class="error-section-label">症狀</div>
+      <div class="error-body">跑了一份 5 sheet 的 .xlsx，AI 改名出來的檔名是 sheet 名「目錄」「索引」這種沒業務意義的字。</div>
+      <div class="error-section-label">根因</div>
+      <div class="error-body">n8n Extract from File <code>xlsx</code> operation 預設讀第一張 sheet——學員的 .xlsx 第一張剛好是「目錄」sheet，真正想處理的「客戶清單」在第二張。</div>
+      <div class="error-section-label">解法</div>
+      <div class="error-body">（B-1 路線）在 macOS Numbers / Excel 裡把目標 sheet 移到第一張，存檔。或上傳前先存一份只有目標 sheet 的副本（<code>xxx-清單only.xlsx</code>）。</div>
+      <div class="error-section-label">預防</div>
+      <div class="error-body">跨 .xlsx 改寫第一次強制走 B-1，把「我要哪張 sheet」這個業務決定離開 workflow。</div>
+    </div>
+
+    <div class="error-item">
+      <div class="error-tag">錯誤 4</div>
+      <div class="error-title">「圖片 fileSelector 用了 *.{png,jpg} brace expansion，但跑起來只抓到 .png 不抓 .jpg」</div>
+      <div class="error-section-label">症狀</div>
+      <div class="error-body">學員在 batch-inbox 放了 5 張 .png + 5 張 .jpg，跑 Read 節點只跑 5 張（其中一邊副檔名），另一邊全沒進。</div>
+      <div class="error-section-label">根因</div>
+      <div class="error-body">n8n docs 只保證 <code>*</code> <code>**</code> <code>?</code> 三個 wildcard。<code>*.{png,jpg}</code> brace expansion 在不同 fileSelector 實作不一定 match。</div>
+      <div class="error-section-label">解法</div>
+      <div class="error-body"><strong>方案 A（推薦）：</strong>把 jpg 全 export 成 png，fileSelector 統一用 <code>*.png</code>。<br><strong>方案 B：</strong>workflow 加第二個 Read 節點走 <code>*.jpg</code>，再用 Merge node 合流。</div>
+      <div class="error-section-label">預防</div>
+      <div class="error-body">模板 9-C 已強制走方案 A；對照表 .png/.jpg 那行也明確標 ⚠️ 不要用 brace expansion。</div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ===== (11) 章末動線 ===== -->
+<section class="lesson-section" id="s11-next">
+  <div class="section-eyebrow">(11)</div>
+  <h2 class="section-heading">章末動線 — 走完了去哪？卡住了去哪？</h2>
+
+  <p class="body-text"><strong>這章在 post-llm 系列的位置：</strong>第 6 章 + 第 9 章合起來涵蓋學員 90% 的課後改寫場景。前 8 章：ch1-2 核心觀念 + ch3-4 步驟詳解 + ch5 紅線 + ch6 walkthrough（同格式業務換）+ ch7 錯誤分流 + ch8 環境設定。本章（ch9）：跨格式改寫（業務目標一樣但格式換）。</p>
+
+  <p class="body-text"><strong>走完本章後你應該能做：</strong>拿到任一格式，30 分鐘內把 #03 改成處理該格式。看 LLM 回應 30 秒辨認擴張。列印對照表貼螢幕邊，每次改寫前掃 30 秒。</p>
+
+  <table class="nav-table" aria-label="章末三條動線">
+    <thead>
+      <tr>
+        <th>學員心理</th>
+        <th>去哪</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>「我跨 .docx 跑通了，想試另一格式」</td>
+        <td>同章選下一個格式重跑（5 個格式各 30 分鐘 = 一個下午跑完）</td>
+      </tr>
+      <tr>
+        <td>「我跨 .xlsx 跑紅燈了，看不懂錯誤」</td>
+        <td>第 7 章錯誤分流</td>
+      </tr>
+      <tr>
+        <td>「我把 LLM 給的整份 JSON 直接匯入結果炸了」</td>
+        <td>第 5 章紅線 2 + 紅線 5</td>
+      </tr>
+      <tr>
+        <td>「圖片我做完了，想擴大到產品照片分類」</td>
+        <td>以本章 9-C 模板的 multimodal 為基底，把 prompt 從「生成檔名」升級到「抽結構化 JSON」——抽去看 Lite Pack <code>#08-receipt-itemize</code>（如有）或 prompt-engineering 系列</td>
+      </tr>
+      <tr>
+        <td>「我有 200 個檔案混合 .pdf / .docx / .png」</td>
+        <td>回 <strong>#10 folder-organize</strong>（Lite Pack 14 個 workflow 之一）為基底——不是改 #03。#10 設計上就有 Switch 節點按副檔名分流到不同 Extract 策略。</td>
+      </tr>
+      <tr>
+        <td>「我做完整章了，想再回去看核心觀念」</td>
+        <td>第 1 章 timeline Story A/B + 第 2 章骨架</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout info">
+    <div class="callout-icon" aria-hidden="true">△</div>
+    <div class="callout-body">post-llm 系列到此結束。這套流程的核心不是 prompt 技巧，是「縮小範圍、逐步驗收」的工作紀律。改造案例歡迎分享到學員社群，你的實際情境對其他結業學員的參考價值，遠比任何教材範例都高。</div>
+  </div>
+</section>
+
+<div class="nav-footer">
+  <a href="post-llm-8-environment.html" class="nav-btn"><span aria-hidden="true">←</span> 上一章：環境互鎖與真實驗收</a>
+  <a href="../index.html" class="nav-btn primary">回到課程總覽 <span aria-hidden="true">→</span></a>
+</div>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">2026 春季</span>
+  <span class="footer-meta" data-platform-version="n8n 1.x" data-built-at="2026-05-08">本頁以 n8n 1.x 製作，2026-05</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+</script>
+<script>
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+<script>
+function copyCode(btn){
+  var pre=btn.previousElementSibling;
+  if(!pre){pre=btn.parentElement.querySelector('pre');}
+  if(pre&&navigator.clipboard){
+    navigator.clipboard.writeText(pre.textContent).then(function(){
+      var orig=btn.textContent;
+      btn.textContent='已複製';
+      setTimeout(function(){btn.textContent=orig;},1500);
+    });
+  }
+}
+</script>
+</body>
+</html>
