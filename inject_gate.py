@@ -54,25 +54,51 @@ GATE_TEMPLATE = '''\
 '''
 
 def inject(html_path: Path, key: str, hash_val: str) -> bool:
+    """Canonical replace：偵測舊 gate 整段移除（含 style + div + script），重新注入正版。
+
+    舊邏輯「看到 id=\"_gate\" 就 skip」會讓 placeholder / 舊版 / 雙重 gate 殘留——
+    course-web-builder skill 的 placeholder bug、過去版本不同步的 dual-style 都是這樣堆積的。
+
+    新邏輯：
+      1. 移除頁內所有 <style id=\"_gs\">...</style>（可能 0..N 個）
+      2. 移除頁內所有 <div id=\"_gate\">...</div>（可能 0..N 個）
+      3. 移除頁內所有含 'crypto.subtle.digest' 且涉及 gate 的 <script>...</script>
+      4. 在 <body> 後注入單一 canonical GATE_TEMPLATE
+    """
     content = html_path.read_text(encoding="utf-8")
+    original = content
 
-    # 已注入則跳過
-    if 'id="_gate"' in content:
-        return False
+    # 1. 移除舊 style block
+    content = re.sub(r'<style id="_gs">[\s\S]*?</style>\s*', '', content)
+    # 2. 移除舊 gate div（包含 nested div—— 用 _gate-err 當鎖點，後接 2 個閉合 </div>）
+    content = re.sub(
+        r'<div id="_gate">[\s\S]*?<div id="_gate-err"></div>\s*</div>\s*</div>\s*',
+        '',
+        content,
+    )
+    # 3. 移除舊 gate script（特徵：crypto.subtle.digest + sessionStorage 操作）
+    content = re.sub(
+        r'<script>\s*\(function\(\)\{[^<]*?crypto\.subtle\.digest[^<]*?\}\)\(\)\s*</script>\s*',
+        '',
+        content,
+    )
 
+    # 4. 注入正版
     gate = GATE_TEMPLATE.format(key=key, hash=hash_val)
-
-    # 找 <body> 標籤（可能有屬性），注入在其後
     new_content, count = re.subn(
         r'(<body[^>]*>)',
         r'\1\n' + gate,
         content,
         count=1,
-        flags=re.IGNORECASE
+        flags=re.IGNORECASE,
     )
 
     if count == 0:
         print(f"  [SKIP] 找不到 <body>：{html_path.name}")
+        return False
+
+    if new_content == original:
+        # 已經是 canonical，沒實際變更
         return False
 
     html_path.write_text(new_content, encoding="utf-8")
