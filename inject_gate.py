@@ -25,6 +25,7 @@ COURSES = {
     "prompt-basic":    ("pbasic_auth",  "f9be9b95884b731054cc95fa9e6fd80b5407004a08a203effc20a9d28212a555"),
     "simple-ai":       ("simpleai_auth","a47706648c17a64cac8b79fee80c1041ac453db7375062f88945af8721a3d86b"),
     "ipas-ai-beginner":("ipas_auth",    "17daf42d25e66eac9653114c7c170836e5dad10e22f8e95ffa29f6afdfd24b9f"),
+    "line-stickers":   ("linestickers_auth", "0d9099fca21f914a1d4ad2b6dc42dd3e26e1cc9dc10996c235a9e3d8b6e36ab2"),
 }
 
 GATE_TEMPLATE = '''\
