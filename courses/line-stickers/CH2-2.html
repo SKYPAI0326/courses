@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<!-- 弄一下工作室 — line-stickers CH2-2 AI 產關鍵幀技巧（2026-05-09） -->
+<!--
+  教案：_lessons/line-stickers/CH2-2.md（slug: line-stickers, unit_id: CH2-2）
+  prerequisites: CH2-1
+  learning_objective: 能用 Gemini 多輪對話產出符合 LINE 動態貼圖最少 5 幀規格的「眨眼」關鍵幀組（睜眼→半閉→全閉→半開→睜眼），並學會用「補張 prompt」從 2 張關鍵幀延伸到 5 張中間幀
+  platform_version: 2026-Q2（Gemini 2.5 Flash Image / ChatGPT GPT-Image-1 免費版 / LINE Creators Market 2026 介面 / Photopea v4.x）
+-->
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH 2.2 AI 產關鍵幀技巧｜AI 自製 LINE 貼圖</title>
+<meta name="description" content="能用 Gemini 多輪對話產出符合 LINE 動態貼圖最少 5 幀規格的眨眼關鍵幀組，學會用補張 prompt 從 2 張關鍵幀延伸到 5 張中間幀，並用 5 條判準逐張自查">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="CH 2.2 AI 產關鍵幀技巧｜AI 自製 LINE 貼圖">
+<meta property="og:description" content="能用 Gemini 多輪對話產出符合 LINE 動態貼圖最少 5 幀規格的眨眼關鍵幀組，學會用補張 prompt 從 2 張關鍵幀延伸到 5 張中間幀，並用 5 條判準逐張自查">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/line-stickers/CH2-2.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CH 2.2 AI 產關鍵幀技巧｜AI 自製 LINE 貼圖">
+<meta name="twitter:description" content="能用 Gemini 多輪對話產出符合 LINE 動態貼圖最少 5 幀規格的眨眼關鍵幀組，學會用補張 prompt 從 2 張關鍵幀延伸到 5 張中間幀，並用 5 條判準逐張自查">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/line-stickers/CH2-2.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-main:#b5703a;--radius:4px;--radius-sm:3px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;word-break:break-word;overflow-wrap:break-word;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 var(--radius) 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:var(--c-main);border:1px solid rgba(181,112,58,.3);background:transparent;padding:3px 12px;border-radius:99px;font-weight:500;letter-spacing:.06em}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px;font-variant-numeric:tabular-nums}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;max-width:22ch}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);margin-top:28px}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
+.outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.today-deliverables{margin-top:32px;padding:18px 22px;border:1px dashed var(--c-border);border-radius:var(--radius);background:var(--c-bg)}
+.today-deliverables-label{font-family:'Shippori Mincho',serif;font-size:.85rem;color:var(--c-text);letter-spacing:.08em;font-weight:700;margin-bottom:12px}
+.today-deliverables-list{list-style:decimal;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:.92rem;color:var(--c-text);line-height:1.8}
+.today-deliverables-note{font-size:.82rem;color:var(--c-muted);margin-top:12px;font-style:italic;line-height:1.7}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-heading em{font-style:normal;color:var(--c-text)}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-body{font-size:.9rem;line-height:1.85}
+.callout-body strong{color:var(--c-text)}
+/* 關鍵幀概念卡（無 concepts-strip class；以 vocab-list 替代） */
+.vocab-list{display:flex;flex-direction:column;gap:0;margin:20px 0;border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden}
+.vocab-row{display:grid;grid-template-columns:120px 1fr;border-bottom:1px solid var(--c-border-soft);background:var(--c-card)}
+.vocab-row:last-child{border-bottom:none}
+.vocab-term{font-family:'Shippori Mincho',serif;font-size:.88rem;font-weight:700;color:var(--c-text);padding:14px 16px;background:var(--c-surface);line-height:1.5}
+.vocab-def{font-size:.88rem;color:var(--c-text);line-height:1.85;padding:14px 16px}
+/* 步驟 */
+.steps-wrap{display:flex;flex-direction:column;gap:0;margin:20px 0}
+.step-block{display:flex;gap:20px;padding:20px 0;border-bottom:1px solid var(--c-border-soft)}
+.step-block:last-child{border-bottom:none}
+.step-circle{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:var(--c-text);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700;font-family:'Shippori Mincho',serif;margin-top:2px}
+.step-content{flex:1}
+.step-heading{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:8px;line-height:1.4}
+.step-body{font-size:.88rem;color:var(--c-text);line-height:1.9}
+/* 代碼塊 */
+.code-block{background:#2c2b28;color:#e8e4dc;border-radius:var(--radius);padding:20px 24px;font-size:.82rem;line-height:1.8;margin:16px 0;overflow-x:auto;white-space:pre-wrap;word-break:break-word;font-family:'Courier New',monospace;position:relative}
+.code-block-wrapper{position:relative;margin:16px 0}
+.copy-btn{position:absolute;top:10px;right:12px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#e8e4dc;font-size:.72rem;padding:4px 12px;border-radius:var(--radius-sm);cursor:pointer;letter-spacing:.04em;font-family:'Noto Sans TC',sans-serif;transition:background .2s}
+.copy-btn:hover{background:rgba(255,255,255,.22)}
+.copy-btn.copied{background:rgba(90,122,90,.5);border-color:rgba(90,122,90,.6)}
+/* 幀序列視覺 */
+.frame-strip{display:flex;gap:8px;margin:20px 0;flex-wrap:wrap}
+.frame-card{flex:1;min-width:100px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:14px 12px;text-align:center}
+.frame-num{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin-bottom:4px}
+.frame-label{font-size:.8rem;color:var(--c-muted);line-height:1.5}
+.frame-card.key-frame{border-color:var(--c-text);background:var(--c-surface)}
+.frame-card.key-frame .frame-num{color:var(--c-text)}
+/* 進階區塊 */
+.advanced-block{border:1px dashed var(--c-border);border-radius:var(--radius);overflow:hidden;margin:24px 0}
+.advanced-header{background:var(--c-bg);padding:10px 20px;border-bottom:1px dashed var(--c-border);display:flex;align-items:center;gap:10px}
+.advanced-badge{font-size:.72rem;color:var(--c-muted);letter-spacing:.1em;font-weight:500;background:var(--c-surface);border:1px solid var(--c-border);border-radius:99px;padding:2px 10px}
+.advanced-title{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-text)}
+.advanced-body{padding:16px 20px}
+/* 對比表格 */
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.88rem}
+th{background:var(--c-surface);border:1px solid var(--c-border);padding:10px 14px;text-align:left;font-weight:500;font-family:'Shippori Mincho',serif;color:var(--c-text)}
+td{border:1px solid var(--c-border-soft);padding:10px 14px;color:var(--c-text);line-height:1.7}
+tr:nth-child(even) td{background:var(--c-surface)}
+/* 自查表格 */
+.verify-table{width:100%;border-collapse:collapse;font-size:.85rem;margin:16px 0}
+.verify-table th{background:var(--c-surface);border:1px solid var(--c-border);padding:8px 12px;text-align:center;font-weight:500;font-family:'Shippori Mincho',serif;color:var(--c-text)}
+.verify-table th:first-child{text-align:left}
+.verify-table td{border:1px solid var(--c-border-soft);padding:8px 12px;text-align:center;color:var(--c-muted)}
+.verify-table td:first-child{text-align:left;color:var(--c-text);font-weight:500}
+.verify-table tr:nth-child(even) td{background:var(--c-surface)}
+/* 常見錯誤 */
+.pitfall-block{border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:16px 0}
+.pitfall-header{background:var(--c-surface);padding:12px 20px;border-bottom:1px solid var(--c-border)}
+.pitfall-label{font-size:.72rem;color:var(--c-muted);letter-spacing:.12em;font-weight:500;margin-bottom:4px}
+.pitfall-title{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);line-height:1.4}
+.pitfall-body{padding:16px 20px;display:flex;flex-direction:column;gap:10px}
+.pitfall-row{display:grid;grid-template-columns:64px 1fr;gap:0}
+.pitfall-key{font-size:.82rem;font-weight:500;color:var(--c-muted);padding-top:2px}
+.pitfall-val{font-size:.88rem;color:var(--c-text);line-height:1.85}
+/* 額度備援 SOP */
+.sop-block{border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:16px 0}
+.sop-header{background:var(--c-surface);padding:12px 20px;border-bottom:1px solid var(--c-border);display:flex;align-items:center;gap:12px}
+.sop-badge{font-size:.72rem;color:var(--c-muted);letter-spacing:.1em;font-weight:500;background:var(--c-bg);border:1px solid var(--c-border);border-radius:99px;padding:2px 10px}
+.sop-title{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-text);line-height:1.4}
+.sop-body{padding:14px 20px;font-size:.88rem;color:var(--c-text);line-height:1.85}
+/* 檢核題 */
+.quiz-item{margin:20px 0;border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden}
+.quiz-q{font-size:.92rem;font-weight:700;color:var(--c-text);padding:16px 20px;background:var(--c-surface);line-height:1.7}
+.quiz-opts{padding:12px 20px;display:flex;flex-direction:column;gap:8px;background:var(--c-card)}
+.quiz-opt{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);cursor:pointer;font-size:.88rem;color:var(--c-text);transition:border-color .15s,background .15s}
+.quiz-opt:hover{border-color:var(--c-main);background:rgba(181,112,58,.04)}
+.quiz-opt input[type="radio"]{margin:0;accent-color:var(--c-main)}
+.quiz-opt input[type="radio"]:checked + span{color:var(--c-main);font-weight:500}
+.quiz-ans{border-top:1px solid var(--c-border-soft)}
+.quiz-ans summary{cursor:pointer;font-weight:500;color:var(--c-muted);font-size:.85rem;padding:12px 20px;background:var(--c-surface)}
+.quiz-ans-body{padding:12px 20px;font-size:.88rem;color:var(--c-text);line-height:1.85}
+/* 案例（scenario-card；不使用已廢除的 case-block） */
+.scenario-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:16px 0}
+.scenario-card-header{background:var(--c-surface);padding:12px 20px;border-bottom:1px solid var(--c-border)}
+.scenario-card-label{font-size:.72rem;color:var(--c-muted);letter-spacing:.12em;font-weight:500;margin-bottom:4px}
+.scenario-card-title{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-text);line-height:1.4}
+.scenario-card-body{padding:16px 20px;font-size:.88rem;color:var(--c-text);line-height:1.85}
+.scenario-card-row{display:grid;grid-template-columns:80px 1fr;gap:0;border-bottom:1px solid var(--c-border-soft);padding:8px 0}
+.scenario-card-row:last-child{border-bottom:none}
+.scenario-card-key{font-size:.82rem;font-weight:500;color:var(--c-muted);padding-top:2px}
+.scenario-card-val{font-size:.88rem;color:var(--c-text);line-height:1.8}
+/* 試跑包 assets-box */
+.assets-box{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:16px 0}
+.assets-header{background:var(--c-surface);padding:12px 20px;border-bottom:1px solid var(--c-border);display:flex;align-items:center;gap:10px}
+.assets-icon{font-size:1.05rem}
+.assets-title{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-text)}
+.assets-body{padding:16px 20px}
+.assets-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+.assets-list li{font-size:.88rem;color:var(--c-text);line-height:1.75;display:flex;gap:10px;align-items:flex-start}
+.assets-list li::before{content:"□";font-family:'Courier New',monospace;color:var(--c-faint);flex-shrink:0;font-size:.82rem;margin-top:2px}
+/* fill-form 互動 */
+.fill-form{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:24px;margin:24px 0}
+.fill-form-title{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.fill-form-desc{font-size:.85rem;color:var(--c-muted);line-height:1.7;margin-bottom:18px}
+.fill-form-row{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.fill-form-label{font-size:.85rem;font-weight:500;color:var(--c-text);display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.fill-form-hint{font-size:.8rem;color:var(--c-faint);font-weight:400}
+.fill-form-input{font-family:'Noto Sans TC',sans-serif;font-size:.88rem;color:var(--c-text);background:var(--c-bg);border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:8px 12px;line-height:1.6;width:100%;resize:vertical}
+.fill-form-input:focus{outline:2px solid var(--c-text);outline-offset:1px;border-color:var(--c-text)}
+textarea.fill-form-input{min-height:60px}
+.fill-form-build{margin-top:6px;background:var(--c-text);color:#fff;border:0;border-radius:var(--radius);padding:10px 20px;font-size:.85rem;font-family:'Noto Sans TC',sans-serif;cursor:pointer;letter-spacing:.04em;font-weight:500}
+.fill-form-build:hover{opacity:.85}
+.fill-form-build.done{background:var(--c-main)}
+.fill-form-preview{margin-top:16px;background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.82rem;line-height:1.75;padding:16px;border-radius:var(--radius);white-space:pre-wrap;word-break:break-word;min-height:40px}
+.fill-form-preview:empty::before{content:"按下方按鈕後，組合好的 Prompt 會出現在這裡，並自動複製到剪貼簿";color:#7a766d;font-style:italic}
+.print-btn{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--c-muted);background:transparent;border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:5px 12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;letter-spacing:.04em}
+.print-btn:hover{color:var(--c-text);border-color:var(--c-text)}
+.check-list{list-style:none;padding:0;margin:12px 0;display:flex;flex-direction:column;gap:8px}
+.check-list li{font-size:.88rem;color:var(--c-text);line-height:1.7;display:flex;gap:10px;align-items:flex-start}
+.check-list li::before{content:"[ ]";font-family:'Courier New',monospace;color:var(--c-muted);flex-shrink:0;font-size:.82rem;margin-top:2px}
+/* handout 講義 */
+.handout-section{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:24px 0;page-break-inside:avoid}
+.handout-header{background:var(--c-surface);padding:12px 20px;border-bottom:1px solid var(--c-border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.handout-label{font-size:.72rem;color:var(--c-muted);letter-spacing:.12em;font-weight:500}
+.handout-title{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-top:4px}
+.handout-body{padding:20px}
+blockquote.aside-tip{border-left:2px solid var(--c-text);padding:12px 20px;margin:16px 0;background:var(--c-surface);border-radius:0 var(--radius) var(--radius) 0;font-size:.88rem;color:var(--c-text);line-height:1.85}
+blockquote.aside-tip strong{color:var(--c-text)}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(181,112,58,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
+.nav-btn:hover{background:rgba(181,112,58,.07);border-color:var(--c-main)}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main)}
+.nav-btn.primary:hover{filter:brightness(.92)}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.frame-strip{flex-direction:column}.concepts-strip .concept-row{grid-template-columns:1fr}.frame-card{min-width:unset}}
+@media print{
+  *{text-shadow:none!important}
+  html,body{background:#fff!important;color:#000!important}
+  .topbar,.progress-strip,.skip-link,.back-link,.nav-footer,footer,.print-btn,.fill-form-build,.copy-btn{display:none!important}
+  .quiz-opt input[type="radio"]{display:none!important}
+  .quiz-opt::before{content:"○ ";color:#666;margin-right:4px}
+  a{color:#000!important;text-decoration:none!important}
+  .page-hero,.lesson-section{padding:16px 0!important;max-width:none!important;margin:0 auto}
+  .lesson-title,.section-heading,.lesson-tagline,.outcomes{page-break-after:avoid}
+  .handout-section,.verify-table,.callout,.quiz-item,.fill-form,.step-block,.code-block{page-break-inside:avoid}
+  .code-block,.fill-form-preview{background:#f2f0ea!important;color:#1a1a1a!important;border:1px solid #d0ccc2!important}
+  .fill-form-input{border:1px solid #999!important;min-height:32px;background:#fff!important}
+}
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 自製 LINE 貼圖</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">Part 2 進階班</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<div class="page-hero">
+  <a href="module2.html" class="back-link"><span aria-hidden="true">←</span> 返回 Part 2 進階班</a>
+  <div class="hero-eyebrow">(CH 2.2) · 90 分鐘</div>
+  <h1 class="lesson-title">AI 產關鍵幀技巧</h1>
+  <p class="lesson-tagline">學會用 Gemini 多輪對話產出眨眼 5 幀完整序列，掌握「2 張關鍵幀 + 3 張中間幀補張」的核心技巧，讓相鄰兩幀像同一隻橘貓在連續動。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果</div>
+    <div class="outcome-item">能在同一個 Gemini 對話內產出眨眼 5 幀（睜眼→半閉→全閉→半開→睜眼），5 幀全過 5 條判準，合規 LINE 最少 5 幀規格</div>
+    <div class="outcome-item">能用「補張 prompt」量化中間幀（「眼皮從上往下蓋 50%、瞳孔露出下半」），從 2 張關鍵幀延伸出 3 張中間幀</div>
+    <div class="outcome-item">能辨別「形變允許範圍」（動作必要的形體變化）與「跑掉」（配色/視角/同隻不能改）的差異</div>
+  </div>
+  <div class="today-deliverables">
+    <div class="today-deliverables-label">今天帶走</div>
+    <ol class="today-deliverables-list">
+      <li>你自己角色的眨眼 5 幀 PNG（命名 <code style="font-size:.85em;background:var(--c-surface);padding:1px 5px;border-radius:3px">{角色名}_anim_blink_f01.png</code> 到 <code style="font-size:.85em;background:var(--c-surface);padding:1px 5px;border-radius:3px">_f05.png</code>）</li>
+      <li>眨眼 5 幀 × 5 判準自查表（25 個勾全勾 = 當堂通過）</li>
+      <li>1 個你自己寫過的「中間幀補張 prompt」</li>
+    </ol>
+    <p class="today-deliverables-note">進階挑戰：揮手 4 幀 / 跳起來 5 幀模板帶回家課後練習。CH2-3 組裝 APNG 前必須先有眨眼 5 張。</p>
+  </div>
+</div>
+
+<hr class="section-rule">
+
+<!-- ===== (01) 概念 ===== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(01)</div>
+  <h2 class="section-heading">動態貼圖的核心難題：序列一致性</h2>
+  <div class="intro-band">
+    <div class="intro-label">為什麼這很重要</div>
+    <div class="intro-text">Part 1 的 8 張表情是「並列」——每張獨立看、每張可各自補張。動態貼圖的關鍵幀是「序列」——相鄰兩幀要連續播放，任一幀跑掉整組動畫就抖。標準完全不同。</div>
+  </div>
+
+  <p class="body-text">橘貓上班族 Part 1 你已經會產 8 張一致的表情了。今天你想讓他「眨眼」——直覺會想：「不就 2 張嗎？睜眼 + 閉眼」。錯。LINE 動態貼圖最少 5 幀，眨眼也不例外——你需要 <strong>5 幀</strong>：睜眼 → 半閉 → 全閉 → 半開 → 睜眼。少一幀都不能上架。</p>
+
+  <p class="body-text">核心技巧：先產 <strong>f01（睜眼）和 f03（全閉）</strong>這 2 張關鍵幀，然後用「補張 prompt」請 AI 從這兩張延伸出 3 張中間幀（f02 半閉、f04 半開、f05 結尾睜眼），補滿到 5 張。</p>
+
+  <!-- 幀序列視覺 -->
+  <div class="frame-strip">
+    <div class="frame-card key-frame">
+      <div class="frame-num">f01</div>
+      <div class="frame-label">睜眼<br>起點關鍵幀</div>
+    </div>
+    <div class="frame-card">
+      <div class="frame-num">f02</div>
+      <div class="frame-label">半閉<br>中間幀（補張）</div>
+    </div>
+    <div class="frame-card key-frame">
+      <div class="frame-num">f03</div>
+      <div class="frame-label">全閉<br>終點關鍵幀</div>
+    </div>
+    <div class="frame-card">
+      <div class="frame-num">f04</div>
+      <div class="frame-label">半開<br>中間幀（補張）</div>
+    </div>
+    <div class="frame-card key-frame">
+      <div class="frame-num">f05</div>
+      <div class="frame-label">睜眼<br>= f01（循環）</div>
+    </div>
+  </div>
+  <p style="font-size:.82rem;color:var(--c-faint);margin-top:-8px;margin-bottom:16px">粗框 = 關鍵幀（你先產）；細框 = 中間幀（補張延伸）</p>
+
+  <h3 style="font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin:24px 0 14px">6 個必知概念</h3>
+  <div class="vocab-list">
+    <div class="vocab-row">
+      <div class="vocab-term">關鍵幀</div>
+      <div class="vocab-def">動畫裡的「明顯姿勢張」。眨眼只有 2 個（睜眼 / 全閉），但 LINE 最少 5 幀，需要另外補 3 張中間幀。</div>
+    </div>
+    <div class="vocab-row">
+      <div class="vocab-term">中間幀</div>
+      <div class="vocab-def">兩張關鍵幀之間的過渡張。本課中間幀用 AI 產——給 AI 看前後兩張關鍵幀，請它畫「介於兩張之間的某個比例」（例：眼皮蓋下 50%）。</div>
+    </div>
+    <div class="vocab-row">
+      <div class="vocab-term">基準幀</div>
+      <div class="vocab-def">每組動作的第 1 張是「角色基準」，後面所有幀都以第 1 張為對齊標準。f01 畫不好，整組會抖。</div>
+    </div>
+    <div class="vocab-row">
+      <div class="vocab-term">同對話多輪</div>
+      <div class="vocab-def">今天眨眼 5 張全部在同一個 Gemini 對話內。延續 CH1-3 那個對話——那個對話裡 AI 已看過橘貓 8 張表情，角色 context 最穩。重開新對話 = 角色記憶重置。</div>
+    </div>
+    <div class="vocab-row">
+      <div class="vocab-term">5 條判準</div>
+      <div class="vocab-def">同隻 / 同風格 / 同比例 / 同視角 / 同色域。動態幀比 Part 1 嚴 3 倍——任一幀跑 1 條 = 整組要補。每幀產出後立刻自查，不可累積。</div>
+    </div>
+    <div class="vocab-row">
+      <div class="vocab-term">形變範圍</div>
+      <div class="vocab-def">跳起來類動作身體會壓縮 / 拉長，這類「動作必要的形變」標為允許範圍。但配色 / 視角 / 同隻這 3 條無論姿勢怎麼變都不能跑。</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">★</div>
+    <div class="callout-body"><strong>當堂硬目標</strong>：完成 1 組眨眼 5 幀並過 5 條判準（合規 LINE 最少 5 幀的最小可上架單位）。揮手 4 frame / 跳起來 5 frame 為進階挑戰，prompt 模板帶回家課後練習。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ===== (02) 示範：眨眼 5 幀 prompt 模板 ===== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(02)</div>
+  <h2 class="section-heading">眨眼 5 幀 Prompt 模板（當堂硬目標）</h2>
+
+  <div class="intro-band">
+    <div class="intro-label">示範起點</div>
+    <div class="intro-text">今天的 Gemini 對話不從零開始——延續 CH1-3 那個「橘貓 8 張表情」的對話。那個對話裡 AI 對橘貓的 context 已很穩，比重開新對話省至少 50% 額度。CH1-3 用 ChatGPT 或對話已關掉？看下方備援 SOP。</div>
+  </div>
+
+  <div class="steps-wrap">
+    <div class="step-block">
+      <div class="step-circle">1</div>
+      <div class="step-content">
+        <div class="step-heading">產 f01（睜眼 · 起點關鍵幀）</div>
+        <div class="step-body">
+          <p style="margin-bottom:10px">產出後<strong>立刻 5 條判準自查</strong>，5 條過了再繼續 f03，沒過就補張重產 f01。</p>
+          <div class="code-block-wrapper">
+            <div class="code-block" id="code-blink-f01">延續上面對話的橘貓上班族（同隻角色、同風格、同比例、同視角、同色域）。
+這次請畫眨眼動畫的 f01：橘貓站立正面，眼睛完整睜開（圓睜的圓眼），
+表情中性，嘴巴微閉。背景純白。
+
+備註：這是「眨眼動畫」的第 1 幀（睜眼 · 起點關鍵幀），
+等下會接著產 f03（全閉 · 終點關鍵幀），最後在中間補出 f02 / f04（半閉 / 半開），
+湊成 LINE 規格最少 5 幀的眨眼序列。
+請保持構圖完全一致，背景純白，畫面比例正方形。</div>
+            <button class="copy-btn" onclick="copyCode('code-blink-f01',this)">複製</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">2</div>
+      <div class="step-content">
+        <div class="step-heading">產 f03（全閉 · 終點關鍵幀）</div>
+        <div class="step-body">
+          <p style="margin-bottom:10px">f03 產出後，把 f01 和 f03 並排放螢幕，逐條 5 條判準對比——<strong>只有眼睛狀態改變，其他「一根毛都不能動」</strong>。</p>
+          <div class="code-block-wrapper">
+            <div class="code-block" id="code-blink-f03">保持 f01 的所有設定（同隻、同風格、同比例、同視角、同色域、同構圖、同背景）。
+請畫眨眼動畫的 f03：眼睛「完全閉合」（眼皮完全蓋下，眼睛變成一條向上彎的弧線）。
+
+關鍵限制（極重要）：
+- 角色位置不能移動（跟 f01 完全一樣的構圖、頭部位置、領巾位置）
+- 嘴巴、手腳、領巾、毛色、線條粗細、背景顏色，全部跟 f01 完全一樣
+- 只有「眼睛狀態」改變，其他「一根毛都不能動」
+
+這是眨眼動畫的「全閉」終點關鍵幀。</div>
+            <button class="copy-btn" onclick="copyCode('code-blink-f03',this)">複製</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">3</div>
+      <div class="step-content">
+        <div class="step-heading">補張 f02（半閉中間幀）— 本單元核心技巧</div>
+        <div class="step-body">
+          <p style="margin-bottom:10px">這是本單元的核心技巧。<strong>「中間幀不是模糊張，是量化張」</strong>——「半閉」要寫成「眼皮 50%、瞳孔露出下半」這種可驗證的描述，不讓 AI 自由發揮。</p>
+          <div class="code-block-wrapper">
+            <div class="code-block" id="code-blink-f02">我已經產出 f01（眼睛完全睜開）和 f03（眼睛完全閉合）兩張關鍵幀。
+請畫 f02：眼睛「半閉」——眼皮從上往下蓋正好 50%（不是 80%、不是 30%），
+黑色瞳孔還露出下半（這是「半閉」的視覺驗證點）。
+不要畫「幾乎全閉」或「眼睛微眯」，要畫「眼皮蓋下一半，瞳孔下半還看得到」。
+
+關鍵限制：
+- 除了「眼皮位置」之外，其他全部跟 f01 完全一樣
+- 構圖、頭部位置、領巾、嘴巴、手腳、毛色、線條、背景全部不變</div>
+            <button class="copy-btn" onclick="copyCode('code-blink-f02',this)">複製</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">4</div>
+      <div class="step-content">
+        <div class="step-heading">補張 f04（半開中間幀）</div>
+        <div class="step-body">
+          <p style="margin-bottom:10px">f02 和 f04 是<strong>鏡像關係</strong>，眼皮蓋下程度要一模一樣。</p>
+          <div class="code-block-wrapper">
+            <div class="code-block" id="code-blink-f04">保持 f03（全閉）的所有設定。
+請畫 f04：眼睛「半開」——眼皮從全閉狀態往上掀開 50%，
+跟 f02 的「半閉」是鏡像關係（f02 是從睜眼蓋下，f04 是從閉眼掀開）。
+
+關鍵限制：
+- 眼皮位置跟 f02 完全一樣（半閉 = 半開，視覺上一致）
+- 其他全部跟 f01 / f03 完全一樣（構圖、領巾、嘴巴、手腳、毛色、線條、背景）</div>
+            <button class="copy-btn" onclick="copyCode('code-blink-f04',this)">複製</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">5</div>
+      <div class="step-content">
+        <div class="step-heading">f05（睜眼結尾 = f01 · 循環回起點）</div>
+        <div class="step-body">
+          <p style="margin-bottom:10px">可直接<strong>複製 f01 改名為 f05</strong>，不用耗額度重產。時間充裕或想練習的話，也可請 AI 再畫一張。</p>
+          <div class="code-block-wrapper">
+            <div class="code-block" id="code-blink-f05">請畫 f05：眼睛「完全睜開」，跟 f01 一模一樣。
+這是眨眼動畫的最後一幀，播放時會循環回到 f01。
+構圖、領巾、嘴巴、手腳、毛色、線條、背景全部跟 f01 完全一樣。</div>
+            <button class="copy-btn" onclick="copyCode('code-blink-f05',this)">複製</button>
+          </div>
+          <blockquote class="aside-tip">省額度技巧：f05 直接在電腦上複製 f01 的 PNG 檔，改名為 <code style="font-size:.85em;background:var(--c-surface);padding:1px 4px">_anim_blink_f05.png</code> 即可，不耗一次額度。</blockquote>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 補張 prompt 互動填寫 -->
+  <h3 style="font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin:28px 0 14px">補張 Prompt 填空（動手前先填）</h3>
+  <div class="fill-form" id="patch-form">
+    <div class="fill-form-title">眨眼中間幀補張 prompt 產生器</div>
+    <div class="fill-form-desc">填入你自己的角色資訊，一鍵產生可直接貼到 Gemini 的補張 prompt。</div>
+    <div class="fill-form-row">
+      <label class="fill-form-label" for="ff-char">角色名稱 <span class="fill-form-hint">例：小橘、豆豆、毛毛</span></label>
+      <input class="fill-form-input" id="ff-char" type="text" placeholder="你的角色名稱">
+    </div>
+    <div class="fill-form-row">
+      <label class="fill-form-label" for="ff-species">角色種類 / 外觀特徵 <span class="fill-form-hint">例：橘色虎斑貓、黑白熊貓、藍色倉鼠</span></label>
+      <input class="fill-form-input" id="ff-species" type="text" placeholder="角色外觀特徵">
+    </div>
+    <div class="fill-form-row">
+      <label class="fill-form-label" for="ff-problem">跑掉的問題描述 <span class="fill-form-hint">例：耳朵變尖了 / 眼皮蓋太多（80% 而非 50%）</span></label>
+      <textarea class="fill-form-input" id="ff-problem" rows="2" placeholder="描述這幀跑掉的地方"></textarea>
+    </div>
+    <button class="fill-form-build" onclick="buildPatchPrompt()">產生補張 Prompt</button>
+    <div class="fill-form-preview" id="patch-preview"></div>
+    <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+      <button class="print-btn" onclick="window.print()">列印講義</button>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ===== (03) 進階：揮手 + 跳起來模板 ===== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(03)</div>
+  <h2 class="section-heading">進階挑戰：揮手 4 幀 / 跳起來 5 幀</h2>
+  <p class="body-text">當堂硬目標眨眼 5 幀完成後，時間有餘力可挑揮手；跳起來原則上帶回家課後練習。兩組模板帶走備用。</p>
+
+  <div class="advanced-block">
+    <div class="advanced-header">
+      <span class="advanced-badge">進階挑戰</span>
+      <span class="advanced-title">揮手 4 幀（手畫方框循環）</span>
+    </div>
+    <div class="advanced-body">
+      <p class="body-text" style="margin-bottom:12px">揮手的標準解法是 <strong>4 幀方框循環</strong>：右下 → 右上 → 左上 → 左下。連續播看起來像左右揮手。命名：<code style="font-size:.85em;background:var(--c-surface);padding:1px 4px">{角色名}_anim_wave_f01.png</code> 到 <code style="font-size:.85em;background:var(--c-surface);padding:1px 4px">_wave_f04.png</code>。</p>
+      <div class="code-block-wrapper">
+        <div class="code-block" id="code-wave">【揮手 f01 · 手在右下】
+延續上面對話的橘貓上班族（同隻、同風格、同比例、同視角、同色域）。
+這次請畫揮手動畫的 f01：橘貓站立正面，眼睛圓睜，
+右手抬起到「右下方位置」（手肘彎曲、手掌張開朝鏡頭）。
+身體、頭、領巾、表情、左手，全部跟眨眼 f01 完全一樣。構圖正方形、背景純白。
+
+【揮手 f02 · 手在右上】
+保持 f01 所有設定。右手從右下抬到「右上方位置」（手臂上舉約 45 度、手掌朝鏡頭）。
+身體、頭、領巾、表情、左手，全部跟 f01 完全一樣。
+
+【揮手 f03 · 手在左上 · 最容易跑！】
+保持上一幀。右手從右上「越過頭頂」到「左上方位置」。
+身體、頭、領巾、表情、左手位置，全部跟前幾幀完全一樣。
+（注意：AI 容易讓整個身體跟著偏移，如果偏了請用補張 prompt 修正）
+
+【揮手 f04 · 手在左下】
+保持上一幀。右手從左上落到「左下方位置」。
+全部跟前幾幀完全一樣，這是最後一幀，循環回到 f01。</div>
+        <button class="copy-btn" onclick="copyCode('code-wave',this)">複製</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="advanced-block">
+    <div class="advanced-header">
+      <span class="advanced-badge">進階挑戰 · 課後練習</span>
+      <span class="advanced-title">跳起來 5 幀（含形變允許範圍）</span>
+    </div>
+    <div class="advanced-body">
+      <p class="body-text" style="margin-bottom:12px">跳起來比眨眼、揮手難——全身會形變（蹲下時壓縮、起跳時拉長）。命名：<code style="font-size:.85em;background:var(--c-surface);padding:1px 4px">{角色名}_anim_jump_f01.png</code> 到 <code style="font-size:.85em;background:var(--c-surface);padding:1px 4px">_jump_f05.png</code>。</p>
+      <div class="callout">
+        <div class="callout-icon" aria-hidden="true">!</div>
+        <div class="callout-body"><strong>形變允許範圍</strong>：蹲下時身體變扁、起跳時身體拉長，這是「動作必要形變」，允許。但配色 / 視角 / 同隻——這 3 條無論姿勢怎麼變都不能跑。形變只允許在「形狀」維度上發生。</div>
+      </div>
+      <div class="code-block-wrapper">
+        <div class="code-block" id="code-jump">【跳起來 f01 · 站立起點】
+延續上面對話的橘貓上班族（同隻、同風格、同比例、同視角、同色域）。
+這次請畫跳起來動畫的 f01：橘貓站立正面，全身放鬆，雙手自然垂，雙腳併攏。
+構圖：角色置中，畫面下方留 30% 空白（為跳起來時上移留空間）。
+
+【跳起來 f02 · 蹲下蓄力 · 最容易跑！】
+保持所有設定。橘貓「蹲下蓄力」——身體高度壓縮到原本的 70%，
+雙腳微彎、雙手向後拉。表情眼睛微皺（蓄力專注貌）。
+唯一允許的形變：身體高度壓縮 + 雙腳彎曲。配色 / 視角 / 同隻全部維持。
+
+【跳起來 f03 · 起跳瞬間】
+橘貓「起跳瞬間」——身體開始往上拉長（高度 110%），雙腳開始離地，表情圓睜。
+形變允許：身體拉長到 110%（不超過 120%）。配色 / 視角 / 同隻全部維持。
+
+【跳起來 f04 · 最高點】
+橘貓在空中（雙腳離地至少 30px），姿勢舒展，表情圓睜嘴巴微 O。
+身體高度恢復到 f01 的 100%。配色 / 視角 / 同隻全部維持。
+
+【跳起來 f05 · 落地】
+橘貓落地，姿勢跟 f01 幾乎一樣，表情眼睛微瞇。角色置中，跟 f01 同位置。
+循環回到 f01。配色 / 視角 / 同隻全部維持。</div>
+        <button class="copy-btn" onclick="copyCode('code-jump',this)">複製</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ===== (04) 商業情境案例 ===== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(04)</div>
+  <h2 class="section-heading">3 個對話情境：為什麼要這 3 種動作</h2>
+  <p class="body-text">本課自用導向，「商業情境」在這裡是「具體的 LINE 對話場景」——幫你思考回家後做哪個動作最值得。</p>
+
+  <div class="scenario-card">
+    <div class="scenario-card-header">
+      <div class="scenario-card-label">情境 1 · 當堂硬目標</div>
+      <div class="scenario-card-title">橘貓眨眼：「我在聽 / 我懂」的非語言回應</div>
+    </div>
+    <div class="scenario-card-body">
+      <div class="scenario-card-row">
+        <div class="scenario-card-key">場景</div>
+        <div class="scenario-card-val">朋友訴苦，你不知道怎麼回，傳一張「橘貓緩慢眨眼」代替「嗯」「我懂」。動作小、含義豐富（同理 / 在聽 / 害羞 / 困惑都能用）。</div>
+      </div>
+      <div class="scenario-card-row">
+        <div class="scenario-card-key">為什麼</div>
+        <div class="scenario-card-val">LINE 動態貼圖使用率前 5 名永遠有「眨眼」一張。5 幀、檔案 80–120KB、含義豐富。新手做動畫的第 1 個必做題目。</div>
+      </div>
+      <div class="scenario-card-row" style="border-bottom:none">
+        <div class="scenario-card-key">學到什麼</div>
+        <div class="scenario-card-val">2 張關鍵幀 + 補張延伸 3 張中間幀。這個手法擴展到揮手、跳起來都用得到。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="scenario-card-header">
+      <div class="scenario-card-label">情境 2 · 進階挑戰</div>
+      <div class="scenario-card-title">橘貓揮手：LINE 群開場語</div>
+    </div>
+    <div class="scenario-card-body">
+      <div class="scenario-card-row">
+        <div class="scenario-card-key">場景</div>
+        <div class="scenario-card-val">早上跟朋友群打招呼、新群組第一次發言破冰，傳一張「橘貓揮手 hi」當開場。</div>
+      </div>
+      <div class="scenario-card-row" style="border-bottom:none">
+        <div class="scenario-card-key">為什麼</div>
+        <div class="scenario-card-val">LINE 對話開場高頻前 3 名。4 幀循環、自然、含義單一不歧義。4 張身體要完全一致，手是唯一變數。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="scenario-card-header">
+      <div class="scenario-card-label">情境 3 · 課後練習</div>
+      <div class="scenario-card-title">橘貓跳起來：好消息、慶祝、開心</div>
+    </div>
+    <div class="scenario-card-body">
+      <div class="scenario-card-row">
+        <div class="scenario-card-key">場景</div>
+        <div class="scenario-card-val">朋友通知好消息（生小孩、升職）、自己有好事（拿到票、抽到獎）、慶祝週末。</div>
+      </div>
+      <div class="scenario-card-row" style="border-bottom:none">
+        <div class="scenario-card-key">為什麼</div>
+        <div class="scenario-card-val">「正向情緒高強度」代表動作。3 種裡視覺最豐富、檔案最大、APNG 壓縮挑戰最高。做完有「整套都會做」的自信。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ===== (05) 動手練習題 ===== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(05)</div>
+  <h2 class="section-heading">動手練習：產你自己角色的眨眼 5 幀</h2>
+
+  <div class="intro-band">
+    <div class="intro-label">操作節奏</div>
+    <div class="intro-text">0–25 分鐘：眨眼 5 張（2 關鍵幀 + 3 中間幀補張 + 自查 + 救張）。25–30 分鐘：時間夠則挑揮手 4 張，否則檢查眨眼並補弱項。</div>
+  </div>
+
+  <blockquote class="aside-tip"><strong>必做</strong>：每幀產出後立刻 5 條判準自查，發現跑掉立刻補張。<strong>不要 5 張連發完才檢查</strong>——f02 跑掉繼續產，後面全受污染（呼應常見錯誤 3）。</blockquote>
+
+  <h3 style="font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin:20px 0 12px">額度耗盡備援 SOP</h3>
+
+  <div class="sop-block">
+    <div class="sop-header">
+      <span class="sop-badge">第一層備援</span>
+      <span class="sop-title">切 ChatGPT 接續</span>
+    </div>
+    <div class="sop-body">開 ChatGPT 新對話，上傳已產的橘貓圖（CH1-3 的 8 張表情 + 已產的眨眼關鍵幀 f01 / f03）當參考圖，接續產 f02 / f04。切平台後風格略偏，每張都要重跑 5 條判準——跑超過 2 條就改備援 2。</div>
+  </div>
+  <div class="sop-block">
+    <div class="sop-header">
+      <span class="sop-badge">第二層備援</span>
+      <span class="sop-title">用講師圖包</span>
+    </div>
+    <div class="sop-body">下載橘貓眨眼 5 張正解圖包，存到電腦，當作「素材」繼續走 CH2-3 組裝流程。回家額度恢復後補自己的角色。今天學的是流程，不是「一定要產自己的圖」。</div>
+  </div>
+  <div class="sop-block">
+    <div class="sop-header">
+      <span class="sop-badge">第三層備援</span>
+      <span class="sop-title">縮減目標</span>
+    </div>
+    <div class="sop-body">只完成眨眼 2 張關鍵幀（f01 + f03），中間幀 f02 / f04 與結尾 f05 用講師圖包補。CH2-3 仍需 5 張，少 1 張不能上架。揮手 / 跳起來下課回家補。</div>
+  </div>
+
+  <h3 style="font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin:20px 0 12px">動手時常見體感</h3>
+  <table>
+    <thead>
+      <tr><th>你可能會想…</th><th>答案</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>我覺得兩幀看起來一樣，這樣對嗎？</td>
+        <td>對！眨眼 5 幀「除了眼皮位置全部一樣」是正解，不是過度保守。</td>
+      </tr>
+      <tr>
+        <td>f02 AI 給的眼皮幾乎全閉，怎麼辦？</td>
+        <td>用補張 prompt 明確寫「眼皮 50%、瞳孔露出下半」，把 50% 量化。</td>
+      </tr>
+      <tr>
+        <td>揮手 f03 身體一直跟著手偏，怎麼辦？</td>
+        <td>改用座標式描述：「頭部在畫面正中央、左肩在中央偏左、右肩在中央偏右」。</td>
+      </tr>
+      <tr>
+        <td>5 張全部 1 次過，是不是太順利？</td>
+        <td>可能是判準放太鬆。把 f01 和 f05 並排，5 條重對一遍。5 張全 1 次過很少見，正常會補 1–2 張。</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<hr class="section-rule">
+
+<!-- ===== (06) 常見錯誤 ===== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(06)</div>
+  <h2 class="section-heading">3 個常見錯誤</h2>
+
+  <div class="pitfall-block">
+    <div class="pitfall-header">
+      <div class="pitfall-label">錯誤 1</div>
+      <div class="pitfall-title">中間幀畫太多（80% 當 50%）——把「補張中間幀」誤解成「再產一張新關鍵幀」</div>
+    </div>
+    <div class="pitfall-body">
+      <div class="pitfall-row">
+        <div class="pitfall-key">現象</div>
+        <div class="pitfall-val">f02 prompt 寫「眼睛半閉，介於 f01 和 f03 之間」，AI 給的是 80% 閉合幾乎是 f03 副本。5 張並排：0% → 80% → 100% → 80% → 0%，沒有平滑眨眼感。</div>
+      </div>
+      <div class="pitfall-row">
+        <div class="pitfall-key">原因</div>
+        <div class="pitfall-val">AI 收到「半閉」這種模糊詞，偏向「更明顯的動作」（接近全閉）。學員沒寫死「眼皮蓋 50%、瞳孔露出下半」這種量化 + 視覺驗證點。</div>
+      </div>
+      <div class="pitfall-row">
+        <div class="pitfall-key">解法</div>
+        <div class="pitfall-val">補張 prompt 必寫量化：「眼皮從上往下蓋正好 50%，黑色瞳孔露出下半。不要畫『幾乎全閉』」。產完後並排 f01/f02/f03，確認 0% → 50% → 100% 平滑過渡。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pitfall-block">
+    <div class="pitfall-header">
+      <div class="pitfall-label">錯誤 2</div>
+      <div class="pitfall-title">眨眼中途重開新對話，f01–f03 變成 f04–f05 的不同角色</div>
+    </div>
+    <div class="pitfall-body">
+      <div class="pitfall-row">
+        <div class="pitfall-key">現象</div>
+        <div class="pitfall-val">產完 f01 + f03 覺得順利，關掉對話去喝水，回來開新對話接續產 f02 / f04。中間幀看起來不錯，但跟 f01 / f03 並排發現領巾位置變了、橘色偏紅了 5%、線條變細了。5 張是「2 隻橘貓交替眨眼」。</div>
+      </div>
+      <div class="pitfall-row">
+        <div class="pitfall-key">原因</div>
+        <div class="pitfall-val">文字描述對「視覺一致」的力道遠不如「看過前面那張圖」。每開新對話，AI 都在角色描述空間重新找一個解，每次略不同——5 張就漂移到不同方向。</div>
+      </div>
+      <div class="pitfall-row">
+        <div class="pitfall-key">解法</div>
+        <div class="pitfall-val">整個 Part 2 上半場（CH2-1 → CH2-2 → CH2-3）就用一個對話。對話不小心關掉：到 Gemini 左側對話歷史找回原對話，繼續續寫。找不回：開新對話，<strong>第一件事</strong>上傳 CH1-3 的 8 張表情圖當參考，再接續。<br>口訣：「同隻角色 = 同個對話」。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pitfall-block">
+    <div class="pitfall-header">
+      <div class="pitfall-label">錯誤 3</div>
+      <div class="pitfall-title">眨眼 5 幀連發不檢查，f02 跑掉繼續產 f03–f05，全錯</div>
+    </div>
+    <div class="pitfall-body">
+      <div class="pitfall-row">
+        <div class="pitfall-key">現象</div>
+        <div class="pitfall-val">5 個 prompt 連發，等 5 張全部產完才開始檢查。發現 f02 耳朵變尖，但 f03–f05 都已受到「尖耳朵 f02」的 context 污染，全錯。要救就要從 f02 重產。</div>
+      </div>
+      <div class="pitfall-row">
+        <div class="pitfall-key">原因</div>
+        <div class="pitfall-val">Gemini 同對話的 context 是累積的——前面所有圖都被 AI 當作「這隻角色該長什麼樣」的參考。中間有一幀跑掉沒及時修，後面延續錯誤，一錯到底。</div>
+      </div>
+      <div class="pitfall-row">
+        <div class="pitfall-key">解法</div>
+        <div class="pitfall-val">每幀產出後立刻 5 條判準自查 + 並排上一幀放大看臉部（耳朵、五官、領巾打結處）。發現跑掉立刻補張，不等全部產完才修。<br>口訣：「動畫的判準是不可累積」。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ===== (07) 自查表 + 檢核題 ===== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(07)</div>
+  <h2 class="section-heading">自查表 + 檢核題</h2>
+
+  <h3 style="font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin:0 0 14px">眨眼 5 幀自查表（當堂硬目標 · 必填）</h3>
+  <table class="verify-table">
+    <thead>
+      <tr>
+        <th>幀</th>
+        <th>1. 同隻</th>
+        <th>2. 同風格</th>
+        <th>3. 同比例</th>
+        <th>4. 同視角</th>
+        <th>5. 同色域</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>f01 睜眼（起點關鍵幀）</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td></tr>
+      <tr><td>f02 半閉（中間幀）</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td></tr>
+      <tr><td>f03 全閉（終點關鍵幀）</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td></tr>
+      <tr><td>f04 半開（中間幀）</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td></tr>
+      <tr><td>f05 睜眼（= f01，循環）</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:.82rem;color:var(--c-muted);margin-bottom:20px">通過標準（當堂硬目標）：25 個勾全勾 = 合規 LINE 最少 5 幀的最小可上架單位。任 1 條沒勾就回補張。</p>
+
+  <h3 style="font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin:24px 0 14px">動作幀 vs 表情幀判準差異（帶走當錨點）</h3>
+  <table>
+    <thead>
+      <tr><th>對比項</th><th>CH1-3 表情組（8 張）</th><th>CH2-2 動作幀（眨眼 5 張）</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>並列 vs 序列</td><td>並列（每張獨立看）</td><td>序列（相鄰兩幀要無縫接續）</td></tr>
+      <tr><td>5 條判準嚴格度</td><td>8 張裡跑 1–2 張可放行</td><td>任一幀跑 1 條 = 整組要補</td></tr>
+      <tr><td>同視角的容忍</td><td>微側可（晚安頭微側 OK）</td><td>完全不容忍</td></tr>
+      <tr><td>配色微偏的容忍</td><td>5% 內可放行</td><td>1% 都會看到「閃光」</td></tr>
+      <tr><td>補張頻率</td><td>8 張產 1–2 張補</td><td>5 張產 1–2 張補（f02/f04 最常補）</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin:28px 0 14px">檢核題</h3>
+
+  <div class="quiz-item">
+    <div class="quiz-q">Q1：以下 4 種做法，哪一種最能用 AI 產出符合 LINE 規格「眨眼 5 幀」的合規序列？</div>
+    <div class="quiz-opts">
+      <label class="quiz-opt"><input type="radio" name="q1" value="A"> <span>A. 跑 5 個獨立 prompt 產 5 張閉眼程度遞增的圖，每次重開對話避免 AI 把前一張當參考</span></label>
+      <label class="quiz-opt"><input type="radio" name="q1" value="B"> <span>B. 只產 f01（睜眼）和 f03（全閉）兩張關鍵幀，剩下 f02 / f04 / f05 用相同檔名複製貼上充數</span></label>
+      <label class="quiz-opt"><input type="radio" name="q1" value="C"> <span>C. 同對話依序產 f01 + f03 兩張關鍵幀 → 用「補張 prompt」延伸 f02（眼皮 50%）+ f04（鏡像）→ f05 複製 f01 改名</span></label>
+      <label class="quiz-opt"><input type="radio" name="q1" value="D"> <span>D. 一次連發 5 個 prompt 產出完整序列，最後並排檢查時才修跑掉的張</span></label>
+    </div>
+    <details class="quiz-ans">
+      <summary>查看解析</summary>
+      <div class="quiz-ans-body">
+        <p><strong>正確答案：C</strong></p>
+        <p style="margin-top:8px">A 錯：每個對話 context 獨立，5 張會有 5 種版本（呼應錯誤 2）。</p>
+        <p style="margin-top:6px">B 錯：複製貼上等同 f02–f05 眼皮都是 0% 或 100%，沒有平滑過渡，組成動畫是「突然全閉 → 突然睜開」。</p>
+        <p style="margin-top:6px">C 對：「2 關鍵幀 + 補 3 中間幀（f05 = f01）」+ 同對話多輪 + 立刻自查補張 = 本單元當堂硬目標標準做法。</p>
+        <p style="margin-top:6px">D 錯：連發完才檢查 = 中間幀污染傳染後面所有幀（呼應錯誤 3）。</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q">Q2：你正在做小橘的眨眼 5 幀。f01（睜眼）和 f03（全閉）都通過 5 條判準。接著產 f02（半閉），AI 給的眼皮幾乎全閉（約 80%），且耳朵變尖了。f04 / f05 都還沒產。這時候你該怎麼處理？</div>
+    <div class="quiz-opts">
+      <label class="quiz-opt"><input type="radio" name="q2" value="A"> <span>A. 直接繼續產 f04 / f05，等全部完成後一起修</span></label>
+      <label class="quiz-opt"><input type="radio" name="q2" value="B"> <span>B. 重開新對話，從 f01 重新開始整組</span></label>
+      <label class="quiz-opt"><input type="radio" name="q2" value="C"> <span>C. 在原對話內用補張 prompt，量化「眼皮 50%、瞳孔露下半 + 耳朵圓潤跟 f01 一樣」，修 f02 後再繼續</span></label>
+      <label class="quiz-opt"><input type="radio" name="q2" value="D"> <span>D. 這張放行，f04 注意補回來就好</span></label>
+    </div>
+    <details class="quiz-ans">
+      <summary>查看解析</summary>
+      <div class="quiz-ans-body">
+        <p><strong>正確答案：C</strong></p>
+        <p style="margin-top:8px">A 錯：f02 跑掉繼續產，f04 / f05 都會繼承「80% + 尖耳朵」的 context，一錯到底（錯誤 3）。</p>
+        <p style="margin-top:6px">B 錯：重開新對話丟掉 f01 / f03 的 context，燒倍數額度，角色反而更亂（錯誤 2）。</p>
+        <p style="margin-top:6px">C 對：在原對話內立刻補張，必須量化兩個問題：「(a) 眼皮正好 50%、瞳孔露下半；(b) 耳朵跟 f01 一樣圓潤」。修正版過自查後再繼續 f04。</p>
+        <p style="margin-top:6px">D 錯：f02 的 context 已污染，f04 補不回來。動畫不能「留跑掉的張」。</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ===== 講義 4 張（handout） ===== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(08)</div>
+  <h2 class="section-heading">講義（可印出帶走）</h2>
+  <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap">
+    <button class="print-btn" onclick="window.print()">列印全頁講義</button>
+  </div>
+
+  <!-- 講義 1：5 幀眨眼 prompt 模板 -->
+  <div class="handout-section" id="handout-1">
+    <div class="handout-header">
+      <div>
+        <div class="handout-label">講義 1 / 4</div>
+        <div class="handout-title">眨眼 5 幀 Prompt 模板（含補張三步走）</div>
+      </div>
+    </div>
+    <div class="handout-body">
+      <p style="font-size:.88rem;color:var(--c-muted);margin-bottom:14px">把 <strong>【角色名】</strong> 換成你的角色名稱，把 <strong>【角色描述】</strong> 換成你的角色設定卡描述，再貼到 Gemini 即可。</p>
+      <div class="steps-wrap">
+        <div class="step-block">
+          <div class="step-circle">1</div>
+          <div class="step-content">
+            <div class="step-heading">f01（睜眼 · 起點關鍵幀）</div>
+            <div class="step-body" style="font-size:.85rem;color:var(--c-muted);font-family:'Courier New',monospace;background:var(--c-surface);padding:10px;border-radius:var(--radius);line-height:1.75;margin-top:6px">延續上面對話的【角色名】（【角色描述】）。<br>這次請畫眨眼動畫的 f01：【角色名】站立正面，眼睛完整睜開，<br>表情中性。背景純白，畫面比例正方形。<br>→ 產完立刻 5 條判準自查，5 條全過再繼續 f03。</div>
+          </div>
+        </div>
+        <div class="step-block">
+          <div class="step-circle">2</div>
+          <div class="step-content">
+            <div class="step-heading">f03（全閉 · 終點關鍵幀）</div>
+            <div class="step-body" style="font-size:.85rem;color:var(--c-muted);font-family:'Courier New',monospace;background:var(--c-surface);padding:10px;border-radius:var(--radius);line-height:1.75;margin-top:6px">保持 f01 所有設定。請畫 f03：眼睛完全閉合（眼皮蓋下，眼睛變成向上彎的弧線）。<br>其他「一根毛都不能動」（構圖/頭部/領巾/毛色/線條/背景全部跟 f01 完全一樣）。<br>→ 產完把 f01 / f03 並排，逐條 5 條判準對比。</div>
+          </div>
+        </div>
+        <div class="step-block">
+          <div class="step-circle">3</div>
+          <div class="step-content">
+            <div class="step-heading">補張 f02（半閉 · 中間幀）— 核心技巧</div>
+            <div class="step-body" style="font-size:.85rem;color:var(--c-muted);font-family:'Courier New',monospace;background:var(--c-surface);padding:10px;border-radius:var(--radius);line-height:1.75;margin-top:6px">請畫 f02：眼皮從上往下蓋正好 50%（不是 80%、不是 30%）。<br>黑色瞳孔還露出下半（視覺驗證點）。<br>其他全部跟 f01 完全一樣。</div>
+          </div>
+        </div>
+        <div class="step-block">
+          <div class="step-circle">4</div>
+          <div class="step-content">
+            <div class="step-heading">補張 f04（半開 · 鏡像幀）</div>
+            <div class="step-body" style="font-size:.85rem;color:var(--c-muted);font-family:'Courier New',monospace;background:var(--c-surface);padding:10px;border-radius:var(--radius);line-height:1.75;margin-top:6px">請畫 f04：眼皮位置跟 f02 完全一樣（從全閉掀開 50%，是 f02 的鏡像）。<br>其他全部跟 f01 / f03 完全一樣。</div>
+          </div>
+        </div>
+        <div class="step-block">
+          <div class="step-circle">5</div>
+          <div class="step-content">
+            <div class="step-heading">f05（= f01 · 循環回起點）</div>
+            <div class="step-body" style="font-size:.85rem;color:var(--c-muted);font-family:'Courier New',monospace;background:var(--c-surface);padding:10px;border-radius:var(--radius);line-height:1.75;margin-top:6px">直接在電腦複製 f01 的 PNG，改名為 _anim_blink_f05.png，不耗額度。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 講義 2：命名速查 -->
+  <div class="handout-section" id="handout-2">
+    <div class="handout-header">
+      <div>
+        <div class="handout-label">講義 2 / 4</div>
+        <div class="handout-title">關鍵幀命名速查（與 CH2-3 APNG 組裝對接）</div>
+      </div>
+    </div>
+    <div class="handout-body">
+      <p style="font-size:.88rem;color:var(--c-muted);margin-bottom:14px">把 <code style="font-size:.85em;background:var(--c-surface);padding:1px 4px">{角色名}</code> 換成你角色的英文或拼音名稱，例如橘貓叫 <code style="font-size:.85em;background:var(--c-surface);padding:1px 4px">neko</code> 則第一張是 <code style="font-size:.85em;background:var(--c-surface);padding:1px 4px">neko_anim_blink_f01.png</code>。CH2-3 直接沿用，不需要改檔名。</p>
+      <table>
+        <thead>
+          <tr><th>動作</th><th>幀</th><th>命名格式</th><th>說明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td rowspan="5" style="vertical-align:top;font-weight:500">眨眼（當堂硬目標）</td><td>f01</td><td><code style="font-size:.82em">{角色名}_anim_blink_f01.png</code></td><td>睜眼・起點關鍵幀</td></tr>
+          <tr><td>f02</td><td><code style="font-size:.82em">{角色名}_anim_blink_f02.png</code></td><td>半閉・中間幀</td></tr>
+          <tr><td>f03</td><td><code style="font-size:.82em">{角色名}_anim_blink_f03.png</code></td><td>全閉・終點關鍵幀</td></tr>
+          <tr><td>f04</td><td><code style="font-size:.82em">{角色名}_anim_blink_f04.png</code></td><td>半開・中間幀</td></tr>
+          <tr><td>f05</td><td><code style="font-size:.82em">{角色名}_anim_blink_f05.png</code></td><td>睜眼・= f01 複製改名</td></tr>
+          <tr><td rowspan="4" style="vertical-align:top;font-weight:500">揮手（進階）</td><td>f01</td><td><code style="font-size:.82em">{角色名}_anim_wave_f01.png</code></td><td>手在右下</td></tr>
+          <tr><td>f02</td><td><code style="font-size:.82em">{角色名}_anim_wave_f02.png</code></td><td>手在右上</td></tr>
+          <tr><td>f03</td><td><code style="font-size:.82em">{角色名}_anim_wave_f03.png</code></td><td>手在左上</td></tr>
+          <tr><td>f04</td><td><code style="font-size:.82em">{角色名}_anim_wave_f04.png</code></td><td>手在左下</td></tr>
+          <tr><td rowspan="5" style="vertical-align:top;font-weight:500">跳起來（課後）</td><td>f01</td><td><code style="font-size:.82em">{角色名}_anim_jump_f01.png</code></td><td>站立起點</td></tr>
+          <tr><td>f02</td><td><code style="font-size:.82em">{角色名}_anim_jump_f02.png</code></td><td>蹲下蓄力</td></tr>
+          <tr><td>f03</td><td><code style="font-size:.82em">{角色名}_anim_jump_f03.png</code></td><td>起跳瞬間</td></tr>
+          <tr><td>f04</td><td><code style="font-size:.82em">{角色名}_anim_jump_f04.png</code></td><td>最高點</td></tr>
+          <tr><td>f05</td><td><code style="font-size:.82em">{角色名}_anim_jump_f05.png</code></td><td>落地</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:.82rem;color:var(--c-muted);margin-top:12px">建議存放路徑：<code style="font-size:.85em;background:var(--c-surface);padding:1px 4px">line-stickers/{角色名}/animation/</code></p>
+    </div>
+  </div>
+
+  <!-- 講義 3：角色一致性 5 條動畫版 -->
+  <div class="handout-section" id="handout-3">
+    <div class="handout-header">
+      <div>
+        <div class="handout-label">講義 3 / 4</div>
+        <div class="handout-title">角色一致性 5 條判準（動畫版）</div>
+      </div>
+    </div>
+    <div class="handout-body">
+      <p style="font-size:.88rem;color:var(--c-muted);margin-bottom:14px">動畫版比 Part 1 表情組嚴 3 倍——任一幀跑 1 條 = 整組要補。優先順序由高到低：</p>
+      <div class="vocab-list">
+        <div class="vocab-row">
+          <div class="vocab-term" style="background:var(--c-text);color:#fff">1. 同隻角色</div>
+          <div class="vocab-def"><strong>最重要。這條沒過 = 整幀作廢。</strong>耳朵形狀、領巾打結處、眼間距——這 3 點是動態幀最容易跑的位置。</div>
+        </div>
+        <div class="vocab-row">
+          <div class="vocab-term">2. 同視角</div>
+          <div class="vocab-def"><strong>動態貼圖的關鍵。</strong>視角跑了，連續播會抖到無法看。AI 最常「順手」把頭微側——不容忍。</div>
+        </div>
+        <div class="vocab-row">
+          <div class="vocab-term">3. 同比例</div>
+          <div class="vocab-def">跳起來類動作允許「形變範圍內」的變化（蹲下變扁、起跳拉長），但角色辨識度不能跑。眨眼 / 揮手不允許比例改變。</div>
+        </div>
+        <div class="vocab-row">
+          <div class="vocab-term">4. 同風格</div>
+          <div class="vocab-def">線條粗細微跑可接受，但連續播會看到「閃爍」。跳起來大動作跑風格風險最高。</div>
+        </div>
+        <div class="vocab-row">
+          <div class="vocab-term">5. 同色域</div>
+          <div class="vocab-def">Part 1 是「最可救」，Part 2 變「次嚴格」。配色微偏 1% 連續播就看到「閃光」。</div>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:16px">
+        <div class="callout-icon" aria-hidden="true">!</div>
+        <div class="callout-body"><strong>動畫版實戰決策</strong>：第 1、4 條（同隻 / 同視角）任一不過 = 必須補張；第 2、3、5 條微跑是否放行，取決於「相鄰兩幀並排播放是否有抖動感」——肉眼有感 = 補；無感 = 放行。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 講義 4：中間幀補張口訣 -->
+  <div class="handout-section" id="handout-4">
+    <div class="handout-header">
+      <div>
+        <div class="handout-label">講義 4 / 4</div>
+        <div class="handout-title">中間幀補張口訣 + 4 種跑法補張範本</div>
+      </div>
+    </div>
+    <div class="handout-body">
+      <div class="callout" style="margin-bottom:20px">
+        <div class="callout-icon" aria-hidden="true">★</div>
+        <div class="callout-body"><strong>口訣：中間幀不是模糊張，是量化張。</strong>「半閉」= 「眼皮 50%、瞳孔露下半」。「中間」= 「介於 f01 / f03 之間的某個 % 值」。讓 AI 看不懂 % 就會自由發揮。</div>
+      </div>
+      <table>
+        <thead>
+          <tr><th>跑掉原因</th><th>補張 prompt 關鍵句</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>同隻：耳朵變尖了</td>
+            <td><code style="font-size:.82em">上一張 f02 的耳朵形狀跟 f01 不一樣（耳朵尖了一點），請參考 f01 的耳朵形狀（圓潤、無尖角），重畫 f02 的半閉版本。其他全部不變。</code></td>
+          </tr>
+          <tr>
+            <td>同視角：頭微側了</td>
+            <td><code style="font-size:.82em">上一張 f02 的頭部轉向跟 f01 不一致（微側了），請保持正面視角（頭部不轉），重畫 f02。其他全部不變。</code></td>
+          </tr>
+          <tr>
+            <td>同色域：橘色偏紅</td>
+            <td><code style="font-size:.82em">上一張 f02 的橘色比 f01 偏紅（請對齊 f01 的暖橘調），重畫 f02。眼皮位置 50% 維持，其他全部跟 f01 一樣。</code></td>
+          </tr>
+          <tr>
+            <td>中間幀眼皮 % 不對</td>
+            <td><code style="font-size:.82em">上一張 f04 的眼皮位置跟 f02 不一致（f04 蓋得比 f02 深）。f02 和 f04 是鏡像關係，請參考 f02 的眼皮位置，重畫 f04。其他全部不變。</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</section>
+
+<div class="nav-footer">
+  <a href="CH2-1.html" class="nav-btn"><span aria-hidden="true">←</span> CH2-1 動態貼圖原理</a>
+  <a href="CH2-3.html" class="nav-btn primary">CH2-3 APNG 組裝實戰 <span aria-hidden="true">→</span></a>
+</div>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">2026 春季</span>
+  <span class="footer-meta" data-platform-version="2026-Q2" data-built-at="2026-05-09">本頁以 2026-Q2 製作，2026-05</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+</script>
+<script>
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+<script>
+function copyCode(id,btn){
+  var el=document.getElementById(id);
+  if(!el)return;
+  var text=el.innerText||el.textContent;
+  navigator.clipboard.writeText(text).then(function(){
+    btn.textContent='已複製';btn.classList.add('copied');
+    setTimeout(function(){btn.textContent='複製';btn.classList.remove('copied');},2000);
+  });
+}
+function buildPatchPrompt(){
+  var char=document.getElementById('ff-char').value.trim()||'【角色名】';
+  var species=document.getElementById('ff-species').value.trim()||'【角色描述】';
+  var problem=document.getElementById('ff-problem').value.trim()||'【跑掉的問題】';
+  var prompt='上一張的'+char+'有以下問題：\n'+problem+'\n\n請保持以下不變：\n- 這隻'+char+'的整體設定（'+species+'）\n- 眼皮位置（眼皮蓋下 50%，瞳孔露出下半）\n- 構圖、頭部位置、領巾、嘴巴、手腳、毛色、線條粗細、背景\n\n重畫這幀，只修正上述問題，其他全部跟 f01 完全一樣。';
+  var preview=document.getElementById('patch-preview');
+  preview.textContent=prompt;
+  navigator.clipboard.writeText(prompt).catch(function(){});
+  var btn=document.querySelector('#patch-form .fill-form-build');
+  if(btn){btn.textContent='已產生並複製';btn.classList.add('done');setTimeout(function(){btn.textContent='產生補張 Prompt';btn.classList.remove('done');},3000);}
+}
+</script>
+</body>
+</html>

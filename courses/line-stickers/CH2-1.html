@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH2-1 動態貼圖原理 + APNG 規格｜AI 自製 LINE 貼圖</title>
+<meta name="description" content="能說出 APNG 與 GIF 的差異、列出 LINE 動態貼圖規格（≤300KB / 5–20 frames / ≤4 秒）、識別「會動的點」與「不該動的點」">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="CH2-1 動態貼圖原理 + APNG 規格｜AI 自製 LINE 貼圖">
+<meta property="og:description" content="能說出 APNG 與 GIF 的差異、列出 LINE 動態貼圖規格（≤300KB / 5–20 frames / ≤4 秒）、識別「會動的點」與「不該動的點」">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/line-stickers/CH2-1.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CH2-1 動態貼圖原理 + APNG 規格｜AI 自製 LINE 貼圖">
+<meta name="twitter:description" content="能說出 APNG 與 GIF 的差異、列出 LINE 動態貼圖規格（≤300KB / 5–20 frames / ≤4 秒）、識別「會動的點」與「不該動的點」">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/line-stickers/CH2-1.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-main:#b5703a;--radius:4px;--radius-sm:3px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 var(--radius) 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:var(--c-main);border:1px solid rgba(181,112,58,.3);background:transparent;padding:3px 12px;border-radius:99px;font-weight:500;letter-spacing:.06em}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px;font-variant-numeric:tabular-nums}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;max-width:22ch}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);margin-top:28px}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
+.outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-heading em{font-style:normal;color:var(--c-text)}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-body{font-size:.9rem;line-height:1.85}
+.tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0}
+.tool-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px}
+.tool-name{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.tool-tag{font-size:.72rem;color:var(--c-main);border:1px solid rgba(181,112,58,.3);display:inline-block;padding:2px 10px;border-radius:99px;margin-bottom:10px;letter-spacing:.06em}
+.tool-summary{font-size:.85rem;color:var(--c-muted);line-height:1.7;margin-bottom:12px}
+.tool-list{display:flex;flex-direction:column;gap:6px}
+.tool-list-item{font-size:.85rem;color:var(--c-text);line-height:1.7;display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:start}
+.tool-check{color:var(--c-main);flex-shrink:0}
+.scenario-grid{display:flex;flex-direction:column;gap:0;border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:24px 0}
+.scenario-row{display:grid;grid-template-columns:160px 1fr;border-bottom:1px solid var(--c-border-soft)}
+.scenario-row:last-child{border-bottom:0}
+.scenario-task{padding:16px;background:var(--c-surface);font-size:.85rem;color:var(--c-muted);line-height:1.7;font-weight:500}
+.scenario-pick{padding:16px;font-size:.85rem;color:var(--c-text);line-height:1.7}
+.steps-wrap{display:flex;flex-direction:column;gap:24px;margin:24px 0}
+.step-block{display:flex;gap:20px}
+.step-circle{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:var(--c-main);color:#fff;font-size:.82rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+.step-content{flex:1;padding-top:4px}
+.step-heading{font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.step-body{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.quiz-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:24px;margin:16px 0}
+.quiz-q{font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:16px;line-height:1.6}
+.quiz-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.quiz-opt{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);cursor:pointer;font-size:.88rem;color:var(--c-text);transition:border-color .15s,background .15s}
+.quiz-opt:hover{border-color:var(--c-main);background:rgba(181,112,58,.04)}
+.quiz-opt input[type="radio"]{margin:0;accent-color:var(--c-main)}
+.quiz-opt input[type="radio"]:checked + span{color:var(--c-main);font-weight:500}
+.quiz-ans{margin-top:8px;font-size:.88rem;color:var(--c-muted)}
+.quiz-ans summary{cursor:pointer;color:var(--c-main);font-size:.85rem;padding:6px 0}
+.quiz-ans > div{margin-top:10px;padding:12px 16px;background:var(--c-surface);border-radius:var(--radius);line-height:1.8}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0}
+.compare-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px}
+.compare-label{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--c-border-soft)}
+.compare-item{display:flex;align-items:flex-start;gap:8px;font-size:.85rem;color:var(--c-text);line-height:1.7;margin-bottom:8px}
+.compare-item:last-child{margin-bottom:0}
+.action-move{color:var(--c-main);font-weight:700;flex-shrink:0}
+.action-freeze{color:var(--c-faint);flex-shrink:0}
+.spec-highlight{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 24px;margin:24px 0;display:flex;gap:32px;align-items:center;flex-wrap:wrap}
+.spec-num{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;color:var(--c-text);line-height:1}
+.spec-unit{font-size:.82rem;color:var(--c-muted);margin-top:4px}
+.spec-div{width:1px;height:40px;background:var(--c-border)}
+.spec-table{width:100%;border-collapse:collapse;margin:24px 0;font-size:.85rem}
+.spec-table th{background:var(--c-surface);padding:10px 14px;text-align:left;font-weight:700;color:var(--c-text);border-bottom:1px solid var(--c-border);font-size:.82rem}
+.spec-table td{padding:10px 14px;border-bottom:1px solid var(--c-border-soft);color:var(--c-text);line-height:1.6;vertical-align:top}
+.spec-table tr:last-child td{border-bottom:0}
+.spec-table td strong{color:var(--c-text)}
+.action-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.85rem}
+.action-table th{background:var(--c-surface);padding:10px 12px;text-align:left;font-weight:700;color:var(--c-text);border-bottom:1px solid var(--c-border);font-size:.82rem}
+.action-table td{padding:10px 12px;border-bottom:1px solid var(--c-border-soft);color:var(--c-text);line-height:1.6;vertical-align:top}
+.action-table tr:last-child td{border-bottom:0}
+.badge-easy{display:inline-block;font-size:.7rem;color:var(--c-main);border:1px solid rgba(181,112,58,.3);border-radius:99px;padding:2px 8px;letter-spacing:.04em}
+.badge-mid{display:inline-block;font-size:.7rem;color:var(--c-muted);border:1px solid var(--c-border);border-radius:99px;padding:2px 8px;letter-spacing:.04em}
+.worksheet-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:24px;margin:20px 0}
+.worksheet-row{display:grid;grid-template-columns:140px 1fr;border-bottom:1px solid var(--c-border-soft);min-height:48px}
+.worksheet-row:last-child{border-bottom:0}
+.worksheet-label{padding:12px 14px;background:var(--c-surface);font-size:.82rem;color:var(--c-muted);font-weight:500;line-height:1.6}
+.worksheet-blank{padding:12px 14px;font-size:.85rem;color:var(--c-faint)}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(181,112,58,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
+.nav-btn:hover{background:rgba(181,112,58,.07);border-color:var(--c-main)}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main)}
+.nav-btn.primary:hover{filter:brightness(.92)}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+.print-btn{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);background:transparent;border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:5px 12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;letter-spacing:.04em}
+.print-btn:hover{color:var(--c-text);border-color:var(--c-text)}
+.handout-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:24px 28px;margin:20px 0}
+.handout-header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--c-border-soft)}
+.handout-tag{display:inline-block;font-size:.7rem;color:var(--c-main);border:1px solid rgba(181,112,58,.3);border-radius:99px;padding:2px 10px;letter-spacing:.06em;font-weight:500;margin-bottom:8px}
+.handout-title{font-family:'Shippori Mincho',serif;font-size:1.2rem;font-weight:700;color:var(--c-text);line-height:1.4;margin:0}
+.handout-print{flex-shrink:0;background:var(--c-text);color:#fff;border:0;border-radius:var(--radius-sm);padding:6px 14px;font-size:.8rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;letter-spacing:.04em;font-weight:500}
+.handout-print:hover{background:var(--c-main)}
+.handout-body{font-size:.88rem;line-height:1.8;color:var(--c-text)}
+.handout-intro{font-size:.88rem;color:var(--c-muted);line-height:1.8;margin-bottom:14px}
+.handout-table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.85rem}
+.handout-table th{background:var(--c-surface);padding:10px 12px;text-align:left;font-weight:700;color:var(--c-text);border:1px solid var(--c-border);font-size:.82rem}
+.handout-table td{padding:10px 12px;border:1px solid var(--c-border-soft);color:var(--c-text);line-height:1.6;vertical-align:top}
+.handout-blank{height:38px;color:var(--c-faint)}
+.handout-hint{font-size:.72rem;color:var(--c-muted);font-weight:400}
+.handout-divider{margin:24px 0 12px;text-align:center;font-size:.82rem;color:var(--c-faint);letter-spacing:.08em;font-family:'Shippori Mincho',serif}
+.handout-list{padding-left:1.4em;margin:8px 0}
+.handout-list li{margin-bottom:6px;font-size:.88rem;color:var(--c-text);line-height:1.7}
+.handout-compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0}
+.handout-compare-col{padding:14px;border:1px solid var(--c-border);border-radius:var(--radius)}
+.handout-good{background:var(--c-card)}
+.handout-bad{background:var(--c-surface)}
+.handout-compare-label{font-family:'Shippori Mincho',serif;font-size:.92rem;font-weight:700;color:var(--c-text);margin-bottom:10px}
+.handout-compare-points{padding-left:1.2em;font-size:.8rem;color:var(--c-text);line-height:1.7}
+.handout-compare-points li{margin-bottom:4px}
+.handout-note{font-size:.8rem;color:var(--c-muted);line-height:1.7;margin-top:12px;padding-top:10px;border-top:1px dashed var(--c-border-soft)}
+.handout-footer{font-size:.75rem;color:var(--c-faint);margin-top:14px;letter-spacing:.04em;text-align:right}
+.handout-checklist{list-style:none;padding:0;margin:8px 0}
+.handout-checklist li{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--c-border-soft)}
+.handout-checklist li:last-child{border-bottom:0}
+.handout-checklist .cb{font-size:1.2rem;color:var(--c-main);flex-shrink:0;line-height:1.2;margin-top:2px}
+.handout-checklist .reason{font-size:.8rem;color:var(--c-muted);line-height:1.7}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.tool-grid{grid-template-columns:1fr}.compare-grid{grid-template-columns:1fr}.scenario-row{grid-template-columns:1fr}.scenario-task{border-bottom:1px solid var(--c-border-soft)}.spec-highlight{flex-direction:column;gap:16px}.handout-compare-grid{grid-template-columns:1fr}.handout-header{flex-direction:column;align-items:flex-start}.handout-print{align-self:flex-end}}
+@media print{
+  *{text-shadow:none!important}
+  html,body{background:#fff!important;color:#000!important}
+  .topbar,.progress-strip,.skip-link,.back-link,.lesson-nav,footer,.print-btn{display:none!important}
+  .quiz-opt input[type="radio"]{display:none!important}
+  .quiz-opt::before{content:"○ ";color:#666;margin-right:4px}
+  a{color:#000!important;text-decoration:none!important}
+  .page-hero,.lesson-section{padding:16px 0!important;max-width:none!important;margin:0 auto}
+  .lesson-title,.section-heading,.lesson-tagline,.outcomes{page-break-after:avoid}
+  .tool-card,.scenario-grid,.scenario-row,.callout,.quiz-item,.step-block,.spec-table,pre,.code-block,.handout-card{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 自製 LINE 貼圖</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">CH2-1 · 30 min</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<div class="page-hero">
+  <a href="module2.html" class="back-link"><span aria-hidden="true">←</span> 返回 Part 2 進階班</a>
+  <div class="hero-eyebrow">CH 2.1</div>
+  <h1 class="lesson-title">動態貼圖原理 + APNG 規格</h1>
+  <p class="lesson-tagline">你已經做出 8 張靜態橘貓並送審了——現在要讓它「會動」。30 分鐘，3 個帶走點：APNG 跟 GIF 差在哪、三大規格數字、哪裡該動哪裡絕對不能動。</p>
+  <div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap"><a href="#handout-spec-dynamic" class="print-btn" style="text-decoration:none">跳到課堂紙本素材（可單張列印）</a></div>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果 · OUTCOMES</div>
+    <div class="outcome-item">能說出 APNG 與 GIF 的根本差異（alpha 透明 vs 1-bit 透明），以及 LINE 為什麼只收 APNG</div>
+    <div class="outcome-item">能背出 LINE 動態貼圖三大規格：≤300KB / 5–20 幀 / ≤4 秒（口訣 3-5-4）</div>
+    <div class="outcome-item">能識別橘貓眨眼、揮手、跳起來三類動作各自「會動的點」與「不該動的點」</div>
+  </div>
+</div>
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(01)</div>
+  <h2 class="section-heading">橘貓 8 張靜態已完成——<em>現在要讓它會動</em></h2>
+  <div class="intro-band">
+    <div class="intro-label">為什麼這很重要</div>
+    <div class="intro-text">你已經跑完 Part 1 的完整流程：AI 產圖、去背、調規格、送審，可能已經過審、可能被退了幾張用 R1–R5 SOP 修補過。不管哪一種，你現在手上有一套「會固定不動」的 8 張橘貓。接下來這一整個上午，我們要做一件事：讓橘貓會動。</div>
+  </div>
+  <p class="body-text">你手機 LINE 對話框裡那些「按下會眨眼」「揮手 3 秒才停下來」「跳上跳下還轉一圈」的，叫做動態貼圖。技術上是一個叫 APNG 的檔案格式，跟你以前看過的 GIF 動圖長得很像但不一樣——LINE 只收 APNG，不收 GIF。</p>
+  <p class="body-text">聽到「動畫」兩個字，你可能立刻想到迪士尼一秒 24 幀那種。忘掉它。LINE 動態貼圖最低只要 5 幀、最高也只能 20 幀、總長度不能超過 4 秒——這不是要你做動畫師，是讓「橘貓眨一下眼」「橘貓揮一下手」這種 1–2 秒的小動作能動起來。</p>
+  <div class="callout info">
+    <div class="callout-icon" aria-hidden="true">📌</div>
+    <div class="callout-body"><strong>本單元 30 分鐘只做三件事：</strong>（1）弄懂 APNG 跟 GIF 差在哪、為什麼 LINE 一定要 APNG；（2）把三大規格數字記下來（≤300KB / 5–20 幀 / ≤4 秒）；（3）學會判斷「橘貓哪裡該動、哪裡絕對不能動」。CH2-2 才是真正動手做關鍵幀，CH2-3 是組裝成 APNG。今天先把腦袋的地圖架好。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(02)</div>
+  <h2 class="section-heading"><em>6 條核心概念</em>——CH2-2 / CH2-3 會反覆用到</h2>
+  <p class="body-text">這 30 分鐘只有 6 條核心概念。每條都會在 CH2-2 / CH2-3 反覆出現，現在先記住輪廓，操作時才能快速對號入座。</p>
+  <div class="tool-grid">
+    <div class="tool-card">
+      <div class="tool-name">動態貼圖檔（APNG）</div>
+      <div class="tool-tag">Animated PNG</div>
+      <div class="tool-summary">把多張 PNG 串起來照順序播放、播完循環的檔案格式。LINE 動態貼圖只收 APNG，不收 GIF / MP4 / WebP。</div>
+      <div class="tool-list">
+        <div class="tool-list-item"><span class="tool-check">✓</span>第一次出現帶過全名「Animated PNG」</div>
+        <div class="tool-list-item"><span class="tool-check">✓</span>後面直接叫 APNG</div>
+        <div class="tool-list-item"><span class="tool-check">✓</span>播完自動循環，LINE 控制循環次數</div>
+      </div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-name">GIF vs APNG 核心差異</div>
+      <div class="tool-tag">格式比較</div>
+      <div class="tool-summary">GIF 透明背景只支援 1-bit（完全透明或完全不透明，邊緣白邊鋸齒）；APNG 支援 alpha 透明（半透明、毛髮邊緣漸變都能保留）。</div>
+      <div class="tool-list">
+        <div class="tool-list-item"><span class="tool-check">✓</span>GIF：橘貓邊緣出現一圈白邊</div>
+        <div class="tool-list-item"><span class="tool-check">✓</span>APNG：橘貓邊緣乾淨，毛茸茸自然</div>
+        <div class="tool-list-item"><span class="tool-check">✓</span>LINE 強制 APNG 就是因為這個</div>
+      </div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-name">幀（frame）</div>
+      <div class="tool-tag">動畫基本單位</div>
+      <div class="tool-summary">動畫的一張靜態畫面。橘貓眨眼最少需要 5 幀；揮手約 5 幀；跳起來約 5 幀。LINE 規定最少 5 幀、最多 20 幀。</div>
+      <div class="tool-list">
+        <div class="tool-list-item"><span class="tool-check">✓</span>少於 5 幀：LINE 直接退件</div>
+        <div class="tool-list-item"><span class="tool-check">✓</span>超過 20 幀：LINE 直接退件</div>
+        <div class="tool-list-item"><span class="tool-check">✓</span>眨眼 2 幀不夠，要補到 5 幀才合格</div>
+      </div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-name">三大規格（背下來）</div>
+      <div class="tool-tag">口訣 3-5-4</div>
+      <div class="tool-summary">（1）每張檔案 ≤300KB；（2）幀數 5–20 幀；（3）總長度 ≤4 秒。這三條任一不過，上架被退，不給模糊空間。</div>
+      <div class="tool-list">
+        <div class="tool-list-item"><span class="tool-check">✓</span>300KB：三百 KB 上限</div>
+        <div class="tool-list-item"><span class="tool-check">✓</span>5–20 幀：最少 5、最多 20</div>
+        <div class="tool-list-item"><span class="tool-check">✓</span>4 秒：所有幀的停留時間加總</div>
+      </div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-name">每幀停留時間</div>
+      <div class="tool-tag">frame delay</div>
+      <div class="tool-summary">每張幀停留多久（ms = 毫秒）。100ms 快動作，200ms 中速，300ms 慢動作。所有幀的 delay 加總 ≤4 秒才合格。</div>
+      <div class="tool-list">
+        <div class="tool-list-item"><span class="tool-check">✓</span>眨眼：100ms × 5 幀 = 0.5 秒</div>
+        <div class="tool-list-item"><span class="tool-check">✓</span>揮手：200ms × 5 幀 = 1 秒</div>
+        <div class="tool-list-item"><span class="tool-check">✓</span>跳起來：300ms × 5 幀 = 1.5 秒</div>
+      </div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-name">會動的點 vs 不該動的點</div>
+      <div class="tool-tag">核心判斷原則</div>
+      <div class="tool-summary">動態貼圖不是整個畫面都動。身體比例、輪廓、配色、視角全部凍結；只有眼睛 / 手 / 腳 / 局部表情才該動。</div>
+      <div class="tool-list">
+        <div class="tool-list-item"><span class="tool-check">✓</span>整隻一起動 = R2 角色不一致動態版</div>
+        <div class="tool-list-item"><span class="tool-check">✓</span>5 條一致性判準動態版：凍結其餘 4 條</div>
+        <div class="tool-list-item"><span class="tool-check">✓</span>「只動 1–2 個點」是整堂課的核心原則</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(03)</div>
+  <h2 class="section-heading">規格速查表 + <em>APNG vs GIF 視覺差異</em></h2>
+  <p class="body-text">把兩件事並排看清楚：規格數字 + 格式差在哪裡。CH2-2 / CH2-3 每隔幾分鐘就會回頭查這張表，現在把它掃一遍。</p>
+
+  <div class="spec-highlight">
+    <div>
+      <div class="spec-num">300 KB</div>
+      <div class="spec-unit">每張 APNG 大小上限</div>
+    </div>
+    <div class="spec-div"></div>
+    <div>
+      <div class="spec-num">5–20</div>
+      <div class="spec-unit">幀數範圍（超出即退件）</div>
+    </div>
+    <div class="spec-div"></div>
+    <div>
+      <div class="spec-num">4 秒</div>
+      <div class="spec-unit">播放總長上限（不含循環）</div>
+    </div>
+    <div class="spec-div"></div>
+    <div style="font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-faint)">口訣：3-5-4</div>
+  </div>
+
+  <table class="spec-table">
+    <thead>
+      <tr>
+        <th>項目</th>
+        <th>規格</th>
+        <th>違反會怎樣</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>檔案格式</strong></td>
+        <td>APNG（不收 GIF / MP4 / WebP）</td>
+        <td>上架後台直接拒絕上傳</td>
+      </tr>
+      <tr>
+        <td><strong>主貼圖尺寸</strong></td>
+        <td>320×270 px（動態用，比靜態 370×320 略小）</td>
+        <td>規格不符被退</td>
+      </tr>
+      <tr>
+        <td><strong>每張檔案大小</strong></td>
+        <td>≤300KB（超過 1KB 都不行）</td>
+        <td>上傳直接擋下</td>
+      </tr>
+      <tr>
+        <td><strong>幀數</strong></td>
+        <td>5–20 幀（少於 5 不收，超過 20 也不收）</td>
+        <td>範圍外被退，無例外</td>
+      </tr>
+      <tr>
+        <td><strong>總長度</strong></td>
+        <td>≤4 秒（所有幀 delay 加總，不含循環）</td>
+        <td>超過會自動截斷或退件</td>
+      </tr>
+      <tr>
+        <td><strong>套組張數</strong></td>
+        <td>8 / 16 / 24 / 32 / 40 張（與靜態相同）</td>
+        <td>張數錯被退</td>
+      </tr>
+      <tr>
+        <td><strong>透明背景</strong></td>
+        <td>必須（同 Part 1 規則）</td>
+        <td>邊緣殘影 = R3 退件</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="body-text" style="margin-top:4px">對進階學員來說，跟 Part 1 比就多了 5–20 幀 + 4 秒 + 300KB + 320×270 這 4 個數字。沒錯，這就是 Part 2 上半場前 4 小時的全部規格。</p>
+
+  <div class="compare-grid">
+    <div class="compare-card">
+      <div class="compare-label">GIF 透明背景（1-bit）</div>
+      <div style="background:var(--c-bg);border:1px dashed var(--c-border);border-radius:var(--radius-sm);padding:18px 14px;text-align:center;font-size:.8rem;color:var(--c-muted);line-height:1.7;min-height:80px;display:flex;align-items:center;justify-content:center;margin-bottom:14px">[ 橘貓邊緣出現一圈白邊示意——毛髮邊緣像剪刀剪過的紙娃娃 ]</div>
+      <div class="compare-item"><span style="color:#999;flex-shrink:0">×</span>只有「完全透明」或「完全不透明」</div>
+      <div class="compare-item"><span style="color:#999;flex-shrink:0">×</span>毛髮邊緣無法漸變，一律出現白邊鋸齒</div>
+      <div class="compare-item"><span style="color:#999;flex-shrink:0">×</span>LINE 後台直接擋，不讓你上傳</div>
+    </div>
+    <div class="compare-card">
+      <div class="compare-label">APNG 透明背景（alpha）</div>
+      <div style="background:var(--c-bg);border:1px dashed var(--c-border);border-radius:var(--radius-sm);padding:18px 14px;text-align:center;font-size:.8rem;color:var(--c-muted);line-height:1.7;min-height:80px;display:flex;align-items:center;justify-content:center;margin-bottom:14px">[ 橘貓邊緣乾淨示意——毛茸茸的邊緣自然漸變透明，無白邊 ]</div>
+      <div class="compare-item"><span class="action-move">✓</span>支援 0–255 的透明度（alpha channel）</div>
+      <div class="compare-item"><span class="action-move">✓</span>毛髮邊緣可漸變透明，看起來自然</div>
+      <div class="compare-item"><span class="action-move">✓</span>LINE 只認這個格式，輸出工具用 APNG Assembler</div>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-icon" aria-hidden="true">⚠️</div>
+    <div class="callout-body"><strong>EZGIF 在本課的角色是「預覽」，不是「輸出」：</strong>本課全程不用 GIF 做正式輸出。EZGIF 線上工具拿來看動畫播起來順不順，不是拿來輸出動態貼圖用的。APNG 的輸出工具是 APNG Assembler，CH2-3 會教。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(04)</div>
+  <h2 class="section-heading">三類動作拆解——<em>會動的點 vs 不該動的點</em></h2>
+  <p class="body-text">CH2-2 / CH2-3 你會選這 3 類動作其中一種來做。本單元只講原理，不動手。每類都用「會動的點 vs 不該動的點」來拆——這是選完 CH2-2 動手要做的第一件事，今天先在腦袋裡跑過一遍。</p>
+
+  <div class="steps-wrap">
+    <div class="step-block">
+      <div class="step-circle">1</div>
+      <div class="step-content">
+        <div class="step-heading">眨眼 <span class="badge-easy">最簡單 ★</span></div>
+        <div class="step-body">
+          <div class="compare-grid" style="margin:12px 0">
+            <div class="compare-card">
+              <div class="compare-label">會動的點</div>
+              <div class="compare-item"><span class="action-move">動</span>眼睛（睜開 → 閉上 → 睜開）</div>
+            </div>
+            <div class="compare-card">
+              <div class="compare-label">不該動的點</div>
+              <div class="compare-item"><span class="action-freeze">凍</span>身體輪廓</div>
+              <div class="compare-item"><span class="action-freeze">凍</span>白領巾、橘色虎斑紋路</div>
+              <div class="compare-item"><span class="action-freeze">凍</span>嘴巴、耳朵、頭身比、視角</div>
+            </div>
+          </div>
+          <p style="font-size:.85rem;color:var(--c-muted);line-height:1.7;margin-top:8px"><strong>幀數設計：</strong>睜眼 1 → 半閉 2 → 全閉 3 → 半閉 4 → 睜眼 5（5 幀，每幀 100ms，總長 0.5 秒，循環）。眨眼是 5 條一致性判準動態版裡最容易守住的——只動眼睛，其他 4 條自動凍結。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-block">
+      <div class="step-circle">2</div>
+      <div class="step-content">
+        <div class="step-heading">揮手 <span class="badge-mid">中等 ★★</span></div>
+        <div class="step-body">
+          <div class="compare-grid" style="margin:12px 0">
+            <div class="compare-card">
+              <div class="compare-label">會動的點</div>
+              <div class="compare-item"><span class="action-move">動</span>右手（身體側 → 抬到頭頂 → 揮左 → 揮右 → 回身側）</div>
+            </div>
+            <div class="compare-card">
+              <div class="compare-label">不該動的點</div>
+              <div class="compare-item"><span class="action-freeze">凍</span>左手、身體、表情</div>
+              <div class="compare-item"><span class="action-freeze">凍</span>配色、頭身比</div>
+              <div class="compare-item"><span class="action-freeze">凍</span>頭部（頭跟著動 = 搖頭 = R2 退件）</div>
+            </div>
+          </div>
+          <p style="font-size:.85rem;color:var(--c-muted);line-height:1.7;margin-top:8px"><strong>幀數設計：</strong>手在身側 1 → 抬到頭頂 2 → 揮左 3 → 揮右 4 → 回身側 5（5 幀，每幀 200ms，總長 1 秒，循環）。揮手比眨眼難一階，因為 5 幀有 5 個手部畫法要一致，手指數量、手掌大小不能跑掉。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-block">
+      <div class="step-circle">3</div>
+      <div class="step-content">
+        <div class="step-heading">跳起來 <span class="badge-mid">最難 ★★★</span></div>
+        <div class="step-body">
+          <div class="compare-grid" style="margin:12px 0">
+            <div class="compare-card">
+              <div class="compare-label">會動的點</div>
+              <div class="compare-item"><span class="action-move">動</span>身體位置（地面 → 半空 → 最高點 → 半空 → 著地）</div>
+              <div class="compare-item"><span class="action-move">動</span>身體形狀（蹲 → 拉長 → 圓 → 拉長 → 蹲）</div>
+            </div>
+            <div class="compare-card">
+              <div class="compare-label">不該動的點</div>
+              <div class="compare-item"><span class="action-freeze">凍</span>配色、線條粗細、表情、視角</div>
+              <div class="compare-item"><span class="action-freeze">凍</span>頭身比（可微縮放但不能變形）</div>
+              <div class="compare-item"><span class="action-freeze">凍</span>壓扁/拉太長 = 變另一隻貓 = R2 退件</div>
+            </div>
+          </div>
+          <p style="font-size:.85rem;color:var(--c-muted);line-height:1.7;margin-top:8px"><strong>幀數設計：</strong>蹲下 1 → 起跳半空 2 → 最高點 3 → 落下半空 4 → 著地 5（5 幀，每幀 300ms，總長 1.5 秒，循環）。跳起來涉及「位置 + 形狀」雙變化，是三類裡最容易壓不到 300KB 的（形變幀差異大）。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <table class="action-table">
+    <thead>
+      <tr>
+        <th>動作</th>
+        <th>難度</th>
+        <th>會動的點數</th>
+        <th>易卡關處</th>
+        <th>建議首選</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>眨眼</strong></td>
+        <td>★</td>
+        <td>1（眼睛）</td>
+        <td>5 幀補幀容易僵硬</td>
+        <td>CH2-2 第一個動態作品從這起步</td>
+      </tr>
+      <tr>
+        <td><strong>揮手</strong></td>
+        <td>★★</td>
+        <td>1（手）</td>
+        <td>手部 5 幀不一致，看起來像在抽搐</td>
+        <td>完成眨眼、有信心後再做</td>
+      </tr>
+      <tr>
+        <td><strong>跳起來</strong></td>
+        <td>★★★</td>
+        <td>2（位置 + 形狀）</td>
+        <td>形變幀差異大，容易壓不到 300KB</td>
+        <td>進階學員的挑戰款</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout key">
+    <div class="callout-icon" aria-hidden="true">🎯</div>
+    <div class="callout-body"><strong>強烈建議：CH2-2 動手時先用「眨眼」做第一張動態橘貓。</strong>眨眼是 5 條一致性判準動態版裡最容易守住的（只動眼睛 = 其他 4 條判準自動凍結），新手做出第一張合格 APNG 才有信心做下一個。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(05)</div>
+  <h2 class="section-heading">動手 4 分鐘——<em>填動作設計卡 v0</em></h2>
+  <p class="body-text">本單元 30 分鐘是 Part 2 開場短講，沒有實際動手環節。但下課前要填一份<strong>動作設計卡 v0</strong>——從你 Part 1 已經做完的 8 張橘貓裡，挑 1 張，寫出動作設計草稿。CH2-2 動手時會把這張卡升級成正式版（加上每幀的指令寫法）。</p>
+
+  <div class="worksheet-card">
+    <p style="font-size:.82rem;color:var(--c-faint);margin-bottom:14px;font-family:'Shippori Mincho',serif;letter-spacing:.05em">動作設計卡 v0（CH2-1 草稿版）</p>
+    <div class="worksheet-row">
+      <div class="worksheet-label">1. 我選的表情</div>
+      <div class="worksheet-blank">笑 / 哭 / 生氣 / 得意 / 求拜託 / 無語 / 晚安 / 嚇到 任 1</div>
+    </div>
+    <div class="worksheet-row">
+      <div class="worksheet-label">2. 我想讓它做的動作</div>
+      <div class="worksheet-blank">眨眼 / 揮手 / 跳起來 任 1</div>
+    </div>
+    <div class="worksheet-row">
+      <div class="worksheet-label">3. 會動的點</div>
+      <div class="worksheet-blank">具體寫 1–2 個身體部位，例：右眼上眼皮</div>
+    </div>
+    <div class="worksheet-row">
+      <div class="worksheet-label">4. 不該動的點</div>
+      <div class="worksheet-blank">至少 3 個，例：白領巾、橘色虎斑紋、頭身比</div>
+    </div>
+    <div class="worksheet-row">
+      <div class="worksheet-label">5. 預估幀數</div>
+      <div class="worksheet-blank">_____ 幀（5–20 範圍）</div>
+    </div>
+    <div class="worksheet-row">
+      <div class="worksheet-label">6. 每幀停留</div>
+      <div class="worksheet-blank">_____ ms（100 / 200 / 300 選一個）</div>
+    </div>
+    <div class="worksheet-row">
+      <div class="worksheet-label">7. 預估總長</div>
+      <div class="worksheet-blank">_____ 秒（≤4 秒，幀數 × 每幀 ms ÷ 1000）</div>
+    </div>
+  </div>
+
+  <p class="body-text"><strong>範例（橘貓「無語」眨眼）：</strong>表情：無語 → 動作：眨眼 → 會動：右眼 + 左眼上眼皮（雙眼同步開合）→ 不該動：白領巾、橘色虎斑紋、頭身比、嘴巴（一條線保持）、耳朵 → 5 幀，每幀 100ms，總長 0.5 秒。</p>
+
+  <p class="body-text">填完先放著，CH2-2 開場第一件事就是把這張卡升級成 v1 版本（加上每幀的 Gemini 指令寫法）。</p>
+
+  <p class="body-text" style="margin-top:4px"><strong>下課前 1 分鐘，自己心裡回答這 3 題（CH2-2 開場會抽人答）：</strong></p>
+  <div class="scenario-grid" style="margin-top:12px">
+    <div class="scenario-row">
+      <div class="scenario-task">思考題 1</div>
+      <div class="scenario-pick">如果我讓橘貓眨眼時頭也跟著歪一下，會發生什麼事？<br><span style="font-size:.8rem;color:var(--c-faint)">方向：頭歪 = 身體輪廓 / 視角這 2 條凍結項被破壞，看起來像 R2 角色不一致動態版退件。</span></div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">思考題 2</div>
+      <div class="scenario-pick">如果我把眨眼做成 3 幀（睜 → 閉 → 睜），LINE 會收嗎？<br><span style="font-size:.8rem;color:var(--c-faint)">方向：不收。LINE 規定最少 5 幀，3 幀直接退件。要補 2 個「半閉」幀到 5 幀才合格。</span></div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">思考題 3</div>
+      <div class="scenario-pick">如果我跳起來做到 25 幀好讓動作很流暢，會怎樣？<br><span style="font-size:.8rem;color:var(--c-faint)">方向：超過 20 幀上限被退；且多半超過 4 秒；且檔案輕鬆超過 300KB——三條規格同時違反 3 條。</span></div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section" id="handout-spec-dynamic">
+  <div class="section-eyebrow">(06)</div>
+  <h2 class="section-heading">課堂紙本素材——<em>3 張可列印帶走</em></h2>
+  <p class="body-text">下面這 3 張就是課堂會發給你的紙本素材（動態版）。每張右上有「列印這張」按鈕——按下去開新分頁印出 A4 一張。CH2-2 / CH2-3 動手過程中會反覆翻，請收好。</p>
+
+  <!-- 紙本素材 1：規格速查卡（動態貼圖版） -->
+  <div class="handout-card" id="handout-dynamic-spec">
+    <div class="handout-header">
+      <div>
+        <div class="handout-tag">素材 1 · 隨身帶</div>
+        <h3 class="handout-title">規格速查卡（動態貼圖版）</h3>
+      </div>
+      <button class="handout-print" type="button" onclick="printHandout(this)">列印這張</button>
+    </div>
+    <div class="handout-body">
+      <p class="handout-intro">這張卡貼在筆電旁，CH2-2 / CH2-3 組裝 APNG 時隨時翻。口訣：三百 KB / 五到二十幀 / 四秒以內。3-5-4，唸三遍。</p>
+      <table class="handout-table">
+        <thead><tr><th>項目</th><th>規格</th><th>違反會怎樣</th></tr></thead>
+        <tbody>
+          <tr><td><strong>檔案格式</strong></td><td>APNG（不收 GIF / MP4 / WebP）</td><td>上架後台直接拒絕上傳</td></tr>
+          <tr><td><strong>尺寸</strong></td><td>320×270 px（動態用，比靜態 370×320 略小）</td><td>規格不符被退</td></tr>
+          <tr><td><strong>每張大小</strong></td><td>≤ 300KB</td><td>超過 1KB 都不行</td></tr>
+          <tr><td><strong>幀數</strong></td><td>5–20 幀（少於 5 或超過 20 都不收）</td><td>範圍外被退，無例外</td></tr>
+          <tr><td><strong>總長度</strong></td><td>≤ 4 秒（所有幀 delay 加總）</td><td>超過截斷或退件</td></tr>
+          <tr><td><strong>套組張數</strong></td><td>8 / 16 / 24 / 32 / 40 張</td><td>張數錯被退</td></tr>
+          <tr><td><strong>透明背景</strong></td><td>必須（同 Part 1，alpha 透明才行）</td><td>邊緣殘影 = R3 退件</td></tr>
+        </tbody>
+      </table>
+      <div class="handout-divider">— 背面 · 三類動作幀數 + 停留時間快速對照 —</div>
+      <table class="handout-table">
+        <thead><tr><th>動作</th><th>幀數</th><th>每幀停留</th><th>總長</th><th>難度</th></tr></thead>
+        <tbody>
+          <tr><td><strong>眨眼</strong></td><td>5 幀</td><td>100 ms</td><td>0.5 秒</td><td>★</td></tr>
+          <tr><td><strong>揮手</strong></td><td>5 幀</td><td>200 ms</td><td>1 秒</td><td>★★</td></tr>
+          <tr><td><strong>跳起來</strong></td><td>5 幀</td><td>300 ms</td><td>1.5 秒</td><td>★★★</td></tr>
+        </tbody>
+      </table>
+      <p class="handout-note">口訣：3-5-4（三百 KB / 五到二十幀 / 四秒以內）。CH2-2 / CH2-3 動手前請先對一遍你的幀數設計有沒有在這三條範圍內。</p>
+      <p class="handout-footer">更新日期：2026-Q2 · LINE Creators Market 規格以官方公告為準</p>
+    </div>
+  </div>
+
+  <!-- 紙本素材 2：三類動作對照圖（會動 vs 不該動） -->
+  <div class="handout-card" id="handout-action-compare">
+    <div class="handout-header">
+      <div>
+        <div class="handout-tag">素材 2 · 參考圖</div>
+        <h3 class="handout-title">三類動作對照圖（會動 vs 不該動）</h3>
+      </div>
+      <button class="handout-print" type="button" onclick="printHandout(this)">列印這張</button>
+    </div>
+    <div class="handout-body">
+      <p class="handout-intro">每做一個動作前，先確認這張表——「會動的點」具體寫出來，「不該動的點」至少 3 個，才能進 CH2-2 動手。</p>
+      <table class="handout-table">
+        <thead><tr><th>動作</th><th>會動的點</th><th>不該動的點（至少 3 個）</th><th>最容易踩的坑</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>眨眼 ★</strong></td>
+            <td>眼睛（上眼皮開合）</td>
+            <td>身體輪廓、白領巾、橘色虎斑紋、嘴巴、耳朵、頭身比、視角</td>
+            <td>3 幀（睜→閉→睜）直接退，一定要補到 5 幀</td>
+          </tr>
+          <tr>
+            <td><strong>揮手 ★★</strong></td>
+            <td>右手（從身側 → 抬高 → 揮左右 → 回身側）</td>
+            <td>頭部、左手、身體、表情、配色</td>
+            <td>頭跟著手揮的方向歪 = R2 角色不一致退件</td>
+          </tr>
+          <tr>
+            <td><strong>跳起來 ★★★</strong></td>
+            <td>身體位置（上下）、身體形狀（蹲/拉長/圓）</td>
+            <td>配色、線條粗細、表情、視角、頭身比不可變形</td>
+            <td>形變過頭壓不過 300KB；壓扁/拉太長 = 看起來像另一隻貓</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="handout-note">重要提醒：「會動的點」一個動作最多 1–2 個。超過 2 個同時動 = 整隻都在動 = R2 角色不一致動態版退件高機率。CH2-2 動手時先把「不該動的點」列清楚，才能寫出準確的 Gemini 指令。</p>
+      <p class="handout-footer">更新日期：2026-Q2</p>
+    </div>
+  </div>
+
+  <!-- 紙本素材 3：動作設計卡 v0（會動 vs 不該動清單） -->
+  <div class="handout-card" id="handout-design-card">
+    <div class="handout-header">
+      <div>
+        <div class="handout-tag">素材 3 · 這堂用</div>
+        <h3 class="handout-title">動作設計卡 v0（會動 / 不該動清單）</h3>
+      </div>
+      <button class="handout-print" type="button" onclick="printHandout(this)">列印這張</button>
+    </div>
+    <div class="handout-body">
+      <p class="handout-intro">從你 Part 1 做完的 8 張橘貓裡挑 1 張，填這 7 格，4 分鐘填完。填完先放著，CH2-2 開場第一件事就是把它升級成 v1 版本（加上每幀的 Gemini 指令）。</p>
+      <table class="handout-table">
+        <thead><tr><th style="width:30%">欄位</th><th>你的答案</th></tr></thead>
+        <tbody>
+          <tr><td><strong>1. 我選的表情</strong><br><span class="handout-hint">從 8 張裡圈 1 個</span></td><td class="handout-blank">笑 / 哭 / 生氣 / 得意 / 求拜託 / 無語 / 晚安 / 嚇到</td></tr>
+          <tr><td><strong>2. 我想讓它做的動作</strong><br><span class="handout-hint">圈 1 個</span></td><td class="handout-blank">眨眼 ★ / 揮手 ★★ / 跳起來 ★★★</td></tr>
+          <tr><td><strong>3. 會動的點</strong><br><span class="handout-hint">具體 1–2 個部位</span></td><td class="handout-blank">　</td></tr>
+          <tr><td><strong>4. 不該動的點</strong><br><span class="handout-hint">至少 3 個（含角色辨識度核心）</span></td><td class="handout-blank">　</td></tr>
+          <tr><td><strong>5. 預估幀數</strong><br><span class="handout-hint">5–20 範圍</span></td><td class="handout-blank">_____ 幀</td></tr>
+          <tr><td><strong>6. 每幀停留</strong><br><span class="handout-hint">100 / 200 / 300 ms</span></td><td class="handout-blank">_____ ms</td></tr>
+          <tr><td><strong>7. 預估總長</strong><br><span class="handout-hint">≤ 4 秒</span></td><td class="handout-blank">_____ 秒（幀數 × ms ÷ 1000）</td></tr>
+        </tbody>
+      </table>
+      <div class="handout-divider">— 自查清單（下課前確認打勾）—</div>
+      <ul class="handout-checklist">
+        <li><span class="cb">☐</span><div>「會動的點」寫了具體部位（不是「全部」「整隻」）<br><span class="reason">具體到「右眼上眼皮」「右手」這種層級才算。</span></div></li>
+        <li><span class="cb">☐</span><div>「不該動的點」至少 3 個<br><span class="reason">不是寫「不動」二字就算，要列出具體項目：白領巾、橘色虎斑紋、頭身比……</span></div></li>
+        <li><span class="cb">☐</span><div>幀數在 5–20 範圍內<br><span class="reason">超出範圍 = 上架一定被退，CH2-2 開始前要改好。</span></div></li>
+        <li><span class="cb">☐</span><div>幀數 × 每幀 ms ÷ 1000 ≤ 4 秒<br><span class="reason">例：5 幀 × 200ms = 1000ms = 1 秒，合格。</span></div></li>
+        <li><span class="cb">☐</span><div>「不該動的點」有寫到白領巾 / 橘色虎斑紋 / 頭身比這類角色辨識度核心<br><span class="reason">這是 Part 1 五條一致性判準的動態版，沒寫到 = 動手時容易做出 R2 退件動態版。</span></div></li>
+      </ul>
+      <p class="handout-footer">動作設計卡 v0 · CH2-1 草稿版 · 2026-Q2</p>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(07)</div>
+  <h2 class="section-heading">三個常見的坑——<em>全是「以為用 GIF 能省事」的代價</em></h2>
+  <p class="body-text">以下三個坑在試跑時都被實際踩過。記住這三個，CH2-2 / CH2-3 動手時少繞一圈。</p>
+  <div class="scenario-grid">
+    <div class="scenario-row">
+      <div class="scenario-task">坑 1：上傳 GIF 被擋</div>
+      <div class="scenario-pick"><strong>現象：</strong>用 EZGIF 把 5 張幀組成 GIF 上傳，LINE 後台跳「檔案格式不支援」，重做三次還是被擋。<br><strong>原因：</strong>GIF 的透明背景只支援 1-bit，LINE 從上傳端就擋 GIF 格式，跟檔案有沒有壞掉無關。<br><strong>解法：</strong>APNG 的輸出工具是 APNG Assembler，不是 EZGIF。把組 GIF 用的原始 PNG 找出來，用 APNG Assembler 重新組，CH2-3 教完一次就會。</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">坑 2：眨眼做 3 幀被退</div>
+      <div class="scenario-pick"><strong>現象：</strong>眨眼只做 3 幀（睜 → 閉 → 睜），快速組成 APNG 上傳後審核第 3 天收到退件信「幀數不符規格」。<br><strong>原因：</strong>LINE 最少 5 幀是強制，不是建議。3 幀看起來像「啪」的動作，不像真實生物眨眼，LINE 直接退。<br><strong>解法：</strong>眨眼最低 5 幀——睜 / 半閉 / 全閉 / 半閉 / 睜。本課所有動作示範都是 5 幀起跳，照做不會踩這個雷。</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">坑 3：頭跟著眼睛一起歪</div>
+      <div class="scenario-pick"><strong>現象：</strong>學員想讓眨眼有俏皮感，每幀頭都微微歪不同方向。組成 APNG 播放後，橘貓看起來在「搖頭晃腦同時眨眼」。送審後退件理由：角色一致性不足（R2）。<br><strong>原因：</strong>動態貼圖跟動畫片不同——不是整個畫面都動。頭歪 = 身體輪廓 / 視角這 2 條凍結項被破壞，等同 R2 角色不一致退件動態版。<br><strong>解法：</strong>每個動作先列「該動的 1–2 個點」+「不該動的至少 3 個點」（動作設計卡 v0 第 3、4 格），眨眼只動眼睛，頭 / 身體 / 領巾 / 虎斑紋 / 嘴巴全部凍結。</div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(08)</div>
+  <h2 class="section-heading">自我檢核——<em>2 題，拿規格速查卡就能答</em></h2>
+  <p class="body-text">這兩題都在考「你有沒有把三大規格數字 + 會動 vs 不該動的原則搞清楚」。先自己選一個答案，再看解析。</p>
+
+  <div class="quiz-item">
+    <div class="quiz-q">Q1：以下哪一個是 LINE 動態貼圖不收 GIF 格式的根本原因？</div>
+    <div class="quiz-opts">
+      <label class="quiz-opt"><input type="radio" name="q1"><span>A. GIF 檔案大小通常超過 300KB 上限，技術上做不到符合規格</span></label>
+      <label class="quiz-opt"><input type="radio" name="q1"><span>B. GIF 不支援循環播放，LINE 動態貼圖一定要循環</span></label>
+      <label class="quiz-opt"><input type="radio" name="q1"><span>C. GIF 透明背景只支援 1-bit（完全透明 / 完全不透明），邊緣會白邊鋸齒；APNG 支援 alpha 透明，邊緣才能乾淨</span></label>
+      <label class="quiz-opt"><input type="radio" name="q1"><span>D. GIF 是過時格式，LINE 為了推廣 APNG 強制不收 GIF</span></label>
+    </div>
+    <details class="quiz-ans">
+      <summary>顯示答案</summary>
+      <div>正確答案：<strong>C</strong>。<br><br>A 錯：GIF 也可以壓到 300KB 以下，檔案大小不是被擋的原因，「邊緣品質」才是。<br>B 錯：GIF 完全支援循環播放，這不是 LINE 不收的理由。<br>C 對：1-bit 透明（GIF）= 邊緣只能完全透明或完全不透明，毛茸茸的橘貓邊緣會像剪刀剪過的紙娃娃；alpha 透明（APNG）= 邊緣可以漸變透明，毛邊才看起來自然。LINE 為了避免上架後在對話框看到「白邊鋸齒橘貓」，從上傳端就擋 GIF。<br>D 錯：LINE 的選擇理由是技術而非推廣；GIF 也不是「過時」，只是不適合 LINE 貼圖的透明背景需求。</div>
+    </details>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q">Q2：你想把橘貓「得意」做成動態貼圖，計畫是「點頭 + 眨眼 + 揮手 + 整隻跳起來慶祝」4 個動作同時在 5 幀內發生。從 CH2-1 學到的原則來看，這個設計有什麼問題？該怎麼改？</div>
+    <div class="quiz-opts">
+      <label class="quiz-opt"><input type="radio" name="q2"><span>A. 5 幀不夠塞 4 個動作，要改成 20 幀才行</span></label>
+      <label class="quiz-opt"><input type="radio" name="q2"><span>B. 違反「會動的點 vs 不該動的點」原則，4 個動作同時發生等於整隻都在動，看起來像 5 隻不同橘貓的剪輯，R2 退件高機率；正確做法是拆成 4 個獨立 APNG，每張只有 1–2 個會動的點</span></label>
+      <label class="quiz-opt"><input type="radio" name="q2"><span>C. 規格上沒問題，只是動畫效果可能不夠流暢</span></label>
+      <label class="quiz-opt"><input type="radio" name="q2"><span>D. 只要 4 個動作的總長度 ≤4 秒就可以，不影響通過率</span></label>
+    </div>
+    <details class="quiz-ans">
+      <summary>顯示答案</summary>
+      <div>正確答案：<strong>B</strong>（選 A 有部分對但不完整）。<br><br>問題有三個：<br>（1）<strong>違反「會動的點 vs 不該動的點」原則</strong>：4 個動作同時發生 = 頭 + 眼 + 手 + 全身位置 + 形狀全部都在動，沒有任何部位「凍結」。5 條一致性判準動態版全部破壞，成品看起來不像同一隻橘貓在做動作，等同 R2 角色不一致動態版退件高機率。<br>（2）<strong>5 幀塞 4 個動作根本不夠</strong>：4 個動作各自最少 5 幀，合計 20 幀；硬塞進 5 幀 = 每個動作只有 1.25 幀，動作看不出在做什麼。<br>（3）<strong>正確做法：拆成「一張一動作」</strong>：把橘貓得意拆成 4 個不同 APNG（或只選 1 個最有戲的），每張各 5 幀、各自只有 1–2 個會動的點、其他全凍結——4 張都符合 R2 一致性判準動態版。<br><br>加分：如果你想到「先從眨眼起步，最容易守住 5 條一致性」——你已經抓到本單元的核心了。</div>
+    </details>
+  </div>
+</section>
+
+<div class="nav-footer">
+  <a href="CH1-6.html" class="nav-btn"><span aria-hidden="true">←</span> PRAC1（CH1-6）</a>
+  <a href="CH2-2.html" class="nav-btn primary">CH2-2 AI 產關鍵幀 <span aria-hidden="true">→</span></a>
+</div>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">弄一下工作室</span>
+  <span class="footer-meta" data-platform-version="2026-Q2（Gemini 2.5 Flash Image / ChatGPT GPT-Image-1 免費版 / LINE Creators Market 2026 介面 / Photopea v4.x / APNG Assembler / EZGIF）" data-built-at="2026-05-09">本頁以 2026-Q2 製作，2026-05</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+
+function printHandout(btn){
+  var card=btn.closest('.handout-card');if(!card)return;
+  var title=(card.querySelector('.handout-title')||{}).textContent||'課堂素材';
+  var body=card.querySelector('.handout-body');if(!body)return;
+  var w=window.open('','_blank','width=900,height=1100');
+  if(!w){alert('請允許彈出新視窗才能列印');return;}
+  var css='@page{size:A4;margin:18mm}*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Noto Sans TC",sans-serif;color:#222;line-height:1.75;padding:0}h1{font-family:"Shippori Mincho",serif;font-size:1.45rem;border-bottom:2px solid #b5703a;padding-bottom:10px;margin-bottom:18px}h3{font-family:"Shippori Mincho",serif}table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.9rem}th{background:#edeae3;padding:10px 12px;border:1px solid #999;text-align:left;font-weight:700}td{padding:10px 12px;border:1px solid #ccc;vertical-align:top}ol,ul{padding-left:1.5em;margin:10px 0}li{margin-bottom:6px}.handout-divider{margin:24px 0 12px;text-align:center;font-size:.85rem;color:#888;letter-spacing:.08em;font-family:"Shippori Mincho",serif}.handout-blank{height:38px}.handout-checklist{list-style:none;padding:0}.handout-checklist li{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #eee}.handout-checklist .cb{font-size:1.2rem;flex-shrink:0}.handout-checklist .reason{font-size:.82rem;color:#666;display:block;margin-top:4px}.handout-note,.handout-footer{font-size:.8rem;color:#666;margin-top:12px}.handout-intro{color:#666;margin-bottom:14px}.handout-tag{display:inline-block;font-size:.7rem;color:#b5703a;border:1px solid #b5703a;border-radius:99px;padding:2px 10px;margin-bottom:8px}.handout-hint{font-size:.72rem;color:#666;font-weight:400;display:block;margin-top:2px}.handout-print,.handout-header button{display:none}';
+  w.document.write('<!doctype html><html><head><meta charset="UTF-8"><title>'+title+' · 列印</title><style>'+css+'</style></head><body><h1>'+title+'</h1>'+body.innerHTML+'</body></html>');
+  w.document.close();
+  w.focus();
+  setTimeout(function(){w.print();},300);
+}
+</script>
+<script>
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+</body>
+</html>
