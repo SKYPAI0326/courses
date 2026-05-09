@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<!-- 弄一下工作室 — line-stickers CH1-3 8 張表情產出實戰（2026-05-09） -->
+<!--
+  教案：_lessons/line-stickers/CH1-3.md（slug: line-stickers, unit_id: CH1-3）
+  prerequisites: CH1-2
+  learning_objective: 能在同一個 Gemini 對話內依序產出 8 張同角色不同表情，並用「角色一致性檢查清單」5 條判準逐張自查
+  platform_version: 2026-Q2（Gemini 2.5 Flash Image / ChatGPT GPT-Image-1 免費版 / LINE Creators Market 2026 介面 / Photopea v4.x）
+-->
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH 1.3 8 張表情產出實戰｜AI 自製 LINE 貼圖</title>
+<meta name="description" content="能在同一個 Gemini 對話內依序產出 8 張同角色不同表情（笑/哭/生氣/得意/求拜託/無語/晚安/嚇到），並用「角色一致性檢查清單」5 條判準逐張自查">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="CH 1.3 8 張表情產出實戰｜AI 自製 LINE 貼圖">
+<meta property="og:description" content="能在同一個 Gemini 對話內依序產出 8 張同角色不同表情，並用「角色一致性檢查清單」5 條判準逐張自查">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/line-stickers/CH1-3.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CH 1.3 8 張表情產出實戰｜AI 自製 LINE 貼圖">
+<meta name="twitter:description" content="能在同一個 Gemini 對話內依序產出 8 張同角色不同表情，並用「角色一致性檢查清單」5 條判準逐張自查">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/line-stickers/CH1-3.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-main:#b5703a;--radius:4px;--radius-sm:3px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;word-break:break-word;overflow-wrap:break-word;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 var(--radius) 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:var(--c-main);border:1px solid rgba(181,112,58,.3);background:transparent;padding:3px 12px;border-radius:99px;font-weight:500;letter-spacing:.06em}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px;font-variant-numeric:tabular-nums}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;max-width:22ch}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);margin-top:28px}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
+.outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.today-deliverables{margin-top:32px;padding:18px 22px;border:1px dashed var(--c-border);border-radius:var(--radius);background:var(--c-bg)}
+.today-deliverables-label{font-family:'Shippori Mincho',serif;font-size:.85rem;color:var(--c-text);letter-spacing:.08em;font-weight:700;margin-bottom:12px}
+.today-deliverables-list{list-style:decimal;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:.92rem;color:var(--c-text);line-height:1.8}
+.today-deliverables-note{font-size:.82rem;color:var(--c-muted);margin-top:12px;font-style:italic;line-height:1.7}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-heading em{font-style:normal;color:var(--c-text)}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-body{font-size:.9rem;line-height:1.85}
+.callout-body strong{color:var(--c-text)}
+/* 角色一致性檢查清單（P0 核心） */
+.checklist-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:24px 0}
+.checklist-card-header{background:var(--c-surface);padding:14px 20px;border-bottom:1px solid var(--c-border)}
+.checklist-card-title{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text)}
+.checklist-card-sub{font-size:.82rem;color:var(--c-muted);margin-top:4px}
+.checklist-list{padding:0;margin:0;list-style:none}
+.checklist-item{display:grid;grid-template-columns:32px 80px 1fr;gap:0;border-bottom:1px solid var(--c-border-soft);padding:12px 20px;align-items:start}
+.checklist-item:last-child{border-bottom:none}
+.checklist-num{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);font-weight:700;padding-top:2px}
+.checklist-key{font-size:.88rem;font-weight:700;color:var(--c-text);line-height:1.7}
+.checklist-desc{font-size:.85rem;color:var(--c-muted);line-height:1.75}
+/* 概念 tool-grid */
+.tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+.tool-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px}
+.tool-name{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.tool-tag{font-size:.72rem;color:var(--c-muted);letter-spacing:.08em;margin-bottom:10px;font-weight:500}
+.tool-summary{font-size:.85rem;color:var(--c-text);line-height:1.8;margin-bottom:10px}
+.tool-list{display:flex;flex-direction:column;gap:6px}
+.tool-list-item{font-size:.82rem;color:var(--c-muted);line-height:1.7;display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:start}
+.tool-check{color:var(--c-text);flex-shrink:0;font-weight:700}
+/* 步驟 */
+.steps-wrap{display:flex;flex-direction:column;gap:0;margin:20px 0}
+.step-block{display:flex;gap:20px;padding:20px 0;border-bottom:1px solid var(--c-border-soft)}
+.step-block:last-child{border-bottom:none}
+.step-circle{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:var(--c-text);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700;font-family:'Shippori Mincho',serif;margin-top:2px}
+.step-content{flex:1}
+.step-heading{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:8px;line-height:1.4}
+.step-body{font-size:.88rem;color:var(--c-text);line-height:1.9}
+/* 示範圖組對照 */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+.compare-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px}
+.compare-label{font-family:'Shippori Mincho',serif;font-size:.88rem;font-weight:700;color:var(--c-text);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--c-border-soft)}
+.compare-item{font-size:.85rem;color:var(--c-text);line-height:1.8;margin-bottom:6px;display:flex;gap:8px;align-items:flex-start}
+.compare-item::before{content:"·";color:var(--c-faint);flex-shrink:0;font-weight:700}
+/* 表情情境表格 */
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.88rem}
+th{background:var(--c-surface);border:1px solid var(--c-border);padding:10px 14px;text-align:left;font-weight:500;font-family:'Shippori Mincho',serif;color:var(--c-text)}
+td{border:1px solid var(--c-border-soft);padding:10px 14px;color:var(--c-text);line-height:1.7}
+tr:nth-child(even) td{background:var(--c-surface)}
+/* 動手練習清單 */
+.scenario-grid{display:flex;flex-direction:column;gap:0;margin:16px 0}
+.scenario-row{display:grid;grid-template-columns:160px 1fr;gap:0;border-bottom:1px solid var(--c-border-soft);padding:12px 0}
+.scenario-row:last-child{border-bottom:none}
+.scenario-task{font-size:.88rem;font-weight:500;color:var(--c-text);line-height:1.7;padding-right:16px}
+.scenario-pick{font-size:.88rem;color:var(--c-text);line-height:1.75}
+/* 代碼塊 */
+.code-block{background:#2c2b28;color:#e8e4dc;border-radius:var(--radius);padding:20px 24px;font-size:.82rem;line-height:1.8;margin:16px 0;overflow-x:auto;white-space:pre;font-family:'Courier New',monospace;position:relative}
+.code-block-wrapper{position:relative;margin:16px 0}
+.copy-btn{position:absolute;top:10px;right:12px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#e8e4dc;font-size:.72rem;padding:4px 12px;border-radius:var(--radius-sm);cursor:pointer;letter-spacing:.04em;font-family:'Noto Sans TC',sans-serif;transition:background .2s}
+.copy-btn:hover{background:rgba(255,255,255,.22)}
+.copy-btn.copied{background:rgba(90,122,90,.5);border-color:rgba(90,122,90,.6)}
+/* 額度備援 SOP 步驟 */
+.sop-block{border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:16px 0}
+.sop-header{background:var(--c-surface);padding:12px 20px;border-bottom:1px solid var(--c-border);display:flex;align-items:center;gap:12px}
+.sop-badge{font-size:.72rem;color:var(--c-muted);letter-spacing:.1em;font-weight:500;background:var(--c-bg);border:1px solid var(--c-border);border-radius:99px;padding:2px 10px}
+.sop-title{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-text);line-height:1.4}
+.sop-body{padding:14px 20px;font-size:.88rem;color:var(--c-text);line-height:1.85}
+/* 自查表格 */
+.verify-table{width:100%;border-collapse:collapse;font-size:.85rem;margin:16px 0}
+.verify-table th{background:var(--c-surface);border:1px solid var(--c-border);padding:8px 12px;text-align:center;font-weight:500;font-family:'Shippori Mincho',serif;color:var(--c-text)}
+.verify-table th:first-child{text-align:left}
+.verify-table td{border:1px solid var(--c-border-soft);padding:8px 12px;text-align:center;color:var(--c-muted)}
+.verify-table td:first-child{text-align:left;color:var(--c-text);font-weight:500}
+.verify-table tr:nth-child(even) td{background:var(--c-surface)}
+/* 常見錯誤 */
+.pitfall-block{border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:16px 0}
+.pitfall-header{background:var(--c-surface);padding:12px 20px;border-bottom:1px solid var(--c-border)}
+.pitfall-label{font-size:.72rem;color:var(--c-muted);letter-spacing:.12em;font-weight:500;margin-bottom:4px}
+.pitfall-title{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);line-height:1.4}
+.pitfall-body{padding:16px 20px;display:flex;flex-direction:column;gap:10px}
+.pitfall-row{display:grid;grid-template-columns:64px 1fr;gap:0}
+.pitfall-key{font-size:.82rem;font-weight:500;color:var(--c-muted);padding-top:2px}
+.pitfall-val{font-size:.88rem;color:var(--c-text);line-height:1.85}
+/* 檢核題 */
+.quiz-item{margin:20px 0;border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden}
+.quiz-q{font-size:.92rem;font-weight:700;color:var(--c-text);padding:16px 20px;background:var(--c-surface);line-height:1.7}
+.quiz-opts{padding:12px 20px;display:flex;flex-direction:column;gap:8px;background:var(--c-card)}
+.quiz-opt{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);cursor:pointer;font-size:.88rem;color:var(--c-text);transition:border-color .15s,background .15s}
+.quiz-opt:hover{border-color:var(--c-main);background:rgba(181,112,58,.04)}
+.quiz-opt input[type="radio"]{margin:0;accent-color:var(--c-main)}
+.quiz-opt input[type="radio"]:checked + span{color:var(--c-main);font-weight:500}
+.quiz-ans{border-top:1px solid var(--c-border-soft)}
+.quiz-ans summary{cursor:pointer;font-weight:500;color:var(--c-muted);font-size:.85rem;padding:12px 20px;background:var(--c-surface)}
+.quiz-ans-body{padding:12px 20px;font-size:.88rem;color:var(--c-text);line-height:1.85}
+.check-list{list-style:none;padding:0;margin:12px 0;display:flex;flex-direction:column;gap:8px}
+.check-list li{font-size:.88rem;color:var(--c-text);line-height:1.7;display:flex;gap:10px;align-items:flex-start}
+.check-list li::before{content:"[ ]";font-family:'Courier New',monospace;color:var(--c-muted);flex-shrink:0;font-size:.82rem;margin-top:2px}
+blockquote.aside-tip{border-left:2px solid var(--c-text);padding:12px 20px;margin:16px 0;background:var(--c-surface);border-radius:0 var(--radius) var(--radius) 0;font-size:.88rem;color:var(--c-text);line-height:1.85}
+blockquote.aside-tip strong{color:var(--c-text)}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(181,112,58,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
+.nav-btn:hover{background:rgba(181,112,58,.07);border-color:var(--c-main)}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main)}
+.nav-btn.primary:hover{filter:brightness(.92)}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.tool-grid{grid-template-columns:1fr}.compare-grid{grid-template-columns:1fr}.scenario-row{grid-template-columns:1fr}.checklist-item{grid-template-columns:28px 72px 1fr}}
+/* === fill-form 互動填寫組件 + @media print === */
+.fill-form{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:24px;margin:24px 0}
+.fill-form-title{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.fill-form-desc{font-size:.85rem;color:var(--c-muted);line-height:1.7;margin-bottom:18px}
+.fill-form-row{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.fill-form-label{font-size:.85rem;font-weight:500;color:var(--c-text);display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.fill-form-hint{font-size:.8rem;color:var(--c-faint);font-weight:400}
+.fill-form-input{font-family:'Noto Sans TC',sans-serif;font-size:.88rem;color:var(--c-text);background:var(--c-bg);border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:8px 12px;line-height:1.6;width:100%;resize:vertical}
+.fill-form-input:focus{outline:2px solid var(--c-text);outline-offset:1px;border-color:var(--c-text)}
+textarea.fill-form-input{min-height:60px}
+.fill-form-build{margin-top:6px;background:var(--c-text);color:#fff;border:0;border-radius:var(--radius);padding:10px 20px;font-size:.85rem;font-family:'Noto Sans TC',sans-serif;cursor:pointer;letter-spacing:.04em;font-weight:500}
+.fill-form-build:hover{opacity:.85}
+.fill-form-build.done{background:var(--c-main)}
+.fill-form-preview{margin-top:16px;background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.82rem;line-height:1.75;padding:16px;border-radius:var(--radius);white-space:pre-wrap;word-break:break-word;min-height:40px}
+.fill-form-preview:empty::before{content:"按下方按鈕後，組合好的 Prompt 會出現在這裡，並自動複製到剪貼簿";color:#7a766d;font-style:italic}
+.print-btn{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--c-muted);background:transparent;border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:5px 12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;letter-spacing:.04em}
+.print-btn:hover{color:var(--c-text);border-color:var(--c-text)}
+@media print{
+  *{text-shadow:none!important}
+  html,body{background:#fff!important;color:#000!important}
+  .topbar,.progress-strip,.skip-link,.back-link,.lesson-nav,footer,.print-btn,.fill-form-build,.copy-btn{display:none!important}
+  .quiz-opt input[type="radio"]{display:none!important}
+  .quiz-opt::before{content:"○ ";color:#666;margin-right:4px}
+  a{color:#000!important;text-decoration:none!important}
+  .page-hero,.lesson-section{padding:16px 0!important;max-width:none!important;margin:0 auto}
+  .lesson-title,.section-heading,.lesson-tagline,.outcomes{page-break-after:avoid}
+  .tool-card,.scenario-grid,.scenario-row,.verify-box,.callout,.quiz-item,.fill-form,.step-block,pre,.code-block{page-break-inside:avoid}
+  .code-block,pre,.fill-form-preview{background:#f2f0ea!important;color:#1a1a1a!important;border:1px solid #d0ccc2!important}
+  .fill-form-input{border:1px solid #999!important;min-height:32px;background:#fff!important}
+  .fill-form-preview:empty::before{content:""}
+}
+/* === handout 課堂紙本素材組件 === */
+.handout-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:24px 28px;margin:20px 0}
+.handout-header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--c-border-soft)}
+.handout-tag{display:inline-block;font-size:.7rem;color:var(--c-main);border:1px solid rgba(181,112,58,.3);border-radius:99px;padding:2px 10px;letter-spacing:.06em;font-weight:500;margin-bottom:8px}
+.handout-title{font-family:'Shippori Mincho',serif;font-size:1.2rem;font-weight:700;color:var(--c-text);line-height:1.4;margin:0}
+.handout-print{flex-shrink:0;background:var(--c-text);color:#fff;border:0;border-radius:var(--radius-sm);padding:6px 14px;font-size:.8rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;letter-spacing:.04em;font-weight:500}
+.handout-print:hover{background:var(--c-main)}
+.handout-body{font-size:.88rem;line-height:1.8;color:var(--c-text)}
+.handout-intro{font-size:.88rem;color:var(--c-muted);line-height:1.8;margin-bottom:14px}
+.handout-table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.85rem}
+.handout-table th{background:var(--c-surface);padding:10px 12px;text-align:left;font-weight:700;color:var(--c-text);border:1px solid var(--c-border);font-size:.82rem}
+.handout-table td{padding:10px 12px;border:1px solid var(--c-border-soft);color:var(--c-text);line-height:1.6;vertical-align:middle}
+.handout-emotion-img{display:block;width:48px;height:48px;object-fit:contain;margin:0 auto}
+.fail-criterion-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:10px;margin:14px 0}
+.fail-criterion-cell{margin:0;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:8px}
+.fail-criterion-cell img{display:block;width:100%;height:auto;background:var(--c-bg);border-radius:var(--radius-sm)}
+.fail-criterion-cell figcaption{font-size:.72rem;color:var(--c-muted);line-height:1.6;margin-top:6px;text-align:left}
+.fail-criterion-cell figcaption strong{color:var(--c-text);display:block;margin-bottom:2px;font-size:.8rem}
+@media(max-width:600px){.fail-criterion-grid{grid-template-columns:1fr 1fr}}
+.emotion-preview-band{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;margin:20px 0}
+.emotion-preview-label{font-size:.82rem;color:var(--c-muted);line-height:1.7;margin-bottom:14px}
+.emotion-preview-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px}
+.emotion-preview-cell{text-align:center;padding:8px;border:1px solid var(--c-border-soft);border-radius:var(--radius-sm);background:var(--c-bg)}
+.emotion-preview-cell img{display:block;width:80px;height:80px;object-fit:contain;margin:0 auto 4px}
+.emotion-preview-cell span{font-size:.72rem;color:var(--c-muted);font-family:'Shippori Mincho',serif}
+@media(max-width:600px){.emotion-preview-grid{grid-template-columns:1fr 1fr}}
+.handout-blank{height:38px;color:var(--c-faint)}
+.handout-hint{font-size:.72rem;color:var(--c-muted);font-weight:400}
+.handout-divider{margin:24px 0 12px;text-align:center;font-size:.82rem;color:var(--c-faint);letter-spacing:.08em;font-family:'Shippori Mincho',serif}
+.handout-list{padding-left:1.4em;margin:8px 0}
+.handout-list li{margin-bottom:6px;font-size:.88rem;color:var(--c-text);line-height:1.7}
+.handout-checklist{list-style:none;padding:0;margin:8px 0}
+.handout-checklist li{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--c-border-soft)}
+.handout-checklist li:last-child{border-bottom:0}
+.handout-checklist .cb{font-size:1.2rem;color:var(--c-main);flex-shrink:0;line-height:1.2;margin-top:2px}
+.handout-checklist .reason{font-size:.8rem;color:var(--c-muted);line-height:1.7}
+.handout-compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0}
+.handout-compare-col{padding:14px;border:1px solid var(--c-border);border-radius:var(--radius)}
+.handout-good{background:var(--c-card)}
+.handout-bad{background:var(--c-surface)}
+.handout-compare-label{font-family:'Shippori Mincho',serif;font-size:.92rem;font-weight:700;color:var(--c-text);margin-bottom:10px}
+.handout-img-placeholder{font-size:.8rem;color:var(--c-muted);background:var(--c-bg);border:1px dashed var(--c-border);border-radius:var(--radius-sm);padding:18px 14px;text-align:center;line-height:1.7;min-height:72px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.handout-compare-points{padding-left:1.2em;font-size:.8rem;color:var(--c-text);line-height:1.7}
+.handout-compare-points li{margin-bottom:4px}
+.handout-note{font-size:.8rem;color:var(--c-muted);line-height:1.7;margin-top:12px;padding-top:10px;border-top:1px dashed var(--c-border-soft)}
+.handout-footer{font-size:.75rem;color:var(--c-faint);margin-top:14px;letter-spacing:.04em;text-align:right}
+.handout-examples td{font-size:.82rem;line-height:1.7}
+@media(max-width:600px){.handout-compare-grid{grid-template-columns:1fr}.handout-header{flex-direction:column;align-items:flex-start}.handout-print{align-self:flex-end}}
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 自製 LINE 貼圖</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">Part 1 · 入門班</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<div class="page-hero">
+  <a href="module1.html" class="back-link"><span aria-hidden="true">←</span> 返回 Part 1 入門班</a>
+  <div class="hero-eyebrow">(03) · CH 1.3 · 75 分鐘</div>
+  <h1 class="lesson-title">8 張表情產出實戰</h1>
+  <p class="lesson-tagline">這 75 分鐘最關鍵的一段。在同一個 Gemini 對話視窗內，依序產出你的角色 8 種表情，並用「角色一致性檢查清單」5 條判準逐張自查——同一隻，不是同類型。</p>
+  <div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap"><button class="print-btn" type="button" onclick="window.print()">📄 列印這頁帶走</button><a href="#handout-emotions" class="print-btn" style="text-decoration:none">📄 跳到 4 張紙本素材（可單張列印）</a></div>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果</div>
+    <div class="outcome-item">能在同一個 Gemini 對話內依序產出 8 張同角色不同表情（笑、哭、生氣、得意、求拜託、無語、晚安、嚇到）</div>
+    <div class="outcome-item">能用「角色一致性檢查清單」5 條判準（同隻、同風格、同比例、同視角、同色域）逐張自查，8 張至少通過 32／40 個勾</div>
+    <div class="outcome-item">能用「補張」prompt 在原對話內救回跑掉的 1–2 張，不重開對話</div>
+    <div class="outcome-item">知道額度耗盡時的 3 層備援 SOP，不會被卡死在產圖這一關</div>
+  </div>
+  <div class="today-deliverables">
+    <div class="today-deliverables-label">下課前，你會交出</div>
+    <ol class="today-deliverables-list">
+      <li>8 張你的角色 PNG（命名：<code style="font-family:'Courier New',monospace;font-size:.85em;background:var(--c-surface);padding:1px 5px;border-radius:2px">{角色名}_01.png</code> 到 <code style="font-family:'Courier New',monospace;font-size:.85em;background:var(--c-surface);padding:1px 5px;border-radius:2px">{角色名}_08.png</code>）</li>
+      <li>填好的「8 表情 × 5 判準」勾選表（≥ 32／40 個勾）</li>
+      <li>能口述這 8 張裡哪一張最跑掉、跑哪一條判準</li>
+    </ol>
+    <p class="today-deliverables-note">額度耗盡也沒關係：先用課堂提供的橘貓備援圖走完後面流程，課後再補自己的角色。</p>
+  </div>
+</div>
+
+<hr class="section-rule">
+
+<!-- ============================
+     SECTION 01
+     ============================ -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(01) · 開場 · 5 分鐘</div>
+  <h2 class="section-heading">會了 3 種手法，還是跑掉——為什麼？</h2>
+  <div class="intro-band">
+    <div class="intro-label">為什麼這很重要</div>
+    <div class="intro-text">CH1-2 你已經學了角色一致性的 3 種手法。這 75 分鐘要解決的問題是：「手法知道，但實際操作時還是會跑掉」。原因不是技術不夠，是操作順序和節奏出了問題。</div>
+  </div>
+
+  <p class="body-text">橘貓上班族今天要產一整套表情組。你打開 Gemini，輸入「畫一隻圓滾滾的橘色虎斑貓，戴白領巾，正在大笑」——第一張很可愛，你開心地按下「再畫一張，這次是哭」。Gemini 給你一張哭的橘貓，但仔細一看：耳朵變尖了、領巾不見了、配色從橘色偏向紅褐。</p>
+  <p class="body-text">第三張「生氣」更慘——AI 直接畫成另一隻貓，連品種都換了。</p>
+
+  <blockquote class="aside-tip">
+    <strong>這 75 分鐘做一件事</strong>：在同一個 Gemini 對話內，依序產出 8 張同角色不同表情，並用 5 條判準的檢查清單自查每一張。<br><br>
+    你不是來學畫畫的。你是來學「怎麼跟 AI 講同一句話 8 次，讓它記得這是同一隻」。
+  </blockquote>
+
+  <p class="body-text">8 張裡如果有 5 張以上跑掉，你的角色設定卡要回 CH1-2 重寫；如果跑掉 1–2 張，你會學到怎麼用「補張」技巧救回來。</p>
+</section>
+
+<hr class="section-rule">
+
+<!-- ============================
+     SECTION 02
+     ============================ -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(02) · 觀念 · 10 分鐘</div>
+  <h2 class="section-heading">5 個觀念，貫穿整堂課</h2>
+
+  <!-- 角色一致性檢查清單 -->
+  <div class="checklist-card">
+    <div class="checklist-card-header">
+      <div class="checklist-card-title">角色一致性檢查清單（5 條判準）</div>
+      <div class="checklist-card-sub">這堂課唯一的自查工具 · 每張產出後立刻逐條對照</div>
+    </div>
+    <ul class="checklist-list">
+      <li class="checklist-item">
+        <span class="checklist-num">01</span>
+        <span class="checklist-key">同一隻角色</span>
+        <span class="checklist-desc">比對耳朵形狀、眼睛形狀、配色——不是同類型，是同一隻個體。這條沒過 = 整張作廢。</span>
+      </li>
+      <li class="checklist-item">
+        <span class="checklist-num">02</span>
+        <span class="checklist-key">同一種風格</span>
+        <span class="checklist-desc">線條粗細、上色方式（卡通 / 水彩 / 寫實）一致。卡通突然變水彩 = 不過；線條略粗略細 = 可接受。</span>
+      </li>
+      <li class="checklist-item">
+        <span class="checklist-num">03</span>
+        <span class="checklist-key">同一個比例</span>
+        <span class="checklist-desc">頭身比、五官位置（眼睛在臉的上半還是中間）。頭身比跑了角色辨識度會降低。</span>
+      </li>
+      <li class="checklist-item">
+        <span class="checklist-num">04</span>
+        <span class="checklist-key">同一個視角</span>
+        <span class="checklist-desc">正面 / 側面 / 3/4 面要固定，不要 8 張各種角度都有。視角跑了套組看起來會「亂」。</span>
+      </li>
+      <li class="checklist-item">
+        <span class="checklist-num">05</span>
+        <span class="checklist-key">同一個色域</span>
+        <span class="checklist-desc">不會某張突然變特別鮮豔或暗沉，整組要在同一個色彩飽和度區間。色域微偏可在 CH1-4 後處理微調，是 5 條中最「可救」的。</span>
+      </li>
+    </ul>
+  </div>
+
+  <p class="body-text" style="font-size:.82rem;color:var(--c-muted);margin-bottom:24px"><strong>5 條優先順序（判準衝突時）</strong>：第 1 條最重要（沒過 = 整張廢）→ 第 4 條（同視角）→ 第 3 條（同比例）→ 第 2 條（同風格）→ 第 5 條（同色域，最可救）。第 1 或 4 條任一不過 = 必補張；第 2、3、5 條微跑（程度可接受）= 可放行。</p>
+
+  <!-- 5 條失敗視覺示例 -->
+  <p class="body-text" style="font-weight:500;margin-top:20px;margin-bottom:12px">5 條判準各跑一條的視覺示例（每張右下角寫跑掉的是哪條）：</p>
+  <div class="fail-criterion-grid">
+    <figure class="fail-criterion-cell">
+      <img src="assets/fail_drift_01_color.png" alt="失敗示例：橘貓變成黑白花貓">
+      <figcaption><strong>跑掉第 1 條（同隻）</strong><br>變成黑白花貓 — 體型、配件對，但物種完全不同</figcaption>
+    </figure>
+    <figure class="fail-criterion-cell">
+      <img src="assets/fail_drift_02_style.png" alt="失敗示例：橘貓變成寫實水彩風">
+      <figcaption><strong>跑掉第 2 條（同風格）</strong><br>變寫實水彩風 — 顏色、體型對，但畫風完全不同</figcaption>
+    </figure>
+    <figure class="fail-criterion-cell">
+      <img src="assets/fail_drift_03_proportion.png" alt="失敗示例：橘貓變成寫實長身比例">
+      <figcaption><strong>跑掉第 3 條（同比例）</strong><br>頭身比變 4:1 — 從 Q 版變寫實長身</figcaption>
+    </figure>
+    <figure class="fail-criterion-cell">
+      <img src="assets/fail_drift_04_view.png" alt="失敗示例：橘貓變成側面視角">
+      <figcaption><strong>跑掉第 4 條（同視角）</strong><br>變成側面 — 不是正面構圖了</figcaption>
+    </figure>
+    <figure class="fail-criterion-cell">
+      <img src="assets/fail_drift_05_saturation.png" alt="失敗示例：橘貓變成過飽和鮮豔色">
+      <figcaption><strong>跑掉第 5 條（同色域）</strong><br>過飽和螢光色 — 跟其他張並排會像「外來者」</figcaption>
+    </figure>
+  </div>
+  <p class="body-text" style="font-size:.82rem;color:var(--c-muted);margin:8px 0 24px">這 5 張並排看，感覺像 5 隻不同的角色——這就是「沒過 5 條判準」最直觀的樣子。你產出的 8 張表情如果出現任何一條跑掉，就是這種視覺感。</p>
+
+  <div class="tool-grid">
+    <div class="tool-card">
+      <div class="tool-name">同對話多輪</div>
+      <div class="tool-tag">CONTEXT 持續</div>
+      <div class="tool-summary">在 Gemini 同一個對話視窗內連續發 8 個 prompt，AI 會看到前面所有圖當 context，比較容易守住角色。</div>
+      <div class="tool-list">
+        <div class="tool-list-item"><span class="tool-check">✓</span>重開新對話 = 角色記憶重置</div>
+        <div class="tool-list-item"><span class="tool-check">✓</span>省額度：1 次「啟動成本」+ 7 次「續寫成本」</div>
+        <div class="tool-list-item"><span class="tool-check">✓</span>喝水、上廁所都可以，但對話視窗要保持開著</div>
+      </div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-name">表情變化版本 prompt 結構</div>
+      <div class="tool-tag">三段固定句型</div>
+      <div class="tool-summary">固定句型：「同一隻【角色設定卡】，這次表情是【某情緒】，動作是【某動作】」。三段式，不要自由發揮。</div>
+      <div class="tool-list">
+        <div class="tool-list-item"><span class="tool-check">✓</span>第 1 輪用完整版角色設定卡</div>
+        <div class="tool-list-item"><span class="tool-check">✓</span>第 2–8 輪用「保持剛才那隻」簡化句型</div>
+        <div class="tool-list-item"><span class="tool-check">✓</span>每輪 prompt 控制在 50 字以內（省額度）</div>
+      </div>
+      <div class="fill-form" data-tpl="同一隻 {character}，這次表情是 {emotion}，動作是 {action}。
+
+請保持與第 1 張相同的角色設計（耳朵、眼睛、配色、線條風格、頭身比例都不變），只改表情與動作。370×320 PNG 透明背景。">
+        <div class="fill-form-title">表情變化版本 — 填空組合複製</div>
+        <div class="fill-form-desc">填好 3 格、點按鈕，會自動組合成完整指令並複製。在同一個 Gemini 對話內貼上送出，不要重開新對話。</div>
+
+        <div class="fill-form-row">
+          <label class="fill-form-label">角色名稱 <span class="fill-form-hint">就用你的角色設定卡名字</span></label>
+          <input class="fill-form-input" data-key="character" placeholder="例：橘貓上班族 / 圓滾滾橘色虎斑貓">
+        </div>
+        <div class="fill-form-row">
+          <label class="fill-form-label">這次表情 <span class="fill-form-hint">8 種：笑 / 哭 / 生氣 / 得意 / 求拜託 / 無語 / 晚安 / 嚇到</span></label>
+          <input class="fill-form-input" data-key="emotion" placeholder="例：開心大笑">
+        </div>
+        <div class="fill-form-row">
+          <label class="fill-form-label">這次動作 <span class="fill-form-hint">配合表情的具體動作</span></label>
+          <input class="fill-form-input" data-key="action" placeholder="例：雙手舉高、嘴巴張開、眼睛瞇成兩條線">
+        </div>
+
+        <button class="fill-form-build" type="button" onclick="fillFormBuild(this)">填完一鍵組合 + 複製</button>
+        <pre class="fill-form-preview"></pre>
+      </div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-name">校準張（第 1 張）</div>
+      <div class="tool-tag">BASELINE SHOT</div>
+      <div class="tool-summary">第 1 張的特殊地位：後面 7 張的 context 都以第 1 張為準。第 1 張好不好決定整套的天花板。</div>
+      <div class="tool-list">
+        <div class="tool-list-item"><span class="tool-check">✓</span>第 1 張用完整角色設定卡 + 表情 + 動作</div>
+        <div class="tool-list-item"><span class="tool-check">✓</span>第 1 張跑掉，立刻在原對話內重畫</div>
+        <div class="tool-list-item"><span class="tool-check">✓</span>不要繼續往下畫，校準張是地基</div>
+      </div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-name">補張（patch shot）</div>
+      <div class="tool-tag">RESCUE PROMPT</div>
+      <div class="tool-summary">同對話內針對跑掉的某一張重畫，不重啟對話。每個學員這堂課至少要用一次補張。</div>
+      <div class="tool-list">
+        <div class="tool-list-item"><span class="tool-check">✓</span>句型：「上一張的【部位】跟第 1 張不一樣，請參考第 1 張的【部位】重畫第 N 張」</div>
+        <div class="tool-list-item"><span class="tool-check">✓</span>補張後以修正版為新 context 繼續</div>
+        <div class="tool-list-item"><span class="tool-check">✓</span>不要重開對話，前面正確的張也會丟掉</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ============================
+     SECTION 03
+     ============================ -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(03) · 操作示範 · 25 分鐘</div>
+  <h2 class="section-heading">橘貓 8 輪完整示範——你先看，等下再動手</h2>
+
+  <div class="intro-band">
+    <div class="intro-label">為什麼要花 25 分鐘看示範</div>
+    <div class="intro-text">CH1-2 上完之後，「腦袋知道」大概 70%；但實際自己敲時還是會卡在「第 2 輪 prompt 到底怎麼寫」「第 3 張耳朵跑掉要不要馬上補」這些細節上。先花 25 分鐘看完整流程，你會看到真正在做的人會在哪裡停下來、會怎麼判斷。看完再動手，才不會卡在第 2 輪就放棄。</div>
+  </div>
+
+  <p class="body-text">我會在 Gemini 同一個對話裡，從頭到尾示範產出橘貓的 8 張表情。你先不要動手，看完整個流程再開始。</p>
+
+  <!-- 示範用角色設定卡 prompt -->
+  <p class="body-text" style="font-weight:500;margin-top:24px;margin-bottom:8px">示範用角色設定卡（第 1 輪完整版 prompt）：</p>
+  <div class="code-block-wrapper">
+    <pre class="code-block" id="prompt-full">我要做一隻虛構卡通角色，角色設定如下：
+- 種族：圓滾滾的橘色虎斑貓
+- 體型：胖胖短手短腳，圓頭圓身，頭身比 2:1（大頭小身體）
+- 配色：身體橘色虎斑（淺橘 + 深橘條紋），白色肚子，戴白領巾
+- 個性：上班族，溫和但偶爾無語，眼神有點疲憊
+- 風格：扁平卡通風格、粗黑線條、暖色調、平塗上色（不要漸變）
+- 視角：正面，置中構圖
+- 背景：純白背景
+
+請依此設定卡，畫一張這隻橘貓「正在大笑」的圖。
+表情要明顯，瞇眼開口大笑，保持上面所有設定不變。</pre>
+    <button class="copy-btn" onclick="copyCode('prompt-full',this)">複製</button>
+  </div>
+
+  <!-- 第 2–8 輪 prompt -->
+  <p class="body-text" style="font-weight:500;margin-top:24px;margin-bottom:8px">第 2–8 輪簡化版（第 2 輪示範，其他輪只換表情）：</p>
+  <div class="code-block-wrapper">
+    <pre class="code-block" id="prompt-short">保持剛才那隻橘貓的所有設定
+（同隻角色、同風格、同比例、同視角、同色域），
+這次表情換成「在哭」，
+眼淚在眼角，嘴巴往下彎。其他不變。</pre>
+    <button class="copy-btn" onclick="copyCode('prompt-short',this)">複製</button>
+  </div>
+
+  <!-- 補張 prompt -->
+  <p class="body-text" style="font-weight:500;margin-top:24px;margin-bottom:8px">補張 prompt 範例（發現第 N 張跑掉時用）：</p>
+  <div class="code-block-wrapper">
+    <pre class="code-block" id="prompt-patch">上一張第 3 張的耳朵跟第 1 張不一樣，
+耳朵變太尖且線條變粗。
+請參考第 1 張的耳朵形狀（圓潤、線條粗細跟第 1 張一致），
+重畫一次第 3 張的「生氣」表情。</pre>
+    <button class="copy-btn" onclick="copyCode('prompt-patch',this)">複製</button>
+  </div>
+
+  <!-- 8 輪流程 -->
+  <p class="body-text" style="font-weight:500;margin-top:28px;margin-bottom:4px">8 輪示範流程（同一個 Gemini 對話）：</p>
+  <div class="steps-wrap">
+    <div class="step-block">
+      <div class="step-circle" aria-hidden="true">1</div>
+      <div class="step-content">
+        <div class="step-heading">第 1 輪｜笑（校準張）</div>
+        <div class="step-body">用上方完整角色設定卡 prompt 產出「大笑、瞇眼開口」。<strong>這是校準張，後面 7 張全部以這張為準。</strong>如果第 1 張就跑掉（例如 AI 給你水彩風），立刻在原對話重畫，不要繼續。</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle" aria-hidden="true">2</div>
+      <div class="step-content">
+        <div class="step-heading">第 2 輪｜哭</div>
+        <div class="step-body">用簡化句型：「保持剛才那隻橘貓的所有設定（同隻角色、同風格、同比例、同視角、同色域），這次表情換成『在哭』，眼淚在眼角，嘴巴往下彎。其他不變。」</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle" aria-hidden="true">3</div>
+      <div class="step-content">
+        <div class="step-heading">第 3–8 輪｜生氣、得意、求拜託、無語、晚安、嚇到</div>
+        <div class="step-body">
+          每輪換表情描述，其他句型不動：<br>
+          · 生氣 — 眉毛皺起、嘴巴抿成一條線、頭頂可加怒氣符號<br>
+          · 得意 — 瞇眼微笑、頭微抬、可加閃光點綴<br>
+          · 求拜託 — 雙手合十、眼睛圓睜含淚、嘴巴小小 O 型<br>
+          · 無語 — 眼神放空、嘴巴一條線、頭微側<br>
+          · 晚安 — 閉眼、頭側靠、可加 Z 字符或月亮<br>
+          · 嚇到 — 眼睛圓睜、瞳孔縮小、嘴巴 O 型、毛微豎
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 講師注意事項 callout -->
+  <div class="callout key">
+    <div class="callout-icon" aria-hidden="true">—</div>
+    <div class="callout-body">
+      <strong>示範時你要注意的 3 件事</strong><br>
+      1. <strong>每輪只改「表情 + 動作」</strong>，其他完全不動。重複說風格、視角 = AI 以為你想換新角色。<br>
+      2. <strong>每張產出後立刻講出 5 條檢查</strong>，不等 8 張產完才看。第 3 張耳朵變了，馬上補張。<br>
+      3. <strong>不重開對話</strong>。即使第 4 張畫壞，也是補張，不是重啟。重啟 = 前面 context 全丟。
+    </div>
+  </div>
+
+  <!-- A/B 對照組 -->
+  <p class="body-text" style="font-weight:500;margin-top:28px;margin-bottom:8px">A 組「8 張一致」vs B 組「8 張跑掉」對照：</p>
+  <div class="compare-grid">
+    <div class="compare-card">
+      <div class="compare-label">A 組｜標準成品（8 張一致）</div>
+      <div class="compare-item">全 8 張都是同一隻橘色虎斑貓，圓頭圓身、白領巾、頭身比 2:1</div>
+      <div class="compare-item">全 8 張視角統一正面（含晚安那張頭微側但仍是正面構圖）</div>
+      <div class="compare-item">線條粗細一致（粗黑線、無細描）</div>
+      <div class="compare-item">配色一致（淺橘 + 深橘條紋 + 白肚子，無突然變紅或變黃）</div>
+      <div class="compare-item">8 張排成一排，看起來「明顯是一套」</div>
+    </div>
+    <div class="compare-card">
+      <div class="compare-label">B 組｜失敗示範（8 張跑掉）</div>
+      <div class="compare-item">第 1 張：標準橘貓 OK</div>
+      <div class="compare-item">第 3 張：變成花貓（黑白條紋） → <strong>跑了第 1 條（同隻）</strong></div>
+      <div class="compare-item">第 4 張：突然變成側面構圖 → <strong>跑了第 4 條（同視角）</strong></div>
+      <div class="compare-item">第 5 張：線條變細變多 → <strong>跑了第 2 條（同風格）</strong></div>
+      <div class="compare-item">第 6 張：頭身比變 1:1 → <strong>跑了第 3 條（同比例）</strong></div>
+      <div class="compare-item">第 7–8 張：背景變藍、換成黑貓 → <strong>跑了多條</strong></div>
+    </div>
+  </div>
+
+  <blockquote class="aside-tip" style="margin-top:16px">
+    <strong>萬一你的額度今天就用光了</strong>：課堂會提供一份預先跑好的橘貓 8 張正解 PNG 圖包，下載下來就能繼續走後面的去背、上架流程，不會卡死在這一關。<br><br>
+    使用規則：額度還夠的話，這份圖包只看不用；課後驗收作業時，要交的是你自己角色的 8 張，不能交橘貓圖包當作業。
+  </blockquote>
+</section>
+
+<hr class="section-rule">
+
+<!-- ============================
+     SECTION 04 · 動手練習
+     ============================ -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(04) · 動手練習 · 25 分鐘</div>
+  <h2 class="section-heading">換你做——拿出自己的角色設定卡</h2>
+
+  <p class="body-text">拿出 CH1-2 寫好的你自己的角色設定卡（不是橘貓，是你選的那個——可能是你家貓、自己擬卡通、咖啡杯擬人、雲朵小怪獸都行）。</p>
+
+  <!-- 8 張橘貓正解圖庫（給學員當「目標長相」參考） -->
+  <div class="emotion-preview-band">
+    <div class="emotion-preview-label">橘貓 8 張正解預覽 · 你的角色不一定要長這樣，但 8 張都要這種「同一隻」的辨識度</div>
+    <div class="emotion-preview-grid">
+      <div class="emotion-preview-cell"><img src="assets/orangecat_01_smile.png" alt="橘貓笑"><span>1 笑</span></div>
+      <div class="emotion-preview-cell"><img src="assets/orangecat_02_cry.png" alt="橘貓哭"><span>2 哭</span></div>
+      <div class="emotion-preview-cell"><img src="assets/orangecat_03_angry.png" alt="橘貓生氣"><span>3 生氣</span></div>
+      <div class="emotion-preview-cell"><img src="assets/orangecat_04_proud.png" alt="橘貓得意"><span>4 得意</span></div>
+      <div class="emotion-preview-cell"><img src="assets/orangecat_05_please.png" alt="橘貓求拜託"><span>5 求拜託</span></div>
+      <div class="emotion-preview-cell"><img src="assets/orangecat_06_speechless.png" alt="橘貓無語"><span>6 無語</span></div>
+      <div class="emotion-preview-cell"><img src="assets/orangecat_07_goodnight.png" alt="橘貓晚安"><span>7 晚安</span></div>
+      <div class="emotion-preview-cell"><img src="assets/orangecat_08_shocked.png" alt="橘貓嚇到"><span>8 嚇到</span></div>
+    </div>
+  </div>
+
+  <!-- 8 張表情題目（固定不可換）-->
+  <p class="body-text" style="font-weight:500;margin-bottom:8px">8 張表情題目（固定，不能換）：</p>
+  <table>
+    <thead>
+      <tr>
+        <th>編號</th>
+        <th>表情</th>
+        <th>動作描述</th>
+        <th>LINE 對話情境</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>01</td>
+        <td><strong>笑</strong></td>
+        <td>大笑、瞇眼開口</td>
+        <td>好消息、提案過了、孩子考 100 分</td>
+      </tr>
+      <tr>
+        <td>02</td>
+        <td><strong>哭</strong></td>
+        <td>眼淚、嘴巴往下彎</td>
+        <td>被改稿、傷心、不捨得</td>
+      </tr>
+      <tr>
+        <td>03</td>
+        <td><strong>生氣</strong></td>
+        <td>眉毛皺、嘴抿、頭頂怒氣符號</td>
+        <td>白目客戶、老公又忘記倒垃圾、不給拆紙箱</td>
+      </tr>
+      <tr>
+        <td>04</td>
+        <td><strong>得意</strong></td>
+        <td>瞇眼微笑、頭微抬</td>
+        <td>提案直接過、偷吃成功</td>
+      </tr>
+      <tr>
+        <td>05</td>
+        <td><strong>求拜託</strong></td>
+        <td>雙手合十、眼睛圓睜含淚</td>
+        <td>跪求幫忙、拜託孩子吃青菜</td>
+      </tr>
+      <tr>
+        <td>06</td>
+        <td><strong>無語</strong></td>
+        <td>眼神放空、嘴一條線、頭微側</td>
+        <td>老闆又改需求、聽不懂人在講什麼</td>
+      </tr>
+      <tr>
+        <td>07</td>
+        <td><strong>晚安</strong></td>
+        <td>閉眼、Z 字符或月亮</td>
+        <td>加班到深夜、餵完奶終於能睡</td>
+      </tr>
+      <tr>
+        <td>08</td>
+        <td><strong>嚇到</strong></td>
+        <td>眼睛圓睜、嘴 O 型、毛微豎</td>
+        <td>系統當機、孩子發燒、突然打雷</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <blockquote class="aside-tip" style="margin-top:16px">
+    <strong>為什麼固定這 8 個？</strong><br>
+    笑、哭、生氣 = LINE 貼圖最高使用率前 3 名（佔總使用量 60%+）；得意、求拜託 = 對話互動高頻；無語、晚安 = 「下台階」與「結束話題」必備；嚇到 = 反應系表情代表。這 8 張全部產出 = 你的貼圖套組「能用」的最低門檻。LINE 最少 8 張才收。
+  </blockquote>
+
+  <!-- 操作節奏 -->
+  <p class="body-text" style="font-weight:500;margin-top:24px;margin-bottom:8px">操作節奏建議（25 分鐘）：</p>
+  <div class="scenario-grid">
+    <div class="scenario-row">
+      <div class="scenario-task">0–10 分鐘</div>
+      <div class="scenario-pick">完成第 1–4 張（笑、哭、生氣、得意）。每張產出後立刻 5 條判準自查。</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">10–20 分鐘</div>
+      <div class="scenario-pick">完成第 5–8 張（求拜託、無語、晚安、嚇到）。每張產出後立刻自查。</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">20–25 分鐘</div>
+      <div class="scenario-pick">找出跑掉的 1–2 張，用「補張」prompt 救回來。</div>
+    </div>
+  </div>
+
+  <!-- 商業情境 -->
+  <p class="body-text" style="font-weight:500;margin-top:24px;margin-bottom:8px">3 個代入情境（選一個當你的「敘事主軸」）：</p>
+  <div class="tool-grid">
+    <div class="tool-card">
+      <div class="tool-name">情境 1｜橘貓上班族</div>
+      <div class="tool-tag">主示範情境</div>
+      <div class="tool-summary">做一套送給一起加班的同事。8 張對應：提案過了笑 / 被罵哭 / 客戶白目氣到 / 提案直接過得意 / 跪求 RD 求拜託 / 老闆又改需求無語 / 凌晨 2 點晚安 / 系統當機嚇到。</div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-name">情境 2｜媽媽日常</div>
+      <div class="tool-tag">學員自選版型 1</div>
+      <div class="tool-summary">媽媽群組用。8 張對應：孩子考 100 分笑 / 看到聯絡簿哭 / 老公又忘倒垃圾生氣 / 才藝表演上選得意 / 拜託孩子吃青菜求拜託 / 看帳單無語 / 餵完奶晚安 / 孩子發燒嚇到。</div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-name">情境 3｜寵物擬人化</div>
+      <div class="tool-tag">學員自選版型 2</div>
+      <div class="tool-summary">你家貓 / 狗 / 倉鼠。8 張對應：飯來了笑 / 主人出門哭 / 不給玩玩具生氣 / 偷吃成功得意 / 想加飯求拜託 / 聽不懂主人講話無語 / 趴著睡晚安 / 外面打雷嚇到。</div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-name">省額度的關鍵</div>
+      <div class="tool-tag">最重要的一條</div>
+      <div class="tool-summary">同對話 8 張 vs 每張重開對話的差異（差很多）：</div>
+      <div class="tool-list">
+        <div class="tool-list-item"><span class="tool-check">✓</span>同對話多輪：8 張平均每張耗 1 個額度</div>
+        <div class="tool-list-item"><span class="tool-check">✓</span>每張重開：每次「重講設定卡」消耗 2–3 倍額度</div>
+        <div class="tool-list-item"><span class="tool-check">✓</span>補張在原對話：不耗額外啟動成本</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gemini 用光了？這樣做（3 種解法） -->
+  <p class="body-text" style="font-weight:500;margin-top:28px;margin-bottom:8px">Gemini 用光了？這樣做（3 種解法，由上往下試）：</p>
+
+  <div class="sop-block">
+    <div class="sop-header">
+      <span class="sop-badge">解法 1</span>
+      <span class="sop-title">換到 ChatGPT，把前 4 張當參考圖丟上去</span>
+    </div>
+    <div class="sop-body">
+      <strong>什麼時候用</strong>：Gemini 跳出「You've reached your daily limit」或產圖按鈕變灰。<br>
+      <strong>怎麼做</strong>：開 ChatGPT 新對話，把你已經產好的前 4 張 PNG 上傳，然後輸入：「這 4 張是同一隻橘貓的 4 種表情，請延續這隻角色的設定（顏色、線條、比例、視角），畫第 5 張：求拜託」。<br>
+      <strong>會怎樣</strong>：風格會略偏（ChatGPT 線條比 Gemini 細一點），但角色仍然可辨識，能用。<br>
+      <strong>注意</strong>：換平台後每張都要重跑一次 5 條判準，通過率下降是正常的；如果 5 條中跑超過 2 條，就改用解法 2。
+    </div>
+  </div>
+
+  <div class="sop-block">
+    <div class="sop-header">
+      <span class="sop-badge">解法 2</span>
+      <span class="sop-title">用課堂提供的橘貓圖包，先把後面流程跑完</span>
+    </div>
+    <div class="sop-body">
+      <strong>怎麼做</strong>：下載課堂提供的橘貓 8 張正解圖包，存到自己電腦，當素材接著做去背、上架。<br>
+      <strong>怎麼想</strong>：今天學的是「流程」，不是「今天一定要產出自己的圖」。回家額度恢復了，再補自己的 8 張就好。<br>
+      <strong>注意</strong>：用橘貓圖包走完課堂演練 OK；課後驗收作業時，要交的是你自己角色的 8 張。
+    </div>
+  </div>
+
+  <div class="sop-block">
+    <div class="sop-header">
+      <span class="sop-badge">解法 3</span>
+      <span class="sop-title">放棄當堂操作，課後回家補完</span>
+    </div>
+    <div class="sop-body">
+      <strong>怎麼做</strong>：後續單元先看別人做，自己不跟著操作。<br>
+      <strong>課後</strong>：1 週內額度會恢復，在學員群組求助，回家把自己的角色補完。<br>
+      <strong>OK 嗎</strong>：可以走這條，但要接受課堂上後面兩個單元只能觀摩、不能動手。
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ============================
+     SECTION 05 · 完成驗證
+     ============================ -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(05) · 完成驗證 · 10 分鐘</div>
+  <h2 class="section-heading">下課前 10 分鐘自查——3 件事全打勾才算過</h2>
+
+  <!-- 8 表情 × 5 判準自查表 -->
+  <p class="body-text" style="font-weight:500;margin-bottom:8px">把你的 8 張產出，對照 5 條判準逐張勾選（40 個格子）：</p>
+
+  <div style="overflow-x:auto">
+    <table class="verify-table">
+      <thead>
+        <tr>
+          <th>表情</th>
+          <th>① 同隻角色</th>
+          <th>② 同風格</th>
+          <th>③ 同比例</th>
+          <th>④ 同視角</th>
+          <th>⑤ 同色域</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>笑</td>
+          <td>☐</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td>
+        </tr>
+        <tr>
+          <td>哭</td>
+          <td>☐</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td>
+        </tr>
+        <tr>
+          <td>生氣</td>
+          <td>☐</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td>
+        </tr>
+        <tr>
+          <td>得意</td>
+          <td>☐</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td>
+        </tr>
+        <tr>
+          <td>求拜託</td>
+          <td>☐</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td>
+        </tr>
+        <tr>
+          <td>無語</td>
+          <td>☐</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td>
+        </tr>
+        <tr>
+          <td>晚安</td>
+          <td>☐</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td>
+        </tr>
+        <tr>
+          <td>嚇到</td>
+          <td>☐</td><td>☐</td><td>☐</td><td>☐</td><td>☐</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="body-text" style="font-size:.85rem;color:var(--c-muted);margin-top:4px"><strong>通過標準</strong>：8 張 × 5 條 = 40 個勾，至少要 32 個（80%）。少於 32 個 = 角色設定卡不夠強，下一單元前回 CH1-2 重寫。</p>
+
+  <!-- 完成標準 -->
+  <p class="body-text" style="font-weight:500;margin-top:24px;margin-bottom:8px">完成標準（self-check）：</p>
+  <ul class="check-list">
+    <li>8 張全部在同一個 Gemini 對話視窗內，沒有重開新對話</li>
+    <li>8 張全部產完並存成 PNG（命名 <code style="font-family:'Courier New',monospace;font-size:.85em;background:var(--c-surface);padding:1px 5px;border-radius:2px">{角色名}_01.png</code> 到 <code style="font-family:'Courier New',monospace;font-size:.85em;background:var(--c-surface);padding:1px 5px;border-radius:2px">{角色名}_08.png</code>）</li>
+    <li>8 × 5 判準的勾選表至少 32／40 個勾（80% 通過）</li>
+    <li>跑掉的張至少救回 1 張（使用補張 prompt 而非重開對話）</li>
+    <li>能口述「我這 8 張裡跑最大的是第 X 張，跑了第 Y 條判準，我用補張救回來了」</li>
+  </ul>
+
+  <div class="callout info">
+    <div class="callout-icon" aria-hidden="true">—</div>
+    <div class="callout-body">
+      <strong>檔名命名規則（直接接 CH1-4 / CH1-5 不用再改）</strong><br>
+      <code style="font-family:'Courier New',monospace;font-size:.88em">orangecat_01.png</code> 到 <code style="font-family:'Courier New',monospace;font-size:.88em">orangecat_08.png</code>（橘貓示例）。把「orangecat」換成你自己的角色名，用英文或拼音。CH1-4 去背、CH1-5 上架都直接沿用這個命名，不需要再改。
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ============================
+     SECTION 06 · 常見錯誤 3 條
+     ============================ -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(06) · 常見錯誤 3 條</div>
+  <h2 class="section-heading">這 3 個坑，幾乎每堂課都有人踩</h2>
+
+  <!-- 錯誤 1 -->
+  <div class="pitfall-block">
+    <div class="pitfall-header">
+      <div class="pitfall-label">錯誤 01</div>
+      <div class="pitfall-title">重開新對話畫第 5 張，AI 把橘貓變成花貓</div>
+    </div>
+    <div class="pitfall-body">
+      <div class="pitfall-row">
+        <div class="pitfall-key">現象</div>
+        <div class="pitfall-val">學員第 4 張畫好去喝水，回來開新對話貼原本的 prompt 想畫「求拜託」。結果 AI 畫出黑白花貓，配色完全不一樣，連「圓滾滾」的體型都丟了。</div>
+      </div>
+      <div class="pitfall-row">
+        <div class="pitfall-key">原因</div>
+        <div class="pitfall-val">Gemini 的「同一隻角色」記憶只在同一個對話視窗內生效。重開新對話 = AI 完全忘記前面 4 張長什麼樣，只剩 prompt 文字描述。AI 對「橘色虎斑貓」的解讀有 100 種版本，每次重啟可能挑不同版本。</div>
+      </div>
+      <div class="pitfall-row">
+        <div class="pitfall-key">解法</div>
+        <div class="pitfall-val">絕對不重開對話。喝水、上廁所都可以，但對話視窗保持開著。不小心關掉了：到 Gemini 左側對話歷史找回原本對話續寫（不要按「新對話」）。對話歷史也找不回：把前 4 張 PNG 上傳到新對話當參考圖，再請 AI 依這 4 張畫第 5 張。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 錯誤 2 -->
+  <div class="pitfall-block">
+    <div class="pitfall-header">
+      <div class="pitfall-label">錯誤 02</div>
+      <div class="pitfall-title">每輪都重貼完整角色設定卡，第 5 張就額度耗盡</div>
+    </div>
+    <div class="pitfall-body">
+      <div class="pitfall-row">
+        <div class="pitfall-key">現象</div>
+        <div class="pitfall-val">第 2、3、4 輪每次都複製貼上完整的 5 段角色設定卡，每輪 prompt 都是 200+ 字。畫到第 5 張就跳出「You've reached your daily limit」。</div>
+      </div>
+      <div class="pitfall-row">
+        <div class="pitfall-key">原因</div>
+        <div class="pitfall-val">Gemini 免費額度按「token 量 × 圖片產出次數」計算。長 prompt + 8 次產圖 = 額度燒得比短 prompt 快很多。同對話多輪的價值就是「AI 已經知道角色長什麼樣，你不用每次重講」。每輪重講等於放棄了省額度紅利。</div>
+      </div>
+      <div class="pitfall-row">
+        <div class="pitfall-key">解法</div>
+        <div class="pitfall-val">第 1 輪用完整版（設定卡完整 5 段 + 表情 + 動作）。第 2–8 輪用簡化版：「保持剛才那隻角色的所有設定（同隻、同風格、同比例、同視角、同色域），這次表情是 XX，動作是 YY。其他不變。」整段控制在 50 字以內，8 張總 prompt 量省約 60% 額度。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 錯誤 3 -->
+  <div class="pitfall-block">
+    <div class="pitfall-header">
+      <div class="pitfall-label">錯誤 03</div>
+      <div class="pitfall-title">8 張全部產完才開始檢查，發現第 3 張就跑掉了，整套要重來</div>
+    </div>
+    <div class="pitfall-body">
+      <div class="pitfall-row">
+        <div class="pitfall-key">現象</div>
+        <div class="pitfall-val">學員一鼓作氣 8 個 prompt 連發，看縮圖排起來才發現「第 3 張耳朵跟其他 7 張不一樣」「第 5 張變成側面」「第 7 張橘色比較鮮豔」。這時第 3、5、7 張都已影響了後面 context，要修就要從第 3 張開始全部重來。</div>
+      </div>
+      <div class="pitfall-row">
+        <div class="pitfall-key">原因</div>
+        <div class="pitfall-val">Gemini 同對話多輪的 context 是累積的——前面所有圖都會被 AI 當作「這隻角色該長什麼樣」的參考。中間有一張跑掉沒及時修，後面會延續錯誤，一錯到底。</div>
+      </div>
+      <div class="pitfall-row">
+        <div class="pitfall-key">解法</div>
+        <div class="pitfall-val">每張產出後立刻 5 條判準自查，不等全部產完。發現跑掉立刻補張：「上一張的耳朵跟第 1 張不一樣，請參考第 1 張的耳朵形狀重畫一次第 3 張。」AI 會在同對話內重畫，後續第 4 張以修正後的第 3 張為 context，不會繼續錯。節奏是「產 + 查 + 補」循環 = 穩，不是「8 張連發 = 快」。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ============================
+     SECTION 07 · 檢核題 2 條
+     ============================ -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(07) · 自我檢核 · 2 條</div>
+  <h2 class="section-heading">確認你理解同對話多輪的關鍵原則</h2>
+
+  <!-- Q1 -->
+  <div class="quiz-item">
+    <div class="quiz-q">Q1（概念驗證）：以下 4 種做法，哪一種最能讓 8 張表情保持同一隻角色？</div>
+    <div class="quiz-opts">
+      <label class="quiz-opt"><input type="radio" name="q1"><span>A. 開 8 個不同的 Gemini 對話視窗，每個視窗各畫 1 張，prompt 文字保持一致</span></label>
+      <label class="quiz-opt"><input type="radio" name="q1"><span>B. 在同一個對話視窗依序畫 8 張，每輪 prompt 都複製貼上完整的角色設定卡</span></label>
+      <label class="quiz-opt correct"><input type="radio" name="q1"><span>C. 在同一個對話視窗依序畫 8 張，第 1 輪用完整角色設定卡，第 2–8 輪用「保持剛才那隻角色」的簡化句型</span></label>
+      <label class="quiz-opt"><input type="radio" name="q1"><span>D. 先單獨產 8 張不同表情，最後再用 AI 把它們「風格統一化」處理</span></label>
+    </div>
+    <details class="quiz-ans">
+      <summary>顯示答案與解析</summary>
+      <div class="quiz-ans-body">
+        <strong>正確答案：C</strong><br><br>
+        A 錯：每個對話視窗的 context 是獨立的，AI 每次都重新解讀「橘色虎斑貓」，8 張會有 8 種版本，是最嚴重的跑掉做法。<br>
+        B 錯：同對話多輪有效，但每輪重講完整設定卡浪費額度，且 AI 會以為你想重置角色，反而更不穩。<br>
+        <strong>C 對</strong>：同對話多輪 + 引用 context 的句型（「保持剛才那隻」）= 角色一致性最強 + 省額度。<br>
+        D 錯：「風格統一化」這種 AI 後處理目前免費平台沒這個功能，且就算有也救不了「角色不同」（角色問題不是風格問題）。
+      </div>
+    </details>
+  </div>
+
+  <!-- Q2 -->
+  <div class="quiz-item">
+    <div class="quiz-q">Q2（應用驗證）：你正在做你家貓「小橘」的 8 張表情貼圖。產完第 3 張「生氣」之後，發現小橘的耳朵變得比第 1 張尖很多、線條也粗了。你已經在同一個 Gemini 對話內產了 3 張，額度還有但不確定夠不夠畫到第 8 張。這時候你該怎麼處理？（請說出至少 2 個要點）</div>
+    <div class="quiz-opts" style="padding:12px 20px">
+      <p style="font-size:.88rem;color:var(--c-muted);margin-bottom:8px">這是開放題，寫在筆記本或備忘錄，對照下方解析確認你有沒有說到關鍵點。</p>
+    </div>
+    <details class="quiz-ans">
+      <summary>顯示答案與解析（答出 3 點中至少 2 點即通過）</summary>
+      <div class="quiz-ans-body">
+        <strong>要點 1（最重要）</strong>：不要重開對話。重開會丟掉前 2 張正確的 context，反而讓後面更亂。維持原對話。<br><br>
+        <strong>要點 2（具體做法）</strong>：用補張 prompt 在原對話內修第 3 張。範例：「上一張第 3 張的耳朵跟第 1 張不一樣，耳朵變太尖且線條變粗。請參考第 1 張的耳朵形狀（圓潤、線條粗細跟第 1 張一致）重畫一次第 3 張的生氣表情。」<br><br>
+        <strong>要點 3（後續行動）</strong>：修正版過自查後，繼續第 4 張。把修正後的第 3 張當作新 context，第 4 張 prompt 用「保持剛才那隻角色」即可。不要從第 1 張重來——前 2 張是對的，重來只是浪費額度。<br><br>
+        <strong>加分</strong>：提到「每張產出立刻自查，不等全部產完」（呼應錯誤 3），或提到「擔心額度的話，可以先用課堂提供的橘貓圖包走完流程，回家再補自己的」（呼應前面 3 種解法）。
+      </div>
+    </details>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ============================
+     SECTION 08 · 課堂紙本素材（4 張可單張列印）
+     ============================ -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(08) · 課堂紙本素材</div>
+  <h2 class="section-heading">4 張可單張列印的 handout</h2>
+  <p class="body-text">這 4 張是這 75 分鐘的隨身工具：題目卡、判準卡、自查表、備援 SOP。每張右上角的「列印這張」會單獨開新視窗，A4 一頁印完。建議學員按順序列印 4 張帶到課堂。</p>
+
+  <!-- 素材 1：8 表情題目卡 -->
+  <div class="handout-card" id="handout-emotions">
+    <div class="handout-header">
+      <div>
+        <span class="handout-tag">素材 1 · 攜帶版</span>
+        <h3 class="handout-title">8 表情題目卡（最常用）</h3>
+      </div>
+      <button class="handout-print" type="button" onclick="printHandout(this)">列印這張</button>
+    </div>
+    <div class="handout-body">
+      <p class="handout-intro">8 種表情依固定順序產出，每行給一個動作示範與 prompt 關鍵詞。對照表帶在身邊，產圖時不會卡在「下一張畫什麼」。</p>
+      <table class="handout-table">
+        <thead>
+          <tr>
+            <th style="width:64px">正解</th>
+            <th style="width:48px">編號</th>
+            <th style="width:80px">表情</th>
+            <th>動作建議</th>
+            <th style="width:180px">Prompt 關鍵詞</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><img src="assets/orangecat_01_smile.png" alt="橘貓笑表情" class="handout-emotion-img"></td><td>01</td><td>笑</td><td>雙手舉高、嘴巴張開、眼睛瞇成兩條線</td><td>smile / cheerful / arms up / squinting eyes</td></tr>
+          <tr><td><img src="assets/orangecat_02_cry.png" alt="橘貓哭表情" class="handout-emotion-img"></td><td>02</td><td>哭</td><td>大顆眼淚從眼角流下、嘴巴下彎、肩膀垮</td><td>crying / big tears / sad / drooping shoulders</td></tr>
+          <tr><td><img src="assets/orangecat_03_angry.png" alt="橘貓生氣表情" class="handout-emotion-img"></td><td>03</td><td>生氣</td><td>眉頭緊皺、嘴巴抿成一條線、雙手叉腰</td><td>angry / frowning / hands on hips / pursed lips</td></tr>
+          <tr><td><img src="assets/orangecat_04_proud.png" alt="橘貓得意表情" class="handout-emotion-img"></td><td>04</td><td>得意</td><td>下巴微抬、嘴角上揚 45 度、單手比讚</td><td>smug / chin up / smirk / thumbs up</td></tr>
+          <tr><td><img src="assets/orangecat_05_please.png" alt="橘貓求拜託表情" class="handout-emotion-img"></td><td>05</td><td>求拜託</td><td>雙手合十、頭微傾、眼睛放大裝可憐</td><td>begging / hands clasped / pleading eyes / tilted head</td></tr>
+          <tr><td><img src="assets/orangecat_06_speechless.png" alt="橘貓無語表情" class="handout-emotion-img"></td><td>06</td><td>無語</td><td>嘴巴變一條橫線、眼睛半閉、表情放空</td><td>speechless / blank / dot eyes / flat mouth</td></tr>
+          <tr><td><img src="assets/orangecat_07_goodnight.png" alt="橘貓晚安表情" class="handout-emotion-img"></td><td>07</td><td>晚安</td><td>戴睡帽 / 抱枕頭、眼睛閉著、嘴角微笑</td><td>good night / sleeping cap / pillow / closed eyes / soft smile</td></tr>
+          <tr><td><img src="assets/orangecat_08_shocked.png" alt="橘貓嚇到表情" class="handout-emotion-img"></td><td>08</td><td>嚇到</td><td>嘴巴張大成 O 型、眼睛睜大、雙手舉到臉旁</td><td>shocked / mouth open / wide eyes / hands near face</td></tr>
+        </tbody>
+      </table>
+      <p class="handout-note">順序固定：1 笑 → 2 哭 → 3 生氣 → 4 得意 → 5 求拜託 → 6 無語 → 7 晚安 → 8 嚇到。記順序學員少混亂，老師也比較好點名「第 X 張怎麼了」。</p>
+      <div class="handout-footer">弄一下工作室 · CH 1.3 · 素材 1／4</div>
+    </div>
+  </div>
+
+  <!-- 素材 2：5 條判準核心隨身卡 -->
+  <div class="handout-card" id="handout-checklist">
+    <div class="handout-header">
+      <div>
+        <span class="handout-tag">素材 2 · 核心隨身卡</span>
+        <h3 class="handout-title">角色一致性檢查清單 · 5 條判準</h3>
+      </div>
+      <button class="handout-print" type="button" onclick="printHandout(this)">列印這張</button>
+    </div>
+    <div class="handout-body">
+      <p class="handout-intro">這張卡比規格速查卡還重要——8 張表情的核心就是這 5 條。每張產出後立刻逐條對照，不要等 8 張都產完再回頭檢查。</p>
+      <ul class="handout-checklist">
+        <li>
+          <span class="cb">①</span>
+          <div>
+            <strong>同一隻角色</strong>
+            <div class="reason">比對什麼：耳朵形狀、眼睛形狀、配色。不是同類型，是同一隻個體。</div>
+          </div>
+        </li>
+        <li>
+          <span class="cb">②</span>
+          <div>
+            <strong>同一種風格</strong>
+            <div class="reason">比對什麼：線條粗細、上色方式（卡通／水彩／寫實）。卡通突然變水彩 = 不過。</div>
+          </div>
+        </li>
+        <li>
+          <span class="cb">③</span>
+          <div>
+            <strong>同一個比例</strong>
+            <div class="reason">比對什麼：頭身比、五官位置（眼睛在臉的上半還是中間）。頭身比跑了角色辨識度會降低。</div>
+          </div>
+        </li>
+        <li>
+          <span class="cb">④</span>
+          <div>
+            <strong>同一個視角</strong>
+            <div class="reason">比對什麼：正面 / 側面 / 3/4 面。視角跑了套組會看起來「亂」，要固定一個視角。</div>
+          </div>
+        </li>
+        <li>
+          <span class="cb">⑤</span>
+          <div>
+            <strong>同一個色域</strong>
+            <div class="reason">比對什麼：色彩飽和度、明暗區間。不會某張突然變鮮豔或暗沉。色域微偏可在 CH1-4 後處理微調。</div>
+          </div>
+        </li>
+      </ul>
+      <div class="handout-divider">— 判準優先順序（互相矛盾時） —</div>
+      <p class="body-text" style="font-size:.85rem;line-height:1.85;color:var(--c-text);margin:0"><strong>第 1 條（同隻）= 必須過</strong>——沒過直接整張作廢、補張處理。<br><strong>第 2–5 條微跑可放行</strong>——程度可接受時不重畫，色域問題留到 CH1-4 後處理。第 4 條（同視角）優先級僅次於第 1 條，第 5 條（同色域）最可救。</p>
+      <p class="handout-note">這張卡比規格速查卡還重要——8 張表情的核心就是這 5 條。</p>
+      <div class="handout-footer">弄一下工作室 · CH 1.3 · 素材 2／4</div>
+    </div>
+  </div>
+
+  <!-- 素材 3：8 張 × 5 條判準自查表 -->
+  <div class="handout-card" id="handout-selfcheck">
+    <div class="handout-header">
+      <div>
+        <span class="handout-tag">素材 3 · 學員勾選用</span>
+        <h3 class="handout-title">8 張 × 5 條判準自查表</h3>
+      </div>
+      <button class="handout-print" type="button" onclick="printHandout(this)">列印這張</button>
+    </div>
+    <div class="handout-body">
+      <p class="handout-intro">每產一張就在對應列勾選通過的判準。不要等 8 張都產完才回頭檢查——當下檢查、當下決定要不要補張。</p>
+      <table class="handout-table handout-examples">
+        <thead>
+          <tr>
+            <th style="width:64px">表情</th>
+            <th>① 同隻</th>
+            <th>② 同風格</th>
+            <th>③ 同比例</th>
+            <th>④ 同視角</th>
+            <th>⑤ 同色域</th>
+            <th style="width:64px">通過<br><span class="handout-hint">/ 5</span></th>
+            <th style="width:120px">備註</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>01 笑</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td></tr>
+          <tr><td>02 哭</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td></tr>
+          <tr><td>03 生氣</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td></tr>
+          <tr><td>04 得意</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td></tr>
+          <tr><td>05 求拜託</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td></tr>
+          <tr><td>06 無語</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td></tr>
+          <tr><td>07 晚安</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td></tr>
+          <tr><td>08 嚇到</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td><td class="handout-blank">　</td></tr>
+          <tr><td><strong>合計</strong></td><td colspan="5" style="text-align:right"><strong>合計　　　／ 40 個勾</strong></td><td colspan="2"><strong>達 32（80%）合格</strong></td></tr>
+        </tbody>
+      </table>
+      <p class="handout-note">合格標準 32／40。少於 32 表示角色設定卡不夠強，回 CH1-2 重寫——不是繼續產更多張就會變好。第 1 條（同隻）任一張沒勾，那張一定要補。</p>
+      <div class="handout-footer">弄一下工作室 · CH 1.3 · 素材 3／4</div>
+    </div>
+  </div>
+
+  <!-- 素材 4：額度耗盡備援 SOP -->
+  <div class="handout-card" id="handout-backup">
+    <div class="handout-header">
+      <div>
+        <span class="handout-tag">素材 4 · 救命 SOP</span>
+        <h3 class="handout-title">額度耗盡備援 SOP（3 層備援）</h3>
+      </div>
+      <button class="handout-print" type="button" onclick="printHandout(this)">列印這張</button>
+    </div>
+    <div class="handout-body">
+      <p class="handout-intro">Gemini 免費額度通常夠 8 張，但若已試過補張或路線換錯，第 5–6 張就可能撞額度。從上往下依序試，不要直接放棄。</p>
+      <ol class="handout-list">
+        <li>
+          <strong>解法 1 · 切到 ChatGPT 接著畫</strong>
+          <ul style="margin-top:4px">
+            <li><strong>什麼時候用</strong>：Gemini 額度跳「請稍後再試」、距離下次 reset 超過 1 小時。</li>
+            <li><strong>怎麼做</strong>：把已經產出的最後 1 張上傳到 ChatGPT，prompt 寫「保持這張的角色設定（耳朵、配色、線條），畫第 X 張表情：__」。</li>
+            <li><strong>會怎樣</strong>：ChatGPT 與 Gemini 模型不同，第 5–8 張接續完成後，<strong>整套 8 張要重跑 5 條一致性檢查</strong>，特別是第 1、2 條（同隻、同風格），常會微跑。</li>
+          </ul>
+        </li>
+        <li>
+          <strong>解法 2 · 用講師示範圖包走完流程</strong>
+          <ul style="margin-top:4px">
+            <li><strong>什麼時候用</strong>：解法 1 也跑掉、或對 ChatGPT 結果不滿意，但你還想完成 CH1-4 後面的去背 / 規格 / 上架流程。</li>
+            <li><strong>怎麼做</strong>：用課堂提供的橘貓 8 張示範圖包代替自己的角色，繼續走 CH1-4、CH1-5。</li>
+            <li><strong>會怎樣</strong>：能完整體驗剩下流程、不卡死。回家額度恢復後再補自己的角色版本，重跑 CH1-3。</li>
+          </ul>
+        </li>
+        <li>
+          <strong>解法 3 · 放棄當天，標記哪幾張要補</strong>
+          <ul style="margin-top:4px">
+            <li><strong>什麼時候用</strong>：解法 1、2 都不行，或現場時間已經來不及。</li>
+            <li><strong>怎麼做</strong>：在自查表上標出「未產出」的編號，記下當下的 prompt，回家額度恢復後在原對話續產。</li>
+            <li><strong>會怎樣</strong>：當天無法上完 CH1-4、CH1-5，回家用講師教的方式自補。<strong>不要重開新對話</strong>——前面已產的張數是寶貴 context。</li>
+          </ul>
+        </li>
+      </ol>
+      <p class="handout-note">優先試解法 1。Gemini 與 ChatGPT 兩家不同，第 5–8 張需重跑 5 條一致性檢查，特別是第 1、2 條最常微跑。</p>
+      <div class="handout-footer">弄一下工作室 · CH 1.3 · 素材 4／4</div>
+    </div>
+  </div>
+</section>
+
+<div class="nav-footer">
+  <a href="CH1-2.html" class="nav-btn"><span aria-hidden="true">←</span> CH 1.2 角色設定卡</a>
+  <a href="CH1-4.html" class="nav-btn primary">CH 1.4 透明背景 + 規格符合 <span aria-hidden="true">→</span></a>
+</div>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">2026 春季</span>
+  <span class="footer-meta" data-platform-version="2026-Q2（Gemini 2.5 Flash Image / ChatGPT GPT-Image-1 免費版 / LINE Creators Market 2026 介面 / Photopea v4.x）" data-built-at="2026-05-09">本頁以 Gemini 2.5 Flash Image / ChatGPT GPT-Image-1（2026-Q2）製作，2026-05</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+</script>
+<script>
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+<script>
+function copyCode(id,btn){
+  var el=document.getElementById(id);
+  if(!el)return;
+  var text=el.textContent||el.innerText;
+  navigator.clipboard.writeText(text).then(function(){
+    btn.textContent='已複製';
+    btn.classList.add('copied');
+    setTimeout(function(){btn.textContent='複製';btn.classList.remove('copied');},2000);
+  }).catch(function(){
+    var ta=document.createElement('textarea');
+    ta.value=text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent='已複製';
+    btn.classList.add('copied');
+    setTimeout(function(){btn.textContent='複製';btn.classList.remove('copied');},2000);
+  });
+}
+function fillFormBuild(btn){
+  var form=btn.closest('.fill-form');if(!form)return;
+  var tpl=form.getAttribute('data-tpl')||'';
+  form.querySelectorAll('[data-key]').forEach(function(el){
+    var key=el.getAttribute('data-key');
+    var val=(el.value||el.textContent||'').trim();
+    if(!val)val='['+(el.placeholder||key)+']';
+    tpl=tpl.split('{'+key+'}').join(val);
+  });
+  var preview=form.querySelector('.fill-form-preview');
+  if(preview)preview.textContent=tpl;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(tpl).then(function(){
+      btn.textContent='已複製，可貼到 AI 對話框';
+      btn.classList.add('done');
+      setTimeout(function(){btn.textContent='填完一鍵組合 + 複製';btn.classList.remove('done');},2500);
+    });
+  }
+}
+function printHandout(btn){
+  var card=btn.closest('.handout-card');if(!card)return;
+  var title=(card.querySelector('.handout-title')||{}).textContent||'課堂素材';
+  var body=card.querySelector('.handout-body');if(!body)return;
+  var w=window.open('','_blank','width=900,height=1100');
+  if(!w){alert('請允許彈出新視窗才能列印');return;}
+  var css='@page{size:A4;margin:18mm}*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Noto Sans TC",sans-serif;color:#222;line-height:1.75;padding:0}h1{font-family:"Shippori Mincho",serif;font-size:1.45rem;border-bottom:2px solid #b5703a;padding-bottom:10px;margin-bottom:18px}h3{font-family:"Shippori Mincho",serif}table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.9rem}th{background:#edeae3;padding:10px 12px;border:1px solid #999;text-align:left;font-weight:700}td{padding:10px 12px;border:1px solid #ccc;vertical-align:top}ol,ul{padding-left:1.5em;margin:10px 0}li{margin-bottom:6px}.handout-divider{margin:24px 0 12px;text-align:center;font-size:.85rem;color:#888;letter-spacing:.08em;font-family:"Shippori Mincho",serif}.handout-blank{height:38px}.handout-checklist{list-style:none;padding:0}.handout-checklist li{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #eee}.handout-checklist .cb{font-size:1.2rem;flex-shrink:0}.handout-checklist .reason{font-size:.82rem;color:#666;display:block;margin-top:4px}.handout-compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0}.handout-compare-col{padding:14px;border:1px solid #999;border-radius:4px}.handout-bad{background:#f5f3ee}.handout-compare-label{font-family:"Shippori Mincho",serif;font-weight:700;margin-bottom:10px}.handout-img-placeholder{font-size:.8rem;color:#666;background:#fafafa;border:1px dashed #ccc;padding:18px 14px;text-align:center;line-height:1.7;margin-bottom:10px}.handout-compare-points{padding-left:1.2em;font-size:.8rem}.handout-note,.handout-footer{font-size:.8rem;color:#666;margin-top:12px}.handout-intro{color:#666;margin-bottom:14px}.handout-tag{display:inline-block;font-size:.7rem;color:#b5703a;border:1px solid #b5703a;border-radius:99px;padding:2px 10px;margin-bottom:8px}.handout-hint{font-size:.72rem;color:#666;font-weight:400;display:block;margin-top:2px}.handout-print,.handout-header button{display:none}';
+  w.document.write('<!doctype html><html><head><meta charset="UTF-8"><title>'+title+' · 列印</title><style>'+css+'</style></head><body><h1>'+title+'</h1>'+body.innerHTML+'</body></html>');
+  w.document.close();
+  w.focus();
+  setTimeout(function(){w.print();},300);
+}
+</script>
+</body>
+</html>
