@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH4 鑑別式 AI 與生成式 AI 概念｜iPAS AI 應用規劃師初級研習</title>
+<meta name="description" content="學會分辨鑑別式 AI（判斷）與生成式 AI（創作）的核心差異，認識 GAN、VAE、Diffusion 三大流派，並掌握多模態 AI 概念，對應 iPAS 科目一主題 4 官方樣題。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="CH4 鑑別式 AI 與生成式 AI 概念｜iPAS AI 應用規劃師初級研習">
+<meta property="og:description" content="學會分辨鑑別式 AI（判斷）與生成式 AI（創作）的核心差異，認識 GAN、VAE、Diffusion 三大流派，並掌握多模態 AI 概念，對應 iPAS 科目一主題 4 官方樣題。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/ipas-ai-beginner/CH4.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CH4 鑑別式 AI 與生成式 AI 概念｜iPAS AI 應用規劃師初級研習">
+<meta name="twitter:description" content="學會分辨鑑別式 AI（判斷）與生成式 AI（創作）的核心差異，認識 GAN、VAE、Diffusion 三大流派，並掌握多模態 AI 概念。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/ipas-ai-beginner/CH4.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-main:#7a9ea3;--radius:4px;--radius-sm:3px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 var(--radius) 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:var(--c-main);border:1px solid rgba(122,158,163,.3);background:transparent;padding:3px 12px;border-radius:99px;font-weight:500;letter-spacing:.06em}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px;font-variant-numeric:tabular-nums}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;max-width:22ch}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-main);margin-top:28px}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
+.outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-heading em{font-style:normal;color:var(--c-text)}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-main)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-body{font-size:.9rem;line-height:1.85}
+/* compare grid */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0}
+.compare-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px}
+.compare-label{font-size:.72rem;color:var(--c-muted);letter-spacing:.1em;font-weight:500;margin-bottom:8px}
+.compare-item{font-size:.88rem;color:var(--c-text);line-height:1.8;margin-bottom:6px}
+/* scenario grid */
+.scenario-grid{display:grid;grid-template-columns:160px 1fr;gap:0;margin:20px 0;border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden}
+.scenario-row{display:contents}
+.scenario-task{padding:12px 16px;background:var(--c-surface);border-bottom:1px solid var(--c-border-soft);font-size:.85rem;color:var(--c-muted);font-weight:500}
+.scenario-pick{padding:12px 16px;background:var(--c-card);border-bottom:1px solid var(--c-border-soft);font-size:.88rem;color:var(--c-text);line-height:1.7}
+.scenario-row:last-child .scenario-task,.scenario-row:last-child .scenario-pick{border-bottom:0}
+/* concept grid */
+.concept-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin:24px 0}
+.concept-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px}
+.concept-num{font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-faint);letter-spacing:.1em;margin-bottom:8px;font-variant-numeric:tabular-nums}
+.concept-title{font-size:1.1rem;font-weight:700;color:var(--c-text);margin-bottom:8px}
+.concept-desc{font-size:.85rem;color:var(--c-muted);line-height:1.75}
+/* quiz */
+.quiz-item{margin:24px 0;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden}
+.quiz-q{padding:18px 22px;font-size:.92rem;color:var(--c-text);line-height:1.8;font-weight:500;border-bottom:1px solid var(--c-border-soft)}
+.quiz-opts{padding:14px 22px;display:flex;flex-direction:column;gap:8px}
+.quiz-opt{font-size:.88rem;color:var(--c-text);line-height:1.7;padding:8px 12px;border-radius:var(--radius-sm);background:var(--c-surface)}
+.quiz-opt.correct{background:rgba(122,158,163,.12);border-left:3px solid var(--c-main);font-weight:500}
+.quiz-ans{padding:0 22px 18px}
+.quiz-ans summary{font-size:.82rem;color:var(--c-muted);cursor:pointer;padding:6px 0;list-style:none;display:flex;align-items:center;gap:6px}
+.quiz-ans summary::-webkit-details-marker{display:none}
+.quiz-ans summary::before{content:'▶';font-size:.7rem;transition:transform .2s}
+.quiz-ans[open] summary::before{transform:rotate(90deg)}
+.quiz-ans-body{padding:12px 0 4px;font-size:.88rem;color:var(--c-muted);line-height:1.85;border-top:1px solid var(--c-border-soft);margin-top:8px}
+/* details 摺疊補充 */
+details.supplement{margin:16px 0;background:var(--c-surface);border-radius:var(--radius);border:1px solid var(--c-border-soft)}
+details.supplement summary{padding:12px 18px;font-size:.88rem;color:var(--c-muted);cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px;font-weight:500}
+details.supplement summary::-webkit-details-marker{display:none}
+details.supplement summary::before{content:'▶';font-size:.7rem;color:var(--c-faint);transition:transform .2s}
+details.supplement[open] summary::before{transform:rotate(90deg)}
+.supplement-body{padding:0 18px 16px;font-size:.88rem;color:var(--c-muted);line-height:1.85}
+/* 速查表 */
+.code-block{background:#2c2b28;color:#e8e4dc;border-radius:var(--radius);padding:20px 22px;margin:20px 0;font-family:'Courier New',monospace;font-size:.82rem;line-height:1.8;overflow-x:auto;white-space:pre}
+/* table */
+.data-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.88rem}
+.data-table th{background:var(--c-surface);color:var(--c-text);font-weight:500;padding:10px 14px;border:1px solid var(--c-border);text-align:left;font-size:.82rem;letter-spacing:.04em}
+.data-table td{padding:10px 14px;border:1px solid var(--c-border-soft);color:var(--c-text);line-height:1.7;vertical-align:top}
+.data-table tr:nth-child(even) td{background:rgba(245,243,238,.5)}
+/* term callout */
+.term-def{display:inline;background:rgba(122,158,163,.08);border-radius:var(--radius-sm);padding:1px 6px;font-size:.88rem;color:var(--c-text)}
+/* nav */
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(122,158,163,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
+.nav-btn:hover{background:rgba(122,158,163,.07);border-color:var(--c-main)}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main)}
+.nav-btn.primary:hover{filter:brightness(.92)}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+/* 陷阱標 */
+.trap-tag{display:inline-block;font-size:.72rem;color:#fff;background:#b5703a;border-radius:99px;padding:1px 8px;margin-left:6px;vertical-align:middle;letter-spacing:.04em}
+/* 講師補充 */
+.transcript-section{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);margin:0 0 20px;overflow:hidden}
+.transcript-header{display:flex;align-items:center;gap:10px;padding:12px 18px;background:var(--c-surface);border-bottom:1px solid var(--c-border);flex-wrap:wrap}
+.transcript-badge{font-size:.72rem;color:var(--c-muted);font-weight:500;letter-spacing:.08em;border:1px solid var(--c-border);padding:2px 8px;border-radius:99px;white-space:nowrap}
+.transcript-source{font-size:.7rem;color:var(--c-faint);font-weight:500;border:1px solid var(--c-border-soft);padding:2px 6px;border-radius:99px;white-space:nowrap;letter-spacing:.04em}
+.transcript-topic{font-family:'Shippori Mincho',serif;font-size:.92rem;font-weight:700;color:var(--c-text)}
+.transcript-body{font-size:.88rem;line-height:1.9;color:var(--c-muted);padding:14px 18px}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:20px 0}
+.table-wrap table{margin:0;min-width:480px}
+.compare-table{width:100%;border-collapse:collapse;font-size:.88rem}
+.compare-table th,.compare-table td{padding:12px 14px;border-bottom:1px solid var(--c-border-soft);vertical-align:top;line-height:1.7}
+.compare-table th{font-size:.75rem;color:var(--c-muted);font-weight:500;background:var(--c-surface);text-align:left}
+.compare-table td{background:var(--c-card)}
+.compare-table tr:last-child td,.compare-table tr:last-child th{border-bottom:none}
+.dl-grid{margin:20px 0;display:flex;flex-direction:column;gap:12px}
+.dl-grid dt{font-family:'Shippori Mincho',serif;font-size:.92rem;font-weight:700;color:var(--c-text);margin-bottom:4px}
+.dl-grid dd{margin:0;font-size:.88rem;color:var(--c-muted);line-height:1.8;padding-left:0}
+.dl-grid .dl-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:14px 18px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.compare-grid{grid-template-columns:1fr}.concept-grid{grid-template-columns:1fr}.scenario-grid{grid-template-columns:1fr}.data-table{font-size:.8rem}}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='ipas_auth',H='17daf42d25e66eac9653114c7c170836e5dad10e22f8e95ffa29f6afdfd24b9f';if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">iPAS AI 應用規劃師初級研習</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">科目一 · 主題 4</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<div class="page-hero">
+  <a href="index.html" class="back-link"><span aria-hidden="true">←</span> 返回課程總覽</a>
+  <div class="hero-eyebrow">CH4 · 4 小時</div>
+  <h1 class="lesson-title">鑑別式 AI 與生成式 AI 概念</h1>
+  <p class="lesson-tagline">從 CH3 的機器學習延伸，把所有 AI 模型按「目的」分兩大派：<br>鑑別式（在判斷）vs 生成式（在創作）。這章考的是「能不能正確分類、能不能舉例、能不能避開陷阱」。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果</div>
+    <div class="outcome-item">能正確判斷任意 AI 應用情境屬於鑑別式還是生成式</div>
+    <div class="outcome-item">認識 GAN、VAE、Diffusion 三大生成式流派的用途與代表模型</div>
+    <div class="outcome-item">不會把 SVM、決策樹、VGG 誤判為生成式 AI</div>
+    <div class="outcome-item">能正確回答 10 題 iPAS 官方樣題（S1-Q7、Q25、Q26、Q28–Q30、Q32、Q33、S2-Q10、Q13）</div>
+  </div>
+</div>
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(01)</div>
+  <h2 class="section-heading">先把兩個詞<em>翻譯成白話</em></h2>
+  <div class="intro-band">
+    <div class="intro-label">為什麼這很重要</div>
+    <div class="intro-text">這章學完你能回答的問題：ChatGPT 跟 Google 翻譯差在哪？DALL·E 為什麼叫生成式？公司想做客服自動回覆要用哪種 AI？不必懂數學公式——考試只考「應用判別、模型分類、組成元件」三類，白話版就夠用。</div>
+  </div>
+
+  <div class="compare-grid">
+    <div class="compare-card">
+      <div class="compare-label">鑑別式 AI（Discriminative AI）</div>
+      <div class="compare-item"><strong>在做什麼：</strong>判斷、分類、預測已存在的東西</div>
+      <div class="compare-item"><strong>一句話比喻：</strong>老師批改考卷——這是貓還是狗？這封信是垃圾還是正常？</div>
+      <div class="compare-item"><strong>輸出：</strong>標籤或數字（不生出新東西）</div>
+    </div>
+    <div class="compare-card">
+      <div class="compare-label">生成式 AI（Generative AI）</div>
+      <div class="compare-item"><strong>在做什麼：</strong>創造全新的內容</div>
+      <div class="compare-item"><strong>一句話比喻：</strong>學生寫考卷——畫一張新的貓圖、寫一段廣告文案、合成一段語音</div>
+      <div class="compare-item"><strong>輸出：</strong>新的文字、圖像、音訊（無中生有）</div>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-icon" aria-hidden="true">🪧</div>
+    <div class="callout-body"><strong>記法：</strong>看到「判斷／辨識／分類／預測」一律是鑑別式；看到「生成／創作／合成／撰寫」一律是生成式。</div>
+  </div>
+
+  <h3 style="font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;margin:28px 0 12px">生活化舉例對比（必背）</h3>
+  <div class="scenario-grid">
+    <div class="scenario-row">
+      <div class="scenario-task">任務</div>
+      <div class="scenario-pick">鑑別式 / 生成式？（原因）</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">Gmail 自動把廣告信丟垃圾匣</div>
+      <div class="scenario-pick"><strong>鑑別式</strong>——在「分類」既有的信件</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">ChatGPT 幫你寫產品文案</div>
+      <div class="scenario-pick"><strong>生成式</strong>——在「創作」新文字</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">銀行 AI 判斷刷卡是否盜刷</div>
+      <div class="scenario-pick"><strong>鑑別式</strong>——在「判斷」交易屬於哪一類</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">Midjourney 生成「太空人騎馬」圖</div>
+      <div class="scenario-pick"><strong>生成式</strong>——在「創作」新圖像</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">自駕車辨識前方是行人還是路樹</div>
+      <div class="scenario-pick"><strong>鑑別式</strong>——在「辨識」物體類別</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">Suno 幫你寫一首歌</div>
+      <div class="scenario-pick"><strong>生成式</strong>——在「合成」新音樂</div>
+    </div>
+  </div>
+
+  <details class="supplement">
+    <summary>🔬 想多懂一點？——數學符號版（考試不考，點開展開）</summary>
+    <div class="supplement-body">
+      <p>教科書會講「鑑別式學的是 P(y|x)，生成式學的是 P(x,y)」。白話：</p>
+      <ul style="margin-left:16px;margin-top:8px">
+        <li style="margin-bottom:6px"><strong>P(y|x)</strong>：「已知輸入 x，推算標籤 y 的機率」——就是鑑別，從資料推結論。</li>
+        <li><strong>P(x,y) / P(x)</strong>：「學整個分佈，能生出新的 x」——就是生成，從分佈創新樣本。</li>
+      </ul>
+      <p style="margin-top:8px">考試只考「應用判別」，不考這兩個機率符號。認識就好。</p>
+    </div>
+  </details>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(02)</div>
+  <h2 class="section-heading">鑑別式 AI——<em>常見模型與應用</em></h2>
+
+  <p class="body-text"><strong>白話定義：</strong>鑑別式 AI（Discriminative AI, DAI）學會「從特徵推出標籤」。給它一張照片，它告訴你「這是貓」；給它一封信，它告訴你「這是垃圾信」。</p>
+
+  <h3 style="font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;margin:24px 0 12px">你早就見過的鑑別式模型（從 CH3 來的老朋友）</h3>
+  <table class="data-table">
+    <thead>
+      <tr><th>模型</th><th>中文名</th><th>在做什麼</th><th>生活舉例</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Logistic Regression</td><td>邏輯迴歸</td><td>二元分類</td><td>信用卡會不會違約？</td></tr>
+      <tr><td>SVM</td><td>支援向量機</td><td>找最公平的分界線</td><td>醫學影像分類、文本分類</td></tr>
+      <tr><td>Decision Tree</td><td>決策樹</td><td>一連串是非題判斷</td><td>銀行核卡流程</td></tr>
+      <tr><td>Random Forest</td><td>隨機森林</td><td>多棵決策樹投票</td><td>客戶流失預測</td></tr>
+      <tr><td><strong>CNN</strong></td><td>卷積神經網路</td><td>看圖判斷（影像分類）</td><td>人臉辨識、X 光分類</td></tr>
+      <tr><td><strong>VGG</strong></td><td>視覺幾何組（Oxford）</td><td>CNN 的經典架構，主要分類</td><td>ImageNet 影像分類 — 鑑別式</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout info">
+    <div class="callout-icon" aria-hidden="true">📌</div>
+    <div class="callout-body"><strong>S1-Q25 連動：</strong>神經網路與傳統機器學習主要差別是「<strong>透過多層結構學習複雜特徵</strong>」。傳統 ML 需要人工設計特徵；神經網路只要丟資料，它<em>自己</em>找特徵。</div>
+  </div>
+
+  <h3 style="font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;margin:28px 0 12px">鑑別式 AI 的 4 大應用類別</h3>
+  <div class="concept-grid">
+    <div class="concept-card">
+      <div class="concept-num">(01)</div>
+      <div class="concept-title">分類</div>
+      <div class="concept-desc">垃圾信過濾、病灶有無判讀、產品瑕疵檢測</div>
+    </div>
+    <div class="concept-card">
+      <div class="concept-num">(02)</div>
+      <div class="concept-title">預測</div>
+      <div class="concept-desc">房價、銷售額、設備異常停機時間</div>
+    </div>
+    <div class="concept-card">
+      <div class="concept-num">(03)</div>
+      <div class="concept-title">辨識</div>
+      <div class="concept-desc">人臉、語音、車牌、指紋識別</div>
+    </div>
+  </div>
+  <p class="body-text" style="color:var(--c-muted)">共同特徵：輸入都是「<strong>已存在的資料</strong>」，輸出是「<strong>標籤或數字</strong>」——沒有「無中生有」。</p>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(03)</div>
+  <h2 class="section-heading">生成式 AI——<em>三大流派與應用</em></h2>
+
+  <p class="body-text"><strong>白話定義：</strong>生成式 AI（Generative AI, GAI）學會「<strong>自己生出</strong>新內容」。給它一段提示，它畫一張新的圖、寫一篇新的文章、合成一段新的語音。</p>
+
+  <h3 style="font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;margin:24px 0 12px">三大基礎流派（必懂用途，不必懂內部）</h3>
+  <table class="data-table">
+    <thead>
+      <tr><th>流派</th><th>全名</th><th>一句話</th><th>代表應用</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>GAN</strong></td><td>Generative Adversarial Network 生成對抗網路</td><td>生成器 + 鑑別器，互相對抗</td><td>StyleGAN 人臉合成、早期 Deepfake</td></tr>
+      <tr><td><strong>VAE</strong></td><td>Variational Autoencoder 變分自編碼器</td><td>把資料壓成潛在空間再生成</td><td>影像/語音生成、風格遷移</td></tr>
+      <tr><td><strong>Diffusion</strong></td><td>Diffusion Model 擴散模型</td><td>從雜訊逐步「去噪」還原成清晰圖</td><td>DALL·E 2、Stable Diffusion、Midjourney</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout key">
+    <div class="callout-icon" aria-hidden="true">📌</div>
+    <div class="callout-body"><strong>S2-Q11 連動：</strong>DALL·E 2 最關鍵技術是「<strong>擴散模型（Diffusion Model）</strong>」。早期 DALL·E 1 用 GAN，DALL·E 2 起換成 Diffusion，是當前圖像生成主流。</div>
+  </div>
+
+  <h3 style="font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;margin:28px 0 12px">GAN「警察 vs 小偷」故事</h3>
+  <div class="scenario-grid">
+    <div class="scenario-row">
+      <div class="scenario-task">生成器（Generator）</div>
+      <div class="scenario-pick">扮演「假鈔小偷」——努力造出看起來像真鈔的假鈔</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">鑑別器（Discriminator）</div>
+      <div class="scenario-pick">扮演「警察」——努力分辨哪些是真鈔、哪些是假鈔</div>
+    </div>
+  </div>
+  <p class="body-text">兩邊互相對抗訓練：警察愈來愈會抓 → 小偷愈來愈會造 → 最後生成器幾乎能造出以假亂真的內容。<strong>訓練完把「小偷」單獨拿出來用，就是生成器。</strong></p>
+
+  <div class="callout info">
+    <div class="callout-icon" aria-hidden="true">📌</div>
+    <div class="callout-body"><strong>S1-Q26 連動：</strong>GAN 的描述何者正確？正解是「<strong>GAN 由生成器和鑑別器組成</strong>」——只要記住「生成器 + 鑑別器」這個組成，這題就拿分。</div>
+  </div>
+
+  <h3 style="font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;margin:28px 0 12px">Diffusion「拍立得反向顯影」比喻</h3>
+  <div class="scenario-grid">
+    <div class="scenario-row">
+      <div class="scenario-task">正向擴散（訓練時）</div>
+      <div class="scenario-pick">把清晰圖一步一步加雜訊，直到變成完全的雜訊</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">反向擴散（生成時）</div>
+      <div class="scenario-pick">從一張雜訊圖開始，一步一步「去除雜訊」，最後還原成清晰圖</div>
+    </div>
+  </div>
+  <p class="body-text">就像「拍立得顯影過程的反向操作」——先把照片變成霧，再從霧中把照片召喚回來。</p>
+
+  <details class="supplement">
+    <summary>🔬 想多懂一點？——VAE 與 Autoregressive（考試不考細節，點開展開）</summary>
+    <div class="supplement-body">
+      <p><strong>VAE（變分自編碼器）</strong>：把輸入資料壓縮成「潛在空間」（Latent Space）的一組數字，再從潛在空間「解壓縮」生成新樣本。優點是穩定，缺點是生出來的圖比較模糊。</p>
+      <p style="margin-top:8px"><strong>Autoregressive（自迴歸模型）</strong>：一個一個地生成下一個元素（下一個字、下一個像素）。GPT 系列就是這類。</p>
+      <p style="margin-top:8px">考試只會考「<strong>這些模型是不是生成式</strong>」，不會考內部運作。</p>
+    </div>
+  </details>
+
+  <h3 style="font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;margin:28px 0 12px">生成式 AI 的 5 大應用類別</h3>
+  <table class="data-table">
+    <thead>
+      <tr><th>類別</th><th>代表工具</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>文字創作</td><td>ChatGPT、Claude、Gemini（對話、摘要、翻譯、寫文案）</td></tr>
+      <tr><td>圖像生成</td><td>DALL·E、Midjourney、Stable Diffusion</td></tr>
+      <tr><td>語音/音樂合成</td><td>ElevenLabs（文字→語音）、Suno（音樂）；Whisper 是語音→文字（反方向）</td></tr>
+      <tr><td>影片生成</td><td>Runway、Sora</td></tr>
+      <tr><td>數據增強/醫療影像合成</td><td>用生成的資料擴充訓練集（給鑑別式 AI 用）</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout info">
+    <div class="callout-icon" aria-hidden="true">📌</div>
+    <div class="callout-body"><strong>S1-Q28 連動：</strong>「不是生成式 AI 主要應用」的正解是「<strong>分類醫學影像</strong>」——分類屬於鑑別式 AI，不是生成式。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(04)</div>
+  <h2 class="section-heading">核心對比表與<em>容易混淆點</em></h2>
+
+  <h3 style="font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;margin:0 0 12px">鑑別式 vs 生成式（必背）</h3>
+  <table class="data-table">
+    <thead>
+      <tr><th>維度</th><th>鑑別式 AI</th><th>生成式 AI</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>在做什麼</td><td>判斷、分類、預測</td><td>創造新內容</td></tr>
+      <tr><td>輸入 → 輸出</td><td>資料 → 標籤 / 數字</td><td>提示 → 新文字 / 圖像 / 音訊</td></tr>
+      <tr><td>代表模型</td><td>邏輯迴歸、SVM、決策樹、隨機森林、CNN（分類）、<strong>VGG</strong></td><td><strong>GAN、VAE、Diffusion</strong>、Autoregressive、GPT、DALL·E</td></tr>
+      <tr><td>經典應用</td><td>影像辨識、語音辨識、垃圾信過濾、信用評分</td><td>寫文案、生圖、合成語音、Deepfake</td></tr>
+      <tr><td>主要挑戰</td><td>資料偏見、過擬合、標記成本</td><td>幻覺（hallucination）、可控性、計算成本</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;margin:28px 0 16px">容易混淆點 ⚠️</h3>
+
+  <div class="callout tip">
+    <div class="callout-icon" aria-hidden="true">🚧</div>
+    <div class="callout-body">
+      <strong>混淆點 1：CNN 到底算哪邊？</strong><br>
+      CNN 是一種<strong>網路結構</strong>，不是固定流派。用 CNN 做「分類」→ 鑑別式；用 CNN 做「生成」（GAN 內部也用 CNN）→ 生成式。<br>
+      <strong>VGG 是 CNN 的經典架構，主要用於影像分類，所以是鑑別式。</strong>（S2-Q13 考點）
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-icon" aria-hidden="true">🚧</div>
+    <div class="callout-body">
+      <strong>混淆點 2：SVM 是不是生成式？</strong><br>
+      不是。SVM 是找「分界超平面」的鑑別式演算法。<strong>S1-Q33 就是這個陷阱</strong>——SVM 不是以「產生新資料」為主要目的的模型。<br>
+      記法：看到 SVM、決策樹、隨機森林、邏輯迴歸、KNN → 全是鑑別式。
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-icon" aria-hidden="true">🚧</div>
+    <div class="callout-body">
+      <strong>混淆點 3：「語音識別」是鑑別還是生成？</strong><br>
+      「語音識別」（把語音轉成文字）是<strong>鑑別式</strong>（在分類聲音對應到哪個字）。<br>
+      「自然語言生成（NLG）」才是生成式（生成文章）。看到「識別 / 辨識 / 分類」→ 鑑別；看到「生成 / 合成 / 創作」→ 生成。
+    </div>
+  </div>
+
+  <div class="callout info">
+    <div class="callout-icon" aria-hidden="true">📌</div>
+    <div class="callout-body">
+      <strong>S1-Q33 連動：</strong>哪個模型「並非以產生新資料為主要設計目的」→ 正解 <strong>SVM</strong><br>
+      <strong>S2-Q10 連動：</strong>哪項技術是生成式 AI 的基礎 → 正解 <strong>GAN</strong>（其餘決策樹、聚類、隨機森林都是鑑別式）<br>
+      <strong>S2-Q13 連動：</strong>哪個不是生成式 AI 核心技術 → 正解 <strong>VGG</strong>（分類用 CNN，鑑別式）
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(05)</div>
+  <h2 class="section-heading">多模態 AI 與<em>NLP 補充概念</em></h2>
+
+  <p class="body-text"><strong>多模態 AI（Multimodal AI）</strong>：能同時處理<strong>文字 + 圖片 + 聲音 + 影片</strong>等多種輸入/輸出形式的 AI。題目情境提到「<strong>至少兩種以上資料形式</strong>」就是多模態。</p>
+
+  <div class="compare-grid">
+    <div class="compare-card">
+      <div class="compare-label">單模態</div>
+      <div class="compare-item">只懂一種形式</div>
+      <div class="compare-item">例：早期 ChatGPT 3.5 只處理純文字</div>
+    </div>
+    <div class="compare-card">
+      <div class="compare-label">多模態</div>
+      <div class="compare-item">能跨形式（文字+圖片+語音+影片）</div>
+      <div class="compare-item">例：GPT-4o 看得懂圖、聽得懂語音、寫得出回覆</div>
+    </div>
+  </div>
+
+  <table class="data-table">
+    <thead>
+      <tr><th>模型</th><th>公司</th><th>多模態能力</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>GPT-4o</strong></td><td>OpenAI</td><td>文字 + 圖片 + 語音（即時對話）</td></tr>
+      <tr><td><strong>Gemini</strong></td><td>Google</td><td>文字 + 圖片 + 影片 + 程式碼</td></tr>
+      <tr><td><strong>Claude</strong></td><td>Anthropic</td><td>文字 + 圖片（看得懂截圖、PDF）</td></tr>
+      <tr><td><strong>CLIP</strong></td><td>OpenAI</td><td>文字 + 圖片同時理解</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout info">
+    <div class="callout-icon" aria-hidden="true">📌</div>
+    <div class="callout-body"><strong>S1-Q7 連動：</strong>使用者語音輸入「一隻戴著太空帽的企鵝在火星跳舞」，AI 產生對應圖片——這屬於哪種生成任務？正解：<strong>(A) 語音生成圖片（Speech-to-Image）</strong>。先看輸入（語音），再看輸出（圖片），直接連連看。</div>
+  </div>
+
+  <h3 style="font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;margin:28px 0 12px">NLP（自然語言處理）4 大子領域</h3>
+  <table class="data-table">
+    <thead>
+      <tr><th>子領域</th><th>在做什麼</th><th>屬於</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>語音識別（Speech Recognition）</td><td>語音 → 文字</td><td>鑑別式</td></tr>
+      <tr><td>自然語言生成（NLG）</td><td>機器寫文章</td><td>生成式</td></tr>
+      <tr><td>語意分析（Semantic Analysis）</td><td>理解文本含義，用於情感分析、意圖辨識</td><td>鑑別式</td></tr>
+      <tr><td>機器翻譯（Machine Translation）</td><td>跨語言翻譯</td><td>生成式</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout info">
+    <div class="callout-icon" aria-hidden="true">📌</div>
+    <div class="callout-body"><strong>S1-Q30 連動（找不正確）：</strong>「語意分析技術理解文本的語意，並<em>主要</em>用於語音識別和機器翻譯」——這是<strong>錯的</strong>。語意分析的主舞台是<strong>情感分析、意圖辨識、文本分類</strong>，不是語音識別。這是「前半對、後半錯」的陷阱題，要把整句話讀完。</div>
+  </div>
+
+  <details class="supplement">
+    <summary>🔬 想多懂一點？——CNN / RNN / LSTM 深度學習模型（點開展開）</summary>
+    <div class="supplement-body">
+      <table class="data-table" style="margin-top:8px">
+        <thead>
+          <tr><th>模型</th><th>擅長</th><th>一句話比喻</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>CNN</strong> 卷積神經網路</td><td>影像</td><td>用「滑動小視窗」掃描圖片找特徵</td></tr>
+          <tr><td><strong>RNN</strong> 循環神經網路</td><td>序列（文字、時間序列、語音）</td><td>有「記憶」的網路，能把前一步資訊傳到下一步</td></tr>
+          <tr><td><strong>LSTM</strong> 長短期記憶</td><td>RNN 的進階（解決「記不住長句」問題）</td><td>引入「遺忘門/輸入門/輸出門」，讓網路自己決定記什麼</td></tr>
+          <tr><td><strong>GAN</strong> 生成對抗網路</td><td>生成新資料</td><td>警察 vs 小偷的對抗訓練</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:8px">考試只考「RNN 適合處理序列資料」、「CNN 做影像分類」這個層級；LSTM 內部機制屬於認得即可。</p>
+    </div>
+  </details>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(06)</div>
+  <h2 class="section-heading">整合應用——鑑別式 + 生成式<em>一起用</em></h2>
+
+  <p class="body-text">實務上，單一派系常常不夠用。把生成式和鑑別式組合起來，能解決「資料不夠、場景太多變、即時回饋」這類問題。</p>
+
+  <table class="data-table">
+    <thead>
+      <tr><th>場景</th><th>生成式扮演</th><th>鑑別式扮演</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>數據增強協同</td><td>生成補充樣本（如罕見病灶影像）</td><td>拿補充樣本訓練分類器（CNN）</td></tr>
+      <tr><td>多模態應用</td><td>生成模擬場景（各種天氣路況）</td><td>對場景做障礙物辨識</td></tr>
+      <tr><td>即時分析回饋</td><td>生成客服回應文字</td><td>偵測客訴情緒（正負向）</td></tr>
+      <tr><td>內容審核</td><td>生成可疑內容範本</td><td>偵測違規內容</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout info">
+    <div class="callout-icon" aria-hidden="true">📌</div>
+    <div class="callout-body"><strong>S1-Q29 連動：</strong>哪項是生成式 AI 支援鑑別式 AI 的典型案例？正解：<strong>(A) 模擬交通場景以訓練自動駕駛模型</strong>——「生成式生資料 → 鑑別式拿來學」的標準流程。(B)(C) 都是純鑑別式應用，沒有生成式參與。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(07)</div>
+  <h2 class="section-heading">章末練習——<em>10 題官方樣題詳解</em></h2>
+
+  <p class="body-text" style="color:var(--c-muted)">以下 10 題全部出自 iPAS 官方樣題（114 年 9 月版）。每題附白話解說，讀完應能看到題目就直覺選出答案。</p>
+
+  <!-- Q1 -->
+  <div class="quiz-item">
+    <div class="quiz-q">【S1-Q7】某生成式 AI 模型接收一段語音輸入：「一隻戴著太空帽的企鵝正在火星上跳舞」，並根據該語音產生一張圖像。此類模型最符合下列哪一種生成任務分類？<br>(A) 語音生成圖片　(B) 圖像生成語音　(C) 語音翻譯　(D) 圖像標註</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt correct">(A) 語音生成圖片 ✓</div>
+      <div class="quiz-opt">(B) 圖像生成語音</div>
+      <div class="quiz-opt">(C) 語音翻譯</div>
+      <div class="quiz-opt">(D) 圖像標註</div>
+    </div>
+    <details class="quiz-ans">
+      <summary>查看解說</summary>
+      <div class="quiz-ans-body">輸入是「語音」，輸出是「圖片」，所以是 Speech → Image = 語音生成圖片。(B) 反了；(C) 語音翻譯是 Speech → Text；(D) 圖像標註是 Image → Text。<strong>記法：先看輸入，再看輸出，直接連連看。</strong></div>
+    </details>
+  </div>
+
+  <!-- Q2 -->
+  <div class="quiz-item">
+    <div class="quiz-q">【S1-Q25】神經網路與傳統機器學習模型的主要區別是什麼？<br>(A) 神經網路無法處理非線性數據　(B) 神經網路透過多層結構學習複雜特徵　(C) 神經網路只適用於迴歸問題　(D) 神經網路不需要大量數據</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt">(A) 神經網路無法處理非線性數據</div>
+      <div class="quiz-opt correct">(B) 神經網路透過多層結構學習複雜特徵 ✓</div>
+      <div class="quiz-opt">(C) 神經網路只適用於迴歸問題</div>
+      <div class="quiz-opt">(D) 神經網路不需要大量數據</div>
+    </div>
+    <details class="quiz-ans">
+      <summary>查看解說</summary>
+      <div class="quiz-ans-body">神經網路最大本領是「多層自動找特徵」。(A) 錯，神經網路最擅長非線性；(C) 錯，同時可做分類、迴歸、生成；(D) 錯，神經網路<em>反而需要大量資料</em>才能訓練好。</div>
+    </details>
+  </div>
+
+  <!-- Q3 -->
+  <div class="quiz-item">
+    <div class="quiz-q">【S1-Q26】下列關於生成對抗網路（GAN）的描述，正確的是哪一項？<br>(A) GAN 由生成器和鑑別器組成　(B) GAN 僅用於分類問題　(C) GAN 的結果始終高度可解釋　(D) GAN 不能生成高品質的數據</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt correct">(A) GAN 由生成器和鑑別器組成 ✓</div>
+      <div class="quiz-opt">(B) GAN 僅用於分類問題</div>
+      <div class="quiz-opt">(C) GAN 的結果始終高度可解釋</div>
+      <div class="quiz-opt">(D) GAN 不能生成高品質的數據</div>
+    </div>
+    <details class="quiz-ans">
+      <summary>查看解說</summary>
+      <div class="quiz-ans-body">警察（鑑別器）+ 小偷（生成器）是 GAN 的核心。(B) 錯，GAN 是生成模型不是分類；(C) 錯，GAN 內部偏黑盒；(D) 錯，GAN 以高品質生成聞名（StyleGAN 人臉）。</div>
+    </details>
+  </div>
+
+  <!-- Q4 -->
+  <div class="quiz-item">
+    <div class="quiz-q">【S1-Q28】關於目前生成式 AI 的主要應用，<strong>不</strong>包括下列哪一項？<br>(A) 創建合成數據樣本　(B) 模擬數據分佈　(C) 分類醫學影像　(D) 生成文本</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt">(A) 創建合成數據樣本</div>
+      <div class="quiz-opt">(B) 模擬數據分佈</div>
+      <div class="quiz-opt correct">(C) 分類醫學影像 ✓（不是生成式）</div>
+      <div class="quiz-opt">(D) 生成文本</div>
+    </div>
+    <details class="quiz-ans">
+      <summary>查看解說</summary>
+      <div class="quiz-ans-body">「分類」是鑑別式 AI 的工作。(A) 創建合成數據 ✓ 生成式；(B) 模擬數據分佈 ✓ 生成式；(D) 生成文本 ✓ 生成式；(C) 「分類」一看就排除。</div>
+    </details>
+  </div>
+
+  <!-- Q5 -->
+  <div class="quiz-item">
+    <div class="quiz-q">【S1-Q29】下列哪項是生成式 AI 支援鑑別式 AI 的典型案例？<br>(A) 模擬交通場景以訓練自動駕駛模型　(B) 使用 CNN 對腫瘤分類　(C) 使用 SVM 分析風險　(D) 創建更好的分類演算法</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt correct">(A) 模擬交通場景以訓練自動駕駛模型 ✓</div>
+      <div class="quiz-opt">(B) 使用 CNN 對腫瘤分類</div>
+      <div class="quiz-opt">(C) 使用 SVM 分析風險</div>
+      <div class="quiz-opt">(D) 創建更好的分類演算法</div>
+    </div>
+    <details class="quiz-ans">
+      <summary>查看解說</summary>
+      <div class="quiz-ans-body">題目要找「生成式『支援』鑑別式」——即「生成式生資料給鑑別式用」。(A) 用生成式 AI 模擬交通場景（生成）→ 給自駕車鑑別式 AI 訓練（鑑別）。(B)(C)(D) 都是純鑑別式，沒有生成式參與。</div>
+    </details>
+  </div>
+
+  <!-- Q6 -->
+  <div class="quiz-item">
+    <div class="quiz-q">【S1-Q30】關於 NLP 核心技術，下列敘述何者<strong>不正確</strong>？<br>(A) 語音識別技術將語音轉換為文本，用於語音助理和語音輸入<br>(B) 自然語言生成技術可以生成自然流暢的文本，用於聊天機器人<br>(C) 語意分析技術理解文本的語意，並主要用於語音識別和機器翻譯<br>(D) 機器翻譯技術自動翻譯文本，促進多語言支援</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt">(A) 語音識別技術...</div>
+      <div class="quiz-opt">(B) 自然語言生成技術...</div>
+      <div class="quiz-opt correct">(C) 語意分析...主要用於語音識別和機器翻譯 ✓（錯）</div>
+      <div class="quiz-opt">(D) 機器翻譯技術...</div>
+    </div>
+    <details class="quiz-ans">
+      <summary>查看解說</summary>
+      <div class="quiz-ans-body">(C) 錯在後半段：語意分析的主要應用是「<strong>情感分析、意圖辨識、文本分類</strong>」，不是語音識別和機器翻譯。這是「敘述前半對、後半錯」的陷阱題，要把整句話讀完。</div>
+    </details>
+  </div>
+
+  <!-- Q7 -->
+  <div class="quiz-item">
+    <div class="quiz-q">【S1-Q32】關於生成式 AI 的基本原理，下列敘述何者較正確？<br>(A) 生成式 AI 通過分析大量數據生成新數據，模擬數據分佈以創造與訓練數據相似的結果<br>(B) 生成式 AI 主要通過預定義的規則進行數據處理和分類<br>(C) 生成式 AI 專注於數據分類和迴歸預測，幫助識別已知數據中的模式<br>(D) 生成式 AI 通過自動化方式清洗數據，提升數據分析的準確性</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt correct">(A) 通過分析大量數據生成新數據，模擬數據分佈... ✓</div>
+      <div class="quiz-opt">(B) 主要通過預定義的規則...</div>
+      <div class="quiz-opt">(C) 專注於數據分類和迴歸預測...</div>
+      <div class="quiz-opt">(D) 通過自動化方式清洗數據...</div>
+    </div>
+    <details class="quiz-ans">
+      <summary>查看解說</summary>
+      <div class="quiz-ans-body">(A) 是教科書標準定義。(B) 錯：「預定義規則」是規則式 AI（IF-THEN）；(C) 錯：分類和迴歸預測是鑑別式 AI；(D) 錯：資料清洗是 ETL 前處理。</div>
+    </details>
+  </div>
+
+  <!-- Q8 -->
+  <div class="quiz-item">
+    <div class="quiz-q">【S1-Q33】下列模型何者<strong>並非</strong>以「產生新資料」為主要設計目的？<br>(A) 支援向量機（SVM）　(B) 變分自編碼器（VAE）　(C) 自迴歸模型（Autoregressive）　(D) 擴散模型（Diffusion Model）</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt correct">(A) 支援向量機（SVM）✓（鑑別式）</div>
+      <div class="quiz-opt">(B) 變分自編碼器（VAE）</div>
+      <div class="quiz-opt">(C) 自迴歸模型（Autoregressive）</div>
+      <div class="quiz-opt">(D) 擴散模型（Diffusion Model）</div>
+    </div>
+    <details class="quiz-ans">
+      <summary>查看解說</summary>
+      <div class="quiz-ans-body">SVM 是找分界超平面的鑑別式演算法，不是生成式。VAE、Autoregressive、Diffusion 都是生成式三大流派代表。<strong>記法：SVM、決策樹、隨機森林、邏輯迴歸 → 鑑別式；GAN、VAE、Diffusion → 生成式。</strong></div>
+    </details>
+  </div>
+
+  <!-- Q9 -->
+  <div class="quiz-item">
+    <div class="quiz-q">【S2-Q10】下列哪一項技術是生成式 AI 的基礎？<br>(A) 決策樹模型　(B) 聚類演算法　(C) 生成對抗網路　(D) 隨機森林技術</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt">(A) 決策樹模型</div>
+      <div class="quiz-opt">(B) 聚類演算法</div>
+      <div class="quiz-opt correct">(C) 生成對抗網路（GAN）✓</div>
+      <div class="quiz-opt">(D) 隨機森林技術</div>
+    </div>
+    <details class="quiz-ans">
+      <summary>查看解說</summary>
+      <div class="quiz-ans-body">GAN 是生成式 AI 三大基礎之一（VAE / GAN / Diffusion）。決策樹、聚類演算法、隨機森林全部是鑑別式或非監督式（分群）演算法。</div>
+    </details>
+  </div>
+
+  <!-- Q10 -->
+  <div class="quiz-item">
+    <div class="quiz-q">【S2-Q13】下列何者<strong>不是</strong>生成式 AI 核心技術？<br>(A) Variational Autoencoders（VAE）　(B) Generative Adversarial Networks（GAN）　(C) Visual Geometry Group（VGG）　(D) Autoregressive Models</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt">(A) VAE</div>
+      <div class="quiz-opt">(B) GAN</div>
+      <div class="quiz-opt correct">(C) VGG ✓（分類用 CNN，鑑別式）</div>
+      <div class="quiz-opt">(D) Autoregressive Models</div>
+    </div>
+    <details class="quiz-ans">
+      <summary>查看解說</summary>
+      <div class="quiz-ans-body">VGG（Visual Geometry Group）是 Oxford 2014 年提出的經典 CNN 架構，主要用於影像分類，屬於鑑別式 AI。VAE / GAN / Autoregressive 是生成式三大代表。<br><strong>陷阱：VGG 名字裡沒有 G（不是 Generative），V-G-G 是「視覺幾何組」團隊名。</strong></div>
+    </details>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- (08) 講師口頭補充（多場整合） -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(08)</div>
+  <h2 class="section-heading">講師口頭補充——多場整合</h2>
+  <div class="intro-band">
+    <div class="intro-label">這一節是什麼</div>
+    <div class="intro-text">以下內容整合自 314、315、408、415 等多場實際授課的口頭補充，與主線考點互補。標注「不列入初級考試範圍」的條目屬中級延伸，認識即可；其餘均為初級常考判斷題背景。</div>
+  </div>
+
+  <div class="transcript-section">
+    <div class="transcript-header">
+      <span class="transcript-badge">講師補充</span>
+      <span class="transcript-topic">GAN 的「啾啾鞋足球員 vs 守門員」崩潰故事</span>
+      <span class="transcript-source">[314p2] [415]</span>
+    </div>
+    <div class="transcript-body">GAN（對抗式生成網絡）= 生成器（一直畫新圖）+ 判別器（一直批判哪裡不對）。但兩個都是 AI 容易「越走越偏」。啾啾鞋影片可參考：大學做的足球對抗式 GAN——讓 AI 守門員 vs AI 球員，因為兩 AI 抓的細節太細，到後面球員只要做一些沒意義的抽搐，守門員就直接倒在地上，因為它認不出這是什麼動作就 crash 了。這就是訓練不穩定 / 模式崩潰最直觀的例子。<br><br><strong>模式崩潰是 GAN 專屬，看到題目寫「生成只剩一種結果」「訓練失敗」綁 GAN，不會出現在判別模型題</strong>。</div>
+  </div>
+
+  <div class="transcript-section">
+    <div class="transcript-header">
+      <span class="transcript-badge">講師補充</span>
+      <span class="transcript-topic">「擴充資料集 + 多樣性」題目永遠走生成式</span>
+      <span class="transcript-source">[415]</span>
+    </div>
+    <div class="transcript-body">例如「印刷電路板瑕疵樣本極少，要從無到有生成多樣性的瑕疵影像來擴充資料集」這類題目，方向是 GAN 或擴散模型。題目選項裡的 BERT（純自然語言）、強化學習（不到深層生成）、單一語言模型都跟視覺生成無關。</div>
+  </div>
+
+  <div class="transcript-section">
+    <div class="transcript-header">
+      <span class="transcript-badge">講師補充</span>
+      <span class="transcript-topic">VAE 的「揉紙球」比喻</span>
+      <span class="transcript-source">[314p2]</span>
+    </div>
+    <div class="transcript-body">把資料壓縮到「潛在空間」（揉成紙球放在手上），再展開來重建。重建時會稍微補齊丟失的東西，所以每次出來不太一樣。常見應用：圖片型驗證碼、雜訊類處理。<strong>缺點：畫質模糊、不夠真實</strong>，所以現在多數商用文生圖不用 VAE。</div>
+  </div>
+
+  <div class="transcript-section">
+    <div class="transcript-header">
+      <span class="transcript-badge">講師補充</span>
+      <span class="transcript-topic">擴散模型「背單字遮起來再背」比喻</span>
+      <span class="transcript-source">[314p2] [415]</span>
+    </div>
+    <div class="transcript-body">正向擴散 = 加雜訊（背過後遮住）→ 反向擴散 = 去雜訊（重新背一次）。每次「擦掉一點再重畫」，所以每次結果都會有些差異。<strong>缺點：計算成本高</strong>，但現在多數商用文生圖（DALL·E 2、Stable Diffusion、Midjourney）都用它。<br><br>加速採樣的演算法本質是把「慢慢復原」這段壓縮抓在一起算，從幾百步壓到 5–10 步（LCM / DDIM / DPM-Solver）。<br><br><strong>提示詞長度跟運算量無關</strong>——AI 不會因為提示詞越多就跑越久。這條在考試會出陷阱選項。</div>
+  </div>
+
+  <div class="transcript-section">
+    <div class="transcript-header">
+      <span class="transcript-badge">講師補充</span>
+      <span class="transcript-topic">Stable Diffusion 為何快：潛在空間（Latent Space）</span>
+      <span class="transcript-source">[415]</span>
+    </div>
+    <div class="transcript-body">傳統擴散模型在「像素空間」運算，1000×1000 解析度乘以彩色通道就是天文等級的運算量。Stable Diffusion 的關鍵改變是先用編碼器把高解析度影像壓縮到「<strong>潛在空間</strong>」（極低維、人難以視覺化）裡面去做擴散與去噪，算完之後再解壓縮回來。這就是「Latent Diffusion」這個名字的由來。</div>
+  </div>
+
+  <div class="transcript-section">
+    <div class="transcript-header">
+      <span class="transcript-badge">講師補充</span>
+      <span class="transcript-topic">Imagen 模型 + ResNet/SVN 的辨識題重點</span>
+      <span class="transcript-source">[408]</span>
+    </div>
+    <div class="transcript-body"><strong>Imagen</strong> 是 Google 的擴散模型分支，特點是<strong>降維運算</strong>（潛在空間做 diffusion，類似 Stable Diffusion 的 Latent Diffusion 思路），不是直接在像素空間做 diffusion，這樣計算量小很多。<br><br>考題常用的混淆——<strong>ResNet</strong> 是 CNN 變種（鑑別式）、<strong>SVM/SVN</strong> 是監督式機器學習（鑑別式），這兩個都不是生成式。<strong>生成式三巨頭只記 GAN、VAE、Diffusion</strong>。</div>
+  </div>
+
+  <div class="transcript-section">
+    <div class="transcript-header">
+      <span class="transcript-badge">講師補充</span>
+      <span class="transcript-topic">CLIP 的本質是「對齊」不是「生成」</span>
+      <span class="transcript-source">[408] [415]</span>
+    </div>
+    <div class="transcript-body">CLIP 把文字和圖像對應到「<strong>相同的語義空間</strong>」——假設文字是一維資料，用文字的方式去堆疊符合圖像資料的算法。也可延伸到音訊。<strong>它的功能不是「生成」而是「對齊」</strong>，把多模態的向量拉到同一個比對空間，讓多模態模型可以同時看圖看文字、用同一個向量空間比對。<br><br>CLIP 訓練時用對比損失，把「配對正確的圖文」向量<strong>拉近</strong>、把「配對錯誤的圖文」向量<strong>推遠</strong>，是後續所有圖文檢索與多模態 LLM 的基礎。<span style="font-size:.8rem;color:var(--c-muted)">（不列入初級考試範圍）</span></div>
+  </div>
+
+  <div class="transcript-section">
+    <div class="transcript-header">
+      <span class="transcript-badge">講師補充</span>
+      <span class="transcript-topic">Top-K / Top-P / Temperature 三參數的「行銷 vs 律師」對照</span>
+      <span class="transcript-source">[314p2]</span>
+    </div>
+    <div class="transcript-body">控制生成隨機度的三個參數：<strong>Top-K</strong> = 從最佳前 K 個答案隨機抽，K 越大越多元。<strong>Top-P</strong> = 抽機率累計到 P% 範圍內的答案。<strong>Temperature（溫度）</strong> = 範圍 0–1，越高越「熱情多變」（行銷崗位需要、寫劇本創意），越低越「死板穩定」（律師引條文需要——每次解條文都要一樣）。<br><br>重點：「<strong>沒有哪個比較好，看你的應用場景</strong>」。同樣一段提示詞同時用 Top-K + 多次取樣，理論上會拿到非常多種不同方向的回答。</div>
+  </div>
+
+  <div class="transcript-section">
+    <div class="transcript-header">
+      <span class="transcript-badge">講師補充</span>
+      <span class="transcript-topic">Zero-Shot vs Few-Shot Learning</span>
+      <span class="transcript-source">[408]</span>
+    </div>
+    <div class="transcript-body"><strong>Zero-Shot Learning（ZSL）</strong> = 沒有任何訓練資料下，模型能透過已有知識處理沒見過的新類別 / 任務（靠語義對齊）。<strong>Few-Shot Learning（FSL）</strong> = 在「少量樣本」情況下還能達到不錯表現。差別就在「完全沒看過」vs「看過一點點」。<br><br>一個圖片在 AI 眼中只要翻轉、放大縮小、旋轉、平移、鏡像就是「不同圖片」，所以一張圖實際上可以變成幾十到幾百張訓練樣本，這也是 FSL / ZSL 能成立的工程基礎。</div>
+  </div>
+
+  <details class="supplement">
+    <summary>🔬 FID（Fréchet Inception Distance）——中級概念（點開展開）</summary>
+    <div class="supplement-body">
+      <p>FID 透過萃取真實影像 + 生成影像兩邊的特徵分布，計算它們的距離。<strong>「越像 = 越接近真實世界 = 多樣性越好」</strong>（FID 分數越低越好）。</p>
+      <p style="margin-top:8px">常見干擾項：BLEU 是翻譯指標、MSE 是回歸、IS（Inception Score）跟 FID 同類但 FID 較常考。<em>來源：[415]</em></p>
+    </div>
+  </details>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(09)</div>
+  <h2 class="section-heading">速查卡——<em>一頁濃縮</em></h2>
+
+  <div class="table-wrap">
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th>項目</th>
+        <th>鑑別式 AI（DAI）</th>
+        <th>生成式 AI（GAI）</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>定義</td>
+        <td>判斷 / 分類 / 預測</td>
+        <td>創造新內容</td>
+      </tr>
+      <tr>
+        <td>代表模型</td>
+        <td>邏輯迴歸、SVM、決策樹、隨機森林、CNN（分類）、VGG</td>
+        <td>GAN、VAE、Diffusion、Autoregressive、GPT、DALL·E</td>
+      </tr>
+      <tr>
+        <td>學習目標</td>
+        <td>P(y|x) 條件機率</td>
+        <td>P(x,y) 聯合分佈 / P(x) 邊際分佈</td>
+      </tr>
+      <tr>
+        <td>應用</td>
+        <td>垃圾信、人臉辨識、醫學影像分類、銷售預測</td>
+        <td>寫文案、生圖、合成語音、Deepfake</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <dl class="dl-grid">
+    <div class="dl-item">
+      <dt>三大生成流派</dt>
+      <dd><strong>GAN</strong> → 警察 vs 小偷（生成器 + 鑑別器）</dd>
+      <dd><strong>VAE</strong> → 壓縮到潛在空間再解壓</dd>
+      <dd><strong>Diffusion</strong> → 從雜訊去噪還原（DALL·E 2、Stable Diffusion）</dd>
+    </div>
+    <div class="dl-item">
+      <dt>深度學習三大模型</dt>
+      <dd><strong>CNN</strong> → 影像（人臉、X 光）</dd>
+      <dd><strong>RNN</strong> → 序列（文字、語音、時序）；LSTM/GRU 是進階版</dd>
+      <dd><strong>GAN</strong> → 生成</dd>
+    </div>
+    <div class="dl-item">
+      <dt>多模態 AI</dt>
+      <dd>跨「文字 + 圖片 + 語音 + 影片」；代表：GPT-4o、Gemini、Claude、CLIP</dd>
+    </div>
+    <div class="dl-item">
+      <dt>整合應用</dt>
+      <dd>生成式生資料 → 鑑別式拿來訓練（自駕模擬、醫療資料增強）</dd>
+    </div>
+    <div class="dl-item">
+      <dt>⚠️ 易錯陷阱</dt>
+      <dd>SVM、決策樹、隨機森林 → 全是鑑別式</dd>
+      <dd>VGG → 分類用 CNN，鑑別式（不是生成式）</dd>
+      <dd>DALL·E 2 用 Diffusion，不是 GAN</dd>
+      <dd>語音識別 → 鑑別式；NLG → 生成式</dd>
+      <dd>語意分析 → 用於情感分析、意圖辨識（非語音識別）</dd>
+    </div>
+  </dl>
+</section>
+
+<div class="nav-footer">
+  <a href="CH3.html" class="nav-btn"><span aria-hidden="true">←</span> CH3 機器學習概念</a>
+  <a href="CH5.html" class="nav-btn primary">CH5 No Code / Low Code <span aria-hidden="true">→</span></a>
+</div>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">iPAS AI 應用規劃師初級研習 · 2026 春季</span>
+  <span class="footer-meta" data-platform-version="lesson-template-v3" data-built-at="2026-05-09">本頁以 lesson-template-v3 製作，2026-05</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+</script>
+<script>
+(function(){var k='progress:'+location.pathname;var saved=parseInt(localStorage.getItem(k)||'0',10);if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}var t;window.addEventListener('scroll',function(){clearTimeout(t);t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);},{passive:true});})();
+</script>
+</body>
+</html>

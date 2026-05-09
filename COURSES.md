@@ -66,6 +66,7 @@
 | `office-ai/` | 辦公室 AI 工具實務應用 | 完成 | part1~5 |
 | `prompt-basic/` | 從「問 AI」到「交辦 AI」（6h） | 製作中 | part1~5，公部門行政人員；主色灰藍綠 |
 | `simple-ai/` | 創業數位化 × 創業懂行銷（3h） | 完成 | 2 Modules + 扁平 CH，含 prompt-library.html；主色鼠尾草綠 |
+| `ipas-ai-beginner/` | iPAS AI 應用規劃師初級認證研習（30h） | 建置中 | chapter-flat 10 章，0 基礎友善，certprep Editorial-strict；主色陶土橘；待 course-register |
 
 > 上述「狀態」「主色」可能未即時反映實況。「結構描述」一律以 `ls courses/<slug>/` 為準。
 
