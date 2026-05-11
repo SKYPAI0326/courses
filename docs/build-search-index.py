@@ -36,6 +36,7 @@ COURSE_LABEL = {
     "simple-ai": "創業 AI 入門（3h）",
     "ipas-ai-beginner": "iPAS AI 應用規劃師初級",
     "line-stickers": "AI 自製 LINE 貼圖（12h）",
+    "career-pivot-mid": "8 小時轉職實戰",
 }
 
 TITLE_RE = re.compile(r"<title>(.*?)</title>", re.IGNORECASE | re.DOTALL)
