@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH 2-2 履歷 AI 潤稿實作｜8 小時轉職實戰</title>
+<meta name="description" content="能用一鍵組合 prompt（fill-form）把 CH2-1 履歷草稿丟到 ChatGPT 潤稿；能識別 AI 潤稿 3 種常見過頭（誇大 / 套話 / 失去個人風格）並改回。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="CH 2-2 履歷 AI 潤稿實作｜8 小時轉職實戰">
+<meta property="og:description" content="能用一鍵組合 prompt（fill-form）把 CH2-1 履歷草稿丟到 ChatGPT 潤稿；能識別 AI 潤稿 3 種常見過頭（誇大 / 套話 / 失去個人風格）並改回。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/career-pivot-mid/CH2-2.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CH 2-2 履歷 AI 潤稿實作｜8 小時轉職實戰">
+<meta name="twitter:description" content="能用一鍵組合 prompt（fill-form）把 CH2-1 履歷草稿丟到 ChatGPT 潤稿；能識別 AI 潤稿 3 種常見過頭（誇大 / 套話 / 失去個人風格）並改回。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/career-pivot-mid/CH2-2.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-main:#8a7a9e;--radius:4px;--radius-sm:3px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 var(--radius) 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:var(--c-main);border:1px solid rgba(138,122,158,.3);background:transparent;padding:3px 12px;border-radius:99px;font-weight:500;letter-spacing:.06em}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px;font-variant-numeric:tabular-nums}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;max-width:22ch}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);margin-top:28px}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
+.outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-heading em{font-style:normal;color:var(--c-text)}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-body{font-size:.9rem;line-height:1.85}
+/* concept-grid */
+.concept-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}
+.concept-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px}
+.concept-num{font-size:.7rem;color:var(--c-main);letter-spacing:.15em;font-weight:500;margin-bottom:6px}
+.concept-title{font-size:.95rem;font-weight:500;color:var(--c-text);margin-bottom:8px;line-height:1.4}
+.concept-desc{font-size:.85rem;color:var(--c-muted);line-height:1.8}
+/* steps-inline */
+.steps-wrap{margin:20px 0;display:flex;flex-direction:column;gap:0}
+.step-block{display:flex;gap:20px;padding:16px 0;border-bottom:1px solid var(--c-border-soft)}
+.step-block:last-child{border-bottom:0}
+.step-circle{flex-shrink:0;width:36px;height:36px;border-radius:50%;background:var(--c-surface);border:1px solid var(--c-border);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-faint);font-weight:500;margin-top:2px}
+.step-content{flex:1}
+.step-heading{font-size:.95rem;font-weight:500;color:var(--c-text);margin-bottom:6px;line-height:1.4}
+.step-body{font-size:.85rem;color:var(--c-muted);line-height:1.8}
+/* compare-grid NG→OK */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}
+.compare-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px}
+.compare-label{font-size:.7rem;letter-spacing:.1em;font-weight:500;margin-bottom:10px}
+.compare-label.ng{color:#9e6a6a}
+.compare-label.ok{color:#5a7a5a}
+.compare-item{font-size:.85rem;color:var(--c-text);line-height:1.75;margin-bottom:6px}
+.compare-item u{text-decoration:underline;text-underline-offset:2px}
+/* handout-card / fill-form */
+.handout-card{border:1px solid var(--c-border);border-radius:var(--radius);background:var(--c-card);margin:24px 0;overflow:hidden}
+.handout-header{background:var(--c-surface);padding:14px 22px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--c-border)}
+.handout-label{font-size:.72rem;color:var(--c-main);letter-spacing:.15em;font-weight:500}
+.handout-title{font-size:.92rem;font-weight:500;color:var(--c-text)}
+.handout-body{padding:20px 22px}
+.handout-fill{border:0;border-bottom:1px solid var(--c-border);width:100%;background:transparent;font-size:.85rem;color:var(--c-text);padding:4px 0;outline:none;line-height:1.8;margin-bottom:12px;font-family:'Noto Sans TC',sans-serif}
+.handout-fill::placeholder{color:var(--c-faint)}
+textarea.handout-fill{resize:vertical;min-height:80px;padding:6px 0}
+.handout-sub-label{font-size:.75rem;color:var(--c-muted);letter-spacing:.06em;margin:14px 0 6px;font-weight:500}
+.copy-btn{margin-top:14px;padding:8px 18px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);font-size:.82rem;color:var(--c-text);cursor:pointer;font-family:'Noto Sans TC',sans-serif}
+.copy-btn:hover{background:var(--c-card);border-color:var(--c-muted)}
+.copy-confirm{font-size:.78rem;color:var(--c-muted);margin-left:12px;opacity:0;transition:opacity .3s}
+.copy-confirm.show{opacity:1}
+/* scenario-grid 對照表 */
+.scenario-grid{display:grid;grid-template-columns:160px 1fr;gap:0;margin:20px 0;border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden}
+.scenario-row{display:contents}
+.scenario-task{background:var(--c-surface);padding:12px 16px;font-size:.82rem;font-weight:500;color:var(--c-text);border-bottom:1px solid var(--c-border-soft);line-height:1.6}
+.scenario-pick{background:var(--c-card);padding:12px 16px;font-size:.82rem;color:var(--c-muted);border-bottom:1px solid var(--c-border-soft);line-height:1.7}
+.scenario-row:last-child .scenario-task,.scenario-row:last-child .scenario-pick{border-bottom:0}
+/* 試跑包 assets */
+.asset-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}
+.asset-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px}
+.asset-tag{font-size:.7rem;color:var(--c-main);letter-spacing:.1em;font-weight:500;margin-bottom:8px}
+.asset-name{font-size:.92rem;font-weight:500;color:var(--c-text);margin-bottom:8px;line-height:1.4}
+.asset-desc{font-size:.82rem;color:var(--c-muted);line-height:1.75}
+/* 常見錯誤 */
+.pitfall-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:16px}
+.pitfall-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px}
+.pitfall-no{font-size:.7rem;color:var(--c-main);letter-spacing:.12em;font-weight:500;margin-bottom:4px}
+.pitfall-name{font-size:.9rem;font-weight:500;color:var(--c-text);margin-bottom:8px;line-height:1.5}
+.pitfall-fix{font-size:.85rem;color:var(--c-muted);line-height:1.8}
+/* quiz */
+.quiz-item{margin-bottom:28px}
+.quiz-q{font-size:.92rem;font-weight:500;color:var(--c-text);line-height:1.8;margin-bottom:12px}
+.quiz-opts{list-style:none;padding:0;margin:0 0 12px}
+.quiz-opt{font-size:.88rem;color:var(--c-text);padding:9px 14px;border:1px solid var(--c-border);border-radius:var(--radius);margin-bottom:6px;line-height:1.7}
+.quiz-opt.correct{border-color:var(--c-main);color:var(--c-text)}
+.quiz-ans{font-size:.85rem;color:var(--c-muted);line-height:1.8;padding:12px 16px;background:var(--c-surface);border-radius:var(--radius)}
+/* 反思 */
+.reflection-block{padding:20px 24px;border:1px solid var(--c-border);border-radius:var(--radius);background:var(--c-card);margin:20px 0}
+.reflection-label{font-size:.7rem;color:var(--c-faint);letter-spacing:.12em;font-weight:500;margin-bottom:10px}
+.reflection-prompt{font-size:.9rem;color:var(--c-text);line-height:1.85}
+/* nav */
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(138,122,158,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
+.nav-btn:hover{background:rgba(138,122,158,.07);border-color:var(--c-main)}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main)}
+.nav-btn.primary:hover{filter:brightness(.92)}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.concept-grid,.compare-grid,.asset-grid{grid-template-columns:1fr}.scenario-grid{grid-template-columns:1fr}.scenario-task{border-bottom:0}}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='careerpivot_auth',H='b4bacdf1af0913ed18ec5123a52d6678b473f880f3769dfb4060ef9378fa28ba';if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">8 小時轉職實戰</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">CH 2-2</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<div class="page-hero">
+  <a href="module2.html" class="back-link"><span aria-hidden="true">←</span> 返回 Part 2 實戰</a>
+  <div class="hero-eyebrow">(02) · Part 2 · 25 分鐘</div>
+  <h1 class="lesson-title">履歷 AI 潤稿實作</h1>
+  <p class="lesson-tagline">把 CH2-1 寫好的 STAR 草稿丟給 ChatGPT 潤稿——重點不是「怎麼用 ChatGPT」，是「怎麼看出哪裡潤稿過頭、怎麼改回來」。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果</div>
+    <div class="outcome-item">能用 fill-form 一鍵組合 prompt，把 CH2-1 的 STAR 草稿貼進 ChatGPT 送出，10 秒完成</div>
+    <div class="outcome-item">能識別 AI 潤稿 3 種常見過頭（誇大數字 / 套話堆砌 / 失去個人風格），逐句找出問題點</div>
+    <div class="outcome-item">能用改回 3 招（刪誇大 / 換口語 / 加細節）把 AI 輸出拉回「像你本人說話」，產出可送出的最終版段落</div>
+  </div>
+</div>
+
+<!-- ======= SECTION 01 破題 ======= -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(01)</div>
+  <h2 class="section-heading">破題：<em>ChatGPT 把你的 22 年改成廢話了</em></h2>
+  <div class="intro-band">
+    <div class="intro-label">為什麼這很重要</div>
+    <div class="intro-text">ChatGPT 預設模式是「讓文字看起來更漂亮」，但「漂亮」對履歷往往是減分。轉職的真實競爭力在具體數字與真實經歷——AI 潤稿後如果全盤接受，HR 一眼就看出「這是 AI 寫的」，反而失去最重要的真實感。</div>
+  </div>
+  <p class="body-text">主角 A 把 CH2-1 辛苦寫好的那段 STAR 貼進 ChatGPT，輸入「請幫我潤飾這段履歷」按下 enter。3 秒後回來：</p>
+  <div class="handout-card" style="margin:0 0 20px">
+    <div class="handout-body" style="background:var(--c-surface);border-left:2px solid #9e6a6a">
+      <p class="body-text" style="margin-bottom:0;font-style:italic;color:var(--c-muted)">「主導重大變革，成功達成 200% 績效提升。透過卓越的領導力，賦能團隊協同創新，建立業界標竿級品質管理體系，實現生產效能的指數型躍升。」</p>
+    </div>
+  </div>
+  <p class="body-text">主角 A 愣住。他原本寫的是「帶 8 人團隊 6 個月把良率從 78% 拉到 93%、節省返工成本 NT$ 480 萬」。ChatGPT 把所有具體數字拿掉，換成「200% 績效」「指數型躍升」這種顧問公司簡報才會出現的廢話。</p>
+  <div class="callout key">
+    <div class="callout-icon" aria-hidden="true">⚠</div>
+    <div class="callout-body"><strong>AI 是輔助不是主軸。</strong>這 25 分鐘要學的不是「ChatGPT 怎麼用」——那是另一門課（ai-workshop）的事。你要學的是：<strong>怎麼把 ChatGPT 當編輯，而不是讓 ChatGPT 當你。</strong>AI 潤稿過頭時你要看得出來、改得回來，否則送出去的履歷會被 HR 一眼看穿「這是 AI 寫的」，反而失分。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ======= SECTION 02 概念 ======= -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(02)</div>
+  <h2 class="section-heading">核心概念：<em>fill-form + 過頭 3 種 + 改回 3 招</em></h2>
+  <div class="concept-grid">
+    <div class="concept-card">
+      <div class="concept-num">概念 1</div>
+      <div class="concept-title">fill-form 一鍵組合 prompt</div>
+      <div class="concept-desc">不是教你寫 prompt，是給你 3 個欄位填一填，按下按鈕自動拼成完整指令並複製到剪貼簿，貼到 ChatGPT 就送出。降低「不知道怎麼下指令」的心理門檻。</div>
+    </div>
+    <div class="concept-card">
+      <div class="concept-num">概念 2</div>
+      <div class="concept-title">AI 潤稿 3 種過頭</div>
+      <div class="concept-desc">ChatGPT 預設模式會犯的 3 個問題：<strong>誇大數字</strong>（把 78%→93% 變成「200% 提升」）、<strong>堆砌套話</strong>（「卓越 / 賦能 / 協同 / 變革」）、<strong>失去個人風格</strong>（你說話是口語句，AI 改成公文體）。</div>
+    </div>
+    <div class="concept-card">
+      <div class="concept-num">概念 3</div>
+      <div class="concept-title">改回 3 招</div>
+      <div class="concept-desc">拿到 AI 輸出後不全盤接受：<strong>招 1 刪掉誇大</strong>、<strong>招 2 換回口語動詞</strong>、<strong>招 3 加回個人化細節</strong>——把履歷拉回「像你本人在說話」。</div>
+    </div>
+    <div class="concept-card">
+      <div class="concept-num">概念 4</div>
+      <div class="concept-title">AI 的真實價值</div>
+      <div class="concept-desc">ChatGPT 在履歷潤稿的真正用途是「把 STAR 四段合成一段流暢敘述」，不是「替你寫新內容」。發現「改回後幾乎回到原稿」——這正是成功訊號。</div>
+    </div>
+  </div>
+  <p class="body-text" style="margin-top:16px">你會覺得「為什麼不教更多 ChatGPT 技巧」？因為 的你跟 25 歲的人在求職市場上拼的不是「誰會用 AI」，是「誰的真實經歷有說服力」。AI 在這裡只是把你的真實話改順，不是替你寫新的話。</p>
+</section>
+
+<hr class="section-rule">
+
+<!-- ======= SECTION 03 操作示範 ======= -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(03)</div>
+  <h2 class="section-heading">操作示範：<em>主角 A 完整走一遍</em></h2>
+  <p class="body-text">主角 A 從 CH2-1 帶來這段 STAR 原稿（製造業 QA 主管帶 8 人團隊建立 SOP）：</p>
+  <div class="handout-card" style="margin:0 0 24px">
+    <div class="handout-header">
+      <span class="handout-label">STAR 原稿</span>
+      <span class="handout-title">主角 A · QA 主管建立 SOP</span>
+    </div>
+    <div class="handout-body">
+      <p class="body-text" style="margin-bottom:6px"><strong>S：</strong>公司產線良率低於業界 15%，客訴頻繁</p>
+      <p class="body-text" style="margin-bottom:6px"><strong>T：</strong>我接手 QA 部門帶 8 人團隊，目標 6 個月內把良率拉到業界水準</p>
+      <p class="body-text" style="margin-bottom:6px"><strong>A：</strong>主導建立 12 項 SOP、導入統計品管工具、每週跨部門檢討會</p>
+      <p class="body-text" style="margin-bottom:0"><strong>R：</strong>良率從 78% 提升至 93%、客訴下降 60%、節省返工成本 NT$ 480 萬/年</p>
+    </div>
+  </div>
+
+  <div class="steps-wrap">
+    <div class="step-block">
+      <div class="step-circle">01</div>
+      <div class="step-content">
+        <div class="step-heading">開 fill-form 填 3 欄（主攻版：製造業數位轉型 PM）</div>
+        <div class="step-body">目標職位填「製造業數位轉型 PM（CH1-6 主攻第 1 名）」；STAR 段落貼入原稿四行；個人風格偏好填「保守實在、講具體數字、不喜歡華麗形容」。按下「組合 prompt 並複製」，剪貼簿裡自動出現完整指令。</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">02</div>
+      <div class="step-content">
+        <div class="step-heading">貼到 ChatGPT 送出，等 5 秒</div>
+        <div class="step-body">到 ChatGPT 對話框按 Cmd+V（Mac）或 Ctrl+V（Windows）貼上，按 enter。等 5 秒鐘，不要刷新頁面。<br><strong>雙版提醒：</strong>若你想同時準備「新創 PM」外跳備案，把目標職位改成「新創公司產品經理」重跑一次——同 STAR 段落會得到不同翻譯，製造業版重 SOP / 跨部門，新創版重 PM 思維 / 疊代節奏。</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">03</div>
+      <div class="step-content">
+        <div class="step-heading">拿到輸出，逐句找出 3 種過頭</div>
+        <div class="step-body">主角 A 拿到 ChatGPT 輸出：「於前職擔任 QA 部門主管期間，主導重大品質變革，透過卓越的領導力帶領 8 人精英團隊，賦能跨部門協同，建立業界標竿級 SOP 體系，實現品質的指數型躍升，良率達 93%，全面降低客訴並節省可觀返工成本。」</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">04</div>
+      <div class="step-content">
+        <div class="step-heading">用改回 3 招把版本拉回來</div>
+        <div class="step-body">招 1 刪掉誇大：「重大變革」「指數型躍升」「全面」「可觀」刪掉。招 2 換回口語：「於前職擔任…期間」改「我接手」；「精英團隊」改「8 人團隊」。招 3 加回細節：把原本拿掉的「12 項 SOP」「客訴下降 60%」「NT$ 480 萬/年」加回來。</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="body-text" style="margin-top:20px">主角 A 改回的最終版：</p>
+  <div class="handout-card" style="margin:0 0 0">
+    <div class="handout-body" style="border-left:2px solid #5a7a5a">
+      <p class="body-text" style="margin-bottom:0;color:var(--c-text)">「我接手 QA 部門帶 8 人團隊，6 個月內主導建立 12 項 SOP、導入統計品管工具、推每週跨部門檢討會。良率從 78% 提升至 93%、客訴下降 60%、節省返工成本 NT$ 480 萬/年。」</p>
+    </div>
+  </div>
+  <p class="body-text" style="margin-top:16px">這個最終版幾乎就是 CH2-1 原稿——只把 STAR 四段串成一段流暢敘述。ChatGPT 的真實貢獻是「整合流暢度」，不是「添加華麗詞」。當你發現改回後幾乎等於原稿，這正是成功訊號。</p>
+</section>
+
+<hr class="section-rule">
+
+<!-- ======= SECTION 04 過頭 3 範例對照表 ======= -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(04)</div>
+  <h2 class="section-heading">潤稿過頭 3 範例：<em>NG vs OK 完整對照</em></h2>
+  <p class="body-text">每個過頭都有一個 AI 輸出的 NG 版、為什麼 HR 看了皺眉的原因、改回的 OK 版，以及改了哪個字（底線標出）。</p>
+
+  <!-- 過頭 1：誇大數字 -->
+  <p class="body-text" style="font-weight:500;margin-bottom:8px">過頭 1：誇大數字</p>
+  <div class="compare-grid">
+    <div class="compare-card">
+      <div class="compare-label ng">NG · AI 輸出版</div>
+      <div class="compare-item">「<u>全面降低客訴</u>並節省<u>可觀</u>返工成本」</div>
+      <div class="compare-item" style="font-size:.78rem;color:#9e6a6a;margin-top:8px">HR 看了皺眉：原本有「客訴下降 60%」「NT$ 480 萬/年」的具體數字，被換成「全面」「可觀」這種模糊詞——反而比原本更弱，HR 看不出成果規模。</div>
+    </div>
+    <div class="compare-card">
+      <div class="compare-label ok">OK · 改回版</div>
+      <div class="compare-item">「客訴下降 <u>60%</u>、節省返工成本 <u>NT$ 480 萬/年</u>」</div>
+      <div class="compare-item" style="font-size:.78rem;color:#5a7a5a;margin-top:8px">改回招：刪掉「全面」「可觀」，還原原稿的具體數字。任何 AI 數字 > 原稿 = 直接改掉；原稿數字被拿掉 = 補回來。</div>
+    </div>
+  </div>
+
+  <!-- 過頭 2：套話堆砌 -->
+  <p class="body-text" style="font-weight:500;margin:20px 0 8px">過頭 2：套話堆砌</p>
+  <div class="compare-grid">
+    <div class="compare-card">
+      <div class="compare-label ng">NG · AI 輸出版</div>
+      <div class="compare-item">「透過<u>卓越的領導力</u><u>賦能跨部門協同</u>，實現品質的<u>指數型躍升</u>」</div>
+      <div class="compare-item" style="font-size:.78rem;color:#9e6a6a;margin-top:8px">HR 看了皺眉：「卓越 / 賦能 / 協同 / 指數型」是顧問公司 PowerPoint 廢話，製造業數位轉型 PM 履歷塞這些反而顯得沒有具體貢獻、無法驗證。</div>
+    </div>
+    <div class="compare-card">
+      <div class="compare-label ok">OK · 改回版</div>
+      <div class="compare-item">「主導建立 <u>12 項 SOP</u>、導入<u>統計品管工具</u>、推<u>每週跨部門檢討會</u>」</div>
+      <div class="compare-item" style="font-size:.78rem;color:#5a7a5a;margin-top:8px">改回招：把「卓越 / 賦能 / 協同」換回原稿裡的直接動詞（建立 / 導入 / 推）。直接動詞 + 具體工具名稱 = 可驗證的貢獻。</div>
+    </div>
+  </div>
+
+  <!-- 過頭 3：失去個人風格 -->
+  <p class="body-text" style="font-weight:500;margin:20px 0 8px">過頭 3：失去個人風格</p>
+  <div class="compare-grid">
+    <div class="compare-card">
+      <div class="compare-label ng">NG · AI 輸出版</div>
+      <div class="compare-item">「<u>於前職擔任 QA 部門主管期間</u>，帶領 8 人<u>精英</u>團隊…」</div>
+      <div class="compare-item" style="font-size:.78rem;color:#9e6a6a;margin-top:8px">HR 看了皺眉：「於前職擔任…期間」是公文體，跟主角 A 平時說話方式完全不同——一讀就感覺「這是 AI 寫的」，失去真誠感。「精英團隊」是套話，8 人就是 8 人。</div>
+    </div>
+    <div class="compare-card">
+      <div class="compare-label ok">OK · 改回版</div>
+      <div class="compare-item">「<u>我接手</u> QA 部門帶 <u>8 人</u>團隊，6 個月內…」</div>
+      <div class="compare-item" style="font-size:.78rem;color:#5a7a5a;margin-top:8px">改回招：「於前職擔任…期間」改「我接手」；「精英團隊」改「8 人團隊」。第一人稱直接句 = 進階履歷的語氣基準，念出來要像你本人在說話。</div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ======= SECTION 05 fill-form 工具 ======= -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(05)</div>
+  <h2 class="section-heading">fill-form：<em>一鍵組合 prompt 複製到剪貼簿</em></h2>
+  <p class="body-text">填完 3 欄，按「組合 prompt 並複製」，直接貼到 ChatGPT 送出。欄位有預設範例——可以清掉換成你自己的。</p>
+
+  <div class="handout-card">
+    <div class="handout-header">
+      <span class="handout-label">FILL-FORM</span>
+      <span class="handout-title">履歷潤稿 · 一鍵組合 prompt</span>
+    </div>
+    <div class="handout-body">
+      <div class="handout-sub-label">目標職位（你 CH1-6 收斂的主攻第 1 名）</div>
+      <input type="text" id="ff-position" class="handout-fill" placeholder="例：製造業數位轉型 PM">
+
+      <div class="handout-sub-label">個人風格偏好（一句話描述你說話的調調）</div>
+      <input type="text" id="ff-style" class="handout-fill" placeholder="例：講話直接、喜歡具體數字、不愛形容詞">
+
+      <div class="handout-sub-label">STAR 段落（貼入 CH2-1 寫的那段）</div>
+      <textarea id="ff-star" class="handout-fill" placeholder="例：&#10;S：公司產線良率低於業界 15%，客訴頻繁&#10;T：我接手 QA 部門帶 8 人團隊，目標 6 個月內把良率拉到業界水準&#10;A：主導建立 12 項 SOP、導入統計品管工具、每週跨部門檢討會&#10;R：良率從 78% 提升至 93%、客訴下降 60%、節省返工成本 NT$ 480 萬/年"></textarea>
+
+      <button class="copy-btn" id="copy-btn" onclick="buildAndCopy()">組合 prompt 並複製</button>
+      <span class="copy-confirm" id="copy-confirm">✓ 已複製，請貼到 ChatGPT 對話框</span>
+
+      <div class="handout-sub-label" style="margin-top:20px">組合後的 prompt 預覽（唯讀）</div>
+      <textarea id="ff-preview" class="handout-fill" readonly style="min-height:120px;color:var(--c-muted);font-size:.78rem;cursor:default" placeholder="填完上方 3 欄後，點按鈕這裡會顯示預覽"></textarea>
+    </div>
+  </div>
+
+  <div class="callout info" style="margin-top:16px">
+    <div class="callout-icon" aria-hidden="true">◎</div>
+    <div class="callout-body"><strong>雙版本運用：</strong>主攻版目標職位填「製造業數位轉型 PM」，外跳備案版填「新創公司產品經理」，同 STAR 段落分別跑兩次，比較翻譯差異——製造業版強調 SOP / 跨部門效益，新創版強調 PM 思維 / 疊代節奏。兩個版本都存著，等目標職位確定後再挑一個送出。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ======= SECTION 06 動手練習 ======= -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(06)</div>
+  <h2 class="section-heading">動手練習：<em>把你的 2 段 STAR 跑完整套流程</em></h2>
+  <p class="body-text">這 10 分鐘要做的事：把你 CH2-1 寫好的 2 段 STAR 丟給 ChatGPT 潤稿，然後改回成「像你本人在說話」。</p>
+
+  <div class="steps-wrap">
+    <div class="step-block">
+      <div class="step-circle" style="font-size:.7rem">2 min</div>
+      <div class="step-content">
+        <div class="step-heading">Step 1：開 fill-form，填 3 欄</div>
+        <div class="step-body">目標職位：你 CH1-6 收斂出來的主攻第 1 名；STAR 段落：你 CH2-1 寫的第 1 段；個人風格偏好：用 1 句話描述。選不出來就抄「喜歡具體數字、不愛形容詞」——這對履歷最有用。</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle" style="font-size:.7rem">2 min</div>
+      <div class="step-content">
+        <div class="step-heading">Step 2：按複製 → 貼到 ChatGPT → 送出 → 等回覆</div>
+        <div class="step-body">Cmd+V（Mac）或 Ctrl+V（Windows）貼到 ChatGPT 對話框，按 enter 送出。等 5 秒回覆。先不要存檔，下一步先檢查。</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle" style="font-size:.7rem">3 min</div>
+      <div class="step-content">
+        <div class="step-heading">Step 3：逐句用 3 種過頭清單檢查</div>
+        <div class="step-body">□ 有沒有「主導重大 / 卓越 / 賦能 / 協同 / 變革 / 指數型」這類套話？<br>□ 有沒有把你原本的具體數字換成「全面 / 可觀 / 顯著」這類模糊詞？<br>□ 整段讀起來像不像你會說的話？（試試看念出聲音）</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle" style="font-size:.7rem">3 min</div>
+      <div class="step-content">
+        <div class="step-heading">Step 4：用改回 3 招拉回來，貼上履歷卡</div>
+        <div class="step-body">招 1：刪掉誇大詞；招 2：把公文體換回口語；招 3：把拿掉的具體數字 / 細節加回來。最終版貼在紙本履歷卡上。時間夠的話重複 Step 1-4 做第 2 段；不夠就放 PRAC2 課後補。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scenario-grid" style="margin-top:24px">
+    <div class="scenario-row">
+      <div class="scenario-task">完成標準</div>
+      <div class="scenario-pick">2 段都跑過 fill-form → ChatGPT → 改回流程</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">數字保留</div>
+      <div class="scenario-pick">每段含 ≥ 1 個具體量化數字（從原稿保留，不被 AI 拿掉）</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">套話清零</div>
+      <div class="scenario-pick">無「卓越 / 賦能 / 協同 / 變革 / 重大 / 指數型 / 全面 / 可觀」等字眼</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">口語測試</div>
+      <div class="scenario-pick">念出聲音像「你本人在說話」，不是公文體、不是顧問廢話</div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ======= SECTION 07 試跑包 ======= -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(07)</div>
+  <h2 class="section-heading">試跑包需求：<em>工具 + 離線備援</em></h2>
+
+  <div class="asset-grid">
+    <div class="asset-card">
+      <div class="asset-tag">互動元件</div>
+      <div class="asset-name">fill-form 一鍵組合 prompt</div>
+      <div class="asset-desc">HTML + JS 內嵌，3 欄（目標職位 / STAR 段落 / 風格偏好），按鈕自動拼完整 prompt 並複製到剪貼簿，有「✓ 已複製」確認提示，不需後端。</div>
+    </div>
+    <div class="asset-card">
+      <div class="asset-tag">紙本 A4 雙面</div>
+      <div class="asset-name">過頭 3 範例對照卡</div>
+      <div class="asset-desc">正面：ChatGPT 過頭版（紅框）+ 為什麼過頭一句話；反面：改回版（綠框）+ 改了哪個字（底線標出）。3 組範例對應 3 種過頭類型。</div>
+    </div>
+    <div class="asset-card">
+      <div class="asset-tag">紙本 A4 單面</div>
+      <div class="asset-name">改回 3 招速查卡</div>
+      <div class="asset-desc">3 招各 1 句話 + 1 個對應例子。招 1：刪掉誇大；招 2：換回口語動詞；招 3：加回個人化細節。附「禁用套話清單」：卓越 / 賦能 / 協同 / 變革 / 指數型。</div>
+    </div>
+    <div class="asset-card">
+      <div class="asset-tag">離線備援 3 組</div>
+      <div class="asset-name">ChatGPT 潤稿前後對照範例</div>
+      <div class="asset-desc">組 1：主角 A 製造業 QA STAR；組 2：主角 B 行政「500 家客戶」STAR；組 3：通用（工程師「優化系統效能」）。AI 沒網路時學員可離線參考改回練習。</div>
+    </div>
+  </div>
+
+  <div class="callout tip" style="margin-top:4px">
+    <div class="callout-icon" aria-hidden="true">◎</div>
+    <div class="callout-body"><strong>卡關備案：</strong>ChatGPT 無網路 / 額度耗盡 → 直接用紙本對照卡，本單元核心是「識別 + 改回」，AI 只是觸發物；學員打字慢 → 兩兩配對共用一台；ChatGPT 輸出沒有過頭問題 → 直接進改回步驟微調語氣即可。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ======= SECTION 08 常見錯誤 ======= -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(08)</div>
+  <h2 class="section-heading">常見錯誤 3 條：<em>最容易在這裡翻車</em></h2>
+
+  <ul class="pitfall-list">
+    <li class="pitfall-item">
+      <div class="pitfall-no">PITFALL 01</div>
+      <div class="pitfall-name">整段 ChatGPT 輸出直接貼進履歷卡，沒做改回動作</div>
+      <div class="pitfall-fix"><strong>徵兆：</strong>履歷上出現「主導重大變革」「賦能團隊」「實現指數型躍升」。<strong>原因：</strong>誤把「AI 潤稿」當「AI 代寫」，學員心裡「AI 寫的應該比較好」，自動放棄主控權。<strong>解法：</strong>講師走場看到「整段 AI 風格」立刻說「念出來聽一下，像你說話嗎？」口語測試是最快的過頭偵測器，念不像就改。</div>
+    </li>
+    <li class="pitfall-item">
+      <div class="pitfall-no">PITFALL 02</div>
+      <div class="pitfall-name">fill-form 第 3 欄「個人風格偏好」留白或寫「無」「都可以」</div>
+      <div class="pitfall-fix"><strong>徵兆：</strong>ChatGPT 輸出沒有個人語氣 anchor，改回時不知道「應該改成什麼調調」。<strong>原因：</strong>學員從沒思考過「我講話有什麼特徵」，預設「我沒什麼特別」。<strong>解法：</strong>給 3 個範本讓學員選：(a) 講話直接、不客套 (b) 喜歡具體數字、不愛形容詞 (c) 口語、不文謅謅。選不出來就選 (b)，對履歷最實用。</div>
+    </li>
+    <li class="pitfall-item">
+      <div class="pitfall-no">PITFALL 03</div>
+      <div class="pitfall-name">ChatGPT 把數字誇大（例如 NT$ 480 萬 → NT$ 1000 萬），學員沒發現就放進履歷</div>
+      <div class="pitfall-fix"><strong>徵兆：</strong>學員只看「文字漂不漂亮」，沒回頭比對原稿數字。<strong>原因：</strong>學員普遍「不敢相信自己的成績」，AI 給更高數字心理上反而舒服。<strong>解法：</strong>強制「比對原稿 3 個數字」——拿出 CH2-1 紙本，圈出 STAR 的 3 個數字，逐一對照 AI 輸出。Prompt 已寫死「量化數字不可超過原本數值」，但 ChatGPT 仍有 30% 機率違反，人工複核是最後防線。</div>
+    </li>
+  </ul>
+</section>
+
+<hr class="section-rule">
+
+<!-- ======= SECTION 09 檢核題 ======= -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(09)</div>
+  <h2 class="section-heading">檢核題：<em>兩兩配對 + 2 道測驗</em></h2>
+
+  <p class="body-text" style="margin-bottom:20px">跟旁邊的人交換履歷卡，只看對方的「改回最終版」，回答 2 個問題：像不像他本人在說話？HR 看 30 秒能不能抓到 ≥ 1 個具體數字？如果對方說「不像你說話」或「找不到數字」，回去再改。</p>
+
+  <div class="quiz-item">
+    <div class="quiz-q">Q1（概念驗證）：以下哪句最可能是 ChatGPT 潤稿「過頭」後的結果，HR 看了會皺眉？</div>
+    <ul class="quiz-opts">
+      <li class="quiz-opt">A. 「我帶 8 人團隊在 6 個月內把良率從 78% 拉到 93%」</li>
+      <li class="quiz-opt">B. 「主導建立 12 項 SOP、節省返工成本 NT$ 480 萬/年」</li>
+      <li class="quiz-opt correct">C. 「透過卓越的領導力賦能跨部門協同，實現品質的指數型躍升」</li>
+      <li class="quiz-opt">D. 「我接手 QA 部門，6 個月內把客訴下降 60%」</li>
+    </ul>
+    <details>
+      <summary style="font-size:.82rem;color:var(--c-muted);cursor:pointer;padding:4px 0;list-style:none">▸ 看解析</summary>
+      <div class="quiz-ans">C 同時犯了過頭 1（誇大「指數型躍升」）+ 過頭 2（套話「卓越 / 賦能 / 協同」）+ 過頭 3（公文體「透過...實現」失去個人語氣），是典型 AI 廢話。A / B / D 都是含具體數字的口語句，符合進階履歷標準。</div>
+    </details>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q">Q2（應用驗證）：你把這段 STAR 丟給 ChatGPT 潤稿：「我接手公司客服中心 5 年、帶 12 人團隊、把客訴回應時間從 48 小時縮短到 8 小時、客戶滿意度從 72 分提升到 91 分」。ChatGPT 回給你：「於前職擔任客服中心主管期間，主導重大服務變革，透過卓越的領導力賦能 12 人精英團隊，全面優化客訴處理流程，達成客戶滿意度的飛躍式成長至 95 分。」請說出 3 個你會用「改回 3 招」處理的點，以及最終你會留下的版本。</div>
+    <details>
+      <summary style="font-size:.82rem;color:var(--c-muted);cursor:pointer;padding:4px 0;list-style:none">▸ 看預期答案</summary>
+      <div class="quiz-ans">
+        <p style="margin-bottom:10px"><strong>招 1（刪誇大）：</strong>原本滿意度 72→91 共 19 分，被 AI 改成「飛躍式成長至 95 分」——「95」是 AI 編造的。刪掉 95 換回 91、刪掉「飛躍式」。</p>
+        <p style="margin-bottom:10px"><strong>招 2（換口語）：</strong>「於前職擔任…期間」改「我接手」；「精英團隊」改「12 人團隊」；「主導重大服務變革」改「重新設計客訴流程」（直接動詞）。</p>
+        <p style="margin-bottom:10px"><strong>招 3（加細節）：</strong>AI 把「48 小時→8 小時」這個具體量化拿掉，加回來。可加 1 個 CH2-1 沒寫進去的細節（例如「導入工單系統」）。</p>
+        <p><strong>最終版範例：</strong>「我接手客服中心 5 年帶 12 人團隊，重新設計客訴流程、導入工單系統，客訴回應時間從 48 小時縮短到 8 小時、客戶滿意度從 72 分提升到 91 分。」最終版字數比 AI 過頭版短，幾乎等於原稿——這就對了。</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="reflection-block">
+    <div class="reflection-label">1 分鐘反思</div>
+    <div class="reflection-prompt">請你寫下：這 25 分鐘對你最有用的 1 件事。等下 CH2-3 會用同一套方法——fill-form + 過頭識別 + 改回——教你寫面試答法稿，你學一次，用兩次。</div>
+  </div>
+</section>
+
+<div class="nav-footer">
+  <a href="CH2-1.html" class="nav-btn"><span aria-hidden="true">←</span> CH2-1 履歷 STAR + 斷捨離</a>
+  <a href="CH2-3.html" class="nav-btn primary">CH2-3 面試 5 大問題 <span aria-hidden="true">→</span></a>
+</div>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">2026 春季</span>
+  <span class="footer-meta" data-platform-version="2026-Q2（ChatGPT 免費版 / fill-form 一鍵組合 prompt / 過頭 3 範例 + 改回 3 招 / 主角 A 製造業 QA 主管帶 8 人團隊建立 SOP 為主示範 · 目標職位主攻版：製造業數位轉型 PM / 外跳版：新創 PM）" data-built-at="2026-05-11">本頁以 2026-Q2 製作，2026-05</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+</script>
+<script>
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+<script>
+function buildAndCopy(){
+  var pos=document.getElementById('ff-position').value.trim();
+  var style=document.getElementById('ff-style').value.trim();
+  var star=document.getElementById('ff-star').value.trim();
+  if(!pos)pos='（填入目標職位）';
+  if(!style)style='（填入個人風格偏好）';
+  if(!star)star='（填入你的 STAR 段落）';
+  var prompt='我要把這段 STAR 經歷改寫得更精煉，目標職位是'+pos+'。\n請保留「'+style+'」的個人風格，禁止使用「卓越 / 賦能 / 協同 / 變革」等套話，量化數字不可超過原本數值。範例：\n'+star;
+  document.getElementById('ff-preview').value=prompt;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(prompt).then(function(){showConfirm();}).catch(function(){fallbackCopy(prompt);});
+  } else {
+    fallbackCopy(prompt);
+  }
+}
+function fallbackCopy(text){
+  var ta=document.getElementById('ff-preview');
+  ta.select();
+  try{document.execCommand('copy');showConfirm();}catch(e){}
+}
+function showConfirm(){
+  var c=document.getElementById('copy-confirm');
+  c.classList.add('show');
+  setTimeout(function(){c.classList.remove('show');},2500);
+}
+</script>
+</body>
+</html>
