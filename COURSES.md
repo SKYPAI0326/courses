@@ -32,7 +32,8 @@
     ├── office-ai/
     ├── prompt-basic/
     ├── simple-ai/
-    └── line-stickers/
+    ├── line-stickers/
+    └── career-pivot-mid/
 ```
 
 ## 命名規範
@@ -69,6 +70,7 @@
 | `simple-ai/` | 創業數位化 × 創業懂行銷（3h） | 完成 | 2 Modules + 扁平 CH，含 prompt-library.html；主色鼠尾草綠 |
 | `ipas-ai-beginner/` | iPAS AI 應用規劃師初級認證研習（30h） | 建置中 | chapter-flat 10 章，0 基礎友善，certprep Editorial-strict；主色陶土橘；待 course-register |
 | `line-stickers/` | AI 自製 LINE 貼圖（12h 兩階段） | 完成 | Part 1 入門 4h（6 CH）+ Part 2 進階 8h（8 CH），自用導向、全免費工具、含 fill-form 互動表單 + 24 張可列印 handout + 17 張 Codex 角色基準圖；主色陶土橘 |
+| `career-pivot-mid/` | 8 小時轉職實戰：市場趨勢 × 就業準備 × 轉職技巧（8h 一日密集）| 完成 | 13 CH（Part 1 盤點 6 + Part 2 實戰 7）+ 2 PRAC + PDP×MBTI 雙測獨立頁，含「年紀沒有幫助」核心心法；主色霧紫 |
 
 > 上述「狀態」「主色」可能未即時反映實況。「結構描述」一律以 `ls courses/<slug>/` 為準。
 
