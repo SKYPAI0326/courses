@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>客戶意見分類板 · PRAC 3-2｜生成式AI職訓實務應用班</title>
-<meta name="description" content="把一批非結構化的回饋文字，用 AI 自動分主題與情緒，輸出可分析的結構化資料。">
+<meta name="description" content="貼原始回饋 → 產分類 Prompt → 把 AI 結果貼回解析 → 抽樣複核 → 匯出 CSV 與分類報告。本頁不呼叫 AI，學員自己跑整條工作流。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
 <meta property="og:title" content="客戶意見分類板 · PRAC 3-2｜生成式AI職訓實務應用班">
-<meta property="og:description" content="把一批非結構化的回饋文字，用 AI 自動分主題與情緒，輸出可分析的結構化資料。">
+<meta property="og:description" content="貼原始回饋 → 產分類 Prompt → 把 AI 結果貼回解析 → 抽樣複核 → 匯出 CSV 與分類報告。本頁不呼叫 AI，學員自己跑整條工作流。">
 <meta property="og:url" content="https://skypai0326.github.io/courses/courses/gen-ai-140h/part3/PRAC3-2.html">
 <meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="客戶意見分類板 · PRAC 3-2｜生成式AI職訓實務應用班">
-<meta name="twitter:description" content="把一批非結構化的回饋文字，用 AI 自動分主題與情緒，輸出可分析的結構化資料。">
+<meta name="twitter:description" content="貼原始回饋 → 產分類 Prompt → 把 AI 結果貼回解析 → 抽樣複核 → 匯出 CSV 與分類報告。本頁不呼叫 AI，學員自己跑整條工作流。">
 <meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <link rel="canonical" href="https://skypai0326.github.io/courses/courses/gen-ai-140h/part3/PRAC3-2.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -193,6 +193,50 @@ details.prac-sample:not([open]) > summary.ps-head{margin-bottom:0}
 .quiz-explain{margin-top:10px;margin-left:30px;padding:10px 14px;background:rgba(90,122,90,.06);border-left:2px solid var(--c-a3);border-radius:var(--radius-sm);font-size:.8rem;line-height:1.75;color:var(--c-text);display:none}
 .quiz-item.answered .quiz-explain{display:block}
 
+/* ── 工作台 v2（PRAC3-2 升級為真 AI 整合動線） ── */
+.ai-notice{display:flex;gap:12px;padding:14px 18px;background:rgba(201,150,58,.08);border:1px solid rgba(201,150,58,.3);border-left:3px solid var(--c-a2);border-radius:var(--radius-sm);font-size:.85rem;line-height:1.75;color:var(--c-text);margin-bottom:24px}
+.ai-notice strong{font-weight:700}
+.step-section{padding:24px 0;border-top:1px dashed var(--c-border)}
+.step-section:first-of-type{border-top:none;padding-top:0}
+.step-section-label{font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-a1);letter-spacing:1.5px;font-weight:600;margin-bottom:14px;text-transform:uppercase}
+.cat-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cat-fields .field-group{margin-bottom:0}
+.btn-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
+.btn-row .hint{font-size:.78rem;color:var(--c-muted);line-height:1.6}
+.btn-secondary{font-size:.8rem;padding:8px 16px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius-sm);color:var(--c-text);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:border-color .15s,color .15s}
+.btn-secondary:hover{border-color:var(--c-a1);color:var(--c-a1)}
+.btn-primary{font-size:.85rem;padding:9px 18px;background:var(--c-a1);border:1px solid var(--c-a1);border-radius:var(--radius-sm);color:#fff;cursor:pointer;font-family:'Noto Sans TC',sans-serif;font-weight:500;transition:opacity .2s}
+.btn-primary:hover{opacity:.88}
+.feedback-listing{margin-top:10px;padding:12px 14px;background:var(--c-bg);border:1px solid var(--c-border);border-radius:var(--radius-sm);font-size:.78rem;line-height:1.85;color:var(--c-text);max-height:200px;overflow-y:auto}
+.feedback-listing .fl-item{display:flex;gap:10px;padding:3px 0}
+.feedback-listing .fl-id{color:var(--c-a1);font-family:'Courier New',monospace;flex-shrink:0;font-weight:600}
+.prompt-box{margin-top:10px;padding:14px 16px;background:var(--c-bg);border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:'Courier New',monospace;font-size:.78rem;line-height:1.75;color:var(--c-text);white-space:pre-wrap;max-height:260px;overflow-y:auto}
+.classified-table{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:12px}
+.classified-table th{background:var(--c-surface);padding:8px 10px;text-align:left;font-weight:600;color:var(--c-text);border-bottom:1px solid var(--c-border);font-size:.72rem;letter-spacing:.5px}
+.classified-table td{padding:8px 10px;border-bottom:1px solid var(--c-border);vertical-align:top}
+.classified-table td input,.classified-table td select{width:100%;padding:4px 6px;border:1px solid transparent;border-radius:3px;font-family:inherit;font-size:.78rem;color:var(--c-text);background:transparent}
+.classified-table td input:focus,.classified-table td select:focus{outline:none;border-color:var(--c-a1);background:#fff}
+.classified-table td input:hover,.classified-table td select:hover{background:var(--c-surface)}
+.classified-table tr.review-target{background:rgba(107,127,163,.06)}
+.classified-table tr.reviewed{background:rgba(90,122,90,.04)}
+.classified-table tr.miss{background:rgba(181,112,58,.05)}
+.badge-pos{display:inline-block;padding:2px 8px;border-radius:99px;background:rgba(90,122,90,.12);color:#5a7a5a;font-size:.7rem}
+.badge-neg{display:inline-block;padding:2px 8px;border-radius:99px;background:rgba(181,112,58,.12);color:#b5703a;font-size:.7rem}
+.badge-neu{display:inline-block;padding:2px 8px;border-radius:99px;background:rgba(122,118,109,.12);color:var(--c-muted);font-size:.7rem}
+.review-area{margin-top:12px;padding:14px 16px;background:rgba(107,127,163,.04);border:1px solid rgba(107,127,163,.2);border-radius:var(--radius-sm)}
+.review-area-label{font-size:.73rem;color:var(--c-a1);letter-spacing:1px;font-weight:600;margin-bottom:10px;text-transform:uppercase}
+.review-item{padding:10px 0;border-bottom:1px dashed var(--c-border)}
+.review-item:last-child{border-bottom:none}
+.review-item .ri-feedback{font-size:.82rem;color:var(--c-text);margin-bottom:6px;line-height:1.7}
+.review-item .ri-status{font-size:.76rem;color:var(--c-muted);line-height:1.7}
+.review-item textarea{width:100%;padding:6px 8px;border:1px solid var(--c-border);border-radius:3px;font-family:inherit;font-size:.78rem;color:var(--c-text);background:var(--c-card);resize:vertical;min-height:42px;margin-top:6px}
+.report-area{margin-top:14px;padding:18px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius-sm);font-size:.85rem;line-height:1.85;color:var(--c-text)}
+.report-area h4{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:8px;margin-top:14px}
+.report-area h4:first-child{margin-top:0}
+.report-area ul{padding-left:20px;margin:6px 0}
+.report-area li{margin-bottom:3px;font-size:.82rem}
+@media(max-width:768px){.cat-fields{grid-template-columns:1fr}}
+
 /* a11y: focus-visible ring */
 a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
 .skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 16px}.table-scroll>table{min-width:100%}</style>
@@ -241,11 +285,11 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <div class="hero-num-self">課堂 2.5h · 自學 2h</div>
   </div>
   <h1 class="prac-title">客戶意見分類板</h1>
-  <p class="prac-desc">把一批非結構化的回饋文字，用 AI 自動分主題與情緒，輸出可分析的結構化資料。</p>
+  <p class="prac-desc">貼原始回饋 → 產分類 Prompt → 把 AI 結果貼回解析 → 抽樣複核 → 匯出 CSV 與分類報告。本頁不呼叫 AI，學員自己跑整條工作流。</p>
   <div class="mission-box">
     <div>
       <div class="mission-label">任務步驟</div>
-      <div class="mission-val">4 個步驟</div>
+      <div class="mission-val">5 個步驟</div>
     </div>
     <div class="mission-divider"></div>
     <div>
@@ -263,35 +307,42 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div class="prac-body">
 
   <div class="section-eyebrow">STEPS · 任務步驟</div>
-  <h2 class="section-heading">依序完成這四個步驟</h2>
+  <h2 class="section-heading">依序完成這五個步驟（真實 AI 整合動線）</h2>
 
   <div class="steps-list">
     <div class="step-item">
       <div class="step-num-col"><div class="step-num">1</div></div>
       <div class="step-body">
-        <div class="step-title">準備回饋樣本</div>
-        <div class="step-hint">收集 10-20 筆客戶回饋、學員意見或問卷文字答案。可以使用下方工具預設的範例資料，或替換成你自己的真實回饋。</div>
+        <div class="step-title">貼原始回饋</div>
+        <div class="step-hint">每行一筆貼到下方工具，工具會自動編號。可用預設範例或替換成你自己的真實回饋（客服 Email、Google 評論、問卷文字答案）。</div>
       </div>
     </div>
     <div class="step-item">
       <div class="step-num-col"><div class="step-num">2</div></div>
       <div class="step-body">
-        <div class="step-title">定義分類規則</div>
-        <div class="step-hint">確定你需要哪些標籤（主題 × 情緒），設計分類標準。主題標籤決定「這則回饋關於什麼」，情緒標籤決定「說話者的感受是正面、負面還是中立」。</div>
+        <div class="step-title">設定分類欄位</div>
+        <div class="step-hint">主題、情緒、優先級、是否跟進——每個欄位的標籤都自己決定，工具用你的設定產 Prompt。標籤要明確可區分，避免 AI 自行詮釋。</div>
       </div>
     </div>
     <div class="step-item">
       <div class="step-num-col"><div class="step-num">3</div></div>
       <div class="step-body">
-        <div class="step-title">設計分類 Prompt</div>
-        <div class="step-hint">告訴 AI 分類規則，要求輸出結構化格式。關鍵是在 Prompt 裡明確定義每個標籤的意義，避免 AI 自行詮釋。</div>
+        <div class="step-title">產生 Prompt 給外部 AI</div>
+        <div class="step-hint">按「產生 Prompt」按鈕，工具自動把分類規則 + 原始回饋組合成完整 Prompt。複製到 ChatGPT / Gemini / Claude 跑。</div>
       </div>
     </div>
     <div class="step-item">
       <div class="step-num-col"><div class="step-num">4</div></div>
       <div class="step-body">
-        <div class="step-title">驗收標籤品質</div>
-        <div class="step-hint">抽樣確認 AI 的分類是否符合你的意圖。重點不是 AI 對不對，而是標籤是否符合你的業務邏輯和分析需求。</div>
+        <div class="step-title">把 AI 結果貼回工具解析</div>
+        <div class="step-hint">外部 AI 會回應 CSV 格式分類結果，貼回工具自動解析成可編輯表格，每格都可逐一修正。本頁不直接呼叫 AI——這條動線就是真實職場「AI 是助手、人是決策者」的工作模式。</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num-col"><div class="step-num">5</div></div>
+      <div class="step-body">
+        <div class="step-title">抽樣複核 + 匯出</div>
+        <div class="step-hint">隨機抽 3-5 筆比對 AI 分類與你的判斷，記錄需修正的標籤與要調整的 Prompt 規則。最後匯出 CSV 與分類報告（主題分布 / 情緒比例 / 優先級統計）。</div>
       </div>
     </div>
   </div>
@@ -299,31 +350,27 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <hr class="section-rule">
 
   <div class="section-eyebrow">TOOL · 互動工具</div>
-  <h2 class="section-heading">回饋分類模擬器</h2>
+  <h2 class="section-heading">客戶意見分類工作台 · 真 AI 整合動線</h2>
 
   <div class="tool-wrap">
     <div class="tool-topbar">
       <div class="tool-dot tool-dot-r"></div>
       <div class="tool-dot tool-dot-y"></div>
       <div class="tool-dot tool-dot-g"></div>
-      <div class="tool-title">回饋分類模擬器</div>
+      <div class="tool-title">客戶意見分類工作台</div>
     </div>
     <div class="tool-body">
 
-      <div class="field-row">
-        <div class="field-group" style="margin-bottom:0;">
-          <div class="field-label">主題標籤設定（用逗號分隔）</div>
-          <input class="field-input" id="topic-labels" type="text" value="服務品質, 費用, 環境, 其他">
-        </div>
-        <div class="field-group" style="margin-bottom:0;">
-          <div class="field-label">情緒標籤設定（用逗號分隔）</div>
-          <input class="field-input" id="sentiment-labels" type="text" value="正面, 負面, 中立">
-        </div>
+      <div class="ai-notice">
+        <span aria-hidden="true">⚠</span>
+        <div><strong>本頁不直接呼叫 AI。</strong>你會用 步驟3 產生的 Prompt 去 ChatGPT / Gemini 跑分類，再把 AI 回應的 CSV 貼回 步驟4 解析。下方規則模擬器只是 demo fallback，給沒帳號的學員體驗流程用——它不是真 AI。</div>
       </div>
 
-      <div class="field-group" style="margin-top:20px;">
-        <div class="field-label">回饋輸入區（每行一筆）</div>
-        <textarea class="field-textarea" id="feedback-input">服務人員非常親切，問問題都有耐心回答，很滿意這次的體驗
+      <div class="step-section">
+        <div class="step-section-label">步驟1 · 貼原始回饋</div>
+        <div class="field-group">
+          <div class="field-label">每行一筆（預設 10 筆，可替換為你的真實資料）</div>
+          <textarea class="field-textarea" id="feedback-input">服務人員非常親切，問問題都有耐心回答，很滿意這次的體驗
 這個費用真的太貴了，跟其他家比起來差太多，不太划算
 環境很乾淨整潔，空間也夠大，停車場也方便
 等待時間有點長，大概等了快一個小時才輪到我
@@ -333,19 +380,82 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 工作人員態度不太好，感覺很不耐煩
 費用說明不清楚，結帳時才發現有額外費用
 今天的服務很棒，讓我感覺受到很好的對待</textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn-secondary" onclick="parseFeedback()">解析原文 → 編號列表</button>
+          <span class="hint">編號後才能進行後續步驟</span>
+        </div>
+        <div class="feedback-listing" id="feedback-listing" style="display:none"></div>
       </div>
 
-      <button class="gen-btn" onclick="classifyFeedback()">開始分類（模擬）</button>
-
-      <div class="result-table-wrap" id="result-table-wrap">
-        <div class="result-header">
-          <div class="result-label">分類結果</div>
-          <button class="copy-btn" onclick="copyCSV()">複製成 CSV</button>
+      <div class="step-section">
+        <div class="step-section-label">步驟2 · 設定分類欄位</div>
+        <div class="cat-fields">
+          <div class="field-group" style="margin-bottom:0">
+            <div class="field-label">主題標籤（逗號分隔）</div>
+            <input class="field-input" id="topic-labels" type="text" value="服務品質, 費用, 環境, 等待時間, 其他">
+          </div>
+          <div class="field-group" style="margin-bottom:0">
+            <div class="field-label">情緒（逗號分隔）</div>
+            <input class="field-input" id="sentiment-labels" type="text" value="正面, 負面, 中立">
+          </div>
+          <div class="field-group" style="margin-bottom:0">
+            <div class="field-label">優先級（逗號分隔）</div>
+            <input class="field-input" id="priority-labels" type="text" value="當日回覆, 本週處理, 定期檢討">
+          </div>
+          <div class="field-group" style="margin-bottom:0">
+            <div class="field-label">是否需跟進</div>
+            <input class="field-input" id="followup-labels" type="text" value="是, 否">
+          </div>
         </div>
-        <div class="table-scroll"><table class="result-table" id="result-table">
-          <thead><tr><th>回饋原文</th><th>主題</th><th>情緒</th><th>摘要</th></tr></thead>
-          <tbody id="result-tbody"></tbody>
-        </table></div>
+      </div>
+
+      <div class="step-section">
+        <div class="step-section-label">步驟3 · 產生 Prompt 給外部 AI</div>
+        <div class="btn-row">
+          <button class="btn-primary" onclick="generatePrompt()">產生分類 Prompt</button>
+          <button class="btn-secondary" onclick="copyPrompt()" id="copy-prompt-btn" style="display:none">複製 Prompt</button>
+          <span class="hint">→ 開啟 ChatGPT / Gemini / Claude，貼上 Prompt 送出</span>
+        </div>
+        <div class="prompt-box" id="prompt-output" style="display:none"></div>
+      </div>
+
+      <div class="step-section">
+        <div class="step-section-label">步驟4 · 把 AI 回應的 CSV 貼回來</div>
+        <div class="field-group">
+          <div class="field-label">貼上 AI 產生的 CSV（標頭：id, topic, sentiment, priority, follow_up, summary）</div>
+          <textarea class="field-textarea" id="ai-csv-input" placeholder="id,topic,sentiment,priority,follow_up,summary&#10;1,服務品質,正面,定期檢討,否,服務人員親切耐心&#10;2,費用,負面,本週處理,是,費用過高無競爭力"></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn-primary" onclick="parseAiCsv()">解析 CSV → 表格</button>
+          <button class="btn-secondary" onclick="useRuleFallback()">或：用規則模擬器跑（demo fallback）</button>
+          <span class="hint">解析後可逐格修正</span>
+        </div>
+        <div class="table-scroll" id="result-table-wrap" style="display:none">
+          <table class="classified-table" id="classified-table">
+            <thead><tr><th style="width:36px">ID</th><th style="width:26%">回饋原文</th><th>主題</th><th>情緒</th><th>優先級</th><th>跟進</th><th>摘要</th></tr></thead>
+            <tbody id="classified-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="step-section">
+        <div class="step-section-label">步驟5 · 抽樣複核 + 匯出</div>
+        <div class="btn-row">
+          <select id="sample-size" class="field-input" style="width:auto;padding:7px 12px;font-size:.82rem">
+            <option value="3">抽 3 筆複核</option>
+            <option value="5" selected>抽 5 筆複核</option>
+            <option value="all">全部複核</option>
+          </select>
+          <button class="btn-secondary" onclick="sampleReview()">隨機抽樣</button>
+          <button class="btn-primary" onclick="downloadCsv()">下載 classified_feedback.csv</button>
+          <button class="btn-secondary" onclick="showReport()">產分類報告</button>
+        </div>
+        <div class="review-area" id="review-area" style="display:none">
+          <div class="review-area-label">複核中 · 對照 AI 分類與你的判斷</div>
+          <div id="review-list"></div>
+        </div>
+        <div class="report-area" id="report-area" style="display:none"></div>
       </div>
 
     </div>
@@ -367,23 +477,23 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="challenge-list">
       <div class="challenge-item" id="ci-1">
         <input type="checkbox" id="c1" onchange="updateChallenge()">
-        <label for="c1">完成自己的分類規則設計（至少 3 個主題、2 種情緒）</label>
+        <label for="c1">完成自己的分類欄位設計（至少 3 主題 / 3 情緒 / 3 優先級）</label>
       </div>
       <div class="challenge-item" id="ci-2">
         <input type="checkbox" id="c2" onchange="updateChallenge()">
-        <label for="c2">用工具或真實 AI 完成 10 筆以上的回饋分類</label>
+        <label for="c2">按「產生 Prompt」複製到 ChatGPT / Gemini 跑真分類，至少 10 筆</label>
       </div>
       <div class="challenge-item" id="ci-3">
         <input type="checkbox" id="c3" onchange="updateChallenge()">
-        <label for="c3">輸出格式包含主題標籤、情緒標籤、摘要三個欄位</label>
+        <label for="c3">把 AI 回應 CSV 貼回工具，成功解析為表格</label>
       </div>
       <div class="challenge-item" id="ci-4">
         <input type="checkbox" id="c4" onchange="updateChallenge()">
-        <label for="c4">隨機抽 3 筆確認分類符合你的標準</label>
+        <label for="c4">隨機抽 3 筆複核，至少 1 筆修正分類或補 review_note</label>
       </div>
       <div class="challenge-item" id="ci-5">
         <input type="checkbox" id="c5" onchange="updateChallenge()">
-        <label for="c5">寫下分類標準說明（讓別人能用同一標準分類）</label>
+        <label for="c5">下載 classified_feedback.csv 並查看分類報告</label>
       </div>
     </div>
   </div>
@@ -1208,7 +1318,7 @@ biz_collab 2（D01, D12）／kol_request 2（D09, D10）／complaint 3（D03, D0
   </a>
 </nav>
 
-<footer class="footer" data-platform-version="2026-04-v3">
+<footer class="footer" data-platform-version="2026-05-v4" data-built-at="2026-05-12">
   <div class="footer-logo">弄一下工作室</div>
   <div class="footer-note">生成式AI職訓實務應用班 · Part 3</div>
 </footer>
@@ -1219,64 +1329,265 @@ window.addEventListener('scroll', () => {
   if (total > 0) document.getElementById('prog').style.width = (window.scrollY / total * 100) + '%';
 });
 
-function classifyFeedback() {
-  const topicsRaw = document.getElementById('topic-labels').value;
-  const sentimentsRaw = document.getElementById('sentiment-labels').value;
-  const feedbackRaw = document.getElementById('feedback-input').value;
-  const topics = topicsRaw.split(',').map(t => t.trim()).filter(Boolean);
-  const sentiments = sentimentsRaw.split(',').map(s => s.trim()).filter(Boolean);
-  const lines = feedbackRaw.split('\n').map(l => l.trim()).filter(Boolean);
-  if (lines.length === 0) { alert('請輸入至少一筆回饋。'); return; }
+// ───── PRAC3-2 v2 · 客戶意見分類工作台 ─────
+const LS_KEY = 'prac3-2:state';
+let feedbackData = [];
+let reviewIndexes = [];
 
-  const topicKeywords = {'服務品質':['服務','人員','態度','親切','耐心','專業','不耐煩'],'費用':['費用','價格','貴','便宜','划算','收費','結帳','額外','合理'],'環境':['環境','空間','乾淨','整潔','停車','廁所','座位']};
-  const posKw = ['好','棒','滿意','親切','耐心','乾淨','整潔','合理','推薦','不錯','方便','很棒','很好'];
-  const negKw = ['差','貴','不好','不耐煩','太長','不清楚','不舒服','不滿','問題','爛'];
+function saveState(){ try { localStorage.setItem(LS_KEY, JSON.stringify({feedbackData})); } catch(e){} }
+function loadState(){
+  try { const s = localStorage.getItem(LS_KEY); if (s){ const o = JSON.parse(s); if (Array.isArray(o.feedbackData)) feedbackData = o.feedbackData; } } catch(e){}
+}
+loadState();
 
-  function detectTopic(text) {
-    for (const t of topics) { const kws = topicKeywords[t] || []; if (kws.some(k => text.includes(k))) return t; }
-    return topics[topics.length - 1] || '其他';
-  }
-  function detectSentiment(text) {
-    const p = posKw.filter(k => text.includes(k)).length;
-    const n = negKw.filter(k => text.includes(k)).length;
-    if (p > n && sentiments.includes('正面')) return '正面';
-    if (n > p && sentiments.includes('負面')) return '負面';
-    return sentiments.find(s => s === '中立') || sentiments[sentiments.length - 1] || '中立';
-  }
-  function summarize(text) { return text.length <= 18 ? text : text.substring(0, 18) + '…'; }
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function csvEscape(s){ const v = String(s||''); return v.includes(',')||v.includes('"')||v.includes('\n') ? '"' + v.replace(/"/g,'""') + '"' : v; }
 
-  const tbody = document.getElementById('result-tbody');
-  tbody.innerHTML = '';
-  window._classifiedData = [];
-  lines.forEach(line => {
-    const topic = detectTopic(line);
-    const sentiment = detectSentiment(line);
-    const summary = summarize(line);
-    const sentClass = sentiment === '正面' ? 'badge-pos' : (sentiment === '負面' ? 'badge-neg' : 'badge-neu');
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td style="max-width:260px;">${line}</td><td>${topic}</td><td><span class="badge ${sentClass}">${sentiment}</span></td><td style="color:var(--c-muted);">${summary}</td>`;
-    tbody.appendChild(tr);
-    window._classifiedData.push({feedback:line, topic, sentiment, summary});
-  });
-  document.getElementById('result-table-wrap').style.display = 'block';
+function parseFeedback(){
+  const raw = document.getElementById('feedback-input').value;
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  if (lines.length === 0){ alert('請輸入至少一筆回饋'); return; }
+  feedbackData = lines.map((line, i) => ({
+    id: i + 1, source: '', feedback: line,
+    topic: '', sentiment: '', priority: '', follow_up: '', summary: '',
+    review_status: '未複核', review_note: ''
+  }));
+  reviewIndexes = [];
+  saveState();
+  renderFeedbackListing();
+  renderTable();
+  document.getElementById('review-area').style.display = 'none';
+  document.getElementById('report-area').style.display = 'none';
 }
 
-function copyCSV() {
-  if (!window._classifiedData) return;
-  let csv = '回饋原文,主題,情緒,摘要\n';
-  window._classifiedData.forEach(row => { csv += `"${row.feedback}","${row.topic}","${row.sentiment}","${row.summary}"\n`; });
-  navigator.clipboard.writeText(csv).then(() => {
-    const btn = event.target; btn.textContent = '已複製！';
-    setTimeout(() => btn.textContent = '複製成 CSV', 1800);
+function renderFeedbackListing(){
+  const listing = document.getElementById('feedback-listing');
+  if (feedbackData.length === 0){ listing.style.display = 'none'; return; }
+  listing.style.display = '';
+  listing.innerHTML = feedbackData.map(p =>
+    `<div class="fl-item"><span class="fl-id">#${p.id}</span><span>${escapeHtml(p.feedback)}</span></div>`
+  ).join('');
+}
+
+function getCats(){
+  return {
+    topics: document.getElementById('topic-labels').value.split(',').map(s=>s.trim()).filter(Boolean),
+    sentiments: document.getElementById('sentiment-labels').value.split(',').map(s=>s.trim()).filter(Boolean),
+    priorities: document.getElementById('priority-labels').value.split(',').map(s=>s.trim()).filter(Boolean),
+    followups: document.getElementById('followup-labels').value.split(',').map(s=>s.trim()).filter(Boolean)
+  };
+}
+
+function generatePrompt(){
+  if (feedbackData.length === 0){ alert('請先在 步驟1 解析原文'); return; }
+  const c = getCats();
+  const feedbackList = feedbackData.map(p => `${p.id}. ${p.feedback}`).join('\n');
+  const prompt = `你是客戶意見分類分析師。請依下方分類欄位，把每筆回饋分類，並輸出 CSV 格式。\n\n【分類欄位】\n- topic 主題：${c.topics.join(' / ')}\n- sentiment 情緒：${c.sentiments.join(' / ')}\n- priority 優先級：${c.priorities.join(' / ')}\n- follow_up 是否需跟進：${c.followups.join(' / ')}\n\n【輸出格式】\n請輸出 CSV，標頭：id,topic,sentiment,priority,follow_up,summary\n- summary 是 18 字以內的事實摘要，不加形容詞\n- 每筆只能選一個 topic / sentiment / priority / follow_up\n- 不要加 markdown 程式碼框，純 CSV 文字\n\n【回饋資料（${feedbackData.length} 筆）】\n${feedbackList}\n\n請開始分類，直接輸出 CSV。`;
+  const out = document.getElementById('prompt-output');
+  out.style.display = '';
+  out.textContent = prompt;
+  document.getElementById('copy-prompt-btn').style.display = '';
+}
+
+function copyPrompt(){
+  const text = document.getElementById('prompt-output').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copy-prompt-btn');
+    btn.textContent = '已複製！';
+    setTimeout(() => btn.textContent = '複製 Prompt', 1800);
   });
+}
+
+function parseCsvLine(line){
+  const result = []; let cur = ''; let inQuote = false;
+  for (let i = 0; i < line.length; i++){
+    const ch = line[i];
+    if (ch === '"' && line[i+1] === '"' && inQuote){ cur += '"'; i++; continue; }
+    if (ch === '"'){ inQuote = !inQuote; continue; }
+    if (ch === ',' && !inQuote){ result.push(cur); cur = ''; continue; }
+    cur += ch;
+  }
+  result.push(cur);
+  return result;
+}
+
+function parseAiCsv(){
+  const csv = document.getElementById('ai-csv-input').value.trim();
+  if (!csv){ alert('請貼上 AI 產生的 CSV'); return; }
+  if (feedbackData.length === 0){ alert('請先在 步驟1 解析原文'); return; }
+  const lines = csv.split('\n').map(l => l.trim()).filter(Boolean);
+  const header = parseCsvLine(lines[0]).map(s => s.trim().toLowerCase());
+  const hasHeader = header.some(h => h === 'id' || h === 'topic' || h === 'sentiment');
+  const dataLines = hasHeader ? lines.slice(1) : lines;
+  let parsed = 0;
+  dataLines.forEach(line => {
+    const cols = parseCsvLine(line).map(s => s.trim());
+    const id = parseInt(cols[0]);
+    if (!id) return;
+    const row = feedbackData.find(p => p.id === id);
+    if (!row) return;
+    row.topic = cols[1] || row.topic;
+    row.sentiment = cols[2] || row.sentiment;
+    row.priority = cols[3] || row.priority;
+    row.follow_up = cols[4] || row.follow_up;
+    row.summary = cols[5] || row.summary;
+    parsed++;
+  });
+  saveState();
+  renderTable();
+  if (parsed === 0){
+    alert('解析失敗：CSV 格式可能不正確。請確認標頭為「id,topic,sentiment,priority,follow_up,summary」且資料列以 id 開頭。');
+  } else if (parsed < feedbackData.length){
+    alert('已解析 ' + parsed + '/' + feedbackData.length + ' 筆。其他筆未匹配到對應 id，可在表格中手動填寫。');
+  }
+}
+
+function ruleBasedClassify(text){
+  const topicKw = {'服務品質':['服務','人員','態度','親切','耐心','專業','不耐煩'],'費用':['費用','價格','貴','便宜','划算','收費','結帳','額外','合理'],'環境':['環境','空間','乾淨','整潔','停車','廁所','座位'],'等待時間':['等','等待','排隊','輪到','一小時','久','慢']};
+  const posKw = ['好','棒','滿意','親切','耐心','乾淨','整潔','合理','推薦','不錯','方便','很棒','很好'];
+  const negKw = ['差','貴','不好','不耐煩','太長','不清楚','不舒服','不滿','問題','爛'];
+  const cats = getCats();
+  let topic = cats.topics[cats.topics.length - 1] || '其他';
+  for (const t of cats.topics){ const kws = topicKw[t] || []; if (kws.some(k => text.includes(k))){ topic = t; break; } }
+  const p = posKw.filter(k => text.includes(k)).length;
+  const n = negKw.filter(k => text.includes(k)).length;
+  let sentiment = cats.sentiments.find(s => s.includes('中')) || cats.sentiments[cats.sentiments.length - 1] || '中立';
+  if (p > n) sentiment = cats.sentiments.find(s => s.includes('正')) || sentiment;
+  else if (n > p) sentiment = cats.sentiments.find(s => s.includes('負')) || sentiment;
+  const priority = sentiment.includes('負') ? (cats.priorities[0] || '當日回覆') : (cats.priorities[cats.priorities.length - 1] || '定期檢討');
+  const follow_up = sentiment.includes('負') ? (cats.followups[0] || '是') : (cats.followups[cats.followups.length - 1] || '否');
+  const summary = text.length <= 18 ? text : text.substring(0, 18) + '…';
+  return {topic, sentiment, priority, follow_up, summary};
+}
+
+function useRuleFallback(){
+  if (feedbackData.length === 0){ alert('請先在 步驟1 解析原文'); return; }
+  if (!confirm('提醒：規則模擬器只是 demo，不是真 AI。建議先試 步驟3 + 4 的真 AI 流程；確定要用 demo 嗎？')) return;
+  feedbackData.forEach(row => { const r = ruleBasedClassify(row.feedback); Object.assign(row, r); });
+  saveState();
+  renderTable();
+}
+
+function renderTable(){
+  const wrap = document.getElementById('result-table-wrap');
+  if (feedbackData.length === 0 || !feedbackData.some(p => p.topic || p.sentiment)){
+    wrap.style.display = 'none'; return;
+  }
+  wrap.style.display = '';
+  const tbody = document.getElementById('classified-tbody');
+  tbody.innerHTML = feedbackData.map((p, i) => {
+    const isReviewTarget = reviewIndexes.includes(i);
+    const isReviewed = p.review_status && p.review_status !== '未複核';
+    const missing = !p.topic || !p.sentiment;
+    let rowClass = '';
+    if (isReviewed) rowClass = 'reviewed';
+    else if (isReviewTarget) rowClass = 'review-target';
+    else if (missing) rowClass = 'miss';
+    return '<tr class="' + rowClass + '">' +
+      '<td>#' + p.id + '</td>' +
+      '<td style="font-size:.75rem;color:var(--c-text);line-height:1.6">' + escapeHtml(p.feedback) + '</td>' +
+      '<td><input type="text" value="' + escapeHtml(p.topic) + '" placeholder="主題" oninput="updCell(' + i + ",'topic',this.value)\"></td>" +
+      '<td><input type="text" value="' + escapeHtml(p.sentiment) + '" placeholder="情緒" oninput="updCell(' + i + ",'sentiment',this.value)\"></td>" +
+      '<td><input type="text" value="' + escapeHtml(p.priority) + '" placeholder="優先級" oninput="updCell(' + i + ",'priority',this.value)\"></td>" +
+      '<td><input type="text" value="' + escapeHtml(p.follow_up) + '" placeholder="是/否" oninput="updCell(' + i + ",'follow_up',this.value)\"></td>" +
+      '<td><input type="text" value="' + escapeHtml(p.summary) + '" placeholder="摘要" oninput="updCell(' + i + ",'summary',this.value)\"></td>" +
+      '</tr>';
+  }).join('');
+}
+
+function updCell(i, field, value){ feedbackData[i][field] = value; saveState(); }
+
+function sampleReview(){
+  if (feedbackData.length === 0 || !feedbackData.some(p => p.topic)){
+    alert('請先在 步驟4 解析 AI 結果，或用規則模擬器跑一次'); return;
+  }
+  const sizeVal = document.getElementById('sample-size').value;
+  const n = sizeVal === 'all' ? feedbackData.length : Math.min(parseInt(sizeVal), feedbackData.length);
+  const indexes = [];
+  for (let i = 0; i < feedbackData.length; i++) indexes.push(i);
+  for (let i = indexes.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = indexes[i]; indexes[i] = indexes[j]; indexes[j] = t;
+  }
+  reviewIndexes = indexes.slice(0, n).sort((a,b)=>a-b);
+  renderTable();
+  renderReview();
+}
+
+function renderReview(){
+  const area = document.getElementById('review-area');
+  const list = document.getElementById('review-list');
+  if (reviewIndexes.length === 0){ area.style.display = 'none'; return; }
+  area.style.display = '';
+  list.innerHTML = reviewIndexes.map(i => {
+    const p = feedbackData[i];
+    return '<div class="review-item">' +
+      '<div class="ri-feedback"><strong>#' + p.id + '</strong> ' + escapeHtml(p.feedback) + '</div>' +
+      '<div class="ri-status">AI 分類：' + (p.topic||'-') + ' / ' + (p.sentiment||'-') + ' / ' + (p.priority||'-') + ' / 跟進 ' + (p.follow_up||'-') + ' · 狀態：' + (p.review_status||'未複核') + '</div>' +
+      '<textarea placeholder="複核筆記（修正了什麼？要調整 Prompt 規則嗎？）" oninput="updCell(' + i + ",'review_note',this.value)\">" + escapeHtml(p.review_note) + '</textarea>' +
+      '<div class="btn-row" style="margin-top:6px">' +
+        '<button class="btn-secondary" onclick="markReviewed(' + i + ",'已複核 · 分類正確')\">分類正確</button>" +
+        '<button class="btn-secondary" onclick="markReviewed(' + i + ",'已複核 · 已修正')\">已修正</button>" +
+        '<button class="btn-secondary" onclick="markReviewed(' + i + ",'需修 prompt')\">需修 prompt</button>" +
+      '</div></div>';
+  }).join('');
+}
+
+function markReviewed(i, status){ feedbackData[i].review_status = status; saveState(); renderReview(); renderTable(); }
+
+function downloadCsv(){
+  if (feedbackData.length === 0 || !feedbackData.some(p => p.topic)){
+    alert('沒有可下載的分類資料，請先完成 步驟4'); return;
+  }
+  const header = 'id,source,feedback,topic,sentiment,priority,follow_up,summary,review_status,review_note';
+  const rows = feedbackData.map(p => [p.id, p.source||'', p.feedback, p.topic, p.sentiment, p.priority, p.follow_up, p.summary, p.review_status, p.review_note].map(csvEscape).join(','));
+  const csv = header + '\n' + rows.join('\n');
+  const blob = new Blob(['﻿' + csv], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'classified_feedback_' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function showReport(){
+  if (feedbackData.length === 0 || !feedbackData.some(p => p.topic)){
+    alert('沒有可分析的資料，請先完成 步驟4'); return;
+  }
+  const total = feedbackData.length;
+  const counts = (key) => {
+    const m = {};
+    feedbackData.forEach(p => { const v = p[key] || '(未填)'; m[v] = (m[v]||0) + 1; });
+    return Object.entries(m).sort((a,b) => b[1]-a[1]);
+  };
+  const fmt = (arr) => arr.map(([k,v]) => '<li>' + escapeHtml(k) + '：' + v + ' 筆（' + Math.round(v/total*100) + '%）</li>').join('');
+  const reviewed = feedbackData.filter(p => p.review_status && p.review_status !== '未複核').length;
+  const needFollow = feedbackData.filter(p => p.follow_up && p.follow_up.includes('是')).length;
+  const area = document.getElementById('report-area');
+  area.style.display = '';
+  area.innerHTML = '<h4>分類報告（共 ' + total + ' 筆）</h4>' +
+    '<h4>主題分布</h4><ul>' + fmt(counts('topic')) + '</ul>' +
+    '<h4>情緒比例</h4><ul>' + fmt(counts('sentiment')) + '</ul>' +
+    '<h4>優先級分布</h4><ul>' + fmt(counts('priority')) + '</ul>' +
+    '<h4>跟進與複核</h4><ul>' +
+      '<li>需跟進：' + needFollow + ' 筆（' + Math.round(needFollow/total*100) + '%）</li>' +
+      '<li>已複核：' + reviewed + ' / ' + total + ' 筆</li>' +
+    '</ul>';
 }
 
 function updateChallenge() {
   const items = document.querySelectorAll('.challenge-item');
   let done = 0;
   items.forEach(item => { const cb = item.querySelector('input[type=checkbox]'); if (cb.checked) { item.classList.add('done'); done++; } else item.classList.remove('done'); });
-  document.getElementById('progress-text').textContent = done + ' / ' + items.length;
-  document.getElementById('challenge-fill').style.width = (done / items.length * 100) + '%';
+  const pt = document.getElementById('progress-text'); if (pt) pt.textContent = done + ' / ' + items.length;
+  const cf = document.getElementById('challenge-fill'); if (cf) cf.style.width = (done / items.length * 100) + '%';
+}
+
+// 初次載入若有保存資料，自動 render
+if (feedbackData.length > 0){
+  renderFeedbackListing();
+  if (feedbackData.some(p => p.topic || p.sentiment)) renderTable();
 }
 </script>
 
