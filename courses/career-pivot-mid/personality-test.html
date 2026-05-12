@@ -575,8 +575,8 @@ function showPDPResult(scores){
     item.innerHTML=`<div class="radar-dot" style="background:${t.color}"></div><span class="radar-item-label">${t.axis} · ${t.name}（${t.animal}）</span><span class="radar-item-score">${scores[i]}</span>`;
     legend.appendChild(item);
   });
-  /* 變色龍偵測：四軸最高 ≤ 8 且差距 ≤ 4 → 加第 5 列 V */
-  if(maxScore<=8&&range<=4){
+  /* 判定 3 檔（與 CH1-2 一致）：鮮明 ≥12 / 明確 9-11 / 變色龍 ≤8（移除「均衡偏弱」死分支）*/
+  if(maxScore<=8){
     const item=document.createElement('div');
     item.className='radar-legend-item';
     item.style.borderTop='1px dashed var(--c-border)';
@@ -585,17 +585,15 @@ function showPDPResult(scores){
     item.innerHTML='<div class="radar-dot" style="background:#7a9ea3"></div><span class="radar-item-label" style="color:#7a9ea3;font-weight:500">V · 整合型（變色龍）</span><span class="radar-item-score" style="color:#7a9ea3">✓</span>';
     legend.appendChild(item);
   }
-  /* Summary 四檔 */
   let summary='';
   if(maxScore>=12){
-    summary=`主導軸：<strong>${PDP_TYPES[mainIdx].axis} — ${PDP_TYPES[mainIdx].name}（${PDP_TYPES[mainIdx].animal}）</strong>，分數 ${maxScore} / 30，<strong>主導明確</strong>。`;
+    summary=`主導軸：<strong>${PDP_TYPES[mainIdx].axis} — ${PDP_TYPES[mainIdx].name}（${PDP_TYPES[mainIdx].animal}）</strong>，分數 ${maxScore} / 30，<strong>主導鮮明</strong>（≥12 分，特徵明顯）。`;
     if(secondScore>=9&&secondIdx!==mainIdx)summary+=` 輔助軸：${PDP_TYPES[secondIdx].axis} — ${PDP_TYPES[secondIdx].name}（${PDP_TYPES[secondIdx].animal}），分數 ${secondScore}。`;
   }else if(maxScore>=9){
-    summary=`主導軸：<strong>${PDP_TYPES[mainIdx].axis} — ${PDP_TYPES[mainIdx].name}（${PDP_TYPES[mainIdx].animal}）</strong>，分數 ${maxScore}，主導<strong>偏弱</strong>（9–11 分）。建議用「最近 1 年最有成就感的 3 件事」共通行為風格佐證。`;
-  }else if(range<=4){
-    summary=`<strong>變色龍 V（整合型）</strong>——四軸分數接近（最高 ${maxScore} / 最低 ${minScore} / 差 ${range}），你是 PDP 第 5 型「彈性適應型」。沒有單一強標籤，但能依情境切換行為風格，適合跨部門 PM／HRBP／PMO／新創整合角色。<br><strong>提醒</strong>：職場上要主動為自己定位 1-2 個專業標籤，否則容易被當「什麼都會、什麼都不專精」。`;
+    summary=`主導軸：<strong>${PDP_TYPES[mainIdx].axis} — ${PDP_TYPES[mainIdx].name}（${PDP_TYPES[mainIdx].animal}）</strong>，分數 ${maxScore} / 30，<strong>主導明確</strong>（9–11 分，多數學員的常態分布）。`;
+    if(secondScore>=8&&secondIdx!==mainIdx)summary+=` 輔助軸：${PDP_TYPES[secondIdx].axis} — ${PDP_TYPES[secondIdx].name}（${PDP_TYPES[secondIdx].animal}），分數 ${secondScore}。`;
   }else{
-    summary=`四軸偏弱（最高 ${maxScore} / 30，差距 ${range}），不到變色龍判定門檻。<strong>暫取最高軸 ${PDP_TYPES[mainIdx].axis}（${PDP_TYPES[mainIdx].animal}）作主導假設</strong>，課中 CH1-4 用工作事件清單再驗一次。`;
+    summary=`<strong>變色龍 V（整合型）</strong>——四軸都在 8 分以下（最高 ${maxScore} / 最低 ${minScore}），你是 PDP 第 5 型「彈性適應型」。沒有單一強標籤，但能依情境切換行為風格，適合跨部門 PM／HRBP／PMO／新創整合角色。<br><strong>提醒</strong>：職場上要主動為自己定位 1-2 個專業標籤，否則容易被當「什麼都會、什麼都不專精」。`;
   }
   document.getElementById('pdp-summary-text').innerHTML=summary;
   block.scrollIntoView({behavior:'smooth',block:'nearest'});
