@@ -115,8 +115,14 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 .footer-div{width:1px;height:14px;background:var(--c-border)}
 .footer-note{font-size:.75rem;color:var(--c-muted)}
 .footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+/* MBTI 題數模式切換 */
+.mbti-mode-toggle{display:flex;gap:8px;margin:20px 0 12px}
+.mbti-mode-btn{flex:1;padding:14px 16px;border:1px solid var(--c-border);background:var(--c-card);color:var(--c-text);font-size:.9rem;font-weight:500;font-family:'Noto Sans TC',sans-serif;cursor:pointer;border-radius:var(--radius);transition:border-color .15s,background .15s;line-height:1.5;text-align:center}
+.mbti-mode-btn small{display:block;font-size:.7rem;color:var(--c-muted);margin-top:4px;font-weight:400}
+.mbti-mode-btn:hover{border-color:var(--c-text)}
+.mbti-mode-btn.active{border-color:var(--c-text);background:var(--c-surface)}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-@media(max-width:600px){.topbar,.page-hero,.lesson-section,.quiz-progress,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.radar-wrap{flex-direction:column}.mbti-result-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.quiz-progress,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.radar-wrap{flex-direction:column}.mbti-result-grid{grid-template-columns:1fr}.mbti-mode-toggle{flex-direction:column}}
 </style>
 </head>
 <body>
@@ -230,12 +236,22 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <!-- SECTION 02：MBTI -->
 <section class="lesson-section" id="mbti-section">
   <div class="section-eyebrow">(02)</div>
-  <h2 class="section-heading">MBTI 16 題：心理偏好四維度</h2>
-  <p class="body-text">每題二選一，選「最近 3 個月」最像你的那個。每個維度 4 題，各維度 A 端 ≥ 3 題 = 偏 A 端；2:2 = 邊界值（標 X，代表兩端都有）。建議在 8 分鐘內完成。</p>
+  <h2 class="section-heading">MBTI 32 題：心理偏好四維度</h2>
+  <p class="body-text">每題二選一，選「最近 3 個月」最像你的那個。提供兩種題數模式：</p>
+  <ul class="body-text" style="margin:6px 0 16px 22px;font-size:.88rem;line-height:1.9">
+    <li><strong>完整 32 題</strong>（8 題/維度，15 分鐘，預設）：信度較高、邊界值機率較低（~23%）。建議課前選此模式。</li>
+    <li><strong>快速 16 題</strong>（4 題/維度，8 分鐘）：與課中現測題目對齊；邊界值機率約 35%。</li>
+  </ul>
+
+  <!-- 題數模式切換 -->
+  <div class="mbti-mode-toggle" role="tablist" aria-label="MBTI 題數模式">
+    <button type="button" class="mbti-mode-btn" role="tab" aria-selected="false" data-mode="core" onclick="switchMbtiMode('core')">快速 16 題<small>4 題/維 · 8 分鐘 · 與課中現測對齊</small></button>
+    <button type="button" class="mbti-mode-btn active" role="tab" aria-selected="true" data-mode="full" onclick="switchMbtiMode('full')">完整 32 題<small>8 題/維 · 15 分鐘 · 信度較高（預設）</small></button>
+  </div>
 
   <div class="timer-bar">
     <span class="timer-label">計時器</span>
-    <span class="timer-display" id="mbti-timer">08:00</span>
+    <span class="timer-display" id="mbti-timer">15:00</span>
     <button class="timer-btn" id="mbti-timer-btn" onclick="toggleTimer('mbti')">開始</button>
   </div>
 
@@ -315,23 +331,45 @@ const PDP_QS=[
    dim: 0=EI 1=SN 2=TF 3=JP
    aEnd: 哪一端是 A 的字母
    ============================ */
-const MBTI_QS = [
-  {dim:0,aEnd:'E',q:"週末我比較想：",a:"約 5 個朋友聚餐（E）",b:"待在家看書（I）"},
-  {dim:0,aEnd:'E',q:"工作受挫時，我傾向：",a:"找朋友說說話、抒發一下（E）",b:"一個人靜一靜、自己整理（I）"},
-  {dim:0,aEnd:'E',q:"長假結束回去上班，我通常感覺：",a:"期待見到同事、有人說說話（E）",b:"上班反而讓我疲憊，需要時間緩（I）"},
-  {dim:0,aEnd:'E',q:"一個人待一整天，我會：",a:"坐不住，想找人出去（E）",b:"很享受，有很多事想做（I）"},
-  {dim:1,aEnd:'S',q:"學新東西時，我喜歡：",a:"先看步驟、跟著做（S）",b:"先看整體概念、再自己摸（N）"},
-  {dim:1,aEnd:'S',q:"面對問題時，我習慣先問：",a:"「現在實際狀況是什麼？」（S）",b:"「這背後的模式是什麼？」（N）"},
-  {dim:1,aEnd:'S',q:"看一份報告，我最先注意的是：",a:"具體數字和事實（S）",b:"整體趨勢和潛在含義（N）"},
-  {dim:1,aEnd:'S',q:"做計畫時，我傾向：",a:"一步一步列清楚，有根有據（S）",b:"先想大方向，細節邊走邊補（N）"},
-  {dim:2,aEnd:'T',q:"朋友跟我抱怨他主管時，我會：",a:"幫他分析主管的邏輯、給建議（T）",b:"先聽他講完、肯定他的感受（F）"},
-  {dim:2,aEnd:'T',q:"評估一個決定時，我更在乎：",a:"這個決定邏輯上對不對（T）",b:"這個決定對關係的影響（F）"},
-  {dim:2,aEnd:'T',q:"給別人回饋時，我傾向：",a:"直接指出哪裡做不好（T）",b:"先肯定、再提改進（F）"},
-  {dim:2,aEnd:'T',q:"做重大決定（換工作、搬家），我更依靠：",a:"邏輯分析和條件比較（T）",b:"直覺和對這個選擇的感受（F）"},
-  {dim:3,aEnd:'J',q:"出國旅行前，我多半：",a:"排好每天行程表（J）",b:"訂機票飯店就好，其他到現場再說（P）"},
-  {dim:3,aEnd:'J',q:"對於工作的 deadline，我：",a:"習慣提前完成，不喜歡拖到最後（J）",b:"有時會等到快到了才衝刺（P）"},
-  {dim:3,aEnd:'J',q:"接到臨時插入的任務，我的感受：",a:"有點焦慮，因為打亂計畫（J）",b:"還好，反正可以靈活調整（P）"},
-  {dim:3,aEnd:'J',q:"一天結束時，我比較有成就感的是：",a:"清單上的事都打勾了（J）",b:"做了幾件有趣的事，雖然沒全完成（P）"}
+/* MBTI 32 題：dim 0=EI 1=SN 2=TF 3=JP；set='core' 快速 16 / 'ext' 擴充 16
+   8 題/維 在 60/40 真實傾向 ~60% 正確判型、邊界 23%（vs 4 題/維 47%+35%） */
+const MBTI_QS=[
+  /* === E/I 維度 8 題 === */
+  {dim:0,set:'core',aEnd:'E',q:"週末我比較想：",a:"約 5 個朋友聚餐（E）",b:"待在家看書（I）"},
+  {dim:0,set:'core',aEnd:'E',q:"工作受挫時，我傾向：",a:"找朋友說說話、抒發一下（E）",b:"一個人靜一靜、自己整理（I）"},
+  {dim:0,set:'core',aEnd:'E',q:"長假結束回去上班，我通常感覺：",a:"期待見到同事、有人說說話（E）",b:"上班反而讓我疲憊，需要時間緩（I）"},
+  {dim:0,set:'core',aEnd:'E',q:"一個人待一整天，我會：",a:"坐不住，想找人出去（E）",b:"很享受，有很多事想做（I）"},
+  {dim:0,set:'ext',aEnd:'E',q:"開會時，我比較常：",a:"主動發言、提出想法（E）",b:"先聽完、再思考要不要說（I）"},
+  {dim:0,set:'ext',aEnd:'E',q:"看完一場電影或讀完一本書，我比較想：",a:"馬上找人聊聊感想（E）",b:"先一個人整理思緒、再決定要不要分享（I）"},
+  {dim:0,set:'ext',aEnd:'E',q:"進入新團體（社團 / 讀書會 / 新部門）的前 2 週：",a:"主動跟大家打招呼、認識人（E）",b:"先觀察、找熟悉感的小圈子慢慢加入（I）"},
+  {dim:0,set:'ext',aEnd:'E',q:"結束一整天工作後，我比較常：",a:"約朋友吃飯、放鬆（E）",b:"回家獨處、做自己的事（I）"},
+  /* === S/N 維度 8 題 === */
+  {dim:1,set:'core',aEnd:'S',q:"學新東西時，我喜歡：",a:"先看步驟、跟著做（S）",b:"先看整體概念、再自己摸（N）"},
+  {dim:1,set:'core',aEnd:'S',q:"面對問題時，我習慣先問：",a:"「現在實際狀況是什麼？」（S）",b:"「這背後的模式是什麼？」（N）"},
+  {dim:1,set:'core',aEnd:'S',q:"看一份報告，我最先注意的是：",a:"具體數字和事實（S）",b:"整體趨勢和潛在含義（N）"},
+  {dim:1,set:'core',aEnd:'S',q:"做計畫時，我傾向：",a:"一步一步列清楚，有根有據（S）",b:"先想大方向，細節邊走邊補（N）"},
+  {dim:1,set:'ext',aEnd:'S',q:"別人講得太抽象時，我會：",a:"問「能舉個例子嗎？」（S）",b:"順著他的概念繼續發想（N）"},
+  {dim:1,set:'ext',aEnd:'S',q:"聽演講或上課，我特別記得：",a:"具體案例、數字、實例（S）",b:"主軸概念、框架、隱喻（N）"},
+  {dim:1,set:'ext',aEnd:'S',q:"學新軟體，我傾向：",a:"跟著 step-by-step 教學做（S）",b:"先看大致能做什麼、再自己亂試（N）"},
+  {dim:1,set:'ext',aEnd:'S',q:"看一份產品提案，我先注意：",a:"具體功能、規格、可行性（S）",b:"整體願景、市場機會、潛在影響（N）"},
+  /* === T/F 維度 8 題 === */
+  {dim:2,set:'core',aEnd:'T',q:"朋友跟我抱怨他主管時，我會：",a:"幫他分析主管的邏輯、給建議（T）",b:"先聽他講完、肯定他的感受（F）"},
+  {dim:2,set:'core',aEnd:'T',q:"評估一個決定時，我更在乎：",a:"這個決定邏輯上對不對（T）",b:"這個決定對關係的影響（F）"},
+  {dim:2,set:'core',aEnd:'T',q:"給別人回饋時，我傾向：",a:"直接指出哪裡做不好（T）",b:"先肯定、再提改進（F）"},
+  {dim:2,set:'core',aEnd:'T',q:"做重大決定（換工作、搬家），我更依靠：",a:"邏輯分析和條件比較（T）",b:"直覺和對這個選擇的感受（F）"},
+  {dim:2,set:'ext',aEnd:'T',q:"看電影裡角色做了不合邏輯但感人的事，我：",a:"覺得「這劇情不合理」（T）",b:"覺得「能理解他為什麼這樣選」（F）"},
+  {dim:2,set:'ext',aEnd:'T',q:"朋友做了讓我不認同的事，我會：",a:"直接跟他講我哪裡不認同（T）",b:"先想他為什麼這樣做、先傾聽（F）"},
+  {dim:2,set:'ext',aEnd:'T',q:"假設公司要裁員 1 人，我選人的優先標準：",a:"績效數據、職位重要性（T）",b:"工作態度、家庭狀況、團隊關係（F）"},
+  {dim:2,set:'ext',aEnd:'T',q:"我比較佩服的人是：",a:"邏輯清晰、能解決複雜問題的人（T）",b:"真誠、能讓人感受到溫暖的人（F）"},
+  /* === J/P 維度 8 題 === */
+  {dim:3,set:'core',aEnd:'J',q:"出國旅行前，我多半：",a:"排好每天行程表（J）",b:"訂機票飯店就好，其他到現場再說（P）"},
+  {dim:3,set:'core',aEnd:'J',q:"對於工作的 deadline，我：",a:"習慣提前完成，不喜歡拖到最後（J）",b:"有時會等到快到了才衝刺（P）"},
+  {dim:3,set:'core',aEnd:'J',q:"接到臨時插入的任務，我的感受：",a:"有點焦慮，因為打亂計畫（J）",b:"還好，反正可以靈活調整（P）"},
+  {dim:3,set:'core',aEnd:'J',q:"一天結束時，我比較有成就感的是：",a:"清單上的事都打勾了（J）",b:"做了幾件有趣的事，雖然沒全完成（P）"},
+  {dim:3,set:'ext',aEnd:'J',q:"週末早上起床，我通常：",a:"已經想好今天要做什麼了（J）",b:"看心情看天氣再決定（P）"},
+  {dim:3,set:'ext',aEnd:'J',q:"收到很多 email 或訊息，我傾向：",a:"全部歸類、標記、排處理時間（J）",b:"重要的先回，其餘有空再說（P）"},
+  {dim:3,set:'ext',aEnd:'J',q:"對於「沒有結論的會議」，我的感受：",a:"不舒服，覺得浪費時間（J）",b:"還好，至少交流到一些想法（P）"},
+  {dim:3,set:'ext',aEnd:'J',q:"出門前我的習慣：",a:"確認鑰匙、錢包、手機、時間規劃（J）",b:"拿了就走，路上再想（P）"}
 ];
 
 /* ============================
@@ -359,9 +397,12 @@ const MBTI_NAMES = {
    狀態
    ============================ */
 const pdpAns = new Array(30).fill(null);
-const mbtiAns = new Array(16).fill(null);
+const mbtiAns = new Array(32).fill(null);
+/* MBTI 模式：'core' 快速 16 / 'full' 完整 32（personality-test 預設 full，與課中 CH1-2 default 'core' 區別） */
+let mbtiMode = 'full';
+function getMbtiTotalQ(){return mbtiMode==='full'?32:16;}
 let pdpTimerInterval = null, mbtiTimerInterval = null;
-let pdpTimerSec = 18*60, mbtiTimerSec = 8*60;
+let pdpTimerSec = 18*60, mbtiTimerSec = 15*60;
 let pdpRunning = false, mbtiRunning = false;
 
 /* ============================
@@ -386,12 +427,17 @@ function renderPDP(){
 function renderMBTI(){
   const dimLabels=['E / I','S / N','T / F','J / P'];
   const wrap = document.getElementById('mbti-questions');
+  wrap.innerHTML='';
+  const total=getMbtiTotalQ();
+  let displayIdx=0;
   MBTI_QS.forEach((q,qi)=>{
+    if(mbtiMode==='core' && q.set!=='core') return;
+    displayIdx++;
     const block = document.createElement('div');
     block.className='q-block';
     block.id='mbti-q-'+qi;
     block.innerHTML=`
-      <div class="q-num-label">MBTI · ${String(qi+1).padStart(2,'0')} / 16 · ${dimLabels[q.dim]}</div>
+      <div class="q-num-label">MBTI · ${String(displayIdx).padStart(2,'0')} / ${total} · ${dimLabels[q.dim]}${q.set==='ext'?' · 擴充':''}</div>
       <div class="q-text">${q.q}</div>
       <div class="q-opts">
         <label class="q-opt" id="mbti-opt-${qi}-0">
@@ -404,7 +450,24 @@ function renderMBTI(){
         </label>
       </div>`;
     wrap.appendChild(block);
+    /* 還原已作答狀態 */
+    if(mbtiAns[qi]!==null){
+      const inp=block.querySelector(`input[value="${mbtiAns[qi]}"]`);if(inp)inp.checked=true;
+      const opt=document.getElementById('mbti-opt-'+qi+'-'+mbtiAns[qi]);if(opt)opt.classList.add('selected');
+    }
   });
+}
+function switchMbtiMode(mode){
+  if(mode===mbtiMode)return;
+  mbtiMode=mode;
+  document.querySelectorAll('.mbti-mode-btn').forEach(b=>{const isActive=b.dataset.mode===mode;b.classList.toggle('active',isActive);b.setAttribute('aria-selected',isActive?'true':'false');});
+  /* 計時器重置 */
+  clearInterval(mbtiTimerInterval);mbtiRunning=false;
+  mbtiTimerSec=(mode==='full'?15:8)*60;
+  const tEl=document.getElementById('mbti-timer');if(tEl)tEl.textContent=fmtTime(mbtiTimerSec);
+  const tBtn=document.getElementById('mbti-timer-btn');if(tBtn)tBtn.textContent='開始';
+  renderMBTI();updateMBTIProgress();
+  document.getElementById('mbti-result').classList.remove('visible');
 }
 
 /* ============================
@@ -437,10 +500,12 @@ function updatePDPProgress(){
 }
 
 function updateMBTIProgress(){
-  const done=mbtiAns.filter(v=>v!==null).length;
-  document.getElementById('mbti-progress-fill').style.width=(done/16*100)+'%';
-  document.getElementById('mbti-progress-label').textContent='MBTI · '+done+' / 16 題已作答';
-  document.getElementById('mbti-score-btn').disabled=(done<16);
+  let done=0;
+  MBTI_QS.forEach((q,i)=>{if((mbtiMode==='full'||q.set==='core')&&mbtiAns[i]!==null)done++;});
+  const total=getMbtiTotalQ();
+  document.getElementById('mbti-progress-fill').style.width=(done/total*100)+'%';
+  document.getElementById('mbti-progress-label').textContent='MBTI · '+done+' / '+total+' 題已作答（'+(mbtiMode==='full'?'完整 32':'快速 16')+'）';
+  document.getElementById('mbti-score-btn').disabled=(done<total);
 }
 
 /* ============================
@@ -605,9 +670,10 @@ function drawRadar(scores){
    計算 MBTI
    ============================ */
 function scoreMBTI(){
-  // counts[dim][0=A端, 1=B端]
+  // counts[dim][0=A端, 1=B端]，依模式只算當前模式內的題目
   const counts=[[0,0],[0,0],[0,0],[0,0]];
   MBTI_QS.forEach((q,qi)=>{
+    if(mbtiMode==='core' && q.set!=='core') return;
     if(mbtiAns[qi]!==null) counts[q.dim][mbtiAns[qi]]++;
   });
   // dim letters: aEnd / bEnd
