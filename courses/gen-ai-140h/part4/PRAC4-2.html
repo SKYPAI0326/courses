@@ -269,7 +269,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <div class="lesson-section">
     <div class="section-eyebrow">TOOL · 互動工具</div>
     <h2 class="section-heading">新增、搜尋、一鍵複製你的 Prompt 庫</h2>
-    <p class="body-text">在下方填入標題、分類標籤和 Prompt 內容，儲存後即可在列表中搜尋和複製。注意：這個工具的資料存在記憶體中，重新整理頁面後會重置，課程結束後你可以用 Gemini 替它加上 localStorage 儲存功能。</p>
+    <p class="body-text">在下方填入標題、分類標籤和 Prompt 內容，儲存後自動保存在這台瀏覽器中，重新整理或關掉頁面後仍可繼續使用。預設三條範例 Prompt 可直接複製，也可以隨時新增、刪除或清空全部重新開始。</p>
 
     <div class="tool-wrap">
       <div class="tool-topbar">
@@ -291,7 +291,10 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
             <input class="plib-form-input" type="text" placeholder="標籤（例：寫作、分析）" id="pf-tag" style="max-width:160px">
           </div>
           <textarea class="plib-form-textarea" placeholder="在這裡貼入你的完整 Prompt 指令…" id="pf-body"></textarea>
-          <button class="plib-save-btn" onclick="savePrompt()">儲存到庫</button>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px">
+            <button class="plib-save-btn" onclick="savePrompt()">儲存到庫</button>
+            <button onclick="clearAllPrompts()" style="font-size:.78rem;padding:7px 14px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius-sm);color:var(--c-muted);cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:border-color .15s,color .15s" onmouseover="this.style.borderColor='#b5703a';this.style.color='#b5703a'" onmouseout="this.style.borderColor='var(--c-border)';this.style.color='var(--c-muted)'">清空全部 Prompt（需二次確認）</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1011,7 +1014,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   </a>
 </nav>
 
-<footer class="footer" data-platform-version="2026-04-v3">
+<footer class="footer" data-platform-version="2026-05-v4" data-built-at="2026-05-12">
   <div class="footer-logo">弄一下工作室</div>
   <div class="footer-note">Gemini 零代碼 AI 實戰課 · Part 4 實例演練</div>
 </footer>
@@ -1022,12 +1025,19 @@ window.addEventListener('scroll', () => {
   document.getElementById('prog').style.width = (window.scrollY / total * 100) + '%';
 });
 
-let prompts = [
+const STORAGE_KEY = 'prac42_prompt_library_v1';
+const DEFAULT_PROMPTS = [
   { id: 1, title: 'Prompt 黃金公式模板', tag: '通用', body: '【角色】\n你是一位（身分描述）。\n\n【任務】\n請幫我（動作 + 材料）。\n\n【限制】\n（語氣 / 字數 / 禁止事項）。\n\n【呈現格式】\n以（格式）呈現。', date: '2026-04-01' },
   { id: 2, title: '會議記錄快速整理', tag: '會議', body: '你是一位高效的行政助理，擅長整理會議紀錄。\n請把以下會議記錄整理成「決議事項」和「待辦清單（含負責人）」兩個區塊，語氣正式，300 字以內。', date: '2026-04-01' },
   { id: 3, title: '商業文件改寫（正式版）', tag: '寫作', body: '你是一位擅長商業文書的資深文字編輯。\n請把以下文字改寫為正式的商業語氣，用詞精準、不堆疊形容詞，保留原意，字數可略增，繁體中文台灣用語。', date: '2026-04-01' },
 ];
-let nextId = 4;
+function loadPrompts(){
+  try { const s = localStorage.getItem(STORAGE_KEY); if (s){ const arr = JSON.parse(s); if (Array.isArray(arr)) return arr; } } catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT_PROMPTS));
+}
+function persistPrompts(){ try { localStorage.setItem(STORAGE_KEY, JSON.stringify(prompts)); } catch(e){} }
+let prompts = loadPrompts();
+let nextId = prompts.reduce((m,p) => Math.max(m, p.id || 0), 0) + 1;
 let activeTag = '';
 
 const TAGS = () => [...new Set(prompts.map(p => p.tag).filter(Boolean))];
@@ -1081,6 +1091,7 @@ function savePrompt() {
   if (!title || !body) { alert('請填入標題和 Prompt 內容。'); return; }
   const now = new Date().toISOString().slice(0,10);
   prompts.unshift({ id: nextId++, title, tag, body, date: now });
+  persistPrompts();
   document.getElementById('pf-title').value = '';
   document.getElementById('pf-tag').value = '';
   document.getElementById('pf-body').value = '';
@@ -1091,6 +1102,21 @@ function savePrompt() {
 function deletePrompt(id) {
   if (!confirm('確定要刪除這條 Prompt？')) return;
   prompts = prompts.filter(p => p.id !== id);
+  persistPrompts();
+  renderTags();
+  renderCards();
+}
+
+function clearAllPrompts() {
+  if (prompts.length === 0) { alert('Prompt 庫已經是空的'); return; }
+  if (!confirm('確定要清空全部 ' + prompts.length + ' 條 Prompt？這個動作無法復原。')) return;
+  if (!confirm('再確認一次：所有 Prompt 都會被刪除，沒有備份。要回到預設三條範例嗎？\n\n按「確定」=清空後載回預設三條範例\n按「取消」=完全清空（空清單）')) {
+    prompts = [];
+  } else {
+    prompts = JSON.parse(JSON.stringify(DEFAULT_PROMPTS));
+    nextId = prompts.reduce((m,p) => Math.max(m, p.id || 0), 0) + 1;
+  }
+  persistPrompts();
   renderTags();
   renderCards();
 }

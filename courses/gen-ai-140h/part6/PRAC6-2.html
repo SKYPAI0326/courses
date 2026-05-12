@@ -254,6 +254,10 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
       <div class="tool-toolbar-title">最小 RAG 模擬器</div>
     </div>
     <div class="tool-body">
+      <div style="padding:14px 18px;background:rgba(201,150,58,.08);border:1px solid rgba(201,150,58,.3);border-left:3px solid #c9963a;border-radius:4px;font-size:.85rem;line-height:1.75;color:var(--c-text);margin-bottom:20px;display:flex;gap:12px;align-items:flex-start">
+        <span aria-hidden="true" style="font-size:1rem;flex-shrink:0;color:#c9963a">⚠</span>
+        <div><strong>本工具是教學模擬，不是真實 RAG 系統。</strong>下方的搜尋只用「關鍵字字符重疊」排序，不會產生 embedding 向量、不會用向量資料庫、沒有相似度分數。它幫你理解 RAG 的<em style="font-style:normal;color:var(--c-accent)">流程結構</em>（切 chunk → 找相關段落 → 組 Prompt → 模型回答），不代表已完成可上線的 RAG 系統。</div>
+      </div>
       <!-- Step 1: Document Input -->
       <div class="field-row">
         <label class="field-label">步驟一：輸入文件</label>
@@ -280,7 +284,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         </div>
       </div>
       <div id="rag-area" style="display:none;">
-        <div style="font-size:.78rem;color:var(--c-muted);margin-bottom:6px;">最相關 Chunks（模擬向量搜尋）：</div>
+        <div style="font-size:.78rem;color:var(--c-muted);margin-bottom:6px;">最相關 Chunks（關鍵字字符重疊排序，僅模擬向量檢索）：</div>
         <div class="chunks-display" id="relevant-chunks"></div>
         <details style="margin-top:12px;">
           <summary style="font-size:.8rem;color:var(--c-accent);cursor:pointer;font-weight:600;">查看完整 RAG Prompt</summary>
@@ -289,8 +293,30 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <div style="margin-top:16px;font-size:.78rem;color:var(--c-muted);margin-bottom:6px;">模擬回答：</div>
         <div class="result-box" id="rag-answer"></div>
         <div class="source-note" id="source-note"></div>
+        <div style="margin-top:10px;padding:8px 12px;font-size:.75rem;line-height:1.7;color:var(--c-muted);background:var(--c-surface);border-radius:3px;border-left:2px solid var(--c-border)"><strong>教學限制：</strong>本頁只用「關鍵字字符重疊」排序，不是真實向量檢索。真實 RAG 會用 embedding（如 OpenAI text-embedding-3-small、Cohere embed-v3）+ 向量資料庫（如 Pinecone、Weaviate、pgvector）+ 餘弦相似度分數。同義詞、語意相近的句子在本頁找不到，但真實 RAG 找得到——這是本頁第 5 條挑戰要你體驗的差距。</div>
       </div>
     </div>
+  </div>
+</div>
+
+<div style="max-width:var(--content-w);margin:0 auto;padding:0 48px 32px">
+  <div style="padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)">
+    <div style="font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-accent);letter-spacing:1.5px;font-weight:600;margin-bottom:14px;text-transform:uppercase">本頁 vs 真實 RAG · 差異對照</div>
+    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.82rem;line-height:1.7;color:var(--c-text)">
+      <thead><tr style="background:var(--c-surface)">
+        <th style="padding:10px 12px;text-align:left;font-weight:600;border-bottom:1px solid var(--c-border);width:30%">面向</th>
+        <th style="padding:10px 12px;text-align:left;font-weight:600;border-bottom:1px solid var(--c-border);width:35%">本頁（教學模擬）</th>
+        <th style="padding:10px 12px;text-align:left;font-weight:600;border-bottom:1px solid var(--c-border)">真實 RAG 系統</th>
+      </tr></thead>
+      <tbody>
+        <tr><td style="padding:10px 12px;border-bottom:1px solid var(--c-border)"><strong>檢索方式</strong></td><td style="padding:10px 12px;border-bottom:1px solid var(--c-border);color:var(--c-muted)">關鍵字字符重疊計數</td><td style="padding:10px 12px;border-bottom:1px solid var(--c-border)">Embedding 向量 + 餘弦相似度</td></tr>
+        <tr><td style="padding:10px 12px;border-bottom:1px solid var(--c-border)"><strong>同義詞處理</strong></td><td style="padding:10px 12px;border-bottom:1px solid var(--c-border);color:var(--c-muted)">找不到（「貓」找不到「寵物」）</td><td style="padding:10px 12px;border-bottom:1px solid var(--c-border)">找得到（語意相近會被檢出）</td></tr>
+        <tr><td style="padding:10px 12px;border-bottom:1px solid var(--c-border)"><strong>儲存</strong></td><td style="padding:10px 12px;border-bottom:1px solid var(--c-border);color:var(--c-muted)">JS 陣列（重整即消失）</td><td style="padding:10px 12px;border-bottom:1px solid var(--c-border)">向量資料庫（Pinecone / Weaviate / pgvector）</td></tr>
+        <tr><td style="padding:10px 12px;border-bottom:1px solid var(--c-border)"><strong>規模上限</strong></td><td style="padding:10px 12px;border-bottom:1px solid var(--c-border);color:var(--c-muted)">百個 chunk 內可行</td><td style="padding:10px 12px;border-bottom:1px solid var(--c-border)">百萬到億級 chunk（依索引技術）</td></tr>
+        <tr><td style="padding:10px 12px;border-bottom:1px solid var(--c-border)"><strong>模型回答</strong></td><td style="padding:10px 12px;border-bottom:1px solid var(--c-border);color:var(--c-muted)">不呼叫 AI，純前端 demo 回答模式</td><td style="padding:10px 12px;border-bottom:1px solid var(--c-border)">呼叫 LLM API（GPT-4 / Claude / Gemini）</td></tr>
+        <tr><td style="padding:10px 12px"><strong>本頁學會什麼</strong></td><td style="padding:10px 12px;color:var(--c-muted)" colspan="2">RAG 的<strong>流程結構</strong>：切 chunk → 找相關段落 → 組 Prompt → 模型回答。下一步學 Embedding（CH6-2）就能用 OpenAI / Hugging Face 把這套換成真實 RAG。</td></tr>
+      </tbody>
+    </table></div>
   </div>
 </div>
 
@@ -1006,7 +1032,7 @@ input case:
   </a>
 </nav>
 
-<footer class="footer" data-platform-version="2026-04-v3">
+<footer class="footer" data-platform-version="2026-05-v4" data-built-at="2026-05-12">
   <div class="footer-logo">弄一下工作室</div>
   <div class="topbar-divider"></div>
   <div class="footer-note">生成式AI職訓實務應用班 · Part 6 AI 應用開發進階</div>
