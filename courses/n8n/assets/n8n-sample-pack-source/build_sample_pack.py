@@ -951,12 +951,31 @@ build script v1.1 會跑 `validate_pack()` 自動檢查每個檔案的可讀性 
 
 
 def make_zip():
-    with zipfile.ZipFile(ZIP_OUT, "w", zipfile.ZIP_DEFLATED) as z:
+    """
+    打 zip 時顯式設 UTF-8 flag bit (general purpose bit 11, 0x0800)，
+    確保 Windows 解壓器能正確顯示中文檔名。
+    （macOS 內建 zip 指令 + Python ZipFile.write() 對純中文檔名都不保證設此 flag）
+    """
+    with zipfile.ZipFile(ZIP_OUT, "w", zipfile.ZIP_DEFLATED, allowZip64=True) as z:
+        # 跳過 .DS_Store；保留空目錄結構
         for root, dirs, files in os.walk(OUT):
-            for f in files:
+            dirs.sort()
+            rel_dir = Path(root).relative_to(OUT.parent)
+            if str(rel_dir) != ".":
+                zinfo = zipfile.ZipInfo(str(rel_dir) + "/")
+                zinfo.flag_bits |= 0x0800
+                zinfo.external_attr = 0o755 << 16
+                z.writestr(zinfo, b"")
+            for f in sorted(files):
+                if f == ".DS_Store":
+                    continue
                 full = Path(root) / f
                 rel = full.relative_to(OUT.parent)
-                z.write(full, rel)
+                zinfo = zipfile.ZipInfo.from_file(full, str(rel))
+                zinfo.flag_bits |= 0x0800  # UTF-8 flag
+                zinfo.compress_type = zipfile.ZIP_DEFLATED
+                with open(full, "rb") as src:
+                    z.writestr(zinfo, src.read())
     print(f"✓ 打包：{ZIP_OUT} ({ZIP_OUT.stat().st_size / 1024:.1f} KB)")
 
 
