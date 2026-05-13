@@ -1,12 +1,12 @@
 {
   "name": "09 · Gmail 分類通知",
   "meta": {
-    "_litePackNote": "v0.9：Gmail Trigger 每 N 分鐘 polling 新信 → Code 節點打 Gemini 分類（客訴/詢問/合約/其他）→ Switch 4 路由 → Telegram 緊急通知 / Set 整理結構。\n注意：這個 workflow 需要學員「自建 Gmail OAuth credential」（Lite Pack setup-wizard 沒辦法幫你建，因為要走 Google Cloud Project + OAuth 授權流程）。詳見 lessons/m0-workflow-09-gmail.html。預設 Active=false 避免 import 後立刻 polling 失敗。"
+    "_litePackNote": "Lite Pack #9：Gmail polling + AI 分類 + Switch 4 路由通道。需 OAuth credential。"
   },
   "nodes": [
     {
       "parameters": {
-        "content": "## #9 Gmail 分類通知\n\n**目的**：Make 等效的「信箱分類通知」，但跑在你本機 + 沒 ops 上限 + 可換本地 LLM。\n\n**架構**：Gmail Trigger（5 分鐘 polling）→ Code: AI 分類 → Switch 4 路由 → 各通道輸出。\n\n**前置（必做，半小時）**：\n1. Google Cloud Console 建 Project\n2. 啟用 Gmail API\n3. 建 OAuth 2.0 Client（Web application）\n4. 加 redirect URI：http://localhost:5678/rest/oauth2-credential/callback\n5. 拿 client_id + client_secret\n6. n8n UI Credentials → New → Gmail OAuth2 → 貼 client_id/secret → Connect 走 OAuth 流程\n\n**為什麼複雜**：Gmail OAuth 不像 Telegram bot token 直接給字串，必須走 Google 的授權同意流程，需要 redirect URI 對應到本機 n8n。\n\n**測試**：把這個 workflow Active 打開後 → 寄一封測試信到你 Gmail → 5 分鐘內 Telegram 收到分類通知（如果分類為「客訴」）。\n\n**改造**：把 Gemini 換成本地 Ollama / Llama 3 → 信件內容完全不離開本機。詳見講義。",
+        "content": "## #9 Gmail 分類通知\n\n**目的**：信箱分類通知，跑在你本機 + 沒 ops 上限 + 可換本地 LLM。\n\n**架構**：Gmail Trigger（5 分鐘 polling）→ Code: AI 分類 → Switch 4 路由 → 各通道輸出。\n\n**前置（必做，半小時）**：\n1. Google Cloud Console 建 Project\n2. 啟用 Gmail API\n3. 建 OAuth 2.0 Client（Web application）\n4. 加 redirect URI：`http://localhost:5678/rest/oauth2-credential/callback`\n5. 拿 client_id + client_secret\n6. n8n UI Credentials → New → Gmail OAuth2 → 貼 client_id/secret → Connect 走 OAuth 流程\n\n**為什麼複雜**：Gmail OAuth 不像 Telegram bot token 直接給字串，必須走 Google 的授權同意流程，需要 redirect URI 對應到本機 n8n。\n\n**測試**：本 workflow Active 打開後 → 寄一封測試信到你 Gmail → 5 分鐘內 Telegram 收到分類通知（如果分類為「客訴」）。\n\n**改造方向**：把 Gemini 換成本地 Ollama / Llama 3 → 信件內容完全不離開本機。詳見講義。",
         "height": 540,
         "width": 380
       },

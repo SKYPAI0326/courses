@@ -1,12 +1,12 @@
 {
   "name": "12 · 本地知識庫問答",
   "meta": {
-    "_litePackNote": "v1.3：修 4 個 bug + Codex 第二意見整合（chunker itemMatching / kb-ask helper + 動態 minScore / Set sources type=array / sticky note 改白話）"
+    "_litePackNote": "Lite Pack #12：窮人版 RAG（關鍵字 match）+ Part A 建索引 / B 問答 API / C 問答 UI 三鏈。"
   },
   "nodes": [
     {
       "parameters": {
-        "content": "## #12 本地知識庫問答（v1.3）\n\n**目的**：公司 SOP / 講義 / 合約 / FAQ → 問問題 AI 從文件找答案 + 標來源。\n\n**v1.3 修了 4 個問題**（v1.1 學員會踩到的）：\n1. 建索引看起來成功但 `indexed=0`、jsonl 空檔\n2. 問答 webhook 永遠回 HTTP 500\n3. 答覆畫面顯示 sources 欄位型別錯誤\n4. 中文問題沒空格就查不到（例：「Gemini有哪些認證？」）\n\n**v1.1 結構（保留）**：Part A 3-way Switch + filterPrintable\n- .pdf → Extract PDF（pdfjs 解析）\n- .txt/.md/.csv/.json/.log/.xml/.html/.rtf → Extract 純文字\n- **其他（.docx/.pptx/.xlsx/圖檔）→ Drop 不索引**\n\n**3 條鏈**（同一個 workflow）：\n\n**Part A：建索引**（Manual Trigger）\n點 Manual: 建索引 → Execute → knowledge-index.jsonl 生出\n看 Code 切 chunk 節點的 _stats：`indexed / skipped / skippedNoFileName / totalChunks`\n\n**Part B：問答 API**（Webhook POST /webhook/kb-ask）\nPOST 含 {\"question\": \"...\"} → 回 JSON 含 answer + sources\n\n**Part C：問答 UI**（Webhook GET /webhook/kb-ui）\n瀏覽器開 → 表單頁 → 輸入問題 → 答覆 + 來源\n\n**測試流程**：\n1. 把 .md/.txt/.pdf 丟進 knowledge-docs/（**.docx/.pptx 會被略過**，先轉 PDF 或匯出 .md）\n2. 點 Manual: 建索引 → Execute Workflow（test mode 就行）\n3. 看 _stats 確認 `indexed > 0` + `totalChunks > 0`\n4. workflow 點右上 **Publish**（不是「Active toggle」— 新版 n8n 改用 Publish 流程）\n5. 瀏覽器開 http://localhost:5678/webhook/kb-ui → 問問題 → 答覆\n\n**簡化說明**：窮人版 RAG，關鍵字 match 取代 embeddings。中英文都能查（中文 bigram 自動處理無空格輸入）。",
+        "content": "## #12 本地知識庫問答\n\n**目的**：公司 SOP / 講義 / 合約 / FAQ → 問問題 AI 從文件找答案 + 標來源。\n\n**支援格式**：\n- .pdf → Extract PDF（pdfjs 解析）\n- .txt / .md / .csv / .json / .log / .xml / .html / .rtf → Extract 純文字\n- 其他（.docx / .pptx / .xlsx / 圖檔）→ 不索引，先轉 PDF 或匯出 .md\n\n**3 條鏈**（同一個 workflow）：\n\n**Part A：建索引**（Manual Trigger）\n點 Manual: 建索引 → Execute → knowledge-index.jsonl 生出\n看 Code 切 chunk 節點的 `_stats`：`indexed / skipped / skippedNoFileName / totalChunks`\n\n**Part B：問答 API**（Webhook POST /webhook/kb-ask）\nPOST 含 `{\"question\": \"...\"}` → 回 JSON 含 answer + sources\n\n**Part C：問答 UI**（Webhook GET /webhook/kb-ui）\n瀏覽器開 → 表單頁 → 輸入問題 → 答覆 + 來源\n\n**測試流程**：\n1. 把 .md / .txt / .pdf 丟進 knowledge-docs/\n2. 點 Manual: 建索引 → Execute Workflow\n3. 看 `_stats` 確認 `indexed > 0` + `totalChunks > 0`\n4. workflow 點右上 **Publish**（新版 n8n 用 Publish 流程，不是 Active toggle）\n5. 瀏覽器開 http://localhost:5678/webhook/kb-ui → 問問題 → 答覆\n\n**簡化說明**：窮人版 RAG，關鍵字 match 取代 embeddings。中英文都能查（中文 bigram 自動處理無空格輸入）。",
         "height": 760,
         "width": 380
       },

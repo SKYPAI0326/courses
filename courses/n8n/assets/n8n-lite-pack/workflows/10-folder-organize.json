@@ -1,12 +1,12 @@
 {
   "name": "10 · 客戶資料夾自動整理",
   "meta": {
-    "_litePackNote": "v2.0：完整重新設計 — 不再針對個案打補釘，設計成任意 N 個輸入都正確。3-way Switch（PDF / 純文字 / Bypass）+ Read 為 source of truth + per-file fallback + 完整 diagnostics。"
+    "_litePackNote": "Lite Pack #10：客戶資料夾 3-way Switch 分流（PDF / 純文字 / Bypass）+ per-file AI 分類 + dedup。"
   },
   "nodes": [
     {
       "parameters": {
-        "content": "## #10 客戶資料夾自動整理（v2.0）\n\n**目的**：客戶檔案資料夾混亂 → 自動分類、命名、歸檔 + Markdown index 交接清單。\n\n**v2.0 設計原則**：\n- **無漏**：Code 從 Read 原始 items 迭代（不依賴下游 Extract 是否 drop）\n- **無覆蓋**：dedup map 防同名衝突，自動加 _2/_3 後綴\n- **無打結**：3-way Switch — Office/圖/怪 ext 全 bypass 不打 Extract（根本不會 silent drop）\n- **per-file fallback**：每檔獨立判 AI 成功 / rule-based / 兜底，不會一個失敗拖累整 chunk\n- **預檢早退**：N=0 友善訊息；N>50 警告但繼續\n\n**處理流程**：\n```\nRead → Switch 3-way:\n  ├─ .pdf → Extract PDF (operation:pdf) → AI\n  ├─ .txt/.md/.csv/.json/.log/.xml/.html/.rtf → Extract 純文字 → AI\n  └─ .pptx/.docx/.xlsx/.jpg/.png/* (其他全部) → Bypass → AI（憑檔名）\n→ Code 統合：textMap 查表 + 圖檔副檔名直送 + AI batch + dedup\n→ Write per-file → Aggregate → _index.md + Telegram\n```\n\n**Debug 欄位**（Code output 第一個 item 的 `_batchInfo`）：\n- `inputCount`：Read 抓到幾檔（client-inbox 實際）\n- `extractedCount`：Extract 通過數（< inputCount 表示某些檔走 Bypass，正常）\n- `imageDirectCount`：副檔名直送 images 的數量\n- `needsAICount`：要打 AI 的數量\n- `outputCount`：寫到磁碟的數量（**必須 = inputCount**）\n- `dedupCount`：因命名衝突被加 _2/_3 後綴\n- `aiSucceeded` / `ruleFallback`：AI 成功 / rule-based 的 file 數\n- `warnings`：例如 N>50 警告\n\n**Gemini Free Tier**：10 RPM / 250 RPD。撞限速 rule-based 接手。\n\n**測試矩陣**（push 前已自驗）：N=0 / N=1 / N=12 / N=50 + 各種 mixed 格式 + 中英特殊命名都過。",
+        "content": "## #10 客戶資料夾自動整理\n\n**目的**：客戶檔案資料夾混亂 → 自動分類、命名、歸檔 + Markdown index 交接清單。\n\n**處理流程**：\n```\nRead → Switch 3-way:\n  ├─ .pdf → Extract PDF\n  ├─ .txt/.md/.csv/.json/.log/.xml/.html/.rtf → Extract 純文字\n  └─ .pptx/.docx/.xlsx/.jpg/.png/* → Bypass（憑檔名分類）\n→ Code 統合：textMap 查表 + 圖檔直送 + AI batch + dedup\n→ Write per-file → Aggregate → _index.md + Telegram\n```\n\n**測試方法**：\n1. 把混合格式檔案丟 ~/Downloads/n8n-starter-kit/shared/client-inbox/\n2. 點 Execute workflow\n3. 看 client-organized/ 分類結果（contracts / invoices / presentations / docs / images / others）\n4. 看 client-organized/_index.md 交接清單\n\n**Debug 欄位**（Code output 第一個 item 的 `_batchInfo`）：\n- `inputCount`：Read 抓到幾檔\n- `outputCount`：寫到磁碟的數量（**必須 = inputCount**）\n- `dedupCount`：因命名衝突被加 _2/_3 後綴\n- `aiSucceeded` / `ruleFallback`：AI 成功 / rule-based 的 file 數\n- `warnings`：例如 N>50 警告\n\n**Gemini Free Tier**：10 RPM / 250 RPD。撞限速時 rule-based 接手不會整批失敗。",
         "height": 760,
         "width": 400
       },

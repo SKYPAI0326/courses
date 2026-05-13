@@ -1,12 +1,12 @@
 {
   "name": "08 · Reference / Optional Chaining 練習",
   "meta": {
-    "_litePackNote": "Lite Pack 第 8 個 workflow（給有心學員的 expression 語法練習場）。Manual Trigger → 一連串 Set 與 Code 節點示範 $json / $node / Optional Chaining ?. / 預設值 ??。學完這個 workflow 你會看懂前 7 個 workflow 內的 expression。"
+    "_litePackNote": "Lite Pack #8：n8n expression 語法練習場（$json / $env / Optional Chaining 等）。"
   },
   "nodes": [
     {
       "parameters": {
-        "content": "## #8 Expression 語法練習場\n\n**目的**：練習 n8n expression 語法，讓你看懂 #1-#7 各 workflow 內的 {{ ... }} 怎麼運作。\n\n**測試方法**：\n1. 點 Execute workflow\n2. 每個節點點開看 Output 面板，對照 expression 寫法 → 結果\n3. 改改 expression 看會發生什麼\n\n**包含的概念**：\n- $json：當前節點輸入資料\n- $('Node Name')：跨節點引用\n- $now：n8n 內建 luxon DateTime\n- $items() / $itemIndex：多 items 處理\n- Optional Chaining ?. ：避免 undefined 爆掉\n- Nullish Coalescing ?? ：預設值 fallback\n- $env：環境變數讀取\n\n**改造方向**：\n- 加自己的測試案例（特殊資料結構、巢狀物件）\n- 把這 workflow 改成「expression playground」每天玩\n- 有不會的 expression 就回來這個 workflow 加 Set 節點測試",
+        "content": "## #8 Expression 語法練習場\n\n**目的**：練習 n8n expression 語法，讓你看懂其他 workflow 內的 `{{ ... }}` 怎麼運作。\n\n**測試方法**：\n1. 點 Execute workflow\n2. 每個節點點開看 Output 面板，對照 expression 寫法 → 結果\n3. 改改 expression 看會發生什麼\n\n**包含的概念**：\n- `$json`：當前節點輸入資料\n- `$('Node Name')`：跨節點引用\n- `$now`：n8n 內建 luxon DateTime\n- `$items() / $itemIndex`：多 items 處理\n- Optional Chaining `?.`：避免 undefined 爆掉\n- Nullish Coalescing `??`：預設值 fallback\n- `$env`：環境變數讀取\n\n**改造方向**：\n- 加自己的測試案例（特殊資料結構、巢狀物件）\n- 把這 workflow 改成「expression playground」每天玩\n- 有不會的 expression 就回來這個 workflow 加 Set 節點測試",
         "height": 460,
         "width": 380
       },
@@ -14,7 +14,10 @@
       "name": "📌 使用說明",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [-280, 0]
+      "position": [
+        -280,
+        0
+      ]
     },
     {
       "parameters": {},
@@ -22,14 +25,27 @@
       "name": "Manual Trigger",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [240, 300]
+      "position": [
+        240,
+        300
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
-            {"id": "demo-08-1", "name": "user", "value": "={\"name\":\"Alice\",\"age\":30,\"address\":{\"city\":\"Taipei\",\"zip\":null},\"tags\":[\"vip\",\"taipei\"]}", "type": "object"},
-            {"id": "demo-08-2", "name": "items", "value": "=[{\"id\":1,\"name\":\"item-A\",\"price\":100},{\"id\":2,\"name\":\"item-B\",\"price\":200},{\"id\":3,\"name\":\"item-C\"}]", "type": "array"}
+            {
+              "id": "demo-08-1",
+              "name": "user",
+              "value": "={\"name\":\"Alice\",\"age\":30,\"address\":{\"city\":\"Taipei\",\"zip\":null},\"tags\":[\"vip\",\"taipei\"]}",
+              "type": "object"
+            },
+            {
+              "id": "demo-08-2",
+              "name": "items",
+              "value": "=[{\"id\":1,\"name\":\"item-A\",\"price\":100},{\"id\":2,\"name\":\"item-B\",\"price\":200},{\"id\":3,\"name\":\"item-C\"}]",
+              "type": "array"
+            }
           ]
         },
         "options": {}
@@ -38,22 +54,75 @@
       "name": "Set: 假資料（巢狀物件 + array）",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [460, 300]
+      "position": [
+        460,
+        300
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
-            {"id": "ex-1", "name": "1_basic_json", "value": "={{ $json.user.name }}", "type": "string"},
-            {"id": "ex-2", "name": "2_nested_object", "value": "={{ $json.user.address.city }}", "type": "string"},
-            {"id": "ex-3", "name": "3_optional_chaining_safe", "value": "={{ $json.user.address?.zip ?? '未填郵遞區號' }}", "type": "string"},
-            {"id": "ex-4", "name": "4_optional_chaining_deep", "value": "={{ $json.user.profile?.email ?? '無 email' }}", "type": "string"},
-            {"id": "ex-5", "name": "5_array_first", "value": "={{ $json.items[0].name }}", "type": "string"},
-            {"id": "ex-6", "name": "6_array_length", "value": "={{ $json.items.length }}", "type": "number"},
-            {"id": "ex-7", "name": "7_array_filter_map", "value": "={{ $json.items.filter(x => x.price).map(x => x.name).join(', ') }}", "type": "string"},
-            {"id": "ex-8", "name": "8_now_luxon", "value": "={{ $now.toFormat('yyyy-MM-dd HH:mm:ss') }}", "type": "string"},
-            {"id": "ex-9", "name": "9_today_format", "value": "={{ $today.toFormat('yyyyMMdd') }}", "type": "string"},
-            {"id": "ex-10", "name": "10_env_var_safe", "value": "={{ $env.TELEGRAM_CHAT_ID ?? '未設定環境變數' }}", "type": "string"}
+            {
+              "id": "ex-1",
+              "name": "1_basic_json",
+              "value": "={{ $json.user.name }}",
+              "type": "string"
+            },
+            {
+              "id": "ex-2",
+              "name": "2_nested_object",
+              "value": "={{ $json.user.address.city }}",
+              "type": "string"
+            },
+            {
+              "id": "ex-3",
+              "name": "3_optional_chaining_safe",
+              "value": "={{ $json.user.address?.zip ?? '未填郵遞區號' }}",
+              "type": "string"
+            },
+            {
+              "id": "ex-4",
+              "name": "4_optional_chaining_deep",
+              "value": "={{ $json.user.profile?.email ?? '無 email' }}",
+              "type": "string"
+            },
+            {
+              "id": "ex-5",
+              "name": "5_array_first",
+              "value": "={{ $json.items[0].name }}",
+              "type": "string"
+            },
+            {
+              "id": "ex-6",
+              "name": "6_array_length",
+              "value": "={{ $json.items.length }}",
+              "type": "number"
+            },
+            {
+              "id": "ex-7",
+              "name": "7_array_filter_map",
+              "value": "={{ $json.items.filter(x => x.price).map(x => x.name).join(', ') }}",
+              "type": "string"
+            },
+            {
+              "id": "ex-8",
+              "name": "8_now_luxon",
+              "value": "={{ $now.toFormat('yyyy-MM-dd HH:mm:ss') }}",
+              "type": "string"
+            },
+            {
+              "id": "ex-9",
+              "name": "9_today_format",
+              "value": "={{ $today.toFormat('yyyyMMdd') }}",
+              "type": "string"
+            },
+            {
+              "id": "ex-10",
+              "name": "10_env_var_safe",
+              "value": "={{ $env.TELEGRAM_CHAT_ID ?? '未設定環境變數' }}",
+              "type": "string"
+            }
           ]
         },
         "options": {}
@@ -62,7 +131,10 @@
       "name": "Set: 10 種 expression 範例",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [680, 300]
+      "position": [
+        680,
+        300
+      ]
     },
     {
       "parameters": {
@@ -73,16 +145,60 @@
       "name": "Code: 複合資料處理",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [900, 300]
+      "position": [
+        900,
+        300
+      ]
     }
   ],
   "connections": {
-    "Manual Trigger": {"main": [[{"node": "Set: 假資料（巢狀物件 + array）", "type": "main", "index": 0}]]},
-    "Set: 假資料（巢狀物件 + array）": {"main": [[{"node": "Set: 10 種 expression 範例", "type": "main", "index": 0}]]},
-    "Set: 10 種 expression 範例": {"main": [[{"node": "Code: 複合資料處理", "type": "main", "index": 0}]]}
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set: 假資料（巢狀物件 + array）",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set: 假資料（巢狀物件 + array）": {
+      "main": [
+        [
+          {
+            "node": "Set: 10 種 expression 範例",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set: 10 種 expression 範例": {
+      "main": [
+        [
+          {
+            "node": "Code: 複合資料處理",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
   "active": false,
-  "settings": {"executionOrder": "v1"},
+  "settings": {
+    "executionOrder": "v1"
+  },
   "id": "lite-pack-08-expression-practice",
-  "tags": [{"name": "lite-pack", "id": "tag-lite-pack"}, {"name": "module-2", "id": "tag-module-2"}]
+  "tags": [
+    {
+      "name": "lite-pack",
+      "id": "tag-lite-pack"
+    },
+    {
+      "name": "module-2",
+      "id": "tag-module-2"
+    }
+  ]
 }

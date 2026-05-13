@@ -1,12 +1,12 @@
 {
   "name": "06 · Webhook → Gemini → 本機檔",
   "meta": {
-    "_litePackNote": "v0.7：加 Web UI 分支（GET /ai-ui 回 HTML 表單頁），學員瀏覽器開 http://localhost:5678/webhook/ai-ui 即可問問題，不需 curl。原 POST /ai-ask 保留給程式呼叫。"
+    "_litePackNote": "Lite Pack #6：Webhook 收 question → Gemini 生答 → 寫 .md + Telegram + Web UI 分支。"
   },
   "nodes": [
     {
       "parameters": {
-        "content": "## #6 Webhook → Gemini → 本機檔（v0.6）\n\n**目的**：外部 POST 一個問題 → Gemini 生答 → 寫本機 .md 檔 + Telegram 通知。\n\n**v0.6 設計**：Code node 直接打 Gemini API（不再用 HTTP Request node），徹底避開 jsonBody 解析雷。\n\n**測試方法（兩種）**：\n\n**A. 純本機測試**（不需 Tunnel）\n1. 點 Execute workflow → Webhook 變藍色\n2. 終端機跑：\n   curl -X POST http://localhost:5678/webhook-test/ai-ask \\\n     -H \"Content-Type: application/json\" \\\n     -d '{\"question\":\"今天台北天氣？\"}'\n3. 等 5-10 秒，看 ~/Downloads/n8n-starter-kit/shared/ai-output/ 出現 .md\n4. Telegram 應收到通知\n\n**B. 公開測試**（搭 Quick Tunnel）\n見 #7 workflow，把 webhook URL 換成 trycloudflare.com\n\n**改造方向**：\n- 換 prompt 做不同任務（翻譯 / 摘要 / 文案）\n- 加 If node 判斷問題類型走不同分支\n- 換輸出（本機檔 → Notion / Google Sheets）",
+        "content": "## #6 Webhook → Gemini → 本機檔\n\n**目的**：外部 POST 一個問題 → Gemini 生答 → 寫本機 .md 檔 + Telegram 通知。\n\n**測試方法（兩種）**：\n\n**A. 純本機測試**（不需 Tunnel）\n1. 點 Execute workflow → Webhook 變藍色\n2. 終端機跑：\n   ```\n   curl -X POST http://localhost:5678/webhook-test/ai-ask \\\n     -H \"Content-Type: application/json\" \\\n     -d '{\"question\":\"今天台北天氣？\"}'\n   ```\n3. 等 5-10 秒，看 ~/Downloads/n8n-starter-kit/shared/ai-output/ 出現 .md\n4. Telegram 應收到通知\n\n**B. 公開測試**（搭 Quick Tunnel）\n見 #7 workflow，把 webhook URL 換成 trycloudflare.com\n\n**Web UI 分支**：瀏覽器開 http://localhost:5678/webhook/ai-ui 即可表單輸入問題（不需 curl）。\n\n**改造方向**：\n- 換 prompt 做不同任務（翻譯 / 摘要 / 文案）\n- 加 If node 判斷問題類型走不同分支\n- 換輸出（本機檔 → Notion / Google Sheets）",
         "height": 480,
         "width": 380
       },

@@ -1,12 +1,12 @@
 {
   "name": "02 · PDF AI 改名",
   "meta": {
-    "_litePackNote": "v0.6：徹底廢掉 HTTP Request node，改用 Code + this.helpers.httpRequest 直接打 Gemini API。繞過 n8n jsonBody expression 解析陷阱（連發 #16 終極解）。"
+    "_litePackNote": "Lite Pack #2：批次 PDF AI 改名。Code node 透過 $env.GEMINI_API_KEY 讀 key。"
   },
   "nodes": [
     {
       "parameters": {
-        "content": "## #2 PDF AI 改名（v0.6 終極版）\n\n**目的**：批次讀資料夾 PDF → AI 改名。\n\n**v0.6 設計**：用 Code node 內建 helpers.httpRequest 取代 HTTP Request node，徹底避開 n8n jsonBody expression 解析錯誤。整條 workflow 從 7 節點簡化為 5 節點。\n\n**測試方法**：\n1. ~/Downloads/n8n-starter-kit/shared/pdf-inbox/ 拖 PDF\n2. 點下方紫色 Execute workflow\n3. shared/pdf-renamed/ 出現新檔名\n\n**API key 處理**：你的 Gemini API key 寫在 n8n 容器環境變數 GEMINI_API_KEY，Code node 透過 $env.GEMINI_API_KEY 讀取（v1.3 起改走 env 路徑，workflow JSON 不再含真 key）。要換 key：編輯 starter-kit/.env 的 GEMINI_API_KEY=… 後 docker compose restart n8n，或重跑 setup-wizard。",
+        "content": "## #2 PDF AI 改名\n\n**目的**：批次讀資料夾 PDF → AI 改名。\n\n**測試方法**：\n1. 把 PDF 拖進 ~/Downloads/n8n-starter-kit/shared/pdf-inbox/\n2. 點下方紫色 Execute workflow\n3. shared/pdf-renamed/ 出現改名後檔案\n\n**API key 處理**：你的 Gemini API key 在 n8n 容器環境變數 GEMINI_API_KEY，Code node 透過 $env.GEMINI_API_KEY 讀取。要換 key：編輯 starter-kit/.env，docker compose restart n8n，或重跑 setup-wizard。\n\n**改造方向**：\n- 改 prompt 改變命名規則\n- 把 trigger 從 Manual 改成 Schedule 或 Local File Trigger（資料夾監看）\n- 失敗檔走 Telegram 通知",
         "height": 380,
         "width": 380
       },

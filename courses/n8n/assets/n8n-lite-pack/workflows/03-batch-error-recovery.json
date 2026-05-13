@@ -1,12 +1,12 @@
 {
   "name": "03 · 批次處理錯誤恢復",
   "meta": {
-    "_litePackNote": "v0.6：跟 02 同步改 Code-based。HTTP Request node 改用 Code + this.helpers.httpRequest，避開 jsonBody 解析雷。dual-path 仍保留：Code 節點 onError continueErrorOutput → 失敗走 fail 分支。"
+    "_litePackNote": "Lite Pack #3：批次處理 + onError continueErrorOutput 分流。"
   },
   "nodes": [
     {
       "parameters": {
-        "content": "## #3 批次處理錯誤恢復（資料工廠 v0.6）\n\n**目的**：手動觸發 → 一次處理 batch-inbox/ 下所有 PDF → 成功歸 processed/ → 失敗歸 failed/。\n\n**v0.6 設計**：\n- Code node 直接打 Gemini API（不再用 HTTP Request node）\n- AI 失敗時 Code throw → onError continueErrorOutput → 走 fail 分支\n- 整批不會因為單檔失敗而炸掉\n\n**測試方法**：\n1. ~/Downloads/n8n-starter-kit/shared/batch-inbox/ 一次丟 5-10 份 PDF\n2. 點 Execute workflow\n3. 看 processed/ 有改名後成品 + failed/ 有失敗的（如果有）\n\n**改造方向**：\n- 改 Schedule Trigger 取代手動（每天凌晨自動跑）\n- 加 Telegram 通知 summary 結果\n- 加 retry 機制（失敗檔 3 分鐘後重試一次）",
+        "content": "## #3 批次處理錯誤恢復\n\n**目的**：一次處理 batch-inbox/ 下所有 PDF → 成功歸 processed/ → 失敗歸 failed/。\n\n**測試方法**：\n1. 把 5-10 份 PDF 丟進 ~/Downloads/n8n-starter-kit/shared/batch-inbox/\n2. 點 Execute workflow\n3. 看 processed/ 有改名後成品 + failed/ 有失敗的（如果有）\n\n**設計重點**：AI 失敗時 Code throw → onError continueErrorOutput → 走 fail 分支。整批不會因為單檔失敗而炸掉。\n\n**改造方向**：\n- 改 Schedule Trigger 取代手動（每天凌晨自動跑）\n- 加 Telegram 通知 summary 結果\n- 加 retry 機制（失敗檔 3 分鐘後重試一次）",
         "height": 480,
         "width": 380
       },
