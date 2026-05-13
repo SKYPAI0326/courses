@@ -1,4 +1,4 @@
-﻿# n8n Lite Pack · setup-wizard.ps1 (Windows) v1.3
+﻿# n8n Lite Pack · setup-wizard.ps1 (Windows) v1.3.1
 # 由 setup-wizard.bat 呼叫。十步驟自動化安裝。
 # 採納 Codex L3 審核建議：UTF-8 BOM / SecureString token / .Replace() / Invoke-Native exit code 檢查
 # v1.1：Telegram 改為可選（Y/N gate）— 不用 TG 的學員零摩擦過關
@@ -8,6 +8,11 @@
 #       新機制：寫到 starter-kit/.env 的 GEMINI_API_KEY 環境變數 → n8n Code node 透過 $env 讀
 #       需要 n8n-compose.yml 含 N8N_BLOCK_ENV_ACCESS_IN_NODE=false（本 wizard 會自動 patch）
 #       偵測到舊版安裝（personalization.env 殘留）會跳警告，提醒撤銷舊 key
+# v1.3.1：修 Invoke-Native 對 docker compose stderr 過度敏感的 bug
+#         症狀：Step 4.5 重啟 n8n 時，docker compose down 輸出 "Container ... Stopping" 到 stderr，
+#         在 $ErrorActionPreference='Stop' 下被 PowerShell 當 RemoteException 拋出 →
+#         script 中斷在 down 跟 up 之間 → container 被 stop 沒被 up 起來 → 看起來「被刪除」
+#         修：Invoke-Native 內暫時 ErrorActionPreference=Continue，呼完還原；判斷成敗只看 $LASTEXITCODE
 
 $ErrorActionPreference = 'Stop'
 $OutputEncoding = [System.Text.Encoding]::UTF8
@@ -28,7 +33,7 @@ $Log = "$ScriptDir\setup-wizard.log"
 
 Write-Host ""
 Write-Host "═════════════════════════════════════════════════════════════" -ForegroundColor Cyan
-Write-Host "  n8n Lite Pack · setup-wizard for Windows v1.3" -ForegroundColor Cyan
+Write-Host "  n8n Lite Pack · setup-wizard for Windows v1.3.1" -ForegroundColor Cyan
 Write-Host "  PowerShell: $($PSVersionTable.PSVersion)" -ForegroundColor Gray
 Write-Host "  log: $Log" -ForegroundColor Gray
 Write-Host "═════════════════════════════════════════════════════════════" -ForegroundColor Cyan
@@ -57,6 +62,10 @@ function Write-Utf8NoBom {
 
 # native command wrapper：顯示輸出給學員看 + 寫 log + exit code 檢查
 # 用 [void] 包呼叫避免 return value 印到 console
+# v1.3.1 修補：$ErrorActionPreference='Stop' 下 docker compose 把進度訊息寫 stderr（如
+# "Container n8n-...n8n-1 Stopping"），2>&1 合流後 PowerShell 會把 stderr 當 RemoteException 拋。
+# 結果：docker compose down 已執行（container 停了），但 throw 中斷 script，up -d 沒跑 → 容器消失。
+# 修：呼叫 native command 期間暫時 ErrorActionPreference=Continue，呼完還原。判失敗只看 $LASTEXITCODE。
 function Invoke-Native {
   param(
     [string]$Label,
@@ -64,8 +73,14 @@ function Invoke-Native {
     [string[]]$NativeArgs,
     [switch]$ContinueOnError
   )
-  $output = & $FilePath @NativeArgs 2>&1
-  # 顯示輸出讓學員看到實際錯誤訊息
+  $prevEAP = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
+  try {
+    $output = & $FilePath @NativeArgs 2>&1
+  } finally {
+    $ErrorActionPreference = $prevEAP
+  }
+  # 顯示輸出讓學員看到實際進度 / 錯誤訊息（stderr 進度訊息也會在這印，但不算錯誤）
   if ($output) {
     $output | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
   }
