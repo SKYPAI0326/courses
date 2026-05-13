@@ -73,6 +73,14 @@ services:
       # n8n 2.x 預設只允許 /home/node/.n8n-files，沒這兩條 Read PDF 會 "Access to file is not allowed"
       - N8N_RESTRICT_FILE_ACCESS_TO=/files/shared
       - N8N_BLOCK_FILE_ACCESS_TO_N8N_FILES=false
+
+      # Lite Pack v1.3：Code node 透過 $env.GEMINI_API_KEY 讀 key（避開字串替換洩漏路徑）
+      # 1) 必須開放 Code node 讀 env（n8n v2 預設封鎖，要關才能讀 $env）
+      # 2) GEMINI_API_KEY 從 host .env 經 compose pass-through 進容器；setup-wizard 自動填
+      # 內部 task runner（N8N_RUNNERS_ENABLED=true，預設 internal mode）繼承 main process env，
+      # 不需要額外設定；若改 external runner 才需要另外傳 env。
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
     volumes:
       # n8n 設定 + workflows + credentials（持久化於 Docker volume）
       - n8n_data:/home/node/.n8n

@@ -1,9 +1,13 @@
-﻿# n8n Lite Pack · setup-wizard.ps1 (Windows) v1.2.4
+﻿# n8n Lite Pack · setup-wizard.ps1 (Windows) v1.3
 # 由 setup-wizard.bat 呼叫。十步驟自動化安裝。
 # 採納 Codex L3 審核建議：UTF-8 BOM / SecureString token / .Replace() / Invoke-Native exit code 檢查
 # v1.1：Telegram 改為可選（Y/N gate）— 不用 TG 的學員零摩擦過關
-# v1.2.3：版號對齊（Win 版本身的 Gemini smoke test 已正確帶 thinkingConfig.thinkingBudget=0；本次只 bump 版號跟 Mac 對齊）
-# v1.2.4：#14 endpoints 解析 robust（兼容 string / array / 單一 object）；版號 bump（本檔本身 wizard 邏輯不變）
+# v1.2.3 / v1.2.4：smoke test 與 endpoints 解析強化（純版號 bump）
+# v1.3：⚠ 安全修補 — Gemini key 改走 $env.GEMINI_API_KEY 路徑（不再字串替換 jsCode）
+#       原機制：把 __GEMINI_API_KEY__ 替換成真 key 寫進 workflow JSON → 學員匯出 JSON 會洩漏
+#       新機制：寫到 starter-kit/.env 的 GEMINI_API_KEY 環境變數 → n8n Code node 透過 $env 讀
+#       需要 n8n-compose.yml 含 N8N_BLOCK_ENV_ACCESS_IN_NODE=false（本 wizard 會自動 patch）
+#       偵測到舊版安裝（personalization.env 殘留）會跳警告，提醒撤銷舊 key
 
 $ErrorActionPreference = 'Stop'
 $OutputEncoding = [System.Text.Encoding]::UTF8
@@ -24,7 +28,7 @@ $Log = "$ScriptDir\setup-wizard.log"
 
 Write-Host ""
 Write-Host "═════════════════════════════════════════════════════════════" -ForegroundColor Cyan
-Write-Host "  n8n Lite Pack · setup-wizard for Windows v1.1" -ForegroundColor Cyan
+Write-Host "  n8n Lite Pack · setup-wizard for Windows v1.3" -ForegroundColor Cyan
 Write-Host "  PowerShell: $($PSVersionTable.PSVersion)" -ForegroundColor Gray
 Write-Host "  log: $Log" -ForegroundColor Gray
 Write-Host "═════════════════════════════════════════════════════════════" -ForegroundColor Cyan
@@ -180,72 +184,192 @@ if ($UseTelegram) {
   Write-Host "  ✓ 1 個 personalization 資料收齊（Gemini）" -ForegroundColor Green
 }
 
-# ════════ Step 3: file access patch + 重啟 ════════
+# ════════ Step 3: 偵測舊版安裝 + 統一 patch compose.yml（file access + env access + key pass-through）════════
 Write-Host ""
-Write-Host "[3/10] 偵測 file access 環境變數..." -ForegroundColor Yellow
+Write-Host "[3/10] 偵測舊版安裝 + patch compose.yml 環境變數..." -ForegroundColor Yellow
+
+# v1.3: 偵測舊版（personalization.env 殘留）→ 警告撤銷舊 key
+$OldMarker = "$ScriptDir\personalization.env"
+# 另一個 marker：starter-kit/.env 內既有 GEMINI_API_KEY=AIzaSy... 真實值
+$OldEnvHasKey = $false
+$StarterEnv = "$StarterKit\.env"
+if (Test-Path $StarterEnv) {
+  if (Select-String -Path $StarterEnv -Pattern '^\s*GEMINI_API_KEY\s*=\s*"?AIzaSy' -Quiet) {
+    $OldEnvHasKey = $true
+  }
+}
+
+if ((Test-Path $OldMarker) -or $OldEnvHasKey) {
+  $msg = @"
+偵測到舊版 wizard 安裝過。
+
+舊版（v1.2 之前）會把你的 Gemini API key 字串替換進 workflow JSON。
+你以前從 n8n UI 匯出（Download）過的任何 workflow JSON 都可能含真 key 明文。
+
+強烈建議：
+  1. 立刻到 https://aistudio.google.com/apikey 撤銷（Delete）舊 key
+  2. 重新申請一把新 key
+  3. 繼續本 wizard，新機制（環境變數）會把新 key 寫進 starter-kit/.env
+     workflow JSON 不再含 key，匯出也不會洩漏
+
+按 Enter 繼續，或 Ctrl+C 中止。
+"@
+  Write-Host $msg -ForegroundColor Yellow
+  Read-Host "確認後按 Enter"
+  if (Test-Path $OldMarker) {
+    Move-Item $OldMarker "$OldMarker.migrated-$(Get-Date -Format 'yyyyMMddHHmmss')" -Force
+    Write-Host "  ⚠ 舊版 marker (personalization.env) 已重新命名" -ForegroundColor Yellow
+  }
+  if ($OldEnvHasKey) {
+    Write-Host "  ⚠ 偵測到 .env 已含 AIzaSy 開頭真實 key — 舊 wizard 寫過。新 key 會覆蓋此值" -ForegroundColor Yellow
+  }
+}
 
 $Compose = "$StarterKit\n8n-compose.yml"
 $ComposeContent = Get-Content $Compose -Raw -Encoding UTF8
-if ($ComposeContent -match 'N8N_RESTRICT_FILE_ACCESS_TO') {
-  Write-Host "  ✓ compose.yml 已含 file access patch（跳過）" -ForegroundColor Green
+Copy-Item $Compose "$Compose.bak-$(Get-Date -Format 'yyyyMMddHHmmss')"
+Write-Host "  ✓ 已備份 compose.yml" -ForegroundColor Green
+
+# 統一 patch 4 個必要 env vars（idempotent）
+$Required = @(
+  @{ Key = 'N8N_RESTRICT_FILE_ACCESS_TO';       Line = '      - N8N_RESTRICT_FILE_ACCESS_TO=/files/shared' },
+  @{ Key = 'N8N_BLOCK_FILE_ACCESS_TO_N8N_FILES';Line = '      - N8N_BLOCK_FILE_ACCESS_TO_N8N_FILES=false' },
+  @{ Key = 'N8N_BLOCK_ENV_ACCESS_IN_NODE';      Line = '      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false' },
+  @{ Key = 'GEMINI_API_KEY';                    Line = '      - GEMINI_API_KEY=${GEMINI_API_KEY:-}' }
+)
+# Codex 建議：line-anchored regex，避免被註解誤導
+$Missing = $Required | Where-Object {
+  $pat = '(?m)^\s*-\s*' + [regex]::Escape($_.Key) + '='
+  $ComposeContent -notmatch $pat
+}
+
+if ($Missing.Count -eq 0) {
+  Write-Host "  ✓ compose.yml 4 個必要 env vars 都齊（跳過 patch）" -ForegroundColor Green
   $RestartNeeded = $false
 } else {
-  Copy-Item $Compose "$Compose.bak-$(Get-Date -Format 'yyyyMMddHHmmss')"
-  $patched = $ComposeContent.Replace(
-    'N8N_BASIC_AUTH_ACTIVE=false',
-    "N8N_BASIC_AUTH_ACTIVE=false`n      - N8N_RESTRICT_FILE_ACCESS_TO=/files/shared`n      - N8N_BLOCK_FILE_ACCESS_TO_N8N_FILES=false"
-  )
-  Write-Utf8NoBom $Compose $patched
-  Write-Host "  ✓ patch 完成（加入 N8N_RESTRICT_FILE_ACCESS_TO + N8N_BLOCK_FILE_ACCESS_TO_N8N_FILES）" -ForegroundColor Green
-  $RestartNeeded = $true
-}
-
-if ($RestartNeeded) {
-  Write-Host "  ⏳ 重啟 n8n container..." -ForegroundColor Yellow
-  Push-Location $StarterKit
-  Invoke-Native "docker compose down" "docker" @("compose", "-f", "n8n-compose.yml", "down") -ContinueOnError | Out-Null
-  Invoke-Native "docker compose up -d" "docker" @("compose", "-f", "n8n-compose.yml", "up", "-d")
-  Pop-Location
-
-  Write-Host "  ⏳ 等 n8n 就緒..." -NoNewline
-  $ready = $false
-  for ($i = 0; $i -lt 40; $i++) {
-    Start-Sleep -Seconds 2
-    try {
-      Invoke-WebRequest -Uri "http://localhost:5678/healthz" -UseBasicParsing -TimeoutSec 3 | Out-Null
-      Write-Host " ✓" -ForegroundColor Green
-      $ready = $true
-      break
-    } catch {
-      Write-Host "." -NoNewline
-    }
-  }
-  if (-not $ready) {
-    Write-Host ""
-    Write-Host "  ❌ n8n 重啟後 80 秒內未就緒" -ForegroundColor Red
+  # 用 regex 在 n8n service 的 environment: 區段最後一個 env line 後追加
+  $pattern = '(?ms)^(  n8n:\r?\n(?:.*?\r?\n)*?    environment:\r?\n(?:      - [^\r\n]+\r?\n)+)'
+  $injectLines = ($Missing | ForEach-Object { $_.Line }) -join "`n"
+  $injectLines += "`n"
+  if ($ComposeContent -match $pattern) {
+    $patched = [regex]::Replace($ComposeContent, $pattern, "`${1}$injectLines", 1)
+    Write-Utf8NoBom $Compose $patched
+    $injectedKeys = ($Missing | ForEach-Object { $_.Key }) -join ', '
+    Write-Host "  ✓ compose.yml 已加入：$injectedKeys" -ForegroundColor Green
+    $RestartNeeded = $true
+  } else {
+    Write-Host "  ❌ compose.yml patch 失敗（找不到 n8n service environment 區段）" -ForegroundColor Red
+    Write-Host "  請手動編輯 compose.yml 在 n8n service 的 environment: 區段加入：" -ForegroundColor Yellow
+    $Missing | ForEach-Object { Write-Host "    $($_.Line)" -ForegroundColor Yellow }
     exit 1
   }
-  # 重新抓 container 名
-  $containers = @(docker ps --filter "name=n8n" --format "{{.Names}}" | Where-Object { $_ -match "n8n" -and $_ -notmatch "postgres" })
-  $N8nContainer = $containers[0]
-  Write-Host "  ✓ n8n 重啟完成（container: $N8nContainer）" -ForegroundColor Green
 }
 
-# ════════ Step 4: personalization.env ════════
+# 注意：實際 restart 移到 Step 4 之後（.env 寫完才重啟，這樣容器能讀到新 GEMINI_API_KEY）
+
+# ════════ Step 4: 寫/合併 starter-kit/.env（GEMINI_API_KEY；idempotent）════════
 Write-Host ""
-Write-Host "[4/10] 寫入 personalization.env..." -ForegroundColor Yellow
-$EnvLines = @(
-  "# n8n Lite Pack 個人化設定（setup-wizard 自動產生 $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'))",
-  "# 不要 commit 到 git！",
-  "GEMINI_API_KEY=$GeminiKey"
-)
-if ($UseTelegram) {
-  $EnvLines += "TELEGRAM_BOT_TOKEN=$TgToken"
-  $EnvLines += "TELEGRAM_CHAT_ID=$TgChatId"
+Write-Host "[4/10] 合併 GEMINI_API_KEY 到 starter-kit/.env..." -ForegroundColor Yellow
+
+$EnvFile = "$StarterKit\.env"
+if (-not (Test-Path $EnvFile)) {
+  if (Test-Path "$StarterKit\.env.example") {
+    Copy-Item "$StarterKit\.env.example" $EnvFile
+    Write-Host "  ↳ 從 .env.example 建立 .env" -ForegroundColor DarkGray
+  } else {
+    Write-Utf8NoBom $EnvFile ""
+    Write-Host "  ↳ 建立空 .env" -ForegroundColor DarkGray
+  }
 }
-$EnvContent = $EnvLines -join "`r`n"
-Write-Utf8NoBom "$ScriptDir\personalization.env" $EnvContent
-Write-Host "  ✓ personalization.env 寫入完成" -ForegroundColor Green
+
+# 備份
+Copy-Item $EnvFile "$EnvFile.bak-$(Get-Date -Format 'yyyyMMddHHmmss')"
+
+# dotenv quote helper（跳脫 \ " $；避免 docker compose env var 展開）
+function Get-DotenvQuoted {
+  param([string]$Value)
+  $escaped = $Value.Replace('\', '\\').Replace('"', '\"').Replace('$', '\$')
+  return '"' + $escaped + '"'
+}
+
+# idempotent merge — 對非註解的 GEMINI_API_KEY= 行替換，沒有就 append
+$EnvLines = Get-Content $EnvFile -Encoding UTF8
+$NewGeminiLine = "GEMINI_API_KEY=$(Get-DotenvQuoted $GeminiKey)"
+$Replaced = $false
+$OutLines = @()
+foreach ($line in $EnvLines) {
+  $trimmed = $line.TrimStart()
+  if (-not $trimmed.StartsWith('#') -and $trimmed -match '^GEMINI_API_KEY=') {
+    $OutLines += $NewGeminiLine
+    $Replaced = $true
+  } else {
+    $OutLines += $line
+  }
+}
+if (-not $Replaced) {
+  $OutLines += ''
+  $OutLines += '# ---- Gemini API key（setup-wizard v1.3 自動寫入） ----'
+  $OutLines += $NewGeminiLine
+}
+$EnvResult = if ($Replaced) { 'replaced' } else { 'appended' }
+
+# Telegram secrets 也寫進 .env（若選用）
+if ($UseTelegram) {
+  $TgTokenLine = "TELEGRAM_BOT_TOKEN=$(Get-DotenvQuoted $TgToken)"
+  $TgChatLine  = "TELEGRAM_CHAT_ID=$(Get-DotenvQuoted $TgChatId)"
+  $TgTokenSeen = $false
+  $TgChatSeen  = $false
+  $NewOut = @()
+  foreach ($line in $OutLines) {
+    $trimmed = $line.TrimStart()
+    if (-not $trimmed.StartsWith('#') -and $trimmed -match '^TELEGRAM_BOT_TOKEN=') {
+      $NewOut += $TgTokenLine; $TgTokenSeen = $true
+    } elseif (-not $trimmed.StartsWith('#') -and $trimmed -match '^TELEGRAM_CHAT_ID=') {
+      $NewOut += $TgChatLine; $TgChatSeen = $true
+    } else {
+      $NewOut += $line
+    }
+  }
+  if (-not $TgTokenSeen) { $NewOut += $TgTokenLine }
+  if (-not $TgChatSeen)  { $NewOut += $TgChatLine }
+  $OutLines = $NewOut
+}
+
+Write-Utf8NoBom $EnvFile (($OutLines -join "`r`n") + "`r`n")
+Write-Host "  ✓ GEMINI_API_KEY $EnvResult 到 $EnvFile" -ForegroundColor Green
+if ($UseTelegram) {
+  Write-Host "  ✓ TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID 也已寫入" -ForegroundColor Green
+}
+
+# Step 4.5: 重啟 n8n（讀 compose patch + .env 新 GEMINI_API_KEY）
+# 因 .env 一定會變（每次 wizard 都會寫新 key），所以這裡無條件重啟
+Write-Host "  ⏳ 重啟 n8n container（讀新 .env 與 compose env vars）..." -ForegroundColor Yellow
+Push-Location $StarterKit
+Invoke-Native "docker compose down" "docker" @("compose", "-f", "n8n-compose.yml", "down") -ContinueOnError | Out-Null
+Invoke-Native "docker compose up -d" "docker" @("compose", "-f", "n8n-compose.yml", "up", "-d")
+Pop-Location
+
+Write-Host "  ⏳ 等 n8n 就緒..." -NoNewline
+$ready = $false
+for ($i = 0; $i -lt 40; $i++) {
+  Start-Sleep -Seconds 2
+  try {
+    Invoke-WebRequest -Uri "http://localhost:5678/healthz" -UseBasicParsing -TimeoutSec 3 | Out-Null
+    Write-Host " ✓" -ForegroundColor Green
+    $ready = $true
+    break
+  } catch {
+    Write-Host "." -NoNewline
+  }
+}
+if (-not $ready) {
+  Write-Host ""
+  Write-Host "  ❌ n8n 重啟後 80 秒內未就緒" -ForegroundColor Red
+  exit 1
+}
+$containers = @(docker ps --filter "name=n8n" --format "{{.Names}}" | Where-Object { $_ -match "n8n" -and $_ -notmatch "postgres" })
+$N8nContainer = $containers[0]
+Write-Host "  ✓ n8n 重啟完成（container: $N8nContainer）" -ForegroundColor Green
 
 # ════════ Step 5: 建 sample 資料夾 ════════
 Write-Host ""
@@ -293,26 +417,83 @@ $CredsJson = ConvertTo-Json -InputObject @($Creds) -Depth 10
 Write-Utf8NoBom $CredFile $CredsJson
 Write-Host "  ✓ credentials JSON 生成" -ForegroundColor Green
 
-# ════════ Step 7: 替換 placeholder（採納 Codex 建議用 .Replace 而非 -replace）════════
+# ════════ Step 7: workflow JSON 處理（v1.3：sanity scan + 只替換 Telegram placeholder，不再碰 Gemini）════════
 Write-Host ""
-Write-Host "[7/10] 替換 workflow JSON 內 placeholder..." -ForegroundColor Yellow
+Write-Host "[7/10] sanity scan + 替換 __TELEGRAM_* placeholder..." -ForegroundColor Yellow
 
 $WorkflowTmp = "$ScriptDir\workflows-tmp"
 if (Test-Path $WorkflowTmp) { Remove-Item $WorkflowTmp -Recurse -Force }
 Copy-Item "$ScriptDir\workflows" $WorkflowTmp -Recurse
 
+# Step 7a: sanity scan — 模板絕對不該含真實 API key 字串（防下載到被污染版本）
+$LeakPatterns = @(
+  @{ Pattern = 'AIzaSy[A-Za-z0-9_-]{30,}';                 Label = 'Google API key (AIzaSy...)' },
+  @{ Pattern = 'sk-(?:ant-|proj-)?[A-Za-z0-9_-]{20,}';     Label = 'OpenAI/Anthropic key (sk-...)' },
+  @{ Pattern = 'hf_[A-Za-z0-9]{30,}';                      Label = 'Hugging Face token (hf_...)' },
+  @{ Pattern = 'ghp_[A-Za-z0-9]{30,}';                     Label = 'GitHub PAT (ghp_...)' },
+  @{ Pattern = 'github_pat_[A-Za-z0-9_]{50,}';             Label = 'GitHub fine-grained PAT' },
+  @{ Pattern = 'xox[baprs]-[A-Za-z0-9-]{20,}';             Label = 'Slack token (xox*-)' },
+  @{ Pattern = '(?<![\d:])\d{8,10}:[A-Za-z0-9_-]{35}\b';   Label = 'Telegram bot token (digits:35chars)' }
+)
+$LeakHits = @()
 Get-ChildItem "$WorkflowTmp\*.json" | ForEach-Object {
   $content = Get-Content $_.FullName -Raw -Encoding UTF8
-  # .Replace() 是 literal replace，不會被當 regex 處理（避免 token 含 $ \ 等特殊字元出錯）
-  $content = $content.Replace('__GEMINI_API_KEY__', $GeminiKey)
-  if ($UseTelegram) {
-    $content = $content.Replace('__TELEGRAM_CHAT_ID__', $TgChatId)
-    $content = $content.Replace('__TELEGRAM_BOT_TOKEN__', $TgToken)
+  foreach ($p in $LeakPatterns) {
+    $matches = [regex]::Matches($content, $p.Pattern)
+    foreach ($m in $matches) {
+      $preview = $m.Value.Substring(0, [Math]::Min(12, $m.Value.Length))
+      $LeakHits += "  ✗ $($_.Name): $($p.Label) → ${preview}..."
+    }
   }
-  # 不用 TG → 留 placeholder 原樣；workflow 預設 inactive，學員想用再重跑 wizard
-  Write-Utf8NoBom $_.FullName $content
-  Write-Host "  ✓ $($_.Name) 已替換 placeholders"
 }
+if ($LeakHits.Count -gt 0) {
+  $LeakHits | ForEach-Object { Write-Host $_ -ForegroundColor Red }
+  Write-Host ""
+  Write-Host "⚠ 偵測到 workflow 模板含真實 API key 字串！" -ForegroundColor Red
+  Write-Host "你下載到的可能是被污染的版本（不該含真 key）。setup-wizard 中止以避免進一步散播。" -ForegroundColor Red
+  Write-Host ""
+  Write-Host "請：" -ForegroundColor Yellow
+  Write-Host "  1. 刪除整個 n8n-lite-pack 資料夾" -ForegroundColor Yellow
+  Write-Host "  2. 重新下載最新版本" -ForegroundColor Yellow
+  Write-Host "  3. 立刻撤銷該 key（看 log: $Log）" -ForegroundColor Yellow
+  exit 1
+}
+Write-Host "  ✓ 模板 sanity scan 通過（無真實 key 字串殘留）" -ForegroundColor Green
+
+# Step 7b: 只替換 __TELEGRAM_CHAT_ID__（非 secret，公開）
+# Gemini key 走 $env.GEMINI_API_KEY；Telegram bot token 走 n8n credential，workflow JSON 不含
+if ($UseTelegram) {
+  Get-ChildItem "$WorkflowTmp\*.json" | ForEach-Object {
+    $content = Get-Content $_.FullName -Raw -Encoding UTF8
+    $newContent = $content.Replace('__TELEGRAM_CHAT_ID__', $TgChatId)
+    if ($newContent -ne $content) {
+      Write-Utf8NoBom $_.FullName $newContent
+      Write-Host "  ✓ $($_.Name) 已替換 __TELEGRAM_CHAT_ID__"
+    }
+  }
+} else {
+  Write-Host "  ↳ 未啟用 Telegram，跳過 chat_id 替換" -ForegroundColor DarkGray
+}
+
+# Step 7c: 替換後二次 scan（Codex 建議：防替換邏輯本身漏洞 / 未來新增 secret placeholder）
+$LeakHits2 = @()
+Get-ChildItem "$WorkflowTmp\*.json" | ForEach-Object {
+  $content = Get-Content $_.FullName -Raw -Encoding UTF8
+  foreach ($p in $LeakPatterns) {
+    $matches = [regex]::Matches($content, $p.Pattern)
+    foreach ($m in $matches) {
+      $preview = $m.Value.Substring(0, [Math]::Min(12, $m.Value.Length))
+      $LeakHits2 += "  ✗ $($_.Name): $($p.Label) → ${preview}..."
+    }
+  }
+}
+if ($LeakHits2.Count -gt 0) {
+  $LeakHits2 | ForEach-Object { Write-Host $_ -ForegroundColor Red }
+  Write-Host ""
+  Write-Host "⚠ 替換邏輯異常 — 替換後 workflow 仍含真實 key 字串。setup-wizard 中止。" -ForegroundColor Red
+  exit 1
+}
+Write-Host "  ✓ 替換後 sanity scan 通過" -ForegroundColor Green
 
 # ════════ Step 8: import credentials ════════
 Write-Host ""
@@ -381,6 +562,24 @@ if ($UseTelegram) {
   Write-Host "  ↳ Telegram smoke test 跳過（你選不用 TG）" -ForegroundColor DarkGray
 }
 
+# v1.3：先驗證 $env.GEMINI_API_KEY 真的到達 n8n 容器（pass-through 鏈完整性）
+Write-Host "  · 容器內 `$env.GEMINI_API_KEY pass-through..." -ForegroundColor Cyan
+$EnvOk = $false
+try {
+  $passthrough = & docker exec $N8nContainer sh -c 'printf %s "${GEMINI_API_KEY:-MISSING}" | head -c 8' 2>$null
+  $head = $GeminiKey.Substring(0, [Math]::Min(8, $GeminiKey.Length))
+  if ($passthrough -eq $head) {
+    Write-Host "    ✓ 容器內 GEMINI_API_KEY 與 host 相符（前 8 字元：${passthrough}...）" -ForegroundColor Green
+    $EnvOk = $true
+  } elseif ($passthrough -eq 'MISSING') {
+    Write-Host "    ✗ 容器內無 GEMINI_API_KEY → compose pass-through 失敗" -ForegroundColor Red
+  } else {
+    Write-Host "    ✗ 容器內 GEMINI_API_KEY 不符（前 8 字元：${passthrough}... vs host：${head}...）" -ForegroundColor Red
+  }
+} catch {
+  Write-Host "    ✗ docker exec 失敗: $_" -ForegroundColor Red
+}
+
 # Gemini
 try {
   $geminiBody = @{
@@ -390,13 +589,19 @@ try {
   $geminiResp = Invoke-RestMethod -Uri "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent" -Method Post -Headers @{"x-goog-api-key"=$GeminiKey} -ContentType "application/json; charset=utf-8" -Body $geminiBody -TimeoutSec 30
   $reply = $geminiResp.candidates[0].content.parts[0].text
   Write-Host "  ✓ Gemini reply: $reply" -ForegroundColor Green
+  $GeminiOk = $true
 } catch {
   Write-Host "  ⚠ Gemini 失敗: $_" -ForegroundColor Yellow
+  $GeminiOk = $false
 }
 
 Write-Host ""
 Write-Host "═════════════════════════════════════════════════════════════" -ForegroundColor Cyan
-Write-Host "  ✅ Lite Pack 安裝完成！" -ForegroundColor Green
+if ($EnvOk -and $GeminiOk) {
+  Write-Host "  ✅ Lite Pack v1.3 安裝完成！" -ForegroundColor Green
+} else {
+  Write-Host "  ⚠ Lite Pack v1.3 安裝完成（但有警告，看上方輸出）" -ForegroundColor Yellow
+}
 Write-Host "═════════════════════════════════════════════════════════════" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "下一步：" -ForegroundColor Yellow

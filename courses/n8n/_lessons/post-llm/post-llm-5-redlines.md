@@ -210,6 +210,7 @@ last_updated: 2026-05-07
 
      不要心存僥倖。
 - **驗收硬指標**：你貼進 LLM 對話的所有內容 Cmd+F 搜尋 `apiKey`、`token`、`password`、`secret`、`AIzaSy`、`sk-`（OpenAI key 前綴）→ **要嘛 0 個結果，要嘛只搜到 placeholder 字串（`__X__` / `<YOUR_X>`）沒有真實值**
+- **與課程 lite-pack 的關係**：上面 placeholder 範例是「貼到 LLM 對話前的脫敏手法」，不是課程 lite-pack 的內部運作機制。lite-pack v1.3 起 Gemini key 改走 `$env.GEMINI_API_KEY` 路徑（key 寫在 starter-kit/.env，workflow JSON 完全不含 key），所以從 n8n UI 匯出 workflow JSON 不會洩漏 — 但「貼進 LLM 對話」的紅線仍然有效，因為你貼出去的東西可能包含 credentials / .env 內容。
 
 #### 紅線 10：不要匯入或執行從外部來路不明的 workflow JSON
 
