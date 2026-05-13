@@ -240,27 +240,48 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
           <span class="ps-hint">把專題規格貼進去，讓 AI 一次生成 10 列測試案例表（4 正常 + 4 邊界 + 2 錯誤）</span>
         </summary>
         <div class="ps-block">
-          <div class="ps-label">原始素材 · 專題規格 + 輸入限制（約 180 字）<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
-          <div class="ps-material">專題：AI 履歷優化小工具
+          <div class="ps-label">原始素材 · 三選一專題規格（行銷 / 客服 / 行政各一）<span class="ps-label-tag">貼進 Prompt 最下方，挑一個或代入你自己的</span></div>
+          <div class="ps-material">從以下三個專題挑一個（或代入你自己的真實專題）：
+
+【專題 A · 客服信件分類器】
 輸入欄位：
-- 履歷段落（textarea，必填，100-3000 字）
-- 職缺說明（textarea，必填，50-2000 字）
-預期輸出：三段改寫履歷（Markdown，每段 60-120 字）
-核心使用路徑：使用者同時貼兩個欄位 → 點產生按鈕 → 3 秒內出結果
-已知風險：欄位只填一個會編資訊、超過 3000 字 token 爆掉、特殊字元（Emoji / Markdown 符號）干擾
-使用情境：轉職工程師自用，繁體中文台灣用語</div>
+- 信件主旨（input，必填，5–80 字）
+- 信件內容（textarea，必填，30–2000 字）
+- 客戶等級（select：一般 / VIP / 企業，預設一般）
+預期輸出：分類結果（主題 / 情緒 / 優先級）+ 一句回覆建議
+已知風險：客訴信含粗話、信件含個資（姓名 / 帳號 / 手機）、中英夾雜、退款訴求要特別標
+使用情境：客服 SOP 內嵌，10 秒內判斷該轉交給誰
+
+【專題 B · 活動貼文改寫器】
+輸入欄位：
+- 活動原文（textarea，必填，50–1500 字）
+- 目標平台（select：FB / IG / LinkedIn / Threads）
+- 品牌語氣（select：正式 / 親切 / 幽默，預設親切）
+預期輸出：對應平台格式的貼文（含字數限制、emoji 風格、tag 建議）
+已知風險：原文含敏感詞（中獎 / 抽獎 / 限量）會被演算法降觸及、超過平台字數上限、活動日期格式不一、emoji 在 LinkedIn 不適合
+使用情境：行銷專員 5 分鐘內出三平台版本
+
+【專題 C · 報名名單清理器】
+輸入欄位：
+- 名單 CSV（textarea，必填，10–500 行）
+- 主辦單位（input，必填）
+- 重複判斷依據（checkbox：email / 手機 / 姓名+email）
+預期輸出：清理後 CSV + 一份「異常列」報告
+已知風險：email 全形半形混雜、手機號碼格式不一、姓名前後空白、缺欄位、重複定義模糊
+使用情境：活動報名截止後 30 分鐘內產出可寄信的名單</div>
         </div>
         <div class="ps-block">
           <div class="ps-label">範例 Prompt · 測試案例產生器<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
           <div class="ps-prompt">你是 QA 工程師，專門為 AI 應用設計測試案例表。
 
-任務：讀下方專題規格，產出 10 個具體測試案例，涵蓋三類：4 個正常 + 4 個邊界 + 2 個錯誤。
+任務：讀下方專題規格（從 A / B / C 三選一，或學員自己的專題），產出 10 個具體測試案例，涵蓋三類：4 個正常 + 4 個邊界 + 2 個錯誤。
 
 規則：
 1. 每個「輸入內容」必須具體到可以直接複製貼進工具（不要寫「一段長文」這種模糊描述）
 2. 每個案例寫明「期待輸出」的樣貌，不是完整答案，是 3-4 個特徵
 3. 錯誤情境必須是「應該被程式擋住」的，不是 AI 能幫忙兜的
 4. 涵蓋專題規格中「已知風險」的每一項至少一個案例
+5. 開頭先寫一行「選定專題：A / B / C / 自帶」，方便對照
 
 輸出格式（Markdown 表格）：
 | # | 類型 | 輸入內容（可直接貼）| 期待輸出樣貌 |
@@ -270,12 +291,12 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 規格如下 ↓
 ---
-[把上面的原始素材整段貼在這裡]
+[把上面三選一專題規格整段貼在這裡]
 
 <button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
         </div>
         <div class="ps-block">
-          <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>1 正常：3 年前端履歷 + 資深前端職缺 → 三段改寫、動詞開頭、字數 60-120<br>2 正常：行銷轉軟體履歷 + Junior 軟體職缺 → 強調跨領域、不編造技術經歷<br>5 邊界：履歷含 5 個 Emoji → 輸出不應保留 Emoji<br>6 邊界：履歷剛好 3000 字 → 應正常處理不報錯<br>7 邊界：職缺說明只有 60 字 → 輸出應聚焦此 60 字提到的需求<br>8 邊界：兩個欄位皆填但完全不相關（履歷是廚師、職缺是工程師）→ 應提示落差大<br>9 錯誤：兩個欄位空白 → 應顯示「請貼上履歷與職缺」，不應送 API<br>10 錯誤：履歷貼 8000 字 → 應截斷或提示超出字數上限</div>
+          <div class="ps-expect"><strong>預期輸出片段（依你選定的專題，AI 各產 10 列；以下是三專題各 3-4 例代表）</strong><br><br><strong>【若選 A · 客服信件分類器】</strong><br>1 正常：「商品送錯，請退款」+ VIP → 主題=退貨、優先=高、語氣建議親切<br>3 邊界：信件含粗話 → 標記「需主管接手」、不直接複製粗話到回覆建議<br>5 邊界：信件夾雜中英文（含技術名詞）→ 分類正確、回覆建議仍用中文<br>9 錯誤：信件主旨為空 → 顯示「請填主旨」，不送 API<br><br><strong>【若選 B · 活動貼文改寫器】</strong><br>2 正常：原文 800 字 + LinkedIn 正式 → 輸出 ≤ 3000 字、無 emoji、含 tag 建議<br>6 邊界：原文含「抽獎」「限量」+ FB → 應標警示「可能被演算法降觸及」<br>7 邊界：原文 50 字 + IG → 應自動補語氣詞達到 IG 適合長度<br>10 錯誤：原文 8000 字 → 提示截斷或拒絕，不送 API<br><br><strong>【若選 C · 報名名單清理器】</strong><br>1 正常：500 行乾淨名單 + email 判重 → 輸出 500 行、異常列 0<br>4 邊界：email 全形 ／ 半形混雜 → 自動正規化為半形<br>8 邊界：兩列姓名+email 相同但手機不同 → 依「重複判斷依據」決定是否合併<br>9 錯誤：CSV 缺 email 欄位 → 顯示「請補上 email 欄」，不送 API<br><br><strong>對照重點</strong><br>1. 三個專題的「已知風險」要對應「邊界」案例——不是隨便挑 4 個，是把規格寫的風險都覆蓋<br>2. 「錯誤」案例必須是程式該擋的（空白、超量、缺欄位），不是 AI 能猜的<br>3. 期待輸出寫「樣貌」不是「答案」——案例執行時對照樣貌才能判通過 / 失敗<br>4. 若學員產出 10 列全是同類型（如 8 個正常 2 個錯誤、缺邊界），代表沒讀懂「邊界 = 真正會踩雷的灰色地帶」</div>
         </div>
       </details>
       <div class="mini-prac-output">
@@ -397,18 +418,19 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
           <span class="ps-hint">試用結束後，把原始觀察筆記貼進去，讓 AI 整理成有優先順序的修正清單</span>
         </summary>
         <div class="ps-block">
-          <div class="ps-label">原始素材 · 試用觀察原始筆記（約 220 字）<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
+          <div class="ps-label">原始素材 · 試用觀察原始筆記（約 240 字，以練習 1「貼文改寫器」為例）<span class="ps-label-tag">貼進 Prompt 最下方，A / C 專題可代入</span></div>
           <div class="ps-material">試用者：某位朋友，30 歲行銷背景，不懂程式
-工具：AI 履歷優化小工具（只給 URL，沒給說明）
+工具：活動貼文改寫器（練習 1 專題 B；只給 URL，沒給說明）
 觀察紀錄：
-- 打開頁面 3 秒後問「這是做什麼的？」（頁面只有標題「履歷優化」沒有副標）
-- 滑了一下找不到「範例」，自己貼了自己的履歷，但沒貼職缺說明就按了產生
-- 按產生後等了 5 秒沒看到 loading 狀態，以為壞掉按了第二次
-- 輸出出來後說「這三段我要怎麼用？」——不知道是取代原履歷還是加進去
+- 打開頁面 3 秒後問「這是給誰用的？」（頁面只有標題「貼文改寫器」沒有副標）
+- 看到三個欄位，跳過「品牌語氣」直接貼活動原文，按了產生 → 出來的版本太正式
+- 想改成幽默版本要重貼一次原文，沒有「重新生成」按鈕
+- 按產生後等了 6 秒沒看到 loading 狀態，以為壞掉刷新頁面 → 重貼一次
+- 輸出三平台版本時說「這要怎麼選？」——不確定四個平台選項的差別在哪
 - 試用後三個回答：
-  1 最有用：輸出段落的「動詞開頭」很專業
-  2 最困惑：不知道職缺說明要貼多長才夠
-  3 只改一件事：希望按鈕按了之後有「處理中」字樣</div>
+  1 最有用：「LinkedIn 版自動把 emoji 拿掉」很貼心
+  2 最困惑：不知道「品牌語氣」會影響到什麼程度
+  3 只改一件事：希望同樣的原文可以一次比較四個平台輸出</div>
         </div>
         <div class="ps-block">
           <div class="ps-label">範例 Prompt · UX 反饋整理師<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
@@ -441,7 +463,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
         </div>
         <div class="ps-block">
-          <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>核心 1：「打開 3 秒後問這是做什麼的」→ 加一行副標「貼上履歷+職缺，一鍵改寫三段」<br>核心 2：「沒貼職缺就按產生」→ 加前端驗證、按鈕在兩欄都有內容才啟用<br>核心 3：「等 5 秒沒看到 loading」→ 按鈕點擊後改文字「產生中…」並 disable<br>核心 4：「輸出三段不知怎麼用」→ 每段上方加小標「段落一（對應 XX 需求）」<br>美觀 1：希望有「處理中」字樣 → 已在核心 3 涵蓋<br>下一輪衝刺三件事：① 副標 + 範例 ② 按鈕驗證 + loading ③ 輸出段落標題</div>
+          <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>核心 1：「3 秒後問這是給誰用的」→ 加一行副標「行銷專員 5 分鐘出三平台版本」<br>核心 2：「跳過品牌語氣直接按產生」→ 三欄都必填、加 placeholder 範例、按鈕在欄位都有值才啟用<br>核心 3：「沒有重新生成按鈕」→ 結果區加「換語氣再生」按鈕，沿用原文重跑只改語氣<br>核心 4：「等 6 秒沒 loading 以為壞掉」→ 按產生後改文字「生成中（約 5–10 秒）」並 disable<br>核心 5：「四個平台選不知道差別」→ 改成 hover 顯示 tooltip（字數上限 / 格式特性 / emoji 規則）<br>美觀 1：希望四平台一次比較輸出 → 改成多選 checkbox，一次跑多個平台<br>下一輪衝刺三件事：① 副標 + 必填提示 ② loading 文字 + 換語氣按鈕 ③ 平台 hover tooltip<br><br><strong>對照重點</strong><br>1. 三個專題的試用筆記都會碰到相同骨架問題（「這是給誰用」「沒有 loading」「不知道怎麼選下拉選項」）——學員可以把這套筆記範本套到自己的專題<br>2. 「換語氣再生」是 LLM 工具特有 UX 模式，不是傳統表單能套用的<br>3. 若學員的觀察筆記是「按鈕顏色不好看」「字級太小」這類純美觀，代表沒抓到核心路徑問題</div>
         </div>
       </details>
       <div class="mini-prac-output">
@@ -470,7 +492,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   </a>
 </nav>
 
-<footer class="footer" data-platform-version="2026-04-v3">
+<footer class="footer" data-platform-version="2026-05-v4" data-built-at="2026-05-13">
   <div class="footer-logo">弄一下工作室</div>
   <div class="topbar-divider"></div>
   <div class="footer-note">生成式AI職訓實務應用班 · Part 7 專題衝刺與成果發表</div>
