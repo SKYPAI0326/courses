@@ -1,5 +1,5 @@
 #!/bin/bash
-# n8n Lite Pack · setup-wizard v1.3 (macOS)
+# n8n Lite Pack · setup-wizard v1.3.2 (macOS)
 # 「下載安裝後設兩個 key 即用」最短路徑
 # v0.4：file access patch 自動化 / 自動重啟 / Telegram + Gemini smoke test
 # v1.1：Telegram 改為可選（GUI 對話框 Y/N gate）— 不用 TG 的學員零摩擦過關
@@ -10,6 +10,8 @@
 #       新機制：寫到 starter-kit/.env 的 GEMINI_API_KEY 環境變數 → n8n Code node 透過 $env 讀
 #       需要 n8n-compose.yml 含 N8N_BLOCK_ENV_ACCESS_IN_NODE=false（本 wizard 會自動 patch）
 #       偵測到舊版安裝（personalization.env 殘留）會跳警告，提醒撤銷舊 key
+# v1.3.2：修偵測舊版的 false positive — v1.3 自己寫 .env 後下次跑 wizard 也會誤觸警告。
+#         加 .env 內 marker comment（# Provisioned by setup-wizard v1.3+），有 marker 就不再警告。
 # 用法：在 Finder 雙擊本檔；首次被 Gatekeeper 擋請去「系統設定 → 隱私權與安全性 → 強制打開」
 
 cd "$(dirname "$0")"
@@ -21,7 +23,7 @@ LOG="/tmp/n8n-lite-setup-$$.log"
 exec > >(tee -a "$LOG") 2>&1
 
 echo "═════════════════════════════════════════════════════════════"
-echo "  n8n Lite Pack · setup-wizard v1.3"
+echo "  n8n Lite Pack · setup-wizard v1.3.2"
 echo "  log: $LOG"
 echo "═════════════════════════════════════════════════════════════"
 
@@ -111,10 +113,14 @@ COMPOSE="$STARTER_KIT/n8n-compose.yml"
 
 # v1.3: 偵測舊版 — 兩種 marker：
 #   A. personalization.env 殘留（舊 wizard 寫入的 memo 檔）
-#   B. starter-kit/.env 內既有 GEMINI_API_KEY=AIzaSy... 真實值（舊 wizard 已替換過 workflow JSON 的證據）
+#   B. starter-kit/.env 內既有 GEMINI_API_KEY=AIzaSy... 真實值，且**沒有 v1.3+ marker comment**
+#      v1.3.2 修補：v1.3+ wizard 寫 .env 時會加 marker comment，第二次跑就不會再誤判舊版
 OLD_INSTALL_MARKER="$(dirname "$0")/personalization.env"
+V13_MARKER='# Provisioned by setup-wizard v1.3+'
 OLD_ENV_HAS_KEY=false
-if [ -f "$STARTER_KIT/.env" ] && grep -qE '^\s*GEMINI_API_KEY\s*=\s*"?AIzaSy' "$STARTER_KIT/.env"; then
+if [ -f "$STARTER_KIT/.env" ] \
+   && grep -qE '^\s*GEMINI_API_KEY\s*=\s*"?AIzaSy' "$STARTER_KIT/.env" \
+   && ! grep -qF "$V13_MARKER" "$STARTER_KIT/.env"; then
   OLD_ENV_HAS_KEY=true
 fi
 
@@ -216,11 +222,13 @@ fi
 cp "$ENV_FILE" "$ENV_FILE.bak-$(date +%Y%m%d%H%M%S)"
 
 # 用 Python 做 idempotent merge（特別處理含 $ / " / \ 等特殊字元的 dotenv quote）
+# v1.3.2：寫入時保證 v1.3+ marker comment 存在 → 下次跑 wizard 不會誤判為舊版
 export ENV_FILE GEMINI_KEY
 ENV_RESULT=$(python3 - <<'PY'
 import os
 env_file = os.environ['ENV_FILE']
 gemini_key = os.environ['GEMINI_KEY']
+V13_MARKER = '# Provisioned by setup-wizard v1.3+'
 
 def dotenv_quote(v):
     # 包雙引號，跳脫 \ 與 " 與 $（避免 compose / docker 把 $X 當變數展開）
@@ -232,6 +240,7 @@ with open(env_file, 'r', encoding='utf-8') as f:
 new_line = f'GEMINI_API_KEY={dotenv_quote(gemini_key)}\n'
 out = []
 replaced = False
+has_marker = any(V13_MARKER in line for line in lines)
 for line in lines:
     stripped = line.lstrip()
     # 跳過註解；偵測非註解 GEMINI_API_KEY= 行就替換
@@ -247,6 +256,12 @@ if not replaced:
         out[-1] += '\n'
     out.append('\n# ---- Gemini API key（setup-wizard v1.3 自動寫入）----\n')
     out.append(new_line)
+
+# v1.3.2: 確保 v1.3+ marker 存在（idempotent；只在第一次跑或檔案沒這行時加）
+if not has_marker:
+    if out and not out[-1].endswith('\n'):
+        out[-1] += '\n'
+    out.append('\n' + V13_MARKER + ' (do not remove - used for old-install detection)\n')
 
 with open(env_file, 'w', encoding='utf-8') as f:
     f.writelines(out)

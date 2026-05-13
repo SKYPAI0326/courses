@@ -1,4 +1,4 @@
-﻿# n8n Lite Pack · setup-wizard.ps1 (Windows) v1.3.1
+﻿# n8n Lite Pack · setup-wizard.ps1 (Windows) v1.3.2
 # 由 setup-wizard.bat 呼叫。十步驟自動化安裝。
 # 採納 Codex L3 審核建議：UTF-8 BOM / SecureString token / .Replace() / Invoke-Native exit code 檢查
 # v1.1：Telegram 改為可選（Y/N gate）— 不用 TG 的學員零摩擦過關
@@ -13,6 +13,8 @@
 #         在 $ErrorActionPreference='Stop' 下被 PowerShell 當 RemoteException 拋出 →
 #         script 中斷在 down 跟 up 之間 → container 被 stop 沒被 up 起來 → 看起來「被刪除」
 #         修：Invoke-Native 內暫時 ErrorActionPreference=Continue，呼完還原；判斷成敗只看 $LASTEXITCODE
+# v1.3.2：修偵測舊版的 false positive — v1.3 自己寫 .env 後下次跑 wizard 也會誤觸警告。
+#         加 .env 內 marker comment（# Provisioned by setup-wizard v1.3+），有 marker 就不再警告。
 
 $ErrorActionPreference = 'Stop'
 $OutputEncoding = [System.Text.Encoding]::UTF8
@@ -33,7 +35,7 @@ $Log = "$ScriptDir\setup-wizard.log"
 
 Write-Host ""
 Write-Host "═════════════════════════════════════════════════════════════" -ForegroundColor Cyan
-Write-Host "  n8n Lite Pack · setup-wizard for Windows v1.3.1" -ForegroundColor Cyan
+Write-Host "  n8n Lite Pack · setup-wizard for Windows v1.3.2" -ForegroundColor Cyan
 Write-Host "  PowerShell: $($PSVersionTable.PSVersion)" -ForegroundColor Gray
 Write-Host "  log: $Log" -ForegroundColor Gray
 Write-Host "═════════════════════════════════════════════════════════════" -ForegroundColor Cyan
@@ -206,10 +208,14 @@ Write-Host "[3/10] 偵測舊版安裝 + patch compose.yml 環境變數..." -Fore
 # v1.3: 偵測舊版（personalization.env 殘留）→ 警告撤銷舊 key
 $OldMarker = "$ScriptDir\personalization.env"
 # 另一個 marker：starter-kit/.env 內既有 GEMINI_API_KEY=AIzaSy... 真實值
+# v1.3.2 修補：v1.3+ wizard 寫 .env 時會加 marker comment，有 marker 就不再誤判為舊版
+$V13Marker = '# Provisioned by setup-wizard v1.3+'
 $OldEnvHasKey = $false
 $StarterEnv = "$StarterKit\.env"
 if (Test-Path $StarterEnv) {
-  if (Select-String -Path $StarterEnv -Pattern '^\s*GEMINI_API_KEY\s*=\s*"?AIzaSy' -Quiet) {
+  $hasAIza = Select-String -Path $StarterEnv -Pattern '^\s*GEMINI_API_KEY\s*=\s*"?AIzaSy' -Quiet
+  $hasMarker = Select-String -Path $StarterEnv -Pattern ([regex]::Escape($V13Marker)) -Quiet
+  if ($hasAIza -and -not $hasMarker) {
     $OldEnvHasKey = $true
   }
 }
@@ -308,9 +314,11 @@ function Get-DotenvQuoted {
 }
 
 # idempotent merge — 對非註解的 GEMINI_API_KEY= 行替換，沒有就 append
+# v1.3.2：寫入時保證 v1.3+ marker comment 存在 → 下次跑 wizard 不會誤判舊版
 $EnvLines = Get-Content $EnvFile -Encoding UTF8
 $NewGeminiLine = "GEMINI_API_KEY=$(Get-DotenvQuoted $GeminiKey)"
 $Replaced = $false
+$HasMarker = $false
 $OutLines = @()
 foreach ($line in $EnvLines) {
   $trimmed = $line.TrimStart()
@@ -318,6 +326,7 @@ foreach ($line in $EnvLines) {
     $OutLines += $NewGeminiLine
     $Replaced = $true
   } else {
+    if ($line -match [regex]::Escape($V13Marker)) { $HasMarker = $true }
     $OutLines += $line
   }
 }
@@ -325,6 +334,11 @@ if (-not $Replaced) {
   $OutLines += ''
   $OutLines += '# ---- Gemini API key（setup-wizard v1.3 自動寫入） ----'
   $OutLines += $NewGeminiLine
+}
+# v1.3.2: 保證 v1.3+ marker 存在
+if (-not $HasMarker) {
+  $OutLines += ''
+  $OutLines += "$V13Marker (do not remove - used for old-install detection)"
 }
 $EnvResult = if ($Replaced) { 'replaced' } else { 'appended' }
 
