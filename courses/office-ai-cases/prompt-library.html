@@ -2195,15 +2195,23 @@ A：[答案]（來源：[文件名稱] [頁碼或段落]）
 
 <script>
 function copyPrompt(btn, text){
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(text).then(()=>{
-      btn.textContent='✓ 已複製';
-      btn.classList.add('copied');
-      setTimeout(()=>{btn.textContent='複製 Prompt';btn.classList.remove('copied');},1800);
-    },()=>{btn.textContent='複製失敗';setTimeout(()=>btn.textContent='複製 Prompt',1500);});
+  function done(ok){btn.textContent=ok?'✓ 已複製':'請手動選取複製';btn.classList.toggle('copied',ok);setTimeout(()=>{btn.textContent='複製 Prompt';btn.classList.remove('copied');},2200);}
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(text).then(()=>done(true),()=>fallbackCopy(text,done));
   } else {
-    btn.textContent='瀏覽器不支援';
+    fallbackCopy(text,done);
   }
+}
+function fallbackCopy(text, cb){
+  /* fallback for non-secure context / 舊瀏覽器：textarea + execCommand */
+  try{
+    var ta=document.createElement('textarea');
+    ta.value=text;ta.style.position='fixed';ta.style.left='-9999px';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();
+    var ok=document.execCommand('copy');
+    document.body.removeChild(ta);
+    cb(ok);
+  }catch(e){cb(false);}
 }
 </script>
 
