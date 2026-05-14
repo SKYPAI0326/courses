@@ -27,6 +27,7 @@ COURSES = {
     "ipas-ai-beginner":("ipas_auth",    "17daf42d25e66eac9653114c7c170836e5dad10e22f8e95ffa29f6afdfd24b9f"),
     "line-stickers":   ("linestickers_auth", "0d9099fca21f914a1d4ad2b6dc42dd3e26e1cc9dc10996c235a9e3d8b6e36ab2"),
     "career-pivot-mid":("careerpivot_auth", "b4bacdf1af0913ed18ec5123a52d6678b473f880f3769dfb4060ef9378fa28ba"),
+    "office-ai-cases": ("officeaicases_auth", "14e9352ec44aabbaa6783a0769f726169b730c443f0ea2b1324672b0fc4bfdf8"),
 }
 
 GATE_TEMPLATE = '''\
