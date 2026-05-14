@@ -238,6 +238,58 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="callout-icon" aria-hidden="true">◎</div>
     <div class="callout-body"><strong>Wrapper 使用原則</strong>：不是每個 prompt 都要加 wrapper。只在你「<strong>跑出結果發現有問題</strong>」時，回頭加對應的 wrapper 再跑一次。Wrapper 多加會稀釋主任務、結果反而變差。</div>
   </div>
+
+  <h3 style="font-family:'Shippori Mincho',serif;font-size:1.05rem;color:var(--c-main);margin-top:30px;margin-bottom:12px">資料型任務的「驗證 wrapper」（Codex L4b 升級）</h3>
+  <p class="body-text">L4b 抽樣驗證發現：純文字案例（① 週報、④ 簡報）4 家平台都很穩；CSV/雙檔/強格式案例（②C 費用、③ 電商）落差明顯。針對這類資料型任務，在主 prompt 之外**強制加下方驗證 wrapper**，可拉平各家表現。</p>
+
+  <div class="wrapper-grid">
+    <div class="wrapper-card">
+      <div class="wrapper-trigger">案例 ②C 費用偵測（Block A/B 分欄、①-⑦ 規則）</div>
+      <div class="wrapper-prompt">請先輸出「我將使用哪些欄位、哪些規則、總筆數」三行確認，再產出結果。
+若無法完整遵守 Block A/B 與 ①-⑦ 格式，請停止並說明缺哪一項，不要改用自由摘要。</div>
+      <div class="wrapper-where">加在 P1-2C-2 開頭。<strong>Copilot / Claude 最需要</strong>（容易破格式）。</div>
+    </div>
+    <div class="wrapper-card">
+      <div class="wrapper-trigger">案例 ③ 電商雙 CSV 合併（sales × sku）</div>
+      <div class="wrapper-prompt">先確認兩份檔案角色：sales 檔是交易資料，sku 檔是商品主檔。請用 SKU 欄位合併後再算 ABC；不得只根據商品名稱或單檔資料推論。
+若兩份檔案沒成功合併，請停止並回報「無法合併」，不要硬跑。</div>
+      <div class="wrapper-where">加在 P2-1-2 開頭。<strong>Copilot / Claude 最需要</strong>（容易把兩份檔案混讀）。</div>
+    </div>
+    <div class="wrapper-card">
+      <div class="wrapper-trigger">反問型驗證 prompt（P1-2C-6 / P2-1-6 / P2-2-6）</div>
+      <div class="wrapper-prompt">你的任務不是找更多內容，而是稽核前面的判斷。每一項都必須列：
+1. 計算規則（公式）
+2. 套用欄位
+3. 樣本筆數
+4. 至少 2 筆 row id / SKU / 頁碼
+缺任一項就標「無法驗證」，不要含混過去。</div>
+      <div class="wrapper-where">加在所有風險檢查 prompt 結尾。<strong>Copilot 最需要</strong>（最容易回「看起來合理」）。</div>
+    </div>
+    <div class="wrapper-card">
+      <div class="wrapper-trigger">案例 ④ 簡報組裝（防新增 / 來源標註）</div>
+      <div class="wrapper-prompt">每一頁都要列「使用素材來源」與「引用的具體數字」。
+沒有出現在素材中的數字不可新增；若需要估算，請標「估算」並放在備註，不得放入主結論。</div>
+      <div class="wrapper-where">加在 P2-2-2 結尾。<strong>Copilot 最需要</strong>（容易自行擴寫）；ChatGPT/Gemini/Claude 也建議加。</div>
+    </div>
+  </div>
+
+  <div class="callout info" style="margin-top:18px">
+    <div class="callout-icon" aria-hidden="true">▣</div>
+    <div class="callout-body"><strong>平台選擇建議（L4b verdict 整理）</strong>：
+      <ul style="margin:8px 0 0 22px;padding:0">
+        <li>案例 ①（純文字週報）：4 家都穩；首選 Claude 或 ChatGPT</li>
+        <li>案例 ②C（CSV 費用稽核）：首選 Gemini 或 ChatGPT；Copilot 需加 wrapper；Claude 對數字較弱</li>
+        <li>案例 ③（雙 CSV 電商）：首選 Gemini；ChatGPT 次之；Copilot / Claude 需加合併 wrapper</li>
+        <li>案例 ④（多素材簡報）：首選 Claude（語氣與來源約束最穩）；Gemini 次之</li>
+      </ul>
+      平台中立精神不變——學員可用任何平台跑，<strong>但 CSV/數字任務遇到問題時，第一個動作是換上方建議平台，不是放棄</strong>。
+    </div>
+  </div>
+
+  <div class="callout warn" style="margin-top:14px">
+    <div class="callout-icon" aria-hidden="true">!</div>
+    <div class="callout-body"><strong>驗收標準鬆綁</strong>：學員跑同一 prompt 在不同平台會有落差。<strong>不以「答案完全相同」為通過標準</strong>，改以「是否能列出依據（公式 / 欄位 / 樣本）+ 是否能回查素材」為通過標準。</div>
+  </div>
 </section>
 
 <hr class="section-rule">

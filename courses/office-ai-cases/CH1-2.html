@@ -183,7 +183,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <a href="#main" class="skip-link">跳至主要內容</a>
 
 <header class="topbar">
-  <a href="../../../index.html" class="logo">弄一下工作室</a>
+  <a href="../../index.html" class="logo">弄一下工作室</a>
   <div class="topbar-divider"></div>
   <span class="topbar-sub">辦公室 AI 工具案例應用</span>
   <div class="spacer"></div>
@@ -884,7 +884,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="prompt-card">
       <div class="prompt-card-head">
         <span class="prompt-id">P1-2C-2</span>
-        <span class="prompt-purpose">進階版：5 骨架 + 4 條明確異常規則</span>
+        <span class="prompt-purpose">進階版：分兩階段（主要 ①-⑥ + 輔助 ⑦）防 AI 走捷徑</span>
         <span class="prompt-tag">完整版</span>
       </div>
       <div class="prompt-body">
@@ -894,16 +894,25 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 [貼上 expense-200.csv 全文]
 
-【任務】依照以下 7 類異常規則偵測費用異常：
-1. 金額異常：同分類費用中，金額超過該分類平均值 3 倍以上
-2. 頻率異常：同一申請人在 7 天內申請同一分類 3 次以上
-3. 時間異常：假日或深夜申請（若日期欄位無時間，標記「無法判斷」）
-4. 分類矛盾：項目描述與分類欄位明顯不符（例：「計程車」被分類為「水電」）
+【任務】請分兩階段偵測費用異常，「先忽略備註欄」用規則 ①-⑥ 跑完一遍，再用規則 ⑦ 做交叉驗證。
 
-【輸出格式】異常清單（Markdown 表格）：異常類型 / 編號 / 日期 / 申請人 / 金額 / 異常說明
+主要規則（請只用「日期 / 部門 / 項目 / 分類 / 金額 / 申請人 / 憑證類型」7 個欄位判定）：
+① 大額異常：同分類費用中，金額超過該分類平均值 3 倍以上
+② 極小金額異常：單筆金額 &lt; NT$10
+③ 分類矛盾：項目描述與分類欄位明顯不符（例：「印表機」分類為「文具」）
+④ 整數異常：金額為過度整數（如 99,999 / 49,999 / 999）
+⑤ 重複報帳：同申請人 14 天內、同項目（或相近項目）、同金額（誤差 ≤ 10%）二度申請
+⑥ 時間異常：週末或國定假日申請「客戶餐敘 / 員工活動」等業務型項目
 
-【驗證要求】請在最後說明：你分析的總筆數、每種異常類型各找到幾筆、你計算分類平均值的方式<button class="prompt-copy-btn" onclick="copyPrompt('pc2',this)">複製</button></div>
-        <div class="prompt-note"><strong>為何這樣寫：</strong>明確的數值規則（超過 3 倍、7 天 3 次）讓 AI 從「模糊判斷」進入「規則執行」模式，輸出更可信。</div>
+輔助規則（最後一步才用備註欄）：
+⑦ 備註交叉驗證：對已用 ①-⑥ 抓到的筆數，檢視備註是否補強或矛盾，僅作為加強說明用
+
+【輸出格式】請輸出兩個區塊：
+Block A：主要規則命中清單（Markdown 表格）— 異常編號 / 主要規則代號 / 日期 / 申請人 / 分類 / 金額 / 異常說明（只引用主要欄位，不引用備註）
+Block B：輔助規則交叉檢視 — 異常編號 / 對應的主要規則 / 備註欄文字 / 備註是否補充強化判斷？(Yes/No)
+
+【驗證要求】1. 總筆數 2. 主要規則 ①-⑥ 各找到幾筆（允許單筆並列多碼如「①③」） 3. 分類平均值的計算方式（用了哪些欄位、扣除哪些 outlier） 4. 是否有「你覺得可疑但因規則門檻不到」未列入 Block A 的筆數？列出並說明<button class="prompt-copy-btn" onclick="copyPrompt('pc2',this)">複製</button></div>
+        <div class="prompt-note"><strong>為何這樣寫：</strong>分兩階段（主要規則 ①-⑥ 先跑、輔助規則 ⑦ 後跑）避免 AI 走捷徑直接抄備註，逼 AI 真正用客觀欄位執行稽核邏輯。dataset 學員版備註已移除「異常」等答案提示。</div>
       </div>
     </div>
 

@@ -114,6 +114,14 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
   <h1 class="lesson-title">完整提示詞庫 — 56 套</h1>
   <p class="lesson-tagline">課堂用過、可直接帶回工作場景套用。<strong>主課 42 套</strong>（4 案例 × 7 套）+ <strong>Bonus 9 套</strong>（防呆追問 4 / 對象變奏 4 / 平台 Wrapper 1）+ <strong>NotebookLM 5 套</strong>。每套含「複製 Prompt」按鈕，點一下整段拷貝到剪貼簿。</p>
 
+  <div class="callout tip" style="margin-top:18px;padding:14px 18px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius)">
+    <strong>L5 升級包（2026-05-14 新增）</strong> — 課堂後回家自己跑卡住的話，先看這兩份：
+    <ul style="margin:8px 0 0 22px;padding:0">
+      <li><a href="assets/datasets/home-recipes.md" target="_blank" rel="noopener" style="color:var(--c-main)">回家 30 分鐘復跑手冊</a>：每個案例 5 步驟、整理欄位 → 貼資料 → 跑 prompt → 追問 → 驗證</li>
+      <li><a href="assets/datasets/number-validation-pack.md" target="_blank" rel="noopener" style="color:var(--c-main)">數字驗證包</a>：3 層驗證原則（自查 / 抽樣 / 全量）+ Excel 樞紐表 SOP + 主管核可前 5 個檢查問題</li>
+    </ul>
+  </div>
+
   <div class="callout">
     <div class="callout-icon" aria-hidden="true">💡</div>
     <div class="callout-body"><strong>使用建議</strong>：① 先看「<a href="platform-guide.html" style="color:var(--c-main);font-weight:500">平台速查</a>」搞懂通用骨架；② 找對應案例的 prompt 套；③ 點「複製 Prompt」→ 貼到 ChatGPT / Gemini / Copilot 任一處；④ 把你的資料貼進 prompt 內標 <code>[貼上你的資料]</code> 處；⑤ 結果不對時用 Bonus B1 防呆追問追問；⑥ 想換語氣用 Bonus B2 對象變奏改寫。</div>
@@ -918,25 +926,38 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
     <span class="card-id">P1-2C-2</span>
     <span class="card-title">進階版：5 骨架 + 明確異常規則（5 骨架）</span>
   </div>
-  <div class="card-use">給 AI 明確的異常定義規則，讓偵測結果更一致、更可重複。</div>
+  <div class="card-use">給 AI 明確的異常定義規則，先用 ①-⑥ 客觀規則偵測，最後才用備註欄做交叉驗證。避免 AI 走捷徑直接讀備註當答案。</div>
   <pre class="card-prompt"><code>【角色】你是一位擅長財務稽核的分析師，專門偵測費用報帳的異常模式。
 
 【資料】以下是公司 2026-04 至 05 月的費用申請記錄，共 200 筆（CSV 格式）：
 
 [貼上 expense-200.csv 全文]
 
-【任務】依照以下 7 類異常規則偵測費用異常：
-1. **大額異常**：同分類費用中，金額超過該分類平均值 3 倍以上（例：差旅類均 8K，某筆 38 萬）
-2. **極小金額異常**：單筆金額 < NT$10（疑誤打、缺零）
-3. **分類矛盾**：項目描述與分類欄位明顯不符（例：「印表機」分類為「文具」、「計程車」分類為「水電」）
-4. **整數異常**：金額為過度整數（如 99,999 / 49,999 / 999）疑湊整逃審核
-5. **重複報帳**：同申請人 14 天內同事項 / 同金額 / 同分類二度申請
-6. **時間異常**：週末（週六日）或國定假日申請「客戶餐敘 / 員工活動」等業務型項目（請參考備註欄判定）
-7. **備註異常**：備註欄含「異常」「重複」「疑」「需確認」等關鍵字、或備註說明與項目矛盾
+【任務】請分兩階段偵測費用異常，「先忽略備註欄」用規則 ①-⑥ 跑完一遍，再用規則 ⑦ 做交叉驗證。
 
-【輸出格式】異常清單（Markdown 表格）：異常編號 / 異常類型 / 日期 / 申請人 / 金額 / 異常說明 / 規則代號
+**主要規則（請只用「日期 / 部門 / 項目 / 分類 / 金額 / 申請人 / 憑證類型」7 個欄位判定）**：
+① **大額異常**：同分類費用中，金額超過該分類平均值 3 倍以上
+② **極小金額異常**：單筆金額 &lt; NT$10（疑誤打、缺零）
+③ **分類矛盾**：項目描述與分類欄位明顯不符（例：「印表機」分類為「文具」、「計程車」分類為「水電」）
+④ **整數異常**：金額為過度整數（如 99,999 / 49,999 / 999）疑湊整逃審核
+⑤ **重複報帳**：同申請人 14 天內、同項目（或相近項目）、同金額（誤差 ≤ 10%）二度申請
+⑥ **時間異常**：週末（週六日）或國定假日申請「客戶餐敘 / 員工活動」等業務型項目
 
-【驗證要求】請在最後說明：你分析的總筆數、每種異常類型各找到幾筆、你計算「分類平均值」的方式（用了哪些欄位、扣除哪些 outlier）</code></pre>
+**輔助規則（最後一步才用備註欄）**：
+⑦ **備註交叉驗證**：對已用 ①-⑥ 抓到的筆數，檢視備註欄是否「與項目分類矛盾」或「補充說明可疑」，僅作為加強說明用，不可單獨成為判定理由
+
+【輸出格式】請輸出兩個區塊：
+**Block A：主要規則命中清單（Markdown 表格）**
+| 異常編號 | 主要規則代號 (①-⑥) | 日期 | 申請人 | 分類 | 金額 | 異常說明（只引用主要欄位，不引用備註） |
+
+**Block B：輔助規則交叉檢視**
+| 異常編號 | 對應的主要規則 | 備註欄文字 | 備註是否補充強化判斷？(Yes/No) |
+
+【驗證要求】請在最後說明：
+1. 你分析的總筆數
+2. 主要規則 ①-⑥ 各找到幾筆（允許單筆同時觸發多條規則，請以代號 + 並列「①③」呈現）
+3. 你計算「分類平均值」的方式（用了哪些欄位、扣除哪些 outlier）
+4. 是否有「你覺得可疑但因規則門檻不到」而未列入 Block A 的筆數？請列出並說明</code></pre>
   <div class="card-foot">
     <button type="button" class="copy-btn" onclick="copyPrompt(this,`【角色】你是一位擅長財務稽核的分析師，專門偵測費用報帳的異常模式。
 
@@ -944,19 +965,32 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 
 [貼上 expense-200.csv 全文]
 
-【任務】依照以下 7 類異常規則偵測費用異常：
-1. **大額異常**：同分類費用中，金額超過該分類平均值 3 倍以上（例：差旅類均 8K，某筆 38 萬）
-2. **極小金額異常**：單筆金額 < NT$10（疑誤打、缺零）
-3. **分類矛盾**：項目描述與分類欄位明顯不符（例：「印表機」分類為「文具」、「計程車」分類為「水電」）
-4. **整數異常**：金額為過度整數（如 99,999 / 49,999 / 999）疑湊整逃審核
-5. **重複報帳**：同申請人 14 天內同事項 / 同金額 / 同分類二度申請
-6. **時間異常**：週末（週六日）或國定假日申請「客戶餐敘 / 員工活動」等業務型項目（請參考備註欄判定）
-7. **備註異常**：備註欄含「異常」「重複」「疑」「需確認」等關鍵字、或備註說明與項目矛盾
+【任務】請分兩階段偵測費用異常，「先忽略備註欄」用規則 ①-⑥ 跑完一遍，再用規則 ⑦ 做交叉驗證。
 
-【輸出格式】異常清單（Markdown 表格）：異常編號 / 異常類型 / 日期 / 申請人 / 金額 / 異常說明 / 規則代號
+**主要規則（請只用「日期 / 部門 / 項目 / 分類 / 金額 / 申請人 / 憑證類型」7 個欄位判定）**：
+① **大額異常**：同分類費用中，金額超過該分類平均值 3 倍以上
+② **極小金額異常**：單筆金額 < NT$10（疑誤打、缺零）
+③ **分類矛盾**：項目描述與分類欄位明顯不符（例：「印表機」分類為「文具」、「計程車」分類為「水電」）
+④ **整數異常**：金額為過度整數（如 99,999 / 49,999 / 999）疑湊整逃審核
+⑤ **重複報帳**：同申請人 14 天內、同項目（或相近項目）、同金額（誤差 ≤ 10%）二度申請
+⑥ **時間異常**：週末（週六日）或國定假日申請「客戶餐敘 / 員工活動」等業務型項目
 
-【驗證要求】請在最後說明：你分析的總筆數、每種異常類型各找到幾筆、你計算「分類平均值」的方式（用了哪些欄位、扣除哪些 outlier）`)">複製 Prompt</button>
-    <span class="card-why">明確的數值規則（超過 3 倍、7 天 3 次）讓 AI 從「模糊判斷」進入「規則執行」模式，輸出更可信。</span>
+**輔助規則（最後一步才用備註欄）**：
+⑦ **備註交叉驗證**：對已用 ①-⑥ 抓到的筆數，檢視備註欄是否「與項目分類矛盾」或「補充說明可疑」，僅作為加強說明用，不可單獨成為判定理由
+
+【輸出格式】請輸出兩個區塊：
+**Block A：主要規則命中清單（Markdown 表格）**
+| 異常編號 | 主要規則代號 (①-⑥) | 日期 | 申請人 | 分類 | 金額 | 異常說明（只引用主要欄位，不引用備註） |
+
+**Block B：輔助規則交叉檢視**
+| 異常編號 | 對應的主要規則 | 備註欄文字 | 備註是否補充強化判斷？(Yes/No) |
+
+【驗證要求】請在最後說明：
+1. 你分析的總筆數
+2. 主要規則 ①-⑥ 各找到幾筆（允許單筆同時觸發多條規則，請以代號 + 並列「①③」呈現）
+3. 你計算「分類平均值」的方式（用了哪些欄位、扣除哪些 outlier）
+4. 是否有「你覺得可疑但因規則門檻不到」而未列入 Block A 的筆數？請列出並說明`)">複製 Prompt</button>
+    <span class="card-why">分兩階段（主要規則 ①-⑥ 先跑、輔助規則 ⑦ 後跑）避免 AI 走捷徑直接抄備註，逼 AI 真正用客觀欄位執行稽核邏輯。</span>
   </div>
 </div>
 
@@ -1190,7 +1224,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
     <span class="card-id">P2-1-2</span>
     <span class="card-title">進階版：5 骨架 + ABC + Top SKU + 長尾分布</span>
   </div>
-  <div class="card-use">完整的電商商品分析報告，含三個維度，可直接給主管或投資人看。</div>
+  <div class="card-use">完整的電商商品分析報告，含 ABC 分類、Top 10、長尾四元決策。<strong>要求 AI 先聲明口徑，並用 truth check 三錨點驗證。</strong></div>
   <pre class="card-prompt"><code>【角色】你是一位擅長電商商品分析的數據分析師，熟悉 ABC 分類、長尾理論和季節性分析。
 
 【資料】以下是電商平台 2026 年 4-5 月的訂單記錄，共 500 筆（CSV 格式）：
@@ -1201,14 +1235,34 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 
 [貼上 sku-50.csv 全文]
 
-【任務】請做以下三個分析：
-1. ABC 分類：依銷售額分類（A=前 80%、B=80-95%、C=其他），列出每個 SKU 的分類
-2. Top 10 SKU：銷售額 Top 10 的 SKU，含銷售額、數量、平均單價
-3. 長尾分析：C 類 SKU 的總數量 vs 總銷售額佔比，評估是否需要清倉
+【任務】請做以下三個分析。**分析前請先聲明你採用的口徑**：
+- ABC 分類是依「銷售額累計門檻」算（A 前 80% / B 80-95% / C 後 5%）還是其他方式
+- 零銷售 SKU 是否納入分類（建議：納入並全歸 C 類；同時另列「零銷售 SKU 清單」）
 
-【輸出格式】三個分析各用一個 Markdown 表格，表格後加 1-2 句說明「最值得注意的發現」
+1. **ABC 分類**：依銷售額累計門檻分類
+   - 表 1a：A、B 類完整逐 SKU 列出（SKU / 商品名稱 / 銷售額 / 累計佔比 / 分類代號）
+   - 表 1b：C 類摘要（總數、有銷售數、零銷售數、C 類總銷售額、C 類佔比）+「C 類銷售額前 10」+「零銷售 SKU 完整清單」
 
-【驗證要求】請最後列出：分析總筆數、總銷售額、涵蓋 SKU 數，並說明計算公式</code></pre>
+2. **Top 10 SKU**：銷售額 Top 10，含「銷售額 / 數量 / 平均單價（用 銷售額 ÷ 數量，不用 SKU 主檔售價）」
+
+3. **長尾決策**：對 C 類，分四類給出建議
+   - 清倉：庫存高、銷量近零、無策略價值
+   - 保留觀察：銷量低但毛利高、或為新品上架未滿 30 天
+   - 補曝光：銷量低但點擊 / 加購可能不足（資料外推）
+   - 停止採購：零銷售 + 庫存仍高
+   請對 8 個零銷售 SKU 各別給出 1 個建議分類 + 一句理由
+
+【輸出格式】三個分析各用 Markdown 表格 + 1-2 句「最值得注意的發現」
+
+【驗證要求】請在最後列出：
+1. 分析總筆數（訂單列數）
+2. 總銷售額（SUM(金額)）
+3. 涵蓋 SKU 數（訂單 CSV 去重 SKU）
+4. SKU 主檔總數（sku-50.csv 列數）
+5. ABC 各類 SKU 數（明列 A=? / B=? / C=?，並說明 C 是否含零銷售 SKU）
+6. 計算公式（每個指標用了哪些欄位）
+
+**Truth check 三個錨點**（學員必對）：總筆數 = 500、總銷售額 = NT$2,227,470、Top 1 SKU = SKU-1003（佔 72.1%）。數字對不上就是 AI 算錯。</code></pre>
   <div class="card-foot">
     <button type="button" class="copy-btn" onclick="copyPrompt(this,`【角色】你是一位擅長電商商品分析的數據分析師，熟悉 ABC 分類、長尾理論和季節性分析。
 
@@ -1220,15 +1274,35 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 
 [貼上 sku-50.csv 全文]
 
-【任務】請做以下三個分析：
-1. ABC 分類：依銷售額分類（A=前 80%、B=80-95%、C=其他），列出每個 SKU 的分類
-2. Top 10 SKU：銷售額 Top 10 的 SKU，含銷售額、數量、平均單價
-3. 長尾分析：C 類 SKU 的總數量 vs 總銷售額佔比，評估是否需要清倉
+【任務】請做以下三個分析。分析前請先聲明你採用的口徑：
+- ABC 分類是依「銷售額累計門檻」算（A 前 80% / B 80-95% / C 後 5%）還是其他方式
+- 零銷售 SKU 是否納入分類（建議：納入並全歸 C 類；同時另列「零銷售 SKU 清單」）
 
-【輸出格式】三個分析各用一個 Markdown 表格，表格後加 1-2 句說明「最值得注意的發現」
+1. ABC 分類：依銷售額累計門檻分類
+   - 表 1a：A、B 類完整逐 SKU 列出（SKU / 商品名稱 / 銷售額 / 累計佔比 / 分類代號）
+   - 表 1b：C 類摘要（總數、有銷售數、零銷售數、C 類總銷售額、C 類佔比）+「C 類銷售額前 10」+「零銷售 SKU 完整清單」
 
-【驗證要求】請最後列出：分析總筆數、總銷售額、涵蓋 SKU 數，並說明計算公式`)">複製 Prompt</button>
-    <span class="card-why">結合訂單資料和 SKU 主檔，示範「多份資料合併分析」的 prompt 寫法，是這個案例的核心教學點。</span>
+2. Top 10 SKU：銷售額 Top 10，含「銷售額 / 數量 / 平均單價（用 銷售額 ÷ 數量，不用 SKU 主檔售價）」
+
+3. 長尾決策：對 C 類，分四類給出建議
+   - 清倉：庫存高、銷量近零、無策略價值
+   - 保留觀察：銷量低但毛利高、或為新品上架未滿 30 天
+   - 補曝光：銷量低但點擊 / 加購可能不足（資料外推）
+   - 停止採購：零銷售 + 庫存仍高
+   請對 8 個零銷售 SKU 各別給出 1 個建議分類 + 一句理由
+
+【輸出格式】三個分析各用 Markdown 表格 + 1-2 句「最值得注意的發現」
+
+【驗證要求】請在最後列出：
+1. 分析總筆數（訂單列數）
+2. 總銷售額（SUM(金額)）
+3. 涵蓋 SKU 數（訂單 CSV 去重 SKU）
+4. SKU 主檔總數（sku-50.csv 列數）
+5. ABC 各類 SKU 數（明列 A=? / B=? / C=?，並說明 C 是否含零銷售 SKU）
+6. 計算公式（每個指標用了哪些欄位）
+
+Truth check 三個錨點（學員必對）：總筆數 = 500、總銷售額 = NT$2,227,470、Top 1 SKU = SKU-1003（佔 72.1%）。數字對不上就是 AI 算錯。`)">複製 Prompt</button>
+    <span class="card-why">拆 A/B 詳列 + C 摘要避免 50 SKU 爆表；長尾從 2 元決策升 4 元；強制 AI 聲明口徑、用 truth check 三錨點防幻覺。</span>
   </div>
 </div>
 
@@ -1476,24 +1550,35 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 <div class="prompt-card">
   <div class="card-head">
     <span class="card-id">P2-2-2</span>
-    <span class="card-title">進階版：5 骨架 + 圖表建議</span>
+    <span class="card-title">進階版：5 骨架 + 圖表建議 + 防幻覺</span>
   </div>
-  <div class="card-use">完整的簡報組裝 prompt，含 5 大骨架、每頁圖表類型建議、數字引用標準。</div>
+  <div class="card-use">完整的簡報組裝 prompt，含 5 大骨架 + 每頁圖表配對 + 防 AI 幻覺四層防線（不新增 / 標來源 / 列可疑 / 不承諾 .pptx）。Codex L4a 8.5/10。</div>
   <pre class="card-prompt"><code>【角色】你是一位擅長用數據說故事的商業簡報設計顧問，熟悉給主管和客戶看的簡報結構。
 
 【資料】以下是本次分析報告的四個部分摘要：
 
 [貼入 P1-1-7（週報重點）+ P1-2A-7（行程素材）+ P1-2B-7（業績趨勢）+ P1-2C-7（費用異常）+ P2-1-7（電商分析）的輸出結果，約 400-800 字]
 
-【任務】請產出 5-8 頁的「數據分析簡報」內容包，每頁包含：
-1. 頁標題（不超過 15 字）
-2. 本頁核心訊息（一句話，含具體數字）
-3. 3-5 條 bullet（每條不超過 25 字，數字優先）
-4. 建議圖表類型（例：折線圖 / 柱狀圖 / 表格），說明 X 軸 Y 軸
+【任務】請產出 6 頁（不可少於 6、不可多於 8）的「數據分析簡報」內容包。
+
+**防幻覺三鐵律（必遵守，否則重做）**：
+1. 不得新增資料中沒有的原因、金額、客戶名稱或結論
+2. 每個數字必須註明來源案例（用 [來源：① / ②A / ②B / ②C / ③]）
+3. 不確定的就標 [需人工確認]，不要硬掰
+
+每頁包含：① 頁標題（≤ 15 字）② 核心訊息（一句話 + 來源）③ 3-5 條 bullet（每條 ≤ 25 字，含來源）④ 圖表類型 + X/Y 軸 ⑤ 給主管的建議
+
+**頁面結構與圖表配對**：
+- 第 1 頁 健康度總覽 — 圖表：無
+- 第 2 頁 本週重點（49 條工作日誌）— 圖表：簡單表格
+- 第 3 頁 業務 + 業績 — 圖表：拜訪用堆疊長條/漏斗、業績用折線圖
+- 第 4 頁 費用異常（7 筆）— 圖表：橫條圖
+- 第 5 頁 電商商品矩陣（96.5%）— 圖表：柏拉圖或 Top SKU 長條
+- 第 6 頁 行動方案（3 條 + 負責人 + 期限）— 圖表：無
 
 【輸出格式】每頁用 Markdown 的 ### 標題區隔，整份輸出可直接貼入 Google Docs 或 Notion
 
-【驗證要求】請在最後說明：你在哪幾頁引用了哪些具體數字？這些數字來自哪個案例的摘要？</code></pre>
+【驗證要求】1. 總頁數 2. 5 份來源全引用？哪頁引用哪份 3. 哪些數字「直接抓」哪些「組合推論」 4. **可能需要人工確認的數字清單** 5. 一句話結論</code></pre>
   <div class="card-foot">
     <button type="button" class="copy-btn" onclick="copyPrompt(this,`【角色】你是一位擅長用數據說故事的商業簡報設計顧問，熟悉給主管和客戶看的簡報結構。
 
@@ -1501,15 +1586,26 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 
 [貼入 P1-1-7（週報重點）+ P1-2A-7（行程素材）+ P1-2B-7（業績趨勢）+ P1-2C-7（費用異常）+ P2-1-7（電商分析）的輸出結果，約 400-800 字]
 
-【任務】請產出 5-8 頁的「數據分析簡報」內容包，每頁包含：
-1. 頁標題（不超過 15 字）
-2. 本頁核心訊息（一句話，含具體數字）
-3. 3-5 條 bullet（每條不超過 25 字，數字優先）
-4. 建議圖表類型（例：折線圖 / 柱狀圖 / 表格），說明 X 軸 Y 軸
+【任務】請產出 6 頁（不可少於 6、不可多於 8）的「數據分析簡報」內容包。
+
+**防幻覺三鐵律（必遵守，否則重做）**：
+1. 不得新增資料中沒有的原因、金額、客戶名稱或結論
+2. 每個數字必須註明來源案例（用 [來源：① / ②A / ②B / ②C / ③]）
+3. 不確定的就標 [需人工確認]，不要硬掰
+
+每頁包含：① 頁標題（≤ 15 字）② 核心訊息（一句話 + 來源）③ 3-5 條 bullet（每條 ≤ 25 字，含來源）④ 圖表類型 + X/Y 軸 ⑤ 給主管的建議
+
+**頁面結構與圖表配對**：
+- 第 1 頁 健康度總覽 — 圖表：無
+- 第 2 頁 本週重點（49 條工作日誌）— 圖表：簡單表格
+- 第 3 頁 業務 + 業績 — 圖表：拜訪用堆疊長條/漏斗、業績用折線圖
+- 第 4 頁 費用異常（7 筆）— 圖表：橫條圖
+- 第 5 頁 電商商品矩陣（96.5%）— 圖表：柏拉圖或 Top SKU 長條
+- 第 6 頁 行動方案（3 條 + 負責人 + 期限）— 圖表：無
 
 【輸出格式】每頁用 Markdown 的 ### 標題區隔，整份輸出可直接貼入 Google Docs 或 Notion
 
-【驗證要求】請在最後說明：你在哪幾頁引用了哪些具體數字？這些數字來自哪個案例的摘要？`)">複製 Prompt</button>
+【驗證要求】1. 總頁數 2. 5 份來源全引用？哪頁引用哪份 3. 哪些數字「直接抓」哪些「組合推論」 4. **可能需要人工確認的數字清單** 5. 一句話結論`)">複製 Prompt</button>
     <span class="card-why">驗證要求讓學員能核對每頁的數字是否來自真實分析，而不是 AI 自行捏造的「看起來合理」的數字。</span>
   </div>
 </div>
@@ -2007,7 +2103,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 </div></details>
 
 <details class="prompt-group" open>
-<summary class="group-header"><span class="group-name">NotebookLM 專用</span><span class="group-count">5 套</span></summary>
+<summary class="group-header"><span class="group-name">NotebookLM 專用</span><span class="group-count">5 + 1 套</span></summary>
 <div class="prompt-cards">
 
 <div class="prompt-card">
@@ -2118,68 +2214,121 @@ A：[答案]（來源：[文件名稱] [頁碼或段落]）
     <span class="card-id">NB-4</span>
     <span class="card-title">跨文件 Cross-Reference 分析</span>
   </div>
-  <div class="card-use">上傳多份文件後，讓 NotebookLM 找出文件間的矛盾、差異或一致性，適合政策更新後的版本對照。</div>
-  <pre class="card-prompt"><code>我上傳了多份文件（例如：新版和舊版的操作手冊、或不同部門的 SOP）。
+  <div class="card-use">上傳多份文件，讓 NotebookLM 找出規則間的矛盾、補充與一致性。**Codex 建議：強制輸出表頭欄位「規則／SOP／Policy／Meeting／一致性／風險判讀」，並區分「事件（單次決議）vs 政策（持續規範）」。**</div>
+  <pre class="card-prompt"><code>我已上傳三份公司內部文件（company-sop.md = 員工 SOP、policy-manual.md = 政策手冊、meeting-notes.md = 會議紀錄）。
 
-請做「跨文件對照分析」，找出：
+請做「跨文件對照分析」，**用以下表格欄位輸出**：
+| 議題 | SOP 章節 + 引用 | Policy 章節 + 引用 | Meeting 章節 + 引用 | 一致性判定 | 風險判讀 |
 
-1. 文件間有矛盾的地方：
-   - [矛盾點描述]（文件 A 說：「[原文]」；文件 B 說：「[原文]」）
+**判讀規則（重要）**：
+- **政策**：來自 SOP 或 Policy 的持續性規範
+- **事件**：來自 Meeting 的單次決議或案例（不是政策）
+- 一致性判定請填：完全一致 / 語氣差異 / 補充說明 / 真正矛盾
+- 若 Meeting 中的事件被誤判為政策，請在「風險判讀」標註「需釐清」
 
-2. 文件間一致的重要規則（只列最重要的 3-5 條）：
-   - [規則]（所有文件都有提到）
+請至少分析以下 4 個議題：
+1. 重複報帳規則
+2. 整數異常規則
+3. 分類矛盾規則
+4. 免費版 AI 工具使用規則
 
-3. 只在某份文件中出現、其他文件沒有提到的重要資訊：
-   - [資訊]（僅見於：[文件名稱]）
-
-格式要求：每條必須引用原文，不要只給摘要。</code></pre>
+若找不到完全相同措辭，請列**最接近來源並說明差異**，不要硬找一致。</code></pre>
   <div class="card-foot">
-    <button type="button" class="copy-btn" onclick="copyPrompt(this,`我上傳了多份文件（例如：新版和舊版的操作手冊、或不同部門的 SOP）。
+    <button type="button" class="copy-btn" onclick="copyPrompt(this,`我已上傳三份公司內部文件（company-sop.md = 員工 SOP、policy-manual.md = 政策手冊、meeting-notes.md = 會議紀錄）。
 
-請做「跨文件對照分析」，找出：
+請做「跨文件對照分析」，用以下表格欄位輸出：
+| 議題 | SOP 章節 + 引用 | Policy 章節 + 引用 | Meeting 章節 + 引用 | 一致性判定 | 風險判讀 |
 
-1. 文件間有矛盾的地方：
-   - [矛盾點描述]（文件 A 說：「[原文]」；文件 B 說：「[原文]」）
+判讀規則（重要）：
+- 政策：來自 SOP 或 Policy 的持續性規範
+- 事件：來自 Meeting 的單次決議或案例（不是政策）
+- 一致性判定請填：完全一致 / 語氣差異 / 補充說明 / 真正矛盾
+- 若 Meeting 中的事件被誤判為政策，請在「風險判讀」標註「需釐清」
 
-2. 文件間一致的重要規則（只列最重要的 3-5 條）：
-   - [規則]（所有文件都有提到）
+請至少分析以下 4 個議題：
+1. 重複報帳規則
+2. 整數異常規則
+3. 分類矛盾規則
+4. 免費版 AI 工具使用規則
 
-3. 只在某份文件中出現、其他文件沒有提到的重要資訊：
-   - [資訊]（僅見於：[文件名稱]）
-
-格式要求：每條必須引用原文，不要只給摘要。`)">複製 Prompt</button>
-    <span class="card-why">三個分類（矛盾 / 一致 / 獨特）讓 NotebookLM 做結構化的文件差異分析，而不是只做單份文件摘要。</span>
+若找不到完全相同措辭，請列最接近來源並說明差異，不要硬找一致。`)">複製 Prompt</button>
+    <span class="card-why">強制輸出 6 欄表格 + 明確區分政策／事件，避免 NotebookLM 把單次會議結果誤當公司政策。</span>
   </div>
 </div>
 
 <div class="prompt-card">
   <div class="card-head">
     <span class="card-id">NB-5</span>
-    <span class="card-title">產 Audio Overview（通勤聽用）</span>
+    <span class="card-title">文件衝突檢測（政策 vs 事件辨識）</span>
   </div>
-  <div class="card-use">利用 NotebookLM 的 Audio Overview 功能，把上傳文件轉成對話式音頻，適合通勤學習。</div>
-  <pre class="card-prompt"><code>（注意：這個功能不是在對話框輸入 prompt，而是點擊 NotebookLM 右側面板的「Audio Overview」按鈕直接生成。以下是給學員的操作說明）
+  <div class="card-use">**Codex 升級新增**：專門檢測「真正衝突」vs「語氣差異」vs「事件被誤當政策」。三份文件設計上沒有硬衝突，但有 3 個容易誤判的差異點。</div>
+  <pre class="card-prompt"><code>我已上傳三份文件：company-sop.md（員工 SOP）、policy-manual.md（政策手冊）、meeting-notes.md（會議紀錄）。
 
-操作步驟：
-1. 在 NotebookLM Notebook 中上傳你的文件（會議記錄 / 報告 / SOP 等）
-2. 點擊右側「Audio Overview」面板
-3. 點擊「Generate」按鈕，等待約 2-5 分鐘
-4. 生成完成後，可在瀏覽器直接播放，或下載 MP3
+請執行「文件衝突檢測」，分以下三類輸出：
 
-自訂重點（optional，在生成前可以設定）：
-- 在 Audio Overview 設定中，加入這段文字：</code></pre>
+**A. 真正衝突（規則內容矛盾）**
+| 衝突點 | SOP 說法 + 引用 | Policy 說法 + 引用 | 衝突嚴重度（高/中/低） | 建議解決方向 |
+
+**B. 語氣差異（規則一致，措辭強度不同）**
+| 議題 | SOP 措辭 | Policy 措辭 | 差異說明（例：「可退件」vs「退件」）|
+
+**C. 容易被誤判為衝突的情況**
+| 表面看起來矛盾的點 | 實際關係（互補 / 不同層級 / 事件 vs 政策）| 釐清說明 |
+
+**重要規則**：
+- meeting-notes 中的單次會議決議**不算政策**，若 AI 把 Meeting 內容當成跟 SOP/Policy 矛盾的證據，請主動指出「這是事件，不是政策」
+- 「免費版 AI 工具可用」與「客戶資料不可上傳免費版 AI」**不是衝突**，是「工具許可 + 資料分級」的層級關係
+
+最後，請給一份 3 條的「衝突分級摘要」：哪些是必須處理、哪些只是文字統一、哪些是 AI 容易誤判但實際無問題。</code></pre>
   <div class="card-foot">
-    <button type="button" class="copy-btn" onclick="copyPrompt(this,`（注意：這個功能不是在對話框輸入 prompt，而是點擊 NotebookLM 右側面板的「Audio Overview」按鈕直接生成。以下是給學員的操作說明）
+    <button type="button" class="copy-btn" onclick="copyPrompt(this,`我已上傳三份文件：company-sop.md（員工 SOP）、policy-manual.md（政策手冊）、meeting-notes.md（會議紀錄）。
+
+請執行「文件衝突檢測」，分以下三類輸出：
+
+A. 真正衝突（規則內容矛盾）
+| 衝突點 | SOP 說法 + 引用 | Policy 說法 + 引用 | 衝突嚴重度（高/中/低） | 建議解決方向 |
+
+B. 語氣差異（規則一致，措辭強度不同）
+| 議題 | SOP 措辭 | Policy 措辭 | 差異說明（例：「可退件」vs「退件」）|
+
+C. 容易被誤判為衝突的情況
+| 表面看起來矛盾的點 | 實際關係（互補 / 不同層級 / 事件 vs 政策）| 釐清說明 |
+
+重要規則：
+- meeting-notes 中的單次會議決議不算政策，若 AI 把 Meeting 內容當成跟 SOP/Policy 矛盾的證據，請主動指出「這是事件，不是政策」
+- 「免費版 AI 工具可用」與「客戶資料不可上傳免費版 AI」不是衝突，是「工具許可 + 資料分級」的層級關係
+
+最後，請給一份 3 條的「衝突分級摘要」：哪些是必須處理、哪些只是文字統一、哪些是 AI 容易誤判但實際無問題。`)">複製 Prompt</button>
+    <span class="card-why">取代原本的 Audio Overview（移至 optional 附錄），改聚焦在最高含金量的「衝突分級 + 政策/事件判讀」教學。</span>
+  </div>
+</div>
+
+<div class="prompt-card prompt-card-optional">
+  <div class="card-head">
+    <span class="card-id">NB-Optional</span>
+    <span class="card-title">Audio Overview（通勤聽用，加碼）</span>
+  </div>
+  <div class="card-use">**選做**：NotebookLM 的 Audio Overview 功能可把上傳文件轉成對話式音頻。**這不是主軸**，列為 bonus 中的 bonus 給有興趣的學員。</div>
+  <pre class="card-prompt"><code>（這個功能不是在對話框輸入 prompt，而是點擊 NotebookLM 右側面板的「Audio Overview」按鈕直接生成）
 
 操作步驟：
-1. 在 NotebookLM Notebook 中上傳你的文件（會議記錄 / 報告 / SOP 等）
-2. 點擊右側「Audio Overview」面板
-3. 點擊「Generate」按鈕，等待約 2-5 分鐘
-4. 生成完成後，可在瀏覽器直接播放，或下載 MP3
+1. 上傳文件到 NotebookLM Notebook
+2. 點擊右側「Audio Overview」面板 → Generate
+3. 等 2-5 分鐘，可在瀏覽器播放或下載 MP3
 
-自訂重點（optional，在生成前可以設定）：
-- 在 Audio Overview 設定中，加入這段文字：`)">複製 Prompt</button>
-    <span class="card-why">Audio Overview 是 NotebookLM 最有差異化的功能，但操作方式和其他 AI 工具不同（不是貼 prompt），需要說明清楚操作步驟和適用情境，避免學員期待錯誤。</span>
+自訂重點（optional，在生成前可設定）：
+- Audio Overview 設定中加入：「請聚焦在【你關心的主題】，並用對話式口吻解釋」</code></pre>
+  <div class="card-foot">
+    <button type="button" class="copy-btn" onclick="copyPrompt(this,`（這個功能不是在對話框輸入 prompt，而是點擊 NotebookLM 右側面板的「Audio Overview」按鈕直接生成）
+
+操作步驟：
+1. 上傳文件到 NotebookLM Notebook
+2. 點擊右側「Audio Overview」面板 → Generate
+3. 等 2-5 分鐘，可在瀏覽器播放或下載 MP3
+
+自訂重點（optional，在生成前可設定）：
+- Audio Overview 設定中加入：「請聚焦在【你關心的主題】，並用對話式口吻解釋」`)">複製 Prompt</button>
+    <span class="card-why">Audio Overview 移為 bonus 附錄；課堂主軸是 NB-1 ~ NB-5 的引用 / cross-ref / 衝突檢測。</span>
   </div>
 </div>
 </div></details>
