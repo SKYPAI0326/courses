@@ -7,17 +7,23 @@
 ## 資料夾結構
 
 ```
-課程專用網頁/           ← 根目錄：規則、工具、統一入口
+課程專用網頁/           ← 根目錄：只放網站本體 + 工具鏈 + 製作 SSOT
 ├── index.html          ← 統一課程入口
+├── search.html         ← 站內搜尋頁
+├── sitemap.xml / robots.txt / search-index.json / .nojekyll  ← SEO / 索引
 ├── CLAUDE.md           ← 專案規範
 ├── COURSES.md          ← 本檔（課程清單摘要）
-├── _outlines/          ← 課程大綱（Markdown）
-├── _規範/              ← 設計規範（design-tokens.md = SSOT）
-├── _進度/              ← 進度追蹤
-├── _pilots/            ← 試產物（lint exclude，不套合規規則）
-├── 素材/               ← 教學素材
-├── 講義建立/           ← 講義製作器（server.py + index.html）
-└── courses/            ← 所有課程（14 門，2026-04-26）
+├── inject_gate.py      ← 密碼關卡注入工具
+├── docs/               ← 建置/驗證腳本（lint / build-*）
+├── _outlines/          ← 課程大綱 SSOT（Markdown）
+├── _lessons/           ← 教案 SSOT（Markdown）
+├── _規範/              ← 設計規範 SSOT（design-tokens.md / 模板 / archive-rule.md）
+├── 素材/               ← og-default.png（站台 OG 圖）
+└── courses/            ← 所有課程（網頁講義 + 可下載素材包）
+
+# 製作用檔案（教案草稿 / 大綱企劃 / 列印 PDF / 簡報原檔 / 源素材 / 試產 /
+# 講師指引 / 驗證稽核產物 / 講義製作器）已依 _規範/archive-rule.md 移出至
+# 姊妹資料夾 ../課程製作-內部/（不進 git）。
     ├── ai-workshop/
     ├── ccs-foundations/
     ├── digital-marketing-70h/
