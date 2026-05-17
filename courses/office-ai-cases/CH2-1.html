@@ -530,7 +530,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 輸出格式：
 | 補貨優先序 | SKU | 商品名稱 | 建議理由 |
-（最多列 10 個 SKU）
+（只列符合規則的 SKU；A+B 類不足 10 個時請說明原因，不要補入 C 類）
 
 最後加一行：C 類 SKU 共 X 個，建議下架評估的有 X 個（理由：銷售額佔比低於 X% 或銷量 < N 件）。<button type="button" class="prompt-copy-btn" onclick="copyPrompt('p215',this)">複製</button></div>
       <div class="prompt-bones">
@@ -538,6 +538,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <span class="bone-tag">任務：補貨優先序</span>
         <span class="bone-tag">輸出：表格 + 結論行</span>
       </div>
+      <div class="prompt-note"><strong>⚠ 規則衝突陷阱：</strong>這份 prompt 同時要求「暫緩補 C 類」和「列出補貨清單」。本資料集的 A 類只有 2 個 SKU、B 類只有 2 個，共 4 個符合規則——遠低於直覺中的「10 個」。AI 遇到這種衝突時，傾向自行填滿清單，把 C 類 SKU 補進來（甚至自己說「雖屬 C 類」），而不是主動回報「規則只允許列 4 個」。這是 AI 的常見行為：在兩個互相衝突的指令之間，它會選擇「看起來更完整的輸出」而非回報衝突。修正版已將「最多列 10 個」改為「只列符合規則的 SKU，不足請說明原因」——這一字之差是讓 AI 誠實報告的關鍵。<br><br><strong>C 類下架評估錨點：</strong>正確答案是 <strong>34 個</strong>（銷售額占比 &lt;0.1% 或總銷量 &lt;2 件）。若 AI 回報低於這個數字，通常是把「銷量 &lt;2 件」誤解成「銷量 = 0」，漏掉了 26 個只賣過 1 件的 SKU-3xxx 系列。</div>
     </div>
   </div>
 
@@ -562,6 +563,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <span class="bone-tag">任務：透明度報告</span>
         <span class="bone-tag">驗證：假設條件揭露</span>
       </div>
+      <div class="prompt-note"><strong>透明度報告的侷限（重要）：</strong>P2-1-6 問 AI「你做了哪些假設」，AI 的回答描述的是它認為「正確的做法」，不一定是它實際執行的過程。典型案例：P2-1-1 實測 AI 把 SKU-1005 歸入 A 類（inclusive 邊界，累積到 87.47% 才停），但 P2-1-6 的透明度報告卻說「累積佔比超過 80% 的 SKU 歸 B」（exclusive 邊界）——兩者矛盾。<br><br><strong>核心教學點：</strong>透明度報告是「AI 的自述」，不是「AI 的行為記錄」。自述可以是後驗合理化，不保證與實際計算一致。要真正驗證 AI 算了什麼，唯一可靠的方法是用已知錨點倒推（例如 P2-1-2 的 Truth check 三錨點），而不是只問 AI 怎麼說。</div>
     </div>
   </div>
 
