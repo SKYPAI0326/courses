@@ -295,6 +295,174 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 <div class="prac-body">
 
+  <!-- ▼▼▼ 引導主線（照著做）· 2026-05 新增 ▼▼▼ -->
+  <section class="lesson-section" id="sec-guided">
+    <div class="section-eyebrow">GUIDED · 45 分鐘照著做主線</div>
+    <h2 class="section-heading">先跟著做一遍：<em>用 AI 生成一個會算錢的「健身課程報價試算器」</em></h2>
+    <p class="section-lede" style="color:var(--c-text)">這頁的完整任務是用 AI 做出一個能交付給客戶的報價試算器。但這件事最容易卡住的，不是把工具做漂亮，而是<strong>把計算邏輯講清楚，再驗證 AI 算得對不對</strong>——報價工具的本質就是「收到輸入 → 跑對公式 → 給出可帶走的數字」，公式錯一個係數，整張報價單就廢了。這條主線只做一件事：拿一份已經寫好的工具規格，用一套固定 Prompt 叫 AI 生成單檔 HTML 工具，存下來打開，再用「已知輸入 → 正確答案」驗算它有沒有算對。全程貼文字進 AI、存成 .html 開來測，<strong>不用寫一行程式</strong>，45 分鐘做完，你就握住了「用 AI 生工具」最關鍵、也最容易出錯的那一段。<strong>先把這條主線走完</strong>；做完還想多練，再往下走「進階練習池」——那裡有需求分析的互動設計器、驗收清單、延伸案例，和婚禮攝影／課程包月／網頁設計三種業態的完整情境演練。主線和練習池是同一主題的不同深度，主線是正式入門路徑，練習池是自選加練。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 1 / 5 · 場景設定（5 分鐘）</div>
+    <h2 class="section-heading">柏勳的麻煩</h2>
+    <p class="section-lede" style="color:var(--c-text);padding:14px 18px;background:var(--c-card);border-left:3px solid var(--c-a4);border-radius:var(--radius-sm);font-size:.88rem;line-height:1.9;margin-bottom:20px"><strong>柏勳，34 歲，獨立接案的健身教練。</strong>他在 IG 接私人課程詢問，每天被同一句話問到累——「請問幾堂課多少錢？」。他的收費其實有規則：每堂 NT$800，買 10 堂以上打 9 折、20 堂以上打 85 折，還能加購飲食菜單規劃、體態評估報告、到府授課。但這套規則他每次都得用計算機按一遍再回訊息，按錯過好幾次、報錯價只能自己吞。他想要一個能丟給客人自己點的小工具，可是<strong>他不會寫程式</strong>，外包報價又比這個工具本身還貴。</p>
+    <p class="section-lede" style="color:var(--c-text)">今天你就是柏勳。你要用 AI 把這個報價試算器生出來——重點不是把它做得多炫，是<strong>把收費規則描述精確，再驗證 AI 真的算對</strong>。<strong>本主線的工具規格</strong>就在 STEP 2 下方（一份完整的欄位與公式清單，直接用即可，不需自己設計）。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 2 / 5 · 看成品（10 分鐘）</div>
+    <h2 class="section-heading">先看這個工具做完長什麼樣</h2>
+    <p class="section-lede" style="color:var(--c-text)">動手前先看一次。下面先給本主線的<strong>成品工具描述</strong>——這個報價試算器有哪些輸入欄位、用什麼公式算、輸出什麼；再給一組<strong>已知輸入算出來的正確答案</strong>。先認得成品該長什麼樣、該算出多少，等一下自己生成工具才知道對不對。</p>
+    <div class="prac-sample">
+      <div class="ps-block">
+        <div class="ps-label">本主線工具規格 · 健身課程報價試算器</div>
+        <div class="ps-material">## 成品工具：健身課程報價試算器（單檔 HTML）
+
+【輸入欄位】
+- 課程堂數：number 輸入框，最小 1、預設 4，每堂 NT$800
+- 加購項目（checkbox 可複選）：
+  · 飲食菜單規劃　固定 +NT$1,200
+  · 體態評估報告　固定 +NT$600
+  · 到府授課　　　每堂額外 +NT$150（會隨堂數變動）
+
+【計算邏輯】
+1. 課程費 = 堂數 × 800
+2. 堂數折扣率：1–9 堂 = 不打折(1.0)；10–19 堂 = 9 折(0.9)；20 堂以上 = 85 折(0.85)
+3. 折扣後課程費 = 課程費 × 折扣率（折扣只作用在課程費，不含加購）
+4. 加購總額 = 飲食菜單(1200，勾才算) + 體態評估(600，勾才算) + 到府授課(堂數×150，勾才算)
+5. 小計 = 折扣後課程費 + 加購總額
+6. 營業稅 = 小計 × 5%（外加顯示）
+7. 總計 = 小計 + 營業稅
+
+【輸出】
+- 即時計算（改任何欄位馬上更新，不用按鈕）
+- 結果區分行列出：課程費、折扣後課程費、加購總額、小計、營業稅、總計
+- 「複製報價」按鈕：把結果整理成純文字報價單可貼 LINE
+- 空值或輸入負數／非數字時不算錯，顯示提示「請輸入 1 以上的整數」</div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-expect"><strong>已知輸入 → 正確答案（成品該算出這些數字，供 STEP 5 對照）</strong><br><br>
+        <strong>範例：堂數 12、勾「飲食菜單規劃」＋「到府授課」</strong><br>
+        · 課程費 ＝ 12 × 800 ＝ <strong>9,600</strong><br>
+        · 折扣率 ＝ 12 堂落在 10–19 → <strong>9 折（0.9）</strong><br>
+        · 折扣後課程費 ＝ 9,600 × 0.9 ＝ <strong>8,640</strong><br>
+        · 加購總額 ＝ 飲食 1,200 ＋ 到府 12×150（1,800）＝ <strong>3,000</strong><br>
+        · 小計 ＝ 8,640 ＋ 3,000 ＝ <strong>11,640</strong><br>
+        · 營業稅 ＝ 11,640 × 5% ＝ <strong>582</strong><br>
+        · <strong>總計 ＝ 12,222</strong><br><br>
+        折扣率分段：1–9 堂不打折、10–19 堂 9 折、20 堂以上 85 折。<br>
+        「到府授課」是唯一會隨堂數變動的加購（堂數×150），飲食菜單與體態評估是固定金額。</div>
+      </div>
+    </div>
+    <p class="section-lede" style="color:var(--c-text)"><strong>看懂這份規格的關鍵：</strong>注意計算邏輯第 2、3 點——折扣只打在「課程費」上，不打在加購項目。AI 生工具時最常見的錯就是把折扣套到含加購的小計（會算出便宜的錯價），或把「到府授課」當固定金額忘了乘堂數。所以等一下你拿到工具，第一件事就是用上面這組「堂數 12」的已知答案驗算：只要總計不是 <strong>12,222</strong>，就代表 AI 的公式跑掉了，要回去追問修正。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 3 / 5 · 認識主版 Prompt（5 分鐘）</div>
+    <h2 class="section-heading">主版工具生成 Prompt（直接複製，不用改）</h2>
+    <p class="section-lede" style="color:var(--c-text)">這套 Prompt 把 STEP 2 的工具規格寫成 AI 看得懂的生成指令，由 5 個骨架組成：角色、規格、計算邏輯、輸出、驗證。你不用自填，直接按「複製」就能用。先看完整版，再看下方「為何這樣寫」。</p>
+    <div class="prac-sample">
+      <div class="ps-block">
+        <div class="ps-label">主版 Prompt · 報價試算器工具生成（骨架：角色＋規格＋計算邏輯＋輸出＋驗證）</div>
+        <div class="ps-prompt">【角色】你是替接案工作者做小工具的前端工程師，理解客戶要的是「輸入幾個數字就看到清楚報價」，欄位用語要白話。
+
+【任務】產出一份「健身課程報價試算器」單檔 HTML 工具，內嵌 CSS/JS、不依賴任何外部 library。
+
+【輸入欄位】
+- 課程堂數：number 輸入框，最小 1、預設 4，每堂單價 NT$800
+- 加購項目 checkbox 可複選：飲食菜單規劃 固定 +1200；體態評估報告 固定 +600；到府授課 每堂額外 +150
+
+【計算邏輯】（請嚴格照此公式，不要自行簡化）
+1. 課程費 = 堂數 × 800
+2. 堂數折扣率：1–9 堂 = 1.0；10–19 堂 = 0.9；20 堂以上 = 0.85
+3. 折扣後課程費 = 課程費 × 折扣率（折扣只作用在課程費，不含加購）
+4. 加購總額 = 飲食菜單(勾才加1200) + 體態評估(勾才加600) + 到府授課(勾才加 堂數×150)
+5. 小計 = 折扣後課程費 + 加購總額
+6. 營業稅 = 小計 × 0.05
+7. 總計 = 小計 + 營業稅
+
+【輸出規格】
+1. 即時計算：改任何欄位下方數字立刻更新，不用按計算鈕
+2. 結果區逐行列出：課程費、折扣後課程費、加購總額、小計、營業稅、總計
+3. 「複製報價」按鈕：把結果整理成純文字報價單，可直接貼 LINE
+4. 課程堂數為空、負數或非整數時不要算錯，顯示提示「請輸入 1 以上的整數」
+5. 米白底 + 霧藍 #6b7fa3 強調色、不用漸層，手機 375px 不破版
+
+【輸出格式】只輸出完整的單檔 HTML 程式碼，前後不要加任何說明文字或驗證報告——這段你會整段存成 .html 檔，多餘的文字會被一起存進去、變成工具裡的雜訊。<button class="copy-btn" type="button" aria-label="複製主版 Prompt 到剪貼簿">複製</button></div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-expect"><strong>為何這樣寫：</strong><br>
+        · <strong>角色</strong>讓 AI 進入「替接案者做工具的前端工程師」視角，欄位用語會更白話，而不是冒出一堆技術名詞。<br>
+        · <strong>計算邏輯逐條編號、註明「折扣只作用在課程費」</strong>是這套 Prompt 的關鍵：報價工具錯都錯在公式，把每一步算式拆開寫死，AI 才不會自行把折扣套到含加購的小計上。<br>
+        · <strong>產出是要存檔的程式碼、不是資料</strong>：所以這套 Prompt 明令只輸出 HTML、不附驗證報告（報告會被一起存進 .html 污染工具）。驗證改用更可靠的方式——STEP 5 你打開生成的工具，實際輸入「堂數 12」那組，看它自己算出的總計是不是 12,222。</div>
+      </div>
+    </div>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 4 / 5 · 換你跑（20 分鐘）</div>
+    <h2 class="section-heading">跟著這 5 步生出工具並實際用一次</h2>
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">1</div></div>
+        <div class="step-body">
+          <div class="step-title">複製主版 Prompt</div>
+          <div class="step-hint">按 STEP 3 主版 Prompt 右上角的「複製」鈕，整段指令就到剪貼簿了，裡面的工具規格與公式都寫好了，不用改。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">2</div></div>
+        <div class="step-body">
+          <div class="step-title">貼進 AI 工具送出</div>
+          <div class="step-hint">ChatGPT、Gemini、Claude.ai 的免費版都可以，開一個新對話視窗，把 Prompt 貼上去送出。AI 會回一整段 HTML。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">3</div></div>
+        <div class="step-body">
+          <div class="step-title">存成 .html 檔</div>
+          <div class="step-hint">把 AI 給的 HTML 整段複製，貼到記事本／文字編輯器，存檔時把檔名取成 <code>quote.html</code>（副檔名一定要 .html）。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">4</div></div>
+        <div class="step-body">
+          <div class="step-title">用瀏覽器打開實際操作</div>
+          <div class="step-hint">雙擊 <code>quote.html</code> 用瀏覽器開。先輸入「堂數 12」，勾「飲食菜單規劃」和「到府授課」，看下方總計。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">5</div></div>
+        <div class="step-body">
+          <div class="step-title">對照已知答案</div>
+          <div class="step-hint">工具算出的總計應該是 <strong>12,222</strong>。如果不是，先別急，到 STEP 5 用功能對照檢查表逐項找出哪裡錯，再回去追問 AI 修正。</div>
+        </div>
+      </div>
+    </div>
+    <p class="section-lede" style="color:var(--c-text)"><strong>免費版提醒：</strong>這份 Prompt 約 600 字，所有主流免費版 AI 都放得下，不需上傳檔案。如果 AI 一次沒把 HTML 給完整（被截斷），直接回「請接續輸出剩下的 HTML」即可。生成的工具是純單檔 HTML，存下來就能離線用、丟給客人也只要傳一個檔。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 5 / 5 · 驗證工具有沒有做對（5 分鐘）</div>
+    <h2 class="section-heading">離開前對照功能檢查表打 4 個勾</h2>
+    <p class="section-lede" style="color:var(--c-text)">AI 生的工具看起來再漂亮，都要驗——尤其是算錢的工具。把你打開的 <code>quote.html</code> 逐項對照下面 4 項檢查，全部確認過，今天的主線才算完成。對不上的，回 STEP 4 把問題追問給 AI 重生一次。</p>
+    <div style="padding:20px 24px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:24px 0">
+      <div style="font-size:.7rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:14px">工具功能對照檢查表</div>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:10px"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a4);flex-shrink:0"><span><strong>輸入欄位齊全</strong>：工具有「課程堂數」number 輸入框，加上「飲食菜單規劃 / 體態評估報告 / 到府授課」三個可複選 checkbox。少一個就代表 AI 漏做了規格。</span></label>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:10px"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a4);flex-shrink:0"><span><strong>計算正確性 · 主驗算</strong>：輸入「堂數 12」、勾「飲食菜單規劃＋到府授課」，總計必須是 <strong>12,222</strong>（課程費 9,600 → 9 折後 8,640 ＋ 加購 3,000 ＝ 小計 11,640，稅 5%＝582）。對不上代表公式跑掉了。</span></label>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:10px"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a4);flex-shrink:0"><span><strong>計算正確性 · 折扣邊界</strong>：再驗兩組——「堂數 4、不勾任何加購」總計應為 <strong>3,360</strong>（不打折）；「堂數 20、只勾體態評估報告」總計應為 <strong>14,910</strong>（剛好 20 堂吃 85 折）。折扣分段錯的話這兩組會露餡。</span></label>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a4);flex-shrink:0"><span><strong>輸出與錯誤處理</strong>：有「複製報價」按鈕且按了能複製純文字報價單；課程堂數欄位留空、填 -1 或填「abc」時，工具不會算出亂數，會顯示提示「請輸入 1 以上的整數」。</span></label>
+    </div>
+    <p class="section-lede" style="color:var(--c-text)">4 個勾全打完，你已經用 AI 做出一個算得對、能交付的報價工具了。想再多練——往下走「進階練習池」：那裡有需求分析的互動規格設計器、完整驗收清單、延伸案例，還有婚禮攝影／課程包月／網頁設計三種業態的情境演練，把今天這套「描述規格 → 生成 → 驗算」的方法套到不同行業的報價邏輯上。</p>
+  </section>
+  <!-- ▲▲▲ 引導主線結束 ▲▲▲ -->
+
+  <hr class="section-rule">
+
+  <div class="section-eyebrow">PRACTICE POOL · 進階練習池</div>
+  <h2 class="section-heading">完成主線後的自選加練區</h2>
+  <p class="section-lede">下面是這頁原本的完整內容：從需求分析的互動規格設計器、驗收清單，到延伸案例與三種業態的情境演練。主線帶你用單一工具走過「描述規格 → 生成 → 驗算」一遍；這裡是同一套方法的進階版，把它套到你自己的業務與更複雜的報價邏輯上。先跑完上面的主線，再依興趣選做這區。</p>
+
   <div class="section-eyebrow">STEPS · 任務步驟</div>
   <h2 class="section-heading">依序完成這五個步驟</h2>
 

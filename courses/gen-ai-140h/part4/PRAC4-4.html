@@ -299,6 +299,177 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 <div class="lesson-body">
 
+  <!-- ▼▼▼ 引導主線（照著做）· 2026-05 新增 ▼▼▼ -->
+  <section class="lesson-section" id="sec-guided">
+    <div class="section-eyebrow">GUIDED · 45 分鐘照著做主線</div>
+    <h2 class="section-heading">先跟著做一遍：<em>用 AI 生成一個會抽題、會倒數的「計時挑戰工具」</em></h2>
+    <p class="section-lede" style="color:var(--c-text)">這頁本來是課程的最終考驗——上面那台「黑客松挑戰台」會抽題、會倒數。但對沒寫過程式的人，最容易卡住的不是工具做得多炫，而是<strong>把「抽題不重複」「倒數會自己歸零並停下」這兩個會動的邏輯講清楚</strong>——計時工具的本質就是「一個會自己走的計時器狀態」，倒數忘了停、抽題一直抽到同一題，工具就廢了。這條主線只做一件事：拿一份已經寫好的工具規格，用一套固定 Prompt 叫 AI 生成單檔 HTML 工具，存下來打開，再實際抽一次題、跑一次倒數，確認它真的會停、真的不重複。全程貼文字進 AI、存成 .html 開來測，<strong>不用寫一行程式</strong>，45 分鐘做完，你就握住了「用 AI 生一個會自己動的工具」最關鍵的那一段。<strong>先把這條主線走完</strong>；做完還想多練，再往下走「進階練習池」——那裡有可實際操作的黑客松挑戰台、自己複刻的步驟、課程完結段，以及把口語需求拆成規格的四個情境演練。主線和練習池是同一主題的不同深度，主線是正式入門路徑，練習池是自選加練。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 1 / 5 · 場景設定（5 分鐘）</div>
+    <h2 class="section-heading">宥廷的麻煩</h2>
+    <p class="section-lede" style="color:var(--c-text);padding:14px 18px;background:var(--c-card);border-left:3px solid var(--c-a4);border-radius:var(--radius-sm);font-size:.88rem;line-height:1.9;margin-bottom:20px"><strong>宥廷，29 歲，一間設計公司的小組長。</strong>他每週帶六人小組做「20 分鐘快速發想」的腦力訓練：抽一個練習題目、開始計時、時間到就停下來檢視成果。問題是他現在用手機計時器加一張寫滿題目的便利貼——便利貼上的題目早就被大家背起來、每次都抽到一樣的，手機計時器又常常忘了開、或開了沒人注意到時間到。他想要一個固定的小工具：點一下隨機抽題、而且不會連續抽到剛抽過的，再點一下開始倒數、時間到會自己停並提示。可是<strong>他不會寫程式</strong>，為了這個小東西找外包也不划算。</p>
+    <p class="section-lede" style="color:var(--c-text)">今天你就是宥廷。你要用 AI 把這個計時挑戰工具生出來——重點不是把它做得多炫，是<strong>把「抽題不重複」和「倒數會自己歸零並停」描述精確，再實際跑一次驗證它真的這樣動</strong>。<strong>本主線的工具規格</strong>就在 STEP 2 下方（一份完整的功能與行為清單，直接用即可，不需自己設計）。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 2 / 5 · 看成品（10 分鐘）</div>
+    <h2 class="section-heading">先看這個工具做完長什麼樣</h2>
+    <p class="section-lede" style="color:var(--c-text)">動手前先看一次。下面先給本主線的<strong>成品工具描述</strong>——這個計時挑戰工具有哪些輸入、抽題與倒數計時功能怎麼動、輸出與結束狀態長什麼樣；再給一段<strong>實際操作這個工具該看到的行為</strong>。先認得成品該長什麼樣、操作起來該怎麼反應，等一下自己生成工具才知道對不對。</p>
+    <div class="prac-sample">
+      <div class="ps-block">
+        <div class="ps-label">本主線工具規格 · 計時挑戰工具（單檔 HTML）</div>
+        <div class="ps-material">## 成品工具：20 分鐘計時挑戰工具（單檔 HTML）
+
+【輸入 / 操作】
+- 「換一個題目」按鈕：隨機抽一題練習題目顯示在挑戰卡上
+- 倒數時間輸入框：number 欄位，可設定 1–60 分鐘，預設 20
+- 「開始 / 暫停」按鈕：切換倒數狀態（同一顆按鈕，文字隨狀態變）
+- 「重置」按鈕：把倒數時間恢復成設定值並停止
+
+【抽題功能（行為要精確）】
+- 內建至少 10 題練習題目（題目自行設計）
+- 抽題隨機，且「不重複直到全部題目都抽過一輪」——不可連續抽到剛抽過的同一題
+- 一輪全部抽完後重新洗牌，再開始下一輪
+
+【倒數計時功能（行為要精確）】
+- 用 setInterval 每秒更新顯示，格式 MM:SS
+- 倒數到剩 5 分鐘時，計時數字變成警示色
+- 倒數到 00:00 時：自動停止（清掉 setInterval，不可繼續往負數跑）、
+  顯示「時間到！」提示、把本次挑戰題目加進完成記錄列表
+- 暫停後再開始要從暫停的秒數接續，不是重頭算
+
+【輸出 / 結束狀態】
+- 進度條視覺化剩餘時間
+- 完成記錄列表：每完成一次顯示「挑戰題目名稱 + 完成時間」
+- 重置後計時停止、數字回到設定值、進度條歸位</div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-expect"><strong>實際操作這個工具該看到的行為（成品該這樣動，供 STEP 5 對照）</strong><br><br>
+        <strong>測抽題：</strong>連按「換一個題目」十幾下——題目要一直在換，<strong>不會連續兩次出現同一題</strong>；按超過題庫題數（≥10 下）後仍持續換到不同題，代表抽完一輪有重新洗牌。<br><br>
+        <strong>測倒數：</strong>把時間設成 <strong>1 分鐘</strong>（方便快速驗），按「開始」——數字每秒往下跳；不用等到 5 分鐘也能確認的是：跑到 <strong>00:00 時計時必須自己停下來</strong>，不會變成 -00:01、-00:02 繼續跑，同時跳出「時間到！」、完成記錄列表多一筆「題目名稱＋完成時間」。<br><br>
+        <strong>測暫停與重置：</strong>倒數中按「暫停」數字凍住，再按「開始」從凍住的秒數接著走；按「重置」數字立刻回到設定值且停止。<br><br>
+        關鍵驗收點只有兩個：<strong>抽題不重複</strong>、<strong>倒數歸零會自己停</strong>。其餘是錦上添花。</div>
+      </div>
+    </div>
+    <p class="section-lede" style="color:var(--c-text)"><strong>看懂這份規格的關鍵：</strong>計時類工具最常見的兩個錯——一是 AI 用「純隨機」抽題，結果常常連抽兩次同一題（規格裡「不重複直到全部抽過一輪」就是擋這個）；二是倒數到 0 忘了清掉 setInterval，數字會跑成負數停不下來。所以等一下你拿到工具，第一件事就是按 STEP 2 那段行為去測：連按抽題看會不會撞題、把時間設 1 分鐘看會不會在 00:00 自己停。只要這兩點不對，就代表 AI 的邏輯跑掉了，要回去追問修正。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 3 / 5 · 認識主版 Prompt（5 分鐘）</div>
+    <h2 class="section-heading">主版工具生成 Prompt（直接複製，不用改）</h2>
+    <p class="section-lede" style="color:var(--c-text)">這套 Prompt 把 STEP 2 的工具規格寫成 AI 看得懂的生成指令，由 5 個骨架組成：角色、規格、抽題邏輯、倒數邏輯、輸出。你不用自填，直接按「複製」就能用。先看完整版，再看下方「為何這樣寫」。</p>
+    <div class="prac-sample">
+      <div class="ps-block">
+        <div class="ps-label">主版 Prompt · 計時挑戰工具生成（骨架：角色＋規格＋抽題邏輯＋倒數邏輯＋輸出）</div>
+        <div class="ps-prompt">【角色】你是替非技術使用者做小工具的前端工程師，理解使用者要的是「點一下就會抽題、點一下就會倒數」，操作要直覺、按鈕用語要白話。
+
+【任務】產出一份「20 分鐘計時挑戰工具」單檔 HTML，內嵌 CSS/JS、不依賴任何外部 library。
+
+【操作與輸入】
+- 「換一個題目」按鈕：隨機抽一題顯示在挑戰卡
+- 倒數時間 number 輸入框：可設 1–60 分鐘，預設 20
+- 「開始／暫停」按鈕：同一顆按鈕切換倒數狀態，文字隨狀態變
+- 「重置」按鈕：把倒數恢復成設定值並停止
+
+【抽題邏輯】（請嚴格照此規則，不要簡化成純隨機）
+1. 內建至少 10 題練習題目（題目你自行設計，與「快速發想／腦力訓練」主題相關）
+2. 抽題必須「不重複直到全部題目都抽過一輪」——不可連續抽到剛抽過的同一題
+3. 一輪全部抽完後重新洗牌，再開始下一輪抽題
+
+【倒數邏輯】（請嚴格照此規則）
+1. 用 setInterval 每秒更新顯示，格式 MM:SS
+2. 倒數剩 5 分鐘時，計時數字變成警示色
+3. 倒數到 00:00 時：必須 clearInterval 自動停止，不可繼續往負數跑
+4. 倒數到 00:00 時：顯示「時間到！」提示，並把本次挑戰題目加進完成記錄列表
+5. 暫停後再開始，要從暫停的秒數接續，不是重頭算
+
+【輸出規格】
+1. 進度條視覺化剩餘時間
+2. 完成記錄列表：每完成一次顯示「挑戰題目名稱 + 完成時間」
+3. 米白底 #f5f3ee + 卡片 #ffffff + 霧藍 #6b7fa3 強調色、圓角 6px、不用漸層、無陰影
+4. 計時數字用大字粗體，手機 375px 不破版
+
+【輸出格式】請輸出完整的單一 HTML 檔案。<button class="copy-btn" type="button" aria-label="複製主版 Prompt 到剪貼簿">複製</button></div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-expect"><strong>為何這樣寫：</strong><br>
+        · <strong>角色</strong>讓 AI 進入「替非技術使用者做工具的前端工程師」視角，按鈕用語會更白話，操作流程更直覺，而不是冒出一堆技術名詞。<br>
+        · <strong>抽題邏輯第 2、3 點寫死「不重複直到全部抽過一輪」</strong>是這套 Prompt 的關鍵：只寫「隨機抽題」AI 會用純隨機，結果常常連抽兩次同一題；明確要求洗牌輪替，工具才不會撞題。<br>
+        · <strong>倒數邏輯第 3 點明文要求「clearInterval 自動停止、不可往負數跑」</strong>：計時工具最常壞在這——AI 忘了在歸零時清掉計時器，數字就會跑成 -00:01 停不下來。把「會停」當硬規格寫進去，才不會生出一個停不下來的倒數。</div>
+      </div>
+    </div>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 4 / 5 · 換你跑（20 分鐘）</div>
+    <h2 class="section-heading">跟著這 5 步生出工具並實際用一次</h2>
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">1</div></div>
+        <div class="step-body">
+          <div class="step-title">複製主版 Prompt</div>
+          <div class="step-hint">按 STEP 3 主版 Prompt 右上角的「複製」鈕，整段指令就到剪貼簿了，裡面的工具規格、抽題與倒數邏輯都寫好了，不用改。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">2</div></div>
+        <div class="step-body">
+          <div class="step-title">貼進 AI 工具送出</div>
+          <div class="step-hint">ChatGPT、Gemini、Claude.ai 的免費版都可以，開一個新對話視窗，把 Prompt 貼上去送出。AI 會回一整段 HTML。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">3</div></div>
+        <div class="step-body">
+          <div class="step-title">存成 .html 檔</div>
+          <div class="step-hint">把 AI 給的 HTML 整段複製，貼到記事本／文字編輯器，存檔時把檔名取成 <code>challenge-timer.html</code>（副檔名一定要 .html）。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">4</div></div>
+        <div class="step-body">
+          <div class="step-title">打開來抽題</div>
+          <div class="step-hint">雙擊 <code>challenge-timer.html</code> 用瀏覽器開。連按「換一個題目」十幾下，看題目有沒有一直在換、會不會連抽到同一題。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">5</div></div>
+        <div class="step-body">
+          <div class="step-title">跑一次倒數確認會停</div>
+          <div class="step-hint">把倒數時間設成 <strong>1 分鐘</strong>方便快速驗，按「開始」等它跑到 00:00——必須自己停下來、跳出「時間到！」、完成記錄多一筆。會跑成負數就代表沒做對，到 STEP 5 找出問題再追問 AI 修正。</div>
+        </div>
+      </div>
+    </div>
+    <p class="section-lede" style="color:var(--c-text)"><strong>免費版提醒：</strong>這份 Prompt 約 700 字，所有主流免費版 AI 都放得下，不需上傳檔案。如果 AI 一次沒把 HTML 給完整（被截斷），直接回「請接續輸出剩下的 HTML」即可。生成的工具是純單檔 HTML，存下來就能離線用、丟給同事也只要傳一個檔。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 5 / 5 · 驗證工具有沒有做對（5 分鐘）</div>
+    <h2 class="section-heading">離開前對照功能檢查表打 4 個勾</h2>
+    <p class="section-lede" style="color:var(--c-text)">AI 生的工具看起來再漂亮，都要實際操作一次才算數——尤其是會自己動的計時工具。把你打開的 <code>challenge-timer.html</code> 逐項對照下面 4 項檢查，全部確認過，今天的主線才算完成。對不上的，回 STEP 4 把問題追問給 AI 重生一次。</p>
+    <div style="padding:20px 24px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:24px 0">
+      <div style="font-size:.7rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:14px">工具功能對照檢查表</div>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:10px"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a4);flex-shrink:0"><span><strong>功能齊全</strong>：工具有「換一個題目」按鈕、倒數時間 number 輸入框、「開始／暫停」按鈕、「重置」按鈕、進度條、完成記錄列表。少一個就代表 AI 漏做了規格。</span></label>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:10px"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a4);flex-shrink:0"><span><strong>抽題不重複／隨機</strong>：連按「換一個題目」十幾下，題目要一直在換、<strong>不會連續兩次抽到同一題</strong>；按超過題庫題數後仍能換到不同題（代表抽完一輪有重新洗牌）。一直撞題代表 AI 用了純隨機，要追問修正。</span></label>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:10px"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a4);flex-shrink:0"><span><strong>倒數會歸零並停</strong>：把時間設成 1 分鐘按「開始」，數字每秒往下跳；跑到 <strong>00:00 時必須自己停下來</strong>，不會變成 -00:01 繼續跑，同時跳出「時間到！」、完成記錄多一筆。停不下來代表 AI 忘了清掉計時器。</span></label>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a4);flex-shrink:0"><span><strong>暫停接續與重置</strong>：倒數中按「暫停」數字凍住，再按「開始」從凍住的秒數接著走（不是重頭算）；按「重置」數字立刻回到設定值並停止、進度條歸位。</span></label>
+    </div>
+    <p class="section-lede" style="color:var(--c-text)">4 個勾全打完，你已經用 AI 做出一個會抽題、會自己停的計時挑戰工具了。想再多練——往下走「進階練習池」：那裡有可實際操作的黑客松挑戰台、自己複刻這個工具的步驟、課程完結段，還有把口語需求拆成規格的四個情境演練，把今天這套「描述行為規格 → 生成 → 實測」的方法套到你自己要做的工具上。</p>
+  </section>
+  <!-- ▲▲▲ 引導主線結束 ▲▲▲ -->
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">PRACTICE POOL · 進階練習池</div>
+    <h2 class="section-heading">完成主線後的自選加練區</h2>
+    <p class="body-text">下面是這頁原本的完整內容：可實際操作的黑客松挑戰台、自己複刻這個工具的步驟、課程完結段，以及把口語需求拆成規格的四個情境演練。主線帶你用單一工具走過「描述行為規格 → 生成 → 實測」一遍；這裡是同一套方法的進階版與課程收尾。先跑完上面的主線，再依興趣選做這區。</p>
+  </div>
+
+  <hr class="section-rule">
+
   <div class="lesson-section">
     <div class="section-eyebrow">TOOL · 互動工具</div>
     <h2 class="section-heading">抽題、倒數、出發</h2>
@@ -391,7 +562,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 【功能需求】
 - 一個挑戰卡，顯示隨機抽到的挑戰題目（預設至少 10 題，題目自行設計）
 - 「換一個題目」按鈕，隨機切換到不同題目（不重複直到全部抽過）
-- 一個倒數計時器（預設 20 分鐘），可自訂時間（5–60 分鐘）
+- 一個倒數計時器（預設 20 分鐘），可自訂時間（1–60 分鐘）
 - 「開始 / 暫停」按鈕切換計時狀態
 - 「重置」按鈕恢復初始時間
 - 計時器進度條，視覺化剩餘時間
