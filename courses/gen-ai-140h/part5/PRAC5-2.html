@@ -878,5 +878,28 @@ function updateProgress() {
 })();
 </script>
 <script src="../_assets/interactivity-v1.js"></script>
+<script>
+(function(){
+  const sections = Array.from(document.querySelectorAll('.lesson-section'));
+  const nav = document.getElementById('sectionDots');
+  if (!sections.length || !nav) return;
+  sections.forEach((sec, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'sdot';
+    btn.title = sec.querySelector('.section-heading')?.textContent?.trim().slice(0, 20) || ('第 ' + (i+1) + ' 節');
+    btn.addEventListener('click', () => sec.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    nav.appendChild(btn);
+  });
+  const dotIo = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      e.target.classList.add('visible');
+      const i = sections.indexOf(e.target);
+      if (i >= 0) nav.children[i]?.classList.toggle('active', e.isIntersecting);
+    });
+    nav.classList.toggle('visible', Array.from(nav.children).some(d => d.classList.contains('active')));
+  }, { threshold: .15 });
+  sections.forEach(s => dotIo.observe(s));
+})();
+</script>
 </body>
 </html>
