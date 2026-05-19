@@ -191,6 +191,118 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 <div class="lesson-body">
 
+  <!-- ▼▼▼ 引導主線（照著做）· 2026-05 新增 ▼▼▼ -->
+  <section class="lesson-section" id="sec-guided">
+    <div class="section-eyebrow">GUIDED · 45 分鐘照著做主線</div>
+    <h2 class="section-heading">先跟著做一遍：<em>把 64 列髒報名表清成 48 位乾淨名單</em></h2>
+    <p class="body-text">第一次做表格清理，不用先懂底下所有原理。跟著這條主線走 5 步，45 分鐘後你會用 AI 把一份格式亂掉的活動報名表清乾淨，並學會怎麼確認 AI 有沒有做錯。<strong>先把這條主線走完</strong>；做完還想多練，再往下走「進階練習池」——那裡有完整的講解、迷你練習、情境演練和課堂作業。主線和練習池是同一個主題的不同深度，主線是正式入門路徑，練習池是自選加練。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 1 / 5 · 場景設定（5 分鐘）</div>
+    <h2 class="section-heading">怡君的麻煩</h2>
+    <div class="callout">
+      <span class="callout-icon" aria-hidden="true">●</span>
+      <div class="callout-body"><strong>怡君，27 歲，顧問公司的活動企劃專員。</strong>公司上週辦了一場跨三場次的 AI 研習活動，報名資料從 Google 表單、現場補登、Email 回報三個管道陸續匯進同一份 CSV，共 <strong>64 列</strong>。主管下午 4 點要她回報「實際幾人報名、報名費共收多少」。問題是這份表很髒：同一個人因為補登被重複收錄、報名費寫法五花八門（<code>NT$1200</code>、<code>1200元</code>、<code>1,200</code> 都有）、場次名稱也各寫各的。她想用肉眼一筆一筆數，數到第 20 列就亂了。</div>
+    </div>
+    <p class="body-text">今天你就是怡君。你要用任一 AI 工具，把這 64 列報名表清成一份乾淨名單，並確認 AI 沒有算錯。</p>
+    <p class="body-text"><strong>本主線素材：</strong><a href="../assets/datasets/report-signups-64.csv" download target="_blank" rel="noopener"><code>report-signups-64.csv</code></a>（64 列研習報名表，欄位：報名編號、姓名、Email、場次、報名費、報名日期）。點擊下載，STEP 4 會用到。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 2 / 5 · 看示範（10 分鐘）</div>
+    <h2 class="section-heading">先看跑一次，認得「成品長什麼樣」</h2>
+    <p class="body-text">動手前先看一次。下面是把 <code>report-signups-64.csv</code> 貼進 AI、用 STEP 3 的主版 Prompt 跑出來的<strong>預期輸出</strong>。先認得成品該長什麼樣，等一下自己跑才知道對不對。</p>
+    <div class="prac-sample">
+      <div class="ps-block">
+        <div class="ps-expect"><strong>預期輸出（節錄示意，各平台格式略有差異）</strong><br><br>
+        原始 64 列 → 去重後 <strong>48 位報名者</strong>，其中 <strong>40 位確定、8 位待確認（報名費異常）</strong><br><br>
+        確定名單報名費加總：<strong>NT$ 76,800</strong><br>
+        場次分布（確定名單）：AI 入門場 19 位 ｜ 進階應用場 13 位 ｜ 企業包班場 8 位<br><br>
+        王思涵｜szuhan.wang@gmail.com｜AI 入門場｜報名費 [待確認]｜原始登錄 -1200<br>
+        高郁婷｜yuting.kao@biznet.tw｜企業包班場｜3500｜併 2 筆重複登錄<br>
+        ……（確定 40 位 + 待確認 8 位，共 48 列）……<br><br>
+        我判定「待確認」共 <strong>8 筆</strong>（報名費為負數、0 或明顯多打一位數）</div>
+      </div>
+    </div>
+    <p class="body-text"><strong>看懂這份輸出的關鍵：</strong>注意第一行「去重後 48 位、其中 40 確定 + 8 待確認」——這是 Prompt 強制 AI 自己報的數字。等一下你跑完，第一眼就看這行：如果去重後不是 48 位、或確定不是 40 位，代表 AI 多併或漏併了，要回去重跑。那 8 筆「待確認」是故意埋進素材的金額異常列，AI 不該自動清掉，見 STEP 5 第 4 項。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 3 / 5 · 認識主版 Prompt（5 分鐘）</div>
+    <h2 class="section-heading">主版清理 Prompt（直接複製，不用改）</h2>
+    <p class="body-text">這套 Prompt 由 5 個骨架組成：角色、資料、任務、例外、驗證。你不用自填，直接按「複製」就能用。先看完整版，再看下方「為何這樣寫」。</p>
+    <div class="prac-sample">
+      <div class="ps-block">
+        <div class="ps-label">主版 Prompt · 報名表清理＋去重<span class="ps-label-tag">骨架：角色＋資料＋任務＋例外＋驗證</span></div>
+        <div class="ps-prompt">【角色】你是研習活動的報名資料稽核助理，專長把多管道匯入的報名表清理乾淨並去重。
+
+【資料】以下是一份從 Google 表單、現場補登、Email 回報等管道陸續匯入的研習報名表，共 64 列，欄位為 報名編號、姓名、Email、場次、報名費、報名日期：
+
+[貼上 report-signups-64.csv 全文]
+
+【任務】
+1. 去重：把屬於同一個人的多列合併。判定「同一人」的規則——姓名去除前後與中間多餘空白後比對；Email 全部轉小寫後比對；只要姓名與 Email 一致就視為同一人。
+2. 統一報名費：把 NT$、＄、元、元整、千分位逗號、空白等符號去掉，只留純數字。
+3. 標準化場次：把各種寫法歸到三個標準場次——「AI 入門場」「進階應用場」「企業包班場」。
+
+【例外處理】
+- 報名費為負數、0、或明顯不合理（例如比同場次票價多一位數）：不要自動修正、也不要刪除，把該列報名費標成「待確認」，原始值保留在備註欄。
+
+【輸出格式】
+第一行先輸出：原始 64 列 → 去重後 ? 位報名者，其中 ? 位確定、? 位待確認
+接著輸出去重後 CSV，欄位為 姓名,Email,標準場次,報名費,原始筆數,備註（待確認的列也要列在 CSV 內，不可省略）
+再輸出：確定名單報名費加總 NT$ ?；確定名單場次分布 入門 ? 位 / 進階 ? 位 / 企業包班 ? 位
+
+【驗證要求】最後補一行：我判定「待確認」共 ? 筆，這些列未計入報名費加總。<button class="copy-btn" type="button" aria-label="複製主版 Prompt 到剪貼簿">複製</button></div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-expect"><strong>為何這樣寫：</strong><br>
+        · <strong>角色</strong>讓 AI 進入「稽核」視角，比直接說「幫我清表」更謹慎、更少自作主張。<br>
+        · <strong>例外處理是關鍵</strong>：少了這條，AI 會把負數、0 的報名費直接當成正常值算進加總，或自作主張刪掉——金額就被它悄悄改錯了。標「待確認」交人工，才不會污染數字。<br>
+        · <strong>驗證要求</strong>強制 AI 自報「待確認幾筆、未計入加總」，你才能一眼檢查它有沒有把異常列混進主計數。</div>
+      </div>
+    </div>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 4 / 5 · 換你跑（20 分鐘）</div>
+    <h2 class="section-heading">跟著這 5 步跑一次</h2>
+    <div class="mini-prac-steps">
+      <div class="mini-prac-step"><span class="mini-prac-step-num">1</span><span><strong>下載並複製名單。</strong>下載 STEP 1 的 <code>report-signups-64.csv</code>，用記事本或 Excel 打開，全選、複製。</span></div>
+      <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span><strong>打開 AI 工具開新對話。</strong>ChatGPT、Gemini、Copilot、Claude.ai 的免費版都可以，開一個新對話視窗。</span></div>
+      <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span><strong>貼上主版 Prompt 與名單。</strong>複製 STEP 3 的主版 Prompt 貼進 AI，把裡面的 <code>[貼上 report-signups-64.csv 全文]</code> 換成你剛複製的名單內容，送出。</span></div>
+      <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span><strong>看輸出的第一行。</strong>AI 應該說「去重後 48 位，其中 40 位確定、8 位待確認」。如果數字不一樣，先別急，到 STEP 5 用驗證卡找出問題再重跑。</span></div>
+      <div class="mini-prac-step"><span class="mini-prac-step-num">5</span><span><strong>存下清理後名單。</strong>把 AI 給的去重後 CSV 複製到記事本或 Excel 存起來。這就是你今天交給主管的成品。</span></div>
+    </div>
+    <p class="body-text"><strong>免費版提醒：</strong>64 列名單約 2,400 字，所有主流免費版 AI 都放得下，全程貼文字、免上傳檔案。若 AI 回覆說輸入太長，把名單分兩次貼上也可以。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 5 / 5 · 驗證有沒有做對（5 分鐘）</div>
+    <h2 class="section-heading">離開前用這張卡打 4 個勾</h2>
+    <p class="body-text">AI 的輸出看起來再整齊，都要驗。下面 4 項全部確認過，今天的主線才算完成。對不上的，回 STEP 4 重跑一次。</p>
+    <div class="mini-prac-check">
+      <span class="mini-prac-check-label">結果驗證卡</span>
+      <label><input type="checkbox"><span><strong>總筆數</strong>：AI 有沒有說它讀進 64 列？少於 64 代表它漏看了名單。</span></label>
+      <label><input type="checkbox"><span><strong>去重後人數</strong>：AI 說「去重後 48 位」嗎？標準答案是 48 位報名者，其中 40 位確定 ＋ 8 位待確認（去重後名單含待確認列共 48 列）。</span></label>
+      <label><input type="checkbox"><span><strong>報名費加總</strong>：確定名單報名費加總應為 <strong>NT$ 76,800</strong>（入門 19 人×1200 ＋ 進階 13 人×2000 ＋ 企業包班 8 人×3500）。8 筆待確認列不計入。對不上代表 AI 把異常金額混進加總了。</span></label>
+      <label><input type="checkbox"><span><strong>待確認獨立計</strong>：素材裡有 8 筆報名費是負數、0 或明顯多打一位數。AI 應把這 8 筆標「待確認」、獨立計數、不算進加總，而不是自動清成 0 或直接刪掉。</span></label>
+    </div>
+    <p class="body-text">4 個勾全打完，你已經完成第一條表格清理主線。想再多練——往下走「進階練習池」：那裡有結構化資料判讀、五大欄位問題、清理指令設計與人工覆核的完整講解，還有 3 個迷你練習和一份課堂作業。</p>
+  </section>
+  <!-- ▲▲▲ 引導主線結束 ▲▲▲ -->
+
+  <hr class="section-rule">
+
+  <section class="lesson-section">
+    <div class="section-eyebrow">PRACTICE POOL · 進階練習池</div>
+    <h2 class="section-heading">完成主線後的自選加練區</h2>
+    <p class="body-text">下面是這個單元的完整講解與練習：結構化資料判讀、五大欄位問題、AI 清理指令設計、人工覆核節點，以及 3 個迷你練習和一份課堂作業。主線只帶你跑一次標準流程，這裡讓你把判斷力與手法練到能套上自己的資料。挑有興趣的做，不必全做。</p>
+  </section>
+
+  <hr class="section-rule">
+
   <section class="lesson-section" id="sec-0">
     <div class="section-eyebrow">(01) · Data Types</div>
     <h2 class="section-heading">結構化 vs 非結構化：<em>你的資料現在在哪一側？</em></h2>
