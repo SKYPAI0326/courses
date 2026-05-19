@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH 5 · Prompt 設計決策樹｜辦公室 AI 工具案例應用</title>
+<meta name="description" content="40 分鐘把 5 大骨架收斂成決策樹：6 個分支問題 + 5 個常見任務示範 + 變奏與微調，新任務 3 分鐘寫出可跑的 prompt。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="CH 5 · Prompt 設計決策樹｜辦公室 AI 工具案例應用">
+<meta property="og:description" content="40 分鐘把 5 大骨架收斂成決策樹：6 個分支問題 + 5 個常見任務示範 + 變奏與微調。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/office-ai-cases/CH5.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CH 5 · Prompt 設計決策樹｜辦公室 AI 工具案例應用">
+<meta name="twitter:description" content="40 分鐘把 5 大骨架收斂成決策樹：6 個分支問題 + 5 個常見任務示範 + 變奏與微調。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/office-ai-cases/CH5.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-main:#c9963a;--radius:4px;--radius-sm:3px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 var(--radius) 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:var(--c-main);border:1px solid rgba(201,150,58,.3);background:transparent;padding:3px 12px;border-radius:99px;font-weight:500;letter-spacing:.06em}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px;font-variant-numeric:tabular-nums}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;max-width:22ch}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);margin-top:28px}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
+.outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-body{font-size:.9rem;line-height:1.85}
+.callout-body strong{font-weight:500}
+.skeleton-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:24px 0}
+.skeleton-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:14px 12px;text-align:center}
+.skeleton-num{font-family:'Shippori Mincho',serif;font-size:1.4rem;font-weight:700;color:var(--c-main);line-height:1;margin-bottom:6px}
+.skeleton-name{font-family:'Shippori Mincho',serif;font-size:.85rem;font-weight:700;color:var(--c-text);margin-bottom:4px}
+.skeleton-tag{font-size:.7rem;color:var(--c-faint);letter-spacing:.05em}
+.tree-block{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);margin:24px 0;padding:20px 24px}
+.tree-q{display:grid;grid-template-columns:32px 1fr;gap:14px;padding:14px 0;border-bottom:1px dashed var(--c-border-soft)}
+.tree-q:last-child{border-bottom:none}
+.tree-q-num{font-family:'Shippori Mincho',serif;font-size:1.15rem;font-weight:700;color:var(--c-main);line-height:1.3;text-align:center}
+.tree-q-body{flex:1}
+.tree-q-question{font-size:.92rem;font-weight:500;color:var(--c-text);margin-bottom:8px;line-height:1.5}
+.tree-q-answer{font-size:.85rem;color:var(--c-muted);line-height:1.8;padding-left:14px;border-left:2px solid var(--c-border-soft)}
+.tree-q-answer strong{color:var(--c-text);font-weight:500}
+.tree-q-answer .opt{display:block;margin:4px 0}
+.tree-q-answer .opt::before{content:"→ ";color:var(--c-main);font-weight:700}
+.task-block{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);margin:20px 0;overflow:hidden}
+.task-head{padding:14px 20px;background:var(--c-surface);border-bottom:1px solid var(--c-border);display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
+.task-tag{font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-main);font-weight:700;letter-spacing:.1em}
+.task-name{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);line-height:1.4}
+.task-body{padding:18px 22px}
+.task-row{display:grid;grid-template-columns:90px 1fr;gap:14px;padding:6px 0;font-size:.85rem;line-height:1.75}
+.task-row-label{color:var(--c-text);font-weight:500;font-size:.78rem;letter-spacing:.05em;padding-top:1px}
+.task-row-body{color:var(--c-muted)}
+.task-row-body strong{color:var(--c-text);font-weight:500}
+.task-prompt{margin-top:14px;padding:14px 16px;background:var(--c-bg);border:1px solid var(--c-border-soft);border-radius:var(--radius-sm);font-family:'Courier New',monospace;font-size:.8rem;line-height:1.75;color:var(--c-text);white-space:pre-wrap;word-break:break-word}
+.variation-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.84rem}
+.variation-table th{background:var(--c-surface);padding:11px 12px;font-weight:500;color:var(--c-text);border:1px solid var(--c-border);text-align:left;letter-spacing:.04em}
+.variation-table td{padding:11px 12px;color:var(--c-text);border:1px solid var(--c-border-soft);vertical-align:top;line-height:1.7}
+.takeaway-list{display:flex;flex-direction:column;gap:12px;margin:24px 0}
+.takeaway-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:14px 18px;display:flex;gap:14px;align-items:flex-start;font-size:.88rem;color:var(--c-text);line-height:1.75}
+.takeaway-mark{flex-shrink:0;font-size:.72rem;font-weight:500;color:var(--c-main);border:1px solid rgba(201,150,58,.3);border-radius:99px;padding:2px 10px;white-space:nowrap;margin-top:2px}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(201,150,58,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
+.nav-btn:hover{background:rgba(201,150,58,.07);border-color:var(--c-main)}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main)}
+.nav-btn.primary:hover{filter:brightness(.92)}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+@media(prefers-reduced-motion:reduce){.progress-fill{transition:none}*{animation:none!important}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.skeleton-grid{grid-template-columns:repeat(2,1fr)}.variation-table{display:block;overflow-x:auto}.task-row{grid-template-columns:1fr}.task-row-label{padding-top:0}}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='officeaicases_auth',H='14e9352ec44aabbaa6783a0769f726169b730c443f0ea2b1324672b0fc4bfdf8';if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">辦公室 AI 工具案例應用</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">CH 5 · 40 MIN</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<div class="page-hero">
+  <a href="index.html" class="back-link"><span aria-hidden="true">←</span> 返回課程總覽</a>
+  <div class="hero-eyebrow">(05) · 加深章節 · 40 MIN</div>
+  <h1 class="lesson-title">Prompt 設計決策樹</h1>
+  <p class="lesson-tagline">CH0 教了 5 大骨架（角色 / 資料 / 任務 / 輸出 / 驗證）——但每次新任務你還是會卡「該用哪些骨架、怎麼組」。<br>這 40 分鐘給你一張<strong>決策樹</strong>：6 個分支問題答完，prompt 雛形就出來了。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">你會帶走</div>
+    <div class="outcome-item">能用 6 個決策問題 3 分鐘內定出任何任務的 prompt 結構</div>
+    <div class="outcome-item">能套用 5 種常見任務模板（寫信 / 分析 / 摘要 / 翻譯 / 腦力激盪）</div>
+    <div class="outcome-item">能依「輸出不對」的 4 種症狀對症下藥微調 prompt</div>
+    <div class="outcome-item">回辦公室遇到沒練過的新任務，能 5 分鐘寫出可跑的第一版 prompt</div>
+  </div>
+</div>
+
+<hr class="section-rule">
+
+<!-- ===== (01) 5 大骨架回顧 ===== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(01) · 5 MIN</div>
+  <h2 class="section-heading">5 大骨架 → 決策樹的起點</h2>
+  <div class="intro-band">
+    <div class="intro-label">骨架不是「都要寫」、是「依任務選用」</div>
+    <div class="intro-text">CH0 的 5 大骨架是「最完整版」——但不是每個任務都 5 件全寫。簡單任務只用 2-3 個就夠、複雜任務 5 個全上。決策樹的作用就是<strong>幫你決定這次該用哪幾個</strong>。</div>
+  </div>
+
+  <div class="skeleton-grid">
+    <div class="skeleton-card"><div class="skeleton-num">①</div><div class="skeleton-name">角色</div><div class="skeleton-tag">ROLE</div></div>
+    <div class="skeleton-card"><div class="skeleton-num">②</div><div class="skeleton-name">資料</div><div class="skeleton-tag">DATA</div></div>
+    <div class="skeleton-card"><div class="skeleton-num">③</div><div class="skeleton-name">任務</div><div class="skeleton-tag">TASK</div></div>
+    <div class="skeleton-card"><div class="skeleton-num">④</div><div class="skeleton-name">輸出</div><div class="skeleton-tag">FORMAT</div></div>
+    <div class="skeleton-card"><div class="skeleton-num">⑤</div><div class="skeleton-name">驗證</div><div class="skeleton-tag">VERIFY</div></div>
+  </div>
+
+  <p class="body-text">5 個骨架的「必要程度」依任務性質而定：</p>
+
+  <table class="variation-table">
+    <thead>
+      <tr>
+        <th style="width:130px">任務類型</th>
+        <th style="width:60px">角色</th>
+        <th style="width:60px">資料</th>
+        <th style="width:60px">任務</th>
+        <th style="width:60px">輸出</th>
+        <th style="width:60px">驗證</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>簡單問答</strong>（單一事實查詢）</td><td style="text-align:center">—</td><td style="text-align:center">—</td><td style="text-align:center;color:var(--c-main)">★</td><td style="text-align:center">—</td><td style="text-align:center">—</td></tr>
+      <tr><td><strong>輕度寫作</strong>（寫一封信 / 一段文案）</td><td style="text-align:center">—</td><td style="text-align:center;color:var(--c-main)">★</td><td style="text-align:center;color:var(--c-main)">★</td><td style="text-align:center;color:var(--c-main)">★</td><td style="text-align:center">—</td></tr>
+      <tr><td><strong>分析任務</strong>（數據分析 / 整理）</td><td style="text-align:center">—</td><td style="text-align:center;color:var(--c-main)">★</td><td style="text-align:center;color:var(--c-main)">★</td><td style="text-align:center;color:var(--c-main)">★</td><td style="text-align:center;color:var(--c-main)">★</td></tr>
+      <tr><td><strong>對外發送</strong>（給客戶 / 主管 / 法務看）</td><td style="text-align:center;color:var(--c-main)">★</td><td style="text-align:center;color:var(--c-main)">★</td><td style="text-align:center;color:var(--c-main)">★</td><td style="text-align:center;color:var(--c-main)">★</td><td style="text-align:center;color:var(--c-main)">★</td></tr>
+      <tr><td><strong>創意 / 腦力激盪</strong></td><td style="text-align:center;color:var(--c-main)">★</td><td style="text-align:center">—</td><td style="text-align:center;color:var(--c-main)">★</td><td style="text-align:center;color:var(--c-main)">★</td><td style="text-align:center">—</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout tip">
+    <div class="callout-icon" aria-hidden="true">◎</div>
+    <div class="callout-body"><strong>5 大骨架的核心心法</strong>：你給 AI 越多正確的 context、越明確的任務、越具體的輸出要求，它預測得越準。但「越多」不等於「全寫」——對的東西寫對的量。下面決策樹幫你判斷「對的量」是多少。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ===== (02) 決策樹本體 ===== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(02) · 15 MIN</div>
+  <h2 class="section-heading">決策樹本體：6 個分支問題</h2>
+  <div class="intro-band">
+    <div class="intro-label">3 分鐘把這 6 題答完，prompt 結構就出來了</div>
+    <div class="intro-text">每題回答後，會告訴你「該加哪個骨架 / 該加什麼具體內容」。題目順序不能亂——前面題目的答案會影響後面題目該問什麼。</div>
+  </div>
+
+  <div class="tree-block">
+    <div class="tree-q">
+      <div class="tree-q-num">Q1</div>
+      <div class="tree-q-body">
+        <div class="tree-q-question">這次的輸出「給誰看」？</div>
+        <div class="tree-q-answer">
+          <span class="opt"><strong>給自己看</strong>（私人筆記 / 整理思緒）→ <strong>不需「角色」骨架</strong>，輸出格式可寬鬆</span>
+          <span class="opt"><strong>給同事看</strong>（內部討論 / 提案草稿）→ <strong>不需「角色」、但要明確「對象」</strong>（部門 / 職級）讓 AI 抓對語氣</span>
+          <span class="opt"><strong>給主管 / 客戶 / 法務看</strong>（對外或對上）→ <strong>必須「角色」+「對象」</strong>，且後續 Q5 驗證必開</span>
+        </div>
+      </div>
+    </div>
+    <div class="tree-q">
+      <div class="tree-q-num">Q2</div>
+      <div class="tree-q-body">
+        <div class="tree-q-question">這次任務「需要 AI 知道你哪些既有資訊」？</div>
+        <div class="tree-q-answer">
+          <span class="opt"><strong>不需要</strong>（純創意 / 通用問答）→ <strong>跳過「資料」骨架</strong>，直接寫任務</span>
+          <span class="opt"><strong>需要少量</strong>（1-2 條背景：你的角色 / 公司類型）→ 在 prompt 開頭寫 1-2 句即可</span>
+          <span class="opt"><strong>需要大量</strong>（一整份文件 / CSV / 對話記錄）→ <strong>必須「資料」骨架</strong>，用 <code style="font-family:'Courier New',monospace;font-size:.78rem;background:var(--c-surface);padding:1px 6px;border-radius:3px">[資料]</code> 標籤明確圈出</span>
+        </div>
+      </div>
+    </div>
+    <div class="tree-q">
+      <div class="tree-q-num">Q3</div>
+      <div class="tree-q-body">
+        <div class="tree-q-question">任務本身「能用一句話講清楚動詞嗎」？</div>
+        <div class="tree-q-answer">
+          <span class="opt"><strong>能</strong>（如「翻譯」「摘要」「分類」）→ 一句話寫任務即可</span>
+          <span class="opt"><strong>能但要加條件</strong>（如「翻譯成主管能看的繁體中文、保留專業術語」）→ 任務句後面加 1-2 條規則</span>
+          <span class="opt"><strong>不能、要分步</strong>（如「先 X、再 Y、最後 Z」）→ <strong>拆成 3-4 個編號步驟</strong>，每步一句</span>
+        </div>
+      </div>
+    </div>
+    <div class="tree-q">
+      <div class="tree-q-num">Q4</div>
+      <div class="tree-q-body">
+        <div class="tree-q-question">輸出「長什麼樣」你能明確描述嗎？</div>
+        <div class="tree-q-answer">
+          <span class="opt"><strong>能（有範例）</strong>→ <strong>用範例</strong>（few-shot）：「請依以下格式輸出：『例子』」</span>
+          <span class="opt"><strong>能（有結構但無範例）</strong>→ 列結構規格：行數 / 字數 / 分區 / 必要欄位</span>
+          <span class="opt"><strong>不能</strong>（這次想看 AI 自由發揮）→ 至少寫「請給 3 個方案讓我選」，避免拿到不能比較的單一輸出</span>
+        </div>
+      </div>
+    </div>
+    <div class="tree-q">
+      <div class="tree-q-num">Q5</div>
+      <div class="tree-q-body">
+        <div class="tree-q-question">這個輸出「錯了會出事嗎」？</div>
+        <div class="tree-q-answer">
+          <span class="opt"><strong>不會</strong>（自己看的草稿 / 內部討論）→ 跳過「驗證」骨架</span>
+          <span class="opt"><strong>會但能 catch</strong>（給同事看，他們會幫你檢）→ 加「請列出你不確定的地方」就好</span>
+          <span class="opt"><strong>會且要負責</strong>（對外發送 / 進報告 / 含數字）→ <strong>必加「驗證」骨架</strong>：要求 AI 自報「引用了哪幾條 / 用什麼公式算 / 哪裡是推測」，並走 CH3 驗證卡 v2</span>
+        </div>
+      </div>
+    </div>
+    <div class="tree-q">
+      <div class="tree-q-num">Q6</div>
+      <div class="tree-q-body">
+        <div class="tree-q-question">這個任務「跑 1 次就完了還是會跑很多次」？</div>
+        <div class="tree-q-answer">
+          <span class="opt"><strong>1 次性</strong>（一次性報告）→ 寫個能用的 prompt 跑完即可，不用美化</span>
+          <span class="opt"><strong>反覆會用</strong>（每週週報 / 每月分析）→ <strong>把 prompt 做成「模板」</strong>：把每次會變的資料用 <code style="font-family:'Courier New',monospace;font-size:.78rem;background:var(--c-surface);padding:1px 6px;border-radius:3px">[佔位符]</code> 框出來，存成可重用版</span>
+          <span class="opt"><strong>批次處理多筆</strong>（一次回 30 封信）→ 在 prompt 內加「請依序處理每一筆，輸出格式：『輸入 → 輸出』成對顯示」</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout key">
+    <div class="callout-icon" aria-hidden="true">★</div>
+    <div class="callout-body"><strong>6 題答完 = prompt 結構出爐</strong>。下面 5 個常見任務示範就是把這 6 題答完後組出來的——你回去也用一樣的順序套即可。第一次套會慢、跑 3-5 次後 1 分鐘就答完。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ===== (03) 5 個常見任務示範 ===== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(03) · 15 MIN</div>
+  <h2 class="section-heading">5 個常見任務示範</h2>
+  <div class="intro-band">
+    <div class="intro-label">每個任務都展示「決策樹 6 題答案 → 最終 prompt」</div>
+    <div class="intro-text">下面 5 個是辦公室最常見的任務類型。每個任務都展示：6 題答案速覽 → 組出來的 prompt。你回去遇到沒看過的新任務，就照這個流程跑一次。</div>
+  </div>
+
+  <div class="task-block">
+    <div class="task-head">
+      <div class="task-tag">任務 A · 寫信</div>
+      <div class="task-name">寫一封 200 字內的延遲交付道歉信給客戶</div>
+    </div>
+    <div class="task-body">
+      <div class="task-row"><div class="task-row-label">Q1 給誰</div><div class="task-row-body"><strong>客戶</strong>（對外）→ 要角色 + 對象</div></div>
+      <div class="task-row"><div class="task-row-label">Q2 資料</div><div class="task-row-body"><strong>少量</strong>：訂單延遲幾天 / 原因 / 補償方案</div></div>
+      <div class="task-row"><div class="task-row-label">Q3 任務</div><div class="task-row-body"><strong>一句話 + 規則</strong>：道歉 + 解釋 + 補償 + 後續</div></div>
+      <div class="task-row"><div class="task-row-label">Q4 格式</div><div class="task-row-body"><strong>結構規格</strong>：200 字內 + 4 段</div></div>
+      <div class="task-row"><div class="task-row-label">Q5 風險</div><div class="task-row-body"><strong>會出事</strong>（對外 + 含承諾）→ 必加驗證</div></div>
+      <div class="task-row"><div class="task-row-label">Q6 重複</div><div class="task-row-body"><strong>會反覆用</strong>→ 做成模板</div></div>
+      <div class="task-prompt">【角色】你是專業的客戶服務代表，回信對象是企業採購窗口。
+
+【背景】訂單 [編號]，原訂 [日期] 出貨，因 [原因] 延遲 [N] 天，補償方案為 [方案]。
+
+【任務】寫一封道歉信，包含：
+1. 真誠致歉（1 句，不卑微）
+2. 解釋原因（1 句，不甩鍋）
+3. 補償方案說明（1 句）
+4. 後續預防（1 句）
+
+【格式】繁體中文、200 字內、4 段分開、語氣專業溫暖。
+
+【驗證】最後請列：你引用了哪些我給的事實、有沒有加入我沒給的承諾。</div>
+    </div>
+  </div>
+
+  <div class="task-block">
+    <div class="task-head">
+      <div class="task-tag">任務 B · 分析數據</div>
+      <div class="task-name">分析一張 100 筆退貨清單找出退貨主因 Top 3</div>
+    </div>
+    <div class="task-body">
+      <div class="task-row"><div class="task-row-label">Q1 給誰</div><div class="task-row-body"><strong>主管</strong>（對上）→ 要角色 + 對象</div></div>
+      <div class="task-row"><div class="task-row-label">Q2 資料</div><div class="task-row-body"><strong>大量</strong>（100 筆 CSV）→ 用 [資料] 標籤</div></div>
+      <div class="task-row"><div class="task-row-label">Q3 任務</div><div class="task-row-body"><strong>分步</strong>：分類 → 統計 → 排序 → 結論</div></div>
+      <div class="task-row"><div class="task-row-label">Q4 格式</div><div class="task-row-body"><strong>結構規格</strong>：Top 3 + 每項佔比 + 1 句結論</div></div>
+      <div class="task-row"><div class="task-row-label">Q5 風險</div><div class="task-row-body"><strong>會出事</strong>（含數字 + 進報告）→ 必加驗證</div></div>
+      <div class="task-row"><div class="task-row-label">Q6 重複</div><div class="task-row-body"><strong>每月用</strong>→ 模板化</div></div>
+      <div class="task-prompt">【角色】你是擅長退貨分析的營運分析師，分析結果要給營運主管看。
+
+【資料】以下是 [N] 筆退貨清單，欄位：退貨日期 / 商品 / 退貨原因 / 金額。
+
+[貼 CSV]
+
+【任務】請依序：
+1. 把「退貨原因」依語意分類成 5-7 個類別（同義或近義合併）
+2. 統計每類的筆數 + 金額
+3. 列出筆數 Top 3 + 金額 Top 3
+4. 寫 1 句結論：最值得優先處理的退貨類型是哪個、為什麼
+
+【格式】表格：類別 / 筆數 / 占比% / 金額 / 占比%。結論獨立一段。
+
+【驗證】最後請列：
+- 你共處理了幾筆（應為 N）
+- 你的「分類規則」是什麼（讓我能複核）
+- 哪些筆數是你不確定如何分類的</div>
+    </div>
+  </div>
+
+  <div class="task-block">
+    <div class="task-head">
+      <div class="task-tag">任務 C · 寫摘要</div>
+      <div class="task-name">把一份 5 頁會議紀錄濃縮成 1 段 100 字摘要</div>
+    </div>
+    <div class="task-body">
+      <div class="task-row"><div class="task-row-label">Q1 給誰</div><div class="task-row-body"><strong>同事 / 自己</strong>（內部）→ 不需角色，但說「對象」</div></div>
+      <div class="task-row"><div class="task-row-label">Q2 資料</div><div class="task-row-body"><strong>大量</strong>（5 頁紀錄）→ 用 [資料] 標籤</div></div>
+      <div class="task-row"><div class="task-row-label">Q3 任務</div><div class="task-row-body"><strong>一句話 + 規則</strong>：摘要 + 保留決議與 owner</div></div>
+      <div class="task-row"><div class="task-row-label">Q4 格式</div><div class="task-row-body"><strong>結構規格</strong>：100 字內 + 1 段</div></div>
+      <div class="task-row"><div class="task-row-label">Q5 風險</div><div class="task-row-body"><strong>能 catch</strong>（同事會看）→ 加「列你不確定的地方」</div></div>
+      <div class="task-row"><div class="task-row-label">Q6 重複</div><div class="task-row-body"><strong>每次會議</strong>→ 模板化</div></div>
+      <div class="task-prompt">【對象】這份摘要要給沒參與會議的同事看，幫他們 30 秒內了解會議重點與待辦。
+
+【資料】以下是 [日期] [主題] 會議紀錄，共 [N] 頁。
+
+[貼紀錄]
+
+【任務】請寫成 1 段 100 字以內的摘要，必須包含：
+- 核心決議（1 個）
+- 待辦事項 + 負責人（最多 3 條）
+- 下次會議重點（若有）
+
+【格式】純文字 1 段、不分點、不超過 100 字、不要開場白。
+
+【驗證】最後列出：
+- 紀錄裡你看不懂或資訊不完整的段落（如有）
+- 待辦事項中沒有明確負責人的條目</div>
+    </div>
+  </div>
+
+  <div class="task-block">
+    <div class="task-head">
+      <div class="task-tag">任務 D · 翻譯</div>
+      <div class="task-name">把一份 500 字英文產品說明翻成繁體中文（給業務團隊用）</div>
+    </div>
+    <div class="task-body">
+      <div class="task-row"><div class="task-row-label">Q1 給誰</div><div class="task-row-body"><strong>同事</strong>（內部業務）→ 寫對象</div></div>
+      <div class="task-row"><div class="task-row-label">Q2 資料</div><div class="task-row-body"><strong>大量</strong>（500 字原文）→ 用 [資料]</div></div>
+      <div class="task-row"><div class="task-row-label">Q3 任務</div><div class="task-row-body"><strong>一句話 + 規則</strong>：翻譯 + 保留專業術語 + 加註解</div></div>
+      <div class="task-row"><div class="task-row-label">Q4 格式</div><div class="task-row-body"><strong>結構規格</strong>：原文 + 譯文成對 + 術語表</div></div>
+      <div class="task-row"><div class="task-row-label">Q5 風險</div><div class="task-row-body"><strong>能 catch</strong>（業務會用）→ 加「不確定的地方」</div></div>
+      <div class="task-row"><div class="task-row-label">Q6 重複</div><div class="task-row-body"><strong>會反覆</strong>→ 模板化</div></div>
+      <div class="task-prompt">【對象】這份譯文要給台灣業務團隊用於客戶提案。讀者是有產業背景但英文一般的業務人員。
+
+【資料】以下是 [產品名] 英文說明：
+
+[貼原文]
+
+【任務】請翻成繁體中文，規則：
+1. 保留專業術語（如 SaaS / API / KPI），第一次出現時括號加 1 句中文白話解釋
+2. 行銷話術（如 best-in-class / world-class）請轉成具體描述、不要直譯
+3. 數字 / 單位 / 產品名 / 公司名一律保持原樣
+
+【格式】先列「全譯本」，再列「術語對照表」（英文 / 中譯 / 白話解釋 3 欄）。
+
+【驗證】最後列：你不確定如何翻譯的字句、有歧義的段落。</div>
+    </div>
+  </div>
+
+  <div class="task-block">
+    <div class="task-head">
+      <div class="task-tag">任務 E · 腦力激盪</div>
+      <div class="task-name">想出 5 個提升舊客戶回購率的活動點子</div>
+    </div>
+    <div class="task-body">
+      <div class="task-row"><div class="task-row-label">Q1 給誰</div><div class="task-row-body"><strong>自己 / 同事</strong>→ 不需角色但說「立場」</div></div>
+      <div class="task-row"><div class="task-row-label">Q2 資料</div><div class="task-row-body"><strong>少量</strong>：產業 / 客單價 / 預算上限</div></div>
+      <div class="task-row"><div class="task-row-label">Q3 任務</div><div class="task-row-body"><strong>一句話</strong>：給 5 個點子</div></div>
+      <div class="task-row"><div class="task-row-label">Q4 格式</div><div class="task-row-body"><strong>結構規格</strong>：每個點子含成本 / 預期效果 / 風險</div></div>
+      <div class="task-row"><div class="task-row-label">Q5 風險</div><div class="task-row-body"><strong>內部腦力激盪 → 跳過交差驗證；但因模板要 AI 出「成本/效果數字」</strong>，加最低「假設透明」要求避免學員把估算當預測用</div></div>
+      <div class="task-row"><div class="task-row-label">Q6 重複</div><div class="task-row-body"><strong>1 次性</strong>→ 不用模板化</div></div>
+      <div class="task-prompt">【背景】我是 [產業] 公司的 [角色]，客單價 [X] 元，活動單次預算上限 [Y] 萬，目標是提升「過去 6 個月未回購的舊客戶」的回購率。
+
+【任務】請給我 5 個活動點子，要求點子之間差異大（不要全部都是折扣促銷）。
+
+【格式】每個點子用以下結構：
+- 點子名稱：[一句話]
+- 做法：[3-4 句具體執行]
+- 估算成本：[數字]（請標明：依據什麼假設算出，例：「假設 100 名客戶 × 200 元成本」；無法估算請寫「需實測」，不要硬猜）
+- 預期效果：[數字 + 單位]（請標明假設來源；無業界 benchmark 請寫「需 A/B 測試」）
+- 主要風險：[1-2 條]
+
+【假設透明要求】最後請列「本提案所有數字的假設清單」（每個數字來自什麼假設），讓我能判斷哪些數字可信、哪些只是粗估。
+
+請按「成本由低到高」排列。</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">📋</div>
+    <div class="callout-body"><strong>5 個任務的共通結構：6 題答完直接組裝</strong>。你會發現 Q1+Q2 變成 prompt 開頭、Q3 是中段、Q4 是格式段、Q5 是驗證段、Q6 決定要不要把可變部分換成 [佔位符]。練習 5-10 次後你不用再「想」，看到新任務直接組。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ===== (04) 變奏與微調 ===== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(04) · 5 MIN</div>
+  <h2 class="section-heading">輸出不對時的 4 種微調</h2>
+  <div class="intro-band">
+    <div class="intro-label">對症下藥</div>
+    <div class="intro-text">prompt 寫好跑出來不滿意，<strong>不要整份重寫</strong>——看症狀加 1-2 句微調就好。下面 4 種症狀對應 4 種微調招式。</div>
+  </div>
+
+  <table class="variation-table">
+    <thead>
+      <tr>
+        <th style="width:160px">症狀</th>
+        <th style="width:200px">原因</th>
+        <th>微調招式（在原 prompt 末尾加 1-2 句）</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>太籠統 / 廢話多</strong></td>
+        <td>沒給字數上限 / 沒禁空話</td>
+        <td>「每條不超過 30 字，不接受『持續推進』『相關單位協助』這類空話」</td>
+      </tr>
+      <tr>
+        <td><strong>格式不對</strong></td>
+        <td>沒給範例 / 沒寫「嚴格依照」</td>
+        <td>「請<strong>嚴格</strong>依照以下格式輸出：[範例]，不要增加多餘段落或前言」</td>
+      </tr>
+      <tr>
+        <td><strong>編造資訊（幻覺）</strong></td>
+        <td>沒給驗證要求</td>
+        <td>「每個結論後請註明『引自我提供的第 X 段』；沒有對應的請刪掉、不要補」</td>
+      </tr>
+      <tr>
+        <td><strong>語氣不對</strong></td>
+        <td>沒給對象 / 沒給範例語氣</td>
+        <td>「對象是 [誰]，語氣應 [專業 / 親切 / 直接]，避免 [客套話 / 行話 / 縮寫]」</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout key">
+    <div class="callout-icon" aria-hidden="true">★</div>
+    <div class="callout-body"><strong>微調原則</strong>：在原 prompt 後面用「請特別注意：[微調]」這個格式追加，不要重寫整份。AI 重跑時會把追加的指令視為「優先級最高」，比你整份重寫更穩。<strong>連續微調 3 次仍不對就停手</strong>——這時不是 prompt 問題，是任務本身不適合 AI 做（回 CH4 §05 停手訊號）。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ===== (05) 帶走清單 ===== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(05) 本章帶走清單</div>
+  <h2 class="section-heading">確認這些都在你手上</h2>
+  <div class="takeaway-list">
+    <div class="takeaway-item">
+      <span class="takeaway-mark">工具</span>
+      <span><strong>6 題決策樹</strong>（給誰 / 資料 / 任務 / 格式 / 風險 / 重複）— 新任務 3 分鐘定 prompt 結構</span>
+    </div>
+    <div class="takeaway-item">
+      <span class="takeaway-mark">範本</span>
+      <span><strong>5 個任務模板</strong>（寫信 / 分析 / 摘要 / 翻譯 / 腦力激盪）— 含 6 題答案速覽 + 完整 prompt，可直接改 [佔位符] 套用</span>
+    </div>
+    <div class="takeaway-item">
+      <span class="takeaway-mark">速查</span>
+      <span><strong>5 大骨架 × 5 種任務類型必要程度矩陣</strong>— 知道哪個任務該寫到哪幾個骨架</span>
+    </div>
+    <div class="takeaway-item">
+      <span class="takeaway-mark">招式</span>
+      <span><strong>4 種輸出不對微調招</strong>（太籠統 / 格式錯 / 幻覺 / 語氣錯）— 對症下藥，不重寫整份</span>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div class="nav-footer">
+  <a href="CH4.html" class="nav-btn"><span aria-hidden="true">←</span> CH 4 · 工作流拆解</a>
+  <a href="module2.html" class="nav-btn primary">前往結訓 · Q&A + 帶走清單 <span aria-hidden="true">→</span></a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">辦公室 AI 工具案例應用 · 2026 春季</span>
+  <span class="footer-meta" data-platform-version="2026-05" data-built-at="2026-05-20">本頁以 2026-05 製作，2026-05-20</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+</script>
+<script>
+(function(){var k='progress:'+location.pathname;var saved=parseInt(localStorage.getItem(k)||'0',10);if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}var t;window.addEventListener('scroll',function(){clearTimeout(t);t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);},{passive:true});})();
+</script>
+</body>
+</html>
