@@ -235,6 +235,124 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 <div class="prac-body">
 
+  <!-- ▼▼▼ 引導主線（照著做）· 2026-05 新增 ▼▼▼ -->
+  <div class="lesson-section" id="sec-guided">
+    <div class="section-eyebrow">GUIDED · 15–20 分鐘照著做主線</div>
+    <h2 class="section-heading">先跟著做一遍：用 AI 生成一個「站立會議發言抽籤器」</h2>
+    <p class="body-text">這頁的完整任務是用 AI 做出一個能在晨會現場直接用的發言抽籤器。但這件事最容易卡住的，不是把工具做漂亮，而是<strong>把功能規格講清楚，再驗證 AI 真的把規格做齊了</strong>——抽籤器的本質是「貼入名單 → 按 Next 隨機抽人 → 抽過的標掉 → 全員抽完自動結束」，少一個步驟、漏一條規則，晨會現場就會卡。這條主線只做一件事：拿一份已經寫好的工具規格，用一套固定 Prompt 叫 AI 生成單檔 HTML 工具，存下來打開，再用一張功能對照檢查表驗它有沒有做齊。全程貼文字進 AI、存成 .html 開來測，<strong>不用寫一行程式</strong>，15–20 分鐘做完。<strong>先把這條主線走完</strong>；做完還想多練，再往下走「進階練習池」——那裡有現成的互動工具、自己復刻的 Prompt、進階挑戰、延伸案例與自我演練。主線和練習池是同一主題的不同深度，主線是正式入門路徑，練習池是自選加練。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 1 / 4 · 場景設定（約 3 分鐘）</div>
+    <h2 class="section-heading">怡君的麻煩</h2>
+    <div style="padding:14px 18px;background:var(--c-card);border-left:3px solid var(--c-a1);border-radius:var(--radius-sm);margin-bottom:20px">
+      <p class="body-text" style="margin-bottom:0"><strong>怡君，34 歲，一家軟體公司的團隊組長，帶 7 個人。</strong>每天早上 10 點開 15 分鐘站立會議。問題是發言順序總是亂的——資深的人講太久、安靜的人乾脆不講，常常有人被漏掉、也有人講了兩次。她想要一個小工具：把團隊名單貼進去，按一個按鈕就<strong>隨機抽出下一位發言者</strong>，抽過的人標掉不重抽，全員抽完自動結束。可是她<strong>不會寫程式</strong>。</p>
+    </div>
+    <p class="body-text">今天你就是怡君。你要用 AI 把這個抽籤器生出來——重點不是把它做得多炫，是<strong>把功能規格描述精確，再驗證 AI 真的做齊了</strong>。<strong>成品工具長這樣</strong>：一個文字框讓你貼入名單（每行一位），按「開始抽籤」初始化；頁面中央一個大型「Next」按鈕，每按一次隨機抽出一位、名字以大字體彈入顯示；抽過的名字以刪除線標籤列在下方，並顯示「已發言 N / 總數」；全員抽完後 Next 按鈕自動停用並顯示完成訊息。本主線的完整工具規格寫在 STEP 2 的主版 Prompt 裡，直接用即可，不需自己設計。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 2 / 4 · 主版工具生成 Prompt（約 4 分鐘）</div>
+    <h2 class="section-heading">主版工具生成 Prompt（直接複製，不用改）</h2>
+    <p class="body-text">這套 Prompt 把上面的工具規格寫成 AI 看得懂的生成指令，由 4 個部分組成：角色、功能需求、設計要求、輸出規格。你不用自填，直接按右上角「複製」就能用。</p>
+    <div class="tool-wrap">
+      <div class="tool-topbar">
+        <div class="tool-dot tool-dot-r"></div>
+        <div class="tool-dot tool-dot-y"></div>
+        <div class="tool-dot tool-dot-g"></div>
+        <div class="tool-label"><span aria-hidden="true">→</span> 複製這段 Prompt 貼入 AI</div>
+        <button class="copy-btn" style="margin-left:auto;" onclick="copyGuided()">複製指令</button>
+      </div>
+      <div class="tool-body" style="padding:24px 28px;">
+        <div class="result-box" id="guided-box" style="font-size:.85rem;">你是一位擅長製作互動工具的前端工程師，理解使用者要的是「貼入名單就能在晨會現場直接用」的小工具。
+
+請產出一份「站立會議發言抽籤器」單檔 HTML，內嵌 CSS/JS、不依賴任何外部 library。
+
+【功能需求】
+- 一個文字框讓使用者輸入團隊成員名單，每行一位
+- 「開始抽籤」按鈕：讀取名單並初始化，空白行自動忽略；名單為空時提示先輸入名單
+- 頁面中央一個大型「Next」按鈕，每按一次從「尚未抽到」的人中隨機抽出一位
+- 抽出的名字以 2rem 以上大字體顯示，並有彈入動畫效果（CSS animation）
+- 抽過的名字以刪除線標籤列在下方，並顯示「已發言 N / 總數 N」計數
+- 全員抽完後 Next 按鈕自動 disabled，並顯示「全員發言完畢」完成訊息
+- 「重置名單」按鈕：清空回到輸入名單畫面
+
+【設計要求】
+- 背景 #f5f3ee、卡片白色；主按鈕用 #b5703a；字體 Shippori Mincho（標題）+ Noto Sans TC（內文）
+- 名字顯示區用白色卡片、2rem 以上大字型；圓角 6px，無陰影漸層
+
+【輸出格式】只輸出完整的單一 HTML 程式碼，所有功能寫在 inline JS 中，前後不要加任何說明文字或驗證報告——這段你會整段存成 .html 檔，多餘的文字會被一起存進去、變成工具裡的雜訊。</div>
+      </div>
+    </div>
+    <p class="body-text"><strong>為何這樣寫：</strong>功能需求逐條寫死，是這套 Prompt 的關鍵——抽籤器最常見的漏做就是「抽過的人會被重抽」「全員抽完按鈕還能按」，把每條規則拆開寫清楚，AI 才不會自行簡化。最後一段明令<strong>只輸出 HTML、不附驗證報告</strong>：產出是要存檔的程式碼，AI 若在前後加說明或報告，會被一起存進 .html 變成工具裡的雜訊。驗證改用更可靠的方式——STEP 4 打開工具，用功能對照檢查表逐項看它做齊了沒。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 3 / 4 · 上機（約 6 分鐘）</div>
+    <h2 class="section-heading">跟著這 4 步生出工具並實際用一次</h2>
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">1</div></div>
+        <div class="step-body">
+          <div class="step-title">複製主版 Prompt 貼進 AI 送出</div>
+          <div class="step-desc">按 STEP 2 主版 Prompt 右上角的「複製指令」鈕。ChatGPT、Gemini、Claude.ai 的免費版都可以，開一個新對話視窗貼上去送出，AI 會回一整段 HTML。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">2</div></div>
+        <div class="step-body">
+          <div class="step-title">存成 .html 檔</div>
+          <div class="step-desc">把 AI 回的程式碼整段複製，貼進一個純文字檔，存檔時把副檔名改成 <strong>standup-lottery.html</strong>。用 Gemini Canvas 的話可直接按「下載」存檔。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">3</div></div>
+        <div class="step-body">
+          <div class="step-title">用瀏覽器打開來測</div>
+          <div class="step-desc">在檔案上點兩下，用瀏覽器打開。貼入一份 5 人左右的名單，按「開始抽籤」，再連按 Next 把所有人抽完，看抽過的人有沒有被標掉、全員抽完按鈕有沒有停用。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">4</div></div>
+        <div class="step-body">
+          <div class="step-title">用 STEP 4 檢查表逐項驗收</div>
+          <div class="step-desc">對照下方「工具功能對照檢查表」逐條打勾。<strong>有任一條沒做到</strong>，回到 AI 對話視窗，把缺的那條規則貼給它說「這個功能沒做到，請補上並重出完整 HTML」，再存檔重測。</div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 4 / 4 · 工具功能對照檢查表（約 3 分鐘）</div>
+    <h2 class="section-heading">打開你生出的工具，逐項對照打勾</h2>
+    <p class="body-text">這張表的每一條都對應 STEP 2 Prompt 裡寫的一條規格。打開你存下的 <strong>standup-lottery.html</strong>，逐項實測——全部勾起來，才算這條主線完成。</p>
+    <div class="case-check">
+      <span class="case-check-label">工具功能對照檢查表</span>
+      <label><input type="checkbox"><span>有一個文字框可貼入名單，每行一位；按「開始抽籤」能初始化，空白行被忽略</span></label>
+      <label><input type="checkbox"><span>名單為空時按「開始抽籤」會有提示，不會直接出錯或無反應</span></label>
+      <label><input type="checkbox"><span>有大型「Next」按鈕，每按一次隨機抽出一位，名字以大字體彈入顯示</span></label>
+      <label><input type="checkbox"><span>抽過的名字以刪除線標籤列在下方，不會被重複抽到</span></label>
+      <label><input type="checkbox"><span>有「已發言 N / 總數 N」計數，數字隨抽籤正確更新</span></label>
+      <label><input type="checkbox"><span>全員抽完後 Next 按鈕自動停用，並顯示「全員發言完畢」完成訊息</span></label>
+      <label><input type="checkbox"><span>有「重置名單」按鈕，按下能清空回到輸入名單畫面</span></label>
+    </div>
+    <div class="callout tip">
+      <div class="callout-icon" aria-hidden="true">💡</div>
+      <div class="callout-body">
+        <strong>主線到這裡結束。</strong>你已經用 AI 生出一個能在晨會現場用的抽籤器。想再練深一點，往下走「進階練習池」——那裡有現成可玩的互動工具、另一版復刻 Prompt、進階挑戰、真實 Scrum 團隊的延伸案例與自我演練。
+      </div>
+    </div>
+  </div>
+  <!-- ▲▲▲ 引導主線結束 ▲▲▲ -->
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow" style="color:var(--c-a2)">PRACTICE POOL · 進階練習池</div>
+    <h2 class="section-heading">完成主線後的自選加練區</h2>
+    <p class="body-text">以下是這頁原本的完整內容：可直接操作的互動工具、自己復刻工具的 Prompt、進階挑戰、真實團隊延伸案例與自我演練。它們和上方主線是同一主題的不同深度——主線帶你照著做出一個能用的工具，練習池讓你把它玩深、套到真實工作場景。完成主線後再依興趣自由選練。</p>
+  </div>
+
   <div class="lesson-section">
     <div class="section-eyebrow">TOOL · 互動工具</div>
     <h2 class="section-heading">輸入成員名單，隨機抽出下一位發言者</h2>
@@ -563,6 +681,15 @@ function resetLottery() {
 
 function copyInstructions() {
   const text = document.getElementById('instruction-box').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    btn.textContent = '已複製！';
+    setTimeout(() => btn.textContent = '複製指令', 1800);
+  });
+}
+
+function copyGuided() {
+  const text = document.getElementById('guided-box').textContent;
   navigator.clipboard.writeText(text).then(() => {
     const btn = event.target;
     btn.textContent = '已複製！';

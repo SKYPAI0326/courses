@@ -241,6 +241,121 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 <div class="prac-body">
 
+  <!-- ▼▼▼ 引導主線（照著做）· 2026-05 新增 ▼▼▼ -->
+  <div class="lesson-section" id="sec-guided">
+    <div class="section-eyebrow">GUIDED · 15–20 分鐘照著做主線</div>
+    <h2 class="section-heading">先跟著做一遍：用 AI 生成一個「Markdown 轉專業報表工具」</h2>
+    <p class="body-text">這頁的完整任務是用 AI 做出一個能把 Markdown 文字秒變精美報表的工具。但這件事最容易卡住的，不是把樣式做漂亮，而是<strong>把要支援的語法與列印行為描述清楚，再驗證 AI 真的把規格做齊了</strong>——這類工具的本質是「左側貼 Markdown 文字 → 右側即時渲染成排版好的報表 → 一鍵列印為 PDF」，少支援一種語法、列印時忘了隱藏輸入框，交出去的報表就會出包。這條主線只做一件事：拿一份已經寫好的工具規格，用一套固定 Prompt 叫 AI 生成單檔 HTML 工具，存下來打開，再用一張功能對照檢查表驗它有沒有做齊。全程貼文字進 AI、存成 .html 開來測，<strong>不用寫一行程式</strong>，15–20 分鐘做完。<strong>先把這條主線走完</strong>；做完還想多練，再往下走「進階練習池」——那裡有現成的互動工具、自己復刻的 Prompt、進階挑戰、延伸案例與自我演練。主線和練習池是同一主題的不同深度，主線是正式入門路徑，練習池是自選加練。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 1 / 4 · 場景設定（約 3 分鐘）</div>
+    <h2 class="section-heading">怡君的麻煩</h2>
+    <div style="padding:14px 18px;background:var(--c-card);border-left:3px solid var(--c-a1);border-radius:var(--radius-sm);margin-bottom:20px">
+      <p class="body-text" style="margin-bottom:0"><strong>怡君，34 歲，一家行銷顧問公司的專案經理。</strong>她每週都要交一份專案進度報告給總監。她習慣用 AI 把資料整理成 Markdown，但 Markdown 純文字直接交出去太陽春，總監要的是「排版整齊、可以列印歸檔」的報表。她現在的做法是把 Markdown 一段段貼進 Word 再手動套格式，光排版就花 30 分鐘。她想要一個小工具：左側貼 Markdown，右側立刻變成有標題底線、有清單縮排、有引用色條的精美報表，再一鍵列印成 PDF。可是她<strong>不會寫程式</strong>。</p>
+    </div>
+    <p class="body-text">今天你就是怡君。你要用 AI 把這個 Markdown 轉報表工具生出來——重點不是把它做得多炫，是<strong>把要支援的語法與列印行為描述精確，再驗證 AI 真的做齊了</strong>。<strong>成品工具長這樣</strong>：一個左右分割版面，左側是深色背景的 Markdown 輸入框，右側即時渲染預覽；支援標題（#/##/###）、粗體、斜體、清單、引用、行內代碼；右上角有「列印為 PDF」按鈕，列印時只留預覽區、隱藏所有工具 UI。本主線的完整工具規格寫在 STEP 2 的主版 Prompt 裡，直接用即可，不需自己設計。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 2 / 4 · 主版工具生成 Prompt（約 4 分鐘）</div>
+    <h2 class="section-heading">主版工具生成 Prompt（直接複製，不用改）</h2>
+    <p class="body-text">這套 Prompt 把上面的工具規格寫成 AI 看得懂的生成指令，由 5 個部分組成：角色、版面結構、語法需求、列印行為、輸出規格。你不用自填，直接按右上角「複製」就能用。</p>
+    <div class="tool-wrap">
+      <div class="tool-topbar">
+        <div class="tool-dot tool-dot-r"></div>
+        <div class="tool-dot tool-dot-y"></div>
+        <div class="tool-dot tool-dot-g"></div>
+        <div class="tool-label"><span aria-hidden="true">→</span> 複製這段 Prompt 貼入 AI</div>
+        <button class="copy-btn" style="margin-left:auto;" onclick="copyGuided()">複製指令</button>
+      </div>
+      <div class="tool-body" style="padding:24px 28px;">
+        <div class="result-box" id="guided-box" style="font-size:.85rem;">你是專為文件排版設計的前端工程師，理解使用者要的是「貼進 Markdown 就立刻看到排版好、能列印的報表」。
+
+請產出一份「Markdown 轉專業報表工具」單檔 HTML，內嵌 CSS/JS、不依賴任何外部 library。使用者可用它把 AI 生成的 Markdown 變成可列印給主管的報告。
+
+【版面結構】
+- 左右分割版面：左側為 Markdown 文字輸入框（深色背景、等寬字、code 感），右側即時渲染預覽
+- 左側輸入時右側即時更新（oninput），不需按鈕
+
+【語法需求】用 JavaScript 手工解析以下常用 Markdown 語法：
+- 標題 #、##、###
+- 粗體 **文字**、斜體 *文字*
+- 無序清單 -、有序清單 1.
+- 引用 >
+- 行內代碼 `文字`
+- 分隔線 ---
+
+【列印行為】
+- 頁面右上角有「列印為 PDF」按鈕，呼叫 window.print()
+- 用 @media print：列印時只顯示右側預覽區內容，隱藏左側輸入框與所有工具 UI
+
+【設計】背景 #f5f3ee、預覽區白色背景、強調色 #b5703a；h1 有強調色底線、h2 有分隔線、清單有縮排、blockquote 有左色條；字體 Shippori Mincho（標題）+ Noto Sans TC（內文）；整體簡潔，預覽區排版要像一份正式報告。
+
+【輸出格式】只輸出完整的單一 HTML 程式碼，所有功能寫在 inline JS 中，前後不要加任何說明文字或驗證報告——這段你會整段存成 .html 檔，多餘的文字會被一起存進去、變成工具裡的雜訊。</div>
+      </div>
+    </div>
+    <p class="body-text"><strong>為何這樣寫：</strong>語法需求逐條列出，是這套 Prompt 的關鍵——Markdown 轉換工具最常見的漏做就是「只支援標題與粗體、漏了引用或行內代碼」，把每種語法拆開寫清楚，AI 才不會自行簡化。列印行為單獨開一段，是因為 @media print 隱藏輸入框最容易被忽略，沒寫死的話列印出來會把深色輸入框也印進去。最後一段明令<strong>只輸出 HTML、不附驗證報告</strong>：產出是要存檔的程式碼，AI 若在前後加說明或報告，會被一起存進 .html 變成工具裡的雜訊。驗證改用更可靠的方式——STEP 4 打開工具，用功能對照檢查表逐項看它做齊了沒。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 3 / 4 · 上機（約 6 分鐘）</div>
+    <h2 class="section-heading">跟著這 4 步生出工具並實際用一次</h2>
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">1</div></div>
+        <div class="step-body">
+          <div class="step-title">複製主版 Prompt 貼進 AI 送出</div>
+          <div class="step-desc">按 STEP 2 主版 Prompt 右上角的「複製指令」鈕。ChatGPT、Gemini、Claude.ai 的免費版都可以，開一個新對話視窗貼上去送出，AI 會回一整段 HTML。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">2</div></div>
+        <div class="step-body">
+          <div class="step-title">存成 .html 檔</div>
+          <div class="step-desc">把 AI 給的 HTML 整段複製，貼到記事本／文字編輯器，存檔時把檔名取成 <strong>markdown-to-report.html</strong>（副檔名一定要 .html）。若 AI 一次沒給完整，回「請接續輸出剩下的 HTML」即可。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">3</div></div>
+        <div class="step-body">
+          <div class="step-title">用瀏覽器打開實際操作</div>
+          <div class="step-desc">雙擊 <strong>markdown-to-report.html</strong> 用瀏覽器開。在左側貼一段含標題、清單、引用的 Markdown，看右側即時渲染，再按右上角「列印為 PDF」確認列印預覽只剩報表、沒有輸入框。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">4</div></div>
+        <div class="step-body">
+          <div class="step-title">對照功能檢查表</div>
+          <div class="step-desc">用下方 STEP 4 的功能對照檢查表逐項確認。對不上的，把問題追問給 AI 重生一次。</div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 4 / 4 · 工具功能對照檢查表（約 4 分鐘）</div>
+    <h2 class="section-heading">離開前對照功能檢查表打 4 個勾</h2>
+    <p class="body-text">AI 生的工具看起來再漂亮，都要逐項驗。把你打開的 <strong>markdown-to-report.html</strong> 對照下面 4 項檢查，全部確認過，今天的主線才算完成。對不上的，回 STEP 3 把問題追問給 AI 重生一次。</p>
+    <div style="padding:20px 24px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:24px 0">
+      <div style="font-size:.8rem;color:var(--c-a1);letter-spacing:1.5px;font-weight:500;margin-bottom:14px">工具功能對照檢查表</div>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:10px"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a1);flex-shrink:0"><span><strong>左右版面與即時渲染</strong>：左側是深色背景的 Markdown 輸入框，右側是白色預覽區；在左側打字時右側立刻更新，不用按任何按鈕。少一邊或不會即時更新就代表 AI 漏做了規格。</span></label>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:10px"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a1);flex-shrink:0"><span><strong>六種語法都支援</strong>：貼一段同時含標題（#/##/###）、粗體、斜體、清單、引用（&gt;）、行內代碼（`）的 Markdown，右側六種都要正確渲染出樣式。哪一種沒效果，代表那條語法規則沒做。</span></label>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:10px"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a1);flex-shrink:0"><span><strong>列印行為正確</strong>：按「列印為 PDF」叫出瀏覽器列印預覽，畫面只剩右側報表內容，左側深色輸入框與所有工具 UI 都被隱藏。輸入框也被印進去代表 @media print 沒做。</span></label>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a1);flex-shrink:0"><span><strong>排版像正式報告</strong>：h1 有強調色底線、h2 有分隔線、清單有縮排、引用有左色條；整份預覽看起來像一份能交給主管的報告，而不是一段純文字。</span></label>
+    </div>
+    <p class="body-text">4 個勾全打完，你已經用 AI 做出一個能把 Markdown 秒變專業報表的工具了。想再多練——往下走「進階練習池」：那裡有現成可玩的互動工具、自己復刻的 Prompt、進階挑戰、延伸案例與自我演練，把今天這套「描述規格 → 生成 → 對照驗收」的方法練得更熟。</p>
+  </div>
+  <!-- ▲▲▲ 引導主線結束 ▲▲▲ -->
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">PRACTICE POOL · 進階練習池</div>
+    <h2 class="section-heading">完成主線後的自選加練區</h2>
+    <p class="body-text">下面是這頁原本的完整內容：可直接操作的互動 Markdown 轉報表工具、自己復刻工具的 Prompt 與步驟、進階挑戰、延伸案例與自我演練。主線帶你用 AI 生成單一工具走過「描述規格 → 生成 → 對照驗收」一遍；這裡是同一套方法的進階版。先跑完上面的主線，再依興趣選做這區。</p>
+  </div>
+
   <div class="lesson-section">
     <div class="section-eyebrow">TOOL · 互動工具</div>
     <h2 class="section-heading">貼入 Markdown，右側即時渲染為精美報表</h2>
@@ -559,6 +674,15 @@ renderMd();
 
 function copyInstructions() {
   const text = document.getElementById('instruction-box').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    btn.textContent = '已複製！';
+    setTimeout(() => btn.textContent = '複製指令', 1800);
+  });
+}
+
+function copyGuided() {
+  const text = document.getElementById('guided-box').textContent;
   navigator.clipboard.writeText(text).then(() => {
     const btn = event.target;
     btn.textContent = '已複製！';

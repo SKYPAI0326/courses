@@ -273,6 +273,134 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 <div class="prac-body">
 
+  <!-- ▼▼▼ 引導主線（照著做）· 2026-05 新增 ▼▼▼ -->
+  <div class="lesson-section" id="sec-guided">
+    <div class="section-eyebrow">GUIDED · 15–20 分鐘照著做主線</div>
+    <h2 class="section-heading">先跟著做一遍：用 AI 生成一個「專案紅綠燈週報工具」</h2>
+    <p class="body-text">這頁的完整任務是用 AI 做出一個能交付給主管的專案週報工具。但這件事最容易卡住的，不是把工具做漂亮，而是<strong>把資料模型講清楚，再驗證 AI 真的把規格做齊了</strong>——週報工具的本質是「填齊每個專案的燈號、Owner、理由、行動 → 一鍵匯出可貼給主管的 Markdown」，少一個欄位、漏一條驗證規則，主管追問就會卡。這條主線只做一件事：拿一份已經寫好的工具規格，用一套固定 Prompt 叫 AI 生成單檔 HTML 工具，存下來打開，再用一張功能對照檢查表驗它有沒有做齊。全程貼文字進 AI、存成 .html 開來測，<strong>不用寫一行程式</strong>，15–20 分鐘做完。<strong>先把這條主線走完</strong>；做完還想多練，再往下走「進階練習池」——那裡有現成的互動工具、自己復刻的 Prompt、進階挑戰、延伸案例與自我演練。主線和練習池是同一主題的不同深度，主線是正式入門路徑，練習池是自選加練。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 1 / 4 · 場景設定（約 3 分鐘）</div>
+    <h2 class="section-heading">建宏的麻煩</h2>
+    <div style="padding:14px 18px;background:var(--c-card);border-left:3px solid var(--c-a1);border-radius:var(--radius-sm);margin-bottom:20px">
+      <p class="body-text" style="margin-bottom:0"><strong>建宏，38 歲，一家 40 人 SaaS 公司的 PM。</strong>他同時管三條產品線，每週一早會老闆只給 15 分鐘對齊。他現在用一份越改越亂的 Excel 記專案狀態，常常燈號標了卻忘了寫理由，被老闆追問「為什麼是紅燈、誰負責、下一步做什麼」就答不出來。他想要一個小工具：填好每個專案的<strong>燈號 + Owner + Due + 燈號理由 + 下一步行動</strong>，紅黃燈如果沒寫理由或行動就自動標警告，最後一鍵匯出成 Markdown 週報直接貼進主管 Slack。可是他<strong>不會寫程式</strong>。</p>
+    </div>
+    <p class="body-text">今天你就是建宏。你要用 AI 把這個週報工具生出來——重點不是把它做得多炫，是<strong>把資料模型與驗證規則描述精確，再驗證 AI 真的做齊了</strong>。<strong>成品工具長這樣</strong>：一個表格式週報，每列是一個專案，欄位有燈號（點擊循環切換綠→黃→紅）、專案名、Owner、Due、燈號理由、下一步行動；紅黃燈缺理由或行動會自動標「缺週報依據」；下方有「匯出週報 Markdown」按鈕產出可貼給主管的週報。本主線的完整工具規格寫在 STEP 2 的主版 Prompt 裡，直接用即可，不需自己設計。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 2 / 4 · 主版工具生成 Prompt（約 4 分鐘）</div>
+    <h2 class="section-heading">主版工具生成 Prompt（直接複製，不用改）</h2>
+    <p class="body-text">這套 Prompt 把上面的工具規格寫成 AI 看得懂的生成指令，由 5 個部分組成：角色、資料模型、功能需求、匯出格式、輸出規格。你不用自填，直接按右上角「複製」就能用。</p>
+    <div class="tool-wrap">
+      <div class="tool-topbar">
+        <div class="tool-dot tool-dot-r"></div>
+        <div class="tool-dot tool-dot-y"></div>
+        <div class="tool-dot tool-dot-g"></div>
+        <div class="tool-label"><span aria-hidden="true">→</span> 複製這段 Prompt 貼入 AI</div>
+        <button class="copy-btn" style="margin-left:auto;" onclick="copyGuided()">複製指令</button>
+      </div>
+      <div class="tool-body" style="padding:24px 28px;">
+        <div class="result-box" id="guided-box" style="font-size:.85rem;">你是專為週報設計的前端工程師，理解使用者要的是「填幾個欄位就產出可交付的週報」，欄位用語要白話。
+
+請產出一份「專案紅綠燈週報工具」單檔 HTML，內嵌 CSS/JS、不依賴任何外部 library。使用者可用它對主管交付一份 Markdown 週報。
+
+【資料模型】每個專案物件：
+- name 專案名（必填）
+- status 燈號：green / yellow / red（必填，預設 green）
+- owner 負責人（必填）
+- dueDate 截止日（選填，YYYY-MM-DD）
+- reason 燈號理由（紅黃燈必填）
+- nextAction 下一步行動（紅黃燈必填）
+
+【功能需求】
+- 表格 row 欄位：燈號 / 專案 / Owner / Due / 理由 / 下一步 / 刪除
+- 點燈循環切換（綠 → 黃 → 紅）
+- 紅黃燈若 reason 或 nextAction 為空，該列底顯示「缺週報依據」warning
+- 載入範例按鈕：填入三條產品線（App push 紅 / 會員改版 黃 / B 端儀表板 綠）
+- 匯出週報按鈕：產 Markdown 到 textarea
+- 複製週報按鈕
+- 清空重來：二次確認
+- localStorage 持久化
+
+【匯出 Markdown 格式】
+# 本週專案紅綠燈週報
+
+## 摘要
+紅燈 N｜黃燈 N｜綠燈 N
+本週最需關注：(最緊急那條的專案 + 理由)
+
+| 燈號 | 專案 | Owner | Due | 理由 | 下一步 |
+|---|---|---|---|---|---|
+| 🔴 | ... | ... | ... | ... | ... |
+
+【設計】背景 #f5f3ee、卡片白色；燈號顏色 綠 #5a7a5a / 黃 #c9963a / 紅 #b5703a；字體 Shippori Mincho（標題）+ Noto Sans TC（內文）；整體簡潔，能直接在週會螢幕展示。
+
+【輸出格式】只輸出完整的單一 HTML 程式碼，所有功能寫在 inline JS 中，前後不要加任何說明文字或驗證報告——這段你會整段存成 .html 檔，多餘的文字會被一起存進去、變成工具裡的雜訊。</div>
+      </div>
+    </div>
+    <p class="body-text"><strong>為何這樣寫：</strong>資料模型與功能需求逐條寫死，是這套 Prompt 的關鍵——週報工具最常見的漏做就是「紅黃燈缺理由不警告」「匯出摘要漏算燈號數」，把每個欄位與規則拆開寫清楚，AI 才不會自行簡化。最後一段明令<strong>只輸出 HTML、不附驗證報告</strong>：產出是要存檔的程式碼，AI 若在前後加說明或報告，會被一起存進 .html 變成工具裡的雜訊。驗證改用更可靠的方式——STEP 4 打開工具，用功能對照檢查表逐項看它做齊了沒。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 3 / 4 · 上機（約 6 分鐘）</div>
+    <h2 class="section-heading">跟著這 4 步生出工具並實際用一次</h2>
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">1</div></div>
+        <div class="step-body">
+          <div class="step-title">複製主版 Prompt 貼進 AI 送出</div>
+          <div class="step-desc">按 STEP 2 主版 Prompt 右上角的「複製指令」鈕。ChatGPT、Gemini、Claude.ai 的免費版都可以，開一個新對話視窗貼上去送出，AI 會回一整段 HTML。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">2</div></div>
+        <div class="step-body">
+          <div class="step-title">存成 .html 檔</div>
+          <div class="step-desc">把 AI 給的 HTML 整段複製，貼到記事本／文字編輯器，存檔時把檔名取成 <strong>weekly-report.html</strong>（副檔名一定要 .html）。若 AI 一次沒給完整，回「請接續輸出剩下的 HTML」即可。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">3</div></div>
+        <div class="step-body">
+          <div class="step-title">用瀏覽器打開實際操作</div>
+          <div class="step-desc">雙擊 <strong>weekly-report.html</strong> 用瀏覽器開。按「載入範例」填入三條產品線，點燈號試切換，再按「匯出週報 Markdown」看下方產出。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">4</div></div>
+        <div class="step-body">
+          <div class="step-title">對照功能檢查表</div>
+          <div class="step-desc">用下方 STEP 4 的功能對照檢查表逐項確認。對不上的，把問題追問給 AI 重生一次。</div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 4 / 4 · 工具功能對照檢查表（約 4 分鐘）</div>
+    <h2 class="section-heading">離開前對照功能檢查表打 4 個勾</h2>
+    <p class="body-text">AI 生的工具看起來再漂亮，都要逐項驗。把你打開的 <strong>weekly-report.html</strong> 對照下面 4 項檢查，全部確認過，今天的主線才算完成。對不上的，回 STEP 3 把問題追問給 AI 重生一次。</p>
+    <div style="padding:20px 24px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:24px 0">
+      <div style="font-size:.8rem;color:var(--c-a1);letter-spacing:1.5px;font-weight:500;margin-bottom:14px">工具功能對照檢查表</div>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:10px"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a1);flex-shrink:0"><span><strong>欄位齊全</strong>：每個專案列有 燈號 / 專案 / Owner / Due / 燈號理由 / 下一步行動 / 刪除，少一個就代表 AI 漏做了規格。</span></label>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:10px"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a1);flex-shrink:0"><span><strong>燈號切換與缺依據警告</strong>：點燈號能循環切換綠→黃→紅；把一列切成紅或黃、但理由與下一步留空時，該列要出現「缺週報依據」之類的 warning。不警告代表驗證規則沒做。</span></label>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:10px"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a1);flex-shrink:0"><span><strong>匯出週報正確</strong>：按「載入範例」後按匯出，產出的 Markdown 摘要列出「紅燈 1｜黃燈 1｜綠燈 1」、表格三列、且「本週最需關注」指向那條紅燈專案。數字對不上代表摘要計算錯了。</span></label>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a1);flex-shrink:0"><span><strong>持久化與複製</strong>：有「複製週報」按鈕且按了能複製 Markdown；改動專案後重新整理瀏覽器，資料還在（localStorage 有做）。</span></label>
+    </div>
+    <p class="body-text">4 個勾全打完，你已經用 AI 做出一個能交付的專案週報工具了。想再多練——往下走「進階練習池」：那裡有現成可玩的互動工具、自己復刻的 Prompt、進階挑戰、延伸案例與自我演練，把今天這套「描述規格 → 生成 → 對照驗收」的方法練得更熟。</p>
+  </div>
+  <!-- ▲▲▲ 引導主線結束 ▲▲▲ -->
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">PRACTICE POOL · 進階練習池</div>
+    <h2 class="section-heading">完成主線後的自選加練區</h2>
+    <p class="body-text">下面是這頁原本的完整內容：可直接操作的互動週報工具、自己復刻工具的 Prompt 與步驟、進階挑戰、延伸案例與自我演練。主線帶你用 AI 生成單一工具走過「描述規格 → 生成 → 對照驗收」一遍；這裡是同一套方法的進階版。先跑完上面的主線，再依興趣選做這區。</p>
+  </div>
+
   <div class="lesson-section">
     <div class="section-eyebrow">TOOL · 互動工具</div>
     <h2 class="section-heading">把每個專案的「燈號 + Owner + Due + 理由 + 行動」填齊，一鍵匯出 Markdown 週報</h2>
@@ -592,6 +720,13 @@ function copyInstructions() {
   const text = document.getElementById('instruction-box').textContent;
   navigator.clipboard.writeText(text).then(() => {
     const btn = event.target;
+    btn.textContent = '已複製！';
+    setTimeout(() => btn.textContent = '複製指令', 1800)})}
+
+function copyGuided() {
+  const text = document.getElementById('guided-box').textContent;
+  const btn = event.target;
+  navigator.clipboard.writeText(text).then(() => {
     btn.textContent = '已複製！';
     setTimeout(() => btn.textContent = '複製指令', 1800)})}
 

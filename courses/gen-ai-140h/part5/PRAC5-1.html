@@ -252,6 +252,181 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 <main class="lesson-body">
 
+  <!-- ▼▼▼ 引導主線（照著做）· 2026-05 新增 ▼▼▼ -->
+  <section class="lesson-section reveal">
+    <div class="section-eyebrow">GUIDED · 45 分鐘照著做主線</div>
+    <h2 class="section-heading">先跟著做一遍：<em>把一個陽春的「活動報名統計小工具」改版成 v2</em></h2>
+    <p class="body-text">這頁的完整任務是把你 Part 4 做的工具改版到 v2。但改版最容易卡住的，不是改不動，而是<strong>說不清楚要改什麼</strong>——一句「幫我改好看一點」丟給 AI，它會把整份程式碼重寫一遍，連你沒想動的計算邏輯都被換掉。改版的本質是「指定位置 → 講清意圖 → 框住限制」，三件事缺一件，AI 就會改過頭。這條主線只做一件事：給你一份<strong>現成的 v1 工具程式碼</strong>（不需要你先在 Part 4 做過任何東西），用一套固定 Prompt 叫 AI 把它改成 v2、只輸出改版後的完整 HTML，存下來打開，再用「改了什麼、有沒有改壞」逐項對照。全程貼文字進 AI、存成 .html 開來測，<strong>不用自己寫一行程式</strong>，45 分鐘做完，你就握住了「用 AI 改版」最關鍵的那一段。<strong>先把這條主線走完</strong>；做完還想多練，再往下走「進階練習池」——那裡有三要素指令生成器、延伸案例與自我演練。主線和練習池是同一主題的不同深度，主線是正式入門路徑，練習池是自選加練。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 1 / 5 · 場景設定（5 分鐘）</div>
+    <h2 class="section-heading">宛庭手上那個半成品工具</h2>
+    <div style="padding:14px 18px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius-sm);margin:20px 0">
+      <p style="font-size:.88rem;line-height:1.9;color:var(--c-text);margin:0"><strong>宛庭，29 歲，社區大學的活動行政。</strong>上個月她用 AI 拼了一個「活動報名統計小工具」單檔 HTML，能填報名人數、看總人數。但這版很陽春：總人數要按一下「計算」鈕才更新、報名超過名額上限也沒有任何提示、想把名單貼到 LINE 群組還得自己一個個複製。她想改版，可是每次跟 AI 說「幫我改好一點」，AI 就把整份程式碼重寫，連她原本算對的加總都被動到。她需要的不是重做，是<strong>三個講得清清楚楚的小改動</strong>。</p>
+    </div>
+    <p class="body-text">今天你就是宛庭。你手上的 v1 工具程式碼就在 STEP 2 下方（一份完整、可直接用的 HTML，不需自己準備）。你要用 AI 把它改成 v2——重點不是改多少，是<strong>把每個改動的位置、意圖、限制描述精確，再驗證 AI 沒把原本對的東西改壞</strong>。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 2 / 5 · 看成品（10 分鐘）</div>
+    <h2 class="section-heading">先看 v1 長什麼樣、v2 該變成什麼樣</h2>
+    <p class="body-text">動手前先看一次。下面先給<strong>本主線的 v1 起點程式碼</strong>（直接複製就能存成檔案開來看），再給<strong>v2 改版目標</strong>——三個具體改動，與每個改動「改對了會看到什麼」的對照基準。先認得 v1、v2 各長什麼樣，等一下才知道 AI 改得對不對。</p>
+
+    <div class="output-card" style="margin:20px 0">
+      <div class="output-label">本主線 v1 起點 · activity-signup.html（直接複製存檔即可看到 v1）</div>
+      <div class="output-text" id="v1Source">&lt;!DOCTYPE html&gt;
+&lt;html lang="zh-TW"&gt;
+&lt;head&gt;&lt;meta charset="UTF-8"&gt;&lt;title&gt;活動報名統計&lt;/title&gt;
+&lt;style&gt;
+  body{font-family:sans-serif;background:#f5f3ee;padding:24px;max-width:420px;margin:0 auto}
+  .row{display:flex;gap:8px;margin-bottom:8px}
+  input{flex:1;padding:8px;border:1px solid #d8d4cb;border-radius:4px}
+  button{padding:8px 14px;border:none;border-radius:4px;background:#6b7fa3;color:#fff;cursor:pointer}
+  #total{font-size:1.2rem;font-weight:700;margin-top:12px}
+&lt;/style&gt;&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;活動報名統計&lt;/h1&gt;
+  &lt;p&gt;名額上限：30 人&lt;/p&gt;
+  &lt;div id="list"&gt;
+    &lt;div class="row"&gt;&lt;input class="name" placeholder="報名者姓名"&gt;&lt;input class="num" type="number" placeholder="人數" value="1"&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;button onclick="addRow()"&gt;+ 加一列&lt;/button&gt;
+  &lt;button onclick="calc()"&gt;計算總人數&lt;/button&gt;
+  &lt;div id="total"&gt;總人數：0&lt;/div&gt;
+  &lt;script&gt;
+    function addRow(){
+      var d=document.createElement('div');d.className='row';
+      d.innerHTML='&lt;input class="name" placeholder="報名者姓名"&gt;&lt;input class="num" type="number" placeholder="人數" value="1"&gt;';
+      document.getElementById('list').appendChild(d);
+    }
+    function calc(){
+      var sum=0;
+      document.querySelectorAll('.num').forEach(function(n){sum+=parseInt(n.value)||0;});
+      document.getElementById('total').textContent='總人數：'+sum;
+    }
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</div>
+      <div class="output-footer"><button class="copy-btn" type="button" onclick="copyGuided('v1Source',this)">複製 v1 程式碼</button></div>
+    </div>
+
+    <div style="padding:16px 20px;background:var(--c-surface);border:1px solid var(--c-border);border-left:2px solid var(--c-text);border-radius:var(--radius);margin:24px 0;font-size:.88rem;line-height:1.85;color:var(--c-text)">
+      <strong>v2 改版目標（三個改動，這就是你的對照基準）：</strong><br>
+      <strong>① 即時加總：</strong>拿掉「計算總人數」按鈕，改成填數字時下方總人數立刻更新。改對了：輸入完數字不按任何鈕，「總人數」就跟著變。<br>
+      <strong>② 超額警示：</strong>當總人數 &gt; 名額上限 30 時，總人數那行文字變紅色並加一句「已超過名額上限」。改對了：填到合計 31 人，那行立刻變紅且出現警語；降回 30 以內變回原色。<br>
+      <strong>③ 複製名單：</strong>新增一個「複製報名名單」按鈕，按下去把所有「姓名 × 人數」整理成純文字複製到剪貼簿。改對了：按鈕按下能貼出像「王小明 × 2」這樣逐行的名單。
+    </div>
+    <p class="body-text"><strong>看懂這份目標的關鍵：</strong>三個改動都明確指向 v1 程式碼裡的某個位置——①②動的是 <code>calc()</code> 與總人數顯示、③是新增一個按鈕。改版最常出錯的是 AI「順手」把 <code>addRow()</code> 或整個 HTML 結構重寫。所以等一下的主版 Prompt 會明確框住「<strong>只做這三項、其他原樣保留</strong>」，你拿到 v2 後也要逐項對照上面三條「改對了會看到什麼」來驗。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 3 / 5 · 認識主版 Prompt（5 分鐘）</div>
+    <h2 class="section-heading">主版改版 Prompt（直接複製，不用改）</h2>
+    <p class="body-text">這套 Prompt 把 STEP 2 的三個改版目標寫成 AI 看得懂的指令，由 5 個骨架組成：角色、原始碼、改版任務、限制、輸出格式。你不用自填，直接按「複製」就能用。先看完整版，再看下方「為何這樣寫」。</p>
+    <div class="output-card" style="margin:20px 0">
+      <div class="output-label">主版 Prompt · v1→v2 改版（骨架：角色＋原始碼＋改版任務＋限制＋輸出格式）</div>
+      <div class="output-text" id="guidedPrompt">【角色】你是維護既有單頁工具的前端工程師，理解改版的原則是「只動被指定的地方，其他一律不碰」。
+
+【原始碼】以下是要改版的 v1 單檔 HTML（activity-signup.html）：
+
+[在這裡貼上 STEP 2 的 v1 起點程式碼全文]
+
+【改版任務】請對上面這份 HTML 做且只做以下三項修改：
+1. 即時加總：拿掉「計算總人數」按鈕，改成任何「人數」欄位的值改變時，下方「總人數」立刻更新。
+2. 超額警示：當總人數大於名額上限 30 時，「總人數」那行文字變紅色，並加上一句「已超過名額上限」；總人數回到 30 以內時恢復原本顏色、移除警語。
+3. 複製名單：新增一個「複製報名名單」按鈕，按下後把目前所有列的「姓名 × 人數」整理成純文字（每列一行，例如「王小明 × 2」）複製到剪貼簿。
+
+【限制】
+- 只做上述三項。原本的「+ 加一列」按鈕與 addRow() 函式、HTML 整體結構、既有 CSS 變數與配色都不要動。
+- 不要把工具重構成新架構（例如改寫成 class、模組或框架），保留原本的 function 寫法。
+- 加總公式維持原樣（各列人數相加），不要改動計算方式。
+
+【輸出格式】只輸出改版後完整的單檔 HTML 程式碼，從 &lt;!DOCTYPE html&gt; 到 &lt;/html&gt; 一字不漏，前後不要加任何說明文字、修改清單或驗證報告——這段你會整段存成 .html 檔，多餘的文字會被一起存進去、變成工具裡的雜訊。</div>
+      <div class="output-footer"><button class="copy-btn" type="button" onclick="copyGuided('guidedPrompt',this)">複製主版 Prompt</button></div>
+    </div>
+    <div class="callout key">
+      <div class="callout-icon" aria-hidden="true">🔍</div>
+      <div class="callout-body"><strong>為何這樣寫：</strong><br>
+      ·「角色」讓 AI 進入「維護既有工具的工程師」視角，它會傾向最小改動，而不是把整份程式碼當新案子重寫。<br>
+      ·「改版任務逐條編號 + 限制段明列不准動的東西」是這套 Prompt 的核心：改版錯都錯在 AI 改過頭，把該動的、不該動的分開寫死，AI 才不會順手重構 addRow() 或換掉你的配色。<br>
+      ·「產出是要存檔的程式碼、不是說明」：所以這套 Prompt 明令只輸出 HTML、不附修改清單或驗證報告——報告會被一起存進 .html 污染工具。驗證改用更可靠的方式：STEP 5 你打開 v2 工具，實際操作對照三項改動是否到位。</div>
+    </div>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 4 / 5 · 換你跑（20 分鐘）</div>
+    <h2 class="section-heading">跟著這 5 步把 v1 改成 v2 並實際用一次</h2>
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">1</div></div>
+        <div class="step-body">
+          <div class="step-title">準備 v1 與主版 Prompt</div>
+          <div class="step-desc">先按 STEP 2 的「複製 v1 程式碼」存成 <code>activity-signup.html</code>，雙擊用瀏覽器打開看一次 v1 原貌。再按 STEP 3 的「複製主版 Prompt」。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">2</div></div>
+        <div class="step-body">
+          <div class="step-title">把 v1 程式碼貼進 Prompt 的佔位處</div>
+          <div class="step-desc">主版 Prompt 裡有一行 <strong>[在這裡貼上 STEP 2 的 v1 起點程式碼全文]</strong>，把它整段換成你複製的 v1 程式碼。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">3</div></div>
+        <div class="step-body">
+          <div class="step-title">貼進 AI 工具送出</div>
+          <div class="step-desc">ChatGPT、Gemini、Claude.ai 的免費版都可以，開一個新對話視窗貼上送出。AI 會回一整段改版後的 HTML。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">4</div></div>
+        <div class="step-body">
+          <div class="step-title">存成 v2 檔並用瀏覽器打開</div>
+          <div class="step-desc">把 AI 給的 HTML 整段複製，存成 <code>activity-signup-v2.html</code>（副檔名一定要 .html），雙擊用瀏覽器開。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">5</div></div>
+        <div class="step-body">
+          <div class="step-title">逐項對照三個改動</div>
+          <div class="step-desc">用 STEP 5 的對照檢查表逐項驗。對不上的，回 STEP 3 把那一項問題追問給 AI 重生一次，<strong>不要</strong>自己動手改程式碼。</div>
+        </div>
+      </div>
+    </div>
+    <div class="callout tip">
+      <div class="callout-icon" aria-hidden="true">💡</div>
+      <div class="callout-body"><strong>免費版提醒：</strong>這份 Prompt 加上 v1 程式碼約 800 字，所有主流免費版 AI 都放得下，不需上傳檔案。如果 AI 一次沒把 HTML 給完整（被截斷），直接回「請接續輸出剩下的 HTML」即可。</div>
+    </div>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 5 / 5 · 驗證改版有沒有做對（5 分鐘）</div>
+    <h2 class="section-heading">離開前對照功能檢查表打 4 個勾</h2>
+    <p class="body-text">AI 改版改完看起來再順，都要驗——尤其要確認它沒把原本對的東西改壞。把你打開的 <code>activity-signup-v2.html</code> 逐項對照下面 4 項檢查，全部確認過，今天的主線才算完成。對不上的，回 STEP 4 把問題追問給 AI 重生一次。</p>
+    <div class="challenge-box">
+      <div class="challenge-label">工具功能對照檢查表</div>
+      <div class="challenge-list">
+        <div class="challenge-item"><div class="ci-num">01</div><div><strong>改動① 即時加總</strong>：填兩列各 5 人、不按任何按鈕，「總人數」直接顯示 10。原本的「計算總人數」按鈕已不存在。</div></div>
+        <div class="challenge-item"><div class="ci-num">02</div><div><strong>改動② 超額警示</strong>：填到合計 31 人，「總人數」那行文字變紅色並出現「已超過名額上限」；把人數降回 30 以內，文字恢復原色、警語消失。</div></div>
+        <div class="challenge-item"><div class="ci-num">03</div><div><strong>改動③ 複製名單</strong>：有「複製報名名單」按鈕，填好幾列後按下，能貼出逐行的「姓名 × 人數」純文字名單。</div></div>
+        <div class="challenge-item"><div class="ci-num">04</div><div><strong>沒改壞原功能</strong>：「+ 加一列」按鈕仍能正常新增一列、配色與版面與 v1 一致——代表 AI 沒有順手重構不該動的部分。</div></div>
+      </div>
+    </div>
+    <p class="body-text">4 個勾全打完，你已經用 AI 完成一次「指定位置、講清意圖、框住限制」的精準改版了。想再多練——往下走「進階練習池」：那裡有把改版需求轉成三要素指令的互動生成器、延伸案例（接手離職同事的 BMI 工具）與自我演練，把今天這套「描述改動 → 生成 → 對照驗證」的方法套到你自己的工具上。</p>
+  </section>
+  <!-- ▲▲▲ 引導主線結束 ▲▲▲ -->
+
+  <hr class="section-rule reveal">
+
+  <section class="lesson-section reveal">
+    <div class="section-eyebrow">PRACTICE POOL · 進階練習池</div>
+    <h2 class="section-heading">完成主線後的自選加練區</h2>
+    <p class="body-text">下面是這頁原本的完整內容：從把改版需求轉成三要素指令的生成器、產出確認清單，到延伸案例與自我演練。主線帶你用一個固定工具走過「描述改動 → 生成 → 對照驗證」一遍；這裡是同一套方法的進階版，把它套到你自己 Part 4 做的工具與更複雜的維護情境上。先跑完上面的主線，再依興趣選做這區。</p>
+  </section>
+
+  <hr class="section-rule reveal">
+
   <section class="lesson-section reveal">
     <div class="section-eyebrow">Task Overview</div>
     <h2 class="section-heading">任務說明</h2>
@@ -333,7 +508,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <div class="output-wrap" id="outputWrap">
           <div class="output-label">生成的 AI 指令 · GENERATED PROMPT</div>
           <div class="output-card"><div class="output-text" id="outputText"></div></div>
-          <div class="output-footer"><button class="copy-btn" onclick="copyOutput()">複製指令</button></div>
+          <div class="output-footer"><button class="copy-btn" onclick="copyOutput(this)">複製指令</button></div>
         </div>
       </div>
     </div>
@@ -730,12 +905,19 @@ function generateInstruction() {
   document.getElementById('outputText').textContent = p;
   document.getElementById('outputWrap').style.display = 'block';
 }
-function copyOutput() {
+function copyOutput(btn) {
   const text = document.getElementById('outputText').textContent;
   navigator.clipboard.writeText(text).then(() => {
-    const btn = document.querySelector('.copy-btn');
     btn.textContent = '已複製';
     setTimeout(() => btn.textContent = '複製指令', 1500);
+  });
+}
+function copyGuided(id, btn) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = '已複製';
+    setTimeout(() => btn.textContent = orig, 1500);
   });
 }
 </script>

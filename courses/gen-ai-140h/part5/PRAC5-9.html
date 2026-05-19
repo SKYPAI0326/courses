@@ -241,6 +241,123 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 <div class="prac-body">
 
+  <!-- ▼▼▼ 引導主線（照著做）· 2026-05 新增 ▼▼▼ -->
+  <div class="lesson-section" id="sec-guided">
+    <div class="section-eyebrow">GUIDED · 15–20 分鐘照著做主線</div>
+    <h2 class="section-heading">先跟著做一遍：用 AI 生成一個「活動倒數壓力牆工具」</h2>
+    <p class="body-text">這頁的完整任務是用 AI 做出一個能投在公用螢幕上的活動倒數工具。但這件事最容易卡住的，不是把工具做得多炫，而是<strong>把「倒數」和「進度比例」這兩個計算規則講清楚，再驗證 AI 真的把規格做齊了</strong>——倒數壓力牆的本質是「輸入活動名稱、開始日、目標日 → 每秒更新天時分秒 → 算出已消耗時間比例顯示成進度條」，少一個欄位、把進度比例算反，貼在螢幕上就誤導全團隊。這條主線只做一件事：拿一份已經寫好的工具規格，用一套固定 Prompt 叫 AI 生成單檔 HTML 工具，存下來打開，再用一張功能對照檢查表驗它有沒有做齊。全程貼文字進 AI、存成 .html 開來測，<strong>不用寫一行程式</strong>，15–20 分鐘做完。<strong>先把這條主線走完</strong>；做完還想多練，再往下走「進階練習池」——那裡有現成可玩的互動工具、自己復刻的 Prompt、進階挑戰、延伸案例與自我演練。主線和練習池是同一主題的不同深度，主線是正式入門路徑，練習池是自選加練。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 1 / 4 · 場景設定（約 3 分鐘）</div>
+    <h2 class="section-heading">怡君的麻煩</h2>
+    <div style="padding:14px 18px;background:var(--c-card);border-left:3px solid var(--c-a1);border-radius:var(--radius-sm);margin-bottom:20px">
+      <p class="body-text" style="margin-bottom:0"><strong>怡君，34 歲，一家活動公司的專案企劃。</strong>她手上同時跑三場活動，老闆最愛在走過座位時隨口問「那場還剩幾天」。她每次都得翻行事曆心算，常常脫口而出的天數是錯的。她想要一個小工具：填好<strong>活動名稱、開始日、目標日</strong>，工具就每秒倒數天時分秒，再用一條進度條顯示「時間已經消耗多少比例」，直接投在團隊共用螢幕上，誰走過都看得到壓力。可是她<strong>不會寫程式</strong>。</p>
+    </div>
+    <p class="body-text">今天你就是怡君。你要用 AI 把這個倒數壓力牆生出來——重點不是把它做得多炫，是<strong>把欄位與兩條計算規則（每秒倒數、進度比例）描述精確，再驗證 AI 真的做齊了</strong>。<strong>成品工具長這樣</strong>：上方三個輸入欄位（活動名稱、開始日、目標日）；中央大字每秒更新顯示剩餘的天 / 時 / 分 / 秒；下方一條進度條，顯示「從開始日到現在」佔「開始日到目標日」的百分比，並標出「XX% 已過」文字；目標日到了倒數歸零、進度條填滿。本主線的完整工具規格寫在 STEP 2 的主版 Prompt 裡，直接用即可，不需自己設計。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 2 / 4 · 主版工具生成 Prompt（約 4 分鐘）</div>
+    <h2 class="section-heading">主版工具生成 Prompt（直接複製，不用改）</h2>
+    <p class="body-text">這套 Prompt 把上面的工具規格寫成 AI 看得懂的生成指令，由 5 個部分組成：角色、輸入欄位、計算規則、設計要求、輸出規格。你不用自填，直接按右上角「複製」就能用。</p>
+    <div class="tool-wrap">
+      <div class="tool-topbar">
+        <div class="tool-dot tool-dot-r"></div>
+        <div class="tool-dot tool-dot-y"></div>
+        <div class="tool-dot tool-dot-g"></div>
+        <div class="tool-label"><span aria-hidden="true">→</span> 複製這段 Prompt 貼入 AI</div>
+        <button class="copy-btn" style="margin-left:auto;" onclick="copyGuided()">複製指令</button>
+      </div>
+      <div class="tool-body" style="padding:24px 28px;">
+        <div class="result-box" id="guided-box" style="font-size:.85rem;">你是專為視覺化展示設計的前端工程師，理解使用者要的是「填幾個欄位就把時間壓力放大到一眼可見」，欄位用語要白話。
+
+請產出一份「活動倒數與進度壓力牆」單檔 HTML，內嵌 CSS/JS、不依賴任何外部 library。使用者可把它投在辦公室共用螢幕上倒數。
+
+【輸入欄位】
+- 活動名稱（文字）
+- 開始日期（YYYY-MM-DD，用於算進度比例）
+- 目標日期（YYYY-MM-DD，倒數終點）
+
+【計算規則】
+- 每秒更新一次（用 setInterval）剩餘的 天 / 時 / 分 / 秒，中央以大字顯示
+- 進度比例 = (現在 − 開始日) ÷ (目標日 − 開始日)，夾在 0%–100% 之間
+- 進度條依此比例填寬，旁邊顯示「XX% 已過」文字
+- 目標日已過：天時分秒全部歸零、進度條填滿 100%、停止計時
+
+【功能需求】
+- 輸入活動名稱即時更新標題
+- 改目標日期就重新開始倒數
+- 開始日為空時不顯示進度條，只顯示倒數
+
+【設計】背景 #f5f3ee、卡片白色；倒數數字與進度條用強調色 #b5703a；倒數數字用 Shippori Mincho 大字體（2.4rem 以上）；字體 Google Fonts（Shippori Mincho 標題 + Noto Sans TC 內文）；整體簡潔，能直接在公用螢幕展示。
+
+【輸出格式】只輸出完整的單一 HTML 程式碼，所有功能寫在 inline JS 中，前後不要加任何說明文字或驗證報告——這段你會整段存成 .html 檔，多餘的文字會被一起存進去、變成工具裡的雜訊。</div>
+      </div>
+    </div>
+    <p class="body-text"><strong>為何這樣寫：</strong>計算規則逐條寫死，是這套 Prompt 的關鍵——倒數工具最常見的漏做就是「進度比例算反（顯示剩餘而非已過）」「目標日過了還繼續倒數成負數」，把每秒更新與進度公式拆開寫清楚，AI 才不會自行簡化。最後一段明令<strong>只輸出 HTML、不附驗證報告</strong>：產出是要存檔的程式碼，AI 若在前後加說明或報告，會被一起存進 .html 變成工具裡的雜訊。驗證改用更可靠的方式——STEP 4 打開工具，用功能對照檢查表逐項看它做齊了沒。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 3 / 4 · 上機（約 6 分鐘）</div>
+    <h2 class="section-heading">跟著這 4 步生出工具並實際用一次</h2>
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">1</div></div>
+        <div class="step-body">
+          <div class="step-title">複製主版 Prompt 貼進 AI 送出</div>
+          <div class="step-desc">按 STEP 2 主版 Prompt 右上角的「複製指令」鈕。ChatGPT、Gemini、Claude.ai 的免費版都可以，開一個新對話視窗貼上去送出，AI 會回一整段 HTML。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">2</div></div>
+        <div class="step-body">
+          <div class="step-title">存成 .html 檔</div>
+          <div class="step-desc">把 AI 給的 HTML 整段複製，貼到記事本／文字編輯器，存檔時把檔名取成 <strong>event-countdown.html</strong>（副檔名一定要 .html）。若 AI 一次沒給完整，回「請接續輸出剩下的 HTML」即可。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">3</div></div>
+        <div class="step-body">
+          <div class="step-title">用瀏覽器打開實際操作</div>
+          <div class="step-desc">雙擊 <strong>event-countdown.html</strong> 用瀏覽器開。填入活動名稱、選一個開始日與一個目標日，看中央天時分秒是否每秒在動、進度條是否依時間比例填寬。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">4</div></div>
+        <div class="step-body">
+          <div class="step-title">對照功能檢查表</div>
+          <div class="step-desc">用下方 STEP 4 的功能對照檢查表逐項確認。對不上的，把問題追問給 AI 重生一次。</div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 4 / 4 · 工具功能對照檢查表（約 4 分鐘）</div>
+    <h2 class="section-heading">離開前對照功能檢查表打 4 個勾</h2>
+    <p class="body-text">AI 生的工具看起來再漂亮，都要逐項驗。把你打開的 <strong>event-countdown.html</strong> 對照下面 4 項檢查，全部確認過，今天的主線才算完成。對不上的，回 STEP 3 把問題追問給 AI 重生一次。</p>
+    <div style="padding:20px 24px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:24px 0">
+      <div style="font-size:.8rem;color:var(--c-a1);letter-spacing:1.5px;font-weight:500;margin-bottom:14px">工具功能對照檢查表</div>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:10px"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a1);flex-shrink:0"><span><strong>欄位齊全</strong>：有活動名稱、開始日、目標日三個輸入欄位，少一個就代表 AI 漏做了規格。</span></label>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:10px"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a1);flex-shrink:0"><span><strong>倒數每秒在動</strong>：中央顯示天 / 時 / 分 / 秒，秒數每一秒都在跳。停住不動代表 setInterval 沒做。</span></label>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:10px"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a1);flex-shrink:0"><span><strong>進度條方向正確</strong>：進度條顯示的是「已過時間」比例——填得越滿代表離目標日越近，旁邊文字寫「XX% 已過」。若越接近目標日進度條反而越短，就是比例算反了。</span></label>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a1);flex-shrink:0"><span><strong>到期歸零</strong>：把目標日改成今天或昨天，天時分秒應全部歸零、進度條填滿 100%，不會倒數成負數。</span></label>
+    </div>
+    <p class="body-text">4 個勾全打完，你已經用 AI 做出一個能投在螢幕上的活動倒數壓力牆了。想再多練——往下走「進階練習池」：那裡有現成可玩的互動工具、自己復刻的 Prompt、進階挑戰、延伸案例與自我演練，把今天這套「描述規格 → 生成 → 對照驗收」的方法練得更熟。</p>
+  </div>
+  <!-- ▲▲▲ 引導主線結束 ▲▲▲ -->
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">PRACTICE POOL · 進階練習池</div>
+    <h2 class="section-heading">完成主線後的自選加練區</h2>
+    <p class="body-text">下面是這頁原本的完整內容：可直接操作的互動倒數工具、自己復刻工具的 Prompt 與步驟、進階挑戰、延伸案例與自我演練。主線帶你用 AI 生成單一工具走過「描述規格 → 生成 → 對照驗收」一遍；這裡是同一套方法的進階版。先跑完上面的主線，再依興趣選做這區。</p>
+  </div>
+
+  <hr class="section-rule">
+
   <div class="lesson-section">
     <div class="section-eyebrow">TOOL · 互動工具</div>
     <h2 class="section-heading">輸入活動名稱與截止日，倒數立刻開始</h2>
@@ -612,6 +729,14 @@ function startCountdown() {
 
 function copyInstructions() {
   const text = document.getElementById('instruction-box').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    btn.textContent = '已複製！';
+    setTimeout(() => btn.textContent = '複製指令', 1800);
+  });
+}
+function copyGuided() {
+  const text = document.getElementById('guided-box').textContent;
   navigator.clipboard.writeText(text).then(() => {
     const btn = event.target;
     btn.textContent = '已複製！';

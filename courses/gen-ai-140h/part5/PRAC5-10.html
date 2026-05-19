@@ -235,6 +235,117 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 <div class="prac-body">
 
+  <!-- ▼▼▼ 引導主線（照著做）· 2026-05 新增 ▼▼▼ -->
+  <div class="lesson-section" id="sec-guided">
+    <div class="section-eyebrow">GUIDED · 15–20 分鐘照著做主線</div>
+    <h2 class="section-heading">先跟著做一遍：用 AI 生成一個「文字敏感詞過濾器」</h2>
+    <p class="body-text">這頁的完整任務是用 AI 做出一個能在貼文發出前掃出敏感詞的審查工具。但這件事最容易卡住的，不是把工具做漂亮，而是<strong>把比對規則講清楚，再驗證 AI 真的把規格做齊了</strong>——過濾器工具的本質是「設好敏感詞清單、貼進文章 → 一鍵掃描，把問題詞高亮並統計每個詞出現幾次」，少了大小寫不分、漏了次數統計、或忘了 HTML 跳脫，掃出來的結果就不能信。這條主線只做一件事：拿一份已經寫好的工具規格，用一套固定 Prompt 叫 AI 生成單檔 HTML 工具，存下來打開，再用一張功能對照檢查表驗它有沒有做齊。全程貼文字進 AI、存成 .html 開來測，<strong>不用寫一行程式</strong>，15–20 分鐘做完。<strong>先把這條主線走完</strong>；做完還想多練，再往下走「進階練習池」——那裡有現成的互動工具、自己復刻的 Prompt、進階挑戰、延伸案例與自我演練。主線和練習池是同一主題的不同深度，主線是正式入門路徑，練習池是自選加練。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 1 / 4 · 場景設定（約 3 分鐘）</div>
+    <h2 class="section-heading">怡君的麻煩</h2>
+    <div style="padding:14px 18px;background:var(--c-card);border-left:3px solid var(--c-a1);border-radius:var(--radius-sm);margin-bottom:20px">
+      <p class="body-text" style="margin-bottom:0"><strong>怡君，31 歲，一家電商品牌的社群小編。</strong>她每天要發好幾篇 IG 與 FB 貼文，公司有一份「廣告法規禁用詞」清單（像「保證」「最低價」「免費領取」這類絕對不能出現的字），但她每次發文前都靠肉眼一行一行掃，又快又趕，常常漏看。被主管或法務抓到一次就要整篇撤回重發。她想要一個小工具：把禁用詞<strong>一行一個</strong>貼進去，再把要發的文章貼進來，按一下<strong>自動把所有問題詞高亮、並統計每個詞出現幾次</strong>，沒問題就顯示通過。可是她<strong>不會寫程式</strong>。</p>
+    </div>
+    <p class="body-text">今天你就是怡君。你要用 AI 把這個敏感詞過濾器生出來——重點不是把它做得多炫，是<strong>把比對規則描述精確，再驗證 AI 真的做齊了</strong>。<strong>成品工具長這樣</strong>：左側一個敏感詞清單輸入框（每行一個關鍵字、顯示總數），右側一個待審查文字輸入框加「開始掃描」按鈕；掃描後在下方顯示原文、所有命中的關鍵字以半透明暖黃色高亮，並以標籤列出每個詞出現的次數；若一個都沒命中就顯示綠色通過提示。本主線的完整工具規格寫在 STEP 2 的主版 Prompt 裡，直接用即可，不需自己設計。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 2 / 4 · 主版工具生成 Prompt（約 4 分鐘）</div>
+    <h2 class="section-heading">主版工具生成 Prompt（直接複製，不用改）</h2>
+    <p class="body-text">這套 Prompt 把上面的工具規格寫成 AI 看得懂的生成指令，由 5 個部分組成：角色、版面、功能需求、設計、輸出規格。你不用自填，直接按右上角「複製」就能用。</p>
+    <div class="tool-wrap">
+      <div class="tool-topbar">
+        <div class="tool-dot tool-dot-r"></div>
+        <div class="tool-dot tool-dot-y"></div>
+        <div class="tool-dot tool-dot-g"></div>
+        <div class="tool-label"><span aria-hidden="true">→</span> 複製這段 Prompt 貼入 AI</div>
+        <button class="copy-btn" style="margin-left:auto;" onclick="copyGuided()">複製指令</button>
+      </div>
+      <div class="tool-body" style="padding:24px 28px;">
+        <div class="result-box" id="guided-box" style="font-size:.85rem;">你是專為文字審查設計的前端工程師，理解使用者要的是「貼清單、貼文章、一鍵掃出問題詞」，操作要直覺。
+
+請產出一份「文字敏感詞過濾器」單檔 HTML，內嵌 CSS/JS、不依賴任何外部 library。使用者可用它在貼文發出前掃出所有敏感詞。
+
+【版面】左右兩欄：
+- 左欄：敏感詞清單輸入框（textarea，每行一個關鍵字），下方顯示「共 N 個關鍵字」並隨輸入即時更新
+- 右欄：待審查文字輸入框（textarea）+「開始掃描」按鈕
+
+【功能需求】
+- 按「開始掃描」後，在下方顯示原文，所有命中的關鍵字以高亮標記色 highlight
+- 比對不區分大小寫
+- 統計每個關鍵字出現的次數，以標籤形式列在結果下方（例：保證 × 3）
+- 結果上方顯示「共找到 N 處」總數
+- 若一個關鍵字都沒命中，改顯示綠色「未發現任何敏感詞」通過提示
+- 顯示原文前先做 HTML 跳脫（把 < > & 轉成實體），避免文章內的標籤破壞畫面
+
+【設計】背景 #f5f3ee、卡片白色；highlight 用半透明暖黃 rgba(201,150,58,.3)；字體 Shippori Mincho（標題）+ Noto Sans TC（內文）；左右分欄、圓角 6px、無陰影。
+
+【輸出格式】只輸出完整的單一 HTML 程式碼，所有功能寫在 inline JS 中，前後不要加任何說明文字或驗證報告——這段你會整段存成 .html 檔，多餘的文字會被一起存進去、變成工具裡的雜訊。</div>
+      </div>
+    </div>
+    <p class="body-text"><strong>為何這樣寫：</strong>版面與功能需求逐條寫死，是這套 Prompt 的關鍵——過濾器工具最常見的漏做就是「比對區分大小寫導致漏抓」「只標高亮卻不統計次數」「沒做 HTML 跳脫，文章裡的標籤把畫面弄亂」，把每條規則拆開寫清楚，AI 才不會自行簡化。最後一段明令<strong>只輸出 HTML、不附驗證報告</strong>：產出是要存檔的程式碼，AI 若在前後加說明或報告，會被一起存進 .html 變成工具裡的雜訊。驗證改用更可靠的方式——STEP 4 打開工具，用功能對照檢查表逐項看它做齊了沒。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 3 / 4 · 上機（約 6 分鐘）</div>
+    <h2 class="section-heading">跟著這 4 步生出工具並實際用一次</h2>
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">1</div></div>
+        <div class="step-body">
+          <div class="step-title">複製主版 Prompt 貼進 AI 送出</div>
+          <div class="step-desc">按 STEP 2 主版 Prompt 右上角的「複製指令」鈕。ChatGPT、Gemini、Claude.ai 的免費版都可以，開一個新對話視窗貼上去送出，AI 會回一整段 HTML。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">2</div></div>
+        <div class="step-body">
+          <div class="step-title">存成 .html 檔</div>
+          <div class="step-desc">把 AI 給的 HTML 整段複製，貼到記事本／文字編輯器，存檔時把檔名取成 <strong>keyword-filter.html</strong>（副檔名一定要 .html）。若 AI 一次沒給完整，回「請接續輸出剩下的 HTML」即可。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">3</div></div>
+        <div class="step-body">
+          <div class="step-title">用瀏覽器打開實際操作</div>
+          <div class="step-desc">雙擊 <strong>keyword-filter.html</strong> 用瀏覽器開。左側填幾個關鍵字（如「保證」「最低價」「免費」），右側貼一段含這些詞的文章，按「開始掃描」看高亮與次數統計。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">4</div></div>
+        <div class="step-body">
+          <div class="step-title">對照功能檢查表</div>
+          <div class="step-desc">用下方 STEP 4 的功能對照檢查表逐項確認。對不上的，把問題追問給 AI 重生一次。</div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 4 / 4 · 工具功能對照檢查表（約 4 分鐘）</div>
+    <h2 class="section-heading">離開前對照功能檢查表打 4 個勾</h2>
+    <p class="body-text">AI 生的工具看起來再漂亮，都要逐項驗。把你打開的 <strong>keyword-filter.html</strong> 對照下面 4 項檢查，全部確認過，今天的主線才算完成。對不上的，回 STEP 3 把問題追問給 AI 重生一次。</p>
+    <div style="padding:20px 24px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:24px 0">
+      <div style="font-size:.8rem;color:var(--c-a1);letter-spacing:1.5px;font-weight:500;margin-bottom:14px">工具功能對照檢查表</div>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:10px"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a1);flex-shrink:0"><span><strong>版面齊全</strong>：左欄有敏感詞清單輸入框並顯示「共 N 個關鍵字」、右欄有待審查文字框與「開始掃描」按鈕。少一塊就代表 AI 漏做了規格。</span></label>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:10px"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a1);flex-shrink:0"><span><strong>高亮命中</strong>：掃描後文章內所有命中的關鍵字都以暖黃色高亮標出；故意用大寫關鍵字配小寫文章測試，仍應抓得到（比對不分大小寫）。抓不到代表大小寫規則沒做。</span></label>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:10px"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a1);flex-shrink:0"><span><strong>次數統計正確</strong>：結果下方以標籤列出每個詞出現的次數（如「保證 × 3」），且上方「共找到 N 處」的總數等於各標籤次數相加。對不上代表計數錯了。</span></label>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a1);flex-shrink:0"><span><strong>通過提示與跳脫</strong>：貼一段不含任何關鍵字的文字，應顯示綠色「未發現任何敏感詞」提示；文章裡若含 &lt; &gt; 等符號，畫面不會跑版（HTML 跳脫有做）。</span></label>
+    </div>
+    <p class="body-text">4 個勾全打完，你已經用 AI 做出一個能在發文前掃敏感詞的審查工具了。想再多練——往下走「進階練習池」：那裡有現成可玩的互動工具、自己復刻的 Prompt、進階挑戰、延伸案例與自我演練，把今天這套「描述規格 → 生成 → 對照驗收」的方法練得更熟。</p>
+  </div>
+  <!-- ▲▲▲ 引導主線結束 ▲▲▲ -->
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">PRACTICE POOL · 進階練習池</div>
+    <h2 class="section-heading">完成主線後的自選加練區</h2>
+    <p class="body-text">下面是這頁原本的完整內容：可直接操作的互動過濾器工具、自己復刻工具的 Prompt 與步驟、進階挑戰、延伸案例與自我演練。主線帶你用 AI 生成單一工具走過「描述規格 → 生成 → 對照驗收」一遍；這裡是同一套方法的進階版。先跑完上面的主線，再依興趣選做這區。</p>
+  </div>
+
   <div class="lesson-section">
     <div class="section-eyebrow">TOOL · 互動工具</div>
     <h2 class="section-heading">輸入敏感詞清單，貼入文章，一鍵掃描高亮</h2>
@@ -558,6 +669,15 @@ function filterContent() {
   document.getElementById('highlight-output').innerHTML = highlighted;
   document.getElementById('match-stats').innerHTML = Object.entries(counts)
     .map(([k,v]) => `<span class="match-tag">${k} × ${v}</span>`).join('');
+}
+
+function copyGuided() {
+  const text = document.getElementById('guided-box').textContent;
+  const btn = event.target;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '已複製！';
+    setTimeout(() => btn.textContent = '複製指令', 1800);
+  });
 }
 
 function copyInstructions() {

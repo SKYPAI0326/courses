@@ -247,6 +247,121 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 <div class="prac-body">
 
+  <!-- ▼▼▼ 引導主線（照著做）· 2026-05 新增 ▼▼▼ -->
+  <div class="lesson-section" id="sec-guided">
+    <div class="section-eyebrow">GUIDED · 15–20 分鐘照著做主線</div>
+    <h2 class="section-heading">先跟著做一遍：用 AI 生成一個「面試評價橫向對比表」</h2>
+    <p class="body-text">這頁的完整任務是用 AI 做出一個能擺在面試官面前一起看的候選人對比工具。但這件事最容易卡住的，不是把表格做漂亮，而是<strong>把評分模型講清楚，再驗證 AI 真的把規格做齊了</strong>——對比表的本質是「每位候選人在每個維度給分、填備註 → 自動算總分 → 切換錄取建議」，少一個維度、漏一條總分規則，面試決策就對不齊。這條主線只做一件事：拿一份已經寫好的工具規格，用一套固定 Prompt 叫 AI 生成單檔 HTML 工具，存下來打開，再用一張功能對照檢查表驗它有沒有做齊。全程貼文字進 AI、存成 .html 開來測，<strong>不用寫一行程式</strong>，15–20 分鐘做完。<strong>先把這條主線走完</strong>；做完還想多練，再往下走「進階練習池」——那裡有現成的互動工具、自己復刻的 Prompt、進階挑戰、延伸案例與自我演練。主線和練習池是同一主題的不同深度，主線是正式入門路徑，練習池是自選加練。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 1 / 4 · 場景設定（約 3 分鐘）</div>
+    <h2 class="section-heading">怡君的麻煩</h2>
+    <div style="padding:14px 18px;background:var(--c-card);border-left:3px solid var(--c-a1);border-radius:var(--radius-sm);margin-bottom:20px">
+      <p class="body-text" style="margin-bottom:0"><strong>怡君，34 歲，一家 50 人軟體公司的 HR。</strong>這週她跟兩位用人主管面完了四位前端工程師候選人，下週一要決定發 offer 給誰。三個人的面試筆記散在不同的紙本、Slack 訊息和她自己的記事本裡，每位主管的評分標準又不一樣，開會時各說各話、十分鐘還對不出共識。她想要一個小工具：每位候選人一欄，每個評估維度一列，<strong>點星星給分（1-5 星）、填備註、自動算總分</strong>，最下面還能切換「建議錄取／不予錄取／尚未決定」，候選人多了還能隨時加欄。可是她<strong>不會寫程式</strong>。</p>
+    </div>
+    <p class="body-text">今天你就是怡君。你要用 AI 把這個對比工具生出來——重點不是把它做得多炫，是<strong>把評分維度與計分規則描述精確，再驗證 AI 真的做齊了</strong>。<strong>成品工具長這樣</strong>：一個橫向表格，每欄是一位候選人（姓名可點擊直接編輯），每列是一個評估維度（技術能力、溝通表達、文化適合度、學習潛力），每格點星星給 1-5 分，另有一列備註欄；表格最下方一列自動加總每位候選人的總分（滿分 20），並有一個可循環切換「建議錄取／不予錄取／尚未決定」的按鈕；「新增候選人」按鈕能動態加一欄。本主線的完整工具規格寫在 STEP 2 的主版 Prompt 裡，直接用即可，不需自己設計。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 2 / 4 · 主版工具生成 Prompt（約 4 分鐘）</div>
+    <h2 class="section-heading">主版工具生成 Prompt（直接複製，不用改）</h2>
+    <p class="body-text">這套 Prompt 把上面的工具規格寫成 AI 看得懂的生成指令，由 5 個部分組成：角色、評分模型、功能需求、設計要求、輸出規格。你不用自填，直接按右上角「複製指令」就能用。</p>
+    <div class="tool-wrap">
+      <div class="tool-topbar">
+        <div class="tool-dot tool-dot-r"></div>
+        <div class="tool-dot tool-dot-y"></div>
+        <div class="tool-dot tool-dot-g"></div>
+        <div class="tool-label"><span aria-hidden="true">→</span> 複製這段 Prompt 貼入 AI</div>
+        <button class="copy-btn" style="margin-left:auto;" onclick="copyGuided()">複製指令</button>
+      </div>
+      <div class="tool-body" style="padding:24px 28px;">
+        <div class="result-box" id="guided-box" style="font-size:.85rem;">你是專為 HR 設計工具的前端工程師，理解使用者要的是「面試官圍著一張表就能對齊評分」，欄位用語要白話。
+
+請產出一份「面試評價橫向對比表」單檔 HTML，內嵌 CSS/JS、不依賴任何外部 library。使用者可用它把多位候選人並排比較、做出錄取決策。
+
+【評分模型】每位候選人一欄，物件包含：
+- name 候選人姓名（可點擊直接編輯）
+- scores 四個評估維度的星級分數：技術能力 / 溝通表達 / 文化適合度 / 學習潛力（各 1-5 星，預設 0）
+- note 備註（一格 textarea，填面試觀察）
+- rec 錄取建議：pending 尚未決定 / hire 建議錄取 / pass 不予錄取（預設 pending）
+
+【功能需求】
+- 橫向表格：每欄一位候選人，每列一個評估維度，另有一列備註欄
+- 點星星給分，可點同一顆星取消（歸 0）
+- 表格最下方一列「總分」：自動加總四個維度，滿分 20，即時更新
+- 總分列下方有按鈕可循環切換錄取建議（尚未決定 → 建議錄取 → 不予錄取）
+- 「新增候選人」按鈕：動態增加一欄，預設兩位候選人，第三位起每欄可刪除
+- 表格需支援橫向捲動（overflow-x: auto）以容納多位候選人
+
+【設計】背景 #f5f3ee、卡片白色；星星填色 #c9963a；表格標題列用淡陶土橘背景；強調色 #b5703a；字體 Shippori Mincho（標題）+ Noto Sans TC（內文）；整體簡潔，能直接在會議螢幕展示。
+
+【輸出格式】只輸出完整的單一 HTML 程式碼，所有功能寫在 inline JS 中，前後不要加任何說明文字或驗證報告——這段你會整段存成 .html 檔，多餘的文字會被一起存進去、變成工具裡的雜訊。</div>
+      </div>
+    </div>
+    <p class="body-text"><strong>為何這樣寫：</strong>評分模型與功能需求逐條寫死，是這套 Prompt 的關鍵——對比表最常見的漏做就是「總分沒自動加總」「點星星不能取消」「新增候選人按鈕沒做」，把四個維度、計分規則與每個按鈕拆開寫清楚，AI 才不會自行簡化。最後一段明令<strong>只輸出 HTML、不附驗證報告</strong>：產出是要存檔的程式碼，AI 若在前後加說明或報告，會被一起存進 .html 變成工具裡的雜訊。驗證改用更可靠的方式——STEP 4 打開工具，用功能對照檢查表逐項看它做齊了沒。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 3 / 4 · 上機（約 6 分鐘）</div>
+    <h2 class="section-heading">跟著這 4 步生出工具並實際用一次</h2>
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">1</div></div>
+        <div class="step-body">
+          <div class="step-title">複製主版 Prompt 貼進 AI 送出</div>
+          <div class="step-desc">按 STEP 2 主版 Prompt 右上角的「複製指令」鈕。ChatGPT、Gemini、Claude.ai 的免費版都可以，開一個新對話視窗貼上去送出，AI 會回一整段 HTML。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">2</div></div>
+        <div class="step-body">
+          <div class="step-title">存成 .html 檔</div>
+          <div class="step-desc">把 AI 給的 HTML 整段複製，貼到記事本／文字編輯器，存檔時把檔名取成 <strong>interview-comparison.html</strong>（副檔名一定要 .html）。若 AI 一次沒給完整，回「請接續輸出剩下的 HTML」即可。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">3</div></div>
+        <div class="step-body">
+          <div class="step-title">用瀏覽器打開實際操作</div>
+          <div class="step-desc">雙擊 <strong>interview-comparison.html</strong> 用瀏覽器開。點星星給兩位候選人各維度評分、填備註，看下方總分有沒有即時更新，再按「新增候選人」加一欄試試。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num-col"><div class="step-num">4</div></div>
+        <div class="step-body">
+          <div class="step-title">對照功能檢查表</div>
+          <div class="step-desc">用下方 STEP 4 的功能對照檢查表逐項確認。對不上的，把問題追問給 AI 重生一次。</div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 4 / 4 · 工具功能對照檢查表（約 4 分鐘）</div>
+    <h2 class="section-heading">離開前對照功能檢查表打 4 個勾</h2>
+    <p class="body-text">AI 生的工具看起來再漂亮，都要逐項驗。把你打開的 <strong>interview-comparison.html</strong> 對照下面 4 項檢查，全部確認過，今天的主線才算完成。對不上的，回 STEP 3 把問題追問給 AI 重生一次。</p>
+    <div style="padding:20px 24px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:24px 0">
+      <div style="font-size:.8rem;color:var(--c-a1);letter-spacing:1.5px;font-weight:500;margin-bottom:14px">工具功能對照檢查表</div>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:10px"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a1);flex-shrink:0"><span><strong>維度齊全</strong>：表格有技術能力、溝通表達、文化適合度、學習潛力四個評估維度，另有一列備註欄，少一列就代表 AI 漏做了規格。</span></label>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:10px"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a1);flex-shrink:0"><span><strong>星級評分可給可取消</strong>：每格點星星能給 1-5 分；再點同一顆星能取消歸 0。不能取消代表計分互動沒做齊。</span></label>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer;margin-bottom:10px"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a1);flex-shrink:0"><span><strong>總分自動加總</strong>：給某位候選人四個維度各打 3 星，最下方總分列要即時顯示 12（滿分 20）。數字對不上代表總分計算錯了。</span></label>
+      <label style="display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;color:var(--c-text);cursor:pointer"><input type="checkbox" style="margin-top:4px;accent-color:var(--c-a1);flex-shrink:0"><span><strong>新增欄位與切換建議</strong>：按「新增候選人」能多出一欄；總分列下方的按鈕點一下能循環切換「尚未決定 → 建議錄取 → 不予錄取」。少一個代表動態欄位或建議切換沒做。</span></label>
+    </div>
+    <p class="body-text">4 個勾全打完，你已經用 AI 做出一個能擺在面試官面前的候選人對比工具了。想再多練——往下走「進階練習池」：那裡有現成可玩的互動工具、自己復刻的 Prompt、進階挑戰、延伸案例與自我演練，把今天這套「描述規格 → 生成 → 對照驗收」的方法練得更熟。</p>
+  </div>
+  <!-- ▲▲▲ 引導主線結束 ▲▲▲ -->
+
+  <hr class="section-rule">
+
+  <div class="lesson-section">
+    <div class="section-eyebrow">PRACTICE POOL · 進階練習池</div>
+    <h2 class="section-heading">完成主線後的自選加練區</h2>
+    <p class="body-text">下面是這頁原本的完整內容：可直接操作的互動對比表工具、自己復刻工具的 Prompt 與步驟、進階挑戰、延伸案例與自我演練。主線帶你用 AI 生成單一工具走過「描述規格 → 生成 → 對照驗收」一遍；這裡是同一套方法的進階版。先跑完上面的主線，再依興趣選做這區。</p>
+  </div>
+
+  <hr class="section-rule">
+
   <div class="lesson-section">
     <div class="section-eyebrow">TOOL · 互動工具</div>
     <h2 class="section-heading">點擊星星評分，橫向對比所有候選人</h2>
@@ -522,6 +637,15 @@ function copyInstructions() {
   const text = document.getElementById('instruction-box').textContent;
   navigator.clipboard.writeText(text).then(() => {
     const btn = event.target;
+    btn.textContent = '已複製！';
+    setTimeout(() => btn.textContent = '複製指令', 1800);
+  });
+}
+
+function copyGuided() {
+  const text = document.getElementById('guided-box').textContent;
+  const btn = event.target;
+  navigator.clipboard.writeText(text).then(() => {
     btn.textContent = '已複製！';
     setTimeout(() => btn.textContent = '複製指令', 1800);
   });

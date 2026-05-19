@@ -238,6 +238,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 <!-- 側邊章節導航 -->
 <nav class="section-dots" id="sdots">
+  <button class="sdot" data-sec="sec-guided" title="照著做主線"></button>
   <button class="sdot" data-sec="s1" title="靜態 vs 後端：什麼時候需要後端？"></button>
   <button class="sdot" data-sec="s2" title="安全第一：環境變數與 API 金鑰保護"></button>
   <button class="sdot" data-sec="s3" title="後端最小架構：一個代理端點"></button>
@@ -285,6 +286,181 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 </div>
 
 <main class="lesson-body">
+
+  <!-- ▼▼▼ 引導主線（照著做）· 2026-05 新增 ▼▼▼ -->
+  <section class="lesson-section" id="sec-guided">
+    <div class="section-eyebrow">GUIDED · 45 分鐘照著做主線</div>
+    <h2 class="section-heading">先跟著做一遍：<em>把一個含後端的小工具部署上線</em></h2>
+    <p class="body-text">第一次處理「含後端的部署」，不用先把所有原理弄懂。跟著這條主線走 5 步，45 分鐘後你會把一個呼叫 AI 的小工具——前端加一層最小後端——部署到雲端，拿到一個任何人都打得開的公開網址，而且 API 金鑰不會出現在程式碼裡。<strong>先把這條主線走完</strong>；做完還想多練，再往下走「進階練習池」——那裡有靜態 vs 後端的判斷、環境變數的完整講解、後端代理端點的細節、Railway/Render 的部署流程，還有迷你練習、情境演練和課堂作業。主線和練習池是同一個主題的不同深度，主線是正式入門路徑，練習池是自選加練。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 1 / 5 · 場景設定（5 分鐘）</div>
+    <h2 class="section-heading">怡君的麻煩</h2>
+    <div style="padding:18px 22px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius);margin:24px 0;font-size:.9rem;line-height:1.85;color:var(--c-text)">
+      <strong>怡君，34 歲，社群小編。</strong>她在 Part 4 用 AI 做了一個「貼文標題產生器」單頁工具，輸入主題就呼叫 AI 寫出幾個標題。問題是：呼叫 AI 的 API 金鑰直接寫在 <code>index.html</code> 的 JavaScript 裡。她想把工具放上網給同事用，但只要任何人按右鍵開 DevTools，兩秒就看到她的金鑰——別人可以拿去亂用，帳單算她的。她需要的，是把「呼叫 AI」這件事搬到一個藏在伺服器端的後端，金鑰只放在後端、永遠不進前端。今天她要學會：加一層最小後端，把金鑰收進環境變數，再把整個應用部署到雲端。</div>
+    <p class="body-text">今天你就是怡君。你要拿一個「前端 + 最小後端」的小專案，照著下面的指令走一次，把它部署到雲端，拿到公開網址，而且確認金鑰不外洩。</p>
+    <p class="body-text"><strong>動手前先準備好三樣東西：</strong>（1）一個免費 GitHub 帳號——到 <a href="https://github.com" target="_blank" rel="noopener">github.com</a> 註冊，部署平台要靠它讀程式碼。（2）一個免費 Railway 帳號——到 <a href="https://railway.app" target="_blank" rel="noopener">railway.app</a> 用 GitHub 帳號登入即可。（3）一組 AI API 金鑰（OpenAI 或 Anthropic 都行）——這是要被「藏起來」的那個東西，先準備好、先別貼進任何檔案。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 2 / 5 · 看成品（10 分鐘）</div>
+    <h2 class="section-heading">先認得「部署成功長什麼樣」</h2>
+    <p class="body-text">動手前先看一次成功的樣子。等一下你照著做完，就拿這三個徵兆對照——三個都對得上才算過關。</p>
+    <div style="padding:18px 22px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius);margin:24px 0;font-size:.9rem;line-height:1.85;color:var(--c-text)">
+      <strong>成功徵兆 1 · 公開網址打得開。</strong>部署完成後，Railway 會給你一個網址，長得像 <code>https://你的專案-production.up.railway.app</code>。把它貼到瀏覽器（甚至用手機開），工具的前端畫面要正常顯示，不是「Application failed to respond」或一片空白。
+    </div>
+    <div style="padding:18px 22px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius);margin:24px 0;font-size:.9rem;line-height:1.85;color:var(--c-text)">
+      <strong>成功徵兆 2 · 後端 API 回得了資料。</strong>在工具頁面輸入一個主題、按下產生，畫面要真的跳出 AI 寫的標題。這代表前端成功呼叫了後端的 <code>/api/ask</code> 端點、後端拿著金鑰呼叫了 AI、再把結果送回前端——整條鏈路通了。
+    </div>
+    <p class="body-text">第三個徵兆要打開瀏覽器的開發者工具來看：</p>
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">DEVTOOLS</span>
+        <span class="code-block-label">成功徵兆 3 · 前端原始碼裡找不到金鑰</span>
+      </div>
+      <pre><span class="code-comment"># 在部署好的網頁按右鍵 → 檢查 → Network 分頁，</span>
+<span class="code-comment"># 重新整理頁面，查看載入的 .js 與 .html 內容：</span>
+<span class="code-comment"># 應該只看到一個指向自家後端的請求 ——</span>
+fetch(<span class="code-str">"/api/ask"</span>, ...)
+<span class="code-comment"># 全程搜尋 "sk-" 或 "api_key" 都找不到任何金鑰字串。</span>
+<span class="code-comment"># 金鑰只存在於後端的環境變數，前端永遠看不到。</span></pre>
+    </div>
+    <p class="body-text">這三個徵兆合起來代表：<strong>應用上線了</strong>（網址打得開）、<strong>後端真的在運作</strong>（API 回得了資料）、<strong>金鑰被保護住了</strong>（前端找不到）。少任何一個都不算完成。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 3 / 5 · 照著做步驟清單（10 分鐘）</div>
+    <h2 class="section-heading">逐步操作指令（直接照打，不用改）</h2>
+    <p class="body-text">下面分三段：<strong>第一段在本機把專案準備好</strong>（含最小後端與 .gitignore），<strong>第二段推上 GitHub</strong>，<strong>第三段在 Railway 設定金鑰並部署</strong>。指令都可以直接照打——只有 <code>~/Desktop/title-tool</code>（換成你專案的實際路徑）和 <code>你的帳號</code>（換成你的 GitHub 帳號）兩處要換成你自己的。</p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">JAVASCRIPT</span>
+        <span class="code-block-label">第一段之一 · 最小後端 server.js（放進專案資料夾）</span>
+      </div>
+      <pre><span class="code-comment">// server.js — 一個只做「代理」的最小後端：</span>
+<span class="code-comment">// 前端打 /api/ask，後端拿環境變數裡的金鑰去呼叫 AI，再把結果回傳。</span>
+<span class="code-keyword">const</span> express = <span class="code-keyword">require</span>(<span class="code-str">"express"</span>);
+<span class="code-keyword">const</span> app = express();
+app.use(express.json());
+app.use(express.<span class="code-keyword">static</span>(<span class="code-str">"public"</span>));  <span class="code-comment">// 前端檔案放 public/</span>
+
+app.post(<span class="code-str">"/api/ask"</span>, <span class="code-keyword">async</span> (req, res) => {
+  <span class="code-keyword">const</span> r = <span class="code-keyword">await</span> fetch(<span class="code-str">"https://api.openai.com/v1/chat/completions"</span>, {
+    method: <span class="code-str">"POST"</span>,
+    headers: {
+      <span class="code-str">"Content-Type"</span>: <span class="code-str">"application/json"</span>,
+      <span class="code-comment">// 金鑰只從環境變數讀，絕不寫死在程式碼裡</span>
+      <span class="code-str">"Authorization"</span>: <span class="code-str">`Bearer ${process.env.OPENAI_API_KEY}`</span>
+    },
+    body: JSON.stringify({
+      model: <span class="code-str">"gpt-4o-mini"</span>,
+      messages: [{ role: <span class="code-str">"user"</span>, content: req.body.prompt }]
+    })
+  });
+  res.json(<span class="code-keyword">await</span> r.json());
+});
+
+app.listen(process.env.PORT || <span class="code-num">3000</span>);</pre>
+    </div>
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">BASH</span>
+        <span class="code-block-label">第一段之二 · 在本機準備專案</span>
+      </div>
+      <pre><span class="code-comment"># 1. 打開終端機，切換到你的專案資料夾</span>
+cd ~/Desktop/title-tool
+
+<span class="code-comment"># 2. 初始化 npm 並安裝後端用到的套件</span>
+npm init -y
+npm install express
+
+<span class="code-comment"># 3. 把前端檔案（index.html 等）移進 public/ 資料夾</span>
+mkdir public &amp;&amp; mv index.html public/
+
+<span class="code-comment"># 4. 建立 .gitignore，確保金鑰與 node_modules 不會被上傳</span>
+echo "node_modules/" &gt; .gitignore
+echo ".env" &gt;&gt; .gitignore
+
+<span class="code-comment"># 5. 在 package.json 的 "scripts" 加一行啟動指令：</span>
+<span class="code-comment">#    "start": "node server.js"  ← 部署平台靠這行啟動後端</span>
+
+<span class="code-comment"># 6. 本機先測一次：設臨時環境變數再啟動</span>
+OPENAI_API_KEY=你的金鑰 npm start
+<span class="code-comment"># 瀏覽器開 http://localhost:3000 能用，就代表後端沒問題</span></pre>
+    </div>
+    <p class="body-text">本機測通後，停掉伺服器（終端機按 <code>Ctrl + C</code>），接著把專案推上 GitHub。<strong>先到 <a href="https://github.com" target="_blank" rel="noopener">github.com</a> 登入，點右上角「+」→「New repository」，repo 名稱填 <code>title-tool</code>，不要勾「Add a README」，按「Create repository」。</strong></p>
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">BASH</span>
+        <span class="code-block-label">第二段 · 推上 GitHub</span>
+      </div>
+      <pre><span class="code-comment"># 7. 把專案存進 Git 並提交</span>
+git init
+git add .
+git commit -m <span class="code-str">"含後端的標題產生器"</span>
+
+<span class="code-comment"># 8. 連到 GitHub repo 並推上去（網址換成你自己的）</span>
+git remote add origin https://github.com/你的帳號/title-tool.git
+git branch -M main
+git push -u origin main</pre>
+    </div>
+    <p class="body-text">推完後到 GitHub repo 頁面確認：看得到 <code>server.js</code>、<code>package.json</code>、<code>public/</code>，<strong>但看不到 <code>.env</code> 也看不到 <code>node_modules/</code></strong>（被 .gitignore 擋掉了）。確認後做第三段——在 Railway 部署：</p>
+    <div class="step-list">
+      <div class="step-item">
+        <span class="step-num">9</span>
+        <span class="step-body"><strong>建立 Railway 專案。</strong>登入 <a href="https://railway.app" target="_blank" rel="noopener">railway.app</a>，點「New Project」→「Deploy from GitHub repo」，選剛剛推上去的 <code>title-tool</code>。Railway 會自動讀到 <code>npm start</code> 並開始建置。</span>
+      </div>
+      <div class="step-item">
+        <span class="step-num">10</span>
+        <span class="step-body"><strong>設定環境變數（這步是金鑰保護的關鍵）。</strong>在專案的「Variables」分頁，新增一筆：名稱 <code>OPENAI_API_KEY</code>、值貼上你的金鑰。金鑰只存在這裡——不在程式碼、不在 GitHub。存檔後 Railway 會自動重新部署。</span>
+      </div>
+      <div class="step-item">
+        <span class="step-num">11</span>
+        <span class="step-body"><strong>產生公開網址。</strong>到「Settings」→「Networking」→「Generate Domain」，Railway 會給你一個 <code>.up.railway.app</code> 結尾的網址。等建置狀態變成綠色的「Success」，就可以打開這個網址了。</span>
+      </div>
+    </div>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 4 / 5 · 換你做（15 分鐘）</div>
+    <h2 class="section-heading">對一個自己的含後端專案做一次</h2>
+    <p class="body-text">現在拿你自己的「前端 + 呼叫 AI」小工具（Part 4 做的那個就很合適），照 STEP 3 的三段完整走一次。</p>
+    <div class="mini-prac-steps">
+      <div class="mini-prac-step"><span class="mini-prac-step-num">1</span><span><strong>準備專案結構。</strong>把前端檔案移進 <code>public/</code>，加上 STEP 3 的 <code>server.js</code>，跑 <code>npm init -y</code> 和 <code>npm install express</code>。把原本寫死在前端的金鑰刪掉，前端改成呼叫 <code>/api/ask</code>。</span></div>
+      <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span><strong>建 .gitignore 並本機測試。</strong>確認 <code>.env</code> 和 <code>node_modules/</code> 都在 .gitignore 裡。用 <code>OPENAI_API_KEY=你的金鑰 npm start</code> 啟動，瀏覽器開 <code>localhost:3000</code> 試一次，工具能回資料才往下做。</span></div>
+      <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span><strong>推上 GitHub。</strong>照 STEP 3 第二段執行。推完到 repo 頁面確認看不到 <code>.env</code>——這一步沒做對，金鑰就外洩了。</span></div>
+      <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span><strong>在 Railway 部署並設環境變數。</strong>照 STEP 3 第三段：從 GitHub repo 建專案、在 Variables 加 <code>OPENAI_API_KEY</code>、Generate Domain 拿網址。</span></div>
+      <div class="mini-prac-step"><span class="mini-prac-step-num">5</span><span><strong>打開公開網址驗收。</strong>用手機或別台電腦開那個 <code>.up.railway.app</code> 網址，輸入主題、看 AI 有沒有回標題。</span></div>
+    </div>
+    <p class="body-text"><strong>常見卡點：</strong>網址開出來顯示「Application failed to respond」，多半是 <code>package.json</code> 漏了 <code>"start": "node server.js"</code>，或 server.js 沒監聽 <code>process.env.PORT</code>；工具按了沒反應，到 Railway 的「Deployments」看 log，最常見是 <code>OPENAI_API_KEY</code> 變數沒設或拼錯名稱；GitHub 上不小心看到 <code>.env</code>，代表 .gitignore 在 <code>git add</code> 之前沒建好，先把金鑰作廢重發一組，再修正 .gitignore 重推。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 5 / 5 · 結果檢查表（5 分鐘）</div>
+    <h2 class="section-heading">離開前用這張卡打 4 個勾</h2>
+    <p class="body-text">下面 4 項全部確認過，今天的主線才算完成。對不上的，回 STEP 4 對照常見卡點重做一次。</p>
+    <div class="mini-prac-check">
+      <span class="mini-prac-check-label">結果檢查表</span>
+      <label><input type="checkbox"><span><strong>公開網址打得開</strong>：把 Railway 給的 <code>.up.railway.app</code> 網址貼到瀏覽器（最好用手機或別台電腦），工具的前端畫面正常顯示，不是錯誤頁或空白。</span></label>
+      <label><input type="checkbox"><span><strong>後端 API 回得了資料</strong>：在工具頁面輸入一個主題、按產生，畫面真的跳出 AI 寫的標題——代表前端→後端→AI 整條鏈路都通。</span></label>
+      <label><input type="checkbox"><span><strong>前端原始碼裡找不到金鑰</strong>：開 DevTools 的 Network 分頁，看載入的 .js／.html，搜尋 <code>sk-</code> 或 <code>api_key</code> 都找不到金鑰字串，只看到指向 <code>/api/ask</code> 的請求。</span></label>
+      <label><input type="checkbox"><span><strong>GitHub 上沒有 .env</strong>：打開 repo 頁面，列出的檔案有 <code>server.js</code>、<code>package.json</code>、<code>public/</code>，但沒有 <code>.env</code> 也沒有 <code>node_modules/</code>。</span></label>
+    </div>
+    <p class="body-text">4 個勾全打完，你已經完成第一條含後端部署的主線。想再多練——往下走「進階練習池」：那裡有靜態 vs 後端的判斷、環境變數與金鑰保護的完整講解、後端代理端點的架構細節、Railway/Render 的部署流程，還有迷你練習、情境演練和課堂作業。</p>
+  </section>
+  <!-- ▲▲▲ 引導主線結束 ▲▲▲ -->
+
+  <hr class="section-rule">
+
+  <section class="lesson-section">
+    <div class="section-eyebrow">PRACTICE POOL · 進階練習池</div>
+    <h2 class="section-heading">完成主線後的自選加練區</h2>
+    <p class="body-text">下面是這個單元的完整講解與練習：靜態 vs 後端的判斷界線、環境變數與 API 金鑰保護的細節、後端最小架構與代理端點的設計、部署到 Railway／Render 的完整流程，以及迷你練習、情境演練和課堂作業。主線只帶你跑一次標準部署，這裡讓你把每個決策的原理弄懂、練到能套上自己的各種情況。挑有興趣的做，不必全做。</p>
+  </section>
+
+  <hr class="section-rule">
 
   <!-- Section 1 -->
   <section class="lesson-section reveal" id="s1">
@@ -1159,7 +1335,7 @@ revealEls.forEach(el => io.observe(el));
 
 // 側邊章節導航
 const sdots = document.getElementById('sdots');
-const sections = ['s1','s2','s3','s4'].map(id => document.getElementById(id));
+const sections = ['sec-guided','s1','s2','s3','s4'].map(id => document.getElementById(id));
 const dotBtns = document.querySelectorAll('.sdot');
 const sio = new IntersectionObserver((entries) => {
   entries.forEach(e => {
