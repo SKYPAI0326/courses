@@ -286,6 +286,150 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 <div class="prac-body">
 
+  <!-- ▼▼▼ 引導主線（照著做）· 2026-05 新增 ▼▼▼ -->
+  <div class="section-eyebrow">GUIDED · 照著做主線</div>
+  <h2 class="section-heading">45 分鐘照著做：把 66 筆重複名單去到剩 30 位</h2>
+  <p class="section-lede">第一次做資料清理，不用先懂原理。跟著下面 5 步走一遍，45 分鐘後你會用 AI 把一份重複的客戶名單去重完成，並學會怎麼確認它有沒有做對。先把這條主線走完；做完還想多練，再往下到「進階練習池」。</p>
+
+  <hr class="section-rule">
+
+  <div class="section-eyebrow">照著做主線 · STEP 1 / 5 · 場景設定（5 分鐘）</div>
+  <h2 class="section-heading">小婷的麻煩</h2>
+  <div class="callout">
+    <span class="callout-icon" aria-hidden="true">●</span>
+    <div class="callout-body">
+      小婷，28 歲，貿易公司業務助理。主管今天丟給她一份客戶名單，要她寄春季電子報。這份名單是過去一年從<strong>官網表單、展場名片、電子報訂閱</strong>三個管道陸續匯進來的，共 66 筆。問題是：同一個客戶因為當初留資料的管道不同，名字打法、Email 大小寫、電話格式都不一樣，被系統當成不同人重複收錄。小婷怕直接寄出去，有些客戶會一次收到 3 封一模一樣的信。她想用肉眼一筆一筆比對，比了半小時還沒比完這 66 筆。
+    </div>
+  </div>
+  <p class="section-lede">今天你就是小婷。你要用任一 AI 工具，把這 66 筆名單去重，並確認 AI 沒有做錯。</p>
+  <p class="section-lede"><strong>本主線素材：</strong><a href="../assets/datasets/crm-customers-66.csv" download target="_blank" rel="noopener"><code>crm-customers-66.csv</code></a>（66 筆客戶名單，欄位：姓名、Email、手機、來源）。點擊下載，待會 STEP 4 會用到。</p>
+
+  <hr class="section-rule">
+
+  <div class="section-eyebrow">照著做主線 · STEP 2 / 5 · 看示範（10 分鐘）</div>
+  <h2 class="section-heading">先看跑一次，認得「成品長什麼樣」</h2>
+  <p class="section-lede">動手前先看一次。下面是把 <code>crm-customers-66.csv</code> 貼進 AI、用待會 STEP 3 的主版 Prompt 跑出來的<strong>預期輸出</strong>。先認得成品的樣子，等一下自己跑才知道對不對。</p>
+  <div class="ps-expect"><strong>預期輸出（節錄示意，各平台略有差異）</strong><br><br>
+  原始 66 筆 → 去重後 <strong>30 位確定客戶</strong>，另有 <strong>1 筆待確認</strong>（去重後名單共 31 列）<br><br>
+  王志明｜chihming.wang@gmail.com｜0912345678｜官網表單/LinkedIn/電子報訂閱｜併 3 筆<br>
+  李美華｜meihua.lee@yahoo.com.tw｜0923456789｜展場名片/轉介/線上活動報名｜併 3 筆<br>
+  許文傑｜wenchieh@gmail.com｜0955667788｜轉介/FB 私訊｜併 2 筆<br>
+  ……（確定客戶共 30 位）……<br><br>
+  我判定「待確認」共 <strong>1 筆</strong>、「同名不同人」共 <strong>2 組</strong><br>
+  · 待確認：陳建鴻 — Email 與陳建宏相同，疑似姓名打錯字，需人工確認<br>
+  · 同名不同人：王志明、李美華 各有 2 位不同客戶（Email、手機皆不同），未合併</div>
+  <div class="callout">
+    <span class="callout-icon" aria-hidden="true">★</span>
+    <div class="callout-body">
+      注意第一行「<strong>去重後 30 位確定客戶、另有 1 筆待確認</strong>」——這是 Prompt 強制 AI 自己報的數字。等一下你自己跑完，第一眼就看這行：如果確定客戶不是 30 位，代表 AI 多併或漏併了，要回去重跑。（那 1 筆待確認是故意設計的，見 STEP 5 第 4 項。）
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="section-eyebrow">照著做主線 · STEP 3 / 5 · 認識主版 Prompt（5 分鐘）</div>
+  <h2 class="section-heading">主版去重 Prompt（直接複製，不用改）</h2>
+  <p class="section-lede">這套 Prompt 由 5 個骨架組成：角色、資料、任務、例外、驗證。你不用改它，直接按「複製」就能用。先看完整版，再看下方「為何這樣寫」。</p>
+  <div class="ps-prompt">【角色】你是 CRM 資料稽核助理，專長把多管道匯入的客戶名單去重。
+
+【資料】以下是一份從官網表單、展場名片、電子報訂閱等管道陸續匯入的客戶名單，共 66 筆，欄位為 姓名、Email、手機、來源：
+
+[貼上 crm-customers-66.csv 全文]
+
+【任務】把屬於同一個人的多筆紀錄合併。判定「同一人」的規則：
+1. 姓名：去除前後與中間多餘空白後再比對；中文姓名與其英文拼音（例：王志明 與 Wang Chih-Ming）視為同一人
+2. Email：全部轉成小寫後比對
+3. 手機：去掉 -、空白、括號、+886 等符號，統一成 09 開頭的十碼後比對
+4. 只要 Email 或 手機 相同、且其他欄位不衝突，就視為同一人
+
+【例外處理】
+- 姓名差異大、但 Email 相同（疑似把名字打錯字）：標記為「待確認」，不要自動合併
+- 姓名相同、但 Email 和 手機都不同：是不同的兩個人，絕對不可以合併
+
+【輸出格式】
+第一行先輸出：原始 66 筆 → 去重後 ? 位確定客戶，另有 ? 筆待確認
+接著輸出 CSV，欄位為 姓名,Email,手機,來源,原始筆數,備註（待確認的紀錄也要列在 CSV 內，不要省略）
+- 姓名取最完整、最乾淨的版本
+- 來源把合併前的多個來源用「/」串接
+- 待確認的紀錄在「備註」欄寫明原因
+
+【驗證要求】最後補一行：我判定「待確認」共 ? 筆、判定「同名不同人」共 ? 組。<button class="copy-btn" type="button">複製</button></div>
+  <div class="callout">
+    <span class="callout-icon" aria-hidden="true">●</span>
+    <div class="callout-body">
+      <strong>為何這樣寫：</strong><br>
+      · <strong>角色</strong>：讓 AI 進入「稽核」視角，比直接說「幫我去重」更謹慎、更少自作主張。<br>
+      · <strong>例外兩條是關鍵</strong>：少了這兩條，AI 會把 2 位「同名不同人」誤併成 1 位、把打錯字的「陳建鴻」直接吃進「陳建宏」。<br>
+      · <strong>驗證要求</strong>：強制 AI 自報數字（去重後幾位、待確認幾筆），你才能一眼檢查它有沒有做對。
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <div class="section-eyebrow">照著做主線 · STEP 4 / 5 · 換你跑（20 分鐘）</div>
+  <h2 class="section-heading">跟著這 5 步跑一次</h2>
+  <div class="steps-list">
+    <div class="step-item">
+      <div class="step-num-col"><div class="step-num">1</div></div>
+      <div class="step-body">
+        <div class="step-title">下載並複製名單</div>
+        <div class="step-hint">下載 STEP 1 的 <code>crm-customers-66.csv</code>，用記事本或 Excel 打開，全選、複製。</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num-col"><div class="step-num">2</div></div>
+      <div class="step-body">
+        <div class="step-title">打開 AI 工具開新對話</div>
+        <div class="step-hint">ChatGPT、Gemini、Copilot、Claude.ai 的免費版都可以，開一個新對話視窗。</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num-col"><div class="step-num">3</div></div>
+      <div class="step-body">
+        <div class="step-title">貼上主版 Prompt 與名單</div>
+        <div class="step-hint">複製 STEP 3 的主版 Prompt 貼進 AI，把 Prompt 裡的 <code>[貼上 crm-customers-66.csv 全文]</code> 換成你剛剛複製的名單內容，送出。</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num-col"><div class="step-num">4</div></div>
+      <div class="step-body">
+        <div class="step-title">看輸出的第一行</div>
+        <div class="step-hint">AI 應該說「去重後 30 位確定客戶、另有 1 筆待確認」。如果確定客戶不是 30 位，先別急，到 STEP 5 用驗證卡找出問題再重跑。</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num-col"><div class="step-num">5</div></div>
+      <div class="step-body">
+        <div class="step-title">存下去重後名單</div>
+        <div class="step-hint">把 AI 給的去重後 CSV 複製到記事本或 Excel 存起來。這就是你今天的成品。</div>
+      </div>
+    </div>
+  </div>
+  <p class="section-lede"><strong>免費版提醒：</strong>66 筆名單約 2,000 字，所有主流免費版 AI 都放得下，全程貼文字、不用上傳檔案。若 AI 回覆說輸入太長，分兩次貼上名單也可以。</p>
+
+  <hr class="section-rule">
+
+  <div class="section-eyebrow">照著做主線 · STEP 5 / 5 · 驗證有沒有做對（5 分鐘）</div>
+  <h2 class="section-heading">離開前用這張卡打 4 個勾</h2>
+  <p class="section-lede">AI 的輸出看起來再整齊，都要驗。下面 4 項全部確認過，今天的主線才算完成。對不上的，回 STEP 4 重跑一次。</p>
+  <div class="case-check">
+    <span class="case-check-label">結果驗證卡</span>
+    <label><input type="checkbox"><span><strong>總筆數</strong>：AI 有沒有說它讀進 66 筆？少於 66 代表它漏看了名單。</span></label>
+    <label><input type="checkbox"><span><strong>去重後人數</strong>：AI 說「去重後 30 位確定客戶、1 筆待確認」嗎？標準答案是 30 位確定客戶 ＋ 1 筆待確認（去重後名單含待確認列共 31 列）。</span></label>
+    <label><input type="checkbox"><span><strong>同名不同人</strong>：名單裡有 2 位「王志明」和 2 位「李美華」其實是不同人（Email、手機都不同）。AI 有沒有把他們錯併成 1 位？正確是各保留 2 位。</span></label>
+    <label><input type="checkbox"><span><strong>待確認</strong>：有一筆「陳建鴻」其實是「陳建宏」打錯字（Email 相同）。AI 應把它標成「待確認」交人工，而不是直接合併或直接當成不同人。</span></label>
+  </div>
+  <p class="section-lede">4 個勾全打完，你已經完成第一條資料清理主線。想再多練——往下走「進階練習池」：那裡有互動指令產生器、3 個真實職場延伸案例、3 組情境演練和 debug 修錯練習。</p>
+  <!-- ▲▲▲ 引導主線結束 ▲▲▲ -->
+
+  <hr class="section-rule">
+
+  <div class="section-eyebrow">PRACTICE POOL · 進階練習池</div>
+  <h2 class="section-heading">完成主線後的自選加練區</h2>
+  <p class="section-lede">下面是這個單元的完整練習池：互動指令產生器、3 個職場延伸案例、3 組情境演練、debug 修錯與 Quiz。主線只帶你跑一次標準流程，這裡讓你把手法練到能套上自己的資料。挑有興趣的做，不必全做。</p>
+
+  <hr class="section-rule">
+
   <div class="section-eyebrow">STEPS · 任務步驟</div>
   <h2 class="section-heading">依序完成這四個步驟</h2>
 
