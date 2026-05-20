@@ -52,7 +52,7 @@ GATE_TEMPLATE = '''\
   </div>
 </div>
 <script>
-(function(){{const K='{key}',H='{hash}';if(sessionStorage.getItem(K)==='1'){{var g=document.getElementById('_gate');if(g)g.style.display='none';return}}async function _gc(){{var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){{sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}}else{{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){{if(e.key==='Enter')_gc()}})}})()</script>
+(function(){{const K='{key}',H='{hash}';if(localStorage.getItem(K)==='1')sessionStorage.setItem(K,'1');if(sessionStorage.getItem(K)==='1'){{var g=document.getElementById('_gate');if(g)g.style.display='none';return}}async function _gc(){{var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){{sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}}else{{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){{if(e.key==='Enter')_gc()}})}})()</script>
 '''
 
 def inject(html_path: Path, key: str, hash_val: str) -> bool:
