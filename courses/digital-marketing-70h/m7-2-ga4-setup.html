@@ -81,7 +81,18 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 
 /* a11y: focus-visible ring */
 a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
-.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 16px}.table-scroll>table{min-width:100%}</style>
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 16px}.table-scroll>table{min-width:100%}
+/* === 對話示範元件家族（操作型講義 SSOT，2026-05-21）=== */
+.dialog-box{background:var(--c-surface);border:1px solid var(--c-border);border-left:2px solid var(--c-text);border-radius:3px;padding:14px 16px;margin:12px 0 8px;font-family:'Courier New',monospace;font-size:.8rem;color:var(--c-text);line-height:1.7;white-space:pre-wrap}
+.dialog-label{font-family:'Noto Sans TC',sans-serif;font-size:.7rem;color:var(--c-muted);font-weight:500;letter-spacing:.5px;margin-bottom:8px;text-transform:uppercase}
+.expected-output{background:var(--c-card);border:1px solid var(--c-border-soft);border-left:2px solid var(--c-a2);border-radius:3px;margin:12px 0 8px;padding:16px 18px}
+.expected-label{font-size:.7rem;color:var(--c-a2);font-weight:500;letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase}
+.expected-body{font-size:.85rem;line-height:1.85;color:var(--c-text)}
+.expected-body p{margin-bottom:8px}
+.expected-body p:last-child{margin-bottom:0}
+.expected-body strong{font-weight:700}
+.expected-note{font-size:.72rem;color:var(--c-muted);margin-top:12px;line-height:1.6;border-top:1px dashed var(--c-border-soft);padding-top:10px}
+.demo-takeaway{background:var(--c-surface);border-left:2px solid var(--c-text);padding:12px 16px;margin-top:14px;font-size:.85rem;line-height:1.8;color:var(--c-text);border-radius:3px}</style>
 </head>
 <body>
 <style id="_gs">
@@ -247,6 +258,42 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="callout-icon" aria-hidden="true">⚠️</div>
     <div class="callout-body"><strong>注意：</strong>增強型評估的 form_submit 並非對所有表單都有效（取決於網站的表單實作方式）。若追蹤重要表單，建議用 GTM 設定自訂觸發條件以確保準確。</div>
   </div>
+</div>
+
+<div class="lesson-section">
+  <div class="section-eyebrow">AI 接口 · GA4-GTM 整合驗收清單</div>
+  <h2 class="section-heading">3 步驟整合 → <em>AI 給你驗收檢核 + 常見錯誤</em></h2>
+  <p class="body-text">GA4 + GTM 第一次整合，最痛是「不知道有沒有裝對」。下面 prompt 讓 AI 給你 5 分鐘驗收清單。</p>
+
+  <div class="dialog-box">
+    <div class="dialog-label">把這段貼進 ChatGPT 或 Claude</div>
+請幫我做 GA4 + GTM 整合的 24 小時驗收清單。
+
+【已完成】GTM 容器建好、GA4 Configuration Tag 安裝在 All Pages Trigger
+【需要驗證】基本資料是否進入 GA4、增強型評估事件是否觸發
+【未來要加】[列出 3-5 個自訂事件]
+
+請輸出：
+(1) 用 GTM Preview 模式 + GA4 DebugView 應該看到什麼資料
+(2) 5 個常見裝錯徵兆 + 對應修法
+(3) 驗收通過後的下一步行動清單</div>
+  <div class="expected-output">
+    <div class="expected-label">ChatGPT 大概會回</div>
+    <div class="expected-body">
+      <p><strong>GTM Preview + DebugView 應看到</strong>：(1) page_view（每次切頁觸發） (2) session_start (3) first_visit（首次訪客）<br>
+      若沒看到 → 多半是 Measurement ID 填錯或 Trigger 不是 All Pages</p>
+      <p><strong>5 常見錯誤</strong></p>
+      <p>1. 看到事件但 GA4 報表是空的：等 24-48 小時（GA4 有資料延遲）<br>
+      2. 跳出率 &lt; 5%：事件觸發過多（每個 click 都觸發）<br>
+      3. 兩個 page_view 同時觸發：GA4 Config Tag 重複安裝或 GTM + 原生 GA 雙裝<br>
+      4. UTM 沒進來：Default Channel Group 沒對齊或 redirect 把參數吃掉<br>
+      5. DebugView 空白：DebugMode 未啟用（需安裝 Chrome 擴充 Tag Assistant）</p>
+      <p><strong>驗收通過後</strong>：(1) 排除內部 IP (2) 標記 conversion 事件 (3) 設定跨網域追蹤（若有）</p>
+    </div>
+    <div class="expected-note">實際輸出每次略有差異，但「驗收清單 + 5 錯誤 + 下一步」結構穩定。建議當天 + 隔天各驗一次。</div>
+  </div>
+
+  <div class="demo-takeaway">整合驗收心法：<strong>裝完當下 + 24h 後 + 7d 後各跑一次驗收。</strong>越早發現裝錯越少損失歷史數據。</div>
 </div>
 
 </div>

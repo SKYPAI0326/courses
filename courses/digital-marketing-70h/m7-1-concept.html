@@ -83,7 +83,18 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 
 /* a11y: focus-visible ring */
 a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
-.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}</style>
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}
+/* === 對話示範元件家族（操作型講義 SSOT，2026-05-21）=== */
+.dialog-box{background:var(--c-surface);border:1px solid var(--c-border);border-left:2px solid var(--c-text);border-radius:3px;padding:14px 16px;margin:12px 0 8px;font-family:'Courier New',monospace;font-size:.8rem;color:var(--c-text);line-height:1.7;white-space:pre-wrap}
+.dialog-label{font-family:'Noto Sans TC',sans-serif;font-size:.7rem;color:var(--c-muted);font-weight:500;letter-spacing:.5px;margin-bottom:8px;text-transform:uppercase}
+.expected-output{background:var(--c-card);border:1px solid var(--c-border-soft);border-left:2px solid var(--c-a2);border-radius:3px;margin:12px 0 8px;padding:16px 18px}
+.expected-label{font-size:.7rem;color:var(--c-a2);font-weight:500;letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase}
+.expected-body{font-size:.85rem;line-height:1.85;color:var(--c-text)}
+.expected-body p{margin-bottom:8px}
+.expected-body p:last-child{margin-bottom:0}
+.expected-body strong{font-weight:700}
+.expected-note{font-size:.72rem;color:var(--c-muted);margin-top:12px;line-height:1.6;border-top:1px dashed var(--c-border-soft);padding-top:10px}
+.demo-takeaway{background:var(--c-surface);border-left:2px solid var(--c-text);padding:12px 16px;margin-top:14px;font-size:.85rem;line-height:1.8;color:var(--c-text);border-radius:3px}</style>
 </head>
 <body>
 <style id="_gs">
@@ -228,6 +239,35 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
       4. <strong>更快上線</strong>：行銷活動需要新的追蹤時，不用等開發人員排期
     </div>
   </div>
+</div>
+
+<div class="lesson-section">
+  <div class="section-eyebrow">AI 接口 · GTM 4 元素配對</div>
+  <h2 class="section-heading">需要追蹤的事件 → <em>AI 給你「Tag/Trigger/Variable」配置</em></h2>
+  <p class="body-text">理解 GTM 4 元素後，最常卡的是「我要追蹤這個事件，該怎麼配 4 元素」。下面 prompt 讓 AI 幫你拆解。</p>
+
+  <div class="dialog-box">
+    <div class="dialog-label">把這段貼進 ChatGPT 或 Claude</div>
+請幫我設計 GTM 配置追蹤以下事件：
+
+【要追蹤的行為】[列出 3-5 個常見事件，如：點擊「立即試課」按鈕、提交「諮詢表單」、捲動頁面 75%、播放影片 50%、點擊外連]
+【目標平台】[GA4 / Meta Pixel / 兩者皆需]
+
+請為每個行為輸出：
+- 對應的 Tag 類型
+- Trigger 設定（觸發條件 + 元素選擇器）
+- 需要的 Variable
+- 該在 GA4 / Meta 後台對應做什麼設定</div>
+  <div class="expected-output">
+    <div class="expected-label">ChatGPT 大概會回（範例輸出）</div>
+    <div class="expected-body">
+      <p>| 行為 | Tag 類型 | Trigger | Variable | GA4/Meta 後台 |<br>|---|---|---|---|---|<br>| 點擊「立即試課」 | GA4 Event | Click - Just Links（filter: Click URL contains /trial） | {{Click URL}} | GA4 標為 conversion |<br>| 提交諮詢表單 | GA4 Event | Form Submission（filter: Form ID = consult） | {{Form ID}} | 同上 |<br>| 捲動 75% | GA4 Event | Scroll Depth 75% | {{Scroll Depth Threshold}} | 用於受眾分群 |<br>| 播放影片 50% | GA4 Event | YouTube Video（filter: Progress 50%） | {{Video Title}} | 用於 engagement 分析 |</p>
+      <p><strong>常見錯誤</strong>：忘記在 GTM 啟用「Click」與「Form」內建變數（Variables → Configure）→ trigger 無效。</p>
+    </div>
+    <div class="expected-note">實際輸出每次略有差異，但「事件 × 4 元素 + 後台對應」結構穩定。AI 給的選擇器是通用模板，實際依你網站 DOM 結構微調。</div>
+  </div>
+
+  <div class="demo-takeaway">GTM 4 元素心法：<strong>先想 Trigger（什麼時候觸發） → 再想 Tag（觸發後發什麼資料） → 最後補 Variable（資料從哪來）</strong>。順序錯會卡住。</div>
 </div>
 
 </div>
