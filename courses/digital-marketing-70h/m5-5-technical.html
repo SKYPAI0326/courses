@@ -88,7 +88,18 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 
 /* a11y: focus-visible ring */
 a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
-.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}</style>
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}
+/* === 對話示範元件家族（操作型講義 SSOT，2026-05-21）=== */
+.dialog-box{background:var(--c-surface);border:1px solid var(--c-border);border-left:2px solid var(--c-text);border-radius:3px;padding:14px 16px;margin:12px 0 8px;font-family:'Courier New',monospace;font-size:.8rem;color:var(--c-text);line-height:1.7;white-space:pre-wrap;position:relative}
+.dialog-label{font-family:'Noto Sans TC',sans-serif;font-size:.7rem;color:var(--c-muted);font-weight:500;letter-spacing:.5px;margin-bottom:8px;text-transform:uppercase}
+.expected-output{background:var(--c-card);border:1px solid var(--c-border-soft);border-left:2px solid var(--c-a2);border-radius:3px;margin:12px 0 8px;padding:16px 18px}
+.expected-label{font-size:.7rem;color:var(--c-a2);font-weight:500;letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase}
+.expected-body{font-size:.85rem;line-height:1.85;color:var(--c-text)}
+.expected-body p{margin-bottom:8px}
+.expected-body p:last-child{margin-bottom:0}
+.expected-body strong{font-weight:700}
+.expected-note{font-size:.72rem;color:var(--c-muted);margin-top:12px;line-height:1.6;border-top:1px dashed var(--c-border-soft);padding-top:10px}
+.demo-takeaway{background:var(--c-surface);border-left:2px solid var(--c-text);padding:12px 16px;margin-top:14px;font-size:.85rem;line-height:1.8;color:var(--c-text);border-radius:3px}</style>
 </head>
 <body>
 <style id="_gs">
@@ -238,6 +249,68 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="callout-icon" aria-hidden="true">💡</div>
     <div class="callout-body"><strong>行銷人的重點：</strong>技術 SEO 的大部分工作是開發或 IT 的職責。行銷人需要能診斷問題、提出需求，而不是親自修改 server 設定。學會用 GSC 和 PageSpeed Insights 診斷，再交給技術團隊處理。</div>
   </div>
+</div>
+
+<div class="lesson-section">
+  <div class="section-eyebrow">AI 接口 · 技術 SEO 報告寫給工程師</div>
+  <h2 class="section-heading">PageSpeed 截圖 → <em>AI 翻成可發工單的需求</em></h2>
+  <p class="body-text">行銷人最常卡在「我知道技術 SEO 有問題、但不知道怎麼跟工程師說」。下面這個 prompt 讓你貼 PageSpeed Insights 與 GSC 數據，AI 翻成「工程師看得懂、可立刻動工」的工單。</p>
+
+  <div class="dialog-box">
+    <div class="dialog-label">把這段貼進 ChatGPT 或 Claude</div>
+請扮演技術 SEO 顧問，把下面的數據翻譯成工程師看得懂的工單。
+
+【PageSpeed 主要警告】
+- LCP（Largest Contentful Paint）：[X 秒]
+- CLS（Cumulative Layout Shift）：[X]
+- INP（Interaction to Next Paint）：[X 毫秒]
+- 其他 Lighthouse 分數: [Performance / Accessibility / Best Practices / SEO]
+
+【GSC 涵蓋範圍狀態】
+- 已索引：[X 頁]
+- 已排除：[X 頁] / 主要排除原因：[列出 top 3]
+- 已發現尚未索引：[X 頁]
+
+【最重要的轉換頁面 URL】
+[填入 3-5 個]
+
+請輸出：
+
+(1) <strong>3 個最該優先修的問題</strong>（按影響 SEO 流量大小排序）
+(2) <strong>每個問題的「工單格式」</strong>：標題 / 影響說明 / 重現步驟 / 期望結果 / 驗收標準 / 預估工時
+(3) <strong>哪些是行銷端可自己處理</strong>、<strong>哪些需要工程師</strong>分別列出
+(4) <strong>修完後如何驗收</strong>（哪天再跑一次 PageSpeed + GSC 看什麼指標變化）</div>
+  <div class="expected-output">
+    <div class="expected-label">ChatGPT 大概會回（範例輸出）</div>
+    <div class="expected-body">
+      <p><strong>3 個優先修的問題</strong></p>
+      <p>1. LCP 4.2s（應 &lt; 2.5s）：首屏圖片太大、未壓縮、無 lazy loading<br>2. 已排除頁面 1,283 頁（其中 856 頁因「重複內容無 canonical」）<br>3. CLS 0.18（應 &lt; 0.1）：橫幅廣告載入時頁面跳動</p>
+
+      <p><strong>工單 #1（LCP 圖片優化）</strong></p>
+      <p style="font-family:'Courier New',monospace;font-size:.82rem;">標題：[SEO] 首屏圖片壓縮 + lazy loading（影響 LCP）<br>
+      影響：首屏 LCP 4.2s 拖垮 Core Web Vitals，預估排名損失 5-10 位<br>
+      重現：開 PageSpeed Insights 跑 / 連線、檢查首屏 hero image 大小<br>
+      期望：所有首屏圖片 &lt; 200KB 並使用 WebP 格式<br>
+      驗收：PageSpeed LCP &lt; 2.5s（手機）<br>
+      預估工時：4-6 小時（含全站圖片重整）</p>
+
+      <p><strong>工單 #2（Canonical 處理）</strong></p>
+      <p style="font-family:'Courier New',monospace;font-size:.82rem;">標題：[SEO] 856 頁重複內容需設 canonical<br>
+      影響：Google 索引被稀釋，主要轉換頁排名受影響<br>
+      重現：GSC → 涵蓋範圍 → 「已發現但未編入索引」清單 + 抽查 5 頁<br>
+      期望：每個重複頁面設 rel=canonical 指向主版本<br>
+      驗收：GSC 已排除頁數 &lt; 200 + 對應主版本流量上升 10%<br>
+      預估工時：8-12 小時（含 CMS template 調整）</p>
+
+      <p><strong>分工建議</strong></p>
+      <p>• <strong>行銷可自做</strong>：用 Squoosh.app 預先壓縮圖片、改寫缺 canonical 的內容、整理排除頁清單<br>• <strong>需工程師</strong>：CMS template 改 canonical 邏輯、設定全站 lazy loading、Server-side 圖片自動 WebP</p>
+
+      <p><strong>驗收時程</strong>：工單完成後 7 天跑一次 PageSpeed + GSC；30 天後看排名變化是否真實反映改善。</p>
+    </div>
+    <div class="expected-note">實際輸出每次略有差異，但「3 優先問題 + 工單格式 + 分工 + 驗收」結構穩定。AI 給的工時是粗估，實際依你的 stack 與 CMS 略有差異。</div>
+  </div>
+
+  <div class="demo-takeaway">技術 SEO 行銷人的角色：<strong>診斷 + 翻譯 + 驗收，不是親自改 server</strong>。把工程師當合作夥伴，給他們「可直接 estimate」的工單比給他們「我的 SEO 排名變差」更有效。</div>
 </div>
 
 </div>
