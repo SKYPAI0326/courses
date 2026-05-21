@@ -91,7 +91,18 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 
 /* a11y: focus-visible ring */
 a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
-.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 16px}.table-scroll>table{min-width:100%}</style>
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 16px}.table-scroll>table{min-width:100%}
+/* === 對話示範元件家族（操作型講義 SSOT，2026-05-21）=== */
+.dialog-box{background:var(--c-surface);border:1px solid var(--c-border);border-left:2px solid var(--c-text);border-radius:3px;padding:14px 16px;margin:12px 0 8px;font-family:'Courier New',monospace;font-size:.8rem;color:var(--c-text);line-height:1.7;white-space:pre-wrap;position:relative}
+.dialog-label{font-family:'Noto Sans TC',sans-serif;font-size:.7rem;color:var(--c-muted);font-weight:500;letter-spacing:.5px;margin-bottom:8px;text-transform:uppercase}
+.expected-output{background:var(--c-card);border:1px solid var(--c-border-soft);border-left:2px solid var(--c-a2);border-radius:3px;margin:12px 0 8px;padding:16px 18px}
+.expected-label{font-size:.7rem;color:var(--c-a2);font-weight:500;letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase}
+.expected-body{font-size:.85rem;line-height:1.85;color:var(--c-text)}
+.expected-body p{margin-bottom:8px}
+.expected-body p:last-child{margin-bottom:0}
+.expected-body strong{font-weight:700}
+.expected-note{font-size:.72rem;color:var(--c-muted);margin-top:12px;line-height:1.6;border-top:1px dashed var(--c-border-soft);padding-top:10px}
+.demo-takeaway{background:var(--c-surface);border-left:2px solid var(--c-text);padding:12px 16px;margin-top:14px;font-size:.85rem;line-height:1.8;color:var(--c-text);border-radius:3px}</style>
 </head>
 <body>
 <style id="_gs">
@@ -299,6 +310,49 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <span class="callout-icon">💡</span>
     <div class="callout-body">自動化的邊界原則：<strong>資訊流轉和格式處理可以完全自動化；判斷、品牌聲音和創意決策需要人在迴路中（Human-in-the-loop）</strong>。這不是保守主義，是保護你的品牌不在沒有監督的情況下犯下無法挽回的錯誤。</div>
   </div>
+</div>
+
+<div class="lesson-section">
+  <div class="section-eyebrow">AI 接口 · 一個自動化情境設計</div>
+  <h2 class="section-heading">「每週競品摘要」<em>workflow 設計範本</em></h2>
+  <p class="body-text">看完原則，我們用一個具體場景示範：你想每週一收到「3 個競品上週的社群動態 + AI 摘要」自動寄到信箱。下面是讓 AI 幫你設計這個 Make.com workflow 的 prompt + 預期產出。</p>
+
+  <div class="dialog-box">
+    <div class="dialog-label">把這段貼進 ChatGPT 或 Claude</div>
+請幫我設計一個 Make.com workflow，需求如下：
+
+【目標】每週一上午 9:00 自動產出「上週競品社群動態摘要」並寄到我信箱
+【監控對象】3 個競品 IG 帳號：[填入 IG handle 1/2/3]
+【需要的資訊】各品牌上週發了幾篇、互動率最高的 1 篇、整體調性變化
+【輸出格式】Gmail 信件，含「品牌名 + 數據 + 互動冠軍貼文連結 + AI 一句話觀察」
+
+請輸出：
+
+(1) Workflow 結構圖（用文字描述每個 module 與連線）
+(2) 每個 module 需要的設定關鍵欄位（如：Schedule trigger 設多久、HTTP module 抓什麼 endpoint）
+(3) 給 AI module 的 prompt（讓 ChatGPT module 寫摘要的指令）
+(4) 需要人工檢查的 stop point（哪些步驟不能完全自動化）
+
+不要設計需要付費 IG API 的方案，優先用免費可行做法（如：手動匯出 + email parsing 或 Apify 免費額度）。</div>
+  <div class="expected-output">
+    <div class="expected-label">ChatGPT 大概會回</div>
+    <div class="expected-body">
+      <p><strong>Workflow 結構圖（5 個 module）</strong></p>
+      <p>① <strong>Schedule</strong>（週一 09:00 啟動）<br>　↓<br>② <strong>Apify Actor</strong>（抓 3 個 IG 帳號上週貼文，免費額度 ≤ 30 篇/月夠用）<br>　↓<br>③ <strong>Router</strong>（依品牌分三條路徑）<br>　↓<br>④ <strong>ChatGPT</strong>（每條路徑生一段 100 字摘要）<br>　↓<br>⑤ <strong>Gmail</strong>（合併三段，寄到你的信箱）</p>
+
+      <p><strong>關鍵欄位設定</strong></p>
+      <p>• Schedule：Weekly, Monday 09:00 Asia/Taipei<br>• Apify：用 instagram-scraper actor，input 為 3 個 IG handle，limit 過去 7 天<br>• Router：3 條 path，filter by username<br>• ChatGPT：model = gpt-4o-mini（省 token），temperature = 0.3<br>• Gmail：subject = 「[週競品] 5/22-5/28 摘要」，body 用 HTML</p>
+
+      <p><strong>ChatGPT module 的 prompt</strong></p>
+      <p style="font-family:'Courier New',monospace;font-size:.82rem;">你是品牌觀察員。下面是 {{brand_name}} 上週 7 天的 IG 貼文資料：<br>{{posts_json}}<br><br>請輸出 100 字內摘要，含：<br>(1) 發文頻率（幾篇）<br>(2) 互動率最高的 1 篇主題與連結<br>(3) 觀察到的調性變化（如新主題、新商品線索）<br><br>請只用 JSON 給的資料，不要推測未提及的事情。</p>
+
+      <p><strong>需要人工檢查的 stop point</strong></p>
+      <p>• 第 1 週啟動後，先手動跑 1 次驗證 Apify 是否抓對品牌<br>• 每月底檢查 ChatGPT 摘要是否有「過度詮釋」（即無中生有）<br>• 若品牌帳號改名或設為私人，workflow 會壞，建議加 Slack 通知（fallback）</p>
+    </div>
+    <div class="expected-note">差別在：AI 不只設計 workflow 結構，還明示「哪些不能完全自動化、哪些需要人工監控」。實際輸出每次略有差異，但「結構圖 + 欄位設定 + AI prompt + stop point」四件套穩定。</div>
+  </div>
+
+  <div class="demo-takeaway">自動化設計兩條紅線：<strong>(1) 不要自動發布（永遠保留人工最後審核）</strong>、<strong>(2) 每個自動流程都要有 fallback 通知</strong>（流程壞了你要知道，不然 3 個月後才發現你的競品摘要其實是空白的）。先用 1-2 個小型自動化跑熟，再擴大規模。</div>
 </div>
 
 </div><!-- end lesson-body -->
