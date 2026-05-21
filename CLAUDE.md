@@ -99,11 +99,14 @@ python3 docs/lint-page.py --changed       # 只查 git staged 檔
 | `_規範/course-index-editorial-strict.html` | **總覽頁** SSOT — Editorial 家族（嚴格派 --c-main，新認證/教學課優先採用）|
 | `_規範/course-index-module-landing.html` | **總覽頁** SSOT — Module Landing 家族（landing 性質、含 hero CTA、modules-grid）|
 | `_規範/course-index-lesson-section.html` | **總覽頁** SSOT — Lesson Section 家族（v4 扁平 part + 多色 band + PRAC 區）|
+| `_規範/操作型講義.md` | **內容組織原則** SSOT — 適用「低原理、高操作」商業培訓課程，含對話示範元件家族（dialog-box / expected-output / demo-flow）+ 課後素材包規範 |
 | `docs/lint-page.py` | 機器強制版（BLOCKER/ERROR/WARN 規則）。`python3 docs/lint-page.py <file>` 自動驗 |
 
 **要調整規則？** 改 `design-tokens.md` + `lint-page.py`。**不要**在本檔或 skill 文件追加散文規則。
 
 **新建單元頁？** 複製 `_規範/lesson-template-v3.html` → 填佔位符 → 跑 lint → 跑 `build-search-index.py` + `build-sitemap.py`。
+
+**要做「低原理、高操作」改寫？** 讀 `_規範/操作型講義.md` 走 SOP。觸發詞：「低原理高操作」「操作型講義」「改成適配低講解高操作」「商業培訓改寫」。樣板課程：`courses/office-ai/`。
 
 ---
 
