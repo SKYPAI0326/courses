@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<!--
+  弄一下工作室 — 講師解鎖頁
+  ========================================================
+  避開 Safari javascript: bookmarklet 限制，改用同 origin 一頁式解鎖。
+  學員看到也無新秘密（本來 view source 就能看到 17 個 key 與 bootstrap 邏輯）。
+  ========================================================
+-->
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>講師解鎖頁｜弄一下工作室</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang TC','Noto Sans TC',sans-serif;background:#f5f3ee;color:#2c2b28;max-width:520px;margin:80px auto;padding:0 32px;line-height:1.8}
+h1{font-size:1.4rem;font-weight:700;border-bottom:1px solid #d8d4cb;padding-bottom:12px;margin-bottom:20px}
+.btn{display:block;width:100%;margin:16px 0;padding:18px;border:none;border-radius:6px;font-size:1.05rem;font-weight:500;letter-spacing:.05em;cursor:pointer;color:#fff;transition:filter .15s}
+.btn.unlock{background:#5a7a5a}
+.btn.reset{background:#b5703a}
+.btn:hover{filter:brightness(.92)}
+.status{padding:14px 18px;margin:18px 0;border-radius:6px;background:#edeae3;font-size:.9rem;line-height:1.7;border-left:3px solid #5a7a5a}
+.status.err{border-left-color:#b5703a;background:#f5ede3}
+.status .ok{color:#5a7a5a;font-weight:500}
+.status .err{color:#b5703a;font-weight:500}
+ol{padding-left:24px;font-size:.85rem;color:#666}
+ol li{margin:4px 0}
+code{background:#edeae3;padding:1px 6px;border-radius:3px;font-family:'Courier New',monospace;font-size:.85em}
+.go-link{display:inline-block;margin-top:14px;color:#5a7a5a;text-decoration:underline;font-size:.9rem}
+.go-link:hover{color:#2c2b28}
+</style>
+</head>
+<body>
+
+<h1>講師解鎖頁（17 課）</h1>
+
+<p style="font-size:.95rem">點下面按鈕一次解鎖 / 還原所有課程的密碼閘。同 origin 永久免密（除非清瀏覽器資料）。</p>
+
+<button class="btn unlock" onclick="doUnlock()">🔓 解鎖所有課程（17 課）</button>
+<button class="btn reset" onclick="doReset()">🔒 還原（恢復密碼閘）</button>
+
+<div id="status" class="status" style="display:none"></div>
+
+<a class="go-link" href="/courses/">→ 回課程總覽（解鎖後重新整理該頁即可進入）</a>
+
+<h2 style="font-size:1.05rem;margin-top:36px">當前狀態</h2>
+<div id="check" class="status"></div>
+
+<h2 style="font-size:1.05rem;margin-top:36px">17 課 key 清單</h2>
+<ol>
+<li><code>aiws_auth</code> · <code>ccs_auth</code> · <code>gemini_auth</code> · <code>gen140_auth</code> · <code>gtm_auth</code> · <code>n8n_auth</code></li>
+<li><code>ntub_auth</code> · <code>officeai_auth</code> · <code>digimkt_auth</code> · <code>gen36_auth</code> · <code>pbasic_auth</code></li>
+<li><code>simpleai_auth</code> · <code>ipas_auth</code> · <code>linestickers_auth</code> · <code>careerpivot_auth</code></li>
+<li><code>officeaicases_auth</code> · <code>gnw_auth</code>（新 · Gemini × NotebookLM 工作坊）</li>
+</ol>
+
+<h2 style="font-size:1.05rem;margin-top:36px">使用方式</h2>
+<ol>
+<li><strong>書籤這個頁</strong>（<code>Cmd + D</code>）：未來想解鎖時開書籤即可</li>
+<li>點「🔓 解鎖所有課程」</li>
+<li>關掉本頁、去任何課程頁 → 自動跳過密碼框</li>
+<li>不需要時點「🔒 還原」恢復密碼閘</li>
+</ol>
+
+<script>
+const KEYS = ['aiws_auth','ccs_auth','gemini_auth','gen140_auth','gtm_auth','n8n_auth','ntub_auth','officeai_auth','digimkt_auth','gen36_auth','pbasic_auth','simpleai_auth','ipas_auth','linestickers_auth','careerpivot_auth','officeaicases_auth','gnw_auth'];
+
+function showStatus(msg, isErr) {
+  const s = document.getElementById('status');
+  s.innerHTML = msg;
+  s.className = 'status' + (isErr ? ' err' : '');
+  s.style.display = 'block';
+}
+
+function doUnlock() {
+  KEYS.forEach(k => { localStorage.setItem(k, '1'); sessionStorage.setItem(k, '1'); });
+  showStatus('<span class="ok">✓ 已解鎖 17 課</span><br>origin: <code>' + location.hostname + '</code><br>同 origin 永久免密。請打開任何課程頁查看。');
+  updateCheck();
+}
+
+function doReset() {
+  KEYS.forEach(k => { localStorage.removeItem(k); sessionStorage.removeItem(k); });
+  showStatus('<span class="err">✓ 已還原 17 課密碼閘</span><br>origin: <code>' + location.hostname + '</code><br>再開課程頁會回到要密碼狀態。');
+  updateCheck();
+}
+
+function updateCheck() {
+  const ok = KEYS.filter(k => localStorage.getItem(k) === '1').length;
+  const div = document.getElementById('check');
+  if (ok === 17) {
+    div.innerHTML = '<span class="ok">✓ 17 / 17 已解鎖</span> · origin <code>' + location.hostname + '</code>';
+    div.className = 'status';
+  } else if (ok === 0) {
+    div.innerHTML = '<span class="err">✗ 0 / 17 未解鎖</span>（密碼閘啟用中）· origin <code>' + location.hostname + '</code>';
+    div.className = 'status err';
+  } else {
+    div.innerHTML = '⚠ 部分解鎖 ' + ok + ' / 17 · origin <code>' + location.hostname + '</code>';
+    div.className = 'status err';
+  }
+}
+
+updateCheck();
+</script>
+
+</body>
+</html>
