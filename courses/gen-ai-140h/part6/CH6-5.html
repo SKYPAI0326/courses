@@ -196,6 +196,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
       <div class="mini-prac-output">
         <div class="mini-prac-output-label">成果產出</div>
         <div class="mini-prac-output-text">一份上線前風險檢查表：Streaming、Evals、Guardrails、成本四欄各有狀態、風險、下一步。</div>
+        <textarea aria-label="你的版本" rows="4" placeholder="把你的版本寫在這裡，refresh 後仍會保留。" style="margin-top:10px;width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:inherit;font-size:.85rem;line-height:1.7;background:var(--c-card);color:var(--c-text);resize:vertical;min-height:80px"></textarea>
       </div>
       <div class="mini-prac-check">
         <span class="mini-prac-check-label">結果驗證卡</span>
@@ -390,6 +391,7 @@ T6 input: "送給同事的生日卡片 150"
       <div class="mini-prac-output">
         <div class="mini-prac-output-label">成果產出</div>
         <div class="mini-prac-output-text">golden_set.json（或 .csv）+ eval.py 腳本 + 一張 baseline 結果表（通過率 / 平均相似度 / 失敗案例前 3 筆）。</div>
+        <textarea aria-label="你的版本" rows="4" placeholder="把你的版本寫在這裡，refresh 後仍會保留。" style="margin-top:10px;width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:inherit;font-size:.85rem;line-height:1.7;background:var(--c-card);color:var(--c-text);resize:vertical;min-height:80px"></textarea>
       </div>
       <div class="mini-prac-check">
         <span class="mini-prac-check-label">自我檢核</span>
@@ -533,6 +535,7 @@ golden set 20 題通過率：18/20 (90%)
       <div class="mini-prac-output">
         <div class="mini-prac-output-label">成果產出</div>
         <div class="mini-prac-output-text">一張「前 / 後」對照表（input tokens｜output tokens｜單次成本｜品質分數），加一句結論「這版省了 X%，品質維持在 Y」。</div>
+        <textarea aria-label="你的版本" rows="4" placeholder="把你的版本寫在這裡，refresh 後仍會保留。" style="margin-top:10px;width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:inherit;font-size:.85rem;line-height:1.7;background:var(--c-card);color:var(--c-text);resize:vertical;min-height:80px"></textarea>
       </div>
       <div class="mini-prac-check">
         <span class="mini-prac-check-label">自我檢核</span>
@@ -913,7 +916,7 @@ reveals.forEach(el => io.observe(el));
 </script>
 
 <script>
-// 迷你練習 checkbox 狀態持久化
+// 迷你練習 checkbox + textarea 狀態持久化
 (function(){
   document.querySelectorAll('.mini-prac').forEach(function(mp){
     var id=mp.dataset.mp;if(!id)return;
@@ -921,6 +924,15 @@ reveals.forEach(el => io.observe(el));
       var k='mp:'+id+':'+i;
       if(localStorage.getItem(k)==='1')cb.checked=true;
       cb.addEventListener('change',function(){localStorage.setItem(k,cb.checked?'1':'0');});
+    });
+    mp.querySelectorAll('textarea').forEach(function(ta,i){
+      var k='mp:'+id+':ta:'+i;
+      var saved=localStorage.getItem(k);
+      if(saved!==null)ta.value=saved;
+      var t;ta.addEventListener('input',function(){
+        clearTimeout(t);t=setTimeout(function(){localStorage.setItem(k,ta.value);},300);
+      });
+      ta.addEventListener('blur',function(){localStorage.setItem(k,ta.value);});
     });
   });
 })();
