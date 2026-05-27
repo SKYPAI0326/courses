@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>互動小遊戲上 GitHub（三選一）· PRAC5-14｜Gen AI 職訓實務應用班</title>
+<meta name="description" content="用提示詞讓 AI 產出單檔 HTML 互動小遊戲（Wordle / 記憶配對 / 打地鼠），加入 localStorage 最高分，部署到 GitHub Pages 拿到可分享網址。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="互動小遊戲上 GitHub（三選一）· PRAC5-14｜Gen AI 職訓實務應用班">
+<meta property="og:description" content="用提示詞讓 AI 產出單檔 HTML 互動小遊戲（Wordle / 記憶配對 / 打地鼠），加入 localStorage 最高分，部署到 GitHub Pages 拿到可分享網址。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/gen-ai-140h/part5/PRAC5-14.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="互動小遊戲上 GitHub（三選一）· PRAC5-14｜Gen AI 職訓實務應用班">
+<meta name="twitter:description" content="用提示詞讓 AI 產出單檔 HTML 互動小遊戲（Wordle / 記憶配對 / 打地鼠），加入 localStorage 最高分，部署到 GitHub Pages 拿到可分享網址。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/gen-ai-140h/part5/PRAC5-14.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-border-soft:#e8e4da;
+  --c-text:#2c2b28; --c-muted:#7a766d; --c-faint:#bcb8ae;
+  --c-a1:#6b7fa3; --c-a2:#c9963a; --c-a3:#5a7a5a; --c-a4:#6b7fa3;
+  --c-main:#6b7fa3;
+  --radius:6px; --radius-sm:4px; --content-w:780px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;word-break:break-word;overflow-wrap:break-word;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+
+/* topbar */
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-main);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.07);padding:3px 12px;border-radius:99px;font-weight:500}
+
+/* progress */
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);width:0%;transition:width .1s;opacity:.75}
+
+/* hero */
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px}
+.back-link:hover{color:var(--c-main)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.hero-part{font-size:.73rem;color:var(--c-muted);letter-spacing:.08em;font-weight:500;font-variant-numeric:tabular-nums}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border)}
+.hero-num{font-size:.73rem;color:var(--c-main);letter-spacing:1px;font-weight:500}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;max-width:22ch}
+.lesson-tagline{font-size:1rem;color:var(--c-muted);line-height:1.9;max-width:38em;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:8px;padding:20px 0;border-top:1px solid var(--c-border-soft);border-bottom:1px solid var(--c-border-soft)}
+.outcomes-label{font-family:'Shippori Mincho',serif;font-style:italic;font-size:.78rem;color:var(--c-muted);letter-spacing:.03em;margin-bottom:2px}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.9rem}
+.outcome-dot{width:12px;height:1px;background:var(--c-faint);margin-top:14px;flex-shrink:0}
+
+/* body */
+.prac-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px}
+.lesson-section{margin-bottom:64px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.95;margin-bottom:20px}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:64px 0}
+
+/* callout（單色） */
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px}
+.callout-body{font-size:.9rem;line-height:1.8}
+.callout-body strong{font-weight:700}
+
+/* 三選一提示詞卡（平衡並列） */
+.prompt-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:28px 0}
+.prompt-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+.pc-header{padding:14px 16px 10px;border-bottom:1px solid var(--c-border-soft)}
+.pc-label{font-size:.68rem;letter-spacing:1.5px;font-weight:600;color:var(--c-muted);text-transform:uppercase;margin-bottom:6px}
+.pc-title{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);line-height:1.3}
+.pc-badge{display:inline-block;font-size:.65rem;padding:2px 8px;border-radius:99px;font-weight:600;margin-top:6px}
+.pc-badge.current{background:rgba(107,127,163,.12);color:var(--c-main);border:1px solid rgba(107,127,163,.25)}
+.pc-badge.alt{background:var(--c-surface);color:var(--c-muted);border:1px solid var(--c-border)}
+.pc-use{font-size:.78rem;color:var(--c-muted);padding:10px 16px;line-height:1.65;border-bottom:1px solid var(--c-border-soft);flex:1}
+.pc-prompt{padding:12px 16px;background:#fafaf5;font-size:.78rem;line-height:1.7;color:var(--c-text);font-family:'Noto Sans TC',sans-serif;white-space:pre-wrap;word-break:break-word;border-bottom:1px solid var(--c-border-soft)}
+.pc-footer{padding:10px 16px;display:flex;justify-content:flex-end}
+.copy-btn{font-size:.72rem;color:var(--c-main);background:none;border:1px solid rgba(107,127,163,.3);padding:4px 14px;border-radius:99px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:background .2s}
+.copy-btn:hover{background:rgba(107,127,163,.08)}
+.copy-btn.copied{color:var(--c-a3);border-color:rgba(90,122,90,.35);background:rgba(90,122,90,.06)}
+@media(max-width:768px){.prompt-cards{grid-template-columns:1fr}}
+
+/* AI 對話示範 */
+.dialog-box{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);margin:20px 0;overflow:hidden}
+.dialog-row{display:flex;gap:0;align-items:stretch}
+.dialog-role{writing-mode:vertical-rl;text-orientation:mixed;font-size:.65rem;letter-spacing:1.5px;font-weight:600;padding:14px 10px;background:var(--c-surface);border-right:1px solid var(--c-border);color:var(--c-muted);text-transform:uppercase;flex-shrink:0;min-width:32px}
+.dialog-role.ai{background:rgba(107,127,163,.06)}
+.dialog-content{padding:14px 18px;font-size:.88rem;line-height:1.85;flex:1}
+.dialog-content code{font-family:'Courier New',monospace;font-size:.82em;background:var(--c-surface);padding:1px 5px;border-radius:3px}
+.dialog-content pre{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:12px 16px;font-size:.8rem;line-height:1.7;font-family:'Courier New',monospace;white-space:pre-wrap;word-break:break-word;margin:8px 0}
+.dialog-copy-row{display:flex;justify-content:flex-end;padding:0 16px 12px;gap:8px}
+
+/* expected-output */
+.expected-output{background:#fafaf5;border:1px solid var(--c-border);border-left:2px solid var(--c-faint);border-radius:var(--radius);padding:20px 24px;margin:16px 0}
+.expected-label{font-size:.68rem;letter-spacing:1.5px;font-weight:600;color:var(--c-muted);text-transform:uppercase;margin-bottom:12px}
+.expected-body{font-size:.88rem;line-height:1.85;color:var(--c-text)}
+.expected-body code{font-family:'Courier New',monospace;font-size:.82em;background:var(--c-surface);padding:1px 5px;border-radius:3px}
+.expected-note{font-size:.75rem;color:var(--c-faint);margin-top:10px;line-height:1.6}
+
+/* localStorage callout（突出） */
+.ls-callout{background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-text);border-radius:var(--radius);padding:24px 28px;margin:28px 0}
+.ls-callout-eyebrow{font-size:.68rem;letter-spacing:2px;font-weight:600;color:var(--c-muted);text-transform:uppercase;margin-bottom:10px}
+.ls-callout-heading{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin-bottom:14px}
+.ls-callout-body{font-size:.9rem;line-height:1.9;color:var(--c-text);margin-bottom:16px}
+.ls-prompt-box{background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.82rem;line-height:1.8;padding:16px 20px;border-radius:var(--radius-sm);white-space:pre-wrap;word-break:break-word;margin:12px 0}
+.ls-footer{display:flex;justify-content:flex-end;margin-top:8px}
+
+/* 部署步驟表格 */
+.deploy-table{width:100%;border-collapse:collapse;font-size:.88rem;margin:24px 0}
+.deploy-table th{font-family:'Shippori Mincho',serif;font-size:.8rem;font-weight:700;color:var(--c-muted);border-bottom:2px solid var(--c-border);padding:8px 12px;text-align:left;letter-spacing:.06em}
+.deploy-table td{padding:10px 12px;border-bottom:1px solid var(--c-border-soft);vertical-align:top;line-height:1.7}
+.deploy-table td:first-child{font-family:'Shippori Mincho',serif;font-weight:700;color:var(--c-main);width:48px;text-align:center}
+.deploy-table tr:last-child td{border-bottom:none}
+
+/* 卡關卡片 */
+.error-cards{display:flex;flex-direction:column;gap:16px;margin:28px 0}
+.error-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden}
+.error-card-header{display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--c-surface);border-bottom:1px solid var(--c-border)}
+.error-num{font-family:'Shippori Mincho',serif;font-size:.85rem;font-weight:700;color:var(--c-muted);width:26px;height:26px;border-radius:50%;border:1.5px solid var(--c-border);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.error-title{font-size:.9rem;font-weight:700;color:var(--c-text)}
+.error-body{padding:14px 18px}
+.error-symptom{font-size:.82rem;color:var(--c-muted);margin-bottom:8px;line-height:1.75}
+.error-fix{background:#fafaf5;border-left:2px solid var(--c-faint);padding:10px 14px;border-radius:0 var(--radius-sm) var(--radius-sm) 0;font-size:.85rem;line-height:1.75;color:var(--c-text);margin-top:8px}
+.error-fix code{font-family:'Courier New',monospace;font-size:.82em;background:var(--c-surface);padding:1px 5px;border-radius:3px}
+
+/* 動手做驗收 */
+.task-box{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);padding:28px 32px;margin:28px 0}
+.task-box-eyebrow{font-size:.68rem;letter-spacing:2px;font-weight:600;color:var(--c-muted);text-transform:uppercase;margin-bottom:16px}
+.task-checklist{display:flex;flex-direction:column;gap:10px}
+.task-check{display:flex;align-items:flex-start;gap:12px;font-size:.9rem;line-height:1.7;color:var(--c-text);cursor:pointer}
+.task-check input{margin-top:4px;accent-color:var(--c-main);flex-shrink:0;cursor:pointer}
+.task-check input:checked ~ span{color:var(--c-muted);text-decoration:line-through}
+.task-hint{font-size:.78rem;color:var(--c-muted);margin-top:14px;line-height:1.7;padding-top:14px;border-top:1px dashed var(--c-border)}
+
+/* 自學變化版 */
+.variation-list{display:flex;flex-direction:column;gap:12px;margin:24px 0}
+.variation-item{display:flex;gap:12px;padding:14px 18px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius-sm)}
+.var-num{font-family:'Shippori Mincho',serif;font-size:.82rem;font-weight:700;color:var(--c-main);width:22px;height:22px;border-radius:50%;background:rgba(107,127,163,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.var-body{flex:1}
+.var-title{font-size:.88rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.var-prompt{background:#fafaf5;border:1px solid var(--c-border-soft);border-radius:var(--radius-sm);padding:10px 14px;font-size:.8rem;line-height:1.75;color:var(--c-text);white-space:pre-wrap;margin-bottom:8px}
+.var-copy-row{display:flex;justify-content:flex-end}
+
+/* 步驟列 */
+.steps-list{display:flex;flex-direction:column;gap:0;margin:28px 0}
+.step-item{display:flex;gap:0;position:relative}
+.step-item:not(:last-child)::before{content:'';position:absolute;left:20px;top:44px;bottom:0;width:1px;background:var(--c-border)}
+.step-num-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:40px;padding-top:4px}
+.step-num{width:40px;height:40px;border-radius:50%;background:var(--c-card);border:1.5px solid var(--c-border);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-text);flex-shrink:0}
+.step-body{flex:1;padding:4px 0 32px 24px}
+.step-title{font-size:.92rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.step-desc{font-size:.85rem;color:var(--c-muted);line-height:1.75}
+.step-desc strong{color:var(--c-text);font-weight:700}
+
+/* 收尾摘要 */
+.summary-box{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0}
+.sb-half{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 22px}
+.sb-label{font-size:.68rem;letter-spacing:1.5px;font-weight:600;color:var(--c-muted);text-transform:uppercase;margin-bottom:12px}
+.sb-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.75;margin-bottom:8px}
+.sb-check{color:var(--c-a3);font-size:.9rem;flex-shrink:0;margin-top:2px}
+.sb-cross{color:var(--c-faint);font-size:.9rem;flex-shrink:0;margin-top:2px}
+@media(max-width:600px){.summary-box{grid-template-columns:1fr}}
+
+/* nav */
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1}
+.nav-btn:hover{border-color:var(--c-main)}
+.nav-btn.next{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* footer */
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+
+/* difficulty badge */
+.difficulty-badge{display:inline-flex;align-items:center;padding:3px 12px;border-radius:99px;font-size:.73rem;font-weight:500;letter-spacing:.5px}
+.diff-easy{background:rgba(90,122,90,.1);color:var(--c-a3);border:1px solid rgba(90,122,90,.25)}
+.diff-medium{background:rgba(201,150,58,.1);color:var(--c-a2);border:1px solid rgba(201,150,58,.3)}
+
+/* section dots */
+.section-dots{position:fixed;left:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:40;opacity:0;transition:opacity .4s ease}
+.section-dots.visible{opacity:1}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--c-border);cursor:pointer;transition:background .3s ease,transform .3s ease;border:none;padding:0}
+.sdot.active{background:var(--c-main);transform:scale(1.5)}
+@media(max-width:1100px){.section-dots{display:none}}
+
+/* a11y */
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+
+/* RWD */
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero{padding:56px 32px 40px}.prac-body{padding:0 32px 80px}.lesson-nav{padding:0 32px 80px}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:40px 20px 36px}.lesson-title{font-size:1.45rem;max-width:100%}.prac-body{padding:0 20px 60px}.lesson-nav{padding:0 20px 60px;flex-direction:column}.nav-btn{flex:none}.footer{padding:20px}.deploy-table{font-size:.8rem}}
+</style>
+</head>
+<body>
+
+<!-- _gate（複製自同課既有頁） -->
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='gen140_auth',H='34810b0ecfa2dab0a29120fc3ff1f867aec23bc5f23a184b8c6c3c7d3a550400';if(localStorage.getItem(K)==='1')sessionStorage.setItem(K,'1');if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">Gen AI 職訓實務應用班</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">PRAC 5-14</div>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+<nav class="section-dots" id="sectionDots" aria-label="章節導航"></nav>
+
+<div class="lesson-hero" id="main">
+  <a class="back-link" href="../index.html"><span aria-hidden="true">←</span> 回課程目錄</a>
+  <div class="hero-meta">
+    <div class="hero-part">PART 5 · 前端與部署實戰</div>
+    <div class="hero-divider-v"></div>
+    <div class="hero-num" data-duration="2h">PRAC 5-14 · 1h 課堂 + 1h 自學</div>
+    <div class="hero-divider-v"></div>
+    <span class="difficulty-badge diff-medium">中等</span>
+  </div>
+  <h1 class="lesson-title">互動小遊戲上 GitHub（三選一）</h1>
+  <p class="lesson-tagline">你不需要懂 JavaScript，只要會在提示詞裡指名「請加最高分功能」——AI 就把程式碼補上。60 分鐘後你會有一個朋友能玩、會記分、能在手機上跑的小遊戲網址。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">PRACTICE GOALS</div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>用提示詞讓 AI 產出單檔 HTML 互動小遊戲（Wordle / 記憶配對 / 打地鼠 三選一）</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>學會「請用 localStorage 存 [某物]」這招，讓任何工具記得最高分、偏好設定</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>走完 CH5-5 五步部署，拿到可分享的 GitHub Pages 網址</span></div>
+  </div>
+</div>
+
+<div class="prac-body">
+
+  <!-- ─── (01) 破題 ─── -->
+  <div class="lesson-section" id="sec-hook">
+    <div class="section-eyebrow">(01) · 破題</div>
+    <h2 class="section-heading">6 分鐘讓新人記住 16 個同事名字</h2>
+    <p class="body-text">下班時間 6 點半，行政小陳跟同事在茶水間聊天。</p>
+    <p class="body-text">同事說：「上週你的個人單頁網站做超快，是怎麼弄的？」</p>
+    <p class="body-text">她想到一個更好玩的點子：「<strong>新人到職這週，要不要我做一個『同事姓名記憶配對遊戲』，讓他用玩遊戲的方式背名字？</strong>」</p>
+    <p class="body-text">3 分鐘她貼提示詞給 Claude Artifacts、3 分鐘走 CH5-5 五步、6 分鐘新人桌上多了一個網址 —— 點開是 16 張卡片配對遊戲、每張卡片背後是部門同事的名字和頭像、配對成功會發出叮咚聲。</p>
+    <p class="body-text">新人邊玩邊笑，<strong>一週後她全部 16 個同事姓名都認得</strong>。</p>
+    <div class="callout tip">
+      <div class="callout-icon" aria-hidden="true">💡</div>
+      <div class="callout-body">這 1 小時，我們把「<strong>遊戲也只是 HTML</strong>」這個觀念內化。你選任一種遊戲，跑完整流程，拿到可分享網址。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- ─── (02) 三選一提示詞卡 ─── -->
+  <div class="lesson-section" id="sec-prompts">
+    <div class="section-eyebrow">(02) · 概念</div>
+    <h2 class="section-heading">三選一提示詞卡——先挑遊戲，再跑流程</h2>
+    <p class="body-text">今天有 3 種遊戲，<strong>任挑一個</strong>跑完整流程。現場示範用選項 B 記憶配對，自學包三個都跑完。</p>
+
+    <div class="prompt-cards">
+
+      <!-- 選項 A — Wordle -->
+      <div class="prompt-card">
+        <div class="pc-header">
+          <div class="pc-label">選項 A</div>
+          <div class="pc-title">中文 Wordle 猜詞遊戲</div>
+          <span class="pc-badge alt">課程複習 / 術語學習</span>
+        </div>
+        <div class="pc-use">適合做「課程複習」「公司術語學習」「行銷詞彙練習」—— AI 先問你要猜的詞，你丟清單它做題庫。</div>
+        <div class="pc-prompt" id="prompt-a">請用單一 HTML 檔做一個中文猜詞遊戲：我會給你 10 個課程關鍵詞，玩家每輪猜一個詞，系統提示「字數」與「猜對幾個字」，6 次內猜中得分。介面用米白底、深灰格線。請先回我「請給我關鍵詞清單」。</div>
+        <div class="pc-footer">
+          <button class="copy-btn" onclick="_cpPrompt('prompt-a',this)">複製提示詞</button>
+        </div>
+      </div>
+
+      <!-- 選項 B — 記憶配對（現場示範） -->
+      <div class="prompt-card">
+        <div class="pc-header">
+          <div class="pc-label">選項 B</div>
+          <div class="pc-title">記憶配對翻牌</div>
+          <span class="pc-badge current">現場示範</span>
+        </div>
+        <div class="pc-use">最實用、最容易客製。主題可換：同事姓名、課程術語、公司產品特色——貼 8 對內容就好，程式碼 AI 全包。</div>
+        <div class="pc-prompt" id="prompt-b">請用單一 HTML 檔做一個 4×4 記憶配對翻牌遊戲。要求：
+- 8 對配對卡片（共 16 張）
+- 點擊翻牌、配對成功保持翻開、失敗 1 秒後翻回去
+- 配對成功播放音效（用 Web Audio API 純音、不要外部音檔）
+- 顯示步數計時器，全部配對完顯示「恭喜！X 步、Y 秒」
+- 用 localStorage 存最少步數紀錄
+- 介面米白底、卡片正面用主題色（米白底 + 深綠 / 棕的襯線數字 #1-#8）、卡片反面顯示內容
+- 內容由我提供，請先回我「請給我 8 對配對的內容（每對：標題 + 對應描述）」
+
+主題我會說，你先回我那句確認。</div>
+        <div class="pc-footer">
+          <button class="copy-btn" onclick="_cpPrompt('prompt-b',this)">複製提示詞</button>
+        </div>
+      </div>
+
+      <!-- 選項 C — 打地鼠 -->
+      <div class="prompt-card">
+        <div class="pc-header">
+          <div class="pc-label">選項 C</div>
+          <div class="pc-title">打地鼠計分遊戲</div>
+          <span class="pc-badge alt">5 分鐘紓壓 / 最快完成</span>
+        </div>
+        <div class="pc-use">提示詞最直接，不需 AI 先問問題、直接給完整 HTML。時間緊或想穩穩過關就選這個。</div>
+        <div class="pc-prompt" id="prompt-c">請用單一 HTML 檔做一個打地鼠遊戲：
+- 9 格 3×3 地洞網格、米白底、地洞用深灰色
+- 地鼠隨機冒出 1 秒（用 emoji 🐹 或純文字「地鼠」）
+- 滑鼠點到地鼠加 1 分、沒點到不扣分
+- 60 秒倒數計時、結束顯示總分
+- 最高分用 localStorage 存
+- 手機可玩（觸控也算點擊）
+- 開始按鈕、結束顯示「再玩一次」按鈕
+
+請直接給我完整 HTML。</div>
+        <div class="pc-footer">
+          <button class="copy-btn" onclick="_cpPrompt('prompt-c',this)">複製提示詞</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- ─── (03) AI 對話示範 ─── -->
+  <div class="lesson-section" id="sec-demo">
+    <div class="section-eyebrow">(03) · 操作示範</div>
+    <h2 class="section-heading">選項 B 完整 AI 對話示範：同事姓名記憶配對</h2>
+    <p class="body-text">講師現場跑一次。跟著看怎麼把選項 B 提示詞貼進 Claude Artifacts，再餵 8 對內容，60 秒拿到完整遊戲。</p>
+
+    <!-- 回合 1 -->
+    <div class="dialog-box">
+      <div class="dialog-row">
+        <div class="dialog-role">學員</div>
+        <div class="dialog-content">（複製選項 B 提示詞，貼進 Claude Artifacts）<br><br>
+請用單一 HTML 檔做一個 4×4 記憶配對翻牌遊戲。要求：8 對配對卡片（共 16 張）、點擊翻牌、配對成功保持翻開、失敗 1 秒後翻回去、配對成功播放音效（用 Web Audio API 純音、不要外部音檔）、顯示步數計時器、全部配對完顯示「恭喜！X 步、Y 秒」、用 localStorage 存最少步數紀錄、介面米白底、卡片正面用主題色（米白底 + 深綠的襯線數字 #1-#8）、卡片反面顯示內容、內容由我提供，請先回我「請給我 8 對配對的內容（每對：標題 + 對應描述）」。主題我會說，你先回我那句確認。
+        </div>
+      </div>
+    </div>
+
+    <div class="expected-output">
+      <div class="expected-label">Claude Artifacts 大概會回</div>
+      <div class="expected-body">好的，請給我 8 對配對的內容（每對：標題 + 對應描述）。<br><br>
+例如：<br>
+1. 標題「小華」→ 描述「業務部、最愛拿鐵」<br>
+2. ...<br><br>
+你只要告訴我 8 對就好。</div>
+      <div class="expected-note">實際措辭每次略有差異，但會確認要收 8 對內容。</div>
+    </div>
+
+    <!-- 回合 2 -->
+    <div class="dialog-box">
+      <div class="dialog-row">
+        <div class="dialog-role">學員</div>
+        <div class="dialog-content">（貼自己的 8 對。這裡用示範資料）<br><br>
+1. 阿宏 / 工程部、會養多肉<br>
+2. Vivian / 行銷部、養兩隻貓<br>
+3. 大頭 / 業務部、每天早餐都吃蛋餅<br>
+4. 小雯 / HR、最愛吃辣<br>
+5. 阿傑 / 設計部、玩搖滾樂團<br>
+6. Ann / 財務部、烘焙高手<br>
+7. 老王 / IT、收藏 Lego<br>
+8. 子瑜 / 法務、跑馬拉松
+        </div>
+      </div>
+    </div>
+
+    <div class="expected-output">
+      <div class="expected-label">Claude Artifacts 產出</div>
+      <div class="expected-body">產出完整單檔 HTML，約 250 行，含 CSS、JS、音效邏輯、localStorage。打開後看到：<br><br>
+      ・標題「同事姓名記憶配對」<br>
+      ・步數計時器（左上）、最少步數紀錄（右上）<br>
+      ・4×4 卡片陣列，正面寫 #1-#8 大字<br>
+      ・點兩張是同一對 → 配對成功 + 叮咚音效<br>
+      ・點兩張不同 → 1 秒後翻回去<br>
+      ・全部配完 → 跳出「恭喜！X 步、Y 秒」
+      </div>
+      <div class="expected-note">你沒寫一個字程式碼——翻牌動畫、配對判斷、音效、計時、最高分紀錄，全部 Claude 寫好了。</div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon" aria-hidden="true">💡</div>
+      <div class="callout-body"><strong>主題換一換就是全新工具：</strong>課程術語（AI 名詞配解釋）、公司產品（產品配特色）、英文單字（單字配中文）—— 只要換 8 對內容，遊戲邏輯完全相同。</div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- ─── (04) localStorage 一招 ─── -->
+  <div class="lesson-section" id="sec-localstorage">
+    <div class="section-eyebrow">(04) · 元能力</div>
+    <h2 class="section-heading">「遊戲要存最高分」這招要背起來</h2>
+    <p class="body-text">這是本單元最值得帶走的「元能力」：你不需要懂 <code style="font-family:'Courier New',monospace;font-size:.85em;background:var(--c-surface);padding:1px 5px;border-radius:3px">localStorage</code> 是什麼，<strong>只要會在提示詞裡指名</strong>。</p>
+
+    <div class="ls-callout">
+      <div class="ls-callout-eyebrow">背起來這個句型</div>
+      <div class="ls-callout-heading">「請用 localStorage 存 [某個東西]，下次打開還在。」</div>
+      <div class="ls-callout-body">凡是你做的小遊戲、小工具，只要結果想存下來（最高分、設定、上次填過的內容），在原提示詞末尾加一句就好。</div>
+      <div id="ls-examples">
+        <div style="font-size:.82rem;line-height:1.9;color:var(--c-text);margin-bottom:4px">範例：</div>
+        <div class="ls-prompt-box" id="ls-prompt-text">「請用 localStorage 存玩家最高分，下次打開還在。」
+「請用 localStorage 存最後一次填過的姓名和 Email，下次打開自動填回去。」
+「請用 localStorage 存深色 / 淺色模式偏好，下次打開記得。」</div>
+      </div>
+      <div class="ls-footer">
+        <button class="copy-btn" onclick="_cpEl('ls-prompt-text',this)">複製範例</button>
+      </div>
+    </div>
+
+    <p class="body-text">你不需要知道：localStorage 是什麼（瀏覽器內建的小資料庫）、它怎麼存（key-value 字串）、容量多大（5MB，遊戲分數綽綽有餘）。<strong>你只要會「指名」這個功能存在。AI 會自動把對應的 JS 程式碼補進去。</strong></p>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- ─── (05) 部署 ─── -->
+  <div class="lesson-section" id="sec-deploy">
+    <div class="section-eyebrow">(05) · 部署</div>
+    <h2 class="section-heading">走 CH5-5 五步，拿到可分享網址</h2>
+    <div class="callout info">
+      <div class="callout-icon" aria-hidden="true">↩</div>
+      <div class="callout-body">完整步驟在 <strong>CH5-5 節</strong>，這裡只列本單元對應的操作——不重複教，複習用。</div>
+    </div>
+    <table class="deploy-table">
+      <thead>
+        <tr>
+          <th>Step</th>
+          <th>本單元對應動作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>New repository → 命名 <strong>memory-game</strong>（或 <strong>wordle-game</strong> / <strong>whack-a-mole</strong>）→ Public + README → Create</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>repo 頁面按 <code style="font-family:'Courier New',monospace;font-size:.85em;background:var(--c-surface);padding:1px 5px;border-radius:3px">.</code> 進 github.dev</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td>新建 <strong>index.html</strong> → 貼 Claude Artifacts 的完整 HTML</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>Source Control → stage → commit <strong>init</strong> → Commit &amp; Push</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td>Settings → Pages → main → Save → 等 1~3 分鐘</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="body-text">拿到 <code style="font-family:'Courier New',monospace;font-size:.85em;background:var(--c-surface);padding:1px 5px;border-radius:3px">https://{你的帳號}.github.io/memory-game/</code>，分享給同事玩。</p>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- ─── (06) 卡關地圖 ─── -->
+  <div class="lesson-section" id="sec-errors">
+    <div class="section-eyebrow">(06) · 卡關地圖</div>
+    <h2 class="section-heading">常見的 5 個卡關點與修法</h2>
+
+    <div class="error-cards">
+
+      <div class="error-card">
+        <div class="error-card-header">
+          <div class="error-num">1</div>
+          <div class="error-title">AI 用了 emoji 但部分裝置顯示方框</div>
+        </div>
+        <div class="error-body">
+          <div class="error-symptom"><strong>症狀：</strong>遊戲在 Mac 看正常，Windows / Android 學員打開看到「□」。<strong>原因：</strong>部分舊版 Windows / Android 不支援較新的 emoji。</div>
+          <div class="error-fix">
+            回 AI 說：「請把所有 emoji 圖示（🐹 等）改成<strong>純文字符號</strong>（用「鼠」「貓」這種中文）或 SVG inline。」
+          </div>
+        </div>
+      </div>
+
+      <div class="error-card">
+        <div class="error-card-header">
+          <div class="error-num">2</div>
+          <div class="error-title">翻牌動畫不順、看起來卡頓</div>
+        </div>
+        <div class="error-body">
+          <div class="error-symptom"><strong>症狀：</strong>點卡片、3D 翻牌動畫一頓一頓。<strong>原因：</strong>AI 預設沒加 CSS <code>transition</code> 過渡效果。</div>
+          <div class="error-fix">
+            回 AI 說：「請在卡片翻牌動畫加 <code>transition: transform 0.4s ease-in-out</code>，讓動作平順。」
+          </div>
+        </div>
+      </div>
+
+      <div class="error-card">
+        <div class="error-card-header">
+          <div class="error-num">3</div>
+          <div class="error-title">音效在 iOS Safari 不響</div>
+        </div>
+        <div class="error-body">
+          <div class="error-symptom"><strong>症狀：</strong>Mac / Android 有叮咚音效，iPhone Safari 沒聲音。<strong>原因：</strong>iOS Safari 要求使用者先點擊頁面才能播音效。</div>
+          <div class="error-fix">
+            回 AI 說：「請加一個「<strong>開始遊戲</strong>」按鈕，玩家點下去才開始計時。在這個點擊事件裡初始化 <code>AudioContext</code>，這樣 iOS Safari 才能播聲音。」
+          </div>
+        </div>
+      </div>
+
+      <div class="error-card">
+        <div class="error-card-header">
+          <div class="error-num">4</div>
+          <div class="error-title">localStorage 紀錄沒存到，重整就消失</div>
+        </div>
+        <div class="error-body">
+          <div class="error-symptom"><strong>症狀：</strong>破了 20 步紀錄、重整頁面、最少步數變回 0。<strong>原因：</strong>AI 可能寫成 <code>sessionStorage</code>（關分頁就消失）而非 <code>localStorage</code>（永久存）。</div>
+          <div class="error-fix">
+            回 AI 確認：「請確認最少步數是用 <code>localStorage.setItem()</code> / <code>localStorage.getItem()</code>，<strong>不是</strong> <code>sessionStorage</code>。」
+          </div>
+        </div>
+      </div>
+
+      <div class="error-card">
+        <div class="error-card-header">
+          <div class="error-num">5</div>
+          <div class="error-title">4×4 卡片在手機上排成 1 欄（跑版）</div>
+        </div>
+        <div class="error-body">
+          <div class="error-symptom"><strong>症狀：</strong>手機打開，16 張卡片變成上下堆疊 16 行。<strong>原因：</strong>AI 的 RWD 寫太緊，手機螢幕容不下 4×4。</div>
+          <div class="error-fix">
+            回 AI 說：「請優化手機版面：在 375px 寬度時、卡片用 <code>grid-template-columns: repeat(4, 1fr)</code> 強制保持 4 欄，卡片字級可以縮小到 24px。」
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- ─── (07) 動手做 ─── -->
+  <div class="lesson-section" id="sec-practice">
+    <div class="section-eyebrow">(07) · 動手做</div>
+    <h2 class="section-heading">三選一，跑完整流程，拿到可分享網址</h2>
+
+    <p class="body-text"><strong>選遊戲建議：</strong></p>
+    <div class="callout info">
+      <div class="callout-icon" aria-hidden="true">→</div>
+      <div class="callout-body">
+        <strong>時間緊 / 想穩穩過關</strong>→ 選 C 打地鼠（提示詞最直接、不需 AI 先回問內容）<br>
+        <strong>想做有意義的東西</strong>→ 選 B 記憶配對（同事姓名、產品名、術語都行）<br>
+        <strong>想複習課程內容</strong>→ 選 A Wordle（用課程關鍵詞做題庫）
+      </div>
+    </div>
+
+    <div class="task-box">
+      <div class="task-box-eyebrow">驗收門檻 · 打完 4 個勾才算完成</div>
+      <div class="task-checklist">
+        <label class="task-check">
+          <input type="checkbox">
+          <span>拿到 <code style="font-family:'Courier New',monospace;font-size:.85em;background:var(--c-surface);padding:1px 5px;border-radius:3px">https://...github.io/...</code> 網址</span>
+        </label>
+        <label class="task-check">
+          <input type="checkbox">
+          <span>用手機打開能玩、不跑版</span>
+        </label>
+        <label class="task-check">
+          <input type="checkbox">
+          <span>把網址貼給旁邊同學，他玩完一輪</span>
+        </label>
+        <label class="task-check">
+          <input type="checkbox">
+          <span>加分項：他破了你的最高分紀錄（localStorage 有效）</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- ─── (08) 收尾 ─── -->
+  <div class="lesson-section" id="sec-wrap">
+    <div class="section-eyebrow">(08) · 收尾</div>
+    <h2 class="section-heading">你剛剛 60 分鐘做了什麼</h2>
+
+    <div class="summary-box">
+      <div class="sb-half">
+        <div class="sb-label">你做到了</div>
+        <div class="sb-item"><span class="sb-check">✓</span><span>用提示詞讓 AI 產出一個完整可玩的遊戲</span></div>
+        <div class="sb-item"><span class="sb-check">✓</span><span>學會「請用 localStorage 存 [某物]」這招</span></div>
+        <div class="sb-item"><span class="sb-check">✓</span><span>部署成可分享的 GitHub Pages 網址</span></div>
+      </div>
+      <div class="sb-half">
+        <div class="sb-label">你不需要會的</div>
+        <div class="sb-item"><span class="sb-cross">–</span><span>寫一行 JavaScript</span></div>
+        <div class="sb-item"><span class="sb-cross">–</span><span>理解 localStorage 內部運作</span></div>
+        <div class="sb-item"><span class="sb-cross">–</span><span>學 Web Audio API 怎麼合成音效</span></div>
+      </div>
+    </div>
+
+    <p class="body-text"><strong>接下來可以做的事：</strong></p>
+    <p class="body-text">把記憶配對主題換成「公司產品 vs 特色」→ 變成新人訓練教材。把 Wordle 題庫換成「英文單字 + 中文解釋」→ 變成女兒的小遊戲。把打地鼠改成「點到老闆 emoji 加分、點到老婆 emoji 扣分」→ 變成同事間黑色幽默。</p>
+    <p class="body-text"><strong>同一個提示詞範本、不同情境、半小時一個新版本。</strong>這就是「提示詞驅動 + 部署閉環」的威力。</p>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- ─── (09) 自學變化版 ─── -->
+  <div class="lesson-section" id="sec-selflearn">
+    <div class="section-eyebrow">(09) · 自學包</div>
+    <h2 class="section-heading">1 小時自學：把遊戲加 1–2 個功能</h2>
+    <p class="body-text">把選定的遊戲加 1–2 個功能，重新跑提示詞 + 部署新版本。在原提示詞末尾加一句就夠了。</p>
+
+    <div class="variation-list">
+
+      <div class="variation-item">
+        <div class="var-num">1</div>
+        <div class="var-body">
+          <div class="var-title">加難度選擇</div>
+          <div class="var-prompt" id="var-1">在開始畫面加一個難度選擇：簡單 / 中等 / 困難。簡單版減少配對數量（記憶遊戲變 3×4 共 12 張）、困難版增加數量（記憶遊戲變 5×4 共 20 張）。</div>
+          <div class="var-copy-row"><button class="copy-btn" onclick="_cpEl('var-1',this)">複製</button></div>
+        </div>
+      </div>
+
+      <div class="variation-item">
+        <div class="var-num">2</div>
+        <div class="var-body">
+          <div class="var-title">加計時器壓力</div>
+          <div class="var-prompt" id="var-2">請加 60 秒倒數計時。時間到還沒完成 → 顯示「時間到！你完成了 X 對」。</div>
+          <div class="var-copy-row"><button class="copy-btn" onclick="_cpEl('var-2',this)">複製</button></div>
+        </div>
+      </div>
+
+      <div class="variation-item">
+        <div class="var-num">3</div>
+        <div class="var-body">
+          <div class="var-title">加音效豐富度</div>
+          <div class="var-prompt" id="var-3">請把音效豐富化：配對成功 = 高音「叮」、配對失敗 = 低音「噗」、遊戲開始 = 上行音階、遊戲結束 = 下行音階。全部用 Web Audio API 合成，不要外部音檔。</div>
+          <div class="var-copy-row"><button class="copy-btn" onclick="_cpEl('var-3',this)">複製</button></div>
+        </div>
+      </div>
+
+      <div class="variation-item">
+        <div class="var-num">4</div>
+        <div class="var-body">
+          <div class="var-title">加首頁選關卡</div>
+          <div class="var-prompt" id="var-4">請加一個首頁畫面：標題、3 個按鈕（簡單 / 中等 / 困難），點按鈕後才開始遊戲。</div>
+          <div class="var-copy-row"><button class="copy-btn" onclick="_cpEl('var-4',this)">複製</button></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="task-box">
+      <div class="task-box-eyebrow">自學完成標準</div>
+      <div class="task-checklist">
+        <label class="task-check">
+          <input type="checkbox">
+          <span>主版本（課堂跑的）有部署、能玩</span>
+        </label>
+        <label class="task-check">
+          <input type="checkbox">
+          <span>至少 1 個變化版部署完、網址能分享</span>
+        </label>
+        <label class="task-check">
+          <input type="checkbox">
+          <span>在課程討論串寫一句「我學到最有用的一招是什麼」</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- nav -->
+<div class="lesson-nav">
+  <a class="nav-btn" href="PRAC5-13.html">
+    <span aria-hidden="true">←</span>
+    <div>
+      <div class="nav-btn-label">上一頁</div>
+      <div class="nav-btn-title">PRAC5-13</div>
+    </div>
+  </a>
+  <a class="nav-btn next" href="PRAC5-15.html">
+    <div>
+      <div class="nav-btn-label">下一頁</div>
+      <div class="nav-btn-title">PRAC5-15</div>
+    </div>
+    <span aria-hidden="true">→</span>
+  </a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">2026 春季</span>
+  <span class="footer-meta" data-platform-version="2026-05" data-built-at="2026-05-27">本頁以 2026-05 製作，2026-05</span>
+</footer>
+
+<script>
+// 閱讀進度條
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',function(){const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+</script>
+<script>
+// 閱讀位置記憶
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+<script>
+// 複製提示詞
+function _cpPrompt(id, btn){
+  var el=document.getElementById(id);
+  if(!el)return;
+  navigator.clipboard.writeText(el.textContent).then(function(){
+    btn.textContent='已複製';btn.classList.add('copied');
+    setTimeout(function(){btn.textContent='複製提示詞';btn.classList.remove('copied');},2000);
+  }).catch(function(){
+    var ta=document.createElement('textarea');ta.value=el.textContent;
+    ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);
+    ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    btn.textContent='已複製';btn.classList.add('copied');
+    setTimeout(function(){btn.textContent='複製提示詞';btn.classList.remove('copied');},2000);
+  });
+}
+function _cpEl(id, btn){
+  var el=document.getElementById(id);
+  if(!el)return;
+  var orig=btn.textContent;
+  navigator.clipboard.writeText(el.textContent).then(function(){
+    btn.textContent='已複製';btn.classList.add('copied');
+    setTimeout(function(){btn.textContent=orig;btn.classList.remove('copied');},2000);
+  }).catch(function(){
+    var ta=document.createElement('textarea');ta.value=el.textContent;
+    ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);
+    ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    btn.textContent='已複製';btn.classList.add('copied');
+    setTimeout(function(){btn.textContent=orig;btn.classList.remove('copied');},2000);
+  });
+}
+</script>
+<script>
+// 側邊章節導航
+(function(){
+  var sections=Array.from(document.querySelectorAll('.lesson-section'));
+  var nav=document.getElementById('sectionDots');
+  if(!sections.length||!nav)return;
+  sections.forEach(function(sec,i){
+    var btn=document.createElement('button');
+    btn.className='sdot';
+    btn.title=(sec.querySelector('.section-heading')||{}).textContent||('第 '+(i+1)+' 節');
+    btn.addEventListener('click',function(){sec.scrollIntoView({behavior:'smooth',block:'start'});});
+    nav.appendChild(btn);
+  });
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      var i=sections.indexOf(e.target);
+      if(i>=0)nav.children[i]&&nav.children[i].classList.toggle('active',e.isIntersecting);
+    });
+    nav.classList.toggle('visible',Array.from(nav.children).some(function(d){return d.classList.contains('active');}));
+  },{threshold:.15});
+  sections.forEach(function(s){io.observe(s);});
+})();
+</script>
+</body>
+</html>
