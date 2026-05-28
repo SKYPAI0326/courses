@@ -737,11 +737,62 @@ GEN140_RULES = [
 ]
 
 
+def check_raw_text_element_in_content(html: str) -> list:
+    """偵測 body 內含全頁選擇器（body/html/*）的危險 <style> 範例。
+
+    HTML5 raw text element 一旦開標籤，瀏覽器就進入特殊解析模式直到對應
+    closing tag，期間內容被當 CSS 執行。最致命例子（2026-05-28 CH5-3
+    整頁空白事件）：
+
+        echo '<style>body{display:none}</style>' >> index.html
+
+    範例文字裡的 <style>body{display:none}</style> 即使配對完整，瀏覽器
+    仍把 body{display:none} 當有效 CSS 規則執行，整個 body 被 display:none
+    隱藏。前 3 波修補都繞過這條真因。
+
+    規則：body 內所有 <style>...</style> 區段（即使是合法 inline scope），
+    若 CSS 內容含 body{}、html{}、*{} 這類「會影響全頁」的選擇器，且該
+    <style> 不是 #_gs 密碼門 → BLOCKER。理由：合法 inline scope 樣式
+    永遠針對局部 class/id，不會用 body/html/*。
+
+    修補：把示範文字裡的 < > 改成 &lt; &gt;，或包進 <code>/<pre>。
+    """
+    issues = []
+    head_end = re.search(r'</head>', html, re.IGNORECASE)
+    if not head_end:
+        return issues
+    body_part = html[head_end.end():]
+
+    # 先把 <script>...</script> 區段替換成 placeholder（保留長度以維持 line 號精度）
+    def stash_script(m):
+        return '\x00' * len(m.group(0))
+    body_part = re.sub(r'<script\b[^>]*>[\s\S]*?</script>', stash_script, body_part, flags=re.IGNORECASE)
+
+    # 找配對的 <style>...</style> 區段
+    for m in re.finditer(r'<style\b([^>]*)>([\s\S]*?)</style>', body_part, re.IGNORECASE):
+        attrs, css = m.group(1), m.group(2)
+        # 排除密碼門
+        if 'id="_gs"' in attrs:
+            continue
+        # 偵測會影響全頁的選擇器（body{ / html{ / *{）
+        # 注意：CSS 內可能有合法的 `body.dark{}` 等，但裸 `body{` 罕見
+        if re.search(r'(?:^|[\s\}])(body|html|\*)\s*\{', css):
+            abs_pos = head_end.end() + m.start()
+            line = html[:abs_pos].count('\n') + 1
+            offender = re.search(r'(body|html|\*)\s*\{[^}]*\}', css).group(0)[:60]
+            issues.append((
+                "BLOCKER",
+                f"body 內 line {line} 的 <style> 含全頁選擇器（{offender}...）—— 若是範例文字未 escape，會被瀏覽器執行為 CSS。改 &lt;style&gt; 或包 <pre><code>"
+            ))
+    return issues
+
+
 # ── 規則套用 ──────────────────────────────────────────────
 
 # 頁型 → 應套用的規則集
 # V3 規則共用集（不含 W-v3-2，因為 W-v3-2 依頁型 dispatch 嚴格/放寬版本）
 V3_RULES_COMMON = [
+    check_raw_text_element_in_content,
     check_v3_lesson_title_br, check_v3_section_eyebrow_format, check_v3_callout_variants,
     check_v3_prefers_reduced_motion, check_v3_progressbar_aria, check_v3_aria_hidden_icons,
     check_v3_hardcoded_max_width,
@@ -795,6 +846,7 @@ RULES_BY_TYPE = {
     "other": [
         check_box_shadow, check_custom_color_vars, check_gradient,
         check_border_radius_max,
+        check_raw_text_element_in_content,
     ],
 }
 
