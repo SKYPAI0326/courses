@@ -163,7 +163,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="step-circle">2</div>
     <div class="step-content">
       <div class="step-heading">實作一：追蹤特定按鈕點擊</div>
-      <div class="step-body">以追蹤「聯絡我們」按鈕點擊為例。首先，在 LocalWP 網站用 Chrome DevTools 確認按鈕的 HTML 屬性（class 名稱或 id）。然後在 GTM 中：新建觸發條件 <span aria-hidden="true">→</span> 選「點擊 - 所有元素」<span aria-hidden="true">→</span> 觸發條件設為「部分點擊」<span aria-hidden="true">→</span> 條件設定「Click Classes 包含 contact-btn」。新建標籤 <span aria-hidden="true">→</span> GA4 事件 <span aria-hidden="true">→</span> 事件名稱填 click_contact_btn <span aria-hidden="true">→</span> 觸發條件選剛才建立的觸發條件。</div>
+      <div class="step-body">這三個實作的目標元素，演練站都放在「聯絡資訊」頁的<strong>「GTM 追蹤演練區」</strong>：<span class="inline-code">contact-btn</span> 按鈕、<span class="inline-code">.pdf</span> 下載連結、SureForms 聯絡表單，打開該頁用 DevTools 即可對照。<br>以追蹤「聯絡我們」按鈕點擊為例。首先，在 LocalWP 網站用 Chrome DevTools 確認按鈕的 HTML 屬性（class 名稱或 id）。然後在 GTM 中：新建觸發條件 <span aria-hidden="true">→</span> 選「點擊 - 所有元素」<span aria-hidden="true">→</span> 觸發條件設為「部分點擊」<span aria-hidden="true">→</span> 條件設定「Click Classes 包含 contact-btn」。新建標籤 <span aria-hidden="true">→</span> GA4 事件 <span aria-hidden="true">→</span> 事件名稱填 click_contact_btn <span aria-hidden="true">→</span> 觸發條件選剛才建立的觸發條件。</div>
       <div class="code-block"><span style="color:#6b9b8a">// GTM 觸發條件設定邏輯</span>
 觸發條件類型：點擊 - 所有元素
 觸發設定：部分點擊
@@ -203,18 +203,22 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <div class="step-block">
     <div class="step-circle">4</div>
     <div class="step-content">
-      <div class="step-heading">實作三：追蹤表單提交</div>
-      <div class="step-body">表單追蹤比點擊追蹤複雜，因為需要區分「嘗試提交」與「成功提交」。GTM 提供「表單提交」觸發條件類型，在使用者點擊送出按鈕時觸發（不論是否成功）。若需要只追蹤「成功提交」，需要搭配 WordPress 表單外掛的成功頁面 URL 或成功回調函式。</div>
-      <div class="code-block"><span style="color:#6b9b8a">// 方法 1：追蹤所有表單提交嘗試</span>
-觸發條件類型：表單提交
-觸發設定：部分表單
-條件：Form ID  等於  wpcf7-f1-p2-o1
+      <div class="step-heading">實作三：追蹤表單提交（SureForms）</div>
+      <div class="step-body">演練站的聯絡表單用 SureForms（表單 <span class="inline-code">id=srfm-form-1376</span>）。<strong>它是 AJAX 送出、不會換頁</strong>——這代表 GTM 內建的「表單提交」觸發條件、以及 GA4 加強型評估的自動 <span class="inline-code">form_submit</span>，都<strong>抓不到</strong>這個成功事件。這正是「為什麼需要客製化追蹤」最具體的例子：自動追蹤看不到的互動，得自己用 GTM 補。下面兩個方法分別追「送出嘗試」與「成功」。</div>
+      <div class="code-block"><span style="color:#6b9b8a">// 演練站表單：SureForms id=srfm-form-1376，AJAX 送出、不換頁</span>
 
-<span style="color:#6b9b8a">// 方法 2：追蹤成功後跳轉頁面（更準確）</span>
-觸發條件類型：頁面瀏覽
-條件：Page Path  等於  /contact/thank-you/
-事件名稱：form_submit_contact</div>
-      <div class="step-tip"><strong>最佳實踐：</strong>方法 2（追蹤感謝頁面瀏覽）是最準確的表單提交追蹤方式，因為它確認使用者真正完成了提交流程。若表單沒有跳轉頁面，可以用 Contact Form 7 的 wpcf7submit JavaScript 事件搭配 DataLayer push。</div>
+<span style="color:#6b9b8a">// 方法 1：追蹤「送出嘗試」— 點擊送出鈕</span>
+觸發條件類型：點擊 - 所有元素
+觸發設定：部分點擊
+條件：Click Classes  包含  srfm-submit-button
+事件名稱：form_submit_attempt
+
+<span style="color:#6b9b8a">// 方法 2（推薦）：追蹤「成功」— 成功訊息出現時</span>
+觸發條件類型：元素可見度（Element Visibility）
+選取方式：CSS 選擇器
+元素選擇器：.srfm-success-box
+事件名稱：form_submit_success</div>
+      <div class="step-tip"><strong>為什麼用「元素可見度」：</strong>SureForms 送出成功後不換頁，而是在原頁顯示成功訊息框 <span class="inline-code">.srfm-success-box</span>。GTM 的「元素可見度」觸發條件正好可以在這個框出現時開火，比硬抓 AJAX 送出可靠得多。記住這個模式——遇到任何「成功後只變畫面、不換網址」的互動（單頁式結帳、彈窗確認）都可以這樣追。</div>
     </div>
   </div>
 
