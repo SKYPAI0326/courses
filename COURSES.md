@@ -77,6 +77,7 @@
 | `ipas-ai-beginner/` | iPAS AI 應用規劃師初級認證研習（30h） | 建置中 | chapter-flat 10 章，0 基礎友善，certprep Editorial-strict；主色陶土橘；待 course-register |
 | `line-stickers/` | AI 自製 LINE 貼圖（12h 兩階段） | 完成 | Part 1 入門 4h（6 CH）+ Part 2 進階 8h（8 CH），自用導向、全免費工具、含 fill-form 互動表單 + 24 張可列印 handout + 17 張 Codex 角色基準圖；主色陶土橘 |
 | `career-pivot-mid/` | 8 小時轉職實戰：市場趨勢 × 就業準備 × 轉職技巧（8h 一日密集）| 完成 | 13 CH（Part 1 盤點 6 + Part 2 實戰 7）+ 2 PRAC + PDP×MBTI 雙測獨立頁，含「年紀沒有幫助」核心心法；主色霧紫 |
+| `career-guidance/` | 留任、內轉、轉職：8 小時職涯定位實戰（8h 一日密集）| 建置中 | 10 CH（Part 1 判斷方向 6 + Part 2 驗證下一步 4）+ 2 PRAC + PDP×MBTI 雙測獨立頁，三路徑共用四工具，fork 自 career-pivot-mid；主色霧紫；待 course-register |
 | `office-ai-cases/` | 辦公室 AI 工具案例應用（6h 客製版，與 `office-ai/` 並行） | 完成 | 10 頁（4 案例 + CH0 + 2 module + index + platform-guide + prompt-library）+ 4 datasets 800+ 筆 + 56 prompts；通用 prompt + Wrapper；無行銷；不繳交；主色棕金 |
 | `gemini-notebooklm-workshop/` | Gemini × NotebookLM 跨部門 AI 工作坊（8h · 2 天 × 4h 客製） | **v2.1 完成** | 9 頁 + 25 份髒資料 dataset；指定雙工具；跨部門 5 代表（財/業/電/倉/採）；**主軸：可信來源驅動工作流**；**4 件套產物**（知識庫設計表 Min/Pro + 來源可信度檢核表 🟢🟡🔴 + 追問補強包兩洞法 2×4=8 格 + 跨來源決策備忘三層）；對齊 **3 大現實阻力**（資安禁上傳 / SOP 沒版本 / 主管要 ERP 數字 → ERP 接回示範）；Codex v1 三審 9.1/10 ACCEPT + v2 差異化 f1de8a27 actionable + v2.1 學員視角 d6b1da76 7/10 actionable；對接 office-ai-cases 同學員銜接；主色鼠尾草綠 |
 

@@ -29,6 +29,7 @@ COURSES = {
     "career-pivot-mid":("careerpivot_auth", "b4bacdf1af0913ed18ec5123a52d6678b473f880f3769dfb4060ef9378fa28ba"),
     "office-ai-cases": ("officeaicases_auth", "14e9352ec44aabbaa6783a0769f726169b730c443f0ea2b1324672b0fc4bfdf8"),
     "gemini-notebooklm-workshop": ("gnw_auth", "abf7cbf06fcb2eaf7e09ba6cff90501e208500268fee1b098fa588d060fd3084"),
+    "career-guidance": ("careerguidance_auth", "948568fed390bbe7c52ca6aa4f75721aa7a432b60f7b90e6e3496745fe14ee7e"),
 }
 
 GATE_TEMPLATE = '''\
