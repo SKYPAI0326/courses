@@ -332,6 +332,26 @@ PRINT_CSS = """
   /* lesson-section 間距再收一點（原 26px → 18px） */
   .lesson-section { margin-bottom: 18px !important; }
 
+  /* ─── Level 1 分頁修補：減少 label 孤兒與小群組腰斬 ─── */
+
+  /* 標籤類元素禁止與下一個元素分頁分離 */
+  .field-label, .ps-label, .ps-eyebrow,
+  .print-panel-label, .discuss-label,
+  summary, summary.ps-head {
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  /* 小型群組視為原子（內部不允許斷頁）— 只保護小單位，容器不綁，避免大留白 */
+  .field-item, .print-select-options,
+  .discuss-list, .mini-prac-step {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* 段落 orphan / widow 從 3 提到 4，少一點頭尾孤行 */
+  p, li { orphans: 4 !important; widows: 4 !important; }
+
   /* 圖示（svg/img）若太大縮排 */
   img, svg { max-width:100% !important; height:auto !important; }
 
@@ -510,9 +530,11 @@ def build_cover_html(course: str, part_num: int, units: list[Path]) -> str:
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 @page {{ size:A4; margin:0; }}
+*, *::before, *::after {{ box-sizing: border-box; }}
 body {{ margin:0; font-family:'Noto Sans TC',sans-serif; color:#2c2b28; background:#fff; }}
-.cover {{ height:100vh; padding:48mm 24mm; display:flex; flex-direction:column;
-  justify-content:space-between; }}
+.cover {{ height:297mm; padding:46mm 24mm 44mm; display:flex; flex-direction:column;
+  justify-content:space-between; overflow:hidden;
+  break-after:page; page-break-after:always; }}
 .cover-top {{ }}
 .cover-institution {{ font-size:10pt; letter-spacing:.2em; color:#7a766d; }}
 .cover-course {{ font-family:'Shippori Mincho',serif; font-weight:700; font-size:20pt;
