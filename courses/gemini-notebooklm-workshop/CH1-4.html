@@ -1,28 +1,28 @@
 <!DOCTYPE html>
 <!--
   弄一下工作室 — Gemini × NotebookLM 跨部門 AI 工作坊
-  CH1-4 Gemini 輔助彙報壓力測試（v2.1 兩洞補強法 + ERP 接回）
+  CH1-4 Gemini 輔助彙報初稿（單部門）
   ========================================================
-  教案：_lessons/gemini-notebooklm-workshop/CH1-4.md（v2.1，523 行）
+  教案：_lessons/gemini-notebooklm-workshop/CH1-4.md（v3，431 行）
   範本：_規範/lesson-template-v3.html
   主題色：#5a7a5a 鼠尾草綠
-  產出日：2026-05-23
+  產出日：2026-06-02
 -->
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CH1-4 Gemini 輔助彙報壓力測試（兩洞補強法）｜Gemini × NotebookLM 跨部門 AI 工作坊</title>
-<meta name="description" content="兩洞補強法（1 數字洞 + 1 風險洞）× ERP 接回 × 實用閾值：學會挑草稿最弱的 2 洞跑攻防，補上公司系統來源 vs 外部行業參考，回應主管「這是不是我們 ERP 的數字」，產出兩洞補強包。指定雙工具 Gemini + NotebookLM，5 部門變體，帶走素材包。">
+<title>CH1-4 Gemini 輔助彙報初稿（單部門）｜Gemini × NotebookLM 跨部門 AI 工作坊</title>
+<meta name="description" content="上傳部門月報 CSV → 用 1 個 prompt 生出 3 重點 + 1 建議的彙報初稿 → 逐條確認數字來源可追溯 → 格式調整。指定 Gemini 免費版，5 部門 Dataset，帶走追溯確認 Prompt 模板。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
-<meta property="og:title" content="CH1-4 Gemini 輔助彙報壓力測試（兩洞補強法）｜Gemini × NotebookLM 跨部門 AI 工作坊">
-<meta property="og:description" content="兩洞補強法（1 數字洞 + 1 風險洞）× ERP 接回 × 實用閾值：挑草稿最弱 2 洞跑攻防，補上公司系統來源 vs 外部行業參考，產出兩洞補強包。">
+<meta property="og:title" content="CH1-4 Gemini 輔助彙報初稿（單部門）｜Gemini × NotebookLM 跨部門 AI 工作坊">
+<meta property="og:description" content="上傳部門月報 CSV → 生出 3 重點 + 1 建議初稿 → 確認數字可追溯 → 格式調整。指定 Gemini 免費版，5 部門 Dataset，帶走追溯確認 Prompt 模板。">
 <meta property="og:url" content="https://skypai0326.github.io/courses/courses/gemini-notebooklm-workshop/CH1-4.html">
 <meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="CH1-4 Gemini 輔助彙報壓力測試（兩洞補強法）｜Gemini × NotebookLM 跨部門 AI 工作坊">
-<meta name="twitter:description" content="兩洞補強法（1 數字洞 + 1 風險洞）× ERP 接回 × 實用閾值：2 洞攻防 + 公司系統 vs 外部參考標記">
+<meta name="twitter:title" content="CH1-4 Gemini 輔助彙報初稿（單部門）｜Gemini × NotebookLM 跨部門 AI 工作坊">
+<meta name="twitter:description" content="上傳部門月報 CSV → 生出 3 重點 + 1 建議初稿 → 確認數字可追溯 → 格式調整">
 <meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <link rel="canonical" href="https://skypai0326.github.io/courses/courses/gemini-notebooklm-workshop/CH1-4.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -55,7 +55,6 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 .lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
 .section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
 .section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
-.section-heading em{font-style:normal;color:var(--c-text)}
 .section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
 .body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
 .body-text strong{font-weight:500}
@@ -66,12 +65,25 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 .callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
 .callout-icon{flex-shrink:0;font-size:1.1rem}
 .callout-body{font-size:.9rem;line-height:1.85}
+.sub-heading{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin:28px 0 14px;letter-spacing:.01em}
 .steps-inline{display:flex;flex-direction:column;gap:18px;margin:20px 0}
 .step-block{display:flex;gap:16px;align-items:flex-start}
 .step-circle{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:var(--c-text);color:var(--c-bg);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:500}
 .step-content{flex:1;padding-top:4px}
 .step-heading{font-size:.92rem;font-weight:500;color:var(--c-text);margin-bottom:6px;line-height:1.5}
 .step-body{font-size:.85rem;color:var(--c-muted);line-height:1.85}
+.dialog-box{background:var(--c-surface);border:1px solid var(--c-border);border-left:2px solid var(--c-text);border-radius:var(--radius-sm);padding:14px 16px;margin:12px 0 8px;font-size:.88rem;color:var(--c-text);line-height:1.75;position:relative}
+.dialog-label{font-size:.72rem;color:var(--c-muted);font-weight:500;letter-spacing:.5px;margin-bottom:8px;text-transform:uppercase}
+.expected-output{background:var(--c-card);border:1px solid var(--c-border-soft);border-left:2px solid var(--c-muted);border-radius:var(--radius-sm);margin:12px 0 8px;padding:16px 18px}
+.expected-label{font-size:.72rem;color:var(--c-muted);font-weight:500;letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase}
+.expected-body{font-size:.85rem;line-height:1.85;color:var(--c-text)}
+.expected-body p{margin-bottom:8px}
+.expected-body p:last-child{margin-bottom:0}
+.expected-body strong{font-weight:700}
+.expected-body table{width:100%;border-collapse:collapse;margin:8px 0}
+.expected-body th,.expected-body td{padding:8px 10px;border:1px solid var(--c-border-soft);font-size:.82rem;text-align:left}
+.expected-body th{background:var(--c-surface);font-weight:500}
+.expected-note{font-size:.72rem;color:var(--c-muted);margin-top:12px;line-height:1.6;border-top:1px dashed var(--c-border-soft);padding-top:10px}
 .pitfall-block{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 24px;margin:18px 0}
 .pitfall-heading{font-size:.92rem;font-weight:500;color:var(--c-text);margin-bottom:10px;line-height:1.5;display:flex;gap:10px;align-items:flex-start}
 .pitfall-num{font-family:'Shippori Mincho',serif;color:var(--c-main);font-weight:700;flex-shrink:0}
@@ -89,75 +101,26 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 .quiz-ans summary{cursor:pointer;color:var(--c-main);font-weight:500;padding:6px 0}
 .quiz-ans summary:hover{color:var(--c-text)}
 .quiz-ans>div{padding:12px 14px;background:var(--c-surface);border-radius:var(--radius);margin-top:8px}
-/* dialog-box / expected-output */
-.dialog-box{background:var(--c-surface);border:1px solid var(--c-border);border-left:2px solid var(--c-text);border-radius:var(--radius-sm);padding:14px 16px;margin:12px 0 8px;font-size:.88rem;color:var(--c-text);line-height:1.75;position:relative}
-.dialog-label{font-family:'Noto Sans TC',sans-serif;font-size:.72rem;color:var(--c-muted);font-weight:500;letter-spacing:.5px;margin-bottom:8px;text-transform:uppercase}
-.expected-output{background:var(--c-card);border:1px solid var(--c-border-soft);border-left:2px solid var(--c-muted);border-radius:var(--radius-sm);margin:12px 0 8px;padding:16px 18px}
-.expected-label{font-size:.72rem;color:var(--c-muted);font-weight:500;letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase}
-.expected-body{font-size:.85rem;line-height:1.85;color:var(--c-text)}
-.expected-body p{margin-bottom:8px}
-.expected-body p:last-child{margin-bottom:0}
-.expected-body strong{font-weight:700}
-.expected-note{font-size:.72rem;color:var(--c-muted);margin-top:12px;line-height:1.6;border-top:1px dashed var(--c-border-soft);padding-top:10px}
-/* 5 主管追問風格速查表 */
-.style-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.85rem}
-.style-table thead tr{background:var(--c-surface);border-bottom:2px solid var(--c-border)}
-.style-table thead th{padding:10px 14px;text-align:left;font-family:'Shippori Mincho',serif;font-size:.82rem;font-weight:500;color:var(--c-text);letter-spacing:.05em}
-.style-table tbody tr{border-bottom:1px solid var(--c-border-soft)}
-.style-table tbody tr:last-child{border-bottom:none}
-.style-table tbody td{padding:12px 14px;vertical-align:top;line-height:1.75;color:var(--c-text)}
-.style-table .style-emoji{font-size:1.1rem;text-align:center;width:44px}
-.style-table .style-name{font-weight:500;white-space:nowrap}
-.style-table .style-q{color:var(--c-text)}
-.style-table .style-mind{color:var(--c-muted);font-size:.82rem}
-/* 兩洞補強包 2×4=8 格（v2.1 專屬 class，與 v2 的 pack-table 區分） */
-.pack-table-v21{width:100%;border-collapse:collapse;margin:20px 0;font-size:.82rem}
-.pack-table-v21 thead tr{background:var(--c-surface);border-bottom:2px solid var(--c-border)}
-.pack-table-v21 thead th{padding:10px 12px;text-align:left;font-family:'Shippori Mincho',serif;font-size:.78rem;font-weight:500;color:var(--c-text);letter-spacing:.04em;line-height:1.5}
-.pack-table-v21 tbody tr{border-bottom:1px solid var(--c-border-soft)}
-.pack-table-v21 tbody td{padding:14px 12px;vertical-align:top;line-height:1.75;color:var(--c-text)}
-.pack-table-v21 .pack-style{font-weight:500;white-space:nowrap;font-size:.88rem}
-.pack-table-v21 .pack-blank{color:var(--c-faint);font-style:italic;font-size:.78rem}
-/* ERP 對照表 */
-.erp-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.85rem}
-.erp-table thead tr{background:var(--c-surface);border-bottom:2px solid var(--c-border)}
-.erp-table thead th{padding:10px 14px;text-align:left;font-family:'Shippori Mincho',serif;font-size:.82rem;font-weight:500;color:var(--c-text);letter-spacing:.05em}
-.erp-table tbody tr{border-bottom:1px solid var(--c-border-soft)}
-.erp-table tbody tr:last-child{border-bottom:none}
-.erp-table tbody td{padding:12px 14px;vertical-align:top;line-height:1.75;color:var(--c-text)}
-.erp-table .erp-type{font-weight:500}
-/* 部門搭配表 */
-.match-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.85rem}
-.match-table thead tr{background:var(--c-surface);border-bottom:2px solid var(--c-border)}
-.match-table thead th{padding:10px 14px;text-align:left;font-size:.78rem;font-weight:500;color:var(--c-text);letter-spacing:.05em}
-.match-table tbody tr{border-bottom:1px solid var(--c-border-soft)}
-.match-table tbody td{padding:12px 14px;vertical-align:top;line-height:1.75;color:var(--c-text)}
-/* 實用閾值表 */
-.threshold-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.85rem}
-.threshold-table thead tr{background:var(--c-surface);border-bottom:2px solid var(--c-border)}
-.threshold-table thead th{padding:10px 14px;text-align:left;font-family:'Shippori Mincho',serif;font-size:.82rem;font-weight:500;color:var(--c-text);letter-spacing:.05em}
-.threshold-table tbody tr{border-bottom:1px solid var(--c-border-soft)}
-.threshold-table tbody tr:last-child{border-bottom:none}
-.threshold-table tbody td{padding:12px 14px;vertical-align:top;line-height:1.75;color:var(--c-text)}
-/* verify-card */
+.checklist{display:flex;flex-direction:column;gap:8px;margin:16px 0;padding:0}
+.checklist-item{display:flex;gap:10px;align-items:flex-start;font-size:.85rem;color:var(--c-text);line-height:1.75;list-style:none}
+.checklist-item::before{content:"☐";color:var(--c-muted);flex-shrink:0;margin-top:1px}
+.dataset-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.85rem}
+.dataset-table thead tr{background:var(--c-surface);border-bottom:2px solid var(--c-border)}
+.dataset-table thead th{padding:10px 14px;text-align:left;font-family:'Shippori Mincho',serif;font-size:.82rem;font-weight:500;color:var(--c-text);letter-spacing:.05em}
+.dataset-table tbody tr{border-bottom:1px solid var(--c-border-soft)}
+.dataset-table tbody tr:last-child{border-bottom:none}
+.dataset-table tbody td{padding:12px 14px;vertical-align:top;line-height:1.75;color:var(--c-text)}
+.trouble-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.85rem}
+.trouble-table thead tr{background:var(--c-surface);border-bottom:2px solid var(--c-border)}
+.trouble-table thead th{padding:10px 14px;text-align:left;font-family:'Shippori Mincho',serif;font-size:.82rem;font-weight:500;color:var(--c-text);letter-spacing:.05em}
+.trouble-table tbody tr{border-bottom:1px solid var(--c-border-soft)}
+.trouble-table tbody tr:last-child{border-bottom:none}
+.trouble-table tbody td{padding:12px 14px;vertical-align:top;line-height:1.75;color:var(--c-text)}
 .verify-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:22px 26px;margin:20px 0}
 .verify-title{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:500;color:var(--c-text);margin-bottom:14px;letter-spacing:.02em}
 .verify-list{display:flex;flex-direction:column;gap:10px}
 .verify-item{display:flex;gap:10px;align-items:flex-start;font-size:.85rem;color:var(--c-text);line-height:1.75}
 .verify-box{flex-shrink:0;width:14px;height:14px;border:1.5px solid var(--c-text);border-radius:2px;margin-top:4px}
-/* checklist */
-.checklist{display:flex;flex-direction:column;gap:8px;margin:16px 0;padding:0}
-.checklist-item{display:flex;gap:10px;align-items:flex-start;font-size:.85rem;color:var(--c-text);line-height:1.75;list-style:none}
-.checklist-item::before{content:"☐";color:var(--c-muted);flex-shrink:0;margin-top:1px}
-/* tool-grid */
-.tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0}
-.tool-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 22px}
-.tool-name{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:6px;letter-spacing:.01em}
-.tool-tag{display:inline-block;font-size:.7rem;color:var(--c-muted);background:var(--c-surface);padding:2px 10px;border-radius:99px;margin-bottom:12px;letter-spacing:.05em}
-.tool-summary{font-size:.85rem;color:var(--c-muted);line-height:1.8}
-/* h3 共用 */
-.sub-heading{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin:28px 0 14px;letter-spacing:.01em}
-/* nav */
 .nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
 .nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
 .nav-btn:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
@@ -169,7 +132,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 .footer-note{font-size:.75rem;color:var(--c-muted)}
 .footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
 @media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important}*{animation:none!important}}
-@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.tool-grid{grid-template-columns:1fr}.pitfall-row{grid-template-columns:1fr;gap:6px}.style-table,.pack-table-v21,.match-table,.erp-table,.threshold-table{display:block;overflow-x:auto}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.pitfall-row{grid-template-columns:1fr;gap:6px}.dataset-table,.trouble-table{display:block;overflow-x:auto}}
 </style>
 </head>
 <body>
@@ -203,7 +166,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <div class="topbar-divider"></div>
   <span class="topbar-sub">Gemini × NotebookLM 跨部門 AI 工作坊</span>
   <div class="spacer"></div>
-  <span class="topbar-tag">CH1-4 · 60 min</span>
+  <span class="topbar-tag">CH1-4 · 45 min</span>
 </header>
 <div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
 
@@ -211,221 +174,112 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 <div class="page-hero">
   <a href="index.html" class="back-link"><span aria-hidden="true">←</span> 返回課程總覽</a>
-  <div class="hero-eyebrow">(04) Part 1 · Day 2 彙報壓力測試</div>
-  <h1 class="lesson-title">Gemini 輔助彙報壓力測試（兩洞補強法）</h1>
-  <p class="lesson-tagline">主管問「這個 28% 是不是我們 ERP 的數字？」——先去 NotebookLM 補證，補完再回 Gemini 改寫，標清「公司系統來源 vs 外部行業參考」。這個順序律 + ERP 接回原則會在本單元出現三次。</p>
+  <div class="hero-eyebrow">(04) Part 1 · 彙報初稿</div>
+  <h1 class="lesson-title">Gemini 輔助彙報初稿（單部門）</h1>
+  <p class="lesson-tagline">把部門月報 CSV 交給 Gemini，用一個 prompt 生出 3 個重點 + 1 個建議行動的初稿——然後打開原始資料，確認每個數字都找得到出處。</p>
   <div class="outcomes">
     <div class="outcomes-label">學習成果 · OUTCOMES</div>
-    <div class="outcome-item"><strong>能用兩洞補強法</strong>（1 數字洞 + 1 風險洞）跑完 NotebookLM 補證 → Gemini 重寫攻防，產出兩洞補強包（2×4=8 格）</div>
-    <div class="outcome-item"><strong>能標明引用來源類型</strong>：Gemini 改寫段分清「公司內部系統來源（ERP/WMS/CRM）」vs「外部行業參考（白皮書/訪談）」</div>
-    <div class="outcome-item"><strong>能判斷實用閾值</strong>：哪些場合必做兩洞補強、哪些選做、哪些不做，避免每份報告都跑的儀式化</div>
+    <div class="outcome-item"><strong>能上傳資料生出初稿</strong>：用主版 Prompt 讓 Gemini 從 CSV 整理出符合月報格式的 3 重點 + 1 建議</div>
+    <div class="outcome-item"><strong>能確認數字可追溯</strong>：每條重點的數字都能在原始資料欄位中找到對應，追問 Gemini 計算過程</div>
+    <div class="outcome-item"><strong>能調整輸出格式</strong>：在同一對話中直接要求換表格、改條數、調語氣，不重新上傳資料</div>
   </div>
 </div>
 
 <section class="lesson-section">
   <div class="section-eyebrow">(01)</div>
-  <h2 class="section-heading">Decision Checkpoint — 順序律 + ERP 接回</h2>
+  <h2 class="section-heading">破題 — 你現在怎麼整理資料給主管？</h2>
   <div class="intro-band">
     <div class="intro-label">為什麼這很重要</div>
-    <div class="intro-text">這個順序直接決定主管追問第二輪時你能不能回答。先去 Gemini 改寫沒有新證據，只是換句話講同一個數字；先去 NotebookLM 取出引用片段，Gemini 才有東西可以掛回去。<strong>今天還有第二層</strong>：取出來的引用要分清楚是公司內部系統數字還是外部行業參考——主管心裡判斷的不是「有沒有引用」，是「這數字算不算我們公司的」。</div>
+    <div class="intro-text">手動複製貼上、自己寫條列文字，平均花 1 小時。今天要學的只有一件事：把資料給 Gemini，讓它幫你整理成主管要看的格式，你只需要確認數字對不對。</div>
   </div>
-  <p class="body-text">開場直接問你一題，舉手回答：</p>
+  <p class="body-text">開場用一個問題讓學員舉手：</p>
   <div class="callout">
     <div class="callout-icon" aria-hidden="true">❓</div>
-    <div class="callout-body">「主管讀完你的報告，指著第三條問『<strong>這個 28% 是不是我們 ERP 的數字？</strong>』——你下一步要先回 Gemini 重寫、還是先回 NotebookLM 補證？」</div>
+    <div class="callout-body">「你每個月都要整理資料給主管看——你現在的做法是什麼？」</div>
   </div>
-  <p class="body-text">預期答：<strong>先 NotebookLM 補證，再 Gemini 改寫</strong>。</p>
-  <p class="body-text">順序講錯的學員會走進一條死路：Gemini 沒有新證據可吃，只能換句話講同一個數字，主管追問第二輪會直接破功。先去 NotebookLM 取出引用片段，Gemini 才有東西可以掛回去。</p>
-  <p class="body-text">這個順序律 + ERP 接回原則會在整個單元出現三次（示範段 / Prompt 拆解段 / 上機段）。</p>
+  <p class="body-text">預期回答：手動複製貼上、Excel 自己算、請同事幫忙整理。這些做法都沒問題，但有個更快的路：<strong>把資料給 Gemini，讓它幫你整理出主管想看的格式</strong>。</p>
+  <p class="body-text">今天要學的事情只有一件：</p>
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">→</div>
+    <div class="callout-body"><strong>上傳你的部門月報 → 給 Gemini 一個 prompt → 拿到 3 個重點 + 1 個建議的初稿 → 本人確認數字正確 → 可以拿去用了</strong></div>
+  </div>
+  <p class="body-text">釐清三件容易搞混的事：</p>
+  <p class="body-text"><strong>1. Gemini 整理，不是 Gemini 猜測</strong><br>你給它 Excel / CSV，它從裡面整理出來。不是讓它憑空幫你「想像」本月狀況。</p>
+  <p class="body-text"><strong>2. 初稿，不是定稿</strong><br>Gemini 生出來是草稿，你要自己對一次數字。數字從資料來的才能放心用，Gemini 推算的要確認。</p>
+  <p class="body-text"><strong>3. 格式可以調</strong><br>不喜歡條列？要換表格？直接說。這是今天會練的第二個動作。</p>
 </section>
 
 <hr class="section-rule">
 
 <section class="lesson-section">
   <div class="section-eyebrow">(02)</div>
-  <h2 class="section-heading">講師示範 — 速查表 + 兩洞主版 + ERP 接回（15 min）</h2>
+  <h2 class="section-heading">講師示範 — 凱倫用 Gemini 整理財務月報（10 min）</h2>
 
-  <p class="body-text"><strong>POV：怡君（電商營運經理）</strong>。起點素材是她在 CH1-3 跑完 NotebookLM 取證 + Gemini 整合產出的「電商平台競品研究主管報告草稿」（5-7 條主張、含 SWOT、含來源可信度標記）。本段示範三件事：</p>
-  <ul class="checklist" style="margin-bottom:20px">
-    <li class="checklist-item">5 主管追問風格速查表（3 min · 看過即可，不是課堂要跑完的清單）</li>
-    <li class="checklist-item">兩洞補強法主版示範（7 min · 怡君挑 1 數字洞 + 1 風險洞跑完整迴圈）</li>
-    <li class="checklist-item">ERP 接回示範（5 min · 同一條數字怎麼分「公司系統來源 vs 外部參考」）</li>
-  </ul>
+  <p class="body-text"><strong>POV：凱倫（財務專員，負責每月整理各品項收支月報給財務主管）</strong></p>
+  <p class="body-text">凱倫手上有一份月報 CSV（<code style="font-family:'Courier New',monospace;background:var(--c-surface);padding:1px 6px;border-radius:2px;font-size:.85em">finance-monthly-karen.csv</code>），欄位是：月份、品項分類、銷售金額、成本、毛利、是否異常。每個月她都要手動盯著這份表格寫彙報，大概要花 1 個小時。今天她試試看用 Gemini 幫她整理。</p>
 
-  <h3 class="sub-heading">段 1：5 主管追問風格速查表（3 min · 附錄等級，不是課堂跑完的清單）</h3>
-  <p class="body-text">講師把這張清單投影出來、快速讀過。學員回部門挑洞時拿來對照——<strong>不是課堂要跑完 5 種</strong>，是回部門時的「洞的種類提示」。📊 數字洞 + ⚠️ 風險洞是必跑 2 洞；其他 3 種留回部門看主管習慣再加。</p>
-
-  <table class="style-table">
-    <thead>
-      <tr>
-        <th class="style-emoji">Emoji</th>
-        <th>風格</th>
-        <th>主管嘴上問的</th>
-        <th>對應的洞</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="style-emoji">🛡️</td>
-        <td class="style-name">保守型</td>
-        <td class="style-q">「這數字可靠嗎？來源是什麼？」</td>
-        <td class="style-mind">來源可靠性洞</td>
-      </tr>
-      <tr style="background:rgba(90,122,90,.04)">
-        <td class="style-emoji">📊</td>
-        <td class="style-name"><strong>數字型</strong></td>
-        <td class="style-q">「明細呢？分布呢？均值跟中位數哪個更代表性？」</td>
-        <td class="style-mind"><strong>數字洞（必跑）</strong></td>
-      </tr>
-      <tr style="background:rgba(90,122,90,.04)">
-        <td class="style-emoji">⚠️</td>
-        <td class="style-name"><strong>風險型</strong></td>
-        <td class="style-q">「最壞情況？這個假設失效會怎樣？」</td>
-        <td class="style-mind"><strong>風險洞（必跑）</strong></td>
-      </tr>
-      <tr>
-        <td class="style-emoji">🎯</td>
-        <td class="style-name">戰略型</td>
-        <td class="style-q">「跟競爭對手比怎樣？為什麼鎖這家不鎖第二名？」</td>
-        <td class="style-mind">機會成本洞</td>
-      </tr>
-      <tr>
-        <td class="style-emoji">🔬</td>
-        <td class="style-name">細節型</td>
-        <td class="style-q">「第三條第二句的『顯著成長』是多少？來源段落引給我看」</td>
-        <td class="style-mind">引用追溯洞</td>
-      </tr>
-    </tbody>
-  </table>
-
+  <h3 class="sub-heading">步驟 1：上傳資料（1 min）</h3>
+  <p class="body-text">凱倫開啟 Gemini，把 <code style="font-family:'Courier New',monospace;background:var(--c-surface);padding:1px 6px;border-radius:2px;font-size:.85em">finance-monthly-karen.csv</code> 直接拖進對話框。Gemini 會確認已讀取。</p>
   <div class="callout">
     <div class="callout-icon" aria-hidden="true">→</div>
-    <div class="callout-body"><strong>不要把這張表當儀式跑完</strong>。回部門時：先讀草稿、想主管會卡哪 2 個地方、挑數字洞 + 風險洞跑攻防，跑完就交差。其他洞當「萬一有時間再補」。</div>
+    <div class="callout-body">Gemini 免費版支援上傳 CSV / Excel / PDF。上傳前確認檔案不包含薪資明細、個人身分資料等敏感內容（公司規定）。</div>
   </div>
 
-  <h3 class="sub-heading">段 2：兩洞補強法主版示範 — 怡君跑 1 數字洞 + 1 風險洞（7 min）</h3>
-
-  <p class="body-text">怡君的草稿第三條原文：「蝦皮競品 A 在 Q3 顯著成長，威脅明顯。」她在腦子裡跑兩個問題：</p>
-  <ul class="checklist" style="margin-bottom:16px">
-    <li class="checklist-item"><strong>數字洞（📊）</strong>：「顯著成長」到底多少？哪幾個月？</li>
-    <li class="checklist-item"><strong>風險洞（⚠️）</strong>：這個成長如果是 Q4 補貼退場就沒了，威脅該怎麼定？</li>
-  </ul>
-
-  <p class="body-text"><strong>洞 1（數字洞）· 30 秒 NotebookLM 補證</strong>（怡君切回 CH1-3 建好的「電商競品 notebook」）</p>
-
+  <h3 class="sub-heading">步驟 2：第一個 prompt——生出初稿（3 min）</h3>
   <div class="dialog-box">
-    <div class="dialog-label">怡君在 NotebookLM</div>
-    請從本 notebook 找關於「蝦皮 Q3 成長」的具體數據，列出：(a) 數字 (b) 引用位置（哪份來源、哪一段）(c) 該來源是公司內部系統還是外部行業報告。若找不到請明說「source 中無此數據」。
+    <div class="dialog-label">凱倫的 Prompt</div>
+    根據這份資料，用條列方式整理出 3 個本月重點 + 1 個建議行動，格式是給主管看的月報彙報。語氣簡短，每條一行，不要寫背景說明。
   </div>
-
   <div class="expected-output">
-    <div class="expected-label">NotebookLM 大概會回</div>
+    <div class="expected-label">Gemini 大概會回（示意）</div>
     <div class="expected-body">
-      <p>依本 notebook source，蝦皮 Q3 GMV 較去年同期成長 <strong>28%</strong>。</p>
-      <p>【引用：《2026 Q3 電商平台白皮書》第 12 頁】</p>
-      <p>【來源類型：外部行業報告（資策會 MIC 公開發布）】</p>
+      <p><strong>本月重點</strong></p>
+      <ol style="padding-left:18px;margin:8px 0">
+        <li>3C 品項毛利率下滑至 18%，較上月降 4 個百分點，為本月最大異常。</li>
+        <li>家電品項銷售金額達 $420,000，超出預算 12%，是本月業績亮點。</li>
+        <li>服飾品項成本攀升，成本率從 55% 上升至 62%，需追查進貨原因。</li>
+      </ol>
+      <p><strong>建議行動</strong></p>
+      <ul style="padding-left:18px;margin:8px 0">
+        <li>優先核查 3C 品項成本異常原因，下週週會前提供說明。</li>
+      </ul>
     </div>
-    <div class="expected-note">實際輸出每次略有差異。重點是：NotebookLM 不只給數字 + 引用位置，還明示這是「外部行業報告」而非公司 ERP 數據——這條會讓 Gemini 改寫時知道要標清楚。</div>
+    <div class="expected-note">實際輸出每次略有差異，數字從 CSV 資料來。凱倫現在要做一件事：對照原始 CSV，確認每條數字是不是真的在資料裡找得到。</div>
   </div>
 
-  <p class="body-text" style="margin-top:20px"><strong>洞 2（風險洞）· 30 秒 NotebookLM 補證</strong></p>
-
+  <h3 class="sub-heading">步驟 3：確認數字來自資料，不是 Gemini 推算（3 min）</h3>
+  <p class="body-text">這是最重要的步驟，也是最容易被跳過的步驟。</p>
+  <p class="body-text">凱倫的確認動作：打開原始 CSV，找「3C 品項毛利率 18%」——資料裡確實有這個數字。找「家電 $420,000」——也在。找「服飾成本率 62%」——在。三條全部對到了，初稿可以用。</p>
+  <p class="body-text">如果有一條找不到，代表 Gemini 可能是推算的。找不到就刪掉或補問：</p>
   <div class="dialog-box">
-    <div class="dialog-label">怡君在 NotebookLM</div>
-    請從本 notebook 找蝦皮 Q3 成長是否與平台補貼相關，補貼預期持續多久？列出引用位置 + 來源類型（公司系統 / 外部報告）。
+    <div class="dialog-label">凱倫追問（若數字找不到原始依據）</div>
+    第 3 條「服飾成本率 62%」是從資料的哪個欄位算出來的？請列出計算過程。
   </div>
-
   <div class="expected-output">
-    <div class="expected-label">NotebookLM 大概會回</div>
+    <div class="expected-label">Gemini 大概會回（示意）</div>
     <div class="expected-body">
-      <p>依 source，蝦皮 Q3 推出「滿千折百」平台補貼，預期 Q4 部分品類補貼將縮減。</p>
-      <p>【引用：《2026 Q3 電商平台白皮書》第 18 頁 + 業內訪談 #2】</p>
-      <p>【來源類型：外部行業報告 + 二手訪談】</p>
+      <p>服飾品項 成本欄總計 $124,000，銷售金額欄總計 $200,000，成本率 = 124,000 ÷ 200,000 = 62%。</p>
     </div>
-    <div class="expected-note">實際輸出每次略有差異。重點是：風險洞的補證不是另一個數字，是「假設失效情境的證據」——這條會讓改寫段的「若 X 不成立則 Y」有實證支撐，不是憑空寫。</div>
+    <div class="expected-note">如果 Gemini 能列出計算過程且數字可以在 CSV 核實，這條才算可信。如果它回「依趨勢推估」或說不出計算依據，這條要刪掉或自己去算。</div>
   </div>
 
-  <p class="body-text" style="margin-top:20px"><strong>Gemini 重寫補強段</strong>（怡君切到 Gemini · 把兩洞補證材料一起塞）</p>
-
+  <h3 class="sub-heading">步驟 4：格式調整（3 min）</h3>
+  <p class="body-text">主管說他想要表格格式，不要條列。凱倫直接說：</p>
   <div class="dialog-box">
-    <div class="dialog-label">怡君在 Gemini</div>
-    請把下面這段主張補上 [NotebookLM 取證材料]，並要求：<br>
-    1. 在句中明示數據與來源（用括號標出處）<br>
-    2. <strong>標明引用是「公司內部系統來源」還是「外部行業參考」</strong>——主管會用這個判斷該不該採信<br>
-    3. 加 1 句「若 [這個假設] 不成立則 [替代結論]」<br>
-    4. 不要改變原本主張的方向，只補證據與限制<br><br>
-    原主張：「蝦皮競品 A 在 Q3 顯著成長，威脅明顯。」<br><br>
-    [NotebookLM 取證材料]：<br>
-    - 數字洞：蝦皮 Q3 GMV 較去年同期成長 28%（外部行業參考：2026 Q3 電商平台白皮書，第 12 頁）<br>
-    - 風險洞：Q3 成長與平台「滿千折百」補貼相關，Q4 補貼將縮減（外部行業參考：同白皮書 18 頁 + 業內訪談 #2）
+    <div class="dialog-label">凱倫的格式調整 Prompt</div>
+    把上面的 3 個重點改成表格，欄位是：項目 / 數字 / 說明。
   </div>
-
   <div class="expected-output">
-    <div class="expected-label">Gemini 大概會回</div>
+    <div class="expected-label">Gemini 大概會回（示意）</div>
     <div class="expected-body">
-      <p>蝦皮競品 A 在 Q3 GMV 較去年同期成長 28%（<strong>外部行業參考</strong>：2026 Q3 電商平台白皮書，第 12 頁），對我方電商平台構成明顯威脅。<strong>若該成長主要來自平台「滿千折百」補貼，且 Q4 補貼縮減（外部行業參考：同白皮書 18 頁 + 業內訪談 #2），則威脅程度需下修為中等</strong>。</p>
+      <table>
+        <tr><th>項目</th><th>數字</th><th>說明</th></tr>
+        <tr><td>3C 毛利率</td><td>18%（↓4pp）</td><td>本月最大異常，成本升</td></tr>
+        <tr><td>家電銷售</td><td>$420,000</td><td>超出預算 12%，正向</td></tr>
+        <tr><td>服飾成本率</td><td>62%（↑7pp）</td><td>進貨成本攀升，待查</td></tr>
+      </table>
     </div>
-    <div class="expected-note">實際輸出每次略有差異。怡君把這段貼回主管報告草稿第三條——整個迴圈 90 秒內跑完 2 洞，不是 5 風格 × 4 欄 = 20 格的儀式版。</div>
-  </div>
-
-  <h3 class="sub-heading">段 3：ERP 接回示範 — 主管追問「這是不是我們公司的數字？」（5 min）</h3>
-
-  <p class="body-text"><strong>情境</strong>：怡君把上面那段補強段貼回草稿，主管讀完追問：</p>
-
-  <div class="callout">
-    <div class="callout-icon" aria-hidden="true">❓</div>
-    <div class="callout-body">「這個 28% 是不是<strong>我們 ERP 的數字</strong>？還是你從外面文章抄的？」</div>
-  </div>
-
-  <p class="body-text">這是致命盲點——<strong>主管不買單 NotebookLM 引用</strong>，他要的是「<strong>這算不算我們公司的數據</strong>」。如果引用沒接回公司正式系統，說服力打對折。對策：取證 + 改寫時就要分清楚兩種來源：</p>
-
-  <table class="erp-table">
-    <thead>
-      <tr>
-        <th>來源類型</th>
-        <th>範例引用標記寫法</th>
-        <th>主管信任度</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="erp-type"><strong>公司內部系統來源</strong></td>
-        <td>「依公司 ERP-2026Q1 系統 + 採購單編號 PO-202612-08 + 雙重查證」</td>
-        <td>高（主管直接採信）</td>
-      </tr>
-      <tr>
-        <td class="erp-type"><strong>外部行業參考</strong></td>
-        <td>「外部行業參考：2026 Q3 電商平台白皮書，第 12 頁」</td>
-        <td>中（主管會問「我們自己的數字呢」）</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <p class="body-text"><strong>怡君的補救動作</strong>：草稿第三條若要說「對我方威脅明顯」，光有外部白皮書不夠——還要去自家 ERP 拉一條我方對應數字（例：我方同期該品類 GMV 變動）作對照。</p>
-
-  <div class="dialog-box">
-    <div class="dialog-label">怡君在 NotebookLM（補拉公司 ERP 數據）</div>
-    請從本 notebook 找我方公司 ERP 系統匯出的 Q3 同品類 GMV 數據，列出：(a) 數字 (b) 引用位置（哪個 ERP 報表、報表編號）(c) 明示這是「公司內部系統來源」。若 source 中無此數據，請說明。
-  </div>
-
-  <div class="expected-output">
-    <div class="expected-label">NotebookLM 大概會回（情境 A · source 內有 ERP 匯出）</div>
-    <div class="expected-body">
-      <p>依本 notebook source，我方 Q3 同品類 GMV 較去年同期成長 12%。</p>
-      <p>【引用：ERP-2026Q1 月報，報表編號 SR-202609-13】</p>
-      <p>【來源類型：<strong>公司內部系統來源</strong>】</p>
-    </div>
-    <div class="expected-note">實際輸出每次略有差異。情境 B：若 NotebookLM 回「source 中無此數據」，代表 CH1-3 建 notebook 時沒把 ERP 匯出檔放進去。這時要回 CH1-3 補 source，不是讓 Gemini 編一個。</div>
-  </div>
-
-  <p class="body-text" style="margin-top:20px"><strong>最終補強段</strong>（怡君把 ERP 數字接回，主管就買單了）：</p>
-
-  <div class="expected-output">
-    <div class="expected-label">怡君的補強段 v3（含 ERP 接回）— 含 ERP-2026Q1 + SR-202609-13 編號</div>
-    <div class="expected-body">
-      <p>蝦皮競品 A 在 Q3 GMV 較去年同期成長 28%（<strong>外部行業參考</strong>：2026 Q3 電商平台白皮書，第 12 頁）；同期我方同品類 GMV 成長 12%（<strong>公司內部系統來源</strong>：ERP-2026Q1 月報，報表編號 SR-202609-13），對手成長速度為我方 2.3 倍，威脅明顯。<strong>若蝦皮成長主要來自「滿千折百」補貼且 Q4 縮減（外部行業參考：同白皮書 18 頁），則威脅程度需下修為中等</strong>。</p>
-    </div>
-    <div class="expected-note">特徵：外部數字 + 公司 ERP 對照 + 風險限制句三件齊全。主管問「這是不是我們公司的數字」時，怡君指得出「同品類我方 12%」是 ERP 報表編號 SR-202609-13——這條主管會買單。</div>
+    <div class="expected-note">實際輸出每次略有差異。換成表格格式大概一秒鐘。</div>
   </div>
 </section>
 
@@ -433,141 +287,113 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 <section class="lesson-section">
   <div class="section-eyebrow">(03)</div>
-  <h2 class="section-heading">Prompt 拆解 — 3 個 Wrapper 為何這樣寫（5 min）</h2>
+  <h2 class="section-heading">Prompt 拆解 — 3 個模板為何這樣寫（5 min）</h2>
 
-  <p class="body-text">把示範段用到的三組 prompt wrapper 攤開，逐個說「為什麼這樣寫」。<strong>重點是 Wrapper 3 比 v2 多 1 條約束</strong>（公司系統來源 vs 外部參考）。</p>
+  <p class="body-text">把剛才示範用的 prompt 攤開，說清楚「為什麼這樣寫」和「遇到問題怎麼辦」。</p>
 
-  <h3 class="sub-heading">Wrapper 1：兩洞挑選（在 Gemini，掃描自己的草稿）</h3>
-
+  <h3 class="sub-heading">主版 Prompt（生初稿）</h3>
   <div class="dialog-box">
-    <div class="dialog-label">你在 Gemini</div>
-    請從本初稿中挑出最容易被主管追問的 <strong>1 個數字洞</strong>（📊：缺數字 / 分布 / 比較基準）和 <strong>1 個風險洞</strong>（⚠️：缺最壞情況 / 假設失效情境），每個洞列出：<br>
-    1. 原文句（直接引用）<br>
-    2. 主管可能怎麼問（一句話）<br>
-    3. 缺什麼證據才能回答<br><br>
-    [貼上 CH1-3 產出的主管報告草稿]
+    <div class="dialog-label">主版 Prompt 模板</div>
+    根據這份資料，用條列方式整理出 3 個本月重點 + 1 個建議行動，格式是給主管看的月報彙報。語氣簡短，每條一行，不要寫背景說明。
   </div>
+  <p class="body-text"><strong>為什麼要說「根據這份資料」</strong>：讓 Gemini 明白它只能從你上傳的資料整理，不能自己補充外部知識。不加這句，Gemini 有時候會把業界趨勢混進來。</p>
+  <p class="body-text"><strong>為什麼說「3 個重點 + 1 個建議」</strong>：限定數量，Gemini 不會給你 10 條讓你自己篩。主管版彙報控制在 3–5 條是安全範圍。</p>
+  <p class="body-text"><strong>為什麼說「不要寫背景說明」</strong>：Gemini 預設會加很多鋪墊語，主管不需要。這句話可以幫你省 2/3 的字數。</p>
 
-  <p class="body-text"><strong>為何這樣寫</strong>：不是要 Gemini 列 5 個風格全套，是<strong>只挑 2 洞</strong>——主管追問頻率高的就這兩種。Gemini 列出來後，學員可以再加 🛡️🎯🔬 但不強迫。</p>
-
-  <h3 class="sub-heading">Wrapper 2：NotebookLM 補證（在 NotebookLM · 要分公司系統 / 外部參考）</h3>
-
+  <h3 class="sub-heading">確認數字 Prompt（追溯）</h3>
   <div class="dialog-box">
-    <div class="dialog-label">你在 NotebookLM</div>
-    請從本 notebook 找關於 [X] 的數據或引述，列出：<br>
-    1. 數字 / 引述內容<br>
-    2. 引用位置（哪份來源、哪一段）<br>
-    3. <strong>來源類型：公司內部系統來源（ERP / 報表 / 內部 SOP）還是外部行業參考（白皮書 / 訪談 / 媒體報導）</strong><br>
-    若找不到具體數字，請明說「source 中無此數據」。
+    <div class="dialog-label">追溯數字的 Prompt 模板</div>
+    第 [N] 條「[數字]」是從資料的哪個欄位算出來的？請列出計算過程。
   </div>
+  <p class="body-text"><strong>什麼時候用</strong>：每一條你對不起來的數字，都問一次。不要因為「看起來合理」就跳過確認。</p>
+  <p class="body-text"><strong>Gemini 說不出計算過程怎麼辦</strong>：代表可能是推算。選擇 ① 自己去 Excel 算 ② 把這條刪掉不報 ③ 標注「待查」。三條路都比直接用更安全。</p>
 
-  <p class="body-text"><strong>為何這樣寫</strong>：v2 的 Wrapper 2 只要「引用位置」，v2.1 多了「來源類型分類」——這是 ERP 接回的關鍵，後面 Wrapper 3 才能精準標。「找不到請明說」逼 NotebookLM 不要編。</p>
-
-  <h3 class="sub-heading">Wrapper 3：Gemini 改寫補強段（在 Gemini · 多 1 條 ERP 標記約束）</h3>
-
+  <h3 class="sub-heading">格式調整 Prompt</h3>
   <div class="dialog-box">
-    <div class="dialog-label">你在 Gemini</div>
-    請把下面這段補上 [NotebookLM 取證材料]，並要求：<br>
-    1. 在句中明示數據與來源（用括號標出處）<br>
-    2. <strong>標明引用是「公司內部系統來源」還是「外部行業參考」</strong>——主管會用這個判斷該不該採信<br>
-    3. 加 1 句「若 [這個假設] 不成立則 [替代結論]」<br>
-    4. 不要改變原本主張的方向，只補證據與限制<br><br>
-    原主張：[貼上要補強的段落]<br>
-    [NotebookLM 取證材料]：[貼上 NotebookLM 引用片段 + 來源 + 來源類型]
+    <div class="dialog-label">格式調整 Prompt 模板</div>
+    把上面的 [N] 個重點改成表格，欄位是：[你要的欄位名稱]。
   </div>
-
-  <p class="body-text"><strong>為何這樣寫</strong>：v2 的 Wrapper 3 只要「明示來源 + 風險限制句 + 不翻盤」3 條，<strong>v2.1 多了第 2 條「公司系統 / 外部參考」標記</strong>。主管讀補強段時眼睛掃過去就知道「這條是我們自己的數字還是外面的」——這是學員視角審查指出的致命盲點。</p>
-
-  <div class="callout">
-    <div class="callout-icon" aria-hidden="true">⚠</div>
-    <div class="callout-body"><strong>順序律 + ERP 接回原則</strong>：Wrapper 1 挑 2 洞 → Wrapper 2 在 NotebookLM 取證（含來源類型）→ Wrapper 3 回 Gemini 改寫（標公司系統 / 外部參考）。<strong>順序不能倒</strong>——沒有取證材料 Wrapper 3 餵不出東西；沒有來源類型分類就標不出 ERP 接回。</div>
-  </div>
+  <p class="body-text"><strong>可以調的格式</strong>：表格、條列、編號清單、5 條變 3 條、加一欄「負責人」、改成 STAR 格式——直接說就好。在同一個對話框繼續說，Gemini 知道你在調整剛才那份，不需要重貼資料。</p>
 </section>
 
 <hr class="section-rule">
 
 <section class="lesson-section">
   <div class="section-eyebrow">(04)</div>
-  <h2 class="section-heading">動手練習 — 2 人組角色扮演攻防（25 min）</h2>
+  <h2 class="section-heading">學員上機 — 產出自己部門的彙報初稿（25 min）</h2>
 
-  <p class="body-text"><strong>素材</strong>：每位學員拿自己在 CH1-3 產出的部門變體主管報告草稿（5-7 條主張 + SWOT + 來源可信度標記）。沒做完的學員可用主版的怡君草稿當代用。</p>
-  <p class="body-text"><strong>形式</strong>：2 人 1 組角色扮演 · 每人挑 1 數字洞 + 1 風險洞</p>
+  <p class="body-text"><strong>目標</strong>：每位學員生出一份自己部門的 3 重點 + 1 建議彙報初稿，並確認數字可追溯。</p>
 
+  <h3 class="sub-heading">素材選擇（二選一）</h3>
+  <p class="body-text"><strong>A. 用自己的部門資料</strong>：上傳自己日常月報（格式不限，CSV / Excel / PDF 截圖均可）</p>
+  <p class="body-text"><strong>B. 用課程範例資料</strong>：在 Starter Kit 裡選對應部門的 dataset（見下表）</p>
+
+  <table class="dataset-table">
+    <thead>
+      <tr><th>部門</th><th>主角</th><th>檔名</th><th>資料說明</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>財務</td><td>凱倫</td><td><code style="font-size:.82em">finance-monthly-karen.csv</code></td><td>月份、品項分類、銷售金額、成本、毛利、是否異常</td></tr>
+      <tr><td>業務</td><td>小李</td><td><code style="font-size:.82em">sales-monthly-xiaoli.csv</code></td><td>月份、客戶名稱、成交金額、目標、達成率、異動備註</td></tr>
+      <tr><td>電商</td><td>怡君</td><td><code style="font-size:.82em">ecom-monthly-yijun.csv</code></td><td>月份、平台、SKU 類別、流量、轉換率、GMV</td></tr>
+      <tr><td>倉儲</td><td>阿翔</td><td><code style="font-size:.82em">warehouse-monthly-axiang.csv</code></td><td>月份、品項類別、入庫量、出庫量、庫存天數、盤損</td></tr>
+      <tr><td>採購</td><td>采蓁</td><td><code style="font-size:.82em">procurement-monthly-caizhen.csv</code></td><td>月份、供應商、品項、報價、採購金額、帳期、交期達成</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="sub-heading">上機流程（按步驟做）</h3>
   <div class="steps-inline">
     <div class="step-block">
-      <div class="step-circle">A</div>
+      <div class="step-circle">1</div>
       <div class="step-content">
-        <div class="step-heading">A 扮主管</div>
-        <div class="step-body">用 📊 數字型 + ⚠️ 風險型 質問 B 的草稿（每洞 1 句追問）。<strong>附加題</strong>：問完 2 洞後，加問一句「這是不是你們 ERP 的數字？」測試 B 的 ERP 接回功力。</div>
+        <div class="step-heading">上傳資料</div>
+        <div class="step-body">自己的資料或課程範例 Dataset，拖進 Gemini 對話框</div>
       </div>
     </div>
     <div class="step-block">
-      <div class="step-circle">B</div>
+      <div class="step-circle">2</div>
       <div class="step-content">
-        <div class="step-heading">B 扮彙報人</div>
-        <div class="step-body">跑完整迴圈 — Wrapper 1 挑 2 洞 → Wrapper 2 在 NotebookLM 取證（含來源類型）→ Wrapper 3 在 Gemini 重寫（標公司系統 / 外部參考）。</div>
+        <div class="step-heading">貼主版 Prompt，生出初稿</div>
+        <div class="step-body">複製剛才的主版 Prompt 模板，送出</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">3</div>
+      <div class="step-content">
+        <div class="step-heading">對照原始資料，確認 3 條重點的數字來源</div>
+        <div class="step-body">打開 CSV，每條數字找到對應欄位</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">4</div>
+      <div class="step-content">
+        <div class="step-heading">發現有一條對不起來 → 貼追溯 Prompt</div>
+        <div class="step-body">問 Gemini 計算過程；說不出來就刪掉或標「待查」</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">5</div>
+      <div class="step-content">
+        <div class="step-heading">嘗試格式調整</div>
+        <div class="step-body">改表格，或把 3 條改成 5 條，任選一個</div>
       </div>
     </div>
   </div>
 
-  <p class="body-text" style="margin-top:8px">跑完 1 輪後<strong>角色互換</strong>，B 換選另一條主張的 2 洞質問 A 的草稿。</p>
-
-  <h3 class="sub-heading">5 部門變體 × 必跑 2 洞建議搭配</h3>
-
-  <table class="match-table">
-    <thead>
-      <tr>
-        <th>部門</th>
-        <th>主角</th>
-        <th>草稿題材</th>
-        <th>數字洞建議找</th>
-        <th>風險洞建議找</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>財務</td>
-        <td>凱倫</td>
-        <td>同業財報比較</td>
-        <td>同業 ROA / 毛利率分布</td>
-        <td>財報重編風險</td>
-      </tr>
-      <tr>
-        <td>業務</td>
-        <td>小李</td>
-        <td>客戶分析</td>
-        <td>Top 5 客戶營收占比</td>
-        <td>大客戶流失情境</td>
-      </tr>
-      <tr>
-        <td>電商</td>
-        <td>怡君</td>
-        <td>電商平台競品（主版）</td>
-        <td>蝦皮 Q3 成長 28%</td>
-        <td>補貼退場威脅下修</td>
-      </tr>
-      <tr>
-        <td>倉儲</td>
-        <td>阿翔</td>
-        <td>倉儲效率標竿</td>
-        <td>我方 vs 同業週轉天數</td>
-        <td>統計口徑不同（含退貨流程）</td>
-      </tr>
-      <tr>
-        <td>採購</td>
-        <td>采蓁</td>
-        <td>同業採購條件</td>
-        <td>同業帳期分布</td>
-        <td>供應商集中度風險</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <p class="body-text"><strong>時間分配</strong>：0–2 分組 + 選 2 洞 / 2–13 第一輪攻防（含 ERP 接回測試）/ 13–14 互換 + 選新 2 洞 / 14–24 第二輪 / 24–25 收口。</p>
+  <h3 class="sub-heading">上機目標驗收卡（自己打勾）</h3>
+  <div class="verify-card">
+    <div class="verify-title">離場前確認</div>
+    <div class="verify-list">
+      <div class="verify-item"><div class="verify-box" aria-hidden="true"></div><div>已上傳資料</div></div>
+      <div class="verify-item"><div class="verify-box" aria-hidden="true"></div><div>已生出含 3 重點 + 1 建議的初稿</div></div>
+      <div class="verify-item"><div class="verify-box" aria-hidden="true"></div><div>3 條數字都確認可以在原始資料裡找到（或刪掉找不到的）</div></div>
+      <div class="verify-item"><div class="verify-box" aria-hidden="true"></div><div>嘗試過至少 1 次格式調整</div></div>
+    </div>
+  </div>
 
   <div class="callout">
-    <div class="callout-icon" aria-hidden="true">💡</div>
-    <div class="callout-body"><strong>講師走場注意 4 個地方</strong>：(1) 學員跳去 Gemini 沒先 NotebookLM 取證 → 立即攔下提醒順序律 (2) NotebookLM 取證後沒標「公司系統 vs 外部參考」→ 提醒「Wrapper 3 需要這個分類」 (3) Gemini 改寫後沒接回公司 ERP 數據 → 提醒「主管會問是不是我們的數字」 (4) 學員試圖跑 5 風格全套 → 提醒「2 洞就交差，其他回部門慢慢加」。</div>
+    <div class="callout-icon" aria-hidden="true">→</div>
+    <div class="callout-body"><strong>講師走場注意</strong>：(1) 學員說「我沒有月報可以上傳」→ 引導選 Starter Kit 對應部門 dataset (2) 學員說「數字看起來差不多就好了」→ 提醒說「差不多」不夠，要找得到原始欄位 (3) Gemini 回「根據業界趨勢…」→ 提醒加「根據這份資料」限制詞，重新送 (4) 學員一次貼太多欄位說 Gemini 看不懂 → 建議先只傳一張工作表或先刪到只留必要欄位</div>
   </div>
 </section>
 
@@ -575,100 +401,21 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 <section class="lesson-section">
   <div class="section-eyebrow">(05)</div>
-  <h2 class="section-heading">產物：兩洞補強包 + 實用閾值（12 min）</h2>
+  <h2 class="section-heading">驗收 — 數字可追溯 + 知道哪些是 Gemini 補充的（5 min）</h2>
 
-  <p class="body-text">每位學員離場前完成「<strong>兩洞補強包</strong>」（4 件套產物 #3）。</p>
+  <p class="body-text">兩件事確認：</p>
 
-  <h3 class="sub-heading">補強包結構：2 洞 × 4 欄 = 8 格（從 v2 的 20 格瘦身）</h3>
-
-  <table class="pack-table-v21">
-    <thead>
-      <tr>
-        <th style="width:18%">洞類型</th>
-        <th style="width:22%">主管追問句<br><span style="font-weight:400;font-size:.72rem;color:var(--c-muted)">自己改成貼合部門草稿的版本</span></th>
-        <th style="width:18%">證據缺口<br><span style="font-weight:400;font-size:.72rem;color:var(--c-muted)">缺什麼</span></th>
-        <th style="width:22%">NotebookLM 補證內容<br><span style="font-weight:400;font-size:.72rem;color:var(--c-muted)">引用 + 來源 + 來源類型</span></th>
-        <th style="width:20%">Gemini 重寫段<br><span style="font-weight:400;font-size:.72rem;color:var(--c-muted)">標公司系統 / 外部參考 + 風險限制句</span></th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="pack-style">📊 數字洞（必跑）</td>
-        <td class="pack-blank">（填入）</td>
-        <td class="pack-blank">（填入）</td>
-        <td class="pack-blank">（填入）</td>
-        <td class="pack-blank">（填入）</td>
-      </tr>
-      <tr>
-        <td class="pack-style">⚠️ 風險洞（必跑）</td>
-        <td class="pack-blank">（填入）</td>
-        <td class="pack-blank">（填入）</td>
-        <td class="pack-blank">（填入）</td>
-        <td class="pack-blank">（填入）</td>
-      </tr>
-    </tbody>
-  </table>
-
+  <h3 class="sub-heading">確認 1：數字可追溯</h3>
+  <p class="body-text">每位學員看自己的初稿，問自己一句話：</p>
   <div class="callout">
-    <div class="callout-icon" aria-hidden="true">→</div>
-    <div class="callout-body"><strong>2 洞是底線、加上 ERP 接回那一條對照是達標、加跑其他 3 種風格是 bonus</strong>。25 min 上機跑完 2 洞 + ERP 接回就交差。</div>
+    <div class="callout-icon" aria-hidden="true">❓</div>
+    <div class="callout-body">「這 3 條重點的每個數字，我現在能不能打開資料直接找到它在哪？」</div>
   </div>
+  <p class="body-text">能找到 = 可以用。有一條找不到 = 今天就補刪，不要把找不到的數字留著。</p>
 
-  <h3 class="sub-heading">實用閾值：什麼時候要做、什麼時候不用</h3>
-
-  <p class="body-text">不是每份報告都要跑——避免儀式化讓學員放棄。</p>
-
-  <table class="threshold-table">
-    <thead>
-      <tr>
-        <th>場景</th>
-        <th>要不要做</th>
-        <th>原因</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><strong>對總經理 / 跨部門 / 客戶的正式彙報</strong></td>
-        <td><strong>必做</strong></td>
-        <td>場合大、主管會逐條追問、跑錯一次後續難挽回</td>
-      </tr>
-      <tr>
-        <td><strong>部門週會 / 內部對齊</strong></td>
-        <td><strong>選做</strong></td>
-        <td>學員自己判斷主管當天追問意願；至少跑 1 個最弱的數字洞</td>
-      </tr>
-      <tr>
-        <td><strong>群組訊息 / 口頭交辦</strong></td>
-        <td><strong>不做</strong></td>
-        <td>過度準備、跟場合不匹配</td>
-      </tr>
-      <tr>
-        <td><strong>第一次跟新主管彙報</strong></td>
-        <td><strong>必做（加 ERP 接回）</strong></td>
-        <td>不知道新主管習慣，先把公司系統數據準備好不會錯</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <p class="body-text">個人工作流卡 v2 對應：把「<strong>本週至少 1 場做兩洞補強法</strong>」當成個人 KPI——不是每場都做，是每週至少 1 場。其他場合用直覺、累積 1 個月後回看哪幾場該做沒做。</p>
-
-  <h3 class="sub-heading">結果驗證卡 5 欄（離場前 30 秒打勾）</h3>
-
-  <div class="verify-card">
-    <div class="verify-title">兩洞補強包驗證卡</div>
-    <div class="verify-list">
-      <div class="verify-item"><div class="verify-box" aria-hidden="true"></div><div><strong>必跑 2 洞</strong>：數字洞 + 風險洞都完成 4 欄填寫？</div></div>
-      <div class="verify-item"><div class="verify-box" aria-hidden="true"></div><div><strong>順序律</strong>：每洞都先 NotebookLM 取證、再 Gemini 重寫？</div></div>
-      <div class="verify-item"><div class="verify-box" aria-hidden="true"></div><div><strong>來源類型</strong>：每格標明「公司系統來源」或「外部行業參考」？</div></div>
-      <div class="verify-item"><div class="verify-box" aria-hidden="true"></div><div><strong>ERP 接回</strong>：至少 1 條補強段含「公司內部系統來源」對照？</div></div>
-      <div class="verify-item"><div class="verify-box" aria-hidden="true"></div><div><strong>跨來源伏筆</strong>：補強包能否作為 CH2-1 跨來源彙報的輸入？</div></div>
-    </div>
-  </div>
-
-  <div class="intro-band" style="margin-top:24px">
-    <div class="intro-label">接 CH2-1 的伏筆</div>
-    <div class="intro-text">下個案例（CH2-1）會把補強包跟其他部門整合成跨來源彙報，<strong>至少保留 1 個跨部門可接的鉤子</strong>。例：怡君「我方 Q3 GMV 12%」可跟采蓁（採購）「同業採購條件」對照；小李「Top 客戶分析」可跟阿翔（倉儲）「Top SKU 週轉」對照。</div>
-  </div>
+  <h3 class="sub-heading">確認 2：知道哪些部分是 Gemini 補充的</h3>
+  <p class="body-text">Gemini 有時候不只整理數字，還會加說明、補背景、推測原因。這些說明不一定錯，但來自 Gemini 的推測，不是來自你的資料。</p>
+  <p class="body-text">回頭看初稿，把「這條 Gemini 加進來的補充說明」和「這條是從我資料裡整理出來的」分開——可以在旁邊做個記號，讓自己知道要確認什麼再交出去。</p>
 </section>
 
 <hr class="section-rule">
@@ -677,171 +424,316 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <div class="section-eyebrow">(06)</div>
   <h2 class="section-heading">試跑包需求清單</h2>
 
-  <p class="body-text"><strong>前置設定</strong>：Gemini 免費版 + NotebookLM 免費版（任一 Google 帳號，本案例不需要 💰 Gemini Advanced / NotebookLM Plus）+ 學員自帶 laptop + 公司網路可登 Gemini / NotebookLM + 學員在 CH1-3 已建立的部門 notebook（含 5 篇文章 + 3 段訪談的 source 集 + <strong>建議補 1 份本部門 ERP 匯出檔</strong>作為公司系統來源）。</p>
+  <p class="body-text"><strong>課程類型</strong>：skill-operation</p>
 
-  <h3 class="sub-heading">Sample Dataset（主版 · 怡君電商平台競品研究）</h3>
-
-  <div class="tool-grid">
-    <div class="tool-card">
-      <div class="tool-name">ecom-draft-yijun.md</div>
-      <div class="tool-tag">主版 · 怡君電商</div>
-      <div class="tool-summary">怡君的 CH1-3 主管報告草稿（5 條主張 + SWOT + source 標記），講師示範段的攻防起點。</div>
-    </div>
-    <div class="tool-card">
-      <div class="tool-name">ecom-notebook-sources.md</div>
-      <div class="tool-tag">主版 · NotebookLM source</div>
-      <div class="tool-summary">CH1-3 建好的電商競品 notebook source 清單（5 篇文章 + 3 訪談 + <strong>1 份模擬 ERP 月報</strong>），NotebookLM 取證來源。</div>
-    </div>
-    <div class="tool-card">
-      <div class="tool-name">ecom-erp-sample-SR202609-13.md</div>
-      <div class="tool-tag">主版 · ERP 樣本</div>
-      <div class="tool-summary">模擬的 ERP 月報摘要（含報表編號、欄位、我方 Q3 同品類 GMV 數字），ERP 接回示範用。</div>
-    </div>
-    <div class="tool-card">
-      <div class="tool-name">finance-draft-karen.md</div>
-      <div class="tool-tag">財務 · 凱倫</div>
-      <div class="tool-summary">同業財報比較主管報告草稿 + 我方財報 ERP 樣本。含「至少 1 條會被 📊 數字洞追問的弱證據主張」。</div>
-    </div>
-    <div class="tool-card">
-      <div class="tool-name">warehouse-draft-axiang.md</div>
-      <div class="tool-tag">倉儲 · 阿翔</div>
-      <div class="tool-summary">倉儲效率標竿主管報告草稿 + WMS 週轉天數匯出。含「至少 1 條會被 ⚠️ 風險洞追問的樂觀假設」。</div>
-    </div>
-    <div class="tool-card">
-      <div class="tool-name">procurement-draft-caizhen.md</div>
-      <div class="tool-tag">採購 · 采蓁</div>
-      <div class="tool-summary">同業採購條件比較主管報告草稿 + 採購系統帳期匯出。含數字洞 + 風險洞各 1 條。</div>
-    </div>
-  </div>
-
-  <h3 class="sub-heading">驗證 Prompt</h3>
-
-  <div class="dialog-box">
-    <div class="dialog-label">你在 Gemini（驗證補強包）</div>
-    請檢查下面這份兩洞補強包，每格是否同時符合：(1) 明示數據與來源（含引用位置）(2) <strong>標明「公司內部系統來源」或「外部行業參考」</strong> (3) 含「若 X 不成立則 Y」風險限制句 (4) 主張方向沒翻盤。逐格標 ✓/✗ 並說明哪條沒過。<br><br>
-    [貼上學員產出的兩洞補強包]
-  </div>
-
-  <h3 class="sub-heading">其他帶走項</h3>
-
+  <h3 class="sub-heading">連線設定（Credential）所需</h3>
   <ul class="checklist">
-    <li class="checklist-item"><code style="font-family:'Courier New',monospace;background:var(--c-surface);padding:1px 6px;border-radius:2px;font-size:.85em">ecom-rebuttal-pack-yijun-v21.md</code> — 怡君主版的完整兩洞補強包（2 洞 × 4 欄 = 8 格 + ERP 接回對照段），含「實際輸出每次略有差異」note</li>
-    <li class="checklist-item"><code style="font-family:'Courier New',monospace;background:var(--c-surface);padding:1px 6px;border-radius:2px;font-size:.85em">rebuttal-pack-template-v21.md</code> — 兩洞補強包空白模板（2 洞 × 4 欄 + ERP 接回對照欄 + 實用閾值對照表 + 結果驗證卡 5 欄）</li>
-    <li class="checklist-item">5 主管追問風格速查表（附錄，A4 一張）— 學員回部門挑洞時參考用，<strong>不是課堂跑完的清單</strong></li>
-    <li class="checklist-item">Wrapper 1-3 完整 prompt 集（v2.1 版，含各部門客製版）</li>
+    <li class="checklist-item">Gemini 免費版（任一 Google 帳號，本單元不需要 Gemini Advanced）</li>
+    <li class="checklist-item">學員自帶 laptop，公司網路可登 Gemini</li>
+    <li class="checklist-item">上傳前確認公司對外部 AI 工具的資料安全政策，建議上傳去識別化或範例資料</li>
   </ul>
 
-  <h3 class="sub-heading">Trouble-shooting（3 條）</h3>
+  <h3 class="sub-heading">Sample Dataset（5 部門 · 各 1 份）</h3>
 
-  <div class="pitfall-block">
-    <div class="pitfall-heading"><span class="pitfall-num">TS1</span> NotebookLM 回「source 中無此數據」（公司 ERP 那邊）</div>
-    <div class="pitfall-row">
-      <div class="pitfall-label">說明</div>
-      <div class="pitfall-text">表示 CH1-3 建 notebook 時沒把公司 ERP 匯出檔放進去。<strong>這次彙報先用外部行業參考，下次彙報前回 CH1-3 補 source</strong>。不要讓 Gemini 編一個假 ERP 報表編號。</div>
-    </div>
+  <table class="dataset-table">
+    <thead>
+      <tr><th>檔名</th><th>部門</th><th>主角</th><th>欄位</th><th>內容要求</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code style="font-size:.82em">finance-monthly-karen.csv</code></td>
+        <td>財務</td>
+        <td>凱倫</td>
+        <td>月份、品項分類、銷售金額、成本、毛利、是否異常</td>
+        <td>至少 1 條異常數字（毛利下滑）、1 條超標數字（銷售超預算）、含讓 Gemini 需要計算的組合欄位</td>
+      </tr>
+      <tr>
+        <td><code style="font-size:.82em">sales-monthly-xiaoli.csv</code></td>
+        <td>業務</td>
+        <td>小李</td>
+        <td>月份、客戶名稱、成交金額、目標、達成率、異動備註</td>
+        <td>包含 Top 客戶佔比高但有流失風險的欄位、至少 1 個「達成率 &lt;80%」的月份</td>
+      </tr>
+      <tr>
+        <td><code style="font-size:.82em">ecom-monthly-yijun.csv</code></td>
+        <td>電商</td>
+        <td>怡君</td>
+        <td>月份、平台、SKU 類別、流量、轉換率、GMV</td>
+        <td>含多個平台（蝦皮 / momo / 自有官網），各月 GMV 有波動</td>
+      </tr>
+      <tr>
+        <td><code style="font-size:.82em">warehouse-monthly-axiang.csv</code></td>
+        <td>倉儲</td>
+        <td>阿翔</td>
+        <td>月份、品項類別、入庫量、出庫量、庫存天數、盤損</td>
+        <td>含庫存天數偏高的品項、盤損率有明顯季節性波動</td>
+      </tr>
+      <tr>
+        <td><code style="font-size:.82em">procurement-monthly-caizhen.csv</code></td>
+        <td>採購</td>
+        <td>采蓁</td>
+        <td>月份、供應商、品項、報價、採購金額、帳期、交期達成</td>
+        <td>含 1 個交期達成率低的供應商、1 個報價異常高的品項</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="body-text"><strong>Dataset 品質要求（共通）</strong>：每份 CSV 含 3–5 個月份資料，欄位乾淨可計算；至少含 1 個「看起來合理但 Gemini 需要計算才能回答」的衍生數字（例：毛利率 = 毛利 ÷ 銷售金額），讓學員有機會練「追溯計算過程」；不含薪資、個人身份、客戶 ID 等敏感欄位。</p>
+
+  <h3 class="sub-heading">Prompt 範本（2 條）</h3>
+  <div class="dialog-box">
+    <div class="dialog-label">主版（生初稿）</div>
+    根據這份資料，用條列方式整理出 3 個本月重點 + 1 個建議行動，格式是給主管看的月報彙報。語氣簡短，每條一行，不要寫背景說明。
+  </div>
+  <div class="dialog-box">
+    <div class="dialog-label">追溯確認版（確認數字來源）</div>
+    第 [N] 條「[數字]」是從資料的哪個欄位算出來的？請列出計算過程。
   </div>
 
-  <div class="pitfall-block">
-    <div class="pitfall-heading"><span class="pitfall-num">TS2</span> NotebookLM 回「source 中無此數據」（外部行業那邊）</div>
-    <div class="pitfall-row">
-      <div class="pitfall-label">說明</div>
-      <div class="pitfall-text">這條主張在 CH1-3 取證階段就漏了，需要回 CH1-3 補 source。或標記為「<strong>待補 source</strong>」列為個人工作流卡 v2 的下一步。</div>
-    </div>
-  </div>
+  <h3 class="sub-heading">AI 輸出範例（1 份）</h3>
+  <p class="body-text"><code style="font-family:'Courier New',monospace;background:var(--c-surface);padding:1px 6px;border-radius:2px;font-size:.85em">ecom-output-example-yijun.md</code> — 怡君電商月報的完整示例輸出，含：初稿（條列版）、追溯確認對話（1 條）、格式調整後版本（表格版）、每條數字的「來源欄位對照」注解。</p>
 
-  <div class="pitfall-block">
-    <div class="pitfall-heading"><span class="pitfall-num">TS3</span> Gemini 改寫後主張方向被翻盤</div>
-    <div class="pitfall-row">
-      <div class="pitfall-label">說明</div>
-      <div class="pitfall-text">Wrapper 3 加強約束「不要改變原本主張的方向，只補證據與限制」。仍翻盤代表原主張本身就薄弱，需在草稿層級處理（標記「主張需重新評估」）。💰 Gemini Advanced 在跨段一致性上更穩，但本案例不需要。</div>
-    </div>
-  </div>
+  <h3 class="sub-heading">故障排除（3 條）</h3>
+  <table class="trouble-table">
+    <thead>
+      <tr><th>現象</th><th>原因</th><th>解法</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Gemini 說「無法讀取附件」</td>
+        <td>瀏覽器版 Gemini 有時需要重整頁面後再上傳</td>
+        <td>重整 → 重新上傳，或改用 Google Drive 分享連結貼入</td>
+      </tr>
+      <tr>
+        <td>Gemini 輸出摻入業界趨勢或外部數字</td>
+        <td>沒有限制詞「根據這份資料」</td>
+        <td>在 Prompt 開頭加上「僅根據這份上傳的資料」，重新送出</td>
+      </tr>
+      <tr>
+        <td>某條數字在 CSV 找不到對應</td>
+        <td>Gemini 做了推算或編造</td>
+        <td>貼「追溯確認版 Prompt」問計算過程；若說不出來則刪掉該條或自行計算</td>
+      </tr>
+    </tbody>
+  </table>
 </section>
 
 <hr class="section-rule">
 
 <section class="lesson-section">
   <div class="section-eyebrow">(07)</div>
-  <h2 class="section-heading">常見錯誤 3 條</h2>
+  <h2 class="section-heading">商業情境案例 — 凱倫的月報初稿任務</h2>
 
-  <div class="pitfall-block">
-    <div class="pitfall-heading"><span class="pitfall-num">01</span> 直接跳去 Gemini 改寫，沒先去 NotebookLM 取證</div>
-    <div class="pitfall-row"><div class="pitfall-label">現象</div><div class="pitfall-text">主管追問「這個數字哪來的」，學員直覺打開 Gemini 問「請幫我把第三條改得更可信」。Gemini 回了一段看起來很順、但<strong>仍沒有引用位置、也沒分公司系統 vs 外部參考</strong>——主管追問第二輪「所以來源是？是不是我們 ERP 的？」直接破功。</div></div>
-    <div class="pitfall-row"><div class="pitfall-label">原因</div><div class="pitfall-text">Gemini 沒新證據可吃，只能把同一個數字換句話講。沒去 NotebookLM 取證就改寫，等於用化妝品蓋住傷口，主管再戳一下就裂。</div></div>
-    <div class="pitfall-row"><div class="pitfall-label">解法</div><div class="pitfall-text">按順序律：<strong>Wrapper 1（挑 2 洞）→ Wrapper 2 在 NotebookLM 取證（含來源類型）→ Wrapper 3 回 Gemini 改寫（標公司系統 / 外部參考）</strong>。NotebookLM 出來的引用片段 + 來源類型是 Wrapper 3 的必要輸入。</div></div>
+  <p class="body-text"><strong>主角</strong>：凱倫（30 歲，財務專員） / <strong>公司</strong>：弄一下精選商行（虛構中型電商貿易公司，20–30 人）</p>
+  <p class="body-text"><strong>情境</strong>：每個月月底，凱倫要整理一份品項收支月報給財務主管，說明哪個品項狀況好、哪個有異常、下個月要注意什麼。這份月報她平常要花將近 1 小時盯著 Excel 一格一格看，再自己寫成條列文字。</p>
+  <p class="body-text"><strong>任務</strong>：今天下午她要把這個月的 CSV 丟給 Gemini，讓它幫她整理出「3 個重點 + 1 個建議行動」的初稿。生出來之後自己對一次數字，確認沒問題，下班前 5 點就可以寄給主管了。</p>
+
+  <h3 class="sub-heading">本單元要她學會</h3>
+  <div class="steps-inline">
+    <div class="step-block">
+      <div class="step-circle">1</div>
+      <div class="step-content">
+        <div class="step-body">上傳 CSV 給 Gemini，用 1 個 prompt 生出彙報初稿</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">2</div>
+      <div class="step-content">
+        <div class="step-body">確認 Gemini 給的每個數字，都能在原始資料找到對應欄位</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">3</div>
+      <div class="step-content">
+        <div class="step-body">用 1 個追溯 prompt 讓 Gemini 說清楚它的計算過程</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">4</div>
+      <div class="step-content">
+        <div class="step-body">格式不對的時候直接說，讓 Gemini 調整（例：換成表格）</div>
+      </div>
+    </div>
   </div>
 
-  <div class="pitfall-block">
-    <div class="pitfall-heading"><span class="pitfall-num">02</span> NotebookLM 回「source 中無此數據」，學員回 Gemini 編一個（含編 ERP 報表編號）</div>
-    <div class="pitfall-row"><div class="pitfall-label">現象</div><div class="pitfall-text">NotebookLM 老實說沒有我方 ERP 數據，學員轉去問 Gemini——
-      <div class="dialog-box" style="margin:8px 0">
-        <div class="dialog-label">學員在 Gemini（錯誤捷徑）</div>
-        我方 Q3 同品類 GMV 成長多少？給我一個 ERP 報表編號當引用。
-      </div>
-      <div class="expected-output" style="margin:8px 0">
-        <div class="expected-label">Gemini 大概會回（會編）</div>
-        <div class="expected-body">
-          <p>依產業趨勢推估，我方 Q3 同品類 GMV 成長約 <strong>15%</strong>，引用：ERP 月報 SR-202610-07。</p>
-        </div>
-        <div class="expected-note">實際輸出每次略有差異。重點是：Gemini 編的「15%」和「SR-202610-07」公司系統裡根本沒有。學員以為「反正主管不會查」就放進補強包，主管隨手 Open ERP 一搜「沒這份報表」就破功——這比沒有公司數據更慘，等於誣告自己造假。</div>
-      </div>
-    </div></div>
-    <div class="pitfall-row"><div class="pitfall-label">原因</div><div class="pitfall-text">Gemini 沒給資料會自己編（CH0 講過的 Gemini 核心風險），尤其編「報表編號」這種看起來像真實系統 ID 的字串特別危險。</div></div>
-    <div class="pitfall-row"><div class="pitfall-label">解法</div><div class="pitfall-text">NotebookLM 說沒有就是沒有。三條路：<strong>路徑 A</strong>：回 CH1-3 把公司 ERP 匯出檔放進 notebook source，再跑 Wrapper 2；<strong>路徑 B</strong>：這次彙報先只用外部行業參考、明說「ERP 同品類數字待補」，主管不會因為你誠實扣分；<strong>路徑 C</strong>：標記「待補 source」列個人工作流卡 v2，<strong>這次彙報先不講這條對照</strong>（拿不到證據就不報，比報錯好）。</div></div>
-  </div>
-
-  <div class="pitfall-block">
-    <div class="pitfall-heading"><span class="pitfall-num">03</span> Gemini 改寫補強段時，主張方向被翻盤 / 或來源類型沒標</div>
-    <div class="pitfall-row"><div class="pitfall-label">現象 A</div><div class="pitfall-text">原主張「蝦皮競品 A 在 Q3 顯著成長，威脅明顯」，學員塞取證材料給 Gemini 但沒加約束句——
-      <div class="expected-output" style="margin:8px 0">
-        <div class="expected-label">Gemini 大概會回（翻盤）</div>
-        <div class="expected-body">
-          <p>蝦皮 Q3 雖成長 28%，但因平台補貼為主因，威脅實際上有限，<strong>建議我方繼續觀察不採取行動</strong>。</p>
-        </div>
-        <div class="expected-note">實際輸出每次略有差異。主張方向從「威脅明顯」翻成「威脅有限」——主管會問「你昨天說威脅明顯，今天怎麼變成有限？」學員回不出來。</div>
-      </div>
-    </div></div>
-    <div class="pitfall-row"><div class="pitfall-label">現象 B</div><div class="pitfall-text">補強段寫「蝦皮 Q3 成長 28%（白皮書 12 頁）」，沒分公司系統 / 外部參考——主管問「這是不是我們 ERP 的數字？」學員回「不是、是白皮書的」，主管下一句「那我們自己的數字呢？」學員當場啞口。</div></div>
-    <div class="pitfall-row"><div class="pitfall-label">原因</div><div class="pitfall-text">A：Wrapper 3 沒加「不要改變主張方向」這條約束。B：v2 版 Wrapper 3 只要「明示來源」、沒要求分類，v2.1 補上「公司系統 vs 外部參考」標記就解了。</div></div>
-    <div class="pitfall-row"><div class="pitfall-label">解法</div><div class="pitfall-text">Wrapper 3 必含<strong>四條</strong>約束——（1）明示數據與來源 （2）<strong>標明公司系統來源 / 外部行業參考</strong> （3）加「若 X 不成立則 Y」（處理風險、非翻盤） （4）<strong>不要改變主張方向，只補證據與限制</strong>。若改寫後仍翻盤，代表原主張本身薄弱，要回草稿層級處理。若來源類型沒標、補拉一條公司 ERP 對照數字接回。</div></div>
-  </div>
+  <h3 class="sub-heading">5 部門彙報初稿 Prompt 範例</h3>
+  <table class="dataset-table">
+    <thead>
+      <tr><th>部門</th><th>主角</th><th>資料類型</th><th>彙報 Prompt 範例</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>財務</td>
+        <td>凱倫</td>
+        <td>品項收支月結 CSV（金額、毛利、異常欄）</td>
+        <td>根據這份資料，用條列方式整理出 3 個本月重點 + 1 個建議行動，格式是給主管看的月報彙報。語氣簡短，每條一行，不要寫背景說明。</td>
+      </tr>
+      <tr>
+        <td>業務</td>
+        <td>小李</td>
+        <td>業務業績月報（客戶名稱、成交金額、達成率）</td>
+        <td>根據這份資料，整理出本月業績 3 個重點（含超標與未達目標的品項），加上 1 個下個月的行動建議，給業務主管看的格式，每條一行。</td>
+      </tr>
+      <tr>
+        <td>電商</td>
+        <td>怡君</td>
+        <td>電商各平台銷售月報（平台、GMV、轉換率）</td>
+        <td>根據這份資料，條列出 3 個本月平台銷售重點（可指出哪個平台有異常或亮點），加 1 個建議，給主管看的格式，不要寫背景說明。</td>
+      </tr>
+      <tr>
+        <td>倉儲</td>
+        <td>阿翔</td>
+        <td>庫存盤點月報（品項類別、庫存天數、盤損率）</td>
+        <td>根據這份資料，整理出 3 個本月倉儲重點（特別標出庫存天數過高或盤損異常的品項），加 1 個處置建議，給主管看的格式。</td>
+      </tr>
+      <tr>
+        <td>採購</td>
+        <td>采蓁</td>
+        <td>採購報價比較月報（供應商、報價、交期達成率）</td>
+        <td>根據這份資料，列出 3 個本月採購重點（異常報價或交期未達供應商優先），加 1 個下月採購注意事項，每條一行。</td>
+      </tr>
+    </tbody>
+  </table>
 </section>
 
 <hr class="section-rule">
 
 <section class="lesson-section">
   <div class="section-eyebrow">(08)</div>
+  <h2 class="section-heading">動手練習題</h2>
+
+  <p class="body-text">用自己的部門資料（或課程提供的 dataset），完成下列 3 步驟：</p>
+  <div class="steps-inline">
+    <div class="step-block">
+      <div class="step-circle">1</div>
+      <div class="step-content">
+        <div class="step-heading">上傳資料 → 用主版 Prompt 生出初稿</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">2</div>
+      <div class="step-content">
+        <div class="step-heading">核實每一條數字</div>
+        <div class="step-body">在原始資料裡找到它的出處（欄位名稱、列數）</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">3</div>
+      <div class="step-content">
+        <div class="step-heading">嘗試一次格式調整</div>
+        <div class="step-body">改表格，或把 3 條改成 5 條</div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub-heading">完成標準（self-check）</h3>
+  <ul class="checklist">
+    <li class="checklist-item">有一份初稿（含 3 個重點 + 1 個建議）</li>
+    <li class="checklist-item">3 條重點的數字來源都確認過，能指出在原始資料的哪個欄位</li>
+    <li class="checklist-item">至少完成 1 次格式調整</li>
+    <li class="checklist-item">不確定某條數字的來源時，用過追溯確認版 Prompt 或把那條刪掉</li>
+  </ul>
+
+  <h3 class="sub-heading">完成的樣子（財務凱倫版表格示範）</h3>
+  <div class="expected-output">
+    <div class="expected-label">凱倫的格式調整後初稿（示意）</div>
+    <div class="expected-body">
+      <table>
+        <tr><th>項目</th><th>數字</th><th>說明</th></tr>
+        <tr><td>3C 毛利率</td><td>18%（↓4pp）</td><td>本月最大異常，成本升</td></tr>
+        <tr><td>家電銷售</td><td>$420,000</td><td>超出預算 12%，正向</td></tr>
+        <tr><td>服飾成本率</td><td>62%（↑7pp）</td><td>進貨成本攀升，待查</td></tr>
+      </table>
+      <p><strong>建議行動</strong>：優先核查 3C 品項成本異常原因，下週週會前提供說明。</p>
+    </div>
+    <div class="expected-note">每條數字都有在 CSV 的對應欄位。「3C 毛利率 18%」從「毛利欄 ÷ 銷售金額欄」計算，Gemini 能說出計算過程。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(09)</div>
+  <h2 class="section-heading">常見錯誤 3 條</h2>
+
+  <div class="pitfall-block">
+    <div class="pitfall-heading"><span class="pitfall-num">01</span> 沒有限制詞，Gemini 混入業界趨勢</div>
+    <div class="pitfall-row">
+      <div class="pitfall-label">現象</div>
+      <div class="pitfall-text">學員的 Prompt 直接問「整理出 3 個本月重點」，Gemini 生出「根據電商行業 Q3 趨勢，轉換率普遍下滑…」，但這個數字其實跟學員上傳的資料無關。學員看了覺得「好像蠻像的就放著」，主管問「這個趨勢是哪來的？」學員答不上來。</div>
+    </div>
+    <div class="pitfall-row">
+      <div class="pitfall-label">原因</div>
+      <div class="pitfall-text">Gemini 預設會用它自己的知識庫補充說明，沒有限制就會混進來。</div>
+    </div>
+    <div class="pitfall-row">
+      <div class="pitfall-label">解法</div>
+      <div class="pitfall-text">Prompt 開頭加「根據這份資料」或「僅根據這份上傳的資料」——Gemini 看到這句話就知道不要補充外部知識。加完重新送一次，多出來的業界趨勢就會消失。</div>
+    </div>
+  </div>
+
+  <div class="pitfall-block">
+    <div class="pitfall-heading"><span class="pitfall-num">02</span> 跳過數字核實，直接把初稿拿去用</div>
+    <div class="pitfall-row">
+      <div class="pitfall-label">現象</div>
+      <div class="pitfall-text">Gemini 給了一份看起來合理的初稿，學員沒有對照原始資料，直接複製貼上寄給主管。主管問「服飾成本率 62% 是怎麼算的？」學員打開 Gemini 對話記錄才發現，自己根本不確定這個數字是怎麼來的。</div>
+    </div>
+    <div class="pitfall-row">
+      <div class="pitfall-label">原因</div>
+      <div class="pitfall-text">初稿「看起來合理」跟「數字正確可追溯」是兩件事。Gemini 在計算衍生數字時偶爾會出錯，或用不同口徑計算（例：含退貨 vs 不含退貨的成本率算法不同）。</div>
+    </div>
+    <div class="pitfall-row">
+      <div class="pitfall-label">解法</div>
+      <div class="pitfall-text">每條初稿數字，打開原始資料對一次。對不上的，用追溯確認 Prompt 問 Gemini 計算過程——能說清楚的留下，說不清楚的刪掉，不要因為「應該是對的」就放著。</div>
+    </div>
+  </div>
+
+  <div class="pitfall-block">
+    <div class="pitfall-heading"><span class="pitfall-num">03</span> 格式不滿意但不知道可以改</div>
+    <div class="pitfall-row">
+      <div class="pitfall-label">現象</div>
+      <div class="pitfall-text">Gemini 生出來是條列格式，學員需要表格，但不知道可以直接要求調整，花了 10 分鐘自己手動改 Word。</div>
+    </div>
+    <div class="pitfall-row">
+      <div class="pitfall-label">原因</div>
+      <div class="pitfall-text">學員以為 Gemini 只能「重新生成」，不知道可以在同一個對話裡直接要求格式調整。</div>
+    </div>
+    <div class="pitfall-row">
+      <div class="pitfall-label">解法</div>
+      <div class="pitfall-text">在同一個對話框繼續說你想要的格式。常用說法：「改成表格，欄位是：項目 / 數字 / 說明」「把 3 條改成 5 條，補充細節」「每條後面加一欄『下一步行動』」「語氣改短，每條壓縮到 20 字以內」。格式調整在同一個對話裡做，Gemini 知道你在調整剛才那份，不需要重貼資料。</div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(10)</div>
   <h2 class="section-heading">檢核題 2 條</h2>
 
   <div class="quiz-item">
-    <div class="quiz-q">Q1（順序律 + ERP 接回驗證）：主管讀完你的報告，指著第三條問「<strong>這個 28% 是不是我們 ERP 的數字？</strong>」——下面哪個處理順序最有效？</div>
+    <div class="quiz-q">Q1（數字核實）：Gemini 幫你生出的初稿第 2 條寫「家電品項銷售金額 $420,000，超出預算 12%」。你打開原始 CSV，找到「家電」的銷售金額欄是 $420,000——找到了，沒問題。但「超出預算 12%」這個數字，你的 CSV 裡沒有「預算」欄位。下一步你怎麼辦？</div>
     <div class="quiz-opts">
-      <label class="quiz-opt"><input type="radio" name="q1"><span>A. 先回 Gemini 重寫得更可信，再去 NotebookLM 查證</span></label>
-      <label class="quiz-opt"><input type="radio" name="q1"><span>B. 先去 NotebookLM 取出外部行業參考引用 + 補拉我方 ERP 同品類數字，再回 Gemini 把兩條並列改寫進補強段</span></label>
-      <label class="quiz-opt"><input type="radio" name="q1"><span>C. 直接告訴主管「28% 是白皮書的、我們沒有對應 ERP 數字」然後跳過這條</span></label>
-      <label class="quiz-opt"><input type="radio" name="q1"><span>D. 升級到 💰 Gemini Advanced，Deep Research 模式直接搜出來</span></label>
+      <label class="quiz-opt"><input type="radio" name="q1"><span>A. 反正 12% 看起來合理，就留著</span></label>
+      <label class="quiz-opt"><input type="radio" name="q1"><span>B. 用追溯確認 Prompt 問 Gemini「超出預算 12% 是從哪個欄位算的？請列出計算過程」；Gemini 說不出計算依據就刪掉這個數字（正確答案）</span></label>
+      <label class="quiz-opt"><input type="radio" name="q1"><span>C. 升級到 Gemini Advanced，叫它重新計算</span></label>
+      <label class="quiz-opt"><input type="radio" name="q1"><span>D. 在初稿裡改成「超出預算約 1 成左右」，這樣比較模糊不會被追問</span></label>
     </div>
     <details class="quiz-ans"><summary>顯示答案</summary>
-      <div><strong>正確答案：B</strong>。A 是 Gemini 沒新證據可吃只能換句話講同一個數字，且根本沒接回公司系統，主管追問第二輪會破功。C 是 plan B 但不是訓練目標——可以這樣回但會讓主管覺得準備不夠。D 是付費解但本案例不需要，且 Deep Research 搜不出你們公司的 ERP 數字。B 是本單元的核心：<strong>順序律 + ERP 接回</strong>並用。</div>
+      <div><strong>正確答案：B</strong>。A 和 D 都是在沒有確認的情況下讓不可信的數字混進去——主管若追問來源就破功。C 的問題不在工具版本，是資料裡本來就沒有預算欄，換哪個版本都算不出來。B 才是正確做法：先問計算過程，沒有根據就刪掉，自己去查預算後再補進去。</div>
     </details>
   </div>
 
   <div class="quiz-item">
-    <div class="quiz-q">Q2（兩洞補強法應用 + 來源類型分類）：<strong>情境</strong>：阿翔（倉儲主管）的草稿第二條寫「我方倉儲週轉天數優於同業，效率領先。」假設主管用 📊 數字洞 + ⚠️ 風險洞追問，請列出：(1) 兩洞主管怎麼問 (2) 證據缺口 (3) NotebookLM 補證 prompt（含來源類型分類）(4) Gemini 改寫補強段（含公司系統來源接回）。</div>
-    <details class="quiz-ans"><summary>顯示預期答案要點</summary>
+    <div class="quiz-q">Q2（實際操作）：你是阿翔（倉儲主管），上傳了這個月的庫存盤點 CSV（欄位：月份、品項類別、入庫量、出庫量、庫存天數、盤損率）。用主版 Prompt 生出的初稿第 1 條是：「3C 品項庫存天數達 45 天，高於健康基準 30 天。」問題：「高於健康基準 30 天」這個「基準 30 天」，你的 CSV 裡沒有「基準」欄位。這個數字是哪來的？你怎麼處理？</div>
+    <details class="quiz-ans"><summary>顯示預期答案</summary>
       <div>
-        <p><strong>1. 主管追問</strong></p>
-        <p>📊 數字洞：「『優於同業』優多少？我方多少天、同業中位數多少天？」</p>
-        <p>⚠️ 風險洞：「如果同業統計口徑跟我們不同（含不含退貨流程），差距還成立嗎？」</p>
-        <p style="margin-top:10px"><strong>2. 證據缺口</strong>：缺我方週轉天數（公司 WMS）、同業中位數（外部行業參考）、兩者差距百分比、統計口徑說明</p>
-        <p style="margin-top:10px"><strong>3. NotebookLM 補證 prompt</strong>：</p>
-        <div class="dialog-box" style="margin:8px 0">
-          <div class="dialog-label">阿翔在 NotebookLM</div>
-          請從本 notebook 找「倉儲週轉天數」相關數據，列出：(a) 我方實際週轉天數 + 來源類型（公司 WMS / 內部報表）(b) 同業中位數 + 來源類型（外部行業參考 / 顧問報告）(c) 各自引用位置 (d) 同業數據的統計口徑（是否含退貨流程）。若 source 中無相關數據，請明說。
-        </div>
-        <p style="margin-top:10px"><strong>4. Gemini 改寫補強段</strong>（含公司系統接回 + 風險限制句）：</p>
-        <p>「我方倉儲週轉天數為 [X] 天（<strong>公司內部系統來源</strong>：WMS 系統 2026 Q3 出貨報表，報表編號 WMS-202609-04），同業中位數 [Y] 天（<strong>外部行業參考</strong>：[NotebookLM 引用位置]），效率優於同業 [差距%]。<strong>若同業數據統計口徑與我方不同（例：是否含退貨流程），則差距需重新校準</strong>。」</p>
-        <p style="margin-top:10px"><strong>加分要點</strong>：(1) 主張方向沒翻盤（仍「效率優於同業」）(2) 我方數字明示來自公司 WMS 系統（主管問「是不是我們系統的」不會卡）(3) 跨來源伏筆可在 CH2-1 跟采蓁（採購）的「供應商到貨準時率」對照 (4) 若 source 找不到同業中位數，標記「待補 source」、<strong>這次彙報先講相對成長（我方 vs 自己去年）而非絕對排名</strong>。</p>
+        <p>「健康基準 30 天」不在 CSV 資料裡，是 Gemini 從業界知識補充進來的（倉儲週轉天數常用基準）——不是從你的資料計算，不能直接放。</p>
+        <p style="margin-top:10px">處理三條路：</p>
+        <p><strong>1. 追溯</strong>：貼追溯確認 Prompt 問「『健康基準 30 天』是從哪個欄位算的？請列出計算依據。」Gemini 若回「這是業界常用基準」，就確認它不是你公司的數字。</p>
+        <p><strong>2. 刪掉「基準」的比較</strong>：把第 1 條改成「3C 品項庫存天數達 45 天，為本月最高」——只用你資料裡有的數字，不拿業界基準做比較。</p>
+        <p><strong>3. 補公司數據</strong>：去問主管或查公司 SOP，公司自己對庫存天數的標準是多少，填回去。</p>
+        <p style="margin-top:10px">三條路都行，不可以的是「反正 30 天看起來合理就留著」——因為你交出去的彙報數字要能回答「這是哪來的」。</p>
       </div>
     </details>
   </div>
@@ -858,7 +750,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">2026 春季</span>
-  <span class="footer-meta" data-platform-version="2026-Q2（Gemini 免費版 / NotebookLM 免費版）" data-built-at="2026-05-23">本頁以 2026-Q2（Gemini 免費版 / NotebookLM 免費版）製作，2026-05</span>
+  <span class="footer-meta" data-platform-version="2026-Q2（Gemini 免費版 / NotebookLM 免費版）" data-built-at="2026-06-02">本頁以 2026-Q2（Gemini 免費版 / NotebookLM 免費版）製作，2026-06</span>
 </footer>
 
 <script>
