@@ -124,6 +124,33 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 /* 截圖提示 */
 .screenshot-hint{background:var(--c-surface);border:1px dashed var(--c-border);border-radius:var(--radius);padding:16px 20px;margin-top:20px;text-align:center}
 .screenshot-hint-text{font-size:.85rem;color:var(--c-muted);line-height:1.8}
+/* 雙測整合卡片 */
+.dual-card-wrap{max-width:var(--content-w);margin:0 auto;padding:0 48px 32px}
+#dual-result-card{display:none;background:#fff;border:2px solid var(--c-border);border-radius:var(--radius);padding:28px 32px}
+#dual-result-card.visible{display:block}
+.dual-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:8px}
+.dual-card-title{font-family:'Shippori Mincho',serif;font-size:1.15rem;font-weight:700;color:var(--c-text);letter-spacing:.02em}
+.dual-card-badge{font-size:.7rem;color:var(--c-main);border:1px solid rgba(138,122,158,.4);padding:3px 10px;border-radius:99px;font-weight:500;letter-spacing:.08em;white-space:nowrap}
+.dual-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.dual-card-panel{background:var(--c-surface);border-radius:var(--radius);padding:16px 20px}
+.dual-panel-eyebrow{font-size:.68rem;color:var(--c-faint);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.dual-panel-animal{font-family:'Shippori Mincho',serif;font-size:1.5rem;font-weight:700;color:var(--c-text);line-height:1.2;margin-bottom:4px}
+.dual-panel-sub{font-size:.78rem;color:var(--c-muted);margin-bottom:12px}
+.dual-panel-scores{display:flex;gap:8px;flex-wrap:wrap}
+.dual-score-chip{font-size:.76rem;color:var(--c-text);background:#fff;border:1px solid var(--c-border);border-radius:3px;padding:2px 8px;font-weight:500;letter-spacing:.04em}
+.dual-mbti-code{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;color:var(--c-text);letter-spacing:.1em;margin-bottom:4px}
+.dual-mbti-name{font-size:.82rem;color:var(--c-muted);margin-bottom:12px}
+.dual-fit-label{display:inline-block;font-size:.7rem;color:#fff;padding:2px 8px;border-radius:3px;font-weight:500;letter-spacing:.06em;margin-bottom:6px}
+.dual-suit-section{border-top:1px solid var(--c-border-soft);padding-top:16px;margin-bottom:16px}
+.dual-suit-label{font-size:.68rem;color:var(--c-faint);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.dual-suit-row{font-size:.86rem;color:var(--c-text);line-height:1.8;margin-bottom:8px;padding-left:16px;position:relative}
+.dual-suit-row::before{content:"";position:absolute;left:0;top:.72em;width:5px;height:5px;border-radius:50%;background:var(--c-main)}
+.dual-suit-row strong{color:var(--c-text)}
+.dual-suit-tag{display:inline-block;font-size:.68rem;color:var(--c-muted);letter-spacing:.06em;font-weight:500;margin-right:4px}
+.dual-card-cta{text-align:center;padding:14px;background:var(--c-surface);border-radius:var(--radius);border:1px dashed rgba(138,122,158,.5)}
+.dual-card-cta-text{font-size:.9rem;color:var(--c-text);font-weight:500;line-height:1.7}
+.dual-card-cta-sub{font-size:.78rem;color:var(--c-muted);margin-top:4px;line-height:1.6}
+@media(max-width:600px){.dual-card-wrap{padding-left:24px;padding-right:24px}.dual-card-grid{grid-template-columns:1fr}}
 /* nav / footer */
 .nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
 .nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(138,122,158,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
@@ -313,6 +340,44 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   </div>
 </section>
 
+<!-- 雙測整合卡片 -->
+<div class="dual-card-wrap">
+  <div id="dual-result-card" aria-live="polite">
+    <div class="dual-card-header">
+      <div class="dual-card-title">PDP × MBTI 雙測結果摘要</div>
+      <div class="dual-card-badge">截圖帶進課堂</div>
+    </div>
+    <div class="dual-card-grid">
+      <!-- PDP 結果區 -->
+      <div class="dual-card-panel" id="dual-pdp-panel">
+        <div class="dual-panel-eyebrow">PDP 行為風格</div>
+        <div class="dual-panel-animal" id="dual-pdp-animal">—</div>
+        <div class="dual-panel-sub" id="dual-pdp-axis">—</div>
+        <div class="dual-panel-scores" id="dual-pdp-scores"></div>
+      </div>
+      <!-- MBTI 結果區 -->
+      <div class="dual-card-panel" id="dual-mbti-panel">
+        <div class="dual-panel-eyebrow">MBTI 心理偏好</div>
+        <div class="dual-mbti-code" id="dual-mbti-code">—</div>
+        <div class="dual-mbti-name" id="dual-mbti-name">—</div>
+        <div id="dual-mbti-fit-wrap" style="display:none">
+          <div class="dual-fit-label" id="dual-fit-badge" style="background:var(--c-main)">現職適配度</div>
+        </div>
+      </div>
+    </div>
+    <!-- 職涯適性摘要 -->
+    <div class="dual-suit-section" id="dual-suit-section" style="display:none">
+      <div class="dual-suit-label">職涯適性摘要</div>
+      <div id="dual-suit-body"></div>
+    </div>
+    <!-- 截圖提示 -->
+    <div class="dual-card-cta">
+      <div class="dual-card-cta-text">截圖這張卡片，帶到課堂 CH1-2</div>
+      <div class="dual-card-cta-sub">講師將在 CH1-2 帶你對照這份結果，進行職涯適性判讀與現職適配度深度解讀</div>
+    </div>
+  </div>
+</div>
+
 <hr class="section-rule">
 
 <!-- SECTION 03：結果只當假設 -->
@@ -338,12 +403,25 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     </div>
   </div>
 
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">◎</div>
+    <div class="callout-body">
+      <strong>只完成了一份測驗？</strong><br><br>
+      <strong>只有 MBTI，沒做 PDP</strong>：CH1-2 Section 04 正常查 16 型對應表，步驟 ② 的 PDP 修飾詞欄位填「未知」，課中做完 PDP 後再補。<br><br>
+      <strong>只有 PDP，沒做 MBTI</strong>：CH1-2 Section 02 說明了 MBTI 課中現測路徑（路徑 B），選快速 16 題，完成後再走 Section 04。<br><br>
+      <strong>兩份都沒做</strong>：沒關係，CH1-2 保留 60 分鐘課中現測時間（路徑 B），帶空白進課堂即可。
+    </div>
+  </div>
+
   <p class="body-text" style="margin-top:8px">今天你只是寫了一個「方向假設」（比較想先試<strong>深耕 / 內轉 / 轉職</strong>哪條），不是「答案」。深耕、內轉、轉職的真正收斂，是課堂 CH1-6 結合工作事件與市場趨勢一起評估的事。今天帶走三個輸入就夠：<strong>適性類別、現職適配度、一個方向假設。</strong></p>
 </section>
 
 <div class="nav-footer">
   <a href="index.html" class="nav-btn"><span aria-hidden="true">←</span> 課程總覽</a>
-  <a href="CH1-2.html" class="nav-btn primary">進入 CH1-2 判讀 <span aria-hidden="true">→</span></a>
+  <div style="display:flex;flex-direction:column;align-items:flex-end">
+    <p style="font-size:.8rem;color:var(--c-muted);text-align:right;margin:0 0 8px">課前完成測驗後，正式上課從 CH1-1 開始；CH1-2 會在課中帶你判讀雙測結果。</p>
+    <a href="CH1-1.html" class="nav-btn primary">開始課程 CH1-1 <span aria-hidden="true">→</span></a>
+  </div>
 </div>
 
 </main>
@@ -495,6 +573,7 @@ let pdpTimerSec = 18*60, mbtiTimerSec = 15*60;
 let pdpRunning = false, mbtiRunning = false;
 let lastMbtiType = null;
 let fitAns = null;
+let lastPdpScores = null;
 
 /* ============================
    渲染題目
@@ -687,6 +766,8 @@ function showPDPResult(scores){
     summary=`<strong>變色龍 V（整合型）</strong>——四軸都在 8 分以下（最高 ${maxScore} / 最低 ${minScore}），你是 PDP 第 5 型「彈性適應型」。沒有單一強標籤，但能依情境切換行為風格，適合跨部門 PM／HRBP／PMO／整合協調角色。<br><strong>提醒</strong>：職場上要主動為自己定位 1-2 個專業標籤，否則容易被當「什麼都會、什麼都不專精」。卡在這裡時，用「最近 1 年最有成就感的 3 件事」找你真正的主導軸。`;
   }
   document.getElementById('pdp-summary-text').innerHTML=summary;
+  lastPdpScores=scores;
+  tryRenderDualCard();
   block.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
@@ -799,6 +880,7 @@ function showMBTIResult(code,dims){
   document.getElementById('mbti-type-name').textContent=name||'';
   lastMbtiType = code;
   renderSuit(code);
+  tryRenderDualCard();
   block.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
@@ -846,6 +928,75 @@ function onFitChange(v){
   else{level='高';reason='你的工作主軸跟適性蠻吻合——缺的多半是舞台或職責，不是方向。';hyp='方向假設偏向<strong>深耕</strong>（在現職爭舞台、做出代表作）。';}
   r.classList.add('visible');
   r.innerHTML='初判：你對現職的適配度可能是 <strong>【'+level+'】</strong>。<br>'+reason+'<br>'+hyp+'<br><span style="color:var(--c-muted);font-size:.82rem">這只是課前的方向假設，不是答案。課堂 CH1-4 用真實工作事件、CH1-5 用市場趨勢、CH1-6 三路徑決策才真正收斂。</span>';
+  tryRenderDualCard();
+}
+
+/* ============================
+   雙測整合卡片
+   ============================ */
+function tryRenderDualCard(){
+  const card=document.getElementById('dual-result-card');
+  if(!lastPdpScores||!lastMbtiType){return;}
+  card.classList.add('visible');
+
+  /* PDP 區 */
+  const scores=lastPdpScores;
+  const maxScore=Math.max(...scores);
+  const mainIdx=scores.indexOf(maxScore);
+  const isVType=maxScore<=8;
+  const pdpType=isVType?PDP_CHAMELEON:PDP_TYPES[mainIdx];
+  const secondScore=scores.slice().sort((a,b)=>b-a)[1];
+  const secondIdx=!isVType&&secondScore>=8?scores.indexOf(secondScore):-1;
+
+  document.getElementById('dual-pdp-animal').textContent=pdpType.animal+(isVType?'':' '+pdpType.axis);
+  document.getElementById('dual-pdp-axis').textContent=pdpType.name+'・'+pdpType.traits;
+  const scoresWrap=document.getElementById('dual-pdp-scores');
+  scoresWrap.innerHTML='';
+  PDP_TYPES.forEach((t,i)=>{
+    const chip=document.createElement('div');
+    chip.className='dual-score-chip';
+    chip.style.borderColor=(i===mainIdx&&!isVType)?t.color:'';
+    chip.style.fontWeight=(i===mainIdx&&!isVType)?'700':'400';
+    chip.textContent=t.axis+' '+scores[i];
+    scoresWrap.appendChild(chip);
+  });
+
+  /* MBTI 區 */
+  const code=lastMbtiType;
+  document.getElementById('dual-mbti-code').textContent=code;
+  document.getElementById('dual-mbti-name').textContent=MBTI_NAMES[code]||(code.includes('X')?'邊界型':'');
+
+  /* 現職適配度（若已選） */
+  const fitWrap=document.getElementById('dual-mbti-fit-wrap');
+  const fitBadge=document.getElementById('dual-fit-badge');
+  if(fitAns!==null){
+    const levels=['低','中','高'];
+    const colors=['#b5703a','#c9963a','#5a7a5a'];
+    fitBadge.textContent='現職適配度・'+levels[fitAns];
+    fitBadge.style.background=colors[fitAns];
+    fitWrap.style.display='block';
+  } else {
+    fitWrap.style.display='none';
+  }
+
+  /* 職涯適性摘要 */
+  const suitSec=document.getElementById('dual-suit-section');
+  const suitBody=document.getElementById('dual-suit-body');
+  const s=MBTI_SUIT[code];
+  if(s){
+    suitSec.style.display='block';
+    suitBody.innerHTML=
+      '<div class="dual-suit-row"><span class="dual-suit-tag">適性 1</span><strong>'+s.fit1+'</strong></div>'+
+      '<div class="dual-suit-row"><span class="dual-suit-tag">適性 2</span><strong>'+s.fit2+'</strong></div>';
+  } else {
+    suitSec.style.display='none';
+  }
+
+  /* 捲動到卡片（只在第一次雙測都完成時捲） */
+  if(!card.dataset.scrolled){
+    card.dataset.scrolled='1';
+    setTimeout(()=>card.scrollIntoView({behavior:'smooth',block:'start'}),300);
+  }
 }
 
 /* ============================
