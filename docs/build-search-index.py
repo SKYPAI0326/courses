@@ -49,6 +49,11 @@ DESC_RE = re.compile(
 )
 
 
+def should_ignore(path: Path) -> bool:
+    """跳過內部目錄（_local、_local-handoff、_assets、_backup … 等 _ 開頭）與版控/依賴目錄。"""
+    return any(part.startswith("_") or part in {".git", "node_modules"} for part in path.parts)
+
+
 def classify(path: Path) -> str:
     """依檔名判斷頁型。"""
     name = path.name.lower()
@@ -108,6 +113,8 @@ def main():
         slug = course_dir.name
         label = COURSE_LABEL.get(slug, slug)
         for html in sorted(course_dir.rglob("*.html")):
+            if should_ignore(html):
+                continue
             rel = html.relative_to(ROOT).as_posix()
             ex = extract(html)
             if not ex:

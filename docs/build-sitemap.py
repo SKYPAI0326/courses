@@ -56,7 +56,7 @@ def file_lastmod(path: Path) -> str:
 
 
 def should_ignore(path: Path) -> bool:
-    return any(part.startswith("_backup") or part in IGNORE_PARTS for part in path.parts)
+    return any(part.startswith("_") or part in IGNORE_PARTS for part in path.parts)
 
 
 def collect_pages():
