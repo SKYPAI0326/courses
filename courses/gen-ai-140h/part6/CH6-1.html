@@ -207,6 +207,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="section-eyebrow">GUIDED PATH · 照著做</div>
     <h2 class="section-heading">先跑一張<em> API 呼叫診斷卡</em></h2>
     <p class="body-text">這段只做一件事：先把一次 API 呼叫拆成 request、response、error 三欄，看懂哪一欄出問題，再進入後面的完整成本與重試設計。</p>
+    <p class="body-text"><strong>最低完成線：</strong>交出 1 張 API 呼叫診斷卡，且卡片最後有一句下一步處理。成本估算、retry、curl 實戰都屬第二層任務。</p>
 
     <div class="mini-prac" data-mp="ch6-1-guided">
       <div class="mini-prac-head">
@@ -214,16 +215,40 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <span class="mini-prac-time">約 8 分鐘</span>
       </div>
       <div class="mini-prac-title">把一次 API 呼叫拆成三欄診斷</div>
-      <p class="mini-prac-intro">不用先寫完整後端。先打開一段成功或失敗的 API log，把你送出的東西、收到的東西、錯誤判斷寫成一張卡。</p>
+      <p class="mini-prac-intro">不用先寫完整後端。先用下面兩段練習 log，把你送出的東西、收到的東西、錯誤判斷寫成一張卡；有自己的 API log 再換成自己的。</p>
+      <div class="code-block">
+        <div class="code-block-header"><span class="code-block-lang">SUCCESS LOG</span><span class="code-block-label">200 OK · 可直接練習</span></div>
+        <pre>POST /api/chat
+headers: Content-Type=application/json, Authorization=Bearer sk-ant-***89a
+body: {"model":"claude-haiku-4-5","max_tokens":300,"messages":[{"role":"user","content":"請用三點說明 API 回覆通常包含哪些欄位"}]}
+
+status: 200 OK
+response: {"content":[{"type":"text","text":"1. 回覆內容..."}],"usage":{"input_tokens":58,"output_tokens":96},"stop_reason":"end_turn"}</pre>
+      </div>
+      <div class="code-block">
+        <div class="code-block-header"><span class="code-block-lang">ERROR LOG</span><span class="code-block-label">401 / 429 · 可直接練習</span></div>
+        <pre>POST /api/chat
+headers: Content-Type=application/json, Authorization=Bearer sk-ant-***old
+body: {"model":"claude-haiku-4-5","max_tokens":300,"messages":[{"role":"user","content":"幫我摘要這段文字"}]}
+
+status: 401 Unauthorized
+response: {"error":{"type":"authentication_error","message":"invalid api key"}}
+
+---
+
+status: 429 Too Many Requests
+response: {"error":{"type":"rate_limit_error","message":"requests per minute exceeded"},"request_id":"req_29Kp"}</pre>
+      </div>
       <div class="mini-prac-steps">
-        <div class="mini-prac-step"><span class="mini-prac-step-num">1</span><span>在 request 欄寫下 method、URL、headers、body，特別標出 API key 放在哪裡，以及 model / max_tokens / messages 是否存在。</span></div>
-        <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span>在 response 欄寫下 status code、主要 body 欄位、usage.input_tokens、usage.output_tokens，先確認是否真的拿到模型回覆。</span></div>
-        <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>在 error 欄用一句話分類：401 是身份驗證、429 是速率限制、500 是後端或服務端錯誤，不要混成「API 壞掉」。</span></div>
-        <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span>寫出下一步處理：401 檢查 key、429 等待或退避、500 保留 request id 與重試紀錄。</span></div>
+        <div class="mini-prac-step"><span class="mini-prac-step-num">1</span><span>先選一段 log：新手用上方 SUCCESS LOG；想練除錯的人用 ERROR LOG。</span></div>
+        <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span>在 request 欄寫下 method、URL、headers、body，特別標出 API key 放在哪裡，以及 model / max_tokens / messages 是否存在。</span></div>
+        <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>在 response 欄寫下 status code、主要 body 欄位、usage.input_tokens、usage.output_tokens；如果是錯誤 log，就寫出 error type 與 request_id。</span></div>
+        <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span>在 error 欄用一句話分類：401 是身份驗證、429 是速率限制、500 是後端或服務端錯誤，不要混成「API 壞掉」。</span></div>
+        <div class="mini-prac-step"><span class="mini-prac-step-num">5</span><span>寫出下一步處理：401 檢查 key、429 等待或退避、500 保留 request id 與重試紀錄。</span></div>
       </div>
       <div class="mini-prac-output">
         <div class="mini-prac-output-label">成果產出</div>
-        <div class="mini-prac-output-text">一張 API 呼叫診斷卡：Request 欄、Response 欄、Error 欄各至少 3 個欄位，最後附一句「這次失敗應該先修哪裡」。</div>
+        <div class="mini-prac-output-text">一張 API 呼叫診斷卡：Request 欄、Response 欄、Error 欄各至少 3 個欄位，最後附一句「這次失敗應該先修哪裡」。做到這裡就算本頁最低完成線。</div>
         <textarea aria-label="你的版本" rows="4" placeholder="把你的版本寫在這裡，refresh 後仍會保留。" style="margin-top:10px;width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:inherit;font-size:.85rem;line-height:1.7;background:var(--c-card);color:var(--c-text);resize:vertical;min-height:80px"></textarea>
       </div>
       <div class="mini-prac-check">
