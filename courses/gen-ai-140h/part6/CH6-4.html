@@ -189,7 +189,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="section-eyebrow">GUIDED PATH · 照著做</div>
     <h2 class="section-heading">先填一張<em>工具 schema 設計卡</em></h2>
     <p class="body-text">這段只做一件事：先把工具名稱、description、parameters 寫到模型看得懂，確認它知道何時該用工具、該帶哪些參數。</p>
-    <p class="body-text"><strong>最低完成線：</strong>交出 1 張工具 schema 設計卡，含 name、description、parameters、required 與 3 個測試句。完整 Agent Loop 屬第二層任務。</p>
+    <p class="body-text"><strong>最低完成線：</strong>交出 1 張工具 schema 設計卡，含 name、description、parameters、required 與 3 個測試句。這是 Level 1 模擬成功；完整真實 SDK Agent Loop 屬 Level 2，不列入最低完成線。</p>
 
     <div class="mini-prac" data-mp="ch6-4-guided">
       <div class="mini-prac-head">
@@ -349,8 +349,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <span class="mini-prac-eyebrow">迷你練習 1</span>
         <span class="mini-prac-time">約 20 分鐘</span>
       </div>
-      <div class="mini-prac-title">寫一個只會查天氣和算術的最小 Agent Loop</div>
-      <p class="mini-prac-intro">用 Claude 或 OpenAI 的 tool_use，定義兩個 function（get_weather、calculator），親手把 Observe <span aria-hidden="true">→</span> Think <span aria-hidden="true">→</span> Act 的循環寫一遍，讓模型在一次對話裡至少呼叫兩次工具。</p>
+      <div class="mini-prac-title">Level 1 模擬：寫一個只會查天氣和算術的最小 Agent Loop</div>
+      <p class="mini-prac-intro">先用 mock get_weather / calculator 產出 console log，不要求真 SDK 跑通。你要看懂 Observe <span aria-hidden="true">→</span> Think <span aria-hidden="true">→</span> Act 的循環，以及工具結果如何回填到下一輪。</p>
       <div class="mini-prac-steps">
         <div class="mini-prac-step"><span class="mini-prac-step-num">1</span><span>定義兩個工具的 JSON Schema：get_weather(city)、calculator(expression)，description 寫到模型能明確判斷觸發情境。</span></div>
         <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span>寫一個 while loop：只要 stop_reason === 'tool_use' 就解析 tool_use、執行 mock 函式、把 tool_result 加回 messages。</span></div>
@@ -429,9 +429,13 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         </div>
       </details>
       <div class="mini-prac-output">
-        <div class="mini-prac-output-label">成果產出</div>
-        <div class="mini-prac-output-text">Agent loop 程式碼 + 一段 console log，顯示每輪的 stop_reason、tool_use、tool_result，以及最終文字答案。</div>
+        <div class="mini-prac-output-label">成果產出 · Level 1</div>
+        <div class="mini-prac-output-text">Agent loop mock 程式碼 + 一段 console log，顯示每輪的 stop_reason、tool_use、tool_result，以及最終文字答案。這代表模擬成功，不代表真實 SDK 已串通。</div>
         <textarea aria-label="你的版本" rows="4" placeholder="把你的版本寫在這裡，refresh 後仍會保留。" style="margin-top:10px;width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:inherit;font-size:.85rem;line-height:1.7;background:var(--c-card);color:var(--c-text);resize:vertical;min-height:80px"></textarea>
+      </div>
+      <div class="mini-prac-output">
+        <div class="mini-prac-output-label">Level 2 真實 SDK 成功標準</div>
+        <div class="mini-prac-output-text">有環境者才補：SDK response 出現 <code>stop_reason="tool_use"</code>，程式把 <code>tool_result</code> 正確回填，再取得 <code>stop_reason="end_turn"</code> 與最終文字答案。失敗 log 至少保留一段：unknown tool、schema invalid、或 upstream 503。</div>
       </div>
       <div class="mini-prac-check">
         <span class="mini-prac-check-label">自我檢核</span>
@@ -447,8 +451,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <!-- Section 3 -->
   <div class="lesson-section reveal">
     <div class="section-eyebrow">(03)</div>
-    <h2 class="section-heading">三種常見 Agent 陷阱<em>及防禦策略</em></h2>
-    <p class="body-text">Agent 很強大，但也引入了新的失敗模式。以下是生產環境中最常遇到的三種問題。</p>
+    <h2 class="section-heading">延伸可靠性測試：三種常見 Agent 陷阱<em>及防禦策略</em></h2>
+    <p class="body-text">Agent 很強大，但也引入了新的失敗模式。以下是生產環境中最常遇到的三種問題；本段是主線完成後的延伸可靠性測試，不列入本頁最低完成線。</p>
 
     <div class="trap-list reveal">
       <div class="trap-item">
@@ -487,7 +491,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <span class="mini-prac-eyebrow">迷你練習 2</span>
         <span class="mini-prac-time">約 15 分鐘</span>
       </div>
-      <div class="mini-prac-title">刻意觸發三種 Agent 陷阱並加上防禦</div>
+      <div class="mini-prac-title">延伸可靠性測試：刻意觸發三種 Agent 陷阱並加上防禦</div>
       <p class="mini-prac-intro">在剛才的 Agent 上故意誘發無限迴圈、工具幻覺、未處理失敗三種情況，並套用本節防禦策略，驗證程式不再爆掉。</p>
       <div class="mini-prac-steps">
         <div class="mini-prac-step"><span class="mini-prac-step-num">1</span><span>無限迴圈：把 calculator 回傳值改成永遠「需要再算一次」，觀察是否被 max_turns 擋住。</span></div>

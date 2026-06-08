@@ -273,6 +273,11 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
       <div class="callout-body"><strong>用來 index 和用來查詢的 Embedding 模型必須一樣。</strong>如果你用 text-embedding-3-small 建索引，查詢時也要用 text-embedding-3-small。不同模型的向量空間完全不同，混用結果會很差。</div>
     </div>
 
+    <div class="mini-prac-output">
+      <div class="mini-prac-output-label">Level 1 / Level 2 完成線</div>
+      <div class="mini-prac-output-text"><strong>Level 1 模擬成功：</strong>用本頁內建句子與假分數表完成流程卡，能判斷哪組語義相近、哪組應低分；這已達成本頁最低完成線。<br><strong>Level 2 真實成功：</strong>才需要真的呼叫 embedding API，取得向量後用 Chroma 查出 top-3、distance / similarity 與模型名稱。模擬畫面不可當成真實 API 已接通。</div>
+    </div>
+
     <div class="mini-prac" data-mp="ch6-2-mp1">
       <div class="mini-prac-head">
         <span class="mini-prac-eyebrow">迷你練習 1</span>
@@ -329,6 +334,27 @@ S5 | 今天台北下大雨，通勤族記得帶傘
         </div>
         <div class="ps-block">
           <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br># 1. 讀 API key 並初始化 client<br>client = OpenAI()<br># 2. 批次取得 embeddings<br>vecs = [client.embeddings.create(model='text-embedding-3-small', input=s).data[0].embedding for s in sentences]<br># 3. cosine similarity 矩陣<br>sim = cosine_similarity(np.array(vecs))<br>print(pd.DataFrame(sim, index=['S1','S2','S3','S4','S5'], columns=['S1','S2','S3','S4','S5']).round(3))<br># 典型結果：sim[S1,S2] ≈ 0.72，sim[S3,S4] ≈ 0.78，sim[S1,S3] ≈ 0.18<br># 觀察指引：若 S1-S2 偏低（&lt; 0.5），可能是模型跨語言能力不足，建議改用 text-embedding-3-large 或 voyage-multilingual-2</div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">內建 log 判讀練習<span class="ps-label-tag">只做原因 + 下一步</span></div>
+          <div class="ps-material">SUCCESS
+status: 200
+model: text-embedding-3-small
+usage: { "prompt_tokens": 42, "total_tokens": 42 }
+data[0].embedding.length: 1536
+下一步：可進入 similarity 矩陣或 Chroma top-k 查詢。
+
+ERROR
+status: 401
+message: Incorrect API key provided
+原因：API key 錯誤、過期，或環境變數沒有被程式讀到。
+下一步：檢查 .env / OPENAI_API_KEY，重開 terminal，不要把 key 貼到前端。
+
+ERROR
+status: 429
+message: Rate limit reached for embeddings
+原因：超過速率或額度限制，不是程式語法錯。
+下一步：等候後重試、降低批次量、確認 billing / usage limit。</div>
         </div>
       </details>
       <div class="mini-prac-output">
@@ -473,9 +499,9 @@ Q6 今天午餐吃什麼（誘餌題，無相關資料）</div>
   <hr class="section-rule reveal">
 
   <section class="lesson-section reveal" id="s5">
-    <div class="section-eyebrow">(05) · Hands-on Lab</div>
-    <h2 class="section-heading">實戰演練：<br><em>Node.js 與 FastAPI 兩種中介層</em></h2>
-    <p class="body-text">你在 Part 5 把 demo 部署上 Vercel，但真正上線的應用都還有一層你沒寫的「後端中介層」：它替前端藏金鑰、加計費、加 log、擋亂流量。這一節用兩個情境把這層補齊：Node.js Express 寫一次，Python FastAPI 再寫一次，看兩者語法差在哪、選型該怎麼想。</p>
+    <div class="section-eyebrow">EXTENSION · 進階補充（非本頁最低完成線）</div>
+    <h2 class="section-heading">延伸：<br><em>Node.js 與 FastAPI 後端中介層</em></h2>
+    <p class="body-text"><strong>這一整段不是 CH6-2 的最低完成線。</strong>本頁主線已在 Embedding、向量搜尋流程卡與 Chroma 最小查詢完成；下方內容只供想回顧 API key、CORS、429 重試與後端代理的學員延伸閱讀，不需在本頁實作，也不取代 CH6-1 的後端中介層主題。</p>
 
     <style>
     .quiz-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:20px}
@@ -648,6 +674,11 @@ async def chat(body: ChatIn):
           <li><strong>Node vs Python 選一個</strong>：寫一段自己的選型備忘錄（100 字內），回答「這個專案我選哪個？為什麼？」理由要具體（例：團隊熟 TypeScript / 想用 pydantic 驗資料 / 部署平台偏好）。</li>
         </ul>
       </div>
+    </div>
+
+    <div class="mini-prac-output">
+      <div class="mini-prac-output-label">延伸 Quiz 使用方式</div>
+      <div class="mini-prac-output-text">以下 API key / CORS / 429 題目只用來辨識錯誤原因與下一步處理，不列入本頁 Embedding / 向量搜尋最低完成線。</div>
     </div>
 
     <div class="quiz-grid" id="ch62-quiz">

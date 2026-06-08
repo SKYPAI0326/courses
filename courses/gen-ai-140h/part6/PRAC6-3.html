@@ -246,12 +246,12 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
       </div>
       <div class="case-meta">
         <span class="case-tag">主線 20 分鐘</span>
-        <span class="case-tag">先觀察再改寫</span>
+        <span class="case-tag">Level 1 / Level 2</span>
       </div>
     </div>
-    <p class="case-lede">第一輪請選「行程助理」並執行模擬。成功標準是你能指出 Agent 先選哪個工具、帶入哪些 JSON 參數、拿到結果後為什麼還要呼叫下一個工具。若工具 schema 還寫不完整，至少截下 loop 順序並標出缺哪個欄位。</p>
+    <p class="case-lede">第一輪請選「行程助理」並執行模擬。Level 1 是看懂本頁模擬 trace；Level 2 才是真實 agent run log。成功標準是你能指出 Agent 先選哪個工具、帶入哪些 JSON 參數、拿到結果後為什麼還要呼叫下一個工具。若工具 schema 還寫不完整，至少截下 loop 順序並標出缺哪個欄位。</p>
     <div class="case-sec">
-      <div class="case-sec-label">最小成功畫面</div>
+      <div class="case-sec-label">最小成功畫面 · Level 1 模擬 trace</div>
       <div class="case-material">情境：下週二下午我有沒有空開一小時的會？
 
 畫面至少要出現：
@@ -259,6 +259,18 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 2. 參數 JSON 含 date_from / date_to
 3. 接著呼叫 find_free_slots
 4. 參數 JSON 含 date、duration_minutes、existing_events</div>
+    </div>
+    <div class="case-sec">
+      <div class="case-sec-label">老師檢查證據</div>
+      <div class="case-material">截圖 A：行程助理 loop，需同時包含 get_calendar_events、find_free_slots、JSON 參數、result。
+
+截圖 B：自訂工具 schema preview，需看得到 name、description、parameters / required，且能說明哪一句使用者輸入會觸發它。</div>
+    </div>
+    <div class="case-sec">
+      <div class="case-sec-label">Level 2 真實成功與失敗替代</div>
+      <div class="case-material">Level 2 真實 agent run log 需包含：tool call id、HTTP 200 或等價成功狀態、tool result JSON、最後回覆。
+
+若工具或權限未通，交失敗替代：假 tool result JSON、錯誤截圖、以及一張 trace 表，列出「本來應呼叫哪個工具、應帶哪些參數、預期 result 長什麼樣」。這是保底證據，不可宣稱已完成真實 agent。</div>
     </div>
     <div class="case-sec">
       <div class="case-sec-label">結果驗證卡</div>
@@ -285,6 +297,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
       <span class="case-check-label">最低完成線與卡住排查</span>
       <label><input type="checkbox"><span>我已看懂 1 次 Agent Loop，能列出工具呼叫順序與 JSON 參數。</span></label>
       <label><input type="checkbox"><span>我已交出 1 個自訂工具 schema；若卡住，至少標出缺 name、description 還是 parameters。</span></label>
+      <label><input type="checkbox"><span>我已保留老師檢查證據：截圖 A 行程助理 loop + 截圖 B 自訂工具 schema preview。</span></label>
       <label><input type="checkbox"><span>第一步：確認已選定單一情境，先不要同時比較三個案例。</span></label>
       <label><input type="checkbox"><span>第二步：確認問題出在工具描述不清、參數格式不對，或前一步工具結果不足。</span></label>
       <label><input type="checkbox"><span>第三步：回到行程助理最小案例重跑，先抄出正確工具順序與 JSON，再改自己的工具。</span></label>
@@ -422,7 +435,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog-bar" style="width:0%"></div></div>
     <div class="challenge-title">實戰驗收清單</div>
     <div class="challenge-list" id="check-list">
-      <label class="challenge-item" id="ci-0"><input type="checkbox" onchange="updateProgress()"><span class="challenge-item-text">必做：觀察完至少一個情境的 Agent Loop 模擬，能說明每個步驟的作用</span></label>
+      <label class="challenge-item" id="ci-0"><input type="checkbox" onchange="updateProgress()"><span class="challenge-item-text">必做：完成 Level 1 模擬 trace，能說明每個工具呼叫步驟的作用</span></label>
       <label class="challenge-item" id="ci-1"><input type="checkbox" onchange="updateProgress()"><span class="challenge-item-text">注意到模型「選擇不呼叫某個工具」的決策，理解 description 如何影響觸發條件</span></label>
       <label class="challenge-item" id="ci-2"><input type="checkbox" onchange="updateProgress()"><span class="challenge-item-text">必做：設計一個自訂工具並生成 Schema，description 清楚說明觸發條件和回傳格式</span></label>
       <label class="challenge-item" id="ci-3"><input type="checkbox" onchange="updateProgress()"><span class="challenge-item-text">能指出你設計的工具鏈中，哪個環節最容易發生「工具幻覺」</span></label>
@@ -682,9 +695,9 @@ Agent 絕對不做的三件事：
 
 <!-- ===== Section A：Guardrails 情境演練 ===== -->
 <section class="lesson-section">
-  <div class="section-eyebrow">GUARDRAILS · 四個情境演練</div>
-  <h2 class="section-heading">為你的 LLM 應用裝上<em>輸入 / 輸出的安檢門</em></h2>
-  <p class="section-lede">Agent 串得再漂亮，只要有一次把客戶身分證回吐出去、或被「忽略前面指令」騙去當心理諮商師，整個產品就下架。下面四個情境照「真實漏洞 → Guardrail Prompt → 放行或擋下的決策」的順序走，每個情境展開後都能直接複製提示詞改成你自己的版本。</p>
+  <div class="section-eyebrow">GUARDRAILS · 進階池</div>
+  <h2 class="section-heading">完成 Agent 主線後，再為 LLM 應用裝上<em>輸入 / 輸出的安檢門</em></h2>
+  <p class="section-lede">本區是進階池，完成行程助理 loop 與自訂工具 schema 後再做，不列入 PRAC6-3 最低完成線。Agent 串得再漂亮，只要有一次把客戶身分證回吐出去、或被「忽略前面指令」騙去當心理諮商師，整個產品就下架。下面四個情境照「真實漏洞 → Guardrail Prompt → 放行或擋下的決策」的順序走，每個情境展開後都能直接複製提示詞改成你自己的版本。</p>
 
   <details class="prac-sample" open>
     <summary class="ps-head">

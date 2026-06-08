@@ -179,7 +179,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="section-eyebrow">GUIDED PATH · 照著做</div>
     <h2 class="section-heading">先做一份<em>上線前風險檢查表</em></h2>
     <p class="body-text">這段只做一件事：先用 streaming、evals、guardrails、成本四欄檢查最小上線風險，確認使用者看得到進度、團隊量得到品質、帳單守得住。</p>
-    <p class="body-text"><strong>最低完成線：</strong>交出 1 份上線前風險檢查表，四欄各有狀態、風險與下一步。完整 eval pipeline 與 streaming 改造屬第二層任務。</p>
+    <p class="body-text"><strong>最低完成線：</strong>交出 1 份上線前風險檢查表，四欄各有狀態、風險與下一步。Streaming 判讀先做 Level 1 模擬成功；真正跑 /api/stream 是 Level 2，完整 eval pipeline 與改造屬第二層任務。</p>
 
     <div class="mini-prac" data-mp="ch6-5-guided">
       <div class="mini-prac-head">
@@ -597,7 +597,17 @@ golden set 20 題通過率：18/20 (90%)
   <div class="lesson-section reveal">
     <div class="section-eyebrow">(05)</div>
     <h2 class="section-heading">實戰演練：<em>把 Streaming 變成會打字的聊天介面</em></h2>
-    <p class="body-text">理論講完了，現在補一段完整可跑的路徑：後端用 Server-Sent Events 把 AI 回覆一段段推給前端；前端把每個 chunk append 到 DOM，變成打字機效果，還要加一個 Cancel 按鈕讓使用者隨時中斷。兩個情境串在一起，就是一個小規模的 ChatGPT UI。</p>
+    <p class="body-text">理論講完了，現在補一段完整可跑的路徑：先用假 stream log 判讀畫面是否逐段累積、能否取消、錯誤如何顯示；有環境者再把後端用 Server-Sent Events 把 AI 回覆一段段推給前端。模擬判讀是 Level 1，真跑 /api/stream 是 Level 2。</p>
+
+    <div class="mini-prac-output">
+      <div class="mini-prac-output-label">Level 1 模擬成功 · 假 stream log</div>
+      <div class="mini-prac-output-text">用下列 log 判斷三件事：文字是否逐段累積、Cancel 後是否停止、錯誤是否顯示給使用者。<br><code>00:00 status=pending</code><br><code>00:01 data: {"delta":"你好"}</code><br><code>00:02 data: {"delta":"，這是逐段"}</code><br><code>00:03 cancel clicked → request aborted</code><br><code>error case: data: {"error":"429 rate_limit_error"}</code></div>
+    </div>
+
+    <div class="mini-prac-output">
+      <div class="mini-prac-output-label">Level 2 真實成功與失敗範例</div>
+      <div class="mini-prac-output-text">真跑 /api/stream 時，Network 截圖需看到 Status 200、<code>Content-Type: text/event-stream</code>、TTFT、分段 <code>data:</code> chunks，Cancel 後 request 變 canceled。失敗保底交 401 invalid api key、429 rate limit，或 stream 中途 <code>{"error":"upstream disconnected"}</code> 的截圖與一句排查下一步。</div>
+    </div>
 
     <style>
     .quiz-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:20px}
@@ -616,7 +626,7 @@ golden set 20 題通過率：18/20 (90%)
 
     <details class="prac-sample" open>
       <summary class="ps-head">
-        <span class="ps-eyebrow">情境 A</span>
+        <span class="ps-eyebrow">情境 A · Level 2 真實串流</span>
         <span class="ps-hint">Server-Sent Events 把 AI 回覆串流給前端 — 後端 POST + 前端 fetch ReadableStream</span>
       </summary>
       <div class="ps-block">

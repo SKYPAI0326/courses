@@ -307,6 +307,13 @@ details.prac-sample:not([open]) > summary.ps-head{margin-bottom:0}
         </div>
       </div>
     </div>
+    <div class="case-sec">
+      <div class="case-sec-label">老師檢查證據</div>
+      <div class="case-material">請截圖保留這些欄位：
+1. 等待型欄位：demo-before、status-before，需看得到等待中與完成後文字。
+2. 串流型欄位：demo-after、status-after，需看得到逐段累積、游標 / loading 狀態，以及完成後完整文字。
+3. 若有真實 API：Network 截圖需看得到 status 200、Content-Type: text/event-stream、多段 data: chunks、完成訊號與 usage / token 或後端 log。</div>
+    </div>
     <div class="case-check">
       <span class="case-check-label">最低完成線與卡住排查</span>
       <label><input type="checkbox"><span>我已看到 streaming 逐段輸出，或已用截圖/程式碼標註說明差異。</span></label>
@@ -314,6 +321,19 @@ details.prac-sample:not([open]) > summary.ps-head{margin-bottom:0}
       <label><input type="checkbox"><span>第一步：確認 demo 已啟動，且觀察的是串流欄位，不是等待型欄位。</span></label>
       <label><input type="checkbox"><span>第二步：確認錯誤屬於後端 header、資料格式，或前端讀取 stream 的方式不一致。</span></label>
       <label><input type="checkbox"><span>第三步：先用本頁最小 demo 重跑，確認逐段顯示成功，再把同樣邏輯搬回完整專案。</span></label>
+    </div>
+    <div class="case-sec">
+      <div class="case-sec-label">Level 1 / Level 2 完成線</div>
+      <div class="case-material">Level 1 模擬成功：本頁 demo 逐段輸出，能交等待型 / 串流型前後截圖、status-before / status-after、loading 或游標、完成後文字。
+
+Level 2 真實成功：真實 /api/stream 回 HTTP 200，Content-Type 是 text/event-stream，Network 可看到多段 data: chunks，最後有完成訊號，並保留 usage / token 或後端 log。Level 1 模擬畫面不可當成 Level 2 真 API 成功。</div>
+    </div>
+    <div class="case-sec">
+      <div class="case-sec-label">失敗替代交付</div>
+      <div class="case-material">若 SSE 失敗，交 3 件保底成果：
+1. 錯誤 status 截圖（401 / 429 / 500 / CORS / network error 任一）與原因判斷。
+2. fallback 非串流 response 截圖，證明使用者仍能拿到完整回答或友善錯誤。
+3. 預期 chunk 假資料：至少 3 段 data: 片段、[DONE] 完成訊號、你預期畫面如何逐段追加。</div>
     </div>
   </div>
 
@@ -450,11 +470,11 @@ details.prac-sample:not([open]) > summary.ps-head{margin-bottom:0}
   <div class="reveal">
     <div class="progress-label" id="prog-label">完成進度：0 / 6</div>
     <div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog-bar" style="width:0%"></div></div>
-    <div class="challenge-title">Part 6 完結驗收清單</div>
+    <div class="challenge-title">Streaming 主線驗收清單</div>
     <div class="challenge-list" id="check-list">
       <label class="challenge-item" id="ci-0"><input type="checkbox" onchange="updateProgress()"><span class="challenge-item-text">必做：理解 Streaming 的三個關鍵改動：Headers、res.write 逐 chunk、前端 ReadableStream</span></label>
       <label class="challenge-item" id="ci-1"><input type="checkbox" onchange="updateProgress()"><span class="challenge-item-text">必做：體驗過 UX 對比，能向別人說明為什麼「感知速度」比「實際速度」更重要</span></label>
-      <label class="challenge-item" id="ci-2"><input type="checkbox" onchange="updateProgress()"><span class="challenge-item-text">（回顧）PRAC6-1：能解釋 temperature、max_tokens 對輸出的影響</span></label>
+      <label class="challenge-item" id="ci-2"><input type="checkbox" onchange="updateProgress()"><span class="challenge-item-text">截圖留存等待型 / 串流型欄位、status-before / status-after、loading 或游標與完成後文字</span></label>
       <label class="challenge-item" id="ci-3"><input type="checkbox" onchange="updateProgress()"><span class="challenge-item-text">（回顧）PRAC6-2：能描述 RAG 的四個步驟：切 chunk <span aria-hidden="true">→</span> 搜尋 <span aria-hidden="true">→</span> 組 Prompt <span aria-hidden="true">→</span> 生成</span></label>
       <label class="challenge-item" id="ci-4"><input type="checkbox" onchange="updateProgress()"><span class="challenge-item-text">（回顧）PRAC6-3：能說明 Agent Loop 的 Observe-Think-Act 循環</span></label>
       <label class="challenge-item" id="ci-5"><input type="checkbox" onchange="updateProgress()"><span class="challenge-item-text">心智模型建立：能在腦中畫出「API <span aria-hidden="true">→</span> 後端代理 <span aria-hidden="true">→</span> Streaming <span aria-hidden="true">→</span> 前端」的完整流程圖</span></label>
@@ -737,9 +757,9 @@ async function streamWithGuardrail(article, onChunk, onAbort) {
 <div class="tool-wrap" style="max-width:var(--content-w);margin:0 auto;padding:0 48px 48px">
   <div class="part-quiz" data-quiz="part6">
     <div class="part-quiz-head">
-      <div class="part-quiz-eyebrow">Part 6 · 通關檢測</div>
-      <div class="part-quiz-title">AI 應用開發進階 — 關卡驗收</div>
-      <p class="part-quiz-lede">做完 Part 6 的 5 章 + 4 實作後，用這份檢測驗證自己是否從「工具玩家」進到「AI 工程師」。10 題觀念題涵蓋 API、embedding、RAG、Agent、Streaming、Evals，加一題工作場景綜合任務。估時 35-45 分鐘。</p>
+      <div class="part-quiz-eyebrow">ADVANCED POOL · Part 6 通關檢測</div>
+      <div class="part-quiz-title">進階池：AI 應用開發進階 — 關卡驗收</div>
+      <p class="part-quiz-lede"><strong>完成 Streaming 主線後才進入；不列入 PRAC6-4 最低完成線。</strong>10 題觀念題涵蓋 API、embedding、RAG、Agent、Streaming、Evals，加一題工作場景綜合任務。估時 35-45 分鐘。</p>
     </div>
 
     <div class="part-quiz-section">
@@ -1158,9 +1178,9 @@ ORDER  BY avg_cost DESC;
 
 <!-- ===== Section：延伸挑戰 ===== -->
 <section class="lesson-section">
-  <div class="section-eyebrow">CHALLENGE · 延伸挑戰</div>
-  <h2 class="section-heading">把 dashboard 從<em>臨時 SQL 變成常態 infra</em></h2>
-  <p class="section-lede">情境跑過一輪後，下面 3 個挑戰會逼你把監控真的接上去。做完這段 dashboard 就不只是「老闆要的報表」，而是團隊的日常面板。這一段大約 40 分鐘，搭配前面情境總計約 82 分鐘。</p>
+  <div class="section-eyebrow">ADVANCED POOL · 完成 Streaming 主線後才進入</div>
+  <h2 class="section-heading">進階池：把 dashboard 從<em>臨時 SQL 變成常態 infra</em></h2>
+  <p class="section-lede"><strong>這段不列入 PRAC6-4 最低完成線。</strong>先完成等待型 / 串流型截圖、Level 1 / Level 2 判讀與失敗替代交付；有餘裕再做成本 dashboard 與總複習。</p>
 
   <div class="callout tip">
     <div class="callout-icon" aria-hidden="true">🎯</div>
