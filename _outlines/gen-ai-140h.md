@@ -88,10 +88,10 @@ prac: true
 - PRAC5-14：互動小遊戲上 GitHub（Wordle/記憶配對/打地鼠 三選一） *(課堂 1h / 自學 1h)* — 學習成果：用 localStorage 持久化資料、提示詞驅動遊戲機制
 - PRAC5-15：自貼 API KEY 的 AI 工具（自用 demo 版） *(課堂 1.5h / 自學 1h)* — 學習成果：KEY 不進 repo 的習慣 + 自用部署的邊界認識
 
-**Phase 2 待擴充（Phase 1 跑通至少 1 場實體課後再實作）：**
-- CH5-6：強迫多檔變單檔 — 請 AI 幫我打包 *(課堂 1.5h / 自學 1h)*
-- PRAC5-16：Gemini Canvas / AI Studio 多檔產出整合演練 *(課堂 1.5h / 自學 1.5h)*
-- PRAC5-17：一鍵 fork Vercel proxy 範本（可分享版，零程式碼修改） *(自學 2h)*
+**Phase 2（2026-06-08 啟動，閘門三條已過）：**
+- CH5-6：強迫多檔變單檔 — 請 AI 幫我打包 *(課堂 1.5h / 自學 1h)* ✅ 已上線
+- PRAC5-16：Gemini Canvas / AI Studio 多檔產出整合演練 *(課堂 1.5h / 自學 1.5h)* ✅ 已上線
+- PRAC5-17：一鍵 fork Vercel proxy 範本（可分享版，零程式碼修改） *(自學 2h)* ⏳ 待講師建 gen-ai-140h-api-proxy-template repo
 
 ## Part 6：AI 應用開發進階（22h）
 

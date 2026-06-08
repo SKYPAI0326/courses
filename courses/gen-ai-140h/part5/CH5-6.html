@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH5-6 強迫多檔變單檔 —— 請 AI 幫我打包｜生成式AI職訓實務應用班</title>
+<meta name="description" content="用一段「整合單檔」提示詞，把 AI 產出的多檔網站重做成單一 HTML，再走 CH5-5 五步部署。整合失敗有兩條備援逃生路徑，全程不開 Terminal、不學 git。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="CH5-6 強迫多檔變單檔 —— 請 AI 幫我打包｜生成式AI職訓實務應用班">
+<meta property="og:description" content="用一段「整合單檔」提示詞，把 AI 產出的多檔網站重做成單一 HTML，再走 CH5-5 五步部署。整合失敗有兩條備援逃生路徑，全程不開 Terminal、不學 git。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/gen-ai-140h/part5/CH5-6.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CH5-6 強迫多檔變單檔 —— 請 AI 幫我打包｜生成式AI職訓實務應用班">
+<meta name="twitter:description" content="用一段「整合單檔」提示詞，把 AI 產出的多檔網站重做成單一 HTML，再走 CH5-5 五步部署。整合失敗有兩條備援逃生路徑，全程不開 Terminal、不學 git。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/gen-ai-140h/part5/CH5-6.html">
+<meta name="platform_version" content="2026-05">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-a5:#7a9ea3;--c-accent:#6b7fa3;--radius:6px;--radius-sm:4px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;word-break:break-word;overflow-wrap:break-word;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 var(--radius) 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-accent);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.07);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-accent);width:0%;transition:width .1s;opacity:.75}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px}
+.back-link:hover{color:var(--c-accent)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.hero-part{font-size:.72rem;color:var(--c-muted);letter-spacing:.08em;font-weight:500}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border)}
+.hero-num{font-size:.72rem;color:var(--c-accent);letter-spacing:1px;font-weight:500}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;max-width:22ch}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;max-width:38em;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text)}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.9rem;color:var(--c-text)}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-accent);margin-top:8px;flex-shrink:0}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px}
+.lesson-section{margin-bottom:64px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-heading em{font-style:normal;color:var(--c-text)}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:64px 0}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.95;margin-bottom:20px}
+.body-text strong{font-weight:700}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.05rem;margin-top:2px}
+.callout-body{font-size:.9rem;line-height:1.85;color:var(--c-text)}
+.callout-body strong{font-weight:700}
+.big-quote{font-family:'Shippori Mincho',serif;font-size:1.2rem;font-weight:700;line-height:1.65;color:var(--c-text);padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-left:4px solid var(--c-accent);border-radius:var(--radius);margin:28px 0}
+.data-table{width:100%;border-collapse:collapse;margin:24px 0;font-size:.85rem}
+.data-table thead tr{background:var(--c-surface)}
+.data-table th{text-align:left;padding:12px 14px;font-size:.72rem;color:var(--c-muted);letter-spacing:1px;border-bottom:1px solid var(--c-border);font-weight:500}
+.data-table td{padding:13px 14px;border-bottom:1px solid var(--c-border);line-height:1.65;vertical-align:top}
+.data-table tr:last-child td{border-bottom:none}
+.data-table code{font-family:'Courier New',monospace;font-size:.8rem;background:rgba(107,127,163,.1);color:#4a5f8a;padding:1px 6px;border-radius:3px}
+.badge-ok{display:inline-block;font-size:.7rem;padding:2px 8px;border-radius:99px;background:rgba(90,122,90,.1);color:#3a6a3a;border:1px solid rgba(90,122,90,.3);font-weight:500}
+.badge-no{display:inline-block;font-size:.7rem;padding:2px 8px;border-radius:99px;background:rgba(181,112,58,.1);color:#a0501e;border:1px solid rgba(181,112,58,.3);font-weight:500}
+.demo-flow{border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;margin:24px 0;background:transparent}
+.demo-flow-label{font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:14px}
+.demo-step{padding:14px 0;border-top:1px dashed var(--c-border)}
+.demo-step:first-of-type{border-top:none;padding-top:0}
+.demo-step-title{font-size:.9rem;font-weight:700;color:var(--c-text);margin-bottom:10px}
+.demo-step-action{font-size:.85rem;color:var(--c-muted);line-height:1.75;margin-bottom:8px}
+.demo-step-action strong{font-weight:700;color:var(--c-text)}
+.demo-step-note{font-size:.82rem;color:var(--c-muted);line-height:1.7;padding:10px 14px;background:var(--c-surface);border-radius:var(--radius-sm);margin-top:8px}
+.demo-step-note strong{font-weight:700;color:var(--c-text)}
+.demo-takeaway{background:var(--c-surface);border-left:2px solid var(--c-a1);padding:12px 16px;margin-top:14px;font-size:.85rem;line-height:1.8;color:var(--c-text);border-radius:var(--radius-sm)}
+.dialog-box{background:var(--c-surface);border:1px solid var(--c-border);border-left:2px solid var(--c-text);border-radius:var(--radius-sm);padding:14px 16px;margin:12px 0 8px;font-family:'Courier New',monospace;font-size:.8rem;color:var(--c-text);line-height:1.7;white-space:pre-wrap;position:relative}
+.dialog-label{font-family:'Noto Sans TC',sans-serif;font-size:.7rem;color:var(--c-muted);font-weight:500;letter-spacing:.5px;margin-bottom:8px;text-transform:uppercase}
+.expected-output{background:var(--c-card);border:1px solid var(--c-border-soft);border-left:2px solid var(--c-a2);border-radius:var(--radius-sm);margin:12px 0 8px;padding:16px 18px}
+.expected-label{font-size:.7rem;color:var(--c-a2);font-weight:500;letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase}
+.expected-body{font-size:.85rem;line-height:1.85;color:var(--c-text)}
+.expected-body p{margin-bottom:8px}
+.expected-body p:last-child{margin-bottom:0}
+.expected-body strong{font-weight:700}
+.expected-note{font-size:.72rem;color:var(--c-muted);margin-top:12px;line-height:1.6;border-top:1px dashed var(--c-border-soft);padding-top:10px}
+.error-list{display:flex;flex-direction:column;gap:14px;margin:24px 0}
+.error-item{padding:18px 22px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a1);border-radius:var(--radius)}
+.error-num{font-size:.7rem;font-weight:700;color:var(--c-a1);letter-spacing:1px;margin-bottom:6px}
+.error-title{font-size:.9rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.error-symptom{font-size:.82rem;color:var(--c-muted);margin-bottom:4px;line-height:1.7}
+.error-symptom strong{font-weight:700;color:var(--c-text)}
+.error-fix{font-size:.85rem;color:var(--c-text);line-height:1.75;padding:10px 14px;background:var(--c-surface);border-radius:var(--radius-sm);margin-top:8px}
+.error-fix code{font-family:'Courier New',monospace;font-size:.8rem;background:rgba(107,127,163,.1);color:#4a5f8a;padding:1px 6px;border-radius:3px}
+.revival-box{background:var(--c-card);border:1px solid var(--c-border);border-left:4px solid var(--c-accent);border-radius:var(--radius);padding:24px 28px;margin:28px 0}
+.revival-title{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin-bottom:14px}
+.revival-steps{display:flex;flex-direction:column;gap:10px}
+.revival-step{display:flex;gap:12px;align-items:flex-start;font-size:.88rem;line-height:1.75;color:var(--c-text)}
+.revival-step-num{width:22px;height:22px;border-radius:50%;background:var(--c-accent);color:#fff;font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.debug-callout{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);padding:24px 28px;margin:24px 0}
+.debug-callout-label{font-size:.7rem;color:var(--c-muted);letter-spacing:.12em;font-weight:500;margin-bottom:12px;text-transform:uppercase}
+.debug-block{background:var(--c-card);border:1px solid var(--c-border-soft);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:10px;font-size:.85rem;line-height:1.75;color:var(--c-text)}
+.debug-block:last-child{margin-bottom:0}
+.debug-block-title{font-size:.7rem;font-weight:700;color:var(--c-accent);letter-spacing:.5px;margin-bottom:8px;text-transform:uppercase}
+.drill-card{background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a2);border-radius:var(--radius);padding:28px 30px;margin:32px 0}
+.drill-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px;flex-wrap:wrap}
+.drill-eyebrow{font-size:.7rem;letter-spacing:2px;color:var(--c-a2);font-weight:500;text-transform:uppercase}
+.drill-time{font-size:.7rem;color:var(--c-muted);border:1px solid var(--c-border);padding:2px 10px;border-radius:99px;background:var(--c-card)}
+.drill-title{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin-bottom:10px;line-height:1.5}
+.drill-intro{font-size:.85rem;color:var(--c-muted);line-height:1.85;margin-bottom:18px}
+.drill-steps{display:flex;flex-direction:column;gap:12px;margin-bottom:18px}
+.drill-step{display:flex;gap:12px;align-items:flex-start;font-size:.85rem;line-height:1.8;color:var(--c-text)}
+.drill-step-num{width:22px;height:22px;border-radius:50%;background:rgba(201,150,58,.12);color:var(--c-a2);font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;font-family:'Shippori Mincho',serif}
+.drill-check{display:flex;flex-direction:column;gap:8px;padding-top:16px;border-top:1px dashed var(--c-border)}
+.drill-check-label{font-size:.7rem;color:var(--c-muted);letter-spacing:1px;margin-bottom:4px;font-weight:500}
+.drill-check label{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;line-height:1.7;color:var(--c-text);cursor:pointer}
+.drill-check input{margin-top:5px;accent-color:var(--c-a2);flex-shrink:0;cursor:pointer}
+.drill-check input:checked ~ span{color:var(--c-muted);text-decoration:line-through}
+.prac-list{display:flex;flex-direction:column;gap:12px;margin:24px 0}
+.prac-item{display:flex;gap:16px;align-items:flex-start;padding:16px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);transition:border-color .2s}
+.prac-item:hover{border-color:var(--c-accent)}
+.prac-num{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-accent);flex-shrink:0;min-width:72px}
+.prac-body{flex:1}
+.prac-title{font-size:.9rem;font-weight:700;margin-bottom:4px}
+.prac-desc{font-size:.82rem;color:var(--c-muted);line-height:1.65}
+.instructor-box{background:var(--c-surface);border:1px solid var(--c-border);border-top:3px solid var(--c-a3);border-radius:var(--radius);padding:28px 32px;margin:32px 0}
+.instructor-label{font-size:.7rem;font-weight:500;letter-spacing:.12em;color:var(--c-a3);text-transform:uppercase;margin-bottom:14px}
+.study-pkg-box{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:24px 28px;margin:28px 0}
+.study-pkg-label{font-size:.7rem;color:var(--c-muted);letter-spacing:.12em;font-weight:500;margin-bottom:14px;text-transform:uppercase}
+.study-pkg-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.study-pkg-item{padding:14px 18px;background:var(--c-surface);border:1px solid var(--c-border-soft);border-radius:var(--radius-sm);font-size:.85rem;line-height:1.7}
+.study-pkg-item strong{font-weight:700;display:block;margin-bottom:4px;font-size:.82rem}
+.instructor-heading{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:16px}
+.instructor-list{display:flex;flex-direction:column;gap:10px}
+.instructor-item{display:flex;gap:12px;font-size:.85rem;line-height:1.75;color:var(--c-text)}
+.instructor-item-num{font-size:.72rem;font-weight:700;color:var(--c-a3);flex-shrink:0;min-width:20px;margin-top:2px}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1}
+.nav-btn:hover{border-color:var(--c-accent)}
+.nav-btn.next{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1)}
+.reveal.in{opacity:1;transform:translateY(0)}
+.section-dots{position:fixed;left:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:40;opacity:0;transition:opacity .4s ease}
+.section-dots.visible{opacity:1}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--c-border);cursor:pointer;transition:background .3s ease,transform .3s ease;border:none;padding:0}
+.sdot.active{background:var(--c-accent);transform:scale(1.5)}
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 16px}
+.table-scroll>table{min-width:100%}
+@media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important}*{animation:none!important}}
+@media(max-width:1100px){.section-dots{display:none}}
+@media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero{padding:56px 32px 40px}.lesson-body{padding:0 32px 80px}.lesson-nav{padding:0 32px 80px}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:40px 20px 36px}.lesson-title{font-size:1.45rem}.lesson-body{padding:0 20px 60px}.lesson-nav{padding:0 20px 60px;flex-direction:column}.nav-btn{flex:none}.study-pkg-grid{grid-template-columns:1fr}.footer{padding:20px}}
+</style>
+<link rel="stylesheet" href="../_assets/interactivity-v1.css">
+<link rel="stylesheet" href="../_assets/assignment-v1.css">
+<link rel="stylesheet" href="../_assets/prac-sample.css">
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='gen140_auth',H='34810b0ecfa2dab0a29120fc3ff1f867aec23bc5f23a184b8c6c3c7d3a550400';if(localStorage.getItem(K)==='1')sessionStorage.setItem(K,'1');if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<!-- 側邊章節導航 -->
+<nav class="section-dots" id="sdots">
+  <button class="sdot" data-sec="s0" title="破題：版面全垮的原因"></button>
+  <button class="sdot" data-sec="s1" title="為何 AI 會給多檔"></button>
+  <button class="sdot" data-sec="s2" title="整合單檔提示詞 + 現場示範"></button>
+  <button class="sdot" data-sec="s3" title="兩條備援 + 常見整合失敗"></button>
+  <button class="sdot" data-sec="s4" title="動手做"></button>
+  <button class="sdot" data-sec="s5" title="收尾：形態轉換元能力"></button>
+  <button class="sdot" data-sec="s6" title="自學包"></button>
+  <button class="sdot" data-sec="s7" title="講師端 SOP"></button>
+</nav>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">生成式AI職訓實務應用班</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH 5.6 · Part 5</div>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero" id="main">
+  <a class="back-link" href="../index.html"><span aria-hidden="true">←</span> 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">Part 5 · 前端與部署實戰</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 5-6 · 1.5h 課堂 / 1h 自學</span>
+  </div>
+  <h1 class="lesson-title">強迫多檔變單檔 —— 請 AI 幫我打包</h1>
+  <p class="lesson-tagline">AI 給你四個檔案、版面全垮？不要學 git 多檔 push，改用一段提示詞叫 AI 把多檔打包成單一 HTML，再回頭走 CH5-5 五步。全程不開 Terminal、不學 git。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果 · OUTCOMES</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能用「整合單檔」提示詞，把 AI 多檔產出（index.html + style.css + script.js）重做成單一 HTML</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能看到 <code>./</code> 開頭路徑就判斷「這是多檔」，知道要先整合</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>整合失敗時能走備援 A（拖拉 ZIP）或備援 B（一檔一檔貼），不會卡死</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>整合後回 CH5-5 五步完成部署，拿到可分享的 GitHub Pages 網址</div>
+  </div>
+</div>
+
+<main class="lesson-body">
+
+<aside style="max-width:780px;margin:24px auto 0;padding:18px 22px;background:var(--c-card);border:1px solid var(--c-border);border-left:4px solid var(--c-text);border-radius:var(--radius)">
+  <div style="font-size:.75rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:8px;">PART 5 · 本節定位</div>
+  <div style="font-size:.9rem;line-height:1.85;color:var(--c-text)">這是 CH5-5 的<strong>前置救援單元</strong>。AI 給你多檔 → 先跑這節整合成單檔 → 再回 <a href="CH5-5.html" style="color:var(--c-accent);font-weight:600">CH5-5 五步部署</a>。全程傻瓜路徑：貼一段提示詞、拿回一個檔案。</div>
+</aside>
+
+<!-- ─── Section 0: 破題 ─── -->
+<section class="lesson-section reveal" id="s0">
+  <div class="section-eyebrow">(01)</div>
+  <h2 class="section-heading">版面全垮？不是你的問題，是<em>多檔問題</em></h2>
+  <div class="intro-band">
+    <div class="intro-label">設計助理小薇的遭遇</div>
+    <div class="intro-text">設計助理小薇用 Gemini Canvas 做了一個「3 頁個人作品集」，畫面超漂亮。她照 CH5-5 五步部署，結果打開網址——版面全垮、圖片全破、按鈕沒反應。她沒做錯任何一步。問題是 Gemini 把網站做成了四個檔案，她只貼了 index.html。</div>
+  </div>
+
+  <div class="table-scroll">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Gemini 給了什麼</th>
+          <th>小薇有沒有貼</th>
+          <th>結果</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>index.html</code></td>
+          <td><span class="badge-ok">有</span></td>
+          <td>頁面能打開，但</td>
+        </tr>
+        <tr>
+          <td><code>style.css</code></td>
+          <td><span class="badge-no">沒有</span></td>
+          <td>版面全垮</td>
+        </tr>
+        <tr>
+          <td><code>script.js</code></td>
+          <td><span class="badge-no">沒有</span></td>
+          <td>按鈕沒反應</td>
+        </tr>
+        <tr>
+          <td><code>assets/me.jpg</code></td>
+          <td><span class="badge-no">沒有</span></td>
+          <td>圖片全破</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="big-quote">
+    不要學怎麼傳多檔，要學怎麼叫 AI 把多檔變回一檔。
+  </div>
+  <p class="body-text">這 1.5 小時教你另一條路：用一段「整合單檔」提示詞，叫 AI 把四個檔案重新打包成一個 <code>index.html</code>，你再回頭走 CH5-5 的五步。<strong>改變 AI 產出的形態，比學 git 通用一萬倍——這是元能力。</strong></p>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">&#8594;</div>
+    <div class="callout-body"><strong>最低完成線（傻瓜路徑，人人能過）：</strong>只要把多檔產出貼上整合提示詞、拿到「一段就是全部」的單檔，就算過。真的部署上 GitHub 是加分——沒環境的同學交「整合前 vs 整合後」對照截圖也算完成。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ─── Section 1: 為什麼 AI 給多檔 ─── -->
+<section class="lesson-section reveal" id="s1">
+  <div class="section-eyebrow">(02)</div>
+  <h2 class="section-heading">為什麼 AI 會給你<em>多檔</em>？</h2>
+  <p class="body-text">先理解「多檔不是 bug，是 AI 在模仿真實工程習慣」。</p>
+
+  <div class="table-scroll">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>來源</th>
+          <th>通常</th>
+          <th>為什麼</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Claude Artifacts</strong></td>
+          <td><span class="badge-ok">多半單檔</span></td>
+          <td>設計成「一個 artifact 一個檔」</td>
+        </tr>
+        <tr>
+          <td><strong>ChatGPT Canvas</strong></td>
+          <td><span class="badge-ok">多半單檔</span></td>
+          <td>同上</td>
+        </tr>
+        <tr>
+          <td><strong>Gemini Canvas</strong></td>
+          <td><span class="badge-no">常多檔</span></td>
+          <td>模仿工程師「CSS/JS 分開」的習慣</td>
+        </tr>
+        <tr>
+          <td><strong>Google AI Studio</strong></td>
+          <td><span class="badge-no">常多檔</span></td>
+          <td>同上，還常多一層 <code>assets/</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-heading" style="font-size:1.1rem;margin-top:28px;margin-bottom:12px">怎麼一眼看出「這是多檔」？</div>
+  <p class="body-text">不用看懂程式碼，只要找 <code>./</code>：</p>
+  <div class="error-list">
+    <div class="error-item">
+      <div class="error-num">多檔訊號 01</div>
+      <div class="error-title">程式碼裡有 <code>&lt;link rel="stylesheet" href="./style.css"&gt;</code></div>
+      <div class="error-symptom">CSS 被分開了，沒有 style.css 版面會垮</div>
+    </div>
+    <div class="error-item">
+      <div class="error-num">多檔訊號 02</div>
+      <div class="error-title">程式碼裡有 <code>&lt;script src="./script.js"&gt;</code></div>
+      <div class="error-symptom">JS 被分開了，沒有 script.js 互動全失效</div>
+    </div>
+    <div class="error-item">
+      <div class="error-num">多檔訊號 03</div>
+      <div class="error-title">程式碼裡有 <code>&lt;img src="me.jpg"&gt;</code> 或 <code>./assets/...</code></div>
+      <div class="error-symptom">圖片用本地路徑，沒有圖片檔就全破圖</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">&#128161;</div>
+    <div class="callout-body">看到任何 <code>./</code> 或沒有 <code>https://</code> 開頭的本地檔名 = 「該整合了」。反之，<code>https://</code> 開頭的（公開 CDN）→ 不算，那是單檔 OK 的。<strong>不用看懂程式碼，看到 <code>./</code> 就動手。</strong></div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ─── Section 2: 整合單檔提示詞 + 現場示範 ─── -->
+<section class="lesson-section reveal" id="s2">
+  <div class="section-eyebrow">(03)</div>
+  <h2 class="section-heading">核心：<em>整合單檔提示詞拆解</em> + 現場示範（30 分鐘）</h2>
+  <p class="body-text">這段是本單元核心。講師現場示範一次，學員現場跟做一次。</p>
+
+  <div class="intro-band">
+    <div class="intro-label">整合單檔提示詞範本</div>
+    <div class="intro-text">課程素材包有「複製」按鈕，按了就進剪貼簿。</div>
+  </div>
+
+  <div class="dialog-box"><div class="dialog-label">整合單檔提示詞範本（直接複製貼給 AI）</div>請把你剛剛做的這個網站，重新整理成單一 HTML 檔的版本：
+- 所有 CSS 寫進 &lt;style&gt; 標籤
+- 所有 JavaScript 寫進 &lt;script&gt; 標籤
+- 圖片用 https://placehold.co/ 或 https://picsum.photos/ 連結代替本地檔案
+- 字型用 Google Fonts 的 CDN 連結，不要下載到本地
+- 如果有多頁（about / contact 等），改成單頁內用錨點切換
+
+我要可以複製整段就存成 index.html 直接用的版本。請開始重做。</div>
+
+  <p class="body-text"><strong>逐句為什麼（給學員一句話理解，不用深究）：</strong></p>
+  <div class="table-scroll">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>那句要求</th>
+          <th>解決什麼</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>CSS 寫進 <code>&lt;style&gt;</code></td>
+          <td>不用再傳 style.css</td>
+        </tr>
+        <tr>
+          <td>JS 寫進 <code>&lt;script&gt;</code></td>
+          <td>不用再傳 script.js</td>
+        </tr>
+        <tr>
+          <td>圖片用線上連結</td>
+          <td>不用再傳 assets 圖片</td>
+        </tr>
+        <tr>
+          <td>字型用 CDN</td>
+          <td>不用下載字型檔</td>
+        </tr>
+        <tr>
+          <td>多頁變單頁錨點</td>
+          <td>不用傳 about.html / contact.html</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="body-text">一句話：<strong>把所有散出去的東西全部塞回一個檔。</strong></p>
+
+  <div class="demo-flow">
+    <div class="demo-flow-label">現場示範動線（講師做給學員看）</div>
+
+    <div class="demo-step">
+      <div class="demo-step-title">步驟 1 — 用 Gemini Canvas 做一個多檔網站</div>
+      <div class="demo-step-action">
+        <strong>範例指令：</strong>「做一個 2 頁的咖啡店網站，共用 CSS」
+      </div>
+      <div class="expected-output">
+        <div class="expected-label">Gemini 給了什麼</div>
+        <div class="expected-body">
+          <p>Canvas 裡顯示 <code>index.html</code>，但同時也有 <code>style.css</code>（多檔）。</p>
+          <p>程式碼裡可以看到 <code>&lt;link href="./style.css"&gt;</code>——這是多檔訊號。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="demo-step">
+      <div class="demo-step-title">步驟 2 — 貼上整合單檔提示詞</div>
+      <div class="demo-step-action">
+        <strong>動作：</strong>在同一個 Gemini 對話框，直接貼上上方的整合單檔提示詞
+      </div>
+      <div class="expected-output">
+        <div class="expected-label">Gemini 重新給了什麼</div>
+        <div class="expected-body">
+          <p>一個全包的 <code>index.html</code>，裡面有 <code>&lt;style&gt;...全部 CSS...&lt;/style&gt;</code>，沒有 <code>&lt;link href="./style.css"&gt;</code>。</p>
+          <p>程式碼裡沒有任何 <code>./</code> 開頭的本地路徑。</p>
+        </div>
+        <div class="expected-note">如果還是看到 <code>./style.css</code>，直接再貼一次：「你還留著 style.css 連結，請把那個 CSS 內容也直接內嵌進 &lt;style&gt;」</div>
+      </div>
+    </div>
+
+    <div class="demo-step">
+      <div class="demo-step-title">步驟 3 — 複製整段 → 回 CH5-5 五步部署</div>
+      <div class="demo-step-action">
+        <strong>動作：</strong>複製 Gemini 給的整段程式碼 → 走 CH5-5 Step 1~5 部署到 GitHub Pages
+      </div>
+      <div class="demo-step-note"><strong>打開網址後：</strong>版面正常、圖片用 placehold.co 佔位、按鈕有反應。完成。</div>
+      <div class="demo-takeaway">走完這一輪：你不需要懂 CSS 分開是什麼意思，你只需要知道「看到 ./ 就貼提示詞」。</div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ─── Section 3: 兩條備援 + 常見整合失敗 ─── -->
+<section class="lesson-section reveal" id="s3">
+  <div class="section-eyebrow">(04)</div>
+  <h2 class="section-heading">卡關地圖：<em>兩條備援逃生路徑</em> + 常見整合失敗（15 分鐘）</h2>
+  <p class="body-text">整合提示詞大多數時候會成功。但偶爾 AI 整合不乾淨，這時不要硬修，走備援。</p>
+
+  <div class="revival-box">
+    <div class="revival-title">備援 A —— GitHub 網頁 Upload files（拖拉 ZIP，3 步）</div>
+    <div class="revival-steps">
+      <div class="revival-step">
+        <div class="revival-step-num">1</div>
+        <span>把 AI 產出的整個資料夾，在電腦上<strong>壓成 ZIP</strong>（或直接選全部檔案）</span>
+      </div>
+      <div class="revival-step">
+        <div class="revival-step-num">2</div>
+        <span>進你的 repo 頁面 → 點「<strong>Add file</strong>」→「<strong>Upload files</strong>」</span>
+      </div>
+      <div class="revival-step">
+        <div class="revival-step-num">3</div>
+        <span>把檔案/資料夾<strong>整個拖進去</strong> → 下面打一行字 → <strong>Commit changes</strong></span>
+      </div>
+    </div>
+    <div style="margin-top:14px;font-size:.85rem;color:var(--c-muted);line-height:1.75"><strong>不需要 Terminal、不需要 github.dev、不需要懂 git。</strong>拖進去就好。</div>
+  </div>
+
+  <div class="revival-box" style="margin-top:16px;">
+    <div class="revival-title">備援 B —— 請 AI 一檔一檔給我（github.dev 手建）</div>
+    <p class="body-text" style="margin-top:8px">當你想保留多檔結構，回 AI 丟這句：</p>
+    <div class="dialog-box"><div class="dialog-label">貼給 AI 的指令</div>請列出這個專案的所有檔案，每個檔案前面用 markdown ``` 包住檔名、後面接整段內容。我會一個一個建檔貼上去。</div>
+    <div style="font-size:.85rem;color:var(--c-muted);line-height:1.75;margin-top:8px">拿到後在 github.dev 按「+」一個一個建檔貼進去（沿用 CH5-5 Step 3 的建檔手法）。</div>
+  </div>
+
+  <div class="callout" style="margin-top:28px">
+    <div class="callout-icon" aria-hidden="true">&#9888;</div>
+    <div class="callout-body"><strong>鐵律（沿用 CH5-5）：</strong>任何卡關超過 5 分鐘 → 不要 debug、直接走備援 A 拖拉 ZIP。把東西弄上線比弄漂亮重要。</div>
+  </div>
+
+  <div style="margin-top:32px">
+    <div class="section-heading" style="font-size:1.1rem;margin-bottom:16px">三個常見整合失敗 + 一句話修法</div>
+    <div class="error-list">
+      <div class="error-item">
+        <div class="error-num">失敗 01</div>
+        <div class="error-title">整合後圖片破圖（placehold.co 404）</div>
+        <div class="error-symptom"><strong>症狀：</strong>部署後圖片顯示錯誤，placehold.co 連結沒圖。</div>
+        <div class="error-fix"><strong>修法（回貼給 AI）：</strong>「請把圖片連結改用 <code>https://picsum.photos/600/400</code>」</div>
+      </div>
+      <div class="error-item">
+        <div class="error-num">失敗 02</div>
+        <div class="error-title">整合後<strong>還是有</strong> <code>&lt;link href="./style.css"&gt;</code></div>
+        <div class="error-symptom"><strong>症狀：</strong>AI 整合了，但程式碼裡還是有本地路徑。</div>
+        <div class="error-fix"><strong>修法（回貼給 AI）：</strong>「你還留著 style.css 連結，請把那個 CSS 內容也直接內嵌進 <code>&lt;style&gt;</code>」</div>
+      </div>
+      <div class="error-item">
+        <div class="error-num">失敗 03</div>
+        <div class="error-title">多頁變單頁後切換很突兀</div>
+        <div class="error-symptom"><strong>症狀：</strong>錨點切換頁面時直接跳，沒有過渡效果。</div>
+        <div class="error-fix"><strong>修法（回貼給 AI）：</strong>「請幫切換加上 CSS transition 讓它平滑」</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ─── Section 4: 動手做 ─── -->
+<section class="lesson-section reveal" id="s4">
+  <div class="section-eyebrow">(05)</div>
+  <h2 class="section-heading">動手做：<em>你來跑一遍</em>（30 分鐘）</h2>
+
+  <div class="drill-card">
+    <div class="drill-head">
+      <div class="drill-eyebrow">課堂練習</div>
+      <div class="drill-time">30 分鐘</div>
+    </div>
+    <div class="drill-title">用 Gemini Canvas 做多檔、整合成單檔、走 CH5-5 部署</div>
+    <div class="drill-intro">用 Gemini Canvas（或 AI Studio）做一個至少 2 檔的小網站，用整合單檔提示詞壓成 1 檔，走 CH5-5 部署。</div>
+    <div class="drill-steps">
+      <div class="drill-step">
+        <div class="drill-step-num">1</div>
+        <span>打開 Gemini Canvas，輸入「做一個 2 頁的[你想要的]網站，CSS 和 JS 分開寫」，讓它故意產多檔</span>
+      </div>
+      <div class="drill-step">
+        <div class="drill-step-num">2</div>
+        <span>確認看到 <code>./style.css</code> 或 <code>./script.js</code>（多檔訊號），然後貼上整合單檔提示詞</span>
+      </div>
+      <div class="drill-step">
+        <div class="drill-step-num">3</div>
+        <span>拿到整合後的單檔，確認沒有任何 <code>./</code> 開頭的本地路徑</span>
+      </div>
+      <div class="drill-step">
+        <div class="drill-step-num">4</div>
+        <span>（加分）走 CH5-5 五步部署，打開網址確認版面 / 互動正常</span>
+      </div>
+      <div class="drill-step">
+        <div class="drill-step-num">5</div>
+        <span>（備援）若整合反覆失敗 → 改走備援 A 拖拉 ZIP，並寫一句「我為什麼改走備援」</span>
+      </div>
+    </div>
+    <div class="drill-check">
+      <div class="drill-check-label">驗收門檻</div>
+      <label><input type="checkbox"><span><strong>最低完成線：</strong>拿到「一段就是全部」的單檔版本（可交整合前後對照截圖）</span></label>
+      <label><input type="checkbox"><span><strong>加分：</strong>實際部署到 <code>https://{你}.github.io/{repo}/</code>、版面/圖片/互動正常</span></label>
+      <label><input type="checkbox"><span><strong>備援加分：</strong>整合失敗 → 改走備援 A 拖拉 ZIP 成功，並寫一句理由</span></label>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ─── Section 5: 收尾 ─── -->
+<section class="lesson-section reveal" id="s5">
+  <div class="section-eyebrow">(06)</div>
+  <h2 class="section-heading">走完這節，你多了一個<em>形態轉換</em>的元能力</h2>
+  <div class="error-list">
+    <div class="error-item" style="border-left-color:var(--c-a3)">
+      <div class="error-num" style="color:var(--c-a3)">你學到了</div>
+      <div class="error-title">AI 給多檔 → 你會叫它變單檔</div>
+      <div class="error-symptom">用一段提示詞就能改變 AI 的產出形態，而不是去學 git</div>
+    </div>
+    <div class="error-item" style="border-left-color:var(--c-a3)">
+      <div class="error-num" style="color:var(--c-a3)">你學到了</div>
+      <div class="error-title">變不出來 → 你會拖 ZIP 或一檔一檔貼</div>
+      <div class="error-symptom">兩條備援路徑，不會被卡死</div>
+    </div>
+    <div class="error-item" style="border-left-color:var(--c-a3)">
+      <div class="error-num" style="color:var(--c-a3)">你學到了</div>
+      <div class="error-title">你還是沒學 git，也不需要</div>
+      <div class="error-symptom">終點一樣：GitHub Pages 網址可以分享</div>
+    </div>
+  </div>
+
+  <div class="big-quote">
+    記住口號：不要學怎麼傳多檔，要學怎麼叫 AI 把多檔變回一檔。
+  </div>
+  <p class="body-text">下一個 PRAC5-16 就是拿 Gemini Canvas 的多檔產出，完整跑一次「整合 → 部署」。</p>
+</section>
+
+<hr class="section-rule">
+
+<!-- ─── Section 6: 自學包 ─── -->
+<section class="lesson-section reveal" id="s6">
+  <div class="section-eyebrow">(07)</div>
+  <h2 class="section-heading">自學包（1 小時）</h2>
+  <p class="body-text">回家練兩個任務，加深「看到多檔 → 整合提示詞 → 單檔 → 部署」這個反射動作。</p>
+
+  <div class="study-pkg-box">
+    <div class="study-pkg-label">自學任務</div>
+    <div class="study-pkg-grid">
+      <div class="study-pkg-item">
+        <strong>任務 A</strong>
+        請 Gemini Canvas 做一個「3 頁餐廳網站」（首頁 / 菜單 / 訂位），用整合單檔提示詞壓成 1 檔並部署。完成標準：拿到一個能打開、三區塊用錨點切換正常的 GitHub Pages 網址。
+      </div>
+      <div class="study-pkg-item">
+        <strong>任務 B</strong>
+        故意叫 AI「用 style.css 分開寫」做一個網站，再用整合提示詞救回單檔，體會前後差別。
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">&#128161;</div>
+    <div class="callout-body"><strong>自學遇到卡關：</strong>套「除錯回貼三段式」（CH5-5 教過）貼回 AI。不要 Google（Google 出來都是給工程師的 git 教學，會更亂）。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ─── Section 7: 講師端 SOP ─── -->
+<section class="lesson-section reveal" id="s7">
+  <div class="section-eyebrow">(08)</div>
+  <h2 class="section-heading">講師端 SOP（學員略過）</h2>
+
+  <div class="instructor-box">
+    <div class="instructor-label">開課前準備</div>
+    <div class="instructor-list">
+      <div class="instructor-item"><div class="instructor-item-num">1</div><span>先用 Gemini Canvas 親手產一個多檔網站、跑一次整合提示詞，錄成示範影片</span></div>
+      <div class="instructor-item"><div class="instructor-item-num">2</div><span>準備一個「故意多檔」的範例（含 style.css + script.js + 一張本地圖）當現場示範素材</span></div>
+      <div class="instructor-item"><div class="instructor-item-num">3</div><span>確認課程素材包的「整合單檔提示詞」複製按鈕可用</span></div>
+    </div>
+  </div>
+
+  <div class="instructor-box" style="margin-top:16px">
+    <div class="instructor-label">助教分工（課中）</div>
+    <div class="instructor-list">
+      <div class="instructor-item"><div class="instructor-item-num">A</div><span><strong>助教 A</strong>：守「整合提示詞貼了但 AI 還是給多檔」→ 教追問「請把 style.css 內容也內嵌」</span></div>
+      <div class="instructor-item"><div class="instructor-item-num">B</div><span><strong>助教 B</strong>：守「整合成功但部署破圖」→ 教換 picsum.photos</span></div>
+      <div class="instructor-item"><div class="instructor-item-num">C</div><span><strong>助教 C</strong>：守「乾脆走備援 A」→ 示範 Upload files 拖拉</span></div>
+      <div class="instructor-item"><div class="instructor-item-num">講</div><span><strong>講師</strong>：處理「ZIP 也傳不上去」這種需要決策的個案</span></div>
+    </div>
+  </div>
+
+  <div class="instructor-box" style="margin-top:16px">
+    <div class="instructor-label">課中觀察重點</div>
+    <div class="instructor-list">
+      <div class="instructor-item"><div class="instructor-item-num">1</div><span>學員最常卡：整合後 AI 仍留一行 <code>&lt;link href="./style.css"&gt;</code>（要教追問內嵌）</span></div>
+      <div class="instructor-item"><div class="instructor-item-num">2</div><span>第二常卡：placehold.co 偶發 404（直接教換 picsum.photos）</span></div>
+      <div class="instructor-item"><div class="instructor-item-num">3</div><span>約 20% 學員整合反覆失敗 → 講師當場示範備援 A 拖拉 ZIP，強調「上線比漂亮重要」</span></div>
+    </div>
+  </div>
+
+  <div class="demo-takeaway" style="margin-top:16px"><strong>課後：</strong>收集學員「整合前多檔 vs 整合後單檔」對照，作下次教學示範素材。</div>
+</section>
+
+</main><!-- /.lesson-body -->
+
+<div class="lesson-nav">
+  <a class="nav-btn" href="CH5-5.html">
+    <span aria-hidden="true">←</span>
+    <div>
+      <div class="nav-btn-label">上一節</div>
+      <div class="nav-btn-title">CH5-5 AI Canvas 純拖拉部署 SOP</div>
+    </div>
+  </a>
+  <a class="nav-btn next" href="PRAC5-16.html">
+    <div>
+      <div class="nav-btn-label">下一節</div>
+      <div class="nav-btn-title">PRAC5-16 Gemini Canvas 多檔產出整合演練</div>
+    </div>
+    <span aria-hidden="true">→</span>
+  </a>
+</div>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">2026 春季</span>
+  <span class="footer-meta" data-platform-version="2026-05" data-built-at="2026-05">CH 5.6 · 本頁以 2026-05 製作</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));},{passive:true});
+</script>
+<script>
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+<script>
+// 側邊章節導航
+(function(){
+  var dots=document.querySelectorAll('.sdot');
+  var secs=Array.from(dots).map(function(d){return document.getElementById(d.dataset.sec)}).filter(Boolean);
+  var sdots=document.getElementById('sdots');
+  if(!sdots)return;
+  function update(){
+    if(window.scrollY>200)sdots.classList.add('visible');else sdots.classList.remove('visible');
+    var active=0;
+    secs.forEach(function(s,i){if(s&&s.getBoundingClientRect().top<200)active=i;});
+    dots.forEach(function(d,i){d.classList.toggle('active',i===active);});
+  }
+  window.addEventListener('scroll',update,{passive:true});
+  dots.forEach(function(d,i){d.addEventListener('click',function(){if(secs[i])secs[i].scrollIntoView({behavior:'smooth'});});});
+})();
+</script>
+<script>
+// 滾動進場動畫
+(function(){
+  var els=document.querySelectorAll('.reveal');
+  if(!('IntersectionObserver' in window)){els.forEach(function(el){el.classList.add('in');});return;}
+  var obs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting)e.target.classList.add('in');});},{threshold:.08});
+  els.forEach(function(el){obs.observe(el);});
+})();
+</script>
+<script src="../_assets/interactivity-v1.js"></script>
+<!-- reveal-fallback v1 -->
+<script>setTimeout(function(){document.querySelectorAll('.reveal:not(.in),.section-rule:not(.in)').forEach(function(el){el.classList.add('in')})},1500);</script>
+
+</body>
+</html>

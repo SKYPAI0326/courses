@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRAC 5-16 Gemini Canvas / AI Studio 多檔產出整合演練｜生成式AI職訓實務應用班</title>
+<meta name="description" content="故意讓 Gemini 產出多檔網站，再用一段提示詞把它壓回單檔，走 CH5-5 五步部署成可分享網址；整合失敗時冷靜走備援 A（拖拉 ZIP）完成。CH5-5 × CH5-6 綜合演練。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="PRAC 5-16 Gemini Canvas / AI Studio 多檔產出整合演練｜生成式AI職訓實務應用班">
+<meta property="og:description" content="故意讓 Gemini 產出多檔網站，再用一段提示詞把它壓回單檔，走 CH5-5 五步部署成可分享網址；整合失敗時冷靜走備援 A（拖拉 ZIP）完成。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/gen-ai-140h/part5/PRAC5-16.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="PRAC 5-16 Gemini Canvas / AI Studio 多檔產出整合演練｜生成式AI職訓實務應用班">
+<meta name="twitter:description" content="故意讓 Gemini 產出多檔網站，再用一段提示詞把它壓回單檔，走 CH5-5 五步部署成可分享網址；整合失敗時冷靜走備援 A（拖拉 ZIP）完成。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/gen-ai-140h/part5/PRAC5-16.html">
+<meta name="platform_version" content="2026-05">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-a5:#7a9ea3;--c-accent:#6b7fa3;--radius:6px;--radius-sm:4px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;word-break:break-word;overflow-wrap:break-word;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 var(--radius) 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-accent);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.07);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+/* Hero */
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px}
+.back-link:hover{color:var(--c-accent)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.hero-part{font-size:.73rem;color:var(--c-muted);letter-spacing:.08em;font-weight:500;font-variant-numeric:tabular-nums}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border)}
+.hero-num{font-size:.73rem;color:var(--c-accent);letter-spacing:1px;font-weight:500}
+.prac-badge-hero{display:inline-flex;align-items:center;font-size:.73rem;color:var(--c-accent);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.07);padding:4px 12px;border-radius:99px;font-weight:500;margin-bottom:20px}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;max-width:22ch}
+.lesson-tagline{font-size:1rem;color:var(--c-muted);line-height:1.9;max-width:38em;margin-bottom:36px}
+/* 任務目標橫幅 */
+.diff-banner{background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius);padding:20px 24px;margin-bottom:36px}
+.diff-banner-label{font-size:.7rem;color:var(--c-accent);letter-spacing:1.5px;font-weight:600;margin-bottom:10px;text-transform:uppercase}
+.diff-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:.86rem;line-height:1.75}
+@media(max-width:640px){.diff-row{grid-template-columns:1fr}}
+.diff-item{background:var(--c-surface);border-radius:var(--radius-sm);padding:12px 14px}
+.diff-item-label{font-size:.72rem;color:var(--c-muted);letter-spacing:.8px;font-weight:500;margin-bottom:4px}
+.diff-item-body{font-size:.86rem;color:var(--c-text);line-height:1.7}
+.diff-item.current{border:1px solid rgba(107,127,163,.3)}
+.diff-item.current .diff-item-label{color:var(--c-accent)}
+/* 正式練習徽章 */
+.formal-badge{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:#c0392b;border:1.5px solid #c0392b;padding:5px 14px;border-radius:99px;font-weight:700;letter-spacing:.04em;margin-bottom:28px}
+/* outcomes */
+.outcomes{display:flex;flex-direction:column;gap:8px;padding:20px 0;border-top:1px solid var(--c-border-soft);border-bottom:1px solid var(--c-border-soft)}
+.outcomes-label{font-family:'Shippori Mincho',serif;font-style:italic;font-size:.78rem;color:var(--c-muted);letter-spacing:.03em;margin-bottom:2px}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.9rem;line-height:1.7}
+.outcome-dot{width:12px;height:1px;background:var(--c-faint);margin-top:14px;flex-shrink:0}
+/* body */
+.prac-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px}
+.lesson-section{margin-bottom:64px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-heading em{font-style:normal;color:var(--c-text)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.95;margin-bottom:20px}
+.body-text strong{font-weight:700}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:64px 0}
+/* callout */
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.05rem;margin-top:2px}
+.callout-body{font-size:.9rem;line-height:1.85}
+.callout-body strong{font-weight:700}
+/* 提示詞卡 */
+.prompt-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);border-left:3px solid var(--c-accent);padding:18px 22px;display:flex;flex-direction:column;gap:8px}
+.prompt-card-meta{display:flex;justify-content:space-between;align-items:center;font-size:.7rem;color:var(--c-muted);letter-spacing:.5px}
+.prompt-card-tag{font-size:.7rem;color:var(--c-muted);letter-spacing:.3px}
+.prompt-card-stars{color:var(--c-accent);font-weight:600;letter-spacing:0;font-size:.78rem}
+.prompt-card-name{font-family:'Shippori Mincho',serif;font-size:1.02rem;font-weight:700;color:var(--c-text);line-height:1.45}
+.prompt-box{margin-top:2px}
+.prompt-text{font-size:.8rem;line-height:1.7;color:var(--c-text);background:var(--c-surface);border:1px solid var(--c-border-soft);border-radius:var(--radius-sm);padding:12px 14px;white-space:pre-wrap;word-break:break-word}
+.copy-btn{margin-top:8px;align-self:flex-start;font-family:inherit;font-size:.74rem;color:var(--c-accent);background:transparent;border:1px solid var(--c-accent);border-radius:99px;padding:5px 14px;cursor:pointer;transition:background .2s,color .2s}
+.copy-btn:hover{background:var(--c-accent);color:#fff}
+.copy-btn.copied{background:#5a7a5a;border-color:#5a7a5a;color:#fff}
+.prompt-card-note{font-size:.76rem;color:var(--c-muted);line-height:1.7;padding-top:10px;border-top:1px dashed var(--c-border)}
+/* 操作步驟清單 */
+.step-list{display:flex;flex-direction:column;gap:14px;margin:20px 0}
+.step-item{display:flex;gap:14px;align-items:flex-start;font-size:.9rem;line-height:1.75;background:var(--c-card);border:1px solid var(--c-border-soft);border-radius:var(--radius-sm);padding:14px 16px}
+.step-num{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:700;color:var(--c-accent);flex-shrink:0;width:22px}
+/* 備援情境卡 */
+.scenario-block{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 24px;margin:16px 0}
+.scenario-label{font-size:.7rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:600;margin-bottom:8px;text-transform:uppercase}
+.scenario-title{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:12px}
+.scenario-body{font-size:.88rem;line-height:1.8;color:var(--c-text)}
+/* 卡關地圖表格 */
+.error-table{width:100%;border-collapse:collapse;font-size:.84rem;margin:20px 0}
+.error-table th{text-align:left;font-size:.7rem;color:var(--c-muted);letter-spacing:.8px;font-weight:600;padding:8px 12px;background:var(--c-surface);border-bottom:1px solid var(--c-border)}
+.error-table td{padding:12px;vertical-align:top;border-bottom:1px solid var(--c-border-soft);line-height:1.7}
+.error-table tr:last-child td{border-bottom:none}
+.error-table td:first-child{font-weight:600;color:var(--c-a1);white-space:nowrap}
+.fix-code{font-family:'Courier New',monospace;font-size:.78rem;background:var(--c-surface);padding:2px 6px;border-radius:3px}
+/* 動手做 checklist */
+.challenge-box{padding:24px 28px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:24px 0}
+.challenge-label{font-size:.7rem;color:var(--c-accent);letter-spacing:1.5px;font-weight:500;margin-bottom:16px;text-transform:uppercase}
+.challenge-list{display:flex;flex-direction:column;gap:12px}
+.challenge-item{display:flex;align-items:flex-start;gap:12px;font-size:.9rem;line-height:1.7}
+.ci-num{font-family:'Shippori Mincho',serif;font-size:.92rem;font-weight:700;color:var(--c-accent);flex-shrink:0;width:22px}
+/* 收尾清單 */
+.wrap-up{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:24px 28px;margin:24px 0}
+.wrap-up-label{font-size:.7rem;color:var(--c-a3);letter-spacing:1.5px;font-weight:600;margin-bottom:14px;text-transform:uppercase}
+.wrap-list{display:flex;flex-direction:column;gap:8px}
+.wrap-item{font-size:.88rem;line-height:1.7;display:flex;gap:10px;align-items:flex-start}
+.wrap-check{color:var(--c-a3);flex-shrink:0;font-weight:700}
+.wrap-no{color:var(--c-faint);flex-shrink:0;font-weight:700}
+/* 自學包變化版卡 */
+.variant-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:24px 0}
+@media(max-width:680px){.variant-cards{grid-template-columns:1fr}}
+/* 講師提示 */
+.instructor-box{background:var(--c-surface);border:1px solid var(--c-border);border-left:3px solid var(--c-a3);border-radius:var(--radius);padding:20px 24px;margin:24px 0}
+.instructor-label{font-size:.7rem;color:var(--c-a3);letter-spacing:1.5px;font-weight:600;margin-bottom:12px;text-transform:uppercase}
+.instructor-body{font-size:.86rem;line-height:1.8;color:var(--c-text)}
+/* 導覽 */
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1}
+.nav-btn:hover{border-color:var(--c-accent)}
+.nav-btn.next{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* footer */
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+/* reveal */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)}
+.reveal.in{opacity:1;transform:translateY(0)}
+@media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important}*{animation:none!important}}
+@media(max-width:1024px){.topbar,.lesson-hero,.prac-body,.lesson-nav{padding-left:32px;padding-right:32px}}
+@media(max-width:600px){.topbar,.lesson-hero,.prac-body,.lesson-nav,.footer{padding-left:20px;padding-right:20px}.lesson-title{max-width:100%}.lesson-nav{flex-direction:column}.nav-btn{flex:none}}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='gen140_auth',H='34810b0ecfa2dab0a29120fc3ff1f867aec23bc5f23a184b8c6c3c7d3a550400';if(localStorage.getItem(K)==='1')sessionStorage.setItem(K,'1');if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">生成式AI職訓實務應用班</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">PRAC 5-16 · Part 5</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<div class="lesson-hero">
+  <a href="../index.html" class="back-link"><span aria-hidden="true">←</span> 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">Part 5 · 前端與部署實戰</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">PRAC 5-16 · 課堂 1.5h + 自學 1.5h</span>
+  </div>
+  <div class="prac-badge-hero">實例演練 · CH5-5 × CH5-6 綜合實戰</div>
+  <div class="formal-badge" aria-label="正式練習">正式練習</div>
+  <h1 class="lesson-title">Gemini Canvas / AI Studio 多檔產出整合演練</h1>
+  <p class="lesson-tagline">故意讓 AI 做多檔，再用一段提示詞壓成單檔，走 CH5-5 五步部署上線。整合失敗也有備援——這一頁讓你把完整動線練成肌肉記憶。</p>
+
+  <!-- 任務目標 -->
+  <div class="diff-banner">
+    <div class="diff-banner-label">三條完成線 · 哪條都算過</div>
+    <div class="diff-row">
+      <div class="diff-item current">
+        <div class="diff-item-label">最低完成線（必過）</div>
+        <div class="diff-item-body">拿到整合後的<strong>單檔 HTML</strong>（不論有沒有部署）</div>
+      </div>
+      <div class="diff-item">
+        <div class="diff-item-label">真實部署（加分）</div>
+        <div class="diff-item-body">把單檔走 <strong>CH5-5 五步</strong>部署成可分享 GitHub Pages 網址</div>
+      </div>
+      <div class="diff-item">
+        <div class="diff-item-label">整合失敗走備援（也算完成）</div>
+        <div class="diff-item-body">拖拉整個資料夾 <strong>ZIP 上傳</strong>到 repo，3 步上線</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="outcomes">
+    <div class="outcomes-label">你會練到的能力 · OUTCOMES</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>故意讓 Gemini 產出多檔網站，再用一段提示詞把它壓回單檔（CH5-6 的實戰）</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>把整合後的單檔走 CH5-5 五步部署成可分享網址</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>整合失敗時，冷靜改走備援 A（拖拉 ZIP）而不是卡在那硬修</div>
+  </div>
+</div>
+
+<div class="prac-body">
+
+  <!-- (01) 破題 Hook -->
+  <section class="lesson-section reveal">
+    <div class="section-eyebrow">(01) 破題</div>
+    <h2 class="section-heading">先在練習裡製造麻煩，真實上線就不怕</h2>
+    <p class="body-text">CH5-6 教了「整合單檔」提示詞，但你可能還沒真的拿一個<strong>多檔</strong>產出練過。這一頁就是要你<strong>故意製造多檔、再親手壓成單檔</strong>。</p>
+    <p class="body-text">為什麼故意？因為 Gemini Canvas、AI Studio 在真實使用時<strong>很常</strong>給你多檔——與其上線時才踩雷，不如現在先在演練裡踩一次、把救援流程練熟。</p>
+    <div class="callout tip">
+      <div class="callout-icon" aria-hidden="true">📌</div>
+      <div class="callout-body"><strong>這節口號：</strong>先在練習裡製造麻煩，真實上線就不怕。</div>
+    </div>
+    <p class="body-text">這一頁是 CH5-5（部署）+ CH5-6（整合）的<strong>綜合演練</strong>。跑完你就有一條「AI 多檔產出 → 上線」的完整肌肉記憶。</p>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <!-- (02) 提示詞卡 -->
+  <section class="lesson-section reveal">
+    <div class="section-eyebrow">(02) 提示詞卡</div>
+    <h2 class="section-heading">兩張提示詞——一張製造多檔，一張壓回單檔</h2>
+    <p class="body-text">今天的演練順序是：先貼①讓 Gemini 故意做出多檔，確認看到多檔後，再貼②把它整合成單一 HTML。</p>
+
+    <!-- 提示詞① -->
+    <div class="prompt-card" style="margin-bottom:20px">
+      <div class="prompt-card-meta">
+        <span class="prompt-card-tag">步驟一 · 故意做多檔（貼給 Gemini Canvas）</span>
+        <span class="prompt-card-stars">★★★★</span>
+      </div>
+      <div class="prompt-card-name">① 故意做一個多檔網站</div>
+      <div class="prompt-box">
+        <div class="prompt-text" id="prompt1Text">請用 Gemini Canvas 幫我做一個 3 頁個人作品集網站：
+- 首頁（自我介紹）、作品頁、關於我頁
+- 三頁共用一份 CSS
+- 手機可讀、米白色底、簡約風
+請開始製作。</div>
+        <button class="copy-btn" type="button" onclick="_cp(this)">複製提示詞</button>
+      </div>
+      <div class="prompt-card-note">Gemini 很可能把它做成 index.html + style.css（+ 各頁）——這正是我們要的多檔。貼完後，仔細看有沒有 <code>&lt;link rel="stylesheet" href="./style.css"&gt;</code>，有的話就是多檔，繼續下一步。</div>
+    </div>
+
+    <!-- 提示詞② -->
+    <div class="prompt-card">
+      <div class="prompt-card-meta">
+        <span class="prompt-card-tag">步驟二 · 整合單檔（沿用 CH5-6）</span>
+        <span class="prompt-card-stars">★★★★★</span>
+      </div>
+      <div class="prompt-card-name">② 整合成單一 HTML 檔</div>
+      <div class="prompt-box">
+        <div class="prompt-text" id="prompt2Text">請把你剛剛做的這個網站，重新整理成單一 HTML 檔的版本：所有 CSS 寫進 &lt;style&gt;、所有 JS 寫進 &lt;script&gt;、圖片用 https://picsum.photos/ 連結、字型用 Google Fonts CDN、多頁改成單頁錨點切換。我要複製整段就能存成 index.html 直接用的版本。請開始重做。</div>
+        <button class="copy-btn" type="button" onclick="_cp(this)">複製提示詞</button>
+      </div>
+      <div class="prompt-card-note">這張卡來自 CH5-6 課程素材包。整合成功後，確認 HTML 裡沒有 <code>&lt;link rel="stylesheet" href=...&gt;</code>，CSS 全部在 <code>&lt;style&gt;</code> 裡面，才算真的整合乾淨。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <!-- (03) 操作示範 -->
+  <section class="lesson-section reveal">
+    <div class="section-eyebrow">(03) 操作示範</div>
+    <h2 class="section-heading">觀察多檔 + 整合動線——完整 5 步</h2>
+    <p class="body-text">講師現場示範一次、學員現場跟做一次。完整動線如下：</p>
+
+    <div class="step-list">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div><strong>產出</strong>：貼提示詞① → Gemini Canvas 做出多檔作品集</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div><strong>觀察</strong>：打開看到 <code style="font-family:'Courier New',monospace;font-size:.82rem;background:var(--c-surface);padding:1px 6px;border-radius:3px">&lt;link rel="stylesheet" href="./style.css"&gt;</code> 或分頁檔案 → 確認「這是多檔」</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div><strong>整合</strong>：貼提示詞② → Gemini 重做 → 給出一個全包的 <code style="font-family:'Courier New',monospace;font-size:.82rem;background:var(--c-surface);padding:1px 6px;border-radius:3px">index.html</code></div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div><strong>部署</strong>：複製整段 → 走 <strong>CH5-5 五步</strong>（開 repo → 按 <code style="font-family:'Courier New',monospace;font-size:.82rem;background:var(--c-surface);padding:1px 6px;border-radius:3px">.</code> → 建 index.html 貼上 → commit &amp; push → 啟用 Pages）</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">5</div>
+        <div><strong>驗證</strong>：打開 <code style="font-family:'Courier New',monospace;font-size:.82rem;background:var(--c-surface);padding:1px 6px;border-radius:3px">https://{你}.github.io/{repo}/</code> → 三個區塊用錨點切換、CSS 正常、圖片不破</div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon" aria-hidden="true">📌</div>
+      <div class="callout-body"><strong>最低完成線（傻瓜路徑）：</strong>拿到整合後的單檔即算過；實際部署成功是加分；沒環境者交「多檔 vs 單檔」對照截圖。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <!-- (04) 失敗走備援演習 -->
+  <section class="lesson-section reveal">
+    <div class="section-eyebrow">(04) 備援演習</div>
+    <h2 class="section-heading">「失敗就走備援」——這段刻意練</h2>
+    <p class="body-text">這段刻意演練「整合不順」時怎麼辦，免得真實上線慌。<strong>就算整合成功了，每位學員也要主動走一次備援 A</strong>——把救援動作變肌肉記憶。</p>
+
+    <div class="scenario-block">
+      <div class="scenario-label">情境 A · 整合後檔案太大 / 整合反覆失敗</div>
+      <div class="scenario-title">走 CH5-6 備援 A：拖拉 ZIP 上傳</div>
+      <div class="scenario-body">把 Gemini 給的整個資料夾壓 ZIP → repo 頁「Add file → Upload files」→ 拖進去 → Commit。<strong>3 步上線，不碰 Terminal。</strong></div>
+    </div>
+
+    <div class="scenario-block">
+      <div class="scenario-label">情境 B · 整合後樣式跑掉</div>
+      <div class="scenario-title">用「描述現況 + 描述期望」讓 AI 自己改</div>
+      <div class="scenario-body">回貼 AI：「目前畫面是 _____（描述你看到的），我預期是 _____（描述你要的），請修。」不要自己動 CSS，讓 AI 修。</div>
+    </div>
+
+    <div class="callout key">
+      <div class="callout-icon" aria-hidden="true">📝</div>
+      <div class="callout-body"><strong>演習要求：</strong>每位學員至少<strong>主動走一次備援 A</strong>（就算整合成功了也練一次拖拉 ZIP），截圖為證。整合失敗走備援不是恥辱，是常態。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <!-- (05) 卡關地圖 -->
+  <section class="lesson-section reveal">
+    <div class="section-eyebrow">(05) 卡關地圖</div>
+    <h2 class="section-heading">4 個最常見卡關 · 修法速查表</h2>
+
+    <table class="error-table">
+      <thead>
+        <tr>
+          <th style="width:180px">卡關情境</th>
+          <th>修法</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>整合後圖片變 404（用了 placehold.com）</td>
+          <td>回貼「請把圖片連結改用 <span class="fix-code">https://picsum.photos/600/400</span>」。picsum 比較穩，placehold.com 不時掛掉。</td>
+        </tr>
+        <tr>
+          <td>多頁變單頁錨點後，切換很生硬沒動畫</td>
+          <td>回貼「請幫區塊切換加上 CSS transition 讓它平滑滑動」。</td>
+        </tr>
+        <tr>
+          <td>Gemini 給的單檔仍含 <span class="fix-code">&lt;link rel="stylesheet"&gt;</span></td>
+          <td>回貼「你還留著 style.css 的連結，請把那份 CSS 內容<strong>直接內嵌</strong>進 <span class="fix-code">&lt;style&gt;</span> 標籤，不要外連」。這是最常見的「整合不乾淨」。</td>
+        </tr>
+        <tr>
+          <td>部署後看到舊版（改完忘了 commit）</td>
+          <td>回 github.dev → Source Control → stage + commit &amp; push → 強制重新整理（Cmd+Shift+R）。</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <!-- (06) 動手做 -->
+  <section class="lesson-section reveal">
+    <div class="section-eyebrow">(06) 動手做</div>
+    <h2 class="section-heading">現在輪到你——用 Gemini Canvas 跑完整條動線</h2>
+    <p class="body-text">用 Gemini Canvas（或 AI Studio）做一個你自己的多檔小網站（作品集 / 活動頁 / 商店頁皆可），整合成單檔並部署。</p>
+
+    <div class="challenge-box">
+      <div class="challenge-label">驗收門檻 · 三條線擇一完成即過</div>
+      <div class="challenge-list">
+        <div class="challenge-item"><div class="ci-num">✅</div><div><strong>最低完成線：</strong>拿到整合後的單檔版本（CSS 全在 <code style="font-family:'Courier New',monospace;font-size:.82rem;background:var(--c-surface);padding:1px 6px;border-radius:3px">&lt;style&gt;</code>、無外連 stylesheet）</div></div>
+        <div class="challenge-item"><div class="ci-num">✅</div><div><strong>加分：</strong>部署到 GitHub Pages、錨點切換 + 圖片 + CSS 都正常</div></div>
+        <div class="challenge-item"><div class="ci-num">✅</div><div><strong>備援也算：</strong>至少示範一次備援 A 拖拉 ZIP（截圖為證）</div></div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon" aria-hidden="true">💡</div>
+      <div class="callout-body"><strong>講師 / 助教 SOP：</strong><br>
+      助教 A 守「Gemini 整合後仍外連 style.css」→ 教追問內嵌<br>
+      助教 B 守「部署破圖」→ 教換 picsum.photos<br>
+      助教 C 守備援 A 拖拉 ZIP 動作<br>
+      講師處理「Gemini 怎麼弄都給多檔」的個案（直接判走備援 A）</div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <!-- (07) 收尾 -->
+  <section class="lesson-section reveal">
+    <div class="section-eyebrow">(07) 收尾</div>
+    <h2 class="section-heading">你現在掌握了一條完整動線</h2>
+
+    <div class="wrap-up">
+      <div class="wrap-up-label">跑完這頁你掌握了</div>
+      <div class="wrap-list">
+        <div class="wrap-item"><div class="wrap-check">✓</div><div>整合得出來 → 走 CH5-5 部署</div></div>
+        <div class="wrap-item"><div class="wrap-check">✓</div><div>整合不出來 → 拖 ZIP 上線</div></div>
+        <div class="wrap-item"><div class="wrap-check">✓</div><div>你依然沒學 git，但任何 AI 產出都能變成可分享網址</div></div>
+      </div>
+    </div>
+
+    <div class="callout key">
+      <div class="callout-icon" aria-hidden="true">💡</div>
+      <div class="callout-body"><strong>記住：</strong>你練的不是 git，是「用提示詞改變 AI 產出形態」——這個能力換到任何 AI 工具都通用。<br><br>想做「可以分享給別人用、KEY 不外洩」的工具？那是 PRAC5-17（Vercel proxy 可分享版），等講師備好範本 repo 再開。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <!-- (08) 自學包 -->
+  <section class="lesson-section reveal">
+    <div class="section-eyebrow">(08) 自學包 · 1.5 小時</div>
+    <h2 class="section-heading">變化版練習——三選一或全做</h2>
+    <p class="body-text">同一條「多檔 → 整合 → 部署」動線，換不同網站類型再跑一遍。</p>
+
+    <div class="variant-cards">
+      <!-- 變化版 1 -->
+      <div class="prompt-card">
+        <div class="prompt-card-meta">
+          <span class="prompt-card-tag">多頁店家</span>
+          <span class="prompt-card-stars">★★★</span>
+        </div>
+        <div class="prompt-card-name">練習 A — 多頁店家網站</div>
+        <div class="prompt-box">
+          <div class="prompt-text" id="variantA">首頁 + 菜單 + 聯絡，整合單檔部署</div>
+          <button class="copy-btn" type="button" onclick="_cp(this)">複製提示</button>
+        </div>
+        <div class="prompt-card-note">目標：三頁共用 CSS，整合後錨點切換正常</div>
+      </div>
+
+      <!-- 變化版 2 -->
+      <div class="prompt-card">
+        <div class="prompt-card-meta">
+          <span class="prompt-card-tag">活動報名</span>
+          <span class="prompt-card-stars">★★★</span>
+        </div>
+        <div class="prompt-card-name">練習 B — 活動報名頁</div>
+        <div class="prompt-box">
+          <div class="prompt-text" id="variantB">主視覺 + 流程 + 報名表單（表單先做樣式即可），整合部署</div>
+          <button class="copy-btn" type="button" onclick="_cp(this)">複製提示</button>
+        </div>
+        <div class="prompt-card-note">表單只做樣式，不用真的接後端</div>
+      </div>
+
+      <!-- 變化版 3 -->
+      <div class="prompt-card">
+        <div class="prompt-card-meta">
+          <span class="prompt-card-tag">互動強化</span>
+          <span class="prompt-card-stars">★★★★</span>
+        </div>
+        <div class="prompt-card-name">練習 C — 作品集 v2（加 lightbox）</div>
+        <div class="prompt-box">
+          <div class="prompt-text" id="variantC">在課堂作品上加一個「作品 lightbox 放大」互動，整合時注意 JS 也要內嵌</div>
+          <button class="copy-btn" type="button" onclick="_cp(this)">複製提示</button>
+        </div>
+        <div class="prompt-card-note">整合時最容易漏掉 JS，這版是主動挑戰</div>
+      </div>
+    </div>
+
+    <div class="challenge-box" style="margin-top:8px">
+      <div class="challenge-label">自學完成標準</div>
+      <div class="challenge-list">
+        <div class="challenge-item"><div class="ci-num">✅</div><div>任選一個拿到能打開、切換正常的 GitHub Pages 網址</div></div>
+        <div class="challenge-item"><div class="ci-num">✅</div><div>過程中至少遇到一次整合不乾淨並用追問修好</div></div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <!-- (09) 講師提示 -->
+  <section class="lesson-section reveal">
+    <div class="section-eyebrow">(09) 講師提示</div>
+    <h2 class="section-heading">課前準備與課後收尾</h2>
+    <div class="instructor-box">
+      <div class="instructor-label">講師專區</div>
+      <div class="instructor-body">
+        <p style="margin-bottom:12px"><strong>課前：</strong>先親手用 Gemini Canvas 跑一次提示詞①②，確認當前 Gemini 仍會產多檔（平台會變，課前複查）。</p>
+        <p style="margin-bottom:12px"><strong>素材：</strong>準備一個「整合失敗」的真實案例截圖，讓學員看到備援 A 不是恥辱是常態。</p>
+        <p><strong>課後：</strong>收集學員作品網址 + 「整合前後對照」，作招生與下次示範素材。</p>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /prac-body -->
+
+<nav class="lesson-nav" aria-label="單元導覽">
+  <a href="CH5-6.html" class="nav-btn">
+    <span aria-hidden="true">←</span>
+    <div>
+      <div class="nav-btn-label">上一單元</div>
+      <div class="nav-btn-title">CH5-6 強迫多檔變單檔 —— 請 AI 幫我打包</div>
+    </div>
+  </a>
+  <a href="../index.html" class="nav-btn next">
+    <div>
+      <div class="nav-btn-label">返回</div>
+      <div class="nav-btn-title">課程總覽</div>
+    </div>
+    <span aria-hidden="true">→</span>
+  </a>
+</nav>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">2026 春季</span>
+  <span class="footer-meta" data-platform-version="2026-05" data-built-at="2026-05">PRAC 5.16 · 2026-05</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',function(){const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));},{passive:true});
+</script>
+<script>
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+<script>
+// reveal on scroll
+(function(){
+  var obs=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){if(e.isIntersecting)e.target.classList.add('in');});
+  },{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(function(el){obs.observe(el);});
+})();
+</script>
+<script>
+// 複製提示詞 (_cp)
+function _cp(b){var t=b.parentElement.querySelector('.prompt-text');if(!t)return;navigator.clipboard.writeText(t.innerText).then(function(){var o=b.textContent;b.textContent='已複製 ✓';b.classList.add('copied');setTimeout(function(){b.textContent=o;b.classList.remove('copied');},1800);}).catch(function(){b.textContent='請手動選取複製';});}
+</script>
+<!-- reveal-fallback v1 -->
+<script>setTimeout(function(){document.querySelectorAll('.reveal:not(.in),.section-rule:not(.in)').forEach(function(el){el.classList.add('in')})},1500);</script>
+
+</body>
+</html>
