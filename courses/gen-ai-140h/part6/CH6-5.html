@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CH6-5 Streaming、Evals 與成本控管｜生成式AI職訓實務應用班</title>
-<meta name="description" content="回答必須完全等於預期答案。適合分類任務、是/否問題、固定格式輸出（JSON、代碼）。">
+<title>CH6-5 Streaming 與使用者體驗｜生成式AI職訓實務應用班</title>
+<meta name="description" content="讓使用者看到逐字回應而非空白等待：用 Server-Sent Events 實作 Streaming，做出會打字的聊天介面，並用 TTFT 衡量串流體驗。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
-<meta property="og:title" content="CH6-5 Streaming、Evals 與成本控管｜生成式AI職訓實務應用班">
-<meta property="og:description" content="回答必須完全等於預期答案。適合分類任務、是/否問題、固定格式輸出（JSON、代碼）。">
+<meta property="og:title" content="CH6-5 Streaming 與使用者體驗｜生成式AI職訓實務應用班">
+<meta property="og:description" content="讓使用者看到逐字回應而非空白等待：用 Server-Sent Events 實作 Streaming，做出會打字的聊天介面，並用 TTFT 衡量串流體驗。">
 <meta property="og:url" content="https://skypai0326.github.io/courses/courses/gen-ai-140h/part6/CH6-5.html">
 <meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="CH6-5 Streaming、Evals 與成本控管｜生成式AI職訓實務應用班">
-<meta name="twitter:description" content="回答必須完全等於預期答案。適合分類任務、是/否問題、固定格式輸出（JSON、代碼）。">
+<meta name="twitter:title" content="CH6-5 Streaming 與使用者體驗｜生成式AI職訓實務應用班">
+<meta name="twitter:description" content="讓使用者看到逐字回應而非空白等待：用 Server-Sent Events 實作 Streaming，做出會打字的聊天介面，並用 TTFT 衡量串流體驗。">
 <meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <link rel="canonical" href="https://skypai0326.github.io/courses/courses/gen-ai-140h/part6/CH6-5.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -160,16 +160,16 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <div class="hero-meta">
     <span class="hero-part">PART 6 · AI 應用開發進階</span>
     <div class="hero-divider-v"></div>
-    <span class="hero-num">CH 6.5 · 2 小時</span>
+    <span class="hero-num">CH 6.5 · 1 小時</span>
   </div>
-  <h1 class="lesson-title">Streaming、Evals與成本控管</h1>
-  <p class="lesson-tagline">「它有在跑嗎？怎麼這麼久？這個月會不會爆帳單？」——這三句是 AI 應用上線後使用者跟主管最常問的問題。Streaming 解第一問、Evals 解第二問、成本控管解第三問；三件事一起做，AI 應用才能長期運營。</p>
+  <h1 class="lesson-title">Streaming 與使用者體驗</h1>
+  <p class="lesson-tagline">使用者按下送出後最怕一片空白。Streaming 用 Server-Sent Events 把回應逐字推送，第一個字一秒內就出現，感知速度立刻不同。這一章把一次性回傳改造成會打字的即時介面。</p>
   <div class="outcomes">
     <div class="outcomes-label">學完你會</div>
-    <div class="outcome-item"><div class="outcome-dot"></div><span>實作 SSE Streaming，讓使用者看到逐字回應而非等待</span></div>
-    <div class="outcome-item"><div class="outcome-dot"></div><span>理解 Evals 評估框架，用數據判斷模型品質而非憑感覺</span></div>
-    <div class="outcome-item"><div class="outcome-dot"></div><span>掌握五種成本控管策略，讓 API 費用可預測</span></div>
-    <div class="outcome-item"><div class="outcome-dot"></div><span>知道何時加 Guardrails，以及如何不過度限制模型能力</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>實作 SSE Streaming，讓使用者看到逐字回應而非空白等待</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>用 fetch + ReadableStream 在前端做出會打字的聊天介面</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>用 AbortController 實作可取消的串流，中斷時保留已收片段</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>用 Time to First Token（TTFT）衡量串流體驗好不好</span></div>
   </div>
 </div>
 
@@ -177,40 +177,42 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
   <section class="lesson-section reveal" id="guided-path">
     <div class="section-eyebrow">GUIDED PATH · 照著做</div>
-    <h2 class="section-heading">先做一份<em>上線前風險檢查表</em></h2>
-    <p class="body-text">這段只做一件事：先用 streaming、evals、guardrails、成本四欄檢查最小上線風險，確認使用者看得到進度、團隊量得到品質、帳單守得住。</p>
-    <p class="body-text"><strong>最低完成線：</strong>交出 1 份上線前風險檢查表，四欄各有狀態、風險與下一步。Streaming 判讀先做 Level 1 模擬成功；真正跑 /api/stream 是 Level 2，完整 eval pipeline 與改造屬第二層任務。</p>
+    <h2 class="section-heading">先判讀一份 <em>stream log</em></h2>
+    <p class="body-text">這段只做一件事：拿一份模擬的 SSE 串流 log，判讀三件事——文字有沒有逐段累積、按 Cancel 後有沒有停止、出錯時有沒有顯示給使用者。看懂這三件事，就抓到 Streaming 體驗的核心。</p>
+    <p class="body-text"><strong>最低完成線：</strong>用下方 log 答出三個判讀問題（Level 1 模擬成功）；有後端環境的學員再到本章實戰演練真跑 /api/stream（Level 2）。</p>
 
     <div class="mini-prac" data-mp="ch6-5-guided">
       <div class="mini-prac-head">
         <span class="mini-prac-eyebrow">最小可見結果</span>
         <span class="mini-prac-time">約 10 分鐘</span>
       </div>
-      <div class="mini-prac-title">用四欄表檢查一個 AI 功能能不能上線</div>
-      <p class="mini-prac-intro">挑一個你已經做過的 AI 功能，不改程式，先用四欄表判斷它現在離可上線還差哪個最小防護。</p>
+      <div class="mini-prac-title">判讀一份 SSE 串流 log</div>
+      <p class="mini-prac-intro">不用寫程式，先讀懂一份串流回應長什麼樣、發生事件時畫面該怎麼反應。</p>
+      <div class="mini-prac-output">
+        <div class="mini-prac-output-label">模擬 stream log</div>
+        <div class="mini-prac-output-text"><code>00:00 status=pending</code><br><code>00:01 data: {"delta":"你好"}</code><br><code>00:02 data: {"delta":"，這是逐段"}</code><br><code>00:03 cancel clicked → request aborted</code><br><code>error case: data: {"error":"429 rate_limit_error"}</code></div>
+      </div>
       <div class="mini-prac-steps">
-        <div class="mini-prac-step"><span class="mini-prac-step-num">1</span><span>Streaming 欄：寫下使用者等待時看得到什麼，首個回饋是否在 1-2 秒內出現。</span></div>
-        <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span>Evals 欄：列出 10-20 題 golden set，定義通過率或相似度門檻，不用「感覺不錯」當標準。</span></div>
-        <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>Guardrails 欄：列出只攔必要風險的規則，並寫一個正常請求測試是否被誤擋。</span></div>
-        <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span>成本欄：記錄單次 input / output tokens、每日預算上限、爆量時的降級或停止策略。</span></div>
+        <div class="mini-prac-step"><span class="mini-prac-step-num">1</span><span>逐段累積：哪幾行代表文字一段段長出來，而不是一次回完？</span></div>
+        <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span>可取消：哪一行代表使用者中斷了請求？中斷後畫面該保留已收到的片段還是清空？</span></div>
+        <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>錯誤顯示：error case 那行該怎麼呈現給使用者，而不是讓畫面卡在打字中？</span></div>
       </div>
       <div class="mini-prac-output">
         <div class="mini-prac-output-label">成果產出</div>
-        <div class="mini-prac-output-text">一份上線前風險檢查表：Streaming、Evals、Guardrails、成本四欄各有狀態、風險、下一步。做到這裡就算本頁最低完成線。</div>
+        <div class="mini-prac-output-text">用一句話分別回答三個判讀問題；做到這裡就算本頁最低完成線。</div>
         <textarea aria-label="你的版本" rows="4" placeholder="把你的版本寫在這裡，refresh 後仍會保留。" style="margin-top:10px;width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:inherit;font-size:.85rem;line-height:1.7;background:var(--c-card);color:var(--c-text);resize:vertical;min-height:80px"></textarea>
       </div>
       <div class="mini-prac-check">
         <span class="mini-prac-check-label">結果驗證卡</span>
-        <label><input type="checkbox"><span>使用者等待時有可見進度，不會盯著空白畫面</span></label>
-        <label><input type="checkbox"><span>evals 有固定測試集與門檻，不靠主觀印象</span></label>
-        <label><input type="checkbox"><span>guardrails 有測正常案例，確認沒有過度阻擋</span></label>
-        <label><input type="checkbox"><span>成本有單次估算、每日上限與失控時的停損做法</span></label>
+        <label><input type="checkbox"><span>能指出哪些行是逐段累積的 delta</span></label>
+        <label><input type="checkbox"><span>知道 Cancel 後要保留已收到片段、不清空</span></label>
+        <label><input type="checkbox"><span>知道錯誤要顯示成可讀訊息 + 重試，而非卡住</span></label>
       </div>
     </div>
 
     <div class="mini-prac-output">
       <div class="mini-prac-output-label">錯誤排查卡</div>
-      <div class="mini-prac-output-text">streaming 卡住先檢查 server 是否 flush、前端是否正確讀 stream、client 斷線是否終止上游請求；evals 太主觀時改成 golden set、通過率與失敗清單；guardrails 過度阻擋時先看被攔案例，縮小規則範圍並保留人工覆核出口。</div>
+      <div class="mini-prac-output-text">streaming 卡住先檢查 server 是否 flush、前端是否正確讀 stream、client 斷線是否終止上游請求；畫面沒有逐段長出來多半是前端等整包收完才 render，改成邊收邊 append；按 Cancel 沒反應，檢查有沒有用 AbortController 真的 abort fetch。</div>
     </div>
   </section>
 
@@ -273,329 +275,8 @@ app.<span class="fn">post</span>(<span class="str">'/api/stream'</span>, <span c
   </div>
 
   <hr class="section-rule reveal">
-
-  <!-- Section 2 -->
   <div class="lesson-section reveal">
     <div class="section-eyebrow">(02)</div>
-    <h2 class="section-heading">Evals：<em>用數據評估品質，不靠感覺</em></h2>
-    <p class="body-text">改了 Prompt 以後，真的變好了嗎？沒有評估框架的話，你只能憑主觀印象猜測。Evals 讓你用可重現的方式量化模型輸出品質。</p>
-
-    <p class="body-text">評估可分為四個層次，由易到難：</p>
-
-    <div class="eval-grid reveal">
-      <div class="eval-card">
-        <div class="eval-card-type">Level 1 · 最快</div>
-        <div class="eval-card-title">精確匹配（Exact Match）</div>
-        <div class="eval-card-desc">回答必須完全等於預期答案。適合分類任務、是/否問題、固定格式輸出（JSON、代碼）。</div>
-      </div>
-      <div class="eval-card">
-        <div class="eval-card-type">Level 2 · 常用</div>
-        <div class="eval-card-title">語義相似度（Semantic Similarity）</div>
-        <div class="eval-card-desc">用 Embedding 計算回答與標準答案的餘弦相似度，容許同義表達。適合問答、摘要。</div>
-      </div>
-      <div class="eval-card">
-        <div class="eval-card-type">Level 3 · 更準</div>
-        <div class="eval-card-title">LLM 作為評審（LLM-as-Judge）</div>
-        <div class="eval-card-desc">讓另一個模型（通常更強）評分。提供評分 Rubric，讓評審模型給出 1–5 分與理由。</div>
-      </div>
-      <div class="eval-card">
-        <div class="eval-card-type">Level 4 · 最貴</div>
-        <div class="eval-card-title">人工評估（Human Eval）</div>
-        <div class="eval-card-desc">由領域專家手動評分。最準但最慢最貴，通常只用於驗收關鍵里程碑或校準 LLM-Judge。</div>
-      </div>
-    </div>
-
-    <div class="callout key reveal">
-      <div class="callout-icon" aria-hidden="true">🔑</div>
-      <div class="callout-body"><strong>實務建議：先建黃金測試集（Golden Set）。</strong>收集 20–50 個代表性的「輸入 <span aria-hidden="true">→</span> 預期輸出」配對，每次改動 Prompt 或換模型都跑一次 eval，確保不退步。這是 AI 應用品質管理的最小可行實踐。</div>
-    </div>
-
-    <div class="mini-prac" data-mp="ch6-5-mp1">
-      <div class="mini-prac-head">
-        <span class="mini-prac-eyebrow">迷你練習 1</span>
-        <span class="mini-prac-time">約 20 分鐘</span>
-      </div>
-      <div class="mini-prac-title">為你的工具建一個 20 題的黃金測試集</div>
-      <p class="mini-prac-intro">針對你在 Part 5 做的工具，收集 20 筆「輸入 <span aria-hidden="true">→</span> 預期輸出」，用 Level 1（精確匹配）+ Level 2（語義相似度）跑一次 eval，算出 baseline 分數。</p>
-      <div class="mini-prac-steps">
-        <div class="mini-prac-step"><span class="mini-prac-step-num">1</span><span>挑出你工具最核心的 20 種使用情境，每筆寫下 input 與「理想 output」，存成 CSV 或 JSON。</span></div>
-        <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span>寫一個 eval 腳本：對每筆跑一次 API，比對結果，分類任務用 exact match，文字任務用 embedding cosine 相似度（閾值 0.8）。</span></div>
-        <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>印出通過率、失敗案例清單、平均相似度分數。</span></div>
-        <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span>把這個分數記下來當 baseline，下次改 prompt 或換模型時重跑比對。</span></div>
-      </div>
-      <details class="prac-sample" open>
-        <summary class="ps-head">
-          <span class="ps-eyebrow">範本素材</span>
-          <span class="ps-hint">沒有自己的工具？用這份「發票分類助理」的情境與 6 題種子測試，讓 AI 幫你擴展到 20 題並產出 eval 腳本。</span>
-        </summary>
-        <div class="ps-block">
-          <div class="ps-label">原始素材 · 工具背景 + 6 題種子測試<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
-          <div class="ps-material">【工具背景】
-名稱：發票分類助理
-任務：接收一句使用者描述的消費，輸出 JSON {category: "...", amount: ...}
-category 限定六類：餐飲、交通、差旅、辦公用品、雲服務、其他
-若模型無法判斷，category 應填 "其他"
-
-【6 題種子測試（input → expected）】
-T1 input: "今天午餐便當 95"
-   expected: {"category":"餐飲","amount":95}
-T2 input: "搭高鐵去台中來回 2400"
-   expected: {"category":"交通","amount":2400}
-T3 input: "買了 5 包影印紙 450 元"
-   expected: {"category":"辦公用品","amount":450}
-T4 input: "Claude Pro 月費 20 鎂換成台幣大約 640"
-   expected: {"category":"雲服務","amount":640}
-T5 input: "東京出差住宿三晚共 12000"
-   expected: {"category":"差旅","amount":12000}
-T6 input: "送給同事的生日卡片 150"
-   expected: {"category":"其他","amount":150}
-
-【模型設定】
-- 模型：claude-haiku-4-5-20251001
-- max_tokens: 200
-- system prompt: "你是發票分類助理。根據使用者輸入輸出 JSON。category 只能是：餐飲/交通/差旅/辦公用品/雲服務/其他。若無法判斷 category 填其他。"</div>
-        </div>
-        <div class="ps-block">
-          <div class="ps-label">範例 Prompt · 擴展黃金集 + Eval 腳本產生器<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
-          <div class="ps-prompt">你是一位 LLM 應用的品質工程師。請根據下方工具背景與 6 題種子測試，產出完整的 20 題黃金集與 eval 腳本。
-
-任務一：擴展到 20 題
-- 每個 category 至少 2 題
-- 至少 4 題是邊界情境（金額混寫法、英文混中、模糊描述、可能誤判）
-- 至少 2 題是「理應填『其他』」的陷阱題
-- 輸出 JSON 陣列，欄位 id, input, expected
-
-任務二：eval.py 腳本
-- 讀 golden_set.json
-- 對每題呼叫 Claude API（模型與設定如素材），解析回傳 JSON
-- 評分：
-  - Level 1 精確匹配：category 與 expected.category 相同 → 1 分
-  - Level 2 金額容差：amount 與 expected.amount 絕對誤差 &lt; 5 → 1 分
-  - 最終通過：兩者同時符合
-- 輸出：
-  - 通過率 X/20
-  - 失敗案例前 3 筆（含 expected vs actual）
-  - 各 category 的通過率
-
-任務三：結尾建議
-- 1 句：「下次 prompt 迭代後，什麼分數視為 regression？」
-
-素材：
-[貼上上方原始素材]
-
-<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
-        </div>
-        <div class="ps-block">
-          <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>golden_set.json: [{"id":1,"input":"今天午餐便當 95","expected":{"category":"餐飲","amount":95}}, ... 20 筆]<br>eval.py 片段：<br>for item in golden: actual = json.loads(call_claude(item['input'])); cat_ok = actual['category'] == item['expected']['category']; amt_ok = abs(actual['amount']-item['expected']['amount'])&lt;5; results.append(cat_ok and amt_ok)<br>baseline 結果範例：<br>通過率 17/20 (85%)<br>失敗案例：T12 'Notion 年繳 9600 台幣' actual=其他/9600, expected=雲服務/9600（category 錯）<br>各 category 通過率：餐飲 3/3 交通 3/3 差旅 2/3 辦公 3/3 雲服務 2/3 其他 4/5<br>regression 門檻：通過率低於 80% 視為退步，立即 rollback 改動。</div>
-        </div>
-      </details>
-      <div class="mini-prac-output">
-        <div class="mini-prac-output-label">成果產出</div>
-        <div class="mini-prac-output-text">golden_set.json（或 .csv）+ eval.py 腳本 + 一張 baseline 結果表（通過率 / 平均相似度 / 失敗案例前 3 筆）。</div>
-        <textarea aria-label="你的版本" rows="4" placeholder="把你的版本寫在這裡，refresh 後仍會保留。" style="margin-top:10px;width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:inherit;font-size:.85rem;line-height:1.7;background:var(--c-card);color:var(--c-text);resize:vertical;min-height:80px"></textarea>
-      </div>
-      <div class="mini-prac-check">
-        <span class="mini-prac-check-label">自我檢核</span>
-        <label><input type="checkbox"><span>20 筆測試涵蓋至少 3 種使用情境，不是同一題的變形</span></label>
-        <label><input type="checkbox"><span>我的 eval 腳本能一鍵重跑，不需要手動對答</span></label>
-        <label><input type="checkbox"><span>我能明確說出「下次什麼分數算退步」的標準</span></label>
-      </div>
-    </div>
-  </div>
-
-  <hr class="section-rule reveal">
-
-  <!-- Section 3 -->
-  <div class="lesson-section reveal">
-    <div class="section-eyebrow">(03)</div>
-    <h2 class="section-heading">成本控管：<em>五個策略讓帳單可預測</em></h2>
-    <p class="body-text">API 費用按 token 計算，input token + output token 各有單價。應用上線後，成本很容易在不知不覺中放大。以下五個策略可系統性降低費用。</p>
-
-    <div class="table-scroll"><table class="cost-table reveal">
-      <thead>
-        <tr><th>策略</th><th>做法</th><th>節省潛力</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>選對模型</td>
-          <td>Haiku 處理簡單分類/摘要，Sonnet 處理複雜推理，Opus 只用在最關鍵任務</td>
-          <td class="saving">60–90% ↓</td>
-        </tr>
-        <tr>
-          <td>Prompt 快取</td>
-          <td>把不變的系統提示詞標記為 cache_control，重複呼叫時 input cost 降 90%（Claude）</td>
-          <td class="saving">40–70% ↓</td>
-        </tr>
-        <tr>
-          <td>限制 max_tokens</td>
-          <td>依任務設定合理上限，分類任務設 50、摘要設 300，避免模型輸出冗長回答</td>
-          <td class="saving">20–50% ↓</td>
-        </tr>
-        <tr>
-          <td>Server-side 快取</td>
-          <td>對相同或高度相似的輸入快取回應（Redis、記憶體），直接略過 API 呼叫</td>
-          <td class="saving">視命中率</td>
-        </tr>
-        <tr>
-          <td>設每日預算上限</td>
-          <td>在 API 後台設 Usage Limit，超過後自動停止，防止 bug 或濫用造成帳單爆炸</td>
-          <td class="saving">風險控管</td>
-        </tr>
-      </tbody>
-    </table></div>
-
-    <div class="callout key reveal">
-      <div class="callout-icon" aria-hidden="true">⚠️</div>
-      <div class="callout-body"><strong>帳單爆炸最常見原因：Agent Loop 沒有 max_turns 限制。</strong>一個失控的 Agent 可以在幾分鐘內消耗數百美元的 token。上線前一定要確認 Loop 有退出條件，並在 API 後台設好預算警示。</div>
-    </div>
-
-    <div class="mini-prac" data-mp="ch6-5-mp2">
-      <div class="mini-prac-head">
-        <span class="mini-prac-eyebrow">迷你練習 2</span>
-        <span class="mini-prac-time">約 15 分鐘</span>
-      </div>
-      <div class="mini-prac-title">為你的工具做一次成本瘦身</div>
-      <p class="mini-prac-intro">從五種成本策略中挑兩種套用到你的工具，跑前後對照實驗，實際測量 token 與金額差異。</p>
-      <div class="mini-prac-steps">
-        <div class="mini-prac-step"><span class="mini-prac-step-num">1</span><span>跑 10 次現有版本，記錄 usage.input_tokens、output_tokens 平均值，換算單次成本。</span></div>
-        <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span>選兩個策略套用：例如「Sonnet <span aria-hidden="true">→</span> Haiku」+「max_tokens 降到實際需求」，或「開 prompt caching」+「server-side cache」。</span></div>
-        <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>再跑 10 次，記錄新版本的 token 與成本，並跑 golden set 確認品質沒退步。</span></div>
-        <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span>算出節省百分比，並在 API 後台設一個「每日 $X」的 usage limit 作為最後保險。</span></div>
-      </div>
-      <details class="prac-sample" open>
-        <summary class="ps-head">
-          <span class="ps-eyebrow">範本素材</span>
-          <span class="ps-hint">一組前版 usage 統計 + 工具特性，讓 AI 幫你挑出兩個最該先動的成本槓桿。</span>
-        </summary>
-        <div class="ps-block">
-          <div class="ps-label">原始素材 · 某內部 SOP 查詢助理的前版成本數據（10 次呼叫平均）<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
-          <div class="ps-material">【工具基本資料】
-名稱：內部 SOP 查詢助理
-模型：claude-sonnet-4-5-20250929
-max_tokens: 2048
-每天呼叫次數：約 300 次
-是否已開 prompt caching：否
-是否有 server-side cache：否
-
-【System Prompt 特徵】
-- 長度：約 2400 字（含 8 段 SOP 摘要、4 個拒答規則、3 個輸出格式範例）
-- 每次呼叫內容完全一致
-
-【典型呼叫 10 次平均 usage】
-input_tokens: 3800
-output_tokens: 520
-單次成本（Sonnet in $3/M + out $15/M）：≈ $0.0192
-每日成本：300 × 0.0192 = $5.76
-月成本：≈ $172.8
-
-【品質 baseline】
-golden set 20 題通過率：18/20 (90%)
-
-【已知現象】
-- 約 70% 的查詢其實只需要簡單的關鍵字比對 + 模板回覆
-- output 常常超過 300 tokens 但實際有用資訊不到一半
-- 使用者問題中約 15% 是同一天問過的 FAQ</div>
-        </div>
-        <div class="ps-block">
-          <div class="ps-label">範例 Prompt · 成本瘦身策略 + A/B 測試計畫產生器<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
-          <div class="ps-prompt">你是一位 LLM 應用成本優化顧問。請針對下方工具的前版狀態，產出成本瘦身策略。
-
-輸出三個區塊：
-
-## 一、五策略評分表
-對「選對模型 / Prompt caching / 限制 max_tokens / Server-side cache / 每日預算上限」五個策略各自給出：
-- 可行性（1–5）
-- 預期節省百分比（具體數字區間）
-- 對品質的風險（低/中/高）
-- 一句話根因依據（從素材中哪個線索判斷）
-
-## 二、Top 2 組合建議
-挑出最該先動的兩個策略，說明：
-- 為什麼這兩個一起做效益 &gt; 單做
-- 實作順序（哪個先、為什麼）
-- 上線前必做的品質檢查
-
-## 三、A/B 實驗規劃
-給出一張表：
-| 版本 | 模型 | max_tokens | caching | server cache | 預期單次成本 | 預期月成本 |
-| 前版 | ... | ... | ... | ... | ... | ... |
-| 候選 A | ... | ... | ... | ... | ... | ... |
-| 候選 B | ... | ... | ... | ... | ... | ... |
-
-最後 1 行：什麼樣的 golden set 退步幅度會讓你立即回滾？
-
-素材：
-[貼上上方原始素材]
-
-<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
-        </div>
-        <div class="ps-block">
-          <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>一、評分表：<br>選對模型 5/5，節省 60–80%，品質風險中（Sonnet→Haiku 有機會但需 golden set 驗證；70% 查詢是簡單匹配支持此判斷）<br>Prompt caching 5/5，節省 40–50%，品質風險低（system prompt 2400 字且每次一致，是 cache 最甜蜜點）<br>限制 max_tokens 4/5，節省 15–25%，品質風險低（output 冗長已確認）<br>Server-side cache 4/5，節省 10–15%，品質風險低（15% 重複問題可直接命中）<br>每日預算上限 3/5，無直接節省，屬風險控管<br>二、Top 2：Prompt caching + 模型降級。先開 caching（零風險即時省 45%），再跑 golden set 驗證 Haiku 能否維持 90% 通過率；可維持則降級再省 60–70%。<br>三、A/B 表：<br>| 前版 | Sonnet | 2048 | off | off | $0.0192 | $172.8 |<br>| A | Sonnet | 500 | on | on | $0.0080 | $72 |<br>| B | Haiku | 500 | on | on | $0.0018 | $16.2 |<br>回滾門檻：golden set 通過率跌破 85%（下降 &gt; 5 個百分點）立即 rollback。</div>
-        </div>
-      </details>
-      <div class="mini-prac-output">
-        <div class="mini-prac-output-label">成果產出</div>
-        <div class="mini-prac-output-text">一張「前 / 後」對照表（input tokens｜output tokens｜單次成本｜品質分數），加一句結論「這版省了 X%，品質維持在 Y」。</div>
-        <textarea aria-label="你的版本" rows="4" placeholder="把你的版本寫在這裡，refresh 後仍會保留。" style="margin-top:10px;width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:inherit;font-size:.85rem;line-height:1.7;background:var(--c-card);color:var(--c-text);resize:vertical;min-height:80px"></textarea>
-      </div>
-      <div class="mini-prac-check">
-        <span class="mini-prac-check-label">自我檢核</span>
-        <label><input type="checkbox"><span>成本有改善且 golden set 分數沒跌超過 5%</span></label>
-        <label><input type="checkbox"><span>我有在 API 後台設每日預算上限，不只靠程式邏輯</span></label>
-        <label><input type="checkbox"><span>我能說出下一輪還可以再試哪個策略</span></label>
-      </div>
-    </div>
-  </div>
-
-  <hr class="section-rule reveal">
-
-  <!-- Section 4 -->
-  <div class="lesson-section reveal">
-    <div class="section-eyebrow">(04)</div>
-    <h2 class="section-heading">Guardrails：<em>保護應用，但不過度限制</em></h2>
-    <p class="body-text">Guardrails 是在模型輸入或輸出上加的防護層，用來攔截有害內容、防止越獄、確保輸出格式合規。但加太多會讓應用變得不好用。</p>
-
-    <div class="guard-list reveal">
-      <div class="guard-item">
-        <div class="guard-num">1</div>
-        <div class="guard-body">
-          <div class="guard-title">輸入過濾（Input Guard）</div>
-          <div class="guard-desc">在送入模型前先掃描使用者輸入。可用關鍵字黑名單、另一個輕量模型分類，或 Anthropic Constitutional AI 等機制。攔截明顯惡意請求，減少不必要的 API 呼叫。</div>
-        </div>
-      </div>
-      <div class="guard-item">
-        <div class="guard-num">2</div>
-        <div class="guard-body">
-          <div class="guard-title">系統提示詞約束（System Prompt Constraint）</div>
-          <div class="guard-desc">在 system prompt 中明確定義「這個 AI 只做什麼、不做什麼」。比硬編碼過濾更靈活，也讓模型理解邊界而不只是被阻擋。例如：<code>你只回答與台灣稅務相關的問題，其他問題請禮貌拒絕。</code></div>
-        </div>
-      </div>
-      <div class="guard-item">
-        <div class="guard-num">3</div>
-        <div class="guard-body">
-          <div class="guard-title">輸出驗證（Output Validation）</div>
-          <div class="guard-desc">對模型輸出做格式或內容驗證，確保符合預期結構（如要求 JSON 就驗證 JSON 格式）。若驗證失敗，可重試或回傳降級結果，而非直接崩潰。</div>
-        </div>
-      </div>
-      <div class="guard-item">
-        <div class="guard-num">4</div>
-        <div class="guard-body">
-          <div class="guard-title">速率限制（Rate Limiting）</div>
-          <div class="guard-desc">對每個使用者設定每分鐘/每日呼叫上限，防止單一使用者濫用或惡意探測。搭配 API Gateway 或自行用 Redis 實作計數器。</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="callout tip reveal">
-      <div class="callout-icon" aria-hidden="true">💡</div>
-      <div class="callout-body"><strong>Guardrails 的黃金原則：少即是多。</strong>過度防護會讓正常請求也被攔截，使用者體驗下降，你反而要花更多時間處理誤判申訴。先從系統提示詞約束開始，只在有明確需要時才加額外層。</div>
-    </div>
-  </div>
-
-  <hr class="section-rule reveal">
-
-  <div class="lesson-section reveal">
-    <div class="section-eyebrow">(05)</div>
     <h2 class="section-heading">實戰演練：<em>把 Streaming 變成會打字的聊天介面</em></h2>
     <p class="body-text">理論講完了，現在補一段完整可跑的路徑：先用假 stream log 判讀畫面是否逐段累積、能否取消、錯誤如何顯示；有環境者再把後端用 Server-Sent Events 把 AI 回覆一段段推給前端。模擬判讀是 Level 1，真跑 /api/stream 是 Level 2。</p>
 
@@ -898,8 +579,8 @@ cancelBtn.onclick = () => controller?.abort();
     <span><span aria-hidden="true">←</span></span>
     <div><div class="nav-btn-label">上一章</div><div class="nav-btn-title">CH6-4 Function Calling 與 Agent 工具鏈設計</div></div>
   </a>
-  <a class="nav-btn next" href="PRAC6-1.html">
-    <div><div class="nav-btn-label">下一個</div><div class="nav-btn-title">PRAC6-1 API 呼叫測試頁</div></div>
+  <a class="nav-btn next" href="CH6-6.html">
+    <div><div class="nav-btn-label">下一章</div><div class="nav-btn-title">CH6-6 AI 應用上線前檢查：品質、風險、成本</div></div>
     <span><span aria-hidden="true">→</span></span>
   </a>
 </nav>
