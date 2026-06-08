@@ -95,15 +95,17 @@ prac: true
 
 ## Part 6：AI 應用開發進階（22h）
 
-- CH6-1：API 基礎與呼叫流程
-- CH6-2：後端中介層：Node.js / Python FastAPI
-- CH6-3：Function Calling / Tools 思維
-- CH6-4：Agent 工具鏈與多步驟任務
-- CH6-5：Streaming 與即時回應介面
-- PRAC6-1：RAG 文件問答系統
-- PRAC6-2：Evals 品質驗收工具
-- PRAC6-3：Guardrails 安全過濾實作
-- PRAC6-4：成本控制 Dashboard
+- CH6-1：API、後端代理與錯誤處理
+- CH6-2：Embedding 與向量搜尋基礎
+- CH6-3：RAG 實作與品質調優
+- CH6-4：Function Calling 與 Agent 工具鏈設計
+- CH6-5：Streaming 與使用者體驗
+- CH6-6：AI 應用上線前檢查：品質、風險、成本 *(v3 新增)*
+- PRAC6-1：API 呼叫測試頁
+- PRAC6-2：最小文件問答器（RAG）
+- PRAC6-3：Agent 工具鏈小案例
+- PRAC6-4：Streaming 回應改造
+- PRAC6-5：上線前檢查表（Evals / Guardrails / 成本，必做） *(v3 新增)*
 
 ## Part 7：專題衝刺與成果發表（20h）
 
