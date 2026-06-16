@@ -80,6 +80,7 @@
 | `career-guidance/` | 留任、內轉、轉職：8 小時職涯定位實戰（8h 一日密集）| 建置中 | 10 CH（Part 1 判斷方向 6 + Part 2 驗證下一步 4）+ 2 PRAC + PDP×MBTI 雙測獨立頁，三路徑共用四工具，fork 自 career-pivot-mid；主色霧紫；待 course-register |
 | `office-ai-cases/` | 辦公室 AI 工具案例應用（6h 客製版，與 `office-ai/` 並行） | 完成 | 10 頁（4 案例 + CH0 + 2 module + index + platform-guide + prompt-library）+ 4 datasets 800+ 筆 + 56 prompts；通用 prompt + Wrapper；無行銷；不繳交；主色棕金 |
 | `gemini-notebooklm-workshop/` | Gemini × NotebookLM 跨部門 AI 工作坊（8h · 2 天 × 4h 客製） | **v2.1 完成** | 9 頁 + 25 份髒資料 dataset；指定雙工具；跨部門 5 代表（財/業/電/倉/採）；**主軸：可信來源驅動工作流**；**4 件套產物**（知識庫設計表 Min/Pro + 來源可信度檢核表 🟢🟡🔴 + 追問補強包兩洞法 2×4=8 格 + 跨來源決策備忘三層）；對齊 **3 大現實阻力**（資安禁上傳 / SOP 沒版本 / 主管要 ERP 數字 → ERP 接回示範）；Codex v1 三審 9.1/10 ACCEPT + v2 差異化 f1de8a27 actionable + v2.1 學員視角 d6b1da76 7/10 actionable；對接 office-ai-cases 同學員銜接；主色鼠尾草綠 |
+| `codex-basic/` | Codex 基礎使用：辦公與財會的 AI 工作助理（3h） | 完成（已註冊） | 11 頁（index + 10 單元：CH1-1~3 / CH2-1~2 / PRAC2 / CH3-1~2 / CH4-1~2）；會計/財務/行政受眾，零代碼；Codex 桌面 App + GPT-5.5；主色陶土橘；G2 教案 + G3 內審 + Codex L3 三輪審核；Part 4 為能力地圖示範；⚠️ B 類官方文件改寫（Sites/Skill/權限）待課前實機驗證 |
 
 > 上述「狀態」「主色」可能未即時反映實況。「結構描述」一律以 `ls courses/<slug>/` 為準。
 

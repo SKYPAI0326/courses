@@ -40,6 +40,7 @@ COURSE_LABEL = {
     "office-ai-cases": "辦公室 AI 工具案例應用",
     "gemini-notebooklm-workshop": "Gemini × NotebookLM 跨部門 AI 工作坊",
     "career-guidance": "8 小時職涯定位實戰",
+    "codex-basic": "Codex 基礎使用（3h）",
 }
 
 TITLE_RE = re.compile(r"<title>(.*?)</title>", re.IGNORECASE | re.DOTALL)
