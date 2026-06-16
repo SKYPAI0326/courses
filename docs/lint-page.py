@@ -227,6 +227,22 @@ def check_focus_visible(html: str) -> list:
     return []
 
 
+def check_audience_firewall(html: str) -> list:
+    """學員 HTML 不得出現授課調度（講師視角）。見 design-tokens『授課調度防火牆』/ Style Guide。
+    講義是學員視角；授課調度（講師示範/主線備線/預錄/節奏）只屬講師，寫在教案『講師授課筆記（不進講義）』。"""
+    body_match = re.search(r'<body[^>]*>(.*?)</body>', html, re.DOTALL)
+    body = body_match.group(1) if body_match else html
+    body = re.sub(r'<!--.*?-->', '', body, flags=re.DOTALL)
+    body = re.sub(r'<style[^>]*>.*?</style>', '', body, flags=re.DOTALL)
+    body = re.sub(r'<script[^>]*>.*?</script>', '', body, flags=re.DOTALL)
+    terms = ["講師示範", "講師端", "講師收束", "主線：", "備線：", "預錄影片", "播放預錄", "示範為主"]
+    issues = []
+    for t in terms:
+        if t in body:
+            issues.append(("WARN", f"疑似洩漏授課調度（講師視角）：「{t}」——講義須純學員視角，授課調度寫教案『講師授課筆記（不進講義）』"))
+    return issues
+
+
 def check_you_form(html: str) -> list:
     """檢查『您』——僅在 body 內容判斷，避免誤抓 comment。"""
     body_match = re.search(r'<body[^>]*>(.*?)</body>', html, re.DOTALL)
@@ -812,7 +828,7 @@ RULES_BY_TYPE = {
         check_skip_link, check_main_wrapper, check_seo_meta,
         # WARN
         check_twitter_meta, check_platform_metadata, check_focus_visible,
-        check_you_form, check_step_n, check_aria_hidden_arrow, check_font_size_tier,
+        check_you_form, check_audience_firewall, check_step_n, check_aria_hidden_arrow, check_font_size_tier,
         check_lesson_section_count, check_big_quote_cap, check_callout_cap,
         # v3（追加，不取代）— W-v3-2 用嚴格版（≤ 4）
         *V3_RULES_COMMON, check_v3_main_color_count,

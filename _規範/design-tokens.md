@@ -240,6 +240,9 @@ grid-template-columns: repeat(auto-fit, minmax(...));
 
 ## 7. Section 對應表（教案 → HTML）
 
+> ⚠️ **授課調度防火牆（學員視角，2026-06-16 加）**：HTML 講義是**學員視角**，教案是**講師工作計畫**。轉 HTML 時只保留學員看得懂、用得到的內容；授課調度（「講師示範」「主線/備線」「播放預錄」「現場網路/額度」「講師收束」「示範為主」「時間分配/每段幾分鐘」）一律**剝除或改寫成學員視角**（「講師示範 X」→「你會看到一段示範：X」）。教案端把這些寫進「## 講師授課筆記（不進講義）」區塊。
+> **機器強制**：`lint-page.py` 的 `check_audience_firewall`（WARN，掛在 lesson 頁型）偵測上列詞彙。改詞表 = 改兩處（此條 + lint）。人類完整規則見 Style Guide 模板「講義＝學員視角」段。
+
 ### skill-operation / programming 類型
 
 | Section | Eyebrow | 教案來源 | 主要組件 |
