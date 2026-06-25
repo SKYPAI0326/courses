@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<!--
+  弄一下工作室 — Gemini × NotebookLM 跨部門 AI 工作坊
+  CH1-2 Gemini 基礎操作 + 會議紀錄整理
+  ========================================================
+  本檔由 lesson-designer subagent 從 _lessons/gemini-notebooklm-workshop/CH1-2.md 套
+  _規範/lesson-template-v3.html 產出，2026-06-02（v3 重寫）。
+  主題色：#5a7a5a 鼠尾草綠（--c-main）
+  v3 重寫：Gemini 基礎操作 + 三件套 prompt + 業務週會整理實戰（55 min）
+-->
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH1-2 Gemini 基礎操作 + 會議紀錄整理｜Gemini × NotebookLM 跨部門 AI 工作坊</title>
+<meta name="description" content="三件套 prompt（角色＋任務＋格式）× 5 部門變體：55 min 把業務週會逐字稿跑成決議清單＋個人行動表＋跟進信。指定 Gemini 免費版，帶走 15 個 prompt 範本。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="CH1-2 Gemini 基礎操作 + 會議紀錄整理｜Gemini × NotebookLM 跨部門 AI 工作坊">
+<meta property="og:description" content="三件套 prompt（角色＋任務＋格式）× 5 部門變體：55 min 把業務週會逐字稿跑成決議清單＋個人行動表＋跟進信。指定 Gemini 免費版，帶走 15 個 prompt 範本。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/gemini-notebooklm-workshop/CH1-2.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CH1-2 Gemini 基礎操作 + 會議紀錄整理｜Gemini × NotebookLM 跨部門 AI 工作坊">
+<meta name="twitter:description" content="三件套 prompt（角色＋任務＋格式）× 5 部門變體：55 min 把業務週會逐字稿跑成決議清單＋個人行動表＋跟進信。指定 Gemini 免費版，帶走 15 個 prompt 範本。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/gemini-notebooklm-workshop/CH1-2.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-main:#5a7a5a;--radius:4px;--radius-sm:3px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 var(--radius) 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:var(--c-main);border:1px solid rgba(90,122,90,.3);background:transparent;padding:3px 12px;border-radius:99px;font-weight:500;letter-spacing:.06em}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px;font-variant-numeric:tabular-nums}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;max-width:22ch}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);margin-top:28px}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
+.outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.outcome-item strong{color:var(--c-text);font-weight:500}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-heading em{font-style:normal;color:var(--c-text)}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.body-text strong{font-weight:500}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-body{font-size:.9rem;line-height:1.85}
+/* 截圖佔位 + 名詞註解 */
+.shot-ph{margin:18px 0}
+.shot-ph-frame{display:flex;gap:12px;align-items:flex-start;border:1px dashed var(--c-border);background:var(--c-surface);border-radius:var(--radius);padding:20px 22px;color:var(--c-muted)}
+.shot-ph-cam{font-size:1.1rem;flex-shrink:0;line-height:1.4}
+.shot-ph-text{font-size:.8rem;line-height:1.7}
+.shot{margin:18px 0}
+.shot img{width:100%;height:auto;display:block;border:1px solid var(--c-border);border-radius:var(--radius)}
+.shot figcaption{font-size:.8rem;color:var(--c-muted);line-height:1.7;margin-top:8px}
+.term-note{font-size:.8rem;color:var(--c-muted);line-height:1.7;margin:-2px 0 16px;padding:8px 0 8px 14px;border-left:2px solid var(--c-border)}
+/* 概念卡 */
+.concept-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin:20px 0}
+.concept-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px}
+.concept-num{font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-faint);letter-spacing:.1em;margin-bottom:6px}
+.concept-title{font-size:.92rem;font-weight:500;color:var(--c-text);margin-bottom:8px;line-height:1.5}
+.concept-desc{font-size:.82rem;color:var(--c-muted);line-height:1.8}
+/* 對話示範元件家族 */
+.dialog-box{background:var(--c-surface);border:1px solid var(--c-border);border-left:2px solid var(--c-text);border-radius:var(--radius-sm);padding:14px 16px;margin:12px 0 8px;font-family:'Courier New',monospace;font-size:.8rem;color:var(--c-text);line-height:1.7;white-space:pre-wrap;position:relative}
+.dialog-label{font-family:'Noto Sans TC',sans-serif;font-size:.72rem;color:var(--c-muted);font-weight:500;letter-spacing:.5px;margin-bottom:8px;text-transform:uppercase}
+.expected-output{background:var(--c-card);border:1px solid var(--c-border-soft);border-left:2px solid var(--c-faint);border-radius:var(--radius-sm);margin:12px 0 8px;padding:16px 18px}
+.expected-label{font-size:.72rem;color:var(--c-muted);font-weight:500;letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase}
+.expected-body{font-size:.85rem;line-height:1.85;color:var(--c-text)}
+.expected-body p{margin-bottom:8px}
+.expected-body p:last-child{margin-bottom:0}
+.expected-body strong{font-weight:700}
+.expected-note{font-size:.72rem;color:var(--c-muted);margin-top:12px;line-height:1.6;border-top:1px dashed var(--c-border-soft);padding-top:10px}
+.demo-takeaway{background:var(--c-surface);border-left:2px solid var(--c-text);padding:12px 16px;margin-top:14px;font-size:.85rem;line-height:1.8;color:var(--c-text);border-radius:var(--radius-sm)}
+.fill-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;margin:20px 0}
+.fill-card-label{font-size:.85rem;font-weight:500;color:var(--c-text);margin-bottom:12px}
+.fill-row{display:grid;grid-template-columns:56px 1fr;gap:10px;align-items:start;margin-bottom:10px;font-size:.85rem}
+.fill-key{color:var(--c-muted);font-weight:500;padding-top:9px}
+.fill-blank{border:1px dashed var(--c-border);border-radius:var(--radius-sm);padding:8px 10px;min-height:36px;background:var(--c-bg);line-height:1.7;outline:none}
+.fill-blank:focus{border-color:var(--c-main);border-style:solid}
+.fill-blank:empty::before{content:attr(data-ph);color:var(--c-faint)}
+.fill-note{font-size:.8rem;color:var(--c-muted);line-height:1.7;margin-top:8px;border-top:1px dashed var(--c-border-soft);padding-top:10px}
+/* 步驟 */
+.steps-inline{display:flex;flex-direction:column;gap:18px;margin:20px 0}
+.step-block{display:flex;gap:16px;align-items:flex-start}
+.step-circle{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:var(--c-text);color:var(--c-bg);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:500}
+.step-content{flex:1;padding-top:4px}
+.step-heading{font-size:.92rem;font-weight:500;color:var(--c-text);margin-bottom:6px;line-height:1.5}
+.step-body{font-size:.85rem;color:var(--c-muted);line-height:1.85}
+/* 表格 */
+.ref-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.85rem}
+.ref-table th{font-family:'Shippori Mincho',serif;font-weight:500;color:var(--c-text);background:var(--c-surface);padding:10px 12px;text-align:left;border-bottom:1px solid var(--c-border);font-size:.82rem;letter-spacing:.03em}
+.ref-table td{padding:10px 12px;border-bottom:1px solid var(--c-border-soft);color:var(--c-text);line-height:1.75;vertical-align:top}
+.ref-table tr:last-child td{border-bottom:none}
+/* 部門變體表 */
+.dept-table{width:100%;border-collapse:collapse;font-size:.82rem;margin:16px 0}
+.dept-table th{font-family:'Shippori Mincho',serif;font-weight:500;color:var(--c-text);background:var(--c-surface);padding:9px 12px;text-align:left;border-bottom:1px solid var(--c-border);font-size:.78rem}
+.dept-table td{padding:9px 12px;border-bottom:1px solid var(--c-border-soft);color:var(--c-text);line-height:1.7;vertical-align:top}
+.dept-table tr:last-child td{border-bottom:none}
+/* 完成 checklist */
+.checklist{display:flex;flex-direction:column;gap:8px;margin:16px 0;padding:0}
+.checklist-item{display:flex;gap:10px;align-items:flex-start;font-size:.85rem;color:var(--c-text);line-height:1.75;list-style:none}
+.checklist-item::before{content:"☐";color:var(--c-muted);flex-shrink:0;margin-top:1px}
+/* 常見錯誤 */
+.pitfall-block{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 24px;margin:18px 0}
+.pitfall-heading{font-size:.92rem;font-weight:500;color:var(--c-text);margin-bottom:10px;line-height:1.5;display:flex;gap:10px;align-items:flex-start}
+.pitfall-num{font-family:'Shippori Mincho',serif;color:var(--c-main);font-weight:700;flex-shrink:0}
+.pitfall-row{display:grid;grid-template-columns:80px 1fr;gap:14px;margin-top:8px;font-size:.85rem;line-height:1.8}
+.pitfall-label{color:var(--c-muted);font-weight:500;letter-spacing:.05em}
+.pitfall-text{color:var(--c-text)}
+/* Quiz */
+.quiz-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:22px 26px;margin:18px 0}
+.quiz-q{font-size:.95rem;font-weight:500;color:var(--c-text);margin-bottom:16px;line-height:1.7}
+.quiz-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.quiz-opt{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);cursor:pointer;font-size:.88rem;color:var(--c-text);transition:border-color .15s,background .15s}
+.quiz-opt:hover{border-color:var(--c-main);background:rgba(90,122,90,.04)}
+.quiz-opt input[type="radio"]{margin:0;accent-color:var(--c-main)}
+.quiz-opt input[type="radio"]:checked + span{color:var(--c-main);font-weight:500}
+.quiz-ans{font-size:.85rem;color:var(--c-muted);line-height:1.85;margin-top:4px}
+.quiz-ans summary{cursor:pointer;color:var(--c-main);font-weight:500;padding:6px 0}
+.quiz-ans summary:hover{color:var(--c-text)}
+.quiz-ans>div{padding:12px 14px;background:var(--c-surface);border-radius:var(--radius);margin-top:8px}
+/* nav */
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
+.nav-btn:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main)}
+.nav-btn.primary:hover{filter:brightness(.92)}
+/* footer */
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+@media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important}*{animation:none!important}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.concept-grid{grid-template-columns:1fr}.ref-table{font-size:.78rem}.pitfall-row{grid-template-columns:1fr;gap:6px}}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='gnw_auth',H='abf7cbf06fcb2eaf7e09ba6cff90501e208500268fee1b098fa588d060fd3084';if(localStorage.getItem(K)==='1')sessionStorage.setItem(K,'1');if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">Gemini × NotebookLM 跨部門 AI 工作坊</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">CH1-2 · 65 min</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<div class="page-hero">
+  <a href="index.html" class="back-link"><span aria-hidden="true">←</span> 返回課程總覽</a>
+  <div class="hero-eyebrow">(02) Part 1 · Gemini 基礎操作</div>
+  <h1 class="lesson-title">Gemini 基礎操作 + 會議紀錄整理</h1>
+  <p class="lesson-tagline">手寫整理 60 min，Gemini 跑得好 15 min。這單元的核心就是三件套 prompt：角色 + 任務 + 格式。把三件寫清楚，Gemini 的輸出就可預測、可直接用。先摸熟介面操作，再用小李的業務週會示範完整三步流程，最後換成你的部門變體自己跑一遍。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果 · OUTCOMES</div>
+    <div class="outcome-item"><strong>能操作 Gemini 介面三個關鍵動作</strong>（新對話 vs 繼續對話、上傳檔案、切換輸出格式）</div>
+    <div class="outcome-item"><strong>能用三件套 prompt 跑完完整三步流程</strong>（決議清單 + 個人行動表 + 跟進信），同一對話視窗接續不重貼資料</div>
+    <div class="outcome-item"><strong>能選自己部門變體</strong>（5 選 1）跑出一份整理好的會議紀錄，格式符合自己部門習慣</div>
+  </div>
+</div>
+
+<!-- ========== SECTION 01 ========== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(01)</div>
+  <h2 class="section-heading">破題：小李的會後困境</h2>
+  <div class="intro-band">
+    <div class="intro-label">情境設定</div>
+    <div class="intro-text">業務副理小李剛開完業務週會。25 min、4 人、業績檢討 + 兩件客訴處理。發言亂序，沒人做正式紀錄。</div>
+  </div>
+
+  <p class="body-text">會後小李要產出三件東西：</p>
+  <ul class="checklist">
+    <li class="checklist-item">本週業績問題決議清單</li>
+    <li class="checklist-item">自己的個人行動表（誰負責 / 何時前 / 卡關找誰）</li>
+    <li class="checklist-item">1-2 封跟進信草稿</li>
+  </ul>
+
+  <p class="body-text" style="margin-top:16px">手寫整理 60 min，Gemini 跑得好 15 min。</p>
+
+  <p class="body-text"><strong>小李的真實困難不是不會用 Gemini</strong>，是「不知道 prompt 要怎麼寫才能跑出可以直接用的東西」。每次試，Gemini 給他的東西格式不對，要花 20 min 再改。</p>
+
+  <div class="demo-takeaway">這單元任務：先把 Gemini 介面操作摸熟，再用三件套 prompt 跑完小李這場會議的整理流程，最後換成你的部門變體跑一遍。</div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ========== SECTION 02 ========== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(02)</div>
+  <h2 class="section-heading">介面操作說明</h2>
+  <div class="intro-band">
+    <div class="intro-label">三個第一次用最容易卡住的操作</div>
+    <div class="intro-text">先把這三個弄清楚，等一下上機就不會卡——看完直接動手，操作一遍就記住了。</div>
+  </div>
+
+  <p class="body-text"><strong>(0) 先打開 Gemini</strong>（從來沒開過的人，從這 4 步開始）</p>
+  <div class="steps-inline">
+    <div class="step-block"><div class="step-circle">1</div><div class="step-content"><div class="step-heading">打開瀏覽器</div><div class="step-body">Chrome、Edge、Safari 任一個都可以。</div></div></div>
+    <div class="step-block"><div class="step-circle">2</div><div class="step-content"><div class="step-heading">在最上面的網址列輸入 gemini.google.com，按 Enter</div><div class="step-body">這就是 Gemini 的網址，記下來。</div></div></div>
+    <div class="step-block"><div class="step-circle">3</div><div class="step-content"><div class="step-heading">右上角點「登入」，用你的 Google 帳號登入</div><div class="step-body">就是你平常收 Gmail 的那個帳號。已經登入過就會直接進去。</div></div></div>
+    <div class="step-block"><div class="step-circle">4</div><div class="step-content"><div class="step-heading">看到畫面中央／最下方有一條空白輸入框 = 成功</div><div class="step-body">那條框，就是等一下你打字下指令的地方。</div></div></div>
+  </div>
+  <figure class="shot"><img src="assets/screenshots/gemini-home.png" alt="Gemini 登入後的主畫面：中央／底部是對話輸入框，左上可開新對話，輸入框旁可上傳檔案" loading="lazy"><figcaption>Gemini 登入後的主畫面：最下方那條就是對話輸入框，左上可開「＋ 新對話」，輸入框旁的 ＋／📎 可上傳檔案。</figcaption></figure>
+
+  <p class="body-text" style="margin-top:8px"><strong>(1) 新對話 vs 繼續對話</strong></p>
+  <p class="body-text">開新對話 = Gemini 忘掉前面講的全部。繼續對話 = 它記得。</p>
+
+  <table class="ref-table">
+    <tr><th>什麼時候</th><th>做法</th><th>範例</th></tr>
+    <tr><td>換完全不同的任務</td><td>開新對話</td><td>剛才整理會議紀錄，現在要寫招募文案</td></tr>
+    <tr><td>同一件事要接著做</td><td>繼續對話</td><td>決議清單跑完，接著跑個人行動表，再接著跑跟進信</td></tr>
+  </table>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">→</div>
+    <div class="callout-body">本單元三步 prompt 要在<strong>同一個對話視窗</strong>跑完。這樣第二步直接說「結合剛才的決議」就有效，不用重貼資料。</div>
+  </div>
+
+  <p class="body-text" style="margin-top:8px"><strong>(2) 上傳檔案方式</strong></p>
+  <p class="body-text">兩種方法都行：</p>
+  <ul class="checklist">
+    <li class="checklist-item"><strong>拖放</strong>：把逐字稿 .txt 或 .md 拖進輸入框</li>
+    <li class="checklist-item"><strong>點擊迴紋針圖示</strong>：選從裝置上傳</li>
+  </ul>
+  <p class="body-text">本課逐字稿素材是 .txt 檔，拖放最快。上傳後 Gemini 輸入框上方會顯示檔名，確認有顯示再送出。</p>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">→</div>
+    <div class="callout-body">免費版 Gemini 每次對話最多上傳 10 份檔案（每份上限 100MB），超過要拆批次或改貼文字。</div>
+  </div>
+
+  <p class="body-text" style="margin-top:8px"><strong>(3) 輸出格式切換</strong></p>
+  <p class="body-text">Gemini 預設可能給段落文字，但你要的是表格或清單。兩種改法：</p>
+  <ul class="checklist">
+    <li class="checklist-item"><strong>Prompt 裡直接寫</strong>：「輸出：markdown 表格，4 欄」或「輸出：條列清單，每條 &lt; 30 字」</li>
+    <li class="checklist-item"><strong>跑完再追問</strong>：「請改成表格格式」「請把每條壓短在 20 字以內」</li>
+  </ul>
+  <div class="term-note"><strong>markdown</strong>＝一種純文字的排版寫法。你只要把 Gemini 給的結果整段複製、貼進 Google Docs 或 Word，就會自動變成整齊的表格或清單，不用自己畫線。</div>
+  <p class="body-text">Prompt 裡先寫清楚比事後追問省時。本單元三個 prompt 的「格式」段都已寫好，照用就行。</p>
+</section>
+
+<hr class="section-rule">
+
+<!-- ========== SECTION 03 ========== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(03)</div>
+  <h2 class="section-heading">Prompt 三件套原則</h2>
+  <div class="intro-band">
+    <div class="intro-label">三件套 = 角色 + 任務 + 格式</div>
+    <div class="intro-text"><strong>prompt</strong>＝你打給 AI 的那段指令。辦公室最常用的 prompt 骨架只有三件：角色 + 任務 + 格式。把這三件寫清楚，辦公室 80% 的情況就夠用。</div>
+  </div>
+
+  <div class="concept-grid">
+    <div class="concept-card">
+      <div class="concept-num">(01) 角色</div>
+      <div class="concept-title">你要 Gemini 扮演什麼身份？</div>
+      <div class="concept-desc">「你是小李的會議紀錄整理助手」</div>
+    </div>
+    <div class="concept-card">
+      <div class="concept-num">(02) 任務</div>
+      <div class="concept-title">具體做什麼？輸入是什麼？</div>
+      <div class="concept-desc">「把以下 25 min 業務週會逐字稿，整理成決議清單」</div>
+    </div>
+    <div class="concept-card">
+      <div class="concept-num">(03) 格式</div>
+      <div class="concept-title">輸出長什麼樣？</div>
+      <div class="concept-desc">「markdown 表格，4 欄：誰 / 做什麼 / 何時前 / 找誰確認」</div>
+    </div>
+  </div>
+
+  <p class="body-text" style="margin-top:24px"><strong>爛 prompt vs 好 prompt 示範</strong></p>
+
+  <div class="dialog-box"><div class="dialog-label">爛 prompt（模糊）</div>幫我整理一下這個會議紀錄。
+
+[貼逐字稿]</div>
+
+  <div class="expected-output">
+    <div class="expected-label">Gemini 的回應（爛 prompt）</div>
+    <div class="expected-body">
+      <p>Gemini 可能給你一段 400 字的摘要段落，或隨機給 3-5 個重點，格式不確定、欄位不齊，有時連誰負責什麼都講不清楚。</p>
+    </div>
+    <div class="expected-note">輸出不可預測 = 你要花時間改，或再追問兩輪。</div>
+  </div>
+
+  <div class="dialog-box" style="margin-top:20px"><div class="dialog-label">好 prompt（三件套）</div>角色：你是業務副理小李的會議紀錄整理助手。
+任務：把以下 25 min 業務週會逐字稿，整理成本週的決議清單。
+格式：markdown 表格，4 欄 — 誰 / 做什麼 / 何時前 / 找誰確認；至少 4 筆；閒聊段落不列入。
+
+[貼逐字稿]</div>
+
+  <div class="expected-output">
+    <div class="expected-label">Gemini 的回應（三件套 prompt）</div>
+    <div class="expected-body">
+      <p>Gemini 產出一張 4 欄表格，5 筆決議，例：</p>
+      <p>| 誰 | 做什麼 | 何時前 | 找誰確認 |<br>
+      |---|---|---|---|<br>
+      | 小李 | 聯絡 B 客戶確認訂單狀態 | 週三前 | 小李主管 |<br>
+      | 小陳 | 更新業績追蹤表 | 週四前 | 小李 |<br>
+      | ... | ... | ... | ... |</p>
+    </div>
+    <div class="expected-note">格式固定、欄位齊全，可以直接 copy 進 Google Docs 或寄信用。</div>
+  </div>
+
+  <p class="body-text" style="margin-top:24px"><strong>常見錯誤：這兩種問法最常讓人卡</strong></p>
+
+  <p class="body-text"><strong>錯誤 1：問太模糊</strong></p>
+  <p class="body-text">「幫我整理一下」「幫我看看這份會議」「整理出重點」——Gemini 不知道你要什麼格式、幾欄、幾筆，輸出就會每次不一樣。修法：任務段加一句「整理成 XX 格式」或「輸出要包含 XX 欄位」。</p>
+
+  <p class="body-text"><strong>錯誤 2：一次問太多件事</strong></p>
+  <p class="body-text">「幫我整理決議清單、個人行動表、寫跟進信、還有摘要一份 100 字給老闆看」——Gemini 通常只把第一件做好，後面的越來越草率。修法：三步走。每一步一個 prompt，同一個對話視窗繼續，就不用重貼資料。</p>
+
+  <div class="fill-card">
+    <div class="fill-card-label">✍ 換你組一個：填這三格，組起來就是你的 prompt（先在這寫，再複製去 Gemini）</div>
+    <div class="fill-row"><div class="fill-key">角色</div><div class="fill-blank" contenteditable="true" data-ph="例：你是業務副理小李的會議紀錄整理助手"></div></div>
+    <div class="fill-row"><div class="fill-key">任務</div><div class="fill-blank" contenteditable="true" data-ph="例：把以下這份逐字稿整理成本週的決議清單"></div></div>
+    <div class="fill-row"><div class="fill-key">格式</div><div class="fill-blank" contenteditable="true" data-ph="例：markdown 表格，4 欄 — 誰／做什麼／何時前／找誰確認"></div></div>
+    <div class="fill-note">把這三格照「角色 → 任務 → 格式」順序貼進 Gemini，再附上你的資料，就是一個完整 prompt。三件齊全，輸出才可預測。（這格寫的內容只存在你的瀏覽器，重整就清空，不會上傳。）</div>
+  </div>
+
+  <div class="demo-takeaway">三件套 = 角色 + 任務 + 格式。這三件寫清楚，Gemini 的輸出可預測、可直接用。</div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ========== SECTION 04 ========== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(04)</div>
+  <h2 class="section-heading">示範：業務週會逐字稿 → 會議紀錄</h2>
+  <div class="intro-band">
+    <div class="intro-label">示範主角：業務小李 · 素材：sales-weekly-25min.txt</div>
+    <div class="intro-text">三步走完，在同一個對話視窗裡跑。骨架不變，只換任務和格式，就能跑完整份會議整理。</div>
+  </div>
+
+  <div style="margin:12px 0;padding:12px 16px;border:1px solid var(--c-border);border-radius:var(--radius);background:var(--c-card);font-size:.85rem"><a href="assets/datasets/sales-weekly-25min.txt" download style="color:var(--c-main)">⬇ sales-weekly-25min.txt</a>（小李業務週會逐字稿，示範用 · 點檔名下載；想跑自己部門的，下方第 6 段有 5 部門版可選）</div>
+
+  <p class="body-text"><strong>第 1 步：決議清單（3-4 min）</strong></p>
+
+  <div class="dialog-box"><div class="dialog-label">小李在 Gemini（第 1 步）</div>角色：你是業務副理小李的會議紀錄整理助手。
+任務：把以下 25 min 業務週會逐字稿，整理成本週的決議清單。
+格式：markdown 表格，4 欄 — 誰 / 做什麼 / 何時前 / 找誰確認；至少 4 筆；閒聊與情緒發洩段落不列入。
+
+[此處拖入或貼上 sales-weekly-25min.txt]</div>
+
+  <div class="expected-output">
+    <div class="expected-label">Gemini 大概會回</div>
+    <div class="expected-body">
+      <p>Gemini 整理出 5 筆決議清單：</p>
+      <p>| 誰 | 做什麼 | 何時前 | 找誰確認 |<br>
+      |---|---|---|---|<br>
+      | 小李 | 聯絡 B 客戶確認本月訂單是否取消 | 週三前 | 業務主管 |<br>
+      | 小陳 | 更新本週業績追蹤表並標記落後項 | 週四前 | 小李 |<br>
+      | 全體業務 | 這週每人至少打 5 通開發電話 | 週五前 | 小李 |<br>
+      | 小李 | 回覆 A 客戶客訴，說明處理方案 | 明天前 | 業務主管 |<br>
+      | 小陳 | 追 C 供應商缺貨處理進度 | 週三前 | 小李 |</p>
+    </div>
+    <div class="expected-note">實際輸出每次略有差異。重點是 4 欄齊全、筆數 ≥ 4、閒聊段沒混進來。</div>
+  </div>
+
+  <p class="body-text" style="margin-top:24px"><strong>第 2 步：個人行動表（3-4 min）</strong></p>
+
+  <div class="dialog-box"><div class="dialog-label">小李在 Gemini（第 2 步 · 同一對話視窗接續）</div>繼續。依剛才的決議清單，整理小李「本週個人行動表」。
+格式：條列清單，每條包含 — 日期 / 要做什麼 / 卡關了找誰；只列小李自己要做的事，其他人的決議不列。</div>
+
+  <div class="expected-output">
+    <div class="expected-label">Gemini 大概會回</div>
+    <div class="expected-body">
+      <p>小李本週個人行動表：</p>
+      <p>- 明天：回覆 A 客戶客訴，說明處理方案 → 卡關找業務主管<br>
+      - 週三前：聯絡 B 客戶確認本月訂單是否取消 → 卡關找業務主管<br>
+      - 週五前：確認全體業務本週開發電話達標情況 → 卡關找小陳查報表</p>
+    </div>
+    <div class="expected-note">「卡關了找誰」這欄很關鍵。回家自己用時這欄能讓你不卡住。</div>
+  </div>
+
+  <p class="body-text" style="margin-top:24px"><strong>第 3 步：跟進信（3 min）</strong></p>
+
+  <div class="dialog-box"><div class="dialog-label">小李在 Gemini（第 3 步 · 同一對話視窗接續）</div>最後一步。針對 A 客戶客訴這件事，幫小李寫一封跟進信草稿。
+要求：語氣是「業務副理向客戶說明進度」；禁用「您」改「你」；主旨含日期 + 主題；結尾必須有「有任何問題請回覆這封信」；全信 ≤ 150 字。</div>
+
+  <div class="expected-output">
+    <div class="expected-label">Gemini 大概會回</div>
+    <div class="expected-body">
+      <p><strong>主旨：[0102] A 客戶客訴處理進度說明</strong></p>
+      <p>你好，感謝你告知上週的問題。我們已確認是出貨流程的疏失，責任部門本週四前完成內部檢討，我會親自追進度。<br>
+      預計週五前給你書面說明與補救方案。<br>
+      有任何問題請回覆這封信。</p>
+      <p>——小李</p>
+    </div>
+    <div class="expected-note">禁用「您」改「你」要明寫在 prompt，Gemini 預設商業書信會用「您」。</div>
+  </div>
+
+  <p class="body-text" style="margin-top:20px"><strong>示範結束補一句</strong>：三步完成了。回頭看，每步的三件套：角色都一樣（小李的整理助手），任務每步不同，格式每步不同。骨架不變，只換任務和格式，就能跑完整份會議整理。</p>
+
+  <p class="body-text"><strong>如何要求 Gemini 調整格式（額外示範 1 min）</strong>：</p>
+
+  <div class="dialog-box"><div class="dialog-label">如果決議清單貼上 Google Docs 後跑版，可以這樣追問</div>請把剛才的決議清單改成純文字條列（不用 markdown 表格），每條格式：「誰：做什麼（何時前）」。</div>
+
+  <div class="demo-takeaway">三步 prompt，同一個對話視窗跑完。骨架不變，換素材就能套到你的部門會議。</div>
+
+  <h3 style="font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin:28px 0 12px;line-height:1.5">多練一招：同一份逐字稿，換任務、換格式</h3>
+
+  <p class="body-text">很多人只會叫 AI「幫我摘要」，結果拿到一大段文字還是要自己整理。其實<strong>骨架（角色＋任務＋格式）不變，只要換「任務」和「格式」這兩格，同一份逐字稿就能變成完全不同的東西</strong>。在剛才同一個對話視窗，接著貼下面兩條試試：</p>
+
+  <div class="dialog-box"><div class="dialog-label">變化 1 · 給老闆的一句話摘要</div>根據剛才這份會議，幫我寫「一句話」回報給老闆：這場會最重要的結論是什麼。不超過 40 字，直接講結論，不要鋪陳。</div>
+
+  <div class="expected-output">
+    <div class="expected-label">Gemini 大概會回</div>
+    <div class="expected-body"><p>本週達成約七成、未達標，A 客戶客訴與 B 客戶訂單兩件已分派處理。</p></div>
+  </div>
+
+  <div class="dialog-box"><div class="dialog-label">變化 2 · 我自己的待辦清單</div>從剛才的決議裡，只挑出「跟我有關、我要做」的事，列成待辦清單（□ 開頭），每條註明截止日；沒有截止日的標「未定」。</div>
+
+  <div class="expected-output">
+    <div class="expected-label">Gemini 大概會回</div>
+    <div class="expected-body"><p>□ 回覆 A 客戶客訴處理方案（明天前）<br>□ 聯絡 B 客戶確認訂單是否取消（週三前）<br>□ 打 5 通開發電話（週五前）</p></div>
+  </div>
+
+  <div class="term-note">看出來了嗎？<strong>素材一樣、骨架一樣，只換「任務」和「格式」，輸出就完全不同。</strong>下次別只說「幫我摘要」——先想清楚你要的「任務」（摘要？待辦？通知？）和「格式」（一句話？條列？表格？），AI 才給得到你真正能用的東西。</div>
+
+  <p class="body-text"><strong>換你做一次</strong>：用同一份逐字稿，想一個你工作上真的會用到的產出（例：給同事的提醒、下週工作重點），自己組任務＋格式，寫在下面。</p>
+
+  <div class="fill-card">
+    <div class="fill-card-label">✍ 換你換一種任務／格式（內容只存在你的瀏覽器，重整就清空，不會上傳）</div>
+    <div class="fill-row"><div class="fill-key">任務</div><div class="fill-blank" contenteditable="true" data-ph="例：把這場會整理成給同事的 3 點提醒"></div></div>
+    <div class="fill-row"><div class="fill-key">格式</div><div class="fill-blank" contenteditable="true" data-ph="例：條列 3 點，每點一句話，口氣親切"></div></div>
+    <div class="fill-row"><div class="fill-key">產出</div><div class="fill-blank" contenteditable="true" data-ph="貼上 Gemini 給你的結果…"></div></div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ========== SECTION 05 ========== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(05)</div>
+  <h2 class="section-heading">換你上機：5 部門變體選 1 個跑完整 3 步</h2>
+
+  <p class="body-text">選自己最相關的部門變體，跑完整 3 步。</p>
+
+  <table class="dept-table">
+    <tr><th>部門</th><th>主角</th><th>會議類型</th><th>逐字稿素材</th></tr>
+    <tr><td>財務</td><td>凱倫</td><td>月底結帳會議（費用異常 + 帳期對齊）</td><td>finance-monthend-25min.txt</td></tr>
+    <tr><td>業務</td><td>小李</td><td>業務週會（業績檢討 + 客訴處理）</td><td>sales-weekly-25min.txt（主版）</td></tr>
+    <tr><td>電商／行銷</td><td>怡君</td><td>電商月度檢討（活動成效 + 社群 KPI 差距）</td><td>ecom-monthly-25min.txt</td></tr>
+    <tr><td>倉儲</td><td>阿翔</td><td>庫存盤點會議（盤盈盤虧 + 缺貨處理）</td><td>warehouse-stocktake-25min.txt</td></tr>
+    <tr><td>採購</td><td>采蓁</td><td>供應商議價會議（下季報價 + 條件談判）</td><td>procurement-negotiate-25min.txt</td></tr>
+  </table>
+
+  <div class="term-note">沒有完全對到你的部門？不要緊。「把會議逐字稿整理成決議清單」是行政、總務、行銷、各部門每天都在做的事——挑最接近的變體跑就行，prompt 骨架完全一樣。<br><strong>收斂一句：</strong>不管哪個部門，這一步其實都在做同一件事——把一堆零散對話，壓成「誰、做什麼、何時前」的決議。</div>
+
+  <div style="margin:16px 0;padding:14px 18px;border:1px solid var(--c-border);border-radius:var(--radius);background:var(--c-card)">
+    <div style="font-size:.82rem;font-weight:500;margin-bottom:8px">⬇ 下載課堂逐字稿（挑你的部門那一份）</div>
+    <div style="font-size:.85rem;line-height:2.1">
+      <a href="assets/datasets/sales-weekly-25min.txt" download style="color:var(--c-main)">sales-weekly-25min.txt</a>（業務·主版）
+      <a href="assets/datasets/finance-monthend-25min.txt" download style="color:var(--c-main)">finance-monthend-25min.txt</a>（財務）
+      <a href="assets/datasets/ecom-monthly-25min.txt" download style="color:var(--c-main)">ecom-monthly-25min.txt</a>（電商）
+      <a href="assets/datasets/warehouse-stocktake-25min.txt" download style="color:var(--c-main)">warehouse-stocktake-25min.txt</a>（倉儲）
+      <a href="assets/datasets/procurement-negotiate-25min.txt" download style="color:var(--c-main)">procurement-negotiate-25min.txt</a>（採購）
+    </div>
+  </div>
+
+  <p class="body-text" style="margin-top:20px"><strong>5 個部門各自的第 1 步 prompt 範例</strong>（直接改「角色」和「任務」段，只換部門和主題）</p>
+
+  <div class="dialog-box"><div class="dialog-label">第 1 步 prompt（財務 · 凱倫）</div>角色：你是財務專員凱倫的會議紀錄整理助手。
+任務：把以下月底結帳會議逐字稿，整理成本月的決議清單。
+格式：markdown 表格，4 欄 — 誰 / 做什麼 / 何時前 / 找誰確認；至少 3 筆；純聊天段落不列入。
+
+[此處貼入 finance-monthend-25min.txt]</div>
+
+  <div class="dialog-box"><div class="dialog-label">第 1 步 prompt（電商／行銷 · 怡君）</div>角色：你是電商營運經理怡君的會議紀錄整理助手。
+任務：把以下電商月度檢討逐字稿，整理成本月的決議清單。
+格式：markdown 表格，4 欄 — 誰 / 做什麼 / 何時前 / 找誰確認；至少 4 筆；KPI 目標說明段落不列入（只列決議行動）。
+
+[此處貼入 ecom-monthly-25min.txt]</div>
+
+  <div class="dialog-box"><div class="dialog-label">第 1 步 prompt（倉儲 · 阿翔）</div>角色：你是倉儲主管阿翔的會議紀錄整理助手。
+任務：把以下庫存盤點會議逐字稿，整理成本次盤點的決議清單。
+格式：markdown 表格，4 欄 — 誰 / 做什麼 / 何時前 / 找誰確認；至少 3 筆；背景說明段落不列入。
+
+[此處貼入 warehouse-stocktake-25min.txt]</div>
+
+  <div class="dialog-box"><div class="dialog-label">第 1 步 prompt（採購 · 采蓁）</div>角色：你是採購專員采蓁的會議紀錄整理助手。
+任務：把以下供應商議價會議逐字稿，整理成本次談判的決議清單。
+格式：markdown 表格，4 欄 — 誰 / 做什麼 / 何時前 / 找誰確認；至少 3 筆；僅含已確認的決議，仍在討論中的不列入。
+
+[此處貼入 procurement-negotiate-25min.txt]</div>
+
+  <p class="body-text" style="margin-top:24px"><strong>上機步驟（20 min）</strong></p>
+
+  <div class="steps-inline">
+    <div class="step-block"><div class="step-circle">1</div><div class="step-content"><div class="step-heading">打開 Gemini，確認帳號登入；把你部門的逐字稿 .txt 找好準備拖入</div></div></div>
+    <div class="step-block"><div class="step-circle">2</div><div class="step-content"><div class="step-heading">第 1 步 prompt：跑出決議清單，確認 4 欄齊全、筆數 ≥ 3</div></div></div>
+    <div class="step-block"><div class="step-circle">3</div><div class="step-content"><div class="step-heading">第 2 步 prompt：同一對話接續，跑出個人行動表（只列自己要做的、含「卡關找誰」）</div></div></div>
+    <div class="step-block"><div class="step-circle">4</div><div class="step-content"><div class="step-heading">第 3 步 prompt：選一封最急的跟進信草稿跑出來，確認 ≤ 150 字、結尾有行動句</div></div></div>
+    <div class="step-block"><div class="step-circle">5</div><div class="step-content"><div class="step-heading">對照驗收清單（見第六段），確認格式符合自己部門習慣</div></div></div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">→</div>
+    <div class="callout-body">完成後自己檢查三件事：三步是不是都在同一個對話視窗跑完？決議清單的「卡關找誰」有沒有填具體人名？跟進信是不是用「你」、控制在 150 字內？</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ========== SECTION 06 ========== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(06)</div>
+  <h2 class="section-heading">驗收清單</h2>
+
+  <p class="body-text">對照以下清單自己確認，有打勾的才算完成。</p>
+
+  <ul class="checklist">
+    <li class="checklist-item">決議清單：4 欄齊全（誰 / 做什麼 / 何時前 / 找誰確認）</li>
+    <li class="checklist-item">決議清單：筆數 ≥ 3、閒聊段沒混進來</li>
+    <li class="checklist-item">個人行動表：只有自己的項目、每條有具體人名的「卡關找誰」</li>
+    <li class="checklist-item">跟進信：用「你」非「您」、≤ 150 字、結尾有行動句</li>
+    <li class="checklist-item">知道怎麼用追問要求 Gemini 調整輸出格式</li>
+  </ul>
+
+  <p class="body-text" style="margin-top:20px"><strong>自我檢查兩題</strong>：</p>
+  <p class="body-text"><strong>Q1</strong>：三件套是哪三件？<br>答：角色 + 任務 + 格式</p>
+  <p class="body-text"><strong>Q2</strong>：如果 Gemini 跑出來的格式不對，你怎麼改？<br>答：追問：「請改成 XX 格式」</p>
+</section>
+
+<hr class="section-rule">
+
+<!-- ========== SECTION 07 ========== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(07)</div>
+  <h2 class="section-heading">練習素材</h2>
+
+  <p class="body-text"><strong>需要的帳號</strong>：Gemini 免費版（任一 Google 帳號就好）。課堂用虛構逐字稿，不需要上傳真實公司資料。</p>
+
+  <p class="body-text" style="margin-top:20px">課程提供 5 個部門的會議逐字稿（本單元前面的素材區可下載），挑你部門那一份來練最有感：</p>
+
+  <table class="dept-table">
+    <tr><th>檔名</th><th>用在哪個情境</th></tr>
+    <tr><td>sales-weekly-25min.txt</td><td>小李業務週會（業績檢討 + 客訴）</td></tr>
+    <tr><td>finance-monthend-25min.txt</td><td>凱倫財務月底結帳（費用異常 + 帳期對齊）</td></tr>
+    <tr><td>ecom-monthly-25min.txt</td><td>怡君電商月度檢討（活動成效 + KPI 差距）</td></tr>
+    <tr><td>warehouse-stocktake-25min.txt</td><td>阿翔倉儲盤點（盤盈盤虧 + 缺貨處理）</td></tr>
+    <tr><td>procurement-negotiate-25min.txt</td><td>采蓁採購議價（下季報價 + 條件）</td></tr>
+  </table>
+
+  <p class="body-text" style="margin-top:16px">每份逐字稿裡都混了一些閒聊，也有「還在討論、沒拍板」的項目——這是故意放的。練習時注意：別把「還在討論的想法」當成「已經決定的事」寫進去。</p>
+</section>
+
+<hr class="section-rule">
+
+<!-- ========== SECTION 08 ========== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(08)</div>
+  <h2 class="section-heading">3 個會卡關的地方 + 解法</h2>
+
+  <div class="pitfall-block">
+    <div class="pitfall-heading"><span class="pitfall-num">01</span> 開新對話跑第 2 步，Gemini 忘掉決議清單</div>
+    <div class="pitfall-row"><div class="pitfall-label">現象</div><div class="pitfall-text">第 1 步跑出決議清單後，你開了新對話視窗跑第 2 步「依剛才的決議，整理個人行動表」。Gemini 說「請提供決議清單讓我整理」——它根本不記得剛才做的。</div></div>
+    <div class="pitfall-row"><div class="pitfall-label">原因</div><div class="pitfall-text">每個 Gemini 對話都是獨立的，開新對話 = 清空記憶。</div></div>
+    <div class="pitfall-row"><div class="pitfall-label">解法</div><div class="pitfall-text">三步 prompt 在<strong>同一個對話視窗</strong>跑完。第 2 步說「繼續」或「依剛才的結果」就有效，不用重貼資料。只有在換完全不同任務時才開新對話。</div></div>
+  </div>
+
+  <div class="pitfall-block">
+    <div class="pitfall-heading"><span class="pitfall-num">02</span> 「某人提到想做 X」被寫進決議清單</div>
+    <div class="pitfall-row"><div class="pitfall-label">現象</div><div class="pitfall-text">阿宏說「最近大家都在玩直播帶貨，要不要我們也試試看」——決議清單卻寫成「阿宏：開直播帶貨（月底前）」。阿宏下週被問進度，說「我只是提一下，沒說要做啊」。</div></div>
+    <div class="pitfall-row"><div class="pitfall-label">原因</div><div class="pitfall-text">Gemini 會把「想法拋出」合理化成「決定要做」，沒加限制 instruction 就會這樣。</div></div>
+    <div class="pitfall-row"><div class="pitfall-label">解法</div><div class="pitfall-text">prompt 在「格式」段加一句「仍在討論的提案不列入，只列已確認的決議」。跑完後對照逐字稿核對一遍，確認每筆決議真的在會議中被確認了。</div></div>
+  </div>
+
+  <div class="pitfall-block">
+    <div class="pitfall-heading"><span class="pitfall-num">03</span> 跟進信用「您」+ 寫成 300 字商業書信</div>
+    <div class="pitfall-row"><div class="pitfall-label">現象</div><div class="pitfall-text">Gemini 寫出「您好，承蒙協助，特此說明本次客訴處理進度如下……」—— 400 字，起承轉合，同事看完一肚子火，覺得很假。</div></div>
+    <div class="pitfall-row"><div class="pitfall-label">原因</div><div class="pitfall-text">Gemini 預設「商業書信」模板會用「您」+ 鋪陳。不寫格式限制就跑出這種輸出。</div></div>
+    <div class="pitfall-row"><div class="pitfall-label">解法</div><div class="pitfall-text">prompt 格式段明寫「禁用『您』改『你』、每封 ≤ 150 字、結尾必須是 XX 一句話」。如果已經跑出 400 字版本，追問「請縮短到 100 字以內，只保留最重要的一個行動句」。</div></div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ========== SECTION 09 ========== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(09)</div>
+  <h2 class="section-heading">離場前 2 題確認你會了</h2>
+
+  <div class="quiz-item">
+    <div class="quiz-q">Q1（概念驗證）：以下哪個 prompt 設計最能確保決議清單的格式固定、可直接複製使用？</div>
+    <div class="quiz-opts">
+      <label class="quiz-opt"><input type="radio" name="q1"><span>A. 「幫我整理這個會議的重點」</span></label>
+      <label class="quiz-opt"><input type="radio" name="q1"><span>B. 「請整理決議，格式自訂，讓我容易讀就好」</span></label>
+      <label class="quiz-opt"><input type="radio" name="q1"><span>C. 「任務：把逐字稿整理成決議清單。格式：markdown 表格，4 欄 — 誰 / 做什麼 / 何時前 / 找誰確認；閒聊段落不列入」</span></label>
+      <label class="quiz-opt"><input type="radio" name="q1"><span>D. 「請整理成 5 筆決議」</span></label>
+    </div>
+    <details class="quiz-ans"><summary>顯示答案</summary>
+      <div>
+        <strong>正確答案：C</strong><br><br>
+        A 沒有格式限制，Gemini 輸出不可預測；B 格式讓 Gemini 自己決定，每次可能不一樣；<strong>C 任務 + 格式都寫清楚：欄位明確、過濾條件明確，輸出可預測</strong>；D 只限定筆數，沒限定欄位，還是會跑出不一樣的格式。
+      </div>
+    </details>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q">Q2（應用驗證）：你是采蓁（採購），剛用三件套 prompt 跑完供應商議價會議逐字稿，Gemini 跑出來的決議清單是 markdown 表格，但要貼進主管要求的 Google Sheets 格式，表格貼上去會跑版。你下一個追問要怎麼寫？</div>
+    <details class="quiz-ans"><summary>顯示答案要點</summary>
+      <div>
+        <strong>直接追問格式</strong>：「請把剛才的決議清單改成純文字，每條格式：誰 · 做什麼 · 何時前 · 找誰確認，每條一行，不用 markdown 符號」<br><br>
+        <strong>加分</strong>：能說出「不需要重新貼逐字稿，因為是在同一個對話視窗接著問，Gemini 記得剛才的結果」<br><br>
+        <strong>加分</strong>：能說出「格式調整就是改三件套裡『格式』那一段，改 prompt 的格式段就能控制」
+      </div>
+    </details>
+  </div>
+
+  <div class="demo-takeaway" style="margin-top:24px"><strong>接下一頁</strong>：先別急著收工——下一頁 <strong>PRAC1</strong> 是 Day 1 的收尾，你會第一次把 <strong>NotebookLM</strong> 和 <strong>Gemini</strong> 串起來，做出一則「每句都查得到出處」的通知。Day 2 再把這個流程用在更完整的部門任務上。</div>
+</section>
+
+<div class="nav-footer">
+  <a href="CH1-1.html" class="nav-btn"><span aria-hidden="true">←</span> CH1-1 NotebookLM 功能選單 + 上傳</a>
+  <a href="PRAC1.html" class="nav-btn primary">PRAC1 Day 1 收尾實作 <span aria-hidden="true">→</span></a>
+</div>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">2026 春季</span>
+  <span class="footer-meta" data-platform-version="2026-Q2（Gemini 免費版）" data-built-at="2026-06-02">本頁以 2026-Q2（Gemini 免費版）製作，2026-06</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+</script>
+<script>
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+</body>
+</html>

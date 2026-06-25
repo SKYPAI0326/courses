@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<!--
+  弄一下工作室 — Gemini × NotebookLM 跨部門 AI 工作坊
+  CH1-4 Gemini 輔助彙報初稿（單部門）
+  ========================================================
+  教案：_lessons/gemini-notebooklm-workshop/CH1-4.md（v3，431 行）
+  範本：_規範/lesson-template-v3.html
+  主題色：#5a7a5a 鼠尾草綠
+  產出日：2026-06-02
+-->
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH1-4 Gemini 輔助彙報初稿（單部門）｜Gemini × NotebookLM 跨部門 AI 工作坊</title>
+<meta name="description" content="上傳部門月報 CSV → 用 1 個 prompt 生出 3 重點 + 1 建議的彙報初稿 → 逐條確認數字來源可追溯 → 格式調整。指定 Gemini 免費版，5 部門 Dataset，帶走追溯確認 Prompt 模板。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="CH1-4 Gemini 輔助彙報初稿（單部門）｜Gemini × NotebookLM 跨部門 AI 工作坊">
+<meta property="og:description" content="上傳部門月報 CSV → 生出 3 重點 + 1 建議初稿 → 確認數字可追溯 → 格式調整。指定 Gemini 免費版，5 部門 Dataset，帶走追溯確認 Prompt 模板。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/gemini-notebooklm-workshop/CH1-4.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CH1-4 Gemini 輔助彙報初稿（單部門）｜Gemini × NotebookLM 跨部門 AI 工作坊">
+<meta name="twitter:description" content="上傳部門月報 CSV → 生出 3 重點 + 1 建議初稿 → 確認數字可追溯 → 格式調整">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/gemini-notebooklm-workshop/CH1-4.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-main:#5a7a5a;--radius:4px;--radius-sm:3px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 var(--radius) 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:var(--c-main);border:1px solid rgba(90,122,90,.3);background:transparent;padding:3px 12px;border-radius:99px;font-weight:500;letter-spacing:.06em}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px;font-variant-numeric:tabular-nums}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;max-width:22ch}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);margin-top:28px}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
+.outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.outcome-item strong{color:var(--c-text);font-weight:500}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.body-text strong{font-weight:500}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-body{font-size:.9rem;line-height:1.85}
+/* 截圖佔位 + 名詞註解 */
+.shot-ph{margin:18px 0}
+.shot-ph-frame{display:flex;gap:12px;align-items:flex-start;border:1px dashed var(--c-border);background:var(--c-surface);border-radius:var(--radius);padding:20px 22px;color:var(--c-muted)}
+.shot-ph-cam{font-size:1.1rem;flex-shrink:0;line-height:1.4}
+.shot-ph-text{font-size:.8rem;line-height:1.7}
+.shot{margin:18px 0}
+.shot img{width:100%;height:auto;display:block;border:1px solid var(--c-border);border-radius:var(--radius)}
+.shot figcaption{font-size:.8rem;color:var(--c-muted);line-height:1.7;margin-top:8px}
+.term-note{font-size:.8rem;color:var(--c-muted);line-height:1.7;margin:-2px 0 16px;padding:8px 0 8px 14px;border-left:2px solid var(--c-border)}
+.sub-heading{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin:28px 0 14px;letter-spacing:.01em}
+.steps-inline{display:flex;flex-direction:column;gap:18px;margin:20px 0}
+.step-block{display:flex;gap:16px;align-items:flex-start}
+.step-circle{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:var(--c-text);color:var(--c-bg);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:500}
+.step-content{flex:1;padding-top:4px}
+.step-heading{font-size:.92rem;font-weight:500;color:var(--c-text);margin-bottom:6px;line-height:1.5}
+.step-body{font-size:.85rem;color:var(--c-muted);line-height:1.85}
+.dialog-box{background:var(--c-surface);border:1px solid var(--c-border);border-left:2px solid var(--c-text);border-radius:var(--radius-sm);padding:14px 16px;margin:12px 0 8px;font-size:.88rem;color:var(--c-text);line-height:1.75;position:relative}
+.dialog-label{font-size:.72rem;color:var(--c-muted);font-weight:500;letter-spacing:.5px;margin-bottom:8px;text-transform:uppercase}
+.expected-output{background:var(--c-card);border:1px solid var(--c-border-soft);border-left:2px solid var(--c-muted);border-radius:var(--radius-sm);margin:12px 0 8px;padding:16px 18px}
+.expected-label{font-size:.72rem;color:var(--c-muted);font-weight:500;letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase}
+.expected-body{font-size:.85rem;line-height:1.85;color:var(--c-text)}
+.expected-body p{margin-bottom:8px}
+.expected-body p:last-child{margin-bottom:0}
+.expected-body strong{font-weight:700}
+.expected-body table{width:100%;border-collapse:collapse;margin:8px 0}
+.expected-body th,.expected-body td{padding:8px 10px;border:1px solid var(--c-border-soft);font-size:.82rem;text-align:left}
+.expected-body th{background:var(--c-surface);font-weight:500}
+.expected-note{font-size:.72rem;color:var(--c-muted);margin-top:12px;line-height:1.6;border-top:1px dashed var(--c-border-soft);padding-top:10px}
+.pitfall-block{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 24px;margin:18px 0}
+.pitfall-heading{font-size:.92rem;font-weight:500;color:var(--c-text);margin-bottom:10px;line-height:1.5;display:flex;gap:10px;align-items:flex-start}
+.pitfall-num{font-family:'Shippori Mincho',serif;color:var(--c-main);font-weight:700;flex-shrink:0}
+.pitfall-row{display:grid;grid-template-columns:80px 1fr;gap:14px;margin-top:8px;font-size:.85rem;line-height:1.8}
+.pitfall-label{color:var(--c-muted);font-weight:500;letter-spacing:.05em}
+.pitfall-text{color:var(--c-text)}
+.quiz-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:22px 26px;margin:18px 0}
+.quiz-q{font-size:.95rem;font-weight:500;color:var(--c-text);margin-bottom:16px;line-height:1.7}
+.quiz-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.quiz-opt{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);cursor:pointer;font-size:.88rem;color:var(--c-text);transition:border-color .15s,background .15s}
+.quiz-opt:hover{border-color:var(--c-main);background:rgba(90,122,90,.04)}
+.quiz-opt input[type="radio"]{margin:0;accent-color:var(--c-main)}
+.quiz-opt input[type="radio"]:checked + span{color:var(--c-main);font-weight:500}
+.quiz-ans{font-size:.85rem;color:var(--c-muted);line-height:1.85;margin-top:4px}
+.quiz-ans summary{cursor:pointer;color:var(--c-main);font-weight:500;padding:6px 0}
+.quiz-ans summary:hover{color:var(--c-text)}
+.quiz-ans>div{padding:12px 14px;background:var(--c-surface);border-radius:var(--radius);margin-top:8px}
+.checklist{display:flex;flex-direction:column;gap:8px;margin:16px 0;padding:0}
+.checklist-item{display:flex;gap:10px;align-items:flex-start;font-size:.85rem;color:var(--c-text);line-height:1.75;list-style:none}
+.checklist-item::before{content:"☐";color:var(--c-muted);flex-shrink:0;margin-top:1px}
+.dataset-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.85rem}
+.dataset-table thead tr{background:var(--c-surface);border-bottom:2px solid var(--c-border)}
+.dataset-table thead th{padding:10px 14px;text-align:left;font-family:'Shippori Mincho',serif;font-size:.82rem;font-weight:500;color:var(--c-text);letter-spacing:.05em}
+.dataset-table tbody tr{border-bottom:1px solid var(--c-border-soft)}
+.dataset-table tbody tr:last-child{border-bottom:none}
+.dataset-table tbody td{padding:12px 14px;vertical-align:top;line-height:1.75;color:var(--c-text)}
+.trouble-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.85rem}
+.trouble-table thead tr{background:var(--c-surface);border-bottom:2px solid var(--c-border)}
+.trouble-table thead th{padding:10px 14px;text-align:left;font-family:'Shippori Mincho',serif;font-size:.82rem;font-weight:500;color:var(--c-text);letter-spacing:.05em}
+.trouble-table tbody tr{border-bottom:1px solid var(--c-border-soft)}
+.trouble-table tbody tr:last-child{border-bottom:none}
+.trouble-table tbody td{padding:12px 14px;vertical-align:top;line-height:1.75;color:var(--c-text)}
+.verify-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:22px 26px;margin:20px 0}
+.verify-title{font-family:'Shippori Mincho',serif;font-size:.95rem;font-weight:500;color:var(--c-text);margin-bottom:14px;letter-spacing:.02em}
+.verify-list{display:flex;flex-direction:column;gap:10px}
+.verify-item{display:flex;gap:10px;align-items:flex-start;font-size:.85rem;color:var(--c-text);line-height:1.75}
+.verify-box{flex-shrink:0;width:14px;height:14px;border:1.5px solid var(--c-text);border-radius:2px;margin-top:4px}
+.fill-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;margin:20px 0}
+.fill-card-label{font-size:.85rem;font-weight:500;color:var(--c-text);margin-bottom:12px}
+.fill-note{font-size:.8rem;color:var(--c-muted);line-height:1.7;margin-top:8px;border-top:1px dashed var(--c-border-soft);padding-top:10px}
+.trace-table{width:100%;border-collapse:collapse;font-size:.82rem;margin:6px 0}
+.trace-table th{font-family:'Shippori Mincho',serif;font-weight:500;font-size:.8rem;color:var(--c-muted);background:var(--c-surface);padding:8px 10px;border:1px solid var(--c-border);text-align:left}
+.trace-table td{border:1px solid var(--c-border-soft);padding:0;vertical-align:top}
+.trace-cell{padding:8px 10px;min-height:34px;outline:none;line-height:1.6}
+.trace-cell:focus{background:rgba(90,122,90,.05)}
+.trace-cell:empty::before{content:attr(data-ph);color:var(--c-faint)}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
+.nav-btn:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main)}
+.nav-btn.primary:hover{filter:brightness(.92)}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+@media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important}*{animation:none!important}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.pitfall-row{grid-template-columns:1fr;gap:6px}.dataset-table,.trouble-table{display:block;overflow-x:auto}}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='gnw_auth',H='abf7cbf06fcb2eaf7e09ba6cff90501e208500268fee1b098fa588d060fd3084';if(localStorage.getItem(K)==='1')sessionStorage.setItem(K,'1');if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">Gemini × NotebookLM 跨部門 AI 工作坊</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">CH1-4 · 53 min</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<div class="page-hero">
+  <a href="index.html" class="back-link"><span aria-hidden="true">←</span> 返回課程總覽</a>
+  <div class="hero-eyebrow">(04) Part 1 · 彙報初稿</div>
+  <h1 class="lesson-title">Gemini 輔助彙報初稿（單部門）</h1>
+  <p class="lesson-tagline">把部門月報 CSV 交給 Gemini，用一個 prompt 生出 3 個重點 + 1 個建議行動的初稿——然後打開原始資料，確認每個數字都找得到出處。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果 · OUTCOMES</div>
+    <div class="outcome-item"><strong>能上傳資料生出初稿</strong>：用主版 Prompt 讓 Gemini 從 CSV 整理出符合月報格式的 3 重點 + 1 建議</div>
+    <div class="outcome-item"><strong>能確認數字可追溯</strong>：每條重點的數字都能在原始資料欄位中找到對應，追問 Gemini 計算過程</div>
+    <div class="outcome-item"><strong>能調整輸出格式</strong>：在同一對話中直接要求換表格、改條數、調語氣，不重新上傳資料</div>
+  </div>
+</div>
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(01)</div>
+  <h2 class="section-heading">破題 — 你現在怎麼整理資料給主管？</h2>
+  <div class="intro-band">
+    <div class="intro-label">為什麼這很重要</div>
+    <div class="intro-text">手動複製貼上、自己寫條列文字，平均花 1 小時。今天要學的只有一件事：把資料給 Gemini，讓它幫你整理成主管要看的格式，你只需要確認數字對不對。</div>
+  </div>
+  <p class="body-text">先想一想：</p>
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">❓</div>
+    <div class="callout-body">「你每個月都要整理資料給主管看——你現在的做法是什麼？」</div>
+  </div>
+  <p class="body-text">可能你現在的做法是：手動複製貼上、Excel 自己算、或請同事幫忙整理。這些做法都沒問題，但有個更快的路：<strong>把資料給 Gemini，讓它幫你整理出主管想看的格式</strong>。</p>
+  <p class="body-text">今天要學的事情只有一件：</p>
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">→</div>
+    <div class="callout-body"><strong>上傳你的部門月報 → 給 Gemini 一個 prompt → 拿到 3 個重點 + 1 個建議的初稿 → 本人確認數字正確 → 可以拿去用了</strong></div>
+  </div>
+  <p class="body-text">釐清三件容易搞混的事：</p>
+  <p class="body-text"><strong>1. Gemini 整理，不是 Gemini 猜測</strong><br>你給它 Excel / CSV，它從裡面整理出來。不是讓它憑空幫你「想像」本月狀況。</p>
+  <p class="body-text"><strong>2. 初稿，不是定稿</strong><br>Gemini 生出來是草稿，你要自己對一次數字。數字從資料來的才能放心用，Gemini 推算的要確認。</p>
+  <p class="body-text"><strong>3. 格式可以調</strong><br>不喜歡條列？要換表格？直接說。這是今天會練的第二個動作。</p>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(02)</div>
+  <h2 class="section-heading">示範 — 凱倫用 Gemini 整理財務月報</h2>
+
+  <p class="body-text"><strong>POV：凱倫（財務專員，負責每月整理各品項收支月報給財務主管）</strong></p>
+  <p class="body-text">凱倫手上有一份月報 CSV（<code style="font-family:'Courier New',monospace;background:var(--c-surface);padding:1px 6px;border-radius:2px;font-size:.85em">finance-monthly-karen.csv</code>），欄位是：月份、品項分類、銷售金額、成本、毛利、是否異常。每個月她都要手動盯著這份表格寫彙報，大概要花 1 個小時。今天她試試看用 Gemini 幫她整理。</p>
+  <div class="term-note"><strong>CSV</strong>＝純文字的表格檔，用 Excel 就能打開，副檔名是 .csv。</div>
+
+  <div style="margin:12px 0;padding:12px 16px;border:1px solid var(--c-border);border-radius:var(--radius);background:var(--c-card);font-size:.85rem"><a href="assets/datasets/finance-monthly-karen.csv" download style="color:var(--c-main)">⬇ finance-monthly-karen.csv</a>（凱倫的月報示範資料，點檔名下載跟著做；等下「換你上機」可改用下方你部門的版本）</div>
+
+  <h3 class="sub-heading">步驟 1：上傳資料</h3>
+  <p class="body-text"><strong>Gemini 在哪</strong>：開瀏覽器到 gemini.google.com，用 Google 帳號登入，畫面最下方那條輸入欄就是對話框。</p>
+  <figure class="shot"><img src="assets/screenshots/gemini-home.png" alt="Gemini 對話畫面，最下方是對話輸入框，可把 CSV 檔案拖進去" loading="lazy"><figcaption>Gemini 對話畫面：最下方那條是對話輸入框，把 CSV 檔案直接拖進這裡就能上傳。</figcaption></figure>
+  <p class="body-text">凱倫開啟 Gemini，把 <code style="font-family:'Courier New',monospace;background:var(--c-surface);padding:1px 6px;border-radius:2px;font-size:.85em">finance-monthly-karen.csv</code> 直接拖進對話框。Gemini 會確認已讀取。</p>
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">→</div>
+    <div class="callout-body">Gemini 免費版支援上傳 CSV / Excel / PDF。上傳前確認檔案不包含薪資明細、個人身分資料等敏感內容（公司規定）。</div>
+  </div>
+
+  <h3 class="sub-heading">步驟 2：第一個 prompt——生出初稿</h3>
+  <div class="dialog-box">
+    <div class="dialog-label">凱倫的 Prompt</div>
+    根據這份資料，用條列方式整理出 3 個本月重點 + 1 個建議行動，格式是給主管看的月報彙報。語氣簡短，每條一行，不要寫背景說明。
+  </div>
+  <div class="expected-output">
+    <div class="expected-label">Gemini 大概會回（示意）</div>
+    <div class="expected-body">
+      <p><strong>本月重點</strong></p>
+      <ol style="padding-left:18px;margin:8px 0">
+        <li>本月總銷售 193.5 萬元、總毛利 41.8 萬元，其中 3C 周邊營收與毛利最高（毛利 10.08 萬元）。</li>
+        <li>美妝保養毛利率最高，達 45%（銷售 18 萬、毛利 8.1 萬），是本月獲利效率最佳的品項。</li>
+        <li>食品飲料、服飾配件被標為異常，毛利率僅 16%、15%，拉低整體獲利。</li>
+      </ol>
+      <p><strong>建議行動</strong></p>
+      <ul style="padding-left:18px;margin:8px 0">
+        <li>針對食品飲料、服飾配件查進貨成本與銷貨折扣，找出毛利偏低的主因。</li>
+      </ul>
+    </div>
+    <div class="expected-note">實際輸出每次略有差異，數字從 CSV 資料來。凱倫現在要做一件事：對照原始 CSV，確認每條數字是不是真的在資料裡找得到。</div>
+  </div>
+  <div class="term-note"><strong>毛利率</strong>＝賺的錢佔銷售額的比例（毛利 ÷ 銷售金額），數字越高越賺。<br><strong>成本率</strong>＝成本佔銷售額的比例（成本 ÷ 銷售金額），數字越高越吃掉利潤。<br><strong>個百分點（pp）</strong>＝兩個百分比相減的差。例：18% 比上月的 22% 低「4 個百分點」，不是「低 4%」。</div>
+
+  <h3 class="sub-heading">步驟 3：確認數字來自資料，不是 Gemini 推算</h3>
+  <p class="body-text">這是最重要的步驟，也是最容易被跳過的步驟。</p>
+  <p class="body-text">凱倫的確認動作：打開原始 CSV（用 Excel 或 Google 試算表打開那個 .csv 檔），逐條對回資料——<br>・「美妝毛利率 45%」是<strong>算出來的</strong>：毛利 81,000 ÷ 銷售 180,000 = 45%，算式對得起來 ✓<br>・「食品飲料、服飾配件異常」→ CSV 的「是否異常」欄正好標「是」✓<br>・「總銷售 193.5 萬」→ 七個品項的銷售金額加總 = 1,935,000 ✓<br>三條都對得回 CSV，初稿可以放心用。</p>
+  <p class="body-text"><strong>更要小心的是 Gemini「自己補的」數字</strong>：這份 CSV <strong>只有一個月、也沒有「預算」欄</strong>。如果初稿冒出「較上月降 X 個百分點」「超出預算 X%」這種——你的資料裡根本沒有上月、也沒有預算，那就是 Gemini 憑空補的，刪掉，或補問它依據：</p>
+  <div class="dialog-box">
+    <div class="dialog-label">凱倫追問（確認「算出來的」數字）</div>
+    「美妝毛利率 45%」是從資料的哪幾個欄位算出來的？請列出計算過程。
+  </div>
+  <div class="expected-output">
+    <div class="expected-label">Gemini 大概會回（示意）</div>
+    <div class="expected-body">
+      <p>美妝保養的毛利欄為 81,000、銷售金額欄為 180,000，毛利率 = 81,000 ÷ 180,000 = 45%。</p>
+    </div>
+    <div class="expected-note">能列出計算過程、數字又能在 CSV 核實，這條才算可信。如果它回「依趨勢推估」「參考業界」或說不出計算依據，這條就刪掉或自己算。</div>
+  </div>
+
+  <h3 class="sub-heading">步驟 4：格式調整</h3>
+  <p class="body-text">主管說他想要表格格式，不要條列。凱倫直接說：</p>
+  <div class="dialog-box">
+    <div class="dialog-label">凱倫的格式調整 Prompt</div>
+    把上面的 3 個重點改成表格，欄位是：項目 / 數字 / 說明。
+  </div>
+  <div class="expected-output">
+    <div class="expected-label">Gemini 大概會回（示意）</div>
+    <div class="expected-body">
+      <table>
+        <tr><th>項目</th><th>數字</th><th>說明</th></tr>
+        <tr><td>本月總銷售</td><td>193.5 萬</td><td>七品項加總，總毛利 41.8 萬</td></tr>
+        <tr><td>最高毛利率</td><td>美妝 45%</td><td>獲利效率最佳</td></tr>
+        <tr><td>異常品項</td><td>食品飲料 16%、服飾配件 15%</td><td>毛利偏低、拉低整體，待查</td></tr>
+      </table>
+    </div>
+    <div class="expected-note">實際輸出每次略有差異。換成表格格式大概一秒鐘。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(03)</div>
+  <h2 class="section-heading">Prompt 拆解 — 3 個模板 + 防 AI 亂編的錨定句</h2>
+
+  <p class="body-text">把剛才示範用的 prompt 攤開，說清楚「為什麼這樣寫」和「遇到問題怎麼辦」。</p>
+
+  <h3 class="sub-heading">主版 Prompt（生初稿）</h3>
+  <div class="dialog-box">
+    <div class="dialog-label">主版 Prompt 模板</div>
+    根據這份資料，用條列方式整理出 3 個本月重點 + 1 個建議行動，格式是給主管看的月報彙報。語氣簡短，每條一行，不要寫背景說明。
+  </div>
+  <p class="body-text"><strong>為什麼要說「根據這份資料」</strong>：讓 Gemini 明白它只能從你上傳的資料整理，不能自己補充外部知識。不加這句，Gemini 有時候會把業界趨勢混進來。</p>
+  <p class="body-text"><strong>為什麼說「3 個重點 + 1 個建議」</strong>：限定數量，Gemini 不會給你 10 條讓你自己篩。主管版彙報控制在 3–5 條是安全範圍。</p>
+  <p class="body-text"><strong>為什麼說「不要寫背景說明」</strong>：Gemini 預設會加很多鋪墊語，主管不需要。這句話可以幫你省 2/3 的字數。</p>
+
+  <h3 class="sub-heading">確認數字 Prompt（追溯）</h3>
+  <div class="dialog-box">
+    <div class="dialog-label">追溯數字的 Prompt 模板</div>
+    第 [N] 條「[數字]」是從資料的哪個欄位算出來的？請列出計算過程。
+  </div>
+  <p class="body-text"><strong>提醒</strong>：[N]、[數字] 是佔位符，要把 [ ] 連同方括號一起換成你自己的內容（例：第 2 條、美妝毛利率 45%）再送出，不要直接貼方括號。</p>
+  <p class="body-text"><strong>什麼時候用</strong>：每一條你對不起來的數字，都問一次。不要因為「看起來合理」就跳過確認。</p>
+  <p class="body-text"><strong>Gemini 說不出計算過程怎麼辦</strong>：代表可能是推算。選擇 ① 自己去 Excel 算 ② 把這條刪掉不報 ③ 標注「待查」。三條路都比直接用更安全。</p>
+
+  <h3 class="sub-heading">格式調整 Prompt</h3>
+  <div class="dialog-box">
+    <div class="dialog-label">格式調整 Prompt 模板</div>
+    把上面的 [N] 個重點改成表格，欄位是：[你要的欄位名稱]。
+  </div>
+  <p class="body-text"><strong>提醒</strong>：模板裡的 [N]、[你要的欄位名稱] 是佔位符，要把 [ ] 連同方括號一起換成你自己的內容再送出，不要直接把方括號貼給 Gemini。</p>
+  <p class="body-text"><strong>可以調的格式</strong>：表格、條列、編號清單、5 條變 3 條、加一欄「負責人」——直接說就好。在同一個對話框繼續說，Gemini 知道你在調整剛才那份，不需要重貼資料。</p>
+
+  <h3 class="sub-heading">防編造：三句錨定句（任何「丟檔分析」都先貼上）</h3>
+  <p class="body-text">上面三個模板管「<strong>要什麼</strong>」，這三句管「<strong>別亂編</strong>」。把它們貼在你 prompt 的最後，直接堵住 AI 最常見的三種瞎掰——沒讀檔就生成、補檔案根本沒有的數字、把推測當事實：</p>
+  <div class="dialog-box">
+    <div class="dialog-label">防編造錨定句（複製貼上，接在你的 prompt 後面）</div>
+    1. 開始前先列出這份檔的欄位名稱與總筆數，並貼出第 3 列的原始值，我確認後你再分析。
+2. 只根據這份檔回答；檔案裡沒有的數字、欄位、期間，一律寫「檔案中沒有」——不要推估、不要補一般行情、不要跨月比較。
+3. 每個數字後面註明來自哪一欄哪一列；不是直接從檔案算出來的，標「🧠 推論」。
+  </div>
+  <p class="body-text"><strong>第 1 句</strong>擋「沒讀檔就生成」：筆數和指定某列的原值，AI 不真讀檔就答不出來——先對上，再讓它往下做。<strong>第 2 句</strong>擋「補檔案沒有的東西」：像凱倫這份只有一個月、沒有「預算」欄，加了這句它就不會冒出「較上月」「超出預算」。<strong>第 3 句</strong>讓編造自己現形：標了 🧠 的，就是你回頭要查的那幾條。（CSV 用語：<strong>列</strong>＝橫的一筆資料、<strong>欄</strong>＝直的一種欄位，例如「第 3 列的『銷售金額』欄」。）</p>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(04)</div>
+  <h2 class="section-heading">換你上機 — 產出自己部門的彙報初稿</h2>
+
+  <p class="body-text"><strong>目標</strong>：產出一份自己部門的 3 重點 + 1 建議彙報初稿，並確認數字可追溯。</p>
+
+  <h3 class="sub-heading">素材選擇（二選一）</h3>
+  <p class="body-text"><strong>A. 用自己的部門資料</strong>：上傳自己日常月報（格式不限，CSV / Excel / PDF 截圖均可）</p>
+  <p class="body-text"><strong>B. 用課程範例資料</strong>：在 Starter Kit 裡選對應部門的 dataset（見下表）</p>
+
+  <table class="dataset-table">
+    <thead>
+      <tr><th>部門</th><th>主角</th><th>檔名</th><th>資料說明</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>財務</td><td>凱倫</td><td><code style="font-size:.82em">finance-monthly-karen.csv</code></td><td>月份、品項分類、銷售金額、成本、毛利、是否異常</td></tr>
+      <tr><td>業務</td><td>小李</td><td><code style="font-size:.82em">sales-monthly-xiaoli.csv</code></td><td>月份、客戶名稱、成交金額、目標、達成率、異動備註</td></tr>
+      <tr><td>電商</td><td>怡君</td><td><code style="font-size:.82em">ecom-monthly-yijun.csv</code></td><td>月份、平台、SKU 類別、流量、轉換率、GMV</td></tr>
+      <tr><td>倉儲</td><td>阿翔</td><td><code style="font-size:.82em">warehouse-monthly-axiang.csv</code></td><td>月份、品項類別、入庫量、出庫量、庫存天數、盤損</td></tr>
+      <tr><td>採購</td><td>采蓁</td><td><code style="font-size:.82em">procurement-monthly-caizhen.csv</code></td><td>月份、供應商、品項、報價、採購金額、帳期、交期達成</td></tr>
+    </tbody>
+  </table>
+
+  <div style="margin:16px 0;padding:14px 18px;border:1px solid var(--c-border);border-radius:var(--radius);background:var(--c-card)">
+    <div style="font-size:.82rem;font-weight:500;margin-bottom:8px">⬇ 下載課堂月報資料（挑你的部門那一份）</div>
+    <div style="font-size:.85rem;line-height:2.1">
+      <a href="assets/datasets/finance-monthly-karen.csv" download style="color:var(--c-main)">finance-monthly-karen.csv</a>（財務·凱倫）
+      <a href="assets/datasets/sales-monthly-xiaoli.csv" download style="color:var(--c-main)">sales-monthly-xiaoli.csv</a>（業務·小李）
+      <a href="assets/datasets/ecom-monthly-yijun.csv" download style="color:var(--c-main)">ecom-monthly-yijun.csv</a>（電商·怡君）
+      <a href="assets/datasets/warehouse-monthly-axiang.csv" download style="color:var(--c-main)">warehouse-monthly-axiang.csv</a>（倉儲·阿翔）
+      <a href="assets/datasets/procurement-monthly-caizhen.csv" download style="color:var(--c-main)">procurement-monthly-caizhen.csv</a>（採購·采蓁）
+    </div>
+  </div>
+
+  <div class="term-note"><strong>SKU</strong>＝每一種商品的獨立編號，一個顏色一個尺寸就是一個 SKU。<br><strong>GMV</strong>＝平台上所有成交訂單的總金額（不扣成本），看整體賣了多少就看這個。</div>
+
+  <h3 class="sub-heading">上機流程（按步驟做）</h3>
+  <div class="steps-inline">
+    <div class="step-block">
+      <div class="step-circle">1</div>
+      <div class="step-content">
+        <div class="step-heading">上傳資料</div>
+        <div class="step-body">自己的資料或課程範例 Dataset，拖進 Gemini 對話框</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">2</div>
+      <div class="step-content">
+        <div class="step-heading">貼主版 Prompt，生出初稿</div>
+        <div class="step-body">複製剛才的主版 Prompt 模板，送出</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">3</div>
+      <div class="step-content">
+        <div class="step-heading">對照原始資料，確認 3 條重點的數字來源</div>
+        <div class="step-body">打開 CSV，每條數字找到對應欄位</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">4</div>
+      <div class="step-content">
+        <div class="step-heading">發現有一條對不起來 → 貼追溯 Prompt</div>
+        <div class="step-body">問 Gemini 計算過程；說不出來就刪掉或標「待查」</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">5</div>
+      <div class="step-content">
+        <div class="step-heading">嘗試格式調整</div>
+        <div class="step-body">改表格，或把 3 條改成 5 條，任選一個</div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub-heading">上機目標驗收卡（自己打勾）</h3>
+  <div class="verify-card">
+    <div class="verify-title">離場前確認</div>
+    <div class="verify-list">
+      <div class="verify-item"><div class="verify-box" aria-hidden="true"></div><div>已上傳資料</div></div>
+      <div class="verify-item"><div class="verify-box" aria-hidden="true"></div><div>已生出含 3 重點 + 1 建議的初稿</div></div>
+      <div class="verify-item"><div class="verify-box" aria-hidden="true"></div><div>3 條數字都確認可以在原始資料裡找到（或刪掉找不到的）</div></div>
+      <div class="verify-item"><div class="verify-box" aria-hidden="true"></div><div>嘗試過至少 1 次格式調整</div></div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">→</div>
+    <div class="callout-body"><strong>卡住時的對策</strong>：(1) 沒有月報可以上傳 → 用 Starter Kit 裡對應你部門的 dataset (2) 覺得「數字差不多就好」→ 不行，要找得到原始欄位才算數 (3) Gemini 回「根據業界趨勢…」→ 在 prompt 加上「根據這份資料」限制詞，重新送一次 (4) 一次貼太多欄位、Gemini 看不懂 → 先只傳一張工作表，或刪到只留必要欄位</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(05)</div>
+  <h2 class="section-heading">驗收 — 數字可追溯 + 知道哪些是 Gemini 補充的</h2>
+
+  <p class="body-text">兩件事確認：</p>
+
+  <h3 class="sub-heading">確認 1：數字可追溯</h3>
+  <p class="body-text">看你自己的初稿，問自己一句話：</p>
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">❓</div>
+    <div class="callout-body">「這 3 條重點的每個數字，我現在能不能打開資料直接找到它在哪？」</div>
+  </div>
+  <p class="body-text">能找到 = 可以用。有一條找不到 = 今天就補刪，不要把找不到的數字留著。</p>
+
+  <div class="fill-card">
+    <div class="fill-card-label">✍ 數字追溯表：把初稿裡的每個數字，對回原始 CSV 一次</div>
+    <table class="trace-table">
+      <thead><tr><th>Gemini 寫的數字</th><th>原始 CSV 哪一欄／列</th><th>對得起來？</th><th>要怎麼修</th></tr></thead>
+      <tbody>
+        <tr><td><div class="trace-cell" contenteditable="true" data-ph="例：3C 毛利率 18%"></div></td><td><div class="trace-cell" contenteditable="true" data-ph="例：3C 周邊列，毛利 100800 ÷ 銷售 560000"></div></td><td><div class="trace-cell" contenteditable="true" data-ph="✓ / ✗"></div></td><td><div class="trace-cell" contenteditable="true" data-ph="一致就留空"></div></td></tr>
+        <tr><td><div class="trace-cell" contenteditable="true" data-ph=" "></div></td><td><div class="trace-cell" contenteditable="true" data-ph=" "></div></td><td><div class="trace-cell" contenteditable="true" data-ph=" "></div></td><td><div class="trace-cell" contenteditable="true" data-ph=" "></div></td></tr>
+        <tr><td><div class="trace-cell" contenteditable="true" data-ph=" "></div></td><td><div class="trace-cell" contenteditable="true" data-ph=" "></div></td><td><div class="trace-cell" contenteditable="true" data-ph=" "></div></td><td><div class="trace-cell" contenteditable="true" data-ph=" "></div></td></tr>
+      </tbody>
+    </table>
+    <div class="fill-note">每條重點的數字都要能對回原始 CSV 的某一欄；對不起來、或 Gemini「算出來」的衍生數字（如毛利率）就貼追溯 prompt 問它算法。<br>對得起來 = <strong>✅ 有來源</strong>；Gemini 自己算或補的 = <strong>🧠 模型推論</strong>，要特別標出來——CH3 會把這套「來源狀態」做成 Gem 每次自動附的欄位。（內容只在你瀏覽器，重整即清空、不會上傳。）</div>
+  </div>
+
+  <h3 class="sub-heading">再練一種：抓出「算錯的」衍生數字</h3>
+  <p class="body-text">上面練的是「對不對得到欄位」。還有一種更隱蔽的錯：數字<strong>對得到欄位、卻算錯了</strong>——尤其是比率、平均這種「Gemini 自己算出來」的衍生數字。</p>
+  <p class="body-text">凱倫的 CSV，3C 周邊這個月：銷售金額 560,000、毛利 100,800。Gemini 初稿寫了這條：</p>
+  <div class="dialog-box"><div class="dialog-label">Gemini 初稿（其中一條）</div>3C 周邊毛利率 28%，為各品類最高，建議擴大進貨。</div>
+  <p class="body-text"><strong>毛利率 = 毛利 ÷ 銷售金額。</strong>自己按一下計算機，這個 28% 對嗎？先算，再展開。</p>
+  <details class="quiz-ans">
+    <summary>查看答案</summary>
+    <div>
+      <p><strong>28% 是錯的。</strong>正確：100,800 ÷ 560,000 = <strong>18%</strong>。數字的材料（毛利、銷售）都對得到欄位，但 Gemini 把比率<strong>算錯了</strong>，還順著錯的數字下了「各品類最高、建議擴大進貨」的結論——整條都歪了。</p>
+      <p><strong>怎麼抓</strong>：凡是比率、平均、成長率這種「算出來的」數字，別照單全收——自己按計算機核一次，或用追溯 prompt 叫 Gemini「列出這個數字的計算過程」；它說不清楚，就是掰的。回到上面的追溯表，把你初稿裡每個「算出來」的數字也核一遍。</p>
+    </div>
+  </details>
+
+  <h3 class="sub-heading">確認 2：知道哪些部分是 Gemini 補充的</h3>
+  <p class="body-text">Gemini 有時候不只整理數字，還會加說明、補背景、推測原因。這些說明不一定錯，但來自 Gemini 的推測，不是來自你的資料。</p>
+  <p class="body-text">回頭看初稿，把「這條 Gemini 加進來的補充說明」和「這條是從我資料裡整理出來的」分開——可以在旁邊做個記號，讓自己知道要確認什麼再交出去。</p>
+
+  <h3 class="sub-heading">別誤會：你不用每次都查到死</h3>
+  <p class="body-text">看到這裡可能會想：每個數字都要追、每條都要核，那 AI 到底幫我省了什麼？關鍵是<strong>把查核分成兩個時機</strong>，不是每次都從頭查：</p>
+  <ul style="margin:0 0 14px 20px;font-size:.92rem;color:var(--c-text);line-height:1.9">
+    <li><strong>設計 prompt 時（驗證期）</strong>：拿 3–5 筆你已經知道答案的資料試跑、逐筆對照，把 prompt（含上面三句錨定句）調到不再亂編。像 Excel 公式先在前幾列驗對，對了才往下拉。</li>
+    <li><strong>大量跑時（量產期）</strong>：prompt 驗過了就放心套，只做「抽樣」抽幾筆 ＋ <strong>高風險數字必驗</strong>。</li>
+  </ul>
+  <p class="body-text"><strong>什麼算高風險？</strong>對外發布、報價、財務金額——錯了責任在你，這些不抽樣、逐一查（CH3 會把它標成 🔴 紅燈）。其餘大量、重複、內部參考的，抽幾筆確認即可。</p>
+  <div class="demo-takeaway">把力氣花在前期把 prompt 調對，後面才能大量放心跑——查核是前期投資，不是每次都繳的稅。</div>
+
+  <div class="intro-band">
+    <div class="intro-label">接下一步</div>
+    <div class="intro-text">這份確認過數字的初稿，下一步（CH2-1）會搭配你在 NotebookLM 查到的、帶來源出處的資料，串成一份能交差又查得到依據的完整彙報。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(06)</div>
+  <h2 class="section-heading">練習資料與故障排除</h2>
+
+  <p class="body-text"><strong>需要的帳號</strong>：Gemini 免費版（任一 Google 帳號，本單元用不到付費版 Google AI Pro）。上傳公司資料前，先確認公司對外部 AI 工具的資料政策——建議用去識別化或範例資料來練。</p>
+
+  <p class="body-text" style="margin-top:16px">課程提供 5 個部門各 1 份月報 CSV（本單元前面的素材區可下載），挑你部門那一份來練：財務（凱倫）、業務（小李）、電商（怡君）、倉儲（阿翔）、採購（采蓁）。每份都藏了至少一個「要算一下才看得出來」的數字（例：毛利率 = 毛利 ÷ 銷售金額），正好拿來練追溯計算。</p>
+
+  <h3 class="sub-heading">故障排除（3 條）</h3>
+  <table class="trouble-table">
+    <thead>
+      <tr><th>現象</th><th>原因</th><th>解法</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Gemini 說「無法讀取附件」</td>
+        <td>瀏覽器版 Gemini 有時需要重整頁面後再上傳</td>
+        <td>重整 → 重新上傳，或改用 Google Drive 分享連結貼入</td>
+      </tr>
+      <tr>
+        <td>Gemini 輸出摻入業界趨勢或外部數字</td>
+        <td>沒有限制詞「根據這份資料」</td>
+        <td>在 Prompt 開頭加上「僅根據這份上傳的資料」，重新送出</td>
+      </tr>
+      <tr>
+        <td>某條數字在 CSV 找不到對應</td>
+        <td>Gemini 做了推算或編造</td>
+        <td>貼「追溯確認版 Prompt」問計算過程；若說不出來則刪掉該條或自行計算</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(07)</div>
+  <h2 class="section-heading">商業情境案例 — 凱倫的月報初稿任務</h2>
+
+  <p class="body-text"><strong>主角</strong>：凱倫（30 歲，財務專員） / <strong>公司</strong>：弄一下精選商行（虛構中型電商貿易公司，20–30 人）</p>
+  <p class="body-text"><strong>情境</strong>：每個月月底，凱倫要整理一份品項收支月報給財務主管，說明哪個品項狀況好、哪個有異常、下個月要注意什麼。這份月報她平常要花將近 1 小時盯著 Excel 一格一格看，再自己寫成條列文字。</p>
+  <p class="body-text"><strong>任務</strong>：今天下午她要把這個月的 CSV 丟給 Gemini，讓它幫她整理出「3 個重點 + 1 個建議行動」的初稿。生出來之後自己對一次數字，確認沒問題，下班前 5 點就可以寄給主管了。</p>
+  <p class="body-text">這裡用財務舉例，但彙報初稿是行政、行銷、各部門每天都要做的事——把手上的表格整理成主管看的重點，今天這套做法每個部門都能套用。</p>
+
+  <h3 class="sub-heading">本單元要她學會</h3>
+  <div class="steps-inline">
+    <div class="step-block">
+      <div class="step-circle">1</div>
+      <div class="step-content">
+        <div class="step-body">上傳 CSV 給 Gemini，用 1 個 prompt 生出彙報初稿</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">2</div>
+      <div class="step-content">
+        <div class="step-body">確認 Gemini 給的每個數字，都能在原始資料找到對應欄位</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">3</div>
+      <div class="step-content">
+        <div class="step-body">用 1 個追溯 prompt 讓 Gemini 說清楚它的計算過程</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">4</div>
+      <div class="step-content">
+        <div class="step-body">格式不對的時候直接說，讓 Gemini 調整（例：換成表格）</div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub-heading">5 部門彙報初稿 Prompt 範例</h3>
+  <table class="dataset-table">
+    <thead>
+      <tr><th>部門</th><th>主角</th><th>資料類型</th><th>彙報 Prompt 範例</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>財務</td>
+        <td>凱倫</td>
+        <td>品項收支月結 CSV（金額、毛利、異常欄）</td>
+        <td>根據這份資料，用條列方式整理出 3 個本月重點 + 1 個建議行動，格式是給主管看的月報彙報。語氣簡短，每條一行，不要寫背景說明。</td>
+      </tr>
+      <tr>
+        <td>業務</td>
+        <td>小李</td>
+        <td>業務業績月報（客戶名稱、成交金額、達成率）</td>
+        <td>根據這份資料，整理出本月業績 3 個重點（含超標與未達目標的品項），加上 1 個下個月的行動建議，給業務主管看的格式，每條一行。</td>
+      </tr>
+      <tr>
+        <td>電商</td>
+        <td>怡君</td>
+        <td>電商各平台銷售月報（平台、GMV、轉換率、活動 ROI、社群轉換）</td>
+        <td>根據這份資料，條列出 3 個本月平台銷售重點（可指出哪個平台有異常或亮點，並點出活動 ROI 或社群轉換的行銷 KPI 變化），加 1 個建議，給主管看的格式，不要寫背景說明。</td>
+      </tr>
+      <tr>
+        <td>倉儲</td>
+        <td>阿翔</td>
+        <td>庫存盤點月報（品項類別、庫存天數、盤損率）</td>
+        <td>根據這份資料，整理出 3 個本月倉儲重點（特別標出庫存天數過高或盤損異常的品項），加 1 個處置建議，給主管看的格式。</td>
+      </tr>
+      <tr>
+        <td>採購</td>
+        <td>采蓁</td>
+        <td>採購報價比較月報（供應商、報價、交期達成率）</td>
+        <td>根據這份資料，列出 3 個本月採購重點（異常報價或交期未達供應商優先），加 1 個下月採購注意事項，每條一行。</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(08)</div>
+  <h2 class="section-heading">動手練習題</h2>
+
+  <p class="body-text">用自己的部門資料（或課程提供的 dataset），完成下列 3 步驟：</p>
+  <div class="steps-inline">
+    <div class="step-block">
+      <div class="step-circle">1</div>
+      <div class="step-content">
+        <div class="step-heading">上傳資料 → 用主版 Prompt 生出初稿</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">2</div>
+      <div class="step-content">
+        <div class="step-heading">核實每一條數字</div>
+        <div class="step-body">在原始資料裡找到它的出處（欄位名稱、列數）</div>
+      </div>
+    </div>
+    <div class="step-block">
+      <div class="step-circle">3</div>
+      <div class="step-content">
+        <div class="step-heading">嘗試一次格式調整</div>
+        <div class="step-body">改表格，或把 3 條改成 5 條</div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub-heading">完成標準（self-check）</h3>
+  <ul class="checklist">
+    <li class="checklist-item">有一份初稿（含 3 個重點 + 1 個建議）</li>
+    <li class="checklist-item">3 條重點的數字來源都確認過，能指出在原始資料的哪個欄位</li>
+    <li class="checklist-item">至少完成 1 次格式調整</li>
+    <li class="checklist-item">不確定某條數字的來源時，用過追溯確認版 Prompt 或把那條刪掉</li>
+  </ul>
+
+  <h3 class="sub-heading">完成的樣子（財務凱倫版表格示範）</h3>
+  <div class="expected-output">
+    <div class="expected-label">凱倫的格式調整後初稿（示意）</div>
+    <div class="expected-body">
+      <table>
+        <tr><th>項目</th><th>數字</th><th>說明</th></tr>
+        <tr><td>本月總銷售</td><td>193.5 萬</td><td>七品項加總，總毛利 41.8 萬</td></tr>
+        <tr><td>最高毛利率</td><td>美妝 45%</td><td>獲利效率最佳</td></tr>
+        <tr><td>異常品項</td><td>食品飲料 16%、服飾配件 15%</td><td>毛利偏低、拉低整體，待查</td></tr>
+      </table>
+      <p><strong>建議行動</strong>：針對食品飲料、服飾配件查進貨成本與銷貨折扣，找出毛利偏低的主因。</p>
+    </div>
+    <div class="expected-note">每條數字都對得回 CSV：「總銷售 193.5 萬」是七品項加總，「美妝毛利率 45%」是「毛利欄 ÷ 銷售金額欄」算出來的（81,000÷180,000），Gemini 能說出計算過程；異常品項直接看 CSV 的「是否異常」欄。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(09)</div>
+  <h2 class="section-heading">常見錯誤 3 條</h2>
+
+  <div class="pitfall-block">
+    <div class="pitfall-heading"><span class="pitfall-num">01</span> 沒有限制詞，Gemini 混入業界趨勢</div>
+    <div class="pitfall-row">
+      <div class="pitfall-label">現象</div>
+      <div class="pitfall-text">你的 Prompt 直接問「整理出 3 個本月重點」，Gemini 生出「根據電商行業 Q3 趨勢，轉換率普遍下滑…」，但這個數字其實跟你上傳的資料無關。你看了覺得「好像蠻像的就放著」，主管問「這個趨勢是哪來的？」你答不上來。</div>
+    </div>
+    <div class="pitfall-row">
+      <div class="pitfall-label">原因</div>
+      <div class="pitfall-text">Gemini 預設會用它自己的知識庫補充說明，沒有限制就會混進來。</div>
+    </div>
+    <div class="pitfall-row">
+      <div class="pitfall-label">解法</div>
+      <div class="pitfall-text">Prompt 開頭加「根據這份資料」或「僅根據這份上傳的資料」——Gemini 看到這句話就知道不要補充外部知識。加完重新送一次，多出來的業界趨勢就會消失。</div>
+    </div>
+  </div>
+
+  <div class="pitfall-block">
+    <div class="pitfall-heading"><span class="pitfall-num">02</span> 跳過數字核實，直接把初稿拿去用</div>
+    <div class="pitfall-row">
+      <div class="pitfall-label">現象</div>
+      <div class="pitfall-text">Gemini 給了一份看起來合理的初稿，你沒有對照原始資料，直接複製貼上寄給主管。主管問「你寫的『食品飲料較上月下滑』是跟哪個月比的？」你打開 CSV 才發現——資料只有這一個月、根本沒有上月可比，這句是 Gemini 自己補的，你答不出來。</div>
+    </div>
+    <div class="pitfall-row">
+      <div class="pitfall-label">原因</div>
+      <div class="pitfall-text">初稿「看起來合理」跟「數字正確可追溯」是兩件事。Gemini 在計算衍生數字時偶爾會出錯，或用不同口徑計算（例：含退貨 vs 不含退貨的成本率算法不同）。</div>
+    </div>
+    <div class="pitfall-row">
+      <div class="pitfall-label">解法</div>
+      <div class="pitfall-text">每條初稿數字，打開原始資料對一次。對不上的，用追溯確認 Prompt 問 Gemini 計算過程——能說清楚的留下，說不清楚的刪掉，不要因為「應該是對的」就放著。</div>
+    </div>
+  </div>
+
+  <div class="pitfall-block">
+    <div class="pitfall-heading"><span class="pitfall-num">03</span> 格式不滿意但不知道可以改</div>
+    <div class="pitfall-row">
+      <div class="pitfall-label">現象</div>
+      <div class="pitfall-text">Gemini 生出來是條列格式，你需要表格，但不知道可以直接要求調整，花了 10 分鐘自己手動改 Word。</div>
+    </div>
+    <div class="pitfall-row">
+      <div class="pitfall-label">原因</div>
+      <div class="pitfall-text">你以為 Gemini 只能「重新生成」，不知道可以在同一個對話裡直接要求格式調整。</div>
+    </div>
+    <div class="pitfall-row">
+      <div class="pitfall-label">解法</div>
+      <div class="pitfall-text">在同一個對話框繼續說你想要的格式。常用說法：「改成表格，欄位是：項目 / 數字 / 說明」「把 3 條改成 5 條，補充細節」「每條後面加一欄『下一步行動』」「語氣改短，每條壓縮到 20 字以內」。格式調整在同一個對話裡做，Gemini 知道你在調整剛才那份，不需要重貼資料。</div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(10)</div>
+  <h2 class="section-heading">檢核題 2 條</h2>
+
+  <div class="quiz-item">
+    <div class="quiz-q">Q1（數字核實）：Gemini 幫你生出的初稿第 2 條寫「家電品項銷售金額 $420,000，超出預算 12%」。你打開原始 CSV，找到「家電」的銷售金額欄是 $420,000——找到了，沒問題。但「超出預算 12%」這個數字，你的 CSV 裡沒有「預算」欄位。下一步你怎麼辦？</div>
+    <div class="quiz-opts">
+      <label class="quiz-opt"><input type="radio" name="q1"><span>A. 反正 12% 看起來合理，就留著</span></label>
+      <label class="quiz-opt"><input type="radio" name="q1"><span>B. 用追溯確認 Prompt 問 Gemini「超出預算 12% 是從哪個欄位算的？請列出計算過程」；Gemini 說不出計算依據就刪掉這個數字（正確答案）</span></label>
+      <label class="quiz-opt"><input type="radio" name="q1"><span>C. 升級到付費版（Google AI Pro），叫它重新計算</span></label>
+      <label class="quiz-opt"><input type="radio" name="q1"><span>D. 在初稿裡改成「超出預算約 1 成左右」，這樣比較模糊不會被追問</span></label>
+    </div>
+    <details class="quiz-ans"><summary>顯示答案</summary>
+      <div><strong>正確答案：B</strong>。A 和 D 都是在沒有確認的情況下讓不可信的數字混進去——主管若追問來源就破功。C 的問題不在工具版本，是資料裡本來就沒有預算欄，換哪個版本都算不出來。B 才是正確做法：先問計算過程，沒有根據就刪掉，自己去查預算後再補進去。</div>
+    </details>
+  </div>
+
+  <div class="quiz-item">
+    <div class="quiz-q">Q2（實際操作）：你是阿翔（倉儲主管），上傳了這個月的庫存盤點 CSV（欄位：月份、品項類別、入庫量、出庫量、庫存天數、盤損率）。用主版 Prompt 生出的初稿第 1 條是：「3C 品項庫存天數達 45 天，高於健康基準 30 天。」問題：「高於健康基準 30 天」這個「基準 30 天」，你的 CSV 裡沒有「基準」欄位。這個數字是哪來的？你怎麼處理？</div>
+    <details class="quiz-ans"><summary>顯示預期答案</summary>
+      <div>
+        <p>「健康基準 30 天」不在 CSV 資料裡，是 Gemini 從業界知識補充進來的（倉儲週轉天數常用基準）——不是從你的資料計算，不能直接放。</p>
+        <p style="margin-top:10px">處理三條路：</p>
+        <p><strong>1. 追溯</strong>：貼追溯確認 Prompt 問「『健康基準 30 天』是從哪個欄位算的？請列出計算依據。」Gemini 若回「這是業界常用基準」，就確認它不是你公司的數字。</p>
+        <p><strong>2. 刪掉「基準」的比較</strong>：把第 1 條改成「3C 品項庫存天數達 45 天，為本月最高」——只用你資料裡有的數字，不拿業界基準做比較。</p>
+        <p><strong>3. 補公司數據</strong>：去問主管或查公司 SOP，公司自己對庫存天數的標準是多少，填回去。</p>
+        <p style="margin-top:10px">三條路都行，不可以的是「反正 30 天看起來合理就留著」——因為你交出去的彙報數字要能回答「這是哪來的」。</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<div class="nav-footer">
+  <a href="CH1-3.html" class="nav-btn"><span aria-hidden="true">←</span> CH1-3 NotebookLM 個人知識庫</a>
+  <a href="CH2-1.html" class="nav-btn primary">CH2-1 雙工具串接複習 <span aria-hidden="true">→</span></a>
+</div>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">2026 春季</span>
+  <span class="footer-meta" data-platform-version="2026-Q2（Gemini 免費版 / NotebookLM 免費版）" data-built-at="2026-06-02">本頁以 2026-Q2（Gemini 免費版 / NotebookLM 免費版）製作，2026-06</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+</script>
+<script>
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+</body>
+</html>
