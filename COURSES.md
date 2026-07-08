@@ -81,6 +81,7 @@
 | `office-ai-cases/` | 辦公室 AI 工具案例應用（6h 客製版，與 `office-ai/` 並行） | 完成 | 10 頁（4 案例 + CH0 + 2 module + index + platform-guide + prompt-library）+ 4 datasets 800+ 筆 + 56 prompts；通用 prompt + Wrapper；無行銷；不繳交；主色棕金 |
 | `gemini-notebooklm-workshop/` | Gemini × NotebookLM 跨部門 AI 工作坊（8h · 2 天 × 4h 客製） | **v3 + CH3 Capstone 完成** | 9 篇（CH0 環境 + CH1-1/1-2 雙工具基礎 + **PRAC1 Day1 收尾**（NotebookLM 查→Gemini 寫通知四步 + AI 輸出檢查清單）+ CH1-3/1-4 深化 + CH2-1 串接 + **PRAC2 Day2 收尾**（整合大演練：查規定+整數字+追溯+標來源+4 關檢查）+ **CH3 整合成個人 AI 助教 Gem 專案**）+ index + home-cards + maintenance；Day1/Day2 各補實作至 ~4h（PRAC1/PRAC2 + CH 內就地擴充，全去學員互動橋段）；v3 基礎加強班、真 0 基礎友善（原子步驟、一指令一動作、全程截圖）；指定雙工具、5 部門代表（財/業/電/倉/採）；**27 份真素材**（SOP/逐字稿/月報 PDF·CSV·TXT，嵌入字型 + UTF-8 BOM 防亂碼）+ 18 張操作截圖、44 個下載連結；CH3 含 🚦 來源紅綠燈分流 + 來源狀態欄 + 帶走 Gem 提示詞；Codex L3 審 capstone actionable（30f19270）；主色鼠尾草綠 |
 | `codex-basic/` | Codex 基礎使用：辦公與財會的 AI 工作助理（3h） | 完成（已註冊） | 11 頁（index + 10 單元：CH1-1~3 / CH2-1~2 / PRAC2 / CH3-1~2 / CH4-1~2）；會計/財務/行政受眾，零代碼；Codex 桌面 App + GPT-5.5；主色陶土橘；G2 教案 + G3 內審 + Codex L3 三輪審核；Part 4 為能力地圖示範；⚠️ B 類官方文件改寫（Sites/Skill/權限）待課前實機驗證 |
+| `admin-ai-assistant/` | 行政 AI 虛擬助理實戰（2h） | 完成（已註冊） | 8 頁（index + CH1~CH6 + prompt-library 資產頁）；行政/總務/助理/幕僚受眾，零代碼；Gemini（Gem）+ NotebookLM；主色灰藍綠；核心機制：規則進 Gem 系統提示詞（八條）+ 資料與《規範｜…》文檔進 NotebookLM 筆記本 + Gem 掛載自動同步 + 一句話派工 + 兩條回流路徑；Codex L3 審核 57fbaa72 actionable 已全修（CH6 降承諾+fallback+最小完成線） |
 
 > 上述「狀態」「主色」可能未即時反映實況。「結構描述」一律以 `ls courses/<slug>/` 為準。
 

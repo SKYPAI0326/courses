@@ -31,6 +31,7 @@ COURSES = {
     "gemini-notebooklm-workshop": ("gnw_auth", "abf7cbf06fcb2eaf7e09ba6cff90501e208500268fee1b098fa588d060fd3084"),
     "career-guidance": ("careerguidance_auth", "948568fed390bbe7c52ca6aa4f75721aa7a432b60f7b90e6e3496745fe14ee7e"),
     "codex-basic":     ("codexbasic_auth", "811916531d81d2e2d39a52802ca19ce0492be4029ba8e5569c3598af02e0d28c"),
+    "admin-ai-assistant": ("adminai_auth", "1e51cd64a905ed891bdfd0d7afab4c131fb2db96195db0da0ee5c3899c69d8be"),
 }
 
 GATE_TEMPLATE = '''\
