@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH6-1 當單機工具不夠用：把 AI 裝進工具裡｜Gemini 零代碼 AI 實戰課</title>
+<meta name="description" content="Part 1 到 4 做的工具不會思考。遇到需要 AI 判斷的任務，與其每次回聊天視窗重講一次，不如把固定指令做成一個誰都能打開就用的 app。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="CH6-1 當單機工具不夠用：把 AI 裝進工具裡｜Gemini 零代碼 AI 實戰課">
+<meta property="og:description" content="Part 1 到 4 做的工具不會思考。遇到需要 AI 判斷的任務，與其每次回聊天視窗重講一次，不如把固定指令做成一個誰都能打開就用的 app。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/gemini-ai/part6/CH6-1.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CH6-1 當單機工具不夠用：把 AI 裝進工具裡｜Gemini 零代碼 AI 實戰課">
+<meta name="twitter:description" content="Part 1 到 4 做的工具不會思考。遇到需要 AI 判斷的任務，與其每次回聊天視窗重講一次，不如把固定指令做成一個誰都能打開就用的 app。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/gemini-ai/part6/CH6-1.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#7a766d;
+  --c-a1:#6b7fa3; --c-a2:#c9963a; --c-a3:#5a7a5a; --c-a4:#6b7fa3;
+  --radius:6px; --radius-sm:4px; --content-w:780px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;word-break:break-word;overflow-wrap:break-word;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-a4);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.07);padding:3px 12px;border-radius:99px;font-weight:500}
+
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);width:0%;transition:width .1s;opacity:.75}
+
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px}
+.back-link:hover{color:var(--c-a4)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.hero-part{font-size:.73rem;color:var(--c-muted);letter-spacing:.08em;font-weight:500;font-variant-numeric:tabular-nums}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border)}
+.hero-num{font-size:.73rem;color:var(--c-a4);letter-spacing:1px;font-weight:500}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em}
+.lesson-tagline{font-size:1rem;color:var(--c-muted);line-height:1.9;max-width:38em;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:8px;padding:20px 0;border-top:1px solid var(--c-border-soft);border-bottom:1px solid var(--c-border-soft)}
+.outcomes-label{font-family:'Shippori Mincho',serif;font-style:italic;font-size:.78rem;color:var(--c-muted);letter-spacing:.03em;margin-bottom:2px}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.9rem}
+.outcome-dot{width:12px;height:1px;background:var(--c-faint);margin-top:14px;flex-shrink:0}
+
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px}
+.lesson-section{margin-bottom:64px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-heading em{font-style:normal;color:var(--c-text)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.95;margin-bottom:20px}
+.body-text strong{font-weight:700}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:64px 0}
+.inline-code{font-family:'Courier New',monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 6px;border-radius:3px}
+
+/* ── 步驟列表 ── */
+.step-list{display:flex;flex-direction:column;gap:0;margin:28px 0}
+.step-item{display:flex;gap:20px;align-items:flex-start;padding:22px 0;border-bottom:1px solid var(--c-border)}
+.step-item:last-child{border-bottom:none}
+.step-num{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-a4);min-width:32px;line-height:1;padding-top:2px}
+.step-title{font-size:.92rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.step-desc{font-size:.85rem;color:var(--c-muted);line-height:1.75}
+
+/* ── 部署比較表 ── */
+.deploy-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:28px 0}
+.deploy-grid.cols-2{grid-template-columns:repeat(2,1fr)}
+.deploy-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:22px 20px}
+.deploy-card.highlight{border-color:rgba(107,127,163,.4);background:rgba(107,127,163,.04)}
+.deploy-badge{font-size:.68rem;font-weight:700;letter-spacing:.5px;padding:2px 10px;border-radius:99px;margin-bottom:12px;display:inline-block}
+.badge-rec{background:rgba(107,127,163,.12);color:var(--c-a4)}
+.badge-opt{background:var(--c-surface);color:var(--c-muted)}
+.deploy-title{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:12px}
+.deploy-pro{font-size:.8rem;color:var(--c-text);display:flex;gap:8px;line-height:1.6;margin-bottom:4px}
+.deploy-pro::before{content:"✓";color:var(--c-a3);font-weight:700;flex-shrink:0}
+.deploy-con{font-size:.8rem;color:var(--c-muted);display:flex;gap:8px;line-height:1.6;margin-top:8px}
+.deploy-con::before{content:"—";flex-shrink:0}
+
+/* ── 資料夾結構 ── */
+.folder-wrap{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:28px 0}
+.folder-head{background:var(--c-surface);border-bottom:1px solid var(--c-border);padding:10px 20px;display:flex;align-items:center;gap:8px}
+.folder-dot{width:10px;height:10px;border-radius:50%}
+.fd-r{background:#d8d4cb} .fd-y{background:#c9963a;opacity:.5} .fd-g{background:#5a7a5a;opacity:.5}
+.folder-body{padding:20px 24px;font-family:'Courier New',monospace;font-size:.85rem;line-height:2}
+.f-dir{color:var(--c-a4);font-weight:700}
+.f-note{color:var(--c-muted);font-size:.73rem}
+.f-indent1{padding-left:1.5em;display:block}
+.f-indent2{padding-left:3em;display:block}
+
+/* ── Callout ── */
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+
+
+
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px}
+.callout-body{font-size:.9rem;line-height:1.8}
+.callout-body strong{font-weight:700}
+
+/* ── 動態進場 ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.lesson-hero .back-link      {animation:fadeUp .4s ease both}
+.lesson-hero .hero-meta      {animation:fadeUp .45s .08s ease both}
+.lesson-hero .lesson-title   {animation:fadeUp .55s .15s ease both}
+.lesson-hero .lesson-tagline {animation:fadeUp .5s .26s ease both}
+.lesson-hero .outcomes       {animation:fadeUp .45s .36s ease both}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1)}
+.reveal.in{opacity:1;transform:translateY(0)}
+.section-rule{transform-origin:left center;opacity:0;transition:opacity .4s ease,transform .6s cubic-bezier(.16,1,.3,1);transform:scaleX(.3)}
+.section-rule.in{opacity:1;transform:scaleX(1)}
+.section-dots{position:fixed;left:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:40;opacity:0;transition:opacity .4s ease}
+.section-dots.visible{opacity:1}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--c-border);cursor:pointer;transition:background .3s ease,transform .3s ease;border:none;padding:0}
+.sdot.active{background:var(--c-a4);transform:scale(1.5)}
+@media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important}*{animation:none!important}}
+@media(max-width:1100px){.section-dots{display:none}}
+
+/* ── 底部導航 ── */
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1}
+.nav-btn:hover{border-color:var(--c-a4)}
+.nav-btn.next{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+@media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero{padding:56px 32px 40px}.lesson-body{padding:0 32px 80px}.lesson-nav{padding:0 32px 80px}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;.lesson-tagline{max-width:100%}}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:40px 20px 36px}.lesson-title{font-size:1.45rem}.lesson-body{padding:0 20px 60px}.lesson-nav{padding:0 20px 60px;flex-direction:column}.nav-btn{flex:none}.footer{padding:20px}.deploy-grid{grid-template-columns:1fr}.deploy-grid.cols-2{grid-template-columns:1fr}}
+
+/* a11y: focus-visible ring */
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='gemini_auth',H='af4216b537dbe50ab6bce3a5f75201f51894267495ac777423d8f18d11318db8';if(localStorage.getItem(K)==='1')sessionStorage.setItem(K,'1');if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">Gemini 零代碼 AI 實戰課</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH6-1</div>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="progressFill"></div></div>
+<nav class="section-dots" id="sectionDots" aria-label="章節導航"></nav>
+
+<section class="lesson-hero" id="main">
+  <a class="back-link" href="../index.html"><span aria-hidden="true">←</span> 返回課程目錄</a>
+  <div class="hero-meta">
+    <span class="hero-part">PART 6 · 串聯 LLM 與上架</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">6.1</span>
+  </div>
+  <h1 class="lesson-title">當單機工具不夠用：把 AI 裝進工具裡</h1>
+  <p class="lesson-tagline">你在 Part 1 到 4 做出來的工具，邏輯都寫死在程式碼裡——快、穩，但不會「判斷」。有些任務需要 AI 現場理解內容再給答案，這時候與其每次回聊天視窗重新描述一遍，不如把這個判斷力直接裝進一個工具裡，讓任何人打開就能用。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學完這節，你會有</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>分辨任務該用「不會思考」的單機工具、還是「會思考」的 AI app</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>用 AI Studio 的描述框生成一個內建 Gemini 判斷力的 app</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>理解 API key 在背後怎麼被安全管理，不會外洩到前端</div>
+  </div>
+</section>
+
+<main class="lesson-body">
+
+  <!-- S1 -->
+  <div class="lesson-section">
+    <div class="section-eyebrow">(01)</div>
+    <h2 class="section-heading">情境：三個回聊天視窗的<em>代價</em></h2>
+    <p class="body-text">假設你每天都要幫忙判斷一批客戶留言的情緒（正面／負面／中立），或者把一段會議逐字稿整理成摘要。這種任務不是「套公式算出來」就能解決，它需要 AI 讀懂內容、做出判斷。目前你唯一能做的，是打開 Gemini 聊天視窗，把指令重新打一次。</p>
+    <p class="body-text">這麼做有三個代價：<strong>每次要重新描述指令</strong>——同樣的分類規則、同樣的輸出格式，每次都得重打一遍，或東翻西找之前存的 prompt；<strong>對話越長越被舊內容污染</strong>——同一個對話視窗聊到後面，前面聊過的話題會影響到後面的回答，你要的其實是「每次都乾淨重來」的判斷，不是延續對話；<strong>同事拿到你的 prompt 也不一定會用</strong>——你把 prompt 複製貼給同事，他還要自己開 Gemini、貼上、等結果，操作門檻沒有消失，只是換了個人做。</p>
+
+    <div class="callout info">
+      <div class="callout-icon" aria-hidden="true">ℹ</div>
+      <div class="callout-body">
+        <strong>共同解法：</strong>把「AI 判斷」包進一個工具的介面裡——使用者只要填欄位、按按鈕，AI 判斷的邏輯（連同你寫好的固定指令）在背後自動執行，介面固定、輸出格式固定，不需要每次重新溝通。這就是接下來要做的「AI app」。
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- S2 -->
+  <div class="lesson-section">
+    <div class="section-eyebrow">(02)</div>
+    <h2 class="section-heading">核心概念：<em>兩個工具</em>的分工</h2>
+    <p class="body-text">到目前為止你認識的是 Gemini Canvas——生成單一 HTML 檔案、存在本機、打開瀏覽器就能用，但它沒有連線 AI 的能力，做出來的是「不會思考」的工具。當任務需要現場判斷（分類、摘要、生成文字），你需要另一個工具：AI Studio 的 Build 功能，它做出來的是 React app，內建呼叫 Gemini API 的能力，跑在雲端專案裡。</p>
+
+    <div class="deploy-grid cols-2">
+      <div class="deploy-card">
+        <div class="deploy-badge badge-opt">不會思考</div>
+        <div class="deploy-title">Gemini Canvas</div>
+        <div class="deploy-pro">單檔 HTML，本機開啟即可用</div>
+        <div class="deploy-pro">免帳號、零成本</div>
+        <div class="deploy-pro">存檔即部署，沒有雲端依賴</div>
+        <div class="deploy-con">沒有連線 AI 的能力</div>
+      </div>
+      <div class="deploy-card highlight">
+        <div class="deploy-badge badge-rec">會思考</div>
+        <div class="deploy-title">AI Studio Build</div>
+        <div class="deploy-pro">內建 Gemini API，能即時判斷內容</div>
+        <div class="deploy-pro">可分享網址、可正式上架</div>
+        <div class="deploy-pro">對話式修改，隨時能回滾版本</div>
+        <div class="deploy-con">需要 Google 帳號與雲端專案</div>
+      </div>
+    </div>
+
+    <p class="body-text">判斷準則很簡單：這個工具本身要不要「思考」？只是執行固定邏輯（計算、排版、排序）——用 Canvas。需要現場理解內容、做判斷、生成文字——用 AI Studio。</p>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- S3 -->
+  <div class="lesson-section">
+    <div class="section-eyebrow">(03)</div>
+    <h2 class="section-heading">認識 <em>AI Studio</em></h2>
+    <p class="body-text">入口在 <span class="inline-code">aistudio.google.com</span>，左上角選單分成三大類，先花一分鐘認熟位置，之後找功能不會迷路。</p>
+
+    <div class="step-list">
+      <div class="step-item">
+        <div class="step-num">01</div>
+        <div>
+          <div class="step-title">EXPLORE</div>
+          <div class="step-desc">Playground（跟 Gemini 對話測試）、History（過去的對話紀錄）。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">02</div>
+        <div>
+          <div class="step-title">BUILD</div>
+          <div class="step-desc">New app（開新專案）、My apps（管理你做過的所有 app）、Gallery（瀏覽別人做的範例 app）。這一節的重點都在這裡。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">03</div>
+        <div>
+          <div class="step-title">MANAGE</div>
+          <div class="step-desc">Dashboard、Documentation——帳號層級的總覽與說明文件，先知道它存在就好。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- S4 -->
+  <div class="lesson-section">
+    <div class="section-eyebrow">(04)</div>
+    <h2 class="section-heading">動手做：生成你的<em>第一個 AI app</em></h2>
+    <p class="body-text">進入 Build 首頁，會看到「Build your ideas with Gemini」的描述框，跟著下面四步走完，就會有一個可以用的 AI app。</p>
+
+    <div class="step-list">
+      <div class="step-item">
+        <div class="step-num">01</div>
+        <div>
+          <div class="step-title">在描述框寫清楚 app 的用途與介面</div>
+          <div class="step-desc">例如：「幫我做一個貼上客戶留言、自動判斷情緒是正面／負面／中立的小工具，用卡片呈現結果」。也可以用 ⊕ 選單匯入現成檔案（GitHub、Drive、Upload Files、Camera）當起點。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">02</div>
+        <div>
+          <div class="step-title">等 Gemini 生成</div>
+          <div class="step-desc">左側是跟 Gemini 對話的欄位，右側即時顯示 Preview，生成過程可以看到進度。預設模型是 Gemini 3.5 Flash。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">03</div>
+        <div>
+          <div class="step-title">在 Preview 測試、用對話欄修改</div>
+          <div class="step-desc">直接在 Preview 操作測試效果；不滿意就在左側對話欄追加需求。每次修改都會留一個 Checkpoint，可以用 View differences 看差異，或用 Restore code from this checkpoint 整個回滾。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">04</div>
+        <div>
+          <div class="step-title">打開 Code 分頁確認程式碼</div>
+          <div class="step-desc">可以看到完整的 React + TypeScript 程式碼（App.tsx、components/、services/geminiService.ts），透過 @google/genai SDK 呼叫 Gemini。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- S5 -->
+  <div class="lesson-section">
+    <div class="section-eyebrow">(05)</div>
+    <h2 class="section-heading">背後機制：<em>API key</em> 去哪了</h2>
+    <p class="body-text">這個 app 要呼叫 Gemini，需要的 API key 是誰的？打開設定面板的 Secrets 分頁，會看到 <span class="inline-code">GEMINI_API_KEY</span> 這個項目，用下拉選單直接選用 AI Studio 提供給你的 Gemini API Key，也可以自己 Add secret 加其他金鑰。這把 key 只存在伺服器端，不會出現在前端程式碼裡，使用者打開你的 app 也看不到它。</p>
+
+    <div class="callout info">
+      <div class="callout-icon" aria-hidden="true">ℹ</div>
+      <div class="callout-body">
+        <strong>用量算在誰頭上：</strong>這代表 app 每一次呼叫 Gemini，用的都是你自己的免費額度（免費層有每分鐘／每日次數上限）。適合做內部小工具，不適合預期會有大量使用者同時打開的公開產品。
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- S6 -->
+  <div class="lesson-section">
+    <div class="section-eyebrow">(06)</div>
+    <h2 class="section-heading">延伸提醒：把<em>黃金公式</em>寫進描述框</h2>
+    <div class="callout key">
+      <div class="callout-icon" aria-hidden="true">★</div>
+      <div class="callout-body">
+        <strong>描述框也適用黃金公式：</strong>在 Build 首頁的描述框，把「角色＋任務＋限制＋呈現」直接寫進去，例如：「你是一個客服助理（角色），幫我判斷留言情緒分成正面／負面／中立（任務），只能輸出這三個分類其中一個（限制），用顏色卡片呈現（呈現）」——描述越具體，Gemini 生成的 app 越貼近你要的樣子。下一節看怎麼把做好的 app 分享出去或正式上架。
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<nav class="lesson-nav">
+  <a class="nav-btn prev" href="../part4/CH4-3.html">
+    <span><span aria-hidden="true">←</span></span>
+    <div>
+      <div class="nav-btn-label">上一節</div>
+      <div class="nav-btn-title">4.3 極速黑客松</div>
+    </div>
+  </a>
+  <a class="nav-btn next" href="CH6-2.html">
+    <div>
+      <div class="nav-btn-label">下一節</div>
+      <div class="nav-btn-title">6.2 內建上架：Share 與 Publish</div>
+    </div>
+    <span><span aria-hidden="true">→</span></span>
+  </a>
+</nav>
+
+<footer class="footer" data-platform-version="2026-07-v1">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">Part 6 · 1 of 3</div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const d = document.documentElement;
+  const pct = d.scrollHeight - d.clientHeight > 0
+    ? (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100 : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+});
+(function(){
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, {threshold:.1, rootMargin:'0px 0px -48px 0px'});
+  document.querySelectorAll('.lesson-section, .section-rule').forEach(el => { el.classList.add('reveal'); io.observe(el); });
+})();
+(function(){
+  const sections = Array.from(document.querySelectorAll('.lesson-section'));
+  const nav = document.getElementById('sectionDots');
+  if(!sections.length||!nav) return;
+  sections.forEach((sec,i) => {
+    const btn = document.createElement('button');
+    btn.className='sdot';
+    btn.title = sec.querySelector('.section-heading')?.textContent?.trim().slice(0,20)||('第'+(i+1)+'節');
+    btn.addEventListener('click',()=>sec.scrollIntoView({behavior:'smooth',block:'start'}));
+    nav.appendChild(btn);
+  });
+  const dotIo = new IntersectionObserver(entries => {
+    entries.forEach(e => { const i=sections.indexOf(e.target); if(i>=0) nav.children[i]?.classList.toggle('active',e.isIntersecting); });
+    nav.classList.toggle('visible', Array.from(nav.children).some(d=>d.classList.contains('active')));
+  },{threshold:.3});
+  sections.forEach(s=>dotIo.observe(s));
+})();
+</script>
+
+<script>
+// 閱讀進度持久化（localStorage）— 2026-04-16 UI refresh
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+</body>
+</html>

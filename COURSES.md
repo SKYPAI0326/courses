@@ -63,10 +63,10 @@
 | `ai-workshop/` | AI 實務全攻略（12h/18h） | 完成 | 雙時數版本（index.html + index-12hr.html）；主色霧藍 |
 | `ccs-foundations/` | CCS 生成式 AI 認證研習 | 完成 | 扁平 13 頁，含 80 題模擬測驗與提示詞範本庫；主色灰藍綠；**v4 Editorial 範本** |
 | `digital-marketing-70h/` | 數位行銷人才培訓（70hr） | 完成 | 10 模組 52 單元，整合 GTM/SEO/GA4/廣告/Email；主色芥末黃 |
-| `gemini-ai/` | Gemini 零代碼 AI 實戰課 | 完成 | part1~5（含 PRAC 頁） |
+| `gemini-ai/` | Gemini 零代碼 AI 實戰課 | 完成 | part1~6（含 PRAC 頁）；part6 = AI Studio 串聯 LLM 與上架（2026-07 新增） |
 | `gen-ai-140h/` | 生成式 AI 職訓實務應用班（140h） | 完成 | part1~5，56+12 單元，含 ENV-SETUP；主色陶土橘 |
 | `gen-ai-36h/` | 生成式 AI 工作應用班（36h） | 完成 | part1~6，140h 上班族濃縮版，零基礎不寫程式；主色灰藍綠 |
-| `gen-image/` | 商業用圖片生成 | 完成 | 5 Modules，13 單元，AI 設計流水線 PM 協作；主色奶茶棕；**v4 Editorial 範本** |
+| `gen-image/` | 商業用圖片生成 | 完成 | 5 Modules，13 單元，AI 設計流水線 PM 協作；主色奶茶棕；**v4 Editorial 範本**；**公開課程，無密碼關卡（2026-07-08 確認）** |
 | `gtm/` | GTM 實務演練 | 完成 | part1~6，含 checklist.html |
 | `n8n/` | n8n 自動化實戰課 | 完成 | landing + lessons/，4 Modules |
 | `ntub-gtm-adtech/` | NTUB GTM × 廣告科技 | 完成 | （學員/結構待補） |
