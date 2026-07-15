@@ -5,7 +5,7 @@ color: "#6b7fa3"
 audience: 職場上班族，無程式背景，包含行政、業務、主管職
 institution: 弄一下工作室
 duration: 6h
-tools: 通用 LLM, NotebookLM (RAG), Google 文件, Google 簡報
+tools: Google Gemini, NotebookLM, Google 文件, Google 簡報
 prac: false
 version: v4-誠實框架（2026-06-15）
 ---
@@ -13,7 +13,7 @@ version: v4-誠實框架（2026-06-15）
 ## 章一：認識文字型 AI
 
 - CH1-1：AI 能幫我做什麼
-- CH1-2：通用 LLM 與 NotebookLM
+- CH1-2：主流工具介紹
 - CH1-3：基礎操作指南
 - CH1-4：有效溝通第一步
 

@@ -57,26 +57,6 @@ bash courses/office-ai/_tools/restore-2026-07-15-pre-repair.sh
 
 還原來源：`courses/office-ai/_backup/2026-07-15-pre-repair/`（19 頁）。還原後須重新執行 lint、搜尋索引與 sitemap 產生器。
 
-## 平台中立增量修正
-
-### Changed
-
-- 1.2 從「主流工具介紹」改為「通用 LLM 與 NotebookLM」，不再比較 ChatGPT、Gemini、Copilot 的功能或推薦學員選用特定平台。
-- 1.2 的概念產物改為「工作模式判斷卡」：先判斷任務能否超出指定來源，再判斷是否需要引用與回查。
-- 首頁、大綱、1.1／1.3 導航、操作前置與課後復跑手冊同步使用「你慣用的通用 LLM」。
-- NotebookLM 保留為指定來源、引用與回查的 RAG 工作模式；通用 LLM 保留自由起草、改寫、摘要與發想用途。
-- 既有頁面中的「本頁示範以 Gemini 免費版實測」保留作案例 provenance，並移除未重跑就聲稱其他平台結果相同的文字。
-
-### Verification
-
-- 全課 lint：20 頁，0 BLOCKER、0 ERROR、0 WARN。
-- 內部相對連結：117 筆，0 broken。
-- 搜尋索引：重建成功，office-ai 20 筆；CH1-2 標題已更新。
-- Sitemap：重建成功，全站 42 筆；office-ai 因 gate 規則不收錄。
-- 平台字眼審計：可見文字只保留案例 provenance，以及下一門正式課程名稱「Gemini 零代碼 AI 實戰」。
-- 增量備份：`courses/office-ai/_backup/2026-07-15-pre-platform-neutral/`。
-- 增量還原：`bash courses/office-ai/_tools/restore-2026-07-15-pre-platform-neutral.sh`。
-
 ## 結論
 
 Batch 1–10 的內容修復與靜態／運維驗收已完成。課程目前達到 0 lint issue、0 內部斷鏈、gate 完整；完整 G5 真跑與瀏覽器視覺驗收仍明確列為後續工作，未冒充完成。
