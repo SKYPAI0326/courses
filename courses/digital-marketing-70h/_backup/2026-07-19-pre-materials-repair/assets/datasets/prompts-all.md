@@ -444,44 +444,21 @@ brand: [品牌風格描述]
 
 ### M10-1 Kickoff Brief 模板
 ```
-你是行銷專案啟動顧問。請只使用我提供的既有資料校正專案，不重新生成 Persona。
-輸入：
-- audience-brief 版本／日期：[貼上]
-- message-brief 版本／日期：[貼上]
-- 顧客旅程與主要缺口：[貼上]
-- 外部證據（訪談／評論／後台資料）：[貼上]
-請輸出 Kickoff Brief：品牌與商業目標、鎖定 Persona、旅程缺口、90 天問題定義、已驗證證據、待驗證假設、不做範圍、成功條件。每項結論標示來源；沒有來源就標「待驗證」。
+（直接從 m10-1 課程頁 deliverable 區複製範本 + AI Persona 輔助 prompt）
 ```
 
-### M10-2 Strategy Brief
-```
-你是整合行銷策略顧問。請根據 Kickoff Brief、audience-brief、message-brief 與旅程缺口，提出一份 90 天 Strategy Brief。
-輸出：(1) 唯一策略目標 (2) 核心訊息與證據 (3) 渠道角色與不選理由 (4) 漏斗階段 (5) KPI 定義、基線、目標與資料來源 (6) 預算／人力／時程限制 (7) 3 個關鍵假設及驗證方式 (8) W4/W8/W12 決策點。
-不可平均分配資源；每個渠道都要說明承接哪個旅程缺口。
-```
+### M10-2 Strategy Brief（同 m10-2 deliverable）
 
-### M10-3 Execution Pack
-```
-你是行銷執行統籌。請把 Strategy Brief 轉成 Execution Pack，且不得改寫已鎖定的 Persona 與核心訊息。
-輸入：audience-brief、message-brief、Strategy Brief、SEO 關鍵字群、內容／廣告／Email 草稿、GTM 事件表。
-輸出：(1) 來源版本清單 (2) 4 週內容與渠道排程 (3) 每項內容的 Persona／訊息／CTA／漏斗階段 (4) SEO 主題與搜尋意圖 (5) 廣告唯一變因與停止條件 (6) Email 序列與退出條件 (7) GTM 事件名稱、觸發條件、參數與 QA (8) 負責人、截止日、狀態 (9) 上線前一致性檢查。
-發現來源互相矛盾時列出衝突，不自行猜測。
-```
+### M10-3 Execution Pack（同 m10-3 deliverable）
 
-### M10-4 A3 Final Report
-```
-你是主管簡報編輯。請把下列專案資料壓縮成一頁式 A3，讓主管 60 秒內決定是否繼續投入。
-輸入：Kickoff Brief、Strategy Brief、Execution Pack、實際結果、失敗項目、AI 使用紀錄。
-輸出六區：(1) 問題／機會 (2) 關鍵證據 (3) 策略選擇與取捨 (4) 執行與追蹤 (5) 結果與三個無效項目 (6) 下一輪決策。
-另列：AI 建議、人工修改、採納／不採納理由、仍待驗證假設、下一次重查日期。所有數字保留期間、基數與資料來源；沒有結果時不得編造。
-```
+### M10-4 A3 Final Report（同 m10-4 deliverable）
 
 ---
 
 ## 使用建議
 
 1. **挑出你最常用的 5-8 個 Prompt**，存到 Google Keep 或 Notion，加標籤
-2. **每次使用後微調**，把實際用得順的版本寫回個人 Prompt 工具箱
+2. **每次使用後微調**，把實際用得順的版本寫回 .md 檔
 3. **記錄使用次數**，找出 ROI 最高的 5 個 Prompt 持續優化
 4. **不要每次都從頭打 Prompt**，從庫複製比從 AI 對話歷史翻快 10 倍
 
