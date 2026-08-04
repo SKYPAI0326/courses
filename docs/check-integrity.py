@@ -37,6 +37,9 @@ def slugs_from_courses_dir() -> set:
 
 COMMON_WORDS = {"courses", "slug"}  # 散文中提到的代稱，不算
 
+# 經明確授權公開、不注入密碼關卡的正式課程。
+PUBLIC_COURSES = {"gen-image", "ict-ai-digital-workflow"}
+
 
 def slugs_from_courses_md() -> set:
     md = ROOT / "COURSES.md"
@@ -109,7 +112,7 @@ def main():
     for s in sorted(dir_slugs - md_slugs):
         problems.append(("ERROR", f"courses/{s}/ 存在但未登錄於 COURSES.md"))
     # courses/ 有、inject_gate.py 沒 → ERROR
-    for s in sorted(dir_slugs - gate_slugs):
+    for s in sorted((dir_slugs - gate_slugs) - PUBLIC_COURSES):
         problems.append(("ERROR", f"courses/{s}/ 存在但未登錄於 inject_gate.py COURSES"))
     # inject_gate.py 有、courses/ 沒 → ERROR
     for s in sorted(gate_slugs - dir_slugs):
