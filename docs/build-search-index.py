@@ -42,6 +42,7 @@ COURSE_LABEL = {
     "career-guidance": "8 小時職涯定位實戰",
     "codex-basic": "Codex 基礎使用（3h）",
     "admin-ai-assistant": "行政 AI 虛擬助理實戰（2h）",
+    "ict-ai-digital-workflow": "ICT共同職能：AI數位工具應用與職場工作流程實務（5h）",
 }
 
 TITLE_RE = re.compile(r"<title>(.*?)</title>", re.IGNORECASE | re.DOTALL)
