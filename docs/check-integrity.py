@@ -38,7 +38,7 @@ def slugs_from_courses_dir() -> set:
 COMMON_WORDS = {"courses", "slug"}  # 散文中提到的代稱，不算
 
 # 經明確授權公開、不注入密碼關卡的正式課程。
-PUBLIC_COURSES = {"gen-image", "ict-ai-digital-workflow"}
+PUBLIC_COURSES = {"gen-image"}
 
 
 def slugs_from_courses_md() -> set:
