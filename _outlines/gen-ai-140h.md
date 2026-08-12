@@ -5,7 +5,7 @@ color: "#b5703a"
 audience: 有基礎 AI 工具使用經驗，希望系統化提升、具備開發與部署能力的職場工作者
 institution: 弄一下工作室
 duration: 140h
-tools: ChatGPT, Gemini, Claude, Make, n8n, GitHub, Vercel
+tools: ChatGPT, Gemini, Claude, Make, n8n, GitHub, Render, Vercel
 prac: true
 ---
 
@@ -45,7 +45,7 @@ prac: true
 
 - CH4-1：讓 AI 生成有輸入、有運算、有輸出的工具 *(課堂 2.5h / 自學 1.5h)*
 - CH4-2：用 UI / UX 要求讓工具變好用 *(課堂 2.5h / 自學 1.5h)*
-- CH4-3：把工具部署出去：GitHub Pages / Vercel *(課堂 2.5h / 自學 1.5h)*
+- CH4-3：把工具部署出去：GitHub Pages / Vercel Hobby（個人非商業） *(課堂 2.5h / 自學 1.5h)*
 - PRAC4-1：互動報價試算器 *(課堂 2.5h / 自學 2h)*
 - PRAC4-2：個人化學習進度追蹤器 *(課堂 2.5h / 自學 2h)*
 - PRAC4-3：自動摘要 + 關鍵字標記工具 *(課堂 2.5h / 自學 2h)*
@@ -65,9 +65,9 @@ prac: true
 - CH5-4：含後端的完整部署流程 *(課堂 2h / 自學 1h)*
 - CH5-5：AI Canvas → GitHub Pages 純拖拉部署 SOP *(課堂 1.5h / 自學 1h)* ★ 傻瓜模式主路徑
 - PRAC5-1：工具改版（v1 → v2 精準改版） *(課堂 2.5h / 自學 1h)*
-- PRAC5-2：靜態頁部署上線（GitHub Pages / Vercel） *(課堂 2.5h / 自學 1h)*
+- PRAC5-2：靜態頁部署上線（GitHub Pages / Vercel Hobby 個人非商業補充方案） *(課堂 2.5h / 自學 1h)*
 - PRAC5-3：個人作品展示首頁（延伸：API fetch 入門） *(課堂 2.5h / 自學 1h)*
-- PRAC5-4：含後端代理的完整部署（Railway） *(課堂 2.5h / 自學 1h)*
+- PRAC5-4：含後端代理的完整部署（Render） *(課堂 2.5h / 自學 1h)*
 
 ### Part 5 · 自由演練庫（不計入主課，每頁 0.5h × 8 = 4h）
 
@@ -91,7 +91,7 @@ prac: true
 **Phase 2（2026-06-08 啟動，閘門三條已過）：**
 - CH5-6：強迫多檔變單檔 — 請 AI 幫我打包 *(課堂 1.5h / 自學 1h)* ✅ 已上線
 - PRAC5-16：Gemini Canvas / AI Studio 多檔產出整合演練 *(課堂 1.5h / 自學 1.5h)* ✅ 已上線
-- PRAC5-17：一鍵 fork Vercel proxy 範本（可分享版，零程式碼修改） *(自學 2h)* ⏳ 待講師建 gen-ai-140h-api-proxy-template repo
+- PRAC5-17：一鍵 fork Vercel Hobby proxy 範本（僅個人非商業作品展示，零程式碼修改） *(自學 2h)* ⏳ 待講師建 gen-ai-140h-api-proxy-template repo
 
 ## Part 6：AI 應用開發進階（22h）
 
