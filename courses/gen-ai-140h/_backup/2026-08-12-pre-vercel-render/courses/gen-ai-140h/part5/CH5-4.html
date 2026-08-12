@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH5-4 含後端服務的完整部署｜生成式AI職訓實務應用班</title>
+<meta name="description" content="把工具放上網不難——難的是呼叫 AI API 的時候，怎麼讓金鑰不出現在前端程式碼裡。這節課教你加一層後端，把敏感操作藏在伺服器端，然後整個部署到雲端。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="CH5-4 含後端服務的完整部署｜生成式AI職訓實務應用班">
+<meta property="og:description" content="把工具放上網不難——難的是呼叫 AI API 的時候，怎麼讓金鑰不出現在前端程式碼裡。這節課教你加一層後端，把敏感操作藏在伺服器端，然後整個部署到雲端。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/gen-ai-140h/part5/CH5-4.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CH5-4 含後端服務的完整部署｜生成式AI職訓實務應用班">
+<meta name="twitter:description" content="把工具放上網不難——難的是呼叫 AI API 的時候，怎麼讓金鑰不出現在前端程式碼裡。這節課教你加一層後端，把敏感操作藏在伺服器端，然後整個部署到雲端。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/gen-ai-140h/part5/CH5-4.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#7a766d;
+  --c-a1:#6b7fa3; --c-a2:#c9963a; --c-a3:#5a7a5a; --c-a4:#6b7fa3;
+  --c-accent:#6b7fa3;
+  --radius:6px; --radius-sm:4px; --content-w:780px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;word-break:break-word;overflow-wrap:break-word;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+
+/* ── 頂部列 ── */
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-accent);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.07);padding:3px 12px;border-radius:99px;font-weight:500}
+
+/* ── 閱讀進度條 ── */
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-accent);width:0%;transition:width .1s;opacity:.75}
+
+/* ── Hero ── */
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px}
+.back-link:hover{color:var(--c-accent)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.hero-part{font-size:.75rem;color:var(--c-muted);letter-spacing:.08em;font-weight:500;font-variant-numeric:tabular-nums}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border)}
+.hero-num{font-size:.75rem;color:var(--c-accent);letter-spacing:1px;font-weight:500}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em}
+.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;max-width:38em;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text)}
+.outcomes-label{font-size:.75rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.9rem;color:var(--c-text)}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a1);margin-top:8px;flex-shrink:0}
+
+/* ── 主內容 ── */
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px}
+.lesson-section{margin-bottom:64px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-heading em{font-style:normal;color:var(--c-text)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.95;margin-bottom:20px}
+.body-text strong{font-weight:700}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:64px 0}
+
+/* ── 大引言 ── */
+.big-quote{font-family:'Shippori Mincho',serif;font-size:1.2rem;font-weight:700;line-height:1.65;color:var(--c-text);padding:28px 32px;background:var(--c-card);border:1px solid var(--c-border);border-left:4px solid var(--c-accent);border-radius:var(--radius);margin:28px 0}
+.big-quote span{color:var(--c-accent)}
+
+/* ── Callout ── */
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+
+
+
+
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px}
+.callout-body{font-size:.9rem;line-height:1.8;color:var(--c-text)}
+.callout-body strong{font-weight:700}
+
+/* ── 程式碼區塊 ── */
+.code-block{background:#1e1e1e;border-radius:var(--radius);margin:24px 0;overflow:hidden}
+.code-block-header{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;background:#2a2a2a;border-bottom:1px solid #333}
+.code-block-lang{font-size:.7rem;color:#888;letter-spacing:1px;font-weight:500}
+.code-block-label{font-size:.75rem;color:#aaa}
+.code-block pre{padding:20px 18px;overflow-x:auto;font-family:'Courier New',Courier,monospace;font-size:.8rem;line-height:1.75;color:#d4d4d4}
+.code-comment{color:#6a9955}
+.code-str{color:#ce9178}
+.code-keyword{color:#c586c0}
+.code-num{color:#b5cea8}
+
+/* ── 比較格 ── */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0}
+.compare-card{padding:24px 26px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.compare-card.highlight{border-color:rgba(107,127,163,.4);background:rgba(107,127,163,.04)}
+.compare-label{font-size:.7rem;font-weight:500;letter-spacing:1px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--c-border)}
+.compare-card .compare-label{color:var(--c-muted)}
+.compare-card.highlight .compare-label{color:var(--c-accent)}
+.compare-item{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;color:var(--c-text);margin-bottom:10px;line-height:1.6}
+.compare-dot{width:4px;height:4px;border-radius:50%;background:var(--c-muted);margin-top:9px;flex-shrink:0}
+.compare-card.highlight .compare-dot{background:var(--c-accent)}
+
+/* ── 決策表 ── */
+.decision-table{width:100%;border-collapse:collapse;margin:28px 0;font-size:.85rem}
+.decision-table thead tr{background:var(--c-surface)}
+.decision-table th{text-align:left;padding:12px 14px;font-size:.75rem;color:var(--c-muted);letter-spacing:1px;border-bottom:1px solid var(--c-border)}
+.decision-table td{padding:14px;border-bottom:1px solid var(--c-border);line-height:1.65;vertical-align:top}
+.decision-table tr:last-child td{border-bottom:none}
+.badge{display:inline-block;font-size:.7rem;padding:2px 8px;border-radius:99px;margin-right:4px;font-weight:500}
+.badge.static{background:rgba(90,122,90,.1);color:#3a6a3a;border:1px solid rgba(90,122,90,.3)}
+.badge.backend{background:rgba(107,127,163,.1);color:#4a5f8a;border:1px solid rgba(107,127,163,.3)}
+
+/* ── 步驟清單 ── */
+.step-list{display:flex;flex-direction:column;gap:14px;margin:24px 0}
+.step-item{display:flex;align-items:flex-start;gap:16px;padding:16px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.step-num{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-accent);flex-shrink:0;min-width:24px}
+.step-body{font-size:.9rem;color:var(--c-text);line-height:1.75}
+.step-body strong{font-weight:700}
+.step-body code{font-family:'Courier New',monospace;font-size:.8rem;background:rgba(107,127,163,.1);color:#4a5f8a;padding:1px 6px;border-radius:3px}
+
+/* ── 安全規則卡 ── */
+.rule-list{display:flex;flex-direction:column;gap:12px;margin:28px 0}
+.rule-item{padding:18px 22px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius)}
+.rule-title{font-size:.9rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.rule-desc{font-size:.85rem;color:var(--c-muted);line-height:1.7}
+.rule-desc code{font-family:'Courier New',monospace;font-size:.8rem;background:rgba(107,127,163,.1);color:#4a5f8a;padding:1px 6px;border-radius:3px}
+
+/* ── 架構圖 ── */
+.arch-diagram{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:28px 32px;margin:28px 0}
+.arch-row{display:flex;align-items:center;gap:0;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
+.arch-box{padding:12px 18px;border:1px solid var(--c-border);border-radius:var(--radius);font-size:.8rem;font-weight:700;text-align:center;min-width:110px}
+.arch-box.browser{background:rgba(201,150,58,.06);border-color:rgba(201,150,58,.3);color:#a07820}
+.arch-box.frontend{background:rgba(90,122,90,.06);border-color:rgba(90,122,90,.3);color:#3a6a3a}
+.arch-box.backend{background:rgba(107,127,163,.08);border-color:rgba(107,127,163,.4);color:#4a5f8a}
+.arch-box.api{background:rgba(44,43,40,.05);border-color:rgba(44,43,40,.2);color:var(--c-text)}
+.arch-arrow{font-size:.8rem;color:var(--c-muted);padding:0 14px;align-self:center}
+.arch-label{font-size:.7rem;color:var(--c-muted);margin-top:6px}
+.arch-note{font-size:.8rem;color:var(--c-muted);text-align:center;margin-top:16px;line-height:1.7}
+.arch-note strong{color:var(--c-accent);font-weight:700}
+
+/* ── 部署流程 ── */
+.deploy-flow{display:flex;flex-direction:column;gap:12px;margin:28px 0}
+.deploy-step{display:flex;gap:20px;align-items:flex-start;padding:16px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.deploy-num{width:28px;height:28px;border-radius:50%;background:var(--c-accent);color:#fff;font-size:.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.deploy-content{flex:1}
+.deploy-title{font-size:.9rem;font-weight:700;color:var(--c-text);margin-bottom:4px}
+.deploy-desc{font-size:.85rem;color:var(--c-muted);line-height:1.7}
+.deploy-desc code{font-family:'Courier New',monospace;font-size:.8rem;background:rgba(107,127,163,.1);color:#4a5f8a;padding:1px 6px;border-radius:3px}
+
+/* ── 課程預告 ── */
+.preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:24px 0}
+.preview-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;display:flex;align-items:flex-start;gap:14px}
+.preview-icon{font-size:1.2rem;flex-shrink:0}
+.preview-part{font-size:.7rem;color:var(--c-muted);margin-bottom:4px}
+.preview-name{font-size:.85rem;font-weight:700;color:var(--c-text);line-height:1.4}
+
+/* ── 底部導航 ── */
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1}
+.nav-btn:hover{border-color:var(--c-accent)}
+.nav-btn.next{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── 頁尾 ── */
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+
+/* ── 動態進場 ── */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1)}
+.reveal.in{opacity:1;transform:translateY(0)}
+.section-rule{transform-origin:left center;opacity:0;transition:opacity .4s ease,transform .6s cubic-bezier(.16,1,.3,1);transform:scaleX(.3)}
+.section-rule.in{opacity:1;transform:scaleX(1)}
+
+/* ── 側邊章節導航 ── */
+.section-dots{position:fixed;left:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:40;opacity:0;transition:opacity .4s ease}
+.section-dots.visible{opacity:1}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--c-border);cursor:pointer;transition:background .3s ease,transform .3s ease;border:none;padding:0}
+.sdot.active{background:var(--c-accent);transform:scale(1.5)}
+@media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important}*{animation:none!important}}
+@media(max-width:1100px){.section-dots{display:none}}
+@media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero{padding:56px 32px 40px}.lesson-body{padding:0 32px 80px}.lesson-nav{padding:0 32px 80px}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;.lesson-tagline{max-width:100%}}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:40px 20px 36px}.lesson-title{font-size:1.45rem}.lesson-body{padding:0 20px 60px}.lesson-nav{padding:0 20px 60px;flex-direction:column}.nav-btn{flex:none}.compare-grid,.preview-grid{grid-template-columns:1fr}.arch-row{flex-direction:column}.arch-arrow{transform:rotate(90deg)}.footer{padding:20px}}
+
+/* 迷你練習組件 · mini-practice */
+.mini-prac{background:#fafaf5;border:1px solid var(--c-border);border-left:3px solid var(--c-a2);border-radius:var(--radius);padding:28px 30px;margin:32px 0}
+.mini-prac-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px;flex-wrap:wrap}
+.mini-prac-eyebrow{font-size:.7rem;letter-spacing:2px;color:var(--c-a2);font-weight:500;text-transform:uppercase}
+.mini-prac-time{font-size:.7rem;color:var(--c-muted);border:1px solid var(--c-border);padding:2px 10px;border-radius:99px;background:var(--c-card)}
+.mini-prac-title{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin-bottom:10px;line-height:1.5}
+.mini-prac-intro{font-size:.85rem;color:var(--c-muted);line-height:1.85;margin-bottom:18px}
+.mini-prac-steps{display:flex;flex-direction:column;gap:12px;margin-bottom:18px}
+.mini-prac-step{display:flex;gap:12px;align-items:flex-start;font-size:.85rem;line-height:1.8;color:var(--c-text)}
+.mini-prac-step-num{width:22px;height:22px;border-radius:50%;background:rgba(201,150,58,.12);color:var(--c-a2);font-size:.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;font-family:'Shippori Mincho',serif}
+.mini-prac-output{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:16px}
+.mini-prac-output-label{font-size:.7rem;color:var(--c-a2);letter-spacing:1px;font-weight:500;margin-bottom:6px}
+.mini-prac-output-text{font-size:.85rem;color:var(--c-text);line-height:1.75}
+.mini-prac-check{display:flex;flex-direction:column;gap:8px;padding-top:16px;border-top:1px dashed var(--c-border)}
+.mini-prac-check-label{font-size:.7rem;color:var(--c-muted);letter-spacing:1px;margin-bottom:4px;font-weight:500}
+.mini-prac-check label{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;line-height:1.7;color:var(--c-text);cursor:pointer}
+.mini-prac-check input{margin-top:5px;accent-color:var(--c-a2);flex-shrink:0;cursor:pointer}
+.mini-prac-check input:checked ~ span{color:var(--c-muted);text-decoration:line-through}
+
+/* a11y: focus-visible ring */
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 16px}.table-scroll>table{min-width:100%}</style>
+<link rel="stylesheet" href="../_assets/interactivity-v1.css">
+<link rel="stylesheet" href="../_assets/assignment-v1.css">
+<link rel="stylesheet" href="../_assets/prac-sample.css">
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='gen140_auth',H='34810b0ecfa2dab0a29120fc3ff1f867aec23bc5f23a184b8c6c3c7d3a550400';if(localStorage.getItem(K)==='1')sessionStorage.setItem(K,'1');if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<!-- 側邊章節導航 -->
+<nav class="section-dots" id="sdots">
+  <button class="sdot" data-sec="sec-guided" title="照著做主線"></button>
+  <button class="sdot" data-sec="s1" title="靜態 vs 後端：什麼時候需要後端？"></button>
+  <button class="sdot" data-sec="s2" title="安全第一：環境變數與 API 金鑰保護"></button>
+  <button class="sdot" data-sec="s3" title="後端最小架構：一個代理端點"></button>
+  <button class="sdot" data-sec="s4" title="部署到 Railway / Render"></button>
+</nav>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">生成式AI職訓實務應用班</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH 5.4 · Part 5</div>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero" id="main">
+  <a class="back-link" href="../index.html"><span aria-hidden="true">←</span> 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">Part 5 · 前端與部署實戰</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num" data-duration="2h">CH 5-4 · 2h</span>
+  <div class="hero-num-self">課堂 2h · 自學 1h</div>
+  </div>
+  <h1 class="lesson-title">含後端服務的完整部署：讓 <em>API 金鑰不外洩</em></h1>
+  <p class="lesson-tagline">把工具放上網不難——難的是呼叫 AI API 的時候，怎麼讓金鑰不出現在前端程式碼裡。這節課教你加一層後端，把敏感操作藏在伺服器端，然後整個部署到雲端。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果 · OUTCOMES</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能判斷哪些場景需要後端，哪些靜態部署就夠了</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>知道如何用環境變數（.env）保護 API 金鑰，讓金鑰不出現在程式碼或 GitHub 裡</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能建立一個最小後端（Node.js 或 Python），提供一個 /api/ask 代理端點</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能將含後端的應用部署到 Railway 或 Render，取得可公開訪問的網址</div>
+  </div>
+</div>
+
+<div class="ch-bridge">
+  <div class="ch-bridge-item recap">
+    <div class="cb-eyebrow">RECAP · 上一節帶走的</div>
+    <div class="cb-text">Git 讓每次修改都有後路，版本控制從此不再只靠「另存新檔」——程式碼歷史被完整保留，隨時可以回頭。</div>
+  </div>
+  <div class="ch-bridge-item preview">
+    <div class="cb-eyebrow">PREVIEW · 這節解決什麼</div>
+    <div class="cb-text">部署不難，難的是 API 金鑰保護。這節加一層後端把敏感操作藏好，然後把含後端的完整應用部署到雲端，取得公開網址。</div>
+  </div>
+</div>
+
+<main class="lesson-body">
+
+  <aside style="max-width:780px;margin:24px auto 0;padding:18px 22px;background:var(--c-card);border:1px solid var(--c-border);border-left:4px solid var(--c-text);border-radius:var(--radius)">
+    <div style="font-size:.75rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:8px;">PART 5 · 路徑選擇</div>
+    <div style="font-size:.9rem;line-height:1.85;color:var(--c-text)">你正在<strong>進階路徑（CH5-1 → CH5-4，共 10h）</strong>——看懂程式碼、自己改頁面、用 Git / 後端做完整部署。<strong>只想拿到能分享的網址、不想理解技術細節？直接跳 <a href="CH5-5.html" style="color:var(--c-accent);font-weight:600">CH5-5 純拖拉部署 SOP（1.5h）</a></strong>。兩條路最後都能做 PRAC5-13/14/15 主題演練。</div>
+  </aside>
+
+  <!-- ▼▼▼ 引導主線（照著做）· 2026-05 新增 ▼▼▼ -->
+  <section class="lesson-section" id="sec-guided">
+    <div class="section-eyebrow">GUIDED · 45 分鐘照著做主線</div>
+    <h2 class="section-heading">先跟著做一遍：<em>把一個含後端的小工具部署上線</em></h2>
+    <p class="body-text">第一次處理「含後端的部署」，不用先把所有原理弄懂。跟著這條主線走 5 步，45 分鐘後你會把一個呼叫 AI 的小工具——前端加一層最小後端——部署到雲端，拿到一個任何人都打得開的公開網址，而且 API 金鑰不會出現在程式碼裡。<strong>先把這條主線走完</strong>；做完還想多練，再往下走「進階練習池」——那裡有靜態 vs 後端的判斷、環境變數的完整講解、後端代理端點的細節、Railway/Render 的部署流程，還有迷你練習、情境演練和課堂作業。主線和練習池是同一個主題的不同深度，主線是正式入門路徑，練習池是自選加練。</p>
+  <div class="case-check" data-mp="ch5-4-walkaway">
+      <span class="case-check-label">本節結束前你會帶走</span>
+      <label><input type="checkbox"><span>一個含後端的小工具已部署上線，取得公開網址。</span></label>
+      <label><input type="checkbox"><span>API 金鑰已從前端移到後端，能說出為什麼前端放金鑰是漏洞。</span></label>
+      <label><input type="checkbox"><span>一份部署檢核表：環境變數設好沒、後端有回應、前端能呼叫。</span></label>
+    </div>
+
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 1 / 5 · 場景設定（5 分鐘）</div>
+    <h2 class="section-heading">怡君的麻煩</h2>
+    <div style="padding:18px 22px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius);margin:24px 0;font-size:.9rem;line-height:1.85;color:var(--c-text)">
+      <strong>怡君，34 歲，社群小編。</strong>她在 Part 4 用 AI 做了一個「貼文標題產生器」單頁工具，輸入主題就呼叫 AI 寫出幾個標題。問題是：呼叫 AI 的 API 金鑰直接寫在 <code>index.html</code> 的 JavaScript 裡。她想把工具放上網給同事用，但只要任何人按右鍵開 DevTools，兩秒就看到她的金鑰——別人可以拿去亂用，帳單算她的。她需要的，是把「呼叫 AI」這件事搬到一個藏在伺服器端的後端，金鑰只放在後端、永遠不進前端。今天她要學會：加一層最小後端，把金鑰收進環境變數，再把整個應用部署到雲端。</div>
+    <p class="body-text">今天你就是怡君。你要拿一個「前端 + 最小後端」的小專案，照著下面的指令走一次，把它部署到雲端，拿到公開網址，而且確認金鑰不外洩。</p>
+    <p class="body-text"><strong>動手前先準備好三樣東西：</strong>（1）一個免費 GitHub 帳號——到 <a href="https://github.com" target="_blank" rel="noopener">github.com</a> 註冊，部署平台要靠它讀程式碼。（2）一個免費 Railway 帳號——到 <a href="https://railway.app" target="_blank" rel="noopener">railway.app</a> 用 GitHub 帳號登入即可。（3）一組 AI API 金鑰（OpenAI 或 Anthropic 都行）——這是要被「藏起來」的那個東西，先準備好、先別貼進任何檔案。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 2 / 5 · 看成品（10 分鐘）</div>
+    <h2 class="section-heading">先認得「部署成功長什麼樣」</h2>
+    <p class="body-text">動手前先看一次成功的樣子。等一下你照著做完，就拿這三個徵兆對照——三個都對得上才算過關。</p>
+    <div style="padding:18px 22px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius);margin:24px 0;font-size:.9rem;line-height:1.85;color:var(--c-text)">
+      <strong>成功徵兆 1 · 公開網址打得開。</strong>部署完成後，Railway 會給你一個網址，長得像 <code>https://你的專案-production.up.railway.app</code>。把它貼到瀏覽器（甚至用手機開），工具的前端畫面要正常顯示，不是「Application failed to respond」或一片空白。
+    </div>
+    <div style="padding:18px 22px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-accent);border-radius:var(--radius);margin:24px 0;font-size:.9rem;line-height:1.85;color:var(--c-text)">
+      <strong>成功徵兆 2 · 後端 API 回得了資料。</strong>在工具頁面輸入一個主題、按下產生，畫面要真的跳出 AI 寫的標題。這代表前端成功呼叫了後端的 <code>/api/ask</code> 端點、後端拿著金鑰呼叫了 AI、再把結果送回前端——整條鏈路通了。
+    </div>
+    <p class="body-text">第三個徵兆要打開瀏覽器的開發者工具來看：</p>
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">DEVTOOLS</span>
+        <span class="code-block-label">成功徵兆 3 · 前端原始碼裡找不到金鑰</span>
+      </div>
+      <pre><span class="code-comment"># 在部署好的網頁按右鍵 → 檢查 → Network 分頁，</span>
+<span class="code-comment"># 重新整理頁面，查看載入的 .js 與 .html 內容：</span>
+<span class="code-comment"># 應該只看到一個指向自家後端的請求 ——</span>
+fetch(<span class="code-str">"/api/ask"</span>, ...)
+<span class="code-comment"># 全程搜尋 "sk-" 或 "api_key" 都找不到任何金鑰字串。</span>
+<span class="code-comment"># 金鑰只存在於後端的環境變數，前端永遠看不到。</span></pre>
+    </div>
+    <p class="body-text">這三個徵兆合起來代表：<strong>應用上線了</strong>（網址打得開）、<strong>後端真的在運作</strong>（API 回得了資料）、<strong>金鑰被保護住了</strong>（前端找不到）。少任何一個都不算完成。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 3 / 5 · 照著做步驟清單（10 分鐘）</div>
+    <h2 class="section-heading">逐步操作指令（直接照打，不用改）</h2>
+    <p class="body-text">下面分三段：<strong>第一段在本機把專案準備好</strong>（含最小後端與 .gitignore），<strong>第二段推上 GitHub</strong>，<strong>第三段在 Railway 設定金鑰並部署</strong>。指令都可以直接照打——只有 <code>~/Desktop/title-tool</code>（換成你專案的實際路徑）和 <code>你的帳號</code>（換成你的 GitHub 帳號）兩處要換成你自己的。</p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">JAVASCRIPT</span>
+        <span class="code-block-label">第一段之一 · 最小後端 server.js（放進專案資料夾）</span>
+      </div>
+      <pre><span class="code-comment">// server.js — 一個只做「代理」的最小後端：</span>
+<span class="code-comment">// 前端打 /api/ask，後端拿環境變數裡的金鑰去呼叫 AI，再把結果回傳。</span>
+<span class="code-keyword">const</span> express = <span class="code-keyword">require</span>(<span class="code-str">"express"</span>);
+<span class="code-keyword">const</span> app = express();
+app.use(express.json());
+app.use(express.<span class="code-keyword">static</span>(<span class="code-str">"public"</span>));  <span class="code-comment">// 前端檔案放 public/</span>
+
+app.post(<span class="code-str">"/api/ask"</span>, <span class="code-keyword">async</span> (req, res) => {
+  <span class="code-keyword">const</span> r = <span class="code-keyword">await</span> fetch(<span class="code-str">"https://api.openai.com/v1/chat/completions"</span>, {
+    method: <span class="code-str">"POST"</span>,
+    headers: {
+      <span class="code-str">"Content-Type"</span>: <span class="code-str">"application/json"</span>,
+      <span class="code-comment">// 金鑰只從環境變數讀，絕不寫死在程式碼裡</span>
+      <span class="code-str">"Authorization"</span>: <span class="code-str">`Bearer ${process.env.OPENAI_API_KEY}`</span>
+    },
+    body: JSON.stringify({
+      model: <span class="code-str">"gpt-4o-mini"</span>,
+      messages: [{ role: <span class="code-str">"user"</span>, content: req.body.prompt }]
+    })
+  });
+  res.json(<span class="code-keyword">await</span> r.json());
+});
+
+app.listen(process.env.PORT || <span class="code-num">3000</span>);</pre>
+    </div>
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">BASH</span>
+        <span class="code-block-label">第一段之二 · 在本機準備專案</span>
+      </div>
+      <pre><span class="code-comment"># 1. 打開終端機，切換到你的專案資料夾</span>
+cd ~/Desktop/title-tool
+
+<span class="code-comment"># 2. 初始化 npm 並安裝後端用到的套件</span>
+npm init -y
+npm install express
+
+<span class="code-comment"># 3. 把前端檔案（index.html 等）移進 public/ 資料夾</span>
+mkdir public &amp;&amp; mv index.html public/
+
+<span class="code-comment"># 4. 建立 .gitignore，確保金鑰與 node_modules 不會被上傳</span>
+echo "node_modules/" &gt; .gitignore
+echo ".env" &gt;&gt; .gitignore
+
+<span class="code-comment"># 5. 在 package.json 的 "scripts" 加一行啟動指令：</span>
+<span class="code-comment">#    "start": "node server.js"  ← 部署平台靠這行啟動後端</span>
+
+<span class="code-comment"># 6. 本機先測一次：設臨時環境變數再啟動</span>
+OPENAI_API_KEY=你的金鑰 npm start
+<span class="code-comment"># 瀏覽器開 http://localhost:3000 能用，就代表後端沒問題</span></pre>
+    </div>
+    <p class="body-text">本機測通後，停掉伺服器（終端機按 <code>Ctrl + C</code>），接著把專案推上 GitHub。<strong>先到 <a href="https://github.com" target="_blank" rel="noopener">github.com</a> 登入，點右上角「+」→「New repository」，repo 名稱填 <code>title-tool</code>，不要勾「Add a README」，按「Create repository」。</strong></p>
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">BASH</span>
+        <span class="code-block-label">第二段 · 推上 GitHub</span>
+      </div>
+      <pre><span class="code-comment"># 7. 把專案存進 Git 並提交</span>
+git init
+git add .
+git commit -m <span class="code-str">"含後端的標題產生器"</span>
+
+<span class="code-comment"># 8. 連到 GitHub repo 並推上去（網址換成你自己的）</span>
+git remote add origin https://github.com/你的帳號/title-tool.git
+git branch -M main
+git push -u origin main</pre>
+    </div>
+    <p class="body-text">推完後到 GitHub repo 頁面確認：看得到 <code>server.js</code>、<code>package.json</code>、<code>public/</code>，<strong>但看不到 <code>.env</code> 也看不到 <code>node_modules/</code></strong>（被 .gitignore 擋掉了）。確認後做第三段——在 Railway 部署：</p>
+    <div class="step-list">
+      <div class="step-item">
+        <span class="step-num">9</span>
+        <span class="step-body"><strong>建立 Railway 專案。</strong>登入 <a href="https://railway.app" target="_blank" rel="noopener">railway.app</a>，點「New Project」→「Deploy from GitHub repo」，選剛剛推上去的 <code>title-tool</code>。Railway 會自動讀到 <code>npm start</code> 並開始建置。</span>
+      </div>
+      <div class="step-item">
+        <span class="step-num">10</span>
+        <span class="step-body"><strong>設定環境變數（這步是金鑰保護的關鍵）。</strong>在專案的「Variables」分頁，新增一筆：名稱 <code>OPENAI_API_KEY</code>、值貼上你的金鑰。金鑰只存在這裡——不在程式碼、不在 GitHub。存檔後 Railway 會自動重新部署。</span>
+      </div>
+      <div class="step-item">
+        <span class="step-num">11</span>
+        <span class="step-body"><strong>產生公開網址。</strong>到「Settings」→「Networking」→「Generate Domain」，Railway 會給你一個 <code>.up.railway.app</code> 結尾的網址。等建置狀態變成綠色的「Success」，就可以打開這個網址了。</span>
+      </div>
+    </div>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 4 / 5 · 換你做（15 分鐘）</div>
+    <h2 class="section-heading">對一個自己的含後端專案做一次</h2>
+    <p class="body-text">現在拿你自己的「前端 + 呼叫 AI」小工具（Part 4 做的那個就很合適），照 STEP 3 的三段完整走一次。</p>
+    <div class="mini-prac-steps">
+      <div class="mini-prac-step"><span class="mini-prac-step-num">1</span><span><strong>準備專案結構。</strong>把前端檔案移進 <code>public/</code>，加上 STEP 3 的 <code>server.js</code>，跑 <code>npm init -y</code> 和 <code>npm install express</code>。把原本寫死在前端的金鑰刪掉，前端改成呼叫 <code>/api/ask</code>。</span></div>
+      <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span><strong>建 .gitignore 並本機測試。</strong>確認 <code>.env</code> 和 <code>node_modules/</code> 都在 .gitignore 裡。用 <code>OPENAI_API_KEY=你的金鑰 npm start</code> 啟動，瀏覽器開 <code>localhost:3000</code> 試一次，工具能回資料才往下做。</span></div>
+      <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span><strong>推上 GitHub。</strong>照 STEP 3 第二段執行。推完到 repo 頁面確認看不到 <code>.env</code>——這一步沒做對，金鑰就外洩了。</span></div>
+      <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span><strong>在 Railway 部署並設環境變數。</strong>照 STEP 3 第三段：從 GitHub repo 建專案、在 Variables 加 <code>OPENAI_API_KEY</code>、Generate Domain 拿網址。</span></div>
+      <div class="mini-prac-step"><span class="mini-prac-step-num">5</span><span><strong>打開公開網址驗收。</strong>用手機或別台電腦開那個 <code>.up.railway.app</code> 網址，輸入主題、看 AI 有沒有回標題。</span></div>
+    </div>
+    <p class="body-text"><strong>常見卡點：</strong>網址開出來顯示「Application failed to respond」，多半是 <code>package.json</code> 漏了 <code>"start": "node server.js"</code>，或 server.js 沒監聽 <code>process.env.PORT</code>；工具按了沒反應，到 Railway 的「Deployments」看 log，最常見是 <code>OPENAI_API_KEY</code> 變數沒設或拼錯名稱；GitHub 上不小心看到 <code>.env</code>，代表 .gitignore 在 <code>git add</code> 之前沒建好，先把金鑰作廢重發一組，再修正 .gitignore 重推。</p>
+
+    <hr class="section-rule">
+
+    <div class="section-eyebrow">照著做主線 · STEP 5 / 5 · 結果檢查表（5 分鐘）</div>
+    <h2 class="section-heading">離開前用這張卡打 4 個勾</h2>
+    <p class="body-text">下面 4 項全部確認過，今天的主線才算完成。對不上的，回 STEP 4 對照常見卡點重做一次。</p>
+    <div class="mini-prac-check">
+      <span class="mini-prac-check-label">結果檢查表</span>
+      <label><input type="checkbox"><span><strong>公開網址打得開</strong>：把 Railway 給的 <code>.up.railway.app</code> 網址貼到瀏覽器（最好用手機或別台電腦），工具的前端畫面正常顯示，不是錯誤頁或空白。</span></label>
+      <label><input type="checkbox"><span><strong>後端 API 回得了資料</strong>：在工具頁面輸入一個主題、按產生，畫面真的跳出 AI 寫的標題——代表前端→後端→AI 整條鏈路都通。</span></label>
+      <label><input type="checkbox"><span><strong>前端原始碼裡找不到金鑰</strong>：開 DevTools 的 Network 分頁，看載入的 .js／.html，搜尋 <code>sk-</code> 或 <code>api_key</code> 都找不到金鑰字串，只看到指向 <code>/api/ask</code> 的請求。</span></label>
+      <label><input type="checkbox"><span><strong>GitHub 上沒有 .env</strong>：打開 repo 頁面，列出的檔案有 <code>server.js</code>、<code>package.json</code>、<code>public/</code>，但沒有 <code>.env</code> 也沒有 <code>node_modules/</code>。</span></label>
+    </div>
+    <p class="body-text">4 個勾全打完，你已經完成第一條含後端部署的主線。想再多練——往下走「進階練習池」：那裡有靜態 vs 後端的判斷、環境變數與金鑰保護的完整講解、後端代理端點的架構細節、Railway/Render 的部署流程，還有迷你練習、情境演練和課堂作業。</p>
+  </section>
+  <!-- ▲▲▲ 引導主線結束 ▲▲▲ -->
+
+  <hr class="section-rule">
+
+  <section class="lesson-section">
+    <div class="section-eyebrow">PRACTICE POOL · 進階練習池</div>
+    <h2 class="section-heading">完成主線後的自選加練區</h2>
+    <p class="body-text">下面是這個單元的完整講解與練習：靜態 vs 後端的判斷界線、環境變數與 API 金鑰保護的細節、後端最小架構與代理端點的設計、部署到 Railway／Render 的完整流程，以及迷你練習、情境演練和課堂作業。主線只帶你跑一次標準部署，這裡讓你把每個決策的原理弄懂、練到能套上自己的各種情況。挑有興趣的做，不必全做。</p>
+  </section>
+
+  <hr class="section-rule">
+
+  <!-- Section 1 -->
+  <section class="lesson-section reveal" id="s1">
+    <div class="section-eyebrow">(01) · Static vs Backend</div>
+    <h2 class="section-heading">靜態 vs 後端：<br><em>什麼時候你需要後端？</em></h2>
+    <p class="body-text">不是所有網頁都需要後端。搞清楚這條界線，能讓你選對部署方式，省下不必要的複雜度。</p>
+
+    <div class="compare-grid">
+      <div class="compare-card">
+        <div class="compare-label">靜態部署就夠了（Vercel / Netlify）</div>
+        <div class="compare-item"><span class="compare-dot"></span>純展示頁面、作品集、說明文件</div>
+        <div class="compare-item"><span class="compare-dot"></span>使用者在前端直接呼叫第三方 API（且該 API 允許前端呼叫）</div>
+        <div class="compare-item"><span class="compare-dot"></span>沒有需要保護的金鑰或私有邏輯</div>
+        <div class="compare-item"><span class="compare-dot"></span>不需要儲存使用者資料</div>
+      </div>
+      <div class="compare-card highlight">
+        <div class="compare-label">需要後端的情況（Railway / Render）</div>
+        <div class="compare-item"><span class="compare-dot"></span>呼叫需要保密的 API 金鑰（如 OpenAI、Anthropic）</div>
+        <div class="compare-item"><span class="compare-dot"></span>需要處理表單送出後發送 Email</div>
+        <div class="compare-item"><span class="compare-dot"></span>需要讀寫資料庫（儲存使用者輸入、紀錄）</div>
+        <div class="compare-item"><span class="compare-dot"></span>需要排程、背景任務、Webhook 接收</div>
+      </div>
+    </div>
+
+    <div class="big-quote">這節課的核心情境：你在 Part 4 做了一個呼叫 AI 的工具，金鑰直接寫在 JavaScript 裡。只要別人開 DevTools，<span>兩秒就能看到你的金鑰</span>。後端的第一個用途，就是讓這件事不發生。</div>
+
+    <div class="table-scroll"><table class="decision-table">
+      <thead>
+        <tr>
+          <th>部署類型</th>
+          <th>適用場景</th>
+          <th>平台選項</th>
+          <th>難度</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge static">靜態</span></td>
+          <td>HTML/CSS/JS 只有前端，不需要伺服器執行程式碼</td>
+          <td>Vercel、Netlify、GitHub Pages</td>
+          <td>低，連接 GitHub 後自動部署</td>
+        </tr>
+        <tr>
+          <td><span class="badge backend">含後端</span></td>
+          <td>有 Node.js / Python 伺服器，需要在後端執行邏輯</td>
+          <td>Railway、Render、Fly.io</td>
+          <td>中，需要設定環境變數與啟動指令</td>
+        </tr>
+      </tbody>
+    </table></div>
+
+    <div class="callout info">
+      <div class="callout-icon" aria-hidden="true">ℹ️</div>
+      <div class="callout-body"><strong>Vercel 的 Edge Functions / API Routes：</strong>Vercel 也支援後端邏輯（Next.js API routes 或 Vercel Functions），可以保護金鑰。但這節課選擇 Railway/Render 的獨立後端，因為架構更清晰，學起來的概念適用範圍更廣。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <div class="mini-prac" data-mp="ch5-4-mp1">
+    <div class="mini-prac-head">
+      <span class="mini-prac-eyebrow">迷你練習 1</span>
+      <span class="mini-prac-time">約 8 分鐘</span>
+    </div>
+    <div class="mini-prac-title">判斷你手上 3 個點子「需不需要後端」</div>
+    <p class="mini-prac-intro">不是所有網頁都需要後端。先判斷清楚，才不會為了一個純展示頁搞一整套伺服器。</p>
+    <div class="mini-prac-steps">
+      <div class="mini-prac-step"><span class="mini-prac-step-num">1</span><span>列出你想做的 3 個小專案／工具頁</span></div>
+      <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span>對每一個問三題：要不要藏 API key？要不要存資料？要不要跨裝置同步？</span></div>
+      <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>三題都「不用」<span aria-hidden="true">→</span> 靜態就好；任一「要」<span aria-hidden="true">→</span> 需要後端（或 BaaS 如 Supabase）</span></div>
+    </div>
+    <details class="prac-sample" open>
+      <summary class="ps-head">
+        <span class="ps-eyebrow">範本素材</span>
+        <span class="ps-hint">暫時想不到 3 個點子？先用這三個範例跑一次，把結論對照表格式學起來</span>
+      </summary>
+      <div class="ps-block">
+        <div class="ps-label">原始素材 · 3 個候選點子描述（約 260 字）<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
+        <div class="ps-material">點子 A：個人履歷一頁式網頁
+- 放自我介紹、工作經歷、聯絡方式
+- 聯絡方式用 mailto 連結即可
+- 只有自己更新，改完重新上傳
+
+點子 B：團隊活動報名表
+- 讓同事填姓名 + 餐點選擇 + 出席與否
+- 送出後要存到某個地方（我晚上要匯出成 CSV）
+- 避免同一人重複送出
+
+點子 C：英文潤稿小工具
+- 貼英文 → 按鈕 → AI 改寫成更正式
+- 使用 OpenAI API
+- 目前計畫公開給任何人用，不想被盜刷 API 額度</div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-label">範例 Prompt · 後端必要性判斷<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
+        <div class="ps-prompt">你是資深全端架構顧問，專長是幫內容工作者判斷「這個需求該用靜態頁、BaaS 還是真後端」，避免為了小功能架一整套伺服器。
+溝通風格：直接給結論，不說「看你需求」「都可以」這種模糊話；拒絕過度設計。
+任務：對下方 3 個點子，用「需不需要後端」判斷三題框架，分別給決定與最小架構。
+判斷三題框架（任一題為 Yes 就需要後端或 BaaS）：
+1. 要不要藏 API key？（機敏金鑰不能放前端）
+2. 要不要持久化使用者資料？（關掉瀏覽器還在）
+3. 要不要跨裝置 / 多人同步？（不同裝置看到同一份資料）
+步驟：
+1. 對每個點子逐一跑三題判斷
+2. 在表格裡填入決定（需要 / 不需要 / BaaS 足夠）
+3. 標出「關鍵那一題」——第一個 Yes 的題目
+4. 給最小架構建議（具體到工具名，例：「GitHub Pages 純靜態」「前端 + Supabase」）
+輸出限制：
+- 格式：Markdown 表格，欄位固定「點子 | 需要後端？ | 關鍵那一題 | 最小架構建議」
+- 「需要後端」欄位只能寫：需要 / 不需要 / BaaS 足夠
+- 最小架構建議 ≤ 20 字
+- 最後加 1 句總提醒，特別說「只靠前端 obfuscate API key 為何沒用」
+- 不要推薦框架（React / Vue），這些點子都不需要
+
+---
+【任務素材】
+原始素材（貼在這一行下方）：
+
+<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>| 點子 | 需要後端？ | 關鍵那一題 | 最小架構建議 |<br>| A 履歷頁 | 不需要 | 三題全否 | 純靜態 + GitHub Pages / Netlify |<br>| B 報名表 | BaaS 足夠 | 要存資料（Q2 Yes）| 前端 + Google Sheet 或 Supabase |<br>| C 潤稿工具 | 需要 | 要藏 API key（Q1 Yes）| 前端 + 最薄後端代理（Railway / Render） |<br><br>總提醒：只靠前端 obfuscate（混淆）API key 完全沒用——任何使用者打開 DevTools 的 Network 或 Sources 面板都看得到明碼字串。要藏 key 只有一條路：把呼叫 API 的那段程式碼放在後端，由後端讀 env var 再呼叫第三方 API，前端只跟你自己的後端講話。<br><br><strong>對照重點</strong><br>1. 「BaaS 足夠」不等於「不需要後端」——BaaS（Supabase / Firebase）本質上就是託管後端，只是不用自己寫 server code<br>2. 判斷 Q1（藏 API key）時要分清楚：付費服務的 key 必須藏；免費 demo key 放前端也行但要設使用上限<br>3. 履歷頁雖然三題全否，但若未來想加「訪客留言板」就會升級為 Q2 Yes，架構要預留彈性</div>
+      </div>
+    </details>
+    <div class="mini-prac-output">
+      <div class="mini-prac-output-label">成果產出</div>
+      <div class="mini-prac-output-text">一張三欄表：專案名 ｜ 需要後端嗎 ｜ 理由（哪一題是 yes）。</div>
+    </div>
+    <div class="mini-prac-check">
+      <span class="mini-prac-check-label">自我檢核</span>
+      <label><input type="checkbox"><span>能說出「純前端放 API key」為什麼危險</span></label>
+      <label><input type="checkbox"><span>至少一個專案判斷成「靜態就好」</span></label>
+      <label><input type="checkbox"><span>理解 BaaS（Supabase/Firebase）也算一種「後端」選項</span></label>
+    </div>
+    <div class="case-rubric" style="margin-top:16px">
+      <div class="cr-eyebrow">RUBRIC · 自評檢核（4 點全勾才算過關）</div>
+      <ul class="cr-list">
+        <li><input type="checkbox" data-cr="ch5-4-mp1-r1" id="cr-ch5-4-mp1-r1"><label for="cr-ch5-4-mp1-r1">我的三欄表完整列出 3 個點子，每個都跑過三題判斷（藏 API key／存資料／跨裝置同步），結論欄只用「需要／不需要／BaaS 足夠」三選一</label></li>
+        <li><input type="checkbox" data-cr="ch5-4-mp1-r2" id="cr-ch5-4-mp1-r2"><label for="cr-ch5-4-mp1-r2">每個「需要／BaaS」的點子都標出「關鍵那一題」是哪一題（Q1／Q2／Q3），不是模糊寫「都需要」</label></li>
+        <li><input type="checkbox" data-cr="ch5-4-mp1-r3" id="cr-ch5-4-mp1-r3"><label for="cr-ch5-4-mp1-r3">我能用一句話說出「為什麼 obfuscate API key 完全沒用」（DevTools Network/Sources 都看得到明碼），不是「就是不安全」</label></li>
+        <li><input type="checkbox" data-cr="ch5-4-mp1-r4" id="cr-ch5-4-mp1-r4"><label for="cr-ch5-4-mp1-r4">每個點子的最小架構建議都具體到工具名（GitHub Pages／Supabase／Railway 代理），不是「找個後端服務」</label></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Section 2 -->
+  <section class="lesson-section reveal" id="s2">
+    <div class="section-eyebrow">(02) · Environment Variables</div>
+    <h2 class="section-heading">安全第一：<br><em>環境變數</em>與 API 金鑰保護</h2>
+    <p class="body-text">API 金鑰是你的帳單責任。一旦洩漏到公開的 GitHub repo，有人的爬蟲會在幾分鐘內找到它，用你的帳號發出大量請求。環境變數是這個問題的標準解法。</p>
+
+    <div class="rule-list">
+      <div class="rule-item">
+        <div class="rule-title">規則一：金鑰絕對不寫死在程式碼裡</div>
+        <div class="rule-desc">不要這樣做：<code>const apiKey = "sk-ant-abc123..."</code>。這樣的字串只要進入任何一個 commit，即使你之後刪掉，git 歷史裡還是找得到。</div>
+      </div>
+      <div class="rule-item">
+        <div class="rule-title">規則二：用 .env 存放本機的金鑰</div>
+        <div class="rule-desc">在專案根目錄建立 <code>.env</code> 檔，寫入 <code>ANTHROPIC_API_KEY=sk-ant-abc123...</code>。程式碼裡用 <code>process.env.ANTHROPIC_API_KEY</code>（Node.js）或 <code>os.environ["ANTHROPIC_API_KEY"]</code>（Python）讀取。</div>
+      </div>
+      <div class="rule-item">
+        <div class="rule-title">規則三：.env 必須加入 .gitignore</div>
+        <div class="rule-desc">在 <code>.gitignore</code> 裡加一行 <code>.env</code>，讓 Git 永遠不追蹤這個檔案。雲端平台的金鑰則在部署設定頁面的「環境變數」欄位填入，不是用 .env 檔。</div>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">BASH</span>
+        <span class="code-block-label">基本的 .env 設定</span>
+      </div>
+      <pre><span class="code-comment"># .env（這個檔案不進 git）</span>
+ANTHROPIC_API_KEY=sk-ant-api03-...
+PORT=<span class="code-num">3000</span>
+
+<span class="code-comment"># .gitignore（確保 .env 不被追蹤）</span>
+.env
+node_modules/
+__pycache__/</pre>
+    </div>
+
+    <div class="callout key">
+      <div class="callout-icon" aria-hidden="true">⚠️</div>
+      <div class="callout-body"><strong>已經不小心推上去了怎麼辦？</strong>立刻去 Anthropic Console / OpenAI 後台把那把金鑰 revoke 掉，然後產生一把新的。不要只刪程式碼後重新 commit——git 歷史裡的紀錄永遠都在，那把金鑰已經不能再用了。</div>
+    </div>
+
+    <p class="body-text">一個好的習慣是同時維護一個 <code style="font-family:monospace;background:rgba(107,127,163,.1);color:#4a5f8a;padding:1px 6px;border-radius:3px;">.env.example</code> 檔案——列出所有需要的環境變數名稱，但不填入實際值。這個檔案可以進 git，讓其他人或未來的自己知道需要設定哪些金鑰。</p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">BASH</span>
+        <span class="code-block-label">.env.example（可以進 git 的範本）</span>
+      </div>
+      <pre><span class="code-comment"># 複製這個檔案為 .env，填入你的實際金鑰</span>
+ANTHROPIC_API_KEY=your_key_here
+PORT=<span class="code-num">3000</span></pre>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <div class="mini-prac" data-mp="ch5-4-mp2">
+    <div class="mini-prac-head">
+      <span class="mini-prac-eyebrow">迷你練習 2</span>
+      <span class="mini-prac-time">約 10 分鐘</span>
+    </div>
+    <div class="mini-prac-title">寫一份「我的 API 金鑰 .gitignore 檢查表」</div>
+    <p class="mini-prac-intro">API key 外洩是新手最常見、也最貴的一課（OpenAI 金鑰外洩幾小時就可能燒掉幾千 USD）。練一次防呆清單。</p>
+    <div class="mini-prac-steps">
+      <div class="mini-prac-step"><span class="mini-prac-step-num">1</span><span>在你的專案根目錄建立 .env 檔案，放一個假的 OPENAI_API_KEY=sk-test123</span></div>
+      <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span>建立 .gitignore，加入 .env、node_modules、.DS_Store 三行</span></div>
+      <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>git status 確認 .env 沒出現在追蹤清單</span></div>
+      <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span>寫下「下次建新專案前必做的 3 件事」自己的 SOP</span></div>
+    </div>
+    <details class="prac-sample" open>
+      <summary class="ps-head">
+        <span class="ps-eyebrow">範本素材</span>
+        <span class="ps-hint">用這段「差點外洩」的情境請 AI 產完整 SOP，再客製成你的版本</span>
+      </summary>
+      <div class="ps-block">
+        <div class="ps-label">原始素材 · 某學員的真實差錯情境（約 230 字）<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
+        <div class="ps-material">情境：
+- 新建了一個 Node.js 後端專案 my-ai-proxy
+- 建了 .env，寫 OPENAI_API_KEY=sk-proj-9f3a...
+- 忙著 debug，直接 git add . + git commit -m "初版" + git push origin main
+- 10 分鐘後收到 OpenAI 通知：有異常的大量請求
+- 才發現 .env 被推上公開 repo
+
+想預防下一次，需要一份：
+- 新專案開工前必做的 3 件事清單
+- .env 不小心被推上去的 5 分鐘急救流程
+- 一份可以通用、貼在每個新專案 README 最上面的警語</div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-label">範例 Prompt · API key 安全 SOP<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
+        <div class="ps-prompt">你是資深資訊安全顧問，面對的是不熟 git 但需要使用各種 API key 的全端新手（課程講師、獨立開發者）。
+溝通風格：嚴格、指令導向，不用「建議」「或許」這類模糊詞；所有指令都要能直接複製貼上。
+任務：根據下方情境，產出三份可直接貼進工具書的文件，讓使用者下次建新專案時照 SOP 走就不會外洩 key。
+步驟：
+1. 新專案開工前必做 SOP：
+   - 列 3 項，順序不可亂（第一項必須是建 .gitignore，不是 git init）
+   - 每項一行指令 + 一句目的
+2. 金鑰外洩 5 分鐘急救流程：
+   - 3-5 步，時間順序
+   - 第一步必須是「revoke key」，不是處理 git（因為 git 無論怎麼處理，那把 key 的流量都已經發生）
+   - 每步寫明「要在哪個平台哪個頁面操作」
+   - 最後一步必須是「產新 key 並更新 .env」
+3. 專案 README 警語區塊：
+   - 3-5 行 Markdown
+   - 要有明顯的警示標題（例如 `## 安全警告`）
+   - 寫清楚「哪些檔案絕對不推」、「看到別人的 repo 有 .env 怎麼辦」
+輸出限制：
+- 所有步驟要具體可執行，不寫「注意安全」「小心 key 保管」這種口號
+- 指令要能直接複製（例 `git rm --cached .env`、`git filter-repo`）
+- 必須提醒「刪檔再 commit」為何不夠（git 歷史還在）
+- 不用 emoji、不用粗體裝飾、用 Markdown 標題分段
+
+---
+【任務素材】
+原始素材（貼在這一行下方）：
+
+<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>## 開工 SOP（順序不可亂）<br>1. `echo -e ".env\nnode_modules/\n.DS_Store" &gt; .gitignore`  # 先建 .gitignore 再 init<br>2. `git init &amp;&amp; git add .gitignore &amp;&amp; git commit -m "chore: init with gitignore"`  # 先把 ignore 規則入庫<br>3. 建 .env.example（列出欄位、不填值）→ `git add .env.example`  # 確認 .env 真的被忽略<br><br>## 金鑰外洩 5 分鐘急救<br>1. 立刻到 OpenAI dashboard（platform.openai.com/api-keys）revoke 外洩那把 key——先斷流量再說<br>2. 檢查帳單頁面（Usage）看是否已有異常請求、金額<br>3. `git rm --cached .env &amp;&amp; git commit -m "chore: untrack .env"`  # 從未來追蹤移除<br>4. 歷史清除：`git filter-repo --path .env --invert-paths`  # 或整個砍 repo 重推<br>5. 產新 key、更新本地 .env、部署平台 env var 也要換<br><br>## README 安全警告區塊<br>```<br>## 安全警告<br>- 此 repo 不含任何 API key，所有金鑰放在 .env（已加入 .gitignore）<br>- 若看到任何 commit 包含 .env 內容，請立即通報 issue 並 rotate 所有金鑰<br>- 刪檔再 commit 不等於清除——git 歷史永遠保留，需用 git filter-repo 才真正移除<br>```<br><br><strong>對照重點</strong><br>1. 急救第一步必須是 revoke key，不是處理 git——因為 key 從外洩那一秒開始就持續在被掃<br>2. `git rm --cached` 只是停止追蹤，歷史紀錄仍保留；要真正清歷史要用 git filter-repo 或 BFG<br>3. 部署平台（Railway / Render / Vercel）的 env var 面板也要換，很多人只換了本地 .env 就以為解決了</div>
+      </div>
+    </details>
+    <div class="mini-prac-output">
+      <div class="mini-prac-output-label">成果產出</div>
+      <div class="mini-prac-output-text">一份「.env 安全 SOP」筆記：包含 .gitignore 必加行、本地 vs 部署環境的 key 管理方式。</div>
+    </div>
+    <div class="mini-prac-check">
+      <span class="mini-prac-check-label">自我檢核</span>
+      <label><input type="checkbox"><span>git status 確認 .env 確實沒被追蹤</span></label>
+      <label><input type="checkbox"><span>知道 Railway/Render 的 env variables 面板在哪</span></label>
+      <label><input type="checkbox"><span>能說出「萬一不小心推上去」的處理步驟（rotate key）</span></label>
+    </div>
+    <div class="case-rubric" style="margin-top:16px">
+      <div class="cr-eyebrow">RUBRIC · 自評檢核（4 點全勾才算過關）</div>
+      <ul class="cr-list">
+        <li><input type="checkbox" data-cr="ch5-4-mp2-r1" id="cr-ch5-4-mp2-r1"><label for="cr-ch5-4-mp2-r1">我有實際建出 .env（含假 key）+ .gitignore（含 .env／node_modules／.DS_Store 三行），且 git status 確認 .env 沒在追蹤清單上</label></li>
+        <li><input type="checkbox" data-cr="ch5-4-mp2-r2" id="cr-ch5-4-mp2-r2"><label for="cr-ch5-4-mp2-r2">我的「開工 SOP」第一項是建 .gitignore（不是 git init），順序明確、3 步以內、每步都有可複製的指令</label></li>
+        <li><input type="checkbox" data-cr="ch5-4-mp2-r3" id="cr-ch5-4-mp2-r3"><label for="cr-ch5-4-mp2-r3">我的急救流程第一步是 revoke key（不是 git rm），且能說明「為何刪檔再 commit 不夠」（git 歷史還在，要 git filter-repo）</label></li>
+        <li><input type="checkbox" data-cr="ch5-4-mp2-r4" id="cr-ch5-4-mp2-r4"><label for="cr-ch5-4-mp2-r4">我有把這份 SOP 存成個人模板，下次新專案能 5 分鐘內套上去（不用重想規則）</label></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="inline-reflection" data-rk="ch5-4-r1">
+    <div class="ir-eyebrow">REFLECTION · 你的答案</div>
+    <div class="ir-question">你的 AI 工具想做哪個功能需要後端（需要呼叫外部 API、保護金鑰、或存取資料庫）？還是它其實可以純前端就搞定？說明你的判斷依據。</div>
+    <textarea class="ir-input" placeholder="寫下你的觀察，60 字以內…"></textarea>
+    <div class="ir-foot">
+      <span class="ir-saved" hidden></span>
+      <button class="ir-export">匯出我的反思 .md</button>
+    </div>
+  </div>
+
+  <!-- Section 3 -->
+  <section class="lesson-section reveal" id="s3">
+    <div class="section-eyebrow">(03) · Minimal Backend</div>
+    <h2 class="section-heading">後端最小架構：<br>一個 <em>/api/ask 代理端點</em></h2>
+    <p class="body-text">你不需要學完整的後端開發。這節課的目標是一個「最薄的後端」——只做一件事：接收前端傳來的問題，用金鑰呼叫 AI API，把回應傳回去。</p>
+
+    <div class="arch-diagram">
+      <div class="arch-row">
+        <div class="arch-box browser">
+          <div>瀏覽器</div>
+          <div class="arch-label">使用者操作的前端頁面</div>
+        </div>
+        <div class="arch-arrow"><span aria-hidden="true">→</span> POST /api/ask <span aria-hidden="true">→</span></div>
+        <div class="arch-box backend">
+          <div>你的後端</div>
+          <div class="arch-label">Railway / Render 上的伺服器</div>
+        </div>
+        <div class="arch-arrow"><span aria-hidden="true">→</span> API call（含金鑰）<span aria-hidden="true">→</span></div>
+        <div class="arch-box api">
+          <div>AI API</div>
+          <div class="arch-label">Anthropic / OpenAI</div>
+        </div>
+      </div>
+      <div class="arch-note">金鑰只存在後端伺服器裡，<strong>瀏覽器永遠看不到它</strong>。前端只知道後端的網址，不知道 API 金鑰是什麼。</div>
+    </div>
+
+    <p class="body-text">以下是 Node.js（Express）版本的最小後端，只有一個路由：</p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">JAVASCRIPT</span>
+        <span class="code-block-label">server.js — Node.js 最小後端</span>
+      </div>
+      <pre><span class="code-keyword">const</span> express = require(<span class="code-str">'express'</span>);
+<span class="code-keyword">const</span> Anthropic = require(<span class="code-str">'@anthropic-ai/sdk'</span>);
+require(<span class="code-str">'dotenv'</span>).config();
+
+<span class="code-keyword">const</span> app = express();
+app.use(express.json());
+app.use(express.static(<span class="code-str">'public'</span>)); <span class="code-comment">// 前端 HTML 放在 public/ 目錄</span>
+
+<span class="code-keyword">const</span> client = <span class="code-keyword">new</span> Anthropic(); <span class="code-comment">// 自動讀取 ANTHROPIC_API_KEY 環境變數</span>
+
+app.post(<span class="code-str">'/api/ask'</span>, <span class="code-keyword">async</span> (req, res) => {
+  <span class="code-keyword">const</span> { prompt } = req.body;
+  <span class="code-keyword">if</span> (!prompt) <span class="code-keyword">return</span> res.status(<span class="code-num">400</span>).json({ error: <span class="code-str">'需要 prompt'</span> });
+
+  <span class="code-keyword">try</span> {
+    <span class="code-keyword">const</span> message = <span class="code-keyword">await</span> client.messages.create({
+      model: <span class="code-str">'claude-haiku-4-5-20251001'</span>,
+      max_tokens: <span class="code-num">1024</span>,
+      messages: [{ role: <span class="code-str">'user'</span>, content: prompt }]
+    });
+    res.json({ result: message.content[<span class="code-num">0</span>].text });
+  } <span class="code-keyword">catch</span> (err) {
+    res.status(<span class="code-num">500</span>).json({ error: err.message });
+  }
+});
+
+<span class="code-keyword">const</span> PORT = process.env.PORT || <span class="code-num">3000</span>;
+app.listen(PORT, () => console.log(<span class="code-str">`伺服器啟動在 port ${PORT}`</span>));</pre>
+    </div>
+
+    <p class="body-text">前端只需要用 <code style="font-family:monospace;background:rgba(107,127,163,.1);color:#4a5f8a;padding:1px 6px;border-radius:3px;">fetch</code> 呼叫這個路由，不碰任何金鑰：</p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">JAVASCRIPT</span>
+        <span class="code-block-label">前端呼叫後端代理（不含金鑰）</span>
+      </div>
+      <pre><span class="code-keyword">async function</span> askAI(prompt) {
+  <span class="code-keyword">const</span> res = <span class="code-keyword">await</span> fetch(<span class="code-str">'/api/ask'</span>, {
+    method: <span class="code-str">'POST'</span>,
+    headers: { <span class="code-str">'Content-Type'</span>: <span class="code-str">'application/json'</span> },
+    body: JSON.stringify({ prompt })
+  });
+  <span class="code-keyword">const</span> data = <span class="code-keyword">await</span> res.json();
+  <span class="code-keyword">return</span> data.result;
+}</pre>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon" aria-hidden="true">💡</div>
+      <div class="callout-body"><strong>Python 版本（Flask）：</strong>如果你更熟悉 Python，用 Flask 做同樣的事只需要約 20 行。核心邏輯完全相同：讀取 <code>os.environ["ANTHROPIC_API_KEY"]</code>，建立一個 POST 路由，呼叫 API 後回傳結果。選 Node.js 還是 Python 不重要，架構概念一樣。</div>
+    </div>
+
+    <p class="body-text">在本機測試的步驟：</p>
+
+    <div class="step-list">
+      <div class="step-item">
+        <div class="step-num">01</div>
+        <div class="step-body">
+          <strong>安裝依賴套件</strong><br>
+          <code>npm install express @anthropic-ai/sdk dotenv</code>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">02</div>
+        <div class="step-body">
+          <strong>建立 .env 並填入金鑰</strong><br>
+          <code>ANTHROPIC_API_KEY=sk-ant-...</code>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">03</div>
+        <div class="step-body">
+          <strong>啟動本機伺服器</strong><br>
+          <code>node server.js</code>，瀏覽器開 <code>http://localhost:3000</code> 測試
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">04</div>
+        <div class="step-body">
+          <strong>確認 .gitignore 排除 .env</strong><br>
+          執行 <code>git status</code>，確認 .env 沒有出現在追蹤清單裡
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <!-- Section 4 -->
+  <section class="lesson-section reveal" id="s4">
+    <div class="section-eyebrow">(04) · Deploy</div>
+    <h2 class="section-heading">部署到 Railway / Render：<br>從 <em>GitHub 到公開網址</em></h2>
+    <p class="body-text">Railway 和 Render 都能直接連接你的 GitHub repo，偵測到是 Node.js 或 Python 專案後自動安裝套件並啟動。主要差異是 Railway 啟動更快、免費額度按用量計算；Render 免費方案固定，但閒置後第一次請求會有冷啟動延遲。兩個都適合這節課的練習。</p>
+
+    <div class="deploy-flow">
+      <div class="deploy-step">
+        <div class="deploy-num">1</div>
+        <div class="deploy-content">
+          <div class="deploy-title">確認專案結構正確</div>
+          <div class="deploy-desc">根目錄有 <code>package.json</code>（Node.js）或 <code>requirements.txt</code>（Python），啟動指令寫在 <code>package.json</code> 的 <code>scripts.start</code> 裡，如 <code>"start": "node server.js"</code>。</div>
+        </div>
+      </div>
+      <div class="deploy-step">
+        <div class="deploy-num">2</div>
+        <div class="deploy-content">
+          <div class="deploy-title">push 到 GitHub</div>
+          <div class="deploy-desc">確認 <code>.env</code> 已在 <code>.gitignore</code> 裡後，執行 <code>git add .</code> <span aria-hidden="true">→</span> <code>git commit -m "後端初版"</code> <span aria-hidden="true">→</span> <code>git push</code>。</div>
+        </div>
+      </div>
+      <div class="deploy-step">
+        <div class="deploy-num">3</div>
+        <div class="deploy-content">
+          <div class="deploy-title">在 Railway / Render 建立新服務</div>
+          <div class="deploy-desc">登入平台 <span aria-hidden="true">→</span> New Project / New Web Service <span aria-hidden="true">→</span> 選「從 GitHub 部署」<span aria-hidden="true">→</span> 授權並選擇你的 repo。平台會自動偵測語言和安裝指令。</div>
+        </div>
+      </div>
+      <div class="deploy-step">
+        <div class="deploy-num">4</div>
+        <div class="deploy-content">
+          <div class="deploy-title">設定環境變數</div>
+          <div class="deploy-desc">在平台的 Variables / Environment 頁面，手動新增 <code>ANTHROPIC_API_KEY</code>，值填入你的金鑰。這個金鑰只存在平台的加密設定裡，不在任何程式碼裡。</div>
+        </div>
+      </div>
+      <div class="deploy-step">
+        <div class="deploy-num">5</div>
+        <div class="deploy-content">
+          <div class="deploy-title">等待部署完成，取得網址</div>
+          <div class="deploy-desc">部署成功後平台會給你一個 <code>https://your-app.railway.app</code> 或 <code>https://your-app.onrender.com</code> 的網址。在瀏覽器開啟測試，功能與本機一致即完成。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">JSON</span>
+        <span class="code-block-label">package.json 最小範例</span>
+      </div>
+      <pre>{
+  <span class="code-str">"name"</span>: <span class="code-str">"my-ai-tool"</span>,
+  <span class="code-str">"version"</span>: <span class="code-str">"1.0.0"</span>,
+  <span class="code-str">"scripts"</span>: {
+    <span class="code-str">"start"</span>: <span class="code-str">"node server.js"</span>
+  },
+  <span class="code-str">"dependencies"</span>: {
+    <span class="code-str">"express"</span>: <span class="code-str">"^4.18.0"</span>,
+    <span class="code-str">"@anthropic-ai/sdk"</span>: <span class="code-str">"^0.30.0"</span>,
+    <span class="code-str">"dotenv"</span>: <span class="code-str">"^16.0.0"</span>
+  }
+}</pre>
+    </div>
+
+    <div class="callout key">
+      <div class="callout-icon" aria-hidden="true">🔑</div>
+      <div class="callout-body"><strong>後續每次更新：</strong>本機改好 <span aria-hidden="true">→</span> <code>git commit</code> <span aria-hidden="true">→</span> <code>git push</code>。Railway 和 Render 都設有 GitHub webhook，偵測到新 push 後會自動重新部署，你不需要手動操作平台。</div>
+    </div>
+
+    <p class="body-text">Part 5 到這裡，你已經能夠：讀懂前端程式碼、用 AI 協作改頁面、用 Git 保留每一步、把含後端的工具完整部署上網。下一段是 Part 5 的四個實作演練，把這些能力組合起來用在你自己的專案上。</p>
+
+    <div class="preview-grid">
+      <div class="preview-card">
+        <div class="preview-icon">🛠️</div>
+        <div>
+          <div class="preview-part">接下來 · PRAC5-1</div>
+          <div class="preview-name">單頁工具 v2 改版任務</div>
+        </div>
+      </div>
+      <div class="preview-card">
+        <div class="preview-icon">🌐</div>
+        <div>
+          <div class="preview-part">接下來 · PRAC5-2</div>
+          <div class="preview-name">靜態頁面部署到 Vercel / Netlify</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="mini-prac" data-mp="ch5-4-mp3">
+    <div class="mini-prac-head">
+      <span class="mini-prac-eyebrow">迷你練習 3</span>
+      <span class="mini-prac-time">約 15 分鐘</span>
+    </div>
+    <div class="mini-prac-title">把一個最小 Node 後端部署到 Railway 拿到公開網址</div>
+    <p class="mini-prac-intro">不是真做產品，是把「本地能跑 <span aria-hidden="true">→</span> 雲端有網址」這條路實際走一遍。下次 20 分鐘就能複製貼上。</p>
+    <div class="mini-prac-steps">
+      <div class="mini-prac-step"><span class="mini-prac-step-num">1</span><span>請 AI 產一個最小 Express 後端（一個 /api/ask 路由，回傳 hello）</span></div>
+      <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span>本地跑 npm install <span aria-hidden="true">→</span> node server.js，確認 localhost:3000/api/ask 能回應</span></div>
+      <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>推到 GitHub（記得 .gitignore）</span></div>
+      <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span>Railway 連結這個 repo，部署完取得 .up.railway.app 網址，瀏覽器打開測試</span></div>
+    </div>
+    <details class="prac-sample" open>
+      <summary class="ps-head">
+        <span class="ps-eyebrow">範本素材</span>
+        <span class="ps-hint">部署大概率會失敗一次，先用這段 log 練「讀錯誤 → 改正」再做自己的</span>
+      </summary>
+      <div class="ps-block">
+        <div class="ps-label">原始素材 · Railway 部署失敗 log（約 280 字）<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
+        <div class="ps-material">[Region: ap-southeast-1]
+[Builder: Nixpacks]
+[Build] detected Node.js
+[Build] installing dependencies...
+npm warn deprecated inflight@1.0.6: This module is not supported
+added 64 packages in 3s
+
+[Deploy] starting container...
+> my-ai-proxy@1.0.0 start
+> node server.js
+
+/app/server.js:3
+const Anthropic = require('@anthropic-ai/sdk');
+                  ^
+Error: Cannot find module '@anthropic-ai/sdk'
+Require stack:
+- /app/server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1225:15)
+
+[Crashed] container exited with code 1
+[Deploy] restarting in 30s... (attempt 2/5)
+
+Environment variables detected: PORT (auto-injected)
+Environment variables missing: ANTHROPIC_API_KEY</div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-label">範例 Prompt · 分析 Railway 部署失敗<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
+        <div class="ps-prompt">你是熟悉 Railway / Render 部署錯誤模式的後端助手，專長是把冗長的部署 log 翻成「哪一行該改」的可執行動作。
+溝通風格：不翻譯 log、不解釋 npm / nixpacks 基礎概念、直接給 diff 級別的修正指令。
+任務：分析下方部署 log，回答三件事並給 pre-flight checklist。
+步驟：
+1. 這次部署失敗的主因：
+   - 一句話，要點出錯誤類型（Cannot find module / ECONNREFUSED / build failed）
+   - 標出是「程式碼問題」「依賴問題」還是「環境問題」
+2. 本機要改什麼才能修好：
+   - 指出要改的檔案（package.json 的哪個欄位）
+   - 要跑的指令（要能直接複製，含 flag）
+   - 改完後 push 前要跑什麼驗證
+3. log 下方的警示（環境變數缺失）：
+   - 點出缺失的變數名稱
+   - 說要在 Railway 哪個頁面補上（專案 → Variables 分頁）
+   - 提醒「value 不要貼到程式碼、不要 commit」
+輸出限制：
+- 不要逐行翻譯 log（使用者只想知道結論）
+- 修正建議要能直接複製（例：`npm install @anthropic-ai/sdk --save`）
+- 明確區分「必修（不修會繼續 crash）」與「補齊（不補也能跑但功能不全）」
+- 最後給 1 句下次部署前的 pre-flight checklist，&lt; 30 字
+- 用 Markdown 編號回答
+
+---
+【任務素材】
+原始素材（貼在這一行下方）：
+
+<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>主因：package.json 沒把 @anthropic-ai/sdk 加進 dependencies，雲端安裝時找不到<br>必修：本機跑 npm install @anthropic-ai/sdk --save，再 git commit + push<br>補齊：Railway 專案 → Variables 分頁 → New Variable 加 ANTHROPIC_API_KEY<br>Pre-flight：push 前先刪本地 node_modules 再 npm install 驗證 package.json 完整。</div>
+      </div>
+    </details>
+    <div class="mini-prac-output">
+      <div class="mini-prac-output-label">成果產出</div>
+      <div class="mini-prac-output-text">一個可公開訪問的後端網址（例如 https://my-api.up.railway.app/api/ask），回傳你預設的 JSON 訊息。</div>
+    </div>
+    <div class="mini-prac-check">
+      <span class="mini-prac-check-label">自我檢核</span>
+      <label><input type="checkbox"><span>Railway log 看得懂基本訊息（build success / crash）</span></label>
+      <label><input type="checkbox"><span>知道改 code 後怎麼觸發重新部署</span></label>
+      <label><input type="checkbox"><span>能說出免費額度會在什麼情況用完</span></label>
+    </div>
+    <div class="case-rubric" style="margin-top:16px">
+      <div class="cr-eyebrow">RUBRIC · 自評檢核（4 點全勾才算過關）</div>
+      <ul class="cr-list">
+        <li><input type="checkbox" data-cr="ch5-4-mp3-r1" id="cr-ch5-4-mp3-r1"><label for="cr-ch5-4-mp3-r1">我有拿到一個可公開訪問的 .up.railway.app 網址，瀏覽器打開 /api/ask 能看到我預設的 JSON 回應（不是 502／應用程式錯誤）</label></li>
+        <li><input type="checkbox" data-cr="ch5-4-mp3-r2" id="cr-ch5-4-mp3-r2"><label for="cr-ch5-4-mp3-r2">本地 npm install + node server.js 跑得起來、localhost:3000/api/ask 有回應（先確保本地能跑再推雲端）</label></li>
+        <li><input type="checkbox" data-cr="ch5-4-mp3-r3" id="cr-ch5-4-mp3-r3"><label for="cr-ch5-4-mp3-r3">部署過程若遇 Cannot find module／env var missing 錯誤，我能對照 Railway log 指出主因，不是「重試 5 次看會不會自己好」</label></li>
+        <li><input type="checkbox" data-cr="ch5-4-mp3-r4" id="cr-ch5-4-mp3-r4"><label for="cr-ch5-4-mp3-r4">我能說出「下次部署前 push 前該做什麼」（刪本地 node_modules 重 install 驗證 package.json 完整），且這條已寫進個人 checklist</label></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- solo-task（自我演練．三件組） -->
+  <div class="lesson-body" style="padding-top:0;padding-bottom:0">
+    <div class="peer-handoff">
+      <div class="ph-eyebrow">SOLO · 自我演練</div>
+      <div class="ph-task">把你目前工具的功能、用了哪些 API、哪邊存放 secret，列成一段簡單條列；開新對話請 LLM 扮「重視成本與資安的技術主管」，連續追問三件事：① 為什麼這個功能一定要後端？② 不上後端的最小可行方案是什麼？③ 如果客戶要正式上線，後端用什麼語言/部署在哪？哪個成本最低？——你必須給出帶數字或具名服務的回答（不能只說「會比較安全」）。</div>
+      <div class="ph-time">12 分鐘（條列 2 分 + LLM 追問 8 分 + 決策結論 2 分）</div>
+      <label class="ph-check"><input type="checkbox" data-pk="ch5-4-peer-1"><span>我已跑過 LLM 角色扮演</span></label>
+      <details style="margin-top:10px"><summary style="cursor:pointer;font-size:.78rem;color:var(--c-muted);letter-spacing:.5px">進階選配 · 不計入課程時數（給想加練的學員）</summary><div style="padding:8px 0;font-size:.82rem;line-height:1.75;color:var(--c-muted)">把 LLM 對話截圖存到學習資料夾，或貼到工作群組／社群求 review。這些痕跡在轉職投履歷時可作為作品集素材。</div></details>
+    </div>
+
+    <hr class="section-rule">
+
+    <!-- 課堂作業 · Assignment（Part 5 跨章 v4 · Part 5 收官）-->
+    <section class="lesson-section reveal" style="padding-top:0">
+      <section class="assignment" data-assignment-id="ch5-4">
+        <header class="assignment-head">
+          <span class="assignment-eyebrow">課堂即時作業 · Assignment · Part 5 跨章 v4 · 收官</span>
+          <span class="assignment-time">⏱ 核心 30 min + 進階 15 min</span>
+          <h3 class="assignment-title">為作品集 v3 加 AI Contact 助手 + 後端代理（Railway 部署）</h3>
+        </header>
+
+        <div class="assignment-context">
+          <p class="assignment-lede">Part 5 收官作業：你的作品集 v3 已上線 GitHub Pages（純前端）。今天加最後一塊：<strong>AI 互動功能 + 後端代理 + 完整部署</strong>，金鑰不外洩。</p>
+          <p class="assignment-lede" style="margin-top:14px;padding:12px 16px;background:var(--c-card);border:1px dashed var(--c-border);border-radius:var(--radius-sm);font-size:.85rem;color:var(--c-muted);line-height:1.85"><strong>v4 範例功能</strong>：訪客在 Contact 區塊問「你接哪種案子？」「報價怎麼算？」→ AI Chatbot 自動回覆（基於你寫的 FAQ 知識）。對訪客是「快速問答助手」，對你是「自動初篩潛在客戶」。</p>
+          <p class="assignment-lede" style="margin-top:14px;padding:12px 16px;background:var(--c-surface);border-left:3px solid var(--c-a1);font-size:.85rem"><strong>本作業拆解</strong>：<br>
+          • <strong>核心 30 min（必做）</strong>：判斷後端必要性 + 設計 /api/ask（5 min · mini-prac 1）+ 寫最小後端（10 min）+ 設 .env + .gitignore（5 min · mini-prac 2）+ Railway 部署（10 min）<br>
+          • <strong>進階 15 min（可選 · 二選一）</strong>：路線 A — 接 OpenAI / Claude API 真的跑出 chatbot 回覆 ｜路線 B — 寫「v4 上線後 30 天監控計畫」（CHatbot 用量 / 成本 / 異常請求）</p>
+        </div>
+
+        <div class="assignment-materials">
+          <div class="materials-label">v4 後端規格 · Materials</div>
+          <div class="material-inline"><strong>後端必要性判斷</strong>（mini-prac 1 學的）：
+
+| 場景 | 需後端嗎？ | 為什麼 |
+|------|:--------:|--------|
+| 純展示靜態頁 | ❌ | GitHub Pages 即可 |
+| 表單送 Email（無附件）| ⚠ 折衷 | Formspree / Netlify Forms 可免後端 |
+| <strong>AI Chatbot（呼叫 OpenAI API）</strong> | ✅ | <strong>API 金鑰不能放前端</strong> |
+| 跨域請求（CORS）| ✅ | 後端做 proxy |
+| 資料庫 CRUD | ✅ | 後端 + DB |
+
+<strong>v4 為何需要後端</strong>：你的 chatbot 要呼叫 OpenAI API，金鑰若放前端 → 任何人 view source 看到 → 1 小時內被刷爆（真實案例：某 indie hacker 過夜被刷 $500）。
+
+<strong>最小後端架構</strong>（Node.js 範例）：
+
+```javascript
+// server.js (約 30 行)
+const express = require('express');
+const OpenAI = require('openai');
+const app = express();
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+app.use(express.json());
+
+app.post('/api/ask', async (req, res) => {
+  const { question } = req.body;
+  // 簡易 rate limit + 內容檢核
+  if (!question || question.length > 500) {
+    return res.status(400).json({ error: 'Invalid input' });
+  }
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [
+      { role: 'system', content: '你是 {{你的名字}} 的 portfolio 助手。只回答接案、報價、技能相關問題。其他主題請說「建議直接 Email」。' },
+      { role: 'user', content: question }
+    ]
+  });
+  res.json({ answer: completion.choices[0].message.content });
+});
+
+app.listen(process.env.PORT || 3000);
+```
+
+<strong>.env 範例</strong>（<strong>不可 commit</strong>）：
+
+```
+OPENAI_API_KEY=sk-proj-xxxxx
+PORT=3000
+```
+
+<strong>.gitignore 必含</strong>（mini-prac 2 學的）：
+
+```
+.env
+.env.local
+.env.*.local
+node_modules/
+.DS_Store
+.vscode/
+*.log
+```
+
+<strong>Railway 部署步驟</strong>：
+
+1. 在 Railway 建新專案 → Deploy from GitHub repo
+2. 選你的 portfolio repo
+3. Settings → Variables：加 `OPENAI_API_KEY=sk-proj-xxx`
+4. Deploy → 取得 URL：`https://my-portfolio-production.up.railway.app`
+5. 在前端 chatbot fetch 這個 URL：`fetch('https://...railway.app/api/ask', {...})`</div>
+        </div>
+
+        <div class="assignment-tasks-label">交付清單 · Tasks</div>
+        <ol class="assignment-tasks">
+          <li><strong>核心 1：判斷後端必要性 + 設計 /api/ask 規格</strong>（5 min · mini-prac 1）— 確認 v4 chatbot 必須走後端（金鑰保護）+ 設計 endpoint：input schema / output schema / rate limit / 拒絕策略</li>
+          <li><strong>核心 2：用 AI 寫最小後端</strong>（10 min）— 給 ChatGPT/Claude 上方範例 prompt，產出 server.js + package.json。<strong>不必自己寫 code</strong>，但要看懂每段做什麼</li>
+          <li><strong>核心 3：設 .env + .gitignore</strong>（5 min · mini-prac 2）— 建 .env 放金鑰、.gitignore 加 .env、git status 驗證 .env 沒被 stage</li>
+          <li><strong>核心 4：Railway 部署</strong>（10 min）— 推到 GitHub → Railway 連 repo → 設 OPENAI_API_KEY 環境變數 → 拿 URL → curl 測試 /api/ask 能跑</li>
+          <li><strong>進階路線 A</strong>：把後端 URL 接到前端 contact 區塊（fetch + 顯示 chatbot UI），實際與 chatbot 對話 3 輪</li>
+          <li><strong>進階路線 B</strong>：寫「v4 上線後 30 天監控計畫」— chatbot 月用量預估、成本上限（如 $20/月）、異常請求偵測（單 IP &gt; 100 次/小時 = 攻擊？）、自動斷線機制</li>
+        </ol>
+
+        <div class="assignment-rubric">
+          <div class="rubric-label">評分標準 · Rubric（基本 4 條）</div>
+          <ul>
+            <li><strong>後端必要性說明清楚</strong>：能解釋「為什麼 chatbot 一定要後端」（金鑰保護不是「比較安全」這種模糊理由）</li>
+            <li><strong>.env 確實未進 git</strong>：`git status` 看不到 .env 檔（gitignore 生效）</li>
+            <li><strong>Railway URL 真的能跑</strong>：curl POST `/api/ask` 收到 JSON 回應</li>
+            <li><strong>有 rate limit + 拒絕策略</strong>：input length 限制、不接受 system prompt 注入、超出 portfolio 主題會婉拒</li>
+          </ul>
+        </div>
+
+        <details class="assignment-answer">
+          <summary>📖 展開參考解答</summary>
+          <div class="answer-body"><strong>核心 1 · /api/ask 規格</strong>
+
+```
+POST /api/ask
+Content-Type: application/json
+
+Request:
+{
+  "question": "你接哪種案子？"  // string, 1-500 字
+}
+
+Response (200):
+{
+  "answer": "我主要接..."
+}
+
+Response (400):
+{
+  "error": "Invalid input"  // 空 question 或 > 500 字
+}
+
+Response (429):
+{
+  "error": "Too many requests"  // rate limit
+}
+
+Rate limit: 10 req / IP / 分鐘
+拒絕策略: System prompt 限定主題（接案、報價、技能），其他婉拒
+```
+
+<strong>核心 2 · server.js（AI 產出 + 你看懂）</strong>
+
+要看懂：
+- `process.env.OPENAI_API_KEY` ：從環境變數讀，不寫死在 code
+- System prompt 限定主題（防被當免費 GPT 用）
+- input length 檢查（防大量 token 攻擊）
+- 沒寫 rate limit ← <strong>AI 通常會漏，你要主動補（可用 express-rate-limit 套件）</strong>
+
+<strong>核心 3 · .env + .gitignore 驗證</strong>
+
+```bash
+# 建 .env
+echo "OPENAI_API_KEY=sk-proj-xxx" > .env
+
+# 建 .gitignore
+cat > .gitignore &lt;&lt;EOF
+.env
+.env.local
+node_modules/
+.DS_Store
+EOF
+
+# 驗證 .env 沒被追蹤
+git status  # 應該只看到 .gitignore 和 server.js，不能看到 .env
+```
+
+<strong>核心 4 · Railway 部署 + 測試</strong>
+
+```bash
+# 部署後拿到 URL
+URL="https://my-portfolio-production.up.railway.app"
+
+# 測試
+curl -X POST $URL/api/ask \
+  -H "Content-Type: application/json" \
+  -d '{"question":"你接哪種案子？"}'
+
+# 預期：
+# {"answer":"我主要接 SaaS 行銷顧問與內容運營..."}
+```
+
+<strong>進階路線 B · 30 天監控計畫範例</strong>
+
+| 指標 | 預估 / 上限 | 偵測方式 | 對策 |
+|------|-----------|---------|------|
+| 月 chatbot 請求數 | 500-2000 / 月 | Railway dashboard | &gt; 5000 = 異常，啟動 alert |
+| 月 OpenAI 成本 | < $5 / 月（gpt-4o-mini）| OpenAI dashboard | 設 hard limit $20 |
+| 單 IP 請求頻率 | 10 / 分鐘 | express-rate-limit | 自動 429 |
+| 非主題詢問比例 | < 10% | log analysis | 調整 system prompt |
+| 平均回應時間 | < 3 秒 | Railway metrics | 優化或換 model |
+
+<strong>常見錯誤（5 條）</strong>
+
+1. <strong>金鑰寫在前端 JS</strong>：view source 立即洩漏，1 小時內被刷爆
+2. <strong>.env 沒進 .gitignore</strong>：push 到 GitHub 公開後金鑰立即洩漏（GitHub 會自動掃 + email 警告，但已晚）
+3. <strong>沒設 rate limit</strong>：被惡意刷會帳單爆掉（OpenAI 每 1M token gpt-4o-mini ~$0.15，被刷 100M token = $15，一晚就 $300+）
+4. <strong>System prompt 沒限定主題</strong>：訪客把 chatbot 當 ChatGPT 免費版用，要它寫程式
+5. <strong>沒測試 curl 就交</strong>：以為 deploy 成功 = 能跑，常見缺環境變數會回 500</div>
+        </details>
+
+        <div class="assignment-variants">
+          <div class="variants-label">想再練？變體版本</div>
+          <ul>
+            <li><strong>變體</strong>：把 chatbot 升級為「<strong>結構化諮詢漏斗</strong>」 — 訪客回答 3 個問題（預算 / 時程 / 範圍），AI 自動評估是否適合接、適合的話寄 calendar invite 給你。挑戰：跨多步驟對話狀態管理。</li>
+          </ul>
+        </div>
+      </section>
+    </section>
+  </div>
+  <!-- /solo-task -->
+
+</main>
+
+<nav class="lesson-nav">
+  <a class="nav-btn" href="CH5-3.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    <div>
+      <div class="nav-btn-label">上一節</div>
+      <div class="nav-btn-title">CH5-3 Git 與版本保存</div>
+    </div>
+  </a>
+  <a class="nav-btn next" href="../../../index.html">
+    <div>
+      <div class="nav-btn-label">返回</div>
+      <div class="nav-btn-title">課程總覽</div>
+    </div>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+  </a>
+</nav>
+
+<footer class="footer" data-platform-version="2026-04-v3" data-built-at="2026-05-28">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">生成式AI職訓實務應用班 · Part 5 前端與部署實戰</div>
+</footer>
+
+<script>
+// 閱讀進度條
+const prog = document.getElementById('prog');
+window.addEventListener('scroll', () => {
+  const st = window.scrollY;
+  const dh = document.documentElement.scrollHeight - window.innerHeight;
+  prog.style.width = (dh > 0 ? (st / dh) * 100 : 0) + '%';
+});
+
+// Reveal on scroll
+const revealEls = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+}, { threshold: 0.08 });
+revealEls.forEach(el => io.observe(el));
+
+// 側邊章節導航
+const sdots = document.getElementById('sdots');
+const sections = ['sec-guided','s1','s2','s3','s4'].map(id => document.getElementById(id));
+const dotBtns = document.querySelectorAll('.sdot');
+const sio = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      dotBtns.forEach(d => d.classList.remove('active'));
+      const idx = sections.indexOf(e.target);
+      if (idx >= 0) dotBtns[idx].classList.add('active');
+    }
+  });
+}, { threshold: 0.4 });
+sections.forEach(s => s && sio.observe(s));
+window.addEventListener('scroll', () => {
+  sdots.classList.toggle('visible', window.scrollY > 200);
+});
+dotBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const sec = document.getElementById(btn.dataset.sec);
+    if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+</script>
+
+<script>
+// 迷你練習 + 帶走清單 checkbox 狀態持久化（[data-mp] 通用）
+(function(){
+  document.querySelectorAll('[data-mp]').forEach(function(mp){
+    var id=mp.dataset.mp;if(!id)return;
+    mp.querySelectorAll('input[type="checkbox"]').forEach(function(cb,i){
+      var k='mp:'+id+':'+i;
+      if(localStorage.getItem(k)==='1')cb.checked=true;
+      cb.addEventListener('change',function(){localStorage.setItem(k,cb.checked?'1':'0');});
+    });
+  });
+})();
+
+// 閱讀進度持久化（localStorage）— 2026-04-16 UI refresh
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+<script src="../_assets/prac-sample.js" defer></script>
+<script src="../_assets/interactivity-v1.js"></script>
+<!-- reveal-fallback v1 -->
+<script>setTimeout(function(){document.querySelectorAll('.reveal:not(.in),.section-rule:not(.in)').forEach(function(el){el.classList.add('in')})},1500);</script>
+
+</body>
+</html>

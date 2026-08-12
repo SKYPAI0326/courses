@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH6-2 Embedding 與向量搜尋基礎｜生成式AI職訓實務應用班</title>
+<meta name="description" content="搜尋「貓」找到「寵物」，這件事用關鍵字搜尋做不到，但向量搜尋可以。理解 Embedding 是理解 RAG 的前提，而 RAG 是讓 AI 「讀你的文件」最常用的技術。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="CH6-2 Embedding 與向量搜尋基礎｜生成式AI職訓實務應用班">
+<meta property="og:description" content="搜尋「貓」找到「寵物」，這件事用關鍵字搜尋做不到，但向量搜尋可以。理解 Embedding 是理解 RAG 的前提，而 RAG 是讓 AI 「讀你的文件」最常用的技術。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/gen-ai-140h/part6/CH6-2.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CH6-2 Embedding 與向量搜尋基礎｜生成式AI職訓實務應用班">
+<meta name="twitter:description" content="搜尋「貓」找到「寵物」，這件事用關鍵字搜尋做不到，但向量搜尋可以。理解 Embedding 是理解 RAG 的前提，而 RAG 是讓 AI 「讀你的文件」最常用的技術。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/gen-ai-140h/part6/CH6-2.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-a1:#6b7fa3;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-accent:#5a7a5a;--radius:4px;--radius-sm:3px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;word-break:break-word;overflow-wrap:break-word;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}.topbar-sub{font-size:.8rem;color:var(--c-muted)}.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-accent);border:1px solid rgba(90,122,90,.3);background:rgba(90,122,90,.07);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}.progress-fill{height:100%;background:var(--c-accent);width:0%;transition:width .1s;opacity:.75}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px}.back-link:hover{color:var(--c-accent)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.hero-part{font-size:.73rem;color:var(--c-muted);letter-spacing:.08em;font-weight:500;font-variant-numeric:tabular-nums}.hero-divider-v{width:1px;height:14px;background:var(--c-border)}
+.hero-num{font-size:.73rem;color:var(--c-accent);letter-spacing:1px;font-weight:500}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em}
+.lesson-tagline{font-size:1rem;color:var(--c-muted);line-height:1.9;max-width:38em;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:8px;padding:20px 0;border-top:1px solid var(--c-border-soft);border-bottom:1px solid var(--c-border-soft)}
+.outcomes-label{font-family:'Shippori Mincho',serif;font-style:italic;font-size:.78rem;color:var(--c-muted);letter-spacing:.03em;margin-bottom:2px}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.9rem}.outcome-dot{width:12px;height:1px;background:var(--c-faint);margin-top:14px;flex-shrink:0}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px}
+.lesson-section{margin-bottom:64px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-heading em{font-style:normal;color:var(--c-text)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.95;margin-bottom:20px}.body-text strong{font-weight:700}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:64px 0}
+.big-quote{font-family:'Shippori Mincho',serif;font-size:1.2rem;font-weight:700;line-height:1.65;color:var(--c-text);padding:28px 32px;background:var(--c-card);border:1px solid var(--c-border);border-left:4px solid var(--c-accent);border-radius:var(--radius);margin:28px 0}
+.big-quote span{color:var(--c-accent)}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+
+
+
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px}
+.callout-body{font-size:.9rem;line-height:1.8;color:var(--c-text)}.callout-body strong{font-weight:700}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0}
+.compare-card{padding:24px 26px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.compare-card.h{border-color:rgba(90,122,90,.4);background:rgba(90,122,90,.04)}
+.compare-label{font-size:.7rem;font-weight:500;letter-spacing:1px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--c-border);color:var(--c-muted)}
+.compare-card.h .compare-label{color:var(--c-accent)}
+.compare-item{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;color:var(--c-text);margin-bottom:10px;line-height:1.6}
+.compare-dot{width:4px;height:4px;border-radius:50%;background:var(--c-muted);margin-top:9px;flex-shrink:0}
+.compare-card.h .compare-dot{background:var(--c-accent)}
+.flow-steps{display:flex;flex-direction:column;gap:12px;margin:28px 0}
+.flow-step{display:flex;gap:16px;align-items:flex-start;padding:16px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.flow-num{width:28px;height:28px;border-radius:50%;background:var(--c-accent);color:#fff;font-size:.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.flow-content{flex:1}
+.flow-title{font-size:.9rem;font-weight:700;color:var(--c-text);margin-bottom:4px}
+.flow-desc{font-size:.85rem;color:var(--c-muted);line-height:1.7}
+.db-table{width:100%;border-collapse:collapse;margin:28px 0;font-size:.85rem}
+.db-table thead tr{background:var(--c-surface)}
+.db-table th{text-align:left;padding:12px 14px;font-size:.73rem;color:var(--c-muted);letter-spacing:1px;border-bottom:1px solid var(--c-border)}
+.db-table td{padding:12px 14px;border-bottom:1px solid var(--c-border);line-height:1.65;vertical-align:top}
+.db-table tr:last-child td{border-bottom:none}
+.decision-box{padding:24px 28px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);margin:28px 0}
+.decision-title{font-size:.78rem;font-weight:700;color:var(--c-accent);letter-spacing:1px;margin-bottom:16px}
+.decision-row{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--c-border);font-size:.85rem}
+.decision-row:last-child{border-bottom:none}
+.decision-cond{color:var(--c-accent);font-weight:700;flex-shrink:0;min-width:100px}
+.decision-action{color:var(--c-text)}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1}
+.nav-btn:hover{border-color:var(--c-accent)}.nav-btn.next{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px}.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}.footer-note{font-size:.75rem;color:var(--c-muted)}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1)}.reveal.in{opacity:1;transform:translateY(0)}
+.section-rule{transform-origin:left center;opacity:0;transition:opacity .4s ease,transform .6s;transform:scaleX(.3)}.section-rule.in{opacity:1;transform:scaleX(1)}
+@media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important}*{animation:none!important}}
+@media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero{padding:56px 32px 40px}.lesson-body{padding:0 32px 80px}.lesson-nav{padding:0 32px 80px}}
+@media(max-width:768px){.topbar{padding:0 16px;.lesson-tagline{max-width:100%}}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:40px 20px 36px}.lesson-title{font-size:1.45rem}.lesson-body{padding:0 20px 60px}.lesson-nav{padding:0 20px 60px;flex-direction:column}.nav-btn{flex:none}.compare-grid{grid-template-columns:1fr}.footer{padding:20px}}
+
+/* 側邊章節導航 */
+.section-dots{position:fixed;left:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:40;opacity:0;transition:opacity .4s ease}
+.section-dots.visible{opacity:1}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--c-border);cursor:pointer;transition:background .3s ease,transform .3s ease;border:none;padding:0}
+.sdot.active{background:var(--c-a1);transform:scale(1.5)}
+@media(max-width:1100px){.section-dots{display:none}}
+
+/* 迷你練習組件 · mini-practice */
+.mini-prac{background:#fafaf5;border:1px solid var(--c-border);border-left:3px solid var(--c-a2);border-radius:var(--radius);padding:28px 30px;margin:32px 0}
+.mini-prac-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px;flex-wrap:wrap}
+.mini-prac-eyebrow{font-size:.68rem;letter-spacing:2px;color:var(--c-a2);font-weight:500;text-transform:uppercase}
+.mini-prac-time{font-size:.7rem;color:var(--c-muted);border:1px solid var(--c-border);padding:2px 10px;border-radius:99px;background:var(--c-card)}
+.mini-prac-title{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin-bottom:10px;line-height:1.5}
+.mini-prac-intro{font-size:.85rem;color:var(--c-muted);line-height:1.85;margin-bottom:18px}
+.mini-prac-steps{display:flex;flex-direction:column;gap:12px;margin-bottom:18px}
+.mini-prac-step{display:flex;gap:12px;align-items:flex-start;font-size:.85rem;line-height:1.8;color:var(--c-text)}
+.mini-prac-step-num{width:22px;height:22px;border-radius:50%;background:rgba(201,150,58,.12);color:var(--c-a2);font-size:.73rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;font-family:'Shippori Mincho',serif}
+.mini-prac-output{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:16px}
+.mini-prac-output-label{font-size:.68rem;color:var(--c-a2);letter-spacing:1px;font-weight:500;margin-bottom:6px}
+.mini-prac-output-text{font-size:.85rem;color:var(--c-text);line-height:1.75}
+.mini-prac-check{display:flex;flex-direction:column;gap:8px;padding-top:16px;border-top:1px dashed var(--c-border)}
+.mini-prac-check-label{font-size:.7rem;color:var(--c-muted);letter-spacing:1px;margin-bottom:4px;font-weight:500}
+.mini-prac-check label{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;line-height:1.7;color:var(--c-text);cursor:pointer}
+.mini-prac-check input{margin-top:5px;accent-color:var(--c-a2);flex-shrink:0;cursor:pointer}
+.mini-prac-check input:checked ~ span{color:var(--c-muted);text-decoration:line-through}
+
+/* 演練範本 · prac-sample */
+
+/* a11y: focus-visible ring */
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 16px}.table-scroll>table{min-width:100%}</style>
+<link rel="stylesheet" href="../_assets/prac-sample.css">
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='gen140_auth',H='34810b0ecfa2dab0a29120fc3ff1f867aec23bc5f23a184b8c6c3c7d3a550400';if(localStorage.getItem(K)==='1')sessionStorage.setItem(K,'1');if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">生成式AI職訓實務應用班</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH 6.2 · Part 6</div>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+<nav class="section-dots" id="sectionDots" aria-label="章節導航"></nav>
+
+<div class="lesson-hero" id="main">
+  <a class="back-link" href="../index.html"><span aria-hidden="true">←</span> 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">Part 6 · AI 應用開發進階</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 6.2 · 3 小時</span>
+  </div>
+  <h1 class="lesson-title">Embedding 與<em>向量搜尋</em>基礎</h1>
+  <p class="lesson-tagline">搜尋「貓」找到「寵物」，這件事用關鍵字搜尋做不到，但向量搜尋可以。理解 Embedding 是理解 RAG 的前提，而 RAG 是讓 AI 「讀你的文件」最常用的技術。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果 · OUTCOMES</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能解釋語義搜尋與關鍵字搜尋的根本差異</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>理解 Embedding 的直覺概念：把文字變成方向（不需要數學）</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>知道向量資料庫的角色和主流選項</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>能判斷什麼情況用 RAG，什麼情況用長 context 模型更簡單</div>
+  </div>
+</div>
+
+<main class="lesson-body">
+
+  <section class="lesson-section reveal" id="guided-path">
+    <div class="section-eyebrow">GUIDED PATH · 照著做</div>
+    <h2 class="section-heading">先做一張<em>向量搜尋流程卡</em></h2>
+    <p class="body-text">這段只做一件事：把「文字變向量、向量比距離、拿回命中段落」畫成可檢查流程，先知道搜尋到底在哪一步失準。</p>
+    <p class="body-text"><strong>最低完成線：</strong>交出 1 張向量搜尋流程卡，含 top-3 命中、分數、門檻判斷與一句品質結論。RAG / 長 context 選型屬第二層任務。</p>
+
+    <div class="mini-prac" data-mp="ch6-2-guided">
+      <div class="mini-prac-head">
+        <span class="mini-prac-eyebrow">最小可見結果</span>
+        <span class="mini-prac-time">約 8 分鐘</span>
+      </div>
+      <div class="mini-prac-title">用 3 段文字跑一次最小語義搜尋</div>
+      <p class="mini-prac-intro">先不要急著接完整資料庫。準備 3 段短文與 1 個查詢，手動記錄「查詢向量化後命中哪一段」，建立向量搜尋的基本判讀感。</p>
+      <div class="mini-prac-steps">
+        <div class="mini-prac-step"><span class="mini-prac-step-num">1</span><span>準備 3 段短文：一段明顯相關、一段部分相關、一段無關，替每段編號 A / B / C。</span></div>
+        <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span>把 3 段文字與查詢都用同一個 embedding 模型轉向量，註記模型名稱與版本。</span></div>
+        <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>列出 top-3 命中順序與分數，標出「最相關段落」是不是排第一。</span></div>
+        <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span>把門檻寫在卡片上：低於多少分不回答、top-1 與 top-2 差距太小時要請使用者補問。</span></div>
+      </div>
+      <div class="mini-prac-output">
+        <div class="mini-prac-output-label">成果產出</div>
+        <div class="mini-prac-output-text">一張向量搜尋流程卡：資料段落、查詢、top-3 命中、分數、門檻判斷與一句品質結論。做到這裡就算本頁最低完成線。</div>
+        <textarea aria-label="你的版本" rows="4" placeholder="把你的版本寫在這裡，refresh 後仍會保留。" style="margin-top:10px;width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:inherit;font-size:.85rem;line-height:1.7;background:var(--c-card);color:var(--c-text);resize:vertical;min-height:80px"></textarea>
+      </div>
+      <div class="mini-prac-check">
+        <span class="mini-prac-check-label">結果驗證卡</span>
+        <label><input type="checkbox"><span>文件與查詢都使用同一個 embedding 模型</span></label>
+        <label><input type="checkbox"><span>top-3 結果有附分數，不只寫「找到 A」</span></label>
+        <label><input type="checkbox"><span>能說明 top-1 為什麼相關，或為什麼其實命中錯段落</span></label>
+        <label><input type="checkbox"><span>有設定一個暫定門檻，知道何時不應硬回答</span></label>
+      </div>
+    </div>
+
+    <div class="mini-prac-output">
+      <div class="mini-prac-output-label">錯誤排查卡</div>
+      <div class="mini-prac-output-text">查不到資料先確認文件是否真的已 add / upsert 進 collection；命中錯段落先看 chunk 是否混了太多主題與 metadata 是否可過濾；相似度門檻太寬時，先縮小 top_k 或提高分數門檻，避免把弱相關內容送進回答。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <section class="lesson-section reveal" id="s1">
+    <div class="section-eyebrow">(01) · Semantic vs Keyword</div>
+    <h2 class="section-heading">關鍵字搜尋 vs <em>語義搜尋</em></h2>
+    <p class="body-text">傳統搜尋是字面匹配：你輸入「機器學習」，就只找包含這三個字的文件。如果文件裡寫的是「AI 訓練」，搜尋結果裡不會有它——即使它說的是同一件事。</p>
+    <p class="body-text">語義搜尋解決這個問題。它的基礎是 Embedding：把文字轉換成數字向量，<strong>語義相近的文字在向量空間裡彼此靠近</strong>。</p>
+
+    <div class="compare-grid">
+      <div class="compare-card">
+        <div class="compare-label">關鍵字搜尋</div>
+        <div class="compare-item"><span class="compare-dot"></span>搜尋「貓」<span aria-hidden="true">→</span> 只找到含「貓」字的文件</div>
+        <div class="compare-item"><span class="compare-dot"></span>「寵物」「貓咪」「虎斑」不會出現</div>
+        <div class="compare-item"><span class="compare-dot"></span>優點：速度快、結果可預測</div>
+        <div class="compare-item"><span class="compare-dot"></span>缺點：同義詞、換說法就找不到</div>
+      </div>
+      <div class="compare-card h">
+        <div class="compare-label">語義搜尋（向量搜尋）</div>
+        <div class="compare-item"><span class="compare-dot"></span>搜尋「貓」<span aria-hidden="true">→</span> 找到所有語義相近的段落</div>
+        <div class="compare-item"><span class="compare-dot"></span>「寵物」「動物陪伴」「喵星人」都可能出現</div>
+        <div class="compare-item"><span class="compare-dot"></span>優點：理解語義，跨語言也能搜</div>
+        <div class="compare-item"><span class="compare-dot"></span>缺點：需要 Embedding 模型，速度稍慢</div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <section class="lesson-section reveal" id="s2">
+    <div class="section-eyebrow">(02) · What is Embedding</div>
+    <h2 class="section-heading">Embedding 的直覺：<br>把文字變成<em>方向</em></h2>
+    <p class="body-text">Embedding 就是把文字轉換成一串數字（向量），這串數字代表這段文字的「語義位置」。你不需要理解數學，只需要記住一個直覺：<strong>語義相近的文字，它們的向量方向也相近。</strong></p>
+
+    <div class="big-quote">想像每段文字都是宇宙中的一個星球。<span>Embedding</span> 決定每個星球的座標。語義相似的文字是相鄰星球，搜尋就是找離你最近的那幾顆。</div>
+
+    <p class="body-text">實際操作時，你需要做兩件事：</p>
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-content">
+          <div class="flow-title">把文件轉成向量（索引階段）</div>
+          <div class="flow-desc">把你的知識庫文件切成段落，用 Embedding 模型（例如 OpenAI text-embedding-3-small 或 Anthropic 的 Voyage）把每個段落轉成向量，存入向量資料庫。這個步驟只需要做一次。</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-content">
+          <div class="flow-title">把查詢問題也轉成向量（搜尋階段）</div>
+          <div class="flow-desc">使用者輸入問題時，用同一個 Embedding 模型把問題轉成向量，然後在資料庫裡找「向量最近」的幾個段落，把它們一起送給語言模型生成回答。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon" aria-hidden="true">💡</div>
+      <div class="callout-body"><strong>用來 index 和用來查詢的 Embedding 模型必須一樣。</strong>如果你用 text-embedding-3-small 建索引，查詢時也要用 text-embedding-3-small。不同模型的向量空間完全不同，混用結果會很差。</div>
+    </div>
+
+    <div class="mini-prac-output">
+      <div class="mini-prac-output-label">Level 1 / Level 2 完成線</div>
+      <div class="mini-prac-output-text"><strong>Level 1 模擬成功：</strong>用本頁內建句子與假分數表完成流程卡，能判斷哪組語義相近、哪組應低分；這已達成本頁最低完成線。<br><strong>Level 2 真實成功：</strong>才需要真的呼叫 embedding API，取得向量後用 Chroma 查出 top-3、distance / similarity 與模型名稱。模擬畫面不可當成真實 API 已接通。</div>
+    </div>
+
+    <div class="mini-prac" data-mp="ch6-2-mp1">
+      <div class="mini-prac-head">
+        <span class="mini-prac-eyebrow">迷你練習 1</span>
+        <span class="mini-prac-time">約 15 分鐘</span>
+      </div>
+      <div class="mini-prac-title">跑一次 Embedding 語義相似度實驗</div>
+      <p class="mini-prac-intro">用 OpenAI 或 Voyage 的 Embedding API 把 5 組句子轉成向量，親眼看到「意思近 <span aria-hidden="true">→</span> 距離近，意思遠 <span aria-hidden="true">→</span> 距離遠」的對應關係，建立物理直覺。</p>
+      <div class="mini-prac-steps">
+        <div class="mini-prac-step"><span class="mini-prac-step-num">1</span><span>準備 5 組句子：其中 2~3 組內部語義相近（例：「我喜歡貓」vs「我家有隻可愛喵星人」），其餘互相無關。</span></div>
+        <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span>用 text-embedding-3-small（或同等模型）把每句話轉成向量。</span></div>
+        <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>兩兩計算 cosine similarity，整理成一張對稱矩陣表。</span></div>
+        <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span>檢查：語義相近的配對 similarity 是否真的比較高？有沒有反直覺的例子？</span></div>
+      </div>
+      <details class="prac-sample" open>
+        <summary class="ps-head">
+          <span class="ps-eyebrow">範本素材</span>
+          <span class="ps-hint">懶得自己想句子？這組 5 句中英夾雜的測試集，可直接丟 Embedding API 跑相似度實驗。</span>
+        </summary>
+        <div class="ps-block">
+          <div class="ps-label">原始素材 · 5 句測試資料（3 組刻意設計的語義關係）<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
+          <div class="ps-material">編號 | 句子
+S1 | 我家養了一隻橘色虎斑貓，牠很黏人
+S2 | My orange tabby cat loves cuddles and follows me everywhere
+S3 | 拿鐵需要蒸奶泡，溫度建議控制在 60 到 65 度
+S4 | I make lattes every morning with frothed milk at 60–65°C
+S5 | 今天台北下大雨，通勤族記得帶傘
+
+預期關係：
+- S1 與 S2：同義不同語言（中英）→ similarity 應 &gt; 0.7
+- S3 與 S4：同義不同語言（中英）→ similarity 應 &gt; 0.7
+- S1 與 S3：不同主題（貓 vs 咖啡）→ similarity 應 &lt; 0.4
+- S5 與其他：完全無關 → similarity 應 &lt; 0.3</div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">範例 Prompt · Embedding 實驗腳本產生器<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
+          <div class="ps-prompt">你是一位 Python ML 工程師。請幫我產出一段最精簡的 Embedding 相似度實驗腳本。
+
+需求：
+1. 使用 OpenAI text-embedding-3-small（若沒有 API key 改用 sentence-transformers 的 paraphrase-multilingual-MiniLM-L12-v2）
+2. 把下方 5 句話全部 embed 成向量
+3. 計算 5×5 cosine similarity 矩陣，用 numpy 或 sklearn
+4. 以 pandas DataFrame 印出矩陣（index / columns 為 S1~S5）
+5. 額外印出「預期關係 vs 實際 similarity」的驗證結果：每條預期是否成立（True/False + 實際分數）
+
+輸出規範：
+- 不超過 40 行
+- 每段關鍵處加一行中文註解
+- 結尾附一段 5 行內的「觀察指引」：如果 S1-S2 相似度偏低可能是什麼原因？
+
+句子：
+[貼上上方原始素材]
+
+<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br># 1. 讀 API key 並初始化 client<br>client = OpenAI()<br># 2. 批次取得 embeddings<br>vecs = [client.embeddings.create(model='text-embedding-3-small', input=s).data[0].embedding for s in sentences]<br># 3. cosine similarity 矩陣<br>sim = cosine_similarity(np.array(vecs))<br>print(pd.DataFrame(sim, index=['S1','S2','S3','S4','S5'], columns=['S1','S2','S3','S4','S5']).round(3))<br># 典型結果：sim[S1,S2] ≈ 0.72，sim[S3,S4] ≈ 0.78，sim[S1,S3] ≈ 0.18<br># 觀察指引：若 S1-S2 偏低（&lt; 0.5），可能是模型跨語言能力不足，建議改用 text-embedding-3-large 或 voyage-multilingual-2</div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">內建 log 判讀練習<span class="ps-label-tag">只做原因 + 下一步</span></div>
+          <div class="ps-material">SUCCESS
+status: 200
+model: text-embedding-3-small
+usage: { "prompt_tokens": 42, "total_tokens": 42 }
+data[0].embedding.length: 1536
+下一步：可進入 similarity 矩陣或 Chroma top-k 查詢。
+
+ERROR
+status: 401
+message: Incorrect API key provided
+原因：API key 錯誤、過期，或環境變數沒有被程式讀到。
+下一步：檢查 .env / OPENAI_API_KEY，重開 terminal，不要把 key 貼到前端。
+
+ERROR
+status: 429
+message: Rate limit reached for embeddings
+原因：超過速率或額度限制，不是程式語法錯。
+下一步：等候後重試、降低批次量、確認 billing / usage limit。</div>
+        </div>
+      </details>
+      <div class="mini-prac-output">
+        <div class="mini-prac-output-label">成果產出</div>
+        <div class="mini-prac-output-text">5×5 similarity 矩陣截圖 + 一段觀察筆記（「最高 0.XX 是哪兩句，最低 0.XX 是哪兩句，有沒有超乎預期」）。</div>
+        <textarea aria-label="你的版本" rows="4" placeholder="把你的版本寫在這裡，refresh 後仍會保留。" style="margin-top:10px;width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:inherit;font-size:.85rem;line-height:1.7;background:var(--c-card);color:var(--c-text);resize:vertical;min-height:80px"></textarea>
+      </div>
+      <div class="mini-prac-check">
+        <span class="mini-prac-check-label">自我檢核</span>
+        <label><input type="checkbox"><span>所有句子用的是同一個 embedding 模型</span></label>
+        <label><input type="checkbox"><span>我能指出哪幾對是 AI「看懂同義」的證據</span></label>
+        <label><input type="checkbox"><span>我知道為什麼不能用不同模型的向量互比</span></label>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <section class="lesson-section reveal" id="s3">
+    <div class="section-eyebrow">(03) · Vector Databases</div>
+    <h2 class="section-heading">向量資料庫：<br><em>存哪裡、用哪個</em></h2>
+    <p class="body-text">向量資料庫專門用來儲存和查詢高維向量。你不需要了解它的內部實作，只需要知道：它很快（幾毫秒內在百萬向量裡找到最近 k 個）、它通常也支援 metadata 過濾（下節課會用到）。</p>
+
+    <div class="table-scroll"><table class="db-table">
+      <thead><tr><th>工具</th><th>適用情境</th><th>起步難度</th><th>備注</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Chroma</strong></td><td>本機開發、小型原型</td><td>低（pip install）</td><td>完全本機，無需帳號</td></tr>
+        <tr><td><strong>Supabase pgvector</strong></td><td>已用 Supabase 的專案</td><td>低（SQL 擴充）</td><td>關聯資料庫 + 向量合一</td></tr>
+        <tr><td><strong>Pinecone</strong></td><td>需要雲端託管、高可用</td><td>中（需要帳號）</td><td>有免費方案，最常被提到</td></tr>
+        <tr><td><strong>Qdrant</strong></td><td>自建或雲端都需要</td><td>中</td><td>開源，效能好，支援 Rust</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="callout info">
+      <div class="callout-icon" aria-hidden="true">ℹ️</div>
+      <div class="callout-body"><strong>初學者建議：</strong>從 Chroma 開始。它不需要任何帳號設定，一行 pip install 就能用，適合理解概念和建立原型。等你的應用需要雲端部署了，再考慮遷移到 Supabase 或 Pinecone。</div>
+    </div>
+
+    <div class="mini-prac" data-mp="ch6-2-mp2">
+      <div class="mini-prac-head">
+        <span class="mini-prac-eyebrow">迷你練習 2</span>
+        <span class="mini-prac-time">約 20 分鐘</span>
+      </div>
+      <div class="mini-prac-title">用 Chroma 建一個最小向量資料庫</div>
+      <p class="mini-prac-intro">用 Chroma 在本機建一個存有 10 段文字的向量資料庫，丟 3 個查詢進去，觀察 top-3 返回結果是否合理。</p>
+      <div class="mini-prac-steps">
+        <div class="mini-prac-step"><span class="mini-prac-step-num">1</span><span>pip install chromadb，建立一個 persistent client 與一個 collection。</span></div>
+        <div class="mini-prac-step"><span class="mini-prac-step-num">2</span><span>準備 10 段主題混合的短文（例：3 段講咖啡、3 段講狗、4 段講其他），用 add() 塞進 collection。</span></div>
+        <div class="mini-prac-step"><span class="mini-prac-step-num">3</span><span>寫 3 個查詢（例：「拿鐵怎麼泡」「我想養寵物」「無關問題」），各取 top-3 結果。</span></div>
+        <div class="mini-prac-step"><span class="mini-prac-step-num">4</span><span>評估：相關查詢有沒有抓到正確主題？無關查詢的 top-1 distance 是否明顯較高？</span></div>
+      </div>
+      <details class="prac-sample" open>
+        <summary class="ps-head">
+          <span class="ps-eyebrow">範本素材</span>
+          <span class="ps-hint">10 段短文 + 3 個查詢 + 3 個誘餌查詢，直接餵 Chroma 跑 top-3 retrieval。</span>
+        </summary>
+        <div class="ps-block">
+          <div class="ps-label">原始素材 · 10 段主題混合短文 + 6 組查詢（約 420 字）<span class="ps-label-tag">貼進 Prompt 最下方</span></div>
+          <div class="ps-material">【Collection 要 add 的 10 段文字】
+D1 拿鐵咖啡的做法：用義式濃縮搭配蒸奶泡，蒸奶溫度建議 60–65°C
+D2 手沖咖啡需要注意水溫，淺焙豆用 92°C，深焙豆用 88°C
+D3 摩卡咖啡加了巧克力醬，熱量比拿鐵高
+D4 養狗前要評估活動量，柴犬每天需要 1 小時散步
+D5 柯基犬的短腿容易造成椎間盤問題，體重控制是關鍵
+D6 貓咪普遍比狗獨立，但橘貓特別黏人
+D7 台北捷運板南線尖峰時段人潮集中在市政府站到國父紀念館
+D8 台北松山機場停車費每小時 60 元，首次半小時免費
+D9 Python 的 list comprehension 可以取代簡單的 for loop
+D10 JavaScript 的 async/await 本質是 Promise 的語法糖
+
+【6 組查詢】
+Q1 拿鐵怎麼泡（預期命中 D1、可能帶到 D2 D3）
+Q2 我想養寵物但是家裡不大（預期命中 D4 D5 D6）
+Q3 async 跟 promise 有什麼關係（預期命中 D10）
+Q4 量子電腦是什麼（誘餌題，distance 應偏高）
+Q5 機場停車多少錢（預期命中 D8）
+Q6 今天午餐吃什麼（誘餌題，無相關資料）</div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-label">範例 Prompt · Chroma 最小腳本產生器<span class="ps-label-tag">可直接貼 ChatGPT / Claude</span></div>
+          <div class="ps-prompt">你是一位熟悉 LangChain / Chroma 的 Python 工程師。請產出一段最小可執行腳本，完成以下任務。
+
+需求：
+1. 使用 chromadb.PersistentClient，路徑 ./chroma_store
+2. 建立（或取得）名為 demo 的 collection，採用 Chroma 預設 embedding function（all-MiniLM-L6-v2）
+3. 把下方 10 段文字用 collection.add() 塞入，ids 為 D1~D10
+4. 對下方 6 組查詢各跑一次 collection.query(n_results=3)，印出：
+   - 查詢編號 + 查詢文字
+   - top-3 的 id、distance（四捨五入 3 位）、前 30 字預覽
+5. 最後印出一張表：Q1~Q6 vs top-1 distance，並標記「命中」(&lt; 0.4)、「勉強相關」(0.4–0.7)、「應視為無答案」(&gt; 0.7)
+
+輸出規範：
+- 單檔 Python，含 import
+- 不超過 50 行
+- 結尾附一段 3 行內的判斷指引：「若 Q4 Q6 的 top-1 distance &lt; 0.5 代表什麼？」
+
+資料：
+[貼上上方原始素材]
+
+<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
+        </div>
+        <div class="ps-block">
+          <div class="ps-expect"><strong>預期輸出片段（供對照）</strong><br>import chromadb<br>client = chromadb.PersistentClient(path='./chroma_store')<br>col = client.get_or_create_collection('demo')<br>col.add(ids=[f'D{i+1}' for i in range(10)], documents=docs)<br>for qi, q in enumerate(queries, 1):<br>&nbsp;&nbsp;r = col.query(query_texts=[q], n_results=3)<br>&nbsp;&nbsp;print(f'Q{qi} {q}', list(zip(r["ids"][0], [round(d,3) for d in r["distances"][0]])))<br>典型結果：<br>Q1 top-1 D1 dist 0.21（命中）<br>Q3 top-1 D10 dist 0.28（命中）<br>Q4 top-1 D9 dist 0.82（應視為無答案）<br>Q6 top-1 D3 dist 0.91（誘餌題正確被識別）<br>判斷：若 Q4 Q6 dist &lt; 0.5，代表 embedding 空間對這類查詢區分度不夠，需要更高品質模型或加 threshold 過濾。</div>
+        </div>
+      </details>
+      <div class="mini-prac-output">
+        <div class="mini-prac-output-label">成果產出</div>
+        <div class="mini-prac-output-text">一份實驗筆記：查詢問題、top-3 段落、distance 分數，加上一句判斷「這個向量 DB 對我的資料堪用嗎？」</div>
+        <textarea aria-label="你的版本" rows="4" placeholder="把你的版本寫在這裡，refresh 後仍會保留。" style="margin-top:10px;width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:inherit;font-size:.85rem;line-height:1.7;background:var(--c-card);color:var(--c-text);resize:vertical;min-height:80px"></textarea>
+      </div>
+      <div class="mini-prac-check">
+        <span class="mini-prac-check-label">自我檢核</span>
+        <label><input type="checkbox"><span>我能完整走完 add <span aria-hidden="true">→</span> query 的流程，不靠範例貼貼複製</span></label>
+        <label><input type="checkbox"><span>我知道 distance 和 similarity 方向相反，能正確解讀數值</span></label>
+        <label><input type="checkbox"><span>我能判斷哪些查詢 retrieval 品質不夠，需要下節的 chunking / metadata 優化</span></label>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <section class="lesson-section reveal" id="s4">
+    <div class="section-eyebrow">(04) · RAG vs Long Context</div>
+    <h2 class="section-heading">RAG 還是長 Context？<br><em>選對工具省一半力氣</em></h2>
+    <p class="body-text">Claude 有 200K token 的 context window，Gemini 更高達 1.5M。這讓一個問題變得有意義：我到底需要建 RAG 系統，還是直接把所有文件塞進 context 就好？</p>
+
+    <div class="decision-box">
+      <div class="decision-title">決策指南 · WHEN TO USE WHAT</div>
+      <div class="decision-row"><div class="decision-cond">文件 &lt; 50 頁</div><div class="decision-action">直接塞進 context。省時省力，不需要建索引。</div></div>
+      <div class="decision-row"><div class="decision-cond">文件 50–500 頁</div><div class="decision-action">視情況。如果呼叫頻率高，長 context 成本貴；如果只是偶爾查詢，context 更簡單。</div></div>
+      <div class="decision-row"><div class="decision-cond">文件 &gt; 500 頁</div><div class="decision-action">RAG。長 context 成本太高，而且真的超過 context window 了。</div></div>
+      <div class="decision-row"><div class="decision-cond">文件持續更新</div><div class="decision-action">RAG（有 incremental indexing）。長 context 每次都要重新載入所有內容。</div></div>
+      <div class="decision-row"><div class="decision-cond">需要引用來源</div><div class="decision-action">RAG。可以在回答裡附上「來自第幾頁第幾段」的 metadata。</div></div>
+    </div>
+
+    <div class="callout key">
+      <div class="callout-icon" aria-hidden="true">🔑</div>
+      <div class="callout-body"><strong>RAG 的代價是複雜度。</strong>你多了 Embedding 步驟、向量資料庫、Chunking 策略、Retrieval 品質調優。如果長 context 能解決問題，就不要加這些複雜度。</div>
+    </div>
+  </section>
+
+  <hr class="section-rule reveal">
+
+  <section class="lesson-section reveal" id="s5">
+    <div class="section-eyebrow">EXTENSION · 進階補充（非本頁最低完成線）</div>
+    <h2 class="section-heading">延伸：<br><em>Node.js 與 FastAPI 後端中介層</em></h2>
+    <p class="body-text"><strong>這一整段不是 CH6-2 的最低完成線。</strong>本頁主線已在 Embedding、向量搜尋流程卡與 Chroma 最小查詢完成；下方內容只供想回顧 API key、CORS、429 重試與後端代理的學員延伸閱讀，不需在本頁實作，也不取代 CH6-1 的後端中介層主題。</p>
+
+    <style>
+    .quiz-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:20px}
+    .quiz-item{background:#fafaf5;border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:16px 18px}
+    .quiz-q{font-size:.9rem;font-weight:700;color:var(--c-text);line-height:1.7;margin-bottom:12px}
+    .quiz-q-num{display:inline-block;width:22px;height:22px;border-radius:50%;background:rgba(201,150,58,.12);color:var(--c-a2);font-size:.72rem;font-weight:700;line-height:22px;text-align:center;margin-right:8px;font-family:'Shippori Mincho',serif}
+    .quiz-options{display:flex;flex-direction:column;gap:8px;margin-left:30px}
+    .quiz-options label{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;line-height:1.7;color:var(--c-text);cursor:pointer;padding:6px 10px;border-radius:var(--radius-sm)}
+    .quiz-options label:hover{background:rgba(201,150,58,.06)}
+    .quiz-options input{margin-top:4px;accent-color:var(--c-a2);flex-shrink:0;cursor:pointer}
+    .quiz-item.answered label[data-pick="correct"]{background:rgba(90,122,90,.12);color:#3a5a3a;font-weight:500}
+    .quiz-item.answered label[data-pick="wrong"]{background:rgba(180,80,60,.08);color:#b44040;text-decoration:line-through}
+    .quiz-explain{margin-top:10px;margin-left:30px;padding:10px 14px;background:rgba(201,150,58,.06);border-left:2px solid var(--c-a2);border-radius:var(--radius-sm);font-size:.8rem;line-height:1.75;color:var(--c-text);display:none}
+    .quiz-item.answered .quiz-explain{display:block}
+    </style>
+
+    <details class="prac-sample" open>
+      <summary class="ps-head">
+        <span class="ps-eyebrow">情境 A</span>
+        <span class="ps-hint">Node.js Express 寫一個 /api/chat endpoint — 接前端請求、轉呼 ChatGPT、回傳結果</span>
+      </summary>
+      <div class="ps-block">
+        <div class="ps-label">任務背景 + 工具棧<span class="ps-label-tag">Node 生態最短路徑</span></div>
+        <div class="ps-material">【情境】
+你的前端想呼叫 AI，但不能把 API key 放在瀏覽器。你要寫一個最小的 Node.js 中介層：
+- 前端用 POST /api/chat 送 { prompt }
+- 中介層把 key 塞進 header，呼叫 ChatGPT API
+- 回傳 { text, usage } 給前端
+
+【工具棧】
+- Node.js 20+
+- express（路由）、openai（SDK）、cors（允許前端跨來源）
+- dotenv 讀 .env（OPENAI_API_KEY）
+- 本機 port 3000
+
+【成功條件】
+- 前端打 POST http://localhost:3000/api/chat 能拿到回覆
+- .env 被 git ignore，瀏覽器 DevTools 看不到 key
+- curl 打一次也能成功，方便獨立測試</div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-label">程式碼 · server.js 完整可跑版<span class="ps-label-tag">javascript</span></div>
+        <div class="ps-prompt">// server.js — 最小 Express 中介層
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import OpenAI from 'openai';
+
+const app = express();
+app.use(cors({ origin: 'http://localhost:5173' }));  // 只開前端網域
+app.use(express.json({ limit: '32kb' }));
+
+const client = new OpenAI();  // 自動讀 OPENAI_API_KEY
+
+app.post('/api/chat', async (req, res) => {
+  const { prompt } = req.body || {};
+  if (!prompt || typeof prompt !== 'string') {
+    return res.status(400).json({ error: 'prompt is required' });
+  }
+  try {
+    const r = await client.chat.completions.create({
+      model: 'ChatGPT',
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 400,
+    });
+    // log 留存帳務與除錯用，不把 prompt 完整寫死在 log
+    console.log('[chat]', new Date().toISOString(), r.usage);
+    res.json({
+      text: r.choices[0].message.content,
+      usage: r.usage,
+    });
+  } catch (err) {
+    console.error('[chat:error]', err.status, err.message);
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+
+app.listen(3000, () => console.log('proxy on :3000'));
+
+<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-expect"><strong>預期輸出（終端 + curl）</strong><br>$ node server.js<br>proxy on :3000<br>[chat] 2026-04-20T09:12:41.003Z { prompt_tokens: 12, completion_tokens: 48, total_tokens: 60 }<br>$ curl -X POST http://localhost:3000/api/chat -H "Content-Type: application/json" -d '{"prompt":"你好"}'<br>{"text":"你好！我可以怎麼幫你？","usage":{"prompt_tokens":12,"completion_tokens":48,"total_tokens":60}}<br>DevTools Network 看到的只有你自己的 /api/chat，完全不會露出 OpenAI 端點或 key。</div>
+      </div>
+    </details>
+
+    <details class="prac-sample" open>
+      <summary class="ps-head">
+        <span class="ps-eyebrow">情境 B</span>
+        <span class="ps-hint">同一個需求用 Python FastAPI 再寫一次 — 比較 async / type hint / 生態差異</span>
+      </summary>
+      <div class="ps-block">
+        <div class="ps-label">任務背景 + 工具棧<span class="ps-label-tag">Python 生態最短路徑</span></div>
+        <div class="ps-material">【情境】
+同一個 /api/chat 需求換 Python 實作。你想體會：
+- FastAPI 的 async def 跟 Node 的 async/await 差在哪
+- pydantic 做 request 驗證省掉多少手寫檢查
+- /docs 自動生成的互動式 API 文件
+
+【工具棧】
+- Python 3.11+
+- fastapi、uvicorn（ASGI server）、openai、python-dotenv
+- 一個 .env 與 Node 版共用 OPENAI_API_KEY
+- 本機 port 8000
+
+【成功條件】
+- 打開 http://localhost:8000/docs 看到 Swagger UI，能直接從頁面測呼叫
+- curl 結果與 Node 版一致
+- 不合法 prompt（空字串、超長）會被 pydantic 自動擋下回 422</div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-label">程式碼 · main.py 完整可跑版<span class="ps-label-tag">python</span></div>
+        <div class="ps-prompt"># main.py — 最小 FastAPI 中介層
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
+from openai import AsyncOpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
+app = FastAPI(title="chat proxy")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_methods=["POST"],
+    allow_headers=["content-type"],
+)
+
+client = AsyncOpenAI()  # 自動讀 OPENAI_API_KEY
+
+class ChatIn(BaseModel):
+    prompt: str = Field(min_length=1, max_length=4000)
+
+class ChatOut(BaseModel):
+    text: str
+    usage: dict
+
+@app.post("/api/chat", response_model=ChatOut)
+async def chat(body: ChatIn):
+    try:
+        r = await client.chat.completions.create(
+            model="ChatGPT",
+            messages=[{"role": "user", "content": body.prompt}],
+            max_tokens=400,
+        )
+        print("[chat]", r.usage.model_dump())
+        return ChatOut(
+            text=r.choices[0].message.content,
+            usage=r.usage.model_dump(),
+        )
+    except Exception as err:
+        status = getattr(err, "status_code", 500)
+        raise HTTPException(status_code=status, detail=str(err))
+
+# 跑法：uvicorn main:app --reload --port 8000
+
+<button class="copy-btn" type="button" aria-label="複製此範例 Prompt 到剪貼簿">複製</button></div>
+      </div>
+      <div class="ps-block">
+        <div class="ps-expect"><strong>預期輸出（終端 + /docs）</strong><br>$ uvicorn main:app --reload --port 8000<br>INFO: Uvicorn running on http://127.0.0.1:8000<br>[chat] {'prompt_tokens': 12, 'completion_tokens': 48, 'total_tokens': 60}<br>$ curl -X POST http://localhost:8000/api/chat -H "Content-Type: application/json" -d '{"prompt":""}'<br>HTTP/1.1 422 Unprocessable Entity<br>{"detail":[{"type":"string_too_short","loc":["body","prompt"],"msg":"String should have at least 1 character"}]}<br>瀏覽 http://localhost:8000/docs 可直接測呼叫，連 Postman 都省了。<br>觀察差異：Node 版要自己 if 檢查 body；FastAPI 用 pydantic 型別自動擋，422 錯誤訊息也比較細。</div>
+      </div>
+    </details>
+
+    <div class="callout tip">
+      <div class="callout-icon" aria-hidden="true">💡</div>
+      <div class="callout-body"><strong>延伸挑戰（挑 1–2 條，約 30 分鐘）</strong>
+        <ul style="margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:8px">
+          <li><strong>接上你 Part 5 的前端</strong>：把你在 Part 5 做的前端聊天介面，fetch 網址從 OpenAI 官方端點改成 localhost:3000/api/chat（或 :8000），刪掉任何 VITE_OPENAI_API_KEY 之類的環境變數，確認金鑰完全沒進到 bundle。</li>
+          <li><strong>加一層 log 計費</strong>：把 usage 寫進一個本地 SQLite（Node 用 better-sqlite3、Python 用 sqlite3 內建），欄位 ts / user_id / prompt_tokens / completion_tokens，未來好結算成本。</li>
+          <li><strong>Node vs Python 選一個</strong>：寫一段自己的選型備忘錄（100 字內），回答「這個專案我選哪個？為什麼？」理由要具體（例：團隊熟 TypeScript / 想用 pydantic 驗資料 / 部署平台偏好）。</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mini-prac-output">
+      <div class="mini-prac-output-label">延伸 Quiz 使用方式</div>
+      <div class="mini-prac-output-text">以下 API key / CORS / 429 題目只用來辨識錯誤原因與下一步處理，不列入本頁 Embedding / 向量搜尋最低完成線。</div>
+    </div>
+
+    <div class="quiz-grid" id="ch62-quiz">
+      <div class="quiz-item" data-correct="b">
+        <div class="quiz-q"><span class="quiz-q-num">1</span>為什麼 AI 應用一定要有中介層？下列哪個理由最關鍵？</div>
+        <div class="quiz-options">
+          <label><input type="radio" name="q1" value="a"><span>前端直接打 API 比較慢，中介層轉一次會變快</span></label>
+          <label><input type="radio" name="q1" value="b"><span>API key 不能放到瀏覽器，否則任何人打開 DevTools 都能偷走；同時也是做計費、log、權限的唯一地方</span></label>
+          <label><input type="radio" name="q1" value="c"><span>是 React 的硬性規定</span></label>
+          <label><input type="radio" name="q1" value="d"><span>只有付費版 API 才需要中介層，免費 API 可省略</span></label>
+        </div>
+        <div class="quiz-explain">中介層唯一不可替代的理由是「藏金鑰 + 收攏計費/log/權限」。轉一次只會變慢不會變快；框架無硬性規定；免費 API 也會因 key 外洩被濫用到帳戶凍結。所以這是結構性需求，不是可選項。</div>
+      </div>
+
+      <div class="quiz-item" data-correct="c">
+        <div class="quiz-q"><span class="quiz-q-num">2</span>前端打 localhost:3000 的後端，瀏覽器 console 報 CORS error，最該改哪？</div>
+        <div class="quiz-options">
+          <label><input type="radio" name="q2" value="a"><span>改前端的 fetch URL 加上 ?cors=true 參數</span></label>
+          <label><input type="radio" name="q2" value="b"><span>在前端 HTML 加 meta http-equiv=\"Access-Control-Allow-Origin\"</span></label>
+          <label><input type="radio" name="q2" value="c"><span>在後端設 CORS 中介層，allow_origins 加上前端 dev 網域</span></label>
+          <label><input type="radio" name="q2" value="d"><span>把前端跟後端硬放在同一個 port</span></label>
+        </div>
+        <div class="quiz-explain">CORS 是瀏覽器的安全機制，必須由伺服器回傳 Access-Control-Allow-Origin header 才會放行，所以一定要在後端設（Express 用 cors middleware、FastAPI 用 CORSMiddleware）。fetch 上加參數或 meta 無效，強塞同 port 治標不治本且部署時會炸。</div>
+      </div>
+
+      <div class="quiz-item" data-correct="a">
+        <div class="quiz-q"><span class="quiz-q-num">3</span>Node.js 的 async/await 跟 FastAPI 的 async def，背後目的最大共通點是？</div>
+        <div class="quiz-options">
+          <label><input type="radio" name="q3" value="a"><span>在等 I/O（網路、檔案）時不要卡住整個 server，讓一條 thread 能同時處理多個請求</span></label>
+          <label><input type="radio" name="q3" value="b"><span>讓 CPU 計算跑得更快</span></label>
+          <label><input type="radio" name="q3" value="c"><span>強制你一定要寫 try/catch</span></label>
+          <label><input type="radio" name="q3" value="d"><span>是為了相容 TypeScript</span></label>
+        </div>
+        <div class="quiz-explain">async 的核心是 I/O 並行，不是 CPU 加速。呼叫 API 時 95% 時間花在等網路，同一 process 用 async 能同時處理幾百個請求而不需多開 thread。CPU 密集任務 async 幫不上忙，那是另一個場景（worker threads / multiprocessing）。</div>
+      </div>
+
+      <div class="quiz-item" data-correct="d">
+        <div class="quiz-q"><span class="quiz-q-num">4</span>你的中介層遇到上游 API 暫時 503，下列錯誤重試策略哪個最好？</div>
+        <div class="quiz-options">
+          <label><input type="radio" name="q4" value="a"><span>無限重試直到成功，使用者不會發現</span></label>
+          <label><input type="radio" name="q4" value="b"><span>不重試，錯就錯，讓使用者自己再送一次</span></label>
+          <label><input type="radio" name="q4" value="c"><span>重試 100 次，每次間隔 50ms</span></label>
+          <label><input type="radio" name="q4" value="d"><span>對 429 / 5xx 重試 2–3 次，採指數退避；其他 4xx 立刻回報，不重試</span></label>
+        </div>
+        <div class="quiz-explain">無限重試會在上游故障時放大流量；密集短間隔會被上游繼續 429；完全不重試體驗差。正確做法：可重試錯誤（429、5xx）才退避重試、有上限；使用者端的 4xx（400、401、413）不能幫他自動重試，要把錯誤訊息如實回傳讓他改輸入。</div>
+      </div>
+
+      <div class="quiz-item" data-correct="b">
+        <div class="quiz-q"><span class="quiz-q-num">5</span>一個 side project 原型，團隊只會 TypeScript、部署用 Vercel，Node vs FastAPI 該選哪個？</div>
+        <div class="quiz-options">
+          <label><input type="radio" name="q5" value="a"><span>一定要選 FastAPI，因為 /docs 自動生成比較專業</span></label>
+          <label><input type="radio" name="q5" value="b"><span>選 Node（Express / Next.js API routes），前後端同語言、Vercel 原生支援、團隊不用多學</span></label>
+          <label><input type="radio" name="q5" value="c"><span>兩個都寫一版再投票</span></label>
+          <label><input type="radio" name="q5" value="d"><span>選 FastAPI 因為 Python 就是強</span></label>
+        </div>
+        <div class="quiz-explain">選型要看三件事：團隊熟悉度、生態匹配、部署平台。TypeScript 團隊 + Vercel，Node 生態是 zero-friction；強塞 FastAPI 要多開一個 Python runtime、還要教會團隊新語言，投入成本大。原型期「能跑 + 能改快」遠比「哪個語言強」重要。</div>
+      </div>
+    </div>
+
+    <script>
+    (function(){
+      var grid=document.getElementById('ch62-quiz');
+      if(!grid)return;
+      grid.querySelectorAll('.quiz-item').forEach(function(item){
+        var correct=item.dataset.correct;
+        item.querySelectorAll('input[type="radio"]').forEach(function(input){
+          input.addEventListener('change',function(){
+            item.classList.add('answered');
+            item.querySelectorAll('label').forEach(function(lbl){
+              var v=lbl.querySelector('input').value;
+              if(v===correct){lbl.dataset.pick='correct';}
+              else if(lbl.contains(input)){lbl.dataset.pick='wrong';}
+            });
+          });
+        });
+      });
+    })();
+    </script>
+  </section>
+
+</main>
+
+<nav class="lesson-nav">
+  <a class="nav-btn" href="CH6-1.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    <div><div class="nav-btn-label">上一節</div><div class="nav-btn-title">CH6-1 API、後端代理與錯誤處理</div></div>
+  </a>
+  <a class="nav-btn next" href="CH6-3.html">
+    <div><div class="nav-btn-label">下一節</div><div class="nav-btn-title">CH6-3 RAG 實作與品質調優</div></div>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+  </a>
+</nav>
+
+<footer class="footer" data-platform-version="2026-04-v3">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">生成式AI職訓實務應用班 · Part 6 AI 應用開發進階</div>
+</footer>
+<script>
+const prog=document.getElementById('prog');
+window.addEventListener('scroll',()=>{const st=window.scrollY,dh=document.documentElement.scrollHeight-window.innerHeight;prog.style.width=(dh>0?(st/dh)*100:0)+'%'});
+document.querySelectorAll('.reveal').forEach(el=>new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.08}).observe(el));
+</script>
+
+<script>
+// 迷你練習 checkbox + textarea 狀態持久化
+(function(){
+  document.querySelectorAll('.mini-prac').forEach(function(mp){
+    var id=mp.dataset.mp;if(!id)return;
+    mp.querySelectorAll('input[type="checkbox"]').forEach(function(cb,i){
+      var k='mp:'+id+':'+i;
+      if(localStorage.getItem(k)==='1')cb.checked=true;
+      cb.addEventListener('change',function(){localStorage.setItem(k,cb.checked?'1':'0');});
+    });
+    mp.querySelectorAll('textarea').forEach(function(ta,i){
+      var k='mp:'+id+':ta:'+i;
+      var saved=localStorage.getItem(k);
+      if(saved!==null)ta.value=saved;
+      var t;ta.addEventListener('input',function(){
+        clearTimeout(t);t=setTimeout(function(){localStorage.setItem(k,ta.value);},300);
+      });
+      ta.addEventListener('blur',function(){localStorage.setItem(k,ta.value);});
+    });
+  });
+})();
+
+// 閱讀進度持久化（localStorage）— 2026-04-16 UI refresh
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+<script src="../_assets/prac-sample.js" defer></script>
+<!-- reveal-fallback v1 -->
+<script>setTimeout(function(){document.querySelectorAll('.reveal:not(.in),.section-rule:not(.in)').forEach(function(el){el.classList.add('in')})},1500);</script>
+
+</body>
+</html>
