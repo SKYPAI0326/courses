@@ -9,6 +9,16 @@ const chromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome
 const mode = process.argv[2] || 'handbook';
 const draft = process.argv.includes('--draft');
 
+function assertAuthorizedBrowserEnvironment() {
+  if (process.env.CODEX_SANDBOX === 'seatbelt') {
+    throw new Error([
+      'PDF rendering blocked: Chrome cannot start inside the Codex seatbelt sandbox.',
+      'Run: ./simple-ai/_tools/build-deliverables-authorized.sh all',
+      'The authorized host process is required for macOS Mach-port access.',
+    ].join('\n'));
+  }
+}
+
 const chapters = [
   ['CH1-1.html', '第一章｜選對工具，設定你的 AI 助理', '你是一位在家製作手工皂的老闆，每次開新對話都要重講自己的行業與語氣。本章完成一份能反覆貼上的 AI 助理設定。', [1, 2, 3, 5, 8, 11]],
   ['CH1-2.html', '第二章｜把會議變成摘要與待辦', '你剛結束一場包裝改版會議，原始對話裡混著數量、交期與誰要負責。本章把完整逐字稿整理成可追蹤的三欄待辦。', [2, 5, 8]],
@@ -252,6 +262,7 @@ body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif!im
 }
 
 async function renderPdf({ htmlName, pdfName, pageContract, label }) {
+  assertAuthorizedBrowserEnvironment();
   fs.mkdirSync(assetsDir, { recursive: true });
   const htmlPath = path.join(courseDir, htmlName);
   const pdfPath = path.join(assetsDir, pdfName);

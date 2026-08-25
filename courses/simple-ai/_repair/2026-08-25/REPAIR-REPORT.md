@@ -29,6 +29,7 @@ slug: simple-ai
 | 精華版 Prompt 代碼 | PASS：EF-08、EF-01、EF-02、EF-04、NB-01、TK-02、MK-01、MK-02、MK-03、CS-01 |
 | 兩份 PDF 彩色／灰階預覽 | PASS：文字、分欄、底色與 Prompt 可讀 |
 | 內容修復後教材重建 | PASS：完整版 65 頁 A4、精華版 2 頁 A4；手冊第 24、60–61 頁表格視覺檢查可讀 |
+| Chrome PDF 建置入口 | PASS：加入 seatbelt preflight；授權入口 `simple-ai/_tools/build-deliverables-authorized.sh`，避免受限環境啟動 Chrome 後崩潰 |
 | 還原腳本 | PASS：既有 deliverables 腳本與本次 `bash -n courses/simple-ai/_tools/restore-2026-08-25-content-fidelity.sh` |
 | 下載連結冷啟動靜態走讀 | PASS：首頁、第二堂、結訓頁的兩份相對 PDF 路徑均存在 |
 
