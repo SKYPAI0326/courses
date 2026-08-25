@@ -60,3 +60,25 @@ Task 7 執行產生器的結果為：`search-index.json` 1332 筆、`sitemap.xml
 - 取得 reviewer 存證與使用者三分鐘真人跟讀／跟做簽核。
 - 重新執行 substance audit、L5 evidence／persona 與全課回歸。
 - QR Code 仍不加入：目前沒有已驗證的正式公開 PDF URL。
+
+## 2026-08-25 Semantic alignment repair
+
+本次針對投影片製作前審查發現的講義對齊問題，完成以下修復：
+
+- CH2-1～CH2-4 的品牌主線統一為「弄一下咖啡」；CH1-3 的「午後咖啡館」保留為獨立照片辨識變體，並在下載素材中明示兩者不同。
+- CH1-3 主線與 EF-04 素材移除具名學員角色；資安 NG 示範保留教學結構，改用 `{真實姓名}`、`{電話}`、`{地址}` 等佔位符。
+- 首頁、CH1-2、CH1-3、CH2-3 與大綱中的分鐘數／節省時間文案改為課堂目標或示意估算，補上實際時間依素材與人工檢查量而異的說明。
+- `handbook.html`、完整版 PDF 與 A4 雙面 Prompt PDF 已由來源重新產生。
+
+### 本次驗證
+
+| Check | Result |
+|---|---|
+| `python3 docs/lint-page.py courses/simple-ai/ --summary` | PASS：14 頁、BLOCKER 0、ERROR 0、WARN 21 |
+| 完整版 PDF | PASS：65 頁、A4；文字錨點含「弄一下咖啡」「手工皂創業者」且無舊具名角色 |
+| A4 雙面 Prompt PDF | PASS：2 頁；10 個 Prompt 代碼均存在 |
+| 生成同步 | PASS：`handbook.html` 由 `build-deliverables-authorized.sh all` 重建 |
+| 搜尋索引／sitemap | PASS：已執行專案產生器，無新增未提交差異 |
+| 還原腳本 | PASS：`zsh -n simple-ai/_tools/restore-2026-08-25-pre-repair.sh` |
+
+本次仍不宣告 READY TO DEPLOY；原有 G3 reviewer／真人跟讀簽核 blocker 未由此內容修復取代。
