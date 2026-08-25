@@ -14,7 +14,7 @@ const chapters = [
   ['CH1-2.html', '第二章｜把會議變成摘要與待辦', '你剛結束一場包裝改版會議，原始對話裡混著數量、交期與誰要負責。本章把完整逐字稿整理成可追蹤的三欄待辦。', [2, 5, 8]],
   ['CH1-3.html', '第三章｜拍照萃取資料，再寫成可寄 Email', '供應商傳來一張報價單，你必須先把數字整理正確，再決定用什麼語氣回信。本章的完成物是一張核對過的表格與一封可寄 Email。', [1, 2, 3, 6, 10]],
   ['CH1-4.html', '第四章｜資安紅線與發佈檢查', '一段讀起來很順的 AI 草稿，可能同時藏著個資、無依據數字與不符合自家語氣的承諾。本章練習在送出前把問題攔下。', [1, 2, 3, 4, 5]],
-  ['CH2-1.html', '第五章｜建立 NotebookLM 品牌知識庫', '咖啡館老闆不需要「一般咖啡館」的答案，而要 AI 先讀自家官網、菜單與評論。本章完成一份能回指來源的品牌摘要。', [1, 2, 3, 5, 8]],
+  ['CH2-1.html', '第五章｜建立 NotebookLM 品牌知識庫', '咖啡館老闆不需要「一般咖啡館」的答案，而要 AI 先讀自家官網、菜單與評論，再把草稿帶回來源查核。本章完成一份能回指來源的品牌摘要與雙向查核貼文。', [3, 5, 6]],
   ['CH2-2.html', '第六章｜從三個角度選出品牌定位', '品牌摘要已完成，下一步不是請 AI 決定答案，而是比較功能、情感、對立三種角度，留下老闆真的做得到的一句定位。', [1, 2, 3, 5, 8]],
   ['CH2-3.html', '第七章｜建立一週社群內容產線', '你已經有品牌定位，現在要把它變成一週七則貼文骨架、A/B 標題與一支 30 秒短影音腳本，同時保持每則內容像同一家店。', [1, 2, 3, 5, 6]],
   ['CH2-4.html', '第八章｜FAQ、檢查清單與結訓行動', '客人反覆詢問停車、訂位與寵物規則。本章一次建立 15 則 FAQ，再用事實、個資與品牌語氣三關完成發佈前修正。', [1, 2, 3, 4, 8, 14]],
@@ -95,6 +95,7 @@ function handbookHtml() {
     .replace(/box-shadow\s*:[^;}{]+;?/gi, '');
   const chapterBodies = chapters.map(([file, title, situation, selectedIndexes], index) => {
     let body = extractCuratedMain(pageSources[index], selectedIndexes);
+    body = body.replace('NotebookLM 只有網頁版，把 <code>notebooklm.google.com</code> 加入手機主畫面當 App 用就好。', 'NotebookLM／Gemini Notebook 的手機入口依裝置與地區而異；若未看到官方 App，改用手機瀏覽器開官方 Notebook 頁面即可。');
     if (file === 'CH2-4.html') body = replaceIncompleteFaq(body);
     return `
 <article class="print-chapter" data-source="${file}">
@@ -136,8 +137,11 @@ body{margin:0!important;font-family:"Noto Sans TC","PingFang TC","Microsoft Jhen
 .section-heading{font-size:13.5pt!important;line-height:1.38!important;margin:0 0 3mm!important;break-after:avoid!important}
 .section-eyebrow{font-size:7.5pt!important;margin-top:3mm!important;break-after:avoid!important}
 p,.body-text,li{font-size:8.6pt!important;line-height:1.52!important;orphans:3;widows:3}
+.print-chapter[data-source="CH2-1.html"] p,.print-chapter[data-source="CH2-1.html"] .body-text,.print-chapter[data-source="CH2-1.html"] li{font-size:8.2pt!important;line-height:1.42!important}
+.print-chapter[data-source="CH2-1.html"] pre,.print-chapter[data-source="CH2-1.html"] .code-block{font-size:7.2pt!important;line-height:1.4!important}
 h2,h3,h4{break-after:avoid!important}
 .tool-card,.concept-card,.callout,.quiz-item,.scenario-row,.step-block,.output-row,.challenge-card,.verify-card,.intro-band{break-inside:avoid!important}
+.repair-table{break-inside:avoid!important}
 .tool-grid,.concept-grid,.scenario-grid,.steps-wrap,.material-block,.output-fold,details{break-inside:auto!important}
 details{display:block!important}
 details>summary{list-style:none!important;font-weight:700!important}
