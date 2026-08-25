@@ -53,7 +53,7 @@ DESC_RE = re.compile(
 
 def should_ignore(path: Path) -> bool:
     """跳過內部目錄（_local、_local-handoff、_assets、_backup … 等 _ 開頭）與版控/依賴目錄。"""
-    return any(part.startswith("_") or part in {".git", "node_modules"} for part in path.parts)
+    return any(part.startswith("_") or part in {".git", ".worktrees", "node_modules"} for part in path.parts)
 
 
 def classify(path: Path) -> str:

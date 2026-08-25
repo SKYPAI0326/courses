@@ -32,7 +32,7 @@ PRIORITY = {
 }
 
 # 忽略的路徑（_backup/ 之類）
-IGNORE_PARTS = {"_backup", "_pilots", ".git", "node_modules"}
+IGNORE_PARTS = {"_backup", "_pilots", ".git", ".worktrees", "node_modules"}
 
 
 def classify(path: Path) -> str:
@@ -59,6 +59,14 @@ def should_ignore(path: Path) -> bool:
     return any(part.startswith("_") or part in IGNORE_PARTS for part in path.parts)
 
 
+def is_gated(path: Path) -> bool:
+    """偵測頁面是否有密碼關卡（#_gate）。密碼頁 Google 不會也不該收錄，排除出 sitemap。"""
+    try:
+        return 'id="_gate"' in path.read_text(encoding="utf-8", errors="ignore")
+    except OSError:
+        return False
+
+
 def collect_pages():
     """回傳 [(relative_url, lastmod, priority), ...]。"""
     entries = []
@@ -72,6 +80,8 @@ def collect_pages():
     if COURSES_DIR.exists():
         for html in sorted(COURSES_DIR.rglob("*.html")):
             if should_ignore(html):
+                continue
+            if is_gated(html):
                 continue
             rel = html.relative_to(ROOT).as_posix()
             kind = classify(html)
