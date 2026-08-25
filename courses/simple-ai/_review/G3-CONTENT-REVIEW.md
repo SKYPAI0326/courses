@@ -48,6 +48,19 @@ three_minute_follow_test: <PASS after actual test>
 
 若任何一步卡住，請在本檔案下方追加現象、頁面、步驟與修復結果，不得直接改成 PASS。
 
+## Online Black-box Verification
+
+**verified_at**：2026-08-25
+
+**deployed_commit**：`48ce176`
+
+**technical_online_verdict**：PASS
+
+- GitHub Pages 的 simple-ai 站內 HTML、環境契約、文字素材、照片與兩份 PDF 均回應 HTTP 200。
+- 線上 CH1-3 的三張照片實際載入為 1600×1200；首頁完整版 PDF 下載按鈕可觸發下載。
+- 線上手冊下載後為 65 頁，SHA-256 與本機產物一致；18 個 PDF URI 全為 HTTPS，無 `file://` 或舊版 `/courses/simple-ai/` 路徑。
+- 環境契約線上回應 `text/markdown`；若瀏覽器阻擋直接預覽 `.md`，可用下載或另存方式取得，不影響檔案可達性。
+
 ## 已知尚未放行項目
 
 1. GitHub Pages 目前仍是舊版；修正版 commit `4bc8f89` 尚未部署，因此新 PDF／照片／環境契約的線上 404 需在正式部署後重測。
