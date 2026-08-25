@@ -6,6 +6,8 @@ const { chromium } = require('/Users/paichenwei/.cache/codex-runtimes/codex-prim
 const courseDir = path.resolve(__dirname, '..');
 const assetsDir = path.join(courseDir, 'assets');
 const chromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const publicAssetBase = 'https://skypai0326.github.io/courses/simple-ai/assets/';
+const publicEnvironmentContract = 'https://skypai0326.github.io/courses/_outlines/simple-ai.environment.md';
 const mode = process.argv[2] || 'handbook';
 const draft = process.argv.includes('--draft');
 
@@ -106,6 +108,9 @@ function handbookHtml() {
   const chapterBodies = chapters.map(([file, title, situation, selectedIndexes], index) => {
     let body = extractCuratedMain(pageSources[index], selectedIndexes);
     body = body.replace('NotebookLM 只有網頁版，把 <code>notebooklm.google.com</code> 加入手機主畫面當 App 用就好。', 'NotebookLM／Gemini Notebook 的手機入口依裝置與地區而異；若未看到官方 App，改用手機瀏覽器開官方 Notebook 頁面即可。');
+    body = body.replace(/\sloading="lazy"/g, '');
+    body = body.replace(/href="assets\//g, `href="${publicAssetBase}`);
+    body = body.replace(/href="\.\.\/\.\/_outlines\/simple-ai\.environment\.md"/g, `href="${publicEnvironmentContract}"`);
     if (file === 'CH2-4.html') body = replaceIncompleteFaq(body);
     return `
 <article class="print-chapter" data-source="${file}">
@@ -120,10 +125,10 @@ function handbookHtml() {
 
   const workflowBodies = workflows.map(([code, title, input, pathText, artifact, check, fallback]) => `<article class="workflow-card"><div class="workflow-code">${code}</div><h2>${title}</h2><dl><dt>起始素材</dt><dd>${input}</dd><dt>工具順序</dt><dd>${pathText}</dd><dt>完成物</dt><dd>${artifact}</dd><dt>人工檢查</dt><dd>${check}</dd><dt>免費備援</dt><dd>${fallback}</dd></dl></article>`).join('\n');
   const printCss = `
-@page{size:A4;margin:9mm 10mm 11mm}
+@page{size:A4;margin:8mm 9mm 10mm}
 *{box-sizing:border-box!important}
 html,body{background:#fff!important;color:#252421!important}
-body{margin:0!important;font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif!important;font-size:8.6pt!important;line-height:1.5!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+body{margin:0!important;font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif!important;font-size:8.45pt!important;line-height:1.48!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 #_gate,.topbar,.progress-strip,.skip-link,.back-link,.nav-footer,.footer,.copy-btn,.copy-row,button,script{display:none!important}
 .print-book-cover{height:260mm;display:flex;flex-direction:column;justify-content:center;break-after:page;border-top:4mm solid #5a7a5a;padding:18mm 12mm}
 .print-book-cover h1{font-family:"Shippori Mincho","Noto Serif TC",serif;font-size:29pt!important;line-height:1.32!important;max-width:15ch;margin:0 0 10mm!important}
@@ -146,7 +151,7 @@ body{margin:0!important;font-family:"Noto Sans TC","PingFang TC","Microsoft Jhen
 .lesson-section{padding:0!important;margin:0 0 4mm!important;max-width:none!important;break-inside:auto!important;opacity:1!important;transform:none!important}
 .section-heading{font-size:13.5pt!important;line-height:1.38!important;margin:0 0 3mm!important;break-after:avoid!important}
 .section-eyebrow{font-size:7.5pt!important;margin-top:3mm!important;break-after:avoid!important}
-p,.body-text,li{font-size:8.6pt!important;line-height:1.52!important;orphans:3;widows:3}
+p,.body-text,li{font-size:8.45pt!important;line-height:1.48!important;orphans:3;widows:3}
 .print-chapter[data-source="CH2-1.html"] p,.print-chapter[data-source="CH2-1.html"] .body-text,.print-chapter[data-source="CH2-1.html"] li{font-size:8.2pt!important;line-height:1.42!important}
 .print-chapter[data-source="CH2-1.html"] pre,.print-chapter[data-source="CH2-1.html"] .code-block{font-size:7.2pt!important;line-height:1.4!important}
 h2,h3,h4{break-after:avoid!important}
@@ -176,7 +181,7 @@ a{color:inherit!important;text-decoration:none!important}
 <html lang="zh-Hant"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>創業 AI 實戰手冊｜弄一下工作室</title><style>${inheritedStyles}\n${printCss}</style></head>
 <body>
 <section class="print-book-cover"><div class="print-kicker">完整學員手冊</div><h1>創業 AI 實戰手冊</h1><p>手機免費版的三小時入門體驗。從會議、拍照與 Email，到品牌知識庫、社群內容與 FAQ，把每天重複的小事變成可以反覆使用的工作路徑。</p><div class="print-book-meta">弄一下工作室<br>版本：2026-08-25<br>工具：ChatGPT・Gemini・NotebookLM</div></section>
-<section class="print-contents"><h2>手冊目錄</h2><ol>${chapters.map(([, title]) => `<li>${title}</li>`).join('')}<li>附錄｜十條工作流應用路徑</li></ol><p>使用方式：第一次照章節順序完成；第二次直接翻到你眼前的任務。每章都附起始素材、完整 Prompt、預期輸出、檢查與卡關修復。</p></section>
+<section class="print-contents"><h2>手冊目錄</h2><ol>${chapters.map(([, title]) => `<li>${title}</li>`).join('')}<li>附錄｜十條工作流應用路徑</li></ol><p>使用方式：第一次照章節順序完成；第二次直接翻到你眼前的任務。每章都附起始素材、完整 Prompt、預期輸出、檢查與卡關修復。</p><p>課前先看<a href="${publicEnvironmentContract}">環境契約與課前檢查表</a>；課程結訓先保存一條工作流路徑，再選課後延伸。</p></section>
 ${chapterBodies}
 <section class="workflow-appendix"><header class="workflow-title"><div class="print-kicker">Appendix</div><h1>十條工作流應用路徑</h1><p class="workflow-intro">每條路徑都從你已完成的章節產物出發。不要一次跑完十條；先選現在最常重複的一件事，完成、檢查、存成自己的版本。</p></header><div class="workflow-grid">${workflowBodies}</div></section>
 </body></html>`;
