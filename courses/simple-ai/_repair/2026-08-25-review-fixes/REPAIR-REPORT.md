@@ -20,9 +20,11 @@
 - 本地 HTML `href`／`src` 解析：missing 0。
 - `pdfinfo`：完整版 65 頁；A4 精華版 2 頁。
 - 完整版 PDF `/Annots`：18 個 URI，`file_links=0`、`https_links=18`；包含三張照片、文字核對版與工作流模板下載入口。
+- `pdfimages -list`：第 19 頁含三張 1600×1200 JPEG；重新渲染第 19 頁後確認三張照片預覽可見，先前的 lazy-loading 阻擋已排除。
+- PDF 絕對素材網址已修正為 `https://skypai0326.github.io/courses/courses/simple-ai/assets/`，避免 GitHub Pages 少一層 `/courses/` 導致 404。
 - `git diff --check`：通過。
 
-## BLOCKED／待明確授權
+## 尚未放行／待明確授權
 
-- 逐頁檢查發現 PDF 的照片預覽在目前已輸出的 PDF 中仍未顯示；章節 HTML 與 `handbook.html` 已移除 lazy-loading，下一次需重新啟動主機 Chrome 才能確認修復。
-- 主機安全護欄拒絕同一圖片載入問題的第二次自動補救重建；本輪未繞過護欄，也未宣稱 PDF 預覽已完成。
+- GitHub Pages 尚未部署 `4bc8f89` 之後的修正版，因此線上素材 404 需在隔離 release 分支部署後重測。
+- G3 內容審核仍等待使用者完成三分鐘跟讀並簽核；詳見 `courses/simple-ai/_review/G3-CONTENT-REVIEW.md`。
