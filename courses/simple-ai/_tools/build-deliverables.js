@@ -175,11 +175,83 @@ function pageCount(pdfPath) {
   return Number(match[1]);
 }
 
-async function renderHandbook() {
+const quickPromptCodes = [
+  ['EF-08', 'AI 助理設定', '設定一次，之後每次對話先貼上同一份背景。', '手機備忘錄中的個人化 AI 助理設定與「已設定，請開始」確認回覆。'],
+  ['EF-01', '會議 → 摘要與待辦', '把錄音轉文字或逐字稿整理成可追蹤的會議產物。', '逐字稿、五點摘要與「誰／做什麼／何時前」待辦清單。'],
+  ['EF-02', '拍照 → 結構化資料與 Email', '先讀清楚報價單，再產出可核對的回信草稿。', '欄位表格、模糊處標記與 150 字內確認 Email。'],
+  ['EF-04', '棘手 Email 三種語氣', '漲價、婉拒或催款時，先比較立場再選語氣。', '正式保守、溫和堅定、友善清楚三版信件。'],
+  ['NB-01', '萃取品牌聲音', '讓 NotebookLM 只根據來源整理品牌語氣，不自行推測。', '五個形容詞、三個句型、避用詞、開場方式與來源引用。'],
+  ['TK-02', '品牌定位一句話', '先補齊模糊資料，再比較功能／情感／對立三個角度。', '三句 30 字內定位候選與人工選定的一句版本。'],
+  ['MK-01', '一週七則社群貼文', '用同一份品牌定位建立一週內容節奏。', '七則貼文：開頭、150 字內內文、CTA、5–8 個 Hashtag。'],
+  ['MK-02', '標題 A/B 測試', '同一篇內文先產不同吸引角度，再由人決定測哪兩個。', '10 個 20 字內標題，含客群類型標註。'],
+  ['MK-03', '30 秒短影音腳本', '把一個主題拆成 5–7 秒一鏡、最後三秒 CTA。', '約 80–100 字逐鏡腳本與可執行的拍攝畫面。'],
+  ['CS-01', 'FAQ 回覆庫', '同一組五個問題，批次產出三種使用情境的回覆。', '5 題 × 正式／親切／幽默三版，共 15 則 FAQ。'],
+];
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function stripTags(value) {
+  return value.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').trim();
+}
+
+function promptLibraryEntry(source, code) {
+  const article = (source.match(/<article\b[\s\S]*?<\/article>/gi) || [])
+    .find((block) => new RegExp(`<div class="pcard-code">\\s*${escapeRegExp(code)}\\s*</div>`).test(block));
+  if (!article) throw new Error(`Prompt library entry not found: ${code}`);
+  const title = stripTags(article.match(/<div class="pcard-title">([\s\S]*?)<\/div>/)?.[1] || '');
+  const use = stripTags(article.match(/<p class="pcard-use">([\s\S]*?)<\/p>/)?.[1] || '');
+  const prompt = article.match(/<pre class="(?:fill-template|prompt-pre)">([\s\S]*?)<\/pre>/)?.[1];
+  if (!prompt) throw new Error(`Prompt text not found: ${code}`);
+  return { title, use, prompt };
+}
+
+function quickReferenceHtml() {
+  const source = fs.readFileSync(path.join(courseDir, 'prompt-library.html'), 'utf8');
+  const entries = quickPromptCodes.map(([code, shortTitle, use, artifact]) => {
+    const canonical = promptLibraryEntry(source, code);
+    return { code, title: shortTitle || canonical.title, use: use || canonical.use, prompt: canonical.prompt, artifact };
+  });
+  const front = entries.slice(0, 5);
+  const back = entries.slice(5);
+  const card = ({ code, title, use, prompt, artifact }) => `<article class="quick-card"><header><span class="quick-code">${code}</span><h2>${title}</h2></header><p class="quick-use">${use}</p><pre class="quick-prompt">${prompt}</pre><p class="quick-artifact"><strong>完成物：</strong>${artifact}</p></article>`;
+  const page = (label, subtitle, list) => `<section class="quick-page"><header class="quick-head"><div class="quick-kicker">創業 AI 實戰｜10 則 Prompt 精選</div><h1>${label}</h1><p>${subtitle}</p></header><div class="quick-grid">${list.map(card).join('')}</div><footer class="quick-footer"><div><strong>三條紅線：</strong>不貼個資／不把猜測當事實／不讓 AI 代替最後核對。</div><div><strong>發佈三問：</strong>來源在哪裡？數字對嗎？這句話我真的承諾得起嗎？</div></footer></section>`;
+  const css = `
+@page{size:A4;margin:7mm 8mm 8mm}
+*{box-sizing:border-box!important}
+html,body{margin:0!important;background:#fff!important;color:#252421!important}
+body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif!important;font-size:7.1pt!important;line-height:1.28!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+.quick-page{height:282mm;break-after:page;position:relative;padding:0 0 10mm}
+.quick-page:last-child{break-after:auto}
+.quick-head{border-top:2.5mm solid #5a7a5a;background:#f4f3ef;padding:4mm 5mm 3mm;margin-bottom:4mm}
+.quick-kicker{color:#5a7a5a;font-size:7pt;letter-spacing:.12em;font-weight:700}
+.quick-head h1{font-family:"Shippori Mincho","Noto Serif TC",serif;font-size:18pt!important;line-height:1.25!important;margin:1mm 0!important}
+.quick-head p{color:#555;font-size:7.5pt!important;margin:0!important}
+.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:3.5mm 4mm;align-items:start}
+.quick-card{border:1px solid #aaa;background:#faf9f6;padding:2.8mm;break-inside:avoid}
+.quick-card header{display:flex;align-items:baseline;gap:2mm;border-bottom:1px solid #d3d0ca;padding-bottom:1mm;margin-bottom:1.5mm}
+.quick-code{color:#5a7a5a;font-size:7pt;letter-spacing:.1em;font-weight:700;white-space:nowrap}
+.quick-card h2{font-size:9.4pt!important;line-height:1.3!important;margin:0!important}
+.quick-use{font-size:7pt!important;color:#555;margin:0 0 1.5mm!important;line-height:1.35!important}
+.quick-prompt{font-family:"SFMono-Regular","Menlo","Noto Sans Mono",monospace;font-size:6.65pt!important;line-height:1.24!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;background:#efeee9!important;border-left:1.5mm solid #b5703a;padding:2mm!important;margin:0!important;color:#171717!important}
+.quick-artifact{font-size:6.9pt!important;line-height:1.3!important;margin:1.5mm 0 0!important;color:#444}
+.quick-footer{position:absolute;left:0;right:0;bottom:0;border-top:1px solid #aaa;padding-top:2mm;font-size:6.7pt;line-height:1.35;color:#444;display:flex;justify-content:space-between;gap:8mm}
+.quick-footer>div{flex:1}
+.quick-page:nth-child(2) .quick-head{padding-top:3mm;padding-bottom:2mm;margin-bottom:3mm}
+.quick-page:nth-child(2) .quick-grid{gap:2.5mm 3mm}
+.quick-page:nth-child(2) .quick-card{padding:2mm}
+.quick-page:nth-child(2) .quick-prompt{font-size:6.1pt!important;line-height:1.13!important;padding:1.6mm!important}
+.quick-page:nth-child(2) .quick-use,.quick-page:nth-child(2) .quick-artifact{font-size:6.45pt!important;line-height:1.2!important}
+`;
+  return `<!doctype html><html lang="zh-Hant"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>創業 AI 實戰｜10 則 Prompt 精選</title><style>${css}</style></head><body>${page('正面｜效率與品牌資料', 'EF-08、EF-01、EF-02、EF-04、NB-01｜每則保留用途、可直接複製 Prompt 與完成物。', front)}${page('背面｜定位、內容與客服', 'TK-02、MK-01、MK-02、MK-03、CS-01｜先產候選，再由你做最後判斷。', back)}</body></html>`;
+}
+
+async function renderPdf({ htmlName, pdfName, pageContract, label }) {
   fs.mkdirSync(assetsDir, { recursive: true });
-  const htmlPath = path.join(courseDir, 'handbook.html');
-  const pdfPath = path.join(assetsDir, '創業-AI-實戰手冊.pdf');
-  fs.writeFileSync(htmlPath, handbookHtml().replace(/[ \t]+$/gm, ''));
+  const htmlPath = path.join(courseDir, htmlName);
+  const pdfPath = path.join(assetsDir, pdfName);
+  fs.writeFileSync(htmlPath, (htmlName === 'handbook.html' ? handbookHtml() : quickReferenceHtml()).replace(/[ \t]+$/gm, ''));
   if (!fs.existsSync(chromePath)) throw new Error(`Google Chrome not found: ${chromePath}`);
   const browser = await chromium.launch({ headless: true, executablePath: chromePath });
   const page = await browser.newPage({ viewport: { width: 1240, height: 1754 } });
@@ -191,23 +263,38 @@ async function renderHandbook() {
     format: 'A4',
     printBackground: true,
     preferCSSPageSize: true,
-    displayHeaderFooter: true,
+    displayHeaderFooter: htmlName === 'handbook.html',
     headerTemplate: '<div></div>',
-    footerTemplate: '<div style="width:100%;font-size:7px;color:#777;padding:0 12mm;text-align:right"><span class="pageNumber"></span> / <span class="totalPages"></span></div>',
+    footerTemplate: htmlName === 'handbook.html' ? '<div style="width:100%;font-size:7px;color:#777;padding:0 12mm;text-align:right"><span class="pageNumber"></span> / <span class="totalPages"></span></div>' : '<div></div>',
     margin: { top: '0', right: '0', bottom: '0', left: '0' },
   });
   await browser.close();
   const pages = pageCount(pdfPath);
-  console.log(`${pdfPath}\nPages: ${pages}`);
-  if (!draft && (pages < 55 || pages > 65)) throw new Error(`Handbook page contract failed: ${pages} pages`);
+  console.log(`${label}: ${pdfPath}\\nPages: ${pages}`);
+  if (!draft && !pageContract(pages)) throw new Error(`${label} page contract failed: ${pages}`);
 }
 
-if (mode !== 'handbook') {
-  console.error('Usage: node build-deliverables.js handbook [--draft]');
+async function renderHandbook() {
+  await renderPdf({ htmlName: 'handbook.html', pdfName: '創業-AI-實戰手冊.pdf', pageContract: (pages) => pages >= 55 && pages <= 65, label: 'Handbook' });
+}
+
+async function renderQuickReference() {
+  await renderPdf({ htmlName: 'quick-reference.html', pdfName: '創業-AI-實戰-10則Prompt精選.pdf', pageContract: (pages) => pages === 2, label: 'Quick reference' });
+}
+
+if (!['handbook', 'quick-reference', 'all'].includes(mode)) {
+  console.error('Usage: node build-deliverables.js handbook|quick-reference|all [--draft]');
   process.exit(2);
 }
 
-renderHandbook().catch((error) => {
+(async () => {
+  if (mode === 'handbook') await renderHandbook();
+  if (mode === 'quick-reference') await renderQuickReference();
+  if (mode === 'all') {
+    await renderHandbook();
+    await renderQuickReference();
+  }
+})().catch((error) => {
   console.error(error.message || error);
   process.exit(1);
 });
