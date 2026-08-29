@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>02 資料契約：讓模組彼此聽得懂｜Make 工作流實戰</title>
+<meta name="description" content="使用 CH1-1 的工作流地圖建立來源可替換的資料契約與欄位映射，檢查必填欄位、資料型別、缺值處理與 Gemini 輸出。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="02 資料契約：讓模組彼此聽得懂｜Make 工作流實戰">
+<meta property="og:description" content="使用 CH1-1 的工作流地圖建立來源可替換的資料契約與欄位映射，檢查必填欄位、資料型別、缺值處理與 Gemini 輸出。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/make-ai-workflow/CH1-2.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="02 資料契約：讓模組彼此聽得懂｜Make 工作流實戰">
+<meta name="twitter:description" content="使用 CH1-1 的工作流地圖建立來源可替換的資料契約與欄位映射，檢查必填欄位、資料型別、缺值處理與 Gemini 輸出。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/make-ai-workflow/CH1-2.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#fff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-a1:#b5703a;--radius:4px;--content-w:780px}*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8}.skip-link{position:absolute;left:-9999px;top:0;background:var(--c-text);color:#fff;padding:10px 16px}.skip-link:focus{left:0}.topbar{position:sticky;top:0;z-index:5;height:56px;background:rgba(245,243,238,.96);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}.logo,.lesson-title,.section-heading,.step-heading,.checkpoint-title,.asset-name,.pitfall-title{font-family:'Shippori Mincho',serif}.logo{font-weight:700;font-size:1.05rem;color:var(--c-text);text-decoration:none}.topbar-divider,.footer-div{width:1px;height:18px;background:var(--c-border)}.topbar-sub{font-size:.8rem;color:var(--c-muted)}.spacer{flex:1}.topbar-tag{font-size:.72rem;color:var(--c-a1);border:1px solid rgba(181,112,58,.3);padding:3px 12px;border-radius:99px}.progress-strip{height:2px;position:sticky;top:56px;z-index:4}.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0}.page-hero,.lesson-section,.nav-footer{max-width:var(--content-w);margin:0 auto}.page-hero{padding:64px 48px 48px}.back-link{display:inline-flex;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}.hero-eyebrow,.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;margin-bottom:10px}.lesson-title{font-size:2rem;line-height:1.3;margin-bottom:20px;max-width:22ch}.lesson-tagline{font-size:.95rem;color:var(--c-muted);line-height:1.9;margin-bottom:30px}.outcomes{display:flex;flex-direction:column;gap:8px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text)}.outcomes-label{font-size:.72rem;letter-spacing:.15em}.outcome-item{font-size:.88rem;color:var(--c-muted)}.lesson-section{padding:32px 48px}.section-heading{font-size:1.45rem;line-height:1.4;margin-bottom:20px}.section-rule{border:0;border-top:1px solid var(--c-border-soft);max-width:var(--content-w);margin:40px auto}.body-text{font-size:.92rem;line-height:1.9;margin-bottom:16px}.intro-band{padding:4px 0 4px 24px;border-left:1px solid var(--c-text);margin-bottom:28px}.intro-label{font-size:.72rem;letter-spacing:.15em;margin-bottom:8px}.intro-text{font-size:.92rem;color:var(--c-muted)}.callout,.checkpoint{padding:18px 20px;background:var(--c-surface);border-left:2px solid var(--c-text);margin:22px 0}.callout-body,.checkpoint p{font-size:.88rem;line-height:1.85}.content-table{width:100%;border-collapse:collapse;margin:18px 0 25px;font-size:.82rem;line-height:1.7;background:var(--c-card)}.content-table th,.content-table td{padding:10px 11px;border:1px solid var(--c-border-soft);vertical-align:top}.content-table th{font-weight:500;background:var(--c-surface);text-align:left}.content-table code,.inline-code,.step-body code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;color:var(--c-a1);background:var(--c-bg);padding:1px 4px;border-radius:3px}.flow-code{padding:18px 20px;background:var(--c-surface);border-left:2px solid var(--c-a1);font:400 .82rem/1.85 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;margin:18px 0}.step-block{display:grid;grid-template-columns:38px 1fr;gap:16px;padding:20px 0;border-top:1px solid var(--c-border-soft)}.step-circle{width:30px;height:30px;border:1px solid var(--c-a1);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--c-a1);font-size:.82rem}.step-heading{font-size:1.05rem;margin-bottom:10px}.step-body{font-size:.88rem;line-height:1.85}.step-field{margin:7px 0}.step-field strong{color:var(--c-a1);font-weight:500}.checkpoint-title{font-size:.95rem;margin-bottom:8px}.check-list{list-style:none;margin:16px 0}.check-list li{font-size:.88rem;line-height:1.8;margin:8px 0;padding-left:24px;position:relative}.check-list li:before{content:'□';position:absolute;left:0;color:var(--c-a1);font-size:1.1rem}.pitfall-grid,.asset-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}.asset-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.pitfall,.asset-card{padding:16px;border:1px solid var(--c-border-soft);background:var(--c-card)}.pitfall{border-top:2px solid var(--c-a1);background:var(--c-surface)}.pitfall-title,.asset-name{font-weight:700;margin-bottom:8px}.pitfall p,.asset-card p{font-size:.82rem;line-height:1.8;margin:6px 0}.quiz-item{margin:22px 0;padding:18px 20px;border:1px solid var(--c-border-soft);background:var(--c-card)}.quiz-q{font-weight:500;line-height:1.8;margin-bottom:12px}.quiz-opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.quiz-opt{display:flex;gap:8px;padding:9px 11px;border:1px solid var(--c-border-soft);font-size:.85rem;line-height:1.7}.quiz-opt.correct{border-color:rgba(181,112,58,.42);background:rgba(181,112,58,.05)}.quiz-ans{margin-top:12px;font-size:.82rem;color:var(--c-muted)}.nav-footer{padding:32px 48px 64px;display:flex;justify-content:space-between;gap:12px}.nav-btn{font-size:.85rem;color:var(--c-a1);text-decoration:none;padding:10px 20px;border:1px solid rgba(181,112,58,.3);border-radius:var(--radius)}.nav-btn.primary{background:var(--c-a1);color:#fff}.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}.footer-logo{font-family:'Shippori Mincho',serif;font-weight:700;color:var(--c-muted)}.footer-note,.footer-meta{font-size:.75rem;color:var(--c-muted)}.footer-meta{margin-left:auto;color:var(--c-faint)}@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.content-table{display:block;overflow-x:auto}.pitfall-grid,.asset-grid,.quiz-opts{grid-template-columns:1fr}.step-block{grid-template-columns:30px 1fr;gap:12px}}
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link">跳至主要內容</a>
+<header class="topbar">
+<a href="../../index.html" class="logo">弄一下工作室</a>
+<div class="topbar-divider">
+</div>
+<span class="topbar-sub">Make × Gemini 自動化工作流</span>
+<div class="spacer">
+</div>
+<span class="topbar-tag">CH1-2 · 60 分鐘</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100">
+<div class="progress-fill" id="prog">
+</div>
+</div>
+<main id="main">
+<div class="callout"><div class="callout-body"><strong>版本轉場</strong>　CH1-1 的四模組地圖是讀圖基準：Sheets／Gmail → Gemini → Docs → Email，Gemini 只交出單一 <code>result</code>，沒有 Filter 或 <code>needs_review</code>。本節不修改原圖，而是建立新的輸入／輸出契約，供 CH1-3 的結構化輸出與安全分流使用。</div></div>
+<div class="page-hero">
+<a href="CH1-1.html" class="back-link">
+<span aria-hidden="true">←</span> 上一節：看懂工作流</a>
+<div class="hero-eyebrow">(02) · CH1-2</div>
+<h1 class="lesson-title">資料契約：讓模組彼此聽得懂</h1>
+<p class="lesson-tagline">把 CH1-1 的工作流地圖轉成來源可替換的資料契約與欄位映射，讓你在建立 Make 流程前先發現欄位、型別與缺值風險。</p>
+<div class="outcomes">
+<div class="outcomes-label">學習成果</div>
+<div class="outcome-item">完成 <code>contract-input-v1</code>：四個契約欄位、必填狀態、型別、來源映射與缺值處理。</div>
+<div class="outcome-item">完成 <code>contract-output-v1</code>：<code>summary</code>、<code>reply_draft</code>、<code>needs_review</code> 的輸出規格。</div>
+<div class="outcome-item">完成 <code>mapping-v1</code>：Sheets 與 Gmail 的映射、測試通過與不通過的處理紀錄。</div>
+</div>
+</div>
+
+<section class="lesson-section">
+<div class="section-eyebrow">(01)</div>
+<h2 class="section-heading">先把「欄位對不上」變成可檢查的規格</h2>
+<div class="intro-band">
+<div class="intro-label">為什麼這很重要</div>
+<div class="intro-text">CH1-1 先用 Sheets／Gmail → Gemini → Docs → Email 的四模組基準讓你看懂資料怎麼走；那份基準只有單一 <code>result</code>，沒有 Filter 或 <code>needs_review</code>。本節不修改原圖，而是再往前一步，先約定資料長什麼樣子，為 CH1-3 的結構化輸出與安全分流準備規格。</div>
+</div>
+<p class="body-text">阿凱遇到的問題不是少了一個按鈕，而是同一件事在不同來源有不同欄位名：Sheets 有 <code>customer_name</code> 與 <code>feedback</code>，Gmail 有 <code>sender</code>、<code>subject</code>、<code>body</code>。你會先定義共同欄位，再把各來源映射進去。</p>
+<div class="callout">
+<div class="callout-body">
+<strong>完成標準</strong>　你會留下三份可交接文件：輸入契約、Gemini 輸出契約、來源映射表；每份都能說明型別、缺值處理與下一步。</div>
+</div>
+</section>
+<hr class="section-rule">
+
+<section class="lesson-section">
+<div class="section-eyebrow">(02)</div>
+<h2 class="section-heading">用共同欄位取代工具專有欄位</h2>
+<p class="body-text">資料契約是一份模組之間的共同約定：欄位叫什麼、資料用什麼型別、哪些欄位不能缺、資料不合格時由誰處理。契約描述的是任務需要，不是某一個畫面的名稱。</p>
+<table class="content-table">
+<thead>
+<tr>
+<th>欄位類型</th>
+<th>白話定義</th>
+<th>本課例子</th>
+<th>為什麼分開</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>必填輸入</td>
+<td>沒有它就不能安全處理</td>
+<td>
+<code>customer_identity</code>、<code>message_text</code>
+</td>
+<td>缺值時先停止或交給負責人</td>
+</tr>
+<tr>
+<td>選填輸入</td>
+<td>有它可加強判斷，沒有也能走預設路徑</td>
+<td>
+<code>urgency_signal</code>
+</td>
+<td>不把來源專有欄位誤當所有來源都必須有</td>
+</tr>
+<tr>
+<td>固定設定</td>
+<td>由課程或團隊事先指定，不是客戶資料</td>
+<td>
+<code>owner_email</code>
+</td>
+<td>避免把客戶 <code>sender</code> 當內部收件人</td>
+</tr>
+</tbody>
+</table>
+<p class="body-text">
+<code>message_text</code> 是文字，<code>urgency_signal</code> 可以是數字或空值，<code>needs_review</code> 必須是布林值 <code>true</code>／<code>false</code>。把布林值寫成「是／否」，下一個 Filter 可能無法可靠分流。</p>
+<p class="body-text">
+<strong>正例：</strong>Gmail 的 <code>sender</code> 映射到 <code>customer_identity</code>，<code>subject + body</code> 合併成 <code>message_text</code>，再交給同一個 Gemini 任務。</p>
+<p class="body-text">
+<strong>錯例：</strong>把 Gmail 的 <code>sender</code> 填進 <code>owner_email</code>。欄位有值，角色卻錯了，客戶可能成為內部通知收件人。</p>
+<div class="callout">
+<div class="callout-body">
+<strong>判斷方式</strong>　若 <code>subject</code> 與 <code>body</code> 都空白，停止在資料來源檢查；若只有 <code>body</code> 空白但主旨有內容，可標記人工檢查，不要把空內容送進 Gemini。</div>
+</div>
+</section>
+<hr class="section-rule">
+
+<section class="lesson-section">
+<div class="section-eyebrow">(03)</div>
+<h2 class="section-heading">示範：從兩個來源整理共同契約</h2>
+<p class="body-text">以下使用 CH1-1 的去敏資料；我們不重畫流程，只挑出進入 Gemini 前與離開 Gemini 後的資料，觀察哪些欄位可共用、哪些欄位只能選填。</p>
+<div class="callout"><div class="callout-body"><strong>先開示範材料</strong>　請先開啟 <a href="assets/CH1-1-import-map.md" download>CH1-1 匯入對照</a>、<a href="assets/CH1-1-test-data.csv" download>測試資料</a>、<a href="assets/CH1-1-expected-result.md" download>預期結果</a> 與 <a href="assets/CH1-1-reference-4module.sanitized.blueprint.json" download>去敏 Blueprint</a>。若不方便下載，直接使用本頁接下來的 Sheets／Gmail 表格，內容相同。</div></div>
+<table class="content-table"><thead><tr><th>來源</th><th>原始資料</th></tr></thead><tbody>
+<tr><td>Sheets</td><td><code>customer_name=林小姐</code>、<code>rating=2</code>、<code>feedback=物流延遲，客服回覆太慢</code></td></tr>
+<tr><td>Gmail</td><td><code>sender=customer@example.com</code>、<code>subject=物流問題</code>、<code>body=物流延遲，客服回覆太慢</code>、<code>owner_email=ops@example.com</code></td></tr>
+</tbody></table>
+<p class="body-text">先定義任務真正需要的欄位，再列出每個來源的去向。這份完整輸入契約就是後續操作要模仿的答案。</p>
+<table class="content-table"><thead><tr><th>契約欄位</th><th>必填？</th><th>型別</th><th>Sheets 映射</th><th>Gmail 映射</th><th>缺值處理</th><th>下游用途</th></tr></thead><tbody>
+<tr><td><code>customer_identity</code></td><td>是</td><td>文字</td><td><code>customer_name</code></td><td><code>sender</code></td><td>空值：停止，資料來源負責人補值</td><td>讓 Gemini 知道回饋來自誰</td></tr>
+<tr><td><code>message_text</code></td><td>是</td><td>文字</td><td><code>feedback</code></td><td><code>subject + body</code> 合併</td><td>合併後空白：停止；只有 body 空白時標記人工檢查</td><td>Gemini 產生摘要與草稿</td></tr>
+<tr><td><code>urgency_signal</code></td><td>否</td><td>數字或空值</td><td><code>rating</code></td><td>無，填空值</td><td>不影響流程；只依 <code>message_text</code> 判斷</td><td>提供額外判斷線索</td></tr>
+<tr><td><code>owner_email</code></td><td>是</td><td>Email 文字</td><td>課程提供的固定設定</td><td>課程提供的固定設定</td><td>格式錯誤：停止通知，內部負責人修正</td><td>交給內部負責人，不取代客戶身分</td></tr>
+</tbody></table>
+<p class="body-text">同一個契約欄位可以有不同來源。<code>urgency_signal</code> 在 Sheets 有 <code>rating</code>，Gmail 沒有，所以它是選填；<code>owner_email</code> 是固定設定，不從客戶資料推導。</p>
+<table class="content-table"><thead><tr><th>契約欄位</th><th>實際值</th><th>判斷理由</th></tr></thead><tbody>
+<tr><td><code>customer_identity</code></td><td>林小姐</td><td><code>customer_name</code> 有文字，通過</td></tr>
+<tr><td><code>message_text</code></td><td>物流延遲，客服回覆太慢</td><td><code>feedback</code> 有內容，通過</td></tr>
+<tr><td><code>urgency_signal</code></td><td>2</td><td><code>rating</code> 是數字，可作為額外線索</td></tr>
+<tr><td><code>owner_email</code></td><td>ops@example.com</td><td>使用課程提供的固定設定，通過</td></tr>
+</tbody></table>
+<table class="content-table"><thead><tr><th>輸出欄位</th><th>必填？</th><th>型別</th><th>合格條件</th><th>下一個模組</th><th>不合格處理</th></tr></thead><tbody>
+<tr><td><code>summary</code></td><td>是</td><td>文字</td><td>不可空白，能指出主要問題</td><td>Google Docs</td><td>記錄錯誤，重試 Gemini</td></tr>
+<tr><td><code>reply_draft</code></td><td>是</td><td>文字</td><td>不可空白，與 <code>message_text</code> 有關</td><td>Google Docs／Gmail</td><td>暫停寄信，修正提示詞後重試 Gemini</td></tr>
+<tr><td><code>needs_review</code></td><td>是</td><td>布林值</td><td>只能是 <code>true</code> 或 <code>false</code></td><td>Filter</td><td>不得猜測；標記待人工確認</td></tr>
+</tbody></table>
+<p class="body-text">合格的 Gemini 中間結果是 <code>summary=物流延遲且客服回覆時間過長</code>、<code>reply_draft=感謝你的回饋，我們會檢查物流通知流程並改善客服回覆時間。</code>、<code>needs_review=true</code>。若回傳 <code>needs_review="true"</code>（文字），即使畫面看起來相同，也不符合契約。</p>
+<h3 class="section-heading" style="font-size:1.1rem;margin-top:30px">完整映射完成品</h3>
+<p class="body-text">最後把輸入、來源映射與輸出串起來，形成 <code>mapping-v1</code>。每一列都能追溯到契約欄位。</p>
+<table class="content-table"><thead><tr><th>階段</th><th>來源／模組</th><th>原始欄位</th><th>契約欄位</th><th>型別／條件</th><th>去向與判斷</th></tr></thead><tbody>
+<tr><td>1</td><td>Sheets / Watch Rows</td><td><code>customer_name</code></td><td><code>customer_identity</code></td><td>文字，不可空白</td><td>交給 Gemini；空值停止並補值</td></tr>
+<tr><td>1</td><td>Sheets / Watch Rows</td><td><code>feedback</code></td><td><code>message_text</code></td><td>文字，不可空白</td><td>交給 Gemini；空值停止</td></tr>
+<tr><td>1</td><td>Sheets / Watch Rows</td><td><code>rating</code></td><td><code>urgency_signal</code></td><td>數字，可空</td><td>有值提供線索；無值不阻斷</td></tr>
+<tr><td>1</td><td>Gmail / Watch Emails</td><td><code>sender</code></td><td><code>customer_identity</code></td><td>Email 文字，不可空白</td><td>交給 Gemini；空值停止並補值</td></tr>
+<tr><td>1</td><td>Gmail / Watch Emails</td><td><code>subject + body</code></td><td><code>message_text</code></td><td>合併後文字不可空白</td><td>交給 Gemini；只有 body 空白標記人工檢查</td></tr>
+<tr><td>2</td><td>Gemini / Generate</td><td><code>summary</code></td><td><code>summary</code></td><td>文字，不可空白</td><td>交給 Docs；空值重試 Gemini</td></tr>
+<tr><td>2</td><td>Gemini / Generate</td><td><code>reply_draft</code></td><td><code>reply_draft</code></td><td>文字，不可空白</td><td>交給 Docs／Gmail；空值暫停寄信</td></tr>
+<tr><td>2</td><td>Gemini / Generate</td><td><code>needs_review</code></td><td><code>needs_review</code></td><td>布林值</td><td><code>false</code> → Docs；<code>true</code> → 待人工確認</td></tr>
+<tr><td>3</td><td>固定設定</td><td><code>owner_email</code></td><td><code>owner_email</code></td><td>Email 文字</td><td>交給內部通知；不使用 <code>sender</code> 取代</td></tr>
+</tbody></table>
+<div class="callout"><div class="callout-body"><strong>正誤差異</strong>　正確：<code>subject + body</code> → <code>message_text</code>，<code>rating</code> 在 Gmail 版標為選填／不存在。錯誤：要求 Gmail 提供 <code>rating</code>，或把空白 <code>body</code> 當成完整回饋送出。</div></div>
+</section>
+<hr class="section-rule">
+
+<section class="lesson-section">
+<div class="section-eyebrow">(03b)</div>
+<h2 class="section-heading">示範失敗處理：契約不合格時誰接手</h2>
+<p class="body-text">完整契約還要回答「不合格時誰做什麼」。以下四列把負責人、下游影響與處理出口寫在示範中，稍後的測試紀錄要照這種完整度填寫。</p>
+<table class="content-table">
+<thead>
+<tr>
+<th>失敗點</th>
+<th>負責人</th>
+<th>下游影響</th>
+<th>停止／記錄／重試</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>customer_identity</code> 空值</td>
+<td>資料來源負責人</td>
+<td>Gemini 不應收到不明身分</td>
+<td>停止來源資料、記錄缺值、補值後重試來源模組</td>
+</tr>
+<tr>
+<td>
+<code>message_text</code> 合併後空白</td>
+<td>資料來源負責人</td>
+<td>Gemini、Docs、Gmail 全部暫停</td>
+<td>停止流程、記錄空內容、補主旨或內文後重試</td>
+</tr>
+<tr>
+<td>
+<code>summary</code> 或 <code>reply_draft</code> 空白</td>
+<td>流程負責人</td>
+<td>Docs／Gmail 沒有可用內容</td>
+<td>記錄 Gemini 錯誤、修正提示詞、重試 Gemini</td>
+</tr>
+<tr>
+<td>
+<code>needs_review</code> 型別錯誤</td>
+<td>流程負責人</td>
+<td>Filter 無法安全分流</td>
+<td>標記待人工確認、停止下游、修正輸出後重試 Filter</td>
+</tr>
+</tbody>
+</table>
+<p class="body-text">失敗處理摘要：<code>customer_identity</code> 空值由資料來源負責人處理，停止來源資料、記錄缺值、補值後重試；<code>message_text</code> 空白由資料來源負責人處理，停止流程、記錄空內容、補主旨或內文後重試；<code>summary</code> 或 <code>reply_draft</code> 空白由流程負責人處理，記錄 Gemini 錯誤並重試 Gemini，暫停 Docs／Gmail；<code>needs_review</code> 型別錯誤由流程負責人處理，標記待人工確認、停止下游並重試 Filter。</p>
+</section>
+<hr class="section-rule">
+
+<section class="lesson-section">
+<div class="section-eyebrow">(04)</div>
+<h2 class="section-heading">跟著做：先完成輸入契約</h2>
+<p class="body-text">示範已把來源欄位、共同欄位與缺值規則走過一次。現在先完成輸入契約，不要急著開 Make；這份規格會成為 CH1-3 建流程時的檢查清單。</p>
+<div class="callout"><div class="callout-body"><strong>複製跟做模板</strong>　請先複製 <a href="assets/CH1-2-contract-input-template.md" download>輸入契約模板</a>、<a href="assets/CH1-2-contract-output-template.md" download>輸出契約模板</a> 與 <a href="assets/CH1-2-mapping-template.md" download>映射表模板</a>，再依下面步驟填寫。模板已預留本節要求的欄位；若無法下載，也可依欄位名稱在自己的文件中建立同樣的表格。</div></div>
+<div class="step-block">
+<div class="step-circle">1</div>
+<div>
+<div class="step-heading">Together · 建立契約欄位骨架</div>
+<div class="step-body">
+<div class="step-field">
+<strong>學員操作：</strong>建立文件 <code>contract-input-v1</code>，加入「契約欄位、必填？、型別、Sheets 映射、Gmail 映射、缺值處理、下游用途」七欄；先填 <code>customer_identity</code>、<code>message_text</code>、<code>urgency_signal</code>、<code>owner_email</code>。</div>
+<div class="step-field">
+<strong>預期結果：</strong>有四列共同欄位，尚未把 Sheets 或 Gmail 當成唯一來源。</div>
+<div class="step-field">
+<strong>快速檢查：</strong>遮住來源欄，只看契約欄位，仍能說明 Gemini 需要哪些資料。</div>
+<div class="step-field">
+<strong>卡住時：</strong>先判斷必填、選填或固定設定，再填來源名稱。</div>
+</div>
+</div>
+</div>
+<div class="step-block">
+<div class="step-circle">2</div>
+<div>
+<div class="step-heading">Together · 定義必填與資料型別</div>
+<div class="step-body">
+<div class="step-field">
+<strong>學員操作：</strong>填入 <code>customer_identity</code>＝必填／文字、<code>message_text</code>＝必填／文字、<code>urgency_signal</code>＝選填／數字或空值、<code>owner_email</code>＝必填／Email 文字。</div>
+<div class="step-field">
+<strong>預期結果：</strong>四列都有可判斷的必填狀態與型別，不使用「看情況」或「任意格式」。</div>
+<div class="step-field">
+<strong>快速檢查：</strong>指出一個空值可以繼續的欄位，以及一個空值必須停止的欄位。</div>
+<div class="step-field">
+<strong>卡住時：</strong>對照 Gmail 沒有 <code>rating</code> 的資料；<code>urgency_signal</code> 應是選填，不應阻斷來源替換。</div>
+</div>
+</div>
+</div>
+<div class="step-block">
+<div class="step-circle">3</div>
+<div>
+<div class="step-heading">Demo → Together · 填入兩種來源映射</div>
+<div class="step-body">
+<div class="step-field">
+<strong>學員操作：</strong>在 Sheets 欄填入 <code>customer_name</code>、<code>feedback</code>、<code>rating</code>、固定設定；在 Gmail 欄填入 <code>sender</code>、<code>subject + body</code>、無、固定設定。每列補上缺值處理與下游用途。</div>
+<div class="step-field">
+<strong>預期結果：</strong>兩種來源都能填滿必要契約欄位；<code>urgency_signal</code> 在 Gmail 明確寫「無／選填」。</div>
+<div class="step-field">
+<strong>快速檢查：</strong>能說明 <code>feedback</code> 與 <code>subject + body</code> 為何進入同一個 <code>message_text</code>。</div>
+<div class="step-field">
+<strong>卡住時：</strong>先找契約欄位，再找兩個來源的原始欄位；不要反過來猜。</div>
+</div>
+</div>
+</div>
+<div class="checkpoint">
+<div class="checkpoint-title">Checkpoint：輸入契約是否閉合</div>
+<p>
+<strong>現在應該看到：</strong>四個契約欄位都有必填狀態、型別、兩種來源映射、缺值處理與下游用途；Gmail 沒有 <code>rating</code> 已標為選填／不存在。</p>
+<p>
+<strong>若沒看到：</strong>回到步驟 2 或 3，逐列檢查「必填／型別／去向」；特別檢查 <code>owner_email</code> 是否被誤映射成 <code>sender</code>。</p>
+<p>
+<strong>通過後才能繼續：</strong>同學拿到 <code>contract-input-v1</code>，能判斷一筆來源資料能不能安全交給 Gemini。</p>
+</div>
+</section>
+<hr class="section-rule">
+
+<section class="lesson-section">
+<div class="section-eyebrow">(05)</div>
+<h2 class="section-heading">接上輸出：讓下游知道可以相信什麼</h2>
+<p class="body-text">輸入契約通過後，Gemini 也要有輸出規格。Docs 需要文字，Filter 需要布林值；因此「AI 成功」不是驗收結果，欄位的內容與型別才是。</p>
+<div class="step-block">
+<div class="step-circle">4</div>
+<div>
+<div class="step-heading">Together · 建立 Gemini 輸出契約</div>
+<div class="step-body">
+<div class="step-field">
+<strong>學員操作：</strong>建立 <code>contract-output-v1</code>，加入「輸出欄位、必填？、型別、合格條件、下一個模組、不合格處理」六欄；填入 <code>summary</code>、<code>reply_draft</code>、<code>needs_review</code>。</div>
+<div class="step-field">
+<strong>預期結果：</strong>三列輸出欄位分別指定文字／文字／布林值，並寫出下游模組。</div>
+<div class="step-field">
+<strong>快速檢查：</strong>圈出 <code>needs_review</code> 的型別與 <code>true</code> 時的去向。</div>
+<div class="step-field">
+<strong>卡住時：</strong>回看示範中間結果；<code>needs_review</code> 是控制 Filter 的欄位，不是回覆文字。</div>
+</div>
+</div>
+</div>
+<div class="step-block">
+<div class="step-circle">5</div>
+<div>
+<div class="step-heading">Together · 寫出合格與不合格條件</div>
+<div class="step-body">
+<div class="step-field">
+<strong>學員操作：</strong>補上 <code>summary</code>／<code>reply_draft</code> 不可空白、<code>needs_review</code> 只能是布林值；空白文字重試 Gemini，型別錯誤不得猜測並標記待人工確認。</div>
+<div class="step-field">
+<strong>預期結果：</strong>每列都有可觀察的合格條件與修復出口。</div>
+<div class="step-field">
+<strong>快速檢查：</strong>把 <code>needs_review="true"</code> 放入表格，能指出它為何不合格以及要停在哪裡。</div>
+<div class="step-field">
+<strong>卡住時：</strong>把「內容品質好」改成「是否空白、型別是否符合、是否通往指定模組」。</div>
+</div>
+</div>
+</div>
+<div class="step-block">
+<div class="step-circle">6</div>
+<div>
+<div class="step-heading">Together · 完成來源映射表</div>
+<div class="step-body">
+<div class="step-field">
+<strong>學員操作：</strong>建立 <code>mapping-v1</code>，加入「階段、來源／模組、原始欄位、契約欄位、型別／條件、去向與判斷」六欄；填入 Sheets、Gmail、Gemini 與固定設定的映射。</div>
+<div class="step-field">
+<strong>預期結果：</strong>至少有 Sheets 3 列、Gmail 3 列、Gemini 3 列與 <code>owner_email</code> 1 列，且每列可回查契約欄位。</div>
+<div class="step-field">
+<strong>快速檢查：</strong>任選 <code>message_text</code>，能從兩種來源往前追，也能往後追到 <code>summary</code>／<code>reply_draft</code>。</div>
+<div class="step-field">
+<strong>卡住時：</strong>先填 <code>customer_identity</code> 與 <code>message_text</code> 的來源，再補選填欄位與輸出欄位。</div>
+</div>
+</div>
+</div>
+<div class="checkpoint">
+<div class="checkpoint-title">Checkpoint：映射是否能被另一個人接手</div>
+<p>
+<strong>現在應該看到：</strong>
+<code>mapping-v1</code> 能回答原始欄位、契約欄位、型別、下一步與錯誤處理；<code>subject + body</code> 的合併、<code>rating</code> 的選填、<code>owner_email</code> 的固定來源都清楚可見。</p>
+<p>
+<strong>若沒看到：</strong>回到步驟 3 或 6，逐列補上「去向與判斷」；只有欄位名稱仍不算完成。</p>
+<p>
+<strong>通過後才能繼續：</strong>同學只看 <code>mapping-v1</code>，能說明一筆 Gmail 資料如何成為 Gemini 輸入，並指出一個會停止流程的錯誤。</p>
+</div>
+</section>
+<hr class="section-rule">
+
+<section class="lesson-section">
+<div class="section-eyebrow">(06)</div>
+<h2 class="section-heading">驗證與轉用：用一筆錯誤資料測試契約</h2>
+<p class="body-text">契約不是填完表格就結束。先測試完整資料，再故意製造一個缺值或型別錯誤；對照結果，你才知道契約保護了哪個下游模組。</p>
+<div class="step-block">
+<div class="step-circle">7</div>
+<div>
+<div class="step-heading">Solo · 測試通過與不通過資料</div>
+<div class="step-body">
+<div class="step-field">
+<strong>學員操作：</strong>在 <code>mapping-v1</code> 下方新增「測試紀錄」。測試 A 使用完整 Gmail 資料；測試 B 將 <code>subject</code> 與 <code>body</code> 都清空，或把 <code>needs_review</code> 改成文字。每筆寫「輸入、檢查欄位、結果、處理出口」。</div>
+<div class="step-field">
+<strong>預期結果：</strong>測試 A 通過並可進 Gemini；測試 B 被停止或標記待人工確認，不進入 Docs／Gmail。</div>
+<div class="step-field">
+<strong>快速檢查：</strong>每筆測試都指出哪個欄位不合格與哪個下游模組因此暫停。</div>
+<div class="step-field">
+<strong>卡住時：</strong>先回到契約表找合格條件，再回到映射表找負責人與出口；不要只寫「測試失敗」。</div>
+</div>
+</div>
+</div>
+<div class="step-block">
+<div class="step-circle">8</div>
+<div>
+<div class="step-heading">Check · 寫交接說明並驗收</div>
+<div class="step-body">
+<div class="step-field">
+<strong>學員操作：</strong>在三份完成物下方各寫一句交接說明：哪些欄位可替換？哪些欄位一定要有？輸出不符合型別時，下一個模組如何停下來？</div>
+<div class="step-field">
+<strong>預期結果：</strong>
+<code>contract-input-v1</code>、<code>contract-output-v1</code>、<code>mapping-v1</code> 可交給下一位流程設計者，且測試紀錄能重現一個通過與一個不通過案例。</div>
+<div class="step-field">
+<strong>快速檢查：</strong>遮住 CH1-1 地圖，只看三份完成物仍能說出資料如何進 Gemini、如何離開 Gemini，以及錯誤停在哪裡。</div>
+<div class="step-field">
+<strong>卡住時：</strong>依序檢查輸入契約、輸出契約、映射表；缺哪一份就回到對應步驟補齊。</div>
+</div>
+</div>
+</div>
+<div class="callout">
+<div class="callout-body">
+<strong>變化練習</strong>　複製三份正式完成物成 <code>contract-input-variant</code>、<code>contract-output-variant</code>、<code>mapping-variant</code>，只把條件改成「<code>subject</code> 包含『申訴』時才預設 <code>needs_review=true</code>」。保留 <code>sender</code>、<code>subject + body</code>、<code>owner_email</code> 的映射不變。</div>
+</div>
+<h3 class="section-heading" style="font-size:1.1rem;margin-top:30px">完成驗證</h3>
+<ul class="check-list">
+<li>
+<code>contract-input-v1</code> 有四個契約欄位，分清必填、選填、固定設定與型別。</li>
+<li>Sheets 的 <code>customer_name</code>、<code>feedback</code>、<code>rating</code> 與 Gmail 的 <code>sender</code>、<code>subject + body</code> 都有明確去向。</li>
+<li>
+<code>contract-output-v1</code> 有 <code>summary</code>、<code>reply_draft</code>、<code>needs_review</code> 的型別、合格條件與下游用途。</li>
+<li>
+<code>mapping-v1</code> 能從原始欄位追到契約欄位，再追到 Gemini 輸出與下游。</li>
+<li>每一列都能指出<strong>缺值處理</strong>、型別錯誤的負責人、下游影響與停止／記錄／重試出口。</li>
+<li>至少一筆通過與一筆不通過測試；不通過測試包含原因、負責人、停止／記錄／重試出口。</li>
+<li>
+<code>needs_review=true</code> 進入待人工確認；型別錯誤時不得猜測，<code>owner_email</code> 不使用客戶 <code>sender</code> 取代。</li>
+<li>變化版只修改一個控制條件，沒有覆寫正式完成物。</li>
+</ul>
+</section>
+<hr class="section-rule">
+
+<section class="lesson-section">
+<div class="section-eyebrow">(07)</div>
+<h2 class="section-heading">常見錯誤：先查契約，再查工具</h2>
+<p class="body-text">下面三個情境對應本節最容易混淆的判斷：來源欄位與共同欄位、選填與必填、欄位存在與型別正確。</p>
+<div class="pitfall-grid">
+<div class="pitfall">
+<div class="pitfall-title">把來源欄位當共同契約</div>
+<p>
+<strong>現象：</strong>要求 Gmail 也提供 <code>customer_name</code>。</p>
+<p>
+<strong>修正：</strong>先定義 <code>customer_identity</code>，再列出 Sheets 的 <code>customer_name</code> 與 Gmail 的 <code>sender</code> 映射。</p>
+</div>
+<div class="pitfall">
+<div class="pitfall-title">把選填欄位當必填</div>
+<p>
+<strong>現象：</strong>Gmail 沒有 <code>rating</code>，卻因此停止所有郵件。</p>
+<p>
+<strong>修正：</strong>將 <code>urgency_signal</code> 標成數字或空值，沒有它時不阻斷。</p>
+</div>
+<div class="pitfall">
+<div class="pitfall-title">只驗證有值</div>
+<p>
+<strong>現象：</strong>
+<code>needs_review="true"</code> 看似有值，或 <code>sender</code> 被送到 <code>owner_email</code>。</p>
+<p>
+<strong>修正：</strong>同時檢查型別、角色與下一個模組。</p>
+</div>
+</div>
+</section>
+<hr class="section-rule">
+
+<section class="lesson-section">
+<div class="section-eyebrow">(08)</div>
+<h2 class="section-heading">檢核題：用契約說明你的判斷</h2>
+<p class="body-text">前面的練習要求你做出三份完成物，這兩題要求你用欄位與型別說明自己的判斷。</p>
+<div class="quiz-item">
+<div class="quiz-q">Q1：哪一個寫法最符合「來源可替換的資料契約」？</div>
+<div class="quiz-opts">
+<label class="quiz-opt">
+<input type="radio" name="q1">
+<span>A. 契約欄位直接使用 <code>customer_name</code>。</span>
+</label>
+<label class="quiz-opt correct">
+<input type="radio" name="q1">
+<span>B. 定義 <code>customer_identity</code>，讓 Sheets 的 <code>customer_name</code> 與 Gmail 的 <code>sender</code> 分別映射。</span>
+</label>
+<label class="quiz-opt">
+<input type="radio" name="q1">
+<span>C. 移除 Gmail 來源。</span>
+</label>
+<label class="quiz-opt">
+<input type="radio" name="q1">
+<span>D. 所有欄位都標成選填。</span>
+</label>
+</div>
+<details class="quiz-ans">
+<summary>顯示答案與理由</summary>
+<div>正確答案：<strong>B</strong>。契約先描述任務需要的資料，再由各來源提供映射。</div>
+</details>
+</div>
+<div class="quiz-item">
+<div class="quiz-q">Q2：Gemini 回傳 <code>needs_review="true"</code>，下一步應如何處理？</div>
+<div class="quiz-opts">
+<label class="quiz-opt">
+<input type="radio" name="q2">
+<span>A. 因為有值，直接送到 Docs 與 Gmail。</span>
+</label>
+<label class="quiz-opt">
+<input type="radio" name="q2">
+<span>B. 讓 Filter 自己把文字當布林值。</span>
+</label>
+<label class="quiz-opt correct">
+<input type="radio" name="q2">
+<span>C. 記錄型別錯誤、標記待人工確認並暫停下游。</span>
+</label>
+<label class="quiz-opt">
+<input type="radio" name="q2">
+<span>D. 刪除 <code>needs_review</code>。</span>
+</label>
+</div>
+<details class="quiz-ans">
+<summary>顯示答案與理由</summary>
+<div>正確答案：<strong>C</strong>。資料契約同時檢查欄位存在、型別與安全出口。</div>
+</details>
+</div>
+</section>
+<hr class="section-rule">
+
+<section class="lesson-section">
+<div class="section-eyebrow">(09)</div>
+<h2 class="section-heading">試跑包：沒有連線也能完成本節</h2>
+<p class="body-text">本節不把 OAuth 或付費連接器當成學習門檻。使用去敏資料與頁面中的完整案例，仍能完成三份契約與兩筆測試紀錄。</p>
+<div class="asset-grid">
+<div class="asset-card">
+<div class="asset-name">來源資料</div>
+<p>Sheets：<code>customer_name=林小姐</code>、<code>rating=2</code>、<code>feedback=物流延遲，客服回覆太慢</code>。Gmail：<code>sender=customer@example.com</code>、<code>subject=物流問題</code>、<code>body=物流延遲，客服回覆太慢</code>、<code>owner_email=ops@example.com</code>。<br><a href="assets/CH1-1-test-data.csv" download>下載測試資料</a> · <a href="assets/CH1-1-import-map.md" download>開啟匯入對照</a></p>
+</div>
+<div class="asset-card">
+<div class="asset-name">Gemini 輸出</div>
+<p>合格輸出：<code>summary</code>、<code>reply_draft</code>、<code>needs_review=true</code>；型別錯誤輸出：<code>needs_review="true"</code>。</p>
+</div>
+<div class="asset-card">
+<div class="asset-name">空白模板</div>
+<p>輸入契約七欄、輸出契約六欄、映射表六欄；正式版與變化版分開存檔。<br><a href="assets/CH1-2-contract-input-template.md" download>輸入契約</a> · <a href="assets/CH1-2-contract-output-template.md" download>輸出契約</a> · <a href="assets/CH1-2-mapping-template.md" download>映射表</a></p>
+</div>
+<div class="asset-card">
+<div class="asset-name">下一節</div>
+<p>CH1-3 將使用本節的契約與映射，建立一條可執行的 Make＋Gemini 範例流程。</p>
+</div>
+</div>
+</section>
+<div class="nav-footer">
+<a href="CH1-1.html" class="nav-btn">
+<span aria-hidden="true">←</span> CH1-1 看懂工作流</a>
+<a href="CH1-3.html" class="nav-btn primary">下一節：建立範例流程 <span aria-hidden="true">→</span>
+</a>
+</div>
+</main>
+<footer class="footer">
+<span class="footer-logo">弄一下工作室</span>
+<div class="footer-div">
+</div>
+<span class="footer-note">Make × Gemini 自動化工作流</span>
+<span class="footer-meta" data-platform-version="Make（課堂以教師提供的藍圖與測試資料為準）" data-built-at="2026-08-07">本頁以 Make（課堂以教師提供的藍圖與測試資料為準）製作，2026-08</span>
+</footer>
+<script>const fill=document.getElementById('prog');const strip=document.querySelector('.progress-strip');window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});</script>
+<script>(function(){var k='progress:'+location.pathname;var saved=parseInt(localStorage.getItem(k)||'0',10);if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}var t;window.addEventListener('scroll',function(){clearTimeout(t);t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);},{passive:true});})();</script>
+</body>
+</html>
