@@ -18,6 +18,7 @@ COURSES = {
     "gen-ai-140h":     ("gen140_auth",  "34810b0ecfa2dab0a29120fc3ff1f867aec23bc5f23a184b8c6c3c7d3a550400"),
     "gtm":             ("gtm_auth",     "5142d1f99cbf6f9db528ce5aee5fab62c299fafabfeef9e5e0fa9a1dbff5f151"),
     "n8n":             ("n8n_auth",     "825e2dce35d14124f94b648f6ab2ab60c9db1d8f393c2b61722fe02412b9a199"),
+    "make-ai-workflow": ("makeaiworkflow_auth", "27f53c660788723a7cf07649b44dd8d5bf09a2999b71d600a7b1a73c573ecf79"),
     "ntub-seo-ga4":    ("ntub_auth",    "1c0d96ab18b0574bb4e6c04b2c4baff23637a70205a6b651ccdd6f2c9b638c81"),
     "office-ai":       ("officeai_auth","6ab0aa487f1730f54a645b5ac78f9118d45255eed7e62414cbc37108a848e5e4"),
     "digital-marketing-70h": ("digimkt_auth", "6d9278e29c0d1ab888cfabe6a73a06f54c124fb0a4bb3dfccd7720d3e80d9eb7"),
