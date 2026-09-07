@@ -6,7 +6,7 @@
 **負責人**：課程製作流程  
 **建立**：2026-09-07  
 **目前 Gate**：G1 大綱定位草稿  
-**目前狀態**：`G1_DRAFT_REVIEW`
+**目前狀態**：`G1_BLOCKED_BY_FIGMA_VALIDATION`
 
 ---
 
@@ -66,6 +66,17 @@
 
 **結論**：□ 放行 / □ 退回（等待使用者回答 Q1–Q4）  
 **放行限制**：G1 未通過前，不進入代表單元教案。
+
+### Figma 實務環境追加確認
+
+**日期**：2026-09-07
+**使用者確認**：Figma Starter 免費方案、瀏覽器版。
+**證據**：`uiux-designer/_design/FIGMA-STARTER-BROWSER-AUDIT.md`
+
+**決定**：`BLOCKED`
+**原因**：目前只有方案與平台資訊，尚無三組最小實測的操作、失敗與成品證據；99h 時數、16-stage 對應與任何付費功能都不得視為已放行。
+
+**下一步**：先完成 Probe A／B／C；再依 `PASS`、`CONDITIONAL`、`BLOCK`、`NOT_RUN` 重畫 coverage、時間帳本與單元邊界。
 
 ---
 
