@@ -1,8 +1,9 @@
 ---
 course: uiux-designer
-status: DRAFT_GATE0
+status: GATE0_PASS
 source_date: 2026-09-07
 official_hours: 42h + 57h = 99h
+gate0_approved_at: 2026-09-07
 ---
 
 # UI/UX 99h 正式內容 Coverage Matrix
@@ -68,11 +69,11 @@ official_hours: 42h + 57h = 99h
 | 16-stage 依賴 | 能把元件、原型、Handoff 與 Web 排出前後關係 | 不把 16 stages 誤當成 16 個行政課程 |
 | Concept → Follow Along → Guided Practice → Independent Challenge | 適合接近零基礎學員逐步完成 | 每個階段仍須有真實新能力，不以活動名稱灌時數 |
 | VS Code、Chrome | 支援 HTML／CSS、手機檢查與部署 | 不能脫離 57h 網頁與部署成果獨立擴張 |
-| 基礎 JavaScript | 可能支援最小互動網頁成果 | 圖片未明列；需在 Gate 1 說明必要性與分鐘來源 |
-| Git／GitHub | 支援版本與交付治理 | 圖片未明列；不得在未核准前宣稱行政必修 |
+| 基礎 JavaScript | 只保留完成最小網頁成果所需的能力 | 圖片未明列；不得擴張成程式設計課，分鐘必須服務 57h 網頁／部署完成物 |
+| Git／GitHub | 納入 57h 的必要版本與交付流程 | 圖片未明列，但使用者已核准為必要流程；不得擴張成獨立 Git 課程 |
 | Design System、Prototype、網站、部署整合成果鏈 | 能把兩門課串成可展示的產出 | 每個成果都要回溯正式項目與 99h 時間帳本 |
 
-## E. Gate 0 結論（待使用者審核）
+## E. Gate 0 結論（使用者已核准）
 
 ### 已確認
 
@@ -81,12 +82,12 @@ official_hours: 42h + 57h = 99h
 - Component、手機介面、Dialog、Navigation、Photoshop 輸出與網頁內容已建立首次教學／後續重用邊界。
 - 舊 Photoshop 42h 未被列入正式 coverage。
 
-### 待確認
+### 使用者決策（2026-09-07）
 
-- ChatGPT 提案中的 Git／GitHub 是否納入 57h 的必要交付流程，或只作可選支線。
-- 基礎 JavaScript 是否是雲端部署成果的必要能力，或維持 HTML／CSS 最小路徑。
-- Stage 0–15 最終如何切成可驗收單元，以及每個單元的時數。
+- Git／GitHub：必要流程，納入 57h 的版本與交付驗收。
+- 基礎 JavaScript：維持最小路徑，只教完成網頁成果所需的能力。
+- 16-stage：作為依賴參考，不硬性一對一切成 16 個單元；改依正式課程內容、能力邊界與完成物切分。
 
 ### 放行限制
 
-本文件通過使用者 Gate 0 前，不建立 `99h-time-ledger.md`，不寫正式 `_outlines/uiux-designer.md`，不製作教案或 HTML。
+本文件已通過使用者 Gate 0。下一步建立 `99h-time-ledger.md` 與 `../_outlines/uiux-designer.md` 草稿；仍不製作教案或 HTML。
