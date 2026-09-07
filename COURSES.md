@@ -69,6 +69,7 @@
 | `gen-image/` | 商業用圖片生成 | 完成 | 5 Modules，13 單元，AI 設計流水線 PM 協作；主色奶茶棕；**v4 Editorial 範本**；**公開課程，無密碼關卡（2026-07-08 確認）** |
 | `gtm/` | GTM 實務演練 | 完成 | part1~6，含 checklist.html |
 | `n8n/` | n8n 自動化實戰課 | 完成 | landing + lessons/，4 Modules |
+| `make-ai-workflow/` | 從自動化到 AI 協作：Make 工作流實戰（6h） | 完成（已註冊） | 想學自動化的行政、行銷、專案與教學工作者；主色陶土橘 |
 | `ntub-gtm-adtech/` | NTUB GTM × 廣告科技 | 完成 | （學員/結構待補） |
 | `ntub-seo-ga4/` | NTUB SEO × GA4 | 完成 | （學員/結構待補） |
 | `office-ai/` | 辦公室 AI 工具實務應用 | 完成 | part1~5 |

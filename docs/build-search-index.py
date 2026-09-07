@@ -30,6 +30,7 @@ COURSE_LABEL = {
     "gen-ai-36h": "生成式 AI 36h",
     "gtm": "Google Tag Manager",
     "n8n": "n8n 自動化",
+    "make-ai-workflow": "Make 工作流實戰（6h）",
     "ntub-seo-ga4": "SEO × GA4",
     "office-ai": "Office AI",
     "prompt-basic": "AI 交辦方法（6h）",
