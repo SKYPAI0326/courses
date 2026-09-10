@@ -1,0 +1,189 @@
+{
+  "name": "BRIDGE-1 Contract Fixture（Make → n8n）",
+  "meta": {
+    "course_asset_status": "DRAFT_IMPORT_CANDIDATE",
+    "course_asset_purpose": "無 credential 的契約／分流練習；使用固定 A／B／C fixture，不呼叫 Gemini 或 Google API。",
+    "validation_required": "學員匯入自己的 n8n 後，以實際 Webhook 執行紀錄驗證；未驗證前只能標記 SIMULATED。",
+    "source_contract": "personal-automation/book-source/source-reconciliation-v1.md"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "personal-automation-bridge-v1",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "bridge-webhook-input",
+      "name": "Webhook: Contract Input",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-760, 0],
+      "webhookId": "personal-automation-bridge-v1"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const incoming = $input.first()?.json ?? {};\nconst body = incoming.body && typeof incoming.body === 'object' ? incoming.body : incoming;\nconst envelope = body.input && typeof body.input === 'object' ? body.input : body;\nconst source = envelope.data && typeof envelope.data === 'object' ? envelope.data : envelope;\nconst taskType = envelope.task_type ?? 'customer_feedback';\nconst fixtureCase = source.fixture_case ?? envelope.fixture_case ?? body.fixture_case ?? body.case ?? 'B';\n\nconst input_contract = {\n  customer_identity: source.customer_identity ?? source.customer_name ?? '',\n  message_text: source.message_text ?? source.feedback ?? '',\n  urgency_signal: source.urgency_signal ?? source.rating ?? null,\n  owner_email: source.owner_email ?? null\n};\nconst document_contract = {\n  applicant: source.applicant ?? '',\n  document_type: source.document_type ?? '',\n  due_date: source.due_date ?? ''\n};\n\nconst missing = [];\nlet output = {};\nlet validation_error = null;\nif (taskType === 'customer_feedback') {\n  if (typeof input_contract.customer_identity !== 'string' || input_contract.customer_identity.trim() === '') missing.push('customer_identity');\n  if (typeof input_contract.message_text !== 'string' || input_contract.message_text.trim() === '') missing.push('message_text');\n  if (input_contract.urgency_signal !== null && typeof input_contract.urgency_signal !== 'number') missing.push('urgency_signal(number)');\n  if (fixtureCase === 'A') {\n    output = { summary: '物流延遲且客服回覆時間過長', reply_draft: '感謝你的回饋，我們會檢查物流通知流程並改善客服回覆時間。', needs_review: true };\n  } else if (fixtureCase === 'B') {\n    output = { summary: '客戶回饋問題已獲得處理並表示感謝', reply_draft: '謝謝你的回饋，很高興這次的問題已經順利解決。', needs_review: false };\n  } else if (fixtureCase === 'C') {\n    output = { summary: '物流延遲且客服回覆時間過長', reply_draft: '請先確認這段回覆內容，再決定是否送出。', needs_review: 'false' };\n    validation_error = 'needs_review must be boolean; received string';\n  } else {\n    validation_error = `unknown_fixture_case: ${fixtureCase}`;\n  }\n} else if (taskType === 'document_request') {\n  if (typeof document_contract.applicant !== 'string' || document_contract.applicant.trim() === '') missing.push('applicant');\n  if (typeof document_contract.document_type !== 'string' || document_contract.document_type.trim() === '') missing.push('document_type');\n  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(document_contract.due_date)) missing.push('due_date(YYYY-MM-DD)');\n  if (missing.length === 0) {\n    output = { summary: `文件申請：${document_contract.applicant}／${document_contract.document_type}`, reply_draft: '已收到文件申請，請依 n8n 分流結果處理。', needs_review: false };\n  }\n} else {\n  validation_error = `unsupported_task_type: ${taskType}`;\n}\n\nif (missing.length > 0 && !validation_error) {\n  validation_error = `missing_or_invalid: ${missing.join(', ')}`;\n}\nconst contract_status = validation_error ? 'invalid' : 'valid';\nreturn [{ json: { fixture_case: fixtureCase, task_type: taskType, source_platform: envelope.source_platform ?? 'make', evidence_mode: envelope.evidence_mode ?? 'SIMULATED', input_contract, document_contract, ...output, contract_status, validation_error } }];"
+      },
+      "id": "bridge-normalize-contract",
+      "name": "Normalize + Fixture Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-500, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [
+            {
+              "id": "contract-status-valid",
+              "leftValue": "={{ $json.contract_status }}",
+              "rightValue": "valid",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "bridge-contract-valid",
+      "name": "Contract valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [-240, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [
+            {
+              "id": "needs-review-false",
+              "leftValue": "={{ $json.needs_review }}",
+              "rightValue": false,
+              "operator": { "type": "boolean", "operation": "false", "singleValue": true }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "bridge-needs-review",
+      "name": "needs_review = false?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [20, -120]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const item = $input.first().json;\nconst subject = item.task_type === 'document_request' ? `文件申請：${item.document_contract.applicant}` : `客服回饋：${item.input_contract.customer_identity}`;\nreturn [{ json: { ...item, route: 'google_docs', artifact: { type: 'google_docs', status: 'simulated_created', title: subject, body: `摘要：${item.summary}\\\\n\\\\n回覆草稿：${item.reply_draft}` } } }];"
+      },
+      "id": "bridge-prepare-doc",
+      "name": "Prepare Document Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [280, -220]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const item = $input.first().json;\nreturn [{ json: { ...item, route: 'manual_review', artifact: { type: 'human_review', status: 'stopped_before_delivery', owner: '[REPLACE_REVIEW_OWNER]', reason: 'needs_review=true', retry_from: 'needs_review = false?' } } }];"
+      },
+      "id": "bridge-prepare-review",
+      "name": "Prepare Manual Review Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [280, -20]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const item = $input.first().json;\nreturn [{ json: { ...item, route: 'contract_error_stop', artifact: { type: 'error_record', status: 'stopped_before_delivery', reason: item.validation_error, retry_from: 'Normalize + Fixture Output' } } }];"
+      },
+      "id": "bridge-prepare-invalid",
+      "name": "Prepare Contract Error Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [20, 180]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "bridge-respond-doc",
+      "name": "Respond: Document Route",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [540, -220]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "bridge-respond-review",
+      "name": "Respond: Manual Review",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [540, -20]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "bridge-respond-invalid",
+      "name": "Respond: Contract Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [280, 180]
+    }
+  ],
+  "connections": {
+    "Webhook: Contract Input": {
+      "main": [[{ "node": "Normalize + Fixture Output", "type": "main", "index": 0 }]]
+    },
+    "Normalize + Fixture Output": {
+      "main": [[{ "node": "Contract valid?", "type": "main", "index": 0 }]]
+    },
+    "Contract valid?": {
+      "main": [
+        [{ "node": "needs_review = false?", "type": "main", "index": 0 }],
+        [{ "node": "Prepare Contract Error Result", "type": "main", "index": 0 }]
+      ]
+    },
+    "needs_review = false?": {
+      "main": [
+        [{ "node": "Prepare Document Result", "type": "main", "index": 0 }],
+        [{ "node": "Prepare Manual Review Result", "type": "main", "index": 0 }]
+      ]
+    },
+    "Prepare Document Result": {
+      "main": [[{ "node": "Respond: Document Route", "type": "main", "index": 0 }]]
+    },
+    "Prepare Manual Review Result": {
+      "main": [[{ "node": "Respond: Manual Review", "type": "main", "index": 0 }]]
+    },
+    "Prepare Contract Error Result": {
+      "main": [[{ "node": "Respond: Contract Error", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all"
+  },
+  "versionId": "bridge-contract-fixture-v1",
+  "pinData": {},
+  "tags": []
+}

@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>4.3 AI 計劃生成器（壓軸）｜AI 資料工廠</title>
-<meta name="description" content="整合所有 Module 的技能——Webhook 接收需求，Gemini 生成完整行動計劃，自動存檔並發送通知。從一個點子到成品，全程自動。">
+<meta name="description" content="整合前面 Module 的技能：Webhook 接收需求、Gemini 生成結構化計劃、n8n 寫成本機 Markdown，通知發送為可選延伸。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
 <meta property="og:title" content="4.3 AI 計劃生成器（壓軸）｜AI 資料工廠">
-<meta property="og:description" content="整合所有 Module 的技能——Webhook 接收需求，Gemini 生成完整行動計劃，自動存檔並發送通知。從一個點子到成品，全程自動。">
+<meta property="og:description" content="整合前面 Module 的技能：Webhook 接收需求、Gemini 生成結構化計劃、n8n 寫成本機 Markdown，通知發送為可選延伸。">
 <meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/lessons/m4-3-ai.html">
 <meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="4.3 AI 計劃生成器（壓軸）｜AI 資料工廠">
-<meta name="twitter:description" content="整合所有 Module 的技能——Webhook 接收需求，Gemini 生成完整行動計劃，自動存檔並發送通知。從一個點子到成品，全程自動。">
+<meta name="twitter:description" content="整合前面 Module 的技能：Webhook 接收需求、Gemini 生成結構化計劃、n8n 寫成本機 Markdown，通知發送為可選延伸。">
 <meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/lessons/m4-3-ai.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -63,6 +63,8 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 .verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:24px 28px;margin:40px 0}
 .verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px}
 .verify-text{font-size:.9rem;color:var(--c-text);line-height:1.85}
+.checkpoint{margin:16px 0 0;padding:13px 16px;background:rgba(107,127,163,.08);border:1px solid rgba(107,127,163,.28);border-radius:var(--radius);font-size:.82rem;line-height:1.75;color:var(--c-text)}
+.checkpoint strong{color:var(--c-a4)}
 .completion-box{background:rgba(90,122,90,.07);border:1px solid rgba(90,122,90,.25);border-radius:var(--radius);padding:28px 32px;margin:40px 0;text-align:center}
 .comp-title{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:12px}
 .comp-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
@@ -126,25 +128,32 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <a href="module4.html" class="back-link"><span aria-hidden="true">←</span> 返回 Module 4</a>
   <div class="hero-eyebrow">FINAL PROJECT · 4.3</div>
   <h1 class="page-title">AI 計劃生成器：課程壓軸實戰</h1>
-  <p class="page-subtitle">整合所有 Module 的技能——Webhook 接收需求，Gemini 生成完整行動計劃，自動存檔並發送通知。從一個點子到成品，全程自動。</p>
+  <p class="page-subtitle">整合前面 Module 的技能——Webhook 接收需求，Gemini 生成結構化行動計劃，n8n 存成可閱讀的本機 Markdown，Make 再選擇是否發送通知。流程自動化的是草稿產出，內容仍要人工檢查。</p>
 </div>
 
 <div style="max-width:var(--content-w);margin:0 auto;padding:0 48px 16px;">
   <div style="display:flex;gap:12px;padding:14px 18px;background:rgba(201,150,58,.06);border:1px solid rgba(201,150,58,.28);border-radius:var(--radius);font-size:.85rem;line-height:1.75;">
     <span style="flex-shrink:0;font-size:1rem;margin-top:1px;">⏩</span>
-    <span style="color:var(--c-text);"><strong>時間調配提示：</strong>本節為課程壓軸，若前面環節超時，可改由講師現場 Live Demo 完整流程，學員跟著觀摩 Prompt 設計與節點邏輯，課後再自行照步驟實作。重點放在理解「從表單到成品」的全鏈路概念，而非當場完成每個節點設定。</span>
+    <span style="color:var(--c-text);"><strong>時間調配提示：</strong>本節先完成 Manual Trigger → Edit Fields → AI 回應 → Markdown 檔案的基準流程。時間不足時，保留固定 AI 回覆檔案與執行記錄，外部 Webhook／Gmail 放到課後延伸；每位學員仍要完成一次本機輸出。</span>
+  </div>
+</div>
+
+<div style="max-width:var(--content-w);margin:0 auto;padding:0 48px 16px;">
+  <div class="step-tip info">
+    <span class="tip-icon">🧭</span>
+    <span class="tip-text"><strong>先選你的進入方式：</strong>已完成 4.1／4.2 的學員，可沿用 Google Forms → Make → n8n；尚未完成外部串接時，先用 <strong>Manual Trigger → Edit Fields（Set）</strong> 建立同樣的 <code>body.project_name</code>、<code>body.objective</code>、<code>body.deliverables</code>、<code>body.owner</code> 欄位，直接驗證「輸入 → AI JSON → 本機 Markdown」核心。若沒有 API key，可下載<a href="../assets/m4-3-ai-output.json" download>固定 AI 回覆</a>，在 Step 3 的 Edit Fields 節點重現同一個輸出結構。可先填入：<br><span class="inline-code">project_name：2026 校慶科技展　｜　objective：吸引 500 人參與並展示 AI 應用　｜　deliverables：活動企劃書、分工表、時程表　｜　owner：活動組</span></span>
   </div>
 </div>
 
 <div class="final-banner">
   <div class="banner-inner">
-    <div class="banner-label">最終成果 · 完整流程</div>
+    <div class="banner-label">最終成果 · 基準流程 + 延伸入口</div>
     <div class="project-steps">
-      <div class="project-step"><span class="ps-num">①</span><span>用手機填寫 Google 表單，輸入一個活動點子（如「2026 校慶科技展」）</span></div>
-      <div class="project-step"><span class="ps-num">②</span><span>Make 接收表單資料，HTTP 轉送到本機 n8n</span></div>
-      <div class="project-step"><span class="ps-num">③</span><span>n8n 呼叫 Gemini API，AI 生成結構化行動計劃（JSON 格式）</span></div>
-      <div class="project-step"><span class="ps-num">④</span><span>解析 AI 回傳，自動格式化成 Markdown 任務清單</span></div>
-      <div class="project-step"><span class="ps-num">⑤</span><span>Write File 儲存到本機，HTTP 回傳 Make <span aria-hidden="true">→</span> Gmail 發送完成通知</span></div>
+      <div class="project-step"><span class="ps-num">①</span><span><strong>基準入口：</strong>在 n8n 用 Manual Trigger + Edit Fields（Set）填入一筆需求；已完成 4.1／4.2 者，也可用 Google Form → Make → Webhook 送入同樣欄位</span></div>
+      <div class="project-step"><span class="ps-num">②</span><span>n8n 呼叫 Gemini API，依需求生成結構化行動計劃（JSON 格式）</span></div>
+      <div class="project-step"><span class="ps-num">③</span><span>解析 AI 回傳，整理成可閱讀的 Markdown 任務清單</span></div>
+      <div class="project-step"><span class="ps-num">④</span><span>Write File 儲存到本機 <code>shared/AI計劃/</code>，保留一份可檢查的成果</span></div>
+      <div class="project-step"><span class="ps-num">⑤</span><span><strong>延伸：</strong>若已接上 Webhook，可把結果回傳 Make，再由 Gmail 發送通知；未接外部服務不影響基準成果</span></div>
     </div>
   </div>
 </div>
@@ -155,9 +164,15 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <div class="step-block">
     <div class="step-circle">1</div>
     <div class="step-content">
-      <div class="step-heading">Google Forms：建立計劃需求表單</div>
-      <div class="step-body">建立新的 Google Forms 表單，加入以下欄位：<strong>專案名稱</strong>（如「2026 校慶科技展」）、<strong>目標</strong>（如「吸引 500 人參與，展示 AI 應用成果」）、<strong>期望交付物</strong>（如「活動企劃書、分工表、時程表」）、<strong>負責人</strong>。提交後由 Make 接收並轉送到 n8n（方法與 4.1 相同）。</div>
-      <div class="step-tip"><strong>提示：</strong>如果已完成 4.1，可以直接在原有表單加入「目標」和「期望交付物」欄位，Apps Script 會自動帶入所有欄位。</div>
+      <div class="step-heading">準備輸入資料：先跑基準，再選外部入口</div>
+      <div class="step-body">先在主機的 <code>n8n-starter-kit/shared/</code> 建立 <code>AI計劃/</code> 輸出資料夾。為了讓每位學員都能先完成核心流程，新增 <strong>Manual Trigger</strong> 後接 <strong>Edit Fields（Set）</strong>，建立 <code>body.project_name</code>、<code>body.objective</code>、<code>body.deliverables</code>、<code>body.owner</code> 四個欄位。已完成 4.1／4.2 的學員，才把這個入口替換成 Google Forms → Make → n8n Webhook；欄位名稱保持相同，後續節點不用改。</div>
+      <div class="code-block"><span class="cm">// Edit Fields（Set）可先填入這筆測試資料</span>
+body.project_name: 2026 校慶科技展
+body.objective: 吸引 500 人參與並展示 AI 應用
+body.deliverables: 活動企劃書、分工表、時程表
+body.owner: 活動組</div>
+      <div class="step-tip"><strong>判斷方式：</strong>只看到 Manual Trigger 就走基準入口；若你已經有 4.1／4.2 的 Webhook 與 Make，才使用外部入口。兩條路徑最後都要交給同一個 HTTP Request 節點。</div>
+      <div class="checkpoint"><strong>Checkpoint 1：</strong>Edit Fields Output 看得到四個 <code>body.</code> 欄位，且專案名稱、目標與交付物都來自同一筆測試資料。沒有這四欄時，先不要建立 AI 節點。</div>
     </div>
   </div>
 
@@ -178,6 +193,7 @@ JSON 格式如下：
 {"project": "...", "objective": "...", "tasks": [{"task": "任務名稱", "owner": "建議負責人角色", "start": "YYYY-MM-DD", "end": "YYYY-MM-DD", "status": "未開始", "deliverable": "產出"}]}</div>
       </div>
       <div class="step-tip"><strong>提示：</strong>明確寫「不要包含 markdown 標記」是關鍵。若 Gemini 仍然輸出 ```json ... ```，在 Code 節點加入清除 markdown 的邏輯。</div>
+      <div class="checkpoint"><strong>Checkpoint 2：</strong>Prompt 已包含專案名稱、目標、交付物與 JSON 範例；你能說出每個欄位會從哪個輸入值帶入。</div>
     </div>
   </div>
 
@@ -185,10 +201,11 @@ JSON 格式如下：
     <div class="step-circle">3</div>
     <div class="step-content">
       <div class="step-heading">HTTP Request 節點：呼叫 Gemini API 生成計劃</div>
-      <div class="step-body">在 n8n Webhook 後新增「HTTP Request」節點，呼叫 Gemini API。將表單欄位動態插入 Prompt，讓 AI 針對這次的具體需求生成計劃。</div>
-      <div class="code-block"><span class="cm">// HTTP Request 設定</span>
+      <div class="step-body">有可用 API key 時，在 Manual Trigger → Edit Fields（Set）之後，或在外部 Webhook 之後，接上「HTTP Request」節點，呼叫 Gemini API。先到 <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio API Keys</a> 建立測試 key，再在 n8n 的 Credentials 建立 Header Auth：Name 填 <code>x-goog-api-key</code>，Value 貼上 key；HTTP Request 的 Header Auth 選用這個 credential，頁面上的 URL 不要直接放 key。沒有 API key 或不想啟用外部服務時，改在同一位置新增 Edit Fields，建立 JSON 類型的 <code>candidates</code> 欄位，貼入<a href="../assets/m4-3-ai-output.json" download>固定 AI 回覆</a>，並將本次模式記為 <code>SIMULATED</code>，直接進入 Step 4。</div>
+      <div class="code-block"><span class="cm">// HTTP Request 設定（有 API key 時）</span>
 Method: POST
-URL:    https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=YOUR_KEY
+URL:    https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent
+Header Auth: x-goog-api-key = YOUR_KEY
 
 <span class="cm">// Body（JSON）</span>
 {
@@ -198,7 +215,8 @@ URL:    https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash
     }]
   }]
 }</div>
-      <div class="step-tip"><strong>提示：</strong>Gemini 速度快的免費版本，適合這類結構化輸出任務。若 AI 生成的計劃不夠詳細，在 Prompt 中加入「請生成至少 6 個具體任務，每項任務需說明負責人角色與具體產出」，無需升級模型即可提升輸出品質。</div>
+      <div class="step-tip"><strong>服務界線：</strong>模型可用性、速度與 API 額度依帳號、模型與官方方案而異。若計劃不夠詳細，先在 Prompt 中加入「請生成至少 6 個具體任務，每項任務需說明負責人角色與具體產出」，再以執行記錄確認結果。</div>
+      <div class="checkpoint"><strong>Checkpoint 3：</strong>API 路徑的 Output 出現 <code>candidates</code>；固定回覆路徑的 Edit Fields Output 也出現同名欄位。兩條路徑都能交給 Step 4 的 Code。</div>
     </div>
   </div>
 
@@ -208,15 +226,25 @@ URL:    https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash
       <div class="step-heading">Code 節點：解析 AI 回傳並格式化成 Markdown</div>
       <div class="step-body">用 Code 節點解析 Gemini 回傳的 JSON，然後把結構化任務清單轉換為易讀的 Markdown 格式——包含標題、目標說明、任務表格，以及任務狀態清單。</div>
       <div class="code-block"><span class="cm">// Code 節點</span>
-<span class="ky">const</span> raw = $input.item.json.candidates[0].content.parts[0].text;
-<span class="ky">const</span> clean = raw.replace(/```[\w]*\n?|\n?```/g, <span class="st">''</span>).trim();
-<span class="ky">const</span> plan = JSON.parse(clean);
+<span class="ky">const</span> raw = $input.item.json.candidates?.[0]?.content?.parts?.[0]?.text || <span class="st">''</span>;
+<span class="ky">const</span> clean = raw.replace(/^```(?:json)?\s*/i, <span class="st">''</span>).replace(/\s*```$/, <span class="st">''</span>).trim();
+<span class="ky">let</span> plan;
+<span class="ky">try</span> {
+  plan = JSON.parse(clean);
+} <span class="ky">catch</span> (error) {
+  <span class="ky">throw new</span> Error(<span class="st">'AI JSON 無法解析，請回到 HTTP Request Output 檢查原始回應'</span>);
+}
 
 <span class="ky">let</span> <span class="vr">md</span> = `# 行動計劃：${plan.project}\n\n`;
 <span class="vr">md</span> += `**目標：** ${plan.objective ?? <span class="st">'未指定'</span>}\n\n`;
 <span class="vr">md</span> += `## 任務清單\n\n`;
 
-plan.tasks.forEach(t => {
+const tasks = Array.isArray(plan.tasks) ? plan.tasks : [];
+if (!plan.project || tasks.length === 0) {
+  throw new Error('AI JSON 缺少 project 或 tasks[]；請回到 Prompt 與 HTTP Request Output 檢查');
+}
+
+tasks.forEach(t => {
   <span class="ky">const</span> done = t.status === <span class="st">'已完成'</span> ? <span class="st">'x'</span> : <span class="st">' '</span>;
   <span class="vr">md</span> += `- [${done}] **${t.task}**\n`;
   <span class="vr">md</span> += `  - 負責人：${t.owner}　期間：${t.start} ~ ${t.end}\n`;
@@ -228,6 +256,7 @@ plan.tasks.forEach(t => {
 
 return [{ json: { md, fileName, project: plan.project } }];</div>
       <div class="step-tip"><strong>提示：</strong><code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">?.（Optional Chaining）</code> 在這裡很有用——如果 AI 漏掉某個欄位，不會導致整個流程崩潰（例如 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">t.owner ?? '待指派'</code>）。</div>
+      <div class="checkpoint"><strong>Checkpoint 4：</strong>Code Output 有 <code>md</code>、<code>fileName</code> 與 <code>project</code>，且 <code>tasks[]</code> 至少有兩筆可閱讀任務。若出現 parse error，回看 Step 3 的原始回應。</div>
     </div>
   </div>
 
@@ -235,37 +264,42 @@ return [{ json: { md, fileName, project: plan.project } }];</div>
     <div class="step-circle">5</div>
     <div class="step-content">
       <div class="step-heading">Write File 儲存計劃文件</div>
-      <div class="step-body">用「Convert to File」節點把 Markdown 字串轉為二進位，再用「Write Binary File」儲存到本機的計劃資料夾。檔名包含日期和專案名，格式如 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">20260402_校慶科技展.md</code>。</div>
-      <div class="code-block"><span class="cm">// Write Binary File 設定</span>
-File Name: /Users/你的名稱/Documents/AI計劃/{{ $json.fileName }}
+      <div class="step-body">用「Convert to File」節點把 Markdown 字串轉為二進位，再用「Read/Write Files from Disk」的「Write File to Disk」操作儲存到本機的計劃資料夾。檔名包含日期和專案名，格式如 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">20260402_校慶科技展.md</code>。</div>
+      <div class="code-block"><span class="cm">// Write File to Disk 設定</span>
+File Name: /files/shared/AI計劃/{{ $json.fileName }}
 Data:      data（Convert to File 的輸出）</div>
       <div class="step-tip"><strong>提示：</strong>Markdown 文件可以直接在 VS Code、Typora 或 GitHub 開啟並渲染，比純 txt 更專業。</div>
+      <div class="checkpoint"><strong>Checkpoint 5：</strong><code>shared/AI計劃/</code> 出現以日期與專案命名的 Markdown 檔；開啟後能看到目標、任務、負責人、期間與產出。</div>
     </div>
   </div>
 
   <div class="step-block">
     <div class="step-circle">6</div>
     <div class="step-content">
-      <div class="step-heading">回傳 Make <span aria-hidden="true">→</span> 發送 Gmail 完成通知</div>
-      <div class="step-body">最後，n8n 把計劃檔名和專案名回傳給 Make（方法與 4.2 相同），Make 發送 Gmail 通知，告知計劃已生成完畢，並附上檔案儲存位置的說明。</div>
-      <div class="code-block"><span class="cm">// n8n <span aria-hidden="true">→</span> Make 回傳 Body</span>
+      <div class="step-heading">延伸：回傳 Make <span aria-hidden="true">→</span> 發送 Gmail 完成通知</div>
+      <div class="step-body">只有在你採用外部 Webhook 入口時，才需要接這一步：在 Write File to Disk 後新增「Respond to Webhook」，以 JSON 回傳計劃檔名和專案名給 Make（方法與 4.2 相同），Make 再發送 Gmail 通知。若你走 Manual Trigger 基準入口，看到本機 Markdown 檔案就已完成本節，不必為了驗收另開 Gmail 或 Make。</div>
+      <div class="code-block"><span class="cm">// ① n8n 新增 Respond to Webhook 節點</span>
+Respond With: JSON
+
+<span class="cm">// ② Response Body：回傳給 Make 的資料</span>
 {
   <span class="ky">"status"</span>:    <span class="st">"success"</span>,
+  <span class="ky">"request_id"</span>: <span class="st">"{{ $json.request_id ?? 'm4-3-local' }}"</span>,
   <span class="ky">"project"</span>:   <span class="st">"{{ $json.project }}"</span>,
   <span class="ky">"fileName"</span>:  <span class="st">"{{ $json.fileName }}"</span>
 }</div>
-      <div class="step-tip"><strong>提示：</strong>這是整個課程最後一個節點！完成後可以嘗試用手機填表，全程不碰電腦，看著文件自動生成。</div>
+      <div class="step-tip"><strong>提示：</strong>外部串接完成後，可以用手機填表測試；尚未完成外部串接時，請以本機 Markdown 成果與 Executions 記錄作為驗收依據。</div>
     </div>
   </div>
 
   <div class="verify-box">
     <div class="verify-label">完成驗證 · VERIFY</div>
-    <div class="verify-text">填寫 Google Forms 提交後：<strong>（1）</strong>本機「AI計劃」資料夾出現 Markdown 文件，<strong>（2）</strong>打開文件確認任務清單結構完整（有任務名稱、負責人、日期），<strong>（3）</strong>Gmail 收到完成通知。三點全部達成，代表課程壓軸實戰成功。</div>
+      <div class="verify-text">完成輸入後：<strong>（1）</strong>starter kit 主機的 <code>shared/AI計劃/</code> 資料夾出現 Markdown 文件，<strong>（2）</strong>打開文件確認至少有專案名稱、目標與任務清單（每筆包含任務、負責人、日期與產出）。若已接上 Make／Gmail，再確認<strong>（3）</strong>收到檔名與狀態通知；尚未接外部服務時，記錄為延伸待驗證，不影響本節本機核心成果。n8n 節點的輸出路徑是 <code>/files/shared/AI計劃/</code>。</div>
   </div>
 
   <div class="completion-box">
-    <div class="comp-title">恭喜完成整門課程</div>
-    <div class="comp-text">你已整合了 Module 1 的環境建置、Module 2 的數據引用與邏輯判斷、Module 3 的批次文件處理，以及 Module 4 的雲地協作與 AI 生成——打造出一套屬於自己的<strong>全自動 AI 工作流程</strong>。<br>這不是終點，而是你探索更多可能性的起點。</div>
+    <div class="comp-title">完成本節基準流程</div>
+    <div class="comp-text">你已整合了 Module 1 的環境建置、Module 2 的數據引用與邏輯判斷、Module 3 的批次文件處理，以及 Module 4 的雲地協作與 AI 生成——完成一套屬於自己的<strong>可重跑 AI 工作流程</strong>。<br>後續可依資料政策與外部服務設定，決定哪些步驟可自動化、哪些必須人工檢查。</div>
   </div>
 
   <div class="troubleshoot">
@@ -287,10 +321,11 @@ Data:      data（Convert to File 的輸出）</div>
   <div class="troubleshoot" style="margin-top:24px;border-left:4px solid var(--c-a3);background:rgba(90,122,90,.05);">
     <div class="ts-label" style="color:var(--c-a3);">✅ 完成檢查 · 跑完本節你應該看到</div>
     <ol style="margin:6px 0 0 20px;line-height:1.95;font-size:.92rem;color:var(--c-text);">
-      <li><strong>n8n 流程節點</strong>：Webhook（觸發）、HTTP Request（Gemini API）、Code（清 markdown 包裝 + JSON.parse）、Google Docs / Drive 節點全部亮綠。</li>
-      <li><strong>Gemini 節點 Output 面板</strong>：可看到結構化 JSON，至少包含 <span class="inline-code">title</span>、<span class="inline-code">tasks[]</span>（每筆有 <span class="inline-code">role</span> / <span class="inline-code">deliverable</span>）、<span class="inline-code">summary</span> 等欄位；不是字串而是 object。</li>
-      <li><strong>本機資料夾</strong>：本演練主要寫雲端，本機沒新增檔案；若你有把 raw response 用 Write Binary File 落地，<span class="inline-code">shared/ai-output/</span> 應出現對應 JSON 檔。</li>
-      <li><strong>外部服務</strong>：Google Drive 出現新建立的 Doc（從模板 Copy + Replace 產生）；標題、佔位符 <span class="inline-code">{{title}}</span> / <span class="inline-code">{{summary}}</span> 都被填入；LINE 通知（若有串）能在 LINE 收到該 Doc 連結。</li>
+      <li><strong>固定資料模式（SIMULATED）</strong>：Manual Trigger + Edit Fields（Set）<em>或</em> Webhook（擇一入口）、Edit Fields（固定 <span class="inline-code">candidates</span>）、Code（清 markdown 包裝 + JSON.parse）、Convert to File 與 Write File to Disk 全部亮綠；HTTP Request 不列入本模式驗收。</li>
+      <li><strong>API 模式（MAKE／API）</strong>：若已建立 Header Auth 並取得 API 回應，HTTP Request、Code、Convert to File 與 Write File to Disk 全部亮綠；API key 或額度不足時改走固定資料模式並標記 <span class="inline-code">SIMULATED</span>。</li>
+      <li><strong>Gemini 回應</strong>：Output 面板可看到 JSON 文字，解析後至少包含 <span class="inline-code">project</span>、<span class="inline-code">objective</span>、<span class="inline-code">tasks[]</span>；每筆任務含 <span class="inline-code">task</span>、<span class="inline-code">owner</span>、<span class="inline-code">start</span>、<span class="inline-code">end</span> 與 <span class="inline-code">deliverable</span>。</li>
+      <li><strong>本機資料夾</strong>：<span class="inline-code">shared/AI計劃/</span> 出現以日期與專案命名的 Markdown 檔，內容可以在文字編輯器中閱讀。</li>
+      <li><strong>外部服務（選做）</strong>：若走 Webhook 入口，Make 收到 n8n 回傳的 <span class="inline-code">status</span>、<span class="inline-code">request_id</span>、<span class="inline-code">project</span> 與 <span class="inline-code">fileName</span>，Gmail 發出完成通知；若走 Manual Trigger，這一項標記為「未接外部服務」，不影響本節驗收。Google Docs／LINE 仍是後續延伸。</li>
       <li><strong>Executions 頁</strong>：本次執行為綠色 Success，沒有 429 / timeout / parse error。</li>
     </ol>
     <div style="margin-top:10px;font-size:.82rem;color:var(--c-muted);">任一項對不上 → 對照上方「常見問題」；429 請放慢 Loop + Wait；JSON.parse 失敗請看 Code 節點的清理邏輯。</div>
@@ -301,8 +336,8 @@ Data:      data（Convert to File 的輸出）</div>
     <div style="font-size:.73rem;color:var(--c-a3);letter-spacing:2px;font-weight:600;margin-bottom:14px;">💼 實戰案例</div>
     <div style="font-size:.9rem;color:var(--c-text);line-height:1.95;">
       <div style="margin-bottom:10px;"><strong>情境｜</strong>某行銷公司客戶每週要 5 份活動企劃初稿——以前實習生寫 3 天，現在 AI 10 分鐘產完 + 人工 1 小時改。</div>
-      <div style="margin-bottom:10px;"><strong>做法｜</strong>n8n 接客戶需求表 <span aria-hidden="true">→</span> Gemini API 生 JSON 結構化企劃 <span aria-hidden="true">→</span> 寫進 Google Docs 套版 <span aria-hidden="true">→</span> LINE 通知客戶。</div>
-      <div><strong>踩雷｜</strong>Gemini 免費額度依模型而異（請查 <a href="https://ai.google.dev/gemini-api/docs/rate-limits" target="_blank" rel="noopener">官方 Rate limits 頁面</a>）。集中時段批次跑容易破當前 RPM/RPD 觸發 429——以 Loop Over Items（每批 10）+ Wait 10 秒控速，並把工作量分散到不同小時跑。</div>
+      <div style="margin-bottom:10px;"><strong>做法｜</strong>n8n 接客戶需求表 <span aria-hidden="true">→</span> Gemini API 生 JSON 結構化企劃 <span aria-hidden="true">→</span> 寫入本機 Markdown <span aria-hidden="true">→</span> Make 發 Gmail 通知。</div>
+      <div><strong>踩雷｜</strong>Gemini API 額度依模型、帳號與方案而異（請查 <a href="https://ai.google.dev/gemini-api/docs/rate-limits" target="_blank" rel="noopener">官方 Rate limits 頁面</a>）。集中時段批次跑容易超過當前 RPM/RPD 觸發 429——以 Loop Over Items（每批 10）+ Wait 10 秒控速，並把工作量分散到不同小時跑。</div>
     </div>
   </div>
 
@@ -311,7 +346,7 @@ Data:      data（Convert to File 的輸出）</div>
   <a href="index.html" class="nav-btn primary">返回課程總覽 <span aria-hidden="true">→</span></a>
 </div>
 
-<footer class="footer" data-platform-version="2026-04-v3">
+<footer class="footer" data-platform-version="Docker Desktop / n8n 2.37.7" data-built-at="2026-09-03">
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">淡江大學 · 生成式AI工作坊</span>

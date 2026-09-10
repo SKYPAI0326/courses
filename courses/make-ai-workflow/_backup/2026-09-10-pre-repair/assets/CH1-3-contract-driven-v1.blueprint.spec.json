@@ -1,0 +1,151 @@
+{
+  "name": "CH1-3 契約驅動回饋流程 v1（Make blueprint spec）",
+  "format": "make-blueprint-spec-v1",
+  "status": "DRAFT_NOT_IMPORTABLE",
+  "purpose": "將 CH1-3 的共同輸入／輸出契約與 A、B、C 測試矩陣固定成可供 Make 實作與人工驗證的規格。這不是 Make 匯出檔；需在實際工作區建立或匯出後再驗證。",
+  "source_of_truth": {
+    "input_contract": "make-ai-workflow/assets/CH1-2-contract-input-template.md",
+    "output_contract": "make-ai-workflow/assets/CH1-2-contract-output-template.md",
+    "module_responsibilities": "make-ai-workflow/assets/CH1-3-module-cards.md",
+    "test_fixtures": "make-ai-workflow/assets/CH1-3-gemini-output-fixtures.json"
+  },
+  "validation_boundary": {
+    "make_import": "PENDING_MANUAL_VALIDATION",
+    "credentials": "REPLACE_IN_WORKSPACE",
+    "evidence_mode_before_manual_run": "SIMULATED",
+    "do_not_claim": [
+      "可直接匯入且保留所有連線",
+      "Gemini 已在學員工作區成功呼叫",
+      "Google Docs 已建立真實文件"
+    ]
+  },
+  "canonical_input_contract": {
+    "customer_identity": {
+      "type": "string",
+      "required": true,
+      "source_mapping": "Google Sheets.customer_name",
+      "example": "林小姐"
+    },
+    "message_text": {
+      "type": "string",
+      "required": true,
+      "source_mapping": "Google Sheets.feedback",
+      "example": "物流延遲，客服回覆太慢"
+    },
+    "urgency_signal": {
+      "type": "number",
+      "required": true,
+      "source_mapping": "Google Sheets.rating（本案例代理訊號）",
+      "example": 2,
+      "limitation": "評分不等於通用緊急度；正式規則需由業務定義。"
+    },
+    "owner_email": {
+      "type": "string",
+      "required": false,
+      "source_mapping": null,
+      "status": "reserved_not_used_in_core_v1"
+    }
+  },
+  "canonical_output_contract": {
+    "summary": { "type": "string", "required": true },
+    "reply_draft": { "type": "string", "required": true },
+    "needs_review": {
+      "type": "boolean",
+      "required": true,
+      "true_route": "manual_review",
+      "false_route": "google_docs"
+    }
+  },
+  "flow": [
+    {
+      "position": 1,
+      "responsibility": "source",
+      "module": "google-sheets:watchRows",
+      "version": 2,
+      "parameters": {
+        "from": "drive",
+        "mode": "select",
+        "limit": 1,
+        "sheetId": "[REPLACE_SHEET_NAME]",
+        "spreadsheetId": "[REPLACE_SPREADSHEET_ID]",
+        "__IMTCONN__": "[REPLACE_GOOGLE_CONNECTION]"
+      },
+      "mapping": {
+        "customer_name": "customer_identity",
+        "feedback": "message_text",
+        "rating": "urgency_signal"
+      },
+      "stop_if": ["customer_name is blank", "feedback is blank", "rating is not a number"]
+    },
+    {
+      "position": 2,
+      "responsibility": "process",
+      "module": "gemini-ai:createACompletionGeminiPro",
+      "version": 1,
+      "parameters": {
+        "__IMTCONN__": "[REPLACE_GEMINI_CONNECTION]",
+        "model": "[VERIFY_CURRENT_MODEL]"
+      },
+      "input_fields": ["customer_identity", "message_text", "urgency_signal"],
+      "prompt_contract": {
+        "must_return": ["summary", "reply_draft", "needs_review"],
+        "must_not_add": ["unprovided_facts", "owner_email_value"],
+        "needs_review_type": "boolean"
+      },
+      "stop_if": ["summary is blank", "reply_draft is blank", "needs_review is not boolean"]
+    },
+    {
+      "position": 3,
+      "responsibility": "control",
+      "module": "filter",
+      "status": "DESIGN_SPEC_REQUIRES_MAKE_UI_VALIDATION",
+      "condition": {
+        "left": "needs_review",
+        "operator": "equal",
+        "right": false,
+        "type": "boolean"
+      },
+      "pass_route": "google_docs",
+      "stop_route": "manual_review",
+      "type_error_route": "contract_error_stop"
+    },
+    {
+      "position": 4,
+      "responsibility": "delivery",
+      "module": "google-docs:createADocument",
+      "version": 1,
+      "parameters": {
+        "__IMTCONN__": "[REPLACE_GOOGLE_CONNECTION]",
+        "folderId": "[REPLACE_FOLDER_ID]"
+      },
+      "mapping": {
+        "name": "客服回饋：{{customer_identity}}",
+        "content": "摘要：{{summary}}\n\n回覆草稿：{{reply_draft}}"
+      },
+      "success_evidence": ["document URL or ID", "document body matches output contract"]
+    }
+  ],
+  "test_matrix": {
+    "A_needs_review": {
+      "input": { "customer_identity": "林小姐", "message_text": "物流延遲，客服回覆太慢", "urgency_signal": 2 },
+      "fixture": "make-ai-workflow/assets/CH1-3-gemini-output-fixtures.json#/case_a_needs_review",
+      "expected_route": "manual_review",
+      "expected_delivery": "no_google_docs",
+      "evidence_mode": "SIMULATED until Make run is recorded"
+    },
+    "B_pass": {
+      "input": { "customer_identity": "陳先生", "message_text": "謝謝快速處理，問題已經解決", "urgency_signal": 5 },
+      "fixture": "make-ai-workflow/assets/CH1-3-gemini-output-fixtures.json#/case_b_pass",
+      "expected_route": "google_docs",
+      "expected_delivery": "document_created_or_simulated_placeholder",
+      "evidence_mode": "SIMULATED until Make run is recorded"
+    },
+    "C_type_error": {
+      "fixture": "make-ai-workflow/assets/CH1-3-gemini-output-fixtures.json#/case_c_type_error",
+      "expected_route": "contract_error_stop",
+      "expected_delivery": "no_google_docs",
+      "rule": "do not coerce the string \"false\" into boolean false",
+      "evidence_mode": "SIMULATED until Make run is recorded"
+    }
+  }
+}

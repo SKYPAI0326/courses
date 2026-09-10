@@ -78,6 +78,9 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 .verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px}
 .verify-title{font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;color:var(--c-text);margin-bottom:8px}
 .verify-desc{font-size:.9rem;color:var(--c-text);line-height:1.8}
+.mini-checkpoint{background:rgba(181,112,58,.06);border:1px solid rgba(181,112,58,.25);border-left:3px solid var(--c-a1);border-radius:var(--radius);padding:14px 18px;margin:18px 0 8px}
+.mini-checkpoint strong{font-family:'Shippori Mincho',serif;font-size:.9rem;color:var(--c-text)}
+.mini-checkpoint p{font-size:.84rem;color:var(--c-muted);line-height:1.8;margin:6px 0 0}
 .trouble-section{margin:0 0 48px}
 .trouble-head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px}
 .trouble-title{font-family:'Shippori Mincho',serif;font-size:.92rem;font-weight:700;color:var(--c-text)}
@@ -150,6 +153,10 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="meta-item"><span class="meta-icon">📋</span><span>7 個步驟</span></div>
     <div class="meta-item"><span class="meta-icon">💡</span><span>不需寫程式背景</span></div>
   </div>
+  <div class="step-tip info" style="margin-top:22px;max-width:620px;">
+    <span class="tip-icon">起點</span>
+    <span class="tip-text"><strong>你手上有：</strong><a href="../assets/m1-3-test-payload.json" download>固定測試 payload</a>、<a href="../assets/m1-3-ai-output-text.txt" download>AI 輸出文字</a> 與 <a href="../assets/m1-3-ai-output.json" download>解析後範例</a>；<strong>你要留下：</strong>一條 Webhook → Set → Code（JSON.parse）的測試 Workflow。整章都先用這些固定資料，完成後再替換成你的真實資料。</span>
+  </div>
 </div>
 
 <div class="step-body">
@@ -166,7 +173,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
       </div>
       <div class="step-tip info">
         <span class="tip-icon">💡</span>
-        <span class="tip-text">n8n 的每個節點之間傳遞的資料都是 JSON 格式。學會讀懂 JSON，就等於學會看懂 n8n 的「數據流」。</span>
+        <span class="tip-text">節點的結構化欄位通常以 JSON 傳遞；PDF、圖片等檔案會以 binary 欄位一起傳遞。M3 的檔案工作會用到 binary，因此現在先把兩種資料分開看。</span>
       </div>
     </div>
   </div>
@@ -192,6 +199,11 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <div class="screenshot-cap">n8n 節點輸出視窗中，展開 JSON 結構，看到物件欄位與陣列清單</div>
       </div>
     </div>
+  </div>
+
+  <div class="mini-checkpoint">
+    <strong>Checkpoint 1 · 讀懂一筆資料</strong>
+    <p>現在應該能指出「王小明」在 <code class="ic">$json.客戶姓名</code>，「無線耳機」在 <code class="ic">$json.商品列表[0].名稱</code>。若找不到，回到 Step 2 展開物件與陣列，再進入 Expression。</p>
   </div>
 
   <!-- Step 3 -->
@@ -230,16 +242,21 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <span class="expr">{{ $json.商品列表[1].單價 }}</span>   <span class="comment"><span aria-hidden="true">→</span> 350</span></div>
       <div class="step-tip warning">
         <span class="tip-icon">⚠️</span>
-        <span class="tip-text">陣列索引從 0 開始，不是 1。要取第一筆用 <span class="ic">[0]</span>，這是初學者最常犯的錯誤。</span>
+        <span class="tip-text">陣列索引以 0 起算；<span class="ic">[0]</span> 是第一筆，<span class="ic">[1]</span> 是第二筆。</span>
       </div>
     </div>
+  </div>
+
+  <div class="mini-checkpoint">
+    <strong>Checkpoint 2 · Expression 有可見結果</strong>
+    <p>在預覽或 Output 面板看見「王小明」「A20260315-001」「3150」三個值後再繼續。若顯示 undefined，先確認欄位名稱與目前節點的 Item。</p>
   </div>
 
   <!-- Step 5 -->
   <div class="step-block">
     <div class="step-num-col"><div class="step-circle">5</div></div>
     <div class="step-content">
-      <div class="step-label">用 Set 節點組合新的 JSON 物件 <span style="font-size:.73rem;font-weight:400;color:var(--c-a3);border:1px solid rgba(90,122,90,.3);padding:2px 8px;border-radius:4px;margin-left:8px;">⏩ 時間緊迫可改由講師示範</span></div>
+      <div class="step-label">用 Set 節點組合新的 JSON 物件</div>
       <p class="step-desc">當你需要把從不同地方讀到的資料重新組合，可以用 n8n 的 <strong>Set 節點</strong>。點擊「Add field」，設定欄位名稱，值的欄位切換成 Expression 後填入對應語法，就能組出一個全新的 JSON 物件，傳給後續節點使用。</p>
       <div class="code-block"><span class="comment">// 在 Set 節點新增以下三個欄位：</span>
 
@@ -256,6 +273,11 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <div class="screenshot-cap">n8n Set 節點介面，Add Field 後設定欄位名稱與 Expression 值</div>
       </div>
     </div>
+  </div>
+
+  <div class="mini-checkpoint">
+    <strong>Checkpoint 3 · Set 交出三個欄位</strong>
+    <p>執行 Set 後，Output 應同時看到「客戶簡報：王小明」「消費總額：3150」「訂單編號：A20260315-001」。若欄位是空白，從 Set 的 Expression 預覽回查 Step 3。</p>
   </div>
 
   <!-- Step 6 -->
@@ -284,21 +306,29 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
       </div>
       <div class="step-tip success">
         <span class="tip-icon">✅</span>
-        <span class="tip-text"><strong>關鍵句型：</strong>「不要包含其他說明文字」這句很重要——沒有這句，AI 可能會在 JSON 前後加上「以下是回覆：」等文字，導致 JSON Parse 失敗。</span>
+        <span class="tip-text"><strong>關鍵句型：</strong>「不要包含其他說明文字」這句很重要——沒有這句，AI 可能會在 JSON 前後加上「以下是回覆：」等文字，導致 Code 的 JSON.parse() 失敗。</span>
       </div>
     </div>
+  </div>
+
+  <div class="mini-checkpoint">
+    <strong>Checkpoint 4 · AI 回傳可解析的文字</strong>
+    <p>先把下方 Prompt 送出一次，確認回覆只包含 JSON 物件。若前後出現說明文字，先修 Prompt，再把文字放入 Set 的 <span class="ic">ai_text</span>，交給 Code 解析。</p>
   </div>
 
   <!-- Step 7 -->
   <div class="step-block">
     <div class="step-num-col"><div class="step-circle">7</div></div>
     <div class="step-content">
-      <div class="step-label">用 JSON Parse 節點解析 AI 回傳的字串 <span style="font-size:.73rem;font-weight:400;color:var(--c-a3);border:1px solid rgba(90,122,90,.3);padding:2px 8px;border-radius:4px;margin-left:8px;">⏩ 時間緊迫可改由講師示範</span></div>
-      <p class="step-desc">AI 輸出的 JSON 在 n8n 裡通常是一段「文字字串」，不能直接用 <span class="ic">$json.廠商名稱</span> 讀取。需要先接一個 <strong>JSON Parse</strong> 節點（搜尋「JSON」可找到），選擇 AI 輸出的欄位，它會把字串轉換成 n8n 可以操作的 JSON 物件。</p>
-      <div class="code-block"><span class="comment">// 設定 JSON Parse 節點</span>
-<span class="comment">// Mode: Parse JSON</span>
-<span class="comment">// JSON String: 選擇 AI 輸出的文字欄位</span>
-<span class="comment">//   例如 {{ $json.message.content }} 或 {{ $json.text }}</span>
+      <div class="step-label">用 Code 節點解析 AI 回傳的字串</div>
+      <p class="step-desc">AI 輸出的 JSON 在 n8n 裡通常是一段文字，必須先轉成物件才能讀取欄位。n8n 目前的通用做法是使用 Code 節點呼叫 <span class="ic">JSON.parse()</span>。本次先用課程提供的 <a href="../assets/m1-3-ai-output-text.txt" download>固定 AI 輸出文字</a>，放進 Set 的 <span class="ic">ai_text</span> 欄位，再由 Code 解析，學會後即可換成 AI 節點的文字欄位。</p>
+      <div class="code-block"><span class="comment">// 在 Set／Edit Fields 新增一個文字欄位</span>
+<span class="key">欄位名</span>: <span class="str">ai_text</span>
+<span class="key">值</span>: 複製 <a href="../assets/m1-3-ai-output-text.txt" download>固定 AI 輸出文字</a> 的整行內容
+
+<span class="comment">// 接著新增 Code 節點，Mode 選 Run Once for Each Item</span>
+const parsed = JSON.parse($json.ai_text);
+return { json: { ...$json, ...parsed } };
 
 <span class="comment">// 解析後，下一個節點就可以直接讀取：</span>
 <span class="expr">{{ $json.廠商名稱 }}</span>   <span class="comment"><span aria-hidden="true">→</span> "台積電"</span>
@@ -306,11 +336,11 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <span class="expr">{{ $json.簽約日期 }}</span>   <span class="comment"><span aria-hidden="true">→</span> "2026-03-15"</span></div>
       <div class="screenshot">
         <div class="screenshot-icon">🔄</div>
-        <div class="screenshot-cap">JSON Parse 節點設定，選擇 AI 輸出的字串欄位，執行後下一節點可讀取個別欄位值</div>
+        <div class="screenshot-cap">Code 節點以 JSON.parse($json.ai_text) 將文字轉成物件，執行後下一節點可讀取個別欄位值</div>
       </div>
       <div class="step-tip warning">
         <span class="tip-icon">⚠️</span>
-        <span class="tip-text"><strong>AI 輸出不穩定時：</strong>如果 JSON Parse 偶爾報錯，通常是 AI 在 JSON 外加了說明文字。解法是在 Prompt 前後加上 <span class="ic">```json ... ```</span> 的格式要求，或加一個 Code 節點先用正規表達式截取 JSON 部分。</span>
+        <span class="tip-text"><strong>AI 輸出不穩定時：</strong>如果 Code 的 JSON.parse 報錯，通常是 AI 在 JSON 外加了說明文字。先回到 Step 6 要求只回覆 JSON；仍有包裹文字時，才在 Code 中先截取大括號範圍，並保留原始 <span class="ic">ai_text</span> 供回查。</span>
       </div>
     </div>
   </div>
@@ -319,7 +349,18 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <div class="verify-box">
     <div class="verify-label">完成驗證 CHECKPOINT</div>
     <div class="verify-title">你應該能做到這些才算完成</div>
-    <p class="verify-desc">在 n8n 中建立一個測試 Workflow：Webhook 接收資料 <span aria-hidden="true">→</span> Set 節點讀取並組合欄位 <span aria-hidden="true">→</span> JSON Parse 節點解析一個模擬的 AI 輸出字串，最後確認所有欄位值都能正確讀取。能做到這三件事，JSON 基礎就算通關。</p>
+    <p class="verify-desc">在 n8n 中建立一個測試 Workflow，依序完成三段：Webhook 接收 <a href="../assets/m1-3-test-payload.json" download>固定 payload</a>，Set 讀取並組合三個欄位，再用 Code 讀取 <span class="ic">ai_text</span> 並以 <span class="ic">JSON.parse()</span> 解析 <a href="../assets/m1-3-ai-output-text.txt" download>固定 AI 輸出文字</a>。通關時應能在 Output 看到「台積電／50000／2026-03-15」，並能說明每個欄位的來源與型別。</p>
+    <div class="code-block" style="margin-top:16px;">// Webhook 測試資料（可從上方下載完整檔案）
+{
+  <span class="key">"客戶姓名"</span>: <span class="str">"王小明"</span>,
+  <span class="key">"訂單編號"</span>: <span class="str">"A20260315-001"</span>,
+  <span class="key">"總金額"</span>: <span class="val">3150</span>,
+  <span class="key">"contract_text"</span>: <span class="str">"廠商名稱：台積電；合約金額：50000；簽約日期：2026-03-15；合約類型：服務合約"</span>
+}</div>
+    <p class="verify-desc"><strong>建立與驗收順序：</strong>若畫布是空白，先新增 Webhook（POST，Path 可填 <code class="ic">json-training</code>），再用連線把 Set 接在 Webhook 後、把 Code 接在 Set 後。點「Listen for Test Event」→ 用固定 payload 送出一次 → 確認 Set Output 有三個欄位 → 在 Set 新增 <span class="ic">ai_text</span> 並貼上固定 AI 輸出文字 → 執行 Code → 確認解析後有四個欄位。</p>
+    <p class="verify-desc"><strong>Mac 送出測試資料：</strong>將 <a href="../assets/m1-3-test-payload.json" download>固定 payload</a> 下載到同一資料夾，在終端機先切到該資料夾，再執行 <code class="ic">curl -X POST -H "Content-Type: application/json" --data-binary @m1-3-test-payload.json http://localhost:5678/webhook-test/json-training</code>。</p>
+    <p class="verify-desc"><strong>Windows PowerShell 送出測試資料：</strong>將檔案下載到同一資料夾，在檔案總管的資料夾空白處按右鍵選「在終端機中開啟」，執行 <code class="ic">Invoke-RestMethod -Method Post -ContentType "application/json" -InFile .\m1-3-test-payload.json -Uri http://localhost:5678/webhook-test/json-training</code>。</p>
+    <p class="verify-desc"><strong>沒看到預期結果時：</strong>Webhook 沒資料就回到 Test URL 重新送出；Set 空白就回到 Expression 預覽；Code 報錯就檢查 <span class="ic">ai_text</span> 是否為完整單行 JSON，再回到 Step 6 修 Prompt。保留原始輸入，不要用空白值繼續往下接。</p>
   </div>
 
   <!-- Troubleshoot -->
@@ -333,8 +374,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
       <div class="trouble-solution">通常是欄位名稱拼錯（包含大小寫），或路徑層級有誤。在 n8n Expression 編輯器的左側面板會列出前一節點的實際資料結構，可以直接點擊欄位名稱自動帶入，避免手打錯誤。</div>
     </div>
     <div class="trouble-item">
-      <div class="trouble-problem">JSON Parse 節點報錯：Invalid JSON</div>
-      <div class="trouble-solution">AI 在 JSON 前後加了說明文字（如「以下是結果：」）。在 Prompt 中加上「只回覆 JSON，不要任何說明文字」，並測試幾次確認 AI 穩定遵守。若問題持續，加一個 Code 節點，用 <span class="ic">JSON.parse(input.match(/\{[\s\S]*\}/)[0])</span> 先截取 JSON 部分。</div>
+      <div class="trouble-problem">Code 節點報錯：Invalid JSON</div>
+      <div class="trouble-solution">AI 在 JSON 前後加了說明文字（如「以下是結果：」）。先確認 Set 的 <span class="ic">ai_text</span> 仍保留完整原文，再在 Prompt 中加上「只回覆 JSON，不要任何說明文字」。若問題持續，才在 Code 中先截取大括號範圍後再呼叫 <span class="ic">JSON.parse()</span>，並把原始文字留下供回查。</div>
     </div>
     <div class="trouble-item">
       <div class="trouble-problem">AI 回傳的數字欄位變成字串</div>
@@ -358,7 +399,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <a href="module2.html" class="nav-btn primary">前往 Module 2 <span aria-hidden="true">→</span></a>
 </div>
 
-<footer class="footer" data-platform-version="2026-04-v3">
+<footer class="footer" data-platform-version="Docker Desktop / n8n 2.37.7" data-built-at="2026-09-03">
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">淡江大學 · 生成式AI工作坊</span>

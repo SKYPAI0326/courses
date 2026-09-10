@@ -68,6 +68,8 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 .verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:24px 28px;margin:40px 0}
 .verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px}
 .verify-text{font-size:.9rem;color:var(--c-text);line-height:1.85}
+.checkpoint{margin:16px 0 0;padding:13px 16px;background:rgba(107,127,163,.08);border:1px solid rgba(107,127,163,.28);border-radius:var(--radius);font-size:.82rem;line-height:1.75;color:var(--c-text)}
+.checkpoint strong{color:var(--c-a4)}
 .troubleshoot{margin:40px 0}
 .ts-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:16px}
 .ts-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 22px;margin-bottom:10px}
@@ -127,7 +129,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <a href="module4.html" class="back-link"><span aria-hidden="true">←</span> 返回 Module 4</a>
   <div class="hero-eyebrow">HYBRID AUTOMATION · 4.2</div>
   <h1 class="page-title">Make + n8n 雙引擎協作</h1>
-  <p class="page-subtitle">Make 負責雲端接收與通知，n8n 負責本機執行與文件操作。本節完成整條雙向協作鏈路：任務進來 <span aria-hidden="true">→</span> 本機處理 <span aria-hidden="true">→</span> 結果回傳 <span aria-hidden="true">→</span> Gmail 通知。</p>
+  <p class="page-subtitle">Make 負責雲端接收與通知，n8n 負責本機執行與文件操作。本節示範雙向協作鏈路：任務進來 <span aria-hidden="true">→</span> 本機處理 <span aria-hidden="true">→</span> 結果回傳 <span aria-hidden="true">→</span> Gmail 通知；外部服務需有可用帳號與權限才可實跑。</p>
 </div>
 
 <div class="dual-box">
@@ -148,10 +150,17 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
       <div class="engine-items">
         <div class="ei">Webhook 接收任務</div>
         <div class="ei">讀寫本機資料夾</div>
-        <div class="ei">批次文件處理（無次數限制）</div>
+        <div class="ei">批次文件處理（執行量由本機資源承擔）</div>
         <div class="ei">HTTP 回傳結果給 Make</div>
       </div>
     </div>
+  </div>
+</div>
+
+<div class="context-box" style="margin-top:0">
+  <div class="context-inner">
+    <div class="context-label">起點與兩種驗證層級 · START HERE</div>
+    <div class="context-text">4.2 會把 4.1 的「任務送入 n8n」延伸成「完成後回報」。先確認 4.1 的 <code>m4-1-remote-test-v1</code> 證據：Webhook 收到 <code>applicant</code>、<code>document_type</code>、<code>due_date</code>，Switch 能分流。若尚未具備 Google Forms、Make 或 Tunnel，先使用同一組欄位在 n8n 內完成本機往返測試；外部雙向鏈路列為延伸驗證。跨平台時，先閱讀 Make 課程的 <a href="../../make-ai-workflow/assets/BRIDGE-1-make-n8n-contract-v1.md">BRIDGE-1 資料契約</a>，確認 <code>task_type</code> 與 <code>data</code> 後再建立轉換節點。核心完成物是本機產生的檔案、回傳 JSON 與執行記錄。</div>
   </div>
 </div>
 
@@ -162,8 +171,14 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="step-circle">1</div>
     <div class="step-content">
       <div class="step-heading">確認 4.1 鏈路正常（Make <span aria-hidden="true">→</span> n8n）</div>
-      <div class="step-body">本節建立在 4.1 的基礎上。先確認 4.1 的完整鏈路運作正常：Google Forms 提交後，Make 能成功轉送資料到 n8n Webhook，且 n8n Switch 節點能正確分流。若尚未完成 4.1，請先返回設定。</div>
-      <div class="step-tip"><strong>提示：</strong>快速測試方式：直接用 Postman 或瀏覽器呼叫 n8n 的 Webhook URL，傳一筆假資料，確認 n8n 有收到即可繼續。</div>
+      <div class="step-body">本節建立在 4.1 的資料契約上。先在 n8n 以固定資料確認 Webhook 能收到三個欄位、Switch 能依 <code>document_type</code> 分流；若 4.1 已完成，再把同一筆資料來源換成 Google Forms → Make → Tunnel。採用 Make 時，外層封裝請遵循 <a href="../../make-ai-workflow/assets/BRIDGE-1-make-n8n-contract-v1.md">BRIDGE-1 資料契約</a>，n8n 先整理 <code>data</code> 再進入文件流程。外部服務未就緒時，保留本機測試記錄即可繼續。</div>
+      <div class="code-block"><span class="cm">// 本機先測試的最小資料</span>
+{
+  <span class="ky">"applicant"</span>: <span class="st">"王小明"</span>,
+  <span class="ky">"document_type"</span>: <span class="st">"報告"</span>,
+  <span class="ky">"due_date"</span>: <span class="st">"2026-09-30"</span>
+}</div>
+      <div class="checkpoint"><strong>Checkpoint 1：</strong>本機路徑要能指出三個根層欄位與分流節點；BRIDGE 遠端路徑則要指出 <code>body.task_type</code>、<code>body.data</code>，並確認 4.1 Normalize 後才讀 <code>bridge_data</code>。未完成 4.1 時，保留本機測試記錄，不建立第二個 Make Scenario。</div>
     </div>
   </div>
 
@@ -171,18 +186,24 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="step-circle">2</div>
     <div class="step-content">
       <div class="step-heading">n8n：執行本機操作（讀取資料夾、生成文件）</div>
-      <div class="step-body">在 n8n Switch 節點的各個分支中，加入本機操作節點。以「報告」分支為例：用 Code 節點組合文件內容，再用 Write Binary File 儲存到本機，生成 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">申請人_報告_日期.txt</code> 格式的檔名。</div>
+      <div class="step-body">在 n8n Switch 節點的各個分支中，加入本機操作節點。以「報告」分支為例：用 Code 節點組合文件內容，再用 Convert to File 轉成二進位資料，最後用 Write File to Disk 儲存到本機，生成 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">申請人_報告_日期.txt</code> 格式的檔名。</div>
       <div class="code-block"><span class="cm">// Code 節點 - 組合報告內容</span>
-<span class="ky">const</span> applicant = $json.body.applicant;
-<span class="ky">const</span> docType = $json.body.document_type;
-<span class="ky">const</span> dueDate = $json.body.due_date;
+<span class="ky">const</span> incoming = $json.body ?? $json;
+<span class="ky">const</span> data = $json.bridge_data ?? incoming.data ?? incoming;
+<span class="ky">const</span> applicant = data.applicant;
+<span class="ky">const</span> docType = data.document_type;
+<span class="ky">const</span> dueDate = data.due_date;
+if (!applicant || !docType || !dueDate) {
+  throw new Error('缺少文件申請欄位，請回到 4.1 Normalize 與契約檢查');
+}
 <span class="ky">const</span> ts = <span class="ky">new</span> Date().toISOString().slice(0, 10).replace(/-/g, <span class="st">''</span>);
 
 <span class="ky">const</span> fileName = `${applicant}_${docType}_${ts}.txt`;
 <span class="ky">const</span> content = `文件類型: ${docType}\n申請人: ${applicant}\n截止日期: ${dueDate}\n\n（本文件由 n8n 自動產生）`;
 
-return [{ json: { fileName, content, applicant, docType, dueDate } }];</div>
-      <div class="step-tip"><strong>提示：</strong>Write Binary File 前需先用「Convert to File」節點把文字轉成二進位格式，選擇 Encoding 為 UTF-8。</div>
+return [{ json: { status: 'success', fileName, content, applicant, docType, dueDate, request_id: incoming.request_id ?? 'local-test' } }];</div>
+      <div class="step-tip"><strong>提示：</strong>Write File to Disk 前需先用「Convert to File」節點把文字轉成二進位格式，選擇 Encoding 為 UTF-8；若當前版本的節點名稱不同，請以介面搜尋 File from Disk / Write File。先確認 n8n Docker volume 已掛載 <code>shared/</code>，資料夾不存在時在主機建立 <code>shared/完成/</code> 後再執行。</div>
+      <div class="checkpoint"><strong>Checkpoint 2：</strong>n8n 本機的 <code>shared/完成/</code> 出現一個以申請人、文件類型與日期命名的文字檔，Code Output 同時有 <code>status=success</code> 與 <code>request_id</code>；原始輸入欄位仍可在上一個節點 Output 查到。若檔案沒有出現，先檢查 volume／資料夾權限，再從 Code 節點重跑，避免直接重複執行寫檔。</div>
     </div>
   </div>
 
@@ -192,6 +213,7 @@ return [{ json: { fileName, content, applicant, docType, dueDate } }];</div>
       <div class="step-heading">n8n：建立結果回傳的 Make Webhook</div>
       <div class="step-body">在 Make.com 建立第二個 Scenario，第一個模組一樣選「Webhooks <span aria-hidden="true">→</span> Custom webhook」，複製此 Webhook URL。這個 Webhook 專門接收 n8n 完成任務後的回傳結果，準備觸發後續的通知發送。</div>
       <div class="step-tip"><strong>提示：</strong>這是第二個獨立的 Make Scenario——第一個處理「接收表單<span aria-hidden="true">→</span>轉發」，第二個處理「接收結果<span aria-hidden="true">→</span>發通知」。兩個 Scenario 分開管理更清晰。</div>
+      <div class="checkpoint"><strong>Checkpoint 3：</strong>第二個 Make Webhook 已建立並處於 Listening 或 Active 狀態；你能在紙上或文件記下它的用途是「接收結果」，與第一個「轉送任務」區分開。</div>
     </div>
   </div>
 
@@ -199,15 +221,17 @@ return [{ json: { fileName, content, applicant, docType, dueDate } }];</div>
     <div class="step-circle">4</div>
     <div class="step-content">
       <div class="step-heading">n8n：文件完成後 HTTP 回傳結果給 Make</div>
-      <div class="step-body">在 Write Binary File 節點之後，新增「HTTP Request」節點。Method 設為 POST，URL 填入步驟 3 的 Make Webhook URL，Body 回傳處理結果（檔名、狀態、申請人）。</div>
+      <div class="step-body">在 Write File to Disk 節點之後，新增「HTTP Request」節點。Method 設為 POST，URL 填入步驟 3 的 Make Webhook URL，Body 回傳處理結果（檔名、狀態、申請人）。</div>
       <div class="code-block"><span class="cm">// n8n HTTP Request Body 回傳 Make</span>
 {
   <span class="ky">"status"</span>:    <span class="st">"success"</span>,
   <span class="ky">"fileName"</span>:  <span class="st">"{{ $json.fileName }}"</span>,
   <span class="ky">"applicant"</span>: <span class="st">"{{ $json.applicant }}"</span>,
-  <span class="ky">"docType"</span>:   <span class="st">"{{ $json.docType }}"</span>
+  <span class="ky">"docType"</span>:   <span class="st">"{{ $json.docType }}"</span>,
+  <span class="ky">"request_id"</span>: <span class="st">"{{ $json.request_id }}"</span>
 }</div>
       <div class="step-tip"><strong>提示：</strong>HTTP Request 節點的 Content-Type 設為 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">application/json</code>，否則 Make 收到的會是純文字字串無法解析。</div>
+      <div class="checkpoint"><strong>Checkpoint 4：</strong>n8n 執行記錄顯示 HTTP Request 成功，Make 的第二個 Webhook Output 有 <code>status</code>、<code>fileName</code>、<code>applicant</code>、<code>docType</code> 與 <code>request_id</code>，後者用來追蹤同一筆請求。</div>
     </div>
   </div>
 
@@ -215,7 +239,7 @@ return [{ json: { fileName, content, applicant, docType, dueDate } }];</div>
     <div class="step-circle">5</div>
     <div class="step-content">
       <div class="step-heading">Make：接收 n8n 結果並發送 Gmail 通知</div>
-      <div class="step-body">在第二個 Make Scenario 中，Webhook 之後加入「Gmail <span aria-hidden="true">→</span> Send an email」模組。To 填申請人信箱，Subject 填「你的文件已處理完成」，Body 填入動態內容引用 n8n 回傳的欄位。</div>
+      <div class="step-body">在第二個 Make Scenario 中，Webhook 之後加入「Gmail <span aria-hidden="true">→</span> Send an email」模組。這是外部延伸；只有拿到講師提供的專用測試收件地址才填入 To。Subject 填「你的文件已處理完成」，Body 填入動態內容引用 n8n 回傳的欄位。若課堂沒有提供測試地址，請將本步標記 <code>NOT_RUN</code>，保留 Webhook Output 作為核心證據，不能改填自己的工作信箱。</div>
       <div class="code-block"><span class="cm">// Gmail 通知模板</span>
 Subject: 你的 {{1.docType}} 申請已完成
 Body:
@@ -225,26 +249,28 @@ Body:
 
 狀態：{{1.status}}
 申請人：{{1.applicant}}
+請求編號：{{1.request_id}}
 
 感謝你使用自動化系統。</div>
       <div class="step-tip"><strong>提示：</strong>確認 Make 的 Gmail 連接已設定好（需 Google 帳號授權）。第一次使用時 Make 會引導你完成 OAuth 授權。</div>
+      <div class="checkpoint"><strong>Checkpoint 5：</strong>有專用測試地址時寄出一封通知，確認主旨、檔名、狀態與請求編號都來自 Webhook 欄位；沒有地址時填寫 <code>NOT_RUN</code> 與原因，保留 Make Webhook Output 作為延伸待驗證證據。</div>
     </div>
   </div>
 
   <div class="verify-box">
     <div class="verify-label">完成驗證 · VERIFY</div>
-    <div class="verify-text">提交 Google Forms 後，<strong>（1）</strong>本機對應資料夾出現新文件，<strong>（2）</strong>Gmail 收到自動通知，郵件內容正確顯示申請人姓名、文件名稱和處理狀態。兩個 Make Scenario 的執行記錄都顯示 Success，代表雙向協作鏈路完全打通。</div>
+    <div class="verify-text"><strong>本機核心完成：</strong>固定資料能進入 n8n、產生本機文件，並以 JSON 回傳 <code>status</code>、<code>fileName</code>、<code>applicant</code>、<code>docType</code>。<br><strong>外部延伸完成：</strong>4.1 的 Forms／Make／Tunnel 已實跑，第二個 Make Scenario 收到回傳，Gmail 寄出通知，兩個 Scenario 執行記錄均為 Success。外部條件未具備時，標記為 NOT_RUN，保留本機核心證據。</div>
   </div>
 
   <div class="troubleshoot">
     <div class="ts-label">常見問題 · TROUBLESHOOT</div>
     <div class="ts-item">
       <div class="ts-q">n8n 的 HTTP Request 回傳失敗（Make 沒收到）？</div>
-      <div class="ts-a">確認 n8n 的 HTTP Request URL 是 Make 的 Webhook URL（不是 n8n 自己的 URL）。Make Webhook 必須是「啟用」狀態，且在等待中（Listening 或 Active Scenario）。檢查 n8n 執行記錄的 HTTP Request 節點有無網路錯誤。</div>
+      <div class="ts-a">確認 n8n 的 HTTP Request URL 填入 Make 的 Webhook URL；n8n 自己的 URL 不可使用。Make Webhook 必須是「啟用」狀態，且在等待中（Listening 或 Active Scenario）。檢查 n8n 執行記錄的 HTTP Request 節點有無網路錯誤。</div>
     </div>
     <div class="ts-item">
       <div class="ts-q">Gmail 模組失敗或通知沒寄出？</div>
-      <div class="ts-a">在 Make 的 Gmail 模組重新授權（點擊 Reauthorize）。確認 To 欄位填入了正確的 Email 格式。若使用 Gmail 免費帳號，每日發送上限為 500 封，測試階段不會有問題。</div>
+      <div class="ts-a">在 Make 的 Gmail 模組重新授權（點擊 Reauthorize）。確認 To 欄位填入了正確的 Email 格式。Gmail 發送量與限制依 Google 帳號類型及當前政策，測試時先用少量收件者並觀察回傳結果。</div>
     </div>
   </div>
 </div>
@@ -252,8 +278,8 @@ Body:
   <div style="max-width:var(--content-w);margin:48px auto 0;padding:28px 32px;background:rgba(90,122,90,.05);border:1px solid rgba(90,122,90,.3);border-left:4px solid var(--c-a3);border-radius:var(--radius);">
     <div style="font-size:.73rem;color:var(--c-a3);letter-spacing:2px;font-weight:600;margin-bottom:14px;">💼 實戰案例</div>
     <div style="font-size:.9rem;color:var(--c-text);line-height:1.95;">
-      <div style="margin-bottom:10px;"><strong>情境｜</strong>某電商雙引擎月結算：Make 用掉 420 ops（免費內）、n8n 跑了 12,000 次（本機免費）——原本全 Make 方案需每月付 $9 Pro。</div>
-      <div style="margin-bottom:10px;"><strong>做法｜</strong>把『本機檔案操作』『批次大量』都丟 n8n；『雲對雲小量』留 Make——每月省 $9 × 12 月 = $108。</div>
+      <div style="margin-bottom:10px;"><strong>情境｜</strong>某電商雙引擎月結算：Make 用掉 420 ops（是否足夠取決於當前方案）、n8n 在本機完成 12,000 次處理。這條路徑仍需承擔電腦資源、備份維護與外部 API 費用；原本全 Make 方案另有每月訂閱成本。</div>
+      <div style="margin-bottom:10px;"><strong>做法｜</strong>把『本機檔案操作』『批次大量』都丟 n8n；『雲對雲小量』留 Make——實際節省的是當前方案的訂閱差額，需依帳號用量計算。</div>
       <div><strong>踩雷｜</strong>Make 回傳 n8n webhook 要設 Timeout 30 秒——n8n 若慢回 Make 會失敗 retry，造成重複觸發。規則：n8n 端先 200 OK 回 Make，再背景處理。</div>
     </div>
   </div>
@@ -263,7 +289,7 @@ Body:
   <a href="m4-3-ai.html" class="nav-btn primary">4.3 AI 計劃生成器 <span aria-hidden="true">→</span></a>
 </div>
 
-<footer class="footer" data-platform-version="2026-04-v3">
+<footer class="footer" data-platform-version="Docker Desktop / n8n 2.37.7" data-built-at="2026-09-03">
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">淡江大學 · 生成式AI工作坊</span>

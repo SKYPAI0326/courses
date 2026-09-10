@@ -1,0 +1,86 @@
+{
+  "name": "CH1-1 四模組參考流程（去敏）",
+  "flow": [
+    {
+      "id": 1,
+      "module": "google-sheets:watchRows",
+      "version": 2,
+      "parameters": {
+        "from": "drive",
+        "mode": "select",
+        "limit": 1,
+        "sheetId": "[REPLACE_SHEET_NAME]",
+        "__IMTCONN__": "[REPLACE_GOOGLE_CONNECTION]",
+        "spreadsheetId": "[REPLACE_SPREADSHEET_ID]",
+        "tableFirstRow": "A1:Z1",
+        "includesHeaders": true,
+        "valueRenderOption": "FORMATTED_VALUE",
+        "dateTimeRenderOption": "FORMATTED_STRING"
+      },
+      "mapper": {},
+      "metadata": {
+        "designer": { "x": -300, "y": 0 },
+        "restore": { "parameters": { "__IMTCONN__": { "data": { "scoped": "true", "connection": "google" }, "label": "[REPLACE]" } } }
+      }
+    },
+    {
+      "id": 2,
+      "module": "gemini-ai:createACompletionGeminiPro",
+      "version": 1,
+      "parameters": { "__IMTCONN__": "[REPLACE_GEMINI_CONNECTION]" },
+      "mapper": {
+        "model": "gemini-2.5-flash",
+        "contents": [
+          {
+            "role": "user",
+            "parts": [
+              {
+                "text": "# Role\n你是一位客服資料分析師。\n\n# Task\n請根據以下單筆客戶評分與回饋，為部門主管撰寫精簡、客觀的客戶反映與分析報告。\n\n# Customer Data\n* 客戶姓名：{{1.`1`}}\n* 整體評分：{{1.`2`}} / 5\n* 客戶回饋意見：\n\"\"\"\n{{1.`3`}}\n\"\"\"\n\n# Constraints & Format\n請直接輸出報告內容，包含：客戶反映摘要、回饋分析、建議改善行動。不得補造輸入中沒有的事實。",
+                "type": "text"
+              }
+            ]
+          }
+        ],
+        "generationConfig": { "imageConfig": {}, "thinkingConfig": {} },
+        "system_instruction": {}
+      },
+      "metadata": { "designer": { "x": 0, "y": 0 }, "restore": { "parameters": { "__IMTCONN__": { "data": { "scoped": "true", "connection": "[REPLACE_GEMINI_CONNECTION_TYPE]" }, "label": "[REPLACE]" } } } }
+    },
+    {
+      "id": 7,
+      "module": "google-docs:createADocument",
+      "version": 1,
+      "parameters": { "__IMTCONN__": "[REPLACE_GOOGLE_CONNECTION]" },
+      "mapper": {
+        "name": "客服回饋：{{1.`0`}}-{{1.`1`}}",
+        "footer": false,
+        "header": false,
+        "content": "{{2.result}}",
+        "folderId": "[REPLACE_FOLDER_ID]",
+        "destination": "drive"
+      },
+      "metadata": { "designer": { "x": 300, "y": 0 }, "restore": { "parameters": { "__IMTCONN__": { "data": { "scoped": "true", "connection": "google" }, "label": "[REPLACE]" } } } }
+    },
+    {
+      "id": 8,
+      "module": "google-email:sendAnEmail",
+      "version": 4,
+      "parameters": { "__IMTCONN__": "[REPLACE_GMAIL_CONNECTION]" },
+      "mapper": {
+        "to": [ "[REPLACE_RECIPIENT_EMAIL]" ],
+        "subject": "{{7.name}}",
+        "bodyType": "collection",
+        "contents": [ { "text": "{{2.result}}", "image": {} } ]
+      },
+      "metadata": { "designer": { "x": 600, "y": 0 }, "restore": { "parameters": { "__IMTCONN__": { "data": { "scoped": "true", "connection": "google-email" }, "label": "[REPLACE]" } } } }
+    }
+  ],
+  "metadata": {
+    "instant": false,
+    "version": 1,
+    "scenario": { "roundtrips": 1, "maxErrors": 3, "autoCommit": true, "autoCommitTriggerLast": true, "sequential": false, "slots": null, "confidential": false, "dataloss": false, "dlq": false, "freshVariables": false },
+    "designer": { "orphans": [] },
+    "zone": "us1.make.com",
+    "notes": []
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "fixture_name": "scenario-v1-filter-repair",
+  "purpose": "教學用去敏結構；不可直接匯入 Make，也不含任何連線或個資。",
+  "sensitive_values_removed": true,
+  "modules": [
+    {
+      "position": 1,
+      "module": "Gemini / Generate",
+      "input": { "message_text": "{{sample_text}}" },
+      "output": {
+        "summary": "{{summary}}",
+        "reply_draft": "{{draft}}",
+        "needs_review": "{{needs_review_boolean}}"
+      },
+      "connection": "{{removed_credential}}"
+    },
+    {
+      "position": 2,
+      "module": "Filter",
+      "input": "feedback_text",
+      "condition": { "operator": "equal", "value": "false" },
+      "routes": { "false": "Google Docs", "true": "manual_review" }
+    },
+    {
+      "position": 3,
+      "module": "Google Docs / Create document",
+      "input": {
+        "title": "{{safe_title}}",
+        "body": "{{summary}}\n{{reply_draft}}"
+      },
+      "connection": "{{removed_credential}}"
+    }
+  ],
+  "allowed_change_paths": [
+    "modules[1].input",
+    "modules[1].condition.value"
+  ],
+  "forbidden_change_paths": [
+    "modules[0].input",
+    "modules[0].output",
+    "modules[0].connection",
+    "modules[2].input",
+    "modules[2].connection",
+    "modules"
+  ]
+}

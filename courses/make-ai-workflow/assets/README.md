@@ -58,9 +58,16 @@ CH1-5 的素材先建立安全副本，再交給 LLM 產生最小 diff；不得�
 - `CH1-6-handoff-readme-template.md`：handoff-pack-v1 的目錄、執行模式、驗證順序與還原入口。
 - `CH1-6-test-matrix.md`：成功、待人工、資料缺值三條路徑；依 `MAKE`／`SIMULATED` 模式填寫證據。
 - `CH1-6-demo-record-template.md`：五分鐘展示腳本，先說明模式，再要求每段都有對應證據或明確標示尚未驗證。
+- `CH1-6-bridge-worksheet.md`：Make → n8n 銜接工作表，依 `task_type` 分開欄位、封裝與三筆驗收。
 - `CH1-6-fixed-output-fixtures.json`：無 Make 連線時的固定輸出與 placeholder；不是 Blueprint，也不代表實際執行成功。
 - `CH1-6-batch-input.csv`：三筆去敏批次輸入，含 `record_id`、期間、契約欄位與審核旗標。
 - `CH1-6-batch-module-cards.md`：資料集合、Iterator、Aggregator、Gemini、Filter、Docs 的責任與控制條件。
 - `CH1-6-batch-intermediate-output.md`：逐筆檢查、聚合輸入與成功／待人工／缺值三條預期路徑。
 
 CH1-6 的變體沿用前置契約與安全出口；正式原版不得覆寫，任何尚未在目標工作區執行的結果都必須標示為待驗證。
+
+## BRIDGE-1（Make ↔ n8n）
+
+- `BRIDGE-1-make-n8n-contract-v1.md`：共用外層封裝、`task_type`、兩種任務欄位、轉換前後範例、三筆測試與證據模式。
+
+BRIDGE-1 是跨平台銜接教材。它要求先辨識任務，再決定原樣傳遞或建立 Transform；不會把客戶回饋欄位自動改成文件申請欄位。實際匯入與執行仍需在 Make／n8n 工作區人工驗證。
