@@ -68,8 +68,9 @@
 | `gen-ai-36h/` | 生成式 AI 工作應用班（36h） | 完成 | part1~6，140h 上班族濃縮版，零基礎不寫程式；主色灰藍綠 |
 | `gen-image/` | 商業用圖片生成 | 完成 | 5 Modules，13 單元，AI 設計流水線 PM 協作；主色奶茶棕；**v4 Editorial 範本**；**公開課程，無密碼關卡（2026-07-08 確認）** |
 | `gtm/` | GTM 實務演練 | 完成 | part1~6，含 checklist.html |
-| `n8n/` | n8n 自動化實戰課 | 完成 | landing + lessons/，4 Modules |
-| `make-ai-workflow/` | 從自動化到 AI 協作：Make 工作流實戰（6h） | 完成（已註冊） | 想學自動化的行政、行銷、專案與教學工作者；主色陶土橘 |
+| `n8n/` | n8n 自動化實戰課 | 整合課程來源 | landing + lessons/，4 Modules；由 `personal-automation/` 統一導覽 |
+| `make-ai-workflow/` | 從自動化到 AI 協作：Make 工作流實戰（6h） | 整合課程來源 | 想學自動化的行政、行銷、專案與教學工作者；主色陶土橘；由 `personal-automation/` 統一導覽 |
+| `personal-automation/` | 個人自動化工作流：Make × n8n 雲地協作實戰（14.5h） | 整合入口 | Make 6h → Bridge 0.5h → n8n 8h；保留原兩門頁面作為實作階段，主色灰青 |
 | `ntub-gtm-adtech/` | NTUB GTM × 廣告科技 | 完成 | （學員/結構待補） |
 | `ntub-seo-ga4/` | NTUB SEO × GA4 | 完成 | （學員/結構待補） |
 | `office-ai/` | 辦公室 AI 工具實務應用 | 完成 | part1~5 |
