@@ -181,7 +181,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
       </ul>
       <p><strong>兩種 URL 模式</strong>：</p>
       <ul>
-        <li><strong>Test URL</strong>（<code>/webhook-test/lite-hello</code>）：開發階段用，按畫布下方的 Execute workflow 後進入執行／等待狀態；部分版本會顯示藍色「Listening for test event」。它<strong>只接受 1 次請求</strong>，收到後 workflow 跑一次並結束等待</li>
+        <li><strong>Test URL</strong>（<code>/webhook-test/lite-hello</code>）：開發階段用，按畫布下方的 Execute workflow 後 Webhook 變藍色「Listening」，<strong>只接受 1 次請求</strong>，收到後 workflow 跑一次然後 Listening 結束</li>
         <li><strong>Production URL</strong>（<code>/webhook/lite-hello</code>）：workflow 必須啟用後才會持續監聽，正式使用時才採用這個網址</li>
       </ul>
     </div>
@@ -212,13 +212,13 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <p class="body-text">畫面上的右上角 <code>Publish</code> 用來發布工作流；本次只做測試，請使用畫布下方的橘色 <code>Execute workflow</code>。測試完成後，瀏覽器會收到 Set 節點產生的 JSON，這就是本節要留下的可觀察結果。</p>
   <ol class="node-body" style="margin:8px 0 8px 22px;">
     <li>在 Workflows 清單開啟 <code>01 · Webhook hello-world</code>，確認畫布上有 Webhook → Set: 回應內容。</li>
-    <li>按畫布下方橘色 <code>Execute workflow</code>，確認畫面進入執行／等待狀態。部分版本會顯示 <code>Listening for test event</code>；未出現這段文字時仍可繼續下一步。</li>
+    <li>按畫布下方橘色 <code>Execute workflow</code>；Webhook 節點應變成藍色並顯示 <code>Listening for test event</code>。</li>
     <li>在新瀏覽器分頁開啟 <code>http://localhost:5678/webhook-test/lite-hello</code>，請在等候狀態結束前送出請求。</li>
     <li>回到 n8n，兩個節點應變成綠色；Output 會看到 <code>message</code>、<code>timestamp</code>、<code>received_method</code> 三個欄位。</li>
   </ol>
   <div class="expect-box">
     <div class="expect-label">通過判準</div>
-    <div class="expect-text">瀏覽器沒有 404，回應包含 <code>message: "hello from lite pack"</code>；n8n 執行紀錄中的 Webhook 與 Set 都是綠色，連線可看到 <code>1 item</code>。若顯示 404，回畫布重新按 <code>Execute workflow</code>，確認仍在執行／等待，再核對網址最後一段是 <code>lite-hello</code>。</div>
+    <div class="expect-text">瀏覽器沒有 404，回應包含 <code>message: "hello from lite pack"</code>；n8n 執行紀錄中的 Webhook 與 Set 都是綠色。若顯示 404，先回畫布確認 Webhook 正在 Listening，並核對網址最後一段是 <code>lite-hello</code>。</div>
   </div>
 </section>
 
@@ -240,7 +240,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
   <div class="callout tip">
     <div class="callout-icon" aria-hidden="true">⚠️</div>
-    <div class="callout-body"><strong>Test URL 一次性的雷</strong>：按完 Execute workflow 後等待太久才送出請求，測試等待可能已逾時。Test URL 通常只等待約 60 秒；逾時後重新按 Execute，再送出同一個 Test URL。Production 模式會持續監聽。</div>
+    <div class="callout-body"><strong>Test URL 一次性的雷</strong>：學員常見錯誤 — 按完 Execute workflow 等很久才打 curl，Webhook 已經 timeout 不在 Listening 了。Test URL 在 Execute 後通常只 listen 約 60 秒，超時就要重按 Execute。Production 模式就沒這限制。</div>
   </div>
 </section>
 
