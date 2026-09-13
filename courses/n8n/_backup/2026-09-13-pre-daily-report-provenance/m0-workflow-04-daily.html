@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>#04 定時 AI 日報 設計拆解｜AI 資料工廠</title>
-<meta name="description" content="Lite Pack #04 workflow 設計拆解：Schedule Trigger 每天 8:00 → 讀取 daily-input/ → 依副檔名分流 → PDF／純文字抽取 → 合併來源 → AI 摘要 → 寫入 Markdown 日報。">
+<meta name="description" content="Lite Pack #04 workflow 設計拆解：Schedule Trigger 每天 8:00 → Read daily-input/ → Aggregate 多檔合併 → AI 摘要 → 寫 Markdown 日報。Schedule + Aggregate + AI 整合範例。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
 <meta property="og:title" content="#04 定時 AI 日報 設計拆解｜AI 資料工廠">
@@ -127,15 +127,14 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 
 <div class="page-hero">
   <a href="m0-workflow-tour.html" class="back-link"><span aria-hidden="true">←</span> 返回工作流總覽</a>
-  <div class="hero-eyebrow">#04 · DAILY AI REPORT · 8 NODES + 1 NOTE · 進階</div>
+  <div class="hero-eyebrow">#04 · DAILY AI REPORT · 6 NODES · 進階</div>
   <h1 class="lesson-title">每天 8:00 自動讀資料夾、AI 摘要、產 Markdown 日報</h1>
-  <p class="lesson-tagline">這是 #02／#03 的進階變體：先讀取 daily-input/，再依副檔名把 PDF 與純文字送往各自的抽取節點，最後合併成一批來源交給 Gemini。學完這頁，你能設計「定時讀多份輸入 → 保留來源 → AI 統整 → 結構化輸出」的早報、週報與專案摘要流程。</p>
+  <p class="lesson-tagline">這是 #02 / #03 的進階變體：從「處理檔案物理屬性（檔名 / binary）」轉換到「處理檔案語意內容（text）」+ 引入 Schedule Trigger 與 Aggregate 兩個新節點。學完這頁能設計「定時讀多份輸入 → AI 統整 → 結構化輸出」的所有 workflow（早報 / 週報 / 客戶簡報 / 競品分析）。</p>
   <div class="outcomes">
     <div class="outcomes-label">學習成果</div>
     <div class="outcome-item">能用 Schedule Trigger + cron expression 設定每天 / 每週 / 每月定時觸發</div>
-    <div class="outcome-item">能用 Switch 分流 PDF／純文字，讓每份檔案走正確的抽取節點</div>
-    <div class="outcome-item">能用 Aggregate 節點把多個 items 合併成 1 個 files array，並保留每份來源檔名</div>
-    <div class="outcome-item">能設計含來源標記與衝突提醒的 Markdown 日報 prompt（摘要／待辦／決策／風險）</div>
+    <div class="outcome-item">能用 Aggregate 節點把多個 items 合併成 1 個 array，餵給 AI 做整體摘要</div>
+    <div class="outcome-item">能設計結構化 Markdown 日報 prompt（4 段：摘要 / 待辦 / 決策 / 風險）</div>
   </div>
 </div>
 
@@ -147,29 +146,26 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
     <span class="arrow">→</span>
     <span class="node">Read daily-input</span>
     <span class="arrow">→</span>
-    <span class="node">Switch: 副檔名分流</span>
-    <span class="arrow">→</span>
-    <span class="node">Extract PDF</span>
-    <span class="node">／Extract 純文字</span>
+    <span class="node">Extract 文字</span>
     <br><br>
-    <span class="arrow">↘</span>
+    <span class="arrow">→</span>
     <span class="node">Aggregate 多檔合併</span>
     <span class="arrow">→</span>
     <span class="node code">Code: AI 摘要 + 組 Markdown</span>
     <span class="arrow">→</span>
     <span class="node">Write daily-output</span>
   </div>
-  <p class="body-text">這條流程有 8 個功能節點與 1 張畫布說明卡。Read 讀入 daily-input/ 後，Switch 依副檔名分成 PDF 與純文字兩路；兩路各自抽取文字，再回到 Aggregate 合併。這樣一批輸入只會交給 AI 一次，且每份內容仍帶著檔名，後續可以回到原檔核對。最後 Code 產生日報與來源清單，Write 將 Markdown 寫入 daily-output/。</p>
+  <p class="body-text">6 節點線性鏈，但比 #02/#03 多一個「<strong>Aggregate 多檔合併</strong>」節點。為什麼要 aggregate？因為 daily-input/ 內可能有 N 份輸入檔（會議記錄、待辦、便條紙），Read+Extract 後變 N 個 items，Aggregate 把 N 個合併成 1 個 array 一次餵給 AI 做「整體」摘要。如果不 aggregate 直接打 AI，會變成 N 次 API 呼叫各自輸出 N 份小日報。</p>
 </section>
 
 <hr class="section-rule">
 
 <section class="lesson-section">
   <div class="section-eyebrow">(02) NODE BREAKDOWN</div>
-  <h2 class="section-heading">節點逐一拆解（重點看分流、來源與驗收）</h2>
+  <h2 class="section-heading">節點逐一拆解（重點看 1 + 4）</h2>
 
   <div class="node-card trigger-node">
-    <div class="node-num">NODE 1 / 8</div>
+    <div class="node-num">NODE 1 / 6</div>
     <div class="node-title">Schedule: 每天 08:00</div>
     <div class="node-meta"><span>scheduleTrigger v1.2</span><span>cron</span></div>
     <div class="node-body">
@@ -186,42 +182,42 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
   </div>
 
   <div class="node-card">
-    <div class="node-num">NODE 2–5 / 8</div>
-    <div class="node-title">Read → Switch → Extract PDF／Extract 純文字</div>
+    <div class="node-num">NODE 2-3 / 6</div>
+    <div class="node-title">Read daily-input 所有檔 / Extract 文字</div>
     <div class="node-body">
-      <p>Read 節點抓取 <code>/files/shared/daily-input/*</code>，每份檔案先成為一個 item。Switch 讀取 <code>$binary.data.fileExtension</code>：副檔名為 <code>pdf</code> 時送到 Extract PDF，其餘走 Extract 純文字。這個分流讓 PDF 解析與 .txt／.md 讀取各自使用正確的 operation；兩路會在下一個 Aggregate 節點匯合。</p>
-      <p><strong>操作檢查</strong>：測試時在兩路輸出都看到 item，且檔案數量與 daily-input/ 內的檔案數相同。若某一路為 0，先檢查副檔名與 Switch 的 fallback output。</p>
+      <p>跟 #02 #03 結構類似但抓的是 <code>daily-input/*</code>（不限 .pdf，含 .txt / .md / .docx）。Extract 節點 <code>operation: text</code>（不是 pdf），自動偵測檔案類型抽純文字。</p>
     </div>
   </div>
 
   <div class="node-card">
-    <div class="node-num">NODE 6 / 8</div>
+    <div class="node-num">NODE 4 / 6</div>
     <div class="node-title">Aggregate 多檔合併 ← 關鍵節點</div>
     <div class="node-meta"><span>aggregate v1</span></div>
     <div class="node-body">
       <p><strong>用途</strong>：把多個 input items 合併成 1 個 item，把指定欄位變成 array。</p>
-      <p><strong>關鍵設定</strong>：<code>aggregate: aggregateAllItemData</code>、<code>destinationFieldName: files</code>、<code>include: allFields</code>。</p>
-      <p>Input 是多個抽取後的 items；Output 是 1 個 item，將每份 item 的欄位放入 <code>files</code> array。Code 節點會從這個 array 取文字與檔名，並補回讀檔節點的 binary 檔名，避免來源只剩「檔案-1」。</p>
-      <p>下游 AI Code 節點只跑一次，把整批內容當 context 餵給 Gemini。輸出日報尾端會列出來源檔案，學員可依檔名回到 daily-input/ 查證。</p>
+      <p><strong>關鍵設定</strong>：<code>fieldsToAggregate: [fileName, text]</code></p>
+      <p>Input：N 個 items 各有 <code>{ fileName: "x.md", text: "內容..." }</code><br>
+      Output：1 個 item 含 <code>{ fileName: ["x.md", "y.md", ...], text: ["內容1", "內容2", ...] }</code></p>
+      <p>下游 AI Code 節點只跑一次，把整個 array 當 context 餵給 Gemini，AI 會產生整體摘要。</p>
     </div>
   </div>
 
   <div class="node-card code-node">
-    <div class="node-num">NODE 7 / 8</div>
+    <div class="node-num">NODE 5 / 6</div>
     <div class="node-title">Code: AI 摘要 + 組 Markdown</div>
     <div class="node-meta"><span>code v2</span></div>
     <div class="node-body">
-      <p>Code 節點先把每份來源整理成含 <code>fileName</code>、<code>sourcePath</code>、<code>text</code> 的資料，再呼叫 Gemini。Prompt 要求只使用輸入內容；每項摘要加上 <code>[來源：檔名]</code>；找不到負責人填 <code>未指定</code>；遇到金額或決策衝突要列出各來源，禁止自行補名字、日期、金額或狀態。</p>
-      <p>Code 節點 return 的 JSON 會含 <code>outputPath</code>、<code>markdown</code>、<code>aiError</code>、<code>filesCount</code>、<code>filesProcessed</code>、<code>sourceFiles</code>。其中 <code>filesProcessed</code> 是驗證來源是否真的讀入的第一個檢查點；Markdown 尾端的「來源檔案」區塊是第二個檢查點。</p>
-      <p><strong>安全閘門</strong>：如果 AI 回應沒有逐一出現每個來源的 <code>[來源：檔名]</code>，Code 會把回應改為人工核對訊息，並將 <code>aiError</code> 設為原因。這可避免把沒有證據鏈的文字直接寫成日報。</p>
+      <p>結構跟 #02 / #03 類似，差別在 prompt 不要求格式化檔名而是要求 4 段結構化 Markdown：</p>
+      <p><strong>Prompt 關鍵語句</strong>：<em>「請整理成結構化日報（繁體中文 Markdown）。包含：重點摘要 3-5 點、待辦事項（含優先級）、關鍵決策、風險或卡點。日期：YYYY-MM-DD。直接輸出 Markdown，不要 markdown 標記包裹。」</em></p>
+      <p>Code 節點 return 一個 item 含 <code>{ outputPath, markdown, aiError }</code> + binary 是 Markdown 內容的 base64 編碼（Write 節點寫檔用）。</p>
     </div>
   </div>
 
   <div class="node-card">
-    <div class="node-num">NODE 8 / 8</div>
+    <div class="node-num">NODE 6 / 6</div>
     <div class="node-title">Write: daily-output/</div>
     <div class="node-body">
-      <p><code>fileName: {{ $json.outputPath }}</code> 寫到 <code>shared/daily-output/daily-YYYY-MM-DD.md</code>。完成後打開檔案，核對四段內容、來源檔案清單與 Code JSON 的數量。</p>
+      <p><code>fileName: {{ $json.outputPath }}</code> 寫到 <code>shared/daily-output/daily-YYYY-MM-DD.md</code>。</p>
     </div>
   </div>
 </section>
@@ -240,7 +236,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 
   <div class="callout tip">
     <div class="callout-icon" aria-hidden="true">⚠️</div>
-    <div class="callout-body"><strong>輸入太少，摘要容易失真</strong>：實測時如果 daily-input/ 內只有 1–2 份簡短測試檔（總字數 &lt; 200），模型可能補出輸入沒有的產品名或待辦。課堂請使用可辨識的會議記錄、待辦或專案檔案；完成後以 <code>filesProcessed</code>、來源清單與原檔逐項核對，才採用日報內容。</div>
+    <div class="callout-body"><strong>輸入太少 AI 會幻覺</strong>：實測時如果 daily-input/ 內只有 1-2 份簡短測試檔（總字數 &lt; 200），AI 會「合理推斷」造一個虛構故事（虛擬產品名、虛擬待辦）。明天課堂建議用學員真實會議記錄當素材，不要用「test123」這種短測試檔。</div>
   </div>
 </section>
 
@@ -275,7 +271,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">2026 春季</span>
-  <span class="footer-meta">本頁以 n8n 2.37.7 (Docker) + Lite Pack（2026-09）製作；Windows 實機仍需依課程驗收段落試跑</span>
+  <span class="footer-meta">本頁以 n8n latest (Docker) + Lite Pack v0.9 製作，2026-05</span>
 </footer>
 
 <script>
