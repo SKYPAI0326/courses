@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>#06 Webhook → AI → 三輸出 設計拆解｜AI 資料工廠</title>
-<meta name="description" content="Lite Pack #06 workflow 設計拆解：外部 POST 一個問題 → AI 生答 → 同時寫本機檔、Telegram 通知與 webhook 回應；另附 GET Web UI 分支。">
+<meta name="description" content="Lite Pack #06 workflow 設計拆解：外部 POST 一個問題 → AI 生答 → 同時寫本機檔 + Telegram 通知 + 回 webhook 200。一個 workflow 三個出口的多分支整合範例。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
 <meta property="og:title" content="#06 Webhook → AI → 三輸出 設計拆解｜AI 資料工廠">
@@ -129,14 +129,14 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 
 <div class="page-hero">
   <a href="m0-workflow-tour.html" class="back-link"><span aria-hidden="true">←</span> 返回工作流總覽</a>
-  <div class="hero-eyebrow">#06 · WEBHOOK AI · 5 POST NODES + 3 UI NODES · 進階</div>
+  <div class="hero-eyebrow">#06 · WEBHOOK AI · 5 NODES · 進階</div>
   <h1 class="lesson-title">外部 POST 觸發 AI，同時寫本機檔 + 推 Telegram + 回 200</h1>
-  <p class="lesson-tagline">把 #01（webhook）＋#02（AI）＋#05（Telegram）整合成一個 workflow，並引入「同節點多輸出」概念。主要 POST 路徑由 5 個節點完成；畫布下方另附 3 個節點的 GET Web UI 分支，讓使用者從瀏覽器表單送出問題。學完這頁能設計「外部觸發 AI 服務＋多通道輸出」的 workflow。</p>
+  <p class="lesson-tagline">把 #01（webhook） + #02（AI） + #05（Telegram）整合成一個 workflow，並引入「同節點多輸出」概念 — Code 節點輸出後 fan-out 三條線分別接 Write / Telegram / Respond，三件事**並行執行**而非依序。學完這頁能設計「外部觸發 AI 服務 + 多通道輸出」的所有 workflow。</p>
   <div class="outcomes">
     <div class="outcomes-label">學習成果</div>
     <div class="outcome-item">能用 Webhook 節點接收 POST body 內 JSON 欄位（如 question）並餵給 AI</div>
     <div class="outcome-item">能用 n8n connection 設計「一節點輸出 → 多節點接收」的並行分支</div>
-    <div class="outcome-item">能用 Respond to Webhook 節點固定回傳 JSON（responseMode: responseNode），並辨識同一 workflow 的 Web UI 分支</div>
+    <div class="outcome-item">能用 Set 節點當 Respond to Webhook（responseMode: lastNode 機制）</div>
   </div>
 </div>
 
@@ -150,19 +150,9 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
     <br><br>
     <span style="margin-left:35ch">↗ <span class="node">Write ai-output/</span> <em style="color:var(--c-muted);font-style:normal">（寫本機 .md）</em></span><br>
     <span style="margin-left:35ch">→ <span class="node">Telegram 通知</span> <em style="color:var(--c-muted);font-style:normal">（推手機）</em></span><br>
-    <span style="margin-left:35ch">↘ <span class="node">Respond: 回 webhook 200</span> <em style="color:var(--c-muted);font-style:normal">（responseNode 回 caller）</em></span>
-    <br><br>
-    <span class="node trigger">Webhook UI: GET /ai-ui</span>
-    <span class="arrow">→</span>
-    <span class="node code">Code: 組 HTML</span>
-    <span class="arrow">→</span>
-    <span class="node">Respond UI: HTML</span>
+    <span style="margin-left:35ch">↘ <span class="node">Set: 回 webhook 200</span> <em style="color:var(--c-muted);font-style:normal">（lastNode 回 caller）</em></span>
   </div>
-  <p class="body-text">主要 POST 路徑有 5 個節點：Webhook、Code、Write、Telegram、Respond。Code 的輸出同時連到 3 個下游節點，n8n 會在同一層並行處理。畫布下方的 Web UI 分支有 3 個節點：GET Webhook、HTML Code、Respond UI；它共用同一個 workflow，提供瀏覽器表單入口，與 POST 測試分開判定。</p>
-  <div class="callout tip">
-    <div class="callout-icon" aria-hidden="true">🧪</div>
-    <div class="callout-body"><strong>測試入口與成功訊號</strong>：在 n8n 畫布按下方橘色 <span class="ic">Execute workflow</span> 後，Webhook 節點會提示 <span class="ic">Waiting for you to call the Test URL</span>；較舊版本可能顯示 <span class="ic">Listening</span>。此時再以 POST 呼叫 <span class="ic">/webhook-test/ai-ask</span>，確認回應、輸出檔與 Telegram 通知都出現，再判定主路徑完成。</div>
-  </div>
+  <p class="body-text">5 節點，但 connection 不是線性 — Code 節點的輸出同時連到 3 個下游節點（n8n 自動並行執行）。這是 n8n 強大但容易被忽略的 pattern：「一份資料同時送多處」（不需要複製資料、不需要分支邏輯）。</p>
 </section>
 
 <hr class="section-rule">
@@ -174,10 +164,10 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
   <div class="node-card trigger-node">
     <div class="node-num">NODE 1 / 5</div>
     <div class="node-title">Webhook: ai-ask</div>
-    <div class="node-meta"><span>webhook v2</span><span>Path: ai-ask</span><span>Response: responseNode</span></div>
+    <div class="node-meta"><span>webhook v2</span><span>Path: ai-ask</span><span>Response: lastNode</span></div>
     <div class="node-body">
       <p><strong>用途</strong>：接收外部 POST 含 JSON body <code>{ question: "..." }</code>。</p>
-      <p>跟 #01 一樣接收 JSON，這裡把 path 設為 <code>ai-ask</code>，並把 responseMode 設為 <code>responseNode</code>，由指定的 Respond 節點回傳結果。本機完整 URL：<code>http://localhost:5678/webhook/ai-ask</code>（Production）或 <code>/webhook-test/ai-ask</code>（Test）。</p>
+      <p>跟 #01 結構一樣，差別在 path 改 <code>ai-ask</code>、responseMode 一樣設 lastNode。本機完整 URL：<code>http://localhost:5678/webhook/ai-ask</code>（Production）或 <code>/webhook-test/ai-ask</code>（Test）。</p>
     </div>
   </div>
 
@@ -228,22 +218,12 @@ return [{
 
   <div class="node-card">
     <div class="node-num">NODE 5 / 5</div>
-    <div class="node-title">Respond: 回 webhook 200</div>
-    <div class="node-meta"><span>Respond to Webhook v1.1</span><span>responseNode</span></div>
+    <div class="node-title">Set: 回 webhook 200</div>
+    <div class="node-meta"><span>set v3.4</span></div>
     <div class="node-body">
-      <p>Webhook 設了 <code>responseMode: responseNode</code>，因此由這個節點明確回傳 JSON。即使 Write 與 Telegram 同時執行，curl 仍會收到同一種回應格式。</p>
-      <p><strong>Response Body</strong>：<code>status = "ok"</code>、<code>question = {{ ... .question }}</code>、<code>answer = {{ ... .answer }}</code></p>
+      <p>因為 Webhook 設了 <code>responseMode: lastNode</code>，這個 Set 節點的輸出會被當成 webhook response 回給 caller。</p>
+      <p><strong>Assignments</strong>：<code>status = "ok"</code>、<code>question = {{ ... .question }}</code>、<code>answer = {{ ... .answer }}</code></p>
       <p>caller 用 curl 打進來會收到 <code>{"status":"ok","question":"...","answer":"..."}</code>。</p>
-    </div>
-  </div>
-
-  <div class="node-card">
-    <div class="node-num">WEB UI BRANCH · 3 NODES</div>
-    <div class="node-title">Webhook UI → Code: 組 HTML → Respond UI: HTML</div>
-    <div class="node-meta"><span>GET /ai-ui</span><span>瀏覽器表單</span></div>
-    <div class="node-body">
-      <p>這 3 個節點是同一 workflow 的瀏覽器入口，與上方 5 節點 POST 主路徑分開觸發。開啟 <code>http://localhost:5678/webhook/ai-ui</code> 後，表單會送出問題；HTML Code 產生頁面，Respond UI 將頁面回傳瀏覽器。</p>
-      <p>課堂先驗證 POST 主路徑；Web UI 作為延伸入口。兩條入口共用 workflow 名稱，但測試 URL、請求方式與驗收結果各自獨立。</p>
     </div>
   </div>
 </section>
@@ -257,7 +237,7 @@ return [{
   <div class="callout">
     <div class="callout-icon" aria-hidden="true">💭</div>
     <div class="callout-body"><strong>為什麼三件事要並行？</strong><br>
-    Write 寫本機檔、Telegram 推手機、Respond 回 webhook 三件事互相<strong>不依賴</strong>，可由 Code 同時分送。n8n 會並行處理同層下游節點；Respond 節點明確負責 HTTP 回應，因此 Telegram 或 Write 的完成順序不會改變 curl 的回應格式。</div>
+    Write 寫本機檔 / Telegram 推手機 / Set 回 webhook 三件事互相<strong>不依賴</strong>，並行執行更快（n8n 自動並行同層下游節點）。如果是線性鏈，前一個失敗會擋住後面。並行的話 Telegram 失敗不會擋住 webhook 回應，學員的 caller 仍能拿到 AI 答案。</div>
   </div>
 
   <div class="callout">
@@ -303,7 +283,7 @@ return [{
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">2026 春季</span>
-  <span class="footer-meta">本頁以 n8n 2.37.7 (Docker) + Lite Pack（2026-09）製作；Web UI 分支為延伸入口</span>
+  <span class="footer-meta">本頁以 n8n latest (Docker) + Lite Pack v0.9 製作，2026-05</span>
 </footer>
 
 <script>
