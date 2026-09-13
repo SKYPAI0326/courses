@@ -13,7 +13,8 @@ Google AI Studio now creates authorization keys beginning with `AQ.` for new acc
 2. Remove brittle prefix rejection; accept any non-empty complete key in macOS and Windows wizards, with `AIza` and `AQ.` shown as current examples.
 3. Extend secret-leak scans and old-install detection to cover `AQ.` values.
 4. Update learner-facing instructions, README version, and download cache-buster to v1.3.3.
-5. Validate shell syntax, archive integrity, workflow count, and guide links before republishing.
+5. Refresh the Gemini model used by smoke tests and Lite Pack helper code to `gemini-3.6-flash` after the live 404 response for new users.
+6. Validate shell syntax, archive integrity, workflow count, and guide links before republishing.
 
 ## Manual validation
 The Gemini smoke test remains the authority for whether the supplied key can call the configured endpoint. Prefix validation alone never marks a key usable.

@@ -217,7 +217,7 @@ if (!rows.客戶名 || rows.客戶名.trim() === '') return [];  // skip 空白 
 
 於是策略要轉折：**不再走 Extract from File，改用 LLM multimodal**。
 
-n8n #03 用的是 Gemini 3.6 Flash（lpCall helper），它支援 multimodal — 把圖片 base64 餵進去，它「真的看圖」回你內容描述。lpCall 的 contents 結構從「純文字」變成「文字 + inlineData」。
+n8n #03 用的是 Gemini 2.5 Flash（lpCall helper），它支援 multimodal — 把圖片 base64 餵進去，它「真的看圖」回你內容描述。lpCall 的 contents 結構從「純文字」變成「文字 + inlineData」。
 
 ##### lpCall contents 結構從 text 改 inlineData 的具體範例
 
@@ -380,7 +380,7 @@ const lpResult = await lpCall.call(this, {
 
 ```
 我要把 #03 batch-error-recovery 改成處理圖片（.png — 走方案 A，jpg 我會先 export 成 png），
-用 Gemini 3.6 Flash multimodal 看圖回語意化檔名。
+用 Gemini 2.5 Flash multimodal 看圖回語意化檔名。
 
 請給我三個東西：
 
@@ -592,7 +592,7 @@ const text = Buffer.from(binaryData, 'base64').toString('utf8');
 
 ```
 我要把 #03 batch-error-recovery 改成處理圖片（.png — 走方案 A，jpg 我會先 export 成 png），
-用 Gemini 3.6 Flash multimodal 看圖回語意化檔名。
+用 Gemini 2.5 Flash multimodal 看圖回語意化檔名。
 請走路線 C-1（lpCall helper 加 contents 參數，不要走 C-2 自寫 httpRequest）。
 
 請給我三件事：
