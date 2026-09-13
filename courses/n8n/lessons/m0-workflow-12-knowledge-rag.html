@@ -112,7 +112,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 <main id="main">
 <div class="page-hero">
   <a href="m0-workflow-tour.html" class="back-link"><span aria-hidden="true">←</span> 返回工作流總覽</a>
-  <div class="hero-eyebrow">#12 · KNOWLEDGE BASE Q&amp;A · 10 NODES · 進階</div>
+  <div class="hero-eyebrow">#12 · KNOWLEDGE BASE Q&amp;A · 14 個可執行節點 + 1 張說明卡 · 進階</div>
   <h1 class="lesson-title">本地知識庫問答：自家 SOP/講義/手冊變成可問答 AI</h1>
   <p class="lesson-tagline">公司有 SOP、課程講義、合約範本、客服手冊、FAQ 等 PDF/MD/TXT 文件，常見痛點是「資料都在但問問題時找不到」。這個 workflow 是「窮人版 RAG」：對所有文件做 chunk → JSONL 文字索引 → Webhook 問答端點。<strong>不需要 vector DB 也能跑</strong>（用關鍵字 match 取代 embeddings），但學員學進階版可換成 PostgreSQL pgvector + Gemini embeddings。</p>
   <div class="outcomes">
@@ -125,22 +125,25 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 
 <section class="lesson-section">
   <div class="section-eyebrow">(01) WORKFLOW 全貌</div>
-  <h2 class="section-heading">兩條獨立鏈：建索引 + 問答</h2>
+  <h2 class="section-heading">三條鏈：建索引、問答 API、問答 UI</h2>
   <div class="flow-diagram">
     <strong>Part A · 建索引（Manual Trigger）</strong><br>
     <span class="node trigger">Manual</span><span class="arrow">→</span><span class="node">Read knowledge-docs/</span><span class="arrow">→</span><span class="node">Extract 文字</span><span class="arrow">→</span><span class="node code">Code: 切 chunk + JSONL</span><span class="arrow">→</span><span class="node">Write 索引</span>
     <br><br>
     <strong>Part B · 問答（Webhook）</strong><br>
-    <span class="node trigger">Webhook: kb-ask</span><span class="arrow">→</span><span class="node">Read 索引檔</span><span class="arrow">→</span><span class="node code">Code: 檢索 + AI 生答</span><span class="arrow">→</span><span class="node">Respond</span>
+    <span class="node trigger">Webhook: kb-ask</span><span class="arrow">→</span><span class="node">Read 索引檔</span><span class="arrow">→</span><span class="node code">Code: 檢索 + AI 生答</span><span class="arrow">→</span><span class="node">Set: 回答 + 來源（lastNode）</span>
+    <br><br>
+    <strong>Part C · 問答介面（瀏覽器）</strong><br>
+    <span class="node trigger">Webhook: kb-ui</span><span class="arrow">→</span><span class="node code">Code: 組 HTML</span><span class="arrow">→</span><span class="node">Respond UI: HTML</span>
   </div>
-  <p class="body-text">10 節點分兩條獨立鏈。Part A 跑一次（每次知識庫更新跑一次重建索引）。Part B 提供 webhook 端點，外部可 POST 問題拿答案。</p>
+  <p class="body-text">這份 Blueprint 有 14 個可執行節點與 1 張說明卡，分成三條鏈：Part A 建索引、Part B 問答 API、Part C 問答 UI。第一次使用時，先把檔案放入 <code>/files/shared/knowledge-docs/</code>，執行 Part A 產生 <code>/files/shared/knowledge-index/knowledge-index.jsonl</code>，再測試 Part B 或 Part C。Part B 的 Webhook 使用 <code>lastNode</code>，最後一個 <code>Set: 回答 + 來源</code> 會直接回傳 JSON；它沒有使用 Respond to Webhook 節點。</p>
 </section>
 
 <hr class="section-rule">
 
 <section class="lesson-section">
   <div class="section-eyebrow">(02) 重點節點拆解</div>
-  <h2 class="section-heading">兩個 Code 節點是核心</h2>
+  <h2 class="section-heading">兩個 Code 節點與索引前置條件是核心</h2>
 
   <div class="node-card code-node">
     <div class="node-num">CORE 1 · 切 chunk + JSONL</div>
@@ -196,7 +199,7 @@ const prompt = `根據下面 context 回答用戶問題。
     <li><strong>加 Schedule 自動重建</strong>：Part A 改 Schedule Trigger 每天凌晨重建索引，自動同步新加的文件。</li>
     <li><strong>串 Telegram bot 對話</strong>：Telegram bot 收到訊息 → 打 webhook 到 Part B → 答覆推回 Telegram。變成「公司知識 Telegram 助理」。</li>
     <li><strong>加 metadata 過濾</strong>：每個 chunk 加 <code>category / department / level</code> 欄位，問答時依使用者權限只搜對應 chunk（比如業務只看公開 SOP，主管才看薪資制度）。</li>
-    <li><strong>換本地 LLM</strong>：所有 AI 呼叫換成本地 Ollama → 公司機密 SOP 完全不離開本機。詳見 <a href="m0-local-llm-guide.html">本地 LLM 銜接補充章節</a>。</li>
+    <li><strong>換本地 LLM</strong>：把 AI 呼叫評估替換成本地 Ollama，降低公司機密 SOP 送往雲端的範圍；仍需檢查 webhook、日誌、備份與其他外部節點。詳見 <a href="m0-local-llm-guide.html">本地 LLM 銜接補充章節</a>。</li>
   </ol>
   <div class="callout info" style="margin-top:24px">
     <div class="callout-icon" aria-hidden="true">🎯</div>
@@ -211,7 +214,7 @@ const prompt = `根據下面 context 回答用戶問題。
 </main>
 <footer class="footer">
   <span class="footer-logo">弄一下工作室</span><div class="footer-div"></div><span class="footer-note">2026 春季</span>
-  <span class="footer-meta">本頁以 n8n latest (Docker) + Lite Pack v0.9 製作，2026-05</span>
+  <span class="footer-meta" data-platform-version="Docker Desktop / n8n 2.37.7" data-built-at="2026-09-13">本頁依 Starter Kit v1.1.0、Lite Pack 14 workflows 製作；Windows 實機流程尚待驗證。</span>
 </footer>
 <script>const fill=document.getElementById('prog');const strip=document.querySelector('.progress-strip');window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});</script>
 </body>

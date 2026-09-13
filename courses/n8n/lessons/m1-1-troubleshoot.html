@@ -252,7 +252,7 @@ docker compose config</pre>
     <div class="ts-item">
       <div class="ts-q">
         <div class="ts-tag">症狀</div>
-        <div class="ts-a">start 腳本跳錯 <code class="inline-code">Bind for 0.0.0.0:5678 failed: port is already allocated</code>；或 localhost:5678 開出來不是 n8n 而是別的服務</div>
+        <div class="ts-a">start 腳本跳錯 <code class="inline-code">Bind for 0.0.0.0:5678 failed: port is already allocated</code>；或 localhost:5678 開出的頁面屬於其他服務。</div>
       </div>
       <div class="ts-q">
         <div class="ts-tag">診斷</div>
@@ -271,7 +271,7 @@ docker compose config</pre>
           Mac：<code class="inline-code">kill -9 PID</code>（PID 換成上面查到的數字）<br>
           Win：工作管理員 → 詳細資料 → 找到 PID 對應程式右鍵結束工作<br><br>
           <strong>解法 B：改 n8n 用其他埠</strong>（推薦，不影響其他程式）<br>
-          編輯 <code class="inline-code">n8n-compose.yml</code>，把 <code class="inline-code">'5678:5678'</code> 改成 <code class="inline-code">'5680:5678'</code>（冒號前面是電腦對外的埠，後面 5678 是容器內 n8n 的埠，不要動）。改完雙擊 stop 再 start，之後改用 <code class="inline-code">http://localhost:5680</code> 連線。
+          編輯 <code class="inline-code">n8n-compose.yml</code>，把 <code class="inline-code">'127.0.0.1:5678:5678'</code> 改成 <code class="inline-code">'127.0.0.1:5680:5678'</code>（第一個 5678 是電腦對外的埠，最後一個 5678 是容器內 n8n 的埠，不要動；<strong>127.0.0.1: 前綴也不要刪</strong>）。改完雙擊 stop 再 start，之後改用 <code class="inline-code">http://localhost:5680</code> 連線。
         </div>
       </div>
     </div>
@@ -388,7 +388,7 @@ docker compose ps</pre><button class="copy-btn" onclick="copyCode(this)" aria-la
     <div class="ts-item">
       <div class="ts-q">
         <div class="ts-tag">症狀</div>
-        <div class="ts-a">Module 3 跑 Watch Folder 觸發失敗；或 n8n 日誌出現 <code class="inline-code">EACCES: permission denied</code> 對 <code class="inline-code">/files/shared</code> 的存取</div>
+        <div class="ts-a">Module 3 讀取資料夾基線失敗；或 n8n 日誌出現 <code class="inline-code">EACCES: permission denied</code> 對 <code class="inline-code">/files/shared</code> 的存取</div>
       </div>
       <div class="ts-q">
         <div class="ts-tag">診斷</div>
@@ -447,7 +447,7 @@ docker compose ps</pre><button class="copy-btn" onclick="copyCode(this)" aria-la
   <div class="context-box">
     <div class="context-inner">
       <div class="context-label">情境</div>
-      <div class="context-text">阿凱要在自己的電腦上重現案 2 的埠衝突，練習用解法 B（改埠號）完成修復，而不是只看過一次就算。</div>
+      <div class="context-text">阿凱要在自己的電腦上重現案 2 的埠衝突，練習用解法 B（改埠號）完成修復，並留下回驗結果。</div>
     </div>
   </div>
 
@@ -466,8 +466,11 @@ docker compose ps</pre><button class="copy-btn" onclick="copyCode(this)" aria-la
       <div class="step-content">
         <div class="step-heading">開另一個終端機，佔用 5678</div>
         <div class="step-body">
-          <div class="code-wrap"><pre class="code-block">python3 -m http.server 5678</pre><button class="copy-btn" onclick="copyCode(this)" aria-label="複製指令">複製</button></div>
-          這會在 5678 起一個假伺服器佔用埠
+          <p style="margin-bottom:8px;"><strong>macOS：</strong></p>
+          <div class="code-wrap"><pre class="code-block">python3 -m http.server 5678</pre><button class="copy-btn" onclick="copyCode(this)" aria-label="複製 macOS 指令">複製</button></div>
+          <p style="margin:8px 0;"><strong>Windows PowerShell：</strong></p>
+          <div class="code-wrap"><pre class="code-block">py -m http.server 5678</pre><button class="copy-btn" onclick="copyCode(this)" aria-label="複製 Windows 指令">複製</button></div>
+          <p>這會在 5678 起一個暫時的測試伺服器來佔用埠。若 Windows 顯示找不到 <code class="inline-code">py</code>，改用 <code class="inline-code">python -m http.server 5678</code>；兩個指令都無法使用時可跳過本練習，直接閱讀案 2 的診斷與改埠步驟。</p>
         </div>
       </div>
     </div>
@@ -489,7 +492,7 @@ docker compose ps</pre><button class="copy-btn" onclick="copyCode(this)" aria-la
       <div class="step-circle">5</div>
       <div class="step-content">
         <div class="step-heading">依案 2 解法 B 修：改 compose 埠號</div>
-        <div class="step-body">把 <code class="inline-code">n8n-compose.yml</code> 裡的 <code class="inline-code">'5678:5678'</code> 改成 <code class="inline-code">'5680:5678'</code></div>
+        <div class="step-body">把 <code class="inline-code">n8n-compose.yml</code> 裡的 <code class="inline-code">'127.0.0.1:5678:5678'</code> 改成 <code class="inline-code">'127.0.0.1:5680:5678'</code>；不要刪掉 <code class="inline-code">127.0.0.1:</code>，它限制服務只在本機可見。</div>
       </div>
     </div>
     <div class="step-block">
@@ -510,7 +513,7 @@ docker compose ps</pre><button class="copy-btn" onclick="copyCode(this)" aria-la
       <div class="step-circle">8</div>
       <div class="step-content">
         <div class="step-heading">收尾：關掉假伺服器，改回原埠</div>
-        <div class="step-body">在假伺服器的終端機按 Ctrl+C，把 compose 改回 <code class="inline-code">'5678:5678'</code></div>
+        <div class="step-body">在假伺服器的終端機按 Ctrl+C，把 compose 改回 <code class="inline-code">'127.0.0.1:5678:5678'</code>，再雙擊 stop → start，確認仍可用 <code class="inline-code">http://localhost:5678</code> 開啟。</div>
       </div>
     </div>
   </div>
@@ -610,6 +613,11 @@ docker compose ps</pre><button class="copy-btn" onclick="copyCode(this)" aria-la
   <h2 class="section-heading">三行診斷指令</h2>
   <p class="body-text">遇到任何卡關，先跑這三行收集現場資訊。多數情況看 logs 第一行就能找到答案；真的需要請人協助時，把這三行的輸出貼出來，比文字描述快十倍。</p>
 
+  <div class="callout tip">
+    <div class="callout-icon" aria-hidden="true">⌂</div>
+    <div class="callout-body"><strong>先切到 starter kit 資料夾：</strong>這些指令要在放有 <code class="inline-code">n8n-compose.yml</code> 的資料夾執行。macOS 終端機輸入 <code class="inline-code">cd ~/n8n-starter-kit</code>；Windows PowerShell 輸入 <code class="inline-code">Set-Location "$env:USERPROFILE\n8n-starter-kit"</code>。如果你把檔案解壓到其他位置，請把路徑換成自己的實際位置。</div>
+  </div>
+
   <div class="callout info">
     <div class="callout-icon" aria-hidden="true">!</div>
     <div class="callout-body"><strong>快速複製版</strong>——把游標移到下方程式碼右上角按「複製」，貼到終端機 / PowerShell 直接跑。
@@ -637,7 +645,7 @@ docker compose config</pre>
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">AI 資料工廠 — 弄一下工作室</span>
-  <span class="footer-meta" data-platform-version="Docker Desktop 4.x / n8n 2.17.8 (Docker image n8nio/n8n:2.17.8)" data-built-at="2026-04-28">本頁以 Docker Desktop 4.x / n8n 2.17.8 (Docker image n8nio/n8n:2.17.8) 製作，2026-04</span>
+  <span class="footer-meta" data-platform-version="Docker Desktop / n8n 2.37.7 (Docker image n8nio/n8n:2.37.7)" data-built-at="2026-09-03">本頁以 Docker Desktop / n8n 2.37.7 製作，2026-09；Windows 與 macOS 的權限症狀需依各自介面確認。</span>
 </footer>
 
 <script>

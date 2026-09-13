@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>3.2 Loop 批次重命名｜AI 資料工廠</title>
-<meta name="description" content="用 Code 節點讀取資料夾清單，再用 Loop Over Items 讓每個 PDF 依序經過 AI 辨識 → 重命名的完整流程。">
+<meta name="description" content="用 Read/Write Files from Disk 讀取資料夾，再用 Loop Over Items 讓每個 PDF 依序經過 AI 辨識並輸出保留原檔的新檔名副本。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
 <meta property="og:title" content="3.2 Loop 批次重命名｜AI 資料工廠">
-<meta property="og:description" content="用 Code 節點讀取資料夾清單，再用 Loop Over Items 讓每個 PDF 依序經過 AI 辨識 → 重命名的完整流程。">
+<meta property="og:description" content="用 Read/Write Files from Disk 讀取資料夾，再用 Loop Over Items 讓每個 PDF 依序經過 AI 辨識並輸出保留原檔的新檔名副本。">
 <meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/lessons/m3-2-batch.html">
 <meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="3.2 Loop 批次重命名｜AI 資料工廠">
-<meta name="twitter:description" content="用 Code 節點讀取資料夾清單，再用 Loop Over Items 讓每個 PDF 依序經過 AI 辨識 → 重命名的完整流程。">
+<meta name="twitter:description" content="用 Read/Write Files from Disk 讀取資料夾，再用 Loop Over Items 讓每個 PDF 依序經過 AI 辨識並輸出保留原檔的新檔名副本。">
 <meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/lessons/m3-2-batch.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -122,7 +122,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <span class="hero-num">SECTION 3.2 · 延伸實作</span>
   </div>
   <h1 class="step-title">Loop + 批次重命名：一次處理整個資料夾</h1>
-  <p class="step-subtitle">用 Code 節點讀取資料夾清單，再用 Loop Over Items 讓每個 PDF 依序經過 AI 辨識 <span aria-hidden="true">→</span> 重命名的完整流程。</p>
+  <p class="step-subtitle">先用檔案節點取得資料夾內的 PDF，再用 Loop Over Items 讓每個檔案依序經過 AI 辨識，最後輸出一份保留原檔的「新檔名副本」。</p>
   <div class="meta-bar">
     <div class="meta-item"><span>⏱</span><span>預估時間：25 分鐘</span></div>
     <div class="meta-item"><span>📋</span><span>4 個步驟</span></div>
@@ -131,31 +131,28 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 <div class="step-body">
 
+  <div class="step-tip info" style="margin-bottom:24px">
+    <span class="tip-icon">📁</span>
+    <span class="tip-text"><strong>先分清兩種路徑：</strong>請先下載<a href="../assets/n8n-sample-pack.zip">課程範例檔案包</a>，從 <span class="inline-code">n8n-sample-pack/batch-inbox/</span> 取 4 份可用 PDF（<span class="inline-code">batch-good-01.pdf</span>～<span class="inline-code">batch-good-04.pdf</span>），放到主機的 <span class="inline-code">n8n-starter-kit/shared/待改名/</span>；n8n 節點看的是容器路徑 <span class="inline-code">/files/shared/待改名</span>。macOS 與 Windows 的節點設定完全相同，只有「把檔案放進哪個主機資料夾」的寫法不同。<span class="inline-code">not-a-pdf.pdf</span> 是故障測試檔，不要當作正常 PDF 計入成功數量。</span>
+  </div>
+
+  <div class="step-tip" style="margin-bottom:24px">
+    <strong>本節接線順序：</strong>
+    <span class="inline-code">Manual Trigger → Read File(s) From Disk → Loop Over Items（Loop）→ Code ① → HTTP Request（Gemini）→ Code ② → Write File to Disk</span>；Loop 的 <span class="inline-code">Done</span> 另外接到摘要 Code，再寫出處理日誌。每完成一段就先執行該節點確認輸出，再往下接。
+  </div>
+
   <div class="step-block">
     <div class="step-num-col"><div class="step-circle">1</div></div>
     <div class="step-content">
-      <div class="step-label">用 Code 節點讀取資料夾所有 PDF</div>
-      <p class="step-desc">與 3.2 主流程（Watch Folder 監控單一檔案）不同，批次模式需要手動觸發，一次讀取整個資料夾的所有 PDF 並生成 Items 清單。</p>
-      <div class="code-block"><span class="cm">// 手動觸發 + Code 節點：讀取整個資料夾</span>
-const fs = require('fs');
-const path = require('path');
-
-const folderPath = <span class="str">'/Users/你的名稱/Documents/待改名'</span>;
-
-const files = fs.readdirSync(folderPath)
-  .filter(f => /\.(pdf|PDF)$/.test(f))            <span class="cm">// 只要 PDF</span>
-  .filter(f => !f.startsWith('.'))                  <span class="cm">// 排除隱藏檔</span>
-  .map(fileName => ({
-    fileName,
-    filePath: path.join(folderPath, fileName),
-    folder: folderPath
-  }));
-
-<span class="cm">// 每個檔案成為一個 Item</span>
-return files.map(f => ({ json: f }));</div>
+      <div class="step-label">Read/Write Files from Disk：一次讀取資料夾內的 PDF</div>
+      <p class="step-desc">承接 3.1 已驗證的 Manual Trigger + Read/Write Files from Disk 基線，批次模式一次讀取資料夾內已放好的 PDF。新增「Read/Write Files from Disk」，Operation 選「Read File(s) From Disk」，File(s) Selector 填入下列容器路徑；這裡不依賴尚未完成跨平台驗證的即時監控觸發器。</p>
+      <div class="code-block"><span class="cm">// Read/Write Files from Disk 設定</span>
+Operation:        Read File(s) From Disk
+File(s) Selector:  /files/shared/待改名/*.pdf
+Output Binary Field: data</div>
       <div class="step-tip info">
         <span class="tip-icon">💡</span>
-        <span class="tip-text">這個 Code 節點的輸出是一個 Items 陣列，每筆 Item 代表一個 PDF 檔案。後面接 Loop Over Items，就能讓每個 PDF 依序被處理。</span>
+        <span class="tip-text">執行這一節點後，每個 PDF 會成為一個 Item，檔案內容在 <span class="inline-code">$binary.data</span>。先確認 Output 顯示預期的檔案數量，再接下一步；這個寫法也避開 n8n 2.37.7 Code node 禁止直接載入檔案系統模組的限制。</span>
       </div>
     </div>
   </div>
@@ -164,10 +161,10 @@ return files.map(f => ({ json: f }));</div>
     <div class="step-num-col"><div class="step-circle">2</div></div>
     <div class="step-content">
       <div class="step-label">Loop Over Items 設定</div>
-      <p class="step-desc">搜尋「Loop Over Items」節點加入，將 Code 節點的輸出連接到 Loop 的輸入。Loop 節點會自動把每個 Item 依序送入後續的處理流程。Loop 節點有兩個輸出：<strong>Loop</strong>（每次迭代的 Item）和 <strong>Done</strong>（全部完成後觸發）。</p>
+      <p class="step-desc">搜尋「Loop Over Items」節點加入，將 Step 1 的 Read/Write Files from Disk 輸出連接到 Loop 的輸入。Loop 節點會自動把每個 Item 依序送入後續的處理流程。Loop 節點有兩個輸出：<strong>Loop</strong>（每次迭代的 Item）和 <strong>Done</strong>（全部完成後觸發）。</p>
       <div class="step-tip warning">
         <span class="tip-icon">⚠️</span>
-        <span class="tip-text"><strong>Gemini API 速率限制：</strong>免費額度依模型不同（撰寫時 Flash-Lite 曾列約 15 RPM 為例，僅供參考；實際請查 <a href="https://ai.google.dev/gemini-api/docs/rate-limits" target="_blank" rel="noopener">官方 Rate limits 頁面</a>）。批次處理多個 PDF 時，在 Loop 內加入 <strong>Wait 節點</strong>（設定 5 秒）控速，避免觸發 429。</span>
+        <span class="tip-text"><strong>Gemini API 速率限制：</strong>可用額度依模型、帳號與官方方案而異（請查 <a href="https://ai.google.dev/gemini-api/docs/rate-limits" target="_blank" rel="noopener">官方 Rate limits 頁面</a>）。批次處理多個 PDF 時，在 Loop 內加入 <strong>Wait 節點</strong>（設定 5 秒）降低觸發 429 的機率，仍要以執行記錄為準。</span>
       </div>
     </div>
   </div>
@@ -175,66 +172,88 @@ return files.map(f => ({ json: f }));</div>
   <div class="step-block">
     <div class="step-num-col"><div class="step-circle">3</div></div>
     <div class="step-content">
-      <div class="step-label">Loop 內：讀取 <span aria-hidden="true">→</span> AI 辨識 <span aria-hidden="true">→</span> 重命名</div>
-      <p class="step-desc">在 Loop 節點的 Loop 輸出接以下流程（與 3.2 主流程相同，只是現在每個 PDF 都會經過）：</p>
-      <div class="code-block"><span class="cm">// Loop 內的 Code 節點：讀取 PDF 轉 base64</span>
-const fs = require('fs');
-const data = $input.item.json;
-const fileContent = fs.readFileSync(data.filePath);
-const base64 = fileContent.toString('base64');
-return [{ json: { ...data, base64 } }];
+      <div class="step-label">Loop 內：保留二進位資料，送 AI 產生新檔名</div>
+      <p class="step-desc">把 Loop 的 Loop 輸出接到第一個 Code 節點，這裡只整理檔名與容器路徑，不碰檔案系統。接著把同一個 Item 的 <span class="inline-code">$binary.data.data</span> 放進 HTTP Request 的 Gemini inlineData；AI 回傳後，再由<strong>另一個</strong> Code 節點產生新檔名。以下兩段程式要貼在兩個不同的 Code 節點，不能合併。</p>
+      <div class="code-block"><span class="cm">// Code 節點 ①「準備 PDF」：只整理 metadata，不使用 fs</span>
+const item = $input.item;
+const file = item.binary?.data;
+if (!file?.data) throw new Error('讀不到 PDF binary data，請回到 Step 1 確認 Output Binary Field 是 data');
 
-<span class="cm">// <span aria-hidden="true">→</span> HTTP Request <span aria-hidden="true">→</span> Gemini API（AI 辨識）</span>
-<span class="cm">// <span aria-hidden="true">→</span> Code 節點：解析回應，生成新檔名</span>
-
-<span class="cm">// <span aria-hidden="true">→</span> 最後一個 Code 節點：執行重命名</span>
-const fs = require('fs');
-const path = require('path');
-const data = $input.item.json;
-
-const newPath = path.join(data.folder, data.newFileName);
-fs.renameSync(data.filePath, newPath);
+const fileName = file.fileName || 'unknown.pdf';
+const folder = <span class="str">'/files/shared/待改名'</span>;
+return [{
+  json: { fileName, originalPath: folder + '/' + fileName },
+  binary: item.binary
+}];
+</div>
+      <div class="step-tip info"><span class="tip-icon">→</span><span class="tip-text">接著新增 HTTP Request（Body 的 PDF 資料使用 <span class="inline-code">{{ $binary.data.data }}</span>），再新增第二個 Code 節點：</span></div>
+      <div class="code-block"><span class="cm">// Code 節點 ②「解析 AI 結果」：依 JSON 回覆組新檔名</span>
+const raw = $input.item.json.candidates?.[0]?.content?.parts?.[0]?.text || '';
+const clean = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+let info;
+try {
+  info = JSON.parse(clean);
+} catch (error) {
+  throw new Error('AI 回傳不是有效 JSON；請回到 HTTP Request Output 檢查原始文字');
+}
+const required = ['date', 'type', 'vendor', 'amount'];
+const missing = required.filter(key => !info[key]);
+if (missing.length) throw new Error('AI JSON 缺少欄位：' + missing.join(', '));
+const source = $('準備 PDF').item.json;
+const newFileName = info.date + '_' + info.type + '_' + info.vendor + '_' + info.amount + '.pdf';
 
 return [{ json: {
-  success: true,
-  original: data.fileName,
-  renamed: data.newFileName
-}}];</div>
+  ...source,
+  ...info,
+  newFileName,
+  newPath: '/files/shared/完成/' + newFileName
+} }];</div>
+      <div class="step-tip warning">
+        <span class="tip-icon">⚠️</span>
+        <span class="tip-text">請把第一個 Code 節點命名為「準備 PDF」，否則 <span class="inline-code">$('準備 PDF')</span> 的引用要改成你的實際節點名稱。此處只產生新路徑，尚未覆寫原檔。</span>
+      </div>
     </div>
   </div>
 
   <div class="step-block">
     <div class="step-num-col"><div class="step-circle">4</div></div>
     <div class="step-content">
-      <div class="step-label">Done 輸出：彙整結果</div>
-      <p class="step-desc">Loop 的 Done 輸出會在所有 PDF 都處理完後觸發。可以在這裡加一個 Code 節點統計結果，或直接接通知節點發送「批次完成」的摘要。</p>
+      <div class="step-label">Done 輸出：彙整副本結果</div>
+      <p class="step-desc">Loop 的 Done 輸出會在所有 PDF 都處理完後觸發。這裡的摘要只統計已寫出的新檔案；原始 PDF 仍保留在待改名資料夾，方便人工抽查或回復。</p>
       <div class="code-block"><span class="cm">// Done 輸出的 Code 節點：生成批次摘要</span>
 const allResults = $input.all();
-const succeeded = allResults.filter(i => i.json.success).length;
-const failed = allResults.length - succeeded;
+const succeeded = allResults.length;
+const failed = 0;
 
 const summary = [
-  `✅ 批次重命名完成`,
+  `✅ 批次輸出完成`,
   `總計：${allResults.length} 個檔案`,
   `成功：${succeeded} 個`,
   `失敗：${failed} 個`,
   ``,
-  ...allResults.filter(i => i.json.success)
-    .map(i => `${i.json.original} <span aria-hidden="true">→</span> ${i.json.renamed}`)
+  ...allResults.map(i => i.json.fileName || i.json.newPath || '副本')
 ].join('\n');
 
-return [{ json: { summary, succeeded, failed } }];</div>
+      return [{ json: { summary, succeeded, failed } }];</div>
+      <div class="step-body" style="margin-top:14px;">在摘要 Code 後新增「Read/Write Files from Disk」，Operation 選「Write File to Disk」，將摘要轉成文字檔後寫入完成資料夾：</div>
+      <div class="code-block"><span class="cm">// 先接 Convert to File</span>
+Source Field: summary
+Encoding:     UTF-8
+
+<span class="cm">// 再接 Write File to Disk</span>
+File Name: ={{ '/files/shared/完成/批次處理日誌_' + $now.toFormat('yyyyMMdd_HHmm') + '.txt' }}
+Input Binary Field: data</div>
       <div class="step-tip success">
         <span class="tip-icon">✅</span>
-        <span class="tip-text">把摘要接到 Write File 節點，生成一個 <span class="ic">重命名日誌_日期.txt</span> 存在資料夾中，日後稽核時可以追蹤哪些檔案被改過。</span>
+        <span class="tip-text">把摘要接到 Write File to Disk，生成一個 <span class="ic">批次處理日誌_日期.txt</span> 存在 <span class="ic">shared/完成/</span> 中，日後稽核時可以追蹤哪些副本已產生。</span>
       </div>
     </div>
   </div>
 
   <div class="verify-box">
     <div class="verify-label">完成驗證 CHECKPOINT</div>
-    <div class="verify-title">5 個 PDF 批次重命名成功</div>
-    <p class="verify-desc">準備 5 個測試 PDF（任意內容），執行批次流程。完成後資料夾內應出現 5 個已重命名的 PDF（格式：日期_類型_廠商_金額.pdf），且原始檔名消失。Done 輸出的摘要顯示「成功 5 個，失敗 0 個」。</p>
+    <div class="verify-title">4 個 PDF 都產生新檔名副本</div>
+    <p class="verify-desc">使用範例包中的 4 個可用 PDF 執行批次流程。完成後 <span class="inline-code">shared/完成/</span> 應出現 4 個符合「日期_類型_廠商_金額.pdf」格式的新檔案，而 <span class="inline-code">shared/待改名/</span> 的 4 個原檔仍保留。若你另備了其他測試檔，預期數量就等於實際輸入數量；若不一致，先檢查 Step 1 的 glob 與 Loop 的 Done 輸出，再重跑，不要直接刪除原檔。</p>
   </div>
 
   <div style="max-width:var(--content-w);margin:48px auto 0;padding:28px 32px;background:rgba(90,122,90,.05);border:1px solid rgba(90,122,90,.3);border-left:4px solid var(--c-a3);border-radius:var(--radius);">
@@ -253,7 +272,7 @@ return [{ json: { summary, succeeded, failed } }];</div>
   <a href="m3-3-generate.html" class="nav-btn primary">3.3 定時彙整日報 <span aria-hidden="true">→</span></a>
 </div>
 
-<footer class="footer" data-platform-version="2026-04-v3">
+<footer class="footer" data-platform-version="Docker Desktop / n8n 2.37.7" data-built-at="2026-09-03">
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">淡江大學 · 生成式AI工作坊</span>

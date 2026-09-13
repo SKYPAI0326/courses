@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>#07 Quick Tunnel 接收器 設計拆解｜AI 資料工廠</title>
-<meta name="description" content="Lite Pack #07 workflow 設計拆解：搭配 Cloudflare Quick Tunnel，把本機 n8n 變成公開 URL，外部（Make / Google Form / Zapier）都能 POST 觸發。雲地橋接的入門範例。">
+<meta name="description" content="Lite Pack #07 workflow 設計拆解：搭配 Cloudflare Quick Tunnel，把本機 n8n 變成公開 URL，外部服務以 GET 觸發並取得固定 JSON 回應。雲地橋接的入門範例。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
 <meta property="og:title" content="#07 Quick Tunnel 接收器 設計拆解｜AI 資料工廠">
@@ -132,7 +132,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
   <a href="m0-workflow-tour.html" class="back-link"><span aria-hidden="true">←</span> 返回工作流總覽</a>
   <div class="hero-eyebrow">#07 · QUICK TUNNEL RECEIVER · 4 NODES · 進階</div>
   <h1 class="lesson-title">把本機 n8n 變成公開 URL：Cloudflare Quick Tunnel 雲地橋接</h1>
-  <p class="lesson-tagline">本機 n8n 對外只能 localhost:5678 — 別的服務（Make scenario / Google Form / 學員自家網站）打不到。Cloudflare Quick Tunnel 給你一個免費的 *.trycloudflare.com URL（無需 Cloudflare 帳號、無需綁網域），3 秒開通把本機暴露成公開。這個 workflow 是 tunnel 接到後做什麼事的範例 — 收到外部 ping 推 Telegram + 立刻回 pong。</p>
+  <p class="lesson-tagline">本機 n8n 對外只能 localhost:5678 — 別的服務（Make scenario / Google Form / 學員自家網站）打不到。Cloudflare Quick Tunnel 可提供一個暫時的 *.trycloudflare.com URL（通常不需 Cloudflare 帳號或自有網域；方案、流量與條款依官方當前說明），把本機服務暫時暴露成公開端點。這個 workflow 是 tunnel 接到後做什麼事的範例 — 收到外部 ping 推 Telegram + 立刻回 pong。</p>
   <div class="outcomes">
     <div class="outcomes-label">學習成果</div>
     <div class="outcome-item">能用 starter-kit 的 tunnel-quick.command / .bat 開 Cloudflare Quick Tunnel 取得公開 URL</div>
@@ -150,9 +150,13 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
     <span class="node code">Code: 解析外部請求</span>
     <br><br>
     <span style="margin-left:30ch">↗ <span class="node">Telegram 通知</span></span><br>
-    <span style="margin-left:30ch">↘ <span class="node">Respond: pong</span></span>
+    <span style="margin-left:30ch">↘ <span class="node">Respond: pong（responseNode）</span></span>
   </div>
-  <p class="body-text">4 節點，類似 #06 的 fan-out pattern 但只有 2 條輸出。Webhook path 設 <code>external-ping</code>，搭 Quick Tunnel 後完整公開 URL：<code>https://xxxx.trycloudflare.com/webhook/external-ping</code>。任何服務（Make / curl / 學員手機）打這個 URL 都會觸發 workflow。</p>
+  <p class="body-text">4 個可執行節點，類似 #06 的 fan-out pattern，但只有 2 條輸出。Webhook path 設為 <code>external-ping</code>、方法為 GET；搭 Quick Tunnel 後，完整公開 URL 會是 <code>https://xxxx.trycloudflare.com/webhook/external-ping</code>。外部服務以 GET 呼叫這個網址，Code 會整理請求資訊，同時通知 Telegram，再由指定的 Respond 節點回傳 JSON。</p>
+  <div class="callout info">
+    <div class="callout-icon" aria-hidden="true">🧭</div>
+    <div class="callout-body"><strong>先完成一次可觀察的測試</strong>：<ol style="margin:8px 0 0 22px"><li>確認 n8n 已在 <code>http://localhost:5678</code> 運作，並從試跑包啟動 <code>tunnel-quick.command</code>（Mac）或 <code>tunnel-quick.bat</code>（Windows）；保留顯示公開 URL 的終端機視窗。</li><li>在 #07 工作流右上按目前版本的 <strong>Publish</strong>（舊版介面可能顯示 Active），讓 <code>/webhook/</code> production URL 可接收請求。</li><li>在瀏覽器開啟 <code>你的公開網址/webhook/external-ping?message=hello</code>。這個範例使用 GET，因此網址後面的 <code>message</code> 只是方便觀察 query 資料。</li></ol><p style="margin-top:10px"><strong>成功訊號</strong>：瀏覽器收到 <code>status: "ok"</code> 的 JSON，Telegram 收到「📡 外部 ping 收到」，n8n 的四個節點都有綠色執行結果。測試結束後回到工作流取消發布（或關閉 Active），並在 tunnel 終端機按 <code>Ctrl+C</code>。</p></div>
+  </div>
 </section>
 
 <hr class="section-rule">
@@ -165,8 +169,8 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
     <div class="node-num">NODE 1 / 4</div>
     <div class="node-title">Webhook: external-ping</div>
     <div class="node-body">
-      <p>Path <code>external-ping</code>、HTTP Method 接受 GET + POST、Response Mode 設 <code>lastNode</code>。</p>
-      <p>n8n 預設 <code>Respond: When Last Node Finishes</code>，但因為下游有 fan-out 兩條線，n8n 會用「最後執行完的節點」當 response。明確設 Set 節點當 lastNode 比較可控。</p>
+      <p>Path <code>external-ping</code>、HTTP Method 設為 <code>GET</code>、Response Mode 設為 <code>Using 'Respond to Webhook' Node</code>（匯入設定中的 <code>responseNode</code>）。</p>
+      <p>請求先交給 Code 節點，再分流到 Telegram 與 Respond。回應節點已被明確指定，無論 Telegram 先完成或後完成，呼叫端都會收到同一份 JSON。</p>
     </div>
   </div>
 
@@ -174,24 +178,25 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
     <div class="node-num">NODE 2 / 4</div>
     <div class="node-title">Code: 解析外部請求</div>
     <div class="node-body">
-      <p>從 webhook 取參數，組合 Telegram 訊息文與回應 JSON：</p>
-      <div class="code-block"><span class="cm">// 從 webhook 取請求方來源</span>
-const webhookData = $input.first().json;
-const source = webhookData.headers?.['user-agent'] || 'unknown';
-const ip = webhookData.headers?.['x-forwarded-for'] || 'unknown';
-const message = webhookData.body?.message || webhookData.query?.message || '(空訊息)';
-const ts = new Date().toISOString();
+      <p>Code 讀取 Webhook 傳入的 headers 與 query，組合一則 Telegram 通知，並把回應資料放在 <code>response</code> 物件，交給下一個 Respond 節點使用：</p>
+      <div class="code-block"><span class="cm">// 收外部請求 → 組 Telegram 通知文 + Webhook 回應</span>
+const headers = $input.first().json.headers || {};
+const query = $input.first().json.query || {};
+const ip = headers['cf-connecting-ip'] || headers['x-forwarded-for'] || 'unknown';
+const ua = headers['user-agent'] || 'unknown';
+const ts = new Date().toLocaleString('zh-TW');
 
-<span class="cm">// 組 Telegram 通知文</span>
-const tgMsg = '🌐 外部觸發\n\n來源 IP: ' + ip + '\n訊息: ' + message + '\n時間: ' + ts;
+const tgMsg = `📡 外部 ping 收到！\n\n⏰ ${ts}\n🌐 IP: ${ip}\n🤖 User-Agent: ${ua.substring(0, 80)}\n📦 Query: ${JSON.stringify(query)}\n\n（你的本機 n8n 正在被外部觸發！）`;
 
-<span class="cm">// 組 webhook 回應</span>
 return [{
   json: {
-    pong: true,
-    received_at: ts,
-    echo_message: message,
-    tgMsg
+    tgMsg,
+    response: {
+      status: 'ok',
+      message: 'pong from your local n8n via cloudflare tunnel',
+      receivedAt: ts,
+      from: ip
+    }
   }
 }];</div>
     </div>
@@ -201,15 +206,22 @@ return [{
     <div class="node-num">NODE 3 / 4</div>
     <div class="node-title">Telegram 通知</div>
     <div class="node-body">
-      <p>同 #05 / #06，<code>text: {{ $json.tgMsg }}</code>。每次有人從外部打你的公開 URL 你手機就收到通知 — 像個個人「webhook 監控器」。</p>
+      <p>同 #05 / #06，訊息欄位使用 <code>=&#123;&#123; $json.tgMsg &#125;&#125;</code>。每次有人從外部打你的公開 URL，你的手機就會收到通知，這個分支可作為簡單的 webhook 監控器。</p>
     </div>
   </div>
 
   <div class="node-card">
     <div class="node-num">NODE 4 / 4</div>
     <div class="node-title">Respond: pong</div>
+    <div class="node-meta"><span>respondToWebhook v1.1</span><span>responseNode</span></div>
     <div class="node-body">
-      <p>Set 節點輸出 <code>{ status: "pong", received_at: ..., echo_message: ... }</code>，n8n 把這個當 webhook response 回給 caller（HTTP 200）。</p>
+      <p><code>Respond to Webhook</code> 節點負責送出 webhook 回應。Webhook 的 <code>responseNode</code> 模式會等這個節點回應，呼叫端收到 HTTP 200 與下列固定欄位：</p>
+      <div class="code-block">{
+  "status": "ok",
+  "message": "pong from your local n8n via cloudflare tunnel",
+  "received_at": "<span class="var">執行當下時間</span>",
+  "from": "<span class="var">請求來源 IP 或 unknown</span>"
+}</div>
     </div>
   </div>
 </section>
@@ -223,16 +235,16 @@ return [{
   <div class="callout">
     <div class="callout-icon" aria-hidden="true">💭</div>
     <div class="callout-body"><strong>Quick Tunnel（本課程預設）</strong>：<br>
-    雙擊 <code>tunnel-quick.command</code> / <code>.bat</code>，3 秒開通，給你 <code>https://random-words-123.trycloudflare.com</code> 公開 URL。<br>
-    <strong>優點</strong>：免費、不需要 Cloudflare 帳號、不需要綁自家網域、隨開隨用。<br>
-    <strong>缺點</strong>：URL 每次重啟會變、預設 24 小時自動斷線、不能指定 hostname。<br>
+    雙擊 <code>tunnel-quick.command</code> / <code>.bat</code>，等待終端機顯示 <code>https://random-words-123.trycloudflare.com</code> 公開 URL。<br>
+    <strong>優點</strong>：可快速建立臨時端點，通常不需要 Cloudflare 帳號或自家網域；是否可用仍依官方方案、流量與條款。<br>
+    <strong>限制</strong>：關閉 cloudflared 終端機後 URL 立即失效；每次重啟會拿到不同網址，不能指定 hostname，不適合長期服務。<br>
     <strong>適用</strong>：開發測試、課堂 demo、臨時對外。</div>
   </div>
 
   <div class="callout">
     <div class="callout-icon" aria-hidden="true">💭</div>
     <div class="callout-body"><strong>Named Tunnel（進階）</strong>：<br>
-    需要 Cloudflare 帳號 + 自家網域 + <code>cloudflared service install</code> 設定，固定 hostname（如 <code>n8n.yourdomain.com</code>）、不會斷線、可永久運作。<br>
+    需要 Cloudflare 帳號、自家網域與 <code>cloudflared service install</code> 設定，可使用固定 hostname（如 <code>n8n.yourdomain.com</code>）。長期運作仍需自行維護服務、DNS 與存取控制。<br>
     <strong>適用</strong>：生產環境、長期對外服務。<br>
     <strong>注意</strong>：會在系統建 launchd / Windows service，要清乾淨需要 <code>cloudflared service uninstall</code>（連發 #11 學員實測）。</div>
   </div>
@@ -251,11 +263,11 @@ return [{
   <h2 class="section-heading">5 種改造方向</h2>
 
   <ol class="mod-list">
-    <li><strong>Make 觸發 n8n</strong>：Make scenario 結束時 HTTP module POST 到 <code>https://xxx.trycloudflare.com/webhook/external-ping</code>，把 Make 雲端訊號接到本機 n8n 跑批次任務。</li>
-    <li><strong>Google Form → Make → n8n</strong>：學員填表 → Google Sheets 新列 → Make 偵測 → 打 n8n webhook → 本機跑 PDF 生成 / 寄信 / 歸檔。</li>
-    <li><strong>IFTTT / Zapier 接 n8n</strong>：把 n8n 變成 IFTTT 的 webhook target，IFTTT 觸發（時間 / 位置 / iOS 捷徑）→ 本機 n8n 跑事。</li>
-    <li><strong>Telegram bot 指令</strong>：在 BotFather 設 <code>setWebhook</code> 指向 trycloudflare URL，使用者對 bot 發訊息 → Telegram 推到 n8n → n8n 解析指令跑 workflow。</li>
-    <li><strong>個人 dashboard</strong>：寫個簡單 HTML 頁面（GitHub Pages 免費架）含表單，submit 打到 trycloudflare URL，收到 Telegram 通知 + 觸發業務 workflow。</li>
+    <li><strong>Make 觸發 n8n</strong>：Make scenario 結束時用 HTTP module 以 GET 呼叫 <code>https://xxx.trycloudflare.com/webhook/external-ping?message=done</code>，把雲端訊號接到本機 n8n。</li>
+    <li><strong>Google Form → Make → n8n</strong>：表單資料進入 Google Sheets 後由 Make 偵測，再以 GET query 呼叫 n8n；若要傳送大量欄位，需另設 POST Webhook 與對應解析規則。</li>
+    <li><strong>IFTTT / Zapier 接 n8n</strong>：把 n8n 公開網址設為 webhook target，服務觸發時以 GET 傳入事件參數，再由 n8n 執行後續工作。</li>
+    <li><strong>Telegram bot 指令</strong>：Telegram webhook 通常使用 POST；要沿用本課程範例，先在 Webhook 節點改用 POST 並調整 Code 的 body 解析，再接續通知分支。</li>
+    <li><strong>個人 dashboard</strong>：表單以 GET query 呼叫 trycloudflare URL，n8n 回傳固定 JSON，同時把請求內容推送到 Telegram 供你確認。</li>
   </ol>
 
   <div class="callout info" style="margin-top:24px">
@@ -275,7 +287,7 @@ return [{
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">2026 春季</span>
-  <span class="footer-meta">本頁以 n8n latest (Docker) + Lite Pack v0.9 製作，2026-05</span>
+  <span class="footer-meta">本頁以 n8n 2.37.7 (Docker) + Lite Pack 2026-09 製作</span>
 </footer>
 
 <script>

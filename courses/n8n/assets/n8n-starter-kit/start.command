@@ -25,7 +25,7 @@ if [ ! -f .env ]; then
   exit 0
 fi
 
-# 確認 shared 資料夾存在（給 Watch Folder 用）
+# 確認 shared 資料夾存在（給 Module 3 檔案處理基線用）
 mkdir -p shared
 
 # 啟動前先偵測 port 5678 是否已被其他 container 佔用
@@ -44,8 +44,13 @@ EOF
 )
   if [[ "$REPLY" == *"停掉並重啟"* ]]; then
     echo "停掉舊 container..."
-    docker ps --filter publish=5678 -q | xargs -r docker stop
-    docker ps -a --filter publish=5678 -q | xargs -r docker rm
+    # macOS 內建 BSD xargs 沒有 GNU 的 -r 參數；逐筆處理可避免空輸入錯誤
+    while IFS= read -r container_id; do
+      [ -n "$container_id" ] && docker stop "$container_id"
+    done < <(docker ps --filter publish=5678 -q)
+    while IFS= read -r container_id; do
+      [ -n "$container_id" ] && docker rm "$container_id"
+    done < <(docker ps -a --filter publish=5678 -q)
     echo "舊 container 已清理。"
   else
     exit 1

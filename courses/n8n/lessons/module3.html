@@ -148,7 +148,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <p class="lesson-tagline">對付成千上萬的 PDF！學會「迴圈（Looping）」思考術。當別人在手動改名時，你已一鍵處理完一整年的存檔。</p>
   <div class="outcomes">
     <div class="outcomes-label">學習目標 OUTCOMES</div>
-    <div class="outcome-item"><div class="outcome-dot"></div><span>設定資料夾監控，自動觸發文件處理工作流程</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>用 Manual Trigger 與 Read/Write Files from Disk 建立可重跑的資料夾檔案基線；即時監控列為延伸</span></div>
     <div class="outcome-item"><div class="outcome-dot"></div><span>實現 PDF 文件的批次自動改名，AI 讀取內容並按規則命名</span></div>
     <div class="outcome-item"><div class="outcome-dot"></div><span>設定 Schedule Trigger 定時排程，n8n 自主掃描資料夾並以 AI 生成每日摘要日報</span></div>
   </div>
@@ -158,18 +158,18 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
   <div class="lesson-section" id="monitoring">
     <div class="section-eyebrow">Automated Monitoring · 3.1</div>
-    <h2 class="section-heading">資料夾監控：<em>Make 做不到的本機觸發</em></h2>
-    <p class="body-text">這是 自架 n8n 相較於 Make 最關鍵的能力差異：Make 只能被動等待雲端訊號（如 Gmail 收信、Google Forms 提交），但它無法主動監控你電腦裡的資料夾。n8n 的「Watch Folder」節點可以——只要你把新檔案丟進指定資料夾，n8n 立刻偵測到並自動啟動處理流程，完全不需人工介入。</p>
-    <p class="body-text">透過實作，你將能夠設計出以「本機資料夾」為起點的全自動文件處理系統：發票 PDF 一放進資料夾，AI 自動讀取內容、改名、歸檔，甚至發送通知，整個流程在你的電腦上完成。</p>
+    <h2 class="section-heading">資料夾檔案處理：<em>先建立可重現的本機基線</em></h2>
+    <p class="body-text">這是自架 n8n 相較於 Make 的重要能力差異：Make 通常從雲端訊號開始，而 n8n 可以在容器內讀寫掛載的本機資料夾。本模組先用 Manual Trigger + Read/Write Files from Disk 建立可重跑基線，再討論如何依目前版本接上即時監控，避免把尚未驗證的觸發器當成必做步驟。</p>
+    <p class="body-text">透過實作，你將能夠設計出以「本機資料夾」為起點的文件處理流程：先用 Manual Trigger 或 Schedule 讀取測試檔，讓 AI 協助辨識、產生新檔名並輸出副本；若要做到檔案一放入就觸發，再依目標版本另行驗證即時監控節點。</p>
     <div class="callout tip">
       <span class="callout-icon">📂</span>
-      <div class="callout-body"><strong>Watch Folder 觸發模式：</strong>支持即時監聽（文件一落地立刻觸發）或定時掃描（每隔 N 分鐘檢查一次），可依業務需求靈活配置。這個功能在 Make 中沒有對應節點，是 自架 n8n 的獨有優勢。</div>
+      <div class="callout-body"><strong>資料夾路徑契約：</strong>n8n 只讀取 Docker 掛載的指定共享資料夾，設定來源是 <span class="inline-code">./shared:/files/shared</span>。主機端可以是 macOS 或 Windows；n8n 節點一律填 <span class="inline-code">/files/shared/...</span>。自動監控節點的名稱與輸出欄位仍須依目前版本介面確認。</div>
     </div>
     <div class="concept-grid">
       <a href="m3-1-watch.html" class="concept-card" style="text-decoration:none;color:inherit;display:block;cursor:pointer;transition:border-color .2s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(90,122,90,.18)';this.style.borderColor='rgba(90,122,90,.5)'" onmouseout="this.style.boxShadow='';this.style.borderColor=''">
         <div class="concept-num">01</div>
-        <div class="concept-title">Watch Folder 節點實作 <span aria-hidden="true">→</span></div>
-        <div class="concept-desc">配置 Watch Folder 節點監控資料夾，加入 If 篩選 PDF，建立完整本機觸發流程。</div>
+        <div class="concept-title">資料夾檔案處理基線 <span aria-hidden="true">→</span></div>
+        <div class="concept-desc">用 Manual Trigger、Read/Write Files from Disk 與 If 篩選 PDF，先建立可重跑的本機檔案流程。</div>
       </a>
       <a href="m3-1-strategy.html" class="concept-card" style="text-decoration:none;color:inherit;display:block;cursor:pointer;transition:border-color .2s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(90,122,90,.18)';this.style.borderColor='rgba(90,122,90,.5)'" onmouseout="this.style.boxShadow='';this.style.borderColor=''">
         <div class="concept-num">02</div>
@@ -212,7 +212,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
       <a href="m3-2-rename.html" class="concept-card" style="text-decoration:none;color:inherit;display:block;cursor:pointer;transition:border-color .2s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(90,122,90,.18)';this.style.borderColor='rgba(90,122,90,.5)'" onmouseout="this.style.boxShadow='';this.style.borderColor=''">
         <div class="concept-num">01</div>
         <div class="concept-title">AI 辨識自動命名實戰 <span aria-hidden="true">→</span></div>
-        <div class="concept-desc">Read Binary <span aria-hidden="true">→</span> Gemini API <span aria-hidden="true">→</span> Code 解析 <span aria-hidden="true">→</span> Move File，五步驟完成 PDF 智慧改名。</div>
+        <div class="concept-desc">Read/Write Files from Disk <span aria-hidden="true">→</span> Gemini API <span aria-hidden="true">→</span> Code 解析 <span aria-hidden="true">→</span> Write File to Disk 輸出副本，五步驟完成 PDF 智慧改名。</div>
       </a>
       <a href="m3-2-naming.html" class="concept-card" style="text-decoration:none;color:inherit;display:block;cursor:pointer;transition:border-color .2s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(90,122,90,.18)';this.style.borderColor='rgba(90,122,90,.5)'" onmouseout="this.style.boxShadow='';this.style.borderColor=''">
         <div class="concept-num">02</div>
@@ -232,17 +232,17 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <div class="lesson-section" id="generation">
     <div class="section-eyebrow">Scheduled Report · 3.3</div>
     <h2 class="section-heading">定時彙整日報：<em>排程掃描 × AI 摘要</em></h2>
-    <p class="body-text">這是 n8n 最能展現自主性的場景：完全不依賴任何外部訊號，n8n 自己按時啟動、自己讀取資料夾、自己送給 AI 處理、自己存檔。Make 做不到這件事，因為 Make 必須等待雲端事件才能開始。</p>
+    <p class="body-text">這一段把檔案處理拆成可觀察的步驟：先由 Manual Trigger 或 Schedule 啟動，再讀取掛載資料夾、交給 AI 處理、輸出結果。即時監控是另一種觸發方式，必須先在目標版本與網路環境驗證；不要把它當成本課程唯一的入口。</p>
     <p class="body-text">本節將用 Schedule Trigger 設定每日排程，配合 Code 節點讀取整個資料夾的文件，由 Gemini AI 生成結構化摘要，最終將 Markdown 日報自動存入指定目錄。設定好後，不需要任何人按下按鈕。</p>
     <div class="callout info">
       <span class="callout-icon">⏱</span>
-      <div class="callout-body"><strong>Schedule Trigger vs Watch Folder：</strong>3.1 的 Watch Folder 是「有新檔案才觸發」，而 Schedule Trigger 是「到時間就觸發」，兩者是不同情境的本機觸發策略，各有適用場合。</div>
+      <div class="callout-body"><strong>Schedule Trigger 與即時監控：</strong>Schedule Trigger 是「到時間就觸發」；即時監控則是「有新檔案才觸發」。本課先用可重跑的 Manual Trigger 驗證檔案契約，之後再依目前版本與作業系統確認自動監控策略。</div>
     </div>
     <div class="concept-grid">
       <a href="m3-3-generate.html" class="concept-card" style="text-decoration:none;color:inherit;display:block;cursor:pointer;transition:border-color .2s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(90,122,90,.18)';this.style.borderColor='rgba(90,122,90,.5)'" onmouseout="this.style.boxShadow='';this.style.borderColor=''">
         <div class="concept-num">01</div>
         <div class="concept-title">定時 AI 日報實戰 <span aria-hidden="true">→</span></div>
-        <div class="concept-desc">Schedule Trigger <span aria-hidden="true">→</span> Code（讀取資料夾）<span aria-hidden="true">→</span> Gemini <span aria-hidden="true">→</span> Write File，五步驟建立每日自動日報。</div>
+        <div class="concept-desc">Schedule Trigger <span aria-hidden="true">→</span> Read/Write Files from Disk <span aria-hidden="true">→</span> Gemini <span aria-hidden="true">→</span> Write File，建立每日自動日報。</div>
       </a>
       <a href="m3-3-schedule.html" class="concept-card" style="text-decoration:none;color:inherit;display:block;cursor:pointer;transition:border-color .2s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(90,122,90,.18)';this.style.borderColor='rgba(90,122,90,.5)'" onmouseout="this.style.boxShadow='';this.style.borderColor=''">
         <div class="concept-num">02</div>
@@ -262,8 +262,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="flow-steps">
       <div class="flow-step active">
         <div class="flow-node" aria-hidden="true">📂</div>
-        <div class="flow-label">資料夾守衛</div>
-        <div class="flow-sub">新文件觸發自動化</div>
+        <div class="flow-label">檔案輸入</div>
+        <div class="flow-sub">手動或排程讀取資料夾</div>
       </div>
       <div class="flow-connector"><span aria-hidden="true">→</span></div>
       <div class="flow-step active">
@@ -298,16 +298,16 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <div style="font-size:.85rem;color:var(--c-muted);line-height:1.85;"><span aria-hidden="true">→</span> 最後一個節點的 output 要接回 SplitInBatches 的 input 形成 loop——忘了接就跑第一批就停。</div>
       </div>
       <div style="padding:14px 0;border-bottom:1px solid var(--c-border);">
-        <div style="font-weight:600;color:var(--c-text);font-size:.9rem;margin-bottom:4px;">❌ Local File Trigger 沒反應</div>
-        <div style="font-size:.85rem;color:var(--c-muted);line-height:1.85;"><span aria-hidden="true">→</span> Watch 路徑要用絕對路徑（Mac: /Users/你/Downloads，Win: C:\\Users\\你\\Downloads）；相對路徑不會運作。</div>
+        <div style="font-weight:600;color:var(--c-text);font-size:.9rem;margin-bottom:4px;">❌ 檔案流程沒有讀到輸入</div>
+        <div style="font-size:.85rem;color:var(--c-muted);line-height:1.85;"><span aria-hidden="true">→</span> 先在主機的 starter kit <span class="inline-code">shared/</span> 建立資料夾並確認 Docker Desktop 有權限；Read/Write Files from Disk 與 Code 節點要填容器絕對路徑 <span class="inline-code">/files/shared/資料夾名稱</span>，不要填 Mac 的 <span class="inline-code">/Users/...</span> 或 Windows 的 <span class="inline-code">C:\Users\...</span>。即時監控是延伸，需另依版本驗證。</div>
       </div>
       <div style="padding:14px 0;border-bottom:1px solid var(--c-border);">
         <div style="font-weight:600;color:var(--c-text);font-size:.9rem;margin-bottom:4px;">❌ Gemini API 429 錯誤</div>
-        <div style="font-size:.85rem;color:var(--c-muted);line-height:1.85;"><span aria-hidden="true">→</span> 超過該模型當前免費 RPM/RPD（依 <a href="https://ai.google.dev/gemini-api/docs/rate-limits" target="_blank" rel="noopener">官方 Rate limits 頁面</a> 為準）。加 Wait 5 秒 + Loop Over Items 每批 10 控速，並優先選 Flash / Flash-Lite。</div>
+        <div style="font-size:.85rem;color:var(--c-muted);line-height:1.85;"><span aria-hidden="true">→</span> 超過該模型與帳號當前 RPM/RPD（依 <a href="https://ai.google.dev/gemini-api/docs/rate-limits" target="_blank" rel="noopener">官方 Rate limits 頁面</a> 為準）。加 Wait 5 秒 + Loop Over Items 每批 10 控速，仍需以實際執行記錄確認。</div>
       </div>
       <div style="padding:14px 0;border-bottom:1px solid var(--c-border);">
         <div style="font-weight:600;color:var(--c-text);font-size:.9rem;margin-bottom:4px;">❌ Schedule Trigger 到點不觸發</div>
-        <div style="font-size:.85rem;color:var(--c-muted);line-height:1.85;"><span aria-hidden="true">→</span> Desktop 關閉時 Schedule 不會跑；n8n 要保持開啟。設成開機自動啟動並關掉螢幕睡眠。</div>
+        <div style="font-size:.85rem;color:var(--c-muted);line-height:1.85;"><span aria-hidden="true">→</span> Docker Desktop 或 n8n 容器停止時 Schedule 不會跑；要保持 Docker Desktop 與 n8n 服務開啟。是否設定開機自動啟動，依你的電腦與資安政策決定。</div>
       </div>
       <div style="padding:14px 0;border-bottom:1px solid var(--c-border);">
         <div style="font-weight:600;color:var(--c-text);font-size:.9rem;margin-bottom:4px;">❌ Cron 表達式看不懂</div>
@@ -321,7 +321,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <a href="module4.html" class="nav-btn">Module 4：綜合實戰 <span aria-hidden="true">→</span></a>
 </div>
 
-<footer class="footer" data-platform-version="2026-04-v3">
+<footer class="footer" data-platform-version="Docker Desktop / n8n 2.37.7" data-built-at="2026-09-03">
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">淡江大學 · 生成式AI工作坊</span>

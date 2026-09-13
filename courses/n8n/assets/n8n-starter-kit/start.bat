@@ -65,6 +65,23 @@ if not exist .env (
 REM 確認 shared 資料夾存在
 if not exist shared mkdir shared
 
+REM 啟動前先偵測 port 5678 是否已被其他 container 佔用
+docker ps --filter publish=5678 -q | findstr /r /c:"." >nul
+if not errorlevel 1 (
+  echo.
+  echo 偵測到 port 5678 已被既有 container 佔用。
+  echo 常見原因：之前曾啟動過 n8n，或在不同資料夾啟動過第二份 starter kit。
+  choice /M "要停掉這些 container 並重啟嗎"
+  if errorlevel 2 (
+    echo 已取消啟動。請先處理佔用 5678 的服務。
+    pause
+    exit /b 1
+  )
+  for /f "delims=" %%C in ('docker ps --filter publish=5678 -q') do docker stop %%C
+  for /f "delims=" %%C in ('docker ps -a --filter publish=5678 -q') do docker rm %%C
+  echo 舊 container 已清理。
+)
+
 REM 啟動 n8n
 echo 正在啟動 n8n（首次需下載 image，可能花 1-5 分鐘）...
 docker compose -f n8n-compose.yml up -d

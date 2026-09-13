@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>3.2 PDF 批次改名｜AI 資料工廠</title>
-<meta name="description" content="結合 Gemini API，讓 AI 讀取 PDF 內容、提取廠商名稱與金額，自動按規則重命名整批文件。">
+<meta name="description" content="結合 Gemini API，讓 AI 讀取 PDF 內容、提取廠商名稱與金額，依規則產生新檔名並輸出保留原檔的副本。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
 <meta property="og:title" content="3.2 PDF 批次改名｜AI 資料工廠">
-<meta property="og:description" content="結合 Gemini API，讓 AI 讀取 PDF 內容、提取廠商名稱與金額，自動按規則重命名整批文件。">
+<meta property="og:description" content="結合 Gemini API，讓 AI 讀取 PDF 內容、提取廠商名稱與金額，依規則產生新檔名並輸出保留原檔的副本。">
 <meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/lessons/m3-2-rename.html">
 <meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="3.2 PDF 批次改名｜AI 資料工廠">
-<meta name="twitter:description" content="結合 Gemini API，讓 AI 讀取 PDF 內容、提取廠商名稱與金額，自動按規則重命名整批文件。">
+<meta name="twitter:description" content="結合 Gemini API，讓 AI 讀取 PDF 內容、提取廠商名稱與金額，依規則產生新檔名並輸出保留原檔的副本。">
 <meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/lessons/m3-2-rename.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -68,6 +68,8 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 .verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:24px 28px;margin:40px 0}
 .verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px}
 .verify-text{font-size:.9rem;color:var(--c-text);line-height:1.85}
+.checkpoint{margin:16px 0 0;padding:13px 16px;background:rgba(107,127,163,.08);border:1px solid rgba(107,127,163,.28);border-radius:var(--radius);font-size:.82rem;line-height:1.75;color:var(--c-text)}
+.checkpoint strong{color:var(--c-a4)}
 .troubleshoot{margin:40px 0}
 .ts-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:16px}
 .ts-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 22px;margin-bottom:10px}
@@ -127,7 +129,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <a href="module3.html" class="back-link"><span aria-hidden="true">←</span> 返回 Module 3</a>
   <div class="hero-eyebrow">FILE MANAGEMENT · 3.2</div>
   <h1 class="page-title">PDF 批次改名：AI 辨識內容自動命名</h1>
-  <p class="page-subtitle">結合 Gemini API，讓 AI 讀取 PDF 內容、提取廠商名稱與金額，自動按規則重命名整批文件。</p>
+  <p class="page-subtitle">結合 Gemini API，讓 AI 讀取 PDF 內容、提取廠商名稱與金額，依規則產生新檔名並輸出副本；原檔先保留，方便人工抽查與回復。</p>
 </div>
 
 <div class="example-box">
@@ -149,29 +151,40 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div class="steps-wrap">
   <div class="section-label">STEP BY STEP · 操作步驟</div>
 
+  <div class="step-tip info" style="margin-bottom:24px">
+    <span class="tip-icon">📁</span>
+    <span class="tip-text"><strong>先準備可跟做的檔案：</strong>請先下載<a href="../assets/n8n-sample-pack.zip">課程範例檔案包</a>，從 <span class="inline-code">n8n-sample-pack/batch-inbox/batch-good-01.pdf</span> 取一份 PDF，放入主機的 <span class="inline-code">n8n-starter-kit/shared/待處理PDF/</span>；n8n 節點使用容器路徑 <span class="inline-code">/files/shared/待處理PDF/*.pdf</span>。macOS 與 Windows 只差主機資料夾的顯示方式，節點設定相同。</span>
+  </div>
+
+  <div class="context-box" style="padding:0 0 24px">
+    <div class="context-inner">
+      <div class="context-label">起點與完成物 · START / DELIVERABLE</div>
+      <div class="context-text">先完成 3.1 的 Manual Trigger → Read PDF → If 基線，並在 <code>shared/待處理PDF/</code> 放入一份可讀取的 PDF。本節留下「原檔保留、完成資料夾出現新檔名副本」的執行記錄；AI API 呼叫屬於需要個人帳號與額度的延伸，沒有 API key 時可先用下一段的固定 AI 回覆測試 Code 與檔案輸出。</div>
+    </div>
+  </div>
+
   <div style="margin-bottom:32px;">
     <div class="section-label" style="margin-bottom:12px;">本節流程概覽</div>
     <div class="flow-mini">
-      <div class="flow-node-mini active">Watch Folder</div>
+      <div class="flow-node-mini active">Manual Trigger</div>
       <span class="flow-arr"><span aria-hidden="true">→</span></span>
-      <div class="flow-node-mini">If (.pdf)</div>
-      <span class="flow-arr"><span aria-hidden="true">→</span></span>
-      <div class="flow-node-mini active">Read Binary</div>
+      <div class="flow-node-mini active">Read File(s) From Disk</div>
       <span class="flow-arr"><span aria-hidden="true">→</span></span>
       <div class="flow-node-mini active">HTTP Request (Gemini)</div>
       <span class="flow-arr"><span aria-hidden="true">→</span></span>
       <div class="flow-node-mini active">Code (解析)</div>
       <span class="flow-arr"><span aria-hidden="true">→</span></span>
-      <div class="flow-node-mini active">Rename File</div>
+      <div class="flow-node-mini active">Write File to Disk（副本）</div>
     </div>
   </div>
 
   <div class="step-block">
     <div class="step-circle">1</div>
     <div class="step-content">
-      <div class="step-heading">Read Binary File 節點：讀取 PDF 為二進位資料</div>
-      <div class="step-body">承接 3.1 的 If 節點 True 分支，新增「Read Binary File」節點。在「File Path」欄位，使用 Watch Folder 傳來的路徑：<code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">{{ $json.data.path }}</code>。執行後，PDF 會被讀取為 Base64 編碼的二進位字串，儲存在 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">$binary.data.data</code>。</div>
+      <div class="step-heading">Read/Write Files from Disk：讀取 PDF 為二進位資料</div>
+      <div class="step-body">承接 3.1 已確認的 Manual Trigger，新增「Read/Write Files from Disk」節點，Operation 選「Read File(s) From Disk」，並把節點重新命名為 <strong>Read PDF</strong>。在「File(s) Selector」欄位填入目前主線的容器路徑 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">/files/shared/待處理PDF/*.pdf</code>；副檔名已由 selector 限制，If 分流可留到多格式改造時再加入。執行後，每個 PDF 會成為一個 binary Item，檔名可從 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">$binary.data.fileName</code> 取得，內容位於 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">$binary.data.data</code>。</div>
       <div class="step-tip"><strong>提示：</strong>此節點將 PDF 轉換為 Base64，這是上傳至 Gemini API 所需的格式。在 Output 面板確認 binary 欄位已出現。</div>
+      <div class="checkpoint"><strong>Checkpoint 1：</strong>Read PDF Output 看得到至少一個 binary Item，檔名與 3.1 放入的檔案相同。若沒有 Item，回到 3.1 修正掛載後再繼續。</div>
     </div>
   </div>
 
@@ -179,9 +192,12 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="step-circle">2</div>
     <div class="step-content">
       <div class="step-heading">HTTP Request 節點：呼叫 Gemini API 辨識 PDF</div>
-      <div class="step-body">新增「HTTP Request」節點，Method 設為 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">POST</code>，URL 填入 Gemini API 端點（含你的 API Key）。Body 類型選「JSON」，貼入以下結構，讓 Gemini 讀取 PDF 並回傳結構化 JSON。</div>
-      <div class="code-block"><span class="cm">// URL（替換 YOUR_API_KEY）</span>
-https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=YOUR_API_KEY
+      <div class="step-body">新增「HTTP Request」節點，Method 設為 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">POST</code>，URL 填入 Gemini API 端點。API key 請放在 n8n 的 Header Auth credential（Header 名稱 <code>x-goog-api-key</code>），避免把秘密留在 URL 或畫面截圖中。Body 類型選「JSON」，貼入以下結構，讓 Gemini 讀取 PDF 並回傳結構化 JSON。</div>
+      <div class="code-block"><span class="cm">// URL（不含 API key）</span>
+https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent
+
+<span class="cm">// Header Auth credential</span>
+x-goog-api-key: YOUR_API_KEY
 
 <span class="cm">// Body（JSON 格式）</span>
 {
@@ -199,7 +215,8 @@ https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generat
     ]
   }]
 }</div>
-      <div class="step-tip"><strong>提示：</strong>在 Google AI Studio 的「Get API Key」取得免費 API Key。Gemini 可直接讀取 PDF 圖文內容，不需要額外 OCR 節點。免費額度依模型而異（請查 <a href="https://ai.google.dev/gemini-api/docs/rate-limits" target="_blank" rel="noopener">官方 Rate limits 頁面</a>），批次處理多個 PDF 時，在 Loop 內加入「Wait」節點（間隔設為 5 秒）可避免觸發速率限制（429）。</div>
+      <div class="step-tip"><strong>服務界線：</strong>在 Google AI Studio 建立 API key，使用量與可用額度依帳號、模型與官方方案而異（請查 <a href="https://ai.google.dev/gemini-api/docs/rate-limits" target="_blank" rel="noopener">官方 Rate limits 頁面</a>）。Gemini 可直接讀取 PDF 圖文內容；批次處理時在 Loop 內加入「Wait」節點（間隔 5 秒）降低 429 風險，但不保證不會遇到限制。</div>
+      <div class="checkpoint"><strong>Checkpoint 2：</strong>HTTP Request 的 URL 沒有 <code>?key=</code>，Header Auth 已選取，先用一份 PDF 執行一次。Output 出現 <code>candidates</code> 才進入 Code 節點；遇到 401／403 先檢查 credential。</div>
     </div>
   </div>
 
@@ -209,26 +226,44 @@ https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generat
       <div class="step-heading">Code 節點：解析 Gemini 回傳的 JSON</div>
       <div class="step-body">新增「Code」節點（Language 選 JavaScript），從 HTTP Request 的回傳中提取 AI 辨識結果。Gemini 的回傳結構為 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">candidates[0].content.parts[0].text</code>，將其解析為 JSON 物件。</div>
       <div class="code-block"><span class="cm">// Code 節點內容</span>
-<span class="ky">const</span> rawText = $input.item.json.candidates[0].content.parts[0].text;
-<span class="ky">const</span> info = JSON.parse(rawText);
-<span class="ky">const</span> originalPath = $('<span class="st">Watch Folder</span>').item.json.data.path;
-<span class="ky">const</span> dir = originalPath.substring(0, originalPath.lastIndexOf('/'));
+<span class="ky">const</span> rawText = $input.item.json.candidates?.[0]?.content?.parts?.[0]?.text || '';
+<span class="ky">const</span> clean = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+<span class="ky">let</span> info;
+<span class="ky">try</span> {
+  info = JSON.parse(clean);
+} <span class="ky">catch</span> (error) {
+  <span class="ky">throw new</span> Error('Gemini 回傳不是有效 JSON，請查看 HTTP Request Output 後重試');
+}
+<span class="ky">const</span> sourceName = $('Read PDF').item.binary?.data?.fileName || 'unknown.pdf';
+<span class="ky">const</span> originalPath = '/files/shared/待處理PDF/' + sourceName;
+<span class="ky">const</span> dir = <span class="st">'/files/shared/完成'</span>;
 
 <span class="cm">// 組合新檔名</span>
 <span class="ky">const</span> newName = `${info.date}_${info.type}_${info.vendor}_${info.amount}.pdf`;
 <span class="ky">const</span> newPath = `${dir}/${newName}`;
 
 return [{ json: { originalPath, newPath, newName, ...info } }];</div>
-      <div class="step-tip"><strong>提示：</strong>若 Gemini 回傳的文字包含 ```json ... ``` 標記，可用 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">rawText.replace(/```json\n?|\n?```/g, '')</code> 先清除再 JSON.parse。</div>
+      <div class="step-tip"><strong>快速檢查：</strong>先在 Code 節點 Output 確認 <code>newPath</code> 是 <code>/files/shared/完成/...</code>。若解析失敗，程式會保留紅色錯誤並要求你回看 HTTP Request 的原始回應，不要直接猜欄位名稱；若 <code>date</code>、<code>type</code>、<code>vendor</code> 或 <code>amount</code> 缺漏，先修 Prompt 或人工補值再輸出。</div>
+      <div class="checkpoint"><strong>Checkpoint 3：</strong>Code Output 同時有 <code>originalPath</code>、<code>newPath</code>、<code>vendor</code>、<code>amount</code>、<code>date</code> 與 <code>type</code>。先確認新檔名可讀，再進入檔案輸出。</div>
     </div>
   </div>
 
   <div class="step-block">
     <div class="step-circle">4</div>
     <div class="step-content">
-      <div class="step-heading">Move/Rename File 節點：依 AI 結果重命名</div>
-      <div class="step-body">新增「Move File」節點。「Source Path」填入原始路徑 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">{{ $json.originalPath }}</code>，「Destination Path」填入新路徑 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">{{ $json.newPath }}</code>。執行後，原 PDF 檔案將在原位被重命名。</div>
-      <div class="step-tip"><strong>提示：</strong>若想保留原始檔案，在 Move File 前先用「Copy File」節點備份到另一個資料夾，再對備份執行重命名。</div>
+      <div class="step-heading">Read/Write Files from Disk：以新檔名輸出副本</div>
+      <div class="step-body">n8n 2.37.7 的 Code node 會禁止直接載入 <code>fs</code>，因此不在 Code 節點執行重新命名。改用兩個檔案節點：先重新讀取 <code>originalPath</code>，再把同一份 binary 寫到 <code>newPath</code>。這是可回復的安全做法，原 PDF 仍留在原資料夾。</div>
+      <div class="code-block"><span class="cm">// ① 重新讀取原檔（避免 HTTP Request 丟失 binary）</span>
+Operation:          Read File(s) From Disk
+File(s) Selector:    ={{ $json.originalPath }}
+Output Binary Field: data
+
+<span class="cm">// ② 寫出新檔名副本</span>
+Operation:          Write File to Disk
+File Name:           ={{ $json.newPath }}
+Input Binary Field:  data</div>
+      <div class="step-tip"><strong>提示：</strong>先在主機的 starter kit <span class="inline-code">shared/完成/</span> 建立輸出資料夾，並讓上一個 Code 節點把 <span class="inline-code">newPath</span> 組成 <span class="inline-code">/files/shared/完成/檔名.pdf</span>。這裡是「輸出新檔名副本」，不是刪除或覆寫原檔。</div>
+      <div class="checkpoint"><strong>Checkpoint 4：</strong>在主機同時看到原始 PDF 與完成資料夾內的新檔名副本；兩者可開啟，原檔大小與名稱沒有被改動。若輸出檔不存在，先檢查 <code>newPath</code> 是否使用容器路徑。</div>
     </div>
   </div>
 
@@ -236,29 +271,30 @@ return [{ json: { originalPath, newPath, newName, ...info } }];</div>
     <div class="step-circle">5</div>
     <div class="step-content">
       <div class="step-heading">用 Loop 節點批次處理多個 PDF</div>
-      <div class="step-body">若需要一次處理資料夾內所有已存在的 PDF，在流程開始改用「Read All Files In Folder」節點取得檔案清單，然後連接「Loop Over Items」節點，將步驟 1-4 的節點包在 Loop 內，即可自動迭代處理每一個 PDF 檔案。</div>
-      <div class="code-block"><span class="cm">// Read All Files In Folder 設定</span>
-Path:            /Users/你的名稱/Documents/待處理PDF
-File Extension:  pdf
-Return:          File paths as strings</div>
-      <div class="step-tip"><strong>提示：</strong>Watch Folder 每次觸發處理單一新增檔案；若要批次處理已有的 PDF，改用 Read All Files + Loop 的組合。</div>
+      <div class="step-body">若需要一次處理資料夾內所有已存在的 PDF，在流程開始新增「Read/Write Files from Disk」，Operation 選「Read File(s) From Disk」，File(s) Selector 填 <span class="inline-code">/files/shared/待處理PDF/*.pdf</span>，再連接「Loop Over Items」。讀檔節點會直接產生多個 Items，不需要自行掃描主機資料夾。</div>
+      <div class="code-block"><span class="cm">// 批次讀檔設定</span>
+Operation:          Read File(s) From Disk
+File(s) Selector:    /files/shared/待處理PDF/*.pdf
+Output Binary Field: data
+→ Loop Over Items → 步驟 2–4</div>
+      <div class="step-tip"><strong>提示：</strong>目前主線使用「Read File(s) From Disk + Loop」處理資料夾內既有 PDF；若日後要改成自動監控，請先在目標 n8n 版本確認 Local File Trigger 的輸出欄位，再替換觸發器，後面的讀檔、AI 與安全副本規則不變。</div>
     </div>
   </div>
 
   <div class="verify-box">
     <div class="verify-label">完成驗證 · VERIFY</div>
-    <div class="verify-text">放入一個 PDF 後，觀察資料夾中的檔名是否從原始亂名變成如 <strong>20260315_合約_台積電_500萬.pdf</strong> 的格式。若 Gemini 辨識的資訊欄位回傳 "未知"，代表 PDF 內容不清晰，可調整 Prompt 加上「若無法辨識請回傳 unknown」。</div>
+    <div class="verify-text">放入一個 PDF 後，執行流程。主機的 <strong>shared/完成/</strong> 應出現如 <strong>20260315_合約_台積電_500萬.pdf</strong> 的新檔名副本，而原始檔仍在 <strong>shared/待處理PDF/</strong>。若 Gemini 辨識的資訊欄位回傳「未知」，代表 PDF 內容不清晰，可調整 Prompt 加上「若無法辨識請回傳 unknown」。</div>
   </div>
 
   <div class="troubleshoot">
     <div class="ts-label">常見問題 · TROUBLESHOOT</div>
     <div class="ts-item">
       <div class="ts-q">Gemini API 回傳 400 錯誤，或說 inlineData 格式不正確？</div>
-      <div class="ts-a">確認 HTTP Request 節點的 Body 類型是「JSON」而非「Form Data」。另外檢查 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">$binary.data.data</code> 是否有值（在 Read Binary File 的 Output 面板確認有 binary 欄位）。API Key 是否正確放在 URL 參數中。</div>
+      <div class="ts-a">確認 HTTP Request 節點的 Body 類型是「JSON」而非「Form Data」。另外檢查 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">$binary.data.data</code> 是否有值（在 Read/Write Files from Disk 的 Output 面板確認有 binary 欄位）。若出現 401／403，回到 Header Auth credential 檢查 key 是否有效。</div>
     </div>
     <div class="ts-item">
       <div class="ts-q">Code 節點 JSON.parse 失敗，報錯 SyntaxError？</div>
-      <div class="ts-a">Gemini 有時會在 JSON 外包 markdown 標記（```json ... ```）。在 Code 節點加入清除邏輯：<code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">const clean = rawText.replace(/```[\w]*\n?/g, '').trim()</code>，再對 clean 做 JSON.parse。</div>
+      <div class="ts-a">Gemini 有時會在 JSON 外包 markdown 標記（```json ... ```）。本頁 Step 3 已先清除圍欄並用 try/catch 解析；若仍失敗，先查看 HTTP Request 的原始回應，再修 Prompt 或欄位驗證，不要直接把錯誤字串寫入檔名。</div>
     </div>
   </div>
 </div>
@@ -267,17 +303,17 @@ Return:          File paths as strings</div>
     <div style="font-size:.73rem;color:var(--c-a3);letter-spacing:2px;font-weight:600;margin-bottom:14px;">💼 實戰案例</div>
     <div style="font-size:.9rem;color:var(--c-text);line-height:1.95;">
       <div style="margin-bottom:10px;"><strong>情境｜</strong>某律師事務所每月 2,000 份 PDF 卷宗，檔名從『20250408_合約.pdf』改成『2025-04-08_客戶代號_合約.pdf』。</div>
-      <div style="margin-bottom:10px;"><strong>做法｜</strong>讀檔名正則拆 <span aria-hidden="true">→</span> 查客戶資料表取代號 <span aria-hidden="true">→</span> 組合新名 <span aria-hidden="true">→</span> Rename Files。每月省 8 小時手工時間。</div>
+      <div style="margin-bottom:10px;"><strong>做法｜</strong>讀檔名正則拆 <span aria-hidden="true">→</span> 查客戶資料表取代號 <span aria-hidden="true">→</span> 組合新名 <span aria-hidden="true">→</span> Write File to Disk 輸出副本。每月省 8 小時手工時間。</div>
       <div><strong>踩雷｜</strong>改名前先 Dry run（只輸出預計的新名稱到 CSV，不實際改檔）人工檢查 10% 樣本——檔名改錯無法 undo。</div>
     </div>
   </div>
 
 <div class="nav-footer">
-  <a href="m3-1-watch.html" class="nav-btn"><span aria-hidden="true">←</span> 3.1 Watch Folder</a>
-  <a href="m3-3-generate.html" class="nav-btn primary">3.3 Excel 轉 Word <span aria-hidden="true">→</span></a>
+  <a href="m3-1-watch.html" class="nav-btn"><span aria-hidden="true">←</span> 3.1 資料夾檔案處理</a>
+  <a href="m3-3-generate.html" class="nav-btn primary">3.3 定時彙整日報 <span aria-hidden="true">→</span></a>
 </div>
 
-<footer class="footer" data-platform-version="2026-04-v3">
+<footer class="footer" data-platform-version="Docker Desktop / n8n 2.37.7" data-built-at="2026-09-03">
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">淡江大學 · 生成式AI工作坊</span>

@@ -143,9 +143,9 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 
 <div class="page-hero">
   <a href="m0-workflow-tour.html" class="back-link"><span aria-hidden="true">←</span> 返回工作流總覽</a>
-  <div class="hero-eyebrow">#09 · GMAIL CATEGORIZE · 8 NODES · 進階 · 需 OAuth 設定</div>
+  <div class="hero-eyebrow">#09 · GMAIL CATEGORIZE · 7 個可執行節點 + 1 張說明卡 · 進階 · 需 OAuth 設定</div>
   <h1 class="lesson-title">Make 等效的「信箱分類通知」：但跑你本機 + 沒 ops 上限</h1>
-  <p class="lesson-tagline">Make 經典場景（Gmail Trigger → AI 分類 → 多路由通知）的 n8n 對等實作。8 節點：Gmail polling → AI 分 4 類（客訴/詢問/合約/其他）→ Switch 多路由 → 客訴緊急 Telegram、詢問待辦、合約待歸檔。Lite Pack 唯一需要學員自建 Gmail OAuth credential 的 workflow（Lite Pack 無法幫你建，因為要走 Google Cloud Project + OAuth 授權流程半小時）。</p>
+  <p class="lesson-tagline">Make 經典場景（Gmail Trigger → AI 分類 → 多路由通知）的 n8n 對等實作。7 個可執行節點與 1 張說明卡：Gmail polling → AI 分 4 類（客訴/詢問/合約/其他）→ Switch 多路由 → 客訴緊急 Telegram、詢問待辦、合約待歸檔。Lite Pack 唯一需要學員自建 Gmail OAuth credential 的 workflow（Lite Pack 無法幫你建，因為要走 Google Cloud Project + OAuth 授權流程半小時）。</p>
   <div class="outcomes">
     <div class="outcomes-label">學習成果</div>
     <div class="outcome-item">能在 Google Cloud Console 建 OAuth 2.0 client + 設 redirect URI 給 n8n 用</div>
@@ -166,10 +166,10 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
     <thead><tr><th>維度</th><th>Make（雲端）</th><th>n8n（本機）</th></tr></thead>
     <tbody>
       <tr><td>設定難度</td><td class="y">15 分鐘（Gmail OAuth 一鍵授權）</td><td class="neutral">半小時 + 自建 Google Cloud Project</td></tr>
-      <tr><td>每月處理量</td><td class="n">免費 333 封信（1000 ops/月 ÷ 3 ops/封）</td><td class="y">無上限（你電腦電費 + Gemini API 費用）</td></tr>
-      <tr><td>1000 封/月成本</td><td class="n">$9 USD/月（Pro 10K ops 方案）</td><td class="y">~$0（Gemini Flash 免費 tier 通常足夠）</td></tr>
+      <tr><td>每月處理量</td><td class="n">可處理量依當前方案與每封信的 ops 計算</td><td class="y">不採同一套 execution 計算方式，但受電腦效能與 Gemini API 額度影響</td></tr>
+      <tr><td>1000 封/月成本</td><td class="n">依當前 Make 方案與 ops 需求估算</td><td class="y">需估算電力、維護與 Gemini API 方案成本</td></tr>
       <tr><td>本地 AI 分類</td><td class="n">不能（必打雲端 OpenAI/Claude）</td><td class="y">能（換 jsCode 內 URL 為本機 Ollama）</td></tr>
-      <tr><td>機密信件處理</td><td class="n">內容必離開本機</td><td class="y">用本地 LLM 完全不離開本機</td></tr>
+      <tr><td>機密信件處理</td><td class="n">Gmail 與雲端 AI 會依服務設定處理內容</td><td class="y">可用本地 LLM 降低信件內容送往外部 AI 的範圍，仍須檢查郵件、日誌與備份</td></tr>
       <tr><td>附件直接歸檔</td><td class="n">必經 Google Drive 中轉</td><td class="y">直接寫本機資料夾（串 #02 / #03）</td></tr>
       <tr><td>長期擁有權</td><td class="n">scenario 是 Make 的</td><td class="y">workflow 是你的（開源 + 自家硬碟）</td></tr>
       <tr><td>當 Make 收掉 / 改價</td><td class="n">工作流斷</td><td class="y">不影響</td></tr>
@@ -300,7 +300,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
     <span style="margin-left:35ch">→ 合約 → <span class="node">Set 待歸檔</span></span><br>
     <span style="margin-left:35ch">↘ 其他 → <span class="node">Set 略過</span></span>
   </div>
-  <p class="body-text">8 節點。Gmail Trigger fan-out N 個 items（每封新信一個），Code 對每封打 AI 分類，Switch 按分類結果送到 4 個輸出。當前 workflow 只對「客訴」推 Telegram，其餘 3 路是 Set 節點當「改造佔位點」（學員自己加 Sheets / Notion / 串 #02 #03 等）。</p>
+  <p class="body-text">7 個可執行節點。Gmail Trigger fan-out N 個 items（每封新信一個），Code 對每封打 AI 分類，Switch 按分類結果送到 4 個輸出。當前 workflow 只對「客訴」推 Telegram，其餘 3 路是 Set 節點當「改造佔位點」（學員自己加 Sheets / Notion / 串 #02 #03 等）。</p>
 </section>
 
 <hr class="section-rule">
@@ -375,16 +375,16 @@ urgency 取值：high / normal / low</div>
   <h2 class="section-heading">把這個 workflow 改成你業務的 5 種方向</h2>
 
   <ol class="mod-list">
-    <li><strong>合約路由串 #02 / #03</strong>：合約類信件抽附件 PDF 丟進 <code>~/Downloads/n8n-starter-kit/shared/pdf-inbox/</code> → #02 自動 AI 改名 → 你自動拿到歸檔合約。Make 做不到（附件必經 Drive 中轉）。</li>
+    <li><strong>合約路由串 #02 / #03</strong>：合約類信件抽附件 PDF 丟進 starter kit 的主機資料夾 <code>shared/pdf-inbox/</code>（macOS 可在 <code>~/Downloads/n8n-starter-kit/shared/pdf-inbox/</code> 找到；Windows 可在 <code>%USERPROFILE%\\Downloads\\n8n-starter-kit\\shared\\pdf-inbox\\</code> 找到），後續 n8n 節點一律使用 <code>/files/shared/pdf-inbox/</code> → #02 自動 AI 改名 → 你自動拿到歸檔合約。這是把附件處理放進本機的選項；若使用雲端流程，則要另外設計可連線的檔案位置。</li>
     <li><strong>詢問路由串 Notion / Sheets</strong>：詢問類信件加 row 到 Notion database / Google Sheets 待辦清單，每天早上人工檢視一次（搭 #04 定時 AI 日報摘要 Notion 內容）。</li>
-    <li><strong>換本地 LLM</strong>：把 Code 節點 jsCode 內 Gemini URL 換成本機 Ollama（例如 <code>http://host.docker.internal:11434/api/generate</code> + Llama 3 model）。**信件內容完全不離開本機**，敏感商務信件適用。</li>
+    <li><strong>換本地 LLM</strong>：把 Code 節點 jsCode 內 Gemini URL 換成本機 Ollama（例如 <code>http://host.docker.internal:11434/api/generate</code> + Llama 3 model）。可降低信件內容送往外部 AI 的範圍；若 Gmail 本身仍在使用，郵件資料仍會留在 Google 服務中。</li>
     <li><strong>多 Gmail label 分類</strong>：Gmail Trigger 加 <code>filters.labels</code> 設定，只 polling 特定 label（例如 <code>Important</code>）。或不同 label 跑不同 workflow。</li>
     <li><strong>定時轉日報</strong>：accumulate 一天的分類結果（寫到本機 JSON 檔），每天 18:00 用 #04 的 Schedule 模式統整成「今日信件分類報告」推 Telegram。</li>
   </ol>
 
   <div class="callout info" style="margin-top:24px">
     <div class="callout-icon" aria-hidden="true">🎯</div>
-    <div class="callout-body">這是 Lite Pack 最後一個 workflow。8 個 workflow（01-09 跳 08）+ #08 Expression 速查表都看完了，你已具備設計任何 n8n + AI 自動化的能力。剩下是改造練手。</div>
+    <div class="callout-body">這是 Lite Pack 中段的外部服務案例。完成 #09 後，接著可依序閱讀 #10–#14；前面的 #01–#08 已建立 webhook、檔案處理、Expression 與錯誤分支基礎。接下來把同一套拆解方法帶到 Gmail 與營運資料。</div>
   </div>
 </section>
 
@@ -399,7 +399,7 @@ urgency 取值：high / normal / low</div>
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">2026 春季</span>
-  <span class="footer-meta">本頁以 n8n latest (Docker) + Lite Pack v0.9 製作，2026-05</span>
+  <span class="footer-meta" data-platform-version="Docker Desktop / n8n 2.37.7" data-built-at="2026-09-03">本頁以 Docker Desktop / n8n 2.37.7 製作；外部 Gmail／Tunnel 案例仍需依目前版本人工驗證。</span>
 </footer>
 
 <script>

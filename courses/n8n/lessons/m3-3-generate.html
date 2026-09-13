@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>3.3 定時彙整日報｜AI 資料工廠</title>
-<meta name="description" content="設定好後，n8n 每天自動掃描文件資料夾、AI 彙整摘要，輸出 Markdown 日報——完全不需人工觸發，也不依賴任何雲端服務。">
+<meta name="description" content="設定好後，n8n 每天自動掃描本機文件資料夾、呼叫 Gemini 彙整摘要，輸出 Markdown 日報——不需人工觸發，也不需 Google Drive。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
 <meta property="og:title" content="3.3 定時彙整日報｜AI 資料工廠">
-<meta property="og:description" content="設定好後，n8n 每天自動掃描文件資料夾、AI 彙整摘要，輸出 Markdown 日報——完全不需人工觸發，也不依賴任何雲端服務。">
+<meta property="og:description" content="設定好後，n8n 每天自動掃描本機文件資料夾、呼叫 Gemini 彙整摘要，輸出 Markdown 日報——不需人工觸發，也不需 Google Drive。">
 <meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/lessons/m3-3-generate.html">
 <meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="3.3 定時彙整日報｜AI 資料工廠">
-<meta name="twitter:description" content="設定好後，n8n 每天自動掃描文件資料夾、AI 彙整摘要，輸出 Markdown 日報——完全不需人工觸發，也不依賴任何雲端服務。">
+<meta name="twitter:description" content="設定好後，n8n 每天自動掃描本機文件資料夾、呼叫 Gemini 彙整摘要，輸出 Markdown 日報——不需人工觸發，也不需 Google Drive。">
 <meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/lessons/m3-3-generate.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -83,6 +83,8 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 .verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:24px 28px;margin:40px 0}
 .verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px}
 .verify-text{font-size:.9rem;color:var(--c-text);line-height:1.85}
+.checkpoint{margin:16px 0 0;padding:13px 16px;background:rgba(107,127,163,.08);border:1px solid rgba(107,127,163,.28);border-radius:var(--radius);font-size:.82rem;line-height:1.75;color:var(--c-text)}
+.checkpoint strong{color:var(--c-a4)}
 .troubleshoot{margin:40px 0}
 .ts-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:16px}
 .ts-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 22px;margin-bottom:10px}
@@ -142,13 +144,20 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <a href="module3.html" class="back-link"><span aria-hidden="true">←</span> 返回 Module 3</a>
   <div class="hero-eyebrow">SCHEDULED REPORT · 3.3</div>
   <h1 class="page-title">定時彙整日報：排程掃描 × AI 摘要</h1>
-  <p class="page-subtitle">設定好後，n8n 每天自動掃描文件資料夾、AI 彙整摘要，輸出 Markdown 日報——完全不需人工觸發，也不依賴任何雲端服務。</p>
+  <p class="page-subtitle">設定好後，n8n 每天依排程掃描文件資料夾，將文字送到 Gemini API 彙整，再輸出 Markdown 日報。排程不需要人工按鈕，但 AI 摘要仍會使用雲端服務。</p>
 </div>
 
 <div class="advantage-box">
   <div class="advantage-inner">
     <div class="advantage-label">這節的核心優勢</div>
     <p class="advantage-text">Make 必須由外部事件觸發（有人寄信、有人填表），但 n8n 可以從自身的排程主動啟動。<strong>Schedule Trigger 讓 n8n 成為真正自主運行的本機代理人</strong>——不需要任何雲端訊號，不需要任何人按下按鈕，到時間就跑。</p>
+  </div>
+</div>
+
+<div class="advantage-box" style="margin-top:0">
+  <div class="advantage-inner">
+    <div class="advantage-label">起點與完成物 · START / DELIVERABLE</div>
+    <div class="advantage-text">先在主機建立 <code>shared/每日文件/</code>，放入至少一個 <code>.txt</code> 或 <code>.md</code> 檔，再建立本頁的 6 個節點。你要留下日期命名的 Markdown 日報與一次成功執行記錄。Gemini API 屬於延伸服務；沒有 API key 時，Step 3 提供固定 AI 回覆，後面的格式化與寫檔仍可完整跟做。</div>
   </div>
 </div>
 
@@ -160,9 +169,9 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
       <div class="compare-desc">必須等待雲端事件（Gmail 收信、表單提交）才能啟動，無法自行按時執行本機任務。</div>
     </div>
     <div class="compare-card bright">
-      <div class="compare-tag">N8N DESKTOP</div>
+      <div class="compare-tag">N8N（DOCKER 自架）</div>
       <div class="compare-title">主動排程</div>
-      <div class="compare-desc">Schedule Trigger 自行定時啟動，無需任何外部訊號，完全在本機獨立運行。</div>
+      <div class="compare-desc">Schedule Trigger 自行定時啟動；檔案讀寫在本機容器，AI 摘要會依設定送往 Gemini API。</div>
     </div>
   </div>
 </div>
@@ -175,13 +184,13 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="flow-mini">
       <div class="flow-node-mini active">Schedule Trigger</div>
       <span class="flow-arr"><span aria-hidden="true">→</span></span>
-      <div class="flow-node-mini active">Code（讀取資料夾）</div>
+      <div class="flow-node-mini active">Read Files from Disk</div>
       <span class="flow-arr"><span aria-hidden="true">→</span></span>
       <div class="flow-node-mini active">HTTP Request（Gemini）</div>
       <span class="flow-arr"><span aria-hidden="true">→</span></span>
       <div class="flow-node-mini active">Code（格式化）</div>
       <span class="flow-arr"><span aria-hidden="true">→</span></span>
-      <div class="flow-node-mini active">Write Binary File</div>
+      <div class="flow-node-mini active">Write File to Disk</div>
     </div>
   </div>
 
@@ -201,6 +210,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         </tbody>
       </table></div>
       <div class="step-tip"><strong>測試方式：</strong>開發時不需要等到真正的觸發時間——點擊節點上的「Execute step」可以立即手動觸發，跳過等待直接測試後續節點是否正確。</div>
+      <div class="checkpoint"><strong>Checkpoint 1：</strong>Schedule Trigger 的設定畫面顯示每天 17:00，點「Execute step」能讓流程立即產生一筆執行記錄。</div>
     </div>
   </div>
 
@@ -208,26 +218,27 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <div class="step-block">
     <div class="step-circle">2</div>
     <div class="step-content">
-      <div class="step-heading">Code 節點：讀取資料夾並合併所有文件內容</div>
-      <div class="step-body">新增「Code」節點（Language 選 JavaScript）。這個節點會讀取指定資料夾內所有 .txt 與 .md 文件，將它們的內容合併成單一字串，為後續 AI 摘要做準備。</div>
-      <div class="code-block"><span class="cm">// Code 節點：讀取資料夾所有文件</span>
-<span class="ky">const</span> fs = require(<span class="st">'fs'</span>);
-<span class="ky">const</span> path = require(<span class="st">'path'</span>);
-
-<span class="ky">const</span> folderPath = <span class="st">'/Users/你的名稱/Documents/每日文件'</span>;
+      <div class="step-heading">Read/Write Files from Disk + Code：讀取並合併文字文件</div>
+      <div class="step-body">先下載<a href="../assets/n8n-sample-pack.zip">課程範例檔案包</a>，將 <code>n8n-sample-pack/daily-input/</code> 裡至少一個 <code>.txt</code> 與一個 <code>.md</code> 複製到主機的 <code>n8n-starter-kit/shared/每日文件/</code>。接著新增「Read/Write Files from Disk」，Operation 選「Read File(s) From Disk」，File(s) Selector 填 <code>/files/shared/每日文件/*</code>，Output Binary Field 填 <code>data</code>。這個節點會把每份檔案變成一個 Item；再接 Code 節點，僅用 binary 內容合併 .txt 與 .md，不直接讀取作業系統檔案。</div>
+      <div class="code-block"><span class="cm">// Code 節點：合併讀檔節點輸入（不使用 fs）</span>
+<span class="ky">const</span> items = $input.all();
 <span class="ky">const</span> today = <span class="ky">new</span> Date().toISOString().slice(0, 10);
+<span class="ky">const</span> files = items
+  .filter(item => /\.(txt|md)$/i.test(item.binary?.data?.fileName || <span class="st">''</span>))
+  .map(item => {
+    <span class="ky">const</span> file = item.binary.data;
+    <span class="ky">const</span> name = file.fileName;
+    <span class="ky">const</span> content = Buffer.from(file.data, <span class="st">'base64'</span>).toString(<span class="st">'utf8'</span>);
+    <span class="ky">return</span> <span class="st">'\\n\\n## '</span> + name + <span class="st">'\\n'</span> + content;
+  });
 
-<span class="ky">const</span> files = fs.readdirSync(folderPath)
-  .filter(<span class="vr">f</span> => <span class="vr">f</span>.endsWith(<span class="st">'.txt'</span>) || <span class="vr">f</span>.endsWith(<span class="st">'.md'</span>));
-
-<span class="ky">let</span> combined = <span class="st">''</span>;
-<span class="ky">for</span> (<span class="ky">const</span> file <span class="ky">of</span> files) {
-  <span class="ky">const</span> content = fs.readFileSync(path.join(folderPath, file), <span class="st">'utf-8'</span>);
-  combined += <span class="st">`\n\n## ${file}\n${content}`</span>;
-}
-
-return [{ json: { combined, today, fileCount: files.length } }];</div>
-      <div class="step-tip"><strong>修改路徑：</strong>將 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">/Users/你的名稱/Documents/每日文件</code> 改成你實際要掃描的資料夾路徑。資料夾必須已存在，且裡面有 .txt 或 .md 文件。</div>
+<span class="ky">return</span> [{ json: {
+  combined: files.join(<span class="st">''</span>),
+  today,
+  fileCount: files.length
+} }];</div>
+      <div class="step-tip"><strong>路徑契約：</strong>先在主機的 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">n8n-starter-kit/shared/每日文件/</code> 建立資料夾並放入 .txt 或 .md 文件；Read/Write Files from Disk 節點使用容器路徑 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">/files/shared/每日文件/*</code>。macOS 與 Windows 的節點設定相同，Code node 不需要知道主機作業系統。</div>
+      <div class="checkpoint"><strong>Checkpoint 2：</strong>第一個 Code Output 的 <code>fileCount</code> 等於資料夾內的 .txt／.md 檔案數，<code>combined</code> 內看得到檔名與文字內容。</div>
     </div>
   </div>
 
@@ -236,9 +247,12 @@ return [{ json: { combined, today, fileCount: files.length } }];</div>
     <div class="step-circle">3</div>
     <div class="step-content">
       <div class="step-heading">HTTP Request 節點：呼叫 Gemini API 生成摘要</div>
-      <div class="step-body">新增「HTTP Request」節點，呼叫 Gemini API，將合併後的文件內容傳入，請 AI 生成結構化的每日摘要日報。</div>
-      <div class="code-block"><span class="cm">// URL（替換 YOUR_API_KEY）</span>
-https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=YOUR_API_KEY
+      <div class="step-body">有可用 API key 時，新增「HTTP Request」節點，呼叫 Gemini API，將合併後的文件內容傳入，請 AI 生成每日摘要。API key 放在 Header Auth credential（名稱 <code>x-goog-api-key</code>），URL 不放秘密。沒有 API key 時，新增 Edit Fields 節點，建立 JSON 類型的 <code>candidates</code> 欄位，貼入<a href="../assets/m3-3-ai-output.json" download>固定 AI 回覆</a>，再進入 Step 4。</div>
+      <div class="code-block"><span class="cm">// URL（有 API key 時，不含秘密）</span>
+https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent
+
+<span class="cm">// Header Auth credential</span>
+x-goog-api-key: YOUR_API_KEY
 
 <span class="cm">// Body（JSON 格式）</span>
 {
@@ -248,7 +262,8 @@ https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generat
     }]
   }]
 }</div>
-      <div class="step-tip"><strong>Gemini 免費配額：</strong>免費額度依模型而異且會調整（撰寫時 Flash 系列在較寬的 RPM/RPD 區間，例如 Flash-Lite 曾列每分鐘約 15 RPM 為例）。實際請查 <a href="https://ai.google.dev/gemini-api/docs/rate-limits" target="_blank" rel="noopener">官方 Rate limits 頁面</a> 或 Google AI Studio 內顯示。每天跑一次日報屬低頻，通常不會觸及限制。</div>
+      <div class="step-tip"><strong>服務界線：</strong>Gemini API 的可用額度依模型、帳號與官方方案而異，且可能調整。實際請查 <a href="https://ai.google.dev/gemini-api/docs/rate-limits" target="_blank" rel="noopener">官方 Rate limits 頁面</a> 或 Google AI Studio 內顯示；每天跑一次屬低頻，但仍要以執行記錄確認。</div>
+      <div class="checkpoint"><strong>Checkpoint 3：</strong>API 路徑或固定回覆路徑的 Output 都能看到 <code>candidates[0].content.parts[0].text</code>，文字內容可讀且沒有空值。</div>
     </div>
   </div>
 
@@ -272,6 +287,7 @@ https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generat
 
 return [{ json: { report, fileName } }];</div>
       <div class="step-tip"><strong>引用前一個 Code 節點：</strong><code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">$('Code').item.json.today</code> 是用節點名稱引用資料。若你的第一個 Code 節點有自訂名稱，將引號內的名稱替換成實際名稱。</div>
+      <div class="checkpoint"><strong>Checkpoint 4：</strong>第二個 Code Output 有 <code>report</code>、<code>fileName</code>，並在內容開頭顯示今天日期；<code>fileCount</code> 與實際檔案數一致。</div>
     </div>
   </div>
 
@@ -279,15 +295,16 @@ return [{ json: { report, fileName } }];</div>
   <div class="step-block">
     <div class="step-circle">5</div>
     <div class="step-content">
-      <div class="step-heading">Write Binary File：儲存日報到本機</div>
-      <div class="step-body">先新增「Convert to File」節點，把 Markdown 字串轉為二進位（Source Field 選 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">report</code>，Encoding 選 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">UTF-8</code>）。再接「Write Binary File」節點，設定輸出路徑和動態檔名。</div>
-      <div class="code-block"><span class="cm">// Write Binary File 設定</span>
-File Name: /Users/你的名稱/Documents/日報/{{ $json.fileName }}
+      <div class="step-heading">Read/Write Files from Disk：儲存日報到本機</div>
+      <div class="step-body">先新增「Convert to File」節點，把 Markdown 字串轉為二進位（Source Field 選 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">report</code>，Encoding 選 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">UTF-8</code>）。再新增「Read/Write Files from Disk」，Operation 選「Write File to Disk」，設定輸出路徑和動態檔名。</div>
+      <div class="code-block"><span class="cm">// Write File to Disk 設定</span>
+File Name: /files/shared/日報/{{ $json.fileName }}
 Data:      data（Convert to File 的輸出）</div>
       <div class="callout tip">
         <span class="callout-icon">📁</span>
-        <div class="callout-body"><strong>先建立資料夾：</strong>手動在 Finder 建立「日報」資料夾，n8n 不會自動建立不存在的目錄。日後每天的日報都會以日期命名（如 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">20260415_日報.md</code>）存入此資料夾。</div>
+        <div class="callout-body"><strong>先建立資料夾：</strong>在主機的 starter kit <code>shared/</code> 裡建立「日報」資料夾（macOS 用 Finder，Windows 用檔案總管）。n8n 不會自動建立不存在的目錄；節點使用 <code>/files/shared/日報/</code>。日後每天的日報都會以日期命名（如 <code style="font-family:monospace;background:#edeae3;padding:1px 5px;border-radius:3px;">20260415_日報.md</code>）存入此資料夾。</div>
       </div>
+      <div class="checkpoint"><strong>Checkpoint 5：</strong>Convert to File Output 出現 <code>data</code> binary，Write File to Disk 執行後，主機的 <code>shared/日報/</code> 能看到同名 Markdown 檔。</div>
     </div>
   </div>
 
@@ -312,12 +329,12 @@ Data:      data（Convert to File 的輸出）</div>
   <div class="troubleshoot">
     <div class="ts-label">常見問題 · TROUBLESHOOT</div>
     <div class="ts-item">
-      <div class="ts-q">Code 節點報錯：ENOENT no such file or directory</div>
-      <div class="ts-a">資料夾路徑不存在。確認 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">folderPath</code> 中的路徑在 Finder 中確實存在，且路徑格式使用正斜線 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">/</code>（不是反斜線）。Mac 用戶路徑通常以 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">/Users/你的帳號名稱/</code> 開頭。</div>
+      <div class="ts-q">Read/Write Files from Disk 報錯：ENOENT no such file or directory</div>
+      <div class="ts-a">資料夾路徑不存在。先在主機的 starter kit <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">shared/每日文件/</code> 建立資料夾，再確認讀檔節點使用容器路徑 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">/files/shared/每日文件/*</code>。不要把 Finder／檔案總管的主機路徑貼進節點。</div>
     </div>
     <div class="ts-item">
       <div class="ts-q">Code 節點回傳 fileCount 為 0，AI 摘要內容空白</div>
-      <div class="ts-a">資料夾存在但沒有 .txt 或 .md 文件。確認掃描的資料夾中有至少一個文字文件。Word 文件（.docx）和 PDF 不在預設掃描範圍，若要掃描其他格式，修改 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">.filter()</code> 中的副檔名條件。</div>
+      <div class="ts-a">讀檔節點沒有找到 .txt 或 .md 文件。確認主機資料夾中至少有一個文字文件，且 File(s) Selector 使用 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">/files/shared/每日文件/*</code>。Word 文件（.docx）和 PDF 不在本頁的預設掃描範圍。</div>
     </div>
     <div class="ts-item">
       <div class="ts-q">Schedule Trigger 設定好後沒有在指定時間執行</div>
@@ -344,7 +361,7 @@ Data:      data（Convert to File 的輸出）</div>
   <a href="module4.html" class="nav-btn primary">前往 Module 4 <span aria-hidden="true">→</span></a>
 </div>
 
-<footer class="footer" data-platform-version="2026-04-v3">
+<footer class="footer" data-platform-version="Docker Desktop / n8n 2.37.7" data-built-at="2026-09-03">
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">淡江大學 · 生成式AI工作坊</span>

@@ -1,6 +1,6 @@
 # Workflows · n8n 預製演練 workflow JSON
 
-《AI 資料工廠》課程各 Module 的可匯入 workflow JSON。學員卡關時可拿這裡的標準範本對照、或直接匯入跑一遍當作 baseline。
+《AI 資料工廠》課程各 Module 的 workflow 資產索引。只有標示為已驗證的檔案才能當作 baseline；草稿與待補項目必須先依狀態欄和講義限制執行人工驗證。
 
 ## 命名規則
 
@@ -11,7 +11,7 @@ m{module}-{topic}-{purpose}.json
 範例：
 - `m1-webhook-hello-world.json`
 - `m2-reference-practice.json`
-- `m3-folder-watch-demo.json`
+- `m3-folder-watch-demo.json`（延伸；需依目標版本驗證）
 - `m3-ai-rename-demo.json`
 - `m4-google-form-to-n8n-demo.json`
 
@@ -21,9 +21,10 @@ m{module}-{topic}-{purpose}.json
 |---------------|---------|------|------|
 | `m1-webhook-hello-world.json` | `m1-1-launch.html` | 第一個能跑通的 webhook | 待補 |
 | `m2-reference-practice.json` | `m2-1-reference.html` | 節點間欄位引用練習 | 待補 |
-| `m3-folder-watch-demo.json` | `m3-1-watch.html` | Watch Folder 觸發 | 待補 |
+| `m3-folder-watch-demo.json` | `m3-1-watch.html` | 即時監控節點延伸示範（需依版本驗證；不屬於目前 Manual Trigger 基線） | 待補 |
 | `m3-ai-rename-demo.json` | `m3-2-rename.html` | Gemini PDF 改名 | 待補 |
 | `m4-google-form-to-n8n-demo.json` | `m4-1-remote.html` | Form → Webhook → n8n | 待補 |
+| `m4-bridge-contract-fixture.json` | `personal-automation` BRIDGE-1 | Make 契約 → n8n Webhook；A／B／C 固定 fixture 分流 | ⚠️ **草稿候選，待學員匯入驗證** |
 | `m4-4-ai-secretary-migration.json` | `m4-4-ai-secretary-migration.html` | Make AI 秘書 → n8n 完整重建（11 節點 / 4 路分發 / 含 Continue On Fail） | ✅ **範本已建（experimental，待學員匯入驗證）** |
 
 > M4-4 範本基於 Codex L3 兩輪審核（CALL_ID 63c0b5f7 / 348da75a）設計；匯入後需重新指定所有 credentials + 修改個人化欄位（Telegram chatId / Gmail 收件人 / ntfy topic / Drive folderId）後才能跑。詳見講義頁與 `_lessons/n8n/m4-4-ai-secretary-migration.md` 教案。

@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>3.1 副檔名過濾設定｜AI 資料工廠</title>
-<meta name="description" content="Watch Folder 會監控資料夾內的所有變化。加入副檔名過濾，確保只有 .pdf、.xlsx 等指定格式的檔案才會觸發流程，避免雜訊干擾。">
+<meta name="description" content="在讀檔後加入副檔名過濾，確保只有指定格式的檔案進入後續節點，避免格式不符造成錯誤。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
 <meta property="og:title" content="3.1 副檔名過濾設定｜AI 資料工廠">
-<meta property="og:description" content="Watch Folder 會監控資料夾內的所有變化。加入副檔名過濾，確保只有 .pdf、.xlsx 等指定格式的檔案才會觸發流程，避免雜訊干擾。">
+<meta property="og:description" content="在讀檔後加入副檔名過濾，確保只有指定格式的檔案進入後續節點，避免格式不符造成錯誤。">
 <meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/lessons/m3-1-filter.html">
 <meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="3.1 副檔名過濾設定｜AI 資料工廠">
-<meta name="twitter:description" content="Watch Folder 會監控資料夾內的所有變化。加入副檔名過濾，確保只有 .pdf、.xlsx 等指定格式的檔案才會觸發流程，避免雜訊干擾。">
+<meta name="twitter:description" content="在讀檔後加入副檔名過濾，確保只有指定格式的檔案進入後續節點，避免格式不符造成錯誤。">
 <meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/lessons/m3-1-filter.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -121,7 +121,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <span class="hero-num">SECTION 3.1 · 延伸實作</span>
   </div>
   <h1 class="step-title">副檔名過濾：只處理目標格式</h1>
-  <p class="step-subtitle">Watch Folder 會監控資料夾內的所有變化。加入副檔名過濾，確保只有 .pdf、.xlsx 等指定格式的檔案才會觸發流程，避免雜訊干擾。</p>
+  <p class="step-subtitle">上一頁已確認讀檔節點能產生 binary Item；本頁把檔名當成安全邊界，確保只有指定格式進入後續流程。自動監控觸發器屬於延伸，先不影響這條可重跑的基線。</p>
   <div class="meta-bar">
     <div class="meta-item"><span>⏱</span><span>預估時間：15 分鐘</span></div>
     <div class="meta-item"><span>📋</span><span>3 個步驟</span></div>
@@ -133,11 +133,11 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <div class="step-block">
     <div class="step-num-col"><div class="step-circle">1</div></div>
     <div class="step-content">
-      <div class="step-label">Watch Folder 節點的內建過濾設定</div>
-      <p class="step-desc">Watch Folder 節點本身有一個「Ignore Files Matching」設定（在節點設定的 Options 區塊），可以用 glob pattern 排除不需要的檔案。但這是「排除」邏輯，而非「只接受」邏輯。更直覺的做法是在後面接 If 節點做「允許名單」過濾。</p>
+      <div class="step-label">先理解 selector 與 If 的分工</div>
+      <p class="step-desc">Read/Write Files from Disk 的 File(s) Selector 可以先縮小讀取範圍，例如 <code>/files/shared/待處理PDF/*.pdf</code>；If 節點則在資料已讀入後再次檢查檔名。前者減少不必要的輸入，後者保護下游節點，兩道檢查的目的不同。</p>
       <div class="step-tip info">
         <span class="tip-icon">💡</span>
-        <span class="tip-text">Watch Folder 觸發時，輸出的 <span class="ic">$json.name</span> 是完整檔名（如 <span class="ic">發票_20260414.pdf</span>），<span class="ic">$json.type</span> 是事件類型（如 <span class="ic">change</span> 或 <span class="ic">rename</span>）。</span>
+        <span class="tip-text">本課基線由讀檔節點產生 binary Item；檔名請從 <span class="ic">$binary.data.fileName</span> 讀取。不要沿用其他觸發器可能提供的 <span class="ic">$json.name</span> 或 <span class="ic">$json.type</span>，除非你已在 Output 面板確認該版本真的有這些欄位。</span>
       </div>
     </div>
   </div>
@@ -146,18 +146,18 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="step-num-col"><div class="step-circle">2</div></div>
     <div class="step-content">
       <div class="step-label">用 If 節點過濾副檔名</div>
-      <p class="step-desc">Watch Folder 後面接 If 節點，用 Expression 讀取檔名並判斷副檔名。符合的往 True 分支繼續處理，不符合的往 False 分支（可接一個 No Operation 節點讓它靜默結束）。</p>
+      <p class="step-desc">在 Read/Write Files from Disk 後接 If 節點，用 Expression 讀取 binary 檔名並判斷副檔名。符合的往 True 分支繼續處理，不符合的往 False 分支（可接 No Operation 節點讓它明確結束）。</p>
       <div class="code-block"><span class="cm">// If 節點的條件設定（Expression 模式）</span>
 
 <span class="cm">// 方法一：直接用 endsWith 判斷副檔名</span>
-<span class="cm">// 條件：$json.name 結尾包含 .pdf</span>
-<span class="expr">{{ $json.name.toLowerCase().endsWith('.pdf') }}</span>
+<span class="cm">// 條件：$binary.data.fileName 結尾包含 .pdf</span>
+<span class="expr">{{ $binary.data.fileName.toLowerCase().endsWith('.pdf') }}</span>
 
 <span class="cm">// 方法二：用 includes 判斷多個副檔名（OR 條件）</span>
-<span class="expr">{{ ['.pdf', '.xlsx', '.docx'].some(ext => $json.name.toLowerCase().endsWith(ext)) }}</span>
+<span class="expr">{{ ['.pdf', '.xlsx', '.docx'].some(ext => $binary.data.fileName.toLowerCase().endsWith(ext)) }}</span>
 
 <span class="cm">// 方法三：用正規表達式（更彈性）</span>
-<span class="expr">{{ /\.(pdf|xlsx|docx|txt|md)$/i.test($json.name) }}</span></div>
+<span class="expr">{{ /\.(pdf|xlsx|docx|txt|md)$/i.test($binary.data.fileName) }}</span></div>
       <div class="step-tip success">
         <span class="tip-icon">✅</span>
         <span class="tip-text"><strong>建議用方法三：</strong>正規表達式最彈性，<span class="ic">i</span> flag 讓大小寫不敏感（.PDF 和 .pdf 都過）。把副檔名列在括號內，新增格式只要加一個 <span class="ic">|xxx</span> 即可。</span>
@@ -176,11 +176,11 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <tr><td>所有 Excel 格式</td><td><span class="ic">/\.(xlsx|xls|csv)$/i</span></td></tr>
         <tr><td>圖片類</td><td><span class="ic">/\.(jpg|jpeg|png|gif|webp)$/i</span></td></tr>
         <tr><td>文字類（含 Markdown）</td><td><span class="ic">/\.(txt|md|markdown)$/i</span></td></tr>
-        <tr><td>排除暫存檔（~ 開頭）</td><td>If 節點加一條 NOT 條件：<span class="ic">!$json.name.startsWith('~')</span></td></tr>
+        <tr><td>排除暫存檔（~ 開頭）</td><td>If 節點加一條 NOT 條件：<span class="ic">!$binary.data.fileName.startsWith('~')</span></td></tr>
       </table></div>
       <div class="step-tip info">
         <span class="tip-icon">💡</span>
-        <span class="tip-text"><strong>排除 macOS 隱藏檔：</strong>macOS 有時會在資料夾產生 <span class="ic">.DS_Store</span> 或 <span class="ic">._filename</span> 等隱藏檔。在過濾條件中加入 <span class="ic">!$json.name.startsWith('.')</span> 可一次排除所有點開頭的隱藏檔。</span>
+        <span class="tip-text"><strong>排除 macOS 隱藏檔：</strong>macOS 有時會在資料夾產生 <span class="ic">.DS_Store</span> 或 <span class="ic">._filename</span> 等隱藏檔。在過濾條件中加入 <span class="ic">!$binary.data.fileName.startsWith('.')</span> 可一次排除所有點開頭的隱藏檔。</span>
       </div>
     </div>
   </div>
@@ -201,7 +201,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <a href="m3-2-rename.html" class="nav-btn primary">3.2 PDF 批次改名 <span aria-hidden="true">→</span></a>
 </div>
 
-<footer class="footer" data-platform-version="2026-04-v3">
+<footer class="footer" data-platform-version="Docker Desktop / n8n 2.37.7" data-built-at="2026-09-03">
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">淡江大學 · 生成式AI工作坊</span>

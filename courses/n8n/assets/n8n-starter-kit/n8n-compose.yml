@@ -24,9 +24,10 @@ services:
 
   # ---- n8n：自動化主程式 ----
   # 鎖到具體 patch 版本以確保課程可重現性。Docker Hub 沒有 minor-only tag，必要時手動升級此處。
-  # 課程測試版本：n8n 2.17.8（2026-04 stable，與課程教材撰寫版本一致）
+  # 課程測試版本：n8n 2.37.7（2026-09-03 在 macOS Docker Desktop candidate 驗證）
+  # Windows 與 macOS 都使用同一個 image；請勿把主機路徑直接填進 n8n 節點。
   n8n:
-    image: n8nio/n8n:2.17.8
+    image: n8nio/n8n:2.37.7
     restart: unless-stopped
     ports:
       # 安全：v1.0.1 起綁 127.0.0.1（僅本機可連）。
@@ -47,7 +48,7 @@ services:
       - TZ=${GENERIC_TIMEZONE:-Asia/Taipei}
 
       # Webhook 對外 URL（搭 Cloudflare Tunnel 後改填外部網址）
-      - WEBHOOK_URL=${WEBHOOK_URL:-http://localhost:5678/}
+      - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL:-http://localhost:5678/}
       - N8N_HOST=${N8N_HOST:-localhost}
       - N8N_PORT=5678
       - N8N_PROTOCOL=${N8N_PROTOCOL:-http}
@@ -63,30 +64,28 @@ services:
       - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER:-}
       - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD:-}
 
-      # 2026 推薦：啟用 task runners（執行更穩、隔離 workflow code）
-      - N8N_RUNNERS_ENABLED=true
-
       # 抑制 deprecation 警告
       - N8N_DIAGNOSTICS_ENABLED=false
 
-      # 連發 #14：放開 /files/shared 給 Read/Write Files、Local File Trigger 等節點存取
+      # 連發 #14：放開 /files/shared 給 Read/Write Files；即時監控節點若要使用，仍需依版本驗證
       # n8n 2.x 預設只允許 /home/node/.n8n-files，沒這兩條 Read PDF 會 "Access to file is not allowed"
       - N8N_RESTRICT_FILE_ACCESS_TO=/files/shared
-      - N8N_BLOCK_FILE_ACCESS_TO_N8N_FILES=false
+      - N8N_BLOCK_FILE_ACCESS_TO_N8N_FILES=true
 
       # Lite Pack v1.3：Code node 透過 $env.GEMINI_API_KEY 讀 key（避開字串替換洩漏路徑）
       # 1) 必須開放 Code node 讀 env（n8n v2 預設封鎖，要關才能讀 $env）
       # 2) GEMINI_API_KEY 從 host .env 經 compose pass-through 進容器；setup-wizard 自動填
-      # 內部 task runner（N8N_RUNNERS_ENABLED=true，預設 internal mode）繼承 main process env，
-      # 不需要額外設定；若改 external runner 才需要另外傳 env。
+      # 目前課程只使用 JavaScript Code node；2.x 會自動啟用 JS runner。
+      # 若日後加入 Python 或 external runner，必須另做版本與環境驗證。
       - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
     volumes:
       # n8n 設定 + workflows + credentials（持久化於 Docker volume）
       - n8n_data:/home/node/.n8n
 
-      # 本機資料夾掛載：主機 ./shared 對應容器內 /files/shared
-      # 這條為 Module 3 Watch Folder 鋪路 — 把檔案丟進 shared/ 就會被 n8n 看到
+      # 跨平台本機資料夾掛載：主機 ./shared 對應容器內 /files/shared
+      # n8n 節點與 Code node 一律填 /files/shared/...；Finder／檔案總管才使用主機路徑。
+      # 這條為 Module 3 檔案處理基線鋪路 — 把測試檔放進 shared/ 後，由流程按 Execute 讀取
       - ./shared:/files/shared
     depends_on:
       postgres:

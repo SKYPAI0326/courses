@@ -527,7 +527,7 @@ const text = Buffer.from(binaryData, 'base64').toString('utf8');
 為了讓 code 更可讀，我建議：
 - pdfText 改名為 fileContent（更通用）
 - 把 binary 解 utf8 抽成 helper 函式
-- 加一段檢查 binary 編碼（萬一不是 utf8 而是 big5）
+- 加一段檢查 binary 編碼（確認 utf8 或 big5）
 ```
 
 **辨認訊號**：
@@ -844,7 +844,7 @@ const text = Buffer.from(binaryData, 'base64').toString('utf8');
 
 ### 9.3 為什麼把「業務規則層不動」當核心觀念（取代舊口號「Extract 策略 ≠ 業務邏輯」）
 
-**根因**：商業學員第一次用 LLM 改 workflow，最常踩的不是「LLM 改錯」而是「LLM 改太多」。看 ch5 紅線 2 + ch6 walkthrough Step 6 都在處理同個問題的不同面向。本章是這個 mental model 的第三個應用場景：「跨格式」這種看起來很大的改造，實際上只動 2-3 個欄位 — 學員一旦把這條觀念內化，後續任何「我要改 X」的對話都能控制 LLM 不擴張。
+**根因**：商業學員第一次用 LLM 改 workflow，最常踩的風險是「LLM 改太多」。看 ch5 紅線 2 + ch6 walkthrough Step 6 都在處理同個問題的不同面向。本章是這個 mental model 的第三個應用場景：「跨格式」這種看起來很大的改造，實際上只動 2-3 個欄位 — 學員一旦把這條觀念內化，後續任何「我要改 X」的對話都能控制 LLM 不擴張。
 
 **為什麼用「業務規則層不動」取代「Extract 策略 ≠ 業務邏輯」**：舊口號的問題是學員會以為「Code 節點業務邏輯段完全不能動」，但實際 9-C / 9-D 都會動 1-2 行 binary 取值（屬於 Extract/Decode 層滲入 Code 節點）。新口號用 4 層分層精確定位：「業務規則 = prompt 目標 + newFilename 拼接 + Write fileName 表達式」，這 3 件事永遠不動，其他 3 層按格式需要動。
 

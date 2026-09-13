@@ -136,41 +136,25 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="step-num-col"><div class="step-circle">1</div></div>
     <div class="step-content">
       <div class="step-label">讀取不同格式的檔案</div>
-      <p class="step-desc">純文字（.txt/.md）直接用 <span class="ic">fs.readFileSync</span> 讀取即可。PDF 和 Excel 需要額外轉換：PDF 要讀成 base64 傳給 Gemini Vision；Excel（.xlsx）要先轉換成表格文字。</p>
-      <div class="code-block"><span class="cm">// 修改後的 Code 節點：支援多格式</span>
-const fs = require('fs');
-const path = require('path');
-
-const folderPath = <span class="str">'/Users/你的名稱/Documents/每日文件'</span>;
+      <p class="step-desc">先用「Read/Write Files from Disk」讀取資料夾，Operation 選「Read File(s) From Disk」，File(s) Selector 填 <span class="ic">/files/shared/每日文件/*</span>，Output Binary Field 填 <span class="ic">data</span>。接著用 Code 節點依副檔名建立 <span class="ic">type</span>；純文字與 CSV 可在 Code 中解碼，PDF 保留 base64 給 Gemini，XLSX 留給後續試算表轉換節點。</p>
+      <div class="code-block"><span class="cm">// Code 節點：依讀檔節點的 binary 建立多格式 metadata（不使用 fs）</span>
+const items = $input.all();
 const today = new Date().toISOString().slice(0, 10);
 
-const files = fs.readdirSync(folderPath)
-  .filter(f => /\.(txt|md|pdf|xlsx|xls|csv)$/i.test(f))
-  .filter(f => !f.startsWith('.'));
+return items.flatMap(item => {
+  const file = item.binary?.data;
+  const fileName = file?.fileName || '';
+  const ext = fileName.toLowerCase().split('.').pop();
+  if (!file?.data || !['txt', 'md', 'pdf', 'xlsx', 'xls', 'csv'].includes(ext)) return [];
 
-const fileData = files.map(fileName => {
-  const filePath = path.join(folderPath, fileName);
-  const ext = path.extname(fileName).toLowerCase();
+  const type = ['txt', 'md'].includes(ext) ? 'text' : ext === 'csv' ? 'csv' : ext === 'pdf' ? 'pdf' : 'xlsx';
+  const content = ['txt', 'md', 'csv'].includes(ext)
+    ? Buffer.from(file.data, 'base64').toString('utf8')
+    : undefined;
 
-  if (['.txt', '.md'].includes(ext)) {
-    <span class="cm">// 純文字：直接讀取</span>
-    const content = fs.readFileSync(filePath, 'utf-8');
-    return { fileName, type: 'text', content, filePath };
-  } else if (ext === '.pdf') {
-    <span class="cm">// PDF：讀成 base64，給 Gemini Vision 辨識</span>
-    const base64 = fs.readFileSync(filePath).toString('base64');
-    return { fileName, type: 'pdf', base64, filePath };
-  } else if (['.xlsx', '.xls', '.csv'].includes(ext)) {
-    <span class="cm">// CSV 可直接讀取；xlsx 需要另外處理（見 Step 2）</span>
-    if (ext === '.csv') {
-      const content = fs.readFileSync(filePath, 'utf-8');
-      return { fileName, type: 'csv', content, filePath };
-    }
-    return { fileName, type: 'xlsx', filePath };
-  }
-});
-
-return fileData.map(f => ({ json: { ...f, today } }));</div>
+  return [{ json: { fileName, type, content, base64: file.data, today }, binary: item.binary }];
+});</div>
+      <div class="step-tip"><strong>路徑契約：</strong>先在主機的 starter kit <code>shared/每日文件/</code> 建立測試資料夾；Read/Write 節點使用 <code>/files/shared/每日文件/*</code>。macOS 與 Windows 的節點設定相同，主機路徑只用於 Finder／檔案總管。</div>
     </div>
   </div>
 
@@ -178,7 +162,7 @@ return fileData.map(f => ({ json: { ...f, today } }));</div>
     <div class="step-num-col"><div class="step-circle">2</div></div>
     <div class="step-content">
       <div class="step-label">用 Switch 節點分流不同格式</div>
-      <p class="step-desc">讀取節點後接 Loop Over Items，每個檔案進入 Loop 後用 Switch 節點根據 <span class="ic">$json.type</span> 分流：text/csv 直接送 Gemini；PDF 先轉 base64 再送 Gemini Vision（支援多模態）；xlsx 用 Read Binary Files + 轉換節點先提取文字。</p>
+      <p class="step-desc">Code 節點後接 Loop Over Items，每個檔案進入 Loop 後用 Switch 節點根據 <span class="ic">$json.type</span> 分流：text/csv 直接送 Gemini；PDF 使用已準備好的 base64 送 Gemini Vision；xlsx 接試算表轉換節點後再摘要。先把每個分支各自跑通，再接回 Done 合併。</p>
       <div class="code-block"><span class="cm">// Switch 節點設定：</span>
 <span class="cm">// 判斷欄位：$json.type</span>
 <span class="cm">// Output 0 條件：Equal to "text" 或 "csv"</span>
@@ -192,8 +176,8 @@ return fileData.map(f => ({ json: { ...f, today } }));</div>
     <span class="ky">"parts"</span>: [
       { <span class="ky">"text"</span>: <span class="str">"請閱讀以下 PDF 文件並提取主要內容摘要（200字以內）："</span> },
       {
-        <span class="ky">"inline_data"</span>: {
-          <span class="ky">"mime_type"</span>: <span class="str">"application/pdf"</span>,
+        <span class="ky">"inlineData"</span>: {
+          <span class="ky">"mimeType"</span>: <span class="str">"application/pdf"</span>,
           <span class="ky">"data"</span>: <span class="str">"{{ $json.base64 }}"</span>
         }
       }
@@ -202,7 +186,7 @@ return fileData.map(f => ({ json: { ...f, today } }));</div>
 }</div>
       <div class="step-tip warning">
         <span class="tip-icon">⚠️</span>
-        <span class="tip-text"><strong>PDF 大小限制：</strong>Gemini API 的 inline_data 方式上限約 20MB。超過的 PDF 需要先分割，或改用 Gemini Files API（先上傳再引用）。工作坊場景下建議測試 PDF 在 5MB 以內。</span>
+        <span class="tip-text"><strong>PDF 大小限制：</strong>Gemini API 的 inlineData 方式上限約 20MB。超過的 PDF 需要先分割，或改用 Gemini Files API（先上傳再引用）。工作坊場景下建議測試 PDF 在 5MB 以內。</span>
       </div>
     </div>
   </div>
@@ -250,7 +234,7 @@ return [{ json: { report, fileName: `${today.replace(/-/g,'')}_日報.md` } }];<
     <div style="font-size:.9rem;color:var(--c-text);line-height:1.95;">
       <div style="margin-bottom:10px;"><strong>情境｜</strong>某電商日報同一份內容產出三版本：HTML 給老闆 mail、Markdown 給 Slack、PDF 給紙本會議。</div>
       <div style="margin-bottom:10px;"><strong>做法｜</strong>同一段 AI 生成的 JSON <span aria-hidden="true">→</span> 三個平行 Set 節點轉不同格式 <span aria-hidden="true">→</span> 三個 output 節點。改 AI prompt 一次三版本同步更新。</div>
-      <div><strong>踩雷｜</strong>Markdown 轉 PDF 不用付費工具——用 <span style="font-family:monospace;background:#edeae3;padding:1px 6px;border-radius:3px;">md-to-pdf</span> npm package 或 HTTP 呼叫 md2pdf.com 免費 API。別為了 PDF 買 DocRaptor。</div>
+      <div><strong>踩雷｜</strong>Markdown 轉 PDF 不一定要採購商用工具——可評估 <span style="font-family:monospace;background:#edeae3;padding:1px 6px;border-radius:3px;">md-to-pdf</span> npm package 或具備可用額度的轉檔 API；課前先確認安裝、授權、流量與輸出品質。</div>
     </div>
   </div>
 
@@ -261,7 +245,7 @@ return [{ json: { report, fileName: `${today.replace(/-/g,'')}_日報.md` } }];<
   <a href="module4.html" class="nav-btn primary">前往 Module 4 <span aria-hidden="true">→</span></a>
 </div>
 
-<footer class="footer" data-platform-version="2026-04-v3">
+<footer class="footer" data-platform-version="Docker Desktop / n8n 2.37.7" data-built-at="2026-09-03">
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">淡江大學 · 生成式AI工作坊</span>

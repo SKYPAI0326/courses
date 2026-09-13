@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>3.1 Watch Folder 節點實作｜AI 資料工廠</title>
-<meta name="description" content="Make 做不到的本機觸發，n8n 輕鬆搞定。只要把檔案丟進資料夾，流程自動啟動。">
+<title>3.1 資料夾檔案處理基線｜AI 資料工廠</title>
+<meta name="description" content="用 Manual Trigger + Read/Write Files from Disk 建立可重現的本機檔案處理基線；即時監控為需依版本驗證的延伸。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
-<meta property="og:title" content="3.1 Watch Folder 節點實作｜AI 資料工廠">
-<meta property="og:description" content="Make 做不到的本機觸發，n8n 輕鬆搞定。只要把檔案丟進資料夾，流程自動啟動。">
+<meta property="og:title" content="3.1 資料夾檔案處理基線｜AI 資料工廠">
+<meta property="og:description" content="用 Manual Trigger + Read/Write Files from Disk 建立可重現的本機檔案處理基線；即時監控為需依版本驗證的延伸。">
 <meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/lessons/m3-1-watch.html">
 <meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="3.1 Watch Folder 節點實作｜AI 資料工廠">
-<meta name="twitter:description" content="Make 做不到的本機觸發，n8n 輕鬆搞定。只要把檔案丟進資料夾，流程自動啟動。">
+<meta name="twitter:title" content="3.1 資料夾檔案處理基線｜AI 資料工廠">
+<meta name="twitter:description" content="用 Manual Trigger + Read/Write Files from Disk 建立可重現的本機檔案處理基線；即時監控為需依版本驗證的延伸。">
 <meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/lessons/m3-1-watch.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -54,6 +54,8 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 .verify-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.25);border-left:4px solid #5a7a5a;border-radius:var(--radius);padding:24px 28px;margin:40px 0}
 .verify-label{font-size:.68rem;color:#5a7a5a;letter-spacing:1.5px;font-weight:500;margin-bottom:10px}
 .verify-text{font-size:.9rem;color:var(--c-text);line-height:1.85}
+.checkpoint{margin:16px 0 0;padding:13px 16px;background:rgba(107,127,163,.08);border:1px solid rgba(107,127,163,.28);border-radius:var(--radius);font-size:.82rem;line-height:1.75;color:var(--c-text)}
+.checkpoint strong{color:var(--c-a4)}
 .troubleshoot{margin:40px 0}
 .ts-label{font-size:.7rem;color:var(--c-muted);letter-spacing:2px;font-weight:500;margin-bottom:16px}
 .ts-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 22px;margin-bottom:10px}
@@ -105,21 +107,28 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <div class="topbar-divider"></div>
   <span class="topbar-sub">AI 資料工廠</span>
   <div class="spacer"></div>
-  <span class="topbar-tag">3.1 Watch Folder</span>
+  <span class="topbar-tag">3.1 資料夾檔案處理</span>
 </header>
 <div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
 
 <div class="page-hero" id="main">
   <a href="module3.html" class="back-link"><span aria-hidden="true">←</span> 返回 Module 3</a>
-  <div class="hero-eyebrow">AUTOMATED MONITORING · 3.1</div>
-  <h1 class="page-title">Watch Folder 節點：讓資料夾成為自動化的觸發器</h1>
-  <p class="page-subtitle">Make 做不到的本機觸發，n8n 輕鬆搞定。只要把檔案丟進資料夾，流程自動啟動。</p>
+  <div class="hero-eyebrow">FILE PROCESSING BASELINE · 3.1</div>
+  <h1 class="page-title">資料夾檔案處理：從可重現的觸發流程開始</h1>
+  <p class="page-subtitle">先用目前版本可重現的 Manual Trigger + Read/Write Files from Disk 建立檔案處理基線，再把同一條流程延伸成自動監控。</p>
 </div>
 
 <div class="context-box">
   <div class="context-inner">
     <div class="context-label">為什麼這很重要 · WHY THIS MATTERS</div>
-    <div class="context-text">Make.com 只能被動等待雲端訊號（如 Gmail 收信、Google Forms 提交），<strong>無法監控你電腦裡的資料夾</strong>。n8n 的 Watch Folder 節點可以——新檔案一落地，流程立刻觸發，完全不需人工介入。這是 自架 n8n 最關鍵的本機優勢。</div>
+    <div class="context-text">Make.com 通常從雲端事件開始；本節先處理另一個問題：如何讓 n8n 讀到 Docker 掛載的資料夾，並只把指定格式交給後續節點。先用 Manual Trigger 驗證資料路徑與檔案欄位，因為這條基線能在課堂立即重跑，也能作為日後接上 Local File Trigger 的比較基準。</div>
+  </div>
+</div>
+
+<div class="context-box" style="margin-top:18px">
+  <div class="context-inner">
+    <div class="context-label">先釐清路徑 · HOST VS CONTAINER</div>
+    <div class="context-text">你會在 Finder／檔案總管建立並放入測試檔；Read/Write Files from Disk 則在 Docker 容器內讀檔。starter kit 已把主機的 <code>shared/</code> 掛到容器的 <code>/files/shared</code>，所以主機只負責放檔，n8n 節點一律填 <code>/files/shared/待處理PDF/*.pdf</code>。macOS 的 <code>~/...</code> 與 Windows 的 <code>%USERPROFILE%\...</code> 只用來找到主機資料夾。</div>
   </div>
 </div>
 
@@ -129,69 +138,77 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <div class="step-block">
     <div class="step-circle">1</div>
     <div class="step-content">
-      <div class="step-heading">新增 Watch Folder 節點並配置監控路徑</div>
-      <div class="step-body">在 n8n 工作流程中，點擊「+」搜尋並新增「Watch Folder」節點。在「Path to Watch」欄位填入你想監控的資料夾完整路徑，設定「Polling Interval」為 5 秒，「Events」選擇「Created」（新檔案建立時觸發）。</div>
-      <div class="code-block">Mac:     /Users/你的名稱/Documents/待處理PDF
-Windows: C:\Users\你的名稱\Documents\待處理PDF</div>
-      <div class="step-tip"><strong>提示：</strong>確保監控資料夾已存在，且 n8n 有讀取該資料夾的權限，否則觸發會靜默失敗。</div>
+      <div class="step-heading">建立資料夾並加入可重跑的觸發器</div>
+      <div class="step-body">先在主機建立輸入資料夾，再回到 n8n 新建 Workflow。點擊「Add first step」搜尋並加入「Manual Trigger」。本節先用手動觸發，是為了把「檔案是否掛載成功」與「之後是否自動觸發」分開檢查；等讀檔基線通過後，再把同一條路徑改接自動觸發器。</div>
+      <div class="code-block"><span class="cm"># Finder／檔案總管：建立並放檔案的位置</span>
+macOS:    ~/n8n-starter-kit/shared/待處理PDF/
+Windows:  %USERPROFILE%\n8n-starter-kit\shared\待處理PDF\
+
+<span class="cm"># 下一個 Read/Write Files from Disk 節點會使用的容器路徑</span>
+/files/shared/待處理PDF/*.pdf</div>
+      <div class="step-tip"><strong>預期結果：</strong>主機上看得到空的 <code>待處理PDF</code> 資料夾；此時 n8n 還不會讀檔，因為我們先確認觸發器可以手動重跑。若節點日後填入 <code>/Users/...</code> 或 <code>C:\Users\...</code>，容器會找不到該路徑。</div>
+      <div class="checkpoint"><strong>Checkpoint 1：</strong>資料夾已在主機建立，Manual Trigger 已出現在畫布上，而且還沒有加入讀檔節點。這三點確認後，才放入測試 PDF。</div>
     </div>
   </div>
 
   <div class="step-block">
     <div class="step-circle">2</div>
     <div class="step-content">
-      <div class="step-heading">啟用流程並測試觸發</div>
-      <div class="step-body">儲存工作流程後，點擊右上角切換鍵將流程設為「Active」（啟用狀態）。然後手動將一個任意檔案（例如 test.txt）拖曳放入監控資料夾，觀察 n8n 介面是否顯示執行記錄。</div>
-      <div class="step-tip"><strong>提示：</strong>每次測試請使用不同的檔名，已觸發過的檔案名稱 n8n 會記住，重複放入不會再次觸發。</div>
+      <div class="step-heading">放入測試檔並手動執行</div>
+      <div class="step-body">先下載<a href="../assets/n8n-sample-pack.zip">課程範例檔案包</a>並解壓，從 <code>n8n-sample-pack/batch-inbox/batch-good-01.pdf</code> 取一份 PDF，改名為 <code>report.pdf</code> 後放入主機的 <code>shared/待處理PDF/</code>。回到 n8n 點 Manual Trigger 的「Execute step」。這一步只確認流程能被啟動；檔案是否真的被讀到，會在下一步由 Read/Write Files from Disk 驗證。</div>
+      <div class="step-tip"><strong>快速檢查：</strong>右側 Executions 出現一筆成功記錄。若沒有記錄，先確認 Workflow 已儲存，再重新按一次 Execute step。</div>
+      <div class="checkpoint"><strong>Checkpoint 2：</strong>你能在 Executions 看到一次成功執行，且主機的 PDF 檔名仍是 <code>report.pdf</code>。這一步只驗證「流程能啟動」，檔案內容留到下一步檢查。</div>
     </div>
   </div>
 
   <div class="step-block">
     <div class="step-circle">3</div>
     <div class="step-content">
-      <div class="step-heading">檢視觸發資料，確認輸出結構</div>
-      <div class="step-body">點擊 Watch Folder 節點查看執行結果。在 Output 面板中，找到觸發事件的 JSON 資料，定位到 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">data.name</code>（檔名）和 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">data.path</code>（完整路徑）兩個關鍵欄位，後續步驟都依賴這兩個值。</div>
-      <div class="code-block">{{ $json.data.name }}   // 檔名，例如：report.pdf
-{{ $json.data.path }}   // 完整路徑，例如：/Users/.../report.pdf</div>
-      <div class="step-tip"><strong>提示：</strong>這兩個欄位是後續所有節點操作檔案的關鍵，務必確認能正確讀到。</div>
+      <div class="step-heading">讀取檔案並確認輸出結構</div>
+      <div class="step-body">在 Manual Trigger 後新增「Read/Write Files from Disk」，Operation 選「Read File(s) From Disk」，File(s) Selector 填入 <code>/files/shared/待處理PDF/*.pdf</code>，Output Binary Field 填 <code>data</code>。執行後點開這個節點的 Output，確認每個 PDF 成為一個 Item，檔名位於 <code>$binary.data.fileName</code>，內容位於 <code>$binary.data.data</code>。</div>
+      <div class="code-block">檔名：{{ $binary.data.fileName }}
+內容：{{ $binary.data.data }}（Base64，先不用閱讀）</div>
+      <div class="step-tip"><strong>這一步的意義：</strong>只要看得到檔名與 binary 欄位，就代表主機資料夾、Docker 掛載與 n8n 讀檔三件事已接起來；後面才值得加入過濾與 AI。</div>
+      <div class="checkpoint"><strong>Checkpoint 3：</strong>Read/Write Files from Disk Output 至少有一個 Item，並同時看到 <code>$binary.data.fileName</code> 與 <code>$binary.data.data</code>。任一欄位缺少時，先停在這裡處理掛載或路徑。</div>
     </div>
   </div>
 
   <div class="step-block">
     <div class="step-circle">4</div>
     <div class="step-content">
-      <div class="step-heading">加入 If 節點，篩選只處理 PDF 檔案</div>
-      <div class="step-body">在 Watch Folder 後面連接一個「If」節點。設定條件：Value 1 填入 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">{{ $json.data.name.endsWith('.pdf') }}</code>，Operation 選「Is True」。這樣只有 PDF 檔案才會進入 True 分支繼續處理。</div>
+      <div class="step-heading">加入 If 節點，保留 PDF</div>
+      <div class="step-body">在 Read/Write Files from Disk 後面接一個 If 節點。Value 1 切換到 Expression，填入 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">{{ $binary.data.fileName.toLowerCase().endsWith('.pdf') }}</code>，Operation 選「Is True」。雖然 selector 已先限制 PDF，這個 If 仍保留作為日後改成多格式輸入時的安全邊界。</div>
       <div class="code-block">// If 節點條件設定
-Value 1:    {{ $json.data.name.endsWith('.pdf') }}
+Value 1:    {{ $binary.data.fileName.toLowerCase().endsWith('.pdf') }}
 Operation:  Is True</div>
       <div class="step-tip"><strong>提示：</strong>使用 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">endsWith()</code> 是判斷副檔名最簡潔有效的方式，注意大小寫（PDF 與 pdf 不同）。</div>
+      <div class="checkpoint"><strong>Checkpoint 4：</strong>用 <code>report.pdf</code> 執行時，If 的 True 分支有一個 Item；把檔案改成 <code>document.txt</code> 再執行時，False 分支有一個 Item。完成後把 selector 改回 <code>*.pdf</code>。</div>
     </div>
   </div>
 
   <div class="step-block">
     <div class="step-circle">5</div>
     <div class="step-content">
-      <div class="step-heading">測試 If 節點過濾效果</div>
-      <div class="step-body">先放入一個 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">document.txt</code>，確認流程在 If 節點停止（走 False 分支，後面沒有連接任何節點即停止）。再放入一個 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">report.pdf</code>，確認流程通過 True 分支正常繼續執行。</div>
-      <div class="step-tip"><strong>提示：</strong>同時確認 If 節點的 False 分支可連接通知節點（如 Send Email），以便知道有非 PDF 檔案被放入。</div>
+      <div class="step-heading">用兩筆資料確認分流</div>
+      <div class="step-body">先把 selector 暫時改成 <code>/files/shared/待處理PDF/*</code>，再放入 <code>document.txt</code> 與 <code>report.pdf</code>，按 Manual Trigger。確認 PDF 走 True、文字檔走 False。測試完成後，把 selector 改回 <code>*.pdf</code>，避免後續 AI 節點收到不支援的格式。</div>
+      <div class="step-tip"><strong>預期結果：</strong>Output 顯示 PDF 有一筆 True Item；TXT 只出現在 False 分支。若兩筆都沒有出現，回到 Step 3 檢查 binary 檔名欄位。</div>
     </div>
   </div>
 
   <div class="verify-box">
     <div class="verify-label">完成驗證 · VERIFY</div>
-    <div class="verify-text">放入 <strong>.pdf</strong> 檔案時，流程能順利通過 If 節點的 True 分支並有執行記錄；放入 <strong>.txt</strong> 或其他類型檔案時，流程在 If 節點停止，不繼續執行後續步驟。兩種情況下執行記錄顯示正常（無紅色錯誤）。</div>
+    <div class="verify-text">你已完成一條可重跑的檔案處理基線：Manual Trigger 能啟動、Read/Write Files from Disk 能在 <code>/files/shared/待處理PDF/*.pdf</code> 讀到 PDF、If 能依 <code>$binary.data.fileName</code> 分流。這條基線會被 3.2 批次改名沿用；自動監控則列為延伸，不在未驗證前當作本課必要條件。</div>
   </div>
 
   <div class="troubleshoot">
     <div class="ts-label">常見問題 · TROUBLESHOOT</div>
     <div class="ts-item">
-      <div class="ts-q">Watch Folder 沒有觸發，放入檔案沒有反應？</div>
-      <div class="ts-a">請先確認流程已切換到「Active」啟用狀態（非 Inactive）。再檢查設定的路徑是否正確（注意 Mac 路徑用 /，Windows 用 \）。可以先點「Test Workflow」強制執行一次，再重新放入檔案測試。</div>
+      <div class="ts-q">Read/Write Files from Disk 沒有讀到檔案？</div>
+      <div class="ts-a">先在主機確認檔案位於 starter kit 的 <code>shared/待處理PDF/</code>，再在節點使用容器路徑 <code>/files/shared/待處理PDF/*.pdf</code>。不要把主機的 <code>~/...</code> 或 <code>%USERPROFILE%\\...</code> 貼進節點。若 Output 仍是 0 items，確認 Docker Desktop 已允許 starter kit 父資料夾，並重新執行 Manual Trigger。</div>
     </div>
     <div class="ts-item">
-      <div class="ts-q">If 節點沒有篩選出 PDF，所有檔案都走 True 分支？</div>
-      <div class="ts-a">請確認 If 節點的 Value 1 表達式輸入正確，且選用 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">Is True</code> 而非 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">Equal</code>。另外注意副檔名大小寫：如果你的 PDF 是大寫 .PDF，改用 <code style="font-family:monospace;font-size:.85em;background:rgba(90,122,90,.1);padding:1px 5px;border-radius:3px;">$json.data.name.toLowerCase().endsWith('.pdf')</code>。</div>
+      <div class="ts-q">If 節點的 True／False 不符合預期？</div>
+      <div class="ts-a">確認 Value 1 是 <code>{{ $binary.data.fileName.toLowerCase().endsWith('.pdf') }}</code>，Operation 是 <code>Is True</code>。若顯示 fileName 不存在，回到 Step 3 查看實際 binary 欄位名稱，不要改成猜測的 <code>$json.data.name</code>。</div>
     </div>
   </div>
 </div>
@@ -200,8 +217,8 @@ Operation:  Is True</div>
     <div style="font-size:.73rem;color:var(--c-a3);letter-spacing:2px;font-weight:600;margin-bottom:14px;">💼 實戰案例</div>
     <div style="font-size:.9rem;color:var(--c-text);line-height:1.95;">
       <div style="margin-bottom:10px;"><strong>情境｜</strong>某設計工作室設『下載資料夾』監控 <span aria-hidden="true">→</span> 偵測到新 PSD 檔 <span aria-hidden="true">→</span> 自動備份到客戶專案雲端空間。</div>
-      <div style="margin-bottom:10px;"><strong>做法｜</strong>Local File Trigger 設定 Watch for file changes + Include subfolders + 過濾 .psd/.ai 副檔名。</div>
-      <div><strong>踩雷｜</strong>Local File Trigger 需要 n8n 能存取本機檔案系統（本課程的 Docker 自架方案有掛載 ./shared）才能用——純雲端部署沒有本機檔案系統。且 Watch 會吃 CPU，同時監控超過 5 個資料夾會卡。</div>
+      <div style="margin-bottom:10px;"><strong>做法｜</strong>先用 Manual Trigger + Read/Write Files from Disk 驗證資料夾與 binary 欄位；若目前版本的節點清單出現 Local File Trigger，再以同一個容器路徑做小範圍替換測試。</div>
+      <div><strong>踩雷｜</strong>自動監控節點的名稱、事件欄位與 Docker 檔案權限會隨版本與部署方式變動。本課先把可重現基線跑通，不把尚未完成 Mac／Windows 實機測試的即時監控當作必過條件。</div>
     </div>
   </div>
 
@@ -210,7 +227,7 @@ Operation:  Is True</div>
   <a href="m3-2-rename.html" class="nav-btn primary">3.2 PDF 批次改名 <span aria-hidden="true">→</span></a>
 </div>
 
-<footer class="footer" data-platform-version="2026-04-v3">
+<footer class="footer" data-platform-version="Docker Desktop / n8n 2.37.7" data-built-at="2026-09-03">
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">淡江大學 · 生成式AI工作坊</span>
