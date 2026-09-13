@@ -177,7 +177,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
     <div class="node-title">Manual Trigger</div>
     <div class="node-meta"><span>manualTrigger v1</span></div>
     <div class="node-body">
-      <p>最簡觸發節點：點下方紫色 Execute workflow 按鈕就會跑。沒任何設定。改造方向：之後可換成 Schedule Trigger（定時跑）/ 版本可用的 Local File Trigger（需先驗證輸出欄位）/ Webhook（外部 POST 觸發）。</p>
+      <p>最簡觸發節點：點下方紫色 Execute workflow 按鈕就會跑。沒任何設定。改造方向：之後可換成 Schedule Trigger（定時跑）/ Local File Trigger（資料夾有新檔自動跑）/ Webhook（外部 POST 觸發）。</p>
     </div>
   </div>
 
@@ -224,7 +224,7 @@ for (let i = 0; i &lt; items.length; i++) {
   let readItem = allReadItems.find(r =&gt; r?.json?.fileName === binFileName)
               || allReadItems[i];
 
-  <span class="cm">// 打 Gemini（3.6 Flash 使用 thinkingLevel: minimal，保留輸出 token）</span>
+  <span class="cm">// 打 Gemini（thinkingBudget: 0 是必須的，2.5 thinking 會吃光 token）</span>
   const response = await this.helpers.httpRequest({
     method: 'POST',
     url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent',
@@ -234,7 +234,7 @@ for (let i = 0; i &lt; items.length; i++) {
       generationConfig: {
         temperature: 0.4,
         maxOutputTokens: 200,
-        thinkingConfig: { thinkingLevel: 'minimal' }  <span class="cm">// ← 這是關鍵</span>
+        thinkingConfig: { thinkingBudget: 0 }  <span class="cm">// ← 這是關鍵</span>
       }
     },
     json: true
@@ -288,13 +288,13 @@ return results;</pre>
 
   <div class="callout key">
     <div class="callout-icon" aria-hidden="true">🚨</div>
-    <div class="callout-body"><strong>連發 #17 的雷：Gemini 3.6 Flash thinking 參數沿用舊版會回 400</strong><br>
-    Gemini 3.6 Flash 會進行最小必要推理。舊版的 <code>thinkingConfig: { thinkingBudget: 0 }</code> 不符合新版參數格式，可能直接回傳 <code>400 INVALID_ARGUMENT</code>；完全移除設定又可能讓思考 token 吃掉輸出額度。新版請使用 <code>thinkingConfig: { thinkingLevel: 'minimal' }</code>，讓抽取與命名保留短而完整的文字回應。</div>
+    <div class="callout-body"><strong>連發 #17 的雷：Gemini 3.6 Flash thinking budget 吃光 maxOutputTokens</strong><br>
+    Gemini 3.6 Flash 是 thinking model — 會先「想」再輸出。thinking tokens 算進總 token quota。如果 maxOutputTokens 設 100，全被 thinking 吃光，真實輸出只剩 3 個字「202」就被切斷（finishReason: MAX_TOKENS）。修法：強制設 <code>thinkingConfig: { thinkingBudget: 0 }</code> 完全禁用 thinking，整個 quota 給輸出。對「抽取 + 命名」這種純格式化任務不需要推理，禁掉就好。</div>
   </div>
 
   <div class="callout tip">
     <div class="callout-icon" aria-hidden="true">⚠️</div>
-    <div class="callout-body"><strong>為什麼設計 6 層 fallback？</strong><br>
+    <div class="callout-body"><strong>為什麼 6 層 fallback 而不是 try/catch 一層</strong>？<br>
     AI 回應有 6 種可能變異：純文字格式對 / 純文字混雜文字 / API 直接掛 / 回應為空 / thinking 吃光 / 回應「我不確定」式廢話。每種都有對應的「次優解」（從 PDF 第一行抓標題、用日期 + 原檔名保底）。一層 try/catch 接住所有情況不夠精準 — 學員看 parseMethod 一眼就知道「現在 AI 處於哪個狀態」做下一步診斷。</div>
   </div>
 
@@ -313,7 +313,7 @@ return results;</pre>
 
   <ol class="mod-list">
     <li><strong>換 prompt 改任務</strong>：把 prompt 從「取檔名」換成「抽取合約金額 / 抽取發票統編 / 抽取發票日期 / 摘要 PDF 三句話」。同個架構可變身為 N 種 PDF 處理 workflow。</li>
-    <li><strong>換 Trigger（延伸）</strong>：先在目標版本確認 Local File Trigger 的節點名稱、權限與輸出，再把 Manual Trigger 換成即時監控；或換成 Schedule（每天凌晨 4:00 自動跑昨天的 PDF）。</li>
+    <li><strong>換 Trigger</strong>：Manual Trigger 換成 Local File Trigger，資料夾有新檔自動跑（n8n 學員 #15 的測試）。或換成 Schedule（每天凌晨 4:00 自動跑昨天的 PDF）。</li>
     <li><strong>串資料庫</strong>：在 Write 節點之後加 PostgreSQL / Notion 節點，記錄每個 PDF 的「原檔名 + 新檔名 + AI 解析方法 + 處理時間」，做歷史紀錄查詢。</li>
     <li><strong>換 AI</strong>：把 jsCode 內 Gemini URL 換成 OpenAI / Anthropic / 你的 local LLM endpoint。Gemini 3.6 Flash 的 thinkingConfig 換成對方對應的 API spec。</li>
     <li><strong>加多語言支援</strong>：偵測 PDF 文字是中/英/日，動態切換 prompt 語言。一個 workflow 處理跨語言文件。</li>

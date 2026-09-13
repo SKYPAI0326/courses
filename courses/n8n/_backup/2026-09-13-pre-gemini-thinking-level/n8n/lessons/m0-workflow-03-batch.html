@@ -180,9 +180,9 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
     <div class="node-title">Code: AI 改名（含 Gemini call）— success 分支</div>
     <div class="node-meta"><span>code v2</span><span>runOnceForAllItems</span><span>v0.9</span></div>
     <div class="node-body">
-      <p><strong>結構跟 #02 幾乎一樣</strong>：jsCode 內部 for loop 處理多份 PDF + 打 Gemini + <code>thinkingLevel: 'minimal'</code> + 從 Read 反查 binary。差別在這條路只接合法 PDF（壞檔已被 Extract error 抽走）。</p>
+      <p><strong>結構跟 #02 幾乎一樣</strong>：jsCode 內部 for loop 處理多份 PDF + 打 Gemini + thinkingBudget 0 + 從 Read 反查 binary。差別在這條路只接合法 PDF（壞檔已被 Extract error 抽走）。</p>
       <p><strong>關鍵差異</strong>：v0.9 的對齊策略 — <code>const binFileName = items[i].binary?.data?.fileName; const readItem = allReadItems.find(r =&gt; r?.json?.fileName === binFileName) || allReadItems[i];</code></p>
-      <p>用 fileName 反查 readItem，避開 pairedItem.item 標 0 的雷。</p>
+      <p>用 fileName 反查 readItem 而不是用 pairedItem.item，避開下方踩過的 pairedItem 標 0 的雷。</p>
     </div>
   </div>
 
@@ -244,7 +244,7 @@ results.push({
 
   <div class="callout tip">
     <div class="callout-icon" aria-hidden="true">⚠️</div>
-    <div class="callout-body"><strong>silent failure 才是最可怕的</strong>：上述 5 個雷多半讓 workflow 表面完成，實際結果卻錯誤——檔名對齊到別人的 binary、success 分支被污染進 fail 分支、4 份 PDF 只處理 1 份。Lite Pack v0.9 在 jsCode 內加 <code>throw new Error('[i=N] No binary. fileName=..., readNames=[...]')</code> 詳細 debug 訊息，當下就能定位是哪個對齊出錯。</div>
+    <div class="callout-body"><strong>silent failure 才是最可怕的</strong>：上述 5 個雷大多不是 workflow 直接炸，而是「跑了但結果錯」— 檔名對齊到別人的 binary、success 分支被污染進 fail 分支、4 份 PDF 只處理 1 份。看似 workflow 通過實則資料錯亂。Lite Pack v0.9 在 jsCode 內加 <code>throw new Error('[i=N] No binary. fileName=..., readNames=[...]')</code> 詳細 debug 訊息，當下就能定位是哪個對齊出錯。</div>
   </div>
 </section>
 

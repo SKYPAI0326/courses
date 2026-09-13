@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>補充章節：銜接本地 LLM（Ollama）｜AI 資料工廠</title>
-<meta name="description" content="把 Lite Pack 14 個 workflow 內的 Gemini API 呼叫評估替換成本機 Ollama（Llama 3 / Gemma / Qwen），降低敏感商務資料送往雲端的範圍。含 Ollama 安裝、jsCode URL 替換、本機 LLM 模型選擇指引。">
+<meta name="description" content="把 Lite Pack 14 個 workflow 內所有 Gemini API 呼叫換成本機 Ollama（Llama 3 / Gemma / Qwen），敏感商務資料完全不離開本機。含 Ollama 安裝、jsCode URL 替換、本機 LLM 模型選擇指引。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
 <meta property="og:title" content="補充章節：銜接本地 LLM｜AI 資料工廠">
@@ -116,7 +116,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
   <a href="m0-workflow-tour.html" class="back-link"><span aria-hidden="true">←</span> 返回工作流總覽</a>
   <div class="hero-eyebrow">M0 · BONUS · LOCAL LLM GUIDE</div>
   <h1 class="lesson-title">補充章節：把 Lite Pack 的 Gemini 換成本機 Ollama</h1>
-  <p class="lesson-tagline">Lite Pack 14 個 workflow 預設用 Gemini API（雲端）。對「處理客戶機密 / 員工資料 / 合約 / 商務戰略」場景，先判斷哪些內容不應送往 Google；這頁教你評估把 AI 呼叫換成本機 Ollama —— Llama 3 / Gemma 2 / Qwen 2.5 等開源模型，降低 prompt 與資料送往外部服務的範圍。是 n8n 自架可提供的資料邊界選項。</p>
+  <p class="lesson-tagline">Lite Pack 14 個 workflow 預設用 Gemini API（雲端），對「處理客戶機密 / 員工資料 / 合約 / 商務戰略」場景，資料離開本機進到 Google 是不能接受的。這頁教你 30 分鐘把所有 AI 呼叫換成本機 Ollama —— Llama 3 / Gemma 2 / Qwen 2.5 等開源模型，<strong>所有 prompt + 資料都不離開你電腦</strong>。是 n8n 自架最關鍵的差異化能力。</p>
   <div class="outcomes">
     <div class="outcomes-label">學習成果</div>
     <div class="outcome-item">能在 Mac / Windows 安裝 Ollama 並下載 Llama 3.2 / Gemma 2 等開源模型</div>
@@ -139,7 +139,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
       <tr><td><strong>客戶 NDA / 合約處理</strong></td><td>合約內容含對方公司機密，丟到 Google AI 違反 NDA</td><td>#02 / #03 / #10</td></tr>
       <tr><td><strong>員工 / 客戶 PII</strong></td><td>含身份證、薪資、客戶聯絡資料，資安規範禁止離開本機</td><td>#11（lead 評分）/ #09（信件分類）</td></tr>
       <tr><td><strong>商務戰略 / 產品路線圖</strong></td><td>競爭情報，丟到 Google 等於告訴 Google 你公司做什麼</td><td>#04（日報）/ #12（知識庫）/ #13（營運快照）</td></tr>
-      <tr><td><strong>純技術 demo / 公開資料</strong></td><td>沒機密 — 可用 Gemini 3.6 Flash；可用額度與條款依模型、帳號與方案</td><td>#06 / #07 / #08（保留雲端）</td></tr>
+      <tr><td><strong>純技術 demo / 公開資料</strong></td><td>沒機密 — 用 Gemini 3.6 Flash 質量更好且免費 tier 夠用</td><td>#06 / #07 / #08（保留雲端）</td></tr>
     </tbody>
   </table>
 
@@ -244,7 +244,7 @@ const response = await this.helpers.httpRequest({
   headers: { 'Content-Type': 'application/json', '<span class="var">x-goog-api-key</span>': GEMINI_API_KEY },
   body: {
     <span class="var">contents</span>: [{ role: 'user', parts: [{ text: prompt }] }],
-    <span class="var">generationConfig</span>: { temperature: 0.4, maxOutputTokens: 200, thinkingConfig: { thinkingLevel: 'minimal' } }
+    <span class="var">generationConfig</span>: { temperature: 0.4, maxOutputTokens: 200, thinkingConfig: { thinkingBudget: 0 } }
   },
   json: true
 });
@@ -316,7 +316,7 @@ done<button class="copy-btn" data-target="cmd-batch">複製</button></div>
       <tr><td>速度</td><td>1-3 秒</td><td>5-30 秒（依模型大小 + RAM）</td></tr>
       <tr><td>質量（中文任務）</td><td>優（接近 GPT-4）</td><td>中（Qwen 2.5 中文表現最好）</td></tr>
       <tr><td>質量（結構化 JSON 輸出）</td><td>非常穩定</td><td>偶爾飄（要加更多 fallback parser）</td></tr>
-      <tr><td>成本</td><td>依方案與用量計算；超過可用額度後按官方價格計</td><td>需估算電費、RAM／儲存折舊與維護時間</td></tr>
+      <tr><td>成本</td><td>免費 tier 通常夠 / 超過後 $/1K tokens</td><td>$0（電費 + RAM 折舊忽略不計）</td></tr>
       <tr><td>隱私</td><td>內容到 Google（Free tier 用於改善 model）</td><td>完全本機，零外傳</td></tr>
       <tr><td>離線可用</td><td>否（要連 Google）</td><td>✅ 飛機上 / 沒網路也能跑</td></tr>
       <tr><td>RAM 占用</td><td>0（雲端）</td><td>運行時 4-48 GB</td></tr>
@@ -374,7 +374,7 @@ if (parseMethod(aiResp) === 'fallback-empty') {
 <section class="lesson-section">
   <div class="section-eyebrow">總結</div>
   <h2 class="section-heading">本地 LLM 是 n8n 自架最關鍵的差異化能力</h2>
-  <p class="body-text">Make / Zapier / 其他 SaaS 自動化工具本身就是雲端服務；n8n 自架在你電腦 / NAS / 私有伺服器上，配合 Ollama 等本地 LLM，可以把部分敏感資料留在可控環境，但仍要檢查 webhook、日誌、備份與其他節點是否會送出內容。</p>
+  <p class="body-text">Make / Zapier / 其他 SaaS 自動化工具都做不到「資料完全不離開本機」，因為他們本身就是雲端服務。n8n 自架在你電腦 / NAS / 私有伺服器上，配合 Ollama 等本地 LLM，能做出真正「敏感資料管線」。</p>
   <p class="body-text">這是承接 Make 的學員應該帶走的核心 mindset 升級：自動化不只是「在 SaaS 之間搬資料」，是「打造自己擁有的資料處理系統」。</p>
 
   <div class="callout info" style="margin-top:24px">
