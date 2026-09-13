@@ -17,6 +17,7 @@
 4. 上次人工驗證已確認檔案與 Telegram；仍需依 C6 原定判準補看 curl 回應與 Code `aiError`。
 5. 本次人工 curl 回應實際為 Telegram API 的 `{"ok":true,"result":...}`，未回傳講義預期的 `{"status":"ok",...}`；原因是 Webhook 使用 `lastNode`，fan-out 後的最後完成節點可能是 Telegram，Set 節點無法保證成為 response。
 6. 附錄仍將 #06 回應節點標為 `set v3.4`，與修正後應使用的 Respond to Webhook 不一致。
+7. 重新打包後 ZIP 的 `setup-wizard.command` 權限為 `0600`，macOS Finder 因此無法執行；原始備份為 `0755`。
 
 ## 風險分級
 
@@ -26,3 +27,4 @@
 | SCOPE | 主要 POST 與 Web UI 分支的節點數範圍不明 | MAJOR |
 | ACCEPTANCE | 雙平台 C6 驗收條件不一致 | MAJOR |
 | RESPONSE_ROUTING | fan-out 使用 `lastNode`，curl 可能收到 Telegram API 回應 | MAJOR |
+| PACKAGE_PERMISSION | macOS 啟動腳本失去 executable bit | BLOCKER |

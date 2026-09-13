@@ -19,6 +19,7 @@
 3. 更新 Mac／Windows C6：四項通過判準統一為 curl 回應、輸出檔、Telegram、Code `aiError`。
 4. 更新 ZIP `_change-log.md`，留下此次 UI 與驗收修正紀錄。
 5. 修正 #06 回應路由：Webhook 改用 `responseNode`，將原 Set 節點改為 Respond to Webhook，讓 fan-out 同時執行時仍固定回傳 `{"status":"ok",...}`，並同步更新網頁節點說明。
+6. 重新封裝 ZIP 時保留 Unix 檔案模式，確保 macOS `setup-wizard.command` 為 `0755` 可執行。
 
 ## 驗證
 

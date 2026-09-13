@@ -8,6 +8,7 @@
   - 明確區分 5 個 POST 主路徑節點與 3 個 GET Web UI 節點。
   - 統一本機測試的回應、輸出檔、Telegram、`aiError` 四項驗收條件。
   - 修正 fan-out 回應路由：Webhook 改用 `responseNode`，由 Respond to Webhook 固定回傳 `status/question/answer`。
+  - 恢復 `setup-wizard.command` 的 Unix `0755` 執行權限，修正 macOS Finder 顯示無法執行的問題。
 - `n8n/lessons/m0-workflow-06-webhook-ai.html`
   - 標示 5 POST NODES + 3 UI NODES。
   - 補上 Web UI 分支的入口、方法與驗收邊界。
@@ -26,6 +27,7 @@
 - ZIP integrity：通過；`unzip -t` 無錯誤。
 - workflow JSON：通過；14 個 workflow JSON 可解析，#06 有 8 個可執行節點（另含 1 個 sticky note）。
 - response routing：通過靜態檢查；#06 Webhook 為 `responseNode`，Respond 節點為 `respondToWebhook` v1.1，回應內容含 `status/question/answer`。
+- package permissions：通過；`setup-wizard.command` 為 `0755`，`.bat`／`.ps1` 保持 Windows 腳本格式。
 - restore script：通過；`bash -n`。
 - `git diff --check`：通過。
 - targeted lint：通過；3 頁 BLOCKER 0、ERROR 0。
@@ -37,6 +39,7 @@
 
 - 學員下次匯入或重新下載 Lite Pack 後，需再次確認 #06 sticky note 顯示新版等待文案。
 - 重新匯入修正版 #06 後，需再次執行 curl，確認回應由 Telegram API JSON 改為 `{"status":"ok",...}`。
+- 重新下載 ZIP 後，macOS 需確認 Finder 可直接開啟 `setup-wizard.command`；若系統仍攔截，依安裝頁的 Gatekeeper 步驟處理。
 - 既有 n8n 工作區已匯入的 workflow 不需重裝；若要更新 sticky note，重新匯入修正版 #06 即可。
 
 ## Restore
