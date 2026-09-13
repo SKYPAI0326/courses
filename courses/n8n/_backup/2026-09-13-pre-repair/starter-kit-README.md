@@ -12,16 +12,16 @@
 
 ### 第一次啟動
 
-1. 從課程網頁下載 `n8n-starter-kit.zip`，解壓到方便管理位置（本課程範例使用 macOS `~/Downloads/n8n-starter-kit/`；Windows `%USERPROFILE%\Downloads\n8n-starter-kit\`，放在其他位置也可以）
+1. 從課程網頁下載 `n8n-starter-kit.zip`，解壓到方便管理位置（macOS 可用 `~/n8n-starter-kit/`；Windows 可用 `%USERPROFILE%\n8n-starter-kit\`）
 2. 先安裝 **Docker Desktop** 並確認已啟動（左上角應看到鯨魚圖示）
    - Mac：<https://www.docker.com/products/docker-desktop/>（依 Intel / Apple Silicon 下載對應版本）
    - Win：同網址；安裝完需啟用 WSL2（Docker Desktop 安裝精靈會引導）
-3. **macOS 若被 Gatekeeper 阻擋（一次性）**：先依課程頁面的圖形介面步驟按「強制打開」。若要使用命令列備援，先切到實際放有腳本的資料夾，再跑下列兩行：
+3. **macOS 解壓後必做（一次性）**：開「終端機」→ `cd ~/n8n-starter-kit/` → 跑下列兩行解開瀏覽器下載的執行限制：
    ```bash
-   chmod +x start.command stop.command update.command tunnel-quick.command
-   xattr -d com.apple.quarantine start.command stop.command update.command tunnel-quick.command 2>/dev/null || true
+   chmod +x start.command stop.command update.command
+   xattr -d com.apple.quarantine start.command stop.command update.command 2>/dev/null || true
    ```
-   Windows `.bat` 不需要這步；若被 SmartScreen 擋，依課程頁面按「更多資訊 → 仍要執行」。
+   不跑這兩行的話，雙擊 `.command` 會跳「無法打開」或「找不到應用」。Windows .bat 不需要這步。
 4. 雙擊 `start.command`（Mac）或 `start.bat`（Windows）
 5. 第一次會自動把 `.env.example` 複製為 `.env` 並打開讓你編輯，**請改 `POSTGRES_PASSWORD`** 為強密碼後存檔
 6. 再次雙擊 `start.command` / `start.bat`，等約 30 秒（首次需下載 image，可能花 1-5 分鐘）
@@ -54,12 +54,12 @@ Docker 會把 starter kit 裡的 `shared/` 掛載到 n8n 容器的 `/files/share
 
 | 位置 | macOS | Windows | 用在哪裡 |
 |---|---|---|---|
-| 主機資料夾（Finder／檔案總管） | `~/Downloads/n8n-starter-kit/shared/待處理PDF/` | `%USERPROFILE%\Downloads\n8n-starter-kit\shared\待處理PDF\` | 建立資料夾、拖入測試檔 |
+| 主機資料夾（Finder／檔案總管） | `~/n8n-starter-kit/shared/待處理PDF/` | `%USERPROFILE%\n8n-starter-kit\shared\待處理PDF\` | 建立資料夾、拖入測試檔 |
 | n8n 容器路徑（節點／Code node） | `/files/shared/待處理PDF/` | `/files/shared/待處理PDF/` | Read/Write File、Code node；即時監控節點若啟用也使用此容器路徑 |
 
 只要操作發生在 n8n 畫面或 Code node，就使用第二列的 `/files/shared/...`。不要把 `/Users/...` 或 `C:\Users\...` 貼進節點；那是主機的 Finder／檔案總管路徑，容器看不到。第一次測試前，先在主機建立 `shared/待處理PDF/`，再在 n8n 節點填 `/files/shared/待處理PDF/`。
 
-Starter Kit 同時限制 n8n 只能讀寫 `/files/shared`，並阻擋對 n8n 內部設定檔的檔案存取；如果你把資料夾放在 `shared/` 以外，流程會被拒絕，這是安全設計，與路徑格式無關。
+Starter Kit 同時限制 n8n 只能讀寫 `/files/shared`，並阻擋對 n8n 內部設定檔的檔案存取；如果你把資料夾放在 `shared/` 以外，流程會被拒絕，這是安全設計而不是路徑格式錯誤。
 
 ## Mac 第一次執行 .command 被擋怎麼辦
 
@@ -74,9 +74,9 @@ Starter Kit 同時限制 n8n 只能讀寫 `/files/shared`，並阻擋對 n8n 內
 
 去課程 **1.1.3 排錯手冊頁**，或先切到本資料夾，再在對應的命令列執行以下三行貼給講師：
 
-macOS 終端機：`cd ~/Downloads/n8n-starter-kit`
+macOS 終端機：`cd ~/n8n-starter-kit`
 
-Windows PowerShell：`Set-Location "$env:USERPROFILE\Downloads\n8n-starter-kit"`
+Windows PowerShell：`Set-Location "$env:USERPROFILE\n8n-starter-kit"`
 
 若解壓在其他位置，請改用你實際放置 `n8n-compose.yml` 的資料夾。
 
