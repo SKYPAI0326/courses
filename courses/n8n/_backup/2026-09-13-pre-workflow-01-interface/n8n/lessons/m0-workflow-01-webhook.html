@@ -135,13 +135,13 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div class="page-hero">
   <a href="m0-workflow-tour.html" class="back-link"><span aria-hidden="true">←</span> 返回工作流總覽</a>
   <div class="hero-eyebrow">#01 · WEBHOOK HELLO-WORLD · 2 NODES · 基礎</div>
-  <h1 class="lesson-title">最簡 webhook 鏈：外部 GET → 接收 → 回傳 JSON</h1>
-  <p class="lesson-tagline">這個 2 節點、零 AI、零外部依賴的基線，直接對應 Lite Pack #01。你會先用瀏覽器送出 GET 測試請求，再看 Webhook 如何交給 Set 組合 JSON，最後確認 Test URL 與 Production URL 的用途。後續 #06／#07 的 webhook 流程都沿用這個結構。</p>
+  <h1 class="lesson-title">最簡 webhook 鏈：外部 POST → 接收 → 即時回傳</h1>
+  <p class="lesson-tagline">2 節點、零 AI、零外部依賴的最小 webhook workflow。學會這個就能理解 n8n 三件套：Trigger 節點怎麼接收外部訊號 / 如何用 Expression 引用 Trigger 資料 / 如何用 Respond 回給 caller。所有 webhook-driven workflow（#06 / #07）都建立在這個 pattern 上。</p>
   <div class="outcomes">
     <div class="outcomes-label">學習成果</div>
-    <div class="outcome-item">能辨識 Lite Pack #01 的 Webhook 設定：GET、Path <span class="ic">lite-hello</span>、Test／Production URL</div>
-    <div class="outcome-item">能從畫布下方的 <span class="ic">Execute workflow</span> 啟動測試，並用瀏覽器取得 JSON 回應</div>
-    <div class="outcome-item">能讀懂 Set 節點的三個欄位與 Expression，確認輸出內容與來源</div>
+    <div class="outcome-item">能設定 Webhook 節點接收 GET / POST 請求並用 Test URL / Production URL</div>
+    <div class="outcome-item">能用 Expression <span class="ic">{{ $json.body.xxx }}</span> 引用 webhook 收到的資料</div>
+    <div class="outcome-item">能用 Set 節點組合即時回應內容（responseMode: lastNode）</div>
   </div>
 </div>
 
@@ -158,7 +158,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <span class="arrow">→</span>
     <span class="node">Set: 回應內容</span>
   </div>
-  <p class="body-text">這是整個 Lite Pack 最短的 workflow — 只有 2 個節點，而且都是「組態節點」（不需要寫程式）。Webhook 節點以 GET 接收請求，Set 節點組合三個欄位，n8n 依 <code>responseMode: lastNode</code> 把 Set 的輸出回給瀏覽器。</p>
+  <p class="body-text">這是整個 Lite Pack 最短的 workflow — 只有 2 個節點，而且都是「組態節點」（不需要寫程式）。Webhook 節點負責接收外部 POST/GET，Set 節點組合 JSON 回應，n8n 自動把 Set 的輸出當成 webhook response 回給 caller。</p>
 </section>
 
 <hr class="section-rule">
@@ -175,14 +175,14 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
       <p><strong>用途</strong>：對外開一個 URL 接收 HTTP 請求。任何能打 HTTP 的工具（curl / Postman / 別的 SaaS / Make / 你的網站）都能觸發這個 workflow。</p>
       <p><strong>關鍵設定</strong>：</p>
       <ul>
-        <li><code>HTTP Method</code>：GET（本基線用瀏覽器直接測試；需要接收 body 時再改成 POST）</li>
-        <li><code>Path</code>：<code>lite-hello</code>（決定 URL 後段，本機完整 URL = <code>http://localhost:5678/webhook/lite-hello</code>）</li>
+        <li><code>HTTP Method</code>：POST（也可選 GET / PUT / DELETE）</li>
+        <li><code>Path</code>：<code>hello</code>（決定 URL 後段，本機完整 URL = <code>http://localhost:5678/webhook/hello</code>）</li>
         <li><code>Response Mode</code>：<code>Last Node</code>（讓最後一個節點的輸出當作 webhook 回應）</li>
       </ul>
       <p><strong>兩種 URL 模式</strong>：</p>
       <ul>
-        <li><strong>Test URL</strong>（<code>/webhook-test/lite-hello</code>）：開發階段用，按畫布下方的 Execute workflow 後 Webhook 變藍色「Listening」，<strong>只接受 1 次請求</strong>，收到後 workflow 跑一次然後 Listening 結束</li>
-        <li><strong>Production URL</strong>（<code>/webhook/lite-hello</code>）：workflow 必須啟用後才會持續監聽，正式使用時才採用這個網址</li>
+        <li><strong>Test URL</strong>（<code>/webhook-test/hello</code>）：開發階段用，按 Execute workflow 後 Webhook 變藍色「Listening」，<strong>只接受 1 次請求</strong>，收到後 workflow 跑一次然後 Listening 結束</li>
+        <li><strong>Production URL</strong>（<code>/webhook/hello</code>）：workflow 必須先 Active 開關打開，才會永久監聽，可接無限次請求</li>
       </ul>
     </div>
   </div>
@@ -193,13 +193,13 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="node-meta"><span>n8n-nodes-base.set</span><span>typeVersion 3.4</span></div>
     <div class="node-body">
       <p><strong>用途</strong>：組合一個 JSON 物件當作 webhook 回應。不需要寫 JavaScript，UI 上點點選選即可。</p>
-      <p><strong>關鍵設定</strong>：在 Assignments 區保留 Blueprint 的 3 個欄位：</p>
+      <p><strong>關鍵設定</strong>：在 Assignments 區設 3 個欄位：</p>
       <ul>
-        <li><code>message</code> = <code>"hello from lite pack"</code>（固定字串，讓第一次測試有明確結果）</li>
-        <li><code>timestamp</code> = <code>{{ $now.toISO() }}</code>（用 n8n 內建 Luxon DateTime 變數記錄執行時間）</li>
-        <li><code>received_method</code> = <code>{{ $json.headers['x-real-ip'] || $json.headers.host || 'unknown' }}</code>（沿用 Blueprint 欄位名稱；目前值會記錄請求來源的 IP 或 host）</li>
+        <li><code>status</code> = <code>"ok"</code>（固定字串）</li>
+        <li><code>received_at</code> = <code>{{ $now.toISO() }}</code>（用 n8n 內建 Luxon DateTime 變數取現在時間）</li>
+        <li><code>echo</code> = <code>{{ $('Webhook').first().json.body }}</code>（把 Webhook 收到的整個 body 原樣 echo 回去）</li>
       </ul>
-      <p><strong>n8n 自動行為</strong>：因為 Webhook 設了 <code>responseMode: lastNode</code>，這個 Set 節點的 JSON 輸出會被當作 webhook response，以 HTTP 200 回給瀏覽器。</p>
+      <p><strong>n8n 自動行為</strong>：因為 Webhook 設了 <code>responseMode: lastNode</code>，這個 Set 節點的 JSON 輸出會被當作 webhook response，HTTP 200 回給 caller。</p>
     </div>
   </div>
 </section>
@@ -207,25 +207,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <hr class="section-rule">
 
 <section class="lesson-section">
-  <div class="section-eyebrow">(03) 實際驗證</div>
-  <h2 class="section-heading">用目前介面跑一次 Test URL</h2>
-  <p class="body-text">畫面上的右上角 <code>Publish</code> 用來發布工作流；本次只做測試，請使用畫布下方的橘色 <code>Execute workflow</code>。測試完成後，瀏覽器會收到 Set 節點產生的 JSON，這就是本節要留下的可觀察結果。</p>
-  <ol class="node-body" style="margin:8px 0 8px 22px;">
-    <li>在 Workflows 清單開啟 <code>01 · Webhook hello-world</code>，確認畫布上有 Webhook → Set: 回應內容。</li>
-    <li>按畫布下方橘色 <code>Execute workflow</code>；Webhook 節點應變成藍色並顯示 <code>Listening for test event</code>。</li>
-    <li>在新瀏覽器分頁開啟 <code>http://localhost:5678/webhook-test/lite-hello</code>，請在等候狀態結束前送出請求。</li>
-    <li>回到 n8n，兩個節點應變成綠色；Output 會看到 <code>message</code>、<code>timestamp</code>、<code>received_method</code> 三個欄位。</li>
-  </ol>
-  <div class="expect-box">
-    <div class="expect-label">通過判準</div>
-    <div class="expect-text">瀏覽器沒有 404，回應包含 <code>message: "hello from lite pack"</code>；n8n 執行紀錄中的 Webhook 與 Set 都是綠色。若顯示 404，先回畫布確認 Webhook 正在 Listening，並核對網址最後一段是 <code>lite-hello</code>。</div>
-  </div>
-</section>
-
-<hr class="section-rule">
-
-<section class="lesson-section">
-  <div class="section-eyebrow">(04) DESIGN RATIONALE</div>
+  <div class="section-eyebrow">(03) DESIGN RATIONALE</div>
   <h2 class="section-heading">為什麼這樣設計</h2>
 
   <div class="callout">
@@ -235,7 +217,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
   <div class="callout">
     <div class="callout-icon" aria-hidden="true">💭</div>
-    <div class="callout-body"><strong>為什麼用 lastNode 模式？</strong><br>n8n Webhook 有 3 種 responseMode：<code>onReceived</code>（立刻回 200，後面節點背景跑）／<code>lastNode</code>（等所有節點跑完用最後一個節點輸出當回應）／<code>responseNode</code>（指定某個 Respond to Webhook 節點）。本範例要等 Set 組好三個欄位再回應，方便你在瀏覽器立即核對結果。</div>
+    <div class="callout-body"><strong>為什麼用 lastNode 模式？</strong><br>n8n Webhook 有 3 種 responseMode：<code>onReceived</code>（立刻回 200，後面節點背景跑）／<code>lastNode</code>（等所有節點跑完用最後一個節點輸出當回應）／<code>responseNode</code>（指定某個 Respond to Webhook 節點）。本範例要回傳 echo 後的結果給 caller，因此等 Set 跑完再回應。</div>
   </div>
 
   <div class="callout tip">
@@ -247,7 +229,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <hr class="section-rule">
 
 <section class="lesson-section">
-  <div class="section-eyebrow">(05) 改造方向</div>
+  <div class="section-eyebrow">(04) 改造方向</div>
   <h2 class="section-heading">把這個 workflow 改成你業務的 4 種方向</h2>
 
   <ol class="mod-list">
@@ -274,7 +256,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">2026 春季</span>
-  <span class="footer-meta" data-platform-version="Docker Desktop / n8n 2.37.7 (Docker image n8nio/n8n:2.37.7)" data-built-at="2026-09-13">本頁依 Starter Kit v1.1.0、Lite Pack wizard v1.3.5 製作；Windows 流程尚待實機驗證。</span>
+  <span class="footer-meta">本頁以 n8n latest (Docker) + Lite Pack v0.9 製作，2026-05</span>
 </footer>
 
 <script>
