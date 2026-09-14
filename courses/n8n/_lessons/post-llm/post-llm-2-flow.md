@@ -68,10 +68,10 @@ LLM 會回（範例 — 步驟 2 拿到的 #02 翻譯）：
 
 節點清單：
 1. Manual Trigger — 手動觸發點，不接受輸入。
-2. Read PDF — 讀 /files/pdf-inbox/ 資料夾，輸出每張 PDF 的二進位內容。
+2. Read PDF — 讀 /files/shared/pdf-inbox/ 資料夾，輸出每張 PDF 的二進位內容。
 3. Extract PDF Text — 把二進位 PDF 轉成純文字。
 4. Code: AI 改名 — 用 Gemini API 分析 PDF 文字，產出 newFilename 字串。
-5. Write — 把原 PDF 用 newFilename 改名後存到 /files/pdf-renamed/。
+5. Write — 把原 PDF 用 newFilename 改名後存到 /files/shared/pdf-renamed/。
 
 資料流向：Manual Trigger → Read PDF → Extract PDF Text → Code → Write
 ```

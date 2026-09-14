@@ -68,13 +68,13 @@ last_updated: 2026-05-08
 
 > **跟第 6 章的差別**：第 6 章 walkthrough 是「同格式（PDF）但業務目標換」，動的是業務規則層。本章是「業務目標一樣（檔案改名 + 分類）但格式換」，動的是前 3 層。**兩章合起來涵蓋學員 90% 的課後改寫場景**。
 
-> **n8n 真實 enum 預先說明**：本章下方提到的 Extract from File 節點 `operation` 欄位，n8n 1.x 實際支援的 enum 值是 `csv` / `html` / `fromIcs` / `fromJson` / `ods` / `pdf` / `rtf` / `text` / `xml` / `xls` / `xlsx` / `binaryToProperty`（Codex 直接查 n8n source 確認）。**沒有 `docx` 這個 operation，也沒有「自動偵測類型抽文字」的 text operation 行為**。所以 .docx 不能跟 .pdf 一樣「換 Extract operation 就好」 — 教案下方 9-A 會走「中介格式策略」誠實處理這個 gap。
+> **n8n 真實 enum 預先說明**：本章下方提到的 Extract from File 節點 `operation` 欄位，過去在 n8n 1.x 實測到的 enum 值包含 `csv` / `html` / `fromIcs` / `fromJson` / `ods` / `pdf` / `rtf` / `text` / `xml` / `xls` / `xlsx` / `binaryToProperty`。**本頁尚未在 n8n 2.37.7 完成 docx 實機重驗，因此不把「沒有 `docx` operation」或 text 解析結果當成現行固定結論**；請先用 1 份測試檔確認，再決定是否採中介格式策略。
 
 ---
 
-## 9-A：.docx — 用「中介格式策略」（n8n 沒有原生 docx 抽取）
+## 9-A：.docx — 先做單檔實測，再選中介格式策略
 
-**誠實先講**：n8n Extract from File 沒有 docx 專屬 operation（n8n 1.x 確認）。直接用 `text` operation 會抽到 zip XML 結構不是內文（Word docx 是 zip + XML 結構，`text` operation 會把 zip 內部當純文字解，學員拿到 `<?xml version="1.0"?>...` 開頭的亂碼）。這代表 .docx 不能跟 .pdf 一樣「換 Extract operation 就好」，要走**中介格式策略**。
+**誠實先講**：本頁引用的是 n8n 1.x 的舊實測：當時 Extract from File 沒有 docx 專屬 operation，直接用 `text` 可能抽到 zip/XML 結構而非內文。n8n 2.37.7 尚未在本課完成 docx 實機重驗，請先用 1 份測試檔確認 operation 與 Output；若實測仍無 docx operation 或內容不可讀，再走**中介格式策略**。
 
 ### 兩條可走路線
 
@@ -93,7 +93,7 @@ last_updated: 2026-05-08
 
 ### 不要走的死路（學員會踩的雷）
 
-- ❌ 把 #03 fileSelector 改 `*.docx` + Extract operation 留 `text` → **會抽到 zip XML 亂碼**，AI 拿到 `<?xml version="1.0"?>...` 開頭的東西亂猜檔名
+- ❌ 未經驗證就把 #03 fileSelector 改 `*.docx` + Extract operation 留 `text` → **在部分版本／情況可能抽到 zip/XML 內容**，AI 可能拿到與內文無關的字串而亂猜檔名
 - ❌ 試圖叫 LLM 寫 docx parser 進 Code 節點 → mammoth 之類的 npm 模組 n8n 預設沒裝，學員裝不了
 - ❌ 用 Read 直接拿 binary 後 Code 節點手寫 unzip → 走進工程地獄
 
@@ -472,7 +472,7 @@ Extract from File：operation = csv（n8n 解析成 row array）
 
 ##### Read 節點怎麼拿 binary 變字串
 
-n8n 1.x 的 Read 節點 output 是 `item.binary.data` 物件（含 `data: base64`、`mimeType`、`fileName`）。對純文字檔要解 utf8：
+n8n 2.37.7 的 Read 節點 output 仍應先以實機 Output 核對 `item.binary.data` 物件（含 `data: base64`、`mimeType`、`fileName`）；對純文字檔要解 utf8：
 
 ```javascript
 const binaryData = item.binary.data.data;  // base64 字串
@@ -663,7 +663,7 @@ const text = Buffer.from(binaryData, 'base64').toString('utf8');
 
 | 模板 | ideal 回應特徵 | 最常見歪掉變體 | 學員下一步 |
 |------|--------------|----------------|----------|
-| 9-A docx | 條列 2 條：批次轉 PDF 做法 + 確認 #03 不動（中介格式策略） | LLM 建議改 fileSelector 成 *.docx + Extract operation=text（會抽 zip XML 亂碼）| 拒絕，要求走中介格式策略路線 1：Word/Pages/LibreOffice 批次 export PDF |
+| 9-A docx | 條列 2 條：批次轉 PDF 做法 + 確認 #03 不動（中介格式策略） | LLM 未驗證就改 fileSelector 成 *.docx + Extract operation=text（可能與目前版本 Output 不符）| 拒絕未驗證改法；先用 1 份檔案實測，若無 docx operation 或內容不可讀，再走中介格式路線 1：Word/Pages/LibreOffice 批次 export PDF |
 | 9-B xlsx | 條列 2 條：fileSelector + operation=xlsx | LLM 加 row filter / 空白檢查（業務沒要） | 模板 5 拒絕 |
 | 9-C 圖片 | 三段：入口變更（fileSelector 走方案 A *.png）+ lpCall 2 行 before/after patch + Code 段呼叫端替換 | LLM 「為相容性」重寫整個 Code 節點，或漏改 lpCall 簽名，或只給 text 沒給 inlineData，或加 streaming，或自寫 retry | 模板 5 拒絕，要求回到 before/after 完整對照 |
 | 9-D csv | 三段：fileSelector + Extract disable + binary 解 utf8 patch | LLM 改變數名 / 抽 helper / 加編碼偵測 | 拒絕，pdfText 變數名保留 |
@@ -683,7 +683,7 @@ const text = Buffer.from(binaryData, 'base64').toString('utf8');
 | 格式 | fileSelector 範例 | Extract 策略 | 動 lpCall helper 層？ | 動業務規則層？ | 注意事項 |
 |------|------------------|------------|------------|--------------|---------|
 | .pdf | `*.pdf` | Extract operation=pdf | ❌ 不動 | ❌ 不動 | 預設 #02/#03 路線 |
-| .docx | `*.pdf`（中介策略） | **不能用 Extract** — 走中介格式策略：Word/Pages/LibreOffice 批次 export 成 PDF 再走既有 #03 | ❌ 不動 | ❌ 不動 | n8n Extract from File 沒有 docx 專屬 operation；用 text operation 直抽會拿到 zip XML 亂碼 |
+| .docx | 先用 1 份檔案確認；不支援時用 `*.pdf`（中介策略） | 先實測 Extract from File 的 docx operation 與 Output；若不支援或內容不可讀，再走中介格式策略：Word/Pages/LibreOffice 批次 export 成 PDF 再走既有 #03 | ❌ 不動 | ❌ 不動 | 2.37.7 的 docx operation／text 輸出尚待本課實機確認；不要把 n8n 1.x 的舊觀察當成固定結論 |
 | .xlsx | `*.xlsx` | Extract operation=xlsx | ❌ 不動 | ❌ 不動（B-1 單 sheet） | 預設取第一張 sheet；多 sheet 強制走 B-1（手動把目標 sheet 移第一）；B-2 多 sheet 會踩到業務規則層 |
 | .csv（純字串） | `*.csv` | Extract disable，Read → Code 直連 | ❌ 不動 | 動 1 行（pdfText 取值方式） | 整段 CSV 當文字餵 LLM；不結構化解析 |
 | .csv（結構化） | `*.csv` | Extract operation=csv | ❌ 不動 | 動（loop row 跑 lpCall） | 進階用法，初次強制走純字串路線 |
@@ -716,7 +716,7 @@ const text = Buffer.from(binaryData, 'base64').toString('utf8');
 
 **解法**：放棄直抽路線，走 **9-A 中介格式策略路線 1** — Word / Pages / LibreOffice 批次 export 成 PDF，再走既有 #03（fileSelector / Extract operation / 業務規則層全部回到 PDF 路線預設）。
 
-**預防**：把第 6 節 dispatch 對照表貼螢幕邊 — .docx 那行明確寫「不能用 Extract」+ 走中介策略。
+**預防**：把第 6 節 dispatch 對照表貼螢幕邊 — .docx 那行先做單檔實測；若不支援或內容不可讀，再走中介策略。
 
 #### 錯誤 2：「圖片 multimodal 沒看 maxInlineBytes，撞 Gemini 20MB API limit」
 
@@ -856,7 +856,7 @@ C-2 看起來「不動 lpCall」，但實際上失去 retry / 429 / RPM 處理 �
 
 ### 9.5 待裁決小議題（給 Codex audit + user 看）
 
-- **n8n Extract operation 的 enum 名稱（已隨 Codex audit d8de790f 修正）**：原教案曾寫「.docx 走 `operation: text`」是基於對 n8n 1.x enum 的不正確假設。Codex 直接查 n8n source 確認真實 enum 是 `csv / html / fromIcs / fromJson / ods / pdf / rtf / text / xml / xls / xlsx / binaryToProperty`，且 `text` operation 對 .docx 直抽會拿到 zip XML 亂碼。本章 9-A 已改為「中介格式策略」（路線 1：批次轉 PDF 再走 #03）。對照表 .docx 行也對應改成「不能用 Extract」。
+- **n8n Extract operation 的 enum 名稱（需依 2.37.7 實機重驗）**：原教案曾寫「.docx 走 `operation: text`」，這是基於 n8n 1.x 的舊觀察。請先用 1 份 docx 測試檔核對目前 enum 與 Output；若仍沒有 docx operation，再採本章 9-A 的「中介格式策略」（路線 1：批次轉 PDF 再走 #03）。
 
 - **lpCall 2 行 patch 的具體版本相依**：本教案 9-C 步驟 2 的 lpCall before/after patch，**假設 #03 lpCall 函式定義跟 batch-error-recovery v0.9 jsCode 一致**。如果未來 #03 升級 v1.0+ 換了 helper 寫法，本章 9-C 步驟 2 的 before/after 段需要對應更新。建議在 Codex audit 時順便檢查 lpCall 是否已演進。
 

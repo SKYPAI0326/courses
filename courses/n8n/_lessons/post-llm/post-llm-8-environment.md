@@ -3,7 +3,7 @@ unit_id: post-llm-8-environment
 title: 環境互鎖 + 真實驗收
 course: n8n / AI 資料工廠
 chapter: 第 8 章 / 8（post-llm 系列：課後用 LLM 改 workflow）
-description: 改 workflow 前先確認自己在哪跑（local / -edit / Active）+ 改完真實驗收（不只 Code 綠燈）
+description: 改 workflow 前先確認自己在哪跑（local / -edit / Publish 發布狀態）+ 改完真實驗收（不只 Code 綠燈）
 audience: 商業培訓非工程師、課後用網頁版 LLM（ChatGPT / Claude / Gemini）改 workflow
 prerequisite: 已跑過 Lite Pack 14 個 workflow 至少 1 次；理解 #02 PDF AI 改名範例
 delivery: 文字導向 HTML 章節（無印風）
@@ -23,7 +23,7 @@ last_updated: 2026-05-07
 
 ### 8.0 為什麼這章排在錯誤分流（第 7 章）之後 — 但要先做
 
-教學順序：先教錯誤分流（第 7 章）讓你能自救，**但實機操作時請先做本章 8.X 環境檢查再進第 7 章分流**。理由：環境錯時，第 7 章分流會帶你走錯方向（例如你以為是 typeVersion 對不上，實際是在 Cloud 上而 LLM 給的是 local 才有的節點；或你以為節點壞了，實際是 production workflow 的 Active 開關被觸發跑掉）。建議**列印第 8 章 8.X 表貼螢幕邊**，每次坐下動 workflow 前 30 秒掃過去。
+教學順序：先教錯誤分流（第 7 章）讓你能自救，**但實機操作時請先做本章 8.X 環境檢查再進第 7 章分流**。理由：環境錯時，第 7 章分流會帶你走錯方向（例如你以為是 typeVersion 對不上，實際是在 Cloud 上而 LLM 給的是 local 才有的節點；或你以為節點壞了，實際是 production workflow 已發布而被觸發跑掉）。建議**列印第 8 章 8.X 表貼螢幕邊**，每次坐下動 workflow 前 30 秒掃過去。
 
 ### 1. 學員此時的痛點
 
@@ -47,16 +47,16 @@ last_updated: 2026-05-07
 |--------|----------------|----------|------------|
 | Local vs Cloud | 瀏覽器網址列 | `localhost:5678/workflow/...`（local） | `*.app.n8n.cloud/workflow/...`（cloud — 注意 LLM 給的節點是否 cloud 支援） |
 | -edit vs production | 工作區左上角 workflow 名稱 + 瀏覽器 tab title | `02-pdf-ai-rename-edit`（結尾有 `-edit`） | `02-pdf-ai-rename`（無 `-edit` = 是 production，動到要立刻 Cmd+Z 退） |
-| Active 開關 | 工作區右上角藍色 toggle | **灰色 OFF**（schedule/trigger 不會自動跑） | **藍色 ON**（一動到就會被 trigger 觸發 — 對 -edit 要關，對 production 看你需求） |
-| 上次 Execution 時間 | 工作區右側 Executions 分頁第一筆 timestamp | 跟你預期執行時間一致（手動跑就是剛才） | 比預期早 / 你沒跑卻有新 execution = trigger 自己跑了，回去查 Active 開關 |
+| Publish 發布狀態 | 工作區右上角 Publish／Published 狀態 | **未發布**（Published = false；schedule/trigger 不會自動跑） | **已發布**（Published；trigger 可能被觸發 — 對 -edit 要保持未發布） |
+| 上次 Execution 時間 | 工作區右側 Executions 分頁第一筆 timestamp | 跟你預期執行時間一致（手動跑就是剛才） | 比預期早 / 你沒跑卻有新 execution = trigger 自己跑了，回去查 Published 狀態 |
 
 **Local vs Cloud anti-pattern**：學員跨環境（公司 VPS 一個 n8n、家裡 Docker 又一個）時，看到 `n8n.yourcompany.com` 這類自架域名要當 self-host 處理（不是 Cloud），記下「我這個域名背後實際是 self-host 還是 Cloud」，否則 LLM 對話應對會走錯。
 
 **-edit vs production anti-pattern**：Duplicate 出 `-edit` 後左上角名稱會顯示新名稱，但**有些版本 tab title 還停在舊名**幾秒鐘才刷新，這時不要急著動，重新整理一次再開始。
 
-**Active 開關 anti-pattern**：第一次 Duplicate -edit 完，新 workflow 預設 Active OFF，但學員容易不小心打開（n8n UI 右上角 toggle 一點就反）。每次坐下繼續做之前 30 秒看一眼 toggle 顏色。
+**Publish anti-pattern**：第一次 Duplicate -edit 完，新 workflow 預設未發布，但學員容易不小心按 Publish。每次坐下繼續做之前 30 秒看一眼右上角發布狀態。
 
-**Executions 時間 anti-pattern**：你回家後隔天再來，看 Executions 第一筆是凌晨某個時間，且不是你跑的 — 表示有 schedule trigger 在自動跑。回頭查 Active 開關 + trigger 節點設定，否則你跑出的數會跟自動跑的混在一起。
+**Executions 時間 anti-pattern**：你回家後隔天再來，看 Executions 第一筆是凌晨某個時間，且不是你跑的 — 表示有 schedule trigger 在自動跑。回頭查 Published 狀態 + trigger 節點設定，否則你跑出的數會跟自動跑的混在一起。
 
 #### 4 個關鍵差異點 + LLM 對話應對
 
@@ -64,7 +64,7 @@ last_updated: 2026-05-07
 |---|---|---|---|
 | Credential 儲存 | 你電腦/VPS，自己備份 | n8n 雲端，n8n 加密 | LLM 給你「整份匯入」建議時，Cloud 用戶要追問「credential 部分我要重建嗎」 |
 | 節點可用性 | 全部 community node 可用 | 部分受限 | LLM 建議 Read Binary File / Execute Command / LocalAI 等本地節點時，Cloud 用戶要說「我在 Cloud，這節點不能用，請改成 Google Drive Read File 等雲端節點」 |
-| 檔案路徑 | `/files/` 等本機絕對路徑 OK | 不能直接讀本機 | LLM 給的 path（例：`/files/pdf-inbox/`），Cloud 用戶要說「我在 Cloud，請改成 Google Drive 路徑或 S3 bucket」 |
+| 檔案路徑 | `/files/` 等本機絕對路徑 OK | 不能直接讀本機 | LLM 給的 path（例：`/files/shared/pdf-inbox/`），Cloud 用戶要說「我在 Cloud，請改成 Google Drive 路徑或 S3 bucket」 |
 | Execution 配額 | 無上限（吃自己資源） | 月配額 | 全量跑前先估算（例：200 張 × 每張呼叫 1 次 Gemini = 200 次 execution），看是否超 plan 上限 |
 
 #### 5 條真實驗收（每條配自評動作）

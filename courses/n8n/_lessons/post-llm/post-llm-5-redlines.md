@@ -102,7 +102,7 @@ last_updated: 2026-05-07
   顏色變灰）。我已經在 n8n UI + Add Node 搜尋過沒有 (new) / v2 版本，
   也看了 docs.n8n.io 對應頁沒有 deprecated banner 指明替代。
 
-  請只給我「在 n8n 1.x latest 版本可能可以替代它的節點名稱清單」
+  請只給我「在本課 n8n 2.37.7 基線可能可以替代它的節點名稱清單」
   + 每個的「適合什麼場景」一句話描述。
   不要寫 JSON、不要寫程式碼、不要建議改 workflow。
   ```
@@ -113,11 +113,11 @@ last_updated: 2026-05-07
 
 #### 紅線 5：LLM 輸出當草稿，不當答案
 
-- **危險**：LLM 給 JSON → 學員直接點 Active 開關上線
+- **危險**：LLM 給 JSON → 學員直接按 Publish 上線
 - **為什麼**：LLM 給的 JSON 有 90% 機率「看起來合理但跑起來細節錯」
 - **安全替代路徑（強制動線）**：
-  1. **禁止**：直接在原 workflow 點 Active
-  2. **必走**：先 Duplicate 成 -edit → 確認 Active 開關 OFF → 跑 1 筆 → 跑 10 筆 → 全量跑通 → 才換回原 workflow
+  1. **禁止**：直接在原 workflow 按 Publish
+  2. **必走**：先 Duplicate 成 -edit → 確認 workflow 未發布 → 跑 1 筆 → 跑 10 筆 → 全量跑通 → 才按 Publish
   3. **驗收硬指標**：你的 workflow 列表，原 workflow 名 + -edit 後綴版同時存在；只有跑通 10 筆後 -edit 版才被合併回原版
 
 #### 紅線 6：保留節點 ID 與 connection 完整性
@@ -133,15 +133,15 @@ last_updated: 2026-05-07
 #### 紅線 7：改完先在隔離環境驗
 
 - **危險**：在 production workflow 上直接改 + 跑 → 用真客戶資料當白老鼠
-- **為什麼**：n8n 匯入流程預設保留 active 狀態，瞬間就接真實流量
+- **為什麼**：n8n 匯入流程若已發布，瞬間就接真實流量
 - **安全替代路徑（self-host）**：
   1. n8n UI workflow 列表 → 原 workflow 右側三點 → Duplicate
   2. 改名為 `<原名>-edit`
-  3. 點開 -edit 版，右上角 Active 開關確認 OFF（灰色）
+  3. 點開 -edit 版，右上角確認 workflow 未發布（Published = false；舊版介面為灰色 OFF）
   4. 套 LLM 改的內容到這個 -edit 版
-  5. 跑 1 筆 → 跑 10 筆 → 通過後 → 把改好的 -edit 版改名為 `<原名>-v2` 並 Active；原版改名為 `<原名>-v1-archived` 並 OFF
+  5. 跑 1 筆 → 跑 10 筆 → 通過後 → 把改好的 -edit 版改名為 `<原名>-v2` 並按 Publish；原版改名為 `<原名>-v1-archived` 並保持未發布
 - **安全替代路徑（n8n Cloud）**：流程相同，Cloud 也支援 Duplicate（n8n UI 操作一致）
-- **驗收硬指標**：workflow 列表上同時看到原版 + -edit 版兩條；切換時 Active 狀態切得乾淨
+- **驗收硬指標**：workflow 列表上同時看到原版 + -edit 版兩條；切換時 Published 狀態切得乾淨
 
 #### 紅線 8：destructive 操作必先 dry-run
 
@@ -231,9 +231,9 @@ last_updated: 2026-05-07
      n8n-nodes-base.emailSend
      ```
      若有，逐一看它做什麼（HTTP 打哪 / Code 寫什麼 / 讀寫哪個檔）
-  3. **第一次跑必設 trigger 為 manual**：別讓它 active schedule / webhook 一匯入就自動跑。在 n8n UI workflow 設定裡把 Active 開關 OFF + Trigger 節點換成 Manual Trigger
+  3. **第一次跑必設 trigger 為 manual**：別讓它 schedule / webhook 一匯入就自動跑。在 n8n UI workflow 設定裡保持未發布 + Trigger 節點換成 Manual Trigger
   4. **用測試帳號 / 測試 credentials 先試一輪**：在 n8n 裡開一個 "test" credential（用測試 API key、測試 DB），把 workflow credential 切到測試版跑，看它行為符不符合預期，才換回正式 credential
-- **驗收硬指標**：匯入前 5 個高風險節點 type 都看過 + 第一次跑時 Active OFF + Trigger 是 Manual + credential 是測試版
+- **驗收硬指標**：匯入前 5 個高風險節點 type 都看過 + 第一次跑時 workflow 未發布 + Trigger 是 Manual + credential 是測試版
 
 ### 4. 完整範例 prompt 模板
 
@@ -282,8 +282,8 @@ last_updated: 2026-05-07
 **錯誤 1：「我看到紅線 4 deprecation，去 google 半天找不到答案」**
 - 解：商業培訓學員不要花超過 15 分鐘 google。15 分鐘沒解 → 截圖+描述貼課程社群。LLM/google 不是 unique solution
 
-**錯誤 2：「我做了紅線 7 的 Duplicate，但忘了關 Active 開關，差點上 production」**
-- 解：Duplicate 完成後**第一個動作就是檢查 Active 開關**（甚至寫便利貼貼螢幕）。下次嚴格走「Duplicate → 開關 OFF → 改名」這個固定動線
+**錯誤 2：「我做了紅線 7 的 Duplicate，但忘了確認未發布，差點上 production」**
+- 解：Duplicate 完成後**第一個動作就是確認 Published 狀態**（甚至寫便利貼貼螢幕）。下次嚴格走「Duplicate → 保持未發布 → 改名」這個固定動線
 
 **錯誤 3：「Cloud 沒有 Duplicate 按鈕」**
 - 解：Cloud 也有，n8n UI 動作一致 — 在 workflow 列表 / 開啟畫面右上角 `⋮`。如果真的找不到，可能是 Cloud 的某個 starter plan 限制（極少見），這時用「Export without credentials → New workflow → Import」三步替代
@@ -313,7 +313,7 @@ last_updated: 2026-05-07
 | 不小心把 API key 貼進 ChatGPT 對話了 | #9 | 紅線 9 安全替代 step 4（立刻 rotate / regenerate，不要心存僥倖） |
 | 同事 / 網友傳了個 workflow JSON 想匯進來 | #10 | 紅線 10 安全替代 4 步（來源限制 → 看 5 個高風險節點 → Manual Trigger → 測試 credential） |
 | 想直接讓 LLM 改 trigger 類型 | #1 / #2 | 紅線 1（不貼 credential）+ 紅線 2 安全替代 step 4（在 n8n UI 上手動換 trigger） |
-| 想把 LLM 給的 JSON 直接點 Active 上線 | #5 | 紅線 5 安全替代（Duplicate → OFF → 跑 1+10 → 才合併） |
+| 想把 LLM 給的 JSON 直接按 Publish 上線 | #5 | 紅線 5 安全替代（Duplicate → 未發布 → 跑 1+10 → 才按 Publish） |
 
 **列印建議**：把這張表 + 第 7 節「常見錯誤 + 怎麼解」+ 動手前 6 條快速檢查印 A4 一張，雙欄排版貼螢幕邊。每次要動 workflow 前掃 30 秒。
 
@@ -353,7 +353,7 @@ last_updated: 2026-05-07
 | A5-2 | 175-191 | 紅線 2「不要讓 LLM 直接產出完整 workflow JSON 當最終答案」+ 禁止項目清單（webhook URL / trigger / schedule / recipient list / delete update drop） | 3 | 列了 5 個「不能讓 LLM 自動決定」的東西，**完全沒說正確的做法是什麼**。例如「webhook URL」如果學員真的需要改，要怎麼安全做？答案應該是「在 n8n UI 上手動 copy 新 webhook URL → 在 LLM 對話裡告訴 LLM『URL 我已經自己貼好了，你只要改節點名稱就好』」這種替代路徑 |
 | A5-3 | 195-198 | 紅線 3「不要叫 LLM 改 typeVersion」+ 「先在 n8n UI 開啟 → 它會自動處理可升級的部分」 | 3 | 「自動處理可升級的部分」是好的，但學員不知道：(a) UI 在哪裡會出現升級提示？(b) 升級提示長什麼樣？(c) 點什麼按鈕確認升級？需要 step-by-step |
 | A5-4 | 202-206 | 紅線 4「節點 deprecation 要查官方 changelog」 | 3, 5 | 「查官方 changelog」對非工程師是巨大門檻——changelog 是英文、密度極高，學員 99% 不會點開讀。應該降級到「截圖傳到課程社群問講師」或「把節點名 google『n8n + 節點名 + deprecated』」這種非工程師可執行的 fallback |
-| A5-5 | 210-215 | 紅線 5「不要把 LLM 輸出當答案，要當草稿」 | 1 | 整條只在「重述系列核心立場」，沒給具體動作。如果這真是「紅線」，應該是「LLM 給你 JSON 後**禁止**直接點 Active 開關，必須先在 -edit 複本跑 1 筆 + 10 筆。誰跳這步誰負責」這種可執行禁令 |
+| A5-5 | 210-215 | 紅線 5「不要把 LLM 輸出當答案，要當草稿」 | 1 | 整條只在「重述系列核心立場」，沒給具體動作。如果這真是「紅線」，應該是「LLM 給你 JSON 後**禁止**直接按 Publish，必須先在 -edit 複本跑 1 筆 + 10 筆。誰跳這步誰負責」這種可執行禁令 |
 | A5-6 | 218-231 | 紅線 6「保留節點 ID 與 connection 完整性」+ 「若確實需要新增或刪除節點，connections 區段必須回到 n8n UI 上手動重接」 | 3, 5 | 「手動重接 connections」是空話：在 n8n UI 上是怎麼重接的？拖線拖到哪？應該配截圖+具體動作：「在 n8n UI 上，把上一個節點右側的小圓點，按住拖到下一個節點左側的小圓點」 |
 | A5-7 | 234-247 | 紅線 7「改完先在隔離環境驗」+ 4 步動線 | (尚可，但有缺) | 動線寫了，但**漏了「Cloud 版用戶怎麼辦？」**的處理。Cloud 沒有 self-host 的 Duplicate 一樣動線嗎？實際上有，但應該明說 |
 | A5-8 | 251-264 | 紅線 8「destructive 操作必先 dry-run」+ 5 步動線 | (尚可，但是) | 5 步動線「先 disable 或換成 console log 等價假動作」——對非工程師「console log 等價假動作」是術語。應該翻成 actions：「Gmail 節點：把『To』欄位的收件人 expression 整段刪掉，貼上你自己的私人信箱」 |

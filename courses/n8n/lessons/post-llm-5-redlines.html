@@ -390,7 +390,7 @@ code{font-size:.82rem;background:var(--c-surface);padding:2px 6px;border-radius:
       <div class="redline-title">LLM 輸出是草稿，不是答案 — 必走 Duplicate 驗證動線</div>
       <div class="danger-box">
         <div class="danger-box-label">危險動作</div>
-        <p>LLM 給 JSON → 直接在原 workflow 點 Active 開關上線。</p>
+        <p>LLM 給 JSON → 直接在原 workflow 按 Publish 上線。</p>
       </div>
       <div class="why-box">
         <div class="why-box-label">為什麼</div>
@@ -399,8 +399,8 @@ code{font-size:.82rem;background:var(--c-surface);padding:2px 6px;border-radius:
       <div class="safe-box">
         <div class="safe-box-label">安全替代路徑（強制動線）</div>
         <ol>
-          <li><strong>禁止</strong>：直接在原 workflow 點 Active</li>
-          <li><strong>必走</strong>：Duplicate 成 <code>&lt;原名&gt;-edit</code> → 確認 Active 開關 OFF → 套 LLM 內容 → 跑 1 筆 → 跑 10 筆 → 全量跑通 → 才換回原 workflow</li>
+          <li><strong>禁止</strong>：直接在原 workflow 按 Publish</li>
+          <li><strong>必走</strong>：Duplicate 成 <code>&lt;原名&gt;-edit</code> → 確認 workflow 未發布 → 套 LLM 內容 → 跑 1 筆 → 跑 10 筆 → 全量跑通 → 才換回原 workflow</li>
         </ol>
         <div class="verify-tag">驗收：workflow 列表同時有原版 + -edit 版；只有跑通 10 筆後才合併</div>
       </div>
@@ -439,19 +439,19 @@ code{font-size:.82rem;background:var(--c-surface);padding:2px 6px;border-radius:
       </div>
       <div class="why-box">
         <div class="why-box-label">為什麼</div>
-        <p>n8n 匯入流程預設保留 active 狀態，瞬間就接真實流量。</p>
+        <p>n8n 匯入流程若處於 Published 狀態，瞬間就接真實流量。</p>
       </div>
       <div class="safe-box">
         <div class="safe-box-label">安全替代路徑（self-host 與 n8n Cloud 動線相同）</div>
         <ol>
           <li>n8n UI workflow 列表 → 原 workflow 右側三點 → <strong>Duplicate</strong></li>
           <li>改名為 <code>&lt;原名&gt;-edit</code></li>
-          <li>點開 -edit 版，右上角 Active 開關確認 <strong>OFF</strong>（灰色）</li>
+          <li>點開 -edit 版，右上角確認 workflow <strong>未發布</strong>（Published = false；舊版介面為灰色 OFF）</li>
           <li>套 LLM 改的內容到 -edit 版</li>
-          <li>跑 1 筆 → 跑 10 筆 → 通過後 → 改名為 <code>&lt;原名&gt;-v2</code> 並 Active；原版改名 <code>&lt;原名&gt;-v1-archived</code> 並 OFF</li>
+          <li>跑 1 筆 → 跑 10 筆 → 通過後 → 將 <code>&lt;原名&gt;-v2</code> 按 Publish；原版改名 <code>&lt;原名&gt;-v1-archived</code> 並保持未發布</li>
         </ol>
         <p style="font-size:.82rem;color:var(--c-muted);margin-top:8px"><strong>Cloud 用戶注意</strong>：Cloud 也有 Duplicate，n8n UI 操作一致。找不到時用「Export without credentials → New workflow → Import」三步替代。</p>
-        <div class="verify-tag">驗收：workflow 列表同時看到原版 + -edit 版；Active 狀態切得乾淨</div>
+        <div class="verify-tag">驗收：workflow 列表同時看到原版 + -edit 版；Published 狀態切得乾淨</div>
       </div>
     </div>
 
@@ -591,10 +591,10 @@ code{font-size:.82rem;background:var(--c-surface);padding:2px 6px;border-radius:
         <ol>
           <li><strong>來源限制</strong>：只匯入「課程提供」/「自己親手寫」/「你親自審完每個節點」的 workflow</li>
           <li><strong>匯入前</strong>：用 VS Code 打開 JSON，搜尋上方 5 個高風險節點 type，若有 → 逐一看它做什麼（HTTP 打哪 / Code 寫什麼 / 讀寫哪個檔）</li>
-          <li><strong>第一次跑</strong>：把 Active 開關 OFF + Trigger 換成 Manual Trigger，不讓它一匯入就自動跑</li>
+          <li><strong>第一次跑</strong>：保持 workflow 未發布 + Trigger 換成 Manual Trigger，不讓它一匯入就自動跑</li>
           <li><strong>用測試 credentials 先試一輪</strong>：在 n8n 裡開一個 "test" credential（測試 API key、測試 DB），workflow credential 切到測試版跑，行為符合預期才換回正式 credential</li>
         </ol>
-        <div class="verify-tag">驗收：匯入前 5 個高風險節點 type 都看過 + 第一次跑時 Active OFF + Trigger 是 Manual + credential 是測試版</div>
+        <div class="verify-tag">驗收：匯入前 5 個高風險節點 type 都看過 + 第一次跑時 workflow 未發布 + Trigger 是 Manual + credential 是測試版</div>
       </div>
     </div>
 
@@ -707,7 +707,7 @@ code{font-size:.82rem;background:var(--c-surface);padding:2px 6px;border-radius:
           <td>紅線 1（先 export without credentials）+ 紅線 2 安全替代 step 3（n8n UI 手動換 trigger）</td>
         </tr>
         <tr>
-          <td>想把 LLM 給的 JSON 直接點 Active 上線</td>
+          <td>想把 LLM 給的 JSON 直接按 Publish 上線</td>
           <td><span class="redline-badge">#5</span></td>
           <td>紅線 5 安全替代（Duplicate → OFF → 跑 1+10 → 才合併）</td>
         </tr>
@@ -733,8 +733,8 @@ code{font-size:.82rem;background:var(--c-surface);padding:2px 6px;border-radius:
 
     <div style="background:var(--c-card);border:1px solid var(--c-border-soft);border-radius:var(--radius);padding:18px 22px">
       <div style="font-size:.78rem;font-weight:700;color:var(--c-muted);letter-spacing:.08em;margin-bottom:8px">錯誤 2</div>
-      <div style="font-size:.92rem;font-weight:700;color:var(--c-text);margin-bottom:8px">「我做了紅線 7 的 Duplicate，但忘了關 Active 開關，差點上 production」</div>
-      <div style="font-size:.88rem;color:var(--c-muted);line-height:1.85">Duplicate 完成後<strong>第一個動作就是檢查 Active 開關</strong>。嚴格走「Duplicate → 開關 OFF → 改名」這個固定動線，不省略。</div>
+      <div style="font-size:.92rem;font-weight:700;color:var(--c-text);margin-bottom:8px">「我做了紅線 7 的 Duplicate，但忘了確認未發布，差點上 production」</div>
+      <div style="font-size:.88rem;color:var(--c-muted);line-height:1.85">Duplicate 完成後<strong>第一個動作就是確認 Published 狀態</strong>。嚴格走「Duplicate → 保持未發布 → 改名」這個固定動線，不省略。</div>
     </div>
 
     <div style="background:var(--c-card);border:1px solid var(--c-border-soft);border-radius:var(--radius);padding:18px 22px">
@@ -786,7 +786,7 @@ code{font-size:.82rem;background:var(--c-surface);padding:2px 6px;border-radius:
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">2026 春季</span>
-  <span class="footer-meta" data-platform-version="n8n latest (Docker image n8nio/n8n)" data-built-at="2026-05-07">本頁以 n8n latest (Docker image n8nio/n8n) 製作，2026-05</span>
+  <span class="footer-meta" data-platform-version="Docker Desktop / n8n 2.37.7 (Docker image n8nio/n8n:2.37.7)" data-built-at="2026-09-14">本頁依 n8n 2.37.7 製作，2026-09-14；部分進階案例仍需依實機重驗證，Windows 尚待實機驗證。</span>
 </footer>
 
 <script>

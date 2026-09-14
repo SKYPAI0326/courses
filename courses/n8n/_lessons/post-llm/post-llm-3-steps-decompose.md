@@ -74,9 +74,9 @@ last_updated: 2026-05-07
    - **驗收硬指標**：
      - **(a) 節點數量正確**：n8n UI 編輯器畫面數一遍節點圖示有幾個（5 個就 5 個），LLM 回的清單編號也要 5。差 1 個都不行。
      - **(b) 至少 80% 節點角色對得上**（具體例）：
-       - ✅ 算對：LLM 說「Read PDF — 讀 /files/pdf-inbox/ 內所有 PDF，輸出每張的 binary」→ 你在 n8n UI 看到節點名是「Read PDF」+ parameter 的 path 是 `/files/pdf-inbox/` → 完全對應 = 算對
+       - ✅ 算對：LLM 說「Read PDF — 讀 /files/shared/pdf-inbox/ 內所有 PDF，輸出每張的 binary」→ 你在 n8n UI 看到節點名是「Read PDF」+ parameter 的 path 是 `/files/shared/pdf-inbox/` → 完全對應 = 算對
        - ✅ 算對（容許小落差）：LLM 說「Code 節點打 Gemini API」實際你看到 Code 節點裡用 `this.helpers.httpRequest` 呼叫 Gemini → **核心動作（呼叫 Gemini）對 + 細節（用什麼 helper）有落差**= 算對
-       - ❌ 不算對：LLM 說「Read PDF — 從 Google Drive 讀 PDF」實際你看到 path 是 `/files/pdf-inbox/`（本機路徑）→ **資料來源根本講錯** = 不算對，回頭追問「Read PDF 節點的 path 寫的是 `/files/pdf-inbox/`，不是 Google Drive，請重講這個節點的角色」
+       - ❌ 不算對：LLM 說「Read PDF — 從 Google Drive 讀 PDF」實際你看到 path 是 `/files/shared/pdf-inbox/`（本機路徑）→ **資料來源根本講錯** = 不算對，回頭追問「Read PDF 節點的 path 寫的是 `/files/shared/pdf-inbox/`，不是 Google Drive，請重講這個節點的角色」
        - ❌ 不算對：LLM 把「Code: AI 改名」說成「Code: 一般資料處理」→ **節點意圖完全失準** = 不算對，回頭追問
        - **量化方式**：5 個節點裡，你認為「對」的至少要 4 個（80% = 4/5）。3 個（60%）以下表示 LLM 看 JSON 的能力對你的 workflow 不可靠，換另一家 LLM（或重貼模板 2 + 補一段 workflow 中文描述）
 
@@ -99,13 +99,13 @@ last_updated: 2026-05-07
 
    <span style="color:#c00;font-weight:700;">⚠️ 紅字硬規則：步驟 3 的所有替換動作只發生在 -edit workflow，不動原版。</span>
 
-   - **為什麼**：你要替換的 JSON 是 LLM 草稿，跑壞會壞節點 / 連線 / 甚至 n8n 編輯器顯示。在 production workflow 上直接貼，等於拿活的訂單系統當實驗田 — 一旦不小心又把 Active 切回 ON（n8n 介面手滑常事），就真的觸發 200 張 LLM API call 燒錢、或誤改 production 資料庫。
+   - **為什麼**：你要替換的 JSON 是 LLM 草稿，跑壞會壞節點 / 連線 / 甚至 n8n 編輯器顯示。在 production workflow 上直接貼，等於拿活的訂單系統當實驗田 — 一旦不小心又把 workflow 發布（n8n 介面手滑常事），就真的觸發 200 張 LLM API call 燒錢、或誤改 production 資料庫。
    - **動作（依序）**：
      1. n8n UI 左側選單 → Workflows → 找到原 #02 → 滑鼠移到該行 → 右側出現 ⋮ 三點按鈕
      2. 點 ⋮ → 選「Duplicate」（不是 Open / Share / Delete，看清楚）
      3. n8n 自動產生新檔，預設名稱長這樣：`02-pdf-ai-rename Copy`
      4. 點該新 workflow 的標題 → 進編輯器 → 點頂部標題列 → 改名為 `02-pdf-ai-rename-edit`（**結尾加 `-edit` 後綴**，這是全課統一規約，第 4 章測試時要靠它識別）
-     5. 確認新 workflow 右上角 Active 開關是「灰色 OFF」（Duplicate 預設會關，但仍要肉眼確認一次）
+     5. 確認新 workflow 右上角顯示未發布（Published = false；舊版介面可能顯示灰色 OFF）
    - **驗收硬指標**：
      - ✅ Workflows 列表現在有兩條：原版 `02-pdf-ai-rename` + 新版 `02-pdf-ai-rename-edit`
      - ✅ 你接下來貼 JSON 的瀏覽器分頁，網址列尾巴的 workflow ID 不是原版的 ID
@@ -128,7 +128,7 @@ last_updated: 2026-05-07
   - 品項清單
   - 稅後合計（金額含元）
   - 發票日期（YYYYMMDD）
-目標 output：改名後 PDF，命名格式 {YYYYMMDD}_發票_{賣方名}_{稅後合計}.pdf，存到 /files/pdf-renamed/
+目標 output：改名後 PDF，命名格式 {YYYYMMDD}_發票_{賣方名}_{稅後合計}.pdf，存到 /files/shared/pdf-renamed/
 必保留節點：Manual Trigger、Read PDF、Extract PDF Text、Write（4 個都不能換掉）
 
 請問我的需求有哪一格還沒講清楚？只指出空白，不要幫我補。
@@ -208,10 +208,10 @@ last_updated: 2026-05-07
 
 節點清單：
 1. Manual Trigger — 手動觸發，不接收 input。
-2. Read PDF — 讀 /files/pdf-inbox/ 內所有 PDF，輸出每張的 binary。
+2. Read PDF — 讀 /files/shared/pdf-inbox/ 內所有 PDF，輸出每張的 binary。
 3. Extract PDF Text — 把 binary 轉純文字（pdfTextPreview）。
 4. Code: AI 改名 — 用 Gemini API 分析文字，輸出 newFilename。
-5. Write — 把 PDF 用 newFilename 改名後寫到 /files/pdf-renamed/。
+5. Write — 把 PDF 用 newFilename 改名後寫到 /files/shared/pdf-renamed/。
 
 資料流向：Manual Trigger → Read PDF → Extract PDF Text → Code → Write
 ```

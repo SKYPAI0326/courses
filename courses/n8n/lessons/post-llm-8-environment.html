@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>8/9 環境互鎖與真實驗收 — 改 workflow 前先確認在哪跑｜n8n 本機自動化工作坊</title>
-<meta name="description" content="系列終章：每次動 workflow 前 30 秒掃的 4 項環境檢查表、Active 開關警示、真實下游驗收（Telegram / Sheet / Drive）、5 條可量化自評清單。">
+<meta name="description" content="系列終章：每次動 workflow 前 30 秒掃的 4 項環境檢查表、Publish 發布狀態警示、真實下游驗收（Telegram / Sheet / Drive）、5 條可量化自評清單。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
 <meta property="og:title" content="8/9 環境互鎖與真實驗收 — 改 workflow 前先確認在哪跑｜n8n 本機自動化工作坊">
-<meta property="og:description" content="系列終章：每次動 workflow 前 30 秒掃的 4 項環境檢查表、Active 開關警示、真實下游驗收（Telegram / Sheet / Drive）、5 條可量化自評清單。">
+<meta property="og:description" content="系列終章：每次動 workflow 前 30 秒掃的 4 項環境檢查表、Publish 發布狀態警示、真實下游驗收（Telegram / Sheet / Drive）、5 條可量化自評清單。">
 <meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/lessons/post-llm-8-environment.html">
 <meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="8/9 環境互鎖與真實驗收 — 改 workflow 前先確認在哪跑｜n8n 本機自動化工作坊">
-<meta name="twitter:description" content="系列終章：每次動 workflow 前 30 秒掃的 4 項環境檢查表、Active 開關警示、真實下游驗收（Telegram / Sheet / Drive）、5 條可量化自評清單。">
+<meta name="twitter:description" content="系列終章：每次動 workflow 前 30 秒掃的 4 項環境檢查表、Publish 發布狀態警示、真實下游驗收（Telegram / Sheet / Drive）、5 條可量化自評清單。">
 <meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/lessons/post-llm-8-environment.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -201,8 +201,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <p class="lesson-tagline">每次動 workflow 前，先花 30 秒掃 4 項環境狀態。環境對了，第 7 章的分流才會帶你走對方向。跑完後，不是看 Code 綠燈就算過——Telegram 真收到、Sheet 真寫入、Drive 真產出，才是完整驗收。</p>
   <div class="outcomes">
     <div class="outcomes-label">本頁學習成果</div>
-    <div class="outcome-item">能在 30 秒內掃完 4 項環境檢查（Local/Cloud、-edit/production、Active 開關、上次 Execution 時間）</div>
-    <div class="outcome-item">理解 Active 開關對非工程師的具體風險，建立「坐下就看 toggle 顏色」習慣</div>
+    <div class="outcome-item">能在 30 秒內掃完 4 項環境檢查（Local/Cloud、-edit/production、Publish 發布狀態、上次 Execution 時間）</div>
+    <div class="outcome-item">理解 Publish 發布狀態對非工程師的具體風險，建立「坐下就看右上角狀態」習慣</div>
     <div class="outcome-item">能區分「Code 綠燈」與「真實驗收」的差異，完成下游輸出端的 5 條驗收</div>
   </div>
 </div>
@@ -215,7 +215,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="callout-framing-label">章節順序說明</div>
     <div class="callout-framing-body">
       <strong>教學順序</strong>：先教錯誤分流（第 7 章）讓你能自救，<strong>但實機操作時請先做本章 8.X 環境檢查，再進第 7 章分流</strong>。<br><br>
-      理由：環境錯時，第 7 章分流會帶你走錯方向——你以為是 typeVersion 對不上，實際是你在 Cloud 上，而 LLM 給的是 local 才有的節點；或你以為節點壞了，實際是 production workflow 的 Active 開關被觸發，跑掉的是正式資料。<br><br>
+      理由：環境錯時，第 7 章分流會帶你走錯方向——你以為是 typeVersion 對不上，實際是你在 Cloud 上，而 LLM 給的是 local 才有的節點；或你以為節點壞了，實際是 production workflow 已發布而被觸發，跑掉的是正式資料。<br><br>
       <strong>建議把 8.X 的環境檢查表列印出來，貼在螢幕邊。每次坐下動 workflow 前 30 秒掃過去。</strong>
     </div>
   </div>
@@ -257,16 +257,16 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <td class="col-warn"><span class="warn-pill">警覺</span>無 <code style="font-family:'Courier New',monospace;font-size:.82em;background:var(--c-surface);border:1px solid var(--c-border);padding:1px 5px;border-radius:3px">-edit</code>（是 production）— 立刻 Cmd+Z 退出，不要動</td>
       </tr>
       <tr>
-        <td class="col-item">Active 開關</td>
+        <td class="col-item">Publish 發布狀態</td>
         <td class="col-where">工作區右上角 toggle</td>
-        <td class="col-ok"><span class="ok-pill">OK</span>灰色 OFF（schedule / trigger 不會自動跑）</td>
-        <td class="col-warn"><span class="warn-pill">警覺</span>藍色 ON（一動到就可能被 trigger 觸發 — 對 -edit 版應關閉）</td>
+        <td class="col-ok"><span class="ok-pill">OK</span>未發布（Published = false；schedule / trigger 不會自動跑）</td>
+        <td class="col-warn"><span class="warn-pill">警覺</span>已發布（Published；trigger 可能接收外部事件 — 對 -edit 版應保持未發布）</td>
       </tr>
       <tr>
         <td class="col-item">上次 Execution 時間</td>
         <td class="col-where">工作區右側 Executions 分頁第一筆 timestamp</td>
         <td class="col-ok"><span class="ok-pill">OK</span>時間跟你預期執行時間一致（手動跑就是剛才）</td>
-        <td class="col-warn"><span class="warn-pill">警覺</span>比預期早 / 你沒跑卻有新 execution = trigger 自己跑了，查 Active 開關</td>
+        <td class="col-warn"><span class="warn-pill">警覺</span>比預期早 / 你沒跑卻有新 execution = trigger 自己跑了，查 Published 狀態</td>
       </tr>
     </tbody>
   </table>
@@ -283,7 +283,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
   <div class="anti-card">
     <div class="anti-card-label">EXECUTIONS 時間 ANTI-PATTERN</div>
-    <div class="anti-card-body">隔天回來，Executions 第一筆是凌晨某個時間、不是你跑的——表示有 schedule trigger 在自動跑。回頭查 Active 開關 + trigger 節點設定，否則你跑出的數會跟自動跑的混在一起。</div>
+    <div class="anti-card-body">隔天回來，Executions 第一筆是凌晨某個時間、不是你跑的——表示有 schedule trigger 在自動跑。回頭查 Published 狀態 + trigger 節點設定，否則你跑出的數會跟自動跑的混在一起。</div>
   </div>
 </section>
 
@@ -291,14 +291,14 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 <section class="lesson-section">
   <div class="section-eyebrow">(03)</div>
-  <h2 class="section-heading">Active 開關 — 4 項中對非工程師最關鍵的一項</h2>
+  <h2 class="section-heading">Publish 發布狀態 — 4 項中對非工程師最關鍵的一項</h2>
 
   <div class="callout-warning">
     <div class="callout-warning-label">重要習慣</div>
     <div class="callout-warning-body">
       <strong>Toggle 一點就反。每次坐下來，先花 3 秒看右上角顏色。</strong><br><br>
-      灰色 = OFF = 安全。藍色 = ON = 危險（trigger 可能隨時自動跑）。<br>
-      對 <code style="font-family:'Courier New',monospace;font-size:.9em">-edit</code> 版 workflow，Active 一定要關；對 production 版，看你需求——但你在改測試的時候，production 最好也是 OFF。
+      未發布（Published = false）= 安全。已發布（Published）= trigger 可能隨時自動跑。<br>
+      對 <code style="font-family:'Courier New',monospace;font-size:.9em">-edit</code> 版 workflow，保持未發布；對 production 版，只有驗證完成後才按 Publish。
     </div>
   </div>
 
@@ -307,21 +307,21 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="toggle-demo">
       <div class="toggle-item">
         <span class="toggle-off" aria-hidden="true"></span>
-        <span class="toggle-label-off">灰色 OFF — schedule 不自動跑，手動執行才跑</span>
+        <span class="toggle-label-off">未發布 — schedule 不自動跑，手動執行才跑</span>
       </div>
     </div>
     <div class="toggle-demo">
       <div class="toggle-item">
         <span class="toggle-on" aria-hidden="true"></span>
-        <span class="toggle-label-on">藍色 ON — trigger 隨時可能觸發，schedule 定時跑</span>
+        <span class="toggle-label-on">已發布 — trigger 隨時可能觸發，schedule 定時跑</span>
       </div>
     </div>
-    <p style="font-size:.88rem;color:var(--c-muted);line-height:1.8;margin-top:14px">第一次 Duplicate <code style="font-family:'Courier New',monospace;font-size:.85em">-edit</code> 完，新 workflow 預設 Active OFF——但學員容易在後續操作中不小心點到。每次坐下繼續做之前，30 秒看一眼 toggle 顏色。</p>
+    <p style="font-size:.88rem;color:var(--c-muted);line-height:1.8;margin-top:14px">第一次 Duplicate <code style="font-family:'Courier New',monospace;font-size:.85em">-edit</code> 完，新 workflow 預設未發布——但學員容易在後續操作中不小心按 Publish。每次坐下繼續做之前，30 秒看一眼右上角發布狀態。</p>
   </div>
 
   <div class="callout info">
     <div class="callout-icon" aria-hidden="true">△</div>
-    <div class="callout-body">如果你的 workflow 有 Telegram trigger 或 Webhook，Active ON 就表示外部訊息一進來就會觸發——即使你正在改節點。改節點前先把 Active 關掉，改完測試通過再打開。</div>
+    <div class="callout-body">如果你的 workflow 有 Telegram trigger 或 Webhook，Published 就表示外部訊息一進來就會觸發——即使你正在改節點。改節點前先保持未發布，改完測試通過再按 Publish。</div>
   </div>
 </section>
 
@@ -358,7 +358,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <td><strong>檔案路徑</strong></td>
         <td><code>/files/</code> 等本機絕對路徑 OK</td>
         <td>不能直接讀本機</td>
-        <td>LLM 給的 path（例：<code>/files/pdf-inbox/</code>），Cloud 用戶說：「我在 Cloud，請改成 Google Drive 路徑或 S3 bucket」</td>
+        <td>LLM 給的 path（例：<code>/files/shared/pdf-inbox/</code>），Cloud 用戶說：「我在 Cloud，請改成 Google Drive 路徑或 S3 bucket」</td>
       </tr>
       <tr>
         <td><strong>Execution 配額</strong></td>
@@ -549,7 +549,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">2026 春季</span>
-  <span class="footer-meta" data-platform-version="n8n 1.x" data-built-at="2026-05-07">本頁以 n8n 1.x 製作，2026-05</span>
+  <span class="footer-meta" data-platform-version="Docker Desktop / n8n 2.37.7 (Docker image n8nio/n8n:2.37.7)" data-built-at="2026-09-14">本頁依 n8n 2.37.7 製作，2026-09-14；部分進階案例仍需依實機重驗證，Windows 尚待實機驗證。</span>
 </footer>
 
 <script>

@@ -139,7 +139,7 @@ A 打開 macOS 的 Notes app，建一條新筆記，貼上 4 格範本。她邊�
 
 2. 目標 input
    供應商發票 PDF（每月 200 張，目前手邊先 1 張測試）
-   來源資料夾：/files/pdf-inbox/
+   來源資料夾：/files/shared/pdf-inbox/
    每張 PDF 含：
    - 賣方公司全名（PDF 上中文寫「賣方」）
    - 統編（8 碼）
@@ -151,7 +151,7 @@ A 打開 macOS 的 Notes app，建一條新筆記，貼上 4 格範本。她邊�
    改名後 PDF，命名格式：
    {YYYYMMDD}_發票_{賣方名}_{稅後合計}.pdf
    例：20260506_發票_弄一下工作室股份有限公司_15750.pdf
-   存到：/files/pdf-renamed/2026/{月份}/
+   存到：/files/shared/pdf-renamed/2026/{月份}/
 
 4. 必保留的節點
    Manual Trigger（保留）
@@ -220,9 +220,9 @@ A 切回 ChatGPT 視窗（剛才開場那個），貼：
 
 ```
 這份 workflow 做什麼：
-從 /files/pdf-inbox/ 讀取資料夾內所有 PDF，用 Gemini API 分析每份 PDF 的
+從 /files/shared/pdf-inbox/ 讀取資料夾內所有 PDF，用 Gemini API 分析每份 PDF 的
 文字內容後產出一個語意化檔名（格式 YYYYMMDD_類型_關鍵字），最後把原 PDF
-用新檔名移到 /files/pdf-renamed/ 資料夾。整套流程是手動觸發。
+用新檔名移到 /files/shared/pdf-renamed/ 資料夾。整套流程是手動觸發。
 
 節點清單（5 個）：
 1. Manual Trigger
@@ -231,7 +231,7 @@ A 切回 ChatGPT 視窗（剛才開場那個），貼：
    - 下一個節點吃：觸發訊號
 
 2. Read PDF
-   - 角色：列出 /files/pdf-inbox/ 內所有 .pdf 檔
+   - 角色：列出 /files/shared/pdf-inbox/ 內所有 .pdf 檔
    - 輸出：每張 PDF 的 binary data + 原始檔名
    - 下一個節點吃：binary
 
@@ -246,7 +246,7 @@ A 切回 ChatGPT 視窗（剛才開場那個），貼：
    - 下一個節點吃：newFilename + 原 binary
 
 5. Write
-   - 角色：把原 PDF 用 newFilename 改名後寫到 /files/pdf-renamed/
+   - 角色：把原 PDF 用 newFilename 改名後寫到 /files/shared/pdf-renamed/
    - 輸出：寫入結果（成功/失敗）
    - 下一個節點：（流程結束）
 
@@ -433,7 +433,7 @@ n8n UI workflow 列表 → #02 那條右側三點 → Duplicate → 跳出新 wo
 
 回 workflow 列表，看到原 `02-pdf-ai-rename` + 新 `02-pdf-ai-rename-invoice-edit` 兩條 ✓。
 
-進到 -edit 版，看右上角 Active 開關：**灰色 OFF** ✓（n8n Duplicate 時預設不啟用）。
+進到 -edit 版，看右上角發布狀態：**未發布（Published = false）** ✓（n8n Duplicate 時預設不發布；舊版介面可能顯示灰色 OFF）。
 
 #### 4.3 A 把 Code 節點的修改複製到 -edit 版
 
@@ -444,13 +444,13 @@ n8n UI workflow 列表 → #02 那條右側三點 → Duplicate → 跳出新 wo
 > **正確的下次順序**（請 hard-code 進你的肌肉記憶）：
 >
 > 1. **先**在 workflow 列表 Duplicate 原 workflow 變 -edit 版
-> 2. **檢查 -edit 版 Active 開關 OFF**（灰色）
+> 2. **檢查 -edit 版未發布**（Published = false；舊版介面為灰色 OFF）
 > 3. **在 -edit 版上改 Code 節點**（不是在原 workflow 上改）
 > 4. 跑通後才考慮把 -edit 版改名為 v2、原版改名為 v1-archived
 >
 > A 這次順序是 (1)(3)(2) 反過來，所以有了下面的「補救動作」 — 但**正常情況不該需要補救**。
 
-剛才 3.9 是改在原 #02 — 等等，A 想了一下：紅線 7 說 **不在 production 上改**。她意識到剛才應該先 Duplicate 再改。但 #02 不是 production（沒打開 Active），算 OK。為了安全（補救動作）：
+剛才 3.9 是改在原 #02 — 等等，A 想了一下：紅線 7 說 **不在 production 上改**。她意識到剛才應該先 Duplicate 再改。但 #02 不是 production（尚未發布），算 OK。為了安全（補救動作）：
 
 - 在原 #02 上把 Code 節點 Cmd+C
 - 切到 -edit 版，點 Code 節點 → Cmd+V → 替換
@@ -460,7 +460,7 @@ n8n UI workflow 列表 → #02 那條右側三點 → Duplicate → 跳出新 wo
 
 #### 4.4 A 準備測試 PDF
 
-把上週收到的 1 張測試發票 PDF（檔名 `inv_20260430_001.pdf`）放到 `/files/pdf-inbox/`。
+把上週收到的 1 張測試發票 PDF（檔名 `inv_20260430_001.pdf`）放到 `/files/shared/pdf-inbox/`。
 
 #### 4.5 A 點 Execute Workflow
 
@@ -482,7 +482,7 @@ n8n UI 下方紫色按鈕 Execute Workflow。
 
 `seller: null`、`totalAmount: null`！A 心想：「綠燈不代表對啊」（紅線 5：LLM 輸出當草稿）。
 
-她去 `/files/pdf-renamed/` 看 — 真的多了一個 `20260506_發票_null_null.pdf`。
+她去 `/files/shared/pdf-renamed/` 看 — 真的多了一個 `20260506_發票_null_null.pdf`。
 
 進入 Step 5 錯誤回報。
 
@@ -621,7 +621,7 @@ A 在 n8n UI Code 節點裡，把 prompt 字串第 3-5 行手動改成 LLM 給�
 }
 ```
 
-`/files/pdf-renamed/` 多一個 `20260430_發票_弄一下工作室股份有限公司_15750.pdf` ✓。
+`/files/shared/pdf-renamed/` 多一個 `20260430_發票_弄一下工作室股份有限公司_15750.pdf` ✓。
 
 **驗收訊號達成** — 1 張測試 PDF 改名成功。
 
@@ -713,7 +713,7 @@ LLM 拿到這段後典型會收斂回：
 
 #### 7.1 A 把 200 張全放 pdf-inbox
 
-從共享資料夾複製當月 200 張供應商發票到 `/files/pdf-inbox/`。
+從共享資料夾複製當月 200 張供應商發票到 `/files/shared/pdf-inbox/`。
 
 #### 7.2 Execute Workflow（全量）
 
@@ -742,7 +742,7 @@ A 把那張 PDF 從 `pdf-inbox` 移到一個叫 `_manual_review/` 的子資料�
 
 #### 7.5 Finder 確認
 
-打開 Finder，去 `/files/pdf-renamed/`：
+打開 Finder，去 `/files/shared/pdf-renamed/`：
 - 199 個檔案（不是 200，因為 1 張失敗）
 - 抽查 5 個檔名格式：
   - `20260415_發票_AA有限公司_8420.pdf` ✓

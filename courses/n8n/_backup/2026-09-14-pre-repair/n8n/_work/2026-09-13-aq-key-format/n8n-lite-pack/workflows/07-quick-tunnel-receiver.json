@@ -1,0 +1,135 @@
+{
+  "name": "07 · Quick Tunnel 接外部觸發",
+  "meta": {
+    "_litePackNote": "Lite Pack #7：Production webhook 配 Cloudflare Quick Tunnel 公開觸發。"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## #7 Quick Tunnel 接外部觸發\n\n**目的**：把 webhook 變成「公開可呼叫」，讓 Make / 手機 / 朋友 / 任何網路服務都能觸發。\n\n**測試方法**：\n1. 確認 n8n 已啟動，雙擊試跑包的 `tunnel-quick.command`（Mac）或 `tunnel-quick.bat`（Windows），等待終端機顯示 `https://xxxx.trycloudflare.com` URL\n2. 本 workflow 右上按「Publish」發布（舊版介面可能顯示 Active），這是 `/webhook/` production URL\n3. 在瀏覽器開啟 `https://你的網址.trycloudflare.com/webhook/external-ping?message=hello`\n4. 瀏覽器應收到 `status: \"ok\"` JSON，Telegram 應收到「📡 外部 ping 收到」通知\n5. 測試完成後取消發布（或關閉 Active），再在 tunnel 終端機按 `Ctrl+C`\n\n**重點**：Webhook 使用 GET 與 `/webhook/` production URL；回應由指定的 Respond to Webhook 節點送出，不受 Telegram 分支完成順序影響。\n\n**改造方向**：\n- 加 query string parsing 讓外部傳資料（例如 `?name=Alice`）\n- 串 #6 邏輯（用 Execute Workflow node）讓外部觸發 AI 問答\n- 加 Header Auth 安全驗證（避免機器人亂打）",
+        "height": 480,
+        "width": 380
+      },
+      "id": "sticky-07",
+      "name": "📌 使用說明",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -280,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "external-ping",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-07",
+      "name": "Webhook: external-ping",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "lite-pack-07-external-ping"
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// 收外部請求 → 組 Telegram 通知文 + Webhook 回應\nconst headers = $input.first().json.headers || {};\nconst query = $input.first().json.query || {};\nconst ip = headers['cf-connecting-ip'] || headers['x-forwarded-for'] || 'unknown';\nconst ua = headers['user-agent'] || 'unknown';\nconst ts = new Date().toLocaleString('zh-TW');\n\nconst tgMsg = `📡 外部 ping 收到！\\n\\n⏰ ${ts}\\n🌐 IP: ${ip}\\n🤖 User-Agent: ${ua.substring(0, 80)}\\n📦 Query: ${JSON.stringify(query)}\\n\\n（你的本機 n8n 正在被外部觸發！）`;\n\nreturn [{\n  json: {\n    tgMsg,\n    response: {\n      status: 'ok',\n      message: 'pong from your local n8n via cloudflare tunnel',\n      receivedAt: ts,\n      from: ip\n    }\n  }\n}];"
+      },
+      "id": "code-07",
+      "name": "Code: 解析外部請求",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "__TELEGRAM_CHAT_ID__",
+        "text": "={{ $json.tgMsg }}",
+        "additionalFields": {}
+      },
+      "id": "tg-07",
+      "name": "Telegram 通知",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        680,
+        220
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "lite-pack-telegram",
+          "name": "Lite Pack · Telegram Bot"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"status\": $json.response.status, \"message\": $json.response.message, \"received_at\": $json.response.receivedAt, \"from\": $json.response.from } }}",
+        "options": {}
+      },
+      "id": "respond-07",
+      "name": "Respond: pong",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        680,
+        380
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook: external-ping": {
+      "main": [
+        [
+          {
+            "node": "Code: 解析外部請求",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: 解析外部請求": {
+      "main": [
+        [
+          {
+            "node": "Telegram 通知",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Respond: pong",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "id": "lite-pack-07-quick-tunnel-receiver",
+  "tags": [
+    {
+      "name": "lite-pack",
+      "id": "tag-lite-pack"
+    },
+    {
+      "name": "module-1-2",
+      "id": "tag-module-1-2"
+    }
+  ]
+}

@@ -23,10 +23,10 @@ last_updated: 2026-05-07
 
 ### 7.0 開始錯誤分流前 — 30 秒環境檢查（cross-link 第 8 章）
 
-拿到「LLM 給的 workflow 匯不進去 / 跑出錯」之前，**先做 30 秒環境檢查**（詳細在第 8 章 8.X 表）。如果環境本身就錯（在 production 動 / Active 開著被 trigger / 在 Cloud 但用 Cloud 不支援的節點），錯誤分流會帶你走錯方向、修也修不對：
+拿到「LLM 給的 workflow 匯不進去 / 跑出錯」之前，**先做 30 秒環境檢查**（詳細在第 8 章 8.X 表）。如果環境本身就錯（在 production 動 / workflow 已發布而被 trigger / 在 Cloud 但用 Cloud 不支援的節點），錯誤分流會帶你走錯方向、修也修不對：
 
 - ✅ 我在 `*-edit` workflow（不是 production）
-- ✅ Active 是 OFF（手動跑而非 trigger 自動跑）
+- ✅ workflow 未發布（Published = false；手動跑而非 trigger 自動跑）
 - ✅ 在 local n8n（如果 LLM 給的有 executeCommand / readWriteFile 等 cloud 不支援節點）
 
 30 秒檢查全綠才進下面的錯誤分流。

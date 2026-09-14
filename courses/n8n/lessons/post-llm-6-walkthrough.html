@@ -312,7 +312,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 
 2. 目標 input
    供應商發票 PDF（每月 200 張，目前手邊先 1 張測試）
-   來源資料夾：/files/pdf-inbox/
+   來源資料夾：/files/shared/pdf-inbox/
    每張 PDF 含：
    - 賣方公司全名（PDF 上中文寫「賣方」）
    - 統編（8 碼）
@@ -324,7 +324,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
    改名後 PDF，命名格式：
    {YYYYMMDD}_發票_{賣方名}_{稅後合計}.pdf
    例：20260506_發票_弄一下工作室股份有限公司_15750.pdf
-   存到：/files/pdf-renamed/2026/{月份}/
+   存到：/files/shared/pdf-renamed/2026/{月份}/
 
 4. 必保留的節點
    Manual Trigger（保留）
@@ -413,9 +413,9 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
   <div class="turn-llm-ok">
     <div class="turn-llm-ok-label">ChatGPT 回應（理想版）</div>
     <div class="turn-llm-ok-body">這份 workflow 做什麼：
-從 /files/pdf-inbox/ 讀取資料夾內所有 PDF，用 Gemini API 分析每份 PDF 的
+從 /files/shared/pdf-inbox/ 讀取資料夾內所有 PDF，用 Gemini API 分析每份 PDF 的
 文字內容後產出一個語意化檔名（格式 YYYYMMDD_類型_關鍵字），最後把原 PDF
-用新檔名移到 /files/pdf-renamed/ 資料夾。整套流程是手動觸發。
+用新檔名移到 /files/shared/pdf-renamed/ 資料夾。整套流程是手動觸發。
 
 節點清單（5 個）：
 1. Manual Trigger
@@ -424,7 +424,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
    - 下一個節點吃：觸發訊號
 
 2. Read PDF
-   - 角色：列出 /files/pdf-inbox/ 內所有 .pdf 檔
+   - 角色：列出 /files/shared/pdf-inbox/ 內所有 .pdf 檔
    - 輸出：每張 PDF 的 binary data + 原始檔名
    - 下一個節點吃：binary
 
@@ -439,7 +439,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
    - 下一個節點吃：newFilename + 原 binary
 
 5. Write
-   - 角色：把原 PDF 用 newFilename 改名後寫到 /files/pdf-renamed/
+   - 角色：把原 PDF 用 newFilename 改名後寫到 /files/shared/pdf-renamed/
    - 輸出：寫入結果（成功/失敗）
    - 下一個節點：（流程結束）
 
@@ -644,19 +644,19 @@ Extract PDF Text 你可以選 raw 或 structured 模式⋯⋯
   <p class="body-text">n8n UI workflow 列表 → #02 那條右側三點 → Duplicate → 跳出新 workflow 名為「02-pdf-ai-rename copy」→ A 改名為「02-pdf-ai-rename-invoice-edit」。</p>
 
   <h3 class="sub-step">4.2 A 驗收 Duplicate</h3>
-  <p class="body-text">回 workflow 列表，看到原 <code>02-pdf-ai-rename</code> + 新 <code>02-pdf-ai-rename-invoice-edit</code> 兩條 ✓。進到 -edit 版，看右上角 Active 開關：<strong>灰色 OFF</strong> ✓（n8n Duplicate 時預設不啟用）。</p>
+  <p class="body-text">回 workflow 列表，看到原 <code>02-pdf-ai-rename</code> + 新 <code>02-pdf-ai-rename-invoice-edit</code> 兩條 ✓。進到 -edit 版，看右上角發布狀態：<strong>未發布（Published = false）</strong> ✓（n8n Duplicate 時預設不發布；舊版介面可能顯示灰色 OFF）。</p>
 
   <div class="callout key">
     <div class="callout-icon" aria-hidden="true">⚠</div>
-    <div class="callout-body"><strong>教學示範：A 這次的順序顛倒了，正確做法是「先 Duplicate 再改」</strong><br>非工程師第一次走流程，很常順序顛倒——在原 #02 上先動了刀，跑到這 step 才想起要 Duplicate。劇本如實呈現這個現實 case，並示範「順序顛倒了還是有救」的還原動線。<br><br><strong>正確的下次順序（請寫進肌肉記憶）：</strong><br>1. 先在 workflow 列表 Duplicate 原 workflow 變 -edit 版<br>2. 檢查 -edit 版 Active 開關 OFF（灰色）<br>3. 在 -edit 版上改 Code 節點（不是在原 workflow 上改）<br>4. 跑通後才考慮把 -edit 版改名為 v2、原版改名為 v1-archived</div>
+    <div class="callout-body"><strong>教學示範：A 這次的順序顛倒了，正確做法是「先 Duplicate 再改」</strong><br>非工程師第一次走流程，很常順序顛倒——在原 #02 上先動了刀，跑到這 step 才想起要 Duplicate。劇本如實呈現這個現實 case，並示範「順序顛倒了還是有救」的還原動線。<br><br><strong>正確的下次順序（請寫進肌肉記憶）：</strong><br>1. 先在 workflow 列表 Duplicate 原 workflow 變 -edit 版<br>2. 檢查 -edit 版未發布（Published = false；舊版介面為灰色 OFF）<br>3. 在 -edit 版上改 Code 節點（不是在原 workflow 上改）<br>4. 跑通後才考慮把 -edit 版改名為 v2、原版改名為 v1-archived</div>
   </div>
 
   <p class="body-text">剛才 3.9 是改在原 #02——A 意識到紅線 7 說「不在 production 上改」。為了補救：在原 #02 上把 Code 節點 Cmd+C，切到 -edit 版，點 Code 節點 → Cmd+V → 替換。同時把原 #02 的 Code 節點還原回 backup（用 macOS Notes 那份 code-backup）。</p>
 
   <h3 class="sub-step">4.3-4.5 準備測試 PDF 並執行</h3>
-  <p class="body-text">把上週收到的 1 張測試發票 PDF（<code>inv_20260430_001.pdf</code>）放到 <code>/files/pdf-inbox/</code>。在 n8n 畫布下方按橘色 <code>Execute workflow</code>。</p>
+  <p class="body-text">把上週收到的 1 張測試發票 PDF（<code>inv_20260430_001.pdf</code>）放到 <code>/files/shared/pdf-inbox/</code>。在 n8n 畫布下方按橘色 <code>Execute workflow</code>。</p>
 
-  <div class="screenshot-placeholder">圖 2 — n8n UI 畫面：02-pdf-ai-rename-invoice-edit，右上角 Active 開關灰色 OFF</div>
+  <div class="screenshot-placeholder">圖 2 — n8n UI 畫面：02-pdf-ai-rename-invoice-edit，右上角顯示未發布（舊版介面為灰色 OFF）</div>
 
   <!-- 岔路 2 -->
   <div class="detour-heading">步驟 4 — 跑出 null_null（劇情錯誤示範）</div>
@@ -674,7 +674,7 @@ Extract PDF Text 你可以選 raw 或 structured 模式⋯⋯
 }</div>
   </div>
 
-  <p class="body-text"><code>seller: null</code>、<code>totalAmount: null</code>！A 心想：「綠燈不代表對啊」（紅線 5：LLM 輸出當草稿）。她去 <code>/files/pdf-renamed/</code> 看——真的多了一個 <code>20260506_發票_null_null.pdf</code>。進入 Step 5 錯誤回報。</p>
+  <p class="body-text"><code>seller: null</code>、<code>totalAmount: null</code>！A 心想：「綠燈不代表對啊」（紅線 5：LLM 輸出當草稿）。她去 <code>/files/shared/pdf-renamed/</code> 看——真的多了一個 <code>20260506_發票_null_null.pdf</code>。進入 Step 5 錯誤回報。</p>
 
   <div class="callout key">
     <div class="callout-icon" aria-hidden="true">💡</div>
@@ -851,7 +851,7 @@ parseInt 掉精度。同樣 invoiceDate 沒給轉換規則，Gemini 多半直接
 }</div>
   </div>
 
-  <p class="body-text"><code>/files/pdf-renamed/</code> 多一個 <code>20260430_發票_弄一下工作室股份有限公司_15750.pdf</code> ✓。</p>
+  <p class="body-text"><code>/files/shared/pdf-renamed/</code> 多一個 <code>20260430_發票_弄一下工作室股份有限公司_15750.pdf</code> ✓。</p>
 
   <div class="screenshot-placeholder">圖 3 — n8n UI 畫面：Code 節點 output panel，顯示 newFilename 格式正確</div>
 
@@ -965,7 +965,7 @@ parseInt 掉精度。同樣 invoiceDate 沒給轉換規則，Gemini 多半直接
   </div>
 
   <h3 class="sub-step">7.1-7.2 放入 200 張全量跑</h3>
-  <p class="body-text">從共享資料夾複製當月 200 張供應商發票到 <code>/files/pdf-inbox/</code>。n8n UI 點 Execute Workflow。等了 4 分鐘（每張 PDF 平均 1.2 秒）。</p>
+  <p class="body-text">從共享資料夾複製當月 200 張供應商發票到 <code>/files/shared/pdf-inbox/</code>。n8n UI 點 Execute Workflow。等了 4 分鐘（每張 PDF 平均 1.2 秒）。</p>
 
   <h3 class="sub-step">7.3 看執行結果</h3>
   <p class="body-text">n8n UI 下方執行紀錄：Read PDF 200 張全部讀取 ✓、Extract PDF Text 200 張全部 ✓、Code: AI 改名 199 張綠燈，<strong>1 張紅燈</strong> ✗、Write 199 張寫入。</p>
@@ -981,7 +981,7 @@ parseInt 掉精度。同樣 invoiceDate 沒給轉換規則，Gemini 多半直接
   </div>
 
   <h3 class="sub-step">7.5 Finder 確認</h3>
-  <p class="body-text">打開 Finder，去 <code>/files/pdf-renamed/</code>：199 個檔案（不是 200，因為 1 張失敗）。抽查 5 個檔名格式：</p>
+  <p class="body-text">打開 Finder，去 <code>/files/shared/pdf-renamed/</code>：199 個檔案（不是 200，因為 1 張失敗）。抽查 5 個檔名格式：</p>
   <p class="body-text"><code>20260415_發票_AA有限公司_8420.pdf</code> ✓<br><code>20260420_發票_BB商業有限公司_0.pdf</code> ✓（退款單，已記備注）<br><code>20260425_發票_CC企業股份有限公司_3450.pdf</code> ✓<br><code>20260428_發票_DD國際有限公司_22100.pdf</code> ✓<br><code>20260430_發票_弄一下工作室股份有限公司_15750.pdf</code> ✓（測試那張）</p>
 
   <p class="body-text">格式全部正確，<strong>驗收交付通過</strong>。</p>
@@ -1141,7 +1141,7 @@ parseInt 掉精度。同樣 invoiceDate 沒給轉換規則，Gemini 多半直接
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">2026 春季</span>
-  <span class="footer-meta" data-platform-version="n8n latest (Docker image n8nio/n8n)" data-built-at="2026-05-07">本頁以 n8n latest (Docker image n8nio/n8n) 製作，2026-05</span>
+  <span class="footer-meta" data-platform-version="Docker Desktop / n8n 2.37.7 (Docker image n8nio/n8n:2.37.7)" data-built-at="2026-09-14">本頁依 n8n 2.37.7 製作，2026-09-14；部分進階案例仍需依實機重驗證，Windows 尚待實機驗證。</span>
 </footer>
 
 <script>

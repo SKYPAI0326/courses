@@ -344,13 +344,13 @@ code{font-family:'Courier New',monospace;font-size:.85em;background:var(--c-surf
 <!-- ===== (03) 格式 A：docx ===== -->
 <section class="lesson-section" id="s03-docx">
   <div class="section-eyebrow">(03)</div>
-  <h2 class="section-heading">格式 A：.docx — 用「中介格式策略」</h2>
+  <h2 class="section-heading">格式 A：.docx — 先做單檔實測，再選中介格式策略</h2>
 
   <div class="callout-warning">
-    <div class="callout-warning-label">n8n 沒有 docx 原生 operation</div>
+    <div class="callout-warning-label">docx 支援需先做單檔實測</div>
     <div class="callout-warning-body">
-      n8n Extract from File <strong>沒有 docx 專屬 operation</strong>（n8n 1.x 確認）。直接用 <code>text</code> operation 會抽到 zip XML 結構不是內文——Word .docx 是 zip + XML 結構，學員拿到 <code>&lt;?xml version="1.0"?&gt;...</code> 開頭的亂碼。<br>
-      所以 .docx 不能跟 .pdf 一樣「換 Extract operation 就好」，要走<strong>中介格式策略</strong>。
+      本頁引用的是 n8n 1.x 的舊實測：當時 Extract from File <strong>沒有 docx 專屬 operation</strong>，直接用 <code>text</code> 可能抽到 zip/XML 結構而非內文。n8n 2.37.7 尚未在本課完成 docx 實機重驗，請先用 1 份測試檔確認 operation 與 Output；若實測仍無 docx operation 或內容不可讀，再走中介格式策略。<br>
+      若實測仍無 docx operation，再採<strong>中介格式策略</strong>（先轉 PDF 或匯出 .md）。
     </div>
   </div>
 
@@ -376,7 +376,7 @@ code{font-family:'Courier New',monospace;font-size:.85em;background:var(--c-surf
   </div>
 
   <h3 class="sub-heading">不要走的死路（學員會踩的雷）</h3>
-  <p class="body-text">❌ 把 #03 fileSelector 改 <code>*.docx</code> + Extract operation 留 <code>text</code> → 會抽到 zip XML 亂碼，AI 拿到 <code>&lt;?xml version="1.0"?&gt;...</code> 亂猜檔名<br>
+  <p class="body-text">❌ 未經驗證就把 #03 fileSelector 改 <code>*.docx</code> + Extract operation 留 <code>text</code> → 在部分版本／情況可能抽到 zip/XML 內容，AI 可能拿到與內文無關的字串而亂猜檔名<br>
   ❌ 試圖叫 LLM 寫 docx parser 進 Code 節點 → mammoth 之類的 npm 模組 n8n 預設沒裝，學員裝不了<br>
   ❌ 用 Read 直接拿 binary 後 Code 節點手寫 unzip → 走進工程地獄</p>
 
@@ -900,8 +900,8 @@ const pdfText = rawBinary
       <tr>
         <td><strong>9-A docx</strong></td>
         <td>條列 2 條：批次轉 PDF 做法 + 確認 #03 不動</td>
-        <td>建議改 fileSelector 成 <code>*.docx</code> + Extract operation=text（會抽 zip XML 亂碼）</td>
-        <td>拒絕，要求走中介格式策略路線 1</td>
+        <td>未驗證就改 fileSelector 成 <code>*.docx</code> + Extract operation=text（可能與目前版本 Output 不符）</td>
+        <td>拒絕未驗證改法；先單檔實測，若無 docx operation 或內容不可讀，再走中介格式策略路線 1</td>
       </tr>
       <tr>
         <td><strong>9-B xlsx</strong></td>
@@ -977,11 +977,11 @@ const pdfText = rawBinary
       </tr>
       <tr>
         <td><strong>.docx</strong></td>
-        <td><code>*.pdf</code>（中介策略）</td>
-        <td><strong>不能用 Extract</strong> — Word/Pages/LibreOffice 批次 export PDF 再走既有 #03</td>
+        <td>先用 1 份檔案確認；不支援時用 <code>*.pdf</code>（中介策略）</td>
+        <td>先實測 Extract from File 的 docx operation 與 Output；若不支援或內容不可讀，再由 Word/Pages/LibreOffice 批次 export PDF 後走既有 #03</td>
         <td><span class="cheat-nodyn">不動</span></td>
         <td><span class="cheat-nodyn">不動</span></td>
-        <td>Extract from File 沒有 docx operation；<code>text</code> operation 直抽會拿到 zip XML 亂碼</td>
+        <td>2.37.7 的 docx operation／<code>text</code> 輸出尚待本課實機確認；若不支援或內容不可讀，再走中介格式策略</td>
       </tr>
       <tr>
         <td><strong>.xlsx</strong></td>
@@ -1086,7 +1086,7 @@ const pdfText = rawBinary
       <div class="error-section-label">解法</div>
       <div class="error-body">放棄直抽路線，走 <strong>9-A 中介格式策略路線 1</strong>——Word / Pages / LibreOffice 批次 export 成 PDF，再走既有 #03（fileSelector / Extract operation / 業務規則層全部回到 PDF 路線預設）。</div>
       <div class="error-section-label">預防</div>
-      <div class="error-body">把第 (08) 節 dispatch 對照表貼螢幕邊——.docx 那行明確寫「不能用 Extract」+ 走中介策略。</div>
+      <div class="error-body">把第 (08) 節 dispatch 對照表貼螢幕邊——.docx 那行先做單檔實測；若不支援或內容不可讀，再走中介策略。</div>
     </div>
 
     <div class="error-item">
@@ -1193,7 +1193,7 @@ const pdfText = rawBinary
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">2026 春季</span>
-  <span class="footer-meta" data-platform-version="n8n 1.x" data-built-at="2026-05-08">本頁以 n8n 1.x 製作，2026-05</span>
+  <span class="footer-meta" data-platform-version="Docker Desktop / n8n 2.37.7 (Docker image n8nio/n8n:2.37.7; docx 行為待重驗)" data-built-at="2026-09-14">本頁依 n8n 2.37.7 製作，2026-09-14；docx 抽取行為尚待 2.37.7 實機重驗，Windows 尚待實機驗證。</span>
 </footer>
 
 <script>

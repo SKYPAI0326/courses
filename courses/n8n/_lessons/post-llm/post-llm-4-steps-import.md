@@ -46,13 +46,13 @@ last_updated: 2026-05-07
    - 動作：n8n UI Workflows 列表，找到 `02-pdf-ai-rename-edit`，點開
    - **驗收硬指標 (a)**：節點數和原版一致（在原版開一個分頁對照數一遍，例如原版 5 個節點，-edit 也要是 5 個）
    - **驗收硬指標 (b)**：credentials 跟著來了 — 點任一含 credential 的節點（例：HTTP Request、Gemini、Google Drive），看 Credentials 欄位是否還掛著原本那個（n8n Duplicate 預設會繼承；若顯示「Select Credential」表示沒繼承，要手動選回去）
-   - **驗收硬指標 (c)**：Active 開關是「灰色 OFF」（Duplicate 預設關，仍要肉眼確認）
+   - **驗收硬指標 (c)**：workflow 未發布（Published = false；舊版介面可能顯示灰色 OFF；Duplicate 預設未發布，仍要肉眼確認）
    - 如果以上任一條不過 → 退回第 3 章 step 6 重做 Duplicate
 2. **確認 trigger 是 Manual / OFF**
-   - 動作：打開 -edit 版，看 workflow 右上角的 Active 開關，必須是「灰色關閉」狀態
-   - **驗收硬指標**：開關文字顯示「Inactive」或「OFF」
+   - 動作：打開 -edit 版，看 workflow 右上角發布狀態，必須是未發布
+   - **驗收硬指標**：狀態不是 Published（舊版介面可能顯示 Inactive 或 OFF）
 3. **準備 1 張測試 PDF**
-   - 動作：把 1 張你已經有的真實供應商發票（或拿手邊 1 張舊合約 PDF 當煙霧測試）放到 `/files/pdf-inbox/`
+   - 動作：把 1 張你已經有的真實供應商發票（或拿手邊 1 張舊合約 PDF 當煙霧測試）放到 `/files/shared/pdf-inbox/`
    - **驗收硬指標**：n8n UI 上 Read PDF 節點點 Execute Step 能列出這張 PDF
 4. **點 Execute Workflow**
    - 動作：n8n UI 下方紫色「Execute Workflow」按鈕
@@ -61,7 +61,7 @@ last_updated: 2026-05-07
    - 動作：點節點 → 右側 panel 上方有 4 個 tab：Input / Output / Settings / 其他 → 切到 Output → 看 JSON 樹
    - **驗收硬指標**：最後一個節點 (Write) output 裡，找到 `newFilename` 欄位，值符合便箋上寫的命名規則
 6. **去 Finder / 檔案總管確認**
-   - 動作：打開 `/files/pdf-renamed/`
+   - 動作：打開 `/files/shared/pdf-renamed/`
    - **驗收硬指標**：看到 1 張改好名的 PDF，檔名是預期格式
 
 #### 步驟 5：錯誤回報（5-15 分鐘 / 輪，學員 + LLM）
@@ -109,10 +109,10 @@ last_updated: 2026-05-07
    - 動作：停止 LLM 對話 → 退回步驟 1，看 4 格便箋是否有「目標 input」格寫得太模糊
    - **常見原因**：input 那格只寫「發票 PDF」沒寫具體欄位
 4. **小批量測試（10 筆）**
-   - 動作：從你 200 張裡隨機挑 10 張不同供應商的發票放 `/files/pdf-inbox/`，再次 Execute Workflow
+   - 動作：從你 200 張裡隨機挑 10 張不同供應商的發票放 `/files/shared/pdf-inbox/`，再次 Execute Workflow
    - **驗收硬指標**：(a) 10 張全綠燈 (b) 10 張的 newFilename 都符合便箋格式 (c) 沒有 null
 5. **全量執行**
-   - 動作：把 200 張全放 `/files/pdf-inbox/`，Execute Workflow
+   - 動作：把 200 張全放 `/files/shared/pdf-inbox/`，Execute Workflow
    - **驗收硬指標**：(a) 200 張全綠燈 (b) 抽查 5 張隨機 output 命名正確 (c) Finder pdf-renamed 資料夾數量是 200
    - **驗收動線**：在 n8n 工作區右側點「Executions」分頁 → 等所有 200 筆狀態 column 變成「Success」（綠 ✓）。如果有 Failed（紅 ✗）或 Cancelled（灰），把那筆 timestamp 記下回去看哪個節點掛了。**不要等 UI 即時 200 個綠燈，那不是 n8n UI 的設計**（200 筆會在 Executions 分頁輪流刷新，要等 7-8 分鐘全跑完再看 list）。
 
@@ -281,7 +281,7 @@ input panel 顯示 pdfTextPreview 的內容是「賣方：XX 公司，稅後合�
 
 學員整章讀完 + 走完一次過關：
 
-- [ ] 我能在 n8n UI 上 verify -edit workflow（節點數對、credentials 跟上、Active OFF）— Duplicate 動作已在第 3 章 step 6 做過
+- [ ] 我能在 n8n UI 上 verify -edit workflow（節點數對、credentials 跟上、workflow 未發布）— Duplicate 動作已在第 3 章 step 6 做過
 - [ ] 我能複製錯誤訊息+input+parameter 三件套（並確認 4 個 credential 字串都搜不到）
 - [ ] 我能分辨 LLM 回的「精準回答」vs「太模糊」（具體判定例）：
   - ✅ 「精準」= 句子裡有「parameter 的第 X 行」+「具體欄位名」+「具體新值」三要素
@@ -294,7 +294,7 @@ input panel 顯示 pdfTextPreview 的內容是「賣方：XX 公司，稅後合�
 ### 7. 常見錯誤 + 怎麼解
 
 **錯誤 1：「我點 Execute Workflow 直接在 production workflow 上跑了」**
-- 解：立刻關掉 Active 開關。檢查 production 是否已被新版本覆蓋（n8n UI 的 Executions tab 看歷史）。下次嚴格用 -edit 複本
+- 解：立刻取消發布。檢查 production 是否已被新版本覆蓋（n8n UI 的 Executions tab 看歷史）。下次嚴格用 -edit 複本
 
 **錯誤 2：「我貼模板 4，LLM 又給我整份 workflow 重寫」**
 - 解：用模板 4 結尾「不要重寫整個節點」是關鍵。如果 LLM 還是重寫，加一句：「我只要『修改第 X 行的 Y 字串為 Z』這種句型的回答，不要 JSON」

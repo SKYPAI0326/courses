@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>6 步真詳解 — 拆需求、讀 JSON、限定範圍、匯入測試、錯誤回報、收斂｜AI 資料工廠</title>
+<meta name="description" content="用 LLM 改 workflow 完整 6 步詳解：拆需求（學員主導）、讀 JSON（LLM 翻譯）、限定修改範圍（協同）、匯入測試（verify Duplicate）、錯誤回報（精準型 vs 太模糊三變體）、收斂（可數 proxy 表）。含 5 個可直接複製的 prompt 模板。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="6 步真詳解 — 拆需求、讀 JSON、限定範圍、匯入測試、錯誤回報、收斂｜AI 資料工廠">
+<meta property="og:description" content="用 LLM 改 workflow 完整 6 步詳解：拆需求（學員主導）、讀 JSON（LLM 翻譯）、限定修改範圍（協同）、匯入測試（verify Duplicate）、錯誤回報（精準型 vs 太模糊三變體）、收斂（可數 proxy 表）。含 5 個可直接複製的 prompt 模板。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/lessons/post-llm-3-steps-decompose.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="6 步真詳解 — 拆需求、讀 JSON、限定範圍、匯入測試、錯誤回報、收斂｜AI 資料工廠">
+<meta name="twitter:description" content="用 LLM 改 workflow 完整 6 步：含 5 個 prompt 模板、verify Duplicate 三硬指標、精準型 vs 太模糊三變體、可數 proxy 收斂表。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/lessons/post-llm-3-steps-decompose.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-a5:#7a9ea3;--c-main:#5a7a5a;--radius:4px;--radius-sm:3px;--content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;word-break:break-word;overflow-wrap:break-word;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 var(--radius) 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.72rem;color:var(--c-main);border:1px solid rgba(90,122,90,.3);background:transparent;padding:3px 12px;border-radius:99px;font-weight:500;letter-spacing:.06em}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-text)}
+.hero-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:12px;font-variant-numeric:tabular-nums}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;max-width:22ch}
+.lesson-tagline{font-size:.92rem;color:var(--c-muted);line-height:1.9;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-main);margin-top:28px}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
+.outcome-item{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:32px 48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-heading em{font-style:normal;color:var(--c-text)}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:40px auto;max-width:var(--content-w)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text)}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-body{font-size:.9rem;line-height:1.85}
+.callout-danger{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:#fff5f5;border:1px solid #e8c0c0;border-left:4px solid #c00}
+.callout-danger .callout-icon{flex-shrink:0;font-size:1.1rem}
+.callout-danger .callout-body{font-size:.9rem;line-height:1.85;color:#5a0000}
+.callout-danger strong{color:#c00}
+.scenario-grid{display:flex;flex-direction:column;gap:12px;margin:24px 0}
+.scenario-row{display:grid;grid-template-columns:160px 1fr;gap:0;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden}
+.scenario-task{padding:16px 18px;background:var(--c-surface);font-size:.85rem;font-weight:700;color:var(--c-text);line-height:1.6;border-right:1px solid var(--c-border-soft)}
+.scenario-pick{padding:16px 18px;font-size:.85rem;color:var(--c-text);line-height:1.75}
+.inline-code{font-family:'Courier New',monospace;font-size:.85em;background:var(--c-surface);padding:1px 6px;border-radius:var(--radius-sm);color:var(--c-text)}
+.concept-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0}
+.concept-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px}
+.concept-num{font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-faint);font-weight:500;margin-bottom:6px;letter-spacing:.1em}
+.concept-title{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:8px}
+.concept-desc{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.warn-card{background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-text);border-radius:var(--radius);padding:20px 24px;margin:24px 0}
+.warn-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:700;margin-bottom:10px}
+.warn-body{font-size:.9rem;color:var(--c-text);line-height:1.85}
+.prompt-block{margin:24px 0}
+.prompt-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.prompt-label span{font-weight:400;color:var(--c-muted);letter-spacing:0}
+.prompt-copy-wrap{position:relative}
+.prompt-pre{font-family:'Courier New',monospace;font-size:.85rem;line-height:1.75;background:#2c2b28;color:#e8e4dc;padding:20px 24px;border-radius:var(--radius);white-space:pre-wrap;word-break:break-word;margin:0}
+.prompt-copy-btn{position:absolute;top:10px;right:10px;font-size:.72rem;color:var(--c-faint);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:var(--radius-sm);padding:4px 10px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:background .2s,color .2s}
+.prompt-copy-btn:hover{background:rgba(255,255,255,.15);color:#e8e4dc}
+.wrong-example{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 22px;margin:16px 0}
+.wrong-label{font-size:.72rem;color:var(--c-text);letter-spacing:.12em;font-weight:700;margin-bottom:8px}
+.wrong-note{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.four-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:24px 0}
+.four-cell{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px}
+.four-label{font-size:.72rem;color:var(--c-text);letter-spacing:.12em;font-weight:700;margin-bottom:8px}
+.four-body{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.step-list{list-style:none;margin:20px 0;display:flex;flex-direction:column;gap:12px}
+.step-item{display:grid;grid-template-columns:28px 1fr;gap:12px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:16px 18px}
+.step-num{font-family:'Shippori Mincho',serif;font-size:.85rem;font-weight:700;color:var(--c-faint);padding-top:2px}
+.step-body{font-size:.9rem;color:var(--c-text);line-height:1.85}
+.step-body strong{font-weight:700}
+.accept-list{list-style:none;margin:12px 0;display:flex;flex-direction:column;gap:6px}
+.accept-item{display:flex;gap:10px;font-size:.88rem;line-height:1.8;padding:8px 12px;border-radius:var(--radius-sm);background:var(--c-surface)}
+.accept-item.ok{border-left:3px solid #5a7a5a;color:var(--c-text)}
+.accept-item.ng{border-left:3px solid #b5703a;color:var(--c-text)}
+.accept-badge{flex-shrink:0;font-weight:700;font-size:.8rem;min-width:20px}
+.accept-badge.ok{color:#5a7a5a}
+.accept-badge.ng{color:#b5703a}
+.variants-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0}
+.variant-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden}
+.variant-header{padding:10px 16px;background:var(--c-surface);border-bottom:1px solid var(--c-border);display:flex;align-items:center;gap:8px}
+.variant-badge{font-size:.72rem;font-weight:700;letter-spacing:.1em;color:var(--c-text)}
+.variant-status{font-size:.72rem;padding:2px 8px;border-radius:99px;border:1px solid}
+.variant-status.pass{color:#5a7a5a;border-color:rgba(90,122,90,.4);background:rgba(90,122,90,.07)}
+.variant-status.fail{color:#b5703a;border-color:rgba(181,112,58,.4);background:rgba(181,112,58,.07)}
+.variant-body{padding:14px 16px;font-size:.83rem;line-height:1.75;color:var(--c-text)}
+.variant-body pre{font-family:'Courier New',monospace;font-size:.8rem;background:#2c2b28;color:#e8e4dc;padding:12px 14px;border-radius:var(--radius-sm);white-space:pre-wrap;word-break:break-word;margin:8px 0}
+.variant-note{font-size:.83rem;color:var(--c-muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--c-border-soft);line-height:1.75}
+.sop-box{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);margin:24px 0;overflow:hidden}
+.sop-header{padding:10px 18px;background:var(--c-surface);border-bottom:1px solid var(--c-border)}
+.sop-label{font-size:.72rem;font-weight:700;letter-spacing:.15em;color:var(--c-text)}
+.sop-body{padding:16px 18px}
+.sop-steps{list-style:none;display:flex;flex-direction:column;gap:8px}
+.sop-step{display:flex;gap:10px;font-size:.88rem;color:var(--c-text);line-height:1.8}
+.sop-step-num{flex-shrink:0;font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-faint);font-weight:700;min-width:20px;padding-top:2px}
+.checklist{list-style:none;margin:16px 0;display:flex;flex-direction:column;gap:8px}
+.check-item{display:flex;gap:10px;font-size:.9rem;color:var(--c-text);line-height:1.8;padding:10px 14px;background:var(--c-surface);border-radius:var(--radius-sm)}
+.check-box{flex-shrink:0;width:18px;height:18px;border:1.5px solid var(--c-border);border-radius:3px;margin-top:2px}
+.error-list{display:flex;flex-direction:column;gap:16px;margin:20px 0}
+.error-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 22px}
+.error-tag{font-size:.72rem;font-weight:700;letter-spacing:.12em;color:var(--c-muted);margin-bottom:6px}
+.error-title{font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:8px}
+.error-fix{font-size:.88rem;color:var(--c-muted);line-height:1.8}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(90,122,90,.3);border-radius:var(--radius);transition:background .2s,border-color .2s}
+.nav-btn:hover{background:rgba(90,122,90,.07);border-color:var(--c-main)}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main)}
+.nav-btn.primary:hover{filter:brightness(.92)}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em}
+@media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important}*{animation:none!important}}
+.code-block{background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.85rem;line-height:1.75;padding:20px 24px;border-radius:var(--radius);margin:20px 0;overflow-x:auto;white-space:pre-wrap;word-break:break-word}.code-block .cm{color:#6b9b8a}.code-block .st{color:#b8d4a0}.code-block .vr{color:#d4c08a}.prompt-box{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);margin:24px 0;overflow:hidden}.prompt-box-header{padding:12px 20px;background:var(--c-surface);border-bottom:1px solid var(--c-border-soft);display:flex;align-items:center;gap:10px}.prompt-box-label{font-size:.72rem;color:var(--c-text);letter-spacing:.12em;font-weight:700}.prompt-box-name{font-family:'Shippori Mincho',serif;font-size:.88rem;font-weight:700;color:var(--c-text)}.prompt-box-body{padding:20px 24px}.prompt-box-body .code-block{margin:0}.prompt-wrong{background:rgba(181,74,74,.04);border:1px solid rgba(181,74,74,.18);border-radius:var(--radius-sm);padding:14px 18px;margin-top:16px}.prompt-wrong-label{font-size:.72rem;color:#8a2020;letter-spacing:.1em;font-weight:600;margin-bottom:6px}.prompt-wrong-text{font-size:.88rem;color:var(--c-text);line-height:1.85}.step-table{width:100%;border-collapse:collapse;margin:24px 0;font-size:.88rem}.step-table th{text-align:left;padding:10px 14px;background:var(--c-surface);border:1px solid var(--c-border-soft);font-family:'Shippori Mincho',serif;font-size:.82rem;font-weight:700;color:var(--c-text);letter-spacing:.04em}.step-table td{padding:12px 14px;border:1px solid var(--c-border-soft);vertical-align:top;line-height:1.75;color:var(--c-text)}.step-table tr:nth-child(even) td{background:var(--c-bg)}.warn-box{background:rgba(201,150,58,.06);border:1px solid rgba(201,150,58,.25);border-radius:var(--radius);padding:16px 20px;margin:20px 0}.warn-box-label{font-size:.72rem;color:#7a5a1a;letter-spacing:.1em;font-weight:700;margin-bottom:8px}.warn-box-text{font-size:.88rem;color:var(--c-text);line-height:1.85}.ok-box{background:rgba(90,122,90,.06);border:1px solid rgba(90,122,90,.2);border-radius:var(--radius);padding:16px 20px;margin:20px 0}.ok-box-label{font-size:.72rem;color:#2a5a2a;letter-spacing:.1em;font-weight:700;margin-bottom:8px}.ok-box-text{font-size:.88rem;color:var(--c-text);line-height:1.85}.steps-list{display:flex;flex-direction:column;gap:0;margin:20px 0;border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden}.step-row{display:grid;grid-template-columns:40px 1fr;gap:0;border-bottom:1px solid var(--c-border-soft)}.step-row:last-child{border-bottom:none}.step-circle{display:flex;align-items:center;justify-content:center;background:var(--c-surface);font-family:'Shippori Mincho',serif;font-size:.82rem;font-weight:700;color:var(--c-faint);border-right:1px solid var(--c-border-soft);min-height:52px}.step-content{padding:14px 18px;font-size:.88rem;color:var(--c-text);line-height:1.75}.proxy-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.87rem}.proxy-table th{text-align:left;padding:9px 14px;background:var(--c-surface);border:1px solid var(--c-border-soft);font-family:'Shippori Mincho',serif;font-size:.8rem;font-weight:700;color:var(--c-text);letter-spacing:.04em}.proxy-table td{padding:10px 14px;border:1px solid var(--c-border-soft);vertical-align:top;line-height:1.7;color:var(--c-text)}.proxy-table .near{color:#2a5a2a;font-weight:600}.proxy-table .far{color:#8a2020;font-weight:600}@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px}.lesson-title{max-width:100%}.concept-grid{grid-template-columns:1fr}.four-grid{grid-template-columns:1fr}.scenario-row{grid-template-columns:1fr}.variants-grid{grid-template-columns:1fr}.step-table,.proxy-table{font-size:.82rem}.step-row{grid-template-columns:36px 1fr}}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='n8n_auth',H='825e2dce35d14124f94b648f6ab2ab60c9db1d8f393c2b61722fe02412b9a199';if(localStorage.getItem(K)==='1')sessionStorage.setItem(K,'1');if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">AI 資料工廠</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">補充 · POST-COURSE</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<div class="page-hero">
+  <a href="index.html" class="back-link"><span aria-hidden="true">←</span> 返回課程首頁</a>
+  <div class="hero-eyebrow">8 頁系列 · 第 3/8 · 完整 6 步詳解</div>
+  <h1 class="lesson-title">6 步真詳解 — 拆需求 → 讀 JSON → 限定範圍 → 匯入測試 → 錯誤回報 → 收斂</h1>
+  <p class="lesson-tagline">用 LLM 改 workflow 完整 6 步。前 3 步是地基（拆需求、讀 JSON、限定範圍），LLM 寫多少都看你 prompt 寫多細。後 3 步是收尾（匯入測試、錯誤回報、收斂），看你能不能用「可數 proxy」判斷越改越近還是越改越遠。每步含可直接複製的 prompt 模板與具體 LLM 回應範例。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">讀完這頁你會能做到 · OUTCOMES</div>
+    <div class="outcome-item">用 4 格便箋獨立拆解改造需求，填出含具體欄位名的 input/output，對著別人講 1 分鐘不打結</div>
+    <div class="outcome-item">把 workflow JSON 貼給 LLM 不洩漏 credential，驗收節點清單 80% 正確</div>
+    <div class="outcome-item">用 prompt 模板 3 讓 LLM 只回節點區段，在 -edit workflow 上完成替換</div>
+    <div class="outcome-item">verify Duplicate 三硬指標（節點數 / credentials / Active OFF），確認複本健全再跑</div>
+    <div class="outcome-item">用「三件套」格式回報錯誤，分辨精準型 vs 太模糊三種變體</div>
+    <div class="outcome-item">用可數 proxy 表（紅燈數 / null 數 / 行數）判斷近遠，全量跑完走 Executions tab 驗收</div>
+  </div>
+</div>
+
+<!-- ======================================================
+     (01) 步驟 1：拆需求
+     ====================================================== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(01)</div>
+  <h2 class="section-heading">步驟 1：拆需求（10-15 分鐘，全人工）</h2>
+  <div class="intro-band">
+    <div class="intro-label">為什麼這一步刻意排除 LLM</div>
+    <div class="intro-text">LLM 在需求模糊時會自己腦補。你說「幫我改 #02 處理發票」，LLM 不知道你的發票是什麼格式、想改名成什麼樣子、哪些節點一定要保留——它就開始猜，越改越亂。這一步的工作是你把需求說清楚，讓後面的 LLM 對話能有明確的邊界。</div>
+  </div>
+
+  <p class="body-text"><strong>打開 4 格便箋範本</strong>（紙、Notes、便利貼皆可），依序填完以下 4 格：</p>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <span class="step-num">1</span>
+      <div class="step-body">
+        <strong>填第 1 格「原 workflow 編號」</strong><br>
+        動作：寫「#XX-XXX」+ 一行「目前在做什麼」<br>
+        <ul class="accept-list" style="margin-top:10px;">
+          <li class="accept-item ok"><span class="accept-badge ok">✅</span>「我要拿 #02 PDF AI rename 改成處理發票」— 直接寫 workflow 編號 + 業務目標一行</li>
+          <li class="accept-item ok"><span class="accept-badge ok">✅</span>「複製一份 #02 → 改 prompt 加分類欄位」— 說明改什麼也算</li>
+          <li class="accept-item ng"><span class="accept-badge ng">❌</span>「PDF 工作流」— 沒指名是 #02 還是 #06，不算對；請補 workflow 編號</li>
+        </ul>
+      </div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">2</span>
+      <div class="step-body">
+        <strong>填第 2 格「目標 input」</strong><br>
+        動作：寫「文件類型 + 數量 + 來源資料夾 + 4-6 個關鍵欄位名」<br>
+        <strong>驗收硬指標</strong>：填好的 input 必須包含「具體欄位名」（例：「賣方統編」「稅後合計」），不能只寫「發票資訊」
+      </div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">3</span>
+      <div class="step-body">
+        <strong>填第 3 格「目標 output」</strong><br>
+        動作：寫「成品檔案/紀錄的格式 + 命名規則 + 存放位置」<br>
+        <strong>驗收硬指標</strong>：output 規則要寫到「肉眼比對能驗證」的程度。例：<span class="inline-code">{供應商名}_{發票日期}_{稅後金額}.pdf</span> 完整可變數
+      </div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">4</span>
+      <div class="step-body">
+        <strong>填第 4 格「必保留的節點」</strong><br>
+        動作：在 n8n UI 看一眼 workflow，把「不應該動」的節點名稱抄下來<br>
+        驗收：至少寫出 trigger 名 + 1 個其他節點，避免後續 LLM 重寫整份
+      </div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">5</span>
+      <div class="step-body">
+        <strong>自驗：對人講 1 分鐘</strong><br>
+        動作：對另一個人/或對著手機錄音講一遍 4 格內容<br>
+        <ul class="accept-list" style="margin-top:10px;">
+          <li class="accept-item ok"><span class="accept-badge ok">✅</span>你能在 60 秒內，依序講出「原 workflow 編號 #02 → input 是供應商發票 PDF（200 張/月，4 個欄位：賣方/統編/稅後合計/發票日期）→ output 改名為 <span class="inline-code">{YYYYMMDD}_發票_{賣方名}_{稅後合計}.pdf</span> → 必保留 4 個 trigger/節點」 — 結構完整 + 可量化</li>
+          <li class="accept-item ok"><span class="accept-badge ok">✅</span>對方聽完不需要追問，能複述「你要把 200 張供應商發票改名」</li>
+          <li class="accept-item ng"><span class="accept-badge ng">❌</span>你講超過 90 秒還沒講完 4 格 → 表示便箋寫太散</li>
+          <li class="accept-item ng"><span class="accept-badge ng">❌</span>對方追問「你說的『發票資訊』是什麼意思？」「output 的格式怎麼長的？」→ 便箋第 2/3 格寫太抽象，回去補具體欄位名 / 命名格式</li>
+        </ul>
+      </div>
+    </li>
+  </ul>
+
+  <p class="body-text" style="margin-top:32px;"><strong>4 格便箋範本</strong>（以 Story A：#02 PDF 改名 → 供應商發票為例）</p>
+  <div class="four-grid">
+    <div class="four-cell">
+      <div class="four-label">原 WORKFLOW 編號</div>
+      <div class="four-body">#02-pdf-ai-rename（合約改名版，目前抓甲乙方+合約金額+簽訂日）</div>
+    </div>
+    <div class="four-cell">
+      <div class="four-label">目標 INPUT</div>
+      <div class="four-body">供應商發票 PDF，每月 200 張，每張含：賣方公司全名、統編、品項清單、稅後合計（金額含元）、發票日期（YYYYMMDD）</div>
+    </div>
+    <div class="four-cell">
+      <div class="four-label">目標 OUTPUT</div>
+      <div class="four-body">改名後 PDF，命名格式：<span class="inline-code">{YYYYMMDD}_發票_{賣方名}_{稅後合計}.pdf</span>，存到 <span class="inline-code">/files/pdf-renamed/</span></div>
+    </div>
+    <div class="four-cell">
+      <div class="four-label">必保留節點</div>
+      <div class="four-body">Manual Trigger、Read PDF、Extract PDF Text、Write（4 個都不能換掉）</div>
+    </div>
+  </div>
+
+  <div class="prompt-block">
+    <div class="prompt-label">PROMPT 模板 1 <span>— 步驟 1 自我檢查（選用，也可直接手寫便箋）</span></div>
+    <div class="prompt-copy-wrap">
+      <pre class="prompt-pre" id="prompt1">我要改 n8n workflow #02-pdf-ai-rename（合約改名版，目前抓甲乙方+合約金額+簽訂日）。
+目標 input：供應商發票 PDF，每月 200 張，每張含：
+  - 賣方公司全名
+  - 統編
+  - 品項清單
+  - 稅後合計（金額含元）
+  - 發票日期（YYYYMMDD）
+目標 output：改名後 PDF，命名格式 {YYYYMMDD}_發票_{賣方名}_{稅後合計}.pdf，存到 /files/pdf-renamed/
+必保留節點：Manual Trigger、Read PDF、Extract PDF Text、Write（4 個都不能換掉）
+
+請問我的需求有哪一格還沒講清楚？只指出空白，不要幫我補。</pre>
+      <button class="prompt-copy-btn" onclick="copyPrompt('prompt1',this)">複製</button>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-icon" aria-hidden="true">i</div>
+    <div class="callout-body"><strong>模板 1 的 LLM 回應長什麼樣？</strong><br>
+    好的 LLM 回應只指出空白，不自己補。例：<br><br>
+    「你的需求有 2 個地方還沒講清楚：<br>
+    1. 『賣方公司全名』格式要不要去除『股份有限公司』後綴？<br>
+    2. 『稅後合計』如果是 0 元（退款單）要怎麼處理？<br>
+    請補完這 2 點再進步驟 2。其他 4 格內容已足夠。」<br><br>
+    你只需要針對指出的空白補完，不需要重新填整份。</div>
+  </div>
+
+  <div class="wrong-example">
+    <div class="wrong-label">常見錯誤示範</div>
+    <div class="wrong-note">直接問：「幫我改 #02，讓它可以處理發票。」<br>問題：沒有 input 格式（你的發票 PDF 長什麼樣？哪些欄位要抽取？）、沒有 output 形狀（改名規則是什麼？要移到哪個資料夾？）。LLM 會補上自己的假設，結果你拿到的 workflow 是它猜出來的版本，不是你要的。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ======================================================
+     (02) 步驟 2：讀 JSON
+     ====================================================== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(02)</div>
+  <h2 class="section-heading">步驟 2：讀 JSON（5-10 分鐘，學員 + LLM）</h2>
+  <div class="intro-band">
+    <div class="intro-label">讓 LLM 做它最擅長的事</div>
+    <div class="intro-text">非工程師看 n8n workflow JSON 通常只看到一大堆 <span class="inline-code">typeVersion</span>、<span class="inline-code">parameters</span>、<span class="inline-code">credentials</span>——不知道哪個節點做什麼、資料往哪裡流。LLM 把 JSON 翻成人話，速度比你快 50 倍，而且能點出資料流向。這一步你只需要驗收它說得對不對。</div>
+  </div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <span class="step-num">1</span>
+      <div class="step-body">
+        <strong>n8n UI export workflow（不含 credential）</strong><br>
+        動作：在 workflow 開啟畫面，點右上角三個點 → Download → 確認跳出視窗的選項是「Without credentials」（如果不是，切換）<br>
+        <strong>驗收硬指標</strong>：下載到的 .json 檔，用 VS Code 或記事本打開，按 Cmd+F 搜尋這 4 個字串：<span class="inline-code">apiKey</span>、<span class="inline-code">accessToken</span>、<span class="inline-code">password</span>、<span class="inline-code">token</span>，<strong>4 個全部找不到</strong>才算過
+      </div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">2</span>
+      <div class="step-body"><strong>打開你慣用的網頁版 LLM</strong>（ChatGPT / Claude / Gemini）</div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">3</span>
+      <div class="step-body">
+        <strong>貼模板 2 + JSON</strong>（見下方 SOP-A 取得整份 JSON 的步驟，再接模板 2）
+      </div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">4</span>
+      <div class="step-body">
+        <strong>驗收 LLM 回應</strong><br>
+        動作：讀 LLM 回的「節點清單」，到 n8n UI 對照「節點數量是否一致 + 名稱對得上」<br>
+        <strong>驗收硬指標 (a) 節點數量正確</strong>：n8n UI 編輯器畫面數一遍節點圖示有幾個（5 個就 5 個），LLM 回的清單編號也要 5。差 1 個都不行。<br>
+        <strong>驗收硬指標 (b) 至少 80% 節點角色對得上</strong>（5 個裡至少 4 個算對）：
+        <ul class="accept-list" style="margin-top:10px;">
+          <li class="accept-item ok"><span class="accept-badge ok">✅</span>LLM 說「Read PDF — 讀 /files/pdf-inbox/ 內所有 PDF，輸出每張的 binary」→ 你在 n8n UI 看到節點名是「Read PDF」+ parameter 的 path 是 <span class="inline-code">/files/pdf-inbox/</span> → 完全對應 = 算對</li>
+          <li class="accept-item ok"><span class="accept-badge ok">✅</span>（容許小落差）LLM 說「Code 節點打 Gemini API」實際你看到 Code 節點裡用 <span class="inline-code">this.helpers.httpRequest</span> 呼叫 Gemini → 核心動作（呼叫 Gemini）對 + 細節有落差 = 算對</li>
+          <li class="accept-item ng"><span class="accept-badge ng">❌</span>LLM 說「Read PDF — 從 Google Drive 讀 PDF」實際你看到 path 是 <span class="inline-code">/files/pdf-inbox/</span>（本機路徑）→ 資料來源根本講錯 = 不算對，回頭追問：「Read PDF 節點的 path 寫的是 /files/pdf-inbox/，不是 Google Drive，請重講這個節點的角色」</li>
+          <li class="accept-item ng"><span class="accept-badge ng">❌</span>LLM 把「Code: AI 改名」說成「Code: 一般資料處理」→ 節點意圖完全失準 = 不算對，回頭追問</li>
+        </ul>
+        <p style="margin-top:8px;font-size:.85rem;color:var(--c-muted);">量化方式：3 個（60%）以下表示 LLM 看 JSON 的能力對你的 workflow 不可靠，換另一家 LLM（或重貼模板 2 + 補一段 workflow 中文描述）</p>
+      </div>
+    </li>
+  </ul>
+
+  <!-- SOP-A -->
+  <div class="sop-box">
+    <div class="sop-header"><span class="sop-label">SOP-A · 整份 workflow JSON 怎麼擷取（模板 2 用）</span></div>
+    <div class="sop-body">
+      <ol class="sop-steps">
+        <li class="sop-step"><span class="sop-step-num">1.</span>n8n UI 點該 workflow → 編輯器右上角 ⋮ 三點按鈕 → <strong>Download</strong></li>
+        <li class="sop-step"><span class="sop-step-num">2.</span>跳出對話框，<strong>勾選「Without credentials」</strong>（如果預設沒勾，自己勾起來）→ 確認下載</li>
+        <li class="sop-step"><span class="sop-step-num">3.</span>下載到的 <span class="inline-code">.json</span> 檔，用 VS Code 或記事本打開 → Cmd+A 全選 → Cmd+C 複製</li>
+        <li class="sop-step"><span class="sop-step-num">4.</span><strong>貼之前最後檢查</strong>（搜尋 4 個字串都應找不到）：<span class="inline-code">apiKey</span> / <span class="inline-code">accessToken</span> / <span class="inline-code">password</span> / <span class="inline-code">token</span> — 任一個搜得到 = 你下載時沒勾「Without credentials」，重做步驟 1-2</li>
+        <li class="sop-step"><span class="sop-step-num">5.</span>token 量參考：典型 5-10 節點 workflow JSON 在 5K-30K tokens 之間，貼 ChatGPT/Claude/Gemini 的網頁版都吃得下；若超過 50K（>40 個節點），分段貼</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="prompt-block">
+    <div class="prompt-label">PROMPT 模板 2 <span>— 步驟 2 讀 JSON（SOP-A 完成後，把 JSON 貼在 [貼 JSON] 處）</span></div>
+    <div class="prompt-copy-wrap">
+      <pre class="prompt-pre" id="prompt2">我是 n8n 非工程師使用者，請以結果為主、不解釋原理。
+以下是一份 n8n workflow JSON（已移除 credential）。請：
+1. 用一段話講它做了什麼。
+2. 列出每個節點的角色與資料流向（節點名稱 → 它輸出什麼 → 下一個節點吃什麼）。
+不要建議改進、不要寫程式碼。
+
+[貼 JSON]    ← 這是 SOP-A 步驟 3 複製到的整份 workflow JSON</pre>
+      <button class="prompt-copy-btn" onclick="copyPrompt('prompt2',this)">複製</button>
+    </div>
+  </div>
+
+  <!-- 步驟 2 四變體 -->
+  <p class="body-text" style="margin-top:32px;"><strong>步驟 2 LLM 回應的 4 種變體</strong>（貼模板 2 後你可能拿到這 4 種之一）：</p>
+  <div class="variants-grid">
+    <div class="variant-card">
+      <div class="variant-header">
+        <span class="variant-badge">變體 A</span>
+        <span class="variant-status pass">過關 — 直接進步驟 3</span>
+      </div>
+      <div class="variant-body">
+        <pre>這份 workflow 做什麼：
+從 pdf-inbox 資料夾讀取所有 PDF，用 Gemini
+分析內文後給每張 PDF 一個語意化檔名，並把
+檔案改名後存到 pdf-renamed 資料夾。手動觸發。
+
+節點清單：
+1. Manual Trigger — 手動觸發，不接收 input。
+2. Read PDF — 讀 /files/pdf-inbox/ 內所有 PDF，
+   輸出每張的 binary。
+3. Extract PDF Text — binary 轉純文字。
+4. Code: AI 改名 — 用 Gemini API 分析文字，
+   輸出 newFilename。
+5. Write — 把 PDF 用 newFilename 改名後寫入。
+
+資料流向：Manual Trigger → Read PDF → Extract
+PDF Text → Code → Write</pre>
+        <div class="variant-note">理想型：節點數量對、角色對、資料流向清楚。直接進步驟 3。</div>
+      </div>
+    </div>
+    <div class="variant-card">
+      <div class="variant-header">
+        <span class="variant-badge">變體 B</span>
+        <span class="variant-status fail">歪掉 — 補一句追問</span>
+      </div>
+      <div class="variant-body">
+        <pre>節點清單：
+1. Manual Trigger (n8n-nodes-base.manualTrigger,
+   typeVersion: 1) — emits empty trigger payload,
+   fires on UI button click...
+2. Read Binary Files (n8n-nodes-base.readBinaryFiles,
+   typeVersion: 1) — uses fs.readdirSync internally...
+[後面繼續講 typeVersion / position / 內部實作細節]</pre>
+        <div class="variant-note"><strong>辨認訊號</strong>：每個節點後面括號開始出現 <span class="inline-code">typeVersion</span>、<span class="inline-code">n8n-nodes-base.xxx</span>、講「internally」「under the hood」<br><strong>下一步</strong>：追問「請只用我看得懂的中文形容詞描述每個節點做什麼，不要列 typeVersion、不要講內部實作」</div>
+      </div>
+    </div>
+    <div class="variant-card">
+      <div class="variant-header">
+        <span class="variant-badge">變體 C</span>
+        <span class="variant-status fail">歪掉 — 補一句追問</span>
+      </div>
+      <div class="variant-body">
+        <pre>節點清單：
+1. Manual Trigger — 手動觸發。
+2. PDF 讀取與處理 — 讀 inbox 內 PDF 並轉成文字。
+3. Code 節點 — 呼叫 Gemini 分析文字並命名後寫檔。</pre>
+        <div class="variant-note"><strong>辨認訊號</strong>：你 n8n UI 上實際看到 5 個節點，LLM 卻只列 3 個；或把「Read PDF + Extract PDF Text」合併成一條<br><strong>下一步</strong>：追問「我在 n8n UI 看到 5 個節點，你只列了 3 個。請逐個列出並『不合併』。我會貼節點名給你對照：[貼 5 個節點名]」</div>
+      </div>
+    </div>
+    <div class="variant-card">
+      <div class="variant-header">
+        <span class="variant-badge">變體 D</span>
+        <span class="variant-status fail">歪掉 — 忽略建議段</span>
+      </div>
+      <div class="variant-body">
+        <pre>節點清單：
+[5 個節點正確列出]
+
+不過我發現這個 workflow 有幾個可以改進
+的地方：
+1. 建議加上 try/catch 處理 PDF 讀取失敗
+2. 建議用 Switch 節點分流不同類型的 PDF
+3. Code 節點的 prompt 可以加上 few-shot 範例...</pre>
+        <div class="variant-note"><strong>辨認訊號</strong>：LLM 給完節點清單後，自動接一段「不過 / 此外 / 建議」<br><strong>下一步</strong>：忽略「建議」段落，<strong>只用節點清單那段進步驟 3</strong>。模板 2 已寫「不要建議改進」但 LLM 偶爾犯規 — 不必追問，這次過了就好</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrong-example">
+    <div class="wrong-label">常見錯誤示範</div>
+    <div class="wrong-note">直接貼 JSON 問：「這個 workflow 我要怎麼改成處理發票？」<br>問題：把步驟 2（讀 JSON）和步驟 3（限定修改範圍）混在一起問，LLM 會跳過「幫你理解現況」直接開始改，而你還沒確認它描述的現況是不是正確的。先讓 LLM 描述，你驗收，再進步驟 3。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ======================================================
+     (03) 步驟 3：限定修改範圍
+     ====================================================== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(03)</div>
+  <h2 class="section-heading">步驟 3：限定修改範圍（10-15 分鐘，學員 + LLM 多輪）</h2>
+  <div class="intro-band">
+    <div class="intro-label">最容易跳過、最值得做對的一步</div>
+    <div class="intro-text">大多數改 workflow 出問題，都是因為讓 LLM 改的範圍太大——它多動了幾個節點、加了你沒要求的防禦邏輯、重寫了整份 JSON 但 typeVersion 對不上你裝的版本。這一步的核心原則是：<strong>告訴 LLM 只改哪幾個節點，要它只回傳那幾個節點的 JSON 區段，不是整份</strong>。</div>
+  </div>
+
+  <ul class="step-list">
+    <li class="step-item">
+      <span class="step-num">1</span>
+      <div class="step-body">
+        <strong>決定「我要動哪幾個節點」</strong>（基於步驟 1 的便箋）<br>
+        動作：在 4 格便箋的「目標 output」對照節點清單，圈出 1-3 個要改的節點名
+      </div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">2</span>
+      <div class="step-body">
+        <strong>在 n8n UI 備份這幾個節點</strong><br>
+        動作：點要改的節點 → Cmd+C → 貼到一個 .txt 檔（命名 <span class="inline-code">XX-backup.txt</span>）<br>
+        驗收：.txt 檔有節點 JSON 內容（看到 <span class="inline-code">{ "parameters": ...</span>）
+      </div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">3</span>
+      <div class="step-body">
+        <strong>貼模板 3 給 LLM</strong>（見下方，含具體填法示範）<br>
+        注意：模板 3 的 <span class="inline-code">[貼 JSON]</span> 位置對應 SOP-B 取得的節點 JSON
+      </div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">4</span>
+      <div class="step-body">
+        <strong>驗收 LLM 回的 JSON</strong><br>
+        <strong>驗收硬指標 1（區段 vs 整份）</strong>：看 LLM 回的第一個非空白字元和第二行：
+        <ul class="accept-list" style="margin-top:8px;">
+          <li class="accept-item ok"><span class="accept-badge ok">✅</span>第一行 <span class="inline-code">{</span> 第二行 <span class="inline-code">"parameters":</span> → 單個節點區段（OK）</li>
+          <li class="accept-item ok"><span class="accept-badge ok">✅</span>第一行 <span class="inline-code">[</span> → 多個節點陣列（OK）</li>
+          <li class="accept-item ng"><span class="accept-badge ng">❌</span>第一行 <span class="inline-code">{</span> 第二行 <span class="inline-code">"name":</span> → 整份（要追問）</li>
+        </ul>
+        <br>
+        <strong>驗收硬指標 2（節點名沒被改）</strong>：LLM 回的節點裡 <span class="inline-code">"name":</span> 那行的值，必須跟你 n8n UI 上看到的節點名一字不差。LLM 偶爾會「順手」改名（例：把「Code」改成「Code: AI 改名」）— 這會讓步驟 5 的回報失準
+      </div>
+    </li>
+    <li class="step-item">
+      <span class="step-num">5</span>
+      <div class="step-body">
+        <strong>如果是整份 JSON</strong>：用模板 3-追問要它重給（見下方）
+      </div>
+    </li>
+  </ul>
+
+  <!-- 紅字硬規則 callout -->
+  <div class="callout-danger">
+    <div class="callout-icon" aria-hidden="true">!</div>
+    <div class="callout-body">
+      <strong>硬性前置：步驟 3 所有替換動作只發生在 -edit workflow，不動原版</strong><br><br>
+      你要替換的 JSON 是 LLM 草稿，跑壞會壞節點 / 連線 / 甚至 n8n 編輯器顯示。在 production workflow 上直接貼，等於拿活的訂單系統當實驗田 — 一旦不小心又把 Active 切回 ON（n8n 介面手滑常事），就真的觸發 200 張 LLM API call 燒錢、或誤改 production 資料庫。<br><br>
+      <strong>先 Duplicate 再替換</strong> — 這是強制規定，不是建議。
+    </div>
+  </div>
+
+  <!-- SOP-B: Duplicate -edit workflow -->
+  <div class="sop-box">
+    <div class="sop-header"><span class="sop-label">SOP-B · Duplicate -edit workflow（替換前必做）</span></div>
+    <div class="sop-body">
+      <ol class="sop-steps">
+        <li class="sop-step"><span class="sop-step-num">1.</span>n8n UI 左側選單 → Workflows → 找到原 #02 → 滑鼠移到該行 → 右側出現 ⋮ 三點按鈕</li>
+        <li class="sop-step"><span class="sop-step-num">2.</span>點 ⋮ → 選「<strong>Duplicate</strong>」（不是 Open / Share / Delete，看清楚）</li>
+        <li class="sop-step"><span class="sop-step-num">3.</span>n8n 自動產生新檔，預設名稱長這樣：<span class="inline-code">02-pdf-ai-rename Copy</span></li>
+        <li class="sop-step"><span class="sop-step-num">4.</span>點該新 workflow 的標題 → 進編輯器 → 點頂部標題列 → 改名為 <span class="inline-code">02-pdf-ai-rename-edit</span>（<strong>結尾加 <span class="inline-code">-edit</span> 後綴</strong>，這是全課統一規約，第 4 章測試時要靠它識別）</li>
+        <li class="sop-step"><span class="sop-step-num">5.</span>確認新 workflow 右上角 Active 開關是「<strong>灰色 OFF</strong>」（Duplicate 預設會關，但仍要肉眼確認一次）</li>
+      </ol>
+      <ul class="accept-list" style="margin-top:14px;">
+        <li class="accept-item ok"><span class="accept-badge ok">✅</span>Workflows 列表現在有兩條：原版 <span class="inline-code">02-pdf-ai-rename</span> + 新版 <span class="inline-code">02-pdf-ai-rename-edit</span></li>
+        <li class="accept-item ok"><span class="accept-badge ok">✅</span>你接下來貼 JSON 的瀏覽器分頁，網址列尾巴的 workflow ID 不是原版的 ID</li>
+        <li class="accept-item ng"><span class="accept-badge ng">❌</span>如果你發現自己正在原版 workflow 上要按 Paste，<strong>Cmd+Z 撤銷 → 退回此步重做</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SOP-C: 替換到 -edit workflow -->
+  <div class="sop-box">
+    <div class="sop-header"><span class="sop-label">SOP-C · 替換到 -edit workflow 的 n8n UI</span></div>
+    <div class="sop-body">
+      <ol class="sop-steps">
+        <li class="sop-step"><span class="sop-step-num">1.</span><strong>確認你在 <span class="inline-code">-edit</span> workflow 編輯器</strong>（看頂部標題列）</li>
+        <li class="sop-step"><span class="sop-step-num">2.</span>點要改的節點 → 右鍵 Paste → 貼上 LLM 給的 JSON</li>
+        <li class="sop-step"><span class="sop-step-num">3.</span>驗收：節點還在原位、連線沒斷、節點名相同</li>
+        <li class="sop-step"><span class="sop-step-num">4.</span><strong>再驗一次</strong>：頂部標題列必須顯示 <span class="inline-code">02-pdf-ai-rename-edit</span>（不是原版名）</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Prompt 模板 3 -->
+  <div class="prompt-block">
+    <div class="prompt-label">PROMPT 模板 3 <span>— 步驟 3 限定修改範圍</span></div>
+    <div class="prompt-copy-wrap">
+      <pre class="prompt-pre" id="prompt3">我是 n8n 非工程師使用者，請以結果為主、不解釋原理。
+基於剛才那份 workflow，只改節點「Code: AI 改名」（其他節點不動）。
+我要的修改：
+- prompt 字串改成抽取賣方公司全名、稅後合計（純數字）、發票日期（YYYYMMDD 格式）
+- 檔名 template 改成：{YYYYMMDD}_發票_{賣方名}_{稅後合計}.pdf
+- 類型欄位固定填「發票」，不要讓 AI 自己判斷
+- 其他邏輯（fallback、parseMethod、httpError 處理）全部保留
+
+請回傳「只有這個 Code 節點」的 JSON 區段（不要整份 workflow）。
+回應格式要求：直接給 JSON 物件，最外層 { 後面第二行是 "parameters":，不要 markdown code fence。</pre>
+      <button class="prompt-copy-btn" onclick="copyPrompt('prompt3',this)">複製</button>
+    </div>
+  </div>
+
+  <div class="prompt-block">
+    <div class="prompt-label">PROMPT 模板 3-追問 <span>— LLM 給整份時用這個</span></div>
+    <div class="prompt-copy-wrap">
+      <pre class="prompt-pre" id="prompt3b">你給的 JSON 是整份 workflow（最外層有 "name" 和 "nodes"）。
+我只要 Code 節點的單個 JSON 物件（從 { "parameters": 開始，到 } 結束）。
+請重新只給這個節點。</pre>
+      <button class="prompt-copy-btn" onclick="copyPrompt('prompt3b',this)">複製</button>
+    </div>
+  </div>
+
+  <!-- 步驟 3 四變體 -->
+  <p class="body-text" style="margin-top:32px;"><strong>步驟 3 LLM 回應的 4 種變體</strong>（貼模板 3 後你可能拿到這 4 種之一）：</p>
+  <div class="variants-grid">
+    <div class="variant-card">
+      <div class="variant-header">
+        <span class="variant-badge">變體 A</span>
+        <span class="variant-status pass">過關 — 直接 Paste 到 -edit</span>
+      </div>
+      <div class="variant-body">
+        <pre>{
+  "parameters": {
+    "mode": "runOnceForEachItem",
+    "jsCode": "const text = $input.item.json.pdfTextPreview;\nconst prompt = `請從以下發票文字抽取：賣方公司全名、稅後合計（純數字）、發票日期（YYYYMMDD 格式）。回傳 JSON：{seller, totalAmount, invoiceDate}。發票文字：${text}`;\n// ... 後續呼叫 Gemini 與 fallback 邏輯保留 ...\nconst newFilename = `${invoiceDate}_發票_${seller}_${totalAmount}.pdf`;\nreturn { json: { newFilename, ... } };"
+  },
+  "name": "Code: AI 改名",
+  "type": "n8n-nodes-base.code",
+  "typeVersion": 2,
+  "position": [820, 300]
+}</pre>
+        <div class="variant-note">第一行 <span class="inline-code">{</span>，第二行 <span class="inline-code">"parameters":</span>，節點名沒被改。直接複製 → Paste 到 -edit workflow 對應節點。</div>
+      </div>
+    </div>
+    <div class="variant-card">
+      <div class="variant-header">
+        <span class="variant-badge">變體 B</span>
+        <span class="variant-status fail">歪掉 — 整份，用模板 3-追問</span>
+      </div>
+      <div class="variant-body">
+        <pre>{
+  "name": "02-pdf-ai-rename-invoice",
+  "nodes": [
+    { "parameters": { ... }, "name": "Manual Trigger", ... },
+    { "parameters": { ... }, "name": "Read PDF", ... },
+    ...
+  ],
+  "connections": { ... }
+}</pre>
+        <div class="variant-note"><strong>辨認訊號</strong>：第一行 <span class="inline-code">{</span> 後第二行是 <span class="inline-code">"name":</span>（不是 <span class="inline-code">"parameters":</span>）+ 看到 <span class="inline-code">"nodes":</span> 陣列 + 看到 <span class="inline-code">"connections":</span><br><strong>下一步</strong>：用「模板 3-追問」要它重給單節點區段；不要 Paste 這整份到 n8n</div>
+      </div>
+    </div>
+    <div class="variant-card">
+      <div class="variant-header">
+        <span class="variant-badge">變體 C</span>
+        <span class="variant-status fail">歪掉 — 有 fence，手動切</span>
+      </div>
+      <div class="variant-body">
+        <pre>這是修改後的 Code 節點：
+
+```json
+{
+  "parameters": { ... },
+  "name": "Code: AI 改名",
+  ...
+}
+```
+
+修改說明：
+- prompt 改成抽取發票欄位...</pre>
+        <div class="variant-note"><strong>辨認訊號</strong>：JSON 前後有 `` ``` `` 圍住、JSON 前後有中文段落<br><strong>下一步</strong>：複製 JSON 時<strong>只複製 `` ``` `` 之間那段</strong>（n8n 的 Paste 不吃 markdown fence）；不需要追問 LLM，自己手動切就好</div>
+      </div>
+    </div>
+    <div class="variant-card">
+      <div class="variant-header">
+        <span class="variant-badge">變體 D</span>
+        <span class="variant-status fail">歪掉 — JSON 中有 // 中文注解</span>
+      </div>
+      <div class="variant-body">
+        <pre>{
+  "parameters": {
+    "mode": "runOnceForEachItem",
+    "jsCode": "const text = ...;  // 從 PDF 讀取的文字\nconst prompt = `...`;  // 改成發票欄位\n..."
+    // 這裡保留原本的 fallback 邏輯
+  },
+  "name": "Code: AI 改名",
+  ...
+}</pre>
+        <div class="variant-note"><strong>辨認訊號</strong>：JSON 結構層出現 <span class="inline-code">// 中文註解</span>（JSON 規格不允許 <span class="inline-code">//</span> 注釋，n8n Paste 進去會直接報語法錯誤）<br><strong>下一步</strong>：追問「JSON 規格不允許 // 注解，請移除所有 JSON 結構層的 // 那行 + 行內注解（jsCode 字串裡的 // 是 JS 注解可保留）。重給一次純 JSON。」</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="warn-card">
+    <div class="warn-label">核心原則 — 只回傳節點區段，不重寫整份</div>
+    <div class="warn-body">n8n workflow JSON 裡，節點之間靠 <span class="inline-code">id</span> 與 <span class="inline-code">connections</span> 區段串聯。LLM 在整份重寫時極容易動到 ID 或漏掉 connection，你匯入後會發現節點全斷線。<br><br>
+    要求 LLM「只回傳節點區段」+ 你在 n8n UI 上做替換，就是為了繞開這個坑。整個 connections 結構保持不動，只換節點本身的設定。<br><br>
+    若你確實需要新增或刪除節點（不是修改既有節點），connections 必須回到 n8n UI 上手動重接——UI 拖線 30 秒，LLM 寫錯一個 ID 你 debug 30 分鐘。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ============================================
+     post-llm-4 合併進來：步驟 4/5/6 + Destructive
+     ============================================ -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(07)</div>
+  <h2 class="section-heading">步驟 4：匯入測試（全人工，約 10 分鐘）</h2>
+  <div class="intro-band">
+    <div class="intro-label">Duplicate 已在第 3 章 step 6 做完，本步只 verify</div>
+    <div class="intro-text">你從步驟 3 拿到 LLM 給的節點區段、在 n8n UI 替換進 -edit 複本之後，先確認複本本身健全，再點 Execute。三條硬指標任一不過，退回第 3 章 step 6 重做 Duplicate。</div>
+  </div>
+
+  <h3 class="section-heading" style="font-size:1.1rem;margin-top:0;margin-bottom:16px;">4.1 — verify Duplicate 結果（三硬指標）</h3>
+  <p class="body-text">在 n8n UI Workflows 列表找到 <span class="inline-code">02-pdf-ai-rename-edit</span>，點開，依序確認：</p>
+
+  <div class="steps-list">
+    <div class="step-row">
+      <div class="step-circle">a</div>
+      <div class="step-content">
+        <strong>節點數與原版一致</strong><br>
+        在原版開一個分頁對照數一遍。例如原版 5 個節點，-edit 也要是 5 個。
+        <div style="margin-top:8px;font-size:.82rem;color:var(--c-muted);">驗收：兩個分頁節點數字相同</div>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-circle">b</div>
+      <div class="step-content">
+        <strong>credentials 跟著來了</strong><br>
+        點任一含 credential 的節點（例：HTTP Request、Gemini、Google Drive），看 Credentials 欄位是否還掛著原本那個。n8n Duplicate 預設會繼承；若顯示「Select Credential」表示沒繼承，要手動選回去。
+        <div style="margin-top:8px;font-size:.82rem;color:var(--c-muted);">驗收：Credentials 欄位顯示具體帳號名，不是「Select Credential」</div>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-circle">c</div>
+      <div class="step-content">
+        <strong>Active 開關是灰色 OFF</strong><br>
+        Duplicate 預設關，但仍要肉眼確認。看 workflow 右上角的 Active 開關。
+        <div style="margin-top:8px;font-size:.82rem;color:var(--c-muted);">驗收：開關文字顯示「Inactive」或「OFF」，灰色</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="warn-box">
+    <div class="warn-box-label">任一條不過 → 退回</div>
+    <div class="warn-box-text">退回第 3 章 step 6 重做 Duplicate，不要在不健全的複本上繼續跑。複本有問題，後面所有步驟的結果都不可信。</div>
+  </div>
+
+  <h3 class="section-heading" style="font-size:1.1rem;margin-top:36px;margin-bottom:16px;">4.2 — 準備測試樣本並執行</h3>
+
+  <div class="steps-list">
+    <div class="step-row">
+      <div class="step-circle">1</div>
+      <div class="step-content">
+        <strong>準備 1 張測試 PDF</strong><br>
+        把 1 張你已經有的真實供應商發票（或任何舊合約 PDF 當煙霧測試）放到 <span class="inline-code">/files/pdf-inbox/</span>。<br>
+        <span style="font-size:.82rem;color:var(--c-muted);">驗收：n8n UI 上 Read PDF 節點點 Execute Step 能列出這張 PDF</span>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-circle">2</div>
+      <div class="step-content">
+        <strong>點 Execute Workflow</strong><br>
+        n8n UI 畫布下方橘色「Execute workflow」按鈕。<br>
+        <span style="font-size:.82rem;color:var(--c-muted);">驗收：5 個節點全部變綠燈</span>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-circle">3</div>
+      <div class="step-content">
+        <strong>點每個節點看 output panel</strong><br>
+        點節點 → 右側 panel 上方 4 個 tab：Input / Output / Settings / 其他 → 切到 <strong>Output</strong> → 看 JSON 樹。<br>
+        <span style="font-size:.82rem;color:var(--c-muted);">驗收：最後一個節點 (Write) output 裡，<span class="inline-code">newFilename</span> 欄位值符合便箋上寫的命名規則</span>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-circle">4</div>
+      <div class="step-content">
+        <strong>去 Finder 確認</strong><br>
+        打開 <span class="inline-code">/files/pdf-renamed/</span>。<br>
+        <span style="font-size:.82rem;color:var(--c-muted);">驗收：看到 1 張改好名的 PDF，檔名是預期格式</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="body-text">步驟 4 全程手動，不需要任何 prompt。跳過「模板」直接進 n8n UI 執行。</p>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(05)</div>
+  <h2 class="section-heading">步驟 5：錯誤回報（5–15 分鐘 / 輪）</h2>
+  <div class="intro-band">
+    <div class="intro-label">進場條件：步驟 4 出現紅燈節點，或 output 裡有 null / 空字串</div>
+    <div class="intro-text">你要做的不是把整份 workflow 重貼給 LLM。你要做的是「把 LLM 帶到紅燈的那一節點前」，讓它看到同樣的輸入和同樣的錯誤。範圍越小，LLM 診斷越準，你修的次數越少。</div>
+  </div>
+
+  <h3 class="section-heading" style="font-size:1.1rem;margin-top:0;margin-bottom:16px;">三件套：怎麼收集 + 怎麼貼</h3>
+
+  <div class="steps-list">
+    <div class="step-row">
+      <div class="step-circle">1</div>
+      <div class="step-content">
+        <strong>複製錯誤訊息全文</strong><br>
+        點紅燈節點 → 下方面板跳出紅字 → 滑鼠選取整段 → Cmd+C。<br>
+        <span style="font-size:.82rem;color:var(--c-muted);">驗收：複製到的文字含「Error:」或具體訊息（如「Cannot read property 'X' of undefined」）</span>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-circle">2</div>
+      <div class="step-content">
+        <strong>複製該節點 input panel（SOP-B）</strong><br>
+        點紅燈節點 → 右側 panel 切到 <strong>Input</strong> tab → toggle 切到 <strong>JSON</strong> 模式（不是 Schema / Table）→ 右上角複製按鈕。<br>
+        若 items &gt; 3 筆：只貼前 2 筆，刪掉 binary 大段 base64，搜尋刪掉 <span class="inline-code">apiKey</span> / <span class="inline-code">accessToken</span> / <span class="inline-code">Bearer</span>。<br>
+        <span style="font-size:.82rem;color:var(--c-muted);">驗收：你能讀懂這段 JSON 的鍵名 + 範例值</span>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-circle">3</div>
+      <div class="step-content">
+        <strong>複製該節點 parameter（SOP-C）</strong><br>
+        點節點本身 → Cmd+C（n8n 複製整個節點 JSON）；或點 ⋮ → 「Copy parameters」。<br>
+        貼之前搜尋 <span class="inline-code">apiKey</span> / <span class="inline-code">accessToken</span> / <span class="inline-code">password</span> / <span class="inline-code">token</span>：全找不到才貼，找到就把 value 改成 <span class="inline-code">"REDACTED"</span>。<br>
+        <span style="font-size:.82rem;color:var(--c-muted);">驗收：JSON 開頭是 <span class="inline-code">&#123; "parameters": ...</span> 或 <span class="inline-code">&#123; "name": "...", "parameters": ...</span></span>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="section-heading" style="font-size:1.1rem;margin-top:36px;margin-bottom:16px;">模板 4：錯誤回報模板</h3>
+
+  <div class="prompt-box">
+    <div class="prompt-box-header">
+      <span class="prompt-box-label">PROMPT TEMPLATE</span>
+      <span class="prompt-box-name">模板 4 — 搭配步驟 5（錯誤回報）</span>
+    </div>
+    <div class="prompt-box-body">
+      <div class="code-block"><span class="cm">我是 n8n 非工程師使用者，請以結果為主、不解釋原理。</span>
+我把節點「Code: AI 改名」替換成你上一輪給的內容後，匯入跑不過。
+
+錯誤訊息（紅燈節點底下的紅字全文）：
+<span class="st">[貼錯誤訊息]</span>
+
+該節點 input（從 Input panel 複製的 JSON）：
+<span class="st">[貼 input JSON]</span>    ← 走 SOP-B（前 2 筆、刪 binary、刪 credential）
+
+該節點當前 parameter（從 Settings 複製的 JSON，已移除 credential）：
+<span class="st">[貼 parameter JSON]</span>    ← 走 SOP-C（搜尋 apiKey 等 4 字串確認都找不到）
+
+請只指出：
+1. 問題在哪個欄位（精確到行）
+2. 最小修改是什麼（給出具體新值）
+
+不要重寫整個節點、不要建議換做法、不要加 try/catch。</div>
+      <div class="prompt-wrong">
+        <div class="prompt-wrong-label">常見錯誤示範</div>
+        <div class="prompt-wrong-text">直接說「你給我的東西跑不過，請幫我重新改一次」——LLM 只會再猜一版，可能和原本一樣或更離題。三件套缺一件，LLM 無從診斷，你只是在消耗輪次。</div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="section-heading" style="font-size:1.1rem;margin-top:36px;margin-bottom:16px;">LLM 回應辨認：精準型 vs 太模糊三變體</h3>
+  <p class="body-text">貼出模板 4 之後，LLM 的回應大致分四種。辨認方法如下：</p>
+
+  <div class="ok-box">
+    <div class="ok-box-label">精準型（過關）— 長這樣</div>
+    <div class="ok-box-text">
+      <em>「問題在 parameter 的 jsCode 第 3 行的 prompt 字串。第 3 行目前寫：const prompt = '請從以下發票文字抽取：供應商名稱、稅後金額...'；input panel 顯示 pdfTextPreview 的內容是『賣方：XX 公司，稅後合計：1234 元』。最小修改：第 3 行的『供應商名稱』改成『賣方公司全名』，『稅後金額』改成『稅後合計』。其他不動。」</em><br><br>
+      <strong>三要素都有</strong>：(a) 指出具體欄位名 (b) 給出具體修改值 (c) 引用 input 內容當證據。
+    </div>
+  </div>
+
+  <div class="warn-box">
+    <div class="warn-box-label">變體 X — 純機率判斷（最常見，要追問）</div>
+    <div class="warn-box-text">
+      <em>「這個錯誤訊息看起來是 Gemini API 沒有正確回傳預期格式。建議檢查 Code 節點的 prompt 寫法，可能要重新調整提示詞，或者考慮加上錯誤處理機制讓流程更穩定。」</em><br><br>
+      <strong>辨認訊號</strong>：出現「可能」「建議」「看起來」「或許」「考慮加上」+ 沒指具體欄位名 + 沒給具體新值。<br>
+      <strong>追問</strong>：「請告訴我具體是 prompt 的哪一行需要改、改成什麼新字串。不要建議『調整提示詞』，給我精確的修改。」
+    </div>
+  </div>
+
+  <div class="warn-box">
+    <div class="warn-box-label">變體 Y — 列多個可能根因（要追問）</div>
+    <div class="warn-box-text">
+      <em>「這個錯誤可能的原因有以下幾個：1. prompt 不夠精確，2. PDF 解析可能有問題，3. JSON.parse 失敗，4. fallback 邏輯沒處理某些邊界情況。不排除是綜合因素，建議逐一排除。」</em><br><br>
+      <strong>辨認訊號</strong>：「可能的原因有以下幾個」+ 條列 3 條以上 + 結尾「不排除」「綜合因素」「建議逐一排除」。你不是工程師，沒有時間「逐一排除」。<br>
+      <strong>追問</strong>：「請看『錯誤訊息全文 + input panel』兩件事，<strong>只挑 1 個最可能的根因</strong>告訴我，並指出 parameter 的哪一行要改成什麼。如果你不確定，請告訴我『需要再給你哪個面板才能判斷』，不要列 4 個可能性讓我自己挑。」
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon" aria-hidden="true">i</div>
+    <div class="callout-body">
+      <strong>變體 Z — LLM 反問要更多面板（合理，但回得對）</strong><br>
+      <em>「我需要再看一下：Read PDF 節點的 output 是否真的有 pdfTextPreview 欄位？不然光看 Code 節點的 input 我無法判斷是上游沒給對還是 Code 節點本身寫錯。」</em><br><br>
+      這是好回應，不亂猜。但你要用「模板 4-延伸」：問 LLM「為什麼需要看這個——一句話」，並只給那 1 個節點對應的面板，<strong>不貼整份 workflow</strong>。<br>
+      模板 4-延伸：「你需要看上下游節點才能診斷？請告訴我你想看的是哪個節點的哪個面板，以及為什麼。我只貼那一個節點，不貼整份 workflow。」
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(06)</div>
+  <h2 class="section-heading">步驟 6：收斂（最多 3 輪 + 全量執行）</h2>
+  <div class="intro-band">
+    <div class="intro-label">你是把關人，每輪結束問自己「比上輪更近還是更遠」</div>
+    <div class="intro-text">測試-回報-收斂這 3 步是「迴圈閥」：LLM 給的 JSON 是草稿，跑過真實樣本才是答案。每輪結束用下方可數 proxy 表決定「近 / 遠 / 持平」，不靠感覺判斷。</div>
+  </div>
+
+  <h3 class="section-heading" style="font-size:1.1rem;margin-top:0;margin-bottom:16px;">6.1 — 可數 proxy 表：「近」vs「遠」判斷</h3>
+
+  <table class="proxy-table">
+    <thead>
+      <tr>
+        <th>指標</th>
+        <th class="near">近（= 進展）</th>
+        <th class="far">遠（= 停下檢查）</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>紅燈節點數</strong></td>
+        <td class="near">比上輪少（例：2 → 1）</td>
+        <td class="far">出現上輪沒有的新紅燈（問題被搬家，不是進展）</td>
+      </tr>
+      <tr>
+        <td><strong>output null / 空字串數</strong></td>
+        <td class="near">欄位從 null 變成有值（即使值不對也算近）</td>
+        <td class="far">原本有值的欄位變成 null（退步）</td>
+      </tr>
+      <tr>
+        <td><strong>jsCode 行數</strong></td>
+        <td class="near">持平或變少</td>
+        <td class="far">比上輪多 30% 以上（LLM 在加防禦邏輯，不是改根因）</td>
+      </tr>
+      <tr>
+        <td><strong>LLM 動到的節點數</strong></td>
+        <td class="near">比上輪少（逼近根因）</td>
+        <td class="far">比上輪多（範圍蔓延）</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="body-text">紅燈數一樣 + null 欄位一樣 + 行數差不多 → 算「持平」，記為 1 輪但不算進步。持平 2 輪也要停下退回步驟 1 重看便箋。</p>
+
+  <h3 class="section-heading" style="font-size:1.1rem;margin-top:36px;margin-bottom:16px;">6.2 — 接受 / 拒絕判斷樹</h3>
+
+  <div class="scenario-grid">
+    <div class="scenario-row">
+      <div class="scenario-task" style="color:#8a2020;">拒絕</div>
+      <div class="scenario-pick">LLM 提案動到「節點數量」（新增 / 刪除節點）→ 立刻拒絕，用模板 5</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task" style="color:#8a2020;">拒絕</div>
+      <div class="scenario-pick">LLM 提案加 try/catch、if 條件、error handler、retry → 拒絕</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task" style="color:#2a5a2a;">可接受</div>
+      <div class="scenario-pick">LLM 只改原節點裡的「值」（字串、數字、欄位 expression）→ 可接受</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task" style="color:#2a5a2a;">可接受</div>
+      <div class="scenario-pick">LLM 在現有 Code 節點裡加 console.log 幫你 debug → 可接受（debug 後記得刪）</div>
+    </div>
+  </div>
+
+  <h3 class="section-heading" style="font-size:1.1rem;margin-top:36px;margin-bottom:16px;">模板 5：收斂止血，當 LLM 越改越複雜時用</h3>
+
+  <div class="prompt-box">
+    <div class="prompt-box-header">
+      <span class="prompt-box-label">PROMPT TEMPLATE</span>
+      <span class="prompt-box-name">模板 5 — 搭配步驟 6（收斂止血）</span>
+    </div>
+    <div class="prompt-box-body">
+      <div class="code-block">請用一句話比較你最早給我的版本與現在這版：
+- 哪些是「為了我原始需求必要的」？
+- 哪些是「你新增的防禦邏輯」（try/catch、if 條件、error handler、新節點）？
+
+請保留必要的、移除新增的，再給我一次「只有 Code 節點」的 JSON 區段。</div>
+      <div class="prompt-wrong">
+        <div class="prompt-wrong-label">常見錯誤示範</div>
+        <div class="prompt-wrong-text">每次報錯就接受 LLM 加的所有防禦措施，到第三輪時 workflow 已經是原本的兩倍大，你完全不知道哪個部分是為了你的需求、哪個部分是 LLM 自己的防禦習慣。這時想退回去很難。</div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="section-heading" style="font-size:1.1rem;margin-top:36px;margin-bottom:16px;">6.3 — 3 輪不收斂的處理</h3>
+  <p class="body-text">停止 LLM 對話 → 退回步驟 1，看 4 格便箋是否有「目標 input」格寫得太模糊。常見原因：input 那格只寫「發票 PDF」沒寫具體欄位。通常三輪收不斂，問題都在步驟 1 的便箋沒填清楚。</p>
+
+  <h3 class="section-heading" style="font-size:1.1rem;margin-top:36px;margin-bottom:16px;">6.4 — 小批量 → 全量驗收動線</h3>
+
+  <div class="steps-list">
+    <div class="step-row">
+      <div class="step-circle">1</div>
+      <div class="step-content">
+        <strong>小批量測試（10 筆）</strong><br>
+        從 200 張裡隨機挑 10 張不同供應商的發票放 <span class="inline-code">/files/pdf-inbox/</span>，Execute Workflow。<br>
+        <span style="font-size:.82rem;color:var(--c-muted);">驗收三條：(a) 10 張全綠燈 (b) 10 張的 newFilename 都符合便箋格式 (c) 沒有 null</span>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-circle">2</div>
+      <div class="step-content">
+        <strong>全量執行（200 張）</strong><br>
+        把 200 張全放 <span class="inline-code">/files/pdf-inbox/</span>，Execute Workflow。<br>
+        <span style="font-size:.82rem;color:var(--c-muted);">驗收三條：(a) 200 張全綠燈 (b) 抽查 5 張隨機 output 命名正確 (c) Finder pdf-renamed 資料夾數量是 200</span>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-circle">3</div>
+      <div class="step-content">
+        <strong>Executions tab 驗收動線（不等 UI 即時 200 燈）</strong><br>
+        在 n8n 工作區右側點「Executions」分頁 → 等所有 200 筆狀態 column 變成「Success」（綠 ✓）。若有「Failed」（紅 ✗）或「Cancelled」（灰），把那筆 timestamp 記下，回去看哪個節點掛了。<br>
+        <span style="font-size:.82rem;color:var(--c-muted);">200 筆會在 Executions 分頁輪流刷新，大約 7-8 分鐘才全跑完，跑完後再看 list，不要等 UI 即時顯示 200 個綠燈。</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="ok-box" style="margin-top:28px;">
+    <div class="ok-box-label">三輪收斂上限的意義</div>
+    <div class="ok-box-text">三輪迴圈（步驟 3 → 4 → 5）不過，不是你失敗了，是需求或方向出了問題。退回步驟 1 的便箋，重看「input / output / 保留節點」有沒有哪格寫模糊。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section">
+  <div class="section-eyebrow">(04)</div>
+  <h2 class="section-heading">收斂後的 Destructive 操作補充（紅線 8）</h2>
+  <p class="body-text">步驟 6 跑通之後，還有一個容易被忽略的環節：如果你的 workflow 裡有任何「會對真實世界產生不可逆影響」的節點——刪資料（Notion delete / Drive delete）、寄信（Gmail / Telegram 發給真實收件人）、更新記錄（HubSpot / Pipedrive update）——在切換到全量之前，<strong>必須先做 dry-run（紅線 8）</strong>。</p>
+  <p class="body-text">dry-run 的意思：<strong>先把寄信節點的收件人改成你自己的測試信箱跑 1 次</strong>；如果是刪檔節點，先把它 disable 換成 console.log 假動作。確認 input/output 資料形狀全程正確之後，才換回真收件人 / 真資料源。10 筆樣本跑通只代表「資料形狀對了」，不代表「收件人對了」。省掉這 5 分鐘，後果可能要花幾小時甚至幾天補救。</p>
+</section>
+
+<hr class="section-rule">
+
+<hr class="section-rule">
+
+<hr class="section-rule">
+
+<!-- ======================================================
+     (08) 驗收標準
+     ====================================================== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(08)</div>
+  <h2 class="section-heading">整章驗收清單</h2>
+  <p class="body-text">完成 6 步後，以下 9 項全部過關才算這章完成：</p>
+  <ul class="checklist">
+    <li class="check-item"><span class="check-box"></span><strong>步驟 1</strong>：4 格便箋每格都填了具體值（不是「發票」這種模糊詞）</li>
+    <li class="check-item"><span class="check-box"></span><strong>步驟 1</strong>：自驗對人講 1 分鐘沒有打結（或對手機錄音回放確認）</li>
+    <li class="check-item"><span class="check-box"></span><strong>步驟 2</strong>：從 n8n UI export 出 .json 檔，搜尋 <span class="inline-code">apiKey</span> / <span class="inline-code">accessToken</span> / <span class="inline-code">password</span> / <span class="inline-code">token</span> 全部找不到</li>
+    <li class="check-item"><span class="check-box"></span><strong>步驟 2</strong>：貼模板 2 後，LLM 回的節點清單和 n8n UI 對得上 80% 以上（5 個節點裡至少 4 個對）</li>
+    <li class="check-item"><span class="check-box"></span><strong>步驟 3</strong>：貼模板 3 後拿到的 JSON 開頭符合「<span class="inline-code">{</span> + <span class="inline-code">"parameters":</span>」格式</li>
+    <li class="check-item"><span class="check-box"></span><strong>步驟 3</strong>：替換到 n8n <span class="inline-code">-edit</span> workflow 後，節點數量沒變、連線沒斷、標題列確認是 <span class="inline-code">-edit</span> 版本</li>
+    <li class="check-item"><span class="check-box"></span><strong>步驟 4</strong>：verify Duplicate 三硬指標（節點數一致 / credentials 有跟著 / Active OFF）全過</li>
+    <li class="check-item"><span class="check-box"></span><strong>步驟 5</strong>：「三件套」（錯誤訊息 + Input panel + 節點 parameter）三項都收集到</li>
+    <li class="check-item"><span class="check-box"></span><strong>步驟 6</strong>：用可數 proxy（紅燈數 / null 數 / 行數）證明本輪比上輪「近」；3 輪內收斂或退回步驟 1</li>
+  </ul>
+</section>
+
+<hr class="section-rule">
+
+<!-- ======================================================
+     (05) 常見錯誤
+     ====================================================== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(09)</div>
+  <h2 class="section-heading">常見錯誤 + 怎麼解</h2>
+  <div class="error-list">
+    <div class="error-item">
+      <div class="error-tag">錯誤 1 · 步驟 1</div>
+      <div class="error-title">「填 4 格時，input 那格我寫『發票』就好」</div>
+      <div class="error-fix">「發票」不夠。LLM 看到「發票」會自己腦補欄位（你以為發票上有「品項」但實際上你的發票沒有品項，只有總額）。最低限度要寫出 4-6 個欄位名 + 該欄位在 PDF 上的中文寫法（「賣方」不是「供應商」）。</div>
+    </div>
+    <div class="error-item">
+      <div class="error-tag">錯誤 2 · 步驟 2</div>
+      <div class="error-title">「我貼了模板 2，LLM 卻直接開始建議改進」</div>
+      <div class="error-fix">模板 2 最後一行是「不要建議改進、不要寫程式碼」。如果 LLM 還是建議，追問：「你建議的改進我不需要，請只回答 1 和 2 兩題（描述 + 節點清單）」。</div>
+    </div>
+    <div class="error-item">
+      <div class="error-tag">錯誤 3 · 步驟 3</div>
+      <div class="error-title">「LLM 給的 JSON 看起來怪怪的，我不確定是區段還是整份」</div>
+      <div class="error-fix">用驗收硬指標 1 的判斷法（看第二行）。如果還不確定，把 LLM 回應前 5 行貼回去問：「我給你看你回應的前 5 行，這是整份還是單節點區段？」</div>
+    </div>
+    <div class="error-item">
+      <div class="error-tag">錯誤 4 · 步驟 3</div>
+      <div class="error-title">「LLM 把節點改名了，我不知道」</div>
+      <div class="error-fix">步驟 3 替換到 n8n UI 後，<strong>用 Cmd+F 搜尋你便箋上記的「必保留節點名」</strong>——如果搜不到，代表 LLM 改名了，要回頭追問。</div>
+    </div>
+    
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ======================================================
+     (06) 回到課程動線
+     ====================================================== -->
+<section class="lesson-section">
+  <div class="section-eyebrow">(10)</div>
+  <h2 class="section-heading">銜接下一頁</h2>
+  <p class="body-text">6 步走完之後，下一頁是「10 條紅線」單頁聚焦：把整套教材的安全規範濃縮成一張清單，建議動手改 workflow 前先看一遍。特別注意紅線 1（credential）、紅線 6（範圍）、紅線 8（destructive）、紅線 9（不貼 secret 給 LLM）。</p>
+  <div class="callout tip">
+    <div class="callout-icon" aria-hidden="true">i</div>
+    <div class="callout-body">
+      <strong>如果你卡在步驟 3 LLM 一直給整份</strong>：用模板 3-追問（上方） + 第 5 章紅線 6<br>
+      <strong>如果你卡在錯誤一直收斂不了</strong>：去第 7 章看分流（先看訊息字串對哪一類）<br>
+      <strong>如果你的 workflow 有 destructive 節點</strong>：第 5 章紅線 8 必看（dry-run 流程）
+    </div>
+  </div>
+</section>
+
+<div class="nav-footer">
+  <a href="post-llm-2-flow.html" class="nav-btn"><span aria-hidden="true">←</span> 上一頁：6 步流程總覽</a>
+  <a href="post-llm-5-redlines.html" class="nav-btn primary">下一頁：10 條紅線 <span aria-hidden="true">→</span></a>
+</div>
+
+</main>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">2026 春季</span>
+  <span class="footer-meta" data-platform-version="n8n latest (Docker image n8nio/n8n) / Docker Desktop / Cloudflare Tunnel free tier" data-built-at="2026-05-07">本頁以 n8n latest (Docker image n8nio/n8n) 製作，2026-05</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+</script>
+<script>
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+<script>
+function copyPrompt(id,btn){
+  var pre=document.getElementById(id);
+  if(!pre)return;
+  var text=pre.textContent;
+  navigator.clipboard.writeText(text).then(function(){
+    var orig=btn.textContent;
+    btn.textContent='已複製';
+    setTimeout(function(){btn.textContent=orig;},1500);
+  }).catch(function(){
+    var sel=window.getSelection();
+    var range=document.createRange();
+    range.selectNodeContents(pre);
+    sel.removeAllRanges();
+    sel.addRange(range);
+  });
+}
+</script>
+</body>
+</html>

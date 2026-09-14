@@ -184,7 +184,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="outcome-item">用 4 格便箋獨立拆解改造需求，填出含具體欄位名的 input/output，對著別人講 1 分鐘不打結</div>
     <div class="outcome-item">把 workflow JSON 貼給 LLM 不洩漏 credential，驗收節點清單 80% 正確</div>
     <div class="outcome-item">用 prompt 模板 3 讓 LLM 只回節點區段，在 -edit workflow 上完成替換</div>
-    <div class="outcome-item">verify Duplicate 三硬指標（節點數 / credentials / Active OFF），確認複本健全再跑</div>
+    <div class="outcome-item">verify Duplicate 三硬指標（節點數 / credentials / workflow 未發布），確認複本健全再跑</div>
     <div class="outcome-item">用「三件套」格式回報錯誤，分辨精準型 vs 太模糊三種變體</div>
     <div class="outcome-item">用可數 proxy 表（紅燈數 / null 數 / 行數）判斷近遠，全量跑完走 Executions tab 驗收</div>
   </div>
@@ -267,7 +267,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     </div>
     <div class="four-cell">
       <div class="four-label">目標 OUTPUT</div>
-      <div class="four-body">改名後 PDF，命名格式：<span class="inline-code">{YYYYMMDD}_發票_{賣方名}_{稅後合計}.pdf</span>，存到 <span class="inline-code">/files/pdf-renamed/</span></div>
+      <div class="four-body">改名後 PDF，命名格式：<span class="inline-code">{YYYYMMDD}_發票_{賣方名}_{稅後合計}.pdf</span>，存到 <span class="inline-code">/files/shared/pdf-renamed/</span></div>
     </div>
     <div class="four-cell">
       <div class="four-label">必保留節點</div>
@@ -285,7 +285,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   - 品項清單
   - 稅後合計（金額含元）
   - 發票日期（YYYYMMDD）
-目標 output：改名後 PDF，命名格式 {YYYYMMDD}_發票_{賣方名}_{稅後合計}.pdf，存到 /files/pdf-renamed/
+目標 output：改名後 PDF，命名格式 {YYYYMMDD}_發票_{賣方名}_{稅後合計}.pdf，存到 /files/shared/pdf-renamed/
 必保留節點：Manual Trigger、Read PDF、Extract PDF Text、Write（4 個都不能換掉）
 
 請問我的需求有哪一格還沒講清楚？只指出空白，不要幫我補。</pre>
@@ -350,9 +350,9 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <strong>驗收硬指標 (a) 節點數量正確</strong>：n8n UI 編輯器畫面數一遍節點圖示有幾個（5 個就 5 個），LLM 回的清單編號也要 5。差 1 個都不行。<br>
         <strong>驗收硬指標 (b) 至少 80% 節點角色對得上</strong>（5 個裡至少 4 個算對）：
         <ul class="accept-list" style="margin-top:10px;">
-          <li class="accept-item ok"><span class="accept-badge ok">✅</span>LLM 說「Read PDF — 讀 /files/pdf-inbox/ 內所有 PDF，輸出每張的 binary」→ 你在 n8n UI 看到節點名是「Read PDF」+ parameter 的 path 是 <span class="inline-code">/files/pdf-inbox/</span> → 完全對應 = 算對</li>
+          <li class="accept-item ok"><span class="accept-badge ok">✅</span>LLM 說「Read PDF — 讀 /files/shared/pdf-inbox/ 內所有 PDF，輸出每張的 binary」→ 你在 n8n UI 看到節點名是「Read PDF」+ parameter 的 path 是 <span class="inline-code">/files/shared/pdf-inbox/</span> → 完全對應 = 算對</li>
           <li class="accept-item ok"><span class="accept-badge ok">✅</span>（容許小落差）LLM 說「Code 節點打 Gemini API」實際你看到 Code 節點裡用 <span class="inline-code">this.helpers.httpRequest</span> 呼叫 Gemini → 核心動作（呼叫 Gemini）對 + 細節有落差 = 算對</li>
-          <li class="accept-item ng"><span class="accept-badge ng">❌</span>LLM 說「Read PDF — 從 Google Drive 讀 PDF」實際你看到 path 是 <span class="inline-code">/files/pdf-inbox/</span>（本機路徑）→ 資料來源根本講錯 = 不算對，回頭追問：「Read PDF 節點的 path 寫的是 /files/pdf-inbox/，不是 Google Drive，請重講這個節點的角色」</li>
+          <li class="accept-item ng"><span class="accept-badge ng">❌</span>LLM 說「Read PDF — 從 Google Drive 讀 PDF」實際你看到 path 是 <span class="inline-code">/files/shared/pdf-inbox/</span>（本機路徑）→ 資料來源根本講錯 = 不算對，回頭追問：「Read PDF 節點的 path 寫的是 /files/shared/pdf-inbox/，不是 Google Drive，請重講這個節點的角色」</li>
           <li class="accept-item ng"><span class="accept-badge ng">❌</span>LLM 把「Code: AI 改名」說成「Code: 一般資料處理」→ 節點意圖完全失準 = 不算對，回頭追問</li>
         </ul>
         <p style="margin-top:8px;font-size:.85rem;color:var(--c-muted);">量化方式：3 個（60%）以下表示 LLM 看 JSON 的能力對你的 workflow 不可靠，換另一家 LLM（或重貼模板 2 + 補一段 workflow 中文描述）</p>
@@ -404,7 +404,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 節點清單：
 1. Manual Trigger — 手動觸發，不接收 input。
-2. Read PDF — 讀 /files/pdf-inbox/ 內所有 PDF，
+2. Read PDF — 讀 /files/shared/pdf-inbox/ 內所有 PDF，
    輸出每張的 binary。
 3. Extract PDF Text — binary 轉純文字。
 4. Code: AI 改名 — 用 Gemini API 分析文字，
@@ -533,7 +533,7 @@ PDF Text → Code → Write</pre>
     <div class="callout-icon" aria-hidden="true">!</div>
     <div class="callout-body">
       <strong>硬性前置：步驟 3 所有替換動作只發生在 -edit workflow，不動原版</strong><br><br>
-      你要替換的 JSON 是 LLM 草稿，跑壞會壞節點 / 連線 / 甚至 n8n 編輯器顯示。在 production workflow 上直接貼，等於拿活的訂單系統當實驗田 — 一旦不小心又把 Active 切回 ON（n8n 介面手滑常事），就真的觸發 200 張 LLM API call 燒錢、或誤改 production 資料庫。<br><br>
+      你要替換的 JSON 是 LLM 草稿，跑壞會壞節點 / 連線 / 甚至 n8n 編輯器顯示。在 production workflow 上直接貼，等於拿活的訂單系統當實驗田 — 一旦不小心又把 workflow 發布（n8n 介面手滑常事），就真的觸發 200 張 LLM API call 燒錢、或誤改 production 資料庫。<br><br>
       <strong>先 Duplicate 再替換</strong> — 這是強制規定，不是建議。
     </div>
   </div>
@@ -547,7 +547,7 @@ PDF Text → Code → Write</pre>
         <li class="sop-step"><span class="sop-step-num">2.</span>點 ⋮ → 選「<strong>Duplicate</strong>」（不是 Open / Share / Delete，看清楚）</li>
         <li class="sop-step"><span class="sop-step-num">3.</span>n8n 自動產生新檔，預設名稱長這樣：<span class="inline-code">02-pdf-ai-rename Copy</span></li>
         <li class="sop-step"><span class="sop-step-num">4.</span>點該新 workflow 的標題 → 進編輯器 → 點頂部標題列 → 改名為 <span class="inline-code">02-pdf-ai-rename-edit</span>（<strong>結尾加 <span class="inline-code">-edit</span> 後綴</strong>，這是全課統一規約，第 4 章測試時要靠它識別）</li>
-        <li class="sop-step"><span class="sop-step-num">5.</span>確認新 workflow 右上角 Active 開關是「<strong>灰色 OFF</strong>」（Duplicate 預設會關，但仍要肉眼確認一次）</li>
+        <li class="sop-step"><span class="sop-step-num">5.</span>確認新 workflow 右上角顯示<strong>未發布（Published = false）</strong>（Duplicate 預設會關，但仍要肉眼確認一次；舊版介面可能顯示灰色 OFF）</li>
       </ol>
       <ul class="accept-list" style="margin-top:14px;">
         <li class="accept-item ok"><span class="accept-badge ok">✅</span>Workflows 列表現在有兩條：原版 <span class="inline-code">02-pdf-ai-rename</span> + 新版 <span class="inline-code">02-pdf-ai-rename-edit</span></li>
@@ -723,9 +723,9 @@ PDF Text → Code → Write</pre>
     <div class="step-row">
       <div class="step-circle">c</div>
       <div class="step-content">
-        <strong>Active 開關是灰色 OFF</strong><br>
-        Duplicate 預設關，但仍要肉眼確認。看 workflow 右上角的 Active 開關。
-        <div style="margin-top:8px;font-size:.82rem;color:var(--c-muted);">驗收：開關文字顯示「Inactive」或「OFF」，灰色</div>
+        <strong>Workflow 顯示未發布</strong><br>
+        Duplicate 預設未發布，但仍要肉眼確認。看 workflow 右上角是否顯示 Published；若未發布即可手動測試。
+        <div style="margin-top:8px;font-size:.82rem;color:var(--c-muted);">驗收：右上角不是 Published（舊版介面可能顯示 Inactive 或灰色 OFF）</div>
       </div>
     </div>
   </div>
@@ -742,7 +742,7 @@ PDF Text → Code → Write</pre>
       <div class="step-circle">1</div>
       <div class="step-content">
         <strong>準備 1 張測試 PDF</strong><br>
-        把 1 張你已經有的真實供應商發票（或任何舊合約 PDF 當煙霧測試）放到 <span class="inline-code">/files/pdf-inbox/</span>。<br>
+        把 1 張你已經有的真實供應商發票（或任何舊合約 PDF 當煙霧測試）放到 <span class="inline-code">/files/shared/pdf-inbox/</span>。<br>
         <span style="font-size:.82rem;color:var(--c-muted);">驗收：n8n UI 上 Read PDF 節點點 Execute Step 能列出這張 PDF</span>
       </div>
     </div>
@@ -766,7 +766,7 @@ PDF Text → Code → Write</pre>
       <div class="step-circle">4</div>
       <div class="step-content">
         <strong>去 Finder 確認</strong><br>
-        打開 <span class="inline-code">/files/pdf-renamed/</span>。<br>
+        打開 <span class="inline-code">/files/shared/pdf-renamed/</span>。<br>
         <span style="font-size:.82rem;color:var(--c-muted);">驗收：看到 1 張改好名的 PDF，檔名是預期格式</span>
       </div>
     </div>
@@ -985,7 +985,7 @@ PDF Text → Code → Write</pre>
       <div class="step-circle">1</div>
       <div class="step-content">
         <strong>小批量測試（10 筆）</strong><br>
-        從 200 張裡隨機挑 10 張不同供應商的發票放 <span class="inline-code">/files/pdf-inbox/</span>，Execute Workflow。<br>
+        從 200 張裡隨機挑 10 張不同供應商的發票放 <span class="inline-code">/files/shared/pdf-inbox/</span>，Execute Workflow。<br>
         <span style="font-size:.82rem;color:var(--c-muted);">驗收三條：(a) 10 張全綠燈 (b) 10 張的 newFilename 都符合便箋格式 (c) 沒有 null</span>
       </div>
     </div>
@@ -993,7 +993,7 @@ PDF Text → Code → Write</pre>
       <div class="step-circle">2</div>
       <div class="step-content">
         <strong>全量執行（200 張）</strong><br>
-        把 200 張全放 <span class="inline-code">/files/pdf-inbox/</span>，Execute Workflow。<br>
+        把 200 張全放 <span class="inline-code">/files/shared/pdf-inbox/</span>，Execute Workflow。<br>
         <span style="font-size:.82rem;color:var(--c-muted);">驗收三條：(a) 200 張全綠燈 (b) 抽查 5 張隨機 output 命名正確 (c) Finder pdf-renamed 資料夾數量是 200</span>
       </div>
     </div>
@@ -1042,7 +1042,7 @@ PDF Text → Code → Write</pre>
     <li class="check-item"><span class="check-box"></span><strong>步驟 2</strong>：貼模板 2 後，LLM 回的節點清單和 n8n UI 對得上 80% 以上（5 個節點裡至少 4 個對）</li>
     <li class="check-item"><span class="check-box"></span><strong>步驟 3</strong>：貼模板 3 後拿到的 JSON 開頭符合「<span class="inline-code">{</span> + <span class="inline-code">"parameters":</span>」格式</li>
     <li class="check-item"><span class="check-box"></span><strong>步驟 3</strong>：替換到 n8n <span class="inline-code">-edit</span> workflow 後，節點數量沒變、連線沒斷、標題列確認是 <span class="inline-code">-edit</span> 版本</li>
-    <li class="check-item"><span class="check-box"></span><strong>步驟 4</strong>：verify Duplicate 三硬指標（節點數一致 / credentials 有跟著 / Active OFF）全過</li>
+    <li class="check-item"><span class="check-box"></span><strong>步驟 4</strong>：verify Duplicate 三硬指標（節點數一致 / credentials 有跟著 / workflow 未發布）全過</li>
     <li class="check-item"><span class="check-box"></span><strong>步驟 5</strong>：「三件套」（錯誤訊息 + Input panel + 節點 parameter）三項都收集到</li>
     <li class="check-item"><span class="check-box"></span><strong>步驟 6</strong>：用可數 proxy（紅燈數 / null 數 / 行數）證明本輪比上輪「近」；3 輪內收斂或退回步驟 1</li>
   </ul>
@@ -1077,7 +1077,7 @@ PDF Text → Code → Write</pre>
       <div class="error-title">「LLM 把節點改名了，我不知道」</div>
       <div class="error-fix">步驟 3 替換到 n8n UI 後，<strong>用 Cmd+F 搜尋你便箋上記的「必保留節點名」</strong>——如果搜不到，代表 LLM 改名了，要回頭追問。</div>
     </div>
-    
+
   </div>
 </section>
 
@@ -1111,7 +1111,7 @@ PDF Text → Code → Write</pre>
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">2026 春季</span>
-  <span class="footer-meta" data-platform-version="n8n latest (Docker image n8nio/n8n) / Docker Desktop / Cloudflare Tunnel free tier" data-built-at="2026-05-07">本頁以 n8n latest (Docker image n8nio/n8n) 製作，2026-05</span>
+  <span class="footer-meta" data-platform-version="Docker Desktop / n8n 2.37.7 (Docker image n8nio/n8n:2.37.7)" data-built-at="2026-09-14">本頁依 n8n 2.37.7 製作，2026-09-14；部分進階案例仍需依實機重驗證，Windows 尚待實機驗證。</span>
 </footer>
 
 <script>
