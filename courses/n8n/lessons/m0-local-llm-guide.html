@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>補充章節：銜接本地 LLM（Ollama）｜AI 資料工廠</title>
-<meta name="description" content="把 Lite Pack 14 個 workflow 內的 Gemini API 呼叫評估替換成本機 Ollama（Llama 3 / Gemma / Qwen），降低敏感商務資料送往雲端的範圍。含 Ollama 安裝、jsCode URL 替換、本機 LLM 模型選擇指引。">
+<title>Gemma 4 + Ollama 單機執行｜AI 資料工廠</title>
+<meta name="description" content="在 macOS 與 Windows 安裝 Ollama，下載 Gemma 4 並驗證本機 API；再評估把 Lite Pack 的 Gemini 呼叫替換成本機模型。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
-<meta property="og:title" content="補充章節：銜接本地 LLM｜AI 資料工廠">
-<meta property="og:description" content="把 Lite Pack 內 AI 呼叫換成本機 Ollama。">
+<meta property="og:title" content="Gemma 4 + Ollama 單機執行｜AI 資料工廠">
+<meta property="og:description" content="Win／Mac 安裝 Ollama、下載 Gemma 4，完成 CLI、API 與 Docker n8n 驗證。">
 <meta property="og:url" content="https://skypai0326.github.io/courses/courses/n8n/m0-local-llm-guide.html">
 <meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="補充章節：銜接本地 LLM｜AI 資料工廠">
-<meta name="twitter:description" content="本地 LLM 銜接指引。">
+<meta name="twitter:title" content="Gemma 4 + Ollama 單機執行｜AI 資料工廠">
+<meta name="twitter:description" content="Win／Mac 安裝 Ollama、下載 Gemma 4，完成 CLI、API 與 Docker n8n 驗證。">
 <meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <link rel="canonical" href="https://skypai0326.github.io/courses/courses/n8n/m0-local-llm-guide.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -115,12 +115,13 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 <div class="page-hero">
   <a href="m0-workflow-tour.html" class="back-link"><span aria-hidden="true">←</span> 返回工作流總覽</a>
   <div class="hero-eyebrow">M0 · BONUS · LOCAL LLM GUIDE</div>
-  <h1 class="lesson-title">補充章節：把 Lite Pack 的 Gemini 換成本機 Ollama</h1>
-  <p class="lesson-tagline">Lite Pack 14 個 workflow 預設用 Gemini API（雲端）。對「處理客戶機密 / 員工資料 / 合約 / 商務戰略」場景，先判斷哪些內容不應送往 Google；這頁教你評估把 AI 呼叫換成本機 Ollama —— Llama 3 / Gemma 2 / Qwen 2.5 等開源模型，降低 prompt 與資料送往外部服務的範圍。是 n8n 自架可提供的資料邊界選項。</p>
+  <h1 class="lesson-title">補充章節：Gemma 4 + Ollama 單機執行</h1>
+  <p class="lesson-tagline">先在 macOS 或 Windows 安裝 Ollama、下載 Gemma 4，完成 CLI 與 API 的本機驗證；再評估把 Lite Pack 的 Gemini 呼叫換成本機模型。模型推論可留在你的電腦，但 n8n execution data、備份與外部節點仍要另外檢查。</p>
+  <div class="callout info"><div class="callout-icon" aria-hidden="true">📘</div><div class="callout-body">需要逐步安裝、PowerShell 等價指令與完整驗收清單？先開啟 <a href="../assets/gemma4-ollama-single-machine-guide.md">Gemma 4 + Ollama 單機執行手冊（Markdown）</a>，完成第 1–5 節，再回本頁做 n8n 串接。</div></div>
   <div class="outcomes">
     <div class="outcomes-label">學習成果</div>
-    <div class="outcome-item">能在 Mac / Windows 安裝 Ollama 並下載 Llama 3.2 / Gemma 2 等開源模型</div>
-    <div class="outcome-item">能改 jsCode 內 Gemini URL 為 Ollama 端點，讓 14 個 workflow 全部走本機 LLM</div>
+    <div class="outcome-item">能在 macOS / Windows 安裝 Ollama 並下載 Gemma 4（預設 E4B）</div>
+    <div class="outcome-item">能用 CLI 與 /api/chat 驗證本機模型，再改 jsCode 連到 Ollama 端點</div>
     <div class="outcome-item">能評估「哪些 workflow 適合本地 LLM、哪些仍走雲端 API」的工程取捨</div>
   </div>
 </div>
@@ -139,7 +140,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
       <tr><td><strong>客戶 NDA / 合約處理</strong></td><td>合約內容含對方公司機密，丟到 Google AI 違反 NDA</td><td>#02 / #03 / #10</td></tr>
       <tr><td><strong>員工 / 客戶 PII</strong></td><td>含身份證、薪資、客戶聯絡資料，資安規範禁止離開本機</td><td>#11（lead 評分）/ #09（信件分類）</td></tr>
       <tr><td><strong>商務戰略 / 產品路線圖</strong></td><td>競爭情報，丟到 Google 等於告訴 Google 你公司做什麼</td><td>#04（日報）/ #12（知識庫）/ #13（營運快照）</td></tr>
-      <tr><td><strong>純技術 demo / 公開資料</strong></td><td>沒機密 — 可用 Gemini 3.6 Flash；可用額度與條款依模型、帳號與方案</td><td>#06 / #07 / #08（保留雲端）</td></tr>
+      <tr><td><strong>純技術 demo / 公開資料</strong></td><td>可保留 Gemini API；可用模型、額度與條款依帳號與方案</td><td>#06 / #07 / #08（可保留雲端）</td></tr>
     </tbody>
   </table>
 
@@ -152,19 +153,19 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 <hr class="section-rule">
 
 <section class="lesson-section">
-  <div class="section-eyebrow">(02) OLLAMA 安裝（Mac + Windows）</div>
-  <h2 class="section-heading">15 分鐘下載 + 跑起來</h2>
+  <div class="section-eyebrow">(02) OLLAMA 安裝（macOS + Windows）</div>
+  <h2 class="section-heading">先把服務與模型跑起來</h2>
 
   <div class="step-block">
     <div class="step-num">STEP 1 · 安裝 Ollama</div>
     <div class="step-title">Mac / Windows 一鍵安裝包</div>
     <div class="step-body">
-      <p>到 <strong>https://ollama.com/download</strong> 下載對應系統的安裝包：</p>
+      <p>到 <strong>https://ollama.com/download</strong> 下載對應系統的官方安裝包：</p>
       <ul>
-        <li><strong>Mac</strong>：Ollama-darwin.zip → 解壓 → 拖到 Applications → 第一次打開要授權</li>
-        <li><strong>Windows</strong>：OllamaSetup.exe → 雙擊執行 → 一路 Next</li>
+        <li><strong>macOS</strong>：開啟 `.dmg`，將 Ollama.app 拖到 Applications，啟動一次並允許建立 `ollama` 指令。</li>
+        <li><strong>Windows</strong>：執行 `OllamaSetup.exe`；官方安裝程式預設不需要系統管理員權限。</li>
       </ul>
-      <p>裝完選單列 / 工作列會有 Ollama icon 表示在跑。預設 listen 在 <code>http://localhost:11434</code>。</p>
+      <p>關閉並重新開啟終端機後，從選單列 / 工作列確認 Ollama 正在背景執行。API 預設在 <code>http://127.0.0.1:11434</code>。</p>
     </div>
   </div>
 
@@ -173,22 +174,22 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
     <div class="step-title">挑一個適合你電腦的</div>
     <div class="step-body">
       <p>終端機跑（會下載對應大小的模型檔，約 2-40 GB）：</p>
-      <div class="code-block"><span class="cm"># 推薦：Llama 3.2 3B（小快，4GB RAM 機器都跑得動）</span>
-ollama pull llama3.2
+      <div class="code-block"><span class="cm"># 預設基線：Gemma 4 E4B（一般筆電先用這個）</span>
+ollama pull gemma4:e4b
 
-<span class="cm"># 中型：Gemma 2 9B（質量比 3B 好很多，需要 12GB+ RAM）</span>
-ollama pull gemma2:9b
+<span class="cm"># 記憶體較緊時改用 E2B</span>
+ollama pull gemma4:e2b
 
-<span class="cm"># 大型：Llama 3.1 70B（接近 ChatGPT 4 質量，需要 48GB+ RAM）</span>
-ollama pull llama3.1:70b<button class="copy-btn" data-target="cmd-pull">複製</button></div>
+<span class="cm"># 16 GB 統一記憶體／VRAM 可試 12B（速度依硬體而異）</span>
+ollama pull gemma4:12b<button class="copy-btn" data-target="cmd-pull">複製</button></div>
 
       <table class="compare-table">
         <thead><tr><th>模型</th><th>大小</th><th>RAM 需求</th><th>適合 workflow</th></tr></thead>
         <tbody>
-          <tr><td>llama3.2 (3B)</td><td>2 GB</td><td>4 GB+</td><td>分類 / 標籤（#09/#10/#11）</td></tr>
-          <tr><td>gemma2:9b</td><td>5.4 GB</td><td>12 GB+</td><td>摘要 / 命名（#02/#03/#04）</td></tr>
-          <tr><td>qwen2.5:14b</td><td>9 GB</td><td>16 GB+</td><td>中文任務（推薦給繁中使用者）</td></tr>
-          <tr><td>llama3.1:70b</td><td>40 GB</td><td>48 GB+</td><td>複雜推理（#12 RAG / #14 診斷）</td></tr>
+          <tr><td>gemma4:e2b</td><td>約 7.2 GB</td><td>記憶體較緊</td><td>分類 / 短摘要</td></tr>
+          <tr><td>gemma4:e4b</td><td>約 9.6 GB</td><td>一般筆電基線</td><td>摘要 / 命名 / 圖片理解</td></tr>
+          <tr><td>gemma4:12b</td><td>約 7.6 GB</td><td>建議 16 GB+</td><td>較複雜摘要與改寫</td></tr>
+          <tr><td>gemma4:26b / 31b</td><td>約 19–20 GB</td><td>較大記憶體或 GPU</td><td>工作站級推理；課堂先不選</td></tr>
         </tbody>
       </table>
     </div>
@@ -199,10 +200,10 @@ ollama pull llama3.1:70b<button class="copy-btn" data-target="cmd-pull">複製</
     <div class="step-title">確認本地 LLM 能用</div>
     <div class="step-body">
       <p>終端機跑：</p>
-      <div class="code-block">curl -X POST http://localhost:11434/api/generate \
+      <div class="code-block">curl -X POST http://127.0.0.1:11434/api/chat \
   -H "Content-Type: application/json" \
-  -d '{"model":"llama3.2","prompt":"用一句話介紹 n8n","stream":false}'<button class="copy-btn" data-target="cmd-test">複製</button></div>
-      <p>應該回 JSON 含 <code>"response": "n8n 是..."</code>。回對了表示 Ollama 跑起來。</p>
+  -d '{"model":"gemma4:e4b","messages":[{"role":"user","content":"用一句話介紹 n8n"}],"stream":false}'<button class="copy-btn" data-target="cmd-test">複製</button></div>
+      <p>應該回 JSON 含 <code>"message": { "content": "n8n 是..." }</code> 且 <code>"done": true</code>。回對了才表示 API 與模型都跑起來。</p>
     </div>
   </div>
 </section>
@@ -220,14 +221,14 @@ ollama pull llama3.1:70b<button class="copy-btn" data-target="cmd-pull">複製</
   <h3 style="font-family:'Shippori Mincho',serif;margin:24px 0 12px;color:var(--c-text);font-size:1.1rem">Diff 對照</h3>
 
   <div class="diff-block">
-    <div class="diff-row minus"><span class="marker">-</span>url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent',</div>
-    <div class="diff-row plus"><span class="marker">+</span>url: 'http://host.docker.internal:11434/api/generate',</div>
+    <div class="diff-row minus"><span class="marker">-</span>url: 'https://generativelanguage.googleapis.com/v1beta/models/{cloud-model}:generateContent',</div>
+    <div class="diff-row plus"><span class="marker">+</span>url: 'http://host.docker.internal:11434/api/chat',</div>
     <div class="diff-row minus"><span class="marker">-</span>headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },</div>
     <div class="diff-row plus"><span class="marker">+</span>headers: { 'Content-Type': 'application/json' },</div>
     <div class="diff-row minus"><span class="marker">-</span>body: { contents: [{role:'user', parts:[{text: prompt}]}], generationConfig: {...} },</div>
-    <div class="diff-row plus"><span class="marker">+</span>body: { model: 'llama3.2', prompt: prompt, stream: false, options: { temperature: 0.4 } },</div>
+    <div class="diff-row plus"><span class="marker">+</span>body: { model: 'gemma4:e4b', messages: [{ role: 'user', content: prompt }], stream: false },</div>
     <div class="diff-row minus"><span class="marker">-</span>aiResp = response.candidates?.[0]?.content?.parts?.[0]?.text || '';</div>
-    <div class="diff-row plus"><span class="marker">+</span>aiResp = response.response || '';</div>
+    <div class="diff-row plus"><span class="marker">+</span>aiResp = response.message?.content || '';</div>
   </div>
 
   <div class="callout key">
@@ -240,7 +241,7 @@ ollama pull llama3.1:70b<button class="copy-btn" data-target="cmd-pull">複製</
   <div class="code-block"><span class="cm">// 原版（Gemini）</span>
 const response = await this.helpers.httpRequest({
   method: 'POST',
-  url: '<span class="var">https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent</span>',
+  url: '<span class="var">https://generativelanguage.googleapis.com/v1beta/models/{cloud-model}:generateContent</span>',
   headers: { 'Content-Type': 'application/json', '<span class="var">x-goog-api-key</span>': GEMINI_API_KEY },
   body: {
     <span class="var">contents</span>: [{ role: 'user', parts: [{ text: prompt }] }],
@@ -253,28 +254,27 @@ const aiResp = response.<span class="var">candidates?.[0]?.content?.parts?.[0]?.
 <span class="cm">// 改版（Ollama 本機 LLM）</span>
 const response = await this.helpers.httpRequest({
   method: 'POST',
-  url: '<span class="kw">http://host.docker.internal:11434/api/generate</span>',
+  url: '<span class="kw">http://host.docker.internal:11434/api/chat</span>',
   headers: { 'Content-Type': 'application/json' },  <span class="cm">// 不用 API key</span>
   body: {
-    <span class="kw">model</span>: '<span class="var">llama3.2</span>',     <span class="cm">// 換你 ollama pull 過的模型</span>
-    <span class="kw">prompt</span>: prompt,
-    <span class="kw">stream</span>: false,
-    <span class="kw">options</span>: { temperature: 0.4 }
+    <span class="kw">model</span>: '<span class="var">gemma4:e4b</span>',     <span class="cm">// 換成 ollama list 中的標籤</span>
+    <span class="kw">messages</span>: [{ role: 'user', content: prompt }],
+    <span class="kw">stream</span>: false
   },
   json: true,
   timeout: 120000  <span class="cm">// 本機 LLM 比雲端慢，timeout 拉長</span>
 });
-const aiResp = response.<span class="kw">response</span> || '';</div>
+const aiResp = response.<span class="kw">message?.content</span> || '';</div>
 </section>
 
 <hr class="section-rule">
 
 <section class="lesson-section">
   <div class="section-eyebrow">(04) 一鍵替換 14 個 workflow（進階）</div>
-  <h2 class="section-heading">用 sed 批次改 source workflow JSON</h2>
+  <h2 class="section-heading">先備份，再批次處理 source workflow JSON</h2>
   <div class="intro-band">
     <div class="intro-label">適合進階學員</div>
-    <div class="intro-text">14 個 workflow 內 jsCode 都用 <code>generativelanguage.googleapis.com</code>。如果你決定全部換本機 LLM，可以用 sed 一次批次替換 source 後重新 import。比 UI 一個個改快 10 倍。</div>
+    <div class="intro-text">14 個 workflow 內的 AI 呼叫結構不完全相同。若你決定批次換成本機 Gemma 4，請先逐一備份並通過第 5 節 API 驗證，再修改 source；只替換 URL 不會自動完成 body 與 response parse 的轉換。</div>
   </div>
 
   <div class="code-block"><span class="cm"># 1. 進到 lite-pack 解壓資料夾</span>
@@ -283,14 +283,10 @@ cd ~/Downloads/n8n-lite-pack/workflows/
 <span class="cm"># 2. 備份</span>
 cp -r . ../workflows-backup-gemini/
 
-<span class="cm"># 3. 批次替換 URL（macOS 用 sed -i ''；Linux 用 sed -i）</span>
-for f in *.json; do
-  sed -i '' 's|https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent|http://host.docker.internal:11434/api/generate|g' "$f"
-done
-
-<span class="cm"># 4. body 結構就要手動改了（grep 找出哪些 jsCode 還含 Gemini schema）</span>
+<span class="cm"># 3. 先盤點哪些檔案仍含雲端 Gemini URL</span>
 grep -l 'contents.*parts' *.json
-<span class="cm"># 然後針對每個檔案手動改 body schema + response parse</span>
+<span class="cm"># 4. 針對每個檔案手動改 URL、body schema + response parse</span>
+<span class="cm">#    請使用本頁的 gemma4:e4b + /api/chat 範例，不要只替換 URL</span>
 
 <span class="cm"># 5. 用 docker exec 重 import</span>
 for f in *.json; do
@@ -300,7 +296,7 @@ done<button class="copy-btn" data-target="cmd-batch">複製</button></div>
 
   <div class="callout tip">
     <div class="callout-icon" aria-hidden="true">⚠️</div>
-    <div class="callout-body"><strong>實務建議</strong>：不要 14 個一次全換。先換最敏感的 1-2 個（#02 合約改名 / #11 lead 評分），用 1 週驗證 Llama 質量是否夠你業務用，再決定要不要全換。</div>
+    <div class="callout-body"><strong>實務建議</strong>：不要 14 個一次全換。先換最敏感的 1–2 個（#02 合約改名 / #11 lead 評分），以 Gemma 4 E4B 跑同一批去敏測試資料，確認輸出格式、速度與人工抽查結果，再決定要不要擴大。</div>
   </div>
 </section>
 
@@ -311,15 +307,15 @@ done<button class="copy-btn" data-target="cmd-batch">複製</button></div>
   <h2 class="section-heading">本機 LLM vs 雲端 API 真實對比</h2>
 
   <table class="compare-table">
-    <thead><tr><th>維度</th><th>Gemini 3.6 Flash（雲端）</th><th>Llama 3.2 / Gemma 2（本機）</th></tr></thead>
+    <thead><tr><th>維度</th><th>Gemini API（雲端）</th><th>Gemma 4 + Ollama（本機）</th></tr></thead>
     <tbody>
       <tr><td>速度</td><td>1-3 秒</td><td>5-30 秒（依模型大小 + RAM）</td></tr>
-      <tr><td>質量（中文任務）</td><td>優（接近 GPT-4）</td><td>中（Qwen 2.5 中文表現最好）</td></tr>
+      <tr><td>質量（中文任務）</td><td>依目前可用模型與方案</td><td>依 Gemma 4 標籤、硬體與 prompt 評估</td></tr>
       <tr><td>質量（結構化 JSON 輸出）</td><td>非常穩定</td><td>偶爾飄（要加更多 fallback parser）</td></tr>
       <tr><td>成本</td><td>依方案與用量計算；超過可用額度後按官方價格計</td><td>需估算電費、RAM／儲存折舊與維護時間</td></tr>
-      <tr><td>隱私</td><td>內容到 Google（Free tier 用於改善 model）</td><td>完全本機，零外傳</td></tr>
+      <tr><td>隱私</td><td>請依帳號、API 條款與資料政策確認</td><td>模型推論在本機；n8n 日誌、備份與外部節點仍可能接觸資料</td></tr>
       <tr><td>離線可用</td><td>否（要連 Google）</td><td>✅ 飛機上 / 沒網路也能跑</td></tr>
-      <tr><td>RAM 占用</td><td>0（雲端）</td><td>運行時 4-48 GB</td></tr>
+      <tr><td>RAM 占用</td><td>主要由雲端服務承擔</td><td>依 Gemma 4 標籤、上下文長度與硬體而變</td></tr>
     </tbody>
   </table>
 
@@ -339,7 +335,7 @@ done<button class="copy-btn" data-target="cmd-batch">複製</button></div>
     <div class="step-num">ADV 1</div>
     <div class="step-title">自家伺服器 + Ollama（多人共用）</div>
     <div class="step-body">
-      <p>個人筆電跑 Ollama 不夠快 + 多人重複下載模型浪費。可以在公司 NAS / 內網伺服器跑 Ollama，所有人 n8n 連同個 endpoint。把 jsCode 內 URL 改成 <code>http://192.168.1.100:11434/api/generate</code>。</p>
+      <p>個人筆電跑 Ollama 不夠快 + 多人重複下載模型浪費。可以在公司 NAS / 內網伺服器跑 Ollama，所有人 n8n 連同個 endpoint。把 jsCode 內 URL 改成 <code>http://192.168.1.100:11434/api/chat</code>，並沿用本頁的 <code>messages</code> body 與 <code>message.content</code> 取值方式。</p>
       <p>注意：Ollama 預設只 listen 127.0.0.1。要對內網開放需設環境變數 <code>OLLAMA_HOST=0.0.0.0:11434</code> 後重啟。</p>
     </div>
   </div>
@@ -390,7 +386,7 @@ if (parseMethod(aiResp) === 'fallback-empty') {
 </main>
 <footer class="footer">
   <span class="footer-logo">弄一下工作室</span><div class="footer-div"></div><span class="footer-note">2026 春季</span>
-  <span class="footer-meta" data-platform-version="Docker Desktop / n8n 2.37.7 + Lite Pack v1.3.5 + Ollama" data-built-at="2026-09-14">本頁依 n8n 2.37.7 + Lite Pack v1.3.5 + Ollama 製作，2026-09-14；模型品質與硬體表現需依實機評估。</span>
+  <span class="footer-meta" data-platform-version="Docker Desktop / n8n 2.37.7 + Lite Pack v1.3.5 + Ollama + Gemma 4" data-built-at="2026-09-15">本頁依 n8n 2.37.7 + Lite Pack v1.3.5 + Ollama + Gemma 4 製作，2026-09-15；模型品質與硬體表現需依實機評估。</span>
 </footer>
 <script>
 const fill=document.getElementById('prog');const strip=document.querySelector('.progress-strip');
