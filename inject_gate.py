@@ -33,6 +33,7 @@ COURSES = {
     "career-guidance": ("careerguidance_auth", "948568fed390bbe7c52ca6aa4f75721aa7a432b60f7b90e6e3496745fe14ee7e"),
     "codex-basic":     ("codexbasic_auth", "811916531d81d2e2d39a52802ca19ce0492be4029ba8e5569c3598af02e0d28c"),
     "admin-ai-assistant": ("adminai_auth", "1e51cd64a905ed891bdfd0d7afab4c131fb2db96195db0da0ee5c3899c69d8be"),
+    "ai-beginner-practical": ("aibeginner_auth", "f4e1ded44f5b488c907b18bb3fbc0180ecb86635a08fb4e99590ff57516ca9d7"),
 }
 
 GATE_TEMPLATE = '''\
@@ -124,7 +125,7 @@ def main():
             total_missing += 1
             continue
 
-        html_files = list(course_dir.rglob("*.html"))
+        html_files = [f for f in course_dir.rglob("*.html") if "_backup" not in f.parts]
         injected = skipped = 0
 
         for f in sorted(html_files):
