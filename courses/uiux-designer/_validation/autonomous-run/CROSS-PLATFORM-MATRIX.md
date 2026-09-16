@@ -8,7 +8,7 @@
 | PNG／PDF 匯出 | `MACHINE_PASS`（Probe C，尺寸已驗證） | 有完成品對照圖 | `NOT_RUN` | 匯出包在 evidence/exports |
 | CSS Inspect／Dev Mode | `MACHINE_PASS`（Probe C） | 有交付說明 | `NOT_RUN` | 未建立自動部署 |
 | Photoshop 開啟、色彩與修復 | `NOT_RUN` | 已明確標註後續範圍 | `BLOCKED_PENDING_TEST` | 不應宣稱通過 |
-| 公開分享與 GitHub Pages | `CONDITIONAL`（未執行） | 只驗證本地服務 | `NOT_RUN` | `CONDITIONAL`，等待 release gate |
+| 公開分享與 GitHub Pages | `CONDITIONAL`（未執行） | 本機網站與 local Git 已驗證 | `NOT_RUN` | `CONDITIONAL`，等待 release gate |
 
 ## 解讀
 
