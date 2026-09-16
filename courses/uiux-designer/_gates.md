@@ -99,6 +99,22 @@
 
 已通過 Frame、Auto Layout、Component、Variant、Instance、長中文換行與基本按鈕／錯誤輔助列結構。Variant 命名與直接編輯文字各發現一個可重現的失敗／修復路徑，已寫入紀錄。Form、List 的多列行為及 Probe B／C 尚未完成，因此 G1 仍維持 `G1_BLOCKED_BY_FIGMA_VALIDATION`。
 
+### Figma Probe B 第一輪結果
+
+**日期**：2026-09-16  
+**狀態**：`CONDITIONAL`  
+**證據**：`uiux-designer/_validation/figma-starter-browser/PROBE-B.md`
+
+Starter 可完成單一 `On click → Open overlay`，Chrome Preview 已看到 `確認完成` Overlay。第二個 action 會出現方案限制；`Navigate to` 的 `Smart animate` 與 Vertical overflow 選項已在實際面板確認。免費主線需改為「一檔一核心互動」或拆檔，不能宣稱完整多步驟原型已通過。
+
+### Figma Probe C 第一輪結果
+
+**日期**：2026-09-16  
+**狀態**：`CONDITIONAL`  
+**證據**：`uiux-designer/_validation/figma-starter-browser/PROBE-C.md`
+
+PNG／PDF 匯出與 Dev Mode CSS Inspect 已取得實際檔案證據；Share 權限、GitHub push 與公開部署沒有在機器階段代替使用者執行。三組 Probe 都已有實檔與操作紀錄，但仍不能將 G1 改為真人放行。
+
 ---
 
 ## 備忘（非 Gate 但值得留存）

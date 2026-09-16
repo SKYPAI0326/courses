@@ -56,8 +56,8 @@
 | Probe | 結果 | 原因 |
 |---|---|---|
 | A 介面系統與內容壓力 | `CONDITIONAL` | 已在實際 Figma Starter／Chrome 工作檔完成 Frame、Auto Layout、Component、Variant、Instance、長中文與按鈕／錯誤輔助列測試；Form、List 行為與多狀態壓力仍待補測。證據：`uiux-designer/_validation/figma-starter-browser/PROBE-A.md`。 |
-| B Prototype 與互動限制 | `NOT_RUN` | 尚未取得實際 Figma Starter Prototype 與 Preview 紀錄。 |
-| C 輸出與交付 | `NOT_RUN` | 尚未完成免費方案的匯出、分享、Git/GitHub、部署連續流程。 |
+| B Prototype 與互動限制 | `CONDITIONAL` | 已在實際 Starter 檔案完成單一 `On click → Open overlay` 並在 Chrome Preview 看到 Overlay；同檔第二個 action 觸發方案限制。Navigate to 的 Smart animate 選項與清單 Vertical overflow 已確認。證據：`uiux-designer/_validation/figma-starter-browser/PROBE-B.md`。 |
+| C 輸出與交付 | `CONDITIONAL` | 已完成 PNG／JPEG／SVG／PDF 選項檢查、PNG／PDF 實際下載與 Dev Mode CSS Inspect；Share 權限、GitHub push 與公開部署保留為外部狀態，未代替使用者修改或發布。證據：`uiux-designer/_validation/figma-starter-browser/PROBE-C.md`。 |
 
 ## 放行條件
 
