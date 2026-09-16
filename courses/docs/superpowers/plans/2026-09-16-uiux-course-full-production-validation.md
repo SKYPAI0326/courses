@@ -21,6 +21,19 @@
 - 沒有真人試跑證據時，狀態只能是 `NOT_RUN`、`BLOCK` 或 `DRAFT`，不得寫成 `PASS`。
 - 不修改其他課程工作樹變更；不使用 `git add -A`；每次提交只包含本計畫明列的檔案。
 
+## Execution Mode：Codex-first Autonomous Build
+
+第一階段由 Codex 統籌 Skills、檔案產製、靜態檢查與 Computer Use，不要求使用者逐步陪跑。Codex 可以在授權範圍內：
+
+- 建立與修改課程 Blueprint、教案、素材索引、HTML、驗證報告與維護記錄。
+- 在 Chrome 的 Figma Starter 測試帳號／測試檔中完成操作、讀取結果、記錄畫面與修補路徑。
+- 在本機、瀏覽器、VS Code 預覽、Git、GitHub 測試交付鏈；任何外部發布、分享或刪除動作先停在可逆測試狀態。
+- 失敗後回到對應上游修補，再重跑該測試，不把一次失敗藏在總結中。
+
+第一階段的交付狀態使用 `MACHINE_READY_PENDING_HUMAN`，不可冒充真人 `PASS`。它代表：課程、素材、HTML、實作路徑、跨平台測試與自動證據已完成；仍等待第二階段由真人學員驗證可理解性與真實教學負荷。
+
+所有自動與 Computer Use 操作寫入 `uiux-designer/_validation/autonomous-run/`，至少保留執行時間、工具／平台、操作步驟、輸入、可見結果、證據路徑、判定、修補 commit 與回復方法。
+
 ## 人力不足時的分工
 
 | 工作 | Skills／Codex 可自動處理 | Computer Use／使用者必須處理 |
@@ -32,6 +45,24 @@
 | 維護 | 掃描版本日期、連結與內容漂移 | 重新登入、權限、方案與 UI 變化確認 |
 
 ---
+
+### Task 0：建立自主執行工作區與 Run Log
+
+**Files:**
+- Create: `uiux-designer/_validation/autonomous-run/README.md`
+- Create: `uiux-designer/_validation/autonomous-run/RUN-LOG.jsonl`
+- Create: `uiux-designer/_validation/autonomous-run/DECISIONS.md`
+- Modify: `uiux-designer/_gates.md`
+
+**Interfaces:**
+- Consumes: 使用者對 Codex-first、Computer Use、跨平台測試的授權。
+- Produces: 可重播的自主執行規則、單一 run ID、每次工具操作與修補的存證。
+
+- [ ] **Step 1：建立 run ID 與工作區規則。**
+- [ ] **Step 2：寫明只使用獨立 Figma 測試檔，不碰正式課程檔與其他課程。**
+- [ ] **Step 3：定義 `NOT_RUN`、`SIMULATED_PASS`、`MACHINE_PASS`、`MACHINE_READY_PENDING_HUMAN`、`BLOCK`、`HUMAN_PASS`。**
+- [ ] **Step 4：每次工具操作完成後立即追加 JSONL 紀錄，不等最後才回填。**
+- [ ] **Step 5：追加 Gate 決策：第一階段改由 Codex 自主執行，人工 Gate 延後到機器可交付版本完成後。**
 
 ### Task 1：鎖定課程環境與證據格式
 
@@ -182,9 +213,11 @@ Expected: 所有核心欄位都有定義，未把推測寫成測試結果。
 - [ ] **Step 4：做 Label Removal Test；移除 Demo／Together／Solo／Check 標籤後正文仍可理解。**
 - [ ] **Step 5：只在靜態內容與代表頁驗收通過後才考慮批次產製。**
 
-### Task 7：完成 Chrome／Figma 冷跟做與三課微序列
+### Task 7：完成 Codex 自主冷跟做、三課微序列與跨平台測試
 
 **Files:**
+- Create: `uiux-designer/_validation/autonomous-run/CODEX-COLD-FOLLOW-ALONG.md`
+- Create: `uiux-designer/_validation/autonomous-run/CROSS-PLATFORM-MATRIX.md`
 - Create: `uiux-designer/_review/G3-CONTENT-REVIEW.md`
 - Create: `uiux-designer/_review/COLD-FOLLOW-ALONG/<run-id>.md`
 - Create: `uiux-designer/_review/ARTIFACT-CHAIN-3-LESSONS.md`
@@ -194,11 +227,12 @@ Expected: 所有核心欄位都有定義，未把推測寫成測試結果。
 - Consumes: 代表 HTML、列出的素材、Chrome 與 Figma Starter 實際帳號。
 - Produces: 使用者跟做證據、卡點分類、學員產物鏈與 Gate 3 判定。
 
-- [ ] **Step 1：使用者只拿講義與素材，不讀 Blueprint、不接受口頭補充。**
-- [ ] **Step 2：記錄開始／結束時間、第一次卡住位置、提示次數、錯誤現象與完成品。**
-- [ ] **Step 3：若卡住，先記錄再修講義；不以講師即時提示填平缺口。**
+- [ ] **Step 1：Codex 只讀講義與列出的素材，模擬零基礎學員完成代表單元。**
+- [ ] **Step 2：Computer Use 在 Chrome／Figma 實際跑同一路徑，記錄開始／結束、卡點、錯誤與完成品。**
+- [ ] **Step 3：在每個失敗點先寫入 Run Log，再回修教案、素材或 HTML，最後重跑。**
 - [ ] **Step 4：跑三個相連單元，確認前一單元產物真的被下一單元使用。**
-- [ ] **Step 5：只有 `reviewed_by: user` 且 `three_minute_follow_test: PASS` 才能放行同 Part。**
+- [ ] **Step 5：建立跨平台矩陣：Figma Starter、Chrome 預覽、VS Code／本機檔案、Git、GitHub、選定的免費部署路徑。**
+- [ ] **Step 6：自動階段只能標記 `MACHINE_PASS` 或 `MACHINE_READY_PENDING_HUMAN`；真人 Gate 保留給第二階段。**
 
 ### Task 8：按 Part 批次製作並回填 Coverage Ledger Pass 2
 
@@ -257,17 +291,23 @@ Expected: 所有核心欄位都有定義，未把推測寫成測試結果。
 
 ## 完成定義
 
-課程只有在以下條件全部滿足時，才可宣稱完成：
+第一階段的「機器可交付」必須滿足：
 
 - [ ] Figma Starter＋Chrome 的 Environment Contract 有實測證據。
 - [ ] 三組 Probe 都不是 `NOT_RUN`；付費或不穩定功能已分流。
 - [ ] Blueprint、Core Operation Inventory、Coverage Ledger Pass 1／2 完整且互相可追溯。
 - [ ] 每個正式單元都有教案、可取得素材、完整 learner-facing HTML 與可驗收完成物。
-- [ ] 代表單元與三課微序列通過真人冷跟做。
+- [ ] 代表單元與三課微序列已通過 Codex 自主冷跟做及 Computer Use 實跑；真人冷跟做標為 `PENDING_HUMAN`。
 - [ ] 靜態檢查、內容實質檢查、平台真跑、persona journey 與證據 manifest 全部完成。
-- [ ] `_gates.md` 有使用者 Gate 判定；未經使用者判定不得標記 `PASS`。
+- [ ] `_gates.md` 有 `MACHINE_READY_PENDING_HUMAN` 判定；未經使用者判定不得標記真人 `PASS`。
 - [ ] 維護檔案能讓下一位製作者知道何時、如何重跑 Figma 測試。
+
+第二階段的「真人可交付」再增加：
+
+- [ ] 真實學員只用講義與素材完成冷跟做。
+- [ ] 使用者填寫 `reviewed_by: user`、實際時間、提示次數、卡點與 `three_minute_follow_test`。
+- [ ] 所有真人發現的 learner-path 缺口已回修並重跑對應驗證層。
 
 ## 第一個實際動作
 
-本計畫不先產製講義。下一個原子步驟是：由使用者在 Chrome 開啟 Figma，Codex 讀取當前畫面，然後只執行 Probe A 的第一個可回復動作。
+本計畫下一個執行動作是：建立自主 run workspace，取得 Chrome／Figma 當前畫面，然後由 Codex 自行執行 Probe A 的第一個可回復動作；使用者只在需要帳號、權限或不可逆外部動作時介入。

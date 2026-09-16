@@ -78,6 +78,18 @@
 
 **下一步**：先完成 Probe A／B／C；再依 `PASS`、`CONDITIONAL`、`BLOCK`、`NOT_RUN` 重畫 coverage、時間帳本與單元邊界。
 
+### Codex-first 自主執行授權
+
+**日期**：2026-09-16
+
+**使用者決策**：第一階段由 Codex 統籌 Skills、檔案製作、Computer Use、跨平台測試與自動修補；真人人工驗證延後到機器可交付版本完成後。
+
+**執行狀態**：`MACHINE_PHASE_AUTHORIZED`
+
+**判定邊界**：Codex 可標記 `SIMULATED_PASS`、`MACHINE_PASS`、`MACHINE_READY_PENDING_HUMAN`；不得自行標記真人 `HUMAN_PASS`。外部分享、公開發布、刪除與不可逆帳號設定仍需在動作前確認。
+
+**證據位置**：`uiux-designer/_validation/autonomous-run/`
+
 ---
 
 ## 備忘（非 Gate 但值得留存）
