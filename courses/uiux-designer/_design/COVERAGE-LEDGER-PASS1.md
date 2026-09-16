@@ -52,5 +52,6 @@ Pass 1 先鎖定「要教什麼、要留下什麼證據」，不因目前寫不�
 | B-57-04 | `../_lessons/uiux-designer/B4-overlay-single-action.md`／`part2/CH4-overlay-single-action.html` | Overlay Figma 檔、Preview、對照 PNG | `MACHINE_PASS_PENDING_HUMAN` |
 | B-57-04 → B6 測試 | `../_lessons/uiux-designer/B6-prototype-task-test.md`／`part2/CH6-prototype-task-test.html` | 任務腳本、Actual／Expected、回歸紀錄 | `MACHINE_PASS_PENDING_HUMAN` |
 | B-57-08 | `../_lessons/uiux-designer/B7-figma-handoff-export.md`／`part2/CH7-figma-handoff-export.html` | PNG／PDF／Inspect、Handoff 清單 | `MACHINE_PASS_PENDING_HUMAN` |
+| B-57-09 | `../_lessons/uiux-designer/B8-web-git-deploy.md`／`part3/CH8-web-git-deploy.html` | `web-starter/` 本機網頁、Git diff／commit 路徑 | `MACHINE_PASS_PENDING_HUMAN`（GitHub／部署未跑） |
 
 這三列證明產物鏈可被機器追蹤，但不解鎖未測的 Photoshop、Swap、固定元素聯合滾動、GitHub push 或公開部署。

@@ -132,7 +132,7 @@ PNG／PDF 匯出與 Dev Mode CSS Inspect 已取得實際檔案證據；Share 權
 **狀態**：`MACHINE_PASS_PENDING_HUMAN`
 **證據**：`uiux-designer/_review/ARTIFACT-CHAIN-B4-B6-B7.md`
 
-B6 已接手 B4 的 Host／Overlay 與核心 action，產出固定任務測試、問題分類、單一變因修正與回歸紀錄；B7 再接手 B6 的 `case_id` 與回歸版本，產出 PNG／PDF／Inspect 與 Handoff 清單。三頁均已在 Chrome localhost 檢查並通過 lint。B8 網站／GitHub／部署與 Photoshop 尚未執行，因此整門課仍不放行。
+B6 已接手 B4 的 Host／Overlay 與核心 action，產出固定任務測試、問題分類、單一變因修正與回歸紀錄；B7 再接手 B6 的 `case_id` 與回歸版本，產出 PNG／PDF／Inspect 與 Handoff 清單；B8 接手 Handoff 包，完成本機 HTML／CSS／最小 JavaScript 與 Git 路徑。四頁均已在 Chrome localhost 檢查並通過 lint。GitHub push／公開部署與 Photoshop 尚未執行，因此整門課仍不放行。
 
 ---
 

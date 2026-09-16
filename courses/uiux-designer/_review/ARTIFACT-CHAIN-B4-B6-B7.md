@@ -4,7 +4,7 @@
 |---|---|---|---|
 | B4 Figma Host／Overlay、Preview 證據 | B6 任務腳本起始狀態 | Actual／Expected、問題分類、單一變因修正、回歸紀錄 | `MACHINE_PASS_PENDING_HUMAN` |
 | B6 回歸通過的 case_id 與版本 | B7 Handoff 起始材料 | Host PNG／PDF、Overlay PNG、Inspect 筆記、限制清單 | `MACHINE_PASS_PENDING_HUMAN` |
-| B7 Handoff 包 | B8 最小網站／Git/GitHub 路徑 | 尚未製作 | `NOT_RUN` |
+| B7 Handoff 包 | B8 最小網站／Git/GitHub 路徑 | `web-starter/` 的 HTML/CSS/JS、local Chrome 結果、Git 操作說明 | `MACHINE_PASS_PENDING_HUMAN` |
 
 ## 檢查結果
 
@@ -12,8 +12,8 @@
 - B7 頁面明確要求 B6 的 `case_id` 與回歸結果，不接受沒有版本的截圖。
 - B7 將 Photoshop、Share、GitHub push、公開部署列為未驗證邊界。
 - B4、B6、B7 三頁均可在 Chrome localhost 開啟；頁面 lint 均為 0 BLOCKER／0 ERROR／0 WARN。
-- 尚未真人從 B4 連續完成到 B7，也尚未做 B8 的網站／GitHub／部署實機測試。
+- 尚未真人從 B4 連續完成到 B8；B8 已完成本機網站與 Git 路徑機器測試，但 GitHub push／公開部署仍未執行。
 
 ## Gate 判定
 
-這條鏈已具備機器階段的可追溯結構，可進入真人試跑；不能宣稱整門 99h 課程完成，也不能把 B8 或 Photoshop 標成通過。
+這條鏈已具備機器階段的可追溯結構，可進入真人試跑；不能宣稱整門 99h 課程完成，也不能把 Photoshop、GitHub push 或公開部署標成通過。
