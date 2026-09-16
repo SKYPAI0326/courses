@@ -1,4 +1,4 @@
-# PRAC3｜完成社群經營方案
+﻿# PRAC3｜完成社群經營方案
 
 - **對應 lesson：** `../_lessons/digital-content-growth-126h/PRAC3.md`
 - **課程類型：** skill-operation

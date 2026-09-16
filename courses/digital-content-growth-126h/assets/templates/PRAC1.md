@@ -1,4 +1,4 @@
-# PRAC1｜建立共同專案 Brief
+﻿# PRAC1｜建立共同專案 Brief
 
 - **對應 lesson：** `../_lessons/digital-content-growth-126h/PRAC1.md`
 - **課程類型：** concept

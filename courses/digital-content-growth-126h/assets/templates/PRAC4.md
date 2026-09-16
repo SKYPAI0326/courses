@@ -1,4 +1,4 @@
-# PRAC4｜SEO 與追蹤決策包整合實作
+﻿# PRAC4｜SEO 與追蹤決策包整合實作
 
 - **對應 lesson：** `../_lessons/digital-content-growth-126h/PRAC4.md`
 - **課程類型：** integration-capstone

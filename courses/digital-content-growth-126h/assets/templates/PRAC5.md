@@ -1,4 +1,4 @@
-# PRAC5｜國際廣告投放包整合實作
+﻿# PRAC5｜國際廣告投放包整合實作
 
 - **對應 lesson：** `../_lessons/digital-content-growth-126h/PRAC5.md`
 - **課程類型：** integration-capstone

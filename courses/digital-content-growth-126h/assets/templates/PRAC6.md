@@ -1,4 +1,4 @@
-# PRAC6｜完成整合企劃與提案
+﻿# PRAC6｜完成整合企劃與提案
 
 - **對應 lesson：** `../_lessons/digital-content-growth-126h/PRAC6.md`
 - **課程類型：** integration-capstone

@@ -1,4 +1,4 @@
-# PRAC2｜完成一組可行銷內容
+﻿# PRAC2｜完成一組可行銷內容
 
 - **對應 lesson：** `../_lessons/digital-content-growth-126h/PRAC2.md`
 - **課程類型：** skill-operation
