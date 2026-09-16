@@ -24,7 +24,7 @@ B7 的 Handoff 包讓人看懂 Figma 成果，雯姊還需要一個能在瀏覽�
 
 ### 操作示範 / Demo
 
-先使用課程提供的 `uiux-designer/web-starter/` 起始專案。你會先在 Chrome 看到靜態任務卡片，再確認一個按鈕事件，最後用 Git 留下變更；每一步都保留原始檔案，方便回到上一個可運作版本。
+先使用課程提供的 `uiux-designer/web-starter/` 起始專案。你會先在 Chrome 看到靜態任務卡片，再確認一個按鈕事件，再用 Git 留下變更；每一步都保留原始檔案，方便回到上一個可運作版本。
 
 1. 開啟 `uiux-designer/web-starter/index.html`，先看靜態任務卡片。
 2. 在 Chrome 點擊「標記完成」，確認狀態、按鈕與回饋文字同時變化。

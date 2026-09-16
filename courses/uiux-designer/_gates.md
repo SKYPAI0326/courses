@@ -142,7 +142,7 @@ B6 已接手 B4 的 Host／Overlay 與核心 action，產出固定任務測試�
 
 - 入口頁已改為「情境 → 完成物 → 三段路徑 → 試學順序 → 教師證據」；製作管理語言移到可展開區。
 - A3 已重建為可冷讀單元：起始材料、白話概念、完整示範、6 步跟做、2 個 Checkpoint、單一變因練習、錯誤回修、驗收與 B4 接手條件均已出現。
-- `docs/audit-copy-patterns.py --strict uiux-designer ../_lessons/uiux-designer` 結果為 0，禁止的「不是……而是……」對比套句已從學員試點頁與教案移除。
+- `uiux-designer/_design/COPY-RISK-GATE.md` 已把跨專案清單轉成 `BLOCK／REVIEW` 兩級規則；本輪掃描結果為 `0 BLOCK / 0 REVIEW`。後續若出現 REVIEW，仍要逐行人工判讀，不以自動掃描取代冷讀。
 - 目前 33h 試點仍不能代表完整 99h；A1–A2、A4–A8、B1–B3、B5 尚待製作，真人冷讀、Photoshop、GitHub 與公開部署仍未放行。
 
 ---

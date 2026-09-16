@@ -9,7 +9,7 @@ status: MACHINE_READY_PENDING_HUMAN
 
 ## 審查目的
 
-確認學員只拿到入口頁、單元頁與列出的素材，就能理解工作情境、取得起始材料、完成一個可觀察成果，並把成果交給下一個單元。文案審查另外檢查反覆使用的「不是……而是……」對比句型，避免用生成式套句取代具體說明。
+確認學員只拿到入口頁、單元頁與列出的素材，就能理解工作情境、取得起始材料、完成一個可觀察成果，並把成果交給下一個單元。文案審查依 `uiux-designer/_design/COPY-RISK-GATE.md` 檢查公式化對比、空泛過場、模糊權威、宣傳詞與結構指紋；掃描器只把公式化對比列為 BLOCK，其他訊號交給人工判讀。
 
 ## 課綱主軸對照
 
@@ -59,12 +59,14 @@ status: MACHINE_READY_PENDING_HUMAN
 
 ### 本次移除的生成式對比句型
 
-學員頁與五份試點教案已通過 `docs/audit-copy-patterns.py --strict`，目前為 0 finding。原本的句型已改成直接描述：
+學員頁與五份試點教案已通過 `docs/audit-copy-patterns.py --strict`，目前為 `0 BLOCK / 0 REVIEW`。原本的句型已改成直接描述：
 
 - 說明學員要做的工作與可見結果。
 - 說明平台限制與可用的備援路徑。
 - 說明錯誤現象、回修位置與重跑條件。
 - 說明上一段產物如何成為下一段輸入。
+
+本輪曾出現的 REVIEW 例子已改成可觀察的文字、尺寸與操作結果；後續新增內容仍需逐行人工判讀，不能只看掃描器結果。
 
 ### 仍可使用的否定句
 
@@ -74,7 +76,7 @@ status: MACHINE_READY_PENDING_HUMAN
 
 ```text
 python3 docs/audit-copy-patterns.py --strict uiux-designer ../_lessons/uiux-designer
-Copy pattern audit: 0 finding(s)
+Copy pattern audit: 0 finding(s) (0 BLOCK, 0 REVIEW)
 
 python3 .../audit_copy_continuity.py <each learner page and lesson plan>
 All current UI/UX pilot pages: 0 warning(s)

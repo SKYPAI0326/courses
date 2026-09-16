@@ -28,7 +28,7 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 機器證據
 #### Stage B7-1：先凍結可交付來源
 
 1. 開啟 B6 回歸通過的 Figma 檔，確認目前頁面與 Frame 名稱。
-2. 在交付表記錄 Figma URL、日期、方案、起點、測試 case_id 與最後通過結果。
+2. 在交付表記錄 Figma URL、日期、方案、起點、測試 case_id 與通過結果。
 3. 不在交付前偷偷改文字、尺寸或 Prototype；若要改，先新增版本欄位並重新回歸。
 
 #### Stage B7-2：輸出與 Inspect
@@ -73,7 +73,7 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 機器證據
 
 ### 動手練習題（Hands-on Exercise）
 
-用 B6 的最後通過版本建立 Handoff 包。故意漏掉 Overlay PNG，再按照 Checkpoint 找回漏件；最後在清單中把 Photoshop 狀態填成 `NOT_RUN`，不可用 Figma PNG 冒充 Photoshop 輸出。
+用 B6 的通過版本建立 Handoff 包。故意漏掉 Overlay PNG，再按照 Checkpoint 找回漏件；在清單中把 Photoshop 狀態填成 `NOT_RUN`，不可用 Figma PNG 冒充 Photoshop 輸出。
 
 ### 常見錯誤 3 條（Common Pitfalls）
 

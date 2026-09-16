@@ -40,7 +40,7 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 實測）
 
 把 `reference/screen-host-blank.png` 當尺寸參考，把 `expected/dialog-overlay.png` 當完成後比對圖。這兩個 PNG 用來核對尺寸與文字；請在 Figma 重新建立可編輯物件，完成物是你自己的 Figma 檔與 Preview。
 
-#### Stage B4-2：完整示範一條最短路徑
+#### Stage B4-2：示範一條最短路徑
 
 1. 在 Figma 建立一個 402×874 的 Frame，於 Layers 改名為 `Screen / Host`。
 2. 在同一頁建立另一個 Frame，改名為 `Dialog / Overlay`，尺寸設為 320×200。
@@ -144,7 +144,7 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 實測）
 
 **Q2（應用驗證）**：你需要登入 → 清單 → Dialog 三個畫面，但 Starter 在第二個 action 跳出限制。你會怎麼交付第一個可驗收版本？
 
-**預期答案要點**：先保留一檔一核心 action，交付登入或清單到 Dialog 的最小 Preview；第二段另建獨立測試檔並在交付說明標記方案限制；不以空白畫面或「看起來有連線」冒充完整流程。
+**預期答案要點**：先保留一檔一核心 action，交付登入或清單到 Dialog 的最小 Preview；第二段另建獨立測試檔並在交付說明標記方案限制；不以空白畫面或「看起來有連線」假裝三段互動已完成。
 
 ## 講師授課筆記（不進講義）
 

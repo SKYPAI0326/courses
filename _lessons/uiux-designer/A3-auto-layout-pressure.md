@@ -26,7 +26,7 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 Probe A 機�
 | 判斷 | 正確結果 | 常見錯例 |
 |---|---|---|
 | 寬度 200 | 長句增加行數，行寬仍為 200 | 寬度跟著文字延伸，畫面向右溢出 |
-| Auto height／Hug | 容器變高，文字完整可讀 | 高度固定，文字被裁切 |
+| Auto height／Hug | 容器變高，文字保持可讀 | 高度固定，文字被裁切 |
 | 層級 | 錯誤輔助文字位於登入區塊子層 | 文字落在畫布外，後續元件找不到 |
 
 ### 操作示範 / Demo
@@ -52,13 +52,13 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 Probe A 機�
 | 1 | Together | 建立 402×874 Frame 與登入區塊 | 有可選取的文字／容器 | Layers 找得到 `Mobile / Login & List` | 切到 Design，重新選取 Frame row |
 | 2 | Demo | 輸入短句，再把文字寬度設為 200 | 短句位於登入區塊內 | 右側寬度顯示 200 | 重新在 Layers 選文字層 |
 | 3 | Together | 用右側 Content 輸入壓力句 | 長句換行，寬度維持 200 | 文字沒有向右溢出 | 重新選取文字 row，不直接點畫布 |
-| 4 | Checkpoint | 將高度改為 Auto height／Hug | 容器增高，文字完整可讀 | 下方元件被推開 | 回到高度設定，確認不是 Fixed height |
+| 4 | Checkpoint | 將高度改為 Auto height／Hug | 容器增高，文字保持可讀 | 下方元件被推開 | 回到高度設定，確認不是 Fixed height |
 | 5 | Solo | 只替換另一句長文字 | 容器與相鄰元件仍可重排 | 只改文字，其他設定不變 | 還原文字後重新輸入，保留失敗截圖 |
 | 6 | Check | 記錄尺寸、設定值與截圖 | 有可重開的壓力測試證據 | 紀錄可交給下一個單元 | 先保存 Figma 檔，再補寫紀錄 |
 
 ### 檢核 / Verification
 
-- [ ] 短句與長句都能在 200 寬度內完整顯示。
+- [ ] 短句與長句都能在 200 寬度內顯示。
 - [ ] Auto height 會隨換行增加，不裁切文字。
 - [ ] 錯誤輔助文字仍位於輸入區塊子層。
 - [ ] 我沒有用縮小字級掩蓋內容壓力。
@@ -72,7 +72,7 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 Probe A 機�
 
 ### 動手練習題（Hands-on Exercise）
 
-把錯誤文字換成「密碼至少需要包含一個英文大寫字母與一個數字」，只改文字；再換成兩行更長的版本，觀察容器是否仍完整。若裁切，先回到寬度／高度設定，不要刪除文字。
+把錯誤文字換成「密碼至少需要包含一個英文大寫字母與一個數字」，只改文字；再換成兩行更長的版本，觀察容器是否仍能容納文字。若裁切，先回到寬度／高度設定，不要刪除文字。
 
 ### 常見錯誤 3 條（Common Pitfalls）
 

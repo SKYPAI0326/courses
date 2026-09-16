@@ -16,7 +16,7 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 機器證據
 
 阿凱把 B4 的 `Screen / Host` 與 `Dialog / Overlay` 交給雯姊試用。雯姊說：「我看得到畫面，但不知道點擊後是不是應該出現這個訊息。」問題出在任務、操作與預期結果沒有被固定下來。本單元把「我覺得可以」整理成一張可重跑的測試表。
 
-本節接手 B4 的產物：一條 `On click → Open overlay → Dialog / Overlay`。不新增第二個 action，不把未測的完整登入流程當成已完成。完成物是測試紀錄、問題分類、最小修正與一次回歸結果。
+本節接手 B4 的產物：一條 `On click → Open overlay → Dialog / Overlay`。不新增第二個 action，不把未測的登入流程當成已完成。完成物是測試紀錄、問題分類、最小修正與一次回歸結果。
 
 ### 概念 / Concepts
 
@@ -78,7 +78,7 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 機器證據
 
 ### 動手練習題（Hands-on Exercise）
 
-先把 B4 的預期文字改成「已儲存，回到任務清單」，只改內容；再用同一腳本回歸。最後另開一筆測試，故意把 Destination 留空，記錄為互動問題並修復。不要同時改 Animation。
+先把 B4 的預期文字改成「已儲存，回到任務清單」，只改內容；再用同一腳本回歸。另開一筆測試，故意把 Destination 留空，記錄為互動問題並修復。不要同時改 Animation。
 
 ### 常見錯誤 3 條（Common Pitfalls）
 
