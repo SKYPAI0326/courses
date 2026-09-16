@@ -31,7 +31,7 @@ status: MACHINE_READY_PENDING_HUMAN
 | B7 Handoff | 6h | PNG／PDF／Inspect、限制清單 | 可追溯的 Handoff 包 |
 | B8 網頁與 Git | 13h | 最小 HTML／CSS／JavaScript、本機驗證、Git commit | 可在 Chrome 開啟的網站與版本紀錄 |
 
-尚未產出的正式單元：A1、A2、A4、A5、A6、A7、A8、B1、B2、B3、B5，共 66h。這些單元完成前，課程狀態只能維持試點，不能標記為完整 99h 講義。
+尚未產出的正式單元：A4、A5、A6、A7、A8、B1、B2、B3、B5。A1、A2 已補上學員頁與起始材料，但仍要完成來源教案同步與真人冷讀；其餘單元完成前，課程狀態只能維持待驗證，不能標記為完整 99h 講義。
 
 ## 零基礎學員路徑
 
@@ -66,6 +66,7 @@ status: MACHINE_READY_PENDING_HUMAN
 - 用連續流程說明每個單元的學習節奏：情境、示範、跟做、變化、驗收與交接。
 - 用「介面元素與設計 42h」及「UI/UX 原型製作與資料打包 57h」對照正式課綱，保留 Photoshop、Git/GitHub 與部署範圍。
 - 製作紀錄與機器證據留在 `_review`、`_validation`，不再放入學員入口。
+- 入口 → 視覺基礎 → 格線與版面 → Auto Layout 的連結已在 Chrome 實際點擊；Auto Layout 頁不再直接跳過正式前置單元到 Overlay 試點。
 
 ## 文案修訂規則
 
