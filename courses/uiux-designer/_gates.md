@@ -115,6 +115,17 @@ Starter 可完成單一 `On click → Open overlay`，Chrome Preview 已看到 `
 
 PNG／PDF 匯出與 Dev Mode CSS Inspect 已取得實際檔案證據；Share 權限、GitHub push 與公開部署沒有在機器階段代替使用者執行。三組 Probe 都已有實檔與操作紀錄，但仍不能將 G1 改為真人放行。
 
+### B4 代表單元機器產製與冷啟動
+
+**日期**：2026-09-16
+**狀態**：`MACHINE_PASS_PENDING_HUMAN`
+**教案**：`../_lessons/uiux-designer/B4-overlay-single-action.md`
+**講義**：`uiux-designer/part2/CH4-overlay-single-action.html`
+
+已將 Probe B 的實測邊界轉為可從零執行的教案與 HTML：8 個段落、Demo／Together／Solo／Checkpoint、修復路徑、Quiz、素材包與證據表均已納入。HTML 以 Chrome localhost 預覽，`lint-page.py` 結果為 0 BLOCKER／0 ERROR／0 WARN；Overlay 完成圖與起始材料的 HTML 連結可直接讀取。原始 Markdown／TXT 保留作為版本化來源，避免瀏覽器擋住直接開啟文字檔造成學員卡點。
+
+冷啟動紀錄：`uiux-designer/_validation/autonomous-run/COLD-FOLLOW-ALONG-B4.md`。跨平台邊界：`uiux-designer/_validation/autonomous-run/CROSS-PLATFORM-MATRIX.md`。本單元仍不能標記 `HUMAN_PASS`；Photoshop、真人跟做、分享權限與公開部署維持未驗證。
+
 ---
 
 ## 備忘（非 Gate 但值得留存）
