@@ -90,6 +90,15 @@
 
 **證據位置**：`uiux-designer/_validation/autonomous-run/`
 
+### Figma Probe A 第一輪結果
+
+**日期**：2026-09-16  
+**狀態**：`CONDITIONAL`  
+**實際環境**：Chrome → Figma Starter／Free → `Codex Figma Starter Audit - Probe A`  
+**證據**：`uiux-designer/_validation/figma-starter-browser/PROBE-A.md`
+
+已通過 Frame、Auto Layout、Component、Variant、Instance、長中文換行與基本按鈕／錯誤輔助列結構。Variant 命名與直接編輯文字各發現一個可重現的失敗／修復路徑，已寫入紀錄。Form、List 的多列行為及 Probe B／C 尚未完成，因此 G1 仍維持 `G1_BLOCKED_BY_FIGMA_VALIDATION`。
+
 ---
 
 ## 備忘（非 Gate 但值得留存）

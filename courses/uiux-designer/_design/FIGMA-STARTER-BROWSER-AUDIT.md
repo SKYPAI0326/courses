@@ -2,7 +2,7 @@
 
 **課程**：uiux-designer  
 **建立日期**：2026-09-07  
-**目前狀態**：`NOT_RUN`  
+**目前狀態**：`PROBE_A_CONDITIONAL`  
 **適用環境**：Figma Starter 免費方案、瀏覽器版
 
 ## 稽核目的
@@ -55,7 +55,7 @@
 
 | Probe | 結果 | 原因 |
 |---|---|---|
-| A 介面系統與內容壓力 | `NOT_RUN` | 尚未取得實際 Figma Starter 工作檔與操作紀錄。 |
+| A 介面系統與內容壓力 | `CONDITIONAL` | 已在實際 Figma Starter／Chrome 工作檔完成 Frame、Auto Layout、Component、Variant、Instance、長中文與按鈕／錯誤輔助列測試；Form、List 行為與多狀態壓力仍待補測。證據：`uiux-designer/_validation/figma-starter-browser/PROBE-A.md`。 |
 | B Prototype 與互動限制 | `NOT_RUN` | 尚未取得實際 Figma Starter Prototype 與 Preview 紀錄。 |
 | C 輸出與交付 | `NOT_RUN` | 尚未完成免費方案的匯出、分享、Git/GitHub、部署連續流程。 |
 
