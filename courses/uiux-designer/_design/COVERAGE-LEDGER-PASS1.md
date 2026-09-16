@@ -49,6 +49,7 @@ Pass 1 先鎖定「要教什麼、要留下什麼證據」，不因目前寫不�
 
 | Atom | learner-facing 教案／HTML | 新增產物 | 判定 |
 |---|---|---|---|
+| A-42-04 | `../_lessons/uiux-designer/A3-auto-layout-pressure.md`／`part1/CH3-auto-layout-pressure.html` | 長中文壓力、固定寬度 200、Auto height、修復摘要 | `MACHINE_PASS_PARTIAL` |
 | B-57-04 | `../_lessons/uiux-designer/B4-overlay-single-action.md`／`part2/CH4-overlay-single-action.html` | Overlay Figma 檔、Preview、對照 PNG | `MACHINE_PASS_PENDING_HUMAN` |
 | B-57-04 → B6 測試 | `../_lessons/uiux-designer/B6-prototype-task-test.md`／`part2/CH6-prototype-task-test.html` | 任務腳本、Actual／Expected、回歸紀錄 | `MACHINE_PASS_PENDING_HUMAN` |
 | B-57-08 | `../_lessons/uiux-designer/B7-figma-handoff-export.md`／`part2/CH7-figma-handoff-export.html` | PNG／PDF／Inspect、Handoff 清單 | `MACHINE_PASS_PENDING_HUMAN` |
