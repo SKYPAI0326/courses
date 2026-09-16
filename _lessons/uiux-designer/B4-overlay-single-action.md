@@ -16,7 +16,7 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 實測）
 
 阿凱在弄一下行銷工作室收到一個很小、但很容易被誤解的需求：手機任務清單按下「完成」後，要讓使用者立刻看到「確認完成」。如果只交一張靜態圖，雯姊無法確認這個訊息是不是在正確的時機出現；如果一開始就把登入、清單、Dialog、Toast 全塞進同一個免費 Figma 檔，Starter 可能在第二個 action 時顯示方案限制。
 
-本單元只改變一件事：把一個主畫面接到一個 Overlay。完成物不是「看過 Prototype 面板」，而是一個能在 Chrome Preview 點擊後看到 `確認完成` 的最小 Figma 檔。這個限制讓我們能先驗證互動因果，再決定是否需要拆成更多測試檔。
+本單元只改變一件事：把一個主畫面接到一個 Overlay。完成物是一個能在 Chrome Preview 點擊後看到 `確認完成` 的最小 Figma 檔；單看 Prototype 面板無法提供這項證據。這個限制讓我們先驗證互動因果，再決定是否需要拆成更多測試檔。
 
 開始前請開啟素材包中的 `source/FIGMA-FILE-URL.txt`。它指向機器已驗證的測試檔；如果你的帳號沒有編輯權，依照下面的 Frame 名稱與尺寸在自己的 Drafts 新建空白檔，能力差異只在於少了預先建立的圖層。
 
@@ -25,7 +25,7 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 實測）
 - **Prototype action** — 由「觸發條件」和「動作目的」組成的連線；本例只有一條，避免把免費方案限制藏起來。
 - **Overlay** — 疊在目前畫面上的另一個 Frame；它適合 Dialog、Menu 或短暫確認訊息，不會把整個任務帶到另一頁。
 - **Flow starting point** — Preview 的起點；沒有它，學員可能從錯誤畫面開始，無法判斷自己的互動是否真的成功。
-- **Starter 一檔一核心 action** — 本次實測的課程契約，不是 Figma 的通用設計原則；同一檔案再建立第二個 action 會跳出 Professional 升級提示，因此多步驟流程改用拆檔策略。
+- **Starter 一檔一核心 action** — 這是本次實測採用的課程契約；Figma 其他方案可能有不同能力。同一檔案再建立第二個 action 會跳出 Professional 升級提示，因此多步驟流程改用拆檔策略。
 
 ### 操作示範 / Demo
 
@@ -38,13 +38,13 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 實測）
 | `Screen / Host` | 402×874 | Prototype 起點 | 可以是空白白底，重點是承接點擊 |
 | `Dialog / Overlay` | 320×200 | 疊加畫面 | 一個文字層：`確認完成` |
 
-把 `reference/screen-host-blank.png` 當尺寸參考，把 `expected/dialog-overlay.png` 當完成後比對圖。這兩個 PNG 是對照品，不是可編輯的 Figma 物件；真正的完成物是你自己的 Figma 檔與 Preview。
+把 `reference/screen-host-blank.png` 當尺寸參考，把 `expected/dialog-overlay.png` 當完成後比對圖。這兩個 PNG 用來核對尺寸與文字；請在 Figma 重新建立可編輯物件，完成物是你自己的 Figma 檔與 Preview。
 
 #### Stage B4-2：完整示範一條最短路徑
 
 1. 在 Figma 建立一個 402×874 的 Frame，於 Layers 改名為 `Screen / Host`。
 2. 在同一頁建立另一個 Frame，改名為 `Dialog / Overlay`，尺寸設為 320×200。
-3. 選取 `Dialog / Overlay` 內部，使用 Text 工具輸入 `確認完成`。文字必須出現在 Overlay 的子層，不是畫布外的獨立文字。
+3. 選取 `Dialog / Overlay` 內部，使用 Text 工具輸入 `確認完成`。文字應位於 Overlay 的子層；若出現在畫布外，預覽無法證明 Overlay 正常。
 4. 選取 `Screen / Host`，切到右側 `Prototype` 分頁，按 `Add action`。這個 action 是一條「點擊後要做什麼」的規則，現在只建立一條。
 5. 在 Interaction 對話框把 Trigger 保持為 `On click`，Action 選 `Open overlay`，Destination 選 `Dialog / Overlay`。
 6. 保持 Position 為 `Centered`、Animation 為 `Instant`，按 `Create action`。右側 Interactions 應看到 `Click → Dialog / Overlay`。
@@ -66,7 +66,7 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 實測）
 | 步驟 | 模式 | 學員操作 | 預期結果 | 快速檢查 | 卡住時 |
 |---:|---|---|---|---|---|
 | 1 | Together | 開啟 Figma，建立 402×874 Frame 並命名 `Screen / Host` | Layers 出現 Host | 右側 Width=`402`、Height=`874` | 切到 Design，選取真正的 Frame row 再改尺寸 |
-| 2 | Together | 建立 320×200 Frame，命名 `Dialog / Overlay` | 兩個同層 Frame 可見 | Layers 不是把 Overlay 放進 Host | 若縮排錯誤，重新在空白畫布建立 Frame，或複製後移到同層 |
+| 2 | Together | 建立 320×200 Frame，命名 `Dialog / Overlay` | 兩個同層 Frame 可見 | Layers 顯示 Overlay 與 Host 同層 | 若縮排錯誤，重新在空白畫布建立 Frame，或複製後移到同層 |
 | 3 | Demo | 在 Overlay 內輸入 `確認完成` | 文字出現在 Overlay 白底內 | 點選文字時 Layers 顯示它是 Overlay 子層 | 若文字出現在畫布外，刪除該文字，先選 Overlay row 再用 Text 工具點擊其內部 |
 | 4 | Together | 選 Host → Prototype → Add action，Trigger=`On click`、Action=`Open overlay`、Destination=`Dialog / Overlay` | Interactions 顯示 `Click → Dialog / Overlay` | 沒有 `None` | 點開該 interaction row，回到 Destination 欄位修正 |
 | 5 | Checkpoint | 加入 Flow starting point，按 Present，點擊白色主畫面一次 | Preview 出現 `確認完成` | 文字與 `expected/dialog-overlay.png` 相同 | 回到 Stage B4-2 第 5 步；保留兩個 Frame，不要重建整個檔案 |
@@ -79,7 +79,7 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 實測）
 
 #### 變化練習：只改內容，不改互動
 
-把 `確認完成` 改成「已儲存，回到任務清單」，保持 Host 尺寸、Overlay 尺寸、Trigger、Action、Destination、Centered 與 Instant 都不變。你正在練習的是內容變長時的 Overlay 檢查，不是新增第二條 action。若字串換行或超出 320×200，回到 A3 的 Auto Layout／文字壓力單元處理，不要用縮小字級掩蓋問題。
+把 `確認完成` 改成「已儲存，回到任務清單」，保持 Host 尺寸、Overlay 尺寸、Trigger、Action、Destination、Centered 與 Instant 都不變。這次只檢查內容變長時的 Overlay；第二條 action 會改變測試條件，留到另一份測試檔處理。若字串換行或超出 320×200，回到 A3 的 Auto Layout／文字壓力單元處理，不要用縮小字級掩蓋問題。
 
 ### 檢核 / Verification
 
@@ -90,7 +90,7 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 實測）
 - [ ] `Screen / Host` 是 402×874，並被設定為 Flow starting point。
 - [ ] `Dialog / Overlay` 是 320×200，文字 `確認完成` 位於它的子層。
 - [ ] Interactions 只保留一條 `On click → Open overlay → Dialog / Overlay`。
-- [ ] Chrome Preview 點擊 Host 後看得到 `確認完成`，不是只看到空白畫面。
+- [ ] Chrome Preview 點擊 Host 後看得到 `確認完成`；若畫面空白，依錯誤修復表回到文字層與 Flow 起點檢查。
 - [ ] 我能說明第二個 action 會觸發 Starter 方案限制，並知道拆檔是目前備援。
 
 ## 試跑包需求清單（Verification Asset Spec）
@@ -105,7 +105,7 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 實測）
 **角色**：阿凱（行銷專員）
 **公司**：弄一下行銷工作室
 **任務**：為工作室內部任務清單做一個「完成後立即確認」的手機 Overlay，讓雯姊在審稿時能看懂點擊與回饋的因果。
-**本單元要他學會**：用一條可預覽的核心 action 交付可重現的 Overlay，而不是用一張靜態圖宣稱互動已完成。
+**本單元要他學會**：用一條可預覽的核心 action 交付可重現的 Overlay；靜態圖只能用來比對畫面，不能代替互動證據。
 
 ## 動手練習題（Hands-on Exercise）
 
@@ -130,12 +130,12 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 實測）
    **解法**：不要按 Upgrade；移除多餘的空白 interaction，或建立新的獨立測試檔。保留原檔，並在交付紀錄寫明拆檔。
 
 3. **錯誤現象**：Preview 點擊後仍是空白。
-   **原因**：`確認完成` 被建立在畫布外或 Host，而不是 Overlay 的子層；也可能沒有設定 Flow starting point。
+   **原因**：`確認完成` 被建立在畫布外或 Host，沒有放入 Overlay 子層；也可能沒有設定 Flow starting point。
    **解法**：在 Layers 逐層展開 `Dialog / Overlay`，用右側 Content 檢查文字；設定起點後重新 Present。無法修復時，安全停止在 B4-1，不刪掉整個檔案。
 
 ## 檢核題 2 條（Quiz）
 
-**Q1（概念驗證）**：為什麼本單元把 `Dialog / Overlay` 做成獨立 Frame，而不是把文字直接放在 `Screen / Host`？
+**Q1（概念驗證）**：為什麼本單元把 `Dialog / Overlay` 做成獨立 Frame？如果文字直接放在 `Screen / Host`，預覽會少掉哪一項證據？
 
 - [ ] 因為 Overlay 的檔名一定要用英文。
 - [ ] 因為獨立 Frame 才能作為 Open overlay 的目的地，Preview 才能驗證疊加關係。 ← 正確

@@ -134,6 +134,17 @@ PNG／PDF 匯出與 Dev Mode CSS Inspect 已取得實際檔案證據；Share 權
 
 B6 已接手 B4 的 Host／Overlay 與核心 action，產出固定任務測試、問題分類、單一變因修正與回歸紀錄；B7 再接手 B6 的 `case_id` 與回歸版本，產出 PNG／PDF／Inspect 與 Handoff 清單；B8 接手 Handoff 包，完成本機 HTML／CSS／最小 JavaScript 與 Git 路徑。四頁均已在 Chrome localhost 檢查並通過 lint。GitHub push／公開部署與 Photoshop 尚未執行，因此整門課仍不放行。
 
+### 零基礎講義與文案閘門追加結果
+
+**日期**：2026-09-16
+**狀態**：`MACHINE_READY_PENDING_HUMAN`
+**審查**：`uiux-designer/_review/COURSE-HANDOUT-AUDIT-2026-09-16.md`
+
+- 入口頁已改為「情境 → 完成物 → 三段路徑 → 試學順序 → 教師證據」；製作管理語言移到可展開區。
+- A3 已重建為可冷讀單元：起始材料、白話概念、完整示範、6 步跟做、2 個 Checkpoint、單一變因練習、錯誤回修、驗收與 B4 接手條件均已出現。
+- `docs/audit-copy-patterns.py --strict uiux-designer ../_lessons/uiux-designer` 結果為 0，禁止的「不是……而是……」對比套句已從學員試點頁與教案移除。
+- 目前 33h 試點仍不能代表完整 99h；A1–A2、A4–A8、B1–B3、B5 尚待製作，真人冷讀、Photoshop、GitHub 與公開部署仍未放行。
+
 ---
 
 ## 備忘（非 Gate 但值得留存）
