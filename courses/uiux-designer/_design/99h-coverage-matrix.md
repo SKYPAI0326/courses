@@ -10,6 +10,13 @@ gate0_approved_at: 2026-09-07
 
 本文件只做「正式課綱項目 → 教學候選位置 → 可驗收完成物」對照，不做分鐘分配、不宣告任何單元已完成，也不把 ChatGPT 建議自動升格為行政必修。
 
+## 實測回寫規則（2026-09-16）
+
+- Figma Starter／Free 的實際證據集中於 `uiux-designer/_validation/figma-starter-browser/`；課程設計必須遵守一個測試檔一個核心 action 的邊界。
+- `Open overlay` 已在 Chrome Preview 通過；第二個 action、Variables、Conditional prototypes 受方案提示限制，改列 `CONDITIONAL` 或拆檔策略。
+- `PNG／JPEG／SVG／PDF` 匯出與 Dev Mode CSS Inspect 已有實體檔案；Share 權限、GitHub push、公開部署仍不是機器階段已完成的外部狀態。
+- Part A 的 Form／List 多列、Part B 的 Swap／固定元素聯合滾動／完整 Smart Animate 仍需補測，不得由相鄰控制推定通過。
+
 ## 來源角色
 
 | 來源 | 角色 | 控制內容 |

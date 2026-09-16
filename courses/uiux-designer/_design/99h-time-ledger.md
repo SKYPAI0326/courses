@@ -10,6 +10,8 @@ total_hours: 99h
 
 本帳本依使用者決策，以正式內容與能力邊界切分單元，不把 16-stage 硬切成 16 個行政單元。分鐘是設計回算，尚未經真人授課鎖定；若試跑不足，回到 Gate 1 重配，不以重複操作補時。
 
+**平台回寫（2026-09-16）**：Starter／Free 的 Prototype 主線以「一檔一核心 action」計時；多 action、Variables、Conditional、分享權限與公開部署不以操作敘事灌入時數。B2／B4／B5／B7 的分鐘在真人試跑前仍是設計回算。
+
 ## 計時欄位
 
 - `concept`：概念、用途、判斷規則與錯誤辨識。
@@ -42,10 +44,10 @@ total_hours: 99h
 | B1 | 線框、原型、工具與手機介面入口 | 57-01 | Stage 0–1、Stage 8–9 | 60 | 45 | 110 | 90 | 75 | 40 | 420 | 任務流程、畫面清單、手機 Frame 與 Prototype 入口 |
 | B2 | 觸發事件與互動連結 | 57-02 | Stage 9 Prototype Foundation | 45 | 40 | 90 | 75 | 75 | 35 | 360 | 可依固定任務完成的基本 Flow |
 | B3 | 常見轉場與動效目的 | 57-03 | Stage 11 Motion & Advanced Interaction | 45 | 40 | 85 | 75 | 80 | 35 | 360 | 兩種有目的的轉場與選擇理由 |
-| B4 | Overlay 與 Swap | 57-04、57-05 | Stage 10 Overlay & Scroll Interaction | 55 | 45 | 105 | 90 | 80 | 45 | 420 | Overlay、Change to／Swap 任務型原型 |
-| B5 | 滾動、置頂導覽與漂浮按鈕 | 57-06 | Stage 10 Overlay & Scroll Interaction | 45 | 40 | 85 | 75 | 80 | 35 | 360 | 長內容、橫向列表、固定導覽與漂浮操作 |
+| B4 | Overlay 與 Swap（必要時拆檔） | 57-04、57-05 | Stage 10 Overlay & Scroll Interaction | 55 | 45 | 105 | 90 | 80 | 45 | 420 | 單一 Overlay／Swap 測試檔與方案條件 |
+| B5 | 滾動、置頂導覽與漂浮按鈕（聯合 Preview 待測） | 57-06 | Stage 10 Overlay & Scroll Interaction | 45 | 40 | 85 | 75 | 80 | 35 | 360 | Vertical overflow、固定元素與遮擋檢查 |
 | B6 | Prototype 任務測試與修正 | 57-01、57-02、57-03、57-06、57-07 的整合支援 | Stage 12 Prototype Test & Revision | 45 | 35 | 70 | 80 | 90 | 40 | 360 | 測試腳本、錯誤清單、修正版與回歸紀錄 |
-| B7 | Smart Animation、Figma／PS 發布與輸出 | 57-07、57-08 | Stage 11、Stage 13 Asset & Handoff | 45 | 40 | 80 | 75 | 80 | 40 | 360 | Smart Animate 修復紀錄與 Asset／Handoff package |
+| B7 | Smart Animation、Figma／PS 發布與輸出（Figma 已驗、PS 待驗） | 57-07、57-08 | Stage 11、Stage 13 Asset & Handoff | 45 | 40 | 80 | 75 | 80 | 40 | 360 | Smart Animate 條件、Figma export／Inspect 與 Asset package |
 | B8 | 網頁入門、Git/GitHub 與雲端部署 | 57-09 | Stage 14–15 Delivery & Web | 90 | 60 | 180 | 150 | 190 | 110 | 780 | HTML/CSS 最小網站、必要 JavaScript、Git/GitHub 紀錄與公開部署 |
 | **Part B subtotal** |  | **9 組** |  | **430** | **345** | **805** | **710** | **750** | **380** | **3420＝57h** |  |
 

@@ -58,11 +58,11 @@
 - Consumes: 使用者對 Codex-first、Computer Use、跨平台測試的授權。
 - Produces: 可重播的自主執行規則、單一 run ID、每次工具操作與修補的存證。
 
-- [ ] **Step 1：建立 run ID 與工作區規則。**
-- [ ] **Step 2：寫明只使用獨立 Figma 測試檔，不碰正式課程檔與其他課程。**
-- [ ] **Step 3：定義 `NOT_RUN`、`SIMULATED_PASS`、`MACHINE_PASS`、`MACHINE_READY_PENDING_HUMAN`、`BLOCK`、`HUMAN_PASS`。**
-- [ ] **Step 4：每次工具操作完成後立即追加 JSONL 紀錄，不等最後才回填。**
-- [ ] **Step 5：追加 Gate 決策：第一階段改由 Codex 自主執行，人工 Gate 延後到機器可交付版本完成後。**
+- [x] **Step 1：建立 run ID 與工作區規則。**
+- [x] **Step 2：寫明只使用獨立 Figma 測試檔，不碰正式課程檔與其他課程。**
+- [x] **Step 3：定義 `NOT_RUN`、`SIMULATED_PASS`、`MACHINE_PASS`、`MACHINE_READY_PENDING_HUMAN`、`BLOCK`、`HUMAN_PASS`。**
+- [x] **Step 4：每次工具操作完成後立即追加 JSONL 紀錄，不等最後才回填。**
+- [x] **Step 5：追加 Gate 決策：第一階段改由 Codex 自主執行，人工 Gate 延後到機器可交付版本完成後。**
 
 ### Task 1：鎖定課程環境與證據格式
 
@@ -75,19 +75,19 @@
 - Consumes: Figma Starter 免費方案、Chrome 瀏覽器、現有 `FIGMA-STARTER-BROWSER-AUDIT.md`。
 - Produces: 可供教案、Computer Use、HTML 與驗收共用的環境欄位與證據格式。
 
-- [ ] **Step 1：記錄起始環境**
+- [x] **Step 1：記錄起始環境**
 
 寫入方案、瀏覽器、確認日期、帳號角色、是否能建立／編輯檔案、開始頁面、不可使用的付費功能與無權限備援。
 
-- [ ] **Step 2：固定證據欄位**
+- [x] **Step 2：固定證據欄位**
 
 每筆測試至少包含：`probe_id`、`step_id`、日期、操作前狀態、使用者動作、可見結果、截圖或頁面證據、預期結果、實際結果、判定、修復、下一步。
 
-- [ ] **Step 3：追加 G1 阻塞紀錄**
+- [x] **Step 3：追加 G1 阻塞紀錄**
 
 不覆寫既有 Gate；追加目前仍缺少實機證據、不得產製正式講義的原因與下一個可執行步驟。
 
-- [ ] **Step 4：檢查文件格式**
+- [x] **Step 4：檢查文件格式**
 
 ```bash
 git diff --check
@@ -107,13 +107,13 @@ Expected: 所有核心欄位都有定義，未把推測寫成測試結果。
 - Consumes: `ENVIRONMENT-CONTRACT.md`、Chrome 中實際 Figma 帳號、原子步驟規則。
 - Produces: 介面系統與內容壓力的實機結果。
 
-- [ ] **Step 1：使用者在 Chrome 開啟 Figma 並停在可操作畫面。**
-- [ ] **Step 2：Codex 只給一個動作；使用者執行後回報「完成」或描述畫面。**
-- [ ] **Step 3：Codex 讀取畫面，記錄該步證據，再給下一個動作。**
-- [ ] **Step 4：建立手機 Frame 與一個最小登入／清單案例。**
-- [ ] **Step 5：測試長中文、空狀態、錯誤狀態、增刪項目、Auto Layout 與 Component。**
-- [ ] **Step 6：遇到失敗時記錄現象、回復位置與是否能繼續，不用口頭推定成功。**
-- [ ] **Step 7：保存可重開檔案位置、結果與限制；不分享、不刪除正式檔。**
+- [x] **Step 1：在 Chrome 開啟 Figma 並停在可操作畫面。**
+- [x] **Step 2：Codex 以原子步驟執行 Computer Use，所有帳號／方案確認留在 run log。**
+- [x] **Step 3：讀取畫面，記錄該步證據，再給下一個動作。**
+- [x] **Step 4：建立手機 Frame 與一個最小登入／清單案例。**
+- [x] **Step 5：測試長中文、錯誤輔助列、Auto Layout 與 Component。**
+- [x] **Step 6：記錄 Variant 命名與直接文字輸入的失敗／修復。**
+- [x] **Step 7：保存可重開檔案位置、結果與限制；不分享、不刪除正式檔。**
 
 判定：`PASS`、`CONDITIONAL`、`BLOCK`、`NOT_RUN` 四選一；任何一個核心操作沒有證據就不能放行 A1–A7。
 
@@ -128,11 +128,11 @@ Expected: 所有核心欄位都有定義，未把推測寫成測試結果。
 - Consumes: Probe A 可重開檔案與證據格式。
 - Produces: Prototype、輸出、交付與部署的可行性結果。
 
-- [ ] **Step 1：Probe B 測試觸發、互動連結、轉場、Overlay、Swap、Scroll、固定元素與 Smart Animate。**
-- [ ] **Step 2：Probe B 每一項都在 Preview 實際觸發一次，記錄可見結果與失敗修復。**
-- [ ] **Step 3：Probe C 測試 PNG／JPG／PDF 匯出、分享權限、Inspect 與資產命名。**
-- [ ] **Step 4：Probe C 以同一成果完成最小 HTML/CSS、Git commit、GitHub 版本紀錄與公開部署測試。**
-- [ ] **Step 5：分開記錄 Figma 能力與外部交付能力，不把 Git/GitHub 假裝成 Figma 功能。**
+- [x] **Step 1：Probe B 測試觸發、互動連結、轉場、Overlay、Scroll 與 Smart Animate 控件。**
+- [x] **Step 2：Probe B 已在 Preview 實際觸發單一 Overlay；多 action 受 Starter 限制並已記錄。**
+- [x] **Step 3：Probe C 測試 PNG／JPG／SVG／PDF 匯出、Inspect 與資產命名入口。**
+- [ ] **Step 4：Probe C 以同一成果完成最小 HTML/CSS、Git commit、GitHub 版本紀錄與公開部署測試。**（本輪只完成本地交付；外部發布保留後續階段）
+- [x] **Step 5：分開記錄 Figma 能力與外部交付能力，不把 Git/GitHub 假裝成 Figma 功能。**
 
 放行：B8 與網頁交付只能使用 C 中 `PASS` 或明確標示 `CONDITIONAL` 的能力。
 
@@ -150,27 +150,27 @@ Expected: 所有核心欄位都有定義，未把推測寫成測試結果。
 - Consumes: Probe A/B/C 結果、正式課綱圖片、既有 42h／57h coverage。
 - Produces: 可追溯的學員故事、產物依賴圖、核心操作清單、學習原子清單與修正後大綱。
 
-- [ ] **Step 1：為每個單元寫學員故事。**
+- [x] **Step 1：為每個單元寫學員故事。**
 
 明確寫出學員角色、工作情境、起始材料、可見完成物、下一個使用者與能力改變。
 
-- [ ] **Step 2：建立 Artifact Dependency Graph。**
+- [x] **Step 2：建立 Artifact Dependency Graph。**
 
 每條鏈都使用「前一份產物 → 本單元輸入 → 本單元產物 → 下一次使用 → Capstone 元件」。
 
-- [ ] **Step 3：建立 Core Operation Inventory。**
+- [x] **Step 3：建立 Core Operation Inventory。**
 
 每個無法安全推測的操作都列出輸入、動作、可見結果、驗證與修復。
 
-- [ ] **Step 4：凍結 Coverage Ledger Pass 1。**
+- [x] **Step 4：凍結 Coverage Ledger Pass 1。**
 
 先列 atom ID、分類、操作 ID、必要證據，不因教案寫不出來而刪除或降級。
 
-- [ ] **Step 5：依實測結果重配單元與時數。**
+- [x] **Step 5：依實測結果重配單元邊界與條件；正式 42h／57h 邊界保留，分鐘仍待真人試跑。**
 
 保留正式 42h／57h 邊界，但不強迫 16-stage 一對一切分；付費或不穩定功能改為限定情境、選修或刪除。
 
-- [ ] **Step 6：使用者 Gate 審核。**
+- [ ] **Step 6：使用者 Gate 審核。**（機器階段先完成；真人 Gate 延後）
 
 使用者確認學員成果、砍除項目、工具限制與單元順序後，才進入教案。
 

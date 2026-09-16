@@ -13,7 +13,7 @@ platform_version: Figma、Adobe Photoshop、VS Code、Chrome 與部署平台版�
 source_images: /Users/paichenwei/Downloads/1788509783989.jpg, /Users/paichenwei/Downloads/1788509797593.jpg
 governing_matrix: courses/uiux-designer/_design/99h-coverage-matrix.md
 time_ledger: courses/uiux-designer/_design/99h-time-ledger.md
-g1_status: DRAFT_GATE1
+g1_status: PROBE_CONDITIONAL_MACHINE_EVIDENCE
 ---
 
 # 介面元素與設計 × UI/UX 原型製作與資料打包｜99h 大綱草稿
@@ -26,7 +26,7 @@ g1_status: DRAFT_GATE1
 
 為接近零基礎的學員建立一條可驗收的數位介面產出鏈：先完成色彩、字型、格線、Auto Layout 與元件系統，再把手機介面組成可真跑的互動原型，完成測試修正、Figma／Photoshop 資料打包、基礎網站、Git/GitHub 版本紀錄與雲端部署。
 
-本課程不是完整 UX 研究、品牌識別、前端工程或後端開發課；只涵蓋兩張正式課綱圖片明列的介面元素、UI/UX 原型、資料打包、網頁入門與雲端部署。基礎 JavaScript 僅保留完成最小網頁成果所需的範圍。
+本課程不是完整 UX 研究、品牌識別、前端工程或後端開發課；只涵蓋兩張正式課綱圖片明列的介面元素、UI/UX 原型、資料打包、網頁入門與雲端部署。基礎 JavaScript 僅保留完成最小網頁成果所需的範圍。Figma Starter 的免費主線以「一個測試檔、一個核心 Prototype action」為邊界；多步驟互動改用拆檔策略或明示付費方案。
 
 ## 受眾畫像（Audience Profile）
 
@@ -107,16 +107,22 @@ dependencies:
 | Unit | 單元標題 | 學習目標 | 預估時數 |
 |---|---|---|---:|
 | B1 | 線框、原型、工具與手機介面入口 | 將任務轉成畫面清單、手機 Frame 與 Prototype 入口 | 7h |
-| B2 | 觸發事件與互動連結 | 建立 Click／Tap、Navigate to、Back 與無死路 Flow | 6h |
+| B2 | 觸發事件與互動連結 | 在單一 Starter 測試檔建立一個核心 Click／Tap 或 Navigate to；多步驟另拆檔 | 6h |
 | B3 | 常見轉場與動效目的 | 依任務目的選擇轉場並說明速度、方向與回饋 | 6h |
-| B4 | Overlay 與 Swap | 製作 Dialog、Menu、Bottom sheet 與狀態切換 | 7h |
-| B5 | 滾動、置頂導覽與漂浮按鈕 | 處理 Overflow、Fixed、Sticky、遮擋與不同內容高度 | 6h |
+| B4 | Overlay 與 Swap | 以獨立測試檔製作單一 Dialog／Overlay；Swap 以方案條件或拆檔示範 | 7h |
+| B5 | 滾動、置頂導覽與漂浮按鈕 | 先驗收 Vertical overflow；Fixed／Sticky 與遮擋需另跑 Preview | 6h |
 | B6 | Prototype 任務測試與修正 | 依固定腳本記錄問題、修正並回歸測試 | 6h |
-| B7 | Smart Animation、Figma／PS 發布與輸出 | 修復 matching layers 並整理格式、倍率、版本與交付包 | 6h |
+| B7 | Smart Animation、Figma／PS 發布與輸出 | 確認 Smart animate 控件、完成 Figma export／Inspect；Photoshop 另待實測 | 6h |
 | B8 | 網頁入門、Git/GitHub 與雲端部署 | 以最小 HTML/CSS／JavaScript 路徑完成版本化與公開部署 | 13h |
 | **Part B 合計** |  |  | **57h** |
 
 ## 時數與版本狀態
+
+### 實測後的課程契約
+
+- `PROBE-A.md`、`PROBE-B.md`、`PROBE-C.md` 是目前的機器證據；三者皆為 `CONDITIONAL`，不等於真人放行。
+- Form 多欄位、List 多列增刪、Swap、固定元素聯合滾動、完整 Smart Animate、Photoshop 輸出與公開部署仍要補測。
+- 正式 42h／57h／99h 邊界保留；內部單元時數在真人試跑前仍可依完成物與學習負荷回算。
 
 - 詳細分鐘帳本：`courses/uiux-designer/_design/99h-time-ledger.md`
 - 42h／57h／99h 目前為設計回算，需在代表單元試跑後再鎖定。
