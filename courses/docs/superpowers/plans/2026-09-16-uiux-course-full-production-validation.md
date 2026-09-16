@@ -230,9 +230,9 @@ Expected: 所有核心欄位都有定義，未把推測寫成測試結果。
 - [x] **Step 1：Codex 只讀講義與列出的素材，模擬零基礎學員完成代表單元。**（B4 pilot）
 - [x] **Step 2：Computer Use 在 Chrome／Figma 實際跑同一路徑，記錄開始／結束、卡點、錯誤與完成品。**（Probe B + Chrome HTML）
 - [x] **Step 3：在每個失敗點先寫入 Run Log，再回修教案、素材或 HTML，最後重跑。**（文字入口被 Chrome 擋下後已回修為 HTML）
-- [ ] **Step 4：跑三個相連單元，確認前一單元產物真的被下一單元使用。**
-- [ ] **Step 5：建立跨平台矩陣：Figma Starter、Chrome 預覽、VS Code／本機檔案、Git、GitHub、選定的免費部署路徑。**
-- [ ] **Step 6：自動階段只能標記 `MACHINE_PASS` 或 `MACHINE_READY_PENDING_HUMAN`；真人 Gate 保留給第二階段。**
+- [x] **Step 4：跑三個相連單元，確認前一單元產物真的被下一單元使用。**（B4 → B6 → B7 machine artifact chain；B8 尚未跑）
+- [x] **Step 5：建立跨平台矩陣：Figma Starter、Chrome 預覽、VS Code／本機檔案、Git、GitHub、選定的免費部署路徑。**（矩陣已建立；外部 push／部署仍未執行）
+- [x] **Step 6：自動階段只能標記 `MACHINE_PASS` 或 `MACHINE_READY_PENDING_HUMAN`；真人 Gate 保留給第二階段。**（三單元均保留 pending human）
 
 ### Task 8：按 Part 批次製作並回填 Coverage Ledger Pass 2
 

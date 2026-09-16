@@ -126,6 +126,14 @@ PNG／PDF 匯出與 Dev Mode CSS Inspect 已取得實際檔案證據；Share 權
 
 冷啟動紀錄：`uiux-designer/_validation/autonomous-run/COLD-FOLLOW-ALONG-B4.md`。跨平台邊界：`uiux-designer/_validation/autonomous-run/CROSS-PLATFORM-MATRIX.md`。本單元仍不能標記 `HUMAN_PASS`；Photoshop、真人跟做、分享權限與公開部署維持未驗證。
 
+### B4 → B6 → B7 三單元產物鏈
+
+**日期**：2026-09-16
+**狀態**：`MACHINE_PASS_PENDING_HUMAN`
+**證據**：`uiux-designer/_review/ARTIFACT-CHAIN-B4-B6-B7.md`
+
+B6 已接手 B4 的 Host／Overlay 與核心 action，產出固定任務測試、問題分類、單一變因修正與回歸紀錄；B7 再接手 B6 的 `case_id` 與回歸版本，產出 PNG／PDF／Inspect 與 Handoff 清單。三頁均已在 Chrome localhost 檢查並通過 lint。B8 網站／GitHub／部署與 Photoshop 尚未執行，因此整門課仍不放行。
+
 ---
 
 ## 備忘（非 Gate 但值得留存）
