@@ -188,13 +188,13 @@ Expected: 所有核心欄位都有定義，未把推測寫成測試結果。
 - Consumes: Gate 1 核准後的 Blueprint、Operation Inventory、Coverage Ledger Pass 1、Figma 實機結果。
 - Produces: 不依賴講師補充的完整教案、起始材料、參考完成品、失敗夾具與真人試跑記錄表。
 
-- [ ] **Step 1：以零基礎入口寫情境、已有材料、目標產物、第一個動作與第一個可觀察結果。**
-- [ ] **Step 2：為核心操作提供完整 worked example：原始輸入、中間結果、判斷理由、完成品、正誤比較。**
-- [ ] **Step 3：寫 5–12 個有意義操作階段；每 3–5 步有 Checkpoint。**
-- [ ] **Step 4：每個主要階段補觀察到的錯誤、回到哪裡修、從哪裡重跑與安全停止狀態。**
-- [ ] **Step 5：提供一個只改一個主要變因的變化練習。**
-- [ ] **Step 6：在素材第一次使用前寫檔名／格式／取得方式／用途／備援。**
-- [ ] **Step 7：完成 `COVERAGE-LEDGER-PASS1` 對應的第一批 evidence，未完成的維持 `BLOCK`。**
+- [x] **Step 1：以零基礎入口寫情境、已有材料、目標產物、第一個動作與第一個可觀察結果。**（B4 pilot）
+- [x] **Step 2：為核心操作提供完整 worked example：原始輸入、中間結果、判斷理由、完成品、正誤比較。**（B4 pilot）
+- [x] **Step 3：寫 5–12 個有意義操作階段；每 3–5 步有 Checkpoint。**（B4 pilot：8 段）
+- [x] **Step 4：每個主要階段補觀察到的錯誤、回到哪裡修、從哪裡重跑與安全停止狀態。**（B4 pilot）
+- [x] **Step 5：提供一個只改一個主要變因的變化練習。**（B4 pilot）
+- [x] **Step 6：在素材第一次使用前寫檔名／格式／取得方式／用途／備援。**（B4 pilot；另補 HTML 入口避免 Chrome 擋文字檔）
+- [x] **Step 7：完成 `COVERAGE-LEDGER-PASS1` 對應的第一批 evidence，未完成的維持 `BLOCK`。**（B4 pilot；全課程仍待批次回填）
 
 ### Task 6：用講義設計器產製代表 HTML
 
@@ -207,11 +207,11 @@ Expected: 所有核心欄位都有定義，未把推測寫成測試結果。
 - Consumes: 已通過實質審查的代表教案、素材包、style guide。
 - Produces: 完整 learner-facing HTML 與頁面證據。
 
-- [ ] **Step 1：保留完整教學原子，不以標籤卡片取代解釋。**
-- [ ] **Step 2：確認講義可在 Blueprint 隱藏時獨立閱讀。**
-- [ ] **Step 3：執行頁面 lint、連結檢查、資產檢查與手機寬度檢查。**
-- [ ] **Step 4：做 Label Removal Test；移除 Demo／Together／Solo／Check 標籤後正文仍可理解。**
-- [ ] **Step 5：只在靜態內容與代表頁驗收通過後才考慮批次產製。**
+- [x] **Step 1：保留完整教學原子，不以標籤卡片取代解釋。**（B4 pilot）
+- [x] **Step 2：確認講義可在 Blueprint 隱藏時獨立閱讀。**（B4 pilot：Chrome AX／視覺檢查）
+- [x] **Step 3：執行頁面 lint、連結檢查、資產檢查與手機寬度檢查。**（B4 pilot：lint、素材 HTML 連結與 localhost；手機寬度仍待專項測試）
+- [ ] **Step 4：做 Label Removal Test；移除 Demo／Together／Solo／Check 標籤後正文仍可理解。**（B4 pilot 待補）
+- [ ] **Step 5：只在靜態內容與代表頁驗收通過後才考慮批次產製。**（尚未放行批次）
 
 ### Task 7：完成 Codex 自主冷跟做、三課微序列與跨平台測試
 
@@ -227,9 +227,9 @@ Expected: 所有核心欄位都有定義，未把推測寫成測試結果。
 - Consumes: 代表 HTML、列出的素材、Chrome 與 Figma Starter 實際帳號。
 - Produces: 使用者跟做證據、卡點分類、學員產物鏈與 Gate 3 判定。
 
-- [ ] **Step 1：Codex 只讀講義與列出的素材，模擬零基礎學員完成代表單元。**
-- [ ] **Step 2：Computer Use 在 Chrome／Figma 實際跑同一路徑，記錄開始／結束、卡點、錯誤與完成品。**
-- [ ] **Step 3：在每個失敗點先寫入 Run Log，再回修教案、素材或 HTML，最後重跑。**
+- [x] **Step 1：Codex 只讀講義與列出的素材，模擬零基礎學員完成代表單元。**（B4 pilot）
+- [x] **Step 2：Computer Use 在 Chrome／Figma 實際跑同一路徑，記錄開始／結束、卡點、錯誤與完成品。**（Probe B + Chrome HTML）
+- [x] **Step 3：在每個失敗點先寫入 Run Log，再回修教案、素材或 HTML，最後重跑。**（文字入口被 Chrome 擋下後已回修為 HTML）
 - [ ] **Step 4：跑三個相連單元，確認前一單元產物真的被下一單元使用。**
 - [ ] **Step 5：建立跨平台矩陣：Figma Starter、Chrome 預覽、VS Code／本機檔案、Git、GitHub、選定的免費部署路徑。**
 - [ ] **Step 6：自動階段只能標記 `MACHINE_PASS` 或 `MACHINE_READY_PENDING_HUMAN`；真人 Gate 保留給第二階段。**
