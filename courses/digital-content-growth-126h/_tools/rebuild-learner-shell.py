@@ -24,6 +24,11 @@ BACKUP_HTML_DIR = COURSE_DIR / "_backup" / "2026-09-16-pre-repair" / "html"
 COURSE_TITLE = "數位內容與成長行銷人才培訓"
 INSTITUTION = "弄一下工作室"
 COURSE_URL = "https://skypai0326.github.io/courses/courses/digital-content-growth-126h"
+
+
+def work_download_name(code: str) -> str:
+    """給下載檔使用不會和舊工作版撞名的學員檔名。"""
+    return f"{code}-工作版-獨立版.html"
 OG_IMAGE = "https://skypai0326.github.io/courses/素材/og-default.png"
 TODAY = date.today().isoformat()
 TEMPLATE_DIR = COURSE_DIR / "assets" / "templates"
@@ -415,7 +420,7 @@ def template_actions(code: str) -> str:
         f'<a class="asset-action" href="assets/templates/{esc(code)}.html" '
         f'target="_blank" rel="noopener">開啟閱讀版（新分頁）</a>'
         f'<a class="asset-action secondary" href="assets/templates/{esc(code)}-工作版.html" '
-        f'download="{esc(code)}-工作版.html">下載 HTML 工作版</a>'
+        f'download="{esc(work_download_name(code))}">下載 HTML 工作版</a>'
         f'</span>'
     )
 
@@ -436,8 +441,8 @@ def asset_bundle_html(code: str) -> str:
         )
     return (
         '<div class="asset-bundle">' + "".join(entries) + "</div>"
-        '<p class="asset-note">學員請使用 HTML 閱讀版或 HTML 工作版；可直接複製到 Word、記事本或其他可編輯工具另存。'
-        '製作端原始檔不列入學員操作。</p>'
+        '<p class="asset-note">學員請使用 HTML 閱讀版或 HTML 工作版；下載後請開啟檔名含「獨立版」的檔案，'
+        '可直接複製到 Word、記事本或其他可編輯工具另存。製作端原始檔不列入學員操作。</p>'
     )
 
 
@@ -467,7 +472,7 @@ def enhance_asset_links(main: BeautifulSoup, document: BeautifulSoup) -> None:
             download = document.new_tag(
                 "a",
                 href=f"assets/templates/{code}-工作版.html",
-                download=f"{code}-工作版.html",
+                download=work_download_name(code),
                 attrs={"class": "asset-action secondary"},
             )
             download.append("下載 HTML 工作版")
@@ -679,7 +684,8 @@ def standalone_work_html(html: str) -> str:
     html = html.replace("模板閱讀版", "HTML 工作版")
     html = html.replace(
         "這是本單元的可讀模板。你可以先在本頁查看欄位，再下載 HTML 工作版自行編輯；原始講義仍保留在上一頁。",
-        "這是可攜式 HTML 工作版，樣式已內嵌；下載後可直接在 Windows 瀏覽器離線開啟，必要時再複製到 Word、記事本或其他可編輯工具。",
+        "這是可攜式 HTML 工作版，樣式已內嵌；下載後請開啟檔名含「獨立版」的檔案，"
+        "即可在 Windows 瀏覽器離線開啟，必要時再複製到 Word、記事本或其他可編輯工具。",
     )
     return html
 
@@ -734,7 +740,7 @@ def build_asset_pages(selected: set[str] | None = None) -> None:
   <p class="asset-lead">這是本單元的可讀模板。你可以先在本頁查看欄位，再下載 HTML 工作版自行編輯；原始講義仍保留在上一頁。</p>
   <div class="asset-toolbar">
     <a class="asset-action" href="../../{parent_code}.html">返回 {parent_code} 講義</a>
-    <a class="asset-action secondary" href="{code}-工作版.html" download="{esc(code)}-工作版.html">下載 HTML 工作版</a>
+    <a class="asset-action secondary" href="{code}-工作版.html" download="{esc(work_download_name(code))}">下載 HTML 工作版</a>
   </div>
 </header>
 <main class="asset-main" id="main">

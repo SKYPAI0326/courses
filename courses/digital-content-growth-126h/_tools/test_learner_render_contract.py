@@ -71,7 +71,7 @@ class LearnerRenderContractTests(unittest.TestCase):
                     self.assertNotIn('href="../course-shell.css"', page)
                     continue
                 if "下載 HTML 工作版" in page:
-                    self.assertRegex(page, r'download="[^"]+工作版\.html"')
+                    self.assertRegex(page, r'download="[^"]+工作版-獨立版\.html"')
                 else:
                     self.assertRegex(page, r'下載 HTML (?:參考包|工作版)')
                 self.assertNotIn("UTF-8 原始模板", page)
@@ -418,7 +418,7 @@ class LearnerRenderContractTests(unittest.TestCase):
             soup = BeautifulSoup(page_path.read_text(encoding="utf-8"), "html.parser")
             for link in soup.find_all("a", download=True):
                 filename = link.get("download", "")
-                if not filename.endswith("工作版.html"):
+                if not filename.endswith("工作版-獨立版.html"):
                     continue
                 href = link.get("href", "")
                 work_path = (page_path.parent / href).resolve()
@@ -434,7 +434,7 @@ class LearnerRenderContractTests(unittest.TestCase):
             soup = BeautifulSoup(page_path.read_text(encoding="utf-8"), "html.parser")
             for link in soup.find_all("a", download=True):
                 filename = link.get("download", "")
-                if not filename.endswith("工作版.html"):
+                if not filename.endswith("工作版-獨立版.html"):
                     continue
                 href = link.get("href", "")
                 work_path = (page_path.parent / href).resolve()
