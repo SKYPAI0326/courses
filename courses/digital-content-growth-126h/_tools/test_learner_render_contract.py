@@ -7,12 +7,26 @@ make the learner page complete.
 """
 
 from pathlib import Path
+import json
 import unittest
+from urllib.parse import urlsplit
 
 from bs4 import BeautifulSoup
 
 
 COURSE_DIR = Path(__file__).resolve().parents[1]
+ASSET_CONTRACTS = json.loads(
+    (COURSE_DIR / "_tools" / "asset-contracts.json").read_text(encoding="utf-8")
+)
+
+
+def expected_asset_kind(code: str) -> str:
+    override = ASSET_CONTRACTS.get("kind_overrides", {}).get(code)
+    if override:
+        return override
+    if any(marker in code for marker in ASSET_CONTRACTS.get("reference_name_markers", [])):
+        return "reference"
+    return ASSET_CONTRACTS.get("default_kind", "worksheet")
 
 
 class LearnerRenderContractTests(unittest.TestCase):
@@ -56,6 +70,50 @@ class LearnerRenderContractTests(unittest.TestCase):
             with self.subTest(asset=asset.name):
                 self.assertTrue(asset.with_suffix(".html").exists())
 
+    def test_asset_contract_manifest_classifies_every_source_once(self) -> None:
+        asset_dir = COURSE_DIR / "assets" / "templates"
+        source_codes = {asset.stem for asset in asset_dir.glob("*.md")}
+        self.assertEqual(len(source_codes), 126)
+        for code in sorted(source_codes):
+            kind = expected_asset_kind(code)
+            with self.subTest(asset=code):
+                self.assertIn(kind, {"worksheet", "reference"})
+                page_name = f"{code}-工作版.html" if kind == "worksheet" else f"{code}-參考版.html"
+                self.assertTrue((asset_dir / page_name).exists())
+                if kind == "reference":
+                    self.assertFalse((asset_dir / f"{code}-工作版.html").exists())
+
+    def test_every_generated_asset_reading_page_has_contract_counterpart(self) -> None:
+        asset_dir = COURSE_DIR / "assets" / "templates"
+        static_reference_pages = set(ASSET_CONTRACTS.get("static_reference_pages", []))
+        reading_pages = [
+            page for page in asset_dir.glob("*.html")
+            if not page.name.endswith(("-工作版.html", "-參考版.html"))
+        ]
+        for page_path in reading_pages:
+            with self.subTest(asset=page_path.name):
+                if page_path.name in static_reference_pages:
+                    soup = BeautifulSoup(page_path.read_text(encoding="utf-8"), "html.parser")
+                    self.assertFalse(soup.select("[data-workbook-field]"))
+                    continue
+                kind = expected_asset_kind(page_path.stem)
+                counterpart = (
+                    asset_dir / f"{page_path.stem}-工作版.html"
+                    if kind == "worksheet"
+                    else asset_dir / f"{page_path.stem}-參考版.html"
+                )
+                self.assertTrue(counterpart.exists())
+
+    def test_static_reference_pages_are_explicitly_read_only(self) -> None:
+        asset_dir = COURSE_DIR / "assets" / "templates"
+        for filename in ASSET_CONTRACTS.get("static_reference_pages", []):
+            page_path = asset_dir / filename
+            with self.subTest(asset=filename):
+                self.assertTrue(page_path.exists())
+                soup = BeautifulSoup(page_path.read_text(encoding="utf-8"), "html.parser")
+                self.assertFalse(soup.select("textarea, [contenteditable='true'], [data-workbook-field]"))
+                self.assertNotIn("原始模板", soup.get_text(" ", strip=True))
+
     def test_asset_pages_offer_html_work_downloads_and_favicon(self) -> None:
         self.assertTrue((COURSE_DIR / "assets" / "favicon.svg").exists())
         for page_path in sorted(COURSE_DIR.glob("*.html")):
@@ -66,15 +124,65 @@ class LearnerRenderContractTests(unittest.TestCase):
             page = page_path.read_text(encoding="utf-8")
             with self.subTest(asset=page_path.name):
                 self.assertIn('rel="icon"', page)
-                if page_path.stem.endswith("-工作版"):
+                if page_path.stem.endswith(("-工作版", "-參考版")):
                     self.assertIn('data-course-shell="inline"', page)
                     self.assertNotIn('href="../course-shell.css"', page)
+                    self.assertFalse(BeautifulSoup(page, "html.parser").select("a[download]"))
                     continue
-                if "下載 HTML 工作版" in page:
-                    self.assertRegex(page, r'download="[^"]+工作版-獨立版\.html"')
+                soup = BeautifulSoup(page, "html.parser")
+                kind = soup.body.get("data-asset-kind") if soup.body else None
+                if kind == "worksheet":
+                    self.assertRegex(page, r'download="[^"]+可填寫工作版-獨立版\.html"')
+                elif kind == "reference":
+                    self.assertRegex(page, r'download="[^"]+參考版-獨立版\.html"')
                 else:
                     self.assertRegex(page, r'下載 HTML (?:參考包|工作版)')
                 self.assertNotIn("UTF-8 原始模板", page)
+
+    def test_workbook_assets_declare_an_editable_or_reference_contract(self) -> None:
+        asset_dir = COURSE_DIR / "assets" / "templates"
+        workbooks = sorted(asset_dir.glob("*-工作版.html")) + sorted(asset_dir.glob("*-參考版.html"))
+        self.assertEqual(len(workbooks), 126)
+        worksheet_count = 0
+        reference_count = 0
+        for page_path in workbooks:
+            soup = BeautifulSoup(page_path.read_text(encoding="utf-8"), "html.parser")
+            body = soup.body
+            kind = body.get("data-workbook-kind") if body else None
+            with self.subTest(asset=page_path.name):
+                self.assertIn(kind, {"worksheet", "reference"})
+                self.assertIsNotNone(body.get("data-workbook-id") if body else None)
+                if kind == "worksheet":
+                    worksheet_count += 1
+                    fields = soup.select('[data-workbook-field]')
+                    self.assertTrue(fields)
+                    field_ids = [field.get("data-field-id") for field in fields]
+                    self.assertEqual(len(field_ids), len(set(field_ids)))
+                    self.assertTrue(soup.select_one('[data-workbook-save]'))
+                    self.assertTrue(soup.select_one('[data-workbook-export]'))
+                    self.assertTrue(soup.select_one('[data-workbook-runtime]'))
+                    self.assertIn("localStorage", page_path.read_text(encoding="utf-8"))
+                    self.assertIn("Blob", page_path.read_text(encoding="utf-8"))
+                else:
+                    reference_count += 1
+                    self.assertFalse(soup.select('[data-workbook-field]'))
+                    self.assertIsNone(soup.select_one('[data-workbook-save]'))
+                    self.assertIsNone(soup.select_one('[data-workbook-export]'))
+        self.assertGreaterEqual(worksheet_count, 1)
+        self.assertGreaterEqual(reference_count, 1)
+
+    def test_local_learner_links_resolve(self) -> None:
+        pages = sorted(COURSE_DIR.glob("*.html")) + sorted((COURSE_DIR / "assets" / "templates").glob("*.html"))
+        for page_path in pages:
+            soup = BeautifulSoup(page_path.read_text(encoding="utf-8"), "html.parser")
+            for link in soup.find_all("a", href=True):
+                href = link["href"]
+                parsed = urlsplit(href)
+                if parsed.scheme or href.startswith("#"):
+                    continue
+                target = (page_path.parent / parsed.path).resolve()
+                with self.subTest(page=page_path.name, href=href):
+                    self.assertTrue(target.exists())
 
     def test_learner_visible_text_does_not_require_markdown(self) -> None:
         pages = sorted(COURSE_DIR.glob("CH*.html")) + sorted(COURSE_DIR.glob("PRAC*.html"))
@@ -413,12 +521,12 @@ class LearnerRenderContractTests(unittest.TestCase):
         """下載到 Downloads 後，工作版仍應保留樣式且不依賴相對 CSS。"""
         asset_dir = COURSE_DIR / "assets" / "templates"
         for page_path in sorted(asset_dir.glob("*.html")):
-            if page_path.stem.endswith("-工作版"):
+            if page_path.stem.endswith(("-工作版", "-參考版")):
                 continue
             soup = BeautifulSoup(page_path.read_text(encoding="utf-8"), "html.parser")
             for link in soup.find_all("a", download=True):
                 filename = link.get("download", "")
-                if not filename.endswith("工作版-獨立版.html"):
+                if not filename.endswith(("可填寫工作版-獨立版.html", "參考版-獨立版.html")):
                     continue
                 href = link.get("href", "")
                 work_path = (page_path.parent / href).resolve()
@@ -434,7 +542,7 @@ class LearnerRenderContractTests(unittest.TestCase):
             soup = BeautifulSoup(page_path.read_text(encoding="utf-8"), "html.parser")
             for link in soup.find_all("a", download=True):
                 filename = link.get("download", "")
-                if not filename.endswith("工作版-獨立版.html"):
+                if not filename.endswith(("可填寫工作版-獨立版.html", "參考版-獨立版.html")):
                     continue
                 href = link.get("href", "")
                 work_path = (page_path.parent / href).resolve()

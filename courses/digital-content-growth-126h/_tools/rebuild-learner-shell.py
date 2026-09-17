@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import re
 import subprocess
+import json
 from datetime import date
 from html import escape
 from pathlib import Path
@@ -19,16 +20,134 @@ from bs4 import BeautifulSoup, Comment
 
 
 COURSE_DIR = Path(__file__).resolve().parents[1]
-REPAIR_DIR = COURSE_DIR / "_repair" / "2026-09-16"
-BACKUP_HTML_DIR = COURSE_DIR / "_backup" / "2026-09-16-pre-repair" / "html"
+REPAIR_DIR = COURSE_DIR / "_repair" / "2026-09-17"
+BACKUP_HTML_DIR = COURSE_DIR / "_backup" / "2026-09-17-pre-fillable-workbook-repair" / "html"
 COURSE_TITLE = "數位內容與成長行銷人才培訓"
 INSTITUTION = "弄一下工作室"
 COURSE_URL = "https://skypai0326.github.io/courses/courses/digital-content-growth-126h"
+ASSET_CONTRACTS_PATH = COURSE_DIR / "_tools" / "asset-contracts.json"
 
 
-def work_download_name(code: str) -> str:
-    """給下載檔使用不會和舊工作版撞名的學員檔名。"""
-    return f"{code}-工作版-獨立版.html"
+def load_asset_contracts() -> dict:
+    return json.loads(ASSET_CONTRACTS_PATH.read_text(encoding="utf-8"))
+
+
+ASSET_CONTRACTS = load_asset_contracts()
+
+
+WORKBOOK_CSS = """
+.workbook-panel {
+  margin: 1.25rem 0 2rem;
+  padding: 1.25rem;
+  border: 1px solid #c8d4c9;
+  border-radius: 0.75rem;
+  background: #f3f7f2;
+}
+.workbook-panel h2 { margin: 0 0 0.5rem; font-size: 1.15rem; }
+.workbook-panel p { margin: 0.35rem 0; }
+.workbook-panel ol { margin: 0.75rem 0 0.9rem 1.25rem; padding: 0; }
+.workbook-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+.workbook-actions button { cursor: pointer; font: inherit; }
+.workbook-status { color: #526256; font-size: 0.92rem; }
+.workbook-field-cell { min-width: 16rem; vertical-align: top; }
+.workbook-field-guide { margin-bottom: 0.45rem; color: #5d665e; font-size: 0.92rem; }
+.workbook-field {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 4.5rem;
+  padding: 0.65rem;
+  border: 1px solid #8fa391;
+  border-radius: 0.35rem;
+  background: #fff;
+  color: #222;
+  font: inherit;
+  line-height: 1.55;
+  resize: vertical;
+}
+.workbook-field:focus { outline: 2px solid #526b57; outline-offset: 2px; }
+.workbook-inline-field { min-height: 2.75rem; }
+.workbook-filled-value {
+  min-height: 2.5rem;
+  padding: 0.55rem;
+  border: 1px solid #d0d8d0;
+  background: #fff;
+  white-space: pre-wrap;
+}
+.workbook-fallback { margin-top: 1.5rem; }
+"""
+
+EDITABLE_HEADER_MARKERS = (
+    "填寫",
+    "我的",
+    "回答",
+    "內容",
+    "實際",
+    "結果",
+    "錯誤",
+    "來源",
+    "證據",
+    "狀態",
+    "修正",
+    "判斷",
+    "任務",
+    "版本",
+    "日期",
+    "理由",
+    "主張",
+    "成果",
+    "限制",
+    "觀察",
+    "數值",
+    "預算",
+    "成本",
+    "CTA",
+    "平台",
+    "受眾",
+    "用途",
+    "輸入",
+    "計算",
+    "交付",
+    "下一步",
+    "新增",
+    "取用",
+)
+
+PROTECTED_HEADER_MARKERS = (
+    "操作",
+    "預期",
+    "通過證據",
+    "示範",
+    "參考",
+    "不等於",
+)
+
+
+def asset_kind_for_code(code: str) -> str:
+    """依集中式資產契約分成可填寫工作表與只讀參考資產。"""
+    override = ASSET_CONTRACTS.get("kind_overrides", {}).get(code)
+    if override:
+        return override
+    markers = ASSET_CONTRACTS.get("reference_name_markers", [])
+    if any(marker in code for marker in markers):
+        return "reference"
+    return ASSET_CONTRACTS.get("default_kind", "worksheet")
+
+
+def asset_kind_label(kind: str) -> str:
+    return "可填寫工作版" if kind == "worksheet" else "HTML 參考版"
+
+
+def work_download_name(code: str, kind: str) -> str:
+    """給下載檔使用不會和舊檔撞名且能表達資產用途的檔名。"""
+    suffix = "可填寫工作版" if kind == "worksheet" else "參考版"
+    return f"{code}-{suffix}-獨立版.html"
+
+
+def work_page_name(code: str, kind: str) -> str:
+    """站內檔名也反映用途，避免參考頁偽裝成工作版。"""
+    suffix = "工作版" if kind == "worksheet" else "參考版"
+    return f"{code}-{suffix}.html"
 OG_IMAGE = "https://skypai0326.github.io/courses/素材/og-default.png"
 TODAY = date.today().isoformat()
 TEMPLATE_DIR = COURSE_DIR / "assets" / "templates"
@@ -415,12 +534,14 @@ def template_code_from_href(href: str) -> str | None:
 
 
 def template_actions(code: str) -> str:
+    kind = asset_kind_for_code(code)
+    label = "下載可填寫工作版" if kind == "worksheet" else "下載 HTML 參考版"
     return (
         f'<span class="asset-actions">'
         f'<a class="asset-action" href="assets/templates/{esc(code)}.html" '
         f'target="_blank" rel="noopener">開啟閱讀版（新分頁）</a>'
-        f'<a class="asset-action secondary" href="assets/templates/{esc(code)}-工作版.html" '
-        f'download="{esc(work_download_name(code))}">下載 HTML 工作版</a>'
+        f'<a class="asset-action secondary" href="assets/templates/{esc(work_page_name(code, kind))}" '
+        f'download="{esc(work_download_name(code, kind))}">{label}</a>'
         f'</span>'
     )
 
@@ -441,8 +562,8 @@ def asset_bundle_html(code: str) -> str:
         )
     return (
         '<div class="asset-bundle">' + "".join(entries) + "</div>"
-        '<p class="asset-note">學員請使用 HTML 閱讀版或 HTML 工作版；下載後請開啟檔名含「獨立版」的檔案，'
-        '可直接複製到 Word、記事本或其他可編輯工具另存。製作端原始檔不列入學員操作。</p>'
+        '<p class="asset-note">先開啟閱讀版理解欄位；需要作答時下載「可填寫工作版」，'
+        '只需閱讀的案例與參考資料請使用「HTML 參考版」。工作版可在頁面內填寫、保存草稿並下載完成版。</p>'
     )
 
 
@@ -455,13 +576,15 @@ def parent_lesson_for_asset(asset_code: str) -> str:
 
 
 def enhance_asset_links(main: BeautifulSoup, document: BeautifulSoup) -> None:
-    """讓學員先進入閱讀版，並保留同一份原始檔的單檔下載。"""
+    """讓學員先進入閱讀版，並依資產類型提供工作版或參考版。"""
     for link in list(main.find_all("a", href=True)):
         href = link.get("href", "")
         code = template_code_from_href(href)
         if code:
             if link.find_parent(class_="asset-actions"):
                 continue
+            kind = asset_kind_for_code(code)
+            label = "下載可填寫工作版" if kind == "worksheet" else "下載 HTML 參考版"
             wrapper = document.new_tag("span", attrs={"class": "asset-actions"})
             link["href"] = f"assets/templates/{code}.html"
             link["target"] = "_blank"
@@ -471,11 +594,11 @@ def enhance_asset_links(main: BeautifulSoup, document: BeautifulSoup) -> None:
             link.append("開啟閱讀版（新分頁）")
             download = document.new_tag(
                 "a",
-                href=f"assets/templates/{code}-工作版.html",
-                download=work_download_name(code),
+                href=f"assets/templates/{work_page_name(code, kind)}",
+                download=work_download_name(code, kind),
                 attrs={"class": "asset-action secondary"},
             )
-            download.append("下載 HTML 工作版")
+            download.append(label)
             link.replace_with(wrapper)
             wrapper.append(link)
             wrapper.append(download)
@@ -661,12 +784,207 @@ def ensure_utf8_bom(path: Path) -> None:
         path.write_bytes(b"\xef\xbb\xbf" + raw)
 
 
-def standalone_work_html(html: str) -> str:
-    """建立可從 Downloads 直接開啟的單檔工作版。"""
+def build_fillable_asset_fragment(html: str, code: str) -> tuple[str, int]:
+    """將 worksheet 的回答欄轉成可填寫欄位，保留原提示作為欄位說明。"""
+    marker = '<article class="asset-document">'
+    start = html.find(marker)
+    end = html.find("</article>", start)
+    if start < 0 or end < 0:
+        return html, 0
+
+    fragment = BeautifulSoup(html[start + len(marker) : end], "html.parser")
+    field_count = 0
+    safe_code = re.sub(r"[^A-Za-z0-9_-]+", "-", code)
+
+    def add_textarea(cell: BeautifulSoup, field_id: str, guide: str, inline: bool = False) -> None:
+        nonlocal field_count
+        cell.clear()
+        if guide:
+            hint = fragment.new_tag("div", attrs={"class": "workbook-field-guide"})
+            hint.string = guide
+            cell.append(hint)
+        textarea = fragment.new_tag(
+            "textarea",
+            attrs={
+                "class": "workbook-field workbook-inline-field" if inline else "workbook-field",
+                "data-workbook-field": "text",
+                "data-field-id": field_id,
+                "rows": "2" if inline else "4",
+                "placeholder": "在此填寫你的回答",
+            },
+        )
+        cell.append(textarea)
+        field_count += 1
+
+    for table_index, table in enumerate(fragment.find_all("table"), start=1):
+        rows = table.find_all("tr")
+        header_cells = rows[0].find_all(["td", "th"], recursive=False) if rows else []
+        headers = [cell.get_text(" ", strip=True) for cell in header_cells]
+        for row_index, row in enumerate(rows[1:], start=1):
+            cells = row.find_all(["td", "th"], recursive=False)
+            if len(cells) < 2:
+                continue
+            for column_index, cell in enumerate(cells[1:], start=2):
+                if cell.find("input"):
+                    continue
+                header = headers[column_index - 1] if column_index - 1 < len(headers) else ""
+                cell_text = cell.get_text(" ", strip=True)
+                is_blank = not cell_text or "＿＿" in cell_text
+                is_explicit_entry = (
+                    any(marker in header for marker in EDITABLE_HEADER_MARKERS)
+                    and not any(marker in header for marker in PROTECTED_HEADER_MARKERS)
+                )
+                if not is_blank and not is_explicit_entry:
+                    continue
+                guide = cell.get_text(" ", strip=True)
+                cell["class"] = [*cell.get("class", []), "workbook-field-cell"]
+                add_textarea(
+                    cell,
+                    f"{safe_code}-table-{table_index}-{row_index}-{column_index}",
+                    guide,
+                )
+
+    for checkbox_index, checkbox in enumerate(fragment.find_all("input", attrs={"type": "checkbox"}), start=1):
+        checkbox["data-workbook-field"] = "checkbox"
+        checkbox["data-field-id"] = f"{safe_code}-checkbox-{checkbox_index}"
+        field_count += 1
+
+    for item_index, item in enumerate(fragment.find_all("li"), start=1):
+        if item.find("input"):
+            continue
+        text = item.get_text(" ", strip=True)
+        if not text.endswith(("：", ":")) and "＿＿" not in text:
+            continue
+        label = re.sub(r"[：:]\s*$", "", text).replace("＿＿", "")
+        add_textarea(item, f"{safe_code}-list-{item_index}", label, inline=True)
+
+    if field_count == 0:
+        fallback = fragment.new_tag("section", attrs={"class": "workbook-fallback"})
+        heading = fragment.new_tag("h2")
+        heading.string = "我的補充與待驗證事項"
+        fallback.append(heading)
+        paragraph = fragment.new_tag("p")
+        paragraph.string = "這份工作表沒有可由格式自動判定的欄位；請把閱讀後的判斷、限制與下一步寫在這裡。"
+        fallback.append(paragraph)
+        add_textarea(fallback, f"{safe_code}-fallback", "", inline=False)
+        fragment.append(fallback)
+
+    transformed = html[: start + len(marker)] + str(fragment) + html[end:]
+    return transformed, field_count
+
+
+def workbook_controls_html(code: str, kind: str) -> str:
+    if kind == "reference":
+        return (
+            '<section class="workbook-panel" data-workbook-controls="reference">'
+            '<h2>資產用途：HTML 參考版</h2>'
+            '<p>這份資產用來閱讀案例、示例或規則。請回到單元講義，依學員工作版完成自己的產物。</p>'
+            '</section>'
+        )
+    return (
+        '<section class="workbook-panel" data-workbook-controls="worksheet">'
+        '<h2>這份工作版要完成什麼</h2>'
+        '<p>把答案填入有邊框的欄位；完成後先儲存草稿，再下載完成版 HTML，作為本單元的交付物。</p>'
+        '<ol><li>閱讀欄位上方的提示，填入你的判斷或證據。</li>'
+        '<li>勾選完成檢查，確認產物符合本單元要求。</li>'
+        '<li>按「下載完成版 HTML」，再把完成版帶到講義指定的下一個使用位置。</li></ol>'
+        '<div class="workbook-actions">'
+        '<button class="asset-action" type="button" data-workbook-save>儲存草稿</button>'
+        '<button class="asset-action secondary" type="button" data-workbook-export>下載完成版 HTML</button>'
+        '<button class="asset-action secondary" type="button" data-workbook-clear>清除本機草稿</button>'
+        '<span class="workbook-status" data-workbook-status>尚未載入草稿</span>'
+        '</div></section>'
+    )
+
+
+def workbook_runtime() -> str:
+    return r'''<script data-workbook-runtime>
+(() => {
+  const root = document.body;
+  const fields = [...document.querySelectorAll('[data-workbook-field]')];
+  const saveButton = document.querySelector('[data-workbook-save]');
+  const exportButton = document.querySelector('[data-workbook-export]');
+  const clearButton = document.querySelector('[data-workbook-clear]');
+  const status = document.querySelector('[data-workbook-status]');
+  if (!fields.length || !saveButton || !exportButton) return;
+
+  const workbookId = root.dataset.workbookId;
+  const storageKey = `course-workbook:${workbookId}`;
+  const setStatus = (message) => { if (status) status.textContent = message; };
+  const collect = () => Object.fromEntries(fields.map((field) => [
+    field.dataset.fieldId,
+    field.type === 'checkbox' ? field.checked : field.value,
+  ]));
+
+  const restore = () => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+      fields.forEach((field) => {
+        const value = saved[field.dataset.fieldId];
+        if (value === undefined) return;
+        if (field.type === 'checkbox') field.checked = Boolean(value);
+        else field.value = value;
+      });
+      setStatus(Object.keys(saved).length ? '已載入本機草稿' : '尚未載入草稿');
+    } catch (error) {
+      setStatus('本機儲存不可用；仍可直接下載完成版 HTML');
+    }
+  };
+
+  saveButton.addEventListener('click', () => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(collect()));
+      setStatus('草稿已儲存到這台電腦');
+    } catch (error) {
+      setStatus('本機儲存不可用；請直接下載完成版 HTML');
+    }
+  });
+
+  clearButton?.addEventListener('click', () => {
+    if (!window.confirm('確定清除這份工作版在本機保存的內容嗎？')) return;
+    try { localStorage.removeItem(storageKey); } catch (error) { /* continue */ }
+    fields.forEach((field) => {
+      if (field.type === 'checkbox') field.checked = false;
+      else field.value = '';
+    });
+    setStatus('本機草稿已清除');
+  });
+
+  exportButton.addEventListener('click', () => {
+    const clone = document.documentElement.cloneNode(true);
+    clone.querySelectorAll('[data-workbook-controls], [data-workbook-runtime]').forEach((node) => node.remove());
+    clone.querySelectorAll('[data-workbook-field]').forEach((field) => {
+      if (field.type === 'checkbox') {
+        if (field.checked) field.setAttribute('checked', 'checked');
+        else field.removeAttribute('checked');
+        return;
+      }
+      const output = document.createElement('div');
+      output.className = 'workbook-filled-value';
+      output.textContent = field.value.trim() || '（未填寫）';
+      field.replaceWith(output);
+    });
+    const html = '<!doctype html>\n' + clone.outerHTML;
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${workbookId}-完成版.html`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    setStatus('完成版已下載');
+  });
+
+  restore();
+})();
+</script>'''
+
+
+def standalone_work_html(html: str, code: str, kind: str) -> str:
+    """建立可從 Downloads 直接開啟的參考版或可填寫工作版。"""
     inline_css = COURSE_SHELL_CSS.read_text(encoding="utf-8")
     html = html.replace(
         '<link rel="stylesheet" href="../course-shell.css">',
-        f'<style data-course-shell="inline">{inline_css}</style>',
+        f'<style data-course-shell="inline">{inline_css}{WORKBOOK_CSS if kind == "worksheet" else ""}</style>',
     )
     if COURSE_FAVICON.exists():
         svg = COURSE_FAVICON.read_text(encoding="utf-8")
@@ -681,12 +999,38 @@ def standalone_work_html(html: str) -> str:
         return f'href="{href}"'
 
     html = re.sub(r'href="([^"]+)"', absolute_href, html)
-    html = html.replace("模板閱讀版", "HTML 工作版")
+    html = html.replace("模板閱讀版", asset_kind_label(kind))
+    html = re.sub(
+        r'<a class="asset-action secondary" href="[^"]+" download="[^"]+">'
+        r'(?:下載可填寫工作版|下載 HTML 參考版)</a>',
+        f'<span class="asset-action secondary" aria-current="page">目前為{asset_kind_label(kind)}</span>',
+        html,
+    )
     html = html.replace(
         "這是本單元的可讀模板。你可以先在本頁查看欄位，再下載 HTML 工作版自行編輯；原始講義仍保留在上一頁。",
-        "這是可攜式 HTML 工作版，樣式已內嵌；下載後請開啟檔名含「獨立版」的檔案，"
-        "即可在 Windows 瀏覽器離線開啟，必要時再複製到 Word、記事本或其他可編輯工具。",
+        "這是可攜式 HTML 參考版，樣式已內嵌；可直接在 Windows 瀏覽器離線開啟，"
+        "回到單元講義取得學員工作版。"
+        if kind == "reference"
+        else "這是可攜式可填寫工作版，樣式與操作工具已內嵌；可在 Windows 瀏覽器離線填寫、保存草稿並下載完成版。",
     )
+    html = re.sub(
+        r'<body class="asset-page"[^>]*>',
+        f'<body class="asset-page workbook-page" data-workbook-kind="{kind}" data-workbook-id="{esc(code)}">',
+        html,
+        count=1,
+    )
+    if kind == "worksheet":
+        html, _ = build_fillable_asset_fragment(html, code)
+        html = html.replace(
+            '</header>\n<main class="asset-main"',
+            f'</header>\n{workbook_controls_html(code, kind)}\n<main class="asset-main"',
+        )
+        html = html.replace("</body>", f"{workbook_runtime()}\n</body>")
+    else:
+        html = html.replace(
+            '</header>\n<main class="asset-main"',
+            f'</header>\n{workbook_controls_html(code, kind)}\n<main class="asset-main"',
+        )
     return html
 
 
@@ -697,6 +1041,12 @@ def build_asset_pages(selected: set[str] | None = None) -> None:
             continue
         ensure_utf8_bom(source)
         code = source.stem
+        kind = asset_kind_for_code(code)
+        expected_work_page = work_page_name(code, kind)
+        for legacy_name in (f"{code}-工作版.html", f"{code}-參考版.html"):
+            legacy_path = TEMPLATE_DIR / legacy_name
+            if legacy_name != expected_work_page and legacy_path.exists():
+                legacy_path.unlink()
         title_line = next(
             (line[2:].strip() for line in source.read_text(encoding="utf-8-sig").splitlines() if line.startswith("# ")),
             f"{code} 模板",
@@ -709,38 +1059,45 @@ def build_asset_pages(selected: set[str] | None = None) -> None:
         body = learnerize_asset_language(str(body_soup).strip())
         canonical = f"{COURSE_URL}/assets/templates/{code}.html"
         parent_code = parent_lesson_for_asset(code)
+        download_label = "下載可填寫工作版" if kind == "worksheet" else "下載 HTML 參考版"
+        asset_description = "可直接閱讀或下載可填寫工作版" if kind == "worksheet" else "可直接閱讀或下載 HTML 參考版"
+        asset_lead = (
+            "先閱讀欄位與提示，再下載可填寫工作版完成自己的產物。"
+            if kind == "worksheet"
+            else "這份資產用來閱讀案例、示例或規則；需要作答時請回到單元下載可填寫工作版。"
+        )
         html = f'''<!doctype html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{esc(title_line)}｜模板閱讀版｜{COURSE_TITLE}</title>
-<meta name="description" content="{esc(title_line)}的學員模板閱讀版，可直接閱讀或下載 HTML 工作版。">
+<meta name="description" content="{esc(title_line)}的學員模板閱讀版，{asset_description}。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="{INSTITUTION}">
 <meta property="og:title" content="{esc(title_line)}｜模板閱讀版">
-<meta property="og:description" content="{esc(title_line)}的學員模板閱讀版，可直接閱讀或下載 HTML 工作版。">
+<meta property="og:description" content="{esc(title_line)}的學員模板閱讀版，{asset_description}。">
 <meta property="og:url" content="{esc(canonical)}">
 <meta property="og:image" content="{OG_IMAGE}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{esc(title_line)}｜模板閱讀版">
-<meta name="twitter:description" content="{esc(title_line)}的學員模板閱讀版，可直接閱讀或下載 HTML 工作版。">
+<meta name="twitter:description" content="{esc(title_line)}的學員模板閱讀版，{asset_description}。">
 <meta name="twitter:image" content="{OG_IMAGE}">
 <link rel="canonical" href="{esc(canonical)}">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <style>:focus-visible {{ outline: 2px solid #2f3b32; outline-offset: 3px; }}</style>
 <link rel="stylesheet" href="../course-shell.css">
 </head>
-<body class="asset-page">
+<body class="asset-page" data-asset-kind="{kind}" data-asset-id="{esc(code)}">
 {topbar(f"{code} · 模板閱讀版", "../../index.html")}
 <header class="asset-hero">
   <a class="breadcrumb" href="../../{parent_code}.html"><span aria-hidden="true">←</span> 返回 {parent_code} 講義</a>
   <div class="hero-eyebrow">學員資產 · LEARNER ASSET</div>
   <h1 class="asset-title">{esc(title_line)}</h1>
-  <p class="asset-lead">這是本單元的可讀模板。你可以先在本頁查看欄位，再下載 HTML 工作版自行編輯；原始講義仍保留在上一頁。</p>
+  <p class="asset-lead">{asset_lead}</p>
   <div class="asset-toolbar">
     <a class="asset-action" href="../../{parent_code}.html">返回 {parent_code} 講義</a>
-    <a class="asset-action secondary" href="{code}-工作版.html" download="{esc(work_download_name(code))}">下載 HTML 工作版</a>
+    <a class="asset-action secondary" href="{work_page_name(code, kind)}" download="{esc(work_download_name(code, kind))}">{download_label}</a>
   </div>
 </header>
 <main class="asset-main" id="main">
@@ -753,8 +1110,8 @@ def build_asset_pages(selected: set[str] | None = None) -> None:
         </html>
 '''
         source.with_suffix(".html").write_text(html, encoding="utf-8")
-        work_path = TEMPLATE_DIR / f"{code}-工作版.html"
-        work_path.write_text(standalone_work_html(html), encoding="utf-8")
+        work_path = TEMPLATE_DIR / work_page_name(code, kind)
+        work_path.write_text(standalone_work_html(html, code, kind), encoding="utf-8")
 
     for dataset in sorted(DATASET_DIR.glob("*.csv")):
         ensure_utf8_bom(dataset)

@@ -1,87 +1,81 @@
-# Repair Plan: digital-content-growth-126h
+# 數位內容與成長行銷人才培訓：學員資產可用性修復計畫
 
 ## Scope
 
-- 內容修整批次：Part 6、Part 1
-- 學員頁面：`CH6-1.html`、`CH6-2.html`、`CH6-3.html`、`PRAC6.html`、`CH1-1.html`、`CH1-2.html`、`CH1-3.html`
-- 來源教案：上述 7 個 `_lessons` Markdown
-- 不納入本批：LocalWP／GTM 課前環境供應；兩者已有原始教學，本批只檢查頁面內容忠實度
+- slug: `digital-content-growth-126h`
+- target: 47 個主課程 HTML、126 份 Markdown 資產及其 252 份 HTML 閱讀／工作頁
+- focus: 學員資產分類、可填寫欄位、草稿保存、完成版匯出、下一單元交接
 
-## 判定修正
+## Confirmed problem
 
-- B-01 從「教材內容 BLOCK」移至「課前環境與運維檢查」。
-- Part 4 不新增 LocalWP／GTM 理論；保留既有實機教學與正式班環境確認。
-- 全課教材仍暫不放行，直到 Part 6 完整成果包可由學員依頁面重做。
+目前 126 份 `*-工作版.html` 的學習正文與閱讀版完全相同。0 份具備文字輸入欄位、表單或 `contenteditable`；48 份只有 checkbox，78 份沒有任何控制項。40 個主課頁把學員送到 Word／記事本等外部工具。這使「HTML 工作版」只有外觀與下載功能，沒有完成學習產物的能力。
+
+## Principle-level repair
+
+### 1. Asset type is explicit
+
+生成器依 `_tools/asset-contracts.json` 的集中式契約與少量明確例外判定兩種 learner asset：
+
+- `worksheet`：需要學員輸入、比較、判斷、記錄或交接的資產。預設生成可填寫工作版。
+- `reference`：案例、參考完成品、示例、術語、資料、規則與評量規準。只生成可攜式閱讀／參考版，不偽裝成工作表。
+
+worksheet 與 reference 都保留原始閱讀版；差異只發生在下載的 learner asset，不改掉原始教學正文。
+站內檔名也區分為 `-工作版.html` 與 `-參考版.html`，不讓參考資料沿用會誤導學員的工作版檔名。
+
+### 2. Worksheet has a complete action loop
+
+每份 worksheet 必須具備：
+
+1. 這份資產要完成的成果與使用位置。
+2. 可輸入的文字欄位與可勾選的檢查項。
+3. 「儲存草稿」：優先使用 localStorage；本機限制時顯示可理解的備援訊息。
+4. 「下載完成版 HTML」：把學員輸入轉成可攜式完成品，不依賴伺服器。
+5. 完成檢查與下一單元／下一個使用位置。
+
+### 3. Reference does not claim to be editable
+
+reference 的下載文字、頁面標題與說明都改為「參考版」。它仍可下載、列印與複製，但不會出現空白輸入欄位或假的工作表控制項。
+
+### 4. Generation is the source of truth
+
+不手工修改 126 份產物。所有欄位、工具列、儲存、匯出與 asset-kind 標記由 `_tools/rebuild-learner-shell.py` 生成，測試直接檢查生成後的 HTML contract。
 
 ## BLOCKER
 
-### [LEARNER_PATH] PRAC6 完整成果包
+### [LEARNER_PATH] 所有 worksheet 資產
 
-- 問題：既有頁面只有目錄樹與短 README，沒有逐檔完成示範、證據對照、口頭提綱與回饋修訂。
-- 修法：加入一套從 CH6-1／CH6-2／CH6-3／PRAC4／PRAC5 輸入到 00–08 檔案的完整示範，展示一次衝突裁決與修訂前後。
-- 驗證：學員能依範例建立同樣 8 檔，說明每檔來源、用途、限制與驗收方式。
+- 問題：學員無法在交付的 HTML 中輸入答案或取得完成品。
+- 修法：依表頭與空白欄位契約保留示範／預期結果，僅把學員回答欄轉成 textarea／checkbox，加入儲存與完成版匯出。
+- 驗證：每份 worksheet 有 `data-workbook-kind="worksheet"`、至少一個 `data-workbook-field`、save/export controls 與 inline runtime。
 
-### [LEARNER_PATH] CH6 上游交接
+### [ASSET_CONTRACT] 參考資產被標示為工作版
 
-- 問題：前置產物只以檔名被提及，沒有欄位級輸入、保留／淘汰判斷與下一頁使用位置。
-- 修法：CH6-1 補四份輸入摘要與整合表；CH6-2 補成本／工時算例；CH6-3 補回饋邀請與紀錄算例。
-- 驗證：學員能指出每項輸入進入哪個欄位，並依規則處理矛盾或不足資料。
+- 問題：案例與參考完成品被放在同一種「工作版」下載語意下，學員無法知道哪些要填、哪些只需閱讀。
+- 修法：生成 reference badge、參考版下載名稱與只讀說明。
+- 驗證：reference 不得有 worksheet save/export controls。
+
+### [ARTIFACT_CHAIN] 產物無法交接
+
+- 問題：講義宣稱有完成物並交給下一單元，但目前完成物要人工複製到外部工具才可能產生。
+- 修法：worksheet 匯出完成版包含學員輸入、核對狀態與下一單元摘要。
+- 驗證：冷跟做可在單一下載檔完成填寫、保存與匯出。
 
 ## MAJOR
 
-### [LEARNER_PATH] CH1-1～CH1-3 逐欄製作
+- 既有 lint 與內容審計沒有檢查工作資產是否可輸入；新增產物 contract tests，避免再次被外觀綠燈放行。
+- 目前講義中的「複製到 Word／記事本」需改成可選備援，而非主要完成路徑。
 
-- 修法：補「開啟資產 → 填入示例 → 檢查 → 另存 → 交給下一單元」的短路徑，明示欄位如何銜接。
+## Execution order
 
-### [CONTENT_THIN] AI 應用
+1. 備份與 restore script
+2. 先寫產物 contract tests，確認目前失敗
+3. 實作 asset classification 與 worksheet runtime
+4. CH1-1 重新生成與冷跟做
+5. 全課生成、lint、內容審計、工作資產統計
+6. 產出 repair report，再決定是否發布
 
-- 修法：在 Part 6 提供一個可複製提示詞、實際輸入、預期輸出、錯誤輸出與人工核對三問；不把 AI 當成自動產生證據的工具。
+## Non-goals
 
-### [ASSET_DISCOVERABILITY] 學員下載格式
-
-- 修法：新增完整成果包 HTML 閱讀版與 HTML 下載入口；學員不需開啟原始 Markdown 才能理解示範。
-
-## Activity Identity Audit（本批）
-
-| page | section | role | material | artifact | learner decision |
-|---|---|---|---|---|---|
-| CH6-1 | 示範 | Demo | 四份上游摘要 | 整合價值主張表 | 選共同問題與證據狀態 |
-| CH6-1 | 個人製作 | Solo | 學員自己的四份 PRAC 產物 | 個人整合價值主張表 | 決定保留／淘汰哪些產物 |
-| PRAC6 | 完整案例 | Demo | 阿凱示範包與已標記限制 | 00–08 完整成果包 | 處理一項受眾／CTA 衝突 |
-| PRAC6 | 最終製作 | Solo | 學員自己的上游產物 | 個人整合企劃與提案 | 依讀者選證據、排序與 CTA |
-
-## Execution Order
-
-1. 建立備份與還原腳本。
-2. 修整 Part 6 來源教案、學員頁面與完整成果包資產。
-3. 修整 Part 1 三頁的欄位操作與交接。
-4. 執行 `git diff --check`、HTML 連結檢查、learner render regression。
-5. 重跑課程 lint、搜尋索引與內容冷讀檢查。
-
-## Phase 2：人工審查前放行修復
-
-本階段的放行條件是「學員第一次開頁不會遇到原始 Markdown、失效附件或缺少操作契約」，並建立能支持人工審查的真值表與跟做證據。這不是以 lint 取代教學驗收。
-
-### [BLOCKER] 學員附件入口仍暴露 Markdown
-
-- 範圍：47 個學員 HTML 頁面中 40 頁仍提供 `.md` 下載。
-- 修法：所有有對應 HTML 的資產改成「開啟閱讀版」與「下載 HTML 工作版」；Markdown 保留於來源目錄與製作檔，不作學員第一入口。
-- 驗證：學員頁面不再出現 `下載原始模板（UTF-8）` 或 `assets/templates/*.md`；126 個 Markdown 均能對應既有 HTML。
-
-### [BLOCKER] L0 課程真值表與學員操作契約尚未建立
-
-- 範圍：40 個核心單元與 6 個整合實作頁。
-- 修法：建立每個單元的情境、起始材料、完成物、主要操作、檢查點、修復路徑、變因練習與下游交接欄位；以此生成 validator 可讀的 manifest。
-- 驗證：每個核心頁至少有起始材料、完成物、可操作段落、可觀察驗收與卡住時修復；缺任一項不得進入人工審查。
-
-### [MAJOR] Part 2–5 的冷跟做證據不足
-
-- 範圍：影像、社群、SEO／追蹤、廣告四個技能模組。
-- 修法：每個模組選一條代表性路徑完成無講師提示的跟做紀錄；若步驟只寫概念，補上實際欄位、值、預期結果與復原起點。
-- 驗證：代表性路徑能從上游產物走到模組交付物，再交給下一 Part；不以頁面存在或標題數量視為通過。
-
-### [MAJOR] 全課視覺與瀏覽器煙霧測試不足
-
-- 範圍：入口、6 個 Part 導覽、40 個核心單元、6 個 PRAC 頁、資產閱讀頁。
-- 修法：檢查 1280px、窄視窗、長表格、CJK 斷行、附件頁與 favicon／靜態資源請求；修正實際造成學員迷失或 404 的問題。
-- 驗證：入口至資產的首條路徑無 404、無橫向溢位、無製作內部文字，並保留瀏覽器實測結果。
+- 不把每個參考案例改成可編輯表格。
+- 不新增外部帳號、雲端資料庫或付費工具。
+- 不以 CSS 或改檔名宣稱工作版已完成。
