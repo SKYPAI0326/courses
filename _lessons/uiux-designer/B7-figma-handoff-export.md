@@ -6,7 +6,7 @@ course_type: skill-operation
 duration: 6h
 learning_objective: 從已回歸的 Prototype 產出可重開的 PNG／PDF／Inspect 證據與 Handoff 清單，並正確標示 Photoshop 尚未驗證的範圍。
 prerequisites: [B3, B6]
-style_guide: ../../_outlines/_style_guide_template.md
+style_guide: ../../_outlines/uiux-designer.style-guide.md
 platform_version: Figma Starter／Free、Google Chrome（2026-09-16 機器證據）
 ---
 

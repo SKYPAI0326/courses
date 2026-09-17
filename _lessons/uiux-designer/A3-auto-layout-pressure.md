@@ -6,7 +6,7 @@ course_type: skill-operation
 duration: 6h
 learning_objective: 在 Figma Starter／Chrome 中建立可隨內容增長的手機介面，驗證長中文、固定寬度與 Auto height，並能指出尚未測的多列清單邊界。
 prerequisites: [A2]
-style_guide: ../../_outlines/_style_guide_template.md
+style_guide: ../../_outlines/uiux-designer.style-guide.md
 platform_version: Figma Starter／Free、Google Chrome（2026-09-16 Probe A 機器證據）
 ---
 

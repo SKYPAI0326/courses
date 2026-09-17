@@ -3,10 +3,10 @@ slug: uiux-designer
 unit_id: B4-overlay-single-action
 title: 用一個核心互動完成 Overlay 預覽
 course_type: skill-operation
-duration: 2h
-learning_objective: 在 Figma Starter／Chrome 中建立可預覽的單一 On click → Open overlay 互動，並能用檔案、Preview 與完成品圖片自行驗收。
+duration: 7h
+learning_objective: 在 Figma Starter／Chrome 中建立可預覽的單一 On click → Open overlay 互動，理解 Overlay 與 Swap 的使用差異，並能用檔案、Preview 與完成品圖片自行驗收。
 prerequisites: [A2, A3, A8, B1]
-style_guide: ../../_outlines/_style_guide_template.md
+style_guide: ../../_outlines/uiux-designer.style-guide.md
 platform_version: Figma Starter／Free、Google Chrome（2026-09-16 實測）
 ---
 
@@ -25,6 +25,7 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 實測）
 - **Prototype action** — 由「觸發條件」和「動作目的」組成的連線；本例只有一條，避免把免費方案限制藏起來。
 - **Overlay** — 疊在目前畫面上的另一個 Frame；它適合 Dialog、Menu 或短暫確認訊息，不會把整個任務帶到另一頁。
 - **Flow starting point** — Preview 的起點；沒有它，學員可能從錯誤畫面開始，無法判斷自己的互動是否真的成功。
+- **Swap** — 將目前畫面中的可替換區塊換成另一個狀態或版本；它需要清楚的來源、目的地與狀態理由，不能和 Overlay 的疊加效果混在同一筆證據裡。
 - **Starter 一檔一核心 action** — 這是本次實測採用的課程契約；Figma 其他方案可能有不同能力。同一檔案再建立第二個 action 會跳出 Professional 升級提示，因此多步驟流程改用拆檔策略。
 
 ### 操作示範 / Demo
@@ -81,9 +82,21 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 實測）
 
 把 `確認完成` 改成「已儲存，回到任務清單」，保持 Host 尺寸、Overlay 尺寸、Trigger、Action、Destination、Centered 與 Instant 都不變。這次只檢查內容變長時的 Overlay；第二條 action 會改變測試條件，留到另一份測試檔處理。若字串換行或超出 320×200，回到 A3 的 Auto Layout／文字壓力單元處理，不要用縮小字級掩蓋問題。
 
+#### Swap 分支：把同一區域換成另一種狀態
+
+Overlay 解決「目前畫面上再出現一層內容」；Swap 解決「同一個位置改顯示另一種狀態」。兩者要分開建立測試檔，才能從 Preview 判斷畫面是疊加還是替換。
+
+1. 複製 B4 Host，另存為 `SWAP-01`；保留 `Screen / Host`，另建立同尺寸的 `State / Empty` 與 `State / Filled` 兩個狀態 Frame。
+2. 在兩個狀態 Frame 的相同區域放入相同命名的內容層，例如 `Task / Summary`；記下來源、目的地與狀態差異。
+3. 在 Prototype 面板只建立一條待測 Swap action；若 Starter 跳出多 action 限制，停止升級，改用另一個獨立測試檔記錄方案邊界。
+4. 從起點開 Preview，執行一次觸發，分開記錄 Expected「原區域被替換」與 Actual「實際看到的內容」。
+5. 若你的帳號或目前版本沒有可用的 Swap action，截圖面板並填 `NOT_RUN`；不要用 Open overlay 的結果代替 Swap 證據。
+
+> **Checkpoint B4-2**：你能說明 Overlay 與 Swap 的畫面責任，指出兩份測試檔的來源／目的地，並把尚未測的方案能力標記出來。
+
 ### 檢核 / Verification
 
-完成本單元代表：你能從一個空白 Figma 檔建立兩個可辨識 Frame，設定單一 Overlay action，在 Chrome Preview 點擊後看到指定文字，並能指出 Starter 為何不適合在同一檔案繼續堆第二個 action。這份 Figma 檔下一次由 B6 任務測試使用；B6 會把「點擊後是否真的看到 Overlay」寫成固定測試步驟。
+完成本單元代表：你能從一個空白 Figma 檔建立兩個可辨識 Frame，設定單一 Overlay action，在 Chrome Preview 點擊後看到指定文字，並能說明 Swap 測試的來源、目的地與方案邊界。Overlay 與 Swap 的測試紀錄交給 B5／B6；B5 先接手長內容與固定元素，B6 再把「點擊後是否真的看到 Overlay／替換狀態」寫成固定測試步驟。
 
 #### 自我驗收
 
@@ -91,6 +104,7 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 實測）
 - [ ] `Dialog / Overlay` 是 320×200，文字 `確認完成` 位於它的子層。
 - [ ] Interactions 只保留一條 `On click → Open overlay → Dialog / Overlay`。
 - [ ] Chrome Preview 點擊 Host 後看得到 `確認完成`；若畫面空白，依錯誤修復表回到文字層與 Flow 起點檢查。
+- [ ] `SWAP-01` 有來源、目的地、狀態差異與 Preview Expected／Actual；未提供 Swap action 時標為 `NOT_RUN`。
 - [ ] 我能說明第二個 action 會觸發 Starter 方案限制，並知道拆檔是目前備援。
 
 ## 試跑包需求清單（Verification Asset Spec）
@@ -109,7 +123,7 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 實測）
 
 ## 動手練習題（Hands-on Exercise）
 
-**題目**：從空白檔建立 `Screen / Host` 與 `Dialog / Overlay`，將 `確認完成` 接成單一 `On click → Open overlay`，在 Chrome Preview 點擊驗收，再把文字換成「已儲存，回到任務清單」。
+**題目**：從空白檔建立 `Screen / Host` 與 `Dialog / Overlay`，將 `確認完成` 接成單一 `On click → Open overlay`，在 Chrome Preview 點擊驗收，再建立獨立的 `SWAP-01` 測試，記錄另一種狀態的來源、目的地與 Preview 結果。
 
 **預期成果**：一個可重開 Figma 檔、一條可見的 Prototype interaction、一張可對照的 Overlay 完成畫面與一份自我檢查紀錄。
 
@@ -117,7 +131,7 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 實測）
 
 - [ ] 兩個 Frame 名稱與尺寸正確。
 - [ ] Overlay 文字是子層，Preview 點擊後可見。
-- [ ] 同一檔案沒有為了展示功能而建立第二個 action。
+- [ ] 同一檔案沒有為了展示功能而建立第二個 action；Swap 另有測試檔或標記 `NOT_RUN`。
 
 ## 常見錯誤 3 條（Common Pitfalls）
 
@@ -133,7 +147,11 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 實測）
    **原因**：`確認完成` 被建立在畫布外或 Host，沒有放入 Overlay 子層；也可能沒有設定 Flow starting point。
    **解法**：在 Layers 逐層展開 `Dialog / Overlay`，用右側 Content 檢查文字；設定起點後重新 Present。無法修復時，安全停止在 B4-1，不刪掉整個檔案。
 
-## 檢核題 2 條（Quiz）
+4. **錯誤現象**：把 Swap 的替換結果當成 Overlay 的疊加結果。
+   **原因**：兩個測試共用同一個 action 或只看畫面截圖，沒有留下來源／目的地。
+   **解法**：另建 `SWAP-01`，記錄兩個狀態 Frame 與 Preview Actual；目前版本沒有 Swap action 時標為 `NOT_RUN`。
+
+## 檢核題 3 條（Quiz）
 
 **Q1（概念驗證）**：為什麼本單元把 `Dialog / Overlay` 做成獨立 Frame？如果文字直接放在 `Screen / Host`，預覽會少掉哪一項證據？
 
@@ -145,6 +163,10 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 實測）
 **Q2（應用驗證）**：你需要登入 → 清單 → Dialog 三個畫面，但 Starter 在第二個 action 跳出限制。你會怎麼交付第一個可驗收版本？
 
 **預期答案要點**：先保留一檔一核心 action，交付登入或清單到 Dialog 的最小 Preview；第二段另建獨立測試檔並在交付說明標記方案限制；不以空白畫面或「看起來有連線」假裝三段互動已完成。
+
+**Q3（辨識證據）**：Preview 顯示另一個狀態，怎麼判斷它是 Swap 而不是 Overlay？
+
+**預期答案要點**：檢查來源／目的地是否是同一區域的狀態 Frame、原內容是否被替換、Prototype action 名稱與 Expected／Actual 是否一致；只有面板出現選項不代表行為已通過。
 
 ## 講師授課筆記（不進講義）
 

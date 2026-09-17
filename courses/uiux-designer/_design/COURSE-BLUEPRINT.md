@@ -54,11 +54,11 @@ machine_evidence: PROBE-A-CONDITIONAL / PROBE-B-CONDITIONAL / PROBE-C-CONDITIONA
 
 | Unit | 核心產物 | 機器證據 | 設計處理 |
 |---|---|---|---|
-| B1 | 任務流程、畫面清單、手機 Prototype 入口 | Probe A/B 檔案 | 先定義完成物，不先教功能清單 |
-| B2 | 一個可回歸的核心 action | Navigate／Open overlay UI | 免費主線一檔一 action；多步驟拆檔 |
-| B3 | 轉場選擇表與一個可預覽動作 | Smart animate 選項 | 完整動態效果列 `MACHINE_PASS_PARTIAL` |
+| B1 | 任務流程、畫面清單、手機 Prototype 入口 | Probe A/B 檔案 | 先定義完成物，不先教功能清單；入口與 action 分開驗收 |
+| B2 | 一個可回歸的核心 action | Navigate／Open overlay UI | 免費主線一檔一 action；多步驟拆檔；Interaction row 與 Preview 分開留證 |
+| B3 | 轉場選擇表與一個可預覽動作 | Smart animate 選項 | 面板值與 Preview 分開留證；完整動態效果列 `MACHINE_PASS_PARTIAL` |
 | B4 | Dialog／Overlay 測試檔 | Chrome Preview 顯示 `確認完成` | `Close`／`Swap` 另立小檔或條件路徑 |
-| B5 | Vertical overflow 與固定元素測試 | Vertical 選項 | 固定／滾動同時成立尚待測，不假設成功 |
+| B5 | `SCROLL-01` 長內容、Vertical overflow、固定 Header 與 Floating Action 測試 | Vertical 選項、上滑 Expected／Actual | 固定／滾動同時成立尚待測，不假設成功 |
 | B6 | 任務測試表、錯誤清單、回歸紀錄 | Probe evidence schema | 將失敗修復寫入學員完成物 |
 | B7 | Figma／PS export 與 Handoff package | PNG/PDF/Inspect | Figma export 可教；Photoshop需另驗證 |
 | B8 | 最小網站、Git/GitHub、部署候選 | 本地 Git／origin 存在 | push／公開網址保留發布階段 |
@@ -76,4 +76,3 @@ machine_evidence: PROBE-A-CONDITIONAL / PROBE-B-CONDITIONAL / PROBE-C-CONDITIONA
 - Probe 結果目前都是 `CONDITIONAL`，所以 blueprint 先可用於教案設計，但不代表 G1 真人放行。
 - 付費提示、分享權限、公開部署、真人可理解性都保留到對應 Gate。
 - 第一階段完成後最高只能標 `MACHINE_READY_PENDING_HUMAN`。
-

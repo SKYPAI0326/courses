@@ -6,7 +6,7 @@ course_type: skill-operation
 duration: 13h
 learning_objective: 接手 B7 Handoff 包，在本機完成可驗收的 HTML/CSS/最小 JavaScript 網頁與 Git 版本紀錄，並能指出 GitHub／部署仍待 release gate。
 prerequisites: [A3, B6, B7]
-style_guide: ../../_outlines/_style_guide_template.md
+style_guide: ../../_outlines/uiux-designer.style-guide.md
 platform_version: Google Chrome、VS Code、Git（2026-09-16 本機路徑）
 ---
 

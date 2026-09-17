@@ -13,3 +13,7 @@
 - Figma Starter／Free 同一個原型只以一個核心 action 驗收；本單元使用 `On click → Open overlay`。
 - `source/FIGMA-FILE-URL.txt` 是機器測試檔連結，不保證學員帳號有編輯權；無權限時複製畫面名稱與尺寸即可重建，能力差異是沒有預先放好的圖層。
 - 這份試跑包沒有要求學員分享檔案、升級方案、輸入付款資料或公開部署。
+
+## Swap 分支
+
+另建 `SWAP-01`，準備 `State / Empty` 與 `State / Filled`，記錄來源、目的地、狀態差異與 Preview Expected／Actual。沒有可用的 Swap action 時填 `NOT_RUN`，不要用 Overlay 的疊加結果代替。

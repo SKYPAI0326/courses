@@ -29,9 +29,9 @@ Pass 1 先鎖定「要教什麼、要留下什麼證據」，不因目前寫不�
 
 | Atom | 正式項目 | 操作 ID | 必須完成物 | 目前狀態 | 證據／缺口 |
 |---|---|---|---|---|---|
-| B-57-01 | 線框／原型／工具／手機介面／元件／動畫基礎 | OP-B01 | 任務、畫面清單、入口 | `MACHINE_PASS_PARTIAL` | 測試檔已建；教學夾具待做 |
-| B-57-02 | 觸發事件與互動連結 | OP-B02、B03 | 一個核心 action | `CONDITIONAL` | Starter 第二 action 受限 |
-| B-57-03 | 互動與轉場 | OP-B06 | 轉場選擇表與 Preview | `MACHINE_PASS_PARTIAL` | Smart animate 選項；完整動態待測 |
+| B-57-01 | 線框／原型／工具／手機介面／元件／動畫基礎 | OP-B01 | 任務、畫面清單、入口 | `MACHINE_PASS_PARTIAL` | B1 教案、學員頁、起始材料與檢查表已建；起始點機器證據完成，真人冷讀待做 |
+| B-57-02 | 觸發事件與互動連結 | OP-B02、B03 | 一個核心 action | `CONDITIONAL` | B2 教案、學員頁、起始材料與檢查表已建；一檔一 action，Starter 第二 action 受限 |
+| B-57-03 | 互動與轉場 | OP-B06 | 轉場選擇表與 Preview | `MACHINE_PASS_PARTIAL` | B3 教案、學員頁、起始材料與檢查表已建；Animation 選項已確認，Smart animate 完整動態待測 |
 | B-57-04 | Overlay 基礎／進階 | OP-B04 | 單一 Overlay Preview | `MACHINE_PASS` | Chrome Preview 顯示確認完成 |
 | B-57-05 | Swap＋Overlay | — | Swap 任務檔 | `NOT_RUN` | Starter 拆檔策略待測 |
 | B-57-06 | 滾動／置頂／漂浮按鈕 | OP-B05 | Vertical overflow 與固定元素 | `CONDITIONAL` | 選項已測，聯合 Preview 待測 |
@@ -50,9 +50,10 @@ Pass 1 先鎖定「要教什麼、要留下什麼證據」，不因目前寫不�
 | Atom | learner-facing 教案／HTML | 新增產物 | 判定 |
 |---|---|---|---|
 | A-42-04 | `../_lessons/uiux-designer/A3-auto-layout-pressure.md`／`part1/CH3-auto-layout-pressure.html` | 長中文壓力、固定寬度 200、Auto height、修復摘要 | `MACHINE_PASS_PARTIAL` |
-| B-57-04 | `../_lessons/uiux-designer/B4-overlay-single-action.md`／`part2/CH4-overlay-single-action.html` | Overlay Figma 檔、Preview、對照 PNG | `MACHINE_PASS_PENDING_HUMAN` |
+| B-57-04 | `../_lessons/uiux-designer/B4-overlay-single-action.md`／`part2/CH4-overlay-single-action.html` | Overlay／Swap 測試檔、Preview、來源／目的地、對照 PNG | `MACHINE_PASS_PENDING_HUMAN` |
+| B-57-05 | `../_lessons/uiux-designer/B5-scroll-fixed-floating.md`／`part2/CH5-scroll-fixed-floating.html` | `SCROLL-01`、Vertical overflow、上滑 Expected／Actual、固定／漂浮檢查表 | `MACHINE_PASS_PENDING_HUMAN` |
 | B-57-04 → B6 測試 | `../_lessons/uiux-designer/B6-prototype-task-test.md`／`part2/CH6-prototype-task-test.html` | 任務腳本、Actual／Expected、回歸紀錄 | `MACHINE_PASS_PENDING_HUMAN` |
 | B-57-08 | `../_lessons/uiux-designer/B7-figma-handoff-export.md`／`part2/CH7-figma-handoff-export.html` | PNG／PDF／Inspect、Handoff 清單 | `MACHINE_PASS_PENDING_HUMAN` |
 | B-57-09 | `../_lessons/uiux-designer/B8-web-git-deploy.md`／`part3/CH8-web-git-deploy.html` | `web-starter/` 本機網頁、Git diff／commit 路徑 | `MACHINE_PASS_PENDING_HUMAN`（GitHub／部署未跑） |
 
-這三列證明產物鏈可被機器追蹤，但不解鎖未測的 Photoshop、Swap、固定元素聯合滾動、GitHub push 或公開部署。
+這些列證明產物鏈可被機器追蹤，但不解鎖未測的 Photoshop、Swap、固定元素聯合滾動、GitHub push 或公開部署。

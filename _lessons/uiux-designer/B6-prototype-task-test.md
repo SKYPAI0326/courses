@@ -6,7 +6,7 @@ course_type: skill-operation
 duration: 6h
 learning_objective: 使用 B4 的 Overlay 原型執行固定任務測試，分類問題、只改一個主要變因並留下可回歸的修正紀錄。
 prerequisites: [B2, B3, B4, B5]
-style_guide: ../../_outlines/_style_guide_template.md
+style_guide: ../../_outlines/uiux-designer.style-guide.md
 platform_version: Figma Starter／Free、Google Chrome（2026-09-16 機器證據）
 ---
 
@@ -16,7 +16,7 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 機器證據
 
 阿凱把 B4 的 `Screen / Host` 與 `Dialog / Overlay` 交給雯姊試用。雯姊說：「我看得到畫面，但不知道點擊後是不是應該出現這個訊息。」問題出在任務、操作與預期結果沒有被固定下來。本單元把「我覺得可以」整理成一張可重跑的測試表。
 
-本節接手 B4 的產物：一條 `On click → Open overlay → Dialog / Overlay`。不新增第二個 action，不把未測的登入流程當成已完成。完成物是測試紀錄、問題分類、最小修正與一次回歸結果。
+本節接手 B4 的互動與 B5 的 `SCROLL-01`／`case_id` 條件：測試仍先固定一條 `On click → Open overlay → Dialog / Overlay`，再把長內容與固定元素的觀察寫入起始狀態。不新增第二個 action，不把未測的登入流程當成已完成。完成物是測試紀錄、問題分類、最小修正與一次回歸結果。
 
 ### 概念 / Concepts
 
