@@ -62,6 +62,15 @@ class LearnerRenderContractTests(unittest.TestCase):
                 if 'class="asset-bundle"' in page:
                     self.assertIn('class="asset-note"', page)
 
+    def test_generated_pages_use_repository_pages_base_url(self) -> None:
+        pages = sorted(COURSE_DIR.glob("*.html")) + sorted(
+            (COURSE_DIR / "assets" / "templates").glob("*.html")
+        )
+        for page_path in pages:
+            page = page_path.read_text(encoding="utf-8")
+            with self.subTest(page=page_path.name):
+                self.assertNotIn("https://skypai0326.github.io/courses/courses/", page)
+
     def test_every_markdown_asset_has_a_learner_html_counterpart(self) -> None:
         assets = COURSE_DIR / "assets" / "templates"
         markdown_assets = sorted(assets.glob("*.md"))

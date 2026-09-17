@@ -24,7 +24,8 @@ REPAIR_DIR = COURSE_DIR / "_repair" / "2026-09-17"
 BACKUP_HTML_DIR = COURSE_DIR / "_backup" / "2026-09-17-pre-fillable-workbook-repair" / "html"
 COURSE_TITLE = "數位內容與成長行銷人才培訓"
 INSTITUTION = "弄一下工作室"
-COURSE_URL = "https://skypai0326.github.io/courses/courses/digital-content-growth-126h"
+SITE_BASE_URL = "https://skypai0326.github.io/courses"
+COURSE_URL = f"{SITE_BASE_URL}/digital-content-growth-126h"
 ASSET_CONTRACTS_PATH = COURSE_DIR / "_tools" / "asset-contracts.json"
 
 
@@ -132,6 +133,20 @@ def asset_kind_for_code(code: str) -> str:
     if any(marker in code for marker in markers):
         return "reference"
     return ASSET_CONTRACTS.get("default_kind", "worksheet")
+
+
+def normalize_static_reference_pages() -> None:
+    """Keep fixed, hand-authored reference pages under the repository Pages base."""
+    stale_base = "https://skypai0326.github.io/courses/courses/"
+    current_base = f"{SITE_BASE_URL}/"
+    for filename in ASSET_CONTRACTS.get("static_reference_pages", []):
+        path = TEMPLATE_DIR / filename
+        if not path.exists():
+            raise FileNotFoundError(f"static reference page missing: {path}")
+        page = path.read_text(encoding="utf-8")
+        normalized = page.replace(stale_base, current_base)
+        if normalized != page:
+            path.write_text(normalized, encoding="utf-8")
 
 
 def asset_kind_label(kind: str) -> str:
@@ -1346,6 +1361,7 @@ def main() -> None:
         help="只重建指定模板閱讀版；可重複提供，例如 --asset CH1-1 --asset PRAC1",
     )
     args = parser.parse_args()
+    normalize_static_reference_pages()
     if args.assets:
         available = {path.stem for path in TEMPLATE_DIR.glob("*.md")}
         unknown_assets = [code for code in args.assets if code not in available]
