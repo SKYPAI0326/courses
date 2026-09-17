@@ -139,3 +139,34 @@ Gate 狀態：Soft-fail／BLOCK。Google／Meta／LINE 示範資產、模擬流�
 Gate 狀態：Soft-fail／BLOCK。提案模板、成果資料夾規範、同伴評分表、計時器試跑與參考完成品仍待建立及試跑。
 
 G2 總結：教案內容與 126 小時結構完成；正式資產與 learner follow-along 尚未完成，因此 G2 維持 Soft-fail，不宣稱完整 Pass。
+
+---
+
+## 2026-09-16 追加稽核：M0–M6 模組化修復
+
+本次修復將 `_lessons/digital-content-growth-126h/*.md` 保持為內容來源，透過 `_tools/rebuild-learner-shell.py` 重新產生學員頁；模板、案例、參考完成品與評量規準以瀏覽器閱讀版及 UTF-8 Markdown 提供。機器通過不等於人工試教通過。
+
+### M0 來源轉譯
+
+- ☑ 教學內容由來源 Markdown 重新產生，不再從舊 HTML 回讀。
+- ☑ 內部製作區塊不進學員頁；附件提供閱讀版與 UTF-8 下載版。
+- ☑ `test_learner_render_contract.py` 覆蓋來源保留與內部語句隔離。
+
+### M1–M6 內容與資產
+
+- ☑ M1：共同 Brief、情境卡、判斷練習、交接檢核與參考完成品。
+- ☑ M2：影像任務、定位、腳本、素材來源、Affinity／OpenShot 課前檢查與輸出判斷。
+- ☑ M3：IG／FB／Threads 差異化任務、LINE 延伸、月曆、互動風險與合成資料。
+- ☑ M4：搜尋意圖、LocalWP、GA4 Demo、GTM 事件、Search Console 合成資料與追蹤決策。
+- ☑ M5：市場／渠道判斷、Google／Meta／LINE 企劃、預算護欄與兩輪合成決策。
+- ☑ M6：上游產物對照、整合價值、方案交付、能力證據、30 天行動、提案證據矩陣與共同評量規準。
+- ☑ 目前回歸測試 14 項通過；M2–M6 相關頁面本地連結、內部洩漏與重複標題檢查通過。
+
+### M7 提交判斷
+
+- △ `lint-page.py` 課程範圍 173 頁：BLOCKER 0、ERROR 0、WARN 127；核心頁的 lesson-section 警告已清除，剩餘主要來自 126 個附件閱讀頁的通用規則提醒，另有 1 個 callout 數量提醒，仍需人工判斷內容密度。
+- △ 人工學員試跑尚未完成；`MANUAL-LEARNER-RUN.md` 已更新為 M1–M6 的現況與冷跟做順序。
+- △ LocalWP／GTM／GA4、Search Console、Google／Meta／LINE、Affinity／OpenShot 的正式環境與權限仍保留 BLOCK／待課前確認。
+- △ DOCX／PDF／PPTX／試算表等正式販售交付格式未完成實機驗收；目前只承諾閱讀版與 UTF-8 Markdown。
+- ☑ 40 個核心頁的教學流程已拆成可定位段落；回歸測試增加至 15 項。
+- **結論**：本課程目前維持 `MACHINE_READY / COLD_FOLLOW_PENDING`，沒有資格宣稱可販售、可正式上線或可提交為最終販售版。人工冷跟做完成後，若仍有任何學員無法開始、跟做、驗收或恢復，回到對應模組修正。
