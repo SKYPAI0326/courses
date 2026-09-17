@@ -66,6 +66,10 @@ class LearnerRenderContractTests(unittest.TestCase):
             page = page_path.read_text(encoding="utf-8")
             with self.subTest(asset=page_path.name):
                 self.assertIn('rel="icon"', page)
+                if page_path.stem.endswith("-工作版"):
+                    self.assertIn('data-course-shell="inline"', page)
+                    self.assertNotIn('href="../course-shell.css"', page)
+                    continue
                 if "下載 HTML 工作版" in page:
                     self.assertRegex(page, r'download="[^"]+工作版\.html"')
                 else:
@@ -404,6 +408,39 @@ class LearnerRenderContractTests(unittest.TestCase):
             sections = page.select("main section.lesson-section")
             with self.subTest(unit=unit):
                 self.assertGreaterEqual(len(sections), 5)
+
+    def test_html_work_downloads_are_self_contained_after_download(self) -> None:
+        """下載到 Downloads 後，工作版仍應保留樣式且不依賴相對 CSS。"""
+        asset_dir = COURSE_DIR / "assets" / "templates"
+        for page_path in sorted(asset_dir.glob("*.html")):
+            if page_path.stem.endswith("-工作版"):
+                continue
+            soup = BeautifulSoup(page_path.read_text(encoding="utf-8"), "html.parser")
+            for link in soup.find_all("a", download=True):
+                filename = link.get("download", "")
+                if not filename.endswith("工作版.html"):
+                    continue
+                href = link.get("href", "")
+                work_path = (page_path.parent / href).resolve()
+                with self.subTest(asset=page_path.name, href=href):
+                    self.assertTrue(work_path.exists())
+                    work_html = work_path.read_text(encoding="utf-8")
+                    self.assertIn('data-course-shell="inline"', work_html)
+                    self.assertNotIn('href="../course-shell.css"', work_html)
+
+    def test_lesson_download_links_target_standalone_work_files(self) -> None:
+        pages = sorted(COURSE_DIR.glob("CH*.html")) + sorted(COURSE_DIR.glob("PRAC*.html"))
+        for page_path in pages:
+            soup = BeautifulSoup(page_path.read_text(encoding="utf-8"), "html.parser")
+            for link in soup.find_all("a", download=True):
+                filename = link.get("download", "")
+                if not filename.endswith("工作版.html"):
+                    continue
+                href = link.get("href", "")
+                work_path = (page_path.parent / href).resolve()
+                with self.subTest(page=page_path.name, href=href):
+                    self.assertTrue(work_path.exists())
+                    self.assertNotEqual(work_path.name, page_path.name)
 
 
 if __name__ == "__main__":

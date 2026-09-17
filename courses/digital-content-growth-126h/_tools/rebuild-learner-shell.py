@@ -13,6 +13,7 @@ import subprocess
 from datetime import date
 from html import escape
 from pathlib import Path
+from urllib.parse import quote
 
 from bs4 import BeautifulSoup, Comment
 
@@ -28,6 +29,8 @@ TODAY = date.today().isoformat()
 TEMPLATE_DIR = COURSE_DIR / "assets" / "templates"
 DATASET_DIR = COURSE_DIR / "assets" / "datasets"
 SOURCE_DIR = COURSE_DIR.parent.parent / "_lessons" / COURSE_DIR.name
+COURSE_SHELL_CSS = COURSE_DIR / "assets" / "course-shell.css"
+COURSE_FAVICON = COURSE_DIR / "assets" / "favicon.svg"
 
 
 PARTS = [
@@ -411,7 +414,7 @@ def template_actions(code: str) -> str:
         f'<span class="asset-actions">'
         f'<a class="asset-action" href="assets/templates/{esc(code)}.html" '
         f'target="_blank" rel="noopener">開啟閱讀版（新分頁）</a>'
-        f'<a class="asset-action secondary" href="assets/templates/{esc(code)}.html" '
+        f'<a class="asset-action secondary" href="assets/templates/{esc(code)}-工作版.html" '
         f'download="{esc(code)}-工作版.html">下載 HTML 工作版</a>'
         f'</span>'
     )
@@ -463,7 +466,7 @@ def enhance_asset_links(main: BeautifulSoup, document: BeautifulSoup) -> None:
             link.append("開啟閱讀版（新分頁）")
             download = document.new_tag(
                 "a",
-                href=f"assets/templates/{code}.html",
+                href=f"assets/templates/{code}-工作版.html",
                 download=f"{code}-工作版.html",
                 attrs={"class": "asset-action secondary"},
             )
@@ -653,8 +656,36 @@ def ensure_utf8_bom(path: Path) -> None:
         path.write_bytes(b"\xef\xbb\xbf" + raw)
 
 
+def standalone_work_html(html: str) -> str:
+    """建立可從 Downloads 直接開啟的單檔工作版。"""
+    inline_css = COURSE_SHELL_CSS.read_text(encoding="utf-8")
+    html = html.replace(
+        '<link rel="stylesheet" href="../course-shell.css">',
+        f'<style data-course-shell="inline">{inline_css}</style>',
+    )
+    if COURSE_FAVICON.exists():
+        svg = COURSE_FAVICON.read_text(encoding="utf-8")
+        html = html.replace('href="../favicon.svg"', f'href="data:image/svg+xml,{quote(svg)}"')
+
+    def absolute_href(match: re.Match[str]) -> str:
+        href = match.group(1)
+        if href.startswith("../../"):
+            href = f"{COURSE_URL}/{href[6:]}"
+        elif re.fullmatch(r"[^/#?]+\.html", href):
+            href = f"{COURSE_URL}/assets/templates/{href}"
+        return f'href="{href}"'
+
+    html = re.sub(r'href="([^"]+)"', absolute_href, html)
+    html = html.replace("模板閱讀版", "HTML 工作版")
+    html = html.replace(
+        "這是本單元的可讀模板。你可以先在本頁查看欄位，再下載 HTML 工作版自行編輯；原始講義仍保留在上一頁。",
+        "這是可攜式 HTML 工作版，樣式已內嵌；下載後可直接在 Windows 瀏覽器離線開啟，必要時再複製到 Word、記事本或其他可編輯工具。",
+    )
+    return html
+
+
 def build_asset_pages(selected: set[str] | None = None) -> None:
-    """產生可讀 HTML，並讓文字資產在 Windows 下載後仍保留 UTF-8 標記。"""
+    """產生閱讀版與可離線開啟的 HTML 工作版。"""
     for source in sorted(TEMPLATE_DIR.glob("*.md")):
         if selected is not None and source.stem not in selected:
             continue
@@ -703,7 +734,7 @@ def build_asset_pages(selected: set[str] | None = None) -> None:
   <p class="asset-lead">這是本單元的可讀模板。你可以先在本頁查看欄位，再下載 HTML 工作版自行編輯；原始講義仍保留在上一頁。</p>
   <div class="asset-toolbar">
     <a class="asset-action" href="../../{parent_code}.html">返回 {parent_code} 講義</a>
-    <a class="asset-action secondary" href="{code}.html" download="{esc(code)}-工作版.html">下載 HTML 工作版</a>
+    <a class="asset-action secondary" href="{code}-工作版.html" download="{esc(code)}-工作版.html">下載 HTML 工作版</a>
   </div>
 </header>
 <main class="asset-main" id="main">
@@ -713,9 +744,11 @@ def build_asset_pages(selected: set[str] | None = None) -> None:
 </main>
 {footer("學員模板閱讀版")}
 </body>
-</html>
+        </html>
 '''
         source.with_suffix(".html").write_text(html, encoding="utf-8")
+        work_path = TEMPLATE_DIR / f"{code}-工作版.html"
+        work_path.write_text(standalone_work_html(html), encoding="utf-8")
 
     for dataset in sorted(DATASET_DIR.glob("*.csv")):
         ensure_utf8_bom(dataset)
