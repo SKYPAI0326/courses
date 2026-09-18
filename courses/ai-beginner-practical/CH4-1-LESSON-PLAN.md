@@ -29,6 +29,21 @@ source_lectures:
 status: draft
 ---
 
+## Learner Task Contract（學員任務契約）
+
+| 契約欄位 | 本單元凍結事實 |
+|---|---|
+| 角色與工作情境 | 你是要處理旅遊、購物、學習、健康或家庭安排的成人學習者，手上有一個下週或近期真的會遇到的生活任務。 |
+| 問題與後果 | 只輸入「幫我規劃」時，工具會猜你的時間、預算、偏好或限制；不補條件就可能得到排太滿、超預算、缺關鍵比較欄位或越過專業判斷界線的結果。 |
+| 起始材料 | CH4-1 頁面的生活應用工作台、`assets/prompts/unit4-lifestyle-prompts.md` 的 30 張卡、`assets/worksheets/unit4-lifestyle-application-card.md` 離線／印刷備援、Together 使用的 `assets/datasets/unit4-air-conditioner-comparison.md`，以及一個可輸入文字並複製回答的 LLM；工具不可用時在工作台標記待重跑。 |
+| 目標完成物 | 工作台匯出的 `unit4-lifestyle-application-card.md`，包含主卡、目標／時間／預算／偏好／限制、原始需求、四段式提示詞、第一版、單一變因修訂指令、修正版與完成檢核。 |
+| 下一位使用者與用途 | 下一位使用者是未來的你；下週可替換同一張卡的時間或預算重做，課後整合任務會再取一個真實需求交付 `course-capstone-handoff.md`。 |
+| 第一個動作 | 開啟 CH4-1 頁面的生活應用工作台，選定一張主卡並填目標、時間、預算、偏好、限制；提示詞卡只作選題與參考。 |
+| 第一個可觀察結果 | 工作台已寫出主卡名稱、可看見的目標、時間、偏好與至少一項限制；不適用或未知欄位標為「待確認」，重新整理後內容仍能恢復；若沒有，回到 `U4-SELECT`。 |
+| 失敗時的回復位置 | 條件未進入結果回 `U4-PROMPT` 或 `U4-CHECK-1`；修訂同時改太多回 `U4-REVISE`；只有最後回答沒有原始輸入回 `U4-SAVE-2`；工具不可用安全停止在已保存的五欄應用卡，恢復後從第一版重跑。 |
+
+這八欄是本單元唯一的學員路徑契約；30 張卡是可帶走的工具箱，課堂核心只完成一張主卡與一次單一變因修訂。
+
 # 單元定位
 
 範本只有在放進自己的條件後才有用。本單元提供旅遊、購物、學習、健康、家庭五類各 6 張卡，共 30 張；課堂只要求完成一項真正與自己有關的任務，其他卡片作為課後工具箱。
@@ -157,7 +172,7 @@ status: draft
 - [ ] 我知道哪個條件必須出現在輸出中。
 - [ ] 我沒有把「請模型替我決定」當成唯一任務，而是要求選項、比較依據或待確認事項。
 
-若未通過，先不送出提示詞，回到工作表只補缺少的欄位。
+若未通過，先不送出提示詞，回到頁面工作台只補缺少的欄位。
 
 ## Checkpoint 2：個人生活應用卡可重做
 
@@ -184,10 +199,10 @@ status: draft
 ## 試跑包需求清單（Verification Asset Spec）
 
 - `assets/prompts/unit4-lifestyle-prompts.md`：Markdown 提示詞卡包；學員第一次選題前取得，內含旅遊、購物、學習、健康、家庭各 6 張卡，共 30 張。
-- `assets/worksheets/unit4-lifestyle-application-card.md`：個人應用卡範本；學員第一次選題前複製並另存為 `unit4-lifestyle-application-card.md`。
+- `assets/worksheets/unit4-lifestyle-application-card.md`：個人應用卡 Markdown 離線／印刷備援；主線使用 CH4-1 頁面工作台並由工作台匯出 `unit4-lifestyle-application-card.md`。
 - `assets/datasets/unit4-air-conditioner-comparison.md`：Together 固定使用的兩款冷氣示意規格與價格；不是即時報價或購買推薦。
 - 完成品是填寫後的 `unit4-lifestyle-application-card.md`；至少保存原始需求、四段式提示詞、第一版、單一變因修訂指令、修正版與完成檢核。
-- 若無法保存 Markdown，複製到任一可保存的純文字筆記；若對話工具暫時不可用，先依提示詞卡填入五個欄位與預期輸出，工具恢復後重跑主卡。
+- 若瀏覽器不能暫存，按工作台「匯出 Markdown」或「列印工作台」；若對話工具暫時不可用，先在工作台填入五個欄位與預期輸出並標記待重跑，工具恢復後重跑主卡。
 
 ## 商業情境案例（Case）
 

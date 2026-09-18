@@ -1,6 +1,6 @@
 # CH4-1 個人生活應用卡
 
-> 複製這份範本到自己的純文字／Markdown 編輯器，再另存為 `unit4-lifestyle-application-card.md`。只編輯副本。
+> 主線請使用 CH4-1 頁面的「個人生活應用工作台」。這份 Markdown 只作離線、列印或頁面暫時無法使用時的備援；正式完成物可由頁面工作台匯出為 `unit4-lifestyle-application-card.md`。離線操作時才編輯副本。
 
 ## 1. 主卡與五個條件
 

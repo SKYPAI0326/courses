@@ -13,7 +13,7 @@
 ## G2 全課教案與頁面
 
 - **status**：PASS（四份 lesson plan、四個 learner-facing HTML、工作表與來源素材已完成）
-- **證據**：本課 6 頁 HTML lint 為 0 BLOCKER、0 ERROR；四頁均有完成物、步驟、checkpoint、預期結果與回復路徑。
+- **證據**：本課 7 頁 HTML（入口、模組、四頁講義與 CH2 素材頁）L1 lint 為 0 BLOCKER、0 ERROR、0 WARN；四頁均有八欄學員任務契約、完成物、步驟、checkpoint、預期結果與回復路徑。
 - **保留事項**：內容實質自動審查依賴的部分規範檔目前未在本專案中，仍須以 L4a／L5 真跑補足證據。
 
 ## G3 代表頁
@@ -24,12 +24,12 @@
 ## G4 網頁運維
 
 - **status**：PASS
-- **證據**：入口頁、模組頁、四個內容頁已加入課程導覽；本課本地連結 89 條無缺漏；正式 HTML 閘門完整；搜尋索引與 sitemap 已重建。密碼保護頁未列入 sitemap，符合目前建置規則。
+- **證據**：入口頁、模組頁、四個內容頁已加入課程導覽；本輪解析 98 條本地連結均存在；正式 HTML 閘門完整；搜尋索引已重建為 949 筆。密碼保護頁未列入 sitemap，符合目前建置規則。
 
 ## G5 真跑驗收
 
 - **status**：IN_PROGRESS
-- **已完成**：L0 冷氣案例真值表、L1–L3 靜態檢查、L5 學員 Agent 設計與 6 頁／20 素材 evidence manifest、模擬學員重跑（0 頁 BLOCK）；另完成一次 NotebookLM 實機 sentinel：3 個來源加入、依來源回答、引用點擊回查均成功（詳見 `_validation/L4B-NOTEBOOKLM-REAL-2026-09-16.md`）。
+- **已完成**：L0 冷氣案例真值表、L1–L3 靜態檢查、L5 學員 Agent 設計與 6 頁／19 素材 evidence manifest、模擬學員重跑（0 頁 BLOCK）；另完成一次 NotebookLM 實機 sentinel：3 個來源加入、依來源回答、引用點擊回查均成功（詳見 `_validation/L4B-NOTEBOOKLM-REAL-2026-09-16.md`）。本輪另完成四頁冷讀契約、UI 實用性、連結解析與教學證據檢查，均通過。
 - **已執行但降級**：使用者已授權資料傳輸；L4a case1／case2 已送出，但 Codex bridge 均在 300 秒 timeout，無模型輸出、無分數（詳見 `_validation/L4A-MANUAL-REVIEW.md`）。
 - **待完成**：L4a case3／case4、L4b 多情境／環境覆蓋、L5 真人／零基礎 persona journey。
 - **限制**：目前 Codex bridge 外部模型服務連續兩案不可用；在服務恢復或改用使用者可控外部模型環境前，不宣告 L4a／L5 PASS。

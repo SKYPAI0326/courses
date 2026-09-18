@@ -29,6 +29,17 @@ def main() -> None:
         assert_all(text, tuple(f'id="{anchor}"' for anchor in ANCHORS), name)
         assert_all(text, tuple(f'href="#{anchor}"' for anchor in ANCHORS), f"{name} quicknav targets")
 
+    ch1 = (ROOT / "CH1-1.html").read_text(encoding="utf-8")
+    assert 'href="#practice-workbench"' in ch1, "CH1-1 first action needs to open the embedded workbench"
+    assert 'data-action="export"' in ch1, "CH1-1 workbench needs an export action"
+    assert 'data-action="print"' in ch1, "CH1-1 workbench needs a print action"
+
+    for name, anchor in (("CH2-1.html", "communication-workbench"), ("CH3-1.html", "notebooklm-log"), ("CH4-1.html", "lifestyle-workbench")):
+        text = (ROOT / name).read_text(encoding="utf-8")
+        assert f'href="#{anchor}"' in text, f"{name} first action needs to open its workbench"
+        assert 'data-action="export"' in text, f"{name} workbench needs an export action"
+        assert 'data-action="print"' in text, f"{name} workbench needs a print action"
+
     module = (ROOT / "module1.html").read_text(encoding="utf-8")
     assert 'class="module-quicknav"' in module
     assert 'class="module-start"' in module

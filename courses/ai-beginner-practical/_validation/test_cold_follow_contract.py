@@ -35,16 +35,27 @@ def main() -> None:
     ch1 = (ROOT / "CH1-1.html").read_text(encoding="utf-8")
     require(ch1, "修訂後完整輸出", "CH1-1.html")
     require(ch1, "只改變呈現格式", "CH1-1.html")
+    require(ch1, 'id="practice-workbench"', "CH1-1.html")
+    require(ch1, 'id="unit1-workbench"', "CH1-1.html")
+    require(ch1, 'data-action="export"', "CH1-1.html")
+    require(ch1, "unit1-practice-sheet-complete.md", "CH1-1.html")
 
     ch2 = (ROOT / "CH2-1.html").read_text(encoding="utf-8")
     require(ch2, "完整訊息示範", "CH2-1.html")
     require(ch2, "三版自我介紹示範", "CH2-1.html")
     require(ch2, "LINE／短訊息", "CH2-1.html")
+    require(ch2, 'id="communication-workbench"', "CH2-1.html")
+    require(ch2, "unit2-communication-pack-complete.md", "CH2-1.html")
 
     ch4 = (ROOT / "CH4-1.html").read_text(encoding="utf-8")
     require(ch4, "完整冷氣比較表", "CH4-1.html")
     require(ch4, "完整四天修正版", "CH4-1.html")
     require(ch4, "module1.html#course-capstone", "CH4-1.html")
+    require(ch4, 'id="lifestyle-workbench"', "CH4-1.html")
+    require(ch4, "unit4-lifestyle-application-card.md", "CH4-1.html")
+
+    require(ch3, 'id="notebooklm-log"', "CH3-1.html")
+    require(ch3, "unit3-notebooklm-reading-pack-complete.md", "CH3-1.html")
 
     fallback = (ROOT / "assets/fallback/unit3-notebooklm-text-fallback.md").read_text(encoding="utf-8")
     require(fallback, "約 300–350 字", "unit3 fallback")
