@@ -51,13 +51,14 @@ def main() -> None:
         ch3,
         (
             "notebook", "sourceNews", "sourceNotice", "sourceBook", "sourceStatus", "sourceCheck1",
-            "newsPrompt", "newsOne", "news200", "news350", "newsCitations", "noticeImpact", "noticeDeadline",
+            "newsPrompt", "newsOne", "newsTwo", "newsThree", "newsCitations", "noticeImpact", "noticeDeadline",
             "noticeNext", "bookPoints", "bookActions", "check6",
         ),
         "CH3-1 NotebookLM companion log",
     )
     require(ch3, "不會自動讀取 NotebookLM", "CH3-1 boundary")
     require(ch3, "notebooklm.google.com", "CH3-1 platform")
+    require(ch3, "步驟 1", "CH3-1 ordered path")
 
     ch4 = (ROOT / "CH4-1.html").read_text(encoding="utf-8")
     check_common(ch4, "CH4-1 lifestyle workbench", "lifestyle-workbench", "unit4-lifestyle-application-card.md")
@@ -70,6 +71,10 @@ def main() -> None:
         ),
         "CH4-1 lifestyle workbench",
     )
+    require(ch2, "U2-AUDIENCE", "CH2-1 audience conversion")
+    require(ch2, "讀者轉換", "CH2-1 audience conversion")
+    require(ch4, "條件敏感性", "CH4-1 decision sensitivity")
+    require(ch4, "方案取捨", "CH4-1 decision tradeoff")
 
     for name, text in (("CH2-1", ch2), ("CH3-1", ch3), ("CH4-1", ch4)):
         assert "全選複製到自己的文字／Markdown 編輯器" not in text, f"{name} still presents copy-out as main path"

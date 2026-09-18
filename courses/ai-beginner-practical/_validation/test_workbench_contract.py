@@ -43,16 +43,15 @@ def main() -> None:
         "revisionInstruction",
         "revisionResponse",
         "revisionKept",
-        "personalFuzzy",
+        "personalNeed",
         "personalSituation",
         "personalTask",
         "personalData",
         "personalConditions",
         "personalFormat",
         "personalPrompt",
-        "personalChange",
-        "personalInstruction",
-        "personalBetter",
+        "personalGap",
+        "personalNext",
     ):
         require(text, f'data-field="{field}"', f"CH1-1 {field}")
 
@@ -61,6 +60,8 @@ def main() -> None:
 
     assert 'href="assets/worksheets/unit1-practice-sheet.md"' in text, "offline worksheet must remain available"
     assert "全選複製到自己的純文字／Markdown 編輯器" not in text, "old copy-out workflow must not be the main path"
+    assert "五個日常對話" in text and "缺少的條件" in text, "CH1 must teach the gap-comparison outcome"
+    assert "個人任務卡" in text, "CH1 must end with a reusable personal task card"
     print("workbench contract: PASS")
 
 

@@ -4,7 +4,7 @@
 
 | 類型 | 檔案 | 課堂用途 |
 |---|---|---|
-| 新聞 | news-community-fridge.txt | 講師 Demo：三段式摘要 |
+| 新聞 | news-community-fridge.txt | 講師 Demo：主張與證據狀態台帳 |
 | 新聞 | news-workshop-transcript.txt | 進階摘要選題 |
 | 新聞 | news-market-stall.txt | 進階摘要選題 |
 | 新聞 | news-library-books.txt | 進階摘要選題 |

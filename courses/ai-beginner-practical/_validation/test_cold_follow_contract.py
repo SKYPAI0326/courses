@@ -33,8 +33,8 @@ def main() -> None:
     require(ch3, "NotebookLM 實機準備", "CH3-1.html")
 
     ch1 = (ROOT / "CH1-1.html").read_text(encoding="utf-8")
-    require(ch1, "修訂後完整輸出", "CH1-1.html")
-    require(ch1, "只改變呈現格式", "CH1-1.html")
+    require(ch1, "補條件後的完整回答", "CH1-1.html")
+    require(ch1, "補一個缺少的條件", "CH1-1.html")
     require(ch1, 'id="practice-workbench"', "CH1-1.html")
     require(ch1, 'id="unit1-workbench"', "CH1-1.html")
     require(ch1, 'data-action="export"', "CH1-1.html")
@@ -49,7 +49,7 @@ def main() -> None:
 
     ch4 = (ROOT / "CH4-1.html").read_text(encoding="utf-8")
     require(ch4, "完整冷氣比較表", "CH4-1.html")
-    require(ch4, "完整四天修正版", "CH4-1.html")
+    require(ch4, "完整四天條件敏感性版本", "CH4-1.html")
     require(ch4, "module1.html#course-capstone", "CH4-1.html")
     require(ch4, 'id="lifestyle-workbench"', "CH4-1.html")
     require(ch4, "unit4-lifestyle-application-card.md", "CH4-1.html")
