@@ -127,7 +127,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
     <div class="outcomes-label">學習成果</div>
     <div class="outcome-item">能用相對引用 <code>{{ $json.xxx }}</code>、絕對引用 <code>{{ $('NodeName').first().json.xxx }}</code> 取資料</div>
     <div class="outcome-item">能用 Optional Chaining <code>?.</code> 處理可能缺失的巢狀欄位避免 undefined 錯誤</div>
-    <div class="outcome-item">能用 n8n 內建變數（$now, $itemIndex, $workflow）+ JavaScript 函式（split / map / filter）</div>
+    <div class="outcome-item">能用 n8n 內建變數（$json、$now、$today、$workflow、$env）與 JavaScript 函式（filter / map / join）</div>
   </div>
 </div>
 
@@ -143,7 +143,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
     <span class="arrow">→</span>
     <span class="node code">Code: 複合資料處理</span>
   </div>
-  <p class="body-text">4 節點線性鏈。第 2 節點 Set 假資料當「上游」（含 user / orders / metadata 巢狀結構），第 3 節點 Set 用 10 種 expression 寫法各自抓上游某個欄位（學員看 Output 對照寫法 → 結果），第 4 節點 Code 用 JavaScript 處理同樣資料示範更複雜的邏輯。</p>
+  <p class="body-text">4 節點線性鏈。第 2 節點 Set 假資料當「上游」（含 user 巢狀物件與 items 商品陣列），第 3 節點 Set 用 10 種 expression 寫法各自抓上游欄位或處理陣列（學員看 Output 對照寫法 → 結果），第 4 節點 Code 用 JavaScript 處理同樣資料示範更複雜的邏輯。</p>
 </section>
 
 <hr class="section-rule">
@@ -155,22 +155,22 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
   <table class="expr-table">
     <thead><tr><th>用途</th><th>Expression 寫法</th><th>結果範例</th></tr></thead>
     <tbody>
-      <tr><td>取上一節點的 json 欄位</td><td><code>{{ $json.user.name }}</code></td><td>"小明"</td></tr>
-      <tr><td>取指定節點的 json 欄位</td><td><code>{{ $('Set: 假資料').first().json.user.email }}</code></td><td>"ming@example.com"</td></tr>
-      <tr><td>Optional Chaining（防 undefined）</td><td><code>{{ $json.user?.address?.city ?? "未知" }}</code></td><td>"未知"（如果 address 不存在）</td></tr>
-      <tr><td>取 array 第 N 個元素</td><td><code>{{ $json.orders[0].id }}</code></td><td>"ORD-001"</td></tr>
-      <tr><td>array 長度</td><td><code>{{ $json.orders.length }}</code></td><td>3</td></tr>
-      <tr><td>當前時間 ISO 字串</td><td><code>{{ $now.toISO() }}</code></td><td>"2026-05-06T08:30:00..."</td></tr>
-      <tr><td>當前時間自訂格式</td><td><code>{{ $now.toFormat('yyyy-MM-dd') }}</code></td><td>"2026-05-06"</td></tr>
-      <tr><td>當前 item 的 index（multi-item）</td><td><code>{{ $itemIndex }}</code></td><td>0, 1, 2...</td></tr>
-      <tr><td>workflow 名稱</td><td><code>{{ $workflow.name }}</code></td><td>"08 · Reference 練習"</td></tr>
-      <tr><td>JavaScript 內建函式</td><td><code>{{ $json.user.name.toUpperCase() }}</code></td><td>"小明"（中文不變）/ "MING"</td></tr>
+      <tr><td>取上一節點的 json 欄位</td><td><code>{{ $json.user.name }}</code></td><td>"Alice"</td></tr>
+      <tr><td>取巢狀物件欄位</td><td><code>{{ $json.user.address.city }}</code></td><td>"Taipei"</td></tr>
+      <tr><td>Optional Chaining + 預設值</td><td><code>{{ $json.user.address?.zip ?? "未填郵遞區號" }}</code></td><td>"未填郵遞區號"（zip 為 null）</td></tr>
+      <tr><td>深層 Optional Chaining</td><td><code>{{ $json.user.profile?.email ?? "無 email" }}</code></td><td>"無 email"（profile 不存在）</td></tr>
+      <tr><td>取 array 第 N 個元素</td><td><code>{{ $json.items[0].name }}</code></td><td>"item-A"</td></tr>
+      <tr><td>array 長度</td><td><code>{{ $json.items.length }}</code></td><td>3</td></tr>
+      <tr><td>array filter / map / join</td><td><code>{{ $json.items.filter(x =&gt; x.price).map(x =&gt; x.name).join(', ') }}</code></td><td>"item-A, item-B"</td></tr>
+      <tr><td>目前時間自訂格式</td><td><code>{{ $now.toFormat('yyyy-MM-dd HH:mm:ss') }}</code></td><td>依執行當下產生</td></tr>
+      <tr><td>今天日期格式</td><td><code>{{ $today.toFormat('yyyyMMdd') }}</code></td><td>依執行日期產生</td></tr>
+      <tr><td>安全讀取環境變數</td><td><code>{{ $env.TELEGRAM_CHAT_ID ?? "未設定環境變數" }}</code></td><td>依環境設定；未設定時顯示預設文字</td></tr>
     </tbody>
   </table>
 
   <div class="callout">
     <div class="callout-icon" aria-hidden="true">💡</div>
-    <div class="callout-body"><strong>n8n Expression 完整能用什麼</strong>：所有 JavaScript 內建（Math / String / Array / Date methods）+ Luxon DateTime（<code>$now / $today</code>）+ n8n 內建變數（<code>$json / $node / $workflow / $execution / $itemIndex</code>）+ 引用語法 <code>$('NodeName').first().json / .all() / .item.json</code>。</div>
+    <div class="callout-body"><strong>n8n Expression 完整能用什麼</strong>：所有 JavaScript 內建（Math / String / Array / Date methods）+ Luxon DateTime（<code>$now / $today</code>）+ n8n 內建變數（<code>$json / $node / $workflow / $execution / $env</code>）+ 引用語法 <code>$('NodeName').first().json / .all() / .item.json</code>。本流程的跨節點引用示範放在 Code 節點。</div>
   </div>
 </section>
 
@@ -207,13 +207,13 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 
   <div class="callout info" style="margin-top:24px">
     <div class="callout-icon" aria-hidden="true">🎯</div>
-    <div class="callout-body">Expression 速查完成，接下來進入 <a href="m0-workflow-09-gmail.html">#09 Gmail 分類通知</a>。Lite Pack 共有 14 個 workflow；你可以依序完成 #09–#14，或先到 <a href="m0-install-mac.html">Mac 安裝</a>／<a href="m0-install-win.html">Windows 安裝</a> 把試跑環境準備好。</div>
+    <div class="callout-body">Expression 速查完成，接下來可進入 <a href="m0-workflow-09-gmail.html">#09 Gmail 分類通知（進階選修）</a>。Lite Pack 共有 14 個 workflow（13 個核心＋#09 選修）；未設定 Gmail OAuth 時可直接跳到 #10，或先到 <a href="m0-install-mac.html">Mac 安裝</a>／<a href="m0-install-win.html">Windows 安裝</a> 把試跑環境準備好。</div>
   </div>
 </section>
 
 <div class="nav-footer">
-  <a href="m0-workflow-07-tunnel.html" class="nav-btn"><span aria-hidden="true">←</span> 上一個：#07 Quick Tunnel</a>
-  <a href="m0-workflow-09-gmail.html" class="nav-btn primary">下一個：#09 Gmail 分類通知 <span aria-hidden="true">→</span></a>
+  <a href="m0-workflow-07-tunnel.html" class="nav-btn nav-prev" aria-label="上一單元" data-nav-role="prev"><span aria-hidden="true">←</span> 上一個：#07 Quick Tunnel</a>
+  <a href="m0-workflow-09-gmail.html" class="nav-btn primary nav-next" aria-label="下一單元" data-nav-role="next">下一個：#09 Gmail 分類通知（選修） <span aria-hidden="true">→</span></a>
 </div>
 
 </main>

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>#09 Gmail 分類通知 設計拆解｜AI 資料工廠</title>
-<meta name="description" content="Lite Pack #09 workflow 設計拆解：Gmail Trigger 每 N 分鐘 polling 新信 → Gemini 分類 4 類（客訴/詢問/合約/其他）→ Switch 多路由 → Telegram 緊急通知。Make 等效但無 ops 上限 + 可換本地 LLM。">
+<meta name="description" content="Lite Pack #09 進階選修 workflow 設計拆解：Gmail Trigger 每 N 分鐘 polling 新信 → Gemini 分類 4 類（客訴/詢問/合約/其他）→ Switch 多路由 → Telegram 緊急通知。需要 Gmail OAuth，未設定時可跳過。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
 <meta property="og:title" content="#09 Gmail 分類通知 設計拆解｜AI 資料工廠">
@@ -143,15 +143,20 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 
 <div class="page-hero">
   <a href="m0-workflow-tour.html" class="back-link"><span aria-hidden="true">←</span> 返回工作流總覽</a>
-  <div class="hero-eyebrow">#09 · GMAIL CATEGORIZE · 7 個可執行節點 + 1 張說明卡 · 進階 · 需 OAuth 設定</div>
-  <h1 class="lesson-title">Make 等效的「信箱分類通知」：但跑你本機 + 沒 ops 上限</h1>
-  <p class="lesson-tagline">Make 經典場景（Gmail Trigger → AI 分類 → 多路由通知）的 n8n 對等實作。7 個可執行節點與 1 張說明卡：Gmail polling → AI 分 4 類（客訴/詢問/合約/其他）→ Switch 多路由 → 客訴緊急 Telegram、詢問待辦、合約待歸檔。Lite Pack 唯一需要學員自建 Gmail OAuth credential 的 workflow（Lite Pack 無法幫你建，因為要走 Google Cloud Project + OAuth 授權流程半小時）。</p>
+  <div class="hero-eyebrow">#09 · GMAIL CATEGORIZE · 7 個可執行節點 + 1 張說明卡 · 進階選修 · 需 OAuth（可跳過）</div>
+  <h1 class="lesson-title">Make 等效的「信箱分類通知」：改在本機執行</h1>
+  <p class="lesson-tagline">Make 經典場景（Gmail Trigger → AI 分類 → 多路由通知）的 n8n 對等實作。7 個可執行節點與 1 張說明卡：Gmail polling → AI 分 4 類（客訴/詢問/合約/其他）→ Switch 多路由 → 客訴緊急 Telegram、詢問待辦、合約待歸檔。這是 Lite Pack 的進階選修：只有要實際讀取 Gmail 時才需自建 Gmail OAuth credential；先完成 13 個核心 workflow 的學員可以跳過。</p>
   <div class="outcomes">
     <div class="outcomes-label">學習成果</div>
     <div class="outcome-item">能在 Google Cloud Console 建 OAuth 2.0 client + 設 redirect URI 給 n8n 用</div>
     <div class="outcome-item">能用 Gmail Trigger 節點 polling 新信，配合 Switch 節點做多路由分支</div>
     <div class="outcome-item">能設計「結構化 JSON 輸出 prompt」讓 AI 回穩定可解析的分類結果</div>
   </div>
+</div>
+
+<div class="callout info" style="max-width:var(--content-w);margin:0 auto 24px;padding-left:48px;padding-right:48px">
+  <div class="callout-icon" aria-hidden="true">🧭</div>
+  <div class="callout-body"><strong>先看這裡：#09 是進階選修</strong><br>Lite Pack 仍會匯入 14 個 workflow，但核心驗證是 13 個；未設定 Gmail OAuth 時請先跳過 #09，不會影響 #01–#08、#10–#14。需要實際 polling Gmail 時，再依下方步驟建立 OAuth。</div>
 </div>
 
 <section class="lesson-section">
@@ -165,7 +170,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
   <table class="compare-table">
     <thead><tr><th>維度</th><th>Make（雲端）</th><th>n8n（本機）</th></tr></thead>
     <tbody>
-      <tr><td>設定難度</td><td class="y">15 分鐘（Gmail OAuth 一鍵授權）</td><td class="neutral">半小時 + 自建 Google Cloud Project</td></tr>
+      <tr><td>設定難度</td><td class="y">15 分鐘（Gmail OAuth 一鍵授權）</td><td class="neutral">較高；需自建 Google Cloud Project（選修）</td></tr>
       <tr><td>每月處理量</td><td class="n">可處理量依當前方案與每封信的 ops 計算</td><td class="y">不採同一套 execution 計算方式，但受電腦效能與 Gemini API 額度影響</td></tr>
       <tr><td>1000 封/月成本</td><td class="n">依當前 Make 方案與 ops 需求估算</td><td class="y">需估算電力、維護與 Gemini API 方案成本</td></tr>
       <tr><td>本地 AI 分類</td><td class="n">不能（必打雲端 OpenAI/Claude）</td><td class="y">能（換 jsCode 內 URL 為本機 Ollama）</td></tr>
@@ -185,11 +190,11 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 <hr class="section-rule">
 
 <section class="lesson-section">
-  <div class="section-eyebrow">(02) GMAIL OAUTH 設定（必做、半小時）</div>
+  <div class="section-eyebrow">(02) GMAIL OAUTH 設定（進階選修；只在執行 #09 時需要）</div>
   <h2 class="section-heading">前置作業：建 Google Cloud Project + OAuth Client</h2>
   <div class="intro-band">
-    <div class="intro-label">為什麼比 Telegram 麻煩</div>
-    <div class="intro-text">Telegram bot token 是純字串貼上就用。Gmail 屬於 Google 帳號級別權限，必須走 OAuth 授權同意流程，需要你建 Google Cloud Project + OAuth client + 加 redirect URI 對應到本機 n8n。第一次設半小時，之後同個 client 可重用。</div>
+    <div class="intro-label">需要執行 #09 時才做</div>
+    <div class="intro-text">Telegram bot token 是純字串貼上就用。Gmail 屬於 Google 帳號級別權限，必須走 OAuth 授權同意流程，需要你建 Google Cloud Project + OAuth client + 加 redirect URI 對應到本機 n8n。這段設定只影響 #09；若目前只做核心驗證，可以先跳過。</div>
   </div>
 
   <div class="step-block">
@@ -270,7 +275,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--c-text);outline-off
 
   <div class="step-block">
     <div class="step-num">STEP 6</div>
-    <div class="step-title">把 #09 workflow 內 Gmail Trigger 節點接到剛建的 credential</div>
+    <div class="step-title">（選做）把 #09 workflow 內 Gmail Trigger 節點接到剛建的 credential</div>
     <div class="step-body">
       <ol>
         <li>n8n 進 <span class="ic">09 · Gmail 分類通知</span> workflow</li>
@@ -353,7 +358,7 @@ urgency 取值：high / normal / low</div>
   <div class="callout">
     <div class="callout-icon" aria-hidden="true">💭</div>
     <div class="callout-body"><strong>為什麼預設未發布（Published = false）</strong>？<br>
-    Gmail Trigger 一發布就會立刻 polling 你 Gmail。Lite Pack import 後如果預設已發布，credential 還沒設好會立刻噴錯誤。學員設好 credential + 改 polling 頻率合理後再按 Publish。</div>
+    Gmail Trigger 一發布就會立刻 polling 你 Gmail。Lite Pack import 後如果預設已發布，credential 還沒設好會立刻噴錯誤。要執行 #09 時，先設好 credential + 調整 polling 頻率再按 Publish；只做核心驗證可略過 #09。</div>
   </div>
 
   <div class="callout">
@@ -364,7 +369,7 @@ urgency 取值：high / normal / low</div>
 
   <div class="callout tip">
     <div class="callout-icon" aria-hidden="true">⚠️</div>
-    <div class="callout-body"><strong>OAuth Test Mode 限制</strong>：Step 3 設 OAuth consent screen 為 External 但 publishing status 默認是 Testing。Test mode 只允許 Test Users 列表內的 Gmail 授權（最多 100 個）+ refresh token 7 天過期。要永久使用要 publish app（會跳 verify 流程，個人用無所謂）。</div>
+    <div class="callout-body"><strong>OAuth Test Mode 限制</strong>：Step 3 設 OAuth consent screen 為 External 時，預設 publishing status 是 Testing。Testing 只允許 Test Users 列表內的帳號授權，且可能有權杖期限與使用限制。個人／課堂測試停在 Testing 即可；只有要公開給其他使用者時，才需要進一步處理 Google 驗證。</div>
   </div>
 </section>
 
@@ -384,13 +389,13 @@ urgency 取值：high / normal / low</div>
 
   <div class="callout info" style="margin-top:24px">
     <div class="callout-icon" aria-hidden="true">🎯</div>
-    <div class="callout-body">這是 Lite Pack 中段的外部服務案例。完成 #09 後，接著可依序閱讀 #10–#14；前面的 #01–#08 已建立 webhook、檔案處理、Expression 與錯誤分支基礎。接下來把同一套拆解方法帶到 Gmail 與營運資料。</div>
+    <div class="callout-body">這是 Lite Pack 中段的外部服務案例。若你已完成 Gmail OAuth，接著可依序閱讀 #10–#14；若先跳過 #09，直接從 #10 繼續即可。前面的 #01–#08 已建立 webhook、檔案處理、Expression 與錯誤分支基礎。</div>
   </div>
 </section>
 
 <div class="nav-footer">
-  <a href="m0-workflow-08-expression.html" class="nav-btn"><span aria-hidden="true">←</span> 上一個：#08 Expression 練習</a>
-  <a href="m0-workflow-10-folder-organize.html" class="nav-btn primary">下一個：#10 客戶資料夾整理 <span aria-hidden="true">→</span></a>
+  <a href="m0-workflow-08-expression.html" class="nav-btn nav-prev" aria-label="上一單元" data-nav-role="prev"><span aria-hidden="true">←</span> 上一個：#08 Expression 練習</a>
+  <a href="m0-workflow-10-folder-organize.html" class="nav-btn primary nav-next" aria-label="下一單元" data-nav-role="next">下一個：#10 客戶資料夾整理 <span aria-hidden="true">→</span></a>
 </div>
 
 </main>
