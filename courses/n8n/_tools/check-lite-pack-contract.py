@@ -29,6 +29,17 @@ SLUGS = {
     "11": "csv-clean", "12": "knowledge-rag", "13": "daily-ops",
     "14": "api-monitor",
 }
+LOCAL_UI_MEMBERS = {
+    "06": (
+        "n8n-lite-pack/web-ui/06-ai-ui.html",
+        "n8n-lite-pack/workflows/06-webhook-gemini-file.json",
+    ),
+    "12": (
+        "n8n-lite-pack/web-ui/12-kb-ui.html",
+        "n8n-lite-pack/workflows/12-knowledge-rag.json",
+    ),
+}
+LOCAL_UI_GATE_MARKERS = ("課程專屬講義", 'id="_gate"', "n8n_auth")
 
 
 def executable(nodes: list[dict]) -> list[dict]:
@@ -121,6 +132,22 @@ def local_lite_drift() -> list[str]:
     return drift
 
 
+def local_ui_gate_leaks(archive: zipfile.ZipFile) -> list[str]:
+    """Ensure local webhook UIs do not include the unrelated course password gate."""
+    leaks = []
+    names = set(archive.namelist())
+    for ident, members in LOCAL_UI_MEMBERS.items():
+        for member in members:
+            if member not in names:
+                leaks.append(f"#{ident}: missing {member}")
+                continue
+            content = archive.read(member).decode("utf-8", errors="replace")
+            for marker in LOCAL_UI_GATE_MARKERS:
+                if marker in content:
+                    leaks.append(f"#{ident}: {member} contains {marker!r}")
+    return leaks
+
+
 def main() -> int:
     failures = []
     print("# Lite Pack contract check")
@@ -128,6 +155,12 @@ def main() -> int:
     print("\n| # | JSON nodes | webhook contract | fan-out | model | page flags |")
     print("|---|---:|---|---|---|---|")
     with zipfile.ZipFile(ZIP) as archive:
+        gate_leaks = local_ui_gate_leaks(archive)
+        print("Local webhook UI course gate:", "CLEAN" if not gate_leaks else f"LEAK ({len(gate_leaks)} markers)")
+        for item in gate_leaks:
+            print("- local-ui:", item)
+        failures.extend(f"local webhook UI: {item}" for item in gate_leaks)
+
         workflow_names = sorted(
             name for name in archive.namelist()
             if name.startswith("n8n-lite-pack/workflows/") and re.search(r"/\d{2}-.*\.json$", name)

@@ -4,11 +4,22 @@
 
 > **版本**：v1.1.0（2026-09-03）— 更新至已在 macOS Docker Desktop 驗證的 n8n `2.37.7`，統一使用 `N8N_WEBHOOK_URL`，並補上 macOS／Windows 主機路徑與容器路徑的使用界線。
 >
-> **課程測試版本**：n8n `2.37.7`（2026-09-03 依 Docker Hub tags 驗證可用）+ Docker Desktop。`n8n-compose.yml` 已鎖定 patch 版本以確保畫面與行為可重現；升級時請重新驗證教材。Windows 的實機啟動仍需由講師或學員在 Windows Docker Desktop 試跑。
+> **課程測試版本**：n8n `2.37.7`（2026-09-03 依 Docker Hub tags 驗證可用）+ Docker Desktop。`n8n-compose.yml` 已鎖定 patch 版本以確保畫面與行為可重現；升級時請重新驗證教材。Windows 請先依課程 1.1.0「參與門檻 Gate」完成 WSL2、BIOS／UEFI 與 Docker smoke test；未通過時先使用借用機／遠端備援或請 IT 處理。
 >
 > **授權與方案條件**：n8n Community Edition 採 [Sustainable Use License](https://docs.n8n.io/sustainable-use-license/)——課程中的自架、教學、內部流程與顧問案是否符合，請依官方條款逐項確認；不可把 n8n 代管成 SaaS、white-label 或嵌入產品對外販售。Docker Desktop 的使用資格另依 [Docker 條款](https://www.docker.com/products/personal/) 判斷，組織規模與用途請逐項對照。
 
 ## 最小執行流程
+
+### 課前入場門檻（先做再安裝）
+
+這個試跑包的第一個步驟不是雙擊啟動，而是確認電腦能穩定跑 Docker。課程核心採以下最低值：
+
+- **Mac**：Docker 官方目前支援的 macOS（課程建議至少 macOS 14），Apple Silicon／Intel 下載對應安裝包。
+- **Windows**：64-bit Windows 10 22H2 build 19045 或 Windows 11 23H2 build 22631 以上；WSL 2.1.5 以上；CPU 支援 SLAT；BIOS／UEFI 硬體虛擬化已啟用。
+- **資源與權限**：總 RAM 至少 8GB、可用磁碟至少 20GB；能安裝或請 IT 預先安裝 Docker Desktop、可重開機並接受安全性／防火牆提示。
+- **煙霧測試**：Docker Desktop 顯示 running，且 `docker version`、`docker compose version`、`docker run --rm hello-world` 都成功。
+
+若任一項無法提供證據，先標記為 CONDITIONAL 或 BLOCK，不要把 BIOS、WSL2 或公司權限問題留到課堂現場。
 
 ### 第一次啟動
 
