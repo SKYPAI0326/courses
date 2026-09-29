@@ -83,7 +83,10 @@ def collect_pages():
                 continue
             if is_gated(html):
                 continue
-            rel = html.relative_to(ROOT).as_posix()
+            # BASE_URL already points at the GitHub Pages `/courses` path.
+            # Build the suffix relative to COURSES_DIR so URLs do not become
+            # `/courses/courses/<slug>/...`.
+            rel = html.relative_to(COURSES_DIR).as_posix()
             kind = classify(html)
             entries.append((rel, file_lastmod(html), PRIORITY.get(kind, "0.5")))
 

@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CH5-1 從任務到技巧 — 實務決策樹｜CCS 生成式 AI 認證研習</title>
+<meta name="description" content="能在拿到一個真實任務時，於 30 秒內判斷該用哪一類提示技巧（Zero-shot / Few-shot / CoT / Chain），而不是隨便丟一句話給 AI。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="CH5-1 從任務到技巧 — 實務決策樹｜CCS 生成式 AI 認證研習">
+<meta property="og:description" content="能在拿到一個真實任務時，於 30 秒內判斷該用哪一類提示技巧（Zero-shot / Few-shot / CoT / Chain），而不是隨便丟一句話給 AI。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/ccs-foundations/CH5-1.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CH5-1 從任務到技巧 — 實務決策樹｜CCS 生成式 AI 認證研習">
+<meta name="twitter:description" content="能在拿到一個真實任務時，於 30 秒內判斷該用哪一類提示技巧（Zero-shot / Few-shot / CoT / Chain），而不是隨便丟一句話給 AI。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/ccs-foundations/CH5-1.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-a5:#7a9ea3;--c-main:#7a9ea3;--radius:4px;--radius-sm:3px;--content-w:780px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;word-break:break-word;overflow-wrap:break-word;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 var(--radius) 0;font-size:.85rem;text-decoration:none;}
+.skip-link:focus{left:0;}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px;}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px;}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none;}
+.topbar-divider{width:1px;height:18px;background:var(--c-border);}
+.topbar-sub{font-size:.8rem;color:var(--c-muted);}
+.spacer{flex:1;}
+.topbar-tag{font-size:.72rem;color:var(--c-main);border:1px solid rgba(122,158,163,.3);background:transparent;padding:3px 12px;border-radius:99px;font-weight:500;letter-spacing:.06em;}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49;}
+.progress-fill{height:100%;background:var(--c-text);opacity:.75;width:0%;transition:width .1s;}
+.page-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px;}
+.back-link:hover{color:var(--c-text);}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.hero-part{font-size:.73rem;color:var(--c-muted);letter-spacing:.08em;font-weight:500;}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border);}
+.hero-num{font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-main);letter-spacing:.1em;font-weight:500;font-variant-numeric:tabular-nums;}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em;max-width:22ch;}
+.lesson-tagline{font-size:.92rem;color:var(--c-muted);line-height:1.9;margin-bottom:36px;}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text);margin-top:28px;}
+.outcomes-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px;}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:var(--c-muted);line-height:1.8;}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-main);margin-top:8px;flex-shrink:0;}
+.lesson-section{max-width:var(--content-w);margin:0 auto;padding:40px 48px;}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.82rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums;}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em;}
+.section-heading em{font-style:normal;color:var(--c-text);}
+.section-rule{border:0;border-top:1px solid var(--c-border-soft);margin:0 auto;max-width:var(--content-w);}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.9;margin-bottom:16px;}
+.body-text strong{font-weight:700;}
+.intro-band{padding:4px 0 4px 24px;margin:0 0 32px;border-left:1px solid var(--c-text);}
+.intro-label{font-size:.72rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px;}
+.intro-text{font-size:.92rem;color:var(--c-muted);line-height:1.9;}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text);}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text);}
+.callout-icon{flex-shrink:0;font-size:1.1rem;}
+.callout-body{font-size:.9rem;line-height:1.85;color:var(--c-text);}
+.callout-body strong{font-weight:700;}
+.decision-table{width:100%;border-collapse:collapse;margin:24px 0;}
+.decision-table th{font-size:.73rem;color:var(--c-muted);font-weight:500;padding:10px 16px;border-bottom:2px solid var(--c-border);text-align:left;}
+.decision-table td{font-size:.85rem;padding:12px 16px;border-bottom:1px solid var(--c-border-soft);vertical-align:top;line-height:1.7;}
+.decision-table tr:last-child td{border-bottom:none;}
+.decision-table .row-label{font-weight:700;color:var(--c-text);font-family:'Shippori Mincho',serif;}
+.decision-table .tech-name{font-weight:700;color:var(--c-main);}
+.technique-list{display:flex;flex-direction:column;gap:16px;margin:24px 0;}
+.technique-item{background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-main);border-radius:var(--radius);padding:18px 20px;}
+.technique-num{font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:4px;font-variant-numeric:tabular-nums;}
+.technique-title{font-size:.95rem;font-weight:700;color:var(--c-text);margin-bottom:6px;}
+.technique-desc{font-size:.85rem;color:var(--c-muted);line-height:1.75;}
+.technique-example{font-size:.82rem;color:var(--c-text);margin-top:8px;padding:8px 12px;background:var(--c-surface);border-radius:var(--radius);}
+.big-quote{font-family:'Shippori Mincho',serif;font-size:1.2rem;font-weight:700;line-height:1.65;color:var(--c-text);padding:28px 32px;background:var(--c-card);border:1px solid var(--c-border);border-left:4px solid var(--c-text);border-radius:var(--radius);margin:28px 0;}
+.decision-steps{margin:24px 0;display:flex;flex-direction:column;gap:0;}
+.decision-step{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--c-border-soft);}
+.decision-step:last-child{border-bottom:none;}
+.ds-num{font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-faint);font-weight:500;width:28px;flex-shrink:0;padding-top:2px;font-variant-numeric:tabular-nums;}
+.ds-body{flex:1;}
+.ds-q{font-size:.9rem;font-weight:700;color:var(--c-text);margin-bottom:4px;}
+.ds-a{font-size:.85rem;color:var(--c-muted);line-height:1.7;}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:24px 0;}
+.demo-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px;}
+.demo-badge{display:inline-block;font-size:.68rem;font-weight:700;letter-spacing:.06em;padding:3px 10px;border-radius:99px;background:rgba(122,158,163,.1);border:1px solid rgba(122,158,163,.25);color:var(--c-main);margin-bottom:10px;}
+.demo-title{font-size:.9rem;font-weight:700;color:var(--c-text);margin-bottom:8px;}
+.demo-desc{font-size:.82rem;color:var(--c-muted);line-height:1.7;}
+.demo-result{font-size:.78rem;color:var(--c-text);margin-top:8px;padding:6px 10px;background:var(--c-surface);border-radius:var(--radius);}
+.scenario-grid{display:flex;flex-direction:column;gap:0;border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:24px 0;}
+.scenario-row{display:grid;grid-template-columns:160px 1fr;border-bottom:1px solid var(--c-border-soft);}
+.scenario-row:last-child{border-bottom:none;}
+.scenario-task{font-size:.85rem;color:var(--c-text);padding:14px 16px;border-right:1px solid var(--c-border-soft);font-weight:500;background:var(--c-surface);}
+.scenario-pick{font-size:.85rem;color:var(--c-text);padding:14px 16px;line-height:1.7;}
+.scenario-pick strong{color:var(--c-main);}
+.ts-wrap{display:flex;flex-direction:column;gap:12px;margin:24px 0;}
+.ts-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:20px 22px;}
+.ts-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:8px;}
+.ts-num{font-family:'Shippori Mincho',serif;font-size:.72rem;color:var(--c-faint);font-weight:500;font-variant-numeric:tabular-nums;width:24px;flex-shrink:0;padding-top:2px;}
+.ts-q{font-size:.9rem;font-weight:700;color:var(--c-text);}
+.ts-body{padding-left:36px;}
+.ts-cause{font-size:.82rem;color:var(--c-muted);margin-bottom:6px;line-height:1.7;}
+.ts-fix{font-size:.82rem;color:var(--c-text);padding:8px 12px;background:var(--c-surface);border-radius:var(--radius);line-height:1.7;}
+.quiz-wrap{display:flex;flex-direction:column;gap:20px;margin:24px 0;}
+.quiz-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:22px 24px;}
+.quiz-q{font-size:.92rem;font-weight:700;color:var(--c-text);margin-bottom:16px;line-height:1.6;}
+.quiz-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+.quiz-opt{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--c-bg);border:1px solid var(--c-border);border-radius:var(--radius);cursor:pointer;font-size:.88rem;color:var(--c-text);transition:border-color .15s,background .15s;}
+.quiz-opt:hover{border-color:var(--c-main);background:rgba(122,158,163,.04);}
+.quiz-opt input[type="radio"]{margin:0;accent-color:var(--c-main);}
+.quiz-opt input[type="radio"]:checked + span{color:var(--c-main);font-weight:500;}
+.quiz-opt.correct{border-color:rgba(90,122,90,.4);}
+.quiz-ans{margin-top:8px;}
+.quiz-ans summary{font-size:.82rem;color:var(--c-muted);cursor:pointer;padding:6px 0;}
+.quiz-ans[open] summary{color:var(--c-text);}
+.quiz-ans > div{font-size:.85rem;color:var(--c-text);line-height:1.75;padding:12px 16px;background:var(--c-surface);border-radius:var(--radius);margin-top:6px;}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:32px 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:12px;}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-main);text-decoration:none;padding:10px 20px;border:1px solid rgba(122,158,163,.3);border-radius:var(--radius);transition:background .2s,border-color .2s;}
+.nav-btn:hover{background:rgba(122,158,163,.07);border-color:var(--c-main);}
+.nav-btn.primary{background:var(--c-main);color:#fff;border-color:var(--c-main);}
+.nav-btn.primary:hover{filter:brightness(.92);}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px;}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted);}
+.footer-div{width:1px;height:14px;background:var(--c-border);}
+.footer-note{font-size:.75rem;color:var(--c-muted);}
+.footer-meta{font-size:.7rem;color:var(--c-faint);margin-left:auto;letter-spacing:.05em;}
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1);}
+.reveal.in{opacity:1;transform:translateY(0);}
+@media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important;}*{animation:none!important;}}
+@media(max-width:600px){.topbar,.page-hero,.lesson-section,.nav-footer,.footer{padding-left:24px;padding-right:24px;}.topbar-sub,.topbar-divider{display:none;}.lesson-title{font-size:1.45rem;max-width:100%;}.demo-grid{grid-template-columns:1fr;}.scenario-row{grid-template-columns:1fr;}.scenario-task{border-right:none;border-bottom:1px solid var(--c-border-soft);}}
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 16px}.table-scroll>table{min-width:100%}
+
+/* === Active Reading 元件家族（2026-05-24 「全程有事做」改造）=== */
+.recall-q{background:var(--c-card);border:1px solid var(--c-border);border-left:2px solid var(--c-a1);border-radius:var(--radius);padding:18px 22px;margin:18px 0 24px}
+.recall-q.answered{border-left-color:var(--c-text)}
+.recall-label{font-family:'Shippori Mincho',serif;font-size:.7rem;color:var(--c-a1);letter-spacing:.15em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.recall-q.answered .recall-label{color:var(--c-text)}
+.recall-question{font-size:.92rem;color:var(--c-text);line-height:1.85;margin-bottom:14px;font-weight:500}
+.recall-options{display:flex;flex-direction:column;gap:8px;margin-bottom:0}
+.recall-opt{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;background:var(--c-surface);border:1px solid var(--c-border-soft);border-radius:var(--radius-sm);font-size:.85rem;color:var(--c-text);line-height:1.65;cursor:pointer;text-align:left;width:100%;font-family:inherit;transition:border-color .2s,background .2s}
+.recall-opt:hover{border-color:var(--c-a1);background:var(--c-card)}
+.recall-opt[data-state="ok"]{border-color:var(--c-a3);background:rgba(90,122,90,.06)}
+.recall-opt[data-state="ng"]{border-color:var(--c-a4);background:rgba(181,112,58,.06);opacity:.7}
+.recall-opt[disabled]{cursor:default}
+.recall-opt-key{font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-faint);min-width:18px;font-variant-numeric:tabular-nums}
+.recall-opt[data-state="ok"] .recall-opt-key{color:var(--c-a3)}
+.recall-opt[data-state="ng"] .recall-opt-key{color:var(--c-a4)}
+.recall-opt-body{flex:1}
+.recall-reveal{display:none;margin-top:14px;padding:12px 16px;background:var(--c-surface);border-left:2px solid var(--c-text);border-radius:var(--radius-sm);font-size:.85rem;line-height:1.8;color:var(--c-text)}
+.recall-reveal strong{font-weight:700}
+.recall-q.answered .recall-reveal{display:block}
+.recall-hint{font-size:.72rem;color:var(--c-muted);margin-top:10px;letter-spacing:.04em}
+.recall-q.answered .recall-hint{display:none}
+
+.check-q{background:var(--c-surface);border:1px solid var(--c-border);border-left:2px solid var(--c-text);border-radius:var(--radius);padding:18px 22px;margin:32px 0 16px}
+.check-label{font-family:'Shippori Mincho',serif;font-size:.7rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.check-question{font-size:.9rem;color:var(--c-text);line-height:1.85;margin-bottom:14px;font-weight:500}
+.check-question .q-ref{font-size:.72rem;color:var(--c-muted);margin-left:8px;letter-spacing:.04em}
+.check-options{display:flex;flex-direction:column;gap:8px}
+.check-opt{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;background:var(--c-card);border:1px solid var(--c-border-soft);border-radius:var(--radius-sm);font-size:.85rem;color:var(--c-text);line-height:1.65;cursor:pointer;text-align:left;width:100%;font-family:inherit;transition:border-color .2s}
+.check-opt:hover{border-color:var(--c-text)}
+.check-opt[data-state="ok"]{border-color:var(--c-a3);background:rgba(90,122,90,.06)}
+.check-opt[data-state="ng"]{border-color:var(--c-a4);background:rgba(181,112,58,.06);opacity:.7}
+.check-opt[disabled]{cursor:default}
+.check-opt-key{font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-faint);min-width:18px;font-variant-numeric:tabular-nums}
+.check-opt[data-state="ok"] .check-opt-key{color:var(--c-a3)}
+.check-opt[data-state="ng"] .check-opt-key{color:var(--c-a4)}
+.check-reveal{display:none;margin-top:14px;padding:12px 16px;background:var(--c-card);border-left:2px solid var(--c-a3);border-radius:var(--radius-sm);font-size:.85rem;line-height:1.8;color:var(--c-text)}
+.check-q.answered .check-reveal{display:block}
+
+.page-progress{max-width:var(--content-w);margin:48px auto 0;padding:28px 48px 0;border-top:1px solid var(--c-border)}
+.pp-label{font-family:'Shippori Mincho',serif;font-size:.72rem;color:var(--c-muted);letter-spacing:.18em;margin-bottom:14px;font-variant-numeric:tabular-nums}
+.pp-stats{display:flex;align-items:baseline;gap:32px;margin-bottom:18px}
+.pp-stat{display:flex;flex-direction:column;gap:4px}
+.pp-num{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);line-height:1;font-variant-numeric:tabular-nums}
+.pp-num.dim{color:var(--c-faint)}
+.pp-stat-lbl{font-size:.72rem;color:var(--c-muted);letter-spacing:.08em}
+.pp-bar{height:2px;background:var(--c-border-soft);border-radius:1px;margin-bottom:14px;overflow:hidden}
+.pp-bar-fill{height:100%;background:var(--c-text);width:0%;transition:width .4s ease}
+.pp-note{font-size:.85rem;color:var(--c-muted);line-height:1.75}
+.pp-note strong{color:var(--c-text);font-weight:700}
+@media(max-width:768px){
+  .recall-q,.check-q{padding:14px 16px}
+  .page-progress{padding:24px 20px 0}
+  .pp-stats{gap:20px}
+}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='ccs_auth',H='f195a697efb749102d1eee6c7071180ece0bba71b6df57eb92fe857fc61cb4d8';if(localStorage.getItem(K)==='1')sessionStorage.setItem(K,'1');if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+
+<header class="topbar">
+  <a href="../../index.html" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">CCS 認證研習</span>
+  <div class="spacer"></div>
+  <span class="topbar-tag">CH 5-1</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<main id="main">
+
+<div class="page-hero">
+  <a href="index.html" class="back-link"><span aria-hidden="true">←</span> 返回課程目錄</a>
+  <div class="hero-meta">
+    <span class="hero-part">第五部分 · 實務應用篇</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 5-1</span>
+  </div>
+  <h1 class="lesson-title">從任務到技巧 — 實務決策樹</h1>
+  <p class="lesson-tagline">考完 CCS、拿到證照後，你回到真實任務前——那個選技巧的瞬間決定了 AI 幫不幫得上你。這章補上「任務 → 技巧」的反向判斷肌力。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">學習成果</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>用四象限決策樹判斷任務屬於哪一類</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>在 30 秒內套用三題口訣選定技巧</div>
+    <div class="outcome-item"><div class="outcome-dot"></div>看懂同一任務在四種技巧下的輸出差異</div>
+  </div>
+</div>
+
+<section class="lesson-section reveal">
+  <div class="section-eyebrow">(01)</div>
+  <h2 class="section-heading">你知道技巧是什麼，但<em>不知道何時用哪個</em></h2>
+
+  <div class="recall-q" data-q="s1-recall">
+    <div class="recall-label">先猜再讀 · 01</div>
+    <div class="recall-question">你已經會講「CoT 是思維鏈、Few-shot 是少樣本」，但回到真實任務時最常卡在哪？</div>
+    <div class="recall-options">
+      <button type="button" class="recall-opt" onclick="pickQ(this,false,'s1-recall')"><span class="recall-opt-key">A</span><span class="recall-opt-body">背不熟每個技巧的英文名</span></button>
+      <button type="button" class="recall-opt" onclick="pickQ(this,false,'s1-recall')"><span class="recall-opt-key">B</span><span class="recall-opt-body">找不到夠強的模型</span></button>
+      <button type="button" class="recall-opt" onclick="pickQ(this,true,'s1-recall')"><span class="recall-opt-key">C</span><span class="recall-opt-body">不知道手上這個任務該套哪一種技巧</span></button>
+      <button type="button" class="recall-opt" onclick="pickQ(this,false,'s1-recall')"><span class="recall-opt-key">D</span><span class="recall-opt-body">不知道如何把英文 prompt 翻成中文</span></button>
+    </div>
+    <div class="recall-hint">想想自己拿到任務時的第一秒——卡點通常在「名詞 → 任務」的反向判斷。</div>
+    <div class="recall-reveal"><strong>正解 C。</strong>CCS 教的是「名詞 → 定義」，但實務需要的是「任務 → 技巧」的反向判斷。下面會把這條缺口補起來。</div>
+  </div>
+
+  <div class="intro-band">
+    <div class="intro-label">為什麼這很重要</div>
+    <div class="intro-text">CCS 認證教的是「名詞 → 定義」方向：CoT 是什麼、Few-shot 是什麼。但實務需要的是反方向：手上有一個任務，要在 30 秒內決定用哪種技巧。這個判斷沒人教，卻是最常被卡住的地方。</div>
+  </div>
+  <p class="body-text">場景：你剛考完 CCS、拿到證照，回到自己的報告 / 作業 / 打工職場。現在要用 AI 寫一份報告摘要——但你只會打「幫我寫一份 XX 的報告摘要」。</p>
+  <p class="body-text">你認識 CoT 或 Few-shot，仍需要在對的時機用對技巧；這章補的，正是這個缺口。</p>
+
+  <div class="check-q" data-q="s1-check">
+    <div class="check-label">驗收 · 對應 Q44<span class="q-ref">考綱三</span></div>
+    <div class="check-question">學生上傳英文論文到 AI 工具請求協助修改，下列哪一種「使用方式」最符合 AI 作為輔助工具的角色定位？</div>
+    <div class="check-options">
+      <button type="button" class="check-opt" onclick="pickQ(this,true,'s1-check')"><span class="check-opt-key">A</span><span class="check-opt-body">請 AI 分析論文，提供語法、標點、拼寫和大小寫方面的建議</span></button>
+      <button type="button" class="check-opt" onclick="pickQ(this,false,'s1-check')"><span class="check-opt-key">B</span><span class="check-opt-body">請 AI 直接重寫整篇論文成「高分版本」</span></button>
+      <button type="button" class="check-opt" onclick="pickQ(this,false,'s1-check')"><span class="check-opt-key">C</span><span class="check-opt-body">請 AI 寫一篇全新的、符合高中生風格的範本</span></button>
+      <button type="button" class="check-opt" onclick="pickQ(this,false,'s1-check')"><span class="check-opt-key">D</span><span class="check-opt-body">請 AI 撰寫一篇能拿高分的議論文交差</span></button>
+    </div>
+    <div class="check-reveal"><strong>A。</strong>選 A 才是「編輯」角色——技術性校對由 AI 做，思考與原創由人類負責。B/C/D 是把「想清楚要什麼」這件事外包給 AI，反而是這章要避免的最大誤區。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section reveal">
+  <div class="section-eyebrow">(02)</div>
+  <h2 class="section-heading">四象限決策樹：兩個軸、四個位置</h2>
+
+  <div class="recall-q" data-q="s2-recall">
+    <div class="recall-label">先猜再讀 · 02</div>
+    <div class="recall-question">如果只給你「兩個問題」來把任務分類，哪兩題最能把 Zero-shot / Few-shot / CoT / Chain 一刀切開？</div>
+    <div class="recall-options">
+      <button type="button" class="recall-opt" onclick="pickQ(this,false,'s2-recall')"><span class="recall-opt-key">A</span><span class="recall-opt-body">中文還是英文？／用 ChatGPT 還是 Gemini？</span></button>
+      <button type="button" class="recall-opt" onclick="pickQ(this,false,'s2-recall')"><span class="recall-opt-key">B</span><span class="recall-opt-body">免費還是付費版？／時間夠不夠？</span></button>
+      <button type="button" class="recall-opt" onclick="pickQ(this,true,'s2-recall')"><span class="recall-opt-key">C</span><span class="recall-opt-body">單步可解還是需要多步推理？／手邊有沒有範例？</span></button>
+      <button type="button" class="recall-opt" onclick="pickQ(this,false,'s2-recall')"><span class="recall-opt-key">D</span><span class="recall-opt-body">任務難不難？／我熟不熟這個領域？</span></button>
+    </div>
+    <div class="recall-hint">想想哪兩個問題的答案組合，能直接對應到四個不同技巧。</div>
+    <div class="recall-reveal"><strong>正解 C。</strong>「步驟數 × 範例量」這兩軸交叉出四象限，正好對應四種技巧。下面的對照表會把每個位置填滿。</div>
+  </div>
+
+  <p class="body-text">用兩個問題把任務分進四個位置：<strong>「這個任務單步可解，還是需要多步推理？」</strong> 加上 <strong>「手邊有沒有格式或範例可參照？」</strong></p>
+
+  <div class="table-scroll"><table class="decision-table">
+    <thead>
+      <tr>
+        <th></th>
+        <th>單步可解</th>
+        <th>需多步推理</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="row-label">有格式 / 範例可參照</td>
+        <td class="tech-name">Few-shot</td>
+        <td class="tech-name">Chain + Few-shot</td>
+      </tr>
+      <tr>
+        <td class="row-label">無現成格式</td>
+        <td class="tech-name">Zero-shot</td>
+        <td class="tech-name">CoT</td>
+      </tr>
+    </tbody>
+  </table></div>
+
+  <p class="body-text">四類任務各有判斷關鍵詞：</p>
+  <div class="technique-list">
+    <div class="technique-item">
+      <div class="technique-num">(01)</div>
+      <div class="technique-title">Zero-shot</div>
+      <div class="technique-desc">任務本身很明確，一句話就能說清楚要什麼。</div>
+      <div class="technique-example">例：「翻譯這段」「摘要這篇」「改寫成正式語氣」</div>
+    </div>
+    <div class="technique-item">
+      <div class="technique-num">(02)</div>
+      <div class="technique-title">Few-shot</div>
+      <div class="technique-desc">要 AI 模仿某種格式或語調，手邊有可參照的範例。</div>
+      <div class="technique-example">例：「幫我寫商品描述，風格像我之前寫的這三則」</div>
+    </div>
+    <div class="technique-item">
+      <div class="technique-num">(03)</div>
+      <div class="technique-title">CoT（思維鏈）</div>
+      <div class="technique-desc">任務需要推理而非直接給答案，要 AI 自己想清楚邏輯。</div>
+      <div class="technique-example">例：「這份財報看得出公司健康嗎？」「這段話哪裡邏輯不通？」</div>
+    </div>
+    <div class="technique-item">
+      <div class="technique-num">(04)</div>
+      <div class="technique-title">Chain（提示鏈）</div>
+      <div class="technique-desc">任務有多個明顯步驟，且每步要獨立檢查，前一步錯了後面就全錯。</div>
+      <div class="technique-example">例：「先找資料 → 歸類 → 產出簡報大綱 → 每段寫稿」</div>
+    </div>
+  </div>
+
+  <div class="check-q" data-q="s2-check">
+    <div class="check-label">驗收 · 對應 Q50<span class="q-ref">考綱三</span></div>
+    <div class="check-question">下列何者「正確」描述了提示詞鏈接（Prompt Chaining）這個技術？</div>
+    <div class="check-options">
+      <button type="button" class="check-opt" onclick="pickQ(this,false,'s2-check')"><span class="check-opt-key">A</span><span class="check-opt-body">提供若干範例，說明如何回答問題，並提供特定任務給 AI</span></button>
+      <button type="button" class="check-opt" onclick="pickQ(this,true,'s2-check')"><span class="check-opt-key">B</span><span class="check-opt-body">將任務劃分為更小的子任務，並把前一個提示詞的輸出當下一個提示詞的輸入</span></button>
+      <button type="button" class="check-opt" onclick="pickQ(this,false,'s2-check')"><span class="check-opt-key">C</span><span class="check-opt-body">提供需要進行數值計算的問題與計算範例，再要求類似問題的結果</span></button>
+      <button type="button" class="check-opt" onclick="pickQ(this,false,'s2-check')"><span class="check-opt-key">D</span><span class="check-opt-body">發出一個主題的指令詞，然後再發出另一個主題的提示詞</span></button>
+    </div>
+    <div class="check-reveal"><strong>B。</strong>Chain 的本質是「拆 + 串」——前一步的輸出當下一步的輸入，每步可獨立檢查。A 是 Few-shot，C 是 CoT 的變形，D 只是換主題不是 Chain。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section reveal">
+  <div class="section-eyebrow">(03)</div>
+  <h2 class="section-heading">30 秒判斷口訣：<em>問自己三題</em></h2>
+
+  <div class="recall-q" data-q="s3-recall">
+    <div class="recall-label">先猜再讀 · 03</div>
+    <div class="recall-question">「30 秒口訣」最該擺在第一題的應該是哪一題？</div>
+    <div class="recall-options">
+      <button type="button" class="recall-opt" onclick="pickQ(this,true,'s3-recall')"><span class="recall-opt-key">A</span><span class="recall-opt-body">我能不能一句話講清楚要什麼？</span></button>
+      <button type="button" class="recall-opt" onclick="pickQ(this,false,'s3-recall')"><span class="recall-opt-key">B</span><span class="recall-opt-body">我手邊有沒有好的範例？</span></button>
+      <button type="button" class="recall-opt" onclick="pickQ(this,false,'s3-recall')"><span class="recall-opt-key">C</span><span class="recall-opt-body">這件事需要分步驟做嗎？</span></button>
+      <button type="button" class="recall-opt" onclick="pickQ(this,false,'s3-recall')"><span class="recall-opt-key">D</span><span class="recall-opt-body">這個任務有沒有資料來源？</span></button>
+    </div>
+    <div class="recall-hint">「篩選」的邏輯——越前面的問題越該能直接淘汰最常見的情境。</div>
+    <div class="recall-reveal"><strong>正解 A。</strong>「一句話講得清」就是 Zero-shot 的入口，能在第一題答「能」直接走完。順序就是優先序——越前面成本越低。</div>
+  </div>
+
+  <div class="big-quote">
+    問題一：我能不能一句話講清楚要什麼？<br>
+    問題二：我手邊有沒有好的範例？<br>
+    問題三：這件事需要分步驟做嗎？
+  </div>
+
+  <div class="decision-steps">
+    <div class="decision-step">
+      <div class="ds-num">(01)</div>
+      <div class="ds-body">
+        <div class="ds-q">我能不能一句話講清楚要什麼？</div>
+        <div class="ds-a"><strong>能</strong> → Zero-shot，直接丟任務。<br><strong>不能</strong> → 往下繼續問。</div>
+      </div>
+    </div>
+    <div class="decision-step">
+      <div class="ds-num">(02)</div>
+      <div class="ds-body">
+        <div class="ds-q">我手邊有沒有「好的範例」？</div>
+        <div class="ds-a"><strong>有</strong> → Few-shot，把範例貼進 prompt。<br><strong>沒有</strong> → 往下繼續問。</div>
+      </div>
+    </div>
+    <div class="decision-step">
+      <div class="ds-num">(03)</div>
+      <div class="ds-body">
+        <div class="ds-q">這件事需要分步驟做嗎？</div>
+        <div class="ds-a"><strong>需要分，且每步要獨立驗收</strong> → Chain，開多個對話輪次。<br><strong>只需要 AI 自己想清楚</strong> → CoT，加「請一步步思考」。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-icon" aria-hidden="true">💡</div>
+    <div class="callout-body"><strong>重點：</strong>這三題是排他篩選。第一題答「能」就不用問後面兩題。口訣的順序就是優先序——越前面的技巧成本越低，越後面的技巧可控性越高。</div>
+  </div>
+
+  <div class="check-q" data-q="s3-check">
+    <div class="check-label">驗收 · 對應 Q22<span class="q-ref">考綱二</span></div>
+    <div class="check-question">下列哪兩個提示詞屬於「能一句話講清楚、適合直接套 Zero-shot 的總結任務」？</div>
+    <div class="check-options">
+      <button type="button" class="check-opt" onclick="pickQ(this,true,'s3-check')"><span class="check-opt-key">A</span><span class="check-opt-body">「請用 500 字概括《魔戒》的情節」與「（附會議記錄）今天會議的主要議題是什麼？」</span></button>
+      <button type="button" class="check-opt" onclick="pickQ(this,false,'s3-check')"><span class="check-opt-key">B</span><span class="check-opt-body">「寫一首詩，講一隻穿著紅馬甲的魔法兔子」與「我會在邁阿密度假兩周，可以做哪些有趣的事？」</span></button>
+      <button type="button" class="check-opt" onclick="pickQ(this,false,'s3-check')"><span class="check-opt-key">C</span><span class="check-opt-body">「使用 Python 生成一個程式，該程式詢問你的生日來告知你的年齡」與「（附逐字稿）總結會議重點」</span></button>
+      <button type="button" class="check-opt" onclick="pickQ(this,false,'s3-check')"><span class="check-opt-key">D</span><span class="check-opt-body">「寫一首關於兔子的詩」與「寫一份規劃邁阿密兩週的行程」</span></button>
+    </div>
+    <div class="check-reveal"><strong>A。</strong>兩者都是「壓縮資訊保留重點」的總結，第一題從訓練資料抽取，第二題針對提供的上下文濃縮——都能一句話講清楚、屬於 Zero-shot 範疇。其他選項混入創作與規劃任務。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section reveal">
+  <div class="section-eyebrow">(04)</div>
+  <h2 class="section-heading">示範：同一個任務跑<em>四種技巧</em></h2>
+
+  <div class="recall-q" data-q="s4-recall">
+    <div class="recall-label">先猜再讀 · 04</div>
+    <div class="recall-question">同一個任務「分析三則商品評價、整理出消費者最關心的三個痛點」用四種技巧跑，哪一種「最深、最有邏輯，但篇幅最長」？</div>
+    <div class="recall-options">
+      <button type="button" class="recall-opt" onclick="pickQ(this,false,'s4-recall')"><span class="recall-opt-key">A</span><span class="recall-opt-body">Zero-shot 直接丟</span></button>
+      <button type="button" class="recall-opt" onclick="pickQ(this,false,'s4-recall')"><span class="recall-opt-key">B</span><span class="recall-opt-body">Few-shot 給範本</span></button>
+      <button type="button" class="recall-opt" onclick="pickQ(this,true,'s4-recall')"><span class="recall-opt-key">C</span><span class="recall-opt-body">CoT 要求逐步推理</span></button>
+      <button type="button" class="recall-opt" onclick="pickQ(this,false,'s4-recall')"><span class="recall-opt-key">D</span><span class="recall-opt-body">Chain 拆成多輪對話</span></button>
+    </div>
+    <div class="recall-hint">「深度 vs 控制力」是不一樣的維度——CoT 強在前者，Chain 強在後者。</div>
+    <div class="recall-reveal"><strong>正解 C。</strong>CoT 把推理過程寫出來，輸出最深、邏輯最清晰，但會拉長篇幅。Chain 的強項是可控性（每步獨立驗收），不是深度。</div>
+  </div>
+
+  <p class="body-text"><strong>任務</strong>：「幫我分析這三則商品評價，整理出消費者最關心的三個痛點。」</p>
+
+  <div class="demo-grid">
+    <div class="demo-card">
+      <div class="demo-badge">Zero-shot</div>
+      <div class="demo-title">直接丟任務</div>
+      <div class="demo-desc">不加任何提示結構，直接貼任務。AI 會給出答案，但分類常常過於表面、邏輯鬆散。</div>
+      <div class="demo-result">輸出特徵：快、格式不統一、分類鬆散</div>
+    </div>
+    <div class="demo-card">
+      <div class="demo-badge">Few-shot</div>
+      <div class="demo-title">先給一則理想分析範本</div>
+      <div class="demo-desc">在任務前附上一則「好的分析範例」，讓 AI 模仿格式。輸出格式整齊，但分類邏輯可能直接複製範本，不一定符合這批評價的實際情況。</div>
+      <div class="demo-result">輸出特徵：格式整齊、可能過度套用範本</div>
+    </div>
+    <div class="demo-card">
+      <div class="demo-badge">CoT</div>
+      <div class="demo-title">要求逐步推理</div>
+      <div class="demo-desc">加「請一步步推理：先列每則評價的負面詞 → 歸類 → 統計頻率 → 排序」。輸出深度最好、邏輯最清晰，但篇幅較長。</div>
+      <div class="demo-result">輸出特徵：深度最好、邏輯清晰、較長</div>
+    </div>
+    <div class="demo-card">
+      <div class="demo-badge">Chain</div>
+      <div class="demo-title">拆成 4 個獨立對話</div>
+      <div class="demo-desc">把 CoT 的四步拆成 4 輪獨立對話。每輪可以人工檢查再餵下一輪，可控性最高，但耗時最長。</div>
+      <div class="demo-result">輸出特徵：可控性最高、最耗時</div>
+    </div>
+  </div>
+
+  <div class="callout key">
+    <div class="callout-icon" aria-hidden="true">📌</div>
+    <div class="callout-body"><strong>結論：</strong>同一個任務，根據「時間 / 精準度 / 可控性」的權衡，選不同技巧。沒有唯一正解——只有「當下情境下的最佳解」。</div>
+  </div>
+
+  <div class="check-q" data-q="s4-check">
+    <div class="check-label">驗收 · 對應 Q57<span class="q-ref">考綱三</span></div>
+    <div class="check-question">提示詞範例的答案除了給結果，還寫出「因為紅色和藍色按 2:1 混合 → 額外的紅色會在色輪上把色調拉向紅色 → 所以…」這種解釋邏輯。這是哪一種提示技巧？</div>
+    <div class="check-options">
+      <button type="button" class="check-opt" onclick="pickQ(this,true,'s4-check')"><span class="check-opt-key">A</span><span class="check-opt-body">思維鏈（Chain-of-Thought, CoT）</span></button>
+      <button type="button" class="check-opt" onclick="pickQ(this,false,'s4-check')"><span class="check-opt-key">B</span><span class="check-opt-body">零樣本學習（Zero-shot）</span></button>
+      <button type="button" class="check-opt" onclick="pickQ(this,false,'s4-check')"><span class="check-opt-key">C</span><span class="check-opt-body">少樣本學習（Few-shot）</span></button>
+      <button type="button" class="check-opt" onclick="pickQ(this,false,'s4-check')"><span class="check-opt-key">D</span><span class="check-opt-body">自一致性（Self-consistency）</span></button>
+    </div>
+    <div class="check-reveal"><strong>A。</strong>範例不只給「答案」還給「為什麼」，這正是 CoT 的核心——教 AI 怎麼想，不只教它答什麼。這也是本節 demo-grid 中 CoT 卡的關鍵特徵。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section reveal">
+  <div class="section-eyebrow">(05)</div>
+  <h2 class="section-heading">動手練習：5 個任務，你會選哪個技巧？</h2>
+
+  <div class="recall-q" data-q="s5-recall">
+    <div class="recall-label">先猜再讀 · 05</div>
+    <div class="recall-question">「寫 10 則商品標題，風格類似蝦皮爆款」這個任務，先猜應該套哪一種技巧？</div>
+    <div class="recall-options">
+      <button type="button" class="recall-opt" onclick="pickQ(this,false,'s5-recall')"><span class="recall-opt-key">A</span><span class="recall-opt-body">Zero-shot，直接說「寫 10 則蝦皮風格的標題」</span></button>
+      <button type="button" class="recall-opt" onclick="pickQ(this,true,'s5-recall')"><span class="recall-opt-key">B</span><span class="recall-opt-body">Few-shot，找幾則蝦皮爆款標題貼進去當範例</span></button>
+      <button type="button" class="recall-opt" onclick="pickQ(this,false,'s5-recall')"><span class="recall-opt-key">C</span><span class="recall-opt-body">CoT，請 AI 一步步推理「什麼是爆款風格」</span></button>
+      <button type="button" class="recall-opt" onclick="pickQ(this,false,'s5-recall')"><span class="recall-opt-key">D</span><span class="recall-opt-body">Chain，先寫定義、再寫範例、最後產出標題</span></button>
+    </div>
+    <div class="recall-hint">「風格類似 XX」的關鍵字——這就是有範例可參照的訊號。</div>
+    <div class="recall-reveal"><strong>正解 B。</strong>有明確的風格目標 + 有範例可貼 → Few-shot。下表會把 5 個情境全部跑一遍，看看你的判斷準不準。</div>
+  </div>
+
+  <p class="body-text">看以下 5 個任務描述，用三題口訣判斷該用哪種技巧。答案可能不只一種，但要能說出選這個技巧的理由。</p>
+
+  <div class="scenario-grid">
+    <div class="scenario-row">
+      <div class="scenario-task">把這段英文郵件翻成中文</div>
+      <div class="scenario-pick"><strong>Zero-shot</strong>：一句話講清楚、沒有格式要求、不需多步推理。直接丟任務最省力。</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">寫 10 則商品標題，風格類似「蝦皮爆款」</div>
+      <div class="scenario-pick"><strong>Few-shot</strong>：有明確的風格目標，可以先找幾則蝦皮爆款標題當範例貼進去，讓 AI 模仿語氣和節奏。</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">判斷這份合約對我方有哪些風險條款</div>
+      <div class="scenario-pick"><strong>CoT</strong>：需要推理（哪些條款有問題、為什麼有風險），不是直接給答案，要 AI 自己想清楚邏輯。</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">從客戶訪談逐字稿產出使用者旅程地圖</div>
+      <div class="scenario-pick"><strong>Chain</strong>：分析逐字稿 → 歸納痛點 → 畫出旅程 → 每步都要能獨立驗收。拆成多輪控制品質。</div>
+    </div>
+    <div class="scenario-row">
+      <div class="scenario-task">把這段會議錄音摘要成重點五條</div>
+      <div class="scenario-pick"><strong>Zero-shot（附格式限制）</strong>：任務明確，但加上「請列成五條、每條一句話」的格式約束，讓輸出更可用。</div>
+    </div>
+  </div>
+
+  <div class="check-q" data-q="s5-check">
+    <div class="check-label">驗收 · 對應 Q21<span class="q-ref">考綱二</span></div>
+    <div class="check-question">Kenneth 要做「美國西部 10 天的戶外景點旅程，包含飛機、租車、機場接駁」。下列哪個提示詞最有可能生成可執行的行程？</div>
+    <div class="check-options">
+      <button type="button" class="check-opt" onclick="pickQ(this,true,'s5-check')"><span class="check-opt-key">A</span><span class="check-opt-body">「制定一個為期十天的旅行行程，包括飛往距離其中一個景點相對較近的機場、租車遊覽美國西部多個著名景點」</span></button>
+      <button type="button" class="check-opt" onclick="pickQ(this,false,'s5-check')"><span class="check-opt-key">B</span><span class="check-opt-body">「制定一個旅行行程，包括飛往一個距離相對較近的機場，並租車遊覽美國西部的景觀」</span></button>
+      <button type="button" class="check-opt" onclick="pickQ(this,false,'s5-check')"><span class="check-opt-key">C</span><span class="check-opt-body">「制定一個十天行程，租車遊覽美國的五個戶外景點，並飛往一個七月份不繁忙的城市機場」</span></button>
+      <button type="button" class="check-opt" onclick="pickQ(this,false,'s5-check')"><span class="check-opt-key">D</span><span class="check-opt-body">「制定一個旅行行程，飛往美國西部並參觀當地的景點」</span></button>
+    </div>
+    <div class="check-reveal"><strong>A。</strong>具備「天數 + 地點範圍 + 活動類型 + 物流（機場、租車）」四個維度齊全。這是 Zero-shot 也能寫得很完整的關鍵：把所有約束條件講清楚，不留模糊。其他選項都漏了一兩個維度，會逼 AI 自己猜。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section reveal">
+  <div class="section-eyebrow">(06)</div>
+  <h2 class="section-heading">常見錯誤：<em>三種最容易踩的坑</em></h2>
+
+  <div class="recall-q" data-q="s6-recall">
+    <div class="recall-label">先猜再讀 · 06</div>
+    <div class="recall-question">「在一個 prompt 裡寫『先做 A，再做 B，最後做 C』」這算 Chain 嗎？</div>
+    <div class="recall-options">
+      <button type="button" class="recall-opt" onclick="pickQ(this,false,'s6-recall')"><span class="recall-opt-key">A</span><span class="recall-opt-body">算，只要寫了步驟就是 Chain</span></button>
+      <button type="button" class="recall-opt" onclick="pickQ(this,true,'s6-recall')"><span class="recall-opt-key">B</span><span class="recall-opt-body">不算，這只是 CoT 的單輪推理</span></button>
+      <button type="button" class="recall-opt" onclick="pickQ(this,false,'s6-recall')"><span class="recall-opt-key">C</span><span class="recall-opt-body">算一半，要看 AI 怎麼回應才算數</span></button>
+      <button type="button" class="recall-opt" onclick="pickQ(this,false,'s6-recall')"><span class="recall-opt-key">D</span><span class="recall-opt-body">不算，因為步驟太少要五步以上才算 Chain</span></button>
+    </div>
+    <div class="recall-hint">CoT 與 Chain 的真正差別在「單輪 vs 多輪」「能不能中途檢查」。</div>
+    <div class="recall-reveal"><strong>正解 B。</strong>單輪 prompt 即使寫多個步驟，仍是 CoT。Chain 必須開多輪獨立對話、每步輸出能人工檢查再餵下一步——這是 Chain「可控性高」的核心，下面會把這個誤區拆開講。</div>
+  </div>
+
+  <div class="ts-wrap">
+    <div class="ts-item">
+      <div class="ts-header">
+        <div class="ts-num">(01)</div>
+        <div class="ts-q">萬事皆 CoT</div>
+      </div>
+      <div class="ts-body">
+        <div class="ts-cause"><strong>現象</strong>：看到任何任務都加「請一步步思考」，以為這樣輸出品質一定比較好。<br><strong>原因</strong>：CoT 被神化成「萬能強化符」。</div>
+        <div class="ts-fix">簡單任務加 CoT 只是拖時間、耗 token，對翻譯、摘要這類明確任務沒有準確度提升。Zero-shot 夠用就不必加 CoT。</div>
+      </div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-header">
+        <div class="ts-num">(02)</div>
+        <div class="ts-q">Few-shot 範例全是同一類</div>
+      </div>
+      <div class="ts-body">
+        <div class="ts-cause"><strong>現象</strong>：給 3 個範例全是正面情緒，結果模型學到「所有輸入都輸出正面」。<br><strong>原因</strong>：範例缺乏多樣性，模型會過度擬合。</div>
+        <div class="ts-fix">範例要涵蓋邊界與反例，3–5 則含正 / 反 / 中性，讓模型學到完整分布而非單一模式。</div>
+      </div>
+    </div>
+    <div class="ts-item">
+      <div class="ts-header">
+        <div class="ts-num">(03)</div>
+        <div class="ts-q">把 Chain 做成單輪 prompt</div>
+      </div>
+      <div class="ts-body">
+        <div class="ts-cause"><strong>現象</strong>：在一個 prompt 裡寫「先做 A，再做 B，最後做 C」，以為這就是 Chain。<br><strong>原因</strong>：混淆了 CoT（單輪內部推理）與 Chain（多輪獨立任務）。</div>
+        <div class="ts-fix">Chain 的每一步要開獨立對話或明確分段輸出，前一步的結果要能人工檢查再餵下一步——這才是 Chain 可控性高的關鍵。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="check-q" data-q="s6-check">
+    <div class="check-label">驗收 · 對應 Q48<span class="q-ref">考綱三</span></div>
+    <div class="check-question">同一個對話裡先前的貼文格式都對，最新生成的貼文格式跑掉了。要讓格式重新對齊，最有效的後續提示詞是？</div>
+    <div class="check-options">
+      <button type="button" class="check-opt" onclick="pickQ(this,true,'s6-check')"><span class="check-opt-key">A</span><span class="check-opt-body">「請修改貼文，使其看起來像之前生成的社群媒體貼文」</span></button>
+      <button type="button" class="check-opt" onclick="pickQ(this,false,'s6-check')"><span class="check-opt-key">B</span><span class="check-opt-body">貼幾則別的使用者貼文當新範例，請 AI 重新生成</span></button>
+      <button type="button" class="check-opt" onclick="pickQ(this,false,'s6-check')"><span class="check-opt-key">C</span><span class="check-opt-body">附朋友對之前貼文的回覆截圖，請 AI 重試</span></button>
+      <button type="button" class="check-opt" onclick="pickQ(this,false,'s6-check')"><span class="check-opt-key">D</span><span class="check-opt-body">問 AI 是否有加入主題標籤與標記其他創作者</span></button>
+    </div>
+    <div class="check-reveal"><strong>A。</strong>同一對話內的成功範例是 AI 注意力權重最高的來源。利用「引用上下文」讓 AI 自己回去仿效——這也是避免 Few-shot 範例缺乏多樣性（坑 02）的反向思維：與其多塞新範例，不如指向對話內已有的好範例。</div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<section class="lesson-section reveal">
+  <div class="section-eyebrow">(07)</div>
+  <h2 class="section-heading">自我檢核：兩題確認你的判斷</h2>
+
+  <div class="recall-q" data-q="s7-recall">
+    <div class="recall-label">先猜再讀 · 07</div>
+    <div class="recall-question">Brianna 給 AI「制定每週鍛煉計畫」，結果計畫無法執行（時間衝突、身體限制）。她該怎麼改進提示詞？</div>
+    <div class="recall-options">
+      <button type="button" class="recall-opt" onclick="pickQ(this,true,'s7-recall')"><span class="recall-opt-key">A</span><span class="recall-opt-body">把自己的時間表、身體狀況限制一起寫進提示詞</span></button>
+      <button type="button" class="recall-opt" onclick="pickQ(this,false,'s7-recall')"><span class="recall-opt-key">B</span><span class="recall-opt-body">重新輸入同一個提示詞，請 AI 再給一份「個性化」計畫</span></button>
+      <button type="button" class="recall-opt" onclick="pickQ(this,false,'s7-recall')"><span class="recall-opt-key">C</span><span class="recall-opt-body">要求 AI 同時提供鍛煉與飲食建議</span></button>
+      <button type="button" class="recall-opt" onclick="pickQ(this,false,'s7-recall')"><span class="recall-opt-key">D</span><span class="recall-opt-body">盡可能執行 AI 給的計畫，後續再調整</span></button>
+    </div>
+    <div class="recall-hint">「個人化」的關鍵是把約束條件塞進 prompt，不是請 AI 自己腦補。</div>
+    <div class="recall-reveal"><strong>正解 A。</strong>初版提示詞是 Zero-shot 但缺約束。加上「時間表 + 身體限制」就是把情境填滿——這正是本章口訣第一題答「不能一句話講清楚」時要做的事。</div>
+  </div>
+
+  <div class="quiz-wrap">
+    <div class="quiz-item">
+      <div class="quiz-q">Q1：你要幫同學寫一份「自傳範文，風格像某知名作家」。該用哪一類技巧？</div>
+      <div class="quiz-opts">
+        <label class="quiz-opt"><input type="radio" name="q1"><span>A. Zero-shot，直接說「幫我寫自傳」</span></label>
+        <label class="quiz-opt correct"><input type="radio" name="q1"><span>B. Few-shot，找幾段那位作家的文字當範例</span></label>
+        <label class="quiz-opt"><input type="radio" name="q1"><span>C. CoT，讓 AI 一步步推理寫作風格</span></label>
+        <label class="quiz-opt"><input type="radio" name="q1"><span>D. Chain，拆成收集資料、寫初稿、潤飾三輪</span></label>
+      </div>
+      <details class="quiz-ans">
+        <summary>顯示答案與解析</summary>
+        <div>正確答案：<strong>B（Few-shot）</strong>。因為你有明確的風格參照對象（那位作家的文字 = 範例），且任務單步可解——找幾段範例、附上任務說明，就能讓 AI 模仿語調。不需要多步推理，所以不是 CoT；沒有需要獨立驗收的子任務，所以不是 Chain。</div>
+      </details>
+    </div>
+    <div class="quiz-item">
+      <div class="quiz-q">Q2：老師要你「分析這五份問卷，找出共同抱怨點並提出三個改善建議」。該用哪一類技巧？</div>
+      <div class="quiz-opts">
+        <label class="quiz-opt"><input type="radio" name="q2"><span>A. Zero-shot，直接貼任務</span></label>
+        <label class="quiz-opt"><input type="radio" name="q2"><span>B. CoT，讓 AI 一步步推理分析</span></label>
+        <label class="quiz-opt correct"><input type="radio" name="q2"><span>C. Chain，分析 → 歸類 → 建議，每步獨立</span></label>
+        <label class="quiz-opt"><input type="radio" name="q2"><span>D. Few-shot，先給一份範例問卷分析</span></label>
+      </div>
+      <details class="quiz-ans">
+        <summary>顯示答案與解析</summary>
+        <div>正確答案：<strong>C（Chain）</strong>。「分析問卷」「歸類共同抱怨點」「提出改善建議」是三個可獨立驗收的步驟。每步錯了會傳染到下一步——如果歸類錯了，建議也會錯。Chain 讓你在每步完成後確認再繼續，這是 CoT（單輪內部推理）做不到的事。</div>
+      </details>
+    </div>
+  </div>
+
+  <div class="check-q" data-q="s7-check">
+    <div class="check-label">驗收 · 對應 Q47<span class="q-ref">考綱三</span></div>
+    <div class="check-question">承上題情境，「Brianna 拿到無法執行的鍛煉計畫」這個結果，反映出 Zero-shot 提示詞的哪一種典型缺陷？</div>
+    <div class="check-options">
+      <button type="button" class="check-opt" onclick="pickQ(this,false,'s7-check')"><span class="check-opt-key">A</span><span class="check-opt-body">模型版本太舊，無法理解個人化需求</span></button>
+      <button type="button" class="check-opt" onclick="pickQ(this,true,'s7-check')"><span class="check-opt-key">B</span><span class="check-opt-body">缺乏「約束條件」（時間、身體狀況等個人邊界資訊）</span></button>
+      <button type="button" class="check-opt" onclick="pickQ(this,false,'s7-check')"><span class="check-opt-key">C</span><span class="check-opt-body">沒有要求 AI 用 CoT 一步步思考</span></button>
+      <button type="button" class="check-opt" onclick="pickQ(this,false,'s7-check')"><span class="check-opt-key">D</span><span class="check-opt-body">沒有提供 Few-shot 範例</span></button>
+    </div>
+    <div class="check-reveal"><strong>B。</strong>Zero-shot 不是不能用，是「缺資訊時不能用」。AI 無法腦補你的時間表、身體狀態——必須在 prompt 裡填滿約束條件，才能輸出可執行的個人化計畫。這就是本章第三題口訣回頭問「資料夠不夠」的價值。</div>
+  </div>
+</section>
+
+<section class="page-progress" id="pageProgress" aria-label="本頁練習進度">
+  <div class="pp-label">本頁練習進度</div>
+  <div class="pp-stats">
+    <div class="pp-stat"><span class="pp-num" id="ppDone">0</span><span class="pp-stat-lbl">已作答</span></div>
+    <div class="pp-stat"><span class="pp-num" id="ppRight">0</span><span class="pp-stat-lbl">命中</span></div>
+    <div class="pp-stat"><span class="pp-num dim" id="ppTotal">14</span><span class="pp-stat-lbl">總題數</span></div>
+  </div>
+  <div class="pp-bar"><div class="pp-bar-fill" id="ppBar"></div></div>
+  <p class="pp-note" id="ppNote">每段先猜後驗收，全部答完再進下一單元。命中率不重要——<strong>有沒有先猜過再讀，才是 retrieval practice 的關鍵</strong>。</p>
+</section>
+
+</main>
+
+<nav class="nav-footer">
+  <a href="CH4.html" class="nav-btn nav-prev" aria-label="上一單元" data-nav-role="prev"><span aria-hidden="true">←</span> CH4 · 提示詞範本庫</a>
+  <a href="CH5-2.html" class="nav-btn primary nav-next" aria-label="下一單元" data-nav-role="next">CH5-2 · 迭代實戰 <span aria-hidden="true">→</span></a>
+</nav>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">淡江大學 · CCS 生成式 AI 認證研習</span>
+  <span class="footer-meta" data-platform-version="ChatGPT / Gemini" data-built-at="2026-04-19">本頁以 ChatGPT / Gemini 製作，2026-04</span>
+</footer>
+
+<script>
+const fill=document.getElementById('prog');
+const strip=document.querySelector('.progress-strip');
+window.addEventListener('scroll',()=>{const h=document.documentElement;const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;fill.style.width=pct+'%';if(strip)strip.setAttribute('aria-valuenow',Math.round(pct));});
+const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');obs.unobserve(e.target);}});},{threshold:0.1});
+document.querySelectorAll('.reveal,.section-rule').forEach(el=>obs.observe(el));
+</script>
+<script>
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+
+<script>
+// Active Reading 互動（2026-05-24 「全程有事做」改造）
+(function(){
+  var STORAGE_KEY='quizState:'+location.pathname;
+  var state={};
+  try{state=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');}catch(e){state={};}
+
+  function totalQs(){return document.querySelectorAll('.recall-q,.check-q').length;}
+
+  function applyState(qid, picked, correct){
+    var wrap=document.querySelector('[data-q="'+qid+'"]');
+    if(!wrap)return;
+    var opts=wrap.querySelectorAll('.recall-opt,.check-opt');
+    opts.forEach(function(o,i){
+      o.setAttribute('disabled','');
+      if(i===picked){o.setAttribute('data-state',correct?'ok':'ng');}
+      else{
+        var isCorrectOpt=o.getAttribute('onclick').indexOf(',true,')!==-1;
+        if(!correct && isCorrectOpt){o.setAttribute('data-state','ok');}
+      }
+    });
+    wrap.classList.add('answered');
+  }
+
+  window.pickQ=function(btn, correct, qid){
+    if(state[qid])return;
+    var wrap=btn.closest('[data-q]');
+    var siblings=Array.prototype.slice.call(wrap.querySelectorAll('.recall-opt,.check-opt'));
+    var picked=siblings.indexOf(btn);
+    state[qid]={p:picked,c:correct};
+    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){}
+    applyState(qid,picked,correct);
+    refreshProgress();
+  };
+
+  function refreshProgress(){
+    var total=totalQs();
+    var done=Object.keys(state).length;
+    var right=Object.keys(state).filter(function(k){return state[k].c;}).length;
+    var dEl=document.getElementById('ppDone'),rEl=document.getElementById('ppRight'),tEl=document.getElementById('ppTotal'),bar=document.getElementById('ppBar'),note=document.getElementById('ppNote');
+    if(!dEl)return;
+    dEl.textContent=done;rEl.textContent=right;tEl.textContent=total;
+    bar.style.width=(done/total*100)+'%';
+    if(done===total){
+      note.innerHTML='全部 '+total+' 題已完成，命中 '+right+' 題。<strong>'+(right>=Math.ceil(total*0.7)?'狀態不錯，可以進下一單元。':'有錯的題目別緊張——回頭看你選錯的那段內文，那就是這次 retrieval 找到的弱點。')+'</strong>';
+    }else if(done>=Math.ceil(total/2)){
+      note.innerHTML='已過半（'+done+'/'+total+'），<strong>剩下的題接著做完再離開頁面</strong>，retrieval practice 的效果在「全程做」不在「做幾題」。';
+    }
+  }
+
+  // Restore prior session
+  document.addEventListener('DOMContentLoaded',function(){
+    Object.keys(state).forEach(function(qid){
+      applyState(qid,state[qid].p,state[qid].c);
+    });
+    refreshProgress();
+  });
+})();
+</script>
+</body>
+</html>
