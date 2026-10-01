@@ -1,23 +1,26 @@
 # 數位內容與成長行銷人才培訓｜整合驗收報告
 
-> **最新狀態（2026-09-17 11:01）**：人工審查前置門檻 `READY_FOR_HUMAN_REVIEW`。請先看 [HUMAN-REVIEW-READY.md](HUMAN-REVIEW-READY.md)。以下 2026-09-16 內容保留作為歷史驗收紀錄；不應覆蓋最新結果。
+> **目前狀態（2026-09-17）**：創業企劃 12 小時已從現行課程移除，並以 1 小時共同開場補回全課能力地圖與 Brief 交接。課程目前為 1 小時開場＋4 個 Part、33 個單元、115 小時。移出的來源、頁面與模板已保留在 `_archive/2026-09-17-remove-entrepreneurship-12h/`，不列入學員入口、內容稽核或索引。請先看 [HUMAN-REVIEW-READY.md](HUMAN-REVIEW-READY.md)。以下 2026-09-16 內容保留作為歷史驗收紀錄；不應覆蓋目前合約。
 
-## 2026-09-17 最新驗證摘要
+## 2026-09-17 範圍修訂後驗證摘要
 
 | 項目 | 結果 |
 |---|---|
-| Content Substance audit | 40／40 核心單元頁 `READY_FOR_HUMAN`；BLOCK 0、REVIEW 0、缺少素材 0 |
-| Learner render regression | 19 tests passed |
-| 全課 HTML lint | 174 頁；BLOCKER 0、ERROR 0 |
-| 本機連結與附件入口 | 619 條檢查；缺少目標 0；Markdown 附件 href 0 |
+| Content Substance audit | 33／33 現行核心單元頁 `READY_FOR_HUMAN`；BLOCK 0、REVIEW 0、缺少素材 0 |
+| learner render contract | 26／26 測試通過；現行單元、資產格式與退役頁面邊界已對齊 |
+| Learner render regression | 38 個現行入口／開場／模組／單元頁已重建 |
+| 全課 HTML lint | 304 頁；BLOCKER 0、ERROR 0 |
+| 本機連結與附件入口 | 489 條現行頂層課程頁連結；缺少目標 0 |
 | 學員可見格式 | `Markdown`、`.md`、`原始模板` 文字 0 |
-| 瀏覽器冷啟動 | 入口、模組、單元、附件、PRAC1、PRAC4、CH5-7 HTTP 200；無水平溢出與 console error |
-| 搜尋索引／sitemap | 891 筆／266 筆 URL |
+| 瀏覽器冷啟動 | 入口、CH0-1、module1、module4、CH2-1、PRAC5 以本機 HTTP 開啟；退役 CH1-1、module6 確認為 404 |
+| 課程範圍 | 1 小時開場＋4 個 Part、33 個單元、115 小時；創業企劃 12 小時已移出 |
 
 本狀態只允許開始人工以學員身分冷讀，不代表正式販售或正式上線通過。LocalWP、GTM、GA4 Demo 與外部廣告平台仍依課前環境契約驗證。
 
-**驗收日期：** 2026-09-16  
+**驗收日期：** 2026-09-17
 **範圍：** `digital-content-growth-126h/`、對應 `_lessons/`、搜尋索引與 sitemap
+
+## 以下為 2026-09-16 歷史驗收紀錄
 
 ## 已確認
 

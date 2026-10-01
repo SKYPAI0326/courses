@@ -6,8 +6,8 @@
 
 | 平台 | 檔案 | 用途 | 狀態 | 匯入／執行限制 |
 |---|---|---|---|---|
-| Make | `../../make-ai-workflow/assets/CH1-3-contract-driven-v1.blueprint.spec.json` | 契約驅動流程的模組、欄位、分流與測試規格 | `DRAFT_NOT_IMPORTABLE` | Make Filter 的實際匯出結構尚未由工作區驗證；需在 Make UI 建立或匯出後更新版本 |
-| n8n | `../../n8n/assets/workflows/m4-bridge-contract-fixture.json` | 無 credential 的 Webhook → 契約檢查 → A／B／C 分流練習 | `DRAFT_IMPORT_CANDIDATE` | 匯入後先用固定 POST payload 測試；回應標記為 `SIMULATED`，不呼叫 Gemini／Google API |
+| Make | `make-ai-workflow/assets/CH1-3-contract-driven-v1.blueprint.spec.json` | 契約驅動流程的模組、欄位、分流與測試規格 | `DRAFT_NOT_IMPORTABLE` | Make Filter 的實際匯出結構尚未由工作區驗證；需在 Make UI 建立或匯出後更新版本 |
+| n8n | `n8n/assets/workflows/m4-bridge-contract-fixture.json` | 無 credential 的 Webhook → 契約檢查 → A／B／C 分流練習 | `DRAFT_IMPORT_CANDIDATE` | 匯入後先用固定 POST payload 測試；回應標記為 `SIMULATED`，不呼叫 Gemini／Google API |
 
 ## n8n 固定測試 payload
 

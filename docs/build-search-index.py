@@ -15,6 +15,7 @@ build-search-index.py — 弄一下工作室課程站內搜尋索引產生器
 import json
 import re
 from pathlib import Path
+from course_paths import is_public_html, iter_public_html
 
 ROOT = Path(__file__).resolve().parent.parent
 COURSES_DIR = ROOT / "courses"
@@ -55,8 +56,7 @@ DESC_RE = re.compile(
 
 
 def should_ignore(path: Path) -> bool:
-    """跳過內部目錄（_local、_local-handoff、_assets、_backup … 等 _ 開頭）與版控/依賴目錄。"""
-    return any(part.startswith("_") or part in {".git", ".worktrees", "node_modules"} for part in path.parts)
+    return not is_public_html(path, ROOT)
 
 
 def classify(path: Path) -> str:
@@ -117,7 +117,7 @@ def main():
             continue
         slug = course_dir.name
         label = COURSE_LABEL.get(slug, slug)
-        for html in sorted(course_dir.rglob("*.html")):
+        for html in sorted(iter_public_html(course_dir, ROOT)):
             if should_ignore(html):
                 continue
             rel = html.relative_to(ROOT).as_posix()

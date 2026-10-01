@@ -7,6 +7,7 @@ inject_gate.py — 為所有課程 HTML 檔案注入密碼關卡
 import os
 import re
 from pathlib import Path
+from docs.course_paths import is_public_html, iter_public_html
 
 BASE = Path(__file__).parent / "courses"
 
@@ -117,11 +118,7 @@ def inject(html_path: Path, key: str, hash_val: str) -> bool:
 
 def is_public_course_html(path: Path) -> bool:
     """只處理正式課程頁，排除備份、驗證、審查與其他內部 worktree。"""
-    relative = path.relative_to(BASE.parent)
-    return not any(
-        part.startswith("_") or part in {".git", ".worktrees", "node_modules"}
-        for part in relative.parts
-    )
+    return is_public_html(path, BASE.parent)
 
 
 def main():
@@ -136,7 +133,7 @@ def main():
             total_missing += 1
             continue
 
-        html_files = [f for f in course_dir.rglob("*.html") if is_public_course_html(f)]
+        html_files = list(iter_public_html(course_dir, BASE.parent))
         injected = skipped = 0
 
         for f in sorted(html_files):

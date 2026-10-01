@@ -28,6 +28,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+from course_paths import is_public_html, iter_public_html, is_explicit_lint_target
 
 ROOT = Path(__file__).resolve().parent.parent
 BASELINE_PATH = ROOT / "docs" / ".lint-baseline.json"
@@ -105,11 +106,7 @@ def read(path: Path) -> str:
 
 
 def is_internal_page(path: Path) -> bool:
-    """排除內部目錄與其他 worktree，避免全站 lint 污染正式課程結果。"""
-    return any(
-        part.startswith("_") or part in {".git", ".worktrees", "node_modules"}
-        for part in path.parts
-    )
+    return not is_public_html(path, ROOT)
 
 
 # ── BLOCKER 規則 ──────────────────────────────────────────
@@ -966,18 +963,19 @@ def audit_baseline(files: list, baseline: dict) -> list:
 
 def collect_files(args) -> list:
     files = []
+    explicit = set()
     if args.all:
-        for p in ROOT.rglob("*.html"):
+        for p in iter_public_html(ROOT, ROOT):
             if is_internal_page(p):
                 continue
             files.append(p)
     elif args.changed:
         try:
             out = subprocess.check_output(
-                ["git", "diff", "--cached", "--name-only", "--diff-filter=ACMR"],
+                ["git", "diff", "--cached", "--name-only", "-z", "--diff-filter=ACMR"],
                 cwd=ROOT, text=True
             )
-            for line in out.splitlines():
+            for line in out.split("\0"):
                 if line.endswith(".html"):
                     f = ROOT / line
                     if f.exists():
@@ -990,10 +988,12 @@ def collect_files(args) -> list:
             if not p.is_absolute():
                 p = ROOT / p
             if p.is_dir():
-                files.extend(p.rglob("*.html"))
+                files.extend(iter_public_html(p, ROOT))
             elif p.is_file():
                 files.append(p)
-    return [f for f in files if not is_internal_page(f)]
+                if is_explicit_lint_target(p, ROOT):
+                    explicit.add(p)
+    return [f for f in files if f in explicit or not is_internal_page(f)]
 
 
 def main():

@@ -15,6 +15,8 @@ from bs4 import BeautifulSoup
 
 
 COURSE_DIR = Path(__file__).resolve().parents[1]
+EXPECTED_CURRENT_UNIT_COUNT = 33
+EXPECTED_CURRENT_ASSET_SOURCE_COUNT = 96
 ASSET_CONTRACTS = json.loads(
     (COURSE_DIR / "_tools" / "asset-contracts.json").read_text(encoding="utf-8")
 )
@@ -74,7 +76,7 @@ class LearnerRenderContractTests(unittest.TestCase):
     def test_every_markdown_asset_has_a_learner_html_counterpart(self) -> None:
         assets = COURSE_DIR / "assets" / "templates"
         markdown_assets = sorted(assets.glob("*.md"))
-        self.assertEqual(len(markdown_assets), 126)
+        self.assertEqual(len(markdown_assets), EXPECTED_CURRENT_ASSET_SOURCE_COUNT)
         for asset in markdown_assets:
             with self.subTest(asset=asset.name):
                 self.assertTrue(asset.with_suffix(".html").exists())
@@ -82,7 +84,7 @@ class LearnerRenderContractTests(unittest.TestCase):
     def test_asset_contract_manifest_classifies_every_source_once(self) -> None:
         asset_dir = COURSE_DIR / "assets" / "templates"
         source_codes = {asset.stem for asset in asset_dir.glob("*.md")}
-        self.assertEqual(len(source_codes), 126)
+        self.assertEqual(len(source_codes), EXPECTED_CURRENT_ASSET_SOURCE_COUNT)
         for code in sorted(source_codes):
             kind = expected_asset_kind(code)
             with self.subTest(asset=code):
@@ -151,7 +153,7 @@ class LearnerRenderContractTests(unittest.TestCase):
     def test_workbook_assets_declare_an_editable_or_reference_contract(self) -> None:
         asset_dir = COURSE_DIR / "assets" / "templates"
         workbooks = sorted(asset_dir.glob("*-工作版.html")) + sorted(asset_dir.glob("*-參考版.html"))
-        self.assertEqual(len(workbooks), 126)
+        self.assertEqual(len(workbooks), EXPECTED_CURRENT_ASSET_SOURCE_COUNT)
         worksheet_count = 0
         reference_count = 0
         for page_path in workbooks:
@@ -220,44 +222,27 @@ class LearnerRenderContractTests(unittest.TestCase):
         )
         self.assert_page_hides_production_content("CH5-3")
 
-    def test_ch6_2_preserves_concepts_demo_and_assets(self) -> None:
+    def test_ch0_1_preserves_opening_flow_and_assets(self) -> None:
         self.assert_page_contains(
-            "CH6-2",
+            "CH0-1",
             [
-                "方案範圍",
-                "完整示範 / Demo",
-                "七步驟示範",
-                "檢查點與修復",
-                "assets/templates/CH6-2.html",
-                "assets/templates/CH6-2.html",
+                "課程專案 Brief",
+                "完整示範：從 Brief 讀到下一個動作",
+                "學員操作",
+                "常見錯誤 3 條",
+                "檢核題 2 條（Quiz）",
+                "assets/templates/CH0-1.html",
+                "assets/templates/CH0-1-工作版.html",
             ],
         )
-        self.assert_page_hides_production_content("CH6-2")
+        self.assert_page_hides_production_content("CH0-1")
 
-    def test_m1_pages_expose_usable_material_bundles(self) -> None:
+    def test_opening_page_exposes_usable_material_bundle(self) -> None:
         expected_links = {
-            "CH1-1": [
-                "assets/templates/CH1-1-情境案例卡.html",
-                "assets/templates/CH1-1-阿凱參考完成品.html",
-                "assets/templates/CH1-1-判斷練習.html",
-            ],
-            "CH1-2": [
-                "assets/templates/CH1-2.html",
-                "assets/templates/CH1-2-阿凱參考完成品.html",
-                "assets/templates/CH1-2-線索與分類練習.html",
-            ],
-            "CH1-3": [
-                "assets/templates/CH1-3.html",
-                "assets/templates/CH1-3-阿凱參考完成品.html",
-                "assets/templates/CH1-3-價值主張檢核練習.html",
-            ],
-            "PRAC1": [
-                "assets/templates/PRAC1.html",
-                "assets/templates/PRAC1.html",
-                "assets/templates/PRAC1-四種情境參考.html",
-                "assets/templates/PRAC1-五科交接檢核.html",
-                "assets/templates/PRAC1-整合檢核練習.html",
-            ],
+            "CH0-1": [
+                "assets/templates/CH0-1.html",
+                "assets/templates/CH0-1-工作版.html",
+            ]
         }
         for unit, links in expected_links.items():
             page = (COURSE_DIR / f"{unit}.html").read_text(encoding="utf-8")
@@ -265,33 +250,20 @@ class LearnerRenderContractTests(unittest.TestCase):
                 with self.subTest(unit=unit, link=link):
                     self.assertIn(link, page)
 
-        for asset in (
-            "CH1-1.md",
-            "CH1-2.md",
-            "CH1-3.md",
-            "PRAC1.md",
-            "CH1-1-情境案例卡.md",
-            "CH1-1-阿凱參考完成品.md",
-            "CH1-1-判斷練習.md",
-            "CH1-2-阿凱參考完成品.md",
-            "CH1-2-線索與分類練習.md",
-            "CH1-3-阿凱參考完成品.md",
-            "CH1-3-價值主張檢核練習.md",
-            "PRAC1-四種情境參考.md",
-            "PRAC1-五科交接檢核.md",
-            "PRAC1-整合檢核練習.md",
-        ):
+        for asset in ("CH0-1.md",):
             content = (COURSE_DIR / "assets" / "templates" / asset).read_text(encoding="utf-8-sig")
             for marker in ("對應 lesson", "課程類型", "資產狀態", "本次完成品：BLOCK", "_lessons/"):
                 with self.subTest(asset=asset, marker=marker):
                     self.assertNotIn(marker, content)
 
-    def test_m1_pages_preserve_the_learning_chain(self) -> None:
+    def test_opening_page_preserves_the_learning_chain(self) -> None:
         expected_markers = {
-            "CH1-1": ["兩種可能的使用情境", "選擇表的完整示例", "可重做"],
-            "CH1-2": ["至少兩筆線索", "問題假設", "交給 CH1-3"],
-            "CH1-3": ["價值主張", "共同訊息", "交給 PRAC1"],
-            "PRAC1": ["共同 Brief 的 8 個必要欄位", "五科如何共用 Brief", "阿凱的共同專案 Brief v1", "五科交接檢查"],
+            "CH0-1": [
+                "四科如何累積同一個工作方向",
+                "阿凱把「我會做內容」改成可交接的工作方向",
+                "學員操作",
+                "交給 CH2-1",
+            ],
         }
         for unit, markers in expected_markers.items():
             page = (COURSE_DIR / f"{unit}.html").read_text(encoding="utf-8")
@@ -474,41 +446,19 @@ class LearnerRenderContractTests(unittest.TestCase):
             asset = (COURSE_DIR / "assets" / "templates" / f"{asset_code}.md").read_text(encoding="utf-8-sig")
             self.assertTrue("付款" in asset or "付費" in asset)
 
-    def test_m6_templates_integrate_upstream_evidence(self) -> None:
-        expected = {
-            "CH6-1": ["上游產物對照表", "共同受眾問題", "能力證據與限制"],
-            "CH6-2": ["方案範圍", "交付設計", "成本與資源假設"],
-            "CH6-3": ["目標讀者與閱讀任務", "能力證據排序", "30 天行動"],
-            "PRAC6": ["提案主線", "證據矩陣", "交接與 30 天行動"],
-        }
-        for unit, markers in expected.items():
-            page = (COURSE_DIR / f"{unit}.html").read_text(encoding="utf-8")
-            template = (COURSE_DIR / "assets" / "templates" / f"{unit}.md").read_text(encoding="utf-8-sig")
-            self.assertIn(f"assets/templates/{unit}.html", page)
-            for marker in markers:
-                with self.subTest(unit=unit, marker=marker):
-                    self.assertIn(marker, template)
-                    self.assertIn(marker, (COURSE_DIR / "assets" / "templates" / f"{unit}.html").read_text(encoding="utf-8"))
-            for marker in ("對應 lesson", "課程類型", "資產狀態", "本次完成品：BLOCK", "_lessons/"):
-                with self.subTest(unit=unit, production_marker=marker):
-                    self.assertNotIn(marker, template)
-
-    def test_m6_pages_expose_integration_materials(self) -> None:
-        expected_links = {
-            "CH6-1": ["CH6-1-四份產物摘要", "CH6-1-整合價值參考完成品", "CH6-1-同伴回饋表"],
-            "CH6-2": ["CH6-2-方案層級案例卡", "CH6-2-成本假設卡", "CH6-2-同伴審查表", "CH6-2-方案參考完成品"],
-            "CH6-3": ["CH6-3-作品呈現參考", "CH6-3-30天行動參考", "CH6-3-同伴回饋規則", "CH6-3-檔案索引規範"],
-            "PRAC6": ["PRAC6-README參考完成品", "PRAC6-提案評量規準"],
-        }
-        for unit, asset_codes in expected_links.items():
-            page = (COURSE_DIR / f"{unit}.html").read_text(encoding="utf-8")
-            for asset_code in asset_codes:
-                with self.subTest(unit=unit, asset=asset_code):
-                    self.assertIn(f"assets/templates/{asset_code}.html", page)
-                    self.assertIn(f"assets/templates/{asset_code}.html", page)
-                    asset = (COURSE_DIR / "assets" / "templates" / f"{asset_code}.md").read_text(encoding="utf-8-sig")
-                    for marker in ("對應 lesson", "課程類型", "資產狀態", "本次完成品：BLOCK", "_lessons/"):
-                        self.assertNotIn(marker, asset)
+    def test_retired_entrepreneurship_pages_do_not_return_to_current_course(self) -> None:
+        retired_units = ("CH1-1", "CH1-2", "CH1-3", "PRAC1", "CH6-1", "CH6-2", "CH6-3", "PRAC6")
+        for unit in retired_units:
+            with self.subTest(unit=unit):
+                self.assertFalse((COURSE_DIR / f"{unit}.html").exists())
+        archive = COURSE_DIR / "_archive" / "2026-09-17-remove-entrepreneurship-12h"
+        self.assertTrue(archive.exists())
+        current_pages = sorted(COURSE_DIR.glob("*.html"))
+        for page_path in current_pages:
+            page = page_path.read_text(encoding="utf-8")
+            with self.subTest(page=page_path.name):
+                self.assertNotIn("href=\"CH1-1.html\"", page)
+                self.assertNotIn("href=\"CH6-1.html\"", page)
 
     def test_core_pages_have_locatable_teaching_stages(self) -> None:
         units = sorted(
@@ -516,7 +466,7 @@ class LearnerRenderContractTests(unittest.TestCase):
             for path in COURSE_DIR.glob("*.html")
             if path.stem.startswith(("CH", "PRAC"))
         )
-        self.assertEqual(len(units), 40)
+        self.assertEqual(len(units), EXPECTED_CURRENT_UNIT_COUNT)
         for unit in units:
             page = BeautifulSoup(
                 (COURSE_DIR / f"{unit}.html").read_text(encoding="utf-8"),

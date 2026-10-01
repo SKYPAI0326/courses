@@ -194,3 +194,19 @@ B5 先接手 B4 的可預覽原型，產出長清單、Overflow、固定／漂�
 - 最新證據清單：16 pages、0 BLOCK、0 REVIEW、16 READY_FOR_HUMAN、0 missing_assets；檔案為 `uiux-designer/_validation/L5-evidence-manifest.json`。
 - B4 已補上起始材料與取得順序；B6、B7、B8 的起始材料仍在第一次操作前可見。
 - 這只解除機器可驗證的內容證據阻塞；人工試讀可從 B4 → B5 → B6 開始，整體仍為 `MACHINE_READY_PENDING_HUMAN`。
+
+### 2026-09-17 課程全體學員路徑原則修復
+
+- 學員冷讀發現起始材料頁只列案例值，沒有說明「目前頁面做什麼、要在哪個工具完成、完成後回哪裡」；這是學員路徑阻塞，不是排版小問題。
+- 已建立全課程修復備份、掃描與計畫，並重寫 A1–A8、B1–B8 起始材料頁的頁面角色、工具動作、預期結果、檢查表時機與下一堂連結。
+- 學員頁已移除作者試跑、內部驗證路徑、機器狀態碼與 `_validation` 文字；這些證據仍保留在內部報告，供製作與驗收使用。
+- 課程目前狀態降為 `LEARNER_PATH_BLOCKED`。未完成的阻塞包含：16 堂逐頁人工冷讀、Figma 跨帳號重跑、Photoshop 實作、GitHub push、公開部署與檢查表證據保存流程。
+- 在上述阻塞解除前，不得宣稱 99 小時課程可獨立授課，也不得把機器掃描的 READY 當成人工放行。
+
+### 2026-09-17 修正版 skill 全課程契約修復
+
+- 依新版 `course-repair`、`course-handout-designer`、`course-copywriter` 與 `course-reviewer` 流程，建立 `uiux-designer/_design/LEARNER-CONTRACT-MATRIX-2026-09-17.md`，作為 16 堂學員契約唯一來源。
+- 已完成本輪備份、掃描、計畫與回復腳本：`uiux-designer/_backup/2026-09-17-pre-full-handout-contract-v2/`、`uiux-designer/_repair/2026-09-17-full-handout-contract/`、`uiux-designer/_tools/restore-2026-09-17-pre-full-handout-contract-v2.sh`。
+- 16 個操作頁、16 個起始材料頁與完成紀錄入口已同步角色、問題、起始材料、第一步、可觀察結果、完成物、下游用途與回復路徑；一般檢查表與 B6／B7 專用表單均標示「操作完成後使用」。
+- 最新機器證據：lint 53 頁 0 BLOCKER／0 ERROR／0 WARN；learner-entry smoke 16 pass；內容證據 16 READY_FOR_HUMAN、0 missing；文案連續性 0 warning；`git diff --check` 通過。
+- Gate 狀態仍為 `MACHINE_READY_PENDING_HUMAN`。人工冷讀、Figma 跨帳號重跑、Photoshop、GitHub push 與公開部署尚未放行；完整報告見 `uiux-designer/_repair/2026-09-17-full-handout-contract/REPAIR-REPORT.md`。

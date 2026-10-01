@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import importlib.util
+import argparse
 import sys
 from html.parser import HTMLParser
 from pathlib import Path
@@ -51,13 +52,21 @@ def visible_text(path: Path) -> str:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--backup', type=Path, default=BACKUP,
+                        help='Historical snapshot to compare (may live in the external archive).')
+    backup = parser.parse_args().backup.resolve()
+    if not backup.is_dir():
+        parser.error('Historical snapshot is unavailable. Supply --backup PATH; '
+                     'see docs/maintenance/2026-10-01-cleanup.md. '
+                     'This historical comparison is not a current release gate.')
     checked = 0
     failures: list[str] = []
     for course_index in sorted(ROOT.glob("*/index.html")):
         course_root = course_index.parent
         for page in MODULE.official_html(course_root):
             relative = page.relative_to(ROOT)
-            before = BACKUP / relative
+            before = backup / relative
             if not before.exists():
                 failures.append(f"missing backup: {relative}")
                 continue

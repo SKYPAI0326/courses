@@ -172,22 +172,23 @@ COURSE_SHELL_CSS = COURSE_DIR / "assets" / "course-shell.css"
 COURSE_FAVICON = COURSE_DIR / "assets" / "favicon.svg"
 
 
+COURSE_OPENING = {
+    "number": 0,
+    "title": "課程開場｜從能力累積到工作成果",
+    "hours": "1h",
+    "purpose": "先看懂四科如何沿用同一組工作方向，再完成一頁可交接的課程專案 Brief。",
+    "output": "課程專案 Brief v1",
+    "file": "index.html",
+    "label": "課程開場",
+    "units": [
+        ("CH0-1", "從能力累積到工作成果", "看懂四科能力如何接力，完成一頁可交接的課程專案 Brief。", "1h"),
+    ],
+}
+
+
 PARTS = [
     {
         "number": 1,
-        "title": "創業企劃與能力方向・前段",
-        "hours": "4h",
-        "purpose": "把專長或點子整理成共同 Brief，建立後續五科共用的任務框架。",
-        "output": "共同服務／品牌 Brief",
-        "units": [
-            ("CH1-1", "從專長／點子到應用情境", "把專長或點子改寫成可用於求職、企業專案、自由工作或個人品牌的應用情境。", "1h"),
-            ("CH1-2", "問題、受眾與需求", "把模糊想法改寫成目標對象與可觀察問題。", "1h"),
-            ("CH1-3", "服務價值與共同任務框架", "建立價值主張、溝通目標與後續科目共用的內容任務。", "1h"),
-            ("PRAC1", "建立個人服務／微型品牌 Brief", "完成後續五科共用的主題、受眾、價值與工作簡報。", "1h"),
-        ],
-    },
-    {
-        "number": 2,
         "title": "攝影與影片編修",
         "hours": "30h",
         "purpose": "從影像任務、腳本、素材來源與視覺資產，完成一組可行銷內容。",
@@ -204,7 +205,7 @@ PARTS = [
         ],
     },
     {
-        "number": 3,
+        "number": 2,
         "title": "社群媒體經營",
         "hours": "30h",
         "purpose": "選擇平台角色，建立內容支柱、月曆、互動規則與成效紀錄。",
@@ -221,7 +222,7 @@ PARTS = [
         ],
     },
     {
-        "number": 4,
+        "number": 3,
         "title": "SEO 與網站行為追蹤",
         "hours": "24h",
         "purpose": "從搜尋意圖走到 LocalWP、GA4、GTM 與 GSC 資料支持的行銷決策。",
@@ -238,7 +239,7 @@ PARTS = [
         ],
     },
     {
-        "number": 5,
+        "number": 4,
         "title": "國際數位廣告投放實務",
         "hours": "30h",
         "purpose": "從市場與受眾選擇、渠道配置、素材與預算，完成兩輪資料決策的投放企劃。",
@@ -254,47 +255,15 @@ PARTS = [
             ("PRAC5", "完成國際廣告投放包", "交付一個平台的深度投放包、另一平台的轉譯版本、兩輪決策紀錄、預算與優化報告。", "6h"),
         ],
     },
-    {
-        "number": 6,
-        "title": "創業企劃與能力整合・後段",
-        "hours": "8h",
-        "purpose": "把前五個 Part 的成果收斂成一致的主張、能力證據、提案與 30 天行動表。",
-        "output": "整合企劃書、提案簡報與 30 天行動表",
-        "units": [
-            ("CH6-1", "整合受眾、問題與價值", "將前面各科成果收斂成一致的服務／品牌主張。", "2h"),
-            ("CH6-2", "方案、商業模式與交付", "依選定應用情境整理服務內容、專案交付方式與基本條件。", "2h"),
-            ("CH6-3", "作品呈現與 30 天行動方案", "把內容、社群、SEO、追蹤與廣告成果整理成可展示的能力證據。", "2h"),
-            ("PRAC6", "完成整合企劃與提案", "依選定應用情境完成企劃書、簡報與 30 天行動表。", "2h"),
-        ],
-    },
 ]
 
 
-UNIT_MAP = {unit[0]: (part, unit) for part in PARTS for unit in part["units"]}
-ALL_UNITS = [unit[0] for part in PARTS for unit in part["units"]]
+UNIT_MAP = {unit[0]: (part, unit) for part in [COURSE_OPENING, *PARTS] for unit in part["units"]}
+ALL_UNITS = [unit[0] for part in [COURSE_OPENING, *PARTS] for unit in part["units"]]
 
 ASSET_BUNDLES = {
-    "CH1-1": [
-        ("工作表", "CH1-1"),
-        ("四種情境案例卡", "CH1-1-情境案例卡"),
-        ("阿凱參考完成品", "CH1-1-阿凱參考完成品"),
-        ("判斷練習與答案", "CH1-1-判斷練習"),
-    ],
-    "CH1-2": [
-        ("工作表", "CH1-2"),
-        ("阿凱參考完成品", "CH1-2-阿凱參考完成品"),
-        ("線索與分類練習", "CH1-2-線索與分類練習"),
-    ],
-    "CH1-3": [
-        ("工作表", "CH1-3"),
-        ("阿凱參考完成品", "CH1-3-阿凱參考完成品"),
-        ("價值主張檢核練習", "CH1-3-價值主張檢核練習"),
-    ],
-    "PRAC1": [
-        ("共同 Brief 工作表", "PRAC1"),
-        ("四種情境參考", "PRAC1-四種情境參考"),
-        ("五科交接檢核", "PRAC1-五科交接檢核"),
-        ("整合檢核與答案", "PRAC1-整合檢核練習"),
+    "CH0-1": [
+        ("課程專案 Brief 工作表", "CH0-1"),
     ],
     "CH2-1": [
         ("影像任務工作表", "CH2-1"),
@@ -454,31 +423,6 @@ ASSET_BUNDLES = {
         ("投放包交付索引", "PRAC5"),
         ("README 參考完成品", "PRAC5-README參考完成品"),
         ("評量規準", "PRAC5-評量規準"),
-    ],
-    "CH6-1": [
-        ("整合價值主張表", "CH6-1"),
-        ("四份產物摘要", "CH6-1-四份產物摘要"),
-        ("整合價值參考完成品", "CH6-1-整合價值參考完成品"),
-        ("同伴回饋表", "CH6-1-同伴回饋表"),
-    ],
-    "CH6-2": [
-        ("方案與交付設計表", "CH6-2"),
-        ("方案層級案例卡", "CH6-2-方案層級案例卡"),
-        ("成本假設卡", "CH6-2-成本假設卡"),
-        ("同伴審查表", "CH6-2-同伴審查表"),
-        ("方案參考完成品", "CH6-2-方案參考完成品"),
-    ],
-    "CH6-3": [
-        ("能力證據與 30 天行動表", "CH6-3"),
-        ("作品呈現參考", "CH6-3-作品呈現參考"),
-        ("30 天行動參考", "CH6-3-30天行動參考"),
-        ("同伴回饋規則", "CH6-3-同伴回饋規則"),
-        ("檔案索引規範", "CH6-3-檔案索引規範"),
-    ],
-    "PRAC6": [
-        ("整合企劃與提案交付索引", "PRAC6"),
-        ("README 參考完成品", "PRAC6-README參考完成品"),
-        ("提案評量規準", "PRAC6-提案評量規準"),
     ],
 }
 
@@ -1148,29 +1092,37 @@ def render_index() -> str:
   <p>{esc(part["purpose"])}</p>
   <span class="part-output"><strong>本 Part 主要產物：</strong>{esc(part["output"])}</span>
 </a>''')
-    description = "從共同 Brief 出發，串起內容、社群、SEO／追蹤、廣告與整合提案。"
+    opening_html = f'''<a class="opening-card" href="CH0-1.html">
+  <span class="part-label">課程開場 · {COURSE_OPENING["hours"]}</span>
+  <h2>{esc(COURSE_OPENING["title"])}</h2>
+  <p>{esc(COURSE_OPENING["purpose"])}</p>
+  <span class="part-output"><strong>開場完成物：</strong>{esc(COURSE_OPENING["output"])}</span>
+</a>'''
+    description = "先建立一組可交接的課程專案 Brief，再沿著影像、社群、SEO／追蹤與廣告累積可轉用的工作成果。"
     return f'''<!doctype html>
 <html lang="zh-TW">
 <head>
 {meta_head(f"{COURSE_TITLE}｜{INSTITUTION}", description, f"{COURSE_URL}/index.html")}
 </head>
 <body class="course-page">
-{topbar("126h · 整合課程", "../../index.html")}
+{topbar("115h · 1h 開場＋四科能力課程", "../../index.html")}
 <header class="course-hero">
   <div class="hero-eyebrow">{INSTITUTION} · INTEGRATED PROGRAM</div>
   <h1 class="hero-title">{COURSE_TITLE}</h1>
-  <p class="hero-desc">把專長或點子轉成可被看見、可被推廣、可被驗證的方案。你會沿著同一條能力主線，依自己的應用情境完成可展示的工作成果。</p>
+  <p class="hero-desc">先建立一組共同的工作方向，再沿著影像、社群、網站追蹤與廣告四個能力模組，完成可展示、可交接、可延伸到不同工作情境的數位行銷成果。</p>
   <hr class="hero-rule">
 </header>
 <main class="course-main" id="main">
   <section class="intro-panel">
-    <h2>你會沿著一條能力主線前進</h2>
-    <p>問題與需求 → 服務／品牌方向 → 影像與平面內容 → 社群經營 → SEO／GA4／GTM → 國際廣告 → 整合企劃與提案。求職作品集、企業專案、自由工作與個人品牌都可以使用這條主線。</p>
+    <h2>你會先建立共同方向，再累積四組能力</h2>
+    <p>開場會完成一頁課程專案 Brief，讓後續影像、社群、SEO／追蹤與國際廣告沿用同一組對象、問題與限制，再加入各科的專業判斷。成果可依需求用於求職作品、企業專案、自由工作或個人品牌／專業服務。</p>
   </section>
-  <div class="capability-chain"><strong>讀法：</strong>先從 Part 1 建立共同主題，再依序使用前一個 Part 的產物。每個 Part 都有自己的導覽頁與完成物，單元頁會說明起始材料、操作與驗證。</div>
-  <div class="section-label">六個 Part</div>
+  <div class="capability-chain"><strong>讀法：</strong>先完成 1 小時課程開場，再依序修習四個 Part。每個 Part 都有自己的導覽頁與完成物，單元頁會說明起始材料、操作與驗證。</div>
+  <div class="section-label">課程開場</div>
+  <div class="opening-grid">{opening_html}</div>
+  <div class="section-label">四個 Part</div>
   <div class="part-grid">{''.join(parts_html)}</div>
-  <nav class="module-nav"><a class="nav-btn primary" href="module1.html">從 Part 1 開始 {arrow('→')}</a><a class="nav-btn" href="../../index.html">{arrow('←')} 所有課程</a></nav>
+  <nav class="module-nav"><a class="nav-btn primary" href="CH0-1.html">先進入課程開場 {arrow('→')}</a><a class="nav-btn" href="../../index.html">{arrow('←')} 所有課程</a></nav>
 </main>
 {footer()}
 </body>
@@ -1192,6 +1144,11 @@ def render_module(part: dict) -> str:
   <span class="unit-hours">{hours} <span class="unit-arrow" aria-hidden="true">→</span></span>
 </a>''')
     description = part["purpose"]
+    orientation = (
+        "本頁列出學習順序。每個單元會先說明任務與起始材料，再進入概念、示範、練習與驗證。完成本 Part 後，把這組產物交給下一個 Part 使用。"
+        if n < len(PARTS)
+        else "本頁列出學習順序。每個單元會先說明任務與起始材料，再進入概念、示範、練習與驗證。完成本 Part 後，你會得到一組可用於求職、企業專案、自由工作或個人品牌的廣告企劃成果。"
+    )
     return f'''<!doctype html>
 <html lang="zh-TW">
 <head>
@@ -1213,7 +1170,7 @@ def render_module(part: dict) -> str:
   </section>
   <section class="orientation-panel">
     <h2>進入本 Part 前，你要知道的事</h2>
-    <p>本頁列出學習順序。每個單元會先說明任務與起始材料，再進入概念、示範、練習與驗證。完成本 Part 後，把這組產物交給下一個 Part 使用。</p>
+    <p>{orientation}</p>
   </section>
   <div class="section-label">單元順序</div>
   <div class="unit-list">{''.join(units_html)}</div>
@@ -1304,15 +1261,23 @@ def render_lesson(code: str) -> str:
     idx = ALL_UNITS.index(code)
     previous_code = ALL_UNITS[idx - 1] if idx > 0 else None
     next_code = ALL_UNITS[idx + 1] if idx + 1 < len(ALL_UNITS) else None
-    previous_href = unit_url(previous_code) if previous_code else part_url(part["number"])
-    previous_label = previous_code or f"Part {part["number"]}"
+    is_opening = part["number"] == 0
+    module_href = part.get("file", part_url(part["number"]))
+    module_name = "課程總覽" if is_opening else f"Part {part["number"]}"
+    previous_href = unit_url(previous_code) if previous_code else "index.html"
+    previous_label = previous_code or "課程總覽"
     next_href = unit_url(next_code) if next_code else (part_url(part["number"] + 1) if part["number"] < len(PARTS) else "index.html")
     next_label = next_code or (f"Part {part["number"] + 1}" if part["number"] < len(PARTS) else "課程總覽")
     outcomes_html = f'<div class="outcome-item">{esc(unit[2])}</div>'
     content_html = learnerize_asset_language(content_html).strip()
-    part_tag = f"PART {part["number"]} · {part["title"]}"
+    part_tag = f"課程開場 · {part["hours"]}" if is_opening else f"PART {part["number"]} · {part["title"]}"
     unit_title = f"({code}) {title}｜{COURSE_TITLE}"
     url = f"{COURSE_URL}/{code}.html"
+    handoff = (
+        f"完成後，你會留下可交接的成果，並把它交給 {esc(next_label)} 使用。"
+        if next_code
+        else "完成後，你會留下可直接展示或帶入實際工作的成果；若還要延伸，可依自己的工作情境調整 Brief、受眾與投放條件。"
+    )
     return f'''<!doctype html>
 <html lang="zh-TW">
 <head>
@@ -1321,7 +1286,7 @@ def render_lesson(code: str) -> str:
 <body class="lesson-page">
 {topbar(part_tag)}
 <header class="page-hero">
-  <a class="breadcrumb" href="{part_url(part["number"])}">{arrow('←')} 返回 Part {part["number"]}</a>
+  <a class="breadcrumb" href="{module_href}">{arrow('←')} 返回 {module_name}</a>
   <div class="hero-eyebrow">{code} · {unit[3]}</div>
   <h1 class="lesson-title">{esc(title)}</h1>
   <p class="lesson-tagline">{esc(tagline or unit[2])}</p>
@@ -1331,7 +1296,7 @@ def render_lesson(code: str) -> str:
   <section class="lesson-orientation">
     <div class="section-eyebrow">學習導覽</div>
     <h2>這一頁要完成什麼</h2>
-    <p class="orientation-lead">{esc(unit[2])} 完成後，你會留下可交接的成果，並把它交給 {esc(next_label)} 使用。</p>
+    <p class="orientation-lead">{esc(unit[2])} {handoff}</p>
     <div class="orientation-grid">
       <div class="orientation-item"><strong>起始材料</strong>{asset_html}</div>
       <div class="orientation-item"><strong>完成物</strong><span>{esc(artifact)}</span></div>
@@ -1341,7 +1306,7 @@ def render_lesson(code: str) -> str:
 {content_html}
   <nav class="nav-footer">
     <a class="nav-btn" href="{previous_href}">{arrow('←')} {esc(previous_label)}</a>
-    <a class="nav-btn" href="{part_url(part["number"])}">回 Part {part["number"]}</a>
+    <a class="nav-btn" href="{module_href}">回 {module_name}</a>
     <a class="nav-btn primary" href="{next_href}">{esc(next_label)} {arrow('→')}</a>
   </nav>
 </main>

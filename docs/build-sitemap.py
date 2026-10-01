@@ -15,6 +15,7 @@ build-sitemap.py — 弄一下工作室課程站地圖產生器
 import re
 from datetime import date
 from pathlib import Path
+from course_paths import is_public_html, iter_public_html
 
 ROOT = Path(__file__).resolve().parent.parent
 COURSES_DIR = ROOT / "courses"
@@ -30,10 +31,6 @@ PRIORITY = {
     "prac": "0.7",       # 練習頁
     "page": "0.5",       # 其他
 }
-
-# 忽略的路徑（_backup/ 之類）
-IGNORE_PARTS = {"_backup", "_pilots", ".git", ".worktrees", "node_modules"}
-
 
 def classify(path: Path) -> str:
     name = path.name.lower()
@@ -56,7 +53,7 @@ def file_lastmod(path: Path) -> str:
 
 
 def should_ignore(path: Path) -> bool:
-    return any(part.startswith("_") or part in IGNORE_PARTS for part in path.parts)
+    return not is_public_html(path, ROOT)
 
 
 def is_gated(path: Path) -> bool:
@@ -78,7 +75,7 @@ def collect_pages():
 
     # 課程頁面（遞迴掃）
     if COURSES_DIR.exists():
-        for html in sorted(COURSES_DIR.rglob("*.html")):
+        for html in sorted(iter_public_html(COURSES_DIR, ROOT)):
             if should_ignore(html):
                 continue
             if is_gated(html):

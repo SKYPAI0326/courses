@@ -2,6 +2,19 @@
 
 > 狀態：**草案，待使用者審核**　｜　制定：Claude Code + Codex 共審（call `1b409309`）　｜　日期：2026-05-16
 
+> 2026-10-01 執行修訂：以下增補優先於原草案的分類 4–6 與回滾說明。
+
+## 現行封存與掃描規則
+
+- 保留現役製作工具、測試、生成器、契約與驗收證據（包括 `_tools`、`_validation`、`_review`）。歷史 PASS 不代表現行頁面已通過；禁止只更新雜湊、時間或刪除證據來消除 BLOCKED。
+- 手動指定單一內部 HTML（例如規範範本）仍可 lint；全站掃描排除內部目錄，其他 worktree 即使指定也不掃描。
+- 正式 `_assets` 與底線開頭檔名（如 `_unlock.html`）不可因名稱被排除。全站 lint、密碼注入、搜尋、sitemap 共用 `docs/course_paths.py`；規則依 repo 相對目錄判斷，不受祖先目錄名稱影響。內部目錄只是不進批次掃描，仍可能被 GitHub Pages 直接存取。
+- 未解除的 HTML、工具、測試、規範引用都會保留其目標。歷史備份不能整夾推定無用；先列逐檔清單、依賴與 SHA-256，再移到 repo 外。動態依賴不明者保留。
+- 新備份放 `_backup/`（預設不追蹤）或 repo 外；若是測試 fixture，明確列入依賴與版本控制。不得忽略整個 `_validation` 或 `_tools`。
+- 清理不得改動其他 worktree、全域設定或其他專案。移出檔須有來源路徑、目的位置、雜湊與保留原因清單。
+- 還原依該次 manifest 精準複製並核對雜湊；遇到不同內容的現存檔案先停止，禁止覆寫。已提交的清理可另外用 `git revert <commit>` 審查回復。切換分支不會自動還原未提交刪除。
+- 2026-10-01 本次清單：`docs/maintenance/2026-10-01-cleanup.json`；結果與未結驗收：`docs/maintenance/2026-10-01-cleanup.md`。
+
 ---
 
 ## 1. 目的與原則
@@ -21,9 +34,9 @@ repo（GitHub Pages，`SKYPAI0326/courses`，main 分支根目錄即站根）歷
 | 1 | Public delivery（正式 HTML、正式 assets、可下載 zip） | 留 repo 原位 | tracked |
 | 2 | Publish toolchain（建置/注入腳本、SEO 檔） | 留 repo 原位 | tracked |
 | 3 | Production SSOT（跨課程重複引用的大綱/教案/規範核心） | 留 repo 原位 | tracked |
-| 4 | Course-specific internal SSOT（單課講師指引、修正計畫、稽核報告、章節草稿） | 移姊妹資料夾 | untrack |
-| 5 | Source/generator（素材包 source、PPTX/PDF/docx 原檔、源素材） | 移姊妹資料夾 | untrack |
-| 6 | Validation/review/refactor 產物 | 移姊妹資料夾 | untrack |
+| 4 | Course-specific internal SSOT（單課講師指引、修正計畫、稽核報告、章節草稿） | 現役依賴留原位；無依賴歷史檔可封存 | 依用途 |
+| 5 | Source/generator（素材包 source、PPTX/PDF/docx 原檔、源素材） | 可重建交付物的現役源碼保留；其他依 manifest 封存 | 依用途 |
+| 6 | Validation/review/refactor 產物 | 現役證據、測試、契約保留；歷史快照經依賴檢查後封存 | 依用途 |
 | 7 | Duplicate/sync 副本 | 內容相同→刪；不同→移 quarantine | — |
 
 ---
@@ -51,7 +64,7 @@ repo（GitHub Pages，`SKYPAI0326/courses`，main 分支根目錄即站根）歷
 
 ---
 
-## 4. 移出清單（類別 4–6 → `../課程製作-內部/`）
+## 4. 原草案候選清單（必須依現行規則重新核對，不是批次搬移授權）
 
 ### 類別 4 — Course-specific internal SSOT
 | 來源 | 去處 |
@@ -143,4 +156,4 @@ repo 只留 `n8n-sample-pack.zip`（學員下載用）；其 source 與生成腳
 `courses/**/*.html`（正式頁）、`courses/*/assets/` 正式素材、根 `index.html` `search.html` `sitemap.xml` `robots.txt` `.nojekyll` `search-index.json`、`docs/*.py`、`inject_gate.py`、`_outlines/`、`_lessons/`、`_規範/` 核心（§3）。
 
 ## 10. 回滾方式
-全程於分支 `chore/repo-reorg` 執行；姊妹資料夾在 iCloud，未 `push` 前 `git switch main` + 刪分支即完全復原；被移檔在姊妹資料夾完整保留，可隨時移回。
+本次封存先跑 `python3 docs/restore-maintenance.py docs/maintenance/2026-10-01-cleanup.json` 預演，再加 `--apply` 精準還原。工具驗證雜湊、拒絕覆寫不同內容，保留執行權限。還原後不會自動 stage 或 push；需另外審查。若要回復整個維護提交，先檢查後續變更再評估 `git revert`，不可用切換分支或刪分支假設未提交異動已復原。

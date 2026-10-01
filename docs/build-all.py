@@ -2,6 +2,7 @@
 """build-all.py — 課程網頁總建置器
 
 在 git push 前跑：
+  0. unittest discover -s docs/tests              （工具邊界與還原測試）
   1. lint-page.py --all --baseline --no-warn       （BLOCKER 擋）
   2. build-search-index.py                          （重建搜尋索引）
   3. build-sitemap.py                               （重建 sitemap）
@@ -25,6 +26,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 STEPS = [
+    ("tools",  [sys.executable, "-m", "unittest", "discover", "-s", "docs/tests"]),
     ("lint",   ["python3", "docs/lint-page.py", "--all", "--baseline", "--no-warn"]),
     ("search", ["python3", "docs/build-search-index.py"]),
     ("sitemap", ["python3", "docs/build-sitemap.py"]),
