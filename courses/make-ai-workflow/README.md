@@ -5,7 +5,7 @@
 - **slug**：`make-ai-workflow`
 - **課程類型**：`skill-operation`
 - **課程時數**：6 小時
-- **目前階段**：CH1-6 變體專題與交接講義完成資產補強
+- **目前階段**：CH1-6 變體專題、BRIDGE-1 跨平台契約與交接講義完成資產補強
 - **目前版本**：CH1-1～CH1-6 已產出正式 HTML 講義頁；真人冷跟做仍待執行
 - **核心教學原則**：通用概念 → 範例示範 → 跟做練習 → 產出驗收 → 換案例轉移
 
@@ -24,6 +24,8 @@
 | `_lessons/make-ai-workflow/` | course-designer 產出的教案 | CH1-1～CH1-6 已建立 |
 | `assets/` | 講義／試跑包／課後素材 | CH1-1 去敏資產、CH1-2 契約模板、CH1-3 最小流程、CH1-4 LLM 設計、CH1-5 JSON 除錯與 CH1-6 變體交接試跑包已建立 |
 | `_validation/` | reviewer、learner check 與驗收紀錄 | 靜態檢查完成，真人冷跟做待執行 |
+
+跨平台銜接使用 `assets/BRIDGE-1-make-n8n-contract-v1.md`。Make 與 n8n 的任務欄位保留各自語意，透過 `task_type`、`data` 與 Transform 紀錄銜接；實際匯入與執行仍需在兩個平台分別驗證。
 
 ## 安全邊界
 

@@ -5,7 +5,7 @@ course: n8n / AI 資料工廠
 chapter: 第 8 章 / 8（post-llm 系列：課後用 LLM 改 workflow）
 description: 改 workflow 前先確認自己在哪跑（local / -edit / Publish 發布狀態）+ 改完真實驗收（不只 Code 綠燈）
 audience: 商業培訓非工程師、課後用網頁版 LLM（ChatGPT / Claude / Gemini）改 workflow
-prerequisite: 已跑過 Lite Pack 14 個 workflow 至少 1 次；理解 #02 PDF AI 改名範例
+prerequisite: 已跑過 Lite Pack 13 個核心 workflow 至少 1 次；#09 Gmail 分類為進階選修；理解 #02 PDF AI 改名範例
 delivery: 文字導向 HTML 章節（無印風）
 created: 2026-05-07
 codex_audit: 6ffbb482

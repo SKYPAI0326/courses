@@ -13,7 +13,7 @@ platform_version: Windows 教室；LocalWP 示範網站、教師 GA4 Demo Accoun
 <!--
 教案 PRAC4 · SEO 與追蹤決策包整合實作
 
-本實作把 Part 4 的產物收束為一份能讓內容、網站與分析角色共同使用的決策包。學員要選定一個內容主題，整理關鍵字群組、頁面檢查、GA4 假設與事件驗證，並使用教師提供的 Search Console 去識別資料包補上查詢與曝光線索。
+本實作把 Part 3 的產物收束為一份能讓內容、網站與分析角色共同使用的決策包。學員要選定一個內容主題，整理關鍵字群組、頁面檢查、GA4 假設與事件驗證，並使用教師提供的 Search Console 去識別資料包補上查詢與曝光線索。
 
 正式班需提供 LocalWP 站點、GA4 Demo Account、GTM 測試容器、Search Console 去識別資料包、四份前置產物範本與整合評分表；任一正式資產未建立並驗證前，試跑包維持 BLOCK。
 -->

@@ -5,7 +5,7 @@ course: n8n / AI 資料工廠
 chapter: 第 4 章 / 8（post-llm 系列：課後用 LLM 改 workflow）
 description: 改完後三步：把 LLM 給的 JSON 跑起來、回報錯誤、決定收尾
 audience: 商業培訓非工程師、課後用網頁版 LLM（ChatGPT / Claude / Gemini）改 workflow
-prerequisite: 已跑過 Lite Pack 14 個 workflow 至少 1 次；理解 #02 PDF AI 改名範例
+prerequisite: 已跑過 Lite Pack 13 個核心 workflow 至少 1 次；#09 Gmail 分類為進階選修；理解 #02 PDF AI 改名範例
 delivery: 文字導向 HTML 章節（無印風）
 created: 2026-05-07
 codex_audit: f3f95415

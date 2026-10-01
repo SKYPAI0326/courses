@@ -78,7 +78,7 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 機器證據
 
 ### 動手練習題（Hands-on Exercise）
 
-先把 B4 的預期文字改成「已儲存，回到任務清單」，只改內容；再用同一腳本回歸。另開一筆測試，故意把 Destination 留空，記錄為互動問題並修復。不要同時改 Animation。
+複製 B4 通過版本與測試紀錄。先把測試表的 Expected 改成「已儲存，回到任務清單」，再把 Figma Overlay 的實際文字同步改成同一句；Frame 尺寸、起點、Destination 與 Animation 保持不變。用 Chrome Preview 重跑同一個 case_id，把畫面結果填入 Actual，確認它與 Expected 相同。另開一份測試副本，故意把 Destination 留空；從 Host 預覽並點擊一次，將停留在 Host 的結果記為 Actual，分類為互動問題。把 Destination 指回 Dialog / Overlay 後，從同一個起點重跑並保存修復前後證據。
 
 ### 常見錯誤 3 條（Common Pitfalls）
 

@@ -64,6 +64,8 @@ grep -Ei '"apiKey"|"token"|"password"|"secret"|Authorization|Bearer|x-api-key|cr
 2. 開啟 workflow，把每個需要 credential 的節點重新指定到剛建立的 credential
 3. 再執行測試
 
+Lite Pack 的 #09 Gmail 分類是進階選修：需要 Gmail OAuth 才能執行；若尚未設定 Gmail OAuth，可先跳過，不影響其餘 13 個核心 workflow。
+
 這樣的設計是為了「強迫學員理解 credential 機制 + 保護分享方的真實密鑰」。
 
 ---

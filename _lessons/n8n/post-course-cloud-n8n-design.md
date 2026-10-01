@@ -175,7 +175,7 @@ LLM API key 是你自己的（OpenAI / Gemini / Anthropic），帳單寄到你�
 
 **Workflow 草圖**：Google Form Trigger → Filter (確認付款) → Gmail (歡迎信) → Wait (課前 24h) → Gmail (提醒) → Google Calendar (建活動)
 
-**月配額預估**：~300 executions/月，Cloud Starter $20 大幅有餘額；其實 trial 14 天就能跑完一場工作坊驗證，**不滿意可不續**。
+**月配額預估**：~300 executions/月，Cloud Starter $20 大幅有餘額； trial 14 天就能跑完一場工作坊驗證，**不滿意可不續**。
 
 **風險提醒**：Google API quota 跟 n8n Cloud quota 是**兩回事**，Gmail API 每日 1B quota 用不完但 OAuth 「app verification」沒做時 100 次/天上限會卡。寄信前測 send limit。
 

@@ -151,7 +151,7 @@ V4 CCS 語彙分為 4 組尺度，每組內有細微階差以支援編輯式節�
 | Topbar | `.topbar` `.logo` `.topbar-divider` `.topbar-sub` `.topbar-tag` | 固定頂部列 |
 | Progress | `.progress-strip` `.progress-fill` | 進度條 |
 | Hero | `.page-hero` `.back-link` `.hero-eyebrow` `.page-title` `.page-subtitle` | 頁面標題區 |
-| Section | `.lesson-section` | **骨幹元件**，每頁 ≥ 5 個 |
+| Section | `.lesson-section` | **骨幹元件**，依已審查正文決定數量，不設最低段數 |
 | Section Eyebrow | `.section-eyebrow` | 格式：`SECTION NN · {中文副標}` |
 | Section Heading | `.section-heading` | 1.45rem，`<em>` 語義高亮 |
 | Section Rule | `.section-rule` `<hr>` | 區段間分隔線 |
@@ -167,9 +167,9 @@ V4 CCS 語彙分為 4 組尺度，每組內有細微階差以支援編輯式節�
 | 2 | Scenario Grid | `.scenario-grid` `.scenario-row` `.scenario-task` `.scenario-pick` | `grid-template-columns: 160px 1fr` |
 | 3 | Callout | `.callout` `.callout.info` `.callout.tip` `.callout.key` `.callout-icon` `.callout-body` | 每頁最多 3-4 個 |
 | 4 | Big Quote | `.big-quote` | 每頁最多 1 個 |
-| 5 | Steps Inline | `.steps-wrap` `.step-block` `.step-circle` `.step-content` `.step-heading` `.step-body` | 只在 SECTION 03 操作/實作使用 |
+| 5 | Steps Inline | `.steps-wrap` `.step-block` `.step-circle` `.step-content` `.step-heading` `.step-body` | 只在操作／實作段落需要步序時使用，不固定 Section 編號 |
 | 6 | Quiz | `.quiz-item` `.quiz-q` `.quiz-opts` `.quiz-opt` `.quiz-opt.correct` `.quiz-ans` | `<details>` 展開答案 |
-| 7 | Outcomes | `.outcomes` `.outcomes-label` `.outcome-item` `.outcome-dot` | Hero 底部，3-6 條 |
+| 7 | Outcomes | `.outcomes` `.outcomes-label` `.outcome-item` `.outcome-dot` | Hero 底部，依實際學習成果 |
 | 8 | Code Block | `.code-block` | 深色主題：bg `#2c2b28`、text `#e8e4dc` |
 
 ### 輔助組件
@@ -177,11 +177,12 @@ V4 CCS 語彙分為 4 組尺度，每組內有細微階差以支援編輯式節�
 | 組件 | Classes | 說明 |
 |------|---------|------|
 | Context Box | `.context-box` `.context-inner` `.context-label` `.context-text` | SECTION 01 破題 |
-| Concept Grid | `.concept-grid` `.concept-card` `.concept-num` `.concept-title` `.concept-desc` | 概念卡（3 張） |
+| Concept Grid | `.concept-grid` `.concept-card` `.concept-num` `.concept-title` `.concept-desc` | 概念卡（需要並列時使用，不設配額） |
 | Compare Grid | `.compare-grid` `.compare-card` `.compare-label` `.compare-item` | 對照表 |
 | Verify Box | `.verify-box` `.verify-label` `.verify-text` | 驗證確認 |
 | Troubleshoot | `.troubleshoot` `.ts-label` `.ts-item` `.ts-q` `.ts-a` | 故障排除 |
 | Reflection | `.reflection-block` `.reflection-label` `.reflection-prompt` | 反思題 |
+| 資料表 | `.table-scroll` `.lesson-table`，原生 table／thead／tbody／th／td | 保留完整欄列，手機可水平捲動，不以卡片摘要取代 |
 | Inline Code | `.inline-code` | 行內程式碼 |
 | Step Tip | `.step-tip` | 步驟提示 |
 
@@ -245,23 +246,20 @@ grid-template-columns: repeat(auto-fit, minmax(...));
 
 ### skill-operation / programming 類型
 
-| Section | Eyebrow | 教案來源 | 主要組件 |
-|---------|---------|---------|---------|
-| 01 | SECTION 01 · {破題} | 破題段 | context-box |
-| 02 | SECTION 02 · KEY CONCEPTS | 概念段 | tool-grid (2 欄) |
-| 03 | SECTION 03 · STEP BY STEP | 操作示範/實作 | steps-inline (5-6 步) |
-| 04 | SECTION 04 · HANDS-ON | 動手段 | scenario-grid + callout |
-| 05 | SECTION 05 · VERIFY | 檢核/驗證 | outcomes-style list |
-| 06 | SECTION 06 · TRIAL PACK | 試跑包需求 | tool-grid cards |
-| 07 | SECTION 07 · PITFALLS | 常見錯誤 3 條 | scenario-grid |
-| 08 | SECTION 08 · QUIZ | 檢核題 2 條 | interactive quiz |
+| 角色 | 學員能力證據 | 可用組件 |
+|---|---|---|
+| 情境與任務 | 起始狀態、完成物、學習目的 | context-box |
+| 概念與判斷 | 定義、邊界、正反例、決策依據 | tool-grid / table |
+| 操作與練習 | 完整示範、meaningful stages、結果與修復 | steps-inline / scenario-grid |
+| 驗收與遷移 | 可觀察完成標準、新條件應用 | outcomes / quiz / reflection |
+| 素材與限制 | 取得方式、用途、備援與平台限制 | tool-grid / callout |
 
 ### concept 類型
 
 | Section | 差異 |
 |---------|------|
-| 03 | → CASE ANALYSIS（scenario-grid） |
-| 04 | → REFLECTION（reflection-block） |
+| 主要案例與判斷 | → CASE ANALYSIS（scenario-grid） |
+| 反思與遷移 | → REFLECTION（reflection-block） |
 
 ---
 
@@ -437,14 +435,14 @@ grid-template-columns: repeat(auto-fit, minmax(...));
 
 | # | 組件 | Classes | 用途 | 數量上限 |
 |---|------|---------|------|---------|
-| H | Today Deliverables | `.today-deliverables` `.today-deliverables-label` `.today-deliverables-list` `.today-deliverables-note` | hero 內「今天會交什麼」清單，3 條以內 | 每頁 1 個 |
-| I | Micro Cycle | `.micro-cycle` `.cycle-eyebrow` `.cycle-question` `.cycle-bridge` `.closer` | 5–8 分鐘的「觀念→任務→檢核」循環容器 | 每頁 3–5 個 |
+| H | Today Deliverables | `.today-deliverables` `.today-deliverables-label` `.today-deliverables-list` `.today-deliverables-note` | hero 內「今天會交什麼」的可觀察成果清單 | 每頁 1 個 |
+| I | Micro Cycle | `.micro-cycle` `.cycle-eyebrow` `.cycle-question` `.cycle-bridge` `.closer` | 以「觀念→任務→檢核」承接學習循環；時間與數量依內容需要 | 每頁依學習路徑 |
 | J | Wrong Example | `.wrong-example` `.wrong-label` `.wrong-note` | 錯誤例子展示（cycle 內第 2 步） | 每 cycle 0–1 個 |
 | K | Task Card | `.task-card` `.task-card-large` `.task-card-master` `.task-card-header` `.task-card-name` `.task-card-time` `.task-card-body` `.task-card-section` `.task-card-label` `.task-card-list` `.task-card-stuck` | 任務卡（含限時/要做什麼/完成物/通過標準/卡住怎麼辦） | 每 cycle 1 個 + PRAC 大任務不限 |
 | L | Learner Output | `.learner-output` `.learner-output-label` `.learner-output-blank` `.learner-output-table` | 學員產出區（提示佔位 + 留白 contenteditable） | 每 cycle 1 個 |
-| M | Self Check | `.self-check` `.self-check-label` `.self-check-rule` | 段內檢核（cycle 內第 6 步），與頁尾 `.quiz-item` 並行 | 每 cycle 1 條 |
-| N | Concept Pair | `.concept-pair` `.concept-pair-card` `.concept-pair-label` | 概念對照雙卡（左右並列、固定 `1fr 1fr`） | 每頁 0–2 個 |
-| O | Instructor Note | `.instructor-note`（搭 `<details>`）| 講師備註折疊區、預設 closed | 每頁 1–3 個 |
+| M | Self Check | `.self-check` `.self-check-label` `.self-check-rule` | 段內檢核，與頁尾 `.quiz-item` 並行 | 依學習目標需要 |
+| N | Concept Pair | `.concept-pair` `.concept-pair-card` `.concept-pair-label` | 概念對照雙卡（左右並列、固定 `1fr 1fr`） | 依判斷需要 |
+| O | Instructor Note | `.instructor-note`（搭 `<details>`）| 講師備註折疊區、預設 closed | 依授課需要 |
 | P | Aside Tip（**Round 4 追加**） | `blockquote.aside-tip` | 段內提醒 blockquote、左灰邊線（取代舊 `.tip-callout`、避開 lint `\bcallout\b` regex 誤判） | 不限 |
 | Q | Layout Mockup（**Round 4-5 追加**）| `.layout-mockup` `.lm-frame` `.lm-row` `.lm-row.lm-main` `.lm-row.lm-tall` `.lm-row.lm-xtall` `.lm-row.lm-short` `.lm-row.lm-center` `.lm-cells` `.lm-cells.lm-3col` `.lm-cells.lm-2col` `.lm-cell` `.lm-cell.lm-tall` `.lm-pct` `.lm-sub` `.lm-caption` | 版型結構示意（CSS grid + border 替代 ASCII art、避免 CJK 對齊問題、深色背景 + 半透明灰邊框）。內部用 component-scoped CSS var（`--lm-bg/--lm-fg/--lm-border/--lm-muted/--lm-highlight`）封裝深色色票、不污染全域 token | CH2-1 8 版型 |
 
@@ -460,7 +458,7 @@ grid-template-columns: repeat(auto-fit, minmax(...));
 ### 規則（必須遵守）
 
 - **micro-cycle 內 callout 仍受「每頁 ≤ 4」限制** — 改用 `.wrong-example` `.self-check` `.closer` `.instructor-note` 等不算 callout 的容器
-- **Section count 仍須 ≥ 5** — 每個 micro-cycle 算 1 個 lesson-section（外層用 `<section class="lesson-section micro-cycle">`）
+- Section 數量依正文決定；micro-cycle 只是可選呈現，不能為滿足數量拆碎完整教學。
 - **所有 CSS 必須用 V4 15 階字型 + `--c-main` 4 處上限** — 不另開字型階、不另開色變數
 - **`.task-card-stuck` 必須是 `<details>` 折疊**、預設 closed
 - **`.learner-output-blank` 用 `contenteditable="true"` + `data-placeholder` 屬性** — 不用 `<input>`/`<textarea>`（避免送出邏輯）
@@ -468,7 +466,7 @@ grid-template-columns: repeat(auto-fit, minmax(...));
 
 ### lint 影響
 
-`docs/lint-page.py` 此版**不對 class 名做白名單檢查**，只擋特定禁用 class（concepts-strip / case-block / quiz-block / hands-on-box / assets-box）與計數規則（callout ≤ 4 / lesson-section ≥ 5 / big-quote ≤ 1）。
+`docs/lint-page.py` 此版**不對 class 名做白名單檢查**，只擋特定禁用 class（concepts-strip / case-block / quiz-block / hands-on-box / assets-box）與計數規則（callout ≤ 4 / lesson-section 容器存在 / big-quote ≤ 1）。
 
 **因此新增本節 8 組件不需要更新 `lint-page.py`、不會觸發 BLOCKER**。日後若加入「組件白名單強制檢查」，本節 class 應同步進白名單。
 

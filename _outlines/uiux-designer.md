@@ -65,7 +65,7 @@ dependencies:
   A6: [A5]
   A7: [A6]
   A8: [A5, A6, A7]
-  B1: []
+  B1: [A8]
   B2: [B1, A4]
   B3: [B2]
   B4: [A8, B2]

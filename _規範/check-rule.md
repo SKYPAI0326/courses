@@ -113,6 +113,14 @@ comm -23 <(sort /tmp/html_refs.txt) <(sort /tmp/known_assets.txt)
 
 輸出為「dead reference 清單」，每行即 BLOCKER 一條。
 
+**C1.5 素材可發現性** — 檔案存在仍不代表學員找得到。針對每個 A3 `ASSET` 與 HTML 首次提及的範例檔、附件、測試資料、Blueprint、模板或完成品，人工核對：
+
+1. 第一次使用前是否有學員可見的可點擊 `href`（可開啟／下載）、可解析相對路徑或可複製內容。
+2. 是否同時標示檔名／格式、用途、使用時機，以及無權限或格式不支援時的備援與能力差異。
+3. `href` 目標是否真的存在，內容是否與示範、欄位映射及預期結果一致；頁尾資產清單不可作為唯一入口。
+
+只有裸檔名、「課程資產中／附件內」或教師端路徑，列入「undiscoverable asset 清單」，每項為 BLOCKER；可取得但缺少輸入／輸出脈絡列為 MAJOR。
+
 **C2 頁面引用完整性** — 找 HTML 中引用但不存在的頁面：
 
 ```bash
@@ -299,18 +307,18 @@ $(cat /tmp/組合清單.txt)"
 
 **Codex CALL_ID**：Phase E: {xxx} / Phase F: {xxx}
 
-**放行判定**：PASS / BLOCK / CONDITIONAL-PASS
+**本次檢核 verdict**：PASS / BLOCK / CONDITIONAL-PASS（僅代表本檢核層；正式課程 release status 沿用 `learner-action-contract.md`，不可由此欄單獨推定）
 ```
 
 ---
 
-## 放行標準
+## 本次檢核的判定標準（不取代正式 release status）
 
 | 條件 | 判定 |
 |------|------|
-| 所有層 BLOCKER = 0 | **PASS** |
+| 適用範圍已查且 BLOCKER = 0、MAJOR = 0 | **PASS**（僅本次審查） |
 | 任意 BLOCKER > 0 | **BLOCK**（修正後重跑對應 Phase）|
-| BLOCKER = 0，MAJOR ≤ 3 且有對應修正計畫 | **CONDITIONAL-PASS** |
+| 有未解 MAJOR 或必要證據未查 | **PENDING**（補足後重審，不以數量門檻放行） |
 
 BLOCK 後重跑規則：
 - C1/C2/C3 問題修正 → 重跑 Phase C
@@ -320,6 +328,8 @@ BLOCK 後重跑規則：
 ---
 
 ## Codex 整合限制
+
+Phase E/F 是有相應授權時才啟用的外部專項；預設以目前執行者閱讀正式來源與實際試跑取證，不以缺少外部 consult 阻擋通用流程。模型評分與 CALL_ID 不能替代學習證據。
 
 | 限制 | 說明 |
 |------|------|
@@ -342,7 +352,7 @@ BLOCK 後重跑規則：
 - Phase D: YES {N} / PARTIAL {N} / NO {N}
 - Phase E: CALL_ID {xxx}，verdict {accepted}，OUTDATED {N} 條
 - Phase F: CALL_ID {xxx}，verdict {actionable}，BROKEN {N} 組
-- 放行判定: PASS / BLOCK / CONDITIONAL-PASS
+- 本次檢核 verdict: PASS / BLOCK / CONDITIONAL-PASS；正式 release status 另依 `learner-action-contract.md` 判定
 - 備註: （若有）
 ```
 
@@ -354,7 +364,7 @@ BLOCK 後重跑規則：
 - Phase D: 承諾履行——MAJOR 1（CH2-2 投影片計數 5→7 張，CH2-1 slide ③ 來源未標）/ MINOR 1（home-recipes.md 檔名誤導）
 - Phase E: CALL_ID 634a8ca5，verdict actionable，OUTDATED 1 條（ChatGPT free context「32,000 字」→「16K tokens」）/ UNCERTAIN 2 條（Claude reset 機制、Gemini/ChatGPT 比較主觀）
 - Phase F: CALL_ID 117c4cd2，verdict accepted，NEEDS_ADJUSTMENT 3 組（B P1-2A 地址省略已是教學設計、E join 由 AI 處理已規避、F 貼文字方式已規避上傳限制）
-- 放行判定: PASS（修正後）
+- 本次檢核 verdict: PASS（修正後）；正式 release status 另依 `learner-action-contract.md` 判定
 - 備註: 共修 MAJOR 2 + MINOR 2 + NIT 2；after-class-guide.md 重命名（原 home-recipes.md）；lint 整站 BLOCKER 0 確認
 
 ---

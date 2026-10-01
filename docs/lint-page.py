@@ -50,7 +50,7 @@ BUCKETS = {
         r"『您』",              # 文案規範漂移
     ],
     "structural": [
-        r"lesson-section 僅",  # < 5 個 section
+        r"缺少 lesson-section",  # 只檢查模板容器存在，不設教學段數配額
         r"callout 有",         # > 4 個 callout
         r"big-quote 有",        # > 1 個 big-quote
     ],
@@ -296,10 +296,10 @@ def check_aria_hidden_arrow(html: str) -> list:
 
 
 def check_lesson_section_count(html: str) -> list:
-    """單元頁 lesson-section 應 ≥ 5 個（design-tokens §3 骨幹元件）。"""
+    """Check the template content container; substance determines section count."""
     count = len(re.findall(r'class="[^"]*\blesson-section\b', html))
-    if count < 5:
-        return [("WARN", f"lesson-section 僅 {count} 個（應 ≥ 5 個）")]
+    if count == 0:
+        return [("WARN", "缺少 lesson-section 內容容器，請核對範本結構")]
     return []
 
 

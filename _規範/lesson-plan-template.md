@@ -1,156 +1,42 @@
 ---
-slug: {slug}
-unit_id: {CH1-1 / PRAC1 / pilot-a / ...}
-title: {單元標題}
-course_type: {skill-operation|concept|programming}
-duration: {Xh 或 X min}
-learning_objective: {1 行，動詞開頭，可驗證}
-prerequisites: [{CH1-1}, {CH1-2}, ...]
-style_guide: {Style Guide 檔案相對路徑}
-platform_version: {繼承自大綱}
+slug: "{slug}"
+unit_id: "{unit_id}"
+title: "{title}"
+course_type: "{concept|skill-operation|programming|integration-capstone}"
+duration: "{依真實任務估時}"
+learning_objective: "{可觀察成果與判準}"
+prerequisites: []
+style_guide: "{已確認存在的路徑}"
+platform_version: "{工具與查證日期；純紙筆寫不適用}"
+revision: "{版本或日期}"
 ---
 
-<!--
-教案標準模板（course-designer 產出使用）
-_規範/lesson-plan-template.md
+## 內部設計（不進學員頁）
 
-更新日期：2026-04-19（從 course-designer/SKILL.md 抽出）
+引用課程 Blueprint 的學員起點與能力矩陣；單課直接在此記錄必要前提、診斷與補救、本課能力增量及後續用途。依 learner-action-contract.md 確認適用的任務事實，不在正文重印行政欄位。
 
-產出規則：
-  1. 複製本檔 → 存至 _lessons/{slug}/{unit-id}.md
-  2. 替換 frontmatter 全部欄位（9 keys 皆必填）
-  3. 依 course_type 選填第 3/4/5 段
-  4. 長度目標 300–600 行
--->
+| 目標／核心方法 | 所需證據 | 正文位置與實際引用 | 審查結果 |
+|---|---|---|---|
 
-## 教學流程（Teaching Flow）
+素材存在 Gate（材料狀態 READY 只代表可取得，與課程放行狀態不同）：
 
-> ⚠️ 本段是**學員視角**（會轉成學員看的 HTML 講義）。授課調度（講師示範／主線備線／預錄／時間分配／誰先誰後）一律寫到本檔末「## 講師授課筆記（不進講義）」，**不要混進這裡**。教學流程只描述「學員要學會／做出什麼、怎麼做、哪裡小心」。
+| 材料與用途 | 製作者 | 實檔／可複製內容及取得方式 | 驗證方式與結果 | 狀態／缺口 |
+|---|---|---|---|---|
 
-### 破題 / Hook
+內容審查指向 `_validation/evidence.json` 的 content 記錄；來源 hash 由工具計算，不在本檔自填 PASS。
 
-{1–2 段。用 Style Guide 主角的具體情境開場。不要「今天我們要學 X」——直接帶入「阿凱遇到 Y 問題...」}
+<!-- learner-content:start -->
+# {學員能理解的單元標題}
 
-### 概念 / Concepts
+{從具體問題說明用途、起始材料與本課可做到的成果。必要前提先用小問題確認，附答案及補救。人物故事只有在有助理解時使用。}
 
-{每條關鍵概念用「名詞 — 一句話定義」格式列出。3–5 條為宜。}
+{以自然段落逐步教概念與方法，提供必要的成立條件與理由，帶讀完整例子：輸入、推理／動作、中間結果及最後結果。標題與組件依內容命名，不照填固定八區塊。}
 
-- **{概念 A}** — {一句話定義}
-- **{概念 B}** — {一句話定義}
+{讓學員參與有回饋的練習，說明給定材料、任務、如何核對及錯誤修復。沿用示範素材時說明學員需自行做的判斷或減少哪些提示。}
 
-### {第 3 段：依 course_type 選}
-
-- skill-operation：**操作示範 / Demo**
-- concept：**案例 / Case Study**
-- programming：**設計 / Design**
-
-{具體內容...}
-
-### {第 4 段：依 course_type 選}
-
-- skill-operation：**動手 / Hands-on**
-- concept：**反思 / Reflection**
-- programming：**實作 / Implementation**
-
-{具體內容...}
-
-### {第 5 段，僅 skill-operation 有}
-
-**檢核 / Verification**
-
-{學員如何自行驗證學會了。具體動作+可觀察成果。}
-
-### {programming 專屬：驗證 / Testing}
-
-{測試案例、預期輸入輸出。}
-
----
+{依目標安排獨立完成、解釋、診斷或條件變化題，提供可觀察答案／評判依據與理由。收束時回到起始問題及使用條件。完整答案可用可展開區，不能只留教師筆記。}
+<!-- learner-content:end -->
 
 ## 講師授課筆記（不進講義）
 
-> ⚠️ **本區塊不轉成學員 HTML**。course-lesson-writer 一律跳過、course-reviewer 確認其內容沒洩漏到學員頁。授課調度全寫這裡。
-
-只給講師／設計師的內容：
-- 時間分配（每段幾分鐘）、節奏控制
-- 講師示範 vs 學員跟做的調度、誰先誰後
-- 臨場備案：預錄影片、現場網路／額度不足時的最小可跑版
-- 講師話術、收束語、過場
-- 課前準備（講師端要先建好的環境、要發給學員的檔）
-
----
-
-## 試跑包需求清單（Verification Asset Spec）
-
-**課程類型**：{course_type}
-
-{依類型填寫具體清單——這是使用者後續要產出/蒐集的}
-
-### skill-operation 範本
-
-- Credential 所需：
-  - Gmail（OAuth）
-  - Notion API token
-- Node 組成：
-  - Gmail Trigger → Filter → Notion Page Create
-- 關鍵設定欄位：
-  - Gmail Trigger: `labelIds`, `q`
-  - Notion: `database_id`, `properties mapping`
-
-### concept 範本
-
-- 概念測驗題：5 題選擇題
-- 分類練習：10 個真實案例（含預期分類答案）
-- 常見誤判樣本：3 個
-
-### programming 範本
-
-- `requirements.txt`：`gspread==6.0`、`google-auth==2.29`
-- 認證檔：`service-account.json`（範本與填寫說明）
-- 範例資料：Google Sheet 連結 + 預期輸出
-
----
-
-## 商業情境案例（Case）
-
-**角色**：{阿凱 / 雯姊 / 老闆，選最適合的}
-**公司**：弄一下行銷工作室
-**任務**：{1 句話，具體到「X 做 Y 以達到 Z」}
-**本單元要他學會**：{呼應 learning_objective}
-
----
-
-## 動手練習題（Hands-on Exercise）
-
-**題目**：{1–2 段，延續上面案例}
-
-**預期成果**：{學員做完應該產出什麼——可檢查的具體物件}
-
-**完成標準**（self-check）：
-- [ ] {條件 1}
-- [ ] {條件 2}
-- [ ] {條件 3}
-
----
-
-## 常見錯誤 3 條（Common Pitfalls）
-
-1. **錯誤現象**：{具體樣貌，含錯誤訊息或畫面描述}
-   **原因**：{為什麼會發生}
-   **解法**：{怎麼修}
-
-2. ...
-
-3. ...
-
----
-
-## 檢核題 2 條（Quiz）
-
-**Q1（概念驗證）**：{問題}
-- [ ] A
-- [ ] B
-- [ ] C ←（正確答案）
-- [ ] D
-
-**Q2（應用驗證）**：{情境題，問學員如何處理}
-- 預期答案要點：{2–3 個關鍵點}
+{只記授課調度、時間、教師端準備與備案。學員需要的資料、說明、示範及答案應留在正式正文。}

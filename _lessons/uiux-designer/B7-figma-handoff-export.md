@@ -73,7 +73,7 @@ platform_version: Figma Starter／Free、Google Chrome（2026-09-16 機器證據
 
 ### 動手練習題（Hands-on Exercise）
 
-用 B6 的通過版本建立 Handoff 包。故意漏掉 Overlay PNG，再按照 Checkpoint 找回漏件；在清單中把 Photoshop 狀態填成 `NOT_RUN`，不可用 Figma PNG 冒充 Photoshop 輸出。
+用 B6 的通過版本建立 `Handoff-v2` 副本。依清單放入 Host PNG、Host PDF 與 Inspect 筆記，刻意先不放 Overlay PNG。請另一位讀者只依清單檢查 v2，記下他指出的缺件；若未指出，回查清單欄位與資料夾內容。回到 Figma 匯出 Overlay PNG，確認尺寸為 320×200 且保留預期文字，再更新 v2 清單與檔案位置。Photoshop 狀態填 `NOT_RUN`，不可用 Figma 匯出檔代替。
 
 ### 常見錯誤 3 條（Common Pitfalls）
 

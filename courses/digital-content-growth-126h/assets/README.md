@@ -5,7 +5,7 @@
 
 ## 狀態摘要
 
-- **READY：** 40 份 unit 模板（HTML 閱讀版＋HTML 工作版下載）；PRAC6 完整成果包 HTML 參考完成品；3 組可用於課堂的 UTF-8 合成 CSV；欄位字典、來源標記、操作 fallback 文件。Markdown 只保留為製作來源。
+- **READY：** 現行 115 小時課程的 96 份模板來源（含 CH0-1 開場 Brief），每份都有 HTML 閱讀版與可填寫 HTML 工作版；另有 3 組可用於課堂的 UTF-8 合成 CSV、欄位字典、來源標記與操作 fallback 文件。Markdown 只保留為製作來源。
 - **BLOCK：** LocalWP、GTM、GA4 Demo Account、Google／Meta／LINE 實際帳號與權限；所有外部平台／真實投放／真實客戶資料。此包只提供不需登入的模擬路徑。
 - **判定原則：** READY 代表檔案可讀、可複製且不依賴外部登入；BLOCK 代表仍需教師在課前取得、驗證或授權，不能以 placeholder 當完成品。
 
@@ -13,10 +13,9 @@
 
 | 路徑 | 用途 | 使用時機 | 備援 | 狀態 |
 |---|---|---|---|---|
-| `templates/<unit-id>.html` | 對應 unit 的可讀模板頁，保留欄位、驗收、來源與恢復欄 | 各 lesson 的動手／交付階段 | 講義內開啟閱讀版；原講義保留在上一頁 | READY |
+| `templates/CH0-1.html`／`CH0-1-工作版.html` | 課程開場的 Brief 閱讀版與可填寫工作版 | 課程第一小時；建立四科共用的工作方向 | 以紙本或記事本照欄位完成，回填至 HTML 工作版 | READY |
 | `templates/<unit-id>.html` | 對應 unit 的閱讀版，說明欄位、驗收、來源與恢復方式 | 各 lesson 開始前 | 直接在瀏覽器閱讀；需要作答時改用同頁的可填寫工作版 | READY |
 | `templates/<unit-id>-工作版.html`／`<unit-id>-參考版.html` | 工作版可在瀏覽器填寫、儲存草稿並下載完成版；參考版只供閱讀 | 各 lesson 的動手／交付或示範階段 | 工作版無法使用時，才改用 Word／記事本；參考版不需填寫 | READY |
-| `templates/PRAC6-完整成果包參考完成品.html` | 展示 00–08 檔案、證據目錄、提案講稿與修訂前後的完整成果包 | PRAC6 示範與跟做前 | 可下載 HTML 後離線閱讀；不需開啟 Markdown 才能理解範例 | READY |
 | `datasets/gsc-search-console-synthetic.csv` | GSC 查詢、頁面、曝光、點擊與排名練習 | CH4-1、CH4-2、PRAC4 | 使用 lesson 內嵌示例；不可宣稱為真實網站資料 | READY |
 | `datasets/ga4-content-synthetic.csv` | GA4 內容事件與轉換判讀練習 | CH4-4、CH4-5、CH4-7、PRAC4 | 使用欄位字典與 lesson 示例；無需登入 | READY |
 | `datasets/ads-budget-two-rounds-synthetic.csv` | 預算情境、第一／二輪結果與單一變因決策 | CH5-6、CH5-7、PRAC5 | 使用紙筆計算；不執行真實付費投放 | READY |
@@ -27,6 +26,12 @@
 ## Unit 模板
 
 每份模板依 lesson 的完成物名稱與目標建立，保留：情境／輸入、判斷或操作、具體輸出、證據與來源、限制、驗收、卡關修復、交接與版本欄。模板本身不代表該 unit 的完整參考完成品；若 lesson 規格要求案例卡、完整成品、外部帳號或實際軟體，仍列 BLOCK。
+
+### 開場 Brief 的交接規則
+
+CH0-1 產出的 `課程專案 Brief v1` 是四個 Part 共用的起始輸入。學員先填寫能力／主題、應用情境、對象、問題、預計輸出、可觀察證據與限制；進入 CH2-1 後，再把 Brief 轉成影像任務判斷表。後續各科可以沿用同一方向，也可以依新的工作情境修訂版本，修訂原因要留在版本欄。
+
+原先創業企劃 12 小時使用的 CH1／CH6／PRAC1／PRAC6 資產已移至課程 `_archive/2026-09-17-remove-entrepreneurship-12h/`，不屬於現行學員資產包。
 
 ## 使用與備援規則
 
