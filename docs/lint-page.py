@@ -104,6 +104,14 @@ def read(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="ignore")
 
 
+def is_internal_page(path: Path) -> bool:
+    """排除內部目錄與其他 worktree，避免全站 lint 污染正式課程結果。"""
+    return any(
+        part.startswith("_") or part in {".git", ".worktrees", "node_modules"}
+        for part in path.parts
+    )
+
+
 # ── BLOCKER 規則 ──────────────────────────────────────────
 
 def check_box_shadow(html: str) -> list:
@@ -960,10 +968,7 @@ def collect_files(args) -> list:
     files = []
     if args.all:
         for p in ROOT.rglob("*.html"):
-            rel = p.relative_to(ROOT).as_posix()
-            if any(part.startswith("_backup") or part.startswith("_pilots") for part in p.parts):
-                continue
-            if "node_modules" in p.parts or ".git" in p.parts:
+            if is_internal_page(p):
                 continue
             files.append(p)
     elif args.changed:
@@ -988,7 +993,7 @@ def collect_files(args) -> list:
                 files.extend(p.rglob("*.html"))
             elif p.is_file():
                 files.append(p)
-    return [f for f in files if not any(part.startswith("_backup") for part in f.parts)]
+    return [f for f in files if not is_internal_page(f)]
 
 
 def main():

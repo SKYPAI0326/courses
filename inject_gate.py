@@ -115,6 +115,15 @@ def inject(html_path: Path, key: str, hash_val: str) -> bool:
     return True
 
 
+def is_public_course_html(path: Path) -> bool:
+    """只處理正式課程頁，排除備份、驗證、審查與其他內部 worktree。"""
+    relative = path.relative_to(BASE.parent)
+    return not any(
+        part.startswith("_") or part in {".git", ".worktrees", "node_modules"}
+        for part in relative.parts
+    )
+
+
 def main():
     total_injected = 0
     total_skipped = 0
@@ -127,7 +136,7 @@ def main():
             total_missing += 1
             continue
 
-        html_files = [f for f in course_dir.rglob("*.html") if "_backup" not in f.parts]
+        html_files = [f for f in course_dir.rglob("*.html") if is_public_course_html(f)]
         injected = skipped = 0
 
         for f in sorted(html_files):
