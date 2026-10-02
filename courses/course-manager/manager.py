@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 from typing import Sequence
 
@@ -74,9 +75,65 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Sequence[str] | None = None) -> int:
     namespace = build_parser().parse_args(argv)
-    del namespace
+    if namespace.command == "scan":
+        return _handle_scan(namespace)
     print("command handler is not implemented yet", flush=True)
     return 2
+
+
+def _workspace_root(namespace: argparse.Namespace) -> Path:
+    return (namespace.root or Path(__file__).resolve().parent.parent).absolute()
+
+
+def _scan_report(catalog: dict) -> str:
+    counts: dict[str, int] = {}
+    for item in catalog["items"]:
+        counts[item["kind"]] = counts.get(item["kind"], 0) + 1
+    lines = [
+        "# Course Manager Scan Report",
+        "",
+        f"Scanned at: {catalog['scanned_at']}",
+        f"Items: {len(catalog['items'])}",
+        "",
+        "## Counts",
+        "",
+    ]
+    lines.extend(f"- {kind}: {counts[kind]}" for kind in sorted(counts))
+    lines.extend(["", "## Needs Review or Blocked", ""])
+    flagged = [
+        item
+        for item in catalog["items"]
+        if item["status"] in {"needs-review", "blocked"} or item["risk"]["move"] == "blocked"
+    ]
+    lines.extend(f"- {item['path']}: {item['kind']} — {item['classification_reason']}" for item in flagged)
+    if not flagged:
+        lines.append("- None")
+    return "\n".join(lines) + "\n"
+
+
+def _handle_scan(namespace: argparse.Namespace) -> int:
+    from src.catalog import write_catalog
+    from src.discover import scan_workspace
+
+    root = _workspace_root(namespace)
+    catalog = scan_workspace(root)
+    counts: dict[str, int] = {}
+    for item in catalog["items"]:
+        counts[item["kind"]] = counts.get(item["kind"], 0) + 1
+    print(json.dumps({"items": len(catalog["items"]), "counts": counts}, ensure_ascii=False, indent=2))
+    if namespace.write:
+        manager_root = Path(__file__).resolve().parent
+        catalog_path = manager_root / "registry" / "catalog.json"
+        write_catalog(catalog_path, catalog)
+        report_dir = manager_root / "reports" / "scans"
+        report_dir.mkdir(parents=True, exist_ok=True)
+        report_path = report_dir / f"scan-{catalog['scanned_at'].replace(':', '').replace('+', '-')}.md"
+        report_path.write_text(_scan_report(catalog), encoding="utf-8")
+        print(f"WROTE {catalog_path}")
+        print(f"WROTE {report_path}")
+    else:
+        print(json.dumps(catalog, ensure_ascii=False, indent=2))
+    return 0
 
 
 if __name__ == "__main__":
