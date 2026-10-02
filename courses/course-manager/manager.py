@@ -87,6 +87,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _handle_propose_move(namespace)
     if namespace.command == "propose-merge":
         return _handle_propose_merge(namespace)
+    if namespace.command == "apply":
+        return _handle_apply(namespace)
+    if namespace.command == "rollback":
+        return _handle_rollback(namespace)
     print("command handler is not implemented yet", flush=True)
     return 2
 
@@ -223,6 +227,24 @@ def _handle_propose_merge(namespace: argparse.Namespace) -> int:
         print(f"PROPOSAL_ERROR: {error}")
         return 2
     return _write_proposal(root, proposal, "merges")
+
+
+def _handle_apply(namespace: argparse.Namespace) -> int:
+    from src.operations import apply_proposal
+
+    root = _workspace_root(namespace)
+    result = apply_proposal(root, Path(namespace.proposal), Path(namespace.approval))
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["status"] == "APPLIED" else 2
+
+
+def _handle_rollback(namespace: argparse.Namespace) -> int:
+    from src.operations import rollback_manifest
+
+    root = _workspace_root(namespace)
+    result = rollback_manifest(root, Path(namespace.manifest), Path(namespace.approval))
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["status"] == "ROLLED_BACK" else 2
 
 
 if __name__ == "__main__":
