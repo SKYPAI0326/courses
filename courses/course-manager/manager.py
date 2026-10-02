@@ -77,12 +77,20 @@ def main(argv: Sequence[str] | None = None) -> int:
     namespace = build_parser().parse_args(argv)
     if namespace.command == "scan":
         return _handle_scan(namespace)
+    if namespace.command == "find":
+        return _handle_find(namespace)
+    if namespace.command == "inspect":
+        return _handle_inspect(namespace)
     print("command handler is not implemented yet", flush=True)
     return 2
 
 
 def _workspace_root(namespace: argparse.Namespace) -> Path:
     return (namespace.root or Path(__file__).resolve().parent.parent).absolute()
+
+
+def _manager_root(root: Path) -> Path:
+    return root / "course-manager"
 
 
 def _scan_report(catalog: dict) -> str:
@@ -122,7 +130,7 @@ def _handle_scan(namespace: argparse.Namespace) -> int:
         counts[item["kind"]] = counts.get(item["kind"], 0) + 1
     print(json.dumps({"items": len(catalog["items"]), "counts": counts}, ensure_ascii=False, indent=2))
     if namespace.write:
-        manager_root = Path(__file__).resolve().parent
+        manager_root = _manager_root(root)
         catalog_path = manager_root / "registry" / "catalog.json"
         write_catalog(catalog_path, catalog)
         report_dir = manager_root / "reports" / "scans"
@@ -133,6 +141,36 @@ def _handle_scan(namespace: argparse.Namespace) -> int:
         print(f"WROTE {report_path}")
     else:
         print(json.dumps(catalog, ensure_ascii=False, indent=2))
+    return 0
+
+
+def _handle_find(namespace: argparse.Namespace) -> int:
+    from src.catalog import catalog_is_stale, find_items, load_catalog
+
+    root = _workspace_root(namespace)
+    catalog_path = _manager_root(root) / "registry" / "catalog.json"
+    if not catalog_path.exists():
+        print(f"CATALOG_MISSING: {catalog_path}")
+        return 2
+    catalog = load_catalog(catalog_path)
+    stale, reasons = catalog_is_stale(root, catalog)
+    if stale:
+        print("CATALOG_STALE: " + "; ".join(reasons))
+    matches = find_items(catalog, namespace.query, namespace.kind)
+    print(json.dumps(matches, ensure_ascii=False, indent=2))
+    return 0 if matches else 1
+
+
+def _handle_inspect(namespace: argparse.Namespace) -> int:
+    from src.inspect import inspect_path
+
+    root = _workspace_root(namespace)
+    try:
+        result = inspect_path(root, namespace.path, deep=namespace.deep)
+    except (FileNotFoundError, ValueError) as error:
+        print(f"INSPECT_ERROR: {error}")
+        return 2
+    print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
 
 

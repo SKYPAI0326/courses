@@ -46,3 +46,57 @@ def write_catalog(path: Path, catalog: dict[str, Any]) -> None:
         encoding="utf-8",
     )
     temporary.replace(path)
+
+
+def current_workspace_state(root: Path) -> dict[str, Any]:
+    from .discover import scan_workspace
+
+    catalog = scan_workspace(root)
+    return {
+        "git": catalog["git"],
+        "items": {
+            item["path"]: item["fingerprint"]["content_hash"]
+            for item in catalog["items"]
+        },
+    }
+
+
+def catalog_is_stale(root: Path, catalog: dict[str, Any]) -> tuple[bool, list[str]]:
+    current = current_workspace_state(root)
+    reasons: list[str] = []
+    stored_git = catalog.get("git", {})
+    current_git = current.get("git", {})
+    if stored_git.get("status_sha256") != current_git.get("status_sha256"):
+        reasons.append("git status changed")
+
+    stored_items = {
+        item["path"]: item.get("fingerprint", {}).get("content_hash")
+        for item in catalog.get("items", [])
+    }
+    current_items = current["items"]
+    for path in sorted(set(stored_items) | set(current_items)):
+        if path not in stored_items:
+            reasons.append(f"new item: {path}")
+        elif path not in current_items:
+            reasons.append(f"removed item: {path}")
+        elif stored_items[path] != current_items[path]:
+            reasons.append(f"item fingerprint changed: {path}")
+    return bool(reasons), reasons
+
+
+def find_items(catalog: dict[str, Any], query: str, kind: str | None = None) -> list[dict[str, Any]]:
+    needle = query.casefold().strip()
+    matches = []
+    for item in catalog.get("items", []):
+        if kind and item.get("kind") != kind:
+            continue
+        searchable = [
+            item.get("name", ""),
+            item.get("path", ""),
+            item.get("kind", ""),
+            item.get("classification_reason", ""),
+            *item.get("search_terms", []),
+        ]
+        if any(needle in value.casefold() for value in searchable if isinstance(value, str)):
+            matches.append(item)
+    return sorted(matches, key=lambda item: item["path"].casefold())
