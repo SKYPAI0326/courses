@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shlex
 from datetime import datetime
 from pathlib import Path
 from typing import Sequence
@@ -43,6 +44,7 @@ def build_parser() -> argparse.ArgumentParser:
     find.add_argument("query")
     find.add_argument("--kind", default=None)
     find.add_argument("--stale-ok", action="store_true")
+    find.add_argument("--json", action="store_true", help="Print complete catalog records as JSON.")
 
     inspect = subparsers.add_parser("inspect", help="Inspect one project folder.")
     inspect.add_argument("path")
@@ -170,7 +172,23 @@ def _handle_find(namespace: argparse.Namespace) -> int:
     if stale:
         print("CATALOG_STALE: " + "; ".join(reasons))
     matches = find_items(catalog, namespace.query, namespace.kind)
-    print(json.dumps(matches, ensure_ascii=False, indent=2))
+    if namespace.json:
+        records = [
+            {**item, "open_path": str((root / item["path"]).resolve())}
+            for item in matches
+        ]
+        print(json.dumps(records, ensure_ascii=False, indent=2))
+    elif matches:
+        for index, item in enumerate(matches, start=1):
+            open_path = (root / item["path"]).resolve()
+            print(f"PROJECT: {item['name']} ({item['kind']})")
+            print(f"PROJECT_PATH: {open_path}")
+            print(f"OPEN_COMMAND: open {shlex.quote(str(open_path))}")
+            print(f"REASON: {item['classification_reason']}")
+            if index < len(matches):
+                print()
+    else:
+        print("NO_MATCHES")
     return 0 if matches else 1
 
 

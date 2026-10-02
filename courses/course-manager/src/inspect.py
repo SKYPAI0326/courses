@@ -146,6 +146,7 @@ def inspect_path(root: Path, relative_path: str, deep: bool = False) -> dict[str
         classification = classify_item(root, target)
     return {
         "path": relative_posix(target, root),
+        "absolute_path": str(target.resolve()),
         "kind": classification["kind"],
         "status": classification["status"],
         "tree": [relative_posix(path, root) for path in files],
