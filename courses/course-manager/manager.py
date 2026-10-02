@@ -81,6 +81,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _handle_find(namespace)
     if namespace.command == "inspect":
         return _handle_inspect(namespace)
+    if namespace.command == "propose-new":
+        return _handle_propose_new(namespace)
+    if namespace.command == "propose-move":
+        return _handle_propose_move(namespace)
+    if namespace.command == "propose-merge":
+        return _handle_propose_merge(namespace)
     print("command handler is not implemented yet", flush=True)
     return 2
 
@@ -172,6 +178,51 @@ def _handle_inspect(namespace: argparse.Namespace) -> int:
         return 2
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
+
+
+def _write_proposal(root: Path, proposal: dict, category: str) -> int:
+    from src.proposals import write_proposal
+
+    path = _manager_root(root) / "proposals" / category / f"{proposal['proposal_id']}.json"
+    write_proposal(path, proposal)
+    print(json.dumps({"status": proposal["status"], "proposal": str(path)}, ensure_ascii=False, indent=2))
+    return 0
+
+
+def _handle_propose_new(namespace: argparse.Namespace) -> int:
+    from src.proposals import build_new_course_proposal
+
+    root = _workspace_root(namespace)
+    try:
+        proposal = build_new_course_proposal(root, namespace.topic_or_path)
+    except (FileNotFoundError, ValueError) as error:
+        print(f"PROPOSAL_ERROR: {error}")
+        return 2
+    return _write_proposal(root, proposal, "new-courses")
+
+
+def _handle_propose_move(namespace: argparse.Namespace) -> int:
+    from src.proposals import build_move_proposal
+
+    root = _workspace_root(namespace)
+    try:
+        proposal = build_move_proposal(root, namespace.source, namespace.destination)
+    except (FileNotFoundError, ValueError) as error:
+        print(f"PROPOSAL_ERROR: {error}")
+        return 2
+    return _write_proposal(root, proposal, "moves")
+
+
+def _handle_propose_merge(namespace: argparse.Namespace) -> int:
+    from src.proposals import build_merge_proposal
+
+    root = _workspace_root(namespace)
+    try:
+        proposal = build_merge_proposal(root, namespace.source, namespace.target)
+    except (FileNotFoundError, ValueError) as error:
+        print(f"PROPOSAL_ERROR: {error}")
+        return 2
+    return _write_proposal(root, proposal, "merges")
 
 
 if __name__ == "__main__":
