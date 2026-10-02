@@ -73,6 +73,14 @@ class ProposalTests(unittest.TestCase):
         self.assertTrue(proposal["path_replacements"][0]["sha256_before"])
         self.assertEqual(proposal["status"], "blocked")
 
+    def test_move_proposal_blocks_existing_empty_destination(self):
+        (self.root / "archive").mkdir()
+        (self.root / "archive" / "move-source").mkdir()
+        proposal = build_move_proposal(self.root, "move-source", "archive/move-source")
+
+        self.assertEqual(proposal["status"], "blocked")
+        self.assertIn("destination already exists", proposal["risk"]["reasons"])
+
     def test_merge_marks_identical_and_conflicting_files(self):
         proposal = build_merge_proposal(self.root, "merge-source", "merge-target")
         matrix = {row["path"]: row["status"] for row in proposal["file_matrix"]}

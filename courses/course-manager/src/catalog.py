@@ -52,11 +52,22 @@ def current_workspace_state(root: Path) -> dict[str, Any]:
     from .discover import scan_workspace
 
     catalog = scan_workspace(root)
+    relevant_status = [
+        line for line in catalog["git"].get("status", []) if "course-manager/" not in line
+    ]
+    relevant_git = dict(catalog["git"])
+    relevant_git["status"] = relevant_status
+    if relevant_git.get("available"):
+        status_text = "\n".join(relevant_status)
+        if relevant_status:
+            status_text += "\n"
+        relevant_git["status_sha256"] = hashlib.sha256(status_text.encode("utf-8")).hexdigest()
     return {
-        "git": catalog["git"],
+        "git": relevant_git,
         "items": {
             item["path"]: item["fingerprint"]["content_hash"]
             for item in catalog["items"]
+            if item.get("kind") != "management"
         },
     }
 
@@ -64,7 +75,13 @@ def current_workspace_state(root: Path) -> dict[str, Any]:
 def catalog_is_stale(root: Path, catalog: dict[str, Any]) -> tuple[bool, list[str]]:
     current = current_workspace_state(root)
     reasons: list[str] = []
-    stored_git = catalog.get("git", {})
+    stored_git = dict(catalog.get("git", {}))
+    stored_status = [line for line in stored_git.get("status", []) if "course-manager/" not in line]
+    if stored_git.get("available"):
+        stored_text = "\n".join(stored_status)
+        if stored_status:
+            stored_text += "\n"
+        stored_git["status_sha256"] = hashlib.sha256(stored_text.encode("utf-8")).hexdigest()
     current_git = current.get("git", {})
     if stored_git.get("status_sha256") != current_git.get("status_sha256"):
         reasons.append("git status changed")
@@ -72,6 +89,7 @@ def catalog_is_stale(root: Path, catalog: dict[str, Any]) -> tuple[bool, list[st
     stored_items = {
         item["path"]: item.get("fingerprint", {}).get("content_hash")
         for item in catalog.get("items", [])
+        if item.get("kind") != "management"
     }
     current_items = current["items"]
     for path in sorted(set(stored_items) | set(current_items)):

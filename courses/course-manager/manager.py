@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from datetime import datetime
 from pathlib import Path
 from typing import Sequence
 
@@ -91,6 +92,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _handle_apply(namespace)
     if namespace.command == "rollback":
         return _handle_rollback(namespace)
+    if namespace.command == "verify":
+        return _handle_verify(namespace)
     print("command handler is not implemented yet", flush=True)
     return 2
 
@@ -245,6 +248,35 @@ def _handle_rollback(namespace: argparse.Namespace) -> int:
     result = rollback_manifest(root, Path(namespace.manifest), Path(namespace.approval))
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["status"] == "ROLLED_BACK" else 2
+
+
+def _handle_verify(namespace: argparse.Namespace) -> int:
+    from src.verify import verify_manifest, verify_workspace
+
+    root = _workspace_root(namespace)
+    baseline = None
+    if namespace.baseline:
+        try:
+            baseline = json.loads(Path(namespace.baseline).read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            print(f"VERIFY_ERROR: {error}")
+            return 2
+    result = verify_workspace(root, baseline)
+    if baseline and "verification_status" in baseline:
+        manifest_result = verify_manifest(root, baseline)
+        result["manifest"] = manifest_result
+        if manifest_result["status"] == "BLOCK":
+            result["status"] = "BLOCK"
+            result["unexpected_changes"].extend(manifest_result["unexpected_changes"])
+    if namespace.write:
+        report_dir = _manager_root(root) / "reports" / "verifications"
+        report_dir.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.now().astimezone().isoformat().replace(":", "").replace("+", "-")
+        report_path = report_dir / f"verify-{timestamp}.json"
+        report_path.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        result["report"] = str(report_path)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["status"] in {"PASS", "WARN"} else 2
 
 
 if __name__ == "__main__":

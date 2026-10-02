@@ -32,7 +32,13 @@ def _write_json(path: Path, value: dict[str, Any]) -> None:
 def _files(path: Path) -> list[Path]:
     if path.is_file():
         return [path]
-    return sorted(candidate for candidate in path.rglob("*") if candidate.is_file() and not candidate.is_symlink())
+    return sorted(
+        candidate
+        for candidate in path.rglob("*")
+        if candidate.is_file()
+        and not candidate.is_symlink()
+        and not any(part in {".git", ".worktrees"} for part in candidate.relative_to(path).parts)
+    )
 
 
 def _fingerprint(root: Path, path: Path) -> dict[str, Any]:
@@ -160,6 +166,8 @@ def _validate_proposal(root: Path, proposal: dict[str, Any]) -> tuple[Path, Path
     collisions = proposal.get("evidence", {}).get("destination_collisions", [])
     if collisions:
         raise ValueError("destination collision requires an explicit resolution")
+    if destination.exists():
+        raise ValueError("destination already exists")
     for record in proposal.get("path_replacements", []):
         path = _replacement_before_path(root, proposal["sources"][0], record)
         if not path.exists() or not path.is_file():

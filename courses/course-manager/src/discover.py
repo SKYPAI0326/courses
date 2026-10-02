@@ -36,6 +36,8 @@ HEADING_PATTERN = re.compile(r"(?:<title[^>]*>(.*?)</title>|<h[1-3][^>]*>(.*?)</
 def _regular_files(path: Path) -> list[Path]:
     files: list[Path] = []
     for candidate in path.rglob("*"):
+        if any(part in {".git", ".worktrees"} for part in candidate.relative_to(path).parts):
+            continue
         if candidate.is_symlink():
             continue
         if candidate.is_file():
@@ -135,7 +137,13 @@ def workspace_git_state(root: Path) -> dict[str, Any]:
 
 def iter_managed_items(root: Path) -> list[Path]:
     return sorted(
-        (child for child in root.iterdir() if child.is_dir() and not child.is_symlink()),
+        (
+            child
+            for child in root.iterdir()
+            if child.is_dir()
+            and not child.is_symlink()
+            and child.name not in {".git", ".worktrees"}
+        ),
         key=lambda path: path.name.casefold(),
     )
 

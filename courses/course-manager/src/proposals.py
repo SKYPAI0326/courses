@@ -41,7 +41,9 @@ def _files(path: Path) -> list[Path]:
     return sorted(
         candidate
         for candidate in path.rglob("*")
-        if candidate.is_file() and not candidate.is_symlink()
+        if candidate.is_file()
+        and not candidate.is_symlink()
+        and not any(part in {".git", ".worktrees"} for part in candidate.relative_to(path).parts)
     )
 
 
@@ -138,10 +140,11 @@ def _reference_replacements(root: Path, source: Path, destination: Path) -> list
         f"{destination_rel}/{file.relative_to(source).as_posix()}"
         for file in source_files
     }
-    if source.is_file():
-        old_targets[source_rel] = destination_rel
+    old_targets[source_rel] = destination_rel
     replacements = []
     for file in _files(root):
+        if any(part in {".git", ".worktrees", "course-manager"} for part in file.relative_to(root).parts):
+            continue
         if file.suffix.lower() not in TEXT_SUFFIXES:
             continue
         data = file.read_bytes()
@@ -149,7 +152,8 @@ def _reference_replacements(root: Path, source: Path, destination: Path) -> list
             continue
         text = data.decode("utf-8", errors="replace")
         for old, new in sorted(old_targets.items()):
-            if old not in text:
+            token = re.compile(rf"(?<![\w\-/]){re.escape(old)}(?![\w\-/])")
+            if not token.search(text):
                 continue
             replacements.append(
                 {
@@ -214,6 +218,9 @@ def build_move_proposal(root: Path, source: str, destination: str) -> dict[str, 
     if collisions:
         reasons.append("destination has file collisions")
         decisions.append("resolve destination collisions")
+    elif destination_path.exists():
+        reasons.append("destination already exists")
+        decisions.append("choose an empty destination path")
 
     proposal = _base_proposal("move", catalog)
     proposal.update(

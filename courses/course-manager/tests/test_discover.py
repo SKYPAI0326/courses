@@ -17,6 +17,7 @@ class DiscoveryTests(unittest.TestCase):
         self._write("_backup/old/index.html", "<h1>Old</h1>")
         self._write("assets/shared/course-shell.css", "body { color: black; }\n")
         self._write("course-manager/README.md", "Management project\n")
+        self._write(".worktrees/ignored-course/index.html", "<h1>Ignored</h1>\n")
 
         outside = self.root.parent / "course-manager-discovery-outside"
         outside.mkdir(exist_ok=True)
@@ -65,6 +66,7 @@ class DiscoveryTests(unittest.TestCase):
         self.assertEqual(items["assets"]["kind"], "support")
         self.assertEqual(items["course-manager"]["kind"], "management")
         self.assertEqual(items["_backup"]["learner_html_count"], 0)
+        self.assertNotIn(".worktrees", items)
 
     def test_fingerprint_counts_files_without_following_symlinked_directories(self):
         item = self._items()["no-handout-project"]

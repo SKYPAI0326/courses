@@ -22,7 +22,13 @@ DEEP_TEXT_LIMIT = 20_000
 def _files(path: Path) -> list[Path]:
     if path.is_file():
         return [path]
-    return sorted(candidate for candidate in path.rglob("*") if candidate.is_file() and not candidate.is_symlink())
+    return sorted(
+        candidate
+        for candidate in path.rglob("*")
+        if candidate.is_file()
+        and not candidate.is_symlink()
+        and not any(part in {".git", ".worktrees"} for part in candidate.relative_to(path).parts)
+    )
 
 
 def _is_binary(path: Path, data: bytes | None = None) -> bool:
@@ -91,7 +97,7 @@ def extract_references(root: Path, scope: Path) -> dict[str, list[dict[str, str]
     }
     incoming = []
     for path in _files(root):
-        if path in scope_files or _is_binary(path):
+        if path in scope_files or _is_binary(path) or any(part in {".git", ".worktrees", "course-manager"} for part in path.relative_to(root).parts):
             continue
         text = path.read_bytes().decode("utf-8", errors="replace")
         source = relative_posix(path, root)

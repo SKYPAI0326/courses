@@ -37,6 +37,17 @@ class InspectTests(unittest.TestCase):
         self.assertTrue(stale)
         self.assertTrue(any("formal-course" in reason for reason in reasons))
 
+    def test_catalog_ignores_management_control_plane_changes(self):
+        manager = self.root / "course-manager"
+        manager.mkdir()
+        catalog = scan_workspace(self.root)
+        (manager / "README.md").write_text("updated manager\n", encoding="utf-8")
+
+        stale, reasons = catalog_is_stale(self.root, catalog)
+
+        self.assertFalse(stale, reasons)
+        self.assertEqual(reasons, [])
+
     def test_find_matches_name_path_kind_and_search_terms(self):
         catalog = scan_workspace(self.root)
 
