@@ -1,0 +1,1 @@
+"""Course Manager implementation modules."""
