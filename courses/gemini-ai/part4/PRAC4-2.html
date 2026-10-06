@@ -183,7 +183,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <div class="lesson-section">
     <div class="section-eyebrow">TOOL · 互動工具</div>
     <h2 class="section-heading">新增、搜尋、一鍵複製你的 Prompt 庫</h2>
-    <p class="body-text">在下方填入標題、分類標籤和 Prompt 內容，儲存後即可在列表中搜尋和複製。注意：這個工具的資料存在記憶體中，重新整理頁面後會重置，課程結束後你可以用 Gemini 替它加上 localStorage 儲存功能。</p>
+    <p class="body-text">下方是介面示意。本頁示意資料在記憶體中，重新整理會重置；依生成指令製作的學員工具須在同一瀏覽器保存資料，並用 JSON 檔備份與還原。完成後實測重新整理、JSON 匯出／匯入及無效檔案處理。</p>
 
     <div class="tool-wrap">
       <div class="tool-topbar">
@@ -235,14 +235,14 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <div class="step-num-col"><div class="step-num">2</div></div>
         <div class="step-body">
           <div class="step-title">複製以下指令貼入 Gemini</div>
-          <div class="step-desc">這個指令特別要求使用 <strong>localStorage</strong>，讓資料在關掉瀏覽器後也不會消失。</div>
+          <div class="step-desc">以 JSON 檔保存可攜式備份；localStorage 僅作目前瀏覽器的便利保存，不代表跨裝置同步。</div>
         </div>
       </div>
       <div class="step-item">
         <div class="step-num-col"><div class="step-num">3</div></div>
         <div class="step-body">
-          <div class="step-title">存好後立刻把課程中最好的 5 個 Prompt 存入</div>
-          <div class="step-desc">趁記憶猶新，把這門課程學到的最好用的幾個 Prompt 全存進去，讓這個工具立刻有實質內容。</div>
+          <div class="step-title">先測保存還原，再放入實際指令</div>
+          <div class="step-desc">新增一筆「測試資料」，重新整理確認仍在；匯出 JSON 並存成 prompt-library-backup.json，刪除該筆後匯入備份，核對內容回來。再選一個無效 JSON 檔匯入，應提示錯誤且保留現有資料。通過後再輸入已驗收的工作指令，保存正式備份。</div>
         </div>
       </div>
     </div>
@@ -260,24 +260,19 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 
 製作一個「個人 Prompt 庫管理器」的單頁 HTML 工具，功能如下：
 
-【功能需求】
-- 新增 Prompt：包含「標題」、「分類標籤」（文字）、「Prompt 內容」三個欄位
-- 所有資料使用 localStorage 儲存，關閉視窗重開後資料仍在
-- 顯示所有已儲存的 Prompt 卡片，每張卡片包含：
-  · 標題（粗體）
-  · 標籤 badge
-  · Prompt 內容（最多顯示 3 行，可點擊展開）
-  · 儲存日期
-  · 「複製」按鈕、「刪除」按鈕
-- 頂部搜尋框：即時過濾（標題 + 內容 關鍵字搜尋）
-- 標籤過濾器：點選任一標籤可篩選同標籤的 Prompt
-- 空狀態提示（當庫中無內容時顯示引導文字）
+【基本操作】
+- 新增 Prompt：包含「標題」、「分類標籤」（文字）、「Prompt 內容」三個欄位；欄位缺漏時提示並保留輸入
+- 在目前瀏覽器可用 localStorage 保存資料；若瀏覽器不支援或存取失敗，顯示提示且不可崩潰，仍可用 JSON 備份／還原；另提供「匯出 JSON」下載備份和「匯入 JSON」還原
+- 匯入前驗證 JSON 格式、版本及每筆資料所需欄位；無效檔案顯示錯誤且保留原資料，不得先清空再匯入
+- 提醒使用者把 JSON 備份放在自己的課程資料夾；localStorage 與 JSON 備份都不代表跨裝置同步
+- 顯示已儲存的 Prompt 卡片，每張卡片有標題、分類標籤、最多顯示 3 行的內容（可展開）、儲存日期，以及「複製」「刪除」按鈕
+- 頂部搜尋框即時搜尋標題與內容；可按標籤篩選；空狀態顯示開始提示
 
 【設計要求】
-- 無印良品風格：背景 #f5f3ee，卡片 #ffffff，邊框 #d8d4cb
+- 背景 #f5f3ee，卡片 #ffffff，邊框 #d8d4cb
 - 強調色 #6b7fa3（霧藍），標籤 badge 用此色系
 - 字體：Shippori Mincho + Noto Sans TC（Google Fonts）
-- 圓角 6px，無陰影，無漸層
+- 圓角 6px，無陰影、無漸層
 
 生成完整的單一 HTML 檔案。</div>
       </div>
@@ -298,11 +293,11 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         </div>
         <div class="challenge-item">
           <div class="ci-num">02</div>
-          <div>加入「匯出為 JSON」和「匯入 JSON」功能，讓你的 Prompt 庫可以備份到雲端或在不同設備間同步。</div>
+          <div>加入「最近複製」排序，讓最近取用的指令排在前面。</div>
         </div>
         <div class="challenge-item">
           <div class="ci-num">03</div>
-          <div>把課程中 12 個單元最核心的 Prompt（每個單元選 1 個）全部存入，打造你的「課程精華 Prompt 集」，這就是你完課的最大收穫。</div>
+          <div>把工具中經驗收通過的生成與修復指令匯入 Prompt 庫，為每筆補上用途和最近驗收日期；機密資料不要存入。</div>
         </div>
       </div>
     </div>
