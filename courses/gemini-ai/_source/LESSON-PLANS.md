@@ -2,7 +2,7 @@
 
 版本：2026-10-06；來源：已授權的 REVISION-PRINCIPLES.md。必修正文以 fragments 為準；本日續審回修同步更新相關 fragments 與 HTML。平台帳號內生成／重開實測及真人跟做仍待驗。
 
-學員：零程式、零 AI；成果：可重開工具、已知答案查核、需求變更再測、交付物與使用說明。主案例：預算、KPI、AI交辦。活動分工見 REPAIR-PLAN.md；續審修正與回修證據見 CONTINUITY-FIX-PLAN.md。
+學員：零程式、零 AI；成果：可重開工具、已知答案查核、需求變更再測、交付物與使用說明。主案例：預算、KPI、AI交辦。全 40 頁的分流與前置依賴見 CURRICULUM-MAP.md；lesson-map.json 只列 10 站核心實作路徑，不代表全課頁數。活動分工見 REPAIR-PLAN.md；續審修正與回修證據見 CONTINUITY-FIX-PLAN.md。核心路徑按依賴由 Part 1、2、3 接 Part 6，再回 Part 4；Part 5 案例、介面美化與發布不列必修。
 
 ## part1/CH1-1.html — 從一個工作需求開始
 

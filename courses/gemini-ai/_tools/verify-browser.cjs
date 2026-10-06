@@ -69,16 +69,22 @@ await check('UTM保留查询与片段，更新重复参数',async()=>{
 await check('原KPI示范也处理方向与未知',async()=>{
  await go('part3/PRAC3-3.html');await page.locator('#legacy-reference').evaluate(e=>e.open=true);await page.locator('#ktarget-1').fill('3');await page.locator('#kactual-1').fill('5');await page.locator('#kdir-1').selectOption('lower');await page.evaluate(()=>renderDashboard());assert((await page.locator('#dashboard-grid .kpi-card').first().innerText()).includes('未達標'));await page.locator('#kactual-1').fill('');await page.evaluate(()=>renderDashboard());assert((await page.locator('#dashboard-grid .kpi-card').first().innerText()).includes('待確認'));
 });
-const visual=[];const reps=['index.html','part2/PRAC2-1.html','part3/PRAC3-3.html','part6/PRAC6-1.html','assets/tools/budget-reference.html','assets/tools/kpi-reference.html'];
+const visual=[];const reps=['index.html','part1/CH1-3.html','part2/PRAC2-1.html','part3/PRAC3-3.html','part6/CH6-2.html','part6/CH6-3.html','part6/PRAC6-1.html','assets/tools/budget-reference.html','assets/tools/kpi-reference.html'];
+const focus={
+ 'index.html':'#optional-catalog','part1/CH1-3.html':'#prompt-timer','part2/PRAC2-1.html':'#prompt-budget',
+ 'part3/PRAC3-3.html':'#core-1','part6/CH6-2.html':'#legacy-reference .section-heading',
+ 'part6/CH6-3.html':'#legacy-reference .callout-body','part6/PRAC6-1.html':'#prompt-meeting',
+ 'assets/tools/budget-reference.html':'#summary','assets/tools/kpi-reference.html':'#summary'
+};
 await check('桌面1440与手机390/430的页面宽度、导航与可见范围',async()=>{
  for(const width of [1440,390,430]){
   await page.setViewportSize({width,height:900});
   for(const file of [...new Set([...route,...reps,'part2/PRAC2-2.html','part5/PRAC5-11.html'])]){
    await go(file);await page.evaluate(()=>{Object.keys(localStorage).filter(k=>k.startsWith('progress:')).forEach(k=>localStorage.removeItem(k));window.scrollTo(0,0)});
    const m=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,bodyCount:document.querySelectorAll('.lesson-body').length}));assert(m.scroll<=m.width+1,`${file} ${width}px overflow ${m.scroll}`);
-   const pos=width===1440&&reps.includes(file)?['top','modified','middle','bottom']:['top'];
+   const pos=width===1440&&reps.includes(file)?['top','modified','middle','bottom']:file==='part6/CH6-2.html'&&width<=430?['top','modified']:['top'];
    for(const at of pos){
-    await page.evaluate(at=>{const body=document.querySelector('.lesson-body');if(at==='modified'&&body)body.scrollIntoView();else window.scrollTo(0,at==='bottom'?document.documentElement.scrollHeight:at==='middle'?document.documentElement.scrollHeight/2:0)},at);await page.waitForTimeout(200);
+    await page.evaluate(({at,selector,file})=>{if(at==='modified'){let target=document.querySelector(selector);if(file==='part6/CH6-2.html')target=[...document.querySelectorAll('#legacy-reference .section-heading')].find(n=>n.innerText.includes('Publish'))||target;if(target){const details=target.closest('details');if(details)details.open=true;target.scrollIntoView()}}else window.scrollTo(0,at==='bottom'?document.documentElement.scrollHeight:at==='middle'?document.documentElement.scrollHeight/2:0)},{at,selector:focus[file],file});await page.waitForTimeout(at==='modified'||reps.includes(file)?900:250);
     visual.push({file,width,position:at,...m});
     if(reps.includes(file)){const name=file.replaceAll('/','-').replace('.html','')+`-${width}-${at}.png`;await page.screenshot({path:path.join(out,name)});}
    }

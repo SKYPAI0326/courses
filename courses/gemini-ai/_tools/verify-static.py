@@ -16,7 +16,9 @@ for p in files:
         if not target.is_file():broken.append([str(p.relative_to(ROOT)),a['href']]);continue
         if u.fragment and target.suffix=='.html' and not BeautifulSoup(target.read_text(),'html.parser').find(id=unquote(u.fragment)):
             badanchors.append([str(p.relative_to(ROOT)),a['href']])
-    for n in s.select('.lesson-body > .lesson-section .body-text'):
+    # Shared extension banners intentionally repeat role/prerequisite guidance;
+    # check lesson teaching prose separately so the routing shell is not a false duplicate.
+    for n in s.select('.lesson-body > .lesson-section:not(.optional-route) .body-text'):
         if n.find_parent('details'):continue
         t=n.get_text(' ',strip=True)
         if len(t)>40:copies[t].append(str(p.relative_to(ROOT)))
