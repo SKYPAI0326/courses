@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SVG互動圖表 · 實例演練 1｜Gemini 零代碼 AI 實戰課</title>
+<title>技能評估雷達圖｜Gemini AI 實戰課</title>
 <meta name="description" content="輸入你的技能名稱與分數，即時生成一張 SVG 雷達圖，直觀呈現你的能力分布。最適合個人成長追蹤或團隊能力評估。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
@@ -160,154 +160,72 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="hero-num">實例演練 1</div>
   </div>
   <h1 class="lesson-title">技能評估雷達圖</h1>
-  <p class="lesson-tagline">輸入你的技能名稱與分數，即時生成一張 SVG 雷達圖，直觀呈現你的能力分布。最適合個人成長追蹤或團隊能力評估。</p>
+  <p class="lesson-tagline">用一致的 1–5 分行為規準畫技能圖，並為評分保留觀察證據；圖形不單獨決定人事結果。</p>
   <div class="outcomes"><div class="outcomes-label">選修成果</div><div class="outcome-item"><div class="outcome-dot"></div><span>為評分寫出可觀察的行為與證據</span></div><div class="outcome-item"><div class="outcome-dot"></div><span>比較訓練前後差距，選一項下一步行動</span></div></div>
 </div>
 
-<div class="lesson-body"><section class="lesson-section optional-route" id="core-route-banner" data-learning-role="延伸"><h2 class="section-heading">有工作需求時再做的延伸實作</h2><p class="body-text">需有一致評量尺度；產物供比較或回顧。若用於人事評估，須說明維度、尺度與判斷限制。</p><p class="body-text">本頁可以跳過；需要此工作案例時，先具備 <a href="PRAC3-3.html">用 KPI 月報做一項工作判斷</a> 的能力。原始示範、完整提示詞與操作內容均保留在下方並預設展開。 <a href="../index.html#required-route">返回必修路線</a>。</p></section><details id="legacy-reference" open><summary>原始完整單元內容、案例與提示詞（保留）</summary>
+<div class="lesson-body"><section class="lesson-section"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">訓練主管想比較學員在不同技能上的練習進度。本單元用同一把 1–5 分規準建立雷達圖；完成物含每個分數的證據，不把圖形面積或總分當作員工能力結論。</p><p class="body-text">雷達圖把各維度分數換成方向與半徑，方便看出強弱分布。技能是不同面向，圖形面積不是總能力；每個分數必須能回到一條可觀察的行為證據。</p><p class="body-text"><strong>共用行為錨點與案例：</strong>文件整理：1 分＝檔案散亂、無法說明命名；3 分＝依分類歸檔但偶有漏項；5 分＝命名一致且能快速找到最新版。資料分析：1 分＝照抄數字、未核來源；3 分＝公式正確但漏檢空值；5 分＝核對來源、公式並說明異常。口頭簡報：1 分＝只讀數字、說不出原因；3 分＝先講結論並列一項證據；5 分＝結論、證據與不確定性都清楚且能回答追問。固定虛構學員評分為文件整理 5、資料分析 3、口頭簡報 1；各分數分別記錄「找到最新版不到 30 秒」、「公式正確但未檢查空值」、「只念數字且說不出變動原因」。2、4 分可用於兩錨點之間，必須附觀察證據和理由。</p><p class="body-text">先操作參考品輸入上方三項固定評分，確認名稱和數字出現在同一頂點；再按更新重畫。生成自己的版本時也用同組資料測試。</p><div class="tool-wrap">
+<div class="tool-topbar">
+<div class="tool-dot tool-dot-r"></div>
+<div class="tool-dot tool-dot-y"></div>
+<div class="tool-dot tool-dot-g"></div>
+<div class="tool-label">skill-radar-chart.html</div>
+</div>
+<div class="tool-body">
+<div class="radar-layout">
+<div>
+<div style="font-size:.73rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;margin-bottom:10px;">技能名稱 ／ 分數（1–5）</div>
+<div class="radar-inputs" id="radar-inputs"></div>
+<button class="radar-add-btn" onclick="addRadarRow()">＋ 新增技能</button>
+<button class="radar-gen-btn" onclick="renderRadar()">更新雷達圖 <span aria-hidden="true">→</span></button>
+</div>
+<div class="radar-svg-wrap" id="radar-svg-wrap">
+<svg height="300" id="radar-svg" viewbox="0 0 300 300" width="300"></svg>
+</div>
+</div>
+</div>
+</div></section><hr class="section-rule"/><section class="lesson-section"><h2 class="section-heading">觀念與完整提示詞</h2><p class="body-text">雷達圖適合展示同一對象在多個共同尺度上的概況，不適合拿不同尺度或未定義的分數做排名。圖形面積容易誇大差距，讀者仍要看到分數與尺度說明。</p><div class="tool-wrap">
+<div class="tool-topbar">
+<div class="tool-dot tool-dot-r"></div>
+<div class="tool-dot tool-dot-y"></div>
+<div class="tool-dot tool-dot-g"></div>
+<div class="tool-label"><span aria-hidden="true">→</span> 複製這段 Prompt 貼入 Gemini</div>
+<button class="copy-btn" onclick="copyInstructions()" style="margin-left:auto;">複製指令</button>
+</div>
+<div class="tool-body" style="padding:24px 28px;">
+<div class="result-box" id="instruction-box">你是一位重視初學者可操作性、資料安全與無障礙的前端工程師。請為工作者製作「技能評估雷達圖」，目標是把以下真實工作情境變成可反覆使用、可核對的工具。交付完整單檔 HTML，CSS 與 JavaScript 內嵌，不呼叫外部 API；不要只輸出線框、示意圖或片段。
 
-  <div class="lesson-section">
-    <div class="section-eyebrow">TOOL · 互動工具</div>
-    <h2 class="section-heading">填入技能與分數，即時生成雷達圖</h2>
-    <p class="body-text">在左側填入技能名稱和分數（1–10），右側雷達圖即時更新。你可以新增 3–8 個技能維度，點擊「更新圖表」即可重新渲染。</p>
+【工作情境】
+雷達圖適合展示同一對象在多個共同尺度上的概況，不適合拿不同尺度或未定義的分數做排名。圖形面積容易誇大差距，讀者仍要看到分數與尺度說明。
 
-    <div class="tool-wrap">
-      <div class="tool-topbar">
-        <div class="tool-dot tool-dot-r"></div>
-        <div class="tool-dot tool-dot-y"></div>
-        <div class="tool-dot tool-dot-g"></div>
-        <div class="tool-label">skill-radar-chart.html</div>
-      </div>
-      <div class="tool-body">
-        <div class="radar-layout">
-          <div>
-            <div style="font-size:.73rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;margin-bottom:10px;">技能名稱 ／ 分數（1–10）</div>
-            <div class="radar-inputs" id="radar-inputs"></div>
-            <button class="radar-add-btn" onclick="addRadarRow()">＋ 新增技能</button>
-            <button class="radar-gen-btn" onclick="renderRadar()">更新雷達圖 <span aria-hidden="true">→</span></button>
-          </div>
-          <div class="radar-svg-wrap" id="radar-svg-wrap">
-            <svg id="radar-svg" viewBox="0 0 300 300" width="300" height="300"></svg>
-          </div>
-        </div>
-      </div>
-    </div>
+【分數行為錨點】
+文件整理：1＝檔案散亂無法說明命名；3＝依分類歸檔但偶有漏項；5＝命名一致且能快速找到最新版。資料分析：1＝照抄數字、未核來源；3＝公式正確但漏檢空值；5＝核對來源、公式並說明異常。口頭簡報：1＝只讀數字、說不出原因；3＝先講結論並列一項證據；5＝結論、證據和不確定性清楚且能回答追問。中間分數須附觀察證據與理由。
 
-    <div class="callout tip">
-      <div class="callout-icon" aria-hidden="true">💡</div>
-      <div class="callout-body">
-        <strong>SVG 的核心邏輯：</strong>雷達圖是把每個技能的分數轉換成極座標（角度 + 半徑），再用多邊形連接各點。了解這個邏輯，你就能理解為什麼可以用相同的方式做出折線圖、圓餅圖。
-      </div>
-    </div>
-  </div>
+【操作與輸出】
+可輸入 3 至 8 個技能名稱及 1 至 5 的整數分數，動態新增／刪除，按更新後繪製內嵌 SVG；固定顯示名稱、數值和 1–5 刻度。
 
-  <hr class="section-rule">
+【例外與安全】
+少於 3 個維度、多於 8 個、重複名稱、空名稱、非整數或不在 1–5 時指出問題，不靜默改值。文字標籤以純文字呈現；圖表外提供同一份數值清單。
 
-  <div class="lesson-section">
-    <div class="section-eyebrow">HOW TO REPLICATE · 如何自己做出這個工具</div>
-    <h2 class="section-heading">讓 Gemini 幫你做一個雷達圖工具</h2>
-    <div class="steps-list">
-      <div class="step-item">
-        <div class="step-num-col"><div class="step-num">1</div></div>
-        <div class="step-body">
-          <div class="step-title">想好你的評估維度是什麼</div>
-          <div class="step-desc">技能評估、績效評估、供應商評選、活動滿意度回顧……任何需要多維度比較的場景都適合雷達圖。先列出你的 5–8 個維度。</div>
-        </div>
-      </div>
-      <div class="step-item">
-        <div class="step-num-col"><div class="step-num">2</div></div>
-        <div class="step-body">
-          <div class="step-title">複製以下指令貼入 Gemini Canvas</div>
-          <div class="step-desc">關鍵描述是「<strong>用極座標計算 SVG 多邊形的頂點</strong>」——這讓 Gemini 知道要用數學計算，而不是靠 CSS 佈局。</div>
-        </div>
-      </div>
-      <div class="step-item">
-        <div class="step-num-col"><div class="step-num">3</div></div>
-        <div class="step-body">
-          <div class="step-title">輸入你自己的技能分數測試</div>
-          <div class="step-desc">用真實的技能評估數據測試，確認圖形正確渲染，再調整顏色和細節。</div>
-        </div>
-      </div>
-    </div>
+【固定驗收案例】
+使用虛構學員「文件整理 5、資料分析 3、口頭簡報 1」生成雷達圖，核對標籤、數值與 1–5 刻度，並把分數連回固定行為錨點。另測只剩兩個維度、加入到八個維度及嘗試第九個維度；輸入空名稱、重複名稱、6 和文字都應明確提示，不得靜默改值。
 
-    <div class="tool-wrap">
-      <div class="tool-topbar">
-        <div class="tool-dot tool-dot-r"></div>
-        <div class="tool-dot tool-dot-y"></div>
-        <div class="tool-dot tool-dot-g"></div>
-        <div class="tool-label"><span aria-hidden="true">→</span> 複製這段 Prompt 貼入 Gemini</div>
-        <button class="copy-btn" style="margin-left:auto;" onclick="copyInstructions()">複製指令</button>
-      </div>
-      <div class="tool-body" style="padding:24px 28px;">
-        <div class="result-box" id="instruction-box">你是一位擅長製作 SVG 數據視覺化工具的前端工程師。
-
-製作一個「技能評估雷達圖」的單頁 HTML 工具，功能如下：
-
-【功能需求】
-- 使用者可輸入 3–8 個技能（技能名稱 + 分數 1–10），支援動態新增和刪除
-- 一個「更新雷達圖」按鈕，按下後用 JavaScript 即時渲染 SVG 雷達圖
-- SVG 雷達圖包含：
-  · 5 層半透明同心多邊形（分數格線）
-  · 從中心到各頂點的輻射線
-  · 根據分數計算的實心多邊形（填色半透明 + 描邊）
-  · 每個頂點的技能名稱標籤
-  · 分數刻度標記（2, 4, 6, 8, 10）
-- 雷達圖需要是 SVG 格式（不是 Canvas），可縮放
-
-【SVG 計算邏輯】
-- 中心點 (cx, cy)，最大半徑 r
-- 每個技能的角度 = (i / n) * 2π，從頂部（-π/2）開始順時針
-- 各頂點座標 = 中心 + (score/10 * r) * (cos(angle), sin(angle))
-
-【設計要求】
-- 整體頁面無印良品風格：背景 #f5f3ee，卡片 #ffffff，邊框 #d8d4cb
-- SVG 填色使用 rgba(90,122,90,.25)（鼠尾草綠半透明），描邊 #5a7a5a
-- 格線顏色 rgba(216,212,203,.6)，輔助線 rgba(216,212,203,.4)
-- 字體：Shippori Mincho + Noto Sans TC（Google Fonts）
-- 圓角 6px，無陰影，無漸層
-
-生成完整的單一 HTML 檔案。</div>
-      </div>
-    </div>
-  </div>
-
-  <hr class="section-rule">
-
-  <div class="lesson-section">
-    <div class="section-eyebrow">CHALLENGE · 進階挑戰</div>
-    <h2 class="section-heading">讓雷達圖更有力量</h2>
-    <div class="challenge-box">
-      <div class="challenge-label">PRACTICE VARIATIONS</div>
-      <div class="challenge-list">
-        <div class="challenge-item">
-          <div class="ci-num">01</div>
-          <div>加入「目標分數」欄位，讓雷達圖可以同時顯示「現況」（實心）和「目標」（虛線輪廓）兩層，清楚看出差距。</div>
-        </div>
-        <div class="challenge-item">
-          <div class="ci-num">02</div>
-          <div>加入「成員比較」功能——可以輸入兩個人的評分，用不同顏色的多邊形疊加，用於團隊互評或師徒對比。</div>
-        </div>
-        <div class="challenge-item">
-          <div class="ci-num">03</div>
-          <div>加入「匯出為 PNG」功能，把 SVG 圖表轉換成可分享的圖片。提示：可以讓 Gemini 使用 canvas.toDataURL() 方法。</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-</details></div>
+【交付要求】
+頁面文字使用繁體中文；主要操作有清楚標籤、空狀態、錯誤提示和鍵盤可操作方式。輸入內容以純文字呈現。完成後輸出可直接保存並於瀏覽器重新開啟的完整 HTML 原始碼，附上如何手動檢查本頁驗收案例的簡短說明。</div>
+</div>
+</div></section><hr class="section-rule"/><section class="lesson-section"><h2 class="section-heading">操作、驗收與修復</h2><ol class="body-text"><li>先閱讀頁面提供的三組 1／3／5 行為錨點與逐項證據；在參考品輸入文件整理 5、資料分析 3、口頭簡報 1，確認標籤和數值對應。</li><li>複製完整提示詞到 AI Studio Chat，生成單檔 HTML；保存為 skill-radar-v1.html，關閉後重新開啟。</li><li>用 5、3、1 測試生成版，再把維度減至 2、增加至 8 和嘗試第 9 項；另測空名稱、重複名稱、文字與 6 分。</li><li>若圖形標籤或數值不符，依輸入表逐項定位修正並重測；另附分數證據表，說明尺度僅供回顧，不產生人事排名。</li></ol><div class="callout info"><div aria-hidden="true" class="callout-icon">注意</div><div class="callout-body">使用虛構或已授權的評分資料；不要把雷達圖面積或平均分當作唯一人事結論。</div></div><div class="callout info"><div aria-hidden="true" class="callout-icon">修復</div><div class="callout-body">若標籤對不上分數，先核對技能順序與 SVG 頂點，再重畫並比對原始數值。</div></div><div class="callout key"><div aria-hidden="true" class="callout-icon">✓</div><div class="callout-body"><strong>本單元驗收：</strong>以固定虛構學員的文件整理 5、資料分析 3、口頭簡報 1 生成雷達圖，核對三個標籤、1–5 刻度與原始數值；依頁面錨點附上三條證據。刪至兩項須提示不足，八項可繪圖，第九項不可新增，輸入 6 或文字須提示。圖表供討論，不用面積或平均分單獨判定能力。</div></div></section></div>
 
 <nav class="lesson-nav">
   <a class="nav-btn nav-prev" href="../part3/CH3-3.html" aria-label="上一單元" data-nav-role="prev">
     <div>
       <div class="nav-btn-label"><span aria-hidden="true">←</span> 完成章節</div>
-      <div class="nav-btn-title">3.3 數據儀表板：互動式銷售漏斗</div>
+      <div class="nav-btn-title">數據儀表板：實作互動式銷售漏斗</div>
     </div>
   </a>
   <a class="nav-btn next nav-next" href="PRAC3-2.html" aria-label="下一單元" data-nav-role="next">
     <div>
       <div class="nav-btn-label">下一個演練 <span aria-hidden="true">→</span></div>
-      <div class="nav-btn-title">實例演練 2：專案時程甘特圖</div>
+      <div class="nav-btn-title">專案時程甘特圖</div>
     </div>
   </a>
 </nav>
@@ -324,50 +242,62 @@ window.addEventListener('scroll', () => {
 });
 
 let rId = 0;
-function addRadarRow(name = '', val = 7) {
+const escapeSvgText = value => String(value).replace(/[&<>]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[ch]));
+function addRadarRow(name = '', val = 3) {
+  if (document.querySelectorAll('[id^="rrow-"]').length >= 8) { alert('最多可加入 8 個技能維度。'); return; }
   rId++;
   const id = rId;
   const div = document.createElement('div');
   div.className = 'radar-skill-row';
   div.id = 'rrow-' + id;
-  div.innerHTML = `
-    <input class="radar-skill-name" type="text" placeholder="技能名稱" value="${name}" id="rname-${id}">
-    <input class="radar-skill-val" type="number" min="1" max="10" value="${val}" id="rval-${id}">
-    <button class="radar-skill-remove" onclick="removeRadarRow(${id})">×</button>`;
+  const nameInput = document.createElement('input');
+  nameInput.className = 'radar-skill-name'; nameInput.type = 'text';
+  nameInput.placeholder = '技能名稱'; nameInput.value = name; nameInput.id = 'rname-' + id;
+  const valueInput = document.createElement('input');
+  valueInput.className = 'radar-skill-val'; valueInput.type = 'number';
+  valueInput.min = '1'; valueInput.max = '5'; valueInput.value = val; valueInput.id = 'rval-' + id;
+  const remove = document.createElement('button');
+  remove.className = 'radar-skill-remove'; remove.type = 'button'; remove.textContent = '×';
+  remove.addEventListener('click', () => removeRadarRow(id));
+  div.append(nameInput, valueInput, remove);
   document.getElementById('radar-inputs').appendChild(div);
 }
 function removeRadarRow(id) {
   document.getElementById('rrow-' + id)?.remove();
+  if (document.querySelectorAll('[id^="rrow-"]').length < 3) document.getElementById('radar-svg').replaceChildren();
 }
 function renderRadar() {
   const rows = document.querySelectorAll('[id^="rrow-"]');
   const skills = [];
+  const svg = document.getElementById('radar-svg');
   rows.forEach(row => {
     const id = row.id.replace('rrow-', '');
-    const name = document.getElementById('rname-' + id)?.value.trim() || '未命名';
-    const val = Math.min(10, Math.max(1, parseFloat(document.getElementById('rval-' + id)?.value) || 5));
+    const name = document.getElementById('rname-' + id)?.value.trim() || '';
+    const rawValue = document.getElementById('rval-' + id)?.value;
+    const val = Number(rawValue);
     skills.push({ name, val });
   });
-  if (skills.length < 3) { alert('至少需要 3 個技能維度。'); return; }
+  const names = skills.map(skill => skill.name);
+  if (skills.length < 3 || skills.length > 8) { svg.replaceChildren(); alert('請提供 3 至 8 個技能維度。'); return; }
+  if (names.some(name => !name) || new Set(names).size !== names.length) { svg.replaceChildren(); alert('技能名稱不可空白或重複。'); return; }
+  if (skills.some(skill => !Number.isInteger(skill.val) || skill.val < 1 || skill.val > 5)) { svg.replaceChildren(); alert('每個分數都必須是 1 至 5 的整數。'); return; }
 
   const n = skills.length;
   const cx = 150, cy = 150, r = 110;
-  const svg = document.getElementById('radar-svg');
-
   const toXY = (i, score) => {
     const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
-    return { x: cx + (score / 10) * r * Math.cos(angle), y: cy + (score / 10) * r * Math.sin(angle) };
+    return { x: cx + (score / 5) * r * Math.cos(angle), y: cy + (score / 5) * r * Math.sin(angle) };
   };
 
   let html = '';
   // 格線
   for (let level = 1; level <= 5; level++) {
-    const pts = Array.from({length:n}, (_, i) => toXY(i, level * 2));
+    const pts = Array.from({length:n}, (_, i) => toXY(i, level));
     html += `<polygon points="${pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')}" fill="none" stroke="rgba(216,212,203,.7)" stroke-width="1"/>`;
   }
   // 輻射線
   for (let i = 0; i < n; i++) {
-    const p = toXY(i, 10);
+    const p = toXY(i, 5);
     html += `<line x1="${cx}" y1="${cy}" x2="${p.x.toFixed(1)}" y2="${p.y.toFixed(1)}" stroke="rgba(216,212,203,.5)" stroke-width="1"/>`;
   }
   // 資料多邊形
@@ -379,10 +309,10 @@ function renderRadar() {
   });
   // 標籤
   skills.forEach((s, i) => {
-    const labelPt = toXY(i, 12);
+    const labelPt = toXY(i, 6);
     const dx = labelPt.x - cx, dy = labelPt.y - cy;
     const anchor = Math.abs(dx) < 10 ? 'middle' : (dx > 0 ? 'start' : 'end');
-    html += `<text x="${labelPt.x.toFixed(1)}" y="${labelPt.y.toFixed(1)}" text-anchor="${anchor}" dominant-baseline="middle" font-size="11" fill="#2c2b28" font-family="Noto Sans TC,sans-serif">${s.name}</text>`;
+    html += `<text x="${labelPt.x.toFixed(1)}" y="${labelPt.y.toFixed(1)}" text-anchor="${anchor}" dominant-baseline="middle" font-size="11" fill="#2c2b28" font-family="Noto Sans TC,sans-serif">${escapeSvgText(s.name)}</text>`;
     html += `<text x="${dataPts[i].x.toFixed(1)}" y="${(dataPts[i].y - 10).toFixed(1)}" text-anchor="middle" font-size="9" fill="#5a7a5a" font-weight="700" font-family="Noto Sans TC,sans-serif">${s.val}</text>`;
   });
 
@@ -398,12 +328,9 @@ function copyInstructions() {
 }
 
 // 預設資料
-addRadarRow('公文與文書處理', 8);
-addRadarRow('會議協調', 7);
-addRadarRow('檔案管理', 6);
-addRadarRow('採購請購作業', 5);
-addRadarRow('跨單位溝通', 7);
-addRadarRow('AI 工具應用', 9);
+addRadarRow('文件整理', 5);
+addRadarRow('資料分析', 3);
+addRadarRow('口頭簡報', 1);
 renderRadar();
 </script>
 

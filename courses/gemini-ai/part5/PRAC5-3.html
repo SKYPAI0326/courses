@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UTM 廣告連結管理員 · 自由演練 3｜Gemini 零代碼 AI 實戰課</title>
+<title>UTM 廣告連結管理員｜Gemini AI 實戰課</title>
 <meta name="description" content="幫每一個行銷活動的連結加上追蹤參數，一鍵生成規範化的 UTM 網址，歷史記錄自動存入瀏覽器，不再用 Excel 管理。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
@@ -187,7 +187,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="hero-num">自由演練 3</div>
   </div>
   <h1 class="lesson-title">UTM 廣告連結管理員</h1>
-  <p class="lesson-tagline">幫每一個行銷活動的連結加上追蹤參數，一鍵生成規範化的 UTM 網址，歷史記錄自動存入瀏覽器，不再用 Excel 管理。</p>
+  <p class="lesson-tagline">依命名規則建立 UTM 追蹤網址，檢查參數、編碼和匯出備份。</p>
   <div class="outcomes">
     <div class="outcomes-label">PRACTICE GOALS</div>
     <div class="outcome-item"><div class="outcome-dot"></div><span>理解 UTM 參數的結構與用途</span></div>
@@ -196,157 +196,82 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   </div>
 </div>
 
-<div class="lesson-body"><section class="lesson-section optional-route" id="core-route-banner" data-learning-role="延伸"><h2 class="section-heading">有工作需求時再做的延伸實作</h2><p class="body-text">需已有活動命名規則；檢查 URL 編碼及記錄匯出／備份。廣告平台口徑屬行銷專項。</p><p class="body-text">本頁可以跳過；需要此工作案例時，先具備 <a href="../part4/PRAC4-3.html">獨立改造與成果交付</a> 的能力。原始示範、完整提示詞與操作內容均保留在下方並預設展開。 <a href="../index.html#required-route">返回必修路線</a>。</p></section><details id="legacy-reference" open><summary>原始完整單元內容、案例與提示詞（保留）</summary>
+<div class="lesson-body"><section class="lesson-section"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">行銷同事需要為三個來源渠道建立一致的追蹤網址。本單元依命名規則組出 UTM 參數；完成後核對原始網址、編碼與 source／medium／campaign，追蹤結果仍以實際分析平台為準。</p><p class="body-text">UTM 是網址上的來源、媒介與活動代碼。命名一致才能在分析報表中合併；工具可以檢查格式，不能保證分析平台已收到或正確歸因。</p><p class="body-text">先操作下方參考品，觀察輸入如何變成結果。它用來熟悉流程；你後續生成的版本仍要獨立保存並按驗收資料測試。</p><div class="tool-wrap">
+<div class="tool-topbar">
+<div class="tool-dot tool-dot-r"></div>
+<div class="tool-dot tool-dot-y"></div>
+<div class="tool-dot tool-dot-g"></div>
+<div class="tool-label">utm-link-manager.html</div>
+</div>
+<div class="tool-body">
+<div class="utm-grid">
+<div class="utm-field" style="grid-column:1/-1;">
+<div class="utm-label">基礎網址 (Base URL)</div>
+<input class="utm-input" id="u-base" placeholder="https://example.com/landing-page">
+</div>
+<div class="utm-field">
+<div class="utm-label">來源 utm_source</div>
+<div class="utm-optional">例：google, facebook, email</div>
+<input class="utm-input" id="u-source" placeholder="facebook"/>
+</div>
+<div class="utm-field">
+<div class="utm-label">媒介 utm_medium</div>
+<div class="utm-optional">例：cpc, social, newsletter</div>
+<input class="utm-input" id="u-medium" placeholder="social"/>
+</div>
+<div class="utm-field" style="grid-column:1/-1;">
+<div class="utm-label">活動名稱 utm_campaign</div>
+<div class="utm-optional">例：summer_sale_2025</div>
+<input class="utm-input" id="u-campaign" placeholder="summer_sale_2025"/>
+</div>
+<div class="utm-field" style="grid-column:1/-1;">
+<div class="utm-label">內容識別 utm_content <span style="color:var(--c-muted);font-weight:400;">（選填）</span></div>
+<input class="utm-input" id="u-content" placeholder="banner_top"/>
+</div>
+</div>
+<button class="compose-btn" onclick="generateUTM()" style="margin:16px 0 0;">產生 UTM 連結 <span aria-hidden="true">→</span></button>
+<div id="utm-result" style="display:none;margin-top:16px;">
+<div style="font-size:.73rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;"><span>產生的連結</span><button class="copy-btn" onclick="copyUTM()">複製連結</button></div>
+<div id="utm-url" style="background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.8rem;padding:14px 16px;border-radius:4px;word-break:break-all;line-height:1.6;"></div>
+</div>
+<div id="history-section" style="margin-top:28px;display:none;">
+<div style="font-size:.73rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;"><span>歷史記錄 · <span id="hist-count">0</span> 筆</span><button class="copy-btn" onclick="clearHistory()">清除全部</button></div>
+<div style="background:var(--c-card);border:1px solid var(--c-border);border-radius:4px;overflow:hidden;overflow-x:auto;"><div class="table-scroll"><table class="history-table"><thead><tr><th>活動</th><th>來源</th><th>連結</th><th></th></tr></thead><tbody id="hist-body"></tbody></table></div></div>
+</div>
+</div>
+</div></section><hr class="section-rule"/><section class="lesson-section"><h2 class="section-heading">觀念與完整提示詞</h2><p class="body-text">UTM 參數供分析系統分類流量；命名需一致且不得放個資。URL API 能保留既有參數並正確編碼，手動串接容易弄壞特殊字元或重複問號。</p><div class="tool-wrap">
+<div class="tool-topbar">
+<div class="tool-dot tool-dot-r"></div>
+<div class="tool-dot tool-dot-y"></div>
+<div class="tool-dot tool-dot-g"></div>
+<div class="tool-label"><span aria-hidden="true">→</span> 複製這段 Prompt 貼入 Gemini</div>
+<button class="copy-btn" onclick="copyInstructions()" style="margin-left:auto;">複製指令</button>
+</div>
+<div class="tool-body" style="padding:24px 28px;">
+<div class="result-box" id="instruction-box" style="font-size:.8rem;">你是一位重視初學者可操作性、資料安全與無障礙的前端工程師。請為工作者製作「UTM 廣告連結管理員」，目標是把以下真實工作情境變成可反覆使用、可核對的工具。交付完整單檔 HTML，CSS 與 JavaScript 內嵌，不呼叫外部 API；不要只輸出線框、示意圖或片段。
 
-  <div class="lesson-section">
-    <div class="section-eyebrow">TOOL · 互動工具</div>
-    <h2 class="section-heading">填入活動參數，一鍵生成 UTM 連結</h2>
-    <p class="body-text">填入基礎網址與各 UTM 參數，點擊產生按鈕即可取得完整的追蹤連結。每次產生的記錄會自動儲存在瀏覽器中，關閉後重新開啟仍保留。</p>
+【工作情境】
+UTM 參數供分析系統分類流量；命名需一致且不得放個資。URL API 能保留既有參數並正確編碼，手動串接容易弄壞特殊字元或重複問號。
 
-    <div class="tool-wrap">
-      <div class="tool-topbar">
-        <div class="tool-dot tool-dot-r"></div>
-        <div class="tool-dot tool-dot-y"></div>
-        <div class="tool-dot tool-dot-g"></div>
-        <div class="tool-label">utm-link-manager.html</div>
-      </div>
-      <div class="tool-body">
-        <div class="utm-grid">
-          <div class="utm-field" style="grid-column:1/-1;">
-            <div class="utm-label">基礎網址 (Base URL)</div>
-            <input class="utm-input" id="u-base" placeholder="https://example.com/landing-page">
-          </div>
-          <div class="utm-field">
-            <div class="utm-label">來源 utm_source</div>
-            <div class="utm-optional">例：google, facebook, email</div>
-            <input class="utm-input" id="u-source" placeholder="facebook">
-          </div>
-          <div class="utm-field">
-            <div class="utm-label">媒介 utm_medium</div>
-            <div class="utm-optional">例：cpc, social, newsletter</div>
-            <input class="utm-input" id="u-medium" placeholder="social">
-          </div>
-          <div class="utm-field" style="grid-column:1/-1;">
-            <div class="utm-label">活動名稱 utm_campaign</div>
-            <div class="utm-optional">例：summer_sale_2025</div>
-            <input class="utm-input" id="u-campaign" placeholder="summer_sale_2025">
-          </div>
-          <div class="utm-field" style="grid-column:1/-1;">
-            <div class="utm-label">內容識別 utm_content <span style="color:var(--c-muted);font-weight:400;">（選填）</span></div>
-            <input class="utm-input" id="u-content" placeholder="banner_top">
-          </div>
-        </div>
-        <button class="compose-btn" onclick="generateUTM()" style="margin:16px 0 0;">產生 UTM 連結 <span aria-hidden="true">→</span></button>
-        <div id="utm-result" style="display:none;margin-top:16px;">
-          <div style="font-size:.73rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;"><span>產生的連結</span><button class="copy-btn" onclick="copyUTM()">複製連結</button></div>
-          <div id="utm-url" style="background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.8rem;padding:14px 16px;border-radius:4px;word-break:break-all;line-height:1.6;"></div>
-        </div>
-        <div id="history-section" style="margin-top:28px;display:none;">
-          <div style="font-size:.73rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;"><span>歷史記錄 · <span id="hist-count">0</span> 筆</span><button class="copy-btn" onclick="clearHistory()">清除全部</button></div>
-          <div style="background:var(--c-card);border:1px solid var(--c-border);border-radius:4px;overflow:hidden;overflow-x:auto;"><div class="table-scroll"><table class="history-table"><thead><tr><th>活動</th><th>來源</th><th>連結</th><th></th></tr></thead><tbody id="hist-body"></tbody></table></div></div>
-        </div>
-      </div>
-    </div>
+【操作與輸出】
+輸入完整 HTTP／HTTPS 網址、source、campaign，medium 和 content 選填；使用 URL 與 searchParams 設定參數，顯示和複製結果，保留其他既有 query。可檢視、刪除最近本機歷史。
 
-    <div class="callout key">
-      <div class="callout-icon" aria-hidden="true">📋</div>
-      <div class="callout-body"><strong>行政實務這樣用。</strong>UTM 本身是行銷工具，但「照規則組出編號＋自動留存歷史」的模式行政很常用：讓 Gemini 照同樣邏輯改一版「收發文編號產生器」（年度＋類別＋流水號）或「活動報名連結整理器」，歷史清單就是你的登記簿。</div>
-    </div>
-  </div>
+【例外與安全】
+拒絕無效網址、javascript: 等非 HTTP(S) 協定；空白必填欄不生成；中英文和空格由 URL API 編碼。歷史只在本瀏覽器保存，使用文字節點顯示，禁止將客戶或個資寫入參數。
 
-  <hr class="section-rule">
+【固定驗收案例】
+使用 https://example.org/page?ref=mail，先建立 source=newsletter、medium=email、campaign=october_event，確認 ref 保留且參數不重複；再將 source 改為「電子報」、campaign 改為「秋季 活動」，解析網址確認中文字和空格往返一致。javascript:alert(1) 或缺 source 不得產生網址；刪除一筆歷史後其餘紀錄需保留。
 
-  <div class="lesson-section">
-    <div class="section-eyebrow">HOW TO REPLICATE · 如何自己做出這個工具</div>
-    <h2 class="section-heading">用這段 Prompt，讓 Gemini 幫你做一模一樣的工具</h2>
-
-    <div class="steps-list">
-      <div class="step-item">
-        <div class="step-num-col"><div class="step-num">1</div></div>
-        <div class="step-body">
-          <div class="step-title">建立 Gemini Apps Canvas 專案</div>
-          <div class="step-desc">登入 <strong>gemini.google.com</strong>，在輸入框下方選「新增檔案」→「Canvas」，輸入提示詞並送出；看到 Canvas 預覽才繼續。按鈕位置依目前介面為準。<a href="https://support.google.com/gemini/answer/16047321?hl=zh-TW" target="_blank" rel="noopener">Google 官方 Canvas 操作說明</a>。</div>
-        </div>
-      </div>
-      <div class="step-item">
-        <div class="step-num-col"><div class="step-num">2</div></div>
-        <div class="step-body">
-          <div class="step-title">貼入以下指令</div>
-          <div class="step-desc">把下方指令完整複製，貼入 Gemini 的輸入框，直接送出。</div>
-        </div>
-      </div>
-      <div class="step-item">
-        <div class="step-num-col"><div class="step-num">3</div></div>
-        <div class="step-body">
-          <div class="step-title">等待生成，預覽並存檔</div>
-          <div class="step-desc">Gemini 會生成一個完整的 HTML 工具。點「預覽」確認功能正常後，點「下載」或「複製」儲存到你的電腦。</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="tool-wrap">
-      <div class="tool-topbar">
-        <div class="tool-dot tool-dot-r"></div>
-        <div class="tool-dot tool-dot-y"></div>
-        <div class="tool-dot tool-dot-g"></div>
-        <div class="tool-label"><span aria-hidden="true">→</span> 複製這段 Prompt 貼入 Gemini</div>
-        <button class="copy-btn" style="margin-left:auto;" onclick="copyInstructions()">複製指令</button>
-      </div>
-      <div class="tool-body" style="padding:24px 28px;">
-        <div class="result-box" id="instruction-box" style="font-size:.8rem;">你是一位擅長製作行銷工具的前端工程師。
-
-製作一個「UTM 廣告連結管理員」的單頁 HTML 工具，功能如下：
-
-【功能需求】
-- 輸入欄位：基礎網址、utm_source、utm_medium、utm_campaign、utm_content（選填）
-- 「產生 UTM 連結」按鈕，點擊後組合出完整帶參數的 URL，顯示在深色背景的結果框內
-- 結果框旁有「複製連結」按鈕
-- 每次產生後，自動將記錄存入 localStorage（活動名稱、來源、完整 URL、日期）
-- 頁面下方顯示歷史記錄表格，重新整理後仍保留，並提供「刪除」與「清除全部」功能
-
-【設計要求】
-- 背景 #f5f3ee，卡片白色，邊框 #d8d4cb，強調色 #b5703a
-- 表格使用灰藍色（#6b7fa3）為表頭顏色
-- 字體 Google Fonts：標題 Shippori Mincho，內文 Noto Sans TC
-- 圓角 6px，無陰影，無漸層，輸入框聚焦時邊框變為強調色
-
-生成完整的單一 HTML 檔案。
-網址以 URL 與 searchParams 處理，保留原有參數與片段；set 更新同名 UTM，避免重複，選填欄空白應移除舊值。</div>
-      </div>
-    </div>
-  </div>
-
-  <hr class="section-rule">
-
-  <div class="lesson-section">
-    <div class="section-eyebrow">CHALLENGE · 進階挑戰</div>
-    <h2 class="section-heading">完成基本練習後，試試這些變化</h2>
-    <div class="challenge-box">
-      <div class="challenge-label">PRACTICE VARIATIONS</div>
-      <div class="challenge-list">
-        <div class="challenge-item">
-          <div class="ci-num">01</div>
-          <div>試著加入 utm_term 欄位（用於關鍵字廣告），並在說明文字旁加入一個連結到 GA4 說明文件的小提示。</div>
-        </div>
-        <div class="challenge-item">
-          <div class="ci-num">02</div>
-          <div>讓歷史表格中的每一筆連結可以「點擊複製」，同時在 campaign 欄位加上日期標籤。</div>
-        </div>
-        <div class="challenge-item">
-          <div class="ci-num">03</div>
-          <div>用 Gemini 把這個工具改成「CSV 批次匯出」版本，一次產生多個活動的 UTM 連結並下載成 CSV。</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-</details></div>
+【交付要求】
+頁面文字使用繁體中文；主要操作有清楚標籤、空狀態、錯誤提示和鍵盤可操作方式。輸入內容以純文字呈現。完成後輸出可直接保存並於瀏覽器重新開啟的完整 HTML 原始碼，附上如何手動檢查本頁驗收案例的簡短說明。</div>
+</div>
+</div></section><hr class="section-rule"/><section class="lesson-section"><h2 class="section-heading">操作、驗收與修復</h2><ol class="body-text"><li>先決定 source、medium、campaign 的固定命名規則，避免同一渠道混用中英文；用帶既有 ref 參數的網址建立第一筆。</li><li>貼完整提示詞到 AI Studio Chat 生成工具，保存為 utm-manager-v1.html，重開後照命名規則重建網址。</li><li>查看生成網址解析後的每個參數：ref 保留、UTM 不重複、空格與中文往返一致；再測 javascript: 協定和缺少必填欄。</li><li>新增兩筆歷史後刪除其中一筆，確認另一筆保留；若結果錯誤，逐項檢查 URL API 輸入和參數設定，不手動改結果來掩蓋錯誤。</li></ol><div class="callout info"><div aria-hidden="true" class="callout-icon">注意</div><div class="callout-body">網址可能含追蹤資訊；不要放個資。先在內部測試網址解析，再由行銷平台確認報表歸因。</div></div><div class="callout info"><div aria-hidden="true" class="callout-icon">修復</div><div class="callout-body">若中文或 &amp; 符號解析錯誤，檢查 URL 編碼和重複參數，再用同一個 URL 測試解析值。</div></div><div class="callout key"><div aria-hidden="true" class="callout-icon">✓</div><div class="callout-body"><strong>本單元驗收：</strong>先用 https://example.org/page?ref=mail 建立 source=newsletter、medium=email、campaign=october_event，核對既有 ref 保留且每個參數只出現一次。再將 source 改為「電子報」、campaign 改為「秋季 活動」，解析生成網址確認中文字和空格往返不變；測試 javascript:alert(1) 與缺少 source 均不得產生網址。刪除一筆歷史後確認其餘紀錄仍在。交付命名規則和可複製的網址清單；本機歷史不等於備份。</div></div></section></div>
 
 <nav class="lesson-nav">
   <a class="nav-btn nav-prev" href="PRAC5-2.html" aria-label="上一單元" data-nav-role="prev">
     <div>
       <div class="nav-btn-label"><span aria-hidden="true">←</span> 演練 2</div>
-      <div class="nav-btn-title">會議記錄行動項目提取牆</div>
+      <div class="nav-btn-title">會議行動句關鍵字初篩器</div>
     </div>
   </a>
   <a class="nav-btn next nav-next" href="PRAC5-4.html" aria-label="下一單元" data-nav-role="next">
@@ -404,9 +329,30 @@ function renderHistory() {
   if (history.length === 0) { section.style.display = 'none'; return; }
   section.style.display = 'block';
   document.getElementById('hist-count').textContent = history.length;
-  document.getElementById('hist-body').innerHTML = history.map((h, i) =>
-    `<tr><td>${h.campaign}</td><td>${h.source}</td><td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${h.url}</td><td><button class="del-btn" onclick="deleteHist(${i})">✕</button></td></tr>`
-  ).join('');
+  const body = document.getElementById('hist-body');
+  body.replaceChildren();
+  history.forEach((item, index) => {
+    const row = document.createElement('tr');
+    [item.campaign, item.source].forEach(value => {
+      const cell = document.createElement('td');
+      cell.textContent = String(value ?? '');
+      row.appendChild(cell);
+    });
+    const urlCell = document.createElement('td');
+    urlCell.style.cssText = 'max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+    urlCell.textContent = String(item.url ?? '');
+    urlCell.title = String(item.url ?? '');
+    row.appendChild(urlCell);
+    const actionCell = document.createElement('td');
+    const remove = document.createElement('button');
+    remove.className = 'del-btn';
+    remove.type = 'button';
+    remove.textContent = '✕';
+    remove.addEventListener('click', () => deleteHist(index));
+    actionCell.appendChild(remove);
+    row.appendChild(actionCell);
+    body.appendChild(row);
+  });
 }
 function deleteHist(i) {
   const history = JSON.parse(localStorage.getItem('utm_history') || '[]');

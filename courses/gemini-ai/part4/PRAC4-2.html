@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>成果發表與工作流 · 實例演練 2｜Gemini 零代碼 AI 實戰課</title>
+<title>個人 Prompt 庫管理器｜Gemini AI 實戰課</title>
 <meta name="description" content="把你在課程中練習的、工作中用過的、覺得好用的 AI 指令，統一存入這個工具，加上標籤和標題，隨時搜尋複製取用。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
@@ -174,148 +174,77 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="hero-num">實例演練 2</div>
   </div>
   <h1 class="lesson-title">個人 Prompt 庫管理器</h1>
-  <p class="lesson-tagline">把你在課程中練習的、工作中用過的、覺得好用的 AI 指令，統一存入這個工具，加上標籤和標題，隨時搜尋複製取用。</p>
+  <p class="lesson-tagline">建立在目前瀏覽器保存的提示詞庫，測試搜尋、匯出和還原；資料不會自動跨裝置同步。</p>
   <div class="outcomes"><div class="outcomes-label">選修成果</div><div class="outcome-item"><div class="outcome-dot"></div><span>保存本課完整生成與修復指令，附測試資料與版本</span></div><div class="outcome-item"><div class="outcome-dot"></div><span>搜尋並複製指令，備份後重新載入核對</span></div></div>
 </div>
 
-<div class="lesson-body"><section class="lesson-section optional-route" id="core-route-banner" data-learning-role="延伸"><h2 class="section-heading">有工作需求時再做的延伸實作</h2><p class="body-text">承接 CH4-2；需測試刷新、JSON 備份／匯入和無效檔。不得把瀏覽器 localStorage 說成跨裝置同步。</p><p class="body-text">本頁可以跳過；需要此工作案例時，先具備 <a href="CH4-1.html">保存成果，確認下次真的能用</a> 的能力。原始示範、完整提示詞與操作內容均保留在下方並預設展開。 <a href="../index.html#required-route">返回必修路線</a>。</p></section><details id="legacy-reference" open><summary>原始完整單元內容、案例與提示詞（保留）</summary>
+<div class="lesson-body"><section class="lesson-section"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">你想保存常用提示詞，並在下次工作時快速搜尋、複製和帶走。本單元做一個僅存在目前瀏覽器的 Prompt 庫；完成物包含匯出備份和還原測試，localStorage 不會自動跨裝置同步。</p><p class="body-text">瀏覽器 localStorage 以目前網站來源和瀏覽器為範圍。清除網站資料或換裝置可能找不到內容，所以 JSON 匯出是可攜備份，匯入前要先驗證。</p><p class="body-text">先操作下方參考品，觀察輸入如何變成結果。它用來熟悉流程；你後續生成的版本仍要獨立保存並按驗收資料測試。</p><div class="tool-wrap">
+<div class="tool-topbar">
+<div class="tool-dot tool-dot-r"></div>
+<div class="tool-dot tool-dot-y"></div>
+<div class="tool-dot tool-dot-g"></div>
+<div class="tool-label">prompt-library.html</div>
+</div>
+<div class="tool-body">
+<div class="plib-toprow">
+<input class="plib-search" id="plib-search" oninput="renderCards()" placeholder="搜尋 Prompt 標題或內容…" type="text">
+<button class="plib-copy-btn" type="button" onclick="exportPrompts()">匯出 JSON</button>
+<button class="plib-copy-btn" type="button" onclick="document.getElementById('plib-import-file').click()">匯入 JSON</button>
+<input id="plib-import-file" type="file" accept="application/json,.json" hidden>
+</div>
+<p id="plib-status" role="status" aria-live="polite" style="font-size:.75rem;color:var(--c-muted);"></p>
+<div class="plib-tag-filter" id="plib-tags"></div>
+<div class="plib-cards" id="plib-cards"></div>
+<div class="plib-add-form">
+<div class="plib-form-label">＋ 新增 Prompt</div>
+<div class="plib-form-row">
+<input class="plib-form-input" id="pf-title" aria-label="Prompt 標題" placeholder="Prompt 標題" type="text"/>
+<input class="plib-form-input" id="pf-tag" aria-label="分類標籤" placeholder="標籤（例：寫作、分析）" style="max-width:160px" type="text"/>
+<input class="plib-form-input" id="pf-version" aria-label="Prompt 版本" placeholder="版本（例：v1）" style="max-width:120px" type="text" value="v1"/>
+</div>
+<textarea class="plib-form-textarea" id="pf-body" aria-label="完整 Prompt 指令" placeholder="在這裡貼入你的完整 Prompt 指令…"></textarea>
+<button class="plib-save-btn" onclick="savePrompt()">儲存到庫</button>
+</div>
+</div>
+</div></section><hr class="section-rule"/><section class="lesson-section"><h2 class="section-heading">觀念與完整提示詞</h2><p class="body-text">localStorage 只在目前瀏覽器與網站來源保存資料，不會跨裝置同步；JSON 才是可攜備份。匯入前完整驗證，才能避免損壞檔覆蓋仍可用的資料。</p><div class="tool-wrap">
+<div class="tool-topbar">
+<div class="tool-dot tool-dot-r"></div>
+<div class="tool-dot tool-dot-y"></div>
+<div class="tool-dot tool-dot-g"></div>
+<div class="tool-label"><span aria-hidden="true">→</span> 複製這段 Prompt 貼入 Gemini</div>
+<button class="copy-btn-blue" onclick="copyInstructions()" style="margin-left:auto;">複製指令</button>
+</div>
+<div class="tool-body" style="padding:24px 28px;">
+<div class="result-box" id="instruction-box">你是一位重視初學者可操作性、資料安全與無障礙的前端工程師。請為工作者製作「個人 Prompt 庫管理器」，目標是把以下真實工作情境變成可反覆使用、可核對的工具。交付完整單檔 HTML，CSS 與 JavaScript 內嵌，不呼叫外部 API；不要只輸出線框、示意圖或片段。
 
-  <div class="lesson-section">
-    <div class="section-eyebrow">TOOL · 互動工具</div>
-    <h2 class="section-heading">新增、搜尋、一鍵複製你的 Prompt 庫</h2>
-    <p class="body-text">下方是介面示意。本頁示意資料在記憶體中，重新整理會重置；依生成指令製作的學員工具須在同一瀏覽器保存資料，並用 JSON 檔備份與還原。完成後實測重新整理、JSON 匯出／匯入及無效檔案處理。</p>
+【工作情境】
+localStorage 只在目前瀏覽器與網站來源保存資料，不會跨裝置同步；JSON 才是可攜備份。匯入前完整驗證，才能避免損壞檔覆蓋仍可用的資料。
 
-    <div class="tool-wrap">
-      <div class="tool-topbar">
-        <div class="tool-dot tool-dot-r"></div>
-        <div class="tool-dot tool-dot-y"></div>
-        <div class="tool-dot tool-dot-g"></div>
-        <div class="tool-label">prompt-library.html</div>
-      </div>
-      <div class="tool-body">
-        <div class="plib-toprow">
-          <input class="plib-search" type="text" placeholder="搜尋 Prompt 標題或內容…" id="plib-search" oninput="renderCards()">
-        </div>
-        <div class="plib-tag-filter" id="plib-tags"></div>
-        <div class="plib-cards" id="plib-cards"></div>
-        <div class="plib-add-form">
-          <div class="plib-form-label">＋ 新增 Prompt</div>
-          <div class="plib-form-row">
-            <input class="plib-form-input" type="text" placeholder="Prompt 標題" id="pf-title">
-            <input class="plib-form-input" type="text" placeholder="標籤（例：寫作、分析）" id="pf-tag" style="max-width:160px">
-          </div>
-          <textarea class="plib-form-textarea" placeholder="在這裡貼入你的完整 Prompt 指令…" id="pf-body"></textarea>
-          <button class="plib-save-btn" onclick="savePrompt()">儲存到庫</button>
-        </div>
-      </div>
-    </div>
+【操作與輸出】
+可新增含標題、分類、版本（例如 v1）、完整提示詞與日期的紀錄；即時搜尋標題／內容、分類篩選、複製、刪除、展開長文；在目前瀏覽器保存。提供版本化 JSON 匯出與匯入。
 
-    <div class="callout tip">
-      <div class="callout-icon" aria-hidden="true">💡</div>
-      <div class="callout-body">
-        <strong>Prompt 庫的價值不在量，在品。</strong>只把用過、效果好的 Prompt 存進去，附上清楚的標題，讓自己一眼就知道這條指令是用來做什麼的。這是你最值錢的個人數位資產之一。
-      </div>
-    </div>
-  </div>
+【例外與安全】
+新增必填欄缺漏時保留輸入。舊版紀錄缺少版本欄時載入為 v1。匯入前一次驗證檔案版本、陣列、欄位型別、識別碼唯一性與長度；錯誤檔不動原資料。儲存失敗要明示本分頁暫存，要求下載備份。所有使用者文字只作純文字。
 
-  <hr class="section-rule">
+【固定驗收案例】
+新增一筆「活動通知」提示詞，分類填「行政」、版本填「v1」，搜尋標題和正文、按分類篩選、複製及展開；匯出後重整頁面，再匯入備份核對標題、分類、版本和內容。匯入格式損毀或重複 ID 的 JSON 時，原資料數量與文字必須保持不變。
 
-  <div class="lesson-section">
-    <div class="section-eyebrow">HOW TO REPLICATE · 如何自己做出這個工具</div>
-    <h2 class="section-heading">讓 Gemini 幫你做一個有永久儲存功能的 Prompt 庫</h2>
-    <div class="steps-list">
-      <div class="step-item">
-        <div class="step-num-col"><div class="step-num">1</div></div>
-        <div class="step-body">
-          <div class="step-title">確定你需要哪些欄位</div>
-          <div class="step-desc">最基本的是標題和內容。如果你有很多種類的 Prompt，加上「分類標籤」可以讓搜尋更快。還需要「使用場景說明」嗎？先想清楚。</div>
-        </div>
-      </div>
-      <div class="step-item">
-        <div class="step-num-col"><div class="step-num">2</div></div>
-        <div class="step-body">
-          <div class="step-title">複製以下指令貼入 Gemini</div>
-          <div class="step-desc">以 JSON 檔保存可攜式備份；localStorage 僅作目前瀏覽器的便利保存，不代表跨裝置同步。</div>
-        </div>
-      </div>
-      <div class="step-item">
-        <div class="step-num-col"><div class="step-num">3</div></div>
-        <div class="step-body">
-          <div class="step-title">先測保存還原，再放入實際指令</div>
-          <div class="step-desc">新增一筆「測試資料」，重新整理確認仍在；匯出 JSON 並存成 prompt-library-backup.json，刪除該筆後匯入備份，核對內容回來。再選一個無效 JSON 檔匯入，應提示錯誤且保留現有資料。通過後再輸入已驗收的工作指令，保存正式備份。</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="tool-wrap">
-      <div class="tool-topbar">
-        <div class="tool-dot tool-dot-r"></div>
-        <div class="tool-dot tool-dot-y"></div>
-        <div class="tool-dot tool-dot-g"></div>
-        <div class="tool-label"><span aria-hidden="true">→</span> 複製這段 Prompt 貼入 Gemini</div>
-        <button class="copy-btn-blue" style="margin-left:auto;" onclick="copyInstructions()">複製指令</button>
-      </div>
-      <div class="tool-body" style="padding:24px 28px;">
-        <div class="result-box" id="instruction-box">你是一位擅長製作互動工具的前端工程師。
-
-製作一個「個人 Prompt 庫管理器」的單頁 HTML 工具，功能如下：
-
-【基本操作】
-- 新增 Prompt：包含「標題」、「分類標籤」（文字）、「Prompt 內容」三個欄位；欄位缺漏時提示並保留輸入
-- 在目前瀏覽器可用 localStorage 保存資料；若瀏覽器不支援或存取失敗，顯示提示且不可崩潰，仍可用 JSON 備份／還原；另提供「匯出 JSON」下載備份和「匯入 JSON」還原
-- 匯入前驗證 JSON 格式、版本及每筆資料所需欄位；無效檔案顯示錯誤且保留原資料，不得先清空再匯入
-- 提醒使用者把 JSON 備份放在自己的課程資料夾；localStorage 與 JSON 備份都不代表跨裝置同步
-- 顯示已儲存的 Prompt 卡片，每張卡片有標題、分類標籤、最多顯示 3 行的內容（可展開）、儲存日期，以及「複製」「刪除」按鈕
-- 頂部搜尋框即時搜尋標題與內容；可按標籤篩選；空狀態顯示開始提示
-
-【設計要求】
-- 背景 #f5f3ee，卡片 #ffffff，邊框 #d8d4cb
-- 強調色 #6b7fa3（霧藍），標籤 badge 用此色系
-- 字體：Shippori Mincho + Noto Sans TC（Google Fonts）
-- 圓角 6px，無陰影、無漸層
-
-生成完整的單一 HTML 檔案。</div>
-      </div>
-    </div>
-  </div>
-
-  <hr class="section-rule">
-
-  <div class="lesson-section">
-    <div class="section-eyebrow">CHALLENGE · 進階挑戰</div>
-    <h2 class="section-heading">把 Prompt 庫打造成你的知識管理中心</h2>
-    <div class="challenge-box">
-      <div class="challenge-label">PRACTICE VARIATIONS</div>
-      <div class="challenge-list">
-        <div class="challenge-item">
-          <div class="ci-num">01</div>
-          <div>加入「使用次數計數」功能——每次點複製就 +1，讓最常用的 Prompt 自然排到最上方，建立你的個人熱門榜單。</div>
-        </div>
-        <div class="challenge-item">
-          <div class="ci-num">02</div>
-          <div>加入「最近複製」排序，讓最近取用的指令排在前面。</div>
-        </div>
-        <div class="challenge-item">
-          <div class="ci-num">03</div>
-          <div>把工具中經驗收通過的生成與修復指令匯入 Prompt 庫，為每筆補上用途和最近驗收日期；機密資料不要存入。</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-</details></div>
+【交付要求】
+頁面文字使用繁體中文；主要操作有清楚標籤、空狀態、錯誤提示和鍵盤可操作方式。輸入內容以純文字呈現。完成後輸出可直接保存並於瀏覽器重新開啟的完整 HTML 原始碼，附上如何手動檢查本頁驗收案例的簡短說明。</div>
+</div>
+</div></section><hr class="section-rule"/><section class="lesson-section"><h2 class="section-heading">操作、驗收與修復</h2><ol class="body-text"><li>先說明提示詞庫中每筆資料需要標題、用途分類、版本和完整正文；在參考品新增「活動通知／行政／v1」，搜尋標題與內文，再試分類篩選、展開和複製。</li><li>複製完整提示詞至 AI Studio Chat 生成單檔工具，保存為 prompt-library-v1.html，關閉並重新開啟；新增同一筆案例，確認版本可見且重載後仍在。</li><li>匯出 JSON 並保留檔案；清除測試記錄或在測試副本中重新載入後匯入，逐欄核對。另用格式錯誤和重複 ID 的 JSON 測試，確認錯誤提示出現且原資料沒有被覆蓋。</li><li>若分類、版本或正文在重開／匯入後遺失，先檢查欄位結構和驗證規則，再修正並重跑正常與損毀備份案例；最後記錄 localStorage 只屬目前瀏覽器來源。</li></ol><div class="callout info"><div aria-hidden="true" class="callout-icon">注意</div><div class="callout-body">不要把 API key、客戶資料或機密放進可匯出的提示詞；備份檔可讀取，需存放在允許的位置。</div></div><div class="callout info"><div aria-hidden="true" class="callout-icon">修復</div><div class="callout-body">若無效 JSON 清空了內容，立即保留原始備份；修復為先驗證完整結構再匯入，重測有效和損毀檔。</div></div><div class="callout key"><div aria-hidden="true" class="callout-icon">✓</div><div class="callout-body"><strong>本單元驗收：</strong>新增「活動通知」記錄，分類為「行政」、版本為「v1」；搜尋標題與內文、分類篩選、展開並複製全文。匯出 JSON、重新載入頁面後匯入備份，核對標題、分類、版本和內文；再分別匯入格式錯誤及重複 ID 的 JSON，原資料必須完整保留。交付備份檔與本機保存範圍說明。</div></div></section></div>
 
 <nav class="lesson-nav">
   <a class="nav-btn nav-prev" href="PRAC4-1.html" aria-label="上一單元" data-nav-role="prev">
     <div>
       <div class="nav-btn-label"><span aria-hidden="true">←</span> 上一個演練</div>
-      <div class="nav-btn-title">實例演練 1：工具上線前部署清單</div>
+      <div class="nav-btn-title">工具上線前部署清單</div>
     </div>
   </a>
   <a class="nav-btn next nav-next" href="PRAC4-3.html" aria-label="下一單元" data-nav-role="next">
     <div>
       <div class="nav-btn-label">下一個演練 <span aria-hidden="true">→</span></div>
-      <div class="nav-btn-title">實例演練 3：20 分鐘黑客松挑戰台</div>
+      <div class="nav-btn-title">獨立改造與成果交付</div>
     </div>
   </a>
 </nav>
@@ -332,23 +261,104 @@ window.addEventListener('scroll', () => {
 });
 
 let prompts = [
-  { id: 1, title: 'Prompt 黃金公式模板', tag: '通用', body: '【角色】\n你是一位（身分描述）。\n\n【任務】\n（動作 + 材料）。\n\n【限制】\n（語氣 / 字數 / 禁止事項）。\n\n【呈現格式】\n以（格式）呈現。', date: '2026-04-01' },
-  { id: 2, title: '會議記錄快速整理', tag: '會議', body: '你是一位高效的行政助理，擅長整理會議紀錄。\n把以下會議記錄整理成「決議事項」和「待辦清單（含負責人）」兩個區塊，語氣正式，300 字以內。', date: '2026-04-01' },
-  { id: 3, title: '商業文件改寫（正式版）', tag: '寫作', body: '你是一位擅長商業文書的資深文字編輯。\n把以下文字改寫為正式的商業語氣，用詞精準、不堆疊形容詞，保留原意，字數可略增，繁體中文台灣用語。', date: '2026-04-01' },
-  { id: 4, title: '開會通知快速擬稿', tag: '行政', body: '你是一位資深行政人員，擅長撰寫正式的內部通知。\n根據我提供的會議資訊（時間、地點、議程、出席對象），擬一則開會通知，包含主旨與正文，語氣正式、300 字以內，結尾提醒與會者準時出席、不克參加請於會前告知。', date: '2026-04-01' },
-  { id: 5, title: '公告文正式化改寫', tag: '行政', body: '你是一位機關文書組的資深承辦，擅長把口語訊息改寫成正式公告。\n把我貼上的內容改寫成正式公告，包含標題、公告事項（條列）、生效日期與聯絡窗口，使用台灣慣用的行政用語，避免命令式語氣。', date: '2026-04-01' },
+  { id: 1, title: 'Prompt 黃金公式模板', tag: '通用', version: 'v1', body: '【角色】\n你是一位（身分描述）。\n\n【任務】\n（動作 + 材料）。\n\n【限制】\n（語氣 / 字數 / 禁止事項）。\n\n【呈現格式】\n以（格式）呈現。', date: '2026-04-01' },
+  { id: 2, title: '會議記錄快速整理', tag: '會議', version: 'v1', body: '你是一位高效的行政助理，擅長整理會議紀錄。\n把以下會議記錄整理成「決議事項」和「待辦清單（含負責人）」兩個區塊，語氣正式，300 字以內。', date: '2026-04-01' },
+  { id: 3, title: '商業文件改寫（正式版）', tag: '寫作', version: 'v1', body: '你是一位擅長商業文書的資深文字編輯。\n把以下文字改寫為正式的商業語氣，用詞精準、不堆疊形容詞，保留原意，字數可略增，繁體中文台灣用語。', date: '2026-04-01' },
+  { id: 4, title: '開會通知快速擬稿', tag: '行政', version: 'v1', body: '你是一位資深行政人員，擅長撰寫正式的內部通知。\n根據我提供的會議資訊（時間、地點、議程、出席對象），擬一則開會通知，包含主旨與正文，語氣正式、300 字以內，結尾提醒與會者準時出席、不克參加請於會前告知。', date: '2026-04-01' },
+  { id: 5, title: '公告文正式化改寫', tag: '行政', version: 'v1', body: '你是一位機關文書組的資深承辦，擅長把口語訊息改寫成正式公告。\n把我貼上的內容改寫成正式公告，包含標題、公告事項（條列）、生效日期與聯絡窗口，使用台灣慣用的行政用語，避免命令式語氣。', date: '2026-04-01' },
 ];
 let nextId = 6;
 let activeTag = '';
+const PROMPT_STORAGE_KEY = 'gemini-prompt-library-v1';
+
+function setLibraryStatus(message) {
+  document.getElementById('plib-status').textContent = message;
+}
+
+function isValidPromptLibrary(value) {
+  if (!value || value.version !== 1 || !Array.isArray(value.prompts)) return false;
+  const ids = new Set();
+  return value.prompts.every(prompt => {
+    const valid = Number.isSafeInteger(prompt.id) && prompt.id > 0 &&
+      typeof prompt.title === 'string' && prompt.title.trim() !== '' && prompt.title.length <= 200 &&
+      typeof prompt.tag === 'string' && prompt.tag.length <= 80 &&
+      (prompt.version === undefined || (typeof prompt.version === 'string' && prompt.version.trim() !== '' && prompt.version.length <= 40)) &&
+      typeof prompt.body === 'string' && prompt.body.trim() !== '' && prompt.body.length <= 50000 &&
+      typeof prompt.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(prompt.date) && !ids.has(prompt.id);
+    if (valid) ids.add(prompt.id);
+    return valid;
+  });
+}
+
+function persistPrompts() {
+  try {
+    localStorage.setItem(PROMPT_STORAGE_KEY, JSON.stringify({ version: 1, prompts }));
+    setLibraryStatus('已保存到目前瀏覽器；如要換裝置，請另行匯出 JSON。');
+    return true;
+  } catch (error) {
+    setLibraryStatus('瀏覽器無法保存資料；本分頁仍可操作，請立即匯出 JSON 備份。');
+    return false;
+  }
+}
+
+function loadPrompts() {
+  try {
+    const saved = localStorage.getItem(PROMPT_STORAGE_KEY);
+    if (!saved) { persistPrompts(); return; }
+    const parsed = JSON.parse(saved);
+    if (!isValidPromptLibrary(parsed)) throw new Error('format');
+    prompts = parsed.prompts.map(prompt => ({ ...prompt, version: prompt.version || 'v1' }));
+    persistPrompts();
+    nextId = Math.max(0, ...prompts.map(prompt => prompt.id)) + 1;
+  } catch (error) {
+    setLibraryStatus('已保存資料無法讀取，先保留本頁範例；請檢查或匯入有效備份。');
+  }
+}
+
+function exportPrompts() {
+  const blob = new Blob([JSON.stringify({ version: 1, prompts }, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'prompt-library-backup.json';
+  link.click();
+  URL.revokeObjectURL(url);
+  setLibraryStatus('已下載 JSON 備份；檔案仍需存放在允許的位置。');
+}
+
+async function importPrompts(event) {
+  const file = event.target.files?.[0];
+  event.target.value = '';
+  if (!file) return;
+  if (file.size > 1000000) { setLibraryStatus('檔案超過 1 MB，未匯入；原資料保持不變。'); return; }
+  try {
+    const parsed = JSON.parse(await file.text());
+    if (!isValidPromptLibrary(parsed)) throw new Error('format');
+    prompts = parsed.prompts.map(prompt => ({ ...prompt, version: prompt.version || 'v1' }));
+    nextId = Math.max(0, ...prompts.map(prompt => prompt.id)) + 1;
+    const savedToBrowser = persistPrompts();
+    renderTags();
+    renderCards();
+    if (savedToBrowser) setLibraryStatus('匯入完成並已更新目前瀏覽器的資料。');
+    else setLibraryStatus('匯入完成，但瀏覽器保存失敗；請立即匯出 JSON 備份。');
+  } catch (error) {
+    setLibraryStatus('JSON 格式或欄位不正確，未匯入；原資料保持不變。');
+  }
+}
 
 const TAGS = () => [...new Set(prompts.map(p => p.tag).filter(Boolean))];
 
 function renderTags() {
   const allTags = TAGS();
   const el = document.getElementById('plib-tags');
-  el.innerHTML = ['全部', ...allTags].map(t =>
-    `<button class="tag-btn ${(t === '全部' && !activeTag) || t === activeTag ? 'active' : ''}" onclick="filterTag('${t}')">${t}</button>`
-  ).join('');
+  el.replaceChildren();
+  ['全部', ...allTags].forEach(tag => {
+    const button = document.createElement('button');
+    button.className = `tag-btn ${(tag === '全部' && !activeTag) || tag === activeTag ? 'active' : ''}`;
+    button.textContent = tag;
+    button.addEventListener('click', () => filterTag(tag));
+    el.appendChild(button);
+  });
 }
 
 function filterTag(tag) {
@@ -361,39 +371,89 @@ function renderCards() {
   const q = document.getElementById('plib-search').value.toLowerCase();
   let list = prompts.filter(p =>
     (!activeTag || p.tag === activeTag) &&
-    (!q || p.title.toLowerCase().includes(q) || p.body.toLowerCase().includes(q))
+    (!q || p.title.toLowerCase().includes(q) || p.body.toLowerCase().includes(q) || p.version.toLowerCase().includes(q))
   );
   const el = document.getElementById('plib-cards');
   if (list.length === 0) {
-    el.innerHTML = `<div class="plib-empty">暫無符合的 Prompt。試試其他關鍵字，或新增一條。</div>`;
+    const empty = document.createElement('div');
+    empty.className = 'plib-empty';
+    empty.textContent = '暫無符合的 Prompt。試試其他關鍵字，或新增一條。';
+    el.replaceChildren(empty);
     return;
   }
-  el.innerHTML = list.map(p => `
-    <div class="plib-card" id="pcard-${p.id}">
-      <div class="plib-card-header">
-        <div class="plib-card-title">${p.title}</div>
-        ${p.tag ? `<span class="plib-card-tag">${p.tag}</span>` : ''}
-      </div>
-      <div class="plib-card-body">${p.body.substring(0, 200)}${p.body.length > 200 ? '…' : ''}</div>
-      <div class="plib-card-footer">
-        <span class="plib-card-date">${p.date}</span>
-        <div style="display:flex;gap:6px">
-          <button class="plib-copy-btn" onclick="copyPromptById(${p.id}, this)">複製</button>
-          <button class="plib-copy-btn" style="color:var(--c-muted);border-color:var(--c-border)" onclick="deletePrompt(${p.id})">刪除</button>
-        </div>
-      </div>
-    </div>`).join('');
+  const cards = list.map(prompt => {
+    const card = document.createElement('div');
+    card.className = 'plib-card';
+    card.id = `pcard-${prompt.id}`;
+    const header = document.createElement('div');
+    header.className = 'plib-card-header';
+    const title = document.createElement('div');
+    title.className = 'plib-card-title';
+    title.textContent = prompt.title;
+    header.appendChild(title);
+    if (prompt.tag) {
+      const tag = document.createElement('span');
+      tag.className = 'plib-card-tag';
+      tag.textContent = prompt.tag;
+      header.appendChild(tag);
+    }
+    const version = document.createElement('span');
+    version.className = 'plib-card-tag';
+    version.textContent = prompt.version || 'v1';
+    header.appendChild(version);
+    const body = document.createElement('div');
+    body.className = 'plib-card-body';
+    body.textContent = `${prompt.body.substring(0, 200)}${prompt.body.length > 200 ? '…' : ''}`;
+    if (prompt.body.length > 200) {
+      const expand = document.createElement('button');
+      expand.className = 'plib-copy-btn';
+      expand.type = 'button';
+      expand.textContent = '展開全文';
+      expand.addEventListener('click', () => {
+        const expanded = expand.dataset.expanded === 'true';
+        body.textContent = expanded ? `${prompt.body.substring(0, 200)}…` : prompt.body;
+        expand.dataset.expanded = String(!expanded);
+        expand.textContent = expanded ? '展開全文' : '收合';
+      });
+    }
+    const footer = document.createElement('div');
+    footer.className = 'plib-card-footer';
+    const date = document.createElement('span');
+    date.className = 'plib-card-date';
+    date.textContent = prompt.date;
+    const actions = document.createElement('div');
+    actions.style.cssText = 'display:flex;gap:6px';
+    const copy = document.createElement('button');
+    copy.className = 'plib-copy-btn';
+    copy.textContent = '複製';
+    copy.addEventListener('click', () => copyPromptById(prompt.id, copy));
+    const remove = document.createElement('button');
+    remove.className = 'plib-copy-btn';
+    remove.style.cssText = 'color:var(--c-muted);border-color:var(--c-border)';
+    remove.textContent = '刪除';
+    remove.addEventListener('click', () => deletePrompt(prompt.id));
+    actions.append(copy, remove);
+    footer.append(date, actions);
+    card.append(header, body);
+    if (prompt.body.length > 200) card.appendChild(expand);
+    card.appendChild(footer);
+    return card;
+  });
+  el.replaceChildren(...cards);
 }
 
 function savePrompt() {
   const title = document.getElementById('pf-title').value.trim();
   const tag = document.getElementById('pf-tag').value.trim();
+  const version = document.getElementById('pf-version').value.trim();
   const body = document.getElementById('pf-body').value.trim();
-  if (!title || !body) { alert('請填入標題和 Prompt 內容。'); return; }
+  if (!title || !version || !body) { alert('請填入標題、版本和 Prompt 內容。'); return; }
   const now = new Date().toISOString().slice(0,10);
-  prompts.unshift({ id: nextId++, title, tag, body, date: now });
+  prompts.unshift({ id: nextId++, title, tag, version, body, date: now });
+  persistPrompts();
   document.getElementById('pf-title').value = '';
   document.getElementById('pf-tag').value = '';
+  document.getElementById('pf-version').value = 'v1';
   document.getElementById('pf-body').value = '';
   renderTags();
   renderCards();
@@ -402,6 +462,7 @@ function savePrompt() {
 function deletePrompt(id) {
   if (!confirm('確定要刪除這條 Prompt？')) return;
   prompts = prompts.filter(p => p.id !== id);
+  persistPrompts();
   renderTags();
   renderCards();
 }
@@ -424,6 +485,8 @@ function copyInstructions() {
   });
 }
 
+loadPrompts();
+document.getElementById('plib-import-file').addEventListener('change', importPrompts);
 renderTags();
 renderCards();
 </script>

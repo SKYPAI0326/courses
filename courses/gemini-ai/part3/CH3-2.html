@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CH3-2 動態專案路徑圖｜Gemini 零代碼 AI 實戰課</title>
+<title>把採購規則畫成可檢查的流程圖｜Gemini AI 實戰課</title>
 <meta name="description" content="你花一小時在 PowerPoint 畫的流程圖，老闆一句「這個步驟可以點開看細節嗎」就破功了。動態路徑圖讓每個節點都能 hover 展開說明、點擊切換狀態——讓複雜流程一眼看清楚。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
@@ -196,8 +196,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="hero-divider-v"></div>
     <span class="hero-num">3.2</span>
   </div>
-  <h1 class="lesson-title">流程視覺化：實作「動態專案路徑圖」</h1>
-  <p class="lesson-tagline">你花一小時在 PowerPoint 畫的流程圖，老闆一句「這個步驟可以點開看細節嗎」就破功了。動態路徑圖讓每個節點都能 hover 展開說明、點擊切換狀態——讓複雜流程一眼看清楚。</p>
+  <h1 class="lesson-title">把採購規則畫成可檢查的流程圖</h1>
+  <p class="lesson-tagline">將有來源的專案步驟、責任和狀態整理成流程圖，檢查順序和交接條件。</p>
   <div class="outcomes">
     <div class="outcomes-label">學完這節，你會有</div>
     <div class="outcome-item"><div class="outcome-dot"></div>一份「動態專案路徑圖」的完整 Prompt，可直接使用或修改</div>
@@ -206,304 +206,50 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   </div>
 </section>
 
-<main class="lesson-body"><section class="lesson-section optional-route" id="core-route-banner" data-learning-role="延伸"><h2 class="section-heading">有工作需求時再做的延伸實作</h2><p class="body-text">需有真實流程階段；產物是可探索的流程圖。需檢查節點順序、責任及狀態是否由來源資料支持。</p><p class="body-text">本頁可以跳過；需要此工作案例時，先具備 <a href="PRAC3-3.html">用 KPI 月報做一項工作判斷</a> 的能力。原始示範、完整提示詞與操作內容均保留在下方並預設展開。 <a href="../index.html#required-route">返回必修路線</a>。</p></section><details id="legacy-reference" open><summary>原始完整單元內容、案例與提示詞（保留）</summary>
+<main class="lesson-body"><section class="lesson-section" id="flow-context">
+<h2 class="section-heading">情境：採購申請常卡在退補件與責任交接</h2>
+<p class="body-text">新採購申請要經過承辦人、主管、採購和財務。只有直線箭頭會漏掉「退回補件」與「不核准」兩種結果；圖上的每個節點和分支都必須來自實際規則。</p>
+<div class="prompt-wrap"><div class="prompt-label">本次流程資料</div><pre class="result-box">提出需求（承辦人）→ 主管審核
+主管同意 → 採購詢價 → 財務核准 → 下單
+主管要求補件 → 承辦人補件 → 回到主管審核
+主管不核准 → 結束（未核准）</pre></div>
+<p class="body-text">流程圖用節點表示工作狀態，用箭頭表示允許的交接，用分支標出決策條件。它呈現流程規則，不會真的建立簽核、發通知或讀取專案目前狀態。</p>
+</section>
+<section class="lesson-section" id="flow-prompt">
+<h2 class="section-heading">先寫節點、負責人和轉換條件</h2>
+<p class="body-text">在提示詞中分清節點名稱、負責角色、進入下一步的條件和退回路徑。若沒有來源支持期限或負責人，標成待確認，不讓圖表自行補值。</p>
+<div class="prompt-wrap"><div class="prompt-label">採購申請流程圖完整提示詞</div><pre class="prompt-box">請製作繁體中文的採購申請流程圖單頁 HTML，使用 SVG 呈現，內嵌 CSS 和原生 JavaScript，不用外部套件、不呼叫 API。節點和規則如下：
+1. 提出需求，負責角色：承辦人。
+2. 主管審核；同意後到採購詢價，要求補件則回到承辦人補件，再回主管審核，不核准則到「結束：未核准」。
+3. 採購詢價後交財務核准，財務核准後到下單。
+4. 每條箭頭標示「同意、補件、不核准、核准」等轉換條件；節點顯示負責角色。
 
-  <!-- S1 -->
-  <div class="lesson-section">
-    <div class="section-eyebrow">(01)</div>
-    <h2 class="section-heading">情境：為什麼互動路徑圖比<em>PPT 流程圖</em>更有說服力</h2>
-    <p class="body-text">PowerPoint 的流程圖有一個根本問題：它是靜態的。你可以把框框畫得很漂亮，但客戶或老闆永遠只能「看」，不能「探索」。而一份複雜的專案流程，光靠看往往不夠。</p>
-    <p class="body-text">動態路徑圖解決的，是「<strong>讓對方主動參與理解</strong>」的問題——他可以 hover 到他有疑問的步驟，展開細節自己讀；可以看到哪個節點是關鍵路徑；可以在你介紹時跟著你的操作走，而不是盯著一張靜止的圖發呆。</p>
-
-    <div class="callout tip">
-      <div class="callout-icon" aria-hidden="true">✦</div>
-      <div class="callout-body">
-        <strong>實際使用場景：</strong>把動態路徑圖的 HTML 打開在瀏覽器，投影到螢幕上做簡報——遠比 PowerPoint 更有互動感，而且不需要任何軟體安裝，瀏覽器就夠了。
-      </div>
-    </div>
-  </div>
-
-  <hr class="section-rule">
-
-  <!-- S2 -->
-  <div class="lesson-section">
-    <div class="section-eyebrow">(02)</div>
-    <h2 class="section-heading">核心要點：<em>滑鼠移上去試試看</em></h2>
-    <p class="body-text">以下是一個真實可互動的動態專案路徑圖示範。每個節點都可以 hover 展開詳細說明：</p>
-
-    <div class="svg-demo-wrap">
-      <div class="svg-demo-head">
-        <span class="svg-demo-title">動態專案路徑圖 · 產品上市流程</span>
-        <span class="svg-demo-hint">↑ 移到節點上看詳細說明</span>
-      </div>
-      <div class="svg-demo-body">
-        <svg id="flowSvg" width="680" height="260" viewBox="0 0 680 260" style="font-family:'Noto Sans TC',sans-serif;overflow:visible;">
-          <defs>
-            <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-              <path d="M0,0 L0,6 L8,3 z" fill="#5a7a5a" opacity=".6"/>
-            </marker>
-            <marker id="arrowGray" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-              <path d="M0,0 L0,6 L8,3 z" fill="#d8d4cb"/>
-            </marker>
-            <filter id="nodeShadow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity=".08"/>
-            </filter>
-          </defs>
-
-          <!-- 連線 -->
-          <line x1="108" y1="100" x2="192" y2="100" stroke="#5a7a5a" stroke-width="1.5" marker-end="url(#arrowGreen)" opacity=".5"/>
-          <line x1="308" y1="100" x2="392" y2="100" stroke="#5a7a5a" stroke-width="1.5" marker-end="url(#arrowGreen)" opacity=".5"/>
-          <line x1="508" y1="100" x2="592" y2="100" stroke="#d8d4cb" stroke-width="1.5" marker-end="url(#arrowGray)"/>
-          <!-- 分支線 -->
-          <line x1="250" y1="128" x2="250" y2="172" stroke="#d8d4cb" stroke-width="1.5" stroke-dasharray="4,3"/>
-          <line x1="250" y1="172" x2="450" y2="172" stroke="#d8d4cb" stroke-width="1.5" stroke-dasharray="4,3"/>
-          <line x1="450" y1="172" x2="450" y2="128" stroke="#d8d4cb" stroke-width="1.5" marker-end="url(#arrowGray)" stroke-dasharray="4,3"/>
-
-          <!-- 節點群組 -->
-          <!-- N1: 需求確認 -->
-          <g class="flow-node-g" data-title="需求確認" data-desc="與客戶對齊目標、KPI 及時程" data-status="完成" data-owner="PM 王小明">
-            <rect x="10" y="72" width="98" height="56" rx="8" fill="#ffffff" stroke="#5a7a5a" stroke-width="2" filter="url(#nodeShadow)"/>
-            <circle cx="108" cy="80" r="5" fill="#5a7a5a"/>
-            <text x="59" y="96" text-anchor="middle" font-size="12" font-weight="700" fill="#2c2b28">需求確認</text>
-            <text x="59" y="114" text-anchor="middle" font-size="10" fill="#5a7a5a">✓ 已完成</text>
-          </g>
-
-          <!-- N2: 設計規劃 -->
-          <g class="flow-node-g" data-title="設計規劃" data-desc="製作視覺稿、使用者流程圖、設計系統" data-status="完成" data-owner="設計師 李大華">
-            <rect x="210" y="72" width="98" height="56" rx="8" fill="#ffffff" stroke="#5a7a5a" stroke-width="2" filter="url(#nodeShadow)"/>
-            <circle cx="308" cy="80" r="5" fill="#5a7a5a"/>
-            <text x="259" y="96" text-anchor="middle" font-size="12" font-weight="700" fill="#2c2b28">設計規劃</text>
-            <text x="259" y="114" text-anchor="middle" font-size="10" fill="#5a7a5a">✓ 已完成</text>
-          </g>
-
-          <!-- N3: 開發實作 -->
-          <g class="flow-node-g" data-title="開發實作" data-desc="前後端開發、API 串接、單元測試" data-status="進行中" data-owner="工程師 張三">
-            <rect x="410" y="72" width="98" height="56" rx="8" fill="#fff8f0" stroke="#c9963a" stroke-width="2" filter="url(#nodeShadow)"/>
-            <circle cx="508" cy="80" r="5" fill="#c9963a"/>
-            <text x="459" y="96" text-anchor="middle" font-size="12" font-weight="700" fill="#2c2b28">開發實作</text>
-            <text x="459" y="114" text-anchor="middle" font-size="10" fill="#c9963a">⏳ 進行中</text>
-          </g>
-
-          <!-- N4: 上線發布 -->
-          <g class="flow-node-g" data-title="上線發布" data-desc="部署至正式環境、監控系統上線" data-status="待開始" data-owner="DevOps 陳四">
-            <rect x="610" y="72" width="60" height="56" rx="8" fill="#f5f3ee" stroke="#d8d4cb" stroke-width="1.5" filter="url(#nodeShadow)"/>
-            <text x="640" y="97" text-anchor="middle" font-size="11" fill="#8c8880">上線</text>
-            <text x="640" y="113" text-anchor="middle" font-size="11" fill="#8c8880">發布</text>
-          </g>
-
-          <!-- 分支：QA 測試 -->
-          <g class="flow-node-g" data-title="QA 測試" data-desc="功能測試、壓力測試、UAT 使用者驗收" data-status="待開始" data-owner="QA 工程師">
-            <rect x="360" y="148" width="180" height="44" rx="8" fill="#f5f3ee" stroke="#d8d4cb" stroke-width="1.5" stroke-dasharray="5,3"/>
-            <text x="450" y="174" text-anchor="middle" font-size="11" fill="#8c8880">QA 測試（平行進行）</text>
-          </g>
-
-          <!-- Tooltip -->
-          <g id="flowTooltip" opacity="0" pointer-events="none">
-            <rect id="ftBg" rx="6" fill="#2c2b28" opacity=".93"/>
-            <text id="ftTitle" font-size="12" font-weight="700" fill="#8ab48a"></text>
-            <text id="ftStatus" font-size="10" fill="#c9963a"></text>
-            <text id="ftDesc" font-size="10" fill="#d8d4cb"></text>
-            <text id="ftOwner" font-size="9" fill="#6b6a68"></text>
-          </g>
-        </svg>
-      </div>
-    </div>
-
-    <div class="anatomy-wrap">
-      <div class="anatomy-head">
-        <span class="anatomy-title">工具解剖 · 動態專案路徑圖</span>
-        <span class="anatomy-badge">功能拆解</span>
-      </div>
-      <div class="anatomy-body">
-        <div class="anatomy-zones">
-          <div class="anatomy-zone">
-            <span class="zone-label">節點</span>
-            <span class="zone-content">每個步驟一個節點，顏色區分狀態：綠色＝完成、橘色＝進行中、灰色＝待開始</span>
-          </div>
-          <div class="anatomy-zone">
-            <span class="zone-label">連線</span>
-            <span class="zone-content">箭頭連接節點，實線＝主路徑，虛線＝分支或平行任務</span>
-          </div>
-          <div class="anatomy-zone">
-            <span class="zone-label">Hover</span>
-            <span class="zone-content">滑鼠移到節點時顯示浮動說明卡：任務名稱、負責人、詳細描述、當前狀態</span>
-          </div>
-          <div class="anatomy-zone">
-            <span class="zone-label">輸入</span>
-            <span class="zone-content">頁面頂部提供表單，可修改每個節點的名稱、說明、狀態，圖表即時更新</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <hr class="section-rule">
-
-  <!-- S3 -->
-  <div class="lesson-section">
-    <div class="section-eyebrow">(03)</div>
-    <h2 class="section-heading">範例演練：<em>動態專案路徑圖</em></h2>
-
-    <div class="prompt-wrap">
-      <div class="prompt-label"><span class="prompt-dot"></span>動態專案路徑圖 · 完整 Prompt</div>
-      <div class="prompt-box">
-<span class="ph">你是一位擅長數據視覺化的資深前端工程師。</span>
-
-<span class="pg">製作一個「動態專案路徑圖」網頁工具，功能需求如下：
-
-【節點設定】
-預設包含 5 個節點，由左至右排列：
-1. 需求確認（狀態：完成）
-2. 設計規劃（狀態：完成）
-3. 開發實作（狀態：進行中）
-4. QA 測試（狀態：待開始）
-5. 上線發布（狀態：待開始）
-
-每個節點包含以下資料：
-- 節點名稱（顯示在節點上）
-- 負責人姓名
-- 詳細說明（hover 時顯示）
-- 預計完成日期
-- 狀態（完成 / 進行中 / 待開始 / 延誤）
-
-【視覺呈現】
-使用 SVG 繪製，節點以圓角矩形表示，箭頭連接：
-- 完成：綠色邊框 #2e7d32，綠色打勾圖示
-- 進行中：橘色邊框 #e65100，旋轉進度圖示
-- 待開始：灰色邊框 #bdbdbd，無圖示
-- 延誤：紅色邊框 #c62828，警示圖示
-
-【互動功能】
-- 滑鼠移到節點時顯示浮動說明卡（tooltip），內容包含：負責人、詳細說明、預計完成日期
-- 點擊節點時，節點高亮（加粗邊框），右側出現詳細資訊面板
-- 點擊其他區域時，取消選取
-- 頁面載入時，節點依序淡入（間隔 0.15s）
-
-【可編輯性】
-頁面頂部有一個「編輯模式」按鈕，點擊後可以修改每個節點的名稱與狀態，確認後更新圖表
-
-【匯出功能】
-「下載 SVG」按鈕，讓使用者將圖表下載為 .svg 檔案，可貼入簡報或文件</span>
-
-<span class="pb">只使用純 HTML、CSS 與原生 JavaScript 和 SVG，
-不引入任何外部套件、D3.js 或 Chart.js。
-整體風格簡潔現代，白色背景，適合商業簡報使用。</span>
-
-<span class="ph">輸出完整可在瀏覽器直接執行的單一 HTML 檔案，不需要任何說明文字。</span></div>
-    </div>
-    <div class="expected-output">
-      <div class="expected-label">Gemini 大概會回</div>
-      <div class="expected-body">
-        <p>一份含 5 個節點的路徑圖，跟 (02) 你剛互動過的示範一模一樣——節點依序淡入，hover 顯示浮動說明卡，點擊後節點高亮並在右側跳出詳細資訊面板，還有一個「下載 SVG」按鈕。</p>
-      </div>
-      <div class="expected-note">(02) 的「工具解剖」四區塊（節點/連線/Hover/輸入）對應到這句 Prompt 的四個段落——你互動過的示範就是照這份 Prompt 生出來的。</div>
-    </div>
-  </div>
-
-  <hr class="section-rule">
-
-  <!-- S4 -->
-  <div class="lesson-section">
-    <div class="section-eyebrow">(04)</div>
-    <h2 class="section-heading">完整擴充變體：自訂<em>節點、連線、顏色</em>的追加指令</h2>
-
-    <div class="addon-list">
-      <div class="addon-item">
-        <span class="addon-tag tag-v">佈局</span>
-        <div>
-          <div class="addon-text">「將節點佈局改為由上至下垂直排列，箭頭從上方節點指向下方節點」</div>
-          <div class="addon-desc">適合決策樹或審批流程圖</div>
-        </div>
-      </div>
-      <div class="addon-item">
-        <span class="addon-tag tag-v">佈局</span>
-        <div>
-          <div class="addon-text">「在第二個節點後增加一個分支：分成兩條路徑（A路徑：快速上線；B路徑：完整測試），兩條路徑最後匯合到最後一個節點」</div>
-          <div class="addon-desc">適合需要展示多路徑決策的場景</div>
-        </div>
-      </div>
-      <div class="addon-item">
-        <span class="addon-tag tag-u">視覺</span>
-        <div>
-          <div class="addon-text">「在每個節點下方加上預計完成日期（格式：MM/DD），完成的節點顯示實際完成日期」</div>
-          <div class="addon-desc">讓路徑圖同時承載時間資訊</div>
-        </div>
-      </div>
-      <div class="addon-item">
-        <span class="addon-tag tag-e">匯出</span>
-        <div>
-          <div class="addon-text">「新增一個『複製連結摘要』按鈕，點擊後將所有節點名稱和狀態整理成純文字，格式為：✓ 需求確認（完成） <span aria-hidden="true">→</span> ⏳ 開發實作（進行中）……，複製到剪貼簿」</div>
-          <div class="addon-desc">讓路徑圖的狀態摘要可以直接貼到 Slack 或 Email</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <hr class="section-rule">
-
-  <!-- S4b -->
-  <div class="lesson-section">
-    <div class="section-eyebrow">(05)</div>
-    <h2 class="section-heading">注意事項：<em>互動行為</em>別互相打架</h2>
-    <div class="callout tip">
-      <div class="callout-icon" aria-hidden="true">✦</div>
-      <div class="callout-body">
-        <strong>hover 跟 click 各司其職，不要疊在一起。</strong>這個工具同時有「hover 顯示浮動說明卡」跟「click 高亮＋跳出詳細面板」兩種互動，Prompt 裡務必寫清楚是哪個動作觸發哪個效果，不然 AI 可能把兩者混在一起，變成一 hover 就跳出整個詳細面板，反而干擾使用者操作。
-      </div>
-    </div>
-    <div class="callout info">
-      <div class="callout-icon" aria-hidden="true">ℹ</div>
-      <div class="callout-body">
-        <strong>狀態顏色要跟語意一致。</strong>綠色＝完成、橘色＝進行中、紅色＝延誤，這套顏色語意一旦在 Prompt 裡定下來，就不要在圖表其他地方（例如按鈕、標題）用相同顏色表達不同意思，否則使用者會誤讀狀態。
-      </div>
-    </div>
-  </div>
-
-  <hr class="section-rule">
-
-  <!-- S5 -->
-  <div class="lesson-section">
-    <div class="section-eyebrow">(06)</div>
-    <h2 class="section-heading">延伸應用：加入<em>時間軸</em>與進度狀態</h2>
-    <p class="body-text">如果你的專案有明確的時間線，可以把路徑圖升級為帶時間軸的版本——每個節點按照日期對齊在橫軸上，讓進度落後或超前一眼可見：</p>
-
-    <div class="prompt-wrap">
-      <div class="prompt-label"><span class="prompt-dot"></span>加入時間軸的追加指令</div>
-      <div class="prompt-box">
-<span class="pg">在現有路徑圖下方，新增一條水平時間軸（從今天起算 12 週），功能如下：
-
-- 每個節點在時間軸上顯示一個對應的時間標記點
-- 標記點的橫向位置對應節點的「預計完成週次」
-- 今天的位置在時間軸上用垂直虛線標示為「NOW」
-- 已完成的節點：標記點填滿綠色
-- 進行中的節點：標記點為橘色空心圓（閃爍動畫）
-- 若節點的預計完成日已過但狀態仍為「進行中」，標記點改為紅色並顯示「延誤」
-
-時間軸上方的刻度每週一格，顯示週次（W1、W2……）</span></div>
-    </div>
-
-    <div class="callout key">
-      <div class="callout-icon" aria-hidden="true">★</div>
-      <div class="callout-body">
-        <strong>實用建議：</strong>路徑圖和時間軸的組合，就是輕量版的甘特圖。不需要買 Project 或 Asana，一個 HTML 檔案就能做到同樣的視覺效果，而且可以客製化任何你需要的功能。
-      </div>
-    </div>
-  </div>
-
-</details></main>
+點擊節點可查看該節點的工作說明，鍵盤也能聚焦並開啟；圖上必須固定顯示完整節點名稱，並用文字標示不同結果，不能只靠顏色。清楚呈現補件回圈和未核准終點。未提供的工期、日期或人名不得自行新增。頁面需適合手機閱讀，輸出完整單一 HTML。</pre></div>
+</section>
+<section class="lesson-section" id="flow-test">
+<h2 class="section-heading">核對正常路徑、退件和未核准路徑</h2>
+<ol class="body-text">
+<li>在 AI Studio Chat 生成流程圖，保存為 procurement-flow.html，重新開啟確認圖表和互動可用。</li>
+<li>沿正常路徑逐節核對：提出需求→主管審核→採購詢價→財務核准→下單；再檢查補件回圈會回到主管審核。</li>
+<li>確認不核准分支有明確終點，所有節點都顯示負責角色。用鍵盤測試節點操作，手機視窗檢查文字和箭頭。</li>
+<li>如果箭頭方向或條件錯誤，只修正相應流程規則，保存新版本並重新走三條路徑。</li>
+</ol>
+<div class="callout info"><div class="callout-icon" aria-hidden="true">注意</div><div class="callout-body">流程圖只是流程說明，不是可執行簽核系統；正式工作流程要由流程負責人確認節點、例外和權限。</div></div>
+<div class="callout key"><div class="callout-icon" aria-hidden="true">✓</div><div class="callout-body"><strong>本單元驗收：</strong>正常、補件和不核准三條路徑都能依來源規則走完，角色和條件標示正確，且未把未提供的日期或人名畫進圖中。</div></div>
+</section></main>
 
 <nav class="lesson-nav">
   <a class="nav-btn prev nav-prev" href="CH3-1.html" aria-label="上一單元" data-nav-role="prev">
     <span><span aria-hidden="true">←</span></span>
     <div>
       <div class="nav-btn-label">上一節</div>
-      <div class="nav-btn-title">3.1 什麼是 SVG 互動圖？</div>
+      <div class="nav-btn-title">選對呈現方式：靜態圖與互動 SVG</div>
     </div>
   </a>
   <a class="nav-btn next nav-next" href="CH3-3.html" aria-label="下一單元" data-nav-role="next">
     <div>
       <div class="nav-btn-label">下一節</div>
-      <div class="nav-btn-title">3.3 互動式銷售漏斗</div>
+      <div class="nav-btn-title">數據儀表板：實作互動式銷售漏斗</div>
     </div>
     <span><span aria-hidden="true">→</span></span>
   </a>

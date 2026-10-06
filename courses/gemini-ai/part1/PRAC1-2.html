@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>解鎖AI開發者模式 · 實例演練 2｜Gemini 零代碼 AI 實戰課</title>
+<title>提示詞 A/B 結果比較台｜Gemini AI 實戰課</title>
 <meta name="description" content="貼入你寫的 Prompt，工具自動從「角色清晰度、任務明確度、限制完整度、呈現具體度」四個維度評分，並給出改善建議。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
@@ -73,6 +73,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 .diag-btn{padding:13px 24px;background:var(--c-a1);color:#fff;border:none;border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:.85rem;font-weight:500;cursor:pointer;white-space:nowrap;transition:opacity .2s}
 .diag-btn:hover{opacity:.88}
 .score-board{display:none;margin-top:4px}
+.ab-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .score-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
 .score-card{background:var(--c-bg);border:1px solid var(--c-border);border-radius:var(--radius-sm);padding:16px 18px}
 .score-dimension{font-size:.73rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;margin-bottom:8px}
@@ -128,7 +129,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 .footer-note{font-size:.75rem;color:var(--c-muted)}
 @media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important}*{animation:none!important}}
 @media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero{padding:56px 32px 40px}.lesson-body{padding:0 32px 80px}.lesson-nav{padding:0 32px 80px}}
-@media(max-width:768px){.topbar{padding:0 16px;gap:8px;.lesson-tagline{max-width:100%}}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:40px 20px 36px}.lesson-title{font-size:1.45rem}.lesson-body{padding:0 20px 60px}.lesson-nav{padding:0 20px 60px;flex-direction:column}.nav-btn{flex:none}.footer{padding:20px}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;.lesson-tagline{max-width:100%}}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:40px 20px 36px}.lesson-title{font-size:1.45rem}.lesson-body{padding:0 20px 60px}.lesson-nav{padding:0 20px 60px;flex-direction:column}.nav-btn{flex:none}.footer{padding:20px}.ab-grid{grid-template-columns:1fr}}
 
 /* a11y: focus-visible ring */
 a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
@@ -175,181 +176,66 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="hero-divider-v"></div>
     <div class="hero-num">實例演練 2</div>
   </div>
-  <h1 class="lesson-title">AI 指令品質健診器</h1>
-  <p class="lesson-tagline">貼入你寫的 Prompt，工具自動從「角色清晰度、任務明確度、限制完整度、呈現具體度」四個維度評分，並給出改善建議。</p>
-  <div class="outcomes"><div class="outcomes-label">選修成果</div><div class="outcome-item"><div class="outcome-dot"></div><span>找出輸入、規則、例外或輸出的需求缺口</span></div><div class="outcome-item"><div class="outcome-dot"></div><span>用已知答案驗證修改後工具，不以關鍵字分數驗收</span></div></div>
+  <h1 class="lesson-title">提示詞 A/B 結果比較台</h1>
+  <p class="lesson-tagline">用同一份會議原文測兩版提示詞，從決議、責任人、期限與未知事項檢查結果差異。</p>
+  <div class="outcomes"><div class="outcomes-label">選修成果</div><div class="outcome-item"><div class="outcome-dot"></div><span>控制資料、模型與設定，公平比較提示詞前後結果</span></div><div class="outcome-item"><div class="outcome-dot"></div><span>以原文證據判讀輸出是否保留決議、待辦與未知資訊</span></div></div>
 </div>
 
-<div class="lesson-body"><section class="lesson-section optional-route" id="core-route-banner" data-learning-role="延伸"><h2 class="section-heading">有工作需求時再做的延伸實作</h2><p class="body-text">可拿自己的行政指令比較；分數是字詞啟發式，不能代表模型品質或正確性。誤判及回到已知答案測試的教學需補足。</p><p class="body-text">本頁可以跳過；需要此工作案例時，先具備 <a href="CH1-2.html">把需求寫成可核對的規格</a> 的能力。原始示範、完整提示詞與操作內容均保留在下方並預設展開。 <a href="../index.html#required-route">返回必修路線</a>。</p></section><details id="legacy-reference" open><summary>原始完整單元內容、案例與提示詞（保留）</summary>
+<div class="lesson-body"><section class="lesson-section"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">你手上有兩版「活動會後摘要」提示詞，想知道改寫是否讓結果更可用。本單元用同一份假資料做前後比較；完成物是有固定判準、原文引證和兩份模型輸出的比較紀錄。</p><p class="body-text">提示詞是本次比較中唯一要改的條件。若模型、原文或設定也改了，就無法判斷差異是否來自提示詞。比較台不會呼叫模型或替你打分，只整理你根據原文做出的人工判讀。</p><p class="body-text">先讀共同假逐字稿，標出提議、最後決議、有效待辦、取消與未知，再操作下方比較台。把提示詞 A、B 分別送入同一模型，貼回結果並逐項引用證據。</p><div class="tool-wrap">
+<div class="tool-topbar">
+<div class="tool-dot tool-dot-r"></div>
+<div class="tool-dot tool-dot-y"></div>
+<div class="tool-dot tool-dot-g"></div>
+<div class="tool-label">prompt-ab-evaluator.html</div>
+</div>
+<div class="tool-body"><div class="callout info" style="margin-bottom:16px;"><div class="callout-icon" aria-hidden="true">共同測試資料</div><div class="callout-body">活動檢討會假逐字稿：主持人先問日期要不要調整；小林提議改為 10/22，當時尚待場地回覆。主持人稍後確認最後決議為 10/22。王小明承諾週四下班前確認新場地。退款政策尚待財務確認。陳怡君原本負責 10/20 舊場地預約，該任務已取消。練習時 A、B 都使用這段原文。</div></div>
+<div class="ab-grid">
+<section class="score-card"><label for="prompt-a"><strong>提示詞 A：模糊版本</strong></label><textarea class="diag-textarea" id="prompt-a">整理這段活動檢討會議記錄，列出重點和待辦。</textarea><label for="output-a">貼上用提示詞 A 得到的結果</label><textarea class="diag-textarea" id="output-a" placeholder="到 AI Studio 用提示詞 A 和共同逐字稿生成，再貼回結果。"></textarea></section>
+<section class="score-card"><label for="prompt-b"><strong>提示詞 B：具體版本</strong></label><textarea class="diag-textarea" id="prompt-b">只根據原文整理最後決議和仍有效的待辦。區分提議、最後決議、取消和未知；責任人只採用明確承諾者，期限保留原文表述，不把相對日期換算成未提供的日曆日期。退款政策未知須標待確認。每項附支持判斷的原句，輸出「最後決議／有效待辦／已取消／待確認」四區。</textarea><label for="output-b">貼上用提示詞 B 得到的結果</label><textarea class="diag-textarea" id="output-b" placeholder="回到同一個模型對話，用提示詞 B 和相同逐字稿生成，再貼回結果。"></textarea></section>
+</div>
+<div class="score-card" style="margin-top:14px;"><strong>逐項比對結果</strong><p class="score-hint">讀兩份輸出，按證據選狀態；這裡不會呼叫 AI，也不會替你判定哪份正確。</p><div id="comparison-criteria"></div><button class="diag-btn" type="button" onclick="compareResults()">整理比較紀錄 →</button><div class="suggest-list" id="comparison-summary" aria-live="polite"></div></div></div>
+</div></section><hr class="section-rule"/><section class="lesson-section"><h2 class="section-heading">觀念與完整提示詞</h2><p class="body-text">這份提示詞會生成一個人工 A/B 判讀表。它把判斷拆成四個可查證問題，要求貼入原始模型輸出與原文證據；介面不計算提示詞品質分數，也不宣稱比較具有統計效力。</p><div class="tool-wrap">
+<div class="tool-topbar">
+<div class="tool-dot tool-dot-r"></div>
+<div class="tool-dot tool-dot-y"></div>
+<div class="tool-dot tool-dot-g"></div>
+<div class="tool-label"><span aria-hidden="true">→</span> 複製這段 Prompt 貼入 Gemini</div>
+<button class="copy-btn" onclick="copyInstructions()" style="margin-left:auto;">複製指令</button>
+</div>
+<div class="tool-body" style="padding:24px 28px;">
+<div class="result-box" id="instruction-box">你是熟悉可用性、資料安全與無障礙的前端工程師。請製作「提示詞 A/B 結果比較表」，讓行政人員用同一份假會議逐字稿、同一個模型與相同設定，檢查改寫提示詞前後的輸出差異。請交付可直接在瀏覽器開啟的單一 HTML，所有 CSS 和 JavaScript 放在檔案內；不呼叫模型、不連網、不把評分包裝成客觀正確率。
 
-  <div class="lesson-section">
-    <div class="section-eyebrow">TOOL · 互動工具</div>
-    <h2 class="section-heading">貼入你的 Prompt，立即得到健診報告</h2>
-    <p class="body-text">把你寫的任何一段 AI 指令貼入下方，工具會分析其中包含的資訊量，給出四個維度的評分，並提供具體的改善方向。</p>
+【固定背景與資料】
+頁面說明本單元的假情境：活動日期先出現 10/22 提議，之後才有改為 10/22 的最後決議；王小明承諾週四下班前確認新場地；退款政策仍待財務確認；陳怡君原負責的 10/20 舊場地預約已取消。提供同一份完整逐字稿，讓使用者分別複製到兩個提示詞版本中測試。
 
-    <div class="tool-wrap">
-      <div class="tool-topbar">
-        <div class="tool-dot tool-dot-r"></div>
-        <div class="tool-dot tool-dot-y"></div>
-        <div class="tool-dot tool-dot-g"></div>
-        <div class="tool-label">prompt-quality-checker.html</div>
-      </div>
-      <div class="tool-body">
-        <div class="diag-input-row">
-          <textarea class="diag-textarea" id="diag-input" placeholder="把你的 Prompt 貼在這裡……&#10;&#10;例：擬一則全體同仁的停電通知，要正式一點。"></textarea>
-          <button class="diag-btn" onclick="diagnose()">健診 <span aria-hidden="true">→</span></button>
-        </div>
-        <div class="score-board" id="score-board">
-          <div class="total-score-row">
-            <div class="total-label">綜合評分</div>
-            <div class="total-score" id="total-score">0</div>
-            <div class="total-max">/ 100</div>
-            <div class="total-verdict" id="total-verdict"></div>
-          </div>
-          <div class="score-grid">
-            <div class="score-card">
-              <div class="score-dimension">① 角色清晰度</div>
-              <div class="score-bar-bg"><div class="score-bar-fill" id="bar-role" style="background:var(--c-a1);width:0%"></div></div>
-              <div class="score-row"><div class="score-num" id="num-role" style="color:var(--c-a1)">0</div><div class="score-hint" id="hint-role"></div></div>
-            </div>
-            <div class="score-card">
-              <div class="score-dimension">② 任務明確度</div>
-              <div class="score-bar-bg"><div class="score-bar-fill" id="bar-task" style="background:var(--c-a2);width:0%"></div></div>
-              <div class="score-row"><div class="score-num" id="num-task" style="color:var(--c-a2)">0</div><div class="score-hint" id="hint-task"></div></div>
-            </div>
-            <div class="score-card">
-              <div class="score-dimension">③ 限制完整度</div>
-              <div class="score-bar-bg"><div class="score-bar-fill" id="bar-con" style="background:var(--c-a3);width:0%"></div></div>
-              <div class="score-row"><div class="score-num" id="num-con" style="color:var(--c-a3)">0</div><div class="score-hint" id="hint-con"></div></div>
-            </div>
-            <div class="score-card">
-              <div class="score-dimension">④ 呈現具體度</div>
-              <div class="score-bar-bg"><div class="score-bar-fill" id="bar-fmt" style="background:var(--c-a4);width:0%"></div></div>
-              <div class="score-row"><div class="score-num" id="num-fmt" style="color:var(--c-a4)">0</div><div class="score-hint" id="hint-fmt"></div></div>
-            </div>
-          </div>
-          <div class="suggest-list" id="suggest-list"></div>
-        </div>
-      </div>
-    </div>
+【操作畫面】
+- 並排呈現提示詞 A、提示詞 B，各有可編輯文字區；初始分別提供一段模糊提示詞和一段明確規則提示詞。
+- 每個版本各有模型輸出貼上區。明確提醒使用者須在同一模型／設定下分別生成，再把真實輸出貼回；空白時不可假造結果。
+- 建立四列人工判讀表，每列可分別為 A 與 B 選「通過／未通過／需確認」，並留一個證據摘要欄。檢查項目為：有否區分提議與最後決議、有否只保留有效待辦及正確責任人、有否把相對期限或未知政策擅自補成事實、有否保留取消狀態並引用原文。
+- 按「整理比較紀錄」後，先檢查兩份輸出與每一項判讀是否填妥；缺資料時逐項指出，不顯示分數或勝負。資料完整時，分別統計 A、B 的通過／未通過／需確認數量，並列出證據摘要。
+- 設「清除本次比較」功能，清除兩份輸出、證據與選擇狀態，不改動提示詞；不將資料上傳或保存到瀏覽器外。
 
-    <div class="callout key">
-      <div class="callout-icon" aria-hidden="true">🎯</div>
-      <div class="callout-body">
-        <strong>這個工具用關鍵字分析你的 Prompt。</strong>實際的 AI 回應品質還受到語境和 AI 本身能力的影響，但這四個維度是構成好 Prompt 的基礎，先把結構蓋好，其他的才有意義。
-      </div>
-    </div>
+【判讀邊界】
+工具只整理學員的人工判讀，不自動讀取或比較模型文字。不要把 A/B 結果稱為品質分數、準確率或因果證明；只有同模型、同資料、同設定並逐項對照原文，才能做有限度比較。所有事實、期限、責任人與取消狀態都要回到逐字稿確認。
 
-    <div class="callout key">
-      <div class="callout-icon" aria-hidden="true">📋</div>
-      <div class="callout-body">
-        <strong>行政實務這樣用。</strong>把你最常用的三個行政指令各健診一次：開會通知、簽呈草稿、對外公告。行政文書對「限制」（字數、語氣、格式）最敏感，低分通常出在這一欄。
-      </div>
-    </div>
-  </div>
+【固定驗收】
+把 A、B 的輸出分別貼入，四項判讀各選一個狀態並寫支持原文。少貼一份輸出時應要求補資料；某項未選時應提示該列；完成後只顯示各版本逐項狀態及證據。輸出惡意標記文字如 &lt;script&gt; 必須只作文字顯示，不得執行。清除後判讀欄歸空、提示詞仍保留。
 
-  <hr class="section-rule">
-
-  <div class="lesson-section">
-    <div class="section-eyebrow">HOW TO REPLICATE · 如何自己做出這個工具</div>
-    <h2 class="section-heading">用這段 Prompt，讓 Gemini 建出你的健診器</h2>
-
-    <div class="steps-list">
-      <div class="step-item">
-        <div class="step-num-col"><div class="step-num">1</div></div>
-        <div class="step-body">
-          <div class="step-title">打開 Gemini Canvas 模式</div>
-          <div class="step-desc">進入 <strong>gemini.google.com</strong>，切換 Canvas 模式，讓生成的 HTML 可以即時預覽。</div>
-        </div>
-      </div>
-      <div class="step-item">
-        <div class="step-num-col"><div class="step-num">2</div></div>
-        <div class="step-body">
-          <div class="step-title">複製並貼入以下指令</div>
-          <div class="step-desc">這段指令使用了「角色 + 任務 + 限制 + 呈現」的完整黃金公式，注意觀察它是如何組合的。</div>
-        </div>
-      </div>
-      <div class="step-item">
-        <div class="step-num-col"><div class="step-num">3</div></div>
-        <div class="step-body">
-          <div class="step-title">測試後存檔</div>
-          <div class="step-desc">用幾個自己寫過的 Prompt 測試，確認評分邏輯符合你的預期，再下載存檔。</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="tool-wrap">
-      <div class="tool-topbar">
-        <div class="tool-dot tool-dot-r"></div>
-        <div class="tool-dot tool-dot-y"></div>
-        <div class="tool-dot tool-dot-g"></div>
-        <div class="tool-label"><span aria-hidden="true">→</span> 複製這段 Prompt 貼入 Gemini</div>
-        <button class="copy-btn" style="margin-left:auto;" onclick="copyInstructions()">複製指令</button>
-      </div>
-      <div class="tool-body" style="padding:24px 28px;">
-        <div class="result-box" id="instruction-box">你是一位擅長製作互動分析工具的前端工程師。
-
-製作一個「Prompt 品質健診器」的單頁 HTML 工具，功能如下：
-
-【功能需求】
-- 一個多行文字輸入框，供使用者貼入他們寫的 Prompt
-- 一個「健診」按鈕，按下後用 JavaScript 分析輸入文字，依照以下四個維度各給 0～25 分：
-  ① 角色清晰度：偵測是否包含「你是」「扮演」「角色」「身分」等詞彙
-  ② 任務明確度：偵測是否包含動詞指令（「寫」「整理」「分析」「生成」「製作」）
-  ③ 限制完整度：偵測是否包含「不要」「避免」「限制」「字數」「語氣」等詞彙
-  ④ 呈現具體度：偵測是否包含「格式」「條列」「表格」「範本」「範例」等詞彙
-- 四個評分條（進度條）動態顯示各維度得分
-- 顯示總分（0～100）及對應的等級文字（90+: 優秀、70-89: 良好、50-69: 尚可、50以下: 需加強）
-- 根據低分維度，自動顯示具體的改善建議
-
-【設計要求】
-- 背景色 #f5f3ee，卡片背景 #ffffff，邊框 #d8d4cb
-- 四個維度分別用 #b5703a、#c9963a、#5a7a5a、#6b7fa3 區分顏色
-- 字體：標題使用 Shippori Mincho，內文使用 Noto Sans TC（Google Fonts）
-- 圓角 6px，無陰影，無漸層，整體為無印良品風格
-
-生成完整的單一 HTML 檔案。</div>
-      </div>
-    </div>
-  </div>
-
-  <hr class="section-rule">
-
-  <div class="lesson-section">
-    <div class="section-eyebrow">CHALLENGE · 進階挑戰</div>
-    <h2 class="section-heading">三個練習，讓你真正掌握 Prompt 品質感</h2>
-    <div class="challenge-box">
-      <div class="challenge-label">PRACTICE VARIATIONS</div>
-      <div class="challenge-list">
-        <div class="challenge-item">
-          <div class="ci-num">01</div>
-          <div>先隨手寫一個你平常會用的 Prompt，健診後把每個低分維度改善一次，看總分能提升多少。</div>
-        </div>
-        <div class="challenge-item">
-          <div class="ci-num">02</div>
-          <div>修改 Gemini 指令，讓工具新增「文字長度評估」維度——太短（&lt;20字）或太長（&gt;500字）都要提示。</div>
-        </div>
-        <div class="challenge-item">
-          <div class="ci-num">03</div>
-          <div>把你最常用的 5 個 Prompt 全部健診一遍，找出你習慣性遺漏的那個維度，針對性練習。</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-</details></div>
+介面使用繁體中文，欄位名稱清楚，表單有可見標籤、鍵盤可操作、窄螢幕可閱讀。輸出完整原始碼，不得省略互動、錯誤處理或驗收功能。</div>
+</div>
+</div></section><hr class="section-rule"/><section class="lesson-section"><h2 class="section-heading">操作、驗收與修復</h2><ol class="body-text"><li>讀共同假逐字稿；記下可確認的最後決議、有效待辦、責任人、原文期限及未知事項。</li><li>在同一個 AI Studio Chat 模型和相同設定下，先貼提示詞 A 與原文，再貼提示詞 B 與同一原文；逐份保存完整輸出，不要只抄結論。</li><li>把兩份輸出貼回參考比較台，四項判準各自選通過、未通過或需確認，並引用逐字稿或輸出作為證據。</li><li>若 B 仍把提議當決議或補出未知期限，只修改相關提示詞規則，再以相同模型、資料與設定重測 A/B；保留修改前後紀錄。</li></ol><div class="callout info"><div aria-hidden="true" class="callout-icon">注意</div><div class="callout-body">比較台只整理人工判讀，不會自行分析輸出或計算品質分數；測試用假資料並保存兩版完整原始輸出。</div></div><div class="callout info"><div aria-hidden="true" class="callout-icon">修復</div><div class="callout-body">若兩次輸出條件不同，先還原相同模型、相同資料和相同驗收項，再比較提示詞差異。</div></div><div class="callout key"><div aria-hidden="true" class="callout-icon">✓</div><div class="callout-body"><strong>本單元驗收：</strong>用同一份假資料分別測試模糊版與具體版提示詞，逐項記錄「決議是否正確、待辦是否仍有效、未知是否保留、是否附原文證據」。不計總分；交付兩份原始輸出、比較紀錄和下一次要修改的一條提示詞規則。</div></div></section></div>
 
 <nav class="lesson-nav">
   <a class="nav-btn nav-prev" href="PRAC1-1.html" aria-label="上一單元" data-nav-role="prev">
     <div>
       <div class="nav-btn-label"><span aria-hidden="true">←</span> 上一個演練</div>
-      <div class="nav-btn-title">實例演練 1：Prompt 黃金公式組合台</div>
+      <div class="nav-btn-title">Prompt 黃金公式組合台</div>
     </div>
   </a>
   <a class="nav-btn next nav-next" href="PRAC1-3.html" aria-label="下一單元" data-nav-role="next">
     <div>
       <div class="nav-btn-label">下一個演練 <span aria-hidden="true">→</span></div>
-      <div class="nav-btn-title">實例演練 3：會議情境指令模板產生器</div>
+      <div class="nav-btn-title">會議情境指令模板產生器</div>
     </div>
   </a>
 </nav>
@@ -365,68 +251,81 @@ window.addEventListener('scroll', () => {
   document.getElementById('prog').style.width = (window.scrollY / total * 100) + '%';
 });
 
-function scoreRole(t) {
-  const kw = ['你是','扮演','角色','身分','專家','工程師','顧問','老師','助理','編輯','分析師'];
-  const hits = kw.filter(k => t.includes(k)).length;
-  return Math.min(25, hits * 8 + (hits > 0 ? 5 : 0));
+const AB_CRITERIA = [
+  '是否區分提議與最後決議',
+  '是否只保留仍有效的待辦和明確責任人',
+  '是否避免臆測期限或退款政策',
+  '是否保留取消狀態並附上原文證據'
+];
+const AB_OPTIONS = [
+  {value:'',label:'請選擇'},
+  {value:'pass',label:'通過'},
+  {value:'fail',label:'未通過'},
+  {value:'review',label:'需確認'}
+];
+function renderCriteria() {
+  const root=document.getElementById('comparison-criteria');
+  root.replaceChildren();
+  AB_CRITERIA.forEach((criterion,index)=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:grid;grid-template-columns:minmax(180px,1fr) repeat(2,minmax(110px,.55fr));gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--c-border);';
+    const title=document.createElement('strong'); title.textContent=criterion; row.appendChild(title);
+    ['A','B'].forEach(version=>{
+      const label=document.createElement('label');
+      label.textContent=version+' 判讀 ';
+      const select=document.createElement('select');
+      select.id='grade-'+version.toLowerCase()+'-'+index;
+      select.setAttribute('aria-label',version+'：'+criterion);
+      select.style.cssText='display:block;width:100%;padding:8px;border:1px solid var(--c-border);border-radius:4px;background:#fff;';
+      AB_OPTIONS.forEach(option=>{const node=document.createElement('option');node.value=option.value;node.textContent=option.label;select.appendChild(node);});
+      label.appendChild(select); row.appendChild(label);
+    });
+    const evidence=document.createElement('input');
+    evidence.type='text'; evidence.id='evidence-'+index; evidence.placeholder='記錄支持判斷的原文或差異';
+    evidence.setAttribute('aria-label',criterion+'的原文證據');
+    evidence.style.cssText='grid-column:1/-1;width:100%;box-sizing:border-box;padding:8px;border:1px solid var(--c-border);border-radius:4px;';
+    row.appendChild(evidence); root.appendChild(row);
+  });
+  const reset=document.createElement('button'); reset.type='button'; reset.className='copy-btn'; reset.textContent='清除本次比較';
+  reset.addEventListener('click',clearComparison); root.appendChild(reset);
 }
-function scoreTask(t) {
-  const kw = ['寫','整理','分析','生成','製作','幫我','請','翻譯','摘要','列出','比較','建議','設計','說明','計算'];
-  const hits = kw.filter(k => t.includes(k)).length;
-  return Math.min(25, hits * 6 + (hits > 0 ? 7 : 0));
+function compareResults() {
+  const summary=document.getElementById('comparison-summary'); summary.replaceChildren();
+  const missing=[];
+  if(!document.getElementById('output-a').value.trim())missing.push('提示詞 A 的模型輸出');
+  if(!document.getElementById('output-b').value.trim())missing.push('提示詞 B 的模型輸出');
+  AB_CRITERIA.forEach((criterion,index)=>{
+    ['a','b'].forEach(version=>{if(!document.getElementById('grade-'+version+'-'+index).value)missing.push(criterion+'（'+version.toUpperCase()+'）');});
+    if(!document.getElementById('evidence-'+index).value.trim())missing.push(criterion+'的證據摘要');
+  });
+  const message=document.createElement('div'); message.className='suggest-item';
+  if(missing.length){message.textContent='尚未完成：'+missing.join('、')+'。補齊後再整理比較紀錄。';summary.appendChild(message);return;}
+  ['a','b'].forEach(version=>{
+    const counts={pass:0,fail:0,review:0};
+    AB_CRITERIA.forEach((_,index)=>counts[document.getElementById('grade-'+version+'-'+index).value]++);
+    const line=document.createElement('div'); line.className='suggest-item';
+    line.textContent='版本 '+version.toUpperCase()+'：通過 '+counts.pass+' 項、未通過 '+counts.fail+' 項、需確認 '+counts.review+' 項。請連同逐項證據解讀，不以合計代替判斷。';
+    summary.appendChild(line);
+  });
+  AB_CRITERIA.forEach((criterion,index)=>{
+    const evidence=document.createElement('div'); evidence.className='suggest-item';
+    const label={pass:'通過',fail:'未通過',review:'需確認'};
+    const a=document.getElementById('grade-a-'+index).value;
+    const b=document.getElementById('grade-b-'+index).value;
+    evidence.textContent=criterion+'｜A：'+label[a]+'；B：'+label[b]+'；證據：'+document.getElementById('evidence-'+index).value.trim();
+    summary.appendChild(evidence);
+  });
 }
-function scoreConstraint(t) {
-  const kw = ['不要','避免','限制','字數','語氣','只能','不超過','不少於','正式','輕鬆','簡短','詳細','繁體','英文'];
-  const hits = kw.filter(k => t.includes(k)).length;
-  return Math.min(25, hits * 8);
+function clearComparison() {
+  document.getElementById('output-a').value='';
+  document.getElementById('output-b').value='';
+  AB_CRITERIA.forEach((_,index)=>{
+    ['a','b'].forEach(version=>document.getElementById('grade-'+version+'-'+index).value='');
+    document.getElementById('evidence-'+index).value='';
+  });
+  document.getElementById('comparison-summary').replaceChildren();
 }
-function scoreFormat(t) {
-  const kw = ['格式','條列','表格','範本','範例','步驟','清單','標題','段落','JSON','Markdown','重點','要點','分點','項目'];
-  const hits = kw.filter(k => t.includes(k)).length;
-  return Math.min(25, hits * 8);
-}
-
-function diagnose() {
-  const t = document.getElementById('diag-input').value.trim();
-  if (!t) { alert('請先貼入你的 Prompt。'); return; }
-
-  const r = scoreRole(t), ta = scoreTask(t), c = scoreConstraint(t), f = scoreFormat(t);
-  const total = r + ta + c + f;
-
-  const setBar = (id, val, max) => {
-    document.getElementById('bar-' + id).style.width = (val / max * 100) + '%';
-    document.getElementById('num-' + id).textContent = val;
-  };
-  setBar('role', r, 25); setBar('task', ta, 25); setBar('con', c, 25); setBar('fmt', f, 25);
-  document.getElementById('total-score').textContent = total;
-
-  const hints = {role:'角色明確', task:'任務清晰', con:'有限制條件', fmt:'格式具體'};
-  document.getElementById('hint-role').textContent = r >= 20 ? hints.role : (r >= 10 ? '部分具體' : '待加強');
-  document.getElementById('hint-task').textContent = ta >= 20 ? hints.task : (ta >= 10 ? '部分清晰' : '待加強');
-  document.getElementById('hint-con').textContent = c >= 20 ? hints.con : (c >= 10 ? '部分完整' : '待加強');
-  document.getElementById('hint-fmt').textContent = f >= 20 ? hints.fmt : (f >= 10 ? '部分具體' : '待加強');
-
-  let verdict;
-  if (total >= 90) verdict = '優秀 — 這個 Prompt 已相當精準，可以直接使用。';
-  else if (total >= 70) verdict = '良好 — 基本完整，再補上缺少的維度會更好。';
-  else if (total >= 50) verdict = '尚可 — 有些維度還需要加強，AI 回應品質可能不穩定。';
-  else verdict = '需加強 — 建議回到黃金公式，補充遺漏的關鍵資訊。';
-  document.getElementById('total-verdict').textContent = verdict;
-
-  const suggestions = [];
-  if (r < 15) suggestions.push({ icon: '①', text: '補充角色描述：在開頭加上「你是一位＿＿（職稱），擅長＿＿（具體任務）」，讓 AI 知道從什麼角度回答。' });
-  if (ta < 15) suggestions.push({ icon: '②', text: '讓任務更明確：用動詞開頭（寫、整理、分析、比較），並說明具體的輸入材料是什麼。' });
-  if (c < 15) suggestions.push({ icon: '③', text: '加入限制條件：字數上限、語氣要求、禁止使用的詞彙，都能有效縮小 AI 的回應範圍。' });
-  if (f < 15) suggestions.push({ icon: '④', text: '指定輸出格式：條列式、表格、步驟清單，讓 AI 知道你要什麼形狀的答案。' });
-
-  const sl = document.getElementById('suggest-list');
-  sl.innerHTML = suggestions.map(s =>
-    `<div class="suggest-item"><span class="suggest-icon">${s.icon}</span><span>${s.text}</span></div>`
-  ).join('');
-
-  document.getElementById('score-board').style.display = 'block';
-  document.getElementById('score-board').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
+renderCriteria();
 
 function copyInstructions() {
   const text = document.getElementById('instruction-box').textContent;

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>團隊排班熱點圖 · 自由演練 11｜Gemini 零代碼 AI 實戰課</title>
+<title>團隊可用時段回報表｜Gemini AI 實戰課</title>
 <meta name="description" content="用顏色深淺標示一週的忙碌程度，一眼看出哪個時段最適合開會。點格子就能調整，資料自動存進瀏覽器。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
@@ -115,18 +115,18 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 
 /* ── 排班熱點圖 ── */
 .heatmap-wrap{overflow-x:auto}
-.heatmap-table{border-collapse:collapse;font-size:.78rem;min-width:500px}
+.heatmap-table{border-collapse:collapse;font-size:.78rem;min-width:560px}
 .heatmap-table th{padding:6px 10px;color:var(--c-muted);font-weight:500;text-align:center;font-size:.73rem}
 .heatmap-table td.time-label{padding:6px 10px;color:var(--c-muted);font-size:.73rem;white-space:nowrap;text-align:right}
-.heat-cell{width:60px;height:36px;cursor:pointer;border:1px solid var(--c-card);border-radius:3px;transition:transform .1s}
+.heat-cell{width:68px;min-width:68px;height:36px;padding:0 3px;text-align:center;white-space:nowrap;font-size:.62rem;line-height:1.1;color:#2c2b28;cursor:pointer;border:1px solid var(--c-card);border-radius:3px;transition:transform .1s}
 .heat-cell:hover{transform:scale(1.05)}
 .heat-0{background:var(--c-surface)}
 .heat-1{background:rgba(107,127,163,.2)}
 .heat-2{background:rgba(107,127,163,.45)}
 .heat-3{background:rgba(107,127,163,.75)}
-.heat-legend{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:.75rem;color:var(--c-muted)}
+.heat-legend{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px;font-size:.75rem;color:var(--c-muted)}
 .heat-swatch{width:20px;height:14px;border-radius:2px}
-.heatmap-controls{display:flex;gap:10px;margin-bottom:14px;align-items:center}
+.heatmap-controls{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;align-items:center}
 .hm-ctrl-btn{padding:6px 14px;background:var(--c-card);border:1px solid var(--c-border);border-radius:4px;font-family:inherit;font-size:.78rem;cursor:pointer;color:var(--c-muted);transition:border-color .15s,color .15s}
 .hm-ctrl-btn:hover{border-color:var(--c-a1);color:var(--c-a1)}
 .member-input-wrap{display:flex;gap:8px;margin-bottom:14px;align-items:center}
@@ -187,8 +187,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="hero-divider-v"></div>
     <span class="difficulty-badge diff-hard">進階</span>
   </div>
-  <h1 class="lesson-title">團隊排班 / 空檔熱點圖</h1>
-  <p class="lesson-tagline">用顏色深淺標示一週的忙碌程度，一眼看出哪個時段最適合開會。點格子就能調整，資料自動存進瀏覽器。</p>
+  <h1 class="lesson-title">團隊可用時段回報表</h1>
+  <p class="lesson-tagline">彙整成員回報的時段狀態；未填是未知，候選時間仍須確認出席。</p>
   <div class="outcomes">
     <div class="outcomes-label">PRACTICE GOALS</div>
     <div class="outcome-item"><div class="outcome-dot"></div><span>學會用二維陣列資料結構管理格狀介面</span></div>
@@ -197,135 +197,90 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   </div>
 </div>
 
-<div class="lesson-body"><section class="lesson-section optional-route" id="core-route-banner" data-learning-role="延伸"><h2 class="section-heading">有工作需求時再做的延伸實作</h2><p class="body-text">需成員逐格更新；未填不得當空閒，彙整候選時段後仍需確認會議長度和出席。</p><p class="body-text">本頁可以跳過；需要此工作案例時，先具備 <a href="../part4/PRAC4-3.html">獨立改造與成果交付</a> 的能力。原始示範、完整提示詞與操作內容均保留在下方並預設展開。 <a href="../index.html#required-route">返回必修路線</a>。</p></section><details id="legacy-reference" open><summary>原始完整單元內容、案例與提示詞（保留）</summary>
+<div class="lesson-body"><section class="lesson-section"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">跨部門會議需要成員回報幾個候選時段的忙碌情況。本單元用表格彙整「忙、可討論、未知」；固定案例 A＝週一 09:00、B＝週一 10:00。空白必須保持未知，工具沒有讀取日曆或確認出席的能力。</p><p class="body-text">忙碌、稍忙與未知是不同狀態；稍忙代表仍需主持人協調，空白不能當成有空。時段彙整只產生討論候選，最後需確認會議長度、日曆和每位出席者。</p><p class="body-text">先操作下方參考品，觀察輸入如何變成結果。它用來熟悉流程；你後續生成的版本仍要獨立保存並按驗收資料測試。</p><div class="tool-wrap">
+<div class="tool-topbar">
+<div class="tool-dot tool-dot-r"></div>
+<div class="tool-dot tool-dot-y"></div>
+<div class="tool-dot tool-dot-g"></div>
+<div class="tool-label">team-heatmap.html</div>
+</div>
+<div class="tool-body">
+<div class="callout info" style="margin-bottom:16px;">
+<div aria-hidden="true" class="callout-icon">💡</div>
+<div class="callout-body">點擊循環：未確認→空閒→稍忙→忙碌→非常忙→未確認。格子同時以文字與顏色顯示狀態；稍忙代表仍需主持人協調。新增成員或清空資料都回未確認，不可把沒填當作空閒。</div>
+</div>
+<div class="member-input-wrap">
+<input class="member-input" id="new-member" onkeydown="if(event.key==='Enter')addMember()" placeholder="輸入成員名稱後按 Enter 新增">
+<button class="compose-btn" onclick="addMember()" style="width:auto;padding:8px 16px;font-size:.8rem;">新增成員</button>
+</div>
+<div class="member-tabs" id="member-tabs"></div>
+<div class="heatmap-controls">
+<button class="hm-ctrl-btn" onclick="clearCurrentMember()">清除當前成員資料</button>
+<button class="hm-ctrl-btn" onclick="removeCurrentMember()">移除當前成員</button>
+<button class="hm-ctrl-btn" onclick="resetDemoList()">重設固定案例名單</button>
+<button class="hm-ctrl-btn" onclick="showOverall()">顯示整體熱度</button>
+<span style="font-size:.75rem;color:var(--c-muted);margin-left:4px;">檢視：<strong id="current-member-label">—</strong></span>
+</div>
+<div class="heatmap-wrap">
+<div class="table-scroll"><table class="heatmap-table" id="heatmap-table"></table></div>
+</div>
+<div class="heat-legend">
+<span>忙碌程度：</span>
+<div class="heat-swatch heat-0"></div><span>空閒</span>
+<div class="heat-swatch heat-1"></div><span>稍忙（仍需主持人協調）</span>
+<div class="heat-swatch heat-2"></div><span>忙碌</span>
+<div class="heat-swatch heat-3"></div><span>非常忙</span>
+<span>未確認：尚未填資料</span></div>
+</div>
+</div></section><hr class="section-rule"/><section class="lesson-section"><h2 class="section-heading">觀念與完整提示詞</h2><p class="body-text">下方指令包含工具用途、輸入、主要規則、輸出和介面要求。先讀一遍，圈出會影響結果的規則；生成後依第三節的固定案例測試，不用外觀或模型自述代替驗收。</p><div class="tool-wrap">
+<div class="tool-topbar">
+<div class="tool-dot tool-dot-r"></div>
+<div class="tool-dot tool-dot-y"></div>
+<div class="tool-dot tool-dot-g"></div>
+<div class="tool-label"><span aria-hidden="true">→</span> 複製這段 Prompt 貼入 Gemini</div>
+<button class="copy-btn" onclick="copyInstructions()" style="margin-left:auto;">複製指令</button>
+</div>
+<div class="tool-body" style="padding:24px 28px;">
+<div class="result-box" id="instruction-box" style="font-size:.8rem;">你是一位重視可用性、資料安全與無障礙的前端工程師。請為跨部門會議主持人製作「團隊可用時段回報表」，交付一份可直接以瀏覽器開啟的單一 HTML，CSS 與 JavaScript 都放在檔案內，不使用伺服器、外部 API 或日曆權限。
 
-  <div class="lesson-section">
-    <div class="section-eyebrow">TOOL · 互動工具</div>
-    <h2 class="section-heading">新增成員、點格子標記忙碌程度、切換整體視圖</h2>
-    <p class="body-text">每位成員標記自己每一時段的忙碌程度；未填保持「未確認」。整體視圖以任何忙碌優先，再處理未知，只有全員明確空閒才顯示空閒。資料只保存在目前瀏覽器。</p>
+【工作情境與目的】
+主持人先列出 3 至 8 位自願參與者，再請每人回報週一至週五 09:00–17:00 的整點狀態。這份表只用來整理回覆，不能連線讀取日曆、代替本人確認，亦不能把候選時段視為已約定。
 
-    <div class="tool-wrap">
-      <div class="tool-topbar">
-        <div class="tool-dot tool-dot-r"></div>
-        <div class="tool-dot tool-dot-y"></div>
-        <div class="tool-dot tool-dot-g"></div>
-        <div class="tool-label">team-heatmap.html</div>
-      </div>
-      <div class="tool-body">
-        <div class="callout info" style="margin-bottom:16px;">
-          <div class="callout-icon" aria-hidden="true">💡</div>
-          <div class="callout-body">點擊循環：未確認→空閒→稍忙→忙碌→非常忙→未確認。新增成員或清空資料都回未確認；不可把沒填當作空閒。</div>
-        </div>
-        <div class="member-input-wrap">
-          <input class="member-input" id="new-member" placeholder="輸入成員名稱後按 Enter 新增" onkeydown="if(event.key==='Enter')addMember()">
-          <button class="compose-btn" style="width:auto;padding:8px 16px;font-size:.8rem;" onclick="addMember()">新增成員</button>
-        </div>
-        <div class="member-tabs" id="member-tabs"></div>
-        <div class="heatmap-controls">
-          <button class="hm-ctrl-btn" onclick="clearCurrentMember()">清除當前成員</button>
-          <button class="hm-ctrl-btn" onclick="showOverall()">顯示整體熱度</button>
-          <span style="font-size:.75rem;color:var(--c-muted);margin-left:4px;">檢視：<strong id="current-member-label">—</strong></span>
-        </div>
-        <div class="heatmap-wrap">
-          <div class="table-scroll"><table class="heatmap-table" id="heatmap-table"></table></div>
-        </div>
-        <div class="heat-legend">
-          <span>忙碌程度：</span>
-          <div class="heat-swatch heat-0"></div><span>空閒</span>
-          <div class="heat-swatch heat-1"></div><span>稍忙</span>
-          <div class="heat-swatch heat-2"></div><span>忙碌</span>
-          <div class="heat-swatch heat-3"></div><span>非常忙</span>
-        <span>未確認：尚未填資料</span></div>
-      </div>
-    </div>
+【輸入與操作】
+- 可新增成員；去除前後空白，拒絕空名稱和重複名稱，並說明原因。新增者所有格子都從「未確認」開始。
+- 以表格呈現成員與星期／時段。點選目前成員的一格時，依序循環：未確認 → 空閒 → 稍忙 → 忙碌 → 非常忙 → 未確認。
+- 提供目前成員分頁、整體檢視、清除目前成員資料（需確認，保留成員）與移除目前成員（需確認，至少保留一人）；另提供重設固定案例名單，確認後恢復甲、乙、丙並清空所有回覆。
+- 明確顯示狀態文字和圖例；不能只用顏色區分。窄螢幕可橫向捲動表格。
 
-    <div class="callout tip">
-      <div class="callout-icon" aria-hidden="true">💡</div>
-      <div class="callout-body">整體視圖只能讀取。任一成員忙碌便不列全員空閒；沒有人忙碌但有人未填，顯示未確認。全員填空閒才可作候選，仍需確認會議長度與實際出席。</div>
-    </div>
-  </div>
+【整體彙整規則】
+- 任一人標為「忙碌」或「非常忙」時，顯示其中最高忙碌程度。
+- 沒有忙碌回覆但至少一人未確認時，整體為「未確認」。
+- 只有所有成員都明確回覆「空閒」，才能標示「全員回報空閒」；稍忙時顯示「稍忙」，並說明「仍需主持人協調」，不自動判定可開會。
+- 新成員、清除資料及空白欄位都不得預設成空閒；顯示整體狀態的文字說明。
 
-  <hr class="section-rule">
+【保存、例外與安全】
+- 可在目前瀏覽器保存成員與回覆，並清楚說明資料不會自動同步到其他裝置；儲存失敗時顯示提示，頁面仍可操作。
+- 所有成員名稱都當作純文字顯示，不把輸入內容當作 HTML 或程式執行。
+- 不要求或暗示學員輸入真實敏感行程；使用假名與假時段練習。
 
-  <div class="lesson-section">
-    <div class="section-eyebrow">HOW TO REPLICATE · 如何自己做出這個工具</div>
-    <h2 class="section-heading">用這段 Prompt，讓 Gemini 幫你做一模一樣的工具</h2>
+【固定驗收案例】
+新增甲、乙、丙三人。A＝週一 09:00、B＝週一 10:00：甲在 A 設「忙碌」，乙在 B 設「忙碌」，丙兩格留「未確認」。整體不得把未知算成空閒。把丙兩格改為「空閒」後，A、B 仍分別顯示有人忙。再選週一 11:00，將三人該格都設為「空閒」，才可顯示「全員回報空閒」。清除一人資料後該人回未確認，整體也不能維持空閒結論。
 
-    <div class="steps-list">
-      <div class="step-item">
-        <div class="step-num-col"><div class="step-num">1</div></div>
-        <div class="step-body">
-          <div class="step-title">建立 Gemini Apps Canvas 專案</div>
-          <div class="step-desc">登入 <strong>gemini.google.com</strong>，在輸入框下方選「新增檔案」→「Canvas」，輸入提示詞並送出；看到 Canvas 預覽才繼續。按鈕位置依目前介面為準。<a href="https://support.google.com/gemini/answer/16047321?hl=zh-TW" target="_blank" rel="noopener">Google 官方 Canvas 操作說明</a>。</div>
-        </div>
-      </div>
-      <div class="step-item">
-        <div class="step-num-col"><div class="step-num">2</div></div>
-        <div class="step-body">
-          <div class="step-title">貼入以下指令</div>
-          <div class="step-desc">把下方指令完整複製，貼入 Gemini 的輸入框，直接送出。</div>
-        </div>
-      </div>
-      <div class="step-item">
-        <div class="step-num-col"><div class="step-num">3</div></div>
-        <div class="step-body">
-          <div class="step-title">等待生成，預覽並存檔</div>
-          <div class="step-desc">Gemini 會生成一個完整的 HTML 工具。點「預覽」確認功能正常後，點「下載」或「複製」儲存到你的電腦。</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="tool-wrap">
-      <div class="tool-topbar">
-        <div class="tool-dot tool-dot-r"></div>
-        <div class="tool-dot tool-dot-y"></div>
-        <div class="tool-dot tool-dot-g"></div>
-        <div class="tool-label"><span aria-hidden="true">→</span> 複製這段 Prompt 貼入 Gemini</div>
-        <button class="copy-btn" style="margin-left:auto;" onclick="copyInstructions()">複製指令</button>
-      </div>
-      <div class="tool-body" style="padding:24px 28px;">
-        <div class="result-box" id="instruction-box" style="font-size:.8rem;">製作單檔團隊可用性表。成員與時段資料只存目前瀏覽器。空白狀態為未確認；點擊在未確認、空閒、稍忙、忙碌、非常忙間循環。整體取任一忙碌的最大值；沒人忙但有人未知則未確認；只有全員明確空閒才列候選，不取平均。顯示文字提示，不只顏色。清空回未知，新增成員也未知；不宣稱取得日曆權限或全員已確認出席。</div>
-      </div>
-    </div>
-  </div>
-
-  <hr class="section-rule">
-
-  <div class="lesson-section">
-    <div class="section-eyebrow">CHALLENGE · 進階挑戰</div>
-    <h2 class="section-heading">完成基本練習後，試試這些變化</h2>
-    <div class="challenge-box">
-      <div class="challenge-label">PRACTICE VARIATIONS</div>
-      <div class="challenge-list">
-        <div class="challenge-item">
-          <div class="ci-num">01</div>
-          <div>先排除任何忙碌或未確認的時段，只在「全員明確空閒」的候選中依你設定的時間偏好排序，最多列 3 個。符合條件只有 1 或 2 個就如數顯示；沒有候選時明確寫「目前沒有全員明確空閒的時段」，不可改推忙碌程度最低的時段。</div>
-        </div>
-        <div class="challenge-item">
-          <div class="ci-num">02</div>
-          <div>讓格子支援「備註 tooltip」：雙擊格子可輸入一行說明文字（例如：已有其他會議），hover 時顯示。</div>
-        </div>
-        <div class="challenge-item">
-          <div class="ci-num">03</div>
-          <div>加入匯出功能：將整體熱點圖轉換為 Markdown 表格格式，方便貼入 Email 或會議通知。</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-</details></div>
+輸出完整 HTML 原始碼，不要省略 CSS、事件處理、狀態計算或驗收功能；頁面文字使用繁體中文，標題、欄位與錯誤提示清楚易懂。</div>
+</div>
+</div></section><hr class="section-rule"/><section class="lesson-section"><h2 class="section-heading">操作、驗收與修復</h2><ol class="body-text"><li>每次開始固定案例先按「重設固定案例名單」並確認；名單會回到甲、乙、丙，所有回覆清空為未確認，舊成員不會留在整體計算中。A 是表格的週一 09:00 格，B 是週一 10:00 格；從未確認開始，各點擊三次，把甲 A 設忙碌、乙 B 設忙碌，丙兩格保持未確認。每格都有可見狀態文字，不必靠顏色或滑鼠提示判讀。</li><li>複製完整提示詞到 AI Studio Chat，生成後存成 team-availability-v1.html，從資料夾重新開啟，確認可新增、清除及移除成員；取消移除時資料不變，至少保留一人。</li><li>再將丙 A、B 設為空閒，確認兩時段仍各有忙碌；在週一 12:00 將甲設稍忙、乙留未確認，整體應顯示未確認；再將乙設空閒，整體顯示稍忙，圖例說明仍需主持人協調。於週一 11:00 將三人都設為空閒，確認只有這一格可顯示全員回報空閒。清除甲資料後確認甲回未確認且整體不保留空閒結論，記錄狀態文字而不只記顏色。</li><li>若空白被當成空閒，要求只修正初始值與彙整規則，另存 v2，重跑四個案例並保留兩版結果。</li></ol><div class="callout info"><div aria-hidden="true" class="callout-icon">注意</div><div class="callout-body">不要把候選交集稱為已確認空檔；未知回覆要追問本人或查正式日曆。</div></div><div class="callout info"><div aria-hidden="true" class="callout-icon">修復</div><div class="callout-body">若空白格變成可用時段，修正預設狀態為未知，再用一位未回覆者重測彙整。</div></div><div class="callout key"><div aria-hidden="true" class="callout-icon">✓</div><div class="callout-body"><strong>本單元驗收：</strong>A＝週一 09:00、B＝週一 10:00；甲 A 忙、乙 B 忙、丙兩格未知。整體不能把未知算成空閒。丙兩格設空閒後，A、B 仍各有忙碌；週一 11:00 三人都明確設空閒才可顯示全員回報空閒。清除甲資料後，甲回未知且整體撤回空閒結論。另驗證一人稍忙、另一人未確認時整體為未確認；未知改為空閒後顯示稍忙，並提示仍需主持人協調。主持人仍須確認會議長度與日曆。</div></div></section></div>
 
 <nav class="lesson-nav">
   <a class="nav-btn nav-prev" href="PRAC5-10.html" aria-label="上一單元" data-nav-role="prev">
     <div>
       <div class="nav-btn-label"><span aria-hidden="true">←</span> 演練 10</div>
-      <div class="nav-btn-title">文字敏感詞過濾器</div>
+      <div class="nav-btn-title">核准詞表文字初篩器</div>
     </div>
   </a>
   <a class="nav-btn next nav-next" href="PRAC5-12.html" aria-label="下一單元" data-nav-role="next">
     <div>
       <div class="nav-btn-label">演練 12 <span aria-hidden="true">→</span></div>
-      <div class="nav-btn-title">個人化 Kanban 任務板</div>
+      <div class="nav-btn-title">行政案件期限追蹤板</div>
     </div>
   </a>
 </nav>
@@ -343,8 +298,8 @@ window.addEventListener('scroll', () => {
 
 const DAYS = ['週一','週二','週三','週四','週五'];
 const HOURS = ['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00'];
-let members = ['我'];
-let currentMember = '我';
+let members = ['甲'];
+let currentMember = '甲';
 let isOverall = false;
 let data = {};
 
@@ -359,10 +314,25 @@ function init() {
   const saved = getData();
   if (Object.keys(saved).length > 0) {
     data = saved;
+    if (Object.prototype.hasOwnProperty.call(data, '我')) {
+      if (!Object.prototype.hasOwnProperty.call(data, '甲')) {
+        data['甲'] = data['我'];
+      } else {
+        let legacyName = '我（舊資料）';
+        let suffix = 2;
+        while (Object.prototype.hasOwnProperty.call(data, legacyName)) {
+          legacyName = `我（舊資料${suffix}）`;
+          suffix += 1;
+        }
+        data[legacyName] = data['我'];
+      }
+      delete data['我'];
+      saveData();
+    }
     members = Object.keys(data);
-    if (members.length === 0) { members = ['我']; data['我'] = {}; }
+    if (members.length === 0) { members = ['甲']; data['甲'] = {}; }
   } else {
-    data['我'] = {};
+    data['甲'] = {};
   }
   currentMember = members[0];
   renderTabs();
@@ -382,9 +352,21 @@ function addMember() {
   saveData();
 }
 function renderTabs() {
-  document.getElementById('member-tabs').innerHTML = members.map(m =>
-    `<button class="mtab ${m===currentMember&&!isOverall?'active':''}" onclick="selectMember('${m}')">${m}</button>`
-  ).join('') + `<button class="mtab ${isOverall?'active':''}" onclick="showOverall()" style="${isOverall?'background:var(--c-a4);border-color:var(--c-a4);color:#fff;':''}">整體</button>`;
+  const tabs = document.getElementById('member-tabs');
+  tabs.replaceChildren();
+  members.forEach(member => {
+    const button = document.createElement('button');
+    button.className = `mtab ${member === currentMember && !isOverall ? 'active' : ''}`;
+    button.textContent = member;
+    button.addEventListener('click', () => selectMember(member));
+    tabs.appendChild(button);
+  });
+  const overall = document.createElement('button');
+  overall.className = `mtab ${isOverall ? 'active' : ''}`;
+  if (isOverall) overall.style.cssText = 'background:var(--c-a4);border-color:var(--c-a4);color:#fff;';
+  overall.textContent = '整體';
+  overall.addEventListener('click', showOverall);
+  tabs.appendChild(overall);
   document.getElementById('current-member-label').textContent = isOverall ? '整體熱度' : currentMember;
 }
 function selectMember(m) {
@@ -399,7 +381,7 @@ function showOverall() {
   renderTable();
 }
 function memberValue(m,d,h){const v=(data[m]||{})[`${d}-${h}`];return Number.isInteger(v)&&v>=0&&v<=3?v:4}
-function getOverallValue(d,h){const values=members.map(m=>memberValue(m,d,h));const busy=values.filter(v=>v>0&&v<4);if(busy.length)return Math.max(...busy);return values.includes(4)?4:0}
+function getOverallValue(d,h){const values=members.map(m=>memberValue(m,d,h));const busy=values.filter(v=>v>=2&&v<=3);if(busy.length)return Math.max(...busy);if(values.includes(4))return 4;if(values.includes(1))return 1;return values.length?0:4}
 function renderTable() {
   const table = document.getElementById('heatmap-table');
   let html = `<tr><th></th>${DAYS.map(d => `<th>${d}</th>`).join('')}</tr>`;
@@ -408,7 +390,8 @@ function renderTable() {
     DAYS.forEach(d => {
       const val = isOverall ? getOverallValue(d,h) : memberValue(currentMember,d,h);
       const clickHandler = isOverall ? '' : `onclick="cycleCell('${d}','${h}')"`;
-      html += `<td class="heat-cell heat-${val}" ${clickHandler} title="${d} ${h}：${['空閒','稍忙','忙碌','非常忙','未確認'][val]}"></td>`;
+      const label = ['空閒','稍忙','忙碌','非常忙','未確認'][val];
+      html += `<td class="heat-cell heat-${val}" ${clickHandler} title="${d} ${h}：${label}" aria-label="${d} ${h}：${label}">${label}</td>`;
     });
     html += '</tr>';
   });
@@ -423,8 +406,36 @@ function cycleCell(d, h) {
 }
 function clearCurrentMember() {
   if (isOverall) return;
+  if (!confirm(`確定清除「${currentMember}」的所有回覆？`)) return;
   data[currentMember] = {};
   saveData();
+  renderTable();
+}
+
+function removeCurrentMember() {
+  if (isOverall) return;
+  if (members.length <= 1) {
+    alert('至少保留一位成員；若要重新開始，請使用「重設固定案例名單」。');
+    return;
+  }
+  if (!confirm(`確定移除「${currentMember}」及其回覆？`)) return;
+  const removedIndex = members.indexOf(currentMember);
+  members.splice(removedIndex, 1);
+  delete data[currentMember];
+  currentMember = members[Math.min(removedIndex, members.length - 1)];
+  saveData();
+  renderTabs();
+  renderTable();
+}
+
+function resetDemoList() {
+  if (!confirm('這會移除其他成員並清除所有回覆，恢復甲、乙、丙三人示範名單。確定重設？')) return;
+  members = ['甲', '乙', '丙'];
+  data = { '甲': {}, '乙': {}, '丙': {} };
+  currentMember = '甲';
+  isOverall = false;
+  saveData();
+  renderTabs();
   renderTable();
 }
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>站立會議發言抽籤器 · 自由演練 7｜Gemini 零代碼 AI 實戰課</title>
+<title>站立會議發言抽籤器｜Gemini AI 實戰課</title>
 <meta name="description" content="晨會從此不無聊。輸入團隊名單，按下抽籤，下一位報告者隨機揭曉——直到所有人都發言完畢。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
@@ -179,7 +179,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="hero-num">自由演練 7</div>
   </div>
   <h1 class="lesson-title">站立會議發言抽籤器</h1>
-  <p class="lesson-tagline">晨會從此不無聊。輸入團隊名單，按下抽籤，下一位報告者隨機揭曉——直到所有人都發言完畢。</p>
+  <p class="lesson-tagline">為自願參與者產生建議發言順序，保留跳過、重抽和主持人調整。</p>
   <div class="outcomes">
     <div class="outcomes-label">PRACTICE GOALS</div>
     <div class="outcome-item"><div class="outcome-dot"></div><span>練習陣列隨機抽取與狀態管理</span></div>
@@ -188,138 +188,68 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   </div>
 </div>
 
-<div class="lesson-body"><section class="lesson-section optional-route" id="core-route-banner" data-learning-role="延伸"><h2 class="section-heading">有工作需求時再做的延伸實作</h2><p class="body-text">需有參與者名單；適用自願、低風險的輪流發言，不替代會議主持人的參與調整。</p><p class="body-text">本頁可以跳過；需要此工作案例時，先具備 <a href="../part4/PRAC4-3.html">獨立改造與成果交付</a> 的能力。原始示範、完整提示詞與操作內容均保留在下方並預設展開。 <a href="../index.html#required-route">返回必修路線</a>。</p></section><details id="legacy-reference" open><summary>原始完整單元內容、案例與提示詞（保留）</summary>
+<div class="lesson-body"><section class="lesson-section"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">每週站會有多人希望輪流發言，主持人需要一個不重複的建議順序。本單元為自願參與者抽出順序；抽籤不等於公平或強制發言，主持人可接受跳過、重抽或調整。</p><p class="body-text">不重複抽取是「無放回」的隨機排列；隨機只決定順序，不代表參與公平。活動需自願，主持人應保留略過、退出和手動調整。</p><p class="body-text">先操作下方參考品，觀察輸入如何變成結果。它用來熟悉流程；你後續生成的版本仍要獨立保存並按驗收資料測試。</p><div class="tool-wrap">
+<div class="tool-topbar">
+<div class="tool-dot tool-dot-r"></div>
+<div class="tool-dot tool-dot-y"></div>
+<div class="tool-dot tool-dot-g"></div>
+<div class="tool-label">standup-lottery.html</div>
+</div>
+<div class="tool-body">
+<div class="lottery-setup">
+<div style="font-size:.73rem;color:var(--c-a1);letter-spacing:1px;font-weight:500;margin-bottom:8px;">輸入自願參與者（每行一位）</div>
+<textarea id="name-list" placeholder="王小明
+林小花
+陳大偉
+張美玲
+李志遠" style="width:100%;min-height:100px;padding:12px 14px;border:1px solid var(--c-border);border-radius:4px;font-family:inherit;font-size:.9rem;background:var(--c-bg);resize:vertical;line-height:1.8;"></textarea>
+<button class="compose-btn" onclick="startLottery()" style="margin-top:10px;width:auto;padding:10px 24px;">開始抽籤</button>
+</div>
+<div id="lottery-active" style="display:none;">
+<div class="lottery-result">
+<div style="font-size:.7rem;color:var(--c-muted);letter-spacing:2px;margin-bottom:12px;">NOW SPEAKING</div>
+<div class="lottery-name-display" id="current-name">—</div>
+<div class="lottery-sub" id="lottery-sub">按下方按鈕開始</div>
+</div>
+<div style="text-align:center;">
+<button class="next-btn" id="next-btn" onclick="nextPerson()">Next <span aria-hidden="true">→</span></button>
+<button class="next-btn" id="skip-btn" onclick="skipPerson()" disabled>略過此人</button>
+<button onclick="resetLottery()" onmouseout="this.style.borderColor='var(--c-border)'" onmouseover="this.style.borderColor='var(--c-a1)'" style="background:none;border:1px solid var(--c-border);padding:10px 20px;border-radius:var(--radius-sm);font-family:inherit;font-size:.8rem;cursor:pointer;color:var(--c-muted);margin-left:8px;transition:border-color .15s;">重置名單</button>
+</div>
+<div style="margin-top:16px;">
+<div style="font-size:.73rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;margin-bottom:8px;">本輪已叫號 · <span id="called-count">0</span> / <span id="total-count">0</span></div>
+<div class="called-list" id="called-list"></div>
+<p id="lottery-status" role="status" aria-live="polite" style="font-size:.8rem;color:var(--c-muted);"></p>
+</div>
+</div>
+</div>
+</div></section><hr class="section-rule"/><section class="lesson-section"><h2 class="section-heading">觀念與完整提示詞</h2><p class="body-text">無放回抽取可避免同一人重複出現，但隨機順序不代表發言公平，也不授權主持人強迫參與。參與者應可跳過、退出或由主持人調整。</p><div class="tool-wrap">
+<div class="tool-topbar">
+<div class="tool-dot tool-dot-r"></div>
+<div class="tool-dot tool-dot-y"></div>
+<div class="tool-dot tool-dot-g"></div>
+<div class="tool-label"><span aria-hidden="true">→</span> 複製這段 Prompt 貼入 Gemini</div>
+<button class="copy-btn" onclick="copyInstructions()" style="margin-left:auto;">複製指令</button>
+</div>
+<div class="tool-body" style="padding:24px 28px;">
+<div class="result-box" id="instruction-box" style="font-size:.8rem;">你是一位重視初學者可操作性、資料安全與無障礙的前端工程師。請為工作者製作「自願參與者發言順序抽籤器」，目標是把以下真實工作情境變成可反覆使用、可核對的工具。交付完整單檔 HTML，CSS 與 JavaScript 內嵌，不呼叫外部 API；不要只輸出線框、示意圖或片段。
 
-  <div class="lesson-section">
-    <div class="section-eyebrow">TOOL · 互動工具</div>
-    <h2 class="section-heading">輸入成員名單，隨機抽出下一位發言者</h2>
-    <p class="body-text">在文字框中輸入團隊成員名單（每行一位），按「開始抽籤」初始化，再按「Next」逐一隨機抽出。抽過的成員會以刪除線標示，直到全員發言完畢。</p>
+【工作情境】
+無放回抽取可避免同一人重複出現，但隨機順序不代表發言公平，也不授權主持人強迫參與。參與者應可跳過、退出或由主持人調整。
 
-    <div class="tool-wrap">
-      <div class="tool-topbar">
-        <div class="tool-dot tool-dot-r"></div>
-        <div class="tool-dot tool-dot-y"></div>
-        <div class="tool-dot tool-dot-g"></div>
-        <div class="tool-label">standup-lottery.html</div>
-      </div>
-      <div class="tool-body">
-        <div class="lottery-setup">
-          <div style="font-size:.73rem;color:var(--c-a1);letter-spacing:1px;font-weight:500;margin-bottom:8px;">輸入成員名單（每行一位）</div>
-          <textarea id="name-list" style="width:100%;min-height:100px;padding:12px 14px;border:1px solid var(--c-border);border-radius:4px;font-family:inherit;font-size:.9rem;background:var(--c-bg);resize:vertical;line-height:1.8;" placeholder="王小明&#10;林小花&#10;陳大偉&#10;張美玲&#10;李志遠"></textarea>
-          <button class="compose-btn" onclick="startLottery()" style="margin-top:10px;width:auto;padding:10px 24px;">開始抽籤</button>
-        </div>
-        <div id="lottery-active" style="display:none;">
-          <div class="lottery-result">
-            <div style="font-size:.7rem;color:var(--c-muted);letter-spacing:2px;margin-bottom:12px;">NOW SPEAKING</div>
-            <div class="lottery-name-display" id="current-name">—</div>
-            <div class="lottery-sub" id="lottery-sub">按下方按鈕開始</div>
-          </div>
-          <div style="text-align:center;">
-            <button class="next-btn" id="next-btn" onclick="nextPerson()">Next <span aria-hidden="true">→</span></button>
-            <button onclick="resetLottery()" style="background:none;border:1px solid var(--c-border);padding:10px 20px;border-radius:var(--radius-sm);font-family:inherit;font-size:.8rem;cursor:pointer;color:var(--c-muted);margin-left:8px;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--c-a1)'" onmouseout="this.style.borderColor='var(--c-border)'">重置名單</button>
-          </div>
-          <div style="margin-top:16px;">
-            <div style="font-size:.73rem;color:var(--c-muted);letter-spacing:1px;font-weight:500;margin-bottom:8px;">已發言 · <span id="called-count">0</span> / <span id="total-count">0</span></div>
-            <div class="called-list" id="called-list"></div>
-          </div>
-        </div>
-      </div>
-    </div>
+【操作與輸出】
+輸入每行一位自願參與者，去除首尾空白並建立一份隨機排列；按下一位只移出一人，顯示目前姓名、已抽／剩餘數及已抽名單。提供「略過」按鈕：被略過者留在本輪未發言名單，可稍後再抽；可重設並重新抽取。
 
-    <div class="callout tip">
-      <div class="callout-icon" aria-hidden="true">💡</div>
-      <div class="callout-body">
-        <strong>現場立刻可用。</strong>把這個工具存成書籤，下次晨會前打開，貼入名單就能直接使用，不需要任何安裝或帳號。科務會議的輪值報告、會議記錄輪值抽籤也一樣好用。
-      </div>
-    </div>
-  </div>
+【例外與安全】
+忽略空行、拒絕重複姓名並指出重複項；空名單不能開始；名單以純文字顯示；抽完後停用按鈕，不能抽出名單外的人。
 
-  <hr class="section-rule">
+【固定驗收案例】
+加入「甲、乙、丙、丁、戊」五位自願參與者，抽出順序並確認每人只出現一次；按「略過」後抽下一位，確認略過者不算已發言。重設後清空本輪狀態；空名單不可開始，重複姓名須指出並保留可修正名單。
 
-  <div class="lesson-section">
-    <div class="section-eyebrow">HOW TO REPLICATE · 如何自己做出這個工具</div>
-    <h2 class="section-heading">用這段 Prompt，讓 Gemini 幫你做一模一樣的工具</h2>
-
-    <div class="steps-list">
-      <div class="step-item">
-        <div class="step-num-col"><div class="step-num">1</div></div>
-        <div class="step-body">
-          <div class="step-title">建立 Gemini Apps Canvas 專案</div>
-          <div class="step-desc">登入 <strong>gemini.google.com</strong>，在輸入框下方選「新增檔案」→「Canvas」，輸入提示詞並送出；看到 Canvas 預覽才繼續。按鈕位置依目前介面為準。<a href="https://support.google.com/gemini/answer/16047321?hl=zh-TW" target="_blank" rel="noopener">Google 官方 Canvas 操作說明</a>。</div>
-        </div>
-      </div>
-      <div class="step-item">
-        <div class="step-num-col"><div class="step-num">2</div></div>
-        <div class="step-body">
-          <div class="step-title">貼入以下指令</div>
-          <div class="step-desc">把下方指令完整複製，貼入 Gemini 的輸入框，直接送出。</div>
-        </div>
-      </div>
-      <div class="step-item">
-        <div class="step-num-col"><div class="step-num">3</div></div>
-        <div class="step-body">
-          <div class="step-title">等待生成，預覽並存檔</div>
-          <div class="step-desc">Gemini 會生成一個完整的 HTML 工具。點「預覽」確認功能正常後，點「下載」或「複製」儲存到你的電腦。</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="tool-wrap">
-      <div class="tool-topbar">
-        <div class="tool-dot tool-dot-r"></div>
-        <div class="tool-dot tool-dot-y"></div>
-        <div class="tool-dot tool-dot-g"></div>
-        <div class="tool-label"><span aria-hidden="true">→</span> 複製這段 Prompt 貼入 Gemini</div>
-        <button class="copy-btn" style="margin-left:auto;" onclick="copyInstructions()">複製指令</button>
-      </div>
-      <div class="tool-body" style="padding:24px 28px;">
-        <div class="result-box" id="instruction-box" style="font-size:.8rem;">你是一位擅長製作互動工具的前端工程師。
-
-製作一個「站立會議發言抽籤器」的單頁 HTML 工具，功能如下：
-
-【功能需求】
-- 一個文字框讓使用者輸入團隊成員名單（每行一位）
-- 「開始抽籤」按鈕初始化名單
-- 頁面中央顯示一個大型「Next」按鈕，每次按下隨機抽出一位成員名字
-- 抽出的名字以大字體顯示，並有彈入動畫效果（CSS animation）
-- 已抽到的成員名字會以刪除線標籤顯示在下方
-- 所有人發言完畢後按鈕自動 disabled，顯示完成訊息
-
-【設計要求】
-- 背景 #f5f3ee，主按鈕用 #b5703a，字體 Google Fonts（Shippori Mincho + Noto Sans TC）
-- 名字顯示區塊使用 2rem 以上的大字型，白色卡片背景
-- 圓角 6px，無陰影漸層
-
-生成完整的單一 HTML 檔案。</div>
-      </div>
-    </div>
-  </div>
-
-  <hr class="section-rule">
-
-  <div class="lesson-section">
-    <div class="section-eyebrow">CHALLENGE · 進階挑戰</div>
-    <h2 class="section-heading">完成基本練習後，試試這些變化</h2>
-    <div class="challenge-box">
-      <div class="challenge-label">PRACTICE VARIATIONS</div>
-      <div class="challenge-list">
-        <div class="challenge-item">
-          <div class="ci-num">01</div>
-          <div>加入「計時模式」：每位成員發言時啟動 2 分鐘倒數，時間到自動以聲音或視覺提醒。</div>
-        </div>
-        <div class="challenge-item">
-          <div class="ci-num">02</div>
-          <div>讓工具支援「子團隊」模式：可設定兩個以上的小組，抽籤時顯示組別標籤。</div>
-        </div>
-        <div class="challenge-item">
-          <div class="ci-num">03</div>
-          <div>加入「今日主持人」功能：在名單之外另外抽一位「今日會議主持人」，結果用不同顏色標示。</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-</details></div>
+【交付要求】
+頁面文字使用繁體中文；主要操作有清楚標籤、空狀態、錯誤提示和鍵盤可操作方式。輸入內容以純文字呈現。完成後輸出可直接保存並於瀏覽器重新開啟的完整 HTML 原始碼，附上如何手動檢查本頁驗收案例的簡短說明。</div>
+</div>
+</div></section><hr class="section-rule"/><section class="lesson-section"><h2 class="section-heading">操作、驗收與修復</h2><ol class="body-text"><li>先確認參與者都是自願加入，準備甲、乙、丙、丁、戊五個測試名稱；先說明抽籤只安排次序，不決定誰必須發言。</li><li>在參考品輸入名單並抽取，核對同一輪不重複；略過一人後抽下一位，區分「略過」和「已發言」。</li><li>貼上完整提示詞生成工具，保存為 volunteer-order-v1.html，重開後重做五人測試；完成一輪再試抽取，應停止。</li><li>測空名單、重複名稱與重設；若略過者仍被列為已發言，修正狀態欄位並重跑整輪測試。</li></ol><div class="callout info"><div aria-hidden="true" class="callout-icon">注意</div><div class="callout-body">只用自願參加者名單，尊重跳過或退出；主持人保留調整順序的權限。</div></div><div class="callout info"><div aria-hidden="true" class="callout-icon">修復</div><div class="callout-body">若本輪抽到重複人名，檢查名單正規化和已抽集合；重新開始時才清空本輪記錄。</div></div><div class="callout key"><div aria-hidden="true" class="callout-icon">✓</div><div class="callout-body"><strong>本單元驗收：</strong>加入甲、乙、丙、丁、戊五位自願參與者，產生不重複順序；按「略過」後抽下一位，檢查被略過者不會記為已發言。完成一輪後不得再抽，重新開始要清空本輪狀態。測空名單與重複姓名的提示；主持人仍可尊重退出、跳過並人工調整，不強迫發言。</div></div></section></div>
 
 <nav class="lesson-nav">
   <a class="nav-btn nav-prev" href="PRAC5-6.html" aria-label="上一單元" data-nav-role="prev">
@@ -331,7 +261,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <a class="nav-btn next nav-next" href="PRAC5-8.html" aria-label="下一單元" data-nav-role="next">
     <div>
       <div class="nav-btn-label">演練 8 <span aria-hidden="true">→</span></div>
-      <div class="nav-btn-title">Markdown 轉專業報表</div>
+      <div class="nav-btn-title">Markdown 轉專業報表樣式</div>
     </div>
   </a>
 </nav>
@@ -348,26 +278,40 @@ window.addEventListener('scroll', () => {
   document.getElementById('prog').style.width = (window.scrollY / total * 100) + '%';
 });
 
-let remaining = [], called = [];
+let remaining = [], called = [], currentPerson = '';
 function startLottery() {
-  const names = document.getElementById('name-list').value
+  const rawNames = document.getElementById('name-list').value
     .split('\n').map(n => n.trim()).filter(n => n.length > 0);
-  if (names.length === 0) { alert('請先輸入成員名單'); return; }
-  remaining = [...names];
+  if (rawNames.length === 0) { alert('請先輸入自願參與者名單'); return; }
+  const seen = new Set();
+  const duplicates = new Set();
+  rawNames.forEach(name => {
+    if (seen.has(name)) duplicates.add(name);
+    else seen.add(name);
+  });
+  if (duplicates.size) { alert(`名單有重複姓名：${[...duplicates].join('、')}。請修正後再開始。`); return; }
+  remaining = [...rawNames];
+  for (let i = remaining.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [remaining[i], remaining[j]] = [remaining[j], remaining[i]];
+  }
   called = [];
+  currentPerson = '';
   document.getElementById('lottery-active').style.display = 'block';
-  document.getElementById('total-count').textContent = names.length;
+  document.getElementById('total-count').textContent = rawNames.length;
   document.getElementById('called-count').textContent = 0;
-  document.getElementById('called-list').innerHTML = '';
+  document.getElementById('called-list').replaceChildren();
+  document.getElementById('lottery-status').textContent = '';
   document.getElementById('current-name').textContent = '—';
-  document.getElementById('lottery-sub').textContent = '按 Next 開始第一位';
+  document.getElementById('lottery-sub').textContent = `名單已確認，共 ${rawNames.length} 位自願參與者`;
   document.getElementById('next-btn').disabled = false;
+  document.getElementById('skip-btn').disabled = true;
 }
 function nextPerson() {
   if (remaining.length === 0) return;
-  const idx = Math.floor(Math.random() * remaining.length);
-  const name = remaining.splice(idx, 1)[0];
+  const name = remaining.shift();
   called.push(name);
+  currentPerson = name;
   const display = document.getElementById('current-name');
   display.textContent = name;
   display.classList.remove('pop');
@@ -376,11 +320,37 @@ function nextPerson() {
   document.getElementById('lottery-sub').textContent = remaining.length > 0
     ? `還有 ${remaining.length} 位待發言` : '🎉 全員發言完畢！';
   document.getElementById('called-count').textContent = called.length;
-  document.getElementById('called-list').innerHTML = called.map(n =>
-    `<span class="called-tag">${n}</span>`).join('');
+  renderCalledList();
+  document.getElementById('skip-btn').disabled = false;
   if (remaining.length === 0) document.getElementById('next-btn').disabled = true;
 }
+function renderCalledList() {
+  const calledList = document.getElementById('called-list');
+  calledList.replaceChildren();
+  called.forEach(name => {
+    const tag = document.createElement('span');
+    tag.className = 'called-tag';
+    tag.textContent = name;
+    calledList.appendChild(tag);
+  });
+}
+function skipPerson() {
+  if (!currentPerson) return;
+  called = called.filter(name => name !== currentPerson);
+  remaining.push(currentPerson);
+  document.getElementById('called-count').textContent = called.length;
+  renderCalledList();
+  document.getElementById('current-name').textContent = '—';
+  document.getElementById('lottery-sub').textContent = `已略過 ${currentPerson}；仍留在本輪名單，可稍後再抽`;
+  document.getElementById('lottery-status').textContent = `${currentPerson} 不列入本輪已叫號名單，已移回待抽名單；主持人仍需自行確認實際發言。`;
+  currentPerson = '';
+  document.getElementById('skip-btn').disabled = true;
+  document.getElementById('next-btn').disabled = remaining.length === 0;
+}
 function resetLottery() {
+  remaining = [];
+  called = [];
+  currentPerson = '';
   document.getElementById('lottery-active').style.display = 'none';
 }
 

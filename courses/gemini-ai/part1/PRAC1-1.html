@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>解鎖AI開發者模式 · 實例演練 1｜Gemini 零代碼 AI 實戰課</title>
+<title>Prompt 黃金公式組合台｜Gemini AI 實戰課</title>
 <meta name="description" content="把「角色 · 任務 · 限制 · 呈現」四個欄位填好，自動組合成一段完整、精準的 AI 指令，直接貼入 Gemini 使用。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
@@ -173,7 +173,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="hero-num">實例演練 1</div>
   </div>
   <h1 class="lesson-title">Prompt 黃金公式組合台</h1>
-  <p class="lesson-tagline">把「角色 · 任務 · 限制 · 呈現」四個欄位填好，自動組合成一段完整、精準的 AI 指令，直接貼入 Gemini 使用。</p>
+  <p class="lesson-tagline">填入工作目的、任務、限制與格式，組成可修改的提示詞草稿；再用假資料測試，檢查輸出是否符合需求。</p>
   <div class="outcomes">
     <div class="outcomes-label">PRACTICE GOALS</div>
     <div class="outcome-item"><div class="outcome-dot"></div><span>親手練習黃金公式四要素的填寫與組合</span></div>
@@ -182,169 +182,85 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   </div>
 </div>
 
-<div class="lesson-body"><section class="lesson-section optional-route" id="core-route-banner" data-learning-role="延伸"><h2 class="section-heading">有工作需求時再做的延伸實作</h2><p class="body-text">需先理解需求；可得到一段初稿。它重複 CH1-2 的提示詞結構，組合結果仍要由實際測試驗收。</p><p class="body-text">本頁可以跳過；需要此工作案例時，先具備 <a href="CH1-2.html">把需求寫成可核對的規格</a> 的能力。原始示範、完整提示詞與操作內容均保留在下方並預設展開。 <a href="../index.html#required-route">返回必修路線</a>。</p></section><details id="legacy-reference" open><summary>原始完整單元內容、案例與提示詞（保留）</summary>
+<div class="lesson-body"><section class="lesson-section"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">同事每次整理會議記錄都要重想角色、任務和輸出格式。本單元把這些決策整理成可複用的提示詞草稿；完成物是一段經實際測試的工作指令，組合器只協助起草，不會替你判斷需求是否完整。</p><p class="body-text">角色、任務、限制和輸出格式各自負責不同資訊。欄位填得完整只能減少模型猜測，不能證明輸出正確；要用固定假資料實際檢查。</p><p class="body-text"><strong>固定測試逐字稿（虛構）</strong><br>主持人：下週四下午辦產品說明會，地點待確認。<br>小林：先整理 10 頁簡報提綱。<br>阿凱：預算等收到報價再決定。<br>雯姊：會後通知業務與客服，通知時間尚未決定。</p><p class="body-text"><strong>核對答案：</strong>可以整理出下週四下午、簡報提綱由小林處理、預算待報價、會後通知業務與客服；地點、通知期限與精確日期都未提供，應標「待確認」，不可自行補寫。缺少會議當日日期時，不可把「下週四」換算成日曆日期。</p><p class="body-text">先操作下方參考品，觀察四個欄位如何組成指令；再把組合後的提示詞和上方固定逐字稿一起貼入 Gemini 實際試跑。參考品只協助組合，不替你判斷輸出正確性。</p><div class="tool-wrap">
+<div class="tool-topbar">
+<div class="tool-dot tool-dot-r"></div>
+<div class="tool-dot tool-dot-y"></div>
+<div class="tool-dot tool-dot-g"></div>
+<div class="tool-label">prompt-formula-builder.html</div>
+</div>
+<div class="tool-body">
+<div class="formula-grid">
+<div class="formula-field">
+<div class="field-label">① 角色（Role）</div>
+<div class="field-sub">你要 AI 扮演什麼身分？</div>
+<textarea class="field-textarea" id="f-role" placeholder="例：你是一位熟悉公文用語與行政流程的資深行政主管。"></textarea>
+</div>
+<div class="formula-field">
+<div class="field-label">② 任務（Task）</div>
+<div class="field-sub">你要 AI 做什麼事？</div>
+<textarea class="field-textarea" id="f-task" placeholder="例：把以下散亂的會議記錄，整理成一份清晰的行動摘要。"></textarea>
+</div>
+<div class="formula-field">
+<div class="field-label">③ 限制（Constraint）</div>
+<div class="field-sub">有哪些邊界條件？</div>
+<textarea class="field-textarea" id="f-constraint" placeholder="例：字數不超過 300 字，語氣正式但不生硬，避免使用技術術語。"></textarea>
+</div>
+<div class="formula-field">
+<div class="field-label">④ 呈現（Format）</div>
+<div class="field-sub">希望以什麼格式輸出？</div>
+<textarea class="field-textarea" id="f-format" placeholder="例：用條列式呈現，每條開頭標明「負責人」與「截止日期」。"></textarea>
+</div>
+</div>
+<button class="compose-btn" onclick="composePrompt()">組合成完整 Prompt <span aria-hidden="true">→</span></button>
+<div class="result-wrap" id="result-wrap">
+<div class="result-label">
+<span>GENERATED PROMPT</span>
+<button class="copy-btn" onclick="copyPrompt()">複製</button>
+</div>
+<div class="result-box" id="result-box"></div>
+<div class="char-tip" id="char-tip"></div>
+</div>
+</div>
+</div></section><hr class="section-rule"/><section class="lesson-section"><h2 class="section-heading">觀念與完整提示詞</h2><p class="body-text">角色說明回答角度；任務說清楚要處理什麼材料；限制排除不接受的內容；輸出格式說明結果要長什麼樣。少一欄會增加模型自行猜測的空間，四欄完整也不等於結果已正確。</p><div class="tool-wrap">
+<div class="tool-topbar">
+<div class="tool-dot tool-dot-r"></div>
+<div class="tool-dot tool-dot-y"></div>
+<div class="tool-dot tool-dot-g"></div>
+<div class="tool-label"><span aria-hidden="true">→</span> 複製這段 Prompt 貼入 Gemini</div>
+<button class="copy-btn" onclick="copyInstructions()" style="margin-left:auto;">複製指令</button>
+</div>
+<div class="tool-body" style="padding:24px 28px;">
+<div class="result-box" id="instruction-box" style="font-size:.8rem;">你是一位重視初學者可操作性、資料安全與無障礙的前端工程師。請為工作者製作「Prompt 黃金公式組合台」，目標是把以下真實工作情境變成可反覆使用、可核對的工具。交付完整單檔 HTML，CSS 與 JavaScript 內嵌，不呼叫外部 API；不要只輸出線框、示意圖或片段。
 
-  <div class="lesson-section">
-    <div class="section-eyebrow">TOOL · 互動工具</div>
-    <h2 class="section-heading">填入四個欄位，一鍵組合完整 Prompt</h2>
-    <p class="body-text">按照「角色 <span aria-hidden="true">→</span> 任務 <span aria-hidden="true">→</span> 限制 <span aria-hidden="true">→</span> 呈現」的順序填入，工具會自動將它們組合成標準格式的指令。你可以用任何主題練習，例如：整理會議記錄、擬開會通知、寫簽呈摘要、分析數據報告……</p>
+【工作情境】
+角色說明回答角度；任務說清楚要處理什麼材料；限制排除不接受的內容；輸出格式說明結果要長什麼樣。少一欄會增加模型自行猜測的空間，四欄完整也不等於結果已正確。
 
-    <div class="tool-wrap">
-      <div class="tool-topbar">
-        <div class="tool-dot tool-dot-r"></div>
-        <div class="tool-dot tool-dot-y"></div>
-        <div class="tool-dot tool-dot-g"></div>
-        <div class="tool-label">prompt-formula-builder.html</div>
-      </div>
-      <div class="tool-body">
-        <div class="formula-grid">
-          <div class="formula-field">
-            <div class="field-label">① 角色（Role）</div>
-            <div class="field-sub">你要 AI 扮演什麼身分？</div>
-            <textarea class="field-textarea" id="f-role" placeholder="例：你是一位熟悉公文用語與行政流程的資深行政主管。"></textarea>
-          </div>
-          <div class="formula-field">
-            <div class="field-label">② 任務（Task）</div>
-            <div class="field-sub">你要 AI 做什麼事？</div>
-            <textarea class="field-textarea" id="f-task" placeholder="例：把以下散亂的會議記錄，整理成一份清晰的行動摘要。"></textarea>
-          </div>
-          <div class="formula-field">
-            <div class="field-label">③ 限制（Constraint）</div>
-            <div class="field-sub">有哪些邊界條件？</div>
-            <textarea class="field-textarea" id="f-constraint" placeholder="例：字數不超過 300 字，語氣正式但不生硬，避免使用技術術語。"></textarea>
-          </div>
-          <div class="formula-field">
-            <div class="field-label">④ 呈現（Format）</div>
-            <div class="field-sub">希望以什麼格式輸出？</div>
-            <textarea class="field-textarea" id="f-format" placeholder="例：用條列式呈現，每條開頭標明「負責人」與「截止日期」。"></textarea>
-          </div>
-        </div>
-        <button class="compose-btn" onclick="composePrompt()">組合成完整 Prompt <span aria-hidden="true">→</span></button>
-        <div class="result-wrap" id="result-wrap">
-          <div class="result-label">
-            <span>GENERATED PROMPT</span>
-            <button class="copy-btn" onclick="copyPrompt()">複製</button>
-          </div>
-          <div class="result-box" id="result-box"></div>
-          <div class="char-tip" id="char-tip"></div>
-        </div>
-      </div>
-    </div>
+【操作與輸出】
+提供角色、任務、限制、格式四個多行欄位。按組合後按原順序產生標記清楚的提示詞；空白欄位須顯示待補提醒，不能靜默省略；支援複製結果並回報成功或失敗。
 
-    <div class="callout tip">
-      <div class="callout-icon" aria-hidden="true">💡</div>
-      <div class="callout-body">
-        <strong>空白欄位沒關係。</strong>四個欄位不一定要全填，但「角色」和「任務」填得越具體，AI 的回答就越精準。先從這兩個開始練習。
-      </div>
-    </div>
+【例外與安全】
+欄位內容以純文字組合，不解讀成 HTML。空白時保留原輸入並指出是哪個欄位待補。剪貼簿不可用時，讓使用者仍可選取結果手動複製。
 
-    <div class="callout key">
-      <div class="callout-icon" aria-hidden="true">📋</div>
-      <div class="callout-body">
-        <strong>行政實務這樣用。</strong>把「任務」欄換成你手上的行政工作試試：擬一份開會通知、整理活動籌備分工表、把主管口頭交辦轉成簽呈摘要——四個欄位填得越具體，產出越接近可以直接使用的初稿。
-      </div>
-    </div>
-  </div>
+【固定驗收案例】
+組合「行政主管／會議紀錄整理／不得補造原文未載資料，300 字內／表格」四欄。把組成的指令和固定逐字稿一併貼入 Gemini。預期列出下週四下午、簡報提綱由小林整理、預算待報價及會後通知業務與客服；地點、通知期限與精確日期須標「待確認」，不可把「下週四」換算成日曆日期。清空限制欄再組合，應指出待補而保留其他欄位；另以尖括號測試確認內容只以文字顯示。
 
-  <hr class="section-rule">
-
-  <div class="lesson-section">
-    <div class="section-eyebrow">HOW TO REPLICATE · 如何自己做出這個工具</div>
-    <h2 class="section-heading">用這段 Prompt，讓 Gemini 幫你做一模一樣的工具</h2>
-
-    <div class="steps-list">
-      <div class="step-item">
-        <div class="step-num-col"><div class="step-num">1</div></div>
-        <div class="step-body">
-          <div class="step-title">建立 Gemini Apps Canvas 專案</div>
-          <div class="step-desc">登入 <strong>gemini.google.com</strong>，在輸入框下方選「新增檔案」→「Canvas」，輸入提示詞並送出；看到 Canvas 預覽才繼續。按鈕位置依目前介面為準。<a href="https://support.google.com/gemini/answer/16047321?hl=zh-TW" target="_blank" rel="noopener">Google 官方 Canvas 操作說明</a>。</div>
-        </div>
-      </div>
-      <div class="step-item">
-        <div class="step-num-col"><div class="step-num">2</div></div>
-        <div class="step-body">
-          <div class="step-title">貼入以下指令</div>
-          <div class="step-desc">把下方指令完整複製，貼入 Gemini 的輸入框，直接送出。</div>
-        </div>
-      </div>
-      <div class="step-item">
-        <div class="step-num-col"><div class="step-num">3</div></div>
-        <div class="step-body">
-          <div class="step-title">等待生成，預覽並存檔</div>
-          <div class="step-desc">Gemini 會生成一個完整的 HTML 工具。點「預覽」確認功能正常後，點「下載」或「複製」儲存到你的電腦。</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="tool-wrap">
-      <div class="tool-topbar">
-        <div class="tool-dot tool-dot-r"></div>
-        <div class="tool-dot tool-dot-y"></div>
-        <div class="tool-dot tool-dot-g"></div>
-        <div class="tool-label"><span aria-hidden="true">→</span> 複製這段 Prompt 貼入 Gemini</div>
-        <button class="copy-btn" style="margin-left:auto;" onclick="copyInstructions()">複製指令</button>
-      </div>
-      <div class="tool-body" style="padding:24px 28px;">
-        <div class="result-box" id="instruction-box" style="font-size:.8rem;">你是一位擅長製作互動工具的前端工程師。
-
-製作一個「Prompt 黃金公式組合台」的單頁 HTML 工具，功能如下：
-
-【功能需求】
-- 頁面有四個文字輸入框，分別標示：① 角色（Role）、② 任務（Task）、③ 限制（Constraint）、④ 呈現（Format）
-- 每個輸入框下方有淺灰色的提示文字（placeholder）說明該欄位的用途
-- 一個「組合成完整 Prompt」按鈕，按下後將四個欄位的內容組合成一段格式化的 prompt 顯示在下方
-- 組合結果區塊包含一個「複製」按鈕，點擊後將內容複製到剪貼簿並顯示「已複製！」的提示
-
-【設計要求】
-- 背景色 #f5f3ee，卡片背景 #ffffff，邊框 #d8d4cb
-- 強調色使用 #b5703a（陶土橘），按鈕使用此色
-- 字體：標題使用 Shippori Mincho，內文使用 Noto Sans TC（從 Google Fonts 載入）
-- 圓角 6px，無陰影，無漸層
-- 四個輸入框排成 2×2 的格狀版面
-- 結果區塊用深色背景（#2c2b28）、淺色文字，模擬程式碼感
-
-生成完整的單一 HTML 檔案，包含所有 CSS 和 JavaScript。</div>
-      </div>
-    </div>
-  </div>
-
-  <hr class="section-rule">
-
-  <div class="lesson-section">
-    <div class="section-eyebrow">CHALLENGE · 進階挑戰</div>
-    <h2 class="section-heading">完成基本練習後，試試這些變化</h2>
-    <div class="challenge-box">
-      <div class="challenge-label">PRACTICE VARIATIONS</div>
-      <div class="challenge-list">
-        <div class="challenge-item">
-          <div class="ci-num">01</div>
-          <div>用你目前工作上最常遇到的任務，填入四個欄位，生成一個你用得到的 Prompt，存入你的 Prompt 庫。</div>
-        </div>
-        <div class="challenge-item">
-          <div class="ci-num">02</div>
-          <div>試著修改 Gemini 指令中的「設計要求」部分，例如改變顏色、改成單欄版面，看看 AI 如何回應修改要求。</div>
-        </div>
-        <div class="challenge-item">
-          <div class="ci-num">03</div>
-          <div>拿同一組「角色＋任務」，分別填入「有限制」和「沒有限制」兩種版本，比較 Gemini 的回答有什麼差異。</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-</details></div>
+【交付要求】
+頁面文字使用繁體中文；主要操作有清楚標籤、空狀態、錯誤提示和鍵盤可操作方式。輸入內容以純文字呈現。完成後輸出可直接保存並於瀏覽器重新開啟的完整 HTML 原始碼，附上如何手動檢查本頁驗收案例的簡短說明。</div>
+</div>
+</div></section><hr class="section-rule"/><section class="lesson-section"><h2 class="section-heading">操作、驗收與修復</h2><ol class="body-text"><li>使用上方固定逐字稿。在四欄分別填「行政主管」、整理會議內容與行動、不得補造原文未載資料且 300 字內、表格格式；將組合結果和逐字稿貼入同一個 Gemini 對話。</li><li>確認角色、任務、限制、格式四段依序保留；對照頁面答案，逐欄檢查模型是否把未知地點、日期或通知期限標成待確認，而沒有補造。</li><li>將字數限制改成 150 字再跑同一份原文，逐項比較輸出；清空限制欄再次組合，確認結果保留其他三欄，並在限制欄與提醒文字指出待補。</li><li>把含尖括號的測試文字貼入輸出欄，確認它只呈現為文字；若模型補造責任人或欄位遺失，修正對應提示詞規則並用原文重測。保存兩版指令、輸出和差異。</li></ol><div class="callout info"><div aria-hidden="true" class="callout-icon">注意</div><div class="callout-body">不要貼入公司機密；組合後仍須核對任務、資料來源與輸出格式。</div></div><div class="callout info"><div aria-hidden="true" class="callout-icon">修復</div><div class="callout-body">結果漏欄位時，只補上缺少的輸入或輸出規則，再用同一份假資料重測。</div></div><div class="callout key"><div aria-hidden="true" class="callout-icon">✓</div><div class="callout-body"><strong>本單元驗收：</strong>在組合器填入「行政主管」角色、「整理會議紀錄」任務、「不得補造責任人、300 字以內」限制和表格格式，核對四段順序並複製提示詞。用固定假逐字稿試跑，確認時間保留「下週四下午」且不換算精確日期；檢查輸出不臆造負責人且不超過 300 字。修改字數限制後比較差異。清空限制再組合時，結果仍列出角色、任務與格式，限制欄顯示待補，提醒文字點名限制；尖括號內容只顯示文字。交付兩版指令、同一份假資料與差異紀錄。</div></div></section></div>
 
 <nav class="lesson-nav">
   <a class="nav-btn nav-prev" href="CH1-3.html" aria-label="上一單元" data-nav-role="prev">
     <div>
       <div class="nav-btn-label"><span aria-hidden="true">←</span> 上一課</div>
-      <div class="nav-btn-title">1.3 暖身實作</div>
+      <div class="nav-btn-title">生成、保存並重開第一個工具</div>
     </div>
   </a>
   <a class="nav-btn next nav-next" href="PRAC1-2.html" aria-label="下一單元" data-nav-role="next">
     <div>
       <div class="nav-btn-label">下一個演練 <span aria-hidden="true">→</span></div>
-      <div class="nav-btn-title">實例演練 2：AI 指令品質健診器</div>
+      <div class="nav-btn-title">提示詞 A/B 結果比較台</div>
     </div>
   </a>
 </nav>
@@ -372,15 +288,19 @@ function composePrompt() {
     return;
   }
 
-  let parts = [];
-  if (role) parts.push(`【角色】\n${role}`);
-  if (task) parts.push(`【任務】\n${task}`);
-  if (constraint) parts.push(`【限制】\n${constraint}`);
-  if (format) parts.push(`【呈現格式】\n${format}`);
+  const fields = [
+    ['角色', role],
+    ['任務', task],
+    ['限制', constraint],
+    ['呈現格式', format]
+  ];
+  const missing = fields.filter(([, value]) => !value).map(([label]) => label);
+  const parts = fields.map(([label, value]) => `【${label}】\n${value || '（待補：請填寫此欄位）'}`);
 
   const result = parts.join('\n\n');
   document.getElementById('result-box').textContent = result;
-  document.getElementById('char-tip').textContent = `共 ${result.length} 個字元`;
+  const reminder = missing.length ? `；待補欄位：${missing.join('、')}` : '；四欄皆已填寫';
+  document.getElementById('char-tip').textContent = `共 ${result.length} 個字元${reminder}`;
 
   const wrap = document.getElementById('result-wrap');
   wrap.style.display = 'block';

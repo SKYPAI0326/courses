@@ -1,0 +1,80 @@
+<!-- learner-content:start -->
+<section class="lesson-section" id="prac-1">
+  <div class="section-eyebrow">WORK PROBLEM · 工作情境與判斷</div>
+  <h2 class="section-heading">先確認三地的限制能不能同時成立</h2>
+  <p class="body-text">你要替台北、倫敦、紐約三地同事安排一場 60 分鐘會議。日期固定為 2026-10-09，每位同事的正常工作時間都是當地 09:00–18:00。你手上沒有任何人的日曆資料，所以這次只能回答「時區與工作時間是否容許」，不能宣稱誰真的有空；工具也不查各地假日或休假。</p>
+  <p class="body-text">跨時區排會要先把同一個瞬間換算成各地時間，再找所有限制的交集。會議的開始和結束都要在工作時段內，也不能只因開始時間合格就算通過。為了比較，先把各地 09:00–18:00 換到同一條 UTC 時間軸；UTC 是用來對齊全球時間的共同基準。</p>
+  <p class="body-text"><strong>換算方法：</strong>當地時間減去當日的 UTC 偏移就是 UTC。例：倫敦當日是 UTC+1，09:00 減 1 小時為 08:00 UTC；紐約是 UTC−4，09:00 減去 −4 小時為 13:00 UTC。下班時間也用相同方法換算，再比較各段是否重疊。</p>
+  <div class="table-scroll"><table class="time-table"><thead><tr><th>城市與日期</th><th>當日時區</th><th>當地工作時間換成 UTC</th></tr></thead><tbody>
+    <tr><td>台北 · 2026-10-09</td><td>UTC+8</td><td>01:00–10:00 UTC</td></tr>
+    <tr><td>倫敦 · 2026-10-09</td><td>BST · UTC+1</td><td>08:00–17:00 UTC</td></tr>
+    <tr><td>紐約 · 2026-10-09</td><td>EDT · UTC−4</td><td>13:00–22:00 UTC</td></tr>
+  </tbody></table></div>
+  <p class="body-text">台北最晚 10:00 UTC 就下班，紐約最早 13:00 UTC 才上班；兩者沒有重疊，因此三地不可能同時在正常工作時間開會。舊例「台北 21:00、倫敦 14:00、紐約 09:00」確實是同一瞬間，但台北已下班，必須判為不合格。這個結論不是工具失敗，而是有用的排程資訊：不要為了產生答案而偷偷改掉限制。</p>
+  <div class="callout info"><div aria-hidden="true" class="callout-icon">↔</div><div class="callout-body"><strong>把結果帶回工作。</strong>你可以提出非同步文件加短會議、拆分議題分場討論，或詢問相關同事是否願意在特定日期例外延長工時。每個方案都要說明誰會受影響並取得同意；工具不可替同事批准加班，也不能猜測日曆空檔。</div></div>
+</section>
+
+<section class="lesson-section" id="prac-2">
+  <div class="section-eyebrow">SEE THE RULE · 操作並理解結果</div>
+  <h2 class="section-heading">用日期感知的換算檢查共同時段</h2>
+  <p class="body-text">下方參考工具把台北當作搜尋日期與整點的起點，將每個候選瞬間換算到所選城市，再檢查「整段會議」是否落在每地 09:00–18:00。城市使用 IANA 時區名稱（例如 <code>America/New_York</code>），瀏覽器會依所選日期套用夏令時間；不能把今天的時差寫死，因為換一天後時差可能不同。</p>
+  <ol class="body-text">
+    <li>保持日期為 <strong>2026-10-09</strong>、長度為 <strong>60 分鐘</strong>，保留台北、倫敦與紐約三列。</li>
+    <li>按「查看候選時段」。表格列出 24 個台北整點及各地對應的當地日期與起訖時間；只有所有人整段合格時才會標綠。</li>
+    <li>預期結果是 <strong>沒有候選時段</strong>，表格不應有綠色列。核對台北 21:00 對應倫敦 14:00、紐約 09:00，並確認台北 21:00–22:00 超出工作時間。</li>
+    <li>做一次「正向對照」：移除台北，只保留倫敦和紐約，再查同一日期與長度。至少應看到倫敦 14:00–15:00／紐約 09:00–10:00 的合格時段。這證明工具能在有交集時列出候選，也顯示是台北的工時限制讓三地案例無解。</li>
+    <li>再測邊界：改選倫敦與東京，維持 60 分鐘；台北 16:00 對應倫敦 09:00–10:00、東京 17:00–18:00，結束剛好 18:00 仍應合格。最後輸入空日期、只留一座城市、0 分鐘、60.5 分鐘與 481 分鐘，應逐項收到錯誤提示。</li>
+  </ol>
+  <p class="body-text">即使出現綠色時段，也只代表指定日期、時區與工時規則相容，不代表參與者日曆有空或已答應出席。把結果寄出前仍要逐位確認。</p>
+  <div class="tool-wrap">
+    <div class="tool-topbar"><div class="tool-dot tool-dot-r"></div><div class="tool-dot tool-dot-y"></div><div class="tool-dot tool-dot-g"></div><div class="tool-label">timezone-meeting-planner.html · 參考工具</div></div>
+    <div class="tool-body">
+      <div class="tz-setup">
+        <label class="body-text">台北日期（搜尋範圍）<input class="tz-name-input" id="meeting-date" type="date" value="2026-10-09"/></label>
+        <label class="body-text">會議長度（分鐘）<input class="tz-name-input" id="meeting-duration" max="480" min="1" step="1" type="number" value="60"/></label>
+        <div id="tz-list"></div>
+        <button class="tz-add-btn" onclick="addTzRow()" type="button">＋ 新增城市</button>
+      </div>
+      <button class="tz-check-btn" onclick="calcTimezone()" type="button">查看候選時段 <span aria-hidden="true">→</span></button>
+      <div class="time-grid" id="time-grid" aria-live="polite">
+        <div class="time-table" id="time-table-wrap"></div>
+        <div class="tz-legend"><div class="legend-item"><div class="legend-dot" style="background:rgba(90,122,90,.2)"></div><span>完整區間符合各地工作時間</span></div><div class="legend-item"><div class="legend-dot" style="background:var(--c-surface)"></div><span>至少一地不符合</span></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="callout tip"><div aria-hidden="true" class="callout-icon">✓</div><div class="callout-body"><strong>看懂「無結果」。</strong>若三個城市都保留，沒有綠色列就是本題的正確答案。不要要求 Gemini 填出一個候選來滿足預期；先回到工作限制，向決策者提出可選方案。</div></div>
+</section>
+
+<section class="lesson-section" id="prac-3">
+  <div class="section-eyebrow">BUILD · 生成、驗收與交付</div>
+  <h2 class="section-heading">讓 Gemini 做出可檢查的協調工具</h2>
+  <p class="body-text">現在重做一份自己的工具。你會把日期、時區、完整會議區間、無解處理和測試答案一次寫進指令，再把生成結果存成可重開的 HTML。這樣做的工作價值是先排除客觀上不可能的方案，減少來回邀約；它不會替團隊決定要不要加班。</p>
+  <div class="steps-list">
+    <div class="step-item"><div class="step-num-col"><div class="step-num">1</div></div><div class="step-body"><div class="step-title">開啟 AI Studio 的對話頁</div><div class="step-desc">登入 <a href="https://aistudio.google.com/" rel="noopener" target="_blank">Google AI Studio</a>，開啟可輸入提示詞並執行的 Chat 頁面。若介面名稱或位置不同，依 <a href="https://ai.google.dev/gemini-api/docs/ai-studio-quickstart" rel="noopener" target="_blank">官方 quickstart</a> 找到提示詞輸入處；本練習只生成前端 HTML，不需要部署、API 金鑰或付費服務。</div></div></div>
+    <div class="step-item"><div class="step-num-col"><div class="step-num">2</div></div><div class="step-body"><div class="step-title">複製完整指令並執行</div><div class="step-desc">按下方「複製完整指令」，貼到對話輸入框後送出。檢查回覆從 <code>&lt;!DOCTYPE html&gt;</code> 開始、包含完整的 HTML、CSS 和 JavaScript，並以 <code>&lt;/html&gt;</code> 結束。若只收到說明或程式片段，要求它補齊單一完整檔案。</div></div></div>
+    <div class="step-item"><div class="step-num-col"><div class="step-num">3</div></div><div class="step-body"><div class="step-title">存成 HTML 並在瀏覽器開啟</div><div class="step-desc">複製完整程式碼到純文字編輯器，以 UTF-8 存成 <strong>timezone-meeting-planner.html</strong>，再用瀏覽器開啟。若畫面顯示程式碼文字而非表單，檢查檔名是否真的以 <code>.html</code> 結尾、檔案是否為純文字，以及複製時有沒有連同 Markdown 的程式碼圍欄一起存入。</div></div></div>
+    <div class="step-item"><div class="step-num-col"><div class="step-num">4</div></div><div class="step-body"><div class="step-title">依固定案例驗收，失敗就修復再測</div><div class="step-desc">先測三地無共同時段，再測倫敦與紐約的正向對照、倫敦與東京的 18:00 邊界，最後測空日期、只留一個城市、0、60.5、481 分鐘。把實際觀察寫下；只在預期不符時回到同一段對話，描述「輸入、預期、實際」，要求修正並重發完整 HTML。另存為 v2，重跑已通過的測試，不覆蓋唯一可用版本。</div></div></div>
+  </div>
+  <div class="tool-wrap"><div class="tool-topbar"><div class="tool-dot tool-dot-r"></div><div class="tool-dot tool-dot-y"></div><div class="tool-dot tool-dot-g"></div><div class="tool-label">完整生成指令 · 可直接複製</div><button class="copy-btn" onclick="copyInstructions(this)" type="button">複製完整指令</button></div><div class="tool-body" style="padding:24px 28px;"><pre class="result-box" id="instruction-box">請製作一個可離線開啟的單檔 HTML「跨時區會議時段檢查器」，CSS 與 JavaScript 都放在同一檔案，不使用外部套件、不呼叫 AI/API、不讀取或修改任何日曆。
+
+使用情境：承辦人輸入台北日期、會議長度、至少兩個參與城市及每列的 IANA 時區名稱。台北是搜尋整點的基準；用 Asia/Taipei 把日期和整點轉成時間瞬間，列出該台北日期 00:00 到 23:00 的每個整點起始時間。參與城市使用固定的標準工時 09:00–18:00，工具不得自行變更此限制。
+
+計算要求：用 Intl.DateTimeFormat 的 timeZone 與選定日期轉換每個瞬間，依 IANA 時區規則處理夏令時間；不可把台北以外任何時區的 UTC 偏移寫死。會議結束時間 = 開始時間 + 輸入的整數分鐘。候選只有在每個城市的開始與結束都落在當地同一個日期的 09:00–18:00 內才合格；結束剛好 18:00 可以，跨到當地隔日或超過 18:00 不可以。不得只檢查開始時間。不判斷週末或當地假日，也不讀取個人日曆。
+
+畫面要求：日期欄、1–480 整數分鐘欄、可新增／移除的城市列、查看按鈕與結果表；所有欄位和移除按鈕都有可辨識的無障礙名稱，並可用鍵盤操作。每列結果顯示台北起始整點，以及各城市的當地日期、會議起訖時間和 IANA 時區。只有所有城市的完整區間都合格時才標示候選；清楚區分「工作時間候選」與「日曆有空／已確認出席」。沒有任何候選時，明確顯示「沒有共同時段」，不得捏造或自動放寬限制，並提醒承辦人回到團隊協調非同步、拆分議題或取得例外工時同意。欄位錯誤時要說明如何修正。
+
+固定驗收案例：日期 2026-10-09、60 分鐘，城市為台北 Asia/Taipei、倫敦 Europe/London、紐約 America/New_York，結果必須是沒有共同時段；不得把台北 21:00／倫敦 14:00／紐約 09:00 判為候選，因為台北超出 09:00–18:00。正向對照：同日移除台北，只留倫敦和紐約，倫敦 14:00–15:00／紐約 09:00–10:00 應符合工時。邊界案例：同日只留倫敦與東京，台北 16:00 對應倫敦 09:00–10:00、東京 17:00–18:00，應合格。也要能提示空日期、少於兩個城市、非整數或超出 1–480 的會議長度。
+
+只輸出從 &lt;!DOCTYPE html&gt; 到 &lt;/html&gt; 的完整可執行程式碼，不要省略、摘要或用 Markdown 程式碼圍欄包住。生成後仍要以以上驗收案例實際測試。</pre><span data-copy-status="instruction-box" role="status"></span></div></div>
+  <h3 class="section-heading">記下可以交給團隊的結果</h3>
+  <p class="body-text">把以下短紀錄存到會議需求或專案文件中，再請決策者選擇下一步。這讓「無共同時段」成為可處理的工作結論，而不是停在工具畫面：</p>
+  <pre class="result-box">日期／時長：2026-10-09／60 分鐘
+參與城市：台北、倫敦、紐約
+限制：每地 09:00–18:00；不讀取個人日曆
+檢查結果：沒有三地共同工作時段；台北 21:00／倫敦 14:00／紐約 09:00 不符合台北工時
+待決策：改為非同步、拆分議題分場，或由相關同事明確同意例外時段
+下一步：確認方案與出席者後，再以新條件重新檢查</pre>
+  <div class="callout key"><div aria-hidden="true" class="callout-icon">✓</div><div class="callout-body"><strong>本單元通過標準。</strong>三地案例沒有綠色候選；兩地正向對照能找到符合時段；整段會議、當地日期和日期相關夏令時間都被檢查；錯誤輸入會提示；交付紀錄清楚標出尚待團隊決定的方案。綠色候選不代表日曆空檔或出席承諾。</div></div>
+  <p class="body-text"><strong>注意事項：</strong>參與者城市、時區和工作時段都可能涉及個人安排，輸入真實工作資料前遵循團隊資料規範。夏令時間會因地區與日期改變；此工具也不檢查週末、當地假日、休假或行事曆。重要會議需用當日的 IANA 時區換算再由出席者確認。這份 HTML 只做工作時間的邏輯篩選，不能代替行事曆、主管核准或正式邀請。</p>
+</section>
+<!-- learner-content:end -->

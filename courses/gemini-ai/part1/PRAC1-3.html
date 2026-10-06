@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>解鎖AI開發者模式 · 實例演練 3｜Gemini 零代碼 AI 實戰課</title>
+<title>會議情境指令模板產生器｜Gemini AI 實戰課</title>
 <meta name="description" content="輸入會議類型、與會人數、主要目的，自動產生一段針對這場會議量身訂製的完整 AI 指令，讓你的會議記錄整理、摘要生成更精準。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
@@ -163,7 +163,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="hero-num">實例演練 3</div>
   </div>
   <h1 class="lesson-title">會議情境指令模板產生器</h1>
-  <p class="lesson-tagline">輸入會議類型、與會人數、主要目的，自動產生一段針對這場會議量身訂製的完整 AI 指令，讓你的會議記錄整理、摘要生成更精準。</p>
+  <p class="lesson-tagline">整理會議用途與欄位，產生可替換的指令模板；責任人、期限和決議仍須回到來源確認。</p>
   <div class="outcomes">
     <div class="outcomes-label">PRACTICE GOALS</div>
     <div class="outcome-item"><div class="outcome-dot"></div><span>學會針對不同情境動態調整 Prompt 的內容</span></div>
@@ -172,233 +172,116 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   </div>
 </div>
 
-<div class="lesson-body"><section class="lesson-section optional-route" id="core-route-banner" data-learning-role="延伸"><h2 class="section-heading">有工作需求時再做的延伸實作</h2><p class="body-text">先會拆需求；產物為可修改提示詞，不是經驗證的會議摘要。需逐個檢查情境模板是否與工作資料吻合。</p><p class="body-text">本頁可以跳過；需要此工作案例時，先具備 <a href="CH1-2.html">把需求寫成可核對的規格</a> 的能力。原始示範、完整提示詞與操作內容均保留在下方並預設展開。 <a href="../index.html#required-route">返回必修路線</a>。</p></section><details id="legacy-reference" open><summary>原始完整單元內容、案例與提示詞（保留）</summary>
+<div class="lesson-body"><section class="lesson-section"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">行政人員每週要把不同會議整理成通知或交辦摘要，重複輸入背景容易漏欄位。本單元做一份可替換欄位的會議指令模板；輸出仍是待核對的草稿，日期、責任人和決議必須回到來源確認。</p><p class="body-text">固定規則放在提示詞，會議類型、日期和對象是每次替換的變數。原文沒有地點或期限時要保留空白或待確認，不可為了讓範本完整而補寫。</p><p class="body-text"><strong>固定測試逐字稿（虛構）</strong><br>主持人：下週四下午辦產品說明會，地點待確認。<br>小林：先整理 10 頁簡報提綱。<br>阿凱：預算等收到報價再決定。<br>雯姊：會後通知業務與客服，通知時間尚未決定。</p><p class="body-text"><strong>核對答案：</strong>可以整理出下週四下午、簡報提綱由小林處理、預算待報價、會後通知業務與客服；地點、通知期限與精確日期都未提供，應標「待確認」，不可自行補寫。</p><p class="body-text">這份逐字稿刻意沒有精確日期、地點和通知期限，供你測模板能否保留未知資料；「下週四下午」也不能在缺少會議日期時換算成日曆日期。</p><p class="body-text">先操作參考品生成模板，再把完整模板與逐字稿一併貼入 Gemini，核對輸出。</p><div class="tool-wrap">
+<div class="tool-topbar">
+<div class="tool-dot tool-dot-r"></div>
+<div class="tool-dot tool-dot-y"></div>
+<div class="tool-dot tool-dot-g"></div>
+<div class="tool-label">meeting-prompt-generator.html</div>
+</div>
+<div class="tool-body">
+<div class="gen-form">
+<div class="gen-row">
+<div class="gen-field">
+<div class="field-label">會議類型</div>
+<select class="gen-select" id="g-type">
+<option value="客戶提案">客戶提案會議</option>
+<option value="內部週會">內部週會</option>
+<option value="跨部門協調">跨部門協調會</option>
+<option value="行政協調">行政協調會議</option>
+<option value="活動籌備">活動籌備會議</option>
+<option value="腦力激盪">腦力激盪工作坊</option>
+<option value="專案檢討">專案成果檢討會</option>
+<option value="一對一面談">一對一主管面談</option>
+</select>
+</div>
+<div class="gen-field">
+<div class="field-label">會議目的</div>
+<input class="gen-input" id="g-goal" placeholder="例：整理產品說明會決議與後續事項" type="text">
+</div>
+</div>
+<div class="gen-row">
+<div class="gen-field">
+<div class="field-label">與會人員</div>
+<input class="gen-input" id="g-attendee" placeholder="例：總務、人事、會計、單位主管" type="text"/>
+</div>
+<div class="gen-field">
+<div class="field-label">輸出格式偏好</div>
+<select class="gen-select" id="g-format">
+<option value="條列式重點摘要">條列式重點摘要</option>
+<option value="表格式行動清單（含負責人與截止日）">表格式行動清單</option>
+<option value="段落式會議記錄">段落式會議記錄</option>
+<option value="決議事項清單">決議事項清單</option>
+</select>
+</div>
+</div>
+<div class="gen-row">
+<div class="gen-field">
+<div class="field-label">語氣要求</div>
+<select class="gen-select" id="g-tone">
+<option value="正式、精準">正式、精準</option>
+<option value="簡潔、直接">簡潔、直接</option>
+<option value="友善、易讀">友善、易讀</option>
+</select>
+</div>
+<div class="gen-field">
+<div class="field-label">字數上限</div>
+<select class="gen-select" id="g-length">
+<option value="300 字以內">300 字以內</option>
+<option value="500 字以內">500 字以內</option>
+<option value="不限字數，盡量完整">不限字數，完整呈現</option>
+</select>
+</div>
+</div>
+</div>
+<button class="gen-btn" onclick="generateTemplate()">產生 AI 指令模板 <span aria-hidden="true">→</span></button>
+<div class="template-result" id="template-result">
+<div class="template-label" style="margin-top:20px;">
+<span>GENERATED PROMPT TEMPLATE</span>
+<button class="copy-btn" onclick="copyTemplate()">複製</button>
+</div>
+<div class="template-box" id="template-box"></div>
+</div>
+</div>
+</div></section><hr class="section-rule"/><section class="lesson-section"><h2 class="section-heading">觀念與完整提示詞</h2><p class="body-text">固定要求放在提示詞模板，會議目的和參與者是每次變動的資料。角色可依情境選擇，但不能因「行政會議」之類的標籤就補出原文沒有的決議、人名或期限。</p><div class="tool-wrap">
+<div class="tool-topbar">
+<div class="tool-dot tool-dot-r"></div>
+<div class="tool-dot tool-dot-y"></div>
+<div class="tool-dot tool-dot-g"></div>
+<div class="tool-label"><span aria-hidden="true">→</span> 複製這段 Prompt 貼入 Gemini</div>
+<button class="copy-btn" onclick="copyInstructions()" style="margin-left:auto;">複製指令</button>
+</div>
+<div class="tool-body" style="padding:24px 28px;">
+<div class="result-box" id="instruction-box">你是一位重視初學者可操作性、資料安全與無障礙的前端工程師。請為工作者製作「會議情境指令模板產生器」，目標是把以下真實工作情境變成可反覆使用、可核對的工具。交付完整單檔 HTML，CSS 與 JavaScript 內嵌，不呼叫外部 API；不要只輸出線框、示意圖或片段。
 
-  <div class="lesson-section">
-    <div class="section-eyebrow">TOOL · 互動工具</div>
-    <h2 class="section-heading">填入會議情境，自動生成量身指令</h2>
-    <p class="body-text">不同類型的會議需要不同的 AI 指令策略。客戶提案會、內部週會、跨部門協調會——各自的重點和輸出格式都不一樣。這個工具幫你把情境轉換成精準的指令。</p>
+【工作情境】
+固定要求放在提示詞模板，會議目的和參與者是每次變動的資料。角色可依情境選擇，但不能因「行政會議」之類的標籤就補出原文沒有的決議、人名或期限。
 
-    <div class="tool-wrap">
-      <div class="tool-topbar">
-        <div class="tool-dot tool-dot-r"></div>
-        <div class="tool-dot tool-dot-y"></div>
-        <div class="tool-dot tool-dot-g"></div>
-        <div class="tool-label">meeting-prompt-generator.html</div>
-      </div>
-      <div class="tool-body">
-        <div class="gen-form">
-          <div class="gen-row">
-            <div class="gen-field">
-              <div class="field-label">會議類型</div>
-              <select class="gen-select" id="g-type">
-                <option value="客戶提案">客戶提案會議</option>
-                <option value="內部週會">內部週會</option>
-                <option value="跨部門協調">跨部門協調會</option>
-                <option value="行政協調">行政協調會議</option>
-                <option value="活動籌備">活動籌備會議</option>
-                <option value="腦力激盪">腦力激盪工作坊</option>
-                <option value="專案檢討">專案成果檢討會</option>
-                <option value="一對一面談">一對一主管面談</option>
-              </select>
-            </div>
-            <div class="gen-field">
-              <div class="field-label">會議目的</div>
-              <input class="gen-input" id="g-goal" placeholder="例：確認年度員工旅遊的日期與預算" type="text">
-            </div>
-          </div>
-          <div class="gen-row">
-            <div class="gen-field">
-              <div class="field-label">與會人員</div>
-              <input class="gen-input" id="g-attendee" placeholder="例：總務、人事、會計、單位主管" type="text">
-            </div>
-            <div class="gen-field">
-              <div class="field-label">輸出格式偏好</div>
-              <select class="gen-select" id="g-format">
-                <option value="條列式重點摘要">條列式重點摘要</option>
-                <option value="表格式行動清單（含負責人與截止日）">表格式行動清單</option>
-                <option value="段落式會議記錄">段落式會議記錄</option>
-                <option value="決議事項清單">決議事項清單</option>
-              </select>
-            </div>
-          </div>
-          <div class="gen-row">
-            <div class="gen-field">
-              <div class="field-label">語氣要求</div>
-              <select class="gen-select" id="g-tone">
-                <option value="正式、精準">正式、精準</option>
-                <option value="簡潔、直接">簡潔、直接</option>
-                <option value="友善、易讀">友善、易讀</option>
-              </select>
-            </div>
-            <div class="gen-field">
-              <div class="field-label">字數上限</div>
-              <select class="gen-select" id="g-length">
-                <option value="300 字以內">300 字以內</option>
-                <option value="500 字以內">500 字以內</option>
-                <option value="不限字數，盡量完整">不限字數，完整呈現</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        <button class="gen-btn" onclick="generateTemplate()">產生 AI 指令模板 <span aria-hidden="true">→</span></button>
-        <div class="template-result" id="template-result">
-          <div class="template-label" style="margin-top:20px;">
-            <span>GENERATED PROMPT TEMPLATE</span>
-            <button class="copy-btn" onclick="copyTemplate()">複製</button>
-          </div>
-          <div class="template-box" id="template-box"></div>
-        </div>
-      </div>
-    </div>
+【操作與輸出】
+提供 8 種情境：客戶提案、內部週會、跨部門協調、行政協調、活動籌備、腦力激盪、專案檢討、一對一面談。輸入任務目的（必填），可輸入相關人員，並選擇條列／表格／段落、語氣和字數。依情境帶入對應角色，再產生可編輯、可複製的完整提示詞。
 
-    <div class="callout tip">
-      <div class="callout-icon" aria-hidden="true">💡</div>
-      <div class="callout-body">
-        <strong>這個工具的核心概念：</strong>同樣的黃金公式，因為「情境輸入」不同，就會產生完全不同的指令。學會這個邏輯，你就可以把它應用到任何場景。
-      </div>
-    </div>
-  </div>
+【例外與安全】
+任務目的空白時說明並保留其他輸入；沒有與會人員或期限時用待補欄位，不自行創造。選擇不同情境須同步更換角色，不可只改標籤。
 
-  <hr class="section-rule">
+【固定驗收案例】
+以固定逐字稿生成會議整理模板：會議時間保留「下週四下午」，地點、精確日期和通知期限標待確認；簡報提綱由小林整理，預算等報價。若模型補出地點或期限，視為失敗並修正提示詞。清空目的應阻止生成；切到一對一面談時，確認角色與任務同步改變。
 
-  <div class="lesson-section">
-    <div class="section-eyebrow">HOW TO REPLICATE · 如何自己做出這個工具</div>
-    <h2 class="section-heading">讓 Gemini 幫你做一個情境模板產生器</h2>
-
-    <div class="steps-list">
-      <div class="step-item">
-        <div class="step-num-col"><div class="step-num">1</div></div>
-        <div class="step-body">
-          <div class="step-title">看一遍指令內建的 6 種情境</div>
-          <div class="step-desc">下方指令已內建 6 種情境與對應的 AI 角色描述（含行政協調、活動籌備等場景）。先看一遍，想好哪 1～2 種要換成你自己工作中更常見的情境。</div>
-        </div>
-      </div>
-      <div class="step-item">
-        <div class="step-num-col"><div class="step-num">2</div></div>
-        <div class="step-body">
-          <div class="step-title">複製指令，替換 1～2 種情境後貼入 Gemini</div>
-          <div class="step-desc">替換情境時記得連同「→」後面的角色描述一起改，例如：客服工單 → 你是一位資深客服主管，擅長把工單整理成處理紀錄。其餘內容照原樣送出。</div>
-        </div>
-      </div>
-      <div class="step-item">
-        <div class="step-num-col"><div class="step-num">3</div></div>
-        <div class="step-body">
-          <div class="step-title">照「完成標準」逐項驗收後存檔</div>
-          <div class="step-desc">指令結尾附了 4 條完成標準（四區塊輸出、必填提示、複製回饋、手機單欄）。每一種情境都試一遍、4 條都過了再下載這個工具。</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="tool-wrap">
-      <div class="tool-topbar">
-        <div class="tool-dot tool-dot-r"></div>
-        <div class="tool-dot tool-dot-y"></div>
-        <div class="tool-dot tool-dot-g"></div>
-        <div class="tool-label"><span aria-hidden="true">→</span> 複製這段 Prompt 貼入 Gemini</div>
-        <button class="copy-btn" style="margin-left:auto;" onclick="copyInstructions()">複製指令</button>
-      </div>
-      <div class="tool-body" style="padding:24px 28px;">
-        <div class="result-box" id="instruction-box">你是一位擅長製作互動工具的前端工程師。
-
-製作一個「情境 Prompt 模板產生器」的單頁 HTML 工具，功能如下：
-
-【功能需求】
-- 表單包含以下欄位：
-  · 情境類型（下拉選單，固定使用下方對照表的 6 種）
-  · 任務目的（文字輸入框，必填，placeholder：「例：確認年度員工旅遊的日期與預算」）
-  · 相關人員（文字輸入框，placeholder：「例：總務、人事、會計、單位主管」）
-  · 輸出格式（下拉選單：條列式、表格式、段落式）
-  · 語氣要求（下拉選單：正式、簡潔、友善）
-  · 字數限制（下拉選單：300 字以內、500 字以內、不限）
-- 一個「產生指令模板」按鈕，按下後用 JavaScript 依【指令組合邏輯】動態組合出完整 AI 指令
-- 「任務目的」空白時按下按鈕要顯示提示，不產生結果
-- 結果區塊有「複製」按鈕，點擊後複製到剪貼簿，並讓按鈕文字變成「已複製！」約 2 秒後復原
-
-【情境類型與角色對照表】
-下拉選單固定這 6 種，選定後自動帶入對應的【角色】描述：
-1. 內部週會 → 你是一位高效率的專案助理，負責整理團隊週會的進度與待辦事項
-2. 行政協調會議 → 你是一位熟悉行政流程的資深幕僚，擅長整理跨單位協調的決議、分工與追蹤事項
-3. 活動籌備會議 → 你是一位辦過多場企業活動的行政企劃，擅長把籌備會議整理成任務分工與時程清單
-4. 客戶提案會議 → 你是一位資深業務顧問，擅長整理提案會議的關鍵訊息
-5. 專案成果檢討 → 你是一位專案管理顧問，善於從成果與問題中提煉改善建議
-6. 主管交辦事項 → 你是一位資深行政人員，擅長把口頭交辦轉成可執行的工作清單
-
-【指令組合邏輯】
-生成的 Prompt 依序包含四個區塊：
-【角色】依上方對照表填入
-【任務】結合情境類型和任務目的；「相關人員」有填時一併帶入
-【限制】整合語氣要求和字數限制
-【呈現格式】對應所選的輸出格式
-
-範例——選「行政協調會議」、任務目的填「確認年度員工旅遊的日期與預算」、相關人員填「總務、人事」、輸出格式選「表格式」、語氣選「正式」、字數選「300 字以內」時，應產生：
-
-【角色】
-你是一位熟悉行政流程的資深幕僚，擅長整理跨單位協調的決議、分工與追蹤事項。
-
-【任務】
-協助處理「行政協調會議」情境的任務：確認年度員工旅遊的日期與預算。相關人員：總務、人事。
-
-【限制】
-語氣正式，字數 300 字以內。
-
-【呈現格式】
-以表格式呈現。
-
-【設計要求】
-- 無印良品風格：背景 #f5f3ee，卡片 #ffffff，邊框 #d8d4cb
-- 強調色 #b5703a，字體 Shippori Mincho + Noto Sans TC（Google Fonts）
-- 圓角 6px，無陰影，無漸層
-- 螢幕寬度 768px 以下時表單改為單欄
-
-生成完整的單一 HTML 檔案。
-
-【完成標準】
-1. 六個欄位全填後，能產生上述四區塊格式的 Prompt
-2. 「任務目的」空白時有提示、不輸出
-3. 複製按鈕可用，且有「已複製！」回饋
-4. 手機寬度下表單為單欄</div>
-      </div>
-    </div>
-  </div>
-
-  <hr class="section-rule">
-
-  <div class="lesson-section">
-    <div class="section-eyebrow">CHALLENGE · 進階挑戰</div>
-    <h2 class="section-heading">把這個工具改造成你自己的版本</h2>
-    <div class="challenge-box">
-      <div class="challenge-label">PRACTICE VARIATIONS</div>
-      <div class="challenge-list">
-        <div class="challenge-item">
-          <div class="ci-num">01</div>
-          <div>把「會議」替換成你工作中最常需要 AI 幫忙的其他情境，例如：「客戶回覆信」、「週報撰寫」、「提案摘要」，做出一個你自己的情境產生器。</div>
-        </div>
-        <div class="challenge-item">
-          <div class="ci-num">02</div>
-          <div>在工具中加入「歷史記錄」功能——把每次產生的模板儲存在頁面上，方便下次直接取用，不用重新填表。</div>
-        </div>
-        <div class="challenge-item">
-          <div class="ci-num">03</div>
-          <div>拿這個工具產生的 Prompt 實際去用 Gemini 整理一份真實的會議紀錄，比較有無使用模板的結果差異，記錄在 Prompt 庫裡。</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-</details></div>
+【交付要求】
+頁面文字使用繁體中文；主要操作有清楚標籤、空狀態、錯誤提示和鍵盤可操作方式。輸入內容以純文字呈現。完成後輸出可直接保存並於瀏覽器重新開啟的完整 HTML 原始碼，附上如何手動檢查本頁驗收案例的簡短說明。</div>
+</div>
+</div></section><hr class="section-rule"/><section class="lesson-section"><h2 class="section-heading">操作、驗收與修復</h2><ol class="body-text"><li>在參考品選「活動籌備」，填「整理產品說明會決議與後續事項」，在與會人員欄填「總務、人事、會計」，選表格、正式語氣和 300 字限制；產生後確認工具依「活動籌備」自動帶入角色，不需另選角色；把頁面提供的固定逐字稿當作生成版輸入。</li><li>生成模板後逐段確認目的、角色、格式和缺資料時待補的規則；清空目的重試，確認工具阻止生成且沒有清掉其餘設定。</li><li>將模板提示詞和固定逐字稿貼入同一 Gemini 對話；核對地點、精確日期、通知期限皆標待確認，原文中的小林、預算待報價與通知對象則保留。再把情境切到「一對一面談」，確認角色與任務隨之更新。</li><li>若未提供欄位被補寫，修改固定限制為「未知資料標待確認」，用同一假資料重測；保存活動籌備和面談兩版模板及結果。</li></ol><div class="callout info"><div aria-hidden="true" class="callout-icon">注意</div><div class="callout-body">通知和摘要需由人核對日期、姓名、地點與決議；未確認資訊不得自動寄送。</div></div><div class="callout info"><div aria-hidden="true" class="callout-icon">修復</div><div class="callout-body">若模板把空白補成推測內容，要求保留未提供欄位為待確認，並重跑同一會議案例。</div></div><div class="callout key"><div aria-hidden="true" class="callout-icon">✓</div><div class="callout-body"><strong>本單元驗收：</strong>選「活動籌備」情境，目的填「整理產品說明會決議與後續事項」，在與會人員欄填「總務、人事、會計」，選表格、正式語氣和 300 字；確認工具依情境自動帶入角色，不需另選角色。用固定逐字稿試跑，確認時間保留「下週四下午」，地點、精確日期與通知期限標待確認；保留小林整理簡報、預算待報價和通知對象，不可補造。清空目的不得生成。再切換「一對一面談」，確認角色與任務同步改變。保存兩種情境模板和一份已核對示例。</div></div></section></div>
 
 <nav class="lesson-nav">
   <a class="nav-btn nav-prev" href="PRAC1-2.html" aria-label="上一單元" data-nav-role="prev">
     <div>
       <div class="nav-btn-label"><span aria-hidden="true">←</span> 上一個演練</div>
-      <div class="nav-btn-title">實例演練 2：AI 指令品質健診器</div>
+      <div class="nav-btn-title">提示詞 A/B 結果比較台</div>
     </div>
   </a>
   <a class="nav-btn next nav-next" href="../part2/CH2-1.html" aria-label="下一單元" data-nav-role="next">
     <div>
       <div class="nav-btn-label">進入下一章 <span aria-hidden="true">→</span></div>
-      <div class="nav-btn-title">2.1 自動化計算工具</div>
+      <div class="nav-btn-title">先算清楚：預算差異與剩餘額</div>
     </div>
   </a>
 </nav>
@@ -427,7 +310,14 @@ const roleMap = {
 
 function generateTemplate() {
   const type = document.getElementById('g-type').value;
-  const goal = document.getElementById('g-goal').value.trim() || '（未填入）';
+  const goalInput = document.getElementById('g-goal');
+  const goal = goalInput.value.trim();
+  if (!goal) {
+    document.getElementById('template-result').style.display = 'none';
+    alert('請填寫會議目的後再產生指令模板；其他設定已保留。');
+    goalInput.focus();
+    return;
+  }
   const attendee = document.getElementById('g-attendee').value.trim() || '（未填入）';
   const format = document.getElementById('g-format').value;
   const tone = document.getElementById('g-tone').value;

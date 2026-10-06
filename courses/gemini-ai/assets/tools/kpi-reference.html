@@ -17,7 +17,18 @@ const key='gemini-kpi-reference-v1';const defaults=[["受理件數", "件", "hig
 function result(r){const target=number(r[3]),actual=number(r[4]),previous=number(r[5]);if(!['higher','lower'].includes(r[2]))return {status:'方向錯誤',change:null};const status=target===null||actual===null?'待確認':(r[2]==='higher'?actual>=target:actual<=target)?'已達標':'未達標';return {status,change:actual===null||previous===null||previous===0?null:(actual-previous)/previous*100}}
 function valid(items){return Array.isArray(items)&&items.length>0&&items.every(r=>Array.isArray(r)&&r.length===8&&['higher','lower'].includes(r[2]))}
 function render(){$('rows').innerHTML=rows.map((r,i)=>`<tr>${r.map((v,j)=>'<td>'+(j===2?`<select aria-label="第${i+1}列方向" data-row="${i}" data-col="2"><option value="higher" ${v==='higher'?'selected':''}>越大越好</option><option value="lower" ${v==='lower'?'selected':''}>越小越好</option></select>`:`<input aria-label="第${i+1}列${['指標','單位','方向','目標','實際','上期','期間','來源'][j]}" data-row="${i}" data-col="${j}" value="${esc(v)}" ${j>=3&&j<=5?'type="number" min="0" step="any"':''}>`)+'</td>').join('')}</tr>`).join('');update()}
-function update(){const missing=rows.some(r=>!r[0]||!r[1]||!r[6]||!r[7]);announce(missing?'請補指標、單位、期間與來源；缺數值須在交付時註明待確認。':'');$('export').disabled=$('print').disabled=missing;$('summary').innerHTML=rows.map(r=>{const a=result(r),t=number(r[3]),v=number(r[4]);const ratio=t!==null&&t>0&&v!==null?Math.min(100,v/t*100):0;return `<section><h2>${esc(r[0])}：${a.status}</h2><p>${esc(r[6])}；來源：${esc(r[7])}。目標 ${esc(r[3])}／實際 ${esc(r[4])} ${esc(r[1])}；${r[2]==='higher'?'越大越好':'越小越好'}。</p><progress max="100" value="${ratio}" aria-label="${esc(r[0])}實際相對目標；非達標分數"></progress><p>較上期變化：${a.change===null?'不可計算（缺值或基期為零）':a.change.toFixed(1)+'%'}；圖條只呈現相對數值，達標以方向與目標判定。</p></section>`}).join('');try{localStorage.setItem(key,JSON.stringify(rows))}catch(e){announce('本機保存失敗，請下載備份')}}
+function update(){
+ const missing=rows.some(r=>!r[0]||!r[1]||!r[6]||!r[7]);
+ announce(missing?'請補指標、單位、期間與來源；缺數值須在交付時註明待確認。':'');
+ $('export').disabled=$('print').disabled=missing;
+ $('summary').innerHTML=rows.map(r=>{
+  const a=result(r),actual=number(r[4]),previous=number(r[5]);
+  const relative=a.change===null?'不可計算（缺值或基期為零）':a.change.toFixed(1)+'%';
+  const points=r[1]==='%'&&actual!==null&&previous!==null?(actual-previous).toFixed(1)+' 個百分點':'不適用';
+  return `<section><h2>${esc(r[0])}：${a.status}</h2><p>${esc(r[6])}；來源：${esc(r[7])}。目標 ${esc(r[3])}／實際 ${esc(r[4])} ${esc(r[1])}；方向：${r[2]==='higher'?'越大越好':'越小越好'}。達標狀態依方向和目標值判斷。</p><p>較上期相對變化：${relative}；${r[1]==='%'?'較上期百分點變化：'+points+'。':''}變化只描述數值，不推論原因。</p></section>`
+ }).join('');
+ try{localStorage.setItem(key,JSON.stringify(rows))}catch(e){announce('本機保存失敗，請下載備份')}
+}
 $('rows').addEventListener('input',e=>{if(e.target.dataset.row!==undefined){rows[+e.target.dataset.row][+e.target.dataset.col]=e.target.value;update()}});$('reset').onclick=()=>{rows=structuredClone(defaults);render()};$('add').onclick=()=>{rows.push(['','件','higher','','','','2026-09','']);render()};
 $('export').onclick=()=>{if($('export').disabled)return;download('kpi-monthly-report.csv',csvText([['指標','單位','方向','目標','實際','上期','期間','來源','狀態','較上期變化'],...rows.map(r=>[...r.map(safeCell),result(r).status,result(r).change===null?'不可計算':result(r).change.toFixed(1)+'%'])]),'text/csv;charset=utf-8')};$('print').onclick=()=>{if(!$('print').disabled)window.print()};
 $('import').onclick=()=>{try{const d=parseCSV($('csv').value);if(d.shift().join(',')!=='metric,unit,direction,target,actual,previous,period,source'||!valid(d))throw Error('欄位或方向錯誤');if(d.some(r=>r.slice(3,6).some(v=>v!==''&&number(v)===null)))throw Error('數值不可為負或文字');rows=d;render()}catch(e){announce('匯入失敗，保留目前資料：'+e.message)}};
