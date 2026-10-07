@@ -1,0 +1,38 @@
+#!/bin/bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+BACKUP="$ROOT/_backup/2026-10-07-ch1-content-repair"
+mkdir -p "$ROOT/part1"
+cp "$BACKUP/part1/CH1-1.html" "$ROOT/part1/CH1-1.html"
+mkdir -p "$ROOT/part1"
+cp "$BACKUP/part1/CH1-2.html" "$ROOT/part1/CH1-2.html"
+mkdir -p "$ROOT/part1"
+cp "$BACKUP/part1/CH1-3.html" "$ROOT/part1/CH1-3.html"
+mkdir -p "$ROOT/_source/fragments"
+cp "$BACKUP/_source/fragments/part1-CH1-1.fragment" "$ROOT/_source/fragments/part1-CH1-1.fragment"
+mkdir -p "$ROOT/_source/fragments"
+cp "$BACKUP/_source/fragments/part1-CH1-2.fragment" "$ROOT/_source/fragments/part1-CH1-2.fragment"
+mkdir -p "$ROOT/_source/fragments"
+cp "$BACKUP/_source/fragments/part1-CH1-3.fragment" "$ROOT/_source/fragments/part1-CH1-3.fragment"
+mkdir -p "$ROOT/_source"
+cp "$BACKUP/_source/LESSON-PLANS.md" "$ROOT/_source/LESSON-PLANS.md"
+mkdir -p "$ROOT/_source"
+cp "$BACKUP/_source/OUTLINE.md" "$ROOT/_source/OUTLINE.md"
+mkdir -p "$ROOT/_source"
+cp "$BACKUP/_source/CURRICULUM-MAP.md" "$ROOT/_source/CURRICULUM-MAP.md"
+mkdir -p "$ROOT/_source"
+cp "$BACKUP/_source/lesson-map.json" "$ROOT/_source/lesson-map.json"
+mkdir -p "$ROOT/_repair/2026-10-07"
+cp "$BACKUP/_repair/2026-10-07/STAGE3-COURSE-ROUTE-SPEC.md" "$ROOT/_repair/2026-10-07/STAGE3-COURSE-ROUTE-SPEC.md"
+mkdir -p "$ROOT/_repair/2026-10-07"
+cp "$BACKUP/_repair/2026-10-07/REPAIR-PLAN.md" "$ROOT/_repair/2026-10-07/REPAIR-PLAN.md"
+mkdir -p "$ROOT/_repair/2026-10-07"
+cp "$BACKUP/_repair/2026-10-07/REPAIR-REPORT.md" "$ROOT/_repair/2026-10-07/REPAIR-REPORT.md"
+if [[ -f "$ROOT/assets/tools/貪食蛇.html" ]]; then
+  EXPECTED_SNAKE_SHA="74c0f38632572ffb0a622244313c0bd519944b411a1b707a6a520ce48886c892"
+  ACTUAL_SNAKE_SHA="$(shasum -a 256 "$ROOT/assets/tools/貪食蛇.html" | awk '{print $1}')"
+  if [[ "$ACTUAL_SNAKE_SHA" == "$EXPECTED_SNAKE_SHA" ]]; then
+    rm "$ROOT/assets/tools/貪食蛇.html"
+  fi
+fi
+echo "Restored CH1 content-repair baseline."

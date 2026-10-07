@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Snake</title>
+    <style>
+        :root {
+            --bg-color: #EADCB6;       /* 溫暖沙色/米黃底 */
+            --line-color: #43342A;     /* 木炭深棕 (文字/外框) */
+            --grid-color: #D4BE9B;     /* 柔和深沙色網格 */
+            --snake-head: #E06C48;     /* 鮭魚橘 (頭部) */
+            --snake-body: #F4EBE0;     /* 醋飯白 (身體) */
+            --food-color: #849364;     /* 抹茶綠 (食物) */
+            --ui-accent: #E06C48;      /* 鮭魚橘 (按鈕) */
+            /* 強制使用粗黑體家族 */
+            --font-family: 'Arial Black', 'Impact', 'PingFang TC', 'Heiti TC', 'Noto Sans TC', "Microsoft JhengHei", sans-serif;
+        }
+
+        .sound-btn {
+            background: transparent;
+            border: 2px solid var(--line-color);
+            color: var(--line-color);
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 900;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 5px;
+            box-shadow: 2px 2px 0px var(--line-color);
+            font-family: var(--font-family);
+        }
+
+        .sound-btn.active {
+            background: var(--ui-accent);
+            color: var(--snake-body);
+            border-color: var(--ui-accent);
+        }
+
+        .sound-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0px 0px 0px var(--line-color);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--line-color);
+            font-family: var(--font-family);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 15px;
+            overflow: hidden;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+
+        header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-bottom: 4px solid var(--line-color);
+            padding-bottom: 10px;
+            border-radius: 2px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 0px rgba(67, 52, 42, 0.15);
+            color: var(--ui-accent);
+            -webkit-text-stroke: 1.5px var(--line-color);
+            font-family: var(--font-family);
+        }
+
+        .score-board {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .score-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--snake-body);
+            padding: 8px 12px;
+            border: 3px solid var(--line-color);
+            border-radius: 10px;
+            box-shadow: 3px 3px 0px var(--line-color);
+            min-width: 80px;
+            height: 75px;
+        }
+
+        .score-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .score-label {
+            font-size: 12px;
+            font-weight: 900;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: var(--font-family);
+            line-height: 1;
+        }
+
+        .score-sub-label {
+            font-size: 9px;
+            opacity: 0.6;
+            line-height: 1;
+            margin-top: 4px;
+            min-height: 9px;
+        }
+
+        .score-val {
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--ui-accent);
+            font-family: var(--font-family);
+            line-height: 1;
+            margin-top: auto;
+        }
+
+        .board-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background-color: var(--bg-color);
+            border: 4px solid var(--line-color);
+            border-radius: 12px;
+            box-shadow: 0 10px 0px rgba(67, 52, 42, 0.2);
+            overflow: hidden;
+        }
+
+        #particle-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        @keyframes floatHeart {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+            10% { transform: translate(-50%, -60%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -200%) scale(1.5); opacity: 0; }
+        }
+
+        .heart-particle {
+            position: absolute;
+            color: var(--ui-accent);
+            font-size: 24px;
+            font-family: var(--font-family);
+            pointer-events: none;
+            animation: floatHeart 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            -webkit-text-stroke: 1.5px var(--line-color);
+            text-shadow: 1px 1px 0px var(--line-color);
+            z-index: 6;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-3px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(234, 220, 182, 0.9);
+            backdrop-filter: blur(2px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .overlay.hidden {
+            display: none;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .overlay-title {
+            font-size: 32px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-align: center;
+            color: var(--snake-body);
+            -webkit-text-stroke: 2px var(--line-color);
+            text-shadow: 3px 3px 0px var(--line-color);
+            font-family: var(--font-family);
+        }
+
+        .overlay-desc {
+            font-size: 15px;
+            font-weight: 900;
+            white-space: nowrap;
+            text-align: center;
+            line-height: 1.6;
+            background-color: var(--snake-body);
+            padding: 10px 15px;
+            border: 2px solid var(--line-color);
+            border-radius: 8px;
+            box-shadow: 2px 2px 0px rgba(67, 52, 42, 0.2);
+            font-family: var(--font-family);
+        }
+
+        /* 譴責偷懶對話氣泡 */
+        .lazy-bubble {
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: #fff;
+            border: 4px solid var(--line-color);
+            padding: 18px 24px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: 900;
+            color: var(--ui-accent);
+            z-index: 20;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            white-space: nowrap;
+            box-shadow: 0 10px 0px rgba(67, 52, 42, 0.15);
+        }
+        .lazy-bubble.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+        .lazy-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -14px;
+            left: 50%;
+            margin-left: -12px;
+            border-width: 14px 12px 0;
+            border-style: solid;
+            border-color: var(--line-color) transparent transparent transparent;
+        }
+
+        .diff-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 5px;
+        }
+
+        .diff-btn {
+            background: transparent;
+            border: 2px solid var(--line-color);
+            color: var(--line-color);
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: 900;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: var(--font-family);
+            transition: all 0.15s;
+            box-shadow: 2px 2px 0px var(--line-color);
+        }
+
+        .diff-btn.active {
+            background: var(--line-color);
+            color: var(--snake-body);
+            transform: translateY(2px);
+            box-shadow: 0px 0px 0px var(--line-color);
+        }
+
+        .btn {
+            background-color: var(--ui-accent);
+            color: var(--snake-body);
+            border: 3px solid var(--line-color);
+            padding: 12px 28px;
+            font-size: 18px;
+            font-family: var(--font-family);
+            font-weight: 900;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.1s ease;
+            box-shadow: 0 5px 0px var(--line-color);
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
+        .btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 0px 0px var(--line-color);
+        }
+
+        /* 觀看 DEMO 次要按鈕 */
+        .btn-secondary {
+            background-color: var(--snake-body);
+            color: var(--line-color);
+            font-size: 14px;
+            padding: 10px 20px;
+        }
+
+        .controls {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .dpad-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .dpad-btn {
+            width: 58px;
+            height: 58px;
+            background-color: var(--snake-body);
+            border: 3px solid var(--line-color);
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.1s, transform 0.05s, box-shadow 0.05s;
+            box-shadow: 0 4px 0px var(--line-color);
+        }
+
+        .dpad-btn:active {
+            background-color: #E2D7C8;
+            transform: translateY(4px);
+            box-shadow: 0 0px 0px var(--line-color);
+        }
+
+        .dpad-btn svg {
+            width: 28px;
+            height: 28px;
+            fill: var(--ui-accent);
+        }
+
+        .desktop-tips {
+            font-size: 12px;
+            font-weight: 900;
+            opacity: 0.6;
+            margin-top: 10px;
+            text-align: center;
+            font-family: var(--font-family);
+        }
+
+        @media (min-width: 768px) {
+            .controls {
+                opacity: 0.8; 
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <header>
+            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px;">
+                <h1 style="line-height: 1;">Snake</h1>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button id="sound-btn" class="sound-btn">🔇 音效: 關</button>
+                    <button id="pause-btn" class="sound-btn">⏸️ 暫停 (Space)</button>
+                    <button id="restart-btn" class="sound-btn">🔄 重置</button>
+                    <button id="header-demo-btn" class="sound-btn">🤖 代打</button>
+                </div>
+            </div>
+            <div class="score-board">
+                <div class="score-box">
+                    <div class="score-header">
+                        <span class="score-label">SCORE</span>
+                        <span class="score-sub-label"></span>
+                    </div>
+                    <span id="score" class="score-val">000</span>
+                </div>
+                <div class="score-box">
+                    <div class="score-header">
+                        <span class="score-label">BEST</span>
+                        <span id="hs-label" class="score-sub-label">[標準]</span>
+                    </div>
+                    <span id="high-score" class="score-val">000</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="board-wrapper">
+            <canvas id="game-board" width="400" height="400"></canvas>
+            
+            <div id="particle-container"></div>
+            
+            <!-- 偷懶譴責氣泡 -->
+            <div id="lazy-bubble" class="lazy-bubble">沒有這麼偷懶的吧！🗯️</div>
+
+            <div id="game-overlay" class="overlay">
+                <div id="overlay-title" class="overlay-title">S N A K E</div>
+                
+                <div class="diff-group">
+                    <button class="diff-btn" data-diff="easy">入門 (穿牆)</button>
+                    <button class="diff-btn active" data-diff="normal">標準</button>
+                    <button class="diff-btn" data-diff="hard">進階</button>
+                </div>
+
+                <div id="overlay-desc" class="overlay-desc">選擇難度並點擊開始營業</div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button id="start-btn" class="btn">開始營業</button>
+                    <button id="demo-btn" class="btn btn-secondary">觀看 DEMO</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="dpad-row">
+                <button class="dpad-btn" id="btn-up" aria-label="往上">
+                    <svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5H7z"/></svg>
+                </button>
+            </div>
+            <div class="dpad-row">
+                <button class="dpad-btn" id="btn-left" aria-label="往左">
+                    <svg viewBox="0 0 24 24"><path d="M14 17l-5-5 5-5v10z"/></svg>
+                </button>
+                <div style="width: 58px; height: 58px;"></div>
+                <button class="dpad-btn" id="btn-right" aria-label="往右">
+                    <svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5v10z"/></svg>
+                </button>
+            </div>
+            <div class="dpad-row">
+                <button class="dpad-btn" id="btn-down" aria-label="往下">
+                    <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5H7z"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="desktop-tips">
+            電腦玩家亦可直接使用鍵盤方向鍵 (↑ ↓ ← →) 或 WASD 鍵進行控制
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('game-board');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const highScoreEl = document.getElementById('high-score');
+        const hsLabelEl = document.getElementById('hs-label');
+        const overlay = document.getElementById('game-overlay');
+        const overlayTitle = document.getElementById('overlay-title');
+        const overlayDesc = document.getElementById('overlay-desc');
+        const startBtn = document.getElementById('start-btn');
+        const demoBtn = document.getElementById('demo-btn');
+        const soundBtn = document.getElementById('sound-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const headerDemoBtn = document.getElementById('header-demo-btn'); // 頂部代打按鈕
+        const particleContainer = document.getElementById('particle-container');
+        const lazyBubble = document.getElementById('lazy-bubble');
+        const diffBtns = document.querySelectorAll('.diff-btn');
+
+        const gridSize = 20; 
+        const tileCount = canvas.width / gridSize;
+        const foodPalette = ['#849364', '#C14953', '#E6B325', '#E06C48', '#D87093', '#5E6B70'];
+
+        const difficultyConfig = {
+            easy: { name: '入門', baseSpeed: 160, minSpeed: 65, decay: 0.98, wallWrap: true },
+            normal: { name: '標準', baseSpeed: 130, minSpeed: 45, decay: 0.95, wallWrap: false },
+            hard: { name: '進階', baseSpeed: 100, minSpeed: 30, decay: 0.90, wallWrap: false }
+        };
+
+        let currentDiff = 'normal';
+        let snake = [];
+        let food = { x: 0, y: 0, color: '#849364' };
+        let dx = 0; 
+        let dy = 0; 
+        let nextDx = 0; 
+        let nextDy = 0; 
+        let score = 0;
+        let gameInterval = null;
+        let demoTimer = null;
+        let gameSpeed = 130; 
+        
+        let isGameActive = false;
+        let isGameOver = false; 
+        let isPaused = false;
+        let isSoundEnabled = false;
+        let isDemoMode = false;
+        let audioCtx = null;
+
+        function getHighScore() {
+            const val = localStorage.getItem(`sushi_snake_hs_${currentDiff}`);
+            if (val !== null) return parseInt(val);
+            if (currentDiff === 'normal') return parseInt(localStorage.getItem('sushi_snake_high_score')) || 0;
+            return 0;
+        }
+
+        diffBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                diffBtns.forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                currentDiff = e.target.dataset.diff;
+                hsLabelEl.textContent = `[${difficultyConfig[currentDiff].name}]`;
+                updateScoreDisplay();
+                e.target.blur();
+            });
+        });
+
+        soundBtn.addEventListener('click', () => {
+            isSoundEnabled = !isSoundEnabled;
+            if (isSoundEnabled) {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                soundBtn.textContent = '🔊 音效: 開';
+                soundBtn.classList.add('active');
+                playSound('eat'); 
+            } else {
+                soundBtn.textContent = '🔇 音效: 關';
+                soundBtn.classList.remove('active');
+            }
+            soundBtn.blur();
+        });
+
+        restartBtn.addEventListener('click', () => {
+            if (demoTimer) clearTimeout(demoTimer); 
+            isDemoMode = false;
+            headerDemoBtn.classList.remove('active');
+            
+            if (!isGameActive && !isGameOver && !overlay.classList.contains('hidden')) {
+                startGame();
+            } else {
+                startGame();
+            }
+            restartBtn.blur();
+        });
+
+        // 頂部「中途代打」按鈕監聽器（已優化為雙向切換 Toggle）
+        headerDemoBtn.addEventListener('click', () => {
+            if (!isGameActive || isGameOver) return; // 僅限遊戲進行中
+
+            if (isDemoMode) {
+                // 主動取消代打，重獲手動控制權
+                isDemoMode = false;
+                headerDemoBtn.classList.remove('active');
+                if (demoTimer) {
+                    clearTimeout(demoTimer);
+                    demoTimer = null;
+                }
+                updateScoreDisplay();
+            } else {
+                // 啟用代打
+                isDemoMode = true;
+                headerDemoBtn.classList.add('active');
+                
+                // 若為暫停狀態，強制解除暫停
+                if (isPaused) togglePause();
+                
+                // 啟動 30 秒中斷定時器
+                if (demoTimer) clearTimeout(demoTimer);
+                demoTimer = setTimeout(() => {
+                    if (isDemoMode) interruptDemo();
+                }, 30000);
+                
+                updateScoreDisplay();
+            }
+            headerDemoBtn.blur();
+        });
+
+        function initAudio() {
+            if (isSoundEnabled && audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSound(type) {
+            if (!isSoundEnabled || !audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+
+                if (type === 'eat') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(880.00, now); 
+                    osc.frequency.setValueAtTime(1318.51, now + 0.05); 
+                    gain.gain.setValueAtTime(0.2, now); 
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                } else if (type === 'gameover') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(300.00, now); 
+                    osc.frequency.exponentialRampToValueAtTime(50.00, now + 0.5);
+                    gain.gain.setValueAtTime(0.3, now); 
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                    osc.start(now);
+                    osc.stop(now + 0.5);
+                }
+            } catch (e) {
+                console.warn("Audio error", e);
+            }
+        }
+
+        function spawnHeart(gx, gy) {
+            const heart = document.createElement('div');
+            heart.classList.add('heart-particle');
+            heart.innerHTML = '♥';
+
+            const leftPct = ((gx + 0.5) / tileCount) * 100;
+            const topPct = ((gy + 0.5) / tileCount) * 100;
+            
+            heart.style.left = `${leftPct}%`;
+            heart.style.top = `${topPct}%`;
+            
+            particleContainer.appendChild(heart);
+
+            setTimeout(() => {
+                if (heart.parentNode) heart.parentNode.removeChild(heart);
+            }, 800);
+        }
+
+        function updateScoreDisplay() {
+            scoreEl.textContent = String(score).padStart(3, '0');
+            highScoreEl.textContent = isDemoMode ? '---' : String(getHighScore()).padStart(3, '0');
+        }
+
+        function resetGame() {
+            snake = [
+                { x: 10, y: 10 },
+                { x: 9, y: 10 },
+                { x: 8, y: 10 }
+            ];
+            dx = 1; dy = 0; nextDx = 1; nextDy = 0;
+            score = 0;
+            gameSpeed = difficultyConfig[currentDiff].baseSpeed; 
+            
+            particleContainer.innerHTML = '';
+            lazyBubble.classList.remove('show'); 
+            updateScoreDisplay();
+            spawnFood();
+        }
+
+        function spawnFood() {
+            let valid = false;
+            while (!valid) {
+                food.x = Math.floor(Math.random() * tileCount);
+                food.y = Math.floor(Math.random() * tileCount);
+                
+                valid = true;
+                for (let segment of snake) {
+                    if (segment.x === food.x && segment.y === food.y) {
+                        valid = false;
+                        break;
+                    }
+                }
+            }
+            food.color = foodPalette[Math.floor(Math.random() * foodPalette.length)];
+        }
+
+        // 時空廣度優先搜尋 (BFS)：將蛇身每一節解構為動態時間衰減障礙物
+        function bfsPathfind(start, target, wallWrap, isChasingFood) {
+            const queue = [ [start.x, start.y, []] ];
+            const visited = Array.from({ length: tileCount }, () => Array(tileCount).fill(false));
+            visited[start.y][start.x] = true;
+
+            const dirs = [
+                { x: 0, y: -1 }, // 上
+                { x: 0, y: 1 },  // 下
+                { x: -1, y: 0 }, // 左
+                { x: 1, y: 0 }   // 右
+            ];
+
+            while (queue.length > 0) {
+                const [cx, cy, path] = queue.shift();
+                const t = path.length; // 當前尋路模擬的時間步數
+
+                if (cx === target.x && cy === target.y) {
+                    return path; 
+                }
+
+                for (const d of dirs) {
+                    let nx = cx + d.x;
+                    let ny = cy + d.y;
+
+                    if (wallWrap) {
+                        nx = (nx + tileCount) % tileCount;
+                        ny = (ny + tileCount) % tileCount;
+                    } else {
+                        if (nx < 0 || nx >= tileCount || ny < 0 || ny >= tileCount) continue;
+                    }
+
+                    // 動態時空障礙檢查
+                    let isObstacle = false;
+                    for (let i = 0; i < snake.length; i++) {
+                        if (snake[i].x === nx && snake[i].y === ny) {
+                            // 吃到食物時，蛇尾不縮，障礙清除時間順延一幀
+                            const delay = isChasingFood ? 1 : 0;
+                            const clearTime = snake.length - i + delay;
+                            if (t < clearTime) {
+                                isObstacle = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!isObstacle && !visited[ny][nx]) {
+                        visited[ny][nx] = true;
+                        queue.push([nx, ny, [...path, d]]);
+                    }
+                }
+            }
+            return null; // 無通路
+        }
+
+        // 洪水填充 (Flood Fill) 用於估算特定方向的生存空間大小
+        function getSurvivalScore(sx, sy, wallWrap, maxDepth = 25) {
+            const queue = [[sx, sy]];
+            const visited = Array.from({ length: tileCount }, () => Array(tileCount).fill(false));
+            visited[sy][sx] = true;
+            
+            // 初始化將當前蛇身排除
+            for (let i = 0; i < snake.length - 1; i++) {
+                visited[snake[i].y][snake[i].x] = true;
+            }
+
+            let count = 0;
+            const dirs = [{x:0, y:-1}, {x:0, y:1}, {x:-1, y:0}, {x:1, y:0}];
+
+            while (queue.length > 0 && count < maxDepth) {
+                const [cx, cy] = queue.shift();
+                count++;
+
+                for (const d of dirs) {
+                    let nx = cx + d.x;
+                    let ny = cy + d.y;
+
+                    if (wallWrap) {
+                        nx = (nx + tileCount) % tileCount;
+                        ny = (ny + tileCount) % tileCount;
+                    } else {
+                        if (nx < 0 || nx >= tileCount || ny < 0 || ny >= tileCount) continue;
+                    }
+
+                    if (!visited[ny][nx]) {
+                        visited[ny][nx] = true;
+                        queue.push([nx, ny]);
+                    }
+                }
+            }
+            return count;
+        }
+
+        // 升級版代打生存大腦 (Auto-Pilot)
+        function runAutoPilot() {
+            const head = snake[0];
+            const tail = snake[snake.length - 1];
+            const isWrap = difficultyConfig[currentDiff].wallWrap;
+
+            // 第一策略：嘗試尋找安全抵達食物的時空最優路徑
+            let path = bfsPathfind(head, food, isWrap, true);
+            if (path && path.length > 0) {
+                nextDx = path[0].x;
+                nextDy = path[0].y;
+                return;
+            }
+
+            // 第二策略：食物不可達時，尋找最優追尾路徑 (此時不進食，isChasingFood = false)
+            path = bfsPathfind(head, tail, isWrap, false);
+            if (path && path.length > 0) {
+                nextDx = path[0].x;
+                nextDy = path[0].y;
+                return;
+            }
+
+            // 第三策略：極限狀態，進行 4 向 Flood Fill 深度空間評估，選擇開闊度最高的方向逃生
+            const possibleMoves = [
+                { dx: 0, dy: -1 }, 
+                { dx: 0, dy: 1 },  
+                { dx: -1, dy: 0 }, 
+                { dx: 1, dy: 0 }   
+            ];
+
+            let bestScore = -1;
+            let bestMove = null;
+
+            for (const m of possibleMoves) {
+                // 阻斷 immediate 180度自我逆向
+                if (dx !== 0 && m.dx === -dx) continue;
+                if (dy !== 0 && m.dy === -dy) continue;
+
+                let nx = head.x + m.dx;
+                let ny = head.y + m.dy;
+                let isSafe = true;
+
+                if (isWrap) {
+                    nx = (nx + tileCount) % tileCount;
+                    ny = (ny + tileCount) % tileCount;
+                } else {
+                    if (nx < 0 || nx >= tileCount || ny < 0 || ny >= tileCount) isSafe = false;
+                }
+
+                if (isSafe) {
+                    // 基本碰撞初篩 (避開當前蛇身)
+                    for (let i = 0; i < snake.length - 1; i++) {
+                        if (snake[i].x === nx && snake[i].y === ny) {
+                            isSafe = false;
+                            break;
+                        }
+                    }
+                }
+
+                if (isSafe) {
+                    const score = getSurvivalScore(nx, ny, isWrap);
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestMove = m;
+                    }
+                }
+            }
+
+            if (bestMove) {
+                nextDx = bestMove.dx;
+                nextDy = bestMove.dy;
+            }
+        }
+
+        function gameTick() {
+            if (isDemoMode) runAutoPilot();
+
+            dx = nextDx; dy = nextDy;
+            const config = difficultyConfig[currentDiff];
+            
+            let nextX = snake[0].x + dx;
+            let nextY = snake[0].y + dy;
+
+            if (config.wallWrap) {
+                nextX = (nextX + tileCount) % tileCount;
+                nextY = (nextY + tileCount) % tileCount;
+            } else {
+                if (nextX < 0 || nextX >= tileCount || nextY < 0 || nextY >= tileCount) {
+                    endGame();
+                    return;
+                }
+            }
+
+            const head = { x: nextX, y: nextY };
+
+            for (let i = 0; i < snake.length; i++) {
+                if (snake[i].x === head.x && snake[i].y === head.y) {
+                    endGame();
+                    return;
+                }
+            }
+
+            snake.unshift(head);
+
+            if (head.x === food.x && head.y === food.y) {
+                score += 10;
+                if (!isDemoMode) {
+                    const currentHS = getHighScore();
+                    if (score > currentHS) {
+                        localStorage.setItem(`sushi_snake_hs_${currentDiff}`, score);
+                    }
+                }
+                updateScoreDisplay();
+                playSound('eat');
+                spawnHeart(head.x, head.y);
+                spawnFood();
+                adjustSpeed();
+            } else {
+                snake.pop();
+            }
+            drawGame();
+        }
+
+        function adjustSpeed() {
+            const config = difficultyConfig[currentDiff];
+            const foodsEaten = score / 10; 
+            const newSpeed = Math.floor(config.minSpeed + (config.baseSpeed - config.minSpeed) * Math.pow(config.decay, foodsEaten));
+            
+            if (newSpeed !== gameSpeed) {
+                gameSpeed = newSpeed;
+                clearInterval(gameInterval);
+                gameInterval = setInterval(gameTick, gameSpeed);
+            }
+        }
+
+        // 修改：在暫停或代打狀態下阻斷手動方向指令
+        function changeDirection(newDx, newDy) {
+            if (!isGameActive || isPaused || isDemoMode) return;
+            const isOppositeX = (newDx !== 0 && dx === -newDx);
+            const isOppositeY = (newDy !== 0 && dy === -newDy);
+            
+            if (!isOppositeX && !isOppositeY) {
+                nextDx = newDx; nextDy = newDy;
+            }
+        }
+
+        function drawGame() {
+            const cssVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+            const bgColor = cssVar('--bg-color');
+            const gridColor = cssVar('--grid-color');
+            const strokeColor = cssVar('--line-color');
+            const headColor = cssVar('--snake-head');
+            const bodyColor = cssVar('--snake-body');
+
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.strokeStyle = gridColor;
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 4]);
+            for (let i = 0; i <= tileCount; i++) {
+                const pos = i * gridSize;
+                ctx.beginPath(); ctx.moveTo(pos, 0); ctx.lineTo(pos, canvas.height); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, pos); ctx.lineTo(canvas.width, pos); ctx.stroke();
+            }
+            ctx.setLineDash([]); 
+
+            const padding = 1.5;
+            const size = gridSize - padding * 2;
+
+            [...snake].reverse().forEach((segment, revIndex) => {
+                const index = snake.length - 1 - revIndex;
+                const isHead = index === 0;
+                
+                const rx = segment.x * gridSize + padding;
+                const ry = segment.y * gridSize + padding;
+                
+                ctx.fillStyle = isHead ? headColor : bodyColor;
+                ctx.strokeStyle = strokeColor;
+                ctx.lineWidth = 2.5;
+                
+                ctx.beginPath();
+                if (ctx.roundRect) {
+                    ctx.roundRect(rx, ry, size, size, isHead ? 6 : 4);
+                } else {
+                    ctx.rect(rx, ry, size, size);
+                }
+                ctx.fill();
+                ctx.stroke();
+
+                if (isHead) {
+                    ctx.fillStyle = strokeColor;
+                    const eyeSize = 4;
+                    if (dx === 1) { 
+                        ctx.fillRect(rx + size - 8, ry + 3, eyeSize, eyeSize);
+                        ctx.fillRect(rx + size - 8, ry + size - 7, eyeSize, eyeSize);
+                    } else if (dx === -1) { 
+                        ctx.fillRect(rx + 4, ry + 3, eyeSize, eyeSize);
+                        ctx.fillRect(rx + 4, ry + size - 7, eyeSize, eyeSize);
+                    } else if (dy === 1) { 
+                        ctx.fillRect(rx + 3, ry + size - 8, eyeSize, eyeSize);
+                        ctx.fillRect(rx + size - 7, ry + size - 8, eyeSize, eyeSize);
+                    } else if (dy === -1) { 
+                        ctx.fillRect(rx + 3, ry + 4, eyeSize, eyeSize);
+                        ctx.fillRect(rx + size - 7, ry + 4, eyeSize, eyeSize);
+                    }
+                }
+            });
+
+            const foodSize = gridSize - 4;
+            const fx = food.x * gridSize + 2;
+            const fy = food.y * gridSize + 2;
+            
+            ctx.fillStyle = food.color; 
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = 2.5;
+            
+            ctx.beginPath();
+            if (ctx.roundRect) {
+                ctx.roundRect(fx, fy, foodSize, foodSize, 8); 
+            } else {
+                ctx.rect(fx, fy, foodSize, foodSize);
+            }
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        function togglePause() {
+            if (!isGameActive || isGameOver || isDemoMode) return;
+            isPaused = !isPaused;
+
+            if (isPaused) {
+                clearInterval(gameInterval);
+                pauseBtn.textContent = '▶️ 繼續 (Space)';
+                pauseBtn.classList.add('active');
+                
+                ctx.fillStyle = 'rgba(234, 220, 182, 0.7)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--snake-body').trim();
+                ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--line-color').trim();
+                ctx.lineWidth = 4;
+                ctx.font = '900 40px ' + getComputedStyle(document.documentElement).getPropertyValue('--font-family').trim();
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.strokeText('PAUSED', canvas.width / 2, canvas.height / 2);
+                ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2);
+            } else {
+                pauseBtn.textContent = '⏸️ 暫停 (Space)';
+                pauseBtn.classList.remove('active');
+                gameInterval = setInterval(gameTick, gameSpeed);
+                drawGame();
+            }
+            pauseBtn.blur();
+        }
+
+        pauseBtn.addEventListener('click', togglePause);
+
+        function startGame() {
+            initAudio();
+            overlay.classList.add('hidden');
+            document.querySelector('.board-wrapper').classList.remove('shake');
+            
+            isPaused = false;
+            pauseBtn.textContent = '⏸️ 暫停 (Space)';
+            pauseBtn.classList.remove('active');
+            headerDemoBtn.classList.remove('active');
+            
+            document.querySelector('.diff-group').style.display = 'none';
+            
+            isGameActive = true;
+            isGameOver = false; 
+            resetGame();
+            
+            if (gameInterval) clearInterval(gameInterval);
+            gameInterval = setInterval(gameTick, gameSpeed);
+            
+            drawGame();
+        }
+
+        function endGame() {
+            isGameActive = false;
+            isGameOver = true; 
+            isDemoMode = false;
+            headerDemoBtn.classList.remove('active');
+            clearInterval(gameInterval);
+            if (demoTimer) clearTimeout(demoTimer);
+
+            playSound('gameover');
+            document.querySelector('.board-wrapper').classList.add('shake');
+            
+            overlayTitle.innerHTML = "GAME OVER";
+            overlayDesc.innerHTML = `[${difficultyConfig[currentDiff].name}] 得分：<span style="font-size: 22px; font-weight: 900; color: var(--ui-accent); -webkit-text-stroke: 1px var(--line-color); text-shadow: 1px 1px 0px var(--line-color); font-family: var(--font-family);">${score}</span> 分<br>最高紀錄：${getHighScore()} 分<br><br>請點擊按鈕或按 <b>Enter</b> 重新挑戰`;
+            startBtn.textContent = "重新開始";
+            
+            document.querySelector('.diff-group').style.display = 'flex';
+            overlay.classList.remove('hidden');
+        }
+
+        function interruptDemo() {
+            isGameActive = false;
+            isGameOver = true; 
+            isDemoMode = false;
+            headerDemoBtn.classList.remove('active');
+            clearInterval(gameInterval);
+            playSound('gameover');
+            
+            overlayTitle.innerHTML = "S N A K E";
+            overlayDesc.innerHTML = "選擇難度並點擊開始營業";
+            startBtn.textContent = "開始營業";
+            document.querySelector('.diff-group').style.display = 'flex';
+            overlay.classList.remove('hidden');
+
+            lazyBubble.classList.add('show');
+            setTimeout(() => {
+                lazyBubble.classList.remove('show');
+            }, 3000);
+        }
+
+        // 首頁的 DEMO 啟動鈕
+        demoBtn.addEventListener('click', () => {
+            isDemoMode = true;
+            headerDemoBtn.classList.add('active');
+            demoBtn.blur();
+            startGame();
+
+            if (demoTimer) clearTimeout(demoTimer);
+            demoTimer = setTimeout(() => {
+                if (isDemoMode) interruptDemo();
+            }, 30000);
+        });
+        
+        window.addEventListener('keydown', (e) => {
+            const key = e.key.toLowerCase();
+            
+            if (!isGameActive) {
+                if (!isGameOver && (key.includes('arrow') || ['w','a','s','d'].includes(key))) {
+                    if (overlay.classList.contains('hidden') === false) {
+                        startGame();
+                        return;
+                    }
+                } else if (isGameOver && (e.key === 'Enter' || e.key === ' ')) {
+                    if (lazyBubble.classList.contains('show')) return;
+                    startGame();
+                    e.preventDefault();
+                    return;
+                }
+                if (isGameOver) return;
+            } else if (e.key === ' ') {
+                if (!isDemoMode) togglePause();
+                e.preventDefault();
+                return;
+            }
+
+            if (isPaused || isDemoMode) return;
+
+            switch(e.key) {
+                case 'ArrowUp': case 'w': case 'W': changeDirection(0, -1); e.preventDefault(); break;
+                case 'ArrowDown': case 's': case 'S': changeDirection(0, 1); e.preventDefault(); break;
+                case 'ArrowLeft': case 'a': case 'A': changeDirection(-1, 0); e.preventDefault(); break;
+                case 'ArrowRight': case 'd': case 'D': changeDirection(1, 0); e.preventDefault(); break;
+            }
+        });
+
+        const bindDpad = (btnId, dxVal, dyVal) => {
+            const btn = document.getElementById(btnId);
+            const triggerAction = (e) => {
+                e.preventDefault();
+                initAudio();
+                if (!isGameActive && !overlay.classList.contains('hidden')) {
+                    if (!isGameOver) startGame();
+                } else {
+                    changeDirection(dxVal, dyVal);
+                }
+            };
+            btn.addEventListener('touchstart', triggerAction, { passive: false });
+            btn.addEventListener('mousedown', triggerAction);
+        };
+
+        bindDpad('btn-up', 0, -1);
+        bindDpad('btn-down', 0, 1);
+        bindDpad('btn-left', -1, 0);
+        bindDpad('btn-right', 1, 0);
+
+        let touchStartX = 0; let touchStartY = 0;
+        
+        canvas.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY;
+            if (!isDemoMode) e.preventDefault();
+        }, { passive: false });
+        canvas.addEventListener('touchmove', (e) => {
+            if (!isDemoMode) e.preventDefault();
+        }, { passive: false });
+        canvas.addEventListener('touchend', (e) => {
+            if (!isGameActive || isDemoMode) return;
+            const diffX = e.changedTouches[0].clientX - touchStartX;
+            const diffY = e.changedTouches[0].clientY - touchStartY;
+            const threshold = 30;
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                if (Math.abs(diffX) > threshold) changeDirection(diffX > 0 ? 1 : -1, 0);
+            } else {
+                if (Math.abs(diffY) > threshold) changeDirection(0, diffY > 0 ? 1 : -1);
+            }
+        });
+
+        startBtn.addEventListener('click', startGame);
+
+        window.onload = () => {
+            hsLabelEl.textContent = `[${difficultyConfig[currentDiff].name}]`;
+            updateScoreDisplay();
+            const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg-color').trim();
+            const grid = getComputedStyle(document.documentElement).getPropertyValue('--grid-color').trim();
+            ctx.fillStyle = bg;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = grid;
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 4]);
+            for (let i = 0; i <= tileCount; i++) {
+                const pos = i * gridSize;
+                ctx.beginPath(); ctx.moveTo(pos, 0); ctx.lineTo(pos, canvas.height); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, pos); ctx.lineTo(canvas.width, pos); ctx.stroke();
+            }
+            ctx.setLineDash([]);
+        };
+    </script>
+</body>
+</html>

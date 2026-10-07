@@ -30,6 +30,28 @@ await check('必修路線依 manifest 實際導航閉環',async()=>{
  }
  assert.equal(new URL(page.url()).pathname,new URL('index.html',base).pathname);
 });
+await check('第一章完整提示詞皆可見且有對應複製控制',async()=>{
+ const prompts={
+  'part1/CH1-1.html':[['prompt-snake',700],['prompt-snake-revision',150],['prompt-snake-style',250],['prompt-snake-features',380],['prompt-snake-polish',390]],
+  'part1/CH1-2.html':[['prompt-revision-example',300]],
+  'part1/CH1-3.html':[['prompt-calculation',800],['prompt-multi-condition',800]]
+ };
+ for(const [file,items] of Object.entries(prompts)){
+  await go(file);
+  for(const [id,minLength] of items){
+   const nodes=await page.evaluate(id=>({
+    text:document.getElementById(id)?.textContent||'',
+    copy:document.querySelectorAll(`[data-copy="${id}"]`).length,
+    status:document.querySelectorAll(`[data-copy-status="${id}"][role="status"][aria-live="polite"]`).length,
+    folded:!!document.getElementById(id)?.closest('details')
+   }),id);
+   assert(nodes.text.length>=minLength,`${file} #${id} is too short or missing`);
+   assert.equal(nodes.copy,1,`${file} #${id} copy button`);
+   assert.equal(nodes.status,1,`${file} #${id} copy status`);
+   assert.equal(nodes.folded,false,`${file} #${id} hidden in details`);
+  }
+ }
+});
 await check('成果勾選持久化而非閱讀自動完課',async()=>{
  await go('index.html');
  const boxes=page.locator('[data-core-complete]');assert.equal(await boxes.count(),route.length);
@@ -86,7 +108,7 @@ await check('KPI 延伸頁正文與完整提示詞仍可讀',async()=>{
 });
 const visual=[];const reps=['index.html','part1/CH1-3.html','part2/PRAC2-1.html','part3/PRAC3-3.html','part6/CH6-2.html','part6/CH6-3.html','part6/PRAC6-1.html','assets/tools/budget-reference.html','assets/tools/kpi-reference.html'];
 const focus={
- 'index.html':'#optional-catalog','part1/CH1-3.html':'#prompt-timer','part2/PRAC2-1.html':'#prompt-budget',
+ 'index.html':'#optional-catalog','part1/CH1-3.html':'#prompt-multi-condition','part2/PRAC2-1.html':'#prompt-budget',
  'part3/PRAC3-3.html':'#core-1','part6/CH6-2.html':'#share-publish-1',
  'part6/CH6-3.html':'#external-1','part6/PRAC6-1.html':'#prompt-meeting',
  'assets/tools/budget-reference.html':'#summary','assets/tools/kpi-reference.html':'#summary'
@@ -108,7 +130,6 @@ await check('桌面1440与手机390/430的页面宽度、导航与可见范围',
  }
 });
 const knownPageErrorMessages=new Map([
- ['/part1/CH1-3.html',"Cannot read properties of null (reading 'addEventListener')"],
  ['/part2/PRAC2-1.html',"Cannot read properties of null (reading 'appendChild')"],
  ['/part3/PRAC3-3.html',"Cannot read properties of null (reading 'appendChild')"]
 ]);
