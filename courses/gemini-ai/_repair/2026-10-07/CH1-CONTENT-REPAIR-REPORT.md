@@ -2,7 +2,7 @@
 
 日期：2026-10-08
 範圍：`part1/CH1-1.html`、`CH1-2.html`、`CH1-3.html` 與其來源片段、課程索引和修復紀錄
-判定：**CH1-1 開頭與說明段落已依人工審閱意見調整；本輪學員 agent 冷讀 PASS，待使用者人工確認；AI Studio 帳戶路徑與實際生成仍待確認。**
+判定：**CH1-1 與 CH1-2 說明文案已依人工審閱意見調整，學員 agent 冷讀 PASS，待使用者人工確認；AI Studio 帳戶路徑與實際生成仍待確認。**
 
 ## 修復結果
 
@@ -34,6 +34,13 @@
 - core-2 明確交代文字需求送至生成式 AI、模型產生程式碼、存成 HTML 後由瀏覽器讀取執行，以及遊戲開始後依程式規則運作、不需 AI 逐步介入。
 - 同步 CH1-1 正文與來源片段；完整提示詞、連結目標與 HTML 結構保持不變。完成來源片段一致性檢查後，學員 agent 冷讀判定 PASS。
 - 機器檢查：CH1-1 lint 0 BLOCKER／0 ERROR（1 項既有字型值 WARN）；內容機器檢查 0 block；copy continuity audit 0 warnings；HTML structure 0 blocked；git diff --check 通過。AI Studio 實際生成、真人試教及使用者人工審閱仍待完成。
+
+## 2026-10-08 CH1-2 文案語氣修整
+
+- 依使用者指出的問題，改寫 core-1 中「不是……而是……」句型，直接敘述 CH1-1 的提示詞經驗如何銜接到本單元的角色、任務、限制與交付格式拆解。
+- 同步整理黃金公式說明、單檔安全提醒、提示詞回看步驟、修改練習和單元收尾；說明文字改用中性敘述，操作步驟與技術限制維持明確。
+- 同步 CH1-2 正文與來源片段；完整提示詞、連結目標和 DOM 結構不變。學員 agent 冷讀判定 PASS，確認承接、操作與下一站銜接完整。
+- 機器檢查：CH1-2 lint 0 BLOCKER／0 ERROR（1 項既有字型值 WARN）；內容機器檢查 0 block；copy continuity audit 0 warnings；HTML structure 0 blocked；4 個正文區段與來源一致；提示詞、連結與 DOM 未變。AI Studio 實際生成及使用者人工審閱仍待完成。
 
 ## 學員 agent 第二輪冷讀
 
