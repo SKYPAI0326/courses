@@ -226,71 +226,20 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   </div>
   <h1 class="lesson-title">生成、保存並重開第一個工具</h1>
   <p class="lesson-tagline">把上一站的規格交給 AI，自己核對倒數與存檔結果。</p>
-  <div class="outcomes"><div class="outcomes-label">本次成果</div><div class="outcome-item"><div class="outcome-dot"></div><span>保存可重開的計時器</span></div><div class="outcome-item"><div class="outcome-dot"></div><span>依完整檢查表驗收正常、邊界與例外；未測項明確標記</span></div></div>
+  <div class="outcomes"><div class="outcomes-label">本次成果</div><div class="outcome-item"><div class="outcome-dot"></div><span>保存可重開的計時器</span></div><div class="outcome-item"><div class="outcome-dot"></div><span>測試一項正常行為與一項例外</span></div></div>
 </section>
 
-<main class="lesson-body">
-<!-- learner-content:start -->
-<section class="lesson-section" id="core-1">
-  <h2 class="section-heading">把已完成的規格交給 AI 生成</h2>
-  <p class="body-text">上一站把會議計時器寫成完整規格。現在要取得一份自己生成、能在瀏覽器開啟的 HTML，依已知答案測試後再決定能不能交付。AI 產生的程式是待驗收的初稿；回覆完整、畫面漂亮，都不能代替實際操作。</p>
-  <p class="body-text">本次要求一個 HTML 檔案，是因為初次操作只需管理一份檔案。HTML 提供畫面欄位，內嵌 CSS 決定外觀，原生 JavaScript 執行固定倒數，Web Audio API 在歸零時產生本機提示音。沒有額外函式庫、外部音效檔、CDN 或 API，就少了路徑、安裝和網路依賴；保存後的計時器可以離線使用。產生它的 AI Studio 對話仍需要網路，提示詞也會傳送給雲端服務，因此本例只用虛構資料。</p>
-  <p class="body-text">生成要求與計時器使用資料是兩回事：下面的提示詞告訴 Gemini 要製作什麼；生成後，你才在工具中輸入「活動籌備」與 10 秒。不要把公司的真實會議紀錄或個資放進生成提示詞。</p>
-</section>
-
-<section class="lesson-section" id="core-2">
-  <h2 class="section-heading">送出完整提示詞，確認拿到完整檔案</h2>
-  <p class="body-text">下方就是上一站逐項拆解的同一份提示詞。先讀清楚輸出範圍、檔案限制和驗收條件，再按「複製完整提示詞」。不要省略功能條件或把提示詞另存成另一份下載文件。</p>
-  <div class="prompt-wrap">
-    <div class="prompt-label">完整規格提示詞｜可直接貼入 Google AI Studio</div>
-    <pre class="result-box" id="prompt-timer">你是協助初學者製作瀏覽器單檔工具的前端工程助手。
-工作情境：活動會議主持人需要掌握每位發言者的時間，並在時間接近結束時提醒。
-任務：製作一個「會議倒數計時器」，供主持人於會議中使用。
-輸入：使用者可輸入會議主題與正整數秒數；秒數預設為 25 分鐘（1500 秒）。主題留白時顯示「未命名會議」。
-操作規則：按「開始」後每秒減一；按「暫停」時數字保持；按「重設」回到目前設定的秒數；倒數中修改主題不得重設剩餘時間；重複按「開始」不得建立多個倒數或加速。
-提醒與結束：剩餘時間大於 0 且小於或等於 5 分鐘時，以紅色顯示提醒；時間歸零後停止、顯示「時間到」，不可顯示負數，並播放一次短提示音。提示音請使用瀏覽器內建 Web Audio API 產生，不讀取或下載外部音效檔。
-例外：秒數空白、0、負數或非整數時不可開始，並顯示清楚的修正提示；修正為有效正整數後可以開始。使用者清空主題時仍可操作，畫面顯示「未命名會議」。
-畫面：使用繁體中文，以分:秒顯示剩餘時間，時間數字要清楚易讀；提供主題欄、秒數欄、「開始」、「暫停」、「重設」按鈕。桌面投影及 390 像素寬的手機畫面皆須可操作，手機畫面不得出現水平捲動。
-工程限制：只交付一個完整 HTML 檔案。HTML、CSS 與原生 JavaScript 都放在同一檔案；不得使用外部函式庫、框架、CDN、外部字型、圖片、音效檔或 API。計時器保存後只依固定規則運作，不呼叫 AI、不需網路。
-驗收：首次開啟秒數欄預設 1500，畫面顯示 25:00；清空主題後顯示「未命名會議」。輸入「活動籌備」和 10 秒，開始約三秒後剩約 7 秒；暫停兩秒數字不變；重設回 10 秒；倒數中改主題時剩餘秒數不重設；重複按開始不加速。將秒數設為 301 秒，按「重設」再按「開始」，確認 5:01 不標紅；將秒數改為 300 秒，再按「重設」和「開始」，確認 5:00 標紅。將秒數設為 1 秒，按「重設」和「開始」測歸零，確認停止、顯示時間到、不出現負數並播放一次提示音。空白、0、-1、1.5 各自輸入後按「開始」都不可啟動；最後設為 10 秒，按「重設」和「開始」確認可恢復。窄化至 390 像素寬時，欄位和按鈕仍可操作且頁面沒有水平捲動。只用本機 HTML/CSS/JavaScript，保存檔在離線時仍能開啟與操作。
-交付格式：請只輸出從 &lt;!DOCTYPE html&gt; 到 &lt;/html&gt; 的完整 HTML 程式碼，不要加說明文字、Markdown 圍欄、佔位符或程式片段。</pre>
-  </div>
-  <button class="copy-btn" data-copy="prompt-timer" type="button">複製完整提示詞</button><span data-copy-status="prompt-timer" role="status"></span>
-  <p class="body-text">在電腦瀏覽器開啟<a href="https://aistudio.google.com/" rel="noopener" target="_blank">Google AI Studio</a>，登入有權使用的 Google 帳號，找到可輸入並送出文字的 Chat／Playground。操作名稱可能隨平台調整；若找不到入口，依<a href="https://ai.google.dev/gemini-api/docs/ai-studio-quickstart" rel="noopener" target="_blank">官方快速入門</a>核對目前介面。</p>
-  <ol class="body-text">
-    <li>按上方按鈕複製完整提示詞，貼到對話輸入欄並送出。等待回覆完成，不要在程式尚未輸出完時就複製。</li>
-    <li>找到程式碼區塊，確認第一行是 <code>&lt;!DOCTYPE html&gt;</code>，最後有 <code>&lt;/html&gt;</code>。若只收到說明或片段，使用下面的修復句要求補回整份檔案。</li>
-    <li>只複製 HTML 程式碼，不要把 AI 的前言、Markdown 圍欄或結尾說明一起複製。貼進純文字編輯器。</li>
-    <li>存入 CH1-1 建立的「AI工作工具」資料夾。Windows 記事本用「另存新檔」，檔名輸入 <code>meeting-timer-v1.html</code>、類型選「所有檔案」、編碼選 UTF-8。Mac TextEdit 先選「格式 → 製作純文字」，再存成同名 `.html` 檔案。首次生成統一命名為 v1，方便之後保留原始版本並核對修復。</li>
-    <li>在檔案管理器中找到檔案並雙擊。瀏覽器顯示計時器介面才算開啟成功；若看到程式文字，檢查檔案是否其實叫 <code>meeting-timer.html.txt</code>，以及是否誤存為富文字格式。</li>
-  </ol>
-  <div class="callout info"><div class="callout-icon" aria-hidden="true">i</div><div class="callout-body"><strong>輸出缺少開頭或結尾時：</strong>回到原對話貼上「你沒有提供完整檔案。請根據原需求重新輸出，從 <code>&lt;!DOCTYPE html&gt;</code> 到 <code>&lt;/html&gt;</code>，不要省略任何 CSS、JavaScript 或 HTML，也不要附加說明。」收到完整檔案後再保存，不要手動猜測缺少的程式。</div></div>
-</section>
-
-<section class="lesson-section" id="core-3">
-  <h2 class="section-heading">用已知輸入測試，再修復未通過的規則</h2>
-  <p class="body-text">現在使用自己保存的檔案，依序操作並記錄預期和實際結果。每一行都是提示詞中的一條要求，不要只看介面外觀就判定可交付。</p>
-  <div class="core-table-scroll"><table>
-    <thead><tr><th>測試操作</th><th>通過標準</th><th>失敗時先檢查</th></tr></thead>
-    <tbody>
-      <tr><td>首次開啟，確認預設秒數；清空主題。</td><td>秒數欄為 1500，畫面顯示 25:00；主題顯示「未命名會議」。</td><td>預設值與空白主題是否依規格處理。</td></tr>
-      <tr><td>主題填「活動籌備」，秒數填 10，按開始。</td><td>每秒減一；約三秒後剩約 7 秒。</td><td>是否拿到完整 HTML；開始按鈕是否啟動倒數。</td></tr>
-      <tr><td>約三秒時按暫停，等兩秒。</td><td>數字保持不變。</td><td>暫停是否清除目前倒數，而不是只改按鈕文字。</td></tr>
-      <tr><td>按重設，再次倒數時修改主題。</td><td>回到 10 秒；主題更新但剩餘時間不重設。</td><td>計時規則是否錯誤地綁在主題欄位更新上。</td></tr>
-      <tr><td>倒數中連按開始。</td><td>倒數速度不變，不會同時跑多個計時器。</td><td>開始按鈕是否允許重複建立計時器。</td></tr>
-      <tr><td>將秒數設為 301，按「重設」再按「開始」；再將秒數改為 300，按「重設」再按「開始」。</td><td>301 秒（5:01）不標紅；300 秒（5:00）標紅。</td><td>提醒邊界是否包含五分鐘整，以及重設是否載入目前設定值。</td></tr>
-      <tr><td>將秒數設為 1，按「重設」再按「開始」測歸零。</td><td>停止、顯示「時間到」、不出現負數並播放一次短音。</td><td>若無聲，確認系統音量和瀏覽器分頁未靜音，再按「重設」和「開始」重測。仍無法播放時記為「音訊驗收未通過：環境受限」，不可寫成通過；畫面的時間到訊息仍是必要驗收。</td></tr>
-      <tr><td>逐一輸入空白、0、-1、1.5 並按「開始」；最後設為 10 秒、按「重設」再按「開始」。</td><td>無效值不能開始並有提示；改正後計時器可以使用。</td><td>輸入驗證是否在開始之前執行，以及有效值能否恢復使用。</td></tr>
-      <tr><td>把電腦瀏覽器視窗縮窄至約 390 像素。</td><td>沒有水平捲動，主題欄、秒數欄和三個按鈕仍能看見並操作。</td><td>若無法在目前設備確認，記為「手機版未驗證」，不要推定通過。</td></tr>
-      <tr><td>關閉 AI Studio 分頁，從「AI工作工具」資料夾重開保存檔；環境允許且不影響工作時，再短暫斷網重開一次。</td><td>本機檔仍能開啟和計時，不需要外部檔案或服務。若不能安全斷網，只記錄「離線未驗證」，不可宣稱已通過離線測試。</td><td>區分雲端生成和本機執行；不要為測試中斷受管理的工作網路。</td></tr>
-    </tbody>
-  </table></div>
-  <p class="body-text">若「畫面或計時規則」未通過，先記下「操作、預期、實際」，再針對程式行為提出修復。例如：「目前連按開始會讓倒數加速。請只修正這個問題，保留主題欄、輸入驗證、紅色提醒、提示音和其他所有規則；輸出更新後從 <code>&lt;!DOCTYPE html&gt;</code> 到 <code>&lt;/html&gt;</code> 的完整 HTML，不要只給差異。」若只有提示音被系統音量、分頁靜音或瀏覽器權限阻擋，先按重設再按開始重測；仍受環境限制就標記未通過，不要要求 AI 改程式，也不要把它算成通過。</p>
-  <p class="body-text">若 v1 有程式行為未通過，先記下操作、預期和實際結果，再針對該條規則要求修復並輸出完整 HTML；修正版存成同一資料夾中的 <code>meeting-timer-v2.html</code>，不要覆蓋 v1。重新執行整張表，並關閉分頁後從保存位置重開最後一個版本。若程式行為都通過，但提示音等環境項目仍受限，就保留 v1、標記該項未通過／未驗證，待可用環境再測，不因環境限制另造 v2。若 v1 全部通過，就以 v1 作為成果，不需多存一份 v2。帳號無法使用時，可以用<a href="../assets/tools/timer-reference.html" rel="noopener" target="_blank">參考品</a>練習基本操作並記下生成待完成；不得把它填成自己生成的成果。</p>
-  <p class="body-text">到這裡留下的是一個可重開的單檔工具、版本紀錄，以及正常和例外測試結果。往後更換工具需求時，可以沿用同一方法：說明輸入、規則、邊界和交付形式，再用已知答案測試，未通過就定位到具體條件修復。</p>
-</section>
-<!-- learner-content:end -->
-</main>
+<main class="lesson-body"><section class="lesson-section" id="core-1"><h2 class="section-heading">讀懂規格，再送出完整提示詞</h2><p class="body-text">上一站寫的是工具行為規格，這一步才把它交給模型產生檔案。提示詞是「請模型做出什麼」；稍後在計時器畫面輸入的主題和秒數，則是「工具使用者提供什麼」。兩種輸入出現在不同位置，不要把測試資料貼進生成指令的規則裡。</p><p class="body-text">這次要求單一 HTML，是為了先降低初學者保存和開啟的步驟：HTML 提供頁面內容，CSS 控制外觀，JavaScript 處理倒數、暫停和重設等操作。瀏覽器讀取存下來的檔案後執行這些固定規則；本工具的倒數本身不需要模型或網路。若需求改成讀懂會議文字，才會在後面的 Build 站學習執行時呼叫模型。</p><div class="core-table-scroll"><table><thead><tr><th>你在提示詞看到的要求</th><th>預期可見行為</th><th>實際測試</th></tr></thead><tbody><tr><td>主題文字和正整數秒數</td><td>主題可輸入；時間從正整數開始。</td><td>主題輸入「活動籌備」、秒數輸入 10。</td></tr><tr><td>開始後每秒減一；重複按開始不能加速</td><td>只有一個倒數程序在更新畫面。</td><td>連按開始，約三秒後看剩餘時間；不可比經過時間少更多。</td></tr><tr><td>暫停保持、重設回設定值</td><td>暫停期間數字固定；重設回 10 秒。</td><td>約三秒時暫停，等待兩秒，再重設。</td></tr><tr><td>修改主題不重設；時間不小於零</td><td>修改標題不影響計時；到零後停住。</td><td>倒數中改標題，等到零，不可跳回起點或出現負數。</td></tr><tr><td>空值、0、負數、非整數阻止開始</td><td>無效輸入會提示，不繼續執行。</td><td>分別測空白、0、-1 和 1.5；修正為 10 後可正常使用。</td></tr></tbody></table></div><p class="body-text"><a download="" href="../assets/materials/prompt-timer.txt">下載完整生成指令 TXT</a>。下載內容和下方複製區是同一份指令；提示詞沒有固定正確答案，真正結果要在你的 AI Studio 帳號中生成，不能用這份教案假裝已經實跑。</p><pre class="result-box" id="prompt-timer">工作情境：活動會議主持人需要掌握每位發言者的時間。
+任務：製作一個會議倒數計時器，交付單一完整 HTML 檔案。
+輸入：使用者可輸入會議主題與正整數秒數；預設 25 分鐘。
+規則：按「開始」後每秒減一；「暫停」停止倒數；「重設」回到設定秒數；修改主題只更新主題文字，不重設剩餘時間；重複按開始不可產生多個倒數；時間歸零後停止並顯示「時間到」，不得出現負數。
+例外：主題可留空並顯示「未命名會議」；秒數為空、0、負數或非整數時不可開始，應顯示清楚提示。修正輸入後可再次開始。
+輸出：介面使用繁體中文，以分:秒顯示時間；提供開始、暫停和重設按鈕；手機螢幕可操作。
+限制：CSS 與 JavaScript 寫在同一個 HTML 檔，不使用外部套件、CDN、API 或 Build 專案。這是一個執行固定規則的離線工具，不需在使用時呼叫 AI。
+驗收：輸入「活動籌備」與 10 秒。開始約 3 秒後暫停，剩餘時間約 7 秒；等待 2 秒數字不變；重設回 10 秒；倒數中更改主題不重設；重複開始不加速；測空值、0、-1、1.5 都無法開始，修正為 10 後可恢復。
+請只輸出從 &lt;!DOCTYPE html&gt; 到 &lt;/html&gt; 的完整 HTML 程式，不要只給說明、片段或修改差異。</pre><button class="copy-btn" data-copy="prompt-timer" type="button">複製完整指令</button><span data-copy-status="prompt-timer" role="status"></span><p class="body-text">依序讀這份指令：情境告訴模型用途；任務和輸入界定工具；規則描述操作因果；例外限定不可接受資料；輸出和限制說明檔案形式；驗收則提供已知測試。練習時只改一條需求：暫時拿掉「修改主題不重設」，先預測哪個測試會失去依據，再貼回完整指令生成。不要刪掉其他規則，這樣失敗時才知道是哪個要求造成差異。</p></section>
+<section class="lesson-section" id="core-2"><h2 class="section-heading">在 AI Studio 生成並保存檔案</h2><ol class="body-text"><li>開啟 <a href="https://aistudio.google.com/" rel="noopener" target="_blank">Google AI Studio</a> 的 Chat／Playground，使用生成指令，不進 Build。畫面名稱可能隨平台更新改變；可對照 <a href="https://ai.google.dev/gemini-api/docs/ai-studio-quickstart" rel="noopener" target="_blank">官方 AI Studio quickstart</a>。請使用假資料，不貼公司機密。</li><li>複製上方完整提示詞並送出。等回覆完成後，確認內容從 `&lt;!DOCTYPE html&gt;` 開始並包含結尾 `&lt;/html&gt;`。只有文字說明或不完整片段時，依下方修復句要求補完整，不把未完成回覆存成交付品。</li><li>複製完整程式文字到純文字編輯器，另存為 <strong>meeting-timer.html</strong>。Windows 記事本選「所有檔案」與 UTF-8；Mac TextEdit 先選「格式→製作純文字」，避免多出 `.txt`。</li><li>在檔案管理器雙擊 HTML。看到工具介面才表示瀏覽器已讀取該檔；若看到程式文字，先檢查副檔名和純文字格式，不必重寫提示詞。</li></ol><p class="body-text">生成的程式碼是模型提供的草稿，不是已證明正確的產品。你不必閱讀或理解每一行程式，但要用可觀察的操作驗收它。</p></section>
+<section class="lesson-section" id="core-3"><h2 class="section-heading">按失敗現象修復，再跑同一套測試</h2><ol class="body-text"><li>輸入「活動籌備」和 10 秒，按開始，約三秒後暫停；等待兩秒，確認數字沒有改變。</li><li>重設回 10 秒；重新開始後改主題，倒數應繼續。再連按開始一次，檢查速度沒有加快；等到零，確認停止且不顯示負數。</li><li>分別輸入空白、0、-1、1.5，確認不能開始且有提示；改成 10 後應能恢復。</li><li>關閉分頁，從資料夾重新開啟同一檔案，再做一次 10 秒測試。在驗收表記錄版本、預期與實際，不填尚未執行的模型結果。</li></ol><p class="body-text">若連按開始使倒數加速，回原 AI 對話指出：「重複按開始建立多個倒數；請確保同一時間只有一個計時器，保留主題、暫停、重設與錯誤提示，輸出完整 HTML。」另存為 v2，先保留 v1，再重跑完整測試。若只有檔案結尾缺失，要求補完整檔案；不要把需求不變的錯誤誤判成需要重做全部內容。</p><p class="body-text">若帳號無法生成，使用 <a href="../assets/tools/timer-reference.html" rel="noopener" target="_blank">離線計時器參考品</a> · <a download="" href="../assets/tools/timer-reference.html">下載參考 HTML</a> 練習操作與答案核對，並在驗收表標記「參考品／生成待完成」。參考品不能算成學員已生成的成果。</p></section></main>
 
 <nav class="lesson-nav">
 <a class="nav-btn nav-prev" data-nav-role="prev" href="CH1-2.html"><div><div class="nav-btn-label">上一站</div><div class="nav-btn-title">把需求寫成可核對的規格</div></div></a><a class="nav-btn nav-next next" data-nav-role="next" href="../part2/CH2-1.html"><div><div class="nav-btn-label">下一站</div><div class="nav-btn-title">先算清楚：預算差異與剩餘額</div></div></a>
