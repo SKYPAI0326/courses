@@ -18,11 +18,11 @@ GROUPS=[
 ('reuse','改造、保存與提示詞管理','第四、第五章之後，依成果類型擴充與重用。',['part4/CH4-2.html','part4/CH4-3.html','part4/PRAC4-2.html','part4/SUPP4-1.html','part4/SUPP4-3.html']),
 ('sharing','分享與外部部署參考','第五章之後，需要分享或部署時再核對環境與條件。',['part4/PRAC4-1.html','part6/CH6-2.html','part6/CH6-3.html'])]
 GOALS=[
-('生成、保存並操作完整HTML，再提出一項修改。','留下能重開的v1、v2，說明一項前後差異。'),
-('寫出用途、輸入、規則、例外與交付，將案例資料分開。','留下完整白話需求，換案例時保留工具結構。'),
-('完成可編輯排班工具，用A／B資料及例外核對結果。','留下初版、兩組資料備份、班表與查核紀錄。'),
-('保留原版、加入可調新規則，重查新舊功能。','留下修改版、回復原版與原／新條件的測試紀錄。'),
-('保存工具、資料與方法，重開還原並整理交付說明。','留下排班交付包，並用CSV清理完成跨工具A／B驗證與交付。')]
+('用白話請AI做遊戲，存檔、開啟，再修改一次。','留下能重開的snake-v1、v2，說明配色前後的差異。'),
+('從一份示例學會補齊需求，再寫自己的提示詞。','留下自己寫的工具需求；當次資料與核對答案分開。'),
+('做出排班工具，換兩組資料並測錯誤輸入。','留下測過的schedule-v2、兩組備份、班表與測試紀錄。'),
+('替排班工具加一項可調規則，重查新舊功能。','留下測過的schedule-v3；保留v2，記錄修改前後的測試。'),
+('課堂整理排班交付包；課後再做資料清理工具。','課內：v3及A／B還原與使用說明。課後：CSV清理工具的兩組資料、結果與交付包。')]
 
 class MetaOrder(HTMLFormatter):
     def attributes(self,tag):
@@ -92,6 +92,7 @@ def main():
             for tag in hero.select('.hero-part'):tag.string='補充教材 · '+group
             for tag in hero.select('.hero-num'):tag.string='依用途選讀'
             hero['data-learning-role']='reference' if key=='sharing' else 'extension'
+            if file=='part4/SUPP4-3.html':hero.select_one('h1').string=titles[file]
         for tag in doc.select('.topbar-tag'):tag.string='補充教材'
         footer=doc.select_one('.footer-note')
         if footer:footer.string='Gemini AI 實戰課 · 補充教材 · '+group

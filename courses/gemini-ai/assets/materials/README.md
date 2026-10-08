@@ -7,16 +7,16 @@
 | 章節 | 使用素材 | 留下的成果 |
 | --- | --- | --- |
 | 第一章：第一個小工具 | prompt-snake.txt；prompt-snake-case.txt；prompt-snake-revision.txt | 自己生成的 snake-v1.html、v2 及差異說明 |
-| 第二章：可重用提示詞 | tool-structure-worksheet.md；requirements-template.txt | 完整白話需求；當次案例另存；操作計算與多條件判斷 |
-| 第三章：工作工具初版 | prompt-schedule.txt；schedule-practice.txt；schedule-answers.md；core-acceptance.csv | schedule-v1.html、自己下載的 A／B 備份、班表和測試紀錄 |
-| 第四章：追加與修正 | prompt-solo-schedule.txt；prompt-schedule-repair.txt；prompt-budget-warning.txt；core-acceptance.csv | schedule-v3.html、保留 v1 與 v2、新舊規則測試紀錄 |
-| 第五章：保存與交付 | 同一份驗收表；自己下載的 v3 備份；講義 README 範例 | 排班交付包；另用PG01 CSV清理完成A/B及交付 |
+| 第二章：可重用提示詞 | tool-structure-worksheet.md；requirements-template.txt；prompt-own-requirement.txt | 自己寫的完整需求；當次輸入及核對答案分開；其他長例選讀 |
+| 第三章：工作工具初版 | prompt-schedule.txt；schedule-practice.txt；schedule-answers.md；core-acceptance.csv | schedule-v1.html、測過後另存的 schedule-v2.html、自己下載的 A／B 備份、班表和測試紀錄 |
+| 第四章：追加與修正 | prompt-solo-schedule.txt；prompt-schedule-rule-repair.txt；prompt-budget-warning.txt（選讀）；core-acceptance.csv | schedule-v3.html、保留 v1 與 v2、新舊規則測試紀錄 |
+| 第五章：保存與交付 | 同一份驗收表；自己下載的 schedule-A-v3.json、schedule-B-v3.json；講義 README 範例 | 課內排班交付包；必做課後PG01 CSV清理兩組資料及交付 |
 
 ## 提示詞與當次條件如何搭配
 
-先貼 prompt-*.txt 中的工具結構，說明可編輯輸入、規則、處理、輸出和例外。若需要課堂示例，再獨立附加 prompt-*-case.txt，或在工具完成後填入畫面。案例名稱、日期、數值及核對答案都不能變成程式特例；未附案例也應能建立空白工具。
+先貼 prompt-*.txt 中的工具結構，說明可編輯輸入、規則、處理、輸出和例外。若需要課堂示例，再獨立附加 prompt-*-case.txt，或在工具完成後填入畫面。案例檔只含輸入與設定，核對答案留在講義或answers檔；名稱、日期、數值及答案不能變成程式特例；未附案例也應能建立空白工具。
 
-排班的 A／B 資料見 schedule-practice.txt。先手排或預判，再用 schedule-answers.md 核對；排法可以不同，只要滿足相同需求與限制。第四章新增的班種限制也應由畫面選擇與設定。備份 JSON 由工具下載和讀取，不需要學員手寫 JSON。不同工具與版本的備份格式不保證互通；第五章先用自己的同版備份還原。
+排班的 A／B 資料見 schedule-practice.txt。先手排或預判，再用 schedule-answers.md 核對；排法可以不同，只要滿足相同需求與限制。第四章新增的班種限制也應由畫面選擇與設定。備份 JSON 由工具下載和讀取，不需要學員手寫 JSON。不同工具與版本的備份格式不保證互通；第四章在自己的v3還原第三章備份，確認新設定關閉；第五章用v3產生並還原A／B新備份。作者參考品另依文字填入，不直接還原生成工具的備份。
 
 ## 驗收表怎麼填
 
@@ -39,6 +39,8 @@ KPI：kpi-normal.csv 核對越大越好／越小越好的方向；kpi-exceptions
 ## 保存與重開
 
 按照第五章建立「工具、資料、指令、報告、驗收、歷史版本」資料夾。工具只放實際通過測試的目前版本；舊版保留於歷史版本。README 寫自己的檔名、操作、資料還原方法、新規則設定與已測／未測範圍。關閉工具後，只照文件重開並還原 A／B，再核對原規則與新增規則。
+
+第一章的三份遊戲延伸提示詞已移到 part4/SUPP4-3.html#snake-extensions；第一章先完成一次生成、保存和配色修改。
 
 作者參考品位於 ../tools/：snake-basic-reference.html 供第一章經典操作；snake-color-reference.html 供配色修改前後比較；schedule-reference.html 供基礎排班核對。schedule-v2-reference.html是第四章指定班種上限的作者修改版；claim-check-reference.html供第二章條件初檢，budget-warning-reference.html供第四章可調提醒。會議固定答案參考頁沒有呼叫模型。參考品都不是學員生成證據。
 
