@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+
+<html lang="zh-TW" data-built-at="2026-10-08">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CSV 清理與品質檢查｜Gemini AI 實戰課</title>
+<meta name="description" content="保留原列並依可調欄位規則找出需要修正的資料"/>
+<meta property="og:type" content="article"/>
+<meta property="og:site_name" content="弄一下工作室"/>
+<meta property="og:title" content="CSV 清理與品質檢查｜Gemini AI 實戰課"/>
+<meta property="og:description" content="保留原列並依可調欄位規則找出需要修正的資料"/>
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/gemini-ai/playground/PG01.html"/>
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="CSV 清理與品質檢查｜Gemini AI 實戰課"/>
+<meta name="twitter:description" content="保留原列並依可調欄位規則找出需要修正的資料"/>
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png"/>
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/gemini-ai/playground/PG01.html"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&amp;family=Noto+Sans+TC:wght@400;500;700&amp;display=swap"/>
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#7a766d;
+  --c-a1:#6b7fa3; --c-a2:#c9963a; --c-a3:#5a7a5a; --c-a4:#6b7fa3;
+  --radius:6px; --radius-sm:4px; --content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;word-break:break-word;overflow-wrap:break-word;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+
+/* ── 頂部列 ── */
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-a1);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.07);padding:3px 12px;border-radius:99px;font-weight:500}
+
+/* ── 閱讀進度 ── */
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);width:0%;transition:width .1s;opacity:.75}
+
+/* ── Hero ── */
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px}
+.back-link:hover{color:var(--c-a1)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.hero-part{font-size:.73rem;color:var(--c-muted);letter-spacing:.08em;font-weight:500;font-variant-numeric:tabular-nums}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border)}
+.hero-num{font-size:.73rem;color:var(--c-a1);letter-spacing:1px;font-weight:500}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em}
+.lesson-tagline{font-size:1rem;color:var(--c-muted);line-height:1.9;max-width:38em;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text)}
+.outcomes-label{font-size:.73rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.9rem;color:var(--c-text)}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a1);margin-top:8px;flex-shrink:0}
+
+/* ── 主內容 ── */
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px}
+.lesson-section{margin-bottom:64px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-heading em{font-style:normal;color:var(--c-text)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.95;margin-bottom:20px}
+.body-text strong{font-weight:700}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:64px 0}
+
+/* ── 對比格 ── */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0}
+.compare-card{padding:24px 26px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.compare-card.highlight{border-color:rgba(107,127,163,.4);background:rgba(107,127,163,.04)}
+.compare-label{font-size:.7rem;font-weight:500;letter-spacing:1px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--c-border)}
+.compare-card .compare-label{color:var(--c-muted)}
+.compare-card.highlight .compare-label{color:var(--c-a1)}
+.compare-item{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;color:var(--c-text);margin-bottom:10px;line-height:1.6}
+
+/* ── Callout ── */
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+
+
+
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px}
+.callout-body{font-size:.9rem;line-height:1.8;color:var(--c-text)}
+.callout-body strong{font-weight:700}
+.inline-code{font-family:'Courier New',monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 6px;border-radius:3px}
+
+/* ── 概念卡片 ── */
+.concept-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:28px 0}
+.concept-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:22px 20px}
+.concept-num{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-a1);margin-bottom:8px;line-height:1}
+.concept-title{font-size:.85rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.concept-desc{font-size:.78rem;color:var(--c-muted);line-height:1.7}
+
+/* ── 大引言 ── */
+.big-quote{font-family:'Shippori Mincho',serif;font-size:1.2rem;font-weight:700;line-height:1.65;color:var(--c-text);padding:28px 32px;background:var(--c-card);border:1px solid var(--c-border);border-left:4px solid var(--c-a1);border-radius:var(--radius);margin:28px 0}
+.big-quote span{color:var(--c-a1)}
+
+/* ── 類比框 ── */
+.analogy-box{padding:28px 32px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:28px 0}
+.analogy-label{font-size:.68rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:12px}
+.analogy-text{font-size:.92rem;color:var(--c-text);line-height:1.9}
+
+/* ── 流程圖 ── */
+.flow-wrap{margin:32px 0;padding:32px 28px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.flow-title{font-size:.7rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:24px}
+.flow-steps{display:flex;align-items:flex-start;gap:0;overflow-x:auto}
+.flow-step{display:flex;flex-direction:column;align-items:center;flex:1;min-width:90px;text-align:center}
+.flow-node{width:48px;height:48px;border-radius:50%;background:var(--c-surface);border:1.5px solid var(--c-border);display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:12px}
+.flow-step.active .flow-node{background:rgba(107,127,163,.1);border-color:var(--c-a1)}
+.flow-connector{flex:0 0 20px;height:48px;display:flex;align-items:center;justify-content:center;color:var(--c-border);font-size:.85rem;flex-shrink:0}
+.flow-label{font-size:.75rem;font-weight:700;color:var(--c-text);margin-bottom:4px;line-height:1.3}
+.flow-sub{font-size:.68rem;color:var(--c-muted);line-height:1.4;padding:0 4px}
+
+/* ── 對話示範元件家族（沿用 office-ai SSOT，2026-07-04 引入） ── */
+.expected-output{background:var(--c-card);border:1px solid var(--c-border);border-left:2px solid var(--c-a1);border-radius:var(--radius-sm);margin:12px 0 8px;padding:16px 18px}
+.expected-label{font-size:.7rem;color:var(--c-a1);font-weight:500;letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase}
+.expected-body{font-size:.85rem;line-height:1.85;color:var(--c-text)}
+.expected-body p{margin-bottom:8px}
+.expected-body p:last-child{margin-bottom:0}
+.expected-body strong{font-weight:700}
+.expected-note{font-size:.72rem;color:var(--c-muted);margin-top:12px;line-height:1.6;border-top:1px dashed var(--c-border);padding-top:10px}
+.dialog-box{background:var(--c-surface);border:1px solid var(--c-border);border-left:2px solid var(--c-text);border-radius:var(--radius-sm);padding:14px 16px;margin:12px 0 8px;font-family:'Courier New',monospace;font-size:.8rem;color:var(--c-text);line-height:1.7;white-space:pre-wrap;position:relative}
+.dialog-label{font-family:'Noto Sans TC',sans-serif;font-size:.7rem;color:var(--c-muted);font-weight:500;letter-spacing:.5px;margin-bottom:8px;text-transform:uppercase}
+.demo-flow{border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;margin:24px 0;background:transparent}
+.demo-flow-label{font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-muted);letter-spacing:.1em;font-weight:500;margin-bottom:14px}
+.demo-step{padding:14px 0;border-top:1px dashed var(--c-border)}
+.demo-step:first-of-type{border-top:none;padding-top:0}
+.demo-step-title{font-size:.85rem;font-weight:700;color:var(--c-text);margin-bottom:10px}
+.demo-takeaway{background:var(--c-surface);border-left:2px solid var(--c-a2);padding:12px 16px;margin-top:14px;font-size:.85rem;line-height:1.8;color:var(--c-text);border-radius:var(--radius-sm)}
+.drill-action-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.btn-drill-copy{font-size:.78rem;color:var(--c-a1);background:rgba(107,127,163,.08);border:1px solid rgba(107,127,163,.25);padding:5px 14px;border-radius:var(--radius-sm);cursor:pointer;font-family:inherit}
+.btn-drill-copy:hover{background:rgba(107,127,163,.18)}
+
+/* ── 課程預告 ── */
+.preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:24px 0}
+.preview-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;display:flex;align-items:flex-start;gap:14px}
+.preview-icon{font-size:1.2rem;flex-shrink:0}
+.preview-part{font-size:.68rem;color:var(--c-muted);margin-bottom:4px}
+.preview-name{font-size:.85rem;font-weight:700;color:var(--c-text);line-height:1.4}
+
+/* ── 底部導航 ── */
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1}
+.nav-btn:hover{border-color:var(--c-a1)}
+.nav-btn.next{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav-spacer{flex:1}
+
+/* ── 頁尾 ── */
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+
+/* ── 動態進場系統 ── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px)}
+  to   { opacity:1; transform:translateY(0)}
+}
+@keyframes ruleExpand {
+  from { transform:scaleX(0)}
+  to   { transform:scaleX(1)}
+}
+
+/* Hero 進場（load 觸發，錯開時序） */
+.lesson-hero .back-link      { animation:fadeUp .4s ease both}
+.lesson-hero .hero-meta      { animation:fadeUp .45s .08s ease both}
+.lesson-hero .lesson-title   { animation:fadeUp .55s .15s ease both}
+.lesson-hero .lesson-tagline { animation:fadeUp .5s  .26s ease both}
+.lesson-hero .outcomes       { animation:fadeUp .45s .36s ease both}
+
+/* Scroll reveal */
+.reveal {
+  opacity:0;
+  transform:translateY(22px);
+  transition:opacity .65s cubic-bezier(.16,1,.3,1), transform .65s cubic-bezier(.16,1,.3,1)}
+.reveal.in { opacity:1; transform:translateY(0)}
+
+/* section-rule 展開 */
+.section-rule {
+  transform-origin: left center;
+  opacity:0;
+  transition: opacity .4s ease, transform .6s cubic-bezier(.16,1,.3,1);
+  transform: scaleX(.3)}
+.section-rule.in { opacity:1; transform:scaleX(1)}
+
+/* 卡片 hover 精化 */
+.concept-card, .preview-card {
+  transition:transform .22s cubic-bezier(.16,1,.3,1)}
+.concept-card:hover, .preview-card:hover {
+  transform:translateY(-4px)}
+.compare-card {
+  transition:transform .2s ease}
+.compare-card:hover {
+  transform:translateY(-2px)}
+
+/* 側邊章節導航 */
+.section-dots {
+  position:fixed; left:20px; top:50%; transform:translateY(-50%);
+  display:flex; flex-direction:column; gap:10px; z-index:40;
+  opacity:0; transition:opacity .4s ease}
+.section-dots.visible { opacity:1}
+.sdot {
+  width:6px; height:6px; border-radius:50%;
+  background:var(--c-border);
+  cursor:pointer;
+  transition:background .3s ease, transform .3s ease;
+  border:none; padding:0}
+.sdot.active { background:var(--c-a1); transform:scale(1.5)}
+@media (max-width:1100px) { .section-dots { display:none} }
+@media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important}*{animation:none!important}}
+@media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero{padding:56px 32px 40px}.lesson-body{padding:0 32px 80px}.lesson-nav{padding:0 32px 80px}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;.lesson-tagline{max-width:100%}}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:40px 20px 36px}.lesson-title{font-size:1.45rem}.lesson-body{padding:0 20px 60px}.lesson-nav{padding:0 20px 60px;flex-direction:column}.nav-btn{flex:none}.footer{padding:20px}.concept-grid{grid-template-columns:1fr}}
+
+/* a11y: focus-visible ring */
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}.lesson-section{scroll-margin-top:90px}.lesson-body pre{max-width:100%;overflow-wrap:anywhere;white-space:pre-wrap}.lesson-body details{border-top:1px solid var(--c-border);padding:16px 0;margin:20px 0}.lesson-body summary{cursor:pointer;font-weight:600}.lesson-body li{margin-bottom:12px}.lesson-body a{overflow-wrap:anywhere}.lesson-body table{max-width:100%}.lesson-body .core-route{font-size:.85rem;color:var(--c-muted);margin-bottom:28px}.lesson-title{overflow-wrap:anywhere}.core-table-scroll{max-width:100%;overflow:auto}
+.prompt-wrap{margin:32px 0}
+.prompt-label{font-size:.7rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:10px}
+.prompt-box{max-width:100%;overflow:auto;background:#2c2b28;color:#e8e4dc;font-family:"Courier New",monospace;font-size:.84rem;line-height:1.85;padding:24px 28px;border-radius:var(--radius);white-space:pre-wrap;overflow-wrap:anywhere;border:1px solid rgba(90,122,90,.3)}
+
+.copy-btn{display:inline-flex;align-items:center;margin:12px 10px 0 0;padding:8px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);background:var(--c-card);color:var(--c-text);font:inherit;font-size:.82rem;cursor:pointer}
+.copy-btn:hover{background:var(--c-surface)}
+[data-copy-status]{display:inline-block;font-size:.8rem;color:var(--c-muted);margin-top:8px}
+</style>
+<style id="prompt-policy-style">
+[data-policy-prompt]{max-width:100%;box-sizing:border-box;white-space:pre-wrap;overflow-wrap:anywhere;scroll-margin-top:110px}
+.policy-copy-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:12px 0 22px}.policy-copy-row button{min-height:44px;max-width:100%;white-space:normal;cursor:pointer}.policy-status{font-size:.82rem;line-height:1.6}
+.policy-case{padding:20px;margin:22px 0;background:#f5f8fa;border:1px solid #b8c9d5;border-radius:8px;max-width:100%;box-sizing:border-box;color:#193448}.policy-case h3{margin:0 0 12px;font-size:1rem}.policy-case p{line-height:1.8}.policy-case pre{font-family:inherit;white-space:pre-wrap;overflow-wrap:anywhere;margin:16px 0;font-size:.9rem;line-height:1.85;color:inherit;background:transparent;border:0;padding:0}.policy-guide{font-size:.9rem;line-height:1.8;margin:14px 0;color:inherit}
+</style>
+<style id="coldtone-table-readability">
+/* Gemini AI table readability; teaching content and scripts are preserved. */
+.lesson-body .core-table-scroll,.lesson-body .table-scroll {
+ max-width:100%; overflow-x:auto; margin:24px 0;
+ border:1px solid #BACBD8; border-radius:6px; background:#FCFDFE;
+ overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch;
+ scrollbar-width:auto; scrollbar-color:#71889C #EEF3F9;
+}
+.lesson-body .core-table-scroll::-webkit-scrollbar,.lesson-body .table-scroll::-webkit-scrollbar { height:10px; }
+.lesson-body .core-table-scroll::-webkit-scrollbar-track,.lesson-body .table-scroll::-webkit-scrollbar-track { background:#EEF3F9; }
+.lesson-body .core-table-scroll::-webkit-scrollbar-thumb,.lesson-body .table-scroll::-webkit-scrollbar-thumb { background:#71889C; border:2px solid #EEF3F9; border-radius:6px; }
+.lesson-body table:not(.heatmap-table) {
+ width:100%; max-width:none; border-collapse:collapse; border-spacing:0;
+ font-size:1rem; line-height:1.75; background:#FCFDFE;
+}
+.lesson-body table:not(.heatmap-table) th,.lesson-body table:not(.heatmap-table) td {
+ padding:14px 16px; border:1px solid #BACBD8;
+ text-align:left; vertical-align:top; word-break:normal; overflow-wrap:anywhere;
+}
+.lesson-body table:not(.heatmap-table) th { background:#EEF3F9; color:#173B57; font-weight:700; }
+.lesson-body table:not(.heatmap-table) td { color:#344552; }
+.lesson-body table:not(.heatmap-table) tbody tr:nth-child(even)>td { background:#F4F8FC; }
+.lesson-body table:not(.heatmap-table) tbody tr>td:first-child { font-weight:600; }
+.lesson-body .core-table-scroll table { min-width:32rem; table-layout:fixed; }
+.lesson-body .core-table-scroll table th:first-child { width:30%; }
+.lesson-body .core-table-scroll table:has(thead>tr:first-child>th:nth-child(3)) { min-width:40rem; }
+.lesson-body .core-table-scroll table:has(thead>tr:first-child>th:nth-child(3)) th:first-child { width:20%; }
+.lesson-body .core-table-scroll table:has(thead>tr:first-child>th:nth-child(4)) { min-width:52rem; }
+.lesson-body .core-table-scroll table:has(thead>tr:first-child>th:nth-child(5)) { min-width:48rem; }
+.lesson-body .interview-table { width:max-content; min-width:100%; table-layout:auto; }
+.lesson-body .interview-table .criteria-col { min-width:10rem; }
+.lesson-body .interview-table th:not(:first-child),.lesson-body .interview-table td:not(:first-child) { min-width:14rem; }
+.lesson-body .interview-table textarea { min-width:10rem; }
+.lesson-body .history-table { min-width:42rem; }
+.lesson-body .history-table td:nth-child(3) { white-space:normal!important; max-width:none!important; overflow-wrap:anywhere; }
+/* Preserve the heat-state backgrounds and text colors; adjust only dimensions. */
+.lesson-body table.heatmap-table { max-width:none; border-collapse:collapse; }
+.lesson-body .heatmap-table th,.lesson-body .heatmap-table td.time-label {
+ padding:12px; font-size:1rem; line-height:1.6; color:#344552; background:#EEF3F9;
+ border:1px solid #BACBD8; white-space:nowrap;
+}
+.lesson-body .heatmap-table .heat-cell { min-width:76px; height:44px; padding:10px 12px; font-size:.9rem; line-height:1.6; }
+@media(max-width:600px) {
+ .lesson-body table:not(.heatmap-table) th,.lesson-body table:not(.heatmap-table) td { padding:12px 14px; }
+}
+
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+<div id="_gate-box">
+<div id="_gate-title">弄一下工作室</div>
+<div id="_gate-sub">課程專屬講義<br/>請輸入課程密碼</div>
+<input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off"/>
+<button id="_gate-btn" onclick="_gc()">進入課程</button>
+<div id="_gate-err"></div>
+</div>
+</div>
+<script>
+(function(){const K='gemini_auth',H='af4216b537dbe50ab6bce3a5f75201f51894267495ac777423d8f18d11318db8';if(localStorage.getItem(K)==='1')sessionStorage.setItem(K,'1');if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+<a href="#main" class="skip-link">跳至主要內容</a>
+<header class="topbar">
+<a class="logo" href="../../../index.html">弄一下工作室</a>
+<div class="topbar-divider"></div>
+<div class="topbar-sub">Gemini 零代碼 AI 實戰課</div>
+<div class="spacer"></div>
+<div class="topbar-tag">案例遊樂園</div>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="progressFill"></div></div>
+<nav class="section-dots" id="sectionDots" aria-label="章節導航"></nav>
+<section class="lesson-hero" id="main" data-learning-role="playground">
+<a class="back-link" href="../playground/index.html"><span aria-hidden="true">←</span> 返回課程目錄</a>
+<div class="hero-meta">
+<span class="hero-part">案例遊樂園 · 資料整理</span>
+<div class="hero-divider-v"></div>
+<span class="hero-num">PG01 · 選用案例</span>
+</div>
+<h1 class="lesson-title">CSV 清理與品質檢查</h1>
+<p class="lesson-tagline">保留原列並依可調欄位規則找出需要修正的資料</p>
+<div class="outcomes"><div class="outcomes-label">完成物</div><div class="outcome-item">可重用工具、A／B測試與資料／結果檔。</div></div>
+</section>
+<main class="lesson-body"><section class="lesson-section" id="pg01-purpose">
+<h2 class="section-heading">先把資料問題列出來，再決定每列怎麼處理</h2>
+<p class="body-text">整理名單或紀錄時，空白欄位、重複列和文字混進數字欄，常讓後續排序或統計不可靠。這個案例要做的是一個離線 CSV 清理工具：你指定欄位、唯一鍵和檢查規則，工具逐列顯示可接受資料與需要修正的原因，最後匯出兩份 CSV。完成物是清理預覽、拒絕原因清單，以及可再用試算表開啟的檔案；它協助你找出問題，不能替你猜測或補造缺失值。
+</p>
+<p class="body-text">先下載 <a href="../assets/playground/PG01/input-a.csv">input-a.csv</a> 作為 A 的原始資料，並先看 <a href="../assets/playground/PG01/cases.txt">cases.txt</a> 的欄位設定。你也可用純文字編輯器打開 CSV；若試算表顯示亂碼，改用 UTF-8 匯入功能。第一步是確認標題列和欄位對應，然後把同一份資料輸入稍後生成的工具。另有 <a href="../assets/playground/PG01/input-b.csv">input-b.csv</a>，留到換條件檢查時使用。無法下載時，可在新 CSV 輸入標題列及下方附件內容；不要直接修改唯一原件。
+</p>
+<p class="body-text">資料清理先分清「格式可依明確規則整理」和「內容需要人確認」。首尾空格可去除、空白列可辨識，但不能因此自行猜出姓名、數字或身分。唯一鍵由使用者指定，用來判斷哪些列鍵值相同；規則必須說清楚保留策略。若鍵值重複，本課工具把後續列送入拒絕清單供核對，不自行刪掉或合併。有效資料也必須在預覽與輸出中保留，不能為了讓報表整齊而消失。
+</p>
+<p class="body-text"><a href="../assets/playground/PG01/author-reference.html">開啟作者參考工具</a>可直接操作一個離線示範品。這是作者依提示詞製作的參考工具，不是 Gemini 生成成果，也不代表平台或真人測試通過。</p>
+<ol class="step-list"><li>複製 A 的 CSV，先核對標題列與編碼。</li><li>在工具選擇唯一鍵、必填欄和數字欄規則。</li><li>檢查每列預覽及待修正原因，再分別匯出兩份 CSV。</li><li>修改一筆資料並重跑，確認有效列和待修正列數有對應變化。</li></ol>
+</section>
+<section class="lesson-section" id="pg01-demo">
+<h2 class="section-heading">示範 A：一列可用，不代表整份都可直接匯出</h2>
+<p class="body-text">在 input-a.csv 中，設定 record_id 為唯一鍵；item、quantity、unit_price 為必填欄；quantity 與 unit_price 是非負數字欄，允許小數位數由使用者設定為最多兩位。這些是本次案例設定，提示詞不會固定這些欄名或限制。讀取第一列 R101：欄位都有值，quantity 為 2、unit_price 為 35，唯一鍵只出現一次，因此它留在清理預覽。R103 的 unit_price 是「待補」，不能轉成數字，拒絕原因是「unit_price 不是有效數字」；R104 缺 item，原因是「必填欄位 item 空白」。兩筆資料的 record_id 都是 R102，依本次唯一鍵規則，先出現者保留，後一列列為重複鍵待核對。R106 的 quantity 是 -1，違反本次非負規則，拒絕原因需指出欄位和規則。工具不會默默把 -1 改成 0。
+</p>
+<div class="core-table-scroll"><table><thead><tr><th>列</th><th>判斷</th><th>預期處理</th></tr></thead><tbody>
+<tr><td>R101</td><td>必填齊全、數字有效、鍵唯一</td><td>保留並顯示於清理預覽</td></tr>
+<tr><td>R102 第一列</td><td>第一個唯一鍵值</td><td>保留</td></tr>
+<tr><td>R102 第二列</td><td>唯一鍵重複</td><td>放入拒絕清單，理由為重複鍵</td></tr>
+<tr><td>R103、R104、R106</td><td>數字格式錯誤、必填空白、負數</td><td>各自保留原始欄值並列明拒絕原因</td></tr>
+</tbody></table></div>
+<p class="body-text">這種核對讓「清理」有可追查的邊界。拒絕清單仍帶著原始列，不代表資料已刪除；修正來源後可重新匯入重跑。CSV 只是文字欄位資料，工具不能保證讀懂試算表公式、格式或巨集，因此本案例只接受有標題列的純 CSV，不把 Excel 公式解析當作功能。
+</p>
+</section>
+<section class="lesson-section" id="pg01-build">
+<h2 class="section-heading">把可重用規則和本次案例分開提供</h2>
+<p class="body-text">先複製結構提示詞建立一個單檔離線網頁工具，再把案例附件另外貼入工具或作為測試資料。結構提示詞負責描述使用者可設定什麼、每列怎麼檢查、結果如何保存；它不包含本案例的人名、欄名、門檻或答案。請在提示詞中指定原生 HTML、CSS 與 JavaScript 同檔，不使用外部套件或 API；初次開啟是空白輸入，可新增、修改、刪除列，亦可載入 CSV、重設資料與匯出結果。</p>
+<div class="prompt-wrap">
+<div class="prompt-label">可重用結構提示詞｜先單獨複製</div>
+<p class="policy-guide">提示詞只定義工具結構與規則。先產生空白可用版本，再以獨立附件提供資料與本次欄位設定。</p>
+<pre class="prompt-box" data-policy-prompt="工具生成或修改" id="pg01-prompt">請製作一個單檔、離線可用的 CSV 清理與品質檢查工具，供使用者整理一般名單或紀錄。只用原生 HTML、CSS 與 JavaScript，所有內容寫在同一個 HTML 檔，不使用外部套件、CDN、伺服器或 API。首次開啟時顯示空白資料，不自行編造案例。
+
+【輸入與設定】
+- 使用者可載入 UTF-8 CSV，並在畫面確認標題列與欄位對應；也可手動新增、修改和刪除資料列。
+- 由使用者選擇唯一鍵欄位、必填欄位清單、數字欄位清單及每個數字欄是否允許負值與小數位數。欄位名稱、規則和資料均不得寫死。
+- 可清除本次資料並重新開始。匯入前保留原始文字值供核對。
+
+【逐列檢查】
+- 去除欄位值首尾空格後檢查；空白列可單獨標示，不當作有效資料。
+- 必填欄位空白、數字欄空白或格式無效、超過使用者設定的小數位數、違反正負值設定、唯一鍵空白或重複時，將該列列入待修正清單，說明每個命中原因及欄位。
+- 數字只接受明確可解析的十進位數字文字；不推測千分位、貨幣符號、日期、公式或地區格式。不能確定格式時標記待修正，保留原文。
+- 唯一鍵重複時保留所有原始列；不自行刪除、合併或覆寫。畫面可依使用者指定的第一筆保留規則，把後續同鍵列標記為重複待確認；所有列都可回看。
+- 任何列不得靜默消失。顯示匯入列數、有效列數、待修正列數及兩者加總是否等於匯入列數。
+
+【畫面與輸出】
+- 顯示可編輯的清理預覽和待修正清單；每列可看到原始欄值、整理後值、狀態與拒絕原因。
+- 提供匯出有效資料 CSV、匯出待修正資料 CSV、重新匯入及清除按鈕。匯出的文字需正確處理逗號、雙引號、換行及 UTF-8 BOM，以利試算表辨識繁體中文。
+- 匯出前再次顯示列數摘要；不得只輸出有效列而遺失待修正資料。
+- 表單有清楚標籤，桌機與手機均可閱讀；所有錯誤須指出欄位和回修方式。
+
+【交付與驗收】
+只交付從 DOCTYPE 到 html 結尾的完整單一 HTML 原始碼。請檢查空白值、錯誤數字、重複鍵、合法列、修改後重算、兩種 CSV 匯出與清除重來。處理規則必須依畫面上的使用者設定運作；沒有附加資料時，工具仍可從空白狀態開始使用。</pre>
+<div class="policy-copy-row"><button class="copy-btn" data-policy-copy="pg01-prompt" type="button">複製可重用提示詞</button><span aria-live="polite" class="policy-status" id="pg01-prompt-policy-status" role="status"></span></div>
+<aside class="policy-case" data-policy-case="pg01-case"><h3>當次案例條件與核對資料｜另行複製</h3><p class="body-text">先用上方結構提示詞生成工具，再提供 <a href="../assets/playground/PG01/cases.txt">cases.txt</a> 的欄位設定與測試任務，以及 A/B CSV。答案另放於 <a href="../assets/playground/PG01/answers.md">answers.md</a>，先自行預測再核對。案件資料不能變成程式固定特例。</p><pre id="pg01-case">本次使用 UTF-8 CSV。請依 cases.txt 指定的唯一鍵、必填欄、數字欄與非負規則檢查 input-a.csv。保留所有原始列，逐列顯示有效或待修正狀態及原因，並匯出有效資料和待修正資料兩個 CSV。然後用 input-b.csv 測試另一組欄位與唯一鍵設定；不要沿用 A 的設定或把答案寫成固定輸出。</pre><div class="policy-copy-row"><button class="copy-btn" data-policy-copy="pg01-case" type="button">複製當次案例條件</button><span aria-live="polite" class="policy-status" id="pg01-case-policy-status" role="status"></span></div></aside>
+</div>
+<p class="body-text">正式操作時先開啟 <a href="../chapters/CH1.html#save-open">第一章「保存並開啟 HTML」示範</a>：把生成的完整 HTML 存成檔案，重新開啟並確認本機可用，再匯入 input-a.csv。對照附件答案逐列檢查狀態、拒絕原因、輸出列數和 CSV 內容；答案只用來核對，請勿把答案當成必須輸出的固定案例。</p>
+</section>
+<section class="lesson-section" id="pg01-check">
+<h2 class="section-heading">換欄位測試後再修正漏掉的規則</h2>
+<p class="body-text">用 input-b.csv 換一組欄位設定與唯一鍵，確認工具沒有把上一個案例的欄名寫死。再手動改掉一個錯誤數字，觀察它能否重新進入清理預覽；新增一列重複鍵，確認原列仍可查看；刪除一列時應有明確操作，不能與自動清理混淆。如果輸入字串含逗號或雙引號，匯出後重新匯入，確認欄位仍對齊。遇到拒絕原因空泛、有效列數對不上，回到提示詞的逐列檢查與列數摘要條款，要求工具顯示原始列、命中欄位及修正後結果，再重跑同一份資料。</p>
+<p class="body-text">這個工具適合每次收到新 CSV 時先做格式與資料完整度初檢，例如整理活動報名、產品清單或庫存紀錄。規則由使用者依工作情境設定；它不代替資料權責人決定缺值、重複或異常列的實際含義。保存原始檔和兩份匯出檔，才能回頭說明哪些列被納入、哪些仍需確認。</p>
+</section></main>
+<nav class="lesson-nav"><a class="nav-btn nav-prev" data-nav-role="prev" href="../playground/index.html"><div><div class="nav-btn-label">返回案例遊樂園</div><div class="nav-btn-title">選另一個工具案例</div></div></a><a class="nav-btn nav-next next" data-nav-role="next" href="../playground/index.html"><div><div class="nav-btn-label">返回案例遊樂園</div><div class="nav-btn-title">回案例遊樂園</div></div></a></nav>
+<footer class="footer" data-platform-version="2026-04-v3">
+<div class="footer-logo">弄一下工作室</div>
+<div class="footer-note">Gemini AI 實戰課 · 案例遊樂園 · CSV 清理與品質檢查</div>
+</footer>
+<script>
+function drillCopy(text,btn){navigator.clipboard.writeText(text).then(function(){var orig=btn.textContent;btn.textContent='已複製';setTimeout(function(){btn.textContent=orig},1500)})}
+// 閱讀進度條
+window.addEventListener('scroll', () => {
+  const d = document.documentElement;
+  const pct = d.scrollHeight - d.clientHeight > 0
+    ? (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100 : 0;
+  document.getElementById('progressFill').style.width = pct + '%'});
+
+// Scroll reveal（sections + section-rule）
+(function(){
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target)}
+    })}, { threshold: .1, rootMargin: '0px 0px -48px 0px' });
+
+  document.querySelectorAll('.lesson-section, .section-rule').forEach(el => {
+    el.classList.add('reveal');
+    io.observe(el)})})();
+
+// 側邊章節導航點
+(function(){
+  const sections = Array.from(document.querySelectorAll('.lesson-body > .lesson-section'));
+  const nav = document.getElementById('sectionDots');
+  if (!sections.length || !nav) return;
+
+  sections.forEach((sec, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'sdot';
+    btn.title = sec.querySelector('.section-heading')?.textContent?.trim().slice(0, 20) || ('第 ' + (i+1) + ' 節');
+    btn.addEventListener('click', () => sec.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    nav.appendChild(btn)});
+
+  const dotIo = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      const i = sections.indexOf(e.target);
+      if (i >= 0) nav.children[i]?.classList.toggle('active', e.isIntersecting)});
+    nav.classList.toggle('visible', Array.from(nav.children).some(d => d.classList.contains('active')))}, { threshold: .3 });
+
+  sections.forEach(s => dotIo.observe(s))})();
+</script>
+<script>
+// 閱讀進度持久化（localStorage）— 2026-04-16 UI refresh
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+<script>document.querySelectorAll('[data-copy]').forEach(btn=>btn.addEventListener('click',async()=>{const id=btn.dataset.copy;const text=document.getElementById(id).textContent;const status=document.querySelector('[data-copy-status="'+id+'"]');try{await navigator.clipboard.writeText(text);status.textContent='已複製，請貼到對應的生成輸入框。'}catch(e){status.textContent='無法自動複製；請選取下方完整指令，按 Ctrl+C／Cmd+C。'}}));</script>
+<script id="prompt-policy-copy">
+document.querySelectorAll('[data-policy-copy]').forEach(button=>button.addEventListener('click',async()=>{
+ const id=button.dataset.policyCopy, node=document.getElementById(id), status=document.getElementById(id+'-policy-status');
+ const text=node.tagName==='TEXTAREA'?node.value:node.textContent;
+ try{await navigator.clipboard.writeText(text);status.textContent='已複製此區全文。提示詞與案例條件分開複製。';}
+ catch(error){if(node.tagName==='TEXTAREA'){node.focus();node.select();}else{const range=document.createRange();range.selectNodeContents(node);const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);}status.textContent='未允許自動複製，已選取此區全文；請按 Ctrl+C／Cmd+C。';}
+}));
+</script>
+</body>
+</html>

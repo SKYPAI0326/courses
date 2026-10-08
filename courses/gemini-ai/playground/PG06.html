@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+
+<html lang="zh-TW" data-built-at="2026-10-08">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>客戶分群四象限｜Gemini AI 實戰課</title>
+<meta name="description" content="用可調兩軸和分界看資料位置，保留缺值"/>
+<meta property="og:type" content="article"/>
+<meta property="og:site_name" content="弄一下工作室"/>
+<meta property="og:title" content="客戶分群四象限｜Gemini AI 實戰課"/>
+<meta property="og:description" content="用可調兩軸和分界看資料位置，保留缺值"/>
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/gemini-ai/playground/PG06.html"/>
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="客戶分群四象限｜Gemini AI 實戰課"/>
+<meta name="twitter:description" content="用可調兩軸和分界看資料位置，保留缺值"/>
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png"/>
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/gemini-ai/playground/PG06.html"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&amp;family=Noto+Sans+TC:wght@400;500;700&amp;display=swap"/>
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#7a766d;
+  --c-a1:#6b7fa3; --c-a2:#c9963a; --c-a3:#5a7a5a; --c-a4:#6b7fa3;
+  --radius:6px; --radius-sm:4px; --content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;word-break:break-word;overflow-wrap:break-word;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+
+/* ── 頂部列 ── */
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-a1);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.07);padding:3px 12px;border-radius:99px;font-weight:500}
+
+/* ── 閱讀進度 ── */
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);width:0%;transition:width .1s;opacity:.75}
+
+/* ── Hero ── */
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px}
+.back-link:hover{color:var(--c-a1)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.hero-part{font-size:.73rem;color:var(--c-muted);letter-spacing:.08em;font-weight:500;font-variant-numeric:tabular-nums}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border)}
+.hero-num{font-size:.73rem;color:var(--c-a1);letter-spacing:1px;font-weight:500}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em}
+.lesson-tagline{font-size:1rem;color:var(--c-muted);line-height:1.9;max-width:38em;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:10px;padding:4px 0 4px 24px;border-left:1px solid var(--c-text)}
+.outcomes-label{font-size:.73rem;color:var(--c-text);letter-spacing:.15em;font-weight:500;margin-bottom:4px}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.9rem;color:var(--c-text)}
+.outcome-dot{width:5px;height:5px;border-radius:50%;background:var(--c-a1);margin-top:8px;flex-shrink:0}
+
+/* ── 主內容 ── */
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px}
+.lesson-section{margin-bottom:64px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-heading em{font-style:normal;color:var(--c-text)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.95;margin-bottom:20px}
+.body-text strong{font-weight:700}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:64px 0}
+
+/* ── 對比格 ── */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0}
+.compare-card{padding:24px 26px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.compare-card.highlight{border-color:rgba(107,127,163,.4);background:rgba(107,127,163,.04)}
+.compare-label{font-size:.7rem;font-weight:500;letter-spacing:1px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--c-border)}
+.compare-card .compare-label{color:var(--c-muted)}
+.compare-card.highlight .compare-label{color:var(--c-a1)}
+.compare-item{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;color:var(--c-text);margin-bottom:10px;line-height:1.6}
+
+/* ── Callout ── */
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+
+
+
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px}
+.callout-body{font-size:.9rem;line-height:1.8;color:var(--c-text)}
+.callout-body strong{font-weight:700}
+.inline-code{font-family:'Courier New',monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 6px;border-radius:3px}
+
+/* ── 概念卡片 ── */
+.concept-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:28px 0}
+.concept-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:22px 20px}
+.concept-num{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-a1);margin-bottom:8px;line-height:1}
+.concept-title{font-size:.85rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.concept-desc{font-size:.78rem;color:var(--c-muted);line-height:1.7}
+
+/* ── 大引言 ── */
+.big-quote{font-family:'Shippori Mincho',serif;font-size:1.2rem;font-weight:700;line-height:1.65;color:var(--c-text);padding:28px 32px;background:var(--c-card);border:1px solid var(--c-border);border-left:4px solid var(--c-a1);border-radius:var(--radius);margin:28px 0}
+.big-quote span{color:var(--c-a1)}
+
+/* ── 類比框 ── */
+.analogy-box{padding:28px 32px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:28px 0}
+.analogy-label{font-size:.68rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:12px}
+.analogy-text{font-size:.92rem;color:var(--c-text);line-height:1.9}
+
+/* ── 流程圖 ── */
+.flow-wrap{margin:32px 0;padding:32px 28px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.flow-title{font-size:.7rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:24px}
+.flow-steps{display:flex;align-items:flex-start;gap:0;overflow-x:auto}
+.flow-step{display:flex;flex-direction:column;align-items:center;flex:1;min-width:90px;text-align:center}
+.flow-node{width:48px;height:48px;border-radius:50%;background:var(--c-surface);border:1.5px solid var(--c-border);display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:12px}
+.flow-step.active .flow-node{background:rgba(107,127,163,.1);border-color:var(--c-a1)}
+.flow-connector{flex:0 0 20px;height:48px;display:flex;align-items:center;justify-content:center;color:var(--c-border);font-size:.85rem;flex-shrink:0}
+.flow-label{font-size:.75rem;font-weight:700;color:var(--c-text);margin-bottom:4px;line-height:1.3}
+.flow-sub{font-size:.68rem;color:var(--c-muted);line-height:1.4;padding:0 4px}
+
+/* ── 對話示範元件家族（沿用 office-ai SSOT，2026-07-04 引入） ── */
+.expected-output{background:var(--c-card);border:1px solid var(--c-border);border-left:2px solid var(--c-a1);border-radius:var(--radius-sm);margin:12px 0 8px;padding:16px 18px}
+.expected-label{font-size:.7rem;color:var(--c-a1);font-weight:500;letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase}
+.expected-body{font-size:.85rem;line-height:1.85;color:var(--c-text)}
+.expected-body p{margin-bottom:8px}
+.expected-body p:last-child{margin-bottom:0}
+.expected-body strong{font-weight:700}
+.expected-note{font-size:.72rem;color:var(--c-muted);margin-top:12px;line-height:1.6;border-top:1px dashed var(--c-border);padding-top:10px}
+.dialog-box{background:var(--c-surface);border:1px solid var(--c-border);border-left:2px solid var(--c-text);border-radius:var(--radius-sm);padding:14px 16px;margin:12px 0 8px;font-family:'Courier New',monospace;font-size:.8rem;color:var(--c-text);line-height:1.7;white-space:pre-wrap;position:relative}
+.dialog-label{font-family:'Noto Sans TC',sans-serif;font-size:.7rem;color:var(--c-muted);font-weight:500;letter-spacing:.5px;margin-bottom:8px;text-transform:uppercase}
+.demo-flow{border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;margin:24px 0;background:transparent}
+.demo-flow-label{font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-muted);letter-spacing:.1em;font-weight:500;margin-bottom:14px}
+.demo-step{padding:14px 0;border-top:1px dashed var(--c-border)}
+.demo-step:first-of-type{border-top:none;padding-top:0}
+.demo-step-title{font-size:.85rem;font-weight:700;color:var(--c-text);margin-bottom:10px}
+.demo-takeaway{background:var(--c-surface);border-left:2px solid var(--c-a2);padding:12px 16px;margin-top:14px;font-size:.85rem;line-height:1.8;color:var(--c-text);border-radius:var(--radius-sm)}
+.drill-action-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.btn-drill-copy{font-size:.78rem;color:var(--c-a1);background:rgba(107,127,163,.08);border:1px solid rgba(107,127,163,.25);padding:5px 14px;border-radius:var(--radius-sm);cursor:pointer;font-family:inherit}
+.btn-drill-copy:hover{background:rgba(107,127,163,.18)}
+
+/* ── 課程預告 ── */
+.preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:24px 0}
+.preview-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px;display:flex;align-items:flex-start;gap:14px}
+.preview-icon{font-size:1.2rem;flex-shrink:0}
+.preview-part{font-size:.68rem;color:var(--c-muted);margin-bottom:4px}
+.preview-name{font-size:.85rem;font-weight:700;color:var(--c-text);line-height:1.4}
+
+/* ── 底部導航 ── */
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1}
+.nav-btn:hover{border-color:var(--c-a1)}
+.nav-btn.next{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav-spacer{flex:1}
+
+/* ── 頁尾 ── */
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+
+/* ── 動態進場系統 ── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px)}
+  to   { opacity:1; transform:translateY(0)}
+}
+@keyframes ruleExpand {
+  from { transform:scaleX(0)}
+  to   { transform:scaleX(1)}
+}
+
+/* Hero 進場（load 觸發，錯開時序） */
+.lesson-hero .back-link      { animation:fadeUp .4s ease both}
+.lesson-hero .hero-meta      { animation:fadeUp .45s .08s ease both}
+.lesson-hero .lesson-title   { animation:fadeUp .55s .15s ease both}
+.lesson-hero .lesson-tagline { animation:fadeUp .5s  .26s ease both}
+.lesson-hero .outcomes       { animation:fadeUp .45s .36s ease both}
+
+/* Scroll reveal */
+.reveal {
+  opacity:0;
+  transform:translateY(22px);
+  transition:opacity .65s cubic-bezier(.16,1,.3,1), transform .65s cubic-bezier(.16,1,.3,1)}
+.reveal.in { opacity:1; transform:translateY(0)}
+
+/* section-rule 展開 */
+.section-rule {
+  transform-origin: left center;
+  opacity:0;
+  transition: opacity .4s ease, transform .6s cubic-bezier(.16,1,.3,1);
+  transform: scaleX(.3)}
+.section-rule.in { opacity:1; transform:scaleX(1)}
+
+/* 卡片 hover 精化 */
+.concept-card, .preview-card {
+  transition:transform .22s cubic-bezier(.16,1,.3,1)}
+.concept-card:hover, .preview-card:hover {
+  transform:translateY(-4px)}
+.compare-card {
+  transition:transform .2s ease}
+.compare-card:hover {
+  transform:translateY(-2px)}
+
+/* 側邊章節導航 */
+.section-dots {
+  position:fixed; left:20px; top:50%; transform:translateY(-50%);
+  display:flex; flex-direction:column; gap:10px; z-index:40;
+  opacity:0; transition:opacity .4s ease}
+.section-dots.visible { opacity:1}
+.sdot {
+  width:6px; height:6px; border-radius:50%;
+  background:var(--c-border);
+  cursor:pointer;
+  transition:background .3s ease, transform .3s ease;
+  border:none; padding:0}
+.sdot.active { background:var(--c-a1); transform:scale(1.5)}
+@media (max-width:1100px) { .section-dots { display:none} }
+@media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important}*{animation:none!important}}
+@media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero{padding:56px 32px 40px}.lesson-body{padding:0 32px 80px}.lesson-nav{padding:0 32px 80px}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;.lesson-tagline{max-width:100%}}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:40px 20px 36px}.lesson-title{font-size:1.45rem}.lesson-body{padding:0 20px 60px}.lesson-nav{padding:0 20px 60px;flex-direction:column}.nav-btn{flex:none}.footer{padding:20px}.concept-grid{grid-template-columns:1fr}}
+
+/* a11y: focus-visible ring */
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}.lesson-section{scroll-margin-top:90px}.lesson-body pre{max-width:100%;overflow-wrap:anywhere;white-space:pre-wrap}.lesson-body details{border-top:1px solid var(--c-border);padding:16px 0;margin:20px 0}.lesson-body summary{cursor:pointer;font-weight:600}.lesson-body li{margin-bottom:12px}.lesson-body a{overflow-wrap:anywhere}.lesson-body table{max-width:100%}.lesson-body .core-route{font-size:.85rem;color:var(--c-muted);margin-bottom:28px}.lesson-title{overflow-wrap:anywhere}.core-table-scroll{max-width:100%;overflow:auto}
+.prompt-wrap{margin:32px 0}
+.prompt-label{font-size:.7rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:10px}
+.prompt-box{max-width:100%;overflow:auto;background:#2c2b28;color:#e8e4dc;font-family:"Courier New",monospace;font-size:.84rem;line-height:1.85;padding:24px 28px;border-radius:var(--radius);white-space:pre-wrap;overflow-wrap:anywhere;border:1px solid rgba(90,122,90,.3)}
+
+.copy-btn{display:inline-flex;align-items:center;margin:12px 10px 0 0;padding:8px 14px;border:1px solid var(--c-border);border-radius:var(--radius-sm);background:var(--c-card);color:var(--c-text);font:inherit;font-size:.82rem;cursor:pointer}
+.copy-btn:hover{background:var(--c-surface)}
+[data-copy-status]{display:inline-block;font-size:.8rem;color:var(--c-muted);margin-top:8px}
+</style>
+<style id="prompt-policy-style">
+[data-policy-prompt]{max-width:100%;box-sizing:border-box;white-space:pre-wrap;overflow-wrap:anywhere;scroll-margin-top:110px}
+.policy-copy-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:12px 0 22px}.policy-copy-row button{min-height:44px;max-width:100%;white-space:normal;cursor:pointer}.policy-status{font-size:.82rem;line-height:1.6}
+.policy-case{padding:20px;margin:22px 0;background:#f5f8fa;border:1px solid #b8c9d5;border-radius:8px;max-width:100%;box-sizing:border-box;color:#193448}.policy-case h3{margin:0 0 12px;font-size:1rem}.policy-case p{line-height:1.8}.policy-case pre{font-family:inherit;white-space:pre-wrap;overflow-wrap:anywhere;margin:16px 0;font-size:.9rem;line-height:1.85;color:inherit;background:transparent;border:0;padding:0}.policy-guide{font-size:.9rem;line-height:1.8;margin:14px 0;color:inherit}
+</style>
+<style id="coldtone-table-readability">
+/* Gemini AI table readability; teaching content and scripts are preserved. */
+.lesson-body .core-table-scroll,.lesson-body .table-scroll {
+ max-width:100%; overflow-x:auto; margin:24px 0;
+ border:1px solid #BACBD8; border-radius:6px; background:#FCFDFE;
+ overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch;
+ scrollbar-width:auto; scrollbar-color:#71889C #EEF3F9;
+}
+.lesson-body .core-table-scroll::-webkit-scrollbar,.lesson-body .table-scroll::-webkit-scrollbar { height:10px; }
+.lesson-body .core-table-scroll::-webkit-scrollbar-track,.lesson-body .table-scroll::-webkit-scrollbar-track { background:#EEF3F9; }
+.lesson-body .core-table-scroll::-webkit-scrollbar-thumb,.lesson-body .table-scroll::-webkit-scrollbar-thumb { background:#71889C; border:2px solid #EEF3F9; border-radius:6px; }
+.lesson-body table:not(.heatmap-table) {
+ width:100%; max-width:none; border-collapse:collapse; border-spacing:0;
+ font-size:1rem; line-height:1.75; background:#FCFDFE;
+}
+.lesson-body table:not(.heatmap-table) th,.lesson-body table:not(.heatmap-table) td {
+ padding:14px 16px; border:1px solid #BACBD8;
+ text-align:left; vertical-align:top; word-break:normal; overflow-wrap:anywhere;
+}
+.lesson-body table:not(.heatmap-table) th { background:#EEF3F9; color:#173B57; font-weight:700; }
+.lesson-body table:not(.heatmap-table) td { color:#344552; }
+.lesson-body table:not(.heatmap-table) tbody tr:nth-child(even)>td { background:#F4F8FC; }
+.lesson-body table:not(.heatmap-table) tbody tr>td:first-child { font-weight:600; }
+.lesson-body .core-table-scroll table { min-width:32rem; table-layout:fixed; }
+.lesson-body .core-table-scroll table th:first-child { width:30%; }
+.lesson-body .core-table-scroll table:has(thead>tr:first-child>th:nth-child(3)) { min-width:40rem; }
+.lesson-body .core-table-scroll table:has(thead>tr:first-child>th:nth-child(3)) th:first-child { width:20%; }
+.lesson-body .core-table-scroll table:has(thead>tr:first-child>th:nth-child(4)) { min-width:52rem; }
+.lesson-body .core-table-scroll table:has(thead>tr:first-child>th:nth-child(5)) { min-width:48rem; }
+.lesson-body .interview-table { width:max-content; min-width:100%; table-layout:auto; }
+.lesson-body .interview-table .criteria-col { min-width:10rem; }
+.lesson-body .interview-table th:not(:first-child),.lesson-body .interview-table td:not(:first-child) { min-width:14rem; }
+.lesson-body .interview-table textarea { min-width:10rem; }
+.lesson-body .history-table { min-width:42rem; }
+.lesson-body .history-table td:nth-child(3) { white-space:normal!important; max-width:none!important; overflow-wrap:anywhere; }
+/* Preserve the heat-state backgrounds and text colors; adjust only dimensions. */
+.lesson-body table.heatmap-table { max-width:none; border-collapse:collapse; }
+.lesson-body .heatmap-table th,.lesson-body .heatmap-table td.time-label {
+ padding:12px; font-size:1rem; line-height:1.6; color:#344552; background:#EEF3F9;
+ border:1px solid #BACBD8; white-space:nowrap;
+}
+.lesson-body .heatmap-table .heat-cell { min-width:76px; height:44px; padding:10px 12px; font-size:.9rem; line-height:1.6; }
+@media(max-width:600px) {
+ .lesson-body table:not(.heatmap-table) th,.lesson-body table:not(.heatmap-table) td { padding:12px 14px; }
+}
+
+.lesson-body > section:nth-of-type(2) > div:nth-of-type(1) > table:nth-of-type(1) th:nth-child(3),.lesson-body > section:nth-of-type(2) > div:nth-of-type(1) > table:nth-of-type(1) td:nth-child(3) { text-align:right; font-variant-numeric:tabular-nums; }</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+<div id="_gate-box">
+<div id="_gate-title">弄一下工作室</div>
+<div id="_gate-sub">課程專屬講義<br/>請輸入課程密碼</div>
+<input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off"/>
+<button id="_gate-btn" onclick="_gc()">進入課程</button>
+<div id="_gate-err"></div>
+</div>
+</div>
+<script>
+(function(){const K='gemini_auth',H='af4216b537dbe50ab6bce3a5f75201f51894267495ac777423d8f18d11318db8';if(localStorage.getItem(K)==='1')sessionStorage.setItem(K,'1');if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+<a href="#main" class="skip-link">跳至主要內容</a>
+<header class="topbar">
+<a class="logo" href="../../../index.html">弄一下工作室</a>
+<div class="topbar-divider"></div>
+<div class="topbar-sub">Gemini 零代碼 AI 實戰課</div>
+<div class="spacer"></div>
+<div class="topbar-tag">案例遊樂園</div>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="progressFill"></div></div>
+<nav class="section-dots" id="sectionDots" aria-label="章節導航"></nav>
+<section class="lesson-hero" id="main" data-learning-role="playground">
+<a class="back-link" href="../playground/index.html"><span aria-hidden="true">←</span> 返回課程目錄</a>
+<div class="hero-meta">
+<span class="hero-part">案例遊樂園 · 圖表與呈現</span>
+<div class="hero-divider-v"></div>
+<span class="hero-num">PG06 · 選用案例</span>
+</div>
+<h1 class="lesson-title">客戶分群四象限</h1>
+<p class="lesson-tagline">用可調兩軸和分界看資料位置，保留缺值</p>
+<div class="outcomes"><div class="outcomes-label">完成物</div><div class="outcome-item">可重用工具、A／B測試與資料／結果檔。</div></div>
+</section>
+<main class="lesson-body"><section class="lesson-section" id="pg06-purpose">
+<h2 class="section-heading">先說明兩條軸代表什麼，再決定如何讀四個區域</h2>
+<p class="body-text">當一份名單同時有兩個可比較的數值欄位時，散布圖可以讓人看出資料點落在哪些區域。這個案例使用虛構客戶資料，把「近 90 天互動次數」和「年度合作值」放在兩軸，並由使用者選擇分界與四個象限名稱。完成物包含散布圖、逐列象限表、缺值待確認清單和 CSV。象限只是依兩個數值的位置分類；它不能說明原因，也不能直接證明客戶將流失或該採取什麼行動。
+</p>
+<p class="body-text">先下載 <a href="../assets/playground/PG06/input-a.csv">input-a.csv</a>，並查看 <a href="../assets/playground/PG06/cases.txt">cases.txt</a> 的軸、界線和象限名稱。另一組欄位和資料在 <a href="../assets/playground/PG06/input-b.csv">input-b.csv</a>，設定見同一附件 B 區。資料可用試算表或純文字查看；若無法下載，依附件在試算表建立資料。先確認每一列的識別碼、兩個數值欄及單位，然後輸入到工具。B 需重新選擇欄位並輸入另一組分界，確認欄位名稱與資料都可替換。
+</p>
+<p class="body-text">四象限由兩條分界線把平面分成左／右和下／上。若只看顏色，色覺差異或黑白列印會讓分類難辨，因此每個區域都要有文字名稱和符號；旁邊的表格也要列出每筆資料的 x、y 數值、分界和分類。這份示範約定 x 等於分界時歸右側，y 等於分界時歸上側。兩個數值任一缺失或無法解析，就列為待確認，不把空白當 0，也不放到圖表某個象限。
+</p>
+<p class="body-text"><a href="../assets/playground/PG06/author-reference.html">開啟作者參考工具</a>可輸入資料並重畫 SVG 散布圖。這是作者依提示詞製作的參考工具，不是 Gemini 生成成果，也不代表平台或真人測試通過。</p>
+<ol class="step-list"><li>確認資料識別碼、兩個數值欄及其單位。</li><li>選擇 x、y 軸並設定兩條分界和區域名稱。</li><li>用座標和等號規則核對圖點及逐筆表格。</li><li>換一組分界重算，並確認缺值仍列待確認。</li></ol>
+</section>
+<section class="lesson-section" id="pg06-demo">
+<h2 class="section-heading">示範 A：依位置分類，不替點上的人編故事</h2>
+<p class="body-text">A 設定選 x 為近 90 天互動次數、y 為年度合作值，x 分界為 5 次、y 分界為 500 單位。四區名稱在附件設定為右上「互動高／合作高」、左上「互動低／合作高」、右下「互動高／合作低」、左下「互動低／合作低」。客戶 K1 的座標是 (8, 800)，兩值都高，落在右上；K2 是 (3, 800)，x 低而 y 高，落左上；K3 是 (8, 300)，落右下；K4 是 (3, 300)，落左下。K5 的座標是 (5, 500)，兩值正好等於分界；依本課規則它同時算右側和上側，因此落右上。K6 的互動值空白，不能假設為零，只能顯示「缺少 x，待確認」，不繪製成有效座標。每個判斷都可用數值與分界重算。</p>
+<div class="core-table-scroll"><table><thead><tr><th>代碼</th><th>x</th><th>y</th><th>比較</th><th>結果</th></tr></thead><tbody>
+<tr><td>K1</td><td>8</td><td>800</td><td>x 高、y 高</td><td>右上</td></tr><tr><td>K2</td><td>3</td><td>800</td><td>x 低、y 高</td><td>左上</td></tr><tr><td>K3</td><td>8</td><td>300</td><td>x 高、y 低</td><td>右下</td></tr><tr><td>K4</td><td>3</td><td>300</td><td>x 低、y 低</td><td>左下</td></tr><tr><td>K5</td><td>5</td><td>500</td><td>等於兩條分界，歸右且歸上</td><td>右上</td></tr><tr><td>K6</td><td>空白</td><td>600</td><td>缺少 x</td><td>待確認</td></tr>
+</tbody></table></div>
+<p class="body-text">接著只改設定為 x 分界 4、y 分界 600。K5 此時 x 高、y 低，移到右下；K7 (4, 450) 因 x 等於 4 歸右，y 低，所以也在右下。這些變化是新界線帶來的分類結果，不表示客戶行為真的變好或變差。案例的設定可替換，必須由使用者依分析問題決定合理軸與尺度。
+</p>
+</section>
+<section class="lesson-section" id="pg06-build">
+<h2 class="section-heading">把座標、分界和名稱都做成可調設定</h2>
+<p class="body-text">結構提示詞要交代資料如何映射到圖表、分界如何判斷、缺值如何呈現，以及使用者如何重新設定。不要把客戶名單、軸欄名、分界數值、標籤或答案寫進結構提示詞。工具無案例時顯示空白輸入和設定欄，可新增、修改、刪除資料列；離線單檔完成後才附上 A 資料進行驗收。</p>
+<div class="prompt-wrap"><div class="prompt-label">可重用結構提示詞｜案例另附</div><p class="policy-guide">工具依欄位對應和分界設定分類；軸名稱、類別名稱、資料和閾值都由使用者輸入。</p>
+<pre class="prompt-box" data-policy-prompt="工具生成或修改" id="pg06-prompt">請製作一個單檔、離線可用的雙軸四象限資料工具，使用原生 HTML、CSS 和 JavaScript，不使用外部套件、CDN、伺服器或 API。第一次開啟顯示空白資料和設定，不預填案例。
+
+【資料和設定】
+- 使用者可載入 UTF-8 CSV 或手動新增、修改、刪除資料列，並選擇識別碼欄、x 數值欄及 y 數值欄。
+- x、y 軸標題、數值單位、兩軸分界值、四象限名稱和說明文字皆由使用者設定，可隨時修改。
+- 允許使用者設定各軸顯示範圍；若未指定，依有效資料值合理呈現並標出分界線。
+
+【分類規則】
+- 依每筆資料的 x、y 數值與分界分類。x 小於分界為左，大於或等於分界為右；y 小於分界為下，大於或等於分界為上。等於分界的處理方式必須在畫面清楚說明。
+- 任一座標空白、非有限數值或無法解析時，保留該列並標為待確認，說明缺少或錯誤欄位；不得把缺值視為零，也不得把它畫進象限。
+- 不從象限位置推測原因、風險或行動建議。分類只表示輸入數值相對於使用者分界的位置。
+
+【呈現與輸出】
+- 以散布圖顯示有效資料點與兩條分界線，標示四個可設定名稱的區域。
+- 每個點可辨認其識別碼；提供逐筆表格列出 x、y、象限及待確認原因，並列出各象限筆數。
+- 使用顏色之外，再以文字和符號標示區域；圖表需附軸名稱、單位、分界值和文字圖例。手機畫面可讀，必要時允許水平捲動圖表區，不得裁掉分類文字。
+- 提供資料 CSV 匯出、結果 CSV 匯出和清除重來。輸出保留所有資料列及待確認原因。
+- 交付完整單一 HTML。檢查四種象限、等於 x 分界、等於 y 分界、兩者皆等於、缺值、錯誤文字和更改分界後重算。未附資料時仍能從空白狀態建立工具。</pre>
+<div class="policy-copy-row"><button class="copy-btn" data-policy-copy="pg06-prompt" type="button">複製可重用提示詞</button><span aria-live="polite" class="policy-status" id="pg06-prompt-policy-status" role="status"></span></div>
+<aside class="policy-case" data-policy-case="pg06-case"><h3>本次案例資料與設定｜分開提供</h3><p class="body-text">依 <a href="../assets/playground/PG06/cases.txt">cases.txt</a> 對應軸欄和界線，分別載入 <a href="../assets/playground/PG06/input-a.csv">input-a.csv</a> 與 <a href="../assets/playground/PG06/input-b.csv">input-b.csv</a>。答案在 <a href="../assets/playground/PG06/answers.md">answers.md</a>，含 A/B 分界結果和缺值狀態。</p><pre id="pg06-case">依 cases.txt 設定兩條軸、分界、四個區域名稱與等於邊界的規則。分別用 A 設定分類 input-a.csv、用 B 設定分類 input-b.csv。列出座標、分類或待確認原因；不要從象限推測客戶原因或行動。</pre><div class="policy-copy-row"><button class="copy-btn" data-policy-copy="pg06-case" type="button">複製當次案例條件</button><span aria-live="polite" class="policy-status" id="pg06-case-policy-status" role="status"></span></div></aside></div>
+<p class="body-text">複製提示詞產生 HTML 後，照 <a href="../chapters/CH1.html#save-open">第一章「保存並開啟 HTML」示範</a>另存並重新開啟。匯入 A 資料，依附件填入軸、界線與標籤；先核對 K1 到 K6 的位置和缺值，再載入 B 資料、改選欄位並檢查新結果。若圖點和表格分類不同，以座標比較規則逐列查找，不憑顏色猜答案。</p>
+</section>
+<section class="lesson-section" id="pg06-check">
+<h2 class="section-heading">檢查邊界與缺值，避免把圖讀成因果</h2>
+<p class="body-text">測試時新增一筆 x 等於分界、y 大於分界的資料，再新增一筆 x 缺值的資料，確認前者在右上、後者待確認且保留於匯出。如果畫面把空白點到原點，回到缺值規則；若點在圖上的位置與表格四象限不一致，先檢查軸對應和上下方向；若只有顏色區別而無文字，可要求補上象限標籤與符號。最後改一次分界，確認散布圖、逐列分類、計數和匯出檔同步更新。</p>
+<p class="body-text">這種圖可用於整理客戶、任務或產品的兩個數值指標，幫助團隊選出要進一步討論的資料點。軸是否適合、界線放在哪裡，會直接改變分類，因此應記錄欄位、單位、界線和資料日期。四象限讓位置容易比較，原因仍需其他證據，後續行動也由負責人判斷。</p>
+</section></main>
+<nav class="lesson-nav"><a class="nav-btn nav-prev" data-nav-role="prev" href="../playground/index.html"><div><div class="nav-btn-label">返回案例遊樂園</div><div class="nav-btn-title">選另一個工具案例</div></div></a><a class="nav-btn nav-next next" data-nav-role="next" href="../playground/index.html"><div><div class="nav-btn-label">返回案例遊樂園</div><div class="nav-btn-title">回案例遊樂園</div></div></a></nav>
+<footer class="footer" data-platform-version="2026-04-v3">
+<div class="footer-logo">弄一下工作室</div>
+<div class="footer-note">Gemini AI 實戰課 · 案例遊樂園 · 客戶分群四象限</div>
+</footer>
+<script>
+function drillCopy(text,btn){navigator.clipboard.writeText(text).then(function(){var orig=btn.textContent;btn.textContent='已複製';setTimeout(function(){btn.textContent=orig},1500)})}
+// 閱讀進度條
+window.addEventListener('scroll', () => {
+  const d = document.documentElement;
+  const pct = d.scrollHeight - d.clientHeight > 0
+    ? (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100 : 0;
+  document.getElementById('progressFill').style.width = pct + '%'});
+
+// Scroll reveal（sections + section-rule）
+(function(){
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target)}
+    })}, { threshold: .1, rootMargin: '0px 0px -48px 0px' });
+
+  document.querySelectorAll('.lesson-section, .section-rule').forEach(el => {
+    el.classList.add('reveal');
+    io.observe(el)})})();
+
+// 側邊章節導航點
+(function(){
+  const sections = Array.from(document.querySelectorAll('.lesson-body > .lesson-section'));
+  const nav = document.getElementById('sectionDots');
+  if (!sections.length || !nav) return;
+
+  sections.forEach((sec, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'sdot';
+    btn.title = sec.querySelector('.section-heading')?.textContent?.trim().slice(0, 20) || ('第 ' + (i+1) + ' 節');
+    btn.addEventListener('click', () => sec.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    nav.appendChild(btn)});
+
+  const dotIo = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      const i = sections.indexOf(e.target);
+      if (i >= 0) nav.children[i]?.classList.toggle('active', e.isIntersecting)});
+    nav.classList.toggle('visible', Array.from(nav.children).some(d => d.classList.contains('active')))}, { threshold: .3 });
+
+  sections.forEach(s => dotIo.observe(s))})();
+</script>
+<script>
+// 閱讀進度持久化（localStorage）— 2026-04-16 UI refresh
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+<script>document.querySelectorAll('[data-copy]').forEach(btn=>btn.addEventListener('click',async()=>{const id=btn.dataset.copy;const text=document.getElementById(id).textContent;const status=document.querySelector('[data-copy-status="'+id+'"]');try{await navigator.clipboard.writeText(text);status.textContent='已複製，請貼到對應的生成輸入框。'}catch(e){status.textContent='無法自動複製；請選取下方完整指令，按 Ctrl+C／Cmd+C。'}}));</script>
+<script id="prompt-policy-copy">
+document.querySelectorAll('[data-policy-copy]').forEach(button=>button.addEventListener('click',async()=>{
+ const id=button.dataset.policyCopy, node=document.getElementById(id), status=document.getElementById(id+'-policy-status');
+ const text=node.tagName==='TEXTAREA'?node.value:node.textContent;
+ try{await navigator.clipboard.writeText(text);status.textContent='已複製此區全文。提示詞與案例條件分開複製。';}
+ catch(error){if(node.tagName==='TEXTAREA'){node.focus();node.select();}else{const range=document.createRange();range.selectNodeContents(node);const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);}status.textContent='未允許自動複製，已選取此區全文；請按 Ctrl+C／Cmd+C。';}
+}));
+</script>
+</body>
+</html>

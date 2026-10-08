@@ -1,0 +1,100 @@
+<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>可編輯輸入的排班參考工具</title><style>
+:root{color-scheme:light}*{box-sizing:border-box}body{margin:0;background:#f5f3ee;color:#2c2b28;font-family:system-ui,sans-serif;line-height:1.8}main{max-width:960px;margin:auto;padding:28px 24px}section{background:#fff;border:1px solid #d8d4cb;border-radius:6px;padding:20px;margin:24px 0}h1{font-size:1.6rem}h2{font-size:1.2rem}h3{font-size:1rem;margin:18px 0 8px}p{margin:12px 0}button,input{font:inherit}button{min-height:44px;padding:8px 14px;border:1px solid #d8d4cb;border-radius:4px;background:#edeae3;color:#2c2b28;cursor:pointer}button:disabled{opacity:.5;cursor:default}input{min-height:44px;min-width:0;max-width:100%;padding:8px;border:1px solid #d8d4cb;border-radius:4px}input[type=checkbox]{min-height:auto;width:20px;height:20px}input[type=number]{width:90px}.edit-row,.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0}.edit-row>input[type=text]{flex:1;min-width:120px}.edit-row>label{display:flex;align-items:center;gap:8px;flex-wrap:wrap}label{display:inline-flex;align-items:center;gap:8px}.scroll{max-width:100%;overflow:auto}table{border-collapse:collapse;width:100%;min-width:360px}th,td{padding:10px;border:1px solid #d8d4cb;text-align:left}th{background:#edeae3}#status{font-weight:600}a{color:#495e83}button:focus-visible,input:focus-visible{outline:2px solid #6b7fa3;outline-offset:3px}@media(max-width:480px){main{padding:16px}section{padding:16px}.edit-row>input[type=time]{flex:1;max-width:100%}}@media print{nav,.controls,button,input,#input-section{display:none}body{background:#fff}main{max-width:none;padding:0}section{border:0}.scroll{overflow:visible}table{min-width:0}thead{display:table-header-group}tr{break-inside:avoid}}
+</style><style id="coldtone-table-readability">
+@media screen {
+.scroll {max-width:100%;overflow-x:auto;margin:20px 0;border:1px solid #BACBD8;border-radius:6px;background:#FCFDFE;scrollbar-color:#71889C #EEF3F9}
+table {width:100%;max-width:none;border-collapse:collapse;font-size:1rem;line-height:1.75;min-width:720px}
+th,td {padding:14px 16px;border:1px solid #BACBD8;text-align:left;vertical-align:top;word-break:normal;overflow-wrap:anywhere}
+th {background:#EEF3F9;color:#173B57;font-weight:700}
+td {color:#344552;background:#FCFDFE}
+tbody tr:nth-child(even)>td {background:#F4F8FC}
+td input,td select {min-width:90px}
+td input[type=number] {text-align:right;font-variant-numeric:tabular-nums}
+#available {min-width:360px}
+#available th,#available td {min-width:90px;white-space:nowrap}
+#result table {min-width:880px}
+}
+@media screen and (max-width:600px){th,td {padding:12px 14px}}
+
+@media screen{}
+</style>
+</head><body><main><nav><a href="../../part2/PRAC2-1.html">回工具結構講義</a></nav><h1>可編輯輸入的排班參考工具</h1><p>作者製作的離線參考品，初次開啟為空白。人員、日期、班種和需求都在畫面填入；使用同一份工具測試不同資料。這不是學員的模型生成成果。此基礎品尚未加入「指定班種次數上限」的新功能。</p><section id="input-section"><h2>輸入與規則</h2><p>支援1至8人、1至7日期、1至4班種，每班需要1至4人。日期可用實際日期或自訂標籤。新增日期預設不可排，請重新勾選。</p><h3>人員清單</h3><div id="people-list"></div><button id="add-people" type="button">新增人員</button><h3>日期清單</h3><div id="days-list"></div><button id="add-days" type="button">新增日期</button><h3>班種、時段與需求</h3><div id="shifts-list"></div><button id="add-shifts" type="button">新增班種</button><h3>可排條件</h3><div class="scroll"><table id="available"></table></div><div class="controls"><label for="max">每人總班數上限</label><input id="max" type="number" min="0" step="1" value="0"><button id="generate" type="button">產生班表</button><button id="clear" type="button">清空資料</button></div><p>同日最多一班；先遵守限制，盡量安排，再讓總班數接近。上限不能超過日期數。正式人事規定、法定工時或專業資格需另立規格。</p><div class="controls"><button id="backup" type="button">下載資料備份</button><label for="import">還原資料（選取備份檔）</label><input id="import" type="file" accept=".json,application/json"></div><p>資料只在本分頁；關閉或重新整理回空白。自己的資料請先下載備份，下次選取檔案還原；備份內容由工具處理，不用打開或改寫。還原後重新產生班表。</p></section><section><h2>班表、需求與缺額</h2><p id="status" role="status" aria-live="polite"></p><div id="result" class="scroll"></div><p id="counts"></p><div class="controls"><button id="export" type="button" disabled>下載班表CSV</button><button id="print" type="button" disabled>列印／另存PDF</button></div><p>缺額需交負責人調整可排人員或需求，不能由工具放寬限制。班表順序可不同，規則和人次需核對。</p></section></main><script>const LIMITS={people:8,days:7,shifts:4,need:4};
+function normalizeRoster(input){
+ if(input&&input.version===2)return structuredClone(input);
+ if(input&&Array.isArray(input.people)&&input.people.length===4&&Number.isInteger(input.maxShifts)){
+  return {version:2,maxShifts:input.maxShifts,days:[{label:'週一'},{label:'週二'},{label:'週三'}],shifts:[{name:'早班',start:'09:00',end:'13:00',need:1},{name:'晚班',start:'13:00',end:'17:00',need:1}],people:input.people.map(p=>({name:p.name,available:p.available}))};
+ }
+ throw Error('這份備份不適用；請選取本工具下載的資料備份。');
+}
+function validateRoster(input){
+ const x=normalizeRoster(input);
+ if(!Array.isArray(x.people)||x.people.length<1||x.people.length>LIMITS.people)throw Error('人員需有1至8位。');
+ if(!Array.isArray(x.days)||x.days.length<1||x.days.length>LIMITS.days)throw Error('日期需有1至7個。');
+ if(!Array.isArray(x.shifts)||x.shifts.length<1||x.shifts.length>LIMITS.shifts)throw Error('班種需有1至4種。');
+ if(!Number.isInteger(x.maxShifts)||x.maxShifts<0||x.maxShifts>x.days.length)throw Error('每人上限需為0至日期數之間的整數；同日最多一班。');
+ function unique(items,key,title){const values=items.map(v=>typeof v[key]==='string'?v[key].trim():'');if(values.some(v=>!v)||new Set(values).size!==values.length)throw Error(title+'都要填寫且不得重複。');items.forEach((v,i)=>v[key]=values[i]);}
+ unique(x.people,'name','姓名');unique(x.days,'label','日期');unique(x.shifts,'name','班種');
+ const time=/^(?:[01]\d|2[0-3]):[0-5]\d$/;
+ if(x.shifts.some(s=>!time.test(s.start)||!time.test(s.end)||s.end<=s.start))throw Error('班種時間需完整，結束時間要晚於開始時間。');
+ if(x.shifts.some(s=>!Number.isInteger(s.need)||s.need<1||s.need>LIMITS.need))throw Error('每班需要人數需為1至4的整數。');
+ if(x.people.some(p=>!Array.isArray(p.available)||p.available.length!==x.days.length||p.available.some(v=>typeof v!=='boolean')))throw Error('可排條件不完整，請重新勾選或使用完整資料備份。');
+ return x;
+}
+// 最大流先安排最多人次；每位人員後續班次的成本遞增，選班數較接近的解。
+function solveRoster(input){
+ const data=validateRoster(input),graph=[];
+ const node=()=>{graph.push([]);return graph.length-1};
+ const source=node(),sink=node();
+ const edge=(u,v,cap,cost=0)=>{const a={to:v,rev:graph[v].length,cap,cost,initial:cap},b={to:u,rev:graph[u].length,cap:0,cost:-cost,initial:0};graph[u].push(a);graph[v].push(b);return a};
+ const slots=[];
+ data.days.forEach((day,d)=>data.shifts.forEach((shift,s)=>{const n=node();edge(n,sink,shift.need);slots.push({d,s,n,people:[]})}));
+ const refs=[];
+ data.people.forEach((p,i)=>{const pn=node();for(let k=0;k<data.maxShifts;k++)edge(source,pn,1,2*k+1);data.days.forEach((day,d)=>{if(!p.available[d])return;const pd=node();edge(pn,pd,1);slots.filter(slot=>slot.d===d).forEach(slot=>refs.push({i,slot,e:edge(pd,slot.n,1)}))})});
+ let filled=0,penalty=0;
+ while(true){
+  const dist=graph.map(()=>Infinity),prev=graph.map(()=>null);dist[source]=0;
+  for(let step=0;step<graph.length-1;step++){let changed=false;graph.forEach((list,u)=>{if(!Number.isFinite(dist[u]))return;list.forEach((e,j)=>{if(e.cap>0&&dist[u]+e.cost<dist[e.to]){dist[e.to]=dist[u]+e.cost;prev[e.to]=[u,j];changed=true}})});if(!changed)break;}
+  if(!prev[sink])break;
+  let v=sink;while(v!==source){const [u,j]=prev[v],e=graph[u][j];e.cap--;graph[v][e.rev].cap++;v=u}
+  filled++;penalty+=dist[sink];
+ }
+ refs.forEach(({i,slot,e})=>{if(e.cap===0)slot.people.push(i)});
+ const counts=data.people.map(()=>0);slots.forEach(slot=>slot.people.forEach(i=>counts[i]++));
+ return {data,slots,counts,filled,penalty,total:slots.reduce((n,slot)=>n+data.shifts[slot.s].need,0)};
+}
+let state={version:2,maxShifts:0,people:[],days:[],shifts:[]},result=null;
+const el=id=>document.getElementById(id),snapshot=()=>structuredClone(state),readInputs=()=>validateRoster(snapshot());
+function notice(msg){el('status').textContent=msg;}
+function invalidate(){result=null;el('result').replaceChildren();el('counts').textContent='';el('export').disabled=true;el('print').disabled=true;notice('資料或設定已改變，請重新產生班表。');}
+function makeInput(value,label,type,onInput){const input=document.createElement('input');input.type=type;input.value=value;input.setAttribute('aria-label',label);input.addEventListener('input',()=>{onInput(input.value);invalidate()});return input;}
+function renderAvailable(){
+ const table=el('available');table.replaceChildren();const h=document.createElement('thead'),hr=document.createElement('tr');['姓名',...state.days.map((d,i)=>d.label||'日期'+(i+1))].forEach(name=>{const th=document.createElement('th');th.scope='col';th.textContent=name;hr.append(th)});h.append(hr);table.append(h);const b=document.createElement('tbody');
+ state.people.forEach((p,i)=>{const tr=document.createElement('tr'),head=document.createElement('th');head.scope='row';head.textContent=p.name||'人員'+(i+1);tr.append(head);state.days.forEach((d,j)=>{const td=document.createElement('td'),label=document.createElement('label'),check=document.createElement('input');check.type='checkbox';check.checked=p.available[j];check.setAttribute('aria-label',`${p.name||'人員'+(i+1)} ${d.label||'日期'+(j+1)} 可排`);check.addEventListener('change',()=>{p.available[j]=check.checked;invalidate()});label.append(check,document.createTextNode('可排'));td.append(label);tr.append(td)});b.append(tr)});table.append(b);
+}
+function renderLists(){
+ ['people','days','shifts'].forEach(kind=>{const box=el(kind+'-list');box.replaceChildren();state[kind].forEach((item,i)=>{const row=document.createElement('div');row.className='edit-row';
+  if(kind==='people')row.append(makeInput(item.name,`人員${i+1}姓名`,'text',v=>{item.name=v;renderAvailable()}));
+  if(kind==='days')row.append(makeInput(item.label,`日期${i+1}標籤`,'text',v=>{item.label=v;renderAvailable()}));
+  if(kind==='shifts'){row.append(makeInput(item.name,`班種${i+1}名稱`,'text',v=>item.name=v),makeInput(item.start,`班種${i+1}開始時間`,'time',v=>item.start=v),makeInput(item.end,`班種${i+1}結束時間`,'time',v=>item.end=v));const label=document.createElement('label');label.textContent='每班需要人數';const input=makeInput(item.need,`班種${i+1}需要人數`,'number',v=>item.need=v.trim()===''?null:Number(v));input.min='1';input.max='4';label.append(input);row.append(label);}
+  const remove=document.createElement('button');remove.type='button';remove.textContent='刪除';remove.setAttribute('aria-label',`刪除${kind==='people'?'人員':kind==='days'?'日期':'班種'}${i+1}`);remove.addEventListener('click',()=>{state[kind].splice(i,1);if(kind==='days')state.people.forEach(p=>p.available.splice(i,1));renderLists();renderAvailable();invalidate()});row.append(remove);box.append(row);
+ })});el('max').value=state.maxShifts;el('max').max=state.days.length;
+}
+function loadInputs(input){const valid=validateRoster(input);state=valid;renderLists();renderAvailable();invalidate();}
+function add(kind){if(state[kind].length>=LIMITS[kind]){notice('已達支援上限，請修改或刪除既有項目。');return;}if(kind==='people')state.people.push({name:'',available:state.days.map(()=>false)});if(kind==='days'){state.days.push({label:''});state.people.forEach(p=>p.available.push(false))}if(kind==='shifts')state.shifts.push({name:'',start:'',end:'',need:1});renderLists();renderAvailable();invalidate();}
+function render(){
+ result=solveRoster(readInputs());const table=document.createElement('table'),head=document.createElement('thead'),tr=document.createElement('tr');['日期','班種','時段','需求人數','已安排人員','缺額'].forEach(x=>{const th=document.createElement('th');th.scope='col';th.textContent=x;tr.append(th)});head.append(tr);table.append(head);const body=document.createElement('tbody');
+ result.slots.forEach(slot=>{const d=result.data.days[slot.d],s=result.data.shifts[slot.s],row=document.createElement('tr');[d.label,s.name,s.start+'–'+s.end,s.need,slot.people.map(i=>result.data.people[i].name).join('、')||'空缺',s.need-slot.people.length].forEach(x=>{const td=document.createElement('td');td.textContent=x;row.append(td)});body.append(row)});table.append(body);el('result').replaceChildren(table);el('counts').textContent=result.data.people.map((p,i)=>p.name+' '+result.counts[i]+'班').join('；');
+ const gap=result.total-result.filled;notice(`已安排 ${result.filled}/${result.total} 人次，缺額 ${gap}。`+(gap?'未排滿，需調整條件。已在可排日期、每人上限、同日一班與需求限制內安排最多人次；請負責人核對可排人員或需求。':'需求皆有安排，請逐條查規則。'));el('export').disabled=false;el('print').disabled=false;
+}
+function download(name,text,type){const url=URL.createObjectURL(new Blob([text],{type})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+function csvCell(value){let text=String(value);if(/^[=+\-@\t\r]/.test(text))text="'"+text;return '"'+text.replace(/"/g,'""')+'"'}
+['people','days','shifts'].forEach(kind=>el('add-'+kind).addEventListener('click',()=>add(kind)));
+el('max').addEventListener('input',()=>{state.maxShifts=el('max').value.trim()===''?null:Number(el('max').value);invalidate()});
+el('generate').addEventListener('click',()=>{try{render()}catch(error){invalidate();notice(error.message)}});
+el('clear').addEventListener('click',()=>{if(!confirm('清空目前資料？請先下載需要保留的資料備份。'))return;state={version:2,maxShifts:0,people:[],days:[],shifts:[]};renderLists();renderAvailable();invalidate();notice('已清空，請新增資料。')});
+el('backup').addEventListener('click',()=>{try{download('schedule-current.json',JSON.stringify(readInputs(),null,2),'application/json')}catch(error){notice(error.message)}});
+el('import').addEventListener('change',async event=>{const file=event.target.files[0];if(!file)return;try{const valid=validateRoster(JSON.parse(await file.text()));loadInputs(valid);notice('資料已還原；請核對欄位後重新產生。')}catch(error){notice('還原失敗，原資料保留：'+error.message)}finally{event.target.value=''}});
+el('export').addEventListener('click',()=>{if(!result)return;const lines=[['日期','班種','時段','需求人數','已安排人員','缺額']];result.slots.forEach(slot=>{const d=result.data.days[slot.d],s=result.data.shifts[slot.s];lines.push([d.label,s.name,s.start+'–'+s.end,s.need,slot.people.map(i=>result.data.people[i].name).join('、')||'空缺',s.need-slot.people.length])});download('schedule.csv','\uFEFF'+lines.map(row=>row.map(csvCell).join(',')).join('\r\n'),'text/csv;charset=utf-8')});
+el('print').addEventListener('click',()=>{if(result)window.print()});
+renderLists();renderAvailable();notice('請新增人員、日期與班種，再勾選可排條件並設定上限。');
+</script></body></html>

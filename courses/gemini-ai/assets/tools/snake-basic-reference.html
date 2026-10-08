@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8"/><meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>經典貪食蛇｜作者操作參考品</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f5f3ee;color:#2c2b28;font:16px/1.8 system-ui,sans-serif}main{max-width:740px;margin:auto;padding:24px}a{color:#435e83}h1{font-size:1.6rem;line-height:1.5}label{display:block}input,select,button{font:inherit;padding:8px;max-width:100%;border:1px solid #aaa;border-radius:4px;background:white}input,select{width:100%}button{cursor:pointer;min-height:44px}button:disabled{opacity:.5;cursor:default}.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:20px 0}.board{max-width:400px;margin:20px auto}canvas{display:block;width:100%;aspect-ratio:1;border:1px solid #777;background:#fff}#status{min-height:3.6em}#score{font-weight:bold}.controls{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:240px;margin:auto}.controls button{touch-action:manipulation}.controls button:first-child{grid-column:2}.controls button:nth-child(2){grid-column:1}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #6b7fa3;outline-offset:2px}@media(max-width:430px){main{padding:18px}.fields{grid-template-columns:1fr}}
+</style>
+</head>
+<body><main>
+<a href="../../chapters/CH1.html#start">返回第一章</a>
+<h1>經典貪食蛇</h1>
+<p>這是作者製作的離線操作參考品。填入自己的設定再開始；它供預覽與核對，不能記為你透過 Gemini 生成的成果。</p>
+<div class="fields">
+<label>初始蛇長（1 至 20 格）<input id="length" max="20" min="1" step="1" type="number"/></label>
+<label>初始方向<select id="direction"><option value="">請選擇</option><option value="right">向右</option><option value="left">向左</option><option value="up">向上</option><option value="down">向下</option></select></label>
+<label>每個食物分數（非負整數）<input id="points" min="0" step="1" type="number"/></label>
+<label>每次增長（1 至 399 格）<input id="growth" max="399" min="1" step="1" type="number"/></label>
+</div>
+<p>方向鍵或 W、A、S、D 控制方向，手機可點下方方向按鈕。變更設定會停止目前遊戲；重新開始使用目前設定。</p>
+<button id="start" type="button">開始</button> <button id="restart" type="button">重新開始</button>
+<p aria-live="polite" id="status" role="status">請先填入設定，再開始遊戲。</p>
+<p aria-live="polite" id="score">分數：0｜蛇長：0</p>
+<div class="board"><canvas aria-label="遊戲棋盤，方向控制在下方" height="400" id="board" width="400"></canvas></div>
+<div aria-label="方向控制" class="controls"><button data-dir="up" type="button">上</button><button data-dir="left" type="button">左</button><button data-dir="down" type="button">下</button><button data-dir="right" type="button">右</button></div>
+</main><script>
+const el=id=>document.getElementById(id),board=el('board'),ctx=board.getContext('2d'),N=20;
+const vectors={right:[1,0],left:[-1,0],up:[0,-1],down:[0,1]};
+let snake=[],food=null,direction='right',nextDirection='right',timer=null,score=0,settings=null,pendingGrowth=0,running=false,turnLocked=false;
+function number(id,min,max){const raw=el(id).value.trim(),v=Number(raw);if(raw===''||!Number.isSafeInteger(v)||v<min||v>max)throw Error(el(id).parentElement.firstChild.textContent+'：請填入有效整數。');return v}
+function read(){const len=number('length',1,N),points=number('points',0,1000000),growth=number('growth',1,N*N-1),dir=el('direction').value;if(!vectors[dir])throw Error('請選擇初始方向。');return {len,points,growth,dir}}
+function colors(){return {bg:'#ffffff',head:'#3a6547',body:'#759679',food:'#b75038'}}
+function draw(){const c=colors();ctx.fillStyle=c.bg;ctx.fillRect(0,0,400,400);ctx.strokeStyle='#bdbdbd';ctx.lineWidth=.5;for(let i=0;i<=N;i++){ctx.beginPath();ctx.moveTo(i*20,0);ctx.lineTo(i*20,400);ctx.moveTo(0,i*20);ctx.lineTo(400,i*20);ctx.stroke()}snake.forEach((p,i)=>{ctx.fillStyle=i===0?c.head:c.body;ctx.fillRect(p.x*20+1,p.y*20+1,18,18)});if(food){ctx.fillStyle=c.food;ctx.beginPath();ctx.arc(food.x*20+10,food.y*20+10,7,0,Math.PI*2);ctx.fill()}el('score').textContent=`分數：${score}｜蛇長：${snake.length}`}
+function stop(message){clearInterval(timer);timer=null;running=false;el('status').textContent=message}
+function makeFood(){const free=[];for(let y=0;y<N;y++)for(let x=0;x<N;x++)if(!snake.some(p=>p.x===x&&p.y===y))free.push({x,y});if(!free.length){food=null;stop('棋盤已填滿，遊戲完成！');return;}food=free[Math.floor(Math.random()*free.length)]}
+function begin(){try{const conf=read();stop('');settings=conf;score=0;pendingGrowth=0;direction=conf.dir;nextDirection=direction;turnLocked=false;const [dx,dy]=vectors[direction];const hx=dx>0?conf.len-1:dx<0?N-conf.len:Math.floor(N/2),hy=dy>0?conf.len-1:dy<0?N-conf.len:Math.floor(N/2);snake=Array.from({length:conf.len},(_,i)=>({x:hx-i*dx,y:hy-i*dy}));running=true;makeFood();draw();el('status').textContent='遊戲中；撞牆或碰到自己會結束。';timer=setInterval(step,180)}catch(e){stop(e.message)}}
+function turn(dir){if(!running||turnLocked||!vectors[dir])return;const a=vectors[direction],b=vectors[dir];if(a[0]+b[0]===0&&a[1]+b[1]===0)return;nextDirection=dir;turnLocked=true}
+function step(){if(!running)return;direction=nextDirection;turnLocked=false;const [dx,dy]=vectors[direction],head={x:snake[0].x+dx,y:snake[0].y+dy},eats=food&&head.x===food.x&&head.y===food.y;const occupied=eats?snake:snake.slice(0,-1);if(head.x<0||head.y<0||head.x>=N||head.y>=N||occupied.some(p=>p.x===head.x&&p.y===head.y)){stop('遊戲結束。你可以依目前設定重新開始。');return;}snake.unshift(head);if(eats){score+=settings.points;}if(eats){const tail=snake[snake.length-1];for(let i=1;i<settings.growth;i++)snake.push({...tail});}else snake.pop();if(eats)makeFood();draw()}
+el('start').addEventListener('click',begin);el('restart').addEventListener('click',begin);
+document.querySelectorAll('[data-dir]').forEach(b=>b.addEventListener('click',()=>turn(b.dataset.dir)));
+document.addEventListener('keydown',e=>{if(e.target.matches('input,select,textarea'))return;const map={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',w:'up',a:'left',s:'down',d:'right'},dir=map[e.key]||map[e.key.toLowerCase()];if(dir&&running){e.preventDefault();turn(dir)}});
+document.querySelectorAll('input,select').forEach(n=>n.addEventListener('input',()=>{stop('設定已變更，請重新開始。');snake=[];food=null;score=0;draw()}));draw();
+</script></body></html>

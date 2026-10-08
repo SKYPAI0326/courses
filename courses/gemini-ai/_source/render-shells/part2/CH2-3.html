@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>讓預算工具更易讀，並保留計算功能｜Gemini AI 實戰課</title>
+<meta name="description" content="以已驗算的活動預算工具為例，只調整視覺表達，再用原始答案和例外資料做功能回歸測試。"/>
+<meta property="og:type" content="article"/>
+<meta property="og:site_name" content="弄一下工作室"/>
+<meta property="og:title" content="讓預算工具更易讀，並保留計算功能｜Gemini AI 實戰課"/>
+<meta property="og:description" content="以已驗算的活動預算工具為例，只調整視覺表達，再用原始答案和例外資料做功能回歸測試。"/>
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/gemini-ai/part2/CH2-3.html"/>
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="讓預算工具更易讀，並保留計算功能｜Gemini AI 實戰課"/>
+<meta name="twitter:description" content="以已驗算的活動預算工具為例，只調整視覺表達，再用原始答案和例外資料做功能回歸測試。"/>
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png"/>
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/gemini-ai/part2/CH2-3.html"/>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&amp;family=Noto+Sans+TC:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#7a766d;
+  --c-a1:#6b7fa3; --c-a2:#c9963a; --c-a3:#5a7a5a; --c-a4:#6b7fa3;
+  --radius:6px; --radius-sm:4px; --content-w:780px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;word-break:break-word;overflow-wrap:break-word;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-a1);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.07);padding:3px 12px;border-radius:99px;font-weight:500}
+
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);width:0%;transition:width .1s;opacity:.75}
+
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px}
+.back-link:hover{color:var(--c-a2)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.hero-part{font-size:.73rem;color:var(--c-muted);letter-spacing:.08em;font-weight:500;font-variant-numeric:tabular-nums}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border)}
+.hero-num{font-family:'Shippori Mincho',serif;font-size:.78rem;color:var(--c-a1);letter-spacing:.1em;font-weight:500;font-variant-numeric:tabular-nums}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em}
+.lesson-tagline{font-size:1rem;color:var(--c-muted);line-height:1.9;max-width:38em;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:8px;padding:20px 0;border-top:1px solid var(--c-border-soft);border-bottom:1px solid var(--c-border-soft)}
+.outcomes-label{font-family:'Shippori Mincho',serif;font-style:italic;font-size:.78rem;color:var(--c-muted);letter-spacing:.03em;margin-bottom:2px}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.9rem}
+.outcome-dot{width:12px;height:1px;background:var(--c-faint);margin-top:14px;flex-shrink:0}
+
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px}
+.lesson-section{margin-bottom:64px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.4;letter-spacing:-.005em}
+.section-heading em{font-style:normal;color:var(--c-text)}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.95;margin-bottom:20px}
+.body-text strong{font-weight:700}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:64px 0}
+.inline-code{font-family:'Courier New',monospace;font-size:.85em;background:rgba(107,127,163,.1);padding:1px 6px;border-radius:3px}
+
+/* ── 前後對比 ── */
+.before-after{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0}
+.ba-card{border-radius:var(--radius);overflow:hidden;border:1px solid var(--c-border)}
+.ba-label{padding:10px 16px;font-size:.73rem;font-weight:700;letter-spacing:1px;border-bottom:1px solid var(--c-border)}
+.ba-card.before .ba-label{background:#f0eeea;color:var(--c-muted)}
+.ba-card.after .ba-label{background:rgba(201,150,58,.08);color:var(--c-a2);border-bottom-color:rgba(201,150,58,.2)}
+.ba-card.after{border-color:rgba(201,150,58,.3)}
+.ba-preview{padding:20px}
+
+/* 模擬「陽春」介面 */
+.plain-ui{display:flex;flex-direction:column;gap:8px}
+.plain-label{font-size:.75rem;color:#666}
+.plain-input{border:1px solid #ccc;padding:6px 8px;font-size:.8rem;border-radius:2px;background:#fff;width:100%}
+.plain-btn{background:#ddd;border:1px solid #bbb;padding:7px 16px;font-size:.8rem;cursor:pointer;border-radius:2px}
+.plain-result{margin-top:8px;font-size:.8rem;color:#333;padding:8px;border:1px solid #ddd;background:#f9f9f9}
+
+/* 模擬「升級後」介面 */
+.nice-ui{display:flex;flex-direction:column;gap:12px}
+.nice-field{display:flex;flex-direction:column;gap:4px}
+.nice-label{font-size:.73rem;font-weight:600;color:#4a4a4a;letter-spacing:.5px}
+.nice-input{border:1.5px solid #e0ddd8;padding:9px 14px;font-size:.85rem;border-radius:6px;background:#fff;width:100%;transition:border-color .2s}
+.nice-btn{background:#b5703a;color:#fff;border:none;padding:10px 20px;font-size:.85rem;font-weight:600;cursor:pointer;border-radius:6px;letter-spacing:.3px}
+.nice-result{margin-top:4px;font-size:.85rem;color:#2c2b28;padding:12px 16px;border-radius:6px;background:#f8f5f0;border-left:3px solid #c9963a}
+
+/* ── 風格指令卡片 ── */
+.style-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:28px 0}
+.style-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;transition:transform .2s ease}
+.style-card:hover{transform:translateY(-3px)}
+.style-preview{height:80px;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:500}
+.preview-material{background:#1976d2;color:#fff;font-family:Roboto,sans-serif}
+.preview-card-style{background:#fff;color:#333}
+.preview-card-style span{padding:8px 20px;background:#fff;border-radius:8px;font-size:.8rem;color:#333}
+.preview-dark{background:#1a1a2e;color:#e0e0e0;font-family:Courier New,monospace}
+.preview-minimal{background:#fafafa;color:#333;border-top:2px solid #333}
+.style-info{padding:14px 16px;border-top:1px solid var(--c-border)}
+.style-name{font-size:.85rem;font-weight:700;color:var(--c-text);margin-bottom:4px}
+.style-desc{font-size:.75rem;color:var(--c-muted);line-height:1.6}
+
+/* ── Prompt 框 ── */
+.prompt-wrap{margin:32px 0}
+.prompt-label{font-size:.7rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.prompt-dot{width:6px;height:6px;border-radius:50%;background:var(--c-a3)}
+.prompt-box{background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.85rem;line-height:1.85;padding:24px 28px;border-radius:var(--radius);white-space:pre-wrap;word-break:break-word;border:1px solid rgba(90,122,90,.3)}
+.ph{color:var(--c-a2)}
+.pg{color:#8ab48a}
+.pb{color:#7a9ea3}
+.pc{color:#6b6a68}
+
+/* ── Callout ── */
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+
+
+
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px}
+.callout-body{font-size:.9rem;line-height:1.8}
+.callout-body strong{font-weight:700}
+
+/* ── 對話示範元件家族（沿用 office-ai SSOT，2026-07-04 引入） ── */
+.expected-output{background:var(--c-card);border:1px solid var(--c-border);border-left:2px solid var(--c-a1);border-radius:var(--radius-sm);margin:12px 0 8px;padding:16px 18px}
+.expected-label{font-size:.7rem;color:var(--c-a1);font-weight:500;letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase}
+.expected-body{font-size:.85rem;line-height:1.85;color:var(--c-text)}
+.expected-body p{margin-bottom:8px}
+.expected-body p:last-child{margin-bottom:0}
+.expected-body strong{font-weight:700}
+.expected-note{font-size:.72rem;color:var(--c-muted);margin-top:12px;line-height:1.6;border-top:1px dashed var(--c-border);padding-top:10px}
+
+/* ── 指令庫 ── */
+.cmd-group{margin-bottom:28px}
+.cmd-group-label{font-size:.73rem;color:var(--c-a4);letter-spacing:1.5px;font-weight:500;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.cmd-group-label::after{content:'';flex:1;height:1px;background:rgba(107,127,163,.2)}
+.cmd-list{display:flex;flex-direction:column;gap:8px}
+.cmd-item{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:12px 16px;font-family:'Courier New',monospace;font-size:.8rem;color:var(--c-text);line-height:1.7;position:relative;cursor:pointer;transition:border-color .2s,background .2s}
+.cmd-item:hover{border-color:var(--c-a2);background:rgba(201,150,58,.03)}
+.cmd-item::after{content:'複製';position:absolute;right:12px;top:50%;transform:translateY(-50%);font-family:'Noto Sans TC',sans-serif;font-size:.68rem;color:var(--c-muted);opacity:0;transition:opacity .2s}
+.cmd-item:hover::after{opacity:1}
+.cmd-tag{display:inline-block;font-family:'Noto Sans TC',sans-serif;font-size:.68rem;color:var(--c-a4);background:rgba(107,127,163,.1);border-radius:3px;padding:0 5px;margin-right:6px;font-weight:500}
+.copy-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--c-text);color:#fff;padding:8px 18px;border-radius:var(--radius-sm);font-size:.8rem;font-weight:500;opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none;z-index:999}
+.copy-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── 動態進場 ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.lesson-hero .back-link      {animation:fadeUp .4s ease both}
+.lesson-hero .hero-meta      {animation:fadeUp .45s .08s ease both}
+.lesson-hero .lesson-title   {animation:fadeUp .55s .15s ease both}
+.lesson-hero .lesson-tagline {animation:fadeUp .5s .26s ease both}
+.lesson-hero .outcomes       {animation:fadeUp .45s .36s ease both}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1)}
+.reveal.in{opacity:1;transform:translateY(0)}
+.section-rule{transform-origin:left center;opacity:0;transition:opacity .4s ease,transform .6s cubic-bezier(.16,1,.3,1);transform:scaleX(.3)}
+.section-rule.in{opacity:1;transform:scaleX(1)}
+.style-card{transition:transform .22s ease}
+.style-card:hover{transform:translateY(-4px)}
+.section-dots{position:fixed;left:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:40;opacity:0;transition:opacity .4s ease}
+.section-dots.visible{opacity:1}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--c-border);cursor:pointer;transition:background .3s ease,transform .3s ease;border:none;padding:0}
+.sdot.active{background:var(--c-a2);transform:scale(1.5)}
+@media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important}*{animation:none!important}}
+@media(max-width:1100px){.section-dots{display:none}}
+
+/* ── 底部導航 ── */
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1}
+.nav-btn:hover{border-color:var(--c-a2)}
+.nav-btn.next{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+@media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero{padding:56px 32px 40px}.lesson-body{padding:0 32px 80px}.lesson-nav{padding:0 32px 80px}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;.lesson-tagline{max-width:100%}}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:40px 20px 36px}.lesson-title{font-size:1.45rem}.lesson-body{padding:0 20px 60px}.lesson-nav{padding:0 20px 60px;flex-direction:column}.nav-btn{flex:none}.footer{padding:20px}}
+
+/* a11y: focus-visible ring */
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}.lesson-section{scroll-margin-top:90px}.lesson-body pre{max-width:100%;overflow-wrap:anywhere;white-space:pre-wrap}.lesson-body details{border-top:1px solid var(--c-border);padding:16px 0;margin:20px 0}.lesson-body summary{cursor:pointer;font-weight:600}.lesson-body li{margin-bottom:12px}.lesson-body a{overflow-wrap:anywhere}.lesson-body table{max-width:100%}.lesson-body .core-route{font-size:.85rem;color:var(--c-muted);margin-bottom:28px}.lesson-title{overflow-wrap:anywhere}.core-table-scroll{max-width:100%;overflow:auto}</style>
+
+<style id="prompt-policy-style">
+[data-policy-prompt]{max-width:100%;box-sizing:border-box;white-space:pre-wrap;overflow-wrap:anywhere;scroll-margin-top:110px}
+.policy-copy-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:12px 0 22px}.policy-copy-row button{min-height:44px;max-width:100%;white-space:normal;cursor:pointer}.policy-status{font-size:.82rem;line-height:1.6}
+.policy-case{padding:20px;margin:22px 0;background:#f5f8fa;border:1px solid #b8c9d5;border-radius:8px;max-width:100%;box-sizing:border-box;color:#193448}.policy-case h3{margin:0 0 12px;font-size:1rem}.policy-case p{line-height:1.8}.policy-case pre{font-family:inherit;white-space:pre-wrap;overflow-wrap:anywhere;margin:16px 0;font-size:.9rem;line-height:1.85;color:inherit;background:transparent;border:0;padding:0}.policy-guide{font-size:.9rem;line-height:1.8;margin:14px 0;color:inherit}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+<div id="_gate-box">
+<div id="_gate-title">弄一下工作室</div>
+<div id="_gate-sub">課程專屬講義<br/>請輸入課程密碼</div>
+<input autocomplete="off" id="_gate-input" placeholder="••••••••" type="password"/>
+<button id="_gate-btn" onclick="_gc()">進入課程</button>
+<div id="_gate-err"></div>
+</div>
+</div>
+<script>
+(function(){const K='gemini_auth',H='af4216b537dbe50ab6bce3a5f75201f51894267495ac777423d8f18d11318db8';if(localStorage.getItem(K)==='1')sessionStorage.setItem(K,'1');if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+<a class="skip-link" href="#main">跳至主要內容</a>
+<header class="topbar">
+<a class="logo" href="../../../index.html">弄一下工作室</a>
+<div class="topbar-divider"></div>
+<div class="topbar-sub">Gemini 零代碼 AI 實戰課</div>
+<div class="spacer"></div>
+<div class="topbar-tag">CH2-3</div>
+</header>
+<div aria-label="閱讀進度" aria-valuemax="100" aria-valuemin="0" class="progress-strip" role="progressbar"><div class="progress-fill" id="progressFill"></div></div>
+<nav aria-label="章節導航" class="section-dots" id="sectionDots"></nav>
+<div class="copy-toast" id="copyToast">已複製到剪貼簿</div>
+<section class="lesson-hero" data-learning-role="extension" id="main">
+<a class="back-link" href="../index.html"><span aria-hidden="true">←</span> 返回課程目錄</a>
+<div class="hero-meta">
+<span class="hero-part">PART 2 · 打造你的商務軍火庫</span>
+<div class="hero-divider-v"></div>
+<span class="hero-num">2.3</span>
+</div>
+<h1 class="lesson-title">讓預算工具更易讀，並保留計算功能</h1>
+<p class="lesson-tagline">只修改既有試算工具的介面表達，再用同一組資料重跑功能測試；視覺改版不代表計算正確。</p>
+<div class="outcomes">
+<div class="outcomes-label">學完這節，你會</div>
+<div class="outcome-item"><div class="outcome-dot"></div>先記下功能改版前的標準答案</div>
+<div class="outcome-item"><div class="outcome-dot"></div>用一份完整指令只調整版面與可讀性</div>
+<div class="outcome-item"><div class="outcome-dot"></div>以正常資料、缺值、手機與列印檢查改版結果</div>
+</div>
+</section>
+<main class="lesson-body"><section class="lesson-section" id="budget-ui-1">
+<h2 class="section-heading">情境：數字正確，讀表的人卻找不到重點</h2>
+<p class="body-text">沿用預算補充 BUDGET-2 已驗算的活動預算工具 activity-budget.html。承辦人要在會議中快速看出估算、實支、支出差異與核定餘額；如果欄位擠在一起，或只用紅綠色代表狀態，同事仍可能讀錯數字。</p>
+<p class="body-text">本單元只改版面、層次和文字可讀性，不新增欄位、不改計算公式、不改 CSV 匯入／匯出和錯誤處理。這樣才能把「介面改得更清楚」和「功能被意外改壞」分開驗收。開始前若沒有自己的預算工具，先完成 <a href="BUDGET-2.html">活動預算實作</a>；參考品只能用來預演，不能當成自己已驗收的成品。</p>
+</section>
+<section class="lesson-section" id="budget-ui-2">
+<h2 class="section-heading">記錄基準，再決定讀者要先看到什麼</h2><p class="body-text"><strong>先備份並打開原始碼：</strong>在檔案管理器找到已驗收的 <code>activity-budget.html</code>，先複製一份並命名為 <code>activity-budget-v1-backup.html</code>。建議用 VS Code 從「檔案 → 開啟檔案」選取原始碼；Windows 也可用記事本。Mac 若用 TextEdit，先到「TextEdit → 設定 → 開啟與儲存」，勾選「將 HTML 檔案以 HTML 程式碼顯示而非格式化文字」，再開啟檔案。看到 &lt;html&gt;、&lt;head&gt;、&lt;script&gt; 等標籤後按全選、複製；不要從瀏覽器畫面複製。稍後先貼入 AI Studio Chat，再貼本節指令。若開啟後仍看到網頁，改用「開啟檔案方式」選文字編輯器。</p>
+<p class="body-text">打開 <a download="" href="../assets/materials/budget-normal.csv">標準活動資料</a>，在目前版本輸入核定預算 30,000 元。改版前記下四個答案：估算 26,000、實支 27,800、支出差異 +1,800、核定餘額 2,200。再打開 <a download="" href="../assets/materials/budget-invalid.csv">例外資料</a>，確認空值或負數會停止計算或匯出並提示。</p>
+<p class="body-text">讀者的工作問題依序是「總額是否可用、哪裡超出估算、還剩多少額度、哪些資料待確認」。介面先呈現摘要，再保留每筆明細；狀態文字要搭配標籤，不可只靠顏色。手機檢查欄位是否可閱讀，列印檢查是否保留標題與數值。</p>
+<div class="prompt-wrap"><div class="prompt-label">完整介面修訂指令｜需在 AI 能讀到原始碼的對話中使用</div><p class="policy-guide">這一區定義可重用的輸入、設定、處理與輸出。案例條件另附；參考品中的預填資料只供示範，可在自己的工具中替換。</p><pre class="prompt-box" id="prompt-policy-1" data-policy-prompt="工具生成或修改">請只修改目前活動預算工具的視覺呈現與資訊層次，保留所有既有欄位、欄位名稱、元素 id、事件處理、計算公式、CSV 匯入／匯出、驗證、錯誤提示和資料格式。不得刪除或改變任何功能，不新增計算規則。
+
+讓承辦人先看懂四項結果：估算合計、實支合計、支出差異（實支−估算）、核定餘額（核定預算−實支）。摘要放在明細表之前；每項以清楚文字標籤和金額呈現。差異的正負方向與原有文字保持一致，超支狀態同時使用文字與色彩，不可只用紅綠色。
+
+依另附的樣式條件調整背景、標題、主要按鈕與分隔區；未附時沿用目前樣式。色彩須維持文字可辨識；金額使用易掃讀且對齊的字體。所有輸入欄位保留可見標籤，不以 placeholder 取代標籤；錯誤訊息靠近欄位並使用文字說明。保持繁體中文、單一 HTML、無外部套件、離線可開啟。桌面表格清楚，手機寬度時欄位可換行或在明細區橫向捲動，文字與按鈕不得重疊。列印版保留報表標題、日期、結果和明細，隱藏操作按鈕。
+
+先檢查原始程式碼並說明你會保留的功能，再輸出完整 HTML。若無法確認某個原功能，不要猜測或刪除，請先指出需要確認的部分。
+
+【資料與設定的重用方式】
+工具依使用者在畫面輸入的資料與設定處理。若另外附上當次案例條件，只用於可修改的示例或測試；未附時顯示空白輸入與操作說明，不自行編造資料。案例的名稱、日期、金額、門檻及預期答案不能成為程式的固定條件或特例。更換資料後仍依同一套規則計算；請保留新增、修改及清除資料的操作。</pre><div class="policy-copy-row"><button class="copy-btn" type="button" data-policy-copy="prompt-policy-1">複製可重用提示詞</button><span class="policy-status" id="prompt-policy-1-policy-status" role="status" aria-live="polite"></span></div><aside class="policy-case" data-policy-case="prompt-policy-1"><h3>當次案例條件與核對紀錄｜可替換</h3><p>先複製上方提示詞建立工具。需要本課示例時，可另外附加這一區，或在工具完成後填入相應欄位。未附案例時，仍須能建立工具；更換案例資料時不必重寫處理規則。</p><pre id="prompt-policy-1-case">【當次案例附加資料，可替換】
+以下僅供本次示例與測試。請把資料放入可修改的輸入或設定；核對答案只用於驗收，不能編成程式的固定結果。
+
+本次樣式：白色背景、深藍標題與主要按鈕、淺灰分隔區；金額用易掃讀且對齊的字體。</pre><div class="policy-copy-row"><button class="copy-btn" type="button" data-policy-copy="prompt-policy-1-case">複製當次案例附加資料</button><span class="policy-status" id="prompt-policy-1-case-policy-status" role="status" aria-live="polite"></span></div><p>完成本次核對後，至少再換一組不同名稱、數值或清單長度測試，確認結果來自輸入與規則。</p></aside></div>
+</section>
+<section class="lesson-section" id="budget-ui-3">
+<h2 class="section-heading">改成新版本，再跑相同測試</h2>
+<ol class="body-text">
+<li>保留通過驗收的 activity-budget.html。確認生成對話能讀取現有程式碼；若新對話讀不到，先貼入完整原始碼或使用平台允許的檔案方式提供。</li>
+<li>將上方指令貼到同一個能讀取工具程式碼的 AI Studio Chat 對話，要求輸出完整單檔 HTML。保存為 activity-budget-v2.html，不覆蓋舊版。</li>
+<li>在 v2 載入同一份 CSV，核對四個結果仍是 26,000、27,800、+1,800、2,200；再測缺值／負數，必須提示且不可產生看似完整的總額。</li>
+<li>縮窄瀏覽器視窗檢查手機版；用瀏覽器列印預覽檢查報表標題、金額與明細。將預期、實際、版本和問題寫入驗收表。</li>
+<li>若功能改變，指出具體差異，例如「空值現在被算成 0」；要求恢復原計算及驗證，只保留視覺修改，再跑全部基準測試。未通過時以 v1 作可用版本。</li>
+</ol>
+<div class="callout key"><div aria-hidden="true" class="callout-icon">✓</div><div class="callout-body"><strong>本單元驗收：</strong>交付 v2 與前後測試紀錄。四個基準數字、缺值行為與匯出仍正確；標籤清楚，手機可讀，列印資訊完整。外觀變化不能代替功能回歸測試。</div></div>
+</section></main>
+<nav class="lesson-nav">
+<a aria-label="上一單元" class="nav-btn prev nav-prev" data-nav-role="prev" href="CH2-2.html">
+<span><span aria-hidden="true">←</span></span>
+<div>
+<div class="nav-btn-label">上一節</div>
+<div class="nav-btn-title">排班規則：從工作條件到可檢查的排班表</div>
+</div>
+</a>
+<a aria-label="下一單元" class="nav-btn next nav-next" data-nav-role="next" href="../part2/PRAC2-1.html">
+<div>
+<div class="nav-btn-label">進入實作演練</div>
+<div class="nav-btn-title">生成並查核值勤排班工具</div>
+</div>
+<span><span aria-hidden="true">→</span></span>
+</a>
+</nav>
+<footer class="footer" data-platform-version="2026-04-v3">
+<div class="footer-logo">弄一下工作室</div>
+<div class="footer-note">Part 2 · 3 of 3</div>
+</footer>
+<script>
+window.addEventListener('scroll', () => {
+  const d = document.documentElement;
+  const pct = d.scrollHeight - d.clientHeight > 0 ? (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100 : 0;
+  document.getElementById('progressFill').style.width = pct + '%'});
+(function(){
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target)} })}, {threshold:.1, rootMargin:'0px 0px -48px 0px'});
+  document.querySelectorAll('.lesson-section, .section-rule').forEach(el => { el.classList.add('reveal'); io.observe(el)})})();
+(function(){
+  const sections = Array.from(document.querySelectorAll('.lesson-section'));
+  const nav = document.getElementById('sectionDots');
+  if(!sections.length||!nav) return;
+  sections.forEach((sec,i) => {
+    const btn = document.createElement('button');
+    btn.className='sdot';
+    btn.title = sec.querySelector('.section-heading')?.textContent?.trim().slice(0,20)||('第'+(i+1)+'節');
+    btn.addEventListener('click',()=>sec.scrollIntoView({behavior:'smooth',block:'start'}));
+    nav.appendChild(btn)});
+  const dotIo = new IntersectionObserver(entries => {
+    entries.forEach(e => { const i=sections.indexOf(e.target); if(i>=0) nav.children[i]?.classList.toggle('active',e.isIntersecting)});
+    nav.classList.toggle('visible', Array.from(nav.children).some(d=>d.classList.contains('active')))},{threshold:.3});
+  sections.forEach(s=>dotIo.observe(s))})();
+
+// 指令複製功能
+(function(){
+  const toast = document.getElementById('copyToast');
+  let toastTimer;
+  document.querySelectorAll('.cmd-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const text = item.dataset.copy;
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        clearTimeout(toastTimer);
+        toast.classList.add('show');
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 2000)})})})})();
+</script>
+<script>
+// 閱讀進度持久化（localStorage）— 2026-04-16 UI refresh
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+
+<script id="prompt-policy-copy">
+document.querySelectorAll('[data-policy-copy]').forEach(button=>button.addEventListener('click',async()=>{
+ const id=button.dataset.policyCopy, node=document.getElementById(id), status=document.getElementById(id+'-policy-status');
+ const text=node.tagName==='TEXTAREA'?node.value:node.textContent;
+ try{await navigator.clipboard.writeText(text);status.textContent='已複製此區全文。提示詞與案例條件分開複製。';}
+ catch(error){if(node.tagName==='TEXTAREA'){node.focus();node.select();}else{const range=document.createRange();range.selectNodeContents(node);const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);}status.textContent='未允許自動複製，已選取此區全文；請按 Ctrl+C／Cmd+C。';}
+}));
+</script>
+</body>
+</html>

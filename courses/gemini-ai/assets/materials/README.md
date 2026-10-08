@@ -1,25 +1,47 @@
-# 學員素材包
+# Gemini AI 學員素材包
 
-全部是虛構教學資料。CSV 為 UTF-8（含 BOM），可用試算表開啟，也可匯入參考工具；逐字稿 TXT 為完整輸入。`reference-answers.json` 是答案，先預判再展開核對。
+五章依序完成生成體驗、可重用需求、排班初版、追加規則與保存交付。第三至第五章沿用同一份排班工具；獨立遊樂園有29例，另有13份延伸參考。全部案例是虛構教學資料。
 
-預算：`budget-normal.csv` 配核定 30000；`budget-invalid.csv` 查缺值與負數防呆；`budget-transfer.csv` 配核定 25000，供獨立遷移與低餘額提醒驗收。
+## 從章節找到需要的檔案
 
-KPI：`kpi-normal.csv` 查越大越好／越小越好的方向；`kpi-exceptions.csv` 查零基期、缺值與零目標。
+| 章節 | 使用素材 | 留下的成果 |
+| --- | --- | --- |
+| 第一章：第一個小工具 | prompt-snake.txt；prompt-snake-case.txt；prompt-snake-revision.txt | 自己生成的 snake-v1.html、v2 及差異說明 |
+| 第二章：可重用提示詞 | tool-structure-worksheet.md；requirements-template.txt | 完整白話需求；當次案例另存；操作計算與多條件判斷 |
+| 第三章：工作工具初版 | prompt-schedule.txt；schedule-practice.txt；schedule-answers.md；core-acceptance.csv | schedule-v1.html、自己下載的 A／B 備份、班表和測試紀錄 |
+| 第四章：追加與修正 | prompt-solo-schedule.txt；prompt-schedule-repair.txt；prompt-budget-warning.txt；core-acceptance.csv | schedule-v2.html、保留的 v1、新舊規則測試紀錄 |
+| 第五章：保存與交付 | 同一份驗收表；自己下載的 v2 備份；講義 README 範例 | 排班交付包；另用PG01 CSV清理完成A/B及交付 |
 
-交辦：`meeting-a.txt` 練第一次判讀；`meeting-b.txt` 驗證更新、取消與未知；`meeting-c.txt` 用於 capstone 新增前置任務欄位。
+## 提示詞與當次條件如何搭配
 
-`prompt-budget.txt`、`prompt-kpi.txt`、`prompt-meeting.txt` 是基礎生成指令；`prompt-solo-meeting.txt` 是 AI 交辦 capstone 的欄位變更指令。`requirements-template.txt` 用來寫工作需求；`acceptance-template.csv` 有正常、變更、例外、修復、備份重開與 capstone 待測列。
+先貼 prompt-*.txt 中的工具結構，說明可編輯輸入、規則、處理、輸出和例外。若需要課堂示例，再獨立附加 prompt-*-case.txt，或在工具完成後填入畫面。案例名稱、日期、數值及核對答案都不能變成程式特例；未附案例也應能建立空白工具。
+
+排班的 A／B 資料見 schedule-practice.txt。先手排或預判，再用 schedule-answers.md 核對；排法可以不同，只要滿足相同需求與限制。第四章新增的班種限制也應由畫面選擇與設定。備份 JSON 由工具下載和讀取，不需要學員手寫 JSON。不同工具與版本的備份格式不保證互通；第五章先用自己的同版備份還原。
 
 ## 驗收表怎麼填
 
-每個測試保留一列，不要把新資料的結果覆寫在舊列。**先填**工具檔名／版本、測試情境、輸入條件、來源模式與預期答案；**做完再填**觀察、狀態、修復指令及修復後結果。來源模式填「學員生成」或「參考品」；使用參考品時，不可記成學員生成通過。沒有執行就保留「待測」。
+core-acceptance.csv 對應五章主線；acceptance-template.csv 保留預算、KPI、會議等補充案例的測試。兩份 CSV 都是 UTF-8（含 BOM），可用試算表開啟。
 
-作者格式示例（只說明填法，不是學員實測）：`department-kpi.html v1｜處理時間 5→2 天｜學員生成｜預期：lower、目標3、實際2為已達標，較上期4天縮短50%｜觀察：作者範例，待本人操作｜待測`。這一例展示工具版本、資料變更、預期和觀察如何分開；請依自己的實際檔名與結果記錄。
+每個測試保留一列。操作前填工具檔名／版本、輸入設定與預期答案；操作後填觀察、狀態，以及需要時的修復指令和重測結果。來源方式填「學員生成」或「參考品」，未操作就保留「待測」。參考品通過不能記為自己的生成成果通過。
 
-## 檔案交接
+例如填入三格蛇身、食物十分、增長一格，預期第一次吃到食物後分數十、蛇長四；操作後才填實際看到的數字。這是填法說明，並非學員實測紀錄。排班換 B 或追加規則時新增測試列，保留 A 的原紀錄。
 
-工作資料夾內分成「工具」「資料」「指令」「報告」「驗收」「歷史版本」。工具資料夾只放各項最後通過驗收的版本，並照實記錄檔名，例如 `meeting-timer-v2.html`；未通過的 v1 放「歷史版本」。KPI 在第6站下載的 `department-kpi-backup.json` 放「資料」，第9站用它還原原始 120 件、5 天、1% 狀態。JSON 用於可驗證地備份／還原工具資料；CSV 與 PDF 用於閱讀及交付報表。
+## 補充教材素材
 
-AI Studio Build 的專案網址可加入瀏覽器書籤。關閉後以書籤回到相同專案、確認標題與預覽，再執行 A，才算完成重開測試；登入、權限或額度受阻時，記錄狀態並標待完成。
+預算：budget-normal.csv 搭配核定 30000；budget-invalid.csv 用來查缺值與負數；budget-transfer.csv 搭配核定 25000，核對新資料及低餘額提醒。
 
-參考工具位於 `../tools/`。它們是完成品與故障備援，不是學員生成成果；AI 交辦參考頁只顯示人工核對的固定答案，沒有呼叫模型。
+KPI：kpi-normal.csv 核對越大越好／越小越好的方向；kpi-exceptions.csv 核對零基期、缺值與零目標。
+
+會議：meeting-a.txt 核對初次判讀；meeting-b.txt 核對更新、取消與未知；meeting-c.txt 核對新增前置任務欄位。prompt-meeting.txt 與 prompt-solo-meeting.txt 分別描述生成和修改方法。AI Studio Build 的模型功能需在實際帳號環境另測。
+
+其餘 prompt-*.txt 與各自案例檔供對應補充頁使用。reference-answers.json 是作者核對答案；先判斷再展開。roster-normal/transfer/conflict/invalid.json 是保留的舊版小型案例資料，不能直接取代自己生成工具的備份。
+
+## 保存與重開
+
+按照第五章建立「工具、資料、指令、報告、驗收、歷史版本」資料夾。工具只放實際通過測試的目前版本；舊版保留於歷史版本。README 寫自己的檔名、操作、資料還原方法、新規則設定與已測／未測範圍。關閉工具後，只照文件重開並還原 A／B，再核對原規則與新增規則。
+
+作者參考品位於 ../tools/：snake-basic-reference.html 供第一章經典操作；snake-color-reference.html 供配色修改前後比較；schedule-reference.html 供基礎排班核對。schedule-v2-reference.html是第四章指定班種上限的作者修改版；claim-check-reference.html供第二章條件初檢，budget-warning-reference.html供第四章可調提醒。會議固定答案參考頁沒有呼叫模型。參考品都不是學員生成證據。
+
+遊樂園材料在 ../playground/：每例有prompt.txt、cases.txt及answers.md。PG01至PG06另有CSV及作者工具。playground-materials.zip包含29例材料與本核心素材；提示詞描述結構、案例另附，真人與Gemini結果均須自行測試。
+
+materials.zip 逐檔包含本目錄素材（不含 ZIP 本身）。

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+
+<html lang="zh-Hant"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="活動預算與核銷差異表：離線參考成品與查核素材" name="description"/><title>低餘額提醒預算工具｜作者參考品</title><style>*{box-sizing:border-box}body{margin:0;background:#f5f3ee;color:#2c2b28;font-family:system-ui,"Noto Sans TC",sans-serif;line-height:1.8}main{max-width:1000px;margin:auto;padding:24px}h1{font-size:1.5rem}h2{font-size:1.15rem}label{display:block}input,select,textarea,button{font:inherit;padding:8px;border:1px solid #d8d4cb;border-radius:4px;max-width:100%}input,select,textarea{width:100%;background:#fff;color:#2c2b28}button{cursor:pointer;background:#fff;margin:4px}button:disabled{opacity:.5;cursor:default}a{color:#5a7a5a}table{width:100%;border-collapse:collapse;min-width:620px}td,th{padding:8px;border-bottom:1px solid #d8d4cb;text-align:left}th{font-weight:600}td input{min-width:65px}.scroll{overflow:auto;max-width:100%}.note{color:#6e6b66}.error{color:#a05030;white-space:pre-wrap}.summary{padding:16px;background:#fff;margin:16px 0;white-space:pre-wrap}textarea{min-height:100px}.actions{display:flex;gap:8px;flex-wrap:wrap}pre{white-space:pre-wrap;overflow-wrap:anywhere}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #2c2b28;outline-offset:2px}@media(max-width:500px){main{padding:16px}h1{font-size:1.3rem}}@media print{.actions,.import-box,button,.note{display:none}main{max-width:none;padding:0}input,select{border:0;padding:0}.scroll{overflow:visible}table{min-width:0;font-size:10pt}h1{font-size:16pt}}</style><style id="coldtone-table-readability">
+@media screen {
+.scroll {max-width:100%;overflow-x:auto;margin:20px 0;border:1px solid #BACBD8;border-radius:6px;background:#FCFDFE;scrollbar-color:#71889C #EEF3F9}
+table {width:100%;max-width:none;border-collapse:collapse;font-size:1rem;line-height:1.75;min-width:720px}
+th,td {padding:14px 16px;border:1px solid #BACBD8;text-align:left;vertical-align:top;word-break:normal;overflow-wrap:anywhere}
+th {background:#EEF3F9;color:#173B57;font-weight:700}
+td {color:#344552;background:#FCFDFE}
+tbody tr:nth-child(even)>td {background:#F4F8FC}
+td input,td select {min-width:90px}
+td input[type=number] {text-align:right;font-variant-numeric:tabular-nums}
+#available {min-width:360px}
+#available th,#available td {min-width:90px;white-space:nowrap}
+#result table {min-width:880px}
+}
+@media screen and (max-width:600px){th,td {padding:12px 14px}}
+
+@media screen{table{min-width:880px}}
+
+@media screen{td:last-child,th:last-child{min-width:96px}td button{white-space:nowrap;min-width:64px}}
+</style>
+</head><body><a href="#main">跳至主要內容</a><main id="main"><h1>預算工具：可調低餘額提醒</h1><p class="note">作者製作的修改版參考品，首次開啟資料空白；不是學員的Gemini生成成果。先填核定預算，再匯入素材。資料只在目前瀏覽器，交付前下載備份。</p>
+<label>核定預算（元）<input id="approved" min="0" step="0.01" type="number" value=""/></label><label><input id="warning-enabled" style="width:auto" type="checkbox"/>啟用低餘額提醒</label><label>低餘額門檻（元）<input id="warning-threshold" min="0" step="0.01" type="number"/></label>
+<div class="scroll"><table><thead><tr><th>項目</th><th>數量</th><th>單價</th><th>實支</th><th>備註</th><th>操作</th></tr></thead><tbody id="rows"></tbody></table></div>
+<div class="actions"><button id="add">新增項目</button><button id="reset">清空資料與設定</button><button id="export">下載明細 CSV</button><button id="print">列印／另存 PDF</button><button id="backup">備份 JSON</button><label>還原 JSON<input accept=".json" id="restore" type="file"/></label></div>
+<p class="error" id="error" role="status"></p><div aria-live="polite" class="summary" id="summary"></div>
+<details class="import-box"><summary>貼上素材 CSV 匯入（取代目前明細，核定預算另填）</summary><textarea aria-label="預算 CSV" id="csv"></textarea><button id="import">匯入 CSV</button></details></main><script>const $=id=>document.getElementById(id);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function download(name,text,type='text/plain'){const url=URL.createObjectURL(new Blob([text],{type}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+function csvText(rows){return '\ufeff'+rows.map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n')}
+function safeCell(v){const t=String(v??'');return /^[=+@-]/.test(t)?"'"+t:t}
+function parseCSV(text){let rows=[],row=[],cell='',quoted=false;text=text.replace(/^\ufeff/,'');for(let i=0;i<text.length;i++){const c=text[i];if(c==='"'){if(quoted&&text[i+1]==='"'){cell+='"';i++}else if(!quoted&&cell!=='')throw Error('引號格式錯誤');else quoted=!quoted}else if(c===','&&!quoted){row.push(cell);cell=''}else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);if(row.some(x=>x!==''))rows.push(row);row=[];cell=''}else cell+=c}if(quoted)throw Error('引號未結束');row.push(cell);if(row.some(x=>x!==''))rows.push(row);return rows}
+function number(v){if(v===null||v===undefined||String(v).trim()==='')return null;const n=Number(v);return Number.isFinite(n)&&n>=0?n:null}
+function money(v){const n=number(v);return n!==null&&Math.abs(n*100-Math.round(n*100))<0.00001?n:null}
+function announce(t){$('error').textContent=t}
+
+
+const key='gemini-budget-warning-reference-v2';const defaults=[["講師", 4, 2500, 10500, "增加交通費"], ["場地", 1, 8000, 8500, "延長使用"], ["餐點", 40, 150, 6500, "增加配送"], ["印刷", 40, 50, 2300, "加印"]];let rows=[];
+function validate(items,approved){const errors=[];if(money(approved)===null)errors.push('核定預算須是非負金額，最多兩位小數');if(!items.length)errors.push('至少需要一項明細');items.forEach((r,i)=>{if(!Array.isArray(r)||r.length!==5){errors.push('明細欄位錯誤');return}if(!String(r[0]).trim())errors.push(`第 ${i+1} 列缺項目`);if(number(r[1])===null||!Number.isInteger(number(r[1])))errors.push(`第 ${i+1} 列數量須為非負整數`);if(money(r[2])===null||money(r[3])===null)errors.push(`第 ${i+1} 列單價／實支缺值或不是有效非負金額`)});return errors}
+function calculate(items,approved){const estimated=items.reduce((n,r)=>n+Math.round(Number(r[1])*Number(r[2])*100),0)/100;const actual=items.reduce((n,r)=>n+Math.round(Number(r[3])*100),0)/100;return {estimated,actual,difference:Math.round((actual-estimated)*100)/100,remaining:Math.round((Number(approved)-actual)*100)/100}}
+function render(){ $('rows').innerHTML=rows.map((r,i)=>`<tr>${r.map((v,j)=>`<td><input aria-label="第${i+1}列${['項目','數量','單價','實支','備註'][j]}" data-row="${i}" data-col="${j}" value="${esc(v)}" ${j>0&&j<4?'type="number" min="0" step="'+(j===1?'1':'0.01')+'"':''}></td>`).join('')}<td><button data-remove="${i}">刪除</button></td></tr>`).join('');update() }
+function warningConfig(){return {enabled:$('warning-enabled').checked,threshold:$('warning-threshold').value}}
+function checkWarning(w){if(!w||typeof w.enabled!=='boolean'||(w.enabled&&money(w.threshold)===null))throw Error('啟用提醒時門檻須為有效非負金額');return w}
+function warningText(r,w=warningConfig()){return w.enabled?'低餘額提醒：啟用，門檻 '+w.threshold+' 元；'+(r.remaining<Number(w.threshold)?'餘額低於門檻':'餘額未低於門檻'):'低餘額提醒：關閉'}
+function update(){const errors=validate(rows,$('approved').value);try{checkWarning(warningConfig())}catch(e){errors.push(e.message)}announce(errors.join('；'));$('export').disabled=$('print').disabled=errors.length>0;if(errors.length){$('summary').textContent='資料未完整：請修正後重新核對，不顯示舊總額。';return}const r=calculate(rows,$('approved').value);$('summary').textContent=`估算合計：${r.estimated.toFixed(2)} 元\n實支合計：${r.actual.toFixed(2)} 元\n較估算差異：${r.difference.toFixed(2)} 元\n核定預算餘額：${r.remaining.toFixed(2)} 元${r.remaining<0?'（超支）':''}\n${warningText(r)}`;try{localStorage.setItem(key,JSON.stringify({approved:$('approved').value,rows,warning:warningConfig()}))}catch(e){announce('瀏覽器無法保存，請下載 JSON 備份')}}
+$('rows').addEventListener('input',e=>{if(e.target.dataset.row!==undefined){rows[+e.target.dataset.row][+e.target.dataset.col]=e.target.value;update()}});
+$('rows').addEventListener('click',e=>{if(e.target.dataset.remove!==undefined){rows.splice(+e.target.dataset.remove,1);render()}});
+$('warning-enabled').onchange=update;$('warning-threshold').oninput=update;$('approved').oninput=update;$('add').onclick=()=>{rows.push(['',1,0,0,'']);render()};$('reset').onclick=()=>{rows=[];$('approved').value='';$('warning-enabled').checked=false;$('warning-threshold').value='';localStorage.removeItem(key);render()};
+$('export').onclick=()=>{if(validate(rows,$('approved').value).length)return;const r=calculate(rows,$('approved').value);download('budget-report.csv',csvText([['項目','數量','單價','估算','實支','備註'],...rows.map(x=>[safeCell(x[0]),x[1],x[2],Number(x[1])*Number(x[2]),x[3],safeCell(x[4])]),['估算合計',r.estimated],['實支合計',r.actual],['較估算差異',r.difference],['核定預算',$('approved').value],['預算餘額',r.remaining],['提醒設定及結果',warningText(r)]]),'text/csv;charset=utf-8')};
+$('print').onclick=()=>{if(!validate(rows,$('approved').value).length)window.print()};$('backup').onclick=()=>download('budget-backup.json',JSON.stringify({approved:$('approved').value,rows,warning:warningConfig()},null,2),'application/json');
+$('restore').onchange=async e=>{try{const d=JSON.parse(await e.target.files[0].text());const errors=validate(d.rows,d.approved);if(errors.length)throw Error(errors.join('；'));const w=checkWarning(d.warning||{enabled:false,threshold:''});rows=d.rows;$('approved').value=d.approved;$('warning-enabled').checked=w.enabled;$('warning-threshold').value=w.threshold;render()}catch(e){announce('還原失敗，保留目前資料：'+e.message)}};
+$('import').onclick=()=>{try{const d=parseCSV($('csv').value);if(d.shift().join(',')!=='item,quantity,unit_price,actual,note')throw Error('欄位須為 item,quantity,unit_price,actual,note');const errors=validate(d,$('approved').value);if(errors.length)throw Error(errors.join('；'));rows=d;render()}catch(e){announce('匯入失敗，保留目前資料：'+e.message)}};
+try{const d=JSON.parse(localStorage.getItem(key));if(d&&!validate(d.rows,d.approved).length){const w=checkWarning(d.warning||{enabled:false,threshold:''});rows=d.rows;$('approved').value=d.approved;$('warning-enabled').checked=w.enabled;$('warning-threshold').value=w.threshold}}catch(e){}render();
+</script></body></html>

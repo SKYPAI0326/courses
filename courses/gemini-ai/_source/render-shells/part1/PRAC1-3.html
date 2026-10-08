@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>會議情境指令模板產生器｜Gemini AI 實戰課</title>
+<meta name="description" content="輸入會議類型、與會人數、主要目的，自動產生一段針對這場會議量身訂製的完整 AI 指令，讓你的會議記錄整理、摘要生成更精準。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="解鎖AI開發者模式 · 實例演練 3｜Gemini 零代碼 AI 實戰課">
+<meta property="og:description" content="輸入會議類型、與會人數、主要目的，自動產生一段針對這場會議量身訂製的完整 AI 指令，讓你的會議記錄整理、摘要生成更精準。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/gemini-ai/part1/PRAC1-3.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="解鎖AI開發者模式 · 實例演練 3｜Gemini 零代碼 AI 實戰課">
+<meta name="twitter:description" content="輸入會議類型、與會人數、主要目的，自動產生一段針對這場會議量身訂製的完整 AI 指令，讓你的會議記錄整理、摘要生成更精準。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/gemini-ai/part1/PRAC1-3.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c-bg:#f5f3ee; --c-surface:#edeae3; --c-card:#ffffff;
+  --c-border:#d8d4cb; --c-text:#2c2b28; --c-muted:#7a766d;
+  --c-a1:#6b7fa3; --c-a2:#c9963a; --c-a3:#5a7a5a; --c-a4:#6b7fa3;
+  --radius:6px; --radius-sm:4px; --content-w:780px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;word-break:break-word;overflow-wrap:break-word;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-a1);border:1px solid rgba(107,127,163,.3);background:rgba(107,127,163,.07);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);width:0%;transition:width .1s;opacity:.75}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:72px 48px 56px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px}
+.back-link:hover{color:var(--c-a1)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.hero-part{font-size:.73rem;color:var(--c-muted);letter-spacing:.08em;font-weight:500;font-variant-numeric:tabular-nums}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border)}
+.hero-num{font-size:.73rem;color:var(--c-a1);letter-spacing:1px;font-weight:500}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;color:var(--c-text);margin-bottom:20px;letter-spacing:-.005em}
+.lesson-tagline{font-size:1rem;color:var(--c-muted);line-height:1.9;max-width:38em;margin-bottom:36px}
+.outcomes{display:flex;flex-direction:column;gap:8px;padding:20px 0;border-top:1px solid var(--c-border-soft);border-bottom:1px solid var(--c-border-soft)}
+.outcomes-label{font-family:'Shippori Mincho',serif;font-style:italic;font-size:.78rem;color:var(--c-muted);letter-spacing:.03em;margin-bottom:2px}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.9rem}
+.outcome-dot{width:12px;height:1px;background:var(--c-faint);margin-top:14px;flex-shrink:0}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px}
+.lesson-section{margin-bottom:64px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-faint);letter-spacing:.1em;font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:20px;line-height:1.35}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.95;margin-bottom:20px}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:64px 0}
+.tool-wrap{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;margin:32px 0}
+.tool-topbar{background:var(--c-surface);border-bottom:1px solid var(--c-border);padding:10px 16px;display:flex;align-items:center;gap:8px}
+.tool-dot{width:10px;height:10px;border-radius:50%}
+.tool-dot-r{background:#ff6058} .tool-dot-y{background:#ffbd2e} .tool-dot-g{background:#28c840}
+.tool-label{flex:1;font-size:.73rem;color:var(--c-muted);font-family:'Courier New',monospace}
+.tool-body{padding:36px 40px}
+.copy-btn{font-size:.73rem;color:var(--c-a1);background:none;border:1px solid rgba(107,127,163,.3);padding:3px 12px;border-radius:99px;cursor:pointer;font-family:'Noto Sans TC',sans-serif}
+.copy-btn:hover{background:rgba(107,127,163,.08)}
+
+/* ── 情境模板產生器 ── */
+.gen-form{display:flex;flex-direction:column;gap:16px;margin-bottom:24px}
+.gen-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.gen-field{display:flex;flex-direction:column;gap:6px}
+.gen-field.full{grid-column:1/-1}
+.field-label{font-size:.73rem;color:var(--c-a1);letter-spacing:1.5px;font-weight:500}
+.gen-input{padding:11px 13px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:.85rem;color:var(--c-text);background:var(--c-bg);transition:border-color .2s}
+.gen-input:focus{outline:none;border-color:var(--c-a1)}
+.gen-input::placeholder{color:var(--c-muted)}
+.gen-select{padding:11px 13px;border:1px solid var(--c-border);border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:.85rem;color:var(--c-text);background:var(--c-bg);cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M6 8L0 0h12z' fill='%238c8880'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.gen-select:focus{outline:none;border-color:var(--c-a1)}
+.gen-btn{padding:13px;background:var(--c-a1);color:#fff;border:none;border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:.9rem;font-weight:500;cursor:pointer;transition:opacity .2s}
+.gen-btn:hover{opacity:.88}
+.template-result{display:none;margin-top:4px}
+.template-label{font-size:.7rem;color:var(--c-muted);letter-spacing:1.5px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.template-box{background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.85rem;line-height:1.9;padding:22px 24px;border-radius:var(--radius-sm);white-space:pre-wrap;word-break:break-word;border:1px solid rgba(107,127,163,.2)}
+
+.steps-list{display:flex;flex-direction:column;gap:0;margin:32px 0}
+.step-item{display:flex;gap:0;position:relative}
+.step-item:not(:last-child)::before{content:'';position:absolute;left:20px;top:44px;bottom:0;width:1px;background:var(--c-border)}
+.step-num-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:40px;padding-top:4px}
+.step-num{width:40px;height:40px;border-radius:50%;background:var(--c-card);border:1.5px solid var(--c-border);display:flex;align-items:center;justify-content:center;font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-text)}
+.step-body{flex:1;padding:4px 0 32px 24px}
+.step-title{font-size:.92rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.step-desc{font-size:.85rem;color:var(--c-muted);line-height:1.75}
+.step-desc strong{color:var(--c-text);font-weight:700}
+
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:24px 0;background:var(--c-surface);border-left:2px solid var(--c-text)}
+.callout.info,.callout.tip,.callout.key{background:var(--c-surface);border-left:2px solid var(--c-text)}
+
+.callout-icon{font-size:1.05rem;flex-shrink:0;margin-top:2px}
+.callout-body{font-size:.9rem;line-height:1.8}
+.callout-body strong{font-weight:700}
+.result-box{background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.8rem;line-height:1.85;padding:22px 24px;border-radius:var(--radius-sm);white-space:pre-wrap;word-break:break-word}
+
+.challenge-box{padding:28px 32px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);margin:28px 0}
+.challenge-label{font-size:.7rem;color:var(--c-a2);letter-spacing:1.5px;font-weight:500;margin-bottom:16px}
+.challenge-list{display:flex;flex-direction:column;gap:12px}
+.challenge-item{display:flex;align-items:flex-start;gap:12px;font-size:.9rem;line-height:1.7}
+.ci-num{font-family:'Shippori Mincho',serif;font-size:.92rem;font-weight:700;color:var(--c-a2);flex-shrink:0;width:20px}
+
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 80px;display:flex;gap:16px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 22px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1}
+.nav-btn:hover{border-color:var(--c-a1)}
+.nav-btn.next{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+@media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important}*{animation:none!important}}
+@media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero{padding:56px 32px 40px}.lesson-body{padding:0 32px 80px}.lesson-nav{padding:0 32px 80px}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px;.lesson-tagline{max-width:100%}}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:40px 20px 36px}.lesson-title{font-size:1.45rem}.lesson-body{padding:0 20px 60px}.lesson-nav{padding:0 20px 60px;flex-direction:column}.nav-btn{flex:none}.footer{padding:20px}}
+
+/* a11y: focus-visible ring */
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}.lesson-section{scroll-margin-top:90px}.lesson-body pre{max-width:100%;overflow-wrap:anywhere;white-space:pre-wrap}.lesson-body details{border-top:1px solid var(--c-border);padding:16px 0;margin:20px 0}.lesson-body summary{cursor:pointer;font-weight:600}.lesson-body li{margin-bottom:12px}.lesson-body a{overflow-wrap:anywhere}.lesson-body table{max-width:100%}.lesson-body .core-route{font-size:.85rem;color:var(--c-muted);margin-bottom:28px}.lesson-title{overflow-wrap:anywhere}.core-table-scroll{max-width:100%;overflow:auto}</style>
+
+<style id="prompt-policy-style">
+[data-policy-prompt]{max-width:100%;box-sizing:border-box;white-space:pre-wrap;overflow-wrap:anywhere;scroll-margin-top:110px}
+.policy-copy-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:12px 0 22px}.policy-copy-row button{min-height:44px;max-width:100%;white-space:normal;cursor:pointer}.policy-status{font-size:.82rem;line-height:1.6}
+.policy-case{padding:20px;margin:22px 0;background:#f5f8fa;border:1px solid #b8c9d5;border-radius:8px;max-width:100%;box-sizing:border-box;color:#193448}.policy-case h3{margin:0 0 12px;font-size:1rem}.policy-case p{line-height:1.8}.policy-case pre{font-family:inherit;white-space:pre-wrap;overflow-wrap:anywhere;margin:16px 0;font-size:.9rem;line-height:1.85;color:inherit;background:transparent;border:0;padding:0}.policy-guide{font-size:.9rem;line-height:1.8;margin:14px 0;color:inherit}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='gemini_auth',H='af4216b537dbe50ab6bce3a5f75201f51894267495ac777423d8f18d11318db8';if(localStorage.getItem(K)==='1')sessionStorage.setItem(K,'1');if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">Gemini 零代碼 AI 實戰課</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">實例演練</div>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero" data-learning-role="extension" id="main">
+  <a class="back-link" href="../index.html"><span aria-hidden="true">←</span> 回課程目錄</a>
+  <div class="hero-meta">
+    <div class="hero-part">PART 1 · 解鎖 AI 開發者模式</div>
+    <div class="hero-divider-v"></div>
+    <div class="hero-num">實例演練 3</div>
+  </div>
+  <h1 class="lesson-title">會議情境指令模板產生器</h1>
+  <p class="lesson-tagline">整理會議用途與欄位，產生可替換的指令模板；責任人、期限和決議仍須回到來源確認。</p>
+  <div class="outcomes">
+    <div class="outcomes-label">PRACTICE GOALS</div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>學會針對不同情境動態調整 Prompt 的內容</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>理解「情境變數」如何影響 AI 指令的有效性</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>產出一批可重複使用的會議 Prompt 模板</span></div>
+  </div>
+</div>
+
+<div class="lesson-body"><section class="lesson-section"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">行政人員每週要把不同會議整理成通知或交辦摘要，重複輸入背景容易漏欄位。本單元做一份可替換欄位的會議指令模板；輸出仍是待核對的草稿，日期、責任人和決議必須回到來源確認。</p><p class="body-text">固定規則放在提示詞，會議類型、日期和對象是每次替換的變數。原文沒有地點或期限時要保留空白或待確認，不可為了讓範本完整而補寫。</p><p class="body-text"><strong>固定測試逐字稿（虛構）</strong><br>主持人：下週四下午辦產品說明會，地點待確認。<br>小林：先整理 10 頁簡報提綱。<br>阿凱：預算等收到報價再決定。<br>雯姊：會後通知業務與客服，通知時間尚未決定。</p><p class="body-text"><strong>核對答案：</strong>可以整理出下週四下午、簡報提綱由小林處理、預算待報價、會後通知業務與客服；地點、通知期限與精確日期都未提供，應標「待確認」，不可自行補寫。</p><p class="body-text">這份逐字稿刻意沒有精確日期、地點和通知期限，供你測模板能否保留未知資料；「下週四下午」也不能在缺少會議日期時換算成日曆日期。</p><p class="body-text">先操作參考品生成模板，再把完整模板與逐字稿一併貼入 Gemini，核對輸出。</p><div class="tool-wrap">
+<div class="tool-topbar">
+<div class="tool-dot tool-dot-r"></div>
+<div class="tool-dot tool-dot-y"></div>
+<div class="tool-dot tool-dot-g"></div>
+<div class="tool-label">meeting-prompt-generator.html</div>
+</div>
+<div class="tool-body">
+<div class="gen-form">
+<div class="gen-row">
+<div class="gen-field">
+<div class="field-label">會議類型</div>
+<select class="gen-select" id="g-type">
+<option value="客戶提案">客戶提案會議</option>
+<option value="內部週會">內部週會</option>
+<option value="跨部門協調">跨部門協調會</option>
+<option value="行政協調">行政協調會議</option>
+<option value="活動籌備">活動籌備會議</option>
+<option value="腦力激盪">腦力激盪工作坊</option>
+<option value="專案檢討">專案成果檢討會</option>
+<option value="一對一面談">一對一主管面談</option>
+</select>
+</div>
+<div class="gen-field">
+<div class="field-label">會議目的</div>
+<input class="gen-input" id="g-goal" placeholder="例：整理產品說明會決議與後續事項" type="text">
+</div>
+</div>
+<div class="gen-row">
+<div class="gen-field">
+<div class="field-label">與會人員</div>
+<input class="gen-input" id="g-attendee" placeholder="例：總務、人事、會計、單位主管" type="text"/>
+</div>
+<div class="gen-field">
+<div class="field-label">輸出格式偏好</div>
+<select class="gen-select" id="g-format">
+<option value="條列式重點摘要">條列式重點摘要</option>
+<option value="表格式行動清單（含負責人與截止日）">表格式行動清單</option>
+<option value="段落式會議記錄">段落式會議記錄</option>
+<option value="決議事項清單">決議事項清單</option>
+</select>
+</div>
+</div>
+<div class="gen-row">
+<div class="gen-field">
+<div class="field-label">語氣要求</div>
+<select class="gen-select" id="g-tone">
+<option value="正式、精準">正式、精準</option>
+<option value="簡潔、直接">簡潔、直接</option>
+<option value="友善、易讀">友善、易讀</option>
+</select>
+</div>
+<div class="gen-field">
+<div class="field-label">字數上限</div>
+<select class="gen-select" id="g-length">
+<option value="300 字以內">300 字以內</option>
+<option value="500 字以內">500 字以內</option>
+<option value="不限字數，盡量完整">不限字數，完整呈現</option>
+</select>
+</div>
+</div>
+</div>
+<button class="gen-btn" onclick="generateTemplate()">產生 AI 指令模板 <span aria-hidden="true">→</span></button>
+<div class="template-result" id="template-result">
+<div class="template-label" style="margin-top:20px;">
+<span>GENERATED PROMPT TEMPLATE</span>
+<button class="copy-btn" onclick="copyTemplate()">複製</button>
+</div>
+<div class="template-box" id="template-box"></div>
+</div>
+</div>
+</div></section><hr class="section-rule"/><section class="lesson-section"><h2 class="section-heading">觀念與完整提示詞</h2><p class="body-text">固定要求放在提示詞模板，會議目的和參與者是每次變動的資料。角色可依情境選擇，但不能因「行政會議」之類的標籤就補出原文沒有的決議、人名或期限。</p><div class="tool-wrap">
+<div class="tool-topbar">
+<div class="tool-dot tool-dot-r"></div>
+<div class="tool-dot tool-dot-y"></div>
+<div class="tool-dot tool-dot-g"></div>
+<div class="tool-label"><span aria-hidden="true">→</span> 複製這段 Prompt 貼入 Gemini</div>
+
+</div>
+<div class="tool-body" style="padding:24px 28px;">
+<p class="policy-guide">這一區定義可重用的輸入、設定、處理與輸出。案例條件另附；參考品中的預填資料只供示範，可在自己的工具中替換。</p><div class="result-box" id="instruction-box" data-policy-prompt="工具生成或修改">你是一位重視初學者可操作性、資料安全與無障礙的前端工程師。請為工作者製作「會議情境指令模板產生器」，目標是把以下工作需求與工具結構變成可反覆使用、可核對的工具。交付完整單檔 HTML，CSS 與 JavaScript 內嵌，不呼叫外部 API；不要只輸出線框、示意圖或片段。
+
+【工作情境】
+固定要求放在提示詞模板，會議目的和參與者是每次變動的資料。角色可依情境選擇，但不能因「行政會議」之類的標籤就補出原文沒有的決議、人名或期限。
+
+【操作與輸出】
+提供可新增、修改和刪除的情境選項，每項由使用者設定對應角色；選擇不同情境時使用該項角色，不內建特定行業名單。輸入任務目的（必填），可輸入相關人員，並選擇條列／表格／段落、語氣和字數。依情境帶入對應角色，再產生可編輯、可複製的完整提示詞。
+
+【例外與安全】
+任務目的空白時說明並保留其他輸入；沒有與會人員或期限時用待補欄位，不自行創造。選擇不同情境須同步更換角色，不可只改標籤。
+
+
+【交付要求】
+頁面文字使用繁體中文；主要操作有清楚標籤、空狀態、錯誤提示和鍵盤可操作方式。輸入內容以純文字呈現。完成後輸出可直接保存並於瀏覽器重新開啟的完整 HTML 原始碼，附上如何填入資料、核對正常結果及測試例外的簡短說明。
+
+【資料與設定的重用方式】
+工具依使用者在畫面輸入的資料與設定處理。若另外附上當次案例條件，只用於可修改的示例或測試；未附時顯示空白輸入與操作說明，不自行編造資料。案例的名稱、日期、金額、門檻及預期答案不能成為程式的固定條件或特例。更換資料後仍依同一套規則計算；請保留新增、修改及清除資料的操作。</div><div class="policy-copy-row"><button class="copy-btn" type="button" data-policy-copy="instruction-box">複製可重用提示詞</button><span class="policy-status" id="instruction-box-policy-status" role="status" aria-live="polite"></span></div><aside class="policy-case" data-policy-case="instruction-box"><h3>當次案例條件與核對紀錄｜可替換</h3><p>先複製上方提示詞建立工具。需要本課示例時，可另外附加這一區，或在工具完成後填入相應欄位。未附案例時，仍須能建立工具；更換案例資料時不必重寫處理規則。</p><pre id="instruction-box-case">【當次案例附加資料，可替換】
+以下僅供本次示例與測試。請把資料放入可修改的輸入或設定；核對答案只用於驗收，不能編成程式的固定結果。
+
+本次情境選項：客戶提案、內部週會、跨部門協調、行政協調、活動籌備、腦力激盪、專案檢討、一對一面談；每個選項附對應角色，仍可增刪或修改。
+
+測試資料與檢查方式：
+以固定逐字稿生成會議整理模板：會議時間保留「下週四下午」，地點、精確日期和通知期限標待確認；簡報提綱由小林整理，預算等報價。若模型補出地點或期限，視為失敗並修正提示詞。清空目的應阻止生成；切到一對一面談時，確認角色與任務同步改變。</pre><div class="policy-copy-row"><button class="copy-btn" type="button" data-policy-copy="instruction-box-case">複製當次案例附加資料</button><span class="policy-status" id="instruction-box-case-policy-status" role="status" aria-live="polite"></span></div><p>完成本次核對後，至少再換一組不同名稱、數值或清單長度測試，確認結果來自輸入與規則。</p></aside>
+</div>
+</div></section><hr class="section-rule"/><section class="lesson-section"><h2 class="section-heading">操作、驗收與修復</h2><ol class="body-text"><li>在參考品選「活動籌備」，填「整理產品說明會決議與後續事項」，在與會人員欄填「總務、人事、會計」，選表格、正式語氣和 300 字限制；產生後確認工具依「活動籌備」自動帶入角色，不需另選角色；把頁面提供的固定逐字稿當作生成版輸入。</li><li>生成模板後逐段確認目的、角色、格式和缺資料時待補的規則；清空目的重試，確認工具阻止生成且沒有清掉其餘設定。</li><li>將模板提示詞和固定逐字稿貼入同一 Gemini 對話；核對地點、精確日期、通知期限皆標待確認，原文中的小林、預算待報價與通知對象則保留。再把情境切到「一對一面談」，確認角色與任務隨之更新。</li><li>若未提供欄位被補寫，修改固定限制為「未知資料標待確認」，用同一假資料重測；保存活動籌備和面談兩版模板及結果。</li></ol><div class="callout info"><div aria-hidden="true" class="callout-icon">注意</div><div class="callout-body">通知和摘要需由人核對日期、姓名、地點與決議；未確認資訊不得自動寄送。</div></div><div class="callout info"><div aria-hidden="true" class="callout-icon">修復</div><div class="callout-body">若模板把空白補成推測內容，要求保留未提供欄位為待確認，並重跑同一會議案例。</div></div><div class="callout key"><div aria-hidden="true" class="callout-icon">✓</div><div class="callout-body"><strong>本單元驗收：</strong>選「活動籌備」情境，目的填「整理產品說明會決議與後續事項」，在與會人員欄填「總務、人事、會計」，選表格、正式語氣和 300 字；確認工具依情境自動帶入角色，不需另選角色。用固定逐字稿試跑，確認時間保留「下週四下午」，地點、精確日期與通知期限標待確認；保留小林整理簡報、預算待報價和通知對象，不可補造。清空目的不得生成。再切換「一對一面談」，確認角色與任務同步改變。保存兩種情境模板和一份已核對示例。</div></div></section></div>
+
+<nav class="lesson-nav">
+  <a class="nav-btn nav-prev" href="PRAC1-2.html" aria-label="上一單元" data-nav-role="prev">
+    <div>
+      <div class="nav-btn-label"><span aria-hidden="true">←</span> 上一個演練</div>
+      <div class="nav-btn-title">提示詞 A/B 結果比較台</div>
+    </div>
+  </a>
+  <a class="nav-btn next nav-next" href="../part2/CH2-1.html" aria-label="下一單元" data-nav-role="next">
+    <div>
+      <div class="nav-btn-label">進入下一章 <span aria-hidden="true">→</span></div>
+      <div class="nav-btn-title">從工作條件整理排班規則</div>
+    </div>
+  </a>
+</nav>
+
+<footer class="footer" data-platform-version="2026-04-v3">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">Gemini 零代碼 AI 實戰課 · Part 1 實例演練</div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const total = document.body.scrollHeight - window.innerHeight;
+  document.getElementById('prog').style.width = (window.scrollY / total * 100) + '%';
+});
+
+const roleMap = {
+  '客戶提案': '你是一位資深業務顧問，擅長為 B2B 客戶整理提案會議的關鍵訊息',
+  '內部週會': '你是一位高效率的專案助理，負責整理團隊週會的進度與待辦事項',
+  '跨部門協調': '你是做過 5+ 次跨部門衝突協調的 PM，擅長找出不同部門間的共識與分歧點',
+  '行政協調': '你是一位熟悉機關行政流程的資深幕僚，擅長整理跨單位協調的決議、分工與追蹤事項',
+  '活動籌備': '你是一位籌辦過 20 場以上企業活動的行政企劃，擅長把籌備會議整理成任務分工與時程清單',
+  '腦力激盪': '你是一位創意引導師，擅長整理腦力激盪的點子並歸納出可執行的方向',
+  '專案檢討': '你是一位專案管理顧問，善於從成果與問題中提煉出改善建議',
+  '一對一面談': '你是一位人力資源顧問，了解如何整理主管面談的重點並追蹤後續承諾'
+};
+
+function generateTemplate() {
+  const type = document.getElementById('g-type').value;
+  const goalInput = document.getElementById('g-goal');
+  const goal = goalInput.value.trim();
+  if (!goal) {
+    document.getElementById('template-result').style.display = 'none';
+    alert('請填寫會議目的後再產生指令模板；其他設定已保留。');
+    goalInput.focus();
+    return;
+  }
+  const attendee = document.getElementById('g-attendee').value.trim() || '（未填入）';
+  const format = document.getElementById('g-format').value;
+  const tone = document.getElementById('g-tone').value;
+  const length = document.getElementById('g-length').value;
+
+  const role = roleMap[type] || `你是熟悉 ${type} 流程與重點的會議記錄助手`;
+
+  const prompt = `【角色】
+${role}。
+
+【任務】
+根據以下提供的「${type}」會議記錄內容，協助整理出一份清晰的會議摘要。
+本次會議目的：${goal}
+與會人員：${attendee}
+
+【限制】
+- 語氣要求：${tone}
+- 字數限制：${length}
+- 聚焦在實際決議、行動項目與重要討論，略去無關緊要的閒聊
+- 如有提到「負責人」或「截止日期」，務必保留
+
+【呈現格式】
+以「${format}」的方式呈現結果。
+
+---
+（請在此行之後貼入你的會議記錄內容）`;
+
+  document.getElementById('template-box').textContent = prompt;
+  const result = document.getElementById('template-result');
+  result.style.display = 'block';
+  result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function copyTemplate() {
+  const text = document.getElementById('template-box').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    btn.textContent = '已複製！';
+    setTimeout(() => btn.textContent = '複製', 1800);
+  });
+}
+
+function copyInstructions() {
+  const text = document.getElementById('instruction-box').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    btn.textContent = '已複製！';
+    setTimeout(() => btn.textContent = '複製指令', 1800);
+  });
+}
+</script>
+
+<script>
+// 閱讀進度持久化（localStorage）— 2026-04-16 UI refresh
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+
+<script id="prompt-policy-copy">
+document.querySelectorAll('[data-policy-copy]').forEach(button=>button.addEventListener('click',async()=>{
+ const id=button.dataset.policyCopy, node=document.getElementById(id), status=document.getElementById(id+'-policy-status');
+ const text=node.tagName==='TEXTAREA'?node.value:node.textContent;
+ try{await navigator.clipboard.writeText(text);status.textContent='已複製此區全文。提示詞與案例條件分開複製。';}
+ catch(error){if(node.tagName==='TEXTAREA'){node.focus();node.select();}else{const range=document.createRange();range.selectNodeContents(node);const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);}status.textContent='未允許自動複製，已選取此區全文；請按 Ctrl+C／Cmd+C。';}
+}));
+</script>
+</body>
+</html>
