@@ -2,7 +2,7 @@
 """Apply reviewed, page-scoped course styles without changing HTML bodies or scripts."""
 from pathlib import Path
 import argparse, json, re
-STYLE_IDS = ('coldtone-preview-style', 'coldtone-course-style', 'coldtone-table-readability')
+STYLE_IDS = ('coldtone-preview-style', 'coldtone-course-style', 'coldtone-table-readability', 'coldtone-prompt-layout')
 
 def apply_html(text, page, site):
     config = Path(site) / '_source/coldtone-styles.json'
