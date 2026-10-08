@@ -9,8 +9,8 @@
 | 第一章：第一個小工具 | prompt-snake.txt；prompt-snake-case.txt；prompt-snake-revision.txt | 自己生成的 snake-v1.html、v2 及差異說明 |
 | 第二章：可重用提示詞 | tool-structure-worksheet.md；requirements-template.txt | 完整白話需求；當次案例另存；操作計算與多條件判斷 |
 | 第三章：工作工具初版 | prompt-schedule.txt；schedule-practice.txt；schedule-answers.md；core-acceptance.csv | schedule-v1.html、自己下載的 A／B 備份、班表和測試紀錄 |
-| 第四章：追加與修正 | prompt-solo-schedule.txt；prompt-schedule-repair.txt；prompt-budget-warning.txt；core-acceptance.csv | schedule-v2.html、保留的 v1、新舊規則測試紀錄 |
-| 第五章：保存與交付 | 同一份驗收表；自己下載的 v2 備份；講義 README 範例 | 排班交付包；另用PG01 CSV清理完成A/B及交付 |
+| 第四章：追加與修正 | prompt-solo-schedule.txt；prompt-schedule-repair.txt；prompt-budget-warning.txt；core-acceptance.csv | schedule-v3.html、保留 v1 與 v2、新舊規則測試紀錄 |
+| 第五章：保存與交付 | 同一份驗收表；自己下載的 v3 備份；講義 README 範例 | 排班交付包；另用PG01 CSV清理完成A/B及交付 |
 
 ## 提示詞與當次條件如何搭配
 

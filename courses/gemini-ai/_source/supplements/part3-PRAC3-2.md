@@ -26,7 +26,7 @@ version: 2026-10-08-five-chapters
 <svg id="gantt-svg"></svg>
 </div>
 </div>
-</div></section><hr class="section-rule"/><section class="lesson-section"><h2 class="section-heading">觀念與完整提示詞</h2><p class="body-text">甘特圖按開始日期與工作天數畫出日曆區間；它不會自動知道依賴、假日、資源衝突或實際完成度。沒有來源支持的依賴不能靠圖形推斷。</p><div class="tool-wrap">
+</div></section><hr class="section-rule"/><section class="lesson-section"><h2 class="section-heading">觀念與完整提示詞</h2><p class="body-text">甘特圖按開始日期與日曆日工期畫出區間；它不會自動知道依賴、假日、資源衝突或實際完成度。沒有來源支持的依賴不能靠圖形推斷。</p><div class="tool-wrap">
 <div class="tool-topbar">
 <div class="tool-dot tool-dot-r"></div>
 <div class="tool-dot tool-dot-y"></div>
@@ -37,10 +37,13 @@ version: 2026-10-08-five-chapters
 <p class="policy-guide">這一區定義可重用的輸入、設定、處理與輸出。案例條件另附；參考品中的預填資料只供示範，可在自己的工具中替換。</p><div class="result-box" data-policy-prompt="工具生成或修改" id="instruction-box">你是一位重視初學者可操作性、資料安全與無障礙的前端工程師。請為工作者製作「專案時程甘特圖」，目標是把以下工作需求與工具結構變成可反覆使用、可核對的工具。交付完整單檔 HTML，CSS 與 JavaScript 內嵌，不呼叫外部 API；不要只輸出線框、示意圖或片段。
 
 【工作情境】
-甘特圖按開始日期與工作天數畫出日曆區間；它不會自動知道依賴、假日、資源衝突或實際完成度。沒有來源支持的依賴不能靠圖形推斷。
+甘特圖按開始日期與日曆日工期畫出區間；它不會自動知道依賴、假日、資源衝突或實際完成度。沒有來源支持的依賴不能靠圖形推斷。
 
 【操作與輸出】
-每列包含任務名稱、開始日期、正整數天數，可新增及刪除；生成 SVG 時依最早和最晚日期計算共同時間軸，列出任務名稱、日期與工期。
+每列包含任務名稱、開始日期、正整數日曆日工期，可新增及刪除；生成 SVG 時依最早和最晚日期計算共同時間軸，列出任務名稱、日期與工期。
+
+【日期計算】
+工期以日曆日計算，開始日算作第 1 日；結束日期＝開始日期＋（工期－1）日。也就是工期 1 日時，結束日等於開始日；工期 2 日時，結束日在開始日之後 1 日。畫面、文字清單與 SVG 時間軸必須採用同一算法。
 
 【例外與安全】
 任務名稱不可空白；日期必須有效；工期須為 1 至 365 的整數。任務名以純文字顯示，空表或所有日期無效時不輸出假圖。明確標示時間軸以日曆日顯示，未建模相依關係。
