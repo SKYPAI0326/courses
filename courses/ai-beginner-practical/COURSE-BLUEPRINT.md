@@ -4,21 +4,21 @@
 - **Audience**：第一次系統使用 LLM 的成人學習者，能使用瀏覽器與複製貼上
 - **Workplace outcome**：學員能把一項模糊的工作或生活需求轉成可檢查的工作說明，留下可編輯文字、可回查證據或有取捨依據的決策初稿
 - **Duration and sequence**：4 個 skill-operation 單元，各 3 小時，共 12 小時
-- **Lesson types**：CH1-1、CH2-1、CH3-1、CH4-1 皆為 skill-operation；CH3-1 固定使用 NotebookLM
-- **Free baseline and paid-tool boundaries**：其他 LLM 不指定平台；學員使用可取得的免費或既有服務。NotebookLM 為課程固定平台，課前確認當期免費使用界線與介面
+- **Lesson types**：CH1-1、CH2-1、CH3-1、CH4-1 皆為 skill-operation；CH2-1 內含 PRAC2-1 Gamma 實作，CH3-1 使用 NotebookLM
+- **Free baseline and paid-tool boundaries**：其他 LLM 不指定平台；學員使用可取得的免費或既有服務。Gamma 與 NotebookLM 為指定操作平台，課前逐人確認生成／建立、編輯與保存，不要求付費升級
 - **Shared environment**：課程提供瀏覽器可開啟的 NotebookLM、純文字來源檔、提示詞工作表與離線備援內容
-- **Capstone deliverables**：四份完成物組成個人 AI 實務包；課後再以一份真實需求整合交付物驗收遷移：LLM 對話紀錄、日常文書包、NotebookLM 閱讀包、生活應用卡、`course-capstone-handoff.md`
+- **Capstone deliverables**：四份完成物組成個人 AI 實務包；課後再以一份真實需求整合交付物驗收遷移：LLM 對話紀錄、日常文書與提案包、可回查工作文件、個人方案決策卡、`course-capstone-handoff.md`
 
 ## Learner Task Contract Matrix
 
-以下四列是依 `../_規範/learner-action-contract.md` 凍結的唯一學員路徑事實；各單元教案與 HTML 必須引用同一組檔名、完成物、第一個結果與回修位置。
+以下四列是依 `../../_規範/learner-action-contract.md` 凍結的唯一學員路徑事實；各單元教案與 HTML 必須引用同一組檔名、完成物、第一個結果與回修位置。
 
 | lesson | 角色／問題與後果 | 起始材料與備援 | 完成物／下一位使用者與用途 | 第一動作／第一結果 | 失敗回復 |
 |---|---|---|---|---|---|
-| CH1-1 | 第一次使用文字型 LLM 的成人學習者；模糊提問會得到泛泛或漏條件的答案，之後無法重做。 | 頁內實務工作台 + 任一可輸入文字的 LLM；瀏覽器不能暫存時用 `assets/worksheets/unit1-practice-sheet.md`，工具不可用用 `assets/fallback/unit1-dialogue-simulator.md` 判讀，恢復後重跑。 | 工作台填寫紀錄匯出為 `unit1-practice-sheet-complete.md`；未來的自己用任務卡重做，CH2 只承接五欄定義，不重播 CH1。 | 開啟工作台並填姓名日期；看見第 1 題欄位、進度變化與本機暫存狀態。 | `U1-START` 開啟工作台；`U1-ASK` 修回答；`U1-GAP` 補一個缺少條件並比較；不能暫存時匯出／列印，工具不可用時安全停止在備援判讀。 |
-| CH2-1 | 需要把同一件事交代給不同讀者；讀者、目的與語氣不清會造成誤解與來回重寫。 | CH2-1 頁面日常溝通工作台、`assets/templates/unit2-communication-scenarios.md`／HTML 素材頁 + 任一文字型 LLM；Markdown 只作離線備援，工具不可用先在工作台標待重跑。 | 工作台匯出的 `unit2-communication-pack-complete.md`；未來的自己或實際收件者使用，完成包可直接編輯與交接。 | 開啟工作台並填第一個 Email 情境；看見 Email／訊息／自我介紹三區與檢核表。 | `U2-START` 開啟工作台；`U2-PROMPT` 補四段；`U2-EMAIL`／`U2-MESSAGE` 修事實；`U2-AUDIENCE` 做讀者轉換；不能暫存時匯出／列印。 |
-| CH3-1 | 需要把長文轉成可回查的證據；若把模型補寫當原文，可能誤判日期、條件或下一步。 | CH3-1 頁面 NotebookLM 閱讀紀錄台 + NotebookLM + 來源索引與 1 份新聞／公告／書籍節錄；平台不可用用 `assets/fallback/unit3-notebooklm-text-fallback.md`，先練習主張與來源狀態，恢復後重跑正式引用。 | 紀錄台匯出的 `unit3-notebooklm-reading-pack-complete.md` + 含 3 份來源的 NotebookLM 筆記本；內含來源地圖、主張／證據狀態台帳、公告影響卡、書籍三層筆記與跨來源比較。 | 開啟紀錄台填筆記本與來源，再建立筆記本並加入三份來源；接著挑一個主張貼回，標記支持、部分支持或來源未提及。 | `U3-SOURCE` 修來源；`U3-CLAIM` 拆主張；`U3-CITE` 回查引用；`U3-COMPARE` 比較兩份來源；平台不可用時標待重跑並匯出。 |
-| CH4-1 | 要在真實生活任務中做選擇；若只問「哪個最好」，工具會猜條件並掩蓋取捨、缺資料與人工確認。 | CH4-1 頁面生活決策工作台、30 張提示詞卡、生活應用 Markdown 備援、冷氣共同素材與任一文字型 LLM；不可用先填決策條件與缺資料，恢復後重跑。 | 工作台匯出的 `unit4-lifestyle-application-card.md`；內含決策問題、選擇標準／優先順序、方案比較、取捨、缺資料、下一步與人工確認；課後交 `course-capstone-handoff.md`。 | 開啟工作台並選一個近期決策，填決策問題、至少三項標準與優先順序；看見第一個「已知／缺資料／要確認」區分。 | `U4-FRAME` 定義決策；`U4-TRADEOFF` 寫取捨；`U4-MISSING` 標缺資料；`U4-BOUNDARY` 守住人工／專業界線；`U4-SAVE` 匯出，不能暫存時列印。 |
+| CH1-1 | 教育／服務／業務或自己的單位；模糊提問與無據承諾使短文不能直接採用。 | assets/workplace/tasks三案完整原文與prompt／repair、自己LLM與保存台；不能保存用離線表，無LLM讀作者參考標待重跑。 | unit1-practice-sheet-complete.md：自己的短文、完整prompt／第一版、唯一修正、新版核對與待確認；CH2承接讀者轉換。 | 選一案，代入完整材料與五欄prompt送出；看見一份短文後貼回personalPrompt，不先填五題。 | U1-START／ASK／DIAG／GAP／SAVE；未知先標待確認，匯出重開；無LLM不勾正式完成。 |
+| CH2-1 | 需要把同一件事交代給不同讀者；讀者、目的與語氣不清會造成誤解與來回重寫。 | CH2-1 頁面日常溝通工作台、`assets/templates/unit2-communication-scenarios.md`／HTML 素材頁 + 任一文字型 LLM；Markdown 只作離線備援，PRAC2-1完整企劃、提示詞與Gamma；工具不可用保存已完成資料、標待補。 | 工作台匯出的 `unit2-communication-pack-complete.md`；未來的自己或實際收件者使用，完成包可直接編輯與交接；另有PRAC2-1十頁大綱、Gamma與重開驗證的十頁PDF，供指定主管閱讀。 | 開啟工作台並填第一個 Email 情境；看見 Email／訊息必做區與檢核表；自我介紹、額外轉換區為選做。 | `U2-START` 開啟工作台；`U2-PROMPT` 補四段；`U2-EMAIL`／`U2-MESSAGE` 修事實；`U2-AUDIENCE` 做讀者轉換；不能暫存時匯出／列印。 |
+| CH3-1 | 教務／服務／各單位承辦人；不同版本若當核准或把首次回覆當結案，會造成錯誤承諾。 | CH3保存台、NotebookLM、assets/workplace/documents同案例三文件；不可用人工定位並標平台待重跑。 | unit3-notebooklm-reading-pack-complete.md與自己的筆記本；所選一份FAQ／交接／待辦、第一版、三引用回查、修訂與未解問題。 | 選一組原文建立自己的筆記本，加入3來源並看見可辨名稱與原文。 | U3-SOURCE／CLAIM／CITE／COMPARE／REPAIR／SAVE；無平台時不勾正式引用。 |
+| CH4-1 | 教育／行政／各單位承辦人；忽略容量、角色工時或未知設定會使方案不可行。 | CH4保存台、assets/workplace/decisions完整brief與compare／change；自己的LLM。生活材料可替代，不再交共同案例。 | unit4-decision-card.md：實際提示詞、第一版、單一變因修訂、兩方案三標準、列式、取捨與下一步。 | 讀所選brief，接在compare提示詞後；送出文字有兩方案與三標準。 | U4-FRAME／TRADEOFF／MISSING／CHANGE／DECIDE／SAVE；不可用先人工列式，標模型待重跑。 |
 
 ## 30 秒入口與因果檢查
 
@@ -30,10 +30,10 @@
 
 | lesson | input artifact | learner transformation | output artifact | next use | capstone component |
 |---|---|---|---|---|---|
-| CH1-1 | 頁內實務工作台；離線時 `assets/worksheets/unit1-practice-sheet.md` | 用五欄提示詞框架完成五個日常對話、找出一個缺少條件並重問，再完成個人任務卡 | 工作台填寫紀錄，匯出為 `unit1-practice-sheet-complete.md` 或列印 PDF | CH2-1 承接五欄定義；CH4-1 不重播 CH1 流程 | LLM 對話紀錄 |
-| CH2-1 | CH1-1 的五欄框架 + 頁面日常溝通工作台 + `assets/templates/unit2-communication-scenarios.md` | 依讀者、目的、語氣與格式把同一件事轉成不同用途文字 | 工作台匯出 `unit2-communication-pack-complete.md` | 供實際收件者編輯使用；CH4-1 只取情境資料，不重播文書流程 | 日常文書包 |
-| CH3-1 | CH3-1 頁面 NotebookLM 閱讀紀錄台 + `assets/sources/` 內課程來源檔 | 建立來源地圖，將回答拆成主張、證據狀態與引用位置，再做跨來源比較 | 紀錄台匯出 `unit3-notebooklm-reading-pack-complete.md` | CH4-1 將已知、未知與證據邊界帶入生活決策 | NotebookLM 證據閱讀包 |
-| CH4-1 | CH4-1 頁面生活決策工作台 + `assets/prompts/unit4-lifestyle-prompts.md` + 冷氣共同素材 | 把生活問題轉成選擇標準，建立方案比較、取捨與下一步 | 工作台匯出 `unit4-lifestyle-application-card.md` | 課後整合任務交付一份有條件與待確認事項的決策卡 | 生活決策卡 |
+| CH1-1 | 頁內實務工作台；離線時 `assets/worksheets/unit1-practice-sheet.md` | 自選一份工作材料，用同一完整五欄prompt產短文，只修一項，保存第一版／新版／核對與待確認；不重填拆解表 | 工作台填寫紀錄，匯出為 `unit1-practice-sheet-complete.md` 或列印 PDF | CH2-1 承接五欄定義；CH4-1 不重播 CH1 流程 | LLM 對話紀錄 |
+| CH2-1 | CH1-1 的五欄框架 + 頁面日常溝通工作台 + `assets/templates/unit2-communication-scenarios.md` | 依讀者、目的、語氣與格式把同一件事轉成不同用途文字 | 工作台匯出 `unit2-communication-pack-complete.md`，以及PRAC2-1的十頁大綱、Gamma、PDF與短交接 | 供實際收件者與提案主管閱讀；CH3可延伸來源支持，CH4只取情境資料 | 日常文書與提案包 |
+| CH3-1 | 個人NotebookLM＋同情境三來源 | 回查三個重要主張、判權威／範圍與未解問題，修訂一份工作文件 | unit3-notebooklm-reading-pack-complete.md | 接手者可回查；CH4只取已核對背景／未知，無前章成品依賴 | 可回查工作文件 |
+| CH4-1 | 自選完整兩方案brief＋個人LLM | 先檢硬限制、排序三標準，比較取捨；只改一項條件再計算 | unit4-decision-card.md | 給主管／未來自己條件式核定；課後用真需求遷移 | 個人方案決策卡 |
 
 ## Core Operation Inventory
 
@@ -42,25 +42,25 @@
 | OP-01 | CH1-1 | 學員容易把搜尋問題與對話任務混在一起 | 一個日常需求 | 把需求拆成情境、任務、資料、條件、格式 | 可複製提示詞與工作台欄位 | 五欄都有具體內容 | 回到工作台逐欄補值；不能暫存時改用離線工作表 |
 | OP-02 | CH1-1 | 第一版回答可能漏掉會影響結果的條件 | 第一版回答 | 找出一個缺口，補入重問指令並比較前後 | 第二版能對應新增條件 | 新條件在輸出中可見，仍未知處被標記 | 回到 U1-GAP，一次只補最關鍵的條件 |
 | OP-03 | CH2-1 | 同一內容要依讀者、目的與場合轉換，不是複製貼上 | Email、訊息或自我介紹第一版 | 指定新讀者、對方下一步與輸出格式，產出轉換版 | 可交接的不同用途文字 | 每版讀者、目的與保留事實可說明 | 回到 U2-AUDIENCE，補新讀者與事實邊界 |
-| OP-04 | CH3-1 | NotebookLM 的來源、提問與引用有固定順序 | 課堂必做 3 份來源；另有 6 份延伸來源 | 建立 notebook、加入來源、提出可回到原文的問題 | 回答附來源引用 | 點引用可回到原文位置 | 用純文字備援檔重做輸入；恢復後重跑正式引用 |
-| OP-05 | CH3-1 | 長文中的一句話可能同時含有多個主張，不能只看摘要是否順 | 三份課堂來源與 NotebookLM 回答 | 拆主張、標證據狀態、點引用回查，再比較不同來源是否一致 | 主張／引用／支持狀態台帳、公告卡、跨來源比較 | 每個重要主張都能回到來源或標「來源未提及」 | 拆短句、改標部分支持或未知，回 U3-CLAIM／U3-CITE |
-| OP-06 | CH4-1 | 生活決策不是把條件塞進範本，而是要明確排序標準並看見取捨 | 冷氣共同素材或一項真實生活決策 | 建立標準與優先順序，做方案比較，標缺資料並寫下一步 | 有取捨依據與人工確認位置的決策卡 | 方案能依標準比較，未知資料沒有被補成事實 | 回到 U4-FRAME／U4-MISSING，補標準或待查問題 |
+| OP-04 | CH3-1 | 文件來源與回查先於交付 | 所選同案例3文件 | 自己建立筆記本、加入原文、送一種成品提示詞 | 自己的來源列表與第一版 | 三份可讀，首個引用回原文 | 重新加入原文，保存錯版；平台恢復後重跑 |
+| OP-05 | CH3-1 | 版本日期不足以證明核准；引用只支持部分句子 | 所選三來源、第一版 | 三主張點引用，分清適用範圍、權威、未完成與未知，修訂 | 一份成品及引用回查、未解問題 | 重要主張可查，矛盾未被刪掉，下一步可做 | U3-CITE／COMPARE／REPAIR，保留人工確認 |
+| OP-06 | CH4-1 | 硬限制先於偏好，容量與假設工時不等於成效 | 完整brief兩方案或有資料生活選題 | 核對容量／角色工時、三標準排序、只改一限制 | 條件式決策卡及前後版 | 列式正確、未合格不選、缺資料與設定核定保留 | U4-MISSING／CHANGE／DECIDE，兩者不可行就不硬選 |
 
 ## Environment Contract
 
 | tool/version date | account role | permission | free/paid | starting file/data | success output | fallback | interface-change lookup |
 |---|---|---|---|---|---|---|---|
 | 任一可用 LLM／課前確認 | 學員自己的一般使用者 | 能輸入文字並複製輸出 | 依學員可取得的服務；不要求付費 | 各單元頁面內工作台、提示詞資產與瀏覽器中的對話畫面 | 一段可複製、可保存的回答回填工作台 | 各單元指定的 Markdown 備援內容完成判讀；工具恢復後重跑正式版本 | 依正在使用的服務搜尋「新對話」「複製回答」「重新生成」等當期功能名稱 |
-| NotebookLM／課前實機驗證 | 學員自己的 Google 帳號 | 能開啟、建立空白 notebook、加入 1 份純文字來源、看見來源名稱與回答引用 | 以課前確認的免費界線為準，不要求付費 | CH3-1 頁面紀錄台、課程提供的 `assets/sources/` 來源檔 | 5 分鐘內完成「紀錄→建立→加入→提問→點開引用」最小路徑 | 在紀錄台標記待重跑並匯出，先用 `assets/fallback/unit3-notebooklm-text-fallback.md` 練習；平台恢復後重跑正式引用 | 以當期功能名稱搜尋「建立筆記本」「加入來源」「查看引用」，不依賴固定按鈕位置 |
+| NotebookLM／課前實機驗證 | 學員自己的 Google 帳號 | 能開啟、建立空白 notebook、加入 1 份純文字來源、看見來源名稱與回答引用 | 以課前確認的免費界線為準，不要求付費 | CH3-1 頁面保存台與 `assets/workplace/documents/` 同案例三來源 | 5 分鐘內完成「紀錄→建立→加入→提問→點開引用」最小路徑 | 在紀錄台標記待重跑並匯出，先用 `assets/fallback/unit3-notebooklm-text-fallback.md` 練習；平台恢復後重跑正式引用 | 以當期功能名稱搜尋「建立筆記本」「加入來源」「查看引用」，不依賴固定按鈕位置 |
 
 ## 課堂最低完成線
 
 | 單元 | 3 小時內必做 | 延伸 |
 |---|---|---|
-| CH1-1 | 五題對話、一次缺條件比較、完成任務卡並匯出實務紀錄 | 更多自選工作／生活問題 |
-| CH2-1 | 1 封 Email、1 則訊息、3 版自我介紹；至少兩份讀者／場合轉換 | 其他情境卡 |
-| CH3-1 | 3 份必做來源、三類閱讀產出、引用回查 | 4 篇新聞與 2 份公告 |
-| CH4-1 | 1 張主卡、第一版、方案比較、取捨與缺資料、應用卡 | 其餘 29 張提示詞卡 |
+| CH1-1 | 一份個人工作短文、實際首版／修正版及單一缺口核對；匯出實務紀錄 | 更多自選工作／生活問題 |
+| CH2-1 | 1 封 Email、1 則訊息、一次 Email 讀者轉換；PRAC2-1 的十頁大綱、Gamma、十頁PDF與短交接 | 三版自我介紹、第二次轉換、其他情境卡 |
+| CH3-1 | 一組同情境三來源、一種工作成品、三真引用回查、具體修訂、匯出重開 | 原新聞／公告／書籍三類完整閱讀作業及其他來源 |
+| CH4-1 | 一個自選決策、兩方案三標準、硬限制列式、單一變因修訂與保存 | 原京都／冷氣／30張生活提示詞選題 |
 
 ## 課後整合驗收
 
@@ -72,4 +72,14 @@
 
 ## Micro-sequence
 
-第一個可測試的三課鏈為 CH1-1 → CH2-1 → CH3-1：CH1-1 產出的任務定義，會在 CH2-1 變成收件者／語氣／格式決策；CH2-1 的讀者判斷在 CH3-1 轉成「誰需要知道哪個主張、證據在哪裡」。CH3-1 的證據與未知狀態再交給 CH4-1，成為生活決策的資料邊界與待確認清單。
+第一個可測試的三課鏈為 CH1-1 → CH2-1 → CH3-1：CH1-1 產出的任務定義，會在 CH2-1 變成收件者／語氣／格式決策；CH2-1 的讀者判斷在 CH3-1 轉成「誰需要知道哪個主張、證據在哪裡」。CH3-1 的證據與未知狀態再交給 CH4-1，成為工作／生活方案決策的資料邊界與待確認清單。
+
+## PRAC2-1 補充契約與環境
+
+PRAC2-1 是 CH2 三小時內的獨立演練頁，不另增加第五個單元時數。學員獨立選 A 報表改善、B 文件交接或完整個人企劃，第一步讀 P01／P10 說出主管與核准請求。完整企劃、共用提示詞、來源對照、恢復文字與實跑PDF已提供於 assets/workplace/gamma/。完成自己的十頁大綱、Gamma貼入文字、可編輯Gamma、重開驗證的十頁PDF與quick-check短交接。
+
+OP-07：保留來源事實與狀態，依主管決策取捨十頁資訊，確認Gamma十張，至少修一項具體問題後匯出全部卡片、重開PDF。來源錯回企劃；多頁回文字分段；改事實回核對大綱；截字回原卡片；僅一頁回全部卡片匯出。採購零元不等於總成本零、預計不等於完成、待確認不等於損失。
+
+Gamma 環境日期：授課帳號 Agent 於2026-10-07已實跑A／B。每人需自己的可建立、編輯與匯出帳號；額度／權限依課前確認，不要求升級。無法生成時保存大綱與貼入文字並標「Gamma待補」，不算正式完成。經典生成器提供替代路徑，未實跑；真人90分鐘節奏與冷跟做仍待驗證。
+
+CH2配置：文字90分鐘＋Gamma90分鐘，共180分鐘；若Gamma真人試跑需120分鐘，前段須重排60分鐘。所有時間均為教學規劃，不是實測成效。
