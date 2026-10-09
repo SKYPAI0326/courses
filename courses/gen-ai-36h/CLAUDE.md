@@ -7,7 +7,7 @@
 弄一下工作室出品，140h 訓練班的「上班族濃縮版」。
 - 學員：零基礎上班族，沒寫過程式
 - 不涵蓋：API / RAG / Agent / Function Calling
-- 主軸：工具應用 + 零代碼工具 + Make/n8n 自動化 + 結業專題
+- 主軸：基本對話與核對 + 來源筆記 + 小工具測試 + 人工覆核後 Make 自動化 + 結業專題；n8n 為選做
 
 - **課程根目錄**：`courses/gen-ai-36h/`
 - **課程入口**：`courses/gen-ai-36h/index.html`
@@ -35,7 +35,7 @@ gen-ai-36h/
 ├── part2/          辦公室高頻寫作自動化（3 CH + 1 PRAC）
 ├── part3/          知識管理與會議協作（2 CH + 1 PRAC）
 ├── part4/          零代碼 AI 工具開發（4 CH + 1 PRAC）
-├── part5/          自動化流程設計：Make + n8n（4 CH + 1 PRAC）
+├── part5/          人工覆核與 Make 自動化（4 CH + 1 PRAC）
 ├── part6/          個人 AI 系統整合（2 CH + 1 PRAC）
 └── part7/          結業專題（3 CH + 1 PRAC）
 ```
@@ -54,7 +54,7 @@ gen-ai-36h/
 | 2 | 辦公室高頻寫作自動化 | 3 CH + 1 PRAC | 6h |
 | 3 | 知識管理與會議協作 | 2 CH + 1 PRAC | 4h |
 | 4 | 零代碼 AI 工具開發 | 4 CH + 1 PRAC | 8h |
-| 5 | 自動化流程設計：Make + n8n | 4 CH + 1 PRAC | 6h |
+| 5 | 人工覆核與 Make 自動化 | 4 CH + 1 PRAC | 6h |
 | 6 | 個人 AI 系統整合 | 2 CH + 1 PRAC | 4h |
 | 7 | 結業專題 | 3 CH + 1 PRAC | 4h |
 
@@ -84,7 +84,7 @@ gen-ai-36h/
 | 2 | `gen-ai-140h/Part 2` 精華 + `office-ai/Part 2` |
 | 3 | `office-ai/Part 3` + `gemini-ai` 免費工具庫 |
 | 4 | `gemini-ai/Part 2-3` + `gen-ai-140h/Part 4` |
-| 5 | `n8n` 模組 1-4 + 自製 Make 內容 |
+| 5 | 本課九欄教學資料、已覆核新列與 Make 測試流程；n8n 僅選做參考 |
 | 6 | `office-ai/Part 4` + `ai-workshop/Session 6` |
 | 7 | `gen-ai-140h/Part 7` 精簡版 |
 
@@ -105,3 +105,9 @@ gen-ai-36h/
 ## 飛輪規則
 
 錯誤轉規則的累積清單見 `_規範/飛輪規則.md`。發生新錯誤時補一條至該檔。
+
+## 2026-10-09 教學修訂
+
+正式正文由 `_repair/2026-10-09/lesson-plans/` 的 learner-content 範圍轉製；同步至全站 `_lessons/gen-ai-36h/`。28頁URL、設計、導覽與密碼關卡保留。
+七欄工具卡統一；PRAC6/7使用各自本機保存鍵與JSON備份。Make使用ReviewedQueue新列觸發，九欄、四分類、待覆核／已覆核，只寫未寄出草稿。教學工作區已跑T01–T07；原有五份AI秘書藍圖保留為進階延伸，對照見`assets/part5-existing-blueprints-guide.md`。
+素材見 `assets/START-HERE.md`；備份、還原、執行證據與待驗項目見 `_repair/2026-10-09/`。未完成瀏覽器／平台／真人試走不得稱開課就緒。

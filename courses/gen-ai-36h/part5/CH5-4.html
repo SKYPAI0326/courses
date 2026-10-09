@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CH5-4 雙引擎協作策略｜生成式 AI 工作應用班（36h）</title>
-<meta name="description" content="兩個工具都會了，問題是「實際上哪個放哪邊？」本節給你 6 個選擇準則、7 個場景對照、Make 與 n8n 互呼的 Webhook 串接教學，以及完整的成本階梯分析。">
+<title>流程失敗時：查紀錄，再從失敗處恢復｜生成式 AI 工作應用班</title>
+<meta name="description" content="保留來源與錯誤，避免修復時重複產生結果。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
-<meta property="og:title" content="CH5-4 雙引擎協作策略｜生成式 AI 工作應用班（36h）">
-<meta property="og:description" content="兩個工具都會了，問題是「實際上哪個放哪邊？」本節給你 6 個選擇準則、7 個場景對照、Make 與 n8n 互呼的 Webhook 串接教學，以及完整的成本階梯分析。">
+<meta property="og:title" content="流程失敗時：查紀錄，再從失敗處恢復">
+<meta property="og:description" content="保留來源與錯誤，避免修復時重複產生結果。">
 <meta property="og:url" content="https://skypai0326.github.io/courses/courses/gen-ai-36h/part5/CH5-4.html">
 <meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="CH5-4 雙引擎協作策略｜生成式 AI 工作應用班（36h）">
-<meta name="twitter:description" content="兩個工具都會了，問題是「實際上哪個放哪邊？」本節給你 6 個選擇準則、7 個場景對照、Make 與 n8n 互呼的 Webhook 串接教學，以及完整的成本階梯分析。">
+<meta name="twitter:title" content="流程失敗時：查紀錄，再從失敗處恢復">
+<meta name="twitter:description" content="保留來源與錯誤，避免修復時重複產生結果。">
 <meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <link rel="canonical" href="https://skypai0326.github.io/courses/courses/gen-ai-36h/part5/CH5-4.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -154,6 +154,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 /* a11y: focus-visible ring */
 a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
 .skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}</style>
+<link rel="stylesheet" href="../assets/repair-content.css">
 </head>
 <body>
 <style id="_gs">
@@ -192,350 +193,75 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div class="lesson-hero" id="main">
   <a class="back-link" href="../index.html"><span aria-hidden="true">←</span> 返回課程總覽</a>
   <div class="hero-meta">
-    <span class="hero-part">Part 5 · 自動化流程設計</span>
+    <span class="hero-part">Part 5 · 人工覆核與 Make 自動化</span>
     <div class="hero-divider-v"></div>
     <span class="hero-num">CH 5.4 · 1 小時（60 分鐘）</span>
   </div>
-  <h1 class="lesson-title">雙引擎協作：<em>何時用 Make、何時用 n8n</em></h1>
-  <p class="lesson-tagline">兩個工具都會了，問題是「實際上哪個放哪邊？」本節給你 6 個選擇準則、7 個場景對照、Make 與 n8n 互呼的 Webhook 串接教學，以及完整的成本階梯分析。</p>
-  <div class="outcomes">
-    <div class="outcomes-label">學習成果 · OUTCOMES</div>
-    <div class="outcome-item"><div class="outcome-dot"></div>能依 6 個準則判斷一個需求該放 Make 還是 n8n</div>
-    <div class="outcome-item"><div class="outcome-dot"></div>會設計「Make 當前台、n8n 當後台」的混合架構</div>
-    <div class="outcome-item"><div class="outcome-dot"></div>會用 Webhook 讓 Make 和 n8n 互相呼叫</div>
-    <div class="outcome-item"><div class="outcome-dot"></div>理解成本結構，做出合理的付費決策</div>
-  </div>
-  <div class="agenda">
-    <strong>本節 60 分鐘時間規劃</strong>
-    <div class="agenda-row"><div class="agenda-time">0-10 分</div><div class="agenda-topic">6 維度選擇準則表</div></div>
-    <div class="agenda-row"><div class="agenda-time">10-25 分</div><div class="agenda-topic">7 個場景對照：哪個放哪邊</div></div>
-    <div class="agenda-row"><div class="agenda-time">25-40 分</div><div class="agenda-topic">Make ↔ n8n 互呼教學（含 Webhook 範例）</div></div>
-    <div class="agenda-row"><div class="agenda-time">40-50 分</div><div class="agenda-topic">成本階梯分析 + 踩坑博物館</div></div>
-    <div class="agenda-row"><div class="agenda-time">50-60 分</div><div class="agenda-topic">Guided Practice + 課後行動</div></div>
-  </div>
+  <h1 class="lesson-title">流程失敗時：查紀錄，再從失敗處恢復</h1>
+  <p class="lesson-tagline">保留來源與錯誤，避免修復時重複產生結果。</p>
+  <div class="outcomes"><strong>本節完成物：</strong>保留來源與錯誤，避免修復時重複產生結果。</div>
+  <div class="agenda"><strong>本節 60 分鐘：練習時間可依進度調整</strong><div class="agenda-row"><div class="agenda-time">0–12 分</div><div class="agenda-topic">理解任務與完整示範</div></div><div class="agenda-row"><div class="agenda-time">12–30 分</div><div class="agenda-topic">跟著操作並核對結果</div></div><div class="agenda-row"><div class="agenda-time">30–48 分</div><div class="agenda-topic">自己練習與修正</div></div><div class="agenda-row"><div class="agenda-time">48–60 分</div><div class="agenda-topic">保存、驗收與下一步</div></div></div>
 </div>
 
 <div class="lesson-body">
-
-  <!-- Section 1 -->
-  <section class="lesson-section">
-    <div class="section-eyebrow"><span>(01) · 6 個選擇準則</span><span class="section-time">10 分鐘</span></div>
-    <h2 class="section-heading">依<em>6 個維度</em>決定用誰</h2>
-    <p class="body-text">不是「哪個比較好」的問題——是「這個需求適合用哪個」。下面 6 個維度幫你 30 秒做出判斷。</p>
-
-    <div class="criteria-table">
-      <div class="ct-row head">
-        <div class="ct-cell">判斷維度</div>
-        <div class="ct-cell">Make 勝</div>
-        <div class="ct-cell">n8n 勝</div>
-      </div>
-      <div class="ct-row">
-        <div class="ct-cell label">執行頻率</div>
-        <div class="ct-cell">每小時一次以下（雲端即可）</div>
-        <div class="ct-cell">每分鐘級、即時、大量批次</div>
-      </div>
-      <div class="ct-row">
-        <div class="ct-cell label">資料敏感度</div>
-        <div class="ct-cell">公開資料（官網表單、部落格）</div>
-        <div class="ct-cell">機密資料（客戶名單、財務、合約）</div>
-      </div>
-      <div class="ct-row">
-        <div class="ct-cell label">檔案操作</div>
-        <div class="ct-cell">雲端檔案（Drive、Dropbox）</div>
-        <div class="ct-cell">本機 / NAS / 內網檔案</div>
-      </div>
-      <div class="ct-row">
-        <div class="ct-cell label">運算量</div>
-        <div class="ct-cell">輕量（幾十筆/日）</div>
-        <div class="ct-cell">大量（幾千筆/日、複雜運算）</div>
-      </div>
-      <div class="ct-row">
-        <div class="ct-cell label">24/7 需求</div>
-        <div class="ct-cell">必須 24/7 在線</div>
-        <div class="ct-cell">只在上班時間跑即可</div>
-      </div>
-      <div class="ct-row">
-        <div class="ct-cell label">邏輯複雜度</div>
-        <div class="ct-cell">簡單條件、標準模組能解</div>
-        <div class="ct-cell">需要寫 JS/Python 自訂邏輯</div>
-      </div>
-    </div>
-
-    <div class="concept-box">
-      <div class="concept-label">核心觀念 · 三句話記住</div>
-      <div class="concept-text"><strong>① 對外、要 24/7、輕量 <span aria-hidden="true">→</span> Make</strong>（收表單、寄通知、接外部 webhook）。<strong>② 對內、本機檔案、高頻、敏感 <span aria-hidden="true">→</span> n8n</strong>（跑報表、處理資料、本機 AI）。<strong>③ 混合需求 <span aria-hidden="true">→</span> 兩者串接</strong>（Make 收外部事件，Webhook 打到 n8n 做重活）。</div>
-    </div>
-  </section>
-
-  <hr class="section-rule">
-
-  <!-- Section 2 -->
-  <section class="lesson-section">
-    <div class="section-eyebrow"><span>(02) · 場景對照</span><span class="section-time">15 分鐘</span></div>
-    <h2 class="section-heading">7 個常見場景，<em>該用誰</em>？</h2>
-
-    <div class="scenario-grid">
-      <div class="sc-card">
-        <div class="sc-head"><div class="sc-name">1. 官網表單 <span aria-hidden="true">→</span> 自動通知團隊</div><div class="sc-tool make">Make</div></div>
-        <div class="sc-reason"><strong>理由：</strong>需要 24/7 收表單。資料不敏感。流程簡單（3-4 個模組）。Make 免費版就能搞定。</div>
-      </div>
-      <div class="sc-card">
-        <div class="sc-head"><div class="sc-name">2. 本機 CSV 批次 AI 分析</div><div class="sc-tool n8n">n8n</div></div>
-        <div class="sc-reason"><strong>理由：</strong>要讀本機檔案（Make 做不到）。2,000 筆資料每筆呼叫 AI = 2,000+ ops（Make 額度爆炸）。n8n 零限制。</div>
-      </div>
-      <div class="sc-card">
-        <div class="sc-head"><div class="sc-name">3. Shopify 下單 <span aria-hidden="true">→</span> 出貨通知</div><div class="sc-tool make">Make</div></div>
-        <div class="sc-reason"><strong>理由：</strong>Shopify 模組 Make 原生支援、設定最快。客戶下單任何時間都可能發生，要 24/7。一般電商一天幾十單，免費版不夠，Core（$9/月）夠用。</div>
-      </div>
-      <div class="sc-card">
-        <div class="sc-head"><div class="sc-name">4. 客戶資料報表（含個資）</div><div class="sc-tool n8n">n8n</div></div>
-        <div class="sc-reason"><strong>理由：</strong>含個人資料（姓名、電話、地址）。不想經 Make 的美國伺服器。n8n 跑在自己電腦/NAS，資料不出內網。</div>
-      </div>
-      <div class="sc-card">
-        <div class="sc-head"><div class="sc-name">5. LINE Bot 自動客服</div><div class="sc-tool both">串接</div></div>
-        <div class="sc-reason"><strong>理由：</strong>Make 接 LINE Webhook（24/7、簡單轉發）。收到訊息後 Webhook 打到 n8n，n8n 跑本機 AI 處理後回傳。<strong>Make 當門口、n8n 當廚房</strong>。</div>
-      </div>
-      <div class="sc-card">
-        <div class="sc-head"><div class="sc-name">6. 每日爬蟲 + 資料清洗</div><div class="sc-tool n8n">n8n</div></div>
-        <div class="sc-reason"><strong>理由：</strong>爬蟲需要 HTTP Request + 複雜 HTML 解析（Code 節點）。每日跑一次，不需要 24/7。資料量大但只在上班時間需要。</div>
-      </div>
-      <div class="sc-card">
-        <div class="sc-head"><div class="sc-name">7. Google Calendar <span aria-hidden="true">→</span> Slack 提醒</div><div class="sc-tool make">Make</div></div>
-        <div class="sc-reason"><strong>理由：</strong>Google Calendar + Slack 兩個模組 Make 都原生支援。一天觸發 3-5 次，ops 微乎其微。免費版完全夠。</div>
-      </div>
-    </div>
-  </section>
-
-  <hr class="section-rule">
-
-  <!-- Section 3 -->
-  <section class="lesson-section">
-    <div class="section-eyebrow"><span>(03) · 互呼教學</span><span class="section-time">15 分鐘</span></div>
-    <h2 class="section-heading">Make ↔ n8n <em>Webhook 串接</em></h2>
-    <p class="body-text">最強大的用法是讓 Make 和 n8n 互相呼叫。這裡教兩種方向：</p>
-
-    <h3 class="subhead">方向 A · Make <span aria-hidden="true">→</span> n8n</h3>
-    <p class="body-text">Make 收到外部事件（如表單），Webhook 打到 n8n，讓 n8n 做「重活」（AI 分析、本機檔案操作）。</p>
-
-    <div class="flow-diagram">
-      <div class="flow-node make" aria-hidden="true"><div class="flow-node-name">Make</div><div class="flow-node-sub">收到 Google Form</div></div>
-      <div class="flow-arrow"><span aria-hidden="true">→</span></div>
-      <div class="flow-node make" aria-hidden="true"><div class="flow-node-name">Make</div><div class="flow-node-sub">HTTP Module<br>POST to n8n</div></div>
-      <div class="flow-arrow"><span aria-hidden="true">→</span></div>
-      <div class="flow-node n8n" aria-hidden="true"><div class="flow-node-name">n8n</div><div class="flow-node-sub">Webhook 接收</div></div>
-      <div class="flow-arrow"><span aria-hidden="true">→</span></div>
-      <div class="flow-node n8n" aria-hidden="true"><div class="flow-node-name">n8n</div><div class="flow-node-sub">AI 分析 + 歸檔</div></div>
-    </div>
-
-    <div class="full-prompt-wrap">
-      <button class="copy-btn-tl" data-target="make-to-n8n">複製</button>
-      <div class="full-prompt" id="make-to-n8n"><span class="lbl"># Make <span aria-hidden="true">→</span> n8n 設定</span>
-
-<span class="com">── Make 端 ──</span>
-Module: HTTP <span aria-hidden="true">→</span> Make a request
-  URL: <span class="var">https://n8n.你的網域.com/webhook/form-handler</span>
-  Method: POST
-  Body type: JSON
-  Body: {
-    "name": <span class="var">{{Google Form.name}}</span>,
-    "email": <span class="var">{{Google Form.email}}</span>,
-    "message": <span class="var">{{Google Form.message}}</span>
-  }
-
-<span class="com">── n8n 端 ──</span>
-Node: Webhook
-  HTTP Method: POST
-  Path: form-handler
-  <span class="com">// Workflow 必須切 Active</span>
-<span aria-hidden="true">→</span> 後接 AI 分析節點、Sheet 歸檔節點...</div>
-    </div>
-
-    <h3 class="subhead">方向 B · n8n <span aria-hidden="true">→</span> Make</h3>
-    <p class="body-text">n8n 做完本機處理後，呼叫 Make 的 Webhook 觸發後續動作（如寄 email、發 Slack——Make 的整合更方便）。</p>
-
-    <div class="flow-diagram">
-      <div class="flow-node n8n" aria-hidden="true"><div class="flow-node-name">n8n</div><div class="flow-node-sub">排程跑報表</div></div>
-      <div class="flow-arrow"><span aria-hidden="true">→</span></div>
-      <div class="flow-node n8n" aria-hidden="true"><div class="flow-node-name">n8n</div><div class="flow-node-sub">HTTP Request<br>POST to Make</div></div>
-      <div class="flow-arrow"><span aria-hidden="true">→</span></div>
-      <div class="flow-node make" aria-hidden="true"><div class="flow-node-name">Make</div><div class="flow-node-sub">Webhook 接收</div></div>
-      <div class="flow-arrow"><span aria-hidden="true">→</span></div>
-      <div class="flow-node make" aria-hidden="true"><div class="flow-node-name">Make</div><div class="flow-node-sub">Slack + Gmail</div></div>
-    </div>
-
-    <div class="full-prompt-wrap">
-      <button class="copy-btn-tl" data-target="n8n-to-make">複製</button>
-      <div class="full-prompt" id="n8n-to-make"><span class="lbl"># n8n <span aria-hidden="true">→</span> Make 設定</span>
-
-<span class="com">── Make 端 ──</span>
-建立新 Scenario，第一個模組選：
-  Webhooks <span aria-hidden="true">→</span> Custom webhook
-  複製 webhook URL（如 https://hook.make.com/abc123）
-
-<span class="com">── n8n 端 ──</span>
-Node: HTTP Request
-  Method: POST
-  URL: <span class="var">https://hook.make.com/abc123</span>
-  Body type: JSON
-  Body: {
-    "report_date": <span class="var">{{$json.date}}</span>,
-    "summary": <span class="var">{{$json.ai_summary}}</span>,
-    "total_sales": <span class="var">{{$json.total}}</span>
-  }
-
-<span class="com">── Make 後續 ──</span>
-<span aria-hidden="true">→</span> Slack: Post Message（#weekly-report）
-<span aria-hidden="true">→</span> Gmail: Send Email（寄給主管）</div>
-    </div>
-
-    <div class="scenario-card">
-      <div class="scenario-label">真實情境 · 行銷公司的雙引擎架構</div>
-      <div class="scenario-text">行銷公司每天收客戶表單（Make 接）<span aria-hidden="true">→</span> Webhook 打到 n8n <span aria-hidden="true">→</span> n8n 做客戶分析 + 讀歷史資料庫 <span aria-hidden="true">→</span> 分析完 Webhook 回 Make <span aria-hidden="true">→</span> Make 發 Slack 通知 + 建 Notion 工單。<strong>Make 負責「接客」和「通知」，n8n 負責「動腦」和「看資料」</strong>。費用與 24/7 可用性必須依實際方案、主機、網域與維運需求查驗。</div>
-    </div>
-  </section>
-
-  <hr class="section-rule">
-
-  <!-- Section 4 -->
-  <section class="lesson-section">
-    <div class="section-eyebrow"><span>(04) · 成本分析</span><span class="section-time">5 分鐘</span></div>
-    <h2 class="section-heading">成本階梯：<em>從免費到付費</em></h2>
-
-    <div class="cost-table">
-      <div class="cost-row head">
-        <div class="cost-cell">使用量</div>
-        <div class="cost-cell">只用 Make</div>
-        <div class="cost-cell">只用 n8n</div>
-        <div class="cost-cell">雙引擎</div>
-      </div>
-      <div class="cost-row">
-        <div class="cost-cell label">入門（1-2 流程）</div>
-        <div class="cost-cell">查當前帳號方案</div>
-        <div class="cost-cell">查版本與本機成本</div>
-        <div class="cost-cell highlight">逐項相加並保留查驗日期</div>
-      </div>
-      <div class="cost-row">
-        <div class="cost-cell label">進階（5+ 流程）</div>
-        <div class="cost-cell">查當前帳號方案</div>
-        <div class="cost-cell">查本機或 VPS 實際成本</div>
-        <div class="cost-cell highlight">依實際需求估算</div>
-      </div>
-      <div class="cost-row">
-        <div class="cost-cell label">團隊（10+ 流程）</div>
-        <div class="cost-cell">查團隊方案與席次</div>
-        <div class="cost-cell">查主機規格與流量</div>
-        <div class="cost-cell highlight">依實際需求估算</div>
-      </div>
-      <div class="cost-row">
-        <div class="cost-cell label">企業（20+ 流程、大量）</div>
-        <div class="cost-cell">向供應商查詢企業方案</div>
-        <div class="cost-cell">向主機供應商查詢</div>
-        <div class="cost-cell highlight">需做安全、維運與成本評估</div>
-      </div>
-    </div>
-
-    <div class="concept-box">
-      <div class="concept-label">核心觀念 · 付費策略</div>
-      <div class="concept-text"><strong>先查驗再決定</strong>——把方案名稱、額度、觸發頻率、主機、網域、備份與維運列成成本表，記下查驗日期與地區。免費方案不等於零風險或永久可用；尚未確認的數字填「未確認」，不要把教材估算當成報價。</div>
-    </div>
-  </section>
-
-  <hr class="section-rule">
-
-  <!-- Section 5 -->
-  <section class="lesson-section">
-    <div class="section-eyebrow"><span>(05) · 踩坑博物館</span><span class="section-time">5 分鐘</span></div>
-    <h2 class="section-heading">雙引擎協作<em>常見的 5 個坑</em></h2>
-    <div class="pitfall-museum">
-      <div class="pitfall-item">
-        <div class="pitfall-head"><span class="pitfall-num">坑 1</span>Webhook 超時</div>
-        <div class="pitfall-sym"><strong>症狀：</strong>Make 打到 n8n 的 Webhook，n8n 要跑 60 秒 AI 分析，Make 等不到回覆就 timeout。</div>
-        <div class="pitfall-fix"><strong>修：</strong>改成「非同步」模式：n8n 收到 Webhook 先回 200（「收到了」），AI 分析完再主動打回 Make 的另一個 Webhook。</div>
-      </div>
-      <div class="pitfall-item">
-        <div class="pitfall-head"><span class="pitfall-num">坑 2</span>n8n 本機關了 Make 打不到</div>
-        <div class="pitfall-sym"><strong>症狀：</strong>週末筆電關機，Make 的 Webhook 打到 n8n 失敗，資料遺失。</div>
-        <div class="pitfall-fix"><strong>修：</strong>Make 端加 Error Handler <span aria-hidden="true">→</span> 失敗的資料存到 Google Sheet「待處理」清單。週一開機後 n8n 去讀那張 Sheet 補跑。</div>
-      </div>
-      <div class="pitfall-item">
-        <div class="pitfall-head"><span class="pitfall-num">坑 3</span>兩邊都存資料，不知道以誰為準</div>
-        <div class="pitfall-sym"><strong>症狀：</strong>Make 存了一份 Sheet、n8n 也存了一份 Sheet，資料不同步。</div>
-        <div class="pitfall-fix"><strong>修：</strong>約定「<code>Single source of truth</code>」——只有一邊負責寫入最終資料。另一邊只讀取。通常讓 n8n（做完處理的那端）寫入最終版。</div>
-      </div>
-      <div class="pitfall-item">
-        <div class="pitfall-head"><span class="pitfall-num">坑 4</span>忘記 Webhook URL 有兩種</div>
-        <div class="pitfall-sym"><strong>症狀：</strong>n8n 的 Webhook 有 Test URL 和 Production URL，用錯的那個打不通。</div>
-        <div class="pitfall-fix"><strong>修：</strong>Test URL 只在 n8n 編輯介面開著時有效。<code>Production URL 要切 Active 才能用</code>。Make 端要填 Production URL。</div>
-      </div>
-      <div class="pitfall-item">
-        <div class="pitfall-head"><span class="pitfall-num">坑 5</span>兩邊都扣 AI API 費用</div>
-        <div class="pitfall-sym"><strong>症狀：</strong>Make 用 Claude 模組 + n8n 也用 Claude 模組，月底 API 帳單是預期的 2 倍。</div>
-        <div class="pitfall-fix"><strong>修：</strong>AI 處理只在一邊做（通常是 n8n，因為無 ops 限制）。Make 只負責觸發和通知。<code>一筆資料只經過 AI 一次</code>。</div>
-      </div>
-    </div>
-  </section>
-
-  <hr class="section-rule">
-
-  <!-- Section 6 -->
-  <section class="lesson-section">
-    <div class="section-eyebrow"><span>(06) · 課堂動手</span><span class="section-time">10 分鐘</span></div>
-    <h2 class="section-heading">Guided Practice：<em>做出決策</em></h2>
-
-    <div class="practice-box">
-      <div class="practice-label">PRACTICE 01 · 場景分配</div>
-      <div class="practice-title">把你的 5 個自動化需求分到 Make 或 n8n</div>
-      <div class="practice-task"><strong>題目：</strong>回想你在 Part 5 學到的所有 Scenario / Workflow，加上你自己工作中想做的自動化，列出 5 個需求。用 Section 01 的 6 維度表，分別標記每個需求該放 Make / n8n / 串接。</div>
-      <div class="practice-hint"><strong>提示：</strong>如果 6 維度有 4 個以上指向同一邊，就選那邊。3:3 平手的，看「24/7 需求」——需要就 Make，不需要就 n8n。</div>
-      <details class="practice-answer">
-        <summary>範例對照</summary>
-        <div class="practice-answer-content">
-        ① 官網表單通知 <span aria-hidden="true">→</span> <strong>Make</strong>（24/7、輕量、公開）<br>
-        ② 月報 AI 分析 <span aria-hidden="true">→</span> <strong>n8n</strong>（本機 Excel、大量、一個月跑一次）<br>
-        ③ LINE Bot 客服 <span aria-hidden="true">→</span> <strong>串接</strong>（Make 接 LINE、n8n 跑 AI）<br>
-        ④ Google Calendar 提醒 <span aria-hidden="true">→</span> <strong>Make</strong>（最簡單、免費版夠）<br>
-        ⑤ 客戶個資報表 <span aria-hidden="true">→</span> <strong>n8n</strong>（敏感資料不出內網）
-        </div>
-      </details>
-    </div>
-
-    <div class="practice-box">
-      <div class="practice-label">PRACTICE 02 · 算你的月費</div>
-      <div class="practice-title">用成本表估算你的真實月費</div>
-      <div class="practice-task"><strong>題目：</strong>根據 Practice 01 的 5 個需求，估算每個在 Make 的月 ops 用量（觸發頻率 × 模組數 × 30 天），加總後看需要哪個方案。同時估算 n8n 端需不需要 VPS。算出你的「真實月費」。</div>
-    <div class="practice-hint"><strong>提示：</strong>不要把教材中的價格當成承諾。請以 Make、n8n、主機與網域在你所在地／帳號看到的方案為準；若尚未實際查驗，填寫「未確認」，不要填 $0 或固定月費。</div>
-    </div>
-  </section>
-
-  <hr class="section-rule">
-
-  <!-- Section 7 -->
-  <section class="lesson-section">
-    <div class="section-eyebrow"><span>(07) · 課後行動</span><span class="section-time">5 分鐘</span></div>
-    <h2 class="section-heading">帶進<em>PRAC5</em> 的準備</h2>
-    <p class="body-text">Part 5 的 4 節課全部上完了。PRAC5 會帶你從頭到尾做完一條完整的自動化工作流。你需要帶來：</p>
-    <div class="scenario-card">
-      <div class="scenario-label">PRAC5 預備清單</div>
-      <div class="scenario-text">① <strong>一個你真的想改善的場景</strong>（Practice 02 的 5 個裡挑最痛的那個）<br>② <strong>先決定教材演練或工作區實跑</strong>（兩者證據分開記錄）<br>③ <strong>工具方案、登入與權限已確認</strong>（未確認就標記 NOT_RUN）<br>④ <strong>CH5-3 的欄位與人工覆核規則</strong>（先用固定資料測試，再評估是否接 API）</div>
-    </div>
-    <div class="callout info">
-      <div class="callout-icon" aria-hidden="true">📝</div>
-      <div class="callout-body"><strong>下一節：</strong>PRAC5「AI 自動化場景設計」——Part 5 的成果頁。帶你從需求盤點 <span aria-hidden="true">→</span> 流程設計 <span aria-hidden="true">→</span> 固定資料驗收 <span aria-hidden="true">→</span> 工作區實跑紀錄。完成教材演練不等於已正式上線。</div>
-    </div>
-  </section>
-
+<section class="lesson-section"><div class="section-eyebrow"><span>(01) · 學習與實作</span></div><h2 class="section-heading">綠勾之外，還要能說明失敗在哪</h2>
+<p class="body-text">沿用已跑通的教學流程，完成一次失敗與恢復的記錄。先讀<a href="../assets/part5-rebuild-guide.md">人工重建與恢復步驟</a>與<a href="../assets/part5-test-cases.csv">T07測試</a>。只在教學資料測試；沒有正常成功紀錄前先回CH5-1，不急著加錯誤情境。</p>
+<p class="body-text">把故障分成三類：資料不合格在Filter擋；連線或權限錯在模組失敗；部分成功要核對下游是否已寫入。不同故障不能都用再按Run once處理。</p>
+</section>
+<section class="lesson-section"><div class="section-eyebrow"><span>(02) · 學習與實作</span></div><h2 class="section-heading">示範：從執行記錄往回查</h2>
+<p class="body-text">點最近一次execution，查輸入bundle、最後成功模組與第一個錯誤模組。紀錄來源鍵、stage、錯誤訊息、ProcessingLog與Drafts是否已有行。</p>
+<div aria-label="資料表，可水平捲動" class="repair-table" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th>現象</th>
+<th>修復位置</th>
+<th>重跑前核對</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>未覆核被擋</td>
+<td>Source人工核對</td>
+<td>不改Filter繞過；通過後才追加新列</td>
+</tr>
+<tr>
+<td>Google寫入無權限</td>
+<td>Google連線或目標表</td>
+<td>保留來源鍵，恢復同一教學表權限</td>
+</tr>
+<tr>
+<td>紀錄已寫、草稿失敗</td>
+<td>草稿步驟</td>
+<td>查同鍵草稿是否存在，再恢復</td>
+</tr>
+<tr>
+<td>相同來源重複</td>
+<td>防重查詢</td>
+<td>不改提交時間避開防重</td>
+</tr>
+</tbody>
+</table></div>
+</section>
+<section class="lesson-section"><div class="section-eyebrow"><span>(03) · 學習與實作</span></div><h2 class="section-heading">跟著做：安全暫停並恢復</h2>
+<p class="body-text">先停Scenario排程，確認只有一筆虛構測試。在Scenario settings開啟儲存未完成執行。把詢問路的Drafts目標表暫改成不存在的教學表名，再執行T07；這會讓草稿寫入報錯，上游紀錄保留「待建立」。修回Drafts後，開啟Incomplete executions的該筆記錄，按Run once從失敗步驟繼續。介面若與教材不同，先停下確認，不憑記憶重跑整筆。</p>
+<p class="body-text">成功後檢查ProcessingLog仍只有一列、draft_status變「已建立」，Drafts只有一份同鍵的「未寄出」草稿，未完成執行顯示Resolved。若已多出結果，先標測試錯誤並追查防重或恢復位置，不刪資料掩蓋問題。確認恢復路徑後才重新啟動排程。</p>
+</section>
+<section class="lesson-section"><div class="section-eyebrow"><span>(04) · 學習與實作</span></div><h2 class="section-heading">自己試：寫一份接手說明</h2>
+<p class="body-text">寫下觸發來源、九欄規格、最後成功紀錄、常見錯誤、停止方式與恢復位置。接手者應能依來源鍵找回一筆資料，知道不寄真客戶。</p>
+<p class="body-text">每週維護只需查連線、限額、異常與未完成執行；規則改變先更新測試再開放。n8n或Slack等第二套系統只在主線通過後選做，不要求兩引擎同時維護。下一份獨立演練以七案證據驗收。</p>
+</section>
 </div>
 
 <div class="lesson-nav">
   <a class="nav-btn nav-prev" href="CH5-3.html" aria-label="上一單元" data-nav-role="prev">
-    <div><div class="nav-btn-label"><span aria-hidden="true">←</span> 上一節</div><div class="nav-btn-title">CH 5.3 · AI × 自動化典型工作流</div></div>
+    <div><div class="nav-btn-label"><span aria-hidden="true">←</span> 上一節</div><div class="nav-btn-title">人工覆核後再接自動化</div></div>
   </a>
   <a class="nav-btn next nav-next" href="PRAC5.html" aria-label="下一單元" data-nav-role="next">
-    <div><div class="nav-btn-label">下一節 <span aria-hidden="true">→</span></div><div class="nav-btn-title">PRAC 5 · AI 自動化場景設計</div></div>
+    <div><div class="nav-btn-label">下一節 <span aria-hidden="true">→</span></div><div class="nav-btn-title">交付人工覆核後分流的流程</div></div>
   </a>
 </div>
 
-<footer class="footer" data-platform-version="2026-04-v3">
+<footer class="footer" data-platform-version="2026-10-content-repair" data-built-at="2026-10-09">
   <div class="footer-logo">弄一下工作室</div>
   <div class="footer-note">CH 5.4 · 生成式 AI 工作應用班（36h）</div>
 </footer>

@@ -46,6 +46,7 @@ COURSE_LABEL = {
     "codex-basic": "Codex 基礎使用（3h）",
     "admin-ai-assistant": "行政 AI 虛擬助理實戰（2h）",
     "ai-beginner-practical": "AI 入門即戰力（12h）",
+    "uiux-designer": "UI/UX設計師",
 }
 
 TITLE_RE = re.compile(r"<title>(.*?)</title>", re.IGNORECASE | re.DOTALL)

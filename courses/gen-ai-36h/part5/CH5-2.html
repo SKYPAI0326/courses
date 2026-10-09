@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CH5-2 n8n Desktop 與 Cloudflare Tunnel｜生成式 AI 工作應用班（36h）</title>
-<meta name="description" content="Make 與 n8n 的部署方式不同。本節用可停止、可重跑的資料流練習理解節點與 Webhook；費用、版本、主機與 Tunnel 狀態依實際環境確認。">
+<title>條件、分流與執行紀錄｜生成式 AI 工作應用班</title>
+<meta name="description" content="依四個固定分類分流，核對輸入與每條路徑的結果。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
-<meta property="og:title" content="CH5-2 n8n Desktop 與 Cloudflare Tunnel｜生成式 AI 工作應用班（36h）">
-<meta property="og:description" content="Make 與 n8n 的部署方式不同。本節用可停止、可重跑的資料流練習理解節點與 Webhook；費用、版本、主機與 Tunnel 狀態依實際環境確認。">
+<meta property="og:title" content="條件、分流與執行紀錄">
+<meta property="og:description" content="依四個固定分類分流，核對輸入與每條路徑的結果。">
 <meta property="og:url" content="https://skypai0326.github.io/courses/courses/gen-ai-36h/part5/CH5-2.html">
 <meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="CH5-2 n8n Desktop 與 Cloudflare Tunnel｜生成式 AI 工作應用班（36h）">
-<meta name="twitter:description" content="Make 與 n8n 的部署方式不同。本節用可停止、可重跑的資料流練習理解節點與 Webhook；費用、版本、主機與 Tunnel 狀態依實際環境確認。">
+<meta name="twitter:title" content="條件、分流與執行紀錄">
+<meta name="twitter:description" content="依四個固定分類分流，核對輸入與每條路徑的結果。">
 <meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <link rel="canonical" href="https://skypai0326.github.io/courses/courses/gen-ai-36h/part5/CH5-2.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -160,6 +160,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-
 /* a11y: focus-visible ring */
 a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
 .skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}</style>
+<link rel="stylesheet" href="../assets/repair-content.css">
 </head>
 <body>
 <style id="_gs">
@@ -198,483 +199,48 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div class="lesson-hero" id="main">
   <a class="back-link" href="../index.html"><span aria-hidden="true">←</span> 返回課程總覽</a>
   <div class="hero-meta">
-    <span class="hero-part">Part 5 · 自動化流程設計</span>
+    <span class="hero-part">Part 5 · 人工覆核與 Make 自動化</span>
     <div class="hero-divider-v"></div>
     <span class="hero-num">CH 5.2 · 2 小時（120 分鐘）</span>
   </div>
-  <h1 class="lesson-title">n8n Desktop +<em>Cloudflare Tunnel</em></h1>
-  <p class="lesson-tagline">Make 與 n8n 的部署方式不同。本節教你用可停止、可重跑的資料流理解節點、JSON 與 Webhook；費用、版本、主機與 Tunnel 狀態依實際環境確認。</p>
-  <div class="outcomes">
-    <div class="outcomes-label">學習成果 · OUTCOMES</div>
-    <div class="outcome-item"><div class="outcome-dot"></div>理解 n8n 與 Make 的定位差異，知道什麼時候該用哪個</div>
-    <div class="outcome-item"><div class="outcome-dot"></div>能在本機安裝 n8n（Desktop / Docker / npm 三選一）並跑第一個 workflow</div>
-    <div class="outcome-item"><div class="outcome-dot"></div>會用 Cloudflare Tunnel 把本機 n8n 暴露給外部，接 LINE Bot / Webhook / Stripe 通知</div>
-    <div class="outcome-item"><div class="outcome-dot"></div>理解 JSON 資料格式與 Code 節點的基礎用法</div>
-  </div>
-  <div class="agenda">
-    <strong>本節 120 分鐘時間規劃</strong>
-    <div class="agenda-row"><div class="agenda-time">0-15 分</div><div class="agenda-topic">n8n vs Make 完整對照 + 為什麼要兩個都會</div></div>
-    <div class="agenda-row"><div class="agenda-time">15-35 分</div><div class="agenda-topic">3 種安裝方式（Desktop / Docker / npm）含操作</div></div>
-    <div class="agenda-row"><div class="agenda-time">35-55 分</div><div class="agenda-topic">第一個 workflow：Schedule <span aria-hidden="true">→</span> HTTP <span aria-hidden="true">→</span> Sheet</div></div>
-    <div class="agenda-row"><div class="agenda-time">55-80 分</div><div class="agenda-topic">Cloudflare Tunnel 5 步驟 + 接外部 Webhook 測試</div></div>
-    <div class="agenda-row"><div class="agenda-time">80-100 分</div><div class="agenda-topic">JSON 資料概念 + Code 節點範例 + 踩坑博物館</div></div>
-    <div class="agenda-row"><div class="agenda-time">100-120 分</div><div class="agenda-topic">「電腦關機怎辦」5 種解法 + Practice + 課後行動</div></div>
-  </div>
+  <h1 class="lesson-title">條件、分流與執行紀錄</h1>
+  <p class="lesson-tagline">依四個固定分類分流，核對輸入與每條路徑的結果。</p>
+  <div class="outcomes"><strong>本節完成物：</strong>依四個固定分類分流，核對輸入與每條路徑的結果。</div>
+  <div class="agenda"><strong>本節 120 分鐘：練習時間可依進度調整</strong><div class="agenda-row"><div class="agenda-time">0–24 分</div><div class="agenda-topic">理解任務與完整示範</div></div><div class="agenda-row"><div class="agenda-time">24–60 分</div><div class="agenda-topic">跟著操作並核對結果</div></div><div class="agenda-row"><div class="agenda-time">60–96 分</div><div class="agenda-topic">自己練習與修正</div></div><div class="agenda-row"><div class="agenda-time">96–120 分</div><div class="agenda-topic">保存、驗收與下一步</div></div></div>
 </div>
 
 <div class="lesson-body">
-
-  <div class="callout info">
-    <div class="callout-icon" aria-hidden="true">🧭</div>
-    <div class="callout-body"><strong>環境分流：</strong>n8n Desktop、Docker、Cloudflare Tunnel 都是選修環境，不是本課免費主路徑的必要前置。若安裝、權限或網路受阻，先用 <code>../assets/part5-form-record.csv</code> 完成資料流與欄位檢查；未在實際工作區執行的結果一律標記 <code>NOT_RUN</code>。</div>
-  </div>
-
-  <!-- Section 1 -->
-  <section class="lesson-section">
-    <div class="section-eyebrow"><span>(01) · n8n vs Make</span><span class="section-time">15 分鐘</span></div>
-    <h2 class="section-heading">跟 Make 比，<em>多了什麼、少了什麼</em></h2>
-    <p class="body-text">n8n 不是 Make 的「免費版替代品」——它是另一種思路的工具。Make 像 SaaS 套裝軟體（穩、簡單、有限制）；n8n 像自組桌機（自由、強大、要動手）。兩者各有適用場景。</p>
-
-    <div class="compare-table">
-      <div class="ct-row head">
-        <div class="ct-cell">比較維度</div>
-        <div class="ct-cell">Make.com</div>
-        <div class="ct-cell">n8n</div>
-      </div>
-      <div class="ct-row">
-        <div class="ct-cell label">部署方式</div>
-        <div class="ct-cell">雲端 SaaS，零安裝</div>
-        <div class="ct-cell">本機 / Docker / VPS 自架</div>
-      </div>
-      <div class="ct-row">
-        <div class="ct-cell label">費用</div>
-        <div class="ct-cell">方案額度與價格依當前帳號頁面為準，課前需實際確認</div>
-        <div class="ct-cell">版本、主機與部署方式會影響費用，不能預設免費</div>
-      </div>
-      <div class="ct-row">
-        <div class="ct-cell label">額度限制</div>
-        <div class="ct-cell">有（Operations 上限）</div>
-        <div class="ct-cell">沒有本課可保證的固定額度；受本機或主機限制</div>
-      </div>
-      <div class="ct-row">
-        <div class="ct-cell label">整合 App 數</div>
-        <div class="ct-cell">1,800+（最多）</div>
-        <div class="ct-cell">400+（可自訂擴充）</div>
-      </div>
-      <div class="ct-row">
-        <div class="ct-cell label">寫程式</div>
-        <div class="ct-cell">不需要</div>
-        <div class="ct-cell">可選——Code 節點支援 JS / Python</div>
-      </div>
-      <div class="ct-row">
-        <div class="ct-cell label">本機檔案</div>
-        <div class="ct-cell">做不到（雲端）</div>
-        <div class="ct-cell">可讀寫本機任意檔案</div>
-      </div>
-      <div class="ct-row">
-        <div class="ct-cell label">隱私</div>
-        <div class="ct-cell">資料經 Make 伺服器</div>
-        <div class="ct-cell">資料在你自己電腦</div>
-      </div>
-      <div class="ct-row">
-        <div class="ct-cell label">24/7 運作</div>
-        <div class="ct-cell">自動（雲端永遠開）</div>
-        <div class="ct-cell">電腦關機就停</div>
-      </div>
-      <div class="ct-row">
-        <div class="ct-cell label">UI 直觀度</div>
-        <div class="ct-cell">最高（拖拉即用）</div>
-        <div class="ct-cell">中等（需學 JSON 概念）</div>
-      </div>
-    </div>
-
-    <div class="scenario-card">
-      <div class="scenario-label">真實情境 · 自由工作者 Lisa 的雙引擎</div>
-      <div class="scenario-text">Lisa 是平面設計師。她用 <strong>Make</strong> 接 Google Form 報名（需要 24/7 收、月用量 300 ops 免費夠用）。但客戶資料要跑 AI 分析報告時，她用 <strong>n8n</strong>——因為一次跑 200 筆資料在 Make 要 800+ ops（快超額），在 n8n 零限制，還能讀本機 Excel 檔。<em>兩個工具各司其職，不用二選一</em>。</div>
-    </div>
-
-    <div class="concept-box">
-      <div class="concept-label">核心觀念 · 什麼時候選 n8n</div>
-      <div class="concept-text">三個明確訊號告訴你該用 n8n：<strong>① 需要處理本機檔案</strong>（Make 做不到）。<strong>② 高頻 / 大量處理</strong>（Make 額度不夠）。<strong>③ 隱私敏感</strong>（客戶名單、財務資料不想經第三方伺服器）。反過來說，要 24/7 跑、不想維護、流程簡單的——用 Make。</div>
-    </div>
-  </section>
-
-  <hr class="section-rule">
-
-  <!-- Section 2 -->
-  <section class="lesson-section">
-    <div class="section-eyebrow"><span>(02) · 3 種安裝方式</span><span class="section-time">20 分鐘</span></div>
-    <h2 class="section-heading">把 n8n 裝在你<em>電腦上</em></h2>
-
-    <div class="install-grid">
-      <div class="install-card featured">
-        <div class="install-name">n8n Desktop</div>
-        <div class="install-tag">本課推薦</div>
-        <div class="install-desc">Mac / Windows 官方 app，雙擊安裝、開啟即用。適合 80% 個人使用者。</div>
-        <ol class="install-steps">
-          <li>到 <code>n8n.io/get-started</code></li>
-          <li>下載 Desktop app（Mac / Win）</li>
-          <li>安裝後開啟 <span aria-hidden="true">→</span> 自動跑在 <code>localhost:5678</code></li>
-          <li>瀏覽器會自動打開 n8n 介面</li>
-        </ol>
-      </div>
-      <div class="install-card">
-        <div class="install-name">Docker</div>
-        <div class="install-tag">穩定長期</div>
-        <div class="install-desc">容器化部署，適合放公司伺服器或 NAS。要懂 Docker 基本操作。</div>
-        <ol class="install-steps">
-          <li>安裝 Docker Desktop</li>
-          <li>終端機跑：<code>docker run -d --name n8n -p 5678:5678 n8nio/n8n</code></li>
-          <li>開 <code>localhost:5678</code></li>
-          <li>加 <code>-v</code> 掛載目錄保存資料</li>
-        </ol>
-      </div>
-      <div class="install-card">
-        <div class="install-name">npm</div>
-        <div class="install-tag">開發者</div>
-        <div class="install-desc">直接用 Node.js 跑。最輕量，適合想自訂或做開發整合。</div>
-        <ol class="install-steps">
-          <li>安裝 Node.js 18+</li>
-          <li>終端機跑：<code>npx n8n</code></li>
-          <li>開 <code>localhost:5678</code></li>
-          <li>要長期跑用 <code>pm2</code></li>
-        </ol>
-      </div>
-    </div>
-
-    <div class="scenario-card">
-      <div class="scenario-label">真實情境 · IT 部門的小王</div>
-      <div class="scenario-text">小王在公司 NAS（Synology）上用 Docker 跑 n8n，讓部門同事都能用。因為是內網，不用擔心安全問題。<strong>Docker 版的好處是 NAS 不關機，n8n 就 24/7 跑</strong>——解決了「電腦關機流程就停」的問題。<em>一台 NT$15,000 的 NAS 就能替代 Make 年費 $108 USD</em>。</div>
-    </div>
-  </section>
-
-  <hr class="section-rule">
-
-  <!-- Section 3 -->
-  <section class="lesson-section">
-    <div class="section-eyebrow"><span>(03) · 第一個 Workflow</span><span class="section-time">20 分鐘</span></div>
-    <h2 class="section-heading">跑通：<em>排程 <span aria-hidden="true">→</span> 抓網頁 <span aria-hidden="true">→</span> 存 Sheet</em></h2>
-    <p class="body-text">n8n 的第一個 workflow 我們不做 Gmail（跟 CH5-1 重複），改做一個更有 n8n 特色的：定時抓網頁資料 <span aria-hidden="true">→</span> 存 Google Sheet。這展示了 n8n「能做 Make 做不到的事」。</p>
-
-    <div class="flow-diagram">
-      <div class="flow-node" aria-hidden="true"><div class="flow-node-name">Schedule</div><div class="flow-node-sub">每天 9:00</div></div>
-      <div class="flow-arrow"><span aria-hidden="true">→</span></div>
-      <div class="flow-node" aria-hidden="true"><div class="flow-node-name">HTTP Request</div><div class="flow-node-sub">抓匯率 API</div></div>
-      <div class="flow-arrow"><span aria-hidden="true">→</span></div>
-      <div class="flow-node" aria-hidden="true"><div class="flow-node-name">Code</div><div class="flow-node-sub">擷取需要的欄位</div></div>
-      <div class="flow-arrow"><span aria-hidden="true">→</span></div>
-      <div class="flow-node" aria-hidden="true"><div class="flow-node-name">Google Sheets</div><div class="flow-node-sub">新增一行</div></div>
-    </div>
-
-    <div class="steps-list">
-      <div class="step-row">
-        <div class="step-circle">1</div>
-        <div class="step-content">
-          <div class="step-name">開新 Workflow</div>
-          <div class="step-desc">在 n8n 首頁按「+ New Workflow」<span aria-hidden="true">→</span> 命名為「每日匯率追蹤」。你會看到空白畫布，跟 Make 類似但更寬敞。</div>
-        </div>
-      </div>
-      <div class="step-row">
-        <div class="step-circle">2</div>
-        <div class="step-content">
-          <div class="step-name">加 Schedule Trigger</div>
-          <div class="step-desc">按 + <span aria-hidden="true">→</span> 搜尋「Schedule Trigger」<span aria-hidden="true">→</span> 設定 Rule：Trigger at <span aria-hidden="true">→</span> <code>9:00</code>、Interval <span aria-hidden="true">→</span> <code>Every day</code>。這就是 n8n 版的排程觸發。</div>
-        </div>
-      </div>
-      <div class="step-row">
-        <div class="step-circle">3</div>
-        <div class="step-content">
-          <div class="step-name">加 HTTP Request 抓匯率</div>
-          <div class="step-desc">在 Schedule 右邊按 + <span aria-hidden="true">→</span> 搜尋「HTTP Request」<span aria-hidden="true">→</span> Method: <code>GET</code> <span aria-hidden="true">→</span> URL: <code>https://api.exchangerate-api.com/v4/latest/USD</code>。按「Test step」確認有回傳 JSON。</div>
-        </div>
-      </div>
-      <div class="step-row">
-        <div class="step-circle">4</div>
-        <div class="step-content">
-          <div class="step-name">加 Code 節點擷取欄位</div>
-          <div class="step-desc">按 + <span aria-hidden="true">→</span> 搜尋「Code」<span aria-hidden="true">→</span> 語言選 JavaScript <span aria-hidden="true">→</span> 貼入下方程式碼。這會從 API 回傳的 JSON 中取出 TWD 匯率和日期。</div>
-        </div>
-      </div>
-      <div class="step-row">
-        <div class="step-circle">5</div>
-        <div class="step-content">
-          <div class="step-name">加 Google Sheets 寫入</div>
-          <div class="step-desc">按 + <span aria-hidden="true">→</span> 搜尋「Google Sheets」<span aria-hidden="true">→</span> Operation: <code>Append Row</code> <span aria-hidden="true">→</span> 授權 Google 帳號 <span aria-hidden="true">→</span> 選試算表 <span aria-hidden="true">→</span> 欄位映射：A = date、B = rate。按「Test workflow」跑一次確認。</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="full-prompt-wrap">
-      <button class="copy-btn-tl" data-target="code-rate">複製</button>
-      <div class="full-prompt" id="code-rate"><span class="lbl">// n8n Code 節點：擷取匯率</span>
-const data = $input.all()[0].json;
-const rate = data.rates.TWD;
-const date = new Date().toISOString().split('T')[0];
-
-return [{
-  json: {
-    date: date,
-    usd_to_twd: rate,
-    source: 'exchangerate-api'
-  }
-}];</div>
-    </div>
-
-    <div class="concept-box">
-      <div class="concept-label">核心觀念 · JSON 就是「有結構的文字」</div>
-      <div class="concept-text">n8n 裡所有資料都是 JSON 格式傳遞。不用害怕——JSON 就是「用大括號和冒號寫的清單」。<strong><code>{"name":"Amy","age":28}</code></strong> 就是一筆 JSON 資料。<strong>每個節點收到上一個節點的 JSON，加工後往下傳。</strong>你在 n8n 介面看到的「Input / Output」面板，就是在看 JSON 資料流過每個節點。Make 也是 JSON，只是 Make 用拖拉介面幫你處理了，n8n 讓你直接看到。</div>
-    </div>
-  </section>
-
-  <hr class="section-rule">
-
-  <!-- Section 4 -->
-  <section class="lesson-section">
-    <div class="section-eyebrow"><span>(04) · Cloudflare Tunnel</span><span class="section-time">25 分鐘</span></div>
-    <h2 class="section-heading">讓你的本機 n8n <em>能接外部 Webhook</em></h2>
-    <p class="body-text">n8n 跑在 <code>localhost:5678</code>——只有你自己電腦打得開。但如果你想接 LINE Bot 的訊息、Stripe 的付款通知、Google Form 的 Webhook，這些外部服務需要一個「公開網址」才能打到你的 n8n。Cloudflare Tunnel 就是幫你建一條安全通道：外部 <span aria-hidden="true">→</span> Cloudflare <span aria-hidden="true">→</span> 你的電腦。</p>
-
-    <div class="scenario-card">
-      <div class="scenario-label">真實情境 · 微型電商老闆 Eric</div>
-      <div class="scenario-text">Eric 用 n8n 做訂單自動化。客戶在 Shopify 下單 <span aria-hidden="true">→</span> Shopify 送 Webhook 到 n8n <span aria-hidden="true">→</span> n8n 自動建出貨單 + 寄通知信。但 Shopify 的 Webhook 需要一個公開 URL。Eric 用 Cloudflare Tunnel 把自己筆電的 n8n 暴露成 <code>https://n8n.eric-shop.com</code>，Shopify 就能打得到。<em>零月費，不用租伺服器</em>。</div>
-    </div>
-
-    <div class="steps-list">
-      <div class="step-row">
-        <div class="step-circle">1</div>
-        <div class="step-content">
-          <div class="step-name">註冊 Cloudflare 帳號</div>
-          <div class="step-desc">到 <code>dash.cloudflare.com</code> 註冊免費帳號。如果你有自己的網域，把它加到 Cloudflare（改 DNS nameserver）。沒有網域也可以用 Cloudflare 的臨時子域名。</div>
-        </div>
-      </div>
-      <div class="step-row">
-        <div class="step-circle">2</div>
-        <div class="step-content">
-          <div class="step-name">安裝 cloudflared</div>
-          <div class="step-desc">Mac：<code>brew install cloudflared</code><br>Windows：到 Cloudflare 官網下載安裝檔<br>安裝後在終端機跑 <code>cloudflared --version</code> 確認成功。</div>
-        </div>
-      </div>
-      <div class="step-row">
-        <div class="step-circle">3</div>
-        <div class="step-content">
-          <div class="step-name">登入 + 建立 Tunnel</div>
-          <div class="step-desc">終端機跑：<code>cloudflared tunnel login</code>（會跳瀏覽器授權）<br>然後：<code>cloudflared tunnel create n8n-tunnel</code><br>記下 Tunnel ID（後面要用）。</div>
-        </div>
-      </div>
-      <div class="step-row">
-        <div class="step-circle">4</div>
-        <div class="step-content">
-          <div class="step-name">設定 config.yml</div>
-          <div class="step-desc">在 <code>~/.cloudflared/config.yml</code> 建立設定檔（見下方範本）。把 <code>hostname</code> 設成你要的子域名、<code>service</code> 指向 <code>http://localhost:5678</code>。</div>
-        </div>
-      </div>
-      <div class="step-row">
-        <div class="step-circle">5</div>
-        <div class="step-content">
-          <div class="step-name">啟動 Tunnel</div>
-          <div class="step-desc">先到 Cloudflare DNS 加一筆 CNAME 記錄 <span aria-hidden="true">→</span> 然後終端機跑：<code>cloudflared tunnel run n8n-tunnel</code><br>打開 <code>https://n8n.你的網域.com</code> 確認能看到 n8n 介面。<strong>完成——你的 n8n 現在有公開網址了。</strong></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="full-prompt-wrap">
-      <button class="copy-btn-tl" data-target="cf-config">複製</button>
-      <div class="full-prompt" id="cf-config"><span class="lbl"># ~/.cloudflared/config.yml</span>
-
-tunnel: <span class="var">你的-tunnel-id</span>
-credentials-file: /Users/<span class="var">你的帳號</span>/.cloudflared/<span class="var">tunnel-id</span>.json
-
-ingress:
-  - hostname: <span class="var">n8n.你的網域.com</span>
-    service: http://localhost:5678
-  - service: http_status:404</div>
-    </div>
-
-    <div class="full-prompt-wrap">
-      <button class="copy-btn-tl" data-target="cf-quick">複製</button>
-      <div class="full-prompt" id="cf-quick"><span class="lbl"># 快速版（不需要自有網域）</span>
-<span class="com"># 一行指令，Cloudflare 自動分配臨時子域名</span>
-cloudflared tunnel --url http://localhost:5678
-
-<span class="com"># 會輸出類似：</span>
-<span class="com"># https://random-name-1234.trycloudflare.com</span>
-<span class="com"># 把這個 URL 填到 LINE Bot / Stripe Webhook 設定</span>
-<span class="com"># 注意：每次重新執行 URL 會變</span></div>
-    </div>
-
-    <div class="concept-box">
-      <div class="concept-label">核心觀念 · 為什麼不用 ngrok？</div>
-      <div class="concept-text">ngrok 與 Cloudflare Tunnel 的 URL、頻寬、連線持續時間與方案限制會依版本和帳號而變。課堂只把它們當測試環境選項；正式用途要先在目標帳號、網路與網域驗證，並寫下重啟後的恢復步驟。</div>
-    </div>
-  </section>
-
-  <hr class="section-rule">
-
-  <!-- Section 5 -->
-  <section class="lesson-section">
-    <div class="section-eyebrow"><span>(05) · 電腦關機怎辦</span><span class="section-time">10 分鐘</span></div>
-    <h2 class="section-heading">n8n 的致命傷：<em>電腦關了就停</em></h2>
-    <p class="body-text">這是所有人第一個問的問題。5 種解法，從簡單到進階：</p>
-
-    <div class="solution-grid">
-      <div class="sol-card">
-        <div class="sol-name">1. 不關機</div>
-        <div class="sol-tag easy">最簡單</div>
-        <div class="sol-desc">筆電蓋上只休眠不關機，桌機設定「永不休眠」。適合家用、電費可接受的情境。</div>
-      </div>
-      <div class="sol-card">
-        <div class="sol-name">2. 舊手機 / 平板</div>
-        <div class="sol-tag easy">零成本</div>
-        <div class="sol-desc">把 n8n 裝在一台不用的舊 Android 手機（Termux + npm），插電放著。耗電量比燈泡還低。</div>
-      </div>
-      <div class="sol-card">
-        <div class="sol-name">3. NAS 跑 Docker</div>
-        <div class="sol-tag mid">推薦</div>
-        <div class="sol-desc">Synology / QNAP NAS 原生支援 Docker。裝一次，NAS 不關機 n8n 就 24/7。NT$15,000 左右。</div>
-      </div>
-      <div class="sol-card">
-        <div class="sol-name">4. 雲端 VPS</div>
-        <div class="sol-tag mid">穩定</div>
-        <div class="sol-desc">在 DigitalOcean / Vultr / AWS Lightsail 開一台最小 VPS（$5-6 USD/月），Docker 跑 n8n。</div>
-      </div>
-      <div class="sol-card">
-        <div class="sol-name">5. n8n Cloud</div>
-        <div class="sol-tag hard">付費</div>
-        <div class="sol-desc">n8n 官方的雲端版（$20 USD/月起）。等於 Make 的付費版，但 n8n 的邏輯和彈性更好。</div>
-      </div>
-    </div>
-
-    <div class="scenario-card">
-      <div class="scenario-label">真實情境 · 設計師 Mia 的 Synology 方案</div>
-      <div class="scenario-text">Mia 買了一台 Synology DS224+（NT$12,000）來備份照片。發現它可以跑 Docker，就順便裝了 n8n。現在她的 n8n 24/7 跑在 NAS 上，接 Cloudflare Tunnel，LINE Bot 客服、表單處理、檔案整理全部自動化。<em>NAS 的電費一個月不到 NT$50，等於免費</em>。</div>
-    </div>
-  </section>
-
-  <hr class="section-rule">
-
-  <!-- Section 6 -->
-  <section class="lesson-section">
-    <div class="section-eyebrow"><span>(06) · 踩坑博物館</span><span class="section-time">5 分鐘</span></div>
-    <h2 class="section-heading">n8n 新手<em>最常踩的 7 個坑</em></h2>
-    <div class="pitfall-museum">
-      <div class="pitfall-item">
-        <div class="pitfall-head"><span class="pitfall-num">坑 1</span>Desktop 版資料存哪？</div>
-        <div class="pitfall-sym"><strong>症狀：</strong>重新安裝後所有 workflow 消失。</div>
-        <div class="pitfall-fix"><strong>修：</strong>Desktop 版資料存在 <code>~/.n8n/</code>。重裝前先備份這個資料夾。也可以用「Export」功能匯出每個 workflow 的 JSON。</div>
-      </div>
-      <div class="pitfall-item">
-        <div class="pitfall-head"><span class="pitfall-num">坑 2</span>Webhook URL 一直變</div>
-        <div class="pitfall-sym"><strong>症狀：</strong>用 <code>cloudflared tunnel --url</code> 快速版，每次重啟 URL 都不同，LINE Bot 要重設。</div>
-        <div class="pitfall-fix"><strong>修：</strong>用正式版 config.yml + 自有網域，URL 固定不變。或花 $5/月用 ngrok 固定子域。</div>
-      </div>
-      <div class="pitfall-item">
-        <div class="pitfall-head"><span class="pitfall-num">坑 3</span>Google 授權一直失敗</div>
-        <div class="pitfall-sym"><strong>症狀：</strong>n8n 的 Google Sheets / Gmail OAuth 跳 400 錯誤。</div>
-        <div class="pitfall-fix"><strong>修：</strong>n8n 的 Google OAuth 需要你在 Google Cloud Console 自己建 OAuth Client。流程比 Make 多一步：<code>Console <span aria-hidden="true">→</span> API <span aria-hidden="true">→</span> Credentials <span aria-hidden="true">→</span> OAuth 2.0 <span aria-hidden="true">→</span> 加 redirect URI: http://localhost:5678/rest/oauth2-credential/callback</code>。</div>
-      </div>
-      <div class="pitfall-item">
-        <div class="pitfall-head"><span class="pitfall-num">坑 4</span>Code 節點 return 格式錯</div>
-        <div class="pitfall-sym"><strong>症狀：</strong>Code 節點跑了但下一個節點收不到資料。</div>
-        <div class="pitfall-fix"><strong>修：</strong>n8n Code 節點必須 return <code>[{json: {...}}]</code>——外層陣列、內層 json 屬性。漏掉任何一層都不行。</div>
-      </div>
-      <div class="pitfall-item">
-        <div class="pitfall-head"><span class="pitfall-num">坑 5</span>Tunnel 啟動但外面打不開</div>
-        <div class="pitfall-sym"><strong>症狀：</strong>cloudflared 跑了，瀏覽器打 URL 顯示 502。</div>
-        <div class="pitfall-fix"><strong>修：</strong>確認 n8n 真的在跑（<code>localhost:5678</code> 能打開）。確認 config.yml 的 service 是 <code>http://localhost:5678</code> 不是 https。確認 DNS CNAME 設定正確。</div>
-      </div>
-      <div class="pitfall-item">
-        <div class="pitfall-head"><span class="pitfall-num">坑 6</span>Workflow 沒啟用</div>
-        <div class="pitfall-sym"><strong>症狀：</strong>Webhook 設好了但外部打進來沒反應。</div>
-        <div class="pitfall-fix"><strong>修：</strong>n8n 的 Workflow 預設是「Inactive」。右上角要切成「Active」才會真的監聽。Test mode 只在測試時觸發。</div>
-      </div>
-      <div class="pitfall-item">
-        <div class="pitfall-head"><span class="pitfall-num">坑 7</span>npm 版更新後壞了</div>
-        <div class="pitfall-sym"><strong>症狀：</strong>跑 <code>npm update -g n8n</code> 後啟動失敗。</div>
-        <div class="pitfall-fix"><strong>修：</strong>n8n 大版本更新有時會改資料庫結構。<code>先備份 ~/.n8n/</code> 再更新。Desktop 版會自動處理，npm 版要手動。</div>
-      </div>
-    </div>
-  </section>
-
-  <hr class="section-rule">
-
-  <!-- Section 7 -->
-  <section class="lesson-section">
-    <div class="section-eyebrow"><span>(07) · 課堂動手</span><span class="section-time">15 分鐘</span></div>
-    <h2 class="section-heading">Guided Practice：<em>裝起來、跑起來</em></h2>
-
-    <div class="practice-box">
-      <div class="practice-label">PRACTICE 01 · 安裝 + 第一個 Workflow</div>
-      <div class="practice-title">在本機安裝 n8n 並跑通匯率追蹤</div>
-      <div class="practice-task"><strong>題目：</strong>① 用 Desktop 版安裝 n8n ② 照 Section 03 建「Schedule <span aria-hidden="true">→</span> HTTP Request <span aria-hidden="true">→</span> Code <span aria-hidden="true">→</span> Google Sheets」workflow ③ 按 Test workflow 跑通一次，確認 Sheet 出現新行。</div>
-      <div class="practice-hint"><strong>提示：</strong>如果 Google 授權卡住，先用「Set」節點（固定值）代替 Sheets，測試前三個節點的資料流沒問題後再接 Sheets。</div>
-      <details class="practice-answer">
-        <summary>驗收標準</summary>
-        <div class="practice-answer-content">
-        ① n8n Desktop 安裝成功，<code>localhost:5678</code> 能打開<br>
-        ② Workflow 有 4 個節點，連線正確<br>
-        ③ Test workflow 執行成功（所有節點綠勾）<br>
-        ④ Google Sheet 出現一行：日期 + USD/TWD 匯率
-        </div>
-      </details>
-    </div>
-
-    <div class="practice-box">
-      <div class="practice-label">PRACTICE 02 · Cloudflare Tunnel 快速版</div>
-      <div class="practice-title">一行指令讓 n8n 有公開 URL</div>
-      <div class="practice-task"><strong>題目：</strong>① 安裝 cloudflared ② 跑 <code>cloudflared tunnel --url http://localhost:5678</code> ③ 用手機瀏覽器打開 Cloudflare 給的 URL，確認能看到 n8n 介面。</div>
-      <div class="practice-hint"><strong>提示：</strong>快速版的 URL 每次重啟會變，僅限測試用。正式用途要設定 config.yml + 自有網域。</div>
-    </div>
-
-    <div class="practice-box">
-      <div class="practice-label">PRACTICE 03 · Webhook 接收測試</div>
-      <div class="practice-title">讓外部能打到你的 n8n</div>
-      <div class="practice-task"><strong>題目：</strong>① 在 n8n 建一個新 Workflow：Webhook 節點 <span aria-hidden="true">→</span> Set 節點（回傳 "ok"）② Workflow 切 Active ③ 用 Tunnel 的公開 URL + Webhook 路徑，在另一台裝置（手機）用瀏覽器打開測試。</div>
-      <div class="practice-hint"><strong>提示：</strong>Webhook 節點會給你一個路徑（如 <code>/webhook/abc123</code>），完整 URL = Tunnel URL + 路徑。</div>
-    </div>
-
-    <div class="practice-box">
-      <div class="practice-label">CHECK · 安全停止與重跑點</div>
-      <div class="practice-task"><strong>預期結果：</strong>能看見每個節點的輸入與輸出，並知道流程停在哪一個節點。<br><strong>快速檢查：</strong>先用 Set 固定值測試，再接外部服務。<br><strong>卡住時：</strong>停止 workflow、保存錯誤訊息與最後成功節點，從該節點重跑；不要把公開 Tunnel URL 分享給他人。<br><strong>安全停止：</strong>練習結束後停用 workflow 與 Tunnel。</div>
-    </div>
-  </section>
-
-  <hr class="section-rule">
-
-  <!-- Section 8 -->
-  <section class="lesson-section">
-    <div class="section-eyebrow"><span>(08) · 課後行動</span><span class="section-time">5 分鐘</span></div>
-    <h2 class="section-heading">帶回去做的<em>2 件事</em></h2>
-    <p class="body-text">n8n 安裝完畢，Tunnel 跑通，接下來要讓它真的幫你做事：</p>
-    <div class="solution-grid">
-      <div class="sol-card">
-        <div class="sol-name">今天</div>
-        <div class="sol-tag easy">必做</div>
-        <div class="sol-desc">把 Practice 01 的匯率 Workflow 切成 Active，讓它明天 9 點自動跑一次。明天檢查 Sheet 有沒有新行——這就是你的第一個「真的在自動跑」的 n8n workflow。</div>
-      </div>
-      <div class="sol-card">
-        <div class="sol-name">這週</div>
-        <div class="sol-tag mid">挑戰</div>
-        <div class="sol-desc">想一個你在 Make 做過的 Scenario，改用 n8n 重做一次。體會兩個工具「做同一件事」的差異——哪裡更方便、哪裡更麻煩。帶這個心得到 CH5-4 課堂討論。</div>
-      </div>
-    </div>
-    <div class="callout info">
-      <div class="callout-icon" aria-hidden="true">📝</div>
-      <div class="callout-body"><strong>下一節預告：</strong>CH 5.3「AI × 自動化典型工作流」——Make 和 n8n 都會了，接下來是「用它們做什麼最有價值？」。下節教 3 種上班族最該自動化的場景：表單 AI 分類、會議錄音歸檔、客訴升級通知——每個都給完整 workflow 設計圖 + AI prompt。</div>
-    </div>
-  </section>
-
+<section class="lesson-section"><div class="section-eyebrow"><span>(01) · 學習與實作</span></div><h2 class="section-heading">有分類，流程才知道走哪條路</h2>
+<p class="body-text">沿用上一節試算表。「Filter」是通過條件；「Router」把資料分成多條路。完成物是四分類各一筆紀錄與執行核對。先讀<a href="../assets/part5-input-contract.md">九欄規格</a>與<a href="../assets/part5-test-cases.csv">七個測試案例</a>，分類只有inquiry、complaint、partnership、other。</p>
+<p class="body-text">inquiry到業務；complaint到客服；partnership到合作；other到待處理。分類固定值不能同時用「詢價」與inquiry當相同規則，否則Filter可能不匹配。</p>
+</section>
+<section class="lesson-section"><div class="section-eyebrow"><span>(02) · 學習與實作</span></div><h2 class="section-heading">示範：覆核通過後才分流</h2>
+<p class="body-text">在Watch New Rows後加Filter：review_status等於「已覆核」，九欄非空、email格式有效、category屬四值。然後Router四路，每條只接受一個category。每路Add a Row寫ProcessingLog，保留source_key、category、route、status與draft_status。</p>
+<p class="body-text">完整映射例：T01的category=inquiry、route=業務、status=已記錄、draft_status=待建立；T02complaint、客服、已記錄、不需要。先不建立草稿，檢查分流本身。</p>
+</section>
+<section class="lesson-section"><div class="section-eyebrow"><span>(03) · 學習與實作</span></div><h2 class="section-heading">跟著做：一次新增一列</h2>
+<p class="body-text">依T01到T04逐一加ReviewedQueue新列，每次Run once並查執行中的資料單位（bundle）、路徑與結果表。理想結果分別是業務、客服、合作、待處理，各一筆。只看綠勾不夠，綠勾說明模組運行，不說明分類或欄位正確。</p>
+<p class="body-text">沒有路徑時檢查實際category有無大小寫或空白；走兩路時檢查Filter是否互斥。修規則後再加新的測試來源鍵，保留舊測試記錄注明錯誤，不擅自刪掉證據。</p>
+</section>
+<section class="lesson-section"><div class="section-eyebrow"><span>(04) · 學習與實作</span></div><h2 class="section-heading">自己試：阻擋不合格資料</h2>
+<p class="body-text">追加一筆review_status=待覆核；應在Filter被擋，ProcessingLog與Drafts都不新增。再測category=unknown，結果相同。記錄輸入、阻擋條件與結果；如果流程仍走通，回Filter修復後重測，不能靠人不填這類資料來保證。</p>
+<p class="body-text">保存四路結果與阻擋案例，下節加入網頁AI與人工覆核，但仍以固定欄位作為接點。</p>
+</section>
+<section class="lesson-section"><div class="section-eyebrow"><span>(05) · 學習與實作</span></div><h2 class="section-heading">選做：n8n的角色</h2>
+<p class="body-text">n8n也能連接服務，但需可用環境與維護能力。課程不要求安裝已停止維護的Desktop版，也不使用已終止的LINE Notify。若另有已驗證n8n環境，可以比較觸發、分流與錯誤紀錄，不重印一份未測的全流程。<a href="https://community.n8n.io/t/sunsetting-self-hosted-team-plan-desktop-version/25830">n8n Desktop終止公告</a>及<a href="https://notify-bot.line.me/">LINE Notify公告</a>可供查證。</p>
+</section>
 </div>
 
 <div class="lesson-nav">
   <a class="nav-btn nav-prev" href="CH5-1.html" aria-label="上一單元" data-nav-role="prev">
-    <div><div class="nav-btn-label"><span aria-hidden="true">←</span> 上一節</div><div class="nav-btn-title">CH 5.1 · Make.com 入門</div></div>
+    <div><div class="nav-btn-label"><span aria-hidden="true">←</span> 上一節</div><div class="nav-btn-title">理解觸發與欄位：先跑最小流程</div></div>
   </a>
   <a class="nav-btn next nav-next" href="CH5-3.html" aria-label="下一單元" data-nav-role="next">
-    <div><div class="nav-btn-label">下一節 <span aria-hidden="true">→</span></div><div class="nav-btn-title">CH 5.3 · AI × 自動化典型工作流</div></div>
+    <div><div class="nav-btn-label">下一節 <span aria-hidden="true">→</span></div><div class="nav-btn-title">人工覆核後再接自動化</div></div>
   </a>
 </div>
 
-<footer class="footer" data-platform-version="2026-04-v3">
+<footer class="footer" data-platform-version="2026-10-content-repair" data-built-at="2026-10-09">
   <div class="footer-logo">弄一下工作室</div>
   <div class="footer-note">CH 5.2 · 生成式 AI 工作應用班（36h）</div>
 </footer>
