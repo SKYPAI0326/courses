@@ -1,116 +1,101 @@
 ---
-course: uiux-designer
-unit: A7
-title: List 與內容變化
-hours: 4h
-lesson_type: skill-operation
-prerequisite: A6
-platform: Figma Starter／Free + Chrome
-status: MACHINE_READY_PENDING_HUMAN
+slug: uiux-designer
+unit_id: A7-list-content
+title: 把任務做成會增高、可增刪的清單
+course_type: skill-operation
+duration: 4h
+prerequisites: [A6-button-form]
+revision: 2026-10-09
+style_guide: ../../_outlines/uiux-designer.style-guide.md
+platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體另記平台證據
 ---
 
-<!--
-教案 A7 · List 與內容變化
+## 內部設計（不進學員頁）
 
-本單元承接 A6 的 Button／Form 圖層與內容壓力。學員建立兩個可辨識的 List row，加入長標題與空狀態提示，再用固定寬度與 Auto height 檢查內容變長後的版面。Probe A 的 A-17～A-19 已確認視覺列、長文字與空狀態圖層可在 Starter／Free 建立。
+本課新增能力：完整Row父子層級、清單增刪與空狀態，並建立真實Detail畫面供原型串接。依 `_design/COURSE-BLUEPRINT.md` 的同檔案整合路徑；保留 99h 行政配置，未以真人試跑鎖定分鐘。
 
-本堂的完成條件集中在視覺結構、命名與內容壓力；動態資料、真正的增刪按鈕、資料切換與多列聯合滾動要在後續 Prototype／測試 Gate 補測。
--->
-
-## 教學流程（Teaching Flow）
-
-> **課型：skill-operation**。順序：接手成果 → 情境 → 概念 → 示範 → 同步操作 → 變因練習 → 驗收與交接。
-> **本節完成物：** `List / Item / Row 01`、`Row 02`、長標題、`List / Empty / Message` 與內容壓力紀錄。
-
-## 1. 情境與問題（Hook）
-
-登入後的清單畫面會遇到三種內容：有資料時要讀得快、標題變長時不能遮住下一列、沒有資料時要讓使用者知道下一步。畫面只放一個灰色矩形，下一位工作者無法判斷它是列、空狀態還是按鈕。
-
-這一堂把每個結果留在 Layers 可讀的名稱，並用一個長標題改變內容高度。你會得到一份能交給 A8 的視覺清單規格；資料更新與互動流程留到 Prototype 階段。
-
-## 2. 先理解三個判斷點（Concepts）
-
-| 判斷點 | 你要回答的問題 | 本堂證據 |
-|---|---|---|
-| Row 結構 | 清單中的一筆資料由哪個層級承載？ | Layers 有 `List / Item / Row 01`、`Row 02`。 |
-| 內容壓力 | 標題變長時，哪個尺寸跟著內容變化？ | `List / Item / Title` 寬 180、Auto height、文字換行。 |
-| 空狀態 | 沒有列時，畫面要顯示什麼訊息？ | Layers 有 `List / Empty / Message`，文字為「目前沒有清單項目」。 |
-
-### 名稱規則
-
-- `List / Item / Row 01` 與 `Row 02` 表示兩筆視覺列。
-- `List / Item / Title` 表示列中的標題文字層。
-- `List / Empty / Message` 表示沒有資料時的提示層。
-- 名稱能協助交接與檢查；名稱本身不會產生資料，也不會自動控制顯示條件。
-
-## 3. 示範（Demo）
-
-示範沿用 A6 的 `Screen / List Top` Frame。先畫一列，再複製成第二列；接著建立長標題與空狀態提示。每一步都在 Layers 或右側面板確認。
-
-1. 在清單區域建立 `300×40` Rectangle，命名 `List / Item / Row 01`。
-2. 複製 Row 01，將副本命名 `List / Item / Row 02`，讓兩列在畫布上保持可辨識的間距。
-3. 建立文字層 `List / Item / Title`，輸入「這是一段需要在清單項目中換行的長標題」。
-4. 把 Title 設為 Fixed width，寬度輸入 `180`；再選 Auto height。
-5. 觀察右側 Height 與畫布換行結果，截圖前後差異。
-6. 建立文字層 `List / Empty / Message`，輸入「目前沒有清單項目」。
-7. 截圖 Layers、Title 的 W/H、空狀態文字，填入 A7 完成檢查表。
-
-### 示範的判斷
-
-Row 01 與 Row 02 是兩個視覺列；長標題是內容壓力材料；Empty Message 是另一種畫面狀態。這些圖層能被找到、能被重讀，才有交接價值。
-
-## 4. 跟著做（Together）
-
-每完成一列就停下來讀取預期結果。沒看到時，先在同一個步驟修復。
-
-| 步驟 | 學員動作 | 預期結果 | 快速檢查 | 卡住時的回修 |
-|---:|---|---|---|---|
-| 1 | 開啟 A6 檔與 A7 起始材料，選取 `Screen / List Top`。 | Frame 與 A6 Button／Form 仍可找到。 | Layers 的父層正確。 | 回 A6 檢查檔案與 Frame 名稱。 |
-| 2 | 建立 300×40 Rectangle，命名 `List / Item / Row 01`。 | Layers 顯示 Row 01。 | 讀右側 W/H。 | 重新選 Rectangle，再改名稱與尺寸。 |
-| 3 | 複製 Row 01，命名 `List / Item / Row 02`。 | Layers 有兩列，畫布位置可分辨。 | 選兩列確認名稱不同。 | 選副本重新命名；不要改掉來源列。 |
-| 4 | 建立 `List / Item / Title`，輸入長標題。 | Layers 顯示 Title，畫布出現文字。 | 文字內容與 Layers 名稱分開確認。 | 選文字層，從右側 Content 重填。 |
-| 5 | 將 Title 設為 Fixed width 180、Auto height。 | 文字換行，Height 隨內容變為 30 左右。 | 讀取 W/H 與文字是否被裁切。 | 先選 Auto height，再重填 Width 180。 |
-| 6 | 建立 `List / Empty / Message`，輸入空狀態文字。 | Layers 有 Empty Message。 | 文字清楚且未與 Row 重疊。 | 移到清單區域外暫存，再重新排列。 |
-| 7 | 填寫檢查表，保存截圖與修正紀錄。 | 交付物可被下一堂找到。 | 有 Layers、W/H、空狀態三類證據。 | 逐項補拍，不能只寫「已完成」。 |
-
-> **Checkpoint 1**：你能指出兩個 Row、長標題的 W/H、空狀態提示；三項都能在 Layers 找到。
-
-## 5. 自己改一個條件（Solo）
-
-只改 Title 文字，其他設定保持不動。將文字換成「本週待處理的申請共有十二筆，請選取一筆查看詳細內容」。
-
-1. 只選 `List / Item / Title`，透過右側 Content 替換文字。
-2. 保留 Fixed width 180 與 Auto height，觀察 Height 是否增加。
-3. 確認 Row 01、Row 02 與 Empty Message 名稱沒有改動。
-4. 記錄行數、Height 與需要修正的位置。
-
-> **Checkpoint 2**：長標題沒有被裁切；兩列名稱仍可讀；空狀態訊息仍在；檢查表記下至少一個觀察或修正。
-
-## 6. 卡住時怎麼回修
-
-| 現象 | 可能原因 | 回修位置 | 重跑起點 |
+| 活動 | 素材／產物 | 操作與決策 | 認知工作／支援 |
 |---|---|---|---|
-| 只有一列 | 副本仍與來源重疊，或沒有完成命名。 | Layers 與畫布位置。 | 回第 3 步複製與排列。 |
-| Title 長句被裁切 | Width 是 Auto，或高度仍為 Fixed。 | Title 的 Resizing。 | 回第 5 步設 Width 180、Auto height。 |
-| Empty Message 被當成 Row | 名稱沒有分出 `Empty` 狀態。 | Layers 名稱與父層。 | 回第 6 步重新命名。 |
-| 長文字改到錯的物件 | 目前選取了 Row 或另一個文字層。 | Layers 的選取列。 | 回第 1／4 步重新選 Title。 |
+| Demo | 正文提供的完整輸入／方法示範 | 講師建模本課首次方法與可見結果 | 完整理由及步驟 |
+| Together | 同一工作室任務清單／學員自己的完成物 | 正文「跟著做」需自行選層、設定與判斷 | 支援遞減，自己定位欄位、解釋檢查結果 |
+| Solo | 本課不同條件／修正後完成物 | 正文「自己完成」依新限制選擇方法 | 獨立診斷與遷移，依完成條件判斷 |
 
-把現象、回修位置與重跑結果寫入<a href="../courses/uiux-designer/assets/A7-list-content/reference/EXPECTED-CHECK.html">A7 完成檢查表</a>。動態增刪與資料切換仍標成未測，不用圖層名稱代替行為證據。
+素材：正式正文的可複製資料、每課 START-HERE、完成檢查表、共用視覺參考，B7 有 PSD，B8 有下載 ZIP。素材存在／版本由驗證紀錄確認，不以本段自填 PASS。
 
-## 7. 驗收與交接（Verify）
+<!-- learner-content:start -->
+# 把任務做成會增高、可增刪的清單
 
-- `List / Item / Row 01`、`Row 02` 在同一個 Frame 內，尺寸與位置可讀。
-- `List / Item / Title` 寬 180、Auto height，長標題能換行。
-- `List / Empty / Message` 顯示「目前沒有清單項目」。
-- Solo 版本的行數、Height 與修正點已記錄。
-- 截圖、Figma 檔連結與未測試邊界已保存。
+兩個矩形加兩段文字，還不能承受真實清單內容。本堂建立有層級的任務列，測試長標題、增加與刪除資料，並做出空清單。你會留下後續原型實際使用的List與Detail畫面。
 
-### 交給 A8
+## 開始前，先找到材料與起點
 
-保留兩個 Row、Title 的內容壓力設定與 Empty Message。A8 會把這些視覺狀態整理成 Toast、Dialog 與 Navigation 的回饋規則；List 的動態增刪與資料切換要另立測試案例。
+前堂已完成登入與Button family。你只需能插入Primary／Default的Button。若不會區分Frame和Rectangle，回第01堂速查；本堂不借用尚未建立的List Top。
 
-### 課前驗證待辦
+先開啟[本堂起始材料（HTML）](../../courses/uiux-designer/assets/A7-list-content/START-HERE.html)，讀取輸入與圖層名稱；操作在你的 Figma 檔或本堂指定工具完成。完成後到[本堂完成檢查表（可儲存／下載）](../../courses/uiux-designer/assets/A7-list-content/reference/EXPECTED-CHECK.html)記錄實際結果。
 
-- [ ] 以乾淨 Draft 重做兩個 Row 與長標題。
-- [ ] 由另一位學員依頁面完成一次冷讀。
-- [ ] 以不同 Figma 帳號重跑並記錄權限差異。
+## 用固定資料建立第一張清單
+
+使用[任務資料CSV](../../courses/uiux-designer/assets/shared/TASK-DATA.csv)，也可以直接複製下表。ID是資料的固定名字，方便測試與交接；顯示的中文標題可以修改。
+
+| ID | 標題 | 期限 | 狀態 |
+|---|---|---|---|
+| T01 | 整理交付包 | 今天18:00 | 待處理 |
+| T02 | 確認活動報名資料並補上聯絡電話 | 明天12:00 | 待處理 |
+| T03 | 更新本週任務說明 | 星期五17:00 | 待處理 |
+
+每一列包含Title、Meta、可點選線索（例如「檢視詳情 →」）；整列由一個Auto Layout Frame包住，才知道哪些內容屬於同一筆。List父框再包住多個Row，增刪時能重新排列。
+
+## 示範：做一列可隨長文字增高的任務
+
+1. 新建手機Frame `Screen / List`，402×874，底色Surface。在x24、y48加入「待處理清單」，24／32。
+2. 在畫布建立 `Row / Title`文字「整理交付包」，18／28；建立 `Row / Meta`文字「待處理 · 今天18:00」，14／22；建立 `Row / Link`文字「檢視詳情 →」，14／22、Primary色。
+3. 選這三個文字層按Shift+A，命名 `Row / Task`，Vertical、Gap8、四邊Padding16、W354、Height Hug、白底、圓角8。三文字W Fill、Auto height。短標題一行時，列高為 `16＋28＋8＋22＋8＋22＋16＝120`。
+4. 建立兩個Row副本，按資料表改標題、期限和ID名稱為 `Row / T01`、`Row / T02`、`Row / T03`。第二筆標題應自然換行，Row變高；不改18／28字級來縮短它。
+5. 同選三列按Shift+A，命名 `List / Content`，Vertical、Gap12、W354、Hug高、Padding0；放入Screen / List，x24、y110。若父框新增預設padding，改0，否則列寬會意外變小。
+6. 在Layers確認每個Row包住自己的Title／Meta／Link；List包住全部Row。點T02的Title時只能編輯第二筆，不要選到外面的孤立文字。
+
+**檢查點：**第二列變高時第三列自動下移；每列內留16，列與列之間12；List寬354；畫面標題不跟著增加資料移到列表裡。
+
+## 跟著做：資料筆數與空狀態
+
+1. 複製第三列為T04，改標題「核對本週發票」及期限「明天17:00」。觀察List高度增加一列高度加12，不手動移動其他列。
+2. 刪除T02，T03與T04應自動上移。Undo復原後，再刪除剛新增的T04，主線回到原3筆；兩個結果都要記錄。
+3. 複製手機為 `Screen / List Empty`。將所有Row從這張畫面移除，在相同Content位置放「目前沒有待處理任務」與「新任務會顯示在這裡」。空狀態是可辨認的資訊，不是只有空白Frame。
+4. 複製T01，將狀態改為「已完成」，名稱 `Row / T01 Done`；保留相同層級與Title，狀態文字與成功圖示一起表示完成。第12堂會使用已完成清單，不只用綠色暗示。
+5. 新建 `Screen / Detail`，402×874：頂部文字「← 返回清單」，內文區x24、y120、W354，放T01標題、說明「核對檔名、尺寸與透明背景，整理成可重開的交付包。」、期限「今天18:00」，再放Primary／Default Button Instance「標記完成」，命名 `Button / Complete`。用Vertical／Gap20／Hug包住內文與按鈕。
+
+此時Detail只是有內容的畫面，點選不會真的切頁。下一階段才把Row與Detail連線。不要把沒有設定互動當作清單視覺製作失敗。
+
+## 卡住時，從正確層級修
+
+- 長Title裁切：選Title設Auto height與Fill，再選Row設Hug；兩者缺一都可能失敗。
+- 新Row沒有推開後面：檢查是否在List / Content內。只是放在外面會看似重疊，Auto Layout無從知道它屬於清單。
+- 整個List太寬：List W354／Padding0，Row W Fill／Padding16；不要把每層都留24，造成重複內縮。
+- 空狀態還留一筆舊資料：只清空List Empty副本，不刪掉主線的3筆；檢查Layers避免把原畫面一併清空。
+
+下一堂新增Navigation與Dialog。這堂的Screen / List、List Empty、Detail與三筆資料要留在同一份課程檔。
+
+## 自己完成：改變條件再檢查
+
+增加7筆不同標題的任務，至少一筆超過兩行，讓總數為10筆；再做0筆空狀態及只剩1筆的版本。三種筆數都要有合理內容、不重疊、不留下多餘Gap。另將畫面與List寬改360／312，判斷是哪一層需要Fill。長列表超出874是正常現象，保留長內容作第13堂滾動輸入。
+
+## 完成條件與理解檢查
+
+- 三筆主線Row都有Title、Meta、Link與自己的Auto Layout，List能隨增刪重排。
+- 長標題增加Row高度、下列移動；空狀態明確，不是空白。
+- Screen / Detail有T01資料與Button / Complete，後續連線可以直接使用。
+
+**想一想：**把List最後一列刪掉後，為什麼不應留著它原來的空白高度？
+
+<details><summary>展開參考答案與理由</summary><p>垂直Auto Layout用現有子層及Gap計算高度。刪除一列後父框Hug應縮小；若留空白，檢查固定高度、空佔位Frame或子層是否仍存在。</p></details>
+
+## 本堂查證來源
+
+- [Figma：Auto Layout](https://help.figma.com/hc/en-us/articles/360040451373-Guide-to-auto-layout-in-Figma)
+
+來源查證：2026-10-09。
+<!-- learner-content:end -->
+
+## 講師授課筆記（不進講義）
+
+先用正文入口題檢查前提，再以短示範讓學員同步操作。每次核心狀態改變立即檢查；主要時間用於自行製作、同儕解釋、錯誤修復與新條件作品。先核對學員真實工具權限與檔案；未達完成條件回到本堂修復位置，不以教師代做當成完成。此稿為作者設計與自審，真人理解／遷移與平台實測須另留證據。

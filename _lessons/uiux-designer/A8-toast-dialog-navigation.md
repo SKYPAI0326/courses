@@ -1,113 +1,98 @@
 ---
-course: uiux-designer
-unit: A8
-title: Toast、Dialog 與 Navigation
-hours: 4h
-lesson_type: skill-operation
-prerequisite: A5, A6, A7
-platform: Figma Starter／Free + Chrome
-status: MACHINE_READY_PENDING_HUMAN
+slug: uiux-designer
+unit_id: A8-toast-dialog-navigation
+title: 設計能讓人知道下一步的回饋、彈窗與導覽
+course_type: skill-operation
+duration: 4h
+prerequisites: [A7-list-content]
+revision: 2026-10-09
+style_guide: ../../_outlines/uiux-designer.style-guide.md
+platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體另記平台證據
 ---
 
-<!--
-教案 A8 · Toast、Dialog 與 Navigation
+## 內部設計（不進學員頁）
 
-本單元承接 A5 的狀態欄位、A6 的 Button／Form 與 A7 的 List／空狀態。學員建立 Toast、Dialog、Navigation 的視覺層與命名，為下一階段 Prototype 準備可辨識的畫面材料。Probe A 的 A-20～A-22 已確認三種視覺層可在 Starter／Free 建立。
+本課新增能力：依情境選擇回饋，建立能包子層的Dialog與Actions，設計Nav選中規則。依 `_design/COURSE-BLUEPRINT.md` 的同檔案整合路徑；保留 99h 行政配置，未以真人試跑鎖定分鐘。
 
-本堂的完成條件集中在回饋內容、彈窗內容容器與導覽位置；出現時機、Overlay、關閉、置頂、滾動與 Prototype 連結要在 Part B 另立測試案例。
--->
-
-## 教學流程（Teaching Flow）
-
-> **課型：skill-operation**。順序：接手成果 → 情境 → 概念 → 示範 → 同步操作 → 變因練習 → 驗收與交接。
-> **本節完成物：** `Toast / Success`、`Dialog / Confirm`、`Navigation / Header` 三種視覺層與狀態內容表。
-
-## 1. 情境與問題（Hook）
-
-清單完成一個動作後，使用者需要知道結果；要刪除一筆資料時，需要先看清楚確認內容；從登入到清單時，需要知道目前在哪一頁。三種訊息放在同一個灰色矩形裡，下一位工作者無法判斷它的責任與使用時機。
-
-這一堂先把三種視覺責任分開：Toast 傳遞短暫結果、Dialog 承載需要決定的內容、Navigation 顯示目前位置與可去的地方。你會留下可供 B1／B2 建立 Prototype 的畫面材料。
-
-## 2. 先理解三個判斷點（Concepts）
-
-| 元素 | 要處理的訊息 | 本堂證據 |
-|---|---|---|
-| Toast | 一次動作完成後的短結果 | `Toast / Success`，文字可在元件內補上。 |
-| Dialog | 需要使用者確認或取消的內容 | `Dialog / Confirm`，固定 260×150 容器。 |
-| Navigation | 目前位置與主要去向 | `Navigation / Header`，含「首頁／清單／設定」。 |
-
-### 邊界規則
-
-- 視覺層先有可讀名稱、尺寸與內容層級。
-- 是否自動出現、何時消失、是否阻擋背景，要靠 Prototype 操作驗證。
-- 是否置頂、是否跟著滾動，要在後續頁面測試，不從名稱推論。
-
-## 3. 示範（Demo）
-
-示範在 A7 的 `Screen / Login`／`Screen / List Top` 工作區完成。每一個結果都在 Layers 或右側尺寸欄確認。
-
-1. 建立 `260×48` Rectangle，命名 `Toast / Success`。
-2. 在 Toast 內加入短文字「已儲存」，讓訊息責任清楚。
-3. 建立 `260×150` Rectangle，命名 `Dialog / Confirm`。
-4. 在 Dialog 內加入標題「刪除這筆資料？」與按鈕文字「取消／確認」。
-5. 建立文字層，輸入「首頁    清單    設定」，命名 `Navigation / Header`。
-6. 把 Navigation 放在畫面上方，Dialog 保留內容區，Toast 放在不遮住主要操作的位置。
-7. 截圖三個 Layers、尺寸與文字，填入 A8 完成檢查表。
-
-### 示範的判斷
-
-Toast、Dialog、Navigation 的責任不同，尺寸與文字層級要讓接手者一眼分辨。這些材料還沒有互動；互動證據要在 Prototype 頁面取得。
-
-## 4. 跟著做（Together）
-
-| 步驟 | 學員動作 | 預期結果 | 快速檢查 | 卡住時的回修 |
-|---:|---|---|---|---|
-| 1 | 開啟 A7 檔與 A8 起始材料，選取清單 Frame。 | A7 的 Row、Title、Empty Message 仍可找到。 | Layers 的父層正確。 | 回 A7 檢查檔案與 Frame。 |
-| 2 | 建立 260×48 Rectangle，命名 `Toast / Success`。 | Layers 有 Toast，W/H 可讀。 | 右側 W/H 為 260／48。 | 選 Rectangle 重新設定尺寸與名稱。 |
-| 3 | 加入「已儲存」文字。 | Toast 內有可讀短結果。 | 文字不遮住邊界。 | 先選文字層，再從右側 Content 重填。 |
-| 4 | 建立 260×150 Rectangle，命名 `Dialog / Confirm`。 | Layers 有 Dialog，內容區可辨識。 | 右側 W/H 為 260／150。 | 回到外層 Frame 選取，再建立 Rectangle。 |
-| 5 | 加入標題與「取消／確認」文字。 | Dialog 有標題與兩個選項。 | 內容層級不與背景混在一起。 | 逐個文字層命名並重新排列。 |
-| 6 | 建立 `Navigation / Header`，輸入「首頁／清單／設定」。 | Layers 有 Navigation，畫面上方可看到文字。 | 位置與文字內容可讀。 | 先選 Text，再改名稱與位置。 |
-| 7 | 填寫檢查表，保存三類截圖與邊界紀錄。 | 交接包說明視覺責任與未測行為。 | 有 Layers、尺寸、文字三類證據。 | 逐項補拍，不能只寫「已完成」。 |
-
-> **Checkpoint 1**：你能分別指出 Toast、Dialog、Navigation 的責任、尺寸與文字；每一層都能在 Layers 找到。
-
-## 5. 自己改一個條件（Solo）
-
-只改 Dialog 內容，將標題換成「要移除這個清單項目嗎？」並保留 260×150、Toast、Navigation 與按鈕文字。
-
-1. 只選 Dialog 內的標題文字，透過右側 Content 替換內容。
-2. 觀察長標題是否需要兩行，以及容器是否仍能容納文字。
-3. 確認 Toast 與 Navigation 名稱、位置沒有被改動。
-4. 記錄行數、容器高度與需要修正的位置。
-
-> **Checkpoint 2**：Dialog 長標題沒有被裁切；Toast 與 Navigation 仍可讀；檢查表記下至少一個觀察或修正。
-
-## 6. 卡住時怎麼回修
-
-| 現象 | 可能原因 | 回修位置 | 重跑起點 |
+| 活動 | 素材／產物 | 操作與決策 | 認知工作／支援 |
 |---|---|---|---|
-| 三種元素混在一起 | 建立時沒有用責任命名。 | Layers 名稱。 | 回第 2／4／6 步重新命名。 |
-| Dialog 內容被裁切 | 容器固定高度，標題沒有換行空間。 | Dialog 與文字層的 Resizing。 | 回第 5 步調整文字與容器。 |
-| Toast 遮住主要操作 | 只看畫布位置，沒有檢查主要按鈕。 | Toast 位置與畫面層級。 | 回第 6 步重新放置。 |
-| Navigation 文字改到錯的層 | 目前選取了畫面或其他文字。 | Layers 的選取列。 | 回第 6 步重新選 Header。 |
+| Demo | 正文提供的完整輸入／方法示範 | 講師建模本課首次方法與可見結果 | 完整理由及步驟 |
+| Together | 同一工作室任務清單／學員自己的完成物 | 正文「跟著做」需自行選層、設定與判斷 | 支援遞減，自己定位欄位、解釋檢查結果 |
+| Solo | 本課不同條件／修正後完成物 | 正文「自己完成」依新限制選擇方法 | 獨立診斷與遷移，依完成條件判斷 |
 
-把現象、回修位置與重跑結果寫入<a href="../courses/uiux-designer/assets/A8-toast-dialog-navigation/reference/EXPECTED-CHECK.html">A8 完成檢查表</a>。互動、Overlay、關閉與置頂仍標成未測，不用圖層名稱代替行為證據。
+素材：正式正文的可複製資料、每課 START-HERE、完成檢查表、共用視覺參考，B7 有 PSD，B8 有下載 ZIP。素材存在／版本由驗證紀錄確認，不以本段自填 PASS。
 
-## 7. 驗收與交接（Verify）
+<!-- learner-content:start -->
+# 設計能讓人知道下一步的回饋、彈窗與導覽
 
-- `Toast / Success` 為 260×48，含短結果文字。
-- `Dialog / Confirm` 為 260×150，含標題與取消／確認文字。
-- `Navigation / Header` 含首頁、清單、設定，位置可辨識。
-- Solo Dialog 長標題的行數、容器高度與修正點已記錄。
-- 三類截圖、Figma 檔連結與未測試邊界已保存。
+使用者想知道任務是否完成，也需要能取消的確認步驟。本堂做出Toast、Dialog和Navigation三種完整容器，先教何時使用與內容層級，再把它們接到前堂的清單與詳情。真正開關Overlay留到第12堂。
 
-### 交給 B1
+## 開始前，先找到材料與起點
 
-保留三種視覺層、文字責任與尺寸表。B1 會把任務拆成畫面清單與 Prototype 入口；B2 再測觸發與連結。A8 不提前宣稱 Overlay、關閉、置頂或滾動成立。
+先確認第07堂有List、List Empty、Detail，且Detail有Button / Complete。若缺其中一個，回前堂末段重建；Dialog的取消與確認Button來自第05堂元件，不引用不存在的畫面。
 
-### 課前驗證待辦
+先開啟[本堂起始材料（HTML）](../../courses/uiux-designer/assets/A8-toast-dialog-navigation/START-HERE.html)，讀取輸入與圖層名稱；操作在你的 Figma 檔或本堂指定工具完成。完成後到[本堂完成檢查表（可儲存／下載）](../../courses/uiux-designer/assets/A8-toast-dialog-navigation/reference/EXPECTED-CHECK.html)記錄實際結果。
 
-- [ ] 以乾淨 Draft 重做 Toast、Dialog、Navigation。
-- [ ] 由另一位學員依頁面完成一次冷讀。
-- [ ] 以不同 Figma 帳號重跑並記錄權限差異。
+## 先選對回饋方式
+
+Toast短暫告訴你已發生的結果，不要求立刻選擇；Dialog需要人先回應再繼續，例如確認重要操作；Navigation負責目前在哪裡、能去哪裡。不要每完成一件小事都跳確認視窗，也不要把必須回答的問題塞進會消失的Toast。
+
+| 情境 | 元素 | 應出現的內容 |
+|---|---|---|
+| 任務已移到已完成 | Toast | 「任務已完成」＋成功線索 |
+| 準備完成一筆任務、需要先確認 | Dialog | 明確標題、結果說明、取消與確認 |
+| 在待處理／已完成間切換 | Navigation | 目前頁突出、另一頁仍可辨認 |
+| 帳號格式錯誤 | 欄位Helper | 保留在該欄附近，第06堂做法；不使用Toast掩蓋 |
+
+## 示範：真正可包含子層的Dialog
+
+1. 在手機Frame外新建Frame，命名 `Overlay / Confirm`。建立文字 `Dialog / Title`「確認完成？」24／32，以及 `Dialog / Body`「這筆任務將移到已完成清單。」16／24。
+2. 插入兩個Button Instance：Secondary／Default、Label「取消」、名稱 `Button / Cancel`；Primary／Default、Label「確認完成」、名稱 `Button / Confirm`。
+3. 同選兩按鈕按Shift+A，命名 `Dialog / Actions`，Horizontal、Gap12、W272、Hug高；兩按鈕各W Fill、H48。這代表每個130寬，因為 `(272−12)÷2＝130`。這組Label正常能讀；換成長Label時先測，不硬壓文字。
+4. 將Title、Body、Actions放入Overlay / Confirm；對外框新增Auto Layout，Vertical、Gap16、四邊Padding24、W320、Hug高、白底、圓角8。Title與Body W Fill、Auto height，Actions W Fill。外框可以包住子層，Rectangle不能代替這個父Frame。
+5. 檢查閱讀順序：問什麼→造成什麼結果→取消或確認。Dialog內不放Bottom nav，背景畫面會在第12堂透過Overlay保留。
+
+**檢查點：**Layers中Overlay / Confirm確實包住Title、Body、Actions；兩按鈕同高且間隔12；關鍵訊息清楚，不只寫「你確定嗎？」。
+
+## 跟著做：Toast與Navigation
+
+1. 新建成功訊息，T輸入「任務已完成」，16／24；在旁建立小勾號或文字「✓」，Success色。選兩物件按Shift+A，命名 `Toast / Success`，Horizontal、Gap8、水平Padding16、垂直12、深底白字、Hug寬與高。這是容器加訊息，不是只有背景矩形。
+2. 複製Screen / List為 `Screen / List Done`，T01改「已完成」，列表標題可保留「任務清單」。把Toast放在畫面頂部內容區，避免蓋住主要操作；第12堂使用它呈現確認結果。原List仍保持T01待處理。
+3. 建文字「待處理」與「已完成」，各16／24。用各自小Frame包住，寬201、高64、水平及垂直置中；目前頁用Primary字與底線，另一頁用Text字。底線和文字共同表示選中，不只換色。
+4. 同選兩小Frame按Shift+A，命名 `Nav / Bottom`，Horizontal、Gap0、W402、H64、白底。放進Screen / List，x0、y810。用同樣元件放進List Done，選中狀態改已完成。現在不設固定滾動，第13堂才教Fixed。
+5. 複製桌面參考，建立 `Nav / Desktop` W1200、H64的上方水平導覽，保留目前頁標示。手機只放短文字，桌面可加入工作室名稱與較完整連結；兩者用途相同，位置及資訊密度不同。
+6. 故意把Dialog Body改成長說明「確認後這筆任務會移到已完成清單；如果資料尚未核對，請先取消並返回詳情修正。」檢查Title／Body高與外框Hug，Actions向下排列。
+
+## 放進作品時，保留清楚的回應
+
+目前作品應有Login、List、List Empty、Detail、List Done與Overlay / Confirm。主線是Login→List→Detail→Confirm→List Done，取消應留在Detail。不要因為這堂做了Toast就新建一條與任務無關的流程。
+
+**卡住時：**Dialog子層無法移進背景Rectangle，改用Frame；Actions擠在一起，先檢查272內寬與12間距，再把文字改短或用垂直Actions，不縮到難讀；Navigation選中頁看不出來，補底線與文字；Toast蓋住重要按鈕，調整出現位置或持續方式。不同元素的錯誤要回到對應容器修，不把整張手機放大。
+
+下一堂用這些物件規劃線框與原型流程。儲存可重開的元件與畫面，不能只儲存一張PNG；PNG不包含層級和互動。
+
+## 自己完成：改變條件再檢查
+
+有一筆任務即將被永久刪除，另有一筆只是已儲存。你要各選Dialog或Toast並寫理由，做出合理文字及取消路徑；刪除例僅製作示意，不操作真實資料。再把Confirm改成長標題並將Actions改垂直，保持每個Button W Fill／H48。比較水平與垂直選擇：長文字與窄寬度時哪個更可讀。
+
+## 完成條件與理解檢查
+
+- Toast包含結果文字；Dialog包含標題、說明與取消／確認兩個完整Button。
+- Navigation有目前頁標示，手機與桌面資訊配置有清楚理由。
+- 長Dialog內容仍完整，List Done與Confirm可供後課接線，沒有拿Rectangle當父容器。
+
+**想一想：**「資料儲存成功」為什麼通常不必用需要按確認才能離開的Dialog？
+
+<details><summary>展開參考答案與理由</summary><p>成功訊息通常只需告知結果，Toast能提供回饋且不中斷主要工作。需要使用者作決定、理解重要後果時才用Dialog；不能讓必要錯誤訊息自動消失。</p></details>
+
+## 本堂查證來源
+
+- [W3C：狀態訊息](https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html)
+- [Figma：Auto Layout](https://help.figma.com/hc/en-us/articles/360040451373-Guide-to-auto-layout-in-Figma)
+
+來源查證：2026-10-09。
+<!-- learner-content:end -->
+
+## 講師授課筆記（不進講義）
+
+先用正文入口題檢查前提，再以短示範讓學員同步操作。每次核心狀態改變立即檢查；主要時間用於自行製作、同儕解釋、錯誤修復與新條件作品。先核對學員真實工具權限與檔案；未達完成條件回到本堂修復位置，不以教師代做當成完成。此稿為作者設計與自審，真人理解／遷移與平台實測須另留證據。

@@ -1,123 +1,101 @@
 ---
 slug: uiux-designer
 unit_id: A4-component-instance
-title: 建立主元件與第一個 Instance
+title: 改一次來源，讓多個按鈕一起更新
 course_type: skill-operation
 duration: 5h
-learning_objective: 在 Figma Starter／Chrome 中，從手機登入區塊建立一個可從 Assets 重用的主元件，插入一個 Instance，並說明兩者的編輯邊界。
 prerequisites: [A3-auto-layout-pressure]
+revision: 2026-10-09
 style_guide: ../../_outlines/uiux-designer.style-guide.md
-platform_version: Figma Starter／Free、Google Chrome（2026-09-16 Probe A 機器證據）
+platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體另記平台證據
 ---
 
-## 教學流程（Teaching Flow）
+## 內部設計（不進學員頁）
 
-### 破題 / Hook
+本課新增能力：驗證主元件同步、個別Override及錯誤修復，讓來源與使用處關係可觀察。依 `_design/COURSE-BLUEPRINT.md` 的同檔案整合路徑；保留 99h 行政配置，未以真人試跑鎖定分鐘。
 
-阿凱把登入區塊放進兩個畫面：登入頁需要一份，活動報名頁也需要同樣的標題結構。直接複製圖層會留下兩份各自修改的內容，之後很難確認哪一份才是最新版。本單元把 A3 已經調整好的登入區塊建立成主元件，再從 Assets 插入一個 Instance。完成物是一個可被找到、可被插入，而且有清楚編輯邊界的元件。
+| 活動 | 素材／產物 | 操作與決策 | 認知工作／支援 |
+|---|---|---|---|
+| Demo | 正文提供的完整輸入／方法示範 | 講師建模本課首次方法與可見結果 | 完整理由及步驟 |
+| Together | 同一工作室任務清單／學員自己的完成物 | 正文「跟著做」需自行選層、設定與判斷 | 支援遞減，自己定位欄位、解釋檢查結果 |
+| Solo | 本課不同條件／修正後完成物 | 正文「自己完成」依新限制選擇方法 | 獨立診斷與遷移，依完成條件判斷 |
 
-### 概念 / Concepts
+素材：正式正文的可複製資料、每課 START-HERE、完成檢查表、共用視覺參考，B7 有 PSD，B8 有下載 ZIP。素材存在／版本由驗證紀錄確認，不以本段自填 PASS。
 
-- **主元件（Main component）** — 保存元件結構的來源；A4 只建立單一狀態，狀態切換留給 A5。
-- **Instance** — 從主元件插入的可重用物件；它的來源關係可在右側面板確認。
-- **Assets** — Figma 顯示本檔可重用元件的位置；建立後要在這裡確認結果。
-- **編輯邊界** — Instance 的主版面控制可能呈唯讀或 disabled；需要改結構時回到主元件。
-- **可追溯命名** — `Login / Heading` 與 `Instance / Login heading` 讓 Layers、Assets、交接紀錄指向同一個成果。
+<!-- learner-content:start -->
+# 改一次來源，讓多個按鈕一起更新
 
-### 操作示範 / Demo
+登入、詳情與彈窗都需要相同的按鈕。複製一般Frame只會得到幾個互不相干的物件；本堂建立主元件與兩個Instance，實際驗證共同外觀更新與各自文字覆寫。
 
-示範從 `Mobile / Login & List` 的登入區塊開始。來源容器已經有垂直 Auto Layout 與文字 `登入`；建立主元件時要選容器，不要只選文字。示範終點包含 Layers 的主元件、Assets 的本檔 component，以及畫布上的一個 Instance。
+## 開始前，先找到材料與起點
 
-| 步驟 | 操作 | 看到的結果 | 快速檢查 |
-|---:|---|---|---|
-| 1 | 開啟 A4 起始材料的 Figma 檔；若無編輯權，依起始頁重建 402×874 Frame | 能選取 `Mobile / Login & List` | 右側尺寸是 402×874 |
-| 2 | 在 Layers 選取包含 `登入` 的 Auto Layout 容器 | 整個登入區塊被框選 | 文字是子層，容器是目前選取對象 |
-| 3 | 執行 `Create component` | Figma 顯示 component 設定，來源容器變成主元件 | Assets 可準備搜尋本檔 component |
-| 4 | 將主元件命名為 `Login / Heading` | Layers 顯示可讀的分組名稱 | 名稱使用 `/` 分出功能與部位 |
-| 5 | 從 Assets 找到本檔 component，執行 `Insert instance` | 畫布上出現一個 Instance | 右側可看出它來自本檔 |
-| 6 | 將 Instance 命名為 `Instance / Login heading` | Layers 同時有來源與使用處 | 名稱不改動主元件名稱 |
-| 7 | 選取 Instance，觀察右側 Auto Layout 控制 | 主版面控制可能呈唯讀或 disabled | 這是來源關係的提示，不是錯誤 |
-| 8 | 重新選取主元件，確認來源名稱與 A3 的文字仍在 | 主元件與 Instance 都留在檔案中 | 沒有建立 Variant 或 Property |
+在第03堂卡片找到含Label的Button / Draft；點外框能看到Auto Layout與H48才算通過。缺少時用文字「登入」按Shift+A，水平內距16、垂直12、綠底白字，先補成完整按鈕。
 
-**示範完成物**：`Login / Heading` 主元件、`Instance / Login heading` Instance、A4 完成檢查表與 Figma 檔連結。這三項會交給 A5，作為加入 Variants 與 Property 的起點。
+先開啟[本堂起始材料（HTML）](../../courses/uiux-designer/assets/A4-component-instance/START-HERE.html)，讀取輸入與圖層名稱；操作在你的 Figma 檔或本堂指定工具完成。完成後到[本堂完成檢查表（可儲存／下載）](../../courses/uiux-designer/assets/A4-component-instance/reference/EXPECTED-CHECK.html)記錄實際結果。
 
-### 動手 / Hands-on
+## 來源與使用處的關係
 
-先照示範建立第一個主元件，再用同一套路徑完成一個 `Notice / Helper` 元件。Solo 只改一個主要變因：把來源文字從 `登入` 換成 `請確認帳號`；Frame 尺寸、Auto Layout 方向與驗收方式維持不變。
+主元件（Main component）儲存共用的結構與預設外觀；Instance是由它產生的使用處，保持連結。主元件改圓角，兩個Instance應同步；某個Instance的文字改成「下一步」，不應把其他按鈕的文字改掉。這種個別修改叫Override／覆寫。
 
-| 步驟 | 模式 | 你的操作 | 預期結果 | 快速檢查 | 卡住時的修復 |
-|---:|---|---|---|---|---|
-| 1 | Together | 開啟起始檔並找到 `Mobile / Login & List` | A3 的手機畫面仍在 | Frame 為 402×874 | 切到 Design，從 Layers 選 Frame |
-| 2 | Together | 選取包含 `登入` 的 Auto Layout 容器 | 整個容器被框選 | 子層文字沒有單獨被選取 | 在 Layers 往上一層選取容器 |
-| 3 | Together | 執行 `Create component` | Assets 出現本檔 component | 右側顯示 component 設定 | 若按鈕不存在，先確認選取的是容器 |
-| 4 | Checkpoint | 命名 `Login / Heading` 並查看 Layers | 名稱可讀且沒有重複 | 來源名稱與 Instance 名稱尚未混用 | 只在 Layers 重新命名來源 |
-| 5 | Together | 從 Assets 插入一個 Instance | 畫布出現可選取的 Instance | 右側顯示來源關係 | 開啟 Assets 的本檔分類再搜尋 |
-| 6 | Together | 命名 `Instance / Login heading` | 使用處可被辨識 | `/` 前後的功能一致 | 先選 Instance 再改名，不要改來源 |
-| 7 | Checkpoint | 選取 Instance，查看 Auto Layout 控制 | 主版面控制呈唯讀或 disabled | 知道要回主元件修改 | 重新選來源主元件比較兩者面板 |
-| 8 | Solo | 複製 A3 的登入區塊，將文字改為 `請確認帳號`，重做主元件與 Instance | Assets 多一個可辨識的本檔 component | 只改文字，其餘設定不變 | 回到 A3 的容器設定，重新確認 Auto Layout |
-| 9 | Check | 開啟完成檢查表並記錄檔案連結 | 有可交接的 A4 證據 | 來源、Instance、限制都有紀錄 | 先保存 Figma，再補寫紀錄 |
+| 物件 | 做什麼 | 檢查線索 |
+|---|---|---|
+| 主元件 `Button / Base` | 儲存共同結構：Label、內距、對齊與填色 | 紫色主元件標記、Assets中可找到 |
+| `Button / Login` Instance | 登入畫面使用同一套按鈕 | 右側可回到Main component |
+| `Button / Complete` Instance | 詳情畫面使用，文字改為標記完成 | 改Label只影響本Instance |
+| 一般複製Frame | 不保留元件來源關係 | 修改原Frame後副本不會跟著變 |
 
-### 檢核 / Verification
+**不要先Detach。**Detach instance會中斷與來源的連結；它適合你確定要把物件變成獨立結構的時候，不能拿來解決「選錯層」或不知道去哪裡改共用設定。
 
-- [ ] `Login / Heading` 在 Layers 中是主元件。
-- [ ] Assets 能找到本檔建立的 component。
-- [ ] 畫布上有 `Instance / Login heading`。
-- [ ] 選取 Instance 時，我能指出它的來源與主版面控制邊界。
-- [ ] 我沒有把 Variant、Property、Button、Form 或 List 的功能提前算入 A4 成果。
-- [ ] 我已保存 Figma 檔連結與 A4 完成檢查表。
+## 示範：建立一個能更新的來源
 
-**交給下一單元**：A5 會使用 `Login / Heading` 主元件加入第二個狀態，並示範 Property 名稱與 Value 的正確關係。A5 不需要重新教 Frame、Auto Layout 或 Instance 插入。
+1. 在第03堂 `Login / Card` 中選 `Button / Draft` 外框，確認它包含Label、H48、水平內距16、垂直12與置中對齊。若目前是白字加綠色Rectangle兩個互不相關物件，先用Auto Layout包住Label；不可直接把只有形狀的Rectangle當成完整按鈕。
+2. 複製這個按鈕到手機Frame外的空白畫布，保留原版用於比較。將副本命名 `Button / Base`，外框寬度改Hug contents、高48，Label文字採Auto width；之後放入表單的Instance才依父框改W Fill。
+3. 右鍵選 Create component，或使用工具列的建立元件入口。選取後應看到紫色標記；Assets搜尋 `Button / Base`應找到本檔元件。
+4. 由左側Assets把元件拖到 `Screen / Login` 的卡片中，命名Instance為 `Button / Login`。在Layers將舊Draft移出卡片，避免兩個登入按鈕。若Assets找不到，可在主元件右鍵選Create instance，再將產生的Instance移進卡片。
+5. 再建立第二個Instance放在手機外的測試區，命名 `Button / Complete`。進入其Label子層，把文字改為「標記完成」；外框寬度Hug時應變寬，文字與左右內距仍保留16。
+6. 選主元件，將Corner radius從4改成12。不要選Login Instance，也不要選Label。兩個Instance應同時更新圓角；Complete的文字仍然是「標記完成」。
+7. 記錄來源／兩個Instance修改前後的畫面。再把主元件圓角還原為8，作為本課視覺規格。
 
-## 試跑包需求清單（Verification Asset Spec）
+**中間結果：**你現在應有1個主元件、2個Instance與1個一般Frame比較樣本。主元件改圓角，兩Instance跟著改，一般Frame不變。這才證明連結有效，只有Assets搜尋結果還不足。
 
-- 起始材料：[A4 起始材料](../../uiux-designer/assets/A4-component-instance/START-HERE.html)。
-- 完成檢查：[A4 完成檢查表](../../uiux-designer/assets/A4-component-instance/reference/EXPECTED-CHECK.html)。
-- 實測來源：[Probe A](../../uiux-designer/_validation/figma-starter-browser/PROBE-A.md)，對應 A-05、A-07。
-- 外部工作檔：[Codex Figma Starter Audit｜Probe A](https://www.figma.com/design/tSpQYGtYKwGLT9YtIFk9uC/Codex-Figma-Starter-Audit---Probe-A?node-id=1-15&t=dayHaBLEXHGo96a6-0)。
-- 平台邊界：Figma Starter／Free、Chrome；如果工作檔無法編輯，使用路徑二重建，不按 Upgrade。
-- 交付證據：Figma 檔連結、Layers 截圖、Assets 截圖、完成檢查表。
+## 跟著做：分清楚要改來源還是使用處
 
-## 商業情境案例（Case）
+1. 在Login Instance改文字「登入工作室」，在Complete Instance保留「標記完成」。先說出這是共用修改或個別覆寫，再操作。
+2. 回主元件把文字字重改為Medium500；兩個未覆寫字重的Instance應同步。這次看的是字重，不用再建立第三份相同元件。
+3. 在Layers選Complete Instance，檢視主元件連結。若看到Go to main component，點它應回到 `Button / Base`；若沒有，檢查是否誤用了普通複製Frame。
+4. 用同一來源多插入一個Instance，改Label為「取消」。讓同學指出哪些設定仍由主元件控制，哪些是你在使用處覆寫的。此時取消還是同樣外觀，主次樣式下一堂處理。
+5. 儲存一份修改紀錄：改哪個層、改哪個屬性、哪些物件跟著變、哪些沒有變。元件的價值是可追蹤的更新關係，不是紫色外框本身。
 
-**角色**：阿凱，弄一下行銷工作室行銷專員
+## 不同步時的修復
 
-**任務**：把登入區塊整理成可重用主元件，讓另一個手機畫面能插入同一個來源並留下可追溯的命名。
+- 只有一個Instance沒有更新顏色：檢查該屬性是否曾在Instance覆寫。可用Reset overrides恢復，但會一併重設相關覆寫；先記下要保留的文字再重設。
+- 兩個都不更新：確認選到主元件，而不是某一個Instance；也確認它們指向同一個來源。
+- 更新後Complete文字變回登入：可能重設了所有覆寫。還原文字，下一堂用Text property把Label做成更清楚的可調欄位。
+- Instance不能自由加減子層：共用結構應回主元件修改；不要為了新增一層就Detach所有使用處。
 
-**本單元要他學會**：建立主元件、從 Assets 插入 Instance、辨認來源與使用處的編輯邊界。
+主元件留在手機外的元件區，Instance放進手機畫面；下一堂會把來源擴成主次與停用四種狀態。
 
-## 動手練習題（Hands-on Exercise）
+## 自己完成：改變條件再檢查
 
-在同一個 Figma 檔中完成一份 `Notice / Helper` 主元件與一個 Instance。沿用 A3 的 402×874 Frame、垂直 Auto Layout 與 200 px 文字寬度，只替換文字為 `請確認帳號`。不要建立 Variant；狀態管理會在 A5 處理。
+建立第三個Instance，文字「返回清單」。先在此Instance覆寫填色，再修改主元件填色：預測哪幾個會更新，實際比對後修回共用規則。交出預測／觀察／修復的三欄紀錄。通過條件是能解釋覆寫造成的差異，不是全部手動改成同色。
 
-**預期成果**：`Login / Heading` 與 `Notice / Helper` 兩個可在 Assets 找到的本檔 component，以及至少一個可辨識來源的 Instance。
+## 完成條件與理解檢查
 
-**完成標準**（self-check）：
-- [ ] 每個主元件都有清楚的 `/` 命名。
-- [ ] 每個練習 Instance 都能在右側指出來源。
-- [ ] 來源容器保留 A3 的 Auto Layout 與文字寬度設定。
-- [ ] 檔案連結、截圖與限制說明已保存。
+- 主元件有完整Label與Auto Layout，Assets能找到來源。
+- 兩Instance能跟著來源的圓角／未覆寫字重更新，個別文字仍保留。
+- 能定位一次覆寫造成的不一致，回到正確來源或重設覆寫修復。
 
-## 常見錯誤 3 條（Common Pitfalls）
+**想一想：**為何從一般Frame複製兩個按鈕，無法達成「改一次全更新」？
 
-1. **只選到文字層**：Create component 後只包住 `登入`，外層 Auto Layout 沒有被重用。原因是 Layers 選取層級太深。回到 Layers 往上一層，確認整個登入區塊被框選，再重新建立主元件。
+<details><summary>展開參考答案與理由</summary><p>一般複製只有複本，沒有主元件連結。Instance儲存來源關係；共用屬性修改從主元件傳到未覆寫的使用處。文字等個別覆寫可以保留。</p></details>
 
-2. **建立後找不到 component**：畫面上看似完成，Assets 卻沒有結果。原因是還停在畫布選取狀態，沒有切到 Assets 的本檔分類。先開啟 Assets，再搜尋 `Login / Heading`；仍找不到時回到來源主元件檢查是否真的執行 Create component。
+## 本堂查證來源
 
-3. **把 Instance 的 disabled 當成故障**：選取 Instance 後，主 Auto Layout 控制呈唯讀或 disabled。這表示結構由來源主元件管理。回到 `Login / Heading` 修改來源；A4 不用 Detach，也不把 Instance 當成新的主元件。
+- [Figma：主元件與Instance](https://help.figma.com/hc/en-us/articles/360038662654-Guide-to-components-in-Figma)
 
-## 檢核題 2 條（Quiz）
-
-**Q1（概念驗證）**：哪一個物件保存可重用的來源結構？
-
-**答案**：主元件 `Login / Heading`。Instance 是從來源插入的使用處。
-
-**Q2（應用驗證）**：選取 Instance 後，Auto Layout 主版面控制呈 disabled，你會怎麼做？
-
-**答案要點**：先確認右側顯示來源關係；需要改結構時回到主元件；保留 Instance 關係，不用 Detach 掩蓋問題。
+來源查證：2026-10-09。
+<!-- learner-content:end -->
 
 ## 講師授課筆記（不進講義）
 
-- 建議先讓學員打開起始材料，再示範一次「選容器而非文字」；這是 A4 最常見的層級判斷。
-- 5h 可依「示範 60 分鐘、同步操作 120 分鐘、Solo 90 分鐘、檢查與交接 30 分鐘」調度；時間只供授課安排，不進學員頁。
-- 如果 Probe A 工作檔內容已包含 Variant，不要在 A4 展開 Property；請另開頁面或沿路徑二建立單一主元件。
-- `MACHINE_READY_PENDING_HUMAN` 的證據只代表機器路徑可跑；完成真人冷讀、跨帳號重跑與頁面連結檢查後，才能把 A4 改成 READY。
+先用正文入口題檢查前提，再以短示範讓學員同步操作。每次核心狀態改變立即檢查；主要時間用於自行製作、同儕解釋、錯誤修復與新條件作品。先核對學員真實工具權限與檔案；未達完成條件回到本堂修復位置，不以教師代做當成完成。此稿為作者設計與自審，真人理解／遷移與平台實測須另留證據。

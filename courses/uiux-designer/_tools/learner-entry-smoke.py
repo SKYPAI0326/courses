@@ -77,9 +77,9 @@ def main() -> int:
                 failures.append(f"{rel}: missing target {href}")
 
         if rel in REQUIRED:
-            action = re.search(r"<th>第一步</th><td", source)
+            action = re.search(r'<ol\b[^>]*class="[^"]*\bstep-list\b[^"]*"', source)
             if action is None:
-                failures.append(f"{rel}: missing first-action marker")
+                failures.append(f"{rel}: missing first ordered action list")
             else:
                 before_action = source[: action.start()]
                 material = re.search(r'href="(?:\.\./)?(?:assets|web-starter)/', before_action)

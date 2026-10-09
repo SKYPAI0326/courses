@@ -1,130 +1,45 @@
 ---
 slug: uiux-designer
 name: 介面元素與設計 × UI/UX 原型製作與資料打包
-color: "#c9963a"
-audience: 接近零基礎、需要從介面設計一路完成原型、交付包與基礎網站部署的成人學員
-institution: 弄一下工作室
+audience: 零設計與程式基礎，能使用瀏覽器與下載檔案的成人學員
 duration: 99h
-tools: Figma, Adobe Photoshop, VS Code, Chrome, HTML, CSS, 基礎 JavaScript, Git, GitHub, 雲端部署平台
-prac: true
 course_type: skill-operation
-pilot: false
-platform_version: Figma、Adobe Photoshop、VS Code、Chrome 與部署平台版本須於各單元 G2 依官方來源查證
-source_images: /Users/paichenwei/Downloads/1788509783989.jpg, /Users/paichenwei/Downloads/1788509797593.jpg
+revision: 2026-10-09
 governing_matrix: courses/uiux-designer/_design/99h-coverage-matrix.md
 time_ledger: courses/uiux-designer/_design/99h-time-ledger.md
-g1_status: PROBE_CONDITIONAL_MACHINE_EVIDENCE
+blueprint: courses/uiux-designer/_design/COURSE-BLUEPRINT.md
+status: REPAIRED_CONTENT_PENDING_PLATFORM_AND_HUMAN
 ---
 
-# 介面元素與設計 × UI/UX 原型製作與資料打包｜99h 大綱草稿
+# 介面元素與設計42h＋UI/UX原型製作與資料打包57h
 
-**狀態**：Gate 0 已通過；本檔仍為 Gate 1 草稿，正式時數尚未鎖定。A3、A4 與既有 B4／B6／B7／B8 已進入機器試點製作，尚未完成真人放行。
-**行政基準**：課程 9「介面元素與設計」42h＋課程 6「UI/UX 原型製作與資料打包」57h。  
-**切分原則**：依內容邊界、首次能力與可驗收完成物切單元，不將 ChatGPT 的 16-stage 硬性一對一映射成 16 個行政單元。
+依正式課綱圖片的12項介面主題及原型／資料打包主題，完成工作室待處理清單。沿用既有16單元與99h行政配置；2026-10-09補強首次方法、實際素材、完整任務、獨立遷移與部署路徑，不把篇幅或機器PASS當成已經授課驗證。
 
-## 課程定位（Positioning）
+課程能力與起點唯一來源見Blueprint；時數配置見time-ledger。元件／外觀在A首次教，互動／測試在B重用。Git／GitHub是已核准必要交付流程，JS只服務最小網站，不擴張後端或正式登入。
 
-為接近零基礎的學員建立一條可驗收的數位介面產出鏈：先完成色彩、字型、格線、Auto Layout 與元件系統，再把手機介面組成可真跑的互動原型，完成測試修正、Figma／Photoshop 資料打包、基礎網站、Git/GitHub 版本紀錄與雲端部署。
+| 單元 | 正式講義名稱 | 本堂能力 |
+|---|---|---|
+| A1 | 讓畫面看得清楚：色彩、字型與閱讀順序 | 依用途建立視覺規則，說明對比與非顏色線索，並在長句下檢查閱讀層級 |
+| A2 | 用格線安排手機與桌面版面 | 計算跨欄寬度，從桌面雙區轉成手機閱讀順序 |
+| A3 | 讓文字變長時，容器與按鈕一起排好 | 建立真正的Auto Layout階層，以文字／容器不同尺寸模式處理長句、增刪與寬度變化 |
+| A4 | 改一次來源，讓多個按鈕一起更新 | 驗證主元件同步、個別Override及錯誤修復，讓來源與使用處關係可觀察 |
+| A5 | 把主次按鈕與停用狀態做成可選的元件 | 設計互相獨立的Variant軸、四種狀態組合與可維持的Label屬性 |
+| A6 | 完成兩個欄位的登入表單與錯誤修正 | 組成多欄表單，分辨正常／錯誤／修正狀態，以Auto Layout處理長提示 |
+| A7 | 把任務做成會增高、可增刪的清單 | 完整Row父子層級、清單增刪與空狀態，並建立真實Detail畫面供原型串接 |
+| A8 | 設計能讓人知道下一步的回饋、彈窗與導覽 | 依情境選擇回饋，建立能包子層的Dialog與Actions，設計Nav選中規則 |
+| B1 | 把需求畫成線框，再組成可測試的流程 | 從任務規劃低細節線框，對映到真實元件與一致命名，指定Prototype入口 |
+| B2 | 連好登入、清單、詳情與返回 | 建立同檔多步基本Flow，檢查熱區、目的地與返回，分辨方案限制及故障 |
+| B3 | 用轉場說明方向，再做出可觀察的Smart Animate | 依用途選轉場與引數，製作同名同層級的前後狀態並診斷Smart Animate配對 |
+| B4 | 讓確認彈窗能開啟、取消、確認與交換 | 完整Overlay開關／確認、可取消規則與在已開彈層內Swap的實際路徑 |
+| B5 | 讓長清單能捲動，導覽與漂浮按鈕不擋內容 | 建立視窗／長內容關係，實測Vertical、Fixed、Sticky及遮擋，在完整Flow使用長列表 |
+| B6 | 讓別人跑完整任務，修正後再測一次 | 用整段任務測內容、導航、Overlay、Scroll及Swap，記錄失敗並回歸，完成新情境capstone |
+| B7 | 把設計整理成能重開、能量測的交付包 | 免費Design量測／Figma輸出、真實PSD操作與透明PNG，以及可重開的完整handoff |
+| B8 | 把設計做成網站，留下版本與公開網址 | 從完整可執行程式理解與修改網站，實作獨立Git基準／差異／遠端與公開部署更新 |
 
-本課程不是完整 UX 研究、品牌識別、前端工程或後端開發課；只涵蓋兩張正式課綱圖片明列的介面元素、UI/UX 原型、資料打包、網頁入門與雲端部署。基礎 JavaScript 僅保留完成最小網頁成果所需的範圍。Figma Starter 的免費主線以「一個測試檔、一個核心 Prototype action」為邊界；多步驟互動改用拆檔策略或明示付費方案。
+## 學習與環境邊界
 
-## 受眾畫像（Audience Profile）
+Starter同檔可有多個基本互動；同一trigger堆疊多actions與條件邏輯才是付費範圍。本課不用。免費主線從Design面板量測與Export，不要求Dev Mode。Photoshop需要授權工作站；GitHub Pages需要自己的帳號、公開示範repo與管理權限。
 
-- **職業／情境**：希望建立數位設計、行銷視覺、UI 原型或基礎網頁作品的成人學員。
-- **技術底子**：能操作一般電腦與瀏覽器；不預設 Figma、Photoshop、HTML、Git 或 GitHub 經驗。
-- **現有工具棧**：一般電腦、瀏覽器、可使用的 Figma／Adobe Photoshop、VS Code 與 GitHub 帳號。
-- **痛點 3 條**：
-  1. 能看出畫面好不好看，卻無法建立一致的色彩、字型、格線與元件規則。
-  2. 會建立靜態畫面，卻不知道如何讓觸發、Overlay、滾動與轉場服務任務流程。
-  3. 無法把 Figma／Photoshop 素材、版本、網頁原始檔與部署成果整理成可交付的完整包。
+核心作品包含Login→List Long→Detail→Confirm取消／確認→List Done與Toast；有T02、空狀態、Swap、Smart Animate、Sticky、Horizontal分支。B6在360×800新情境驗收整合能力。B7交出Figma／PSD來源、輸出、規格與測試；B8提供完整下載專案、程式說明、Git基準／更新與公開網址。
 
-## Brand Brief（品牌調性）
-
-- **tone_register**：技術友善
-- **mood_keywords**：扎實、清楚、可驗證
-- **differentiation**：不把工具功能清單當作課程，而是用一條可測試、可交付、可部署的設計產出鏈串起兩門行政課程。
-
-## 學習成果（Outcomes）
-
-1. **建立**可套用的色彩、字型、格線與 Auto Layout 規則，並以長文字、項目增刪與手機寬度變化驗證版面。
-2. **製作並維護** Component、Variants、Properties、Button、Form、List、Toast、Dialog 與 Navigation，讓主元件修改能同步 Instances。
-3. **組成並說明**一條從線框、畫面清單到手機介面與 Prototype Flow 的任務路徑。
-4. **製作並修正**包含觸發、轉場、Overlay、Swap、滾動、置頂、漂浮按鈕與 Smart Animation 的互動原型。
-5. **執行並記錄**固定任務測試，依錯誤分類修正原型，留下可回溯的測試紀錄與版本差異。
-6. **整理並交付** Figma／Photoshop 素材、Handoff 清單、基礎 HTML/CSS／最小 JavaScript 網站、Git/GitHub 版本紀錄與可公開開啟的雲端部署成果。
-
-## 前置知識依賴鏈（Prerequisite Chain）
-
-```yaml
-dependencies:
-  A1: []
-  A2: [A1]
-  A3: [A2]
-  A4: [A3]
-  A5: [A4]
-  A6: [A5]
-  A7: [A6]
-  A8: [A5, A6, A7]
-  B1: [A8]
-  B2: [B1, A4]
-  B3: [B2]
-  B4: [A8, B2]
-  B5: [A3, A8, B2]
-  B6: [B2, B3, B4, B5]
-  B7: [B3, B6]
-  B8: [A3, B6, B7]
-```
-
-## 試跑包交付規格（Verification Assets）
-
-每個單元 G2 必須提供：
-
-- 可直接開始的來源檔、Figma 起始檔或 HTML 起始專案，不把找檔當成核心學習。
-- 講師短示範材料、學員起始材料、完成參考、錯誤狀態與修復提示。
-- 固定任務腳本、預期畫面／檔案狀態、Checkpoint 與 Acceptance criteria。
-- Figma 單元提供 Frame、Component、Variant 或 Prototype 的可檢查起始狀態。
-- Photoshop／輸出單元提供可追蹤素材、格式／倍率規格與 Handoff 清單。
-- Web／Git／部署單元提供可重建 HTML/CSS、最小 JavaScript、相對路徑、Git/GitHub 操作紀錄與乾淨環境驗收。
-
-## 單元矩陣
-
-### Part A：介面元素與設計（42h）
-
-| Unit | 單元標題 | 學習目標 | 預估時數 |
-|---|---|---|---:|
-| A1 | 視覺基礎：色彩與字型 | 建立色彩角色、Typography scale 與長文字驗證規則 | 5h |
-| A2 | 格線與版面基準 | 建立桌機／手機格線、欄、間距與安全邊界 | 6h |
-| A3 | Auto Layout 與內容壓力 | 讓手機介面通過長文字、增刪項目與寬度變化 | 6h |
-| A4 | Component 基礎與 Instance | 從重複畫面抽取可維護的主元件與 Instances | 5h |
-| A5 | Variants、Properties 與狀態 | 建立狀態、屬性與不使用 Detach 的同步規則 | 6h |
-| A6 | Button 與 Form | 建立按鈕層級、表單輸入、錯誤與修正狀態 | 6h |
-| A7 | List 與內容變化 | 建立列表、空狀態、長文字與增刪規則 | 4h |
-| A8 | Toast、Dialog 與 Navigation | 建立回饋、彈窗與導航元件的視覺／狀態規則 | 4h |
-| **Part A 合計** |  |  | **42h** |
-
-### Part B：UI/UX 原型製作與資料打包（57h）
-
-| Unit | 單元標題 | 學習目標 | 預估時數 |
-|---|---|---|---:|
-| B1 | 線框、原型、工具與手機介面入口 | 將任務轉成畫面清單、手機 Frame 與 Prototype 入口 | 7h |
-| B2 | 觸發事件與互動連結 | 在單一 Starter 測試檔建立一個核心 Click／Tap 或 Navigate to；多步驟另拆檔 | 6h |
-| B3 | 常見轉場與動效目的 | 依任務目的選擇轉場並說明速度、方向與回饋 | 6h |
-| B4 | Overlay 與 Swap | 以獨立測試檔製作單一 Dialog／Overlay；Swap 以方案條件或拆檔示範 | 7h |
-| B5 | 滾動、置頂導覽與漂浮按鈕 | 先驗收 Vertical overflow；Fixed／Sticky 與遮擋需另跑 Preview | 6h |
-| B6 | Prototype 任務測試與修正 | 依固定腳本記錄問題、修正並回歸測試 | 6h |
-| B7 | Smart Animation、Figma／PS 發布與輸出 | 確認 Smart animate 控件、完成 Figma export／Inspect；Photoshop 另待實測 | 6h |
-| B8 | 網頁入門、Git/GitHub 與雲端部署 | 以最小 HTML/CSS／JavaScript 路徑完成版本化與公開部署 | 13h |
-| **Part B 合計** |  |  | **57h** |
-
-## 時數與版本狀態
-
-### 實測後的課程契約
-
-- `PROBE-A.md`、`PROBE-B.md`、`PROBE-C.md` 是目前的機器證據；三者皆為 `CONDITIONAL`，不等於真人放行。
-- Form 多欄位、List 多列增刪、Swap、固定元素聯合滾動、完整 Smart Animate、Photoshop 輸出與公開部署仍要補測。
-- 正式 42h／57h／99h 邊界保留；內部單元時數在真人試跑前仍可依完成物與學習負荷回算。
-
-- 詳細分鐘帳本：`courses/uiux-designer/_design/99h-time-ledger.md`
-- 42h／57h／99h 目前為設計回算，需在代表單元試跑後再鎖定。
-- Git/GitHub 是必要交付流程；JavaScript 維持最小路徑。
-- 單元可因真實教學證據合併或重配，但不得漏掉正式課綱項目或增加總時數。
+公開網址、Starter實際編輯全路徑、Photoshop桌面操作与真人跟做需實際證據，本次無證據者保留PENDING，不沿用舊Probe推論。修訂證據見courses/uiux-designer/_validation/evidence.json與本輪修復報告。

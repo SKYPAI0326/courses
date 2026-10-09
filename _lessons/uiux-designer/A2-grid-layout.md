@@ -1,133 +1,99 @@
 ---
 slug: uiux-designer
-unit_id: A2
-title: 格線與版面基準
+unit_id: A2-grid-layout
+title: 用格線安排手機與桌面版面
 course_type: skill-operation
 duration: 6h
-learning_objective: 能沿用 A1 的色彩與文字規則，在 Figma 建立手機與桌機格線，檢查欄數、邊界、欄間距與縮窄後的內容位置，並把手機 Frame 交給下一堂。
-prerequisites: [A1]
-style_guide: _outlines/uiux-designer.style-guide.md
-platform_version: Google Chrome；Figma 網頁版 Starter／Free（Columns 面板以 Count、Stretch、Offset、Gutter 設定格線）
+prerequisites: [A1-visual-foundations]
+revision: 2026-10-09
+style_guide: ../../_outlines/uiux-designer.style-guide.md
+platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體另記平台證據
 ---
 
-<!--
-教案 A2 · 格線與版面基準
+## 內部設計（不進學員頁）
 
-本單元承接 A1 的 `Visual foundations` 頁面與樣式名稱。學員建立 `Grid foundations` 頁面，完成 402×874 手機 Frame、1440×900 桌機 Frame，並用欄數、Offset（設計上的左右 Margin）、Gutter 與安全邊界檢查標題和列表的位置。成果會交給 A3，作為 Auto Layout 的父層與內容壓力測試輸入。
+本課新增能力：計算跨欄寬度，從桌面雙區轉成手機閱讀順序。依 `_design/COURSE-BLUEPRINT.md` 的同檔案整合路徑；保留 99h 行政配置，未以真人試跑鎖定分鐘。
 
-Layout guide、Columns、Frame 尺寸與縮窄後的格線結果已在 Figma Starter／Free＋Chrome 測到；Columns 的左右邊界要以 `Stretch` 模式下的 `Offset` 輸入，學員仍要自行讀取面板並完成對齊檢查。真人冷讀與跨帳號重跑前，維持 MACHINE_READY_PENDING_HUMAN。
--->
-
-## 教學流程（Teaching Flow）
-
-> **課型：skill-operation**。順序：接手成果 → 概念 → 示範 → 同步操作 → 變因練習 → 驗收與交接。
-> **本節完成物：** `Grid foundations` Figma 頁面、手機／桌機格線設定、對齊截圖與縮窄觀察紀錄。
-
-### 破題 / Hook
-
-阿凱把登入與內容列表放進手機和桌機畫面。每個區塊都從不同位置開始，標題與列表沒有共同左線；下一堂要把內容放進 Auto Layout 時，也找不到穩定的父層邊界。
-
-這一堂先把「看起來差不多」改成可以重讀的數值。你要建立兩個 Frame，讓不同寬度的畫面各自有欄數、左右邊界與欄間距，並在手機縮窄後重新檢查內容是否仍在安全區。
-
-**起始材料：** `courses/uiux-designer/assets/A2-grid-layout/START-HERE.html`。
-**前置成果：** A1 的 `Visual foundations` 頁面、`color-*` 色彩角色與 `type-*` 文字樣式；缺少時先回 A1 補齊。
-**交付位置：** 同一個 Figma 檔新增 `Grid foundations` 頁面，完成檢查填入 `reference/EXPECTED-CHECK.html`。
-
-### 概念 / Concepts
-
-#### Frame／畫板
-
-Frame 是承載畫面內容與版面規則的容器。尺寸先固定，格線才有可比較的範圍。
-
-#### Columns／欄
-
-欄是內容可以跨越的垂直區域。欄數決定同一個畫面能有幾個共同對齊的落點。
-
-#### Margin／左右邊界
-
-Margin 是內容離 Frame 左右邊緣的距離。它把文字與元件留在可讀區，不讓內容貼住邊緣。在 Figma 的 Columns／Stretch 設定中，這個左右邊界會填在 `Offset`；本課把設計概念稱為 Margin，把操作欄位稱為 Offset。
-
-#### Gutter／欄間距
-
-Gutter 是兩欄之間的空隙。它保持相鄰內容的距離一致，避免每一區塊自行猜間距。
-
-#### 安全邊界
-
-安全邊界是內容不能跨過的左右範圍。Frame 縮窄、文字變長或列表增加時，都要重新讀取這條界線。
-
-### 示範 / Demo
-
-示範固定兩組輸入：手機 402×874、4 欄、Stretch、16 px Offset（左右 Margin）、16 px Gutter；桌機 1440×900、12 欄、Stretch、80 px Offset、24 px Gutter。兩個 Frame 都沿用 A1 的色彩與文字樣式。
-
-1. 建立頁面 `Grid foundations`，新增 402×874 Frame，命名 `Mobile / Login & List`。
-2. 在 Layout guide 新增 Columns，選 `Stretch`，填入 Count 4、Offset 16、Gutter 16。
-3. 放入標題與列表區塊，讓兩者左邊落在同一條欄線。
-4. 新增 1440×900 Frame，命名 `Desktop / Login & List`，填入 Count 12、Offset 80、Gutter 24。
-5. 把同一個標題與列表區塊放到桌機 Frame，檢查是否仍沿用共同左線。
-6. 截圖兩個 Frame 的格線面板與內容位置，記錄 Count、Offset、Gutter 與 Frame 尺寸。
-
-示範完成時，學員能從 Layers 找到兩個 Frame，也能在右側面板讀到欄數、Offset 與 Gutter。單看畫面位置但讀不到設定值，不能算完成。
-
-### 同步操作 / Together
-
-| 步驟 | 學員動作 | 預期結果 | 快速檢查 | 卡住時的回修 |
-|---|---|---|---|---|
-| 1 | 開啟 A1 檢查表與 A2 起始材料，在 Figma 新增 `Grid foundations` 頁面。 | Pages 區可找到新頁面，A1 樣式仍可用。 | 重新點選 A1 的文字層，確認 `type-*` 樣式仍在。 | 回 A1 檢查表補齊樣式，不在 A2 另建相同名稱。 |
-| 2 | 建立 402×874 Frame，命名 `Mobile / Login & List`。 | Layers 有可讀的手機 Frame。 | 讀右側 W/H 是否為 402／874。 | 先在 Layers 選 Frame row，再改尺寸與名稱。 |
-| 3 | 新增 Columns 格線，選 `Stretch`，設定 Count 4、Offset 16、Gutter 16。 | 四欄平均分布，左右各留 16 px。 | 重新選取 Frame，讀 Count、Offset、Gutter。 | 確認格線類型是 Columns；若看到的是 Grid，先切換類型，再重填三個值。 |
-| 4 | 放入 A1 的標題與一個列表區塊，讓左邊對齊同一條欄線。 | 兩個區塊共享左線，未跨出 Margin。 | 關閉格線後仍能看出兩個區塊同線。 | 開回格線，先移動標題，再移動列表；不要一次拖兩個物件猜位置。 |
-| 5 | 建立 1440×900 Frame，命名 `Desktop / Login & List`，選 `Stretch`，設定 Count 12、Offset 80、Gutter 24。 | 十二欄平均分布，內容區離邊緣 80 px。 | W/H、Count、Offset、Gutter 都能從面板讀到。 | 檢查 Offset 與 Gutter 是否對調，從數值欄重新填寫。 |
-| 6 | 複製標題與列表到桌機 Frame，依欄線重新放置。 | 桌機兩個區塊共享左線，使用同一套色彩與文字樣式。 | 點選文字層，確認沒有另建一套樣式。 | 回 A1 頁面尋找樣式；不要把顏色或字級改成局部值。 |
-| 7 | 截圖兩個 Frame 的格線面板與內容對齊位置，填入完成檢查表。 | 有可交接的數值與畫面證據。 | 關閉再開啟 Figma 檔，能找到兩個 Frame。 | 先保存 Figma 檔，再補寫檢查表；缺數值就回對應 Frame 重讀。 |
-
-**Checkpoint：** 步驟 3 後確認手機格線的三個值；步驟 5 後確認桌機三個值；兩者都通過才進入縮窄練習。
-
-### 變因練習 / Solo
-
-複製手機 Frame，只改一個條件：把寬度從 402 改成 360。保留 4 欄、16 px Offset、16 px Gutter、A1 文字樣式與標題／列表內容。
-
-請記錄：
-
-1. 標題與列表是否仍在左右安全邊界內。
-2. 兩個區塊是否仍共享左線。
-3. 哪一個文字或間距先出現壓力。
-4. 你修正了哪一個位置，修正後的 Frame 與格線數值是否仍可讀。
-
-不要直接刪除內容來讓畫面看起來整齊；要保留縮窄前後截圖，讓 A3 能接手同一個手機 Frame 做 Auto Layout 壓力測試。
-
-### 驗收 / Verify
-
-#### 完成條件
-
-- Figma 頁面名為 `Grid foundations`。
-- 手機 Frame 為 402×874、4 欄、Stretch、16 px Offset、16 px Gutter。
-- 桌機 Frame 為 1440×900、12 欄、Stretch、80 px Offset、24 px Gutter。
-- 標題與列表在兩個 Frame 都有共同左線，沒有跨出左右安全邊界。
-- 360 px 縮窄版本保留內容與格線規則，並有前後觀察紀錄。
-- 完成檢查表含 Figma 連結、面板截圖、數值與一個修正點。
-
-#### 常見錯誤與修復
-
-| 現象 | 原因 | 回修位置 | 重跑起點 |
+| 活動 | 素材／產物 | 操作與決策 | 認知工作／支援 |
 |---|---|---|---|
-| 四欄看起來不平均 | 格線類型不是 Columns，或 Count 仍是預設值。 | Layout guide 的類型與 Count。 | 步驟 3，重新讀取四欄結果。 |
-| 內容貼住 Frame 邊緣 | Offset 填成 0，或物件沒有對齊欄線。 | Offset 與物件 X 位置。 | 步驟 3／4，先修數值再調物件。 |
-| 桌機的標題與列表左線不同 | 複製後用畫布目測，沒有沿用共同欄線。 | 桌機 Frame 的欄線與兩個物件位置。 | 步驟 6，分別選取兩個物件重對齊。 |
-| 360 px 版本把文字刪掉才放得下 | 用刪除內容掩蓋窄版壓力。 | Frame 寬度、Offset、文字框位置。 | Solo 練習，保留原文字再調整版面。 |
+| Demo | 正文提供的完整輸入／方法示範 | 講師建模本課首次方法與可見結果 | 完整理由及步驟 |
+| Together | 同一工作室任務清單／學員自己的完成物 | 正文「跟著做」需自行選層、設定與判斷 | 支援遞減，自己定位欄位、解釋檢查結果 |
+| Solo | 本課不同條件／修正後完成物 | 正文「自己完成」依新限制選擇方法 | 獨立診斷與遷移，依完成條件判斷 |
 
-#### 檢核題
+素材：正式正文的可複製資料、每課 START-HERE、完成檢查表、共用視覺參考，B7 有 PSD，B8 有下載 ZIP。素材存在／版本由驗證紀錄確認，不以本段自填 PASS。
 
-1. Margin 與 Gutter 都是間距數值，它們分別回答哪一個版面問題？
-2. 360 px 版本仍在安全邊界內，但標題與列表沒有共同左線，你會先修數值還是物件位置？為什麼？
+<!-- learner-content:start -->
+# 用格線安排手機與桌面版面
 
-#### 交接給 A3
+前一堂已決定色彩與文字。本堂用格線讓卡片、欄位和按鈕有共同的左右邊界，完成手機與桌面兩種版面。格線是對齊參考，不會自動排好你的內容。
 
-保留 `Mobile / Login & List`、`Desktop / Login & List`、格線設定與縮窄紀錄。A3 會使用手機 Frame 與 A1 的文字樣式，將長錯誤訊息放入內容容器，檢查 Auto Layout 是否能跟著內容增高；A3 不會重新決定手機格線的欄數與 Offset。
+## 開始前，先找到材料與起點
 
-## 授課前驗證待辦
+在第01堂檔案找到 `Screen / Login`，選外層應看到402×874。若只能選到文字，回 Layers 點 Frame 名稱；缺檔時依課前速查重建此空白 Frame，貼上上一堂規則。
 
-- [x] 在目前 Figma Starter／Free 與 Chrome 實際重跑 Layout guide、Columns、Offset、Gutter；已記錄於 `PROBE-A.md` 的 A-13。
-- [ ] 用新帳號或乾淨 Draft 重跑一次，記錄面板名稱與方案限制。
-- [x] 在 Probe A 將手機 Frame 從 402 px 縮窄至 360 px；Layout guide 保留，文字仍在 Frame 內（A-14）。
-- [ ] 真人冷讀完成，確認學員能從 A1 交接物走到 A2 檢查表。
-- [ ] 通過前維持 `MACHINE_READY_PENDING_HUMAN`，不得標示 `READY`。
+先開啟[本堂起始材料（HTML）](../../courses/uiux-designer/assets/A2-grid-layout/START-HERE.html)，讀取輸入與圖層名稱；操作在你的 Figma 檔或本堂指定工具完成。完成後到[本堂完成檢查表（可儲存／下載）](../../courses/uiux-designer/assets/A2-grid-layout/reference/EXPECTED-CHECK.html)記錄實際結果。
+
+## 用欄、溝槽與邊界安排版面
+
+邊界 Margin 是畫面邊緣留白；欄 Column 是可以放內容的直條區域；溝槽 Gutter 是欄與欄之間的空隙。卡片可以跨多欄，不需要把每個字放進一欄。
+
+| 畫面 | 寬度 | 左右邊界 | 欄數 | 溝槽 | 每欄寬度 |
+|---|---|---|---|---|---|
+| 手機 | 402 | 各 24 | 4 | 12 | `(402−48−36)÷4＝79.5` |
+| 桌面 | 1440 | 各 120 | 12 | 24 | `(1440−240−264)÷12＝78` |
+
+手機卡片跨 4 欄，寬度為 354；跨 2 欄時，寬度為 `79.5×2＋12＝171`。桌面跨 8 欄的主內容寬為 `78×8＋24×7＝792`，跨 4 欄的側區為 384，兩區之間留 24，共 1200。這些數字是本課設計起點，實際使用時仍要檢查內容，不是所有網站都必須用相同邊界。
+
+![四欄手機與十二欄桌面格線示意，標示跨欄區與邊界](../../courses/uiux-designer/assets/shared/grid-reference.svg)
+
+## 示範：手機格線與全寬卡片
+
+1. 選第 01 堂的 `Screen / Login` 外層，確認 W402、H874。在 Design 的 Layout guides／Layout grid 找到新增入口，加入 Columns。若只看到方格 Grid，改成 Columns，不改物件位置。
+2. 設 Count 4、Type Stretch、Margin 24、Gutter 12；參考線使用低透明度，文字仍要可讀。格線應左右各留 24，中間分成 4 欄。
+3. 按 F 在手機內建立 `Login / Content` Frame，設定 x24、y120、W354。放入標題、帳號標籤與主要動作的視覺材料，左邊都對 x24。暫時用固定高度，下一堂改 Auto Layout。
+4. 用 R 畫一張白色參考卡片，x24、W354；再畫兩個 W171 的區塊，x24 及 x207。兩小區塊間應有 12px，不靠目測拉到「差不多」。
+5. 開關格線顯示，觀察內容是否仍然對齊。格線只留在設計檔，不當成成品的裝飾背景。
+
+**檢查點：**外層仍是 402，不要把卡片的 354 填到手機 Frame；卡片沒有蓋到左右留白；兩小區塊總寬 `171＋12＋171＝354`。設定看不到時，先在 Layers 選最外層 Frame。選到 Rectangle 不會出現相同的格線設定。
+
+## 跟著做：建立桌面版並判斷跨欄
+
+1. 新建 `Screen / Desktop reference`，W1440、H900，套用桌面 12 欄規格。
+2. 在 x120、y120 建立主內容 Frame，W792；在 x936、y120 建立側區 Frame，W384。主內容放待處理清單，側區放「今日提醒」。桌面由兩區分工，手機改成上下排列，不能把桌面直接等比縮小。
+3. 把第 01 堂的文字樣式放進兩區。主標題左緣、內文左緣與卡片左緣要有共同參考；卡片內文字可再縮排 16，這個內縮是 padding，第 03 堂會實作。
+4. 自己選一項內容決定跨 4、8 或 12 欄，說出原因。例如說明很長的交付清單適合主區，短提醒適合側區。核對內容沒有被切到溝槽。
+5. 在規格表記錄手機／桌面兩種數值，截圖保留開啟格線與關閉格線兩種畫面。另記桌面內容轉為手機上下排列的順序。
+
+## 尺寸不對時，先算再修
+
+- 卡片太寬：檢查它的 W，而不是修改整張 Frame。手機的可用寬度是 `402−24×2＝354`。
+- 最右側多一個溝槽：N 欄只會有 N−1 個內部溝槽；4 欄用 3 個，12 欄用 11 個。
+- 文字對齊外框而顯得擁擠：保留卡片跨欄寬度，將文字向內留 16；內外留白負責不同層次。
+- 改畫面寬度後卡片沒有變：格線不是 Auto Layout。先計算新可用寬度；下一堂將子層寬度設為 Fill 才會跟著容器變化。
+
+下一堂沿用 `Screen / Login` 與 `Login / Content`；桌面參考留在同一份檔案，不拿桌面 Frame 取代手機。
+
+## 自己完成：改變條件再檢查
+
+複製手機畫面為 `Screen / Login 360`，改 W360、邊界仍為24、4欄、溝槽12。先算出每欄69、全寬卡片312、兩欄150，再在 Figma 設定並核對。將桌面側區的提醒移到手機主內容下方，說明閱讀順序。通過條件是數值對得上、長句仍可讀，沒有直接縮小文字。
+
+## 完成條件與理解檢查
+
+- 402 與 1440 版面各有正確欄數、邊界、溝槽及跨欄區。
+- 能算出並建立手機354／171與桌面792／384的區塊。
+- 360版本的卡片312，長內容沒有超出畫面，手機閱讀順序有理由。
+
+**想一想：**402畫面用4欄、邊界24、溝槽12，為什麼可用寬度不是402？
+
+<details><summary>展開參考答案與理由</summary><p>左右各保留24，因此內容區只有354；其中含4欄及3個溝槽。格線的欄寬是79.5，跨4欄區塊仍是354。</p></details>
+
+## 本堂查證來源
+
+- [Figma：版面格線／參考線](https://help.figma.com/hc/en-us/articles/360040450513-Create-layout-grids-with-grids-columns-and-rows)
+
+來源查證：2026-10-09。
+<!-- learner-content:end -->
+
+## 講師授課筆記（不進講義）
+
+先用正文入口題檢查前提，再以短示範讓學員同步操作。每次核心狀態改變立即檢查；主要時間用於自行製作、同儕解釋、錯誤修復與新條件作品。先核對學員真實工具權限與檔案；未達完成條件回到本堂修復位置，不以教師代做當成完成。此稿為作者設計與自審，真人理解／遷移與平台實測須另留證據。

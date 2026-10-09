@@ -1,3 +1,5 @@
+> 2026-10-09更新：以下為歷史紀錄，不能控制目前教材或放行。Starter一檔一action限制与免費Dev Mode推論已撤回；目前環境見ENVIRONMENT-CONTRACT，教材／hash／實測見本輪修復報告。
+
 ---
 course: uiux-designer
 status: PASS1_MACHINE_EVIDENCE

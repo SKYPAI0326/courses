@@ -10,12 +10,12 @@ gate0_approved_at: 2026-09-07
 
 本文件只做「正式課綱項目 → 教學候選位置 → 可驗收完成物」對照，不做分鐘分配、不宣告任何單元已完成，也不把 ChatGPT 建議自動升格為行政必修。
 
-## 實測回寫規則（2026-09-16）
+## 目前環境與實測規則（2026-10-09）
 
-- Figma Starter／Free 的實際證據集中於 `uiux-designer/_validation/figma-starter-browser/`；課程設計必須遵守一個測試檔一個核心 action 的邊界。
-- `Open overlay` 已在 Chrome Preview 通過；第二個 action、Variables、Conditional prototypes 受方案提示限制，改列 `CONDITIONAL` 或拆檔策略。
-- `PNG／JPEG／SVG／PDF` 匯出與 Dev Mode CSS Inspect 已有實體檔案；Share 權限、GitHub push、公開部署仍不是機器階段已完成的外部狀態。
-- Part A 的 Form／List 多列、Part B 的 Swap／固定元素聯合滾動／完整 Smart Animate 仍需補測，不得由相鄰控制推定通過。
+- 免費主線採同檔多個基本互動；同一trigger堆疊多actions與條件邏輯另屬付費功能，不沿用「一檔一action」或拆檔推論。
+- B3有完整Smart Animate，B4有真正Overlay／Swap，B5有Vertical／Horizontal及Fixed／Sticky，B6以T01–T08測試同一成果鏈。
+- Starter不要求Dev Mode，B7用Design讀取尺寸、文字與色碼並匯出；Photoshop分層操作另有真實PSD和PNG素材。
+- 歷史Probe觀察保留於_validation/figma-starter-browser，但不代替本輪教材的平台實測。Figma、Photoshop、GitHub公開部署與真人跟做均須本輪證據，最新結果見_repair/2026-10-09/REPAIR-REPORT.md。
 
 ## 來源角色
 
@@ -55,7 +55,7 @@ gate0_approved_at: 2026-09-07
 | 57-06 | 滾動內容、置頂導覽與漂浮按鈕 | Stage 10 Overlay & Scroll Interaction | Overflow、Scroll with parent、Fixed、Sticky、Ignore auto layout | 長內容頁、橫向列表、固定導覽與漂浮操作 | Stage 12 測試、Stage 14 Web Foundation | 需以不同內容高度與遮擋條件壓力測試 |
 | 57-07 | Smart Animation | Stage 11 Motion & Advanced Interaction | Matching layers、名稱／層級、位置、尺寸、透明度、easing | 一個成功 Smart Animate 與一份失敗修復紀錄 | Stage 12 測試、Stage 13 Handoff | 先診斷匹配失敗，再談動畫效果 |
 | 57-08 | Figma 與 PS 發布規劃、Figma 與 PS 輸出 | Stage 13 Asset & Handoff | 格式、倍率、透明背景、命名、版本與交付清單 | 可由另一人取用的 Asset／Handoff package | Stage 14 Web Foundation、Stage 15 Deploy | Photoshop 是發布／輸出工具脈絡，不代表 42h Photoshop 專修課 |
-| 57-09 | 網頁設計入門與雲端部署 | Stage 14–15 Delivery & Web | HTML／CSS、相對路徑、手機寬度、發布與部署驗收 | 可公開開啟的單頁網站、原始檔與部署紀錄 | Stage 5 整合專題 | 圖片明列網頁入門與雲端部署；Git／GitHub／基礎 JS 仍標為教學方案候選 |
+| 57-09 | 網頁設計入門與雲端部署 | Stage 14–15 Delivery & Web | HTML／CSS、相對路徑、手機寬度、發布與部署驗收 | 可公開開啟的單頁網站、原始檔與部署紀錄 | Stage 5 整合專題 | 圖片明列網頁入門與雲端部署；Git／GitHub已核准必要流程；基本JS服務最小網站 |
 
 ## C. 重疊與首次教學邊界
 
@@ -97,4 +97,9 @@ gate0_approved_at: 2026-09-07
 
 ### 放行限制
 
-本文件已通過使用者 Gate 0。下一步建立 `99h-time-ledger.md` 與 `../_outlines/uiux-designer.md` 草稿；仍不製作教案或 HTML。
+以上為2026-09-07 Gate 0的歷史放行範圍。本輪已依使用者2026-10-09補強指示完成既有16堂教案與HTML；目前驗收狀態見本輪報告及evidence.json。
+
+
+## 2026-10-09實作補強映射
+
+12項介面主題對應A1–A8；57-07 Smart Animate在B3首次完整教學，B7只引用參數與層名供交付；57-08的PS輸出有真實分層素材與完整操作；57-09分別驗收Web／Git（B8本機段）與雲端部署（B8 GitHub Pages段），公開URL與更新必須另驗，不能以本機通過替代。Horizontal、Fixed、Sticky與Swap皆有獨立分支及Preview判準。

@@ -1,125 +1,109 @@
 ---
 slug: uiux-designer
-unit_id: A5
-title: Variants、Properties 與狀態
+unit_id: A5-variants-properties
+title: 把主次按鈕與停用狀態做成可選的元件
 course_type: skill-operation
 duration: 6h
-learning_objective: 能從 A4 的 Login / Heading 主元件建立 Default 與 Error 兩個 Variant，讀懂 Property 與 Value 的關係，在 Instance 切換狀態並保存可追蹤的狀態證據。
-prerequisites: [A4]
-style_guide: _outlines/uiux-designer.style-guide.md
-platform_version: Google Chrome；Figma 網頁版 Starter／Free（Variant property 介面依目前面板實測撰寫）
+prerequisites: [A4-component-instance]
+revision: 2026-10-09
+style_guide: ../../_outlines/uiux-designer.style-guide.md
+platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體另記平台證據
 ---
 
-<!--
-教案 A5 · Variants、Properties 與狀態
+## 內部設計（不進學員頁）
 
-本單元承接 A4 的 `Login / Heading` 主元件與 Instance。學員先保留 Default 狀態，再加入 Error 狀態，使用 Figma 自動建立的 Variant property 管理值；完成後能在 Instance 切換狀態，並把狀態規則交給 A6 的 Button 與 Form。
+本課新增能力：設計互相獨立的Variant軸、四種狀態組合與可維持的Label屬性。依 `_design/COURSE-BLUEPRINT.md` 的同檔案整合路徑；保留 99h 行政配置，未以真人試跑鎖定分鐘。
 
-Figma Starter／Free 的 Variant 建立、Property value 切換與 Variant 命名錯誤已在 Probe A 的 A-06／A-07 實測。真人冷讀、跨帳號重跑與其他 Property 類型（Boolean／Text／Instance swap）仍未放行，本堂只教 Variant property 的狀態切換。
--->
-
-## 教學流程（Teaching Flow）
-
-> **課型：skill-operation**。順序：接手成果 → 概念 → 示範 → 同步操作 → 變因練習 → 驗收與交接。
-> **本節完成物：** `Login / Heading` 的 Default／Error component set、一個能切換狀態的 Instance、狀態檢查表與一段回修紀錄。
-
-### 破題 / Hook
-
-登入畫面有兩種工作結果：第一次進入時顯示標題；送出錯誤資料後，標題區要顯示錯誤提示。若兩種畫面各自複製一份，文字、間距和顏色會逐次分叉。這一堂把它們收進同一個 component set，讓使用處只切換狀態值。
-
-**起始材料：** `courses/uiux-designer/assets/A5-variants-properties/START-HERE.html`。
-**前置成果：** A4 的 `Login / Heading` 主元件與 `Instance / Login heading`；缺少時先回 A4 重建，不在 A5 重新教 Component。
-**交付位置：** 同一個 Figma 檔保留來源 component set、Instance、狀態截圖，並完成 `reference/EXPECTED-CHECK.html`。
-
-### 概念 / Concepts
-
-#### Component set
-
-Component set 把同一個來源的多個 Variant 收在一起。它保留共同結構，也讓每個狀態有清楚的 Value。
-
-#### Variant
-
-Variant 是一個狀態版本。本堂只建立 `Default` 與 `Error`，兩個版本共用登入標題的結構。
-
-#### Property 與 Value
-
-Property 是狀態欄位，Value 是該欄位的一個選項。Figma 可能先顯示 `Property 1`；本堂先用這個欄位完成切換，再將 Value 設為 `Default`、`Error`。若介面允許重新命名，可把 Property 改成 `State`，並在檢查表記錄實際面板名稱。
-
-#### Instance 的狀態切換
-
-Instance 從 component set 取得狀態清單。切換 Value 會換到另一個 Variant；修改共同結構仍要回到主元件。
-
-### 示範 / Demo
-
-示範固定 A4 的 `Login / Heading`。先讓 Default 保持短標題，再建立 Error 版本，把文字換成「帳號或密碼不正確，請檢查後再試一次」。不另教 Button、Form 或 Boolean property。
-
-1. 在 Layers 選取 `Login / Heading` 主元件，確認目前只有一個來源狀態。
-2. 執行 `Add variant`，讓 Figma 建立第二個 Variant。
-3. 在右側 Property 欄讀取自動建立的 `Property 1`，把兩個 Value 分別整理為 `Default`、`Error`。
-4. 若直接把 Variant Layers 命名為 `Error` 出現格式警告，回到 Property value 修改；不要用 Layers 名稱代替 Property。
-5. 在 Error Variant 的文字層改成長錯誤訊息，保留 A4 的 Auto Layout 與文字樣式。
-6. 切到 Assets 插入或重新選取 `Instance / Login heading`，在 Instance 的 Property 欄切換 `Default`／`Error`。
-7. 截圖 component set 的兩個 Value，以及 Instance 顯示 Error 的畫面。
-
-示範完成時，學員能在同一個 Instance 看到兩種狀態，並能指出哪個欄位是 Property、哪個選項是 Value。只看到兩個相似畫面，卻讀不到欄位與值，不能算完成。
-
-### 同步操作 / Together
-
-| 步驟 | 學員動作 | 預期結果 | 快速檢查與修復 |
+| 活動 | 素材／產物 | 操作與決策 | 認知工作／支援 |
 |---|---|---|---|
-| 1 | 開啟 A4 檔與 A5 起始材料，選取 `Login / Heading`。 | Layers 顯示主元件，右側可看到 Component 設定。 | 選到 Instance 時回 Layers 找來源；缺來源就回 A4。 |
-| 2 | 執行 `Add variant`。 | 出現第二個 Variant，兩者位於同一個 component set。 | 按鈕不存在時確認選取的是主元件，不是外層 Frame。 |
-| 3 | 讀取 `Property 1`，把兩個 Value 整理為 `Default`、`Error`。 | Property 欄有兩個可選狀態。 | 出現格式警告時改 Property value，不改 Layers 顯示名稱。 |
-| 4 | 在 Error Variant 的文字層輸入指定錯誤訊息。 | Error 狀態的文字變長，Auto Layout 仍保留。 | 文字被裁切時回文字層確認 Auto height 與容器寬度。 |
-| 5 | 選取 Instance，切換 Default／Error。 | 同一個使用處能顯示兩個狀態。 | 切不到值時確認 Instance 來源仍是本檔 component set。 |
-| 6 | 截圖主元件的 Property／Value 與 Instance 的 Error 狀態。 | 狀態規則和使用結果各有一份證據。 | 截圖前關閉多餘面板，讓名稱與值同時可讀。 |
-| 7 | 填寫完成檢查表，寫下一次錯誤修復。 | A5 成果可交給 A6。 | 先保存 Figma 檔，再補寫檢查表的實際 Property 名稱。 |
+| Demo | 正文提供的完整輸入／方法示範 | 講師建模本課首次方法與可見結果 | 完整理由及步驟 |
+| Together | 同一工作室任務清單／學員自己的完成物 | 正文「跟著做」需自行選層、設定與判斷 | 支援遞減，自己定位欄位、解釋檢查結果 |
+| Solo | 本課不同條件／修正後完成物 | 正文「自己完成」依新限制選擇方法 | 獨立診斷與遷移，依完成條件判斷 |
 
-**Checkpoint：** 步驟 3 後確認兩個 Value；步驟 5 後確認同一個 Instance 可以切換；兩項都通過才進入自己的變因練習。
+素材：正式正文的可複製資料、每課 START-HERE、完成檢查表、共用視覺參考，B7 有 PSD，B8 有下載 ZIP。素材存在／版本由驗證紀錄確認，不以本段自填 PASS。
 
-### 變因練習 / Solo
+<!-- learner-content:start -->
+# 把主次按鈕與停用狀態做成可選的元件
 
-複製 `Login / Heading` component set，只改一個主要變因：把 Error Value 的文字換成「驗證碼已過期，請重新取得」，保留 Property 名稱、Default Value、Frame 寬度、Auto Layout 與文字樣式。
+「主要」是按鈕的角色，「停用」是按鈕目前能不能操作。兩者是不同條件。本堂用四種組合建立Variants，並把按鈕文字做成Label欄位，讓後面表單與彈窗可以直接選用。
 
-請記錄：
+## 開始前，先找到材料與起點
 
-1. 新錯誤訊息是否沒有被裁切。
-2. Instance 切換到 Error 時，是否仍使用同一個 Property。
-3. 哪個位置需要回修，以及回修後 Default 狀態是否未受影響。
+在前堂元件區選Button / Base，再確認兩個Instance會同步。若尚未完成來源同步測試，回第04堂修好；本堂不要用Detach之後的獨立Frame當元件來源。
 
-不要新增第三個狀態來掩蓋問題；A6 會把狀態規則接到 Button 與 Form。
+先開啟[本堂起始材料（HTML）](../../courses/uiux-designer/assets/A5-variants-properties/START-HERE.html)，讀取輸入與圖層名稱；操作在你的 Figma 檔或本堂指定工具完成。完成後到[本堂完成檢查表（可儲存／下載）](../../courses/uiux-designer/assets/A5-variants-properties/reference/EXPECTED-CHECK.html)記錄實際結果。
 
-### 驗收 / Verify
+## 先列組合，避免混淆角色與狀態
 
-#### 完成條件
+Variant是同一元件家族中的一種版本；Property是用來選版本或調整內容的欄位。這堂的Hierarchy表示Primary／Secondary，State表示Default／Disabled；Label是可改的文字。
 
-- Figma 檔保留 A4 的 `Login / Heading` component set。
-- component set 內有 `Default`、`Error` 兩個 Value；Property 名稱依面板記錄為 `State` 或 `Property 1`。
-- Error Variant 顯示指定長錯誤訊息，Auto Layout 沒有裁切內容。
-- 同一個 Instance 可以在 Default／Error 之間切換，來源關係仍保留。
-- 完成檢查表含 Figma 檔連結、Property／Value 截圖、Instance 狀態截圖與一個修正點。
-
-#### 常見錯誤與修復
-
-| 現象 | 原因 | 回修位置 | 重跑起點 |
+| Hierarchy角色 | State狀態 | 外觀規則 | 使用例 |
 |---|---|---|---|
-| Add variant 後只看到一個來源 | 選到 Instance 或外層 Frame。 | Layers 的主元件選取。 | 步驟 1／2，重新選來源。 |
-| Variant 名稱出現格式警告 | 直接把 Layers 名稱當成 Property 語法。 | Property 欄的 Name／Value。 | 步驟 3，改成 `Property 1=Error` 的 Value。 |
-| Error 狀態的文字被裁切 | 文字層或父容器仍是 Fixed height。 | Error Variant 的文字層與 Auto Layout。 | 步驟 4，先恢復 Auto height，再檢查寬度。 |
-| Instance 沒有 Error 選項 | Instance 不是來自 component set，或尚未重新選取。 | Instance 來源與右側 Property。 | 步驟 5，回 Assets 找本檔來源。 |
+| Primary | Default | 綠底白字；H48、置中 | 登入、確認完成 |
+| Secondary | Default | 白底深字，深灰1px外框 | 取消、返回 |
+| Primary | Disabled | 淺灰底、灰字；仍維持H48 | 帳號尚未填齊的登入 |
+| Secondary | Disabled | 淺灰底、灰字與灰框 | 目前不能返回的操作 |
 
-#### 檢核題
+不能把Primary與Disabled當成同一欄的二選一：你會需要「主要但停用」和「次要但可用」。樣式的停用也不會自動禁止原型點選；第10堂會檢查停用物件沒有互動連線。
 
-1. `Property 1` 與 `Error` 的角色各是什麼？
-2. 你修改 Error Variant 的長文字後，Default 狀態也變長，先查哪一層？
+## 示範：從來源建立四個Variant
 
-#### 交接給 A6
+1. 在元件區找到 `Button / Base` 主元件。保留兩個Instance在測試區，不選它們一起合併。
+2. 複製主元件三次，讓四個來源都保有同樣的Label層級與Auto Layout。它們都是主元件版本，不是Instance。
+3. 逐個修改外觀，按表格建立四種組合。Disabled仍有「登入」文字與完整尺寸；不得做成一個沒有文字的灰矩形。
+4. 同時選四個主元件，在右側或右鍵找Combine as variants，將外層Component set命名為 `Button`。
+5. 選Component set檢查屬性。Figma可能先給 `Property 1`／`Variant`等名稱；將第一個屬性改成 `Hierarchy`，建立另一個Variant property叫 `State`。選各子元件，在右側指定其Hierarchy與State值，四組要與表格完全相同。
+6. 若你的介面沒有直接新增欄位入口，可用各子元件名稱 `Hierarchy=Primary, State=Default`、`Hierarchy=Secondary, State=Default`、`Hierarchy=Primary, State=Disabled`、`Hierarchy=Secondary, State=Disabled`建立屬性和值；再確認右側呈現兩個屬性，而不是四個不明意義的Variant數字。
+7. 如果跳出Duplicate variant／相同屬性組合警告，逐個比對兩欄值；同一組只能有一個版本。改名稱或顏色本身不會修好重複組合。
 
-保留 component set、兩個 Value、可切換的 Instance 與錯誤修復紀錄。A6 會沿用 `State`／`Property 1` 的狀態欄位，將它接到 Button 與 Form 的可用、錯誤與修正畫面；A6 不會重新建立 Component set。
+## 把Label做成文字欄位
 
-## 授課前驗證待辦
+1. 進入Primary／Default主元件，選Label文字層。在右側文字內容設定旁找Create text property／建立文字屬性入口，命名 `Label`，預設文字「登入」。
+2. 其他Variant的Label也要繫結同一個Label屬性；若選到外層看不到文字入口，回Layers選文字層。繫結後，選Instance應能在屬性區輸入Label，不需要每次鑽進內層。
+3. 從Assets插入新Button Instance，分別切換Hierarchy及State。將Label改「標記完成」，切換四種組合，文字仍要保留、置中，H仍48。
+4. 找不到Text property入口時，先用Instance的Label子層覆寫文字完成視覺測試；這是文字覆寫備援，Text property仍需在可用介面補做並記錄，不能寫成已完成。
 
-- [x] 在目前 Figma Starter／Free 與 Chrome 實測 Add variant、Property value 與 Instance 狀態切換；證據在 `PROBE-A.md` 的 A-06／A-07。
-- [ ] 用乾淨 Draft 重跑一次，記錄面板名稱與權限差異。
-- [ ] 真人冷讀完成，確認學員能從 A4 交接物走到 A5 檢查表。
-- [ ] 通過前維持 `MACHINE_READY_PENDING_HUMAN`，不得標示 `READY`。
+## 跟著做：用組合表找出一個錯誤
+
+先不看示範的點選順序，自己插入兩個Button Instance：第一個選Primary／Default、Label「登入」；第二個選Secondary／Default、Label「取消」。把第二個切為Disabled，觀察外觀變化。每一步先說出要改的是角色、狀態或內容，才點屬性。
+
+講師故意把兩個Variant都設成Primary／Default。你要用組合表找出哪一列缺失，再修正Hierarchy或State。若只有顏色不同但屬性值重複，仍然不算通過。
+
+**檢查點：**4種組合都能選；長Label仍能閱讀；取消是Secondary不是Disabled；Disabled樣式不改變按鈕尺寸；Instance的內容欄位與狀態欄位用途不同。
+
+## 卡住時
+
+| 現象 | 可能原因 | 回修 |
+|---|---|---|
+| 只看到Variant 1／2／3 | 沒有把屬性命名成用途 | 在Component set命名Hierarchy與State，再填每個版本值 |
+| 切狀態後文字丟失 | 各版本Label名稱／層級或文字屬性繫結不同 | 對齊Label命名與階層，綁同一Label屬性 |
+| 找不到本檔Button | 選到Instance或一般Frame去合併 | 回來源元件區確認4個主元件在Component set裡 |
+| Disabled點了仍切頁 | Prototype連線仍存在 | 視覺狀態不會自動移除互動，第10堂取消該物件連線 |
+
+本堂產出Button family，不建立「Screen / List Top」等尚未教過的畫面。下一堂直接使用本堂Button做完整表單。
+
+## 自己完成：改變條件再檢查
+
+獨立建立「取消」與「確認完成」兩個按鈕配置：取消為Secondary／Default，確認為Primary／Default。再做「必填資訊尚未齊全」版本，只把確認改Disabled，新增提示原因。把Label改成「確認這筆任務已完成」，檢查左右內距及閱讀。交出四組狀態表、三個Instance與一個重複組合修復。
+
+## 完成條件與理解檢查
+
+- 四個Variant有唯一的Hierarchy／State組合，Default與Disabled能辨認。
+- Label是可調文字欄位，切狀態後不丟文字；備援尚未補的項目據實記錄。
+- 主次與停用分開，取消不會因為是次要動作就變成不可用。
+
+**想一想：**把「Primary、Secondary、Disabled」塞在同一個屬性有什麼問題？
+
+<details><summary>展開參考答案與理由</summary><p>它混合動作角色與可用狀態，無法完整表示Primary＋Disabled。用Hierarchy和State兩個屬性，才能建立四個明確組合。</p></details>
+
+## 本堂查證來源
+
+- [Figma：Variants](https://help.figma.com/hc/en-us/articles/360056440594-Create-and-use-variants)
+- [Figma：Component properties](https://help.figma.com/hc/en-us/articles/5579474826519-Explore-component-properties)
+
+來源查證：2026-10-09。
+<!-- learner-content:end -->
+
+## 講師授課筆記（不進講義）
+
+先用正文入口題檢查前提，再以短示範讓學員同步操作。每次核心狀態改變立即檢查；主要時間用於自行製作、同儕解釋、錯誤修復與新條件作品。先核對學員真實工具權限與檔案；未達完成條件回到本堂修復位置，不以教師代做當成完成。此稿為作者設計與自審，真人理解／遷移與平台實測須另留證據。

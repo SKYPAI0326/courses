@@ -210,3 +210,26 @@ B5 先接手 B4 的可預覽原型，產出長清單、Overflow、固定／漂�
 - 16 個操作頁、16 個起始材料頁與完成紀錄入口已同步角色、問題、起始材料、第一步、可觀察結果、完成物、下游用途與回復路徑；一般檢查表與 B6／B7 專用表單均標示「操作完成後使用」。
 - 最新機器證據：lint 53 頁 0 BLOCKER／0 ERROR／0 WARN；learner-entry smoke 16 pass；內容證據 16 READY_FOR_HUMAN、0 missing；文案連續性 0 warning；`git diff --check` 通過。
 - Gate 狀態仍為 `MACHINE_READY_PENDING_HUMAN`。人工冷讀、Figma 跨帳號重跑、Photoshop、GitHub push 與公開部署尚未放行；完整報告見 `uiux-designer/_repair/2026-09-17-full-handout-contract/REPAIR-REPORT.md`。
+
+
+## 2026-10-09：講師／零基礎／完整度補強驗收
+
+本條為最新有效狀態；上方G1草稿與Probe紀錄保留歷史，不控制本輪已修訂教材。
+
+**task_scope**：content-change；依使用者要求補強既有16堂，完成原審查B01–B06與M01–M08的教材修訂。
+**目前狀態**：`MACHINE_READY_PENDING_HUMAN`；validator目前errors為空，不宣稱HUMAN_READY或本輪外部平台全通過。
+
+- 54公開頁lint：0 BLOCKER／ERROR／WARN；16頁結構與逐項來源保真通過。
+- 389本地連結／錨點正常；完整3檔Web程式及5檔ZIP一致。
+- 素材PSD／PNG、12筆報名資料、8項專用測試表存在；保存／重開／下載／匯入、對比、Web取消／確認／空狀態／長列及隔離Git兩筆提交均已驗證。
+- 桌面1440代表頁、390全16堂與430代表頁無全頁水平溢位；實際數值／截圖另存。
+- Figma Starter新教材全流程、Photoshop桌面匯出、GitHub公開部署與更新、真人進入／完成／理解／遷移及三課串聯均待驗。
+- 保留42h＋57h＝99h行政配置，不填真人時間PASS。未commit、push或公開發布；其他課程工作目錄未納入本輪修改。
+
+**報告**：`_repair/2026-10-09/REPAIR-REPORT.md`
+**報告SHA256**：`76a52eb38846b4f56ce4adc69bb691d2ec6324e8feec570f6c81b205367438f0`
+**版本證據**：`_validation/evidence.json`（16單元、99綁定檔案）
+**證據SHA256**：`1d3885c014197458be43ddfd04da0f3b2bc83c8d666ffbcd18b1ffd35066f5d7`
+**機器輸出**：`_validation/validation-result.json`、`_validation/FINAL-REPORT.md`
+**原始實測**：`_validation/repair-2026-10-09/`
+**備份／還原**：`_backup/2026-10-09-pre-repair/`（101份原檔）、`_tools/restore-2026-10-09-pre-repair.sh`。還原原檔不刪本輪新檔；含站根索引與正式教案，須在有寫入權限環境執行。

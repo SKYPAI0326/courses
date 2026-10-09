@@ -1,8 +1,3 @@
-# B7 Figma Handoff 起始材料
+# 把設計整理成能重開、能量測的交付包
 
-接手 B6 回歸通過的 Prototype，整理來源、輸出與 Inspect 證據。
-
-- Host：PNG／PDF
-- Overlay：320×200 PNG
-- Inspect：Layout、Colors、Assets、CSS 可見欄位
-- 未驗證：Photoshop、Share、GitHub push、公開部署
+操作依[正式講義](../../part2/CH7-figma-handoff-export.html)；材料依[起始材料](START-HERE.html)；完成後使用[可保存檢查表](reference/HANDOFF-CHECK.html)。

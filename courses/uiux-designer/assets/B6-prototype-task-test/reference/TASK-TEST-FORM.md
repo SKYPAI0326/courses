@@ -1,16 +1,3 @@
-# B6 固定任務測試表
+# 讓別人跑完整任務，修正後再測一次
 
-這是操作完成後使用的完成紀錄。先在 Chrome Preview 執行 Host 任務，再填寫 Actual、修正與回歸；完成後交給 B7 使用。
-
-| 欄位 | 填寫 |
-|---|---|
-| case_id | B6-____ |
-| platform / date | Chrome／Figma Starter／日期 |
-| starting_state | Preview 從 Screen / Host 開始 |
-| task | 點擊 Host 一次 |
-| expected | 看到確認完成 Overlay |
-| actual | 實際觀察，不先填答案 |
-| severity / root_cause | 內容／結構／互動／方案限制 |
-| repair | 只寫一個主要變因 |
-| rerun_result | 同一任務重新執行 |
-| evidence_path | 截圖、Figma URL 或 Run Log |
+操作依[正式講義](../../../part2/CH6-prototype-task-test.html)；材料依[起始材料](../START-HERE.html)；完成後使用[可保存檢查表](TASK-TEST-FORM.html)。

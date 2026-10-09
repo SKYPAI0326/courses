@@ -1,155 +1,103 @@
 ---
-course: uiux-designer
-unit: B1
-title: 線框、原型、工具與手機介面入口
-hours: 7h
-lesson_type: project-operation
-prerequisite: A8（可讀的 Button、List、Dialog、Navigation 視覺材料）
-platform: Figma Starter／Free + Chrome
-status: MACHINE_READY_PENDING_HUMAN
+slug: uiux-designer
+unit_id: B1-wireframe-prototype-entry
+title: 把需求畫成線框，再組成可測試的流程
+course_type: skill-operation
+duration: 7h
+prerequisites: [A8-toast-dialog-navigation]
+revision: 2026-10-09
+style_guide: ../../_outlines/uiux-designer.style-guide.md
+platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體另記平台證據
 ---
 
-<!--
-教案 B1 · 線框、原型、工具與手機介面入口
+## 內部設計（不進學員頁）
 
-本單元把 A8 的視覺材料放回一個可執行的工作任務。學員先讀需求，寫出任務結果與畫面清單，再建立兩個手機 Frame，並指定 Prototype 的起始畫面。互動連結留給 B2，轉場留給 B3，Overlay 留給 B4；本堂不把一條圖示箭頭當成可執行互動。
+本課新增能力：從任務規劃低細節線框，對映到真實元件與一致命名，指定Prototype入口。依 `_design/COURSE-BLUEPRINT.md` 的同檔案整合路徑；保留 99h 行政配置，未以真人試跑鎖定分鐘。
 
-Probe B B-01 已確認 402×874 的手機 Frame 與同層 Overlay 測試材料可建立。起始畫面與畫面清單的教學夾具需由學員依本頁完成；Figma Starter 的單一 action 限制也會在本堂明示。
--->
-
-## 教學流程（Teaching Flow）
-
-> **課型：project-operation**。順序：接手成果 → 任務情境 → 概念 → 示範 → 同步操作 → 變因練習 → 驗收與交接。
-> **本節完成物：** 一份任務卡、一份畫面清單、兩個 402×874 手機 Frame、標示清楚的 Prototype 起始點，以及邊界紀錄。
-
-## 1. 情境與問題（Hook）
-
-工作室收到一句需求：「請做一個手機服務，讓使用者登入後查看待處理清單，選一筆資料準備處理。」這句話還不能直接交給 Figma。畫面數量、畫面順序、每一頁要顯示的內容，以及第一個可以開始操作的位置都沒有說明。
-
-本堂把需求改寫成一條可以檢查的工作路徑：
-
-1. 使用者在登入畫面輸入帳號與密碼。
-2. 使用者進入待處理清單。
-3. 使用者選取其中一筆資料，準備在下一堂建立互動。
-
-完成 B1 後，任何接手者都能回答三個問題：從哪個畫面開始、要經過哪些畫面、每個畫面為何存在。這些答案會成為 B2 設定 `Navigate to` 的輸入。
-
-## 2. 先理解五個工作物（Concepts）
-
-| 工作物 | 用途 | 本堂驗收證據 |
-|---|---|---|
-| 任務卡 | 寫清楚角色、起點、目標與限制 | `TASK-01`，包含「登入 → 查看清單 → 選取一筆」 |
-| 畫面清單 | 把任務拆成可製作的畫面 | `SCR-01 Login`、`SCR-02 List`，各有進入條件與離開條件 |
-| Wireframe | 先安排資訊與操作位置 | 每個手機 Frame 至少有標題、主要內容與下一步線索 |
-| Prototype 起始點 | 指定 Preview 開始的 Frame | `Flow / Login` 被設為起始畫面；設定結果留在截圖 |
-| 工具邊界 | 說清楚本堂與下一堂的責任 | B1 做入口與畫面清單；B2 才建立一個 action |
-
-### 手機 Frame 的基準
-
-- 寬 `402`、高 `874`，名稱以 `Flow /` 開頭，讓 Layers 能直接找到流程畫面。
-- `Flow / Login` 放登入標題、帳號欄位、密碼欄位與主要按鈕文字。
-- `Flow / List` 放清單標題、至少兩列資料與選取線索。
-- 文字先服務任務判斷；配色、元件狀態沿用 A1–A8 的成果，不在此重新設計視覺系統。
-
-### 免費方案的行為界線
-
-本堂能指定 Flow 起點與建立可供 B2 使用的畫面。`On click → Navigate to` 會在 B2 的單一測試檔驗收；Starter 一個檔案的多 action、變數與條件原型受方案限制，課程會拆成小檔案記錄，不能從畫面連線數量推斷功能已完成。
-
-## 3. 示範（Demo）
-
-示範先在紙上完成任務卡，再開 Figma。這個順序讓每個 Frame 都有來源。
-
-### 3.1 寫任務卡
-
-```
-TASK-01｜待處理清單
-角色：工作室行政人員
-起點：尚未登入的手機畫面
-目標：找到一筆待處理資料，準備查看詳情
-限制：手機寬 402px；先驗收畫面入口，不加入真實帳密
-```
-
-### 3.2 寫畫面清單
-
-| ID | 畫面名稱 | 進入條件 | 畫面中要看見的內容 | 離開條件 |
-|---|---|---|---|---|
-| `SCR-01` | `Flow / Login` | 尚未登入 | 登入標題、帳號、密碼、登入按鈕 | 按下登入後進入清單（B2 建立） |
-| `SCR-02` | `Flow / List` | 已登入 | 清單標題、兩列待處理資料、選取線索 | 選取一列查看詳情（後續單元） |
-
-### 3.3 建立兩個手機 Frame
-
-1. 在 Figma 建立 `402×874` Frame，命名 `Flow / Login`。
-2. 放入 A6 的 Button／Form 視覺材料；文字至少包含「登入」、「帳號」、「密碼」。
-3. 複製 Frame，命名 `Flow / List`；保留手機尺寸。
-4. 把內容替換為 A7 的 List／Title／Empty 視覺材料，加入兩筆可讀的待處理資料。
-5. 讓兩個 Frame 在畫布上左右排列，畫面名稱與內容都能一眼分辨。
-
-### 3.4 指定 Prototype 入口
-
-1. 切到 Prototype 面板，選取 `Flow / Login`。
-2. 新增 Flow starting point，保留名稱 `Flow 1` 或改成 `TASK-01 Login`。
-3. 開啟 Preview，確認畫面先顯示登入內容。
-4. 截圖包含 Frame 名稱、起始標記與 Preview 畫面；這三項是本堂的入口證據。
-
-### 示範的判斷
-
-先有任務卡與畫面清單，Frame 才有可追溯的用途。起始點只能說明 Preview 從哪裡開始，尚未證明登入按鈕可以切換畫面；切換行為要在 B2 的 action 檢查表記錄。
-
-## 4. 跟著做（Together）
-
-每完成一列或一個 Frame 就停下來檢查名稱、尺寸與內容。遇到差異，先修復當前步驟再往下走。
-
-| 步驟 | 學員動作 | 預期結果 | 快速檢查 | 卡住時的回修 |
-|---:|---|---|---|---|
-| 1 | 開啟 B1 起始材料，先把 `TASK-01` 寫在檢查表。 | 角色、起點、目標、限制都存在。 | 目標含「查看清單」與「選取一筆」。 | 回到任務卡欄位逐格補寫，不先開 Prototype。 |
-| 2 | 依任務寫 `SCR-01`、`SCR-02` 畫面清單。 | 每列有進入條件、內容與離開條件。 | 兩列名稱與 Frame 名稱可對上。 | 把一個模糊動詞改成可看見的畫面內容。 |
-| 3 | 建立 `Flow / Login`，設定 W402、H874。 | 手機 Frame 出現，尺寸可讀。 | 右側 W/H 與 Layers 名稱都截圖。 | 重新選外層 Frame，再設定尺寸；不要選到文字層。 |
-| 4 | 在 Login 放入標題、帳號、密碼、登入按鈕文字。 | Preview 中能看出登入任務。 | 主要按鈕只有一個，文字可辨識。 | 回 A6 檢查 Button／Form 視覺材料。 |
-| 5 | 複製 Login，命名 `Flow / List`，維持 402×874。 | 兩個流程 Frame 同尺寸。 | Layers 沒有重複的舊名稱。 | 選副本重新命名，確認父層是 Frame。 |
-| 6 | 把 List 內容換成標題與兩筆待處理資料。 | Preview 能辨識清單畫面與兩列。 | 兩列內容不同，沒有空白占位。 | 回 A7 檢查 Row、Title 與內容壓力規則。 |
-| 7 | 選 Flow / Login，建立 `TASK-01 Login` 起始點。 | Prototype 面板顯示起始標記。 | Preview 先顯示 Login，而非 List。 | 回 Prototype 面板重新選外層 Frame。 |
-| 8 | 保存任務卡、畫面清單、兩個 Frame 與起始點截圖。 | 檢查表可交給 B2。 | 每項證據附檔名或畫面位置。 | 補拍缺少的名稱／尺寸／Preview 證據。 |
-
-> **Checkpoint 1**：你能從檢查表指出任務起點與目標；在 Figma 找到兩個 402×874 Frame；Preview 從 `Flow / Login` 開始。
-
-## 5. 自己改一個條件（Solo）
-
-保留 `TASK-01` 的流程與兩個 Frame，只把 `Flow / List` 的第二列標題改成較長的內容：「本週待處理的合作申請需要補上聯絡電話」。
-
-1. 只修改第二列標題，不改 Frame 尺寸與起始點。
-2. 觀察長文字是否遮住下一個操作線索，記錄行數與需要調整的層。
-3. 回到畫面清單，補上一句「長標題仍須在手機寬度內可讀」的限制。
-4. 保存修改前後截圖，讓 B2 使用同一份畫面清單建立 action。
-
-> **Checkpoint 2**：長標題的行數與修正點已記錄；兩個 Frame 仍為 402×874；Preview 仍從 Login 開始；沒有把 B2 的互動寫成已完成。
-
-## 6. 卡住時怎麼回修
-
-| 現象 | 可能原因 | 回修位置 | 重跑起點 |
+| 活動 | 素材／產物 | 操作與決策 | 認知工作／支援 |
 |---|---|---|---|
-| 看到兩個 Frame，卻說不出先後 | 畫面清單缺少進入／離開條件。 | B1 檢查表的 Screen List。 | 回第 2 步重寫條件。 |
-| W/H 不是 402×874 | 選到了子層，或複製時改過尺寸。 | Frame 外層的 Design 面板。 | 回第 3 或第 5 步重新選 Frame。 |
-| Preview 從 List 開始 | Flow starting point 放在錯的 Frame。 | Prototype 面板的起始標記。 | 回第 7 步刪除錯誤標記，再指定 Login。 |
-| Login 文字被清單內容覆蓋 | 複製 Frame 後只改名稱，沒有整理子層。 | Layers 與畫布位置。 | 回第 4／6 步逐層確認內容。 |
-| 想在本堂連完所有按鈕 | 把畫面入口與互動 action 混在同一個工作物。 | B1／B2 邊界欄位。 | 保留起始點，將連線移到 B2。 |
+| Demo | 正文提供的完整輸入／方法示範 | 講師建模本課首次方法與可見結果 | 完整理由及步驟 |
+| Together | 同一工作室任務清單／學員自己的完成物 | 正文「跟著做」需自行選層、設定與判斷 | 支援遞減，自己定位欄位、解釋檢查結果 |
+| Solo | 本課不同條件／修正後完成物 | 正文「自己完成」依新限制選擇方法 | 獨立診斷與遷移，依完成條件判斷 |
 
-把現象、回修位置與重跑結果寫入<a href="../courses/uiux-designer/assets/B1-wireframe-prototype-entry/reference/EXPECTED-CHECK.html">B1 完成檢查表</a>。Figma 方案訊息、Preview 起點與尚未測試的 action 要逐項記錄。
+素材：正式正文的可複製資料、每課 START-HERE、完成檢查表、共用視覺參考，B7 有 PSD，B8 有下載 ZIP。素材存在／版本由驗證紀錄確認，不以本段自填 PASS。
 
-## 7. 驗收與交接（Verify）
+<!-- learner-content:start -->
+# 把需求畫成線框，再組成可測試的流程
 
-- `TASK-01` 包含角色、起點、目標與限制，目標寫到「查看清單、選取一筆」。
-- 畫面清單含 `SCR-01`、`SCR-02`，且每列有進入條件、內容與離開條件。
-- `Flow / Login`、`Flow / List` 都是 `402×874`，內容可在 Preview 分辨。
-- `TASK-01 Login` 起始點設在 Login，Preview 的第一個畫面為 Login。
-- Solo 長標題的行數、修正點與修改前後截圖已保存。
-- 檢查表標記 B1 已完成的入口證據，以及留給 B2 的互動工作。
+需求是：「行政人員登入後，找到待處理任務，檢視內容並標記完成。」你會先用線框檢查資訊位置，再放入前八堂的實際元件，建立固定原型入口。線框先決定內容與順序，原型再加上操作行為。
 
-### 交給 B2
+## 開始前，先找到材料與起點
 
-保留任務卡、畫面清單、兩個手機 Frame 與起始點證據。B2 會在獨立 Starter 測試檔建立一個 `On click → Navigate to` 或同等核心 action，並在 Chrome Preview 讀取 Actual／Expected；多 action、Variables 與 Conditional 仍依方案限制拆檔或列為待測。
+從第08堂檔案找出Login、List、Detail、List Done和Confirm。任意說出一個畫面的進出條件即可開始。缺畫面先依本堂對照回前課重建，不用空白佔位畫面直接接線。
 
-### 課前驗證待辦
+先開啟[本堂起始材料（HTML）](../../courses/uiux-designer/assets/B1-wireframe-prototype-entry/START-HERE.html)，讀取輸入與圖層名稱；操作在你的 Figma 檔或本堂指定工具完成。完成後到[本堂完成檢查表（可儲存／下載）](../../courses/uiux-designer/assets/B1-wireframe-prototype-entry/reference/EXPECTED-CHECK.html)記錄實際結果。
 
-- [ ] 由另一位學員只看本頁與起始材料，完成一次冷讀。
-- [ ] 以不同 Figma 帳號重做兩個 Frame，記錄權限或介面差異。
-- [ ] 在人工驗證前，不把 B1 起始點截圖當成 B2 互動通過證據。
+## 先寫任務，讓每張畫面都有理由
+
+任務卡不用寫得像規格檔案，四句話即可：「誰在用、從哪裡開始、要完成什麼、有哪些限制」。本例是：行政人員／Login起點／完成T01任務／手機402，使用示範帳號，不接資料庫。
+
+| 畫面名稱 | 要看到什麼 | 怎麼進入 | 怎麼離開 |
+|---|---|---|---|
+| `Screen / Login` | 帳號、密碼、登入Button | 原型起始點 | 登入到List |
+| `Screen / List` | 三筆任務、Navigation | Login | T01到Detail |
+| `Screen / Detail` | T01內容、期限、完成Button | List的T01 | 返回List或開Confirm |
+| `Overlay / Confirm` | 結果說明、取消／確認 | Detail的Complete | 取消關閉；確認到List Done |
+| `Screen / List Done` | T01已完成、成功Toast | Confirm | 返回待處理或檢視其他專案 |
+
+`Screen / Login Error`與`Screen / List Empty`是額外狀態，不代表所有狀態都需要放進主線。長列表是第13堂增加的滾動版本。把主線與測試分支分清楚，方便找出失敗的那一步。
+
+## 示範：做低細節線框，不先追求漂亮
+
+1. 在同一份Figma檔的空白區新建 `Wireframe / Login`與 `Wireframe / List`，皆402×874。可以先複製空白手機Frame，但不要把整個精緻表單當線框，否則看不出資訊決策。
+2. Login只放灰色區塊、固定標籤「帳號」「密碼」與「登入」動作；每個欄位高度48，左右24。List只放「待處理清單」、三列任務區與底部Navigation。
+3. 把任務卡放在兩張線框旁，畫箭頭表示Login→List。問同學：「從哪裡開始？按什麼進下一頁？第一筆資料在哪？」先記他的答案，再調整位置或標籤。
+4. 修正沒有動詞的按鈕、看不出順序的列表，或過多同樣突出的標題。線框用於找到這些問題，不用先調整陰影或品牌色。
+
+**中間結果：**同學能辨認登入與清單，指出主要下一步；這時才進到精緻介面。線框上的箭頭只是設計說明，還不是Prototype連線。
+
+## 跟著做：把前課元件對回主線畫面
+
+1. 回正式 `Screen / Login`，確認使用 `Field / Account`、`Field / Password`、`Button / Login`；找不到時回第06堂末段重建。主線按鈕名稱統一用Button / Login，不另造Button / Primary或只有「登入」文字的熱區。
+2. 回 `Screen / List`，確認 `List / Content`內有Row / T01、T02、T03與Nav / Bottom；Detail包含Button / Complete。Overlay / Confirm在外部畫布，不能直接放進Detail當靜態背景。
+3. 按上表逐一寫進畫面清單。每列畫面名稱都要在Layers找得到；若名稱不同，現在統一，下一堂不靠猜Destination。
+4. 選最外層Screen / Login，切右側Prototype，新增Flow starting point／流程起始點，命名 `TASK-01 Complete a task`。如果入口在頂端播放圖示旁，確認所選仍是Login，不是它的Button子層。
+5. 使用Present／播放預覽。此時只驗收首畫面是Login且尺寸正確；沒有連線時按登入不切頁是正常，下一堂才設定。
+6. 在任務卡記錄起點、目標與畫面名字，儲存線框、正式畫面與Preview首畫面。別用另一個獨立Figma檔切斷前課材料。
+
+![任務流程示意；每個動作會在同一份設計檔逐步建立](../../courses/uiux-designer/assets/shared/flow-reference.svg)
+
+## 從工具看見錯誤時
+
+- Preview從List開始：在Prototype檢查起始點是不是設到List，移回Login或在預覽選TASK-01。
+- 看得到箭頭卻不能點：線框手畫箭頭只表達概念，Prototype需要真正連線。
+- Frame名字相同難找：將Login／List／Detail／List Done命名唯一，保留功能詞，不只叫Frame 1。
+- 正式畫面與線框內容不同：回任務卡判斷是否合理改動，補理由；不因為線框先畫就永遠不能調整。
+- 想找共享Starter檔：本課主線在自己的課程檔完成，起始材料是文字／SVG與重建方法，不需要虛構外部檔案。
+
+下一堂會接Login→List→Detail→返回的基本互動；Confirm與完成結果第12堂加入。
+
+## 自己完成：改變條件再檢查
+
+將使用者換成「第一次使用的工讀生」，目標改為找到T02的期限。做一張Detail線框，並在現有T01詳情旁建立 `Screen / Detail T02`：標題、期限、說明都改為T02。請同學只看線框指出第一個動作，記下一次誤解與修正。最後確認原TASK-01入口沒有被這個測試分支覆蓋。
+
+## 完成條件與理解檢查
+
+- 任務卡與五個主線畫面名稱對得上，畫面內容使用前課元件。
+- 線框真的呈現資訊與動作位置，至少記錄一次閱讀反饋。
+- TASK-01起點在Login，Preview首畫面正確；T02分支有自己的內容。
+
+**想一想：**線框上的箭頭和Prototype連線有何不同？
+
+<details><summary>展開參考答案與理由</summary><p>線框箭頭說明預期順序，不能執行點選；Prototype連線要繫結實際物件、觸發與目的地，才會在預覽改變畫面。</p></details>
+
+## 本堂查證來源
+
+- [Figma：連線原型](https://help.figma.com/hc/en-us/articles/360040315773-Connect-your-prototype)
+
+來源查證：2026-10-09。
+<!-- learner-content:end -->
+
+## 講師授課筆記（不進講義）
+
+先用正文入口題檢查前提，再以短示範讓學員同步操作。每次核心狀態改變立即檢查；主要時間用於自行製作、同儕解釋、錯誤修復與新條件作品。先核對學員真實工具權限與檔案；未達完成條件回到本堂修復位置，不以教師代做當成完成。此稿為作者設計與自審，真人理解／遷移與平台實測須另留證據。
