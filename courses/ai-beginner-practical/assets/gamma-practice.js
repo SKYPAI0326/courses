@@ -7,7 +7,7 @@
       if (!source) return;
       try {
         await navigator.clipboard.writeText(source.textContent);
-        status.textContent = '已複製全文；接上自己的材料後送出。';
+        status.textContent = '已複製全文；依這一步的說明貼到指定位置。';
       } catch (error) {
         var temp = document.createElement('textarea');
         temp.value = source.textContent;
@@ -17,7 +17,7 @@
         try { copied = document.execCommand('copy'); } catch (copyError) {}
         temp.remove();
         if (copied) {
-          status.textContent = '已複製全文；接上自己的材料後送出。';
+          status.textContent = '已複製全文；依這一步的說明貼到指定位置。';
         } else {
           var range = document.createRange(); range.selectNodeContents(source);
           var selection = window.getSelection();

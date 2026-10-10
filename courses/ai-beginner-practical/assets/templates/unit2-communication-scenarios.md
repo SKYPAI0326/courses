@@ -18,6 +18,18 @@ status: reusable-template
 
 完成本單元後，將填寫後的保存頁另存為 `unit2-communication-pack-complete.md`；只編輯自己的副本，保留原始素材包不變。
 
+
+## 第一次操作：不用先填所有方括號
+
+先在 CH2-1 講義選「已填好的客戶Email」，或用本包一張卡完整換成自己的資料；兩者只選一種，不混用案例事實。
+
+可直接使用的完整模擬輸入：
+- [客戶Email](../workplace/communication/email-client.txt)：新對話送出，保存第一版，再核對價格、交期及客戶下一步。
+- [工作短訊息](../workplace/communication/message.txt)：同事情改成2–4句，確認收件者知道要回覆什麼。
+- [主管改寫指令](../workplace/communication/email-manager.txt)：最後方括號貼上自己第一版客戶信；回原對話送出。比較讀者及最後請求，原價格與交期不變。
+
+保存時依講義工作台欄位逐步貼入。客戶→主管是更換讀者；同一客戶的正式→親切是調整語氣，不混為同一種操作。
+
 ## 四段式提示詞骨架
 
 ```text
