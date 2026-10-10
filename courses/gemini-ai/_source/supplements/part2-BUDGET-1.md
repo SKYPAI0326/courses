@@ -9,7 +9,7 @@ version: 2026-10-08-five-chapters
 正式來源；保留原教學素材、完整提示詞、範例、操作及答案。作者文案審閱與實測分開記錄。
 
 <!-- learner-content:start -->
-<main class="lesson-body"><section class="lesson-section" id="core-1"><h2 class="section-heading">一筆活動資料，先分清三種金額</h2>
+<main class="lesson-body"><section class="lesson-section" id="reading-guide"><h2 class="section-heading">這頁怎麼用</h2><p class="body-text">製作預算工具前，先在這頁弄清楚金額怎麼算。 這頁先練手算；下方提供活動資料與參考品。</p><ol class="step-list"><li>開啟活動資料，分別找出估算、實支與核定額度，再跟著範例計算。</li><li>留下估算、實支、差異與餘額四個答案，再到下一份教材製作工具。</li></ol></section><section class="lesson-section" id="core-1"><h2 class="section-heading">一筆活動資料，先分清三種金額</h2>
 <p class="body-text">活動結束後，承辦人要整理預算與單據，讓負責人能回答兩件事：實際支出比原估多或少多少？核定額度扣除實支後還剩多少？本節先用同一份活動資料手算，留下四個可核對答案；下一課再用這些答案檢查生成工具。</p>
 <p class="body-text">估算是依計畫數量和單價推算的金額；實支是依單據記錄的實際費用；核定預算是事前核准可使用的上限。本例核定預算為 30,000 元，費用皆已含必要費用，不另外加稅。下方已直接列出四筆資料，閱讀與手算不需下載檔案；<a download="" href="../assets/materials/budget-normal.csv">四項活動費用 CSV</a>供下一課匯入自製工具時使用。</p>
 <p class="body-text">表中的 quantity 是數量、unit_price 是預估單價、actual 是逐項實支、note 是差異原因。actual 已是該項整筆實支，不是每人的單價；估算才使用「數量 × 預估單價」，note 用來說明差異，不改變計算公式。</p>

@@ -9,7 +9,7 @@ version: 2026-10-08-five-chapters
 正式來源；保留原教學素材、完整提示詞、範例、操作及答案。作者文案審閱與實測分開記錄。
 
 <!-- learner-content:start -->
-<main class="lesson-body"><section class="lesson-section" id="schedule-core-note"><h2 class="section-heading">核心案例的完整規格對照</h2><p class="body-text">第三章已完整教過排班工具的設計、生成與查核。本頁保留規格對照，方便回看硬性限制與平均分配偏好；初次製作請從<a href="../chapters/CH3.html">第三章完整流程</a>開始。</p></section><section class="lesson-section" id="schedule-1">
+<main class="lesson-body"><section class="lesson-section" id="reading-guide"><h2 class="section-heading">這頁怎麼用</h2><p class="body-text">需要查閱排班欄位與限制時，使用這份規格對照。 初次製作排班工具，先走<a href="../chapters/CH3.html">第三章完整流程</a>；本頁供回看規則。</p><ol class="step-list"><li>先找到人員、日期與班種欄位，再對照哪些限制必須遵守、哪些只是分配偏好。</li><li>能說明一份班表符合哪些限制；要製作與測試工具時，回第三章繼續。</li></ol></section><section class="lesson-section" id="schedule-core-note"><h2 class="section-heading">核心案例的完整規格對照</h2><p class="body-text">第三章已完整教過排班工具的設計、生成與查核。本頁保留規格對照，方便回看硬性限制與平均分配偏好；初次製作請從<a href="../chapters/CH3.html">第三章完整流程</a>開始。</p></section><section class="lesson-section" id="schedule-1">
 <h2 class="section-heading">情境：活動支援小組如何排出三天值勤</h2>
 <p class="body-text">活動主管要安排週一至週三的前台值勤。每天有早班 09:00–13:00 和晚班 13:00–17:00，各需要一人。四位同事的可排日期不同；排錯會造成現場缺人，也可能讓同一人被排兩個重疊班次。</p>
 <p class="body-text">這是「依條件挑選組合」的問題。先把條件分成兩類：硬性限制必須遵守，例如不可排日期、每班需要人數、每人最多兩班、同一天不能排兩班；偏好用來改善結果，例如工作量盡量平均。若硬性限制互相衝突，正確結果是指出未排滿的班次，不可把違規排班包裝成完成。</p>

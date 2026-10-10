@@ -9,8 +9,7 @@ version: 2026-10-08-five-chapters
 正式來源；保留原教學素材、完整提示詞、範例、操作及答案。作者文案審閱與實測分開記錄。
 
 <!-- learner-content:start -->
-
-<div class="lesson-body"><section class="lesson-section"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">審稿人手上有一份已核准詞表，想先找出文件中可能需要覆核的詞。本單元做字串命中提示；完整檢查仍要人工閱讀上下文，工具會漏掉同義表達，也會把無害用法標出。</p><p class="body-text">詞表採逐字子字串比對且區分大小寫，不會忽略或正規化標點；例如詞條「urgent」不會命中「Urgent」，全形逗號「，」也不等於半形逗號「,」。詞表命中可能誤報，也可能漏掉同義表達。沒有命中時，參考工具會顯示「詞表未命中，仍需人工審閱」；這不代表通過。顯示原句和周邊文字供人判讀，不把工具稱為法遵、資安或內容安全檢查。</p><p class="body-text">先操作下方參考品，觀察輸入如何變成結果。它用來熟悉流程；你後續生成的版本仍要獨立保存並按驗收資料測試。</p><div class="tool-wrap">
+<div class="lesson-body"><section class="lesson-section" id="reading-guide"><h2 class="section-heading">這頁怎麼用</h2><p class="body-text">有已核准詞表，想先找出文件中需要覆核的位置時，使用這頁。 準備詞表與測試文字；下方提供範例。</p><ol class="step-list"><li>先用一個詞測試命中位置，再閱讀原句判斷是否真的需要修改。</li><li>工具能指出命中原文；同義表達與上下文仍由人檢查。</li></ol></section><section class="lesson-section" id="example-start"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">審稿人手上有一份已核准詞表，想先找出文件中可能需要覆核的詞。本單元做字串命中提示；完整檢查仍要人工閱讀上下文，工具會漏掉同義表達，也會把無害用法標出。</p><p class="body-text">詞表採逐字子字串比對且區分大小寫，不會忽略或正規化標點；例如詞條「urgent」不會命中「Urgent」，全形逗號「，」也不等於半形逗號「,」。詞表命中可能誤報，也可能漏掉同義表達。沒有命中時，參考工具會顯示「詞表未命中，仍需人工審閱」；這不代表通過。顯示原句和周邊文字供人判讀，不把工具稱為法遵、資安或內容安全檢查。</p><p class="body-text">先操作下方參考品，觀察輸入如何變成結果。它用來熟悉流程；你後續生成的版本仍要獨立保存並按驗收資料測試。</p><div class="tool-wrap">
 <div class="tool-topbar">
 <div class="tool-dot tool-dot-r"></div>
 <div class="tool-dot tool-dot-y"></div>
@@ -87,5 +86,4 @@ B
 
 先生成空白可操作工具，案例只用於輸入與查核。依頁面欄位填入或貼入資料，不把答案寫成工具固定輸出。
 </pre><div class="policy-copy-row"><button class="copy-btn" data-policy-copy="e19-transfer-case" type="button">複製當次測試資料</button><span aria-live="polite" class="policy-status" id="e19-transfer-case-policy-status" role="status"></span></div></div><ol class="step-list"><li>先只讀資料，寫下你預期的中間結果及畫面反應。</li><li>輸入A，逐欄核對，不只確認畫面有出現。</li><li>清除或替換為B，確認同一工具依新資料重算；有匯出功能時核對下載內容。</li><li>測試例外；失敗時記輸入、實際、預期，依第四章要求修復，再重跑A與B。</li><li>按第五章保存工具、資料、提示詞與說明，留下自己的實際測試紀錄。</li></ol><p class="body-text">完成後回<a href="../playground/index.html">案例遊樂園</a>選另一種處理方式。換案例時先改輸入、設定和核對依據，工具的處理規則保持清楚；若工作方法不同，重新整理需求再生成。</p></section></div>
-
 <!-- learner-content:end -->

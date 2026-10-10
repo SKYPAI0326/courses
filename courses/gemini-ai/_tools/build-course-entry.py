@@ -10,6 +10,7 @@ DISCLOSURE="""(function(){const panel=document.getElementById('supplements');fun
 def build(site,renderer):
     source=json.loads((site/'_source/course-entry.json').read_text());catalog=json.loads((site/'_source/playground/catalog.json').read_text());doc=BeautifulSoup((site/'index.html').read_text(),'html.parser');hero=doc.select_one('.hero');main=doc.select_one('main');assert hero and main
     esc=html.escape
+    reference_count=len(catalog['references'])
     hero.select_one('h1').string=source['title'];hero.select_one('.hero-desc').string=source['intro']
     for node in hero.select('.hero-stats,.hero-actions'):node.decompose()
     hero.append(BeautifulSoup('<nav class="hero-actions" aria-label="開始課程"><a class="entry-start" href="chapters/CH1.html">從第1章開始 <span aria-hidden="true"> →</span></a><a class="entry-outline" href="#core-course">查看五章內容</a></nav>','html.parser'))
@@ -17,7 +18,7 @@ def build(site,renderer):
     for c in source['chapters']:
         markup+=f'<li><a class="chapter-link" href="{esc(c["href"])}"><span class="chapter-label">第{c["chapter"]}章 · 核心課程</span><h3>{esc(c["title"])}</h3><p>{esc(c["goal"])}</p><span class="chapter-open">閱讀本章 <span aria-hidden="true">→</span></span></a></li>'
     markup+='</ol></section>'
-    markup+=f'<section class="entry-resources" aria-labelledby="resources-title"><h2 id="resources-title">完成核心後，按工作需要選用</h2><a id="playground-entry" class="resource-link" href="playground/index.html"><span class="resource-kicker">選用 · 29個工具案例</span><h3>案例遊樂園</h3><p>{esc(source["playground_intro"])}</p><span class="resource-action">選一個工作案例 <span aria-hidden="true">→</span></span></a><details id="supplements" class="entry-reference"><summary>延伸參考 <span class="reference-caption">13份教材 · 需要時展開</span></summary><div class="reference-content"><p>{esc(source["reference_intro"])}</p>'
+    markup+=f'<section class="entry-resources" aria-labelledby="resources-title"><h2 id="resources-title">完成核心後，按工作需要選用</h2><a id="playground-entry" class="resource-link" href="playground/index.html"><span class="resource-kicker">選用 · 29個工具案例</span><h3>案例遊樂園</h3><p>{esc(source["playground_intro"])}</p><span class="resource-action">選一個工作案例 <span aria-hidden="true">→</span></span></a><details id="supplements" class="entry-reference"><summary>延伸參考 <span class="reference-caption">{reference_count}份教材 · 需要時展開</span></summary><div class="reference-content"><p>{esc(source["reference_intro"])}</p>'
     for key,title,desc,files in renderer.GROUPS:
         refs=[r for r in catalog['references'] if r['group']==key]
         if not refs:continue
@@ -31,7 +32,7 @@ def build(site,renderer):
         if st.get_text().startswith(('.core-route-list{','#playground-entry{')) or st.get('id')=='course-entry-layout':st.decompose()
     st=doc.new_tag('style',id='course-entry-layout');st.string=STYLE;doc.head.append(st)
     sc=doc.new_tag('script',id='entry-reference-navigation');sc.string=DISCLOSURE;doc.body.append(sc)
-    renderer.meta(doc,'index.html',source['title'],'五章核心依序學會用白話製作、修改與交付工作工具；另有29個工具案例與13份選用參考。')
+    renderer.meta(doc,'index.html',source['title'],f'五章核心依序學會用白話製作、修改與交付工作工具；另有29個工具案例與{reference_count}份選用參考。')
     for parent in [doc.head,doc.body,hero]:
         for node in list(parent.contents):
             if isinstance(node,NavigableString) and not node.strip():node.extract()

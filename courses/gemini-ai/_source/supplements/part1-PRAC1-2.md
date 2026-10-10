@@ -9,7 +9,7 @@ version: 2026-10-08-five-chapters
 正式來源；保留原教學素材、完整提示詞、範例、操作及答案。作者文案審閱與實測分開記錄。
 
 <!-- learner-content:start -->
-<div class="lesson-body"><section class="lesson-section"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">你手上有兩版「活動會後摘要」提示詞，想知道改寫是否讓結果更可用。本單元用同一份假資料做前後比較；完成物是有固定判準、原文引證和兩份模型輸出的比較紀錄。</p><p class="body-text">提示詞是本次比較中唯一要改的條件。若模型、原文或設定也改了，就無法判斷差異是否來自提示詞。比較台不會呼叫模型或替你打分，只整理你根據原文做出的人工判讀。</p><p class="body-text">先讀共同假逐字稿，標出提議、最後決議、有效待辦、取消與未知，再操作下方比較台。把提示詞 A、B 分別送入同一模型，貼回結果並逐項引用證據。</p><div class="tool-wrap">
+<div class="lesson-body"><section class="lesson-section" id="reading-guide"><h2 class="section-heading">這頁怎麼用</h2><p class="body-text">想知道兩版提示詞哪一版比較可用時，使用這頁。 先準備下方同一份活動資料；兩次測試只更換提示詞。</p><ol class="step-list"><li>先閱讀範例的比較標準，再依序取得 A、B 兩份模型輸出。</li><li>留下兩份輸出與逐項比較理由；每個判斷都能回到原文找到依據。</li></ol></section><section class="lesson-section" id="example-start"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">你手上有兩版「活動會後摘要」提示詞，想知道改寫是否讓結果更可用。本單元用同一份假資料做前後比較；完成物是有固定判準、原文引證和兩份模型輸出的比較紀錄。</p><p class="body-text">提示詞是本次比較中唯一要改的條件。若模型、原文或設定也改了，就無法判斷差異是否來自提示詞。比較台不會呼叫模型或替你打分，只整理你根據原文做出的人工判讀。</p><p class="body-text">先讀共同假逐字稿，標出提議、最後決議、有效待辦、取消與未知，再操作下方比較台。把提示詞 A、B 分別送入同一模型，貼回結果並逐項引用證據。</p><div class="tool-wrap">
 <div class="tool-topbar">
 <div class="tool-dot tool-dot-r"></div>
 <div class="tool-dot tool-dot-y"></div>

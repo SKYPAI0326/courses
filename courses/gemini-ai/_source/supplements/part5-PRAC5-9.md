@@ -9,8 +9,7 @@ version: 2026-10-08-five-chapters
 正式來源；保留原教學素材、完整提示詞、範例、操作及答案。作者文案審閱與實測分開記錄。
 
 <!-- learner-content:start -->
-
-<div class="lesson-body"><section class="lesson-section"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">活動團隊需要知道距離固定截止日還有幾天，以及目前經過了多少比例。本單元以明確日期算倒數和進度；跨時區、當日邊界和已過期狀態都要測，倒數畫面不能替代風險溝通。</p><p class="body-text">倒數和進度都依使用者所在時區的日曆日期計算。比較基準日欄預設今天，也能指定固定日期重現測試；截止當天、已過期和起訖同日是不同狀態。若頁面跨午夜持續開啟，重新載入或更新比較基準日。進度比例只描述日期，不代表工作完成率。</p><p class="body-text">先操作下方參考品，觀察輸入如何變成結果。它用來熟悉流程；你後續生成的版本仍要獨立保存並按驗收資料測試。</p><div class="tool-wrap">
+<div class="lesson-body"><section class="lesson-section" id="reading-guide"><h2 class="section-heading">這頁怎麼用</h2><p class="body-text">需要顯示距離截止日的剩餘時間時，使用這頁。 完成第三章後使用；準備明確起日、截止日與使用時區。</p><ol class="step-list"><li>先用下方日期示例，計算應有的倒數與進度，再與工具結果比較。</li><li>一般日期、截止當日與已過期狀態都有正確顯示。</li></ol></section><section class="lesson-section" id="example-start"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">活動團隊需要知道距離固定截止日還有幾天，以及目前經過了多少比例。本單元以明確日期算倒數和進度；跨時區、當日邊界和已過期狀態都要測，倒數畫面不能替代風險溝通。</p><p class="body-text">倒數和進度都依使用者所在時區的日曆日期計算。比較基準日欄預設今天，也能指定固定日期重現測試；截止當天、已過期和起訖同日是不同狀態。若頁面跨午夜持續開啟，重新載入或更新比較基準日。進度比例只描述日期，不代表工作完成率。</p><p class="body-text">先操作下方參考品，觀察輸入如何變成結果。它用來熟悉流程；你後續生成的版本仍要獨立保存並按驗收資料測試。</p><div class="tool-wrap">
 <div class="tool-topbar">
 <div class="tool-dot tool-dot-r"></div>
 <div class="tool-dot tool-dot-y"></div>
@@ -95,5 +94,4 @@ B
 
 先生成空白可操作工具，案例只用於輸入與查核。依頁面欄位填入或貼入資料，不把答案寫成工具固定輸出。
 </pre><div class="policy-copy-row"><button class="copy-btn" data-policy-copy="e18-transfer-case" type="button">複製當次測試資料</button><span aria-live="polite" class="policy-status" id="e18-transfer-case-policy-status" role="status"></span></div></div><ol class="step-list"><li>先只讀資料，寫下你預期的中間結果及畫面反應。</li><li>輸入A，逐欄核對，不只確認畫面有出現。</li><li>清除或替換為B，確認同一工具依新資料重算；有匯出功能時核對下載內容。</li><li>測試例外；失敗時記輸入、實際、預期，依第四章要求修復，再重跑A與B。</li><li>按第五章保存工具、資料、提示詞與說明，留下自己的實際測試紀錄。</li></ol><p class="body-text">完成後回<a href="../playground/index.html">案例遊樂園</a>選另一種處理方式。換案例時先改輸入、設定和核對依據，工具的處理規則保持清楚；若工作方法不同，重新整理需求再生成。</p></section></div>
-
 <!-- learner-content:end -->

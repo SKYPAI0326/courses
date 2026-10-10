@@ -9,8 +9,7 @@ version: 2026-10-08-five-chapters
 正式來源；保留原教學素材、完整提示詞、範例、操作及答案。作者文案審閱與實測分開記錄。
 
 <!-- learner-content:start -->
-
-<div class="lesson-body"><section class="lesson-section"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">行銷同事需要為一個活動頁面配置主色、背景與強調色，避免文字看不清。本單元從一組品牌主色產出可檢查的色票；完成後以文字對比和實際元件預覽決定採用與否，不能把色票建議當作無障礙認證。</p><p class="body-text">色票工具把主色轉成背景、文字和強調色候選。色相協調不等於文字可讀；確認實際前景／背景對比，並在真實按鈕和長段文字上預覽。</p><p class="body-text">先操作下方參考品，觀察輸入如何變成結果。它用來熟悉流程；你後續生成的版本仍要獨立保存並按驗收資料測試。</p><div class="tool-wrap">
+<div class="lesson-body"><section class="lesson-section" id="reading-guide"><h2 class="section-heading">這頁怎麼用</h2><p class="body-text">需要為工具選擇清楚可讀的配色時，使用這頁。 完成第二章後使用；準備一組品牌主色，或先用下方示例。</p><ol class="step-list"><li>先看色票參考品，再依範例生成主色、背景與強調色的預覽。</li><li>在文字與按鈕上檢查對比；換一組主色後仍要能辨認內容。</li></ol></section><section class="lesson-section" id="example-start"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">行銷同事需要為一個活動頁面配置主色、背景與強調色，避免文字看不清。本單元從一組品牌主色產出可檢查的色票；完成後以文字對比和實際元件預覽決定採用與否，不能把色票建議當作無障礙認證。</p><p class="body-text">色票工具把主色轉成背景、文字和強調色候選。色相協調不等於文字可讀；確認實際前景／背景對比，並在真實按鈕和長段文字上預覽。</p><p class="body-text">先操作下方參考品，觀察輸入如何變成結果。它用來熟悉流程；你後續生成的版本仍要獨立保存並按驗收資料測試。</p><div class="tool-wrap">
 <div class="tool-topbar">
 <div class="tool-dot tool-dot-r"></div>
 <div class="tool-dot tool-dot-y"></div>
@@ -82,5 +81,4 @@ B
 
 先生成空白可操作工具，案例只用於輸入與查核。依頁面欄位填入或貼入資料，不把答案寫成工具固定輸出。
 </pre><div class="policy-copy-row"><button class="copy-btn" data-policy-copy="e03-transfer-case" type="button">複製當次測試資料</button><span aria-live="polite" class="policy-status" id="e03-transfer-case-policy-status" role="status"></span></div></div><ol class="step-list"><li>先只讀資料，寫下你預期的中間結果及畫面反應。</li><li>輸入A，逐欄核對，不只確認畫面有出現。</li><li>清除或替換為B，確認同一工具依新資料重算；有匯出功能時核對下載內容。</li><li>測試例外；失敗時記輸入、實際、預期，依第四章要求修復，再重跑A與B。</li><li>按第五章保存工具、資料、提示詞與說明，留下自己的實際測試紀錄。</li></ol><p class="body-text">完成後回<a href="../playground/index.html">案例遊樂園</a>選另一種處理方式。換案例時先改輸入、設定和核對依據，工具的處理規則保持清楚；若工作方法不同，重新整理需求再生成。</p></section></div>
-
 <!-- learner-content:end -->

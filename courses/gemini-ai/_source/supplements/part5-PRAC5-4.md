@@ -9,8 +9,7 @@ version: 2026-10-08-five-chapters
 正式來源；保留原教學素材、完整提示詞、範例、操作及答案。作者文案審閱與實測分開記錄。
 
 <!-- learner-content:start -->
-
-<div class="lesson-body"><section class="lesson-section"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">社群小編要確認一段已核准文案在不同平台的換行和預覽。本單元把同一份文字放進多個預覽，避免逐一複製錯版；字數和平台限制會更新，發布前須到當前官方介面再核對。</p><p class="body-text">預覽是版面草圖，平台仍可能改變字數計算、連結卡片或裁切方式。頁面內建門檻預設為 120，供本課測試且可逐平台調整，不是官方限制；頁面以 JavaScript String.length 計算 UTF-16 code units，部分 Emoji 會占多個單位。發布前在平台當前介面核對。</p><p class="body-text"><strong>固定測試文案（請逐字貼入，兩行之間保留換行）：</strong></p><pre style="white-space:pre-wrap;background:var(--c-surface);padding:14px 16px;border-radius:4px;margin:-8px 0 20px;font-family:inherit;font-size:.88rem;line-height:1.8;">新品體驗活動開放報名！詳情：https://example.com/demo 😊
+<div class="lesson-body"><section class="lesson-section" id="reading-guide"><h2 class="section-heading">這頁怎麼用</h2><p class="body-text">文案已核准，想檢查不同平台的換行與預覽時，使用這頁。 準備同一份核准文字；先用頁內範例練習。</p><ol class="step-list"><li>把同一段文字放入各平台預覽，核對內容是否完整與換行位置。</li><li>各預覽保留同一份原文；正式發布前再到平台介面確認。</li></ol></section><section class="lesson-section" id="example-start"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">社群小編要確認一段已核准文案在不同平台的換行和預覽。本單元把同一份文字放進多個預覽，避免逐一複製錯版；字數和平台限制會更新，發布前須到當前官方介面再核對。</p><p class="body-text">預覽是版面草圖，平台仍可能改變字數計算、連結卡片或裁切方式。頁面內建門檻預設為 120，供本課測試且可逐平台調整，不是官方限制；頁面以 JavaScript String.length 計算 UTF-16 code units，部分 Emoji 會占多個單位。發布前在平台當前介面核對。</p><p class="body-text"><strong>固定測試文案（請逐字貼入，兩行之間保留換行）：</strong></p><pre style="white-space:pre-wrap;background:var(--c-surface);padding:14px 16px;border-radius:4px;margin:-8px 0 20px;font-family:inherit;font-size:.88rem;line-height:1.8;">新品體驗活動開放報名！詳情：https://example.com/demo 😊
 請於 10/10 前填表，名額有限。</pre><p class="body-text">用 JavaScript String.length 計算，這段含中間換行的文案共 60 個 UTF-16 code units；其中 😊 計為兩個單位。先操作下方參考品，觀察輸入如何變成結果，再用同一份固定文字驗收生成版。</p><div class="tool-wrap">
 <div class="tool-topbar">
 <div class="tool-dot tool-dot-r"></div>
@@ -91,5 +90,4 @@ B
 
 先生成空白可操作工具，案例只用於輸入與查核。依頁面欄位填入或貼入資料，不把答案寫成工具固定輸出。
 </pre><div class="policy-copy-row"><button class="copy-btn" data-policy-copy="e13-transfer-case" type="button">複製當次測試資料</button><span aria-live="polite" class="policy-status" id="e13-transfer-case-policy-status" role="status"></span></div></div><ol class="step-list"><li>先只讀資料，寫下你預期的中間結果及畫面反應。</li><li>輸入A，逐欄核對，不只確認畫面有出現。</li><li>清除或替換為B，確認同一工具依新資料重算；有匯出功能時核對下載內容。</li><li>測試例外；失敗時記輸入、實際、預期，依第四章要求修復，再重跑A與B。</li><li>按第五章保存工具、資料、提示詞與說明，留下自己的實際測試紀錄。</li></ol><p class="body-text">完成後回<a href="../playground/index.html">案例遊樂園</a>選另一種處理方式。換案例時先改輸入、設定和核對依據，工具的處理規則保持清楚；若工作方法不同，重新整理需求再生成。</p></section></div>
-
 <!-- learner-content:end -->

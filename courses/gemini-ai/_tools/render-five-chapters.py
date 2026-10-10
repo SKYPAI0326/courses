@@ -15,7 +15,7 @@ GROUPS=[
 ('forms','計算、排班與表單','第三章之後，將不同輸入與規則做成可查核工具。',['part2/BUDGET-1.html','part2/BUDGET-2.html','part2/CH2-2.html','part5/PRAC5-6.html','part5/PRAC5-7.html','part5/PRAC5-11.html']),
 ('visual','介面、圖表與資訊呈現','以工作判斷選呈現方式；修改後仍核對資料與原功能。',['part2/CH2-3.html','part2/PRAC2-3.html','part3/CH3-1.html','part3/CH3-2.html','part3/CH3-3.html','part3/PRAC3-1.html','part3/PRAC3-2.html','part3/PRAC3-3.html','part5/PRAC5-4.html','part5/PRAC5-8.html']),
 ('work','行政、行銷與會議工作','第三章之後按職務選案例；模型語意判斷另有平台需求。',['part5/PRAC5-1.html','part5/PRAC5-2.html','part5/PRAC5-3.html','part5/PRAC5-5.html','part5/PRAC5-9.html','part5/PRAC5-10.html','part5/PRAC5-12.html','part6/CH6-1.html','part6/PRAC6-1.html']),
-('reuse','改造、保存與提示詞管理','第四、第五章之後，依成果類型擴充與重用。',['part4/CH4-2.html','part4/CH4-3.html','part4/PRAC4-2.html','part4/SUPP4-1.html','part4/SUPP4-3.html']),
+('reuse','改造、保存與提示詞管理','第四、第五章之後，依成果類型擴充與重用。',['part4/CH4-2.html','part4/CH4-3.html','part4/PRAC4-2.html','part4/SUPP4-1.html','part4/SUPP4-3.html','part4/SUPP4-4.html']),
 ('sharing','分享與外部部署參考','第五章之後，需要分享或部署時再核對環境與條件。',['part4/PRAC4-1.html','part6/CH6-2.html','part6/CH6-3.html'])]
 GOALS=[
 ('用白話請AI做遊戲，存檔、開啟，再修改一次。','留下能重開的snake-v1、v2，說明配色前後的差異。'),
@@ -92,7 +92,7 @@ def main():
             for tag in hero.select('.hero-part'):tag.string='補充教材 · '+group
             for tag in hero.select('.hero-num'):tag.string='依用途選讀'
             hero['data-learning-role']='reference' if key=='sharing' else 'extension'
-            if file=='part4/SUPP4-3.html':hero.select_one('h1').string=titles[file]
+            hero.select_one('h1').string=titles[file]
         for tag in doc.select('.topbar-tag'):tag.string='補充教材'
         footer=doc.select_one('.footer-note')
         if footer:footer.string='Gemini AI 實戰課 · 補充教材 · '+group
@@ -135,7 +135,7 @@ def main():
     (OUT/'fidelity.json').write_text(json.dumps(records,ensure_ascii=False,indent=2))
     if (SITE/'_source/playground/catalog.json').exists():
         pg_spec=importlib.util.spec_from_file_location('playground',Path(__file__).with_name('build-playground.py'));pg=importlib.util.module_from_spec(pg_spec);pg_spec.loader.exec_module(pg);pg.build(SITE,__import__(__name__))
-    print('正式正文與HTML保真核對完成；47講義與2入口，7舊網址保留轉向。' if (SITE/'_source/playground/catalog.json').exists() else '5核心、36補充及首頁轉製完成；41份正文保真一致。')
+    print('正式正文與HTML保真核對完成；48講義與2入口，7舊網址保留轉向。' if (SITE/'_source/playground/catalog.json').exists() else '5核心、36補充及首頁轉製完成；41份正文保真一致。')
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)

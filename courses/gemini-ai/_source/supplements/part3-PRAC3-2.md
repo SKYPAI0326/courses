@@ -9,8 +9,7 @@ version: 2026-10-08-five-chapters
 正式來源；保留原教學素材、完整提示詞、範例、操作及答案。作者文案審閱與實測分開記錄。
 
 <!-- learner-content:start -->
-
-<div class="lesson-body"><section class="lesson-section"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">專案窗口要向團隊說明已確認任務的日期、工期和重疊。本單元把每項任務放到共用時間軸，讓人比較工作區間；日期與工期須來自負責人確認的資料。</p><p class="body-text">甘特圖將開始日期和日曆日工期畫成時間區間。重疊只表示日期交疊，不能直接推論衝突；這個簡版不建模依賴、假日、人力或完成率，所以圖表只能協助溝通，不能代替排程確認。</p><p class="body-text">先操作下方參考品，觀察輸入如何變成結果。它用來熟悉流程；你後續生成的版本仍要獨立保存並按驗收資料測試。</p><div class="tool-wrap">
+<div class="lesson-body"><section class="lesson-section" id="reading-guide"><h2 class="section-heading">這頁怎麼用</h2><p class="body-text">需要讓團隊看清楚任務日期和重疊區間時，使用這頁。 準備下方任務範例；自己的日期與工期要先向負責人確認。</p><ol class="step-list"><li>先核對任務起訖日期，再照示範放到同一條時間軸。</li><li>圖上的每段工作區間與日期相符；修改日期後重新核對重疊。</li></ol></section><section class="lesson-section" id="example-start"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">專案窗口要向團隊說明已確認任務的日期、工期和重疊。本單元把每項任務放到共用時間軸，讓人比較工作區間；日期與工期須來自負責人確認的資料。</p><p class="body-text">甘特圖將開始日期和日曆日工期畫成時間區間。重疊只表示日期交疊，不能直接推論衝突；這個簡版不建模依賴、假日、人力或完成率，所以圖表只能協助溝通，不能代替排程確認。</p><p class="body-text">先操作下方參考品，觀察輸入如何變成結果。它用來熟悉流程；你後續生成的版本仍要獨立保存並按驗收資料測試。</p><div class="tool-wrap">
 <div class="tool-topbar">
 <div class="tool-dot tool-dot-r"></div>
 <div class="tool-dot tool-dot-y"></div>
@@ -72,5 +71,4 @@ B
 
 先生成空白可操作工具，案例只用於輸入與查核。依頁面欄位填入或貼入資料，不把答案寫成工具固定輸出。
 </pre><div class="policy-copy-row"><button class="copy-btn" data-policy-copy="e08-transfer-case" type="button">複製當次測試資料</button><span aria-live="polite" class="policy-status" id="e08-transfer-case-policy-status" role="status"></span></div></div><ol class="step-list"><li>先只讀資料，寫下你預期的中間結果及畫面反應。</li><li>輸入A，逐欄核對，不只確認畫面有出現。</li><li>清除或替換為B，確認同一工具依新資料重算；有匯出功能時核對下載內容。</li><li>測試例外；失敗時記輸入、實際、預期，依第四章要求修復，再重跑A與B。</li><li>按第五章保存工具、資料、提示詞與說明，留下自己的實際測試紀錄。</li></ol><p class="body-text">完成後回<a href="../playground/index.html">案例遊樂園</a>選另一種處理方式。換案例時先改輸入、設定和核對依據，工具的處理規則保持清楚；若工作方法不同，重新整理需求再生成。</p></section></div>
-
 <!-- learner-content:end -->

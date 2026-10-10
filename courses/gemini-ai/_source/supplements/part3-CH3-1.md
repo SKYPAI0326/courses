@@ -9,8 +9,7 @@ version: 2026-10-08-five-chapters
 正式來源；保留原教學素材、完整提示詞、範例、操作及答案。作者文案審閱與實測分開記錄。
 
 <!-- learner-content:start -->
-
-<main class="lesson-body"><section class="lesson-section" id="svg-context">
+<main class="lesson-body"><section class="lesson-section" id="reading-guide"><h2 class="section-heading">這頁怎麼用</h2><p class="body-text">需要呈現季度變化，同時讓讀者查到精確數值時，使用這頁。 完成第三章後使用；下方提供虛構營收資料。</p><ol class="step-list"><li>先閱讀同一組資料的圖表範例，核對季度與數值，再選擇靜態或互動呈現。</li><li>圖表、提示與資料表的數值一致；換資料後仍能核對每季數字。</li></ol></section><section class="lesson-section" id="svg-context">
 <h2 class="section-heading">情境：主管需要看季度變化，也要查到單季數字</h2>
 <p class="body-text">簡報中的靜態圖適合快速比較；如果讀者還需要查看每季精確數值或來源，互動提示才有用途。本單元用同一組虛構營收資料比較兩種呈現，不把動畫或滑鼠效果當成分析成果。</p>
 <div class="prompt-wrap"><div class="prompt-label">固定測試資料</div><pre class="result-box">期間：2026 年第 1 至第 4 季
@@ -56,5 +55,4 @@ B
 
 先生成空白可操作工具，案例只用於輸入與查核。依頁面欄位填入或貼入資料，不把答案寫成工具固定輸出。
 </pre><div class="policy-copy-row"><button class="copy-btn" data-policy-copy="e04-transfer-case" type="button">複製當次測試資料</button><span aria-live="polite" class="policy-status" id="e04-transfer-case-policy-status" role="status"></span></div></div><ol class="step-list"><li>先只讀資料，寫下你預期的中間結果及畫面反應。</li><li>輸入A，逐欄核對，不只確認畫面有出現。</li><li>清除或替換為B，確認同一工具依新資料重算；有匯出功能時核對下載內容。</li><li>測試例外；失敗時記輸入、實際、預期，依第四章要求修復，再重跑A與B。</li><li>按第五章保存工具、資料、提示詞與說明，留下自己的實際測試紀錄。</li></ol><p class="body-text">完成後回<a href="../playground/index.html">案例遊樂園</a>選另一種處理方式。換案例時先改輸入、設定和核對依據，工具的處理規則保持清楚；若工作方法不同，重新整理需求再生成。</p></section></main>
-
 <!-- learner-content:end -->

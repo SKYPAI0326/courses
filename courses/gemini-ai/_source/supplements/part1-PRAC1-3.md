@@ -9,7 +9,7 @@ version: 2026-10-08-five-chapters
 正式來源；保留原教學素材、完整提示詞、範例、操作及答案。作者文案審閱與實測分開記錄。
 
 <!-- learner-content:start -->
-<div class="lesson-body"><section class="lesson-section"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">行政人員每週要把不同會議整理成通知或交辦摘要，重複輸入背景容易漏欄位。本單元做一份可替換欄位的會議指令模板；輸出仍是待核對的草稿，日期、責任人和決議必須回到來源確認。</p><p class="body-text">固定規則放在提示詞，會議類型、日期和對象是每次替換的變數。原文沒有地點或期限時要保留空白或待確認，不可為了讓範本完整而補寫。</p><p class="body-text"><strong>固定測試逐字稿（虛構）</strong><br/>主持人：下週四下午辦產品說明會，地點待確認。<br/>小林：先整理 10 頁簡報提綱。<br/>阿凱：預算等收到報價再決定。<br/>雯姊：會後通知業務與客服，通知時間尚未決定。</p><p class="body-text"><strong>核對答案：</strong>可以整理出下週四下午、簡報提綱由小林處理、預算待報價、會後通知業務與客服；地點、通知期限與精確日期都未提供，應標「待確認」，不可自行補寫。</p><p class="body-text">這份逐字稿刻意沒有精確日期、地點和通知期限，供你測模板能否保留未知資料；「下週四下午」也不能在缺少會議日期時換算成日曆日期。</p><p class="body-text">先操作參考品生成模板，再把完整模板與逐字稿一併貼入 Gemini，核對輸出。</p><div class="tool-wrap">
+<div class="lesson-body"><section class="lesson-section" id="reading-guide"><h2 class="section-heading">這頁怎麼用</h2><p class="body-text">經常整理同類會議，希望下次只需換資料時，使用這頁。 完成第二章後使用；準備下方會議範例與自己的輸出需求。</p><ol class="step-list"><li>先看範例如何把固定規則與可替換欄位分開，再填入模板產生器。</li><li>換一份會議資料測試；模板仍能使用，日期、責任人與決議都要核對。</li></ol></section><section class="lesson-section" id="example-start"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">行政人員每週要把不同會議整理成通知或交辦摘要，重複輸入背景容易漏欄位。本單元做一份可替換欄位的會議指令模板；輸出仍是待核對的草稿，日期、責任人和決議必須回到來源確認。</p><p class="body-text">固定規則放在提示詞，會議類型、日期和對象是每次替換的變數。原文沒有地點或期限時要保留空白或待確認，不可為了讓範本完整而補寫。</p><p class="body-text"><strong>固定測試逐字稿（虛構）</strong><br/>主持人：下週四下午辦產品說明會，地點待確認。<br/>小林：先整理 10 頁簡報提綱。<br/>阿凱：預算等收到報價再決定。<br/>雯姊：會後通知業務與客服，通知時間尚未決定。</p><p class="body-text"><strong>核對答案：</strong>可以整理出下週四下午、簡報提綱由小林處理、預算待報價、會後通知業務與客服；地點、通知期限與精確日期都未提供，應標「待確認」，不可自行補寫。</p><p class="body-text">這份逐字稿刻意沒有精確日期、地點和通知期限，供你測模板能否保留未知資料；「下週四下午」也不能在缺少會議日期時換算成日曆日期。</p><p class="body-text">先操作參考品生成模板，再把完整模板與逐字稿一併貼入 Gemini，核對輸出。</p><div class="tool-wrap">
 <div class="tool-topbar">
 <div class="tool-dot tool-dot-r"></div>
 <div class="tool-dot tool-dot-y"></div>
@@ -40,8 +40,8 @@ version: 2026-10-08-five-chapters
 <div class="gen-row">
 <div class="gen-field">
 <div class="field-label">與會人員</div>
-<input class="gen-input" id="g-attendee" placeholder="例：總務、人事、會計、單位主管" type="text">
-</input></div>
+<input class="gen-input" id="g-attendee" placeholder="例：總務、人事、會計、單位主管" type="text"/>
+</div>
 <div class="gen-field">
 <div class="field-label">輸出格式偏好</div>
 <select class="gen-select" id="g-format">

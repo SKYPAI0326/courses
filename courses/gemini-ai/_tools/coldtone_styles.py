@@ -3,7 +3,7 @@
 from pathlib import Path
 import argparse, json, re
 from bs4 import BeautifulSoup
-STYLE_IDS = ('coldtone-preview-style', 'coldtone-course-style', 'coldtone-table-readability', 'coldtone-prompt-layout', 'coldtone-result-palette')
+STYLE_IDS = ('coldtone-preview-style', 'coldtone-course-style', 'coldtone-table-readability', 'coldtone-prompt-layout', 'coldtone-result-palette', 'coldtone-reading-lists')
 
 def resolve_blocks(config, page):
     blocks = []

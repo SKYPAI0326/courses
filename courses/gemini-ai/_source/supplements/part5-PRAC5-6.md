@@ -9,8 +9,7 @@ version: 2026-10-08-five-chapters
 正式來源；保留原教學素材、完整提示詞、範例、操作及答案。作者文案審閱與實測分開記錄。
 
 <!-- learner-content:start -->
-
-<div class="lesson-body"><section class="lesson-section"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">面試小組要根據職務相關證據比較候選人，而不是被印象或不同問題影響。本單元用同一評分規準記錄回答；分數需附證據、不得自動決定錄取，且只能使用必要且經授權的資料。</p><p class="body-text">同一職務使用相同問題和行為錨點，才能比較回答證據。分數缺漏要標未評，敏感個資最小化；錄取決定仍由面試小組依職務要求討論。</p><p class="body-text"><strong>固定職務與面試案例（皆為虛構）：</strong>職務是行政協調員；所有人回答同一題：「請說明你如何追蹤跨部門行政任務，以及遇到資料尚未到齊時怎麼處理？」任務追蹤：1＝沒有責任人／期限紀錄；3＝有清單但沒有主動追蹤；5＝記錄責任人與期限並主動追蹤。資料缺漏：1＝依猜測補值；3＝標待確認但沒有跟進；5＝標待確認並聯絡來源確認。溝通回報：1＝沒有回報；3＝提供一般進度；5＝說明風險並向適當負責人提出需決定事項。</p><p class="body-text"><strong>甲回答：</strong>「我把每項任務列在表格，寫負責人和期限，前一天追蹤；資料沒到就標待確認、聯絡窗口，再向主管回報可能延誤通知，請主管決定是否先發待確認版。」依序評 5／5／5。<strong>乙回答：</strong>「我照上次活動先估時間，資料不齊就先排下去，會後再問；平時大概記進度。」依序評 1／1／1。評分只依回答中的可觀察行為，不推論人格或錄取結果。</p><p class="body-text">參考品預載兩位虛構候選人的分數與回答證據。逐項核對分數是否符合上方錨點；在「回答證據與備註」欄保留原句，生成版再測未評和新增／刪除流程。</p><div class="tool-wrap">
+<div class="lesson-body"><section class="lesson-section" id="reading-guide"><h2 class="section-heading">這頁怎麼用</h2><p class="body-text">面試小組想用一致規準記錄候選人的回答時，使用這頁。 先確認職務相關的評分規準；練習使用假資料。</p><ol class="step-list"><li>先讀評分示例，再為一個回答記錄分數與支持該分數的證據。</li><li>同一規準可套用不同回答；分數附證據，由人作最後判斷。</li></ol></section><section class="lesson-section" id="example-start"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">面試小組要根據職務相關證據比較候選人，而不是被印象或不同問題影響。本單元用同一評分規準記錄回答；分數需附證據、不得自動決定錄取，且只能使用必要且經授權的資料。</p><p class="body-text">同一職務使用相同問題和行為錨點，才能比較回答證據。分數缺漏要標未評，敏感個資最小化；錄取決定仍由面試小組依職務要求討論。</p><p class="body-text"><strong>固定職務與面試案例（皆為虛構）：</strong>職務是行政協調員；所有人回答同一題：「請說明你如何追蹤跨部門行政任務，以及遇到資料尚未到齊時怎麼處理？」任務追蹤：1＝沒有責任人／期限紀錄；3＝有清單但沒有主動追蹤；5＝記錄責任人與期限並主動追蹤。資料缺漏：1＝依猜測補值；3＝標待確認但沒有跟進；5＝標待確認並聯絡來源確認。溝通回報：1＝沒有回報；3＝提供一般進度；5＝說明風險並向適當負責人提出需決定事項。</p><p class="body-text"><strong>甲回答：</strong>「我把每項任務列在表格，寫負責人和期限，前一天追蹤；資料沒到就標待確認、聯絡窗口，再向主管回報可能延誤通知，請主管決定是否先發待確認版。」依序評 5／5／5。<strong>乙回答：</strong>「我照上次活動先估時間，資料不齊就先排下去，會後再問；平時大概記進度。」依序評 1／1／1。評分只依回答中的可觀察行為，不推論人格或錄取結果。</p><p class="body-text">參考品預載兩位虛構候選人的分數與回答證據。逐項核對分數是否符合上方錨點；在「回答證據與備註」欄保留原句，生成版再測未評和新增／刪除流程。</p><div class="tool-wrap">
 <div class="tool-topbar">
 <div class="tool-dot tool-dot-r"></div>
 <div class="tool-dot tool-dot-y"></div>
@@ -69,5 +68,4 @@ B
 
 先生成空白可操作工具，案例只用於輸入與查核。依頁面欄位填入或貼入資料，不把答案寫成工具固定輸出。
 </pre><div class="policy-copy-row"><button class="copy-btn" data-policy-copy="e15-transfer-case" type="button">複製當次測試資料</button><span aria-live="polite" class="policy-status" id="e15-transfer-case-policy-status" role="status"></span></div></div><ol class="step-list"><li>先只讀資料，寫下你預期的中間結果及畫面反應。</li><li>輸入A，逐欄核對，不只確認畫面有出現。</li><li>清除或替換為B，確認同一工具依新資料重算；有匯出功能時核對下載內容。</li><li>測試例外；失敗時記輸入、實際、預期，依第四章要求修復，再重跑A與B。</li><li>按第五章保存工具、資料、提示詞與說明，留下自己的實際測試紀錄。</li></ol><p class="body-text">完成後回<a href="../playground/index.html">案例遊樂園</a>選另一種處理方式。換案例時先改輸入、設定和核對依據，工具的處理規則保持清楚；若工作方法不同，重新整理需求再生成。</p></section></div>
-
 <!-- learner-content:end -->

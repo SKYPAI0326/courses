@@ -9,8 +9,7 @@ version: 2026-10-08-five-chapters
 正式來源；保留原教學素材、完整提示詞、範例、操作及答案。作者文案審閱與實測分開記錄。
 
 <!-- learner-content:start -->
-
-<main class="lesson-body"><section class="lesson-section" id="flow-context">
+<main class="lesson-body"><section class="lesson-section" id="reading-guide"><h2 class="section-heading">這頁怎麼用</h2><p class="body-text">流程常卡在退件與交接，想把責任和分支畫清楚時，使用這頁。 準備下方採購流程範例；先確認每一步由誰處理。</p><ol class="step-list"><li>先列出承辦人、主管、採購與財務的節點，再跟著示範補上退補件和不核准的去向。</li><li>每一條分支都有下一步或結束狀態，不能只畫一條直線。</li></ol></section><section class="lesson-section" id="flow-context">
 <h2 class="section-heading">情境：採購申請常卡在退補件與責任交接</h2>
 <p class="body-text">新採購申請要經過承辦人、主管、採購和財務。只有直線箭頭會漏掉「退回補件」與「不核准」兩種結果；圖上的每個節點和分支都必須來自實際規則。</p>
 <div class="prompt-wrap"><div class="prompt-label">本次流程資料</div><pre class="result-box">提出需求（承辦人）→ 主管審核
@@ -59,5 +58,4 @@ B
 
 先生成空白可操作工具，案例只用於輸入與查核。依頁面欄位填入或貼入資料，不把答案寫成工具固定輸出。
 </pre><div class="policy-copy-row"><button class="copy-btn" data-policy-copy="e05-transfer-case" type="button">複製當次測試資料</button><span aria-live="polite" class="policy-status" id="e05-transfer-case-policy-status" role="status"></span></div></div><ol class="step-list"><li>先只讀資料，寫下你預期的中間結果及畫面反應。</li><li>輸入A，逐欄核對，不只確認畫面有出現。</li><li>清除或替換為B，確認同一工具依新資料重算；有匯出功能時核對下載內容。</li><li>測試例外；失敗時記輸入、實際、預期，依第四章要求修復，再重跑A與B。</li><li>按第五章保存工具、資料、提示詞與說明，留下自己的實際測試紀錄。</li></ol><p class="body-text">完成後回<a href="../playground/index.html">案例遊樂園</a>選另一種處理方式。換案例時先改輸入、設定和核對依據，工具的處理規則保持清楚；若工作方法不同，重新整理需求再生成。</p></section></main>
-
 <!-- learner-content:end -->

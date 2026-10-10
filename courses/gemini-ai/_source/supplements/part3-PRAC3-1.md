@@ -9,8 +9,7 @@ version: 2026-10-08-five-chapters
 正式來源；保留原教學素材、完整提示詞、範例、操作及答案。作者文案審閱與實測分開記錄。
 
 <!-- learner-content:start -->
-
-<div class="lesson-body"><section class="lesson-section"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">訓練主管想比較學員在不同技能上的練習進度。本單元用同一把 1–5 分規準建立雷達圖；完成物含每個分數的證據，不把圖形面積或總分當作員工能力結論。</p><p class="body-text">雷達圖把各維度分數換成方向與半徑，方便看出強弱分布。技能是不同面向，圖形面積不是總能力；每個分數必須能回到一條可觀察的行為證據。</p><p class="body-text"><strong>共用行為錨點與案例：</strong>文件整理：1 分＝檔案散亂、無法說明命名；3 分＝依分類歸檔但偶有漏項；5 分＝命名一致且能快速找到最新版。資料分析：1 分＝照抄數字、未核來源；3 分＝公式正確但漏檢空值；5 分＝核對來源、公式並說明異常。口頭簡報：1 分＝只讀數字、說不出原因；3 分＝先講結論並列一項證據；5 分＝結論、證據與不確定性都清楚且能回答追問。固定虛構學員評分為文件整理 5、資料分析 3、口頭簡報 1；各分數分別記錄「找到最新版不到 30 秒」、「公式正確但未檢查空值」、「只念數字且說不出變動原因」。2、4 分可用於兩錨點之間，必須附觀察證據和理由。</p><p class="body-text">先操作參考品輸入上方三項固定評分，確認名稱和數字出現在同一頂點；再按更新重畫。生成自己的版本時也用同組資料測試。</p><div class="tool-wrap">
+<div class="lesson-body"><section class="lesson-section" id="reading-guide"><h2 class="section-heading">這頁怎麼用</h2><p class="body-text">想比較不同技能的練習進度時，使用這頁製作雷達圖。 先準備下方 1–5 分評分規準和各項分數的依據。</p><ol class="step-list"><li>先讀評分範例，確認每個分數代表什麼，再輸入圖表資料。</li><li>圖上分數能對回原資料；每項都有證據，不用面積直接判斷能力。</li></ol></section><section class="lesson-section" id="example-start"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">訓練主管想比較學員在不同技能上的練習進度。本單元用同一把 1–5 分規準建立雷達圖；完成物含每個分數的證據，不把圖形面積或總分當作員工能力結論。</p><p class="body-text">雷達圖把各維度分數換成方向與半徑，方便看出強弱分布。技能是不同面向，圖形面積不是總能力；每個分數必須能回到一條可觀察的行為證據。</p><p class="body-text"><strong>共用行為錨點與案例：</strong>文件整理：1 分＝檔案散亂、無法說明命名；3 分＝依分類歸檔但偶有漏項；5 分＝命名一致且能快速找到最新版。資料分析：1 分＝照抄數字、未核來源；3 分＝公式正確但漏檢空值；5 分＝核對來源、公式並說明異常。口頭簡報：1 分＝只讀數字、說不出原因；3 分＝先講結論並列一項證據；5 分＝結論、證據與不確定性都清楚且能回答追問。固定虛構學員評分為文件整理 5、資料分析 3、口頭簡報 1；各分數分別記錄「找到最新版不到 30 秒」、「公式正確但未檢查空值」、「只念數字且說不出變動原因」。2、4 分可用於兩錨點之間，必須附觀察證據和理由。</p><p class="body-text">先操作參考品輸入上方三項固定評分，確認名稱和數字出現在同一頂點；再按更新重畫。生成自己的版本時也用同組資料測試。</p><div class="tool-wrap">
 <div class="tool-topbar">
 <div class="tool-dot tool-dot-r"></div>
 <div class="tool-dot tool-dot-y"></div>
@@ -80,5 +79,4 @@ B
 
 先生成空白可操作工具，案例只用於輸入與查核。依頁面欄位填入或貼入資料，不把答案寫成工具固定輸出。
 </pre><div class="policy-copy-row"><button class="copy-btn" data-policy-copy="e07-transfer-case" type="button">複製當次測試資料</button><span aria-live="polite" class="policy-status" id="e07-transfer-case-policy-status" role="status"></span></div></div><ol class="step-list"><li>先只讀資料，寫下你預期的中間結果及畫面反應。</li><li>輸入A，逐欄核對，不只確認畫面有出現。</li><li>清除或替換為B，確認同一工具依新資料重算；有匯出功能時核對下載內容。</li><li>測試例外；失敗時記輸入、實際、預期，依第四章要求修復，再重跑A與B。</li><li>按第五章保存工具、資料、提示詞與說明，留下自己的實際測試紀錄。</li></ol><p class="body-text">完成後回<a href="../playground/index.html">案例遊樂園</a>選另一種處理方式。換案例時先改輸入、設定和核對依據，工具的處理規則保持清楚；若工作方法不同，重新整理需求再生成。</p></section></div>
-
 <!-- learner-content:end -->

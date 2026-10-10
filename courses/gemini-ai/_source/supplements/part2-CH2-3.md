@@ -9,7 +9,7 @@ version: 2026-10-08-five-chapters
 正式來源；保留原教學素材、完整提示詞、範例、操作及答案。作者文案審閱與實測分開記錄。
 
 <!-- learner-content:start -->
-<main class="lesson-body"><section class="lesson-section" id="budget-ui-1">
+<main class="lesson-body"><section class="lesson-section" id="reading-guide"><h2 class="section-heading">這頁怎麼用</h2><p class="body-text">預算算對了，畫面卻不容易看懂時，使用這頁改造介面。 先完成<a href="BUDGET-2.html">預算工具製作</a>，保存能正確計算的原版 HTML。</p><ol class="step-list"><li>先填入原測試資料並記下四個金額，再閱讀下方畫面改造範例。</li><li>修改後金額仍與原版一致；標題、差異與餘額更容易找到，手機也能閱讀。</li></ol></section><section class="lesson-section" id="budget-ui-1">
 <h2 class="section-heading">情境：數字正確，讀表的人卻找不到重點</h2>
 <p class="body-text">沿用預算補充 BUDGET-2 已驗算的活動預算工具 activity-budget.html。承辦人要在會議中快速看出估算、實支、支出差異與核定餘額；如果欄位擠在一起，或只用紅綠色代表狀態，同事仍可能讀錯數字。</p>
 <p class="body-text">本單元只改版面、層次和文字可讀性，不新增欄位、不改計算公式、不改 CSV 匯入／匯出和錯誤處理。這樣才能把「介面改得更清楚」和「功能被意外改壞」分開驗收。開始前若沒有自己的預算工具，先完成 <a href="BUDGET-2.html">活動預算實作</a>；參考品只能用來預演，不能當成自己已驗收的成品。</p>

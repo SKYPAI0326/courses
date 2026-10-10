@@ -1,7 +1,7 @@
 ---
 slug: gemini-ai
 unit_id: SUPP-part4-PRAC4-1
-title: 工具上線前部署清單
+title: 工具交付前檢查：功能、資料與版本
 course_type: skill-operation
 version: 2026-10-08-five-chapters
 ---
@@ -9,7 +9,7 @@ version: 2026-10-08-five-chapters
 正式來源；保留原教學素材、完整提示詞、範例、操作及答案。作者文案審閱與實測分開記錄。
 
 <!-- learner-content:start -->
-<div class="lesson-body"><section class="lesson-section"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">同事要試用一個由 AI 生成的單頁工具，交付前需要確認功能、資料邊界、手機可用性和版本。本單元用具體證據逐項做 preflight；打勾本身不證明安全或部署成功，需附實際測試結果。</p><p class="body-text">頁內參考品只是一個 16 項勾選計數器，沒有證據欄，也沒有不適用狀態；全勾只代表按過 16 項。正式測試另在筆記或表格建立紀錄：項目｜操作｜預期｜實際｜證據位置｜狀態。不適用須寫理由，失敗須留待修正。</p><p class="body-text">先操作下方參考品，觀察輸入如何變成結果。它用來熟悉流程；你後續生成的版本仍要獨立保存並按驗收資料測試。</p><div class="tool-wrap">
+<div class="lesson-body"><section class="lesson-section" id="reading-guide"><h2 class="section-heading">這頁怎麼用</h2><p class="body-text">工具準備交給別人試用時，使用這頁做交付前檢查。 先準備能重新開啟的工具、測試資料與版本紀錄。</p><ol class="step-list"><li>開啟自己的工具，先照下方範例檢查一項功能，記下操作與實際結果。</li><li>每個勾選都附測試證據；未完成項目寫清楚，不能只勾「通過」。</li></ol></section><section class="lesson-section" id="example-start"><h2 class="section-heading">情境與參考工具</h2><p class="body-text">同事要試用一個由 AI 生成的單頁工具，交付前需要確認功能、資料邊界、手機可用性和版本。本單元用具體證據逐項做 preflight；打勾本身不證明安全或部署成功，需附實際測試結果。</p><p class="body-text">頁內參考品只是一個 16 項勾選計數器，沒有證據欄，也沒有不適用狀態；全勾只代表按過 16 項。正式測試另在筆記或表格建立紀錄：項目｜操作｜預期｜實際｜證據位置｜狀態。不適用須寫理由，失敗須留待修正。</p><p class="body-text">先操作下方參考品，觀察輸入如何變成結果。它用來熟悉流程；你後續生成的版本仍要獨立保存並按驗收資料測試。</p><div class="tool-wrap">
 <div class="tool-topbar">
 <div class="tool-dot tool-dot-r"></div>
 <div class="tool-dot tool-dot-y"></div>

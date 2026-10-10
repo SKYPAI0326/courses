@@ -9,8 +9,7 @@ version: 2026-10-08-five-chapters
 正式來源；保留原教學素材、完整提示詞、範例、操作及答案。作者文案審閱與實測分開記錄。
 
 <!-- learner-content:start -->
-
-<main class="lesson-body"><section class="lesson-section" id="expense-1">
+<main class="lesson-body"><section class="lesson-section" id="reading-guide"><h2 class="section-heading">這頁怎麼用</h2><p class="body-text">出差後需要核對可報金額及預付款差額時，使用這頁。 完成第三章後使用；先以頁內假資料與示例上限練習。</p><ol class="step-list"><li>先跟著範例手算交通、住宿、餐費與預付款，再生成試算工具。</li><li>工具結果與手算一致；正式送件前再核對公司適用制度。</li></ol></section><section class="lesson-section" id="expense-1">
 <div class="section-eyebrow">(01)</div>
 <h2 class="section-heading">工作情境：出差後要核對可報金額和預付款</h2>
 <p class="body-text">同事出差結束後，要整理交通、住宿、餐費和公司預付金。手動計算容易把每日餐費上限漏掉，也容易把「可核銷總額」和「公司還要支付或員工要繳回」混為一談。本單元做一個供核對的差旅費試算原型；公司制度不同，正式送件前仍須以財務規定為準。</p>
@@ -67,5 +66,4 @@ B
 
 先生成空白可操作工具，案例只用於輸入與查核。依頁面欄位填入或貼入資料，不把答案寫成工具固定輸出。
 </pre><div class="policy-copy-row"><button class="copy-btn" data-policy-copy="e22-transfer-case" type="button">複製當次測試資料</button><span aria-live="polite" class="policy-status" id="e22-transfer-case-policy-status" role="status"></span></div></div><ol class="step-list"><li>先只讀資料，寫下你預期的中間結果及畫面反應。</li><li>輸入A，逐欄核對，不只確認畫面有出現。</li><li>清除或替換為B，確認同一工具依新資料重算；有匯出功能時核對下載內容。</li><li>測試例外；失敗時記輸入、實際、預期，依第四章要求修復，再重跑A與B。</li><li>按第五章保存工具、資料、提示詞與說明，留下自己的實際測試紀錄。</li></ol><p class="body-text">完成後回<a href="../playground/index.html">案例遊樂園</a>選另一種處理方式。換案例時先改輸入、設定和核對依據，工具的處理規則保持清楚；若工作方法不同，重新整理需求再生成。</p></section></main>
-
 <!-- learner-content:end -->

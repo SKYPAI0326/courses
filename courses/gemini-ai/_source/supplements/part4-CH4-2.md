@@ -1,7 +1,7 @@
 ---
 slug: gemini-ai
 unit_id: SUPP-part4-CH4-2
-title: 建立專屬 Prompt 庫：打造你的數位資產
+title: KPI 月報提示詞卡：保存與重用
 course_type: skill-operation
 version: 2026-10-08-five-chapters
 ---
@@ -9,7 +9,7 @@ version: 2026-10-08-five-chapters
 正式來源；保留原教學素材、完整提示詞、範例、操作及答案。作者文案審閱與實測分開記錄。
 
 <!-- learner-content:start -->
-<main class="lesson-body"><section class="lesson-section" id="prompt-card-context">
+<main class="lesson-body"><section class="lesson-section" id="reading-guide"><h2 class="section-heading">這頁怎麼用</h2><p class="body-text">常用的 KPI 月報要求容易漏寫時，用這頁整理提示詞卡。 完成第二章後使用；下方提供指標、方向與輸出規則的示例。</p><ol class="step-list"><li>先讀完整月報提示詞卡，找出固定規則與每月要換的資料。</li><li>保存的提示詞卡能換月份和數值使用，且保留缺值與零基期的處理規則。</li></ol></section><section class="lesson-section" id="prompt-card-context">
 <h2 class="section-heading">情境：月報提示詞每次重寫，容易漏掉同一條規則</h2>
 <p class="body-text">每月要把部門 KPI 整理成主管看得懂的摘要。若只保存一句「幫我分析數據」，下次可能漏掉指標方向、來源、零基期或「不可推測原因」等規則。本單元的交付物是一張可重用、可測試和可更新的提示詞卡。</p>
 <div class="prompt-wrap"><div class="prompt-label">提示詞卡需要保存的欄位</div><pre class="result-box">名稱與用途｜適用輸入｜需替換欄位｜完整提示詞｜測試資料與預期答案｜最後測試日期｜版本｜限制與負責人</pre></div>

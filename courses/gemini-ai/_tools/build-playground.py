@@ -36,7 +36,7 @@ def build(site,renderer):
         records.append({'source':c['source'],'page':file,'source_sha256':hashlib.sha256(source.read_bytes()).hexdigest(),'html_sha256':hashlib.sha256((site/file).read_bytes()).hexdigest(),'fidelity':'PASS'})
     # Keep the course index's shell, gate, typography and progress script.
     index=BeautifulSoup((site/'index.html').read_text(),'html.parser');supp=index.select_one('#supplements');supp.clear()
-    supp.append(BeautifulSoup('<h2>延伸參考：方法、保存與部署</h2><p>以下13份參考教材協助比較需求、改造介面、保存及分享；需要製作工作工具時，從案例遊樂園選案例。</p>','html.parser'))
+    supp.append(BeautifulSoup(f'<h2>延伸參考：方法、保存與部署</h2><p>以下{len(refs)}份參考教材協助比較需求、改造介面、保存及分享；需要製作工作工具時，從案例遊樂園選案例。</p>','html.parser'))
     for key,title,desc,files in renderer.GROUPS:
         group=[r for r in refs if r['group']==key]
         if not group:continue
@@ -46,8 +46,8 @@ def build(site,renderer):
     supp.insert_before(entry)
     hero=index.select_one('.hero')
     for tag in hero.select('p'):tag.string='五章完成需求、生成、查核、修改與交付；再到案例遊樂園，用同一套方法製作不同工作工具。'
-    for stat,number,label in zip(hero.select('.stat'),['5','29','13'],['核心章節','工具案例','延伸參考']):stat.select_one('.stat-num').string=number;stat.select_one('.stat-lbl').string=label
-    renderer.meta(index,'index.html','用白話設計、修改與交付工作工具','五章核心、29個工具案例與13份延伸參考；提示詞描述可重用結構，案例資料分開附加。')
+    for stat,number,label in zip(hero.select('.stat'),['5','29',str(len(refs))],['核心章節','工具案例','延伸參考']):stat.select_one('.stat-num').string=number;stat.select_one('.stat-lbl').string=label
+    renderer.meta(index,'index.html','用白話設計、修改與交付工作工具',f'五章核心、29個工具案例與{len(refs)}份延伸參考；提示詞描述可重用結構，案例資料分開附加。')
     sty=index.new_tag('style');sty.string='#playground-entry{margin:48px 0;padding:28px 0;border-top:1px solid var(--c-border);border-bottom:1px solid var(--c-border)}#playground-entry p{line-height:1.9;margin:16px 0}#playground-entry a{color:var(--c-text);text-decoration:underline}';index.head.append(sty)
     (site/'index.html').write_text(renderer.serialize(index))
     build_landing(site,renderer,cases,index)
@@ -63,7 +63,7 @@ def build(site,renderer):
         z.writestr('README.txt','依案例代碼找到prompt.txt與cases.txt；提示詞描述工具結構，案例資料另附。新PG案例含作者參考工具。材料是測試資料，非學員通過證據。\n')
     (site/'_repair/2026-10-08/playground-build').mkdir(parents=True,exist_ok=True)
     (site/'_repair/2026-10-08/playground-build/fidelity.json').write_text(json.dumps(records,ensure_ascii=False,indent=2))
-    print('遊樂園29例、獨立入口、13份延伸參考、素材包已轉製')
+    print(f'遊樂園29例、獨立入口、{len(refs)}份延伸參考、素材包已轉製')
 
 
 def build_landing(site,renderer,cases,index):

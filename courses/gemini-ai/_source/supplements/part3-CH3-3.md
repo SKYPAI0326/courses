@@ -9,8 +9,7 @@ version: 2026-10-08-five-chapters
 正式來源；保留原教學素材、完整提示詞、範例、操作及答案。作者文案審閱與實測分開記錄。
 
 <!-- learner-content:start -->
-
-<main class="lesson-body"><section class="lesson-section" id="funnel-context">
+<main class="lesson-body"><section class="lesson-section" id="reading-guide"><h2 class="section-heading">這頁怎麼用</h2><p class="body-text">需要比較同一批資料在各階段留下多少人時，使用這頁。 準備下方曝光到購買的範例；各階段須採用一致的資料範圍。</p><ol class="step-list"><li>先確認各階段人數，跟著示例算相對上一階段的比例與流失數。</li><li>漏斗與表格的數值一致；缺值和異常要顯示，流失原因另行查證。</li></ol></section><section class="lesson-section" id="funnel-context">
 <h2 class="section-heading">情境：哪一段銷售流程需要進一步查證</h2>
 <p class="body-text">團隊想知道同一批訪客從曝光到購買的數量變化。漏斗可以顯示每一步留下多少人、相對上一階段的比例和流失數；它本身不能說明為什麼有人離開。</p>
 <div class="prompt-wrap"><div class="prompt-label">同一期間的示例資料</div><pre class="result-box">曝光 10,000 → 商品頁 3,200 → 加入購物車 680 → 開始結帳 185 → 完成購買 42
@@ -55,5 +54,4 @@ B
 
 先生成空白可操作工具，案例只用於輸入與查核。依頁面欄位填入或貼入資料，不把答案寫成工具固定輸出。
 </pre><div class="policy-copy-row"><button class="copy-btn" data-policy-copy="e06-transfer-case" type="button">複製當次測試資料</button><span aria-live="polite" class="policy-status" id="e06-transfer-case-policy-status" role="status"></span></div></div><ol class="step-list"><li>先只讀資料，寫下你預期的中間結果及畫面反應。</li><li>輸入A，逐欄核對，不只確認畫面有出現。</li><li>清除或替換為B，確認同一工具依新資料重算；有匯出功能時核對下載內容。</li><li>測試例外；失敗時記輸入、實際、預期，依第四章要求修復，再重跑A與B。</li><li>按第五章保存工具、資料、提示詞與說明，留下自己的實際測試紀錄。</li></ol><p class="body-text">完成後回<a href="../playground/index.html">案例遊樂園</a>選另一種處理方式。換案例時先改輸入、設定和核對依據，工具的處理規則保持清楚；若工作方法不同，重新整理需求再生成。</p></section></main>
-
 <!-- learner-content:end -->
