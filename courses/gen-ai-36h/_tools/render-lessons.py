@@ -50,11 +50,11 @@ for unit in args.units or meta:
  n=parser.find('hero-part');part=m['path'][4];replacements.append((n['inner'],n['close'],f'Part {part} · '+part_names[part]))
  hero=parser.find('lesson-hero')
  optional=[x for x in parser.nodes if x.get('parent') is hero and set(x['attrs'].get('class','').split())&{'outcomes','howto'}]
- for n in optional:replacements.append((n['inner'],n['close'],'<strong>本節完成物：</strong>'+escape(m['goal'])))
+ for n in optional:replacements.append((n['inner'],n['close'],'<strong>本節完成物：</strong>'+escape(m['artifact'])))
  try:
   n=parser.find('agenda');old=text[n['inner']:n['close']];minutes=re.search(r'(\d+)\s*分鐘',old);total=int(minutes.group(1)) if minutes else 60
-  cuts=[0,round(total*.2),round(total*.5),round(total*.8),total];topics=['理解任務與完整示範','跟著操作並核對結果','自己練習與修正','保存、驗收與下一步']
-  agenda='<strong>本節 '+str(total)+' 分鐘：練習時間可依進度調整</strong>'+''.join(f'<div class="agenda-row"><div class="agenda-time">{cuts[i]}–{cuts[i+1]} 分</div><div class="agenda-topic">{topics[i]}</div></div>' for i in range(4));replacements.append((n['inner'],n['close'],agenda))
+  topics=re.findall(r'^## (.+)$',body,re.M)
+  agenda='<strong>本節 '+str(total)+' 分鐘：依下列任務順序操作，分段時間依進度調整</strong>'+''.join(f'<div class="agenda-row"><div class="agenda-time">{i+1:02}</div><div class="agenda-topic">{escape(topic)}</div></div>' for i,topic in enumerate(topics));replacements.append((n['inner'],n['close'],agenda))
  except AssertionError: pass
  title=[x for x in parser.nodes if x['tag']=='title'][0];replacements.append((title['inner'],title['close'],escape(m['title']+'｜生成式 AI 工作應用班')))
  for x in parser.nodes:

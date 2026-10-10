@@ -28,9 +28,11 @@
 ## 七案測試與恢復
 
 8. 依[T01–T07 案例](part5-test-cases.csv)每次追加一筆測試新列，逐案核對輸入、執行紀錄、`ProcessingLog` 與 `Drafts`。T06 用同一來源鍵再提交，兩張輸出表都不得新增。
-9. T07 在停用排程的教學 Scenario 中，暫時把詢問路的 Drafts 目標表改為不存在的測試表名，再追加一筆虛構詢問。確認 `ProcessingLog` 留一筆 `待建立`、Drafts 無該鍵，Make 出現未完成執行。修回 `Drafts` 後，開啟 Incomplete executions 的該筆記錄，在失敗節點的畫面按 Run once；這會從草稿寫入與狀態回寫繼續。不要從 Watch New Rows 再跑整筆。
+9. T07 在停用排程的教學 Scenario 中，暫時把詢問路的 Drafts 目標表改為不存在的測試表名，再追加一筆虛構詢問。確認 `ProcessingLog` 留一筆 `待建立`、Drafts 無該鍵，Make 出現未完成執行。開啟 Incomplete executions 該筆 Details，在失敗執行的模組內修回 `Drafts`、Save，再按 Run once；主流程也恢復正確目標供未來使用。這會從草稿寫入與狀態回寫繼續。不要從 Watch New Rows 再跑整筆。
 10. 恢復後檢查同一來源鍵只有一份 `未寄出` 草稿，`ProcessingLog` 仍只有一列且 `draft_status=已建立`，未完成執行狀態為 Resolved。本次教學工作區 T07 由錯誤到恢復共重試兩個操作，沒有重寫上游紀錄。實際授課仍需用當天帳號與資料重做。
 
 遇到寫入失敗先保留原始資料、確認最後成功節點，再查下游是否已留下結果。若草稿已存在，不應再執行會新增草稿的步驟。每次重跑前確認排程停用，處理完未完成執行再決定是否啟用。
 
 [Make Google Sheets 模組說明](https://apps.make.com/google-sheets-modules)；[Make 陣列函數](https://help.make.com/array-functions)。
+
+官方區分暫時錯誤 Retry 與設定錯誤手動修正，見 [Manage incomplete executions](https://help.make.com/manage-incomplete-executions)。

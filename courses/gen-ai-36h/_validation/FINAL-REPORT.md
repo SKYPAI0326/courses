@@ -2,9 +2,9 @@
 
 狀態：MACHINE_READY_PENDING_HUMAN
 
-範圍：涵蓋大綱 Part 1–7 全部 28 個主線 CH／PRAC；五份原有 AI 秘書藍圖為進階延伸，不列入主線驗收。
+範圍：Part1–7 全28核心單元；四類專題均有路線與檢查。核心修復作者自審與本機browser技術驗證；私人平台、真人全路徑、進階五份藍圖未驗。
 
-有效證據：4 筆（不代表真人學會）
+有效證據：3 筆（不代表真人學會）
 
 ## 阻擋項目
 
@@ -69,18 +69,22 @@
 - CH4-4: human entry
 - CH4-4: human transfer
 - CH4-4: human understanding
+- CH5-1: actual platform run
 - CH5-1: human completion
 - CH5-1: human entry
 - CH5-1: human transfer
 - CH5-1: human understanding
+- CH5-2: actual platform run
 - CH5-2: human completion
 - CH5-2: human entry
 - CH5-2: human transfer
 - CH5-2: human understanding
+- CH5-3: actual platform run
 - CH5-3: human completion
 - CH5-3: human entry
 - CH5-3: human transfer
 - CH5-3: human understanding
+- CH5-4: actual platform run
 - CH5-4: human completion
 - CH5-4: human entry
 - CH5-4: human transfer
@@ -130,6 +134,7 @@
 - PRAC4: human entry
 - PRAC4: human transfer
 - PRAC4: human understanding
+- PRAC5: actual platform run
 - PRAC5: human completion
 - PRAC5: human entry
 - PRAC5: human transfer
@@ -144,6 +149,12 @@
 - PRAC7: human entry
 - PRAC7: human transfer
 - PRAC7: human understanding
+- completion/CH1-1,CH1-2,CH1-3,PRAC1,CH2-1,CH2-2,CH2-3,PRAC2,CH3-1,CH3-2,PRAC3,CH4-1,CH4-2,CH4-3,CH4-4,PRAC4,CH5-1,CH5-2,CH5-3,CH5-4,PRAC5,CH6-1,CH6-2,PRAC6,CH7-1,CH7-2,CH7-3,PRAC7/human
+- entry/CH1-1,CH1-2,CH1-3,PRAC1,CH2-1,CH2-2,CH2-3,PRAC2,CH3-1,CH3-2,PRAC3,CH4-1,CH4-2,CH4-3,CH4-4,PRAC4,CH5-1,CH5-2,CH5-3,CH5-4,PRAC5,CH6-1,CH6-2,PRAC6,CH7-1,CH7-2,CH7-3,PRAC7/human
 - human sequence test
+- platform/CH1-1,CH1-2,CH1-3,PRAC1,CH2-1,CH2-2,CH2-3,PRAC2,CH3-1,CH3-2,PRAC3,CH4-1,CH4-2,CH4-3,CH4-4,PRAC4,CH5-1,CH5-2,CH5-3,CH5-4,PRAC5,CH6-1,CH6-2,PRAC6,CH7-1,CH7-2,CH7-3,PRAC7/tool-run
+- sequence/CH1-1,CH1-2,CH1-3,PRAC1,CH2-1,CH2-2,CH2-3,PRAC2,CH3-1,CH3-2,PRAC3,CH4-1,CH4-2,CH4-3,CH4-4,PRAC4,CH5-1,CH5-2,CH5-3,CH5-4,PRAC5,CH6-1,CH6-2,PRAC6,CH7-1,CH7-2,CH7-3,PRAC7/human
+- transfer/CH1-1,CH1-2,CH1-3,PRAC1,CH2-1,CH2-2,CH2-3,PRAC2,CH3-1,CH3-2,PRAC3,CH4-1,CH4-2,CH4-3,CH4-4,PRAC4,CH5-1,CH5-2,CH5-3,CH5-4,PRAC5,CH6-1,CH6-2,PRAC6,CH7-1,CH7-2,CH7-3,PRAC7/human
+- understanding/CH1-1,CH1-2,CH1-3,PRAC1,CH2-1,CH2-2,CH2-3,PRAC2,CH3-1,CH3-2,PRAC3,CH4-1,CH4-2,CH4-3,CH4-4,PRAC4,CH5-1,CH5-2,CH5-3,CH5-4,PRAC5,CH6-1,CH6-2,PRAC6,CH7-1,CH7-2,CH7-3,PRAC7/human
 
 完整機器結果：validation-result.json；原始證據：evidence.json。雜湊只驗版本，語意與受測者身分須如實記錄。

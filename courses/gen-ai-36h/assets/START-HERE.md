@@ -21,6 +21,18 @@
 | Part5 | [實跑Blueprint](reference-make-blueprint.json)、[人工重建步驟](part5-rebuild-guide.md) | 教學工作區已跑 T01–T07；學員匯入後仍須重連自己的表格並試跑 |
 | Part5延伸 | [既有AI秘書藍圖對照](part5-existing-blueprints-guide.md) | 講師原有五份藍圖的進階使用順序與輸出風險 |
 | Part6 | [課程異動工作流程案例](part6-workflow-case.md)、[七欄卡](tool-card-template.md) | 手動追來源、核准狀態、下游草稿及變更後恢復 |
-| Part7 | [專題素材入口](capstone/START-HERE.md)、[虛構發表頁](showcase-example.html) | 從委託和來源版本完成修訂、測試、交接；完整範例和答案後置 |
+| Part7 | [專題素材入口](capstone/START-HERE.html)、[虛構發表頁](showcase-example.html) | 從委託和來源版本完成修訂、測試、交接；完整範例和答案後置 |
 
 沒有上傳或連線權限時，先完成可用的文字／欄位練習，紀錄「個人平台尚未實跑」。Part5的去識別Blueprint已由教學工作區實跑流程匯出，匯入後需重新設定連線及試算表。來源與結果都要另存到自己的練習資料夾。
+
+
+## 先選正確的來源範圍
+入門 PDF（mock-project-v1/v2/solo）用於單檔定位；Part3 正式跨來源練習使用 workplace-cases/part3-demo 與 part3-solo，不把同名專案的入門 PDF 混進工作包。舊海岸 PDF 的上限／報價用語已修正；它仍是另一個教學版本，不是新版海岸志工包的來源。
+
+## 操作指南與獨立變更
+- [NotebookLM 建本與來源選取](notebook-start.md)：CH3-1 首次操作前使用。
+- [HTML 生成、保存、重開與 README](html-file-workflow.md)：CH4-1 首次存檔前使用。
+- [U07 完整九欄與覆核](part5-candidate-example.md)、[四課建置狀態](part5-stage-handoff.md)、[完整測試列](part5-test-inputs.csv)：Part5 依指定階段完成。
+- [完整七欄流程卡與通知稿](part6-filled-workflow.md)：CH6-2 示範。
+- [四種專題路線](capstone/branch-guide.md)：CH7-1 選路線前使用。
+- 獨立變更：[UP-04](part2-transfer-update.md)、[PRAC4 新需求](part4-transfer.md)、[N01–N04 原文](part5-solo-messages.csv)、[WF-02](part6-transfer.md)、[POL-03](capstone/transfer-update.md)。答案留到各題完成後，由講義連結開啟。
