@@ -215,9 +215,9 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <p class="body-text">inquiry到業務；complaint到客服；partnership到合作；other到待處理。分類固定值不能同時用「詢價」與inquiry當相同規則，否則Filter可能不匹配。</p>
 </section>
 <section class="lesson-section"><div class="section-eyebrow"><span>(02) · 學習與實作</span></div><h2 class="section-heading">示範：覆核通過後才分流</h2>
-<p class="body-text">在Watch New Rows後加Filter：review_status等於「已覆核」，九欄非空、email格式有效、category屬四值。然後Router四路，每條只接受一個category。每路Add a Row寫ProcessingLog，保留source_key、category、route、status與draft_status。</p>
+<p class="body-text">先保存 S1，再依<a href="../assets/part5-stage-handoff.html#s1-to-s2" rel="noopener" target="_blank">階段指南的 S1→S2 改接</a>，在 Watch New Rows 與原 Add a Row 的連線中插入 Router。原 Add a Row 保留作 inquiry 分支，不留在 Router 前；再新增其餘三路。每路 Add a Row 寫 ProcessingLog，保留 source_key、category、route、status 與 draft_status。</p>
 <p class="body-text">完整映射例：T01的category=inquiry、route=業務、status=已記錄、draft_status=待建立；T02complaint、客服、已記錄、不需要。先不建立草稿，檢查分流本身。</p>
-<p class="body-text">把 Filter 拆成可核對條件：review_status 等於已覆核；九欄各自非空；email 有基本有效格式；category 為四個固定值之一。欄位有效性以「全部符合」連接，分類四值內部以「任一符合」連接。先只用 T01 看輸入值，再依次測待覆核與 unknown；不要把它們與四分類條件全部用 OR 串起來。</p>
+<p class="body-text">按<a href="../assets/part5-rebuild-guide.html#review-filter" rel="noopener" target="_blank">覆核 Filter 的逐欄設定表</a>，在 Watch New Rows→Router 的連線填入欄位、運算子與右值。九項都用 AND；分類四選一放在同一個 Matches pattern 條件，直接複製表內樣式，不另接四條 OR。再按指南設定四條分支的 category 等於條件。先用 T01 核對路徑，再測待覆核與 unknown；被擋時應連一筆 ProcessingLog 都不新增。</p>
 <p class="body-text">本課完成狀態是 <a href="../assets/part5-stage-handoff.html" rel="noopener" target="_blank">S2 四路紀錄</a>：詢問／合作寫「待建立」，尚無草稿正常。CH5-3 會接著完成防重、草稿與回寫，做完才進故障課。</p>
 </section>
 <section class="lesson-section"><div class="section-eyebrow"><span>(03) · 學習與實作</span></div><h2 class="section-heading">跟著做：一次新增一列</h2>

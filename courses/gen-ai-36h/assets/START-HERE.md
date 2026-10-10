@@ -18,7 +18,7 @@
 | Part4 交易清理 | [原始交易CSV](sales-raw-transactions.csv)、[欄位字典](sales-data-dictionary.md)、[答案鍵](sales-case-answer-key.md) | 去重、缺日期待查、退款保留負數、取消排除；先交清理紀錄再看答案 |
 | Part5 | [九欄規格](part5-input-contract.md)、[配置](part5-sheet-layout.md)、[新列示例](part5-reviewed-queue.csv)、[T01–T07](part5-test-cases.csv) | 用於教學Sheets／Make；保留中文覆核值 |
 | Part5 業務案例 | [未分類訊息CSV](part5-unclassified-messages.csv)、[分類答案鍵](part5-classification-answer-key.md) | U01–U07 含多重意圖、舊引用、重複來源鍵與缺欄；先人工分類，答案鍵後看 |
-| Part5 | [實跑Blueprint](reference-make-blueprint.json)、[人工重建步驟](part5-rebuild-guide.md) | 教學工作區已跑 T01–T07；學員匯入後仍須重連自己的表格並試跑 |
+| Part5 | [實跑Blueprint](reference-make-blueprint.json)、[人工重建步驟](part5-rebuild-guide.html) | 教學工作區已跑 T01–T07；學員匯入後仍須重連自己的表格並試跑 |
 | Part5延伸 | [既有AI秘書藍圖對照](part5-existing-blueprints-guide.md) | 講師原有五份藍圖的進階使用順序與輸出風險 |
 | Part6 | [課程異動工作流程案例](part6-workflow-case.md)、[七欄卡](tool-card-template.md) | 手動追來源、核准狀態、下游草稿及變更後恢復 |
 | Part7 | [專題素材入口](capstone/START-HERE.html)、[虛構發表頁](showcase-example.html) | 從委託和來源版本完成修訂、測試、交接；完整範例和答案後置 |

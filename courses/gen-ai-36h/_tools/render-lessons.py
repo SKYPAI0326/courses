@@ -1,6 +1,7 @@
 from pathlib import Path
 from html.parser import HTMLParser
 from html import escape
+from urllib.parse import urlsplit,unquote
 from bs4 import BeautifulSoup
 from markdown_it import MarkdownIt
 import json,re,hashlib,argparse
@@ -37,7 +38,9 @@ def render(body):
 a=argparse.ArgumentParser();a.add_argument('units',nargs='*');a.add_argument('--evidence-output',type=Path,default=plans.parent/'render-evidence.json',help='Write renderer evidence here (relative to course root unless absolute).');args=a.parse_args();evidence={}
 for unit in args.units or meta:
  m=meta[unit];p=root/m['path'];source=(plans/(unit+'.md')).read_text();body=source.split('<!-- learner-content:start -->')[1].split('<!-- learner-content:end -->')[0].strip();assert body.startswith('## ')
- for link in re.findall(r'\]\((\.\./assets/[^)]+)\)',body):assert (p.parent/link).is_file(),(unit,link)
+ for link in re.findall(r'\]\((\.\./assets/[^)]+)\)',body):
+  parts=urlsplit(link);target=p.parent/unquote(parts.path);assert target.is_file(),(unit,link)
+  if parts.fragment and target.suffix=='.html':assert BeautifulSoup(target.read_text(),'html.parser').find(id=unquote(parts.fragment)),(unit,link,'missing anchor')
  # Parse explicit wrapper and replace only its children. No global serialization.
  text=p.read_text();parser=Anchors(text);replacements=[];n=parser.find('lesson-body');rendered=render(body)
  extras=''
