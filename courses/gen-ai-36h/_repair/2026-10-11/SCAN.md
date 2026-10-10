@@ -1,9 +1,9 @@
 # gen-ai-36h 全課教學動作與實作深度根因診斷
 
-審查日期：2026-10-11（Asia/Taipei）  
-範圍：全部 28 單元；大綱、正式教案正文、對應 HTML、核心素材、答案、參考工具及表單欄位。  
-模式：author-self-check，作者重新審查；不是獨立審查或真人冷讀。  
-Reviewer verdict：**BLOCK**。本次發現 3 個 BLOCKER、11 個 MAJOR、3 個 MINOR；問題數不等於受影響單元數。  
+審查日期：2026-10-11（Asia/Taipei）
+範圍：全部 28 單元；大綱、正式教案正文、對應 HTML、核心素材、答案、參考工具及表單欄位。
+模式：author-self-check，作者重新審查；不是獨立審查或真人冷讀。
+Reviewer verdict：**BLOCK**。本次發現 3 個 BLOCKER、11 個 MAJOR、3 個 MINOR；問題數不等於受影響單元數。
 本輪只新增診斷報告與證據，不修改課程、素材、工具或發布狀態。
 
 ## 1. 結論
