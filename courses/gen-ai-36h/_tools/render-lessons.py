@@ -28,6 +28,9 @@ def render(body):
   elif current is not None: current.append(n)
  for section in sections:
   for p in section.select('p'):p['class']='body-text'
+  for link in section.select('a[href^="../assets/"]'):
+   link['target']='_blank'
+   link['rel']=sorted(set(link.get('rel', [])) | {'noopener'})
   for pre in section.select('pre'):pre['class']='full-prompt';wrap=s.new_tag('div',attrs={'class':'full-prompt-wrap'});pre.wrap(wrap)
   for table in section.select('table'):wrap=s.new_tag('div',attrs={'class':'repair-table','tabindex':'0','role':'region','aria-label':'資料表，可水平捲動'});table.wrap(wrap)
  return '\n'.join(str(x) for x in sections)
