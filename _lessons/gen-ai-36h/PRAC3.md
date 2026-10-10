@@ -11,14 +11,14 @@ learning_objective: 用另一個專案包交付版本化來源筆記，核對上
 
 <!-- learner-content:start -->
 ## 獨立核對另一個專案包
-從[海岸志工日素材](../assets/workplace-cases/part3-solo/project-brief.md)開始，再讀 `change-record.md`、`supplier-quote.md` 和 `meeting-notes.md`。不沿用星河案的日期、預算或答案。交付來源筆記：三項可回答事實、一項金額關係判斷、一項未知，以及下一步追問。
+從[海岸志工日素材入口與下載](../assets/workplace-cases/part3-solo/START-HERE.html)開始，再讀 `change-record.md`、`supplier-quote.md` 和 `meeting-notes.md`。不沿用星河案的日期、預算或答案。交付來源筆記：三項可回答事實、一項金額關係判斷、一項未知，以及下一步追問。
 
 ## 先做，再開教師核對
 你要判斷活動日期、集合地點、提醒稿期限；接駁是否確定、報價是否在核准上限內、是否可以下單。每列附文件版本及段落。分開記錄核准上限與供應商報價，說明差額；來源沒有指派的詢價負責人與完成時間寫待指定／待確認。
 
 若使用 NotebookLM，建立只含海岸包的筆記本，逐題查引用並點回 PDF/文件；未能實際檢查分享或檢索功能時標 `NOT_RUN`。若帳號不可用，以手動索引表做相同判斷，不能把手動頁碼說成工具引用已通過。遇費用只顯示 NT$20,500，補查 NT$18,000 上限；遇到兩值就先問它們的業務性質，不擅自平均、取大或取小。
 
-完成來源表和一段交接說明後，再開[教師答案鍵](../assets/workplace-cases/part3-solo/answer-key.md)核對。修訂時保留初稿，記下你改了哪個結論、是哪份來源支持。交接句需讓承辦人知道：日期與集合點可依新版；接駁未定；報價超出上限，現在不能下單。
+完成來源表和一段交接說明後，再開[教師答案入口](../assets/workplace-cases/part3-solo/START-HERE.html)核對。修訂時保留初稿，記下你改了哪個結論、是哪份來源支持。交接句需讓承辦人知道：日期與集合點可依新版；接駁未定；報價超出上限，現在不能下單。
 <!-- learner-content:end -->
 
 ## 教師與版本紀錄（不轉製學員正文）

@@ -11,7 +11,7 @@ learning_objective: 獨立交付主管摘要、待辦、依賴、待決策和接
 
 <!-- learner-content:start -->
 ## 獨立交付一份可接手的工作紀錄
-本次不沿用白板與延期信答案。你要把[門市退貨試辦工作包](../assets/workplace-cases/part2/START-HERE.md)整理成一份同事看完就知道「現在能做什麼、要等什麼」的主管交接紀錄。先讀 `chat-log.md`、`progress-register.csv`、`change-note.md` 和 `attachment-case.md`；不要先開答案鍵。若用試算表，請保留原始 CSV，另存工作副本。
+本次不沿用白板與延期信答案。你要把[門市退貨工作包入口與下載](../assets/workplace-cases/part2/START-HERE.html)整理成一份同事看完就知道「現在能做什麼、要等什麼」的主管交接紀錄。先讀 `chat-log.md`、`progress-register.csv`、`change-note.md` 和 `attachment-case.md`；不要先開答案鍵。若用試算表，請保留原始 CSV，另存工作副本。
 
 交付物放在一份文件或表格中，至少包含：
 
@@ -34,7 +34,7 @@ learning_objective: 獨立交付主管摘要、待辦、依賴、待決策和接
 若任何一題回答「是」，回到來源逐句修正並保留修改理由。沒有 AI 帳號、CSV 檢視器或附件辨識功能時，手動整理文字檔即可；請在交接紀錄註明未實跑的平台功能，不要因此停下工作。
 
 ## 提交與答案核對
-先保存原始來源清單、初稿、修訂版和核對表；在文件最後列出一項仍待確認的問題與下一個負責角色。完成上述四項交付後，再看[教師答案鍵](../assets/workplace-cases/part2/answer-key.md)的 PRAC2 範例。答案可以換句話說，但來源、數字、範圍和未知狀態必須一致。若你與答案不同，記錄證據和理由，不必為了相同措辭而修改正確判斷。
+先保存原始來源清單、初稿、修訂版和核對表；在文件最後列出一項仍待確認的問題與下一個負責角色。完成上述四項交付後，再看[教師答案入口](../assets/workplace-cases/part2/START-HERE.html)的 PRAC2 範例。答案可以換句話說，但來源、數字、範圍和未知狀態必須一致。若你與答案不同，記錄證據和理由，不必為了相同措辭而修改正確判斷。
 <!-- learner-content:end -->
 
 ## 教師與版本紀錄（不轉製學員正文）
