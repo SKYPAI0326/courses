@@ -19,7 +19,7 @@ platform_version: Gemini web; official help checked 2026-10-08; account generati
 <!-- learner-content:start -->
 <section class="lesson-section" id="start"><h2 class="section-heading">先做出成果，觀察白話如何改變工具</h2>
 <p class="body-text">當你想做一個小工具，往往能說出需要的功能，卻不知道如何把它變成程式。這一章先讓你完成一次「描述需求、取得程式、開啟操作、接續修改」，看到白話要求如何影響畫面與行為。</p>
-<p class="body-text">我們沿用貪食蛇作為第一個例子：按下開始、改變方向、吃到食物與撞牆都有可見的反應，方便核對要求是否實現。這次先留下能玩的 <code>snake-v1.html</code>，再改一項外觀或功能，另存 <code>snake-v2.html</code>。下一章才回頭拆解提示詞，讓你能自行寫出其他工具的需求。</p>
+<p class="body-text">本章先用貪食蛇練習請 AI 製作工具。按下開始、改變方向、吃到食物或撞牆時，你都能看到遊戲的反應，方便檢查功能是否符合需求。你會先做出能玩的 <code>snake-v1.html</code>，再修改配色，另存 <code>snake-v2.html</code>。第二章會拆解這份提示詞，讓你練習寫出其他工具的需求。</p>
 <p class="body-text">先開啟<a href="../assets/tools/snake-basic-reference.html" rel="noopener" target="_blank">經典版操作參考品</a>，填入下方案例設定，玩一局並觀察分數與結束畫面。這是作者製作的參考檔，供你預覽成果；生成暫時不可用時也能先練操作。自己的生成檔仍需另外完成。</p>
 <p class="body-text">準備可登入的 Google 帳號、桌面瀏覽器，以及能儲存純文字的編輯器。本章使用<a href="https://gemini.google.com/" rel="noopener" target="_blank">Gemini 網頁版</a>對話取得程式；若帳號無法進入，先核對<a href="https://support.google.com/gemini/answer/13278668?hl=zh-Hant" rel="noopener" target="_blank">官方登入說明</a>並記下訊息。你可以先用參考品練操作，登入問題解除後再回到生成步驟。</p></section>
 <section class="lesson-section" id="how-it-runs"><h2 class="section-heading">AI 產生程式，瀏覽器依規則執行</h2>
@@ -74,7 +74,7 @@ platform_version: Gemini web; official help checked 2026-10-08; account generati
 色彩由畫面上的設定調整；未附樣式條件時保留目前外觀。改變色彩後，重新開始或重設仍使用玩家設定，不能把案例顏色固定在程式中。</pre><button class="copy-btn" data-policy-copy="prompt-snake-revision" type="button">複製完整提示詞</button><span aria-live="polite" id="prompt-snake-revision-policy-status" role="status"></span></div><div class="prompt-wrap"><div class="prompt-label">本次配色條件，可替換</div><p class="policy-guide">也可以自己換另一組顏色，再核對畫面與玩法。</p><pre class="case-data" data-policy-case="true" id="prompt-snake-revision-case">本次外觀條件：遊戲區背景淺米色、蛇頭鮭魚橘、蛇身抹茶綠；食物和背景保持清楚對比。</pre><button class="copy-btn" data-policy-copy="prompt-snake-revision-case" type="button">複製案例條件</button><span aria-live="polite" id="prompt-snake-revision-case-policy-status" role="status"></span></div>
 <ol class="step-list"><li>在原對話貼上修改提示詞，另附自己的配色條件。若改用新對話，先附上 v1 完整程式，讓模型取得要修改的起點。</li><li>取得完整修正版，另存 <code>snake-v2.html</code>，保留 v1。重新開啟，確認新外觀及可調設定出現。</li><li>再操作開始、移動、計分、碰撞與重新開始。若外觀改了但計分失效，提供實際／預期結果請模型修復；v1 可作回復與比較起點。</li></ol>
 <p class="body-text">完成示例後，自己選另一組色彩，在同一工具的設定中修改，說明哪些畫面改變、哪些玩法仍相同。若想改功能，先只選一項，寫清楚變更與保留範圍，再另存版本，方便找到差異的原因。</p></section>
-<section class="lesson-section" id="snake-extensions"><h2 class="section-heading">想繼續改遊戲，課後再選一項</h2><p class="body-text">完整的視覺、難度、最高分、音效與代打提示詞已放在<a href="../part4/SUPP4-3.html#snake-extensions">貪食蛇改造補充頁</a>。本章先確認自己的 v1 能玩、v2 能修改並重開，再繼續第二章。</p></section><section class="lesson-section" id="finish"><h2 class="section-heading">保存兩個版本，下一章練習自己寫需求</h2>
+<section class="lesson-section" id="snake-extensions"><h2 class="section-heading">想繼續改遊戲，課後再選一項</h2><p class="body-text">想繼續調整外觀、難度，或加入最高分、音效與代打功能，可以參考<a href="../part4/SUPP4-3.html#snake-extensions">貪食蛇改造補充頁</a>的完整提示詞。先確認自己的 v1 能玩、v2 能修改並重開，再繼續第二章。</p></section><section class="lesson-section" id="finish"><h2 class="section-heading">保存兩個版本，下一章練習自己寫需求</h2>
 <p class="body-text">這一章應留下可開啟的 v1、保留原功能的 v2，以及你能說明的一項差異。請關閉檔案後，從存檔位置重新開啟兩版，確認成果已保存在自己的電腦，而不只留在模型對話中。</p>
 <p class="body-text">你已看見白話要求如何變成程式，也看過追加要求可能影響原功能。下一章回頭拆解這些提示詞，說明怎麼把用途、輸入、規則和交付寫清楚，讓你能自行設計工作工具。</p></section>
 <!-- learner-content:end -->

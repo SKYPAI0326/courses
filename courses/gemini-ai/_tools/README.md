@@ -19,6 +19,13 @@ verify-five-chapters.cjs、restore-five-chapters.py是遊樂園前的歷史證�
 
 ## 已審查的冷色配色與表格
 
-`_source/coldtone-styles.json` 固定八個全配色代表頁與全課程表格的頁面限定樣式。`render-five-chapters.py` 的序列化階段按 canonical URL 套用，首頁與遊樂園建置共用此流程。既有作者參考工具可用 `python3 _tools/coldtone_styles.py` 重套；`--check` 驗證沒有樣式漂移。只新增 head style，不改正文、原腳本、導航或密碼。
+`_source/coldtone-styles.json` 定義49個正式入口與教材頁的共用配色、提示詞／生成結果卡片，以及頁型特定表格樣式。`render-five-chapters.py` 的序列化階段按 canonical URL 套用，首頁與遊樂園建置共用此流程。既有作者參考工具可用 `python3 _tools/coldtone_styles.py` 重套；`--check` 驗證沒有樣式漂移。只新增 head style，不改正文、原腳本、導航或密碼。
 
 `_source/render-shells/` 保留現行轉製所需殼層，`_source/page-inventory.json` 與 `CONTENT-REVIEW.md` 保留既有轉製基線，正式重建不再依賴未提交的 `_backup` / `_repair` 輸入。新產出的驗證結果仍放 `_repair`。
+
+
+## 全課程共用視覺樣式（2026-10-11）
+
+`_source/coldtone-styles.json` schema 2 的 `shared_styles` 定義唯一配色、提示詞排版與生成結果卡片；49個正式入口／教材頁的 `pages` 以 `ref` 引用。頁面特殊圖表修正以 `append_css` 保留，原有工具表格設定維持原範圍。`coldtone_styles.py` 解析共用引用，只更新 head 內指定 style 節點，不改正文或腳本；既有建置器會套用相同解析結果。正文與互動來源維持原責任層。
+
+後續調整共用字體、連結與配色時，修改 `shared_styles` 後套用到相依頁面並驗證，不再只更新少數代表頁。這次樣式統一的49頁名單、備份、內容保護及代表頁瀏覽器證據保存在 `/private/tmp/gemini-theme-unification-20261011-u7_x_asi/`；未進行push。

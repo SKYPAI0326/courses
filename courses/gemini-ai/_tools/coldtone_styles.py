@@ -2,20 +2,41 @@
 """Apply reviewed, page-scoped course styles without changing HTML bodies or scripts."""
 from pathlib import Path
 import argparse, json, re
-STYLE_IDS = ('coldtone-preview-style', 'coldtone-course-style', 'coldtone-table-readability', 'coldtone-prompt-layout')
+from bs4 import BeautifulSoup
+STYLE_IDS = ('coldtone-preview-style', 'coldtone-course-style', 'coldtone-table-readability', 'coldtone-prompt-layout', 'coldtone-result-palette')
+
+def resolve_blocks(config, page):
+    blocks = []
+    for item in config['pages'].get(page, []):
+        if 'ref' in item:
+            block = dict(config['shared_styles'][item['ref']])
+            block['css'] += item.get('append_css', '')
+        else:
+            block = item
+        assert block['id'] in STYLE_IDS, page
+        blocks.append(block)
+    assert len({b['id'] for b in blocks}) == len(blocks), page
+    return blocks
 
 def apply_html(text, page, site):
     config = Path(site) / '_source/coldtone-styles.json'
     if not config.exists():
         return text
-    blocks = json.loads(config.read_text())['pages'].get(page)
+    blocks = resolve_blocks(json.loads(config.read_text()), page)
     if not blocks:
         return text
+    doc = BeautifulSoup(text, 'html.parser')
+    assert len(doc.select('head')) == 1, page
     for ident in STYLE_IDS:
-        text = re.sub(r'<style id="' + re.escape(ident) + r'">[\s\S]*?</style>\n?', '', text)
-    assert '</head>' in text, page
+        assert len(doc.head.select('style#' + ident)) <= 1, page
+    match = re.search(r'<head\b[^>]*>[\s\S]*?</head>', text)
+    assert match is not None, page
+    head = match.group()
+    for ident in STYLE_IDS:
+        head = re.sub(r'<style id="' + re.escape(ident) + r'">[\s\S]*?</style>\n?', '', head)
     styles = ''.join('<style id="' + block['id'] + '">' + block['css'] + '</style>\n' for block in blocks)
-    return text.replace('</head>', styles + '</head>', 1)
+    head = head.replace('</head>', styles + '</head>', 1)
+    return text[:match.start()] + head + text[match.end():]
 
 def apply_site(site, check=False):
     site = Path(site)
