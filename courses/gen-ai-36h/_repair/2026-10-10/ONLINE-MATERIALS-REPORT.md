@@ -1,6 +1,6 @@
 # 線上素材修復報告
 
-日期：2026-10-10。狀態：**教材來源與入口已修復；本機機器檢查和響應式入口驗收完成；等待推送及線上驗證；真人冷讀待安排。**
+日期：2026-10-10。狀態：**教材來源與入口已修復並推送至 `main`；GitHub Pages 部署與四個線上入口驗收完成；真人冷讀待安排。**
 
 ## 變更
 
@@ -15,7 +15,8 @@
 - HTML lint：15 頁 BLOCKER 0、ERROR 0；
 - 資產／相對連結：15 頁 broken links 0、missing assets 0；
 - 跨文件數字／時間／版號一致性：通過；
-- 四個入口：1440、390、430px 瀏覽器版面通過；
-- 真人試走、個人平台帳號驗證、GitHub Pages 部署後檢查：PENDING。
+- 四個本機入口與 11 個課程頁：1440、390、430px 瀏覽器檢查均無水平溢出；
+- GitHub Pages workflow [#469](https://github.com/SKYPAI0326/courses/actions/runs/38039246249) 成功；四個公開素材入口各測 1440、390、430px，共 12 次，下載清單和收合答案均可見，無水平溢出；
+- 真人試走、個人平台帳號下載／開檔：PENDING。
 
 逐頁紀錄見 `../../_validation/2026-10-10/online-materials-render-evidence.json`、`../../_validation/2026-10-10/online-materials-substance-audit.json` 和 `../../_validation/2026-10-10/online-materials-lint.txt`。修復前 58 個目標檔及 5 個新增檔的還原映射，留在本機 ignored backup 目錄，由本機 restore script 還原；兩者不納入網站教材。

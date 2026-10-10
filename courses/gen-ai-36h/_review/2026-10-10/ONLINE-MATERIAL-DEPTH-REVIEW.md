@@ -33,7 +33,8 @@
 - HTML lint：四個新增素材入口和 11 個 lesson pages 共 15 頁，BLOCKER 0、ERROR 0。lesson pages 有 14 個既有 WARN；無 blocker。
 - 素材連結稽核：15 頁 machine audit，broken links 0、missing assets 0。語意品質欄位維持人工審查狀態，沒有由程式替代教學判斷。
 - 瀏覽器：本機 HTTP 下 Part 2、Part 3 Demo、Part 3 Solo 與 Capstone 的 1440、390、430px 視窗均可見標題、下載清單與收合答案；頁面／本文寬度未超出視窗。Part 2 的資料表可讀，沒有水平外溢。
-- 人工學員跟做、目標帳號下載／開檔，以及 GitHub Pages 推送後驗證：仍待完成；不能標為 `LEARNER_READ` 或 `HUMAN_READY`。
+- GitHub Pages [部署 workflow #469](https://github.com/SKYPAI0326/courses/actions/runs/38039246249) 成功；四個公開入口在 1440、390、430px 各驗一次，標題／下載／收合答案可用且無水平溢出。
+- 真人學員跟做與目標帳號下載／開檔仍待完成；不能標為 `LEARNER_READ` 或 `HUMAN_READY`。
 
 ## 尚存限制
 
