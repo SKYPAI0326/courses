@@ -39,6 +39,7 @@
     ├── prompt-basic/
     ├── simple-ai/
     ├── line-stickers/
+    ├── uiux-designer/
     └── career-pivot-mid/
 ```
 
@@ -56,7 +57,7 @@
 
 ---
 
-## 現有課程（25 門）
+## 現有課程（26 門）
 
 | 資料夾 | 課程名稱 | 狀態 | 學員 / 工具 / 主色 |
 |--------|---------|------|-------------------|
@@ -85,6 +86,7 @@
 | `codex-basic/` | Codex 基礎使用：辦公與財會的 AI 工作助理（3h） | 完成（已註冊） | 11 頁（index + 10 單元：CH1-1~3 / CH2-1~2 / PRAC2 / CH3-1~2 / CH4-1~2）；會計/財務/行政受眾，零代碼；Codex 桌面 App + GPT-5.5；主色陶土橘；G2 教案 + G3 內審 + Codex L3 三輪審核；Part 4 為能力地圖示範；⚠️ B 類官方文件改寫（Sites/Skill/權限）待課前實機驗證 |
 | `admin-ai-assistant/` | 行政 AI 虛擬助理實戰（2h） | 完成（已註冊） | 8 頁（index + CH1~CH6 + prompt-library 資產頁）；行政/總務/助理/幕僚受眾，零代碼；Gemini（Gem）+ NotebookLM；主色灰藍綠；核心機制：規則進 Gem 系統提示詞（八條）+ 資料與《規範｜…》文檔進 NotebookLM 筆記本 + Gem 掛載自動同步 + 一句話派工 + 兩條回流路徑；Codex L3 審核 57fbaa72 actionable 已全修（CH6 降承諾+fallback+最小完成線） |
 | `ai-beginner-practical/` | AI 入門即戰力：零基礎的 AI 入門應用（12h） | 完成（已註冊） | 4 單元（CH1–CH4）＋課程導覽；零基礎成人，平台中立 LLM 方法，第 3 單元固定 NotebookLM；主色霧藍 |
+| `uiux-designer/` | UI/UX 設計師：從需求到可交付的介面（99h） | 講義已上架；平台／真人驗收待補 | 零基礎；16 堂；介面元素與設計 42h＋原型製作與資料打包 57h，含網頁交付；Figma Design Starter、Photoshop、HTML/CSS/JS 與 Git；主色芥末黃；沿用公開存取，無密碼關卡 |
 
 > 上述「狀態」「主色」可能未即時反映實況。「結構描述」一律以 `ls courses/<slug>/` 為準。
 

@@ -5,7 +5,7 @@ title: 把設計整理成能重開、能量測的交付包
 course_type: skill-operation
 duration: 6h
 prerequisites: [B6-prototype-task-test]
-revision: 2026-10-09
+revision: 2026-10-11
 style_guide: ../../_outlines/uiux-designer.style-guide.md
 platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體另記平台證據
 ---
@@ -37,7 +37,7 @@ platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體�
 
 現在下載[status-badge.psd（512×512、三個點陣圖層）](../../courses/uiux-designer/assets/shared/status-badge.psd)，用於Photoshop練習；[status-badge.png（透明背景參考）](../../courses/uiux-designer/assets/shared/status-badge.png)用來核對匯出；[圖層說明](../../courses/uiux-designer/assets/shared/PSD-README.html)說明Background、Card、Check的內容。全部是本課製作的示範素材，不含客戶資料。
 
-Photoshop桌面版需由教室或你的授權提供。沒有軟體仍可檢查PNG尺寸與透明效果，但那不等於完成PSD重開／修改／匯出；請在可用工作站依本堂步驟補做。不要把一張扁平PNG改副檔名為.psd來交作業。
+第一次使用前先開啟[Photoshop桌面版準備與啟動](../../courses/uiux-designer/assets/shared/PHOTOSHOP-START.html)：已有授權者依Adobe官方入口安裝並開啟；使用教室工作站者須取得實際地點／時段、登入方式與儲存位置，再確認能開啟512×512的三層PSD。沒有軟體仍可檢查PNG尺寸與透明效果，但那不等於完成PSD重開／修改／匯出；在完成檢查表記「Photoshop操作待補」及所缺條件，可先整理Figma輸出，取得可用工作站後回本堂補做。不要把一張扁平PNG改副檔名為.psd來交作業。
 
 ## 示範：Starter用Design面板讀規格
 
@@ -77,11 +77,11 @@ Photoshop桌面版需由教室或你的授權提供。沒有軟體仍可檢查PN
 
 接手說明寫：作品用途、如何開Prototype、哪個Frame為起點、圖檔尺寸／格式、哪些只是模擬狀態、未完成什麼。Smart Animate可附第11堂Before／After層名與引數列，不能只說「有動畫」而不說明如何預覽。
 
-**驗收方法：**請同學照清單開啟.fig或檢視分享設計、Preview與PSD，再確認一張PNG尺寸和透明角落。故意移走dialog-confirm.png，請他指出缺檔；放回後重查。這個練習測試交付是否真的可用，不是把資料夾截圖當成通過。第16堂網站會使用本堂badge與同一套視覺規則。
+**驗收方法：**獨讀時先關閉作品編輯分頁與檔案，只照交付資料夾內自己的README重新找到.fig、Prototype連結、PSD及PNG。重開.fig時，回Figma首頁檔案瀏覽器，從Create new選單選Import／匯入並選source/studio-tasks.fig，或將.fig拖進檔案瀏覽器；匯入後開啟新檔，核對Layers及Prototype。入口可依[Figma官方匯入說明](https://help.figma.com/hc/en-us/articles/360041003114-Import-files-to-the-file-browser)定位。分享設計與Preview則開README內的實際連結；PSD在Photoshop用File → Open選source/status-badge-working.psd。再核對起點Login、PSD三層，以及PNG的512×512與透明角落。把exports/dialog-confirm.png暫移到交付資料夾外的missing-test資料夾，再只照清單確認它缺少；記缺檔位置，放回後重查。有同學時可請他依同一清單操作，另記結果；自己核對記「本人重開」，不能當成接手者已驗收。若Photoshop不可用，PSD項仍待補。這個練習測試交付是否真的可用，不是把資料夾截圖當成通過。第16堂網站會使用本堂badge與同一套視覺規則。
 
 ## 自己完成：改變條件再檢查
 
-將badge的Background顯示，先匯出錯誤白底PNG；再隱藏與重新透明匯出，留下兩版比較。將Dialog文字加長並重新匯出，更新清單的實際高度，不沿用舊值。請同學只照你的README找到Prototype、PSD與徽章；記錄他找不到的項目並修正。
+將badge的Background顯示，先匯出錯誤白底PNG；再隱藏與重新透明匯出，留下兩版比較。將Dialog文字加長並重新匯出，更新清單的實際高度，不沿用舊值。關閉已開檔案後，自己只照README找到Prototype、PSD與徽章，核對實際檔名／路徑及新版Dialog高度，將找不到或數值不符的項目修正後再重開。有同學時另記他的閱讀與重開結果，沒有同學就標「他人交付驗收待補」，不杜撰誤解。Photoshop未可用時，白底／透明匯出練習與PSD核對保留待補。
 
 ## 完成條件與理解檢查
 

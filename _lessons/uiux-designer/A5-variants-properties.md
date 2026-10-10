@@ -5,7 +5,7 @@ title: 把主次按鈕與停用狀態做成可選的元件
 course_type: skill-operation
 duration: 6h
 prerequisites: [A4-component-instance]
-revision: 2026-10-09
+revision: 2026-10-11
 style_guide: ../../_outlines/uiux-designer.style-guide.md
 platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體另記平台證據
 ---
@@ -67,7 +67,7 @@ Variant是同一元件家族中的一種版本；Property是用來選版本或�
 
 先不看示範的點選順序，自己插入兩個Button Instance：第一個選Primary／Default、Label「登入」；第二個選Secondary／Default、Label「取消」。把第二個切為Disabled，觀察外觀變化。每一步先說出要改的是角色、狀態或內容，才點屬性。
 
-講師故意把兩個Variant都設成Primary／Default。你要用組合表找出哪一列缺失，再修正Hierarchy或State。若只有顏色不同但屬性值重複，仍然不算通過。
+先複製整個Button元件集到空白區，命名Button / Variant Repair，不改正式來源。在副本把Secondary／Default那個Variant的Hierarchy改成Primary、State維持Default，讓兩個Variant都成為Primary／Default。把副本的四組屬性逐列寫入組合表：此時Primary／Default重複、Secondary／Default缺失。將剛才改動的那個Variant恢復Secondary／Default，核對四列各出現一次，再回正式Instance確認仍可選四種組合。保留副本修復前後紀錄；若只有顏色不同但屬性值重複，仍然不算通過。課堂可由講師植入同一故障，獨讀時自己依此操作。
 
 **檢查點：**4種組合都能選；長Label仍能閱讀；取消是Secondary不是Disabled；Disabled樣式不改變按鈕尺寸；Instance的內容欄位與狀態欄位用途不同。
 

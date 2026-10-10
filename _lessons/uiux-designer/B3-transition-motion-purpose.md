@@ -5,7 +5,7 @@ title: 用轉場說明方向，再做出可觀察的Smart Animate
 course_type: skill-operation
 duration: 6h
 prerequisites: [B2-trigger-navigation-action]
-revision: 2026-10-09
+revision: 2026-10-11
 style_guide: ../../_outlines/uiux-designer.style-guide.md
 platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體另記平台證據
 ---
@@ -79,7 +79,7 @@ Smart Animate會尋找兩張Frame裡同名且層級對應的物件，把可動�
 
 ## 自己完成：改變條件再檢查
 
-讓Check位置從x300移到x260，同時用Opacity0→100；再建立Instant版本給同學比較。請他說哪個版本更容易理解完成狀態，並說明會不會增加等待。交出前後值表、正確配對結果、故意改名失敗與修復，以及主線兩種轉場理由。
+讓Check位置從x300移到x260，同時用Opacity0→100；保留一份同內容的Instant版本。自己在Preview依相同起點各播放一次，記錄動畫版是否從右側移入並淡入、Instant是否直接出現，以及兩版的完成文字與最終位置是否一致。依能否看清狀態變化與設定Duration說明你的選擇，不把200ms引數當成人的實際等待感。有同學時另記他對理解與等待的回饋，未邀請就標待補。交出前後值表、兩版比較、正確配對結果、故意改名失敗與修復，以及主線兩種轉場理由。
 
 ## 完成條件與理解檢查
 

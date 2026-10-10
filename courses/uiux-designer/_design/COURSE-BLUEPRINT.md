@@ -29,7 +29,7 @@
 | B3／6h | 依用途選轉場與引數，製作同名同層級的前後狀態並診斷Smart Animate配對 | 主線進入／返回轉場方向與用途明確，200ms及Easing有記錄。 | [用轉場說明方向，再做出可觀察的Smart Animate](../part2/CH3-transition-motion-purpose.html) |
 | B4／7h | 完整Overlay開關／確認、可取消規則與在已開彈層內Swap的實際路徑 | Open／Cancel／outside／Confirm四種結果都在Preview實際檢查，目的地與表格一致。 | [讓確認彈窗能開啟、取消、確認與交換](../part2/CH4-overlay-single-action.html) |
 | B5／6h | 建立視窗／長內容關係，實測Vertical、Fixed、Sticky及遮擋，在完整Flow使用長列表 | 874視窗內能Vertical捲到最後一筆，外Frame沒有為長內容增高。 | [讓長清單能捲動，導覽與漂浮按鈕不擋內容](../part2/CH5-scroll-fixed-floating.html) |
-| B6／6h | 用整段任務測內容、導航、Overlay、Scroll及Swap，記錄失敗並回歸，完成新情境capstone | T01–T07都有實際觀察或明確未執行原因，包含長列表與前課固定元素成果。 | [讓別人跑完整任務，修正後再測一次](../part2/CH6-prototype-task-test.html) |
+| B6／6h | 用整段任務測內容、導航、Overlay、Scroll及Swap，記錄失敗並回歸，完成新情境capstone | T01–T08都有實際觀察或明確未執行原因，包含長列表與前課固定元素成果。 | [讓別人跑完整任務，修正後再測一次](../part2/CH6-prototype-task-test.html) |
 | B7／6h | 免費Design量測／Figma輸出、真實PSD操作與透明PNG，以及可重開的完整handoff | 免費Design規格表含尺寸、間距、字型、行高、色碼與元件狀態，不依賴Dev Mode。 | [把設計整理成能重開、能量測的交付包](../part2/CH7-figma-handoff-export.html) |
 | B8／13h | 從完整可執行程式理解與修改網站，實作獨立Git基準／差異／遠端與公開部署更新 | 解壓的獨立專案本機可開，完整取消／確認／清單狀態與長內容正確；理解三檔與id／class分工。 | [把設計做成網站，留下版本與公開網址](../part3/CH8-web-git-deploy.html) |
 

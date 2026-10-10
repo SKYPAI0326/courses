@@ -5,7 +5,7 @@ title: 改一次來源，讓多個按鈕一起更新
 course_type: skill-operation
 duration: 5h
 prerequisites: [A3-auto-layout-pressure]
-revision: 2026-10-09
+revision: 2026-10-11
 style_guide: ../../_outlines/uiux-designer.style-guide.md
 platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體另記平台證據
 ---
@@ -63,7 +63,7 @@ platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體�
 1. 在Login Instance改文字「登入工作室」，在Complete Instance保留「標記完成」。先說出這是共用修改或個別覆寫，再操作。
 2. 回主元件把文字字重改為Medium500；兩個未覆寫字重的Instance應同步。這次看的是字重，不用再建立第三份相同元件。
 3. 在Layers選Complete Instance，檢視主元件連結。若看到Go to main component，點它應回到 `Button / Base`；若沒有，檢查是否誤用了普通複製Frame。
-4. 用同一來源多插入一個Instance，改Label為「取消」。讓同學指出哪些設定仍由主元件控制，哪些是你在使用處覆寫的。此時取消還是同樣外觀，主次樣式下一堂處理。
+4. 用同一來源多插入一個Instance，改Label為「取消」。自己記下「來源控制：Padding、圓角；此Instance覆寫：Label」，再在主元件暫改圓角，確認原按鈕與取消按鈕同步、兩者Label各自保留，還原圓角並保存前後值。有同學時可請他依紀錄核對。此時取消還是同樣外觀，主次樣式下一堂處理。
 5. 儲存一份修改紀錄：改哪個層、改哪個屬性、哪些物件跟著變、哪些沒有變。元件的價值是可追蹤的更新關係，不是紫色外框本身。
 
 ## 不同步時的修復

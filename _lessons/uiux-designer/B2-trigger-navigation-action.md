@@ -5,7 +5,7 @@ title: 連好登入、清單、詳情與返回
 course_type: skill-operation
 duration: 6h
 prerequisites: [B1-wireframe-prototype-entry]
-revision: 2026-10-09
+revision: 2026-10-11
 style_guide: ../../_outlines/uiux-designer.style-guide.md
 platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體另記平台證據
 ---
@@ -82,7 +82,7 @@ Starter可以有上述多個基本互動；付費的Multiple actions指同一個
 
 ## 自己完成：改變條件再檢查
 
-從List Empty增加「檢視示範任務」Button，連回Screen / List；再建立Detail T03並獨立接上T03及返回。請同學從List Empty開始，不給口頭引導，確認能找到T03期限再回清單。交出新增的兩條連線、一次故障修復及實際Preview結果。
+從List Empty增加「檢視示範任務」Button，連回Screen / List；再建立Detail T03，依第07堂資料表填入T03標題與期限，獨立接上T03及返回。在畫布選最外層Screen / List Empty，依第09堂加入Flow starting point，命名EMPTY-TEST；用Present選EMPTY-TEST，依「檢視示範任務→T03→返回」實際點選，核對期限是星期五17:00、返回Screen / List。若停留原畫面，回Interactions核對所選Button或Row的Destination；若顯示T01資料，改到自己的Detail T03並重跑。有同學時可請他同路徑無提示操作，分開記錄本人與同學結果。交出新增的三條連線、一次故障修復及實際Preview結果，測完確認主線TASK-01起點仍在Login。
 
 ## 完成條件與理解檢查
 
