@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>用固定資料做圖表：數值先算對｜生成式 AI 工作應用班</title>
-<meta name="description" content="核對24個月營收、客單價與年增率，保留缺資料狀態。">
+<meta name="description" content="清理原始交易列並按區域彙總，追溯重複、缺日期、退款和取消處理。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
 <meta property="og:title" content="用固定資料做圖表：數值先算對">
-<meta property="og:description" content="核對24個月營收、客單價與年增率，保留缺資料狀態。">
+<meta property="og:description" content="清理原始交易列並按區域彙總，追溯重複、缺日期、退款和取消處理。">
 <meta property="og:url" content="https://skypai0326.github.io/courses/courses/gen-ai-36h/part4/CH4-3.html">
 <meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="用固定資料做圖表：數值先算對">
-<meta name="twitter:description" content="核對24個月營收、客單價與年增率，保留缺資料狀態。">
+<meta name="twitter:description" content="清理原始交易列並按區域彙總，追溯重複、缺日期、退款和取消處理。">
 <meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <link rel="canonical" href="https://skypai0326.github.io/courses/courses/gen-ai-36h/part4/CH4-3.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -185,43 +185,30 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <span class="hero-num">CH 4.3 · 2 小時（120 分鐘）</span>
   </div>
   <h1 class="lesson-title">用固定資料做圖表：數值先算對</h1>
-  <p class="lesson-tagline">核對24個月營收、客單價與年增率，保留缺資料狀態。</p>
+  <p class="lesson-tagline">清理原始交易列並按區域彙總，追溯重複、缺日期、退款和取消處理。</p>
 
-  <div class="outcomes"><strong>本節完成物：</strong>核對24個月營收、客單價與年增率，保留缺資料狀態。</div>
+  <div class="outcomes"><strong>本節完成物：</strong>清理原始交易列並按區域彙總，追溯重複、缺日期、退款和取消處理。</div>
 
   <div class="agenda"><strong>本節 60 分鐘：練習時間可依進度調整</strong><div class="agenda-row"><div class="agenda-time">0–12 分</div><div class="agenda-topic">理解任務與完整示範</div></div><div class="agenda-row"><div class="agenda-time">12–30 分</div><div class="agenda-topic">跟著操作並核對結果</div></div><div class="agenda-row"><div class="agenda-time">30–48 分</div><div class="agenda-topic">自己練習與修正</div></div><div class="agenda-row"><div class="agenda-time">48–60 分</div><div class="agenda-topic">保存、驗收與下一步</div></div></div>
 </div>
 
 <div class="lesson-body">
-<section class="lesson-section"><div class="section-eyebrow"><span>(01) · 學習與實作</span></div><h2 class="section-heading">圖表只能說明資料支持的結果</h2>
-<p class="body-text">下載<a href="../assets/sales-24-months.csv">24月營收CSV</a>、<a href="../assets/sales-expected-results.md">手算核對答案</a>、<a href="../assets/reference-chart.html">完整圖表參考HTML</a>。資料是固定虛構值，2024/05到2026/04，不每次隨機生成。完成物是能載入CSV的圖表與數值核對紀錄。</p>
-<p class="body-text">營收加總是各月營收相加；客單價是總營收÷總訂單，不能平均各月客單價代替。年增率是本月÷前一年同月−1；只拿一年資料就沒有前一年比較，不可顯示假0%。</p>
+<section class="lesson-section"><div class="section-eyebrow"><span>(01) · 學習與實作</span></div><h2 class="section-heading">資料清理口徑必須可重現</h2>
+<p class="body-text">本節先用固定 24 月資料練總額與年增率，再用原始交易列練清理和分組。完成物是圖表／彙總表、排除與待查清單、至少一項限制說明。可使用<a href="../assets/reference-chart.html">參考圖表工具</a>；若互動圖表不可用，可交靜態表或圖並標示互動測試 <code>NOT_RUN</code>。</p>
 </section>
-<section class="lesson-section"><div class="section-eyebrow"><span>(02) · 學習與實作</span></div><h2 class="section-heading">示範：先提供資料與核對要求</h2>
-<div class="full-prompt-wrap"><pre class="full-prompt"><code class="language-text">請做完整單檔HTML圖表，提供CSV檔案選擇，不用登入或外部套件。
-CSV欄位month,revenue,orders，month為YYYY-MM。
-按月份排序，拒絕重複月份、錯格式、負數與空數值；訂單為非負整數。
-顯示月營收、總營收、總訂單、加權客單價；年增率比前一年同月。
-沒有前一年或去年值0時顯示無法計算，不能補0%。訂單總數0時客單價不可計算。
-用簡單SVG或CSS圖表；數值也有可讀表格。不要從虛構數值推論促銷原因。
-提供完整HTML及操作步驟。
-</code></pre></div>
-<p class="body-text">先打開CSV讀前後月份，再在生成工具選該檔。應有24列。逐項與答案核對總營收、訂單及2025/05、2026/04的年增率；只看到折線就繼續核對數值，不急著美化。</p>
+<section class="lesson-section"><div class="section-eyebrow"><span>(02) · 學習與實作</span></div><h2 class="section-heading">示範：月資料只回答資料支持的問題</h2>
+<p class="body-text">載入<a href="../assets/sales-24-months.csv">24 月 CSV</a>，逐項比對<a href="../assets/sales-expected-results.md">答案</a>：總營收 4,165,200 元、2,016 筆訂單、加權客單價 2,066.07 元；2025-05 年增率 45.00%，2026-04 為 31.20%。只留最後 12 個月時，因缺前一年同月資料，年增率顯示缺資料，不補 0%。資料未含促銷原因，圖表只描述變化。</p>
 </section>
-<section class="lesson-section"><div class="section-eyebrow"><span>(03) · 學習與實作</span></div><h2 class="section-heading">跟著做：故意少掉比較資料</h2>
-<p class="body-text">另存一份只含最後12個月的CSV再載入。年增率應顯示「缺前一年資料」，營收仍可加總。再複製一行造成重複月份，應顯示具體錯誤而非畫兩個同月。</p>
-<p class="body-text">若圖表空白，先檢查表頭與逗號，再檢查是否把CSV當Excel二進位檔。若年增率為0，給AI輸入月份、缺少前一年與預期，修正後重跑。不得用重新亂產數值讓曲線看起來正常。</p>
+<section class="lesson-section"><div class="section-eyebrow"><span>(03) · 學習與實作</span></div><h2 class="section-heading">跟著做：清理交易再按區域彙總</h2>
+<p class="body-text">先複製<a href="../assets/sales-raw-transactions.csv">原始交易 CSV</a>到練習資料夾，讀<a href="../assets/sales-data-dictionary.md">欄位字典</a>。建立逐列決策欄：保留、重複排除、取消排除、退款保留、日期缺失待查。答案鍵先不要開。按區域加總有效淨額並記錄待查交易；生成式工具可協助產表，但你要人工核對 ID、狀態和符號。</p>
+<p class="body-text">完成後才開<a href="../assets/sales-case-answer-key.md">交易答案鍵</a>。應有一個重複 ID、一列缺日期、一筆退款、一筆取消；有效淨額合計 NT$6,950。North 1,800、South 1,450、West 2,600、East 1,100。若把退款改正數、把取消算入或把待查日期猜補，回原始列修正並重算。最新的資料狀態也不會替你決定業務口徑，字典必須先說清規則。</p>
 </section>
-<section class="lesson-section"><div class="section-eyebrow"><span>(04) · 學習與實作</span></div><h2 class="section-heading">自己試：描述變化，別補成因</h2>
-<p class="body-text">選一個上升月份寫兩句：「營收從A到B，變化X%；資料沒有活動或成本資訊，原因待查。」不要寫促銷必然有效。新增一筆訂單為0的測試；總訂單不為0時加權平均仍可算，只有所有訂單合計0時才顯示不可計算。</p>
-<p class="body-text">保存CSV、HTML、正常與缺資料核對紀錄。下一節會測同一檔案保存、重開及交付後仍能用。</p>
+<section class="lesson-section"><div class="section-eyebrow"><span>(04) · 學習與實作</span></div><h2 class="section-heading">自己試：把彙總改成可交接的圖表</h2>
+<p class="body-text">讓圖表按區域排序並顯示筆數與淨額；在圖下寫一句資料限制，明示 TX-006 尚待補日期且不計入本次合計。再測重複 TX-003 是否只保留一次。若需求只改分組，重跑區域總額及一個原先的月資料 regression。保存原始檔、清理紀錄、圖表與答案核對。</p>
 </section>
 </div>
 
-<div class="callout info">
-  <div class="callout-icon" aria-hidden="true">✅</div>
-  <div class="callout-body"><strong>本節操作契約：</strong><strong>Demo：</strong>從 <code>../assets/part1-4-safe-practice-pack.md</code> 的表格欄位到一張 Dashboard；<strong>Together：</strong>共同為同一個問題選圖表；<strong>Solo：</strong>使用去識別化資料完成一個可互動版本；<strong>Check：</strong>確認數字、標籤、篩選與一個邊界案例。若互動失效，先交付靜態圖表與資料字典，並標記 <code>NOT_RUN</code>。</div>
-</div>
+
 
 <div class="lesson-nav">
   <a class="nav-btn nav-prev" href="CH4-2.html" aria-label="上一單元" data-nav-role="prev">

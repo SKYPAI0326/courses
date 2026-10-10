@@ -31,7 +31,7 @@ def render(body):
   for pre in section.select('pre'):pre['class']='full-prompt';wrap=s.new_tag('div',attrs={'class':'full-prompt-wrap'});pre.wrap(wrap)
   for table in section.select('table'):wrap=s.new_tag('div',attrs={'class':'repair-table','tabindex':'0','role':'region','aria-label':'資料表，可水平捲動'});table.wrap(wrap)
  return '\n'.join(str(x) for x in sections)
-a=argparse.ArgumentParser();a.add_argument('units',nargs='*');args=a.parse_args();evidence={}
+a=argparse.ArgumentParser();a.add_argument('units',nargs='*');a.add_argument('--evidence-output',type=Path,default=plans.parent/'render-evidence.json',help='Write renderer evidence here (relative to course root unless absolute).');args=a.parse_args();evidence={}
 for unit in args.units or meta:
  m=meta[unit];p=root/m['path'];source=(plans/(unit+'.md')).read_text();body=source.split('<!-- learner-content:start -->')[1].split('<!-- learner-content:end -->')[0].strip();assert body.startswith('## ')
  for link in re.findall(r'\]\((\.\./assets/[^)]+)\)',body):assert (p.parent/link).is_file(),(unit,link)
@@ -43,7 +43,7 @@ for unit in args.units or meta:
  replacements.append((n['inner'],n['close'],'\n'+rendered+extras+'\n'))
  for cls,value in [('lesson-title',escape(m['title'])),('lesson-tagline',escape(m['goal']))]:
   n=parser.find(cls);replacements.append((n['inner'],n['close'],value))
- part_names={'1':'AI 基礎與提示詞','2':'辦公文字與附件','3':'來源筆記與版本核對','4':'小工具生成與測試','5':'人工覆核與 Make 自動化','6':'個人工具清單','7':'結業專題'}
+ part_names={'1':'AI 基礎與提示詞','2':'辦公文字與附件','3':'來源筆記與版本核對','4':'小工具生成與測試','5':'人工覆核與 Make 自動化','6':'個人 AI 工作流程整合','7':'結業專題'}
  n=parser.find('hero-part');part=m['path'][4];replacements.append((n['inner'],n['close'],f'Part {part} · '+part_names[part]))
  hero=parser.find('lesson-hero')
  optional=[x for x in parser.nodes if x.get('parent') is hero and set(x['attrs'].get('class','').split())&{'outcomes','howto'}]
@@ -65,4 +65,4 @@ for unit in args.units or meta:
  actual=dom.select_one('.lesson-body');assert all(x.find_parent(class_='lesson-body') for x in actual.select('.lesson-section'))
  p.write_text(text)
  evidence[unit]={'source_sha256':hashlib.sha256(source.encode()).hexdigest(),'html_sha256':hashlib.sha256(text.encode()).hexdigest(),'material_links':'all local links exist','fidelity':'full learner-content rendered; tables/code retained','review':'single-agent source review','browser':'PENDING'}
-(plans.parent/'render-evidence.json').write_text(json.dumps(evidence,ensure_ascii=False,indent=2));print('Rendered',len(evidence),'pages, shell/nav/gate preserved')
+evidence_path=args.evidence_output if args.evidence_output.is_absolute() else root/args.evidence_output;evidence_path.parent.mkdir(parents=True,exist_ok=True);evidence_path.write_text(json.dumps(evidence,ensure_ascii=False,indent=2));print('Rendered',len(evidence),'pages, shell/nav/gate preserved; evidence:',evidence_path)

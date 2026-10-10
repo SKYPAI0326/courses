@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>報價工具：先凍結規則，再核對金額｜生成式 AI 工作應用班</title>
-<meta name="description" content="核對折扣、稅額、付款期數與無效輸入。">
+<meta name="description" content="核對報價公式與邊界，另行比較核准上限而不改變計算結果。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
 <meta property="og:title" content="報價工具：先凍結規則，再核對金額">
-<meta property="og:description" content="核對折扣、稅額、付款期數與無效輸入。">
+<meta property="og:description" content="核對報價公式與邊界，另行比較核准上限而不改變計算結果。">
 <meta property="og:url" content="https://skypai0326.github.io/courses/courses/gen-ai-36h/part4/CH4-2.html">
 <meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="報價工具：先凍結規則，再核對金額">
-<meta name="twitter:description" content="核對折扣、稅額、付款期數與無效輸入。">
+<meta name="twitter:description" content="核對報價公式與邊界，另行比較核准上限而不改變計算結果。">
 <meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <link rel="canonical" href="https://skypai0326.github.io/courses/courses/gen-ai-36h/part4/CH4-2.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -239,46 +239,30 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <span class="hero-num">CH 4.2 · 2 小時（120 分鐘）</span>
   </div>
   <h1 class="lesson-title">報價工具：先凍結規則，再核對金額</h1>
-  <p class="lesson-tagline">核對折扣、稅額、付款期數與無效輸入。</p>
+  <p class="lesson-tagline">核對報價公式與邊界，另行比較核准上限而不改變計算結果。</p>
 
-  <div class="outcomes"><strong>本節完成物：</strong>核對折扣、稅額、付款期數與無效輸入。</div>
+  <div class="outcomes"><strong>本節完成物：</strong>核對報價公式與邊界，另行比較核准上限而不改變計算結果。</div>
 
   <div class="agenda"><strong>本節 60 分鐘：練習時間可依進度調整</strong><div class="agenda-row"><div class="agenda-time">0–12 分</div><div class="agenda-topic">理解任務與完整示範</div></div><div class="agenda-row"><div class="agenda-time">12–30 分</div><div class="agenda-topic">跟著操作並核對結果</div></div><div class="agenda-row"><div class="agenda-time">30–48 分</div><div class="agenda-topic">自己練習與修正</div></div><div class="agenda-row"><div class="agenda-time">48–60 分</div><div class="agenda-topic">保存、驗收與下一步</div></div></div>
 </div>
 
 <div class="lesson-body">
-<section class="lesson-section"><div class="section-eyebrow"><span>(01) · 學習與實作</span></div><h2 class="section-heading">金額要有可手算的答案</h2>
-<p class="body-text">本節做虛構報價工具。下載<a href="../assets/quote-rules.md">報價規則</a>、<a href="../assets/quote-test-cases.csv">固定核對案例CSV</a>、<a href="../assets/reference-quote.html">完整參考HTML</a>。月費基礎30000、進階60000、客製100000；期間3、6、12月；基本折扣0–30%；年付限12月且再乘0.97；示範含稅乘1.05。</p>
-<p class="body-text">完成物是工具與逐案紀錄。先手算三個月基礎無折扣含稅：30000×3×1.05=94500。季付三個月只有一期；六個月兩期；十二個月四期。不能把所有期間一律拆四期。</p>
+<section class="lesson-section"><div class="section-eyebrow"><span>(01) · 學習與實作</span></div><h2 class="section-heading">金額工具先手算，再加業務核准門檻</h2>
+<p class="body-text">本節使用<a href="../assets/quote-rules.md">報價規則</a>、<a href="../assets/quote-test-cases.csv">測試 CSV</a>與<a href="../assets/reference-quote.html">完整參考工具</a>。基礎月費 30,000、進階 60,000、客製 100,000；期間 3／6／12 月；基本折扣 0–30%；年付限 12 月，另乘 0.97；含稅乘 1.05。工具只能計算教學報價，不代表公司價格或稅務建議。</p>
 </section>
-<section class="lesson-section"><div class="section-eyebrow"><span>(02) · 學習與實作</span></div><h2 class="section-heading">示範：完整規則進提示詞</h2>
-<div class="full-prompt-wrap"><pre class="full-prompt"><code class="language-text">請做完整單檔HTML報價工具，不用登入、後端或外部套件。
-方案月費30000、60000、100000；期間3/6/12月；折扣0–30%；付款月/季/年；含稅選項。
-稅前原額=月費×月數×(1−折扣)。年付限12月，再乘0.97；含稅再乘1.05。
-總額四捨五入整元；月付期數=月數，季付期數=月數÷3，年付一期。
-前面各期取整數下界，最後一期補尾差，各期合計必須等於總額。
-空值、負月費、錯期間或折扣超範圍顯示具體錯誤且不產生報價。
-請顯示稅前、最終總額、各期金額與採用條件。提供完整HTML與測試步驟。
-</code></pre></div>
-<p class="body-text">十二個月15%基本折扣再年付3%：360000×0.85×0.97=296820；含稅311661。合計折扣是1−0.85×0.97=17.55%，不是18%，也不是程式錯誤。</p>
+<section class="lesson-section"><div class="section-eyebrow"><span>(02) · 學習與實作</span></div><h2 class="section-heading">示範：拆開計算與核准判斷</h2>
+<p class="body-text">先手算基礎 3 月、無折扣、含稅：30,000×3×1.05=94,500。再讀 CSV 的 Q04：360,000×0.85×0.97=296,820，含稅 311,661。多出的條件「核准上限 NT$300,000」要獨立檢查：報價高出 11,661；這只表示超過上限、需停止承諾並追問，不會改變報價公式。</p>
 </section>
-<section class="lesson-section"><div class="section-eyebrow"><span>(03) · 學習與實作</span></div><h2 class="section-heading">跟著做：正常與錯誤都測</h2>
-<p class="body-text">按CSV逐案測Q01–Q04，應為94500、189000、378000、311661。Q05三月選年付必須拒絕；Q06負金額、Q07空期間、Q08折扣31也拒絕。Q09各期78151、78151、78151、78153，加總312606。</p>
-<p class="body-text">不一致時先判斷規則、資料或程式哪裡錯。提供「輸入、預期、實際」給AI修正，再重跑受影響案例。無效輸入仍顯示舊總額時要求清除結果；不要讓使用者以為舊報價屬於新條件。</p>
+<section class="lesson-section"><div class="section-eyebrow"><span>(03) · 學習與實作</span></div><h2 class="section-heading">跟著做：正常、錯誤和核准門檻</h2>
+<p class="body-text">按 CSV 逐案核對 Q01–Q09 的總額與分期；Q05–Q08 必須拒絕並清除舊結果。再用核准上限 300,000 測 Q04 和 Q01：前者標「超出上限 NT$11,661，待核准」，後者在上限內。狀態判定不是折扣，也不應把上限寫成供應商報價。若輸入變更後畫面仍顯示舊結果，先清空再修正。</p>
+<p class="body-text">手動核算並將輸入、預期、實際填在副本測試表。平台不可用時，以計算表和規則表完成，不宣稱互動工具通過。先另存上一版規則，再一次只改一個條件；重跑受影響案例與至少一個舊正常案。</p>
 </section>
-<section class="lesson-section"><div class="section-eyebrow"><span>(04) · 學習與實作</span></div><h2 class="section-heading">自己試：新增邊界測試</h2>
-<p class="body-text">選60000、六個月、折扣30%、月付、不含稅。先手算252000，再看每期42000。保留一個自己新增的錯誤輸入與錯誤訊息。保存工具、規則與紀錄，不宣稱可用於公司真實報價。</p>
-</section>
-<section class="lesson-section"><div class="section-eyebrow"><span>(05) · 學習與實作</span></div><h2 class="section-heading">選做工具：完整需求另存再測</h2>
-<p class="body-text">時區工具要求：「完整單檔HTML；輸入明確日期時間與來源時區Asia/Taipei，轉America/New_York；使用IANA時區處理夏令時間；非法日期拒絕；2026-01-15台北09:00應為紐約前一天20:00，2026-07-15台北09:00為前一天21:00；注明當地日期。提供完整HTML。」</p>
-<p class="body-text">UTM工具要求：「完整單檔HTML；輸入https網址、source、medium、campaign；三欄必填；用URL API編碼，保留原query，既有同名參數改成新值；只接受http/https；輸入https://example.com/?a=1與source=電子報，輸出保留a=1及正確編碼；非法網址拒絕。提供完整HTML。」兩項皆選做，未測不填完成。</p>
+<section class="lesson-section"><div class="section-eyebrow"><span>(04) · 學習與實作</span></div><h2 class="section-heading">自己試：新增一個可解釋的邊界</h2>
+<p class="body-text">用進階月費 60,000、12 月、10% 折扣、年付、不含稅，手算 628,560；核准上限設 600,000，應超出 28,560。再把上限改為 630,000，報價公式不變、門檻狀態變為上限內。保存規則、工具和兩組輸入輸出，交接時說清這只是虛構測試條件。</p>
 </section>
 </div>
 
-<div class="callout info">
-  <div class="callout-icon" aria-hidden="true">✅</div>
-  <div class="callout-body"><strong>本節操作契約：</strong><strong>Demo：</strong>完整走一個商務工具的 prompt 演進；<strong>Together：</strong>共同指出第一版缺哪個規格；<strong>Solo：</strong>完成三個工具中至少一個可重跑版本；<strong>Check：</strong>用三筆輸入確認計算、文字與邊界結果。卡住時保存上一版 prompt，逐項回復，不一次改十個變數。</div>
-</div>
+
 
 <div class="lesson-nav">
   <a class="nav-btn nav-prev" href="CH4-1.html" aria-label="上一單元" data-nav-role="prev">

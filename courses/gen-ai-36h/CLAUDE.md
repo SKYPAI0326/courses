@@ -36,7 +36,7 @@ gen-ai-36h/
 ├── part3/          知識管理與會議協作（2 CH + 1 PRAC）
 ├── part4/          零代碼 AI 工具開發（4 CH + 1 PRAC）
 ├── part5/          人工覆核與 Make 自動化（4 CH + 1 PRAC）
-├── part6/          個人 AI 系統整合（2 CH + 1 PRAC）
+├── part6/          個人 AI 工作流程整合（2 CH + 1 PRAC）
 └── part7/          結業專題（3 CH + 1 PRAC）
 ```
 
@@ -55,7 +55,7 @@ gen-ai-36h/
 | 3 | 知識管理與會議協作 | 2 CH + 1 PRAC | 4h |
 | 4 | 零代碼 AI 工具開發 | 4 CH + 1 PRAC | 8h |
 | 5 | 人工覆核與 Make 自動化 | 4 CH + 1 PRAC | 6h |
-| 6 | 個人 AI 系統整合 | 2 CH + 1 PRAC | 4h |
+| 6 | 個人 AI 工作流程整合 | 2 CH + 1 PRAC | 4h |
 | 7 | 結業專題 | 3 CH + 1 PRAC | 4h |
 
 ---
