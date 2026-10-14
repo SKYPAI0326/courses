@@ -37,19 +37,20 @@ COURSES = {
     "codex-basic":     ("codexbasic_auth", "811916531d81d2e2d39a52802ca19ce0492be4029ba8e5569c3598af02e0d28c"),
     "admin-ai-assistant": ("adminai_auth", "1e51cd64a905ed891bdfd0d7afab4c131fb2db96195db0da0ee5c3899c69d8be"),
     "ai-beginner-practical": ("aibeginner_auth", "f4e1ded44f5b488c907b18bb3fbc0180ecb86635a08fb4e99590ff57516ca9d7"),
+    "canva-video-teaching": ("canvavideo_auth", "de29936f17855f7eea443b687c8a8be31261364b382bd662a7dc8429b1e32dac"),
 }
 
 GATE_TEMPLATE = '''\
 <style id="_gs">
 #_gate{{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}}
 #_gate-box{{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}}
-#_gate-title{{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}}
+#_gate-title{{font-family:'Noto Serif TC',serif;font-size:1.45rem;font-weight:700;color:#2c2b28;margin-bottom:8px}}
 #_gate-sub{{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}}
 #_gate-input{{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}}
 #_gate-input:focus{{border-color:#6b7fa3;background:#fff}}
 #_gate-btn{{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}}
 #_gate-btn:hover{{background:#5c6f91}}
-#_gate-err{{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}}
+#_gate-err{{font-size:.75rem;color:#b5703a;margin-top:10px;min-height:16px}}
 </style>
 <div id="_gate">
   <div id="_gate-box">
