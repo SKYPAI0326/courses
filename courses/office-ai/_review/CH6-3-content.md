@@ -1,20 +1,20 @@
 # Content Review: CH6-3
 
 - reviewer_kind: `author-self-check`
-- verdict: `PASS`（來源重建與作者自審；不代表真人學會）
+- verdict: `PASS`（內容契約自審；不代表真人學會）
 - source: `_lessons/office-ai/CH6-3.md`
-- source_sha256: `e913df72135da0250cd3c8a38dd6996cf02977ddba910b17d59d6460f2feabcf`
-- review_time: `2026-09-22`
+- source_sha256: `223199f0ae9d38f28ca371d812c42b4f640d620f4076cabe292a59f3c20bbedd`
+- review_time: `2026-10-16`
 
 ## Evidence
 
-- learner-content boundaries: lines 25 and 152; exactly one pair.
-- unit heading: line 46; source title is `持續學習：課程結束後，怎麼跟上`.
-- first action / material evidence: line 30.
-- recovery / repair evidence: line 未找到，待 reviewer 追查.
-- practice / transfer / completion evidence: line 38.
-- The source was reconstructed from the corresponding learner-facing page and retains the page's examples, prompts, outputs, checks and asset references.
+- learner-content boundaries: lines 44 and 220; exactly one pair.
+- first action, observable result, completion and recovery: lines 58–72.
+- instructor handouts are the trusted core; the assistant must identify supplements and cannot impersonate the instructor.
+- full capstone: 50-source planning, read-only lock, grounded answer, diagnostic teaching, missing-private-information test, controlled QA append and post-write verification.
+- transfer: lines 179–191 map the same `ta-core` foundation from `ta-learning` to generic or customized `ta-work` for any legal, sufficient and inspectable source set.
+- completion: lines 206–219 require all eight evidence items plus a 30-day growth plan.
 
 ## Limits
 
-This is an author self-check after legacy-source reconstruction. Independent review, learner cold follow-along, understanding, transfer, sequence and platform runs remain pending.
+This is an author self-check. Independent review, learner cold follow-along and current free-account platform execution remain pending.

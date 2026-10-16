@@ -1,20 +1,20 @@
 # Content Review: CH6-1
 
 - reviewer_kind: `author-self-check`
-- verdict: `PASS`（來源重建與作者自審；不代表真人學會）
+- verdict: `PASS`（內容契約自審；不代表真人學會）
 - source: `_lessons/office-ai/CH6-1.md`
-- source_sha256: `1365b39ac5cb090f0df658e1f1fee8e77cce42b95bafca6baaccaf93af5585ca`
-- review_time: `2026-09-22`
+- source_sha256: `542e8058c1bdb370b54699d7a64e117605b0b544678c275ccc4f638c4e57472d`
+- review_time: `2026-10-16`
 
 ## Evidence
 
-- learner-content boundaries: lines 25 and 146; exactly one pair.
-- unit heading: line 26; source title is `建立你的 AI 工作流程：把零散技巧串成一套`.
-- first action / material evidence: line 133.
-- recovery / repair evidence: line 未找到，待 reviewer 追查.
-- practice / transfer / completion evidence: line 62.
-- The source was reconstructed from the corresponding learner-facing page and retains the page's examples, prompts, outputs, checks and asset references.
+- learner-content boundaries: lines 45 and 223; exactly one pair.
+- first action, observable result and completion: lines 59–70; recovery path: lines 84–104.
+- full operation: Skill preparation, read-only listing, notebook lock, source-grounded office output, missing-data test, preview/confirmation/writeback and post-write verification.
+- platform fallback preserves the same control sequence through manual Skill rules, Notebook citations and Markdown append.
+- customization: five parameters are required; carnival is explicitly a customized example while the downloadable generic `ta-work` remains the formal template.
+- completion: lines 209–222 require evidence for all eight acceptance items, including controlled writeback and customization.
 
 ## Limits
 
-This is an author self-check after legacy-source reconstruction. Independent review, learner cold follow-along, understanding, transfer, sequence and platform runs remain pending.
+This is an author self-check. The verified paid account proves the current Skills and connector path; free-account execution and independent learner follow-along remain pending.
