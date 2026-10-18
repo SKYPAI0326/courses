@@ -11,6 +11,7 @@ from scripts.install_course_skill_foundation import (
     InstallError,
     _rollback_script,
     install,
+    load_package_manifest,
     rollback_install,
 )
 
@@ -38,6 +39,28 @@ class CourseSkillFoundationInstallerTests(unittest.TestCase):
             (package / "references" / "contract.txt").write_bytes(
                 f"new-{name}\n".encode("utf-8")
             )
+        (self.packages_root / "manifest.json").write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "packages": [
+                        {
+                            "name": name,
+                            "role": "core",
+                            "entrypoint": "SKILL.md",
+                            "baseline_hash": installer.tree_hash(
+                                self.packages_root / name
+                            ),
+                        }
+                        for name in PACKAGE_NAMES
+                    ],
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
 
         for name in ("course-run", "course-pm"):
             target = self.skills_root / name
@@ -63,6 +86,62 @@ class CourseSkillFoundationInstallerTests(unittest.TestCase):
             self.skills_root,
             self.operations_root,
             apply=True,
+            allow_updates=("course-run", "course-pm"),
+        )
+
+    def test_installer_reads_manifest_instead_of_hardcoded_tuple(self):
+        manifest_path = self.packages_root / "manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["packages"] = [manifest["packages"][1]]
+        manifest_path.write_text(
+            json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
+        self.assertEqual(load_package_manifest(manifest_path), ("course-researcher",))
+        result = install(
+            self.packages_root,
+            self.skills_root,
+            self.operations_root,
+            apply=False,
+        )
+        self.assertEqual([action.name for action in result.actions], ["course-researcher"])
+
+    def test_identical_installed_package_is_unchanged_and_not_replaced(self):
+        source = self.packages_root / "course-researcher"
+        target = self.skills_root / "course-researcher"
+        installer.shutil.copytree(source, target)
+        inode_before = target.stat().st_ino
+
+        result = self.apply_install()
+
+        action = next(item for item in result.actions if item.name == "course-researcher")
+        self.assertEqual(action.action, "UNCHANGED")
+        self.assertEqual(target.stat().st_ino, inode_before)
+        manifest = json.loads(
+            (result.operation_dir / "manifest.json").read_text(encoding="utf-8")
+        )
+        self.assertNotIn(
+            "course-researcher", {item["name"] for item in manifest["packages"]}
+        )
+
+    def test_changed_installed_package_requires_explicit_update_and_backup(self):
+        before = self.snapshot(self.skills_root / "course-run")
+
+        with self.assertRaises(InstallError):
+            install(
+                self.packages_root,
+                self.skills_root,
+                self.operations_root,
+                apply=True,
+            )
+
+        self.assertEqual(self.snapshot(self.skills_root / "course-run"), before)
+        self.assertFalse(self.operations_root.exists())
+
+        result = self.apply_install()
+        self.assertEqual(
+            self.snapshot(result.operation_dir / "backups" / "course-run"), before
         )
 
     def test_dry_run_does_not_write_skill_root(self):
@@ -143,6 +222,16 @@ class CourseSkillFoundationInstallerTests(unittest.TestCase):
             (result.operation_dir / "manifest.json").read_text(encoding="utf-8")
         )
         self.assertEqual(manifest["status"], "APPLIED")
+
+    def test_rollback_preserves_post_install_user_edits(self):
+        result = self.apply_install()
+        changed = self.skills_root / "course-pm" / "SKILL.md"
+        changed.write_text("使用者安裝後修改\n", encoding="utf-8")
+
+        with self.assertRaises(InstallError):
+            rollback_install(result.operation_dir)
+
+        self.assertEqual(changed.read_text(encoding="utf-8"), "使用者安裝後修改\n")
 
     def test_rollback_restores_exact_previous_bytes(self):
         before = {

@@ -1,6 +1,10 @@
 import json
+import subprocess
+import sys
 import unittest
 from pathlib import Path
+
+from scripts.install_course_skill_foundation import tree_hash
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -10,6 +14,28 @@ RESEARCHER_ROOT = PROJECT_ROOT / "skill-packages" / "course-researcher"
 RESEARCH_POLICY_PATH = RESEARCHER_ROOT / "references" / "research-policy.json"
 PM_ROOT = PROJECT_ROOT / "skill-packages" / "course-pm"
 ARCHITECTURE_POLICY_PATH = PM_ROOT / "references" / "architecture-policy.json"
+MANIFEST_PATH = PROJECT_ROOT / "skill-packages" / "manifest.json"
+EXPECTED_MANIFEST_PACKAGES = {
+    "course-run",
+    "course-researcher",
+    "course-pm",
+    "course-designer",
+    "build-course-page",
+    "course-validator",
+    "course-ops",
+    "course-refresh",
+    "course-repair",
+    "course-html-contract",
+    "course-copywriter",
+    "course-reviewer",
+    "course-register",
+    "course-handout-designer",
+    "course-typography-fixer",
+    "course-pdf",
+}
+QUICK_VALIDATE = Path(
+    "/Users/paichenwei/.codex/skills/.system/skill-creator/scripts/quick_validate.py"
+)
 
 
 class CourseSkillPackageTests(unittest.TestCase):
@@ -31,6 +57,34 @@ class CourseSkillPackageTests(unittest.TestCase):
         for path in required_package_files + referenced_files:
             with self.subTest(path=path):
                 self.assertTrue(path.is_file(), f"missing referenced file: {path}")
+
+    def test_manifest_lists_each_core_compatibility_and_optional_package_once(self):
+        manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+        packages = manifest["packages"]
+        names = [item["name"] for item in packages]
+
+        self.assertEqual(len(names), len(set(names)))
+        self.assertEqual(set(names), EXPECTED_MANIFEST_PACKAGES)
+        self.assertEqual(
+            {item["role"] for item in packages},
+            {"core", "compatibility", "optional"},
+        )
+        self.assertTrue(all(item["entrypoint"] == "SKILL.md" for item in packages))
+
+    def test_every_manifest_package_is_self_contained_and_skill_valid(self):
+        manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+        for item in manifest["packages"]:
+            package = PROJECT_ROOT / "skill-packages" / item["name"]
+            with self.subTest(package=item["name"]):
+                self.assertTrue((package / item["entrypoint"]).is_file())
+                self.assertEqual(item["baseline_hash"], tree_hash(package))
+                result = subprocess.run(
+                    [sys.executable, str(QUICK_VALIDATE), str(package)],
+                    text=True,
+                    capture_output=True,
+                    check=False,
+                )
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_support_files_are_resolvable_from_standalone_installed_package(self):
         for relative_path in self.routing["support_files"]:

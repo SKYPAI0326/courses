@@ -3,19 +3,21 @@ from __future__ import annotations
 
 import argparse
 import hashlib
-import importlib.util
 import json
 import os
+import re
 import shutil
 import sys
 import tempfile
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 
-PACKAGE_NAMES = ("course-run", "course-researcher", "course-pm")
+PACKAGE_NAME_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+PACKAGE_ROLES = frozenset({"core", "compatibility", "optional"})
+SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 
 
 class InstallError(RuntimeError):
@@ -37,6 +39,58 @@ class InstallResult:
     applied: bool
     operation_dir: Path | None
     actions: tuple[InstallAction, ...]
+
+
+def _load_manifest_records(path: Path) -> tuple[dict[str, str], ...]:
+    path = Path(path)
+    try:
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise InstallError(f"cannot read package manifest {path}: {error}") from error
+    if not isinstance(manifest, dict) or manifest.get("schema_version") != 1:
+        raise InstallError("package manifest must be a schema_version 1 object")
+    packages = manifest.get("packages")
+    if not isinstance(packages, list) or not packages:
+        raise InstallError("package manifest requires a non-empty packages list")
+
+    records: list[dict[str, str]] = []
+    seen: set[str] = set()
+    required = {"name", "role", "entrypoint", "baseline_hash"}
+    for index, item in enumerate(packages):
+        if not isinstance(item, dict) or set(item) != required:
+            raise InstallError(
+                f"manifest package {index} must contain exactly {sorted(required)}"
+            )
+        name = item.get("name")
+        role = item.get("role")
+        entrypoint = item.get("entrypoint")
+        baseline_hash = item.get("baseline_hash")
+        if not isinstance(name, str) or not PACKAGE_NAME_PATTERN.fullmatch(name):
+            raise InstallError(f"invalid package name at manifest index {index}")
+        if name in seen:
+            raise InstallError(f"duplicate package in manifest: {name}")
+        if role not in PACKAGE_ROLES:
+            raise InstallError(f"invalid package role for {name}: {role!r}")
+        if entrypoint != "SKILL.md":
+            raise InstallError(f"unsupported package entrypoint for {name}: {entrypoint!r}")
+        if not isinstance(baseline_hash, str) or not SHA256_PATTERN.fullmatch(
+            baseline_hash
+        ):
+            raise InstallError(f"invalid baseline hash for package: {name}")
+        seen.add(name)
+        records.append(
+            {
+                "name": name,
+                "role": role,
+                "entrypoint": entrypoint,
+                "baseline_hash": baseline_hash,
+            }
+        )
+    return tuple(records)
+
+
+def load_package_manifest(path: Path) -> tuple[str, ...]:
+    return tuple(record["name"] for record in _load_manifest_records(path))
 
 
 def tree_hash(root: Path) -> str:
@@ -287,16 +341,41 @@ def install(
     skills_root: Path,
     operations_root: Path,
     apply: bool,
+    package_names: Sequence[str] | None = None,
+    allow_updates: Sequence[str] = (),
 ) -> InstallResult:
     packages_root = Path(packages_root).resolve()
     skills_root = Path(skills_root).resolve()
     operations_root = Path(operations_root).resolve()
+    records = _load_manifest_records(packages_root / "manifest.json")
+    manifest_names = tuple(record["name"] for record in records)
+    record_by_name = {record["name"]: record for record in records}
+    selected_names = tuple(package_names) if package_names is not None else manifest_names
+    if not selected_names:
+        raise InstallError("at least one package must be selected")
+    if len(selected_names) != len(set(selected_names)):
+        raise InstallError("selected package names must not repeat")
+    unknown_names = sorted(set(selected_names) - set(manifest_names))
+    if unknown_names:
+        raise InstallError(
+            f"selected packages are absent from manifest: {', '.join(unknown_names)}"
+        )
+    allowed_updates = set(allow_updates)
+    unknown_allowances = sorted(allowed_updates - set(selected_names))
+    if unknown_allowances:
+        raise InstallError(
+            "update allowances must name selected manifest packages: "
+            + ", ".join(unknown_allowances)
+        )
     actions: list[InstallAction] = []
 
-    for name in PACKAGE_NAMES:
+    for name in selected_names:
         source = packages_root / name
         if source.is_symlink() or not source.is_dir():
             raise InstallError(f"missing validated package: {source}")
+        entrypoint = source / record_by_name[name]["entrypoint"]
+        if entrypoint.is_symlink() or not entrypoint.is_file():
+            raise InstallError(f"missing package entrypoint: {entrypoint}")
         target = skills_root / name
         if target.is_symlink():
             raise InstallError(f"unsupported symbolic-link skill target: {target}")
@@ -304,10 +383,20 @@ def install(
             raise InstallError(f"skill target must be a directory or absent: {target}")
         before_hash = tree_hash(target) if target.is_dir() else None
         after_hash = tree_hash(source)
+        if after_hash != record_by_name[name]["baseline_hash"]:
+            raise InstallError(
+                f"package source differs from manifest baseline: {name}"
+            )
+        if before_hash is None:
+            action_type = "ADD"
+        elif before_hash == after_hash:
+            action_type = "UNCHANGED"
+        else:
+            action_type = "UPDATE"
         actions.append(
             InstallAction(
                 name=name,
-                action="UPDATE" if before_hash is not None else "ADD",
+                action=action_type,
                 source=source,
                 target=target,
                 before_hash=before_hash,
@@ -318,6 +407,21 @@ def install(
     if not apply:
         return InstallResult(False, None, tuple(actions))
 
+    unauthorized_updates = [
+        action.name
+        for action in actions
+        if action.action == "UPDATE" and action.name not in allowed_updates
+    ]
+    if unauthorized_updates:
+        raise InstallError(
+            "installed packages differ from the versioned baseline; rerun with "
+            "explicit update allowance for: " + ", ".join(unauthorized_updates)
+        )
+
+    mutable_actions = [action for action in actions if action.action != "UNCHANGED"]
+    if not mutable_actions:
+        return InstallResult(False, None, tuple(actions))
+
     skills_root.mkdir(parents=True, exist_ok=True)
     operation_dir = _new_operation_dir(operations_root)
     backups_dir = operation_dir / "backups"
@@ -326,7 +430,7 @@ def install(
     swap_states: list[dict[str, Any]] = []
 
     try:
-        for action in actions:
+        for action in mutable_actions:
             backup_path: Path | None = None
             if action.before_hash is not None:
                 backup_path = backups_dir / action.name
@@ -360,7 +464,7 @@ def install(
             _rollback_script(), encoding="utf-8"
         )
 
-        for action in actions:
+        for action in mutable_actions:
             container = Path(
                 tempfile.mkdtemp(
                     prefix=f".course-skill-{action.name}-", dir=skills_root
@@ -485,6 +589,18 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--packages-root", type=Path, default=project_root / "skill-packages")
     parser.add_argument("--skills-root", type=Path, default=Path.home() / ".agents" / "skills")
     parser.add_argument(
+        "--package",
+        action="append",
+        dest="package_names",
+        help="install only this manifest package; repeat to select more",
+    )
+    parser.add_argument(
+        "--allow-update",
+        action="append",
+        default=[],
+        help="explicitly allow replacement of this changed installed package",
+    )
+    parser.add_argument(
         "--operations-root",
         type=Path,
         default=project_root / "operations" / "course-skill-foundation",
@@ -500,6 +616,8 @@ def main(argv: list[str] | None = None) -> int:
             args.skills_root,
             args.operations_root,
             apply=args.apply,
+            package_names=args.package_names,
+            allow_updates=args.allow_update,
         )
     except (InstallError, OSError, ValueError) as error:
         print(f"error: {error}", file=sys.stderr)
