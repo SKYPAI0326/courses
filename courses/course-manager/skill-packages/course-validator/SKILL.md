@@ -38,6 +38,8 @@ COURSE_WEB_ROOT 可指定專案根目錄以在隔離環境測試。`status` 唯�
 
 內容、推理或練習缺失回 designer；呈現遺失回 builder；未攔截的缺口回 reviewer；規則本身衝突才修共通來源。缺素材由總籌指定實作者，不新增同義契約。
 
+G3 驗證讀取正式 lesson record、正文與 editorial evidence，核對結構、來源 hash 及實際引用位置。validator 不得替作者發明缺少的情境、教學事實、示範答案、素材、操作步驟或修復方式；發現缺口就附路徑退回 course-designer，不能為了讓欄位齊全而改寫正文。
+
 真人與平台驗證未完成時可以交付明確階段成果。只有符合 learner-action-contract.md 的全部適用證據才可回報 HUMAN_READY。
 
 ## HTML 結構保護驗收

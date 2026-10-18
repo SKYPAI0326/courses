@@ -5,7 +5,7 @@ description: Use when explicitly requested to design a standalone learner handou
 
 # 完整講義設計方法
 
-把主題、大綱或破碎草稿寫成學員可獨立閱讀與完成任務的講義。正常流程由 course-designer 使用本方法；單獨呼叫時由本次執行者負責同一份正式正文，不產生第二份教學版本。
+這是 course-designer 使用的講義設計方法庫，用來把主題、大綱或破碎草稿寫成學員可獨立閱讀與完成任務的講義。正常流程的正式內容契約位於 `course-designer/references/learner-content-contract.json`；單獨呼叫本 skill 時仍由本次執行者負責同一份正式正文，不產生第二份教學版本或另一套 Gate。
 
 `$BASE = /Users/paichenwei/Library/Mobile Documents/com~apple~CloudDocs/01-PROJECTS/課程專用網頁`
 

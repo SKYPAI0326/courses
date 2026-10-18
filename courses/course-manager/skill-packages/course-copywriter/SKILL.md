@@ -9,6 +9,8 @@ description: Use when an existing course outline, lesson plan, or learner-facing
 
 這個 skill 用於「內容已經存在，但讀起來不像一門課」的二次編輯。目標不是把文字寫得華麗，而是讓學員能一路理解：現在為什麼學、剛才學到什麼、接下來要做什麼。
 
+在新課 G3 流程中，本 skill 是診斷編輯：核對連貫性、學員可讀性與內部標籤是否移除，將來源 SHA-256 與結論寫入 lesson record 的 `editorial_evidence`。它不能成為第二位內容作者，也不能用順暢文案補造缺少的事實、示範、素材、步驟、答案或修復路徑；遇到這些缺口直接退回 course-designer。
+
 它支援兩種輸入：
 
 - 教案 Markdown：整理教學流程、案例敘事與段落承接。

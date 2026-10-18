@@ -6,7 +6,13 @@ allowed-tools: Read, Write, Edit, Glob, Bash, AskUserQuestion
 
 # 課程設計師
 
-正常產製流程的單元內容主責。由已確認的大綱產出完整學員正文、示範、練習與答案，再交內容審查與 HTML 轉製。角色可由同一執行者依序完成；本 skill 不自動派遣代理。
+正常產製流程的 G3 內容主責。由已通過 G0–G2 的課程契約與藍圖產出完整學員正文、示範、練習與答案，再交內容審查與 HTML 轉製。角色可由同一執行者依序完成；本 skill 不自動派遣代理。
+
+## G3 內容契約
+
+開始前確認 G0、G1、G2 為 `PASS`，G3 為 `IN_PROGRESS`。讀 [learner-content-contract.json](references/learner-content-contract.json)，並依專案的 `contracts/course-lesson-record.schema.json` 保存單元紀錄。每個單元都要讓學員知道情境、手上材料、成果用途與驗收方法；完整示範必須呈現輸入、理由、動作、結果與驗證，跟做與獨立練習則要有可觀察結果與修復路徑。
+
+正文由本 skill 寫完，不能把缺少的教學事實交給 copywriter、builder 或 validator 補寫。完成後由 copywriter 提供連貫性與可讀性的編輯證據；course-run 依結構驗證與該證據決定 G3 `PASS` 或 `BLOCKED`。
 
 ## 路徑與入口
 
@@ -30,8 +36,9 @@ allowed-tools: Read, Write, Edit, Glob, Bash, AskUserQuestion
 2. 確認任務與適用環境。對缺少的素材記明製作者、輸入、實際檔案與測試；可由當前執行者製作樣本、程式或表格。核心依賴未解時標 BLOCKED，繼續其他可完成部分，不能把需求清單當成素材已完成。
 3. 在內部區列出目標對應的核心概念／方法與所需證據，再在 learner-content 標記內寫出學員能獨立閱讀的正文。先教必要前提，再展示完整輸入、理由、中間結果與成品，安排有回饋的練習與使用條件。不套固定段數、概念數或題數。
 4. 跨段核對主詞／指涉、資料一致性與因果；逐步核對當時已存在的材料與狀態。檢查不得引用後續才建立的成果。
-5. 遮住內部區與教師筆記，沿正文完成一次作者自驗。保存實際計算、程式輸出或判斷與卡點，明示 author-self-check；不填真人跟做 PASS。
-6. 交 course-reviewer 做 content 審查，依 evidence-format.md 保存來源 hash、引用與結論。內容缺漏回修本檔；審查通過後由 build-course-page 忠實轉製。只有一份正式正文，handout-designer 方法不另產競爭版本。
+5. 以正式正文建立 lesson record；操作指令逐項記錄目的、起始狀態、動作與預期結果，素材以穩定 ID 引用，不向學員暴露內部編碼檔名。
+6. 遮住內部區與教師筆記，沿正文完成一次作者自驗。保存實際計算、程式輸出或判斷與卡點，明示 author-self-check；不填獨立試學或真人跟做 PASS。
+7. 交 course-copywriter 做診斷編輯與連續閱讀審查，再由 course-validator 核對 lesson record。內容缺漏回修本檔；審查通過後由 build-course-page 忠實轉製。只有一份正式正文，handout-designer 方法不另產競爭版本。
 
 ## 交付
 

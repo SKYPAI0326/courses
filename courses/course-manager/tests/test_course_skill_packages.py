@@ -279,6 +279,30 @@ class CourseSkillPackageTests(unittest.TestCase):
             },
         )
 
+    def test_g3_authoring_roles_have_one_canonical_content_contract(self):
+        designer = (PROJECT_ROOT / "skill-packages/course-designer/SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        copywriter = (
+            PROJECT_ROOT / "skill-packages/course-copywriter/SKILL.md"
+        ).read_text(encoding="utf-8")
+        handout = (
+            PROJECT_ROOT / "skill-packages/course-handout-designer/SKILL.md"
+        ).read_text(encoding="utf-8")
+        validator = (
+            PROJECT_ROOT / "skill-packages/course-validator/SKILL.md"
+        ).read_text(encoding="utf-8")
+        contract = (
+            PROJECT_ROOT
+            / "skill-packages/course-designer/references/learner-content-contract.json"
+        )
+
+        self.assertTrue(contract.is_file())
+        self.assertIn("G3 內容主責", designer)
+        self.assertIn("診斷編輯", copywriter)
+        self.assertIn("方法庫", handout)
+        self.assertIn("不得替作者發明", validator)
+
 
 if __name__ == "__main__":
     unittest.main()
