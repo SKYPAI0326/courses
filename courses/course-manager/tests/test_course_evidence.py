@@ -188,6 +188,10 @@ class CourseEvidenceTests(unittest.TestCase):
             ("maturity", " ", False, "invalid_maturity"),
             ("path", "evidence/item.json", True, None),
             ("path", ".", False, "unsafe_path"),
+            ("path", "./", False, "unsafe_path"),
+            ("path", ".//", False, "unsafe_path"),
+            ("path", "C:", False, "unsafe_path"),
+            ("path", "C:foo", False, "unsafe_path"),
             ("path", "../item.json", False, "unsafe_path"),
             ("path", "evidence\\item.json", False, "unsafe_path"),
         )

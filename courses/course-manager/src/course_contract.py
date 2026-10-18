@@ -1194,9 +1194,21 @@ def migrate_contract_v2(
                         "sha256": sha256,
                     }
                     merged_metadata = dict(metadata) if isinstance(metadata, Mapping) else {}
-                    merged_metadata.update(
-                        {key: copy.deepcopy(value) for key, value in item.items() if key not in allowed_fields}
-                    )
+                    legacy_fields = {
+                        key: copy.deepcopy(value)
+                        for key, value in item.items()
+                        if key not in allowed_fields
+                    }
+                    if legacy_fields:
+                        if "legacy_fields" in merged_metadata:
+                            merged_metadata["legacy_fields"] = {
+                                "metadata_value": copy.deepcopy(
+                                    merged_metadata["legacy_fields"]
+                                ),
+                                "top_level_fields": legacy_fields,
+                            }
+                        else:
+                            merged_metadata["legacy_fields"] = legacy_fields
                     if maturity is not None:
                         reference["maturity"] = maturity
                     if merged_metadata:

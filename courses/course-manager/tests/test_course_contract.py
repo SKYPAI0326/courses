@@ -632,6 +632,34 @@ class CourseContractMigrationTests(unittest.TestCase):
         self.assertEqual(migrated["evidence_archive"][0]["record"], legacy_history)
         self.assertEqual(validate_contract(migrated), [])
 
+    def test_v2_migration_preserves_metadata_and_same_named_legacy_extra(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            contract = CourseContractStateTests().make_contract()
+            contract["schema_version"] = 2
+            del contract["revision"]
+            contract.pop("evidence_archive", None)
+            contract["evidence_index"].append(
+                {
+                    "id": "g1-history",
+                    "gate": "G1",
+                    "kind": "research_record",
+                    "path": "evidence/g1-history.json",
+                    "sha256": "a" * 64,
+                    "metadata": {"source": "existing-metadata", "owner": "researcher"},
+                    "source": "legacy-top-level",
+                }
+            )
+
+            migrated = migrate_contract_v2(
+                contract, root, "course-run", "2026-10-18T19:00:00+08:00"
+            )
+
+        metadata = migrated["evidence_index"][0]["metadata"]
+        self.assertEqual(metadata["source"], "existing-metadata")
+        self.assertEqual(metadata["owner"], "researcher")
+        self.assertEqual(metadata["legacy_fields"]["source"], "legacy-top-level")
+
 
 if __name__ == "__main__":
     unittest.main()
