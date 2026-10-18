@@ -17,16 +17,18 @@ Begin only when G0 and G1 are PASS and G2 is IN_PROGRESS. Read G0_requirements, 
 
 ## Build the Blueprint
 
-1. Define the final learner deliverable and observable acceptance criteria.
-2. Identify the capabilities needed to produce it, including prerequisites and the progression from supported work to independent performance.
+1. Define the final learner deliverable and preserve every G0 acceptance criterion and child capability under stable IDs.
+2. Split multi-clause outcomes into separately assessable criterion IDs. Identify prerequisites and the progression from supported work to independent performance.
 3. Align each outcome with teaching activity, practice, feedback, and assessment evidence.
 4. Sequence units by dependency and authentic workflow. Each unit must add a capability, judgment, or transfer demand.
-5. Allocate duration to actual learner activity, checks, recovery, and transitions; show that the total fits.
+5. Allocate duration to actual learner activity, checks, recovery, breaks and buffer; unit minutes plus explicit break/buffer minutes must equal G0 available time.
 6. Apply learner gap, task nature, tool dependency, volatility, failure risk, and evidence type to teaching choices.
 7. Cite G1 claim, hands-on, conflict, or unknown IDs for material architecture decisions.
 8. State required materials, environments, unresolved risks, and what would block G3.
 
 Produce one recommended architecture with its reasons. Do not generate alternatives merely to appear comprehensive. Course subject labels and legacy course_type values are metadata, not template switches.
+
+Each unit records context, output, prerequisites, outcome/criterion/capability IDs, teaching approach, complete worked-example plan, guided and independent practice, feedback/check/recovery, assessment evidence, materials, duration, workflow fingerprint and G1 evidence refs. Reject cycles, unknown refs, orphan outcomes/criteria, duplicated workflows and title-only or todo-like units.
 
 ## Return
 

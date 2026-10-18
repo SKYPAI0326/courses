@@ -10,7 +10,7 @@ Open with the learner's working situation, the result they must produce, the evi
 
 ### Outcomes and assessment
 
-For each outcome, define the observable performance, assessment evidence, acceptance criteria, and the part of the final deliverable it supports.
+For each outcome, define a stable outcome ID and one or more stable criterion IDs. Each criterion binds exactly one G0 acceptance criterion and child capability, with observable assessment evidence and the part of the final deliverable it supports. Split multi-clause outcomes; a parent outcome cannot stand in for unassessed child capabilities.
 
 ### Capability progression
 
@@ -22,6 +22,7 @@ For each unit include:
 
 - learning problem and workplace use
 - new capability or judgment
+- stable outcome, criterion and child-capability IDs
 - required inputs and materials
 - teaching activity, practice, feedback, and assessment
 - learner output and completion check
@@ -32,6 +33,8 @@ For each unit include:
 ### Duration fit
 
 Account for instruction, learner action, checks, recovery, breaks when applicable, and transitions. If the promised result does not fit, reduce scope or return BLOCKED; do not hide the gap by shortening every activity.
+
+Record positive unit minutes plus explicit break and buffer minutes. Their sum must equal G0 `available_minutes`; dependencies form an acyclic graph and may reference only known units.
 
 ### Materials and risks
 

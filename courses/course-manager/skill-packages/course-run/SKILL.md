@@ -14,11 +14,13 @@ Read [gate-routing.json](references/gate-routing.json) for deterministic authori
 ## Start or Resume
 
 1. Locate _design/{slug}/course-contract.json.
-2. If absent, begin G0 with an adaptive interview covering learner, work context, observable result, duration, delivery, tools, permissions, known facts, assumptions, unknowns, and blockers. Do not repeat facts already supplied.
+2. If absent, begin G0 with an adaptive interview covering learner and baseline, work context, observable artifact, duration and delivery, tools, accounts, permissions, device, locale, prerequisites, constraints, acceptance criteria with child capabilities, assumptions, unknowns, and decisions. Save a requirements record conforming to `contracts/course-requirements-record.schema.json`; unresolved material unknowns keep G0 BLOCKED. Do not repeat facts already supplied.
 3. Create the contract with the CLI init command in the routing reference.
 4. Run status; resume the first Gate that is not PASS.
 
 A G0 work record may preserve unknowns. Important unknowns keep the Gate BLOCKED until resolved.
+
+G2 consumes the canonical G0 record and writes a blueprint conforming to `contracts/course-blueprint-record.schema.json`. It returns one evidence-backed main path, stable outcome and criterion IDs, a dependency DAG, exact duration reconciliation, and complete unit plans. Only the central Gate dispatcher records G0 or G2 PASS; producer-declared validator names or PASS flags are not evidence.
 
 ## Gate Cycle
 
@@ -59,6 +61,8 @@ For a semantic change, record the earliest affected Gate with change --semantic.
 G4 代表單元連同獨立 AI 試走通過後，才展開全課量產。G5 必須逐一核對藍圖單元、正式 lesson、學員 HTML 與所有素材，不得因檔案存在就視為完成。
 
 全課紀錄必須證明：每個單元有不同且可追溯的學習成果與工作流程；前後單元的產物依賴已有實際交接；首頁、上一課、下一課與完成頁導覽完整；最終成果逐項符合 G0 驗收條件。完成後以新的隔離情境，由未參與製作或驗證的 AI 只使用學員可見頁面與素材走完整門課。G5 試走不得沿用 G4 情境或製作對話。
+
+覆蓋矩陣逐一串接 G0 acceptance criterion 的每個 child capability、G2 outcome／criterion／unit、G3 lesson 的教學／練習／評量證據，以及 G5 artifact criterion／trial evidence。父 outcome 存在不能代替遺漏的 child capability。
 
 只有全課製作證據、最終成果驗收與 `full_course` 獨立試走同時通過，G5 才能 PASS。缺口依實際原因回送 G0–G5；修正後重算受影響檔案與證據雜湊。
 

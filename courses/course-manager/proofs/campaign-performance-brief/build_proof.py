@@ -22,6 +22,7 @@ from src.course_contract import (  # noqa: E402
     save_contract_atomic,
     validate_contract,
 )
+from src.course_architecture_routes import route_blueprint_to_g2  # noqa: E402
 from src.course_production import (  # noqa: E402
     select_pilot_unit,
     validate_full_production,
@@ -31,6 +32,7 @@ from src.course_production_routes import route_full_production_to_g5  # noqa: E4
 from src.course_release import build_release_proposal, validate_release_record  # noqa: E402
 from src.course_research import validate_research_record  # noqa: E402
 from src.course_research_routes import route_research_to_gate  # noqa: E402
+from src.course_requirements_routes import route_requirements_to_g0  # noqa: E402
 from src.course_validation_routes import route_verified_trial_to_gate  # noqa: E402
 
 
@@ -58,6 +60,222 @@ def write_json(path: Path, value) -> None:
 
 def load_json(path: Path):
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def requirements_record() -> dict:
+    """Return the concrete G0 contract used by this proof course."""
+    return {
+        "schema_version": 1,
+        "requirements_id": "campaign-performance-brief-requirements",
+        "target_profile": {
+            "id": "first-time-performance-marketer",
+            "learner": "第一次需要獨立向主管說明付費活動成效的行銷同仁。",
+            "baseline": "能讀取 CSV 欄位並完成基本除法，但尚未能穩定計算與解釋廣告成效指標。",
+            "prerequisites": ["能下載課程檔案、以試算表或文字編輯器開啟素材，並另存自己的成果。"],
+        },
+        "work_context": {
+            "situation": "每週例會前，學員要把三個活動的原始匯出資料整理成主管可自行閱讀的摘要。",
+            "problem": "原始曝光、點擊、花費、轉換與價值數字尚未轉成一致指標，也沒有清楚的達標判斷與後續行動。",
+            "use": "主管會使用完成品決定下一輪要維持、檢查或測試的活動。",
+        },
+        "final_artifact": {
+            "name": "campaign-performance-brief.md",
+            "format": "包含五項指標表、門檻判讀、證據界線與下一步測試的 Markdown 摘要。",
+            "observable_result": "讀者能從固定 CSV 重算三個活動的指標，確認達標判斷，並看見不超出資料範圍的下一步。",
+            "use": "成果可直接交給主管作為例會前的成效判讀底稿。",
+        },
+        "delivery": {
+            "mode": "四十五分鐘自學實作，所有核心素材可離線開啟。",
+            "available_minutes": 45,
+            "break_buffer_policy": "三個實作單元共三十七分鐘，另保留四分鐘休息與四分鐘修正公式或文字。",
+        },
+        "environment": {
+            "tools": ["能開啟 CSV 並計算除法的試算表，以及能儲存 Markdown 的文字編輯器。"],
+            "accounts": ["核心任務不需外部平台帳號；學員只使用本地課程素材。"],
+            "permissions": ["學員需要下載、編輯與另存課程 CSV、範本及完成品的本機權限。"],
+            "device": "可同時查看課程頁與編輯素材的筆記型或桌上型電腦。",
+            "locale": "繁體中文介面、Asia/Taipei 時區與新臺幣金額格式。",
+        },
+        "constraints": [
+            {
+                "id": "constraint-fixed-offline-data",
+                "description": "課程必須在四十五分鐘內以固定、離線、去識別化資料完成。",
+                "impact": "示範、練習與評量使用同一欄位結構，且不依賴真實廣告帳戶。",
+            },
+            {
+                "id": "constraint-no-causal-claim",
+                "description": "彙總活動資料只能支持成效描述，不能宣稱受眾、素材或版位造成結果。",
+                "impact": "完成品必須把直接觀察、資料限制與下一步測試分開書寫。",
+            },
+        ],
+        "acceptance_criteria": [
+            {
+                "id": "all-metrics",
+                "statement": "完成品包含三個活動的五項可重算成效指標。",
+                "capabilities": [
+                    {"id": "cap-calculate-ctr", "statement": "以點擊除以曝光正確計算每個活動的 CTR 百分比。"},
+                    {"id": "cap-calculate-cpc", "statement": "以花費除以點擊正確計算每個活動的平均 CPC 金額。"},
+                    {"id": "cap-calculate-cvr", "statement": "以轉換除以點擊正確計算每個活動的 CVR 百分比。"},
+                    {"id": "cap-calculate-cpa", "statement": "以花費除以轉換正確計算每個活動的 CPA 金額。"},
+                    {"id": "cap-calculate-roas", "statement": "以轉換價值除以花費正確計算每個活動的 ROAS 比率。"},
+                ],
+            },
+            {
+                "id": "correct-threshold",
+                "statement": "完成品依相同門檻正確標示達標與未達標活動。",
+                "capabilities": [{"id": "cap-correct-threshold", "statement": "同時比較 CPA 與 ROAS 門檻，並指出 Prospecting Social 未達標。"}],
+            },
+            {
+                "id": "evidence-boundary",
+                "statement": "完成品清楚說明彙總資料能支持與不能支持的判斷。",
+                "capabilities": [{"id": "cap-evidence-boundary", "statement": "把可觀察的指標事實與尚未驗證的成因分開表達。"}],
+            },
+            {
+                "id": "actionable-next-step",
+                "statement": "完成品提出可執行且可觀察結果的下一步。",
+                "capabilities": [{"id": "cap-actionable-next-step", "statement": "針對未達標活動提出一項測試，並寫出後續要觀察的指標。"}],
+            },
+        ],
+        "known_facts": ["固定 CSV 含三個活動及 impressions、clicks、cost_twd、conversions、conversion_value_twd 欄位。"],
+        "assumptions": [{
+            "id": "assumption-basic-division",
+            "statement": "學員能依教材示範把欄位代入除法公式。",
+            "material": False,
+            "validation_plan": "第一單元先用 Brand Search 完成一列示範，失敗時依公式與分母檢查恢復。",
+        }],
+        "unknowns": [{
+            "id": "unknown-spreadsheet-product",
+            "question": "學員會使用哪一套試算表軟體開啟 CSV？",
+            "material": False,
+            "status": "OPEN",
+            "resolution": "教材使用跨產品公式與可手算的固定數字，不依賴特定選單或函數。",
+        }],
+        "decisions": [{
+            "id": "decision-complete-brief",
+            "decision": "主路徑從可重算指標表逐步收斂成一份可交付的 Markdown 成效摘要。",
+            "rationale": "同一份固定資料能讓學員把計算、門檻、證據界線與行動連成真實工作成果。",
+        }],
+    }
+
+
+def blueprint_record(requirements: dict) -> dict:
+    """Return the single evidence-backed G2 path derived from G0."""
+    unit_specs = (
+        {
+            "id": "unit-1", "title": "從原始欄位建立效率指標", "outcome": "完成三個活動的 CTR 與平均 CPC 計算表。",
+            "outcome_ids": ["outcome-metrics"], "criterion_ids": ["g2-ctr", "g2-cpc"], "capability_ids": ["cap-calculate-ctr", "cap-calculate-cpc"],
+            "prerequisite_unit_ids": [], "workflow_fingerprint": "calculate-engagement-efficiency", "duration_minutes": 12,
+            "g1_evidence_refs": ["ctr-formula", "cpc-formula"],
+            "risk": {"failure_cost": 2, "tool_uncertainty": 1, "asset_dependency": 3, "layout_complexity": 2, "downstream_dependency": 5},
+        },
+        {
+            "id": "unit-2", "title": "補齊商業結果並套用門檻", "outcome": "補齊 CVR、CPA 與 ROAS，並正確判斷活動是否同時達到門檻。",
+            "outcome_ids": ["outcome-metrics", "outcome-threshold"], "criterion_ids": ["g2-cvr", "g2-cpa", "g2-roas", "g2-correct-threshold"], "capability_ids": ["cap-calculate-cvr", "cap-calculate-cpa", "cap-calculate-roas", "cap-correct-threshold"],
+            "prerequisite_unit_ids": ["unit-1"], "workflow_fingerprint": "calculate-and-compare-business-outcomes", "duration_minutes": 12,
+            "g1_evidence_refs": ["cvr-formula", "cpa-formula", "value-cost-formula"],
+            "risk": {"failure_cost": 4, "tool_uncertainty": 2, "asset_dependency": 3, "layout_complexity": 3, "downstream_dependency": 5},
+        },
+        {
+            "id": "unit-3", "title": "把判讀寫成可交付摘要", "outcome": "完成可驗收的成效摘要，區分數據判讀、限制與下一步。",
+            "outcome_ids": ["outcome-brief"], "criterion_ids": ["g2-evidence-boundary", "g2-actionable-next-step"], "capability_ids": ["cap-evidence-boundary", "cap-actionable-next-step"],
+            "prerequisite_unit_ids": ["unit-2"], "workflow_fingerprint": "write-evidence-bounded-brief", "duration_minutes": 13,
+            "g1_evidence_refs": ["platform-attribution", "teach-formulas-with-denominators"],
+            "risk": {"failure_cost": 5, "tool_uncertainty": 1, "asset_dependency": 4, "layout_complexity": 4, "downstream_dependency": 5},
+        },
+    )
+    units = []
+    for spec in unit_specs:
+        unit = copy.deepcopy(spec)
+        unit.update({
+            "context": "學員正在準備每週例會，需要把上一階段的可重算結果轉成主管能採用的下一階段成果。",
+            "output": spec["outcome"],
+            "depends_on": list(spec["prerequisite_unit_ids"]),
+            "teaching_approach": "先說明這一步支持的工作判斷，再完整示範輸入、選擇理由、操作、結果與驗證，接著讓學員跟做及獨立完成。",
+            "worked_example_plan": {
+                "input": "使用課程 CSV 中一個活動的實際曝光、點擊、花費、轉換與價值資料。",
+                "rationale": "每一步都說明公式分母或判斷門檻如何影響主管會採取的行動。",
+                "actions": ["代入實際數字完成該單元工作，保留中間依據，並依預期結果逐項核對。"],
+                "result": spec["outcome"],
+                "verification": "使用單元的 criterion-level 檢核，確認數值、單位、推論界線與可觀察結果。",
+            },
+            "guided_practice": {
+                "activity": "學員改用第二個活動跟做，並在公式或判讀轉折處停下核對。",
+                "feedback": "教材提供預期數值或判讀，讓學員定位欄位、分母、門檻或推論錯誤。",
+                "check": "學員能指出自己的結果是否符合該單元 criterion，並說明差異來源。",
+                "recovery": "回到原始欄位與門檻逐項重算或改寫，直到可由另一位讀者重現。",
+            },
+            "independent_practice": {
+                "changed_conditions": ["改用尚未示範的活動資料", "拿掉逐步代入答案並要求保留判斷依據"],
+                "decision": "學員自行選擇適用公式或判讀方式，並決定如何在完成品中呈現。",
+                "deliverable": spec["outcome"],
+                "check": "依穩定 criterion ID 逐項核對獨立成果，且保留可重新驗證的數字或文字。",
+                "recovery": "未通過時先定位資料、公式、門檻或推論界線，再只重做受影響部分並重新核對。",
+            },
+            "assessment_evidence": [
+                {"criterion_id": criterion_id, "evidence": "保存獨立完成的階段成果及逐項檢核結果。"}
+                for criterion_id in spec["criterion_ids"]
+            ],
+            "materials": ["campaign-data.csv、brief-template.md、rubric.md 與該單元完整示範。"],
+            "asset_ids": ["campaign-data", "brief-template", "rubric"],
+        })
+        units.append(unit)
+    return {
+        "schema_version": 1,
+        "blueprint_id": "campaign-performance-brief-blueprint",
+        "course_id": "campaign-performance-brief",
+        "requirements_id": requirements["requirements_id"],
+        "decision_narrative": {
+            "recommended_path": "先用固定資料建立可重算指標，再套用一致門檻，最後寫成有證據界線與可觀察下一步的摘要。",
+            "rationale": "G1 的指標定義與平台歸因證據顯示，學員必須先穩定處理分母與單位，再把描述性資料轉成不越界的決策文字。",
+            "constraint_fit": "三個實作單元共三十七分鐘，另有四分鐘休息與四分鐘修正緩衝，能在 G0 的四十五分鐘內完成真實交付物。",
+            "g1_evidence_refs": ["metric-definitions", "platform-attribution", "teach-formulas-with-denominators"],
+        },
+        "outcomes": [
+            {"id": "outcome-metrics", "statement": "學員能從固定原始欄位完成五項可重算指標。", "criterion_ids": ["g2-ctr", "g2-cpc", "g2-cvr", "g2-cpa", "g2-roas"]},
+            {"id": "outcome-threshold", "statement": "學員能以 CPA 與 ROAS 的共同門檻判斷活動表現。", "criterion_ids": ["g2-correct-threshold"]},
+            {"id": "outcome-brief", "statement": "學員能寫出區分事實、限制與可驗證下一步的成效摘要。", "criterion_ids": ["g2-evidence-boundary", "g2-actionable-next-step"]},
+        ],
+        "criteria": [
+            {"id": "g2-ctr", "outcome_id": "outcome-metrics", "g0_criterion_id": "all-metrics", "capability_id": "cap-calculate-ctr", "statement": "三個活動的 CTR 數值與百分比單位正確。", "assessment_evidence": "提交保留曝光與點擊分母來源的 CTR 欄位。"},
+            {"id": "g2-cpc", "outcome_id": "outcome-metrics", "g0_criterion_id": "all-metrics", "capability_id": "cap-calculate-cpc", "statement": "三個活動的平均 CPC 數值與金額單位正確。", "assessment_evidence": "提交保留花費與點擊分母來源的平均 CPC 欄位。"},
+            {"id": "g2-cvr", "outcome_id": "outcome-metrics", "g0_criterion_id": "all-metrics", "capability_id": "cap-calculate-cvr", "statement": "三個活動的 CVR 數值與百分比單位正確。", "assessment_evidence": "提交保留轉換與點擊分母來源的 CVR 欄位。"},
+            {"id": "g2-cpa", "outcome_id": "outcome-metrics", "g0_criterion_id": "all-metrics", "capability_id": "cap-calculate-cpa", "statement": "三個活動的 CPA 數值與金額單位正確。", "assessment_evidence": "提交保留花費與轉換分母來源的 CPA 欄位。"},
+            {"id": "g2-roas", "outcome_id": "outcome-metrics", "g0_criterion_id": "all-metrics", "capability_id": "cap-calculate-roas", "statement": "三個活動的 ROAS 數值與比率單位正確。", "assessment_evidence": "提交保留轉換價值與花費分母來源的 ROAS 欄位。"},
+            {"id": "g2-correct-threshold", "outcome_id": "outcome-threshold", "g0_criterion_id": "correct-threshold", "capability_id": "cap-correct-threshold", "statement": "依 CPA 不高於 NT$500 且 ROAS 不低於 4.00 的共同條件正確判讀。", "assessment_evidence": "完成品指出 Prospecting Social 的 CPA 與 ROAS 均未達標。"},
+            {"id": "g2-evidence-boundary", "outcome_id": "outcome-brief", "g0_criterion_id": "evidence-boundary", "capability_id": "cap-evidence-boundary", "statement": "摘要把可觀察結果與尚未驗證的成因清楚分開。", "assessment_evidence": "完成品明示彙總資料不能單獨證明因果。"},
+            {"id": "g2-actionable-next-step", "outcome_id": "outcome-brief", "g0_criterion_id": "actionable-next-step", "capability_id": "cap-actionable-next-step", "statement": "摘要提出一項可執行測試及對應觀察指標。", "assessment_evidence": "完成品包含具體測試動作、比較條件與後續觀察指標。"},
+        ],
+        "units": units,
+        "duration": {"available_minutes": 45, "break_minutes": 4, "buffer_minutes": 4, "policy": "第二單元後休息四分鐘；緩衝只用於修正公式或文字，不刪除獨立練習與驗收。"},
+        "materials": ["固定活動資料 CSV、成效摘要 Markdown 範本、learner-visible rubric 與三個單元的完整示範。"],
+        "risks": [{"id": "risk-formula-and-inference", "description": "學員可能選錯分母，或把彙總指標寫成未經驗證的因果結論。", "owner_gate": "G3", "mitigation": "每單元提供預期結果、分母檢查、推論界線與可重做的恢復步驟。"}],
+        "final_acceptance": {"outcome_id": "campaign-performance-brief", "criteria_ids": ["all-metrics", "correct-threshold", "evidence-boundary", "actionable-next-step"]},
+    }
+
+
+def production_learning_coverage(blueprint: dict) -> list[dict]:
+    """Build the criterion-level G0→G2→G3→G5 trace rows."""
+    rows = []
+    for criterion in blueprint["criteria"]:
+        unit = next(
+            item
+            for item in blueprint["units"]
+            if criterion["capability_id"] in item["capability_ids"]
+        )
+        rows.append(
+            {
+                "g0_criterion_id": criterion["g0_criterion_id"],
+                "capability_id": criterion["capability_id"],
+                "outcome_id": criterion["outcome_id"],
+                "criterion_id": criterion["id"],
+                "unit_id": unit["id"],
+                "lesson_unit_id": unit["id"],
+                "artifact_criterion_id": criterion["g0_criterion_id"],
+                "artifact_evidence": f"完成品依 {criterion['id']} 保留可重算或可觀察的通過證據。",
+                "trial_evidence": f"隔離完整課程試走依 {criterion['id']} 完成任務並通過相同檢核。",
+            }
+        )
+    return rows
 
 
 def lesson_record(unit_id: str, page_hash: str) -> dict:
@@ -109,10 +327,61 @@ def lesson_record(unit_id: str, page_hash: str) -> dict:
         },
     }
     item = definitions[unit_id]
+    stable_refs = {
+        "unit-1": {
+            "outcome_ids": ["outcome-metrics"],
+            "criterion_ids": ["g2-ctr", "g2-cpc"],
+            "capability_ids": ["cap-calculate-ctr", "cap-calculate-cpc"],
+            "workflow_fingerprint": "calculate-engagement-efficiency",
+            "depends_on": [],
+        },
+        "unit-2": {
+            "outcome_ids": ["outcome-metrics", "outcome-threshold"],
+            "criterion_ids": ["g2-cvr", "g2-cpa", "g2-roas", "g2-correct-threshold"],
+            "capability_ids": ["cap-calculate-cvr", "cap-calculate-cpa", "cap-calculate-roas", "cap-correct-threshold"],
+            "workflow_fingerprint": "calculate-and-compare-business-outcomes",
+            "depends_on": ["unit-1"],
+        },
+        "unit-3": {
+            "outcome_ids": ["outcome-brief"],
+            "criterion_ids": ["g2-evidence-boundary", "g2-actionable-next-step"],
+            "capability_ids": ["cap-evidence-boundary", "cap-actionable-next-step"],
+            "workflow_fingerprint": "write-evidence-bounded-brief",
+            "depends_on": ["unit-2"],
+        },
+    }[unit_id]
+    coverage_rows = [
+        {
+            "outcome_id": next(
+                outcome_id
+                for outcome_id, criterion_ids in {
+                    "outcome-metrics": {"g2-ctr", "g2-cpc", "g2-cvr", "g2-cpa", "g2-roas"},
+                    "outcome-threshold": {"g2-correct-threshold"},
+                    "outcome-brief": {"g2-evidence-boundary", "g2-actionable-next-step"},
+                }.items()
+                if criterion_id in criterion_ids
+            ),
+            "criterion_id": criterion_id,
+            "capability_id": capability_id,
+            "teaching_evidence": ["本單元的解釋與完整示範說明判斷依據、操作及預期結果。"],
+            "practice_evidence": ["引導練習後以改變條件的獨立任務完成同一能力。"],
+            "assessment_evidence": ["快速檢查與 learner-visible rubric 保存可觀察的通過結果。"],
+        }
+        for criterion_id, capability_id in zip(
+            stable_refs["criterion_ids"], stable_refs["capability_ids"]
+        )
+    ]
     recovery_id = f"{unit_id}-recovery"
     return {
         "schema_version": 1,
         "unit_id": unit_id,
+        "outcome": item["outcome"],
+        "workflow_fingerprint": stable_refs["workflow_fingerprint"],
+        "depends_on": stable_refs["depends_on"],
+        "outcome_ids": stable_refs["outcome_ids"],
+        "criterion_ids": stable_refs["criterion_ids"],
+        "capability_ids": stable_refs["capability_ids"],
+        "learning_coverage": coverage_rows,
         "learner_outcome": {
             "statement": item["outcome"],
             "evidence": item["deliverable"],
@@ -222,7 +491,10 @@ def main() -> None:
     DESIGN.mkdir(parents=True, exist_ok=True)
     research = load_json(EVIDENCE / "research-record.json")
     adaptation = load_json(EVIDENCE / "adaptation.json")
-    blueprint = load_json(EVIDENCE / "blueprint.json")
+    requirements = requirements_record()
+    blueprint = blueprint_record(requirements)
+    write_json(EVIDENCE / "g0-requirements.json", requirements)
+    write_json(EVIDENCE / "blueprint.json", blueprint)
     research_issues = validate_research_record(research, adaptation)
     if research_issues:
         raise SystemExit(f"research invalid: {research_issues}")
@@ -230,7 +502,7 @@ def main() -> None:
     lesson_records: list[dict] = []
     for unit_id in ("unit-1", "unit-2", "unit-3"):
         record = lesson_record(unit_id, sha(COURSE / f"{unit_id}.html"))
-        issues = validate_lesson_record(record)
+        issues = validate_lesson_record(record, blueprint)
         if issues:
             raise SystemExit(f"{unit_id} lesson invalid: {issues}")
         path = EVIDENCE / f"lesson-{unit_id}.json"
@@ -303,7 +575,18 @@ def main() -> None:
     production_units = []
     for index, unit in enumerate(blueprint["units"]):
         lesson_path = EVIDENCE / f"lesson-{unit['id']}.json"
-        lesson_summaries.append({"unit_id": unit["id"], "outcome": unit["outcome"], "workflow_fingerprint": unit["workflow_fingerprint"], "depends_on": unit["depends_on"], "asset_references": unit["asset_ids"]})
+        lesson = lesson_records[index]
+        lesson_summaries.append({
+            "unit_id": unit["id"],
+            "outcome": unit["outcome"],
+            "workflow_fingerprint": unit["workflow_fingerprint"],
+            "depends_on": unit["depends_on"],
+            "asset_references": unit["asset_ids"],
+            "outcome_ids": lesson["outcome_ids"],
+            "criterion_ids": lesson["criterion_ids"],
+            "capability_ids": lesson["capability_ids"],
+            "learning_coverage": lesson["learning_coverage"],
+        })
         production_units.append({
             "unit_id": unit["id"],
             "lesson_sha256": sha(lesson_path),
@@ -313,9 +596,13 @@ def main() -> None:
             "outcome": unit["outcome"],
             "workflow_fingerprint": unit["workflow_fingerprint"],
             "depends_on": unit["depends_on"],
+            "outcome_ids": unit["outcome_ids"],
+            "criterion_ids": unit["criterion_ids"],
+            "capability_ids": unit["capability_ids"],
             "previous": None if index == 0 else blueprint["units"][index - 1]["id"],
             "next": None if index == len(blueprint["units"]) - 1 else blueprint["units"][index + 1]["id"]
         })
+    coverage_rows = production_learning_coverage(blueprint)
     production = {
         "schema_version": 1,
         "course_id": "campaign-performance-brief",
@@ -327,6 +614,7 @@ def main() -> None:
             {"from_unit": "unit-1", "to_unit": "unit-2", "artifact": "trials/g4-output/metrics-table.md", "result": "PASS"},
             {"from_unit": "unit-2", "to_unit": "unit-3", "artifact": "trials/full-course-output/campaign-performance-brief.md", "result": "PASS"}
         ],
+        "learning_coverage": coverage_rows,
         "final_artifact": {
             "path": "trials/full-course-output/campaign-performance-brief.md",
             "sha256": sha(final_artifact),
@@ -373,25 +661,19 @@ def main() -> None:
 
     contract = new_contract("campaign-performance-brief", "行銷活動成效摘要實作課", "course-author-ai", "2026-10-18T14:30:00+08:00")
     begin_gate(contract, "G0", "course-run", "2026-10-18T14:31:00+08:00")
-    g0 = {
-        "learner": "能讀表格、第一次獨立寫活動成效摘要的行銷同仁",
-        "context": "主管需要在沒有口頭補充時讀懂三個活動的成效與下一步",
-        "result": "campaign-performance-brief.md",
-        "constraints": ["45 分鐘", "離線可完成", "使用台灣用語", "不宣稱彙總數據能證明因果"],
-        "acceptance": blueprint["final_acceptance"]
-    }
-    write_json(EVIDENCE / "g0-requirements.json", g0)
-    contract["G0_requirements"] = copy.deepcopy(g0)
-    contract["evidence_index"].append({"id": "g0-requirements", "gate": "G0", "path": "evidence/g0-requirements.json", "sha256": sha(EVIDENCE / "g0-requirements.json")})
-    pass_gate(contract, "G0", ["g0-requirements"], "requirements-validator", "course-run", "2026-10-18T14:32:00+08:00")
+    route_requirements_to_g0(
+        contract, requirements, "evidence/g0-requirements.json", "course-run",
+        "2026-10-18T14:32:00+08:00", workspace_root=ROOT,
+    )
 
     begin_gate(contract, "G1", "course-run", "2026-10-18T14:33:00+08:00")
     route_research_to_gate(contract, research, adaptation, "evidence/research-record.json", sha(EVIDENCE / "research-record.json"), "course-run", "2026-10-18T14:34:00+08:00")
 
     begin_gate(contract, "G2", "course-run", "2026-10-18T14:35:00+08:00")
-    contract["G2_architecture"] = {"record_path": "evidence/blueprint.json", "sha256": sha(EVIDENCE / "blueprint.json")}
-    contract["evidence_index"].append({"id": "g2-blueprint", "gate": "G2", "path": "evidence/blueprint.json", "sha256": sha(EVIDENCE / "blueprint.json")})
-    pass_gate(contract, "G2", ["g2-blueprint"], "course-blueprint-validator", "course-run", "2026-10-18T14:36:00+08:00")
+    route_blueprint_to_g2(
+        contract, blueprint, "evidence/blueprint.json", "course-run",
+        "2026-10-18T14:36:00+08:00", workspace_root=ROOT,
+    )
 
     begin_gate(contract, "G3", "course-run", "2026-10-18T14:37:00+08:00")
     content_bundle = {"lesson_records": [{"unit_id": record["unit_id"], "path": f"evidence/lesson-{record['unit_id']}.json", "sha256": sha(EVIDENCE / f"lesson-{record['unit_id']}.json")} for record in lesson_records], "validation": "PASS"}

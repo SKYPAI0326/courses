@@ -1,9 +1,11 @@
 import copy
 import hashlib
+import json
 import tempfile
 import unittest
+from pathlib import Path
 
-from src.course_content import validate_lesson_record
+from src.course_content import REQUIRED_SECTIONS, validate_lesson_record
 from src.course_content_routes import route_content_to_g3
 from src.course_contract import begin_gate, new_contract
 from tests.gate_test_support import _commit_gate_pass
@@ -20,6 +22,19 @@ class CourseContentTests(unittest.TestCase):
         return {
             "schema_version": 1,
             "unit_id": "unit-1",
+            "outcome_ids": ["outcome-plan"],
+            "criterion_ids": ["criterion-plan"],
+            "capability_ids": ["capability-plan"],
+            "learning_coverage": [
+                {
+                    "outcome_id": "outcome-plan",
+                    "criterion_id": "criterion-plan",
+                    "capability_id": "capability-plan",
+                    "teaching_evidence": ["explanation", "full_demonstration"],
+                    "practice_evidence": ["guided_practice", "independent_practice"],
+                    "assessment_evidence": ["checks"],
+                }
+            ],
             "learner_outcome": {
                 "statement": "學員能把商品資料整理成可供主管審核的活動企劃。",
                 "evidence": "完成一份含受眾、渠道、理由與檢核結果的企劃。",
@@ -258,6 +273,68 @@ class CourseContentTests(unittest.TestCase):
 
         self.assertEqual(issues, [])
         self.assertEqual(record, before)
+
+    def test_lesson_requires_stable_outcome_criterion_and_capability_coverage(self):
+        for field in ("outcome_ids", "criterion_ids", "capability_ids", "learning_coverage"):
+            with self.subTest(field=field):
+                record = self.valid_record()
+                record[field] = []
+                codes = {item.code for item in validate_lesson_record(record)}
+                self.assertIn("learning_coverage_required", codes)
+
+    def test_lesson_rejects_duplicate_or_incomplete_child_capability_coverage(self):
+        record = self.valid_record()
+        record["learning_coverage"].append(copy.deepcopy(record["learning_coverage"][0]))
+        record["learning_coverage"][0]["practice_evidence"] = []
+
+        codes = {item.code for item in validate_lesson_record(record)}
+
+        self.assertIn("duplicate_learning_coverage", codes)
+        self.assertIn("incomplete_learning_coverage", codes)
+
+    def test_lesson_coverage_rows_must_preserve_blueprint_criterion_pairs(self):
+        record = self.valid_record()
+        record["outcome_ids"].append("outcome-audit")
+        record["criterion_ids"].append("criterion-audit")
+        record["capability_ids"].append("capability-audit")
+        record["learning_coverage"].append(
+            {
+                "outcome_id": "outcome-audit",
+                "criterion_id": "criterion-audit",
+                "capability_id": "capability-audit",
+                "teaching_evidence": ["示範如何稽核企劃。"],
+                "practice_evidence": ["以不同企劃完成獨立稽核。"],
+                "assessment_evidence": ["保存逐項稽核結果。"],
+            }
+        )
+        blueprint = {
+            "criteria": [
+                {"id": "criterion-plan", "outcome_id": "outcome-plan", "capability_id": "capability-plan"},
+                {"id": "criterion-audit", "outcome_id": "outcome-audit", "capability_id": "capability-audit"},
+            ],
+            "units": [
+                {
+                    "id": "unit-1",
+                    "outcome_ids": list(record["outcome_ids"]),
+                    "criterion_ids": list(record["criterion_ids"]),
+                    "capability_ids": list(record["capability_ids"]),
+                }
+            ],
+        }
+        record["learning_coverage"][0]["outcome_id"] = "outcome-audit"
+        record["learning_coverage"][1]["outcome_id"] = "outcome-plan"
+
+        codes = {issue.code for issue in validate_lesson_record(record, blueprint)}
+
+        self.assertIn("blueprint_learning_mismatch", codes)
+
+    def test_lesson_schema_required_fields_match_runtime(self):
+        schema = json.loads(
+            (Path(__file__).parents[1] / "contracts" / "course-lesson-record.schema.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(set(schema["required"]), set(REQUIRED_SECTIONS))
 
 
 if __name__ == "__main__":

@@ -82,14 +82,14 @@ def _validate_requirements(
     contract: Mapping[str, Any], evidence: EvidenceValues, consumed: ConsumedByKind,
     workspace_root: Path | str,
 ) -> list[GateValidationIssue]:
+    from src.course_requirements import validate_requirements_record
+
     record, issues = _single_mapping(evidence, "requirements_record")
     if record is None:
         return issues
     if record != contract.get("G0_requirements"):
         issues.append(GateValidationIssue("requirements_evidence_mismatch", "$.G0_requirements", "requirements evidence must exactly match the governed G0 payload"))
-    result = record.get("observable_result", record.get("observable_outcome"))
-    if not _text(record.get("learner_context")) or not _text(result):
-        issues.append(GateValidationIssue("incomplete_requirements_record", "$.evidence.requirements_record", "requirements must define learner_context and an observable result"))
+    issues.extend(_coerce_issues(validate_requirements_record(record)))
     return issues
 
 
@@ -117,26 +117,18 @@ def _validate_blueprint(
     contract: Mapping[str, Any], evidence: EvidenceValues, consumed: ConsumedByKind,
     workspace_root: Path | str,
 ) -> list[GateValidationIssue]:
+    from src.course_architecture import validate_course_blueprint
+
     record, issues = _single_mapping(evidence, "course_blueprint")
     if record is None:
         return issues
-    units = record.get("units")
-    if not isinstance(units, list) or not units:
-        return [GateValidationIssue("blueprint_units_required", "$.evidence.course_blueprint.units", "course blueprint requires at least one unit")]
-    seen: set[str] = set()
-    for index, unit in enumerate(units):
-        path = f"$.evidence.course_blueprint.units[{index}]"
-        if not isinstance(unit, Mapping):
-            issues.append(GateValidationIssue("invalid_blueprint_unit", path, "unit must be an object"))
-            continue
-        unit_id = unit.get("id")
-        if not _text(unit_id) or unit_id in seen:
-            issues.append(GateValidationIssue("invalid_blueprint_unit", f"{path}.id", "unit id must contain text and be unique"))
-        else:
-            seen.add(str(unit_id))
-        for field in ("outcome", "workflow_fingerprint"):
-            if not _text(unit.get(field)):
-                issues.append(GateValidationIssue("invalid_blueprint_unit", f"{path}.{field}", f"unit {field} must contain text"))
+    if record != contract.get("G2_architecture"):
+        issues.append(GateValidationIssue("blueprint_evidence_mismatch", "$.G2_architecture", "blueprint evidence must exactly match the governed G2 payload"))
+    requirements = contract.get("G0_requirements")
+    if not isinstance(requirements, Mapping):
+        issues.append(GateValidationIssue("requirements_required", "$.G0_requirements", "G2 validation requires the governed G0 requirements"))
+        return issues
+    issues.extend(_coerce_issues(validate_course_blueprint(record, requirements)))
     return issues
 
 
@@ -154,7 +146,18 @@ def _validate_lessons(
         if not isinstance(record, Mapping):
             issues.append(GateValidationIssue("invalid_lesson_record", f"$.evidence.lesson_record[{index}]", "lesson record must be an object"))
         else:
-            issues.extend(_coerce_issues(validate_lesson_record(record)))
+            blueprint = contract.get("G2_architecture")
+            issues.extend(
+                _coerce_issues(
+                    validate_lesson_record(
+                        record,
+                        blueprint
+                        if isinstance(blueprint, Mapping)
+                        and isinstance(blueprint.get("units"), list)
+                        else None,
+                    )
+                )
+            )
     return issues
 
 

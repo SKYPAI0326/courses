@@ -16,16 +16,15 @@ class CourseGateTransitionTests(unittest.TestCase):
         self.temporary.cleanup()
 
     def contract_at_g0(self):
+        from tests.test_course_requirements import CourseRequirementsTests
+
         contract = new_contract(
             "practical-ai",
             "實用 AI 課程",
             "course-run",
             "2026-10-18T12:00:00+08:00",
         )
-        contract["G0_requirements"] = {
-            "learner_context": "第一次獨立完成工作任務的學員",
-            "observable_outcome": "完成可驗收的工作成果",
-        }
+        contract["G0_requirements"] = CourseRequirementsTests().valid_record()
         begin_gate(contract, "G0", "course-run", "2026-10-18T12:01:00+08:00")
         return contract
 
@@ -101,7 +100,13 @@ class CourseGateTransitionTests(unittest.TestCase):
 
     def test_registry_executes_g0_validator_before_committing_pass(self):
         contract = self.contract_at_g0()
-        self.add_requirements_evidence(contract, {"learner_context": ""})
+        self.add_requirements_evidence(
+            contract,
+            {
+                "learner_context": "",
+                "validation": {"status": "PASS", "validator_id": "self-declared"},
+            },
+        )
 
         status = validate_and_transition_gate(
             contract,

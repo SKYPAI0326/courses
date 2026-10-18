@@ -10,7 +10,7 @@ allowed-tools: Read, Write, Edit, Glob, Bash, AskUserQuestion
 
 ## G3 內容契約
 
-開始前確認 G0、G1、G2 為 `PASS`，G3 為 `IN_PROGRESS`。讀 [learner-content-contract.json](references/learner-content-contract.json)，並依專案的 `contracts/course-lesson-record.schema.json` 保存單元紀錄。每個單元都要讓學員知道情境、手上材料、成果用途與驗收方法；完整示範必須呈現輸入、理由、動作、結果與驗證，跟做與獨立練習則要有可觀察結果與修復路徑。
+開始前確認 G0、G1、G2 為 `PASS`，G3 為 `IN_PROGRESS`。讀 [learner-content-contract.json](references/learner-content-contract.json)，並依專案的 `contracts/course-lesson-record.schema.json` 保存單元紀錄。保留藍圖的 outcome、criterion、child capability stable refs，並逐項記錄教學、練習與評量證據；父 outcome 不能代替遺漏的子能力。每個單元都要讓學員知道情境、手上材料、成果用途與驗收方法；完整示範必須呈現輸入、理由、動作、結果與驗證，跟做與獨立練習則要有可觀察結果與修復路徑。
 
 正文由本 skill 寫完，不能把缺少的教學事實交給 copywriter、builder 或 validator 補寫。完成後由 copywriter 提供連貫性與可讀性的編輯證據；course-run 依結構驗證與該證據決定 G3 `PASS` 或 `BLOCKED`。
 

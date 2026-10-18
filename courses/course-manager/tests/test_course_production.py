@@ -9,6 +9,8 @@ from src.course_contract import ContractStateError, begin_gate, new_contract
 from tests.gate_test_support import _commit_gate_pass
 from src.course_evidence import canonical_json_bytes, materialize_json_evidence, register_evidence_file, verify_evidence_reference
 from src.course_production import (
+    PRODUCTION_COVERAGE_FIELD,
+    PRODUCTION_UNIT_STABLE_FIELDS,
     select_pilot_unit,
     validate_asset_manifest,
     validate_full_production,
@@ -264,6 +266,16 @@ class CourseProductionTests(unittest.TestCase):
 
     def full_blueprint(self):
         return {
+            "outcomes": [
+                {"id": "outcome-source", "criterion_ids": ["criterion-source"]},
+                {"id": "outcome-plan", "criterion_ids": ["criterion-plan"]},
+                {"id": "outcome-audit", "criterion_ids": ["criterion-audit"]},
+            ],
+            "criteria": [
+                {"id": "criterion-source", "outcome_id": "outcome-source", "g0_criterion_id": "uses-source-facts", "capability_id": "capability-source"},
+                {"id": "criterion-plan", "outcome_id": "outcome-plan", "g0_criterion_id": "complete-plan", "capability_id": "capability-plan"},
+                {"id": "criterion-audit", "outcome_id": "outcome-audit", "g0_criterion_id": "passes-audit", "capability_id": "capability-audit"},
+            ],
             "units": [
                 {
                     "id": "unit-1",
@@ -271,6 +283,9 @@ class CourseProductionTests(unittest.TestCase):
                     "workflow_fingerprint": "extract-source-constraints",
                     "depends_on": [],
                     "asset_ids": ["asset-product-brief"],
+                    "outcome_ids": ["outcome-source"],
+                    "criterion_ids": ["criterion-source"],
+                    "capability_ids": ["capability-source"],
                 },
                 {
                     "id": "unit-2",
@@ -278,6 +293,9 @@ class CourseProductionTests(unittest.TestCase):
                     "workflow_fingerprint": "build-plan-from-constraints",
                     "depends_on": ["unit-1"],
                     "asset_ids": ["asset-demo-plan"],
+                    "outcome_ids": ["outcome-plan"],
+                    "criterion_ids": ["criterion-plan"],
+                    "capability_ids": ["capability-plan"],
                 },
                 {
                     "id": "unit-3",
@@ -285,6 +303,9 @@ class CourseProductionTests(unittest.TestCase):
                     "workflow_fingerprint": "audit-plan-against-criteria",
                     "depends_on": ["unit-2"],
                     "asset_ids": ["asset-product-brief", "asset-demo-plan"],
+                    "outcome_ids": ["outcome-audit"],
+                    "criterion_ids": ["criterion-audit"],
+                    "capability_ids": ["capability-audit"],
                 },
             ],
             "final_acceptance": {
@@ -301,6 +322,19 @@ class CourseProductionTests(unittest.TestCase):
                 "workflow_fingerprint": unit["workflow_fingerprint"],
                 "depends_on": list(unit["depends_on"]),
                 "asset_references": list(unit["asset_ids"]),
+                "outcome_ids": list(unit["outcome_ids"]),
+                "criterion_ids": list(unit["criterion_ids"]),
+                "capability_ids": list(unit["capability_ids"]),
+                "learning_coverage": [
+                    {
+                        "outcome_id": unit["outcome_ids"][0],
+                        "criterion_id": unit["criterion_ids"][0],
+                        "capability_id": unit["capability_ids"][0],
+                        "teaching_evidence": ["explanation", "full_demonstration"],
+                        "practice_evidence": ["guided_practice", "independent_practice"],
+                        "assessment_evidence": ["checks"],
+                    }
+                ],
             }
             for unit in self.full_blueprint()["units"]
         ]
@@ -374,6 +408,9 @@ class CourseProductionTests(unittest.TestCase):
                     "outcome": unit["outcome"],
                     "workflow_fingerprint": unit["workflow_fingerprint"],
                     "depends_on": list(unit["depends_on"]),
+                    "outcome_ids": list(unit["outcome_ids"]),
+                    "criterion_ids": list(unit["criterion_ids"]),
+                    "capability_ids": list(unit["capability_ids"]),
                     "previous": None if index == 0 else blueprint_units[index - 1]["id"],
                     "next": None if index == len(blueprint_units) - 1 else blueprint_units[index + 1]["id"],
                 }
@@ -402,6 +439,20 @@ class CourseProductionTests(unittest.TestCase):
                     "artifact": "evidence/plan-draft.pdf",
                     "result": "PASS",
                 },
+            ],
+            "learning_coverage": [
+                {
+                    "g0_criterion_id": criterion["g0_criterion_id"],
+                    "capability_id": criterion["capability_id"],
+                    "outcome_id": criterion["outcome_id"],
+                    "criterion_id": criterion["id"],
+                    "unit_id": unit["id"],
+                    "lesson_unit_id": unit["id"],
+                    "artifact_criterion_id": criterion["g0_criterion_id"],
+                    "artifact_evidence": f"完成品保留 {criterion['id']} 的可檢查結果。",
+                    "trial_evidence": f"隔離試走完成 {criterion['id']} 並通過檢核。",
+                }
+                for unit, criterion in zip(blueprint_units, self.full_blueprint()["criteria"])
             ],
             "final_artifact": {
                 "path": "courses/demo/examples/final-plan.pdf",
@@ -665,6 +716,37 @@ class CourseProductionTests(unittest.TestCase):
         }
 
         self.assertIn("g0_acceptance_mismatch", codes)
+
+    def test_g5_rejects_missing_or_unknown_child_capability_coverage(self):
+        production = self.full_production()
+        production["learning_coverage"].pop()
+        production["learning_coverage"][0]["capability_id"] = "unknown-capability"
+
+        codes = {
+            issue.code
+            for issue in validate_full_production(
+                production,
+                self.full_blueprint(),
+                self.full_lessons(),
+                self.valid_asset_manifest(),
+                {"unit_id": "unit-1", "trial_context_id": "pilot-cold-run-20261018-01"},
+                self.full_trial(),
+            )
+        }
+
+        self.assertIn("uncovered_capability", codes)
+        self.assertIn("unknown_reference", codes)
+
+    def test_production_schema_stable_refs_match_runtime(self):
+        schema = json.loads(
+            (Path(__file__).parents[1] / "contracts" / "course-production-record.schema.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertIn(PRODUCTION_COVERAGE_FIELD, schema["required"])
+        self.assertTrue(
+            set(PRODUCTION_UNIT_STABLE_FIELDS).issubset(schema["$defs"]["unit"]["required"])
+        )
 
     def test_governed_role_roster_prevents_self_declared_g5_independence(self):
         production = self.full_production()

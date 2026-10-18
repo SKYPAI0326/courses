@@ -20,6 +20,8 @@ RISK_FIELDS = (
     "layout_complexity",
     "downstream_dependency",
 )
+PRODUCTION_UNIT_STABLE_FIELDS = ("outcome_ids", "criterion_ids", "capability_ids")
+PRODUCTION_COVERAGE_FIELD = "learning_coverage"
 
 
 @dataclass(frozen=True)
@@ -601,6 +603,19 @@ def validate_full_production(
                 "produced unit outcome and workflow must match the reviewed blueprint and lesson",
                 "G3",
             )
+        for field in PRODUCTION_UNIT_STABLE_FIELDS:
+            if (
+                not isinstance(blueprint_unit.get(field), list)
+                or production_unit.get(field) != blueprint_unit.get(field)
+                or lesson.get(field) != blueprint_unit.get(field)
+            ):
+                _full_issue(
+                    issues,
+                    "learning_reference_mismatch",
+                    f"{path}.{field}",
+                    f"production and lesson {field} must exactly match the blueprint unit",
+                    "G3",
+                )
         if _text(outcome) and _text(workflow):
             signature = (outcome.strip().casefold(), workflow.strip().casefold())
             if signature in learning_signatures:
@@ -788,6 +803,19 @@ def validate_full_production(
             "$.final_artifact",
             "final artifact must match the G0 outcome and pass every acceptance criterion",
             "G0",
+        )
+
+    from src.course_architecture import validate_downstream_learning_coverage
+
+    for coverage_issue in validate_downstream_learning_coverage(
+        blueprint, lessons, record
+    ):
+        _full_issue(
+            issues,
+            coverage_issue.code,
+            coverage_issue.path,
+            coverage_issue.message,
+            coverage_issue.return_gate,
         )
 
     validation = record.get("validation")

@@ -72,6 +72,8 @@ class CourseGateHardeningTests(unittest.TestCase):
             "course_production_routes",
             "course_research_routes",
             "course_content_routes",
+            "course_requirements_routes",
+            "course_architecture_routes",
         ):
             self.assertIn("course_gate", imports(route_module))
         for pure_module in (
@@ -79,6 +81,8 @@ class CourseGateHardeningTests(unittest.TestCase):
             "course_production",
             "course_research",
             "course_content",
+            "course_requirements",
+            "course_architecture",
         ):
             self.assertNotIn("course_gate", imports(pure_module))
 

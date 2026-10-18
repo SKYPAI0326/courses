@@ -19,6 +19,10 @@ INTERNAL_FILENAME_PATTERN = re.compile(
 REQUIRED_SECTIONS = (
     "schema_version",
     "unit_id",
+    "outcome_ids",
+    "criterion_ids",
+    "capability_ids",
+    "learning_coverage",
     "learner_outcome",
     "context",
     "inputs",
@@ -109,7 +113,9 @@ def _walk_strings(value: Any, path: str = "$"):
             yield from _walk_strings(item, f"{path}[{index}]")
 
 
-def validate_lesson_record(record: Mapping[str, Any]) -> list[ContentIssue]:
+def validate_lesson_record(
+    record: Mapping[str, Any], blueprint: Mapping[str, Any] | None = None
+) -> list[ContentIssue]:
     issues: list[ContentIssue] = []
     for section in REQUIRED_SECTIONS:
         if section not in record:
@@ -134,6 +140,138 @@ def validate_lesson_record(record: Mapping[str, Any]) -> list[ContentIssue]:
             "$.unit_id",
             "unit_id must use lowercase letters, digits, and hyphens",
         )
+
+    stable_refs: dict[str, list[str]] = {}
+    for field in ("outcome_ids", "criterion_ids", "capability_ids"):
+        values = record.get(field)
+        if (
+            not isinstance(values, list)
+            or not values
+            or len(set(values)) != len(values)
+            or any(not isinstance(item, str) or ID_PATTERN.fullmatch(item) is None for item in values)
+        ):
+            _issue(
+                issues,
+                "learning_coverage_required",
+                f"$.{field}",
+                f"{field} must contain unique stable references",
+            )
+            stable_refs[field] = []
+        else:
+            stable_refs[field] = list(values)
+
+    coverage = record.get("learning_coverage")
+    covered_capabilities: set[str] = set()
+    covered_criteria: set[str] = set()
+    covered_outcomes: set[str] = set()
+    if not isinstance(coverage, list) or not coverage:
+        _issue(
+            issues,
+            "learning_coverage_required",
+            "$.learning_coverage",
+            "lesson requires criterion-level teaching, practice, and assessment coverage",
+        )
+    else:
+        for index, row in enumerate(coverage):
+            path = f"$.learning_coverage[{index}]"
+            if not isinstance(row, Mapping):
+                _issue(issues, "incomplete_learning_coverage", path, "coverage row must be an object")
+                continue
+            outcome_id = row.get("outcome_id")
+            criterion_id = row.get("criterion_id")
+            capability_id = row.get("capability_id")
+            if (
+                outcome_id not in stable_refs.get("outcome_ids", [])
+                or criterion_id not in stable_refs.get("criterion_ids", [])
+                or capability_id not in stable_refs.get("capability_ids", [])
+            ):
+                _issue(
+                    issues,
+                    "unknown_learning_reference",
+                    path,
+                    "coverage row must use this lesson's stable outcome, criterion, and capability references",
+                )
+            if capability_id in covered_capabilities or criterion_id in covered_criteria:
+                _issue(
+                    issues,
+                    "duplicate_learning_coverage",
+                    path,
+                    "each child capability and criterion must have exactly one coverage row",
+                )
+            if isinstance(capability_id, str):
+                covered_capabilities.add(capability_id)
+            if isinstance(criterion_id, str):
+                covered_criteria.add(criterion_id)
+            if isinstance(outcome_id, str):
+                covered_outcomes.add(outcome_id)
+            for field in ("teaching_evidence", "practice_evidence", "assessment_evidence"):
+                values = row.get(field)
+                if not isinstance(values, list) or not values or not all(_has_text(item) for item in values):
+                    _issue(
+                        issues,
+                        "incomplete_learning_coverage",
+                        f"{path}.{field}",
+                        "coverage must identify real teaching, practice, and assessment evidence",
+                    )
+        if (
+            covered_capabilities != set(stable_refs.get("capability_ids", []))
+            or covered_criteria != set(stable_refs.get("criterion_ids", []))
+            or covered_outcomes != set(stable_refs.get("outcome_ids", []))
+        ):
+            _issue(
+                issues,
+                "learning_coverage_required",
+                "$.learning_coverage",
+                "coverage rows must account for every declared stable reference",
+            )
+
+    if blueprint is not None:
+        blueprint_units = blueprint.get("units")
+        matched = [
+            unit
+            for unit in blueprint_units or []
+            if isinstance(unit, Mapping) and unit.get("id") == unit_id
+        ]
+        if len(matched) != 1:
+            _issue(
+                issues,
+                "unknown_blueprint_unit",
+                "$.unit_id",
+                "lesson must bind exactly one blueprint unit",
+            )
+        else:
+            unit = matched[0]
+            for lesson_field, unit_field in (
+                ("outcome_ids", "outcome_ids"),
+                ("criterion_ids", "criterion_ids"),
+                ("capability_ids", "capability_ids"),
+            ):
+                if record.get(lesson_field) != unit.get(unit_field):
+                    _issue(
+                        issues,
+                        "blueprint_learning_mismatch",
+                        f"$.{lesson_field}",
+                        f"lesson {lesson_field} must exactly match its blueprint unit",
+                    )
+            blueprint_criteria = {
+                item.get("id"): item
+                for item in blueprint.get("criteria", [])
+                if isinstance(item, Mapping) and _has_text(item.get("id"))
+            }
+            for index, row in enumerate(coverage or []):
+                if not isinstance(row, Mapping):
+                    continue
+                criterion = blueprint_criteria.get(row.get("criterion_id"))
+                if criterion is None or (
+                    row.get("outcome_id") != criterion.get("outcome_id")
+                    or row.get("capability_id") != criterion.get("capability_id")
+                ):
+                    _issue(
+                        issues,
+                        "blueprint_learning_mismatch",
+                        f"$.learning_coverage[{index}]",
+                        "lesson coverage must preserve the blueprint outcome, criterion, and capability tuple",
+                    )
 
     _require_mapping_texts(
         record.get("learner_outcome"),

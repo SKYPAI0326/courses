@@ -1,19 +1,53 @@
 import csv
 import json
+import runpy
 import unittest
 from pathlib import Path
 
 from src.course_contract import validate_contract
+from src.course_architecture import validate_course_blueprint, validate_learning_coverage
+from src.course_content import validate_lesson_record
+from src.course_requirements import validate_requirements_record
 from src.course_validation import evidence_maturity, validate_trial_record
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PROOF_ROOT = PROJECT_ROOT / "proofs/campaign-performance-brief"
+PROOF_BUILDER = runpy.run_path(str(PROOF_ROOT / "build_proof.py"))
 
 
 class CompleteCourseFlowTests(unittest.TestCase):
     def load_json(self, relative):
         return json.loads((PROOF_ROOT / relative).read_text(encoding="utf-8"))
+
+    def test_proof_builder_emits_canonical_g0_and_g2_records(self):
+        requirements = PROOF_BUILDER["requirements_record"]()
+        blueprint = PROOF_BUILDER["blueprint_record"](requirements)
+
+        self.assertEqual(validate_requirements_record(requirements), [])
+        self.assertEqual(validate_course_blueprint(blueprint, requirements), [])
+
+    def test_proof_builder_preserves_child_capability_coverage_through_g5(self):
+        requirements = PROOF_BUILDER["requirements_record"]()
+        blueprint = PROOF_BUILDER["blueprint_record"](requirements)
+        lessons = [
+            PROOF_BUILDER["lesson_record"](unit_id, "a" * 64)
+            for unit_id in ("unit-1", "unit-2", "unit-3")
+        ]
+        production = {
+            "learning_coverage": PROOF_BUILDER["production_learning_coverage"](
+                blueprint
+            )
+        }
+
+        for lesson in lessons:
+            self.assertEqual(validate_lesson_record(lesson, blueprint), [])
+        self.assertEqual(
+            validate_learning_coverage(
+                requirements, blueprint, lessons, production
+            ),
+            [],
+        )
 
     def test_new_course_reaches_g6_ready_without_external_publish(self):
         contract = self.load_json(
