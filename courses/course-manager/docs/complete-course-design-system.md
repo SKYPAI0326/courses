@@ -129,6 +129,6 @@ python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/install_course_skill_foundation.py" 
   --recover-operation "$COURSE_DESIGN_STATE_ROOT/operations/course-skill-foundation/OPERATION_ID"
 ```
 
-每個 package 都由 manifest hash 鎖定。安裝前顯示 `ADD`、`UPDATE`、`UNCHANGED`；更新先備份。Recovery 與 rollback 另以呼叫端提供的三個 root 和 operations root 下的唯讀 authority receipt 核對 operation identity、package set、target 與 hash；operation manifest 被改寫或安裝後內容有變更時會 fail closed。
+每個 package 都由 manifest hash 鎖定。安裝前顯示 `ADD`、`UPDATE`、`UNCHANGED`；更新先備份。Recovery 與 rollback 另以呼叫端提供的三個 root 和 operations root 下以 no-follow directory handle 建立的唯讀 authority receipt，核對 operation identity、package set、target、hash 與精確暫存路徑；operation manifest 被改寫或安裝後內容有變更時會 fail closed。
 
 `operations`、registry、report 與 backup 預設寫入 repo 外的 `COURSE_DESIGN_STATE_ROOT`。runtime 與 doctor 支援 POSIX macOS/Linux；Windows 的 lock 語意尚未實作，會 fail closed。`course-repair fix` 也維持 fail closed，直到 Task 8 把 approved plan hash、before hashes、完整 backup 與 isolated restore proof 接入中央 transaction。

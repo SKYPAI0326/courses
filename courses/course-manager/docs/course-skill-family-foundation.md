@@ -124,7 +124,7 @@ python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/install_course_skill_foundation.py" 
   --recover-operation "$COURSE_DESIGN_STATE_ROOT/operations/course-skill-foundation/OPERATION_ID"
 ```
 
-安裝器以 package manifest 判斷 `ADD`、`UPDATE`、`UNCHANGED`，更新前建立備份。Recovery 與 rollback 會以呼叫端提供的 package root、skills root、operations root 和唯讀 authority receipt 核對 operation identity、package set、target 與 hash；任何不相符都停止，不覆蓋使用者變更或觸碰非授權目標。
+安裝器以 package manifest 判斷 `ADD`、`UPDATE`、`UNCHANGED`，更新前建立備份。Recovery 與 rollback 會以呼叫端提供的 package root、skills root、operations root 和透過 no-follow directory handle 建立的唯讀 authority receipt，核對 operation identity、package set、target、hash 與精確暫存路徑；任何不相符都停止，不覆蓋使用者變更或觸碰非授權目標。
 
 安裝 operations、catalog、report 與 backup 預設寫在 repo 外的 `COURSE_DESIGN_STATE_ROOT`。doctor 在 POSIX macOS/Linux 回報各 root 與依賴的 `READY`／`BLOCKED`；Windows lock 尚未支援，會 fail closed。
 

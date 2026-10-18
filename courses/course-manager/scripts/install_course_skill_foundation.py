@@ -6,7 +6,9 @@ import hashlib
 import json
 import os
 import re
+import secrets
 import shutil
+import stat
 import sys
 import tempfile
 from dataclasses import dataclass
@@ -506,6 +508,158 @@ def _authority_path(operations_root: Path, operation_id: str) -> Path:
     return operations_root / ".authority" / f"{operation_id}.json"
 
 
+def _install_container_path(
+    skills_root: Path, operation_id: str, package_name: str
+) -> Path:
+    return skills_root / f".course-skill-install-{operation_id}-{package_name}"
+
+
+def _recovery_container_path(
+    skills_root: Path, operation_id: str, package_name: str
+) -> Path:
+    return skills_root / f".course-skill-recover-{operation_id}-{package_name}"
+
+
+def _fd_matches_path(path: Path, descriptor: int) -> bool:
+    try:
+        path_state = os.stat(path, follow_symlinks=False)
+    except OSError:
+        return False
+    descriptor_state = os.fstat(descriptor)
+    return (
+        stat.S_ISDIR(path_state.st_mode)
+        and path_state.st_dev == descriptor_state.st_dev
+        and path_state.st_ino == descriptor_state.st_ino
+    )
+
+
+def _fd_matches_child(parent_descriptor: int, name: str, descriptor: int) -> bool:
+    try:
+        path_state = os.stat(name, dir_fd=parent_descriptor, follow_symlinks=False)
+    except OSError:
+        return False
+    descriptor_state = os.fstat(descriptor)
+    return (
+        stat.S_ISDIR(path_state.st_mode)
+        and path_state.st_dev == descriptor_state.st_dev
+        and path_state.st_ino == descriptor_state.st_ino
+    )
+
+
+def _open_authority_directory(
+    operations_root: Path, *, create: bool
+) -> tuple[int, int]:
+    """Open the authority directory without following its path components."""
+
+    operations_root = Path(operations_root)
+    root_descriptor: int | None = None
+    authority_descriptor: int | None = None
+    try:
+        if create:
+            operations_root.mkdir(parents=True, exist_ok=True)
+            _safe_root_argument(operations_root, "operations root")
+        root_descriptor = os.open(
+            operations_root,
+            os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW,
+        )
+        if not _fd_matches_path(operations_root, root_descriptor):
+            raise InstallError("operations root changed while opening authority")
+        if create:
+            try:
+                os.mkdir(".authority", mode=0o700, dir_fd=root_descriptor)
+                os.fsync(root_descriptor)
+            except FileExistsError:
+                pass
+        authority_state = os.stat(
+            ".authority", dir_fd=root_descriptor, follow_symlinks=False
+        )
+        if not stat.S_ISDIR(authority_state.st_mode):
+            raise InstallError(
+                "operation authority path must be a non-symlink directory"
+            )
+        authority_descriptor = os.open(
+            ".authority",
+            os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW,
+            dir_fd=root_descriptor,
+        )
+        if not _fd_matches_child(
+            root_descriptor, ".authority", authority_descriptor
+        ):
+            raise InstallError("operation authority directory changed while opening")
+        return root_descriptor, authority_descriptor
+    except InstallError:
+        if authority_descriptor is not None:
+            os.close(authority_descriptor)
+        if root_descriptor is not None:
+            os.close(root_descriptor)
+        raise
+    except OSError as error:
+        if authority_descriptor is not None:
+            os.close(authority_descriptor)
+        if root_descriptor is not None:
+            os.close(root_descriptor)
+        raise InstallError(
+            f"cannot open independent operation authority: {error}"
+        ) from error
+
+
+def _authority_binding_is_current(
+    operations_root: Path, root_descriptor: int, authority_descriptor: int
+) -> bool:
+    return _fd_matches_path(operations_root, root_descriptor) and _fd_matches_child(
+        root_descriptor, ".authority", authority_descriptor
+    )
+
+
+def _prepare_authority_directory(operations_root: Path) -> None:
+    root_descriptor, authority_descriptor = _open_authority_directory(
+        operations_root, create=True
+    )
+    os.close(authority_descriptor)
+    os.close(root_descriptor)
+
+
+def _read_operation_authority(
+    operations_root: Path, operation_id: str
+) -> tuple[bytes, os.stat_result]:
+    root_descriptor, authority_descriptor = _open_authority_directory(
+        operations_root, create=False
+    )
+    receipt_descriptor: int | None = None
+    try:
+        receipt_descriptor = os.open(
+            f"{operation_id}.json",
+            os.O_RDONLY | os.O_NOFOLLOW,
+            dir_fd=authority_descriptor,
+        )
+        receipt_state = os.fstat(receipt_descriptor)
+        if not stat.S_ISREG(receipt_state.st_mode):
+            raise InstallError("operation authority receipt must be a regular file")
+        chunks: list[bytes] = []
+        while True:
+            chunk = os.read(receipt_descriptor, 1024 * 1024)
+            if not chunk:
+                break
+            chunks.append(chunk)
+        if not _authority_binding_is_current(
+            operations_root, root_descriptor, authority_descriptor
+        ):
+            raise InstallError("operation authority directory changed while reading")
+        return b"".join(chunks), receipt_state
+    except InstallError:
+        raise
+    except OSError as error:
+        raise InstallError(
+            "independent operation authority is unavailable: "
+            f"{_authority_path(operations_root, operation_id)}: {error}"
+        ) from error
+    finally:
+        if receipt_descriptor is not None:
+            os.close(receipt_descriptor)
+        os.close(authority_descriptor)
+        os.close(root_descriptor)
+
+
 def _write_operation_authority(
     operation_dir: Path,
     packages_root: Path,
@@ -514,12 +668,7 @@ def _write_operation_authority(
     actions: Sequence[InstallAction],
     allowed_updates: set[str],
 ) -> str:
-    authority_dir = operations_root / ".authority"
-    authority_dir.mkdir(parents=True, exist_ok=True)
-    _fsync_directory(operations_root)
     authority_path = _authority_path(operations_root, operation_dir.name)
-    if authority_path.exists() or authority_path.is_symlink():
-        raise InstallError(f"operation authority already exists: {authority_path}")
     authority = {
         "schema_version": 1,
         "operation_id": operation_dir.name,
@@ -542,16 +691,87 @@ def _write_operation_authority(
                     if action.before_hash is not None
                     else None
                 ),
+                "install_container": str(
+                    _install_container_path(
+                        skills_root, operation_dir.name, action.name
+                    )
+                ),
+                "recovery_container": str(
+                    _recovery_container_path(
+                        skills_root, operation_dir.name, action.name
+                    )
+                ),
             }
             for action in actions
         ],
     }
-    _write_json_atomic(authority_path, authority)
-    authority_path.chmod(0o444)
-    with authority_path.open("rb") as handle:
-        os.fsync(handle.fileno())
-    _fsync_directory(authority_dir)
-    return _file_sha256(authority_path)
+    serialized = (
+        json.dumps(authority, ensure_ascii=False, indent=2) + "\n"
+    ).encode("utf-8")
+    root_descriptor, authority_descriptor = _open_authority_directory(
+        operations_root, create=True
+    )
+    temporary_name = (
+        f".{operation_dir.name}.{secrets.token_hex(12)}.authority.tmp"
+    )
+    temporary_descriptor: int | None = None
+    temporary_exists = False
+    try:
+        try:
+            os.stat(
+                f"{operation_dir.name}.json",
+                dir_fd=authority_descriptor,
+                follow_symlinks=False,
+            )
+        except FileNotFoundError:
+            pass
+        else:
+            raise InstallError(f"operation authority already exists: {authority_path}")
+        temporary_descriptor = os.open(
+            temporary_name,
+            os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+            0o600,
+            dir_fd=authority_descriptor,
+        )
+        temporary_exists = True
+        offset = 0
+        while offset < len(serialized):
+            offset += os.write(temporary_descriptor, serialized[offset:])
+        os.fchmod(temporary_descriptor, 0o444)
+        os.fsync(temporary_descriptor)
+        os.close(temporary_descriptor)
+        temporary_descriptor = None
+        if not _authority_binding_is_current(
+            operations_root, root_descriptor, authority_descriptor
+        ):
+            raise InstallError("operation authority directory changed before receipt write")
+        os.rename(
+            temporary_name,
+            f"{operation_dir.name}.json",
+            src_dir_fd=authority_descriptor,
+            dst_dir_fd=authority_descriptor,
+        )
+        temporary_exists = False
+        os.fsync(authority_descriptor)
+        if not _authority_binding_is_current(
+            operations_root, root_descriptor, authority_descriptor
+        ):
+            raise InstallError("operation authority directory changed during receipt write")
+    except InstallError:
+        raise
+    except OSError as error:
+        raise InstallError(f"cannot write operation authority: {error}") from error
+    finally:
+        if temporary_descriptor is not None:
+            os.close(temporary_descriptor)
+        if temporary_exists:
+            try:
+                os.unlink(temporary_name, dir_fd=authority_descriptor)
+            except FileNotFoundError:
+                pass
+        os.close(authority_descriptor)
+        os.close(root_descriptor)
+    return hashlib.sha256(serialized).hexdigest()
 
 
 def _load_recovery_context(
@@ -574,15 +794,16 @@ def _load_recovery_context(
     if manifest.get("operation_id") != operation_id:
         raise InstallError("operation manifest identity does not match its directory")
     authority_path = _authority_path(operations_root, operation_id)
-    if authority_path.is_symlink() or not authority_path.is_file():
-        raise InstallError(f"independent operation authority is unavailable: {authority_path}")
-    if authority_path.stat().st_mode & 0o222:
+    authority_bytes, authority_state = _read_operation_authority(
+        operations_root, operation_id
+    )
+    if authority_state.st_mode & 0o222:
         raise InstallError(f"independent operation authority is writable: {authority_path}")
-    if manifest.get("authority_sha256") != _file_sha256(authority_path):
+    if manifest.get("authority_sha256") != hashlib.sha256(authority_bytes).hexdigest():
         raise InstallError("operation manifest does not match independent authority")
     try:
-        authority = json.loads(authority_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as error:
+        authority = json.loads(authority_bytes.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
         raise InstallError(f"cannot read operation authority {authority_path}: {error}") from error
     expected_authority_fields = {
         "schema_version": 1,
@@ -619,6 +840,37 @@ def _load_recovery_context(
         "after_hash",
         "backup",
     )
+    container_required_phases = {
+        "CONTAINER_CREATE_INTENT",
+        "STAGING",
+        "PREVIOUS_MOVE_INTENT",
+        "PREVIOUS_MOVED",
+        "TARGET_REPLACE_INTENT",
+        "TARGET_REPLACED",
+        "VERIFIED",
+        "RECOVERY_CREATE_INTENT",
+        "RECOVERY_INTENT",
+        "TARGET_QUARANTINE_INTENT",
+        "TARGET_QUARANTINED",
+        "RESTORE_INTENT",
+        "RESTORED_STAGED",
+        "TARGET_RESTORE_INTENT",
+        "TARGET_RESTORED",
+        "CLEANUP_INTENT",
+        "RECOVERY_CONTAINER_CLEANED",
+        "INSTALL_CONTAINER_CLEANUP_INTENT",
+    }
+    recovery_required_phases = {
+        "RECOVERY_CREATE_INTENT",
+        "RECOVERY_INTENT",
+        "TARGET_QUARANTINE_INTENT",
+        "TARGET_QUARANTINED",
+        "RESTORE_INTENT",
+        "RESTORED_STAGED",
+        "TARGET_RESTORE_INTENT",
+        "TARGET_RESTORED",
+        "CLEANUP_INTENT",
+    }
     trusted: dict[str, dict[str, Any]] = {}
     for authority_record, manifest_record in zip(authority_records, manifest_records):
         if not isinstance(authority_record, dict) or not isinstance(manifest_record, dict):
@@ -642,27 +894,58 @@ def _load_recovery_context(
                 raise InstallError(f"operation authority before hash is invalid: {name}")
         elif before_exists is not False or before_hash is not None:
             raise InstallError(f"operation authority before state is invalid: {name}")
+        expected_install_container = str(
+            _install_container_path(skills_root, operation_id, name)
+        )
+        expected_recovery_container = str(
+            _recovery_container_path(skills_root, operation_id, name)
+        )
+        if authority_record.get("install_container") != expected_install_container:
+            raise InstallError(f"operation authority install container is invalid: {name}")
+        if authority_record.get("recovery_container") != expected_recovery_container:
+            raise InstallError(f"operation authority recovery container is invalid: {name}")
         if any(
             manifest_record.get(field) != authority_record.get(field)
             for field in trusted_fields
         ):
             raise InstallError(f"operation manifest record differs from authority: {name}")
-        if not isinstance(manifest_record.get("phase"), str):
+        phase = manifest_record.get("phase")
+        if not isinstance(phase, str):
             raise InstallError(f"operation recovery phase is invalid: {name}")
-        for field, prefix in (
-            ("container", f".course-skill-{name}-"),
-            ("recovery_container", f".course-skill-recover-{name}-"),
+        for field, expected in (
+            ("container", expected_install_container),
+            ("recovery_container", expected_recovery_container),
         ):
             value = manifest_record.get(field)
             if value is None:
                 continue
-            if not isinstance(value, str):
-                raise InstallError(f"operation {field} is invalid: {name}")
-            container = _safe_root_argument(
-                Path(value), f"operation {field} for {name}", allow_absent=True
-            )
-            if container.parent != skills_root or not container.name.startswith(prefix):
-                raise InstallError(f"operation {field} escapes skills root: {name}")
+            if value != expected:
+                raise InstallError(
+                    f"operation {field} differs from authority: {name}"
+                )
+        if (
+            phase in container_required_phases
+            and manifest_record.get("container") != expected_install_container
+        ):
+            raise InstallError(f"operation container identity is missing: {name}")
+        if (
+            phase in recovery_required_phases
+            and manifest_record.get("recovery_container")
+            != expected_recovery_container
+        ):
+            raise InstallError(f"operation recovery identity is missing: {name}")
+        if (
+            phase
+            in {
+                "RECOVERY_CONTAINER_CLEANED",
+                "INSTALL_CONTAINER_CLEANUP_INTENT",
+                "RECOVERED",
+            }
+            and manifest_record.get("recovery_container") is not None
+        ):
+            raise InstallError(f"cleaned recovery container remains recorded: {name}")
+        if phase == "RECOVERED" and manifest_record.get("container") is not None:
+            raise InstallError(f"cleaned install container remains recorded: {name}")
         trusted[name] = authority_record
     return manifest_path, manifest, trusted
 
@@ -706,14 +989,16 @@ def _recover_package_record(
             raise InstallError(f"verified backup differs from before hash: {name}")
 
     recovery_value = record.get("recovery_container")
-    recovery = Path(recovery_value) if isinstance(recovery_value, str) else None
+    recovery = (
+        Path(authority["recovery_container"])
+        if isinstance(recovery_value, str)
+        else None
+    )
     if recovery is None and not (
         (before_exists and current_hash == before_hash)
         or (not before_exists and current_hash is None)
     ):
-        recovery = target.parent / (
-            f".course-skill-recover-{name}-{operation_dir.name}"
-        )
+        recovery = Path(authority["recovery_container"])
         record["recovery_container"] = str(recovery)
         record["phase"] = "RECOVERY_CREATE_INTENT"
         _write_json_atomic(manifest_path, manifest)
@@ -815,7 +1100,7 @@ def _recover_package_record(
 
     container_value = record.get("container")
     if isinstance(container_value, str):
-        container = Path(container_value)
+        container = Path(authority["install_container"])
         if container.exists():
             record["phase"] = "INSTALL_CONTAINER_CLEANUP_INTENT"
             _write_json_atomic(manifest_path, manifest)
@@ -994,6 +1279,7 @@ def install(
         return InstallResult(False, None, tuple(actions))
 
     _reject_unfinished_operations(operations_root)
+    _prepare_authority_directory(operations_root)
     skills_root.mkdir(parents=True, exist_ok=True)
     operation_dir = _new_operation_dir(operations_root)
     backups_dir = operation_dir / "backups"
@@ -1063,11 +1349,19 @@ def install(
         }
         for action in mutable_actions:
             record = package_record_by_name[action.name]
-            container = Path(
-                tempfile.mkdtemp(
-                    prefix=f".course-skill-{action.name}-", dir=skills_root
-                )
+            container = _install_container_path(
+                skills_root, operation_dir.name, action.name
             )
+            record["container"] = str(container)
+            record["phase"] = "CONTAINER_CREATE_INTENT"
+            _write_json_atomic(manifest_path, manifest)
+            try:
+                container.mkdir()
+            except OSError as error:
+                raise InstallError(
+                    f"cannot create authorized install container {container}: {error}"
+                ) from error
+            _fsync_directory(skills_root)
             record["container"] = str(container)
             record["phase"] = "STAGING"
             _write_json_atomic(manifest_path, manifest)
@@ -1099,7 +1393,16 @@ def install(
         for record in package_records:
             container_value = record.get("container")
             if isinstance(container_value, str):
-                shutil.rmtree(Path(container_value), ignore_errors=True)
+                authority_container = _install_container_path(
+                    skills_root, operation_dir.name, record["name"]
+                )
+                if Path(container_value) != authority_container:
+                    raise InstallError(
+                        f"install container differs from authority: {record['name']}"
+                    )
+                shutil.rmtree(authority_container, ignore_errors=True)
+                record["container"] = None
+        _write_json_atomic(manifest_path, manifest)
         return InstallResult(True, operation_dir, tuple(actions))
     except Exception as original_error:
         recovery_error: Exception | None = None

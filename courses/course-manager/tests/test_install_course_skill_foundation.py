@@ -460,6 +460,74 @@ class CourseSkillFoundationInstallerTests(unittest.TestCase):
                 apply=False,
             )
 
+    def test_apply_rejects_symlink_or_file_authority_directory_before_mutation(self):
+        for kind in ("symlink", "file"):
+            with self.subTest(kind=kind):
+                case_root = self.root / f"authority-{kind}"
+                skills = case_root / "skills"
+                operations = case_root / "operations"
+                installer.shutil.copytree(self.skills_root, skills)
+                operations.mkdir(parents=True)
+                authority = operations / ".authority"
+                outside = case_root / "outside"
+                outside.mkdir()
+                if kind == "symlink":
+                    authority.symlink_to(outside, target_is_directory=True)
+                else:
+                    authority.write_bytes(b"not a directory\x00")
+                before = self.snapshot(skills)
+
+                with self.assertRaises(InstallError):
+                    install(
+                        self.packages_root,
+                        skills,
+                        operations,
+                        apply=True,
+                        allow_updates=("course-run", "course-pm"),
+                    )
+
+                self.assertEqual(self.snapshot(skills), before)
+                self.assertEqual(self.snapshot(outside), {})
+                self.assertEqual(
+                    [path for path in operations.iterdir() if path.name != ".authority"],
+                    [],
+                )
+
+    def test_authority_directory_rename_race_fails_before_package_mutation(self):
+        skills = self.root / "race-skills"
+        operations = self.root / "race-operations"
+        outside = self.root / "race-outside"
+        installer.shutil.copytree(self.skills_root, skills)
+        outside.mkdir()
+        before = self.snapshot(skills)
+        real_rename = installer.os.rename
+        raced = False
+
+        def rename_after_directory_swap(source, destination, *args, **kwargs):
+            nonlocal raced
+            if not raced and str(destination).endswith(".json"):
+                raced = True
+                authority = operations / ".authority"
+                real_rename(authority, operations / ".authority-raced")
+                authority.symlink_to(outside, target_is_directory=True)
+            return real_rename(source, destination, *args, **kwargs)
+
+        with mock.patch.object(
+            installer.os, "rename", side_effect=rename_after_directory_swap
+        ):
+            with self.assertRaises(InstallError):
+                install(
+                    self.packages_root,
+                    skills,
+                    operations,
+                    apply=True,
+                    allow_updates=("course-run", "course-pm"),
+                )
+
+        self.assertTrue(raced)
+        self.assertEqual(self.snapshot(skills), before)
+        self.assertEqual(self.snapshot(outside), {})
+
     def test_verify_installed_rejects_symlink_inside_tree_even_if_hash_matches(self):
         self.apply_install()
         target = self.skills_root / "course-run"
@@ -528,7 +596,7 @@ class CourseSkillFoundationInstallerTests(unittest.TestCase):
         )
 
     def test_recovery_rejects_manifest_authority_tampering_before_mutation(self):
-        operation = self._interrupt_after_installed_replace()
+        operation = self._interrupt_after_installed_replace(package_name="course-pm")
         manifest_path = operation / "manifest.json"
         original = json.loads(manifest_path.read_text(encoding="utf-8"))
         victim = self.root / "unrelated-victim"
@@ -565,6 +633,139 @@ class CourseSkillFoundationInstallerTests(unittest.TestCase):
         with self.assertRaises(InstallError):
             self.authorized_recover(operation, skills_root=wrong_skills)
         self.assertEqual(self.snapshot(victim), victim_before)
+
+    def test_recovery_rejects_foreign_matching_prefix_temp_paths(self):
+        for field, prefix in (
+            ("container", ".course-skill-course-run-foreign"),
+            ("recovery_container", ".course-skill-recover-course-run-foreign"),
+        ):
+            with self.subTest(field=field):
+                case_root = self.root / f"foreign-{field}"
+                packages = case_root / "packages"
+                skills = case_root / "skills"
+                operations = case_root / "operations"
+                installer.shutil.copytree(self.packages_root, packages)
+                installer.shutil.copytree(self.skills_root, skills)
+                operation = self._interrupt_after_installed_replace(
+                    packages_root=packages,
+                    skills_root=skills,
+                    operations_root=operations,
+                )
+                foreign = skills / prefix
+                foreign.mkdir()
+                (foreign / "sentinel.bin").write_bytes(b"foreign exact bytes\x00")
+                before = self.snapshot(foreign)
+                manifest_path = operation / "manifest.json"
+                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+                record = next(
+                    item for item in manifest["packages"] if item["name"] == "course-run"
+                )
+                record[field] = str(foreign)
+                manifest_path.write_text(json.dumps(manifest) + "\n", encoding="utf-8")
+
+                with self.assertRaises(InstallError):
+                    recover_install(
+                        operation,
+                        packages_root=packages,
+                        skills_root=skills,
+                        operations_root=operations,
+                    )
+                self.assertEqual(self.snapshot(foreign), before)
+
+    def test_recovery_rejects_missing_or_swapped_temp_identity(self):
+        operation = self._interrupt_after_installed_replace()
+        manifest_path = operation / "manifest.json"
+        original = json.loads(manifest_path.read_text(encoding="utf-8"))
+        course_run = next(
+            item for item in original["packages"] if item["name"] == "course-run"
+        )
+        course_pm = next(
+            item for item in original["packages"] if item["name"] == "course-pm"
+        )
+        authority = json.loads(
+            (
+                self.operations_root
+                / ".authority"
+                / f"{operation.name}.json"
+            ).read_text(encoding="utf-8")
+        )
+        authority_pm = next(
+            item for item in authority["packages"] if item["name"] == "course-pm"
+        )
+        cases = {
+            "missing": ("container", None),
+            "install-swapped": ("container", course_pm["container"]),
+            "recovery-swapped": (
+                "recovery_container",
+                authority_pm["recovery_container"],
+            ),
+        }
+        for label, (field, value) in cases.items():
+            with self.subTest(label=label):
+                changed = json.loads(json.dumps(original))
+                record = next(
+                    item for item in changed["packages"] if item["name"] == "course-run"
+                )
+                record[field] = value
+                manifest_path.write_text(json.dumps(changed) + "\n", encoding="utf-8")
+                with self.assertRaises(InstallError):
+                    self.authorized_recover(operation)
+
+    def test_generated_rollback_rejects_foreign_temp_path(self):
+        result = self.apply_install()
+        foreign = self.skills_root / ".course-skill-course-run-foreign"
+        foreign.mkdir()
+        (foreign / "sentinel.bin").write_bytes(b"rollback foreign exact\x00")
+        before = self.snapshot(foreign)
+        manifest_path = result.operation_dir / "manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        record = next(
+            item for item in manifest["packages"] if item["name"] == "course-run"
+        )
+        record["container"] = str(foreign)
+        manifest_path.write_text(json.dumps(manifest) + "\n", encoding="utf-8")
+
+        process = subprocess.run(
+            [sys.executable, str(result.operation_dir / "rollback.py")],
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        self.assertNotEqual(process.returncode, 0)
+        self.assertEqual(self.snapshot(foreign), before)
+
+    def test_recovery_rejects_missing_recovery_container_identity(self):
+        operation = self._interrupt_after_installed_replace()
+        manifest_path = operation / "manifest.json"
+        real_write = installer._write_json_atomic
+
+        def exit_after_recovery_intent(path, value):
+            result = real_write(path, value)
+            record = next(
+                item
+                for item in value.get("packages", [])
+                if item.get("name") == "course-run"
+            )
+            if record.get("phase") == "RECOVERY_CREATE_INTENT":
+                raise SystemExit("crash after recovery identity journal")
+            return result
+
+        with mock.patch.object(
+            installer, "_write_json_atomic", side_effect=exit_after_recovery_intent
+        ):
+            with self.assertRaises(SystemExit):
+                self.authorized_recover(operation)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        record = next(
+            item for item in manifest["packages"] if item["name"] == "course-run"
+        )
+        record["recovery_container"] = None
+        manifest_path.write_text(json.dumps(manifest) + "\n", encoding="utf-8")
+
+        with self.assertRaisesRegex(InstallError, "recovery identity"):
+            self.authorized_recover(operation)
 
     def test_recovery_fails_closed_without_independent_authority(self):
         operation = self._interrupt_after_installed_replace()
