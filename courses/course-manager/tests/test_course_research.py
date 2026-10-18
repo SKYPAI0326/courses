@@ -244,6 +244,7 @@ class CourseResearchValidationTests(unittest.TestCase):
             {
                 "id": "g0-requirements",
                 "gate": "G0",
+                "kind": "requirements_record",
                 "path": "evidence/g0-requirements.json",
                 "sha256": hashlib.sha256(b"g0-requirements").hexdigest(),
             }

@@ -19,6 +19,7 @@ from src.course_contract import (  # noqa: E402
     fail_gate,
     load_contract,
     migrate_contract_v1,
+    migrate_contract_v2,
     new_contract,
     pass_gate,
     propose_external_action,
@@ -44,7 +45,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Manage the course design contract")
     commands = parser.add_subparsers(dest="command", required=True)
 
-    command = commands.add_parser("init", help="create a v2 contract")
+    command = commands.add_parser("init", help="create a v3 contract")
     command.add_argument("--root", required=True, type=Path)
     command.add_argument("--slug", required=True)
     command.add_argument("--title", required=True)
@@ -98,6 +99,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     command = commands.add_parser("migrate")
     _contract_argument(command)
+    command.add_argument("--workspace-root", type=Path)
     command.add_argument("--actor", required=True)
     command.add_argument("--at", required=True)
 
@@ -163,7 +165,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "approve":
             raise ContractStateError(
-                "approve was removed in contract v2; run migrate, then use pass "
+                "approve is unavailable in contract v3; run migrate, then use pass "
                 "or authorize-action as appropriate"
             )
         if args.command == "init":
@@ -184,9 +186,21 @@ def main(argv: list[str] | None = None) -> int:
             print(args.contract)
             return 0
         if args.command == "migrate":
-            migrated = migrate_contract_v1(
-                load_contract(args.contract), args.actor, args.at
-            )
+            source = load_contract(args.contract)
+            workspace_root = args.workspace_root or args.contract.parent
+            if source.get("schema_version") == 1:
+                migrated = migrate_contract_v1(
+                    source,
+                    args.actor,
+                    args.at,
+                    workspace_root=workspace_root,
+                )
+            elif source.get("schema_version") == 2:
+                migrated = migrate_contract_v2(
+                    source, workspace_root, args.actor, args.at
+                )
+            else:
+                raise ContractStateError("migrate requires schema_version 1 or 2")
             save_contract_atomic(args.contract, migrated)
             print(args.contract)
             return 0

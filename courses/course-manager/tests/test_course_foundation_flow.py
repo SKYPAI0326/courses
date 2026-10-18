@@ -7,7 +7,6 @@ from pathlib import Path
 from src.course_contract import (
     ContractStateError,
     begin_gate,
-    migrate_contract_v1,
     new_contract,
     pass_gate,
     record_change,
@@ -32,11 +31,38 @@ class CourseFoundationFlowTests(unittest.TestCase):
         return json.loads((FIXTURES / relative_path).read_text(encoding="utf-8"))
 
     def passed_g0(self):
-        return migrate_contract_v1(
-            self.load_json("course-contracts/g0-approved.json"),
+        legacy = self.load_json("course-contracts/g0-approved.json")
+        contract = new_contract(
+            legacy["identity"]["slug"],
+            legacy["identity"]["title"],
+            legacy["governance"]["created_by"],
+            legacy["governance"]["created_at"],
+        )
+        contract["G0_requirements"] = copy.deepcopy(legacy["G0_requirements"])
+        begin_gate(
+            contract,
+            "G0",
+            "course-run",
+            "2026-10-18T13:50:00+08:00",
+        )
+        contract["evidence_index"].append(
+            {
+                "id": "g0-requirements",
+                "gate": "G0",
+                "kind": "requirements_record",
+                "path": "evidence/g0-requirements.json",
+                "sha256": hashlib.sha256(b"g0-requirements").hexdigest(),
+            }
+        )
+        pass_gate(
+            contract,
+            "G0",
+            ["g0-requirements"],
+            "requirements-validator",
             "course-run",
             "2026-10-18T14:00:00+08:00",
         )
+        return contract
 
     def valid_research(self):
         return self.load_json("course-research/valid-high-tool.json")
@@ -123,6 +149,7 @@ class CourseFoundationFlowTests(unittest.TestCase):
             {
                 "id": "g2-blueprint",
                 "gate": "G2",
+                "kind": "course_blueprint",
                 "path": "evidence/g2-blueprint.md",
                 "sha256": hashlib.sha256(b"g2-blueprint").hexdigest(),
             }

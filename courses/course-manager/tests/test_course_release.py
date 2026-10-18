@@ -102,6 +102,7 @@ class CourseReleaseTests(unittest.TestCase):
                 {
                     "id": evidence_id,
                     "gate": gate_id,
+                    "kind": "test_record",
                     "path": f"evidence/{evidence_id}.json",
                     "sha256": self.sha(evidence_id),
                 }

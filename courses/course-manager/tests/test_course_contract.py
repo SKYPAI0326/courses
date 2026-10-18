@@ -44,6 +44,7 @@ REQUIRED_SECTIONS = {
     "G6_release_maintenance",
     "changes",
     "evidence_index",
+    "evidence_archive",
     "external_actions",
     "maintenance",
 }
@@ -608,6 +609,28 @@ class CourseContractMigrationTests(unittest.TestCase):
         )
         migration = migrated["changes"][-1]
         self.assertEqual(migration["earliest_stale_gate"], "G1")
+
+    def test_v2_migration_archives_non_reference_history_without_aborting(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            contract = CourseContractStateTests().make_contract()
+            contract["schema_version"] = 2
+            del contract["revision"]
+            contract.pop("evidence_archive", None)
+            legacy_history = {
+                "kind": "review_note",
+                "message": "舊版一般歷史紀錄，沒有檔案路徑。",
+                "actor": "reviewer",
+            }
+            contract["evidence_index"].append(legacy_history)
+
+            migrated = migrate_contract_v2(
+                contract, root, "course-run", "2026-10-18T19:00:00+08:00"
+            )
+
+        self.assertEqual(migrated["evidence_index"], [])
+        self.assertEqual(migrated["evidence_archive"][0]["record"], legacy_history)
+        self.assertEqual(validate_contract(migrated), [])
 
 
 if __name__ == "__main__":

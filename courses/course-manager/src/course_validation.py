@@ -528,12 +528,14 @@ def route_verified_trial_to_gate(
             "id": trial_id,
             "gate": gate_id,
             "kind": "independent_course_trial",
-            "scope": expected_scope,
-            "participant_id": trial_record["participant"]["id"],
-            "isolated_context_id": trial_record["isolated_context_id"],
             "path": f"evidence/{trial_id}.json",
             "sha256": digest,
             "maturity": maturity,
+            "metadata": {
+                "scope": expected_scope,
+                "participant_id": trial_record["participant"]["id"],
+                "isolated_context_id": trial_record["isolated_context_id"],
+            },
         }
     )
     pass_gate(

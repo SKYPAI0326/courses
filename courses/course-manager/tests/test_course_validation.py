@@ -265,6 +265,7 @@ class CourseTrialValidationTests(unittest.TestCase):
                 {
                     "id": evidence_id,
                     "gate": gate_id,
+                    "kind": "test_record",
                     "path": f"evidence/{evidence_id}.json",
                     "sha256": hashlib.sha256(evidence_id.encode()).hexdigest(),
                 }
@@ -282,6 +283,7 @@ class CourseTrialValidationTests(unittest.TestCase):
             {
                 "id": "g4-pilot-production",
                 "gate": "G4",
+                "kind": "pilot_production",
                 "path": "evidence/g4-pilot-production.json",
                 "sha256": "e" * 64,
             }

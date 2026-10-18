@@ -450,6 +450,7 @@ class CourseProductionTests(unittest.TestCase):
                 {
                     "id": evidence_id,
                     "gate": gate_id,
+                    "kind": "test_record",
                     "path": f"evidence/{evidence_id}.json",
                     "sha256": hashlib.sha256(evidence_id.encode()).hexdigest(),
                 }
@@ -566,6 +567,7 @@ class CourseProductionTests(unittest.TestCase):
                 {
                     "id": evidence_id,
                     "gate": gate_id,
+                    "kind": "test_record",
                     "path": f"evidence/{evidence_id}.json",
                     "sha256": hashlib.sha256(evidence_id.encode()).hexdigest(),
                 }
@@ -587,6 +589,7 @@ class CourseProductionTests(unittest.TestCase):
                 {
                     "id": "g5-render-and-integration",
                     "gate": "G5",
+                    "kind": "production_artifact",
                     "path": "evidence/g5-render-and-integration.json",
                     "sha256": "a" * 64,
                 }

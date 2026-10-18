@@ -515,6 +515,7 @@ def route_research_to_gate(
         {
             "id": "g1-research",
             "gate": "G1",
+            "kind": "research_record",
             "path": record_path,
             "sha256": evidence_sha256,
         }

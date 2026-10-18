@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Mapping, MutableMapping, Sequence
 
-from src.course_evidence import verify_evidence_reference
+from src.course_evidence import canonical_json_bytes, verify_evidence_reference
 
 
 GATE_ORDER: tuple[str, ...] = tuple(f"G{index}" for index in range(7))
@@ -51,6 +51,7 @@ REQUIRED_SECTIONS = (
     "G6_release_maintenance",
     "changes",
     "evidence_index",
+    "evidence_archive",
     "external_actions",
     "maintenance",
 )
@@ -165,6 +166,7 @@ def new_contract(slug: str, title: str, created_by: str, created_at: str) -> dic
         "G6_release_maintenance": {},
         "changes": [],
         "evidence_index": [],
+        "evidence_archive": [],
         "external_actions": [],
         "maintenance": {},
     }
@@ -302,7 +304,7 @@ def validate_contract(contract: Mapping[str, Any]) -> list[ValidationIssue]:
                 f"{section} must be an object",
             )
 
-    for section in ("changes", "evidence_index", "external_actions"):
+    for section in ("changes", "evidence_index", "evidence_archive", "external_actions"):
         value = contract.get(section)
         if not isinstance(value, list):
             _append_issue(
@@ -397,6 +399,7 @@ def validate_contract(contract: Mapping[str, Any]) -> list[ValidationIssue]:
                     posix_path.is_absolute()
                     or windows_path.is_absolute()
                     or bool(windows_path.drive)
+                    or "\\" in path_value
                     or ".." in posix_path.parts
                     or ".." in windows_path.parts
                     or posix_path == PurePosixPath(".")
@@ -1002,9 +1005,7 @@ def _legacy_gate_has_complete_evidence(record: Mapping[str, Any]) -> bool:
 def _legacy_evidence_reference(
     gate_id: str, legacy_evidence: Sequence[Mapping[str, Any]]
 ) -> dict[str, Any]:
-    encoded = json.dumps(
-        list(legacy_evidence), ensure_ascii=False, sort_keys=True, separators=(",", ":")
-    ).encode("utf-8")
+    encoded = canonical_json_bytes(list(legacy_evidence))
     return {
         "id": f"legacy-{gate_id.lower()}-evidence",
         "gate": gate_id,
@@ -1015,7 +1016,11 @@ def _legacy_evidence_reference(
 
 
 def migrate_contract_v1(
-    contract: Mapping[str, Any], actor: str, at: str
+    contract: Mapping[str, Any],
+    actor: str,
+    at: str,
+    *,
+    workspace_root: Path | str | None = None,
 ) -> dict[str, Any]:
     if contract.get("schema_version") != 1:
         raise ContractStateError("migration requires schema_version 1")
@@ -1102,7 +1107,7 @@ def migrate_contract_v1(
             "at": at,
         }
     )
-    return migrate_contract_v2(migrated, None, actor, at)
+    return migrate_contract_v2(migrated, workspace_root, actor, at)
 
 
 def migrate_contract_v2(
@@ -1119,13 +1124,102 @@ def migrate_contract_v2(
     migrated = copy.deepcopy(dict(contract))
     migrated["schema_version"] = 3
     migrated["revision"] = 0
-    evidence_index = migrated.get("evidence_index")
-    if not isinstance(evidence_index, list):
-        evidence_index = []
-        migrated["evidence_index"] = evidence_index
-    for reference in evidence_index:
-        if isinstance(reference, MutableMapping) and "kind" not in reference:
-            reference["kind"] = "legacy_evidence"
+    original_evidence = migrated.get("evidence_index")
+    if not isinstance(original_evidence, list):
+        original_evidence = []
+    archive = migrated.get("evidence_archive")
+    if not isinstance(archive, list):
+        archive = []
+    migrated["evidence_archive"] = archive
+
+    allowed_fields = {
+        "id",
+        "gate",
+        "kind",
+        "path",
+        "sha256",
+        "maturity",
+        "metadata",
+    }
+    normalized: list[tuple[Mapping[str, Any], dict[str, Any] | None, str | None]] = []
+    id_counts: dict[str, int] = {}
+    for item in original_evidence:
+        reference: dict[str, Any] | None = None
+        reason: str | None = None
+        if not isinstance(item, Mapping):
+            reason = "legacy evidence record is not an object"
+        else:
+            evidence_id = item.get("id")
+            gate = item.get("gate")
+            kind = item.get("kind", "legacy_evidence")
+            path = item.get("path")
+            sha256 = item.get("sha256")
+            maturity = item.get("maturity")
+            metadata = item.get("metadata")
+            if not isinstance(evidence_id, str) or not evidence_id.strip():
+                reason = "legacy record is not a typed file reference"
+            elif gate not in GATE_ORDER:
+                reason = "legacy record has no valid Gate"
+            elif not isinstance(kind, str) or not kind.strip():
+                reason = "legacy record has no valid kind"
+            elif not isinstance(path, str) or not path.strip():
+                reason = "legacy record has no file path"
+            else:
+                posix_path = PurePosixPath(path)
+                windows_path = PureWindowsPath(path)
+                if (
+                    posix_path.is_absolute()
+                    or windows_path.is_absolute()
+                    or bool(windows_path.drive)
+                    or "\\" in path
+                    or ".." in posix_path.parts
+                    or ".." in windows_path.parts
+                    or posix_path == PurePosixPath(".")
+                ):
+                    reason = "legacy record has an unsafe file path"
+                elif not isinstance(sha256, str) or not SHA256_PATTERN.fullmatch(sha256):
+                    reason = "legacy record has no valid SHA-256"
+                elif maturity is not None and (
+                    not isinstance(maturity, str) or not maturity.strip()
+                ):
+                    reason = "legacy record has invalid maturity"
+                elif metadata is not None and not isinstance(metadata, Mapping):
+                    reason = "legacy record has invalid metadata"
+                else:
+                    reference = {
+                        "id": evidence_id,
+                        "gate": gate,
+                        "kind": kind,
+                        "path": posix_path.as_posix(),
+                        "sha256": sha256,
+                    }
+                    merged_metadata = dict(metadata) if isinstance(metadata, Mapping) else {}
+                    merged_metadata.update(
+                        {key: copy.deepcopy(value) for key, value in item.items() if key not in allowed_fields}
+                    )
+                    if maturity is not None:
+                        reference["maturity"] = maturity
+                    if merged_metadata:
+                        reference["metadata"] = merged_metadata
+                    id_counts[evidence_id] = id_counts.get(evidence_id, 0) + 1
+        normalized.append((item if isinstance(item, Mapping) else {"value": item}, reference, reason))
+
+    evidence_index: list[dict[str, Any]] = []
+    for original, reference, reason in normalized:
+        if reference is not None and id_counts.get(reference["id"]) == 1:
+            evidence_index.append(reference)
+            continue
+        if reference is not None:
+            reason = "legacy evidence id is duplicated"
+        archive.append(
+            {
+                "kind": "legacy_evidence_record",
+                "archived_at": at,
+                "reason": reason or "legacy record is not a typed file reference",
+                "record": copy.deepcopy(dict(original)),
+            }
+        )
+    migrated["evidence_index"] = evidence_index
 
     evidence_by_id: dict[str, list[Mapping[str, Any]]] = {}
     for reference in evidence_index:

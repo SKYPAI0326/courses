@@ -147,6 +147,7 @@ class CourseContentTests(unittest.TestCase):
                 {
                     "id": evidence_id,
                     "gate": gate_id,
+                    "kind": "test_record",
                     "path": f"evidence/{evidence_id}.json",
                     "sha256": hashlib.sha256(evidence_id.encode()).hexdigest(),
                 }

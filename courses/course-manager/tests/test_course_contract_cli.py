@@ -41,6 +41,7 @@ class CourseContractCliTests(unittest.TestCase):
             {
                 "id": evidence_id,
                 "gate": gate_id,
+                "kind": "test_record",
                 "path": f"evidence/{evidence_id}.json",
                 "sha256": hashlib.sha256(evidence_id.encode("utf-8")).hexdigest(),
             }
@@ -59,7 +60,7 @@ class CourseContractCliTests(unittest.TestCase):
             "2026-10-18T13:05:00+08:00",
         )
 
-    def test_init_writes_v2_contract_at_expected_path(self):
+    def test_init_writes_v3_contract_at_expected_path(self):
         result = self.run_cli(
             "init",
             "--root",
@@ -77,7 +78,8 @@ class CourseContractCliTests(unittest.TestCase):
         expected = self.root / "_design" / "practical-ai" / "course-contract.json"
         self.assertEqual(result.returncode, 0, result.stderr)
         contract = json.loads(expected.read_text(encoding="utf-8"))
-        self.assertEqual(contract["schema_version"], 2)
+        self.assertEqual(contract["schema_version"], 3)
+        self.assertEqual(contract["revision"], 0)
         self.assertEqual(contract["gates"]["G0"]["status"], "NOT_STARTED")
 
     def test_init_rejects_design_directory_symlink_escape(self):
@@ -324,7 +326,7 @@ class CourseContractCliTests(unittest.TestCase):
         self.assertEqual(checked.returncode, 0, checked.stderr)
         self.assertEqual(rejected.returncode, 2)
 
-    def test_migrate_command_upgrades_v1_without_overwriting_source_in_memory(self):
+    def test_migrate_command_upgrades_v1_to_v3(self):
         path = self.root / "legacy.json"
         source = FIXTURES / "course-contracts" / "v1-approved-through-g2.json"
         path.write_bytes(source.read_bytes())
@@ -341,7 +343,57 @@ class CourseContractCliTests(unittest.TestCase):
         migrated = json.loads(path.read_text(encoding="utf-8"))
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(migrated["schema_version"], 2)
+        self.assertEqual(migrated["schema_version"], 3)
+        self.assertEqual(migrated["gates"]["G0"]["status"], "STALE")
+
+    def test_migrate_command_upgrades_v2_to_v3_with_workspace_evidence(self):
+        evidence = self.root / "evidence" / "g0.json"
+        evidence.parent.mkdir()
+        evidence.write_bytes(b"g0")
+        contract = new_contract(
+            "practical-ai",
+            "實用生成式 AI",
+            "course-run",
+            "2026-10-18T12:00:00+08:00",
+        )
+        begin_gate(contract, "G0", "course-run", "2026-10-18T12:05:00+08:00")
+        contract["evidence_index"].append(
+            {
+                "id": "g0-evidence",
+                "gate": "G0",
+                "kind": "requirements_record",
+                "path": "evidence/g0.json",
+                "sha256": hashlib.sha256(b"g0").hexdigest(),
+            }
+        )
+        pass_gate(
+            contract,
+            "G0",
+            ["g0-evidence"],
+            "requirements-validator",
+            "course-run",
+            "2026-10-18T12:10:00+08:00",
+        )
+        contract["schema_version"] = 2
+        del contract["revision"]
+        contract.pop("evidence_archive", None)
+        path = self.write_contract(contract)
+
+        result = self.run_cli(
+            "migrate",
+            "--contract",
+            path,
+            "--workspace-root",
+            self.root,
+            "--actor",
+            "course-run",
+            "--at",
+            "2026-10-18T19:00:00+08:00",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        migrated = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual(migrated["schema_version"], 3)
         self.assertEqual(migrated["gates"]["G0"]["status"], "PASS")
 
     def test_validate_returns_nonzero_for_invalid_contract(self):

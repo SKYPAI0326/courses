@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import errno
 import hashlib
 import json
 import os
 import re
+import secrets
 import stat
-import tempfile
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Mapping
@@ -26,6 +27,13 @@ class EvidenceIssue:
     message: str
 
 
+def canonical_json_bytes(value: Any) -> bytes:
+    return (
+        json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        + "\n"
+    ).encode("utf-8")
+
+
 def _is_text(value: Any) -> bool:
     return isinstance(value, str) and bool(value.strip())
 
@@ -39,6 +47,7 @@ def _unsafe_relative_path(value: Any) -> bool:
         posix.is_absolute()
         or windows.is_absolute()
         or bool(windows.drive)
+        or "\\" in value
         or ".." in posix.parts
         or ".." in windows.parts
         or posix == PurePosixPath(".")
@@ -46,25 +55,103 @@ def _unsafe_relative_path(value: Any) -> bool:
 
 
 def _workspace_root(workspace_root: Path | str) -> Path:
+    if os.name != "posix" or not hasattr(os, "O_NOFOLLOW") or not hasattr(os, "O_DIRECTORY"):
+        raise ValueError(
+            "secure evidence filesystem operations require POSIX dirfd and O_NOFOLLOW support"
+        )
     root = Path(workspace_root).resolve(strict=True)
     if not root.is_dir():
         raise ValueError("workspace_root must be an existing directory")
     return root
 
 
-def _resolved_candidate(root: Path, relative_path: str) -> Path:
-    candidate = root / PurePosixPath(relative_path)
-    resolved = candidate.resolve(strict=False)
-    if not resolved.is_relative_to(root):
-        raise ValueError("evidence path escapes workspace_root")
-    return resolved
+class _EvidenceFileError(ValueError):
+    def __init__(self, code: str, message: str):
+        super().__init__(message)
+        self.code = code
 
 
-def _file_sha256(path: Path) -> str:
+def _directory_flags() -> int:
+    return os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | getattr(os, "O_CLOEXEC", 0)
+
+
+def _open_parent_dir(
+    root: Path, relative_path: str, *, create: bool
+) -> tuple[int, str]:
+    parts = PurePosixPath(relative_path).parts
+    current_fd = os.open(root, _directory_flags())
+    try:
+        for part in parts[:-1]:
+            try:
+                next_fd = os.open(part, _directory_flags(), dir_fd=current_fd)
+            except FileNotFoundError:
+                if not create:
+                    raise _EvidenceFileError(
+                        "missing_file", f"evidence parent does not exist: {relative_path}"
+                    )
+                os.mkdir(part, mode=0o755, dir_fd=current_fd)
+                next_fd = os.open(part, _directory_flags(), dir_fd=current_fd)
+            except OSError as error:
+                if error.errno in {errno.ELOOP, errno.ENOTDIR}:
+                    raise _EvidenceFileError(
+                        "symlink_path",
+                        f"evidence path contains a symlink or non-directory parent: {relative_path}",
+                    ) from error
+                raise _EvidenceFileError("unreadable_file", str(error)) from error
+            if not stat.S_ISDIR(os.fstat(next_fd).st_mode):
+                os.close(next_fd)
+                raise _EvidenceFileError(
+                    "symlink_path",
+                    f"evidence parent is not a real directory: {relative_path}",
+                )
+            os.close(current_fd)
+            current_fd = next_fd
+        return current_fd, parts[-1]
+    except BaseException:
+        os.close(current_fd)
+        raise
+
+
+def _open_regular_file(root: Path, relative_path: str) -> int:
+    parent_fd, name = _open_parent_dir(root, relative_path, create=False)
+    try:
+        flags = (
+            os.O_RDONLY
+            | os.O_NOFOLLOW
+            | getattr(os, "O_CLOEXEC", 0)
+            | getattr(os, "O_NONBLOCK", 0)
+        )
+        try:
+            file_fd = os.open(name, flags, dir_fd=parent_fd)
+        except FileNotFoundError as error:
+            raise _EvidenceFileError(
+                "missing_file", f"evidence file does not exist: {relative_path}"
+            ) from error
+        except OSError as error:
+            if error.errno in {errno.ELOOP, errno.ENOTDIR}:
+                raise _EvidenceFileError(
+                    "symlink_path", f"evidence path must not be a symlink: {relative_path}"
+                ) from error
+            raise _EvidenceFileError("unreadable_file", str(error)) from error
+        if not stat.S_ISREG(os.fstat(file_fd).st_mode):
+            os.close(file_fd)
+            raise _EvidenceFileError(
+                "not_regular_file",
+                f"evidence path is not a regular file: {relative_path}",
+            )
+        return file_fd
+    finally:
+        os.close(parent_fd)
+
+
+def _fd_sha256(file_fd: int) -> str:
     digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
+    os.lseek(file_fd, 0, os.SEEK_SET)
+    while True:
+        chunk = os.read(file_fd, 1024 * 1024)
+        if not chunk:
+            break
+        digest.update(chunk)
     return digest.hexdigest()
 
 
@@ -125,12 +212,11 @@ def register_evidence_file(
         metadata=metadata,
     )
     root = _workspace_root(workspace_root)
-    path = _resolved_candidate(root, reference["path"])
-    if not path.exists():
-        raise ValueError(f"evidence file does not exist: {relative_path}")
-    if not stat.S_ISREG(path.stat().st_mode):
-        raise ValueError(f"evidence path is not a regular file: {relative_path}")
-    reference["sha256"] = _file_sha256(path)
+    file_fd = _open_regular_file(root, reference["path"])
+    try:
+        reference["sha256"] = _fd_sha256(file_fd)
+    finally:
+        os.close(file_fd)
     return reference
 
 
@@ -155,45 +241,62 @@ def materialize_json_evidence(
         metadata=metadata,
     )
     root = _workspace_root(workspace_root)
-    target = root / PurePosixPath(reference["path"])
-    target.parent.mkdir(parents=True, exist_ok=True)
-    resolved_parent = target.parent.resolve(strict=True)
-    if not resolved_parent.is_relative_to(root):
-        raise ValueError("evidence path escapes workspace_root")
-    if target.exists() and not target.resolve(strict=True).is_relative_to(root):
-        raise ValueError("evidence path escapes workspace_root")
-
-    encoded = (
-        json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-        + "\n"
-    ).encode("utf-8")
-    temporary_path: Path | None = None
+    encoded = canonical_json_bytes(value)
+    parent_fd, name = _open_parent_dir(root, reference["path"], create=True)
+    temporary_name: str | None = None
     try:
-        with tempfile.NamedTemporaryFile(
-            mode="wb",
-            dir=resolved_parent,
-            prefix=f".{target.name}.",
-            suffix=".tmp",
-            delete=False,
-        ) as handle:
-            temporary_path = Path(handle.name)
-            handle.write(encoded)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temporary_path, target)
-    finally:
-        if temporary_path is not None and temporary_path.exists():
-            temporary_path.unlink()
+        try:
+            existing = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+        except FileNotFoundError:
+            existing = None
+        if existing is not None and not stat.S_ISREG(existing.st_mode):
+            kind = "symlink" if stat.S_ISLNK(existing.st_mode) else "non-regular file"
+            raise ValueError(f"evidence target is a {kind}: {reference['path']}")
 
-    return register_evidence_file(
-        root,
-        evidence_id=evidence_id,
-        gate_id=gate_id,
-        kind=kind,
-        relative_path=reference["path"],
-        maturity=maturity,
-        metadata=metadata,
-    )
+        for _ in range(100):
+            temporary_name = f".{name}.{secrets.token_hex(8)}.tmp"
+            try:
+                temporary_fd = os.open(
+                    temporary_name,
+                    os.O_WRONLY
+                    | os.O_CREAT
+                    | os.O_EXCL
+                    | os.O_NOFOLLOW
+                    | getattr(os, "O_CLOEXEC", 0),
+                    0o600,
+                    dir_fd=parent_fd,
+                )
+                break
+            except FileExistsError:
+                continue
+        else:
+            raise ValueError("could not allocate a secure temporary evidence file")
+        try:
+            remaining = memoryview(encoded)
+            while remaining:
+                written = os.write(temporary_fd, remaining)
+                remaining = remaining[written:]
+            os.fsync(temporary_fd)
+        finally:
+            os.close(temporary_fd)
+        os.replace(
+            temporary_name,
+            name,
+            src_dir_fd=parent_fd,
+            dst_dir_fd=parent_fd,
+        )
+        temporary_name = None
+        os.fsync(parent_fd)
+    finally:
+        if temporary_name is not None:
+            try:
+                os.unlink(temporary_name, dir_fd=parent_fd)
+            except FileNotFoundError:
+                pass
+        os.close(parent_fd)
+
+    reference["sha256"] = hashlib.sha256(encoded).hexdigest()
+    return reference
 
 
 def verify_evidence_reference(
@@ -267,35 +370,16 @@ def verify_evidence_reference(
 
     try:
         root = _workspace_root(workspace_root)
-        path = _resolved_candidate(root, str(relative_path))
-    except (OSError, ValueError) as error:
-        code = "path_escape" if "escapes" in str(error) else "invalid_workspace_root"
-        issues.append(EvidenceIssue(code, "$.path", str(error)))
+        file_fd = _open_regular_file(root, str(relative_path))
+    except _EvidenceFileError as error:
+        issues.append(EvidenceIssue(error.code, "$.path", str(error)))
         return issues
-
-    if not path.exists():
-        issues.append(
-            EvidenceIssue("missing_file", "$.path", f"evidence file does not exist: {relative_path}")
-        )
+    except (OSError, ValueError) as error:
+        issues.append(EvidenceIssue("invalid_workspace_root", "$.path", str(error)))
         return issues
     try:
-        mode = path.stat().st_mode
-    except OSError as error:
-        issues.append(EvidenceIssue("unreadable_file", "$.path", str(error)))
-        return issues
-    if not stat.S_ISREG(mode):
-        issues.append(
-            EvidenceIssue(
-                "not_regular_file", "$.path", f"evidence path is not a regular file: {relative_path}"
-            )
-        )
-        return issues
-    if isinstance(expected_sha, str) and SHA256_PATTERN.fullmatch(expected_sha):
-        try:
-            actual_sha = _file_sha256(path)
-        except OSError as error:
-            issues.append(EvidenceIssue("unreadable_file", "$.path", str(error)))
-        else:
+        if isinstance(expected_sha, str) and SHA256_PATTERN.fullmatch(expected_sha):
+            actual_sha = _fd_sha256(file_fd)
             if actual_sha != expected_sha:
                 issues.append(
                     EvidenceIssue(
@@ -304,4 +388,8 @@ def verify_evidence_reference(
                         f"evidence hash mismatch: expected {expected_sha}, got {actual_sha}",
                     )
                 )
+    except OSError as error:
+        issues.append(EvidenceIssue("unreadable_file", "$.path", str(error)))
+    finally:
+        os.close(file_fd)
     return issues

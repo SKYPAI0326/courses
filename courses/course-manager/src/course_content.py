@@ -500,7 +500,13 @@ def route_content_to_g3(
     ):
         raise ContractStateError(f"lesson evidence id already exists: {evidence_id}")
     contract["evidence_index"].append(
-        {"id": evidence_id, "gate": "G3", "path": record_path, "sha256": sha256}
+        {
+            "id": evidence_id,
+            "gate": "G3",
+            "kind": "lesson_record",
+            "path": record_path,
+            "sha256": sha256,
+        }
     )
     pass_gate(
         contract,
