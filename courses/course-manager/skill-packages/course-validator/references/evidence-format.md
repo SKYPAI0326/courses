@@ -41,7 +41,7 @@
 
 ```json
 {
-  "schema_version": 2,
+  "schema_version": 4,
   "scope": "representative_unit",
   "requirements_sha256": "64位小寫SHA256",
   "target_profile_id": "target-marketing-practitioner",
@@ -83,15 +83,20 @@
     "task_id": "heldout-budget-plan",
     "source_task_id": "guided-budget-plan",
     "changed_conditions": [{
+      "condition_id": "budget-threshold-change",
       "dimension": "threshold",
-      "rule": "總預算不得超過指定上限。",
+      "metric_id": "total-budget",
+      "unit": "twd",
       "comparator": "lte",
       "before_value": 50000,
       "after_value": 30000,
+      "observed_value": 40000,
+      "basis_evidence_id": "heldout-input",
       "affected_criterion_id": "g2-plan",
-      "before_decision": "保留高成本渠道。",
-      "after_decision": "移除高成本渠道並重新分配。",
-      "decision_basis": "較低預算門檻改變渠道資格與分配結果。"
+      "before_rule_passed": true,
+      "after_rule_passed": false,
+      "before_outcome": "accept",
+      "after_outcome": "reject"
     }],
     "held_out_input_evidence_id": "heldout-input",
     "held_out_output_evidence_id": "trial-plan-artifact",
@@ -105,12 +110,12 @@
     "id": "act-canonicalpayloadhash",
     "sequence": 1,
     "task_id": "heldout-budget-plan",
-    "action": "開啟學員素材並找出預算與截止日。",
-    "decision": "依新的預算門檻移除高成本渠道。",
+    "operation": {"subject_evidence_id": "heldout-input", "kind": "compare", "transformation": {"rule_kind": "threshold-evaluation", "rule_id": "budget-threshold-change"}},
+    "decision": {"condition_id": "budget-threshold-change", "criterion_id": "g2-plan", "rule_passed": false, "outcome": "reject"},
     "affected_criterion_id": "g2-plan",
     "input_evidence_id": "heldout-input",
     "output_evidence_id": "trial-plan-artifact",
-    "observable_result": "在資料表找到兩個欄位。",
+    "observable_result": {"evidence_id": "trial-plan-artifact", "criterion_id": "g2-plan", "expected_result": "PASS", "actual_result": "PASS", "actual_sha256": "實檔SHA256"},
     "result": "PASS",
     "at": "2026-10-18T15:01:00+08:00"
   }],
@@ -170,4 +175,4 @@ Accessibility 另存符合 `contracts/course-accessibility-report.schema.json` �
 
 每個 accessibility check 都要有全域唯一 `check_id`，並只綁一個 `page_id`、一個 `criterion_id` 與明確 `method`。`basic_accessibility_smoke` 僅涵蓋 keyboard、focus、reading-order、horizontal-overflow，四項必須逐頁通過。`wcag_2_2_aa` 才能聲明 WCAG 2.2 AA，且須通過完整 page × A/AA criterion Cartesian coverage；manual 與 automated 各自都要 exact 涵蓋全部頁面，另記 tools、user agents、assistive technology、findings severity/status/resolution。NOT_TESTED、FAIL 或未解 HIGH/SERIOUS/CRITICAL finding 一律 BLOCK。
 
-Trial 的 held-out、示範、引導練習、答案與 action state 必須是 `trial_transfer_artifact` typed evidence，Gate 安全消費實檔並逐一重算 hash。Action 第一個 input、相鄰 output/input、最後 output 與 final artifact 必須連續；action ID 是 canonical action payload SHA-256 前綴，`action-2` 之類 sequence-derived ID 不成立。
+Trial 的 held-out、示範、引導練習、答案與 action state 必須是 `trial_transfer_artifact` typed evidence，Gate 安全消費實檔並逐一重算 hash。Action 第一個 input、相鄰 output/input、最後 output 與 final artifact 必須連續；action ID 是 canonical action payload SHA-256 前綴，`action-2` 之類 sequence-derived ID 不成立。Operation 必須綁 input subject 與 changed-condition rule；decision 必須重現 runtime 可計算的 rule result/outcome；observable result 必須以 typed output evidence 的實際 SHA-256 比對 expected/actual。自由文字或加一個 domain token 都不能代替這些欄位。

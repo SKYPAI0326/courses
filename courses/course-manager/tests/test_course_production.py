@@ -152,7 +152,7 @@ class CourseProductionTests(unittest.TestCase):
         }
         return report, ref, declared
 
-    def bind_trial_inputs(self, root, trial):
+    def bind_trial_inputs(self, root, trial, production=None):
         for index, item in enumerate(trial["allowed_inputs"]):
             target = root / item["path"]
             if not target.exists():
@@ -174,6 +174,15 @@ class CourseProductionTests(unittest.TestCase):
             )
             binding["sha256"] = ref["sha256"]
             refs.append({"id": ref["id"], "kind": ref["kind"], "path": ref["path"], "metadata": ref["metadata"]})
+        by_id = {item["evidence_id"]: item for item in trial["evidence_bindings"]}
+        for action in trial["actions"]:
+            action["observable_result"]["actual_sha256"] = by_id[action["output_evidence_id"]]["sha256"]
+            action["id"] = trial_action_id(action)
+        for row, action in zip(trial["criterion_evidence"], trial["actions"]):
+            row["action_id"] = action["id"]
+        if production is not None:
+            for row, action in zip(production["learning_coverage"], trial["actions"]):
+                row["trial_evidence_id"] = action["id"]
         final = next(item for item in trial["evidence_bindings"] if item["role"] == "held-out-output")
         trial["artifact"]["path"] = final["path"]
         trial["artifact"]["sha256"] = final["sha256"]
@@ -468,7 +477,7 @@ class CourseProductionTests(unittest.TestCase):
             canonical_json_bytes(self.full_requirements())
         ).hexdigest()
         record = {
-            "schema_version": 3,
+            "schema_version": 4,
             "scope": "full_course",
             "requirements_sha256": requirements_sha256,
             "target_profile_id": "target-marketing-practitioner",
@@ -525,12 +534,12 @@ class CourseProductionTests(unittest.TestCase):
                     "id": "pending",
                     "sequence": 1,
                     "task_id": "heldout-full-course-plan",
-                    "action": "Inspect the held-out product data and extract its budget and timing constraints.",
-                    "decision": "Reject the high-cost channel because the held-out budget is below its threshold.",
+                    "operation": {"subject_evidence_id": "heldout-full-input", "kind": "extract", "transformation": {"rule_kind": "field-extraction", "rule_id": "source-threshold-change"}},
+                    "decision": {"condition_id": "source-threshold-change", "criterion_id": "criterion-source", "rule_passed": False, "outcome": "reject"},
                     "affected_criterion_id": "criterion-source",
                     "input_evidence_id": "heldout-full-input",
                     "output_evidence_id": "full-action-state-1",
-                    "observable_result": "A source constraint table records the held-out budget and rejected channel.",
+                    "observable_result": {"evidence_id": "full-action-state-1", "criterion_id": "criterion-source", "expected_result": "PASS", "actual_result": "PASS", "actual_sha256": "4" * 64},
                     "result": "PASS",
                     "at": "2026-10-18T16:10:00+08:00",
                 },
@@ -538,12 +547,12 @@ class CourseProductionTests(unittest.TestCase):
                     "id": "pending",
                     "sequence": 2,
                     "task_id": "heldout-full-course-plan",
-                    "action": "Build a new campaign plan from the held-out constraints and recalculate allocations.",
-                    "decision": "Allocate the remaining budget to the two channels that meet the revised threshold.",
+                    "operation": {"subject_evidence_id": "full-action-state-1", "kind": "calculate", "transformation": {"rule_kind": "numeric-calculation", "rule_id": "plan-threshold-change"}},
+                    "decision": {"condition_id": "plan-threshold-change", "criterion_id": "criterion-plan", "rule_passed": False, "outcome": "reallocate"},
                     "affected_criterion_id": "criterion-plan",
                     "input_evidence_id": "full-action-state-1",
                     "output_evidence_id": "full-action-state-2",
-                    "observable_result": "The campaign plan totals the held-out budget and documents the threshold choice.",
+                    "observable_result": {"evidence_id": "full-action-state-2", "criterion_id": "criterion-plan", "expected_result": "PASS", "actual_result": "PASS", "actual_sha256": "5" * 64},
                     "result": "PASS",
                     "at": "2026-10-18T16:30:00+08:00",
                 },
@@ -551,12 +560,12 @@ class CourseProductionTests(unittest.TestCase):
                     "id": "pending",
                     "sequence": 3,
                     "task_id": "heldout-full-course-plan",
-                    "action": "Audit the held-out plan against every acceptance rule and repair the failed allocation.",
-                    "decision": "Revise the allocation because its first draft exceeded the per-channel limit.",
+                    "operation": {"subject_evidence_id": "full-action-state-2", "kind": "validate", "transformation": {"rule_kind": "criterion-validation", "rule_id": "audit-threshold-change"}},
+                    "decision": {"condition_id": "audit-threshold-change", "criterion_id": "criterion-audit", "rule_passed": False, "outcome": "revise"},
                     "affected_criterion_id": "criterion-audit",
                     "input_evidence_id": "full-action-state-2",
                     "output_evidence_id": "trial-full-course-final-plan",
-                    "observable_result": "The final held-out plan passes source, completeness, and audit criteria.",
+                    "observable_result": {"evidence_id": "trial-full-course-final-plan", "criterion_id": "criterion-audit", "expected_result": "PASS", "actual_result": "PASS", "actual_sha256": "3" * 64},
                     "result": "PASS",
                     "at": "2026-10-18T16:50:00+08:00",
                 }
@@ -567,15 +576,15 @@ class CourseProductionTests(unittest.TestCase):
                 "changed_conditions": [
                     {
                         "dimension": "threshold",
-                        "rule": "Approve channels only when cost is at or below the governed limit.",
-                        "comparator": "lte", "before_value": 50000, "after_value": 30000,
+                        "condition_id": "source-threshold-change", "metric_id": "channel-cost", "unit": "twd",
+                        "comparator": "lte", "before_value": 50000, "after_value": 30000, "observed_value": 40000,
+                        "basis_evidence_id": "heldout-full-input",
                         "affected_criterion_id": "criterion-source",
-                        "before_decision": "Approve the display channel.",
-                        "after_decision": "Reject the display channel and reallocate its budget.",
-                        "decision_basis": "The lower held-out threshold changes channel eligibility and forces a new allocation.",
+                        "before_rule_passed": True, "after_rule_passed": False,
+                        "before_outcome": "accept", "after_outcome": "reject",
                     },
-                    {"dimension": "threshold", "rule": "Allocate the plan within the governed total budget.", "comparator": "lte", "before_value": 500000, "after_value": 300000, "affected_criterion_id": "criterion-plan", "before_decision": "Fund three channels.", "after_decision": "Fund two qualifying channels.", "decision_basis": "The reduced total budget forces a new allocation decision."},
-                    {"dimension": "threshold", "rule": "The audit must meet the governed per-channel limit.", "comparator": "lte", "before_value": 50000, "after_value": 30000, "affected_criterion_id": "criterion-audit", "before_decision": "Accept the draft allocation.", "after_decision": "Repair the draft allocation.", "decision_basis": "The stricter audit limit changes the acceptance decision."}
+                    {"condition_id": "plan-threshold-change", "dimension": "threshold", "metric_id": "total-budget", "unit": "twd", "comparator": "lte", "before_value": 500000, "after_value": 300000, "observed_value": 400000, "basis_evidence_id": "full-action-state-1", "affected_criterion_id": "criterion-plan", "before_rule_passed": True, "after_rule_passed": False, "before_outcome": "accept", "after_outcome": "reallocate"},
+                    {"condition_id": "audit-threshold-change", "dimension": "threshold", "metric_id": "channel-limit", "unit": "twd", "comparator": "lte", "before_value": 50000, "after_value": 30000, "observed_value": 40000, "basis_evidence_id": "full-action-state-2", "affected_criterion_id": "criterion-audit", "before_rule_passed": True, "after_rule_passed": False, "before_outcome": "accept", "after_outcome": "revise"}
                 ],
                 "held_out_input_evidence_id": "heldout-full-input",
                 "held_out_output_evidence_id": "trial-full-course-final-plan",
@@ -1150,7 +1159,7 @@ class CourseProductionTests(unittest.TestCase):
             self.bind_governed_course(root, contract, self.full_blueprint(), lessons)
             assets = self.valid_asset_manifest()
             artifact_refs = self.g5_artifact_refs(root, production, lessons, assets)
-            artifact_refs.extend(self.bind_trial_inputs(root, production["full_course_trial"]))
+            artifact_refs.extend(self.bind_trial_inputs(root, production["full_course_trial"], production))
             production_bundle = {
                 "record": production,
                 "blueprint": self.full_blueprint(),
@@ -1301,7 +1310,7 @@ class CourseProductionTests(unittest.TestCase):
             contract["governance"]["production_role_roster"] = {
                 "evidence_id": roster_ref["id"], "sha256": roster_ref["sha256"]
             }
-            transfer_refs = self.bind_trial_inputs(root, production["full_course_trial"])
+            transfer_refs = self.bind_trial_inputs(root, production["full_course_trial"], production)
             self.bind_governed_course(root, contract, self.full_blueprint(), self.full_lessons())
             pages = [
                 {"id": "course-entry", "path": production["navigation"]["entry"]},

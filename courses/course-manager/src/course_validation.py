@@ -32,20 +32,6 @@ FORBIDDEN_INPUT_MARKERS = (
     "solution-key",
     "solution_key",
 )
-GENERIC_ACTION_TEXT = {
-    "complete task",
-    "do task",
-    "do the task",
-    "do the thing",
-    "finish task",
-    "done",
-    "pass",
-    "完成任務",
-    "執行任務",
-    "照做",
-    "完成",
-}
-
 TRANSFER_ROLES = frozenset({
     "held-out-input", "held-out-output", "demonstration-input",
     "demonstration-output", "guided-practice-input", "guided-practice-output",
@@ -58,10 +44,18 @@ def trial_action_id(action: Mapping[str, Any]) -> str:
     payload = {
         key: action.get(key)
         for key in (
-            "task_id", "action", "decision", "observable_result",
+            "task_id", "operation", "decision",
             "affected_criterion_id", "input_evidence_id", "output_evidence_id", "result",
         )
     }
+    observable = action.get("observable_result")
+    payload["observable_result"] = (
+        {key: observable.get(key) for key in (
+            "evidence_id", "criterion_id", "expected_result", "actual_result",
+            "actual_sha256",
+        )}
+        if isinstance(observable, Mapping) else observable
+    )
     encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return f"act-{hashlib.sha256(encoded).hexdigest()[:20]}"
 
@@ -111,34 +105,19 @@ def _text(value: Any) -> bool:
     return isinstance(value, str) and bool(value.strip())
 
 
-def _normalized_text(value: Any) -> str:
-    if not isinstance(value, str):
-        return ""
-    return re.sub(r"[^0-9a-z\u3400-\u9fff]+", " ", value.casefold()).strip()
-
-
-def _concrete_action_text(value: Any) -> bool:
-    normalized = _normalized_text(value)
-    generic_words = {
-        "a", "assigned", "complete", "do", "done", "finish", "now",
-        "successfully", "task", "the", "thing", "work",
+def _compare_numeric(left: Any, comparator: Any, right: Any) -> bool | None:
+    if (
+        isinstance(left, bool) or not isinstance(left, (int, float))
+        or isinstance(right, bool) or not isinstance(right, (int, float))
+    ):
+        return None
+    operations = {
+        "lt": lambda: left < right, "lte": lambda: left <= right,
+        "gt": lambda: left > right, "gte": lambda: left >= right,
+        "eq": lambda: left == right, "neq": lambda: left != right,
     }
-    words = set(normalized.split())
-    return (
-        len(normalized.replace(" ", "")) >= 6
-        and normalized not in GENERIC_ACTION_TEXT
-        and not (words and words.issubset(generic_words))
-    )
-
-
-def _filename_only_change(before: Any, after: Any) -> bool:
-    filename_pattern = re.compile(r"^[^\s/]+\.[a-z0-9]{1,8}$", re.IGNORECASE)
-    return (
-        isinstance(before, str)
-        and isinstance(after, str)
-        and filename_pattern.fullmatch(before.strip()) is not None
-        and filename_pattern.fullmatch(after.strip()) is not None
-    )
+    operation = operations.get(comparator)
+    return operation() if operation is not None else None
 
 
 def _expected_trial_criteria(
@@ -252,12 +231,12 @@ def validate_trial_record(
         TrialIssue(issue.code, issue.path, issue.message, current_gate)
         for issue in validate_schema_file("course-trial-record.schema.json", record)
     )
-    if record.get("schema_version") != 3:
+    if record.get("schema_version") != 4:
         _add(
             issues,
             "trial_record_incomplete",
             "$.schema_version",
-            "trial record schema_version must be 3",
+            "trial record schema_version must be 4",
             current_gate,
         )
     scope = record.get("scope")
@@ -609,6 +588,7 @@ def validate_trial_record(
     held_out_output_hash: str | None = None
     held_out_input_id = ""
     held_out_output_id = ""
+    condition_by_id: dict[str, Mapping[str, Any]] = {}
     if not isinstance(transfer, Mapping):
         _add(
             issues,
@@ -643,10 +623,13 @@ def validate_trial_record(
                 if not isinstance(condition, Mapping):
                     _add(issues, "transfer_conditions_missing", path, "changed condition must be an object", current_gate)
                     continue
-                before_decision = _normalized_text(condition.get("before_decision"))
-                after_decision = _normalized_text(condition.get("after_decision"))
+                condition_id = condition.get("condition_id")
                 dimension = condition.get("dimension")
                 affected = condition.get("affected_criterion_id")
+                if not _text(condition_id) or condition_id in condition_by_id:
+                    _add(issues, "transfer_conditions_missing", f"{path}.condition_id", "changed condition id must be present and unique", current_gate)
+                else:
+                    condition_by_id[str(condition_id)] = condition
                 if dimension not in {"data", "threshold", "context"} or not _text(affected):
                     _add(
                         issues,
@@ -665,37 +648,42 @@ def validate_trial_record(
                         or before_binding.get("sha256") == after_binding.get("sha256")
                     ):
                         _add(issues, "transfer_conditions_missing", path, "data changes must bind distinct before/after typed input bytes", current_gate)
-                elif dimension == "threshold" and (
-                    isinstance(condition.get("before_value"), bool)
-                    or not isinstance(condition.get("before_value"), (int, float))
-                    or isinstance(condition.get("after_value"), bool)
-                    or not isinstance(condition.get("after_value"), (int, float))
-                    or condition.get("before_value") == condition.get("after_value")
-                    or not _concrete_action_text(condition.get("rule"))
-                ):
-                    _add(issues, "transfer_conditions_missing", path, "threshold changes require a concrete rule and distinct comparable numeric values", current_gate)
-                elif dimension == "context" and condition.get("before_context") == condition.get("after_context"):
-                    _add(
-                        issues,
-                        "transfer_conditions_missing",
-                        path,
-                        "context changes require distinct profile constraints",
-                        current_gate,
+                    before_evaluation = _compare_numeric(condition.get("before_observed_value"), condition.get("comparator"), condition.get("target_value"))
+                    after_evaluation = _compare_numeric(condition.get("after_observed_value"), condition.get("comparator"), condition.get("target_value"))
+                elif dimension == "threshold":
+                    before_evaluation = _compare_numeric(condition.get("observed_value"), condition.get("comparator"), condition.get("before_value"))
+                    after_evaluation = _compare_numeric(condition.get("observed_value"), condition.get("comparator"), condition.get("after_value"))
+                    basis = binding_by_id.get(str(condition.get("basis_evidence_id", "")))
+                    if condition.get("before_value") == condition.get("after_value") or basis is None:
+                        _add(issues, "transfer_conditions_missing", path, "threshold changes require distinct numeric thresholds and typed basis evidence", current_gate)
+                elif dimension == "context":
+                    before_context = condition.get("before_context")
+                    after_context = condition.get("after_context")
+                    required_constraint = condition.get("required_constraint")
+                    before_evaluation = (
+                        required_constraint in before_context.get("constraints", [])
+                        if isinstance(before_context, Mapping) else None
                     )
-                if not before_decision or before_decision == after_decision:
+                    after_evaluation = (
+                        required_constraint in after_context.get("constraints", [])
+                        if isinstance(after_context, Mapping) else None
+                    )
+                    if before_context == after_context:
+                        _add(issues, "transfer_conditions_missing", path, "context changes require distinct profile constraints", current_gate)
+                else:
+                    before_evaluation = after_evaluation = None
+                if (
+                    before_evaluation is None or after_evaluation is None
+                    or condition.get("before_rule_passed") != before_evaluation
+                    or condition.get("after_rule_passed") != after_evaluation
+                ):
+                    _add(issues, "transfer_conditions_missing", path, "changed condition rule results must be reproducible from structured values", current_gate)
+                if before_evaluation == after_evaluation or condition.get("before_outcome") == condition.get("after_outcome"):
                     _add(
                         issues,
                         "transfer_judgment_unchanged",
                         path,
                         "held-out conditions must force a different learner judgment",
-                        current_gate,
-                    )
-                if not _concrete_action_text(condition.get("decision_basis")):
-                    _add(
-                        issues,
-                        "transfer_conditions_missing",
-                        f"{path}.decision_basis",
-                        "transfer must explain the concrete basis for reconsideration",
                         current_gate,
                     )
         held_out_input_id = str(transfer.get("held_out_input_evidence_id", ""))
@@ -746,25 +734,16 @@ def validate_trial_record(
                 _add(issues, "actions_not_chronological", f"{path}.sequence", "action sequence must be an integer")
             else:
                 sequences.append(sequence)
-            for field in ("action", "decision", "observable_result", "at"):
-                if not _text(action.get(field)):
+            if not _text(action.get("at")):
+                _add(issues, "trial_record_incomplete", f"{path}.at", "action at is required")
+            for field in ("operation", "decision", "observable_result"):
+                if not isinstance(action.get(field), Mapping):
                     _add(
                         issues,
                         "trial_record_incomplete",
                         f"{path}.{field}",
-                        f"action {field} is required",
+                        f"action {field} must be a structured object",
                     )
-            if not all(
-                _concrete_action_text(action.get(field))
-                for field in ("action", "decision", "observable_result")
-            ):
-                _add(
-                    issues,
-                    "generic_trial_action",
-                    path,
-                    "trial actions must record a concrete learner decision and observable result",
-                    current_gate,
-                )
             for field in ("input_evidence_id", "output_evidence_id"):
                 if action.get(field) not in binding_by_id:
                     _add(
@@ -774,6 +753,41 @@ def validate_trial_record(
                         "trial action input and output must bind typed evidence",
                         current_gate,
                     )
+            operation = action.get("operation")
+            decision = action.get("decision")
+            observable = action.get("observable_result")
+            condition = (
+                condition_by_id.get(str(decision.get("condition_id", "")))
+                if isinstance(decision, Mapping) else None
+            )
+            output_binding = binding_by_id.get(str(action.get("output_evidence_id", "")))
+            if (
+                not isinstance(operation, Mapping)
+                or operation.get("subject_evidence_id") != action.get("input_evidence_id")
+                or not isinstance(operation.get("transformation"), Mapping)
+                or operation["transformation"].get("rule_id") != (
+                    decision.get("condition_id") if isinstance(decision, Mapping) else None
+                )
+            ):
+                _add(issues, "generic_trial_action", f"{path}.operation", "operation must bind its input subject and a governed changed-condition rule", current_gate)
+            if (
+                condition is None
+                or not isinstance(decision, Mapping)
+                or decision.get("criterion_id") != action.get("affected_criterion_id")
+                or decision.get("rule_passed") != condition.get("after_rule_passed")
+                or decision.get("outcome") != condition.get("after_outcome")
+            ):
+                _add(issues, "generic_trial_action", f"{path}.decision", "decision must reproduce the governed changed-condition result", current_gate)
+            if (
+                not isinstance(observable, Mapping)
+                or observable.get("evidence_id") != action.get("output_evidence_id")
+                or observable.get("criterion_id") != action.get("affected_criterion_id")
+                or observable.get("expected_result") != "PASS"
+                or observable.get("actual_result") != action.get("result")
+                or output_binding is None
+                or observable.get("actual_sha256") != output_binding.get("sha256")
+            ):
+                _add(issues, "generic_trial_action", f"{path}.observable_result", "observable result must compare expected PASS with the actual typed output evidence and hash", current_gate)
             if action_id != trial_action_id(action):
                 _add(issues, "trial_action_id_invalid", f"{path}.id", "action id must be derived from the canonical action payload", current_gate)
             changed_criteria = {

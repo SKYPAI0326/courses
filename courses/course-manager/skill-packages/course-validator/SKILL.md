@@ -53,7 +53,7 @@ G4 必須試走 `representative_unit`，G5 必須試走 `full_course`。試走 A
 
 - canonical G0 requirements SHA-256、target profile、baseline／prerequisite 聲明、allowed tools／inputs 與 governed runner authority。
 - 從哪個入口開始，以及是否看懂成果與找到材料。
-- held-out task 的結構化 `changed_conditions`；資料、門檻或情境必須迫使重新判斷，且 demonstration／guided-practice／answer-key／held-out 的 input/output hashes 全部不可重用。
+- held-out task 的封閉結構 `changed_conditions`；data 數值、threshold 數值或 context constraint 必須讓 runtime 重算出不同 rule result 與 outcome。Action operation 要綁 typed input subject 與 condition rule，decision 要等於重算結果，observable 要以 typed output SHA-256 記錄 expected-vs-actual；自由文字或 domain-token padding 不成立。demonstration／guided-practice／answer-key／held-out 的 input/output bytes 全部不可重用。
 - 依時間順序發生的具體動作、判斷與可觀察結果；每個 in-scope G0 child capability／G2 criterion 綁定真實 PASS action ID 與完成品 evidence ID。
 - 每次提示的來源；來源只能是學員頁、學員素材或完全沒有提示。
 - 卡點、失敗代碼、是否恢復，以及實際採用的修復動作。

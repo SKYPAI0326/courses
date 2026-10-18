@@ -48,7 +48,7 @@ class CourseTrialValidationTests(unittest.TestCase):
 
     def valid_trial(self, participant_type="independent-ai", scope="representative_unit"):
         record = {
-            "schema_version": 3,
+            "schema_version": 4,
             "requirements_sha256": "9" * 64,
             "target_profile_id": "target-marketing-practitioner",
             "runner_authority_id": self.authority_id,
@@ -104,9 +104,9 @@ class CourseTrialValidationTests(unittest.TestCase):
                     "id": "pending",
                     "sequence": 1,
                     "task_id": "held-out-marketing-plan",
-                    "action": "開啟商品資料並找出預算與截止日。",
-                    "decision": "依新的預算與截止日重新判斷企劃限制。",
-                    "observable_result": "在資料表中找到預算 20 萬元與截止日。",
+                    "operation": {"subject_evidence_id": "held-out-input", "kind": "extract", "transformation": {"rule_kind": "field-extraction", "rule_id": "budget-threshold-change"}},
+                    "decision": {"condition_id": "budget-threshold-change", "criterion_id": "g2-plan", "rule_passed": False, "outcome": "reject"},
+                    "observable_result": {"evidence_id": "action-state-budget", "criterion_id": "g2-plan", "expected_result": "PASS", "actual_result": "PASS", "actual_sha256": "d" * 64},
                     "affected_criterion_id": "g2-plan",
                     "input_evidence_id": "held-out-input",
                     "output_evidence_id": "action-state-budget",
@@ -117,9 +117,9 @@ class CourseTrialValidationTests(unittest.TestCase):
                     "id": "pending",
                     "sequence": 2,
                     "task_id": "held-out-marketing-plan",
-                    "action": "依講義步驟完成企劃表。",
-                    "decision": "依新的門檻選擇符合限制的預算拆分與時程。",
-                    "observable_result": "產出含目標、受眾、時程與預算的企劃表。",
+                    "operation": {"subject_evidence_id": "action-state-budget", "kind": "compose", "transformation": {"rule_kind": "artifact-composition", "rule_id": "budget-threshold-change"}},
+                    "decision": {"condition_id": "budget-threshold-change", "criterion_id": "g2-plan", "rule_passed": False, "outcome": "reject"},
+                    "observable_result": {"evidence_id": "trial-final-plan", "criterion_id": "g2-plan", "expected_result": "PASS", "actual_result": "PASS", "actual_sha256": "c" * 64},
                     "affected_criterion_id": "g2-plan",
                     "input_evidence_id": "action-state-budget",
                     "output_evidence_id": "trial-final-plan",
@@ -133,14 +133,19 @@ class CourseTrialValidationTests(unittest.TestCase):
                 "changed_conditions": [
                     {
                         "dimension": "threshold",
-                        "rule": "總預算不得超過指定上限並須依渠道轉換門檻配置。",
+                        "condition_id": "budget-threshold-change",
+                        "metric_id": "total-budget",
+                        "unit": "twd",
                         "comparator": "lte",
                         "before_value": 300000,
                         "after_value": 200000,
+                        "observed_value": 250000,
+                        "basis_evidence_id": "held-out-input",
                         "affected_criterion_id": "g2-plan",
-                        "before_decision": "三個渠道平均分配預算。",
-                        "after_decision": "依轉換門檻縮減未達標渠道預算。",
-                        "decision_basis": "預算門檻與渠道成效同時改變，必須重新計算後判斷。",
+                        "before_rule_passed": True,
+                        "after_rule_passed": False,
+                        "before_outcome": "accept",
+                        "after_outcome": "reject",
                     }
                 ],
                 "held_out_input_evidence_id": "held-out-input",
@@ -240,6 +245,13 @@ class CourseTrialValidationTests(unittest.TestCase):
             )
             binding["sha256"] = ref["sha256"]
             refs.append(ref)
+        by_id = {item["evidence_id"]: item for item in trial["evidence_bindings"]}
+        for action in trial["actions"]:
+            if isinstance(action.get("observable_result"), dict):
+                action["observable_result"]["actual_sha256"] = by_id[action["output_evidence_id"]]["sha256"]
+            action["id"] = trial_action_id(action)
+        for row in trial["criterion_evidence"]:
+            row["action_id"] = trial["actions"][-1]["id"]
         final = next(item for item in trial["evidence_bindings"] if item["role"] == "held-out-output")
         trial["artifact"]["path"] = final["path"]
         trial["artifact"]["sha256"] = final["sha256"]
@@ -368,8 +380,7 @@ class CourseTrialValidationTests(unittest.TestCase):
 
         filename_only = self.valid_trial()
         condition = filename_only["transfer_task"]["changed_conditions"][0]
-        condition["before_decision"] = "Approve the same campaign."
-        condition["after_decision"] = "Approve the same campaign."
+        condition["before_outcome"] = condition["after_outcome"]
         cases.append((filename_only, "transfer_judgment_unchanged"))
 
         renamed_file = self.valid_trial()
@@ -392,6 +403,26 @@ class CourseTrialValidationTests(unittest.TestCase):
         sequence_id["actions"][1]["id"] = "action-2"
         sequence_id["criterion_evidence"][0]["action_id"] = "action-2"
         cases.append((sequence_id, "trial_action_id_invalid"))
+
+        wrong_subject = self.valid_trial()
+        wrong_subject["actions"][1]["operation"]["subject_evidence_id"] = "demo-input"
+        wrong_subject["actions"][1]["id"] = trial_action_id(wrong_subject["actions"][1])
+        wrong_subject["criterion_evidence"][0]["action_id"] = wrong_subject["actions"][1]["id"]
+        cases.append((wrong_subject, "generic_trial_action"))
+
+        unreproducible_decision = self.valid_trial()
+        unreproducible_decision["actions"][1]["decision"]["rule_passed"] = True
+        unreproducible_decision["actions"][1]["id"] = trial_action_id(unreproducible_decision["actions"][1])
+        unreproducible_decision["criterion_evidence"][0]["action_id"] = unreproducible_decision["actions"][1]["id"]
+        cases.append((unreproducible_decision, "generic_trial_action"))
+
+        fake_observable = self.valid_trial()
+        fake_observable["actions"][1]["observable_result"]["actual_sha256"] = "f" * 64
+        cases.append((fake_observable, "generic_trial_action"))
+
+        unreproducible_change = self.valid_trial()
+        unreproducible_change["transfer_task"]["changed_conditions"][0]["after_rule_passed"] = True
+        cases.append((unreproducible_change, "transfer_conditions_missing"))
 
         generic = self.valid_trial()
         generic["actions"][1]["action"] = "complete task"
@@ -434,6 +465,68 @@ class CourseTrialValidationTests(unittest.TestCase):
         for trial, expected_code in cases:
             with self.subTest(expected_code=expected_code):
                 self.assertIn(expected_code, {item.code for item in self.validate_bound_trial(trial)})
+
+    def test_structured_data_and_context_changes_recompute_the_decision(self):
+        data_trial = self.valid_trial()
+        data_trial["transfer_task"]["changed_conditions"] = [{
+            "condition_id": "budget-threshold-change", "dimension": "data",
+            "before_input_evidence_id": "demo-input", "after_input_evidence_id": "guided-input",
+            "metric_id": "channel-cost", "unit": "twd", "comparator": "lte",
+            "target_value": 100, "before_observed_value": 90, "after_observed_value": 110,
+            "affected_criterion_id": "g2-plan", "before_rule_passed": True,
+            "after_rule_passed": False, "before_outcome": "accept", "after_outcome": "reject",
+        }]
+        self.assertEqual(self.validate_bound_trial(data_trial), [])
+
+        context_trial = self.valid_trial()
+        context_trial["transfer_task"]["changed_conditions"] = [{
+            "condition_id": "budget-threshold-change", "dimension": "context",
+            "before_context": {"profile_id": "regional-campaign", "constraints": ["approval-authority"]},
+            "after_context": {"profile_id": "global-campaign", "constraints": ["local-only"]},
+            "required_constraint": "approval-authority", "affected_criterion_id": "g2-plan",
+            "before_rule_passed": True, "after_rule_passed": False,
+            "before_outcome": "accept", "after_outcome": "reject",
+        }]
+        self.assertEqual(self.validate_bound_trial(context_trial), [])
+
+    def test_g4_route_rejects_domain_token_padded_generic_actions(self):
+        trial = self.valid_trial()
+        action = trial["actions"][-1]
+        action["action"] = "complete task campaign"
+        action["decision"] = "do the thing campaign"
+        action["observable_result"] = "done campaign"
+        action["id"] = trial_action_id(action)
+        trial["criterion_evidence"][0]["action_id"] = action["id"]
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            contract, pilot_ref, roster_ref, trial_ref, receipt_ref, _ = (
+                self.prepared_g4_route(root, trial=trial)
+            )
+            result = route_verified_trial_to_gate(
+                contract, "G4", [pilot_ref["id"], roster_ref["id"]],
+                trial_ref["id"], receipt_ref["id"], "course-validator",
+                "2026-10-18T15:15:00+08:00", workspace_root=root,
+            )
+        self.assertEqual(result, "BLOCKED")
+
+    def test_g4_route_rejects_domain_token_padded_changed_condition(self):
+        trial = self.valid_trial()
+        condition = trial["transfer_task"]["changed_conditions"][0]
+        condition["rule"] = "complete task campaign"
+        condition["before_decision"] = "do the thing campaign"
+        condition["after_decision"] = "done campaign"
+        condition["decision_basis"] = "finish task campaign"
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            contract, pilot_ref, roster_ref, trial_ref, receipt_ref, _ = (
+                self.prepared_g4_route(root, trial=trial)
+            )
+            result = route_verified_trial_to_gate(
+                contract, "G4", [pilot_ref["id"], roster_ref["id"]],
+                trial_ref["id"], receipt_ref["id"], "course-validator",
+                "2026-10-18T15:15:00+08:00", workspace_root=root,
+            )
+        self.assertEqual(result, "BLOCKED")
 
     def prepared_g4_route(self, root, *, pilot_actor_ids=None, trial=None):
         from tests.test_course_production import CourseProductionTests

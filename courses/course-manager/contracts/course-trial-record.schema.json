@@ -13,7 +13,7 @@
     "recovery", "artifact", "result", "maturity_claims"
   ],
   "properties": {
-    "schema_version": {"const": 3},
+    "schema_version": {"const": 4},
     "requirements_sha256": {"$ref": "#/$defs/sha256"},
     "target_profile_id": {"$ref": "#/$defs/id"},
     "runner_authority_id": {"$ref": "#/$defs/text"},
@@ -180,16 +180,18 @@
     "changedCondition": {
       "oneOf": [
         {"type": "object", "additionalProperties": false,
-         "required": ["dimension", "before_input_evidence_id", "after_input_evidence_id", "affected_criterion_id", "before_decision", "after_decision", "decision_basis"],
-         "properties": {"dimension": {"const": "data"}, "before_input_evidence_id": {"$ref": "#/$defs/id"}, "after_input_evidence_id": {"$ref": "#/$defs/id"}, "affected_criterion_id": {"$ref": "#/$defs/id"}, "before_decision": {"$ref": "#/$defs/text"}, "after_decision": {"$ref": "#/$defs/text"}, "decision_basis": {"$ref": "#/$defs/text"}}},
+         "required": ["condition_id", "dimension", "before_input_evidence_id", "after_input_evidence_id", "metric_id", "unit", "comparator", "target_value", "before_observed_value", "after_observed_value", "affected_criterion_id", "before_rule_passed", "after_rule_passed", "before_outcome", "after_outcome"],
+         "properties": {"condition_id": {"$ref": "#/$defs/id"}, "dimension": {"const": "data"}, "before_input_evidence_id": {"$ref": "#/$defs/id"}, "after_input_evidence_id": {"$ref": "#/$defs/id"}, "metric_id": {"$ref": "#/$defs/id"}, "unit": {"$ref": "#/$defs/id"}, "comparator": {"$ref": "#/$defs/comparator"}, "target_value": {"type": "number"}, "before_observed_value": {"type": "number"}, "after_observed_value": {"type": "number"}, "affected_criterion_id": {"$ref": "#/$defs/id"}, "before_rule_passed": {"type": "boolean"}, "after_rule_passed": {"type": "boolean"}, "before_outcome": {"$ref": "#/$defs/decisionOutcome"}, "after_outcome": {"$ref": "#/$defs/decisionOutcome"}}},
         {"type": "object", "additionalProperties": false,
-         "required": ["dimension", "rule", "comparator", "before_value", "after_value", "affected_criterion_id", "before_decision", "after_decision", "decision_basis"],
-         "properties": {"dimension": {"const": "threshold"}, "rule": {"$ref": "#/$defs/text"}, "comparator": {"enum": ["lt", "lte", "gt", "gte", "eq", "neq"]}, "before_value": {"type": "number"}, "after_value": {"type": "number"}, "affected_criterion_id": {"$ref": "#/$defs/id"}, "before_decision": {"$ref": "#/$defs/text"}, "after_decision": {"$ref": "#/$defs/text"}, "decision_basis": {"$ref": "#/$defs/text"}}},
+         "required": ["condition_id", "dimension", "metric_id", "unit", "comparator", "before_value", "after_value", "observed_value", "basis_evidence_id", "affected_criterion_id", "before_rule_passed", "after_rule_passed", "before_outcome", "after_outcome"],
+         "properties": {"condition_id": {"$ref": "#/$defs/id"}, "dimension": {"const": "threshold"}, "metric_id": {"$ref": "#/$defs/id"}, "unit": {"$ref": "#/$defs/id"}, "comparator": {"$ref": "#/$defs/comparator"}, "before_value": {"type": "number"}, "after_value": {"type": "number"}, "observed_value": {"type": "number"}, "basis_evidence_id": {"$ref": "#/$defs/id"}, "affected_criterion_id": {"$ref": "#/$defs/id"}, "before_rule_passed": {"type": "boolean"}, "after_rule_passed": {"type": "boolean"}, "before_outcome": {"$ref": "#/$defs/decisionOutcome"}, "after_outcome": {"$ref": "#/$defs/decisionOutcome"}}},
         {"type": "object", "additionalProperties": false,
-         "required": ["dimension", "before_context", "after_context", "affected_criterion_id", "before_decision", "after_decision", "decision_basis"],
-         "properties": {"dimension": {"const": "context"}, "before_context": {"$ref": "#/$defs/contextState"}, "after_context": {"$ref": "#/$defs/contextState"}, "affected_criterion_id": {"$ref": "#/$defs/id"}, "before_decision": {"$ref": "#/$defs/text"}, "after_decision": {"$ref": "#/$defs/text"}, "decision_basis": {"$ref": "#/$defs/text"}}}
+         "required": ["condition_id", "dimension", "before_context", "after_context", "required_constraint", "affected_criterion_id", "before_rule_passed", "after_rule_passed", "before_outcome", "after_outcome"],
+         "properties": {"condition_id": {"$ref": "#/$defs/id"}, "dimension": {"const": "context"}, "before_context": {"$ref": "#/$defs/contextState"}, "after_context": {"$ref": "#/$defs/contextState"}, "required_constraint": {"$ref": "#/$defs/id"}, "affected_criterion_id": {"$ref": "#/$defs/id"}, "before_rule_passed": {"type": "boolean"}, "after_rule_passed": {"type": "boolean"}, "before_outcome": {"$ref": "#/$defs/decisionOutcome"}, "after_outcome": {"$ref": "#/$defs/decisionOutcome"}}}
       ]
     },
+    "comparator": {"enum": ["lt", "lte", "gt", "gte", "eq", "neq"]},
+    "decisionOutcome": {"enum": ["accept", "reject", "revise", "reallocate", "escalate", "record"]},
     "contextState": {"type": "object", "additionalProperties": false, "required": ["profile_id", "constraints"], "properties": {"profile_id": {"$ref": "#/$defs/id"}, "constraints": {"$ref": "#/$defs/textList"}}},
     "transferTask": {
       "type": "object", "additionalProperties": false,
@@ -213,16 +215,19 @@
     "evidencePair": {"type": "object", "additionalProperties": false, "required": ["input_evidence_id", "output_evidence_id"], "properties": {"input_evidence_id": {"$ref": "#/$defs/id"}, "output_evidence_id": {"$ref": "#/$defs/id"}}},
     "action": {
       "type": "object", "additionalProperties": false,
-      "required": ["id", "sequence", "task_id", "action", "decision", "observable_result", "affected_criterion_id", "input_evidence_id", "output_evidence_id", "result", "at"],
+      "required": ["id", "sequence", "task_id", "operation", "decision", "observable_result", "affected_criterion_id", "input_evidence_id", "output_evidence_id", "result", "at"],
       "properties": {
         "id": {"$ref": "#/$defs/id"}, "sequence": {"type": "integer", "minimum": 1},
-        "task_id": {"$ref": "#/$defs/id"}, "action": {"$ref": "#/$defs/text"},
-        "decision": {"$ref": "#/$defs/text"}, "observable_result": {"$ref": "#/$defs/text"},
+        "task_id": {"$ref": "#/$defs/id"}, "operation": {"$ref": "#/$defs/operation"},
+        "decision": {"$ref": "#/$defs/actionDecision"}, "observable_result": {"$ref": "#/$defs/observableResult"},
         "affected_criterion_id": {"$ref": "#/$defs/id"},
         "input_evidence_id": {"$ref": "#/$defs/id"}, "output_evidence_id": {"$ref": "#/$defs/id"},
         "result": {"enum": ["PASS", "FAIL"]}, "at": {"$ref": "#/$defs/text"}
       }
     },
+    "operation": {"type": "object", "additionalProperties": false, "required": ["subject_evidence_id", "kind", "transformation"], "properties": {"subject_evidence_id": {"$ref": "#/$defs/id"}, "kind": {"enum": ["extract", "calculate", "transform", "compare", "compose", "validate", "repair"]}, "transformation": {"type": "object", "additionalProperties": false, "required": ["rule_kind", "rule_id"], "properties": {"rule_kind": {"enum": ["field-extraction", "numeric-calculation", "threshold-evaluation", "artifact-composition", "criterion-validation", "artifact-repair"]}, "rule_id": {"$ref": "#/$defs/id"}}}}},
+    "actionDecision": {"type": "object", "additionalProperties": false, "required": ["condition_id", "criterion_id", "rule_passed", "outcome"], "properties": {"condition_id": {"$ref": "#/$defs/id"}, "criterion_id": {"$ref": "#/$defs/id"}, "rule_passed": {"type": "boolean"}, "outcome": {"$ref": "#/$defs/decisionOutcome"}}},
+    "observableResult": {"type": "object", "additionalProperties": false, "required": ["evidence_id", "criterion_id", "expected_result", "actual_result", "actual_sha256"], "properties": {"evidence_id": {"$ref": "#/$defs/id"}, "criterion_id": {"$ref": "#/$defs/id"}, "expected_result": {"const": "PASS"}, "actual_result": {"enum": ["PASS", "FAIL"]}, "actual_sha256": {"$ref": "#/$defs/sha256"}}},
     "criterionEvidence": {
       "type": "object", "additionalProperties": false,
       "required": ["g0_criterion_id", "capability_id", "outcome_id", "criterion_id", "unit_id", "action_id", "artifact_evidence_id", "result"],
