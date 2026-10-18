@@ -93,6 +93,34 @@ def load_package_manifest(path: Path) -> tuple[str, ...]:
     return tuple(record["name"] for record in _load_manifest_records(path))
 
 
+def _safe_root_argument(
+    path: Path,
+    label: str,
+    *,
+    allow_absent: bool = False,
+) -> Path:
+    candidate = Path(os.path.abspath(Path(path).expanduser()))
+    if not candidate.is_absolute():  # defensive: abspath always produces absolute
+        raise InstallError(f"{label} must be an absolute path")
+    if candidate.is_symlink():
+        raise InstallError(f"unsupported symbolic-link {label}: {candidate}")
+    if candidate.exists() and not candidate.is_dir():
+        raise InstallError(f"{label} must be a directory: {candidate}")
+    if not allow_absent and not candidate.is_dir():
+        raise InstallError(f"{label} directory does not exist: {candidate}")
+    return candidate
+
+
+def _validate_package_tree(root: Path, name: str) -> None:
+    if root.is_symlink() or not root.is_dir():
+        raise InstallError(f"missing validated package: {root}")
+    for path in root.rglob("*"):
+        if path.is_symlink():
+            raise InstallError(
+                f"package {name} contains an unsupported symbolic link: {path}"
+            )
+
+
 def tree_hash(root: Path) -> str:
     root = Path(root)
     if not root.is_dir():
@@ -344,9 +372,13 @@ def install(
     package_names: Sequence[str] | None = None,
     allow_updates: Sequence[str] = (),
 ) -> InstallResult:
-    packages_root = Path(packages_root).resolve()
-    skills_root = Path(skills_root).resolve()
-    operations_root = Path(operations_root).resolve()
+    packages_root = _safe_root_argument(Path(packages_root), "packages root")
+    skills_root = _safe_root_argument(
+        Path(skills_root), "skills root", allow_absent=True
+    )
+    operations_root = _safe_root_argument(
+        Path(operations_root), "operations root", allow_absent=True
+    )
     records = _load_manifest_records(packages_root / "manifest.json")
     manifest_names = tuple(record["name"] for record in records)
     record_by_name = {record["name"]: record for record in records}
@@ -371,8 +403,7 @@ def install(
 
     for name in selected_names:
         source = packages_root / name
-        if source.is_symlink() or not source.is_dir():
-            raise InstallError(f"missing validated package: {source}")
+        _validate_package_tree(source, name)
         entrypoint = source / record_by_name[name]["entrypoint"]
         if entrypoint.is_symlink() or not entrypoint.is_file():
             raise InstallError(f"missing package entrypoint: {entrypoint}")
@@ -514,13 +545,41 @@ def install(
         raise
 
 
+def verify_source_packages(
+    packages_root: Path,
+    package_names: Sequence[str] | None = None,
+) -> dict[str, str]:
+    packages_root = _safe_root_argument(Path(packages_root), "packages root")
+    records = _load_manifest_records(packages_root / "manifest.json")
+    record_by_name = {record["name"]: record for record in records}
+    selected = tuple(package_names) if package_names is not None else tuple(record_by_name)
+    if not selected or len(selected) != len(set(selected)):
+        raise InstallError("source verification requires unique manifest package names")
+    unknown = sorted(set(selected) - set(record_by_name))
+    if unknown:
+        raise InstallError(
+            "source verification packages are absent from manifest: "
+            + ", ".join(unknown)
+        )
+    verified: dict[str, str] = {}
+    for name in selected:
+        source = packages_root / name
+        _validate_package_tree(source, name)
+        expected = record_by_name[name]["baseline_hash"]
+        actual = tree_hash(source)
+        if actual != expected:
+            raise InstallError(f"package source differs from manifest baseline: {name}")
+        verified[name] = actual
+    return verified
+
+
 def verify_installed_packages(
     packages_root: Path,
     skills_root: Path,
     package_names: Sequence[str] | None = None,
 ) -> dict[str, str]:
-    packages_root = Path(packages_root).resolve()
-    skills_root = Path(skills_root).resolve()
+    packages_root = _safe_root_argument(Path(packages_root), "packages root")
+    skills_root = _safe_root_argument(Path(skills_root), "skills root")
     records = _load_manifest_records(packages_root / "manifest.json")
     record_by_name = {record["name"]: record for record in records}
     selected = tuple(package_names) if package_names is not None else tuple(record_by_name)
@@ -533,12 +592,9 @@ def verify_installed_packages(
         )
     verified: dict[str, str] = {}
     for name in selected:
-        source = packages_root / name
         target = skills_root / name
         expected = record_by_name[name]["baseline_hash"]
-        if not source.is_dir() or tree_hash(source) != expected:
-            raise InstallError(f"package source differs from manifest baseline: {name}")
-        if not target.is_dir():
+        if target.is_symlink() or not target.is_dir():
             raise InstallError(f"installed skill is missing: {name}")
         actual = tree_hash(target)
         if actual != expected:
@@ -622,10 +678,17 @@ def build_parser() -> argparse.ArgumentParser:
     mode.add_argument("--dry-run", action="store_true", help="report changes only")
     mode.add_argument("--apply", action="store_true", help="apply with backup and rollback")
     mode.add_argument(
-        "--verify", action="store_true", help="verify installed trees against the manifest"
+        "--verify-source",
+        action="store_true",
+        help="verify versioned package sources against the manifest",
+    )
+    mode.add_argument(
+        "--verify-installed",
+        action="store_true",
+        help="verify installed trees against manifest hashes",
     )
     parser.add_argument("--packages-root", type=Path, default=project_root / "skill-packages")
-    parser.add_argument("--skills-root", type=Path, default=Path.home() / ".agents" / "skills")
+    parser.add_argument("--skills-root", type=Path)
     parser.add_argument(
         "--package",
         action="append",
@@ -641,7 +704,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--operations-root",
         type=Path,
-        default=project_root / "operations" / "course-skill-foundation",
+        default=None,
     )
     return parser
 
@@ -649,19 +712,45 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
-        if args.verify:
+        if args.verify_source:
+            verified = verify_source_packages(
+                args.packages_root,
+                args.package_names,
+            )
+            for name, package_hash in verified.items():
+                print(f"SOURCE_VERIFIED {name}: {package_hash}")
+            return 0
+        skills_root = args.skills_root
+        if skills_root is None:
+            configured_skills = os.environ.get("SKILLS_ROOT")
+            if not configured_skills:
+                raise InstallError("SKILLS_ROOT or --skills-root is required")
+            skills_root = Path(configured_skills)
+        if args.verify_installed:
             verified = verify_installed_packages(
                 args.packages_root,
-                args.skills_root,
+                skills_root,
                 args.package_names,
             )
             for name, package_hash in verified.items():
                 print(f"VERIFIED {name}: {package_hash}")
             return 0
+        operations_root = args.operations_root
+        if operations_root is None:
+            configured_state = os.environ.get("COURSE_DESIGN_STATE_ROOT")
+            if args.apply and not configured_state:
+                raise InstallError(
+                    "COURSE_DESIGN_STATE_ROOT or --operations-root is required for apply"
+                )
+            operations_root = (
+                Path(configured_state) / "operations" / "course-skill-foundation"
+                if configured_state
+                else args.packages_root.parent / ".dry-run-operations-unused"
+            )
         result = install(
             args.packages_root,
-            args.skills_root,
-            args.operations_root,
+            skills_root,
+            operations_root,
             apply=args.apply,
             package_names=args.package_names,
             allow_updates=args.allow_update,

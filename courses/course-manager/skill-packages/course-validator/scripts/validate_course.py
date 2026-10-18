@@ -119,7 +119,11 @@ def evaluate(root,slug,content_only=False,only_unit=None):
 
 def main():
     ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('slug');ap.add_argument('mode',nargs='?',default='all',choices=['all','preflight','status','report','content'])
-    ap.add_argument('--unit');ap.add_argument('--root',type=Path,default=Path(os.environ.get('COURSE_WEB_ROOT',str(Path.home()/'Library/Mobile Documents/com~apple~CloudDocs/01-PROJECTS/課程專用網頁'))));a=ap.parse_args()
+    ap.add_argument('--unit');ap.add_argument('--root',type=Path);a=ap.parse_args()
+    if a.root is None:
+        configured=os.environ.get('COURSE_WEB_ROOT')
+        if not configured: ap.error('COURSE_WEB_ROOT or --root is required')
+        a.root=Path(configured)
     try: result=evaluate(a.root,a.slug,a.mode=='content',a.unit)
     except (ValueError,TypeError,KeyError,OSError,UnicodeError) as e:
         print(json.dumps({'status':'BLOCKED','error':str(e)},ensure_ascii=False));return 2

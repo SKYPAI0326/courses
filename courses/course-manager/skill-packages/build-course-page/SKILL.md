@@ -27,7 +27,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 所有相對路徑以下列目錄為根（稱作 `$BASE`）：
 
 ```
-$BASE = /Users/paichenwei/Library/Mobile Documents/com~apple~CloudDocs/01-PROJECTS/課程專用網頁/
+$BASE = $COURSE_WEB_ROOT
 ```
 
 📖 **系統手冊**：`$BASE/_規範/課程製作團隊系統手冊.md`（8 角色流程、G1–G5 Gate 檢核、四課型證據契約）
@@ -115,7 +115,7 @@ module{N}.html
 /build-course-page --lesson-plan _lessons/n8n-pro/CH2-1.md
 ```
 
-正式正文是內容唯一來源。先依 learner-action-contract.md 找出 learner-content 範圍，確認 evidence.json 有本版本的 content 審查；執行 `bash /Users/paichenwei/.agents/skills/course-validator/scripts/course-validator.sh {slug} content --unit {unit_id}` 核對版本。沒有有效審查先交 reviewer，不能用頁面排版補內容。試飛使用相同證據規則，可在隔離專案根目錄以 COURSE_WEB_ROOT 指定測試路徑。
+正式正文是內容唯一來源。先依 learner-action-contract.md 找出 learner-content 範圍，確認 evidence.json 有本版本的 content 審查；執行 `bash "$SKILLS_ROOT/course-validator/scripts/course-validator.sh" {slug} content --unit {unit_id}` 核對版本。`COURSE_WEB_ROOT` 與 `SKILLS_ROOT` 缺一即停止。沒有有效審查先交 reviewer，不能用頁面排版補內容。試飛使用相同證據規則，可在隔離專案根目錄以 COURSE_WEB_ROOT 指定測試路徑。
 
 <!-- anchor:step-d0.5 -->
 ### Step D0.5：建立課程專屬視覺決策
@@ -135,7 +135,7 @@ module{N}.html
 
 **必讀**：`$BASE/_規範/learner-action-contract.md`。產頁以 Learner Task Contract 為唯一學員路徑來源，只呈現教案已凍結的契約事實，不另造入口或故事規則。
 
-**必讀**：`/Users/paichenwei/.agents/skills/course-handout-designer/references/beginner-continuity-gate.md`。它只提供 30 秒入口與轉段測試。若教案缺契約、素材、完整示範或必要操作證據，停止產頁並退回 `course-designer`／素材製作；builder 不臨場補寫技術事實。
+**必讀**：`$SKILLS_ROOT/course-handout-designer/references/beginner-continuity-gate.md`。它只提供 30 秒入口與轉段測試。未設定 `SKILLS_ROOT`，或教案缺契約、素材、完整示範或必要操作證據時，停止產頁並退回 `course-designer`／素材製作；builder 不臨場補寫技術事實。
 
 <!-- anchor:step-d1 -->
 ### Step D1：讀教案檔 + 依 course_type 決定骨架重心
@@ -161,7 +161,7 @@ module{N}.html
 
 **Asset Availability Gate（正式 HTML 強制）**：
 - 讀取教案「素材存在 Gate」。所有核心素材必須是 `READY`，並有實際檔案、可複製內容或明確取得路徑。
-- 必讀 `/Users/paichenwei/.agents/skills/course-handout-designer/references/asset-discoverability-gate.md`。逐一確認 HTML 中每項學員可見的範例檔、附件、測試資料、Blueprint、模板或完成品，在第一次使用前都有可點擊的 `href`（可開啟／下載）或可複製內容，並寫明檔名／格式、用途、使用時機與備援；只顯示 `<code>` 裸檔名或「課程資產中」不算。
+- 必讀 `$SKILLS_ROOT/course-handout-designer/references/asset-discoverability-gate.md`。逐一確認 HTML 中每項學員可見的範例檔、附件、測試資料、Blueprint、模板或完成品，在第一次使用前都有可點擊的 `href`（可開啟／下載）或可複製內容，並寫明檔名／格式、用途、使用時機與備援；只顯示 `<code>` 裸檔名或「課程資產中」不算。
 - 逐一確認下載、連結、檔名、範例值、上游產物與 `href` 目標確實存在且可從目前頁面解析；頁尾資產卡不能是唯一入口。試跑包需求清單、placeholder 或「之後提供」不算素材。
 - 缺素材、權限路線、完整完成品或 integration 上游產物時停止產頁，退回 `course-designer`／素材製作階段；不得自行發明或以說明文字代替。
 
@@ -367,9 +367,9 @@ concept 類的「Reflection」區塊用這個新 HTML 結構（由 Troubleshoot 
 5. **提醒 sitemap 重建**：在回報中列出「需要執行 `/course-ops {slug} sitemap` 重建 sitemap」。（本 skill 不直接跑 sitemap，由 ops 角色負責）
 
 <!-- anchor:course-pdf-sync -->
-6. **已登錄 PDF 的同步交接**：若 `$BASE/courses/course-manager/registry/pdf/catalog.json` 存在，執行：
+6. **已登錄 PDF 的同步交接**：若 `$COURSE_DESIGN_STATE_ROOT/registry/pdf/catalog.json` 存在，執行：
    ```bash
-   python3 /Users/paichenwei/.agents/skills/course-pdf/scripts/run.py --root "$BASE/courses" sync --course {slug}
+   python3 "$SKILLS_ROOT/course-pdf/scripts/run.py" --root "$BASE/courses" sync --course {slug}
    ```
    此命令預設唯讀 PLAN_ONLY，不產製 PDF。該課程有登錄成品時，回報 CURRENT／STALE／UNVERIFIED／BLOCKED 與受影響清單；沒有成品就不增加 PDF 交付要求。需重建時交給 `course-pdf`，沿用使用者已授權範圍；網頁驗收不代表 PDF 已同步。
 
@@ -419,6 +419,6 @@ concept 類的「Reflection」區塊用這個新 HTML 結構（由 Troubleshoot 
 
 ## HTML 編輯保護契約（必讀）
 
-HTML 作業前讀 [SKILL.md](/Users/paichenwei/.agents/skills/course-html-contract/SKILL.md)，依該契約宣告變更類型，執行 DOM／文字保護、共用結構檢查、代表頁 RWD／scroll state 驗證及回復規則；驗收與授權狀態據實回報。
+HTML 作業前讀 `$SKILLS_ROOT/course-html-contract/SKILL.md`；未設定 `SKILLS_ROOT` 時停止。依該契約宣告變更類型，執行 DOM／文字保護、共用結構檢查、代表頁 RWD／scroll state 驗證及回復規則；驗收與授權狀態據實回報。
 
 本角色責任：只轉製已審查的正式正文；內容缺漏退回上游。

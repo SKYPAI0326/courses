@@ -2,7 +2,14 @@
 
 本系統已涵蓋從需求釐清、外部研究、課程架構、教學正文、代表單元、全課製作、獨立試學到發布治理的 G0–G6 流程。完整角色、證據與命令請讀 [完整課程設計系統](complete-course-design-system.md)。
 
-以下命令都從 `courses/course-manager` 執行。
+先明確設定四個彼此分離的 root。installer 與 `course_run.py` 使用下方 absolute script path 時，可從任意工作目錄執行；其餘相對路徑範例以 design-system root 為工作目錄：
+
+```bash
+export COURSE_DESIGN_SYSTEM_ROOT=/absolute/path/to/course-design-system
+export COURSE_WEB_ROOT=/absolute/path/to/managed-courses
+export SKILLS_ROOT=/absolute/path/to/skills
+export COURSE_DESIGN_STATE_ROOT=/absolute/path/to/course-design-state
+```
 
 ## 建立或恢復新課
 
@@ -97,16 +104,27 @@ python3 scripts/course_release.py apply \
 ## 本機 Skill 安裝與回復
 
 ```bash
-python3 scripts/install_course_skill_foundation.py \
-  --dry-run --skills-root /Users/paichenwei/.agents/skills
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/install_course_skill_foundation.py" \
+  --verify-source
 
-python3 scripts/install_course_skill_foundation.py \
-  --apply --allow-update \
-  --skills-root /Users/paichenwei/.agents/skills
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/install_course_skill_foundation.py" \
+  --dry-run --skills-root "$SKILLS_ROOT"
+
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/install_course_skill_foundation.py" \
+  --apply --skills-root "$SKILLS_ROOT" \
+  --allow-update course-run \
+  --allow-update course-validator
+
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/install_course_skill_foundation.py" \
+  --verify-installed --skills-root "$SKILLS_ROOT"
+
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/course_run.py" doctor
 ```
 
 安裝器以 package manifest 判斷 `ADD`、`UPDATE`、`UNCHANGED`，更新前建立備份。rollback 會先確認已安裝內容沒有被後續修改；不相符就停止，不覆蓋使用者變更。
 
+安裝 operations、catalog、report 與 backup 預設寫在 repo 外的 `COURSE_DESIGN_STATE_ROOT`。doctor 在 POSIX macOS/Linux 回報各 root 與依賴的 `READY`／`BLOCKED`；Windows lock 尚未支援，會 fail closed。
+
 ## 既有課程
 
-既有課程使用 `course-repair`，不補造新課 Gate 歷史。修復維持 `scan → plan → backup → fix → verify`；若重新定義學員、核心成果或整門課架構，改開新的 G0 contract。
+既有課程使用 `course-repair`，不補造新課 Gate 歷史。修復維持 `scan → plan → backup → fix → verify`；若重新定義學員、核心成果或整門課架構，改開新的 G0 contract。`fix` 目前會 fail closed；approved plan hash、before hashes、完整 backup 與 isolated restore proof 的中央 transaction enforcement 是 Task 8 integration blocker。

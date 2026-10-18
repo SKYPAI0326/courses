@@ -1,23 +1,23 @@
 # Course contract routing
 
-All commands run from courses/course-manager. The contract is the only lifecycle state source.
+Set `COURSE_DESIGN_SYSTEM_ROOT`, `COURSE_WEB_ROOT`, `SKILLS_ROOT`, and `COURSE_DESIGN_STATE_ROOT` to absolute directories. Missing settings fail closed; commands do not depend on cwd, HOME, or a checkout name. The contract is the only lifecycle state source.
 
 ## Commands
 
 ~~~bash
-python3 scripts/course_contract.py init --root COURSE_ROOT --slug SLUG --title TITLE --created-by NAME --at ISO8601
-python3 scripts/course_contract.py enroll-approval-authority --contract CONTRACT --authority-id AUTHORITY --public-key PUBLIC_KEY_JSON --expected-revision 0
-python3 scripts/course_contract.py status --contract CONTRACT
-python3 scripts/course_contract.py validate --contract CONTRACT
-python3 scripts/course_contract.py begin --contract CONTRACT --gate GATE --actor NAME --at ISO8601
-python3 scripts/course_contract.py pass --contract CONTRACT --gate GATE --evidence-id ID --validator-id ID --actor NAME --at ISO8601
-python3 scripts/course_contract.py fail --contract CONTRACT --gate GATE --issue TEXT --actor NAME --at ISO8601
-python3 scripts/course_contract.py block --contract CONTRACT --gate GATE --reason REASON --actor NAME --at ISO8601
-python3 scripts/course_contract.py change --contract CONTRACT --gate GATE --reason REASON --actor NAME --at ISO8601 --semantic
-python3 scripts/course_contract.py propose-action --contract CONTRACT --action-id ID --kind KIND --manifest-path PATH --manifest-sha256 SHA256 --actor NAME --at ISO8601
-python3 scripts/course_contract.py authorize-action --contract CONTRACT --action-id ID --receipt SIGNED_APPROVAL_RECEIPT_JSON --at ISO8601
-python3 scripts/course_contract.py check-action --contract CONTRACT --action-id ID --manifest-sha256 SHA256
-python3 scripts/course_contract.py migrate --contract CONTRACT --actor NAME --at ISO8601
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/course_contract.py" init --root COURSE_ROOT --slug SLUG --title TITLE --created-by NAME --at ISO8601
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/course_contract.py" enroll-approval-authority --contract CONTRACT --authority-id AUTHORITY --public-key PUBLIC_KEY_JSON --expected-revision 0
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/course_run.py" resume --contract CONTRACT --actor NAME --at ISO8601
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/course_run.py" complete --contract CONTRACT --gate GATE --evidence-id ID --actor NAME --at ISO8601
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/course_contract.py" status --contract CONTRACT
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/course_contract.py" validate --contract CONTRACT
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/course_contract.py" fail --contract CONTRACT --gate GATE --issue TEXT --actor NAME --at ISO8601
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/course_contract.py" block --contract CONTRACT --gate GATE --reason REASON --actor NAME --at ISO8601
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/course_contract.py" change --contract CONTRACT --gate GATE --reason REASON --actor NAME --at ISO8601 --semantic
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/course_contract.py" propose-action --contract CONTRACT --action-id ID --kind KIND --manifest-path PATH --manifest-sha256 SHA256 --actor NAME --at ISO8601
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/course_contract.py" authorize-action --contract CONTRACT --action-id ID --receipt SIGNED_APPROVAL_RECEIPT_JSON --at ISO8601
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/course_contract.py" check-action --contract CONTRACT --action-id ID --manifest-sha256 SHA256
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/course_contract.py" migrate --contract CONTRACT --actor NAME --at ISO8601
 ~~~
 
 Omit --semantic only when meaning, scope, outcomes, environment, assessment, and learner action remain unchanged.

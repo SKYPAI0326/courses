@@ -7,7 +7,7 @@ description: Use when explicitly requested to design a standalone learner handou
 
 這是 course-designer 使用的講義設計方法庫，用來把主題、大綱或破碎草稿寫成學員可獨立閱讀與完成任務的講義。正常流程的正式內容契約位於 `course-designer/references/learner-content-contract.json`；單獨呼叫本 skill 時仍由本次執行者負責同一份正式正文，不產生第二份教學版本或另一套 Gate。
 
-`$BASE = /Users/paichenwei/Library/Mobile Documents/com~apple~CloudDocs/01-PROJECTS/課程專用網頁`
+`$BASE = $COURSE_WEB_ROOT`；未明確設定時停止。
 
 ## 依任務讀取
 
@@ -35,4 +35,4 @@ description: Use when explicitly requested to design a standalone learner handou
 
 ## HTML 交接保護
 
-本 skill 只負責完整學員正文與講義設計，不直接改既有 HTML。交給 `build-course-page` 前，明確標示本次是 `content-change`（依已核准正文轉製）或 `syntax-only`／`layout-only`；若 brief 要求不改文字，交接時要求 builder 遵守 `/Users/paichenwei/.agents/skills/course-html-contract/SKILL.md`，保留既有 `.lesson-body` wrapper，不把內容缺口留給排版補寫。
+本 skill 只負責完整學員正文與講義設計，不直接改既有 HTML。交給 `build-course-page` 前，明確標示本次是 `content-change`（依已核准正文轉製）或 `syntax-only`／`layout-only`；若 brief 要求不改文字，交接時要求 builder 遵守 `$SKILLS_ROOT/course-html-contract/SKILL.md`，未設定 `SKILLS_ROOT` 時停止，保留既有 `.lesson-body` wrapper，不把內容缺口留給排版補寫。

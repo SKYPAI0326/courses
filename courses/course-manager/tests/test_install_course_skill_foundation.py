@@ -16,6 +16,8 @@ from scripts.install_course_skill_foundation import (
     verify_installed_packages,
 )
 
+verify_source_packages = getattr(installer, "verify_source_packages", None)
+
 
 PACKAGE_NAMES = ("course-run", "course-researcher", "course-pm")
 
@@ -208,6 +210,30 @@ class CourseSkillFoundationInstallerTests(unittest.TestCase):
                 self.packages_root, self.skills_root, PACKAGE_NAMES
             )
 
+    def test_source_integrity_is_a_separate_verification_mode(self):
+        self.assertIsNotNone(
+            verify_source_packages,
+            "installer must expose source-only integrity verification",
+        )
+        verified = verify_source_packages(self.packages_root, PACKAGE_NAMES)
+        self.assertEqual(set(verified), set(PACKAGE_NAMES))
+
+        (self.packages_root / "course-run" / "SKILL.md").write_text(
+            "source drift\n", encoding="utf-8"
+        )
+        with self.assertRaisesRegex(InstallError, "source differs"):
+            verify_source_packages(self.packages_root, PACKAGE_NAMES)
+
+    def test_installed_verification_does_not_require_source_trees(self):
+        self.apply_install()
+        for name in PACKAGE_NAMES:
+            installer.shutil.rmtree(self.packages_root / name)
+
+        verified = verify_installed_packages(
+            self.packages_root, self.skills_root, PACKAGE_NAMES
+        )
+        self.assertEqual(set(verified), set(PACKAGE_NAMES))
+
     def test_manifest_records_before_and_after_hashes(self):
         result = self.apply_install()
         manifest = json.loads(
@@ -337,6 +363,31 @@ class CourseSkillFoundationInstallerTests(unittest.TestCase):
         self.assertTrue(target.is_symlink())
         self.assertEqual(self.snapshot(self.skills_root / "course-run"), before)
         self.assertFalse(self.operations_root.exists())
+
+    def test_preflight_rejects_symlink_skills_root_before_mutation(self):
+        real_skills = self.root / "real-skills"
+        self.skills_root.rename(real_skills)
+        self.skills_root.symlink_to(real_skills, target_is_directory=True)
+
+        with self.assertRaises(InstallError):
+            self.apply_install()
+
+        self.assertFalse(self.operations_root.exists())
+
+    def test_manifest_failure_before_current_swap_does_not_leave_partial_install(self):
+        before = self.snapshot(self.skills_root)
+        real_copy = installer._copy_verified
+
+        def fail_second_source_copy(source, destination, expected_hash):
+            if Path(source).name == "course-researcher" and Path(destination).name == "staged":
+                raise OSError("simulated current-item copy failure")
+            return real_copy(source, destination, expected_hash)
+
+        with mock.patch.object(installer, "_copy_verified", side_effect=fail_second_source_copy):
+            with self.assertRaises(OSError):
+                self.apply_install()
+
+        self.assertEqual(self.snapshot(self.skills_root), before)
 
     def test_install_restores_current_target_when_staged_replace_fails(self):
         before = {

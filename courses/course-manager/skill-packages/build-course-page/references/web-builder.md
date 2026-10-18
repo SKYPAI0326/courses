@@ -11,7 +11,7 @@
 所有相對路徑以下列目錄為根（稱作 `$BASE`）：
 
 ```
-$BASE = /Users/paichenwei/Library/Mobile Documents/com~apple~CloudDocs/01-PROJECTS/課程專用網頁/
+$BASE = $COURSE_WEB_ROOT
 ```
 
 📖 **系統手冊**：`$BASE/_規範/課程製作團隊系統手冊.md`（8 角色流程、G1–G5 Gate 檢核、四課型證據契約）

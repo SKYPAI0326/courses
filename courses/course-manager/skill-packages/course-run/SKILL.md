@@ -16,7 +16,7 @@ Read [gate-routing.json](references/gate-routing.json) for deterministic authori
 1. Locate _design/{slug}/course-contract.json.
 2. If absent, begin G0 with an adaptive interview covering learner and baseline, work context, observable artifact, duration and delivery, tools, accounts, permissions, device, locale, prerequisites, constraints, acceptance criteria with child capabilities, assumptions, unknowns, and decisions. Save a requirements record conforming to `contracts/course-requirements-record.schema.json`; unresolved material unknowns keep G0 BLOCKED. Do not repeat facts already supplied.
 3. Create the contract with the CLI init command in the routing reference.
-4. Run status; resume the first Gate that is not PASS.
+4. 執行 `python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/course_run.py" resume --contract CONTRACT --actor course-run --at ISO8601`。CLI 會以 transaction 開始第一個未通過 Gate，並在 `COURSE_DESIGN_STATE_ROOT` 產生可重播的單一 dispatch envelope。
 
 A G0 work record may preserve unknowns. Important unknowns keep the Gate BLOCKED until resolved.
 
@@ -30,7 +30,7 @@ For the current Gate:
 2. Dispatch the producer and require the structured return defined in the routing reference.
 3. Keep detailed research, prose, media, and test records in external files. Put paths and SHA-256 evidence references in the contract.
 4. If required information, material, permission, environment, hands-on execution, or evidence is missing, record the reason and set the Gate to BLOCKED. Preserve failed attempts as evidence.
-5. Validate the deliverables against the Gate contract. On success, course-run records PASS with indexed evidence; on failed validation, record FAIL; on missing required evidence or permission, record BLOCKED.
+5. 以 `course_run.py complete --contract CONTRACT --gate GATE --evidence-id ID --actor course-run --at ISO8601` 完成。它在同一 transaction 內呼叫中央 Gate dispatcher；成功時開始下一 Gate，缺證據時保存 BLOCKED envelope。不得改回只輸出 JSON、沒有呼叫 validator 的假調度。
 6. Gate PASS 後自動開始下一個 Gate，不要求使用者逐關核准。Show the user the actual deliverables, evidence, blockers, risks, open questions, and next action at meaningful decision points. Do not replace their prose with an abbreviated summary.
 7. Before an external mutation, create an exact action manifest, request explicit user authorization, and verify the authorized hash immediately before execution.
 
@@ -69,3 +69,5 @@ G4 代表單元連同獨立 AI 試走通過後，才展開全課量產。G5 必�
 ## Boundaries
 
 Use this Skill only for new courses. Route diagnosis or repair of an existing course to course-repair. Do not enter G4 batch production before the representative unit passes. Do not treat evidence maturity labels as Gate lifecycle states.
+
+目前 orchestrator 不執行 `course-repair fix`。repair mutation 必須另有受治理 transaction，驗證 approved plan hash、所有 before hashes、完整 backup manifest 與隔離 restore proof；整合完成前一律 fail closed。

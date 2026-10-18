@@ -22,8 +22,8 @@ if [ -z "$SLUG" ]; then
   exit 1
 fi
 
-COURSE_WEB_ROOT="${COURSE_WEB_ROOT:-$HOME/Library/Mobile Documents/com~apple~CloudDocs/01-PROJECTS/課程專用網頁}"
-SKILL_DIR="${SKILL_DIR:-$HOME/.agents/skills/course-validator}"
+: "${COURSE_WEB_ROOT:?COURSE_WEB_ROOT must be set}"
+SKILL_DIR="${SKILL_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 
 COURSE_DIR="$COURSE_WEB_ROOT/courses/$SLUG"
 OUT_DIR="$COURSE_DIR/_validation"

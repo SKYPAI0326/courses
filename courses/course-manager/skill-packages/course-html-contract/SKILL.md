@@ -58,7 +58,7 @@ assert target is not None and target.find_parent(class_='lesson-body') is body
 ## 4. 變更後必做的驗收
 
 1. `syntax-only`／`layout-only`：比較可見文字快照；若文字、href、課程順序或教學區塊數量改變，停止並回復。
-   可直接執行 `python3 /Users/paichenwei/.agents/skills/course-html-contract/scripts/check_content_unchanged.py BEFORE.html AFTER.html`；非內容任務必須得到 `content unchanged`。
+   可直接執行 `python3 "$SKILLS_ROOT/course-html-contract/scripts/check_content_unchanged.py" BEFORE.html AFTER.html`；未設定 `SKILLS_ROOT` 時停止；非內容任務必須得到 `content unchanged`。
 2. 所有範圍：以 parser 檢查未配對標籤、visual decision 指定的內容根節點、main／nav／footer 順序與目標節點父鏈；既有 `.lesson-body` 頁另外檢查其後代關係。
 3. 執行 `python3 docs/lint-page.py <file.html> --summary`，再對受影響頁跑 `python3 docs/audit-course-substance.py <slug> --page <file.html>`。
 4. 檢查 `git diff --check` 與目標檔的 diff；看見 wrapper 大段移動、內容漂移、全域取代或非預期文字變更時，先停止，不以 lint 通過掩蓋。
@@ -67,7 +67,7 @@ assert target is not None and target.find_parent(class_='lesson-body') is body
 既有 `.lesson-body` 頁面使用共用檢查器：
 
 ```bash
-python3 /Users/paichenwei/.agents/skills/course-html-contract/scripts/validate_html_structure.py <file.html>
+python3 "$SKILLS_ROOT/course-html-contract/scripts/validate_html_structure.py" <file.html>
 ```
 
 ## 5. 角色邊界
@@ -107,19 +107,19 @@ python3 /Users/paichenwei/.agents/skills/course-html-contract/scripts/validate_h
 每個被修改的 HTML 都要執行：
 
 ```bash
-python3 /Users/paichenwei/.agents/skills/course-html-contract/scripts/validate-course-structure.py FILE.html
+python3 "$SKILLS_ROOT/course-html-contract/scripts/validate-course-structure.py" FILE.html
 ```
 
 批次掃描可使用：
 
 ```bash
-python3 /Users/paichenwei/.agents/skills/course-html-contract/scripts/validate-course-structure.py --batch office-ai
+python3 "$SKILLS_ROOT/course-html-contract/scripts/validate-course-structure.py" --batch office-ai
 ```
 
 `office-ai` 固定回歸頁可使用：
 
 ```bash
-python3 /Users/paichenwei/.agents/skills/course-html-contract/scripts/validate-course-structure.py --office-ai-regression office-ai
+python3 "$SKILLS_ROOT/course-html-contract/scripts/validate-course-structure.py" --office-ai-regression office-ai
 ```
 
 既有頁檢查器至少阻擋：`.lesson-body` 缺失或數量不符合預期、每個 `.lesson-section` 不在 `.lesson-body` 內、第一個 `.lesson-section` 在 body 之前、重複 `id`、未關閉或錯置 HTML 標籤、`.lesson-nav` 順序錯誤，以及 CSS media query 的括號不完整。新課依 visual decision 提供 root selector，驗證唯一 main、learner-content ancestor、導覽順序、重複 id 與標籤配對。解析成功本身不足以通過驗收；內容寬度與水平捲軸仍要靠瀏覽器 smoke test 確認。

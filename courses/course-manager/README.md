@@ -39,15 +39,30 @@
 
 ```bash
 python3 -m unittest discover -s tests -v
-python3 scripts/install_course_skill_foundation.py --verify
+python3 scripts/install_course_skill_foundation.py --verify-source
 ```
 
 安裝前可先預覽差異：
 
 ```bash
+export COURSE_DESIGN_SYSTEM_ROOT="/absolute/path/to/course-design-system"
+export COURSE_WEB_ROOT="/absolute/path/to/managed-course-root"
+export SKILLS_ROOT="/absolute/path/to/agent-skills"
+export COURSE_DESIGN_STATE_ROOT="/absolute/path/to/course-design-state"
+
 python3 scripts/install_course_skill_foundation.py \
   --dry-run \
-  --skills-root /Users/USERNAME/.agents/skills
+  --skills-root "$SKILLS_ROOT"
+
+python3 scripts/install_course_skill_foundation.py \
+  --apply \
+  --skills-root "$SKILLS_ROOT" \
+  --allow-update course-run \
+  --allow-update course-validator
+
+python3 scripts/install_course_skill_foundation.py \
+  --verify-installed \
+  --skills-root "$SKILLS_ROOT"
 ```
 
 套件更新必須以 `--allow-update PACKAGE_NAME` 逐項授權；安裝程式會先備份並建立 rollback 紀錄。
@@ -59,6 +74,8 @@ python3 scripts/install_course_skill_foundation.py \
 - `src/`、`scripts/`：Gate、研究、內容、驗證與發行控制程式。
 - `proofs/`：端到端示範課與獨立試學證據。
 - `docs/`：完整設計、操作手冊與驗證報告。
-- `operations/`：安裝備份、manifest 與 rollback 證據。
+- `COURSE_DESIGN_STATE_ROOT/operations/`：新產生的安裝備份、manifest 與 rollback 證據；儲存庫內既有 `operations/` 僅保留歷史稽核資料。
 
 `manager.py` 是原有的課程資料夾盤點與安全搬移工具，保留為附屬管理能力；它不是 G0–G6 新課程產製入口。
+
+`python3 scripts/course_run.py doctor` 只讀檢查四個 runtime root、必要依賴與平台 lock。支援 macOS／Linux；Windows 交易鎖尚未支援並會 fail closed。

@@ -7,7 +7,7 @@
 #   [case-id]      e.g. "case2c" / "platform" / "persona"
 #
 # 環境變數：
-#   CODEX_BRIDGE_DIR    Codex bridge 目錄（自動 default）
+#   CODEX_BRIDGE_DIR    Codex bridge 目錄（必要）
 #   COURSE_WEB_ROOT     課程根目錄
 #   VALIDATOR_SLUG      課程 slug（用於 status.jsonl 路徑）
 #
@@ -29,8 +29,8 @@ if [ -z "$PROMPT_FILE" ] || [ ! -f "$PROMPT_FILE" ] || [ -z "$LAYER" ]; then
 fi
 
 export PATH="$HOME/.npm-global/bin:$PATH"
-CODEX_BRIDGE_DIR="${CODEX_BRIDGE_DIR:-$HOME/Library/Mobile Documents/com~apple~CloudDocs/01-PROJECTS/ai-orchestration}"
-COURSE_WEB_ROOT="${COURSE_WEB_ROOT:-$HOME/Library/Mobile Documents/com~apple~CloudDocs/01-PROJECTS/課程專用網頁}"
+: "${CODEX_BRIDGE_DIR:?CODEX_BRIDGE_DIR must be set}"
+: "${COURSE_WEB_ROOT:?COURSE_WEB_ROOT must be set}"
 
 if [ ! -d "$CODEX_BRIDGE_DIR" ]; then
   echo "❌ Codex bridge 找不到：$CODEX_BRIDGE_DIR" >&2
@@ -92,7 +92,7 @@ if [ -n "${VALIDATOR_SLUG:-}" ]; then
     RUN_ID="r-$(date '+%Y%m%d-%H%M%S')-wrapper-orphan"
   fi
 
-  SKILL_DIR="${SKILL_DIR:-$HOME/.agents/skills/course-validator}"
+  SKILL_DIR="${SKILL_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
   python3 "$SKILL_DIR/scripts/status_write.py" \
     "$STATUS_FILE" "$RUN_ID" "$LAYER" "$CASE_ID" "PENDING_VERDICT" \
     "call_id=$CALL_ID" \

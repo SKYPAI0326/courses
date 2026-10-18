@@ -1,6 +1,4 @@
 import json
-import subprocess
-import sys
 import unittest
 from pathlib import Path
 
@@ -33,8 +31,12 @@ EXPECTED_MANIFEST_PACKAGES = {
     "course-typography-fixer",
     "course-pdf",
 }
-QUICK_VALIDATE = Path(
-    "/Users/paichenwei/.codex/skills/.system/skill-creator/scripts/quick_validate.py"
+FORBIDDEN_PORTABLE_TEXT = (
+    "/Users/",
+    "Mobile Documents",
+    "$HOME/Library",
+    "courses/course-manager",
+    "quick_validate.py",
 )
 
 
@@ -71,20 +73,21 @@ class CourseSkillPackageTests(unittest.TestCase):
         )
         self.assertTrue(all(item["entrypoint"] == "SKILL.md" for item in packages))
 
-    def test_every_manifest_package_is_self_contained_and_skill_valid(self):
+    def test_every_manifest_package_is_self_contained_and_source_valid(self):
         manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
         for item in manifest["packages"]:
             package = PROJECT_ROOT / "skill-packages" / item["name"]
             with self.subTest(package=item["name"]):
                 self.assertTrue((package / item["entrypoint"]).is_file())
                 self.assertEqual(item["baseline_hash"], tree_hash(package))
-                result = subprocess.run(
-                    [sys.executable, str(QUICK_VALIDATE), str(package)],
-                    text=True,
-                    capture_output=True,
-                    check=False,
-                )
-                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                text_files = [
+                    path for path in package.rglob("*")
+                    if path.is_file() and path.suffix in {".md", ".json", ".py", ".sh", ".yaml", ".yml"}
+                ]
+                for path in text_files:
+                    text = path.read_text(encoding="utf-8")
+                    for forbidden in FORBIDDEN_PORTABLE_TEXT:
+                        self.assertNotIn(forbidden, text, f"non-portable path in {path}")
 
     def test_support_files_are_resolvable_from_standalone_installed_package(self):
         for relative_path in self.routing["support_files"]:
@@ -95,11 +98,27 @@ class CourseSkillPackageTests(unittest.TestCase):
     def test_project_runtime_dependencies_are_explicit_and_resolvable(self):
         runtime = self.routing["project_runtime"]
 
-        self.assertEqual(runtime["working_directory"], "courses/course-manager")
+        self.assertEqual(runtime["root_environment"], "COURSE_DESIGN_SYSTEM_ROOT")
         for relative_path in runtime["required_paths"]:
             with self.subTest(relative_path=relative_path):
                 self.assertNotIn("..", Path(relative_path).parts)
                 self.assertTrue((PROJECT_ROOT / relative_path).is_file())
+
+    def test_active_packages_use_declared_runtime_roots(self):
+        runtime = self.routing["runtime_roots"]
+        self.assertEqual(
+            set(runtime),
+            {
+                "design_system_root",
+                "course_web_root",
+                "skills_root",
+                "state_root",
+            },
+        )
+        self.assertEqual(runtime["design_system_root"], "COURSE_DESIGN_SYSTEM_ROOT")
+        self.assertEqual(runtime["course_web_root"], "COURSE_WEB_ROOT")
+        self.assertEqual(runtime["skills_root"], "SKILLS_ROOT")
+        self.assertEqual(runtime["state_root"], "COURSE_DESIGN_STATE_ROOT")
 
     def test_gate_routing_has_exact_g0_through_g6_order(self):
         self.assertEqual(

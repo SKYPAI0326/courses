@@ -1,6 +1,6 @@
 # course-pdf 命令與責任
 
-技能是操作入口；引擎與資料格式以課程專案 `course-manager/docs/pdf-pipeline.md` 為準。從目前專案找 course-manager；本機預設位於 `/Users/paichenwei/Library/Mobile Documents/com~apple~CloudDocs/01-PROJECTS/課程專用網頁/courses/course-manager`。
+技能是操作入口；引擎由 `COURSE_PDF_ENGINE` 明確指定，或使用 `COURSE_DESIGN_SYSTEM_ROOT/scripts/pdf_pipeline.py`。課程根目錄由 `COURSE_WEB_ROOT` 指定，狀態與配方由 `COURSE_DESIGN_STATE_ROOT` 指定；缺少任一必要設定時 fail closed。
 
 先執行 `python3 <skill>/scripts/run.py doctor`；本文 `<skill>` 指當前已讀取的技能目錄，不是可直接貼上的路徑。
 

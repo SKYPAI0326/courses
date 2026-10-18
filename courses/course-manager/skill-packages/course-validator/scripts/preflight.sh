@@ -10,10 +10,11 @@
 
 set -e
 
-# ─── 環境變數（可外部覆蓋）───
-export COURSE_WEB_ROOT="${COURSE_WEB_ROOT:-$HOME/Library/Mobile Documents/com~apple~CloudDocs/01-PROJECTS/課程專用網頁}"
-export COURSE_VALIDATOR_SSOT="${COURSE_VALIDATOR_SSOT:-$HOME/Library/Mobile Documents/com~apple~CloudDocs/01-PROJECTS/課程檢核系統}"
-export CODEX_BRIDGE_DIR="${CODEX_BRIDGE_DIR:-$HOME/Library/Mobile Documents/com~apple~CloudDocs/01-PROJECTS/ai-orchestration}"
+# ─── 環境變數（必要設定；不猜測個人目錄）───
+: "${COURSE_WEB_ROOT:?COURSE_WEB_ROOT must be set}"
+: "${COURSE_VALIDATOR_SSOT:?COURSE_VALIDATOR_SSOT must be set}"
+: "${CODEX_BRIDGE_DIR:?CODEX_BRIDGE_DIR must be set}"
+export COURSE_WEB_ROOT COURSE_VALIDATOR_SSOT CODEX_BRIDGE_DIR
 export CODEX_WORKFLOW_JSON="${CODEX_WORKFLOW_JSON:-$HOME/.claude/orchestration/codex_workflow.json}"
 
 PASS=0

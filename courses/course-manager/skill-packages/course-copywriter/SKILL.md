@@ -18,7 +18,7 @@ description: Use when an existing course outline, lesson plan, or learner-facing
 
 不負責重新設計課程大綱、發明新案例、改寫操作步驟，或把教師備註直接搬進學員頁。
 
-所有零基礎講義的潤稿都必須以 `$BASE/_規範/learner-action-contract.md` 為學員路徑事實來源，並套用 `/Users/paichenwei/.agents/skills/course-handout-designer/references/beginner-continuity-gate.md` 做 30 秒入口與轉段測試。本 skill 只重排既有事實的進入順序與閱讀節奏；不能另造故事、補寫技術事實，或只把片段改得通順。
+所有零基礎講義的潤稿都必須以 `$BASE/_規範/learner-action-contract.md` 為學員路徑事實來源，並套用 `$SKILLS_ROOT/course-handout-designer/references/beginner-continuity-gate.md` 做 30 秒入口與轉段測試；未設定 `SKILLS_ROOT` 時停止。本 skill 只重排既有事實的進入順序與閱讀節奏；不能另造故事、補寫技術事實，或只把片段改得通順。
 
 ## 何時使用
 
@@ -222,9 +222,9 @@ Gate 輸出必須是 `PASS`、`MAJOR` 或 `BLOCK`，並列出觸發條件與對�
 可執行機械檢查：
 
 ```bash
-python3 /Users/paichenwei/.agents/skills/course-copywriter/scripts/audit_copy_continuity.py <markdown-or-html-file>
+python3 "$SKILLS_ROOT/course-copywriter/scripts/audit_copy_continuity.py" <markdown-or-html-file>
 ## 下列為資料工作流的參數示例，依本課真實欄位替換，不原樣套用
-python3 /Users/paichenwei/.agents/skills/course-copywriter/scripts/audit_teaching_evidence.py <file> --field "失敗影響" --artifact "v1-sheets" --artifact "v2-gmail" --branch "needs_review" --canonical-field "順序" --canonical-field "模組" --canonical-field "角色" --canonical-field "輸入" --canonical-field "輸出" --canonical-field "映射備註" --canonical-field "失敗影響" --failure-response 5 --terminal "已完成" --terminal "已停止" --terminal "回到 Gemini" --contract-note "不再使用"
+python3 "$SKILLS_ROOT/course-copywriter/scripts/audit_teaching_evidence.py" <file> --field "失敗影響" --artifact "v1-sheets" --artifact "v2-gmail" --branch "needs_review" --canonical-field "順序" --canonical-field "模組" --canonical-field "角色" --canonical-field "輸入" --canonical-field "輸出" --canonical-field "映射備註" --canonical-field "失敗影響" --failure-response 5 --terminal "已完成" --terminal "已停止" --terminal "回到 Gemini" --contract-note "不再使用"
 ```
 
 連貫腳本只負責找出高風險斷點，不宣稱能判定文學品質；教學證據腳本負責檢查「成果—示範—驗證」是否有缺口。掃描列出的 BLOCK／MAJOR 是待語意確認的候選，先閱讀原文分類；真實缺漏才退回，不能因無特定標籤、卡片或連接詞誤擋完整正文。
@@ -256,6 +256,6 @@ python3 /Users/paichenwei/.agents/skills/course-copywriter/scripts/audit_teachin
 
 ## HTML 編輯保護契約（必讀）
 
-HTML 作業前讀 [SKILL.md](/Users/paichenwei/.agents/skills/course-html-contract/SKILL.md)，依該契約宣告變更類型，執行 DOM／文字保護、共用結構檢查、代表頁 RWD／scroll state 驗證及回復規則；驗收與授權狀態據實回報。
+HTML 作業前讀 `$SKILLS_ROOT/course-html-contract/SKILL.md`，未設定 `SKILLS_ROOT` 時停止；依該契約宣告變更類型，執行 DOM／文字保護、共用結構檢查、代表頁 RWD／scroll state 驗證及回復規則；驗收與授權狀態據實回報。
 
 本角色責任：content-change 只改有上下文的 text node，保留操作事實；不變文字時不得改 DOM。

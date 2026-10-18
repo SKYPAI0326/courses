@@ -41,7 +41,7 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Bash
 ## 專案基準路徑
 
 ```
-$BASE = /Users/paichenwei/Library/Mobile Documents/com~apple~CloudDocs/01-PROJECTS/課程專用網頁/
+$BASE = $COURSE_WEB_ROOT
 ```
 
 **讀寫範圍**：
@@ -288,6 +288,6 @@ web-design-engineer → 全站 design-tokens / 設計系統
 
 ## HTML 編輯保護契約（必讀）
 
-HTML 作業前讀 [SKILL.md](/Users/paichenwei/.agents/skills/course-html-contract/SKILL.md)，依該契約宣告變更類型，執行 DOM／文字保護、共用結構檢查、代表頁 RWD／scroll state 驗證及回復規則；驗收與授權狀態據實回報。
+HTML 作業前確認 `COURSE_WEB_ROOT` 與 `SKILLS_ROOT` 均已設定，讀 `$SKILLS_ROOT/course-html-contract/SKILL.md`，依該契約宣告變更類型，執行 DOM／文字保護、共用結構檢查、代表頁 RWD／scroll state 驗證及回復規則；缺設定即停止，驗收與授權狀態據實回報。
 
 本角色責任：預設 layout-only，只在既有 style 內修 CSS；syntax-only 任務只修語法，文字或 DOM 異常即回復並回報。

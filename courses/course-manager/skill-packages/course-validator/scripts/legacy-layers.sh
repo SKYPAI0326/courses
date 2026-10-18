@@ -39,9 +39,10 @@ if [ -z "$SLUG" ]; then
 fi
 
 SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-export COURSE_WEB_ROOT="${COURSE_WEB_ROOT:-$HOME/Library/Mobile Documents/com~apple~CloudDocs/01-PROJECTS/課程專用網頁}"
-export COURSE_VALIDATOR_SSOT="${COURSE_VALIDATOR_SSOT:-$HOME/Library/Mobile Documents/com~apple~CloudDocs/01-PROJECTS/課程檢核系統}"
-export CODEX_BRIDGE_DIR="${CODEX_BRIDGE_DIR:-$HOME/Library/Mobile Documents/com~apple~CloudDocs/01-PROJECTS/ai-orchestration}"
+: "${COURSE_WEB_ROOT:?COURSE_WEB_ROOT must be set}"
+: "${COURSE_VALIDATOR_SSOT:?COURSE_VALIDATOR_SSOT must be set}"
+: "${CODEX_BRIDGE_DIR:?CODEX_BRIDGE_DIR must be set}"
+export COURSE_WEB_ROOT COURSE_VALIDATOR_SSOT CODEX_BRIDGE_DIR
 export VALIDATOR_SLUG="$SLUG"
 
 COURSE_DIR="$COURSE_WEB_ROOT/courses/$SLUG"

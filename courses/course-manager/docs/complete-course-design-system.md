@@ -101,14 +101,30 @@ G6 `PASS` 等於 `READY_TO_PUBLISH`，不等於已發布。`course-ops` 先在 s
 ## 驗證與安裝
 
 ```bash
+export COURSE_DESIGN_SYSTEM_ROOT=/absolute/path/to/course-design-system
+export COURSE_WEB_ROOT=/absolute/path/to/managed-courses
+export SKILLS_ROOT=/absolute/path/to/skills
+export COURSE_DESIGN_STATE_ROOT=/absolute/path/to/course-design-state
+
 python3 -m unittest discover -s tests -v
 
-python3 scripts/install_course_skill_foundation.py \
-  --dry-run --skills-root /Users/paichenwei/.agents/skills
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/install_course_skill_foundation.py" \
+  --verify-source
 
-python3 scripts/install_course_skill_foundation.py \
-  --apply --allow-update \
-  --skills-root /Users/paichenwei/.agents/skills
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/install_course_skill_foundation.py" \
+  --dry-run --skills-root "$SKILLS_ROOT"
+
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/install_course_skill_foundation.py" \
+  --apply --skills-root "$SKILLS_ROOT" \
+  --allow-update course-run \
+  --allow-update course-validator
+
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/install_course_skill_foundation.py" \
+  --verify-installed --skills-root "$SKILLS_ROOT"
+
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/course_run.py" doctor
 ```
 
 每個 package 都由 manifest hash 鎖定。安裝前顯示 `ADD`、`UPDATE`、`UNCHANGED`；更新先備份，rollback 遇到安裝後的人為修改就拒絕覆蓋。
+
+`operations`、registry、report 與 backup 預設寫入 repo 外的 `COURSE_DESIGN_STATE_ROOT`。runtime 與 doctor 支援 POSIX macOS/Linux；Windows 的 lock 語意尚未實作，會 fail closed。`course-repair fix` 也維持 fail closed，直到 Task 8 把 approved plan hash、before hashes、完整 backup 與 isolated restore proof 接入中央 transaction。

@@ -16,7 +16,7 @@ allowed-tools: Read, Write, Edit, Glob, Bash, AskUserQuestion
 
 ## 路徑與入口
 
-`$BASE = /Users/paichenwei/Library/Mobile Documents/com~apple~CloudDocs/01-PROJECTS/課程專用網頁`
+`$BASE = $COURSE_WEB_ROOT`；未明確設定 `COURSE_WEB_ROOT` 時停止，不從 HOME 或目前目錄猜測。
 
 - `/course-designer <slug> <unit-id>`：讀 `_outlines/{slug}.md`、對應 Style Guide 與必要來源；產出 `_lessons/{slug}/{unit-id}.md`。
 - `/course-designer pilot <pilot-id>`：讀 `_pilots/{pilot-id}.md`，產出 `_pilots/_lessons/{pilot-id}.md`。試作只縮小範圍，不省略教學證據。
@@ -46,4 +46,4 @@ allowed-tools: Read, Write, Edit, Glob, Bash, AskUserQuestion
 
 ## HTML 交接保護
 
-本 skill 產出正式正文與教學事實，不直接以 HTML 排版補內容。交給 builder 前，明確標示是否為 `content-change`；若使用者要求不變更文字，後續只能做 `syntax-only`／`layout-only`，並要求讀 `/Users/paichenwei/.agents/skills/course-html-contract/SKILL.md`，不得為了補版面新增段落或改變 wrapper。
+本 skill 產出正式正文與教學事實，不直接以 HTML 排版補內容。交給 builder 前，明確標示是否為 `content-change`；若使用者要求不變更文字，後續只能做 `syntax-only`／`layout-only`，並要求讀 `$SKILLS_ROOT/course-html-contract/SKILL.md`；未設定 `SKILLS_ROOT` 時停止，不得為了補版面新增段落或改變 wrapper。

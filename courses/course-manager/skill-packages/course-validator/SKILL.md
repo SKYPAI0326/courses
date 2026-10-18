@@ -8,14 +8,14 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion
 
 這是內容、HTML 忠實度、實際操作、獨立試學與發布就緒度的唯一驗證入口。用正式正文、學員頁、素材與真實完成品判斷，不用作者摘要、欄位齊全或 lint 結果代替學習證據。通用格式檢查可在本機以 Python 標準函式庫執行；需要語意判斷或實際操作時，必須保留執行者與過程紀錄。
 
-`$BASE = /Users/paichenwei/Library/Mobile Documents/com~apple~CloudDocs/01-PROJECTS/課程專用網頁`
+`$BASE = $COURSE_WEB_ROOT`；未明確設定時停止。
 
 必讀 `$BASE/_規範/learner-action-contract.md`、`course-content-substance.md`、`../course-handout-designer/references/quality-gate.md`。資料格式與範例見 [evidence-format](references/evidence-format.md)。
 
 ## 呼叫
 
 ```bash
-bash /Users/paichenwei/.agents/skills/course-validator/scripts/course-validator.sh <slug> [preflight|all|status|report]
+bash "$SKILLS_ROOT/course-validator/scripts/course-validator.sh" <slug> [preflight|all|status|report]
 ```
 
 COURSE_WEB_ROOT 可指定專案根目錄以在隔離環境測試。`status` 唯讀；`all`／`report` 更新 `_validation/FINAL-REPORT.md` 與機器 manifest，保留語意與真人待驗項目。
@@ -81,8 +81,8 @@ G3 驗證讀取正式 lesson record、正文與 editorial evidence，核對結�
 
 ## HTML 結構保護驗收
 
-驗收必讀 `/Users/paichenwei/.agents/skills/course-html-contract/SKILL.md`。validator 不改學員頁；除既有 lint、素材與證據外，必須執行共用結構檢查器，確認 `.lesson-section`、`.body-text`、`.step-list`、`.prac-box` 都是 `.lesson-body` 後代，且沒有內容節點在 hero 與 lesson-body 之間或 wrapper 外。
+驗收必讀 `$SKILLS_ROOT/course-html-contract/SKILL.md`；未設定 `SKILLS_ROOT` 時停止。validator 不改學員頁；除既有 lint、素材與證據外，必須執行共用結構檢查器，確認 `.lesson-section`、`.body-text`、`.step-list`、`.prac-box` 都是 `.lesson-body` 後代，且沒有內容節點在 hero 與 lesson-body 之間或 wrapper 外。
 
 任何 outside／wrapper 斷裂、未配對標籤、syntax-only／layout-only 卻出現文字或 href 變更，都要保留為 BLOCK／PENDING，不得被 lint PASS 或作者摘要掩蓋。
 
-驗收同時執行 `python3 /Users/paichenwei/.agents/skills/course-html-contract/scripts/validate-course-structure.py`（需要 ancestor、body count、重複 id、第一個 section 與 CSS media query 檢查），再要求代表頁 browser smoke：`1440px` 桌面頂端／修改區塊／中段／底部，以及 `390px`、`430px` 手機。核對 content width、水平捲軸、sticky header、卡片／表格／程式碼區塊、導覽與 localStorage scroll state；清除舊 state 後重整。未完成項目只能標 `PENDING`／`BLOCK`，不可宣告 HUMAN_READY。
+驗收同時執行 `python3 "$SKILLS_ROOT/course-html-contract/scripts/validate-course-structure.py"`（需要 ancestor、body count、重複 id、第一個 section 與 CSS media query 檢查），再要求代表頁 browser smoke：`1440px` 桌面頂端／修改區塊／中段／底部，以及 `390px`、`430px` 手機。核對 content width、水平捲軸、sticky header、卡片／表格／程式碼區塊、導覽與 localStorage scroll state；清除舊 state 後重整。未完成項目只能標 `PENDING`／`BLOCK`，不可宣告 HUMAN_READY。
