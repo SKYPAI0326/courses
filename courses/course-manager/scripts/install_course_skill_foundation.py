@@ -182,7 +182,7 @@ for record in records:
         if not backup.is_dir() or tree_hash(backup) != record["before_hash"]:
             raise SystemExit(f"verified backup is unavailable: {record['name']}")
 
-containers = []
+states = []
 try:
     for record in records:
         target = Path(record["target"])
@@ -190,28 +190,40 @@ try:
             prefix=f".course-skill-rollback-{record['name']}-", dir=target.parent
         ))
         installed = container / "installed"
+        state = {
+            "container": container,
+            "installed": installed,
+            "record": record,
+            "installed_moved": False,
+            "restored_target": False,
+        }
+        states.append(state)
         os.replace(target, installed)
+        state["installed_moved"] = True
         if record["before_exists"]:
             restored = container / "restored"
             copy_verified(operation_dir / record["backup"], restored, record["before_hash"])
             os.replace(restored, target)
-        containers.append((container, installed, record))
+            state["restored_target"] = True
+
+    manifest["status"] = "ROLLED_BACK"
+    manifest["rolled_back_at"] = datetime.now(timezone.utc).isoformat()
+    write_manifest(manifest_path, manifest)
 except Exception:
-    for container, installed, record in reversed(containers):
+    for state in reversed(states):
+        container = state["container"]
+        installed = state["installed"]
+        record = state["record"]
         target = Path(record["target"])
-        if target.exists():
+        if state["restored_target"] and target.exists():
             shutil.rmtree(target)
-        if installed.exists():
+        if state["installed_moved"] and installed.exists():
             os.replace(installed, target)
         shutil.rmtree(container, ignore_errors=True)
     raise
 else:
-    for container, _installed, _record in containers:
-        shutil.rmtree(container)
-
-manifest["status"] = "ROLLED_BACK"
-manifest["rolled_back_at"] = datetime.now(timezone.utc).isoformat()
-write_manifest(manifest_path, manifest)
+    for state in states:
+        shutil.rmtree(state["container"], ignore_errors=True)
 print(f"rolled back: {operation_dir}")
 """
 
@@ -220,6 +232,54 @@ def _remove_verified_directory(path: Path, expected_hash: str) -> None:
     if tree_hash(path) != expected_hash:
         raise InstallError(f"refusing to remove changed installed skill: {path}")
     shutil.rmtree(path)
+
+
+def _remove_directory_if_present(path: Path) -> None:
+    if path.is_symlink():
+        path.unlink()
+    elif path.exists():
+        if not path.is_dir():
+            raise InstallError(f"refusing to remove non-directory transaction target: {path}")
+        shutil.rmtree(path)
+
+
+def _recover_install_states(states: list[dict[str, Any]]) -> None:
+    recovery_errors: list[str] = []
+    for state in reversed(states):
+        action: InstallAction = state["action"]
+        container: Path = state["container"]
+        previous: Path | None = state["previous"]
+        try:
+            if state["target_replaced"]:
+                _remove_directory_if_present(action.target)
+            if previous is not None and previous.exists():
+                os.replace(previous, action.target)
+        except Exception as error:  # pragma: no cover - catastrophic recovery failure
+            recovery_errors.append(f"{action.name}: {error}")
+        finally:
+            shutil.rmtree(container, ignore_errors=True)
+    if recovery_errors:
+        raise InstallError("transaction recovery failed: " + "; ".join(recovery_errors))
+
+
+def _recover_rollback_states(states: list[dict[str, Any]]) -> None:
+    recovery_errors: list[str] = []
+    for state in reversed(states):
+        record: dict[str, Any] = state["record"]
+        target = Path(record["target"])
+        container: Path = state["container"]
+        installed: Path = state["installed"]
+        try:
+            if state["restored_target"]:
+                _remove_directory_if_present(target)
+            if state["installed_moved"] and installed.exists():
+                os.replace(installed, target)
+        except Exception as error:  # pragma: no cover - catastrophic recovery failure
+            recovery_errors.append(f"{record['name']}: {error}")
+        finally:
+            shutil.rmtree(container, ignore_errors=True)
+    if recovery_errors:
+        raise InstallError("rollback recovery failed: " + "; ".join(recovery_errors))
 
 
 def install(
@@ -235,9 +295,13 @@ def install(
 
     for name in PACKAGE_NAMES:
         source = packages_root / name
-        if not source.is_dir():
+        if source.is_symlink() or not source.is_dir():
             raise InstallError(f"missing validated package: {source}")
         target = skills_root / name
+        if target.is_symlink():
+            raise InstallError(f"unsupported symbolic-link skill target: {target}")
+        if target.exists() and not target.is_dir():
+            raise InstallError(f"skill target must be a directory or absent: {target}")
         before_hash = tree_hash(target) if target.is_dir() else None
         after_hash = tree_hash(source)
         actions.append(
@@ -259,6 +323,7 @@ def install(
     backups_dir = operation_dir / "backups"
     backups_dir.mkdir()
     package_records: list[dict[str, Any]] = []
+    swap_states: list[dict[str, Any]] = []
 
     try:
         for action in actions:
@@ -295,47 +360,53 @@ def install(
             _rollback_script(), encoding="utf-8"
         )
 
-        swap_containers: list[tuple[Path, Path | None, InstallAction]] = []
-        try:
-            for action in actions:
-                container = Path(
-                    tempfile.mkdtemp(
-                        prefix=f".course-skill-{action.name}-", dir=skills_root
-                    )
+        for action in actions:
+            container = Path(
+                tempfile.mkdtemp(
+                    prefix=f".course-skill-{action.name}-", dir=skills_root
                 )
-                staged = container / "staged"
-                _copy_verified(action.source, staged, action.after_hash)
-                previous: Path | None = None
-                if action.target.exists():
-                    previous = container / "previous"
-                    os.replace(action.target, previous)
-                os.replace(staged, action.target)
-                if tree_hash(action.target) != action.after_hash:
-                    raise InstallError(f"installed hash mismatch: {action.target}")
-                swap_containers.append((container, previous, action))
-        except Exception:
-            for container, previous, action in reversed(swap_containers):
-                if action.target.exists():
-                    _remove_verified_directory(action.target, action.after_hash)
-                if previous is not None and previous.exists():
-                    os.replace(previous, action.target)
-                shutil.rmtree(container, ignore_errors=True)
-            raise
-        else:
-            for container, _previous, _action in swap_containers:
-                shutil.rmtree(container)
+            )
+            state: dict[str, Any] = {
+                "container": container,
+                "previous": None,
+                "action": action,
+                "target_replaced": False,
+            }
+            swap_states.append(state)
+            staged = container / "staged"
+            _copy_verified(action.source, staged, action.after_hash)
+            if action.target.exists():
+                previous = container / "previous"
+                os.replace(action.target, previous)
+                state["previous"] = previous
+            os.replace(staged, action.target)
+            state["target_replaced"] = True
+            if tree_hash(action.target) != action.after_hash:
+                raise InstallError(f"installed hash mismatch: {action.target}")
 
         manifest["status"] = "APPLIED"
         manifest["applied_at"] = datetime.now(timezone.utc).isoformat()
         _write_json_atomic(operation_dir / "manifest.json", manifest)
+        for state in swap_states:
+            shutil.rmtree(state["container"], ignore_errors=True)
         return InstallResult(True, operation_dir, tuple(actions))
-    except Exception:
+    except Exception as original_error:
+        recovery_error: Exception | None = None
+        try:
+            _recover_install_states(swap_states)
+        except Exception as error:  # pragma: no cover - catastrophic and re-raised
+            recovery_error = error
         if (operation_dir / "manifest.json").exists():
             manifest = json.loads(
                 (operation_dir / "manifest.json").read_text(encoding="utf-8")
             )
             manifest["status"] = "FAILED"
-            _write_json_atomic(operation_dir / "manifest.json", manifest)
+            try:
+                _write_json_atomic(operation_dir / "manifest.json", manifest)
+            except Exception:
+                pass
+        if recovery_error is not None:
+            raise recovery_error from original_error
         raise
 
 
@@ -363,7 +434,7 @@ def rollback_install(operation_dir: Path) -> None:
             if not backup.is_dir() or tree_hash(backup) != record["before_hash"]:
                 raise InstallError(f"verified backup is unavailable: {record['name']}")
 
-    swap_containers: list[tuple[Path, Path | None, dict[str, Any]]] = []
+    swap_states: list[dict[str, Any]] = []
     try:
         for record in records:
             target = Path(record["target"])
@@ -373,30 +444,36 @@ def rollback_install(operation_dir: Path) -> None:
                     dir=target.parent,
                 )
             )
-            previous = container / "installed"
-            os.replace(target, previous)
+            installed = container / "installed"
+            state: dict[str, Any] = {
+                "container": container,
+                "installed": installed,
+                "record": record,
+                "installed_moved": False,
+                "restored_target": False,
+            }
+            swap_states.append(state)
+            os.replace(target, installed)
+            state["installed_moved"] = True
             if record["before_exists"]:
                 staged = container / "restored"
                 backup = operation_dir / record["backup"]
                 _copy_verified(backup, staged, record["before_hash"])
                 os.replace(staged, target)
-            swap_containers.append((container, previous, record))
-    except Exception:
-        for container, previous, record in reversed(swap_containers):
-            target = Path(record["target"])
-            if target.exists():
-                shutil.rmtree(target)
-            if previous is not None and previous.exists():
-                os.replace(previous, target)
-            shutil.rmtree(container, ignore_errors=True)
+                state["restored_target"] = True
+
+        manifest["status"] = "ROLLED_BACK"
+        manifest["rolled_back_at"] = datetime.now(timezone.utc).isoformat()
+        _write_json_atomic(manifest_path, manifest)
+    except Exception as original_error:
+        try:
+            _recover_rollback_states(swap_states)
+        except Exception as recovery_error:  # pragma: no cover - catastrophic
+            raise recovery_error from original_error
         raise
     else:
-        for container, _previous, _record in swap_containers:
-            shutil.rmtree(container)
-
-    manifest["status"] = "ROLLED_BACK"
-    manifest["rolled_back_at"] = datetime.now(timezone.utc).isoformat()
-    _write_json_atomic(manifest_path, manifest)
+        for state in swap_states:
+            shutil.rmtree(state["container"], ignore_errors=True)
 
 
 def build_parser() -> argparse.ArgumentParser:

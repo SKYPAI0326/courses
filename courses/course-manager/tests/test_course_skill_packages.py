@@ -32,6 +32,21 @@ class CourseSkillPackageTests(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertTrue(path.is_file(), f"missing referenced file: {path}")
 
+    def test_support_files_are_resolvable_from_standalone_installed_package(self):
+        for relative_path in self.routing["support_files"]:
+            with self.subTest(relative_path=relative_path):
+                self.assertNotIn("..", Path(relative_path).parts)
+                self.assertTrue((PACKAGE_ROOT / relative_path).is_file())
+
+    def test_project_runtime_dependencies_are_explicit_and_resolvable(self):
+        runtime = self.routing["project_runtime"]
+
+        self.assertEqual(runtime["working_directory"], "courses/course-manager")
+        for relative_path in runtime["required_paths"]:
+            with self.subTest(relative_path=relative_path):
+                self.assertNotIn("..", Path(relative_path).parts)
+                self.assertTrue((PROJECT_ROOT / relative_path).is_file())
+
     def test_gate_routing_has_exact_g0_through_g6_order(self):
         self.assertEqual(
             [gate["id"] for gate in self.routing["gates"]],

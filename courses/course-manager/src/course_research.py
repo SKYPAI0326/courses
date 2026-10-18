@@ -41,7 +41,10 @@ def _missing_text(value: Any) -> bool:
 
 
 def _require_stable_id(
-    item: Mapping[str, Any], path: str, issues: list[ResearchIssue]
+    item: Mapping[str, Any],
+    path: str,
+    issues: list[ResearchIssue],
+    seen_ids: set[str] | None = None,
 ) -> str | None:
     value = item.get("id")
     if not isinstance(value, str) or not _ID_PATTERN.fullmatch(value):
@@ -49,6 +52,15 @@ def _require_stable_id(
             ResearchIssue("invalid_id", f"{path}.id", "a stable lowercase-hyphen id is required")
         )
         return None
+    if seen_ids is not None:
+        if value in seen_ids:
+            issues.append(
+                ResearchIssue(
+                    "duplicate_id", f"{path}.id", f"stable id is duplicated: {value}"
+                )
+            )
+        else:
+            seen_ids.add(value)
     return value
 
 
@@ -73,6 +85,7 @@ def validate_research_record(
     record: Mapping[str, Any], adaptation: Mapping[str, Any]
 ) -> list[ResearchIssue]:
     issues: list[ResearchIssue] = []
+    seen_ids: set[str] = set()
     for section in _REQUIRED_SECTIONS:
         if section not in record:
             issues.append(
@@ -104,7 +117,7 @@ def validate_research_record(
             if not isinstance(question, Mapping):
                 issues.append(ResearchIssue("invalid_record", path, "question must be an object"))
                 continue
-            _require_stable_id(question, path, issues)
+            _require_stable_id(question, path, issues, seen_ids)
             _require_text_fields(question, ("question", "decision_use"), path, issues)
 
     sources = record.get("sources")
@@ -117,7 +130,7 @@ def validate_research_record(
         if not isinstance(source, Mapping):
             issues.append(ResearchIssue("invalid_record", path, "source must be an object"))
             continue
-        source_id = _require_stable_id(source, path, issues)
+        source_id = _require_stable_id(source, path, issues, seen_ids)
         if source_id:
             source_ids.add(source_id)
         for field, code in (
@@ -131,6 +144,18 @@ def validate_research_record(
             if _missing_text(source.get(field)):
                 issues.append(
                     ResearchIssue(code, f"{path}.{field}", f"source {field} is required")
+                )
+        retrieved_at = source.get("retrieved_at")
+        if not _missing_text(retrieved_at):
+            try:
+                date.fromisoformat(retrieved_at)
+            except (TypeError, ValueError):
+                issues.append(
+                    ResearchIssue(
+                        "invalid_source_date",
+                        f"{path}.retrieved_at",
+                        "source retrieval date must use ISO YYYY-MM-DD",
+                    )
                 )
 
     claims = record.get("claims")
@@ -147,7 +172,7 @@ def validate_research_record(
         if not isinstance(claim, Mapping):
             issues.append(ResearchIssue("invalid_record", path, "claim must be an object"))
             continue
-        claim_id = _require_stable_id(claim, path, issues)
+        claim_id = _require_stable_id(claim, path, issues, seen_ids)
         if claim_id:
             claim_ids.add(claim_id)
         _require_text_fields(claim, ("statement", "confidence"), path, issues)
@@ -171,11 +196,35 @@ def validate_research_record(
                 )
             )
 
+    representative_task = record.get("representative_task")
+    representative_valid = isinstance(representative_task, Mapping)
+    if representative_valid:
+        representative_valid = not any(
+            _missing_text(representative_task.get(field))
+            for field in ("description", "deliverable")
+        )
+        criteria = representative_task.get("success_criteria")
+        representative_valid = representative_valid and isinstance(criteria, list) and bool(criteria)
+        if isinstance(criteria, list):
+            representative_valid = representative_valid and all(
+                isinstance(item, str) and item.strip() for item in criteria
+            )
+    if not representative_valid:
+        issues.append(
+            ResearchIssue(
+                "invalid_representative_task",
+                "$.representative_task",
+                "representative task requires description, deliverable, and success criteria",
+            )
+        )
+
     hands_on = record.get("hands_on_record")
     hands_on_id: str | None = None
     tool_dependency_high = adaptation.get("tool_dependency") == "high"
     if isinstance(hands_on, Mapping):
-        hands_on_id = _require_stable_id(hands_on, "$.hands_on_record", issues)
+        hands_on_id = _require_stable_id(
+            hands_on, "$.hands_on_record", issues, seen_ids
+        )
     if tool_dependency_high:
         if not isinstance(hands_on, Mapping) or hands_on.get("executed") is not True:
             issues.append(
@@ -268,7 +317,7 @@ def validate_research_record(
                 ResearchIssue("invalid_record", path, "design implication must be an object")
             )
             continue
-        _require_stable_id(implication, path, issues)
+        _require_stable_id(implication, path, issues, seen_ids)
         _require_text_fields(implication, ("decision", "rationale"), path, issues)
         refs = implication.get("evidence_refs")
         if not isinstance(refs, list) or not refs:
@@ -320,7 +369,7 @@ def validate_research_record(
             if not isinstance(conflict, Mapping):
                 issues.append(ResearchIssue("invalid_record", path, "conflict must be an object"))
                 continue
-            _require_stable_id(conflict, path, issues)
+            _require_stable_id(conflict, path, issues, seen_ids)
             _require_text_fields(conflict, ("description", "handling"), path, issues)
             refs = conflict.get("claim_ids")
             if not isinstance(refs, list) or not refs:
@@ -331,6 +380,16 @@ def validate_research_record(
                         "conflict must reference affected claims",
                     )
                 )
+            else:
+                unknown_refs = [ref for ref in refs if ref not in claim_ids]
+                if unknown_refs:
+                    issues.append(
+                        ResearchIssue(
+                            "unknown_conflict_claim",
+                            f"{path}.claim_ids",
+                            f"unknown claim ids: {', '.join(map(str, unknown_refs))}",
+                        )
+                    )
 
     unknowns = record.get("unknowns")
     if not isinstance(unknowns, list):
@@ -341,7 +400,7 @@ def validate_research_record(
             if not isinstance(unknown, Mapping):
                 issues.append(ResearchIssue("invalid_record", path, "unknown must be an object"))
                 continue
-            _require_stable_id(unknown, path, issues)
+            _require_stable_id(unknown, path, issues, seen_ids)
             _require_text_fields(unknown, ("question", "impact"), path, issues)
             if unknown.get("blocking") is True:
                 issues.append(

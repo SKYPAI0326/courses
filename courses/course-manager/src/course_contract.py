@@ -46,6 +46,26 @@ REQUIRED_GATE_FIELDS = (
     "affected_downstream",
 )
 
+_PAYLOAD_SECTIONS = (
+    "G0_requirements",
+    "G1_research",
+    "adaptation",
+    "G2_architecture",
+    "G3_lesson_design",
+    "G4_pilot",
+    "G5_production",
+    "G6_release_maintenance",
+)
+
+_GATE_LIST_FIELDS = (
+    "inputs",
+    "deliverables",
+    "evidence",
+    "risks",
+    "open_questions",
+    "affected_downstream",
+)
+
 _GATE_OWNERS = {
     "G0": "course-run",
     "G1": "course-researcher",
@@ -132,6 +152,14 @@ def new_contract(slug: str, title: str, created_by: str, created_at: str) -> dic
 def validate_contract(contract: Mapping[str, Any]) -> list[ValidationIssue]:
     issues: list[ValidationIssue] = []
 
+    unknown_sections = set(contract) - set(REQUIRED_SECTIONS)
+    for section in sorted(unknown_sections):
+        issues.append(
+            ValidationIssue(
+                "unknown_section", f"$.{section}", f"unknown top-level section: {section}"
+            )
+        )
+
     for section in REQUIRED_SECTIONS:
         if section not in contract:
             issues.append(
@@ -157,6 +185,76 @@ def validate_contract(contract: Mapping[str, Any]) -> list[ValidationIssue]:
             issues.append(
                 ValidationIssue("invalid_title", "$.identity.title", "title must not be empty")
             )
+        for field in set(identity) - {"slug", "title"}:
+            issues.append(
+                ValidationIssue(
+                    "unknown_identity_field",
+                    f"$.identity.{field}",
+                    f"unknown identity field: {field}",
+                )
+            )
+
+    governance = contract.get("governance")
+    if not isinstance(governance, Mapping):
+        issues.append(
+            ValidationIssue(
+                "invalid_governance", "$.governance", "governance must be an object"
+            )
+        )
+    else:
+        for field in ("created_by", "created_at"):
+            value = governance.get(field)
+            if not isinstance(value, str) or not value.strip():
+                issues.append(
+                    ValidationIssue(
+                        "invalid_governance_field",
+                        f"$.governance.{field}",
+                        f"{field} must contain text",
+                    )
+                )
+        if governance.get("approval_authority") != "course-run-with-explicit-user-approval":
+            issues.append(
+                ValidationIssue(
+                    "invalid_approval_authority",
+                    "$.governance.approval_authority",
+                    "approval_authority must require explicit user approval through course-run",
+                )
+            )
+        for field in set(governance) - {"created_by", "created_at", "approval_authority"}:
+            issues.append(
+                ValidationIssue(
+                    "unknown_governance_field",
+                    f"$.governance.{field}",
+                    f"unknown governance field: {field}",
+                )
+            )
+
+    for section in _PAYLOAD_SECTIONS:
+        if section in contract and not isinstance(contract.get(section), Mapping):
+            issues.append(
+                ValidationIssue(
+                    "invalid_section_type", f"$.{section}", f"{section} must be an object"
+                )
+            )
+
+    for section in ("changes", "evidence_index"):
+        value = contract.get(section)
+        if not isinstance(value, list):
+            issues.append(
+                ValidationIssue(
+                    "invalid_section_type", f"$.{section}", f"{section} must be a list"
+                )
+            )
+        else:
+            for index, item in enumerate(value):
+                if not isinstance(item, Mapping):
+                    issues.append(
+                        ValidationIssue(
+                            "invalid_record",
+                            f"$.{section}[{index}]",
+                            f"{section} items must be objects",
+                        )
+                    )
 
     gates = contract.get("gates")
     if not isinstance(gates, Mapping):
@@ -189,6 +287,131 @@ def validate_contract(contract: Mapping[str, Any]) -> list[ValidationIssue]:
                 )
             )
 
+        for field in set(record) - set(REQUIRED_GATE_FIELDS):
+            issues.append(
+                ValidationIssue(
+                    "unknown_gate_field",
+                    f"$.gates.{gate_id}.{field}",
+                    f"unknown gate field: {field}",
+                )
+            )
+
+        owner = record.get("owner")
+        if not isinstance(owner, str) or not owner.strip():
+            issues.append(
+                ValidationIssue(
+                    "invalid_gate_owner",
+                    f"$.gates.{gate_id}.owner",
+                    "gate owner must contain text",
+                )
+            )
+
+        for field in _GATE_LIST_FIELDS:
+            value = record.get(field)
+            if not isinstance(value, list):
+                issues.append(
+                    ValidationIssue(
+                        "invalid_gate_field_type",
+                        f"$.gates.{gate_id}.{field}",
+                        f"{field} must be a list",
+                    )
+                )
+                continue
+            if field in {"deliverables", "evidence", "risks", "open_questions"}:
+                for index, item in enumerate(value):
+                    if not isinstance(item, Mapping):
+                        issues.append(
+                            ValidationIssue(
+                                "invalid_gate_record",
+                                f"$.gates.{gate_id}.{field}[{index}]",
+                                f"{field} items must be objects",
+                            )
+                        )
+            elif field == "inputs":
+                for index, item in enumerate(value):
+                    if not isinstance(item, str):
+                        issues.append(
+                            ValidationIssue(
+                                "invalid_gate_reference",
+                                f"$.gates.{gate_id}.inputs[{index}]",
+                                "input references must be strings",
+                            )
+                        )
+            else:
+                for index, item in enumerate(value):
+                    if item not in GATE_ORDER:
+                        issues.append(
+                            ValidationIssue(
+                                "invalid_gate_reference",
+                                f"$.gates.{gate_id}.affected_downstream[{index}]",
+                                f"unknown downstream gate: {item!r}",
+                            )
+                        )
+
+        for field in ("approved_by", "approved_at"):
+            value = record.get(field)
+            if value is not None and not isinstance(value, str):
+                issues.append(
+                    ValidationIssue(
+                        "invalid_approval_metadata",
+                        f"$.gates.{gate_id}.{field}",
+                        f"{field} must be text or null",
+                    )
+                )
+        revision = record.get("source_revision")
+        if revision is not None and (
+            isinstance(revision, bool) or not isinstance(revision, (str, int))
+        ):
+            issues.append(
+                ValidationIssue(
+                    "invalid_source_revision",
+                    f"$.gates.{gate_id}.source_revision",
+                    "source_revision must be text, integer, or null",
+                )
+            )
+
+        if status == "APPROVED":
+            if not all(
+                isinstance(record.get(field), str) and record[field].strip()
+                for field in ("approved_by", "approved_at")
+            ):
+                issues.append(
+                    ValidationIssue(
+                        "approval_metadata_required",
+                        f"$.gates.{gate_id}",
+                        "approved gate requires approver and timestamp",
+                    )
+                )
+            gate_index = GATE_ORDER.index(gate_id)
+            unapproved = [
+                prior
+                for prior in GATE_ORDER[:gate_index]
+                if not isinstance(gates.get(prior), Mapping)
+                or gates[prior].get("status") != "APPROVED"
+            ]
+            if unapproved:
+                issues.append(
+                    ValidationIssue(
+                        "unapproved_prerequisite",
+                        f"$.gates.{gate_id}.status",
+                        f"approved gate has unapproved prerequisites: {', '.join(unapproved)}",
+                    )
+                )
+            risks = record.get("risks")
+            if isinstance(risks, list) and any(
+                isinstance(risk, Mapping)
+                and risk.get("blocking") is True
+                and risk.get("resolved") is not True
+                for risk in risks
+            ):
+                issues.append(
+                    ValidationIssue(
+                        "approved_with_blocker",
+                        f"$.gates.{gate_id}.risks",
+                        "approved gate cannot have unresolved blocking risks",
+                    )
+                )
+
     for gate_id in gates:
         if gate_id not in GATE_ORDER:
             issues.append(
@@ -196,6 +419,13 @@ def validate_contract(contract: Mapping[str, Any]) -> list[ValidationIssue]:
             )
 
     return issues
+
+
+def _require_valid_contract(contract: MutableMapping[str, Any]) -> None:
+    issues = validate_contract(contract)
+    if issues:
+        joined = "; ".join(f"{issue.path}: {issue.message}" for issue in issues)
+        raise ContractStateError(f"contract is invalid: {joined}")
 
 
 def _gate_record(
@@ -241,6 +471,7 @@ def submit_gate(
 ) -> None:
     if not actor.strip() or not at.strip():
         raise ContractStateError("submission requires actor and timestamp")
+    _require_valid_contract(contract)
     record = _gate_record(contract, gate_id)
     _require_previous_approvals(contract, gate_id)
     _transition(record, "submit")
@@ -262,6 +493,7 @@ def approve_gate(
         raise ContractStateError(
             "approval requires approver, timestamp, and explicit approval note"
         )
+    _require_valid_contract(contract)
     record = _gate_record(contract, gate_id)
     _require_previous_approvals(contract, gate_id)
     unresolved = [
@@ -295,6 +527,7 @@ def block_gate(
 ) -> None:
     if not reason.strip() or not actor.strip() or not at.strip():
         raise ContractStateError("blocking requires reason, actor, and timestamp")
+    _require_valid_contract(contract)
     record = _gate_record(contract, gate_id)
     _transition(record, "block")
     record["risks"].append(
@@ -319,6 +552,7 @@ def record_change(
 ) -> list[str]:
     if not reason.strip() or not actor.strip() or not at.strip():
         raise ContractStateError("change record requires reason, actor, and timestamp")
+    _require_valid_contract(contract)
     record = _gate_record(contract, affected_gate)
     affected_index = GATE_ORDER.index(affected_gate)
     invalidated = list(GATE_ORDER[affected_index:]) if semantic else []

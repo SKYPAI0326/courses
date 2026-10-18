@@ -84,6 +84,10 @@ def _print_issues(contract) -> int:
 
 def _load_mutate_validate_save(path: Path, operation) -> None:
     contract = load_contract(path)
+    issues = validate_contract(contract)
+    if issues:
+        joined = "; ".join(f"{issue.path}: {issue.message}" for issue in issues)
+        raise ContractStateError(f"refusing to mutate invalid contract: {joined}")
     operation(contract)
     issues = validate_contract(contract)
     if issues:
@@ -97,7 +101,19 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "init":
             contract = new_contract(args.slug, args.title, args.created_by, args.at)
-            path = args.root / "_design" / args.slug / "course-contract.json"
+            root = args.root.resolve(strict=False)
+            design_root = args.root / "_design"
+            course_root = design_root / args.slug
+            if design_root.is_symlink() or course_root.is_symlink():
+                raise ContractStateError(
+                    "contract directory must not be a symbolic link"
+                )
+            path = course_root / "course-contract.json"
+            resolved_path = path.resolve(strict=False)
+            if not resolved_path.is_relative_to(root):
+                raise ContractStateError(
+                    f"contract path escapes the requested root through a symbolic link: {path}"
+                )
             if path.exists():
                 raise ContractStateError(f"contract already exists: {path}")
             save_contract_atomic(path, contract)

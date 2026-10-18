@@ -4,9 +4,12 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
+from scripts import install_course_skill_foundation as installer
 from scripts.install_course_skill_foundation import (
     InstallError,
+    _rollback_script,
     install,
     rollback_install,
 )
@@ -183,6 +186,143 @@ class CourseSkillFoundationInstallerTests(unittest.TestCase):
         self.assertEqual(self.snapshot(self.skills_root / "course-run"), before["course-run"])
         self.assertEqual(self.snapshot(self.skills_root / "course-pm"), before["course-pm"])
         self.assertFalse((self.skills_root / "course-researcher").exists())
+
+    def test_committed_operation_rollbacks_match_current_generator(self):
+        project_root = Path(__file__).resolve().parents[1]
+        rollback_paths = sorted(
+            (project_root / "operations" / "course-skill-foundation").glob(
+                "*/rollback.py"
+            )
+        )
+
+        self.assertTrue(rollback_paths)
+        for rollback_path in rollback_paths:
+            with self.subTest(rollback_path=rollback_path):
+                self.assertEqual(
+                    rollback_path.read_text(encoding="utf-8"), _rollback_script()
+                )
+
+    def test_preflight_rejects_existing_non_directory_target_without_changes(self):
+        target = self.skills_root / "course-run"
+        original = self.snapshot(target)
+        for path in sorted(target.rglob("*"), reverse=True):
+            if path.is_file():
+                path.unlink()
+            elif path.is_dir():
+                path.rmdir()
+        target.rmdir()
+        target.write_bytes(b"existing-file\x00")
+
+        with self.assertRaises(InstallError):
+            self.apply_install()
+
+        self.assertEqual(target.read_bytes(), b"existing-file\x00")
+        self.assertFalse(self.operations_root.exists())
+        self.assertIsNotNone(original)
+
+    def test_preflight_rejects_dangling_symlink_without_changes(self):
+        target = self.skills_root / "course-researcher"
+        target.symlink_to(self.root / "missing-target", target_is_directory=True)
+        before = self.snapshot(self.skills_root / "course-run")
+
+        with self.assertRaises(InstallError):
+            self.apply_install()
+
+        self.assertTrue(target.is_symlink())
+        self.assertEqual(self.snapshot(self.skills_root / "course-run"), before)
+        self.assertFalse(self.operations_root.exists())
+
+    def test_install_restores_current_target_when_staged_replace_fails(self):
+        before = {
+            name: self.snapshot(self.skills_root / name)
+            for name in ("course-run", "course-pm")
+        }
+        real_replace = installer.os.replace
+
+        def fail_staged_replace(source, destination):
+            if Path(source).name == "staged" and Path(destination).name == "course-run":
+                raise OSError("simulated staged replace failure")
+            return real_replace(source, destination)
+
+        with mock.patch.object(installer.os, "replace", side_effect=fail_staged_replace):
+            with self.assertRaises(OSError):
+                self.apply_install()
+
+        self.assertEqual(self.snapshot(self.skills_root / "course-run"), before["course-run"])
+        self.assertEqual(self.snapshot(self.skills_root / "course-pm"), before["course-pm"])
+        self.assertFalse((self.skills_root / "course-researcher").exists())
+
+    def test_install_restores_all_targets_when_applied_manifest_write_fails(self):
+        before = {
+            name: self.snapshot(self.skills_root / name)
+            for name in ("course-run", "course-pm")
+        }
+        real_write = installer._write_json_atomic
+
+        def fail_applied_manifest(path, value):
+            if value.get("status") == "APPLIED":
+                raise OSError("simulated manifest write failure")
+            return real_write(path, value)
+
+        with mock.patch.object(
+            installer, "_write_json_atomic", side_effect=fail_applied_manifest
+        ):
+            with self.assertRaises(OSError):
+                self.apply_install()
+
+        self.assertEqual(self.snapshot(self.skills_root / "course-run"), before["course-run"])
+        self.assertEqual(self.snapshot(self.skills_root / "course-pm"), before["course-pm"])
+        self.assertFalse((self.skills_root / "course-researcher").exists())
+
+    def test_rollback_restores_installed_target_when_backup_copy_fails(self):
+        result = self.apply_install()
+        installed = {
+            name: self.snapshot(self.skills_root / name) for name in PACKAGE_NAMES
+        }
+        real_copy = installer._copy_verified
+
+        def fail_restore_copy(source, destination, expected_hash):
+            if "backups" in Path(source).parts:
+                raise OSError("simulated restore copy failure")
+            return real_copy(source, destination, expected_hash)
+
+        with mock.patch.object(
+            installer, "_copy_verified", side_effect=fail_restore_copy
+        ):
+            with self.assertRaises(OSError):
+                rollback_install(result.operation_dir)
+
+        for name in PACKAGE_NAMES:
+            self.assertEqual(self.snapshot(self.skills_root / name), installed[name])
+        manifest = json.loads(
+            (result.operation_dir / "manifest.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(manifest["status"], "APPLIED")
+
+    def test_rollback_restores_installed_targets_when_manifest_write_fails(self):
+        result = self.apply_install()
+        installed = {
+            name: self.snapshot(self.skills_root / name) for name in PACKAGE_NAMES
+        }
+        real_write = installer._write_json_atomic
+
+        def fail_rolled_back_manifest(path, value):
+            if value.get("status") == "ROLLED_BACK":
+                raise OSError("simulated rollback manifest failure")
+            return real_write(path, value)
+
+        with mock.patch.object(
+            installer, "_write_json_atomic", side_effect=fail_rolled_back_manifest
+        ):
+            with self.assertRaises(OSError):
+                rollback_install(result.operation_dir)
+
+        for name in PACKAGE_NAMES:
+            self.assertEqual(self.snapshot(self.skills_root / name), installed[name])
+        manifest = json.loads(
+            (result.operation_dir / "manifest.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(manifest["status"], "APPLIED")
 
 
 if __name__ == "__main__":

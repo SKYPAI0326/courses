@@ -95,6 +95,39 @@ class CourseContractModelTests(unittest.TestCase):
         self.assertIn("missing_gate_field", {issue.code for issue in issues})
         self.assertIn("$.gates.G2.evidence", {issue.path for issue in issues})
 
+    def test_validate_rejects_invalid_section_and_gate_collection_types(self):
+        mutations = {
+            "governance": lambda contract: contract.update(governance=None),
+            "changes": lambda contract: contract.update(changes="not-a-list"),
+            "evidence_index": lambda contract: contract.update(evidence_index={}),
+            "payload": lambda contract: contract.update(G1_research=[]),
+            "gate risks": lambda contract: contract["gates"]["G0"].update(
+                risks={"blocking": True, "resolved": False}
+            ),
+            "gate evidence": lambda contract: contract["gates"]["G0"].update(
+                evidence={}
+            ),
+            "gate deliverables": lambda contract: contract["gates"]["G0"].update(
+                deliverables="not-a-list"
+            ),
+        }
+
+        for label, mutate in mutations.items():
+            with self.subTest(label=label):
+                contract = self.make_contract()
+                mutate(contract)
+                self.assertTrue(validate_contract(contract))
+
+    def test_validate_rejects_manually_forged_approval(self):
+        contract = self.make_contract()
+        contract["gates"]["G2"]["status"] = "APPROVED"
+
+        issues = validate_contract(contract)
+        codes = {issue.code for issue in issues}
+
+        self.assertIn("approval_metadata_required", codes)
+        self.assertIn("unapproved_prerequisite", codes)
+
     def test_new_contract_rejects_path_traversal_slug(self):
         invalid_slugs = ("../outside", "nested/course", "Uppercase", "two words", "")
 
@@ -278,6 +311,25 @@ class CourseContractStateTests(unittest.TestCase):
             )
 
         submit_gate(contract, "G0", "course-run", "2026-10-18T14:10:00+08:00")
+        self.assertEqual(contract["gates"]["G0"]["status"], "REVIEW")
+
+    def test_approve_rejects_malformed_blocking_risk_container(self):
+        contract = self.make_contract()
+        submit_gate(contract, "G0", "course-run", "2026-10-18T13:00:00+08:00")
+        contract["gates"]["G0"]["risks"] = {
+            "blocking": True,
+            "resolved": False,
+        }
+
+        with self.assertRaises(ContractStateError):
+            approve_gate(
+                contract,
+                "G0",
+                "使用者",
+                "2026-10-18T13:05:00+08:00",
+                "核准需求",
+            )
+
         self.assertEqual(contract["gates"]["G0"]["status"], "REVIEW")
 
 

@@ -174,6 +174,58 @@ class CourseResearchValidationTests(unittest.TestCase):
         self.assertIn("unknown_implication_evidence", {issue.code for issue in issues})
         self.assertFalse(research_ready(record, {}))
 
+    def test_representative_task_requires_description_deliverable_and_criteria(self):
+        cases = (
+            None,
+            {"description": "", "deliverable": "成果", "success_criteria": ["可驗收"]},
+            {"description": "任務", "deliverable": "", "success_criteria": ["可驗收"]},
+            {"description": "任務", "deliverable": "成果", "success_criteria": []},
+        )
+
+        for representative_task in cases:
+            with self.subTest(representative_task=representative_task):
+                record = self.valid_record()
+                record["representative_task"] = representative_task
+                codes = {issue.code for issue in validate_research_record(record, {})}
+                self.assertIn("invalid_representative_task", codes)
+                self.assertFalse(research_ready(record, {}))
+
+    def test_source_retrieved_at_must_be_iso_date(self):
+        record = self.valid_record()
+        record["sources"][0]["retrieved_at"] = "not-a-date"
+
+        codes = {issue.code for issue in validate_research_record(record, {})}
+
+        self.assertIn("invalid_source_date", codes)
+        self.assertFalse(research_ready(record, {}))
+
+    def test_stable_ids_must_be_unique(self):
+        record = self.valid_record()
+        duplicate = copy.deepcopy(record["claims"][0])
+        duplicate["statement"] = "另一項主張。"
+        record["claims"].append(duplicate)
+
+        codes = {issue.code for issue in validate_research_record(record, {})}
+
+        self.assertIn("duplicate_id", codes)
+        self.assertFalse(research_ready(record, {}))
+
+    def test_conflict_claim_references_must_exist(self):
+        record = self.valid_record()
+        record["conflicts"] = [
+            {
+                "id": "conflict-1",
+                "claim_ids": ["missing-claim"],
+                "description": "來源不一致。",
+                "handling": "暫緩決策。",
+            }
+        ]
+
+        codes = {issue.code for issue in validate_research_record(record, {})}
+
+        self.assertIn("unknown_conflict_claim", codes)
+        self.assertFalse(research_ready(record, {}))
+
 
 if __name__ == "__main__":
     unittest.main()

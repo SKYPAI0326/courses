@@ -56,6 +56,52 @@ class CourseContractCliTests(unittest.TestCase):
         self.assertEqual(contract["identity"]["title"], "實用生成式 AI")
         self.assertIn(str(expected), result.stdout)
 
+    def test_init_rejects_design_directory_symlink_escape(self):
+        outside = self.root / "outside"
+        outside.mkdir()
+        (self.root / "_design").symlink_to(outside, target_is_directory=True)
+
+        result = self.run_cli(
+            "init",
+            "--root",
+            self.root,
+            "--slug",
+            "practical-ai",
+            "--title",
+            "實用生成式 AI",
+            "--created-by",
+            "課程團隊",
+            "--at",
+            "2026-10-18T12:00:00+08:00",
+        )
+
+        self.assertEqual(result.returncode, 2)
+        self.assertFalse((outside / "practical-ai" / "course-contract.json").exists())
+
+    def test_init_rejects_slug_directory_symlink_escape(self):
+        design = self.root / "_design"
+        outside = self.root / "outside"
+        design.mkdir()
+        outside.mkdir()
+        (design / "practical-ai").symlink_to(outside, target_is_directory=True)
+
+        result = self.run_cli(
+            "init",
+            "--root",
+            self.root,
+            "--slug",
+            "practical-ai",
+            "--title",
+            "實用生成式 AI",
+            "--created-by",
+            "課程團隊",
+            "--at",
+            "2026-10-18T12:00:00+08:00",
+        )
+
+        self.assertEqual(result.returncode, 2)
+        self.assertFalse((outside / "course-contract.json").exists())
+
     def test_status_reports_gate_state_evidence_risks_and_next_action(self):
         contract = new_contract(
             "practical-ai", "實用生成式 AI", "課程團隊", "2026-10-18T12:00:00+08:00"
@@ -188,6 +234,30 @@ class CourseContractCliTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("$.identity", result.stdout)
         self.assertIn("$.gates.G0", result.stdout)
+
+    def test_mutation_rejects_invalid_loaded_contract_before_change(self):
+        contract = new_contract(
+            "practical-ai", "實用生成式 AI", "課程團隊", "2026-10-18T12:00:00+08:00"
+        )
+        contract["changes"] = "not-a-list"
+        path = self.root / "invalid-contract.json"
+        before = json.dumps(contract, ensure_ascii=False, indent=2) + "\n"
+        path.write_text(before, encoding="utf-8")
+
+        result = self.run_cli(
+            "submit",
+            "--contract",
+            path,
+            "--gate",
+            "G0",
+            "--actor",
+            "course-run",
+            "--at",
+            "2026-10-18T13:00:00+08:00",
+        )
+
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(path.read_text(encoding="utf-8"), before)
 
     def test_status_does_not_mutate_or_summarize_away_original_prose(self):
         prose = (
