@@ -31,6 +31,7 @@ FIXTURES = Path(__file__).resolve().parent / "fixtures"
 REQUIRED_SECTIONS = {
     "schema_version",
     "revision",
+    "contract_instance_id",
     "identity",
     "governance",
     "gates",
@@ -47,6 +48,7 @@ REQUIRED_SECTIONS = {
     "evidence_archive",
     "external_actions",
     "maintenance",
+    "consumed_trial_receipts",
 }
 
 REQUIRED_GATE_FIELDS = {

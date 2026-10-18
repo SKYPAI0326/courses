@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
 
 from src.course_evidence import ConsumedEvidence
-from src.course_runner_authority import verify_trial_receipt
+from src.course_runner_authority import transition_evidence_sha256, verify_trial_receipt
 
 
 @dataclass(frozen=True)
@@ -172,8 +172,21 @@ def _validate_receipt(
     if len(trials) != 1 or len(rosters) != 1:
         issues.append(GateValidationIssue("invalid_trial_receipt_context", "$.evidence.independent_trial_receipt", "receipt validation requires exactly one consumed trial and roster"))
         return issues
+    receipts = consumed.get("independent_trial_receipt", [])
+    if len(receipts) != 1:
+        issues.append(GateValidationIssue("invalid_trial_receipt_context", "$.evidence.independent_trial_receipt", "receipt validation requires its exact consumed typed reference"))
+        return issues
+    transition_references = [
+        item.reference
+        for kind, items in consumed.items()
+        if kind not in {"learner_visible_input", "independent_trial_receipt"}
+        for item in items
+    ]
     for issue in verify_trial_receipt(
         receipt, authority,
+        contract=contract,
+        expected_evidence_set_sha256=transition_evidence_sha256(transition_references),
+        receipt_reference=receipts[0].reference,
         learner_inputs=list(consumed.get("learner_visible_input", [])),
         gate_id=gate_id, trial=trials[0], roster=rosters[0]
     ):

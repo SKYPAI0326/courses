@@ -7,6 +7,7 @@
   "required": [
     "schema_version",
     "revision",
+    "contract_instance_id",
     "identity",
     "governance",
     "gates",
@@ -22,11 +23,18 @@
     "evidence_index",
     "evidence_archive",
     "external_actions",
-    "maintenance"
+    "maintenance",
+    "consumed_trial_receipts"
   ],
   "properties": {
     "schema_version": { "const": 3 },
     "revision": { "type": "integer", "minimum": 0 },
+    "contract_instance_id": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "pattern": "^ci-[0-9a-f]{32}$" }
+      ]
+    },
     "identity": {
       "type": "object",
       "additionalProperties": false,
@@ -79,11 +87,21 @@
             {
               "type": "object",
               "additionalProperties": false,
-              "required": ["authority_id", "algorithm", "key_fingerprint", "runner_registry_sha256"],
+              "required": ["authority_id", "algorithm", "public_key", "public_key_fingerprint", "runner_registry_sha256"],
               "properties": {
                 "authority_id": { "type": "string", "minLength": 1 },
-                "algorithm": { "const": "HMAC-SHA256" },
-                "key_fingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+                "algorithm": { "const": "RSASSA-PKCS1-v1_5-SHA256" },
+                "public_key": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["kty", "n", "e"],
+                  "properties": {
+                    "kty": { "const": "RSA" },
+                    "n": { "type": "string", "pattern": "^[0-9a-f]+$" },
+                    "e": { "const": 65537 }
+                  }
+                },
+                "public_key_fingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
                 "runner_registry_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
               }
             }
@@ -123,7 +141,11 @@
       "type": "array",
       "items": { "$ref": "#/$defs/externalAction" }
     },
-    "maintenance": { "$ref": "#/$defs/payload" }
+    "maintenance": { "$ref": "#/$defs/payload" },
+    "consumed_trial_receipts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/consumedReceipt" }
+    }
   },
   "$defs": {
     "payload": {
@@ -133,6 +155,17 @@
     "recordList": {
       "type": "array",
       "items": { "type": "object" }
+    },
+    "consumedReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["receipt_id", "nonce", "gate", "consumed_at"],
+      "properties": {
+        "receipt_id": { "type": "string", "minLength": 1 },
+        "nonce": { "type": "string", "minLength": 1 },
+        "gate": { "enum": ["G4", "G5"] },
+        "consumed_at": { "type": "string", "minLength": 1 }
+      }
     },
     "gate": {
       "type": "object",

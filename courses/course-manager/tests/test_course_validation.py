@@ -1,40 +1,40 @@
-import base64
 import copy
 import hashlib
 import json
-import os
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
 
 from src.course_contract import ContractStateError, GATE_ORDER, begin_gate, new_contract
 from tests.gate_test_support import _commit_gate_pass
 from src.course_evidence import materialize_json_evidence, verify_evidence_reference
-from src.course_runner_authority import bind_runner_authority, issue_trial_receipt
 from src.course_validation import (
     evidence_maturity,
     route_trial_failure,
-    route_verified_trial_to_gate,
     validate_trial_context_is_new,
     validate_trial_record,
 )
+from src.course_validation_routes import route_verified_trial_to_gate
+from tests.runner_authority_fixture import TestRunnerAuthority
 
 
 class CourseTrialValidationTests(unittest.TestCase):
     def setUp(self):
         self.authority_id = "test-independent-lab"
-        self.authority_environment = patch.dict(
-            os.environ,
+        self.authority = TestRunnerAuthority(
+            self.authority_id,
             {
-                "COURSE_RUNNER_REQUIRED_AUTHORITY_ID": self.authority_id,
-                "COURSE_RUNNER_AUTHORITY_TEST_INDEPENDENT_LAB_SECRET": base64.b64encode(b"test independent authority secret material 2026").decode(),
-                "COURSE_RUNNER_AUTHORITY_TEST_INDEPENDENT_LAB_RUNNERS": json.dumps({"cold-learner-ai-01": "isolated-learner-runner"}),
+                "cold-learner-ai-01": {
+                    "role": "isolated-learner-runner",
+                    "sessions": {
+                        "cold-session-20261018-01": {
+                            "assertion_id": "assertion-cold-session-01",
+                            "context_id": "cold-run-20261018-01",
+                        }
+                    },
+                }
             },
-            clear=False,
         )
-        self.authority_environment.start()
-        self.addCleanup(self.authority_environment.stop)
 
     def valid_trial(self, participant_type="independent-ai", scope="representative_unit"):
         record = {
@@ -155,12 +155,13 @@ class CourseTrialValidationTests(unittest.TestCase):
             root, evidence_id="attack-trial", gate_id="G4", kind="independent_course_trial",
             relative_path="trials/attack.json", value=trial, maturity="INDEPENDENT_AI_VERIFIED",
         )
-        receipt_ref = issue_trial_receipt(
-            root, authority_id=self.authority_id, gate_id="G4",
+        receipt_ref = self.authority.issue(
+            root, contract=contract, gate_id="G4",
             trial_reference=trial_ref, roster_reference=roster_ref,
+            transition_references=[pilot_ref, trial_ref, roster_ref],
             runner_id=trial["participant"]["id"], session_id=trial["runner_session_id"],
             issued_at="2026-10-18T15:14:00+08:00", nonce="attack-base-nonce",
-            evidence_id="attack-receipt", relative_path="receipts/attack.json",
+            receipt_id="attack-receipt", relative_path="receipts/attack.json",
         )
         contract["evidence_index"] = [
             item for item in contract["evidence_index"]
@@ -348,7 +349,7 @@ class CourseTrialValidationTests(unittest.TestCase):
             "course-run",
             "2026-10-18T12:00:00+08:00",
         )
-        bind_runner_authority(contract, self.authority_id)
+        self.authority.bind(contract)
         for gate_id in GATE_ORDER[:4]:
             begin_gate(contract, gate_id, "course-run", "2026-10-18T12:01:00+08:00")
             evidence_id = f"{gate_id.lower()}-evidence"
@@ -434,13 +435,14 @@ class CourseTrialValidationTests(unittest.TestCase):
                 value=trial,
                 maturity="INDEPENDENT_AI_VERIFIED",
             )
-            receipt_ref = issue_trial_receipt(
-                root, authority_id=self.authority_id, gate_id="G4",
+            receipt_ref = self.authority.issue(
+                root, contract=contract, gate_id="G4",
                 trial_reference=trial_ref, roster_reference=roster_ref,
+                transition_references=[pilot_ref, trial_ref, roster_ref],
                 runner_id=trial["participant"]["id"],
                 session_id=trial["runner_session_id"],
                 issued_at="2026-10-18T15:14:00+08:00", nonce="g4-positive-nonce",
-                evidence_id="g4-trial-receipt", relative_path="receipts/g4.json",
+                receipt_id="g4-trial-receipt", relative_path="receipts/g4.json",
             )
             contract["evidence_index"].extend([trial_ref, receipt_ref])
 
@@ -457,6 +459,16 @@ class CourseTrialValidationTests(unittest.TestCase):
 
             self.assertEqual(result, "PASS")
             self.assertEqual(contract["gates"]["G4"]["status"], "PASS")
+            self.assertEqual(contract["revision"], 1)
+            self.assertEqual(
+                contract["consumed_trial_receipts"],
+                [{
+                    "receipt_id": receipt_ref["id"],
+                    "nonce": "g4-positive-nonce",
+                    "gate": "G4",
+                    "consumed_at": "2026-10-18T15:15:00+08:00",
+                }],
+            )
             event = contract["gates"]["G4"]["evidence"][-1]
             self.assertEqual(event["maturity"], "INDEPENDENT_AI_VERIFIED")
             self.assertIn("g4-pilot-record", event["evidence_ids"])
@@ -477,6 +489,18 @@ class CourseTrialValidationTests(unittest.TestCase):
                 verify_evidence_reference(root, trial_refs[0], expected_gate="G4"),
                 [],
             )
+
+            replay_contract = copy.deepcopy(contract)
+            replay_contract["revision"] = 0
+            replay_contract["gates"]["G4"]["status"] = "IN_PROGRESS"
+            replay_before = copy.deepcopy(replay_contract)
+            with self.assertRaisesRegex(ContractStateError, "already consumed"):
+                route_verified_trial_to_gate(
+                    replay_contract, "G4", [pilot_ref["id"], roster_ref["id"]],
+                    trial_ref["id"], receipt_ref["id"], "course-validator",
+                    "2026-10-18T15:16:00+08:00", workspace_root=root,
+                )
+            self.assertEqual(replay_contract, replay_before)
 
             author_trial = self.valid_trial()
             author_trial["participant"]["id"] = "course-author-01"
@@ -548,7 +572,7 @@ class CourseTrialValidationTests(unittest.TestCase):
             author_contract["evidence_index"].extend([author_trial_ref, author_receipt_ref])
 
             author_before = copy.deepcopy(author_contract)
-            with self.assertRaisesRegex(ContractStateError, "receipt signature is invalid"):
+            with self.assertRaises(ContractStateError):
                 route_verified_trial_to_gate(
                     author_contract,
                     "G4",
@@ -641,6 +665,39 @@ class CourseTrialValidationTests(unittest.TestCase):
             self.assert_g4_security_rejected_without_mutation(
                 contract, root, pilot_ref, roster_ref, replay_trial["id"], receipt_ref["id"]
             )
+
+    def test_contract_instance_and_revision_replay_leave_contract_unchanged(self):
+        for field, replacement in (
+            ("contract_instance_id", "ci-" + "f" * 32),
+            ("revision", 1),
+            ("contract_instance_id", None),
+        ):
+            with self.subTest(field=field, replacement=replacement), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                contract, pilot_ref, roster_ref, trial_ref, receipt_ref, _ = self.prepared_g4_route(root)
+                contract[field] = replacement
+                self.assert_g4_security_rejected_without_mutation(
+                    contract, root, pilot_ref, roster_ref, trial_ref["id"], receipt_ref["id"]
+                )
+
+    def test_receipt_rejects_changed_transition_evidence_set_without_mutation(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            contract, pilot_ref, roster_ref, trial_ref, receipt_ref, _ = self.prepared_g4_route(root)
+            extra = materialize_json_evidence(
+                root, evidence_id="unexpected-g4-evidence", gate_id="G4",
+                kind="test_record", relative_path="evidence/unexpected.json",
+                value={"unexpected": True},
+            )
+            contract["evidence_index"].append(extra)
+            before = copy.deepcopy(contract)
+            with self.assertRaisesRegex(ContractStateError, "exact transition evidence set"):
+                route_verified_trial_to_gate(
+                    contract, "G4", [pilot_ref["id"], extra["id"], roster_ref["id"]],
+                    trial_ref["id"], receipt_ref["id"], "course-validator",
+                    "2026-10-18T15:15:00+08:00", workspace_root=root,
+                )
+            self.assertEqual(contract, before)
 
     def test_cross_gate_receipt_replay_leaves_contract_unchanged(self):
         with tempfile.TemporaryDirectory() as temporary:

@@ -1,3 +1,4 @@
+import ast
 import hashlib
 import tempfile
 import unittest
@@ -15,6 +16,65 @@ from tests.gate_test_support import _commit_gate_pass
 
 
 class CourseGateHardeningTests(unittest.TestCase):
+    def test_production_runner_authority_is_verification_only(self):
+        import src.course_runner_authority as authority
+
+        source = (Path(__file__).parents[1] / "src" / "course_runner_authority.py").read_text(encoding="utf-8")
+        self.assertFalse(hasattr(authority, "issue_trial_receipt"))
+        with self.assertRaises(ImportError):
+            exec("from src.course_runner_authority import issue_trial_receipt", {})
+        self.assertNotIn("hmac", source)
+        self.assertNotIn("_SECRET", source)
+        self.assertNotIn("private_key", source)
+        self.assertNotIn("_private_exponent", source)
+
+    def test_gate_validator_dependency_graph_has_no_route_cycle(self):
+        source_root = Path(__file__).parents[1] / "src"
+
+        def imports(module_name):
+            tree = ast.parse((source_root / f"{module_name}.py").read_text(encoding="utf-8"))
+            return {
+                node.module.removeprefix("src.")
+                for node in ast.walk(tree)
+                if isinstance(node, ast.ImportFrom)
+                and isinstance(node.module, str)
+                and node.module.startswith("src.")
+            }
+
+        validator_imports = imports("course_gate_validators")
+        self.assertIn("course_validation", validator_imports)
+        self.assertIn("course_production", validator_imports)
+        for route_module in ("course_validation_routes", "course_production_routes"):
+            self.assertIn("course_gate", imports(route_module))
+        for pure_module in ("course_validation", "course_production"):
+            self.assertNotIn("course_gate", imports(pure_module))
+
+        graph = {
+            module: imports(module)
+            for module in (
+                "course_gate", "course_gate_validators", "course_validation",
+                "course_production", "course_validation_routes",
+                "course_production_routes",
+            )
+        }
+
+        def reaches(start, target, seen=None):
+            seen = set() if seen is None else seen
+            if start in seen:
+                return False
+            seen.add(start)
+            return any(
+                dependency == target or reaches(dependency, target, seen)
+                for dependency in graph.get(start, set())
+            )
+
+        self.assertFalse(reaches("course_gate_validators", "course_gate"))
+
+    def test_new_contract_has_immutable_instance_and_local_receipt_ledger(self):
+        contract = new_contract("receipt-course", "Receipt Course", "test", "2026-10-18T12:00:00+08:00")
+        self.assertRegex(contract["contract_instance_id"], r"^ci-[0-9a-f]{32}$")
+        self.assertEqual(contract["consumed_trial_receipts"], [])
+
     def contract_at_g6(self):
         contract = new_contract("release-course", "Release Course", "course-run", "2026-10-18T12:00:00+08:00")
         for gate_id in ("G0", "G1", "G2", "G3", "G4", "G5"):
@@ -69,7 +129,7 @@ class CourseGateHardeningTests(unittest.TestCase):
         self.assertNotIn("route_full_production_to_g5", validators)
         route_sources = "\n".join(
             (source_root / name).read_text(encoding="utf-8")
-            for name in ("course_validation.py", "course_production.py")
+            for name in ("course_validation_routes.py", "course_production_routes.py")
         )
         self.assertNotIn("issue_trial_receipt", route_sources)
 

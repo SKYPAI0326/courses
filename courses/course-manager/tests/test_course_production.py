@@ -1,40 +1,40 @@
-import base64
 import copy
 import hashlib
 import json
-import os
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
 
 from src.course_contract import ContractStateError, begin_gate, new_contract
 from tests.gate_test_support import _commit_gate_pass
-from src.course_evidence import materialize_json_evidence, verify_evidence_reference
-from src.course_runner_authority import bind_runner_authority, issue_trial_receipt
+from src.course_evidence import canonical_json_bytes, materialize_json_evidence, register_evidence_file, verify_evidence_reference
 from src.course_production import (
-    route_full_production_to_g5,
     select_pilot_unit,
     validate_asset_manifest,
     validate_full_production,
     validate_pilot_record,
 )
+from src.course_production_routes import route_full_production_to_g5
+from tests.runner_authority_fixture import TestRunnerAuthority
 
 
 class CourseProductionTests(unittest.TestCase):
     def setUp(self):
         self.authority_id = "test-independent-lab"
-        self.authority_environment = patch.dict(
-            os.environ,
+        self.authority = TestRunnerAuthority(
+            self.authority_id,
             {
-                "COURSE_RUNNER_REQUIRED_AUTHORITY_ID": self.authority_id,
-                "COURSE_RUNNER_AUTHORITY_TEST_INDEPENDENT_LAB_SECRET": base64.b64encode(b"test independent authority secret material 2026").decode(),
-                "COURSE_RUNNER_AUTHORITY_TEST_INDEPENDENT_LAB_RUNNERS": json.dumps({"full-course-cold-ai-01": "isolated-learner-runner"}),
+                "full-course-cold-ai-01": {
+                    "role": "isolated-learner-runner",
+                    "sessions": {
+                        "full-course-session-20261018-01": {
+                            "assertion_id": "assertion-full-course-session-01",
+                            "context_id": "full-course-run-20261018-01",
+                        }
+                    },
+                }
             },
-            clear=False,
         )
-        self.authority_environment.start()
-        self.addCleanup(self.authority_environment.stop)
 
     def g5_artifact_refs(self, root, production, lessons, assets):
         refs = []
@@ -81,6 +81,33 @@ class CourseProductionTests(unittest.TestCase):
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(f"learner-visible input {index}\n".encode())
             item["sha256"] = hashlib.sha256(target.read_bytes()).hexdigest()
+
+    def planned_g5_references(self, root, artifact_refs, bundle, record_path):
+        planned = [
+            register_evidence_file(
+                root,
+                evidence_id=ref["id"],
+                gate_id="G5",
+                kind=ref["kind"],
+                relative_path=ref["path"],
+                maturity=ref.get("maturity"),
+                metadata=ref.get("metadata"),
+            )
+            for ref in artifact_refs
+        ]
+        digest = hashlib.sha256(canonical_json_bytes(bundle)).hexdigest()
+        planned.append(
+            materialize_json_evidence(
+                root,
+                evidence_id=f"g5-full-production-{digest[:12]}",
+                gate_id="G5",
+                kind="full_course_production",
+                relative_path=record_path,
+                value=bundle,
+                maturity="EXECUTION_VALIDATED",
+            )
+        )
+        return planned
 
     def valid_asset_manifest(self):
         return {
@@ -528,7 +555,7 @@ class CourseProductionTests(unittest.TestCase):
             "課程團隊",
             "2026-10-18T12:00:00+08:00",
         )
-        bind_runner_authority(contract, self.authority_id)
+        self.authority.bind(contract)
         for gate_id in ("G0", "G1", "G2", "G3"):
             begin_gate(contract, gate_id, "course-run", "2026-10-18T12:05:00+08:00")
             evidence_id = f"{gate_id.lower()}-evidence"
@@ -700,7 +727,7 @@ class CourseProductionTests(unittest.TestCase):
             "course-run",
             "2026-10-18T12:00:00+08:00",
         )
-        bind_runner_authority(contract, self.authority_id)
+        self.authority.bind(contract)
         for gate_id in ("G0", "G1", "G2", "G3", "G4"):
             begin_gate(contract, gate_id, "course-run", "2026-10-18T12:05:00+08:00")
             evidence_id = f"{gate_id.lower()}-evidence"
@@ -759,13 +786,8 @@ class CourseProductionTests(unittest.TestCase):
                     "trial_context_id": "pilot-cold-run-20261018-01",
                 },
             }
-            materialize_json_evidence(
-                root,
-                evidence_id="g5-production-source",
-                gate_id="G5",
-                kind="full_course_production",
-                relative_path="production/full-course.json",
-                value=production_bundle,
+            planned_refs = self.planned_g5_references(
+                root, artifact_refs, production_bundle, "production/full-course.json"
             )
             trial_ref = materialize_json_evidence(
                 root,
@@ -776,13 +798,14 @@ class CourseProductionTests(unittest.TestCase):
                 value=production["full_course_trial"],
                 maturity="INDEPENDENT_AI_VERIFIED",
             )
-            receipt_ref = issue_trial_receipt(
-                root, authority_id=self.authority_id, gate_id="G5",
+            receipt_ref = self.authority.issue(
+                root, contract=contract, gate_id="G5",
                 trial_reference=trial_ref, roster_reference=roster_ref,
+                transition_references=[*planned_refs, trial_ref, roster_ref],
                 runner_id=production["full_course_trial"]["participant"]["id"],
                 session_id=production["full_course_trial"]["runner_session_id"],
                 issued_at="2026-10-18T17:14:00+08:00", nonce="g5-positive-nonce",
-                evidence_id="g5-trial-receipt", relative_path="receipts/g5.json",
+                receipt_id="g5-trial-receipt", relative_path="receipts/g5.json",
             )
             contract["evidence_index"].extend([trial_ref, receipt_ref])
 
@@ -825,7 +848,7 @@ class CourseProductionTests(unittest.TestCase):
             "course-run",
             "2026-10-18T12:00:00+08:00",
         )
-        bind_runner_authority(contract, self.authority_id)
+        self.authority.bind(contract)
         for gate_id in ("G0", "G1", "G2", "G3", "G4"):
             contract["gates"][gate_id]["status"] = "PASS"
             contract["gates"][gate_id]["source_revision"] = 1
@@ -885,13 +908,16 @@ class CourseProductionTests(unittest.TestCase):
                     "trial_context_id": "pilot-cold-run-20261018-01",
                 },
             }
-            materialize_json_evidence(
-                root,
-                evidence_id="g5-invalid-production-source",
-                gate_id="G5",
-                kind="full_course_production",
-                relative_path="production/invalid-full-course.json",
-                value=production_bundle,
+            invalid_artifact_refs = [
+                {
+                    "id": "g5-integration",
+                    "kind": "production_artifact",
+                    "path": "evidence/g5-integration.json",
+                }
+            ]
+            planned_refs = self.planned_g5_references(
+                root, invalid_artifact_refs, production_bundle,
+                "production/invalid-full-course.json",
             )
             trial_ref = materialize_json_evidence(
                 root,
@@ -902,26 +928,21 @@ class CourseProductionTests(unittest.TestCase):
                 value=production["full_course_trial"],
                 maturity="INDEPENDENT_AI_VERIFIED",
             )
-            receipt_ref = issue_trial_receipt(
-                root, authority_id=self.authority_id, gate_id="G5",
+            receipt_ref = self.authority.issue(
+                root, contract=contract, gate_id="G5",
                 trial_reference=trial_ref, roster_reference=roster_ref,
+                transition_references=[*planned_refs, trial_ref, roster_ref],
                 runner_id=production["full_course_trial"]["participant"]["id"],
                 session_id=production["full_course_trial"]["runner_session_id"],
                 issued_at="2026-10-18T17:14:00+08:00", nonce="g5-invalid-production-nonce",
-                evidence_id="g5-invalid-trial-receipt", relative_path="receipts/g5-invalid.json",
+                receipt_id="g5-invalid-trial-receipt", relative_path="receipts/g5-invalid.json",
             )
             contract["evidence_index"].extend([trial_ref, receipt_ref])
 
             result = route_full_production_to_g5(
                 contract,
                 production,
-                [
-                    {
-                        "id": "g5-integration",
-                        "kind": "production_artifact",
-                        "path": "evidence/g5-integration.json",
-                    }
-                ],
+                invalid_artifact_refs,
                 "course-run",
                 "2026-10-18T17:15:00+08:00",
                 workspace_root=root,
@@ -947,7 +968,7 @@ class CourseProductionTests(unittest.TestCase):
 
     def test_g5_wrong_governed_roster_kind_leaves_contract_unchanged(self):
         contract = new_contract("transactional-course", "Transactional Course", "course-run", "2026-10-18T12:00:00+08:00")
-        bind_runner_authority(contract, self.authority_id)
+        self.authority.bind(contract)
         for gate_id in ("G0", "G1", "G2", "G3", "G4"):
             begin_gate(contract, gate_id, "test", "2026-10-18T12:01:00+08:00")
             evidence_id = f"{gate_id.lower()}-fixture"

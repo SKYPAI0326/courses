@@ -1,35 +1,36 @@
-import base64
 import copy
 import hashlib
-import json
-import os
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
 
 from src.course_contract import ContractStateError, begin_gate, new_contract
 from src.course_evidence import consume_evidence_reference, materialize_json_evidence
 from src.course_runner_authority import (
-    bind_runner_authority,
     consume_trial_inputs,
-    issue_trial_receipt,
+    transition_evidence_sha256,
     verify_trial_receipt,
 )
+from tests.runner_authority_fixture import TestRunnerAuthority
 
 
 class CourseRunnerAuthorityTests(unittest.TestCase):
-    authority_id = "independent-lab"
-    secret = b"independent authority test secret material 2026"
-
-    def authority_environment(self):
-        return {
-            "COURSE_RUNNER_REQUIRED_AUTHORITY_ID": self.authority_id,
-            "COURSE_RUNNER_AUTHORITY_INDEPENDENT_LAB_SECRET": base64.b64encode(self.secret).decode(),
-            "COURSE_RUNNER_AUTHORITY_INDEPENDENT_LAB_RUNNERS": json.dumps(
-                {"cold-runner-01": "isolated-learner-runner"}, sort_keys=True
-            ),
-        }
+    def authority(self, *, key_slot=0):
+        return TestRunnerAuthority(
+            "independent-lab",
+            {
+                "cold-runner-01": {
+                    "role": "isolated-learner-runner",
+                    "sessions": {
+                        "session-01": {
+                            "assertion_id": "assertion-session-01",
+                            "context_id": "context-01",
+                        }
+                    },
+                }
+            },
+            key_slot=key_slot,
+        )
 
     def evidence(self, root):
         learner_input = root / "course" / "unit.html"
@@ -54,63 +55,117 @@ class CourseRunnerAuthorityTests(unittest.TestCase):
         )
         return roster, trial
 
-    def test_preissued_receipt_verifies_against_fixed_authority_and_files(self):
-        with patch.dict(os.environ, self.authority_environment(), clear=False), tempfile.TemporaryDirectory() as temporary:
+    def verify(self, root, contract, roster, trial, receipt_ref):
+        receipt = consume_evidence_reference(root, receipt_ref, expected_gate="G4", parse_json=True).value
+        consumed_trial = consume_evidence_reference(root, trial, expected_gate="G4", parse_json=True)
+        return verify_trial_receipt(
+            receipt,
+            contract["governance"]["runner_authority"],
+            contract=contract,
+            expected_evidence_set_sha256=transition_evidence_sha256([trial, roster]),
+            receipt_reference=receipt_ref,
+            learner_inputs=consume_trial_inputs(root, consumed_trial.value),
+            gate_id="G4",
+            trial=consumed_trial,
+            roster=consume_evidence_reference(root, roster, expected_gate="G0", parse_json=True),
+        )
+
+    def test_preissued_receipt_verifies_with_public_key_only(self):
+        with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
+            authority = self.authority()
             contract = new_contract("authority-course", "Authority Course", "course-run", "2026-10-18T12:00:00+08:00")
             roster, trial = self.evidence(root)
-            contract["evidence_index"].append(roster)
-            contract["governance"]["production_role_roster"] = {"evidence_id": roster["id"], "sha256": roster["sha256"]}
-            bind_runner_authority(contract, self.authority_id)
-            receipt_ref = issue_trial_receipt(
-                root, authority_id=self.authority_id, gate_id="G4",
-                trial_reference=trial, roster_reference=roster,
+            authority.bind(contract)
+            receipt_ref = authority.issue(
+                root, contract=contract, gate_id="G4", trial_reference=trial,
+                roster_reference=roster, transition_references=[trial, roster],
                 runner_id="cold-runner-01", session_id="session-01",
                 issued_at="2026-10-18T12:10:00+08:00", nonce="nonce-01",
-                evidence_id="g4-receipt", relative_path="receipts/g4.json",
+                receipt_id="g4-receipt", relative_path="receipts/g4.json",
             )
-            receipt = consume_evidence_reference(root, receipt_ref, expected_gate="G4", parse_json=True).value
-            consumed_trial = consume_evidence_reference(root, trial, expected_gate="G4", parse_json=True)
-            issues = verify_trial_receipt(
-                receipt, contract["governance"]["runner_authority"], gate_id="G4",
-                learner_inputs=consume_trial_inputs(root, consumed_trial.value),
-                trial=consumed_trial,
-                roster=consume_evidence_reference(root, roster, expected_gate="G0", parse_json=True),
-            )
-            self.assertEqual(issues, [])
+            self.assertEqual(self.verify(root, contract, roster, trial, receipt_ref), [])
 
-    def test_receipt_tamper_and_untrusted_signature_are_rejected(self):
-        with patch.dict(os.environ, self.authority_environment(), clear=False), tempfile.TemporaryDirectory() as temporary:
+    def test_receipt_tamper_and_untrusted_self_signed_key_are_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
+            authority = self.authority()
+            attacker = self.authority(key_slot=1)
             contract = new_contract("authority-course", "Authority Course", "course-run", "2026-10-18T12:00:00+08:00")
             roster, trial = self.evidence(root)
-            contract["evidence_index"].append(roster)
-            contract["governance"]["production_role_roster"] = {"evidence_id": roster["id"], "sha256": roster["sha256"]}
-            bind_runner_authority(contract, self.authority_id)
-            receipt_ref = issue_trial_receipt(
-                root, authority_id=self.authority_id, gate_id="G4", trial_reference=trial,
-                roster_reference=roster, runner_id="cold-runner-01", session_id="session-01",
+            authority.bind(contract)
+            receipt_ref = authority.issue(
+                root, contract=contract, gate_id="G4", trial_reference=trial,
+                roster_reference=roster, transition_references=[trial, roster],
+                runner_id="cold-runner-01", session_id="session-01",
                 issued_at="2026-10-18T12:10:00+08:00", nonce="nonce-01",
-                evidence_id="g4-receipt", relative_path="receipts/g4.json",
+                receipt_id="g4-receipt", relative_path="receipts/g4.json",
             )
             receipt = consume_evidence_reference(root, receipt_ref, expected_gate="G4", parse_json=True).value
-            consumed_trial = consume_evidence_reference(root, trial, expected_gate="G4", parse_json=True)
-            consumed_roster = consume_evidence_reference(root, roster, expected_gate="G0", parse_json=True)
-            consumed_inputs = consume_trial_inputs(root, consumed_trial.value)
-            tampered = copy.deepcopy(receipt)
-            tampered["runner"]["id"] = "author-alias"
-            self.assertTrue(verify_trial_receipt(tampered, contract["governance"]["runner_authority"], learner_inputs=consumed_inputs, gate_id="G4", trial=consumed_trial, roster=consumed_roster))
-            forged = copy.deepcopy(receipt)
-            forged["signature"] = "0" * 64
-            self.assertTrue(verify_trial_receipt(forged, contract["governance"]["runner_authority"], learner_inputs=consumed_inputs, gate_id="G4", trial=consumed_trial, roster=consumed_roster))
+            receipt["runner"]["id"] = "author-alias"
+            tampered_ref = materialize_json_evidence(
+                root, evidence_id="tampered", gate_id="G4", kind="independent_trial_receipt",
+                relative_path="receipts/tampered.json", value=receipt,
+            )
+            self.assertTrue(self.verify(root, contract, roster, trial, tampered_ref))
+
+            attacker_ref = attacker.issue(
+                root, contract=contract, gate_id="G4", trial_reference=trial,
+                roster_reference=roster, transition_references=[trial, roster],
+                runner_id="cold-runner-01", session_id="session-01",
+                issued_at="2026-10-18T12:11:00+08:00", nonce="attacker-nonce",
+                receipt_id="attacker-receipt", relative_path="receipts/attacker.json",
+            )
+            self.assertIn(
+                "invalid_receipt_signature",
+                {issue.code for issue in self.verify(root, contract, roster, trial, attacker_ref)},
+            )
+
+    def test_receipt_rejects_cross_contract_and_cross_revision_replay(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            authority = self.authority()
+            contract = new_contract("authority-course", "Authority Course", "course-run", "2026-10-18T12:00:00+08:00")
+            roster, trial = self.evidence(root)
+            authority.bind(contract)
+            receipt_ref = authority.issue(
+                root, contract=contract, gate_id="G4", trial_reference=trial,
+                roster_reference=roster, transition_references=[trial, roster],
+                runner_id="cold-runner-01", session_id="session-01",
+                issued_at="2026-10-18T12:10:00+08:00", nonce="nonce-01",
+                receipt_id="g4-receipt", relative_path="receipts/g4.json",
+            )
+            other = copy.deepcopy(contract)
+            other["contract_instance_id"] = "ci-" + "f" * 32
+            self.assertIn("contract_replay", {issue.code for issue in self.verify(root, other, roster, trial, receipt_ref)})
+            revised = copy.deepcopy(contract)
+            revised["revision"] += 1
+            self.assertIn("contract_replay", {issue.code for issue in self.verify(root, revised, roster, trial, receipt_ref)})
+
+    def test_external_authority_requires_registered_session_ownership(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            authority = self.authority()
+            contract = new_contract("authority-course", "Authority Course", "course-run", "2026-10-18T12:00:00+08:00")
+            roster, trial = self.evidence(root)
+            authority.bind(contract)
+            with self.assertRaisesRegex(ContractStateError, "no assertion"):
+                authority.issue(
+                    root, contract=contract, gate_id="G4", trial_reference=trial,
+                    roster_reference=roster, transition_references=[trial, roster],
+                    runner_id="cold-runner-01", session_id="caller-chosen-session",
+                    issued_at="2026-10-18T12:10:00+08:00", nonce="nonce-01",
+                    receipt_id="g4-receipt", relative_path="receipts/g4.json",
+                )
 
     def test_authority_binding_cannot_change_after_gate_work_begins(self):
-        with patch.dict(os.environ, self.authority_environment(), clear=False):
-            contract = new_contract("authority-course", "Authority Course", "course-run", "2026-10-18T12:00:00+08:00")
-            bind_runner_authority(contract, self.authority_id)
-            begin_gate(contract, "G0", "course-run", "2026-10-18T12:01:00+08:00")
-            with self.assertRaisesRegex(ContractStateError, "before Gate work"):
-                bind_runner_authority(contract, self.authority_id)
+        authority = self.authority()
+        contract = new_contract("authority-course", "Authority Course", "course-run", "2026-10-18T12:00:00+08:00")
+        authority.bind(contract)
+        begin_gate(contract, "G0", "course-run", "2026-10-18T12:01:00+08:00")
+        with self.assertRaisesRegex(ContractStateError, "before Gate work"):
+            contract["governance"]["runner_authority"] = None
+            authority.bind(contract)
 
 
 if __name__ == "__main__":

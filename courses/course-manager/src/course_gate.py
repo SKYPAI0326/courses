@@ -21,6 +21,9 @@ SECURITY_BOUNDARY_CODES = frozenset(
         "invalid_receipt_signature",
         "wrong_receipt_authority",
         "receipt_replay",
+        "contract_replay",
+        "evidence_set_replay",
+        "receipt_ledger_invalid",
         "trial_binding_mismatch",
         "roster_binding_mismatch",
         "input_binding_mismatch",
@@ -130,6 +133,10 @@ def validate_and_transition_gate(
         values_by_kind.setdefault(kind, []).append(item.value if parse_json else item)
 
     if gate_id in {"G4", "G5"}:
+        if not isinstance(contract.get("contract_instance_id"), str):
+            raise ContractStateError(
+                "G4/G5 requires a trusted contract_instance_id; legacy contract is fail-closed"
+            )
         trials = values_by_kind.get("independent_course_trial", [])
         if len(trials) == 1 and isinstance(trials[0], Mapping):
             try:
@@ -205,5 +212,26 @@ def validate_and_transition_gate(
             {"path": item.reference["path"], "sha256": item.sha256}
             for item in consumed_inputs
         ]
+    if gate_id in {"G4", "G5"}:
+        receipts = values_by_kind.get("independent_trial_receipt", [])
+        if len(receipts) != 1 or not isinstance(receipts[0], Mapping):
+            raise ContractStateError("Gate PASS requires one consumed trial receipt")
+        receipt = receipts[0]
+        ledger = contract.get("consumed_trial_receipts")
+        if not isinstance(ledger, list):
+            raise ContractStateError("contract receipt ledger is invalid")
+        ledger.append(
+            {
+                "receipt_id": receipt["receipt_id"],
+                "nonce": receipt["nonce"],
+                "gate": gate_id,
+                "consumed_at": at,
+            }
+        )
+        contract["revision"] += 1
+        event["consumed_receipt"] = {
+            "receipt_id": receipt["receipt_id"],
+            "nonce": receipt["nonce"],
+        }
     record["evidence"].append(event)
     return "PASS"

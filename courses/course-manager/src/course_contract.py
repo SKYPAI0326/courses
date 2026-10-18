@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 import re
+import secrets
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath, PureWindowsPath
@@ -38,6 +39,7 @@ SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 REQUIRED_SECTIONS = (
     "schema_version",
     "revision",
+    "contract_instance_id",
     "identity",
     "governance",
     "gates",
@@ -54,6 +56,7 @@ REQUIRED_SECTIONS = (
     "evidence_archive",
     "external_actions",
     "maintenance",
+    "consumed_trial_receipts",
 )
 
 REQUIRED_GATE_FIELDS = (
@@ -148,6 +151,7 @@ def new_contract(slug: str, title: str, created_by: str, created_at: str) -> dic
     return {
         "schema_version": 3,
         "revision": 0,
+        "contract_instance_id": f"ci-{secrets.token_hex(16)}",
         "identity": {"slug": slug, "title": title},
         "governance": {
             "created_by": created_by,
@@ -171,6 +175,7 @@ def new_contract(slug: str, title: str, created_by: str, created_at: str) -> dic
         "evidence_archive": [],
         "external_actions": [],
         "maintenance": {},
+        "consumed_trial_receipts": [],
     }
 
 
@@ -249,7 +254,8 @@ def _validate_governance(contract: Mapping[str, Any], issues: list[ValidationIss
                 _append_issue(issues, "invalid_production_role_roster_binding", f"{path}.production_role_roster.sha256", "governed roster sha256 must be lowercase hexadecimal")
     authority = governance.get("runner_authority")
     authority_fields = {
-        "authority_id", "algorithm", "key_fingerprint", "runner_registry_sha256"
+        "authority_id", "algorithm", "public_key", "public_key_fingerprint",
+        "runner_registry_sha256",
     }
     if authority is not None:
         if not isinstance(authority, Mapping) or set(authority) != authority_fields:
@@ -257,9 +263,19 @@ def _validate_governance(contract: Mapping[str, Any], issues: list[ValidationIss
         else:
             if not isinstance(authority.get("authority_id"), str) or not authority["authority_id"].strip():
                 _append_issue(issues, "invalid_runner_authority", f"{path}.runner_authority.authority_id", "runner authority id must contain text")
-            if authority.get("algorithm") != "HMAC-SHA256":
-                _append_issue(issues, "invalid_runner_authority", f"{path}.runner_authority.algorithm", "runner authority algorithm must be HMAC-SHA256")
-            for field in ("key_fingerprint", "runner_registry_sha256"):
+            if authority.get("algorithm") != "RSASSA-PKCS1-v1_5-SHA256":
+                _append_issue(issues, "invalid_runner_authority", f"{path}.runner_authority.algorithm", "runner authority algorithm must be RSASSA-PKCS1-v1_5-SHA256")
+            public_key = authority.get("public_key")
+            if (
+                not isinstance(public_key, Mapping)
+                or set(public_key) != {"kty", "n", "e"}
+                or public_key.get("kty") != "RSA"
+                or not isinstance(public_key.get("n"), str)
+                or re.fullmatch(r"[0-9a-f]+", public_key["n"]) is None
+                or public_key.get("e") != 65537
+            ):
+                _append_issue(issues, "invalid_runner_authority", f"{path}.runner_authority.public_key", "runner authority public key must be canonical RSA verification material")
+            for field in ("public_key_fingerprint", "runner_registry_sha256"):
                 digest = authority.get(field)
                 if not isinstance(digest, str) or not SHA256_PATTERN.fullmatch(digest):
                     _append_issue(issues, "invalid_runner_authority", f"{path}.runner_authority.{field}", f"{field} must be lowercase SHA-256")
@@ -352,6 +368,18 @@ def validate_contract(contract: Mapping[str, Any]) -> list[ValidationIssue]:
             "revision must be a non-negative integer",
         )
 
+    instance_id = contract.get("contract_instance_id")
+    if instance_id is not None and (
+        not isinstance(instance_id, str)
+        or re.fullmatch(r"ci-[0-9a-f]{32}", instance_id) is None
+    ):
+        _append_issue(
+            issues,
+            "invalid_contract_instance_id",
+            "$.contract_instance_id",
+            "contract_instance_id must be null for a legacy migration or a generated immutable id",
+        )
+
     identity = contract.get("identity")
     if not isinstance(identity, Mapping):
         _append_issue(issues, "invalid_identity", "$.identity", "identity must be an object")
@@ -381,7 +409,7 @@ def validate_contract(contract: Mapping[str, Any]) -> list[ValidationIssue]:
                 f"{section} must be an object",
             )
 
-    for section in ("changes", "evidence_index", "evidence_archive", "external_actions"):
+    for section in ("changes", "evidence_index", "evidence_archive", "external_actions", "consumed_trial_receipts"):
         value = contract.get(section)
         if not isinstance(value, list):
             _append_issue(
@@ -399,6 +427,32 @@ def validate_contract(contract: Mapping[str, Any]) -> list[ValidationIssue]:
                         f"$.{section}[{index}]",
                         f"{section} items must be objects",
                     )
+
+    receipt_ledger = contract.get("consumed_trial_receipts")
+    seen_receipt_ids: set[str] = set()
+    seen_nonces: set[str] = set()
+    if isinstance(receipt_ledger, list):
+        required_receipt_fields = {"receipt_id", "nonce", "gate", "consumed_at"}
+        for index, item in enumerate(receipt_ledger):
+            path = f"$.consumed_trial_receipts[{index}]"
+            if not isinstance(item, Mapping):
+                continue
+            if set(item) != required_receipt_fields or any(
+                not isinstance(item.get(field), str) or not item[field].strip()
+                for field in required_receipt_fields
+            ) or item.get("gate") not in {"G4", "G5"}:
+                _append_issue(
+                    issues, "invalid_receipt_ledger", path,
+                    "consumed receipt must contain receipt_id, nonce, G4/G5 gate, and consumed_at",
+                )
+                continue
+            if item["receipt_id"] in seen_receipt_ids or item["nonce"] in seen_nonces:
+                _append_issue(
+                    issues, "duplicate_consumed_receipt", path,
+                    "consumed receipt ids and nonces must be unique",
+                )
+            seen_receipt_ids.add(item["receipt_id"])
+            seen_nonces.add(item["nonce"])
 
     evidence_ids: set[str] = set()
     evidence_by_id: dict[str, Mapping[str, Any]] = {}
@@ -1182,6 +1236,8 @@ def migrate_contract_v2(
     migrated = copy.deepcopy(dict(contract))
     migrated["schema_version"] = 3
     migrated["revision"] = 0
+    migrated["contract_instance_id"] = None
+    migrated["consumed_trial_receipts"] = []
     governance = migrated.get("governance")
     if not isinstance(governance, MutableMapping):
         raise ContractStateError("legacy governance is missing or invalid")
