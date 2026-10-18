@@ -16,6 +16,7 @@ from src.course_contract import (
     fail_gate,
     load_contract,
     migrate_contract_v1,
+    migrate_contract_v2,
     new_contract,
     pass_gate,
     propose_external_action,
@@ -29,6 +30,7 @@ FIXTURES = Path(__file__).resolve().parent / "fixtures"
 
 REQUIRED_SECTIONS = {
     "schema_version",
+    "revision",
     "identity",
     "governance",
     "gates",
@@ -68,7 +70,7 @@ class CourseContractModelTests(unittest.TestCase):
             created_at="2026-10-18T12:00:00+08:00",
         )
 
-    def test_new_contract_uses_v2_gate_states_and_external_action_sections(self):
+    def test_new_contract_uses_v3_revision_gate_states_and_external_action_sections(self):
         contract = self.make_contract()
 
         self.assertEqual(GATE_ORDER, tuple(f"G{index}" for index in range(7)))
@@ -78,7 +80,8 @@ class CourseContractModelTests(unittest.TestCase):
                 {"NOT_STARTED", "IN_PROGRESS", "PASS", "FAIL", "BLOCKED", "STALE"}
             ),
         )
-        self.assertEqual(contract["schema_version"], 2)
+        self.assertEqual(contract["schema_version"], 3)
+        self.assertEqual(contract["revision"], 0)
         self.assertEqual(set(contract), REQUIRED_SECTIONS)
         self.assertEqual(tuple(contract["gates"]), GATE_ORDER)
         self.assertTrue(
@@ -185,6 +188,7 @@ class CourseContractStateTests(unittest.TestCase):
             {
                 "id": evidence_id,
                 "gate": gate_id,
+                "kind": "test_record",
                 "path": f"evidence/{evidence_id}.json",
                 "sha256": hashlib.sha256(evidence_id.encode("utf-8")).hexdigest(),
             }
@@ -234,6 +238,42 @@ class CourseContractStateTests(unittest.TestCase):
         contract["gates"]["G0"]["status"] = "IN_PROGRESS"
         with self.assertRaises(ContractStateError):
             begin_gate(contract, "G1", "course-run", "2026-10-18T13:10:00+08:00")
+
+    def test_pass_rejects_evidence_indexed_for_another_gate(self):
+        contract = self.make_contract()
+        begin_gate(contract, "G0", "course-run", "2026-10-18T13:00:00+08:00")
+        self.index_evidence(contract, "wrong-gate-evidence", "G1")
+
+        with self.assertRaises(ContractStateError):
+            pass_gate(
+                contract,
+                "G0",
+                ["wrong-gate-evidence"],
+                "requirements-validator",
+                "course-run",
+                "2026-10-18T13:05:00+08:00",
+            )
+
+    def test_validate_rejects_duplicate_or_untyped_evidence_references(self):
+        contract = self.make_contract()
+        self.index_evidence(contract, "same-id", "G0")
+        duplicate = copy.deepcopy(contract["evidence_index"][0])
+        duplicate["path"] = "evidence/other.json"
+        contract["evidence_index"].append(duplicate)
+        contract["evidence_index"].append(
+            {
+                "id": "bad-kind",
+                "gate": "G0",
+                "kind": 9,
+                "path": "evidence/bad-kind.json",
+                "sha256": "a" * 64,
+            }
+        )
+
+        codes = {issue.code for issue in validate_contract(contract)}
+
+        self.assertIn("duplicate_evidence_id", codes)
+        self.assertIn("invalid_evidence_kind", codes)
 
     def test_pass_rejects_unresolved_blockers(self):
         contract = self.make_contract()
@@ -444,15 +484,18 @@ class CourseContractMigrationTests(unittest.TestCase):
             )
         )
 
-    def test_v1_approved_gate_with_complete_evidence_migrates_to_pass(self):
+    def test_v1_approved_gate_without_replayable_files_migrates_to_stale(self):
         migrated = migrate_contract_v1(
             self.load_v1(), "course-run", "2026-10-18T19:00:00+08:00"
         )
 
-        self.assertEqual(migrated["gates"]["G0"]["status"], "PASS")
-        self.assertEqual(migrated["gates"]["G1"]["status"], "PASS")
+        self.assertEqual(migrated["schema_version"], 3)
+        self.assertEqual(migrated["revision"], 0)
+        self.assertTrue(
+            all(migrated["gates"][gate_id]["status"] == "STALE" for gate_id in GATE_ORDER)
+        )
 
-    def test_v1_approved_gate_without_complete_evidence_migrates_to_in_progress(self):
+    def test_v1_unverifiable_gate_stales_from_the_earliest_prior_pass(self):
         legacy = self.load_v1()
         legacy["gates"]["G2"]["evidence"] = []
 
@@ -460,7 +503,7 @@ class CourseContractMigrationTests(unittest.TestCase):
             legacy, "course-run", "2026-10-18T19:00:00+08:00"
         )
 
-        self.assertEqual(migrated["gates"]["G2"]["status"], "IN_PROGRESS")
+        self.assertEqual(migrated["gates"]["G2"]["status"], "STALE")
 
     def test_v1_migration_preserves_approval_history_and_revalidates_review_state(self):
         legacy = self.load_v1()
@@ -472,8 +515,8 @@ class CourseContractMigrationTests(unittest.TestCase):
             legacy, "course-run", "2026-10-18T19:00:00+08:00"
         )
 
-        self.assertEqual(migrated["schema_version"], 2)
-        self.assertEqual(migrated["gates"]["G2"]["status"], "IN_PROGRESS")
+        self.assertEqual(migrated["schema_version"], 3)
+        self.assertEqual(migrated["gates"]["G2"]["status"], "STALE")
         approval_history = [
             item
             for item in migrated["gates"]["G0"]["evidence"]
@@ -484,6 +527,87 @@ class CourseContractMigrationTests(unittest.TestCase):
             any(change.get("kind") == "schema_migration" for change in migrated["changes"])
         )
         self.assertEqual(validate_contract(migrated), [])
+
+    def test_v2_migration_preserves_replayable_pass(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            path = root / "evidence" / "g0.json"
+            path.parent.mkdir()
+            path.write_bytes(b"g0")
+            contract = CourseContractStateTests().make_contract()
+            begin_gate(contract, "G0", "course-run", "2026-10-18T13:00:00+08:00")
+            contract["evidence_index"].append(
+                {
+                    "id": "g0-evidence",
+                    "gate": "G0",
+                    "kind": "requirements_record",
+                    "path": "evidence/g0.json",
+                    "sha256": hashlib.sha256(b"g0").hexdigest(),
+                }
+            )
+            pass_gate(
+                contract,
+                "G0",
+                ["g0-evidence"],
+                "requirements-validator",
+                "course-run",
+                "2026-10-18T13:05:00+08:00",
+            )
+            contract["schema_version"] = 2
+            del contract["revision"]
+
+            migrated = migrate_contract_v2(
+                contract, root, "course-run", "2026-10-18T19:00:00+08:00"
+            )
+
+        self.assertEqual(migrated["schema_version"], 3)
+        self.assertEqual(migrated["revision"], 0)
+        self.assertEqual(migrated["gates"]["G0"]["status"], "PASS")
+        self.assertEqual(migrated["gates"]["G1"]["status"], "NOT_STARTED")
+        self.assertEqual(validate_contract(migrated), [])
+
+    def test_v2_migration_stales_from_earliest_unverifiable_pass(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            contract = CourseContractStateTests().make_contract()
+            for gate_id in GATE_ORDER[:3]:
+                begin_gate(contract, gate_id, "course-run", "2026-10-18T13:00:00+08:00")
+                evidence_id = f"{gate_id.lower()}-evidence"
+                path = root / "evidence" / f"{evidence_id}.json"
+                path.parent.mkdir(exist_ok=True)
+                content = evidence_id.encode("utf-8")
+                path.write_bytes(content)
+                contract["evidence_index"].append(
+                    {
+                        "id": evidence_id,
+                        "gate": gate_id,
+                        "kind": "test_record",
+                        "path": f"evidence/{evidence_id}.json",
+                        "sha256": hashlib.sha256(content).hexdigest(),
+                    }
+                )
+                pass_gate(
+                    contract,
+                    gate_id,
+                    [evidence_id],
+                    f"{gate_id.lower()}-validator",
+                    "course-run",
+                    "2026-10-18T13:05:00+08:00",
+                )
+            contract["evidence_index"][1]["sha256"] = "f" * 64
+            contract["schema_version"] = 2
+            del contract["revision"]
+
+            migrated = migrate_contract_v2(
+                contract, root, "course-run", "2026-10-18T19:00:00+08:00"
+            )
+
+        self.assertEqual(migrated["gates"]["G0"]["status"], "PASS")
+        self.assertTrue(
+            all(migrated["gates"][gate_id]["status"] == "STALE" for gate_id in GATE_ORDER[1:])
+        )
+        migration = migrated["changes"][-1]
+        self.assertEqual(migration["earliest_stale_gate"], "G1")
 
 
 if __name__ == "__main__":

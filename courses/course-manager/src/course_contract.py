@@ -7,8 +7,10 @@ import os
 import re
 import tempfile
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Mapping, MutableMapping, Sequence
+
+from src.course_evidence import verify_evidence_reference
 
 
 GATE_ORDER: tuple[str, ...] = tuple(f"G{index}" for index in range(7))
@@ -35,6 +37,7 @@ SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 
 REQUIRED_SECTIONS = (
     "schema_version",
+    "revision",
     "identity",
     "governance",
     "gates",
@@ -142,7 +145,8 @@ def new_contract(slug: str, title: str, created_by: str, created_at: str) -> dic
         }
 
     return {
-        "schema_version": 2,
+        "schema_version": 3,
+        "revision": 0,
         "identity": {"slug": slug, "title": title},
         "governance": {
             "created_by": created_by,
@@ -248,12 +252,25 @@ def validate_contract(contract: Mapping[str, Any]) -> list[ValidationIssue]:
                 f"missing required section: {section}",
             )
 
-    if contract.get("schema_version") != 2:
+    if contract.get("schema_version") != 3:
         _append_issue(
             issues,
             "unsupported_schema_version",
             "$.schema_version",
-            "schema_version must be 2",
+            "schema_version must be 3",
+        )
+
+    contract_revision = contract.get("revision")
+    if (
+        isinstance(contract_revision, bool)
+        or not isinstance(contract_revision, int)
+        or contract_revision < 0
+    ):
+        _append_issue(
+            issues,
+            "invalid_revision",
+            "$.revision",
+            "revision must be a non-negative integer",
         )
 
     identity = contract.get("identity")
@@ -305,6 +322,7 @@ def validate_contract(contract: Mapping[str, Any]) -> list[ValidationIssue]:
                     )
 
     evidence_ids: set[str] = set()
+    evidence_by_id: dict[str, Mapping[str, Any]] = {}
     evidence_index = contract.get("evidence_index")
     if isinstance(evidence_index, list):
         for index, item in enumerate(evidence_index):
@@ -327,6 +345,94 @@ def validate_contract(contract: Mapping[str, Any]) -> list[ValidationIssue]:
                 )
             else:
                 evidence_ids.add(evidence_id)
+                evidence_by_id[evidence_id] = item
+
+            reference_path = f"$.evidence_index[{index}]"
+            expected_fields = {
+                "id",
+                "gate",
+                "kind",
+                "path",
+                "sha256",
+                "maturity",
+                "metadata",
+            }
+            required_fields = {"id", "gate", "kind", "path", "sha256"}
+            for field in sorted(required_fields - set(item)):
+                _append_issue(
+                    issues,
+                    "missing_evidence_field",
+                    f"{reference_path}.{field}",
+                    f"evidence reference is missing required field: {field}",
+                )
+            for field in sorted(set(item) - expected_fields):
+                _append_issue(
+                    issues,
+                    "unknown_evidence_field",
+                    f"{reference_path}.{field}",
+                    f"unknown evidence reference field: {field}",
+                )
+            if item.get("gate") not in GATE_ORDER:
+                _append_issue(
+                    issues,
+                    "invalid_evidence_gate",
+                    f"{reference_path}.gate",
+                    "evidence gate must be G0 through G6",
+                )
+            kind = item.get("kind")
+            if not isinstance(kind, str) or not kind.strip():
+                _append_issue(
+                    issues,
+                    "invalid_evidence_kind",
+                    f"{reference_path}.kind",
+                    "evidence kind must contain text",
+                )
+            path_value = item.get("path")
+            if not isinstance(path_value, str) or not path_value.strip():
+                invalid_path = True
+            else:
+                posix_path = PurePosixPath(path_value)
+                windows_path = PureWindowsPath(path_value)
+                invalid_path = (
+                    posix_path.is_absolute()
+                    or windows_path.is_absolute()
+                    or bool(windows_path.drive)
+                    or ".." in posix_path.parts
+                    or ".." in windows_path.parts
+                    or posix_path == PurePosixPath(".")
+                )
+            if invalid_path:
+                _append_issue(
+                    issues,
+                    "invalid_evidence_path",
+                    f"{reference_path}.path",
+                    "evidence path must be a safe relative path",
+                )
+            sha256 = item.get("sha256")
+            if not isinstance(sha256, str) or not SHA256_PATTERN.fullmatch(sha256):
+                _append_issue(
+                    issues,
+                    "invalid_evidence_sha256",
+                    f"{reference_path}.sha256",
+                    "evidence sha256 must be 64 lowercase hexadecimal characters",
+                )
+            if "maturity" in item and (
+                not isinstance(item.get("maturity"), str)
+                or not item["maturity"].strip()
+            ):
+                _append_issue(
+                    issues,
+                    "invalid_evidence_maturity",
+                    f"{reference_path}.maturity",
+                    "evidence maturity must contain text",
+                )
+            if "metadata" in item and not isinstance(item.get("metadata"), Mapping):
+                _append_issue(
+                    issues,
+                    "invalid_evidence_metadata",
+                    f"{reference_path}.metadata",
+                    "evidence metadata must be an object",
+                )
 
     gates = contract.get("gates")
     if not isinstance(gates, Mapping):
@@ -465,6 +571,13 @@ def validate_contract(contract: Mapping[str, Any]) -> list[ValidationIssue]:
                             "unknown_pass_evidence",
                             f"{gate_path}.evidence[{event_index}].evidence_ids",
                             f"unknown evidence id: {evidence_id}",
+                        )
+                    elif evidence_by_id[evidence_id].get("gate") != gate_id:
+                        _append_issue(
+                            issues,
+                            "wrong_gate_evidence",
+                            f"{gate_path}.evidence[{event_index}].evidence_ids",
+                            f"evidence {evidence_id} does not belong to {gate_id}",
                         )
 
     for gate_id in gates:
@@ -630,6 +743,21 @@ def _indexed_evidence_ids(contract: Mapping[str, Any]) -> set[str]:
     }
 
 
+def _indexed_evidence_by_id(
+    contract: Mapping[str, Any],
+) -> dict[str, Mapping[str, Any]]:
+    evidence_index = contract.get("evidence_index", [])
+    if not isinstance(evidence_index, list):
+        return {}
+    return {
+        item["id"]: item
+        for item in evidence_index
+        if isinstance(item, Mapping)
+        and isinstance(item.get("id"), str)
+        and item["id"].strip()
+    }
+
+
 def pass_gate(
     contract: MutableMapping[str, Any],
     gate_id: str,
@@ -651,10 +779,20 @@ def pass_gate(
         )
     if _unresolved_blockers(record):
         raise ContractStateError(f"{gate_id} has unresolved blocking risks")
-    missing = sorted(set(evidence_ids) - _indexed_evidence_ids(contract))
+    evidence_by_id = _indexed_evidence_by_id(contract)
+    missing = sorted(set(evidence_ids) - set(evidence_by_id))
     if missing:
         raise ContractStateError(
             f"{gate_id} references unindexed evidence: {', '.join(missing)}"
+        )
+    wrong_gate = sorted(
+        evidence_id
+        for evidence_id in set(evidence_ids)
+        if evidence_by_id[evidence_id].get("gate") != gate_id
+    )
+    if wrong_gate:
+        raise ContractStateError(
+            f"{gate_id} references evidence indexed for another gate: {', '.join(wrong_gate)}"
         )
     record["status"] = "PASS"
     revision = record.get("source_revision")
@@ -870,6 +1008,7 @@ def _legacy_evidence_reference(
     return {
         "id": f"legacy-{gate_id.lower()}-evidence",
         "gate": gate_id,
+        "kind": "legacy_evidence_bundle",
         "path": f"migration/{gate_id.lower()}-legacy-evidence.json",
         "sha256": hashlib.sha256(encoded).hexdigest(),
     }
@@ -963,6 +1102,87 @@ def migrate_contract_v1(
             "at": at,
         }
     )
+    return migrate_contract_v2(migrated, None, actor, at)
+
+
+def migrate_contract_v2(
+    contract: Mapping[str, Any],
+    workspace_root: Path | str | None,
+    actor: str,
+    at: str,
+) -> dict[str, Any]:
+    if contract.get("schema_version") != 2:
+        raise ContractStateError("migration requires schema_version 2")
+    if not actor.strip() or not at.strip():
+        raise ContractStateError("migration requires actor and timestamp")
+
+    migrated = copy.deepcopy(dict(contract))
+    migrated["schema_version"] = 3
+    migrated["revision"] = 0
+    evidence_index = migrated.get("evidence_index")
+    if not isinstance(evidence_index, list):
+        evidence_index = []
+        migrated["evidence_index"] = evidence_index
+    for reference in evidence_index:
+        if isinstance(reference, MutableMapping) and "kind" not in reference:
+            reference["kind"] = "legacy_evidence"
+
+    evidence_by_id: dict[str, list[Mapping[str, Any]]] = {}
+    for reference in evidence_index:
+        if isinstance(reference, Mapping) and isinstance(reference.get("id"), str):
+            evidence_by_id.setdefault(reference["id"], []).append(reference)
+
+    gates = migrated.get("gates")
+    if not isinstance(gates, MutableMapping):
+        raise ContractStateError("legacy gates are missing or invalid")
+    earliest_stale: str | None = None
+    for gate_id in GATE_ORDER:
+        record = gates.get(gate_id)
+        if not isinstance(record, MutableMapping) or record.get("status") != "PASS":
+            continue
+        pass_events = [
+            event
+            for event in record.get("evidence", [])
+            if isinstance(event, Mapping)
+            and event.get("kind") == "gate_validation"
+            and event.get("outcome") == "PASS"
+        ]
+        evidence_ids = pass_events[-1].get("evidence_ids", []) if pass_events else []
+        replayable = bool(evidence_ids) and workspace_root is not None
+        if replayable:
+            for evidence_id in evidence_ids:
+                matches = evidence_by_id.get(evidence_id, [])
+                if len(matches) != 1 or verify_evidence_reference(
+                    workspace_root, matches[0], expected_gate=gate_id
+                ):
+                    replayable = False
+                    break
+        if not replayable:
+            earliest_stale = gate_id
+            break
+
+    if earliest_stale is not None:
+        stale_index = GATE_ORDER.index(earliest_stale)
+        for gate_id in GATE_ORDER[stale_index:]:
+            record = gates.get(gate_id)
+            if isinstance(record, MutableMapping):
+                record["status"] = "STALE"
+
+    changes = migrated.get("changes")
+    if not isinstance(changes, list):
+        changes = []
+        migrated["changes"] = changes
+    migration_record: dict[str, Any] = {
+        "kind": "schema_migration",
+        "from_schema_version": 2,
+        "to_schema_version": 3,
+        "actor": actor,
+        "at": at,
+    }
+    if earliest_stale is not None:
+        migration_record["earliest_stale_gate"] = earliest_stale
+    changes.append(migration_record)
+
     issues = validate_contract(migrated)
     if issues:
         joined = "; ".join(f"{issue.path}: {issue.message}" for issue in issues)
