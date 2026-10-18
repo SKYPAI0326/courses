@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 from pathlib import Path
 from typing import Any, Mapping, MutableMapping, Sequence
 
@@ -215,8 +214,9 @@ def validate_and_transition_gate(
         "actor": actor,
         "at": at,
         "evidence_ids": list(evidence_ids),
+        "consumed_evidence_ids": [item.reference["id"] for item in consumed],
         "consumed_evidence": [
-            {"id": item.reference["id"], "sha256": item.sha256}
+            {field: item.reference[field] for field in ("id", "gate", "kind", "path", "sha256")}
             for item in consumed
         ],
     }

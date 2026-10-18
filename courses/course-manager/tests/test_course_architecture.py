@@ -30,7 +30,17 @@ class CourseArchitectureTests(unittest.TestCase):
         contract["evidence_index"].append(reference)
         event = contract["gates"]["G0"]["evidence"][-1]
         event["evidence_ids"] = [reference["id"]]
-        event["consumed_evidence"] = [{"id": reference["id"], "sha256": reference["sha256"]}]
+        event["consumed_evidence_ids"] = [reference["id"]]
+        event["consumed_evidence"] = [{field: reference[field] for field in ("id", "gate", "kind", "path", "sha256")}]
+        g1_reference = materialize_json_evidence(
+            root, evidence_id="g1-fixture", gate_id="G1", kind="test_record",
+            relative_path="evidence/g1-fixture.json", value={"research": "governed"},
+        )
+        index = next(index for index, item in enumerate(contract["evidence_index"]) if item["id"] == "g1-fixture")
+        contract["evidence_index"][index] = g1_reference
+        g1_event = contract["gates"]["G1"]["evidence"][-1]
+        g1_event["consumed_evidence_ids"] = [g1_reference["id"]]
+        g1_event["consumed_evidence"] = [{field: g1_reference[field] for field in ("id", "gate", "kind", "path", "sha256")}]
 
     def valid_blueprint(self):
         return {

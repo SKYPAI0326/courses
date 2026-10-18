@@ -28,7 +28,10 @@ class CompleteCourseFlowTests(unittest.TestCase):
         blueprint = PROOF_BUILDER["blueprint_record"](requirements)
 
         self.assertEqual(validate_requirements_record(requirements), [])
-        self.assertEqual(validate_course_blueprint(blueprint, requirements), [])
+        self.assertEqual(
+            validate_course_blueprint(blueprint, requirements, known_g1_evidence_ids={"g1-research"}),
+            [],
+        )
 
     def test_proof_builder_fails_preflight_before_writing_without_authority(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -70,11 +73,14 @@ class CompleteCourseFlowTests(unittest.TestCase):
             [],
         )
 
-    def test_new_course_reaches_g6_ready_without_external_publish(self):
+    def test_legacy_snapshot_is_fail_closed_until_task8_rebuild(self):
         contract = self.load_json(
             "_design/campaign-performance-brief/course-contract.json"
         )
-        self.assertEqual(validate_contract(contract), [])
+        self.assertIn(
+            "invalid_pass_evidence_binding",
+            {issue.code for issue in validate_contract(contract)},
+        )
         self.assertEqual(
             [contract["gates"][f"G{i}"]["status"] for i in range(7)],
             ["PASS"] * 7,

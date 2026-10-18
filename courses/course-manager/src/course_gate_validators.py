@@ -89,7 +89,17 @@ def _validate_requirements(
         return issues
     if record != contract.get("G0_requirements"):
         issues.append(GateValidationIssue("requirements_evidence_mismatch", "$.G0_requirements", "requirements evidence must exactly match the governed G0 payload"))
-    issues.extend(_coerce_issues(validate_requirements_record(record)))
+    known_support_ids = {
+        str(item.reference.get("id"))
+        for item in consumed.get("requirements_support", [])
+    }
+    issues.extend(
+        _coerce_issues(
+            validate_requirements_record(
+                record, known_support_evidence_ids=known_support_ids
+            )
+        )
+    )
     return issues
 
 

@@ -350,7 +350,8 @@ class CourseContentTests(unittest.TestCase):
         contract["G2_architecture"] = blueprint
         event = contract["gates"]["G2"]["evidence"][-1]
         event["evidence_ids"] = [reference["id"]]
-        event["consumed_evidence"] = [{"id": reference["id"], "sha256": reference["sha256"]}]
+        event["consumed_evidence_ids"] = [reference["id"]]
+        event["consumed_evidence"] = [{field: reference[field] for field in ("id", "gate", "kind", "path", "sha256")}]
         before = copy.deepcopy(contract)
         status = route_content_to_g3(
             contract, self.valid_record(), "evidence/unit-1.json", "b" * 64,

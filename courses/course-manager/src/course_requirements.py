@@ -87,7 +87,17 @@ def _stable_id(value: Any, path: str, seen: set[str], issues: list[RequirementsI
 
 def _normalized_prose(value: str) -> str:
     normalized = unicodedata.normalize("NFKC", value).casefold()
-    return "".join(character for character in normalized if character.isalnum())
+    return "".join(character for character in normalized if character.isalpha())
+
+
+def _similar_boilerplate(left: str, right: str) -> bool:
+    if min(len(left), len(right)) < 16:
+        return False
+    if min(len(left), len(right)) / max(len(left), len(right)) < 0.85:
+        return False
+    left_grams = {left[index:index + 3] for index in range(len(left) - 2)}
+    right_grams = {right[index:index + 3] for index in range(len(right) - 2)}
+    return bool(left_grams | right_grams) and len(left_grams & right_grams) / len(left_grams | right_grams) >= 0.9
 
 
 def _prose_values(value: Any, path: str = "$"):
@@ -109,13 +119,19 @@ def _validate_prose_distinctness(record: Mapping[str, Any], issues: list[Require
             continue
         if re.fullmatch(r"(.{16,}?)\1+", normalized):
             _issue(issues, "padded_requirement", path, "repeated text cannot satisfy a requirement field")
-        if normalized in owners:
-            _issue(issues, "duplicate_requirement_text", path, f"requirement prose duplicates {owners[normalized]}")
-        else:
-            owners[normalized] = path
+        duplicate_path = next(
+            (owner_path for prior, owner_path in owners.items() if _similar_boilerplate(normalized, prior)),
+            None,
+        )
+        if duplicate_path is not None:
+            _issue(issues, "duplicate_requirement_text", path, f"requirement prose duplicates {duplicate_path}")
+        owners[normalized] = path
 
 
-def validate_requirements_record(record: Mapping[str, Any]) -> list[RequirementsIssue]:
+def validate_requirements_record(
+    record: Mapping[str, Any],
+    known_support_evidence_ids: set[str] | frozenset[str] | None = None,
+) -> list[RequirementsIssue]:
     issues: list[RequirementsIssue] = []
     if not isinstance(record, Mapping):
         return [RequirementsIssue("invalid_requirements_record", "$", "requirements record must be an object")]
@@ -204,23 +220,27 @@ def validate_requirements_record(record: Mapping[str, Any]) -> list[Requirements
                 _issue(issues, "invalid_materiality", f"{path}.material", "material must be a boolean decision")
             if collection == "unknowns":
                 status = mapped.get("status")
-                if status not in {"OPEN", "RESOLVED"}:
-                    _issue(issues, "invalid_unknown_status", f"{path}.status", "unknown status must be OPEN or RESOLVED")
+                if status not in {"OPEN", "DEFERRED", "RESOLVED"}:
+                    _issue(issues, "invalid_unknown_status", f"{path}.status", "unknown status must be OPEN, DEFERRED, or RESOLVED")
                 domains = mapped.get("impact_domains")
                 derived_material = isinstance(domains, list) and bool(set(domains) & MATERIAL_DOMAINS)
                 fallback = mapped.get("fallback")
                 fallback_valid = (
                     isinstance(fallback, Mapping)
                     and _meaningful(fallback.get("description"))
-                    and fallback.get("verification_status") == "VERIFIED"
+                    and fallback.get("verification_status") == "VERIFIED_FALLBACK"
                     and isinstance(fallback.get("evidence_ref"), str)
                     and ID_PATTERN.fullmatch(fallback["evidence_ref"]) is not None
                     and fallback.get("preserves_acceptance") is True
+                    and known_support_evidence_ids is not None
+                    and fallback.get("evidence_ref") in known_support_evidence_ids
                 )
                 if fallback is not None and not fallback_valid:
                     _issue(issues, "invalid_fallback", f"{path}.fallback", "fallback must be verified, evidenced, and preserve acceptance")
-                if status != "RESOLVED" and derived_material:
-                    _issue(issues, "material_unknown", path, "an unresolved material unknown blocks G0")
+                if status != "RESOLVED" and not fallback_valid:
+                    _issue(issues, "unresolved_unknown", path, "an unresolved unknown requires a governed verified fallback")
+                    if derived_material:
+                        _issue(issues, "material_unknown", path, "an unresolved material unknown blocks G0")
     return issues
 
 

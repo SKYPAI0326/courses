@@ -1062,7 +1062,54 @@ def validate_contract(contract: Mapping[str, Any]) -> list[ValidationIssue]:
                     "passed gate requires a PASS validation event",
                 )
             for event_index, event in enumerate(pass_events):
-                for evidence_id in event.get("evidence_ids", []):
+                event_ids = event.get("evidence_ids")
+                consumed_ids = event.get("consumed_evidence_ids")
+                consumed_bindings = event.get("consumed_evidence")
+                binding_fields = {"id", "gate", "kind", "path", "sha256"}
+                bound: dict[str, Mapping[str, Any]] = {}
+                binding_valid = (
+                    isinstance(event_ids, list)
+                    and bool(event_ids)
+                    and all(isinstance(item, str) for item in event_ids)
+                    and len(set(event_ids)) == len(event_ids)
+                    and isinstance(consumed_bindings, list)
+                    and bool(consumed_bindings)
+                    and isinstance(consumed_ids, list)
+                    and bool(consumed_ids)
+                    and all(isinstance(item, str) for item in consumed_ids)
+                    and len(set(consumed_ids)) == len(consumed_ids)
+                )
+                for binding in consumed_bindings if isinstance(consumed_bindings, list) else []:
+                    if (
+                        not isinstance(binding, Mapping)
+                        or set(binding) != binding_fields
+                        or not isinstance(binding.get("id"), str)
+                        or binding["id"] in bound
+                    ):
+                        binding_valid = False
+                        continue
+                    indexed = evidence_by_id.get(binding["id"])
+                    if indexed is None or any(
+                        indexed.get(field) != binding.get(field)
+                        for field in binding_fields
+                    ):
+                        binding_valid = False
+                    bound[binding["id"]] = binding
+                if isinstance(consumed_ids, list) and set(bound) != set(consumed_ids):
+                    binding_valid = False
+                if isinstance(event_ids, list) and {
+                    evidence_id for evidence_id, binding in bound.items()
+                    if binding.get("gate") == gate_id
+                } != set(event_ids):
+                    binding_valid = False
+                if not binding_valid:
+                    _append_issue(
+                        issues,
+                        "invalid_pass_evidence_binding",
+                        f"{gate_path}.evidence[{event_index}].consumed_evidence",
+                        "PASS evidence bindings must exactly preserve id, gate, kind, path, and SHA-256 from the evidence index",
+                    )
+                for evidence_id in event_ids if isinstance(event_ids, list) else []:
                     if evidence_id not in evidence_ids:
                         _append_issue(
                             issues,

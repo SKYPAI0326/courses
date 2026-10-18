@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import copy
 from pathlib import PurePosixPath
-from typing import Any, Mapping, MutableMapping
+from typing import Any, Mapping, MutableMapping, Sequence
 
 from src.course_contract import ContractStateError
 from src.course_evidence import materialize_json_evidence
 from src.course_gate import validate_and_transition_gate
 
 
-def _route_requirements_to_g0(contract: MutableMapping[str, Any], record: Mapping[str, Any], record_path: str, actor: str, at: str, *, workspace_root) -> str:
+def _route_requirements_to_g0(contract: MutableMapping[str, Any], record: Mapping[str, Any], record_path: str, actor: str, at: str, *, workspace_root, support_evidence_ids: Sequence[str] = ()) -> str:
     gates = contract.get("gates")
     if not isinstance(gates, Mapping) or gates.get("G0", {}).get("status") != "IN_PROGRESS":
         raise ContractStateError("requirements routing requires G0 IN_PROGRESS")
@@ -26,12 +26,12 @@ def _route_requirements_to_g0(contract: MutableMapping[str, Any], record: Mappin
         relative_path=record_path, value=record,
     )
     contract["evidence_index"].append(reference)
-    return validate_and_transition_gate(contract, "G0", [evidence_id], workspace_root, actor, at)
+    return validate_and_transition_gate(contract, "G0", [evidence_id, *support_evidence_ids], workspace_root, actor, at)
 
 
-def route_requirements_to_g0(contract: MutableMapping[str, Any], record: Mapping[str, Any], record_path: str, actor: str, at: str, *, workspace_root) -> str:
+def route_requirements_to_g0(contract: MutableMapping[str, Any], record: Mapping[str, Any], record_path: str, actor: str, at: str, *, workspace_root, support_evidence_ids: Sequence[str] = ()) -> str:
     staged = copy.deepcopy(contract)
-    result = _route_requirements_to_g0(staged, record, record_path, actor, at, workspace_root=workspace_root)
+    result = _route_requirements_to_g0(staged, record, record_path, actor, at, workspace_root=workspace_root, support_evidence_ids=support_evidence_ids)
     contract.clear()
     contract.update(staged)
     return result

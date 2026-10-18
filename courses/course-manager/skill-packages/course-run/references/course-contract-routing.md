@@ -36,7 +36,7 @@ Gate-specific returns:
 
 | Gate | Producer capability | Required result |
 |---|---|---|
-| G0 | course-run adaptive interview | canonical requirements record with learner/baseline, work context, observable artifact, delivery/time, environment, constraints, criterion-level capabilities, assumptions, unknowns and decisions |
+| G0 | course-run adaptive interview | canonical requirements record with learner/baseline, work context, observable artifact, delivery/time, environment, constraints, criterion-level capabilities, assumptions, unknowns and decisions; every unresolved unknown requires a typed, hash-verified `VERIFIED_FALLBACK` support record |
 | G1 | course-researcher | research record, evidence hash, adaptation, blockers, recommendation |
 | G2 | course-pm | one reasoned blueprint with stable outcome/criterion/capability refs, executable units, dependency DAG, exact duration reconciliation and material risks |
 | G3 | course-designer | one aggregate set of learner-readable lesson records that covers every canonical G2 unit exactly once, with examples, practice, checks, repair paths and asset needs |
@@ -47,6 +47,8 @@ Gate-specific returns:
 ## Gate pass and external authorization
 
 course-run records Gate PASS only after the declared validator succeeds against indexed evidence. Gate completion does not require user approval. Before publishing, deployment, registration, access changes, or another external mutation, present the exact action manifest and consequence, record explicit user authorization, and verify that its SHA-256 still matches immediately before execution.
+
+Every PASS event freezes the full consumed evidence set with each reference's id, Gate, kind, path, and SHA-256. Later Gates replay those exact bindings and securely reread every bound file; missing, duplicate, extra, replaced-index, or changed-file evidence fails closed.
 
 Immediately after `init`, an operator must explicitly run `enroll-approval-authority` to bind the externally governed verification public key. This is a trust-root governance step: course producers never generate, select, sign with, or automatically enroll this authority. Enrollment is single-use, revision-CAS guarded, and must happen before Gate work, actions, or receipts exist. `authorize-action` accepts only a signed external approval receipt bound to the exact contract/action basis.
 

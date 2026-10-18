@@ -50,5 +50,13 @@ def _commit_gate_pass(
             "actor": actor,
             "at": at,
             "evidence_ids": list(evidence_ids),
+            "consumed_evidence_ids": list(evidence_ids),
+            "consumed_evidence": [
+                {
+                    field: indexed[evidence_id][field]
+                    for field in ("id", "gate", "kind", "path", "sha256")
+                }
+                for evidence_id in evidence_ids
+            ],
         }
     )

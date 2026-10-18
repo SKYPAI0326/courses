@@ -115,8 +115,10 @@ class CourseProductionTests(unittest.TestCase):
                 if item.get("kind") == "gate_validation" and item.get("outcome") == "PASS"
             )
             event["evidence_ids"] = [ref["id"] for ref in refs]
+            event["consumed_evidence_ids"] = [ref["id"] for ref in refs]
             event["consumed_evidence"] = [
-                {"id": ref["id"], "sha256": ref["sha256"]} for ref in refs
+                {field: ref[field] for field in ("id", "gate", "kind", "path", "sha256")}
+                for ref in refs
             ]
         contract["G2_architecture"] = blueprint
 
@@ -1035,6 +1037,16 @@ class CourseProductionTests(unittest.TestCase):
                     "actor": "test-setup",
                     "at": "2026-10-18T17:00:00+08:00",
                     "evidence_ids": [evidence_id],
+                    "consumed_evidence_ids": [evidence_id],
+                    "consumed_evidence": [
+                        {
+                            "id": evidence_id,
+                            "gate": gate_id,
+                            "kind": "test_record",
+                            "path": f"evidence/{evidence_id}.json",
+                            "sha256": hashlib.sha256(evidence_id.encode()).hexdigest(),
+                        }
+                    ],
                 }
             )
         begin_gate(contract, "G5", "course-run", "2026-10-18T17:10:00+08:00")
