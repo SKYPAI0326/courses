@@ -1,4 +1,6 @@
 import copy
+import errno
+import hashlib
 import importlib
 import json
 import multiprocessing
@@ -8,7 +10,14 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from src.course_contract import new_contract, save_contract_atomic
+from src.course_contract import (
+    begin_gate,
+    block_gate,
+    new_contract,
+    resolve_gate_blocker,
+    save_contract_atomic,
+)
+from src.course_evidence import canonical_json_bytes, materialize_json_evidence
 
 
 def _stale_writer(path, start, results):
@@ -134,6 +143,54 @@ class ContractTransactionTests(unittest.TestCase):
 
         self.assertEqual(self.path.read_bytes(), before)
 
+    def test_directory_fsync_failure_reports_committed_revision(self):
+        transactions = self.transactions()
+
+        def operation(contract):
+            contract["maintenance"]["owner"] = "course-ops"
+
+        with mock.patch.object(
+            transactions.os,
+            "fsync",
+            side_effect=[None, OSError(errno.EIO, "directory fsync failed")],
+        ):
+            with self.assertRaises(
+                transactions.TransactionCommittedDurabilityError
+            ) as raised:
+                transactions.mutate_contract_atomic(self.path, operation)
+
+        error = raised.exception
+        persisted = self.read()
+        self.assertTrue(error.committed)
+        self.assertEqual(error.path, self.path)
+        self.assertEqual(error.revision, 1)
+        self.assertEqual(error.contract, persisted)
+        self.assertEqual(persisted["revision"], 1)
+        self.assertEqual(persisted["maintenance"]["owner"], "course-ops")
+
+    def test_temporary_file_fsync_failure_is_precommit_and_does_not_write(self):
+        transactions = self.transactions()
+        before = self.path.read_bytes()
+
+        with mock.patch.object(
+            transactions.os,
+            "fsync",
+            side_effect=OSError(errno.EIO, "temporary file fsync failed"),
+        ):
+            with self.assertRaises(OSError) as raised:
+                transactions.mutate_contract_atomic(
+                    self.path,
+                    lambda contract: contract["maintenance"].update(
+                        owner="course-ops"
+                    ),
+                )
+
+        self.assertNotIsInstance(
+            raised.exception,
+            transactions.TransactionCommittedDurabilityError,
+        )
+        self.assertEqual(self.path.read_bytes(), before)
+
     def test_invalid_result_leaves_original_bytes_unchanged(self):
         transactions = self.transactions()
         before = self.path.read_bytes()
@@ -142,6 +199,183 @@ class ContractTransactionTests(unittest.TestCase):
             transactions.mutate_contract_atomic(
                 self.path, lambda contract: contract.update(changes="invalid")
             )
+
+        self.assertEqual(self.path.read_bytes(), before)
+
+    def test_existing_audit_collections_are_append_only(self):
+        contract = new_contract(
+            "transaction-course",
+            "Transaction Course",
+            "test",
+            "2026-10-18T12:00:00+08:00",
+        )
+        begin_gate(contract, "G0", "test", "2026-10-18T12:01:00+08:00")
+        contract["changes"].extend([{"id": "change-1"}, {"id": "change-2"}])
+        contract["evidence_archive"].extend(
+            [{"id": "archive-1"}, {"id": "archive-2"}]
+        )
+        contract["evidence_index"].extend(
+            [
+                {
+                    "id": f"evidence-{index}",
+                    "gate": "G0",
+                    "kind": "test_record",
+                    "path": f"evidence/{index}.json",
+                    "sha256": str(index) * 64,
+                }
+                for index in (1, 2)
+            ]
+        )
+        contract["consumed_trial_receipts"].extend(
+            [
+                {
+                    "receipt_id": f"receipt-{index}",
+                    "nonce": f"nonce-{index}",
+                    "gate": "G4",
+                    "consumed_at": f"2026-10-18T12:0{index}:00+08:00",
+                }
+                for index in (1, 2)
+            ]
+        )
+        tamper_operations = {
+            "gate event modification": lambda value: value["gates"]["G0"][
+                "evidence"
+            ][0].update(actor="attacker"),
+            "change deletion": lambda value: value["changes"].pop(0),
+            "archive reorder": lambda value: value["evidence_archive"].reverse(),
+            "evidence reference modification": lambda value: value[
+                "evidence_index"
+            ][0].update(path="evidence/rewritten.json"),
+            "receipt deletion": lambda value: value[
+                "consumed_trial_receipts"
+            ].pop(0),
+        }
+
+        for label, operation in tamper_operations.items():
+            with self.subTest(label=label):
+                save_contract_atomic(self.path, copy.deepcopy(contract))
+                before = self.path.read_bytes()
+
+                with self.assertRaisesRegex(
+                    self.transactions().TransactionError, "append-only|history"
+                ):
+                    self.transactions().mutate_contract_atomic(self.path, operation)
+
+                self.assertEqual(self.path.read_bytes(), before)
+                self.assertEqual(self.read()["revision"], 0)
+
+    def test_resolved_blocker_and_resolution_audit_cannot_be_rewritten(self):
+        contract = new_contract(
+            "transaction-course",
+            "Transaction Course",
+            "test",
+            "2026-10-18T12:00:00+08:00",
+        )
+        block_gate(
+            contract,
+            "G0",
+            "missing source",
+            "test",
+            "2026-10-18T12:01:00+08:00",
+        )
+        blocker = contract["gates"]["G0"]["risks"][0]
+        resolution_ref = materialize_json_evidence(
+            self.root,
+            evidence_id="g0-resolution",
+            gate_id="G0",
+            kind="blocker_resolution",
+            relative_path="evidence/g0-resolution.json",
+            value={"fixed": True},
+        )
+        contract["evidence_index"].append(resolution_ref)
+        resolve_gate_blocker(
+            contract,
+            "G0",
+            blocker["id"],
+            "source added",
+            [resolution_ref["id"]],
+            "test",
+            "2026-10-18T12:02:00+08:00",
+            workspace_root=self.root,
+        )
+        tamper_operations = {
+            "resolved blocker": lambda value: value["gates"]["G0"]["risks"][
+                0
+            ].update(reason="rewritten"),
+            "resolution event": lambda value: value["gates"]["G0"]["evidence"][
+                -1
+            ].update(resolution="rewritten"),
+        }
+
+        for label, operation in tamper_operations.items():
+            with self.subTest(label=label):
+                save_contract_atomic(self.path, copy.deepcopy(contract))
+                before = self.path.read_bytes()
+                with self.assertRaisesRegex(
+                    self.transactions().TransactionError, "append-only|history"
+                ):
+                    self.transactions().mutate_contract_atomic(self.path, operation)
+                self.assertEqual(self.path.read_bytes(), before)
+
+    def test_direct_forged_unresolved_to_resolved_transition_is_rejected(self):
+        contract = new_contract(
+            "transaction-course",
+            "Transaction Course",
+            "test",
+            "2026-10-18T12:00:00+08:00",
+        )
+        block_gate(
+            contract,
+            "G0",
+            "missing source",
+            "test",
+            "2026-10-18T12:01:00+08:00",
+        )
+        blocker_id = contract["gates"]["G0"]["risks"][0]["id"]
+        resolution_ref = materialize_json_evidence(
+            self.root,
+            evidence_id="forged-resolution",
+            gate_id="G0",
+            kind="blocker_resolution",
+            relative_path="evidence/forged-resolution.json",
+            value={"fixed": True},
+        )
+        contract["evidence_index"].append(resolution_ref)
+        save_contract_atomic(self.path, contract)
+        before = self.path.read_bytes()
+
+        def forge_resolution(value):
+            payload = {
+                "blocker_id": blocker_id,
+                "resolution": "forged",
+                "evidence_ids": [resolution_ref["id"]],
+                "actor": "attacker",
+                "at": "2026-10-18T12:02:00+08:00",
+            }
+            resolution_id = "resolution-" + hashlib.sha256(
+                canonical_json_bytes(payload)
+            ).hexdigest()[:24]
+            value["gates"]["G0"]["risks"][0].update(
+                resolved=True, resolution_id=resolution_id
+            )
+            value["gates"]["G0"]["evidence"].append(
+                {
+                    "id": resolution_id,
+                    "kind": "gate_blocker_resolution",
+                    **payload,
+                    "consumed_evidence": [
+                        {
+                            "id": resolution_ref["id"],
+                            "sha256": resolution_ref["sha256"],
+                        }
+                    ],
+                }
+            )
+
+        with self.assertRaisesRegex(
+            self.transactions().TransactionError, "resolution API"
+        ):
+            self.transactions().mutate_contract_atomic(self.path, forge_resolution)
 
         self.assertEqual(self.path.read_bytes(), before)
 

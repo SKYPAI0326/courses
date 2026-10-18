@@ -1,10 +1,14 @@
+import contextlib
 import hashlib
+import importlib.util
+import io
 import json
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from src.course_contract import begin_gate, new_contract, save_contract_atomic
 from src.course_evidence import materialize_json_evidence
@@ -382,6 +386,54 @@ class CourseContractCliTests(unittest.TestCase):
         self.assertEqual(stale.returncode, 2)
         self.assertIn("revision conflict", stale.stderr)
         self.assertEqual(path.read_bytes(), before_stale)
+
+    def test_committed_durability_error_is_not_retried_and_is_explicit(self):
+        import src.transactions as transactions
+
+        spec = importlib.util.spec_from_file_location("course_contract_cli", CLI)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        cli = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(cli)
+        contract = new_contract(
+            "practical-ai",
+            "實用生成式 AI",
+            "課程團隊",
+            "2026-10-18T12:00:00+08:00",
+        )
+        contract["revision"] = 1
+        path = self.root / "course-contract.json"
+        error = transactions.TransactionCommittedDurabilityError(
+            path,
+            contract,
+            OSError("directory fsync failed"),
+        )
+        stderr = io.StringIO()
+
+        with mock.patch.object(cli, "_mutate", side_effect=error) as mutate:
+            with contextlib.redirect_stderr(stderr):
+                result = cli.main(
+                    [
+                        "change",
+                        "--contract",
+                        str(path),
+                        "--gate",
+                        "G0",
+                        "--reason",
+                        "change",
+                        "--actor",
+                        "test",
+                        "--at",
+                        "2026-10-18T13:00:00+08:00",
+                    ]
+                )
+
+        self.assertEqual(result, 3)
+        self.assertEqual(mutate.call_count, 1)
+        self.assertIn("already committed", stderr.getvalue())
+        self.assertIn("durability is uncertain", stderr.getvalue())
+        self.assertIn("revision 1", stderr.getvalue())
+        self.assertIn(str(path), stderr.getvalue())
 
     def test_external_action_commands_require_exact_authorized_hash(self):
         contract = new_contract(

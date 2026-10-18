@@ -28,7 +28,11 @@ from src.course_contract import (  # noqa: E402
     save_contract_atomic,
     validate_contract,
 )
-from src.transactions import TransactionError, mutate_contract_atomic  # noqa: E402
+from src.transactions import (  # noqa: E402
+    TransactionCommittedDurabilityError,
+    TransactionError,
+    mutate_contract_atomic,
+)
 
 
 def _contract_argument(parser: argparse.ArgumentParser) -> None:
@@ -265,6 +269,13 @@ def main(argv: list[str] | None = None) -> int:
         )
         print(args.contract)
         return 0
+    except TransactionCommittedDurabilityError as error:
+        print(
+            f"error: revision {error.revision} was already committed at {error.path}; "
+            "directory durability is uncertain. Do not retry automatically.",
+            file=sys.stderr,
+        )
+        return 3
     except (
         ContractStateError,
         TransactionError,

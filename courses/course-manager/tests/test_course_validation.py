@@ -301,6 +301,67 @@ class CourseTrialValidationTests(unittest.TestCase):
 
         self.assertEqual(blocker_ids[0], blocker_ids[1])
 
+    def test_failed_trial_generic_issue_stays_at_current_trial_gate(self):
+        for scope, block_code, expected_gate in (
+            ("representative_unit", "interface_block", "G4"),
+            ("full_course", "full_course_integration", "G5"),
+        ):
+            with self.subTest(scope=scope):
+                trial = self.valid_trial(scope=scope)
+                trial["result"]["status"] = "FAIL"
+                trial["blocks"] = [
+                    {
+                        "code": block_code,
+                        "detail": "本 Gate 的 trial failure。",
+                        "recovered": False,
+                    }
+                ]
+                trial["recovery"] = []
+
+                issues = validate_trial_record(trial, [], scope)
+                by_code = {issue.code: issue for issue in issues}
+
+                self.assertEqual(
+                    by_code["trial_result_failed"].return_gate,
+                    expected_gate,
+                )
+                self.assertEqual(
+                    by_code["unrecovered_trial_block"].return_gate,
+                    expected_gate,
+                )
+
+    def test_failed_signed_interface_trial_blocks_g4_without_rewinding_g3(self):
+        trial = self.valid_trial()
+        trial["result"]["status"] = "FAIL"
+        trial["blocks"] = [
+            {
+                "code": "interface_block",
+                "detail": "學員介面阻擋操作。",
+                "recovered": False,
+            }
+        ]
+        trial["recovery"] = []
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            contract, pilot_ref, roster_ref, trial_ref, receipt_ref, _ = (
+                self.prepared_g4_route(root, trial=trial)
+            )
+
+            result = route_verified_trial_to_gate(
+                contract,
+                "G4",
+                [pilot_ref["id"], roster_ref["id"]],
+                trial_ref["id"],
+                receipt_ref["id"],
+                "course-validator",
+                "2026-10-18T15:15:00+08:00",
+                workspace_root=root,
+            )
+
+        self.assertEqual(result, "BLOCKED")
+        self.assertEqual(contract["gates"]["G3"]["status"], "PASS")
+        self.assertEqual(contract["gates"]["G4"]["status"], "BLOCKED")
+
     def test_failed_trial_route_exception_leaves_original_contract_unchanged(self):
         trial = self.valid_trial()
         trial["result"]["status"] = "FAIL"

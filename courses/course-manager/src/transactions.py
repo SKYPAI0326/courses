@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import copy
 import errno
+import hashlib
 import json
 import os
 import secrets
@@ -35,7 +37,41 @@ class LockTimeoutError(TransactionError):
     pass
 
 
+class TransactionCommittedDurabilityError(TransactionError):
+    """The rename committed, but directory durability could not be confirmed."""
+
+    committed = True
+
+    def __init__(
+        self, path: Path | str, contract: MutableMapping[str, Any], cause: OSError
+    ) -> None:
+        self.path = Path(path)
+        self.contract = copy.deepcopy(dict(contract))
+        self.revision = self.contract.get("revision")
+        self.cause = cause
+        super().__init__(
+            f"contract revision {self.revision} was already committed at {self.path}, "
+            "but directory fsync failed; durability is uncertain and callers must "
+            "not retry automatically"
+        )
+
+
 ContractOperation = Callable[[MutableMapping[str, Any]], Any]
+
+
+class _TrackedContract(dict[str, Any]):
+    """A transaction-local dict carrying non-serialized domain transition intents."""
+
+    def __init__(self, value: dict[str, Any]) -> None:
+        super().__init__(value)
+        self.blocker_resolution_transitions: list[tuple[str, str, str]] = []
+
+    def _record_blocker_resolution_transition(
+        self, gate_id: str, blocker_id: str, resolution_id: str
+    ) -> None:
+        self.blocker_resolution_transitions.append(
+            (gate_id, blocker_id, resolution_id)
+        )
 
 
 def _require_supported_platform() -> None:
@@ -114,7 +150,12 @@ def _load_from_fd(descriptor: int) -> dict[str, Any]:
     return value
 
 
-def _write_atomic_at(parent_fd: int, name: str, contract: dict[str, Any]) -> None:
+def _write_atomic_at(
+    parent_fd: int,
+    name: str,
+    contract: dict[str, Any],
+    contract_path: Path,
+) -> None:
     temporary_name: str | None = None
     temporary_fd: int | None = None
     for _ in range(100):
@@ -142,8 +183,13 @@ def _write_atomic_at(parent_fd: int, name: str, contract: dict[str, Any]) -> Non
             src_dir_fd=parent_fd,
             dst_dir_fd=parent_fd,
         )
-        os.fsync(parent_fd)
         temporary_name = None
+        try:
+            os.fsync(parent_fd)
+        except OSError as error:
+            raise TransactionCommittedDurabilityError(
+                contract_path, contract, error
+            ) from error
     finally:
         if temporary_fd is not None:
             os.close(temporary_fd)
@@ -163,6 +209,220 @@ def _validation_error(contract: MutableMapping[str, Any]) -> str | None:
     return "; ".join(f"{issue.path}: {issue.message}" for issue in issues)
 
 
+def _require_append_only_prefix(
+    before: MutableMapping[str, Any],
+    after: MutableMapping[str, Any],
+    field: str,
+) -> None:
+    old = before.get(field)
+    new = after.get(field)
+    if not isinstance(old, list) or not isinstance(new, list):
+        raise TransactionError(f"append-only history is invalid at $.{field}")
+    if len(new) < len(old) or new[: len(old)] != old:
+        raise TransactionError(f"append-only history changed at $.{field}")
+
+
+def _require_external_action_history(
+    before: MutableMapping[str, Any], after: MutableMapping[str, Any]
+) -> None:
+    """Protect proposal identity while leaving Task 4 lifecycle state mutable.
+
+    Existing actions cannot be removed or reordered.  Proposal/basis fields and
+    an issued authorization are immutable; status and future execution metadata
+    remain mutable so the release lifecycle can advance transactionally.
+    """
+
+    old_actions = before.get("external_actions")
+    new_actions = after.get("external_actions")
+    if not isinstance(old_actions, list) or not isinstance(new_actions, list):
+        raise TransactionError("append-only history is invalid at $.external_actions")
+    if len(new_actions) < len(old_actions):
+        raise TransactionError("append-only history changed at $.external_actions")
+    immutable_fields = {
+        "id",
+        "kind",
+        "manifest_path",
+        "manifest_sha256",
+        "proposed_by",
+        "proposed_at",
+    }
+    for index, old in enumerate(old_actions):
+        new = new_actions[index]
+        if not isinstance(old, dict) or not isinstance(new, dict):
+            raise TransactionError(
+                f"append-only history changed at $.external_actions[{index}]"
+            )
+        if any(new.get(field) != old.get(field) for field in immutable_fields):
+            raise TransactionError(
+                f"append-only history changed at $.external_actions[{index}]"
+            )
+        old_authorization = old.get("authorization")
+        if old_authorization is not None and new.get("authorization") != old_authorization:
+            raise TransactionError(
+                "append-only authorization history changed at "
+                f"$.external_actions[{index}].authorization"
+            )
+
+
+def _verify_resolution_event(
+    gate_id: str,
+    blocker_id: str,
+    resolution_id: str,
+    appended_events: list[Any],
+) -> None:
+    from src.course_evidence import canonical_json_bytes
+
+    matches = [
+        event
+        for event in appended_events
+        if isinstance(event, dict)
+        and event.get("kind") == "gate_blocker_resolution"
+        and event.get("id") == resolution_id
+        and event.get("blocker_id") == blocker_id
+    ]
+    if len(matches) != 1:
+        raise TransactionError(
+            f"blocker resolution history is incomplete at $.gates.{gate_id}"
+        )
+    event = matches[0]
+    required_fields = {
+        "id",
+        "kind",
+        "blocker_id",
+        "resolution",
+        "evidence_ids",
+        "consumed_evidence",
+        "actor",
+        "at",
+    }
+    if set(event) != required_fields:
+        raise TransactionError(
+            f"blocker resolution history is incomplete at $.gates.{gate_id}"
+        )
+    payload = {
+        "blocker_id": blocker_id,
+        "resolution": event.get("resolution"),
+        "evidence_ids": event.get("evidence_ids"),
+        "actor": event.get("actor"),
+        "at": event.get("at"),
+    }
+    expected_id = (
+        "resolution-"
+        + hashlib.sha256(canonical_json_bytes(payload)).hexdigest()[:24]
+    )
+    if resolution_id != expected_id:
+        raise TransactionError(
+            f"blocker resolution history id is invalid at $.gates.{gate_id}"
+        )
+
+
+def _require_gate_history(
+    before: MutableMapping[str, Any],
+    after: MutableMapping[str, Any],
+    authorized_resolutions: list[tuple[str, str, str]],
+) -> None:
+    old_gates = before.get("gates")
+    new_gates = after.get("gates")
+    if not isinstance(old_gates, dict) or not isinstance(new_gates, dict):
+        raise TransactionError("append-only history is invalid at $.gates")
+    authorized = set(authorized_resolutions)
+    if len(authorized) != len(authorized_resolutions):
+        raise TransactionError("duplicate blocker resolution API transition")
+    used: set[tuple[str, str, str]] = set()
+    for gate_id, old_gate in old_gates.items():
+        new_gate = new_gates.get(gate_id)
+        if not isinstance(old_gate, dict) or not isinstance(new_gate, dict):
+            raise TransactionError(f"append-only history changed at $.gates.{gate_id}")
+        old_events = old_gate.get("evidence")
+        new_events = new_gate.get("evidence")
+        if not isinstance(old_events, list) or not isinstance(new_events, list):
+            raise TransactionError(
+                f"append-only history is invalid at $.gates.{gate_id}.evidence"
+            )
+        if len(new_events) < len(old_events) or new_events[: len(old_events)] != old_events:
+            raise TransactionError(
+                f"append-only history changed at $.gates.{gate_id}.evidence"
+            )
+        appended_events = new_events[len(old_events) :]
+        old_risks = old_gate.get("risks")
+        new_risks = new_gate.get("risks")
+        if not isinstance(old_risks, list) or not isinstance(new_risks, list):
+            raise TransactionError(
+                f"append-only history is invalid at $.gates.{gate_id}.risks"
+            )
+        if len(new_risks) < len(old_risks):
+            raise TransactionError(
+                f"append-only history changed at $.gates.{gate_id}.risks"
+            )
+        for index, old_risk in enumerate(old_risks):
+            new_risk = new_risks[index]
+            if not isinstance(old_risk, dict) or not isinstance(new_risk, dict):
+                if new_risk != old_risk:
+                    raise TransactionError(
+                        f"append-only history changed at $.gates.{gate_id}.risks[{index}]"
+                    )
+                continue
+            if (
+                old_risk.get("id") != new_risk.get("id")
+                or old_risk.get("kind") != new_risk.get("kind")
+            ):
+                raise TransactionError(
+                    f"append-only history changed at $.gates.{gate_id}.risks[{index}]"
+                )
+            if old_risk.get("kind") != "gate_blocker":
+                continue
+            if old_risk.get("resolved") is True:
+                if new_risk != old_risk:
+                    raise TransactionError(
+                        "resolved blocker history changed at "
+                        f"$.gates.{gate_id}.risks[{index}]"
+                    )
+                continue
+            if new_risk == old_risk:
+                continue
+            expected = dict(old_risk)
+            resolution_id = new_risk.get("resolution_id")
+            expected["resolved"] = True
+            expected["resolution_id"] = resolution_id
+            transition = (gate_id, str(old_risk.get("id")), str(resolution_id))
+            if (
+                new_risk != expected
+                or not isinstance(resolution_id, str)
+                or transition not in authorized
+            ):
+                raise TransactionError(
+                    "unresolved blocker may be resolved only through the resolution API "
+                    f"at $.gates.{gate_id}.risks[{index}]"
+                )
+            _verify_resolution_event(
+                gate_id,
+                str(old_risk.get("id")),
+                resolution_id,
+                appended_events,
+            )
+            used.add(transition)
+    if used != authorized:
+        raise TransactionError(
+            "blocker resolution API transition did not resolve an existing blocker"
+        )
+
+
+def _require_append_only_history(
+    before: MutableMapping[str, Any],
+    after: MutableMapping[str, Any],
+    authorized_resolutions: list[tuple[str, str, str]],
+) -> None:
+    for field in (
+        "changes",
+        "evidence_archive",
+        "evidence_index",
+        "consumed_trial_receipts",
+    ):
+        _require_append_only_prefix(before, after, field)
+    _require_external_action_history(before, after)
+    _require_gate_history(before, after, authorized_resolutions)
+
+
 def mutate_contract_atomic(
     path: Path | str,
     operation: ContractOperation,
@@ -170,7 +430,7 @@ def mutate_contract_atomic(
     expected_revision: int | None = None,
     lock_timeout: float = 10.0,
 ) -> dict[str, Any]:
-    """Apply one validated contract mutation under a same-directory POSIX lock."""
+    """Apply one validated, history-preserving mutation under a POSIX lock."""
 
     _require_supported_platform()
     if not callable(operation):
@@ -204,7 +464,9 @@ def mutate_contract_atomic(
             raise TransactionError("could not open contract lock file")
         _acquire_lock(lock_fd, lock_timeout)
         contract_fd = _open_regular_at(parent_fd, contract_path.name, os.O_RDONLY)
-        contract = _load_from_fd(contract_fd)
+        loaded_contract = _load_from_fd(contract_fd)
+        before = copy.deepcopy(loaded_contract)
+        contract = _TrackedContract(loaded_contract)
 
         schema_version = contract.get("schema_version")
         original_revision = contract.get("revision")
@@ -239,12 +501,19 @@ def mutate_contract_atomic(
             )
         contract["revision"] = base_revision + 1
 
+        if not legacy:
+            _require_append_only_history(
+                before,
+                contract,
+                contract.blocker_resolution_transitions,
+            )
         details = _validation_error(contract)
         if details:
             raise TransactionError(f"mutation produced an invalid contract: {details}")
 
-        _write_atomic_at(parent_fd, contract_path.name, contract)
-        return contract
+        committed = copy.deepcopy(dict(contract))
+        _write_atomic_at(parent_fd, contract_path.name, committed, contract_path)
+        return committed
     finally:
         if contract_fd is not None:
             os.close(contract_fd)

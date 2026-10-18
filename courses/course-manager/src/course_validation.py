@@ -401,6 +401,7 @@ def validate_trial_record(
                 "trial_result_failed",
                 "$.result.status",
                 "a failed trial cannot pass a Gate",
+                "G4" if expected_scope == "representative_unit" else "G5",
             )
         for field in ("completed_at", "notes"):
             if not _text(result.get(field)):
