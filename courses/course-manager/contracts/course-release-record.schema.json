@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "course-release-record.schema.json",
+  "title": "Course release readiness record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "course_id",
+    "g5_status",
+    "g6_state",
+    "published",
+    "checks",
+    "changes",
+    "maintenance"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "course_id": {"type": "string", "minLength": 1},
+    "g5_status": {"const": "PASS"},
+    "g6_state": {"const": "READY_TO_PUBLISH"},
+    "published": {"const": false},
+    "checks": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "result", "evidence"],
+        "properties": {
+          "id": {"enum": ["technical", "links", "registration", "access", "rollback", "maintenance"]},
+          "result": {"enum": ["PASS", "FAIL"]},
+          "evidence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "sha256"],
+            "properties": {
+              "path": {"type": "string", "minLength": 1},
+              "sha256": {"$ref": "#/$defs/sha256"}
+            }
+          }
+        }
+      }
+    },
+    "changes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source_path", "target_path"],
+        "properties": {
+          "source_path": {"type": "string", "minLength": 1},
+          "target_path": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "maintenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["owner", "cadence", "freshness_sources", "next_review"],
+      "properties": {
+        "owner": {"type": "string", "minLength": 1},
+        "cadence": {"type": "string", "minLength": 1},
+        "freshness_sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "next_review": {"type": "string", "format": "date"}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
