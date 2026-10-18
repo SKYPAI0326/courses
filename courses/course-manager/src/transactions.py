@@ -220,13 +220,15 @@ def _require_append_only_prefix(
 
 
 def _require_external_action_history(
-    before: MutableMapping[str, Any], after: MutableMapping[str, Any]
+    before: MutableMapping[str, Any],
+    after: MutableMapping[str, Any],
+    external_transition: tuple[str, str, str] | None,
 ) -> None:
     """Protect proposal identity while leaving Task 4 lifecycle state mutable.
 
-    Existing actions cannot be removed or reordered.  Proposal/basis fields and
-    an issued authorization are immutable; status and future execution metadata
-    remain mutable so the release lifecycle can advance transactionally.
+    Existing actions cannot be removed or reordered. Proposal/basis fields and
+    an issued authorization are immutable. Status may advance only along the
+    governed single-use lifecycle.
     """
 
     old_actions = before.get("external_actions")
@@ -243,6 +245,14 @@ def _require_external_action_history(
         "proposed_by",
         "proposed_at",
     }
+    allowed_transitions = {
+        "PUBLISH_APPROVAL_REQUIRED": {"PUBLISH_APPROVAL_REQUIRED", "AUTHORIZED"},
+        "AUTHORIZED": {"AUTHORIZED", "EXECUTING", "INVALIDATED"},
+        "EXECUTING": {"CONSUMED", "FAILED"},
+        "CONSUMED": {"CONSUMED"},
+        "FAILED": {"FAILED"},
+        "INVALIDATED": {"INVALIDATED"},
+    }
     for index, old in enumerate(old_actions):
         new = new_actions[index]
         if not isinstance(old, dict) or not isinstance(new, dict):
@@ -253,11 +263,59 @@ def _require_external_action_history(
             raise TransactionError(
                 f"append-only history changed at $.external_actions[{index}]"
             )
+        old_status = old.get("status")
+        new_status = new.get("status")
+        if new_status not in allowed_transitions.get(old_status, set()):
+            raise TransactionError(
+                "external action lifecycle moved backward or skipped a state at "
+                f"$.external_actions[{index}].status"
+            )
+        if new_status != old_status:
+            permitted_automatic = (
+                old_status == "AUTHORIZED" and new_status == "INVALIDATED"
+            )
+            permitted_dedicated = external_transition == (
+                str(old.get("id")), str(old_status), str(new_status)
+            )
+            if not permitted_automatic and not permitted_dedicated:
+                raise TransactionError(
+                    "external action lifecycle may advance only through its "
+                    "dedicated atomic transaction API"
+                )
         old_authorization = old.get("authorization")
         if old_authorization is not None and new.get("authorization") != old_authorization:
             raise TransactionError(
                 "append-only authorization history changed at "
                 f"$.external_actions[{index}].authorization"
+            )
+        for field in ("approval_basis_sha256", "authorized_revision"):
+            if old.get(field) is not None and new.get(field) != old.get(field):
+                raise TransactionError(
+                    "append-only authorization history changed at "
+                    f"$.external_actions[{index}].{field}"
+                )
+        if old.get("status") in {"CONSUMED", "FAILED", "INVALIDATED"} and new != old:
+            raise TransactionError(
+                f"terminal external action changed at $.external_actions[{index}]"
+            )
+
+
+def _invalidate_or_block_live_authorizations(
+    before: MutableMapping[str, Any], after: MutableMapping[str, Any]
+) -> None:
+    old_actions = before.get("external_actions")
+    new_actions = after.get("external_actions")
+    if not isinstance(old_actions, list) or not isinstance(new_actions, list):
+        return
+    for index, old in enumerate(old_actions):
+        if index >= len(new_actions) or not isinstance(old, dict) or not isinstance(new_actions[index], dict):
+            continue
+        new = new_actions[index]
+        if old.get("status") == "AUTHORIZED" and new.get("status") == "AUTHORIZED":
+            new["status"] = "INVALIDATED"
+        elif old.get("status") == "EXECUTING" and new.get("status") == "EXECUTING":
+            raise TransactionError(
+                "contract mutation is prohibited while an external action is executing"
             )
 
 
@@ -417,7 +475,14 @@ def _require_append_only_history(
     before: MutableMapping[str, Any],
     after: MutableMapping[str, Any],
     resolution_intent: _ResolutionIntent | None,
+    external_transition: tuple[str, str, str] | None,
 ) -> None:
+    if before.get("contract_instance_id") != after.get("contract_instance_id"):
+        raise TransactionError("immutable contract_instance_id changed")
+    if before.get("identity") != after.get("identity"):
+        raise TransactionError("immutable contract identity changed")
+    if before.get("governance") != after.get("governance"):
+        raise TransactionError("immutable contract governance changed")
     for field in (
         "changes",
         "evidence_archive",
@@ -425,7 +490,7 @@ def _require_append_only_history(
         "consumed_trial_receipts",
     ):
         _require_append_only_prefix(before, after, field)
-    _require_external_action_history(before, after)
+    _require_external_action_history(before, after, external_transition)
     _require_gate_history(before, after, resolution_intent)
 
 
@@ -436,12 +501,15 @@ def _run_contract_transaction(
     expected_revision: int | None = None,
     lock_timeout: float = 10.0,
     resolution_intent: _ResolutionIntent | None = None,
+    external_transition: tuple[str, str, str] | None = None,
 ) -> dict[str, Any]:
     _require_supported_platform()
     if (operation is None) == (resolution_intent is None):
         raise TransactionError(
             "transaction control flow requires exactly one mutation mode"
         )
+    if resolution_intent is not None and external_transition is not None:
+        raise TransactionError("transaction control flow modes cannot be combined")
     if operation is not None and not callable(operation):
         raise TypeError("operation must be callable")
     if expected_revision is not None and (
@@ -515,6 +583,7 @@ def _run_contract_transaction(
                 resolution_intent.at,
                 workspace_root=resolution_intent.workspace_root,
             )
+        _invalidate_or_block_live_authorizations(before, contract)
         after_operation_revision = contract.get("revision")
         if legacy:
             if after_operation_revision not in {None, 0}:
@@ -530,6 +599,7 @@ def _run_contract_transaction(
                 before,
                 contract,
                 resolution_intent,
+                external_transition,
             )
         details = _validation_error(contract)
         if details:
@@ -563,6 +633,77 @@ def mutate_contract_atomic(
         operation,
         expected_revision=expected_revision,
         lock_timeout=lock_timeout,
+    )
+
+
+def authorize_external_action_atomic(
+    path: Path | str,
+    action_id: str,
+    receipt: Mapping[str, Any],
+    authorized_at: str,
+    *,
+    expected_revision: int | None = None,
+    lock_timeout: float = 10.0,
+) -> dict[str, Any]:
+    from src.course_contract import authorize_external_action
+
+    return _run_contract_transaction(
+        path,
+        lambda contract: authorize_external_action(
+            contract, action_id, receipt, authorized_at
+        ),
+        expected_revision=expected_revision,
+        lock_timeout=lock_timeout,
+        external_transition=(action_id, "PUBLISH_APPROVAL_REQUIRED", "AUTHORIZED"),
+    )
+
+
+def begin_external_action_execution_atomic(
+    path: Path | str,
+    action_id: str,
+    manifest_sha256: str,
+    proposal_revision: int,
+    at: str,
+    *,
+    expected_revision: int | None = None,
+    lock_timeout: float = 10.0,
+) -> dict[str, Any]:
+    from src.course_contract import begin_external_action_execution
+
+    return _run_contract_transaction(
+        path,
+        lambda contract: begin_external_action_execution(
+            contract, action_id, manifest_sha256, proposal_revision, at
+        ),
+        expected_revision=expected_revision,
+        lock_timeout=lock_timeout,
+        external_transition=(action_id, "AUTHORIZED", "EXECUTING"),
+    )
+
+
+def finish_external_action_execution_atomic(
+    path: Path | str,
+    action_id: str,
+    status: str,
+    modified_targets: Sequence[str],
+    at: str,
+    error: str | None = None,
+    *,
+    expected_revision: int | None = None,
+    lock_timeout: float = 10.0,
+) -> dict[str, Any]:
+    from src.course_contract import finish_external_action_execution
+
+    if status not in {"CONSUMED", "FAILED"}:
+        raise ValueError("external action terminal status must be CONSUMED or FAILED")
+    return _run_contract_transaction(
+        path,
+        lambda contract: finish_external_action_execution(
+            contract, action_id, status, modified_targets, at, error
+        ),
+        expected_revision=expected_revision,
+        lock_timeout=lock_timeout,
+        external_transition=(action_id, "EXECUTING", status),
     )
 
 

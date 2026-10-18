@@ -8,6 +8,7 @@ import re
 import secrets
 import tempfile
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Mapping, MutableMapping, Sequence
 
@@ -16,6 +17,12 @@ from src.course_evidence import (
     consume_evidence_reference,
     verify_evidence_reference,
 )
+from src.verification_authority import (
+    ALGORITHM as APPROVAL_ALGORITHM,
+    VerificationKeyError,
+    public_key_fingerprint,
+    verify_rsa_sha256_signature,
+)
 
 
 GATE_ORDER: tuple[str, ...] = tuple(f"G{index}" for index in range(7))
@@ -23,7 +30,14 @@ GATE_STATUSES: frozenset[str] = frozenset(
     {"NOT_STARTED", "IN_PROGRESS", "PASS", "FAIL", "BLOCKED", "STALE"}
 )
 EXTERNAL_ACTION_STATUSES: frozenset[str] = frozenset(
-    {"PUBLISH_APPROVAL_REQUIRED", "AUTHORIZED"}
+    {
+        "PUBLISH_APPROVAL_REQUIRED",
+        "AUTHORIZED",
+        "EXECUTING",
+        "CONSUMED",
+        "FAILED",
+        "INVALIDATED",
+    }
 )
 EXTERNAL_ACTION_FIELDS: frozenset[str] = frozenset(
     {
@@ -34,7 +48,36 @@ EXTERNAL_ACTION_FIELDS: frozenset[str] = frozenset(
         "manifest_sha256",
         "proposed_by",
         "proposed_at",
+        "approval_basis_sha256",
+        "authorized_revision",
         "authorization",
+        "execution",
+    }
+)
+EXTERNAL_ACTION_REQUIRED_FIELDS: frozenset[str] = frozenset(
+    {
+        "id", "kind", "status", "manifest_path", "manifest_sha256",
+        "proposed_by", "proposed_at", "authorization",
+    }
+)
+APPROVAL_RECEIPT_FIELDS: frozenset[str] = frozenset(
+    {
+        "schema_version",
+        "receipt_id",
+        "authority_id",
+        "algorithm",
+        "contract_instance_id",
+        "contract_revision",
+        "g6_source_revision",
+        "g6_evidence_set_sha256",
+        "action_id",
+        "manifest_sha256",
+        "approval_basis_sha256",
+        "interaction",
+        "nonce",
+        "issued_at",
+        "expires_at",
+        "signature",
     }
 )
 SLUG_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -164,6 +207,7 @@ def new_contract(slug: str, title: str, created_by: str, created_at: str) -> dic
             "external_action_authority": "explicit-user-authorization",
             "production_role_roster": None,
             "runner_authority": None,
+            "approval_authority": None,
         },
         "gates": gates,
         "G0_requirements": {},
@@ -202,8 +246,9 @@ def _validate_governance(contract: Mapping[str, Any], issues: list[ValidationIss
         "external_action_authority",
         "production_role_roster",
         "runner_authority",
+        "approval_authority",
     }
-    for field in expected - {"production_role_roster", "runner_authority"}:
+    for field in expected - {"production_role_roster", "runner_authority", "approval_authority"}:
         value = governance.get(field)
         if not isinstance(value, str) or not value.strip():
             _append_issue(
@@ -283,6 +328,30 @@ def _validate_governance(contract: Mapping[str, Any], issues: list[ValidationIss
                 digest = authority.get(field)
                 if not isinstance(digest, str) or not SHA256_PATTERN.fullmatch(digest):
                     _append_issue(issues, "invalid_runner_authority", f"{path}.runner_authority.{field}", f"{field} must be lowercase SHA-256")
+    approval_authority = governance.get("approval_authority")
+    approval_fields = {
+        "authority_id", "algorithm", "public_key", "public_key_fingerprint"
+    }
+    if approval_authority is not None:
+        if not isinstance(approval_authority, Mapping) or set(approval_authority) != approval_fields:
+            _append_issue(
+                issues,
+                "invalid_approval_authority",
+                f"{path}.approval_authority",
+                "approval authority binding has missing or unknown fields",
+            )
+        else:
+            if not isinstance(approval_authority.get("authority_id"), str) or not approval_authority["authority_id"].strip():
+                _append_issue(issues, "invalid_approval_authority", f"{path}.approval_authority.authority_id", "approval authority id must contain text")
+            if approval_authority.get("algorithm") != APPROVAL_ALGORITHM:
+                _append_issue(issues, "invalid_approval_authority", f"{path}.approval_authority.algorithm", "approval authority algorithm is unsupported")
+            try:
+                fingerprint = public_key_fingerprint(approval_authority.get("public_key"))
+            except (VerificationKeyError, TypeError):
+                _append_issue(issues, "invalid_approval_authority", f"{path}.approval_authority.public_key", "approval authority public key is invalid")
+            else:
+                if fingerprint != approval_authority.get("public_key_fingerprint"):
+                    _append_issue(issues, "invalid_approval_authority", f"{path}.approval_authority.public_key_fingerprint", "approval authority public key fingerprint is invalid")
     for field in set(governance) - expected:
         _append_issue(
             issues,
@@ -317,6 +386,43 @@ def bind_production_role_roster(
     if governance.get("production_role_roster") is not None:
         raise ContractStateError("production role roster is already fixed")
     governance["production_role_roster"] = {"evidence_id": evidence_id, "sha256": digest}
+
+
+def bind_external_approval_authority(
+    contract: MutableMapping[str, Any],
+    authority_id: str,
+    public_key: Mapping[str, Any],
+) -> None:
+    """Bind verification-only user-interaction authority material.
+
+    Receipt issuance and private signing keys stay outside production code.
+    """
+
+    if not isinstance(authority_id, str) or not authority_id.strip():
+        raise ContractStateError("approval authority id is required")
+    gates = contract.get("gates")
+    if not isinstance(gates, Mapping) or any(
+        not isinstance(record, Mapping) or record.get("status") != "NOT_STARTED"
+        for record in gates.values()
+    ):
+        raise ContractStateError(
+            "approval authority must be fixed before Gate work begins"
+        )
+    governance = contract.get("governance")
+    if not isinstance(governance, MutableMapping):
+        raise ContractStateError("contract governance is missing")
+    if governance.get("approval_authority") is not None:
+        raise ContractStateError("approval authority is already fixed")
+    try:
+        fingerprint = public_key_fingerprint(public_key)
+    except VerificationKeyError as error:
+        raise ContractStateError(f"approval authority {error}") from error
+    governance["approval_authority"] = {
+        "authority_id": authority_id,
+        "algorithm": APPROVAL_ALGORITHM,
+        "public_key": dict(public_key),
+        "public_key_fingerprint": fingerprint,
+    }
 
 
 def _unresolved_blockers(record: Mapping[str, Any]) -> list[Mapping[str, Any]]:
@@ -878,7 +984,7 @@ def validate_contract(contract: Mapping[str, Any]) -> list[ValidationIssue]:
             if not isinstance(action, Mapping):
                 continue
             action_path = f"$.external_actions[{index}]"
-            for field in EXTERNAL_ACTION_FIELDS - set(action):
+            for field in EXTERNAL_ACTION_REQUIRED_FIELDS - set(action):
                 _append_issue(
                     issues,
                     "missing_external_action_field",
@@ -924,33 +1030,56 @@ def validate_contract(contract: Mapping[str, Any]) -> list[ValidationIssue]:
                         f"{field} must contain text",
                     )
             authorization = action.get("authorization")
+            basis_hash = action.get("approval_basis_sha256")
+            authorized_revision = action.get("authorized_revision")
+            execution = action.get("execution")
             if action.get("status") == "PUBLISH_APPROVAL_REQUIRED":
-                if authorization is not None:
-                    _append_issue(
-                        issues,
-                        "invalid_external_authorization",
-                        f"{action_path}.authorization",
-                        "an action awaiting approval cannot contain authorization",
+                if any(
+                    value is not None
+                    for value in (
+                        authorization,
+                        basis_hash,
+                        authorized_revision,
+                        execution,
                     )
-            elif action.get("status") == "AUTHORIZED":
-                required = {"approved_by", "approved_at", "note"}
-                if not isinstance(authorization, Mapping) or any(
-                    not isinstance(authorization.get(field), str)
-                    or not authorization[field].strip()
-                    for field in required
                 ):
                     _append_issue(
                         issues,
                         "invalid_external_authorization",
                         f"{action_path}.authorization",
-                        "authorized action requires approver, timestamp, and note",
+                        "an action awaiting approval cannot contain authorization state",
                     )
-                elif set(authorization) != required:
+            else:
+                if (
+                    not isinstance(authorization, Mapping)
+                    or set(authorization) != APPROVAL_RECEIPT_FIELDS
+                    or not isinstance(basis_hash, str)
+                    or not SHA256_PATTERN.fullmatch(basis_hash)
+                    or authorization.get("approval_basis_sha256") != basis_hash
+                    or isinstance(authorized_revision, bool)
+                    or not isinstance(authorized_revision, int)
+                    or authorized_revision < 1
+                ):
                     _append_issue(
                         issues,
                         "invalid_external_authorization",
                         f"{action_path}.authorization",
-                        "authorization contains unknown fields",
+                        "authorized action requires one complete signed approval receipt",
+                    )
+                if action.get("status") in {"EXECUTING", "CONSUMED", "FAILED"}:
+                    if not isinstance(execution, Mapping):
+                        _append_issue(
+                            issues,
+                            "invalid_external_execution",
+                            f"{action_path}.execution",
+                            "execution lifecycle state requires execution metadata",
+                        )
+                elif execution is not None:
+                    _append_issue(
+                        issues,
+                        "invalid_external_execution",
+                        f"{action_path}.execution",
+                        "non-executing action cannot contain execution metadata",
                     )
 
     return issues
@@ -1349,6 +1478,14 @@ def propose_external_action(
         raise ContractStateError("external action proposal fields must contain text")
     if not SHA256_PATTERN.fullmatch(manifest_sha256):
         raise ContractStateError("manifest_sha256 must be a lowercase SHA-256")
+    manifest = PurePosixPath(manifest_path)
+    if (
+        manifest.is_absolute()
+        or manifest == PurePosixPath(".")
+        or ".." in manifest.parts
+        or "\\" in manifest_path
+    ):
+        raise ContractStateError("manifest_path must be a safe POSIX relative path")
     _require_valid_contract(contract)
     if contract["gates"]["G6"].get("status") != "PASS":
         raise ContractStateError("external action proposal requires G6 PASS")
@@ -1366,38 +1503,221 @@ def propose_external_action(
             "manifest_sha256": manifest_sha256,
             "proposed_by": actor,
             "proposed_at": at,
+            "approval_basis_sha256": None,
+            "authorized_revision": None,
             "authorization": None,
+            "execution": None,
         }
     )
+
+
+def _all_gates_pass(contract: Mapping[str, Any]) -> bool:
+    gates = contract.get("gates")
+    return isinstance(gates, Mapping) and all(
+        isinstance(gates.get(gate_id), Mapping)
+        and gates[gate_id].get("status") == "PASS"
+        for gate_id in GATE_ORDER
+    )
+
+
+def _g6_evidence_set_sha256(contract: Mapping[str, Any]) -> str:
+    gate = contract.get("gates", {}).get("G6")
+    if not isinstance(gate, Mapping):
+        raise ContractStateError("G6 record is missing")
+    events = gate.get("evidence")
+    if not isinstance(events, list):
+        raise ContractStateError("G6 evidence history is invalid")
+    pass_events = [
+        event
+        for event in events
+        if isinstance(event, Mapping)
+        and event.get("kind") == "gate_validation"
+        and event.get("outcome") == "PASS"
+    ]
+    if not pass_events or not isinstance(pass_events[-1].get("evidence_ids"), list):
+        raise ContractStateError("G6 PASS evidence set is missing")
+    indexed = {
+        item.get("id"): item
+        for item in contract.get("evidence_index", [])
+        if isinstance(item, Mapping)
+    }
+    references: list[dict[str, Any]] = []
+    for evidence_id in pass_events[-1]["evidence_ids"]:
+        reference = indexed.get(evidence_id)
+        if not isinstance(reference, Mapping) or reference.get("gate") != "G6":
+            raise ContractStateError("G6 PASS evidence set is not replayable")
+        references.append(
+            {
+                key: reference[key]
+                for key in (
+                    "id",
+                    "gate",
+                    "kind",
+                    "path",
+                    "sha256",
+                    "maturity",
+                    "metadata",
+                )
+                if key in reference
+            }
+        )
+    references.sort(key=lambda item: str(item["id"]))
+    return hashlib.sha256(canonical_json_bytes(references)).hexdigest()
+
+
+def _approval_basis(
+    contract: Mapping[str, Any],
+    action: Mapping[str, Any],
+    *,
+    contract_revision: int,
+) -> dict[str, Any]:
+    gate = contract.get("gates", {}).get("G6")
+    if not isinstance(gate, Mapping):
+        raise ContractStateError("G6 record is missing")
+    basis = {
+        "contract_instance_id": contract.get("contract_instance_id"),
+        "contract_revision": contract_revision,
+        "g6_source_revision": gate.get("source_revision"),
+        "g6_evidence_set_sha256": _g6_evidence_set_sha256(contract),
+        "action_id": action.get("id"),
+        "manifest_sha256": action.get("manifest_sha256"),
+    }
+    if (
+        not isinstance(basis["contract_instance_id"], str)
+        or isinstance(basis["contract_revision"], bool)
+        or not isinstance(basis["contract_revision"], int)
+        or isinstance(basis["g6_source_revision"], bool)
+        or not isinstance(basis["g6_source_revision"], (int, str))
+        or not isinstance(basis["action_id"], str)
+        or not isinstance(basis["manifest_sha256"], str)
+    ):
+        raise ContractStateError("approval basis is incomplete")
+    basis["approval_basis_sha256"] = hashlib.sha256(
+        canonical_json_bytes(basis)
+    ).hexdigest()
+    return basis
+
+
+def external_action_approval_basis(
+    contract: MutableMapping[str, Any], action_id: str
+) -> dict[str, Any]:
+    _require_valid_contract(contract)
+    if not _all_gates_pass(contract):
+        raise ContractStateError("external authorization requires all Gates PASS")
+    action = _find_external_action(contract, action_id)
+    if action.get("status") != "PUBLISH_APPROVAL_REQUIRED":
+        raise ContractStateError("approval basis requires a pending external action")
+    revision = contract.get("revision")
+    if isinstance(revision, bool) or not isinstance(revision, int):
+        raise ContractStateError("approval basis requires an exact contract revision")
+    return _approval_basis(contract, action, contract_revision=revision)
+
+
+def _parse_timestamp(value: Any, field: str) -> datetime:
+    if not isinstance(value, str) or not value.strip():
+        raise ContractStateError(f"approval receipt {field} is required")
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as error:
+        raise ContractStateError(
+            f"approval receipt {field} must be ISO-8601"
+        ) from error
+    if parsed.tzinfo is None:
+        raise ContractStateError(f"approval receipt {field} requires a timezone")
+    return parsed
+
+
+def _verify_approval_receipt_signature(
+    contract: Mapping[str, Any], receipt: Mapping[str, Any]
+) -> None:
+    governance = contract.get("governance")
+    authority = (
+        governance.get("approval_authority")
+        if isinstance(governance, Mapping)
+        else None
+    )
+    if not isinstance(authority, Mapping):
+        raise ContractStateError("governed approval authority is not configured")
+    if (
+        receipt.get("schema_version") != 1
+        or receipt.get("authority_id") != authority.get("authority_id")
+        or receipt.get("algorithm") != APPROVAL_ALGORITHM
+        or authority.get("algorithm") != APPROVAL_ALGORITHM
+    ):
+        raise ContractStateError("approval receipt authority is invalid")
+    unsigned = {
+        key: receipt[key] for key in sorted(set(receipt) - {"signature"})
+    }
+    if not verify_rsa_sha256_signature(
+        unsigned, receipt.get("signature"), authority.get("public_key")
+    ):
+        raise ContractStateError("approval receipt signature is invalid")
 
 
 def authorize_external_action(
     contract: MutableMapping[str, Any],
     action_id: str,
-    approved_by: str,
-    approved_at: str,
-    note: str,
+    receipt: Mapping[str, Any] | Any,
+    authorized_at: str,
+    *legacy_caller_fields: Any,
 ) -> None:
-    if not approved_by.strip() or not approved_at.strip() or not note.strip():
-        raise ContractStateError(
-            "external authorization requires approver, timestamp, and note"
-        )
+    if legacy_caller_fields or not isinstance(receipt, Mapping):
+        raise ContractStateError("external authorization requires a signed receipt")
     _require_valid_contract(contract)
+    if not _all_gates_pass(contract):
+        raise ContractStateError("external authorization requires all Gates PASS")
     action = _find_external_action(contract, action_id)
     if action.get("status") != "PUBLISH_APPROVAL_REQUIRED":
         raise ContractStateError(
             f"cannot authorize external action in {action.get('status')!r} state"
         )
+    if set(receipt) != APPROVAL_RECEIPT_FIELDS:
+        raise ContractStateError("approval receipt has missing or unknown fields")
+    _verify_approval_receipt_signature(contract, receipt)
+    basis = external_action_approval_basis(contract, action_id)
+    if any(receipt.get(field) != value for field, value in basis.items()):
+        raise ContractStateError("approval receipt does not match the exact approval basis")
+    interaction = receipt.get("interaction")
+    if (
+        not isinstance(interaction, Mapping)
+        or set(interaction) != {"kind", "user_id", "session_id", "confirmed_at"}
+        or interaction.get("kind") != "explicit_user_approval"
+        or any(
+            not isinstance(interaction.get(field), str)
+            or not interaction[field].strip()
+            for field in ("user_id", "session_id", "confirmed_at")
+        )
+    ):
+        raise ContractStateError(
+            "approval receipt lacks an explicit verified user interaction boundary"
+        )
+    authorized_time = _parse_timestamp(authorized_at, "authorized_at")
+    confirmed_time = _parse_timestamp(interaction["confirmed_at"], "confirmed_at")
+    issued_time = _parse_timestamp(receipt.get("issued_at"), "issued_at")
+    expires_time = _parse_timestamp(receipt.get("expires_at"), "expires_at")
+    if not (confirmed_time <= issued_time <= authorized_time <= expires_time):
+        raise ContractStateError("approval receipt is expired or has invalid time ordering")
+    receipt_id = receipt.get("receipt_id")
+    nonce = receipt.get("nonce")
+    if not isinstance(receipt_id, str) or not receipt_id.strip() or not isinstance(nonce, str) or not nonce.strip():
+        raise ContractStateError("approval receipt id and nonce are required")
+    for existing in contract.get("external_actions", []):
+        prior = existing.get("authorization") if isinstance(existing, Mapping) else None
+        if isinstance(prior, Mapping) and (
+            prior.get("receipt_id") == receipt_id or prior.get("nonce") == nonce
+        ):
+            raise ContractStateError("approval receipt id or nonce was already used")
     action["status"] = "AUTHORIZED"
-    action["authorization"] = {
-        "approved_by": approved_by,
-        "approved_at": approved_at,
-        "note": note,
-    }
+    action["approval_basis_sha256"] = basis["approval_basis_sha256"]
+    action["authorized_revision"] = basis["contract_revision"] + 1
+    action["authorization"] = copy.deepcopy(dict(receipt))
 
 
 def assert_external_action_authorized(
-    contract: MutableMapping[str, Any], action_id: str, manifest_sha256: str
+    contract: MutableMapping[str, Any],
+    action_id: str,
+    manifest_sha256: str,
+    at: str | None = None,
 ) -> None:
     _require_valid_contract(contract)
     action = _find_external_action(contract, action_id)
@@ -1405,6 +1725,76 @@ def assert_external_action_authorized(
         raise ContractStateError(f"external action is not authorized: {action_id}")
     if action.get("manifest_sha256") != manifest_sha256:
         raise ContractStateError("authorized manifest hash does not match")
+    if not _all_gates_pass(contract):
+        raise ContractStateError("authorized action requires all Gates PASS")
+    receipt = action.get("authorization")
+    if not isinstance(receipt, Mapping):
+        raise ContractStateError("authorized action receipt is missing")
+    _verify_approval_receipt_signature(contract, receipt)
+    expires = _parse_timestamp(receipt.get("expires_at"), "expires_at")
+    execution_time = (
+        _parse_timestamp(at, "execution_at")
+        if at is not None
+        else datetime.now(expires.tzinfo)
+    )
+    if execution_time > expires:
+        raise ContractStateError("approval receipt has expired")
+    revision = contract.get("revision")
+    if revision != action.get("authorized_revision"):
+        raise ContractStateError("authorized contract revision is no longer current")
+    receipt_revision = receipt.get("contract_revision")
+    if isinstance(receipt_revision, bool) or not isinstance(receipt_revision, int):
+        raise ContractStateError("authorized receipt revision is invalid")
+    basis = _approval_basis(
+        contract, action, contract_revision=receipt_revision
+    )
+    if (
+        basis.get("approval_basis_sha256")
+        != action.get("approval_basis_sha256")
+        or any(receipt.get(field) != value for field, value in basis.items())
+    ):
+        raise ContractStateError("authorized approval basis is no longer current")
+
+
+def begin_external_action_execution(
+    contract: MutableMapping[str, Any],
+    action_id: str,
+    manifest_sha256: str,
+    proposal_revision: int,
+    at: str,
+) -> None:
+    assert_external_action_authorized(contract, action_id, manifest_sha256, at)
+    action = _find_external_action(contract, action_id)
+    action["status"] = "EXECUTING"
+    action["execution"] = {
+        "proposal_revision": proposal_revision,
+        "started_at": at,
+        "finished_at": None,
+        "outcome": "IN_PROGRESS",
+        "modified_targets": [],
+        "error": None,
+    }
+
+
+def finish_external_action_execution(
+    contract: MutableMapping[str, Any],
+    action_id: str,
+    status: str,
+    modified_targets: Sequence[str],
+    at: str,
+    error: str | None = None,
+) -> None:
+    action = _find_external_action(contract, action_id)
+    if action.get("status") != "EXECUTING" or status not in {"CONSUMED", "FAILED"}:
+        raise ContractStateError("external action execution transition is invalid")
+    execution = action.get("execution")
+    if not isinstance(execution, MutableMapping):
+        raise ContractStateError("external action execution metadata is missing")
+    action["status"] = status
+    execution["finished_at"] = at
+    execution["outcome"] = "PASS" if status == "CONSUMED" else "FAIL_ROLLED_BACK"
+    execution["modified_targets"] = list(modified_targets)
+    execution["error"] = error
 
 
 def _legacy_gate_has_complete_evidence(record: Mapping[str, Any]) -> bool:
@@ -1444,11 +1834,11 @@ def migrate_contract_v1(
     governance = migrated.get("governance")
     if not isinstance(governance, MutableMapping):
         raise ContractStateError("legacy governance is missing or invalid")
-    governance.pop("approval_authority", None)
     governance["gate_authority"] = "course-run-with-validated-evidence"
     governance["external_action_authority"] = "explicit-user-authorization"
     governance["production_role_roster"] = None
     governance["runner_authority"] = None
+    governance["approval_authority"] = None
     migrated["schema_version"] = 2
     migrated["external_actions"] = []
     migrated["maintenance"] = {}
@@ -1547,6 +1937,7 @@ def migrate_contract_v2(
         raise ContractStateError("legacy governance is missing or invalid")
     governance.setdefault("production_role_roster", None)
     governance.setdefault("runner_authority", None)
+    governance.setdefault("approval_authority", None)
     original_evidence = migrated.get("evidence_index")
     if not isinstance(original_evidence, list):
         original_evidence = []

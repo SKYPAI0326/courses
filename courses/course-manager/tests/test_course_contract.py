@@ -26,6 +26,7 @@ from src.course_contract import (
 )
 from src.course_evidence import materialize_json_evidence
 from tests.gate_test_support import _commit_gate_pass
+from tests.approval_authority_fixture import TestApprovalAuthority
 
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
@@ -575,12 +576,14 @@ class CourseContractStateTests(unittest.TestCase):
 
 class CourseContractExternalActionTests(unittest.TestCase):
     def make_ready_contract(self):
+        self.approval_authority = TestApprovalAuthority()
         contract = new_contract(
             "practical-ai",
             "實用生成式 AI",
             "課程團隊",
             "2026-10-18T12:00:00+08:00",
         )
+        self.approval_authority.bind(contract)
         CourseContractStateTests().pass_gates_through(contract, "G6")
         return contract
 
@@ -605,13 +608,11 @@ class CourseContractExternalActionTests(unittest.TestCase):
         with self.assertRaises(ContractStateError):
             assert_external_action_authorized(contract, "publish-1", manifest_hash)
 
+        receipt = self.approval_authority.issue(contract, "publish-1")
         authorize_external_action(
-            contract,
-            "publish-1",
-            "使用者",
-            "2026-10-18T18:05:00+08:00",
-            "核准依 manifest 發布",
+            contract, "publish-1", receipt, "2026-10-18T18:05:00+00:00"
         )
+        contract["revision"] += 1
         assert_external_action_authorized(contract, "publish-1", manifest_hash)
 
     def test_authorization_rejects_changed_manifest_hash(self):
@@ -625,13 +626,11 @@ class CourseContractExternalActionTests(unittest.TestCase):
             "course-ops",
             "2026-10-18T18:00:00+08:00",
         )
+        receipt = self.approval_authority.issue(contract, "publish-1")
         authorize_external_action(
-            contract,
-            "publish-1",
-            "使用者",
-            "2026-10-18T18:05:00+08:00",
-            "核准依 manifest 發布",
+            contract, "publish-1", receipt, "2026-10-18T18:05:00+00:00"
         )
+        contract["revision"] += 1
 
         with self.assertRaises(ContractStateError):
             assert_external_action_authorized(contract, "publish-1", "b" * 64)

@@ -10,9 +10,10 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from src.course_contract import begin_gate, new_contract, save_contract_atomic
+from src.course_contract import begin_gate, load_contract, new_contract, save_contract_atomic
 from src.course_evidence import materialize_json_evidence
 from tests.gate_test_support import _commit_gate_pass
+from tests.approval_authority_fixture import TestApprovalAuthority
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -436,9 +437,11 @@ class CourseContractCliTests(unittest.TestCase):
         self.assertIn(str(path), stderr.getvalue())
 
     def test_external_action_commands_require_exact_authorized_hash(self):
+        authority = TestApprovalAuthority()
         contract = new_contract(
             "practical-ai", "實用生成式 AI", "課程團隊", "2026-10-18T12:00:00+08:00"
         )
+        authority.bind(contract)
         for gate_id in ("G0", "G1", "G2", "G3", "G4", "G5", "G6"):
             self.pass_gate(contract, gate_id)
         path = self.write_contract(contract)
@@ -460,18 +463,25 @@ class CourseContractCliTests(unittest.TestCase):
             "--at",
             "2026-10-18T18:00:00+08:00",
         )
+        self.assertEqual(proposed.returncode, 0, proposed.stderr)
+        receipt_path = self.root / "approval-receipt.json"
+        receipt_path.write_text(
+            json.dumps(
+                authority.issue(load_contract(path), "publish-1"),
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
         authorized = self.run_cli(
             "authorize-action",
             "--contract",
             path,
             "--action-id",
             "publish-1",
-            "--approved-by",
-            "使用者",
+            "--receipt",
+            receipt_path,
             "--at",
-            "2026-10-18T18:05:00+08:00",
-            "--note",
-            "核准發布",
+            "2026-10-18T18:05:00+00:00",
         )
         checked = self.run_cli(
             "check-action",
@@ -492,7 +502,6 @@ class CourseContractCliTests(unittest.TestCase):
             "b" * 64,
         )
 
-        self.assertEqual(proposed.returncode, 0, proposed.stderr)
         self.assertEqual(authorized.returncode, 0, authorized.stderr)
         self.assertEqual(checked.returncode, 0, checked.stderr)
         self.assertEqual(rejected.returncode, 2)

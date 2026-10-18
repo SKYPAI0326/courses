@@ -13,7 +13,6 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.course_contract import (  # noqa: E402
     ContractStateError,
     assert_external_action_authorized,
-    authorize_external_action,
     begin_gate,
     block_gate,
     fail_gate,
@@ -30,6 +29,7 @@ from src.course_contract import (  # noqa: E402
 from src.transactions import (  # noqa: E402
     TransactionCommittedDurabilityError,
     TransactionError,
+    authorize_external_action_atomic,
     mutate_contract_atomic,
     resolve_gate_blocker_atomic,
 )
@@ -105,9 +105,8 @@ def build_parser() -> argparse.ArgumentParser:
     command = commands.add_parser("authorize-action")
     _contract_argument(command)
     command.add_argument("--action-id", required=True)
-    command.add_argument("--approved-by", required=True)
+    command.add_argument("--receipt", required=True, type=Path)
     command.add_argument("--at", required=True)
-    command.add_argument("--note", required=True)
     _expected_revision_argument(command)
 
     command = commands.add_parser("check-action")
@@ -243,6 +242,18 @@ def main(argv: list[str] | None = None) -> int:
             print(args.contract)
             return 0
 
+        if args.command == "authorize-action":
+            receipt = json.loads(args.receipt.read_text(encoding="utf-8"))
+            authorize_external_action_atomic(
+                args.contract,
+                args.action_id,
+                receipt,
+                args.at,
+                expected_revision=args.expected_revision,
+            )
+            print(args.contract)
+            return 0
+
         operations = {
             "begin": lambda contract: begin_gate(contract, args.gate, args.actor, args.at),
             "fail": lambda contract: fail_gate(
@@ -262,9 +273,6 @@ def main(argv: list[str] | None = None) -> int:
                 args.manifest_sha256,
                 args.actor,
                 args.at,
-            ),
-            "authorize-action": lambda contract: authorize_external_action(
-                contract, args.action_id, args.approved_by, args.at, args.note
             ),
         }
         _mutate(

@@ -5,10 +5,13 @@ import json
 import os
 import re
 import shutil
+import stat
 import tempfile
+import time
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Mapping
 
 from src.course_contract import (
@@ -16,6 +19,16 @@ from src.course_contract import (
     assert_external_action_authorized,
     load_contract,
 )
+from src.transactions import (
+    TransactionError,
+    begin_external_action_execution_atomic,
+    finish_external_action_execution_atomic,
+)
+
+try:
+    import fcntl
+except ImportError:  # pragma: no cover - fail closed on unsupported hosts
+    fcntl = None  # type: ignore[assignment]
 
 
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
@@ -40,6 +53,12 @@ class ReleaseIssue:
 
 class ReleaseAuthorizationError(ValueError):
     pass
+
+
+class ReleaseCommittedDurabilityError(OSError):
+    """A rename committed but its containing directory fsync was uncertain."""
+
+    committed = True
 
 
 def _text(value: Any) -> bool:
@@ -68,9 +87,19 @@ def _file_sha256(path: Path) -> str:
 def _safe_path(root: Path, relative: str, *, must_exist: bool = False) -> Path:
     if not _text(relative):
         raise ValueError("path must contain text")
-    rel = Path(relative)
-    if rel.is_absolute() or ".." in rel.parts:
-        raise ValueError(f"path escapes release root: {relative}")
+    posix = PurePosixPath(relative)
+    windows = PureWindowsPath(relative)
+    if (
+        posix.is_absolute()
+        or windows.is_absolute()
+        or bool(windows.drive)
+        or "\\" in relative
+        or ".." in posix.parts
+        or ".." in windows.parts
+        or posix == PurePosixPath(".")
+    ):
+        raise ValueError(f"path must be a safe POSIX relative path: {relative}")
+    rel = Path(*posix.parts)
     root_resolved = root.resolve()
     candidate = (root_resolved / rel).resolve(strict=False)
     try:
@@ -274,16 +303,25 @@ def build_release_proposal(
     manifest_hash = _canonical_hash(manifest)
     return {
         "schema_version": 1,
+        "revision": 0,
         "action_id": f"course-release-{manifest_hash[:16]}",
-        "status": "PENDING_AUTHORIZATION",
+        "status": "PUBLISH_APPROVAL_REQUIRED",
         "manifest": manifest,
         "manifest_sha256": manifest_hash,
+        "journal": {"phase": "PENDING", "targets": [], "updated_at": None},
         "result": None,
     }
 
 
+def _fsync_directory(path: Path) -> None:
+    descriptor = os.open(path, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+
+
 def _atomic_write_json(path: Path, value: Mapping[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
     fd, temp_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
     temp_path = Path(temp_name)
     try:
@@ -293,6 +331,12 @@ def _atomic_write_json(path: Path, value: Mapping[str, Any]) -> None:
             handle.flush()
             os.fsync(handle.fileno())
         os.replace(temp_path, path)
+        try:
+            _fsync_directory(path.parent)
+        except OSError as error:
+            raise ReleaseCommittedDurabilityError(
+                f"proposal replace committed at {path}, but directory fsync failed"
+            ) from error
     finally:
         if temp_path.exists():
             temp_path.unlink()
@@ -307,32 +351,179 @@ def _atomic_replace_from_source(source: Path, target: Path) -> None:
             temp_handle.flush()
             os.fsync(temp_handle.fileno())
         os.replace(temp_path, target)
+        try:
+            _fsync_directory(target.parent)
+        except OSError as error:
+            raise ReleaseCommittedDurabilityError(
+                f"target replace committed at {target}, but directory fsync failed"
+            ) from error
     finally:
         if temp_path.exists():
             temp_path.unlink()
 
 
-def apply_release_proposal(proposal_path: Path, contract_path: Path) -> None:
-    proposal = json.loads(proposal_path.read_text(encoding="utf-8"))
-    if proposal.get("status") != "PENDING_AUTHORIZATION":
-        raise ReleaseAuthorizationError("release authorization is missing or already consumed")
+def _crash_checkpoint(phase: str, target_index: int) -> None:
+    """Test seam: production performs no action; subprocess tests replace it."""
+
+
+def _require_release_platform() -> None:
+    if (
+        os.name != "posix"
+        or fcntl is None
+        or not hasattr(os, "O_NOFOLLOW")
+        or not hasattr(os, "O_DIRECTORY")
+    ):
+        raise ReleaseAuthorizationError(
+            "release transactions require POSIX flock, O_NOFOLLOW, and O_DIRECTORY"
+        )
+
+
+@contextmanager
+def _release_root_lock(root: Path, timeout: float = 10.0):
+    _require_release_platform()
+    lock_path = root / ".course-release.lock"
+    descriptor = os.open(
+        lock_path,
+        os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW,
+        0o600,
+    )
+    if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+        os.close(descriptor)
+        raise ReleaseAuthorizationError("release lock path is not a regular file")
+    deadline = time.monotonic() + timeout
+    try:
+        while True:
+            try:
+                fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except BlockingIOError as error:
+                if time.monotonic() >= deadline:
+                    raise ReleaseAuthorizationError(
+                        "timed out waiting for release-root lock"
+                    ) from error
+                time.sleep(0.01)
+        yield
+    finally:
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_UN)
+        finally:
+            os.close(descriptor)
+
+
+def _load_proposal(path: Path) -> dict[str, Any]:
+    try:
+        descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+    except OSError as error:
+        raise ReleaseAuthorizationError(
+            "proposal path must be a regular non-symlink file"
+        ) from error
+    try:
+        if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+            raise ReleaseAuthorizationError(
+                "proposal path must be a regular non-symlink file"
+            )
+        with os.fdopen(os.dup(descriptor), "r", encoding="utf-8") as handle:
+            value = json.load(handle)
+    except (OSError, json.JSONDecodeError) as error:
+        raise ReleaseAuthorizationError(f"release proposal is unreadable: {error}") from error
+    finally:
+        os.close(descriptor)
+    if not isinstance(value, dict):
+        raise ReleaseAuthorizationError("release proposal root must be an object")
+    required = {
+        "schema_version", "revision", "action_id", "status", "manifest",
+        "manifest_sha256", "journal", "result",
+    }
+    if set(value) != required or value.get("schema_version") != 1:
+        raise ReleaseAuthorizationError("release proposal has missing or unknown fields")
+    revision = value.get("revision")
+    if isinstance(revision, bool) or not isinstance(revision, int) or revision < 0:
+        raise ReleaseAuthorizationError("release proposal revision is invalid")
+    if value.get("status") not in {
+        "PUBLISH_APPROVAL_REQUIRED", "AUTHORIZED", "EXECUTING", "CONSUMED", "FAILED"
+    }:
+        raise ReleaseAuthorizationError("release proposal lifecycle state is invalid")
+    return value
+
+
+def _proposal_relative_path(root: Path, proposal_path: Path, *, label: str) -> Path:
+    """Return the lexical path below root while rejecting in-root symlinks.
+
+    macOS may expose a real root below ``/private`` through a system ``/var``
+    symlink. Find the lexical ancestor that resolves to the governed root, then
+    reject symlinks at that boundary or anywhere below it.
+    """
+
+    absolute = proposal_path.absolute()
+    boundary = next(
+        (ancestor for ancestor in absolute.parents if ancestor.resolve() == root),
+        None,
+    )
+    if boundary is None:
+        raise ReleaseAuthorizationError(f"{label} escapes release root")
+    if boundary.is_symlink():
+        raise ReleaseAuthorizationError(f"{label} must not contain symbolic links")
+    relative = absolute.relative_to(boundary)
+    current = boundary
+    for part in relative.parts:
+        current = current / part
+        if current.is_symlink():
+            raise ReleaseAuthorizationError(f"{label} must not contain symbolic links")
+    return relative
+
+
+def _proposal_root(proposal: Mapping[str, Any], proposal_path: Path) -> Path:
     manifest = proposal.get("manifest")
     if not isinstance(manifest, Mapping):
         raise ReleaseAuthorizationError("release proposal manifest is missing")
     manifest_hash = _canonical_hash(manifest)
     if proposal.get("manifest_sha256") != manifest_hash:
         raise ReleaseAuthorizationError("release proposal changed after its hash was created")
-    contract = load_contract(contract_path)
-    try:
-        assert_external_action_authorized(
-            contract, proposal.get("action_id", ""), manifest_hash
-        )
-    except ContractStateError as error:
-        raise ReleaseAuthorizationError(str(error)) from error
-
     root = Path(manifest.get("course_root", ""))
-    if not root.is_absolute() or not root.is_dir():
+    if not root.is_absolute() or not root.is_dir() or root.is_symlink():
         raise ReleaseAuthorizationError("authorized release root is invalid")
+    root = root.resolve()
+    _proposal_relative_path(root, proposal_path, label="proposal path")
+    return root
+
+
+def _write_proposal(
+    path: Path, proposal: Mapping[str, Any], *, expected_revision: int
+) -> dict[str, Any]:
+    current = _load_proposal(path)
+    if current.get("revision") != expected_revision:
+        raise ReleaseAuthorizationError(
+            f"proposal revision conflict: expected {expected_revision}, found {current.get('revision')}"
+        )
+    updated = dict(proposal)
+    updated["revision"] = expected_revision + 1
+    _atomic_write_json(path, updated)
+    return updated
+
+
+def _set_proposal_state(
+    path: Path,
+    proposal: Mapping[str, Any],
+    status: str,
+    *,
+    result: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    updated = dict(proposal)
+    updated["status"] = status
+    if result is not None:
+        updated["result"] = dict(result)
+    return _write_proposal(
+        path, updated, expected_revision=int(proposal["revision"])
+    )
+
+
+def _resolve_targets(
+    root: Path,
+    manifest: Mapping[str, Any],
+    *,
+    require_before_state: bool = True,
+    require_source_state: bool = True,
+) -> list[tuple[Mapping[str, Any], Path, Path, Path]]:
     targets = manifest.get("targets")
     if not isinstance(targets, list) or not targets:
         raise ReleaseAuthorizationError("authorized release has no targets")
@@ -342,7 +533,11 @@ def apply_release_proposal(proposal_path: Path, contract_path: Path) -> None:
         if not isinstance(item, Mapping):
             raise ReleaseAuthorizationError(f"target {index} is invalid")
         try:
-            source = _safe_path(root, item.get("source_path", ""), must_exist=True)
+            source = _safe_path(
+                root,
+                item.get("source_path", ""),
+                must_exist=require_source_state,
+            )
             target = _safe_path(root, item.get("target_path", ""))
             backup = _safe_path(root, item.get("backup_path", ""))
         except ValueError as error:
@@ -351,62 +546,396 @@ def apply_release_proposal(proposal_path: Path, contract_path: Path) -> None:
             raise ReleaseAuthorizationError(f"duplicate or invalid target: {target}")
         seen.add(target)
         before = _file_sha256(target) if target.is_file() else None
-        if before != item.get("before_sha256"):
+        if require_before_state and before != item.get("before_sha256"):
             raise ReleaseAuthorizationError(
                 f"target changed after authorization: {item.get('target_path')}"
             )
-        if _file_sha256(source) != item.get("after_sha256"):
+        if require_source_state and _file_sha256(source) != item.get("after_sha256"):
             raise ReleaseAuthorizationError(
                 f"release source changed after authorization: {item.get('source_path')}"
             )
         resolved.append((item, source, target, backup))
+    return resolved
 
-    applying = dict(proposal)
-    applying["status"] = "APPLYING_AUTHORIZATION_CONSUMED"
-    applying["result"] = {
-        "outcome": "IN_PROGRESS",
-        "modified_targets": [],
-        "started_at": datetime.now(timezone.utc).isoformat(),
+
+def _copy_backup(
+    root: Path, source: Path, backup: Path, expected_hash: str
+) -> None:
+    backup.parent.mkdir(parents=True, exist_ok=True)
+    current = backup.parent
+    while True:
+        _fsync_directory(current)
+        if current == root:
+            break
+        current = current.parent
+    _atomic_replace_from_source(source, backup)
+    if _file_sha256(backup) != expected_hash:
+        raise OSError(f"backup verification failed: {backup}")
+
+
+def _journal_target(item: Mapping[str, Any], phase: str) -> dict[str, Any]:
+    return {
+        "target_path": item["target_path"],
+        "before_sha256": item.get("before_sha256"),
+        "after_sha256": item["after_sha256"],
+        "backup_path": item.get("backup_path"),
+        "phase": phase,
     }
-    _atomic_write_json(proposal_path, applying)
 
-    applied: list[str] = []
+
+def _update_journal(
+    proposal_path: Path,
+    proposal: Mapping[str, Any],
+    target_entry: Mapping[str, Any],
+) -> dict[str, Any]:
+    updated = dict(proposal)
+    journal = dict(updated.get("journal", {}))
+    entries = list(journal.get("targets", []))
+    entries = [
+        entry for entry in entries
+        if not isinstance(entry, Mapping)
+        or entry.get("target_path") != target_entry.get("target_path")
+    ]
+    entries.append(dict(target_entry))
+    journal["phase"] = "EXECUTING"
+    journal["targets"] = entries
+    journal["updated_at"] = datetime.now(timezone.utc).isoformat()
+    updated["journal"] = journal
+    return _write_proposal(
+        proposal_path, updated, expected_revision=int(proposal["revision"])
+    )
+
+
+def _verify_replace_cas(
+    proposal_path: Path,
+    expected_proposal: Mapping[str, Any],
+    item: Mapping[str, Any],
+    source: Path,
+    target: Path,
+) -> None:
+    current = _load_proposal(proposal_path)
+    expected_manifest = expected_proposal.get("manifest")
+    if (
+        current.get("revision") != expected_proposal.get("revision")
+        or current.get("action_id") != expected_proposal.get("action_id")
+        or current.get("manifest_sha256") != expected_proposal.get("manifest_sha256")
+        or current.get("manifest") != expected_manifest
+        or not isinstance(expected_manifest, Mapping)
+        or _canonical_hash(current.get("manifest", {}))
+        != expected_proposal.get("manifest_sha256")
+    ):
+        raise ReleaseAuthorizationError(
+            "release proposal manifest/revision CAS failed before target replace"
+        )
+    before = _file_sha256(target) if target.is_file() else None
+    if before != item.get("before_sha256"):
+        raise ReleaseAuthorizationError(
+            f"target changed immediately before replace: {item['target_path']}"
+        )
+    if _file_sha256(source) != item.get("after_sha256"):
+        raise ReleaseAuthorizationError(
+            f"release source changed immediately before replace: {item['source_path']}"
+        )
+
+
+def _rollback_targets(
+    resolved: list[tuple[Mapping[str, Any], Path, Path, Path]]
+) -> None:
+    for item, _source, target, backup in reversed(resolved):
+        current = _file_sha256(target) if target.is_file() else None
+        before = item.get("before_sha256")
+        after = item.get("after_sha256")
+        if current == before:
+            continue
+        if current != after:
+            raise ReleaseAuthorizationError(
+                f"cannot recover target with unexpected content: {item['target_path']}"
+            )
+        if before is None:
+            target.unlink()
+            _fsync_directory(target.parent)
+        else:
+            if not backup.is_file() or _file_sha256(backup) != before:
+                raise ReleaseAuthorizationError(
+                    f"verified rollback backup is missing: {item['target_path']}"
+                )
+            _atomic_replace_from_source(backup, target)
+            if _file_sha256(target) != before:
+                raise ReleaseAuthorizationError(
+                    f"rollback verification failed: {item['target_path']}"
+                )
+
+
+def _contract_action(contract: Mapping[str, Any], action_id: str) -> Mapping[str, Any]:
+    matches = [
+        item for item in contract.get("external_actions", [])
+        if isinstance(item, Mapping) and item.get("id") == action_id
+    ]
+    if len(matches) != 1:
+        raise ReleaseAuthorizationError("release action is missing from contract")
+    return matches[0]
+
+
+def _finish_contract_action(
+    contract_path: Path,
+    contract: Mapping[str, Any],
+    action_id: str,
+    status: str,
+    modified: list[str],
+    error: str | None = None,
+) -> dict[str, Any]:
     try:
-        for item, _source, target, backup in resolved:
-            if item.get("before_sha256") is not None:
-                backup.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(target, backup)
-                if _file_sha256(backup) != item["before_sha256"]:
-                    raise OSError(f"backup verification failed: {item['target_path']}")
-        for item, source, target, _backup in resolved:
-            _atomic_replace_from_source(source, target)
-            if _file_sha256(target) != item["after_sha256"]:
-                raise OSError(f"release verification failed: {item['target_path']}")
-            applied.append(item["target_path"])
-    except Exception:
-        for item, _source, target, backup in reversed(resolved):
-            if item.get("before_sha256") is None:
-                if target.exists():
-                    target.unlink()
-            elif backup.is_file():
-                _atomic_replace_from_source(backup, target)
-        applying["status"] = "FAILED_AUTHORIZATION_CONSUMED"
-        applying["result"] = {
-            "outcome": "FAIL_ROLLED_BACK",
-            "modified_targets": applied,
-            "finished_at": datetime.now(timezone.utc).isoformat(),
-        }
-        _atomic_write_json(proposal_path, applying)
-        raise
+        return finish_external_action_execution_atomic(
+            contract_path,
+            action_id,
+            status,
+            modified,
+            datetime.now(timezone.utc).isoformat(),
+            error,
+            expected_revision=int(contract["revision"]),
+        )
+    except (ContractStateError, TransactionError) as failure:
+        raise ReleaseAuthorizationError(str(failure)) from failure
 
-    applying["status"] = "APPLIED"
-    applying["result"] = {
-        "outcome": "PASS",
-        "modified_targets": applied,
-        "finished_at": datetime.now(timezone.utc).isoformat(),
-        "authorization_consumed": True,
-    }
-    _atomic_write_json(proposal_path, applying)
+
+def _recover_locked(
+    proposal_path: Path,
+    contract_path: Path,
+    proposal: dict[str, Any],
+    root: Path,
+) -> None:
+    manifest = proposal["manifest"]
+    resolved = _resolve_targets(
+        root,
+        manifest,
+        require_before_state=False,
+        require_source_state=False,
+    )
+    contract = load_contract(contract_path)
+    action = _contract_action(contract, proposal["action_id"])
+    action_status = action.get("status")
+    if action_status == "CONSUMED":
+        if any(_file_sha256(target) != item.get("after_sha256") for item, _s, target, _b in resolved):
+            raise ReleaseAuthorizationError("consumed release targets do not match manifest")
+        if proposal.get("status") != "CONSUMED":
+            _set_proposal_state(
+                proposal_path,
+                proposal,
+                "CONSUMED",
+                result={
+                    "outcome": "PASS",
+                    "modified_targets": [item["target_path"] for item, *_ in resolved],
+                    "finished_at": datetime.now(timezone.utc).isoformat(),
+                    "authorization_consumed": True,
+                },
+            )
+        return
+    if proposal.get("status") in {"CONSUMED", "FAILED"}:
+        return
+    if action_status not in {"EXECUTING", "FAILED"}:
+        raise ReleaseAuthorizationError(
+            f"release recovery requires EXECUTING/FAILED action, found {action_status!r}"
+        )
+    _rollback_targets(resolved)
+    modified = [
+        item["target_path"]
+        for item, _source, _target, _backup in resolved
+        if any(
+            isinstance(entry, Mapping)
+            and entry.get("target_path") == item["target_path"]
+            and entry.get("phase") == "AFTER_REPLACE"
+            for entry in proposal.get("journal", {}).get("targets", [])
+        )
+    ]
+    if action_status == "EXECUTING":
+        contract = _finish_contract_action(
+            contract_path, contract, proposal["action_id"], "FAILED", modified,
+            "interrupted release recovered by deterministic rollback",
+        )
+    _set_proposal_state(
+        proposal_path,
+        proposal,
+        "FAILED",
+        result={
+            "outcome": "FAIL_ROLLED_BACK",
+            "modified_targets": modified,
+            "finished_at": datetime.now(timezone.utc).isoformat(),
+            "authorization_consumed": True,
+        },
+    )
+
+
+def recover_release_proposal(proposal_path: Path, contract_path: Path) -> None:
+    proposal_path = Path(proposal_path).absolute()
+    proposal = _load_proposal(proposal_path)
+    root = _proposal_root(proposal, proposal_path)
+    with _release_root_lock(root):
+        proposal = _load_proposal(proposal_path)
+        _recover_locked(proposal_path, Path(contract_path), proposal, root)
+
+
+def save_release_proposal(proposal_path: Path, proposal: Mapping[str, Any]) -> None:
+    """Create a proposal once under the same release-root lock used by apply."""
+
+    path = Path(proposal_path).absolute()
+    manifest = proposal.get("manifest")
+    if not isinstance(manifest, Mapping):
+        raise ReleaseAuthorizationError("release proposal manifest is missing")
+    raw_root = Path(str(manifest.get("course_root", "")))
+    if not raw_root.is_absolute() or not raw_root.is_dir() or raw_root.is_symlink():
+        raise ReleaseAuthorizationError("release proposal root is invalid")
+    root = raw_root.resolve()
+    _proposal_relative_path(root, path, label="proposal output")
+    if not path.parent.is_dir():
+        raise ReleaseAuthorizationError("proposal output parent does not exist")
+    if proposal.get("revision") != 0 or proposal.get("status") != "PUBLISH_APPROVAL_REQUIRED":
+        raise ReleaseAuthorizationError("new proposal must start at revision 0 awaiting approval")
+    if proposal.get("manifest_sha256") != _canonical_hash(manifest):
+        raise ReleaseAuthorizationError("new proposal manifest hash is invalid")
+    with _release_root_lock(root):
+        if path.exists() or path.is_symlink():
+            raise ReleaseAuthorizationError("proposal output already exists")
+        _atomic_write_json(path, proposal)
+
+
+def apply_release_proposal(proposal_path: Path, contract_path: Path) -> None:
+    proposal_path = Path(proposal_path).absolute()
+    contract_path = Path(contract_path)
+    proposal = _load_proposal(proposal_path)
+    root = _proposal_root(proposal, proposal_path)
+    with _release_root_lock(root):
+        proposal = _load_proposal(proposal_path)
+        root = _proposal_root(proposal, proposal_path)
+        if proposal.get("status") not in {"PUBLISH_APPROVAL_REQUIRED", "AUTHORIZED"}:
+            raise ReleaseAuthorizationError(
+                "release authorization is missing or already consumed"
+            )
+        manifest = proposal["manifest"]
+        manifest_hash = proposal["manifest_sha256"]
+        contract = load_contract(contract_path)
+        try:
+            assert_external_action_authorized(
+                contract, proposal.get("action_id", ""), manifest_hash
+            )
+        except ContractStateError as error:
+            raise ReleaseAuthorizationError(str(error)) from error
+        resolved = _resolve_targets(root, manifest)
+        if proposal["status"] == "PUBLISH_APPROVAL_REQUIRED":
+            proposal = _set_proposal_state(proposal_path, proposal, "AUTHORIZED")
+        started_at = datetime.now(timezone.utc).isoformat()
+        try:
+            executing_contract = begin_external_action_execution_atomic(
+                contract_path,
+                proposal["action_id"],
+                manifest_hash,
+                int(proposal["revision"]),
+                started_at,
+                expected_revision=int(contract["revision"]),
+            )
+        except (ContractStateError, TransactionError) as error:
+            raise ReleaseAuthorizationError(str(error)) from error
+        executing = dict(proposal)
+        executing["journal"] = {
+            "phase": "EXECUTING",
+            "targets": [],
+            "updated_at": started_at,
+        }
+        proposal = _set_proposal_state(
+            proposal_path,
+            executing,
+            "EXECUTING",
+            result={
+                "outcome": "IN_PROGRESS",
+                "modified_targets": [],
+                "started_at": started_at,
+            },
+        )
+
+        modified: list[str] = []
+        try:
+            for item, _source, target, backup in resolved:
+                if item.get("before_sha256") is not None:
+                    if _file_sha256(target) != item["before_sha256"]:
+                        raise ReleaseAuthorizationError(
+                            f"target changed before backup: {item['target_path']}"
+                        )
+                    _copy_backup(root, target, backup, item["before_sha256"])
+                proposal = _update_journal(
+                    proposal_path, proposal, _journal_target(item, "BACKUP_READY")
+                )
+            for index, (item, source, target, _backup) in enumerate(resolved):
+                before = _file_sha256(target) if target.is_file() else None
+                if before != item.get("before_sha256"):
+                    raise ReleaseAuthorizationError(
+                        f"target changed after authorization: {item['target_path']}"
+                    )
+                if _file_sha256(source) != item.get("after_sha256"):
+                    raise ReleaseAuthorizationError(
+                        f"release source changed after authorization: {item['source_path']}"
+                    )
+                proposal = _update_journal(
+                    proposal_path, proposal, _journal_target(item, "BEFORE_REPLACE")
+                )
+                _crash_checkpoint("before_replace", index)
+                _verify_replace_cas(
+                    proposal_path, proposal, item, source, target
+                )
+                _atomic_replace_from_source(source, target)
+                if _file_sha256(target) != item["after_sha256"]:
+                    raise OSError(f"release verification failed: {item['target_path']}")
+                proposal = _update_journal(
+                    proposal_path, proposal, _journal_target(item, "AFTER_REPLACE")
+                )
+                modified.append(item["target_path"])
+                _crash_checkpoint("after_replace", index)
+        except BaseException as error:
+            if isinstance(error, (KeyboardInterrupt, SystemExit)):
+                raise
+            try:
+                _rollback_targets(resolved)
+                _finish_contract_action(
+                    contract_path,
+                    executing_contract,
+                    proposal["action_id"],
+                    "FAILED",
+                    modified,
+                    str(error),
+                )
+                _set_proposal_state(
+                    proposal_path,
+                    proposal,
+                    "FAILED",
+                    result={
+                        "outcome": "FAIL_ROLLED_BACK",
+                        "modified_targets": modified,
+                        "finished_at": datetime.now(timezone.utc).isoformat(),
+                        "authorization_consumed": True,
+                    },
+                )
+            except Exception:
+                # Leave EXECUTING journal intact. A later recovery can safely
+                # inspect hashes and finish rollback without reviving authority.
+                raise
+            raise
+
+        _finish_contract_action(
+            contract_path,
+            executing_contract,
+            proposal["action_id"],
+            "CONSUMED",
+            modified,
+        )
+        _set_proposal_state(
+            proposal_path,
+            proposal,
+            "CONSUMED",
+            result={
+                "outcome": "PASS",
+                "modified_targets": modified,
+                "finished_at": datetime.now(timezone.utc).isoformat(),
+                "authorization_consumed": True,
+            },
+        )
 
 
 def scan_course_freshness(course_root: Path, as_of: str) -> dict[str, Any]:

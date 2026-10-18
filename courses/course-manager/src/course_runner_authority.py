@@ -12,22 +12,22 @@ of scope and must be governed by the surrounding deployment.
 
 from __future__ import annotations
 
-import base64
-import binascii
 import hashlib
 import re
-import secrets
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping, MutableMapping, Sequence
 
 from src.course_contract import ContractStateError
 from src.course_evidence import ConsumedEvidence, canonical_json_bytes, consume_evidence_reference
+from src.verification_authority import (
+    ALGORITHM,
+    VerificationKeyError,
+    public_key_fingerprint,
+    verify_rsa_sha256_signature,
+)
 
 
-ALGORITHM = "RSASSA-PKCS1-v1_5-SHA256"
-_DIGEST_INFO_PREFIX = bytes.fromhex("3031300d060960864801650304020105000420")
-PUBLIC_KEY_FIELDS = frozenset({"kty", "n", "e"})
 AUTHORITY_FIELDS = frozenset(
     {"authority_id", "algorithm", "public_key", "public_key_fingerprint", "runner_registry_sha256"}
 )
@@ -51,26 +51,6 @@ class AuthorityIssue:
 
 def _text(value: Any) -> bool:
     return isinstance(value, str) and bool(value.strip())
-
-
-def _validated_public_key(value: Mapping[str, Any]) -> tuple[int, int]:
-    if not isinstance(value, Mapping) or set(value) != PUBLIC_KEY_FIELDS:
-        raise ContractStateError("runner authority public key has missing or unknown fields")
-    if value.get("kty") != "RSA" or not isinstance(value.get("e"), int):
-        raise ContractStateError("runner authority public key must be RSA")
-    try:
-        modulus = int(str(value.get("n", "")), 16)
-    except ValueError as error:
-        raise ContractStateError("runner authority RSA modulus must be hexadecimal") from error
-    exponent = value["e"]
-    if modulus.bit_length() < 2048 or exponent != 65537:
-        raise ContractStateError("runner authority requires a 2048-bit-or-larger RSA key with exponent 65537")
-    return modulus, exponent
-
-
-def public_key_fingerprint(public_key: Mapping[str, Any]) -> str:
-    _validated_public_key(public_key)
-    return hashlib.sha256(canonical_json_bytes(dict(public_key))).hexdigest()
 
 
 def bind_runner_authority(
@@ -97,11 +77,15 @@ def bind_runner_authority(
         raise ContractStateError("contract governance is missing")
     if governance.get("runner_authority") is not None:
         raise ContractStateError("runner authority is already fixed")
+    try:
+        fingerprint = public_key_fingerprint(public_key)
+    except VerificationKeyError as error:
+        raise ContractStateError(f"runner authority {error}") from error
     governance["runner_authority"] = {
         "authority_id": authority_id,
         "algorithm": ALGORITHM,
         "public_key": dict(public_key),
-        "public_key_fingerprint": public_key_fingerprint(public_key),
+        "public_key_fingerprint": fingerprint,
         "runner_registry_sha256": runner_registry_sha256,
     }
 
@@ -165,25 +149,6 @@ def _unsigned_receipt(receipt: Mapping[str, Any]) -> dict[str, Any]:
     return {key: receipt[key] for key in sorted(set(receipt) - {"signature"})}
 
 
-def _verify_signature(
-    receipt: Mapping[str, Any], public_key: Mapping[str, Any]
-) -> bool:
-    try:
-        modulus, exponent = _validated_public_key(public_key)
-        signature = base64.b64decode(receipt.get("signature", ""), validate=True)
-    except (ContractStateError, ValueError, TypeError, binascii.Error):
-        return False
-    size = (modulus.bit_length() + 7) // 8
-    if len(signature) != size:
-        return False
-    recovered = pow(int.from_bytes(signature, "big"), exponent, modulus).to_bytes(size, "big")
-    digest_info = _DIGEST_INFO_PREFIX + hashlib.sha256(
-        canonical_json_bytes(_unsigned_receipt(receipt))
-    ).digest()
-    expected = b"\x00\x01" + b"\xff" * (size - len(digest_info) - 3) + b"\x00" + digest_info
-    return secrets.compare_digest(recovered, expected)
-
-
 def verify_trial_receipt(
     receipt: Mapping[str, Any],
     authority_binding: Mapping[str, Any],
@@ -204,11 +169,13 @@ def verify_trial_receipt(
     public_key = authority_binding.get("public_key")
     try:
         fingerprint = public_key_fingerprint(public_key)
-    except (ContractStateError, TypeError):
+    except (VerificationKeyError, TypeError):
         return [AuthorityIssue("invalid_authority_binding", "contract authority public key is invalid")]
     if fingerprint != authority_binding.get("public_key_fingerprint"):
         return [AuthorityIssue("authority_binding_mismatch", "governed public key fingerprint is invalid")]
-    if not _verify_signature(receipt, public_key):
+    if not verify_rsa_sha256_signature(
+        _unsigned_receipt(receipt), receipt.get("signature"), public_key
+    ):
         return [AuthorityIssue("invalid_receipt_signature", "receipt signature is invalid")]
 
     authority_id = authority_binding.get("authority_id")

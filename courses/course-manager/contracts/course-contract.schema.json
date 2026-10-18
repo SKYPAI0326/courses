@@ -106,6 +106,31 @@
               }
             }
           ]
+        },
+        "approval_authority": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["authority_id", "algorithm", "public_key", "public_key_fingerprint"],
+              "properties": {
+                "authority_id": { "type": "string", "minLength": 1 },
+                "algorithm": { "const": "RSASSA-PKCS1-v1_5-SHA256" },
+                "public_key": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["kty", "n", "e"],
+                  "properties": {
+                    "kty": { "const": "RSA" },
+                    "n": { "type": "string", "pattern": "^[0-9a-f]+$" },
+                    "e": { "const": 65537 }
+                  }
+                },
+                "public_key_fingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+              }
+            }
+          ]
         }
       }
     },
@@ -229,7 +254,7 @@
         "id": { "type": "string", "minLength": 1 },
         "kind": { "type": "string", "minLength": 1 },
         "status": {
-          "enum": ["PUBLISH_APPROVAL_REQUIRED", "AUTHORIZED"]
+          "enum": ["PUBLISH_APPROVAL_REQUIRED", "AUTHORIZED", "EXECUTING", "CONSUMED", "FAILED", "INVALIDATED"]
         },
         "manifest_path": { "type": "string", "minLength": 1 },
         "manifest_sha256": {
@@ -238,21 +263,68 @@
         },
         "proposed_by": { "type": "string", "minLength": 1 },
         "proposed_at": { "type": "string", "minLength": 1 },
+        "approval_basis_sha256": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "authorized_revision": { "type": ["integer", "null"], "minimum": 1 },
         "authorization": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/approvalReceipt" }
+          ]
+        },
+        "execution": {
           "oneOf": [
             { "type": "null" },
             {
               "type": "object",
               "additionalProperties": false,
-              "required": ["approved_by", "approved_at", "note"],
+              "required": ["proposal_revision", "started_at", "finished_at", "outcome", "modified_targets", "error"],
               "properties": {
-                "approved_by": { "type": "string", "minLength": 1 },
-                "approved_at": { "type": "string", "minLength": 1 },
-                "note": { "type": "string", "minLength": 1 }
+                "proposal_revision": { "type": "integer", "minimum": 0 },
+                "started_at": { "type": "string", "minLength": 1 },
+                "finished_at": { "type": ["string", "null"] },
+                "outcome": { "enum": ["IN_PROGRESS", "PASS", "FAIL_ROLLED_BACK"] },
+                "modified_targets": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+                "error": { "type": ["string", "null"] }
               }
             }
           ]
         }
+      }
+    },
+    "approvalReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "receipt_id", "authority_id", "algorithm", "contract_instance_id", "contract_revision", "g6_source_revision", "g6_evidence_set_sha256", "action_id", "manifest_sha256", "approval_basis_sha256", "interaction", "nonce", "issued_at", "expires_at", "signature"],
+      "properties": {
+        "schema_version": { "const": 1 },
+        "receipt_id": { "type": "string", "minLength": 1 },
+        "authority_id": { "type": "string", "minLength": 1 },
+        "algorithm": { "const": "RSASSA-PKCS1-v1_5-SHA256" },
+        "contract_instance_id": { "type": "string", "pattern": "^ci-[0-9a-f]{32}$" },
+        "contract_revision": { "type": "integer", "minimum": 0 },
+        "g6_source_revision": { "type": ["integer", "string"] },
+        "g6_evidence_set_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "action_id": { "type": "string", "minLength": 1 },
+        "manifest_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "approval_basis_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "interaction": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "user_id", "session_id", "confirmed_at"],
+          "properties": {
+            "kind": { "const": "explicit_user_approval" },
+            "user_id": { "type": "string", "minLength": 1 },
+            "session_id": { "type": "string", "minLength": 1 },
+            "confirmed_at": { "type": "string", "minLength": 1 }
+          }
+        },
+        "nonce": { "type": "string", "minLength": 1 },
+        "issued_at": { "type": "string", "minLength": 1 },
+        "expires_at": { "type": "string", "minLength": 1 },
+        "signature": { "type": "string", "minLength": 1 }
       }
     }
   }
