@@ -1,143 +1,96 @@
-# 課程 Skill 母群基礎操作手冊
+# 課程 Skill 母群操作入口
 
-本輪完成 G0–G2 的可運行垂直切片：課程契約、Gate 狀態機、外部研究驗證、母 Skill、研究 Skill、架構 Skill 與可回復安裝器。這份手冊記錄既有基礎操作；後續完整系統以 [完整課程設計系統設計](superpowers/specs/2026-10-18-complete-course-design-system-design.md) 為準。
+本系統已涵蓋從需求釐清、外部研究、課程架構、教學正文、代表單元、全課製作、獨立試學到發布治理的 G0–G6 流程。完整角色、證據與命令請讀 [完整課程設計系統](complete-course-design-system.md)。
 
-以下命令都從 courses/course-manager 執行。
+以下命令都從 `courses/course-manager` 執行。
 
-## 1. 建立契約
+## 建立或恢復新課
 
-~~~bash
+```bash
 python3 scripts/course_contract.py init \
   --root /absolute/path/to/course-root \
-  --slug fictional-sheets \
-  --title '虛構試算表實作課' \
-  --created-by '課程團隊' \
+  --slug practical-ai \
+  --title '實用生成式 AI' \
+  --created-by course-run \
   --at '2026-10-18T12:00:00+08:00'
-~~~
 
-契約位置為 COURSE_ROOT/_design/fictional-sheets/course-contract.json。course-run 把完整 G0 問答寫入 G0_requirements；長篇訪談或附件留在外部檔案，以相對路徑與 SHA-256 登錄。
+python3 scripts/course_contract.py status \
+  --contract COURSE_ROOT/_design/practical-ai/course-contract.json
+```
 
-## 2. 驗證、送審與核准 G0
+`course-run` 從第一個不是 `PASS` 的 Gate 繼續。Gate 依有效證據自動通過，不需要逐關請使用者核准。
 
-~~~bash
-python3 scripts/course_contract.py validate --contract COURSE_CONTRACT
-python3 scripts/course_contract.py status --contract COURSE_CONTRACT
-python3 scripts/course_contract.py submit \
+## Gate 生命週期
+
+```bash
+python3 scripts/course_contract.py begin \
   --contract COURSE_CONTRACT --gate G0 \
   --actor course-run --at ISO8601
-python3 scripts/course_contract.py approve \
+
+python3 scripts/course_contract.py pass \
   --contract COURSE_CONTRACT --gate G0 \
-  --approved-by USER_NAME --at ISO8601 \
-  --note '使用者對本次 G0 交付物的明確核准內容'
-~~~
+  --evidence-id g0-requirements \
+  --validator-id requirements-validator \
+  --actor course-run --at ISO8601
 
-approve 只能在使用者看過交付物、證據、風險及未知後執行。
-
-## 3. 驗證 G1 研究紀錄
-
-course-researcher 依 contracts/course-research-record.schema.json 產出研究 JSON 與 adaptation JSON。下列命令列出所有問題；沒有輸出且 exit 0 才代表 readiness 通過。
-
-~~~bash
-python3 - RESEARCH_RECORD ADAPTATION_JSON <<'PY'
-import json
-import sys
-from pathlib import Path
-from src.course_research import validate_research_record
-
-record = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-adaptation = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
-issues = validate_research_record(record, adaptation)
-for issue in issues:
-    print(f"{issue.code} {issue.path}: {issue.message}")
-raise SystemExit(1 if issues else 0)
-PY
-~~~
-
-高工具依賴卻缺少實測、高變動卻缺複查日期或責任人、失敗實測及 blocking unknown 都會阻擋 readiness。來源數量不構成通過條件。
-
-## 4. 將研究結果路由到 G1
-
-route_research_to_gate 會在驗證通過時把 G1 送到 REVIEW；缺必要證據時寫入研究索引並把 G1 設為 BLOCKED。
-
-~~~bash
-python3 - COURSE_CONTRACT RESEARCH_RECORD ADAPTATION_JSON RECORD_PATH SHA256 ACTOR ISO8601 <<'PY'
-import json
-import sys
-from pathlib import Path
-from src.course_contract import load_contract, save_contract_atomic
-from src.course_research import route_research_to_gate
-
-contract_path = Path(sys.argv[1])
-record = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
-adaptation = json.loads(Path(sys.argv[3]).read_text(encoding="utf-8"))
-contract = load_contract(contract_path)
-status = route_research_to_gate(
-    contract,
-    record,
-    adaptation,
-    sys.argv[4],
-    sys.argv[5],
-    sys.argv[6],
-    sys.argv[7],
-)
-save_contract_atomic(contract_path, contract)
-print(status)
-PY
-~~~
-
-G1 成為 REVIEW 後，由 course-run 呈現研究包再取得使用者核准：
-
-~~~bash
-python3 scripts/course_contract.py approve \
+python3 scripts/course_contract.py block \
   --contract COURSE_CONTRACT --gate G1 \
-  --approved-by USER_NAME --at ISO8601 \
-  --note '使用者對研究證據、適配與限制的明確核准內容'
-~~~
+  --reason '缺少必要平台存取權' \
+  --actor course-run --at ISO8601
+```
 
-## 5. G2 架構交接
+狀態只有 `NOT_STARTED`、`IN_PROGRESS`、`PASS`、`FAIL`、`BLOCKED`、`STALE`。`STATIC_VALIDATED`、`EXECUTION_VALIDATED`、`INDEPENDENT_AI_VERIFIED`、`HUMAN_VERIFIED` 是證據成熟度，不是 Gate 狀態。
 
-course-pm 只讀取已核准的 G0、G1 與 adaptation，寫出一份主藍圖。它把路徑、SHA-256、來源 revision、G1 evidence IDs、風險及 open questions 寫入 G2_architecture 與 G2 Gate 後，執行：
+## 語意變更
 
-~~~bash
-python3 scripts/course_contract.py validate --contract COURSE_CONTRACT
-python3 scripts/course_contract.py submit \
-  --contract COURSE_CONTRACT --gate G2 \
-  --actor course-pm --at ISO8601
-python3 scripts/course_contract.py approve \
-  --contract COURSE_CONTRACT --gate G2 \
-  --approved-by USER_NAME --at ISO8601 \
-  --note '使用者對單一課程藍圖的明確核准內容'
-~~~
-
-## 6. 狀態與變更
-
-~~~bash
-python3 scripts/course_contract.py status --contract COURSE_CONTRACT
-~~~
-
-實質變更要指定最早受影響 Gate：
-
-~~~bash
+```bash
 python3 scripts/course_contract.py change \
-  --contract COURSE_CONTRACT --gate G0 \
-  --reason '學員條件或成果要求改變' \
+  --contract COURSE_CONTRACT --gate G2 \
+  --reason '單元依賴與最終成果改變' \
   --actor course-run --at ISO8601 --semantic
-~~~
+```
 
-純錯字或不改語義的排版調整省略 --semantic，但仍執行相關技術回歸。
+語意變更會讓最早受影響 Gate 回到 `IN_PROGRESS`，下游變成 `STALE`。純錯字或不改意義的排版調整省略 `--semantic`，但仍要執行對應回歸。
 
-## 7. 本機 Skill 安裝與回復
+## 發布授權
 
-~~~bash
+G6 `PASS` 只代表 `READY_TO_PUBLISH`。發布前先建立 exact-target proposal，再把 manifest hash 登錄為 external action：
+
+```bash
+python3 scripts/course_release.py propose \
+  --root COURSE_ROOT --record RELEASE_RECORD \
+  --output RELEASE_PROPOSAL
+
+python3 scripts/course_contract.py propose-action \
+  --contract COURSE_CONTRACT \
+  --action-id ACTION_ID --kind course-release \
+  --manifest-path RELEASE_PROPOSAL \
+  --manifest-sha256 SHA256 \
+  --actor course-ops --at ISO8601
+```
+
+使用者核准同一份 manifest 後，再執行 `authorize-action` 與：
+
+```bash
+python3 scripts/course_release.py apply \
+  --proposal RELEASE_PROPOSAL --contract COURSE_CONTRACT
+```
+
+套用前會重驗來源、目標與授權雜湊；開始套用即消耗該次授權。
+
+## 本機 Skill 安裝與回復
+
+```bash
 python3 scripts/install_course_skill_foundation.py \
   --dry-run --skills-root /Users/paichenwei/.agents/skills
+
 python3 scripts/install_course_skill_foundation.py \
-  --apply --skills-root /Users/paichenwei/.agents/skills
-python3 operations/course-skill-foundation/OPERATION_ID/rollback.py
-~~~
+  --apply --allow-update \
+  --skills-root /Users/paichenwei/.agents/skills
+```
 
-rollback 會先核對目前已安裝內容仍等於 manifest 的 after_hash；若任何檔案已被後續修改，整次回復在改檔前停止。
+安裝器以 package manifest 判斷 `ADD`、`UPDATE`、`UNCHANGED`，更新前建立備份。rollback 會先確認已安裝內容沒有被後續修改；不相符就停止，不覆蓋使用者變更。
 
-## 範圍
+## 既有課程
 
-此基礎層尚未完成 G3–G5 教學正文、代表單元、HTML 與內容驗證整合，也未完成 G6 register、ops、refresh 與 repair 整併。後續計畫必須直接使用本契約與 Gate 介面，不重開平行狀態。
+既有課程使用 `course-repair`，不補造新課 Gate 歷史。修復維持 `scan → plan → backup → fix → verify`；若重新定義學員、核心成果或整門課架構，改開新的 G0 contract。
