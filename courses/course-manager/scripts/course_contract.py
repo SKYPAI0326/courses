@@ -24,9 +24,11 @@ from src.course_contract import (  # noqa: E402
     propose_external_action,
     record_change,
     render_gate_summary,
+    resolve_gate_blocker,
     save_contract_atomic,
     validate_contract,
 )
+from src.transactions import TransactionError, mutate_contract_atomic  # noqa: E402
 
 
 def _contract_argument(parser: argparse.ArgumentParser) -> None:
@@ -38,6 +40,10 @@ def _gate_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--gate", required=True)
     parser.add_argument("--actor", required=True)
     parser.add_argument("--at", required=True)
+
+
+def _expected_revision_argument(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--expected-revision", type=int)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -56,19 +62,31 @@ def build_parser() -> argparse.ArgumentParser:
 
     command = commands.add_parser("begin")
     _gate_arguments(command)
+    _expected_revision_argument(command)
 
     command = commands.add_parser("fail")
     _gate_arguments(command)
     command.add_argument("--issue", action="append", required=True)
+    _expected_revision_argument(command)
 
     command = commands.add_parser("block")
     _gate_arguments(command)
     command.add_argument("--reason", required=True)
+    _expected_revision_argument(command)
+
+    command = commands.add_parser("resolve-blocker")
+    _gate_arguments(command)
+    command.add_argument("--workspace-root", required=True, type=Path)
+    command.add_argument("--blocker-id", required=True)
+    command.add_argument("--resolution", required=True)
+    command.add_argument("--evidence-id", action="append", required=True)
+    _expected_revision_argument(command)
 
     command = commands.add_parser("change")
     _gate_arguments(command)
     command.add_argument("--reason", required=True)
     command.add_argument("--semantic", action="store_true")
+    _expected_revision_argument(command)
 
     command = commands.add_parser("propose-action")
     _contract_argument(command)
@@ -78,6 +96,7 @@ def build_parser() -> argparse.ArgumentParser:
     command.add_argument("--manifest-sha256", required=True)
     command.add_argument("--actor", required=True)
     command.add_argument("--at", required=True)
+    _expected_revision_argument(command)
 
     command = commands.add_parser("authorize-action")
     _contract_argument(command)
@@ -85,6 +104,7 @@ def build_parser() -> argparse.ArgumentParser:
     command.add_argument("--approved-by", required=True)
     command.add_argument("--at", required=True)
     command.add_argument("--note", required=True)
+    _expected_revision_argument(command)
 
     command = commands.add_parser("check-action")
     _contract_argument(command)
@@ -96,6 +116,7 @@ def build_parser() -> argparse.ArgumentParser:
     command.add_argument("--workspace-root", type=Path)
     command.add_argument("--actor", required=True)
     command.add_argument("--at", required=True)
+    _expected_revision_argument(command)
 
     # Old automation receives a deliberate migration error rather than a silent
     # reinterpretation of gate approval as external publishing authorization.
@@ -111,18 +132,12 @@ def _print_issues(contract: dict) -> int:
     return 1 if issues else 0
 
 
-def _mutate(path: Path, operation) -> None:
-    contract = load_contract(path)
-    issues = validate_contract(contract)
-    if issues:
-        details = "; ".join(f"{item.path}: {item.message}" for item in issues)
-        raise ContractStateError(f"refusing to mutate invalid contract: {details}")
-    operation(contract)
-    issues = validate_contract(contract)
-    if issues:
-        details = "; ".join(f"{item.path}: {item.message}" for item in issues)
-        raise ContractStateError(f"mutation produced an invalid contract: {details}")
-    save_contract_atomic(path, contract)
+def _mutate(
+    path: Path, operation, *, expected_revision: int | None = None
+) -> dict:
+    return mutate_contract_atomic(
+        path, operation, expected_revision=expected_revision
+    )
 
 
 def _parse_issues(values: list[str]) -> list[dict[str, object]]:
@@ -180,22 +195,32 @@ def main(argv: list[str] | None = None) -> int:
             print(args.contract)
             return 0
         if args.command == "migrate":
-            source = load_contract(args.contract)
             workspace_root = args.workspace_root or args.contract.parent
-            if source.get("schema_version") == 1:
-                migrated = migrate_contract_v1(
-                    source,
-                    args.actor,
-                    args.at,
-                    workspace_root=workspace_root,
-                )
-            elif source.get("schema_version") == 2:
-                migrated = migrate_contract_v2(
-                    source, workspace_root, args.actor, args.at
-                )
-            else:
-                raise ContractStateError("migrate requires schema_version 1 or 2")
-            save_contract_atomic(args.contract, migrated)
+
+            def migrate(contract):
+                if contract.get("schema_version") == 1:
+                    migrated = migrate_contract_v1(
+                        contract,
+                        args.actor,
+                        args.at,
+                        workspace_root=workspace_root,
+                    )
+                elif contract.get("schema_version") == 2:
+                    migrated = migrate_contract_v2(
+                        contract, workspace_root, args.actor, args.at
+                    )
+                else:
+                    raise ContractStateError(
+                        "migrate requires schema_version 1 or 2"
+                    )
+                contract.clear()
+                contract.update(migrated)
+
+            _mutate(
+                args.contract,
+                migrate,
+                expected_revision=args.expected_revision,
+            )
             print(args.contract)
             return 0
 
@@ -206,6 +231,16 @@ def main(argv: list[str] | None = None) -> int:
             ),
             "block": lambda contract: block_gate(
                 contract, args.gate, args.reason, args.actor, args.at
+            ),
+            "resolve-blocker": lambda contract: resolve_gate_blocker(
+                contract,
+                args.gate,
+                args.blocker_id,
+                args.resolution,
+                args.evidence_id,
+                args.actor,
+                args.at,
+                workspace_root=args.workspace_root,
             ),
             "change": lambda contract: record_change(
                 contract, args.gate, args.reason, args.actor, args.at, args.semantic
@@ -223,10 +258,20 @@ def main(argv: list[str] | None = None) -> int:
                 contract, args.action_id, args.approved_by, args.at, args.note
             ),
         }
-        _mutate(args.contract, operations[args.command])
+        _mutate(
+            args.contract,
+            operations[args.command],
+            expected_revision=args.expected_revision,
+        )
         print(args.contract)
         return 0
-    except (ContractStateError, OSError, ValueError, json.JSONDecodeError) as error:
+    except (
+        ContractStateError,
+        TransactionError,
+        OSError,
+        ValueError,
+        json.JSONDecodeError,
+    ) as error:
         print(f"error: {error}", file=sys.stderr)
         return 2
 

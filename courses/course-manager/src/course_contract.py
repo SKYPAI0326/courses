@@ -11,7 +11,11 @@ from dataclasses import dataclass
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Mapping, MutableMapping, Sequence
 
-from src.course_evidence import canonical_json_bytes, verify_evidence_reference
+from src.course_evidence import (
+    canonical_json_bytes,
+    consume_evidence_reference,
+    verify_evidence_reference,
+)
 
 
 GATE_ORDER: tuple[str, ...] = tuple(f"G{index}" for index in range(7))
@@ -590,6 +594,7 @@ def validate_contract(contract: Mapping[str, Any]) -> list[ValidationIssue]:
         _append_issue(issues, "invalid_gates", "$.gates", "gates must be an object")
         return issues
 
+    blocker_ids: set[str] = set()
     for gate_id in GATE_ORDER:
         record = gates.get(gate_id)
         gate_path = f"$.gates.{gate_id}"
@@ -648,6 +653,29 @@ def validate_contract(contract: Mapping[str, Any]) -> list[ValidationIssue]:
                             f"{gate_path}.{field}[{index}]",
                             f"{field} items must be objects",
                         )
+                    elif field == "risks" and item.get("kind") == "gate_blocker":
+                        blocker_id = item.get("id")
+                        blocker_path = f"{gate_path}.risks[{index}].id"
+                        if (
+                            not isinstance(blocker_id, str)
+                            or re.fullmatch(r"blocker-g[0-6]-[0-9a-f]{24}", blocker_id)
+                            is None
+                        ):
+                            _append_issue(
+                                issues,
+                                "invalid_blocker_id",
+                                blocker_path,
+                                "gate blocker id must be stable and well formed",
+                            )
+                        elif blocker_id in blocker_ids:
+                            _append_issue(
+                                issues,
+                                "duplicate_blocker_id",
+                                blocker_path,
+                                f"duplicate blocker id: {blocker_id}",
+                            )
+                        else:
+                            blocker_ids.add(blocker_id)
             elif field == "inputs":
                 for index, item in enumerate(value):
                     if not isinstance(item, str):
@@ -666,6 +694,109 @@ def validate_contract(contract: Mapping[str, Any]) -> list[ValidationIssue]:
                             f"{gate_path}.affected_downstream[{index}]",
                             f"unknown downstream gate: {item!r}",
                         )
+
+        risk_records = record.get("risks")
+        evidence_records = record.get("evidence")
+        if isinstance(risk_records, list) and isinstance(evidence_records, list):
+            gate_blockers = {
+                item.get("id"): item
+                for item in risk_records
+                if isinstance(item, Mapping)
+                and item.get("kind") == "gate_blocker"
+                and isinstance(item.get("id"), str)
+            }
+            indexed_resolution_events = [
+                (index, item)
+                for index, item in enumerate(evidence_records)
+                if isinstance(item, Mapping)
+                and item.get("kind") == "gate_blocker_resolution"
+            ]
+            resolution_events = [item for _, item in indexed_resolution_events]
+            resolution_ids: set[str] = set()
+            for event_index, event in indexed_resolution_events:
+                event_path = f"{gate_path}.evidence[{event_index}]"
+                resolution_id = event.get("id")
+                if (
+                    not isinstance(resolution_id, str)
+                    or re.fullmatch(r"resolution-[0-9a-f]{24}", resolution_id)
+                    is None
+                ):
+                    _append_issue(
+                        issues,
+                        "invalid_blocker_resolution_audit",
+                        f"{event_path}.id",
+                        "blocker resolution audit id must be stable and well formed",
+                    )
+                elif resolution_id in resolution_ids:
+                    _append_issue(
+                        issues,
+                        "duplicate_blocker_resolution_audit",
+                        f"{event_path}.id",
+                        f"duplicate blocker resolution audit id: {resolution_id}",
+                    )
+                else:
+                    resolution_ids.add(resolution_id)
+                blocker_id = event.get("blocker_id")
+                if blocker_id not in gate_blockers:
+                    _append_issue(
+                        issues,
+                        "orphan_blocker_resolution_audit",
+                        f"{event_path}.blocker_id",
+                        "blocker resolution audit must reference one blocker in the same Gate",
+                    )
+                event_evidence_ids = event.get("evidence_ids")
+                consumed = event.get("consumed_evidence")
+                if (
+                    not isinstance(event_evidence_ids, list)
+                    or not event_evidence_ids
+                    or len(set(event_evidence_ids)) != len(event_evidence_ids)
+                    or not isinstance(consumed, list)
+                    or len(consumed) != len(event_evidence_ids)
+                ):
+                    _append_issue(
+                        issues,
+                        "invalid_blocker_resolution_evidence",
+                        f"{event_path}.evidence_ids",
+                        "resolution audit requires unique evidence ids and matching consumed hashes",
+                    )
+                    continue
+                consumed_by_id = {
+                    item.get("id"): item.get("sha256")
+                    for item in consumed
+                    if isinstance(item, Mapping)
+                }
+                for evidence_id in event_evidence_ids:
+                    indexed = evidence_by_id.get(evidence_id)
+                    if (
+                        indexed is None
+                        or indexed.get("gate") != gate_id
+                        or indexed.get("kind") != "blocker_resolution"
+                        or consumed_by_id.get(evidence_id) != indexed.get("sha256")
+                    ):
+                        _append_issue(
+                            issues,
+                            "invalid_blocker_resolution_evidence",
+                            f"{event_path}.consumed_evidence",
+                            f"resolution evidence is missing or no longer matches: {evidence_id}",
+                        )
+
+            for blocker_id, blocker in gate_blockers.items():
+                if blocker.get("resolved") is not True:
+                    continue
+                resolution_id = blocker.get("resolution_id")
+                matches = [
+                    event
+                    for event in resolution_events
+                    if event.get("id") == resolution_id
+                    and event.get("blocker_id") == blocker_id
+                ]
+                if len(matches) != 1:
+                    _append_issue(
+                        issues,
+                        "missing_blocker_resolution_audit",
+                        f"{gate_path}.risks",
+                        f"resolved blocker lacks exactly one matching audit event: {blocker_id}",
+                    )
 
         revision = record.get("source_revision")
         if revision is not None and (
@@ -877,6 +1008,8 @@ def begin_gate(
         "STALE",
     }:
         raise ContractStateError(f"cannot begin a gate in {record.get('status')!r} state")
+    if _unresolved_blockers(record):
+        raise ContractStateError(f"cannot begin {gate_id} with an unresolved blocker")
     record["status"] = "IN_PROGRESS"
     record["evidence"].append({"kind": "gate_begin", "actor": actor, "at": at})
 
@@ -949,6 +1082,68 @@ def fail_gate(
     )
 
 
+def _append_gate_blocker(
+    contract: MutableMapping[str, Any],
+    gate_id: str,
+    reason: str,
+    actor: str,
+    at: str,
+) -> str:
+    record = _gate_record(contract, gate_id)
+    blocker_payload = {
+        "contract_instance_id": contract.get("contract_instance_id"),
+        "gate": gate_id,
+        "reason": reason,
+        "actor": actor,
+        "at": at,
+    }
+    blocker_id = (
+        f"blocker-{gate_id.lower()}-"
+        f"{hashlib.sha256(canonical_json_bytes(blocker_payload)).hexdigest()[:24]}"
+    )
+    existing_ids = {
+        risk.get("id")
+        for gate in contract.get("gates", {}).values()
+        if isinstance(gate, Mapping)
+        for risk in gate.get("risks", [])
+        if isinstance(risk, Mapping)
+    }
+    if blocker_id in existing_ids:
+        raise ContractStateError(f"blocker id already exists: {blocker_id}")
+    record["risks"].append(
+        {
+            "id": blocker_id,
+            "kind": "gate_blocker",
+            "blocking": True,
+            "resolved": False,
+            "reason": reason,
+            "actor": actor,
+            "at": at,
+        }
+    )
+    return blocker_id
+
+
+def record_gate_blocker(
+    contract: MutableMapping[str, Any],
+    gate_id: str,
+    reason: str,
+    actor: str,
+    at: str,
+) -> str:
+    """Record an unresolved blocker while keeping a routed Gate in progress."""
+
+    if not reason.strip() or not actor.strip() or not at.strip():
+        raise ContractStateError("blocking requires reason, actor, and timestamp")
+    _require_valid_contract(contract)
+    record = _gate_record(contract, gate_id)
+    if record.get("status") != "IN_PROGRESS":
+        raise ContractStateError(
+            f"cannot record an in-progress blocker in {record.get('status')!r} state"
+        )
+    return _append_gate_blocker(contract, gate_id, reason, actor, at)
+
+
 def block_gate(
     contract: MutableMapping[str, Any],
     gate_id: str,
@@ -967,13 +1162,122 @@ def block_gate(
         "STALE",
     }:
         raise ContractStateError(f"cannot block a gate in {record.get('status')!r} state")
+    _append_gate_blocker(contract, gate_id, reason, actor, at)
     record["status"] = "BLOCKED"
-    record["risks"].append(
+
+
+def resolve_gate_blocker(
+    contract: MutableMapping[str, Any],
+    gate_id: str,
+    blocker_id: str,
+    resolution: str,
+    evidence_ids: Sequence[str],
+    actor: str,
+    at: str,
+    *,
+    workspace_root: Path | str | None = None,
+) -> None:
+    """Resolve one blocker with same-Gate evidence consumed from real files.
+
+    ``workspace_root`` is required so this operation can fail closed on a missing,
+    escaped, or hash-mismatched evidence file.  The positional interface remains
+    the contract API; callers must provide the verification root explicitly.
+    """
+
+    if not all(
+        isinstance(value, str) and value.strip()
+        for value in (blocker_id, resolution, actor, at)
+    ):
+        raise ContractStateError(
+            "blocker resolution requires blocker id, resolution, actor, and timestamp"
+        )
+    if workspace_root is None:
+        raise ContractStateError(
+            "blocker resolution requires workspace_root for replayable evidence"
+        )
+    if not evidence_ids or any(
+        not isinstance(evidence_id, str) or not evidence_id.strip()
+        for evidence_id in evidence_ids
+    ):
+        raise ContractStateError("blocker resolution requires evidence ids")
+    if len(set(evidence_ids)) != len(evidence_ids):
+        raise ContractStateError("blocker resolution evidence ids must be unique")
+
+    _require_valid_contract(contract)
+    record = _gate_record(contract, gate_id)
+    if record.get("status") not in {"BLOCKED", "IN_PROGRESS"}:
+        raise ContractStateError(
+            f"cannot resolve a blocker in {record.get('status')!r} state"
+        )
+    blockers = [
+        risk
+        for risk in record.get("risks", [])
+        if isinstance(risk, MutableMapping)
+        and risk.get("kind") == "gate_blocker"
+        and risk.get("id") == blocker_id
+    ]
+    if len(blockers) != 1:
+        raise ContractStateError(f"blocker not found for {gate_id}: {blocker_id}")
+    blocker = blockers[0]
+    if blocker.get("resolved") is True:
+        raise ContractStateError(f"blocker is already resolved: {blocker_id}")
+
+    references = _indexed_evidence_by_id(contract)
+    missing = [
+        evidence_id for evidence_id in evidence_ids if evidence_id not in references
+    ]
+    if missing:
+        raise ContractStateError(
+            "blocker resolution references unindexed evidence: " + ", ".join(missing)
+        )
+    consumed: list[dict[str, str]] = []
+    for evidence_id in evidence_ids:
+        reference = references[evidence_id]
+        if reference.get("gate") != gate_id:
+            raise ContractStateError(
+                f"blocker resolution evidence {evidence_id} must belong to {gate_id}"
+            )
+        if reference.get("kind") != "blocker_resolution":
+            raise ContractStateError(
+                f"blocker resolution evidence {evidence_id} must be typed blocker_resolution"
+            )
+        try:
+            item = consume_evidence_reference(
+                workspace_root, reference, expected_gate=gate_id, parse_json=False
+            )
+        except (OSError, ValueError) as error:
+            raise ContractStateError(
+                f"invalid blocker resolution evidence: {error}"
+            ) from error
+        consumed.append({"id": evidence_id, "sha256": item.sha256})
+
+    resolution_payload = {
+        "blocker_id": blocker_id,
+        "resolution": resolution,
+        "evidence_ids": list(evidence_ids),
+        "actor": actor,
+        "at": at,
+    }
+    resolution_id = (
+        "resolution-"
+        + hashlib.sha256(canonical_json_bytes(resolution_payload)).hexdigest()[:24]
+    )
+    if any(
+        isinstance(event, Mapping) and event.get("id") == resolution_id
+        for event in record.get("evidence", [])
+    ):
+        raise ContractStateError(f"blocker resolution id already exists: {resolution_id}")
+
+    blocker["resolved"] = True
+    blocker["resolution_id"] = resolution_id
+    record["evidence"].append(
         {
-            "kind": "gate_blocker",
-            "blocking": True,
-            "resolved": False,
-            "reason": reason,
+            "id": resolution_id,
+            "kind": "gate_blocker_resolution",
+            "blocker_id": blocker_id,
+            "resolution": resolution,
+            "evidence_ids": list(evidence_ids),
+            "consumed_evidence": consumed,
             "actor": actor,
             "at": at,
         }

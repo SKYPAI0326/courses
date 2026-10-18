@@ -20,9 +20,11 @@ from src.course_contract import (
     new_contract,
     propose_external_action,
     record_change,
+    resolve_gate_blocker,
     save_contract_atomic,
     validate_contract,
 )
+from src.course_evidence import materialize_json_evidence
 from tests.gate_test_support import _commit_gate_pass
 
 
@@ -369,7 +371,7 @@ class CourseContractStateTests(unittest.TestCase):
             before,
         )
 
-    def test_blocked_gate_can_restart_but_cannot_skip_validation(self):
+    def test_blocked_gate_cannot_restart_until_its_blocker_is_resolved(self):
         contract = self.make_contract()
         begin_gate(contract, "G0", "course-run", "2026-10-18T13:00:00+08:00")
         block_gate(
@@ -381,17 +383,194 @@ class CourseContractStateTests(unittest.TestCase):
         )
         self.assertEqual(contract["gates"]["G0"]["status"], "BLOCKED")
 
-        begin_gate(contract, "G0", "course-run", "2026-10-18T14:00:00+08:00")
-        self.assertEqual(contract["gates"]["G0"]["status"], "IN_PROGRESS")
-        with self.assertRaises(ContractStateError):
-            _commit_gate_pass(
+        with self.assertRaisesRegex(ContractStateError, "unresolved blocker"):
+            begin_gate(contract, "G0", "course-run", "2026-10-18T14:00:00+08:00")
+
+        self.assertEqual(contract["gates"]["G0"]["status"], "BLOCKED")
+
+    def test_blocker_ids_are_stable_unique_and_validated(self):
+        first = self.make_contract()
+        second = self.make_contract()
+        for contract in (first, second):
+            contract["contract_instance_id"] = "ci-" + "1" * 32
+            begin_gate(contract, "G0", "course-run", "2026-10-18T13:00:00+08:00")
+            block_gate(
                 contract,
                 "G0",
-                [],
-                "requirements-validator",
+                "缺少學員使用情境",
                 "course-run",
-                "2026-10-18T14:05:00+08:00",
+                "2026-10-18T13:05:00+08:00",
             )
+
+        first_id = first["gates"]["G0"]["risks"][-1]["id"]
+        second_id = second["gates"]["G0"]["risks"][-1]["id"]
+        self.assertRegex(first_id, r"^blocker-g0-[0-9a-f]{24}$")
+        self.assertEqual(first_id, second_id)
+
+        duplicate = copy.deepcopy(first["gates"]["G0"]["risks"][-1])
+        first["gates"]["G0"]["risks"].append(duplicate)
+        self.assertIn(
+            "duplicate_blocker_id", {issue.code for issue in validate_contract(first)}
+        )
+
+    def test_resolution_requires_replayable_typed_same_gate_evidence(self):
+        contract = self.make_contract()
+        begin_gate(contract, "G0", "course-run", "2026-10-18T13:00:00+08:00")
+        block_gate(
+            contract,
+            "G0",
+            "缺少學員使用情境",
+            "course-run",
+            "2026-10-18T13:05:00+08:00",
+        )
+        blocker_id = contract["gates"]["G0"]["risks"][-1]["id"]
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            reference = materialize_json_evidence(
+                root,
+                evidence_id="g0-blocker-resolution",
+                gate_id="G0",
+                kind="blocker_resolution",
+                relative_path="evidence/g0-blocker-resolution.json",
+                value={"learner_context": "已由委託人確認"},
+            )
+            contract["evidence_index"].append(reference)
+
+            for evidence_ids, message in (([], "evidence"), (["missing"], "unindexed")):
+                with self.subTest(evidence_ids=evidence_ids):
+                    with self.assertRaisesRegex(ContractStateError, message):
+                        resolve_gate_blocker(
+                            contract,
+                            "G0",
+                            blocker_id,
+                            "已取得學員使用情境",
+                            evidence_ids,
+                            "course-run",
+                            "2026-10-18T13:10:00+08:00",
+                            workspace_root=root,
+                        )
+
+            contract["evidence_index"][-1]["gate"] = "G1"
+            with self.assertRaisesRegex(ContractStateError, "belong to G0"):
+                resolve_gate_blocker(
+                    contract,
+                    "G0",
+                    blocker_id,
+                    "已取得學員使用情境",
+                    ["g0-blocker-resolution"],
+                    "course-run",
+                    "2026-10-18T13:10:00+08:00",
+                    workspace_root=root,
+                )
+            contract["evidence_index"][-1]["gate"] = "G0"
+
+            (root / reference["path"]).write_text('{"tampered":true}\n', encoding="utf-8")
+            with self.assertRaisesRegex(ContractStateError, "sha256"):
+                resolve_gate_blocker(
+                    contract,
+                    "G0",
+                    blocker_id,
+                    "已取得學員使用情境",
+                    ["g0-blocker-resolution"],
+                    "course-run",
+                    "2026-10-18T13:10:00+08:00",
+                    workspace_root=root,
+                )
+
+    def test_resolution_is_append_only_auditable_and_requires_explicit_restart(self):
+        contract = self.make_contract()
+        begin_gate(contract, "G0", "course-run", "2026-10-18T13:00:00+08:00")
+        block_gate(
+            contract,
+            "G0",
+            "缺少學員使用情境",
+            "course-run",
+            "2026-10-18T13:05:00+08:00",
+        )
+        blocker = contract["gates"]["G0"]["risks"][-1]
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            reference = materialize_json_evidence(
+                root,
+                evidence_id="g0-blocker-resolution",
+                gate_id="G0",
+                kind="blocker_resolution",
+                relative_path="evidence/g0-blocker-resolution.json",
+                value={"learner_context": "已由委託人確認"},
+            )
+            contract["evidence_index"].append(reference)
+            resolve_gate_blocker(
+                contract,
+                "G0",
+                blocker["id"],
+                "已取得學員使用情境",
+                [reference["id"]],
+                "course-run",
+                "2026-10-18T13:10:00+08:00",
+                workspace_root=root,
+            )
+
+            self.assertEqual(contract["gates"]["G0"]["status"], "BLOCKED")
+            self.assertTrue(blocker["resolved"])
+            event = contract["gates"]["G0"]["evidence"][-1]
+            self.assertEqual(event["kind"], "gate_blocker_resolution")
+            self.assertEqual(event["blocker_id"], blocker["id"])
+            self.assertEqual(event["resolution"], "已取得學員使用情境")
+            self.assertEqual(
+                event["consumed_evidence"],
+                [{"id": reference["id"], "sha256": reference["sha256"]}],
+            )
+            preserved = copy.deepcopy(event)
+
+            with self.assertRaisesRegex(ContractStateError, "already resolved"):
+                resolve_gate_blocker(
+                    contract,
+                    "G0",
+                    blocker["id"],
+                    "覆寫舊 resolution",
+                    [reference["id"]],
+                    "course-run",
+                    "2026-10-18T13:20:00+08:00",
+                    workspace_root=root,
+                )
+            with self.assertRaisesRegex(ContractStateError, "not found"):
+                resolve_gate_blocker(
+                    contract,
+                    "G0",
+                    "blocker-g0-" + "0" * 24,
+                    "不存在",
+                    [reference["id"]],
+                    "course-run",
+                    "2026-10-18T13:20:00+08:00",
+                    workspace_root=root,
+                )
+            self.assertEqual(contract["gates"]["G0"]["evidence"][-1], preserved)
+
+            begin_gate(contract, "G0", "course-run", "2026-10-18T14:00:00+08:00")
+            self.assertEqual(contract["gates"]["G0"]["status"], "IN_PROGRESS")
+            self.assertNotEqual(contract["gates"]["G0"]["status"], "PASS")
+
+    def test_resolved_flag_without_matching_audit_event_is_invalid(self):
+        contract = self.make_contract()
+        begin_gate(contract, "G0", "course-run", "2026-10-18T13:00:00+08:00")
+        block_gate(
+            contract,
+            "G0",
+            "缺少學員使用情境",
+            "course-run",
+            "2026-10-18T13:05:00+08:00",
+        )
+        blocker = contract["gates"]["G0"]["risks"][-1]
+        blocker["resolved"] = True
+        blocker["resolution_id"] = "resolution-" + "0" * 24
+
+        codes = {issue.code for issue in validate_contract(contract)}
+
+        self.assertIn("missing_blocker_resolution_audit", codes)
+        with self.assertRaisesRegex(ContractStateError, "invalid"):
+            begin_gate(contract, "G0", "course-run", "2026-10-18T14:00:00+08:00")
 
 
 class CourseContractExternalActionTests(unittest.TestCase):

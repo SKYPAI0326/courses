@@ -13,6 +13,7 @@ class GateValidationIssue:
     code: str
     path: str
     message: str
+    return_gate: str | None = None
 
 
 ConsumedByKind = Mapping[str, list[ConsumedEvidence]]
@@ -52,6 +53,11 @@ def _coerce_issues(issues: Sequence[Any]) -> list[GateValidationIssue]:
             str(getattr(issue, "code", "validation_failed")),
             str(getattr(issue, "path", "$")),
             str(getattr(issue, "message", issue)),
+            (
+                str(getattr(issue, "return_gate"))
+                if getattr(issue, "return_gate", None) is not None
+                else None
+            ),
         )
         for issue in issues
     ]

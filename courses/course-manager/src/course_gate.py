@@ -5,9 +5,9 @@ from typing import Any, Mapping, MutableMapping, Sequence
 
 from src.course_contract import ContractStateError, block_gate, validate_contract
 from src.course_evidence import ConsumedEvidence, consume_evidence_reference
+from src.course_gate_failure import route_failed_validation
 from src.course_gate_validators import G5_ARTIFACT_KINDS, GATE_REGISTRY
 from src.course_runner_authority import consume_trial_inputs
-
 
 SECURITY_BOUNDARY_CODES = frozenset(
     {
@@ -165,6 +165,19 @@ def validate_and_transition_gate(
             raise ContractStateError(
                 f"{rule.validator_id} rejected security evidence: {summary}"
             )
+        if route_failed_validation(
+            contract,
+            gate_id,
+            issues,
+            rule.validator_id,
+            evidence_ids,
+            consumed,
+            consumed_inputs,
+            values_by_kind,
+            actor,
+            at,
+        ):
+            return "BLOCKED"
         block_gate(
             contract,
             gate_id,
@@ -228,7 +241,6 @@ def validate_and_transition_gate(
                 "consumed_at": at,
             }
         )
-        contract["revision"] += 1
         event["consumed_receipt"] = {
             "receipt_id": receipt["receipt_id"],
             "nonce": receipt["nonce"],

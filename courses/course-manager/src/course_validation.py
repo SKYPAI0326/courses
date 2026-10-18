@@ -395,10 +395,17 @@ def validate_trial_record(
     else:
         if result.get("status") not in {"PASS", "FAIL"}:
             _add(issues, "trial_record_incomplete", "$.result.status", "trial result must be PASS or FAIL")
+        elif result.get("status") == "FAIL":
+            _add(
+                issues,
+                "trial_result_failed",
+                "$.result.status",
+                "a failed trial cannot pass a Gate",
+            )
         for field in ("completed_at", "notes"):
             if not _text(result.get(field)):
                 _add(issues, "trial_record_incomplete", f"$.result.{field}", f"result {field} is required")
-        if result.get("status") == "PASS" and isinstance(blocks, list):
+        if isinstance(blocks, list):
             for index, block in enumerate(blocks):
                 if isinstance(block, Mapping) and block.get("recovered") is not True:
                     code = str(block.get("code", "practice_instruction_gap"))

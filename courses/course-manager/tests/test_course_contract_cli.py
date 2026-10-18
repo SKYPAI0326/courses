@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path
 
 from src.course_contract import begin_gate, new_contract, save_contract_atomic
+from src.course_evidence import materialize_json_evidence
 from tests.gate_test_support import _commit_gate_pass
 
 
@@ -225,6 +226,7 @@ class CourseContractCliTests(unittest.TestCase):
         after_nonsemantic = json.loads(path.read_text(encoding="utf-8"))
 
         self.assertEqual(nonsemantic.returncode, 0, nonsemantic.stderr)
+        self.assertEqual(after_nonsemantic["revision"], 1)
         self.assertEqual(after_nonsemantic["gates"]["G1"]["status"], "PASS")
         self.assertEqual(after_nonsemantic["gates"]["G2"]["status"], "PASS")
 
@@ -245,6 +247,7 @@ class CourseContractCliTests(unittest.TestCase):
         after_semantic = json.loads(path.read_text(encoding="utf-8"))
 
         self.assertEqual(semantic.returncode, 0, semantic.stderr)
+        self.assertEqual(after_semantic["revision"], 2)
         self.assertEqual(after_semantic["gates"]["G0"]["status"], "PASS")
         self.assertEqual(after_semantic["gates"]["G1"]["status"], "IN_PROGRESS")
         self.assertTrue(
@@ -253,6 +256,132 @@ class CourseContractCliTests(unittest.TestCase):
                 for gate_id in ("G2", "G3", "G4", "G5", "G6")
             )
         )
+
+    def test_block_and_resolve_blocker_are_transactional_and_do_not_auto_pass(self):
+        contract = new_contract(
+            "practical-ai", "實用生成式 AI", "課程團隊", "2026-10-18T12:00:00+08:00"
+        )
+        path = self.write_contract(contract)
+
+        blocked = self.run_cli(
+            "block",
+            "--contract",
+            path,
+            "--gate",
+            "G0",
+            "--reason",
+            "缺少學員使用情境",
+            "--actor",
+            "course-run",
+            "--at",
+            "2026-10-18T13:05:00+08:00",
+        )
+        after_block = json.loads(path.read_text(encoding="utf-8"))
+        blocker_id = after_block["gates"]["G0"]["risks"][-1]["id"]
+        reference = materialize_json_evidence(
+            self.root,
+            evidence_id="g0-blocker-resolution",
+            gate_id="G0",
+            kind="blocker_resolution",
+            relative_path="evidence/g0-blocker-resolution.json",
+            value={"learner_context": "已確認"},
+        )
+        after_block["evidence_index"].append(reference)
+        save_contract_atomic(path, after_block)
+
+        resolved = self.run_cli(
+            "resolve-blocker",
+            "--contract",
+            path,
+            "--workspace-root",
+            self.root,
+            "--gate",
+            "G0",
+            "--blocker-id",
+            blocker_id,
+            "--resolution",
+            "已取得學員使用情境",
+            "--evidence-id",
+            reference["id"],
+            "--actor",
+            "course-run",
+            "--at",
+            "2026-10-18T13:10:00+08:00",
+            "--expected-revision",
+            1,
+        )
+        after_resolution = json.loads(path.read_text(encoding="utf-8"))
+
+        self.assertEqual(blocked.returncode, 0, blocked.stderr)
+        self.assertEqual(after_block["revision"], 1)
+        self.assertEqual(resolved.returncode, 0, resolved.stderr)
+        self.assertEqual(after_resolution["revision"], 2)
+        self.assertEqual(after_resolution["gates"]["G0"]["status"], "BLOCKED")
+        self.assertEqual(
+            after_resolution["gates"]["G0"]["evidence"][-1]["blocker_id"],
+            blocker_id,
+        )
+
+        restarted = self.run_cli(
+            "begin",
+            "--contract",
+            path,
+            "--gate",
+            "G0",
+            "--actor",
+            "course-run",
+            "--at",
+            "2026-10-18T13:20:00+08:00",
+            "--expected-revision",
+            2,
+        )
+        after_restart = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual(restarted.returncode, 0, restarted.stderr)
+        self.assertEqual(after_restart["revision"], 3)
+        self.assertEqual(after_restart["gates"]["G0"]["status"], "IN_PROGRESS")
+
+    def test_stale_expected_revision_is_rejected_without_write(self):
+        contract = new_contract(
+            "practical-ai", "實用生成式 AI", "課程團隊", "2026-10-18T12:00:00+08:00"
+        )
+        path = self.write_contract(contract)
+        first = self.run_cli(
+            "change",
+            "--contract",
+            path,
+            "--gate",
+            "G0",
+            "--reason",
+            "first",
+            "--actor",
+            "test",
+            "--at",
+            "2026-10-18T13:00:00+08:00",
+            "--expected-revision",
+            0,
+        )
+        before_stale = path.read_bytes()
+
+        stale = self.run_cli(
+            "change",
+            "--contract",
+            path,
+            "--gate",
+            "G0",
+            "--reason",
+            "stale",
+            "--actor",
+            "test",
+            "--at",
+            "2026-10-18T13:01:00+08:00",
+            "--expected-revision",
+            0,
+        )
+
+        self.assertEqual(first.returncode, 0, first.stderr)
+        self.assertEqual(stale.returncode, 2)
+        self.assertIn("revision conflict", stale.stderr)
+        self.assertEqual(path.read_bytes(), before_stale)
 
     def test_external_action_commands_require_exact_authorized_hash(self):
         contract = new_contract(

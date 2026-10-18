@@ -4,8 +4,16 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
-from src.course_contract import ContractStateError, GATE_ORDER, begin_gate, new_contract
+from src.course_contract import (
+    ContractStateError,
+    GATE_ORDER,
+    begin_gate,
+    new_contract,
+    resolve_gate_blocker,
+    validate_contract,
+)
 from tests.gate_test_support import _commit_gate_pass
 from src.course_evidence import materialize_json_evidence, verify_evidence_reference
 from src.course_validation import (
@@ -130,12 +138,12 @@ class CourseTrialValidationTests(unittest.TestCase):
             target.write_bytes(payload)
             item["sha256"] = hashlib.sha256(payload).hexdigest()
 
-    def prepared_g4_route(self, root, *, pilot_actor_ids=None):
+    def prepared_g4_route(self, root, *, pilot_actor_ids=None, trial=None):
         from tests.test_course_production import CourseProductionTests
 
         helper = CourseProductionTests("test_pilot_selector_chooses_highest_combined_risk_then_dependency")
         contract = self.make_contract_at_g4()
-        trial = self.valid_trial()
+        trial = self.valid_trial() if trial is None else copy.deepcopy(trial)
         self.materialize_trial_inputs(root, trial)
         pilot = helper.valid_pilot()
         pilot["trial_context_id"] = trial["isolated_context_id"]
@@ -172,6 +180,154 @@ class CourseTrialValidationTests(unittest.TestCase):
             "evidence_id": roster_ref["id"], "sha256": roster_ref["sha256"]
         }
         return contract, pilot_ref, roster_ref, trial_ref, receipt_ref, trial
+
+    def test_failed_signed_trial_routes_to_earliest_responsible_gate_atomically(self):
+        trial = self.valid_trial()
+        trial["result"] = {
+            "status": "FAIL",
+            "completed_at": "2026-10-18T15:10:00+08:00",
+            "notes": "來源已改版，依現有教材無法完成。",
+        }
+        trial["blocks"] = [
+            {
+                "code": "source_mismatch",
+                "detail": "教材來源與實際工具行為不一致。",
+                "recovered": False,
+            }
+        ]
+        trial["recovery"] = []
+
+        blocker_ids = []
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (
+                base_contract,
+                pilot_ref,
+                roster_ref,
+                trial_ref,
+                receipt_ref,
+                materialized_trial,
+            ) = self.prepared_g4_route(root, trial=trial)
+            for run in range(2):
+                with self.subTest(run=run):
+                    contract = copy.deepcopy(base_contract)
+                    indexed_before = copy.deepcopy(contract["evidence_index"])
+
+                    result = route_verified_trial_to_gate(
+                        contract,
+                        "G4",
+                        [pilot_ref["id"], roster_ref["id"]],
+                        trial_ref["id"],
+                        receipt_ref["id"],
+                        "course-validator",
+                        "2026-10-18T15:15:00+08:00",
+                        workspace_root=root,
+                    )
+
+                    self.assertEqual(result, "BLOCKED")
+                    self.assertEqual(contract["evidence_index"], indexed_before)
+                    self.assertEqual(materialized_trial["result"]["status"], "FAIL")
+                    self.assertEqual(contract["gates"]["G1"]["status"], "IN_PROGRESS")
+                    self.assertTrue(
+                        all(
+                            contract["gates"][gate_id]["status"] == "STALE"
+                            for gate_id in GATE_ORDER[2:]
+                        )
+                    )
+                    blockers = [
+                        risk
+                        for risk in contract["gates"]["G1"]["risks"]
+                        if risk.get("kind") == "gate_blocker"
+                        and risk.get("resolved") is False
+                    ]
+                    self.assertEqual(len(blockers), 1)
+                    blocker_ids.append(blockers[0]["id"])
+
+                    event = contract["gates"]["G1"]["evidence"][-1]
+                    self.assertEqual(event["kind"], "gate_validation")
+                    self.assertEqual(event["outcome"], "FAIL")
+                    self.assertEqual(event["source_gate"], "G4")
+                    self.assertEqual(event["return_gate"], "G1")
+                    self.assertIn(
+                        {
+                            "code": "unrecovered_trial_block",
+                            "path": "$.blocks[0]",
+                            "message": "a trial with an unrecovered block cannot pass",
+                            "return_gate": "G1",
+                        },
+                        event["issues"],
+                    )
+                    self.assertEqual(
+                        set(event["evidence_ids"]),
+                        {pilot_ref["id"], trial_ref["id"], receipt_ref["id"]},
+                    )
+                    self.assertEqual(
+                        {item["id"] for item in event["consumed_evidence"]},
+                        {pilot_ref["id"], roster_ref["id"], trial_ref["id"], receipt_ref["id"]},
+                    )
+                    self.assertEqual(
+                        event["trial_result"],
+                        materialized_trial["result"],
+                    )
+                    self.assertEqual(
+                        contract["consumed_trial_receipts"][0]["receipt_id"],
+                        receipt_ref["id"],
+                    )
+                    self.assertEqual(validate_contract(contract), [])
+
+                    resolution_ref = materialize_json_evidence(
+                        root,
+                        evidence_id=f"g1-route-resolution-{run}",
+                        gate_id="G1",
+                        kind="blocker_resolution",
+                        relative_path=f"evidence/g1-route-resolution-{run}.json",
+                        value={"resolution": "重新研究來源並更新教材。"},
+                    )
+                    contract["evidence_index"].append(resolution_ref)
+                    resolve_gate_blocker(
+                        contract,
+                        "G1",
+                        blockers[0]["id"],
+                        "已更新來源與教材。",
+                        [resolution_ref["id"]],
+                        "course-researcher",
+                        "2026-10-18T15:30:00+08:00",
+                        workspace_root=root,
+                    )
+                    self.assertEqual(contract["gates"]["G1"]["status"], "IN_PROGRESS")
+                    self.assertTrue(blockers[0]["resolved"])
+                    self.assertIn(event, contract["gates"]["G1"]["evidence"])
+                    self.assertEqual(validate_contract(contract), [])
+
+        self.assertEqual(blocker_ids[0], blocker_ids[1])
+
+    def test_failed_trial_route_exception_leaves_original_contract_unchanged(self):
+        trial = self.valid_trial()
+        trial["result"]["status"] = "FAIL"
+        trial["blocks"][0]["recovered"] = False
+        trial["recovery"] = []
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            contract, pilot_ref, roster_ref, trial_ref, receipt_ref, _ = (
+                self.prepared_g4_route(root, trial=trial)
+            )
+            before = copy.deepcopy(contract)
+            with patch(
+                "src.course_gate_failure.record_gate_blocker",
+                side_effect=ContractStateError("injected mutation failure"),
+            ):
+                with self.assertRaisesRegex(ContractStateError, "injected mutation failure"):
+                    route_verified_trial_to_gate(
+                        contract,
+                        "G4",
+                        [pilot_ref["id"], roster_ref["id"]],
+                        trial_ref["id"],
+                        receipt_ref["id"],
+                        "course-validator",
+                        "2026-10-18T15:15:00+08:00",
+                        workspace_root=root,
+                    )
+            self.assertEqual(contract, before)
 
     def assert_g4_security_rejected_without_mutation(
         self, contract, root, pilot_ref, roster_ref, trial_id, receipt_id
@@ -459,7 +615,7 @@ class CourseTrialValidationTests(unittest.TestCase):
 
             self.assertEqual(result, "PASS")
             self.assertEqual(contract["gates"]["G4"]["status"], "PASS")
-            self.assertEqual(contract["revision"], 1)
+            self.assertEqual(contract["revision"], 0)
             self.assertEqual(
                 contract["consumed_trial_receipts"],
                 [{
