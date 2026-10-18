@@ -1,9 +1,17 @@
 from __future__ import annotations
 
+import copy
 import re
 from dataclasses import dataclass
 from datetime import date
-from typing import Any, Mapping
+from pathlib import PurePosixPath
+from typing import Any, Mapping, MutableMapping
+
+from src.course_contract import (
+    ContractStateError,
+    block_gate,
+    submit_gate,
+)
 
 
 _ID_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -389,3 +397,60 @@ def validate_research_record(
 
 def research_ready(record: Mapping[str, Any], adaptation: Mapping[str, Any]) -> bool:
     return not validate_research_record(record, adaptation)
+
+
+def route_research_to_gate(
+    contract: MutableMapping[str, Any],
+    record: Mapping[str, Any],
+    adaptation: Mapping[str, Any],
+    record_path: str,
+    evidence_sha256: str,
+    actor: str,
+    at: str,
+) -> str:
+    gates = contract.get("gates")
+    if not isinstance(gates, Mapping) or gates.get("G0", {}).get("status") != "APPROVED":
+        raise ContractStateError("G1 research requires APPROVED G0")
+    if gates.get("G1", {}).get("status") != "DRAFT":
+        raise ContractStateError("research routing requires G1 in DRAFT state")
+
+    relative_path = PurePosixPath(record_path)
+    if (
+        not record_path.strip()
+        or relative_path.is_absolute()
+        or ".." in relative_path.parts
+    ):
+        raise ContractStateError("research record path must be a safe relative path")
+    if not re.fullmatch(r"[0-9a-f]{64}", evidence_sha256):
+        raise ContractStateError("research evidence SHA-256 must be 64 lowercase hex characters")
+
+    issues = validate_research_record(record, adaptation)
+    contract["G1_research"] = {
+        "record_path": record_path,
+        "sha256": evidence_sha256,
+        "validation_issue_codes": [issue.code for issue in issues],
+    }
+    contract["adaptation"] = copy.deepcopy(dict(adaptation))
+    gates["G1"]["evidence"].append(
+        {
+            "kind": "research_record",
+            "path": record_path,
+            "sha256": evidence_sha256,
+            "maturity": "MACHINE_CHECKED",
+            "validation_issue_codes": [issue.code for issue in issues],
+        }
+    )
+
+    if issues:
+        issue_codes = ", ".join(sorted({issue.code for issue in issues}))
+        block_gate(
+            contract,
+            "G1",
+            f"research validation failed: {issue_codes}",
+            actor,
+            at,
+        )
+        return "BLOCKED"
+
+    submit_gate(contract, "G1", actor, at)
+    return "REVIEW"
