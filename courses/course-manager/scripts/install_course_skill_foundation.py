@@ -458,35 +458,6 @@ raise SystemExit(subprocess.call(command))
 """
 
 
-def _remove_directory_if_present(path: Path) -> None:
-    if path.is_symlink():
-        path.unlink()
-    elif path.exists():
-        if not path.is_dir():
-            raise InstallError(f"refusing to remove non-directory transaction target: {path}")
-        shutil.rmtree(path)
-
-
-def _recover_rollback_states(states: list[dict[str, Any]]) -> None:
-    recovery_errors: list[str] = []
-    for state in reversed(states):
-        record: dict[str, Any] = state["record"]
-        target = Path(record["target"])
-        container: Path = state["container"]
-        installed: Path = state["installed"]
-        try:
-            if state["restored_target"]:
-                _remove_directory_if_present(target)
-            if state["installed_moved"] and installed.exists():
-                os.replace(installed, target)
-        except Exception as error:  # pragma: no cover - catastrophic recovery failure
-            recovery_errors.append(f"{record['name']}: {error}")
-        finally:
-            shutil.rmtree(container, ignore_errors=True)
-    if recovery_errors:
-        raise InstallError("rollback recovery failed: " + "; ".join(recovery_errors))
-
-
 def _load_operation_manifest(operation_dir: Path) -> tuple[Path, dict[str, Any]]:
     safe_operation = _safe_root_argument(operation_dir, "operation directory")
     manifest_path = safe_operation / "manifest.json"
@@ -870,6 +841,24 @@ def _load_recovery_context(
         "TARGET_RESTORE_INTENT",
         "TARGET_RESTORED",
         "CLEANUP_INTENT",
+        "ROLLBACK_CONTAINER_CREATE_INTENT",
+        "ROLLBACK_CONTAINER_READY",
+        "ROLLBACK_TARGET_MOVE_INTENT",
+        "ROLLBACK_TARGET_MOVED",
+        "ROLLBACK_RESTORE_STAGE_INTENT",
+        "ROLLBACK_RESTORED_STAGED",
+        "ROLLBACK_TARGET_RESTORE_INTENT",
+        "ROLLBACK_TARGET_RESTORED",
+        "ROLLBACK_CLEANUP_INTENT",
+        "ROLLBACK_ABORT_CONTAINER_CREATE_INTENT",
+        "ROLLBACK_ABORT_CONTAINER_READY",
+        "ROLLBACK_ABORT_STAGE_AFTER_INTENT",
+        "ROLLBACK_ABORT_AFTER_STAGED",
+        "ROLLBACK_ABORT_BEFORE_MOVE_INTENT",
+        "ROLLBACK_ABORT_BEFORE_MOVED",
+        "ROLLBACK_ABORT_TARGET_RESTORE_INTENT",
+        "ROLLBACK_ABORT_TARGET_RESTORED",
+        "ROLLBACK_ABORT_CLEANUP_INTENT",
     }
     trusted: dict[str, dict[str, Any]] = {}
     for authority_record, manifest_record in zip(authority_records, manifest_records):
@@ -940,6 +929,8 @@ def _load_recovery_context(
                 "RECOVERY_CONTAINER_CLEANED",
                 "INSTALL_CONTAINER_CLEANUP_INTENT",
                 "RECOVERED",
+                "ROLLBACK_CONTAINER_CLEANED",
+                "ROLLED_BACK",
             }
             and manifest_record.get("recovery_container") is not None
         ):
@@ -1172,9 +1163,15 @@ def _reject_unfinished_operations(operations_root: Path) -> None:
             raise InstallError(
                 f"cannot inspect prior operation manifest {manifest_path}: {error}"
             ) from error
-        if manifest.get("status") in {"PREPARED", "EXECUTING"}:
+        status = manifest.get("status")
+        if status in {"PREPARED", "EXECUTING"}:
             raise InstallError(
                 "unfinished install must be recovered before a new apply: "
+                f"{manifest_path.parent}"
+            )
+        if status in {"ROLLING_BACK", "ROLLBACK_ABORTING"}:
+            raise InstallError(
+                "unfinished rollback must be resumed before a new apply: "
                 f"{manifest_path.parent}"
             )
 
@@ -1486,6 +1483,467 @@ def verify_installed_packages(
     return verified
 
 
+ROLLBACK_RECORD_PHASES = frozenset(
+    {
+        "APPLIED",
+        "ROLLBACK_CONTAINER_CREATE_INTENT",
+        "ROLLBACK_CONTAINER_READY",
+        "ROLLBACK_TARGET_MOVE_INTENT",
+        "ROLLBACK_TARGET_MOVED",
+        "ROLLBACK_RESTORE_STAGE_INTENT",
+        "ROLLBACK_RESTORED_STAGED",
+        "ROLLBACK_TARGET_RESTORE_INTENT",
+        "ROLLBACK_TARGET_RESTORED",
+        "ROLLBACK_CLEANUP_INTENT",
+        "ROLLBACK_CONTAINER_CLEANED",
+        "ROLLED_BACK",
+    }
+)
+
+
+def _rollback_tree_hash_if_present(path: Path, label: str) -> str | None:
+    if not path.exists() and not path.is_symlink():
+        return None
+    return _verified_tree_hash(path, label)
+
+
+def _rollback_record_state(
+    operation_dir: Path,
+    record: dict[str, Any],
+    authority: dict[str, Any],
+) -> dict[str, Any]:
+    name = authority["name"]
+    phase = record.get("phase")
+    if phase not in ROLLBACK_RECORD_PHASES:
+        raise InstallError(f"rollback phase is invalid: {name}: {phase!r}")
+
+    before_exists = authority["before_exists"]
+    before_hash = authority["before_hash"]
+    after_hash = authority["after_hash"]
+    target = Path(authority["target"])
+    recovery = Path(authority["recovery_container"])
+    recovery_value = record.get("recovery_container")
+    if phase == "APPLIED":
+        if recovery_value is not None:
+            raise InstallError(f"applied rollback container must be absent: {name}")
+    elif phase in {"ROLLBACK_CONTAINER_CLEANED", "ROLLED_BACK"}:
+        if recovery_value is not None:
+            raise InstallError(f"cleaned rollback container remains recorded: {name}")
+    elif recovery_value != str(recovery):
+        raise InstallError(f"rollback container identity is missing: {name}")
+
+    target_hash = _rollback_tree_hash_if_present(target, f"rollback target {name}")
+    if target_hash not in {None, before_hash, after_hash}:
+        raise InstallError(f"rollback target has unauthorized content: {name}")
+
+    container_exists = recovery.exists() or recovery.is_symlink()
+    installed_hash: str | None = None
+    restored_hash: str | None = None
+    if container_exists:
+        if recovery.is_symlink() or not recovery.is_dir():
+            raise InstallError(f"rollback container must be a non-symlink directory: {name}")
+        children = {child.name for child in recovery.iterdir()}
+        if not children.issubset({"installed", "restored"}):
+            raise InstallError(f"rollback container has unauthorized content: {name}")
+        installed_hash = _rollback_tree_hash_if_present(
+            recovery / "installed", f"rollback installed quarantine {name}"
+        )
+        restored_hash = _rollback_tree_hash_if_present(
+            recovery / "restored", f"rollback restored staging {name}"
+        )
+        if installed_hash not in {None, after_hash}:
+            raise InstallError(f"rollback installed quarantine differs from authority: {name}")
+        if restored_hash not in {None, before_hash}:
+            raise InstallError(f"rollback restored staging differs from authority: {name}")
+
+    if before_exists:
+        backup = operation_dir / authority["backup"]
+        if backup.parent != operation_dir / "backups":
+            raise InstallError(f"backup path escapes operation directory: {name}")
+        if _verified_tree_hash(backup, f"rollback backup {name}") != before_hash:
+            raise InstallError(f"verified backup differs from before hash: {name}")
+
+    state = {
+        "name": name,
+        "phase": phase,
+        "before_exists": before_exists,
+        "before_hash": before_hash,
+        "after_hash": after_hash,
+        "target": target,
+        "target_hash": target_hash,
+        "recovery": recovery,
+        "container_exists": container_exists,
+        "installed_hash": installed_hash,
+        "restored_hash": restored_hash,
+    }
+    target_is_before = (before_exists and target_hash == before_hash) or (
+        not before_exists and target_hash is None
+    )
+
+    valid = False
+    if phase == "APPLIED":
+        valid = target_hash == after_hash and not container_exists
+    elif phase == "ROLLBACK_CONTAINER_CREATE_INTENT":
+        valid = (
+            target_hash == after_hash
+            and (not container_exists or (installed_hash is None and restored_hash is None))
+        )
+    elif phase == "ROLLBACK_CONTAINER_READY":
+        valid = (
+            target_hash == after_hash
+            and container_exists
+            and installed_hash is None
+            and restored_hash is None
+        )
+    elif phase == "ROLLBACK_TARGET_MOVE_INTENT":
+        valid = container_exists and restored_hash is None and (
+            (target_hash == after_hash and installed_hash is None)
+            or (target_hash is None and installed_hash == after_hash)
+        )
+    elif phase == "ROLLBACK_TARGET_MOVED":
+        valid = (
+            container_exists
+            and target_hash is None
+            and installed_hash == after_hash
+            and restored_hash is None
+        )
+    elif phase == "ROLLBACK_RESTORE_STAGE_INTENT":
+        valid = (
+            before_exists
+            and container_exists
+            and target_hash is None
+            and installed_hash == after_hash
+            and restored_hash in {None, before_hash}
+        )
+    elif phase == "ROLLBACK_RESTORED_STAGED":
+        valid = (
+            before_exists
+            and container_exists
+            and target_hash is None
+            and installed_hash == after_hash
+            and restored_hash == before_hash
+        )
+    elif phase == "ROLLBACK_TARGET_RESTORE_INTENT":
+        valid = before_exists and container_exists and installed_hash == after_hash and (
+            (target_hash is None and restored_hash == before_hash)
+            or (target_hash == before_hash and restored_hash is None)
+        )
+    elif phase == "ROLLBACK_TARGET_RESTORED":
+        valid = (
+            target_is_before
+            and container_exists
+            and installed_hash == after_hash
+            and restored_hash is None
+        )
+    elif phase == "ROLLBACK_CLEANUP_INTENT":
+        valid = target_is_before and (
+            not container_exists
+            or (installed_hash == after_hash and restored_hash is None)
+        )
+    elif phase in {"ROLLBACK_CONTAINER_CLEANED", "ROLLED_BACK"}:
+        valid = target_is_before and not container_exists
+
+    if not valid:
+        raise InstallError(f"rollback intermediate state is inconsistent: {name}: {phase}")
+    return state
+
+
+def _write_rollback_record_phase(
+    manifest_path: Path,
+    manifest: dict[str, Any],
+    record: dict[str, Any],
+    phase: str,
+) -> None:
+    record["phase"] = phase
+    _write_json_atomic(manifest_path, manifest)
+
+
+def _rollback_package_record(
+    operation_dir: Path,
+    manifest_path: Path,
+    manifest: dict[str, Any],
+    record: dict[str, Any],
+    authority: dict[str, Any],
+) -> None:
+    state = _rollback_record_state(operation_dir, record, authority)
+    phase = state["phase"]
+    target: Path = state["target"]
+    recovery: Path = state["recovery"]
+    name = state["name"]
+
+    if phase == "APPLIED":
+        record["recovery_container"] = str(recovery)
+        _write_rollback_record_phase(
+            manifest_path, manifest, record, "ROLLBACK_CONTAINER_CREATE_INTENT"
+        )
+        phase = "ROLLBACK_CONTAINER_CREATE_INTENT"
+
+    if phase == "ROLLBACK_CONTAINER_CREATE_INTENT":
+        if not recovery.exists():
+            try:
+                recovery.mkdir()
+            except OSError as error:
+                raise InstallError(
+                    f"cannot create authorized rollback container {recovery}: {error}"
+                ) from error
+            _fsync_directory(recovery.parent)
+        _write_rollback_record_phase(
+            manifest_path, manifest, record, "ROLLBACK_CONTAINER_READY"
+        )
+        phase = "ROLLBACK_CONTAINER_READY"
+
+    if phase == "ROLLBACK_CONTAINER_READY":
+        _write_rollback_record_phase(
+            manifest_path, manifest, record, "ROLLBACK_TARGET_MOVE_INTENT"
+        )
+        phase = "ROLLBACK_TARGET_MOVE_INTENT"
+
+    if phase == "ROLLBACK_TARGET_MOVE_INTENT":
+        state = _rollback_record_state(operation_dir, record, authority)
+        installed = recovery / "installed"
+        if state["target_hash"] == state["after_hash"]:
+            _durable_replace(target, installed)
+        _write_rollback_record_phase(
+            manifest_path, manifest, record, "ROLLBACK_TARGET_MOVED"
+        )
+        phase = "ROLLBACK_TARGET_MOVED"
+
+    if phase == "ROLLBACK_TARGET_MOVED":
+        if state["before_exists"]:
+            _write_rollback_record_phase(
+                manifest_path, manifest, record, "ROLLBACK_RESTORE_STAGE_INTENT"
+            )
+            phase = "ROLLBACK_RESTORE_STAGE_INTENT"
+        else:
+            _write_rollback_record_phase(
+                manifest_path, manifest, record, "ROLLBACK_TARGET_RESTORED"
+            )
+            phase = "ROLLBACK_TARGET_RESTORED"
+
+    if phase == "ROLLBACK_RESTORE_STAGE_INTENT":
+        state = _rollback_record_state(operation_dir, record, authority)
+        if state["restored_hash"] is None:
+            _copy_verified(
+                operation_dir / authority["backup"],
+                recovery / "restored",
+                authority["before_hash"],
+            )
+        _write_rollback_record_phase(
+            manifest_path, manifest, record, "ROLLBACK_RESTORED_STAGED"
+        )
+        phase = "ROLLBACK_RESTORED_STAGED"
+
+    if phase == "ROLLBACK_RESTORED_STAGED":
+        _write_rollback_record_phase(
+            manifest_path, manifest, record, "ROLLBACK_TARGET_RESTORE_INTENT"
+        )
+        phase = "ROLLBACK_TARGET_RESTORE_INTENT"
+
+    if phase == "ROLLBACK_TARGET_RESTORE_INTENT":
+        state = _rollback_record_state(operation_dir, record, authority)
+        restored = recovery / "restored"
+        if state["target_hash"] is None:
+            _durable_replace(restored, target)
+        _write_rollback_record_phase(
+            manifest_path, manifest, record, "ROLLBACK_TARGET_RESTORED"
+        )
+        phase = "ROLLBACK_TARGET_RESTORED"
+
+    if phase == "ROLLBACK_TARGET_RESTORED":
+        _rollback_record_state(operation_dir, record, authority)
+        _write_rollback_record_phase(
+            manifest_path, manifest, record, "ROLLBACK_CLEANUP_INTENT"
+        )
+        phase = "ROLLBACK_CLEANUP_INTENT"
+
+    if phase == "ROLLBACK_CLEANUP_INTENT":
+        state = _rollback_record_state(operation_dir, record, authority)
+        if state["container_exists"]:
+            shutil.rmtree(recovery)
+            _fsync_directory(recovery.parent)
+        record["recovery_container"] = None
+        _write_rollback_record_phase(
+            manifest_path, manifest, record, "ROLLBACK_CONTAINER_CLEANED"
+        )
+        phase = "ROLLBACK_CONTAINER_CLEANED"
+
+    if phase == "ROLLBACK_CONTAINER_CLEANED":
+        _rollback_record_state(operation_dir, record, authority)
+        _write_rollback_record_phase(manifest_path, manifest, record, "ROLLED_BACK")
+
+    _rollback_record_state(operation_dir, record, authority)
+
+
+def _rollback_abort_state(
+    record: dict[str, Any], authority: dict[str, Any]
+) -> dict[str, Any]:
+    name = authority["name"]
+    target = Path(authority["target"])
+    recovery = Path(authority["recovery_container"])
+    target_hash = _rollback_tree_hash_if_present(target, f"rollback abort target {name}")
+    if target_hash not in {
+        None,
+        authority["before_hash"],
+        authority["after_hash"],
+    }:
+        raise InstallError(f"rollback abort target has unauthorized content: {name}")
+    container_exists = recovery.exists() or recovery.is_symlink()
+    hashes: dict[str, str | None] = {
+        "installed": None,
+        "restored": None,
+        "aborted_before": None,
+    }
+    if container_exists:
+        if recovery.is_symlink() or not recovery.is_dir():
+            raise InstallError(f"rollback abort container is unsafe: {name}")
+        children = {child.name for child in recovery.iterdir()}
+        if not children.issubset(hashes):
+            raise InstallError(f"rollback abort container has unauthorized content: {name}")
+        for child in hashes:
+            hashes[child] = _rollback_tree_hash_if_present(
+                recovery / child, f"rollback abort {child} {name}"
+            )
+        if hashes["installed"] not in {None, authority["after_hash"]}:
+            raise InstallError(f"rollback abort installed tree differs from authority: {name}")
+        for child in ("restored", "aborted_before"):
+            if hashes[child] not in {None, authority["before_hash"]}:
+                raise InstallError(f"rollback abort before tree differs from authority: {name}")
+    return {
+        "name": name,
+        "target": target,
+        "target_hash": target_hash,
+        "recovery": recovery,
+        "container_exists": container_exists,
+        **hashes,
+    }
+
+
+def _abort_rollback_to_applied(
+    manifest_path: Path,
+    manifest: dict[str, Any],
+    authority: dict[str, dict[str, Any]],
+    packages_root: Path,
+) -> None:
+    for record in manifest["packages"]:
+        trusted = authority[record["name"]]
+        source = packages_root / trusted["name"]
+        _validate_package_tree(source, trusted["name"])
+        if tree_hash(source) != trusted["after_hash"]:
+            raise InstallError(
+                f"rollback abort source differs from authority: {trusted['name']}"
+            )
+        _rollback_abort_state(record, trusted)
+
+    manifest["status"] = "ROLLBACK_ABORTING"
+    manifest["rollback_phase"] = "ROLLBACK_ABORTING"
+    _write_json_atomic(manifest_path, manifest)
+
+    for record in reversed(manifest["packages"]):
+        trusted = authority[record["name"]]
+        state = _rollback_abort_state(record, trusted)
+        target: Path = state["target"]
+        recovery: Path = state["recovery"]
+        if state["target_hash"] != trusted["after_hash"]:
+            if not state["container_exists"]:
+                record["recovery_container"] = str(recovery)
+                _write_rollback_record_phase(
+                    manifest_path,
+                    manifest,
+                    record,
+                    "ROLLBACK_ABORT_CONTAINER_CREATE_INTENT",
+                )
+                recovery.mkdir()
+                _fsync_directory(recovery.parent)
+                _write_rollback_record_phase(
+                    manifest_path,
+                    manifest,
+                    record,
+                    "ROLLBACK_ABORT_CONTAINER_READY",
+                )
+            elif record.get("recovery_container") is None:
+                record["recovery_container"] = str(recovery)
+                _write_rollback_record_phase(
+                    manifest_path,
+                    manifest,
+                    record,
+                    "ROLLBACK_ABORT_CONTAINER_READY",
+                )
+            state = _rollback_abort_state(record, trusted)
+            installed = recovery / "installed"
+            if state["installed"] is None:
+                _write_rollback_record_phase(
+                    manifest_path,
+                    manifest,
+                    record,
+                    "ROLLBACK_ABORT_STAGE_AFTER_INTENT",
+                )
+                _copy_verified(
+                    packages_root / trusted["name"],
+                    installed,
+                    trusted["after_hash"],
+                )
+                _write_rollback_record_phase(
+                    manifest_path,
+                    manifest,
+                    record,
+                    "ROLLBACK_ABORT_AFTER_STAGED",
+                )
+            state = _rollback_abort_state(record, trusted)
+            if (
+                trusted["before_exists"]
+                and state["target_hash"] == trusted["before_hash"]
+            ):
+                _write_rollback_record_phase(
+                    manifest_path,
+                    manifest,
+                    record,
+                    "ROLLBACK_ABORT_BEFORE_MOVE_INTENT",
+                )
+                _durable_replace(target, recovery / "aborted_before")
+                _write_rollback_record_phase(
+                    manifest_path,
+                    manifest,
+                    record,
+                    "ROLLBACK_ABORT_BEFORE_MOVED",
+                )
+            _write_rollback_record_phase(
+                manifest_path,
+                manifest,
+                record,
+                "ROLLBACK_ABORT_TARGET_RESTORE_INTENT",
+            )
+            _durable_replace(installed, target)
+            _write_rollback_record_phase(
+                manifest_path,
+                manifest,
+                record,
+                "ROLLBACK_ABORT_TARGET_RESTORED",
+            )
+
+        if _rollback_tree_hash_if_present(
+            target, f"rollback abort restored target {trusted['name']}"
+        ) != trusted["after_hash"]:
+            raise InstallError(
+                f"rollback abort did not restore installed state: {trusted['name']}"
+            )
+        if recovery.exists():
+            _write_rollback_record_phase(
+                manifest_path,
+                manifest,
+                record,
+                "ROLLBACK_ABORT_CLEANUP_INTENT",
+            )
+            shutil.rmtree(recovery)
+            _fsync_directory(recovery.parent)
+        record["recovery_container"] = None
+        _write_rollback_record_phase(manifest_path, manifest, record, "APPLIED")
+
+    manifest["status"] = "APPLIED"
+    manifest.pop("rollback_phase", None)
+    manifest.pop("rolled_back_at", None)
+    _write_json_atomic(manifest_path, manifest)
+
+
 def rollback_install(
     operation_dir: Path,
     *,
@@ -1510,68 +1968,75 @@ def rollback_install(
             operations_root=operations_root,
         )
         return
-    if manifest.get("status") != "APPLIED":
+    if manifest.get("status") == "ROLLED_BACK":
+        if manifest.get("rollback_phase") != "ROLLED_BACK":
+            raise InstallError("rolled-back operation has incomplete final journal state")
+        for record in manifest["packages"]:
+            state = _rollback_record_state(
+                operation_dir, record, authority[record["name"]]
+            )
+            if state["phase"] != "ROLLED_BACK":
+                raise InstallError(
+                    f"completed rollback has unfinished package state: {record['name']}"
+                )
+        return
+    if manifest.get("status") == "ROLLBACK_ABORTING":
+        _abort_rollback_to_applied(
+            manifest_path, manifest, authority, Path(packages_root)
+        )
+        return
+    if manifest.get("status") not in {"APPLIED", "ROLLING_BACK"}:
         raise InstallError(
-            f"rollback requires APPLIED manifest, got {manifest.get('status')!r}"
+            "rollback requires APPLIED or ROLLING_BACK manifest, "
+            f"got {manifest.get('status')!r}"
         )
 
     records = manifest.get("packages", [])
     for record in records:
-        trusted = authority[record["name"]]
-        target = Path(trusted["target"])
-        if not target.is_dir():
-            raise InstallError(f"installed target is missing: {target}")
-        current_hash = tree_hash(target)
-        if current_hash != trusted["after_hash"]:
-            raise InstallError(
-                f"installed skill changed after install: {record['name']}"
-            )
-        if trusted["before_exists"]:
-            backup = operation_dir / trusted["backup"]
-            if not backup.is_dir() or tree_hash(backup) != trusted["before_hash"]:
-                raise InstallError(f"verified backup is unavailable: {record['name']}")
+        _rollback_record_state(
+            operation_dir, record, authority[record["name"]]
+        )
 
-    swap_states: list[dict[str, Any]] = []
+    if manifest["status"] == "APPLIED":
+        manifest["status"] = "ROLLING_BACK"
+        manifest["rollback_phase"] = "ROLLBACK_EXECUTING"
+        _write_json_atomic(manifest_path, manifest)
+    elif manifest.get("rollback_phase") not in {
+        "ROLLBACK_EXECUTING",
+        "ROLLBACK_COMPLETE_INTENT",
+    }:
+        raise InstallError("rolling-back operation has invalid final journal state")
+
     try:
         for record in records:
-            trusted = authority[record["name"]]
-            target = Path(trusted["target"])
-            container = Path(
-                tempfile.mkdtemp(
-                    prefix=f".course-skill-rollback-{record['name']}-",
-                    dir=target.parent,
-                )
+            _rollback_package_record(
+                operation_dir,
+                manifest_path,
+                manifest,
+                record,
+                authority[record["name"]],
             )
-            installed = container / "installed"
-            state: dict[str, Any] = {
-                "container": container,
-                "installed": installed,
-                "record": record,
-                "installed_moved": False,
-                "restored_target": False,
-            }
-            swap_states.append(state)
-            os.replace(target, installed)
-            state["installed_moved"] = True
-            if trusted["before_exists"]:
-                staged = container / "restored"
-                backup = operation_dir / trusted["backup"]
-                _copy_verified(backup, staged, trusted["before_hash"])
-                os.replace(staged, target)
-                state["restored_target"] = True
 
+        for record in records:
+            state = _rollback_record_state(
+                operation_dir, record, authority[record["name"]]
+            )
+            if state["phase"] != "ROLLED_BACK":
+                raise InstallError(f"rollback package is incomplete: {record['name']}")
+        manifest["rollback_phase"] = "ROLLBACK_COMPLETE_INTENT"
+        _write_json_atomic(manifest_path, manifest)
         manifest["status"] = "ROLLED_BACK"
+        manifest["rollback_phase"] = "ROLLED_BACK"
         manifest["rolled_back_at"] = datetime.now(timezone.utc).isoformat()
         _write_json_atomic(manifest_path, manifest)
     except Exception as original_error:
         try:
-            _recover_rollback_states(swap_states)
+            _abort_rollback_to_applied(
+                manifest_path, manifest, authority, Path(packages_root)
+            )
         except Exception as recovery_error:  # pragma: no cover - catastrophic
             raise recovery_error from original_error
         raise
-    else:
-        for state in swap_states:
-            shutil.rmtree(state["container"], ignore_errors=True)
 
 
 def build_parser() -> argparse.ArgumentParser:

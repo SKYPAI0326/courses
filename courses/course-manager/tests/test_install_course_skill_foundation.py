@@ -320,6 +320,284 @@ class CourseSkillFoundationInstallerTests(unittest.TestCase):
         self.assertEqual(self.snapshot(self.skills_root / "course-pm"), before["course-pm"])
         self.assertFalse((self.skills_root / "course-researcher").exists())
 
+    def test_applied_rollback_replays_real_process_exit_at_every_mutation_boundary(self):
+        boundaries = {
+            "container_create": 92,
+            "target_move": 93,
+            "restore_stage": 94,
+            "before_restore": 95,
+            "cross_package": 96,
+            "cleanup": 97,
+            "status_intent": 98,
+            "status": 99,
+        }
+        project_root = Path(__file__).resolve().parents[1]
+        crash_script = r'''
+import os
+import sys
+from pathlib import Path
+from scripts import install_course_skill_foundation as installer
+
+boundary = sys.argv[1]
+operation, packages, skills, operations = map(Path, sys.argv[2:6])
+exit_codes = {
+    "container_create": 92,
+    "target_move": 93,
+    "restore_stage": 94,
+    "before_restore": 95,
+    "cross_package": 96,
+    "cleanup": 97,
+    "status_intent": 98,
+    "status": 99,
+}
+
+real_mkdir = installer.Path.mkdir
+def crash_mkdir(path, *args, **kwargs):
+    result = real_mkdir(path, *args, **kwargs)
+    candidate = Path(path)
+    if (
+        boundary == "container_create"
+        and candidate.parent == skills
+        and candidate.name.startswith(".course-skill-recover-")
+        and candidate.name.endswith("-course-run")
+    ):
+        os._exit(exit_codes[boundary])
+    return result
+
+real_replace = installer.os.replace
+def crash_replace(source, destination):
+    result = real_replace(source, destination)
+    source = Path(source)
+    destination = Path(destination)
+    if boundary == "target_move" and source == skills / "course-run" and destination.name == "installed":
+        os._exit(exit_codes[boundary])
+    if boundary == "before_restore" and source.name == "restored" and destination == skills / "course-run":
+        os._exit(exit_codes[boundary])
+    if boundary == "cross_package" and source == skills / "course-researcher" and destination.name == "installed":
+        os._exit(exit_codes[boundary])
+    return result
+
+real_copy = installer._copy_verified
+def crash_copy(source, destination, expected_hash):
+    result = real_copy(source, destination, expected_hash)
+    if boundary == "restore_stage" and "backups" in Path(source).parts and Path(destination).name == "restored":
+        os._exit(exit_codes[boundary])
+    return result
+
+real_rmtree = installer.shutil.rmtree
+def crash_rmtree(path, *args, **kwargs):
+    result = real_rmtree(path, *args, **kwargs)
+    candidate = Path(path)
+    if (
+        boundary == "cleanup"
+        and candidate.parent == skills
+        and candidate.name.startswith(".course-skill-recover-")
+        and candidate.name.endswith("-course-run")
+    ):
+        os._exit(exit_codes[boundary])
+    return result
+
+real_write = installer._write_json_atomic
+def crash_write(path, value):
+    result = real_write(path, value)
+    if (
+        boundary == "status_intent"
+        and value.get("status") == "ROLLING_BACK"
+        and value.get("rollback_phase") == "ROLLBACK_COMPLETE_INTENT"
+    ):
+        os._exit(exit_codes[boundary])
+    if boundary == "status" and value.get("status") == "ROLLED_BACK":
+        os._exit(exit_codes[boundary])
+    return result
+
+installer.Path.mkdir = crash_mkdir
+installer.os.replace = crash_replace
+installer._copy_verified = crash_copy
+installer.shutil.rmtree = crash_rmtree
+installer._write_json_atomic = crash_write
+installer.rollback_install(
+    operation,
+    packages_root=packages,
+    skills_root=skills,
+    operations_root=operations,
+)
+'''
+
+        for boundary, exit_code in boundaries.items():
+            with self.subTest(boundary=boundary):
+                case_root = self.root / f"rollback-{boundary}"
+                packages = case_root / "packages"
+                skills = case_root / "skills"
+                operations = case_root / "operations"
+                installer.shutil.copytree(self.packages_root, packages)
+                installer.shutil.copytree(self.skills_root, skills)
+                before = self.snapshot(skills)
+                result = install(
+                    packages,
+                    skills,
+                    operations,
+                    apply=True,
+                    allow_updates=("course-run", "course-pm"),
+                )
+
+                process = subprocess.run(
+                    [
+                        sys.executable,
+                        "-c",
+                        crash_script,
+                        boundary,
+                        str(result.operation_dir),
+                        str(packages),
+                        str(skills),
+                        str(operations),
+                    ],
+                    cwd=project_root,
+                    text=True,
+                    capture_output=True,
+                    check=False,
+                )
+
+                self.assertEqual(process.returncode, exit_code, process.stderr)
+                rollback_install(
+                    result.operation_dir,
+                    packages_root=packages,
+                    skills_root=skills,
+                    operations_root=operations,
+                )
+                rollback_install(
+                    result.operation_dir,
+                    packages_root=packages,
+                    skills_root=skills,
+                    operations_root=operations,
+                )
+                self.assertEqual(self.snapshot(skills), before)
+                self.assertEqual(list(skills.glob(".course-skill-recover-*")), [])
+                manifest = json.loads(
+                    (result.operation_dir / "manifest.json").read_text(encoding="utf-8")
+                )
+                self.assertEqual(manifest["status"], "ROLLED_BACK")
+                self.assertTrue(
+                    all(record["phase"] == "ROLLED_BACK" for record in manifest["packages"])
+                )
+
+    def test_applied_rollback_cli_and_generated_script_replay_rolled_back_operation(self):
+        before = self.snapshot(self.skills_root)
+        result = self.apply_install()
+        self.authorized_rollback(result.operation_dir)
+
+        cli = installer.main(
+            [
+                "--rollback-operation",
+                str(result.operation_dir),
+                "--packages-root",
+                str(self.packages_root),
+                "--skills-root",
+                str(self.skills_root),
+                "--operations-root",
+                str(self.operations_root),
+            ]
+        )
+        generated = subprocess.run(
+            [sys.executable, str(result.operation_dir / "rollback.py")],
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        self.assertEqual(cli, 0)
+        self.assertEqual(generated.returncode, 0, generated.stderr)
+        self.assertEqual(self.snapshot(self.skills_root), before)
+
+    def test_rolled_back_status_requires_verified_before_state_and_clean_records(self):
+        result = self.apply_install()
+        installed = self.snapshot(self.skills_root)
+        manifest_path = result.operation_dir / "manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["status"] = "ROLLED_BACK"
+        manifest["rollback_phase"] = "ROLLED_BACK"
+        manifest_path.write_text(json.dumps(manifest) + "\n", encoding="utf-8")
+
+        with self.assertRaisesRegex(InstallError, "completed rollback"):
+            self.authorized_rollback(result.operation_dir)
+
+        self.assertEqual(self.snapshot(self.skills_root), installed)
+
+    def test_applied_rollback_missing_intermediate_container_fails_closed(self):
+        result = self.apply_install()
+        project_root = Path(__file__).resolve().parents[1]
+        crash_script = r'''
+import os
+import sys
+from pathlib import Path
+from scripts import install_course_skill_foundation as installer
+
+operation, packages, skills, operations = map(Path, sys.argv[1:5])
+real_replace = installer.os.replace
+def crash_after_move(source, destination):
+    result = real_replace(source, destination)
+    if Path(source) == skills / "course-run" and Path(destination).name == "installed":
+        os._exit(93)
+    return result
+installer.os.replace = crash_after_move
+installer.rollback_install(
+    operation,
+    packages_root=packages,
+    skills_root=skills,
+    operations_root=operations,
+)
+'''
+        process = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                crash_script,
+                str(result.operation_dir),
+                str(self.packages_root),
+                str(self.skills_root),
+                str(self.operations_root),
+            ],
+            cwd=project_root,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        self.assertEqual(process.returncode, 93, process.stderr)
+        manifest_path = result.operation_dir / "manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        record = next(item for item in manifest["packages"] if item["name"] == "course-run")
+        container = Path(record["recovery_container"])
+        installer.shutil.rmtree(container)
+        victim = self.root / "rollback-unrelated"
+        victim.mkdir()
+        (victim / "keep.bin").write_bytes(b"unrelated exact bytes\x00")
+        victim_before = self.snapshot(victim)
+
+        with self.assertRaises(InstallError):
+            self.authorized_rollback(result.operation_dir)
+
+        self.assertEqual(self.snapshot(victim), victim_before)
+        self.assertFalse((self.skills_root / "course-run").exists())
+
+    def test_incomplete_applied_rollback_blocks_new_install(self):
+        result = self.apply_install()
+        real_replace = installer.os.replace
+
+        def crash_after_move(source, destination):
+            replaced = real_replace(source, destination)
+            if (
+                Path(source) == self.skills_root / "course-run"
+                and Path(destination).name == "installed"
+            ):
+                raise SystemExit("crash after durable rollback target move")
+            return replaced
+
+        with mock.patch.object(installer.os, "replace", side_effect=crash_after_move):
+            with self.assertRaises(SystemExit):
+                self.authorized_rollback(result.operation_dir)
+
+        with self.assertRaisesRegex(InstallError, "unfinished rollback"):
+            self.apply_install()
+
     def test_generated_rollback_rejects_tampered_target_without_touching_victim(self):
         result = self.apply_install()
         victim = self.root / "rollback-victim"
