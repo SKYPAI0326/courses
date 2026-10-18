@@ -121,7 +121,11 @@ def governed_dependencies(
             "governed_g0": consume_passed_gate(contract, "G0", workspace_root),
             "governed_g1_reference": consume_passed_gate(contract, "G1", workspace_root),
         }
-    priors = {"G3": ("G2",), "G5": ("G0", "G2", "G3")}.get(gate_id, ())
+    priors = {
+        "G3": ("G2",),
+        "G4": ("G0", "G2"),
+        "G5": ("G0", "G2", "G3"),
+    }.get(gate_id, ())
     return {
         f"governed_{prior.lower()}": consume_passed_gate(
             contract, prior, workspace_root

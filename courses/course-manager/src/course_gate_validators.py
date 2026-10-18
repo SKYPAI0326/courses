@@ -253,17 +253,51 @@ def _validate_g4(
     workspace_root: Path | str,
 ) -> list[GateValidationIssue]:
     from src.course_production import validate_pilot_record
+    from src.course_accessibility import (
+        validate_accessibility_binding,
+        validate_accessibility_report,
+    )
     from src.course_validation import evidence_maturity, validate_trial_record
 
     pilot_bundle, issues = _single_mapping(evidence, "pilot_record")
     trial, trial_shape = _single_mapping(evidence, "independent_course_trial")
     roster, roster_shape = _single_mapping(evidence, "production_role_roster")
+    accessibility, accessibility_shape = _single_mapping(evidence, "accessibility_report")
     issues.extend(trial_shape)
     issues.extend(roster_shape)
+    issues.extend(accessibility_shape)
     issues.extend(_validate_receipt(contract, "G4", evidence, consumed, workspace_root))
     if trial is not None and roster is not None:
+        governed_requirements = [
+            item for item in consumed.get("governed_g0", [])
+            if item.reference.get("kind") == "requirements_record"
+        ]
+        governed_blueprints = [
+            item for item in consumed.get("governed_g2", [])
+            if item.reference.get("kind") == "course_blueprint"
+        ]
+        authority = contract.get("governance", {}).get("runner_authority")
         try:
-            issues.extend(_coerce_issues(validate_trial_record(trial, roster, "representative_unit")))
+            if len(governed_requirements) != 1 or len(governed_blueprints) != 1:
+                issues.append(GateValidationIssue("governed_trial_context_required", "$.evidence.governed", "G4 requires canonical G0 requirements and G2 blueprint evidence"))
+            else:
+                issues.extend(_coerce_issues(validate_trial_record(
+                    trial,
+                    roster,
+                    "representative_unit",
+                    requirements=governed_requirements[0].value,
+                    requirements_sha256=governed_requirements[0].sha256,
+                    blueprint=governed_blueprints[0].value,
+                    representative_unit_id=(
+                        pilot_bundle.get("pilot", {}).get("unit_id")
+                        if isinstance(pilot_bundle, Mapping)
+                        and isinstance(pilot_bundle.get("pilot"), Mapping)
+                        else None
+                    ),
+                    runner_authority_id=(
+                        authority.get("authority_id") if isinstance(authority, Mapping) else None
+                    ),
+                )))
         except ValueError as error:
             issues.append(GateValidationIssue("production_role_roster_invalid", "$.evidence.production_role_roster", str(error)))
         if evidence_maturity(trial) != "INDEPENDENT_AI_VERIFIED":
@@ -277,6 +311,21 @@ def _validate_g4(
         issues.append(GateValidationIssue("invalid_pilot_bundle", "$.evidence.pilot_record", "pilot evidence must contain pilot, lesson, and asset_manifest objects"))
         return issues
     issues.extend(_coerce_issues(validate_pilot_record(pilot, lesson, assets)))
+    accessibility_items = consumed.get("accessibility_report", [])
+    if accessibility is not None and len(accessibility_items) == 1:
+        expected_pages = [{"id": pilot.get("unit_id"), "path": pilot.get("html_path")}]
+        issues.extend(_coerce_issues(validate_accessibility_binding(
+            pilot.get("accessibility_report"),
+            accessibility_items[0].reference,
+            accessibility,
+        )))
+        issues.extend(_coerce_issues(validate_accessibility_report(
+            accessibility,
+            expected_gate="G4",
+            expected_pages=expected_pages,
+        )))
+    elif accessibility is not None:
+        issues.append(GateValidationIssue("invalid_accessibility_report", "$.evidence.accessibility_report", "G4 requires exactly one safely consumed accessibility report"))
     if trial is not None and pilot.get("trial_context_id") != trial.get("isolated_context_id"):
         issues.append(GateValidationIssue("pilot_trial_context_mismatch", "$.evidence.pilot_record.pilot.trial_context_id", "pilot record must bind the exact independent trial context"))
     authors = roster.get("authors") if isinstance(roster, Mapping) else None
@@ -341,16 +390,23 @@ def _validate_g5(
     workspace_root: Path | str,
 ) -> list[GateValidationIssue]:
     from src.course_production import validate_full_production
+    from src.course_accessibility import (
+        validate_accessibility_binding,
+        validate_accessibility_report,
+    )
+    from src.course_validation import validate_trial_record
 
     bundle, issues = _single_mapping(evidence, "full_course_production")
-    allowed = G5_ARTIFACT_KINDS | {"full_course_production", "independent_course_trial", "independent_trial_receipt", "production_role_roster"}
+    allowed = G5_ARTIFACT_KINDS | {"full_course_production", "independent_course_trial", "independent_trial_receipt", "production_role_roster", "accessibility_report"}
     extras = sorted(set(evidence) - allowed)
     if extras:
         issues.append(GateValidationIssue("extra_artifact_evidence", "$.evidence", f"G5 rejects unbound evidence kind(s): {', '.join(extras)}"))
     trial, trial_shape = _single_mapping(evidence, "independent_course_trial")
     roster, roster_shape = _single_mapping(evidence, "production_role_roster")
+    accessibility, accessibility_shape = _single_mapping(evidence, "accessibility_report")
     issues.extend(trial_shape)
     issues.extend(roster_shape)
+    issues.extend(accessibility_shape)
     issues.extend(_validate_receipt(contract, "G5", evidence, consumed, workspace_root))
     if bundle is None or trial is None or roster is None:
         return issues
@@ -369,7 +425,54 @@ def _validate_g5(
     if not isinstance(record, Mapping) or not isinstance(requirements, Mapping) or not isinstance(blueprint, Mapping) or not all(isinstance(item, Mapping) for item in lessons) or not isinstance(assets, Mapping) or not isinstance(pilot, Mapping):
         issues.append(GateValidationIssue("invalid_full_production_bundle", "$.evidence.full_course_production", "full production evidence requires record, blueprint, lessons, assets, and pilot"))
         return issues
+    governed_requirements = next(
+        (
+            item for item in consumed.get("governed_g0", [])
+            if item.reference.get("kind") == "requirements_record"
+        ),
+        None,
+    )
+    authority = contract.get("governance", {}).get("runner_authority")
+    if governed_requirements is None:
+        issues.append(GateValidationIssue("governed_trial_context_required", "$.evidence.governed_g0", "G5 trial requires canonical G0 requirements evidence"))
+    else:
+        issues.extend(_coerce_issues(validate_trial_record(
+            trial,
+            roster,
+            "full_course",
+            requirements=requirements,
+            requirements_sha256=governed_requirements.sha256,
+            blueprint=blueprint,
+            runner_authority_id=(
+                authority.get("authority_id") if isinstance(authority, Mapping) else None
+            ),
+        )))
     issues.extend(_coerce_issues(validate_full_production(record, blueprint, lessons, assets, pilot, trial, production_roles=roster, requirements=requirements)))
+    accessibility_items = consumed.get("accessibility_report", [])
+    if accessibility is not None and len(accessibility_items) == 1:
+        navigation = record.get("navigation")
+        expected_pages = []
+        if isinstance(navigation, Mapping):
+            expected_pages.append({"id": "course-entry", "path": navigation.get("entry")})
+        expected_pages.extend(
+            {"id": unit.get("unit_id"), "path": unit.get("html_path")}
+            for unit in record.get("units", [])
+            if isinstance(unit, Mapping)
+        )
+        if isinstance(navigation, Mapping):
+            expected_pages.append({"id": "course-completion", "path": navigation.get("completion")})
+        issues.extend(_coerce_issues(validate_accessibility_binding(
+            record.get("accessibility_report"),
+            accessibility_items[0].reference,
+            accessibility,
+        )))
+        issues.extend(_coerce_issues(validate_accessibility_report(
+            accessibility,
+            expected_gate="G5",
+            expected_pages=expected_pages,
+        )))
+    elif accessibility is not None:
+        issues.append(GateValidationIssue("invalid_accessibility_report", "$.evidence.accessibility_report", "G5 requires exactly one safely consumed accessibility report"))
     issues.extend(_validate_g5_artifact_bindings(record, assets, consumed))
     return issues
 
@@ -413,7 +516,7 @@ GATE_REGISTRY: dict[str, GateRule] = {
     "G1": GateRule("course-research-record-validator", frozenset({"research_record"}), _validate_research),
     "G2": GateRule("course-blueprint-validator", frozenset({"course_blueprint"}), _validate_blueprint),
     "G3": GateRule("course-lesson-record-validator", frozenset({"lesson_record"}), _validate_lessons),
-    "G4": GateRule("course-pilot-and-independent-trial-validator", frozenset({"pilot_record", "independent_course_trial", "independent_trial_receipt", "production_role_roster"}), _validate_g4),
-    "G5": GateRule("course-full-production-validator", frozenset({"full_course_production", "independent_course_trial", "independent_trial_receipt", "production_role_roster"}), _validate_g5),
+    "G4": GateRule("course-pilot-and-independent-trial-validator", frozenset({"pilot_record", "accessibility_report", "independent_course_trial", "independent_trial_receipt", "production_role_roster"}), _validate_g4),
+    "G5": GateRule("course-full-production-validator", frozenset({"full_course_production", "accessibility_report", "independent_course_trial", "independent_trial_receipt", "production_role_roster"}), _validate_g5),
     "G6": GateRule("course-release-record-validator", frozenset({"release_record"}), _validate_release),
 }

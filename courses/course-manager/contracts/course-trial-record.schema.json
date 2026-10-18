@@ -5,109 +5,99 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "schema_version",
-    "scope",
-    "participant",
-    "runner_session_id",
-    "isolated_context_id",
-    "allowed_inputs",
-    "forbidden_inputs_accessed",
-    "entry",
-    "actions",
-    "hints",
-    "blocks",
-    "recovery",
-    "artifact",
-    "result"
+    "schema_version", "requirements_sha256", "target_profile_id",
+    "runner_authority_id", "scope", "participant", "runner_session_id",
+    "isolated_context_id", "allowed_tools", "allowed_inputs",
+    "forbidden_inputs_accessed", "entry_readiness", "entry",
+    "transfer_task", "actions", "criterion_evidence", "hints", "blocks",
+    "recovery", "artifact", "result", "maturity_claims"
   ],
   "properties": {
-    "schema_version": {"const": 1},
+    "schema_version": {"const": 2},
+    "requirements_sha256": {"$ref": "#/$defs/sha256"},
+    "target_profile_id": {"$ref": "#/$defs/id"},
+    "runner_authority_id": {"$ref": "#/$defs/text"},
     "scope": {"enum": ["representative_unit", "full_course"]},
     "participant": {
-      "type": "object",
-      "additionalProperties": false,
+      "type": "object", "additionalProperties": false,
       "required": ["id", "type", "roles"],
       "properties": {
-        "id": {"type": "string", "minLength": 1},
+        "id": {"$ref": "#/$defs/text"},
         "type": {"enum": ["independent-ai", "human"]},
-        "roles": {
-          "type": "array",
-          "minItems": 1,
-          "items": {"type": "string", "minLength": 1}
-        }
+        "roles": {"$ref": "#/$defs/textList"}
       }
     },
-    "runner_session_id": {"type": "string", "minLength": 1},
-    "isolated_context_id": {"type": "string", "minLength": 1},
+    "runner_session_id": {"$ref": "#/$defs/text"},
+    "isolated_context_id": {"$ref": "#/$defs/text"},
+    "allowed_tools": {"$ref": "#/$defs/textList"},
     "allowed_inputs": {
-      "type": "array",
-      "minItems": 1,
-      "items": {"$ref": "#/$defs/input"}
+      "type": "array", "minItems": 1, "items": {"$ref": "#/$defs/input"}
     },
     "forbidden_inputs_accessed": {
       "type": "array",
       "items": {
         "oneOf": [
-          {"type": "string", "minLength": 1},
+          {"$ref": "#/$defs/text"},
           {
-            "type": "object",
+            "type": "object", "additionalProperties": false,
             "required": ["kind", "path"],
             "properties": {
-              "kind": {"type": "string", "minLength": 1},
-              "path": {"type": "string", "minLength": 1},
+              "kind": {"$ref": "#/$defs/text"},
+              "path": {"$ref": "#/$defs/text"},
               "sha256": {"$ref": "#/$defs/sha256"}
             }
           }
         ]
       }
     },
+    "entry_readiness": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "baseline_statement", "prerequisite_statements", "baseline_confirmed",
+        "prerequisites_confirmed", "tools_confirmed", "inputs_confirmed"
+      ],
+      "properties": {
+        "baseline_statement": {"$ref": "#/$defs/text"},
+        "prerequisite_statements": {"$ref": "#/$defs/textList"},
+        "baseline_confirmed": {"type": "boolean"},
+        "prerequisites_confirmed": {"type": "boolean"},
+        "tools_confirmed": {"type": "boolean"},
+        "inputs_confirmed": {"type": "boolean"}
+      }
+    },
     "entry": {
-      "type": "object",
-      "additionalProperties": false,
+      "type": "object", "additionalProperties": false,
       "required": ["started_at", "page", "goal_understood", "materials_found"],
       "properties": {
-        "started_at": {"type": "string", "minLength": 1},
-        "page": {"type": "string", "minLength": 1},
+        "started_at": {"$ref": "#/$defs/text"},
+        "page": {"$ref": "#/$defs/text"},
         "goal_understood": {"type": "boolean"},
         "materials_found": {"type": "boolean"}
       }
     },
-    "actions": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["sequence", "action", "observable_result", "at"],
-        "properties": {
-          "sequence": {"type": "integer", "minimum": 1},
-          "action": {"type": "string", "minLength": 1},
-          "observable_result": {"type": "string", "minLength": 1},
-          "at": {"type": "string", "minLength": 1}
-        }
-      }
+    "transfer_task": {"$ref": "#/$defs/transferTask"},
+    "actions": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/action"}},
+    "criterion_evidence": {
+      "type": "array", "minItems": 1, "items": {"$ref": "#/$defs/criterionEvidence"}
     },
     "hints": {
       "type": "array",
       "items": {
-        "type": "object",
-        "additionalProperties": false,
+        "type": "object", "additionalProperties": false,
         "required": ["source", "detail"],
         "properties": {
           "source": {"enum": ["learner-page", "learner-asset", "none"]},
-          "detail": {"type": "string", "minLength": 1}
+          "detail": {"$ref": "#/$defs/text"}
         }
       }
     },
     "blocks": {
       "type": "array",
       "items": {
-        "type": "object",
-        "additionalProperties": false,
+        "type": "object", "additionalProperties": false,
         "required": ["code", "detail", "recovered"],
         "properties": {
-          "code": {"type": "string", "minLength": 1},
-          "detail": {"type": "string", "minLength": 1},
+          "code": {"$ref": "#/$defs/text"}, "detail": {"$ref": "#/$defs/text"},
           "recovered": {"type": "boolean"}
         }
       }
@@ -115,59 +105,122 @@
     "recovery": {
       "type": "array",
       "items": {
-        "type": "object",
-        "additionalProperties": false,
+        "type": "object", "additionalProperties": false,
         "required": ["block_code", "action", "result"],
         "properties": {
-          "block_code": {"type": "string", "minLength": 1},
-          "action": {"type": "string", "minLength": 1},
-          "result": {"type": "string", "minLength": 1}
+          "block_code": {"$ref": "#/$defs/text"}, "action": {"$ref": "#/$defs/text"},
+          "result": {"$ref": "#/$defs/text"}
         }
       }
     },
     "artifact": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["path", "sha256", "complete", "verifiable", "acceptance_result"],
+      "type": "object", "additionalProperties": false,
+      "required": ["evidence_id", "path", "sha256", "complete", "verifiable", "acceptance_result"],
       "properties": {
-        "path": {"type": "string", "minLength": 1},
-        "sha256": {"$ref": "#/$defs/sha256"},
-        "complete": {"type": "boolean"},
-        "verifiable": {"type": "boolean"},
-        "acceptance_result": {"enum": ["PASS", "FAIL"]}
+        "evidence_id": {"$ref": "#/$defs/id"}, "path": {"$ref": "#/$defs/text"},
+        "sha256": {"$ref": "#/$defs/sha256"}, "complete": {"type": "boolean"},
+        "verifiable": {"type": "boolean"}, "acceptance_result": {"enum": ["PASS", "FAIL"]}
       }
     },
     "result": {
-      "type": "object",
-      "additionalProperties": false,
+      "type": "object", "additionalProperties": false,
       "required": ["status", "completed_at", "notes"],
       "properties": {
-        "status": {"enum": ["PASS", "FAIL"]},
-        "completed_at": {"type": "string", "minLength": 1},
-        "notes": {"type": "string", "minLength": 1}
+        "status": {"enum": ["PASS", "FAIL"]}, "completed_at": {"$ref": "#/$defs/text"},
+        "notes": {"$ref": "#/$defs/text"}
+      }
+    },
+    "maturity_claims": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ai_trial", "human_duration", "human_readability", "target_learner_independence"],
+      "properties": {
+        "ai_trial": {"enum": ["INDEPENDENT_AI_VERIFIED", "NOT_APPLICABLE"]},
+        "human_duration": {"const": "PENDING_HUMAN"},
+        "human_readability": {"const": "PENDING_HUMAN"},
+        "target_learner_independence": {"const": "PENDING_HUMAN"}
       }
     },
     "human_participant_evidence": {
-      "type": "object",
-      "additionalProperties": false,
+      "type": "object", "additionalProperties": false,
       "required": ["consent_record", "observer_id", "session_recording_sha256"],
       "properties": {
-        "consent_record": {"type": "string", "minLength": 1},
-        "observer_id": {"type": "string", "minLength": 1},
+        "consent_record": {"$ref": "#/$defs/text"}, "observer_id": {"$ref": "#/$defs/text"},
         "session_recording_sha256": {"$ref": "#/$defs/sha256"}
       }
     }
   },
   "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+    "text": {"type": "string", "minLength": 1},
     "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "textList": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": {"$ref": "#/$defs/text"}
+    },
     "input": {
-      "type": "object",
-      "additionalProperties": false,
+      "type": "object", "additionalProperties": false,
       "required": ["kind", "path", "sha256"],
       "properties": {
         "kind": {"enum": ["learner-page", "learner-asset"]},
-        "path": {"type": "string", "minLength": 1},
-        "sha256": {"$ref": "#/$defs/sha256"}
+        "path": {"$ref": "#/$defs/text"}, "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "hashPair": {
+      "type": "object", "additionalProperties": false,
+      "required": ["input_sha256", "output_sha256"],
+      "properties": {
+        "input_sha256": {"$ref": "#/$defs/sha256"},
+        "output_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "changedCondition": {
+      "type": "object", "additionalProperties": false,
+      "required": ["dimension", "before", "after", "before_decision", "after_decision", "decision_basis"],
+      "properties": {
+        "dimension": {"enum": ["data", "threshold", "context"]},
+        "before": {"$ref": "#/$defs/text"}, "after": {"$ref": "#/$defs/text"},
+        "before_decision": {"$ref": "#/$defs/text"}, "after_decision": {"$ref": "#/$defs/text"},
+        "decision_basis": {"$ref": "#/$defs/text"}
+      }
+    },
+    "transferTask": {
+      "type": "object", "additionalProperties": false,
+      "required": ["task_id", "source_task_id", "changed_conditions", "held_out_input_sha256", "held_out_output_sha256", "reference_hashes"],
+      "properties": {
+        "task_id": {"$ref": "#/$defs/id"}, "source_task_id": {"$ref": "#/$defs/id"},
+        "changed_conditions": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/changedCondition"}},
+        "held_out_input_sha256": {"$ref": "#/$defs/sha256"},
+        "held_out_output_sha256": {"$ref": "#/$defs/sha256"},
+        "reference_hashes": {
+          "type": "object", "additionalProperties": false,
+          "required": ["demonstration", "guided_practice", "answer_key"],
+          "properties": {
+            "demonstration": {"$ref": "#/$defs/hashPair"},
+            "guided_practice": {"$ref": "#/$defs/hashPair"},
+            "answer_key": {"$ref": "#/$defs/hashPair"}
+          }
+        }
+      }
+    },
+    "action": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "sequence", "task_id", "action", "decision", "observable_result", "input_sha256", "output_sha256", "result", "at"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"}, "sequence": {"type": "integer", "minimum": 1},
+        "task_id": {"$ref": "#/$defs/id"}, "action": {"$ref": "#/$defs/text"},
+        "decision": {"$ref": "#/$defs/text"}, "observable_result": {"$ref": "#/$defs/text"},
+        "input_sha256": {"$ref": "#/$defs/sha256"}, "output_sha256": {"$ref": "#/$defs/sha256"},
+        "result": {"enum": ["PASS", "FAIL"]}, "at": {"$ref": "#/$defs/text"}
+      }
+    },
+    "criterionEvidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["g0_criterion_id", "capability_id", "outcome_id", "criterion_id", "unit_id", "action_id", "artifact_evidence_id", "result"],
+      "properties": {
+        "g0_criterion_id": {"$ref": "#/$defs/id"}, "capability_id": {"$ref": "#/$defs/id"},
+        "outcome_id": {"$ref": "#/$defs/id"}, "criterion_id": {"$ref": "#/$defs/id"},
+        "unit_id": {"$ref": "#/$defs/id"}, "action_id": {"$ref": "#/$defs/id"},
+        "artifact_evidence_id": {"$ref": "#/$defs/id"}, "result": {"const": "PASS"}
       }
     }
   }

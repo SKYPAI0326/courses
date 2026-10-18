@@ -333,6 +333,27 @@ class CourseSkillPackageTests(unittest.TestCase):
         self.assertIn("方法庫", handout)
         self.assertIn("不得替作者發明", validator)
 
+    def test_g4_g5_skills_name_trial_transfer_accessibility_and_human_boundaries(self):
+        run_routing = (
+            PROJECT_ROOT
+            / "skill-packages/course-run/references/course-contract-routing.md"
+        ).read_text(encoding="utf-8")
+        validator = (
+            PROJECT_ROOT / "skill-packages/course-validator/SKILL.md"
+        ).read_text(encoding="utf-8")
+        builder = (
+            PROJECT_ROOT / "skill-packages/build-course-page/SKILL.md"
+        ).read_text(encoding="utf-8")
+
+        for text in (run_routing, validator):
+            self.assertIn("course-accessibility-report.schema.json", text)
+            self.assertIn("basic_accessibility_smoke", text)
+            self.assertIn("wcag_2_2_aa", text)
+            self.assertIn("PENDING_HUMAN", text)
+            self.assertIn("changed_conditions", text)
+        self.assertIn("course-accessibility-report.schema.json", builder)
+        self.assertIn("basic_accessibility_smoke", builder)
+
     def test_g4_chooses_course_specific_visuals_with_common_invariants(self):
         visual_path = (
             PROJECT_ROOT

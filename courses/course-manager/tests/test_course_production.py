@@ -74,7 +74,86 @@ class CourseProductionTests(unittest.TestCase):
         final = production["final_artifact"]
         final["sha256"] = write(final["path"], b"final course artifact")
         refs.append({"id": "g5-final-artifact", "kind": "final_artifact", "path": final["path"], "metadata": {"role": "final"}})
+        pages = [
+            {"id": "course-entry", "path": production["navigation"]["entry"]},
+            *[
+                {"id": unit["unit_id"], "path": unit["html_path"]}
+                for unit in production["units"]
+            ],
+            {"id": "course-completion", "path": production["navigation"]["completion"]},
+        ]
+        _, accessibility_ref, production["accessibility_report"] = (
+            self.materialize_accessibility_report(
+                root, "G5", pages, "accessibility-g5-full-course"
+            )
+        )
+        refs.append({
+            "id": accessibility_ref["id"],
+            "kind": accessibility_ref["kind"],
+            "path": accessibility_ref["path"],
+        })
         return refs
+
+    def basic_accessibility_report(self, gate_scope, pages, report_id):
+        return {
+            "schema_version": 1,
+            "report_id": report_id,
+            "gate_scope": gate_scope,
+            "coverage_scope": "representative_page" if gate_scope == "G4" else "full_course",
+            "claim": {
+                "scope": "basic_accessibility_smoke",
+                "standard": "COURSE_ACCESSIBILITY_SMOKE",
+                "version": "1.0",
+                "level": "basic",
+            },
+            "pages": copy.deepcopy(pages),
+            "applicable_criteria": [
+                {"criterion_id": item, "level": "basic"}
+                for item in ("keyboard", "focus", "reading-order", "horizontal-overflow")
+            ],
+            "automated_checks": [{
+                "check_id": "automated-overflow",
+                "tool": "Playwright",
+                "tool_version": "1.56.1",
+                "user_agent": "Chromium 141",
+                "page_ids": [page["id"] for page in pages],
+                "results": [{
+                    "criterion_id": "horizontal-overflow", "status": "PASS",
+                    "evidence": "No horizontal page overflow at tested viewports.",
+                }],
+            }],
+            "manual_checks": [{
+                "check_id": "manual-core-path",
+                "evaluator_id": "accessibility-review-1",
+                "method": "Keyboard traversal, focus inspection, and reading-order review.",
+                "user_agent": "Safari 20",
+                "assistive_technology": ["VoiceOver 17"],
+                "page_ids": [page["id"] for page in pages],
+                "results": [
+                    {"criterion_id": item, "status": "PASS", "evidence": f"Observed {item} on every listed page."}
+                    for item in ("keyboard", "focus", "reading-order")
+                ],
+            }],
+            "findings": [],
+        }
+
+    def materialize_accessibility_report(self, root, gate_scope, pages, report_id):
+        report = self.basic_accessibility_report(gate_scope, pages, report_id)
+        ref = materialize_json_evidence(
+            root,
+            evidence_id=report_id,
+            gate_id=gate_scope,
+            kind="accessibility_report",
+            relative_path=f"evidence/{report_id}.json",
+            value=report,
+        )
+        declared = {
+            "evidence_id": ref["id"],
+            "path": ref["path"],
+            "sha256": ref["sha256"],
+            "claim_scope": report["claim"]["scope"],
+        }
+        return report, ref, declared
 
     def bind_trial_inputs(self, root, trial):
         for index, item in enumerate(trial["allowed_inputs"]):
@@ -83,18 +162,13 @@ class CourseProductionTests(unittest.TestCase):
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(f"learner-visible input {index}\n".encode())
             item["sha256"] = hashlib.sha256(target.read_bytes()).hexdigest()
+        trial["transfer_task"]["held_out_input_sha256"] = trial["allowed_inputs"][0]["sha256"]
+        trial["actions"][0]["input_sha256"] = trial["allowed_inputs"][0]["sha256"]
 
     def bind_governed_course(self, root, contract, blueprint, lessons):
-        grouped = {}
-        for criterion in blueprint["criteria"]:
-            grouped.setdefault(criterion["g0_criterion_id"], []).append(
-                {"id": criterion["capability_id"], "statement": "governed capability"}
-            )
+        requirements = self.full_requirements()
         values = {
-            "G0": [("governed-requirements", "requirements_record", {"acceptance_criteria": [
-                {"id": criterion_id, "capabilities": capabilities}
-                for criterion_id, capabilities in grouped.items()
-            ]})],
+            "G0": [("governed-requirements", "requirements_record", requirements)],
             "G2": [("governed-blueprint", "course_blueprint", blueprint)],
             "G3": [
                 (f"governed-lesson-{lesson['unit_id']}", "lesson_record", lesson)
@@ -228,7 +302,7 @@ class CourseProductionTests(unittest.TestCase):
 
     def valid_pilot(self):
         return {
-            "schema_version": 1,
+            "schema_version": 2,
             "unit_id": "unit-1",
             "trial_context_id": "pilot-cold-run-20261018-01",
             "production_actor_ids": ["course-author-01", "page-builder-01"],
@@ -275,19 +349,11 @@ class CourseProductionTests(unittest.TestCase):
                     "horizontal_overflow": False,
                 },
             },
-            "accessibility": {
-                "automated": {
-                    "tool": "axe-core",
-                    "result": "PASS",
-                    "report_path": "evidence/axe.json",
-                },
-                "manual": {
-                    "evaluator_id": "accessibility-review-1",
-                    "keyboard_result": "PASS",
-                    "focus_result": "PASS",
-                    "reading_sequence_result": "PASS",
-                    "notes": "從 skip link 到完成檢核可依序操作。",
-                },
+            "accessibility_report": {
+                "evidence_id": "accessibility-g4-unit-1",
+                "path": "evidence/accessibility-g4-unit-1.json",
+                "sha256": "a" * 64,
+                "claim_scope": "basic_accessibility_smoke",
             },
             "navigation": {
                 "entry": "course index",
@@ -383,9 +449,15 @@ class CourseProductionTests(unittest.TestCase):
         ]
 
     def full_trial(self):
+        requirements_sha256 = hashlib.sha256(
+            canonical_json_bytes(self.full_requirements())
+        ).hexdigest()
         return {
-            "schema_version": 1,
+            "schema_version": 2,
             "scope": "full_course",
+            "requirements_sha256": requirements_sha256,
+            "target_profile_id": "target-marketing-practitioner",
+            "runner_authority_id": self.authority_id,
             "participant": {
                 "id": "full-course-cold-ai-01",
                 "type": "independent-ai",
@@ -393,6 +465,7 @@ class CourseProductionTests(unittest.TestCase):
             },
             "runner_session_id": "full-course-session-20261018-01",
             "isolated_context_id": "full-course-run-20261018-01",
+            "allowed_tools": ["Spreadsheet application", "Markdown editor"],
             "allowed_inputs": [
                 {
                     "kind": "learner-page",
@@ -406,6 +479,14 @@ class CourseProductionTests(unittest.TestCase):
                 },
             ],
             "forbidden_inputs_accessed": [],
+            "entry_readiness": {
+                "baseline_statement": "Can inspect tabular campaign data and perform basic arithmetic.",
+                "prerequisite_statements": ["Can download, open, edit, and save learner files."],
+                "baseline_confirmed": True,
+                "prerequisites_confirmed": True,
+                "tools_confirmed": True,
+                "inputs_confirmed": True,
+            },
             "entry": {
                 "started_at": "2026-10-18T16:00:00+08:00",
                 "page": "courses/demo/index.html",
@@ -414,16 +495,85 @@ class CourseProductionTests(unittest.TestCase):
             },
             "actions": [
                 {
+                    "id": "action-source",
                     "sequence": 1,
-                    "action": "依序完成三個單元並保存每一階段產物。",
-                    "observable_result": "完成資料摘錄、企劃初稿與修訂稿。",
+                    "task_id": "heldout-full-course-plan",
+                    "action": "Inspect the held-out product data and extract its budget and timing constraints.",
+                    "decision": "Reject the high-cost channel because the held-out budget is below its threshold.",
+                    "input_sha256": "1" * 64,
+                    "output_sha256": "4" * 64,
+                    "observable_result": "A source constraint table records the held-out budget and rejected channel.",
+                    "result": "PASS",
                     "at": "2026-10-18T16:10:00+08:00",
+                },
+                {
+                    "id": "action-plan",
+                    "sequence": 2,
+                    "task_id": "heldout-full-course-plan",
+                    "action": "Build a new campaign plan from the held-out constraints and recalculate allocations.",
+                    "decision": "Allocate the remaining budget to the two channels that meet the revised threshold.",
+                    "input_sha256": "4" * 64,
+                    "output_sha256": "5" * 64,
+                    "observable_result": "The campaign plan totals the held-out budget and documents the threshold choice.",
+                    "result": "PASS",
+                    "at": "2026-10-18T16:30:00+08:00",
+                },
+                {
+                    "id": "action-audit",
+                    "sequence": 3,
+                    "task_id": "heldout-full-course-plan",
+                    "action": "Audit the held-out plan against every acceptance rule and repair the failed allocation.",
+                    "decision": "Revise the allocation because its first draft exceeded the per-channel limit.",
+                    "input_sha256": "5" * 64,
+                    "output_sha256": "3" * 64,
+                    "observable_result": "The final held-out plan passes source, completeness, and audit criteria.",
+                    "result": "PASS",
+                    "at": "2026-10-18T16:50:00+08:00",
                 }
+            ],
+            "transfer_task": {
+                "task_id": "heldout-full-course-plan",
+                "source_task_id": "guided-course-plan",
+                "changed_conditions": [
+                    {
+                        "dimension": "threshold",
+                        "before": "Approve channels with cost at or below 50000.",
+                        "after": "Approve channels with cost at or below 30000.",
+                        "before_decision": "Approve the display channel.",
+                        "after_decision": "Reject the display channel and reallocate its budget.",
+                        "decision_basis": "The lower held-out threshold changes channel eligibility and forces a new allocation.",
+                    }
+                ],
+                "held_out_input_sha256": "1" * 64,
+                "held_out_output_sha256": "3" * 64,
+                "reference_hashes": {
+                    "demonstration": {"input_sha256": "6" * 64, "output_sha256": "7" * 64},
+                    "guided_practice": {"input_sha256": "8" * 64, "output_sha256": "9" * 64},
+                    "answer_key": {"input_sha256": "a" * 64, "output_sha256": "b" * 64},
+                },
+            },
+            "criterion_evidence": [
+                {
+                    "g0_criterion_id": g0_id,
+                    "capability_id": capability_id,
+                    "outcome_id": outcome_id,
+                    "criterion_id": criterion_id,
+                    "unit_id": unit_id,
+                    "action_id": action_id,
+                    "artifact_evidence_id": "trial-full-course-final-plan",
+                    "result": "PASS",
+                }
+                for g0_id, capability_id, outcome_id, criterion_id, unit_id, action_id in (
+                    ("uses-source-facts", "capability-source", "outcome-source", "criterion-source", "unit-1", "action-source"),
+                    ("complete-plan", "capability-plan", "outcome-plan", "criterion-plan", "unit-2", "action-plan"),
+                    ("passes-audit", "capability-audit", "outcome-audit", "criterion-audit", "unit-3", "action-audit"),
+                )
             ],
             "hints": [{"source": "none", "detail": "未使用額外提示。"}],
             "blocks": [],
             "recovery": [],
             "artifact": {
+                "evidence_id": "trial-full-course-final-plan",
                 "path": "trial-output/full-course-run/final-plan.pdf",
                 "sha256": "3" * 64,
                 "complete": True,
@@ -435,6 +585,29 @@ class CourseProductionTests(unittest.TestCase):
                 "completed_at": "2026-10-18T17:00:00+08:00",
                 "notes": "只使用學員可見頁面與素材完成全課。",
             },
+            "maturity_claims": {
+                "ai_trial": "INDEPENDENT_AI_VERIFIED",
+                "human_duration": "PENDING_HUMAN",
+                "human_readability": "PENDING_HUMAN",
+                "target_learner_independence": "PENDING_HUMAN",
+            },
+        }
+
+    def full_requirements(self):
+        return {
+            "target_profile": {
+                "id": "target-marketing-practitioner",
+                "baseline": "Can inspect tabular campaign data and perform basic arithmetic.",
+                "prerequisites": ["Can download, open, edit, and save learner files."],
+            },
+            "environment": {
+                "tools": ["Spreadsheet application", "Markdown editor"],
+            },
+            "acceptance_criteria": [
+                {"id": "uses-source-facts", "capabilities": [{"id": "capability-source", "statement": "Use source facts."}]},
+                {"id": "complete-plan", "capabilities": [{"id": "capability-plan", "statement": "Complete the plan."}]},
+                {"id": "passes-audit", "capabilities": [{"id": "capability-audit", "statement": "Pass the audit."}]},
+            ],
         }
 
     def full_production(self):
@@ -459,7 +632,7 @@ class CourseProductionTests(unittest.TestCase):
                 }
             )
         return {
-            "schema_version": 1,
+            "schema_version": 2,
             "course_id": "marketing-practice",
             "production_authors": ["course-author-01", "page-builder-01"],
             "g4_trial_context_id": "pilot-cold-run-20261018-01",
@@ -493,10 +666,20 @@ class CourseProductionTests(unittest.TestCase):
                     "lesson_unit_id": unit["id"],
                     "artifact_criterion_id": criterion["g0_criterion_id"],
                     "artifact_evidence_id": criterion["g0_criterion_id"],
-                    "trial_evidence_id": "action-1",
+                    "trial_evidence_id": action_id,
                 }
-                for unit, criterion in zip(blueprint_units, self.full_blueprint()["criteria"])
+                for unit, criterion, action_id in zip(
+                    blueprint_units,
+                    self.full_blueprint()["criteria"],
+                    ("action-source", "action-plan", "action-audit"),
+                )
             ],
+            "accessibility_report": {
+                "evidence_id": "accessibility-g5-full-course",
+                "path": "evidence/accessibility-g5-full-course.json",
+                "sha256": "a" * 64,
+                "claim_scope": "basic_accessibility_smoke",
+            },
             "final_artifact": {
                 "path": "courses/demo/examples/final-plan.pdf",
                 "sha256": "f" * 64,
@@ -629,9 +812,9 @@ class CourseProductionTests(unittest.TestCase):
                 }
                 self.assertIn("device_evidence_required", codes)
 
-    def test_automated_accessibility_check_cannot_replace_manual_evaluation(self):
+    def test_pilot_requires_typed_accessibility_report_reference(self):
         pilot = self.valid_pilot()
-        pilot["accessibility"]["manual"] = None
+        del pilot["accessibility_report"]
 
         codes = {
             item.code
@@ -640,7 +823,7 @@ class CourseProductionTests(unittest.TestCase):
             )
         }
 
-        self.assertIn("manual_accessibility_required", codes)
+        self.assertIn("schema_required", codes)
 
     def test_g5_cannot_begin_until_g4_passes(self):
         contract = new_contract(
@@ -1076,6 +1259,16 @@ class CourseProductionTests(unittest.TestCase):
             }
             self.bind_trial_inputs(root, production["full_course_trial"])
             self.bind_governed_course(root, contract, self.full_blueprint(), self.full_lessons())
+            pages = [
+                {"id": "course-entry", "path": production["navigation"]["entry"]},
+                *[{"id": unit["unit_id"], "path": unit["html_path"]} for unit in production["units"]],
+                {"id": "course-completion", "path": production["navigation"]["completion"]},
+            ]
+            _, accessibility_ref, production["accessibility_report"] = (
+                self.materialize_accessibility_report(
+                    root, "G5", pages, "accessibility-g5-invalid-course"
+                )
+            )
             production_bundle = {
                 "record": production,
                 "blueprint": self.full_blueprint(),
@@ -1091,7 +1284,12 @@ class CourseProductionTests(unittest.TestCase):
                     "id": "g5-integration",
                     "kind": "production_artifact",
                     "path": "evidence/g5-integration.json",
-                }
+                },
+                {
+                    "id": accessibility_ref["id"],
+                    "kind": accessibility_ref["kind"],
+                    "path": accessibility_ref["path"],
+                },
             ]
             planned_refs = self.planned_g5_references(
                 root, invalid_artifact_refs, production_bundle,

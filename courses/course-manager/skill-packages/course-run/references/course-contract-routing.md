@@ -63,3 +63,13 @@ Its `learning_coverage` matrix must cover every G0 child capability exactly once
 G3 and G5 replay the canonical bytes and hashes recorded by prior PASS events. Caller copies are convenience inputs only and must be byte-equivalent; a subset blueprint, missing lesson, extra lesson, duplicate owner, or relabelled workflow is rejected without changing the contract. Coverage evidence fields are stable IDs: G3 IDs must name atoms present in the lesson record, while G5 artifact and trial IDs must name an actual acceptance result and trial action.
 
 The G5 PASS event cites both production evidence and the separately hashed independent trial evidence. A production validation flag without those indexed artifacts cannot pass the Gate.
+
+## G4/G5 trial and accessibility evidence
+
+Both Gates consume a separate `contracts/course-trial-record.schema.json` record. It binds the canonical G0 requirements SHA-256, target profile, baseline and prerequisites, allowed tools and learner-visible inputs, plus the governed runner authority. The held-out task records structured `changed_conditions` that alter data, threshold, or context enough to require a new judgment. Demonstration, guided-practice, answer-key, and held-out input/output hashes must all differ. Every in-scope G0 child capability and G2 criterion binds exactly one passing held-out action ID and the verified artifact; filenames, sequence-derived IDs, generic actions, or copied answers do not count.
+
+An AI run can establish only `INDEPENDENT_AI_VERIFIED`. Its elapsed time cannot validate G0 duration, readability, or target-learner independence; `human_duration`, `human_readability`, and `target_learner_independence` remain `PENDING_HUMAN` until separate qualifying human evidence exists.
+
+Accessibility is a separate, safely consumed file conforming to `contracts/course-accessibility-report.schema.json`. Pilot and production records declare its exact evidence ID, path, SHA-256, and claim scope. G4 coverage is the exact representative learner page and cannot be promoted to full-course coverage. G5 coverage is the exact course entry, every learner unit page, and completion page.
+
+`basic_accessibility_smoke` covers only the declared keyboard, focus, reading-order, and overflow checks. `wcag_2_2_aa` requires every applicable WCAG 2.2 A/AA criterion, complete page coverage, recorded automated and manual results, and no unresolved HIGH, SERIOUS, or CRITICAL finding. A PASS label inside the report never substitutes for these records.

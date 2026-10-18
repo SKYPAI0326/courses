@@ -53,6 +53,19 @@ def _route_verified_trial_to_gate(
     if supplied_rosters != [roster_id]:
         raise ContractStateError("trial route must use the exact governed production role roster")
     transition_ids = [item for item in production_evidence_ids if item != roster_id]
+    accessibility_ids = [
+        str(item_id)
+        for item_id, reference in indexed.items()
+        if isinstance(reference, Mapping)
+        and reference.get("gate") == gate_id
+        and reference.get("kind") == "accessibility_report"
+    ]
+    if len(accessibility_ids) != 1:
+        raise ContractStateError(
+            "trial route requires exactly one typed accessibility report"
+        )
+    if accessibility_ids[0] not in transition_ids:
+        transition_ids.append(accessibility_ids[0])
     trial_reference = indexed.get(trial_evidence_id)
     receipt_reference = indexed.get(trial_receipt_evidence_id)
     if (

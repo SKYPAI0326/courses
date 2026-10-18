@@ -435,10 +435,11 @@ def validate_learning_coverage(requirements: Mapping[str, Any], blueprint: Mappi
     } if isinstance(final_artifact, Mapping) else set()
     trial = production.get("full_course_trial")
     trial_evidence_ids = {
-        f"action-{item.get('sequence')}"
+        str(item.get("id"))
         for item in trial.get("actions", [])
         if isinstance(item, Mapping)
-        and isinstance(item.get("sequence"), int)
+        and _text(item.get("id"))
+        and item.get("result") == "PASS"
     } if isinstance(trial, Mapping) else set()
     if not isinstance(rows, list):
         _issue(issues, "coverage_matrix_required", "$.production.learning_coverage", "G5 requires a criterion-level coverage matrix", "G5")

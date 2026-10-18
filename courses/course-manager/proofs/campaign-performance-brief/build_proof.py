@@ -63,6 +63,188 @@ def load_json(path: Path):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _canonical_hash(value) -> str:
+    return hashlib.sha256(
+        json.dumps(
+            value, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")
+    ).hexdigest()
+
+
+def _stable_hash(label: str) -> str:
+    return hashlib.sha256(label.encode("utf-8")).hexdigest()
+
+
+def trial_record(
+    requirements: dict,
+    blueprint: dict,
+    *,
+    scope: str,
+    runner_authority_id: str,
+    representative_unit_id: str | None = None,
+) -> dict:
+    """Build canonical Task 6 trial evidence without touching proof snapshots."""
+    units = {
+        unit["id"]: unit for unit in blueprint["units"]
+        if isinstance(unit, dict) and isinstance(unit.get("id"), str)
+    }
+    selected_units = (
+        {representative_unit_id}
+        if scope == "representative_unit"
+        else set(units)
+    )
+    criteria = [
+        criterion for criterion in blueprint["criteria"]
+        if any(
+            criterion["capability_id"] in unit.get("capability_ids", [])
+            for unit_id, unit in units.items() if unit_id in selected_units
+        )
+    ]
+    task_id = f"heldout-{scope.replace('_', '-')}"
+    artifact_id = f"trial-{scope.replace('_', '-')}-artifact"
+    heldout_input = _stable_hash(f"{task_id}:input")
+    actions = []
+    previous_hash = heldout_input
+    criterion_evidence = []
+    for sequence, criterion in enumerate(criteria, start=1):
+        action_id = f"action-{criterion['capability_id']}"
+        output_hash = _stable_hash(f"{task_id}:output:{sequence}")
+        unit_id = next(
+            unit_id for unit_id, unit in units.items()
+            if criterion["capability_id"] in unit.get("capability_ids", [])
+        )
+        actions.append({
+            "id": action_id,
+            "sequence": sequence,
+            "task_id": task_id,
+            "action": f"Apply the held-out evidence to capability {criterion['capability_id']} and preserve the calculation basis.",
+            "decision": f"Select the result that satisfies criterion {criterion['id']} under the changed threshold.",
+            "input_sha256": previous_hash,
+            "output_sha256": output_hash,
+            "observable_result": f"A reviewable result for {criterion['capability_id']} is present in the held-out artifact.",
+            "result": "PASS",
+            "at": f"2026-10-18T16:{sequence:02d}:00+08:00",
+        })
+        criterion_evidence.append({
+            "g0_criterion_id": criterion["g0_criterion_id"],
+            "capability_id": criterion["capability_id"],
+            "outcome_id": criterion["outcome_id"],
+            "criterion_id": criterion["id"],
+            "unit_id": unit_id,
+            "action_id": action_id,
+            "artifact_evidence_id": artifact_id,
+            "result": "PASS",
+        })
+        previous_hash = output_hash
+    page = (
+        f"course/{representative_unit_id}.html"
+        if scope == "representative_unit"
+        else "course/index.html"
+    )
+    target = requirements["target_profile"]
+    return {
+        "schema_version": 2,
+        "scope": scope,
+        "requirements_sha256": _canonical_hash(requirements),
+        "target_profile_id": target["id"],
+        "runner_authority_id": runner_authority_id,
+        "participant": {
+            "id": f"independent-ai-{scope.replace('_', '-')}",
+            "type": "independent-ai",
+            "roles": ["learner-trial"],
+        },
+        "runner_session_id": f"session-{scope.replace('_', '-')}",
+        "isolated_context_id": f"context-{scope.replace('_', '-')}",
+        "allowed_tools": list(requirements["environment"]["tools"]),
+        "allowed_inputs": [{"kind": "learner-page", "path": page, "sha256": heldout_input}],
+        "forbidden_inputs_accessed": [],
+        "entry_readiness": {
+            "baseline_statement": target["baseline"],
+            "prerequisite_statements": list(target["prerequisites"]),
+            "baseline_confirmed": True,
+            "prerequisites_confirmed": True,
+            "tools_confirmed": True,
+            "inputs_confirmed": True,
+        },
+        "entry": {
+            "started_at": "2026-10-18T16:00:00+08:00",
+            "page": page,
+            "goal_understood": True,
+            "materials_found": True,
+        },
+        "transfer_task": {
+            "task_id": task_id,
+            "source_task_id": f"guided-{scope.replace('_', '-')}",
+            "changed_conditions": [{
+                "dimension": "threshold",
+                "before": "CPA at or below 500 and ROAS at or above 4.0.",
+                "after": "CPA at or below 350 and ROAS at or above 5.0.",
+                "before_decision": "Keep the campaign under the original threshold.",
+                "after_decision": "Reallocate the campaign under the stricter threshold.",
+                "decision_basis": "Both acceptance thresholds changed, requiring new calculations and a different campaign decision.",
+            }],
+            "held_out_input_sha256": heldout_input,
+            "held_out_output_sha256": previous_hash,
+            "reference_hashes": {
+                name: {
+                    "input_sha256": _stable_hash(f"{task_id}:{name}:input"),
+                    "output_sha256": _stable_hash(f"{task_id}:{name}:output"),
+                }
+                for name in ("demonstration", "guided_practice", "answer_key")
+            },
+        },
+        "actions": actions,
+        "criterion_evidence": criterion_evidence,
+        "hints": [{"source": "none", "detail": "The runner used only the learner-visible page."}],
+        "blocks": [],
+        "recovery": [],
+        "artifact": {
+            "evidence_id": artifact_id,
+            "path": f"trials/{scope}/heldout-artifact.md",
+            "sha256": previous_hash,
+            "complete": True,
+            "verifiable": True,
+            "acceptance_result": "PASS",
+        },
+        "result": {
+            "status": "PASS",
+            "completed_at": "2026-10-18T17:00:00+08:00",
+            "notes": "Independent AI trial used only declared learner-visible inputs.",
+        },
+        "maturity_claims": {
+            "ai_trial": "INDEPENDENT_AI_VERIFIED",
+            "human_duration": "PENDING_HUMAN",
+            "human_readability": "PENDING_HUMAN",
+            "target_learner_independence": "PENDING_HUMAN",
+        },
+    }
+
+
+def accessibility_report(gate_scope: str, pages: list[dict]) -> dict:
+    """Build a basic smoke report; this factory makes no WCAG conformance claim."""
+    report_id = f"accessibility-{gate_scope.lower()}-basic-smoke"
+    return {
+        "schema_version": 1,
+        "report_id": report_id,
+        "gate_scope": gate_scope,
+        "coverage_scope": "representative_page" if gate_scope == "G4" else "full_course",
+        "claim": {"scope": "basic_accessibility_smoke", "standard": "COURSE_ACCESSIBILITY_SMOKE", "version": "1.0", "level": "basic"},
+        "pages": copy.deepcopy(pages),
+        "applicable_criteria": [{"criterion_id": item, "level": "basic"} for item in ("keyboard", "focus", "reading-order", "horizontal-overflow")],
+        "automated_checks": [{
+            "check_id": "automated-overflow", "tool": "Playwright", "tool_version": "1.56.1", "user_agent": "Chromium 141",
+            "page_ids": [page["id"] for page in pages],
+            "results": [{"criterion_id": "horizontal-overflow", "status": "PASS", "evidence": "No page-level horizontal overflow at tested viewports."}],
+        }],
+        "manual_checks": [{
+            "check_id": "manual-core-path", "evaluator_id": "accessibility-review-ai", "method": "Keyboard, focus, and reading-order inspection.",
+            "user_agent": "Safari 20", "assistive_technology": ["VoiceOver 17"], "page_ids": [page["id"] for page in pages],
+            "results": [{"criterion_id": item, "status": "PASS", "evidence": f"Observed {item} on each listed page."} for item in ("keyboard", "focus", "reading-order")],
+        }],
+        "findings": [],
+    }
+
+
 def requirements_record() -> dict:
     """Return the concrete G0 contract used by this proof course."""
     return {
@@ -275,7 +457,7 @@ def production_learning_coverage(blueprint: dict) -> list[dict]:
                 "lesson_unit_id": unit["id"],
                 "artifact_criterion_id": criterion["g0_criterion_id"],
                 "artifact_evidence_id": criterion["g0_criterion_id"],
-                "trial_evidence_id": "action-1",
+                "trial_evidence_id": f"action-{criterion['capability_id']}",
             }
         )
     return rows

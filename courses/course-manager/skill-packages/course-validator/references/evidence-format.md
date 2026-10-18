@@ -41,31 +41,79 @@
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "scope": "representative_unit",
+  "requirements_sha256": "64位小寫SHA256",
+  "target_profile_id": "target-marketing-practitioner",
+  "runner_authority_id": "externally-governed-runner",
   "participant": {
     "id": "cold-learner-ai-01",
     "type": "independent-ai",
     "roles": ["learner-trial"]
   },
+  "runner_session_id": "cold-session-20261018-01",
   "isolated_context_id": "cold-run-20261018-01",
+  "allowed_tools": ["試算表", "文字編輯器"],
   "allowed_inputs": [{
     "kind": "learner-page",
     "path": "courses/demo/unit-1.html",
     "sha256": "64位小寫SHA256"
   }],
   "forbidden_inputs_accessed": [],
+  "entry_readiness": {
+    "baseline_statement": "能讀取表格並完成基本運算。",
+    "prerequisite_statements": ["能下載、開啟、編輯及儲存學員檔案。"],
+    "baseline_confirmed": true,
+    "prerequisites_confirmed": true,
+    "tools_confirmed": true,
+    "inputs_confirmed": true
+  },
   "entry": {
     "started_at": "2026-10-18T15:00:00+08:00",
     "page": "courses/demo/unit-1.html",
     "goal_understood": true,
     "materials_found": true
   },
+  "transfer_task": {
+    "task_id": "heldout-budget-plan",
+    "source_task_id": "guided-budget-plan",
+    "changed_conditions": [{
+      "dimension": "threshold",
+      "before": "預算上限 50000。",
+      "after": "預算上限 30000。",
+      "before_decision": "保留高成本渠道。",
+      "after_decision": "移除高成本渠道並重新分配。",
+      "decision_basis": "較低預算門檻改變渠道資格與分配結果。"
+    }],
+    "held_out_input_sha256": "與 learner-page 相同的 SHA256",
+    "held_out_output_sha256": "完成品 SHA256",
+    "reference_hashes": {
+      "demonstration": {"input_sha256": "不同 SHA256", "output_sha256": "不同 SHA256"},
+      "guided_practice": {"input_sha256": "不同 SHA256", "output_sha256": "不同 SHA256"},
+      "answer_key": {"input_sha256": "不同 SHA256", "output_sha256": "不同 SHA256"}
+    }
+  },
   "actions": [{
+    "id": "action-budget-decision",
     "sequence": 1,
+    "task_id": "heldout-budget-plan",
     "action": "開啟學員素材並找出預算與截止日。",
+    "decision": "依新的預算門檻移除高成本渠道。",
+    "input_sha256": "與 held-out input 相同的 SHA256",
+    "output_sha256": "與 held-out output 相同的 SHA256",
     "observable_result": "在資料表找到兩個欄位。",
+    "result": "PASS",
     "at": "2026-10-18T15:01:00+08:00"
+  }],
+  "criterion_evidence": [{
+    "g0_criterion_id": "criterion-plan",
+    "capability_id": "capability-plan",
+    "outcome_id": "outcome-plan",
+    "criterion_id": "g2-plan",
+    "unit_id": "unit-1",
+    "action_id": "action-budget-decision",
+    "artifact_evidence_id": "trial-plan-artifact",
+    "result": "PASS"
   }],
   "hints": [{
     "source": "learner-page",
@@ -82,6 +130,7 @@
     "result": "修正後通過頁面檢查。"
   }],
   "artifact": {
+    "evidence_id": "trial-plan-artifact",
     "path": "trial-output/cold-run-20261018-01/plan.pdf",
     "sha256": "64位小寫SHA256",
     "complete": true,
@@ -92,6 +141,12 @@
     "status": "PASS",
     "completed_at": "2026-10-18T15:10:00+08:00",
     "notes": "只依學員可見頁面與素材完成。"
+  },
+  "maturity_claims": {
+    "ai_trial": "INDEPENDENT_AI_VERIFIED",
+    "human_duration": "PENDING_HUMAN",
+    "human_readability": "PENDING_HUMAN",
+    "target_learner_independence": "PENDING_HUMAN"
   }
 }
 ```
@@ -99,3 +154,9 @@
 真人試學把 `participant.type` 設為 `human`，並加上 `human_participant_evidence`，其中必須有 consent record、observer ID 與 session recording SHA-256。沒有這些證據時最多只能保留較低成熟度，不能標記 `HUMAN_VERIFIED`。
 
 試走紀錄的 SHA-256 連同製作證據 ID 寫入 contract `evidence_index`。Gate PASS event 必須同時引用製作證據與試走證據，並記錄 `INDEPENDENT_AI_VERIFIED`；缺任一類都不能完成 G4 或 G5。
+
+## Accessibility report
+
+Accessibility 另存符合 `contracts/course-accessibility-report.schema.json` 的實檔，pilot／production 只保存 exact evidence ID、path、SHA-256 與 claim scope。G4 exact 涵蓋代表頁；G5 exact 涵蓋 entry、全部 learner unit pages 與 completion。
+
+`basic_accessibility_smoke` 僅涵蓋 keyboard、focus、reading-order、horizontal-overflow。`wcag_2_2_aa` 才能聲明 WCAG 2.2 AA，且須列出全部適用 A/AA criteria、每頁 manual／automated results、tools、user agents、assistive technology、findings severity/status/resolution；NOT_TESTED、FAIL 或未解 HIGH/SERIOUS/CRITICAL finding 一律 BLOCK。

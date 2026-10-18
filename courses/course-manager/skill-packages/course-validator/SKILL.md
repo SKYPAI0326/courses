@@ -51,13 +51,23 @@ G4 必須試走 `representative_unit`，G5 必須試走 `full_course`。試走 A
 
 試走前只交付學員實際會取得的頁面與素材，並記錄各自 SHA-256。不得提供課程契約、研究摘要、作者備忘錄、教學設計稿、答案鍵、檢核規則或任何製作對話。執行過程寫入 `course-trial-record.schema.json` 對應紀錄，至少包含：
 
+- canonical G0 requirements SHA-256、target profile、baseline／prerequisite 聲明、allowed tools／inputs 與 governed runner authority。
 - 從哪個入口開始，以及是否看懂成果與找到材料。
-- 依時間順序發生的動作與可觀察結果。
+- held-out task 的結構化 `changed_conditions`；資料、門檻或情境必須迫使重新判斷，且 demonstration／guided-practice／answer-key／held-out 的 input/output hashes 全部不可重用。
+- 依時間順序發生的具體動作、判斷與可觀察結果；每個 in-scope G0 child capability／G2 criterion 綁定真實 PASS action ID 與完成品 evidence ID。
 - 每次提示的來源；來源只能是學員頁、學員素材或完全沒有提示。
 - 卡點、失敗代碼、是否恢復，以及實際採用的修復動作。
 - 完成品路徑、雜湊、完整性、可驗證性與驗收結果。
 
 只有「製作證據＋通過的獨立試學紀錄」可以讓 G4 或 G5 PASS。沒有製作證據、完成品不完整、無法驗證、曾讀取內部材料或試走者與製作團隊重疊，一律 BLOCK。
+
+AI 試走成熟度只能是 `INDEPENDENT_AI_VERIFIED`。AI 完成時間不能證明課程時數合理，也不能代替真人可讀性或目標學員獨立完成證據；`human_duration`、`human_readability`、`target_learner_independence` 保持 `PENDING_HUMAN`，直到另有符合 target profile 的真人證據。
+
+## Accessibility evidence
+
+G4/G5 必須安全消費符合 `course-accessibility-report.schema.json` 的實際 report 檔，並核對 pilot／production 宣告的 evidence ID、path、SHA-256、claim scope 與實檔完全一致。report 記 exact page IDs/paths、standard/version/level、applicable criteria、automated/manual checks、tools、user agents、assistive technology，以及 finding severity/status/resolution。
+
+`basic_accessibility_smoke` 僅能聲明 keyboard、focus、reading-order、horizontal-overflow 的 basic smoke。`wcag_2_2_aa` 必須涵蓋全部適用 WCAG 2.2 A/AA criteria、所有聲明頁面、manual 與 automated results；任何 NOT_TESTED、FAIL 或 unresolved HIGH/SERIOUS/CRITICAL finding 都是 BLOCK。G4 只涵蓋 exact representative page；G5 必須 exact 涵蓋 entry、每一 learner unit page 與 completion。不得把 G4 或 basic smoke 推廣為全課 WCAG conformance，也不得只信 report 內的 PASS 字樣。
 
 失敗回送依原因決定：來源或工具行為不符回 G1；順序或難度失衡回 G2；解釋或練習不足回 G3；介面、版面或單元素材問題回 G4；跨單元與全課整合回 G5；存取、部署或發布環境回 G6。修正後以新 hash 重做受影響範圍，不沿用舊試走結論。
 

@@ -415,6 +415,8 @@ concept 類的「Reflection」區塊用這個新 HTML 結構（由 Troubleshoot 
 
 6. **Responsive 最低標準**——在 `390px` 手機、`820px` 平板與 `1440px` 桌面實際完成核心路徑；不得有非預期水平捲動、遮擋、裁切或閱讀順序錯置。
 
+7. **Accessibility evidence**——G4 產出代表頁時，另存符合 `contracts/course-accessibility-report.schema.json` 的實際 report，pilot 只保存其 exact evidence ID、path、SHA-256 與 claim scope。只測 keyboard、focus、reading order、overflow 時固定聲明 `basic_accessibility_smoke`；不得寫成 WCAG conformance。若聲明 `wcag_2_2_aa`，交由 validator 核對完整適用 criteria、manual／automated results、tools、user agents、assistive technology 與 findings。
+
 ## HTML 編輯保護契約（必讀）
 
 HTML 作業前讀 [SKILL.md](/Users/paichenwei/.agents/skills/course-html-contract/SKILL.md)，依該契約宣告變更類型，執行 DOM／文字保護、共用結構檢查、代表頁 RWD／scroll state 驗證及回復規則；驗收與授權狀態據實回報。

@@ -216,7 +216,9 @@ class CourseArchitectureTests(unittest.TestCase):
             "final_artifact": {
                 "acceptance": [{"criterion_id": "criterion-decision-brief"}]
             },
-            "full_course_trial": {"actions": [{"sequence": 1}]},
+            "full_course_trial": {
+                "actions": [{"id": "action-1", "sequence": 1, "result": "PASS"}]
+            },
         }
 
     def test_complete_blueprint_is_valid_and_uses_one_reasoned_path(self):

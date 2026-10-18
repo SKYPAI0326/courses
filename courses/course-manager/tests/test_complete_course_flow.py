@@ -12,6 +12,7 @@ from src.course_architecture import validate_course_blueprint, validate_learning
 from src.course_content import validate_lesson_record
 from src.course_requirements import validate_requirements_record
 from src.course_validation import evidence_maturity, validate_trial_record
+from src.course_accessibility import validate_accessibility_report
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -52,16 +53,19 @@ class CompleteCourseFlowTests(unittest.TestCase):
             for unit_id in ("unit-1", "unit-2", "unit-3")
         ]
         production = {
-            "learning_coverage": PROOF_BUILDER["production_learning_coverage"](
-                blueprint
-            ),
+            "learning_coverage": PROOF_BUILDER["production_learning_coverage"](blueprint),
             "final_artifact": {
                 "acceptance": [
                     {"criterion_id": item["id"]}
                     for item in requirements["acceptance_criteria"]
                 ]
             },
-            "full_course_trial": {"actions": [{"sequence": 1}]},
+            "full_course_trial": {"actions": [
+                {"id": row["trial_evidence_id"], "sequence": index, "result": "PASS"}
+                for index, row in enumerate(
+                    PROOF_BUILDER["production_learning_coverage"](blueprint), start=1
+                )
+            ]},
         }
 
         for lesson in lessons:
@@ -69,6 +73,40 @@ class CompleteCourseFlowTests(unittest.TestCase):
         self.assertEqual(
             validate_learning_coverage(
                 requirements, blueprint, lessons, production
+            ),
+            [],
+        )
+
+    def test_proof_builder_emits_canonical_trial_and_basic_accessibility_factories(self):
+        requirements = PROOF_BUILDER["requirements_record"]()
+        blueprint = PROOF_BUILDER["blueprint_record"](requirements)
+        trial = PROOF_BUILDER["trial_record"](
+            requirements,
+            blueprint,
+            scope="representative_unit",
+            representative_unit_id="unit-3",
+            runner_authority_id="test-independent-lab",
+        )
+        self.assertEqual(
+            validate_trial_record(
+                trial,
+                ["course-author-ai"],
+                "representative_unit",
+                requirements=requirements,
+                requirements_sha256=trial["requirements_sha256"],
+                blueprint=blueprint,
+                representative_unit_id="unit-3",
+                runner_authority_id="test-independent-lab",
+            ),
+            [],
+        )
+        self.assertEqual(evidence_maturity(trial), "INDEPENDENT_AI_VERIFIED")
+
+        pages = [{"id": "unit-3", "path": "course/unit-3.html"}]
+        report = PROOF_BUILDER["accessibility_report"]("G4", pages)
+        self.assertEqual(
+            validate_accessibility_report(
+                report, expected_gate="G4", expected_pages=pages
             ),
             [],
         )
@@ -100,19 +138,29 @@ class CompleteCourseFlowTests(unittest.TestCase):
 
         pilot_trial = self.load_json("trials/g4-representative-unit.json")
         full_trial = self.load_json("trials/g5-full-course.json")
-        self.assertEqual(
-            validate_trial_record(pilot_trial, ["course-author-ai"], "representative_unit"),
-            [],
+        self.assertIn(
+            "schema_required",
+            {
+                issue.code
+                for issue in validate_trial_record(
+                    pilot_trial, ["course-author-ai"], "representative_unit"
+                )
+            },
         )
-        self.assertEqual(
-            validate_trial_record(full_trial, ["course-author-ai"], "full_course"),
-            [],
+        self.assertIn(
+            "schema_required",
+            {
+                issue.code
+                for issue in validate_trial_record(
+                    full_trial, ["course-author-ai"], "full_course"
+                )
+            },
         )
         self.assertNotEqual(
             pilot_trial["isolated_context_id"], full_trial["isolated_context_id"]
         )
-        self.assertEqual(evidence_maturity(pilot_trial), "INDEPENDENT_AI_VERIFIED")
-        self.assertEqual(evidence_maturity(full_trial), "INDEPENDENT_AI_VERIFIED")
+        self.assertNotEqual(evidence_maturity(pilot_trial), "INDEPENDENT_AI_VERIFIED")
+        self.assertNotEqual(evidence_maturity(full_trial), "INDEPENDENT_AI_VERIFIED")
 
         with (PROOF_ROOT / "course/assets/campaign-data.csv").open(
             encoding="utf-8"

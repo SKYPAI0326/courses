@@ -237,12 +237,16 @@ def validate_pilot_record(
     asset_manifest: Mapping[str, Any],
 ) -> list[ProductionIssue]:
     issues = validate_asset_manifest(asset_manifest)
-    if record.get("schema_version") != 1:
+    issues.extend(
+        ProductionIssue(issue.code, issue.path, issue.message, "G4")
+        for issue in validate_schema_file("course-pilot-record.schema.json", record)
+    )
+    if record.get("schema_version") != 2:
         _issue(
             issues,
             "unsupported_pilot_schema",
             "$.schema_version",
-            "pilot record schema_version must be 1",
+            "pilot record schema_version must be 2",
         )
     unit_id = record.get("unit_id")
     if unit_id != lesson_record.get("unit_id") or not isinstance(unit_id, str):
@@ -381,53 +385,6 @@ def validate_pilot_record(
                     f"{device} must pass the core path without horizontal overflow",
                 )
 
-    accessibility = record.get("accessibility")
-    if not isinstance(accessibility, Mapping):
-        _issue(
-            issues,
-            "manual_accessibility_required",
-            "$.accessibility",
-            "automated and manual accessibility evidence is required",
-        )
-    else:
-        automated = _require_text_fields(
-            accessibility.get("automated"),
-            ("tool", "result", "report_path"),
-            "$.accessibility.automated",
-            "automated_accessibility_required",
-            issues,
-        )
-        if automated is not None and automated.get("result") != "PASS":
-            _issue(
-                issues,
-                "automated_accessibility_required",
-                "$.accessibility.automated.result",
-                "automated accessibility check must pass",
-            )
-        manual = _require_text_fields(
-            accessibility.get("manual"),
-            (
-                "evaluator_id",
-                "keyboard_result",
-                "focus_result",
-                "reading_sequence_result",
-                "notes",
-            ),
-            "$.accessibility.manual",
-            "manual_accessibility_required",
-            issues,
-        )
-        if manual is not None and any(
-            manual.get(field) != "PASS"
-            for field in ("keyboard_result", "focus_result", "reading_sequence_result")
-        ):
-            _issue(
-                issues,
-                "manual_accessibility_required",
-                "$.accessibility.manual",
-                "keyboard, focus, and reading sequence must all pass manual evaluation",
-            )
-
     _require_text_fields(
         record.get("navigation"),
         ("entry", "previous", "next"),
@@ -490,12 +447,12 @@ def validate_full_production(
         ProductionIssue(issue.code, issue.path, issue.message, "G5")
         for issue in validate_schema_file("course-production-record.schema.json", record)
     )
-    if record.get("schema_version") != 1:
+    if record.get("schema_version") != 2:
         _full_issue(
             issues,
             "unsupported_production_schema",
             "$.schema_version",
-            "full production schema_version must be 1",
+            "full production schema_version must be 2",
         )
     if not _text(record.get("course_id")):
         _full_issue(issues, "production_identity_missing", "$.course_id", "course id is required")

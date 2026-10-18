@@ -46,7 +46,10 @@ class CourseTrialValidationTests(unittest.TestCase):
 
     def valid_trial(self, participant_type="independent-ai", scope="representative_unit"):
         record = {
-            "schema_version": 1,
+            "schema_version": 2,
+            "requirements_sha256": "9" * 64,
+            "target_profile_id": "target-marketing-practitioner",
+            "runner_authority_id": self.authority_id,
             "scope": scope,
             "participant": {
                 "id": "cold-learner-ai-01",
@@ -55,6 +58,7 @@ class CourseTrialValidationTests(unittest.TestCase):
             },
             "runner_session_id": "cold-session-20261018-01",
             "isolated_context_id": "cold-run-20261018-01",
+            "allowed_tools": ["Spreadsheet application", "Markdown editor"],
             "allowed_inputs": [
                 {
                     "kind": "learner-page",
@@ -68,6 +72,14 @@ class CourseTrialValidationTests(unittest.TestCase):
                 },
             ],
             "forbidden_inputs_accessed": [],
+            "entry_readiness": {
+                "baseline_statement": "Can inspect tabular campaign data and perform basic arithmetic.",
+                "prerequisite_statements": ["Can download, open, edit, and save the learner files."],
+                "baseline_confirmed": True,
+                "prerequisites_confirmed": True,
+                "tools_confirmed": True,
+                "inputs_confirmed": True,
+            },
             "entry": {
                 "started_at": "2026-10-18T15:00:00+08:00",
                 "page": "courses/demo/unit-1.html",
@@ -76,17 +88,62 @@ class CourseTrialValidationTests(unittest.TestCase):
             },
             "actions": [
                 {
+                    "id": "inspect-held-out-source",
                     "sequence": 1,
+                    "task_id": "held-out-marketing-plan",
                     "action": "開啟商品資料並找出預算與截止日。",
+                    "decision": "依新的預算與截止日重新判斷企劃限制。",
                     "observable_result": "在資料表中找到預算 20 萬元與截止日。",
+                    "input_sha256": "a" * 64,
+                    "output_sha256": "d" * 64,
+                    "result": "PASS",
                     "at": "2026-10-18T15:01:00+08:00",
                 },
                 {
+                    "id": "produce-held-out-plan",
                     "sequence": 2,
+                    "task_id": "held-out-marketing-plan",
                     "action": "依講義步驟完成企劃表。",
+                    "decision": "依新的門檻選擇符合限制的預算拆分與時程。",
                     "observable_result": "產出含目標、受眾、時程與預算的企劃表。",
+                    "input_sha256": "d" * 64,
+                    "output_sha256": "c" * 64,
+                    "result": "PASS",
                     "at": "2026-10-18T15:08:00+08:00",
                 },
+            ],
+            "transfer_task": {
+                "task_id": "held-out-marketing-plan",
+                "source_task_id": "guided-marketing-plan",
+                "changed_conditions": [
+                    {
+                        "dimension": "threshold",
+                        "before": "示範預算上限為 30 萬元。",
+                        "after": "獨立任務預算上限為 20 萬元。",
+                        "before_decision": "三個渠道平均分配預算。",
+                        "after_decision": "依轉換門檻縮減未達標渠道預算。",
+                        "decision_basis": "預算門檻與渠道成效同時改變，必須重新計算後判斷。",
+                    }
+                ],
+                "held_out_input_sha256": "a" * 64,
+                "held_out_output_sha256": "c" * 64,
+                "reference_hashes": {
+                    "demonstration": {"input_sha256": "1" * 64, "output_sha256": "2" * 64},
+                    "guided_practice": {"input_sha256": "3" * 64, "output_sha256": "4" * 64},
+                    "answer_key": {"input_sha256": "5" * 64, "output_sha256": "6" * 64},
+                },
+            },
+            "criterion_evidence": [
+                {
+                    "g0_criterion_id": "criterion-plan",
+                    "capability_id": "capability-plan",
+                    "outcome_id": "outcome-plan",
+                    "criterion_id": "g2-plan",
+                    "unit_id": "unit-1",
+                    "action_id": "produce-held-out-plan",
+                    "artifact_evidence_id": "trial-final-plan",
+                    "result": "PASS",
+                }
             ],
             "hints": [
                 {
@@ -109,6 +166,7 @@ class CourseTrialValidationTests(unittest.TestCase):
                 }
             ],
             "artifact": {
+                "evidence_id": "trial-final-plan",
                 "path": "trial-output/cold-run-20261018-01/marketing-plan.pdf",
                 "sha256": "c" * 64,
                 "complete": True,
@@ -120,9 +178,16 @@ class CourseTrialValidationTests(unittest.TestCase):
                 "completed_at": "2026-10-18T15:10:00+08:00",
                 "notes": "只依學員頁與學員素材完成，未使用作者說明。",
             },
+            "maturity_claims": {
+                "ai_trial": "INDEPENDENT_AI_VERIFIED",
+                "human_duration": "PENDING_HUMAN",
+                "human_readability": "PENDING_HUMAN",
+                "target_learner_independence": "PENDING_HUMAN",
+            },
         }
         if participant_type == "human":
             record["participant"]["id"] = "human-trial-01"
+            record["maturity_claims"]["ai_trial"] = "NOT_APPLICABLE"
             record["human_participant_evidence"] = {
                 "consent_record": "evidence/human-trial-01-consent.json",
                 "observer_id": "observer-02",
@@ -137,6 +202,192 @@ class CourseTrialValidationTests(unittest.TestCase):
             payload = f"learner-visible input {index}\n".encode()
             target.write_bytes(payload)
             item["sha256"] = hashlib.sha256(payload).hexdigest()
+        trial["transfer_task"]["held_out_input_sha256"] = trial["allowed_inputs"][0]["sha256"]
+        trial["actions"][0]["input_sha256"] = trial["allowed_inputs"][0]["sha256"]
+
+    def governed_requirements(self):
+        return {
+            "target_profile": {
+                "id": "target-marketing-practitioner",
+                "baseline": "Can inspect tabular campaign data and perform basic arithmetic.",
+                "prerequisites": ["Can download, open, edit, and save the learner files."],
+            },
+            "environment": {
+                "tools": ["Spreadsheet application", "Markdown editor"],
+            },
+            "acceptance_criteria": [
+                {
+                    "id": "criterion-plan",
+                    "capabilities": [
+                        {"id": "capability-plan", "statement": "Create a constrained plan."}
+                    ],
+                }
+            ],
+        }
+
+    def governed_blueprint(self):
+        return {
+            "criteria": [
+                {
+                    "id": "g2-plan",
+                    "g0_criterion_id": "criterion-plan",
+                    "capability_id": "capability-plan",
+                    "outcome_id": "outcome-plan",
+                }
+            ],
+            "units": [
+                {
+                    "id": "unit-1",
+                    "outcome_ids": ["outcome-plan"],
+                    "criterion_ids": ["g2-plan"],
+                    "capability_ids": ["capability-plan"],
+                }
+            ],
+        }
+
+    def validate_bound_trial(self, trial, *, scope="representative_unit"):
+        return validate_trial_record(
+            trial,
+            [],
+            scope,
+            requirements=self.governed_requirements(),
+            requirements_sha256="9" * 64,
+            blueprint=self.governed_blueprint(),
+            representative_unit_id="unit-1" if scope == "representative_unit" else None,
+            runner_authority_id=self.authority_id,
+        )
+
+    def bind_governed_trial_design(self, root, contract, trial):
+        requirements_ref = materialize_json_evidence(
+            root,
+            evidence_id="governed-g0-requirements",
+            gate_id="G0",
+            kind="requirements_record",
+            relative_path="governed/g0-requirements.json",
+            value=self.governed_requirements(),
+        )
+        blueprint_ref = materialize_json_evidence(
+            root,
+            evidence_id="governed-g2-blueprint",
+            gate_id="G2",
+            kind="course_blueprint",
+            relative_path="governed/g2-blueprint.json",
+            value=self.governed_blueprint(),
+        )
+        for gate_id, ref in (("G0", requirements_ref), ("G2", blueprint_ref)):
+            old_id = f"{gate_id.lower()}-evidence"
+            contract["evidence_index"] = [
+                item for item in contract["evidence_index"] if item.get("id") != old_id
+            ]
+            contract["evidence_index"].append(ref)
+            event = contract["gates"][gate_id]["evidence"][-1]
+            event["evidence_ids"] = [ref["id"]]
+            event["consumed_evidence_ids"] = [ref["id"]]
+            event["consumed_evidence"] = [
+                {field: ref[field] for field in ("id", "gate", "kind", "path", "sha256")}
+            ]
+        contract["G0_requirements"] = self.governed_requirements()
+        contract["G2_architecture"] = self.governed_blueprint()
+        trial["requirements_sha256"] = requirements_ref["sha256"]
+        return requirements_ref, blueprint_ref
+
+    def test_trial_binds_canonical_profile_readiness_tools_and_authority(self):
+        self.assertEqual(self.validate_bound_trial(self.valid_trial()), [])
+
+        mutations = (
+            ("requirements_sha256", "8" * 64, "requirements_binding_mismatch"),
+            ("target_profile_id", "wrong-profile", "target_profile_mismatch"),
+            ("runner_authority_id", "wrong-authority", "runner_authority_mismatch"),
+            ("allowed_tools", ["Generic browser"], "allowed_tools_mismatch"),
+        )
+        for field, value, expected_code in mutations:
+            with self.subTest(field=field):
+                trial = self.valid_trial()
+                trial[field] = value
+                self.assertIn(expected_code, {item.code for item in self.validate_bound_trial(trial)})
+
+        for field in (
+            "baseline_confirmed",
+            "prerequisites_confirmed",
+            "tools_confirmed",
+            "inputs_confirmed",
+        ):
+            with self.subTest(readiness=field):
+                trial = self.valid_trial()
+                trial["entry_readiness"][field] = False
+                self.assertIn(
+                    "entry_readiness_failed",
+                    {item.code for item in self.validate_bound_trial(trial)},
+                )
+
+    def test_transfer_task_rejects_filename_swaps_same_decision_and_hash_reuse(self):
+        cases = []
+        missing_change = self.valid_trial()
+        missing_change["transfer_task"]["changed_conditions"] = []
+        cases.append((missing_change, "transfer_conditions_missing"))
+
+        filename_only = self.valid_trial()
+        condition = filename_only["transfer_task"]["changed_conditions"][0]
+        condition["dimension"] = "context"
+        condition["before"] = "practice-a.csv"
+        condition["after"] = "practice-b.csv"
+        condition["before_decision"] = "Approve the same campaign."
+        condition["after_decision"] = "Approve the same campaign."
+        cases.append((filename_only, "transfer_judgment_unchanged"))
+
+        renamed_file = self.valid_trial()
+        condition = renamed_file["transfer_task"]["changed_conditions"][0]
+        condition["before"] = "practice-a.csv"
+        condition["after"] = "practice-b.csv"
+        condition["before_decision"] = "Approve the original campaign allocation."
+        condition["after_decision"] = "Reject the renamed campaign allocation."
+        cases.append((renamed_file, "transfer_conditions_missing"))
+
+        reused = self.valid_trial()
+        reused["transfer_task"]["reference_hashes"]["answer_key"]["output_sha256"] = reused["transfer_task"]["held_out_output_sha256"]
+        cases.append((reused, "transfer_hash_reused"))
+
+        generic = self.valid_trial()
+        generic["actions"][1]["action"] = "complete task"
+        generic["actions"][1]["decision"] = "do the thing"
+        generic["actions"][1]["observable_result"] = "done"
+        cases.append((generic, "generic_trial_action"))
+
+        generic_words = self.valid_trial()
+        generic_words["actions"][1]["action"] = "Complete the assigned task successfully now."
+        generic_words["actions"][1]["decision"] = "Do the assigned work successfully now."
+        generic_words["actions"][1]["observable_result"] = "Finish the assigned task successfully now."
+        cases.append((generic_words, "generic_trial_action"))
+
+        for trial, expected_code in cases:
+            with self.subTest(expected_code=expected_code):
+                self.assertIn(expected_code, {item.code for item in self.validate_bound_trial(trial)})
+
+    def test_criterion_evidence_exactly_covers_governed_capabilities_and_real_actions(self):
+        cases = []
+        missing = self.valid_trial()
+        missing["criterion_evidence"] = []
+        cases.append((missing, "criterion_evidence_incomplete"))
+
+        duplicate = self.valid_trial()
+        duplicate["criterion_evidence"].append(copy.deepcopy(duplicate["criterion_evidence"][0]))
+        cases.append((duplicate, "criterion_evidence_duplicate"))
+
+        unknown = self.valid_trial()
+        unknown["criterion_evidence"][0]["criterion_id"] = "unknown-criterion"
+        cases.append((unknown, "criterion_evidence_unknown"))
+
+        unknown_action = self.valid_trial()
+        unknown_action["criterion_evidence"][0]["action_id"] = "missing-action"
+        cases.append((unknown_action, "criterion_action_invalid"))
+
+        failed_action = self.valid_trial()
+        failed_action["actions"][1]["result"] = "FAIL"
+        cases.append((failed_action, "criterion_action_invalid"))
+
+        for trial, expected_code in cases:
+            with self.subTest(expected_code=expected_code):
+                self.assertIn(expected_code, {item.code for item in self.validate_bound_trial(trial)})
 
     def prepared_g4_route(self, root, *, pilot_actor_ids=None, trial=None):
         from tests.test_course_production import CourseProductionTests
@@ -144,9 +395,16 @@ class CourseTrialValidationTests(unittest.TestCase):
         helper = CourseProductionTests("test_pilot_selector_chooses_highest_combined_risk_then_dependency")
         contract = self.make_contract_at_g4()
         trial = self.valid_trial() if trial is None else copy.deepcopy(trial)
+        self.bind_governed_trial_design(root, contract, trial)
         self.materialize_trial_inputs(root, trial)
         pilot = helper.valid_pilot()
         pilot["trial_context_id"] = trial["isolated_context_id"]
+        _, accessibility_ref, pilot["accessibility_report"] = helper.materialize_accessibility_report(
+            root,
+            "G4",
+            [{"id": pilot["unit_id"], "path": pilot["html_path"]}],
+            "accessibility-g4-unit-1",
+        )
         if pilot_actor_ids is not None:
             pilot["production_actor_ids"] = pilot_actor_ids
         pilot_ref = materialize_json_evidence(
@@ -166,7 +424,7 @@ class CourseTrialValidationTests(unittest.TestCase):
         receipt_ref = self.authority.issue(
             root, contract=contract, gate_id="G4",
             trial_reference=trial_ref, roster_reference=roster_ref,
-            transition_references=[pilot_ref, trial_ref, roster_ref],
+            transition_references=[pilot_ref, accessibility_ref, trial_ref, roster_ref],
             runner_id=trial["participant"]["id"], session_id=trial["runner_session_id"],
             issued_at="2026-10-18T15:14:00+08:00", nonce="attack-base-nonce",
             receipt_id="attack-receipt", relative_path="receipts/attack.json",
@@ -175,11 +433,121 @@ class CourseTrialValidationTests(unittest.TestCase):
             item for item in contract["evidence_index"]
             if item.get("id") != "g4-pilot-production"
         ]
-        contract["evidence_index"].extend([pilot_ref, roster_ref, trial_ref, receipt_ref])
+        contract["evidence_index"].extend([pilot_ref, accessibility_ref, roster_ref, trial_ref, receipt_ref])
         contract["governance"]["production_role_roster"] = {
             "evidence_id": roster_ref["id"], "sha256": roster_ref["sha256"]
         }
         return contract, pilot_ref, roster_ref, trial_ref, receipt_ref, trial
+
+    def test_g4_dispatcher_replays_canonical_trial_profile_and_authority_bindings(self):
+        for field, value in (
+            ("target_profile_id", "wrong-profile"),
+            ("runner_authority_id", "wrong-authority"),
+            ("requirements_sha256", "8" * 64),
+        ):
+            with self.subTest(field=field), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                trial = self.valid_trial()
+                contract, pilot_ref, roster_ref, trial_ref, receipt_ref, bound = (
+                    self.prepared_g4_route(root, trial=trial)
+                )
+                bound[field] = value
+                trial_ref = materialize_json_evidence(
+                    root,
+                    evidence_id=f"bad-{field}-trial",
+                    gate_id="G4",
+                    kind="independent_course_trial",
+                    relative_path=f"trials/bad-{field}.json",
+                    value=bound,
+                    maturity="INDEPENDENT_AI_VERIFIED",
+                )
+                receipt_ref = self.authority.issue(
+                    root,
+                    contract=contract,
+                    gate_id="G4",
+                    trial_reference=trial_ref,
+                    roster_reference=roster_ref,
+                    transition_references=[
+                        pilot_ref,
+                        next(
+                            item for item in contract["evidence_index"]
+                            if item.get("id") == "accessibility-g4-unit-1"
+                        ),
+                        trial_ref,
+                        roster_ref,
+                    ],
+                    runner_id=bound["participant"]["id"],
+                    session_id=bound["runner_session_id"],
+                    issued_at="2026-10-18T15:14:00+08:00",
+                    nonce=f"bad-{field}-nonce",
+                    receipt_id=f"bad-{field}-receipt",
+                    relative_path=f"receipts/bad-{field}.json",
+                )
+                contract["evidence_index"].extend([trial_ref, receipt_ref])
+
+                result = route_verified_trial_to_gate(
+                    contract,
+                    "G4",
+                    [pilot_ref["id"], roster_ref["id"]],
+                    trial_ref["id"],
+                    receipt_ref["id"],
+                    "course-validator",
+                    "2026-10-18T15:15:00+08:00",
+                    workspace_root=root,
+                )
+
+                self.assertEqual(result, "BLOCKED")
+                self.assertNotEqual(contract["gates"]["G4"]["status"], "PASS")
+
+    def test_g4_accessibility_report_must_exist_and_match_indexed_hash(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            contract, pilot_ref, roster_ref, trial_ref, receipt_ref, _ = (
+                self.prepared_g4_route(root)
+            )
+            accessibility_ref = next(
+                item for item in contract["evidence_index"]
+                if item.get("kind") == "accessibility_report"
+            )
+            report_path = root / accessibility_ref["path"]
+            report_path.write_text(
+                report_path.read_text(encoding="utf-8") + "\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ContractStateError, "invalid Gate evidence"):
+                route_verified_trial_to_gate(
+                    contract,
+                    "G4",
+                    [pilot_ref["id"], roster_ref["id"]],
+                    trial_ref["id"],
+                    receipt_ref["id"],
+                    "course-validator",
+                    "2026-10-18T15:15:00+08:00",
+                    workspace_root=root,
+                )
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            contract, pilot_ref, roster_ref, trial_ref, receipt_ref, _ = (
+                self.prepared_g4_route(root)
+            )
+            contract["evidence_index"] = [
+                item for item in contract["evidence_index"]
+                if item.get("kind") != "accessibility_report"
+            ]
+            with self.assertRaisesRegex(
+                ContractStateError, "exactly one typed accessibility report"
+            ):
+                route_verified_trial_to_gate(
+                    contract,
+                    "G4",
+                    [pilot_ref["id"], roster_ref["id"]],
+                    trial_ref["id"],
+                    receipt_ref["id"],
+                    "course-validator",
+                    "2026-10-18T15:15:00+08:00",
+                    workspace_root=root,
+                )
 
     def test_failed_signed_trial_routes_to_earliest_responsible_gate_atomically(self):
         trial = self.valid_trial()
@@ -259,11 +627,24 @@ class CourseTrialValidationTests(unittest.TestCase):
                     )
                     self.assertEqual(
                         set(event["evidence_ids"]),
-                        {pilot_ref["id"], trial_ref["id"], receipt_ref["id"]},
+                        {
+                            pilot_ref["id"],
+                            "accessibility-g4-unit-1",
+                            trial_ref["id"],
+                            receipt_ref["id"],
+                        },
                     )
                     self.assertEqual(
                         {item["id"] for item in event["consumed_evidence"]},
-                        {pilot_ref["id"], roster_ref["id"], trial_ref["id"], receipt_ref["id"]},
+                        {
+                            "governed-g0-requirements",
+                            "governed-g2-blueprint",
+                            pilot_ref["id"],
+                            "accessibility-g4-unit-1",
+                            roster_ref["id"],
+                            trial_ref["id"],
+                            receipt_ref["id"],
+                        },
                     )
                     self.assertEqual(
                         event["trial_result"],
@@ -526,12 +907,25 @@ class CourseTrialValidationTests(unittest.TestCase):
         record["result"]["status"] = "FAIL"
         self.assertEqual(evidence_maturity(record), "EXECUTION_VALIDATED")
 
-    def test_human_verified_requires_explicit_human_participant_evidence(self):
+    def test_human_claims_remain_pending_without_governed_target_profile_evidence(self):
         record = self.valid_trial(participant_type="human")
-        self.assertEqual(evidence_maturity(record), "HUMAN_VERIFIED")
+        self.assertEqual(evidence_maturity(record), "PENDING_HUMAN")
 
         del record["human_participant_evidence"]
-        self.assertNotEqual(evidence_maturity(record), "HUMAN_VERIFIED")
+        self.assertEqual(evidence_maturity(record), "EXECUTION_VALIDATED")
+
+    def test_ai_completion_time_does_not_claim_human_duration_or_readability(self):
+        record = self.valid_trial()
+        record["entry"]["started_at"] = "2026-10-18T15:00:00+08:00"
+        record["result"]["completed_at"] = "2026-10-18T15:01:00+08:00"
+
+        self.assertEqual(evidence_maturity(record), "INDEPENDENT_AI_VERIFIED")
+        self.assertEqual(record["maturity_claims"]["human_duration"], "PENDING_HUMAN")
+        self.assertEqual(record["maturity_claims"]["human_readability"], "PENDING_HUMAN")
+        self.assertEqual(
+            record["maturity_claims"]["target_learner_independence"],
+            "PENDING_HUMAN",
+        )
 
     def test_g5_trial_uses_new_isolated_context_and_full_course_scope(self):
         record = self.valid_trial(scope="full_course")
@@ -609,7 +1003,14 @@ class CourseTrialValidationTests(unittest.TestCase):
         pilot["trial_context_id"] = trial["isolated_context_id"]
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
+            self.bind_governed_trial_design(root, contract, trial)
             self.materialize_trial_inputs(root, trial)
+            _, accessibility_ref, pilot["accessibility_report"] = helper.materialize_accessibility_report(
+                root,
+                "G4",
+                [{"id": pilot["unit_id"], "path": pilot["html_path"]}],
+                "accessibility-g4-unit-1",
+            )
             pilot_ref = materialize_json_evidence(
                 root,
                 evidence_id="g4-pilot-record",
@@ -655,13 +1056,13 @@ class CourseTrialValidationTests(unittest.TestCase):
             receipt_ref = self.authority.issue(
                 root, contract=contract, gate_id="G4",
                 trial_reference=trial_ref, roster_reference=roster_ref,
-                transition_references=[pilot_ref, trial_ref, roster_ref],
+                transition_references=[pilot_ref, accessibility_ref, trial_ref, roster_ref],
                 runner_id=trial["participant"]["id"],
                 session_id=trial["runner_session_id"],
                 issued_at="2026-10-18T15:14:00+08:00", nonce="g4-positive-nonce",
                 receipt_id="g4-trial-receipt", relative_path="receipts/g4.json",
             )
-            contract["evidence_index"].extend([trial_ref, receipt_ref])
+            contract["evidence_index"].extend([accessibility_ref, trial_ref, receipt_ref])
 
             result = route_verified_trial_to_gate(
                 contract,

@@ -4,6 +4,8 @@ import re
 from dataclasses import dataclass
 from typing import Any, Mapping, Sequence
 
+from src.schema_runtime import validate_schema_file
+
 
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 TRIAL_SCOPES = {"representative_unit", "full_course"}
@@ -27,6 +29,19 @@ FORBIDDEN_INPUT_MARKERS = (
     "solution-key",
     "solution_key",
 )
+GENERIC_ACTION_TEXT = {
+    "complete task",
+    "do task",
+    "do the task",
+    "do the thing",
+    "finish task",
+    "done",
+    "pass",
+    "完成任務",
+    "執行任務",
+    "照做",
+    "完成",
+}
 
 
 @dataclass(frozen=True)
@@ -72,6 +87,80 @@ def route_trial_failure(issue_code: str) -> str:
 
 def _text(value: Any) -> bool:
     return isinstance(value, str) and bool(value.strip())
+
+
+def _normalized_text(value: Any) -> str:
+    if not isinstance(value, str):
+        return ""
+    return re.sub(r"[^0-9a-z\u3400-\u9fff]+", " ", value.casefold()).strip()
+
+
+def _concrete_action_text(value: Any) -> bool:
+    normalized = _normalized_text(value)
+    generic_words = {
+        "a", "assigned", "complete", "do", "done", "finish", "now",
+        "successfully", "task", "the", "thing", "work",
+    }
+    words = set(normalized.split())
+    return (
+        len(normalized.replace(" ", "")) >= 6
+        and normalized not in GENERIC_ACTION_TEXT
+        and not (words and words.issubset(generic_words))
+    )
+
+
+def _filename_only_change(before: Any, after: Any) -> bool:
+    filename_pattern = re.compile(r"^[^\s/]+\.[a-z0-9]{1,8}$", re.IGNORECASE)
+    return (
+        isinstance(before, str)
+        and isinstance(after, str)
+        and filename_pattern.fullmatch(before.strip()) is not None
+        and filename_pattern.fullmatch(after.strip()) is not None
+    )
+
+
+def _expected_trial_criteria(
+    requirements: Mapping[str, Any],
+    blueprint: Mapping[str, Any],
+    representative_unit_id: str | None,
+) -> dict[str, dict[str, str]]:
+    capability_to_g0 = {
+        str(capability.get("id")): str(criterion.get("id"))
+        for criterion in requirements.get("acceptance_criteria", [])
+        if isinstance(criterion, Mapping)
+        for capability in criterion.get("capabilities", [])
+        if isinstance(capability, Mapping)
+        and _text(criterion.get("id"))
+        and _text(capability.get("id"))
+    }
+    unit_by_capability = {
+        str(capability_id): str(unit.get("id"))
+        for unit in blueprint.get("units", [])
+        if isinstance(unit, Mapping) and _text(unit.get("id"))
+        for capability_id in unit.get("capability_ids", [])
+        if _text(capability_id)
+    }
+    expected: dict[str, dict[str, str]] = {}
+    for criterion in blueprint.get("criteria", []):
+        if not isinstance(criterion, Mapping):
+            continue
+        capability_id = criterion.get("capability_id")
+        if not _text(capability_id):
+            continue
+        capability_id = str(capability_id)
+        unit_id = unit_by_capability.get(capability_id)
+        if representative_unit_id is not None and unit_id != representative_unit_id:
+            continue
+        if capability_id not in capability_to_g0 or not _text(unit_id):
+            continue
+        expected[capability_id] = {
+            "g0_criterion_id": capability_to_g0[capability_id],
+            "capability_id": capability_id,
+            "outcome_id": str(criterion.get("outcome_id", "")),
+            "criterion_id": str(criterion.get("id", "")),
+            "unit_id": str(unit_id),
+        }
+    return expected
 
 
 def _add(
@@ -125,16 +214,28 @@ def validate_trial_record(
     record: Mapping[str, Any],
     production_roles: Sequence[str] | Mapping[str, Any],
     expected_scope: str,
+    *,
+    requirements: Mapping[str, Any] | None = None,
+    requirements_sha256: str | None = None,
+    blueprint: Mapping[str, Any] | None = None,
+    representative_unit_id: str | None = None,
+    runner_authority_id: str | None = None,
 ) -> list[TrialIssue]:
     issues: list[TrialIssue] = []
     if expected_scope not in TRIAL_SCOPES:
         raise ValueError(f"unsupported expected trial scope: {expected_scope}")
-    if record.get("schema_version") != 1:
+    current_gate = "G4" if expected_scope == "representative_unit" else "G5"
+    issues.extend(
+        TrialIssue(issue.code, issue.path, issue.message, current_gate)
+        for issue in validate_schema_file("course-trial-record.schema.json", record)
+    )
+    if record.get("schema_version") != 2:
         _add(
             issues,
             "trial_record_incomplete",
             "$.schema_version",
-            "trial record schema_version must be 1",
+            "trial record schema_version must be 2",
+            current_gate,
         )
     scope = record.get("scope")
     if scope != expected_scope:
@@ -145,6 +246,114 @@ def validate_trial_record(
             f"trial scope must be {expected_scope}",
             "G4" if expected_scope == "representative_unit" else "G5",
         )
+
+    requirements_digest = record.get("requirements_sha256")
+    if not SHA256_PATTERN.fullmatch(str(requirements_digest or "")):
+        _add(
+            issues,
+            "requirements_binding_mismatch",
+            "$.requirements_sha256",
+            "trial must bind a lowercase SHA-256 for canonical G0 requirements",
+            "G0",
+        )
+    elif requirements_sha256 is not None and requirements_digest != requirements_sha256:
+        _add(
+            issues,
+            "requirements_binding_mismatch",
+            "$.requirements_sha256",
+            "trial requirements hash does not match canonical G0 evidence",
+            "G0",
+        )
+
+    if runner_authority_id is not None and record.get("runner_authority_id") != runner_authority_id:
+        _add(
+            issues,
+            "runner_authority_mismatch",
+            "$.runner_authority_id",
+            "trial runner authority must match governed contract authority",
+            current_gate,
+        )
+
+    target_profile = requirements.get("target_profile") if isinstance(requirements, Mapping) else None
+    environment = requirements.get("environment") if isinstance(requirements, Mapping) else None
+    if isinstance(target_profile, Mapping):
+        if record.get("target_profile_id") != target_profile.get("id"):
+            _add(
+                issues,
+                "target_profile_mismatch",
+                "$.target_profile_id",
+                "trial target profile must match canonical G0",
+                "G0",
+            )
+    elif not _text(record.get("target_profile_id")):
+        _add(
+            issues,
+            "target_profile_mismatch",
+            "$.target_profile_id",
+            "trial target profile id is required",
+            "G0",
+        )
+    allowed_tools = record.get("allowed_tools")
+    if not isinstance(allowed_tools, list) or not allowed_tools or not all(
+        _text(item) for item in allowed_tools
+    ):
+        _add(
+            issues,
+            "allowed_tools_mismatch",
+            "$.allowed_tools",
+            "trial must declare the learner tools it used",
+            current_gate,
+        )
+    elif isinstance(environment, Mapping) and allowed_tools != environment.get("tools"):
+        _add(
+            issues,
+            "allowed_tools_mismatch",
+            "$.allowed_tools",
+            "trial tools must exactly match canonical G0 learner tools",
+            "G0",
+        )
+
+    readiness = record.get("entry_readiness")
+    if not isinstance(readiness, Mapping):
+        _add(
+            issues,
+            "entry_readiness_failed",
+            "$.entry_readiness",
+            "trial must record baseline, prerequisites, tools, and input readiness",
+            current_gate,
+        )
+    else:
+        for field in (
+            "baseline_confirmed",
+            "prerequisites_confirmed",
+            "tools_confirmed",
+            "inputs_confirmed",
+        ):
+            if readiness.get(field) is not True:
+                _add(
+                    issues,
+                    "entry_readiness_failed",
+                    f"$.entry_readiness.{field}",
+                    "false or missing entry readiness blocks the learner trial",
+                    current_gate,
+                )
+        if isinstance(target_profile, Mapping):
+            if readiness.get("baseline_statement") != target_profile.get("baseline"):
+                _add(
+                    issues,
+                    "target_profile_mismatch",
+                    "$.entry_readiness.baseline_statement",
+                    "trial baseline declaration must match canonical target profile",
+                    "G0",
+                )
+            if readiness.get("prerequisite_statements") != target_profile.get("prerequisites"):
+                _add(
+                    issues,
+                    "target_profile_mismatch",
+                    "$.entry_readiness.prerequisite_statements",
+                    "trial prerequisite declarations must match canonical target profile",
+                    "G0",
+                )
 
     participant = record.get("participant")
     if not isinstance(participant, Mapping):
@@ -219,6 +428,9 @@ def validate_trial_record(
     allowed_inputs = _validate_collection(
         record.get("allowed_inputs"), "$.allowed_inputs", issues
     )
+    allowed_input_paths: set[str] = set()
+    allowed_input_hashes: set[str] = set()
+    learner_page_paths: set[str] = set()
     if allowed_inputs is not None:
         if not allowed_inputs:
             _add(
@@ -246,6 +458,18 @@ def validate_trial_record(
                 )
             if not _text(input_path):
                 _add(issues, "non_learner_input_accessed", f"{path}.path", "input path is required")
+            else:
+                normalized_path = str(input_path).strip()
+                if normalized_path in allowed_input_paths:
+                    _add(
+                        issues,
+                        "non_learner_input_accessed",
+                        f"{path}.path",
+                        "learner-visible input paths must be unique",
+                    )
+                allowed_input_paths.add(normalized_path)
+                if kind == "learner-page":
+                    learner_page_paths.add(normalized_path)
             if not SHA256_PATTERN.fullmatch(str(item.get("sha256", ""))):
                 _add(
                     issues,
@@ -253,6 +477,8 @@ def validate_trial_record(
                     f"{path}.sha256",
                     "input must be bound to a lowercase SHA-256",
                 )
+            else:
+                allowed_input_hashes.add(str(item["sha256"]))
 
     forbidden_access = _validate_collection(
         record.get("forbidden_inputs_accessed"),
@@ -287,8 +513,132 @@ def validate_trial_record(
                     f"$.entry.{field}",
                     f"entry {field} must be observed as true or false",
                 )
+            elif entry.get(field) is not True:
+                _add(
+                    issues,
+                    "entry_readiness_failed",
+                    f"$.entry.{field}",
+                    "the trial cannot begin when the goal or required materials are not ready",
+                    current_gate,
+                )
+        if _text(entry.get("page")) and entry.get("page") not in learner_page_paths:
+            _add(
+                issues,
+                "entry_readiness_failed",
+                "$.entry.page",
+                "trial entry page must be one of the securely bound learner pages",
+                current_gate,
+            )
+
+    transfer = record.get("transfer_task")
+    transfer_task_id: str | None = None
+    held_out_input_hash: str | None = None
+    held_out_output_hash: str | None = None
+    if not isinstance(transfer, Mapping):
+        _add(
+            issues,
+            "transfer_conditions_missing",
+            "$.transfer_task",
+            "a structured held-out transfer task is required",
+            current_gate,
+        )
+    else:
+        if _text(transfer.get("task_id")):
+            transfer_task_id = str(transfer["task_id"])
+        if not transfer_task_id or transfer_task_id == transfer.get("source_task_id"):
+            _add(
+                issues,
+                "transfer_conditions_missing",
+                "$.transfer_task.task_id",
+                "held-out and source tasks require distinct stable ids",
+                current_gate,
+            )
+        changed_conditions = transfer.get("changed_conditions")
+        if not isinstance(changed_conditions, list) or not changed_conditions:
+            _add(
+                issues,
+                "transfer_conditions_missing",
+                "$.transfer_task.changed_conditions",
+                "transfer task must change data, threshold, or context",
+                current_gate,
+            )
+        else:
+            for index, condition in enumerate(changed_conditions):
+                path = f"$.transfer_task.changed_conditions[{index}]"
+                if not isinstance(condition, Mapping):
+                    _add(issues, "transfer_conditions_missing", path, "changed condition must be an object", current_gate)
+                    continue
+                before = _normalized_text(condition.get("before"))
+                after = _normalized_text(condition.get("after"))
+                before_decision = _normalized_text(condition.get("before_decision"))
+                after_decision = _normalized_text(condition.get("after_decision"))
+                if condition.get("dimension") not in {"data", "threshold", "context"} or not before or before == after:
+                    _add(
+                        issues,
+                        "transfer_conditions_missing",
+                        path,
+                        "changed condition must materially change data, threshold, or context",
+                        current_gate,
+                    )
+                if _filename_only_change(condition.get("before"), condition.get("after")):
+                    _add(
+                        issues,
+                        "transfer_conditions_missing",
+                        path,
+                        "renaming or swapping files without describing changed data, threshold, or context is not transfer",
+                        current_gate,
+                    )
+                if not before_decision or before_decision == after_decision:
+                    _add(
+                        issues,
+                        "transfer_judgment_unchanged",
+                        path,
+                        "held-out conditions must force a different learner judgment",
+                        current_gate,
+                    )
+                if not _concrete_action_text(condition.get("decision_basis")):
+                    _add(
+                        issues,
+                        "transfer_conditions_missing",
+                        f"{path}.decision_basis",
+                        "transfer must explain the concrete basis for reconsideration",
+                        current_gate,
+                    )
+        held_out_input_hash = transfer.get("held_out_input_sha256") if isinstance(transfer.get("held_out_input_sha256"), str) else None
+        held_out_output_hash = transfer.get("held_out_output_sha256") if isinstance(transfer.get("held_out_output_sha256"), str) else None
+        reference_hashes = transfer.get("reference_hashes")
+        all_transfer_hashes = [held_out_input_hash, held_out_output_hash]
+        if isinstance(reference_hashes, Mapping):
+            for phase in ("demonstration", "guided_practice", "answer_key"):
+                pair = reference_hashes.get(phase)
+                if isinstance(pair, Mapping):
+                    all_transfer_hashes.extend(
+                        [pair.get("input_sha256"), pair.get("output_sha256")]
+                    )
+        if (
+            len(all_transfer_hashes) != 8
+            or any(not SHA256_PATTERN.fullmatch(str(value or "")) for value in all_transfer_hashes)
+            or len(set(all_transfer_hashes)) != len(all_transfer_hashes)
+        ):
+            _add(
+                issues,
+                "transfer_hash_reused",
+                "$.transfer_task",
+                "held-out, demonstration, guided-practice, and answer-key input/output hashes must all be distinct",
+                current_gate,
+            )
+        if held_out_input_hash not in allowed_input_hashes:
+            _add(
+                issues,
+                "transfer_input_unbound",
+                "$.transfer_task.held_out_input_sha256",
+                "held-out input must be one of the securely bound learner inputs",
+                current_gate,
+            )
 
     actions = _validate_collection(record.get("actions"), "$.actions", issues)
+    action_by_id: dict[str, Mapping[str, Any]] = {}
+    transfer_actions: list[Mapping[str, Any]] = []
     if actions is not None:
         if not actions:
             _add(issues, "trial_record_incomplete", "$.actions", "chronological actions are required")
@@ -298,12 +648,25 @@ def validate_trial_record(
             if not isinstance(action, Mapping):
                 _add(issues, "trial_record_incomplete", path, "action must be an object")
                 continue
+            action_id = action.get("id")
+            if not _text(action_id) or action_id in action_by_id:
+                _add(
+                    issues,
+                    "trial_record_incomplete",
+                    f"{path}.id",
+                    "action id must be present and unique",
+                    current_gate,
+                )
+            else:
+                action_by_id[str(action_id)] = action
+            if transfer_task_id is not None and action.get("task_id") == transfer_task_id:
+                transfer_actions.append(action)
             sequence = action.get("sequence")
             if isinstance(sequence, bool) or not isinstance(sequence, int):
                 _add(issues, "actions_not_chronological", f"{path}.sequence", "action sequence must be an integer")
             else:
                 sequences.append(sequence)
-            for field in ("action", "observable_result", "at"):
+            for field in ("action", "decision", "observable_result", "at"):
                 if not _text(action.get(field)):
                     _add(
                         issues,
@@ -311,12 +674,56 @@ def validate_trial_record(
                         f"{path}.{field}",
                         f"action {field} is required",
                     )
+            if not all(
+                _concrete_action_text(action.get(field))
+                for field in ("action", "decision", "observable_result")
+            ):
+                _add(
+                    issues,
+                    "generic_trial_action",
+                    path,
+                    "trial actions must record a concrete learner decision and observable result",
+                    current_gate,
+                )
+            for field in ("input_sha256", "output_sha256"):
+                if not SHA256_PATTERN.fullmatch(str(action.get(field, ""))):
+                    _add(
+                        issues,
+                        "trial_record_incomplete",
+                        f"{path}.{field}",
+                        "trial action input and output require lowercase SHA-256",
+                        current_gate,
+                    )
+            if action.get("result") not in {"PASS", "FAIL"}:
+                _add(
+                    issues,
+                    "trial_record_incomplete",
+                    f"{path}.result",
+                    "trial action result must be PASS or FAIL",
+                    current_gate,
+                )
         if sequences and sequences != list(range(1, len(actions) + 1)):
             _add(
                 issues,
                 "actions_not_chronological",
                 "$.actions",
                 "actions must use a unique chronological sequence starting at 1",
+            )
+        ordered_transfer = sorted(
+            transfer_actions,
+            key=lambda item: item.get("sequence") if isinstance(item.get("sequence"), int) else 0,
+        )
+        if (
+            not ordered_transfer
+            or ordered_transfer[0].get("input_sha256") != held_out_input_hash
+            or ordered_transfer[-1].get("output_sha256") != held_out_output_hash
+        ):
+            _add(
+                issues,
+                "transfer_action_chain_invalid",
+                "$.actions",
+                "held-out actions must consume the held-out input and produce the held-out output",
+                current_gate,
             )
 
     hints = _validate_collection(record.get("hints"), "$.hints", issues)
@@ -375,9 +782,14 @@ def validate_trial_record(
                 )
 
     artifact = record.get("artifact")
+    artifact_evidence_id: str | None = None
     if not isinstance(artifact, Mapping):
         _add(issues, "artifact_not_verified", "$.artifact", "completed artifact evidence is required")
     else:
+        if not _text(artifact.get("evidence_id")):
+            _add(issues, "artifact_not_verified", "$.artifact.evidence_id", "artifact evidence id is required")
+        else:
+            artifact_evidence_id = str(artifact["evidence_id"])
         if not _text(artifact.get("path")):
             _add(issues, "artifact_not_verified", "$.artifact.path", "artifact path is required")
         if not SHA256_PATTERN.fullmatch(str(artifact.get("sha256", ""))):
@@ -388,6 +800,96 @@ def validate_trial_record(
             _add(issues, "artifact_not_verified", "$.artifact.verifiable", "artifact must be independently verifiable")
         if artifact.get("acceptance_result") != "PASS":
             _add(issues, "artifact_not_verified", "$.artifact.acceptance_result", "artifact must pass acceptance checks")
+        if held_out_output_hash is not None and artifact.get("sha256") != held_out_output_hash:
+            _add(
+                issues,
+                "artifact_not_verified",
+                "$.artifact.sha256",
+                "trial artifact hash must equal the held-out task output hash",
+                current_gate,
+            )
+
+    criterion_rows = record.get("criterion_evidence")
+    expected_criteria = (
+        _expected_trial_criteria(requirements, blueprint, representative_unit_id)
+        if isinstance(requirements, Mapping) and isinstance(blueprint, Mapping)
+        else {}
+    )
+    seen_capabilities: set[str] = set()
+    covered_capabilities: set[str] = set()
+    if not isinstance(criterion_rows, list) or not criterion_rows:
+        _add(
+            issues,
+            "criterion_evidence_incomplete",
+            "$.criterion_evidence",
+            "trial requires criterion-level evidence",
+            current_gate,
+        )
+    else:
+        for index, row in enumerate(criterion_rows):
+            path = f"$.criterion_evidence[{index}]"
+            if not isinstance(row, Mapping):
+                _add(issues, "criterion_evidence_incomplete", path, "criterion evidence must be an object", current_gate)
+                continue
+            capability_id = row.get("capability_id")
+            if not _text(capability_id):
+                _add(issues, "criterion_evidence_incomplete", f"{path}.capability_id", "capability id is required", current_gate)
+                continue
+            capability_id = str(capability_id)
+            if capability_id in seen_capabilities:
+                _add(
+                    issues,
+                    "criterion_evidence_duplicate",
+                    f"{path}.capability_id",
+                    "each governed capability may appear only once in trial evidence",
+                    current_gate,
+                )
+            seen_capabilities.add(capability_id)
+            expected = expected_criteria.get(capability_id)
+            if expected_criteria and (
+                expected is None
+                or any(row.get(field) != value for field, value in expected.items())
+            ):
+                _add(
+                    issues,
+                    "criterion_evidence_unknown",
+                    path,
+                    "trial criterion tuple does not match governed G0/G2 coverage",
+                    current_gate,
+                )
+                continue
+            if expected is not None:
+                covered_capabilities.add(capability_id)
+            action = action_by_id.get(str(row.get("action_id", "")))
+            if (
+                not isinstance(action, Mapping)
+                or action.get("result") != "PASS"
+                or action.get("task_id") != transfer_task_id
+                or row.get("result") != "PASS"
+            ):
+                _add(
+                    issues,
+                    "criterion_action_invalid",
+                    f"{path}.action_id",
+                    "criterion evidence must reference a passing action from the held-out task",
+                    current_gate,
+                )
+            if row.get("artifact_evidence_id") != artifact_evidence_id:
+                _add(
+                    issues,
+                    "criterion_artifact_invalid",
+                    f"{path}.artifact_evidence_id",
+                    "criterion evidence must reference the verified trial artifact",
+                    current_gate,
+                )
+    if expected_criteria and covered_capabilities != set(expected_criteria):
+        _add(
+            issues,
+            "criterion_evidence_incomplete",
+            "$.criterion_evidence",
+            "trial evidence must exactly cover every governed capability in scope",
+            current_gate,
+        )
 
     result = record.get("result")
     if not isinstance(result, Mapping):
@@ -450,6 +952,25 @@ def validate_trial_record(
                     "human session evidence must have a lowercase SHA-256",
                 )
 
+    maturity_claims = record.get("maturity_claims")
+    participant_type = participant.get("type") if isinstance(participant, Mapping) else None
+    expected_ai_claim = "INDEPENDENT_AI_VERIFIED" if participant_type == "independent-ai" else "NOT_APPLICABLE"
+    if (
+        not isinstance(maturity_claims, Mapping)
+        or maturity_claims.get("ai_trial") != expected_ai_claim
+        or any(
+            maturity_claims.get(field) != "PENDING_HUMAN"
+            for field in ("human_duration", "human_readability", "target_learner_independence")
+        )
+    ):
+        _add(
+            issues,
+            "invalid_maturity_claim",
+            "$.maturity_claims",
+            "AI trials may claim only independent AI verification; human duration, readability, and independence remain pending",
+            current_gate,
+        )
+
     return issues
 
 
@@ -466,7 +987,7 @@ def evidence_maturity(record: Mapping[str, Any]) -> str:
     if not isinstance(participant, Mapping):
         return "EXECUTION_VALIDATED"
     if participant.get("type") == "human":
-        return "HUMAN_VERIFIED"
+        return "PENDING_HUMAN"
     if participant.get("type") == "independent-ai":
         return "INDEPENDENT_AI_VERIFIED"
     return "EXECUTION_VALIDATED"
