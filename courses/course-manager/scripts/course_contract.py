@@ -24,7 +24,6 @@ from src.course_contract import (  # noqa: E402
     propose_external_action,
     record_change,
     render_gate_summary,
-    resolve_gate_blocker,
     save_contract_atomic,
     validate_contract,
 )
@@ -32,6 +31,7 @@ from src.transactions import (  # noqa: E402
     TransactionCommittedDurabilityError,
     TransactionError,
     mutate_contract_atomic,
+    resolve_gate_blocker_atomic,
 )
 
 
@@ -228,16 +228,9 @@ def main(argv: list[str] | None = None) -> int:
             print(args.contract)
             return 0
 
-        operations = {
-            "begin": lambda contract: begin_gate(contract, args.gate, args.actor, args.at),
-            "fail": lambda contract: fail_gate(
-                contract, args.gate, _parse_issues(args.issue), args.actor, args.at
-            ),
-            "block": lambda contract: block_gate(
-                contract, args.gate, args.reason, args.actor, args.at
-            ),
-            "resolve-blocker": lambda contract: resolve_gate_blocker(
-                contract,
+        if args.command == "resolve-blocker":
+            resolve_gate_blocker_atomic(
+                args.contract,
                 args.gate,
                 args.blocker_id,
                 args.resolution,
@@ -245,6 +238,18 @@ def main(argv: list[str] | None = None) -> int:
                 args.actor,
                 args.at,
                 workspace_root=args.workspace_root,
+                expected_revision=args.expected_revision,
+            )
+            print(args.contract)
+            return 0
+
+        operations = {
+            "begin": lambda contract: begin_gate(contract, args.gate, args.actor, args.at),
+            "fail": lambda contract: fail_gate(
+                contract, args.gate, _parse_issues(args.issue), args.actor, args.at
+            ),
+            "block": lambda contract: block_gate(
+                contract, args.gate, args.reason, args.actor, args.at
             ),
             "change": lambda contract: record_change(
                 contract, args.gate, args.reason, args.actor, args.at, args.semantic

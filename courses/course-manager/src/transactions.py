@@ -8,8 +8,9 @@ import os
 import secrets
 import stat
 import time
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, MutableMapping
+from typing import Any, Callable, MutableMapping, Sequence
 
 try:  # Windows and other unsupported hosts must fail closed at call time.
     import fcntl
@@ -59,19 +60,15 @@ class TransactionCommittedDurabilityError(TransactionError):
 ContractOperation = Callable[[MutableMapping[str, Any]], Any]
 
 
-class _TrackedContract(dict[str, Any]):
-    """A transaction-local dict carrying non-serialized domain transition intents."""
-
-    def __init__(self, value: dict[str, Any]) -> None:
-        super().__init__(value)
-        self.blocker_resolution_transitions: list[tuple[str, str, str]] = []
-
-    def _record_blocker_resolution_transition(
-        self, gate_id: str, blocker_id: str, resolution_id: str
-    ) -> None:
-        self.blocker_resolution_transitions.append(
-            (gate_id, blocker_id, resolution_id)
-        )
+@dataclass(frozen=True)
+class _ResolutionIntent:
+    gate_id: str
+    blocker_id: str
+    resolution: str
+    evidence_ids: tuple[str, ...]
+    actor: str
+    at: str
+    workspace_root: Path
 
 
 def _require_supported_platform() -> None:
@@ -265,8 +262,7 @@ def _require_external_action_history(
 
 
 def _verify_resolution_event(
-    gate_id: str,
-    blocker_id: str,
+    intent: _ResolutionIntent,
     resolution_id: str,
     appended_events: list[Any],
 ) -> None:
@@ -278,11 +274,11 @@ def _verify_resolution_event(
         if isinstance(event, dict)
         and event.get("kind") == "gate_blocker_resolution"
         and event.get("id") == resolution_id
-        and event.get("blocker_id") == blocker_id
+        and event.get("blocker_id") == intent.blocker_id
     ]
     if len(matches) != 1:
         raise TransactionError(
-            f"blocker resolution history is incomplete at $.gates.{gate_id}"
+            f"blocker resolution history is incomplete at $.gates.{intent.gate_id}"
         )
     event = matches[0]
     required_fields = {
@@ -297,38 +293,46 @@ def _verify_resolution_event(
     }
     if set(event) != required_fields:
         raise TransactionError(
-            f"blocker resolution history is incomplete at $.gates.{gate_id}"
+            f"blocker resolution history is incomplete at $.gates.{intent.gate_id}"
         )
     payload = {
-        "blocker_id": blocker_id,
+        "blocker_id": intent.blocker_id,
         "resolution": event.get("resolution"),
         "evidence_ids": event.get("evidence_ids"),
         "actor": event.get("actor"),
         "at": event.get("at"),
     }
+    if payload != {
+        "blocker_id": intent.blocker_id,
+        "resolution": intent.resolution,
+        "evidence_ids": list(intent.evidence_ids),
+        "actor": intent.actor,
+        "at": intent.at,
+    }:
+        raise TransactionError(
+            "blocker resolution history does not match the dedicated atomic "
+            f"resolution request at $.gates.{intent.gate_id}"
+        )
     expected_id = (
         "resolution-"
         + hashlib.sha256(canonical_json_bytes(payload)).hexdigest()[:24]
     )
     if resolution_id != expected_id:
         raise TransactionError(
-            f"blocker resolution history id is invalid at $.gates.{gate_id}"
+            f"blocker resolution history id is invalid at $.gates.{intent.gate_id}"
         )
 
 
 def _require_gate_history(
     before: MutableMapping[str, Any],
     after: MutableMapping[str, Any],
-    authorized_resolutions: list[tuple[str, str, str]],
+    resolution_intent: _ResolutionIntent | None,
 ) -> None:
     old_gates = before.get("gates")
     new_gates = after.get("gates")
     if not isinstance(old_gates, dict) or not isinstance(new_gates, dict):
         raise TransactionError("append-only history is invalid at $.gates")
-    authorized = set(authorized_resolutions)
-    if len(authorized) != len(authorized_resolutions):
-        raise TransactionError("duplicate blocker resolution API transition")
-    used: set[tuple[str, str, str]] = set()
+    used_resolution = False
     for gate_id, old_gate in old_gates.items():
         new_gate = new_gates.get(gate_id)
         if not isinstance(old_gate, dict) or not isinstance(new_gate, dict):
@@ -384,33 +388,35 @@ def _require_gate_history(
             resolution_id = new_risk.get("resolution_id")
             expected["resolved"] = True
             expected["resolution_id"] = resolution_id
-            transition = (gate_id, str(old_risk.get("id")), str(resolution_id))
             if (
                 new_risk != expected
                 or not isinstance(resolution_id, str)
-                or transition not in authorized
+                or resolution_intent is None
+                or resolution_intent.gate_id != gate_id
+                or resolution_intent.blocker_id != old_risk.get("id")
+                or used_resolution
             ):
                 raise TransactionError(
-                    "unresolved blocker may be resolved only through the resolution API "
+                    "unresolved blocker may be resolved only through the dedicated "
+                    "atomic resolution API "
                     f"at $.gates.{gate_id}.risks[{index}]"
                 )
             _verify_resolution_event(
-                gate_id,
-                str(old_risk.get("id")),
+                resolution_intent,
                 resolution_id,
                 appended_events,
             )
-            used.add(transition)
-    if used != authorized:
+            used_resolution = True
+    if resolution_intent is not None and not used_resolution:
         raise TransactionError(
-            "blocker resolution API transition did not resolve an existing blocker"
+            "dedicated atomic resolution API did not resolve the requested blocker"
         )
 
 
 def _require_append_only_history(
     before: MutableMapping[str, Any],
     after: MutableMapping[str, Any],
-    authorized_resolutions: list[tuple[str, str, str]],
+    resolution_intent: _ResolutionIntent | None,
 ) -> None:
     for field in (
         "changes",
@@ -420,20 +426,23 @@ def _require_append_only_history(
     ):
         _require_append_only_prefix(before, after, field)
     _require_external_action_history(before, after)
-    _require_gate_history(before, after, authorized_resolutions)
+    _require_gate_history(before, after, resolution_intent)
 
 
-def mutate_contract_atomic(
+def _run_contract_transaction(
     path: Path | str,
-    operation: ContractOperation,
+    operation: ContractOperation | None,
     *,
     expected_revision: int | None = None,
     lock_timeout: float = 10.0,
+    resolution_intent: _ResolutionIntent | None = None,
 ) -> dict[str, Any]:
-    """Apply one validated, history-preserving mutation under a POSIX lock."""
-
     _require_supported_platform()
-    if not callable(operation):
+    if (operation is None) == (resolution_intent is None):
+        raise TransactionError(
+            "transaction control flow requires exactly one mutation mode"
+        )
+    if operation is not None and not callable(operation):
         raise TypeError("operation must be callable")
     if expected_revision is not None and (
         isinstance(expected_revision, bool)
@@ -466,7 +475,7 @@ def mutate_contract_atomic(
         contract_fd = _open_regular_at(parent_fd, contract_path.name, os.O_RDONLY)
         loaded_contract = _load_from_fd(contract_fd)
         before = copy.deepcopy(loaded_contract)
-        contract = _TrackedContract(loaded_contract)
+        contract = loaded_contract
 
         schema_version = contract.get("schema_version")
         original_revision = contract.get("revision")
@@ -490,7 +499,22 @@ def mutate_contract_atomic(
                 f"revision conflict: expected {expected_revision}, found {base_revision}"
             )
 
-        operation(contract)
+        if resolution_intent is None:
+            assert operation is not None
+            operation(contract)
+        else:
+            from src.course_contract import resolve_gate_blocker
+
+            resolve_gate_blocker(
+                contract,
+                resolution_intent.gate_id,
+                resolution_intent.blocker_id,
+                resolution_intent.resolution,
+                list(resolution_intent.evidence_ids),
+                resolution_intent.actor,
+                resolution_intent.at,
+                workspace_root=resolution_intent.workspace_root,
+            )
         after_operation_revision = contract.get("revision")
         if legacy:
             if after_operation_revision not in {None, 0}:
@@ -505,7 +529,7 @@ def mutate_contract_atomic(
             _require_append_only_history(
                 before,
                 contract,
-                contract.blocker_resolution_transitions,
+                resolution_intent,
             )
         details = _validation_error(contract)
         if details:
@@ -523,3 +547,58 @@ def mutate_contract_atomic(
             finally:
                 os.close(lock_fd)
         os.close(parent_fd)
+
+
+def mutate_contract_atomic(
+    path: Path | str,
+    operation: ContractOperation,
+    *,
+    expected_revision: int | None = None,
+    lock_timeout: float = 10.0,
+) -> dict[str, Any]:
+    """Apply a mutation; existing blocker resolution is always forbidden."""
+
+    return _run_contract_transaction(
+        path,
+        operation,
+        expected_revision=expected_revision,
+        lock_timeout=lock_timeout,
+    )
+
+
+def resolve_gate_blocker_atomic(
+    path: Path | str,
+    gate_id: str,
+    blocker_id: str,
+    resolution: str,
+    evidence_ids: Sequence[str],
+    actor: str,
+    at: str,
+    *,
+    workspace_root: Path | str | None = None,
+    expected_revision: int | None = None,
+    lock_timeout: float = 10.0,
+) -> dict[str, Any]:
+    """Resolve exactly one existing blocker inside the transaction control flow."""
+
+    evidence_id_list = list(evidence_ids)
+    evidence_root = (
+        Path(workspace_root) if workspace_root is not None else Path(path).parent
+    )
+    intent = _ResolutionIntent(
+        gate_id=gate_id,
+        blocker_id=blocker_id,
+        resolution=resolution,
+        evidence_ids=tuple(evidence_id_list),
+        actor=actor,
+        at=at,
+        workspace_root=evidence_root,
+    )
+
+    return _run_contract_transaction(
+        path,
+        None,
+        expected_revision=expected_revision,
+        lock_timeout=lock_timeout,
+        resolution_intent=intent,
+    )

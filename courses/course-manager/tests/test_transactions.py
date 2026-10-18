@@ -11,6 +11,7 @@ from pathlib import Path
 from unittest import mock
 
 from src.course_contract import (
+    ContractStateError,
     begin_gate,
     block_gate,
     new_contract,
@@ -62,6 +63,32 @@ class ContractTransactionTests(unittest.TestCase):
 
     def read(self):
         return json.loads(self.path.read_text(encoding="utf-8"))
+
+    def unresolved_contract_with_resolution(self, *, evidence_id="resolution"):
+        contract = new_contract(
+            "transaction-course",
+            "Transaction Course",
+            "test",
+            "2026-10-18T12:00:00+08:00",
+        )
+        block_gate(
+            contract,
+            "G0",
+            "missing source",
+            "test",
+            "2026-10-18T12:01:00+08:00",
+        )
+        reference = materialize_json_evidence(
+            self.root,
+            evidence_id=evidence_id,
+            gate_id="G0",
+            kind="blocker_resolution",
+            relative_path=f"evidence/{evidence_id}.json",
+            value={"fixed": True},
+        )
+        contract["evidence_index"].append(reference)
+        save_contract_atomic(self.path, contract)
+        return contract["gates"]["G0"]["risks"][0]["id"], reference
 
     def test_successful_mutation_increments_revision_exactly_once(self):
         transactions = self.transactions()
@@ -378,6 +405,106 @@ class ContractTransactionTests(unittest.TestCase):
             self.transactions().mutate_contract_atomic(self.path, forge_resolution)
 
         self.assertEqual(self.path.read_bytes(), before)
+
+    def test_generic_transaction_does_not_expose_resolution_intent_marker(self):
+        blocker_id, _ = self.unresolved_contract_with_resolution()
+        before = self.path.read_bytes()
+
+        def call_old_marker(contract):
+            contract._record_blocker_resolution_transition(  # type: ignore[attr-defined]
+                "G0", blocker_id, "resolution-" + "0" * 24
+            )
+
+        with self.assertRaises(AttributeError):
+            self.transactions().mutate_contract_atomic(self.path, call_old_marker)
+
+        self.assertEqual(self.path.read_bytes(), before)
+        self.assertEqual(self.read()["revision"], 0)
+
+    def test_generic_transaction_rejects_calling_in_memory_resolution_api(self):
+        blocker_id, reference = self.unresolved_contract_with_resolution()
+        before = self.path.read_bytes()
+
+        def call_resolution_api(contract):
+            resolve_gate_blocker(
+                contract,
+                "G0",
+                blocker_id,
+                "source added",
+                [reference["id"]],
+                "test",
+                "2026-10-18T12:02:00+08:00",
+                workspace_root=self.root,
+            )
+
+        with self.assertRaisesRegex(
+            self.transactions().TransactionError,
+            "dedicated atomic resolution API",
+        ):
+            self.transactions().mutate_contract_atomic(
+                self.path, call_resolution_api
+            )
+
+        self.assertEqual(self.path.read_bytes(), before)
+        self.assertEqual(self.read()["revision"], 0)
+
+    def test_dedicated_atomic_resolution_succeeds_once(self):
+        blocker_id, reference = self.unresolved_contract_with_resolution()
+
+        result = self.transactions().resolve_gate_blocker_atomic(
+            self.path,
+            "G0",
+            blocker_id,
+            "source added",
+            [reference["id"]],
+            "test",
+            "2026-10-18T12:02:00+08:00",
+            workspace_root=self.root,
+            expected_revision=0,
+        )
+
+        self.assertEqual(result["revision"], 1)
+        blocker = result["gates"]["G0"]["risks"][0]
+        self.assertTrue(blocker["resolved"])
+        self.assertEqual(self.read(), result)
+
+    def test_dedicated_atomic_resolution_wrong_evidence_and_cas_do_not_write(self):
+        blocker_id, reference = self.unresolved_contract_with_resolution()
+        before = self.path.read_bytes()
+
+        with self.assertRaisesRegex(
+            self.transactions().RevisionConflictError, "revision conflict"
+        ):
+            self.transactions().resolve_gate_blocker_atomic(
+                self.path,
+                "G0",
+                blocker_id,
+                "source added",
+                [reference["id"]],
+                "test",
+                "2026-10-18T12:02:00+08:00",
+                workspace_root=self.root,
+                expected_revision=9,
+            )
+        self.assertEqual(self.path.read_bytes(), before)
+
+        (self.root / reference["path"]).write_text(
+            '{"tampered":true}\n', encoding="utf-8"
+        )
+        with self.assertRaisesRegex(ContractStateError, "resolution evidence"):
+            self.transactions().resolve_gate_blocker_atomic(
+                self.path,
+                "G0",
+                blocker_id,
+                "source added",
+                [reference["id"]],
+                "test",
+                "2026-10-18T12:02:00+08:00",
+                workspace_root=self.root,
+                expected_revision=0,
+            )
+        self.assertEqual(self.path.read_bytes(), before)
+        self.assertEqual(self.read()["revision"], 0)
 
     def test_missing_posix_lock_capability_fails_closed(self):
         transactions = self.transactions()

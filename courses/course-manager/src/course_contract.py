@@ -1282,11 +1282,6 @@ def resolve_gate_blocker(
             "at": at,
         }
     )
-    record_transition = getattr(
-        contract, "_record_blocker_resolution_transition", None
-    )
-    if callable(record_transition):
-        record_transition(gate_id, blocker_id, resolution_id)
 
 
 def record_change(
