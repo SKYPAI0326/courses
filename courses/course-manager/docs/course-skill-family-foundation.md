@@ -1,6 +1,6 @@
 # 課程 Skill 母群基礎操作手冊
 
-本輪完成 G0–G2 的可運行垂直切片：課程契約、Gate 狀態機、外部研究驗證、母 Skill、研究 Skill、架構 Skill 與可回復安裝器。完整原則見 [課程設計 Skill 母群系統設計](superpowers/specs/2026-10-18-course-design-skill-family-design.md)。
+本輪完成 G0–G2 的可運行垂直切片：課程契約、Gate 狀態機、外部研究驗證、母 Skill、研究 Skill、架構 Skill 與可回復安裝器。這份手冊記錄既有基礎操作；後續完整系統以 [完整課程設計系統設計](superpowers/specs/2026-10-18-complete-course-design-system-design.md) 為準。
 
 以下命令都從 courses/course-manager 執行。
 
