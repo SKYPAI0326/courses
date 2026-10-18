@@ -1,12 +1,17 @@
+import base64
 import copy
 import hashlib
+import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
-from src.course_contract import GATE_ORDER, begin_gate, new_contract
+from src.course_contract import ContractStateError, GATE_ORDER, begin_gate, new_contract
 from tests.gate_test_support import _commit_gate_pass
 from src.course_evidence import materialize_json_evidence, verify_evidence_reference
+from src.course_runner_authority import bind_runner_authority, issue_trial_receipt
 from src.course_validation import (
     evidence_maturity,
     route_trial_failure,
@@ -17,6 +22,20 @@ from src.course_validation import (
 
 
 class CourseTrialValidationTests(unittest.TestCase):
+    def setUp(self):
+        self.authority_id = "test-independent-lab"
+        self.authority_environment = patch.dict(
+            os.environ,
+            {
+                "COURSE_RUNNER_REQUIRED_AUTHORITY_ID": self.authority_id,
+                "COURSE_RUNNER_AUTHORITY_TEST_INDEPENDENT_LAB_SECRET": base64.b64encode(b"test independent authority secret material 2026").decode(),
+                "COURSE_RUNNER_AUTHORITY_TEST_INDEPENDENT_LAB_RUNNERS": json.dumps({"cold-learner-ai-01": "isolated-learner-runner"}),
+            },
+            clear=False,
+        )
+        self.authority_environment.start()
+        self.addCleanup(self.authority_environment.stop)
+
     def valid_trial(self, participant_type="independent-ai", scope="representative_unit"):
         record = {
             "schema_version": 1,
@@ -26,6 +45,7 @@ class CourseTrialValidationTests(unittest.TestCase):
                 "type": participant_type,
                 "roles": ["learner-trial"],
             },
+            "runner_session_id": "cold-session-20261018-01",
             "isolated_context_id": "cold-run-20261018-01",
             "allowed_inputs": [
                 {
@@ -101,6 +121,68 @@ class CourseTrialValidationTests(unittest.TestCase):
                 "session_recording_sha256": "d" * 64,
             }
         return record
+
+    def materialize_trial_inputs(self, root, trial):
+        for index, item in enumerate(trial["allowed_inputs"]):
+            target = root / item["path"]
+            target.parent.mkdir(parents=True, exist_ok=True)
+            payload = f"learner-visible input {index}\n".encode()
+            target.write_bytes(payload)
+            item["sha256"] = hashlib.sha256(payload).hexdigest()
+
+    def prepared_g4_route(self, root, *, pilot_actor_ids=None):
+        from tests.test_course_production import CourseProductionTests
+
+        helper = CourseProductionTests("test_pilot_selector_chooses_highest_combined_risk_then_dependency")
+        contract = self.make_contract_at_g4()
+        trial = self.valid_trial()
+        self.materialize_trial_inputs(root, trial)
+        pilot = helper.valid_pilot()
+        pilot["trial_context_id"] = trial["isolated_context_id"]
+        if pilot_actor_ids is not None:
+            pilot["production_actor_ids"] = pilot_actor_ids
+        pilot_ref = materialize_json_evidence(
+            root, evidence_id="attack-pilot", gate_id="G4", kind="pilot_record",
+            relative_path="evidence/attack-pilot.json",
+            value={"pilot": pilot, "lesson": helper.lesson_record(), "asset_manifest": helper.valid_asset_manifest()},
+        )
+        roster_ref = materialize_json_evidence(
+            root, evidence_id="attack-roster", gate_id="G0", kind="production_role_roster",
+            relative_path="evidence/attack-roster.json",
+            value={"schema_version": 1, "authors": ["course-author-01", "page-builder-01"], "validators": ["course-validator"]},
+        )
+        trial_ref = materialize_json_evidence(
+            root, evidence_id="attack-trial", gate_id="G4", kind="independent_course_trial",
+            relative_path="trials/attack.json", value=trial, maturity="INDEPENDENT_AI_VERIFIED",
+        )
+        receipt_ref = issue_trial_receipt(
+            root, authority_id=self.authority_id, gate_id="G4",
+            trial_reference=trial_ref, roster_reference=roster_ref,
+            runner_id=trial["participant"]["id"], session_id=trial["runner_session_id"],
+            issued_at="2026-10-18T15:14:00+08:00", nonce="attack-base-nonce",
+            evidence_id="attack-receipt", relative_path="receipts/attack.json",
+        )
+        contract["evidence_index"] = [
+            item for item in contract["evidence_index"]
+            if item.get("id") != "g4-pilot-production"
+        ]
+        contract["evidence_index"].extend([pilot_ref, roster_ref, trial_ref, receipt_ref])
+        contract["governance"]["production_role_roster"] = {
+            "evidence_id": roster_ref["id"], "sha256": roster_ref["sha256"]
+        }
+        return contract, pilot_ref, roster_ref, trial_ref, receipt_ref, trial
+
+    def assert_g4_security_rejected_without_mutation(
+        self, contract, root, pilot_ref, roster_ref, trial_id, receipt_id
+    ):
+        before = copy.deepcopy(contract)
+        with self.assertRaises(ContractStateError):
+            route_verified_trial_to_gate(
+                contract, "G4", [pilot_ref["id"], roster_ref["id"]],
+                trial_id, receipt_id, "course-validator",
+                "2026-10-18T15:15:00+08:00", workspace_root=root,
+            )
+        self.assertEqual(contract, before)
 
     def test_trial_actor_cannot_be_any_course_author_or_validator(self):
         production_roles = {
@@ -266,6 +348,7 @@ class CourseTrialValidationTests(unittest.TestCase):
             "course-run",
             "2026-10-18T12:00:00+08:00",
         )
+        bind_runner_authority(contract, self.authority_id)
         for gate_id in GATE_ORDER[:4]:
             begin_gate(contract, gate_id, "course-run", "2026-10-18T12:01:00+08:00")
             evidence_id = f"{gate_id.lower()}-evidence"
@@ -308,6 +391,7 @@ class CourseTrialValidationTests(unittest.TestCase):
         pilot["trial_context_id"] = trial["isolated_context_id"]
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
+            self.materialize_trial_inputs(root, trial)
             pilot_ref = materialize_json_evidence(
                 root,
                 evidence_id="g4-pilot-record",
@@ -341,24 +425,34 @@ class CourseTrialValidationTests(unittest.TestCase):
             contract["governance"]["production_role_roster"] = {
                 "evidence_id": roster_ref["id"], "sha256": roster_ref["sha256"]
             }
-            materialize_json_evidence(
+            trial_ref = materialize_json_evidence(
                 root,
                 evidence_id="g4-trial-source",
-                gate_id="G0",
+                gate_id="G4",
                 kind="independent_course_trial",
                 relative_path="trials/g4-representative-unit.json",
                 value=trial,
+                maturity="INDEPENDENT_AI_VERIFIED",
             )
+            receipt_ref = issue_trial_receipt(
+                root, authority_id=self.authority_id, gate_id="G4",
+                trial_reference=trial_ref, roster_reference=roster_ref,
+                runner_id=trial["participant"]["id"],
+                session_id=trial["runner_session_id"],
+                issued_at="2026-10-18T15:14:00+08:00", nonce="g4-positive-nonce",
+                evidence_id="g4-trial-receipt", relative_path="receipts/g4.json",
+            )
+            contract["evidence_index"].extend([trial_ref, receipt_ref])
 
             result = route_verified_trial_to_gate(
                 contract,
                 "G4",
                 [pilot_ref["id"], roster_ref["id"]],
-                trial,
+                trial_ref["id"],
+                receipt_ref["id"],
                 "course-validator",
                 "2026-10-18T15:15:00+08:00",
                 workspace_root=root,
-                trial_record_path="trials/g4-representative-unit.json",
             )
 
             self.assertEqual(result, "PASS")
@@ -366,6 +460,13 @@ class CourseTrialValidationTests(unittest.TestCase):
             event = contract["gates"]["G4"]["evidence"][-1]
             self.assertEqual(event["maturity"], "INDEPENDENT_AI_VERIFIED")
             self.assertIn("g4-pilot-record", event["evidence_ids"])
+            self.assertEqual(
+                event["consumed_inputs"],
+                [
+                    {"path": item["path"], "sha256": item["sha256"]}
+                    for item in sorted(trial["allowed_inputs"], key=lambda item: (item["kind"], item["path"], item["sha256"]))
+                ],
+            )
             trial_refs = [
                 item
                 for item in contract["evidence_index"]
@@ -379,6 +480,7 @@ class CourseTrialValidationTests(unittest.TestCase):
 
             author_trial = self.valid_trial()
             author_trial["participant"]["id"] = "course-author-01"
+            self.materialize_trial_inputs(root, author_trial)
             pilot["trial_context_id"] = author_trial["isolated_context_id"]
             author_contract = self.make_contract_at_g4()
             author_contract["evidence_index"] = [
@@ -416,31 +518,48 @@ class CourseTrialValidationTests(unittest.TestCase):
             author_contract["governance"]["production_role_roster"] = {
                 "evidence_id": author_roster_ref["id"], "sha256": author_roster_ref["sha256"]
             }
-            materialize_json_evidence(
+            author_trial_ref = materialize_json_evidence(
                 root,
                 evidence_id="g4-author-trial-source",
                 gate_id="G4",
                 kind="independent_course_trial",
                 relative_path="trials/g4-author-representative-unit.json",
                 value=author_trial,
+                maturity="INDEPENDENT_AI_VERIFIED",
             )
+            forged_receipt = {
+                "schema_version": 1, "authority_id": self.authority_id,
+                "algorithm": "HMAC-SHA256", "gate": "G4",
+                "trial_evidence_id": author_trial_ref["id"], "trial_sha256": author_trial_ref["sha256"],
+                "roster_sha256": author_roster_ref["sha256"],
+                "learner_input_manifest": sorted(author_trial["allowed_inputs"], key=lambda item: (item["kind"], item["path"], item["sha256"])),
+                "runner": {"id": "course-author-01", "role": "isolated-learner-runner"},
+                "participant": author_trial["participant"],
+                "session_id": author_trial["runner_session_id"],
+                "isolated_context_id": author_trial["isolated_context_id"],
+                "issuer": self.authority_id, "nonce": "forged", "issued_at": "2026-10-18T15:15:00+08:00",
+                "signature": "0" * 64,
+            }
+            author_receipt_ref = materialize_json_evidence(
+                root, evidence_id="g4-author-forged-receipt", gate_id="G4",
+                kind="independent_trial_receipt", relative_path="receipts/g4-author.json",
+                value=forged_receipt,
+            )
+            author_contract["evidence_index"].extend([author_trial_ref, author_receipt_ref])
 
-            blocked = route_verified_trial_to_gate(
-                author_contract,
-                "G4",
-                [author_pilot_ref["id"], author_roster_ref["id"]],
-                author_trial,
-                "course-validator",
-                "2026-10-18T15:16:00+08:00",
-                workspace_root=root,
-                trial_record_path="trials/g4-author-representative-unit.json",
-            )
-
-            self.assertEqual(blocked, "BLOCKED")
-            self.assertIn(
-                "cannot be a course author or validator",
-                author_contract["gates"]["G4"]["risks"][-1]["reason"],
-            )
+            author_before = copy.deepcopy(author_contract)
+            with self.assertRaisesRegex(ContractStateError, "receipt signature is invalid"):
+                route_verified_trial_to_gate(
+                    author_contract,
+                    "G4",
+                    [author_pilot_ref["id"], author_roster_ref["id"]],
+                    author_trial_ref["id"],
+                    author_receipt_ref["id"],
+                    "course-validator",
+                    "2026-10-18T15:16:00+08:00",
+                    workspace_root=root,
+                )
+            self.assertEqual(author_contract, author_before)
 
         no_production = self.make_contract_at_g4()
         with self.assertRaises(ValueError):
@@ -448,11 +567,110 @@ class CourseTrialValidationTests(unittest.TestCase):
                 no_production,
                 "G4",
                 [],
-                self.valid_trial(),
+                "missing-trial",
+                "missing-receipt",
                 "course-validator",
                 "2026-10-18T15:15:00+08:00",
                 workspace_root=Path("."),
-                trial_record_path="trials/missing.json",
+            )
+
+    def test_forged_author_alias_and_self_signed_receipt_leave_contract_unchanged(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            contract, pilot_ref, roster_ref, _, _, trial = self.prepared_g4_route(root)
+            trial["participant"]["id"] = "author-new-alias"
+            forged_trial = materialize_json_evidence(
+                root, evidence_id="forged-alias-trial", gate_id="G4",
+                kind="independent_course_trial", relative_path="trials/forged-alias.json",
+                value=trial, maturity="INDEPENDENT_AI_VERIFIED",
+            )
+            forged_receipt = materialize_json_evidence(
+                root, evidence_id="forged-alias-receipt", gate_id="G4",
+                kind="independent_trial_receipt", relative_path="receipts/forged-alias.json",
+                value={
+                    "schema_version": 1, "authority_id": self.authority_id,
+                    "algorithm": "HMAC-SHA256", "gate": "G4",
+                    "trial_evidence_id": forged_trial["id"], "trial_sha256": forged_trial["sha256"],
+                    "roster_sha256": roster_ref["sha256"],
+                    "learner_input_manifest": sorted(trial["allowed_inputs"], key=lambda item: (item["kind"], item["path"], item["sha256"])),
+                    "runner": {"id": "author-new-alias", "role": "isolated-learner-runner"},
+                    "participant": trial["participant"], "session_id": trial["runner_session_id"],
+                    "isolated_context_id": trial["isolated_context_id"], "issuer": self.authority_id,
+                    "nonce": "attacker-nonce", "issued_at": "2026-10-18T15:14:00+08:00",
+                    "signature": "0" * 64,
+                },
+            )
+            contract["evidence_index"].extend([forged_trial, forged_receipt])
+            self.assert_g4_security_rejected_without_mutation(
+                contract, root, pilot_ref, roster_ref, forged_trial["id"], forged_receipt["id"]
+            )
+
+    def test_receipt_and_trial_file_tamper_leave_contract_unchanged(self):
+        for target_kind in ("receipt", "trial"):
+            with self.subTest(target_kind=target_kind), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                contract, pilot_ref, roster_ref, trial_ref, receipt_ref, _ = self.prepared_g4_route(root)
+                target_ref = receipt_ref if target_kind == "receipt" else trial_ref
+                (root / target_ref["path"]).write_text('{"tampered":true}\n', encoding="utf-8")
+                self.assert_g4_security_rejected_without_mutation(
+                    contract, root, pilot_ref, roster_ref, trial_ref["id"], receipt_ref["id"]
+                )
+
+    def test_learner_input_tamper_after_receipt_leaves_contract_unchanged(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            contract, pilot_ref, roster_ref, trial_ref, receipt_ref, trial = self.prepared_g4_route(root)
+            (root / trial["allowed_inputs"][0]["path"]).write_text(
+                "tampered learner input\n", encoding="utf-8"
+            )
+            self.assert_g4_security_rejected_without_mutation(
+                contract, root, pilot_ref, roster_ref, trial_ref["id"], receipt_ref["id"]
+            )
+
+    def test_cross_session_receipt_replay_leaves_contract_unchanged(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            contract, pilot_ref, roster_ref, _, receipt_ref, trial = self.prepared_g4_route(root)
+            trial["runner_session_id"] = "different-session"
+            replay_trial = materialize_json_evidence(
+                root, evidence_id="replay-trial", gate_id="G4",
+                kind="independent_course_trial", relative_path="trials/replay.json",
+                value=trial, maturity="INDEPENDENT_AI_VERIFIED",
+            )
+            contract["evidence_index"].append(replay_trial)
+            self.assert_g4_security_rejected_without_mutation(
+                contract, root, pilot_ref, roster_ref, replay_trial["id"], receipt_ref["id"]
+            )
+
+    def test_cross_gate_receipt_replay_leaves_contract_unchanged(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            contract, pilot_ref, roster_ref, trial_ref, receipt_ref, _ = self.prepared_g4_route(root)
+            replay_receipt = copy.deepcopy(receipt_ref)
+            replay_receipt["id"] = "cross-gate-receipt"
+            replay_receipt["gate"] = "G5"
+            contract["evidence_index"].append(replay_receipt)
+            self.assert_g4_security_rejected_without_mutation(
+                contract, root, pilot_ref, roster_ref, trial_ref["id"], replay_receipt["id"]
+            )
+
+    def test_pilot_actor_outside_governed_roster_leaves_contract_unchanged(self):
+        for actors in (["unlisted-author"], ["course-author-01"]):
+            with self.subTest(actors=actors), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                contract, pilot_ref, roster_ref, trial_ref, receipt_ref, _ = self.prepared_g4_route(
+                    root, pilot_actor_ids=actors
+                )
+                self.assert_g4_security_rejected_without_mutation(
+                    contract, root, pilot_ref, roster_ref, trial_ref["id"], receipt_ref["id"]
+                )
+
+    def test_missing_receipt_leaves_contract_unchanged(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            contract, pilot_ref, roster_ref, trial_ref, _, _ = self.prepared_g4_route(root)
+            self.assert_g4_security_rejected_without_mutation(
+                contract, root, pilot_ref, roster_ref, trial_ref["id"], "missing-receipt"
             )
 
 

@@ -1,14 +1,12 @@
 from __future__ import annotations
 
 import copy
-import hashlib
 import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping, MutableMapping, Sequence
 
 from src.course_contract import ContractStateError
-from src.course_evidence import canonical_json_bytes, register_evidence_file
 
 
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
@@ -213,6 +211,13 @@ def validate_trial_record(
             "independent_participant_required",
             "$.isolated_context_id",
             "an isolated context id is required",
+        )
+    if not _text(record.get("runner_session_id")):
+        _add(
+            issues,
+            "trial_record_incomplete",
+            "$.runner_session_id",
+            "a runner session id is required",
         )
 
     allowed_inputs = _validate_collection(
@@ -493,12 +498,12 @@ def _route_verified_trial_to_gate(
     contract: MutableMapping[str, Any],
     gate_id: str,
     production_evidence_ids: Sequence[str],
-    trial_record: Mapping[str, Any],
+    trial_evidence_id: str,
+    trial_receipt_evidence_id: str,
     actor: str,
     at: str,
     *,
     workspace_root: Path | str,
-    trial_record_path: str,
 ) -> str:
     expected_scope = {"G4": "representative_unit", "G5": "full_course"}.get(gate_id)
     if expected_scope is None:
@@ -513,7 +518,8 @@ def _route_verified_trial_to_gate(
         for item in evidence_index
         if isinstance(item, Mapping) and _text(item.get("id"))
     }
-    missing = [item for item in production_evidence_ids if item not in indexed]
+    requested_ids = [*production_evidence_ids, trial_evidence_id, trial_receipt_evidence_id]
+    missing = [item for item in requested_ids if item not in indexed]
     if missing:
         raise ContractStateError(
             f"trial route references unindexed production evidence: {', '.join(missing)}"
@@ -530,6 +536,20 @@ def _route_verified_trial_to_gate(
     if supplied_rosters != [roster_id]:
         raise ContractStateError("trial route must use the exact governed production role roster")
     transition_ids = [item for item in production_evidence_ids if item != roster_id]
+    trial_reference = indexed.get(trial_evidence_id)
+    receipt_reference = indexed.get(trial_receipt_evidence_id)
+    if (
+        not isinstance(trial_reference, Mapping)
+        or trial_reference.get("gate") != gate_id
+        or trial_reference.get("kind") != "independent_course_trial"
+    ):
+        raise ContractStateError("trial route requires an existing typed trial reference")
+    if (
+        not isinstance(receipt_reference, Mapping)
+        or receipt_reference.get("gate") != gate_id
+        or receipt_reference.get("kind") != "independent_trial_receipt"
+    ):
+        raise ContractStateError("trial route requires an existing authority-issued receipt reference")
     wrong_gate = [
         item
         for item in transition_ids
@@ -540,69 +560,31 @@ def _route_verified_trial_to_gate(
             f"production evidence belongs to another gate: {', '.join(wrong_gate)}"
         )
 
-    maturity = evidence_maturity(trial_record)
-    digest = hashlib.sha256(canonical_json_bytes(trial_record)).hexdigest()
-    trial_id = f"{gate_id.casefold()}-independent-trial-{digest[:12]}"
-    if trial_id in indexed:
-        raise ContractStateError(f"trial evidence id already exists: {trial_id}")
-    participant = trial_record.get("participant")
-    allowed_inputs = trial_record.get("allowed_inputs")
-    learner_input_hashes = sorted(
-        str(item.get("sha256")) for item in allowed_inputs
-        if isinstance(allowed_inputs, list) and isinstance(item, Mapping) and _text(item.get("sha256"))
-    )
-    context_id = trial_record.get("isolated_context_id")
-    trial_reference = register_evidence_file(
-        workspace_root,
-        evidence_id=trial_id,
-        gate_id=gate_id,
-        kind="independent_course_trial",
-        relative_path=trial_record_path,
-        maturity=maturity,
-        metadata={
-            "scope": expected_scope,
-            "participant_id": participant.get("id") if isinstance(participant, Mapping) else None,
-            "runner_id": participant.get("id") if isinstance(participant, Mapping) else None,
-            "session_id": context_id,
-            "isolated_context_id": context_id,
-            "roster_sha256": roster_binding.get("sha256"),
-            "learner_input_hashes": learner_input_hashes,
-        },
-    )
-    if trial_reference["sha256"] != digest:
-        raise ContractStateError(
-            "registered trial file does not match the supplied trial record"
-        )
-    evidence_index.append(trial_reference)
-    try:
-        from src.course_gate import validate_and_transition_gate
+    from src.course_gate import validate_and_transition_gate
 
-        result = validate_and_transition_gate(
-            contract,
-            gate_id,
-            [*transition_ids, trial_id],
-            workspace_root,
-            actor,
-            at,
-        )
-    except BaseException:
-        evidence_index.remove(trial_reference)
-        raise
+    result = validate_and_transition_gate(
+        contract,
+        gate_id,
+        [*transition_ids, trial_evidence_id, trial_receipt_evidence_id],
+        workspace_root,
+        actor,
+        at,
+    )
     if result == "PASS":
-        contract["gates"][gate_id]["evidence"][-1]["maturity"] = maturity
+        contract["gates"][gate_id]["evidence"][-1]["maturity"] = trial_reference.get("maturity")
     return result
 
 
 def route_verified_trial_to_gate(
     contract: MutableMapping[str, Any], gate_id: str,
-    production_evidence_ids: Sequence[str], trial_record: Mapping[str, Any],
+    production_evidence_ids: Sequence[str], trial_evidence_id: str,
+    trial_receipt_evidence_id: str,
     actor: str, at: str, *, workspace_root: Path | str,
-    trial_record_path: str,
 ) -> str:
     staged = copy.deepcopy(contract)
     result = _route_verified_trial_to_gate(
-        staged, gate_id, production_evidence_ids, trial_record, actor, at,
-        workspace_root=workspace_root, trial_record_path=trial_record_path,
+        staged, gate_id, production_evidence_ids, trial_evidence_id,
+        trial_receipt_evidence_id, actor, at, workspace_root=workspace_root,
     )
     contract.clear()
     contract.update(staged)

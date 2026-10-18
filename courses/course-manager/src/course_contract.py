@@ -155,6 +155,7 @@ def new_contract(slug: str, title: str, created_by: str, created_at: str) -> dic
             "gate_authority": "course-run-with-validated-evidence",
             "external_action_authority": "explicit-user-authorization",
             "production_role_roster": None,
+            "runner_authority": None,
         },
         "gates": gates,
         "G0_requirements": {},
@@ -191,8 +192,9 @@ def _validate_governance(contract: Mapping[str, Any], issues: list[ValidationIss
         "gate_authority",
         "external_action_authority",
         "production_role_roster",
+        "runner_authority",
     }
-    for field in expected - {"production_role_roster"}:
+    for field in expected - {"production_role_roster", "runner_authority"}:
         value = governance.get(field)
         if not isinstance(value, str) or not value.strip():
             _append_issue(
@@ -207,6 +209,13 @@ def _validate_governance(contract: Mapping[str, Any], issues: list[ValidationIss
             "invalid_governance_field",
             f"{path}.production_role_roster",
             "production_role_roster must be present and may be null until fixed",
+        )
+    if "runner_authority" not in governance:
+        _append_issue(
+            issues,
+            "invalid_governance_field",
+            f"{path}.runner_authority",
+            "runner_authority must be present and may be null until fixed",
         )
     if governance.get("gate_authority") != "course-run-with-validated-evidence":
         _append_issue(
@@ -238,6 +247,22 @@ def _validate_governance(contract: Mapping[str, Any], issues: list[ValidationIss
                 _append_issue(issues, "invalid_production_role_roster_binding", f"{path}.production_role_roster.evidence_id", "governed roster evidence id must contain text")
             if not isinstance(digest, str) or not SHA256_PATTERN.fullmatch(digest):
                 _append_issue(issues, "invalid_production_role_roster_binding", f"{path}.production_role_roster.sha256", "governed roster sha256 must be lowercase hexadecimal")
+    authority = governance.get("runner_authority")
+    authority_fields = {
+        "authority_id", "algorithm", "key_fingerprint", "runner_registry_sha256"
+    }
+    if authority is not None:
+        if not isinstance(authority, Mapping) or set(authority) != authority_fields:
+            _append_issue(issues, "invalid_runner_authority", f"{path}.runner_authority", "runner authority binding has missing or unknown fields")
+        else:
+            if not isinstance(authority.get("authority_id"), str) or not authority["authority_id"].strip():
+                _append_issue(issues, "invalid_runner_authority", f"{path}.runner_authority.authority_id", "runner authority id must contain text")
+            if authority.get("algorithm") != "HMAC-SHA256":
+                _append_issue(issues, "invalid_runner_authority", f"{path}.runner_authority.algorithm", "runner authority algorithm must be HMAC-SHA256")
+            for field in ("key_fingerprint", "runner_registry_sha256"):
+                digest = authority.get(field)
+                if not isinstance(digest, str) or not SHA256_PATTERN.fullmatch(digest):
+                    _append_issue(issues, "invalid_runner_authority", f"{path}.runner_authority.{field}", f"{field} must be lowercase SHA-256")
     for field in set(governance) - expected:
         _append_issue(
             issues,
@@ -1065,6 +1090,7 @@ def migrate_contract_v1(
     governance["gate_authority"] = "course-run-with-validated-evidence"
     governance["external_action_authority"] = "explicit-user-authorization"
     governance["production_role_roster"] = None
+    governance["runner_authority"] = None
     migrated["schema_version"] = 2
     migrated["external_actions"] = []
     migrated["maintenance"] = {}
@@ -1160,6 +1186,7 @@ def migrate_contract_v2(
     if not isinstance(governance, MutableMapping):
         raise ContractStateError("legacy governance is missing or invalid")
     governance.setdefault("production_role_roster", None)
+    governance.setdefault("runner_authority", None)
     original_evidence = migrated.get("evidence_index")
     if not isinstance(original_evidence, list):
         original_evidence = []

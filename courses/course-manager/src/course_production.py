@@ -267,6 +267,19 @@ def validate_pilot_record(
             "$.trial_context_id",
             "pilot must bind the isolated independent trial context",
         )
+    production_actor_ids = record.get("production_actor_ids")
+    if (
+        not isinstance(production_actor_ids, list)
+        or not production_actor_ids
+        or not all(_text(item) for item in production_actor_ids)
+        or len(production_actor_ids) != len(set(production_actor_ids))
+    ):
+        _issue(
+            issues,
+            "pilot_production_actors_required",
+            "$.production_actor_ids",
+            "pilot must list unique production actor identities",
+        )
     for field in ("lesson_sha256", "html_sha256"):
         if not SHA256_PATTERN.fullmatch(str(record.get(field, ""))):
             _issue(
@@ -816,7 +829,8 @@ def _route_full_production_to_g5(
     pilot: Mapping[str, Any],
     production_role_evidence_id: str,
     production_record_path: str,
-    trial_record_path: str,
+    trial_evidence_id: str,
+    trial_receipt_evidence_id: str,
 ) -> str:
     if not evidence_refs:
         raise ValueError("G5 routing requires production evidence references")
@@ -866,6 +880,26 @@ def _route_full_production_to_g5(
     trial = record.get("full_course_trial")
     if not isinstance(trial, Mapping):
         raise ValueError("G5 routing requires a full-course trial record")
+    trial_reference = next(
+        (item for item in evidence_index if isinstance(item, Mapping) and item.get("id") == trial_evidence_id),
+        None,
+    )
+    receipt_reference = next(
+        (item for item in evidence_index if isinstance(item, Mapping) and item.get("id") == trial_receipt_evidence_id),
+        None,
+    )
+    if (
+        not isinstance(trial_reference, Mapping)
+        or trial_reference.get("gate") != "G5"
+        or trial_reference.get("kind") != "independent_course_trial"
+    ):
+        raise ContractStateError("G5 requires an existing typed full-course trial reference")
+    if (
+        not isinstance(receipt_reference, Mapping)
+        or receipt_reference.get("gate") != "G5"
+        or receipt_reference.get("kind") != "independent_trial_receipt"
+    ):
+        raise ContractStateError("G5 requires an existing authority-issued trial receipt")
     bundle = {
         "record": dict(record),
         "blueprint": dict(blueprint),
@@ -889,39 +923,7 @@ def _route_full_production_to_g5(
         raise ContractStateError(
             "registered full-production file does not match the supplied validation inputs"
         )
-    trial_digest = hashlib.sha256(canonical_json_bytes(trial)).hexdigest()
-    trial_id = f"g5-independent-trial-{trial_digest[:12]}"
-    if trial_id in existing_ids or trial_id in production_ids or trial_id == record_id:
-        raise ContractStateError(f"full-course trial evidence id already exists: {trial_id}")
-    participant = trial.get("participant")
-    allowed_inputs = trial.get("allowed_inputs")
-    learner_input_hashes = sorted(
-        str(item.get("sha256")) for item in allowed_inputs
-        if isinstance(allowed_inputs, list) and isinstance(item, Mapping) and _text(item.get("sha256"))
-    )
-    context_id = trial.get("isolated_context_id")
-    trial_reference = register_evidence_file(
-        workspace_root,
-        evidence_id=trial_id,
-        gate_id="G5",
-        kind="independent_course_trial",
-        relative_path=trial_record_path,
-        maturity=evidence_maturity(trial),
-        metadata={
-            "scope": "full_course",
-            "participant_id": participant.get("id") if isinstance(participant, Mapping) else None,
-            "runner_id": participant.get("id") if isinstance(participant, Mapping) else None,
-            "session_id": context_id,
-            "isolated_context_id": context_id,
-            "roster_sha256": roster_binding.get("sha256"),
-            "learner_input_hashes": learner_input_hashes,
-        },
-    )
-    if trial_reference["sha256"] != trial_digest:
-        raise ContractStateError(
-            "registered full-course trial file does not match the production record"
-        )
-    staged_refs.extend([record_reference, trial_reference])
+    staged_refs.append(record_reference)
     evidence_index.extend(staged_refs)
     from src.course_gate import validate_and_transition_gate
 
@@ -931,7 +933,8 @@ def _route_full_production_to_g5(
         [
             *production_ids,
             record_id,
-            trial_id,
+            trial_evidence_id,
+            trial_receipt_evidence_id,
         ],
         workspace_root,
         actor,
@@ -945,7 +948,8 @@ def route_full_production_to_g5(
     workspace_root: Path | str, blueprint: Mapping[str, Any],
     lessons: Sequence[Mapping[str, Any]], assets: Mapping[str, Any],
     pilot: Mapping[str, Any], production_role_evidence_id: str,
-    production_record_path: str, trial_record_path: str,
+    production_record_path: str, trial_evidence_id: str,
+    trial_receipt_evidence_id: str,
 ) -> str:
     staged = copy.deepcopy(contract)
     result = _route_full_production_to_g5(
@@ -954,7 +958,8 @@ def route_full_production_to_g5(
         assets=assets, pilot=pilot,
         production_role_evidence_id=production_role_evidence_id,
         production_record_path=production_record_path,
-        trial_record_path=trial_record_path,
+        trial_evidence_id=trial_evidence_id,
+        trial_receipt_evidence_id=trial_receipt_evidence_id,
     )
     contract.clear()
     contract.update(staged)

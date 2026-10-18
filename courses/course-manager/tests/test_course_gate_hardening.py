@@ -57,6 +57,22 @@ class CourseGateHardeningTests(unittest.TestCase):
         ]
         self.assertEqual(offenders, [])
 
+    def test_dispatcher_is_only_registry_consume_and_transition_coordinator(self):
+        source_root = Path(__file__).parents[1] / "src"
+        dispatcher = (source_root / "course_gate.py").read_text(encoding="utf-8")
+        validators = (source_root / "course_gate_validators.py").read_text(encoding="utf-8")
+        self.assertLess(len(dispatcher.splitlines()), 250)
+        self.assertNotIn("def _validate_g4", dispatcher)
+        self.assertNotIn("def _validate_g5_artifact_bindings", dispatcher)
+        self.assertNotIn("from src.course_gate import", validators)
+        self.assertNotIn("route_verified_trial_to_gate", validators)
+        self.assertNotIn("route_full_production_to_g5", validators)
+        route_sources = "\n".join(
+            (source_root / name).read_text(encoding="utf-8")
+            for name in ("course_validation.py", "course_production.py")
+        )
+        self.assertNotIn("issue_trial_receipt", route_sources)
+
     def test_secure_consume_returns_bytes_and_parsed_json_from_bound_file(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
