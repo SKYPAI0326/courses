@@ -119,7 +119,7 @@ def validate_and_transition_gate(
     consumed_inputs: list[ConsumedEvidence] = []
     for reference in references:
         kind = str(reference.get("kind"))
-        parse_json = kind not in G5_ARTIFACT_KINDS and kind != "release_check"
+        parse_json = kind not in G5_ARTIFACT_KINDS | {"release_check", "requirements_support_artifact"}
         item = _consume(
             workspace_root, reference, gate_id, parse_json=parse_json
         )

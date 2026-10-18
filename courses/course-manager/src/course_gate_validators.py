@@ -89,14 +89,39 @@ def _validate_requirements(
         return issues
     if record != contract.get("G0_requirements"):
         issues.append(GateValidationIssue("requirements_evidence_mismatch", "$.G0_requirements", "requirements evidence must exactly match the governed G0 payload"))
-    known_support_ids = {
-        str(item.reference.get("id"))
-        for item in consumed.get("requirements_support", [])
+    from src.course_requirements_support import validate_requirements_support_record
+
+    artifact_hashes = {
+        str(item.reference.get("id")): item.sha256
+        for item in consumed.get("requirements_support_artifact", [])
     }
+    support_items = consumed.get("requirements_support", [])
+    verified_support: dict[str, Mapping[str, Any]] = {}
+    referenced_artifacts: list[str] = []
+    for index, item in enumerate(support_items):
+        support = item.value
+        if not isinstance(support, Mapping):
+            issues.append(GateValidationIssue("invalid_requirements_support", f"$.evidence.requirements_support[{index}]", "requirements support must be a JSON object"))
+            continue
+        support_id = support.get("support_id")
+        if support_id != item.reference.get("id"):
+            issues.append(GateValidationIssue("requirements_support_identity_mismatch", f"$.evidence.requirements_support[{index}].support_id", "support record identity must match its consumed evidence id"))
+        support_issues = validate_requirements_support_record(support, artifact_hashes)
+        issues.extend(_coerce_issues(support_issues))
+        if not support_issues and isinstance(support_id, str) and support_id == item.reference.get("id"):
+            verified_support[support_id] = support
+        for artifact in support.get("artifacts", []):
+            if isinstance(artifact, Mapping) and isinstance(artifact.get("evidence_id"), str):
+                referenced_artifacts.append(str(artifact["evidence_id"]))
+    if (
+        set(referenced_artifacts) != set(artifact_hashes)
+        or len(referenced_artifacts) != len(set(referenced_artifacts))
+    ):
+        issues.append(GateValidationIssue("requirements_support_artifact_set_mismatch", "$.evidence.requirements_support_artifact", "every consumed support artifact must be bound by exactly one support record"))
     issues.extend(
         _coerce_issues(
             validate_requirements_record(
-                record, known_support_evidence_ids=known_support_ids
+                record, verified_support_records=verified_support
             )
         )
     )

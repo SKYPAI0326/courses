@@ -22,6 +22,13 @@ VAGUE_PREFIXES = (
 MATERIAL_DOMAINS = frozenset(
     {"tools", "accounts", "permissions", "device", "materials", "artifact", "time", "locale"}
 )
+FREE_PROSE_FIELDS = frozenset({
+    "learner", "baseline", "prerequisites", "situation", "problem", "use",
+    "name", "format", "observable_result", "mode", "break_buffer_policy",
+    "tools", "accounts", "permissions", "device", "locale", "description",
+    "impact", "statement", "validation_plan", "question", "resolution",
+    "decision", "rationale",
+})
 
 REQUIREMENTS_REQUIRED_FIELDS = (
     "schema_version", "requirements_id", "target_profile", "work_context",
@@ -100,15 +107,15 @@ def _similar_boilerplate(left: str, right: str) -> bool:
     return bool(left_grams | right_grams) and len(left_grams & right_grams) / len(left_grams | right_grams) >= 0.9
 
 
-def _prose_values(value: Any, path: str = "$"):
-    if isinstance(value, str) and not path.endswith((".id", "_id", ".status", ".evidence_ref")):
+def _prose_values(value: Any, path: str = "$", field: str | None = None):
+    if isinstance(value, str) and field in FREE_PROSE_FIELDS:
         yield path, value
     elif isinstance(value, Mapping):
         for key, child in value.items():
-            yield from _prose_values(child, f"{path}.{key}")
+            yield from _prose_values(child, f"{path}.{key}", str(key))
     elif isinstance(value, list):
         for index, child in enumerate(value):
-            yield from _prose_values(child, f"{path}[{index}]")
+            yield from _prose_values(child, f"{path}[{index}]", field)
 
 
 def _validate_prose_distinctness(record: Mapping[str, Any], issues: list[RequirementsIssue]) -> None:
@@ -130,7 +137,7 @@ def _validate_prose_distinctness(record: Mapping[str, Any], issues: list[Require
 
 def validate_requirements_record(
     record: Mapping[str, Any],
-    known_support_evidence_ids: set[str] | frozenset[str] | None = None,
+    verified_support_records: Mapping[str, Mapping[str, Any]] | None = None,
 ) -> list[RequirementsIssue]:
     issues: list[RequirementsIssue] = []
     if not isinstance(record, Mapping):
@@ -225,6 +232,16 @@ def validate_requirements_record(
                 domains = mapped.get("impact_domains")
                 derived_material = isinstance(domains, list) and bool(set(domains) & MATERIAL_DOMAINS)
                 fallback = mapped.get("fallback")
+                support = (
+                    verified_support_records.get(str(fallback.get("evidence_ref")))
+                    if isinstance(fallback, Mapping) and verified_support_records is not None
+                    else None
+                )
+                acceptance_ids = fallback.get("acceptance_criterion_ids") if isinstance(fallback, Mapping) else None
+                known_criteria = {
+                    item.get("id") for item in record.get("acceptance_criteria", [])
+                    if isinstance(item, Mapping)
+                }
                 fallback_valid = (
                     isinstance(fallback, Mapping)
                     and _meaningful(fallback.get("description"))
@@ -232,8 +249,17 @@ def validate_requirements_record(
                     and isinstance(fallback.get("evidence_ref"), str)
                     and ID_PATTERN.fullmatch(fallback["evidence_ref"]) is not None
                     and fallback.get("preserves_acceptance") is True
-                    and known_support_evidence_ids is not None
-                    and fallback.get("evidence_ref") in known_support_evidence_ids
+                    and isinstance(support, Mapping)
+                    and support.get("support_id") == fallback.get("evidence_ref")
+                    and support.get("requirements_id") == record.get("requirements_id")
+                    and support.get("unknown_id") == mapped.get("id")
+                    and support.get("fallback_id") == fallback.get("fallback_id")
+                    and support.get("acceptance_criterion_ids") == acceptance_ids
+                    and support.get("preserved_acceptance_ids") == acceptance_ids
+                    and isinstance(acceptance_ids, list) and bool(acceptance_ids)
+                    and set(acceptance_ids).issubset(known_criteria)
+                    and isinstance(support.get("alternative_path"), Mapping)
+                    and support["alternative_path"].get("description") == fallback.get("description")
                 )
                 if fallback is not None and not fallback_valid:
                     _issue(issues, "invalid_fallback", f"{path}.fallback", "fallback must be verified, evidenced, and preserve acceptance")

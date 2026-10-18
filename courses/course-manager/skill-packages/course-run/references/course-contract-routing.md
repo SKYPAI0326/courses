@@ -36,7 +36,7 @@ Gate-specific returns:
 
 | Gate | Producer capability | Required result |
 |---|---|---|
-| G0 | course-run adaptive interview | canonical requirements record with learner/baseline, work context, observable artifact, delivery/time, environment, constraints, criterion-level capabilities, assumptions, unknowns and decisions; every unresolved unknown requires a typed, hash-verified `VERIFIED_FALLBACK` support record |
+| G0 | course-run adaptive interview | canonical requirements record with learner/baseline, work context, observable artifact, delivery/time, environment, constraints, criterion-level capabilities, assumptions, unknowns and decisions; every unresolved unknown requires a `VERIFIED_FALLBACK` support record conforming to `contracts/course-requirements-support.schema.json` plus at least one same-transition, hash-verified `requirements_support_artifact` |
 | G1 | course-researcher | research record, evidence hash, adaptation, blockers, recommendation |
 | G2 | course-pm | one reasoned blueprint with stable outcome/criterion/capability refs, executable units, dependency DAG, exact duration reconciliation and material risks |
 | G3 | course-designer | one aggregate set of learner-readable lesson records that covers every canonical G2 unit exactly once, with examples, practice, checks, repair paths and asset needs |

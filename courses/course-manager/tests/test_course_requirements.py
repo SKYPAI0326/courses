@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 from src.course_contract import begin_gate, new_contract
-from src.course_evidence import materialize_json_evidence
+from src.course_evidence import materialize_json_evidence, register_evidence_file
 from src.course_requirements import (
     REQUIREMENTS_REQUIRED_FIELDS,
     validate_requirements_record,
@@ -199,20 +199,46 @@ class CourseRequirementsTests(unittest.TestCase):
                 })
                 self.assertIn(
                     "unresolved_unknown",
-                    {issue.code for issue in validate_requirements_record(record, known_support_evidence_ids=set())},
+                    {issue.code for issue in validate_requirements_record(record, verified_support_records={})},
                 )
         record = self.valid_record()
         record["unknowns"][0].update({
             "status": "OPEN",
             "fallback": {
+                "fallback_id": "fallback-markdown-export",
                 "description": "改交付可由同一 rubric 驗收的 Markdown 檔案。",
                 "verification_status": "VERIFIED_FALLBACK",
                 "evidence_ref": "g0-fallback-support",
+                "acceptance_criterion_ids": ["criterion-decision-brief"],
                 "preserves_acceptance": True,
             },
         })
-        self.assertTrue(validate_requirements_record(record, known_support_evidence_ids=set()))
-        self.assertEqual(validate_requirements_record(record, known_support_evidence_ids={"g0-fallback-support"}), [])
+        self.assertTrue(validate_requirements_record(record, verified_support_records={}))
+        support = {
+            "support_id": "g0-fallback-support",
+            "requirements_id": record["requirements_id"],
+            "unknown_id": record["unknowns"][0]["id"],
+            "fallback_id": "fallback-markdown-export",
+            "acceptance_criterion_ids": ["criterion-decision-brief"],
+            "preserved_acceptance_ids": ["criterion-decision-brief"],
+            "alternative_path": {"description": "改交付可由同一 rubric 驗收的 Markdown 檔案。"},
+        }
+        self.assertEqual(validate_requirements_record(record, verified_support_records={"g0-fallback-support": support}), [])
+        for field, value in (
+            ("unknown_id", "wrong-unknown"),
+            ("fallback_id", "wrong-fallback"),
+            ("acceptance_criterion_ids", ["unknown-criterion"]),
+            ("preserved_acceptance_ids", []),
+        ):
+            with self.subTest(field=field):
+                mismatched = copy.deepcopy(support)
+                mismatched[field] = value
+                self.assertIn(
+                    "invalid_fallback",
+                    {issue.code for issue in validate_requirements_record(
+                        record, verified_support_records={"g0-fallback-support": mismatched}
+                    )},
+                )
 
     def test_numbered_boilerplate_cannot_fill_distinct_requirement_fields(self):
         record = self.valid_record()
@@ -269,24 +295,96 @@ class CourseRequirementsTests(unittest.TestCase):
         self.assertEqual(status, "PASS")
         self.assertEqual(contract["gates"]["G0"]["evidence"][-1]["validator_id"], "course-requirements-validator")
 
-    def test_g0_route_accepts_fallback_only_with_consumed_typed_support(self):
+    def test_g0_route_accepts_two_unknowns_with_two_independent_verified_support_chains(self):
+        contract = new_contract("fallback-course", "Fallback Course", "course-run", "2026-10-18T09:00:00+08:00")
+        begin_gate(contract, "G0", "course-run", "2026-10-18T09:01:00+08:00")
+        record = self.valid_record()
+        record["unknowns"] = []
+        support_ids = []
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for number, label in ((1, "markdown"), (2, "html")):
+                unknown_id = f"unknown-export-{number}"
+                fallback_id = f"fallback-export-{number}"
+                support_id = f"g0-fallback-support-{number}"
+                artifact_id = f"g0-fallback-artifact-{number}"
+                record["unknowns"].append({
+                    "id": unknown_id,
+                    "question": f"第 {number} 套環境能否輸出指定格式？",
+                    "material": False,
+                    "impact_domains": ["non-core"],
+                    "status": "OPEN",
+                    "resolution": f"已實測 {label} 替代路徑並保留全部驗收條件。",
+                    "fallback": {
+                        "fallback_id": fallback_id,
+                        "description": f"改用 {label} 格式完成相同交付內容。",
+                        "verification_status": "VERIFIED_FALLBACK",
+                        "evidence_ref": support_id,
+                        "acceptance_criterion_ids": ["criterion-decision-brief"],
+                        "preserves_acceptance": True,
+                    },
+                })
+                artifact_path = root / "evidence" / f"fallback-{number}.txt"
+                artifact_path.parent.mkdir(parents=True, exist_ok=True)
+                artifact_path.write_text(f"verified {label} artifact\n", encoding="utf-8")
+                artifact = register_evidence_file(
+                    root, evidence_id=artifact_id, gate_id="G0",
+                    kind="requirements_support_artifact",
+                    relative_path=f"evidence/fallback-{number}.txt",
+                )
+                support_value = {
+                    "schema_version": 1, "support_id": support_id,
+                    "requirements_id": record["requirements_id"],
+                    "unknown_id": unknown_id, "fallback_id": fallback_id,
+                    "acceptance_criterion_ids": ["criterion-decision-brief"],
+                    "alternative_path": {
+                        "description": f"改用 {label} 格式完成相同交付內容。",
+                        "steps": [f"依課程範本完成 {label} 檔並另存。"],
+                        "expected_result": "交付物保留指標表、判讀與後續測試。",
+                    },
+                    "verification": {
+                        "executed": True, "verifier_id": f"validator-{number}",
+                        "verified_at": f"2026-10-18T09:0{number}:30+08:00",
+                        "environment": f"隔離測試環境 {number}，繁體中文介面。",
+                        "method": f"由空白範本完整執行 {label} 替代路徑。",
+                        "observed_result": "成品可開啟且全部驗收欄位有結果。",
+                    },
+                    "preserved_acceptance_ids": ["criterion-decision-brief"],
+                    "artifacts": [{"evidence_id": artifact_id, "sha256": artifact["sha256"]}],
+                }
+                support = materialize_json_evidence(
+                    root, evidence_id=support_id, gate_id="G0", kind="requirements_support",
+                    relative_path=f"evidence/support-{number}.json", value=support_value,
+                )
+                contract["evidence_index"].extend([artifact, support])
+                support_ids.extend([support_id, artifact_id])
+            status = route_requirements_to_g0(
+                contract, record, "evidence/g0-requirements.json", "course-run",
+                "2026-10-18T09:02:00+08:00", workspace_root=temporary,
+                support_evidence_ids=support_ids,
+            )
+        self.assertEqual(status, "PASS")
+
+    def test_g0_dispatcher_rejects_empty_self_declared_support(self):
         contract = new_contract("fallback-course", "Fallback Course", "course-run", "2026-10-18T09:00:00+08:00")
         begin_gate(contract, "G0", "course-run", "2026-10-18T09:01:00+08:00")
         record = self.valid_record()
         record["unknowns"][0].update({
             "status": "OPEN",
             "fallback": {
+                "fallback_id": "fallback-markdown-export",
                 "description": "改交付可由同一 rubric 驗收的 Markdown 檔案。",
                 "verification_status": "VERIFIED_FALLBACK",
-                "evidence_ref": "g0-fallback-support",
+                "evidence_ref": "g0-empty-support",
+                "acceptance_criterion_ids": ["criterion-decision-brief"],
                 "preserves_acceptance": True,
             },
         })
         with tempfile.TemporaryDirectory() as temporary:
             support = materialize_json_evidence(
-                temporary, evidence_id="g0-fallback-support", gate_id="G0",
-                kind="requirements_support", relative_path="evidence/fallback-support.json",
-                value={"result": "PASS", "fallback": "Markdown export"},
+                temporary, evidence_id="g0-empty-support", gate_id="G0",
+                kind="requirements_support", relative_path="evidence/empty-support.json",
+                value={},
             )
             contract["evidence_index"].append(support)
             status = route_requirements_to_g0(
@@ -294,7 +392,7 @@ class CourseRequirementsTests(unittest.TestCase):
                 "2026-10-18T09:02:00+08:00", workspace_root=temporary,
                 support_evidence_ids=[support["id"]],
             )
-        self.assertEqual(status, "PASS")
+        self.assertEqual(status, "BLOCKED")
 
 
 if __name__ == "__main__":
