@@ -34,3 +34,68 @@
 - outline hash 與 scope_note 防止悄悄換範圍；reviewer 仍需核對單元清單與大綱一致，機器不解析自然語言大綱來推定完整性。
 
 工具只驗版本、確定性條件及必要紀錄。缺 technical／content／fidelity、未解 FAIL 或版本過期為 BLOCKED；這些齊全而真人或適用平台缺驗，為 MACHINE_READY_PENDING_HUMAN。完整正式狀態語義仍以 learner-action-contract.md 為準。
+
+## 獨立試學紀錄
+
+代表單元與全課試走另存一份符合 `contracts/course-trial-record.schema.json` 的 JSON。G4 的 `scope` 固定為 `representative_unit`；G5 固定為 `full_course`。這份紀錄描述執行事實，不是心得或審查摘要。
+
+```json
+{
+  "schema_version": 1,
+  "scope": "representative_unit",
+  "participant": {
+    "id": "cold-learner-ai-01",
+    "type": "independent-ai",
+    "roles": ["learner-trial"]
+  },
+  "isolated_context_id": "cold-run-20261018-01",
+  "allowed_inputs": [{
+    "kind": "learner-page",
+    "path": "courses/demo/unit-1.html",
+    "sha256": "64位小寫SHA256"
+  }],
+  "forbidden_inputs_accessed": [],
+  "entry": {
+    "started_at": "2026-10-18T15:00:00+08:00",
+    "page": "courses/demo/unit-1.html",
+    "goal_understood": true,
+    "materials_found": true
+  },
+  "actions": [{
+    "sequence": 1,
+    "action": "開啟學員素材並找出預算與截止日。",
+    "observable_result": "在資料表找到兩個欄位。",
+    "at": "2026-10-18T15:01:00+08:00"
+  }],
+  "hints": [{
+    "source": "learner-page",
+    "detail": "使用頁面中資料不完整時的修復提示。"
+  }],
+  "blocks": [{
+    "code": "practice_instruction_gap",
+    "detail": "第一次沒有注意到預算必須拆分。",
+    "recovered": true
+  }],
+  "recovery": [{
+    "block_code": "practice_instruction_gap",
+    "action": "回到商品資料核對預算欄。",
+    "result": "修正後通過頁面檢查。"
+  }],
+  "artifact": {
+    "path": "trial-output/cold-run-20261018-01/plan.pdf",
+    "sha256": "64位小寫SHA256",
+    "complete": true,
+    "verifiable": true,
+    "acceptance_result": "PASS"
+  },
+  "result": {
+    "status": "PASS",
+    "completed_at": "2026-10-18T15:10:00+08:00",
+    "notes": "只依學員可見頁面與素材完成。"
+  }
+}
+```
+
+真人試學把 `participant.type` 設為 `human`，並加上 `human_participant_evidence`，其中必須有 consent record、observer ID 與 session recording SHA-256。沒有這些證據時最多只能保留較低成熟度，不能標記 `HUMAN_VERIFIED`。
+
+試走紀錄的 SHA-256 連同製作證據 ID 寫入 contract `evidence_index`。Gate PASS event 必須同時引用製作證據與試走證據，並記錄 `INDEPENDENT_AI_VERIFIED`；缺任一類都不能完成 G4 或 G5。
