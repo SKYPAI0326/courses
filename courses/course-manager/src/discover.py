@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
-from .catalog import SCHEMA_VERSION, file_sha256, relative_posix
+from .catalog_core import SCHEMA_VERSION, file_sha256, relative_posix
 
 
 SUPPORT_NAMES = {

@@ -23,14 +23,15 @@ from src.course_contract import (  # noqa: E402
     validate_contract,
 )
 from src.course_production import (  # noqa: E402
-    route_full_production_to_g5,
     select_pilot_unit,
     validate_full_production,
     validate_pilot_record,
 )
+from src.course_production_routes import route_full_production_to_g5  # noqa: E402
 from src.course_release import build_release_proposal, validate_release_record  # noqa: E402
-from src.course_research import route_research_to_gate, validate_research_record  # noqa: E402
-from src.course_validation import route_verified_trial_to_gate  # noqa: E402
+from src.course_research import validate_research_record  # noqa: E402
+from src.course_research_routes import route_research_to_gate  # noqa: E402
+from src.course_validation_routes import route_verified_trial_to_gate  # noqa: E402
 
 
 ROOT = Path(__file__).resolve().parent

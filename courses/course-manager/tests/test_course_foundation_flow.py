@@ -13,7 +13,7 @@ from src.course_contract import (
     render_gate_summary,
 )
 from tests.gate_test_support import _commit_gate_pass
-from src.course_research import route_research_to_gate
+from src.course_research_routes import route_research_to_gate
 
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"

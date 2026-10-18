@@ -28,35 +28,61 @@ class CourseGateHardeningTests(unittest.TestCase):
         self.assertNotIn("private_key", source)
         self.assertNotIn("_private_exponent", source)
 
-    def test_gate_validator_dependency_graph_has_no_route_cycle(self):
+    def test_src_dependency_graph_has_no_multi_module_cycle(self):
         source_root = Path(__file__).parents[1] / "src"
 
+        modules = {path.stem for path in source_root.glob("*.py")}
+
         def imports(module_name):
-            tree = ast.parse((source_root / f"{module_name}.py").read_text(encoding="utf-8"))
-            return {
-                node.module.removeprefix("src.")
-                for node in ast.walk(tree)
-                if isinstance(node, ast.ImportFrom)
-                and isinstance(node.module, str)
-                and node.module.startswith("src.")
-            }
+            tree = ast.parse(
+                (source_root / f"{module_name}.py").read_text(encoding="utf-8")
+            )
+            dependencies = set()
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ImportFrom):
+                    if node.level and node.module:
+                        imported = node.module.split(".", 1)[0]
+                        if imported in modules:
+                            dependencies.add(imported)
+                    elif node.level:
+                        dependencies.update(
+                            alias.name for alias in node.names if alias.name in modules
+                        )
+                    elif node.module == "src":
+                        dependencies.update(
+                            alias.name for alias in node.names if alias.name in modules
+                        )
+                    elif isinstance(node.module, str) and node.module.startswith("src."):
+                        imported = node.module.removeprefix("src.").split(".", 1)[0]
+                        if imported in modules:
+                            dependencies.add(imported)
+                elif isinstance(node, ast.Import):
+                    for alias in node.names:
+                        if alias.name.startswith("src."):
+                            imported = alias.name.removeprefix("src.").split(".", 1)[0]
+                            if imported in modules:
+                                dependencies.add(imported)
+            return dependencies
 
         validator_imports = imports("course_gate_validators")
         self.assertIn("course_validation", validator_imports)
         self.assertIn("course_production", validator_imports)
-        for route_module in ("course_validation_routes", "course_production_routes"):
+        for route_module in (
+            "course_validation_routes",
+            "course_production_routes",
+            "course_research_routes",
+            "course_content_routes",
+        ):
             self.assertIn("course_gate", imports(route_module))
-        for pure_module in ("course_validation", "course_production"):
+        for pure_module in (
+            "course_validation",
+            "course_production",
+            "course_research",
+            "course_content",
+        ):
             self.assertNotIn("course_gate", imports(pure_module))
 
-        graph = {
-            module: imports(module)
-            for module in (
-                "course_gate", "course_gate_validators", "course_validation",
-                "course_production", "course_validation_routes",
-                "course_production_routes",
-            )
-        }
+        graph = {module: imports(module) for module in modules}
 
         def reaches(start, target, seen=None):
             seen = set() if seen is None else seen
@@ -68,7 +94,65 @@ class CourseGateHardeningTests(unittest.TestCase):
                 for dependency in graph.get(start, set())
             )
 
+        index = 0
+        indexes = {}
+        lowlinks = {}
+        stack = []
+        on_stack = set()
+        strongly_connected = []
+
+        def visit(module):
+            nonlocal index
+            indexes[module] = index
+            lowlinks[module] = index
+            index += 1
+            stack.append(module)
+            on_stack.add(module)
+
+            for dependency in graph[module]:
+                if dependency not in indexes:
+                    visit(dependency)
+                    lowlinks[module] = min(lowlinks[module], lowlinks[dependency])
+                elif dependency in on_stack:
+                    lowlinks[module] = min(lowlinks[module], indexes[dependency])
+
+            if lowlinks[module] == indexes[module]:
+                component = []
+                while True:
+                    dependency = stack.pop()
+                    on_stack.remove(dependency)
+                    component.append(dependency)
+                    if dependency == module:
+                        break
+                strongly_connected.append(tuple(sorted(component)))
+
+        for module in sorted(graph):
+            if module not in indexes:
+                visit(module)
+
+        import_cycles = sorted(
+            component for component in strongly_connected if len(component) > 1
+        )
+        self.assertEqual(import_cycles, [], f"local import cycles: {import_cycles}")
         self.assertFalse(reaches("course_gate_validators", "course_gate"))
+
+    def test_catalog_discovery_dependency_graph_is_one_way(self):
+        source_root = Path(__file__).parents[1] / "src"
+
+        def relative_imports(module_name):
+            tree = ast.parse(
+                (source_root / f"{module_name}.py").read_text(encoding="utf-8")
+            )
+            return {
+                node.module
+                for node in ast.walk(tree)
+                if isinstance(node, ast.ImportFrom)
+                and node.level
+                and isinstance(node.module, str)
+            }
+
+        self.assertIn("discover", relative_imports("catalog"))
+        self.assertNotIn("catalog", relative_imports("discover"))
 
     def test_new_contract_has_immutable_instance_and_local_receipt_ledger(self):
         contract = new_contract("receipt-course", "Receipt Course", "test", "2026-10-18T12:00:00+08:00")
