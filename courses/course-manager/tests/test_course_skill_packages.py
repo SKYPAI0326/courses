@@ -125,6 +125,32 @@ class CourseSkillPackageTests(unittest.TestCase):
             all(not gate["user_approval_required"] for gate in self.routing["gates"])
         )
 
+    def test_course_run_auto_dispatches_passed_gate_without_user_approval(self):
+        policy = self.routing["automatic_dispatch"]
+
+        self.assertTrue(policy["enabled"])
+        self.assertEqual(policy["trigger"], "validated_gate_pass")
+        self.assertEqual(policy["action"], "begin_next_gate")
+        self.assertFalse(policy["requires_user_approval"])
+
+    def test_course_run_asks_only_for_configured_decision_triggers(self):
+        triggers = self.routing["user_decision_triggers"]
+
+        self.assertEqual(
+            set(triggers),
+            {
+                "design_changing_missing_information",
+                "material_judgment",
+                "paid_service",
+                "credentials_or_rights",
+                "external_mutation",
+            },
+        )
+        self.assertTrue(all(item["ask_user"] for item in triggers.values()))
+        self.assertTrue(
+            all(not gate["user_approval_required"] for gate in self.routing["gates"])
+        )
+
     def test_gate_routing_gives_children_evidence_but_not_pass_authority(self):
         child_authority = self.routing["child_authority"]
 

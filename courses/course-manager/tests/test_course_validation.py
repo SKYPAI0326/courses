@@ -7,6 +7,7 @@ from src.course_validation import (
     evidence_maturity,
     route_trial_failure,
     route_verified_trial_to_gate,
+    validate_trial_context_is_new,
     validate_trial_record,
 )
 
@@ -223,6 +224,32 @@ class CourseTrialValidationTests(unittest.TestCase):
 
         del record["human_participant_evidence"]
         self.assertNotEqual(evidence_maturity(record), "HUMAN_VERIFIED")
+
+    def test_g5_trial_uses_new_isolated_context_and_full_course_scope(self):
+        record = self.valid_trial(scope="full_course")
+        record["isolated_context_id"] = "pilot-cold-run-20261018-01"
+
+        issues = validate_trial_record(record, [], "full_course")
+        self.assertEqual(issues, [])
+
+        context_issues = validate_trial_context_is_new(
+            record, ["pilot-cold-run-20261018-01"]
+        )
+        self.assertIn(
+            "g5_trial_context_invalid", {issue.code for issue in context_issues}
+        )
+
+        record["isolated_context_id"] = "full-course-cold-run-20261018-02"
+        self.assertEqual(
+            validate_trial_context_is_new(record, ["pilot-cold-run-20261018-01"]),
+            [],
+        )
+
+        record["scope"] = "representative_unit"
+        codes = {
+            issue.code for issue in validate_trial_record(record, [], "full_course")
+        }
+        self.assertIn("trial_scope_mismatch", codes)
 
     def make_contract_at_g4(self):
         contract = new_contract(

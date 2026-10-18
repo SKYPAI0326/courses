@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "course-production-record.schema.json",
+  "title": "Full course production record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "course_id",
+    "production_authors",
+    "g4_trial_context_id",
+    "units",
+    "navigation",
+    "dependency_checks",
+    "final_artifact",
+    "full_course_trial",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "course_id": {"type": "string", "minLength": 1},
+    "production_authors": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "g4_trial_context_id": {"type": "string", "minLength": 1},
+    "units": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/unit"}
+    },
+    "navigation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entry", "order", "completion"],
+      "properties": {
+        "entry": {"type": "string", "minLength": 1},
+        "order": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "completion": {"type": "string", "minLength": 1}
+      }
+    },
+    "dependency_checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from_unit", "to_unit", "artifact", "result"],
+        "properties": {
+          "from_unit": {"type": "string", "minLength": 1},
+          "to_unit": {"type": "string", "minLength": 1},
+          "artifact": {"type": "string", "minLength": 1},
+          "result": {"enum": ["PASS", "FAIL"]}
+        }
+      }
+    },
+    "final_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "outcome_id", "acceptance"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "outcome_id": {"type": "string", "minLength": 1},
+        "acceptance": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["criterion_id", "result", "evidence"],
+            "properties": {
+              "criterion_id": {"type": "string", "minLength": 1},
+              "result": {"enum": ["PASS", "FAIL"]},
+              "evidence": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      }
+    },
+    "full_course_trial": {"type": "object"},
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "validator_id", "validated_at"],
+      "properties": {
+        "status": {"enum": ["PASS", "FAIL"]},
+        "validator_id": {"type": "string", "minLength": 1},
+        "validated_at": {"type": "string", "minLength": 1}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "unit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit_id",
+        "lesson_sha256",
+        "html_path",
+        "html_sha256",
+        "asset_ids",
+        "outcome",
+        "workflow_fingerprint",
+        "depends_on",
+        "previous",
+        "next"
+      ],
+      "properties": {
+        "unit_id": {"type": "string", "minLength": 1},
+        "lesson_sha256": {"$ref": "#/$defs/sha256"},
+        "html_path": {"type": "string", "minLength": 1},
+        "html_sha256": {"$ref": "#/$defs/sha256"},
+        "asset_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "outcome": {"type": "string", "minLength": 1},
+        "workflow_fingerprint": {"type": "string", "minLength": 1},
+        "depends_on": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "previous": {"type": ["string", "null"]},
+        "next": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

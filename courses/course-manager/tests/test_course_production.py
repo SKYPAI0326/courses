@@ -1,10 +1,13 @@
+import copy
 import hashlib
 import unittest
 
 from src.course_contract import ContractStateError, begin_gate, new_contract, pass_gate
 from src.course_production import (
+    route_full_production_to_g5,
     select_pilot_unit,
     validate_asset_manifest,
+    validate_full_production,
     validate_pilot_record,
 )
 
@@ -161,6 +164,164 @@ class CourseProductionTests(unittest.TestCase):
             "asset_references": ["asset-product-brief", "asset-demo-plan"],
         }
 
+    def full_blueprint(self):
+        return {
+            "units": [
+                {
+                    "id": "unit-1",
+                    "outcome": "從商品資料找出企劃限制與可用證據。",
+                    "workflow_fingerprint": "extract-source-constraints",
+                    "depends_on": [],
+                    "asset_ids": ["asset-product-brief"],
+                },
+                {
+                    "id": "unit-2",
+                    "outcome": "依限制完成可交付的行銷企劃初稿。",
+                    "workflow_fingerprint": "build-plan-from-constraints",
+                    "depends_on": ["unit-1"],
+                    "asset_ids": ["asset-demo-plan"],
+                },
+                {
+                    "id": "unit-3",
+                    "outcome": "依驗收條件檢查並修訂完整企劃。",
+                    "workflow_fingerprint": "audit-plan-against-criteria",
+                    "depends_on": ["unit-2"],
+                    "asset_ids": ["asset-product-brief", "asset-demo-plan"],
+                },
+            ],
+            "final_acceptance": {
+                "outcome_id": "g0-marketing-plan",
+                "criteria_ids": ["uses-source-facts", "complete-plan", "passes-audit"],
+            },
+        }
+
+    def full_lessons(self):
+        return [
+            {
+                "unit_id": unit["id"],
+                "outcome": unit["outcome"],
+                "workflow_fingerprint": unit["workflow_fingerprint"],
+                "depends_on": list(unit["depends_on"]),
+                "asset_references": list(unit["asset_ids"]),
+            }
+            for unit in self.full_blueprint()["units"]
+        ]
+
+    def full_trial(self):
+        return {
+            "schema_version": 1,
+            "scope": "full_course",
+            "participant": {
+                "id": "full-course-cold-ai-01",
+                "type": "independent-ai",
+                "roles": ["learner-trial"],
+            },
+            "isolated_context_id": "full-course-run-20261018-01",
+            "allowed_inputs": [
+                {
+                    "kind": "learner-page",
+                    "path": "courses/demo/index.html",
+                    "sha256": "1" * 64,
+                },
+                {
+                    "kind": "learner-asset",
+                    "path": "courses/demo/assets/product-brief.pdf",
+                    "sha256": "2" * 64,
+                },
+            ],
+            "forbidden_inputs_accessed": [],
+            "entry": {
+                "started_at": "2026-10-18T16:00:00+08:00",
+                "page": "courses/demo/index.html",
+                "goal_understood": True,
+                "materials_found": True,
+            },
+            "actions": [
+                {
+                    "sequence": 1,
+                    "action": "依序完成三個單元並保存每一階段產物。",
+                    "observable_result": "完成資料摘錄、企劃初稿與修訂稿。",
+                    "at": "2026-10-18T16:10:00+08:00",
+                }
+            ],
+            "hints": [{"source": "none", "detail": "未使用額外提示。"}],
+            "blocks": [],
+            "recovery": [],
+            "artifact": {
+                "path": "trial-output/full-course-run/final-plan.pdf",
+                "sha256": "3" * 64,
+                "complete": True,
+                "verifiable": True,
+                "acceptance_result": "PASS",
+            },
+            "result": {
+                "status": "PASS",
+                "completed_at": "2026-10-18T17:00:00+08:00",
+                "notes": "只使用學員可見頁面與素材完成全課。",
+            },
+        }
+
+    def full_production(self):
+        units = []
+        blueprint_units = self.full_blueprint()["units"]
+        for index, unit in enumerate(blueprint_units):
+            units.append(
+                {
+                    "unit_id": unit["id"],
+                    "lesson_sha256": str(index + 4) * 64,
+                    "html_path": f"courses/demo/{unit['id']}.html",
+                    "html_sha256": str(index + 7) * 64,
+                    "asset_ids": list(unit["asset_ids"]),
+                    "outcome": unit["outcome"],
+                    "workflow_fingerprint": unit["workflow_fingerprint"],
+                    "depends_on": list(unit["depends_on"]),
+                    "previous": None if index == 0 else blueprint_units[index - 1]["id"],
+                    "next": None if index == len(blueprint_units) - 1 else blueprint_units[index + 1]["id"],
+                }
+            )
+        return {
+            "schema_version": 1,
+            "course_id": "marketing-practice",
+            "production_authors": ["course-author-01", "page-builder-01"],
+            "g4_trial_context_id": "pilot-cold-run-20261018-01",
+            "units": units,
+            "navigation": {
+                "entry": "courses/demo/index.html",
+                "order": [unit["id"] for unit in blueprint_units],
+                "completion": "courses/demo/complete.html",
+            },
+            "dependency_checks": [
+                {
+                    "from_unit": "unit-1",
+                    "to_unit": "unit-2",
+                    "artifact": "evidence/source-constraints.json",
+                    "result": "PASS",
+                },
+                {
+                    "from_unit": "unit-2",
+                    "to_unit": "unit-3",
+                    "artifact": "evidence/plan-draft.pdf",
+                    "result": "PASS",
+                },
+            ],
+            "final_artifact": {
+                "path": "courses/demo/examples/final-plan.pdf",
+                "sha256": "f" * 64,
+                "outcome_id": "g0-marketing-plan",
+                "acceptance": [
+                    {"criterion_id": "uses-source-facts", "result": "PASS", "evidence": "page 1"},
+                    {"criterion_id": "complete-plan", "result": "PASS", "evidence": "pages 2-4"},
+                    {"criterion_id": "passes-audit", "result": "PASS", "evidence": "audit report"},
+                ],
+            },
+            "full_course_trial": self.full_trial(),
+            "validation": {
+                "status": "PASS",
+                "validator_id": "course-validator",
+                "validated_at": "2026-10-18T17:05:00+08:00",
+            },
+        }
+
     def test_pilot_selector_chooses_highest_combined_risk_then_dependency(self):
         blueprint = {
             "units": [
@@ -304,6 +465,138 @@ class CourseProductionTests(unittest.TestCase):
 
         with self.assertRaises(ContractStateError):
             begin_gate(contract, "G5", "course-run", "2026-10-18T16:00:00+08:00")
+
+    def test_full_production_requires_every_blueprint_unit_and_asset(self):
+        production = self.full_production()
+        production["units"].pop()
+        codes = {
+            issue.code
+            for issue in validate_full_production(
+                production,
+                self.full_blueprint(),
+                self.full_lessons(),
+                self.valid_asset_manifest(),
+                {"unit_id": "unit-1", "trial_context_id": "pilot-cold-run-20261018-01"},
+                self.full_trial(),
+            )
+        }
+        self.assertIn("production_unit_coverage", codes)
+
+        production = self.full_production()
+        production["units"][1]["asset_ids"] = []
+        codes = {
+            issue.code
+            for issue in validate_full_production(
+                production,
+                self.full_blueprint(),
+                self.full_lessons(),
+                self.valid_asset_manifest(),
+                {"unit_id": "unit-1", "trial_context_id": "pilot-cold-run-20261018-01"},
+                self.full_trial(),
+            )
+        }
+        self.assertIn("production_asset_coverage", codes)
+
+    def test_units_with_duplicate_outcomes_and_workflows_fail_integration(self):
+        production = self.full_production()
+        production["units"][1]["outcome"] = production["units"][0]["outcome"]
+        production["units"][1]["workflow_fingerprint"] = production["units"][0]["workflow_fingerprint"]
+
+        issues = validate_full_production(
+            production,
+            self.full_blueprint(),
+            self.full_lessons(),
+            self.valid_asset_manifest(),
+            {"unit_id": "unit-1", "trial_context_id": "pilot-cold-run-20261018-01"},
+            self.full_trial(),
+        )
+
+        self.assertIn("duplicate_unit_learning", {issue.code for issue in issues})
+
+    def test_navigation_and_cross_unit_dependencies_are_complete(self):
+        production = self.full_production()
+        production["units"][1]["previous"] = None
+        production["dependency_checks"].pop()
+
+        codes = {
+            issue.code
+            for issue in validate_full_production(
+                production,
+                self.full_blueprint(),
+                self.full_lessons(),
+                self.valid_asset_manifest(),
+                {"unit_id": "unit-1", "trial_context_id": "pilot-cold-run-20261018-01"},
+                self.full_trial(),
+            )
+        }
+
+        self.assertIn("navigation_incomplete", codes)
+        self.assertIn("dependency_continuity_failed", codes)
+
+    def test_g5_passes_only_after_final_artifact_matches_g0_acceptance(self):
+        production = self.full_production()
+        production["final_artifact"]["outcome_id"] = "different-outcome"
+        production["final_artifact"]["acceptance"].pop()
+
+        codes = {
+            issue.code
+            for issue in validate_full_production(
+                production,
+                self.full_blueprint(),
+                self.full_lessons(),
+                self.valid_asset_manifest(),
+                {"unit_id": "unit-1", "trial_context_id": "pilot-cold-run-20261018-01"},
+                self.full_trial(),
+            )
+        }
+
+        self.assertIn("g0_acceptance_mismatch", codes)
+
+    def test_full_production_route_passes_g5_with_indexed_evidence_and_trial(self):
+        contract = new_contract(
+            "marketing-practice",
+            "行銷企劃實作",
+            "course-run",
+            "2026-10-18T12:00:00+08:00",
+        )
+        for gate_id in ("G0", "G1", "G2", "G3", "G4"):
+            begin_gate(contract, gate_id, "course-run", "2026-10-18T12:05:00+08:00")
+            evidence_id = f"{gate_id.lower()}-evidence"
+            contract["evidence_index"].append(
+                {
+                    "id": evidence_id,
+                    "gate": gate_id,
+                    "path": f"evidence/{evidence_id}.json",
+                    "sha256": hashlib.sha256(evidence_id.encode()).hexdigest(),
+                }
+            )
+            pass_gate(
+                contract,
+                gate_id,
+                [evidence_id],
+                f"{gate_id.lower()}-validator",
+                "course-run",
+                "2026-10-18T12:10:00+08:00",
+            )
+        begin_gate(contract, "G5", "course-run", "2026-10-18T17:10:00+08:00")
+
+        result = route_full_production_to_g5(
+            contract,
+            self.full_production(),
+            [
+                {
+                    "id": "g5-render-and-integration",
+                    "gate": "G5",
+                    "path": "evidence/g5-render-and-integration.json",
+                    "sha256": "a" * 64,
+                }
+            ],
+            "course-run",
+            "2026-10-18T17:15:00+08:00",
+        )
+
+        self.assertEqual(result, "PASS")
+        self.assertEqual(contract["gates"]["G5"]["status"], "PASS")
 
 
 if __name__ == "__main__":

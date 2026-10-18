@@ -432,6 +432,32 @@ def evidence_maturity(record: Mapping[str, Any]) -> str:
     return "EXECUTION_VALIDATED"
 
 
+def validate_trial_context_is_new(
+    record: Mapping[str, Any], prior_context_ids: Sequence[str]
+) -> list[TrialIssue]:
+    context_id = record.get("isolated_context_id")
+    if not _text(context_id):
+        return [
+            TrialIssue(
+                "g5_trial_context_invalid",
+                "$.isolated_context_id",
+                "trial requires an isolated context id",
+                "G5",
+            )
+        ]
+    prior = {item.strip() for item in prior_context_ids if _text(item)}
+    if context_id in prior:
+        return [
+            TrialIssue(
+                "g5_trial_context_invalid",
+                "$.isolated_context_id",
+                "full-course trial cannot reuse a pilot or production context",
+                "G5",
+            )
+        ]
+    return []
+
+
 def route_verified_trial_to_gate(
     contract: MutableMapping[str, Any],
     gate_id: str,

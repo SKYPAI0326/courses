@@ -1,8 +1,17 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import Any, Mapping, MutableMapping, Sequence
+
+from src.course_contract import ContractStateError, block_gate
+from src.course_validation import (
+    route_verified_trial_to_gate,
+    validate_trial_context_is_new,
+    validate_trial_record,
+)
 
 
 ID_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -409,3 +418,425 @@ def validate_pilot_record(
         issues,
     )
     return issues
+
+
+def _full_issue(
+    issues: list[ProductionIssue],
+    code: str,
+    path: str,
+    message: str,
+    return_gate: str = "G5",
+) -> None:
+    issues.append(ProductionIssue(code, path, message, return_gate))
+
+
+def _record_map(
+    values: Any,
+    id_field: str,
+    path: str,
+    code: str,
+    issues: list[ProductionIssue],
+) -> dict[str, Mapping[str, Any]]:
+    if not isinstance(values, list):
+        _full_issue(issues, code, path, f"{path} must be a list")
+        return {}
+    result: dict[str, Mapping[str, Any]] = {}
+    for index, value in enumerate(values):
+        item_path = f"{path}[{index}]"
+        if not isinstance(value, Mapping):
+            _full_issue(issues, code, item_path, "record must be an object")
+            continue
+        item_id = value.get(id_field)
+        if not _text(item_id):
+            _full_issue(issues, code, f"{item_path}.{id_field}", f"{id_field} is required")
+        elif item_id in result:
+            _full_issue(issues, code, f"{item_path}.{id_field}", f"duplicate {id_field}: {item_id}")
+        else:
+            result[item_id] = value
+    return result
+
+
+def validate_full_production(
+    record: Mapping[str, Any],
+    blueprint: Mapping[str, Any],
+    lessons: Sequence[Mapping[str, Any]],
+    assets: Mapping[str, Any],
+    pilot: Mapping[str, Any],
+    trial: Mapping[str, Any],
+) -> list[ProductionIssue]:
+    issues: list[ProductionIssue] = []
+    if record.get("schema_version") != 1:
+        _full_issue(
+            issues,
+            "unsupported_production_schema",
+            "$.schema_version",
+            "full production schema_version must be 1",
+        )
+    if not _text(record.get("course_id")):
+        _full_issue(issues, "production_identity_missing", "$.course_id", "course id is required")
+
+    authors = record.get("production_authors")
+    if not isinstance(authors, list) or not authors or not all(_text(item) for item in authors):
+        _full_issue(
+            issues,
+            "production_identity_missing",
+            "$.production_authors",
+            "production authors are required to prove trial independence",
+        )
+        authors = []
+
+    blueprint_units = _record_map(
+        blueprint.get("units"), "id", "$.blueprint.units", "production_unit_coverage", issues
+    )
+    lesson_units = _record_map(
+        list(lessons), "unit_id", "$.lessons", "production_unit_coverage", issues
+    )
+    production_units = _record_map(
+        record.get("units"), "unit_id", "$.units", "production_unit_coverage", issues
+    )
+    expected_ids = list(blueprint_units)
+    if set(production_units) != set(blueprint_units) or set(lesson_units) != set(blueprint_units):
+        _full_issue(
+            issues,
+            "production_unit_coverage",
+            "$.units",
+            "production and reviewed lessons must cover every blueprint unit exactly once",
+        )
+
+    asset_records = assets.get("assets")
+    known_assets = {
+        item.get("id")
+        for item in asset_records
+        if isinstance(asset_records, list) and isinstance(item, Mapping) and _text(item.get("id"))
+    } if isinstance(asset_records, list) else set()
+    if validate_asset_manifest(assets):
+        _full_issue(
+            issues,
+            "production_asset_coverage",
+            "$.assets",
+            "full production requires a valid, open-tested asset manifest",
+            "G4",
+        )
+
+    learning_signatures: dict[tuple[str, str], str] = {}
+    for index, unit_id in enumerate(expected_ids):
+        blueprint_unit = blueprint_units[unit_id]
+        production_unit = production_units.get(unit_id)
+        lesson = lesson_units.get(unit_id)
+        if production_unit is None or lesson is None:
+            continue
+        path = f"$.units[{unit_id}]"
+        expected_assets = blueprint_unit.get("asset_ids")
+        lesson_assets = lesson.get("asset_references")
+        produced_assets = production_unit.get("asset_ids")
+        if (
+            not isinstance(expected_assets, list)
+            or not isinstance(lesson_assets, list)
+            or not isinstance(produced_assets, list)
+            or set(expected_assets) != set(lesson_assets)
+            or set(expected_assets) != set(produced_assets)
+            or not set(produced_assets).issubset(known_assets)
+        ):
+            _full_issue(
+                issues,
+                "production_asset_coverage",
+                f"{path}.asset_ids",
+                "unit assets must match blueprint, reviewed lesson, and asset manifest",
+                "G4",
+            )
+        outcome = production_unit.get("outcome")
+        workflow = production_unit.get("workflow_fingerprint")
+        if (
+            outcome != blueprint_unit.get("outcome")
+            or outcome != lesson.get("outcome")
+            or workflow != blueprint_unit.get("workflow_fingerprint")
+            or workflow != lesson.get("workflow_fingerprint")
+        ):
+            _full_issue(
+                issues,
+                "production_content_mismatch",
+                path,
+                "produced unit outcome and workflow must match the reviewed blueprint and lesson",
+                "G3",
+            )
+        if _text(outcome) and _text(workflow):
+            signature = (outcome.strip().casefold(), workflow.strip().casefold())
+            if signature in learning_signatures:
+                _full_issue(
+                    issues,
+                    "duplicate_unit_learning",
+                    path,
+                    f"unit repeats the outcome and workflow of {learning_signatures[signature]}",
+                    "G2",
+                )
+            else:
+                learning_signatures[signature] = unit_id
+        for field in ("lesson_sha256", "html_sha256"):
+            if not SHA256_PATTERN.fullmatch(str(production_unit.get(field, ""))):
+                _full_issue(
+                    issues,
+                    "production_file_evidence_missing",
+                    f"{path}.{field}",
+                    f"{field} must be a lowercase SHA-256",
+                )
+        if not _text(production_unit.get("html_path")):
+            _full_issue(
+                issues,
+                "production_file_evidence_missing",
+                f"{path}.html_path",
+                "learner HTML path is required",
+            )
+        expected_dependencies = blueprint_unit.get("depends_on")
+        if (
+            not isinstance(expected_dependencies, list)
+            or production_unit.get("depends_on") != expected_dependencies
+            or lesson.get("depends_on") != expected_dependencies
+        ):
+            _full_issue(
+                issues,
+                "dependency_continuity_failed",
+                f"{path}.depends_on",
+                "unit dependencies must match the blueprint and reviewed lesson",
+            )
+        previous_id = None if index == 0 else expected_ids[index - 1]
+        next_id = None if index == len(expected_ids) - 1 else expected_ids[index + 1]
+        if production_unit.get("previous") != previous_id or production_unit.get("next") != next_id:
+            _full_issue(
+                issues,
+                "navigation_incomplete",
+                path,
+                "each unit must link to the expected previous and next unit",
+            )
+
+    navigation = record.get("navigation")
+    if (
+        not isinstance(navigation, Mapping)
+        or not _text(navigation.get("entry"))
+        or navigation.get("order") != expected_ids
+        or not _text(navigation.get("completion"))
+    ):
+        _full_issue(
+            issues,
+            "navigation_incomplete",
+            "$.navigation",
+            "course entry, exact unit order, and completion destination are required",
+        )
+
+    checks = record.get("dependency_checks")
+    valid_checks: set[tuple[str, str]] = set()
+    if isinstance(checks, list):
+        for index, check in enumerate(checks):
+            if (
+                isinstance(check, Mapping)
+                and _text(check.get("from_unit"))
+                and _text(check.get("to_unit"))
+                and _text(check.get("artifact"))
+                and check.get("result") == "PASS"
+            ):
+                valid_checks.add((check["from_unit"], check["to_unit"]))
+            else:
+                _full_issue(
+                    issues,
+                    "dependency_continuity_failed",
+                    f"$.dependency_checks[{index}]",
+                    "dependency check requires both units, a real artifact, and PASS",
+                )
+    else:
+        _full_issue(
+            issues,
+            "dependency_continuity_failed",
+            "$.dependency_checks",
+            "cross-unit dependency checks are required",
+        )
+    expected_edges = {
+        (dependency, unit_id)
+        for unit_id, unit in blueprint_units.items()
+        for dependency in unit.get("depends_on", [])
+        if isinstance(dependency, str)
+    }
+    if valid_checks != expected_edges:
+        _full_issue(
+            issues,
+            "dependency_continuity_failed",
+            "$.dependency_checks",
+            "every blueprint dependency must be demonstrated by a passing artifact handoff",
+        )
+
+    pilot_unit = pilot.get("unit_id")
+    if pilot_unit not in production_units:
+        _full_issue(
+            issues,
+            "pilot_not_integrated",
+            "$.pilot.unit_id",
+            "the passed representative unit must be included in full production",
+            "G4",
+        )
+    g4_context = record.get("g4_trial_context_id")
+    if not _text(g4_context) or pilot.get("trial_context_id") != g4_context:
+        _full_issue(
+            issues,
+            "g5_trial_context_invalid",
+            "$.g4_trial_context_id",
+            "full production must identify the exact G4 trial context",
+            "G4",
+        )
+
+    if record.get("full_course_trial") != trial:
+        _full_issue(
+            issues,
+            "g5_trial_context_invalid",
+            "$.full_course_trial",
+            "embedded full-course trial must match the validated trial record",
+        )
+    trial_issues = validate_trial_record(trial, authors, "full_course")
+    for issue in trial_issues:
+        _full_issue(
+            issues,
+            issue.code,
+            f"$.full_course_trial{issue.path[1:]}",
+            issue.message,
+            issue.return_gate,
+        )
+    for issue in validate_trial_context_is_new(trial, (str(g4_context or ""),)):
+        _full_issue(
+            issues,
+            issue.code,
+            f"$.full_course_trial{issue.path[1:]}",
+            issue.message,
+            issue.return_gate,
+        )
+
+    expected_acceptance = blueprint.get("final_acceptance")
+    final_artifact = record.get("final_artifact")
+    acceptance_ok = isinstance(expected_acceptance, Mapping) and isinstance(final_artifact, Mapping)
+    if acceptance_ok:
+        acceptance = final_artifact.get("acceptance")
+        expected_criteria = expected_acceptance.get("criteria_ids")
+        acceptance_ok = (
+            final_artifact.get("outcome_id") == expected_acceptance.get("outcome_id")
+            and _text(final_artifact.get("path"))
+            and SHA256_PATTERN.fullmatch(str(final_artifact.get("sha256", ""))) is not None
+            and isinstance(expected_criteria, list)
+            and isinstance(acceptance, list)
+        )
+        if acceptance_ok:
+            results = {
+                item.get("criterion_id"): item
+                for item in acceptance
+                if isinstance(item, Mapping) and _text(item.get("criterion_id"))
+            }
+            acceptance_ok = (
+                set(results) == set(expected_criteria)
+                and all(
+                    item.get("result") == "PASS" and _text(item.get("evidence"))
+                    for item in results.values()
+                )
+            )
+    if not acceptance_ok:
+        _full_issue(
+            issues,
+            "g0_acceptance_mismatch",
+            "$.final_artifact",
+            "final artifact must match the G0 outcome and pass every acceptance criterion",
+            "G0",
+        )
+
+    validation = record.get("validation")
+    if not isinstance(validation, Mapping) or any(
+        not _text(validation.get(field))
+        for field in ("validator_id", "validated_at")
+    ) or validation.get("status") != "PASS":
+        _full_issue(
+            issues,
+            "production_validation_missing",
+            "$.validation",
+            "full production requires a named validator and PASS timestamp",
+        )
+    return issues
+
+
+def route_full_production_to_g5(
+    contract: MutableMapping[str, Any],
+    record: Mapping[str, Any],
+    evidence_refs: Sequence[Mapping[str, Any]],
+    actor: str,
+    at: str,
+) -> str:
+    validation = record.get("validation")
+    if not isinstance(validation, Mapping) or validation.get("status") != "PASS":
+        raise ValueError("G5 routing requires a validated full-production record")
+    if not evidence_refs:
+        raise ValueError("G5 routing requires production evidence references")
+    evidence_index = contract.get("evidence_index")
+    if not isinstance(evidence_index, list):
+        raise ContractStateError("contract evidence index is missing")
+    existing_ids = {
+        item.get("id")
+        for item in evidence_index
+        if isinstance(item, Mapping) and _text(item.get("id"))
+    }
+    production_ids: list[str] = []
+    staged_refs: list[dict[str, Any]] = []
+    for index, ref in enumerate(evidence_refs):
+        if not isinstance(ref, Mapping):
+            raise ValueError(f"production evidence {index} must be an object")
+        evidence_id = ref.get("id")
+        if (
+            not _text(evidence_id)
+            or evidence_id in existing_ids
+            or evidence_id in production_ids
+            or ref.get("gate") != "G5"
+            or not _text(ref.get("path"))
+            or not SHA256_PATTERN.fullmatch(str(ref.get("sha256", "")))
+        ):
+            raise ValueError(f"invalid or duplicate G5 production evidence at index {index}")
+        production_ids.append(evidence_id)
+        staged_refs.append(dict(ref))
+
+    trial = record.get("full_course_trial")
+    authors = record.get("production_authors")
+    trial_issues = validate_trial_record(
+        trial if isinstance(trial, Mapping) else {},
+        authors if isinstance(authors, list) else (),
+        "full_course",
+    )
+    g4_context = record.get("g4_trial_context_id")
+    if isinstance(trial, Mapping):
+        trial_issues.extend(
+            validate_trial_context_is_new(trial, (str(g4_context or ""),))
+        )
+    if trial_issues:
+        routes = sorted({issue.return_gate for issue in trial_issues})
+        block_gate(
+            contract,
+            "G5",
+            f"full-course trial failed; return to {', '.join(routes)}",
+            actor,
+            at,
+        )
+        return "BLOCKED"
+
+    canonical = json.dumps(
+        record, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    digest = hashlib.sha256(canonical).hexdigest()
+    record_id = f"g5-full-production-{digest[:12]}"
+    staged_refs.append(
+        {
+            "id": record_id,
+            "gate": "G5",
+            "kind": "full_course_production",
+            "path": f"evidence/{record_id}.json",
+            "sha256": digest,
+            "maturity": "EXECUTION_VALIDATED",
+        }
+    )
+    evidence_index.extend(staged_refs)
+    return route_verified_trial_to_gate(
+        contract,
+        "G5",
+        [*production_ids, record_id],
+        trial,
+        actor,
+        at,
+    )

@@ -46,3 +46,11 @@ Gate-specific returns:
 ## Gate pass and external authorization
 
 course-run records Gate PASS only after the declared validator succeeds against indexed evidence. Gate completion does not require user approval. Before publishing, deployment, registration, access changes, or another external mutation, present the exact action manifest and consequence, record explicit user authorization, and verify that its SHA-256 still matches immediately before execution.
+
+After a validated Gate PASS, course-run begins the next Gate automatically. It asks the user only when the missing fact changes the design, a material judgment has genuinely different outcomes, a paid service is required, credentials or rights are required, or the next action mutates an external system. Ordinary production choices, evidence collection, validation failures, and reversible local repairs remain inside automatic orchestration.
+
+## G5 full-production return
+
+G5 uses `contracts/course-production-record.schema.json`. The return binds every blueprint unit to its reviewed lesson, learner page, assets, distinct outcome and workflow fingerprint; records exact navigation and artifact handoffs; and proves that the final artifact passes every G0 acceptance criterion. It embeds the `full_course` trial record and identifies the prior G4 trial context so the validator can reject context reuse.
+
+The G5 PASS event cites both production evidence and the separately hashed independent trial evidence. A production validation flag without those indexed artifacts cannot pass the Gate.
