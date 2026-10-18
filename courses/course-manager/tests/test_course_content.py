@@ -4,7 +4,8 @@ import tempfile
 import unittest
 
 from src.course_content import route_content_to_g3, validate_lesson_record
-from src.course_contract import _commit_gate_pass, begin_gate, new_contract
+from src.course_contract import begin_gate, new_contract
+from tests.gate_test_support import _commit_gate_pass
 
 
 class CourseContentTests(unittest.TestCase):

@@ -7,12 +7,12 @@ from pathlib import Path
 
 from src.course_contract import (
     ContractStateError,
-    _commit_gate_pass,
     begin_gate,
     new_contract,
     record_change,
     render_gate_summary,
 )
+from tests.gate_test_support import _commit_gate_pass
 from src.course_research import route_research_to_gate
 
 

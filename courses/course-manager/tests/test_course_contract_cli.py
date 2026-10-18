@@ -6,7 +6,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from src.course_contract import _commit_gate_pass, begin_gate, new_contract, save_contract_atomic
+from src.course_contract import begin_gate, new_contract, save_contract_atomic
+from tests.gate_test_support import _commit_gate_pass
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]

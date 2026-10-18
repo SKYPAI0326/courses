@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import re
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
@@ -445,7 +446,7 @@ def validate_lesson_record(record: Mapping[str, Any]) -> list[ContentIssue]:
     return issues
 
 
-def route_content_to_g3(
+def _route_content_to_g3(
     contract: MutableMapping[str, Any],
     record: Mapping[str, Any],
     record_path: str,
@@ -523,3 +524,18 @@ def route_content_to_g3(
         actor,
         at,
     )
+
+
+def route_content_to_g3(
+    contract: MutableMapping[str, Any], record: Mapping[str, Any],
+    record_path: str, sha256: str, actor: str, at: str, *,
+    workspace_root: Path | str,
+) -> str:
+    staged = copy.deepcopy(contract)
+    result = _route_content_to_g3(
+        staged, record, record_path, sha256, actor, at,
+        workspace_root=workspace_root,
+    )
+    contract.clear()
+    contract.update(staged)
+    return result

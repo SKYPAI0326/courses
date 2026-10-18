@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import hashlib
 import re
 from dataclasses import dataclass
@@ -488,7 +489,7 @@ def validate_trial_context_is_new(
     return []
 
 
-def route_verified_trial_to_gate(
+def _route_verified_trial_to_gate(
     contract: MutableMapping[str, Any],
     gate_id: str,
     production_evidence_ids: Sequence[str],
@@ -517,9 +518,21 @@ def route_verified_trial_to_gate(
         raise ContractStateError(
             f"trial route references unindexed production evidence: {', '.join(missing)}"
         )
+    governance = contract.get("governance")
+    roster_binding = governance.get("production_role_roster") if isinstance(governance, Mapping) else None
+    if not isinstance(roster_binding, Mapping):
+        raise ContractStateError("trial route requires a governed production role roster")
+    roster_id = roster_binding.get("evidence_id")
+    supplied_rosters = [
+        item for item in production_evidence_ids
+        if isinstance(indexed.get(item), Mapping) and indexed[item].get("kind") == "production_role_roster"
+    ]
+    if supplied_rosters != [roster_id]:
+        raise ContractStateError("trial route must use the exact governed production role roster")
+    transition_ids = [item for item in production_evidence_ids if item != roster_id]
     wrong_gate = [
         item
-        for item in production_evidence_ids
+        for item in transition_ids
         if indexed[item].get("gate") != gate_id
     ]
     if wrong_gate:
@@ -533,6 +546,12 @@ def route_verified_trial_to_gate(
     if trial_id in indexed:
         raise ContractStateError(f"trial evidence id already exists: {trial_id}")
     participant = trial_record.get("participant")
+    allowed_inputs = trial_record.get("allowed_inputs")
+    learner_input_hashes = sorted(
+        str(item.get("sha256")) for item in allowed_inputs
+        if isinstance(allowed_inputs, list) and isinstance(item, Mapping) and _text(item.get("sha256"))
+    )
+    context_id = trial_record.get("isolated_context_id")
     trial_reference = register_evidence_file(
         workspace_root,
         evidence_id=trial_id,
@@ -543,7 +562,11 @@ def route_verified_trial_to_gate(
         metadata={
             "scope": expected_scope,
             "participant_id": participant.get("id") if isinstance(participant, Mapping) else None,
-            "isolated_context_id": trial_record.get("isolated_context_id"),
+            "runner_id": participant.get("id") if isinstance(participant, Mapping) else None,
+            "session_id": context_id,
+            "isolated_context_id": context_id,
+            "roster_sha256": roster_binding.get("sha256"),
+            "learner_input_hashes": learner_input_hashes,
         },
     )
     if trial_reference["sha256"] != digest:
@@ -557,7 +580,7 @@ def route_verified_trial_to_gate(
         result = validate_and_transition_gate(
             contract,
             gate_id,
-            [*production_evidence_ids, trial_id],
+            [*transition_ids, trial_id],
             workspace_root,
             actor,
             at,
@@ -567,4 +590,20 @@ def route_verified_trial_to_gate(
         raise
     if result == "PASS":
         contract["gates"][gate_id]["evidence"][-1]["maturity"] = maturity
+    return result
+
+
+def route_verified_trial_to_gate(
+    contract: MutableMapping[str, Any], gate_id: str,
+    production_evidence_ids: Sequence[str], trial_record: Mapping[str, Any],
+    actor: str, at: str, *, workspace_root: Path | str,
+    trial_record_path: str,
+) -> str:
+    staged = copy.deepcopy(contract)
+    result = _route_verified_trial_to_gate(
+        staged, gate_id, production_evidence_ids, trial_record, actor, at,
+        workspace_root=workspace_root, trial_record_path=trial_record_path,
+    )
+    contract.clear()
+    contract.update(staged)
     return result

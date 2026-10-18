@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import hashlib
 import re
 from dataclasses import dataclass
@@ -801,7 +802,7 @@ def validate_full_production(
     return issues
 
 
-def route_full_production_to_g5(
+def _route_full_production_to_g5(
     contract: MutableMapping[str, Any],
     record: Mapping[str, Any],
     evidence_refs: Sequence[Mapping[str, Any]],
@@ -853,8 +854,14 @@ def route_full_production_to_g5(
         production_ids.append(evidence_id)
         staged_refs.append(registered)
 
-    if not _text(production_role_evidence_id) or production_role_evidence_id not in existing_ids:
-        raise ContractStateError("G5 requires an indexed governed production role roster")
+    governance = contract.get("governance")
+    roster_binding = governance.get("production_role_roster") if isinstance(governance, Mapping) else None
+    if (
+        not isinstance(roster_binding, Mapping)
+        or production_role_evidence_id != roster_binding.get("evidence_id")
+        or production_role_evidence_id not in existing_ids
+    ):
+        raise ContractStateError("G5 must use the exact indexed governed production role roster")
 
     trial = record.get("full_course_trial")
     if not isinstance(trial, Mapping):
@@ -887,6 +894,12 @@ def route_full_production_to_g5(
     if trial_id in existing_ids or trial_id in production_ids or trial_id == record_id:
         raise ContractStateError(f"full-course trial evidence id already exists: {trial_id}")
     participant = trial.get("participant")
+    allowed_inputs = trial.get("allowed_inputs")
+    learner_input_hashes = sorted(
+        str(item.get("sha256")) for item in allowed_inputs
+        if isinstance(allowed_inputs, list) and isinstance(item, Mapping) and _text(item.get("sha256"))
+    )
+    context_id = trial.get("isolated_context_id")
     trial_reference = register_evidence_file(
         workspace_root,
         evidence_id=trial_id,
@@ -897,7 +910,11 @@ def route_full_production_to_g5(
         metadata={
             "scope": "full_course",
             "participant_id": participant.get("id") if isinstance(participant, Mapping) else None,
-            "isolated_context_id": trial.get("isolated_context_id"),
+            "runner_id": participant.get("id") if isinstance(participant, Mapping) else None,
+            "session_id": context_id,
+            "isolated_context_id": context_id,
+            "roster_sha256": roster_binding.get("sha256"),
+            "learner_input_hashes": learner_input_hashes,
         },
     )
     if trial_reference["sha256"] != trial_digest:
@@ -915,9 +932,30 @@ def route_full_production_to_g5(
             *production_ids,
             record_id,
             trial_id,
-            production_role_evidence_id,
         ],
         workspace_root,
         actor,
         at,
     )
+
+
+def route_full_production_to_g5(
+    contract: MutableMapping[str, Any], record: Mapping[str, Any],
+    evidence_refs: Sequence[Mapping[str, Any]], actor: str, at: str, *,
+    workspace_root: Path | str, blueprint: Mapping[str, Any],
+    lessons: Sequence[Mapping[str, Any]], assets: Mapping[str, Any],
+    pilot: Mapping[str, Any], production_role_evidence_id: str,
+    production_record_path: str, trial_record_path: str,
+) -> str:
+    staged = copy.deepcopy(contract)
+    result = _route_full_production_to_g5(
+        staged, record, evidence_refs, actor, at,
+        workspace_root=workspace_root, blueprint=blueprint, lessons=lessons,
+        assets=assets, pilot=pilot,
+        production_role_evidence_id=production_role_evidence_id,
+        production_record_path=production_record_path,
+        trial_record_path=trial_record_path,
+    )
+    contract.clear()
+    contract.update(staged)
+    return result

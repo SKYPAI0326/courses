@@ -1,18 +1,15 @@
 from __future__ import annotations
 
-import hashlib
-import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Mapping, MutableMapping, Sequence
 
 from src.course_contract import (
     ContractStateError,
-    _commit_gate_pass,
     block_gate,
     validate_contract,
 )
-from src.course_evidence import verify_evidence_reference
+from src.course_evidence import ConsumedEvidence, consume_evidence_reference
 
 
 @dataclass(frozen=True)
@@ -25,6 +22,17 @@ class GateValidationIssue:
 GateValidator = Callable[
     [Mapping[str, Any], Mapping[str, list[Any]]], list[GateValidationIssue]
 ]
+
+G5_ARTIFACT_KINDS = frozenset(
+    {
+        "lesson_source",
+        "learner_page",
+        "course_asset",
+        "dependency_artifact",
+        "navigation_artifact",
+        "final_artifact",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -276,6 +284,12 @@ def _validate_g5(
     from src.course_production import validate_full_production
 
     bundle, issues = _single_mapping(evidence, "full_course_production")
+    allowed_kinds = G5_ARTIFACT_KINDS | {
+        "full_course_production", "independent_course_trial", "production_role_roster"
+    }
+    extras = sorted(set(evidence) - allowed_kinds)
+    if extras:
+        issues.append(GateValidationIssue("extra_artifact_evidence", "$.evidence", f"G5 rejects unbound evidence kind(s): {', '.join(extras)}"))
     trial, trial_shape = _single_mapping(evidence, "independent_course_trial")
     roster, roster_shape = _single_mapping(evidence, "production_role_roster")
     issues.extend(trial_shape)
@@ -316,6 +330,73 @@ def _validate_g5(
             )
         )
     )
+    issues.extend(_validate_g5_artifact_bindings(record, assets, evidence))
+    return issues
+
+
+def _artifact_items(
+    evidence: Mapping[str, list[Any]], kind: str
+) -> list[ConsumedEvidence]:
+    return [item for item in evidence.get(kind, []) if isinstance(item, ConsumedEvidence)]
+
+
+def _validate_g5_artifact_bindings(
+    record: Mapping[str, Any],
+    assets: Mapping[str, Any],
+    evidence: Mapping[str, list[Any]],
+) -> list[GateValidationIssue]:
+    expected: list[tuple[str, str, str, str, str]] = []
+    for unit in record.get("units", []):
+        if not isinstance(unit, Mapping):
+            continue
+        unit_id = str(unit.get("unit_id", ""))
+        expected.append(("lesson_source", "unit_id", unit_id, "", str(unit.get("lesson_sha256", ""))))
+        expected.append(("learner_page", "unit_id", unit_id, str(unit.get("html_path", "")), str(unit.get("html_sha256", ""))))
+    for asset in assets.get("assets", []):
+        if not isinstance(asset, Mapping):
+            continue
+        source = asset.get("source")
+        open_test = asset.get("open_test")
+        if isinstance(source, Mapping) and isinstance(open_test, Mapping):
+            expected.append(("course_asset", "asset_id", str(asset.get("id", "")), str(source.get("uri", "")), str(open_test.get("sha256", ""))))
+    for check in record.get("dependency_checks", []):
+        if isinstance(check, Mapping):
+            key = f"{check.get('from_unit')}->{check.get('to_unit')}"
+            expected.append(("dependency_artifact", "dependency", key, str(check.get("artifact", "")), str(check.get("sha256", ""))))
+    navigation = record.get("navigation")
+    if isinstance(navigation, Mapping):
+        for role in ("entry", "completion"):
+            expected.append(("navigation_artifact", "role", role, str(navigation.get(role, "")), str(navigation.get(f"{role}_sha256", ""))))
+    final = record.get("final_artifact")
+    if isinstance(final, Mapping):
+        expected.append(("final_artifact", "role", "final", str(final.get("path", "")), str(final.get("sha256", ""))))
+
+    issues: list[GateValidationIssue] = []
+    matched: set[str] = set()
+    for kind, metadata_key, metadata_value, path, digest in expected:
+        candidates = []
+        for item in _artifact_items(evidence, kind):
+            metadata = item.reference.get("metadata")
+            if isinstance(metadata, Mapping) and metadata.get(metadata_key) == metadata_value:
+                candidates.append(item)
+        label = f"{kind}:{metadata_value}"
+        if len(candidates) != 1:
+            issues.append(GateValidationIssue("artifact_binding_mismatch", f"$.evidence.{label}", "every production artifact requires exactly one typed evidence reference"))
+            continue
+        item = candidates[0]
+        matched.add(str(item.reference.get("id")))
+        if path and item.reference.get("path") != path:
+            issues.append(GateValidationIssue("artifact_path_mismatch", f"$.evidence.{label}.path", "artifact evidence path does not match the production record"))
+        if digest and item.sha256 != digest:
+            issues.append(GateValidationIssue("artifact_hash_mismatch", f"$.evidence.{label}.sha256", "artifact evidence hash does not match the production record"))
+
+    supplied = {
+        str(item.reference.get("id"))
+        for kind in G5_ARTIFACT_KINDS
+        for item in _artifact_items(evidence, kind)
+    }
+    if supplied != matched:
+        issues.append(GateValidationIssue("extra_artifact_evidence", "$.evidence", "G5 rejects unbound or extra artifact evidence"))
     return issues
 
 
@@ -327,7 +408,29 @@ def _validate_release(
     record, issues = _single_mapping(evidence, "release_record")
     if record is None:
         return issues
-    return _coerce_issues(validate_release_record(record))
+    issues.extend(_coerce_issues(validate_release_record(record)))
+    matched: set[str] = set()
+    for check in record.get("checks", []):
+        if not isinstance(check, Mapping) or not isinstance(check.get("evidence"), Mapping):
+            continue
+        check_id = str(check.get("id", ""))
+        candidates = []
+        for item in _artifact_items(evidence, "release_check"):
+            metadata = item.reference.get("metadata")
+            if isinstance(metadata, Mapping) and metadata.get("check_id") == check_id:
+                candidates.append(item)
+        if len(candidates) != 1:
+            issues.append(GateValidationIssue("release_check_evidence_missing", f"$.checks.{check_id}", "each G6 check requires exactly one replayable typed evidence file"))
+            continue
+        item = candidates[0]
+        matched.add(str(item.reference.get("id")))
+        declared = check["evidence"]
+        if item.reference.get("path") != declared.get("path") or item.sha256 != declared.get("sha256"):
+            issues.append(GateValidationIssue("release_check_evidence_mismatch", f"$.checks.{check_id}.evidence", "G6 check path/hash must match the consumed evidence file"))
+    supplied = {str(item.reference.get("id")) for item in _artifact_items(evidence, "release_check")}
+    if supplied != matched:
+        issues.append(GateValidationIssue("extra_release_check_evidence", "$.evidence.release_check", "G6 rejects extra or unbound release-check evidence"))
+    return issues
 
 
 GATE_REGISTRY: dict[str, GateRule] = {
@@ -394,46 +497,63 @@ def _indexed_references(
     return [by_id[item] for item in evidence_ids]
 
 
-def _read_verified_json(
+def _consume_json(
     workspace_root: Path | str, reference: Mapping[str, Any], gate_id: str
-) -> Any:
-    issues = verify_evidence_reference(
-        workspace_root, reference, expected_gate=gate_id
-    )
-    if issues:
-        details = "; ".join(
-            f"{issue.code} {issue.path}: {issue.message}" for issue in issues
-        )
-        raise ContractStateError(f"invalid Gate evidence: {details}")
-
-    path = Path(workspace_root).resolve(strict=True) / str(reference["path"])
+) -> ConsumedEvidence:
     try:
-        encoded = path.read_bytes()
-    except OSError as error:
-        raise ContractStateError(f"could not consume Gate evidence: {error}") from error
-    digest = hashlib.sha256(encoded).hexdigest()
-    if digest != reference.get("sha256"):
-        raise ContractStateError(
-            f"evidence sha256 changed while consuming {reference.get('id')}"
+        return consume_evidence_reference(
+            workspace_root, reference, expected_gate=gate_id, parse_json=True
         )
-    try:
-        value = json.loads(encoded)
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
-        raise ContractStateError(
-            f"Gate evidence {reference.get('id')} must be valid UTF-8 JSON"
-        ) from error
+    except (OSError, ValueError) as error:
+        raise ContractStateError(f"invalid Gate evidence: {error}") from error
 
-    replay_issues = verify_evidence_reference(
-        workspace_root, reference, expected_gate=gate_id
+
+def _governed_roster_reference(contract: Mapping[str, Any]) -> Mapping[str, Any]:
+    governance = contract.get("governance")
+    binding = governance.get("production_role_roster") if isinstance(governance, Mapping) else None
+    if not isinstance(binding, Mapping):
+        raise ContractStateError("G4/G5 requires a governed production role roster")
+    evidence_id = binding.get("evidence_id")
+    references = _indexed_references(contract, [str(evidence_id)])
+    reference = references[0]
+    if (
+        reference.get("kind") != "production_role_roster"
+        or reference.get("gate") != "G0"
+        or reference.get("sha256") != binding.get("sha256")
+    ):
+        raise ContractStateError("governed production role roster binding does not match its typed reference")
+    return reference
+
+
+def _validate_trial_receipt_binding(
+    gate_id: str,
+    values_by_kind: Mapping[str, list[Any]],
+    consumed: Sequence[ConsumedEvidence],
+    roster_sha256: str,
+) -> list[GateValidationIssue]:
+    trials = values_by_kind.get("independent_course_trial", [])
+    refs = [item for item in consumed if item.reference.get("kind") == "independent_course_trial"]
+    if len(trials) != 1 or len(refs) != 1 or not isinstance(trials[0], Mapping):
+        return []
+    trial = trials[0]
+    metadata = refs[0].reference.get("metadata")
+    participant = trial.get("participant")
+    allowed_inputs = trial.get("allowed_inputs")
+    hashes = sorted(
+        str(item.get("sha256")) for item in allowed_inputs
+        if isinstance(allowed_inputs, list) and isinstance(item, Mapping) and _text(item.get("sha256"))
     )
-    if replay_issues:
-        details = "; ".join(
-            f"{issue.code} {issue.path}: {issue.message}" for issue in replay_issues
-        )
-        raise ContractStateError(
-            f"Gate evidence changed during transition: {details}"
-        )
-    return value
+    context_id = trial.get("isolated_context_id")
+    expected = {
+        "runner_id": participant.get("id") if isinstance(participant, Mapping) else None,
+        "session_id": context_id,
+        "isolated_context_id": context_id,
+        "roster_sha256": roster_sha256,
+        "learner_input_hashes": hashes,
+    }
+    if not isinstance(metadata, Mapping) or any(metadata.get(key) != value for key, value in expected.items()):
+        return [GateValidationIssue("trial_receipt_binding_mismatch", "$.evidence.independent_course_trial.metadata", f"{gate_id} trial receipt must bind roster, runner/session/context, and learner-visible input hashes")]
+    return []
 
 
 def validate_and_transition_gate(
@@ -457,9 +577,24 @@ def validate_and_transition_gate(
 
     references = _indexed_references(contract, evidence_ids)
     values_by_kind: dict[str, list[Any]] = {}
+    consumed: list[ConsumedEvidence] = []
     for reference in references:
-        value = _read_verified_json(workspace_root, reference, gate_id)
-        values_by_kind.setdefault(str(reference.get("kind")), []).append(value)
+        kind = str(reference.get("kind"))
+        parse_json = kind not in G5_ARTIFACT_KINDS and kind != "release_check"
+        try:
+            item = consume_evidence_reference(
+                workspace_root, reference, expected_gate=gate_id, parse_json=parse_json
+            )
+        except (OSError, ValueError) as error:
+            raise ContractStateError(f"invalid Gate evidence: {error}") from error
+        consumed.append(item)
+        values_by_kind.setdefault(kind, []).append(item.value if parse_json else item)
+
+    if gate_id in {"G4", "G5"}:
+        roster_reference = _governed_roster_reference(contract)
+        roster = _consume_json(workspace_root, roster_reference, "G0")
+        consumed.append(roster)
+        values_by_kind.setdefault("production_role_roster", []).append(roster.value)
 
     rule = GATE_REGISTRY[gate_id]
     missing_kinds = sorted(rule.required_kinds - set(values_by_kind))
@@ -468,7 +603,11 @@ def validate_and_transition_gate(
             f"{gate_id} requires evidence kind(s): {', '.join(missing_kinds)}"
         )
 
-    issues = rule.validator(contract, values_by_kind)
+    issues: list[GateValidationIssue] = []
+    if gate_id in {"G4", "G5"}:
+        binding = contract["governance"]["production_role_roster"]
+        issues.extend(_validate_trial_receipt_binding(gate_id, values_by_kind, consumed, str(binding["sha256"])))
+    issues.extend(rule.validator(contract, values_by_kind))
     if issues:
         summary = "; ".join(f"{issue.path}: {issue.message}" for issue in issues[:5])
         block_gate(
@@ -480,12 +619,34 @@ def validate_and_transition_gate(
         )
         return "BLOCKED"
 
-    _commit_gate_pass(
-        contract,
-        gate_id,
-        evidence_ids,
-        rule.validator_id,
-        actor,
-        at,
+    gate_number = int(gate_id[1:])
+    for prior in (f"G{index}" for index in range(gate_number)):
+        if contract["gates"][prior].get("status") != "PASS":
+            raise ContractStateError(f"{gate_id} requires {prior} PASS")
+    record = contract["gates"][gate_id]
+    if record.get("status") != "IN_PROGRESS":
+        raise ContractStateError(f"cannot pass a gate in {record.get('status')!r} state")
+    blockers = [
+        risk for risk in record.get("risks", [])
+        if isinstance(risk, Mapping) and risk.get("blocking") is True and risk.get("resolved") is not True
+    ]
+    if blockers:
+        raise ContractStateError(f"{gate_id} has unresolved blocking risks")
+    record["status"] = "PASS"
+    revision = record.get("source_revision")
+    record["source_revision"] = revision + 1 if isinstance(revision, int) else 1
+    record["evidence"].append(
+        {
+            "kind": "gate_validation",
+            "outcome": "PASS",
+            "validator_id": rule.validator_id,
+            "actor": actor,
+            "at": at,
+            "evidence_ids": list(evidence_ids),
+            "consumed_evidence": [
+                {"id": item.reference["id"], "sha256": item.sha256}
+                for item in consumed
+            ],
+        }
     )
     return "PASS"

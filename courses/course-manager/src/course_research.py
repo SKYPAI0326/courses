@@ -458,7 +458,7 @@ def research_ready(record: Mapping[str, Any], adaptation: Mapping[str, Any]) -> 
     return not validate_research_record(record, adaptation)
 
 
-def route_research_to_gate(
+def _route_research_to_gate(
     contract: MutableMapping[str, Any],
     record: Mapping[str, Any],
     adaptation: Mapping[str, Any],
@@ -531,3 +531,18 @@ def route_research_to_gate(
         actor,
         at,
     )
+
+
+def route_research_to_gate(
+    contract: MutableMapping[str, Any], record: Mapping[str, Any],
+    adaptation: Mapping[str, Any], record_path: str, evidence_sha256: str,
+    actor: str, at: str, *, workspace_root: Path | str,
+) -> str:
+    staged = copy.deepcopy(contract)
+    result = _route_research_to_gate(
+        staged, record, adaptation, record_path, evidence_sha256, actor, at,
+        workspace_root=workspace_root,
+    )
+    contract.clear()
+    contract.update(staged)
+    return result

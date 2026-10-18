@@ -154,6 +154,7 @@ def new_contract(slug: str, title: str, created_by: str, created_at: str) -> dic
             "created_at": created_at,
             "gate_authority": "course-run-with-validated-evidence",
             "external_action_authority": "explicit-user-authorization",
+            "production_role_roster": None,
         },
         "gates": gates,
         "G0_requirements": {},
@@ -189,8 +190,9 @@ def _validate_governance(contract: Mapping[str, Any], issues: list[ValidationIss
         "created_at",
         "gate_authority",
         "external_action_authority",
+        "production_role_roster",
     }
-    for field in expected:
+    for field in expected - {"production_role_roster"}:
         value = governance.get(field)
         if not isinstance(value, str) or not value.strip():
             _append_issue(
@@ -199,6 +201,13 @@ def _validate_governance(contract: Mapping[str, Any], issues: list[ValidationIss
                 f"{path}.{field}",
                 f"{field} must contain text",
             )
+    if "production_role_roster" not in governance:
+        _append_issue(
+            issues,
+            "invalid_governance_field",
+            f"{path}.production_role_roster",
+            "production_role_roster must be present and may be null until fixed",
+        )
     if governance.get("gate_authority") != "course-run-with-validated-evidence":
         _append_issue(
             issues,
@@ -213,6 +222,22 @@ def _validate_governance(contract: Mapping[str, Any], issues: list[ValidationIss
             f"{path}.external_action_authority",
             "external actions must require explicit user authorization",
         )
+    roster = governance.get("production_role_roster")
+    if roster is not None:
+        if not isinstance(roster, Mapping) or set(roster) != {"evidence_id", "sha256"}:
+            _append_issue(
+                issues,
+                "invalid_production_role_roster_binding",
+                f"{path}.production_role_roster",
+                "production role roster binding must contain only evidence_id and sha256",
+            )
+        else:
+            evidence_id = roster.get("evidence_id")
+            digest = roster.get("sha256")
+            if not isinstance(evidence_id, str) or not evidence_id.strip():
+                _append_issue(issues, "invalid_production_role_roster_binding", f"{path}.production_role_roster.evidence_id", "governed roster evidence id must contain text")
+            if not isinstance(digest, str) or not SHA256_PATTERN.fullmatch(digest):
+                _append_issue(issues, "invalid_production_role_roster_binding", f"{path}.production_role_roster.sha256", "governed roster sha256 must be lowercase hexadecimal")
     for field in set(governance) - expected:
         _append_issue(
             issues,
@@ -220,6 +245,33 @@ def _validate_governance(contract: Mapping[str, Any], issues: list[ValidationIss
             f"{path}.{field}",
             f"unknown governance field: {field}",
         )
+
+
+def bind_production_role_roster(
+    contract: MutableMapping[str, Any], evidence_id: str
+) -> None:
+    """Fix the authoritative author/validator roster before any Gate work begins."""
+    gates = contract.get("gates")
+    if not isinstance(gates, Mapping) or any(
+        not isinstance(record, Mapping) or record.get("status") != "NOT_STARTED"
+        for record in gates.values()
+    ):
+        raise ContractStateError("production role roster must be fixed before Gate work begins")
+    references = _indexed_evidence_by_id(contract)
+    reference = references.get(evidence_id)
+    if reference is None:
+        raise ContractStateError("production role roster must reference indexed evidence")
+    if reference.get("kind") != "production_role_roster" or reference.get("gate") != "G0":
+        raise ContractStateError("governed roster evidence must be G0 production_role_roster")
+    digest = reference.get("sha256")
+    if not isinstance(digest, str) or not SHA256_PATTERN.fullmatch(digest):
+        raise ContractStateError("governed roster evidence requires a valid sha256")
+    governance = contract.get("governance")
+    if not isinstance(governance, MutableMapping):
+        raise ContractStateError("contract governance is missing")
+    if governance.get("production_role_roster") is not None:
+        raise ContractStateError("production role roster is already fixed")
+    governance["production_role_roster"] = {"evidence_id": evidence_id, "sha256": digest}
 
 
 def _unresolved_blockers(record: Mapping[str, Any]) -> list[Mapping[str, Any]]:
@@ -436,6 +488,23 @@ def validate_contract(contract: Mapping[str, Any]) -> list[ValidationIssue]:
                     f"{reference_path}.metadata",
                     "evidence metadata must be an object",
                 )
+
+    governance = contract.get("governance")
+    binding = governance.get("production_role_roster") if isinstance(governance, Mapping) else None
+    if isinstance(binding, Mapping):
+        bound = evidence_by_id.get(binding.get("evidence_id"))
+        if (
+            bound is None
+            or bound.get("kind") != "production_role_roster"
+            or bound.get("gate") != "G0"
+            or bound.get("sha256") != binding.get("sha256")
+        ):
+            _append_issue(
+                issues,
+                "invalid_production_role_roster_binding",
+                "$.governance.production_role_roster",
+                "governed roster binding must match an indexed G0 production_role_roster reference",
+            )
 
     gates = contract.get("gates")
     if not isinstance(gates, Mapping):
@@ -761,57 +830,6 @@ def _indexed_evidence_by_id(
     }
 
 
-def _commit_gate_pass(
-    contract: MutableMapping[str, Any],
-    gate_id: str,
-    evidence_ids: Sequence[str],
-    validator_id: str,
-    actor: str,
-    at: str,
-) -> None:
-    if not validator_id.strip() or not actor.strip() or not at.strip():
-        raise ContractStateError("pass requires validator, actor, and timestamp")
-    if not evidence_ids or any(not item.strip() for item in evidence_ids):
-        raise ContractStateError("pass requires at least one evidence id")
-    _require_valid_contract(contract)
-    _require_previous_passes(contract, gate_id)
-    record = _gate_record(contract, gate_id)
-    if record.get("status") != "IN_PROGRESS":
-        raise ContractStateError(
-            f"cannot pass a gate in {record.get('status')!r} state"
-        )
-    if _unresolved_blockers(record):
-        raise ContractStateError(f"{gate_id} has unresolved blocking risks")
-    evidence_by_id = _indexed_evidence_by_id(contract)
-    missing = sorted(set(evidence_ids) - set(evidence_by_id))
-    if missing:
-        raise ContractStateError(
-            f"{gate_id} references unindexed evidence: {', '.join(missing)}"
-        )
-    wrong_gate = sorted(
-        evidence_id
-        for evidence_id in set(evidence_ids)
-        if evidence_by_id[evidence_id].get("gate") != gate_id
-    )
-    if wrong_gate:
-        raise ContractStateError(
-            f"{gate_id} references evidence indexed for another gate: {', '.join(wrong_gate)}"
-        )
-    record["status"] = "PASS"
-    revision = record.get("source_revision")
-    record["source_revision"] = revision + 1 if isinstance(revision, int) else 1
-    record["evidence"].append(
-        {
-            "kind": "gate_validation",
-            "outcome": "PASS",
-            "validator_id": validator_id,
-            "actor": actor,
-            "at": at,
-            "evidence_ids": list(evidence_ids),
-        }
-    )
-
-
 def pass_gate(
     contract: MutableMapping[str, Any],
     gate_id: str,
@@ -1046,6 +1064,7 @@ def migrate_contract_v1(
     governance.pop("approval_authority", None)
     governance["gate_authority"] = "course-run-with-validated-evidence"
     governance["external_action_authority"] = "explicit-user-authorization"
+    governance["production_role_roster"] = None
     migrated["schema_version"] = 2
     migrated["external_actions"] = []
     migrated["maintenance"] = {}
@@ -1137,6 +1156,10 @@ def migrate_contract_v2(
     migrated = copy.deepcopy(dict(contract))
     migrated["schema_version"] = 3
     migrated["revision"] = 0
+    governance = migrated.get("governance")
+    if not isinstance(governance, MutableMapping):
+        raise ContractStateError("legacy governance is missing or invalid")
+    governance.setdefault("production_role_roster", None)
     original_evidence = migrated.get("evidence_index")
     if not isinstance(original_evidence, list):
         original_evidence = []

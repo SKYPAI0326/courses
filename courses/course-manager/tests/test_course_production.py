@@ -4,7 +4,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from src.course_contract import ContractStateError, _commit_gate_pass, begin_gate, new_contract
+from src.course_contract import ContractStateError, begin_gate, new_contract
+from tests.gate_test_support import _commit_gate_pass
 from src.course_evidence import materialize_json_evidence, verify_evidence_reference
 from src.course_production import (
     route_full_production_to_g5,
@@ -16,6 +17,44 @@ from src.course_production import (
 
 
 class CourseProductionTests(unittest.TestCase):
+    def g5_artifact_refs(self, root, production, lessons, assets):
+        refs = []
+
+        def write(path, data):
+            target = root / path
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(data)
+            return hashlib.sha256(data).hexdigest()
+
+        for unit, lesson in zip(production["units"], lessons):
+            unit_id = unit["unit_id"]
+            lesson_path = f"lessons/{unit_id}.json"
+            unit["lesson_sha256"] = write(lesson_path, repr(lesson).encode())
+            refs.append({"id": f"g5-lesson-{unit_id}", "kind": "lesson_source", "path": lesson_path, "metadata": {"unit_id": unit_id}})
+            unit["html_sha256"] = write(unit["html_path"], f"<html>{unit_id}</html>".encode())
+            refs.append({"id": f"g5-page-{unit_id}", "kind": "learner_page", "path": unit["html_path"], "metadata": {"unit_id": unit_id}})
+
+        for asset in assets["assets"]:
+            path = asset["source"]["uri"]
+            digest = write(path, f"asset:{asset['id']}".encode())
+            asset["open_test"]["sha256"] = digest
+            asset["version"] = f"sha256:{digest}"
+            refs.append({"id": f"g5-asset-{asset['id']}", "kind": "course_asset", "path": path, "metadata": {"asset_id": asset["id"]}})
+
+        for index, check in enumerate(production["dependency_checks"]):
+            write(check["artifact"], f"dependency:{index}".encode())
+            refs.append({"id": f"g5-dependency-{index}", "kind": "dependency_artifact", "path": check["artifact"], "metadata": {"dependency": f"{check['from_unit']}->{check['to_unit']}"}})
+
+        for role in ("entry", "completion"):
+            path = production["navigation"][role]
+            write(path, f"navigation:{role}".encode())
+            refs.append({"id": f"g5-navigation-{role}", "kind": "navigation_artifact", "path": path, "metadata": {"role": role}})
+
+        final = production["final_artifact"]
+        final["sha256"] = write(final["path"], b"final course artifact")
+        refs.append({"id": "g5-final-artifact", "kind": "final_artifact", "path": final["path"], "metadata": {"role": "final"}})
+        return refs
+
     def valid_asset_manifest(self):
         return {
             "schema_version": 1,
@@ -661,7 +700,7 @@ class CourseProductionTests(unittest.TestCase):
             roster_ref = materialize_json_evidence(
                 root,
                 evidence_id="g5-production-role-roster",
-                gate_id="G5",
+                gate_id="G0",
                 kind="production_role_roster",
                 relative_path="evidence/g5-production-role-roster.json",
                 value={
@@ -671,12 +710,18 @@ class CourseProductionTests(unittest.TestCase):
                 },
             )
             contract["evidence_index"].append(roster_ref)
+            contract["governance"]["production_role_roster"] = {
+                "evidence_id": roster_ref["id"], "sha256": roster_ref["sha256"]
+            }
             production = self.full_production()
+            lessons = self.full_lessons()
+            assets = self.valid_asset_manifest()
+            artifact_refs = self.g5_artifact_refs(root, production, lessons, assets)
             production_bundle = {
                 "record": production,
                 "blueprint": self.full_blueprint(),
-                "lessons": self.full_lessons(),
-                "assets": self.valid_asset_manifest(),
+                "lessons": lessons,
+                "assets": assets,
                 "pilot": {
                     "unit_id": "unit-1",
                     "trial_context_id": "pilot-cold-run-20261018-01",
@@ -702,19 +747,13 @@ class CourseProductionTests(unittest.TestCase):
             result = route_full_production_to_g5(
                 contract,
                 production,
-                [
-                    {
-                        "id": "g5-render-and-integration",
-                        "kind": "production_artifact",
-                        "path": "evidence/g5-render-and-integration.json",
-                    }
-                ],
+                artifact_refs,
                 "course-run",
                 "2026-10-18T17:15:00+08:00",
                 workspace_root=root,
                 blueprint=self.full_blueprint(),
-                lessons=self.full_lessons(),
-                assets=self.valid_asset_manifest(),
+                lessons=lessons,
+                assets=assets,
                 pilot={
                     "unit_id": "unit-1",
                     "trial_context_id": "pilot-cold-run-20261018-01",
@@ -778,7 +817,7 @@ class CourseProductionTests(unittest.TestCase):
             roster_ref = materialize_json_evidence(
                 root,
                 evidence_id="g5-role-roster",
-                gate_id="G5",
+                gate_id="G0",
                 kind="production_role_roster",
                 relative_path="evidence/g5-role-roster.json",
                 value={
@@ -788,6 +827,9 @@ class CourseProductionTests(unittest.TestCase):
                 },
             )
             contract["evidence_index"].append(roster_ref)
+            contract["governance"]["production_role_roster"] = {
+                "evidence_id": roster_ref["id"], "sha256": roster_ref["sha256"]
+            }
             production_bundle = {
                 "record": production,
                 "blueprint": self.full_blueprint(),
@@ -846,6 +888,39 @@ class CourseProductionTests(unittest.TestCase):
             "production and reviewed lessons must cover every blueprint unit exactly once",
             contract["gates"]["G5"]["risks"][-1]["reason"],
         )
+
+    def test_g5_wrong_governed_roster_kind_leaves_contract_unchanged(self):
+        contract = new_contract("transactional-course", "Transactional Course", "course-run", "2026-10-18T12:00:00+08:00")
+        for gate_id in ("G0", "G1", "G2", "G3", "G4"):
+            begin_gate(contract, gate_id, "test", "2026-10-18T12:01:00+08:00")
+            evidence_id = f"{gate_id.lower()}-fixture"
+            contract["evidence_index"].append({"id": evidence_id, "gate": gate_id, "kind": "test_record", "path": f"fixtures/{evidence_id}.json", "sha256": hashlib.sha256(evidence_id.encode()).hexdigest()})
+            _commit_gate_pass(contract, gate_id, [evidence_id], "test", "test", "2026-10-18T12:02:00+08:00")
+        begin_gate(contract, "G5", "test", "2026-10-18T12:03:00+08:00")
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            wrong = materialize_json_evidence(root, evidence_id="wrong-roster", gate_id="G0", kind="test_record", relative_path="evidence/wrong-roster.json", value={"authors": []})
+            contract["evidence_index"].append(wrong)
+            contract["governance"]["production_role_roster"] = {"evidence_id": wrong["id"], "sha256": wrong["sha256"]}
+            artifact = root / "evidence" / "artifact.txt"
+            artifact.write_text("artifact", encoding="utf-8")
+            production = self.full_production()
+            bundle = {"record": production, "blueprint": self.full_blueprint(), "lessons": self.full_lessons(), "assets": self.valid_asset_manifest(), "pilot": {"unit_id": "unit-1", "trial_context_id": "pilot-cold-run-20261018-01"}}
+            materialize_json_evidence(root, evidence_id="source", gate_id="G5", kind="full_course_production", relative_path="production/full.json", value=bundle)
+            materialize_json_evidence(root, evidence_id="trial", gate_id="G5", kind="independent_course_trial", relative_path="trials/full.json", value=production["full_course_trial"])
+            before = copy.deepcopy(contract)
+            with self.assertRaisesRegex(ContractStateError, "governed roster binding"):
+                route_full_production_to_g5(
+                    contract, production,
+                    [{"id": "artifact", "kind": "production_artifact", "path": "evidence/artifact.txt"}],
+                    "course-run", "2026-10-18T12:04:00+08:00",
+                    workspace_root=root, blueprint=self.full_blueprint(), lessons=self.full_lessons(),
+                    assets=self.valid_asset_manifest(), pilot={"unit_id": "unit-1", "trial_context_id": "pilot-cold-run-20261018-01"},
+                    production_role_evidence_id=wrong["id"], production_record_path="production/full.json",
+                    trial_record_path="trials/full.json",
+                )
+        self.assertEqual(contract, before)
 
 
 if __name__ == "__main__":

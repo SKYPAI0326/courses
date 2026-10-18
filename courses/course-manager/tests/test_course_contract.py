@@ -9,7 +9,6 @@ from src.course_contract import (
     ContractStateError,
     GATE_ORDER,
     GATE_STATUSES,
-    _commit_gate_pass,
     assert_external_action_authorized,
     authorize_external_action,
     begin_gate,
@@ -24,6 +23,7 @@ from src.course_contract import (
     save_contract_atomic,
     validate_contract,
 )
+from tests.gate_test_support import _commit_gate_pass
 
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"

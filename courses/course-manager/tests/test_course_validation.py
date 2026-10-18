@@ -4,7 +4,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from src.course_contract import GATE_ORDER, _commit_gate_pass, begin_gate, new_contract
+from src.course_contract import GATE_ORDER, begin_gate, new_contract
+from tests.gate_test_support import _commit_gate_pass
 from src.course_evidence import materialize_json_evidence, verify_evidence_reference
 from src.course_validation import (
     evidence_maturity,
@@ -322,7 +323,7 @@ class CourseTrialValidationTests(unittest.TestCase):
             roster_ref = materialize_json_evidence(
                 root,
                 evidence_id="g4-production-role-roster",
-                gate_id="G4",
+                gate_id="G0",
                 kind="production_role_roster",
                 relative_path="evidence/g4-production-role-roster.json",
                 value={
@@ -337,10 +338,13 @@ class CourseTrialValidationTests(unittest.TestCase):
                 if item.get("id") != "g4-pilot-production"
             ]
             contract["evidence_index"].extend([pilot_ref, roster_ref])
+            contract["governance"]["production_role_roster"] = {
+                "evidence_id": roster_ref["id"], "sha256": roster_ref["sha256"]
+            }
             materialize_json_evidence(
                 root,
                 evidence_id="g4-trial-source",
-                gate_id="G4",
+                gate_id="G0",
                 kind="independent_course_trial",
                 relative_path="trials/g4-representative-unit.json",
                 value=trial,
@@ -397,7 +401,7 @@ class CourseTrialValidationTests(unittest.TestCase):
             author_roster_ref = materialize_json_evidence(
                 root,
                 evidence_id="g4-author-production-role-roster",
-                gate_id="G4",
+                gate_id="G0",
                 kind="production_role_roster",
                 relative_path="evidence/g4-author-production-role-roster.json",
                 value={
@@ -409,6 +413,9 @@ class CourseTrialValidationTests(unittest.TestCase):
             author_contract["evidence_index"].extend(
                 [author_pilot_ref, author_roster_ref]
             )
+            author_contract["governance"]["production_role_roster"] = {
+                "evidence_id": author_roster_ref["id"], "sha256": author_roster_ref["sha256"]
+            }
             materialize_json_evidence(
                 root,
                 evidence_id="g4-author-trial-source",

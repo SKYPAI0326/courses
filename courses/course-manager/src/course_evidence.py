@@ -27,6 +27,14 @@ class EvidenceIssue:
     message: str
 
 
+@dataclass(frozen=True)
+class ConsumedEvidence:
+    reference: Mapping[str, Any]
+    data: bytes
+    sha256: str
+    value: Any = None
+
+
 def canonical_json_bytes(value: Any) -> bytes:
     return (
         json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
@@ -153,6 +161,95 @@ def _fd_sha256(file_fd: int) -> str:
             break
         digest.update(chunk)
     return digest.hexdigest()
+
+
+def _fd_read_and_hash(file_fd: int) -> tuple[bytes, str]:
+    digest = hashlib.sha256()
+    chunks: list[bytes] = []
+    os.lseek(file_fd, 0, os.SEEK_SET)
+    before = os.fstat(file_fd)
+    while True:
+        chunk = os.read(file_fd, 1024 * 1024)
+        if not chunk:
+            break
+        chunks.append(chunk)
+        digest.update(chunk)
+    after = os.fstat(file_fd)
+    if (before.st_dev, before.st_ino, before.st_size) != (
+        after.st_dev,
+        after.st_ino,
+        after.st_size,
+    ):
+        raise _EvidenceFileError(
+            "file_changed", "evidence file changed while it was being consumed"
+        )
+    return b"".join(chunks), digest.hexdigest()
+
+
+def _reference_shape_issues(
+    reference: Mapping[str, Any], expected_gate: str | None
+) -> list[EvidenceIssue]:
+    issues: list[EvidenceIssue] = []
+    for field in sorted(REQUIRED_REFERENCE_FIELDS - set(reference)):
+        issues.append(EvidenceIssue("missing_field", f"$.{field}", f"missing evidence reference field: {field}"))
+    for field in sorted(set(reference) - REFERENCE_FIELDS):
+        issues.append(EvidenceIssue("unknown_field", f"$.{field}", f"unknown evidence reference field: {field}"))
+    if not _is_text(reference.get("id")):
+        issues.append(EvidenceIssue("invalid_id", "$.id", "evidence id must contain text"))
+    gate = reference.get("gate")
+    if gate not in GATE_IDS:
+        issues.append(EvidenceIssue("invalid_gate", "$.gate", "evidence gate must be G0 through G6"))
+    elif expected_gate is not None and gate != expected_gate:
+        issues.append(EvidenceIssue("wrong_gate", "$.gate", f"evidence belongs to {gate}, not expected gate {expected_gate}"))
+    if not _is_text(reference.get("kind")):
+        issues.append(EvidenceIssue("invalid_kind", "$.kind", "evidence kind must contain text"))
+    if "maturity" in reference and not _is_text(reference.get("maturity")):
+        issues.append(EvidenceIssue("invalid_maturity", "$.maturity", "evidence maturity must contain text"))
+    if "metadata" in reference and not isinstance(reference.get("metadata"), Mapping):
+        issues.append(EvidenceIssue("invalid_metadata", "$.metadata", "evidence metadata must be an object"))
+    if _unsafe_relative_path(reference.get("path")):
+        issues.append(EvidenceIssue("unsafe_path", "$.path", "evidence path must be a safe relative path"))
+    expected_sha = reference.get("sha256")
+    if not isinstance(expected_sha, str) or not SHA256_PATTERN.fullmatch(expected_sha):
+        issues.append(EvidenceIssue("invalid_sha256", "$.sha256", "evidence sha256 must be 64 lowercase hexadecimal characters"))
+    return issues
+
+
+def consume_evidence_reference(
+    workspace_root: Path | str,
+    reference: Mapping[str, Any],
+    *,
+    expected_gate: str | None = None,
+    parse_json: bool = False,
+) -> ConsumedEvidence:
+    """Securely open, hash, read and optionally parse one evidence file.
+
+    The bytes used by validators are read from the same O_NOFOLLOW descriptor
+    whose identity and digest are checked; callers never reopen the path.
+    """
+    if not isinstance(reference, Mapping):
+        raise ValueError("invalid_reference $: evidence reference must be an object")
+    issues = _reference_shape_issues(reference, expected_gate)
+    if issues:
+        detail = "; ".join(f"{issue.code} {issue.path}: {issue.message}" for issue in issues)
+        raise ValueError(detail)
+    root = _workspace_root(workspace_root)
+    file_fd = _open_regular_file(root, str(reference["path"]))
+    try:
+        data, actual_sha = _fd_read_and_hash(file_fd)
+    finally:
+        os.close(file_fd)
+    if actual_sha != reference["sha256"]:
+        raise ValueError(
+            f"hash_mismatch $.sha256: evidence hash mismatch: expected {reference['sha256']}, got {actual_sha}"
+        )
+    value: Any = None
+    if parse_json:
+        try:
+            value = json.loads(data)
+        except (UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise ValueError("invalid_json $: evidence must be valid UTF-8 JSON") from error
+    return ConsumedEvidence(dict(reference), data, actual_sha, value)
 
 
 def _base_reference(
@@ -305,68 +402,13 @@ def verify_evidence_reference(
     *,
     expected_gate: str | None = None,
 ) -> list[EvidenceIssue]:
-    issues: list[EvidenceIssue] = []
     if not isinstance(reference, Mapping):
         return [EvidenceIssue("invalid_reference", "$", "evidence reference must be an object")]
-
-    for field in sorted(REQUIRED_REFERENCE_FIELDS - set(reference)):
-        issues.append(
-            EvidenceIssue(
-                "missing_field", f"$.{field}", f"missing evidence reference field: {field}"
-            )
-        )
-    for field in sorted(set(reference) - REFERENCE_FIELDS):
-        issues.append(
-            EvidenceIssue(
-                "unknown_field", f"$.{field}", f"unknown evidence reference field: {field}"
-            )
-        )
-
-    if not _is_text(reference.get("id")):
-        issues.append(EvidenceIssue("invalid_id", "$.id", "evidence id must contain text"))
-    gate = reference.get("gate")
-    if gate not in GATE_IDS:
-        issues.append(
-            EvidenceIssue("invalid_gate", "$.gate", "evidence gate must be G0 through G6")
-        )
-    elif expected_gate is not None and gate != expected_gate:
-        issues.append(
-            EvidenceIssue(
-                "wrong_gate",
-                "$.gate",
-                f"evidence belongs to {gate}, not expected gate {expected_gate}",
-            )
-        )
-    if not _is_text(reference.get("kind")):
-        issues.append(
-            EvidenceIssue("invalid_kind", "$.kind", "evidence kind must contain text")
-        )
-    if "maturity" in reference and not _is_text(reference.get("maturity")):
-        issues.append(
-            EvidenceIssue(
-                "invalid_maturity", "$.maturity", "evidence maturity must contain text"
-            )
-        )
-    if "metadata" in reference and not isinstance(reference.get("metadata"), Mapping):
-        issues.append(
-            EvidenceIssue("invalid_metadata", "$.metadata", "evidence metadata must be an object")
-        )
-
+    issues = _reference_shape_issues(reference, expected_gate)
     relative_path = reference.get("path")
-    if _unsafe_relative_path(relative_path):
-        issues.append(
-            EvidenceIssue("unsafe_path", "$.path", "evidence path must be a safe relative path")
-        )
+    if any(issue.code == "unsafe_path" for issue in issues):
         return issues
     expected_sha = reference.get("sha256")
-    if not isinstance(expected_sha, str) or not SHA256_PATTERN.fullmatch(expected_sha):
-        issues.append(
-            EvidenceIssue(
-                "invalid_sha256",
-                "$.sha256",
-                "evidence sha256 must be 64 lowercase hexadecimal characters",
-            )
-        )
 
     try:
         root = _workspace_root(workspace_root)

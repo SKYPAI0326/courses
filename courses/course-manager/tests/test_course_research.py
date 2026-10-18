@@ -3,7 +3,8 @@ import hashlib
 import tempfile
 import unittest
 
-from src.course_contract import _commit_gate_pass, begin_gate, new_contract
+from src.course_contract import begin_gate, new_contract
+from tests.gate_test_support import _commit_gate_pass
 from src.course_research import (
     research_ready,
     route_research_to_gate,

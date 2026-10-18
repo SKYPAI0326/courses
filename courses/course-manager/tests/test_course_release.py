@@ -7,13 +7,13 @@ from pathlib import Path
 
 from src.course_contract import (
     GATE_ORDER,
-    _commit_gate_pass,
     authorize_external_action,
     begin_gate,
     new_contract,
     propose_external_action,
     save_contract_atomic,
 )
+from tests.gate_test_support import _commit_gate_pass
 from src.course_release import (
     ReleaseAuthorizationError,
     apply_release_proposal,
