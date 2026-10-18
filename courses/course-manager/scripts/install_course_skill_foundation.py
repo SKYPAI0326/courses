@@ -514,6 +514,41 @@ def install(
         raise
 
 
+def verify_installed_packages(
+    packages_root: Path,
+    skills_root: Path,
+    package_names: Sequence[str] | None = None,
+) -> dict[str, str]:
+    packages_root = Path(packages_root).resolve()
+    skills_root = Path(skills_root).resolve()
+    records = _load_manifest_records(packages_root / "manifest.json")
+    record_by_name = {record["name"]: record for record in records}
+    selected = tuple(package_names) if package_names is not None else tuple(record_by_name)
+    if not selected or len(selected) != len(set(selected)):
+        raise InstallError("verification requires unique manifest package names")
+    unknown = sorted(set(selected) - set(record_by_name))
+    if unknown:
+        raise InstallError(
+            "verification packages are absent from manifest: " + ", ".join(unknown)
+        )
+    verified: dict[str, str] = {}
+    for name in selected:
+        source = packages_root / name
+        target = skills_root / name
+        expected = record_by_name[name]["baseline_hash"]
+        if not source.is_dir() or tree_hash(source) != expected:
+            raise InstallError(f"package source differs from manifest baseline: {name}")
+        if not target.is_dir():
+            raise InstallError(f"installed skill is missing: {name}")
+        actual = tree_hash(target)
+        if actual != expected:
+            raise InstallError(
+                f"installed skill differs from manifest baseline: {name}"
+            )
+        verified[name] = actual
+    return verified
+
+
 def rollback_install(operation_dir: Path) -> None:
     operation_dir = Path(operation_dir).resolve()
     manifest_path = operation_dir / "manifest.json"
@@ -586,6 +621,9 @@ def build_parser() -> argparse.ArgumentParser:
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--dry-run", action="store_true", help="report changes only")
     mode.add_argument("--apply", action="store_true", help="apply with backup and rollback")
+    mode.add_argument(
+        "--verify", action="store_true", help="verify installed trees against the manifest"
+    )
     parser.add_argument("--packages-root", type=Path, default=project_root / "skill-packages")
     parser.add_argument("--skills-root", type=Path, default=Path.home() / ".agents" / "skills")
     parser.add_argument(
@@ -611,6 +649,15 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
+        if args.verify:
+            verified = verify_installed_packages(
+                args.packages_root,
+                args.skills_root,
+                args.package_names,
+            )
+            for name, package_hash in verified.items():
+                print(f"VERIFIED {name}: {package_hash}")
+            return 0
         result = install(
             args.packages_root,
             args.skills_root,

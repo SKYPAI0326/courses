@@ -13,6 +13,7 @@ from scripts.install_course_skill_foundation import (
     install,
     load_package_manifest,
     rollback_install,
+    verify_installed_packages,
 )
 
 
@@ -189,6 +190,22 @@ class CourseSkillFoundationInstallerTests(unittest.TestCase):
             self.assertEqual(
                 self.snapshot(self.skills_root / name),
                 self.snapshot(self.packages_root / name),
+            )
+
+    def test_verify_installed_packages_matches_manifest_and_detects_drift(self):
+        self.apply_install()
+
+        verified = verify_installed_packages(
+            self.packages_root, self.skills_root, PACKAGE_NAMES
+        )
+        self.assertEqual(set(verified), set(PACKAGE_NAMES))
+
+        (self.skills_root / "course-run" / "SKILL.md").write_text(
+            "drift after install\n", encoding="utf-8"
+        )
+        with self.assertRaises(InstallError):
+            verify_installed_packages(
+                self.packages_root, self.skills_root, PACKAGE_NAMES
             )
 
     def test_manifest_records_before_and_after_hashes(self):
