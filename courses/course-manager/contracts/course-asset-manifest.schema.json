@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.course-manager/contracts/course-asset-manifest.schema.json",
+  "title": "Course Asset Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "assets"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "assets": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/asset" }
+    }
+  },
+  "$defs": {
+    "text": { "type": "string", "minLength": 1 },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "learner_label",
+        "purpose",
+        "source",
+        "rights",
+        "version",
+        "access",
+        "open_test"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "learner_label": { "$ref": "#/$defs/text" },
+        "purpose": { "$ref": "#/$defs/text" },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "uri", "retrieved_at"],
+          "properties": {
+            "type": { "$ref": "#/$defs/text" },
+            "uri": { "$ref": "#/$defs/text" },
+            "retrieved_at": { "$ref": "#/$defs/text" }
+          }
+        },
+        "rights": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "basis"],
+          "properties": {
+            "status": { "const": "CLEARED" },
+            "basis": { "$ref": "#/$defs/text" }
+          }
+        },
+        "version": { "$ref": "#/$defs/text" },
+        "access": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["method", "learner_path", "backup"],
+          "properties": {
+            "method": { "$ref": "#/$defs/text" },
+            "learner_path": { "$ref": "#/$defs/text" },
+            "backup": { "$ref": "#/$defs/text" }
+          }
+        },
+        "open_test": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["tested_at", "actor", "result", "sha256"],
+          "properties": {
+            "tested_at": { "$ref": "#/$defs/text" },
+            "actor": { "$ref": "#/$defs/text" },
+            "result": { "const": "PASS" },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -303,6 +303,27 @@ class CourseSkillPackageTests(unittest.TestCase):
         self.assertIn("方法庫", handout)
         self.assertIn("不得替作者發明", validator)
 
+    def test_g4_chooses_course_specific_visuals_with_common_invariants(self):
+        visual_path = (
+            PROJECT_ROOT
+            / "skill-packages/build-course-page/references/course-visual-decision.json"
+        )
+        visual = json.loads(visual_path.read_text(encoding="utf-8"))
+        builder = (
+            PROJECT_ROOT / "skill-packages/build-course-page/SKILL.md"
+        ).read_text(encoding="utf-8")
+        html_contract = (
+            PROJECT_ROOT / "skill-packages/course-html-contract/SKILL.md"
+        ).read_text(encoding="utf-8")
+
+        self.assertEqual(
+            set(visual["inputs"]),
+            {"topic", "learner", "task", "content_density", "primary_devices"},
+        )
+        self.assertIn("不是新課的版型規格", builder)
+        self.assertIn("不必複製 `.lesson-body`", html_contract)
+        self.assertIn("mobile_tablet_desktop_core_path", visual["common_invariants"])
+
 
 if __name__ == "__main__":
     unittest.main()

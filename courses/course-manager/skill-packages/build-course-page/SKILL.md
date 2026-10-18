@@ -1,12 +1,12 @@
 ---
 name: build-course-page
-description: Use when converting lesson-plan Markdown into learner-facing course HTML, especially when full demonstrations, tables, examples, formulas, or prompts must survive template rendering.
+description: Use when converting reviewed lesson content into learner-facing course HTML, especially when each course needs its own evidence-backed visual system and full teaching atoms must survive rendering.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
 # 課程網頁講義建置 Skill
 
-> **2026-04-19 起**：舊 Step Page 模式（Gemini 直出）已廢除。新頁一律從教案 .md 產出。全站採 V4 CCS 語彙。
+新頁一律從已審查的 lesson record 與正式正文產出。每門課依主題、學員、任務、內容密度與主要裝置建立自己的視覺決策；共通的是內容保真、導覽、響應式、無障礙、素材可取得與實際操作驗證。
 
 ## 呼叫格式
 
@@ -52,15 +52,15 @@ $BASE = /Users/paichenwei/Library/Mobile Documents/com~apple~CloudDocs/01-PROJEC
 
 ---
 
-## 規則 = 範本 + lint（不在此重述）
+## 規則 = 課程視覺決策 + 共通驗收
 
 | 目的 | 真相源 |
 |------|-------|
-| 產出骨架（V4 CCS 語彙） | `$BASE/_規範/lesson-template-v3.html` — 複製、替換 `{{...}}` |
-| 規則驗證 | `$BASE/docs/lint-page.py` |
-| CSS 變數總表 | `$BASE/_規範/design-tokens.md` § 1（人類閱讀用） |
+| 課程專屬視覺 | [course-visual-decision.json](references/course-visual-decision.json) |
+| 內容與素材契約 | lesson record + asset manifest |
+| 共通規則驗證 | `$BASE/docs/lint-page.py` + course-html-contract + pilot record |
 
-**本 skill 不重述規則**。改規則 → 改 lint + 改 template，不改這裡。
+既有模板與課程頁只能當參考，不是新課的版型規格。設計決策完成前不開始寫 HTML；G4 只製作風險最高的代表單元，通過後才能把視覺系統擴用到全課。
 
 ---
 
@@ -118,20 +118,20 @@ module{N}.html
 正式正文是內容唯一來源。先依 learner-action-contract.md 找出 learner-content 範圍，確認 evidence.json 有本版本的 content 審查；執行 `bash /Users/paichenwei/.agents/skills/course-validator/scripts/course-validator.sh {slug} content --unit {unit_id}` 核對版本。沒有有效審查先交 reviewer，不能用頁面排版補內容。試飛使用相同證據規則，可在隔離專案根目錄以 COURSE_WEB_ROOT 指定測試路徑。
 
 <!-- anchor:step-d0.5 -->
-### Step D0.5：讀範本（`_規範/lesson-template-v3.html`）
+### Step D0.5：建立課程專屬視覺決策
 
-**必讀**：`$BASE/_規範/lesson-template-v3.html`（2026-04-16 UI refresh 後固化版）。
+依 [course-visual-decision.json](references/course-visual-decision.json) 記錄主題、學員、任務、內容密度與主要裝置，再決定版面、導覽、字體、色彩、響應式與內容組件。每項決定都要說明它如何支援本課的閱讀或操作，不以「沿用慣例」代替理由。
 
-此範本已包含：
+新頁必須包含：
 - 完整 SEO meta（description、og:*、twitter:*、canonical）
 - Skip-link `<a href="#main" class="skip-link">跳至主要內容</a>`
 - 主要內容區 `<main id="main">...</main>`
 - focus-visible CSS 規則
-- localStorage 進度腳本（於 `</body>` 前）
-- 箭頭 `←` / `→` 全包 `<span aria-hidden="true">`
-- 所有 `{{PLACEHOLDER}}` 位置標註
+- 可辨識的課程入口、上一頁與下一頁
+- 在手機、平板與桌面都能完成核心路徑的版面
+- 不靠顏色單獨傳達狀態的可及性處理
 
-**做法**：以此檔為骨架，依序取代所有 `{{...}}` 佔位符，再填入教案內容組件（section/tool-grid/callout 等）。**不要從零寫**。
+可從既有模板抽取經驗，但輸出必須由本課視覺決策推導；不得複製舊課外觀後補一段理由。所有素材先登錄 asset manifest 並完成權利、版本、取得與開啟測試。
 
 **必讀**：`$BASE/_規範/learner-action-contract.md`。產頁以 Learner Task Contract 為唯一學員路徑來源，只呈現教案已凍結的契約事實，不另造入口或故事規則。
 
@@ -183,19 +183,13 @@ concept 類的「Reflection」區塊用這個新 HTML 結構（由 Troubleshoot 
 **正文呈現原則**：只轉製正式 learner-content 範圍；完整示範、練習及答案都需保留。內部需求清單不能轉成學員素材；實際素材連結在首次使用處提供。若舊教案尚無標記，先整理既有內容並完成來源審查，不直接丟棄教師區後方的學員練習。
 
 <!-- anchor:step-d2 -->
-### Step D2：Section 驅動的 HTML 骨架
+### Step D2：依內容關係建立 HTML 骨架
 
-**骨架檔**：`$BASE/_規範/lesson-template-v3.html`（V4 CCS 單一真相源）
-
-**規則真相源**（不在此重述）：
-- CSS 變數 / 字型 15 階 / 組件白名單 / grid 規則 / 禁用清單：`$BASE/_規範/design-tokens.md`
-- 機器強制：`python3 docs/lint-page.py <file>`
-
-**做法**：保留 template 的 head、導覽、主要內容容器、進度、footer 與互動。複製 lesson-section 組件呈現已審查正文；區塊數、標題、段落與表格依教學內容安排。以下組件供呈現選用，無須每種都用。
+先以 lesson record 的情境、示範、跟做、獨立練習、檢查與修復關係決定資訊結構，再依視覺決策實作 head、導覽、主要內容、進度、footer 與互動。可重用既有元件的語意與程式，但 class、格線、字體、色彩與空間系統由本課決定。以下元件只提供內容呈現方法，不是必須沿用的外觀。
 
 #### 組件用法（依設計規範選用）
 
-完整資料表使用 `<div class="table-scroll"><table class="lesson-table">...</table></div>`，保留 thead、tbody、全部欄列與數值；樣式由正式 template 提供。程式以 `<pre class="code-block"><code>...</code></pre>` 保留空白與縮排。瀏覽器核對寬螢幕及窄螢幕；文字 hash 相同仍不能證明表格可讀。
+完整資料表保留 thead、tbody、全部欄列與數值，窄螢幕採本課決策的重排或局部捲動。程式區保留空白與縮排。瀏覽器必須核對寬螢幕及窄螢幕；文字 hash 相同仍不能證明表格可讀。
 
 
 **outcomes**（放在 hero 底部，從大綱 Outcomes 取）：
@@ -314,7 +308,7 @@ concept 類的「Reflection」區塊用這個新 HTML 結構（由 Troubleshoot 
 <!-- anchor:step-d3 -->
 ### Step D3：Head / Body / CSS 規格
 
-全部規則由 `lesson-template-v3.html` 提供骨架 + `lint-page.py` 驗證。按 D0.5 的做法，從範本複製即符合，**不用在此重述**。
+依本課 visual decision 實作，並用 `lint-page.py`、course-html-contract 與實際瀏覽器驗證共同驗收。靜態 lint 只能確認確定性規則，不能證明版型適合本課或學員真的能完成核心路徑。
 
 驗證：`python3 docs/lint-page.py <output.html>` 回 Exit 0 即過。
 
@@ -393,8 +387,8 @@ concept 類的「Reflection」區塊用這個新 HTML 結構（由 Troubleshoot 
 1. **不呼叫 Gemini MCP**——內容 100% 來自教案，若覺得教案不夠好，回報 course-designer 重跑
 2. **契約或必要證據缺失就回報**——教案無法引用 Learner Task Contract 事實，或缺少完成任務所需的概念、示範、修復與驗收證據，停止並提示「建議重跑 /course-designer」
 3. **Style Guide 欄位遵從**——受眾稱呼「你」、步驟「步驟 N」，不要把教案內容改寫成其他口吻
-4. **範本為骨架**——從 `$BASE/_規範/lesson-template-v3.html` 複製，**不從零寫**
-5. **禁止回流**——禁用 `box-shadow`、自創 `--c-a6+` 變數、gradient、> 8px 圓角
+4. **決策先於版型**——先完成 visual decision，再選擇重用、改造或新建頁面骨架；保留決策理由與受影響裝置
+5. **設計服從任務**——陰影、漸層、圓角、動畫與色彩只有在支持層級、狀態或操作回饋時使用，不能用裝飾掩蓋內容或導覽問題
 6. **可跟做性優先**——依 Learner Task Contract 與 lesson-type contract 呈現；缺完成物、起始狀態、第一個動作／結果，或操作型缺足以完成任務的 meaningful stages、關鍵 checkpoint 與修復，就不能產出形式完整但不可操作的 HTML
 7. **避免重複灌水**——依 course-content-substance.md 區分有效重練與無增量重印，不因同素材而刪掉支援遞減的練習
 8. **不以摘要取代教學**——頁面短不是品質指標；完整示範與可理解文字優先於卡片數量、行數與視覺留白。
@@ -403,11 +397,7 @@ concept 類的「Reflection」區塊用這個新 HTML 結構（由 Troubleshoot 
 
 ## CSS 與組件實作
 
-**不在此處重述**。所有 CSS class、HTML 結構、組件樣板均由下列兩檔提供：
-
-- `$BASE/_規範/lesson-template-v3.html`（v3 編輯式克制主義骨架）
-
-教案模式從範本複製 → 替換佔位符。需要特殊組件（Callout / Compare / Flow Mini）時，從現有課程的 HTML 複製即可。
+在 visual decision 中先定義本課的內容寬度、字級階層、色彩角色、空間尺度、導覽與斷點，再把這些決策寫成局部 CSS tokens。重用舊元件時，先確認語意、鍵盤操作與響應式行為符合本課；不能因為現有元件方便，就改變教學內容或強迫每門課長成同一個版型。
 
 ---
 
@@ -421,9 +411,9 @@ concept 類的「Reflection」區塊用這個新 HTML 結構（由 Troubleshoot 
 
 4. **code-block 內可加語法著色**——使用 `<span class="cm/ky/st/vr">` 對程式碼著色，增加可讀性。不需安裝任何 JS 語法高亮套件。
 
-5. **保持一致的呼叫聲調**——標題用明朝體、粗體，內文用 Noto Sans TC 細字。不使用 emoji（除非內容本身需要，如操作系統步驟）。
+5. **維持本課一致性**——字體、圖示與語氣依 visual decision；同一功能在全課使用一致的視覺與互動，不以裝飾性 emoji 取代文字標籤。
 
-6. **Mobile responsive 最低標準**——所有 `max-width` 用 `--content-w:780px`，padding 在手機上不小於 24px（可加 `@media(max-width:600px)` 覆蓋 48px padding）。
+6. **Responsive 最低標準**——在 `390px` 手機、`820px` 平板與 `1440px` 桌面實際完成核心路徑；不得有非預期水平捲動、遮擋、裁切或閱讀順序錯置。
 
 ## HTML 編輯保護契約（必讀）
 

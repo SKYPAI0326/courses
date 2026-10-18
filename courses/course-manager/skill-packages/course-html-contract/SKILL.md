@@ -19,7 +19,7 @@ description: Use when editing, generating, repairing, reviewing, or validating l
 
 ## 2. DOM 容器不變式
 
-既有頁面可以有不同外層，但主要課程內容必須維持在現有 `.lesson-body` 內：
+既有頁面維持原有內容根節點與父子關係；目前採 `.lesson-body` 的頁面必須繼續把主要課程內容放在該容器內：
 
 ```html
 <section class="lesson-hero">...</section>
@@ -33,7 +33,8 @@ description: Use when editing, generating, repairing, reviewing, or validating l
 - 不得改既有 wrapper 的層級、順序或寬度責任；不得為了插入內容新增全寬度外層容器。
 - 除非任務明確是 `content-change` 且計畫列出影響，不得更換既有 HTML 標籤或 class 名稱。
 - `.lesson-nav`、footer、gate、script 等頁面殼層不能被內容插入點截斷。
-- index/module 等非講義頁可以使用自己的既有 wrapper；只有出現上述講義內容 class 時才套用 `.lesson-body` 規則，不得為了通過檢查臨時新增 `.lesson-body`。
+- 新課可依已驗證的 course visual decision 設計自己的內容根節點與 class，不必複製 `.lesson-body`。但必須有唯一 `<main id="main">`、可定位的 learner-content 根節點、正確 landmark、完整導覽與可供驗證器設定的 root selector；不得為了通過舊檢查器臨時新增無語意 wrapper。
+- index/module 等非講義頁可以使用自己的既有 wrapper；既有頁只有出現上述講義內容 class 時才套用 `.lesson-body` 規則。
 
 ## 3. 只能用有上下文的 DOM 編輯
 
@@ -58,12 +59,12 @@ assert target is not None and target.find_parent(class_='lesson-body') is body
 
 1. `syntax-only`／`layout-only`：比較可見文字快照；若文字、href、課程順序或教學區塊數量改變，停止並回復。
    可直接執行 `python3 /Users/paichenwei/.agents/skills/course-html-contract/scripts/check_content_unchanged.py BEFORE.html AFTER.html`；非內容任務必須得到 `content unchanged`。
-2. 所有範圍：以 parser 檢查未配對標籤、`.lesson-body` 後代關係、hero/body/nav/footer 順序與目標節點父鏈。
+2. 所有範圍：以 parser 檢查未配對標籤、visual decision 指定的內容根節點、main／nav／footer 順序與目標節點父鏈；既有 `.lesson-body` 頁另外檢查其後代關係。
 3. 執行 `python3 docs/lint-page.py <file.html> --summary`，再對受影響頁跑 `python3 docs/audit-course-substance.py <slug> --page <file.html>`。
 4. 檢查 `git diff --check` 與目標檔的 diff；看見 wrapper 大段移動、內容漂移、全域取代或非預期文字變更時，先停止，不以 lint 通過掩蓋。
 5. 任一檢查失敗：使用備份還原、標記 `BLOCK`，不要繼續堆疊修補。
 
-使用共用檢查器：
+既有 `.lesson-body` 頁面使用共用檢查器：
 
 ```bash
 python3 /Users/paichenwei/.agents/skills/course-html-contract/scripts/validate_html_structure.py <file.html>
@@ -73,7 +74,7 @@ python3 /Users/paichenwei/.agents/skills/course-html-contract/scripts/validate_h
 
 - `course-typography-fixer`、`course-ops`、`course-register` 預設只能 `syntax-only`／`layout-only`；需要內容變更就交回內容角色。
 - `course-copywriter` 的 `content-change` 只允許改文字節點，不可改 wrapper、class、href 或操作行為。
-- `build-course-page` 可依已核准教案做 `content-change`，但仍必須從既有範本保留 wrapper，不能臨場補寫缺失事實。
+- `build-course-page` 可依已通過 G3 的正文與 G4 visual decision 建立新頁；修改既有頁時保留原 wrapper。兩種情況都不能臨場補寫缺失事實。
 - `course-repair` 只有在 fix 計畫明列時才能做 `content-change`；單純排版修補不得新增段落、任務或 `(00)`。
 - `course-reviewer`／`course-validator` 不改頁面；看到內容節點在 wrapper 外、wrapper 斷裂或任務範圍不符時，列為 Issue／BLOCK。
 
@@ -121,7 +122,7 @@ python3 /Users/paichenwei/.agents/skills/course-html-contract/scripts/validate-c
 python3 /Users/paichenwei/.agents/skills/course-html-contract/scripts/validate-course-structure.py --office-ai-regression office-ai
 ```
 
-檢查器至少必須阻擋：`.lesson-body` 缺失或數量不符合預期、每個 `.lesson-section` 不在 `.lesson-body` 內、第一個 `.lesson-section` 在 body 之前、重複 `id`、未關閉或錯置 HTML 標籤、`.lesson-nav` 順序錯誤，以及 CSS media query 的括號不完整。解析成功本身不足以通過驗收；內容最大寬度與水平捲軸仍要靠瀏覽器 smoke test 確認。
+既有頁檢查器至少阻擋：`.lesson-body` 缺失或數量不符合預期、每個 `.lesson-section` 不在 `.lesson-body` 內、第一個 `.lesson-section` 在 body 之前、重複 `id`、未關閉或錯置 HTML 標籤、`.lesson-nav` 順序錯誤，以及 CSS media query 的括號不完整。新課依 visual decision 提供 root selector，驗證唯一 main、learner-content ancestor、導覽順序、重複 id 與標籤配對。解析成功本身不足以通過驗收；內容寬度與水平捲軸仍要靠瀏覽器 smoke test 確認。
 
 最低斷言是：
 
@@ -138,7 +139,7 @@ visible_text_is_unchanged_when_scope_is_layout_or_syntax_only
 
 ## 9. RWD、sticky header 與瀏覽器驗證
 
-靜態 lint 通過後，仍要對至少一個代表頁執行 browser smoke test。桌面檢查 `1440px`（頂端、修改區塊、中段、底部），行動檢查 `390px` 與 `430px`。確認內容寬度與鄰近正文一致、沒有滿版內容、水平捲軸、裁切或異常斷行，卡片／表格／程式碼區塊沒有超出容器，導覽仍可用，且 sticky header 沒遮住標題。
+靜態 lint 通過後，仍要對代表頁執行 browser smoke test。桌面檢查 `1440px`（頂端、修改區塊、中段、底部），平板檢查 `820px`，行動檢查 `390px`。確認內容寬度符合本課 visual decision、沒有非預期水平捲軸、裁切或異常斷行，卡片／表格／程式碼區塊沒有超出容器，導覽仍可用，且 sticky header 沒遮住標題。
 
 若有 `localStorage` scroll state，先清除舊 state，再測試首次從頂端進入、重新整理與從中段直接載入；不能用保留上次捲動位置掩蓋錯誤。錨點跳轉必須保留 header 高度，優先使用 `scroll-margin-top` 或 `scroll-padding-top`；未確認跨頁影響前不得用負 margin 或任意 top offset。
 
