@@ -14,16 +14,17 @@
 
 ### 資料顯示
 
-本次門檻為 CPA ≤ NT$500 且 ROAS ≥ 4.00，兩項都符合才達標。
+本次門檻為 CPA 不高於 NT$500，且 ROAS 不低於 4.00，兩項都符合才算達標。
 
-- Brand Search 的 CPA 為 NT$300、ROAS 為 6.67，兩項皆符合，達標。
-- Prospecting Social 的 CPA 為 NT$1,000、ROAS 為 2.00，兩項皆未符合，未達標。
-- Retargeting Display 的 CPA 為 NT$400、ROAS 為 6.25，兩項皆符合，達標。
+- Brand Search 的 CPA 為 NT$300、ROAS 為 6.67，兩項都符合門檻，因此達標。
+- Prospecting Social 的 CPA 為 NT$1,000、ROAS 為 2.00，兩項都未符合門檻，因此未達標。
+- Retargeting Display 的 CPA 為 NT$400、ROAS 為 6.25，兩項都符合門檻，因此達標。
 
 ### 仍不能確定
 
-這份資料是單次活動的彙總結果，無法單獨證明 Prospecting Social 表現未達標是由素材、受眾或版位造成，也不能分辨各因素各自的影響。
+這份資料是單次彙總結果，無法單獨證明素材、受眾或版位造成各活動的表現差異。它也不足以判定任一調整必然會改善成效。
 
 ## 建議
 
-保留 Brand Search 與 Retargeting Display，持續觀察 CPA 與 ROAS 是否維持在本次門檻內。調降 Prospecting Social 的預算，接著固定轉換口徑與其他投放條件，只更換一項受眾或素材進行新一輪測試；測試後比較 CPA 與 ROAS 是否由 NT$1,000 與 2.00 改善至 CPA ≤ NT$500、ROAS ≥ 4.00，再決定是否恢復預算。這項測試用來驗證假設，不預先宣稱未達標的原因。
+- 保留 Brand Search 與 Retargeting Display，後續持續以相同轉換口徑觀察 CPA 與 ROAS，確認達標表現是否維持。
+- 縮小 Prospecting Social 的預算，並只更換一項條件，測試新的受眾或素材；測試後比較 CPA 與 ROAS 是否由 NT$1,000 與 2.00 改善並跨過本次門檻，再決定是否恢復預算。

@@ -252,7 +252,7 @@ def main() -> None:
                 "rights": {"status": "CLEARED", "basis": "課程團隊自行製作的虛構資料與文字。"},
                 "version": f"sha256:{sha(asset_path)}",
                 "access": {"method": "download or open", "learner_path": f"課程首頁連結 course/assets/{filename}", "backup": "內容可從學員頁直接複製。"},
-                "open_test": {"tested_at": "2026-10-18T18:30:00+08:00", "actor": "course-author-ai", "result": "PASS", "sha256": sha(asset_path)},
+                "open_test": {"tested_at": "2026-10-18T15:05:00+08:00", "actor": "course-author-ai", "result": "PASS", "sha256": sha(asset_path)},
             }
         )
     asset_manifest = {"schema_version": 1, "assets": assets}
@@ -270,13 +270,13 @@ def main() -> None:
         "html_path": "course/unit-3.html",
         "html_sha256": sha(COURSE / "unit-3.html"),
         "asset_ids": ["campaign-data", "brief-template", "rubric"],
-        "trial_context_id": "g4-cold-ai-context-20261018-a",
+        "trial_context_id": "g4-cold-ai-context-20261018-c",
         "visual_decision": {
             "inputs": {"topic": "行銷活動成效摘要", "learner": "第一次獨立寫活動成效摘要的行銷同仁", "task": "讀 CSV、計算、判讀並寫成 Markdown", "content_density": "公式、實際數字與長文判讀並存", "primary_devices": ["mobile", "tablet", "desktop"]},
             "decisions": {"layout_rationale": "單欄閱讀讓公式、示範與修復保持相鄰。", "navigation": "每頁只有清楚的上一課與下一課。", "typography": "繁體中文正文使用較大行距，公式使用等寬字。", "color": "深青色只標示連結與成果，琥珀色提供焦點外框。", "responsive_strategy": "窄螢幕維持單欄，表格局部水平捲動。"}
         },
         "content_fidelity": {"source_sha256": pilot_lesson_hash, "rendered_source_sha256": pilot_lesson_hash, "teaching_atoms": ["learner_outcome", "full_demonstration", "guided_practice", "independent_practice", "recovery"], "result": "PASS"},
-        "render": {"browser": "Playwright Chromium", "tested_at": "2026-10-18T18:40:00+08:00", "screenshots": ["evidence/unit-3-desktop.png", "evidence/unit-3-tablet.png", "evidence/unit-3-mobile.png"], "result": "PASS"},
+        "render": {"browser": "Playwright Chromium", "tested_at": "2026-10-18T15:15:00+08:00", "screenshots": ["evidence/unit-3-desktop.png", "evidence/unit-3-tablet.png", "evidence/unit-3-mobile.png"], "result": "PASS"},
         "devices": {
             "mobile": {"viewport": "390x844", "core_path_result": "PASS", "horizontal_overflow": False},
             "tablet": {"viewport": "820x1180", "core_path_result": "PASS", "horizontal_overflow": False},
@@ -338,7 +338,7 @@ def main() -> None:
             ]
         },
         "full_course_trial": g5_trial,
-        "validation": {"status": "PASS", "validator_id": "course-validator", "validated_at": "2026-10-18T19:40:00+08:00"}
+        "validation": {"status": "PASS", "validator_id": "course-validator", "validated_at": "2026-10-18T15:21:20+08:00"}
     }
     production_issues = validate_full_production(production, blueprint, lesson_summaries, asset_manifest, pilot, g5_trial)
     if production_issues:
@@ -370,8 +370,8 @@ def main() -> None:
     proposal = build_release_proposal(ROOT, release_record)
     write_json(EVIDENCE / "release-proposal.json", proposal)
 
-    contract = new_contract("campaign-performance-brief", "行銷活動成效摘要實作課", "course-author-ai", "2026-10-18T18:00:00+08:00")
-    begin_gate(contract, "G0", "course-run", "2026-10-18T18:01:00+08:00")
+    contract = new_contract("campaign-performance-brief", "行銷活動成效摘要實作課", "course-author-ai", "2026-10-18T14:30:00+08:00")
+    begin_gate(contract, "G0", "course-run", "2026-10-18T14:31:00+08:00")
     g0 = {
         "learner": "能讀表格、第一次獨立寫活動成效摘要的行銷同仁",
         "context": "主管需要在沒有口頭補充時讀懂三個活動的成效與下一步",
@@ -382,39 +382,39 @@ def main() -> None:
     write_json(EVIDENCE / "g0-requirements.json", g0)
     contract["G0_requirements"] = copy.deepcopy(g0)
     contract["evidence_index"].append({"id": "g0-requirements", "gate": "G0", "path": "evidence/g0-requirements.json", "sha256": sha(EVIDENCE / "g0-requirements.json")})
-    pass_gate(contract, "G0", ["g0-requirements"], "requirements-validator", "course-run", "2026-10-18T18:02:00+08:00")
+    pass_gate(contract, "G0", ["g0-requirements"], "requirements-validator", "course-run", "2026-10-18T14:32:00+08:00")
 
-    begin_gate(contract, "G1", "course-run", "2026-10-18T18:03:00+08:00")
-    route_research_to_gate(contract, research, adaptation, "evidence/research-record.json", sha(EVIDENCE / "research-record.json"), "course-run", "2026-10-18T18:04:00+08:00")
+    begin_gate(contract, "G1", "course-run", "2026-10-18T14:33:00+08:00")
+    route_research_to_gate(contract, research, adaptation, "evidence/research-record.json", sha(EVIDENCE / "research-record.json"), "course-run", "2026-10-18T14:34:00+08:00")
 
-    begin_gate(contract, "G2", "course-run", "2026-10-18T18:05:00+08:00")
+    begin_gate(contract, "G2", "course-run", "2026-10-18T14:35:00+08:00")
     contract["G2_architecture"] = {"record_path": "evidence/blueprint.json", "sha256": sha(EVIDENCE / "blueprint.json")}
     contract["evidence_index"].append({"id": "g2-blueprint", "gate": "G2", "path": "evidence/blueprint.json", "sha256": sha(EVIDENCE / "blueprint.json")})
-    pass_gate(contract, "G2", ["g2-blueprint"], "course-blueprint-validator", "course-run", "2026-10-18T18:06:00+08:00")
+    pass_gate(contract, "G2", ["g2-blueprint"], "course-blueprint-validator", "course-run", "2026-10-18T14:36:00+08:00")
 
-    begin_gate(contract, "G3", "course-run", "2026-10-18T18:07:00+08:00")
+    begin_gate(contract, "G3", "course-run", "2026-10-18T14:37:00+08:00")
     content_bundle = {"lesson_records": [{"unit_id": record["unit_id"], "path": f"evidence/lesson-{record['unit_id']}.json", "sha256": sha(EVIDENCE / f"lesson-{record['unit_id']}.json")} for record in lesson_records], "validation": "PASS"}
     write_json(EVIDENCE / "content-bundle.json", content_bundle)
     contract["G3_lesson_design"] = {"record_path": "evidence/content-bundle.json", "sha256": sha(EVIDENCE / "content-bundle.json"), "unit_count": 3}
     contract["evidence_index"].append({"id": "g3-content-bundle", "gate": "G3", "path": "evidence/content-bundle.json", "sha256": sha(EVIDENCE / "content-bundle.json")})
-    pass_gate(contract, "G3", ["g3-content-bundle"], "course-lesson-record-validator", "course-run", "2026-10-18T18:08:00+08:00")
+    pass_gate(contract, "G3", ["g3-content-bundle"], "course-lesson-record-validator", "course-run", "2026-10-18T14:38:00+08:00")
 
-    begin_gate(contract, "G4", "course-run", "2026-10-18T18:09:00+08:00")
+    begin_gate(contract, "G4", "course-run", "2026-10-18T14:39:00+08:00")
     pilot_bundle = {"pilot_record": "evidence/pilot-record.json", "asset_manifest": "evidence/asset-manifest.json", "result": "PASS"}
     write_json(EVIDENCE / "pilot-bundle.json", pilot_bundle)
     contract["G4_pilot"] = {"unit_id": "unit-3", "record_path": "evidence/pilot-record.json"}
     contract["evidence_index"].append({"id": "g4-pilot-production", "gate": "G4", "path": "evidence/pilot-bundle.json", "sha256": sha(EVIDENCE / "pilot-bundle.json")})
-    route_verified_trial_to_gate(contract, "G4", ["g4-pilot-production"], g4_trial, "course-run", "2026-10-18T19:10:00+08:00")
+    route_verified_trial_to_gate(contract, "G4", ["g4-pilot-production"], g4_trial, "course-run", "2026-10-18T15:21:00+08:00")
 
-    begin_gate(contract, "G5", "course-run", "2026-10-18T19:11:00+08:00")
+    begin_gate(contract, "G5", "course-run", "2026-10-18T15:21:10+08:00")
     contract["G5_production"] = {"record_path": "evidence/production-record.json", "sha256": sha(EVIDENCE / "production-record.json")}
-    route_full_production_to_g5(contract, production, [{"id": "g5-render-integration", "gate": "G5", "path": "evidence/production-record.json", "sha256": sha(EVIDENCE / "production-record.json")}], "course-run", "2026-10-18T19:45:00+08:00")
+    route_full_production_to_g5(contract, production, [{"id": "g5-render-integration", "gate": "G5", "path": "evidence/production-record.json", "sha256": sha(EVIDENCE / "production-record.json")}], "course-run", "2026-10-18T15:21:20+08:00")
 
-    begin_gate(contract, "G6", "course-run", "2026-10-18T19:46:00+08:00")
+    begin_gate(contract, "G6", "course-run", "2026-10-18T15:21:30+08:00")
     contract["G6_release_maintenance"] = {"state": "READY_TO_PUBLISH", "record_path": "evidence/release-record.json", "published": False}
     contract["evidence_index"].append({"id": "g6-release-readiness", "gate": "G6", "path": "evidence/release-record.json", "sha256": sha(EVIDENCE / "release-record.json")})
-    pass_gate(contract, "G6", ["g6-release-readiness"], "course-release-record-validator", "course-run", "2026-10-18T19:47:00+08:00")
-    propose_external_action(contract, proposal["action_id"], "course-release", "evidence/release-proposal.json", proposal["manifest_sha256"], "course-ops", "2026-10-18T19:48:00+08:00")
+    pass_gate(contract, "G6", ["g6-release-readiness"], "course-release-record-validator", "course-run", "2026-10-18T15:21:40+08:00")
+    propose_external_action(contract, proposal["action_id"], "course-release", "evidence/release-proposal.json", proposal["manifest_sha256"], "course-ops", "2026-10-18T15:21:45+08:00")
     issues = validate_contract(contract)
     if issues:
         raise SystemExit(f"contract invalid: {issues}")

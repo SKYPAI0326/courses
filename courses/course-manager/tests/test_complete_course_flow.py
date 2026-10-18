@@ -102,6 +102,34 @@ class CompleteCourseFlowTests(unittest.TestCase):
             release_proposal["manifest_sha256"],
         )
 
+    def test_learner_pages_meet_the_new_course_html_contract(self):
+        required_head_markers = (
+            '<meta name="description"',
+            '<meta property="og:title"',
+            '<meta property="og:description"',
+            '<meta property="og:url"',
+            '<meta property="og:image"',
+            '<meta name="twitter:card"',
+            '<meta name="twitter:title"',
+            '<meta name="twitter:description"',
+            '<meta name="twitter:image"',
+            '<link rel="canonical"',
+        )
+        for filename in ("index.html", "unit-1.html", "unit-2.html", "unit-3.html"):
+            page = (PROOF_ROOT / "course" / filename).read_text(encoding="utf-8")
+            with self.subTest(filename=filename):
+                self.assertIn(
+                    '<a href="#main" class="skip-link">跳至主要內容</a>', page
+                )
+                self.assertIn('<main id="main"', page)
+                self.assertIn('data-learner-content-root="true"', page)
+                for marker in required_head_markers:
+                    self.assertIn(marker, page)
+
+        styles = (PROOF_ROOT / "course/styles.css").read_text(encoding="utf-8")
+        self.assertIn(".skip-link", styles)
+        self.assertIn(":focus-visible", styles)
+
 
 if __name__ == "__main__":
     unittest.main()
