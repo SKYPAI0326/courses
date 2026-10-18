@@ -5,7 +5,7 @@ from typing import Any, Mapping, MutableMapping, Sequence
 from src.course_contract import ContractStateError, block_gate, validate_contract
 from src.course_evidence import ConsumedEvidence, consume_evidence_reference
 from src.course_gate_failure import route_failed_validation
-from src.course_gate_validators import G5_ARTIFACT_KINDS, GATE_REGISTRY
+from src.course_gate_validators import G5_ARTIFACT_KINDS, GATE_REGISTRY, TRIAL_ARTIFACT_KIND, validated_trial_reference_maturity
 from src.course_governance import governed_dependencies
 from src.course_runner_authority import consume_trial_inputs
 SECURITY_BOUNDARY_CODES = frozenset({
@@ -32,8 +32,6 @@ SECURITY_BOUNDARY_CODES = frozenset({
 })
 def _text(value: Any) -> bool:
     return isinstance(value, str) and bool(value.strip())
-
-
 def _indexed_references(
     contract: Mapping[str, Any], evidence_ids: Sequence[str]
 ) -> list[Mapping[str, Any]]:
@@ -55,8 +53,6 @@ def _indexed_references(
             "Gate transition references unindexed evidence: " + ", ".join(missing)
         )
     return [by_id[item] for item in evidence_ids]
-
-
 def _consume(
     workspace_root: Path | str,
     reference: Mapping[str, Any],
@@ -73,8 +69,6 @@ def _consume(
         )
     except (OSError, ValueError) as error:
         raise ContractStateError(f"invalid Gate evidence: {error}") from error
-
-
 def _governed_roster_reference(contract: Mapping[str, Any]) -> Mapping[str, Any]:
     governance = contract.get("governance")
     binding = governance.get("production_role_roster") if isinstance(governance, Mapping) else None
@@ -119,7 +113,7 @@ def validate_and_transition_gate(
     consumed_inputs: list[ConsumedEvidence] = []
     for reference in references:
         kind = str(reference.get("kind"))
-        parse_json = kind not in G5_ARTIFACT_KINDS | {"release_check", "requirements_support_artifact"}
+        parse_json = kind not in G5_ARTIFACT_KINDS | {TRIAL_ARTIFACT_KIND, "release_check", "requirements_support_artifact"}
         item = _consume(
             workspace_root, reference, gate_id, parse_json=parse_json
         )
@@ -138,6 +132,10 @@ def validate_and_transition_gate(
             )
         trials = values_by_kind.get("independent_course_trial", [])
         if len(trials) == 1 and isinstance(trials[0], Mapping):
+            try:
+                validated_trial_reference_maturity(trials[0], consumed_by_kind)
+            except ValueError as error:
+                raise ContractStateError(str(error)) from error
             try:
                 consumed_inputs = consume_trial_inputs(workspace_root, trials[0])
             except ContractStateError as error:
@@ -245,5 +243,6 @@ def validate_and_transition_gate(
             "receipt_id": receipt["receipt_id"],
             "nonce": receipt["nonce"],
         }
+        event["maturity"] = "INDEPENDENT_AI_VERIFIED"
     record["evidence"].append(event)
     return "PASS"

@@ -36,38 +36,34 @@ class CourseAccessibilityTests(unittest.TestCase):
             ],
             "automated_checks": [
                 {
-                    "check_id": "auto-overflow",
+                    "check_id": f"auto-overflow-{page['id']}",
+                    "method": "automated",
                     "tool": "Playwright",
                     "tool_version": "1.56.1",
                     "user_agent": "Chromium 141",
-                    "page_ids": [page["id"] for page in pages],
-                    "results": [
-                        {
-                            "criterion_id": "horizontal-overflow",
-                            "status": "PASS",
-                            "evidence": "scrollWidth did not exceed clientWidth at tested viewports",
-                        }
-                    ],
+                    "page_id": page["id"],
+                    "criterion_id": "horizontal-overflow",
+                    "status": "PASS",
+                    "evidence": "scrollWidth did not exceed clientWidth at tested viewports",
                 }
+                for page in pages
             ],
             "manual_checks": [
                 {
-                    "check_id": "manual-core-path",
+                    "check_id": f"manual-{criterion_id}-{page['id']}",
+                    "method": "manual",
                     "evaluator_id": "accessibility-review-1",
-                    "method": "keyboard traversal and DOM reading-order inspection",
+                    "method_description": "keyboard traversal and DOM reading-order inspection",
                     "user_agent": "Safari 20",
                     "assistive_technology": ["VoiceOver 17"],
-                    "page_ids": [page["id"] for page in pages],
-                    "results": [
-                        {
-                            "criterion_id": criterion_id,
-                            "status": "PASS",
-                            "evidence": f"Observed {criterion_id} on each listed page",
-                        }
-                        for criterion_id in BASIC_ACCESSIBILITY_CRITERIA
-                        if criterion_id != "horizontal-overflow"
-                    ],
+                    "page_id": page["id"],
+                    "criterion_id": criterion_id,
+                    "status": "PASS",
+                    "evidence": f"Observed {criterion_id} on {page['id']}",
                 }
+                for page in pages
+                for criterion_id in BASIC_ACCESSIBILITY_CRITERIA
+                if criterion_id != "horizontal-overflow"
             ],
             "findings": [],
         }
@@ -92,26 +88,27 @@ class CourseAccessibilityTests(unittest.TestCase):
             {"criterion_id": criterion_id, "level": level}
             for criterion_id, level in WCAG_22_AA_CRITERIA.items()
         ]
-        report["automated_checks"][0]["page_ids"] = [
-            page["id"] for page in report["pages"]
-        ]
-        report["automated_checks"][0]["results"] = [
+        report["automated_checks"] = [
             {
-                "criterion_id": criterion_id,
-                "status": "PASS",
-                "evidence": f"Automated assertion for {criterion_id}",
+                "check_id": f"auto-{criterion_id.replace('.', '-')}-{page['id']}",
+                "method": "automated", "tool": "axe-core", "tool_version": "4.10.2",
+                "user_agent": "Chromium 141", "page_id": page["id"],
+                "criterion_id": criterion_id, "status": "PASS",
+                "evidence": f"Automated assertion for {criterion_id} on {page['id']}",
             }
+            for page in report["pages"]
             for criterion_id in WCAG_22_AA_CRITERIA
         ]
-        report["manual_checks"][0]["page_ids"] = [
-            page["id"] for page in report["pages"]
-        ]
-        report["manual_checks"][0]["results"] = [
+        report["manual_checks"] = [
             {
-                "criterion_id": criterion_id,
-                "status": "PASS",
-                "evidence": f"Manual assertion for {criterion_id}",
+                "check_id": f"manual-{criterion_id.replace('.', '-')}-{page['id']}",
+                "method": "manual", "evaluator_id": "accessibility-review-1",
+                "method_description": "manual WCAG inspection", "user_agent": "Safari 20",
+                "assistive_technology": ["VoiceOver 17"], "page_id": page["id"],
+                "criterion_id": criterion_id, "status": "PASS",
+                "evidence": f"Manual assertion for {criterion_id} on {page['id']}",
             }
+            for page in report["pages"]
             for criterion_id in WCAG_22_AA_CRITERIA
         ]
         return report
@@ -208,7 +205,7 @@ class CourseAccessibilityTests(unittest.TestCase):
         )
 
         untested = copy.deepcopy(report)
-        untested["manual_checks"][0]["results"][0]["status"] = "NOT_TESTED"
+        untested["manual_checks"][0]["status"] = "NOT_TESTED"
         self.assertIn(
             "accessibility_criterion_untested",
             {
@@ -220,12 +217,13 @@ class CourseAccessibilityTests(unittest.TestCase):
         )
 
         not_automatable_only = copy.deepcopy(report)
-        criterion_id = not_automatable_only["automated_checks"][0]["results"][0]["criterion_id"]
-        not_automatable_only["automated_checks"][0]["results"][0]["status"] = "NOT_AUTOMATABLE"
-        not_automatable_only["manual_checks"][0]["results"] = [
+        criterion_id = not_automatable_only["automated_checks"][0]["criterion_id"]
+        page_id = not_automatable_only["automated_checks"][0]["page_id"]
+        not_automatable_only["automated_checks"][0]["status"] = "NOT_AUTOMATABLE"
+        not_automatable_only["manual_checks"] = [
             item
-            for item in not_automatable_only["manual_checks"][0]["results"]
-            if item["criterion_id"] != criterion_id
+            for item in not_automatable_only["manual_checks"]
+            if not (item["criterion_id"] == criterion_id and item["page_id"] == page_id)
         ]
         self.assertIn(
             "accessibility_criterion_untested",
@@ -237,6 +235,34 @@ class CourseAccessibilityTests(unittest.TestCase):
                     expected_pages=expected_pages,
                 )
             },
+        )
+
+    def test_wcag_requires_cartesian_page_criterion_coverage_and_unique_check_ids(self):
+        report = self.wcag_report()
+        page_id = report["pages"][1]["id"]
+        criterion_id = next(iter(WCAG_22_AA_CRITERIA))
+        report["automated_checks"] = [
+            item for item in report["automated_checks"]
+            if not (item["page_id"] == page_id and item["criterion_id"] == criterion_id)
+        ]
+        report["manual_checks"] = [
+            item for item in report["manual_checks"]
+            if not (item["page_id"] == page_id and item["criterion_id"] == criterion_id)
+        ]
+        self.assertIn(
+            "accessibility_criterion_untested",
+            {issue.code for issue in validate_accessibility_report(
+                report, expected_gate="G5", expected_pages=report["pages"]
+            )},
+        )
+
+        duplicate = self.wcag_report()
+        duplicate["manual_checks"][0]["check_id"] = duplicate["automated_checks"][0]["check_id"]
+        self.assertIn(
+            "accessibility_duplicate_check_id",
+            {issue.code for issue in validate_accessibility_report(
+                duplicate, expected_gate="G5", expected_pages=duplicate["pages"]
+            )},
         )
 
     def test_high_or_serious_unresolved_finding_blocks(self):

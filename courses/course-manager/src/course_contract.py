@@ -13,6 +13,7 @@ from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Mapping, MutableMapping, Sequence
 
 from src.course_evidence import (
+    EVIDENCE_MATURITIES,
     canonical_json_bytes,
     consume_evidence_reference,
     verify_evidence_reference,
@@ -770,15 +771,12 @@ def validate_contract(contract: Mapping[str, Any]) -> list[ValidationIssue]:
                     f"{reference_path}.sha256",
                     "evidence sha256 must be 64 lowercase hexadecimal characters",
                 )
-            if "maturity" in item and (
-                not isinstance(item.get("maturity"), str)
-                or not item["maturity"].strip()
-            ):
+            if "maturity" in item and item.get("maturity") not in EVIDENCE_MATURITIES:
                 _append_issue(
                     issues,
                     "invalid_evidence_maturity",
                     f"{reference_path}.maturity",
-                    "evidence maturity must contain text",
+                    "evidence maturity must use the closed maturity enum",
                 )
             if "metadata" in item and not isinstance(item.get("metadata"), Mapping):
                 _append_issue(
@@ -2172,9 +2170,7 @@ def migrate_contract_v2(
                     reason = "legacy record has an unsafe file path"
                 elif not isinstance(sha256, str) or not SHA256_PATTERN.fullmatch(sha256):
                     reason = "legacy record has no valid SHA-256"
-                elif maturity is not None and (
-                    not isinstance(maturity, str) or not maturity.strip()
-                ):
+                elif maturity is not None and maturity not in EVIDENCE_MATURITIES:
                     reason = "legacy record has invalid maturity"
                 elif metadata is not None and not isinstance(metadata, Mapping):
                     reason = "legacy record has invalid metadata"

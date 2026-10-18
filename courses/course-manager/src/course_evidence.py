@@ -14,6 +14,10 @@ from typing import Any, Mapping
 
 GATE_IDS: tuple[str, ...] = tuple(f"G{index}" for index in range(7))
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
+EVIDENCE_MATURITIES = frozenset({
+    "STATIC_VALIDATED", "EXECUTION_VALIDATED", "INDEPENDENT_AI_VERIFIED",
+    "PENDING_HUMAN", "HUMAN_VERIFIED", "AUTHORITY_SIGNED",
+})
 REFERENCE_FIELDS = frozenset(
     {"id", "gate", "kind", "path", "sha256", "maturity", "metadata"}
 )
@@ -203,8 +207,8 @@ def _reference_shape_issues(
         issues.append(EvidenceIssue("wrong_gate", "$.gate", f"evidence belongs to {gate}, not expected gate {expected_gate}"))
     if not _is_text(reference.get("kind")):
         issues.append(EvidenceIssue("invalid_kind", "$.kind", "evidence kind must contain text"))
-    if "maturity" in reference and not _is_text(reference.get("maturity")):
-        issues.append(EvidenceIssue("invalid_maturity", "$.maturity", "evidence maturity must contain text"))
+    if "maturity" in reference and reference.get("maturity") not in EVIDENCE_MATURITIES:
+        issues.append(EvidenceIssue("invalid_maturity", "$.maturity", "evidence maturity must use the closed maturity enum"))
     if "metadata" in reference and not isinstance(reference.get("metadata"), Mapping):
         issues.append(EvidenceIssue("invalid_metadata", "$.metadata", "evidence metadata must be an object"))
     if _unsafe_relative_path(reference.get("path")):
@@ -270,8 +274,8 @@ def _base_reference(
         raise ValueError("evidence kind must contain text")
     if _unsafe_relative_path(relative_path):
         raise ValueError("evidence path must be a safe relative path")
-    if maturity is not None and not _is_text(maturity):
-        raise ValueError("evidence maturity must contain text when provided")
+    if maturity is not None and maturity not in EVIDENCE_MATURITIES:
+        raise ValueError("evidence maturity must use the closed maturity enum")
     if metadata is not None and not isinstance(metadata, Mapping):
         raise ValueError("evidence metadata must be an object when provided")
 

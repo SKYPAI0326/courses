@@ -145,41 +145,43 @@ def validate_accessibility_report(
     if len(criterion_ids) != len(set(criterion_ids)) or dict(criteria) != required_criteria:
         _issue(issues, "accessibility_criteria_incomplete", "$.applicable_criteria", "claim must list every and only applicable criterion with its canonical level", expected_gate)
 
-    method_results: dict[str, list[str]] = {"automated_checks": [], "manual_checks": []}
-    criterion_statuses: dict[str, list[str]] = {
-        criterion_id: [] for criterion_id in required_criteria
-    }
-    for method in method_results:
+    method_pages: dict[str, set[str]] = {"automated_checks": set(), "manual_checks": set()}
+    passing_pairs: set[tuple[str, str]] = set()
+    check_ids: set[str] = set()
+    for method in method_pages:
         checks = report.get(method)
-        covered_pages: set[Any] = set()
-        result_pairs: list[tuple[Any, Any]] = []
         if isinstance(checks, list):
-            for check in checks:
+            for index, check in enumerate(checks):
                 if not isinstance(check, Mapping):
                     continue
-                check_pages = check.get("page_ids")
-                if isinstance(check_pages, list):
-                    covered_pages.update(check_pages)
-                result_pairs.extend(_pairs(check.get("results"), "criterion_id", "status"))
-        if covered_pages != page_ids:
+                check_id = check.get("check_id")
+                if check_id in check_ids:
+                    _issue(issues, "accessibility_duplicate_check_id", f"$.{method}[{index}].check_id", "check_id must be unique across the report", expected_gate)
+                elif isinstance(check_id, str):
+                    check_ids.add(check_id)
+                page_id = check.get("page_id")
+                criterion_id = check.get("criterion_id")
+                status = check.get("status")
+                if page_id not in page_ids:
+                    _issue(issues, "accessibility_check_page_invalid", f"$.{method}[{index}].page_id", "check must bind one governed page", expected_gate)
+                else:
+                    method_pages[method].add(str(page_id))
+                if criterion_id not in required_criteria:
+                    _issue(issues, "accessibility_unknown_criterion", f"$.{method}[{index}].criterion_id", "check references a criterion outside the claim", expected_gate)
+                elif status == "PASS" and page_id in page_ids:
+                    passing_pairs.add((str(page_id), str(criterion_id)))
+                if status in {"FAIL", "NOT_TESTED"}:
+                    _issue(issues, "accessibility_criterion_untested" if status == "NOT_TESTED" else "accessibility_criterion_failed", f"$.{method}[{index}]", f"criterion {criterion_id} on page {page_id} has result {status}", expected_gate)
+        if method_pages[method] != page_ids:
             code = "accessibility_automated_checks_incomplete" if method == "automated_checks" else "accessibility_manual_checks_incomplete"
             _issue(issues, code, f"$.{method}", f"{method} must include results for every claimed page", expected_gate)
-        method_results[method] = [str(item[0]) for item in result_pairs]
-        for criterion_id, status in result_pairs:
-            if criterion_id not in required_criteria:
-                _issue(issues, "accessibility_unknown_criterion", f"$.{method}", "check result references a criterion outside the claim", expected_gate)
-            else:
-                criterion_statuses[str(criterion_id)].append(str(status))
-            if status in {"FAIL", "NOT_TESTED"}:
-                _issue(issues, "accessibility_criterion_untested" if status == "NOT_TESTED" else "accessibility_criterion_failed", f"$.{method}", f"criterion {criterion_id} has result {status}", expected_gate)
-
-    for criterion_id, statuses in criterion_statuses.items():
-        if "PASS" not in statuses:
-            _issue(issues, "accessibility_criterion_untested", "$.applicable_criteria", f"criterion {criterion_id} requires at least one passing result; NOT_AUTOMATABLE alone is insufficient", expected_gate)
-    if scope == "wcag_2_2_aa" and (
-        not method_results["automated_checks"] or not method_results["manual_checks"]
-    ):
-        _issue(issues, "accessibility_check_methods_incomplete", "$.automated_checks", "WCAG 2.2 AA claims require both automated and manual results", expected_gate)
+    missing_pairs = {
+        (str(page_id), str(criterion_id))
+        for page_id in page_ids
+        for criterion_id in required_criteria
+    } - passing_pairs
+    if missing_pairs:
+        _issue(issues, "accessibility_criterion_untested", "$.applicable_criteria", "every governed page and applicable criterion requires a passing result", expected_gate)
 
     findings = report.get("findings")
     if isinstance(findings, list):

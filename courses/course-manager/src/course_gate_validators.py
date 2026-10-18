@@ -41,6 +41,22 @@ G5_ARTIFACT_KINDS = frozenset(
         "final_artifact",
     }
 )
+TRIAL_ARTIFACT_KIND = "trial_transfer_artifact"
+
+
+def validated_trial_reference_maturity(
+    trial: Mapping[str, Any], consumed: ConsumedByKind
+) -> str:
+    from src.course_validation import derived_trial_reference_maturity
+
+    derived = derived_trial_reference_maturity(trial)
+    references = consumed.get("independent_course_trial", [])
+    declared = references[0].reference.get("maturity") if len(references) == 1 else None
+    if derived != "INDEPENDENT_AI_VERIFIED" or declared != derived:
+        raise ValueError(
+            "independent trial reference maturity must exactly match validated INDEPENDENT_AI_VERIFIED maturity"
+        )
+    return derived
 
 
 def _text(value: Any) -> bool:
@@ -297,6 +313,7 @@ def _validate_g4(
                     runner_authority_id=(
                         authority.get("authority_id") if isinstance(authority, Mapping) else None
                     ),
+                    transfer_artifacts=consumed.get(TRIAL_ARTIFACT_KIND, []),
                 )))
         except ValueError as error:
             issues.append(GateValidationIssue("production_role_roster_invalid", "$.evidence.production_role_roster", str(error)))
@@ -397,7 +414,7 @@ def _validate_g5(
     from src.course_validation import validate_trial_record
 
     bundle, issues = _single_mapping(evidence, "full_course_production")
-    allowed = G5_ARTIFACT_KINDS | {"full_course_production", "independent_course_trial", "independent_trial_receipt", "production_role_roster", "accessibility_report"}
+    allowed = G5_ARTIFACT_KINDS | {TRIAL_ARTIFACT_KIND, "full_course_production", "independent_course_trial", "independent_trial_receipt", "production_role_roster", "accessibility_report"}
     extras = sorted(set(evidence) - allowed)
     if extras:
         issues.append(GateValidationIssue("extra_artifact_evidence", "$.evidence", f"G5 rejects unbound evidence kind(s): {', '.join(extras)}"))
@@ -446,6 +463,7 @@ def _validate_g5(
             runner_authority_id=(
                 authority.get("authority_id") if isinstance(authority, Mapping) else None
             ),
+            transfer_artifacts=consumed.get(TRIAL_ARTIFACT_KIND, []),
         )))
     issues.extend(_coerce_issues(validate_full_production(record, blueprint, lessons, assets, pilot, trial, production_roles=roster, requirements=requirements)))
     accessibility_items = consumed.get("accessibility_report", [])

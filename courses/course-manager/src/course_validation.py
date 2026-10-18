@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 from dataclasses import dataclass
 from typing import Any, Mapping, Sequence
 
 from src.schema_runtime import validate_schema_file
+from src.course_evidence import ConsumedEvidence
 
 
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
@@ -42,6 +45,25 @@ GENERIC_ACTION_TEXT = {
     "照做",
     "完成",
 }
+
+TRANSFER_ROLES = frozenset({
+    "held-out-input", "held-out-output", "demonstration-input",
+    "demonstration-output", "guided-practice-input", "guided-practice-output",
+    "answer-key-input", "answer-key-output", "action-state",
+})
+REQUIRED_TRANSFER_ROLES = TRANSFER_ROLES - {"action-state"}
+
+
+def trial_action_id(action: Mapping[str, Any]) -> str:
+    payload = {
+        key: action.get(key)
+        for key in (
+            "task_id", "action", "decision", "observable_result",
+            "affected_criterion_id", "input_evidence_id", "output_evidence_id", "result",
+        )
+    }
+    encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return f"act-{hashlib.sha256(encoded).hexdigest()[:20]}"
 
 
 @dataclass(frozen=True)
@@ -220,6 +242,7 @@ def validate_trial_record(
     blueprint: Mapping[str, Any] | None = None,
     representative_unit_id: str | None = None,
     runner_authority_id: str | None = None,
+    transfer_artifacts: Sequence[ConsumedEvidence] | None = None,
 ) -> list[TrialIssue]:
     issues: list[TrialIssue] = []
     if expected_scope not in TRIAL_SCOPES:
@@ -229,12 +252,12 @@ def validate_trial_record(
         TrialIssue(issue.code, issue.path, issue.message, current_gate)
         for issue in validate_schema_file("course-trial-record.schema.json", record)
     )
-    if record.get("schema_version") != 2:
+    if record.get("schema_version") != 3:
         _add(
             issues,
             "trial_record_incomplete",
             "$.schema_version",
-            "trial record schema_version must be 2",
+            "trial record schema_version must be 3",
             current_gate,
         )
     scope = record.get("scope")
@@ -430,6 +453,7 @@ def validate_trial_record(
     )
     allowed_input_paths: set[str] = set()
     allowed_input_hashes: set[str] = set()
+    allowed_input_bindings: set[tuple[str, str]] = set()
     learner_page_paths: set[str] = set()
     if allowed_inputs is not None:
         if not allowed_inputs:
@@ -479,6 +503,8 @@ def validate_trial_record(
                 )
             else:
                 allowed_input_hashes.add(str(item["sha256"]))
+                if _text(input_path):
+                    allowed_input_bindings.add((str(input_path).strip(), str(item["sha256"])))
 
     forbidden_access = _validate_collection(
         record.get("forbidden_inputs_accessed"),
@@ -530,10 +556,59 @@ def validate_trial_record(
                 current_gate,
             )
 
+    binding_by_id: dict[str, Mapping[str, Any]] = {}
+    role_bindings: dict[str, list[Mapping[str, Any]]] = {}
+    bindings = record.get("evidence_bindings")
+    if not isinstance(bindings, list):
+        _add(issues, "transfer_evidence_unbound", "$.evidence_bindings", "trial transfer requires typed evidence bindings", current_gate)
+    else:
+        for index, binding in enumerate(bindings):
+            path = f"$.evidence_bindings[{index}]"
+            if not isinstance(binding, Mapping):
+                _add(issues, "transfer_evidence_unbound", path, "evidence binding must be an object", current_gate)
+                continue
+            evidence_id = binding.get("evidence_id")
+            role = binding.get("role")
+            if not _text(evidence_id) or evidence_id in binding_by_id:
+                _add(issues, "transfer_evidence_unbound", f"{path}.evidence_id", "evidence binding ids must be present and unique", current_gate)
+                continue
+            binding_by_id[str(evidence_id)] = binding
+            if role not in TRANSFER_ROLES:
+                _add(issues, "transfer_evidence_unbound", f"{path}.role", "unknown transfer evidence role", current_gate)
+            else:
+                role_bindings.setdefault(str(role), []).append(binding)
+        if any(len(role_bindings.get(role, [])) != 1 for role in REQUIRED_TRANSFER_ROLES):
+            _add(issues, "transfer_evidence_unbound", "$.evidence_bindings", "trial requires exactly one binding for each governed transfer role", current_gate)
+        required_digests = [
+            str(role_bindings[role][0].get("sha256", ""))
+            for role in REQUIRED_TRANSFER_ROLES if len(role_bindings.get(role, [])) == 1
+        ]
+        if len(required_digests) == len(REQUIRED_TRANSFER_ROLES) and len(set(required_digests)) != len(required_digests):
+            _add(issues, "transfer_hash_reused", "$.evidence_bindings", "held-out, demonstration, guided-practice, and answer-key files must have distinct bytes", current_gate)
+
+    if transfer_artifacts is not None:
+        consumed_by_id = {str(item.reference.get("id")): item for item in transfer_artifacts}
+        if set(consumed_by_id) != set(binding_by_id):
+            _add(issues, "transfer_evidence_unbound", "$.evidence_bindings", "consumed transfer artifact set must exactly match trial bindings", current_gate)
+        for evidence_id, binding in binding_by_id.items():
+            item = consumed_by_id.get(evidence_id)
+            metadata = item.reference.get("metadata") if item is not None else None
+            if (
+                item is None
+                or item.reference.get("kind") != "trial_transfer_artifact"
+                or item.reference.get("path") != binding.get("path")
+                or item.sha256 != binding.get("sha256")
+                or not isinstance(metadata, Mapping)
+                or metadata.get("role") != binding.get("role")
+            ):
+                _add(issues, "transfer_evidence_binding_mismatch", f"$.evidence_bindings.{evidence_id}", "typed evidence id, path, hash, role, and actual bytes must match", current_gate)
+
     transfer = record.get("transfer_task")
     transfer_task_id: str | None = None
     held_out_input_hash: str | None = None
     held_out_output_hash: str | None = None
+    held_out_input_id = ""
+    held_out_output_id = ""
     if not isinstance(transfer, Mapping):
         _add(
             issues,
@@ -568,11 +643,11 @@ def validate_trial_record(
                 if not isinstance(condition, Mapping):
                     _add(issues, "transfer_conditions_missing", path, "changed condition must be an object", current_gate)
                     continue
-                before = _normalized_text(condition.get("before"))
-                after = _normalized_text(condition.get("after"))
                 before_decision = _normalized_text(condition.get("before_decision"))
                 after_decision = _normalized_text(condition.get("after_decision"))
-                if condition.get("dimension") not in {"data", "threshold", "context"} or not before or before == after:
+                dimension = condition.get("dimension")
+                affected = condition.get("affected_criterion_id")
+                if dimension not in {"data", "threshold", "context"} or not _text(affected):
                     _add(
                         issues,
                         "transfer_conditions_missing",
@@ -580,12 +655,31 @@ def validate_trial_record(
                         "changed condition must materially change data, threshold, or context",
                         current_gate,
                     )
-                if _filename_only_change(condition.get("before"), condition.get("after")):
+                if dimension == "data":
+                    before_binding = binding_by_id.get(str(condition.get("before_input_evidence_id", "")))
+                    after_binding = binding_by_id.get(str(condition.get("after_input_evidence_id", "")))
+                    if (
+                        before_binding is None or after_binding is None
+                        or not str(before_binding.get("role", "")).endswith("input")
+                        or not str(after_binding.get("role", "")).endswith("input")
+                        or before_binding.get("sha256") == after_binding.get("sha256")
+                    ):
+                        _add(issues, "transfer_conditions_missing", path, "data changes must bind distinct before/after typed input bytes", current_gate)
+                elif dimension == "threshold" and (
+                    isinstance(condition.get("before_value"), bool)
+                    or not isinstance(condition.get("before_value"), (int, float))
+                    or isinstance(condition.get("after_value"), bool)
+                    or not isinstance(condition.get("after_value"), (int, float))
+                    or condition.get("before_value") == condition.get("after_value")
+                    or not _concrete_action_text(condition.get("rule"))
+                ):
+                    _add(issues, "transfer_conditions_missing", path, "threshold changes require a concrete rule and distinct comparable numeric values", current_gate)
+                elif dimension == "context" and condition.get("before_context") == condition.get("after_context"):
                     _add(
                         issues,
                         "transfer_conditions_missing",
                         path,
-                        "renaming or swapping files without describing changed data, threshold, or context is not transfer",
+                        "context changes require distinct profile constraints",
                         current_gate,
                     )
                 if not before_decision or before_decision == after_decision:
@@ -604,37 +698,23 @@ def validate_trial_record(
                         "transfer must explain the concrete basis for reconsideration",
                         current_gate,
                     )
-        held_out_input_hash = transfer.get("held_out_input_sha256") if isinstance(transfer.get("held_out_input_sha256"), str) else None
-        held_out_output_hash = transfer.get("held_out_output_sha256") if isinstance(transfer.get("held_out_output_sha256"), str) else None
-        reference_hashes = transfer.get("reference_hashes")
-        all_transfer_hashes = [held_out_input_hash, held_out_output_hash]
-        if isinstance(reference_hashes, Mapping):
+        held_out_input_id = str(transfer.get("held_out_input_evidence_id", ""))
+        held_out_output_id = str(transfer.get("held_out_output_evidence_id", ""))
+        held_out_input = binding_by_id.get(held_out_input_id)
+        held_out_output = binding_by_id.get(held_out_output_id)
+        if held_out_input not in role_bindings.get("held-out-input", []) or held_out_output not in role_bindings.get("held-out-output", []):
+            _add(issues, "transfer_evidence_unbound", "$.transfer_task", "held-out task must bind the governed input/output evidence roles", current_gate)
+        elif (str(held_out_input.get("path", "")), str(held_out_input.get("sha256", ""))) not in allowed_input_bindings:
+            _add(issues, "transfer_input_unbound", "$.transfer_task.held_out_input_evidence_id", "held-out input evidence must exactly match a securely bound learner-visible input", current_gate)
+        reference_evidence = transfer.get("reference_evidence")
+        if isinstance(reference_evidence, Mapping):
             for phase in ("demonstration", "guided_practice", "answer_key"):
-                pair = reference_hashes.get(phase)
-                if isinstance(pair, Mapping):
-                    all_transfer_hashes.extend(
-                        [pair.get("input_sha256"), pair.get("output_sha256")]
-                    )
-        if (
-            len(all_transfer_hashes) != 8
-            or any(not SHA256_PATTERN.fullmatch(str(value or "")) for value in all_transfer_hashes)
-            or len(set(all_transfer_hashes)) != len(all_transfer_hashes)
-        ):
-            _add(
-                issues,
-                "transfer_hash_reused",
-                "$.transfer_task",
-                "held-out, demonstration, guided-practice, and answer-key input/output hashes must all be distinct",
-                current_gate,
-            )
-        if held_out_input_hash not in allowed_input_hashes:
-            _add(
-                issues,
-                "transfer_input_unbound",
-                "$.transfer_task.held_out_input_sha256",
-                "held-out input must be one of the securely bound learner inputs",
-                current_gate,
-            )
+                pair = reference_evidence.get(phase)
+                for side in ("input", "output"):
+                    evidence_id = pair.get(f"{side}_evidence_id") if isinstance(pair, Mapping) else None
+                    expected_role = f"{phase.replace('_', '-')}-{side}"
+                    if binding_by_id.get(str(evidence_id or "")) not in role_bindings.get(expected_role, []):
+                        _add(issues, "transfer_evidence_unbound", f"$.transfer_task.reference_evidence.{phase}.{side}_evidence_id", "reference phase must bind its exact typed evidence role", current_gate)
 
     actions = _validate_collection(record.get("actions"), "$.actions", issues)
     action_by_id: dict[str, Mapping[str, Any]] = {}
@@ -685,15 +765,23 @@ def validate_trial_record(
                     "trial actions must record a concrete learner decision and observable result",
                     current_gate,
                 )
-            for field in ("input_sha256", "output_sha256"):
-                if not SHA256_PATTERN.fullmatch(str(action.get(field, ""))):
+            for field in ("input_evidence_id", "output_evidence_id"):
+                if action.get(field) not in binding_by_id:
                     _add(
                         issues,
                         "trial_record_incomplete",
                         f"{path}.{field}",
-                        "trial action input and output require lowercase SHA-256",
+                        "trial action input and output must bind typed evidence",
                         current_gate,
                     )
+            if action_id != trial_action_id(action):
+                _add(issues, "trial_action_id_invalid", f"{path}.id", "action id must be derived from the canonical action payload", current_gate)
+            changed_criteria = {
+                item.get("affected_criterion_id") for item in transfer.get("changed_conditions", [])
+                if isinstance(item, Mapping)
+            } if isinstance(transfer, Mapping) else set()
+            if action.get("affected_criterion_id") not in changed_criteria:
+                _add(issues, "generic_trial_action", f"{path}.affected_criterion_id", "trial action must address a changed governed criterion", current_gate)
             if action.get("result") not in {"PASS", "FAIL"}:
                 _add(
                     issues,
@@ -715,8 +803,12 @@ def validate_trial_record(
         )
         if (
             not ordered_transfer
-            or ordered_transfer[0].get("input_sha256") != held_out_input_hash
-            or ordered_transfer[-1].get("output_sha256") != held_out_output_hash
+            or ordered_transfer[0].get("input_evidence_id") != held_out_input_id
+            or ordered_transfer[-1].get("output_evidence_id") != held_out_output_id
+            or any(
+                current.get("output_evidence_id") != following.get("input_evidence_id")
+                for current, following in zip(ordered_transfer, ordered_transfer[1:])
+            )
         ):
             _add(
                 issues,
@@ -800,12 +892,19 @@ def validate_trial_record(
             _add(issues, "artifact_not_verified", "$.artifact.verifiable", "artifact must be independently verifiable")
         if artifact.get("acceptance_result") != "PASS":
             _add(issues, "artifact_not_verified", "$.artifact.acceptance_result", "artifact must pass acceptance checks")
-        if held_out_output_hash is not None and artifact.get("sha256") != held_out_output_hash:
+        artifact_binding = binding_by_id.get(str(artifact_evidence_id or ""))
+        if (
+            artifact_binding is None
+            or artifact_binding not in role_bindings.get("held-out-output", [])
+            or artifact.get("path") != artifact_binding.get("path")
+            or artifact.get("sha256") != artifact_binding.get("sha256")
+            or artifact_evidence_id != held_out_output_id
+        ):
             _add(
                 issues,
                 "artifact_not_verified",
                 "$.artifact.sha256",
-                "trial artifact hash must equal the held-out task output hash",
+                "trial artifact must exactly match the consumed held-out output evidence",
                 current_gate,
             )
 
@@ -815,6 +914,11 @@ def validate_trial_record(
         if isinstance(requirements, Mapping) and isinstance(blueprint, Mapping)
         else {}
     )
+    expected_criterion_ids = {item["criterion_id"] for item in expected_criteria.values()}
+    if expected_criterion_ids and isinstance(transfer, Mapping):
+        for index, condition in enumerate(transfer.get("changed_conditions", [])):
+            if isinstance(condition, Mapping) and condition.get("affected_criterion_id") not in expected_criterion_ids:
+                _add(issues, "transfer_conditions_missing", f"$.transfer_task.changed_conditions[{index}].affected_criterion_id", "changed condition must affect a governed criterion in trial scope", current_gate)
     seen_capabilities: set[str] = set()
     covered_capabilities: set[str] = set()
     if not isinstance(criterion_rows, list) or not criterion_rows:
@@ -865,6 +969,7 @@ def validate_trial_record(
                 not isinstance(action, Mapping)
                 or action.get("result") != "PASS"
                 or action.get("task_id") != transfer_task_id
+                or action.get("affected_criterion_id") != row.get("criterion_id")
                 or row.get("result") != "PASS"
             ):
                 _add(
@@ -989,6 +1094,22 @@ def evidence_maturity(record: Mapping[str, Any]) -> str:
     if participant.get("type") == "human":
         return "PENDING_HUMAN"
     if participant.get("type") == "independent-ai":
+        return "INDEPENDENT_AI_VERIFIED"
+    return "EXECUTION_VALIDATED"
+
+
+def derived_trial_reference_maturity(record: Mapping[str, Any]) -> str:
+    participant = record.get("participant")
+    claims = record.get("maturity_claims")
+    if (
+        isinstance(participant, Mapping)
+        and participant.get("type") == "independent-ai"
+        and isinstance(claims, Mapping)
+        and claims.get("ai_trial") == "INDEPENDENT_AI_VERIFIED"
+        and all(claims.get(field) == "PENDING_HUMAN" for field in (
+            "human_duration", "human_readability", "target_learner_independence"
+        ))
+    ):
         return "INDEPENDENT_AI_VERIFIED"
     return "EXECUTION_VALIDATED"
 

@@ -15,10 +15,12 @@ from src.course_contract import (
     validate_contract,
 )
 from tests.gate_test_support import _commit_gate_pass
-from src.course_evidence import materialize_json_evidence, verify_evidence_reference
+from src.course_evidence import ConsumedEvidence, materialize_json_evidence, register_evidence_file, verify_evidence_reference
+from src.course_gate_validators import validated_trial_reference_maturity
 from src.course_validation import (
     evidence_maturity,
     route_trial_failure,
+    trial_action_id,
     validate_trial_context_is_new,
     validate_trial_record,
 )
@@ -46,7 +48,7 @@ class CourseTrialValidationTests(unittest.TestCase):
 
     def valid_trial(self, participant_type="independent-ai", scope="representative_unit"):
         record = {
-            "schema_version": 2,
+            "schema_version": 3,
             "requirements_sha256": "9" * 64,
             "target_profile_id": "target-marketing-practitioner",
             "runner_authority_id": self.authority_id,
@@ -71,6 +73,17 @@ class CourseTrialValidationTests(unittest.TestCase):
                     "sha256": "b" * 64,
                 },
             ],
+            "evidence_bindings": [
+                {"evidence_id": "held-out-input", "path": "courses/demo/unit-1.html", "sha256": "a" * 64, "role": "held-out-input"},
+                {"evidence_id": "trial-final-plan", "path": "trial-output/cold-run-20261018-01/marketing-plan.pdf", "sha256": "c" * 64, "role": "held-out-output"},
+                {"evidence_id": "demo-input", "path": "trial-evidence/demo-input.csv", "sha256": "1" * 64, "role": "demonstration-input"},
+                {"evidence_id": "demo-output", "path": "trial-evidence/demo-output.pdf", "sha256": "2" * 64, "role": "demonstration-output"},
+                {"evidence_id": "guided-input", "path": "trial-evidence/guided-input.csv", "sha256": "3" * 64, "role": "guided-practice-input"},
+                {"evidence_id": "guided-output", "path": "trial-evidence/guided-output.pdf", "sha256": "4" * 64, "role": "guided-practice-output"},
+                {"evidence_id": "answer-input", "path": "trial-evidence/answer-input.csv", "sha256": "5" * 64, "role": "answer-key-input"},
+                {"evidence_id": "answer-output", "path": "trial-evidence/answer-output.pdf", "sha256": "6" * 64, "role": "answer-key-output"},
+                {"evidence_id": "action-state-budget", "path": "trial-evidence/action-state-budget.json", "sha256": "d" * 64, "role": "action-state"},
+            ],
             "forbidden_inputs_accessed": [],
             "entry_readiness": {
                 "baseline_statement": "Can inspect tabular campaign data and perform basic arithmetic.",
@@ -88,26 +101,28 @@ class CourseTrialValidationTests(unittest.TestCase):
             },
             "actions": [
                 {
-                    "id": "inspect-held-out-source",
+                    "id": "pending",
                     "sequence": 1,
                     "task_id": "held-out-marketing-plan",
                     "action": "開啟商品資料並找出預算與截止日。",
                     "decision": "依新的預算與截止日重新判斷企劃限制。",
                     "observable_result": "在資料表中找到預算 20 萬元與截止日。",
-                    "input_sha256": "a" * 64,
-                    "output_sha256": "d" * 64,
+                    "affected_criterion_id": "g2-plan",
+                    "input_evidence_id": "held-out-input",
+                    "output_evidence_id": "action-state-budget",
                     "result": "PASS",
                     "at": "2026-10-18T15:01:00+08:00",
                 },
                 {
-                    "id": "produce-held-out-plan",
+                    "id": "pending",
                     "sequence": 2,
                     "task_id": "held-out-marketing-plan",
                     "action": "依講義步驟完成企劃表。",
                     "decision": "依新的門檻選擇符合限制的預算拆分與時程。",
                     "observable_result": "產出含目標、受眾、時程與預算的企劃表。",
-                    "input_sha256": "d" * 64,
-                    "output_sha256": "c" * 64,
+                    "affected_criterion_id": "g2-plan",
+                    "input_evidence_id": "action-state-budget",
+                    "output_evidence_id": "trial-final-plan",
                     "result": "PASS",
                     "at": "2026-10-18T15:08:00+08:00",
                 },
@@ -118,19 +133,22 @@ class CourseTrialValidationTests(unittest.TestCase):
                 "changed_conditions": [
                     {
                         "dimension": "threshold",
-                        "before": "示範預算上限為 30 萬元。",
-                        "after": "獨立任務預算上限為 20 萬元。",
+                        "rule": "總預算不得超過指定上限並須依渠道轉換門檻配置。",
+                        "comparator": "lte",
+                        "before_value": 300000,
+                        "after_value": 200000,
+                        "affected_criterion_id": "g2-plan",
                         "before_decision": "三個渠道平均分配預算。",
                         "after_decision": "依轉換門檻縮減未達標渠道預算。",
                         "decision_basis": "預算門檻與渠道成效同時改變，必須重新計算後判斷。",
                     }
                 ],
-                "held_out_input_sha256": "a" * 64,
-                "held_out_output_sha256": "c" * 64,
-                "reference_hashes": {
-                    "demonstration": {"input_sha256": "1" * 64, "output_sha256": "2" * 64},
-                    "guided_practice": {"input_sha256": "3" * 64, "output_sha256": "4" * 64},
-                    "answer_key": {"input_sha256": "5" * 64, "output_sha256": "6" * 64},
+                "held_out_input_evidence_id": "held-out-input",
+                "held_out_output_evidence_id": "trial-final-plan",
+                "reference_evidence": {
+                    "demonstration": {"input_evidence_id": "demo-input", "output_evidence_id": "demo-output"},
+                    "guided_practice": {"input_evidence_id": "guided-input", "output_evidence_id": "guided-output"},
+                    "answer_key": {"input_evidence_id": "answer-input", "output_evidence_id": "answer-output"},
                 },
             },
             "criterion_evidence": [
@@ -140,7 +158,7 @@ class CourseTrialValidationTests(unittest.TestCase):
                     "outcome_id": "outcome-plan",
                     "criterion_id": "g2-plan",
                     "unit_id": "unit-1",
-                    "action_id": "produce-held-out-plan",
+                    "action_id": "pending",
                     "artifact_evidence_id": "trial-final-plan",
                     "result": "PASS",
                 }
@@ -185,6 +203,9 @@ class CourseTrialValidationTests(unittest.TestCase):
                 "target_learner_independence": "PENDING_HUMAN",
             },
         }
+        for action in record["actions"]:
+            action["id"] = trial_action_id(action)
+        record["criterion_evidence"][0]["action_id"] = record["actions"][-1]["id"]
         if participant_type == "human":
             record["participant"]["id"] = "human-trial-01"
             record["maturity_claims"]["ai_trial"] = "NOT_APPLICABLE"
@@ -202,8 +223,27 @@ class CourseTrialValidationTests(unittest.TestCase):
             payload = f"learner-visible input {index}\n".encode()
             target.write_bytes(payload)
             item["sha256"] = hashlib.sha256(payload).hexdigest()
-        trial["transfer_task"]["held_out_input_sha256"] = trial["allowed_inputs"][0]["sha256"]
-        trial["actions"][0]["input_sha256"] = trial["allowed_inputs"][0]["sha256"]
+        next(item for item in trial["evidence_bindings"] if item["role"] == "held-out-input")["sha256"] = trial["allowed_inputs"][0]["sha256"]
+
+    def materialize_transfer_artifacts(self, root, trial):
+        gate_id = "G4" if trial["scope"] == "representative_unit" else "G5"
+        refs = []
+        for binding in trial["evidence_bindings"]:
+            target = root / binding["path"]
+            if binding["role"] != "held-out-input":
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(f"{binding['role']}:{binding['evidence_id']}\n".encode())
+            ref = register_evidence_file(
+                root, evidence_id=binding["evidence_id"], gate_id=gate_id,
+                kind="trial_transfer_artifact", relative_path=binding["path"],
+                metadata={"role": binding["role"]},
+            )
+            binding["sha256"] = ref["sha256"]
+            refs.append(ref)
+        final = next(item for item in trial["evidence_bindings"] if item["role"] == "held-out-output")
+        trial["artifact"]["path"] = final["path"]
+        trial["artifact"]["sha256"] = final["sha256"]
+        return refs
 
     def governed_requirements(self):
         return {
@@ -328,24 +368,30 @@ class CourseTrialValidationTests(unittest.TestCase):
 
         filename_only = self.valid_trial()
         condition = filename_only["transfer_task"]["changed_conditions"][0]
-        condition["dimension"] = "context"
-        condition["before"] = "practice-a.csv"
-        condition["after"] = "practice-b.csv"
         condition["before_decision"] = "Approve the same campaign."
         condition["after_decision"] = "Approve the same campaign."
         cases.append((filename_only, "transfer_judgment_unchanged"))
 
         renamed_file = self.valid_trial()
         condition = renamed_file["transfer_task"]["changed_conditions"][0]
-        condition["before"] = "practice-a.csv"
-        condition["after"] = "practice-b.csv"
-        condition["before_decision"] = "Approve the original campaign allocation."
-        condition["after_decision"] = "Reject the renamed campaign allocation."
+        condition["before_value"] = condition["after_value"]
         cases.append((renamed_file, "transfer_conditions_missing"))
 
         reused = self.valid_trial()
-        reused["transfer_task"]["reference_hashes"]["answer_key"]["output_sha256"] = reused["transfer_task"]["held_out_output_sha256"]
+        held_out = next(item for item in reused["evidence_bindings"] if item["role"] == "held-out-output")
+        next(item for item in reused["evidence_bindings"] if item["role"] == "answer-key-output")["sha256"] = held_out["sha256"]
         cases.append((reused, "transfer_hash_reused"))
+
+        chain_gap = self.valid_trial()
+        chain_gap["actions"][1]["input_evidence_id"] = "demo-input"
+        chain_gap["actions"][1]["id"] = trial_action_id(chain_gap["actions"][1])
+        chain_gap["criterion_evidence"][0]["action_id"] = chain_gap["actions"][1]["id"]
+        cases.append((chain_gap, "transfer_action_chain_invalid"))
+
+        sequence_id = self.valid_trial()
+        sequence_id["actions"][1]["id"] = "action-2"
+        sequence_id["criterion_evidence"][0]["action_id"] = "action-2"
+        cases.append((sequence_id, "trial_action_id_invalid"))
 
         generic = self.valid_trial()
         generic["actions"][1]["action"] = "complete task"
@@ -397,6 +443,7 @@ class CourseTrialValidationTests(unittest.TestCase):
         trial = self.valid_trial() if trial is None else copy.deepcopy(trial)
         self.bind_governed_trial_design(root, contract, trial)
         self.materialize_trial_inputs(root, trial)
+        transfer_refs = self.materialize_transfer_artifacts(root, trial)
         pilot = helper.valid_pilot()
         pilot["trial_context_id"] = trial["isolated_context_id"]
         _, accessibility_ref, pilot["accessibility_report"] = helper.materialize_accessibility_report(
@@ -424,7 +471,7 @@ class CourseTrialValidationTests(unittest.TestCase):
         receipt_ref = self.authority.issue(
             root, contract=contract, gate_id="G4",
             trial_reference=trial_ref, roster_reference=roster_ref,
-            transition_references=[pilot_ref, accessibility_ref, trial_ref, roster_ref],
+            transition_references=[pilot_ref, accessibility_ref, *transfer_refs, trial_ref, roster_ref],
             runner_id=trial["participant"]["id"], session_id=trial["runner_session_id"],
             issued_at="2026-10-18T15:14:00+08:00", nonce="attack-base-nonce",
             receipt_id="attack-receipt", relative_path="receipts/attack.json",
@@ -433,7 +480,7 @@ class CourseTrialValidationTests(unittest.TestCase):
             item for item in contract["evidence_index"]
             if item.get("id") != "g4-pilot-production"
         ]
-        contract["evidence_index"].extend([pilot_ref, accessibility_ref, roster_ref, trial_ref, receipt_ref])
+        contract["evidence_index"].extend([pilot_ref, accessibility_ref, *transfer_refs, roster_ref, trial_ref, receipt_ref])
         contract["governance"]["production_role_roster"] = {
             "evidence_id": roster_ref["id"], "sha256": roster_ref["sha256"]
         }
@@ -473,6 +520,10 @@ class CourseTrialValidationTests(unittest.TestCase):
                             item for item in contract["evidence_index"]
                             if item.get("id") == "accessibility-g4-unit-1"
                         ),
+                        *[
+                            item for item in contract["evidence_index"]
+                            if item.get("kind") == "trial_transfer_artifact"
+                        ],
                         trial_ref,
                         roster_ref,
                     ],
@@ -630,6 +681,7 @@ class CourseTrialValidationTests(unittest.TestCase):
                         {
                             pilot_ref["id"],
                             "accessibility-g4-unit-1",
+                            *{item["evidence_id"] for item in trial["evidence_bindings"]},
                             trial_ref["id"],
                             receipt_ref["id"],
                         },
@@ -641,6 +693,7 @@ class CourseTrialValidationTests(unittest.TestCase):
                             "governed-g2-blueprint",
                             pilot_ref["id"],
                             "accessibility-g4-unit-1",
+                            *{item["evidence_id"] for item in trial["evidence_bindings"]},
                             roster_ref["id"],
                             trial_ref["id"],
                             receipt_ref["id"],
@@ -927,6 +980,44 @@ class CourseTrialValidationTests(unittest.TestCase):
             "PENDING_HUMAN",
         )
 
+    def test_g4_g5_trial_reference_maturity_is_derived_and_cannot_be_polluted(self):
+        trial = self.valid_trial()
+        for gate_id in ("G4", "G5"):
+            for maturity in (None, "HUMAN_VERIFIED", "PENDING_HUMAN"):
+                with self.subTest(gate_id=gate_id, maturity=maturity):
+                    reference = {
+                        "id": f"trial-{gate_id.lower()}", "gate": gate_id,
+                        "kind": "independent_course_trial", "path": "trial.json",
+                        "sha256": "a" * 64,
+                    }
+                    if maturity is not None:
+                        reference["maturity"] = maturity
+                    consumed = ConsumedEvidence(reference, b"{}", "a" * 64, trial)
+                    with self.assertRaisesRegex(ValueError, "must exactly match"):
+                        validated_trial_reference_maturity(
+                            trial, {"independent_course_trial": [consumed]}
+                        )
+
+    def test_g4_secure_transfer_artifact_missing_or_wrong_hash_blocks_without_mutation(self):
+        for mutation in ("missing", "wrong-hash"):
+            with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                contract, pilot_ref, roster_ref, trial_ref, receipt_ref, trial = self.prepared_g4_route(root)
+                final_binding = next(item for item in trial["evidence_bindings"] if item["role"] == "held-out-output")
+                if mutation == "missing":
+                    (root / final_binding["path"]).unlink()
+                else:
+                    indexed = next(item for item in contract["evidence_index"] if item.get("id") == final_binding["evidence_id"])
+                    indexed["sha256"] = "f" * 64
+                before = copy.deepcopy(contract)
+                with self.assertRaises(ContractStateError):
+                    route_verified_trial_to_gate(
+                        contract, "G4", [pilot_ref["id"], roster_ref["id"]],
+                        trial_ref["id"], receipt_ref["id"], "course-validator",
+                        "2026-10-18T15:15:00+08:00", workspace_root=root,
+                    )
+                self.assertEqual(contract, before)
+
     def test_g5_trial_uses_new_isolated_context_and_full_course_scope(self):
         record = self.valid_trial(scope="full_course")
         record["isolated_context_id"] = "pilot-cold-run-20261018-01"
@@ -1005,6 +1096,7 @@ class CourseTrialValidationTests(unittest.TestCase):
             root = Path(temporary)
             self.bind_governed_trial_design(root, contract, trial)
             self.materialize_trial_inputs(root, trial)
+            transfer_refs = self.materialize_transfer_artifacts(root, trial)
             _, accessibility_ref, pilot["accessibility_report"] = helper.materialize_accessibility_report(
                 root,
                 "G4",
@@ -1056,13 +1148,13 @@ class CourseTrialValidationTests(unittest.TestCase):
             receipt_ref = self.authority.issue(
                 root, contract=contract, gate_id="G4",
                 trial_reference=trial_ref, roster_reference=roster_ref,
-                transition_references=[pilot_ref, accessibility_ref, trial_ref, roster_ref],
+                transition_references=[pilot_ref, accessibility_ref, *transfer_refs, trial_ref, roster_ref],
                 runner_id=trial["participant"]["id"],
                 session_id=trial["runner_session_id"],
                 issued_at="2026-10-18T15:14:00+08:00", nonce="g4-positive-nonce",
                 receipt_id="g4-trial-receipt", relative_path="receipts/g4.json",
             )
-            contract["evidence_index"].extend([accessibility_ref, trial_ref, receipt_ref])
+            contract["evidence_index"].extend([accessibility_ref, *transfer_refs, trial_ref, receipt_ref])
 
             result = route_verified_trial_to_gate(
                 contract,
@@ -1089,6 +1181,9 @@ class CourseTrialValidationTests(unittest.TestCase):
             )
             event = contract["gates"]["G4"]["evidence"][-1]
             self.assertEqual(event["maturity"], "INDEPENDENT_AI_VERIFIED")
+            self.assertNotIn("human_duration", event)
+            self.assertNotIn("human_readability", event)
+            self.assertNotIn("target_learner_independence", event)
             self.assertIn("g4-pilot-record", event["evidence_ids"])
             self.assertEqual(
                 event["consumed_inputs"],

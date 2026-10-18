@@ -35,6 +35,7 @@ from src.course_research import validate_research_record  # noqa: E402
 from src.course_research_routes import route_research_to_gate  # noqa: E402
 from src.course_requirements_routes import route_requirements_to_g0  # noqa: E402
 from src.course_validation_routes import route_verified_trial_to_gate  # noqa: E402
+from src.course_validation import trial_action_id  # noqa: E402
 
 
 ROOT = Path(__file__).resolve().parent
@@ -103,35 +104,39 @@ def trial_record(
     task_id = f"heldout-{scope.replace('_', '-')}"
     artifact_id = f"trial-{scope.replace('_', '-')}-artifact"
     heldout_input = _stable_hash(f"{task_id}:input")
+    heldout_input_id = f"{task_id}-input"
     actions = []
     previous_hash = heldout_input
     criterion_evidence = []
     for sequence, criterion in enumerate(criteria, start=1):
-        action_id = f"action-{criterion['capability_id']}"
+        output_id = artifact_id if sequence == len(criteria) else f"{task_id}-state-{sequence}"
         output_hash = _stable_hash(f"{task_id}:output:{sequence}")
         unit_id = next(
             unit_id for unit_id, unit in units.items()
             if criterion["capability_id"] in unit.get("capability_ids", [])
         )
-        actions.append({
-            "id": action_id,
+        action = {
+            "id": "pending",
             "sequence": sequence,
             "task_id": task_id,
             "action": f"Apply the held-out evidence to capability {criterion['capability_id']} and preserve the calculation basis.",
             "decision": f"Select the result that satisfies criterion {criterion['id']} under the changed threshold.",
-            "input_sha256": previous_hash,
-            "output_sha256": output_hash,
+            "affected_criterion_id": criterion["id"],
+            "input_evidence_id": heldout_input_id if sequence == 1 else f"{task_id}-state-{sequence - 1}",
+            "output_evidence_id": output_id,
             "observable_result": f"A reviewable result for {criterion['capability_id']} is present in the held-out artifact.",
             "result": "PASS",
             "at": f"2026-10-18T16:{sequence:02d}:00+08:00",
-        })
+        }
+        action["id"] = trial_action_id(action)
+        actions.append(action)
         criterion_evidence.append({
             "g0_criterion_id": criterion["g0_criterion_id"],
             "capability_id": criterion["capability_id"],
             "outcome_id": criterion["outcome_id"],
             "criterion_id": criterion["id"],
             "unit_id": unit_id,
-            "action_id": action_id,
+            "action_id": action["id"],
             "artifact_evidence_id": artifact_id,
             "result": "PASS",
         })
@@ -142,8 +147,24 @@ def trial_record(
         else "course/index.html"
     )
     target = requirements["target_profile"]
+    reference_roles = {
+        "demonstration": "demonstration", "guided_practice": "guided-practice",
+        "answer_key": "answer-key",
+    }
+    evidence_bindings = [
+        {"evidence_id": heldout_input_id, "path": page, "sha256": heldout_input, "role": "held-out-input"},
+        {"evidence_id": artifact_id, "path": f"trials/{scope}/heldout-artifact.md", "sha256": previous_hash, "role": "held-out-output"},
+        *[
+            {"evidence_id": f"{task_id}-state-{sequence}", "path": f"trials/{scope}/state-{sequence}.json", "sha256": _stable_hash(f"{task_id}:output:{sequence}"), "role": "action-state"}
+            for sequence in range(1, len(criteria))
+        ],
+        *[
+            {"evidence_id": f"{task_id}-{name.replace('_', '-')}-{side}", "path": f"trials/{scope}/{name.replace('_', '-')}-{side}.dat", "sha256": _stable_hash(f"{task_id}:{name}:{side}"), "role": f"{role}-{side}"}
+            for name, role in reference_roles.items() for side in ("input", "output")
+        ],
+    ]
     return {
-        "schema_version": 2,
+        "schema_version": 3,
         "scope": scope,
         "requirements_sha256": _canonical_hash(requirements),
         "target_profile_id": target["id"],
@@ -157,6 +178,7 @@ def trial_record(
         "isolated_context_id": f"context-{scope.replace('_', '-')}",
         "allowed_tools": list(requirements["environment"]["tools"]),
         "allowed_inputs": [{"kind": "learner-page", "path": page, "sha256": heldout_input}],
+        "evidence_bindings": evidence_bindings,
         "forbidden_inputs_accessed": [],
         "entry_readiness": {
             "baseline_statement": target["baseline"],
@@ -177,18 +199,19 @@ def trial_record(
             "source_task_id": f"guided-{scope.replace('_', '-')}",
             "changed_conditions": [{
                 "dimension": "threshold",
-                "before": "CPA at or below 500 and ROAS at or above 4.0.",
-                "after": "CPA at or below 350 and ROAS at or above 5.0.",
+                "rule": "The held-out result must meet the governed numeric acceptance limit.",
+                "comparator": "lte", "before_value": 500 + index, "after_value": 350 + index,
+                "affected_criterion_id": criterion["id"],
                 "before_decision": "Keep the campaign under the original threshold.",
                 "after_decision": "Reallocate the campaign under the stricter threshold.",
                 "decision_basis": "Both acceptance thresholds changed, requiring new calculations and a different campaign decision.",
-            }],
-            "held_out_input_sha256": heldout_input,
-            "held_out_output_sha256": previous_hash,
-            "reference_hashes": {
+            } for index, criterion in enumerate(criteria)],
+            "held_out_input_evidence_id": heldout_input_id,
+            "held_out_output_evidence_id": artifact_id,
+            "reference_evidence": {
                 name: {
-                    "input_sha256": _stable_hash(f"{task_id}:{name}:input"),
-                    "output_sha256": _stable_hash(f"{task_id}:{name}:output"),
+                    "input_evidence_id": f"{task_id}-{name.replace('_', '-')}-input",
+                    "output_evidence_id": f"{task_id}-{name.replace('_', '-')}-output",
                 }
                 for name in ("demonstration", "guided_practice", "answer_key")
             },
@@ -232,15 +255,18 @@ def accessibility_report(gate_scope: str, pages: list[dict]) -> dict:
         "pages": copy.deepcopy(pages),
         "applicable_criteria": [{"criterion_id": item, "level": "basic"} for item in ("keyboard", "focus", "reading-order", "horizontal-overflow")],
         "automated_checks": [{
-            "check_id": "automated-overflow", "tool": "Playwright", "tool_version": "1.56.1", "user_agent": "Chromium 141",
-            "page_ids": [page["id"] for page in pages],
-            "results": [{"criterion_id": "horizontal-overflow", "status": "PASS", "evidence": "No page-level horizontal overflow at tested viewports."}],
-        }],
+            "check_id": f"automated-overflow-{page['id']}", "method": "automated",
+            "tool": "Playwright", "tool_version": "1.56.1", "user_agent": "Chromium 141",
+            "page_id": page["id"], "criterion_id": "horizontal-overflow", "status": "PASS",
+            "evidence": "No page-level horizontal overflow at tested viewports.",
+        } for page in pages],
         "manual_checks": [{
-            "check_id": "manual-core-path", "evaluator_id": "accessibility-review-ai", "method": "Keyboard, focus, and reading-order inspection.",
-            "user_agent": "Safari 20", "assistive_technology": ["VoiceOver 17"], "page_ids": [page["id"] for page in pages],
-            "results": [{"criterion_id": item, "status": "PASS", "evidence": f"Observed {item} on each listed page."} for item in ("keyboard", "focus", "reading-order")],
-        }],
+            "check_id": f"manual-{item}-{page['id']}", "method": "manual",
+            "evaluator_id": "accessibility-review-ai", "method_description": "Keyboard, focus, and reading-order inspection.",
+            "user_agent": "Safari 20", "assistive_technology": ["VoiceOver 17"],
+            "page_id": page["id"], "criterion_id": item, "status": "PASS",
+            "evidence": f"Observed {item} on {page['id']}.",
+        } for page in pages for item in ("keyboard", "focus", "reading-order")],
         "findings": [],
     }
 

@@ -17,6 +17,7 @@ from src.course_production import (
     validate_pilot_record,
 )
 from src.course_production_routes import route_full_production_to_g5
+from src.course_validation import trial_action_id
 from tests.runner_authority_fixture import TestRunnerAuthority
 
 
@@ -112,28 +113,24 @@ class CourseProductionTests(unittest.TestCase):
                 for item in ("keyboard", "focus", "reading-order", "horizontal-overflow")
             ],
             "automated_checks": [{
-                "check_id": "automated-overflow",
+                "check_id": f"automated-overflow-{page['id']}",
+                "method": "automated",
                 "tool": "Playwright",
                 "tool_version": "1.56.1",
                 "user_agent": "Chromium 141",
-                "page_ids": [page["id"] for page in pages],
-                "results": [{
-                    "criterion_id": "horizontal-overflow", "status": "PASS",
-                    "evidence": "No horizontal page overflow at tested viewports.",
-                }],
-            }],
+                "page_id": page["id"], "criterion_id": "horizontal-overflow",
+                "status": "PASS", "evidence": "No horizontal page overflow at tested viewports.",
+            } for page in pages],
             "manual_checks": [{
-                "check_id": "manual-core-path",
+                "check_id": f"manual-{item}-{page['id']}",
+                "method": "manual",
                 "evaluator_id": "accessibility-review-1",
-                "method": "Keyboard traversal, focus inspection, and reading-order review.",
+                "method_description": "Keyboard traversal, focus inspection, and reading-order review.",
                 "user_agent": "Safari 20",
                 "assistive_technology": ["VoiceOver 17"],
-                "page_ids": [page["id"] for page in pages],
-                "results": [
-                    {"criterion_id": item, "status": "PASS", "evidence": f"Observed {item} on every listed page."}
-                    for item in ("keyboard", "focus", "reading-order")
-                ],
-            }],
+                "page_id": page["id"], "criterion_id": item, "status": "PASS",
+                "evidence": f"Observed {item} on {page['id']}.",
+            } for page in pages for item in ("keyboard", "focus", "reading-order")],
             "findings": [],
         }
 
@@ -162,8 +159,25 @@ class CourseProductionTests(unittest.TestCase):
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(f"learner-visible input {index}\n".encode())
             item["sha256"] = hashlib.sha256(target.read_bytes()).hexdigest()
-        trial["transfer_task"]["held_out_input_sha256"] = trial["allowed_inputs"][0]["sha256"]
-        trial["actions"][0]["input_sha256"] = trial["allowed_inputs"][0]["sha256"]
+        next(item for item in trial["evidence_bindings"] if item["role"] == "held-out-input")["sha256"] = trial["allowed_inputs"][0]["sha256"]
+        refs = []
+        gate_id = "G4" if trial["scope"] == "representative_unit" else "G5"
+        for binding in trial["evidence_bindings"]:
+            target = root / binding["path"]
+            if binding["role"] != "held-out-input":
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(f"{binding['role']}:{binding['evidence_id']}\n".encode())
+            ref = register_evidence_file(
+                root, evidence_id=binding["evidence_id"], gate_id=gate_id,
+                kind="trial_transfer_artifact", relative_path=binding["path"],
+                metadata={"role": binding["role"]},
+            )
+            binding["sha256"] = ref["sha256"]
+            refs.append({"id": ref["id"], "kind": ref["kind"], "path": ref["path"], "metadata": ref["metadata"]})
+        final = next(item for item in trial["evidence_bindings"] if item["role"] == "held-out-output")
+        trial["artifact"]["path"] = final["path"]
+        trial["artifact"]["sha256"] = final["sha256"]
+        return refs
 
     def bind_governed_course(self, root, contract, blueprint, lessons):
         requirements = self.full_requirements()
@@ -301,7 +315,7 @@ class CourseProductionTests(unittest.TestCase):
         }
 
     def valid_pilot(self):
-        return {
+        record = {
             "schema_version": 2,
             "unit_id": "unit-1",
             "trial_context_id": "pilot-cold-run-20261018-01",
@@ -361,6 +375,7 @@ class CourseProductionTests(unittest.TestCase):
                 "next": "next unit placeholder",
             },
         }
+        return record
 
     def lesson_record(self):
         return {
@@ -452,8 +467,8 @@ class CourseProductionTests(unittest.TestCase):
         requirements_sha256 = hashlib.sha256(
             canonical_json_bytes(self.full_requirements())
         ).hexdigest()
-        return {
-            "schema_version": 2,
+        record = {
+            "schema_version": 3,
             "scope": "full_course",
             "requirements_sha256": requirements_sha256,
             "target_profile_id": "target-marketing-practitioner",
@@ -478,6 +493,18 @@ class CourseProductionTests(unittest.TestCase):
                     "sha256": "2" * 64,
                 },
             ],
+            "evidence_bindings": [
+                {"evidence_id": "heldout-full-input", "path": "courses/demo/index.html", "sha256": "1" * 64, "role": "held-out-input"},
+                {"evidence_id": "trial-full-course-final-plan", "path": "trial-output/full-course-run/final-plan.pdf", "sha256": "3" * 64, "role": "held-out-output"},
+                {"evidence_id": "full-action-state-1", "path": "trial-evidence/full-action-state-1.json", "sha256": "4" * 64, "role": "action-state"},
+                {"evidence_id": "full-action-state-2", "path": "trial-evidence/full-action-state-2.json", "sha256": "5" * 64, "role": "action-state"},
+                {"evidence_id": "full-demo-input", "path": "trial-evidence/full-demo-input.csv", "sha256": "6" * 64, "role": "demonstration-input"},
+                {"evidence_id": "full-demo-output", "path": "trial-evidence/full-demo-output.pdf", "sha256": "7" * 64, "role": "demonstration-output"},
+                {"evidence_id": "full-guided-input", "path": "trial-evidence/full-guided-input.csv", "sha256": "8" * 64, "role": "guided-practice-input"},
+                {"evidence_id": "full-guided-output", "path": "trial-evidence/full-guided-output.pdf", "sha256": "9" * 64, "role": "guided-practice-output"},
+                {"evidence_id": "full-answer-input", "path": "trial-evidence/full-answer-input.csv", "sha256": "a" * 64, "role": "answer-key-input"},
+                {"evidence_id": "full-answer-output", "path": "trial-evidence/full-answer-output.pdf", "sha256": "b" * 64, "role": "answer-key-output"},
+            ],
             "forbidden_inputs_accessed": [],
             "entry_readiness": {
                 "baseline_statement": "Can inspect tabular campaign data and perform basic arithmetic.",
@@ -495,37 +522,40 @@ class CourseProductionTests(unittest.TestCase):
             },
             "actions": [
                 {
-                    "id": "action-source",
+                    "id": "pending",
                     "sequence": 1,
                     "task_id": "heldout-full-course-plan",
                     "action": "Inspect the held-out product data and extract its budget and timing constraints.",
                     "decision": "Reject the high-cost channel because the held-out budget is below its threshold.",
-                    "input_sha256": "1" * 64,
-                    "output_sha256": "4" * 64,
+                    "affected_criterion_id": "criterion-source",
+                    "input_evidence_id": "heldout-full-input",
+                    "output_evidence_id": "full-action-state-1",
                     "observable_result": "A source constraint table records the held-out budget and rejected channel.",
                     "result": "PASS",
                     "at": "2026-10-18T16:10:00+08:00",
                 },
                 {
-                    "id": "action-plan",
+                    "id": "pending",
                     "sequence": 2,
                     "task_id": "heldout-full-course-plan",
                     "action": "Build a new campaign plan from the held-out constraints and recalculate allocations.",
                     "decision": "Allocate the remaining budget to the two channels that meet the revised threshold.",
-                    "input_sha256": "4" * 64,
-                    "output_sha256": "5" * 64,
+                    "affected_criterion_id": "criterion-plan",
+                    "input_evidence_id": "full-action-state-1",
+                    "output_evidence_id": "full-action-state-2",
                     "observable_result": "The campaign plan totals the held-out budget and documents the threshold choice.",
                     "result": "PASS",
                     "at": "2026-10-18T16:30:00+08:00",
                 },
                 {
-                    "id": "action-audit",
+                    "id": "pending",
                     "sequence": 3,
                     "task_id": "heldout-full-course-plan",
                     "action": "Audit the held-out plan against every acceptance rule and repair the failed allocation.",
                     "decision": "Revise the allocation because its first draft exceeded the per-channel limit.",
-                    "input_sha256": "5" * 64,
-                    "output_sha256": "3" * 64,
+                    "affected_criterion_id": "criterion-audit",
+                    "input_evidence_id": "full-action-state-2",
+                    "output_evidence_id": "trial-full-course-final-plan",
                     "observable_result": "The final held-out plan passes source, completeness, and audit criteria.",
                     "result": "PASS",
                     "at": "2026-10-18T16:50:00+08:00",
@@ -537,19 +567,22 @@ class CourseProductionTests(unittest.TestCase):
                 "changed_conditions": [
                     {
                         "dimension": "threshold",
-                        "before": "Approve channels with cost at or below 50000.",
-                        "after": "Approve channels with cost at or below 30000.",
+                        "rule": "Approve channels only when cost is at or below the governed limit.",
+                        "comparator": "lte", "before_value": 50000, "after_value": 30000,
+                        "affected_criterion_id": "criterion-source",
                         "before_decision": "Approve the display channel.",
                         "after_decision": "Reject the display channel and reallocate its budget.",
                         "decision_basis": "The lower held-out threshold changes channel eligibility and forces a new allocation.",
-                    }
+                    },
+                    {"dimension": "threshold", "rule": "Allocate the plan within the governed total budget.", "comparator": "lte", "before_value": 500000, "after_value": 300000, "affected_criterion_id": "criterion-plan", "before_decision": "Fund three channels.", "after_decision": "Fund two qualifying channels.", "decision_basis": "The reduced total budget forces a new allocation decision."},
+                    {"dimension": "threshold", "rule": "The audit must meet the governed per-channel limit.", "comparator": "lte", "before_value": 50000, "after_value": 30000, "affected_criterion_id": "criterion-audit", "before_decision": "Accept the draft allocation.", "after_decision": "Repair the draft allocation.", "decision_basis": "The stricter audit limit changes the acceptance decision."}
                 ],
-                "held_out_input_sha256": "1" * 64,
-                "held_out_output_sha256": "3" * 64,
-                "reference_hashes": {
-                    "demonstration": {"input_sha256": "6" * 64, "output_sha256": "7" * 64},
-                    "guided_practice": {"input_sha256": "8" * 64, "output_sha256": "9" * 64},
-                    "answer_key": {"input_sha256": "a" * 64, "output_sha256": "b" * 64},
+                "held_out_input_evidence_id": "heldout-full-input",
+                "held_out_output_evidence_id": "trial-full-course-final-plan",
+                "reference_evidence": {
+                    "demonstration": {"input_evidence_id": "full-demo-input", "output_evidence_id": "full-demo-output"},
+                    "guided_practice": {"input_evidence_id": "full-guided-input", "output_evidence_id": "full-guided-output"},
+                    "answer_key": {"input_evidence_id": "full-answer-input", "output_evidence_id": "full-answer-output"},
                 },
             },
             "criterion_evidence": [
@@ -559,14 +592,14 @@ class CourseProductionTests(unittest.TestCase):
                     "outcome_id": outcome_id,
                     "criterion_id": criterion_id,
                     "unit_id": unit_id,
-                    "action_id": action_id,
+                    "action_id": "pending",
                     "artifact_evidence_id": "trial-full-course-final-plan",
                     "result": "PASS",
                 }
-                for g0_id, capability_id, outcome_id, criterion_id, unit_id, action_id in (
-                    ("uses-source-facts", "capability-source", "outcome-source", "criterion-source", "unit-1", "action-source"),
-                    ("complete-plan", "capability-plan", "outcome-plan", "criterion-plan", "unit-2", "action-plan"),
-                    ("passes-audit", "capability-audit", "outcome-audit", "criterion-audit", "unit-3", "action-audit"),
+                for g0_id, capability_id, outcome_id, criterion_id, unit_id in (
+                    ("uses-source-facts", "capability-source", "outcome-source", "criterion-source", "unit-1"),
+                    ("complete-plan", "capability-plan", "outcome-plan", "criterion-plan", "unit-2"),
+                    ("passes-audit", "capability-audit", "outcome-audit", "criterion-audit", "unit-3"),
                 )
             ],
             "hints": [{"source": "none", "detail": "未使用額外提示。"}],
@@ -592,6 +625,11 @@ class CourseProductionTests(unittest.TestCase):
                 "target_learner_independence": "PENDING_HUMAN",
             },
         }
+        for action in record["actions"]:
+            action["id"] = trial_action_id(action)
+        for row, action in zip(record["criterion_evidence"], record["actions"]):
+            row["action_id"] = action["id"]
+        return record
 
     def full_requirements(self):
         return {
@@ -613,6 +651,7 @@ class CourseProductionTests(unittest.TestCase):
     def full_production(self):
         units = []
         blueprint_units = self.full_blueprint()["units"]
+        trial = self.full_trial()
         for index, unit in enumerate(blueprint_units):
             units.append(
                 {
@@ -671,7 +710,7 @@ class CourseProductionTests(unittest.TestCase):
                 for unit, criterion, action_id in zip(
                     blueprint_units,
                     self.full_blueprint()["criteria"],
-                    ("action-source", "action-plan", "action-audit"),
+                    tuple(action["id"] for action in trial["actions"]),
                 )
             ],
             "accessibility_report": {
@@ -690,7 +729,7 @@ class CourseProductionTests(unittest.TestCase):
                     {"criterion_id": "passes-audit", "result": "PASS", "evidence": "audit report"},
                 ],
             },
-            "full_course_trial": self.full_trial(),
+            "full_course_trial": trial,
             "validation": {
                 "status": "PASS",
                 "validator_id": "course-validator",
@@ -1111,7 +1150,7 @@ class CourseProductionTests(unittest.TestCase):
             self.bind_governed_course(root, contract, self.full_blueprint(), lessons)
             assets = self.valid_asset_manifest()
             artifact_refs = self.g5_artifact_refs(root, production, lessons, assets)
-            self.bind_trial_inputs(root, production["full_course_trial"])
+            artifact_refs.extend(self.bind_trial_inputs(root, production["full_course_trial"]))
             production_bundle = {
                 "record": production,
                 "blueprint": self.full_blueprint(),
@@ -1181,6 +1220,11 @@ class CourseProductionTests(unittest.TestCase):
 
             self.assertEqual(result, "PASS")
             self.assertEqual(contract["gates"]["G5"]["status"], "PASS")
+            event = contract["gates"]["G5"]["evidence"][-1]
+            self.assertEqual(event["maturity"], "INDEPENDENT_AI_VERIFIED")
+            self.assertNotIn("human_duration", event)
+            self.assertNotIn("human_readability", event)
+            self.assertNotIn("target_learner_independence", event)
             g5_refs = [
                 item for item in contract["evidence_index"] if item.get("gate") == "G5"
             ]
@@ -1257,7 +1301,7 @@ class CourseProductionTests(unittest.TestCase):
             contract["governance"]["production_role_roster"] = {
                 "evidence_id": roster_ref["id"], "sha256": roster_ref["sha256"]
             }
-            self.bind_trial_inputs(root, production["full_course_trial"])
+            transfer_refs = self.bind_trial_inputs(root, production["full_course_trial"])
             self.bind_governed_course(root, contract, self.full_blueprint(), self.full_lessons())
             pages = [
                 {"id": "course-entry", "path": production["navigation"]["entry"]},
@@ -1291,6 +1335,7 @@ class CourseProductionTests(unittest.TestCase):
                     "path": accessibility_ref["path"],
                 },
             ]
+            invalid_artifact_refs.extend(transfer_refs)
             planned_refs = self.planned_g5_references(
                 root, invalid_artifact_refs, production_bundle,
                 "production/invalid-full-course.json",

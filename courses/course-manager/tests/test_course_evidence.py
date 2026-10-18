@@ -204,6 +204,8 @@ class CourseEvidenceTests(unittest.TestCase):
                 )
                 if schema_valid and "pattern" in field_schema:
                     schema_valid = re.search(field_schema["pattern"], value) is not None
+                if schema_valid and "enum" in field_schema:
+                    schema_valid = value in field_schema["enum"]
                 reference = self.reference(**{field: value})
                 runtime_codes = {
                     issue.code

@@ -67,7 +67,7 @@ AI 試走成熟度只能是 `INDEPENDENT_AI_VERIFIED`。AI 完成時間不能證
 
 G4/G5 必須安全消費符合 `course-accessibility-report.schema.json` 的實際 report 檔，並核對 pilot／production 宣告的 evidence ID、path、SHA-256、claim scope 與實檔完全一致。report 記 exact page IDs/paths、standard/version/level、applicable criteria、automated/manual checks、tools、user agents、assistive technology，以及 finding severity/status/resolution。
 
-`basic_accessibility_smoke` 僅能聲明 keyboard、focus、reading-order、horizontal-overflow 的 basic smoke。`wcag_2_2_aa` 必須涵蓋全部適用 WCAG 2.2 A/AA criteria、所有聲明頁面、manual 與 automated results；任何 NOT_TESTED、FAIL 或 unresolved HIGH/SERIOUS/CRITICAL finding 都是 BLOCK。G4 只涵蓋 exact representative page；G5 必須 exact 涵蓋 entry、每一 learner unit page 與 completion。不得把 G4 或 basic smoke 推廣為全課 WCAG conformance，也不得只信 report 內的 PASS 字樣。
+`basic_accessibility_smoke` 僅能聲明 keyboard、focus、reading-order、horizontal-overflow 的 basic smoke，四項須逐頁通過。每筆 check 要有 unique check ID 並綁單一 page、criterion、method。`wcag_2_2_aa` 必須涵蓋完整 governed page × WCAG 2.2 A/AA criterion Cartesian results；manual 與 automated 各自 exact 涵蓋全部頁面。任何 NOT_TESTED、FAIL 或 unresolved HIGH/SERIOUS/CRITICAL finding 都是 BLOCK。G4 只涵蓋 exact representative page；G5 必須 exact 涵蓋 entry、每一 learner unit page 與 completion。不得把 G4 或 basic smoke 推廣為全課 WCAG conformance，也不得只信 report 內的 PASS 字樣。
 
 失敗回送依原因決定：來源或工具行為不符回 G1；順序或難度失衡回 G2；解釋或練習不足回 G3；介面、版面或單元素材問題回 G4；跨單元與全課整合回 G5；存取、部署或發布環境回 G6。修正後以新 hash 重做受影響範圍，不沿用舊試走結論。
 

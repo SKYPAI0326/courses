@@ -59,6 +59,11 @@
     "path": "courses/demo/unit-1.html",
     "sha256": "64位小寫SHA256"
   }],
+  "evidence_bindings": [
+    {"evidence_id": "heldout-input", "path": "courses/demo/unit-1.html", "sha256": "實檔SHA256", "role": "held-out-input"},
+    {"evidence_id": "trial-plan-artifact", "path": "trial-output/cold-run-20261018-01/plan.pdf", "sha256": "實檔SHA256", "role": "held-out-output"},
+    {"evidence_id": "demo-input", "path": "trial-evidence/demo-input.csv", "sha256": "實檔SHA256", "role": "demonstration-input"}
+  ],
   "forbidden_inputs_accessed": [],
   "entry_readiness": {
     "baseline_statement": "能讀取表格並完成基本運算。",
@@ -79,28 +84,32 @@
     "source_task_id": "guided-budget-plan",
     "changed_conditions": [{
       "dimension": "threshold",
-      "before": "預算上限 50000。",
-      "after": "預算上限 30000。",
+      "rule": "總預算不得超過指定上限。",
+      "comparator": "lte",
+      "before_value": 50000,
+      "after_value": 30000,
+      "affected_criterion_id": "g2-plan",
       "before_decision": "保留高成本渠道。",
       "after_decision": "移除高成本渠道並重新分配。",
       "decision_basis": "較低預算門檻改變渠道資格與分配結果。"
     }],
-    "held_out_input_sha256": "與 learner-page 相同的 SHA256",
-    "held_out_output_sha256": "完成品 SHA256",
-    "reference_hashes": {
-      "demonstration": {"input_sha256": "不同 SHA256", "output_sha256": "不同 SHA256"},
-      "guided_practice": {"input_sha256": "不同 SHA256", "output_sha256": "不同 SHA256"},
-      "answer_key": {"input_sha256": "不同 SHA256", "output_sha256": "不同 SHA256"}
+    "held_out_input_evidence_id": "heldout-input",
+    "held_out_output_evidence_id": "trial-plan-artifact",
+    "reference_evidence": {
+      "demonstration": {"input_evidence_id": "demo-input", "output_evidence_id": "demo-output"},
+      "guided_practice": {"input_evidence_id": "guided-input", "output_evidence_id": "guided-output"},
+      "answer_key": {"input_evidence_id": "answer-input", "output_evidence_id": "answer-output"}
     }
   },
   "actions": [{
-    "id": "action-budget-decision",
+    "id": "act-canonicalpayloadhash",
     "sequence": 1,
     "task_id": "heldout-budget-plan",
     "action": "開啟學員素材並找出預算與截止日。",
     "decision": "依新的預算門檻移除高成本渠道。",
-    "input_sha256": "與 held-out input 相同的 SHA256",
-    "output_sha256": "與 held-out output 相同的 SHA256",
+    "affected_criterion_id": "g2-plan",
+    "input_evidence_id": "heldout-input",
+    "output_evidence_id": "trial-plan-artifact",
     "observable_result": "在資料表找到兩個欄位。",
     "result": "PASS",
     "at": "2026-10-18T15:01:00+08:00"
@@ -111,7 +120,7 @@
     "outcome_id": "outcome-plan",
     "criterion_id": "g2-plan",
     "unit_id": "unit-1",
-    "action_id": "action-budget-decision",
+    "action_id": "act-canonicalpayloadhash",
     "artifact_evidence_id": "trial-plan-artifact",
     "result": "PASS"
   }],
@@ -159,4 +168,6 @@
 
 Accessibility 另存符合 `contracts/course-accessibility-report.schema.json` 的實檔，pilot／production 只保存 exact evidence ID、path、SHA-256 與 claim scope。G4 exact 涵蓋代表頁；G5 exact 涵蓋 entry、全部 learner unit pages 與 completion。
 
-`basic_accessibility_smoke` 僅涵蓋 keyboard、focus、reading-order、horizontal-overflow。`wcag_2_2_aa` 才能聲明 WCAG 2.2 AA，且須列出全部適用 A/AA criteria、每頁 manual／automated results、tools、user agents、assistive technology、findings severity/status/resolution；NOT_TESTED、FAIL 或未解 HIGH/SERIOUS/CRITICAL finding 一律 BLOCK。
+每個 accessibility check 都要有全域唯一 `check_id`，並只綁一個 `page_id`、一個 `criterion_id` 與明確 `method`。`basic_accessibility_smoke` 僅涵蓋 keyboard、focus、reading-order、horizontal-overflow，四項必須逐頁通過。`wcag_2_2_aa` 才能聲明 WCAG 2.2 AA，且須通過完整 page × A/AA criterion Cartesian coverage；manual 與 automated 各自都要 exact 涵蓋全部頁面，另記 tools、user agents、assistive technology、findings severity/status/resolution。NOT_TESTED、FAIL 或未解 HIGH/SERIOUS/CRITICAL finding 一律 BLOCK。
+
+Trial 的 held-out、示範、引導練習、答案與 action state 必須是 `trial_transfer_artifact` typed evidence，Gate 安全消費實檔並逐一重算 hash。Action 第一個 input、相鄰 output/input、最後 output 與 final artifact 必須連續；action ID 是 canonical action payload SHA-256 前綴，`action-2` 之類 sequence-derived ID 不成立。

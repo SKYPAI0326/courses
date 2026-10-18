@@ -66,6 +66,16 @@ def _route_verified_trial_to_gate(
         )
     if accessibility_ids[0] not in transition_ids:
         transition_ids.append(accessibility_ids[0])
+    transfer_artifact_ids = [
+        str(item_id)
+        for item_id, reference in indexed.items()
+        if isinstance(reference, Mapping)
+        and reference.get("gate") == gate_id
+        and reference.get("kind") == "trial_transfer_artifact"
+    ]
+    for item_id in transfer_artifact_ids:
+        if item_id not in transition_ids:
+            transition_ids.append(item_id)
     trial_reference = indexed.get(trial_evidence_id)
     receipt_reference = indexed.get(trial_receipt_evidence_id)
     if (
@@ -86,7 +96,7 @@ def _route_verified_trial_to_gate(
             f"production evidence belongs to another gate: {', '.join(wrong_gate)}"
         )
 
-    result = validate_and_transition_gate(
+    return validate_and_transition_gate(
         contract,
         gate_id,
         [*transition_ids, trial_evidence_id, trial_receipt_evidence_id],
@@ -94,9 +104,6 @@ def _route_verified_trial_to_gate(
         actor,
         at,
     )
-    if result == "PASS":
-        contract["gates"][gate_id]["evidence"][-1]["maturity"] = trial_reference.get("maturity")
-    return result
 
 
 def route_verified_trial_to_gate(
