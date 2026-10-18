@@ -24,10 +24,13 @@ from src.course_contract import (
     propose_external_action,
     record_change,
     save_contract_atomic,
+    validate_contract,
 )
 from src.transactions import (
     TransactionError,
     authorize_external_action_atomic,
+    bind_external_approval_authority_atomic,
+    finish_external_action_execution_atomic,
     mutate_contract_atomic,
 )
 from tests.approval_authority_fixture import TestApprovalAuthority
@@ -554,6 +557,190 @@ class CourseReleaseTests(unittest.TestCase):
                     ),
                 )
 
+    def test_approval_authority_enrollment_requires_no_actions_or_receipts(self):
+        authority = TestApprovalAuthority()
+        for field, value in (
+            (
+                "external_actions",
+                [
+                    {
+                        "id": "pending-release",
+                        "kind": "course-release",
+                        "status": "PUBLISH_APPROVAL_REQUIRED",
+                        "manifest_path": "release-proposal.json",
+                        "manifest_sha256": "a" * 64,
+                        "proposed_by": "course-ops",
+                        "proposed_at": "2026-10-18T18:00:00+08:00",
+                        "approval_basis_sha256": None,
+                        "authorized_revision": None,
+                        "authorization": None,
+                        "execution": None,
+                    }
+                ],
+            ),
+            (
+                "consumed_trial_receipts",
+                [
+                    {
+                        "receipt_id": "historical-receipt",
+                        "nonce": "historical-nonce",
+                        "gate": "G4",
+                        "consumed_at": "2026-10-18T17:00:00+08:00",
+                    }
+                ],
+            ),
+        ):
+            with self.subTest(field=field):
+                with tempfile.TemporaryDirectory() as temp_dir:
+                    contract_path = Path(temp_dir) / "course-contract.json"
+                    contract = new_contract(
+                        "demo-course",
+                        "示範課程",
+                        "course-run",
+                        "2026-10-18T12:00:00+08:00",
+                    )
+                    contract[field] = copy.deepcopy(value)
+                    save_contract_atomic(contract_path, contract)
+                    before = contract_path.read_bytes()
+
+                    with self.assertRaisesRegex(
+                        ContractStateError, "no actions or receipts"
+                    ):
+                        bind_external_approval_authority_atomic(
+                            contract_path,
+                            authority.authority_id,
+                            authority.public_key,
+                            expected_revision=0,
+                        )
+
+                    self.assertEqual(contract_path.read_bytes(), before)
+                    self.assertEqual(load_contract(contract_path)["revision"], 0)
+
+    def test_generic_transaction_cannot_append_preauthorized_or_dirty_action(self):
+        authority = TestApprovalAuthority()
+        contract = new_contract(
+            "demo-course",
+            "示範課程",
+            "course-run",
+            "2026-10-18T12:00:00+08:00",
+        )
+        authority.bind(contract)
+        for gate_id in GATE_ORDER:
+            begin_gate(
+                contract, gate_id, "course-run", "2026-10-18T17:00:00+08:00"
+            )
+            evidence_id = f"{gate_id.casefold()}-evidence"
+            contract["evidence_index"].append(
+                {
+                    "id": evidence_id,
+                    "gate": gate_id,
+                    "kind": "test_record",
+                    "path": f"evidence/{evidence_id}.json",
+                    "sha256": self.sha(evidence_id),
+                }
+            )
+            _commit_gate_pass(
+                contract,
+                gate_id,
+                [evidence_id],
+                f"{gate_id.casefold()}-validator",
+                "course-run",
+                "2026-10-18T17:05:00+08:00",
+            )
+        propose_external_action(
+            contract,
+            "forged-release",
+            "course-release",
+            "release-proposal.json",
+            "a" * 64,
+            "course-ops",
+            "2026-10-18T18:00:00+08:00",
+        )
+        pending = copy.deepcopy(contract["external_actions"].pop())
+        forged = copy.deepcopy(contract)
+        forged["external_actions"].append(copy.deepcopy(pending))
+        receipt = authority.issue(forged, "forged-release")
+        authorize_external_action(
+            forged,
+            "forged-release",
+            receipt,
+            "2026-10-18T18:05:00+00:00",
+        )
+        authorized = copy.deepcopy(forged["external_actions"][0])
+        execution = {
+            "proposal_revision": 1,
+            "started_at": "2026-10-18T18:06:00+00:00",
+            "finished_at": None,
+            "outcome": "IN_PROGRESS",
+            "modified_targets": [],
+            "error": None,
+        }
+        cases = {}
+        for status in ("AUTHORIZED", "EXECUTING", "CONSUMED", "FAILED", "INVALIDATED"):
+            action = copy.deepcopy(authorized)
+            action["status"] = status
+            if status in {"EXECUTING", "CONSUMED", "FAILED"}:
+                action["execution"] = copy.deepcopy(execution)
+                if status != "EXECUTING":
+                    action["execution"].update(
+                        {
+                            "finished_at": "2026-10-18T18:07:00+00:00",
+                            "outcome": (
+                                "PASS" if status == "CONSUMED" else "FAIL_ROLLED_BACK"
+                            ),
+                        }
+                    )
+            cases[f"direct-{status.casefold()}"] = action
+        cases["pending-with-authorization"] = copy.deepcopy(authorized)
+        cases["pending-with-authorization"]["status"] = "PUBLISH_APPROVAL_REQUIRED"
+        pending_execution = copy.deepcopy(pending)
+        pending_execution["execution"] = execution
+        cases["pending-with-execution"] = pending_execution
+
+        for name, action in cases.items():
+            with self.subTest(case=name):
+                with tempfile.TemporaryDirectory() as temp_dir:
+                    contract_path = Path(temp_dir) / "course-contract.json"
+                    save_contract_atomic(contract_path, contract)
+                    before = contract_path.read_bytes()
+                    with self.assertRaisesRegex(TransactionError, "initial|invalid"):
+                        mutate_contract_atomic(
+                            contract_path,
+                            lambda current, value=action: current[
+                                "external_actions"
+                            ].append(copy.deepcopy(value)),
+                            expected_revision=0,
+                        )
+                    self.assertEqual(contract_path.read_bytes(), before)
+                    self.assertEqual(load_contract(contract_path)["revision"], 0)
+
+    def test_runtime_rejects_malformed_authorization_and_execution_shapes(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self.make_course_root(root)
+            proposal = build_release_proposal(root, self.valid_release_record())
+            contract_path = root / "course-contract.json"
+            self.write_authorized_contract(contract_path, proposal)
+            authorized = load_contract(contract_path)
+
+            bad_receipt = copy.deepcopy(authorized)
+            bad_receipt["external_actions"][0]["authorization"][
+                "contract_revision"
+            ] = True
+            self.assertIn(
+                "invalid_external_authorization",
+                {issue.code for issue in validate_contract(bad_receipt)},
+            )
+
+            bad_execution = copy.deepcopy(authorized)
+            action = bad_execution["external_actions"][0]
+            action["status"] = "EXECUTING"
+            action["execution"] = {"proposal_revision": 1}
+            self.assertIn(
+                "invalid_external_execution",
+                {issue.code for issue in validate_contract(bad_execution)},
+            )
+
     def test_sigkill_before_and_after_each_target_recovers_once_without_replay(self):
         checkpoints = [
             ("before_replace", 0),
@@ -611,6 +798,233 @@ class CourseReleaseTests(unittest.TestCase):
                     proposal_path.write_text(json.dumps(proposal), encoding="utf-8")
                     with self.assertRaises(ReleaseAuthorizationError):
                         apply_release_proposal(proposal_path, contract_path)
+
+    def test_recover_uses_contract_authority_when_proposal_status_is_tampered(self):
+        for tampered_status in (
+            "FAILED",
+            "CONSUMED",
+            "PUBLISH_APPROVAL_REQUIRED",
+        ):
+            with self.subTest(status=tampered_status):
+                with tempfile.TemporaryDirectory() as temp_dir:
+                    root = Path(temp_dir)
+                    self.make_course_root(root)
+                    proposal = build_release_proposal(root, self.valid_release_record())
+                    proposal_path = root / "release-proposal.json"
+                    contract_path = root / "course-contract.json"
+                    proposal_path.write_text(json.dumps(proposal), encoding="utf-8")
+                    self.write_authorized_contract(contract_path, proposal)
+
+                    def crash_after_first_target(phase, index):
+                        if (phase, index) == ("after_replace", 0):
+                            raise SystemExit("injected interruption")
+
+                    import src.course_release as release
+
+                    with mock.patch.object(
+                        release,
+                        "_crash_checkpoint",
+                        side_effect=crash_after_first_target,
+                    ):
+                        with self.assertRaises(SystemExit):
+                            apply_release_proposal(proposal_path, contract_path)
+                    tampered = json.loads(proposal_path.read_text(encoding="utf-8"))
+                    tampered["status"] = tampered_status
+                    if tampered_status == "FAILED":
+                        tampered["result"] = {
+                            "outcome": "FAIL_ROLLED_BACK",
+                            "modified_targets": [],
+                            "finished_at": "attacker-controlled",
+                            "authorization_consumed": True,
+                        }
+                    proposal_path.write_text(json.dumps(tampered), encoding="utf-8")
+
+                    recover_release_proposal(proposal_path, contract_path)
+                    recover_release_proposal(proposal_path, contract_path)
+
+                    self.assertEqual(
+                        (root / "public/index.html").read_text(encoding="utf-8"),
+                        "<html>old course</html>",
+                    )
+                    self.assertFalse((root / "public/search-index.json").exists())
+                    self.assertEqual(
+                        load_contract(contract_path)["external_actions"][0]["status"],
+                        "FAILED",
+                    )
+                    recovered = json.loads(
+                        proposal_path.read_text(encoding="utf-8")
+                    )
+                    self.assertEqual(recovered["status"], "FAILED")
+                    self.assertEqual(
+                        recovered["result"]["modified_targets"],
+                        ["public/index.html"],
+                    )
+
+    def test_recover_failed_contract_overrides_consumed_proposal_status(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self.make_course_root(root)
+            proposal = build_release_proposal(root, self.valid_release_record())
+            proposal_path = root / "release-proposal.json"
+            contract_path = root / "course-contract.json"
+            proposal_path.write_text(json.dumps(proposal), encoding="utf-8")
+            self.write_authorized_contract(contract_path, proposal)
+
+            def crash_after_first_target(phase, index):
+                if (phase, index) == ("after_replace", 0):
+                    raise SystemExit("injected interruption")
+
+            import src.course_release as release
+
+            with mock.patch.object(
+                release, "_crash_checkpoint", side_effect=crash_after_first_target
+            ):
+                with self.assertRaises(SystemExit):
+                    apply_release_proposal(proposal_path, contract_path)
+            contract = load_contract(contract_path)
+            finish_external_action_execution_atomic(
+                contract_path,
+                proposal["action_id"],
+                "FAILED",
+                ["public/index.html"],
+                "2026-10-18T18:07:00+00:00",
+                "injected external failure record",
+                expected_revision=contract["revision"],
+            )
+            tampered = json.loads(proposal_path.read_text(encoding="utf-8"))
+            tampered["status"] = "CONSUMED"
+            proposal_path.write_text(json.dumps(tampered), encoding="utf-8")
+
+            recover_release_proposal(proposal_path, contract_path)
+
+            self.assertEqual(
+                (root / "public/index.html").read_text(encoding="utf-8"),
+                "<html>old course</html>",
+            )
+            self.assertEqual(
+                json.loads(proposal_path.read_text(encoding="utf-8"))["status"],
+                "FAILED",
+            )
+
+    def test_recover_fails_closed_when_executing_journal_is_tampered(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self.make_course_root(root)
+            proposal = build_release_proposal(root, self.valid_release_record())
+            proposal_path = root / "release-proposal.json"
+            contract_path = root / "course-contract.json"
+            proposal_path.write_text(json.dumps(proposal), encoding="utf-8")
+            self.write_authorized_contract(contract_path, proposal)
+
+            def crash_after_first_target(phase, index):
+                if (phase, index) == ("after_replace", 0):
+                    raise SystemExit("injected interruption")
+
+            import src.course_release as release
+
+            with mock.patch.object(
+                release, "_crash_checkpoint", side_effect=crash_after_first_target
+            ):
+                with self.assertRaises(SystemExit):
+                    apply_release_proposal(proposal_path, contract_path)
+            tampered = json.loads(proposal_path.read_text(encoding="utf-8"))
+            tampered["journal"]["targets"] = []
+            tampered["status"] = "FAILED"
+            proposal_path.write_text(json.dumps(tampered), encoding="utf-8")
+
+            with self.assertRaisesRegex(ReleaseAuthorizationError, "journal"):
+                recover_release_proposal(proposal_path, contract_path)
+
+            self.assertEqual(
+                load_contract(contract_path)["external_actions"][0]["status"],
+                "EXECUTING",
+            )
+            self.assertEqual(
+                (root / "public/index.html").read_text(encoding="utf-8"),
+                "<html>new course</html>",
+            )
+
+    def test_recover_fails_closed_when_required_backup_is_missing(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self.make_course_root(root)
+            proposal = build_release_proposal(root, self.valid_release_record())
+            proposal_path = root / "release-proposal.json"
+            contract_path = root / "course-contract.json"
+            proposal_path.write_text(json.dumps(proposal), encoding="utf-8")
+            self.write_authorized_contract(contract_path, proposal)
+
+            def crash_after_first_target(phase, index):
+                if (phase, index) == ("after_replace", 0):
+                    raise SystemExit("injected interruption")
+
+            import src.course_release as release
+
+            with mock.patch.object(
+                release, "_crash_checkpoint", side_effect=crash_after_first_target
+            ):
+                with self.assertRaises(SystemExit):
+                    apply_release_proposal(proposal_path, contract_path)
+            current = json.loads(proposal_path.read_text(encoding="utf-8"))
+            backup = root / current["manifest"]["targets"][0]["backup_path"]
+            backup.unlink()
+
+            with self.assertRaisesRegex(ReleaseAuthorizationError, "backup"):
+                recover_release_proposal(proposal_path, contract_path)
+
+            self.assertEqual(
+                load_contract(contract_path)["external_actions"][0]["status"],
+                "EXECUTING",
+            )
+            self.assertEqual(
+                json.loads(proposal_path.read_text(encoding="utf-8"))["status"],
+                "EXECUTING",
+            )
+
+    def test_recover_fails_closed_when_contract_and_proposal_identity_diverge(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self.make_course_root(root)
+            proposal = build_release_proposal(root, self.valid_release_record())
+            proposal_path = root / "release-proposal.json"
+            contract_path = root / "course-contract.json"
+            proposal_path.write_text(json.dumps(proposal), encoding="utf-8")
+            self.write_authorized_contract(contract_path, proposal)
+
+            def crash_after_first_target(phase, index):
+                if (phase, index) == ("after_replace", 0):
+                    raise SystemExit("injected interruption")
+
+            import src.course_release as release
+
+            with mock.patch.object(
+                release, "_crash_checkpoint", side_effect=crash_after_first_target
+            ):
+                with self.assertRaises(SystemExit):
+                    apply_release_proposal(proposal_path, contract_path)
+            tampered = json.loads(proposal_path.read_text(encoding="utf-8"))
+            tampered["manifest"]["course_id"] = "different-course"
+            tampered["manifest_sha256"] = self.sha(
+                json.dumps(
+                    tampered["manifest"],
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+            )
+            proposal_path.write_text(json.dumps(tampered), encoding="utf-8")
+
+            with self.assertRaisesRegex(ReleaseAuthorizationError, "identity"):
+                recover_release_proposal(proposal_path, contract_path)
+
+            self.assertEqual(
+                load_contract(contract_path)["external_actions"][0]["status"],
+                "EXECUTING",
+            )
+            self.assertEqual(
+                (root / "public/index.html").read_text(encoding="utf-8"),
+                "<html>new course</html>",
+            )
 
     def test_recovery_uses_journal_and_backups_when_staged_sources_are_gone(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -803,6 +1217,21 @@ class CourseReleaseTests(unittest.TestCase):
                         "2026-10-18T18:05:00+00:00",
                     ]
                 )
+
+    def test_operator_enrollment_and_receipt_boundary_are_documented(self):
+        project_root = Path(__file__).resolve().parents[1]
+        documents = [
+            project_root
+            / "skill-packages/course-run/references/course-contract-routing.md",
+            project_root / "docs/course-skill-family-foundation.md",
+        ]
+        for path in documents:
+            with self.subTest(path=path.name):
+                text = path.read_text(encoding="utf-8")
+                self.assertIn("enroll-approval-authority", text)
+                self.assertIn("--receipt", text)
+                self.assertNotIn("--approved-by", text)
+                self.assertIn("course producer", text)
 
     def test_proposal_path_symlink_escape_is_rejected(self):
         with tempfile.TemporaryDirectory() as temp_dir:

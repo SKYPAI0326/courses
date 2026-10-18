@@ -80,6 +80,19 @@ APPROVAL_RECEIPT_FIELDS: frozenset[str] = frozenset(
         "signature",
     }
 )
+APPROVAL_INTERACTION_FIELDS: frozenset[str] = frozenset(
+    {"kind", "user_id", "session_id", "confirmed_at"}
+)
+EXTERNAL_EXECUTION_FIELDS: frozenset[str] = frozenset(
+    {
+        "proposal_revision",
+        "started_at",
+        "finished_at",
+        "outcome",
+        "modified_targets",
+        "error",
+    }
+)
 SLUG_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 
@@ -401,12 +414,30 @@ def bind_external_approval_authority(
     if not isinstance(authority_id, str) or not authority_id.strip():
         raise ContractStateError("approval authority id is required")
     gates = contract.get("gates")
-    if not isinstance(gates, Mapping) or any(
-        not isinstance(record, Mapping) or record.get("status") != "NOT_STARTED"
+    if not isinstance(gates, Mapping) or set(gates) != set(GATE_ORDER) or any(
+        not isinstance(record, Mapping)
+        or record.get("status") != "NOT_STARTED"
+        or record.get("source_revision") != 0
+        or any(record.get(field) for field in (
+            "deliverables", "evidence", "risks", "open_questions"
+        ))
         for record in gates.values()
     ):
         raise ContractStateError(
             "approval authority must be fixed before Gate work begins"
+        )
+    if any(
+        contract.get(field)
+        for field in (
+            "changes",
+            "evidence_index",
+            "evidence_archive",
+            "external_actions",
+            "consumed_trial_receipts",
+        )
+    ):
+        raise ContractStateError(
+            "approval authority enrollment requires a pristine contract with no actions or receipts"
         )
     governance = contract.get("governance")
     if not isinstance(governance, MutableMapping):
@@ -423,6 +454,85 @@ def bind_external_approval_authority(
         "public_key": dict(public_key),
         "public_key_fingerprint": fingerprint,
     }
+
+
+def _approval_receipt_shape_valid(value: Any) -> bool:
+    if not isinstance(value, Mapping) or set(value) != APPROVAL_RECEIPT_FIELDS:
+        return False
+    interaction = value.get("interaction")
+    source_revision = value.get("g6_source_revision")
+    revision = value.get("contract_revision")
+    return (
+        value.get("schema_version") == 1
+        and not isinstance(value.get("schema_version"), bool)
+        and all(
+            isinstance(value.get(field), str) and bool(value[field].strip())
+            for field in (
+                "receipt_id",
+                "authority_id",
+                "action_id",
+                "nonce",
+                "issued_at",
+                "expires_at",
+                "signature",
+            )
+        )
+        and value.get("algorithm") == APPROVAL_ALGORITHM
+        and isinstance(value.get("contract_instance_id"), str)
+        and re.fullmatch(r"ci-[0-9a-f]{32}", value["contract_instance_id"])
+        is not None
+        and not isinstance(revision, bool)
+        and isinstance(revision, int)
+        and revision >= 0
+        and not isinstance(source_revision, bool)
+        and (
+            isinstance(source_revision, int)
+            or isinstance(source_revision, str) and bool(source_revision.strip())
+        )
+        and all(
+            isinstance(value.get(field), str)
+            and SHA256_PATTERN.fullmatch(value[field]) is not None
+            for field in (
+                "g6_evidence_set_sha256",
+                "manifest_sha256",
+                "approval_basis_sha256",
+            )
+        )
+        and isinstance(interaction, Mapping)
+        and set(interaction) == APPROVAL_INTERACTION_FIELDS
+        and interaction.get("kind") == "explicit_user_approval"
+        and all(
+            isinstance(interaction.get(field), str)
+            and bool(interaction[field].strip())
+            for field in ("user_id", "session_id", "confirmed_at")
+        )
+    )
+
+
+def _external_execution_shape_valid(value: Any) -> bool:
+    if not isinstance(value, Mapping) or set(value) != EXTERNAL_EXECUTION_FIELDS:
+        return False
+    proposal_revision = value.get("proposal_revision")
+    modified_targets = value.get("modified_targets")
+    return (
+        not isinstance(proposal_revision, bool)
+        and isinstance(proposal_revision, int)
+        and proposal_revision >= 0
+        and isinstance(value.get("started_at"), str)
+        and bool(value["started_at"].strip())
+        and (
+            value.get("finished_at") is None
+            or isinstance(value.get("finished_at"), str)
+            and bool(value["finished_at"].strip())
+        )
+        and value.get("outcome") in {"IN_PROGRESS", "PASS", "FAIL_ROLLED_BACK"}
+        and isinstance(modified_targets, list)
+        and all(isinstance(item, str) and bool(item.strip()) for item in modified_targets)
+        and (
+            value.get("error") is None
+            or isinstance(value.get("error"), str)
+        )
+    )
 
 
 def _unresolved_blockers(record: Mapping[str, Any]) -> list[Mapping[str, Any]]:
@@ -1051,8 +1161,7 @@ def validate_contract(contract: Mapping[str, Any]) -> list[ValidationIssue]:
                     )
             else:
                 if (
-                    not isinstance(authorization, Mapping)
-                    or set(authorization) != APPROVAL_RECEIPT_FIELDS
+                    not _approval_receipt_shape_valid(authorization)
                     or not isinstance(basis_hash, str)
                     or not SHA256_PATTERN.fullmatch(basis_hash)
                     or authorization.get("approval_basis_sha256") != basis_hash
@@ -1067,7 +1176,30 @@ def validate_contract(contract: Mapping[str, Any]) -> list[ValidationIssue]:
                         "authorized action requires one complete signed approval receipt",
                     )
                 if action.get("status") in {"EXECUTING", "CONSUMED", "FAILED"}:
-                    if not isinstance(execution, Mapping):
+                    valid_execution = _external_execution_shape_valid(execution)
+                    if not valid_execution or (
+                        action.get("status") == "EXECUTING"
+                        and isinstance(execution, Mapping)
+                        and (
+                            execution.get("outcome") != "IN_PROGRESS"
+                            or execution.get("finished_at") is not None
+                            or execution.get("error") is not None
+                        )
+                    ) or (
+                        action.get("status") == "CONSUMED"
+                        and isinstance(execution, Mapping)
+                        and (
+                            execution.get("outcome") != "PASS"
+                            or execution.get("finished_at") is None
+                        )
+                    ) or (
+                        action.get("status") == "FAILED"
+                        and isinstance(execution, Mapping)
+                        and (
+                            execution.get("outcome") != "FAIL_ROLLED_BACK"
+                            or execution.get("finished_at") is None
+                        )
+                    ):
                         _append_issue(
                             issues,
                             "invalid_external_execution",
@@ -1671,7 +1803,7 @@ def authorize_external_action(
         raise ContractStateError(
             f"cannot authorize external action in {action.get('status')!r} state"
         )
-    if set(receipt) != APPROVAL_RECEIPT_FIELDS:
+    if not _approval_receipt_shape_valid(receipt):
         raise ContractStateError("approval receipt has missing or unknown fields")
     _verify_approval_receipt_signature(contract, receipt)
     basis = external_action_approval_basis(contract, action_id)

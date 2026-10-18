@@ -506,6 +506,206 @@ class CourseContractCliTests(unittest.TestCase):
         self.assertEqual(checked.returncode, 0, checked.stderr)
         self.assertEqual(rejected.returncode, 2)
 
+    def test_cli_init_enrolls_operator_trust_root_then_authorizes_receipt(self):
+        authority = TestApprovalAuthority()
+        initialized = self.run_cli(
+            "init",
+            "--root",
+            self.root,
+            "--slug",
+            "trusted-release",
+            "--title",
+            "可信發布",
+            "--created-by",
+            "course-owner",
+            "--at",
+            "2026-10-18T12:00:00+08:00",
+        )
+        self.assertEqual(initialized.returncode, 0, initialized.stderr)
+        contract_path = (
+            self.root / "_design/trusted-release/course-contract.json"
+        )
+        key_path = self.root / "approval-public-key.json"
+        key_path.write_text(
+            json.dumps(authority.public_key, ensure_ascii=False), encoding="utf-8"
+        )
+
+        enrolled = self.run_cli(
+            "enroll-approval-authority",
+            "--contract",
+            contract_path,
+            "--authority-id",
+            authority.authority_id,
+            "--public-key",
+            key_path,
+            "--expected-revision",
+            "0",
+        )
+        self.assertEqual(enrolled.returncode, 0, enrolled.stderr)
+        contract = load_contract(contract_path)
+        self.assertEqual(contract["revision"], 1)
+        self.assertEqual(
+            contract["governance"]["approval_authority"]["authority_id"],
+            authority.authority_id,
+        )
+        for gate_id in ("G0", "G1", "G2", "G3", "G4", "G5", "G6"):
+            self.pass_gate(contract, gate_id)
+        save_contract_atomic(contract_path, contract)
+        proposed = self.run_cli(
+            "propose-action",
+            "--contract",
+            contract_path,
+            "--action-id",
+            "publish-cli",
+            "--kind",
+            "publish-course",
+            "--manifest-path",
+            "evidence/release.json",
+            "--manifest-sha256",
+            "a" * 64,
+            "--actor",
+            "course-ops",
+            "--at",
+            "2026-10-18T18:00:00+08:00",
+            "--expected-revision",
+            "1",
+        )
+        self.assertEqual(proposed.returncode, 0, proposed.stderr)
+        receipt_path = self.root / "approval-receipt.json"
+        receipt_path.write_text(
+            json.dumps(
+                authority.issue(load_contract(contract_path), "publish-cli"),
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+        authorized = self.run_cli(
+            "authorize-action",
+            "--contract",
+            contract_path,
+            "--action-id",
+            "publish-cli",
+            "--receipt",
+            receipt_path,
+            "--at",
+            "2026-10-18T18:05:00+00:00",
+            "--expected-revision",
+            "2",
+        )
+        self.assertEqual(authorized.returncode, 0, authorized.stderr)
+        self.assertEqual(
+            load_contract(contract_path)["external_actions"][0]["status"],
+            "AUTHORIZED",
+        )
+
+    def test_cli_approval_authority_enrollment_is_once_early_and_cas_guarded(self):
+        authority = TestApprovalAuthority()
+        key_path = self.root / "approval-public-key.json"
+        key_path.write_text(json.dumps(authority.public_key), encoding="utf-8")
+        initialized = self.run_cli(
+            "init",
+            "--root",
+            self.root,
+            "--slug",
+            "enrollment-rules",
+            "--title",
+            "Enrollment Rules",
+            "--created-by",
+            "course-owner",
+            "--at",
+            "2026-10-18T12:00:00+08:00",
+        )
+        self.assertEqual(initialized.returncode, 0, initialized.stderr)
+        contract_path = (
+            self.root / "_design/enrollment-rules/course-contract.json"
+        )
+        before = contract_path.read_bytes()
+
+        stale = self.run_cli(
+            "enroll-approval-authority",
+            "--contract",
+            contract_path,
+            "--authority-id",
+            authority.authority_id,
+            "--public-key",
+            key_path,
+            "--expected-revision",
+            "1",
+        )
+        self.assertEqual(stale.returncode, 2)
+        self.assertEqual(contract_path.read_bytes(), before)
+
+        enrolled = self.run_cli(
+            "enroll-approval-authority",
+            "--contract",
+            contract_path,
+            "--authority-id",
+            authority.authority_id,
+            "--public-key",
+            key_path,
+            "--expected-revision",
+            "0",
+        )
+        self.assertEqual(enrolled.returncode, 0, enrolled.stderr)
+        enrolled_bytes = contract_path.read_bytes()
+        rebound = self.run_cli(
+            "enroll-approval-authority",
+            "--contract",
+            contract_path,
+            "--authority-id",
+            authority.authority_id,
+            "--public-key",
+            key_path,
+            "--expected-revision",
+            "1",
+        )
+        self.assertEqual(rebound.returncode, 2)
+        self.assertEqual(contract_path.read_bytes(), enrolled_bytes)
+
+        late_init = self.run_cli(
+            "init",
+            "--root",
+            self.root,
+            "--slug",
+            "late-enrollment",
+            "--title",
+            "Late Enrollment",
+            "--created-by",
+            "course-owner",
+            "--at",
+            "2026-10-18T12:00:00+08:00",
+        )
+        self.assertEqual(late_init.returncode, 0, late_init.stderr)
+        late_path = self.root / "_design/late-enrollment/course-contract.json"
+        begun = self.run_cli(
+            "begin",
+            "--contract",
+            late_path,
+            "--gate",
+            "G0",
+            "--actor",
+            "course-run",
+            "--at",
+            "2026-10-18T13:00:00+08:00",
+            "--expected-revision",
+            "0",
+        )
+        self.assertEqual(begun.returncode, 0, begun.stderr)
+        late_bytes = late_path.read_bytes()
+        late = self.run_cli(
+            "enroll-approval-authority",
+            "--contract",
+            late_path,
+            "--authority-id",
+            authority.authority_id,
+            "--public-key",
+            key_path,
+            "--expected-revision",
+            "1",
+        )
+        self.assertEqual(late.returncode, 2)
+        self.assertEqual(late_path.read_bytes(), late_bytes)
+
     def test_migrate_command_upgrades_v1_to_v3(self):
         path = self.root / "legacy.json"
         source = FIXTURES / "course-contracts" / "v1-approved-through-g2.json"

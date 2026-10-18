@@ -18,6 +18,7 @@ from src.course_contract import (
     ContractStateError,
     assert_external_action_authorized,
     load_contract,
+    validate_contract,
 )
 from src.transactions import (
     TransactionError,
@@ -666,6 +667,81 @@ def _rollback_targets(
                 )
 
 
+def _validated_recovery_progress(
+    proposal: Mapping[str, Any],
+    resolved: list[tuple[Mapping[str, Any], Path, Path, Path]],
+) -> list[str]:
+    """Validate journal/target agreement before any recovery mutation."""
+
+    journal = proposal.get("journal")
+    if not isinstance(journal, Mapping):
+        raise ReleaseAuthorizationError("release recovery journal is missing")
+    phase = journal.get("phase")
+    entries = journal.get("targets")
+    if phase not in {"PENDING", "EXECUTING"} or not isinstance(entries, list):
+        raise ReleaseAuthorizationError("release recovery journal is invalid")
+    manifest_by_target = {
+        item["target_path"]: item for item, _source, _target, _backup in resolved
+    }
+    journal_by_target: dict[str, Mapping[str, Any]] = {}
+    expected_fields = {
+        "target_path", "before_sha256", "after_sha256", "backup_path", "phase"
+    }
+    for entry in entries:
+        if not isinstance(entry, Mapping) or set(entry) != expected_fields:
+            raise ReleaseAuthorizationError("release recovery journal entry is invalid")
+        target_path = entry.get("target_path")
+        item = manifest_by_target.get(target_path)
+        if item is None or target_path in journal_by_target:
+            raise ReleaseAuthorizationError(
+                "release recovery journal target is unknown or duplicated"
+            )
+        if (
+            entry.get("before_sha256") != item.get("before_sha256")
+            or entry.get("after_sha256") != item.get("after_sha256")
+            or entry.get("backup_path") != item.get("backup_path")
+            or entry.get("phase")
+            not in {"BACKUP_READY", "BEFORE_REPLACE", "AFTER_REPLACE"}
+        ):
+            raise ReleaseAuthorizationError(
+                "release recovery journal does not match the authorized manifest"
+            )
+        journal_by_target[str(target_path)] = entry
+
+    modified: list[str] = []
+    for item, _source, target, backup in resolved:
+        before = item.get("before_sha256")
+        after = item.get("after_sha256")
+        current = _file_sha256(target) if target.is_file() else None
+        entry = journal_by_target.get(str(item["target_path"]))
+        if current == before:
+            continue
+        if current != after:
+            raise ReleaseAuthorizationError(
+                f"release recovery target has unexpected content: {item['target_path']}"
+            )
+        if (
+            phase != "EXECUTING"
+            or entry is None
+            or entry.get("phase") not in {"BEFORE_REPLACE", "AFTER_REPLACE"}
+        ):
+            raise ReleaseAuthorizationError(
+                f"release recovery journal cannot prove target replacement: {item['target_path']}"
+            )
+        if before is not None and (
+            not backup.is_file() or _file_sha256(backup) != before
+        ):
+            raise ReleaseAuthorizationError(
+                f"release recovery backup is missing or invalid: {item['target_path']}"
+            )
+        modified.append(str(item["target_path"]))
+    if phase == "PENDING" and entries:
+        raise ReleaseAuthorizationError(
+            "pending release recovery journal cannot contain target progress"
+        )
+    return modified
+
+
 def _contract_action(contract: Mapping[str, Any], action_id: str) -> Mapping[str, Any]:
     matches = [
         item for item in contract.get("external_actions", [])
@@ -712,10 +788,35 @@ def _recover_locked(
         require_source_state=False,
     )
     contract = load_contract(contract_path)
+    contract_issues = validate_contract(contract)
+    if contract_issues:
+        summary = "; ".join(
+            f"{issue.path}: {issue.message}" for issue in contract_issues
+        )
+        raise ReleaseAuthorizationError(
+            f"release recovery contract is invalid: {summary}"
+        )
     action = _contract_action(contract, proposal["action_id"])
     action_status = action.get("status")
+    if action.get("manifest_sha256") != proposal.get("manifest_sha256"):
+        raise ReleaseAuthorizationError(
+            "contract action and release proposal identity do not match"
+        )
+    execution = action.get("execution")
+    if action_status in {"EXECUTING", "FAILED", "CONSUMED"} and (
+        not isinstance(execution, Mapping)
+        or isinstance(execution.get("proposal_revision"), bool)
+        or not isinstance(execution.get("proposal_revision"), int)
+        or proposal.get("revision", -1) < execution["proposal_revision"]
+    ):
+        raise ReleaseAuthorizationError(
+            "contract action and proposal execution revision do not match"
+        )
     if action_status == "CONSUMED":
-        if any(_file_sha256(target) != item.get("after_sha256") for item, _s, target, _b in resolved):
+        if any(
+            (not target.is_file() or _file_sha256(target) != item.get("after_sha256"))
+            for item, _s, target, _b in resolved
+        ):
             raise ReleaseAuthorizationError("consumed release targets do not match manifest")
         if proposal.get("status") != "CONSUMED":
             _set_proposal_state(
@@ -730,28 +831,24 @@ def _recover_locked(
                 },
             )
         return
-    if proposal.get("status") in {"CONSUMED", "FAILED"}:
-        return
     if action_status not in {"EXECUTING", "FAILED"}:
         raise ReleaseAuthorizationError(
             f"release recovery requires EXECUTING/FAILED action, found {action_status!r}"
         )
+    modified = _validated_recovery_progress(proposal, resolved)
     _rollback_targets(resolved)
-    modified = [
-        item["target_path"]
-        for item, _source, _target, _backup in resolved
-        if any(
-            isinstance(entry, Mapping)
-            and entry.get("target_path") == item["target_path"]
-            and entry.get("phase") == "AFTER_REPLACE"
-            for entry in proposal.get("journal", {}).get("targets", [])
-        )
-    ]
     if action_status == "EXECUTING":
         contract = _finish_contract_action(
             contract_path, contract, proposal["action_id"], "FAILED", modified,
             "interrupted release recovered by deterministic rollback",
         )
+    if (
+        action_status == "FAILED"
+        and proposal.get("status") == "FAILED"
+        and isinstance(proposal.get("result"), Mapping)
+        and proposal["result"].get("outcome") == "FAIL_ROLLED_BACK"
+    ):
+        return
     _set_proposal_state(
         proposal_path,
         proposal,

@@ -6,6 +6,7 @@ All commands run from courses/course-manager. The contract is the only lifecycle
 
 ~~~bash
 python3 scripts/course_contract.py init --root COURSE_ROOT --slug SLUG --title TITLE --created-by NAME --at ISO8601
+python3 scripts/course_contract.py enroll-approval-authority --contract CONTRACT --authority-id AUTHORITY --public-key PUBLIC_KEY_JSON --expected-revision 0
 python3 scripts/course_contract.py status --contract CONTRACT
 python3 scripts/course_contract.py validate --contract CONTRACT
 python3 scripts/course_contract.py begin --contract CONTRACT --gate GATE --actor NAME --at ISO8601
@@ -14,7 +15,7 @@ python3 scripts/course_contract.py fail --contract CONTRACT --gate GATE --issue 
 python3 scripts/course_contract.py block --contract CONTRACT --gate GATE --reason REASON --actor NAME --at ISO8601
 python3 scripts/course_contract.py change --contract CONTRACT --gate GATE --reason REASON --actor NAME --at ISO8601 --semantic
 python3 scripts/course_contract.py propose-action --contract CONTRACT --action-id ID --kind KIND --manifest-path PATH --manifest-sha256 SHA256 --actor NAME --at ISO8601
-python3 scripts/course_contract.py authorize-action --contract CONTRACT --action-id ID --approved-by NAME --at ISO8601 --note NOTE
+python3 scripts/course_contract.py authorize-action --contract CONTRACT --action-id ID --receipt SIGNED_APPROVAL_RECEIPT_JSON --at ISO8601
 python3 scripts/course_contract.py check-action --contract CONTRACT --action-id ID --manifest-sha256 SHA256
 python3 scripts/course_contract.py migrate --contract CONTRACT --actor NAME --at ISO8601
 ~~~
@@ -46,6 +47,8 @@ Gate-specific returns:
 ## Gate pass and external authorization
 
 course-run records Gate PASS only after the declared validator succeeds against indexed evidence. Gate completion does not require user approval. Before publishing, deployment, registration, access changes, or another external mutation, present the exact action manifest and consequence, record explicit user authorization, and verify that its SHA-256 still matches immediately before execution.
+
+Immediately after `init`, an operator must explicitly run `enroll-approval-authority` to bind the externally governed verification public key. This is a trust-root governance step: course producers never generate, select, sign with, or automatically enroll this authority. Enrollment is single-use, revision-CAS guarded, and must happen before Gate work, actions, or receipts exist. `authorize-action` accepts only a signed external approval receipt bound to the exact contract/action basis.
 
 After a validated Gate PASS, course-run begins the next Gate automatically. It asks the user only when the missing fact changes the design, a material judgment has genuinely different outcomes, a paid service is required, credentials or rights are required, or the next action mutates an external system. Ordinary production choices, evidence collection, validation failures, and reversible local repairs remain inside automatic orchestration.
 

@@ -20,6 +20,18 @@ python3 scripts/course_contract.py status \
 
 `course-run` 從第一個不是 `PASS` 的 Gate 繼續。Gate 依有效證據自動通過，不需要逐關請使用者核准。
 
+contract 建立後、任何 Gate 工作開始前，由受治理操作者明確綁定外部 approval authority 的驗章公鑰：
+
+```bash
+python3 scripts/course_contract.py enroll-approval-authority \
+  --contract COURSE_CONTRACT \
+  --authority-id OPERATOR_GOVERNED_AUTHORITY \
+  --public-key APPROVAL_PUBLIC_KEY_JSON \
+  --expected-revision 0
+```
+
+這是一次性的 trust-root enrollment 治理步驟。`course-run` 與其他 course producer 不會自動產生、選擇、簽發或綁定 authority；production 只保存受治理公鑰並驗章。
+
 ## Gate 生命週期
 
 ```bash
@@ -69,9 +81,13 @@ python3 scripts/course_contract.py propose-action \
   --actor course-ops --at ISO8601
 ```
 
-使用者核准同一份 manifest 後，再執行 `authorize-action` 與：
+使用者在外部受治理互動邊界核准同一份 manifest 後，以簽章 receipt 授權，再執行 release apply：
 
 ```bash
+python3 scripts/course_contract.py authorize-action \
+  --contract COURSE_CONTRACT --action-id ACTION_ID \
+  --receipt SIGNED_APPROVAL_RECEIPT_JSON --at ISO8601
+
 python3 scripts/course_release.py apply \
   --proposal RELEASE_PROPOSAL --contract COURSE_CONTRACT
 ```

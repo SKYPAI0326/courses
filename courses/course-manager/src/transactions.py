@@ -10,7 +10,7 @@ import stat
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, MutableMapping, Sequence
+from typing import Any, Callable, Mapping, MutableMapping, Sequence
 
 try:  # Windows and other unsupported hosts must fail closed at call time.
     import fcntl
@@ -253,6 +253,39 @@ def _require_external_action_history(
         "FAILED": {"FAILED"},
         "INVALIDATED": {"INVALIDATED"},
     }
+    initial_fields = {
+        "id",
+        "kind",
+        "status",
+        "manifest_path",
+        "manifest_sha256",
+        "proposed_by",
+        "proposed_at",
+        "approval_basis_sha256",
+        "authorized_revision",
+        "authorization",
+        "execution",
+    }
+    for index, action in enumerate(new_actions[len(old_actions):], start=len(old_actions)):
+        if (
+            not isinstance(action, dict)
+            or set(action) != initial_fields
+            or action.get("status") != "PUBLISH_APPROVAL_REQUIRED"
+            or any(
+                action.get(field) is not None
+                for field in (
+                    "approval_basis_sha256",
+                    "authorized_revision",
+                    "authorization",
+                    "execution",
+                )
+            )
+        ):
+            raise TransactionError(
+                "new external action must be a clean initial "
+                "PUBLISH_APPROVAL_REQUIRED proposal at "
+                f"$.external_actions[{index}]"
+            )
     for index, old in enumerate(old_actions):
         new = new_actions[index]
         if not isinstance(old, dict) or not isinstance(new, dict):
@@ -476,13 +509,30 @@ def _require_append_only_history(
     after: MutableMapping[str, Any],
     resolution_intent: _ResolutionIntent | None,
     external_transition: tuple[str, str, str] | None,
+    approval_authority_enrollment: bool,
 ) -> None:
     if before.get("contract_instance_id") != after.get("contract_instance_id"):
         raise TransactionError("immutable contract_instance_id changed")
     if before.get("identity") != after.get("identity"):
         raise TransactionError("immutable contract identity changed")
-    if before.get("governance") != after.get("governance"):
-        raise TransactionError("immutable contract governance changed")
+    before_governance = before.get("governance")
+    after_governance = after.get("governance")
+    if before_governance != after_governance:
+        allowed_enrollment = False
+        if (
+            approval_authority_enrollment
+            and isinstance(before_governance, dict)
+            and isinstance(after_governance, dict)
+            and before_governance.get("approval_authority") is None
+            and isinstance(after_governance.get("approval_authority"), dict)
+        ):
+            expected = copy.deepcopy(before_governance)
+            expected["approval_authority"] = copy.deepcopy(
+                after_governance["approval_authority"]
+            )
+            allowed_enrollment = expected == after_governance
+        if not allowed_enrollment:
+            raise TransactionError("immutable contract governance changed")
     for field in (
         "changes",
         "evidence_archive",
@@ -502,6 +552,7 @@ def _run_contract_transaction(
     lock_timeout: float = 10.0,
     resolution_intent: _ResolutionIntent | None = None,
     external_transition: tuple[str, str, str] | None = None,
+    approval_authority_enrollment: bool = False,
 ) -> dict[str, Any]:
     _require_supported_platform()
     if (operation is None) == (resolution_intent is None):
@@ -509,6 +560,10 @@ def _run_contract_transaction(
             "transaction control flow requires exactly one mutation mode"
         )
     if resolution_intent is not None and external_transition is not None:
+        raise TransactionError("transaction control flow modes cannot be combined")
+    if approval_authority_enrollment and (
+        resolution_intent is not None or external_transition is not None
+    ):
         raise TransactionError("transaction control flow modes cannot be combined")
     if operation is not None and not callable(operation):
         raise TypeError("operation must be callable")
@@ -600,6 +655,7 @@ def _run_contract_transaction(
                 contract,
                 resolution_intent,
                 external_transition,
+                approval_authority_enrollment,
             )
         details = _validation_error(contract)
         if details:
@@ -633,6 +689,29 @@ def mutate_contract_atomic(
         operation,
         expected_revision=expected_revision,
         lock_timeout=lock_timeout,
+    )
+
+
+def bind_external_approval_authority_atomic(
+    path: Path | str,
+    authority_id: str,
+    public_key: Mapping[str, Any],
+    *,
+    expected_revision: int | None = None,
+    lock_timeout: float = 10.0,
+) -> dict[str, Any]:
+    """Enroll one operator-governed approval trust root before Gate work."""
+
+    from src.course_contract import bind_external_approval_authority
+
+    return _run_contract_transaction(
+        path,
+        lambda contract: bind_external_approval_authority(
+            contract, authority_id, public_key
+        ),
+        expected_revision=expected_revision,
+        lock_timeout=lock_timeout,
+        approval_authority_enrollment=True,
     )
 
 

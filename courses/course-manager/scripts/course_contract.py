@@ -30,6 +30,7 @@ from src.transactions import (  # noqa: E402
     TransactionCommittedDurabilityError,
     TransactionError,
     authorize_external_action_atomic,
+    bind_external_approval_authority_atomic,
     mutate_contract_atomic,
     resolve_gate_blocker_atomic,
 )
@@ -60,6 +61,23 @@ def build_parser() -> argparse.ArgumentParser:
     command.add_argument("--title", required=True)
     command.add_argument("--created-by", required=True)
     command.add_argument("--at", required=True)
+
+    command = commands.add_parser(
+        "enroll-approval-authority",
+        help=(
+            "operator governance step: bind one external approval public key "
+            "before any Gate work"
+        ),
+        description=(
+            "Enroll the verification-only approval trust root. This is an "
+            "explicit operator governance step and is never performed "
+            "automatically by a course producer."
+        ),
+    )
+    _contract_argument(command)
+    command.add_argument("--authority-id", required=True)
+    command.add_argument("--public-key", required=True, type=Path)
+    _expected_revision_argument(command)
 
     for name in ("validate", "status"):
         _contract_argument(commands.add_parser(name))
@@ -190,6 +208,18 @@ def main(argv: list[str] | None = None) -> int:
             if _print_issues(contract):
                 return 1
             print(render_gate_summary(contract))
+            return 0
+        if args.command == "enroll-approval-authority":
+            public_key = json.loads(args.public_key.read_text(encoding="utf-8"))
+            if not isinstance(public_key, dict):
+                raise ContractStateError("approval public key must be a JSON object")
+            bind_external_approval_authority_atomic(
+                args.contract,
+                args.authority_id,
+                public_key,
+                expected_revision=args.expected_revision,
+            )
+            print(args.contract)
             return 0
         if args.command == "check-action":
             assert_external_action_authorized(
