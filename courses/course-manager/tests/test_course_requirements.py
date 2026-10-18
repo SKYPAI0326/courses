@@ -4,6 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from src import course_requirements
 from src.course_contract import begin_gate, new_contract
 from src.course_evidence import materialize_json_evidence, register_evidence_file
 from src.course_requirements import (
@@ -11,6 +12,49 @@ from src.course_requirements import (
     validate_requirements_record,
 )
 from src.course_requirements_routes import route_requirements_to_g0
+
+
+def _required_free_prose_policy(schema, node=None, selector=()):
+    node = schema if node is None else node
+    reference = node.get("$ref")
+    if reference == "#/$defs/text":
+        return {selector: "required_text"}
+    if reference == "#/$defs/textList":
+        return {selector + ("*",): "required_text_list_item"}
+    if reference is not None:
+        definition = schema["$defs"][reference.rsplit("/", 1)[-1]]
+        return _required_free_prose_policy(schema, definition, selector)
+
+    policy = {}
+    for field in node.get("required", []):
+        property_schema = node.get("properties", {}).get(field)
+        if property_schema is not None:
+            policy.update(
+                _required_free_prose_policy(schema, property_schema, selector + (field,))
+            )
+    if "items" in node:
+        policy.update(_required_free_prose_policy(schema, node["items"], selector + ("*",)))
+    return policy
+
+
+def _replace_selector(record, selector, replacement):
+    target = record
+    rendered_path = "$"
+    for segment in selector[:-1]:
+        if segment == "*":
+            target = target[0]
+            rendered_path += "[0]"
+        else:
+            target = target[segment]
+            rendered_path += f".{segment}"
+    final = selector[-1]
+    if final == "*":
+        target[0] = replacement
+        rendered_path += "[0]"
+    else:
+        target[final] = replacement
+        rendered_path += f".{final}"
+    return rendered_path
 
 
 class CourseRequirementsTests(unittest.TestCase):
@@ -249,6 +293,48 @@ class CourseRequirementsTests(unittest.TestCase):
             "duplicate_requirement_text",
             {issue.code for issue in validate_requirements_record(record)},
         )
+
+    def test_numbered_boilerplate_cannot_fill_known_facts_list_items(self):
+        record = self.valid_record()
+        stem = "課程已確認固定資料包含每個驗收步驟需要的完整來源欄位版本"
+        record["known_facts"] = [stem + " 001", stem + " 002"]
+
+        issues = validate_requirements_record(record)
+
+        self.assertIn("duplicate_requirement_text", {issue.code for issue in issues})
+
+    def test_required_free_prose_policy_matches_schema_and_every_path_reaches_walker(self):
+        schema = json.loads(
+            (Path(__file__).parents[1] / "contracts" / "course-requirements-record.schema.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        expected_policy = _required_free_prose_policy(schema)
+        actual_policy = getattr(course_requirements, "REQUIREMENTS_PROSE_POLICY", {})
+        self.assertEqual(actual_policy, expected_policy)
+        self.assertNotIn(("unknowns", "*", "status"), actual_policy)
+        self.assertNotIn(("unknowns", "*", "fallback", "verification_status"), actual_policy)
+
+        padding = "這一段自由文案必須由需求驗證器辨識並拒絕重複填充內容"
+        for selector in expected_policy:
+            with self.subTest(selector=selector):
+                record = self.valid_record()
+                record["unknowns"][0]["fallback"] = {
+                    "fallback_id": "fallback-markdown-export",
+                    "description": "改交付可由同一 rubric 驗收的 Markdown 檔案。",
+                    "verification_status": "VERIFIED_FALLBACK",
+                    "evidence_ref": "g0-fallback-support",
+                    "acceptance_criterion_ids": ["criterion-decision-brief"],
+                    "preserves_acceptance": True,
+                }
+                expected_path = _replace_selector(record, selector, padding + padding)
+
+                issues = validate_requirements_record(record)
+
+                self.assertIn(
+                    expected_path,
+                    {issue.path for issue in issues if issue.code == "padded_requirement"},
+                )
 
     def test_duplicate_stable_ids_are_rejected(self):
         record = self.valid_record()

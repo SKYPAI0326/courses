@@ -22,13 +22,37 @@ VAGUE_PREFIXES = (
 MATERIAL_DOMAINS = frozenset(
     {"tools", "accounts", "permissions", "device", "materials", "artifact", "time", "locale"}
 )
-FREE_PROSE_FIELDS = frozenset({
-    "learner", "baseline", "prerequisites", "situation", "problem", "use",
-    "name", "format", "observable_result", "mode", "break_buffer_policy",
-    "tools", "accounts", "permissions", "device", "locale", "description",
-    "impact", "statement", "validation_plan", "question", "resolution",
-    "decision", "rationale",
-})
+REQUIREMENTS_PROSE_POLICY = {
+    ("target_profile", "learner"): "required_text",
+    ("target_profile", "baseline"): "required_text",
+    ("target_profile", "prerequisites", "*"): "required_text_list_item",
+    ("work_context", "situation"): "required_text",
+    ("work_context", "problem"): "required_text",
+    ("work_context", "use"): "required_text",
+    ("final_artifact", "name"): "required_text",
+    ("final_artifact", "format"): "required_text",
+    ("final_artifact", "observable_result"): "required_text",
+    ("final_artifact", "use"): "required_text",
+    ("delivery", "mode"): "required_text",
+    ("delivery", "break_buffer_policy"): "required_text",
+    ("environment", "tools", "*"): "required_text_list_item",
+    ("environment", "accounts", "*"): "required_text_list_item",
+    ("environment", "permissions", "*"): "required_text_list_item",
+    ("environment", "device"): "required_text",
+    ("environment", "locale"): "required_text",
+    ("constraints", "*", "description"): "required_text",
+    ("constraints", "*", "impact"): "required_text",
+    ("acceptance_criteria", "*", "statement"): "required_text",
+    ("acceptance_criteria", "*", "capabilities", "*", "statement"): "required_text",
+    ("known_facts", "*"): "required_text_list_item",
+    ("assumptions", "*", "statement"): "required_text",
+    ("assumptions", "*", "validation_plan"): "required_text",
+    ("unknowns", "*", "question"): "required_text",
+    ("unknowns", "*", "resolution"): "required_text",
+    ("unknowns", "*", "fallback", "description"): "required_text",
+    ("decisions", "*", "decision"): "required_text",
+    ("decisions", "*", "rationale"): "required_text",
+}
 
 REQUIREMENTS_REQUIRED_FIELDS = (
     "schema_version", "requirements_id", "target_profile", "work_context",
@@ -107,15 +131,15 @@ def _similar_boilerplate(left: str, right: str) -> bool:
     return bool(left_grams | right_grams) and len(left_grams & right_grams) / len(left_grams | right_grams) >= 0.9
 
 
-def _prose_values(value: Any, path: str = "$", field: str | None = None):
-    if isinstance(value, str) and field in FREE_PROSE_FIELDS:
+def _prose_values(value: Any, path: str = "$", selector: tuple[str, ...] = ()):
+    if isinstance(value, str) and selector in REQUIREMENTS_PROSE_POLICY:
         yield path, value
     elif isinstance(value, Mapping):
         for key, child in value.items():
-            yield from _prose_values(child, f"{path}.{key}", str(key))
+            yield from _prose_values(child, f"{path}.{key}", selector + (str(key),))
     elif isinstance(value, list):
         for index, child in enumerate(value):
-            yield from _prose_values(child, f"{path}[{index}]", field)
+            yield from _prose_values(child, f"{path}[{index}]", selector + ("*",))
 
 
 def _validate_prose_distinctness(record: Mapping[str, Any], issues: list[RequirementsIssue]) -> None:
@@ -271,6 +295,7 @@ def validate_requirements_record(
 
 
 __all__ = [
+    "REQUIREMENTS_PROSE_POLICY",
     "REQUIREMENTS_REQUIRED_FIELDS",
     "RequirementsIssue",
     "validate_requirements_record",
