@@ -6,6 +6,10 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_ROOT = PROJECT_ROOT / "skill-packages" / "course-run"
 ROUTING_PATH = PACKAGE_ROOT / "references" / "gate-routing.json"
+RESEARCHER_ROOT = PROJECT_ROOT / "skill-packages" / "course-researcher"
+RESEARCH_POLICY_PATH = RESEARCHER_ROOT / "references" / "research-policy.json"
+PM_ROOT = PROJECT_ROOT / "skill-packages" / "course-pm"
+ARCHITECTURE_POLICY_PATH = PM_ROOT / "references" / "architecture-policy.json"
 
 
 class CourseSkillPackageTests(unittest.TestCase):
@@ -95,6 +99,111 @@ class CourseSkillPackageTests(unittest.TestCase):
         self.assertEqual(
             self.routing["evidence_maturity_path"],
             "gates.<gate_id>.evidence[].maturity",
+        )
+
+    def load_research_policy(self):
+        return json.loads(RESEARCH_POLICY_PATH.read_text(encoding="utf-8"))
+
+    def load_architecture_policy(self):
+        return json.loads(ARCHITECTURE_POLICY_PATH.read_text(encoding="utf-8"))
+
+    def test_researcher_requires_external_current_sources(self):
+        policy = self.load_research_policy()
+
+        self.assertTrue(policy["external_sources"]["required"])
+        self.assertTrue(policy["external_sources"]["authoritative_current_required"])
+        self.assertTrue(policy["external_sources"]["technical_primary_sources_required"])
+        self.assertEqual(
+            set(policy["external_sources"]["required_fields"]),
+            {"id", "title", "url", "source_type", "retrieved_at", "version", "context"},
+        )
+
+    def test_researcher_requires_hands_on_for_high_tool_dependency(self):
+        policy = self.load_research_policy()
+
+        self.assertEqual(policy["hands_on"]["trigger"], {"tool_dependency": "high"})
+        self.assertTrue(policy["hands_on"]["required"])
+        self.assertEqual(
+            set(policy["hands_on"]["required_fields"]),
+            {
+                "id",
+                "executed",
+                "environment",
+                "input",
+                "result",
+                "failure_notes",
+                "limitations",
+            },
+        )
+        self.assertEqual(policy["hands_on"]["missing_status"], "BLOCKED")
+
+    def test_researcher_records_conflicts_unknowns_and_non_conclusions(self):
+        policy = self.load_research_policy()
+
+        self.assertEqual(
+            set(policy["preserve_even_when_empty"]),
+            {"conflicts", "unknowns", "non_conclusions"},
+        )
+        self.assertTrue(policy["failed_hands_on_is_evidence"])
+
+    def test_researcher_does_not_use_source_count_as_pass_condition(self):
+        policy = self.load_research_policy()
+
+        self.assertIsNone(policy["completion"]["minimum_source_count"])
+        self.assertEqual(
+            policy["completion"]["criterion"],
+            "course_decisions_supported_by_traceable_evidence",
+        )
+
+    def test_pm_does_not_repeat_g0_interview(self):
+        policy = self.load_architecture_policy()
+
+        self.assertFalse(policy["ownership"]["repeat_g0_interview"])
+        self.assertFalse(policy["ownership"]["choose_theme"])
+
+    def test_pm_requires_approved_g0_and_g1(self):
+        policy = self.load_architecture_policy()
+
+        self.assertEqual(
+            policy["required_gate_status"],
+            {"G0": "APPROVED", "G1": "APPROVED"},
+        )
+        self.assertEqual(
+            policy["inputs"], ["G0_requirements", "G1_research", "adaptation"]
+        )
+
+    def test_pm_outputs_one_reasoned_main_blueprint(self):
+        policy = self.load_architecture_policy()
+
+        self.assertEqual(policy["main_blueprint_count"], 1)
+        self.assertEqual(
+            set(policy["required_outputs"]),
+            {
+                "outcomes",
+                "assessment",
+                "capability_progression",
+                "units",
+                "dependencies",
+                "duration_fit",
+                "material_risks",
+                "evidence_citations",
+            },
+        )
+
+    def test_pm_uses_adaptation_not_fixed_course_type_template(self):
+        policy = self.load_architecture_policy()
+
+        self.assertFalse(policy["fixed_course_type_template"])
+        self.assertEqual(
+            set(policy["adaptation_dimensions"]),
+            {
+                "learner_gap",
+                "task_nature",
+                "tool_dependency",
+                "volatility",
+                "failure_risk",
+                "evidence_type",
+            },
         )
 
 
