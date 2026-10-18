@@ -1,8 +1,11 @@
 import copy
 import hashlib
+import tempfile
 import unittest
+from pathlib import Path
 
-from src.course_contract import GATE_ORDER, begin_gate, new_contract, pass_gate
+from src.course_contract import GATE_ORDER, _commit_gate_pass, begin_gate, new_contract
+from src.course_evidence import materialize_json_evidence, verify_evidence_reference
 from src.course_validation import (
     evidence_maturity,
     route_trial_failure,
@@ -99,15 +102,19 @@ class CourseTrialValidationTests(unittest.TestCase):
         return record
 
     def test_trial_actor_cannot_be_any_course_author_or_validator(self):
-        authors = ["course-author-01", "course-validator-01"]
-        for participant_id in authors:
+        production_roles = {
+            "schema_version": 1,
+            "authors": ["course-author-01"],
+            "validators": ["course-validator-01"],
+        }
+        for participant_id in ("course-author-01", "course-validator-01"):
             with self.subTest(participant_id=participant_id):
                 record = self.valid_trial()
                 record["participant"]["id"] = participant_id
                 codes = {
                     issue.code
                     for issue in validate_trial_record(
-                        record, authors, "representative_unit"
+                        record, production_roles, "representative_unit"
                     )
                 }
                 self.assertIn("independent_participant_required", codes)
@@ -270,7 +277,7 @@ class CourseTrialValidationTests(unittest.TestCase):
                     "sha256": hashlib.sha256(evidence_id.encode()).hexdigest(),
                 }
             )
-            pass_gate(
+            _commit_gate_pass(
                 contract,
                 gate_id,
                 [evidence_id],
@@ -291,28 +298,142 @@ class CourseTrialValidationTests(unittest.TestCase):
         return contract
 
     def test_g4_pass_requires_composed_production_and_independent_trial_evidence(self):
+        from tests.test_course_production import CourseProductionTests
+
+        helper = CourseProductionTests("test_pilot_selector_chooses_highest_combined_risk_then_dependency")
         contract = self.make_contract_at_g4()
-
-        result = route_verified_trial_to_gate(
-            contract,
-            "G4",
-            ["g4-pilot-production"],
-            self.valid_trial(),
-            "course-validator",
-            "2026-10-18T15:15:00+08:00",
-        )
-
-        self.assertEqual(result, "PASS")
-        self.assertEqual(contract["gates"]["G4"]["status"], "PASS")
-        event = contract["gates"]["G4"]["evidence"][-1]
-        self.assertEqual(event["maturity"], "INDEPENDENT_AI_VERIFIED")
-        self.assertIn("g4-pilot-production", event["evidence_ids"])
-        self.assertTrue(
-            any(
-                item.get("kind") == "independent_course_trial"
-                for item in contract["evidence_index"]
+        trial = self.valid_trial()
+        pilot = helper.valid_pilot()
+        pilot["trial_context_id"] = trial["isolated_context_id"]
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            pilot_ref = materialize_json_evidence(
+                root,
+                evidence_id="g4-pilot-record",
+                gate_id="G4",
+                kind="pilot_record",
+                relative_path="evidence/g4-pilot-record.json",
+                value={
+                    "pilot": pilot,
+                    "lesson": helper.lesson_record(),
+                    "asset_manifest": helper.valid_asset_manifest(),
+                },
             )
-        )
+            roster_ref = materialize_json_evidence(
+                root,
+                evidence_id="g4-production-role-roster",
+                gate_id="G4",
+                kind="production_role_roster",
+                relative_path="evidence/g4-production-role-roster.json",
+                value={
+                    "schema_version": 1,
+                    "authors": ["course-author-01", "page-builder-01"],
+                    "validators": ["course-validator"],
+                },
+            )
+            contract["evidence_index"] = [
+                item
+                for item in contract["evidence_index"]
+                if item.get("id") != "g4-pilot-production"
+            ]
+            contract["evidence_index"].extend([pilot_ref, roster_ref])
+            materialize_json_evidence(
+                root,
+                evidence_id="g4-trial-source",
+                gate_id="G4",
+                kind="independent_course_trial",
+                relative_path="trials/g4-representative-unit.json",
+                value=trial,
+            )
+
+            result = route_verified_trial_to_gate(
+                contract,
+                "G4",
+                [pilot_ref["id"], roster_ref["id"]],
+                trial,
+                "course-validator",
+                "2026-10-18T15:15:00+08:00",
+                workspace_root=root,
+                trial_record_path="trials/g4-representative-unit.json",
+            )
+
+            self.assertEqual(result, "PASS")
+            self.assertEqual(contract["gates"]["G4"]["status"], "PASS")
+            event = contract["gates"]["G4"]["evidence"][-1]
+            self.assertEqual(event["maturity"], "INDEPENDENT_AI_VERIFIED")
+            self.assertIn("g4-pilot-record", event["evidence_ids"])
+            trial_refs = [
+                item
+                for item in contract["evidence_index"]
+                if item.get("kind") == "independent_course_trial"
+            ]
+            self.assertEqual(len(trial_refs), 1)
+            self.assertEqual(
+                verify_evidence_reference(root, trial_refs[0], expected_gate="G4"),
+                [],
+            )
+
+            author_trial = self.valid_trial()
+            author_trial["participant"]["id"] = "course-author-01"
+            pilot["trial_context_id"] = author_trial["isolated_context_id"]
+            author_contract = self.make_contract_at_g4()
+            author_contract["evidence_index"] = [
+                item
+                for item in author_contract["evidence_index"]
+                if item.get("id") != "g4-pilot-production"
+            ]
+            author_pilot_ref = materialize_json_evidence(
+                root,
+                evidence_id="g4-author-pilot-record",
+                gate_id="G4",
+                kind="pilot_record",
+                relative_path="evidence/g4-author-pilot-record.json",
+                value={
+                    "pilot": pilot,
+                    "lesson": helper.lesson_record(),
+                    "asset_manifest": helper.valid_asset_manifest(),
+                },
+            )
+            author_roster_ref = materialize_json_evidence(
+                root,
+                evidence_id="g4-author-production-role-roster",
+                gate_id="G4",
+                kind="production_role_roster",
+                relative_path="evidence/g4-author-production-role-roster.json",
+                value={
+                    "schema_version": 1,
+                    "authors": ["course-author-01"],
+                    "validators": ["course-validator"],
+                },
+            )
+            author_contract["evidence_index"].extend(
+                [author_pilot_ref, author_roster_ref]
+            )
+            materialize_json_evidence(
+                root,
+                evidence_id="g4-author-trial-source",
+                gate_id="G4",
+                kind="independent_course_trial",
+                relative_path="trials/g4-author-representative-unit.json",
+                value=author_trial,
+            )
+
+            blocked = route_verified_trial_to_gate(
+                author_contract,
+                "G4",
+                [author_pilot_ref["id"], author_roster_ref["id"]],
+                author_trial,
+                "course-validator",
+                "2026-10-18T15:16:00+08:00",
+                workspace_root=root,
+                trial_record_path="trials/g4-author-representative-unit.json",
+            )
+
+            self.assertEqual(blocked, "BLOCKED")
+            self.assertIn(
+                "cannot be a course author or validator",
+                author_contract["gates"]["G4"]["risks"][-1]["reason"],
+            )
 
         no_production = self.make_contract_at_g4()
         with self.assertRaises(ValueError):
@@ -323,6 +444,8 @@ class CourseTrialValidationTests(unittest.TestCase):
                 self.valid_trial(),
                 "course-validator",
                 "2026-10-18T15:15:00+08:00",
+                workspace_root=Path("."),
+                trial_record_path="trials/missing.json",
             )
 
 

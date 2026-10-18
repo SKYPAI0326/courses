@@ -1,14 +1,19 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import re
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Mapping, MutableMapping, Sequence
 
-from src.course_contract import ContractStateError, block_gate
+from src.course_contract import ContractStateError
+from src.course_evidence import (
+    canonical_json_bytes,
+    register_evidence_file,
+)
 from src.course_validation import (
-    route_verified_trial_to_gate,
+    evidence_maturity,
+    production_role_ids,
     validate_trial_context_is_new,
     validate_trial_record,
 )
@@ -254,6 +259,13 @@ def validate_pilot_record(
             "$.unit_id",
             "pilot unit must match the lesson record",
         )
+    if not _text(record.get("trial_context_id")):
+        _issue(
+            issues,
+            "pilot_trial_context_required",
+            "$.trial_context_id",
+            "pilot must bind the isolated independent trial context",
+        )
     for field in ("lesson_sha256", "html_sha256"):
         if not SHA256_PATTERN.fullmatch(str(record.get(field, ""))):
             _issue(
@@ -463,6 +475,8 @@ def validate_full_production(
     assets: Mapping[str, Any],
     pilot: Mapping[str, Any],
     trial: Mapping[str, Any],
+    *,
+    production_roles: Mapping[str, Any] | None = None,
 ) -> list[ProductionIssue]:
     issues: list[ProductionIssue] = []
     if record.get("schema_version") != 1:
@@ -484,6 +498,31 @@ def validate_full_production(
             "production authors are required to prove trial independence",
         )
         authors = []
+
+    trial_roles: Sequence[str] | Mapping[str, Any] = authors
+    if production_roles is not None:
+        try:
+            governed_role_ids = production_role_ids(production_roles)
+        except ValueError as error:
+            _full_issue(
+                issues,
+                "production_role_roster_invalid",
+                "$.production_roles",
+                str(error),
+            )
+            governed_role_ids = ()
+        governed_authors = production_roles.get("authors")
+        if (
+            not isinstance(governed_authors, list)
+            or set(authors) != set(governed_authors)
+        ):
+            _full_issue(
+                issues,
+                "production_role_roster_mismatch",
+                "$.production_authors",
+                "self-declared production authors must match the governed role roster",
+            )
+        trial_roles = governed_role_ids
 
     blueprint_units = _record_map(
         blueprint.get("units"), "id", "$.blueprint.units", "production_unit_coverage", issues
@@ -688,7 +727,7 @@ def validate_full_production(
             "$.full_course_trial",
             "embedded full-course trial must match the validated trial record",
         )
-    trial_issues = validate_trial_record(trial, authors, "full_course")
+    trial_issues = validate_trial_record(trial, trial_roles, "full_course")
     for issue in trial_issues:
         _full_issue(
             issues,
@@ -696,6 +735,13 @@ def validate_full_production(
             f"$.full_course_trial{issue.path[1:]}",
             issue.message,
             issue.return_gate,
+        )
+    if evidence_maturity(trial) != "INDEPENDENT_AI_VERIFIED":
+        _full_issue(
+            issues,
+            "independent_participant_required",
+            "$.full_course_trial.participant.type",
+            "G5 requires a passing independent AI learner trial",
         )
     for issue in validate_trial_context_is_new(trial, (str(g4_context or ""),)):
         _full_issue(
@@ -761,10 +807,16 @@ def route_full_production_to_g5(
     evidence_refs: Sequence[Mapping[str, Any]],
     actor: str,
     at: str,
+    *,
+    workspace_root: Path | str,
+    blueprint: Mapping[str, Any],
+    lessons: Sequence[Mapping[str, Any]],
+    assets: Mapping[str, Any],
+    pilot: Mapping[str, Any],
+    production_role_evidence_id: str,
+    production_record_path: str,
+    trial_record_path: str,
 ) -> str:
-    validation = record.get("validation")
-    if not isinstance(validation, Mapping) or validation.get("status") != "PASS":
-        raise ValueError("G5 routing requires a validated full-production record")
     if not evidence_refs:
         raise ValueError("G5 routing requires production evidence references")
     evidence_index = contract.get("evidence_index")
@@ -785,58 +837,87 @@ def route_full_production_to_g5(
             not _text(evidence_id)
             or evidence_id in existing_ids
             or evidence_id in production_ids
-            or ref.get("gate") != "G5"
+            or not _text(ref.get("kind"))
             or not _text(ref.get("path"))
-            or not SHA256_PATTERN.fullmatch(str(ref.get("sha256", "")))
         ):
             raise ValueError(f"invalid or duplicate G5 production evidence at index {index}")
+        registered = register_evidence_file(
+            workspace_root,
+            evidence_id=evidence_id,
+            gate_id="G5",
+            kind=str(ref["kind"]),
+            relative_path=str(ref["path"]),
+            maturity=ref.get("maturity") if _text(ref.get("maturity")) else None,
+            metadata=ref.get("metadata") if isinstance(ref.get("metadata"), Mapping) else None,
+        )
         production_ids.append(evidence_id)
-        staged_refs.append(dict(ref))
+        staged_refs.append(registered)
+
+    if not _text(production_role_evidence_id) or production_role_evidence_id not in existing_ids:
+        raise ContractStateError("G5 requires an indexed governed production role roster")
 
     trial = record.get("full_course_trial")
-    authors = record.get("production_authors")
-    trial_issues = validate_trial_record(
-        trial if isinstance(trial, Mapping) else {},
-        authors if isinstance(authors, list) else (),
-        "full_course",
-    )
-    g4_context = record.get("g4_trial_context_id")
-    if isinstance(trial, Mapping):
-        trial_issues.extend(
-            validate_trial_context_is_new(trial, (str(g4_context or ""),))
-        )
-    if trial_issues:
-        routes = sorted({issue.return_gate for issue in trial_issues})
-        block_gate(
-            contract,
-            "G5",
-            f"full-course trial failed; return to {', '.join(routes)}",
-            actor,
-            at,
-        )
-        return "BLOCKED"
-
-    canonical = json.dumps(
-        record, ensure_ascii=False, sort_keys=True, separators=(",", ":")
-    ).encode("utf-8")
-    digest = hashlib.sha256(canonical).hexdigest()
+    if not isinstance(trial, Mapping):
+        raise ValueError("G5 routing requires a full-course trial record")
+    bundle = {
+        "record": dict(record),
+        "blueprint": dict(blueprint),
+        "lessons": [dict(item) for item in lessons],
+        "assets": dict(assets),
+        "pilot": dict(pilot),
+    }
+    digest = hashlib.sha256(canonical_json_bytes(bundle)).hexdigest()
     record_id = f"g5-full-production-{digest[:12]}"
-    staged_refs.append(
-        {
-            "id": record_id,
-            "gate": "G5",
-            "kind": "full_course_production",
-            "path": f"evidence/{record_id}.json",
-            "sha256": digest,
-            "maturity": "EXECUTION_VALIDATED",
-        }
+    if record_id in existing_ids or record_id in production_ids:
+        raise ContractStateError(f"full production evidence id already exists: {record_id}")
+    record_reference = register_evidence_file(
+        workspace_root,
+        evidence_id=record_id,
+        gate_id="G5",
+        kind="full_course_production",
+        relative_path=production_record_path,
+        maturity="EXECUTION_VALIDATED",
     )
+    if record_reference["sha256"] != digest:
+        raise ContractStateError(
+            "registered full-production file does not match the supplied validation inputs"
+        )
+    trial_digest = hashlib.sha256(canonical_json_bytes(trial)).hexdigest()
+    trial_id = f"g5-independent-trial-{trial_digest[:12]}"
+    if trial_id in existing_ids or trial_id in production_ids or trial_id == record_id:
+        raise ContractStateError(f"full-course trial evidence id already exists: {trial_id}")
+    participant = trial.get("participant")
+    trial_reference = register_evidence_file(
+        workspace_root,
+        evidence_id=trial_id,
+        gate_id="G5",
+        kind="independent_course_trial",
+        relative_path=trial_record_path,
+        maturity=evidence_maturity(trial),
+        metadata={
+            "scope": "full_course",
+            "participant_id": participant.get("id") if isinstance(participant, Mapping) else None,
+            "isolated_context_id": trial.get("isolated_context_id"),
+        },
+    )
+    if trial_reference["sha256"] != trial_digest:
+        raise ContractStateError(
+            "registered full-course trial file does not match the production record"
+        )
+    staged_refs.extend([record_reference, trial_reference])
     evidence_index.extend(staged_refs)
-    return route_verified_trial_to_gate(
+    from src.course_gate import validate_and_transition_gate
+
+    return validate_and_transition_gate(
         contract,
         "G5",
-        [*production_ids, record_id],
-        trial,
+        [
+            *production_ids,
+            record_id,
+            trial_id,
+            production_role_evidence_id,
+        ],
+        workspace_root,
         actor,
         at,
     )

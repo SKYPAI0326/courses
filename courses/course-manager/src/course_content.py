@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 from typing import Any, Mapping, MutableMapping, Sequence
 
-from src.course_contract import ContractStateError, block_gate, pass_gate
+from src.course_contract import ContractStateError, block_gate
+from src.course_evidence import materialize_json_evidence
 
 
 ID_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -451,6 +452,8 @@ def route_content_to_g3(
     sha256: str,
     actor: str,
     at: str,
+    *,
+    workspace_root: Path | str,
 ) -> str:
     gates = contract.get("gates")
     if not isinstance(gates, Mapping) or any(
@@ -499,21 +502,24 @@ def route_content_to_g3(
         for item in contract["evidence_index"]
     ):
         raise ContractStateError(f"lesson evidence id already exists: {evidence_id}")
-    contract["evidence_index"].append(
-        {
-            "id": evidence_id,
-            "gate": "G3",
-            "kind": "lesson_record",
-            "path": record_path,
-            "sha256": sha256,
-        }
+    reference = materialize_json_evidence(
+        workspace_root,
+        evidence_id=evidence_id,
+        gate_id="G3",
+        kind="lesson_record",
+        relative_path=record_path,
+        value=record,
     )
-    pass_gate(
+    contract["G3_lesson_design"]["sha256"] = reference["sha256"]
+    gates["G3"]["evidence"][-1]["sha256"] = reference["sha256"]
+    contract["evidence_index"].append(reference)
+    from src.course_gate import validate_and_transition_gate
+
+    return validate_and_transition_gate(
         contract,
         "G3",
         [evidence_id],
-        "course-lesson-record-validator",
-        "course-run",
+        workspace_root,
+        actor,
         at,
     )
-    return "PASS"

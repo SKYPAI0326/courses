@@ -761,7 +761,7 @@ def _indexed_evidence_by_id(
     }
 
 
-def pass_gate(
+def _commit_gate_pass(
     contract: MutableMapping[str, Any],
     gate_id: str,
     evidence_ids: Sequence[str],
@@ -809,6 +809,19 @@ def pass_gate(
             "at": at,
             "evidence_ids": list(evidence_ids),
         }
+    )
+
+
+def pass_gate(
+    contract: MutableMapping[str, Any],
+    gate_id: str,
+    evidence_ids: Sequence[str],
+    validator_id: str,
+    actor: str,
+    at: str,
+) -> None:
+    raise ContractStateError(
+        "raw Gate PASS is unavailable; use validate_and_transition_gate with replayable evidence"
     )
 
 

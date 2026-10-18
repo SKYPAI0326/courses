@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import re
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Mapping, MutableMapping, Sequence
 
-from src.course_contract import ContractStateError, block_gate, pass_gate
+from src.course_contract import ContractStateError
+from src.course_evidence import canonical_json_bytes, register_evidence_file
 
 
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
@@ -100,8 +101,35 @@ def _validate_collection(value: Any, path: str, issues: list[TrialIssue]) -> lis
     return value
 
 
+def production_role_ids(
+    production_roles: Sequence[str] | Mapping[str, Any],
+) -> tuple[str, ...]:
+    if isinstance(production_roles, Mapping):
+        if production_roles.get("schema_version") != 1:
+            raise ValueError("production role roster schema_version must be 1")
+        role_ids: list[str] = []
+        for field in ("authors", "validators"):
+            values = production_roles.get(field)
+            if not isinstance(values, list) or not values or not all(
+                _text(item) for item in values
+            ):
+                raise ValueError(
+                    f"production role roster {field} must be a non-empty text list"
+                )
+            role_ids.extend(item.strip() for item in values)
+        normalized = [item.casefold() for item in role_ids]
+        if len(normalized) != len(set(normalized)):
+            raise ValueError("production role roster identities must be unique")
+        return tuple(role_ids)
+    if isinstance(production_roles, (str, bytes)):
+        raise ValueError("production roles must be a roster or a sequence of identities")
+    return tuple(str(item).strip() for item in production_roles if _text(item))
+
+
 def validate_trial_record(
-    record: Mapping[str, Any], authors: Sequence[str], expected_scope: str
+    record: Mapping[str, Any],
+    production_roles: Sequence[str] | Mapping[str, Any],
+    expected_scope: str,
 ) -> list[TrialIssue]:
     issues: list[TrialIssue] = []
     if expected_scope not in TRIAL_SCOPES:
@@ -135,7 +163,9 @@ def validate_trial_record(
         participant_id = participant.get("id")
         participant_type = participant.get("type")
         roles = participant.get("roles")
-        normalized_authors = {str(item).strip().casefold() for item in authors}
+        normalized_authors = {
+            item.casefold() for item in production_role_ids(production_roles)
+        }
         if not _text(participant_id):
             _add(
                 issues,
@@ -465,6 +495,9 @@ def route_verified_trial_to_gate(
     trial_record: Mapping[str, Any],
     actor: str,
     at: str,
+    *,
+    workspace_root: Path | str,
+    trial_record_path: str,
 ) -> str:
     expected_scope = {"G4": "representative_unit", "G5": "full_course"}.get(gate_id)
     if expected_scope is None:
@@ -494,57 +527,44 @@ def route_verified_trial_to_gate(
             f"production evidence belongs to another gate: {', '.join(wrong_gate)}"
         )
 
-    issues = validate_trial_record(trial_record, (actor,), expected_scope)
     maturity = evidence_maturity(trial_record)
-    if maturity != "INDEPENDENT_AI_VERIFIED":
-        if not issues:
-            issues = [
-                TrialIssue(
-                    "independent_participant_required",
-                    "$.participant.type",
-                    "G4 and G5 require a passing independent AI learner trial",
-                    gate_id,
-                )
-            ]
-    if issues:
-        routes = ", ".join(sorted({issue.return_gate for issue in issues}))
-        summary = "; ".join(f"{issue.path}: {issue.message}" for issue in issues[:5])
-        block_gate(
+    digest = hashlib.sha256(canonical_json_bytes(trial_record)).hexdigest()
+    trial_id = f"{gate_id.casefold()}-independent-trial-{digest[:12]}"
+    if trial_id in indexed:
+        raise ContractStateError(f"trial evidence id already exists: {trial_id}")
+    participant = trial_record.get("participant")
+    trial_reference = register_evidence_file(
+        workspace_root,
+        evidence_id=trial_id,
+        gate_id=gate_id,
+        kind="independent_course_trial",
+        relative_path=trial_record_path,
+        maturity=maturity,
+        metadata={
+            "scope": expected_scope,
+            "participant_id": participant.get("id") if isinstance(participant, Mapping) else None,
+            "isolated_context_id": trial_record.get("isolated_context_id"),
+        },
+    )
+    if trial_reference["sha256"] != digest:
+        raise ContractStateError(
+            "registered trial file does not match the supplied trial record"
+        )
+    evidence_index.append(trial_reference)
+    try:
+        from src.course_gate import validate_and_transition_gate
+
+        result = validate_and_transition_gate(
             contract,
             gate_id,
-            f"independent learner trial failed; return to {routes}. {summary}",
+            [*production_evidence_ids, trial_id],
+            workspace_root,
             actor,
             at,
         )
-        return "BLOCKED"
-
-    canonical = json.dumps(
-        trial_record, ensure_ascii=False, sort_keys=True, separators=(",", ":")
-    ).encode("utf-8")
-    digest = hashlib.sha256(canonical).hexdigest()
-    trial_id = f"{gate_id.casefold()}-independent-trial-{digest[:12]}"
-    evidence_index.append(
-        {
-            "id": trial_id,
-            "gate": gate_id,
-            "kind": "independent_course_trial",
-            "path": f"evidence/{trial_id}.json",
-            "sha256": digest,
-            "maturity": maturity,
-            "metadata": {
-                "scope": expected_scope,
-                "participant_id": trial_record["participant"]["id"],
-                "isolated_context_id": trial_record["isolated_context_id"],
-            },
-        }
-    )
-    pass_gate(
-        contract,
-        gate_id,
-        [*production_evidence_ids, trial_id],
-        "course-validator-independent-trial",
-        actor,
-        at,
-    )
-    contract["gates"][gate_id]["evidence"][-1]["maturity"] = maturity
-    return "PASS"
+    except BaseException:
+        evidence_index.remove(trial_reference)
+        raise
+    if result == "PASS":
+        contract["gates"][gate_id]["evidence"][-1]["maturity"] = maturity
+    return result

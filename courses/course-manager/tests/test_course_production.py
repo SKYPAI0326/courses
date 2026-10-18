@@ -1,8 +1,11 @@
 import copy
 import hashlib
+import tempfile
 import unittest
+from pathlib import Path
 
-from src.course_contract import ContractStateError, begin_gate, new_contract, pass_gate
+from src.course_contract import ContractStateError, _commit_gate_pass, begin_gate, new_contract
+from src.course_evidence import materialize_json_evidence, verify_evidence_reference
 from src.course_production import (
     route_full_production_to_g5,
     select_pilot_unit,
@@ -94,6 +97,7 @@ class CourseProductionTests(unittest.TestCase):
         return {
             "schema_version": 1,
             "unit_id": "unit-1",
+            "trial_context_id": "pilot-cold-run-20261018-01",
             "lesson_sha256": "c" * 64,
             "html_path": "courses/marketing-practice/unit-1.html",
             "html_sha256": "d" * 64,
@@ -410,6 +414,19 @@ class CourseProductionTests(unittest.TestCase):
         }
         self.assertIn("render_evidence_required", codes)
 
+    def test_pilot_binds_the_independent_trial_context(self):
+        pilot = self.valid_pilot()
+        del pilot["trial_context_id"]
+
+        codes = {
+            item.code
+            for item in validate_pilot_record(
+                pilot, self.lesson_record(), self.valid_asset_manifest()
+            )
+        }
+
+        self.assertIn("pilot_trial_context_required", codes)
+
     def test_pilot_requires_mobile_tablet_desktop_core_path_results(self):
         for device in ("mobile", "tablet", "desktop"):
             with self.subTest(device=device):
@@ -455,7 +472,7 @@ class CourseProductionTests(unittest.TestCase):
                     "sha256": hashlib.sha256(evidence_id.encode()).hexdigest(),
                 }
             )
-            pass_gate(
+            _commit_gate_pass(
                 contract,
                 gate_id,
                 [evidence_id],
@@ -553,6 +570,60 @@ class CourseProductionTests(unittest.TestCase):
 
         self.assertIn("g0_acceptance_mismatch", codes)
 
+    def test_governed_role_roster_prevents_self_declared_g5_independence(self):
+        production = self.full_production()
+        production["production_authors"] = ["self-declared-unrelated-author"]
+        trial = self.full_trial()
+        trial["participant"]["id"] = "course-author-01"
+        production["full_course_trial"] = trial
+        production_roles = {
+            "schema_version": 1,
+            "authors": ["course-author-01", "page-builder-01"],
+            "validators": ["course-validator"],
+        }
+
+        codes = {
+            issue.code
+            for issue in validate_full_production(
+                production,
+                self.full_blueprint(),
+                self.full_lessons(),
+                self.valid_asset_manifest(),
+                {"unit_id": "unit-1", "trial_context_id": "pilot-cold-run-20261018-01"},
+                trial,
+                production_roles=production_roles,
+            )
+        }
+
+        self.assertIn("production_role_roster_mismatch", codes)
+        self.assertIn("independent_participant_required", codes)
+
+    def test_g5_requires_independent_ai_even_when_human_trial_evidence_is_complete(self):
+        trial = self.full_trial()
+        trial["participant"]["id"] = "human-trial-01"
+        trial["participant"]["type"] = "human"
+        trial["human_participant_evidence"] = {
+            "consent_record": "evidence/human-consent.json",
+            "observer_id": "observer-01",
+            "session_recording_sha256": "d" * 64,
+        }
+        production = self.full_production()
+        production["full_course_trial"] = trial
+
+        codes = {
+            issue.code
+            for issue in validate_full_production(
+                production,
+                self.full_blueprint(),
+                self.full_lessons(),
+                self.valid_asset_manifest(),
+                {"unit_id": "unit-1", "trial_context_id": "pilot-cold-run-20261018-01"},
+                trial,
+            )
+        }
+
+        self.assertIn("independent_participant_required", codes)
+
     def test_full_production_route_passes_g5_with_indexed_evidence_and_trial(self):
         contract = new_contract(
             "marketing-practice",
@@ -572,7 +643,7 @@ class CourseProductionTests(unittest.TestCase):
                     "sha256": hashlib.sha256(evidence_id.encode()).hexdigest(),
                 }
             )
-            pass_gate(
+            _commit_gate_pass(
                 contract,
                 gate_id,
                 [evidence_id],
@@ -582,24 +653,199 @@ class CourseProductionTests(unittest.TestCase):
             )
         begin_gate(contract, "G5", "course-run", "2026-10-18T17:10:00+08:00")
 
-        result = route_full_production_to_g5(
-            contract,
-            self.full_production(),
-            [
-                {
-                    "id": "g5-render-and-integration",
-                    "gate": "G5",
-                    "kind": "production_artifact",
-                    "path": "evidence/g5-render-and-integration.json",
-                    "sha256": "a" * 64,
-                }
-            ],
-            "course-run",
-            "2026-10-18T17:15:00+08:00",
-        )
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            artifact_path = root / "evidence" / "g5-render-and-integration.json"
+            artifact_path.parent.mkdir(parents=True)
+            artifact_path.write_text('{"result":"PASS"}\n', encoding="utf-8")
+            roster_ref = materialize_json_evidence(
+                root,
+                evidence_id="g5-production-role-roster",
+                gate_id="G5",
+                kind="production_role_roster",
+                relative_path="evidence/g5-production-role-roster.json",
+                value={
+                    "schema_version": 1,
+                    "authors": ["course-author-01", "page-builder-01"],
+                    "validators": ["course-validator"],
+                },
+            )
+            contract["evidence_index"].append(roster_ref)
+            production = self.full_production()
+            production_bundle = {
+                "record": production,
+                "blueprint": self.full_blueprint(),
+                "lessons": self.full_lessons(),
+                "assets": self.valid_asset_manifest(),
+                "pilot": {
+                    "unit_id": "unit-1",
+                    "trial_context_id": "pilot-cold-run-20261018-01",
+                },
+            }
+            materialize_json_evidence(
+                root,
+                evidence_id="g5-production-source",
+                gate_id="G5",
+                kind="full_course_production",
+                relative_path="production/full-course.json",
+                value=production_bundle,
+            )
+            materialize_json_evidence(
+                root,
+                evidence_id="g5-trial-source",
+                gate_id="G5",
+                kind="independent_course_trial",
+                relative_path="trials/g5-full-course.json",
+                value=production["full_course_trial"],
+            )
 
-        self.assertEqual(result, "PASS")
-        self.assertEqual(contract["gates"]["G5"]["status"], "PASS")
+            result = route_full_production_to_g5(
+                contract,
+                production,
+                [
+                    {
+                        "id": "g5-render-and-integration",
+                        "kind": "production_artifact",
+                        "path": "evidence/g5-render-and-integration.json",
+                    }
+                ],
+                "course-run",
+                "2026-10-18T17:15:00+08:00",
+                workspace_root=root,
+                blueprint=self.full_blueprint(),
+                lessons=self.full_lessons(),
+                assets=self.valid_asset_manifest(),
+                pilot={
+                    "unit_id": "unit-1",
+                    "trial_context_id": "pilot-cold-run-20261018-01",
+                },
+                production_role_evidence_id=roster_ref["id"],
+                production_record_path="production/full-course.json",
+                trial_record_path="trials/g5-full-course.json",
+            )
+
+            self.assertEqual(result, "PASS")
+            self.assertEqual(contract["gates"]["G5"]["status"], "PASS")
+            g5_refs = [
+                item for item in contract["evidence_index"] if item.get("gate") == "G5"
+            ]
+            self.assertTrue(
+                all(
+                    not verify_evidence_reference(root, item, expected_gate="G5")
+                    for item in g5_refs
+                )
+            )
+
+    def test_g5_route_runs_complete_validator_instead_of_trusting_pass_status(self):
+        contract = new_contract(
+            "marketing-practice",
+            "行銷企劃實作",
+            "course-run",
+            "2026-10-18T12:00:00+08:00",
+        )
+        for gate_id in ("G0", "G1", "G2", "G3", "G4"):
+            contract["gates"][gate_id]["status"] = "PASS"
+            contract["gates"][gate_id]["source_revision"] = 1
+            evidence_id = f"{gate_id.lower()}-setup"
+            contract["evidence_index"].append(
+                {
+                    "id": evidence_id,
+                    "gate": gate_id,
+                    "kind": "test_record",
+                    "path": f"evidence/{evidence_id}.json",
+                    "sha256": hashlib.sha256(evidence_id.encode()).hexdigest(),
+                }
+            )
+            contract["gates"][gate_id]["evidence"].append(
+                {
+                    "kind": "gate_validation",
+                    "outcome": "PASS",
+                    "validator_id": "test-setup",
+                    "actor": "test-setup",
+                    "at": "2026-10-18T17:00:00+08:00",
+                    "evidence_ids": [evidence_id],
+                }
+            )
+        begin_gate(contract, "G5", "course-run", "2026-10-18T17:10:00+08:00")
+        production = self.full_production()
+        production["units"].pop()
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            artifact_path = root / "evidence" / "g5-integration.json"
+            artifact_path.parent.mkdir(parents=True)
+            artifact_path.write_text('{"result":"PASS"}\n', encoding="utf-8")
+            roster_ref = materialize_json_evidence(
+                root,
+                evidence_id="g5-role-roster",
+                gate_id="G5",
+                kind="production_role_roster",
+                relative_path="evidence/g5-role-roster.json",
+                value={
+                    "schema_version": 1,
+                    "authors": ["course-author-01", "page-builder-01"],
+                    "validators": ["course-validator"],
+                },
+            )
+            contract["evidence_index"].append(roster_ref)
+            production_bundle = {
+                "record": production,
+                "blueprint": self.full_blueprint(),
+                "lessons": self.full_lessons(),
+                "assets": self.valid_asset_manifest(),
+                "pilot": {
+                    "unit_id": "unit-1",
+                    "trial_context_id": "pilot-cold-run-20261018-01",
+                },
+            }
+            materialize_json_evidence(
+                root,
+                evidence_id="g5-invalid-production-source",
+                gate_id="G5",
+                kind="full_course_production",
+                relative_path="production/invalid-full-course.json",
+                value=production_bundle,
+            )
+            materialize_json_evidence(
+                root,
+                evidence_id="g5-invalid-trial-source",
+                gate_id="G5",
+                kind="independent_course_trial",
+                relative_path="trials/g5-invalid-full-course.json",
+                value=production["full_course_trial"],
+            )
+
+            result = route_full_production_to_g5(
+                contract,
+                production,
+                [
+                    {
+                        "id": "g5-integration",
+                        "kind": "production_artifact",
+                        "path": "evidence/g5-integration.json",
+                    }
+                ],
+                "course-run",
+                "2026-10-18T17:15:00+08:00",
+                workspace_root=root,
+                blueprint=self.full_blueprint(),
+                lessons=self.full_lessons(),
+                assets=self.valid_asset_manifest(),
+                pilot={
+                    "unit_id": "unit-1",
+                    "trial_context_id": "pilot-cold-run-20261018-01",
+                },
+                production_role_evidence_id=roster_ref["id"],
+                production_record_path="production/invalid-full-course.json",
+                trial_record_path="trials/g5-invalid-full-course.json",
+            )
+
+        self.assertEqual(result, "BLOCKED")
+        self.assertEqual(contract["gates"]["G5"]["status"], "BLOCKED")
+        self.assertIn(
+            "production and reviewed lessons must cover every blueprint unit exactly once",
+            contract["gates"]["G5"]["risks"][-1]["reason"],
+        )
 
 
 if __name__ == "__main__":

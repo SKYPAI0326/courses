@@ -9,6 +9,7 @@ from src.course_contract import (
     ContractStateError,
     GATE_ORDER,
     GATE_STATUSES,
+    _commit_gate_pass,
     assert_external_action_authorized,
     authorize_external_action,
     begin_gate,
@@ -18,7 +19,6 @@ from src.course_contract import (
     migrate_contract_v1,
     migrate_contract_v2,
     new_contract,
-    pass_gate,
     propose_external_action,
     record_change,
     save_contract_atomic,
@@ -200,7 +200,7 @@ class CourseContractStateTests(unittest.TestCase):
             begin_gate(contract, gate_id, "course-run", "2026-10-18T13:00:00+08:00")
             evidence_id = f"{gate_id.lower()}-evidence"
             self.index_evidence(contract, evidence_id, gate_id)
-            pass_gate(
+            _commit_gate_pass(
                 contract,
                 gate_id,
                 [evidence_id],
@@ -216,7 +216,7 @@ class CourseContractStateTests(unittest.TestCase):
         begin_gate(contract, "G0", "course-run", "2026-10-18T13:00:00+08:00")
 
         with self.assertRaises(ContractStateError):
-            pass_gate(
+            _commit_gate_pass(
                 contract,
                 "G0",
                 ["missing-evidence"],
@@ -226,7 +226,7 @@ class CourseContractStateTests(unittest.TestCase):
             )
 
         self.index_evidence(contract, "g0-evidence", "G0")
-        pass_gate(
+        _commit_gate_pass(
             contract,
             "G0",
             ["g0-evidence"],
@@ -246,7 +246,7 @@ class CourseContractStateTests(unittest.TestCase):
         self.index_evidence(contract, "wrong-gate-evidence", "G1")
 
         with self.assertRaises(ContractStateError):
-            pass_gate(
+            _commit_gate_pass(
                 contract,
                 "G0",
                 ["wrong-gate-evidence"],
@@ -290,7 +290,7 @@ class CourseContractStateTests(unittest.TestCase):
         )
 
         with self.assertRaises(ContractStateError):
-            pass_gate(
+            _commit_gate_pass(
                 contract,
                 "G0",
                 ["g0-evidence"],
@@ -382,7 +382,7 @@ class CourseContractStateTests(unittest.TestCase):
         begin_gate(contract, "G0", "course-run", "2026-10-18T14:00:00+08:00")
         self.assertEqual(contract["gates"]["G0"]["status"], "IN_PROGRESS")
         with self.assertRaises(ContractStateError):
-            pass_gate(
+            _commit_gate_pass(
                 contract,
                 "G0",
                 [],
@@ -546,7 +546,7 @@ class CourseContractMigrationTests(unittest.TestCase):
                     "sha256": hashlib.sha256(b"g0").hexdigest(),
                 }
             )
-            pass_gate(
+            _commit_gate_pass(
                 contract,
                 "G0",
                 ["g0-evidence"],
@@ -587,7 +587,7 @@ class CourseContractMigrationTests(unittest.TestCase):
                         "sha256": hashlib.sha256(content).hexdigest(),
                     }
                 )
-                pass_gate(
+                _commit_gate_pass(
                     contract,
                     gate_id,
                     [evidence_id],

@@ -4,14 +4,14 @@ import copy
 import re
 from dataclasses import dataclass
 from datetime import date
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 from typing import Any, Mapping, MutableMapping
 
 from src.course_contract import (
     ContractStateError,
     block_gate,
-    pass_gate,
 )
+from src.course_evidence import materialize_json_evidence
 
 
 _ID_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -466,6 +466,8 @@ def route_research_to_gate(
     evidence_sha256: str,
     actor: str,
     at: str,
+    *,
+    workspace_root: Path | str,
 ) -> str:
     gates = contract.get("gates")
     if not isinstance(gates, Mapping) or gates.get("G0", {}).get("status") != "PASS":
@@ -480,9 +482,6 @@ def route_research_to_gate(
         or ".." in relative_path.parts
     ):
         raise ContractStateError("research record path must be a safe relative path")
-    if not re.fullmatch(r"[0-9a-f]{64}", evidence_sha256):
-        raise ContractStateError("research evidence SHA-256 must be 64 lowercase hex characters")
-
     issues = validate_research_record(record, adaptation)
     contract["G1_research"] = {
         "record_path": record_path,
@@ -511,21 +510,24 @@ def route_research_to_gate(
         )
         return "BLOCKED"
 
-    contract["evidence_index"].append(
-        {
-            "id": "g1-research",
-            "gate": "G1",
-            "kind": "research_record",
-            "path": record_path,
-            "sha256": evidence_sha256,
-        }
+    reference = materialize_json_evidence(
+        workspace_root,
+        evidence_id="g1-research",
+        gate_id="G1",
+        kind="research_record",
+        relative_path=record_path,
+        value=record,
     )
-    pass_gate(
+    contract["G1_research"]["sha256"] = reference["sha256"]
+    gates["G1"]["evidence"][-1]["sha256"] = reference["sha256"]
+    contract["evidence_index"].append(reference)
+    from src.course_gate import validate_and_transition_gate
+
+    return validate_and_transition_gate(
         contract,
         "G1",
         ["g1-research"],
-        "course-research-record-validator",
-        "course-run",
+        workspace_root,
+        actor,
         at,
     )
-    return "PASS"

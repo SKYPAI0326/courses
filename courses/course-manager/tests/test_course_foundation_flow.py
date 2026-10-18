@@ -1,14 +1,15 @@
 import copy
 import hashlib
 import json
+import tempfile
 import unittest
 from pathlib import Path
 
 from src.course_contract import (
     ContractStateError,
+    _commit_gate_pass,
     begin_gate,
     new_contract,
-    pass_gate,
     record_change,
     render_gate_summary,
 )
@@ -27,6 +28,13 @@ ADAPTATION = {
 
 
 class CourseFoundationFlowTests(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.workspace_root = Path(self.temporary.name)
+
+    def tearDown(self):
+        self.temporary.cleanup()
+
     def load_json(self, relative_path):
         return json.loads((FIXTURES / relative_path).read_text(encoding="utf-8"))
 
@@ -54,7 +62,7 @@ class CourseFoundationFlowTests(unittest.TestCase):
                 "sha256": hashlib.sha256(b"g0-requirements").hexdigest(),
             }
         )
-        pass_gate(
+        _commit_gate_pass(
             contract,
             "G0",
             ["g0-requirements"],
@@ -76,6 +84,7 @@ class CourseFoundationFlowTests(unittest.TestCase):
             "a" * 64,
             "course-researcher",
             "2026-10-18T15:00:00+08:00",
+            workspace_root=self.workspace_root,
         )
 
     def test_g0_must_pass_before_research_routing(self):
@@ -100,7 +109,14 @@ class CourseFoundationFlowTests(unittest.TestCase):
         self.assertEqual(status, "PASS")
         self.assertEqual(contract["gates"]["G1"]["status"], "PASS")
         self.assertEqual(contract["G1_research"]["record_path"], "evidence/g1-research.json")
-        self.assertEqual(contract["G1_research"]["sha256"], "a" * 64)
+        self.assertEqual(
+            contract["G1_research"]["sha256"],
+            next(
+                item["sha256"]
+                for item in contract["evidence_index"]
+                if item.get("id") == "g1-research"
+            ),
+        )
         self.assertEqual(contract["adaptation"], ADAPTATION)
         self.assertTrue(
             any(item.get("id") == "g1-research" for item in contract["evidence_index"])
@@ -119,6 +135,7 @@ class CourseFoundationFlowTests(unittest.TestCase):
             "b" * 64,
             "course-researcher",
             "2026-10-18T15:00:00+08:00",
+            workspace_root=self.workspace_root,
         )
 
         self.assertEqual(status, "BLOCKED")
@@ -154,7 +171,7 @@ class CourseFoundationFlowTests(unittest.TestCase):
                 "sha256": hashlib.sha256(b"g2-blueprint").hexdigest(),
             }
         )
-        pass_gate(
+        _commit_gate_pass(
             contract,
             "G2",
             ["g2-blueprint"],

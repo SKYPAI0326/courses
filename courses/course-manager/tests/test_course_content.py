@@ -1,12 +1,19 @@
 import copy
 import hashlib
+import tempfile
 import unittest
 
 from src.course_content import route_content_to_g3, validate_lesson_record
-from src.course_contract import begin_gate, new_contract, pass_gate
+from src.course_contract import _commit_gate_pass, begin_gate, new_contract
 
 
 class CourseContentTests(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+
+    def tearDown(self):
+        self.temporary.cleanup()
+
     def valid_record(self):
         return {
             "schema_version": 1,
@@ -152,7 +159,7 @@ class CourseContentTests(unittest.TestCase):
                     "sha256": hashlib.sha256(evidence_id.encode()).hexdigest(),
                 }
             )
-            pass_gate(
+            _commit_gate_pass(
                 contract,
                 gate_id,
                 [evidence_id],
@@ -173,6 +180,7 @@ class CourseContentTests(unittest.TestCase):
             "b" * 64,
             "course-designer",
             "2026-10-18T13:00:00+08:00",
+            workspace_root=self.temporary.name,
         )
 
         self.assertEqual(status, "PASS")
@@ -219,6 +227,7 @@ class CourseContentTests(unittest.TestCase):
                     "b" * 64,
                     "course-designer",
                     "2026-10-18T13:00:00+08:00",
+                    workspace_root=self.temporary.name,
                 )
 
                 self.assertEqual(status, "BLOCKED")

@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from src.course_contract import begin_gate, new_contract, pass_gate, save_contract_atomic
+from src.course_contract import _commit_gate_pass, begin_gate, new_contract, save_contract_atomic
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -51,7 +51,7 @@ class CourseContractCliTests(unittest.TestCase):
         begin_gate(contract, gate_id, "course-run", "2026-10-18T13:00:00+08:00")
         evidence_id = f"{gate_id.lower()}-evidence"
         self.add_evidence(contract, gate_id, evidence_id)
-        pass_gate(
+        _commit_gate_pass(
             contract,
             gate_id,
             [evidence_id],
@@ -160,24 +160,13 @@ class CourseContractCliTests(unittest.TestCase):
         self.assertIn("Next action: resolve blocking risks", result.stdout)
         self.assertNotIn("approval", result.stdout.lower())
 
-    def test_begin_and_pass_commands_advance_with_indexed_evidence(self):
+    def test_raw_pass_command_is_not_exposed(self):
         contract = new_contract(
             "practical-ai", "實用生成式 AI", "課程團隊", "2026-10-18T12:00:00+08:00"
         )
         self.add_evidence(contract, "G0", "g0-evidence")
         path = self.write_contract(contract)
 
-        begin = self.run_cli(
-            "begin",
-            "--contract",
-            path,
-            "--gate",
-            "G0",
-            "--actor",
-            "course-run",
-            "--at",
-            "2026-10-18T13:00:00+08:00",
-        )
         passed = self.run_cli(
             "pass",
             "--contract",
@@ -195,9 +184,9 @@ class CourseContractCliTests(unittest.TestCase):
         )
         after = json.loads(path.read_text(encoding="utf-8"))
 
-        self.assertEqual(begin.returncode, 0, begin.stderr)
-        self.assertEqual(passed.returncode, 0, passed.stderr)
-        self.assertEqual(after["gates"]["G0"]["status"], "PASS")
+        self.assertEqual(passed.returncode, 2)
+        self.assertIn("invalid choice", passed.stderr)
+        self.assertEqual(after["gates"]["G0"]["status"], "NOT_STARTED")
 
     def test_approve_command_directs_v1_operator_to_migrate(self):
         contract = new_contract(
@@ -366,7 +355,7 @@ class CourseContractCliTests(unittest.TestCase):
                 "sha256": hashlib.sha256(b"g0").hexdigest(),
             }
         )
-        pass_gate(
+        _commit_gate_pass(
             contract,
             "G0",
             ["g0-evidence"],

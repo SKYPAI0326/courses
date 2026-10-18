@@ -1,8 +1,9 @@
 import copy
 import hashlib
+import tempfile
 import unittest
 
-from src.course_contract import begin_gate, new_contract, pass_gate
+from src.course_contract import _commit_gate_pass, begin_gate, new_contract
 from src.course_research import (
     research_ready,
     route_research_to_gate,
@@ -249,7 +250,7 @@ class CourseResearchValidationTests(unittest.TestCase):
                 "sha256": hashlib.sha256(b"g0-requirements").hexdigest(),
             }
         )
-        pass_gate(
+        _commit_gate_pass(
             contract,
             "G0",
             ["g0-requirements"],
@@ -259,15 +260,17 @@ class CourseResearchValidationTests(unittest.TestCase):
         )
         begin_gate(contract, "G1", "course-run", "2026-10-18T12:20:00+08:00")
 
-        status = route_research_to_gate(
-            contract,
-            self.valid_record(),
-            {},
-            "evidence/g1-research.json",
-            "a" * 64,
-            "course-researcher",
-            "2026-10-18T12:30:00+08:00",
-        )
+        with tempfile.TemporaryDirectory() as temporary:
+            status = route_research_to_gate(
+                contract,
+                self.valid_record(),
+                {},
+                "evidence/g1-research.json",
+                "a" * 64,
+                "course-researcher",
+                "2026-10-18T12:30:00+08:00",
+                workspace_root=temporary,
+            )
 
         self.assertEqual(status, "PASS")
         self.assertEqual(contract["gates"]["G1"]["status"], "PASS")

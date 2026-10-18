@@ -7,10 +7,10 @@ from pathlib import Path
 
 from src.course_contract import (
     GATE_ORDER,
+    _commit_gate_pass,
     authorize_external_action,
     begin_gate,
     new_contract,
-    pass_gate,
     propose_external_action,
     save_contract_atomic,
 )
@@ -107,7 +107,7 @@ class CourseReleaseTests(unittest.TestCase):
                     "sha256": self.sha(evidence_id),
                 }
             )
-            pass_gate(
+            _commit_gate_pass(
                 contract,
                 gate_id,
                 [evidence_id],

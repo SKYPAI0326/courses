@@ -21,7 +21,6 @@ from src.course_contract import (  # noqa: E402
     migrate_contract_v1,
     migrate_contract_v2,
     new_contract,
-    pass_gate,
     propose_external_action,
     record_change,
     render_gate_summary,
@@ -57,11 +56,6 @@ def build_parser() -> argparse.ArgumentParser:
 
     command = commands.add_parser("begin")
     _gate_arguments(command)
-
-    command = commands.add_parser("pass")
-    _gate_arguments(command)
-    command.add_argument("--evidence-id", action="append", required=True)
-    command.add_argument("--validator-id", required=True)
 
     command = commands.add_parser("fail")
     _gate_arguments(command)
@@ -165,8 +159,8 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "approve":
             raise ContractStateError(
-                "approve is unavailable in contract v3; run migrate, then use pass "
-                "or authorize-action as appropriate"
+                "approve is unavailable in contract v3; run migrate, then use the "
+                "validated Gate workflow or authorize-action as appropriate"
             )
         if args.command == "init":
             print(_initialize(args))
@@ -207,9 +201,6 @@ def main(argv: list[str] | None = None) -> int:
 
         operations = {
             "begin": lambda contract: begin_gate(contract, args.gate, args.actor, args.at),
-            "pass": lambda contract: pass_gate(
-                contract, args.gate, args.evidence_id, args.validator_id, args.actor, args.at
-            ),
             "fail": lambda contract: fail_gate(
                 contract, args.gate, _parse_issues(args.issue), args.actor, args.at
             ),
