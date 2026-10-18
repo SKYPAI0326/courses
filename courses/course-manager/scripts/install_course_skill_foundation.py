@@ -249,6 +249,14 @@ def _write_text_durable(path: Path, value: str, *, executable: bool = False) -> 
     _fsync_directory(path.parent)
 
 
+def _file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def _durable_replace(source: Path, destination: Path) -> None:
     source_parent = source.parent
     destination_parent = destination.parent
@@ -412,6 +420,42 @@ print(f"rolled back: {operation_dir}")
 """
 
 
+def _governed_rollback_script(
+    installer_path: Path,
+    packages_root: Path,
+    skills_root: Path,
+    operations_root: Path,
+) -> str:
+    values = {
+        "installer": json.dumps(str(installer_path)),
+        "packages": json.dumps(str(packages_root)),
+        "skills": json.dumps(str(skills_root)),
+        "operations": json.dumps(str(operations_root)),
+    }
+    return f"""#!/usr/bin/env python3
+from __future__ import annotations
+
+import subprocess
+import sys
+from pathlib import Path
+
+operation_dir = Path(__file__).absolute().parent
+command = [
+    sys.executable,
+    {values['installer']},
+    "--rollback-operation",
+    str(operation_dir),
+    "--packages-root",
+    {values['packages']},
+    "--skills-root",
+    {values['skills']},
+    "--operations-root",
+    {values['operations']},
+]
+raise SystemExit(subprocess.call(command))
+"""
+
+
 def _remove_directory_if_present(path: Path) -> None:
     if path.is_symlink():
         path.unlink()
@@ -458,15 +502,169 @@ def _load_operation_manifest(operation_dir: Path) -> tuple[Path, dict[str, Any]]
     return manifest_path, manifest
 
 
-def _record_target(record: dict[str, Any]) -> Path:
-    target_value = record.get("target")
-    if not isinstance(target_value, str):
-        raise InstallError("operation record target is invalid")
-    return _safe_root_argument(
-        Path(target_value),
-        f"operation target for {record.get('name', '<unknown>')}",
-        allow_absent=True,
+def _authority_path(operations_root: Path, operation_id: str) -> Path:
+    return operations_root / ".authority" / f"{operation_id}.json"
+
+
+def _write_operation_authority(
+    operation_dir: Path,
+    packages_root: Path,
+    skills_root: Path,
+    operations_root: Path,
+    actions: Sequence[InstallAction],
+    allowed_updates: set[str],
+) -> str:
+    authority_dir = operations_root / ".authority"
+    authority_dir.mkdir(parents=True, exist_ok=True)
+    _fsync_directory(operations_root)
+    authority_path = _authority_path(operations_root, operation_dir.name)
+    if authority_path.exists() or authority_path.is_symlink():
+        raise InstallError(f"operation authority already exists: {authority_path}")
+    authority = {
+        "schema_version": 1,
+        "operation_id": operation_dir.name,
+        "operation_dir": str(operation_dir),
+        "packages_root": str(packages_root),
+        "package_manifest_sha256": _file_sha256(packages_root / "manifest.json"),
+        "skills_root": str(skills_root),
+        "operations_root": str(operations_root),
+        "allowed_updates": sorted(allowed_updates),
+        "packages": [
+            {
+                "name": action.name,
+                "action": action.action,
+                "target": str(skills_root / action.name),
+                "before_exists": action.before_hash is not None,
+                "before_hash": action.before_hash,
+                "after_hash": action.after_hash,
+                "backup": (
+                    f"backups/{action.name}"
+                    if action.before_hash is not None
+                    else None
+                ),
+            }
+            for action in actions
+        ],
+    }
+    _write_json_atomic(authority_path, authority)
+    authority_path.chmod(0o444)
+    with authority_path.open("rb") as handle:
+        os.fsync(handle.fileno())
+    _fsync_directory(authority_dir)
+    return _file_sha256(authority_path)
+
+
+def _load_recovery_context(
+    operation_dir: Path,
+    *,
+    packages_root: Path,
+    skills_root: Path,
+    operations_root: Path,
+) -> tuple[Path, dict[str, Any], dict[str, dict[str, Any]]]:
+    packages_root = _safe_root_argument(packages_root, "packages root")
+    skills_root = _safe_root_argument(skills_root, "skills root", allow_absent=True)
+    operations_root = _safe_root_argument(operations_root, "operations root")
+    _validate_install_root_topology(packages_root, skills_root, operations_root)
+    operation_dir = _safe_root_argument(operation_dir, "operation directory")
+    if operation_dir.parent != operations_root:
+        raise InstallError("operation directory is outside the authorized operations root")
+
+    manifest_path, manifest = _load_operation_manifest(operation_dir)
+    operation_id = operation_dir.name
+    if manifest.get("operation_id") != operation_id:
+        raise InstallError("operation manifest identity does not match its directory")
+    authority_path = _authority_path(operations_root, operation_id)
+    if authority_path.is_symlink() or not authority_path.is_file():
+        raise InstallError(f"independent operation authority is unavailable: {authority_path}")
+    if authority_path.stat().st_mode & 0o222:
+        raise InstallError(f"independent operation authority is writable: {authority_path}")
+    if manifest.get("authority_sha256") != _file_sha256(authority_path):
+        raise InstallError("operation manifest does not match independent authority")
+    try:
+        authority = json.loads(authority_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise InstallError(f"cannot read operation authority {authority_path}: {error}") from error
+    expected_authority_fields = {
+        "schema_version": 1,
+        "operation_id": operation_id,
+        "operation_dir": str(operation_dir),
+        "packages_root": str(packages_root),
+        "package_manifest_sha256": _file_sha256(packages_root / "manifest.json"),
+        "skills_root": str(skills_root),
+        "operations_root": str(operations_root),
+    }
+    for field, expected in expected_authority_fields.items():
+        if authority.get(field) != expected:
+            raise InstallError(f"operation authority has invalid {field}")
+    if authority.get("allowed_updates") != manifest.get("allowed_updates"):
+        raise InstallError("operation update authorization differs from authority")
+
+    package_manifest = {
+        record["name"]: record for record in _load_manifest_records(packages_root / "manifest.json")
+    }
+    authority_records = authority.get("packages")
+    manifest_records = manifest.get("packages")
+    if not isinstance(authority_records, list) or not authority_records:
+        raise InstallError("operation authority has no package records")
+    if not isinstance(manifest_records, list) or len(manifest_records) != len(
+        authority_records
+    ):
+        raise InstallError("operation package records differ from authority")
+    trusted_fields = (
+        "name",
+        "action",
+        "target",
+        "before_exists",
+        "before_hash",
+        "after_hash",
+        "backup",
     )
+    trusted: dict[str, dict[str, Any]] = {}
+    for authority_record, manifest_record in zip(authority_records, manifest_records):
+        if not isinstance(authority_record, dict) or not isinstance(manifest_record, dict):
+            raise InstallError("operation package record must be an object")
+        name = authority_record.get("name")
+        if not isinstance(name, str) or name in trusted or name not in package_manifest:
+            raise InstallError("operation authority package set is invalid")
+        if authority_record.get("target") != str(skills_root / name):
+            raise InstallError(f"operation authority target is invalid: {name}")
+        if authority_record.get("after_hash") != package_manifest[name]["baseline_hash"]:
+            raise InstallError(f"operation authority baseline is invalid: {name}")
+        if authority_record.get("action") not in {"ADD", "UPDATE"}:
+            raise InstallError(f"operation authority action is invalid: {name}")
+        before_exists = authority_record.get("before_exists")
+        before_hash = authority_record.get("before_hash")
+        expected_backup = f"backups/{name}" if before_exists is True else None
+        if authority_record.get("backup") != expected_backup:
+            raise InstallError(f"operation authority backup is invalid: {name}")
+        if before_exists is True:
+            if not isinstance(before_hash, str) or not SHA256_PATTERN.fullmatch(before_hash):
+                raise InstallError(f"operation authority before hash is invalid: {name}")
+        elif before_exists is not False or before_hash is not None:
+            raise InstallError(f"operation authority before state is invalid: {name}")
+        if any(
+            manifest_record.get(field) != authority_record.get(field)
+            for field in trusted_fields
+        ):
+            raise InstallError(f"operation manifest record differs from authority: {name}")
+        if not isinstance(manifest_record.get("phase"), str):
+            raise InstallError(f"operation recovery phase is invalid: {name}")
+        for field, prefix in (
+            ("container", f".course-skill-{name}-"),
+            ("recovery_container", f".course-skill-recover-{name}-"),
+        ):
+            value = manifest_record.get(field)
+            if value is None:
+                continue
+            if not isinstance(value, str):
+                raise InstallError(f"operation {field} is invalid: {name}")
+            container = _safe_root_argument(
+                Path(value), f"operation {field} for {name}", allow_absent=True
+            )
+            if container.parent != skills_root or not container.name.startswith(prefix):
+                raise InstallError(f"operation {field} escapes skills root: {name}")
+        trusted[name] = authority_record
+    return manifest_path, manifest, trusted
 
 
 def _verified_tree_hash(path: Path, label: str) -> str:
@@ -481,25 +679,13 @@ def _recover_package_record(
     manifest_path: Path,
     manifest: dict[str, Any],
     record: dict[str, Any],
+    authority: dict[str, Any],
 ) -> None:
-    name = record.get("name")
-    if not isinstance(name, str) or not PACKAGE_NAME_PATTERN.fullmatch(name):
-        raise InstallError("operation record package name is invalid")
-    before_exists = record.get("before_exists")
-    before_hash = record.get("before_hash")
-    after_hash = record.get("after_hash")
-    if not isinstance(before_exists, bool) or not isinstance(after_hash, str):
-        raise InstallError(f"operation record hashes are invalid: {name}")
-    if not SHA256_PATTERN.fullmatch(after_hash):
-        raise InstallError(f"operation after hash is invalid: {name}")
-    if before_exists and (
-        not isinstance(before_hash, str) or not SHA256_PATTERN.fullmatch(before_hash)
-    ):
-        raise InstallError(f"operation before hash is invalid: {name}")
-    if not before_exists and before_hash is not None:
-        raise InstallError(f"unexpected before hash for added package: {name}")
-
-    target = _record_target(record)
+    name = authority["name"]
+    before_exists = authority["before_exists"]
+    before_hash = authority["before_hash"]
+    after_hash = authority["after_hash"]
+    target = Path(authority["target"])
     current_hash: str | None = None
     if target.exists() or target.is_symlink():
         current_hash = _verified_tree_hash(target, f"installed target {name}")
@@ -513,55 +699,139 @@ def _recover_package_record(
 
     backup: Path | None = None
     if before_exists:
-        backup_value = record.get("backup")
-        if not isinstance(backup_value, str):
-            raise InstallError(f"verified backup path is missing: {name}")
-        backup = operation_dir / backup_value
+        backup = operation_dir / authority["backup"]
         if backup.parent != operation_dir / "backups":
             raise InstallError(f"backup path escapes operation directory: {name}")
         if _verified_tree_hash(backup, f"backup {name}") != before_hash:
             raise InstallError(f"verified backup differs from before hash: {name}")
 
-    if (before_exists and current_hash == before_hash) or (
-        not before_exists and current_hash is None
+    recovery_value = record.get("recovery_container")
+    recovery = Path(recovery_value) if isinstance(recovery_value, str) else None
+    if recovery is None and not (
+        (before_exists and current_hash == before_hash)
+        or (not before_exists and current_hash is None)
     ):
-        record["phase"] = "RECOVERED"
-        _write_json_atomic(manifest_path, manifest)
-    else:
-        recovery = Path(
-            tempfile.mkdtemp(prefix=f".course-skill-recover-{name}-", dir=target.parent)
+        recovery = target.parent / (
+            f".course-skill-recover-{name}-{operation_dir.name}"
         )
         record["recovery_container"] = str(recovery)
+        record["phase"] = "RECOVERY_CREATE_INTENT"
+        _write_json_atomic(manifest_path, manifest)
+        recovery.mkdir()
+        _fsync_directory(target.parent)
         record["phase"] = "RECOVERY_INTENT"
         _write_json_atomic(manifest_path, manifest)
-        quarantined = recovery / "quarantined"
-        if current_hash is not None:
-            _durable_replace(target, quarantined)
-            record["phase"] = "TARGET_QUARANTINED"
-            _write_json_atomic(manifest_path, manifest)
-        if before_exists:
-            assert backup is not None and before_hash is not None
-            restored = recovery / "restored"
+
+    phase = record.get("phase")
+    if recovery is not None and phase == "RECOVERY_CREATE_INTENT":
+        if recovery.exists():
+            if not recovery.is_dir() or any(recovery.iterdir()):
+                raise InstallError(f"recovery container create state is invalid: {name}")
+        else:
+            recovery.mkdir()
+            _fsync_directory(target.parent)
+        record["phase"] = "RECOVERY_INTENT"
+        _write_json_atomic(manifest_path, manifest)
+
+    target_is_before = (before_exists and current_hash == before_hash) or (
+        not before_exists and current_hash is None
+    )
+    phase = record.get("phase")
+    if recovery is not None and phase == "CLEANUP_INTENT" and target_is_before:
+        if recovery.exists():
+            shutil.rmtree(recovery)
+            _fsync_directory(recovery.parent)
+        record["recovery_container"] = None
+        record["phase"] = "RECOVERY_CONTAINER_CLEANED"
+        _write_json_atomic(manifest_path, manifest)
+        recovery = None
+
+    quarantined = recovery / "quarantined" if recovery is not None else None
+    restored = recovery / "restored" if recovery is not None else None
+    quarantine_hash: str | None = None
+    if quarantined is not None and (quarantined.exists() or quarantined.is_symlink()):
+        quarantine_hash = _verified_tree_hash(quarantined, f"quarantine {name}")
+        if quarantine_hash != after_hash:
+            raise InstallError(f"recovery quarantine differs from installed hash: {name}")
+    restored_hash: str | None = None
+    if restored is not None and (restored.exists() or restored.is_symlink()):
+        restored_hash = _verified_tree_hash(restored, f"restored staging {name}")
+        if restored_hash != before_hash:
+            raise InstallError(f"recovery staging differs from before hash: {name}")
+
+    phase = record.get("phase")
+    if (
+        phase in {
+            "TARGET_QUARANTINED",
+            "RESTORE_INTENT",
+            "RESTORED_STAGED",
+            "TARGET_RESTORE_INTENT",
+        }
+        and not target_is_before
+        and quarantine_hash is None
+    ):
+        raise InstallError(f"recovery quarantine is missing: {name}")
+
+    if recovery is not None and current_hash == after_hash and quarantine_hash is None:
+        record["phase"] = "TARGET_QUARANTINE_INTENT"
+        _write_json_atomic(manifest_path, manifest)
+        _durable_replace(target, quarantined)
+        current_hash = None
+        quarantine_hash = after_hash
+        record["phase"] = "TARGET_QUARANTINED"
+        _write_json_atomic(manifest_path, manifest)
+
+    if before_exists and current_hash != before_hash:
+        assert backup is not None and before_hash is not None
+        if restored_hash is None:
             _copy_verified(backup, restored, before_hash)
             record["phase"] = "RESTORE_INTENT"
             _write_json_atomic(manifest_path, manifest)
-            _durable_replace(restored, target)
-        record["phase"] = "RECOVERED"
+            restored_hash = before_hash
+        record["phase"] = "TARGET_RESTORE_INTENT"
         _write_json_atomic(manifest_path, manifest)
-        shutil.rmtree(recovery, ignore_errors=True)
+        if not target.exists() and restored is not None and restored.exists():
+            _durable_replace(restored, target)
+        current_hash = _verified_tree_hash(target, f"restored target {name}")
+        if current_hash != before_hash:
+            raise InstallError(f"restored target differs from before hash: {name}")
+        record["phase"] = "TARGET_RESTORED"
+        _write_json_atomic(manifest_path, manifest)
+
+    target_is_before = (before_exists and current_hash == before_hash) or (
+        not before_exists and current_hash is None
+    )
+    if not target_is_before:
+        raise InstallError(f"recovery did not restore the authorized before state: {name}")
+
+    if recovery is not None and recovery.exists():
+        record["phase"] = "CLEANUP_INTENT"
+        _write_json_atomic(manifest_path, manifest)
+        shutil.rmtree(recovery)
+        _fsync_directory(recovery.parent)
+        record["recovery_container"] = None
+        record["phase"] = "RECOVERY_CONTAINER_CLEANED"
+        _write_json_atomic(manifest_path, manifest)
 
     container_value = record.get("container")
     if isinstance(container_value, str):
         container = Path(container_value)
-        if container.parent == target.parent and container.name.startswith(
-            f".course-skill-{name}-"
-        ):
-            shutil.rmtree(container, ignore_errors=True)
+        if container.exists():
+            record["phase"] = "INSTALL_CONTAINER_CLEANUP_INTENT"
+            _write_json_atomic(manifest_path, manifest)
+            shutil.rmtree(container)
+            _fsync_directory(container.parent)
+        record["container"] = None
+    record["phase"] = "RECOVERED"
+    _write_json_atomic(manifest_path, manifest)
 
 
 def recover_install(
     operation_dir: Path,
     *,
+    packages_root: Path,
+    skills_root: Path,
+    operations_root: Path,
     final_status: str = "RECOVERED",
 ) -> None:
     """Roll an interrupted PREPARED/EXECUTING install back to its before state."""
@@ -569,8 +839,25 @@ def recover_install(
     if final_status not in {"RECOVERED", "FAILED"}:
         raise ValueError("recovery final status must be RECOVERED or FAILED")
     operation_dir = _safe_root_argument(operation_dir, "operation directory")
-    manifest_path, manifest = _load_operation_manifest(operation_dir)
+    manifest_path, manifest, authority = _load_recovery_context(
+        operation_dir,
+        packages_root=packages_root,
+        skills_root=skills_root,
+        operations_root=operations_root,
+    )
     status = manifest.get("status")
+    if status in {"RECOVERED", "FAILED"}:
+        if any(record.get("phase") != "RECOVERED" for record in manifest["packages"]):
+            raise InstallError("completed recovery contains unfinished package state")
+        for record in manifest["packages"]:
+            trusted = authority[record["name"]]
+            target = Path(trusted["target"])
+            if trusted["before_exists"]:
+                if _verified_tree_hash(target, f"recovered target {record['name']}") != trusted["before_hash"]:
+                    raise InstallError("completed recovery target differs from authority")
+            elif target.exists() or target.is_symlink():
+                raise InstallError("completed recovery unexpectedly retains added target")
+        return
     if status not in {"PREPARED", "EXECUTING"}:
         raise InstallError(
             f"recovery requires PREPARED or EXECUTING manifest, got {status!r}"
@@ -579,7 +866,11 @@ def recover_install(
         if not isinstance(record, dict):
             raise InstallError("operation package record must be an object")
         _recover_package_record(
-            operation_dir, manifest_path, manifest, record
+            operation_dir,
+            manifest_path,
+            manifest,
+            record,
+            authority[record["name"]],
         )
     manifest["status"] = final_status
     manifest["recovered_at"] = datetime.now(timezone.utc).isoformat()
@@ -736,8 +1027,18 @@ def install(
                 }
             )
 
+        authority_sha256 = _write_operation_authority(
+            operation_dir,
+            packages_root,
+            skills_root,
+            operations_root,
+            mutable_actions,
+            allowed_updates,
+        )
         manifest = {
             "schema_version": 2,
+            "operation_id": operation_dir.name,
+            "authority_sha256": authority_sha256,
             "status": "PREPARED",
             "created_at": datetime.now(timezone.utc).isoformat(),
             "installer_path": str(Path(__file__).resolve()),
@@ -747,7 +1048,14 @@ def install(
         manifest_path = operation_dir / "manifest.json"
         _write_json_atomic(manifest_path, manifest)
         _write_text_durable(
-            operation_dir / "rollback.py", _rollback_script(), executable=True
+            operation_dir / "rollback.py",
+            _governed_rollback_script(
+                Path(__file__).resolve(),
+                packages_root,
+                skills_root,
+                operations_root,
+            ),
+            executable=True,
         )
 
         package_record_by_name = {
@@ -800,7 +1108,13 @@ def install(
             try:
                 interrupted = json.loads(manifest_path.read_text(encoding="utf-8"))
                 if interrupted.get("status") in {"PREPARED", "EXECUTING"}:
-                    recover_install(operation_dir, final_status="FAILED")
+                    recover_install(
+                        operation_dir,
+                        packages_root=packages_root,
+                        skills_root=skills_root,
+                        operations_root=operations_root,
+                        final_status="FAILED",
+                    )
             except Exception as error:  # pragma: no cover - catastrophic and re-raised
                 recovery_error = error
         if recovery_error is not None:
@@ -869,16 +1183,29 @@ def verify_installed_packages(
     return verified
 
 
-def rollback_install(operation_dir: Path) -> None:
+def rollback_install(
+    operation_dir: Path,
+    *,
+    packages_root: Path,
+    skills_root: Path,
+    operations_root: Path,
+) -> None:
     operation_dir = _safe_root_argument(
         Path(operation_dir), "operation directory"
     )
-    manifest_path = operation_dir / "manifest.json"
-    if manifest_path.is_symlink() or not manifest_path.is_file():
-        raise InstallError(f"operation manifest must be a regular file: {manifest_path}")
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest_path, manifest, authority = _load_recovery_context(
+        operation_dir,
+        packages_root=packages_root,
+        skills_root=skills_root,
+        operations_root=operations_root,
+    )
     if manifest.get("status") in {"PREPARED", "EXECUTING"}:
-        recover_install(operation_dir)
+        recover_install(
+            operation_dir,
+            packages_root=packages_root,
+            skills_root=skills_root,
+            operations_root=operations_root,
+        )
         return
     if manifest.get("status") != "APPLIED":
         raise InstallError(
@@ -887,23 +1214,25 @@ def rollback_install(operation_dir: Path) -> None:
 
     records = manifest.get("packages", [])
     for record in records:
-        target = Path(record["target"])
+        trusted = authority[record["name"]]
+        target = Path(trusted["target"])
         if not target.is_dir():
             raise InstallError(f"installed target is missing: {target}")
         current_hash = tree_hash(target)
-        if current_hash != record["after_hash"]:
+        if current_hash != trusted["after_hash"]:
             raise InstallError(
                 f"installed skill changed after install: {record['name']}"
             )
-        if record["before_exists"]:
-            backup = operation_dir / record["backup"]
-            if not backup.is_dir() or tree_hash(backup) != record["before_hash"]:
+        if trusted["before_exists"]:
+            backup = operation_dir / trusted["backup"]
+            if not backup.is_dir() or tree_hash(backup) != trusted["before_hash"]:
                 raise InstallError(f"verified backup is unavailable: {record['name']}")
 
     swap_states: list[dict[str, Any]] = []
     try:
         for record in records:
-            target = Path(record["target"])
+            trusted = authority[record["name"]]
+            target = Path(trusted["target"])
             container = Path(
                 tempfile.mkdtemp(
                     prefix=f".course-skill-rollback-{record['name']}-",
@@ -921,10 +1250,10 @@ def rollback_install(operation_dir: Path) -> None:
             swap_states.append(state)
             os.replace(target, installed)
             state["installed_moved"] = True
-            if record["before_exists"]:
+            if trusted["before_exists"]:
                 staged = container / "restored"
-                backup = operation_dir / record["backup"]
-                _copy_verified(backup, staged, record["before_hash"])
+                backup = operation_dir / trusted["backup"]
+                _copy_verified(backup, staged, trusted["before_hash"])
                 os.replace(staged, target)
                 state["restored_target"] = True
 
@@ -963,6 +1292,11 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         help="roll a PREPARED/EXECUTING operation back before retrying apply",
     )
+    mode.add_argument(
+        "--rollback-operation",
+        type=Path,
+        help="roll an APPLIED operation back using independent root authority",
+    )
     parser.add_argument("--packages-root", type=Path, default=project_root / "skill-packages")
     parser.add_argument("--skills-root", type=Path)
     parser.add_argument(
@@ -988,10 +1322,6 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
-        if args.recover_operation is not None:
-            recover_install(args.recover_operation)
-            print(f"RECOVERED {args.recover_operation}")
-            return 0
         if args.verify_source:
             verified = verify_source_packages(
                 args.packages_root,
@@ -1006,6 +1336,36 @@ def main(argv: list[str] | None = None) -> int:
             if not configured_skills:
                 raise InstallError("SKILLS_ROOT or --skills-root is required")
             skills_root = Path(configured_skills)
+        configured_state = os.environ.get("COURSE_DESIGN_STATE_ROOT")
+        operations_root = args.operations_root
+        if operations_root is None and configured_state:
+            operations_root = (
+                Path(configured_state) / "operations" / "course-skill-foundation"
+            )
+        if args.recover_operation is not None or args.rollback_operation is not None:
+            if operations_root is None:
+                raise InstallError(
+                    "COURSE_DESIGN_STATE_ROOT or --operations-root is required "
+                    "for recovery/rollback"
+                )
+            operation = args.recover_operation or args.rollback_operation
+            if args.recover_operation is not None:
+                recover_install(
+                    operation,
+                    packages_root=args.packages_root,
+                    skills_root=skills_root,
+                    operations_root=operations_root,
+                )
+                print(f"RECOVERED {operation}")
+            else:
+                rollback_install(
+                    operation,
+                    packages_root=args.packages_root,
+                    skills_root=skills_root,
+                    operations_root=operations_root,
+                )
+                print(f"ROLLED_BACK {operation}")
+            return 0
         if args.verify_installed:
             verified = verify_installed_packages(
                 args.packages_root,
@@ -1015,18 +1375,11 @@ def main(argv: list[str] | None = None) -> int:
             for name, package_hash in verified.items():
                 print(f"VERIFIED {name}: {package_hash}")
             return 0
-        operations_root = args.operations_root
         if operations_root is None:
-            configured_state = os.environ.get("COURSE_DESIGN_STATE_ROOT")
             if args.apply and not configured_state:
                 raise InstallError(
                     "COURSE_DESIGN_STATE_ROOT or --operations-root is required for apply"
                 )
-            operations_root = (
-                Path(configured_state) / "operations" / "course-skill-foundation"
-                if configured_state
-                else None
-            )
         result = install(
             args.packages_root,
             skills_root,

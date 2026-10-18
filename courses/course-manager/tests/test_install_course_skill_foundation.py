@@ -93,6 +93,14 @@ class CourseSkillFoundationInstallerTests(unittest.TestCase):
             allow_updates=("course-run", "course-pm"),
         )
 
+    def authorized_rollback(self, operation):
+        return rollback_install(
+            operation,
+            packages_root=self.packages_root,
+            skills_root=self.skills_root,
+            operations_root=self.operations_root,
+        )
+
     def test_installer_reads_manifest_instead_of_hardcoded_tuple(self):
         manifest_path = self.packages_root / "manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -257,7 +265,7 @@ class CourseSkillFoundationInstallerTests(unittest.TestCase):
         changed.write_text("user changed this after install\n", encoding="utf-8")
 
         with self.assertRaises(InstallError):
-            rollback_install(result.operation_dir)
+            self.authorized_rollback(result.operation_dir)
 
         self.assertEqual(
             changed.read_text(encoding="utf-8"), "user changed this after install\n"
@@ -273,7 +281,7 @@ class CourseSkillFoundationInstallerTests(unittest.TestCase):
         changed.write_text("使用者安裝後修改\n", encoding="utf-8")
 
         with self.assertRaises(InstallError):
-            rollback_install(result.operation_dir)
+            self.authorized_rollback(result.operation_dir)
 
         self.assertEqual(changed.read_text(encoding="utf-8"), "使用者安裝後修改\n")
 
@@ -284,7 +292,7 @@ class CourseSkillFoundationInstallerTests(unittest.TestCase):
         }
         result = self.apply_install()
 
-        rollback_install(result.operation_dir)
+        self.authorized_rollback(result.operation_dir)
 
         self.assertEqual(self.snapshot(self.skills_root / "course-run"), before["course-run"])
         self.assertEqual(self.snapshot(self.skills_root / "course-pm"), before["course-pm"])
@@ -294,20 +302,12 @@ class CourseSkillFoundationInstallerTests(unittest.TestCase):
         )
         self.assertEqual(manifest["status"], "ROLLED_BACK")
 
-    def test_generated_rollback_is_self_contained(self):
+    def test_generated_rollback_uses_governed_authority(self):
         before = {
             name: self.snapshot(self.skills_root / name)
             for name in ("course-run", "course-pm")
         }
         result = self.apply_install()
-        manifest_path = result.operation_dir / "manifest.json"
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["installer_path"] = str(self.root / "removed-worktree" / "installer.py")
-        manifest_path.write_text(
-            json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
-            encoding="utf-8",
-        )
-
         process = subprocess.run(
             [sys.executable, str(result.operation_dir / "rollback.py")],
             text=True,
@@ -319,6 +319,31 @@ class CourseSkillFoundationInstallerTests(unittest.TestCase):
         self.assertEqual(self.snapshot(self.skills_root / "course-run"), before["course-run"])
         self.assertEqual(self.snapshot(self.skills_root / "course-pm"), before["course-pm"])
         self.assertFalse((self.skills_root / "course-researcher").exists())
+
+    def test_generated_rollback_rejects_tampered_target_without_touching_victim(self):
+        result = self.apply_install()
+        victim = self.root / "rollback-victim"
+        victim.mkdir()
+        (victim / "keep.bin").write_bytes(b"victim must survive\x00")
+        victim_before = self.snapshot(victim)
+        manifest_path = result.operation_dir / "manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        record = next(
+            item for item in manifest["packages"] if item["name"] == "course-researcher"
+        )
+        record["target"] = str(victim)
+        record["after_hash"] = installer.tree_hash(victim)
+        manifest_path.write_text(json.dumps(manifest) + "\n", encoding="utf-8")
+
+        process = subprocess.run(
+            [sys.executable, str(result.operation_dir / "rollback.py")],
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        self.assertNotEqual(process.returncode, 0)
+        self.assertEqual(self.snapshot(victim), victim_before)
 
     def test_committed_operation_rollbacks_match_current_generator(self):
         project_root = Path(__file__).resolve().parents[1]
@@ -455,8 +480,292 @@ class CourseSkillFoundationInstallerTests(unittest.TestCase):
 
     def _crashed_operation(self):
         operations = sorted(self.operations_root.iterdir())
-        self.assertEqual(len(operations), 1)
-        return operations[0]
+        operation_dirs = [path for path in operations if path.name != ".authority"]
+        self.assertEqual(len(operation_dirs), 1)
+        return operation_dirs[0]
+
+    def authorized_recover(self, operation, **kwargs):
+        return recover_install(
+            operation,
+            packages_root=kwargs.get("packages_root", self.packages_root),
+            skills_root=kwargs.get("skills_root", self.skills_root),
+            operations_root=kwargs.get("operations_root", self.operations_root),
+        )
+
+    def _interrupt_after_installed_replace(
+        self,
+        *,
+        package_name="course-run",
+        packages_root=None,
+        skills_root=None,
+        operations_root=None,
+    ):
+        packages_root = packages_root or self.packages_root
+        skills_root = skills_root or self.skills_root
+        operations_root = operations_root or self.operations_root
+        real_replace = installer.os.replace
+
+        def crash_after_target(source, destination):
+            result = real_replace(source, destination)
+            if (
+                Path(source).name == "staged"
+                and Path(destination) == skills_root / package_name
+            ):
+                raise SystemExit("simulated process crash after target replace")
+            return result
+
+        with mock.patch.object(installer.os, "replace", side_effect=crash_after_target):
+            with self.assertRaises(SystemExit):
+                install(
+                    packages_root,
+                    skills_root,
+                    operations_root,
+                    apply=True,
+                    allow_updates=("course-run", "course-pm"),
+                )
+        return next(
+            path for path in operations_root.iterdir() if path.name != ".authority"
+        )
+
+    def test_recovery_rejects_manifest_authority_tampering_before_mutation(self):
+        operation = self._interrupt_after_installed_replace()
+        manifest_path = operation / "manifest.json"
+        original = json.loads(manifest_path.read_text(encoding="utf-8"))
+        victim = self.root / "unrelated-victim"
+        victim.mkdir()
+        (victim / "keep.bin").write_bytes(b"exact victim bytes\x00\xff")
+        victim_before = self.snapshot(victim)
+
+        tamper_cases = {
+            "target": lambda value: value["packages"][0].update(
+                {"target": str(victim), "after_hash": installer.tree_hash(victim)}
+            ),
+            "after_hash": lambda value: value["packages"][0].update(
+                {"after_hash": "0" * 64}
+            ),
+            "package_name": lambda value: value["packages"][0].update(
+                {"name": "course-evil", "target": str(self.skills_root / "course-evil")}
+            ),
+            "operation_identity": lambda value: value.update(
+                {"operation_id": "forged-operation"}
+            ),
+        }
+        for label, tamper in tamper_cases.items():
+            with self.subTest(label=label):
+                changed = json.loads(json.dumps(original))
+                tamper(changed)
+                manifest_path.write_text(json.dumps(changed) + "\n", encoding="utf-8")
+                with self.assertRaises(InstallError):
+                    self.authorized_recover(operation)
+                self.assertEqual(self.snapshot(victim), victim_before)
+
+        manifest_path.write_text(json.dumps(original) + "\n", encoding="utf-8")
+        wrong_skills = self.root / "wrong-skills"
+        wrong_skills.mkdir()
+        with self.assertRaises(InstallError):
+            self.authorized_recover(operation, skills_root=wrong_skills)
+        self.assertEqual(self.snapshot(victim), victim_before)
+
+    def test_recovery_fails_closed_without_independent_authority(self):
+        operation = self._interrupt_after_installed_replace()
+        authority = self.operations_root / ".authority" / f"{operation.name}.json"
+        authority_bytes = authority.read_bytes()
+        authority.unlink()
+
+        with self.assertRaisesRegex(InstallError, "authority"):
+            self.authorized_recover(operation)
+
+        authority.write_bytes(authority_bytes)
+        authority.chmod(0o444)
+        self.authorized_recover(operation)
+
+    def test_recovery_replays_every_durable_boundary_and_cleans_containers(self):
+        phases = (
+            "RECOVERY_CREATE_INTENT",
+            "RECOVERY_INTENT",
+            "TARGET_QUARANTINE_INTENT",
+            "TARGET_QUARANTINED",
+            "RESTORE_INTENT",
+            "TARGET_RESTORE_INTENT",
+            "CLEANUP_INTENT",
+            "RECOVERY_CONTAINER_CLEANED",
+            "INSTALL_CONTAINER_CLEANUP_INTENT",
+            "RECOVERED",
+        )
+        for phase in phases:
+            with self.subTest(phase=phase):
+                case_root = self.root / f"replay-{phase.lower()}"
+                packages = case_root / "packages"
+                skills = case_root / "skills"
+                operations = case_root / "operations"
+                installer.shutil.copytree(self.packages_root, packages)
+                installer.shutil.copytree(self.skills_root, skills)
+                before = self.snapshot(skills)
+                operation = self._interrupt_after_installed_replace(
+                    packages_root=packages,
+                    skills_root=skills,
+                    operations_root=operations,
+                )
+                real_write = installer._write_json_atomic
+
+                def exit_after_phase(path, value):
+                    result = real_write(path, value)
+                    course_run = next(
+                        record
+                        for record in value.get("packages", [])
+                        if record.get("name") == "course-run"
+                    )
+                    if course_run.get("phase") == phase:
+                        raise SystemExit(f"crash after {phase}")
+                    return result
+
+                with mock.patch.object(
+                    installer, "_write_json_atomic", side_effect=exit_after_phase
+                ):
+                    with self.assertRaises(SystemExit):
+                        recover_install(
+                            operation,
+                            packages_root=packages,
+                            skills_root=skills,
+                            operations_root=operations,
+                        )
+
+                recover_install(
+                    operation,
+                    packages_root=packages,
+                    skills_root=skills,
+                    operations_root=operations,
+                )
+                recover_install(
+                    operation,
+                    packages_root=packages,
+                    skills_root=skills,
+                    operations_root=operations,
+                )
+                self.assertEqual(self.snapshot(skills), before)
+                self.assertEqual(list(skills.glob(".course-skill-recover-*")), [])
+
+    def test_recovery_replays_after_process_exit_at_target_quarantined(self):
+        before = self.snapshot(self.skills_root)
+        operation = self._interrupt_after_installed_replace()
+        project_root = Path(__file__).resolve().parents[1]
+        script = """
+import os
+import sys
+from pathlib import Path
+from scripts import install_course_skill_foundation as installer
+
+operation, packages, skills, operations = map(Path, sys.argv[1:5])
+real_write = installer._write_json_atomic
+
+def exit_after_quarantine(path, value):
+    result = real_write(path, value)
+    record = next(
+        item for item in value.get("packages", [])
+        if item.get("name") == "course-run"
+    )
+    if record.get("phase") == "TARGET_QUARANTINED":
+        os._exit(92)
+    return result
+
+installer._write_json_atomic = exit_after_quarantine
+installer.recover_install(
+    operation,
+    packages_root=packages,
+    skills_root=skills,
+    operations_root=operations,
+)
+"""
+        process = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                script,
+                str(operation),
+                str(self.packages_root),
+                str(self.skills_root),
+                str(self.operations_root),
+            ],
+            cwd=project_root,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        self.assertEqual(process.returncode, 92, process.stderr)
+        manifest = json.loads((operation / "manifest.json").read_text(encoding="utf-8"))
+        record = next(
+            item for item in manifest["packages"] if item["name"] == "course-run"
+        )
+        self.assertEqual(record["phase"], "TARGET_QUARANTINED")
+        self.authorized_recover(operation)
+        self.authorized_recover(operation)
+        self.assertEqual(self.snapshot(self.skills_root), before)
+        self.assertEqual(list(self.skills_root.glob(".course-skill-recover-*")), [])
+
+    def test_recovery_missing_or_tampered_quarantine_fails_closed(self):
+        for mode in ("missing", "tampered"):
+            with self.subTest(mode=mode):
+                case_root = self.root / f"quarantine-{mode}"
+                packages = case_root / "packages"
+                skills = case_root / "skills"
+                operations = case_root / "operations"
+                installer.shutil.copytree(self.packages_root, packages)
+                installer.shutil.copytree(self.skills_root, skills)
+                operation = self._interrupt_after_installed_replace(
+                    packages_root=packages,
+                    skills_root=skills,
+                    operations_root=operations,
+                )
+                real_write = installer._write_json_atomic
+
+                def exit_after_quarantine(path, value):
+                    result = real_write(path, value)
+                    record = next(
+                        item
+                        for item in value.get("packages", [])
+                        if item.get("name") == "course-run"
+                    )
+                    if record.get("phase") == "TARGET_QUARANTINED":
+                        raise SystemExit("crash after quarantine")
+                    return result
+
+                with mock.patch.object(
+                    installer, "_write_json_atomic", side_effect=exit_after_quarantine
+                ):
+                    with self.assertRaises(SystemExit):
+                        recover_install(
+                            operation,
+                            packages_root=packages,
+                            skills_root=skills,
+                            operations_root=operations,
+                        )
+
+                manifest = json.loads(
+                    (operation / "manifest.json").read_text(encoding="utf-8")
+                )
+                record = next(
+                    item for item in manifest["packages"] if item["name"] == "course-run"
+                )
+                quarantine = Path(record["recovery_container"]) / "quarantined"
+                if mode == "missing":
+                    installer.shutil.rmtree(quarantine)
+                else:
+                    (quarantine / "SKILL.md").write_text(
+                        "tampered quarantine\n", encoding="utf-8"
+                    )
+
+                with self.assertRaises(InstallError):
+                    recover_install(
+                        operation,
+                        packages_root=packages,
+                        skills_root=skills,
+                        operations_root=operations,
+                    )
+                current = json.loads(
+                    (operation / "manifest.json").read_text(encoding="utf-8")
+                )
+                self.assertEqual(current["status"], "EXECUTING")
 
     def test_recovery_handles_crash_after_previous_target_move(self):
         self.assertIsNotNone(recover_install)
@@ -480,7 +789,7 @@ class CourseSkillFoundationInstallerTests(unittest.TestCase):
         manifest = json.loads((operation / "manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["status"], "EXECUTING")
         self.assertEqual(manifest["allowed_updates"], ["course-pm", "course-run"])
-        recover_install(operation)
+        self.authorized_recover(operation)
         self.assertEqual(self.snapshot(self.skills_root), before)
 
     def test_recovery_handles_crash_after_new_target_replace(self):
@@ -502,7 +811,7 @@ class CourseSkillFoundationInstallerTests(unittest.TestCase):
                 self.apply_install()
 
         operation = self._crashed_operation()
-        recover_install(operation)
+        self.authorized_recover(operation)
         self.assertEqual(self.snapshot(self.skills_root), before)
 
     def test_recovery_survives_process_exit_after_new_target_replace(self):
@@ -555,7 +864,7 @@ installer.install(
         operation = self._crashed_operation()
         manifest = json.loads((operation / "manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["status"], "EXECUTING")
-        recover_install(operation)
+        self.authorized_recover(operation)
         self.assertEqual(self.snapshot(self.skills_root), before)
 
     def test_recovery_accepts_prepared_manifest_before_first_swap(self):
@@ -578,7 +887,18 @@ installer.install(
         manifest = json.loads((operation / "manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["status"], "PREPARED")
         self.assertEqual(
-            installer.main(["--recover-operation", str(operation)]),
+            installer.main(
+                [
+                    "--recover-operation",
+                    str(operation),
+                    "--packages-root",
+                    str(self.packages_root),
+                    "--skills-root",
+                    str(self.skills_root),
+                    "--operations-root",
+                    str(self.operations_root),
+                ]
+            ),
             0,
         )
         self.assertEqual(self.snapshot(self.skills_root), before)
@@ -601,7 +921,7 @@ installer.install(
         with self.assertRaisesRegex(InstallError, "unfinished install"):
             self.apply_install()
 
-        rollback_install(operation)
+        self.authorized_rollback(operation)
         resumed = self.apply_install()
         self.assertTrue(resumed.applied)
 
@@ -678,7 +998,7 @@ installer.install(
             installer, "_copy_verified", side_effect=fail_restore_copy
         ):
             with self.assertRaises(OSError):
-                rollback_install(result.operation_dir)
+                self.authorized_rollback(result.operation_dir)
 
         for name in PACKAGE_NAMES:
             self.assertEqual(self.snapshot(self.skills_root / name), installed[name])
@@ -703,7 +1023,7 @@ installer.install(
             installer, "_write_json_atomic", side_effect=fail_rolled_back_manifest
         ):
             with self.assertRaises(OSError):
-                rollback_install(result.operation_dir)
+                self.authorized_rollback(result.operation_dir)
 
         for name in PACKAGE_NAMES:
             self.assertEqual(self.snapshot(self.skills_root / name), installed[name])

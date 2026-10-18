@@ -187,6 +187,94 @@ class CourseOrchestratorTests(unittest.TestCase):
         self.assertEqual(first, second)
         self.assertEqual(load_contract(self.contract_path)["revision"], revision)
 
+    def test_pass_replay_uses_locked_current_snapshot_after_concurrent_change(self):
+        module = self.require_orchestrator()
+        reference = self.save_in_progress_g0()
+        module.complete_gate(
+            self.contract_path,
+            self.workspace,
+            self.state,
+            "G0",
+            [reference["id"]],
+            actor="course-run",
+            at="2026-10-18T09:02:00+08:00",
+        )
+        stale = load_contract(self.contract_path)
+        for path in (self.state / "dispatch").glob("*.json"):
+            path.unlink()
+
+        from src.transactions import mutate_contract_atomic
+
+        mutate_contract_atomic(
+            self.contract_path,
+            lambda value: block_gate(
+                value,
+                "G1",
+                "concurrent evidence loss",
+                "review-race",
+                "2026-10-18T09:03:00+08:00",
+            ),
+            expected_revision=1,
+        )
+
+        with mock.patch.object(module, "load_contract", return_value=stale):
+            envelope = module.complete_gate(
+                self.contract_path,
+                self.workspace,
+                self.state,
+                "G0",
+                [reference["id"]],
+                actor="course-run",
+                at="2026-10-18T09:04:00+08:00",
+            )
+
+        self.assertEqual(envelope["contract_revision"], 2)
+        self.assertEqual(envelope["gate_id"], "G1")
+        self.assertEqual(envelope["gate_status"], "BLOCKED")
+        self.assertEqual(envelope["action"], "PAUSE")
+
+    def test_pass_replay_preserves_expected_revision_cas(self):
+        module = self.require_orchestrator()
+        reference = self.save_in_progress_g0()
+        module.complete_gate(
+            self.contract_path,
+            self.workspace,
+            self.state,
+            "G0",
+            [reference["id"]],
+            actor="course-run",
+            at="2026-10-18T09:02:00+08:00",
+        )
+
+        from src.transactions import mutate_contract_atomic
+
+        mutate_contract_atomic(
+            self.contract_path,
+            lambda value: block_gate(
+                value,
+                "G1",
+                "concurrent evidence loss",
+                "review-race",
+                "2026-10-18T09:03:00+08:00",
+            ),
+            expected_revision=1,
+        )
+        isolated_state = self.root / "isolated-state"
+
+        with self.assertRaisesRegex(module.OrchestrationError, "revision conflict"):
+            module.complete_gate(
+                self.contract_path,
+                self.workspace,
+                isolated_state,
+                "G0",
+                [reference["id"]],
+                actor="course-run",
+                at="2026-10-18T09:04:00+08:00",
+                expected_revision=1,
+            )
+
+        self.assertFalse((isolated_state / "dispatch").exists())
+
     def test_insufficient_evidence_pauses_with_blocked_envelope(self):
         module = self.require_orchestrator()
         reference = self.save_in_progress_g0(valid=False)

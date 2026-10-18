@@ -274,24 +274,21 @@ def complete_gate(
     path = Path(contract_path).absolute()
     workspace = Path(workspace_root).absolute()
     state = Path(state_root).absolute()
-    current = load_contract(path)
-    status = current["gates"][gate_id]["status"]
-    if status == "PASS":
-        if _pass_evidence_ids(current, gate_id) != tuple(evidence_ids):
-            raise OrchestrationError(
-                f"{gate_id} already passed with a different evidence request"
-            )
-        if expected_revision is not None and current.get("revision") != expected_revision:
-            raise OrchestrationError(
-                f"expected contract revision {expected_revision}, got {current.get('revision')}"
-            )
-        return _persist_envelope(
-            state, _envelope_for_contract(path, workspace, current)
-        )
-    if status != "IN_PROGRESS":
-        raise OrchestrationError(f"cannot complete {gate_id} in {status!r} state")
-
     def validate_and_advance(contract: dict[str, Any]) -> None:
+        status = contract["gates"][gate_id]["status"]
+        if status == "PASS":
+            if _pass_evidence_ids(contract, gate_id) != tuple(evidence_ids):
+                raise OrchestrationError(
+                    f"{gate_id} already passed with a different evidence request"
+                )
+            envelope = _persist_envelope(
+                state, _envelope_for_contract(path, workspace, contract)
+            )
+            raise _ReadOnlyDispatch(envelope)
+        if status != "IN_PROGRESS":
+            raise OrchestrationError(
+                f"cannot complete {gate_id} in {status!r} state"
+            )
         result = validate_and_transition_gate(
             contract, gate_id, evidence_ids, workspace, actor, at
         )
@@ -307,10 +304,15 @@ def complete_gate(
             validate_and_advance,
             expected_revision=expected_revision,
         )
+    except _ReadOnlyDispatch as result:
+        return result.envelope
     except (ContractStateError, TransactionError, OSError, ValueError) as error:
         raise OrchestrationError(str(error)) from error
-    return _persist_envelope(
-        state, _envelope_for_contract(path, workspace, committed)
+    return _persist_locked_envelope(
+        path,
+        workspace,
+        state,
+        expected_revision=committed["revision"],
     )
 
 

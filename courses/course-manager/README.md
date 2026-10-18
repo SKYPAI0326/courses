@@ -68,7 +68,7 @@ python3 scripts/install_course_skill_foundation.py \
   --recover-operation "$COURSE_DESIGN_STATE_ROOT/operations/course-skill-foundation/OPERATION_ID"
 ```
 
-套件更新必須以 `--allow-update PACKAGE_NAME` 逐項授權；安裝程式會先備份並建立 rollback 紀錄。
+套件更新必須以 `--allow-update PACKAGE_NAME` 逐項授權；安裝程式會先備份並建立 rollback 紀錄。Recovery 與 rollback 會重新核對呼叫端提供的 package root、skills root、operations root，以及 operations root 下的唯讀 authority receipt；operation manifest 若被改寫就 fail closed。
 
 ## 專案結構
 
