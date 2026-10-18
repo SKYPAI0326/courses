@@ -9,6 +9,7 @@ from src.course_validation import (
     validate_trial_context_is_new,
     validate_trial_record,
 )
+from src.schema_runtime import validate_schema_file
 
 
 ID_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -482,8 +483,13 @@ def validate_full_production(
     trial: Mapping[str, Any],
     *,
     production_roles: Mapping[str, Any] | None = None,
+    requirements: Mapping[str, Any] | None = None,
 ) -> list[ProductionIssue]:
     issues: list[ProductionIssue] = []
+    issues.extend(
+        ProductionIssue(issue.code, issue.path, issue.message, "G5")
+        for issue in validate_schema_file("course-production-record.schema.json", record)
+    )
     if record.get("schema_version") != 1:
         _full_issue(
             issues,
@@ -805,11 +811,14 @@ def validate_full_production(
             "G0",
         )
 
-    from src.course_architecture import validate_downstream_learning_coverage
+    from src.course_architecture import validate_downstream_learning_coverage, validate_learning_coverage
 
-    for coverage_issue in validate_downstream_learning_coverage(
-        blueprint, lessons, record
-    ):
+    coverage_issues = (
+        validate_learning_coverage(requirements, blueprint, lessons, record)
+        if isinstance(requirements, Mapping)
+        else validate_downstream_learning_coverage(blueprint, lessons, record)
+    )
+    for coverage_issue in coverage_issues:
         _full_issue(
             issues,
             coverage_issue.code,

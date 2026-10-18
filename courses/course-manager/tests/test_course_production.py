@@ -84,6 +84,42 @@ class CourseProductionTests(unittest.TestCase):
                 target.write_bytes(f"learner-visible input {index}\n".encode())
             item["sha256"] = hashlib.sha256(target.read_bytes()).hexdigest()
 
+    def bind_governed_course(self, root, contract, blueprint, lessons):
+        grouped = {}
+        for criterion in blueprint["criteria"]:
+            grouped.setdefault(criterion["g0_criterion_id"], []).append(
+                {"id": criterion["capability_id"], "statement": "governed capability"}
+            )
+        values = {
+            "G0": [("governed-requirements", "requirements_record", {"acceptance_criteria": [
+                {"id": criterion_id, "capabilities": capabilities}
+                for criterion_id, capabilities in grouped.items()
+            ]})],
+            "G2": [("governed-blueprint", "course_blueprint", blueprint)],
+            "G3": [
+                (f"governed-lesson-{lesson['unit_id']}", "lesson_record", lesson)
+                for lesson in lessons
+            ],
+        }
+        for gate_id, entries in values.items():
+            refs = [
+                materialize_json_evidence(
+                    root, evidence_id=evidence_id, gate_id=gate_id, kind=kind,
+                    relative_path=f"governed/{evidence_id}.json", value=value,
+                )
+                for evidence_id, kind, value in entries
+            ]
+            contract["evidence_index"].extend(refs)
+            event = next(
+                item for item in contract["gates"][gate_id]["evidence"]
+                if item.get("kind") == "gate_validation" and item.get("outcome") == "PASS"
+            )
+            event["evidence_ids"] = [ref["id"] for ref in refs]
+            event["consumed_evidence"] = [
+                {"id": ref["id"], "sha256": ref["sha256"]} for ref in refs
+            ]
+        contract["G2_architecture"] = blueprint
+
     def planned_g5_references(self, root, artifact_refs, bundle, record_path):
         planned = [
             register_evidence_file(
@@ -335,6 +371,11 @@ class CourseProductionTests(unittest.TestCase):
                         "assessment_evidence": ["checks"],
                     }
                 ],
+                "explanation": {},
+                "full_demonstration": {},
+                "guided_practice": {},
+                "independent_practice": {},
+                "checks": [{"id": f"{unit['id']}-check"}],
             }
             for unit in self.full_blueprint()["units"]
         ]
@@ -449,8 +490,8 @@ class CourseProductionTests(unittest.TestCase):
                     "unit_id": unit["id"],
                     "lesson_unit_id": unit["id"],
                     "artifact_criterion_id": criterion["g0_criterion_id"],
-                    "artifact_evidence": f"完成品保留 {criterion['id']} 的可檢查結果。",
-                    "trial_evidence": f"隔離試走完成 {criterion['id']} 並通過檢核。",
+                    "artifact_evidence_id": criterion["g0_criterion_id"],
+                    "trial_evidence_id": "action-1",
                 }
                 for unit, criterion in zip(blueprint_units, self.full_blueprint()["criteria"])
             ],
@@ -737,6 +778,20 @@ class CourseProductionTests(unittest.TestCase):
         self.assertIn("uncovered_capability", codes)
         self.assertIn("unknown_reference", codes)
 
+    def test_g5_coverage_rejects_fake_artifact_and_trial_evidence_ids(self):
+        production = self.full_production()
+        production["learning_coverage"][0]["artifact_evidence_id"] = "fake"
+        production["learning_coverage"][1]["trial_evidence_id"] = "fake"
+        codes = {
+            issue.code for issue in validate_full_production(
+                production, self.full_blueprint(), self.full_lessons(),
+                self.valid_asset_manifest(),
+                {"unit_id": "unit-1", "trial_context_id": "pilot-cold-run-20261018-01"},
+                self.full_trial(),
+            )
+        }
+        self.assertIn("invalid_coverage_row", codes)
+
     def test_production_schema_stable_refs_match_runtime(self):
         schema = json.loads(
             (Path(__file__).parents[1] / "contracts" / "course-production-record.schema.json").read_text(
@@ -746,6 +801,19 @@ class CourseProductionTests(unittest.TestCase):
         self.assertIn(PRODUCTION_COVERAGE_FIELD, schema["required"])
         self.assertTrue(
             set(PRODUCTION_UNIT_STABLE_FIELDS).issubset(schema["$defs"]["unit"]["required"])
+        )
+
+    def test_production_runtime_rejects_schema_closed_shape_bypass(self):
+        production = self.full_production()
+        production["producer_validation"] = {"status": "PASS"}
+        self.assertIn(
+            "schema_additional_property",
+            {issue.code for issue in validate_full_production(
+                production, self.full_blueprint(), self.full_lessons(),
+                self.valid_asset_manifest(),
+                {"unit_id": "unit-1", "trial_context_id": "pilot-cold-run-20261018-01"},
+                self.full_trial(),
+            )},
         )
 
     def test_governed_role_roster_prevents_self_declared_g5_independence(self):
@@ -855,6 +923,7 @@ class CourseProductionTests(unittest.TestCase):
             }
             production = self.full_production()
             lessons = self.full_lessons()
+            self.bind_governed_course(root, contract, self.full_blueprint(), lessons)
             assets = self.valid_asset_manifest()
             artifact_refs = self.g5_artifact_refs(root, production, lessons, assets)
             self.bind_trial_inputs(root, production["full_course_trial"])
@@ -890,6 +959,20 @@ class CourseProductionTests(unittest.TestCase):
                 receipt_id="g5-trial-receipt", relative_path="receipts/g5.json",
             )
             contract["evidence_index"].extend([trial_ref, receipt_ref])
+
+            before_subset = copy.deepcopy(contract)
+            subset_result = route_full_production_to_g5(
+                contract, production, artifact_refs, "course-run",
+                "2026-10-18T17:15:00+08:00", workspace_root=root,
+                blueprint=self.full_blueprint(), lessons=lessons[:-1], assets=assets,
+                pilot={"unit_id": "unit-1", "trial_context_id": "pilot-cold-run-20261018-01"},
+                production_role_evidence_id=roster_ref["id"],
+                production_record_path="production/full-course.json",
+                trial_evidence_id=trial_ref["id"],
+                trial_receipt_evidence_id=receipt_ref["id"],
+            )
+            self.assertEqual(subset_result, "BLOCKED")
+            self.assertEqual(contract, before_subset)
 
             result = route_full_production_to_g5(
                 contract,
@@ -980,6 +1063,7 @@ class CourseProductionTests(unittest.TestCase):
                 "evidence_id": roster_ref["id"], "sha256": roster_ref["sha256"]
             }
             self.bind_trial_inputs(root, production["full_course_trial"])
+            self.bind_governed_course(root, contract, self.full_blueprint(), self.full_lessons())
             production_bundle = {
                 "record": production,
                 "blueprint": self.full_blueprint(),
@@ -1042,11 +1126,7 @@ class CourseProductionTests(unittest.TestCase):
             )
 
         self.assertEqual(result, "BLOCKED")
-        self.assertEqual(contract["gates"]["G5"]["status"], "BLOCKED")
-        self.assertIn(
-            "production and reviewed lessons must cover every blueprint unit exactly once",
-            contract["gates"]["G5"]["risks"][-1]["reason"],
-        )
+        self.assertEqual(contract["gates"]["G5"]["status"], "IN_PROGRESS")
 
     def test_g5_wrong_governed_roster_kind_leaves_contract_unchanged(self):
         contract = new_contract("transactional-course", "Transactional Course", "course-run", "2026-10-18T12:00:00+08:00")
@@ -1061,6 +1141,7 @@ class CourseProductionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             wrong = materialize_json_evidence(root, evidence_id="wrong-roster", gate_id="G0", kind="test_record", relative_path="evidence/wrong-roster.json", value={"authors": []})
+            self.bind_governed_course(root, contract, self.full_blueprint(), self.full_lessons())
             contract["evidence_index"].append(wrong)
             contract["governance"]["production_role_roster"] = {"evidence_id": wrong["id"], "sha256": wrong["sha256"]}
             artifact = root / "evidence" / "artifact.txt"

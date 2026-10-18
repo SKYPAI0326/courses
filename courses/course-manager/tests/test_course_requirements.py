@@ -83,8 +83,15 @@ class CourseRequirementsTests(unittest.TestCase):
                     "id": "unknown-export",
                     "question": "學員使用的試算表版本是否能匯出 PDF？",
                     "material": False,
+                    "impact_domains": ["non-core"],
                     "status": "OPEN",
                     "resolution": "若無法匯出 PDF，改交付 Markdown 檔案，不影響能力與評量。",
+                    "fallback": {
+                        "description": "改交付可由同一 rubric 驗收的 Markdown 檔案。",
+                        "verification_status": "VERIFIED",
+                        "evidence_ref": "fallback-markdown-export",
+                        "preserves_acceptance": True,
+                    },
                 }
             ],
             "decisions": [
@@ -130,8 +137,10 @@ class CourseRequirementsTests(unittest.TestCase):
             "id": "unknown-core-permission",
             "question": "學員是否具有完成最終成果所需工具的帳號與編輯權限？",
             "material": False,
+            "impact_domains": ["tools", "accounts", "permissions", "artifact"],
             "status": "OPEN",
             "resolution": "課程開始後再詢問學員使用哪個帳號。",
+            "fallback": None,
         }
         self.assertIn(
             "material_unknown",
@@ -144,13 +153,43 @@ class CourseRequirementsTests(unittest.TestCase):
             "id": "unknown-required-account",
             "question": "學員能否登入完成核心任務所需的平台？",
             "material": True,
+            "impact_domains": ["accounts", "permissions"],
             "status": "OPEN",
             "resolution": "尚未確認帳號與權限。",
+            "fallback": None,
         }
 
         codes = {issue.code for issue in validate_requirements_record(record)}
 
         self.assertIn("material_unknown", codes)
+
+    def test_materiality_is_derived_and_fallback_must_be_verified_structure(self):
+        for fallback in ("use an alternative", {
+            "description": "改用另一個工具完成核心成果。",
+            "verification_status": "UNVERIFIED",
+            "evidence_ref": "fallback-tool",
+            "preserves_acceptance": True,
+        }):
+            with self.subTest(fallback=fallback):
+                record = self.valid_record()
+                record["unknowns"][0].update({
+                    "material": False, "impact_domains": ["tools", "artifact"],
+                    "fallback": fallback,
+                })
+                self.assertIn(
+                    "material_unknown",
+                    {issue.code for issue in validate_requirements_record(record)},
+                )
+
+    def test_cross_field_duplicate_and_repeated_padding_are_rejected(self):
+        repeated = "學員將使用固定資料完成一份主管可以逐項檢查的決策簡報。"
+        record = self.valid_record()
+        record["target_profile"]["learner"] = repeated
+        record["work_context"]["situation"] = repeated
+        self.assertIn("duplicate_requirement_text", {issue.code for issue in validate_requirements_record(record)})
+        padded = self.valid_record()
+        padded["work_context"]["problem"] = repeated + repeated
+        self.assertIn("padded_requirement", {issue.code for issue in validate_requirements_record(padded)})
 
     def test_duplicate_stable_ids_are_rejected(self):
         record = self.valid_record()

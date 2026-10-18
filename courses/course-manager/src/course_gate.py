@@ -7,10 +7,9 @@ from src.course_contract import ContractStateError, block_gate, validate_contrac
 from src.course_evidence import ConsumedEvidence, consume_evidence_reference
 from src.course_gate_failure import route_failed_validation
 from src.course_gate_validators import G5_ARTIFACT_KINDS, GATE_REGISTRY
+from src.course_governance import governed_dependencies
 from src.course_runner_authority import consume_trial_inputs
-
-SECURITY_BOUNDARY_CODES = frozenset(
-    {
+SECURITY_BOUNDARY_CODES = frozenset({
         "invalid_independent_trial_receipt",
         "runner_authority_required",
         "invalid_trial_receipt_context",
@@ -31,10 +30,7 @@ SECURITY_BOUNDARY_CODES = frozenset(
         "runner_binding_mismatch",
         "runner_not_independent",
         "pilot_actor_roster_mismatch",
-    }
-)
-
-
+})
 def _text(value: Any) -> bool:
     return isinstance(value, str) and bool(value.strip())
 
@@ -131,6 +127,10 @@ def validate_and_transition_gate(
         consumed.append(item)
         consumed_by_kind.setdefault(kind, []).append(item)
         values_by_kind.setdefault(kind, []).append(item.value if parse_json else item)
+
+    governed = governed_dependencies(contract, gate_id, workspace_root)
+    consumed_by_kind.update(governed)
+    consumed.extend(item for items in governed.values() for item in items if item.data)
 
     if gate_id in {"G4", "G5"}:
         if not isinstance(contract.get("contract_instance_id"), str):

@@ -39,7 +39,7 @@ Gate-specific returns:
 | G0 | course-run adaptive interview | canonical requirements record with learner/baseline, work context, observable artifact, delivery/time, environment, constraints, criterion-level capabilities, assumptions, unknowns and decisions |
 | G1 | course-researcher | research record, evidence hash, adaptation, blockers, recommendation |
 | G2 | course-pm | one reasoned blueprint with stable outcome/criterion/capability refs, executable units, dependency DAG, exact duration reconciliation and material risks |
-| G3 | course-designer | complete learner-readable lesson designs, examples, practice, checks, repair paths and asset needs |
+| G3 | course-designer | one aggregate set of learner-readable lesson records that covers every canonical G2 unit exactly once, with examples, practice, checks, repair paths and asset needs |
 | G4 | build-course-page plus validator | one representative complete unit and fidelity, follow-along, rendering and accessibility evidence |
 | G5 | course-run coordinating producers | complete course, cross-unit consistency and production validation |
 | G6 | course-ops plus validator | release, registration, access, index, deployment, rollback and maintenance evidence |
@@ -57,5 +57,7 @@ After a validated Gate PASS, course-run begins the next Gate automatically. It a
 G5 uses `contracts/course-production-record.schema.json`. The return binds every blueprint unit to its reviewed lesson, learner page, assets, distinct outcome and workflow fingerprint; records exact navigation and artifact handoffs; and proves that the final artifact passes every G0 acceptance criterion. It embeds the `full_course` trial record and identifies the prior G4 trial context so the validator can reject context reuse.
 
 Its `learning_coverage` matrix must cover every G0 child capability exactly once through G2 outcome/criterion/unit, G3 teaching/practice/assessment evidence, and G5 artifact/trial evidence. Duplicate, unknown, orphan, or parent-only coverage fails closed.
+
+G3 and G5 replay the canonical bytes and hashes recorded by prior PASS events. Caller copies are convenience inputs only and must be byte-equivalent; a subset blueprint, missing lesson, extra lesson, duplicate owner, or relabelled workflow is rejected without changing the contract. Coverage evidence fields are stable IDs: G3 IDs must name atoms present in the lesson record, while G5 artifact and trial IDs must name an actual acceptance result and trial action.
 
 The G5 PASS event cites both production evidence and the separately hashed independent trial evidence. A production validation flag without those indexed artifacts cannot pass the Gate.

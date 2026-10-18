@@ -8,6 +8,7 @@ from pathlib import Path
 from src.course_content import REQUIRED_SECTIONS, validate_lesson_record
 from src.course_content_routes import route_content_to_g3
 from src.course_contract import begin_gate, new_contract
+from src.course_evidence import materialize_json_evidence
 from tests.gate_test_support import _commit_gate_pass
 
 
@@ -164,7 +165,7 @@ class CourseContentTests(unittest.TestCase):
             "課程團隊",
             "2026-10-18T12:00:00+08:00",
         )
-        for gate_id in ("G0", "G1", "G2"):
+        for gate_id in ("G0", "G1"):
             begin_gate(contract, gate_id, "course-run", "2026-10-18T12:05:00+08:00")
             evidence_id = f"{gate_id.lower()}-evidence"
             contract["evidence_index"].append(
@@ -184,6 +185,35 @@ class CourseContentTests(unittest.TestCase):
                 "course-run",
                 "2026-10-18T12:10:00+08:00",
             )
+        begin_gate(contract, "G2", "course-run", "2026-10-18T12:05:00+08:00")
+        lesson = self.valid_record()
+        blueprint = {
+            "criteria": [
+                {"id": "criterion-plan", "outcome_id": "outcome-plan", "capability_id": "capability-plan"}
+            ],
+            "units": [
+                {
+                    "id": "unit-1",
+                    "outcome_ids": lesson["outcome_ids"],
+                    "criterion_ids": lesson["criterion_ids"],
+                    "capability_ids": lesson["capability_ids"],
+                }
+            ],
+        }
+        contract["G2_architecture"] = blueprint
+        reference = materialize_json_evidence(
+            self.temporary.name,
+            evidence_id="g2-blueprint",
+            gate_id="G2",
+            kind="course_blueprint",
+            relative_path="evidence/g2-blueprint.json",
+            value=blueprint,
+        )
+        contract["evidence_index"].append(reference)
+        _commit_gate_pass(
+            contract, "G2", ["g2-blueprint"], "g2-validator", "course-run",
+            "2026-10-18T12:10:00+08:00",
+        )
         begin_gate(contract, "G3", "course-run", "2026-10-18T12:15:00+08:00")
         return contract
 
@@ -248,7 +278,7 @@ class CourseContentTests(unittest.TestCase):
                 )
 
                 self.assertEqual(status, "BLOCKED")
-                self.assertEqual(contract["gates"]["G3"]["status"], "BLOCKED")
+                self.assertEqual(contract["gates"]["G3"]["status"], "IN_PROGRESS")
 
     def test_placeholder_internal_filename_and_checklist_prose_fail_editorial_gate(self):
         cases = (
@@ -291,6 +321,53 @@ class CourseContentTests(unittest.TestCase):
 
         self.assertIn("duplicate_learning_coverage", codes)
         self.assertIn("incomplete_learning_coverage", codes)
+
+    def test_lesson_coverage_rejects_fake_atom_ids(self):
+        record = self.valid_record()
+        record["learning_coverage"][0]["teaching_evidence"] = ["fake"]
+        self.assertIn("unknown_lesson_evidence", {issue.code for issue in validate_lesson_record(record)})
+
+    def test_lesson_runtime_rejects_schema_closed_shape_bypass(self):
+        record = self.valid_record()
+        record["producer_validation"] = {"status": "PASS"}
+        record["full_demonstration"]["alternate_paths"] = ["skip validation"]
+        self.assertIn(
+            "schema_additional_property",
+            {issue.code for issue in validate_lesson_record(record)},
+        )
+
+    def test_g3_does_not_pass_with_one_of_two_governed_lessons(self):
+        contract = self.ready_contract()
+        blueprint = copy.deepcopy(contract["G2_architecture"])
+        second = copy.deepcopy(blueprint["units"][0])
+        second["id"] = "unit-2"
+        blueprint["units"].append(second)
+        reference = materialize_json_evidence(
+            self.temporary.name, evidence_id="g2-blueprint-two", gate_id="G2",
+            kind="course_blueprint", relative_path="evidence/g2-blueprint-two.json", value=blueprint,
+        )
+        contract["evidence_index"].append(reference)
+        contract["G2_architecture"] = blueprint
+        event = contract["gates"]["G2"]["evidence"][-1]
+        event["evidence_ids"] = [reference["id"]]
+        event["consumed_evidence"] = [{"id": reference["id"], "sha256": reference["sha256"]}]
+        before = copy.deepcopy(contract)
+        status = route_content_to_g3(
+            contract, self.valid_record(), "evidence/unit-1.json", "b" * 64,
+            "course-designer", "2026-10-18T13:00:00+08:00",
+            workspace_root=self.temporary.name,
+        )
+        self.assertEqual(status, "BLOCKED")
+        self.assertEqual(contract, before)
+        second_record = self.valid_record()
+        second_record["unit_id"] = "unit-2"
+        status = route_content_to_g3(
+            contract, [self.valid_record(), second_record],
+            ["evidence/unit-1.json", "evidence/unit-2.json"], ["b" * 64, "c" * 64],
+            "course-designer", "2026-10-18T13:01:00+08:00",
+            workspace_root=self.temporary.name,
+        )
+        self.assertEqual(status, "PASS")
 
     def test_lesson_coverage_rows_must_preserve_blueprint_criterion_pairs(self):
         record = self.valid_record()

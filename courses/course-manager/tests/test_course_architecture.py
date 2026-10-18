@@ -12,6 +12,7 @@ from src.course_architecture import (
 )
 from src.course_architecture_routes import route_blueprint_to_g2
 from src.course_contract import begin_gate, new_contract
+from src.course_evidence import materialize_json_evidence
 from tests.gate_test_support import _commit_gate_pass
 
 
@@ -20,6 +21,16 @@ class CourseArchitectureTests(unittest.TestCase):
         from tests.test_course_requirements import CourseRequirementsTests
 
         return CourseRequirementsTests().valid_record()
+
+    def bind_g0_requirements(self, root, contract):
+        reference = materialize_json_evidence(
+            root, evidence_id="g0-governed", gate_id="G0", kind="requirements_record",
+            relative_path="evidence/g0-governed.json", value=self.requirements(),
+        )
+        contract["evidence_index"].append(reference)
+        event = contract["gates"]["G0"]["evidence"][-1]
+        event["evidence_ids"] = [reference["id"]]
+        event["consumed_evidence"] = [{"id": reference["id"], "sha256": reference["sha256"]}]
 
     def valid_blueprint(self):
         return {
@@ -30,7 +41,7 @@ class CourseArchitectureTests(unittest.TestCase):
                 "recommended_path": "先用固定資料完成指標計算，再把判讀寫成主管可採用的決策簡報。",
                 "rationale": "研究顯示新手的主要風險是公式錯誤與把相關性寫成因果，因此先穩定計算，再練習判讀與證據邊界。",
                 "constraint_fit": "兩個八十分鐘單元加上十分鐘休息與十分鐘緩衝，能在三小時內完成並驗收成品。",
-                "g1_evidence_refs": ["g1-claim-formula-errors", "g1-hands-on-export"],
+                "g1_evidence_refs": ["g1-fixture"],
             },
             "outcomes": [
                 {
@@ -71,7 +82,7 @@ class CourseArchitectureTests(unittest.TestCase):
                     "capability-calculate",
                     [],
                     "calculate-four-metrics-from-raw-columns",
-                    "g1-claim-formula-errors",
+                    "g1-fixture",
                 ),
                 self.unit(
                     "unit-recommend",
@@ -81,7 +92,7 @@ class CourseArchitectureTests(unittest.TestCase):
                     "capability-recommend",
                     ["unit-calculate"],
                     "compare-thresholds-and-propose-test",
-                    "g1-hands-on-export",
+                    "g1-fixture",
                 ),
             ],
             "duration": {
@@ -159,6 +170,11 @@ class CourseArchitectureTests(unittest.TestCase):
                     "assessment_evidence": ["checks"],
                 }
             ],
+            "explanation": {},
+            "full_demonstration": {},
+            "guided_practice": {},
+            "independent_practice": {},
+            "checks": [{"id": f"{unit_id}-check"}],
         }
 
     def production(self):
@@ -172,8 +188,8 @@ class CourseArchitectureTests(unittest.TestCase):
                     "unit_id": "unit-calculate",
                     "lesson_unit_id": "unit-calculate",
                     "artifact_criterion_id": "criterion-decision-brief",
-                    "artifact_evidence": "完成品含四項指標的公式、數值與單位。",
-                    "trial_evidence": "隔離試走以第三筆資料重算並通過檢核。",
+                    "artifact_evidence_id": "criterion-decision-brief",
+                    "trial_evidence_id": "action-1",
                 },
                 {
                     "g0_criterion_id": "criterion-decision-brief",
@@ -183,14 +199,36 @@ class CourseArchitectureTests(unittest.TestCase):
                     "unit_id": "unit-recommend",
                     "lesson_unit_id": "unit-recommend",
                     "artifact_criterion_id": "criterion-decision-brief",
-                    "artifact_evidence": "完成品指出未達標活動、限制與下一個測試。",
-                    "trial_evidence": "隔離試走只依學員頁面完成判讀與建議。",
+                    "artifact_evidence_id": "criterion-decision-brief",
+                    "trial_evidence_id": "action-1",
                 },
-            ]
+            ],
+            "final_artifact": {
+                "acceptance": [{"criterion_id": "criterion-decision-brief"}]
+            },
+            "full_course_trial": {"actions": [{"sequence": 1}]},
         }
 
     def test_complete_blueprint_is_valid_and_uses_one_reasoned_path(self):
         self.assertEqual(validate_course_blueprint(self.valid_blueprint(), self.requirements()), [])
+
+    def test_g1_evidence_refs_must_belong_to_governed_known_set(self):
+        blueprint = self.valid_blueprint()
+        blueprint["units"][0]["g1_evidence_refs"] = ["g1-does-not-exist"]
+        codes = {
+            issue.code for issue in validate_course_blueprint(
+                blueprint, self.requirements(), known_g1_evidence_ids={"g1-fixture"}
+            )
+        }
+        self.assertIn("unknown_g1_evidence", codes)
+
+    def test_runtime_enforces_closed_schema_and_owner_gate_enum(self):
+        blueprint = self.valid_blueprint()
+        blueprint["producer_validation"] = {"status": "PASS"}
+        blueprint["risks"][0]["owner_gate"] = "producer"
+        codes = {issue.code for issue in validate_course_blueprint(blueprint, self.requirements())}
+        self.assertIn("schema_additional_property", codes)
+        self.assertIn("schema_pattern", codes)
 
     def test_title_only_or_todo_like_unit_cannot_pass(self):
         blueprint = self.valid_blueprint()
@@ -385,6 +423,7 @@ class CourseArchitectureTests(unittest.TestCase):
             )
         begin_gate(contract, "G2", "course-run", "2026-10-18T09:03:00+08:00")
         with tempfile.TemporaryDirectory() as temporary:
+            self.bind_g0_requirements(temporary, contract)
             status = route_blueprint_to_g2(
                 contract,
                 self.valid_blueprint(),
@@ -420,6 +459,7 @@ class CourseArchitectureTests(unittest.TestCase):
         begin_gate(contract, "G2", "course-run", "2026-10-18T09:03:00+08:00")
 
         with tempfile.TemporaryDirectory() as temporary:
+            self.bind_g0_requirements(temporary, contract)
             status = route_blueprint_to_g2(
                 contract,
                 {"schema_version": 1, "validation": {"status": "PASS", "validator_id": "self-declared"}},

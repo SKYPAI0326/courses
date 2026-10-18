@@ -4,6 +4,8 @@ import re
 from dataclasses import dataclass
 from typing import Any, Mapping, Sequence
 
+from src.schema_runtime import validate_schema_file
+
 
 ID_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 NON_EXECUTABLE = {"介紹", "完成示範", "講解概念", "練習", "評量", "todo", "tbd"}
@@ -163,10 +165,18 @@ def _disconnected_units(units: Mapping[str, Mapping[str, Any]]) -> set[str]:
     return set(units) - connected
 
 
-def validate_course_blueprint(record: Mapping[str, Any], requirements: Mapping[str, Any]) -> list[ArchitectureIssue]:
+def validate_course_blueprint(
+    record: Mapping[str, Any],
+    requirements: Mapping[str, Any],
+    known_g1_evidence_ids: set[str] | frozenset[str] | None = None,
+) -> list[ArchitectureIssue]:
     issues: list[ArchitectureIssue] = []
     if not isinstance(record, Mapping):
         return [ArchitectureIssue("invalid_blueprint", "$", "blueprint must be an object")]
+    issues.extend(
+        ArchitectureIssue(issue.code, issue.path, issue.message)
+        for issue in validate_schema_file("course-blueprint-record.schema.json", record)
+    )
     allowed_fields = set(BLUEPRINT_REQUIRED_FIELDS) | set(BLUEPRINT_OPTIONAL_FIELDS)
     for field in sorted(set(record) - allowed_fields):
         _issue(issues, "unsupported_field", f"$.{field}", f"canonical G2 does not allow {field}")
@@ -188,7 +198,9 @@ def validate_course_blueprint(record: Mapping[str, Any], requirements: Mapping[s
         for field in ("recommended_path", "rationale", "constraint_fit"):
             if not _concrete(narrative.get(field)):
                 _issue(issues, "decision_narrative_required", f"$.decision_narrative.{field}", "decision narrative must explain the recommended path")
-        _reference_list(narrative.get("g1_evidence_refs"), "$.decision_narrative.g1_evidence_refs", issues, "evidence_reference_required")
+        narrative_refs = _reference_list(narrative.get("g1_evidence_refs"), "$.decision_narrative.g1_evidence_refs", issues, "evidence_reference_required")
+        if known_g1_evidence_ids is not None and any(ref not in known_g1_evidence_ids for ref in narrative_refs):
+            _issue(issues, "unknown_g1_evidence", "$.decision_narrative.g1_evidence_refs", "decision narrative references evidence outside the governed G1 PASS set")
 
     outcomes = _records(record.get("outcomes"), "id", "$.outcomes", issues)
     criteria = _records(record.get("criteria"), "id", "$.criteria", issues)
@@ -268,6 +280,9 @@ def validate_course_blueprint(record: Mapping[str, Any], requirements: Mapping[s
                         )
                     else:
                         capability_unit_owner[capability_id] = unit_id
+            elif field == "g1_evidence_refs" and known_g1_evidence_ids is not None:
+                if any(ref not in known_g1_evidence_ids for ref in refs):
+                    _issue(issues, "unknown_g1_evidence", f"{base}.{field}", "unit references evidence outside the governed G1 PASS set")
         unit_outcomes = set(unit.get("outcome_ids", [])) if isinstance(unit.get("outcome_ids"), list) else set()
         unit_criteria = set(unit.get("criterion_ids", [])) if isinstance(unit.get("criterion_ids"), list) else set()
         unit_capabilities = set(unit.get("capability_ids", [])) if isinstance(unit.get("capability_ids"), list) else set()
@@ -412,6 +427,19 @@ def validate_learning_coverage(requirements: Mapping[str, Any], blueprint: Mappi
     }
     rows = production.get("learning_coverage")
     production_rows: dict[str, Mapping[str, Any]] = {}
+    final_artifact = production.get("final_artifact")
+    artifact_evidence_ids = {
+        str(item.get("criterion_id"))
+        for item in final_artifact.get("acceptance", [])
+        if isinstance(item, Mapping) and _text(item.get("criterion_id"))
+    } if isinstance(final_artifact, Mapping) else set()
+    trial = production.get("full_course_trial")
+    trial_evidence_ids = {
+        f"action-{item.get('sequence')}"
+        for item in trial.get("actions", [])
+        if isinstance(item, Mapping)
+        and isinstance(item.get("sequence"), int)
+    } if isinstance(trial, Mapping) else set()
     if not isinstance(rows, list):
         _issue(issues, "coverage_matrix_required", "$.production.learning_coverage", "G5 requires a criterion-level coverage matrix", "G5")
         rows = []
@@ -441,10 +469,21 @@ def validate_learning_coverage(requirements: Mapping[str, Any], blueprint: Mappi
             and row.get("capability_id") == capability_id
             and row.get("criterion_id") == criterion_id and row.get("outcome_id") == outcome_id
         ]
-        if len(matching_lesson) != 1 or any(
-            not isinstance(matching_lesson[0].get(field), list) or not matching_lesson[0].get(field)
+        lesson_atoms = {
+            "teaching_evidence": {key for key in ("explanation", "full_demonstration") if isinstance(lesson, Mapping) and isinstance(lesson.get(key), Mapping)},
+            "practice_evidence": {key for key in ("guided_practice", "independent_practice") if isinstance(lesson, Mapping) and isinstance(lesson.get(key), Mapping)},
+            "assessment_evidence": ({"checks"} if isinstance(lesson, Mapping) and isinstance(lesson.get("checks"), list) and lesson.get("checks") else set()) | {
+                str(item.get("id")) for item in lesson.get("checks", [])
+                if isinstance(lesson, Mapping) and isinstance(item, Mapping) and _text(item.get("id"))
+            },
+        }
+        lesson_evidence_valid = len(matching_lesson) == 1 and all(
+            isinstance(matching_lesson[0].get(field), list)
+            and bool(matching_lesson[0].get(field))
+            and set(matching_lesson[0][field]).issubset(lesson_atoms[field])
             for field in ("teaching_evidence", "practice_evidence", "assessment_evidence")
-        ):
+        )
+        if not lesson_evidence_valid:
             _issue(issues, "incomplete_lesson_coverage", f"$.lessons.{unit_id}", f"G3 must teach, practise, and assess {capability_id}", "G3")
         row = production_rows.get(capability_id)
         expected = {
@@ -454,7 +493,11 @@ def validate_learning_coverage(requirements: Mapping[str, Any], blueprint: Mappi
         }
         if row is None:
             _issue(issues, "uncovered_capability", "$.production.learning_coverage", f"G5 lacks artifact and trial evidence for {capability_id}", "G5")
-        elif any(row.get(field) != value for field, value in expected.items()) or not _concrete(row.get("artifact_evidence")) or not _concrete(row.get("trial_evidence")):
+        elif (
+            any(row.get(field) != value for field, value in expected.items())
+            or row.get("artifact_evidence_id") not in artifact_evidence_ids
+            or row.get("trial_evidence_id") not in trial_evidence_ids
+        ):
             _issue(issues, "invalid_coverage_row", "$.production.learning_coverage", f"G5 coverage chain is incomplete for {capability_id}", "G5")
     for capability_id in sorted(set(production_rows) - set(capabilities)):
         _issue(issues, "unknown_reference", "$.production.learning_coverage", f"coverage references unknown capability: {capability_id}", "G5")

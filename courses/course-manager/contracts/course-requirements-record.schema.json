@@ -83,8 +83,26 @@
     },
     "unknown": {
       "type": "object", "additionalProperties": false,
-      "required": ["id", "question", "material", "status", "resolution"],
-      "properties": {"id": {"$ref": "#/$defs/id"}, "question": {"$ref": "#/$defs/text"}, "material": {"type": "boolean"}, "status": {"enum": ["OPEN", "RESOLVED"]}, "resolution": {"$ref": "#/$defs/text"}}
+      "required": ["id", "question", "material", "impact_domains", "status", "resolution", "fallback"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"}, "question": {"$ref": "#/$defs/text"},
+        "material": {"type": "boolean"},
+        "impact_domains": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": {"enum": ["tools", "accounts", "permissions", "device", "materials", "artifact", "time", "locale", "non-core"]}
+        },
+        "status": {"enum": ["OPEN", "RESOLVED"]}, "resolution": {"$ref": "#/$defs/text"},
+        "fallback": {
+          "type": ["object", "null"], "additionalProperties": false,
+          "required": ["description", "verification_status", "evidence_ref", "preserves_acceptance"],
+          "properties": {
+            "description": {"$ref": "#/$defs/text"},
+            "verification_status": {"enum": ["VERIFIED", "UNVERIFIED"]},
+            "evidence_ref": {"$ref": "#/$defs/id"},
+            "preserves_acceptance": {"type": "boolean"}
+          }
+        }
+      }
     },
     "decision": {
       "type": "object", "additionalProperties": false,

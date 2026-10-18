@@ -124,11 +124,27 @@ def _validate_blueprint(
         return issues
     if record != contract.get("G2_architecture"):
         issues.append(GateValidationIssue("blueprint_evidence_mismatch", "$.G2_architecture", "blueprint evidence must exactly match the governed G2 payload"))
-    requirements = contract.get("G0_requirements")
-    if not isinstance(requirements, Mapping):
-        issues.append(GateValidationIssue("requirements_required", "$.G0_requirements", "G2 validation requires the governed G0 requirements"))
+    governed_requirements = [
+        item.value for item in consumed.get("governed_g0", [])
+        if item.reference.get("kind") == "requirements_record"
+    ]
+    if len(governed_requirements) != 1 or not isinstance(governed_requirements[0], Mapping):
+        issues.append(GateValidationIssue("requirements_required", "$.evidence.governed_g0", "G2 validation requires the canonical G0 PASS requirements"))
         return issues
-    issues.extend(_coerce_issues(validate_course_blueprint(record, requirements)))
+    requirements = governed_requirements[0]
+    if requirements != contract.get("G0_requirements"):
+        issues.append(GateValidationIssue("governed_requirements_mismatch", "$.G0_requirements", "contract requirements must equal canonical G0 PASS evidence"))
+    known_g1_ids = {
+        str(item.reference.get("id"))
+        for item in consumed.get("governed_g1_reference", [])
+    }
+    issues.extend(
+        _coerce_issues(
+            validate_course_blueprint(
+                record, requirements, known_g1_evidence_ids=known_g1_ids
+            )
+        )
+    )
     return issues
 
 
@@ -136,29 +152,22 @@ def _validate_lessons(
     contract: Mapping[str, Any], evidence: EvidenceValues, consumed: ConsumedByKind,
     workspace_root: Path | str,
 ) -> list[GateValidationIssue]:
-    from src.course_content import validate_lesson_record
+    from src.course_content import validate_lesson_collection
 
     records = evidence.get("lesson_record", [])
     if not records:
         return [GateValidationIssue("lesson_record_required", "$.evidence.lesson_record", "G3 requires at least one lesson record")]
-    issues: list[GateValidationIssue] = []
-    for index, record in enumerate(records):
-        if not isinstance(record, Mapping):
-            issues.append(GateValidationIssue("invalid_lesson_record", f"$.evidence.lesson_record[{index}]", "lesson record must be an object"))
-        else:
-            blueprint = contract.get("G2_architecture")
-            issues.extend(
-                _coerce_issues(
-                    validate_lesson_record(
-                        record,
-                        blueprint
-                        if isinstance(blueprint, Mapping)
-                        and isinstance(blueprint.get("units"), list)
-                        else None,
-                    )
-                )
-            )
-    return issues
+    governed = [
+        item.value for item in consumed.get("governed_g2", [])
+        if item.reference.get("kind") == "course_blueprint"
+    ]
+    if len(governed) != 1 or not isinstance(governed[0], Mapping):
+        return [GateValidationIssue("governed_blueprint_required", "$.evidence.governed_g2", "G3 requires the canonical G2 PASS blueprint")]
+    if contract.get("G2_architecture") != governed[0]:
+        return [GateValidationIssue("governed_blueprint_mismatch", "$.G2_architecture", "contract blueprint must equal the canonical G2 PASS evidence")]
+    if not all(isinstance(record, Mapping) for record in records):
+        return [GateValidationIssue("invalid_lesson_record", "$.evidence.lesson_record", "all lesson records must be objects")]
+    return _coerce_issues(validate_lesson_collection(records, governed[0]))
 
 
 def _validate_receipt(
@@ -189,6 +198,7 @@ def _validate_receipt(
         item.reference
         for kind, items in consumed.items()
         if kind not in {"learner_visible_input", "independent_trial_receipt"}
+        and not kind.startswith("governed_")
         for item in items
     ]
     for issue in verify_trial_receipt(
@@ -309,12 +319,22 @@ def _validate_g5(
     issues.extend(_validate_receipt(contract, "G5", evidence, consumed, workspace_root))
     if bundle is None or trial is None or roster is None:
         return issues
-    record, blueprint, lessons = bundle.get("record"), bundle.get("blueprint"), bundle.get("lessons")
+    record = bundle.get("record")
+    caller_blueprint, caller_lessons = bundle.get("blueprint"), bundle.get("lessons")
     assets, pilot = bundle.get("assets"), bundle.get("pilot")
-    if not isinstance(record, Mapping) or not isinstance(blueprint, Mapping) or not isinstance(lessons, list) or not all(isinstance(item, Mapping) for item in lessons) or not isinstance(assets, Mapping) or not isinstance(pilot, Mapping):
+    requirements_values = [item.value for item in consumed.get("governed_g0", []) if item.reference.get("kind") == "requirements_record"]
+    blueprint_values = [item.value for item in consumed.get("governed_g2", []) if item.reference.get("kind") == "course_blueprint"]
+    lesson_values = [item.value for item in consumed.get("governed_g3", []) if item.reference.get("kind") == "lesson_record"]
+    if len(requirements_values) != 1 or len(blueprint_values) != 1 or not lesson_values:
+        issues.append(GateValidationIssue("governed_course_chain_required", "$.evidence.governed", "G5 requires canonical G0, G2, and G3 PASS evidence"))
+        return issues
+    requirements, blueprint, lessons = requirements_values[0], blueprint_values[0], lesson_values
+    if caller_blueprint != blueprint or caller_lessons != lessons:
+        issues.append(GateValidationIssue("governed_course_chain_mismatch", "$.evidence.full_course_production", "caller convenience copies must exactly equal canonical governed evidence"))
+    if not isinstance(record, Mapping) or not isinstance(requirements, Mapping) or not isinstance(blueprint, Mapping) or not all(isinstance(item, Mapping) for item in lessons) or not isinstance(assets, Mapping) or not isinstance(pilot, Mapping):
         issues.append(GateValidationIssue("invalid_full_production_bundle", "$.evidence.full_course_production", "full production evidence requires record, blueprint, lessons, assets, and pilot"))
         return issues
-    issues.extend(_coerce_issues(validate_full_production(record, blueprint, lessons, assets, pilot, trial, production_roles=roster)))
+    issues.extend(_coerce_issues(validate_full_production(record, blueprint, lessons, assets, pilot, trial, production_roles=roster, requirements=requirements)))
     issues.extend(_validate_g5_artifact_bindings(record, assets, consumed))
     return issues
 

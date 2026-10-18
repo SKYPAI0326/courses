@@ -1,6 +1,9 @@
 import csv
 import json
 import runpy
+import subprocess
+import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -27,6 +30,17 @@ class CompleteCourseFlowTests(unittest.TestCase):
         self.assertEqual(validate_requirements_record(requirements), [])
         self.assertEqual(validate_course_blueprint(blueprint, requirements), [])
 
+    def test_proof_builder_fails_preflight_before_writing_without_authority(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "proof-output"
+            completed = subprocess.run(
+                [sys.executable, str(PROOF_ROOT / "build_proof.py"), "--output-root", str(output)],
+                text=True, capture_output=True, check=False,
+            )
+            self.assertNotEqual(completed.returncode, 0)
+            self.assertIn("PRECONDITION FAILED", completed.stderr + completed.stdout)
+            self.assertFalse(output.exists())
+
     def test_proof_builder_preserves_child_capability_coverage_through_g5(self):
         requirements = PROOF_BUILDER["requirements_record"]()
         blueprint = PROOF_BUILDER["blueprint_record"](requirements)
@@ -37,7 +51,14 @@ class CompleteCourseFlowTests(unittest.TestCase):
         production = {
             "learning_coverage": PROOF_BUILDER["production_learning_coverage"](
                 blueprint
-            )
+            ),
+            "final_artifact": {
+                "acceptance": [
+                    {"criterion_id": item["id"]}
+                    for item in requirements["acceptance_criteria"]
+                ]
+            },
+            "full_course_trial": {"actions": [{"sequence": 1}]},
         }
 
         for lesson in lessons:

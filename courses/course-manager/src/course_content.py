@@ -4,6 +4,8 @@ import re
 from dataclasses import dataclass
 from typing import Any, Mapping, Sequence
 
+from src.schema_runtime import validate_schema_file
+
 
 ID_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
@@ -117,6 +119,10 @@ def validate_lesson_record(
     record: Mapping[str, Any], blueprint: Mapping[str, Any] | None = None
 ) -> list[ContentIssue]:
     issues: list[ContentIssue] = []
+    issues.extend(
+        ContentIssue(issue.code, issue.path, issue.message, "G3")
+        for issue in validate_schema_file("course-lesson-record.schema.json", record)
+    )
     for section in REQUIRED_SECTIONS:
         if section not in record:
             _issue(
@@ -161,6 +167,22 @@ def validate_lesson_record(
             stable_refs[field] = list(values)
 
     coverage = record.get("learning_coverage")
+    actual_evidence_ids = {
+        "teaching_evidence": {
+            key for key in ("explanation", "full_demonstration")
+            if isinstance(record.get(key), Mapping)
+        },
+        "practice_evidence": {
+            key for key in ("guided_practice", "independent_practice")
+            if isinstance(record.get(key), Mapping)
+        },
+        "assessment_evidence": (
+            {"checks"} if isinstance(record.get("checks"), list) and record.get("checks") else set()
+        ) | {
+            str(item.get("id")) for item in record.get("checks", [])
+            if isinstance(item, Mapping) and _has_text(item.get("id"))
+        },
+    }
     covered_capabilities: set[str] = set()
     covered_criteria: set[str] = set()
     covered_outcomes: set[str] = set()
@@ -212,6 +234,13 @@ def validate_lesson_record(
                         "incomplete_learning_coverage",
                         f"{path}.{field}",
                         "coverage must identify real teaching, practice, and assessment evidence",
+                    )
+                elif any(item not in actual_evidence_ids[field] for item in values):
+                    _issue(
+                        issues,
+                        "unknown_lesson_evidence",
+                        f"{path}.{field}",
+                        "coverage evidence ids must name atoms that exist in this lesson record",
                     )
         if (
             covered_capabilities != set(stable_refs.get("capability_ids", []))
@@ -576,4 +605,36 @@ def validate_lesson_record(
                 path,
                 "learner content exposes an internal coded filename",
             )
+    return issues
+
+
+def validate_lesson_collection(
+    records: Sequence[Mapping[str, Any]], blueprint: Mapping[str, Any]
+) -> list[ContentIssue]:
+    issues: list[ContentIssue] = []
+    expected = [
+        str(unit.get("id"))
+        for unit in blueprint.get("units", [])
+        if isinstance(unit, Mapping) and _has_text(unit.get("id"))
+    ]
+    owners: dict[str, int] = {}
+    for index, record in enumerate(records):
+        issues.extend(validate_lesson_record(record, blueprint))
+        unit_id = record.get("unit_id")
+        if isinstance(unit_id, str):
+            if unit_id in owners:
+                _issue(
+                    issues,
+                    "duplicate_lesson_owner",
+                    f"$.lessons[{index}].unit_id",
+                    f"blueprint unit {unit_id} has more than one lesson owner",
+                )
+            owners[unit_id] = index
+    if set(owners) != set(expected) or len(records) != len(expected):
+        _issue(
+            issues,
+            "lesson_collection_incomplete",
+            "$.lessons",
+            "lesson records must cover every governed blueprint unit exactly once",
+        )
     return issues

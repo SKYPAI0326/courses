@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from dataclasses import dataclass
 from typing import Any, Mapping, Sequence
+
+from src.schema_runtime import validate_schema_file
 
 
 ID_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -16,14 +19,8 @@ VAGUE_PREFIXES = (
     "完成課程", "了解概念", "學會內容", "general learner", "everyone",
     "any tool", "unknown", "tbd", "todo",
 )
-MATERIAL_UNKNOWN_PATTERN = re.compile(
-    r"(?:帳號|權限|裝置|設備|瀏覽器|工具|素材|檔案|資料欄位|成果|交付物|語系|地區|"
-    r"account|permission|device|browser|tool|material|asset|artifact|deliverable|locale)",
-    re.IGNORECASE,
-)
-NON_MATERIAL_FALLBACK_PATTERN = re.compile(
-    r"(?:若.+(?:改|使用|提供)|備援(?:方式|路徑|工具)|替代(?:方式|路徑|工具)|fallback|alternative)",
-    re.IGNORECASE,
+MATERIAL_DOMAINS = frozenset(
+    {"tools", "accounts", "permissions", "device", "materials", "artifact", "time", "locale"}
 )
 
 REQUIREMENTS_REQUIRED_FIELDS = (
@@ -88,10 +85,44 @@ def _stable_id(value: Any, path: str, seen: set[str], issues: list[RequirementsI
     return value
 
 
+def _normalized_prose(value: str) -> str:
+    normalized = unicodedata.normalize("NFKC", value).casefold()
+    return "".join(character for character in normalized if character.isalnum())
+
+
+def _prose_values(value: Any, path: str = "$"):
+    if isinstance(value, str) and not path.endswith((".id", "_id", ".status", ".evidence_ref")):
+        yield path, value
+    elif isinstance(value, Mapping):
+        for key, child in value.items():
+            yield from _prose_values(child, f"{path}.{key}")
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            yield from _prose_values(child, f"{path}[{index}]")
+
+
+def _validate_prose_distinctness(record: Mapping[str, Any], issues: list[RequirementsIssue]) -> None:
+    owners: dict[str, str] = {}
+    for path, text in _prose_values(record):
+        normalized = _normalized_prose(text)
+        if len(normalized) < 16:
+            continue
+        if re.fullmatch(r"(.{16,}?)\1+", normalized):
+            _issue(issues, "padded_requirement", path, "repeated text cannot satisfy a requirement field")
+        if normalized in owners:
+            _issue(issues, "duplicate_requirement_text", path, f"requirement prose duplicates {owners[normalized]}")
+        else:
+            owners[normalized] = path
+
+
 def validate_requirements_record(record: Mapping[str, Any]) -> list[RequirementsIssue]:
     issues: list[RequirementsIssue] = []
     if not isinstance(record, Mapping):
         return [RequirementsIssue("invalid_requirements_record", "$", "requirements record must be an object")]
+    issues.extend(
+        RequirementsIssue(issue.code, issue.path, issue.message)
+        for issue in validate_schema_file("course-requirements-record.schema.json", record)
+    )
     for field in sorted(set(record) - set(REQUIREMENTS_REQUIRED_FIELDS)):
         _issue(issues, "unsupported_field", f"$.{field}", f"canonical G0 does not allow {field}")
     for field in REQUIREMENTS_REQUIRED_FIELDS:
@@ -100,6 +131,7 @@ def validate_requirements_record(record: Mapping[str, Any]) -> list[Requirements
     if record.get("schema_version") != 1:
         _issue(issues, "unsupported_schema_version", "$.schema_version", "schema_version must be 1")
     seen: set[str] = set()
+    _validate_prose_distinctness(record, issues)
     _stable_id(record.get("requirements_id"), "$.requirements_id", seen, issues)
 
     target = _mapping_fields(record.get("target_profile"), ("learner", "baseline"), "$.target_profile", issues)
@@ -174,16 +206,20 @@ def validate_requirements_record(record: Mapping[str, Any]) -> list[Requirements
                 status = mapped.get("status")
                 if status not in {"OPEN", "RESOLVED"}:
                     _issue(issues, "invalid_unknown_status", f"{path}.status", "unknown status must be OPEN or RESOLVED")
-                question = str(mapped.get("question", ""))
-                resolution = str(mapped.get("resolution", ""))
-                unknown_text = f"{question} {resolution}"
-                material_by_content = (
-                    MATERIAL_UNKNOWN_PATTERN.search(unknown_text) is not None
-                    and NON_MATERIAL_FALLBACK_PATTERN.search(resolution) is None
+                domains = mapped.get("impact_domains")
+                derived_material = isinstance(domains, list) and bool(set(domains) & MATERIAL_DOMAINS)
+                fallback = mapped.get("fallback")
+                fallback_valid = (
+                    isinstance(fallback, Mapping)
+                    and _meaningful(fallback.get("description"))
+                    and fallback.get("verification_status") == "VERIFIED"
+                    and isinstance(fallback.get("evidence_ref"), str)
+                    and ID_PATTERN.fullmatch(fallback["evidence_ref"]) is not None
+                    and fallback.get("preserves_acceptance") is True
                 )
-                if status != "RESOLVED" and (
-                    mapped.get("material") is True or material_by_content
-                ):
+                if fallback is not None and not fallback_valid:
+                    _issue(issues, "invalid_fallback", f"{path}.fallback", "fallback must be verified, evidenced, and preserve acceptance")
+                if status != "RESOLVED" and derived_material:
                     _issue(issues, "material_unknown", path, "an unresolved material unknown blocks G0")
     return issues
 

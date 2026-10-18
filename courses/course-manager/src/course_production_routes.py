@@ -8,6 +8,7 @@ from typing import Any, Mapping, MutableMapping, Sequence
 from src.course_contract import ContractStateError
 from src.course_evidence import canonical_json_bytes, register_evidence_file
 from src.course_gate import validate_and_transition_gate
+from src.course_governance import consume_passed_gate, single_governed_value
 
 
 def _text(value: Any) -> bool:
@@ -33,6 +34,15 @@ def _route_full_production_to_g5(
 ) -> str:
     if not evidence_refs:
         raise ValueError("G5 routing requires production evidence references")
+    governed_blueprint, _ = single_governed_value(
+        contract, "G2", "course_blueprint", workspace_root
+    )
+    governed_lessons = [
+        item.value for item in consume_passed_gate(contract, "G3", workspace_root)
+        if item.reference.get("kind") == "lesson_record"
+    ]
+    if blueprint != governed_blueprint or list(lessons) != governed_lessons:
+        return "BLOCKED"
     evidence_index = contract.get("evidence_index")
     if not isinstance(evidence_index, list):
         raise ContractStateError("contract evidence index is missing")
@@ -101,8 +111,8 @@ def _route_full_production_to_g5(
         raise ContractStateError("G5 requires an existing authority-issued trial receipt")
     bundle = {
         "record": dict(record),
-        "blueprint": dict(blueprint),
-        "lessons": [dict(item) for item in lessons],
+        "blueprint": dict(governed_blueprint),
+        "lessons": [dict(item) for item in governed_lessons],
         "assets": dict(assets),
         "pilot": dict(pilot),
     }
@@ -153,6 +163,7 @@ def route_full_production_to_g5(
         trial_evidence_id=trial_evidence_id,
         trial_receipt_evidence_id=trial_receipt_evidence_id,
     )
-    contract.clear()
-    contract.update(staged)
+    if result == "PASS":
+        contract.clear()
+        contract.update(staged)
     return result

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import copy
+import argparse
 import hashlib
 import json
 import shutil
@@ -17,12 +18,12 @@ from src.course_content import validate_lesson_record  # noqa: E402
 from src.course_contract import (  # noqa: E402
     begin_gate,
     new_contract,
-    pass_gate,
     propose_external_action,
     save_contract_atomic,
     validate_contract,
 )
 from src.course_architecture_routes import route_blueprint_to_g2  # noqa: E402
+from src.course_content_routes import route_content_to_g3  # noqa: E402
 from src.course_production import (  # noqa: E402
     select_pilot_unit,
     validate_full_production,
@@ -147,8 +148,15 @@ def requirements_record() -> dict:
             "id": "unknown-spreadsheet-product",
             "question": "學員會使用哪一套試算表軟體開啟 CSV？",
             "material": False,
+            "impact_domains": ["non-core"],
             "status": "OPEN",
             "resolution": "教材使用跨產品公式與可手算的固定數字，不依賴特定選單或函數。",
+            "fallback": {
+                "description": "以教材列出的跨產品公式或手算固定數字完成相同五項指標。",
+                "verification_status": "VERIFIED",
+                "evidence_ref": "csv-calculation-check",
+                "preserves_acceptance": True,
+            },
         }],
         "decisions": [{
             "id": "decision-complete-brief",
@@ -179,7 +187,7 @@ def blueprint_record(requirements: dict) -> dict:
             "id": "unit-3", "title": "把判讀寫成可交付摘要", "outcome": "完成可驗收的成效摘要，區分數據判讀、限制與下一步。",
             "outcome_ids": ["outcome-brief"], "criterion_ids": ["g2-evidence-boundary", "g2-actionable-next-step"], "capability_ids": ["cap-evidence-boundary", "cap-actionable-next-step"],
             "prerequisite_unit_ids": ["unit-2"], "workflow_fingerprint": "write-evidence-bounded-brief", "duration_minutes": 13,
-            "g1_evidence_refs": ["platform-attribution", "teach-formulas-with-denominators"],
+            "g1_evidence_refs": ["g1-research"],
             "risk": {"failure_cost": 5, "tool_uncertainty": 1, "asset_dependency": 4, "layout_complexity": 4, "downstream_dependency": 5},
         },
     )
@@ -228,7 +236,7 @@ def blueprint_record(requirements: dict) -> dict:
             "recommended_path": "先用固定資料建立可重算指標，再套用一致門檻，最後寫成有證據界線與可觀察下一步的摘要。",
             "rationale": "G1 的指標定義與平台歸因證據顯示，學員必須先穩定處理分母與單位，再把描述性資料轉成不越界的決策文字。",
             "constraint_fit": "三個實作單元共三十七分鐘，另有四分鐘休息與四分鐘修正緩衝，能在 G0 的四十五分鐘內完成真實交付物。",
-            "g1_evidence_refs": ["metric-definitions", "platform-attribution", "teach-formulas-with-denominators"],
+            "g1_evidence_refs": ["g1-research"],
         },
         "outcomes": [
             {"id": "outcome-metrics", "statement": "學員能從固定原始欄位完成五項可重算指標。", "criterion_ids": ["g2-ctr", "g2-cpc", "g2-cvr", "g2-cpa", "g2-roas"]},
@@ -271,8 +279,8 @@ def production_learning_coverage(blueprint: dict) -> list[dict]:
                 "unit_id": unit["id"],
                 "lesson_unit_id": unit["id"],
                 "artifact_criterion_id": criterion["g0_criterion_id"],
-                "artifact_evidence": f"完成品依 {criterion['id']} 保留可重算或可觀察的通過證據。",
-                "trial_evidence": f"隔離完整課程試走依 {criterion['id']} 完成任務並通過相同檢核。",
+                "artifact_evidence_id": criterion["g0_criterion_id"],
+                "trial_evidence_id": "action-1",
             }
         )
     return rows
@@ -363,9 +371,9 @@ def lesson_record(unit_id: str, page_hash: str) -> dict:
             ),
             "criterion_id": criterion_id,
             "capability_id": capability_id,
-            "teaching_evidence": ["本單元的解釋與完整示範說明判斷依據、操作及預期結果。"],
-            "practice_evidence": ["引導練習後以改變條件的獨立任務完成同一能力。"],
-            "assessment_evidence": ["快速檢查與 learner-visible rubric 保存可觀察的通過結果。"],
+            "teaching_evidence": ["explanation", "full_demonstration"],
+            "practice_evidence": ["guided_practice", "independent_practice"],
+            "assessment_evidence": ["checks"],
         }
         for criterion_id, capability_id in zip(
             stable_refs["criterion_ids"], stable_refs["capability_ids"]
@@ -486,7 +494,12 @@ def lesson_record(unit_id: str, page_hash: str) -> dict:
     }
 
 
-def main() -> None:
+def main(*, authority_provider=None, output_root: Path | None = None) -> None:
+    authority_mode = "missing" if authority_provider is None else "not-yet-wired"
+    raise SystemExit(
+        "PRECONDITION FAILED: proof rebuild requires a test-only runner authority provider "
+        f"and isolated output transaction ({authority_mode}); Task 8 owns snapshot regeneration"
+    )
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     DESIGN.mkdir(parents=True, exist_ok=True)
     research = load_json(EVIDENCE / "research-record.json")
@@ -586,6 +599,11 @@ def main() -> None:
             "criterion_ids": lesson["criterion_ids"],
             "capability_ids": lesson["capability_ids"],
             "learning_coverage": lesson["learning_coverage"],
+            "explanation": lesson["explanation"],
+            "full_demonstration": lesson["full_demonstration"],
+            "guided_practice": lesson["guided_practice"],
+            "independent_practice": lesson["independent_practice"],
+            "checks": lesson["checks"],
         })
         production_units.append({
             "unit_id": unit["id"],
@@ -676,11 +694,12 @@ def main() -> None:
     )
 
     begin_gate(contract, "G3", "course-run", "2026-10-18T14:37:00+08:00")
-    content_bundle = {"lesson_records": [{"unit_id": record["unit_id"], "path": f"evidence/lesson-{record['unit_id']}.json", "sha256": sha(EVIDENCE / f"lesson-{record['unit_id']}.json")} for record in lesson_records], "validation": "PASS"}
-    write_json(EVIDENCE / "content-bundle.json", content_bundle)
-    contract["G3_lesson_design"] = {"record_path": "evidence/content-bundle.json", "sha256": sha(EVIDENCE / "content-bundle.json"), "unit_count": 3}
-    contract["evidence_index"].append({"id": "g3-content-bundle", "gate": "G3", "path": "evidence/content-bundle.json", "sha256": sha(EVIDENCE / "content-bundle.json")})
-    pass_gate(contract, "G3", ["g3-content-bundle"], "course-lesson-record-validator", "course-run", "2026-10-18T14:38:00+08:00")
+    route_content_to_g3(
+        contract, lesson_records,
+        [f"evidence/lesson-{record['unit_id']}.json" for record in lesson_records],
+        [sha(EVIDENCE / f"lesson-{record['unit_id']}.json") for record in lesson_records],
+        "course-run", "2026-10-18T14:38:00+08:00", workspace_root=ROOT,
+    )
 
     begin_gate(contract, "G4", "course-run", "2026-10-18T14:39:00+08:00")
     pilot_bundle = {"pilot_record": "evidence/pilot-record.json", "asset_manifest": "evidence/asset-manifest.json", "result": "PASS"}
@@ -691,12 +710,21 @@ def main() -> None:
 
     begin_gate(contract, "G5", "course-run", "2026-10-18T15:21:10+08:00")
     contract["G5_production"] = {"record_path": "evidence/production-record.json", "sha256": sha(EVIDENCE / "production-record.json")}
-    route_full_production_to_g5(contract, production, [{"id": "g5-render-integration", "gate": "G5", "path": "evidence/production-record.json", "sha256": sha(EVIDENCE / "production-record.json")}], "course-run", "2026-10-18T15:21:20+08:00")
+    route_full_production_to_g5(
+        contract, production,
+        [{"id": "g5-render-integration", "kind": "full_course_production", "path": "evidence/production-record.json"}],
+        "course-run", "2026-10-18T15:21:20+08:00", workspace_root=ROOT,
+        blueprint=blueprint, lessons=lesson_summaries, assets=asset_manifest, pilot=pilot,
+        production_role_evidence_id="g0-production-role-roster",
+        production_record_path="evidence/production-record.json",
+        trial_evidence_id="g5-independent-trial",
+        trial_receipt_evidence_id="g5-independent-trial-receipt",
+    )
 
     begin_gate(contract, "G6", "course-run", "2026-10-18T15:21:30+08:00")
     contract["G6_release_maintenance"] = {"state": "READY_TO_PUBLISH", "record_path": "evidence/release-record.json", "published": False}
     contract["evidence_index"].append({"id": "g6-release-readiness", "gate": "G6", "path": "evidence/release-record.json", "sha256": sha(EVIDENCE / "release-record.json")})
-    pass_gate(contract, "G6", ["g6-release-readiness"], "course-release-record-validator", "course-run", "2026-10-18T15:21:40+08:00")
+    raise SystemExit("PRECONDITION FAILED: Task 8 must supply canonical G6 typed evidence")
     propose_external_action(contract, proposal["action_id"], "course-release", "evidence/release-proposal.json", proposal["manifest_sha256"], "course-ops", "2026-10-18T15:21:45+08:00")
     issues = validate_contract(contract)
     if issues:
@@ -716,4 +744,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--output-root", type=Path)
+    args = parser.parse_args()
+    main(output_root=args.output_root)
