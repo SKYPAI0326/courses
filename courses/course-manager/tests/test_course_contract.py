@@ -4,11 +4,16 @@ import unittest
 from pathlib import Path
 
 from src.course_contract import (
+    ContractStateError,
     GATE_ORDER,
     GATE_STATUSES,
+    approve_gate,
+    block_gate,
     load_contract,
     new_contract,
+    record_change,
     save_contract_atomic,
+    submit_gate,
     validate_contract,
 )
 
@@ -118,6 +123,162 @@ class CourseContractModelTests(unittest.TestCase):
             self.assertIn("先看懂工作情境", serialized)
             self.assertNotIn("\\u5148", serialized)
             self.assertEqual(list(path.parent.glob(f".{path.name}.*.tmp")), [])
+
+
+class CourseContractStateTests(unittest.TestCase):
+    def make_contract(self):
+        return new_contract(
+            slug="practical-ai",
+            title="實用生成式 AI",
+            created_by="課程團隊",
+            created_at="2026-10-18T12:00:00+08:00",
+        )
+
+    def approve_gates_through(self, contract, final_gate):
+        for gate_id in GATE_ORDER:
+            submit_gate(contract, gate_id, "child-skill", "2026-10-18T13:00:00+08:00")
+            approve_gate(
+                contract,
+                gate_id,
+                "使用者",
+                "2026-10-18T13:05:00+08:00",
+                f"核准 {gate_id} 成果與證據",
+            )
+            if gate_id == final_gate:
+                return
+
+    def test_submit_requires_previous_gate_approval(self):
+        contract = self.make_contract()
+
+        with self.assertRaises(ContractStateError):
+            submit_gate(contract, "G1", "course-researcher", "2026-10-18T13:00:00+08:00")
+
+        self.assertEqual(contract["gates"]["G1"]["status"], "DRAFT")
+
+    def test_approve_requires_review_state_and_user_approval_fields(self):
+        contract = self.make_contract()
+        with self.assertRaises(ContractStateError):
+            approve_gate(contract, "G0", "使用者", "2026-10-18T13:00:00+08:00", "核准")
+
+        submit_gate(contract, "G0", "course-run", "2026-10-18T13:00:00+08:00")
+        for approved_by, approved_at, note in (
+            ("", "2026-10-18T13:00:00+08:00", "核准"),
+            ("使用者", "", "核准"),
+            ("使用者", "2026-10-18T13:00:00+08:00", ""),
+        ):
+            with self.subTest(
+                approved_by=approved_by, approved_at=approved_at, approval_note=note
+            ):
+                with self.assertRaises(ContractStateError):
+                    approve_gate(contract, "G0", approved_by, approved_at, note)
+        self.assertEqual(contract["gates"]["G0"]["status"], "REVIEW")
+
+    def test_approve_rejects_unresolved_blockers(self):
+        contract = self.make_contract()
+        contract["gates"]["G0"]["risks"].append(
+            {"id": "risk-1", "blocking": True, "resolved": False, "description": "時數未確認"}
+        )
+        submit_gate(contract, "G0", "course-run", "2026-10-18T13:00:00+08:00")
+
+        with self.assertRaises(ContractStateError):
+            approve_gate(
+                contract,
+                "G0",
+                "使用者",
+                "2026-10-18T13:05:00+08:00",
+                "核准需求",
+            )
+
+        self.assertEqual(contract["gates"]["G0"]["status"], "REVIEW")
+
+    def test_child_submission_cannot_mark_gate_approved(self):
+        contract = self.make_contract()
+
+        submit_gate(contract, "G0", "course-run", "2026-10-18T13:00:00+08:00")
+
+        gate = contract["gates"]["G0"]
+        self.assertEqual(gate["status"], "REVIEW")
+        self.assertIsNone(gate["approved_by"])
+        self.assertIsNone(gate["approved_at"])
+        self.assertEqual(gate["source_revision"], 1)
+
+    def test_semantic_change_resets_affected_gate_and_stales_downstream(self):
+        contract = self.make_contract()
+        self.approve_gates_through(contract, "G2")
+        original_g0 = copy.deepcopy(contract["gates"]["G0"])
+
+        invalidated = record_change(
+            contract,
+            "G1",
+            "代表工具改版，研究與架構需重驗",
+            "course-run",
+            "2026-10-19T09:00:00+08:00",
+            semantic=True,
+        )
+
+        self.assertEqual(invalidated, ["G1", "G2", "G3", "G4", "G5", "G6"])
+        self.assertEqual(contract["gates"]["G0"], original_g0)
+        self.assertEqual(contract["gates"]["G1"]["status"], "DRAFT")
+        self.assertIsNone(contract["gates"]["G1"]["approved_by"])
+        self.assertIsNone(contract["gates"]["G1"]["approved_at"])
+        self.assertTrue(
+            all(contract["gates"][gate_id]["status"] == "STALE" for gate_id in GATE_ORDER[2:])
+        )
+        self.assertEqual(contract["changes"][-1]["affected_gate"], "G1")
+        self.assertTrue(contract["changes"][-1]["semantic"])
+
+    def test_nonsemantic_change_preserves_gate_states(self):
+        contract = self.make_contract()
+        self.approve_gates_through(contract, "G1")
+        before = {gate_id: contract["gates"][gate_id]["status"] for gate_id in GATE_ORDER}
+
+        invalidated = record_change(
+            contract,
+            "G1",
+            "修正錯字",
+            "編輯",
+            "2026-10-19T09:00:00+08:00",
+            semantic=False,
+        )
+
+        self.assertEqual(invalidated, [])
+        self.assertEqual(
+            {gate_id: contract["gates"][gate_id]["status"] for gate_id in GATE_ORDER},
+            before,
+        )
+        self.assertFalse(contract["changes"][-1]["semantic"])
+
+    def test_blocked_gate_can_return_to_draft_but_cannot_skip_review(self):
+        contract = self.make_contract()
+        block_gate(
+            contract,
+            "G0",
+            "缺少學員使用情境",
+            "course-run",
+            "2026-10-18T13:00:00+08:00",
+        )
+        self.assertEqual(contract["gates"]["G0"]["status"], "BLOCKED")
+
+        record_change(
+            contract,
+            "G0",
+            "已補齊學員使用情境",
+            "course-run",
+            "2026-10-18T14:00:00+08:00",
+            semantic=True,
+        )
+        self.assertEqual(contract["gates"]["G0"]["status"], "DRAFT")
+        with self.assertRaises(ContractStateError):
+            approve_gate(
+                contract,
+                "G0",
+                "使用者",
+                "2026-10-18T14:05:00+08:00",
+                "核准需求",
+            )
+
+        submit_gate(contract, "G0", "course-run", "2026-10-18T14:10:00+08:00")
+        self.assertEqual(contract["gates"]["G0"]["status"], "REVIEW")
 
 
 if __name__ == "__main__":
