@@ -344,6 +344,100 @@ def record_change(
     return invalidated
 
 
+def _reference_label(item: Any) -> str:
+    if not isinstance(item, Mapping):
+        return str(item)
+    parts = [
+        str(item[key])
+        for key in ("id", "kind", "path", "sha256")
+        if item.get(key) not in (None, "")
+    ]
+    return " | ".join(parts) if parts else "(record in contract)"
+
+
+def _risk_label(item: Any) -> str:
+    if not isinstance(item, Mapping):
+        return str(item)
+    identifier = item.get("id") or item.get("kind") or "risk"
+    detail = item.get("description") or item.get("reason") or "(see contract)"
+    return f"{identifier}: {detail}"
+
+
+def _question_label(item: Any) -> str:
+    if not isinstance(item, Mapping):
+        return str(item)
+    identifier = item.get("id") or "question"
+    detail = item.get("text") or item.get("question") or "(see contract)"
+    return f"{identifier}: {detail}"
+
+
+def _append_list(lines: list[str], heading: str, items: list[Any], formatter) -> None:
+    lines.append(f"{heading}:")
+    if not items:
+        lines.append("- none")
+        return
+    lines.extend(f"- {formatter(item)}" for item in items)
+
+
+def render_gate_summary(contract: Mapping[str, Any]) -> str:
+    gates = contract.get("gates", {})
+    current_gate = next(
+        (gate_id for gate_id in GATE_ORDER if gates[gate_id]["status"] != "APPROVED"),
+        "G6",
+    )
+    gate = gates[current_gate]
+    section_refs = {
+        "G0": ["$.G0_requirements"],
+        "G1": ["$.G1_research", "$.adaptation"],
+        "G2": ["$.G2_architecture"],
+        "G3": ["$.G3_lesson_design"],
+        "G4": ["$.G4_pilot"],
+        "G5": ["$.G5_production"],
+        "G6": ["$.G6_release_maintenance"],
+    }
+    blockers = [
+        item
+        for item in gate.get("risks", [])
+        if isinstance(item, Mapping)
+        and item.get("blocking") is True
+        and item.get("resolved") is not True
+    ]
+    nonblocking_risks = [
+        item for item in gate.get("risks", []) if item not in blockers
+    ]
+    lines = [
+        f"Course: {contract['identity']['title']} ({contract['identity']['slug']})",
+        f"Current gate: {current_gate}",
+        f"State: {gate['status']}",
+        f"Source sections: {', '.join(section_refs[current_gate])}",
+    ]
+    _append_list(lines, "Deliverables", gate.get("deliverables", []), _reference_label)
+    _append_list(lines, "Evidence", gate.get("evidence", []), _reference_label)
+    _append_list(lines, "Blockers", blockers, _risk_label)
+    _append_list(lines, "Risks", nonblocking_risks, _risk_label)
+    _append_list(
+        lines, "Open questions", gate.get("open_questions", []), _question_label
+    )
+
+    state = gate["status"]
+    if blockers:
+        next_action = "resolve blocking risks before approval"
+    elif state == "DRAFT":
+        next_action = f"complete {current_gate} deliverables and submit for review"
+    elif state == "REVIEW":
+        next_action = f"obtain explicit user approval for {current_gate}"
+    elif state == "BLOCKED":
+        next_action = f"resolve blockers and record the change at {current_gate}"
+    elif state == "STALE":
+        next_action = f"refresh {current_gate} from approved upstream inputs"
+    elif current_gate == "G6":
+        next_action = "course contract is fully approved"
+    else:
+        next_action = f"begin {GATE_ORDER[GATE_ORDER.index(current_gate) + 1]}"
+    lines.append(f"Next action: {next_action}")
+    return "\n".join(lines)
+
+
 def load_contract(path: Path) -> dict[str, Any]:
     with Path(path).open("r", encoding="utf-8") as handle:
         contract = json.load(handle)
