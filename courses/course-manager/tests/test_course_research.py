@@ -1,7 +1,13 @@
 import copy
+import hashlib
 import unittest
 
-from src.course_research import research_ready, validate_research_record
+from src.course_contract import begin_gate, new_contract, pass_gate
+from src.course_research import (
+    research_ready,
+    route_research_to_gate,
+    validate_research_record,
+)
 
 
 class CourseResearchValidationTests(unittest.TestCase):
@@ -225,6 +231,48 @@ class CourseResearchValidationTests(unittest.TestCase):
 
         self.assertIn("unknown_conflict_claim", codes)
         self.assertFalse(research_ready(record, {}))
+
+    def test_research_routes_valid_evidence_directly_to_g1_pass(self):
+        contract = new_contract(
+            "practical-ai",
+            "實用生成式 AI",
+            "課程團隊",
+            "2026-10-18T12:00:00+08:00",
+        )
+        begin_gate(contract, "G0", "course-run", "2026-10-18T12:10:00+08:00")
+        contract["evidence_index"].append(
+            {
+                "id": "g0-requirements",
+                "gate": "G0",
+                "path": "evidence/g0-requirements.json",
+                "sha256": hashlib.sha256(b"g0-requirements").hexdigest(),
+            }
+        )
+        pass_gate(
+            contract,
+            "G0",
+            ["g0-requirements"],
+            "requirements-validator",
+            "course-run",
+            "2026-10-18T12:15:00+08:00",
+        )
+        begin_gate(contract, "G1", "course-run", "2026-10-18T12:20:00+08:00")
+
+        status = route_research_to_gate(
+            contract,
+            self.valid_record(),
+            {},
+            "evidence/g1-research.json",
+            "a" * 64,
+            "course-researcher",
+            "2026-10-18T12:30:00+08:00",
+        )
+
+        self.assertEqual(status, "PASS")
+        self.assertEqual(contract["gates"]["G1"]["status"], "PASS")
+        self.assertTrue(
+            any(item.get("id") == "g1-research" for item in contract["evidence_index"])
+        )
 
 
 if __name__ == "__main__":

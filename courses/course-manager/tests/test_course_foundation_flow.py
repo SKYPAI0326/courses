@@ -1,15 +1,17 @@
 import copy
+import hashlib
 import json
 import unittest
 from pathlib import Path
 
 from src.course_contract import (
     ContractStateError,
-    approve_gate,
+    begin_gate,
+    migrate_contract_v1,
     new_contract,
+    pass_gate,
     record_change,
     render_gate_summary,
-    submit_gate,
 )
 from src.course_research import route_research_to_gate
 
@@ -29,8 +31,12 @@ class CourseFoundationFlowTests(unittest.TestCase):
     def load_json(self, relative_path):
         return json.loads((FIXTURES / relative_path).read_text(encoding="utf-8"))
 
-    def approved_g0(self):
-        return self.load_json("course-contracts/g0-approved.json")
+    def passed_g0(self):
+        return migrate_contract_v1(
+            self.load_json("course-contracts/g0-approved.json"),
+            "course-run",
+            "2026-10-18T14:00:00+08:00",
+        )
 
     def valid_research(self):
         return self.load_json("course-research/valid-high-tool.json")
@@ -46,7 +52,7 @@ class CourseFoundationFlowTests(unittest.TestCase):
             "2026-10-18T15:00:00+08:00",
         )
 
-    def test_g0_must_be_approved_before_research_submission(self):
+    def test_g0_must_pass_before_research_routing(self):
         contract = new_contract(
             "fictional-sheets",
             "虛構試算表實作課",
@@ -57,27 +63,26 @@ class CourseFoundationFlowTests(unittest.TestCase):
         with self.assertRaises(ContractStateError):
             self.route_valid_research(contract)
 
-        self.assertEqual(contract["gates"]["G1"]["status"], "DRAFT")
+        self.assertEqual(contract["gates"]["G1"]["status"], "NOT_STARTED")
 
-    def test_valid_high_tool_research_can_reach_g1_review(self):
-        contract = self.approved_g0()
+    def test_research_routes_valid_evidence_directly_to_g1_pass(self):
+        contract = self.passed_g0()
+        begin_gate(contract, "G1", "course-run", "2026-10-18T14:30:00+08:00")
 
         status = self.route_valid_research(contract)
 
-        self.assertEqual(status, "REVIEW")
-        self.assertEqual(contract["gates"]["G1"]["status"], "REVIEW")
+        self.assertEqual(status, "PASS")
+        self.assertEqual(contract["gates"]["G1"]["status"], "PASS")
         self.assertEqual(contract["G1_research"]["record_path"], "evidence/g1-research.json")
         self.assertEqual(contract["G1_research"]["sha256"], "a" * 64)
         self.assertEqual(contract["adaptation"], ADAPTATION)
         self.assertTrue(
-            any(
-                item.get("kind") == "research_record"
-                for item in contract["gates"]["G1"]["evidence"]
-            )
+            any(item.get("id") == "g1-research" for item in contract["evidence_index"])
         )
 
     def test_missing_hands_on_keeps_g1_blocked(self):
-        contract = self.approved_g0()
+        contract = self.passed_g0()
+        begin_gate(contract, "G1", "course-run", "2026-10-18T14:30:00+08:00")
         blocked = self.load_json("course-research/blocked-no-hands-on.json")
 
         status = route_research_to_gate(
@@ -100,43 +105,35 @@ class CourseFoundationFlowTests(unittest.TestCase):
             )
         )
 
-    def test_g1_approval_allows_g2_submission(self):
-        contract = self.approved_g0()
+    def test_g1_pass_allows_g2_begin(self):
+        contract = self.passed_g0()
+        begin_gate(contract, "G1", "course-run", "2026-10-18T14:30:00+08:00")
         self.route_valid_research(contract)
-        approve_gate(
-            contract,
-            "G1",
-            "使用者",
-            "2026-10-18T15:10:00+08:00",
-            "核准研究證據與適配決策",
-        )
 
-        submit_gate(
-            contract,
-            "G2",
-            "course-pm",
-            "2026-10-18T16:00:00+08:00",
-        )
+        begin_gate(contract, "G2", "course-run", "2026-10-18T16:00:00+08:00")
 
-        self.assertEqual(contract["gates"]["G2"]["status"], "REVIEW")
+        self.assertEqual(contract["gates"]["G2"]["status"], "IN_PROGRESS")
 
     def test_g0_semantic_change_stales_g1_and_g2(self):
-        contract = self.approved_g0()
+        contract = self.passed_g0()
+        begin_gate(contract, "G1", "course-run", "2026-10-18T14:30:00+08:00")
         self.route_valid_research(contract)
-        approve_gate(
-            contract,
-            "G1",
-            "使用者",
-            "2026-10-18T15:10:00+08:00",
-            "核准研究",
+        begin_gate(contract, "G2", "course-run", "2026-10-18T16:00:00+08:00")
+        contract["evidence_index"].append(
+            {
+                "id": "g2-blueprint",
+                "gate": "G2",
+                "path": "evidence/g2-blueprint.md",
+                "sha256": hashlib.sha256(b"g2-blueprint").hexdigest(),
+            }
         )
-        submit_gate(contract, "G2", "course-pm", "2026-10-18T16:00:00+08:00")
-        approve_gate(
+        pass_gate(
             contract,
             "G2",
-            "使用者",
+            ["g2-blueprint"],
+            "course-blueprint-validator",
+            "course-run",
             "2026-10-18T16:10:00+08:00",
-            "核准藍圖",
         )
 
         invalidated = record_change(
@@ -149,12 +146,12 @@ class CourseFoundationFlowTests(unittest.TestCase):
         )
 
         self.assertEqual(invalidated, ["G0", "G1", "G2", "G3", "G4", "G5", "G6"])
-        self.assertEqual(contract["gates"]["G0"]["status"], "DRAFT")
+        self.assertEqual(contract["gates"]["G0"]["status"], "IN_PROGRESS")
         self.assertEqual(contract["gates"]["G1"]["status"], "STALE")
         self.assertEqual(contract["gates"]["G2"]["status"], "STALE")
 
     def test_human_summary_preserves_full_requirement_text(self):
-        contract = self.approved_g0()
+        contract = self.passed_g0()
         prose = contract["G0_requirements"]["learner_context"]
         before = copy.deepcopy(contract)
 

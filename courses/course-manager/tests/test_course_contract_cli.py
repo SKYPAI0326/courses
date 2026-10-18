@@ -1,3 +1,4 @@
+import hashlib
 import json
 import subprocess
 import sys
@@ -5,11 +6,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from src.course_contract import approve_gate, new_contract, save_contract_atomic, submit_gate
+from src.course_contract import begin_gate, new_contract, pass_gate, save_contract_atomic
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 CLI = PROJECT_ROOT / "scripts" / "course_contract.py"
+FIXTURES = PROJECT_ROOT / "tests" / "fixtures"
 
 
 class CourseContractCliTests(unittest.TestCase):
@@ -34,7 +36,30 @@ class CourseContractCliTests(unittest.TestCase):
         save_contract_atomic(path, contract)
         return path
 
-    def test_init_writes_design_contract_at_expected_path(self):
+    def add_evidence(self, contract, gate_id, evidence_id):
+        contract["evidence_index"].append(
+            {
+                "id": evidence_id,
+                "gate": gate_id,
+                "path": f"evidence/{evidence_id}.json",
+                "sha256": hashlib.sha256(evidence_id.encode("utf-8")).hexdigest(),
+            }
+        )
+
+    def pass_gate(self, contract, gate_id):
+        begin_gate(contract, gate_id, "course-run", "2026-10-18T13:00:00+08:00")
+        evidence_id = f"{gate_id.lower()}-evidence"
+        self.add_evidence(contract, gate_id, evidence_id)
+        pass_gate(
+            contract,
+            gate_id,
+            [evidence_id],
+            f"{gate_id.lower()}-validator",
+            "course-run",
+            "2026-10-18T13:05:00+08:00",
+        )
+
+    def test_init_writes_v2_contract_at_expected_path(self):
         result = self.run_cli(
             "init",
             "--root",
@@ -51,10 +76,9 @@ class CourseContractCliTests(unittest.TestCase):
 
         expected = self.root / "_design" / "practical-ai" / "course-contract.json"
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertTrue(expected.is_file())
         contract = json.loads(expected.read_text(encoding="utf-8"))
-        self.assertEqual(contract["identity"]["title"], "實用生成式 AI")
-        self.assertIn(str(expected), result.stdout)
+        self.assertEqual(contract["schema_version"], 2)
+        self.assertEqual(contract["gates"]["G0"]["status"], "NOT_STARTED")
 
     def test_init_rejects_design_directory_symlink_escape(self):
         outside = self.root / "outside"
@@ -106,6 +130,7 @@ class CourseContractCliTests(unittest.TestCase):
         contract = new_contract(
             "practical-ai", "實用生成式 AI", "課程團隊", "2026-10-18T12:00:00+08:00"
         )
+        begin_gate(contract, "G0", "course-run", "2026-10-18T13:00:00+08:00")
         gate = contract["gates"]["G0"]
         gate["deliverables"] = [
             {"id": "requirements-brief", "path": "evidence/g0-requirements.md"}
@@ -120,61 +145,76 @@ class CourseContractCliTests(unittest.TestCase):
             }
         ]
         gate["open_questions"] = [{"id": "q1", "text": "是否提供共用帳號？"}]
-        submit_gate(contract, "G0", "course-run", "2026-10-18T13:00:00+08:00")
         path = self.write_contract(contract)
 
         result = self.run_cli("status", "--contract", path)
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Current gate: G0", result.stdout)
-        self.assertIn("State: REVIEW", result.stdout)
-        self.assertIn("Deliverables", result.stdout)
+        self.assertIn("State: IN_PROGRESS", result.stdout)
         self.assertIn("evidence/g0-requirements.md", result.stdout)
-        self.assertIn("Evidence", result.stdout)
-        self.assertIn("evidence/g0-interview.md", result.stdout)
-        self.assertIn("Blockers", result.stdout)
         self.assertIn("時數未確認", result.stdout)
-        self.assertIn("Open questions", result.stdout)
         self.assertIn("是否提供共用帳號？", result.stdout)
-        self.assertIn("Next action: resolve blocking risks before approval", result.stdout)
+        self.assertIn("Next action: resolve blocking risks", result.stdout)
+        self.assertNotIn("approval", result.stdout.lower())
 
-    def test_approve_requires_explicit_approval_note(self):
+    def test_begin_and_pass_commands_advance_with_indexed_evidence(self):
         contract = new_contract(
             "practical-ai", "實用生成式 AI", "課程團隊", "2026-10-18T12:00:00+08:00"
         )
-        submit_gate(contract, "G0", "course-run", "2026-10-18T13:00:00+08:00")
+        self.add_evidence(contract, "G0", "g0-evidence")
         path = self.write_contract(contract)
 
-        result = self.run_cli(
-            "approve",
+        begin = self.run_cli(
+            "begin",
             "--contract",
             path,
             "--gate",
             "G0",
-            "--approved-by",
-            "使用者",
+            "--actor",
+            "course-run",
+            "--at",
+            "2026-10-18T13:00:00+08:00",
+        )
+        passed = self.run_cli(
+            "pass",
+            "--contract",
+            path,
+            "--gate",
+            "G0",
+            "--evidence-id",
+            "g0-evidence",
+            "--validator-id",
+            "requirements-validator",
+            "--actor",
+            "course-run",
             "--at",
             "2026-10-18T13:05:00+08:00",
         )
+        after = json.loads(path.read_text(encoding="utf-8"))
 
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("--note", result.stderr)
-        unchanged = json.loads(path.read_text(encoding="utf-8"))
-        self.assertEqual(unchanged["gates"]["G0"]["status"], "REVIEW")
+        self.assertEqual(begin.returncode, 0, begin.stderr)
+        self.assertEqual(passed.returncode, 0, passed.stderr)
+        self.assertEqual(after["gates"]["G0"]["status"], "PASS")
+
+    def test_approve_command_directs_v1_operator_to_migrate(self):
+        contract = new_contract(
+            "practical-ai", "實用生成式 AI", "課程團隊", "2026-10-18T12:00:00+08:00"
+        )
+        path = self.write_contract(contract)
+
+        result = self.run_cli("approve", "--contract", path)
+
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("migrate", result.stderr)
+        self.assertEqual(json.loads(path.read_text(encoding="utf-8")), contract)
 
     def test_change_semantic_flag_controls_invalidation(self):
         contract = new_contract(
             "practical-ai", "實用生成式 AI", "課程團隊", "2026-10-18T12:00:00+08:00"
         )
         for gate_id in ("G0", "G1", "G2"):
-            submit_gate(contract, gate_id, "child", "2026-10-18T13:00:00+08:00")
-            approve_gate(
-                contract,
-                gate_id,
-                "使用者",
-                "2026-10-18T13:05:00+08:00",
-                f"核准 {gate_id}",
-            )
+            self.pass_gate(contract, gate_id)
         path = self.write_contract(contract)
 
         nonsemantic = self.run_cli(
@@ -193,8 +233,8 @@ class CourseContractCliTests(unittest.TestCase):
         after_nonsemantic = json.loads(path.read_text(encoding="utf-8"))
 
         self.assertEqual(nonsemantic.returncode, 0, nonsemantic.stderr)
-        self.assertEqual(after_nonsemantic["gates"]["G1"]["status"], "APPROVED")
-        self.assertEqual(after_nonsemantic["gates"]["G2"]["status"], "APPROVED")
+        self.assertEqual(after_nonsemantic["gates"]["G1"]["status"], "PASS")
+        self.assertEqual(after_nonsemantic["gates"]["G2"]["status"], "PASS")
 
         semantic = self.run_cli(
             "change",
@@ -213,8 +253,8 @@ class CourseContractCliTests(unittest.TestCase):
         after_semantic = json.loads(path.read_text(encoding="utf-8"))
 
         self.assertEqual(semantic.returncode, 0, semantic.stderr)
-        self.assertEqual(after_semantic["gates"]["G0"]["status"], "APPROVED")
-        self.assertEqual(after_semantic["gates"]["G1"]["status"], "DRAFT")
+        self.assertEqual(after_semantic["gates"]["G0"]["status"], "PASS")
+        self.assertEqual(after_semantic["gates"]["G1"]["status"], "IN_PROGRESS")
         self.assertTrue(
             all(
                 after_semantic["gates"][gate_id]["status"] == "STALE"
@@ -222,10 +262,92 @@ class CourseContractCliTests(unittest.TestCase):
             )
         )
 
+    def test_external_action_commands_require_exact_authorized_hash(self):
+        contract = new_contract(
+            "practical-ai", "實用生成式 AI", "課程團隊", "2026-10-18T12:00:00+08:00"
+        )
+        for gate_id in ("G0", "G1", "G2", "G3", "G4", "G5", "G6"):
+            self.pass_gate(contract, gate_id)
+        path = self.write_contract(contract)
+
+        proposed = self.run_cli(
+            "propose-action",
+            "--contract",
+            path,
+            "--action-id",
+            "publish-1",
+            "--kind",
+            "publish-course",
+            "--manifest-path",
+            "evidence/release.json",
+            "--manifest-sha256",
+            "a" * 64,
+            "--actor",
+            "course-ops",
+            "--at",
+            "2026-10-18T18:00:00+08:00",
+        )
+        authorized = self.run_cli(
+            "authorize-action",
+            "--contract",
+            path,
+            "--action-id",
+            "publish-1",
+            "--approved-by",
+            "使用者",
+            "--at",
+            "2026-10-18T18:05:00+08:00",
+            "--note",
+            "核准發布",
+        )
+        checked = self.run_cli(
+            "check-action",
+            "--contract",
+            path,
+            "--action-id",
+            "publish-1",
+            "--manifest-sha256",
+            "a" * 64,
+        )
+        rejected = self.run_cli(
+            "check-action",
+            "--contract",
+            path,
+            "--action-id",
+            "publish-1",
+            "--manifest-sha256",
+            "b" * 64,
+        )
+
+        self.assertEqual(proposed.returncode, 0, proposed.stderr)
+        self.assertEqual(authorized.returncode, 0, authorized.stderr)
+        self.assertEqual(checked.returncode, 0, checked.stderr)
+        self.assertEqual(rejected.returncode, 2)
+
+    def test_migrate_command_upgrades_v1_without_overwriting_source_in_memory(self):
+        path = self.root / "legacy.json"
+        source = FIXTURES / "course-contracts" / "v1-approved-through-g2.json"
+        path.write_bytes(source.read_bytes())
+
+        result = self.run_cli(
+            "migrate",
+            "--contract",
+            path,
+            "--actor",
+            "course-run",
+            "--at",
+            "2026-10-18T19:00:00+08:00",
+        )
+        migrated = json.loads(path.read_text(encoding="utf-8"))
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(migrated["schema_version"], 2)
+        self.assertEqual(migrated["gates"]["G0"]["status"], "PASS")
+
     def test_validate_returns_nonzero_for_invalid_contract(self):
         path = self.root / "invalid.json"
         path.write_text(
-            json.dumps({"schema_version": 1, "gates": {}}, ensure_ascii=False),
+            json.dumps({"schema_version": 2, "gates": {}}, ensure_ascii=False),
             encoding="utf-8",
         )
 
@@ -245,7 +367,7 @@ class CourseContractCliTests(unittest.TestCase):
         path.write_text(before, encoding="utf-8")
 
         result = self.run_cli(
-            "submit",
+            "begin",
             "--contract",
             path,
             "--gate",

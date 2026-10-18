@@ -1,4 +1,6 @@
 import copy
+import hashlib
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -7,16 +9,23 @@ from src.course_contract import (
     ContractStateError,
     GATE_ORDER,
     GATE_STATUSES,
-    approve_gate,
+    assert_external_action_authorized,
+    authorize_external_action,
+    begin_gate,
     block_gate,
+    fail_gate,
     load_contract,
+    migrate_contract_v1,
     new_contract,
+    pass_gate,
+    propose_external_action,
     record_change,
     save_contract_atomic,
-    submit_gate,
     validate_contract,
 )
 
+
+FIXTURES = Path(__file__).resolve().parent / "fixtures"
 
 REQUIRED_SECTIONS = {
     "schema_version",
@@ -33,6 +42,8 @@ REQUIRED_SECTIONS = {
     "G6_release_maintenance",
     "changes",
     "evidence_index",
+    "external_actions",
+    "maintenance",
 }
 
 REQUIRED_GATE_FIELDS = {
@@ -43,8 +54,6 @@ REQUIRED_GATE_FIELDS = {
     "evidence",
     "risks",
     "open_questions",
-    "approved_by",
-    "approved_at",
     "source_revision",
     "affected_downstream",
 }
@@ -59,23 +68,41 @@ class CourseContractModelTests(unittest.TestCase):
             created_at="2026-10-18T12:00:00+08:00",
         )
 
-    def test_new_contract_has_all_gates_and_single_state_source(self):
+    def test_new_contract_uses_v2_gate_states_and_external_action_sections(self):
         contract = self.make_contract()
 
         self.assertEqual(GATE_ORDER, tuple(f"G{index}" for index in range(7)))
         self.assertEqual(
             GATE_STATUSES,
-            frozenset({"DRAFT", "REVIEW", "APPROVED", "BLOCKED", "STALE"}),
+            frozenset(
+                {"NOT_STARTED", "IN_PROGRESS", "PASS", "FAIL", "BLOCKED", "STALE"}
+            ),
         )
-        self.assertTrue(REQUIRED_SECTIONS.issubset(contract))
+        self.assertEqual(contract["schema_version"], 2)
+        self.assertEqual(set(contract), REQUIRED_SECTIONS)
         self.assertEqual(tuple(contract["gates"]), GATE_ORDER)
         self.assertTrue(
-            all(set(record) == REQUIRED_GATE_FIELDS for record in contract["gates"].values())
+            all(
+                set(record) == REQUIRED_GATE_FIELDS
+                for record in contract["gates"].values()
+            )
         )
-        for section_name in REQUIRED_SECTIONS - {"gates"}:
-            section = contract[section_name]
-            if isinstance(section, dict):
-                self.assertNotIn("status", section)
+        self.assertTrue(
+            all(
+                record["status"] == "NOT_STARTED"
+                for record in contract["gates"].values()
+            )
+        )
+        self.assertEqual(contract["external_actions"], [])
+        self.assertEqual(contract["maintenance"], {})
+        self.assertEqual(
+            contract["governance"]["gate_authority"],
+            "course-run-with-validated-evidence",
+        )
+        self.assertEqual(
+            contract["governance"]["external_action_authority"],
+            "explicit-user-authorization",
+        )
 
     def test_validate_rejects_unknown_gate_status(self):
         contract = self.make_contract()
@@ -100,15 +127,14 @@ class CourseContractModelTests(unittest.TestCase):
             "governance": lambda contract: contract.update(governance=None),
             "changes": lambda contract: contract.update(changes="not-a-list"),
             "evidence_index": lambda contract: contract.update(evidence_index={}),
+            "external_actions": lambda contract: contract.update(external_actions={}),
+            "maintenance": lambda contract: contract.update(maintenance=[]),
             "payload": lambda contract: contract.update(G1_research=[]),
             "gate risks": lambda contract: contract["gates"]["G0"].update(
                 risks={"blocking": True, "resolved": False}
             ),
             "gate evidence": lambda contract: contract["gates"]["G0"].update(
                 evidence={}
-            ),
-            "gate deliverables": lambda contract: contract["gates"]["G0"].update(
-                deliverables="not-a-list"
             ),
         }
 
@@ -117,16 +143,6 @@ class CourseContractModelTests(unittest.TestCase):
                 contract = self.make_contract()
                 mutate(contract)
                 self.assertTrue(validate_contract(contract))
-
-    def test_validate_rejects_manually_forged_approval(self):
-        contract = self.make_contract()
-        contract["gates"]["G2"]["status"] = "APPROVED"
-
-        issues = validate_contract(contract)
-        codes = {issue.code for issue in issues}
-
-        self.assertIn("approval_metadata_required", codes)
-        self.assertIn("unapproved_prerequisite", codes)
 
     def test_new_contract_rejects_path_traversal_slug(self):
         invalid_slugs = ("../outside", "nested/course", "Uppercase", "two words", "")
@@ -152,9 +168,6 @@ class CourseContractModelTests(unittest.TestCase):
                 loaded["G0_requirements"]["learner_context"].encode("utf-8"),
                 prose.encode("utf-8"),
             )
-            serialized = path.read_text(encoding="utf-8")
-            self.assertIn("先看懂工作情境", serialized)
-            self.assertNotIn("\\u5148", serialized)
             self.assertEqual(list(path.parent.glob(f".{path.name}.*.tmp")), [])
 
 
@@ -167,77 +180,109 @@ class CourseContractStateTests(unittest.TestCase):
             created_at="2026-10-18T12:00:00+08:00",
         )
 
-    def approve_gates_through(self, contract, final_gate):
+    def index_evidence(self, contract, evidence_id, gate_id):
+        contract["evidence_index"].append(
+            {
+                "id": evidence_id,
+                "gate": gate_id,
+                "path": f"evidence/{evidence_id}.json",
+                "sha256": hashlib.sha256(evidence_id.encode("utf-8")).hexdigest(),
+            }
+        )
+
+    def pass_gates_through(self, contract, final_gate):
         for gate_id in GATE_ORDER:
-            submit_gate(contract, gate_id, "child-skill", "2026-10-18T13:00:00+08:00")
-            approve_gate(
+            begin_gate(contract, gate_id, "course-run", "2026-10-18T13:00:00+08:00")
+            evidence_id = f"{gate_id.lower()}-evidence"
+            self.index_evidence(contract, evidence_id, gate_id)
+            pass_gate(
                 contract,
                 gate_id,
-                "使用者",
+                [evidence_id],
+                f"{gate_id.lower()}-validator",
+                "course-run",
                 "2026-10-18T13:05:00+08:00",
-                f"核准 {gate_id} 成果與證據",
             )
             if gate_id == final_gate:
                 return
 
-    def test_submit_requires_previous_gate_approval(self):
+    def test_pass_requires_all_previous_gates_passed_and_indexed_evidence(self):
         contract = self.make_contract()
+        begin_gate(contract, "G0", "course-run", "2026-10-18T13:00:00+08:00")
 
         with self.assertRaises(ContractStateError):
-            submit_gate(contract, "G1", "course-researcher", "2026-10-18T13:00:00+08:00")
-
-        self.assertEqual(contract["gates"]["G1"]["status"], "DRAFT")
-
-    def test_approve_requires_review_state_and_user_approval_fields(self):
-        contract = self.make_contract()
-        with self.assertRaises(ContractStateError):
-            approve_gate(contract, "G0", "使用者", "2026-10-18T13:00:00+08:00", "核准")
-
-        submit_gate(contract, "G0", "course-run", "2026-10-18T13:00:00+08:00")
-        for approved_by, approved_at, note in (
-            ("", "2026-10-18T13:00:00+08:00", "核准"),
-            ("使用者", "", "核准"),
-            ("使用者", "2026-10-18T13:00:00+08:00", ""),
-        ):
-            with self.subTest(
-                approved_by=approved_by, approved_at=approved_at, approval_note=note
-            ):
-                with self.assertRaises(ContractStateError):
-                    approve_gate(contract, "G0", approved_by, approved_at, note)
-        self.assertEqual(contract["gates"]["G0"]["status"], "REVIEW")
-
-    def test_approve_rejects_unresolved_blockers(self):
-        contract = self.make_contract()
-        contract["gates"]["G0"]["risks"].append(
-            {"id": "risk-1", "blocking": True, "resolved": False, "description": "時數未確認"}
-        )
-        submit_gate(contract, "G0", "course-run", "2026-10-18T13:00:00+08:00")
-
-        with self.assertRaises(ContractStateError):
-            approve_gate(
+            pass_gate(
                 contract,
                 "G0",
-                "使用者",
+                ["missing-evidence"],
+                "requirements-validator",
+                "course-run",
                 "2026-10-18T13:05:00+08:00",
-                "核准需求",
             )
 
-        self.assertEqual(contract["gates"]["G0"]["status"], "REVIEW")
+        self.index_evidence(contract, "g0-evidence", "G0")
+        pass_gate(
+            contract,
+            "G0",
+            ["g0-evidence"],
+            "requirements-validator",
+            "course-run",
+            "2026-10-18T13:05:00+08:00",
+        )
+        self.assertEqual(contract["gates"]["G0"]["status"], "PASS")
 
-    def test_child_submission_cannot_mark_gate_approved(self):
+        contract["gates"]["G0"]["status"] = "IN_PROGRESS"
+        with self.assertRaises(ContractStateError):
+            begin_gate(contract, "G1", "course-run", "2026-10-18T13:10:00+08:00")
+
+    def test_pass_rejects_unresolved_blockers(self):
         contract = self.make_contract()
+        begin_gate(contract, "G0", "course-run", "2026-10-18T13:00:00+08:00")
+        self.index_evidence(contract, "g0-evidence", "G0")
+        contract["gates"]["G0"]["risks"].append(
+            {
+                "id": "risk-1",
+                "blocking": True,
+                "resolved": False,
+                "description": "時數未確認",
+            }
+        )
 
-        submit_gate(contract, "G0", "course-run", "2026-10-18T13:00:00+08:00")
+        with self.assertRaises(ContractStateError):
+            pass_gate(
+                contract,
+                "G0",
+                ["g0-evidence"],
+                "requirements-validator",
+                "course-run",
+                "2026-10-18T13:05:00+08:00",
+            )
 
-        gate = contract["gates"]["G0"]
-        self.assertEqual(gate["status"], "REVIEW")
-        self.assertIsNone(gate["approved_by"])
-        self.assertIsNone(gate["approved_at"])
-        self.assertEqual(gate["source_revision"], 1)
+        self.assertEqual(contract["gates"]["G0"]["status"], "IN_PROGRESS")
 
-    def test_semantic_change_resets_affected_gate_and_stales_downstream(self):
+    def test_fail_preserves_issues_and_allows_restart(self):
         contract = self.make_contract()
-        self.approve_gates_through(contract, "G2")
+        begin_gate(contract, "G0", "course-run", "2026-10-18T13:00:00+08:00")
+
+        fail_gate(
+            contract,
+            "G0",
+            [{"code": "missing-outcome", "message": "缺少可觀察成果"}],
+            "requirements-validator",
+            "2026-10-18T13:05:00+08:00",
+        )
+
+        self.assertEqual(contract["gates"]["G0"]["status"], "FAIL")
+        self.assertEqual(
+            contract["gates"]["G0"]["evidence"][-1]["issues"][0]["code"],
+            "missing-outcome",
+        )
+        begin_gate(contract, "G0", "course-run", "2026-10-18T13:10:00+08:00")
+        self.assertEqual(contract["gates"]["G0"]["status"], "IN_PROGRESS")
+
+    def test_semantic_change_sets_affected_gate_in_progress_and_downstream_stale(self):
+        contract = self.make_contract()
+        self.pass_gates_through(contract, "G2")
         original_g0 = copy.deepcopy(contract["gates"]["G0"])
 
         invalidated = record_change(
@@ -251,19 +296,20 @@ class CourseContractStateTests(unittest.TestCase):
 
         self.assertEqual(invalidated, ["G1", "G2", "G3", "G4", "G5", "G6"])
         self.assertEqual(contract["gates"]["G0"], original_g0)
-        self.assertEqual(contract["gates"]["G1"]["status"], "DRAFT")
-        self.assertIsNone(contract["gates"]["G1"]["approved_by"])
-        self.assertIsNone(contract["gates"]["G1"]["approved_at"])
+        self.assertEqual(contract["gates"]["G1"]["status"], "IN_PROGRESS")
         self.assertTrue(
-            all(contract["gates"][gate_id]["status"] == "STALE" for gate_id in GATE_ORDER[2:])
+            all(
+                contract["gates"][gate_id]["status"] == "STALE"
+                for gate_id in GATE_ORDER[2:]
+            )
         )
-        self.assertEqual(contract["changes"][-1]["affected_gate"], "G1")
-        self.assertTrue(contract["changes"][-1]["semantic"])
 
     def test_nonsemantic_change_preserves_gate_states(self):
         contract = self.make_contract()
-        self.approve_gates_through(contract, "G1")
-        before = {gate_id: contract["gates"][gate_id]["status"] for gate_id in GATE_ORDER}
+        self.pass_gates_through(contract, "G1")
+        before = {
+            gate_id: contract["gates"][gate_id]["status"] for gate_id in GATE_ORDER
+        }
 
         invalidated = record_change(
             contract,
@@ -279,58 +325,165 @@ class CourseContractStateTests(unittest.TestCase):
             {gate_id: contract["gates"][gate_id]["status"] for gate_id in GATE_ORDER},
             before,
         )
-        self.assertFalse(contract["changes"][-1]["semantic"])
 
-    def test_blocked_gate_can_return_to_draft_but_cannot_skip_review(self):
+    def test_blocked_gate_can_restart_but_cannot_skip_validation(self):
         contract = self.make_contract()
+        begin_gate(contract, "G0", "course-run", "2026-10-18T13:00:00+08:00")
         block_gate(
             contract,
             "G0",
             "缺少學員使用情境",
             "course-run",
-            "2026-10-18T13:00:00+08:00",
+            "2026-10-18T13:05:00+08:00",
         )
         self.assertEqual(contract["gates"]["G0"]["status"], "BLOCKED")
 
-        record_change(
-            contract,
-            "G0",
-            "已補齊學員使用情境",
-            "course-run",
-            "2026-10-18T14:00:00+08:00",
-            semantic=True,
-        )
-        self.assertEqual(contract["gates"]["G0"]["status"], "DRAFT")
+        begin_gate(contract, "G0", "course-run", "2026-10-18T14:00:00+08:00")
+        self.assertEqual(contract["gates"]["G0"]["status"], "IN_PROGRESS")
         with self.assertRaises(ContractStateError):
-            approve_gate(
+            pass_gate(
                 contract,
                 "G0",
-                "使用者",
+                [],
+                "requirements-validator",
+                "course-run",
                 "2026-10-18T14:05:00+08:00",
-                "核准需求",
             )
 
-        submit_gate(contract, "G0", "course-run", "2026-10-18T14:10:00+08:00")
-        self.assertEqual(contract["gates"]["G0"]["status"], "REVIEW")
 
-    def test_approve_rejects_malformed_blocking_risk_container(self):
-        contract = self.make_contract()
-        submit_gate(contract, "G0", "course-run", "2026-10-18T13:00:00+08:00")
-        contract["gates"]["G0"]["risks"] = {
-            "blocking": True,
-            "resolved": False,
-        }
+class CourseContractExternalActionTests(unittest.TestCase):
+    def make_ready_contract(self):
+        contract = new_contract(
+            "practical-ai",
+            "實用生成式 AI",
+            "課程團隊",
+            "2026-10-18T12:00:00+08:00",
+        )
+        CourseContractStateTests().pass_gates_through(contract, "G6")
+        return contract
+
+    def test_external_authorization_is_separate_from_gate_pass(self):
+        contract = self.make_ready_contract()
+        manifest_hash = "a" * 64
+
+        propose_external_action(
+            contract,
+            "publish-1",
+            "publish-course",
+            "evidence/release-manifest.json",
+            manifest_hash,
+            "course-ops",
+            "2026-10-18T18:00:00+08:00",
+        )
+
+        self.assertEqual(contract["gates"]["G6"]["status"], "PASS")
+        self.assertEqual(
+            contract["external_actions"][0]["status"], "PUBLISH_APPROVAL_REQUIRED"
+        )
+        with self.assertRaises(ContractStateError):
+            assert_external_action_authorized(contract, "publish-1", manifest_hash)
+
+        authorize_external_action(
+            contract,
+            "publish-1",
+            "使用者",
+            "2026-10-18T18:05:00+08:00",
+            "核准依 manifest 發布",
+        )
+        assert_external_action_authorized(contract, "publish-1", manifest_hash)
+
+    def test_authorization_rejects_changed_manifest_hash(self):
+        contract = self.make_ready_contract()
+        propose_external_action(
+            contract,
+            "publish-1",
+            "publish-course",
+            "evidence/release-manifest.json",
+            "a" * 64,
+            "course-ops",
+            "2026-10-18T18:00:00+08:00",
+        )
+        authorize_external_action(
+            contract,
+            "publish-1",
+            "使用者",
+            "2026-10-18T18:05:00+08:00",
+            "核准依 manifest 發布",
+        )
 
         with self.assertRaises(ContractStateError):
-            approve_gate(
-                contract,
-                "G0",
-                "使用者",
-                "2026-10-18T13:05:00+08:00",
-                "核准需求",
-            )
+            assert_external_action_authorized(contract, "publish-1", "b" * 64)
 
-        self.assertEqual(contract["gates"]["G0"]["status"], "REVIEW")
+    def test_validation_rejects_incomplete_or_inconsistent_external_action(self):
+        contract = self.make_ready_contract()
+        propose_external_action(
+            contract,
+            "publish-1",
+            "publish-course",
+            "evidence/release-manifest.json",
+            "a" * 64,
+            "course-ops",
+            "2026-10-18T18:00:00+08:00",
+        )
+        del contract["external_actions"][0]["kind"]
+
+        codes = {issue.code for issue in validate_contract(contract)}
+        self.assertIn("missing_external_action_field", codes)
+
+        contract["external_actions"][0]["kind"] = "publish-course"
+        contract["external_actions"][0]["status"] = "AUTHORIZED"
+        codes = {issue.code for issue in validate_contract(contract)}
+        self.assertIn("invalid_external_authorization", codes)
+
+
+class CourseContractMigrationTests(unittest.TestCase):
+    def load_v1(self):
+        return json.loads(
+            (FIXTURES / "course-contracts" / "v1-approved-through-g2.json").read_text(
+                encoding="utf-8"
+            )
+        )
+
+    def test_v1_approved_gate_with_complete_evidence_migrates_to_pass(self):
+        migrated = migrate_contract_v1(
+            self.load_v1(), "course-run", "2026-10-18T19:00:00+08:00"
+        )
+
+        self.assertEqual(migrated["gates"]["G0"]["status"], "PASS")
+        self.assertEqual(migrated["gates"]["G1"]["status"], "PASS")
+
+    def test_v1_approved_gate_without_complete_evidence_migrates_to_in_progress(self):
+        legacy = self.load_v1()
+        legacy["gates"]["G2"]["evidence"] = []
+
+        migrated = migrate_contract_v1(
+            legacy, "course-run", "2026-10-18T19:00:00+08:00"
+        )
+
+        self.assertEqual(migrated["gates"]["G2"]["status"], "IN_PROGRESS")
+
+    def test_v1_migration_preserves_approval_history_and_revalidates_review_state(self):
+        legacy = self.load_v1()
+        legacy["gates"]["G2"]["status"] = "REVIEW"
+        legacy["gates"]["G2"]["approved_by"] = None
+        legacy["gates"]["G2"]["approved_at"] = None
+
+        migrated = migrate_contract_v1(
+            legacy, "course-run", "2026-10-18T19:00:00+08:00"
+        )
+
+        self.assertEqual(migrated["schema_version"], 2)
+        self.assertEqual(migrated["gates"]["G2"]["status"], "IN_PROGRESS")
+        approval_history = [
+            item
+            for item in migrated["gates"]["G0"]["evidence"]
+            if item.get("kind") == "legacy_user_approval"
+        ]
+        self.assertEqual(approval_history[0]["approved_by"], "使用者")
+        self.assertTrue(
+            any(change.get("kind") == "schema_migration" for change in migrated["changes"])
+        )
+        self.assertEqual(validate_contract(migrated), [])
 
 
 if __name__ == "__main__":

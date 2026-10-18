@@ -39,4 +39,4 @@ List required data, accounts, permissions, examples, answer keys, environments, 
 
 ## Handoff
 
-Return one main blueprint. Include evidence citations, relative path, SHA-256, source revision, risks, open questions, and REVIEW or BLOCKED. Theme, visual system, and page layout belong to later production decisions.
+Return one main blueprint. Include evidence citations, relative path, SHA-256, source revision, risks, open questions, and the validation result needed for course-run to record PASS or BLOCKED. Theme, visual system, and page layout belong to later production decisions.

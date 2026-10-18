@@ -58,26 +58,30 @@ class CourseSkillPackageTests(unittest.TestCase):
                 [f"G{prior}" for prior in range(index)],
             )
 
-    def test_gate_routing_requires_user_approval_for_every_gate(self):
-        self.assertEqual(self.routing["approval_authority"]["role"], "course-run")
-        self.assertTrue(
-            self.routing["approval_authority"]["requires_explicit_user_approval"]
+    def test_gate_routing_separates_automatic_pass_from_external_approval(self):
+        self.assertEqual(self.routing["gate_pass_authority"]["role"], "course-run")
+        self.assertTrue(self.routing["gate_pass_authority"]["requires_validated_evidence"])
+        self.assertFalse(
+            self.routing["gate_pass_authority"]["requires_explicit_user_approval"]
         )
         self.assertTrue(
-            all(gate["user_approval_required"] for gate in self.routing["gates"])
+            self.routing["external_action_authority"]["requires_explicit_user_approval"]
+        )
+        self.assertTrue(
+            all(not gate["user_approval_required"] for gate in self.routing["gates"])
         )
 
-    def test_gate_routing_gives_children_submit_but_not_approve_authority(self):
+    def test_gate_routing_gives_children_evidence_but_not_pass_authority(self):
         child_authority = self.routing["child_authority"]
 
-        self.assertTrue(child_authority["can_submit"])
-        self.assertFalse(child_authority["can_approve"])
+        self.assertTrue(child_authority["can_return_evidence"])
+        self.assertFalse(child_authority["can_pass_gate"])
         self.assertEqual(
-            {gate["submission_authority"] for gate in self.routing["gates"]},
+            {gate["evidence_authority"] for gate in self.routing["gates"]},
             {"producer"},
         )
         self.assertEqual(
-            {gate["approval_authority"] for gate in self.routing["gates"]},
+            {gate["pass_authority"] for gate in self.routing["gates"]},
             {"course-run"},
         )
 
@@ -98,15 +102,16 @@ class CourseSkillPackageTests(unittest.TestCase):
         maturity = set(self.routing["evidence_maturity_states"])
 
         self.assertEqual(
-            lifecycle, {"DRAFT", "REVIEW", "APPROVED", "BLOCKED", "STALE"}
+            lifecycle,
+            {"NOT_STARTED", "IN_PROGRESS", "PASS", "FAIL", "BLOCKED", "STALE"},
         )
         self.assertEqual(
             maturity,
             {
-                "MACHINE_CHECKED",
-                "LEARNER_READ",
-                "PLATFORM_VERIFIED",
-                "HUMAN_READY",
+                "STATIC_VALIDATED",
+                "EXECUTION_VALIDATED",
+                "INDEPENDENT_AI_VERIFIED",
+                "HUMAN_VERIFIED",
             },
         )
         self.assertTrue(lifecycle.isdisjoint(maturity))
@@ -176,12 +181,11 @@ class CourseSkillPackageTests(unittest.TestCase):
         self.assertFalse(policy["ownership"]["repeat_g0_interview"])
         self.assertFalse(policy["ownership"]["choose_theme"])
 
-    def test_pm_requires_approved_g0_and_g1(self):
+    def test_pm_requires_g0_and_g1_pass(self):
         policy = self.load_architecture_policy()
 
         self.assertEqual(
-            policy["required_gate_status"],
-            {"G0": "APPROVED", "G1": "APPROVED"},
+            policy["required_gate_status"], {"G0": "PASS", "G1": "PASS"}
         )
         self.assertEqual(
             policy["inputs"], ["G0_requirements", "G1_research", "adaptation"]

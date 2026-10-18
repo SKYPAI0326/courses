@@ -2,7 +2,7 @@
 
 ## Required input
 
-Use the approved G0 section as the research brief. If G0 is not APPROVED, return BLOCKED without beginning architecture work.
+Use the passed G0 section as the research brief. If G0 is not PASS, return BLOCKED without beginning research work.
 
 ## Evidence record
 
@@ -39,4 +39,4 @@ For high volatility, set an ISO review date and a named owner.
 
 ## Handoff
 
-Return the record path, SHA-256, adaptation, blockers, and REVIEW or BLOCKED recommendation. course-run presents the package to the user and owns approval.
+Return the record path, SHA-256, adaptation, blockers, and validation result. course-run owns Gate validation and records PASS or BLOCKED.

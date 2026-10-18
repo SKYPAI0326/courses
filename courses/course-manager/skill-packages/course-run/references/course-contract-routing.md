@@ -8,10 +8,15 @@ All commands run from courses/course-manager. The contract is the only lifecycle
 python3 scripts/course_contract.py init --root COURSE_ROOT --slug SLUG --title TITLE --created-by NAME --at ISO8601
 python3 scripts/course_contract.py status --contract CONTRACT
 python3 scripts/course_contract.py validate --contract CONTRACT
-python3 scripts/course_contract.py submit --contract CONTRACT --gate GATE --actor NAME --at ISO8601
-python3 scripts/course_contract.py approve --contract CONTRACT --gate GATE --approved-by NAME --at ISO8601 --note NOTE
+python3 scripts/course_contract.py begin --contract CONTRACT --gate GATE --actor NAME --at ISO8601
+python3 scripts/course_contract.py pass --contract CONTRACT --gate GATE --evidence-id ID --validator-id ID --actor NAME --at ISO8601
+python3 scripts/course_contract.py fail --contract CONTRACT --gate GATE --issue TEXT --actor NAME --at ISO8601
 python3 scripts/course_contract.py block --contract CONTRACT --gate GATE --reason REASON --actor NAME --at ISO8601
 python3 scripts/course_contract.py change --contract CONTRACT --gate GATE --reason REASON --actor NAME --at ISO8601 --semantic
+python3 scripts/course_contract.py propose-action --contract CONTRACT --action-id ID --kind KIND --manifest-path PATH --manifest-sha256 SHA256 --actor NAME --at ISO8601
+python3 scripts/course_contract.py authorize-action --contract CONTRACT --action-id ID --approved-by NAME --at ISO8601 --note NOTE
+python3 scripts/course_contract.py check-action --contract CONTRACT --action-id ID --manifest-sha256 SHA256
+python3 scripts/course_contract.py migrate --contract CONTRACT --actor NAME --at ISO8601
 ~~~
 
 Omit --semantic only when meaning, scope, outcomes, environment, assessment, and learner action remain unchanged.
@@ -20,7 +25,7 @@ Omit --semantic only when meaning, scope, outcomes, environment, assessment, and
 
 Every producer returns:
 
-- gate_id and recommended status: REVIEW or BLOCKED
+- gate_id and evidence result: ready for validation or BLOCKED
 - deliverable references: relative path, SHA-256, source revision
 - evidence references with maturity kept separate from Gate status
 - blocking risks, other risks, and open questions
@@ -38,6 +43,6 @@ Gate-specific returns:
 | G5 | course-run coordinating producers | complete course, cross-unit consistency and production validation |
 | G6 | course-ops plus validator | release, registration, access, index, deployment, rollback and maintenance evidence |
 
-## Approval handoff
+## Gate pass and external authorization
 
-Before requesting approval, present links to actual deliverables and evidence. State blockers, risks, unknowns, and the exact downstream consequence. Approval is valid only when the user responds to that Gate's presented result; record the approval note verbatim enough to preserve its meaning.
+course-run records Gate PASS only after the declared validator succeeds against indexed evidence. Gate completion does not require user approval. Before publishing, deployment, registration, access changes, or another external mutation, present the exact action manifest and consequence, record explicit user authorization, and verify that its SHA-256 still matches immediately before execution.

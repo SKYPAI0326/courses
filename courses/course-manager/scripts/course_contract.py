@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -11,14 +12,19 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from src.course_contract import (  # noqa: E402
     ContractStateError,
-    approve_gate,
+    assert_external_action_authorized,
+    authorize_external_action,
+    begin_gate,
     block_gate,
+    fail_gate,
     load_contract,
+    migrate_contract_v1,
     new_contract,
+    pass_gate,
+    propose_external_action,
     record_change,
     render_gate_summary,
     save_contract_atomic,
-    submit_gate,
     validate_contract,
 )
 
@@ -27,149 +33,195 @@ def _contract_argument(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--contract", required=True, type=Path)
 
 
+def _gate_arguments(parser: argparse.ArgumentParser) -> None:
+    _contract_argument(parser)
+    parser.add_argument("--gate", required=True)
+    parser.add_argument("--actor", required=True)
+    parser.add_argument("--at", required=True)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Manage the course design contract")
     commands = parser.add_subparsers(dest="command", required=True)
 
-    init_parser = commands.add_parser("init", help="create a new course contract")
-    init_parser.add_argument("--root", required=True, type=Path)
-    init_parser.add_argument("--slug", required=True)
-    init_parser.add_argument("--title", required=True)
-    init_parser.add_argument("--created-by", required=True)
-    init_parser.add_argument("--at", required=True)
+    command = commands.add_parser("init", help="create a v2 contract")
+    command.add_argument("--root", required=True, type=Path)
+    command.add_argument("--slug", required=True)
+    command.add_argument("--title", required=True)
+    command.add_argument("--created-by", required=True)
+    command.add_argument("--at", required=True)
 
-    validate_parser = commands.add_parser("validate", help="validate a contract")
-    _contract_argument(validate_parser)
+    for name in ("validate", "status"):
+        _contract_argument(commands.add_parser(name))
 
-    status_parser = commands.add_parser("status", help="show current gate status")
-    _contract_argument(status_parser)
+    command = commands.add_parser("begin")
+    _gate_arguments(command)
 
-    submit_parser = commands.add_parser("submit", help="submit a gate for review")
-    _contract_argument(submit_parser)
-    submit_parser.add_argument("--gate", required=True)
-    submit_parser.add_argument("--actor", required=True)
-    submit_parser.add_argument("--at", required=True)
+    command = commands.add_parser("pass")
+    _gate_arguments(command)
+    command.add_argument("--evidence-id", action="append", required=True)
+    command.add_argument("--validator-id", required=True)
 
-    approve_parser = commands.add_parser("approve", help="record explicit user approval")
-    _contract_argument(approve_parser)
-    approve_parser.add_argument("--gate", required=True)
-    approve_parser.add_argument("--approved-by", required=True)
-    approve_parser.add_argument("--at", required=True)
-    approve_parser.add_argument("--note", required=True)
+    command = commands.add_parser("fail")
+    _gate_arguments(command)
+    command.add_argument("--issue", action="append", required=True)
 
-    block_parser = commands.add_parser("block", help="block a gate")
-    _contract_argument(block_parser)
-    block_parser.add_argument("--gate", required=True)
-    block_parser.add_argument("--reason", required=True)
-    block_parser.add_argument("--actor", required=True)
-    block_parser.add_argument("--at", required=True)
+    command = commands.add_parser("block")
+    _gate_arguments(command)
+    command.add_argument("--reason", required=True)
 
-    change_parser = commands.add_parser("change", help="record a course change")
-    _contract_argument(change_parser)
-    change_parser.add_argument("--gate", required=True)
-    change_parser.add_argument("--reason", required=True)
-    change_parser.add_argument("--actor", required=True)
-    change_parser.add_argument("--at", required=True)
-    change_parser.add_argument("--semantic", action="store_true")
+    command = commands.add_parser("change")
+    _gate_arguments(command)
+    command.add_argument("--reason", required=True)
+    command.add_argument("--semantic", action="store_true")
 
+    command = commands.add_parser("propose-action")
+    _contract_argument(command)
+    command.add_argument("--action-id", required=True)
+    command.add_argument("--kind", required=True)
+    command.add_argument("--manifest-path", required=True)
+    command.add_argument("--manifest-sha256", required=True)
+    command.add_argument("--actor", required=True)
+    command.add_argument("--at", required=True)
+
+    command = commands.add_parser("authorize-action")
+    _contract_argument(command)
+    command.add_argument("--action-id", required=True)
+    command.add_argument("--approved-by", required=True)
+    command.add_argument("--at", required=True)
+    command.add_argument("--note", required=True)
+
+    command = commands.add_parser("check-action")
+    _contract_argument(command)
+    command.add_argument("--action-id", required=True)
+    command.add_argument("--manifest-sha256", required=True)
+
+    command = commands.add_parser("migrate")
+    _contract_argument(command)
+    command.add_argument("--actor", required=True)
+    command.add_argument("--at", required=True)
+
+    # Old automation receives a deliberate migration error rather than a silent
+    # reinterpretation of gate approval as external publishing authorization.
+    command = commands.add_parser("approve", help=argparse.SUPPRESS)
+    _contract_argument(command)
     return parser
 
 
-def _print_issues(contract) -> int:
+def _print_issues(contract: dict) -> int:
     issues = validate_contract(contract)
     for issue in issues:
         print(f"{issue.code} {issue.path}: {issue.message}")
     return 1 if issues else 0
 
 
-def _load_mutate_validate_save(path: Path, operation) -> None:
+def _mutate(path: Path, operation) -> None:
     contract = load_contract(path)
     issues = validate_contract(contract)
     if issues:
-        joined = "; ".join(f"{issue.path}: {issue.message}" for issue in issues)
-        raise ContractStateError(f"refusing to mutate invalid contract: {joined}")
+        details = "; ".join(f"{item.path}: {item.message}" for item in issues)
+        raise ContractStateError(f"refusing to mutate invalid contract: {details}")
     operation(contract)
     issues = validate_contract(contract)
     if issues:
-        joined = "; ".join(f"{issue.path}: {issue.message}" for issue in issues)
-        raise ContractStateError(f"mutation produced an invalid contract: {joined}")
+        details = "; ".join(f"{item.path}: {item.message}" for item in issues)
+        raise ContractStateError(f"mutation produced an invalid contract: {details}")
     save_contract_atomic(path, contract)
+
+
+def _parse_issues(values: list[str]) -> list[dict[str, object]]:
+    issues: list[dict[str, object]] = []
+    for value in values:
+        try:
+            item = json.loads(value)
+        except json.JSONDecodeError:
+            item = {"message": value}
+        if not isinstance(item, dict):
+            raise ContractStateError("each --issue must be a JSON object or text")
+        issues.append(item)
+    return issues
+
+
+def _initialize(args: argparse.Namespace) -> Path:
+    contract = new_contract(args.slug, args.title, args.created_by, args.at)
+    root = args.root.resolve(strict=False)
+    design_root = args.root / "_design"
+    course_root = design_root / args.slug
+    if design_root.is_symlink() or course_root.is_symlink():
+        raise ContractStateError("contract directory must not be a symbolic link")
+    path = course_root / "course-contract.json"
+    if not path.resolve(strict=False).is_relative_to(root):
+        raise ContractStateError(f"contract path escapes requested root: {path}")
+    if path.exists():
+        raise ContractStateError(f"contract already exists: {path}")
+    save_contract_atomic(path, contract)
+    return path
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
+        if args.command == "approve":
+            raise ContractStateError(
+                "approve was removed in contract v2; run migrate, then use pass "
+                "or authorize-action as appropriate"
+            )
         if args.command == "init":
-            contract = new_contract(args.slug, args.title, args.created_by, args.at)
-            root = args.root.resolve(strict=False)
-            design_root = args.root / "_design"
-            course_root = design_root / args.slug
-            if design_root.is_symlink() or course_root.is_symlink():
-                raise ContractStateError(
-                    "contract directory must not be a symbolic link"
-                )
-            path = course_root / "course-contract.json"
-            resolved_path = path.resolve(strict=False)
-            if not resolved_path.is_relative_to(root):
-                raise ContractStateError(
-                    f"contract path escapes the requested root through a symbolic link: {path}"
-                )
-            if path.exists():
-                raise ContractStateError(f"contract already exists: {path}")
-            save_contract_atomic(path, contract)
-            print(path)
+            print(_initialize(args))
             return 0
-
         if args.command == "validate":
             return _print_issues(load_contract(args.contract))
-
         if args.command == "status":
             contract = load_contract(args.contract)
             if _print_issues(contract):
                 return 1
             print(render_gate_summary(contract))
             return 0
+        if args.command == "check-action":
+            assert_external_action_authorized(
+                load_contract(args.contract), args.action_id, args.manifest_sha256
+            )
+            print(args.contract)
+            return 0
+        if args.command == "migrate":
+            migrated = migrate_contract_v1(
+                load_contract(args.contract), args.actor, args.at
+            )
+            save_contract_atomic(args.contract, migrated)
+            print(args.contract)
+            return 0
 
-        if args.command == "submit":
-            _load_mutate_validate_save(
-                args.contract,
-                lambda contract: submit_gate(
-                    contract, args.gate, args.actor, args.at
-                ),
-            )
-        elif args.command == "approve":
-            _load_mutate_validate_save(
-                args.contract,
-                lambda contract: approve_gate(
-                    contract,
-                    args.gate,
-                    args.approved_by,
-                    args.at,
-                    args.note,
-                ),
-            )
-        elif args.command == "block":
-            _load_mutate_validate_save(
-                args.contract,
-                lambda contract: block_gate(
-                    contract, args.gate, args.reason, args.actor, args.at
-                ),
-            )
-        elif args.command == "change":
-            _load_mutate_validate_save(
-                args.contract,
-                lambda contract: record_change(
-                    contract,
-                    args.gate,
-                    args.reason,
-                    args.actor,
-                    args.at,
-                    args.semantic,
-                ),
-            )
+        operations = {
+            "begin": lambda contract: begin_gate(contract, args.gate, args.actor, args.at),
+            "pass": lambda contract: pass_gate(
+                contract, args.gate, args.evidence_id, args.validator_id, args.actor, args.at
+            ),
+            "fail": lambda contract: fail_gate(
+                contract, args.gate, _parse_issues(args.issue), args.actor, args.at
+            ),
+            "block": lambda contract: block_gate(
+                contract, args.gate, args.reason, args.actor, args.at
+            ),
+            "change": lambda contract: record_change(
+                contract, args.gate, args.reason, args.actor, args.at, args.semantic
+            ),
+            "propose-action": lambda contract: propose_external_action(
+                contract,
+                args.action_id,
+                args.kind,
+                args.manifest_path,
+                args.manifest_sha256,
+                args.actor,
+                args.at,
+            ),
+            "authorize-action": lambda contract: authorize_external_action(
+                contract, args.action_id, args.approved_by, args.at, args.note
+            ),
+        }
+        _mutate(args.contract, operations[args.command])
         print(args.contract)
         return 0
-    except (ContractStateError, OSError, ValueError) as error:
+    except (ContractStateError, OSError, ValueError, json.JSONDecodeError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 2
 

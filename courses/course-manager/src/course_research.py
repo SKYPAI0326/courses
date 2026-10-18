@@ -10,7 +10,7 @@ from typing import Any, Mapping, MutableMapping
 from src.course_contract import (
     ContractStateError,
     block_gate,
-    submit_gate,
+    pass_gate,
 )
 
 
@@ -468,10 +468,10 @@ def route_research_to_gate(
     at: str,
 ) -> str:
     gates = contract.get("gates")
-    if not isinstance(gates, Mapping) or gates.get("G0", {}).get("status") != "APPROVED":
-        raise ContractStateError("G1 research requires APPROVED G0")
-    if gates.get("G1", {}).get("status") != "DRAFT":
-        raise ContractStateError("research routing requires G1 in DRAFT state")
+    if not isinstance(gates, Mapping) or gates.get("G0", {}).get("status") != "PASS":
+        raise ContractStateError("G1 research requires G0 PASS")
+    if gates.get("G1", {}).get("status") != "IN_PROGRESS":
+        raise ContractStateError("research routing requires G1 IN_PROGRESS")
 
     relative_path = PurePosixPath(record_path)
     if (
@@ -495,7 +495,7 @@ def route_research_to_gate(
             "kind": "research_record",
             "path": record_path,
             "sha256": evidence_sha256,
-            "maturity": "MACHINE_CHECKED",
+            "maturity": "STATIC_VALIDATED",
             "validation_issue_codes": [issue.code for issue in issues],
         }
     )
@@ -511,5 +511,20 @@ def route_research_to_gate(
         )
         return "BLOCKED"
 
-    submit_gate(contract, "G1", actor, at)
-    return "REVIEW"
+    contract["evidence_index"].append(
+        {
+            "id": "g1-research",
+            "gate": "G1",
+            "path": record_path,
+            "sha256": evidence_sha256,
+        }
+    )
+    pass_gate(
+        contract,
+        "G1",
+        ["g1-research"],
+        "course-research-record-validator",
+        "course-run",
+        at,
+    )
+    return "PASS"

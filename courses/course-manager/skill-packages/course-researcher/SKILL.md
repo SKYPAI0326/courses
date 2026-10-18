@@ -1,19 +1,19 @@
 ---
 name: course-researcher
-description: Use when an approved new-course requirement contract needs current external evidence, real-work analysis, tool verification, or adaptation decisions before course architecture begins.
+description: Use when a passed new-course requirement contract needs current external evidence, real-work analysis, tool verification, or adaptation decisions before course architecture begins.
 ---
 
 # Course Researcher
 
 ## Overview
 
-Turn an approved G0 into decision-ready G1 evidence. Research is complete when the course decisions are supported and important unknowns are visible; source volume and polished prose are not completion signals.
+Turn a passed G0 into decision-ready G1 evidence. Research is complete when the course decisions are supported and important unknowns are visible; source volume and polished prose are not completion signals.
 
 Read [research-policy.json](references/research-policy.json) for deterministic requirements and [research-evidence.md](references/research-evidence.md) for the evidence workflow.
 
 ## Input Gate
 
-Start only when G0 is APPROVED. Read learner, work context, observable result, constraints, assumptions, unknowns, and available permissions from the contract. Do not repeat the intake interview.
+Start only when G0 is PASS and G1 is IN_PROGRESS. Read learner, work context, observable result, constraints, assumptions, unknowns, and available permissions from the contract. Do not repeat the intake interview.
 
 ## Research
 
@@ -31,7 +31,7 @@ Write the structured research record outside the course contract, validate it wi
 - research record relative path and SHA-256
 - adaptation across all applicable dimensions
 - blockers, risks, unknowns, and non-conclusions
-- G1 recommendation: REVIEW or BLOCKED
+- validation result and evidence needed for course-run to record G1 PASS, or a BLOCKED reason
 - one reasoned next action
 
-Submit evidence to course-run. This Skill cannot approve G1.
+Return evidence to course-run. This Skill does not set Gate state; course-run validates the record and records PASS or BLOCKED.

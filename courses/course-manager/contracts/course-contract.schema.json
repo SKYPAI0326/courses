@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://local.course-manager/contracts/course-contract.schema.json",
-  "title": "Course Design Contract",
+  "title": "Course Design Contract v2",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -18,28 +18,22 @@
     "G5_production",
     "G6_release_maintenance",
     "changes",
-    "evidence_index"
+    "evidence_index",
+    "external_actions",
+    "maintenance"
   ],
   "properties": {
-    "schema_version": {
-      "const": 1
-    },
+    "schema_version": { "const": 2 },
     "identity": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "slug",
-        "title"
-      ],
+      "required": ["slug", "title"],
       "properties": {
         "slug": {
           "type": "string",
           "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
         },
-        "title": {
-          "type": "string",
-          "minLength": 1
-        }
+        "title": { "type": "string", "minLength": 1 }
       }
     },
     "governance": {
@@ -48,104 +42,59 @@
       "required": [
         "created_by",
         "created_at",
-        "approval_authority"
+        "gate_authority",
+        "external_action_authority"
       ],
       "properties": {
-        "created_by": {
-          "type": "string",
-          "minLength": 1
+        "created_by": { "type": "string", "minLength": 1 },
+        "created_at": { "type": "string", "minLength": 1 },
+        "gate_authority": {
+          "const": "course-run-with-validated-evidence"
         },
-        "created_at": {
-          "type": "string",
-          "minLength": 1
-        },
-        "approval_authority": {
-          "const": "course-run-with-explicit-user-approval"
+        "external_action_authority": {
+          "const": "explicit-user-authorization"
         }
       }
     },
     "gates": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "G0",
-        "G1",
-        "G2",
-        "G3",
-        "G4",
-        "G5",
-        "G6"
-      ],
+      "required": ["G0", "G1", "G2", "G3", "G4", "G5", "G6"],
       "properties": {
-        "G0": {
-          "$ref": "#/$defs/gate"
-        },
-        "G1": {
-          "$ref": "#/$defs/gate"
-        },
-        "G2": {
-          "$ref": "#/$defs/gate"
-        },
-        "G3": {
-          "$ref": "#/$defs/gate"
-        },
-        "G4": {
-          "$ref": "#/$defs/gate"
-        },
-        "G5": {
-          "$ref": "#/$defs/gate"
-        },
-        "G6": {
-          "$ref": "#/$defs/gate"
-        }
+        "G0": { "$ref": "#/$defs/gate" },
+        "G1": { "$ref": "#/$defs/gate" },
+        "G2": { "$ref": "#/$defs/gate" },
+        "G3": { "$ref": "#/$defs/gate" },
+        "G4": { "$ref": "#/$defs/gate" },
+        "G5": { "$ref": "#/$defs/gate" },
+        "G6": { "$ref": "#/$defs/gate" }
       }
     },
-    "G0_requirements": {
-      "type": "object",
-      "additionalProperties": true
-    },
-    "G1_research": {
-      "type": "object",
-      "additionalProperties": true
-    },
-    "adaptation": {
-      "type": "object",
-      "additionalProperties": true
-    },
-    "G2_architecture": {
-      "type": "object",
-      "additionalProperties": true
-    },
-    "G3_lesson_design": {
-      "type": "object",
-      "additionalProperties": true
-    },
-    "G4_pilot": {
-      "type": "object",
-      "additionalProperties": true
-    },
-    "G5_production": {
-      "type": "object",
-      "additionalProperties": true
-    },
-    "G6_release_maintenance": {
-      "type": "object",
-      "additionalProperties": true
-    },
-    "changes": {
+    "G0_requirements": { "$ref": "#/$defs/payload" },
+    "G1_research": { "$ref": "#/$defs/payload" },
+    "adaptation": { "$ref": "#/$defs/payload" },
+    "G2_architecture": { "$ref": "#/$defs/payload" },
+    "G3_lesson_design": { "$ref": "#/$defs/payload" },
+    "G4_pilot": { "$ref": "#/$defs/payload" },
+    "G5_production": { "$ref": "#/$defs/payload" },
+    "G6_release_maintenance": { "$ref": "#/$defs/payload" },
+    "changes": { "$ref": "#/$defs/recordList" },
+    "evidence_index": { "$ref": "#/$defs/recordList" },
+    "external_actions": {
       "type": "array",
-      "items": {
-        "type": "object"
-      }
+      "items": { "$ref": "#/$defs/externalAction" }
     },
-    "evidence_index": {
-      "type": "array",
-      "items": {
-        "type": "object"
-      }
-    }
+    "maintenance": { "$ref": "#/$defs/payload" }
   },
   "$defs": {
+    "payload": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "recordList": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
     "gate": {
       "type": "object",
       "additionalProperties": false,
@@ -157,86 +106,80 @@
         "evidence",
         "risks",
         "open_questions",
-        "approved_by",
-        "approved_at",
         "source_revision",
         "affected_downstream"
       ],
       "properties": {
         "status": {
           "enum": [
-            "DRAFT",
-            "REVIEW",
-            "APPROVED",
+            "NOT_STARTED",
+            "IN_PROGRESS",
+            "PASS",
+            "FAIL",
             "BLOCKED",
             "STALE"
           ]
         },
-        "owner": {
-          "type": "string"
-        },
+        "owner": { "type": "string", "minLength": 1 },
         "inputs": {
           "type": "array",
-          "items": {
-            "type": "string"
-          }
+          "items": { "type": "string" }
         },
-        "deliverables": {
-          "type": "array",
-          "items": {
-            "type": "object"
-          }
-        },
-        "evidence": {
-          "type": "array",
-          "items": {
-            "type": "object"
-          }
-        },
-        "risks": {
-          "type": "array",
-          "items": {
-            "type": "object"
-          }
-        },
-        "open_questions": {
-          "type": "array",
-          "items": {
-            "type": "object"
-          }
-        },
-        "approved_by": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "approved_at": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
+        "deliverables": { "$ref": "#/$defs/recordList" },
+        "evidence": { "$ref": "#/$defs/recordList" },
+        "risks": { "$ref": "#/$defs/recordList" },
+        "open_questions": { "$ref": "#/$defs/recordList" },
         "source_revision": {
-          "type": [
-            "string",
-            "integer",
-            "null"
-          ]
+          "type": ["string", "integer", "null"]
         },
         "affected_downstream": {
           "type": "array",
           "items": {
-            "enum": [
-              "G0",
-              "G1",
-              "G2",
-              "G3",
-              "G4",
-              "G5",
-              "G6"
-            ]
+            "enum": ["G0", "G1", "G2", "G3", "G4", "G5", "G6"]
           }
+        }
+      }
+    },
+    "externalAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "status",
+        "manifest_path",
+        "manifest_sha256",
+        "proposed_by",
+        "proposed_at",
+        "authorization"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "kind": { "type": "string", "minLength": 1 },
+        "status": {
+          "enum": ["PUBLISH_APPROVAL_REQUIRED", "AUTHORIZED"]
+        },
+        "manifest_path": { "type": "string", "minLength": 1 },
+        "manifest_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "proposed_by": { "type": "string", "minLength": 1 },
+        "proposed_at": { "type": "string", "minLength": 1 },
+        "authorization": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["approved_by", "approved_at", "note"],
+              "properties": {
+                "approved_by": { "type": "string", "minLength": 1 },
+                "approved_at": { "type": "string", "minLength": 1 },
+                "note": { "type": "string", "minLength": 1 }
+              }
+            }
+          ]
         }
       }
     }
