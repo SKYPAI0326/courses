@@ -108,29 +108,33 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 def _workspace_root(namespace: argparse.Namespace) -> Path:
-    value = namespace.root or os.environ.get("COURSE_WEB_ROOT")
-    if value is None:
-        raise RuntimeError("COURSE_WEB_ROOT or --root is required")
-    root = Path(value).expanduser()
-    if not root.is_absolute():
-        raise RuntimeError("COURSE_WEB_ROOT must be an absolute path")
-    if root.is_symlink() or not root.is_dir():
-        raise RuntimeError("COURSE_WEB_ROOT must be an existing non-symlink directory")
-    return Path(os.path.abspath(root))
+    return _manager_roots(namespace)[0]
 
 
 def _state_root(namespace: argparse.Namespace) -> Path:
-    value = namespace.state_root or os.environ.get("COURSE_DESIGN_STATE_ROOT")
-    if value is None:
+    return _manager_roots(namespace)[1]
+
+
+def _manager_roots(namespace: argparse.Namespace) -> tuple[Path, Path]:
+    from src.runtime import validate_non_overlapping_roots, validate_root_path
+
+    web_value = namespace.root or os.environ.get("COURSE_WEB_ROOT")
+    if web_value is None:
+        raise RuntimeError("COURSE_WEB_ROOT or --root is required")
+    state_value = namespace.state_root or os.environ.get("COURSE_DESIGN_STATE_ROOT")
+    if state_value is None:
         raise RuntimeError("COURSE_DESIGN_STATE_ROOT or --state-root is required")
-    root = Path(value).expanduser()
-    if not root.is_absolute():
-        raise RuntimeError("COURSE_DESIGN_STATE_ROOT must be an absolute path")
-    if root.is_symlink() or (root.exists() and not root.is_dir()):
-        raise RuntimeError(
-            "COURSE_DESIGN_STATE_ROOT must be a non-symlink directory or absent"
-        )
-    return Path(os.path.abspath(root))
+    web_root = validate_root_path("COURSE_WEB_ROOT", web_value)
+    state_root = validate_root_path(
+        "COURSE_DESIGN_STATE_ROOT", state_value, allow_absent=True
+    )
+    validate_non_overlapping_roots(
+        {
+            "COURSE_WEB_ROOT": web_root,
+            "COURSE_DESIGN_STATE_ROOT": state_root,
+        }
+    )
+    return web_root, state_root
 
 
 def _scan_report(catalog: dict) -> str:

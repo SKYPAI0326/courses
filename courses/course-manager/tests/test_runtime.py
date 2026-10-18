@@ -81,6 +81,45 @@ class RuntimeTests(unittest.TestCase):
         with self.assertRaises(module.RuntimeConfigurationError):
             module.resolve_runtime_paths(environment)
 
+    def test_every_runtime_root_pair_must_be_non_overlapping_in_both_directions(self):
+        module = self.require_runtime()
+        variables = tuple(module.ROOT_ENVIRONMENTS.values())
+        for parent_variable in variables:
+            for child_variable in variables:
+                if parent_variable == child_variable:
+                    continue
+                with self.subTest(parent=parent_variable, child=child_variable):
+                    parent = self.root / (
+                        f"pair-{variables.index(parent_variable)}-"
+                        f"{variables.index(child_variable)}"
+                    )
+                    child = parent / "nested"
+                    child.mkdir(parents=True, exist_ok=True)
+                    environment = dict(self.environment)
+                    environment[parent_variable] = str(parent)
+                    environment[child_variable] = str(child)
+
+                    with self.assertRaises(module.RuntimeConfigurationError):
+                        module.resolve_runtime_paths(environment)
+                    report = module.doctor(environment=environment, platform="linux")
+                    self.assertEqual(report["status"], "BLOCKED")
+                    self.assertEqual(
+                        report["checks"]["root_topology"]["status"], "BLOCKED"
+                    )
+
+    def test_root_aliases_cannot_hide_an_overlap(self):
+        module = self.require_runtime()
+        resolved_web = self.web.resolve()
+        if resolved_web == self.web:
+            self.skipTest("host has no root-level compatibility alias for fixture")
+        environment = {
+            **self.environment,
+            "COURSE_DESIGN_STATE_ROOT": str(resolved_web),
+        }
+
+        with self.assertRaisesRegex(module.RuntimeConfigurationError, "overlap"):
+            module.resolve_runtime_paths(environment)
+
         not_directory = self.root / "skills-file"
         not_directory.write_text("no\n")
         environment = dict(self.environment)

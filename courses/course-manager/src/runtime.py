@@ -63,12 +63,27 @@ def _configured_root(
     allow_absent: bool = False,
 ) -> Path:
     variable = ROOT_ENVIRONMENTS[field]
-    path = _absolute_lexical_path(variable, environment.get(variable))
-    _reject_symlink_components(variable, path)
+    return validate_root_path(
+        variable,
+        environment.get(variable),
+        allow_absent=allow_absent,
+    )
+
+
+def validate_root_path(
+    name: str,
+    value: object,
+    *,
+    allow_absent: bool = False,
+) -> Path:
+    """Validate one explicit root without resolving through symbolic links."""
+
+    path = _absolute_lexical_path(name, value)
+    _reject_symlink_components(name, path)
     if path.exists() and not path.is_dir():
-        raise RuntimeConfigurationError(f"{variable} must name a directory")
+        raise RuntimeConfigurationError(f"{name} must name a directory")
     if not allow_absent and not path.is_dir():
-        raise RuntimeConfigurationError(f"{variable} directory does not exist: {path}")
+        raise RuntimeConfigurationError(f"{name} directory does not exist: {path}")
     return path
 
 
@@ -78,6 +93,19 @@ def _is_within(path: Path, parent: Path) -> bool:
     except ValueError:
         return False
     return True
+
+
+def validate_non_overlapping_roots(roots: Mapping[str, Path]) -> None:
+    """Reject equality or containment between every configured root pair."""
+
+    items = tuple((name, path, path.resolve(strict=False)) for name, path in roots.items())
+    for index, (left_name, left, safe_left) in enumerate(items):
+        for right_name, right, safe_right in items[index + 1 :]:
+            if _is_within(safe_left, safe_right) or _is_within(safe_right, safe_left):
+                raise RuntimeConfigurationError(
+                    f"runtime roots overlap: {left_name}={left} and "
+                    f"{right_name}={right}"
+                )
 
 
 def resolve_runtime_paths(
@@ -92,23 +120,14 @@ def resolve_runtime_paths(
         skills_root=_configured_root(values, "skills_root"),
         state_root=_configured_root(values, "state_root", allow_absent=True),
     )
-    roots = (
-        paths.design_system_root,
-        paths.course_web_root,
-        paths.skills_root,
-        paths.state_root,
+    validate_non_overlapping_roots(
+        {
+            "COURSE_DESIGN_SYSTEM_ROOT": paths.design_system_root,
+            "COURSE_WEB_ROOT": paths.course_web_root,
+            "SKILLS_ROOT": paths.skills_root,
+            "COURSE_DESIGN_STATE_ROOT": paths.state_root,
+        }
     )
-    if len(set(roots)) != len(roots):
-        raise RuntimeConfigurationError("runtime roots must be distinct")
-    for managed_root, label in (
-        (paths.design_system_root, "COURSE_DESIGN_SYSTEM_ROOT"),
-        (paths.course_web_root, "COURSE_WEB_ROOT"),
-        (paths.skills_root, "SKILLS_ROOT"),
-    ):
-        if _is_within(paths.state_root, managed_root):
-            raise RuntimeConfigurationError(
-                f"COURSE_DESIGN_STATE_ROOT must be outside {label}"
-            )
     return paths
 
 

@@ -123,6 +123,10 @@ python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/install_course_skill_foundation.py" 
   --verify-installed --skills-root "$SKILLS_ROOT"
 
 python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/course_run.py" doctor
+
+# 中斷的 PREPARED/EXECUTING 安裝必須先回復，才可重跑 apply。
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/install_course_skill_foundation.py" \
+  --recover-operation "$COURSE_DESIGN_STATE_ROOT/operations/course-skill-foundation/OPERATION_ID"
 ```
 
 每個 package 都由 manifest hash 鎖定。安裝前顯示 `ADD`、`UPDATE`、`UNCHANGED`；更新先備份，rollback 遇到安裝後的人為修改就拒絕覆蓋。

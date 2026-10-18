@@ -17,6 +17,12 @@ class OrchestrationError(RuntimeError):
     pass
 
 
+class _ReadOnlyDispatch(Exception):
+    def __init__(self, envelope: dict[str, Any]) -> None:
+        self.envelope = envelope
+        super().__init__("read-only dispatch snapshot captured")
+
+
 PRODUCERS = {
     "G0": "course-run",
     "G1": "course-researcher",
@@ -173,39 +179,66 @@ def resume_course(
     path = Path(contract_path).absolute()
     workspace = Path(workspace_root).absolute()
     state = Path(state_root).absolute()
-    contract = load_contract(path)
-    first_open = next(
-        (gate_id for gate_id in GATE_ORDER if contract["gates"][gate_id]["status"] != "PASS"),
-        None,
-    )
-    first_status = (
-        contract["gates"][first_open]["status"] if first_open is not None else None
-    )
-    first_risks = (
-        contract["gates"][first_open].get("risks", [])
-        if first_open is not None
-        else []
-    )
-    resolved_blocked = first_status == "BLOCKED" and not any(
-        isinstance(risk, Mapping)
-        and risk.get("blocking") is True
-        and risk.get("resolved") is not True
-        for risk in first_risks
-    )
-    if first_status in {"NOT_STARTED", "FAIL", "STALE"} or resolved_blocked:
-        try:
-            contract = mutate_contract_atomic(
-                path,
-                lambda value: _resume_mutation(value, actor, at),
-                expected_revision=expected_revision,
-            )
-        except TransactionError as error:
-            raise OrchestrationError(str(error)) from error
-    elif expected_revision is not None and contract.get("revision") != expected_revision:
-        raise OrchestrationError(
-            f"expected contract revision {expected_revision}, got {contract.get('revision')}"
+
+    def resume_or_dispatch(contract: dict[str, Any]) -> None:
+        before_statuses = tuple(
+            contract["gates"][gate_id]["status"] for gate_id in GATE_ORDER
         )
-    return _persist_envelope(state, _envelope_for_contract(path, workspace, contract))
+        _resume_mutation(contract, actor, at)
+        after_statuses = tuple(
+            contract["gates"][gate_id]["status"] for gate_id in GATE_ORDER
+        )
+        if before_statuses == after_statuses:
+            # If _resume_mutation changed no Gate state, abort the transaction
+            # deliberately after persisting the snapshot while its lock is held.
+            envelope = _persist_envelope(
+                state, _envelope_for_contract(path, workspace, contract)
+            )
+            raise _ReadOnlyDispatch(envelope)
+
+    try:
+        committed = mutate_contract_atomic(
+            path,
+            resume_or_dispatch,
+            expected_revision=expected_revision,
+        )
+    except _ReadOnlyDispatch as result:
+        return result.envelope
+    except TransactionError as error:
+        raise OrchestrationError(str(error)) from error
+    return _persist_locked_envelope(
+        path,
+        workspace,
+        state,
+        expected_revision=committed["revision"],
+    )
+
+
+def _persist_locked_envelope(
+    contract_path: Path,
+    workspace_root: Path,
+    state_root: Path,
+    *,
+    expected_revision: int,
+) -> dict[str, Any]:
+    def capture(contract: dict[str, Any]) -> None:
+        envelope = _persist_envelope(
+            state_root,
+            _envelope_for_contract(contract_path, workspace_root, contract),
+        )
+        raise _ReadOnlyDispatch(envelope)
+
+    try:
+        mutate_contract_atomic(
+            contract_path,
+            capture,
+            expected_revision=expected_revision,
+        )
+    except _ReadOnlyDispatch as result:
+        return result.envelope
+    except TransactionError as error:
+        raise OrchestrationError(str(error)) from error
+    raise OrchestrationError("read-only dispatch transaction unexpectedly committed")
 
 
 def _pass_evidence_ids(contract: Mapping[str, Any], gate_id: str) -> tuple[str, ...] | None:

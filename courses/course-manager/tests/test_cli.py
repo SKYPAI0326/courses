@@ -59,7 +59,8 @@ class CliContractTests(unittest.TestCase):
 
     def test_find_json_contains_copyable_absolute_path(self):
         with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary)
+            root = Path(temporary) / "managed"
+            root.mkdir()
             project = root / "office-ai"
             project.mkdir()
             (project / "README.md").write_text("Office AI course source\n", encoding="utf-8")
@@ -78,7 +79,8 @@ class CliContractTests(unittest.TestCase):
 
     def test_inspect_includes_copyable_absolute_path(self):
         with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary)
+            root = Path(temporary) / "managed"
+            root.mkdir()
             project = root / "office-ai"
             project.mkdir()
             (project / "README.md").write_text("Office AI course source\n", encoding="utf-8")
@@ -110,6 +112,22 @@ class CliContractTests(unittest.TestCase):
             self.assertTrue((state / "registry/catalog.json").is_file())
             self.assertTrue(any((state / "reports/scans").glob("scan-*.md")))
             self.assertFalse((root / "course-manager").exists())
+
+    def test_manager_rejects_state_overlap_before_writing(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            for root, state in (
+                (base / "managed", base / "managed/runtime-state"),
+                (base / "state/managed", base / "state"),
+            ):
+                with self.subTest(root=root, state=state):
+                    (root / "demo").mkdir(parents=True, exist_ok=True)
+                    with self.assertRaisesRegex(RuntimeError, "overlap"):
+                        main([
+                            "--root", str(root), "--state-root", str(state),
+                            "scan", "--write",
+                        ])
+                    self.assertFalse((state / "registry/catalog.json").exists())
 
     def test_missing_workspace_or_state_configuration_fails_closed(self):
         with mock.patch.dict(os.environ, {}, clear=True):

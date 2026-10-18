@@ -17,6 +17,7 @@ from scripts.install_course_skill_foundation import (
 )
 
 verify_source_packages = getattr(installer, "verify_source_packages", None)
+recover_install = getattr(installer, "recover_install", None)
 
 
 PACKAGE_NAMES = ("course-run", "course-researcher", "course-pm")
@@ -373,6 +374,236 @@ class CourseSkillFoundationInstallerTests(unittest.TestCase):
             self.apply_install()
 
         self.assertFalse(self.operations_root.exists())
+
+    def test_preflight_rejects_symlink_inside_existing_target_tree(self):
+        target = self.skills_root / "course-run"
+        legacy = target / "references" / "legacy.bin"
+        legacy.unlink()
+        legacy.symlink_to(target / "SKILL.md")
+
+        with self.assertRaisesRegex(InstallError, "symbolic"):
+            self.apply_install()
+
+        self.assertTrue(legacy.is_symlink())
+        self.assertFalse(self.operations_root.exists())
+
+    def test_roots_must_be_absolute_and_pairwise_non_overlapping(self):
+        with self.assertRaisesRegex(InstallError, "absolute"):
+            install(
+                self.packages_root,
+                self.skills_root,
+                Path("relative-operations"),
+                apply=False,
+            )
+
+        for operations_root in (
+            self.packages_root / "operations",
+            self.skills_root / "operations",
+        ):
+            with self.subTest(operations_root=operations_root):
+                with self.assertRaisesRegex(InstallError, "overlap"):
+                    install(
+                        self.packages_root,
+                        self.skills_root,
+                        operations_root,
+                        apply=False,
+                    )
+
+    def test_preflight_rejects_symlink_ancestor_and_repo_local_operations(self):
+        real_parent = self.root / "real-parent"
+        real_parent.mkdir()
+        linked_parent = self.root / "linked-parent"
+        linked_parent.symlink_to(real_parent, target_is_directory=True)
+        linked_skills = linked_parent / "skills"
+
+        with self.assertRaisesRegex(InstallError, "symbolic"):
+            install(
+                self.packages_root,
+                linked_skills,
+                self.operations_root,
+                apply=False,
+            )
+
+        project_root = Path(__file__).resolve().parents[1]
+        external_skills = self.root / "external-skills"
+        external_skills.mkdir()
+        with self.assertRaisesRegex(InstallError, "repository"):
+            install(
+                project_root / "skill-packages",
+                external_skills,
+                project_root / ".runtime-state" / "operations",
+                apply=False,
+            )
+
+    def test_verify_installed_rejects_symlink_inside_tree_even_if_hash_matches(self):
+        self.apply_install()
+        target = self.skills_root / "course-run"
+        contract = target / "references" / "contract.txt"
+        contract.unlink()
+        contract.symlink_to(target / "SKILL.md")
+        manifest_path = self.packages_root / "manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        for record in manifest["packages"]:
+            if record["name"] == "course-run":
+                record["baseline_hash"] = installer.tree_hash(target)
+        manifest_path.write_text(json.dumps(manifest) + "\n", encoding="utf-8")
+
+        with self.assertRaisesRegex(InstallError, "symbolic"):
+            verify_installed_packages(
+                self.packages_root, self.skills_root, ("course-run",)
+            )
+
+    def _crashed_operation(self):
+        operations = sorted(self.operations_root.iterdir())
+        self.assertEqual(len(operations), 1)
+        return operations[0]
+
+    def test_recovery_handles_crash_after_previous_target_move(self):
+        self.assertIsNotNone(recover_install)
+        before = self.snapshot(self.skills_root)
+        real_replace = installer.os.replace
+
+        def crash_after_previous(source, destination):
+            result = real_replace(source, destination)
+            if (
+                Path(source) == self.skills_root / "course-run"
+                and Path(destination).name == "previous"
+            ):
+                raise SystemExit("simulated process crash after previous move")
+            return result
+
+        with mock.patch.object(installer.os, "replace", side_effect=crash_after_previous):
+            with self.assertRaises(SystemExit):
+                self.apply_install()
+
+        operation = self._crashed_operation()
+        manifest = json.loads((operation / "manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["status"], "EXECUTING")
+        self.assertEqual(manifest["allowed_updates"], ["course-pm", "course-run"])
+        recover_install(operation)
+        self.assertEqual(self.snapshot(self.skills_root), before)
+
+    def test_recovery_handles_crash_after_new_target_replace(self):
+        self.assertIsNotNone(recover_install)
+        before = self.snapshot(self.skills_root)
+        real_replace = installer.os.replace
+
+        def crash_after_target(source, destination):
+            result = real_replace(source, destination)
+            if (
+                Path(source).name == "staged"
+                and Path(destination) == self.skills_root / "course-researcher"
+            ):
+                raise SystemExit("simulated process crash after target replace")
+            return result
+
+        with mock.patch.object(installer.os, "replace", side_effect=crash_after_target):
+            with self.assertRaises(SystemExit):
+                self.apply_install()
+
+        operation = self._crashed_operation()
+        recover_install(operation)
+        self.assertEqual(self.snapshot(self.skills_root), before)
+
+    def test_recovery_survives_process_exit_after_new_target_replace(self):
+        self.assertIsNotNone(recover_install)
+        before = self.snapshot(self.skills_root)
+        project_root = Path(__file__).resolve().parents[1]
+        script = """
+import os
+import sys
+from pathlib import Path
+from scripts import install_course_skill_foundation as installer
+
+packages_root, skills_root, operations_root = map(Path, sys.argv[1:4])
+real_replace = installer.os.replace
+
+def crash_after_replace(source, destination):
+    result = real_replace(source, destination)
+    if (
+        Path(source).name == "staged"
+        and Path(destination) == skills_root / "course-researcher"
+    ):
+        os._exit(91)
+    return result
+
+installer.os.replace = crash_after_replace
+installer.install(
+    packages_root,
+    skills_root,
+    operations_root,
+    apply=True,
+    allow_updates=("course-run", "course-pm"),
+)
+"""
+        process = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                script,
+                str(self.packages_root),
+                str(self.skills_root),
+                str(self.operations_root),
+            ],
+            cwd=project_root,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(process.returncode, 91, process.stderr)
+        operation = self._crashed_operation()
+        manifest = json.loads((operation / "manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["status"], "EXECUTING")
+        recover_install(operation)
+        self.assertEqual(self.snapshot(self.skills_root), before)
+
+    def test_recovery_accepts_prepared_manifest_before_first_swap(self):
+        self.assertIsNotNone(recover_install)
+        before = self.snapshot(self.skills_root)
+        real_copy = installer._copy_verified
+
+        def crash_before_first_swap(source, destination, expected_hash):
+            if Path(destination).name == "staged":
+                raise SystemExit("simulated process crash while staging")
+            return real_copy(source, destination, expected_hash)
+
+        with mock.patch.object(
+            installer, "_copy_verified", side_effect=crash_before_first_swap
+        ):
+            with self.assertRaises(SystemExit):
+                self.apply_install()
+
+        operation = self._crashed_operation()
+        manifest = json.loads((operation / "manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["status"], "PREPARED")
+        self.assertEqual(
+            installer.main(["--recover-operation", str(operation)]),
+            0,
+        )
+        self.assertEqual(self.snapshot(self.skills_root), before)
+
+    def test_unfinished_apply_blocks_resume_until_rollback_recovers_it(self):
+        real_copy = installer._copy_verified
+
+        def crash_before_first_swap(source, destination, expected_hash):
+            if Path(destination).name == "staged":
+                raise SystemExit("simulated process crash while staging")
+            return real_copy(source, destination, expected_hash)
+
+        with mock.patch.object(
+            installer, "_copy_verified", side_effect=crash_before_first_swap
+        ):
+            with self.assertRaises(SystemExit):
+                self.apply_install()
+
+        operation = self._crashed_operation()
+        with self.assertRaisesRegex(InstallError, "unfinished install"):
+            self.apply_install()
+
+        rollback_install(operation)
+        resumed = self.apply_install()
+        self.assertTrue(resumed.applied)
 
     def test_manifest_failure_before_current_swap_does_not_leave_partial_install(self):
         before = self.snapshot(self.skills_root)

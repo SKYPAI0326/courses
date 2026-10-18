@@ -6,6 +6,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 try:
     from src import course_orchestrator
@@ -111,6 +112,40 @@ class CourseOrchestratorTests(unittest.TestCase):
                 at="2026-10-18T09:01:00+08:00",
                 expected_revision=9,
             )
+
+    def test_in_progress_resume_rejects_an_unlocked_stale_snapshot(self):
+        module = self.require_orchestrator()
+        contract = self.save_new_contract()
+        begin_gate(contract, "G0", "course-run", "2026-10-18T09:01:00+08:00")
+        save_contract_atomic(self.contract_path, contract)
+        stale = load_contract(self.contract_path)
+
+        from src.transactions import mutate_contract_atomic
+
+        mutate_contract_atomic(
+            self.contract_path,
+            lambda value: block_gate(
+                value,
+                "G0",
+                "concurrent evidence loss",
+                "review-race",
+                "2026-10-18T09:02:00+08:00",
+            ),
+            expected_revision=0,
+        )
+
+        with mock.patch.object(module, "load_contract", return_value=stale):
+            with self.assertRaisesRegex(module.OrchestrationError, "revision conflict"):
+                module.resume_course(
+                    self.contract_path,
+                    self.workspace,
+                    self.state,
+                    actor="course-run",
+                    at="2026-10-18T09:03:00+08:00",
+                    expected_revision=0,
+                )
+
+        self.assertFalse((self.state / "dispatch").exists())
 
     def test_complete_calls_central_validator_and_begins_next_gate_atomically(self):
         module = self.require_orchestrator()

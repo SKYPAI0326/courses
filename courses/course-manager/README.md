@@ -63,6 +63,9 @@ python3 scripts/install_course_skill_foundation.py \
 python3 scripts/install_course_skill_foundation.py \
   --verify-installed \
   --skills-root "$SKILLS_ROOT"
+
+python3 scripts/install_course_skill_foundation.py \
+  --recover-operation "$COURSE_DESIGN_STATE_ROOT/operations/course-skill-foundation/OPERATION_ID"
 ```
 
 套件更新必須以 `--allow-update PACKAGE_NAME` 逐項授權；安裝程式會先備份並建立 rollback 紀錄。

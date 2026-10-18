@@ -99,16 +99,76 @@ def _safe_root_argument(
     *,
     allow_absent: bool = False,
 ) -> Path:
-    candidate = Path(os.path.abspath(Path(path).expanduser()))
-    if not candidate.is_absolute():  # defensive: abspath always produces absolute
+    expanded = Path(path).expanduser()
+    if not expanded.is_absolute():
         raise InstallError(f"{label} must be an absolute path")
-    if candidate.is_symlink():
-        raise InstallError(f"unsupported symbolic-link {label}: {candidate}")
+    candidate = Path(os.path.abspath(expanded))
+    current = Path(candidate.anchor)
+    for part in candidate.parts[1:]:
+        current = current / part
+        if current.is_symlink():
+            if current.parent == Path(candidate.anchor):
+                continue
+            raise InstallError(
+                f"unsupported symbolic-link component in {label}: {current}"
+            )
     if candidate.exists() and not candidate.is_dir():
         raise InstallError(f"{label} must be a directory: {candidate}")
     if not allow_absent and not candidate.is_dir():
         raise InstallError(f"{label} directory does not exist: {candidate}")
     return candidate
+
+
+def _paths_overlap(left: Path, right: Path) -> bool:
+    left = left.resolve(strict=False)
+    right = right.resolve(strict=False)
+    try:
+        left.relative_to(right)
+        return True
+    except ValueError:
+        pass
+    try:
+        right.relative_to(left)
+        return True
+    except ValueError:
+        return False
+
+
+def _repository_root(path: Path) -> Path | None:
+    for candidate in (path, *path.parents):
+        if (candidate / ".git").exists():
+            return candidate
+    return None
+
+
+def _validate_install_root_topology(
+    packages_root: Path,
+    skills_root: Path,
+    operations_root: Path | None,
+) -> None:
+    roots = {
+        "packages root": packages_root,
+        "skills root": skills_root,
+    }
+    if operations_root is not None:
+        roots["operations root"] = operations_root
+    items = tuple(roots.items())
+    for index, (left_name, left) in enumerate(items):
+        for right_name, right in items[index + 1 :]:
+            if _paths_overlap(left, right):
+                raise InstallError(
+                    f"installer roots overlap: {left_name}={left} and "
+                    f"{right_name}={right}"
+                )
+    repository = _repository_root(packages_root)
+    if (
+        operations_root is not None
+        and repository is not None
+        and _paths_overlap(repository, operations_root)
+    ):
+        raise InstallError(
+            f"operations root must be outside the source repository: {repository}"
+        )
 
 
 def _validate_package_tree(root: Path, name: str) -> None:
@@ -147,6 +207,14 @@ def tree_hash(root: Path) -> str:
     return digest.hexdigest()
 
 
+def _fsync_directory(path: Path) -> None:
+    descriptor = os.open(path, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+
+
 def _write_json_atomic(path: Path, value: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary: Path | None = None
@@ -165,9 +233,29 @@ def _write_json_atomic(path: Path, value: dict[str, Any]) -> None:
             handle.flush()
             os.fsync(handle.fileno())
         os.replace(temporary, path)
+        temporary = None
+        _fsync_directory(path.parent)
     finally:
         if temporary is not None and temporary.exists():
             temporary.unlink()
+
+
+def _write_text_durable(path: Path, value: str, *, executable: bool = False) -> None:
+    path.write_text(value, encoding="utf-8")
+    if executable:
+        path.chmod(0o755)
+    with path.open("rb") as handle:
+        os.fsync(handle.fileno())
+    _fsync_directory(path.parent)
+
+
+def _durable_replace(source: Path, destination: Path) -> None:
+    source_parent = source.parent
+    destination_parent = destination.parent
+    os.replace(source, destination)
+    _fsync_directory(destination_parent)
+    if source_parent != destination_parent:
+        _fsync_directory(source_parent)
 
 
 def _copy_verified(source: Path, destination: Path, expected_hash: str) -> None:
@@ -177,12 +265,26 @@ def _copy_verified(source: Path, destination: Path, expected_hash: str) -> None:
         raise InstallError(
             f"copy verification failed for {source}: expected {expected_hash}, got {actual_hash}"
         )
+    for path in sorted(destination.rglob("*")):
+        if path.is_file() and not path.is_symlink():
+            with path.open("rb") as handle:
+                os.fsync(handle.fileno())
+    directories = [
+        path for path in destination.rglob("*") if path.is_dir() and not path.is_symlink()
+    ]
+    for directory in sorted(directories, key=lambda item: len(item.parts), reverse=True):
+        _fsync_directory(directory)
+    _fsync_directory(destination)
+    _fsync_directory(destination.parent)
 
 
 def _new_operation_dir(operations_root: Path) -> Path:
     operations_root.mkdir(parents=True, exist_ok=True)
+    _fsync_directory(operations_root.parent)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
-    return Path(tempfile.mkdtemp(prefix=f"{stamp}-", dir=operations_root))
+    operation_dir = Path(tempfile.mkdtemp(prefix=f"{stamp}-", dir=operations_root))
+    _fsync_directory(operations_root)
+    return operation_dir
 
 
 def _rollback_script() -> str:
@@ -310,12 +412,6 @@ print(f"rolled back: {operation_dir}")
 """
 
 
-def _remove_verified_directory(path: Path, expected_hash: str) -> None:
-    if tree_hash(path) != expected_hash:
-        raise InstallError(f"refusing to remove changed installed skill: {path}")
-    shutil.rmtree(path)
-
-
 def _remove_directory_if_present(path: Path) -> None:
     if path.is_symlink():
         path.unlink()
@@ -323,25 +419,6 @@ def _remove_directory_if_present(path: Path) -> None:
         if not path.is_dir():
             raise InstallError(f"refusing to remove non-directory transaction target: {path}")
         shutil.rmtree(path)
-
-
-def _recover_install_states(states: list[dict[str, Any]]) -> None:
-    recovery_errors: list[str] = []
-    for state in reversed(states):
-        action: InstallAction = state["action"]
-        container: Path = state["container"]
-        previous: Path | None = state["previous"]
-        try:
-            if state["target_replaced"]:
-                _remove_directory_if_present(action.target)
-            if previous is not None and previous.exists():
-                os.replace(previous, action.target)
-        except Exception as error:  # pragma: no cover - catastrophic recovery failure
-            recovery_errors.append(f"{action.name}: {error}")
-        finally:
-            shutil.rmtree(container, ignore_errors=True)
-    if recovery_errors:
-        raise InstallError("transaction recovery failed: " + "; ".join(recovery_errors))
 
 
 def _recover_rollback_states(states: list[dict[str, Any]]) -> None:
@@ -364,10 +441,172 @@ def _recover_rollback_states(states: list[dict[str, Any]]) -> None:
         raise InstallError("rollback recovery failed: " + "; ".join(recovery_errors))
 
 
+def _load_operation_manifest(operation_dir: Path) -> tuple[Path, dict[str, Any]]:
+    safe_operation = _safe_root_argument(operation_dir, "operation directory")
+    manifest_path = safe_operation / "manifest.json"
+    if manifest_path.is_symlink() or not manifest_path.is_file():
+        raise InstallError(f"operation manifest must be a regular file: {manifest_path}")
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise InstallError(f"cannot read operation manifest {manifest_path}: {error}") from error
+    if not isinstance(manifest, dict) or manifest.get("schema_version") != 2:
+        raise InstallError("crash recovery requires a schema_version 2 operation manifest")
+    records = manifest.get("packages")
+    if not isinstance(records, list) or not records:
+        raise InstallError("operation manifest has no recoverable package records")
+    return manifest_path, manifest
+
+
+def _record_target(record: dict[str, Any]) -> Path:
+    target_value = record.get("target")
+    if not isinstance(target_value, str):
+        raise InstallError("operation record target is invalid")
+    return _safe_root_argument(
+        Path(target_value),
+        f"operation target for {record.get('name', '<unknown>')}",
+        allow_absent=True,
+    )
+
+
+def _verified_tree_hash(path: Path, label: str) -> str:
+    if path.is_symlink() or not path.is_dir():
+        raise InstallError(f"{label} must be a non-symlink directory")
+    _validate_package_tree(path, label)
+    return tree_hash(path)
+
+
+def _recover_package_record(
+    operation_dir: Path,
+    manifest_path: Path,
+    manifest: dict[str, Any],
+    record: dict[str, Any],
+) -> None:
+    name = record.get("name")
+    if not isinstance(name, str) or not PACKAGE_NAME_PATTERN.fullmatch(name):
+        raise InstallError("operation record package name is invalid")
+    before_exists = record.get("before_exists")
+    before_hash = record.get("before_hash")
+    after_hash = record.get("after_hash")
+    if not isinstance(before_exists, bool) or not isinstance(after_hash, str):
+        raise InstallError(f"operation record hashes are invalid: {name}")
+    if not SHA256_PATTERN.fullmatch(after_hash):
+        raise InstallError(f"operation after hash is invalid: {name}")
+    if before_exists and (
+        not isinstance(before_hash, str) or not SHA256_PATTERN.fullmatch(before_hash)
+    ):
+        raise InstallError(f"operation before hash is invalid: {name}")
+    if not before_exists and before_hash is not None:
+        raise InstallError(f"unexpected before hash for added package: {name}")
+
+    target = _record_target(record)
+    current_hash: str | None = None
+    if target.exists() or target.is_symlink():
+        current_hash = _verified_tree_hash(target, f"installed target {name}")
+        allowed = {after_hash}
+        if before_exists:
+            allowed.add(before_hash)
+        if current_hash not in allowed:
+            raise InstallError(
+                f"refusing recovery because target changed after crash: {name}"
+            )
+
+    backup: Path | None = None
+    if before_exists:
+        backup_value = record.get("backup")
+        if not isinstance(backup_value, str):
+            raise InstallError(f"verified backup path is missing: {name}")
+        backup = operation_dir / backup_value
+        if backup.parent != operation_dir / "backups":
+            raise InstallError(f"backup path escapes operation directory: {name}")
+        if _verified_tree_hash(backup, f"backup {name}") != before_hash:
+            raise InstallError(f"verified backup differs from before hash: {name}")
+
+    if (before_exists and current_hash == before_hash) or (
+        not before_exists and current_hash is None
+    ):
+        record["phase"] = "RECOVERED"
+        _write_json_atomic(manifest_path, manifest)
+    else:
+        recovery = Path(
+            tempfile.mkdtemp(prefix=f".course-skill-recover-{name}-", dir=target.parent)
+        )
+        record["recovery_container"] = str(recovery)
+        record["phase"] = "RECOVERY_INTENT"
+        _write_json_atomic(manifest_path, manifest)
+        quarantined = recovery / "quarantined"
+        if current_hash is not None:
+            _durable_replace(target, quarantined)
+            record["phase"] = "TARGET_QUARANTINED"
+            _write_json_atomic(manifest_path, manifest)
+        if before_exists:
+            assert backup is not None and before_hash is not None
+            restored = recovery / "restored"
+            _copy_verified(backup, restored, before_hash)
+            record["phase"] = "RESTORE_INTENT"
+            _write_json_atomic(manifest_path, manifest)
+            _durable_replace(restored, target)
+        record["phase"] = "RECOVERED"
+        _write_json_atomic(manifest_path, manifest)
+        shutil.rmtree(recovery, ignore_errors=True)
+
+    container_value = record.get("container")
+    if isinstance(container_value, str):
+        container = Path(container_value)
+        if container.parent == target.parent and container.name.startswith(
+            f".course-skill-{name}-"
+        ):
+            shutil.rmtree(container, ignore_errors=True)
+
+
+def recover_install(
+    operation_dir: Path,
+    *,
+    final_status: str = "RECOVERED",
+) -> None:
+    """Roll an interrupted PREPARED/EXECUTING install back to its before state."""
+
+    if final_status not in {"RECOVERED", "FAILED"}:
+        raise ValueError("recovery final status must be RECOVERED or FAILED")
+    operation_dir = _safe_root_argument(operation_dir, "operation directory")
+    manifest_path, manifest = _load_operation_manifest(operation_dir)
+    status = manifest.get("status")
+    if status not in {"PREPARED", "EXECUTING"}:
+        raise InstallError(
+            f"recovery requires PREPARED or EXECUTING manifest, got {status!r}"
+        )
+    for record in reversed(manifest["packages"]):
+        if not isinstance(record, dict):
+            raise InstallError("operation package record must be an object")
+        _recover_package_record(
+            operation_dir, manifest_path, manifest, record
+        )
+    manifest["status"] = final_status
+    manifest["recovered_at"] = datetime.now(timezone.utc).isoformat()
+    _write_json_atomic(manifest_path, manifest)
+
+
+def _reject_unfinished_operations(operations_root: Path) -> None:
+    if not operations_root.exists():
+        return
+    for manifest_path in sorted(operations_root.glob("*/manifest.json")):
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            raise InstallError(
+                f"cannot inspect prior operation manifest {manifest_path}: {error}"
+            ) from error
+        if manifest.get("status") in {"PREPARED", "EXECUTING"}:
+            raise InstallError(
+                "unfinished install must be recovered before a new apply: "
+                f"{manifest_path.parent}"
+            )
+
+
 def install(
     packages_root: Path,
     skills_root: Path,
-    operations_root: Path,
+    operations_root: Path | None,
     apply: bool,
     package_names: Sequence[str] | None = None,
     allow_updates: Sequence[str] = (),
@@ -376,9 +615,14 @@ def install(
     skills_root = _safe_root_argument(
         Path(skills_root), "skills root", allow_absent=True
     )
-    operations_root = _safe_root_argument(
-        Path(operations_root), "operations root", allow_absent=True
+    operations_root = (
+        _safe_root_argument(
+            Path(operations_root), "operations root", allow_absent=True
+        )
+        if operations_root is not None
+        else None
     )
+    _validate_install_root_topology(packages_root, skills_root, operations_root)
     records = _load_manifest_records(packages_root / "manifest.json")
     manifest_names = tuple(record["name"] for record in records)
     record_by_name = {record["name"]: record for record in records}
@@ -412,6 +656,8 @@ def install(
             raise InstallError(f"unsupported symbolic-link skill target: {target}")
         if target.exists() and not target.is_dir():
             raise InstallError(f"skill target must be a directory or absent: {target}")
+        if target.is_dir():
+            _validate_package_tree(target, name)
         before_hash = tree_hash(target) if target.is_dir() else None
         after_hash = tree_hash(source)
         if after_hash != record_by_name[name]["baseline_hash"]:
@@ -438,6 +684,9 @@ def install(
     if not apply:
         return InstallResult(False, None, tuple(actions))
 
+    if operations_root is None:
+        raise InstallError("an external operations root is required for apply")
+
     unauthorized_updates = [
         action.name
         for action in actions
@@ -453,12 +702,13 @@ def install(
     if not mutable_actions:
         return InstallResult(False, None, tuple(actions))
 
+    _reject_unfinished_operations(operations_root)
     skills_root.mkdir(parents=True, exist_ok=True)
     operation_dir = _new_operation_dir(operations_root)
     backups_dir = operation_dir / "backups"
     backups_dir.mkdir()
+    _fsync_directory(operation_dir)
     package_records: list[dict[str, Any]] = []
-    swap_states: list[dict[str, Any]] = []
 
     try:
         for action in mutable_actions:
@@ -480,66 +730,79 @@ def install(
                         if backup_path is not None
                         else None
                     ),
+                    "phase": "PREPARED",
+                    "container": None,
+                    "recovery_container": None,
                 }
             )
 
         manifest = {
-            "schema_version": 1,
+            "schema_version": 2,
             "status": "PREPARED",
             "created_at": datetime.now(timezone.utc).isoformat(),
             "installer_path": str(Path(__file__).resolve()),
+            "allowed_updates": sorted(allowed_updates),
             "packages": package_records,
         }
-        _write_json_atomic(operation_dir / "manifest.json", manifest)
-        (operation_dir / "rollback.py").write_text(
-            _rollback_script(), encoding="utf-8"
+        manifest_path = operation_dir / "manifest.json"
+        _write_json_atomic(manifest_path, manifest)
+        _write_text_durable(
+            operation_dir / "rollback.py", _rollback_script(), executable=True
         )
 
+        package_record_by_name = {
+            record["name"]: record for record in package_records
+        }
         for action in mutable_actions:
+            record = package_record_by_name[action.name]
             container = Path(
                 tempfile.mkdtemp(
                     prefix=f".course-skill-{action.name}-", dir=skills_root
                 )
             )
-            state: dict[str, Any] = {
-                "container": container,
-                "previous": None,
-                "action": action,
-                "target_replaced": False,
-            }
-            swap_states.append(state)
+            record["container"] = str(container)
+            record["phase"] = "STAGING"
+            _write_json_atomic(manifest_path, manifest)
             staged = container / "staged"
             _copy_verified(action.source, staged, action.after_hash)
+            manifest["status"] = "EXECUTING"
+            record["phase"] = "PREVIOUS_MOVE_INTENT"
+            _write_json_atomic(manifest_path, manifest)
             if action.target.exists():
                 previous = container / "previous"
-                os.replace(action.target, previous)
-                state["previous"] = previous
-            os.replace(staged, action.target)
-            state["target_replaced"] = True
+                _durable_replace(action.target, previous)
+                record["phase"] = "PREVIOUS_MOVED"
+                _write_json_atomic(manifest_path, manifest)
+            record["phase"] = "TARGET_REPLACE_INTENT"
+            _write_json_atomic(manifest_path, manifest)
+            _durable_replace(staged, action.target)
+            record["phase"] = "TARGET_REPLACED"
+            _write_json_atomic(manifest_path, manifest)
             if tree_hash(action.target) != action.after_hash:
                 raise InstallError(f"installed hash mismatch: {action.target}")
+            record["phase"] = "VERIFIED"
+            _write_json_atomic(manifest_path, manifest)
 
         manifest["status"] = "APPLIED"
         manifest["applied_at"] = datetime.now(timezone.utc).isoformat()
-        _write_json_atomic(operation_dir / "manifest.json", manifest)
-        for state in swap_states:
-            shutil.rmtree(state["container"], ignore_errors=True)
+        for record in package_records:
+            record["phase"] = "APPLIED"
+        _write_json_atomic(manifest_path, manifest)
+        for record in package_records:
+            container_value = record.get("container")
+            if isinstance(container_value, str):
+                shutil.rmtree(Path(container_value), ignore_errors=True)
         return InstallResult(True, operation_dir, tuple(actions))
     except Exception as original_error:
         recovery_error: Exception | None = None
-        try:
-            _recover_install_states(swap_states)
-        except Exception as error:  # pragma: no cover - catastrophic and re-raised
-            recovery_error = error
-        if (operation_dir / "manifest.json").exists():
-            manifest = json.loads(
-                (operation_dir / "manifest.json").read_text(encoding="utf-8")
-            )
-            manifest["status"] = "FAILED"
+        manifest_path = operation_dir / "manifest.json"
+        if manifest_path.exists():
             try:
-                _write_json_atomic(operation_dir / "manifest.json", manifest)
-            except Exception:
-                pass
+                interrupted = json.loads(manifest_path.read_text(encoding="utf-8"))
+                if interrupted.get("status") in {"PREPARED", "EXECUTING"}:
+                    recover_install(operation_dir, final_status="FAILED")
+            except Exception as error:  # pragma: no cover - catastrophic and re-raised
+                recovery_error = error
         if recovery_error is not None:
             raise recovery_error from original_error
         raise
@@ -596,6 +859,7 @@ def verify_installed_packages(
         expected = record_by_name[name]["baseline_hash"]
         if target.is_symlink() or not target.is_dir():
             raise InstallError(f"installed skill is missing: {name}")
+        _validate_package_tree(target, name)
         actual = tree_hash(target)
         if actual != expected:
             raise InstallError(
@@ -606,9 +870,16 @@ def verify_installed_packages(
 
 
 def rollback_install(operation_dir: Path) -> None:
-    operation_dir = Path(operation_dir).resolve()
+    operation_dir = _safe_root_argument(
+        Path(operation_dir), "operation directory"
+    )
     manifest_path = operation_dir / "manifest.json"
+    if manifest_path.is_symlink() or not manifest_path.is_file():
+        raise InstallError(f"operation manifest must be a regular file: {manifest_path}")
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if manifest.get("status") in {"PREPARED", "EXECUTING"}:
+        recover_install(operation_dir)
+        return
     if manifest.get("status") != "APPLIED":
         raise InstallError(
             f"rollback requires APPLIED manifest, got {manifest.get('status')!r}"
@@ -687,6 +958,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="verify installed trees against manifest hashes",
     )
+    mode.add_argument(
+        "--recover-operation",
+        type=Path,
+        help="roll a PREPARED/EXECUTING operation back before retrying apply",
+    )
     parser.add_argument("--packages-root", type=Path, default=project_root / "skill-packages")
     parser.add_argument("--skills-root", type=Path)
     parser.add_argument(
@@ -712,6 +988,10 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
+        if args.recover_operation is not None:
+            recover_install(args.recover_operation)
+            print(f"RECOVERED {args.recover_operation}")
+            return 0
         if args.verify_source:
             verified = verify_source_packages(
                 args.packages_root,
@@ -745,7 +1025,7 @@ def main(argv: list[str] | None = None) -> int:
             operations_root = (
                 Path(configured_state) / "operations" / "course-skill-foundation"
                 if configured_state
-                else args.packages_root.parent / ".dry-run-operations-unused"
+                else None
             )
         result = install(
             args.packages_root,

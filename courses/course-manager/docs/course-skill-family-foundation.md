@@ -42,14 +42,13 @@ python3 scripts/course_contract.py enroll-approval-authority \
 ## Gate 生命週期
 
 ```bash
-python3 scripts/course_contract.py begin \
-  --contract COURSE_CONTRACT --gate G0 \
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/course_run.py" resume \
+  --contract COURSE_CONTRACT \
   --actor course-run --at ISO8601
 
-python3 scripts/course_contract.py pass \
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/course_run.py" complete \
   --contract COURSE_CONTRACT --gate G0 \
   --evidence-id g0-requirements \
-  --validator-id requirements-validator \
   --actor course-run --at ISO8601
 
 python3 scripts/course_contract.py block \
@@ -119,6 +118,10 @@ python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/install_course_skill_foundation.py" 
   --verify-installed --skills-root "$SKILLS_ROOT"
 
 python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/course_run.py" doctor
+
+# 若 apply 被中斷，先以 operation path 回復，再重跑相同授權的 apply。
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/install_course_skill_foundation.py" \
+  --recover-operation "$COURSE_DESIGN_STATE_ROOT/operations/course-skill-foundation/OPERATION_ID"
 ```
 
 安裝器以 package manifest 判斷 `ADD`、`UPDATE`、`UNCHANGED`，更新前建立備份。rollback 會先確認已安裝內容沒有被後續修改；不相符就停止，不覆蓋使用者變更。
