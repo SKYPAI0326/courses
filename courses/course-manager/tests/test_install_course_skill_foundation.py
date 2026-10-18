@@ -623,20 +623,15 @@ installer.rollback_install(
         self.assertNotEqual(process.returncode, 0)
         self.assertEqual(self.snapshot(victim), victim_before)
 
-    def test_committed_operation_rollbacks_match_current_generator(self):
+    def test_runtime_operation_rollbacks_are_not_committed(self):
         project_root = Path(__file__).resolve().parents[1]
         rollback_paths = sorted(
             (project_root / "operations" / "course-skill-foundation").glob(
                 "*/rollback.py"
             )
         )
-
-        self.assertTrue(rollback_paths)
-        for rollback_path in rollback_paths:
-            with self.subTest(rollback_path=rollback_path):
-                self.assertEqual(
-                    rollback_path.read_text(encoding="utf-8"), _rollback_script()
-                )
+        self.assertEqual(rollback_paths, [])
+        self.assertIn("/operations/", (project_root / ".gitignore").read_text())
 
     def test_preflight_rejects_existing_non_directory_target_without_changes(self):
         target = self.skills_root / "course-run"

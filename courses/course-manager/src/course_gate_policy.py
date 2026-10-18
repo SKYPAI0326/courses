@@ -1,0 +1,24 @@
+SECURITY_BOUNDARY_CODES = frozenset(
+    {
+        "invalid_independent_trial_receipt",
+        "runner_authority_required",
+        "invalid_trial_receipt_context",
+        "invalid_receipt",
+        "invalid_authority_binding",
+        "authority_unavailable",
+        "authority_binding_mismatch",
+        "invalid_receipt_signature",
+        "wrong_receipt_authority",
+        "receipt_replay",
+        "contract_replay",
+        "evidence_set_replay",
+        "receipt_ledger_invalid",
+        "trial_binding_mismatch",
+        "roster_binding_mismatch",
+        "input_binding_mismatch",
+        "participant_binding_mismatch",
+        "runner_binding_mismatch",
+        "runner_not_independent",
+        "pilot_actor_roster_mismatch",
+    }
+)

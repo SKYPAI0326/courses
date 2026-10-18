@@ -16,12 +16,15 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from src.course_content import validate_lesson_record  # noqa: E402
 from src.course_contract import (  # noqa: E402
+    bind_production_role_roster,
     begin_gate,
     new_contract,
     propose_external_action,
     save_contract_atomic,
     validate_contract,
 )
+from src.course_evidence import materialize_json_evidence, register_evidence_file  # noqa: E402
+from src.course_gate import validate_and_transition_gate  # noqa: E402
 from src.course_architecture_routes import route_blueprint_to_g2  # noqa: E402
 from src.course_content_routes import route_content_to_g3  # noqa: E402
 from src.course_production import (  # noqa: E402
@@ -38,7 +41,8 @@ from src.course_validation_routes import route_verified_trial_to_gate  # noqa: E
 from src.course_validation import trial_action_id  # noqa: E402
 
 
-ROOT = Path(__file__).resolve().parent
+SOURCE_ROOT = Path(__file__).resolve().parent
+ROOT = SOURCE_ROOT
 EVIDENCE = ROOT / "evidence"
 DESIGN = ROOT / "_design" / "campaign-performance-brief"
 COURSE = ROOT / "course"
@@ -64,10 +68,94 @@ def load_json(path: Path):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _prepare_output_root(output_root: Path) -> None:
+    if output_root.exists():
+        if not output_root.is_dir() or any(output_root.iterdir()):
+            raise SystemExit("PRECONDITION FAILED: output root must be absent or empty")
+    else:
+        output_root.mkdir(parents=True)
+    shutil.copytree(SOURCE_ROOT / "course", output_root / "course", dirs_exist_ok=True)
+    for name in ("research-record.json", "adaptation.json"):
+        destination = output_root / "evidence" / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(SOURCE_ROOT / "evidence" / name, destination)
+    for name in ("unit-3-desktop.png", "unit-3-tablet.png", "unit-3-mobile.png"):
+        destination = output_root / "evidence" / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(SOURCE_ROOT / "evidence" / name, destination)
+    final_source = SOURCE_ROOT / "trials/full-course-output/campaign-performance-brief.md"
+    final_target = output_root / "trials/full-course-output/campaign-performance-brief.md"
+    final_target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(final_source, final_target)
+    release_source = SOURCE_ROOT / "release-staging/index.html"
+    release_target = output_root / "release-staging/index.html"
+    release_target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(release_source, release_target)
+    (output_root / "release-target").mkdir(parents=True, exist_ok=True)
+
+
+def _materialize_trial_files(root: Path, trial: dict) -> list[dict]:
+    for index, item in enumerate(trial["allowed_inputs"]):
+        target = root / item["path"]
+        if not target.is_file():
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(f"learner-visible input {index}\n", encoding="utf-8")
+        item["sha256"] = sha(target)
+    references = []
+    old_to_new_actions = {}
+    for binding in trial["evidence_bindings"]:
+        target = root / binding["path"]
+        if binding["role"] != "held-out-input":
+            target.parent.mkdir(parents=True, exist_ok=True)
+            if target.suffix == ".json":
+                write_json(
+                    target,
+                    {
+                        "role": binding["role"],
+                        "evidence_id": binding["evidence_id"],
+                    },
+                )
+            else:
+                target.write_text(
+                    f"{binding['role']}:{binding['evidence_id']}\n",
+                    encoding="utf-8",
+                )
+        binding["sha256"] = sha(target)
+        references.append(
+            register_evidence_file(
+                root,
+                evidence_id=binding["evidence_id"],
+                gate_id="G4" if trial["scope"] == "representative_unit" else "G5",
+                kind="trial_transfer_artifact",
+                relative_path=binding["path"],
+                metadata={"role": binding["role"]},
+            )
+        )
+    by_id = {item["evidence_id"]: item for item in trial["evidence_bindings"]}
+    for action in trial["actions"]:
+        old_id = action["id"]
+        action["observable_result"]["actual_sha256"] = by_id[
+            action["output_evidence_id"]
+        ]["sha256"]
+        action["id"] = trial_action_id(action)
+        old_to_new_actions[old_id] = action["id"]
+    for row in trial["criterion_evidence"]:
+        row["action_id"] = old_to_new_actions[row["action_id"]]
+    final = next(
+        item for item in trial["evidence_bindings"] if item["role"] == "held-out-output"
+    )
+    trial["artifact"]["path"] = final["path"]
+    trial["artifact"]["sha256"] = final["sha256"]
+    return references
+
+
 def _canonical_hash(value) -> str:
     return hashlib.sha256(
-        json.dumps(
-            value, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        (
+            json.dumps(
+                value, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+            )
+            + "\n"
         ).encode("utf-8")
     ).hexdigest()
 
@@ -508,7 +596,7 @@ def lesson_record(unit_id: str, page_hash: str) -> dict:
             "transfer": "日後遇到零 clicks 時，平均 CPC 標為無法計算而不是 0。"
         },
         "unit-2": {
-            "outcome": "補齊 CVR、CPA 與 ROAS，並正確處理不能除以零的情況。",
+            "outcome": "補齊 CVR、CPA 與 ROAS，並正確判斷活動是否同時達到門檻。",
             "context": "你已有 CTR 與平均 CPC，現在要把點擊接到轉換成本與價值。",
             "purpose": "完成能支持商業門檻判斷的五指標表。",
             "prior": "上一單元留下三個活動的 CTR 與平均 CPC。",
@@ -699,11 +787,26 @@ def lesson_record(unit_id: str, page_hash: str) -> dict:
 
 
 def main(*, authority_provider=None, output_root: Path | None = None) -> None:
-    authority_mode = "missing" if authority_provider is None else "not-yet-wired"
-    raise SystemExit(
-        "PRECONDITION FAILED: proof rebuild requires a test-only runner authority provider "
-        f"and isolated output transaction ({authority_mode}); Task 8 owns snapshot regeneration"
-    )
+    if authority_provider is None or not all(
+        callable(getattr(authority_provider, name, None)) for name in ("bind", "issue")
+    ):
+        raise SystemExit(
+            "PRECONDITION FAILED: proof rebuild requires an externally supplied governed "
+            "runner authority provider"
+        )
+    if output_root is None:
+        raise SystemExit("PRECONDITION FAILED: proof rebuild requires --output-root")
+    output_root = Path(output_root)
+    if not output_root.is_absolute():
+        raise SystemExit("PRECONDITION FAILED: output root must be absolute")
+    # No write occurs before all authority and output prerequisites are checked.
+    _prepare_output_root(output_root)
+    global ROOT, EVIDENCE, DESIGN, COURSE, TRIALS
+    ROOT = output_root
+    EVIDENCE = ROOT / "evidence"
+    DESIGN = ROOT / "_design" / "campaign-performance-brief"
+    COURSE = ROOT / "course"
+    TRIALS = ROOT / "trials"
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     DESIGN.mkdir(parents=True, exist_ok=True)
     research = load_json(EVIDENCE / "research-record.json")
@@ -753,14 +856,19 @@ def main(*, authority_provider=None, output_root: Path | None = None) -> None:
         raise SystemExit(f"unexpected pilot selection: {selected_pilot}")
     pilot_lesson_path = EVIDENCE / "lesson-unit-3.json"
     pilot_lesson_hash = sha(pilot_lesson_path)
+    g4_accessibility = accessibility_report(
+        "G4", [{"id": "unit-3", "path": "course/unit-3.html"}]
+    )
+    write_json(EVIDENCE / "accessibility-g4.json", g4_accessibility)
     pilot = {
-        "schema_version": 1,
+        "schema_version": 2,
         "unit_id": "unit-3",
+        "production_actor_ids": ["course-author-ai"],
         "lesson_sha256": pilot_lesson_hash,
         "html_path": "course/unit-3.html",
         "html_sha256": sha(COURSE / "unit-3.html"),
         "asset_ids": ["campaign-data", "brief-template", "rubric"],
-        "trial_context_id": "g4-cold-ai-context-20261018-c",
+        "trial_context_id": "context-representative-unit",
         "visual_decision": {
             "inputs": {"topic": "行銷活動成效摘要", "learner": "第一次獨立寫活動成效摘要的行銷同仁", "task": "讀 CSV、計算、判讀並寫成 Markdown", "content_density": "公式、實際數字與長文判讀並存", "primary_devices": ["mobile", "tablet", "desktop"]},
             "decisions": {"layout_rationale": "單欄閱讀讓公式、示範與修復保持相鄰。", "navigation": "每頁只有清楚的上一課與下一課。", "typography": "繁體中文正文使用較大行距，公式使用等寬字。", "color": "深青色只標示連結與成果，琥珀色提供焦點外框。", "responsive_strategy": "窄螢幕維持單欄，表格局部水平捲動。"}
@@ -772,9 +880,11 @@ def main(*, authority_provider=None, output_root: Path | None = None) -> None:
             "tablet": {"viewport": "820x1180", "core_path_result": "PASS", "horizontal_overflow": False},
             "desktop": {"viewport": "1440x900", "core_path_result": "PASS", "horizontal_overflow": False}
         },
-        "accessibility": {
-            "automated": {"tool": "HTML landmark/link audit", "result": "PASS", "report_path": "evidence/accessibility-report.json"},
-            "manual": {"evaluator_id": "course-author-ai", "keyboard_result": "PASS", "focus_result": "PASS", "reading_sequence_result": "PASS", "notes": "鍵盤依閱讀順序到 rubric、上一課與首頁，focus 清楚可見。"}
+        "accessibility_report": {
+            "evidence_id": g4_accessibility["report_id"],
+            "path": "evidence/accessibility-g4.json",
+            "sha256": sha(EVIDENCE / "accessibility-g4.json"),
+            "claim_scope": "basic_accessibility_smoke",
         },
         "navigation": {"entry": "course/index.html", "previous": "course/unit-2.html", "next": "course/index.html"}
     }
@@ -783,8 +893,24 @@ def main(*, authority_provider=None, output_root: Path | None = None) -> None:
         raise SystemExit(f"pilot invalid: {pilot_issues}")
     write_json(EVIDENCE / "pilot-record.json", pilot)
 
-    g4_trial = load_json(TRIALS / "g4-representative-unit.json")
-    g5_trial = load_json(TRIALS / "g5-full-course.json")
+    authority_id = str(authority_provider.authority_id)
+    g4_trial = trial_record(
+        requirements,
+        blueprint,
+        scope="representative_unit",
+        representative_unit_id="unit-3",
+        runner_authority_id=authority_id,
+    )
+    g5_trial = trial_record(
+        requirements,
+        blueprint,
+        scope="full_course",
+        runner_authority_id=authority_id,
+    )
+    g4_transfer_refs = _materialize_trial_files(ROOT, g4_trial)
+    g5_transfer_refs = _materialize_trial_files(ROOT, g5_trial)
+    write_json(TRIALS / "g4-representative-unit.json", g4_trial)
+    write_json(TRIALS / "g5-full-course.json", g5_trial)
     final_artifact = TRIALS / "full-course-output" / "campaign-performance-brief.md"
     if not final_artifact.is_file():
         raise SystemExit("missing independent full-course artifact")
@@ -825,8 +951,27 @@ def main(*, authority_provider=None, output_root: Path | None = None) -> None:
             "next": None if index == len(blueprint["units"]) - 1 else blueprint["units"][index + 1]["id"]
         })
     coverage_rows = production_learning_coverage(blueprint)
+    trial_action_by_capability = {
+        row["capability_id"]: row["action_id"]
+        for row in g5_trial["criterion_evidence"]
+    }
+    for row in coverage_rows:
+        row["trial_evidence_id"] = trial_action_by_capability[row["capability_id"]]
+    g5_pages = [{"id": "course-entry", "path": "course/index.html"}]
+    g5_pages.extend(
+        {"id": unit["id"], "path": f"course/{unit['id']}.html"}
+        for unit in blueprint["units"]
+    )
+    g5_pages.append(
+        {
+            "id": "course-completion",
+            "path": "trials/full-course-output/campaign-performance-brief.md",
+        }
+    )
+    g5_accessibility = accessibility_report("G5", g5_pages)
+    write_json(EVIDENCE / "accessibility-g5.json", g5_accessibility)
     production = {
-        "schema_version": 1,
+        "schema_version": 2,
         "course_id": "campaign-performance-brief",
         "production_authors": ["course-author-ai"],
         "g4_trial_context_id": g4_trial["isolated_context_id"],
@@ -837,6 +982,12 @@ def main(*, authority_provider=None, output_root: Path | None = None) -> None:
             {"from_unit": "unit-2", "to_unit": "unit-3", "artifact": "trials/full-course-output/campaign-performance-brief.md", "result": "PASS"}
         ],
         "learning_coverage": coverage_rows,
+        "accessibility_report": {
+            "evidence_id": g5_accessibility["report_id"],
+            "path": "evidence/accessibility-g5.json",
+            "sha256": sha(EVIDENCE / "accessibility-g5.json"),
+            "claim_scope": "basic_accessibility_smoke",
+        },
         "final_artifact": {
             "path": "trials/full-course-output/campaign-performance-brief.md",
             "sha256": sha(final_artifact),
@@ -879,17 +1030,59 @@ def main(*, authority_provider=None, output_root: Path | None = None) -> None:
     staging.mkdir(exist_ok=True)
     shutil.copy2(COURSE / "index.html", staging / "index.html")
     proposal = build_release_proposal(ROOT, release_record)
+    # A committed proof must be byte-for-byte reproducible from any clean
+    # clone.  Preserve the exact relative targets, but replace the ephemeral
+    # build directory with a non-executable logical proof root.  A real release
+    # must create a fresh proposal for its governed absolute course root.
+    proposal["manifest"]["course_root"] = (
+        "/course-design-system-proof/campaign-performance-brief"
+    )
+    proposal["manifest_sha256"] = _canonical_hash(proposal["manifest"])
+    proposal["action_id"] = f"course-release-{proposal['manifest_sha256'][:16]}"
     write_json(EVIDENCE / "release-proposal.json", proposal)
 
     contract = new_contract("campaign-performance-brief", "行銷活動成效摘要實作課", "course-author-ai", "2026-10-18T14:30:00+08:00")
+    contract["contract_instance_id"] = "ci-" + _stable_hash(
+        "campaign-performance-brief:proof-contract-v4"
+    )[:32]
+    authority_provider.bind(contract)
+    roster = {
+        "schema_version": 1,
+        "authors": ["course-author-ai"],
+        "validators": ["course-validator"],
+    }
+    roster_ref = materialize_json_evidence(
+        ROOT,
+        evidence_id="g0-production-role-roster",
+        gate_id="G0",
+        kind="production_role_roster",
+        relative_path="evidence/production-role-roster.json",
+        value=roster,
+    )
+    contract["evidence_index"].append(roster_ref)
+    bind_production_role_roster(contract, roster_ref["id"])
     begin_gate(contract, "G0", "course-run", "2026-10-18T14:31:00+08:00")
     route_requirements_to_g0(
         contract, requirements, "evidence/g0-requirements.json", "course-run",
         "2026-10-18T14:32:00+08:00", workspace_root=ROOT,
     )
+    requirements_ref = next(
+        item for item in contract["evidence_index"]
+        if item.get("kind") == "requirements_record" and item.get("gate") == "G0"
+    )
+    for trial, filename in (
+        (g4_trial, "g4-representative-unit.json"),
+        (g5_trial, "g5-full-course.json"),
+    ):
+        trial["requirements_sha256"] = requirements_ref["sha256"]
+        write_json(TRIALS / filename, trial)
 
     begin_gate(contract, "G1", "course-run", "2026-10-18T14:33:00+08:00")
-    route_research_to_gate(contract, research, adaptation, "evidence/research-record.json", sha(EVIDENCE / "research-record.json"), "course-run", "2026-10-18T14:34:00+08:00")
+    route_research_to_gate(
+        contract, research, adaptation, "evidence/research-record.json",
+        sha(EVIDENCE / "research-record.json"), "course-run",
+        "2026-10-18T14:34:00+08:00", workspace_root=ROOT,
+    )
 
     begin_gate(contract, "G2", "course-run", "2026-10-18T14:35:00+08:00")
     route_blueprint_to_g2(
@@ -906,29 +1099,178 @@ def main(*, authority_provider=None, output_root: Path | None = None) -> None:
     )
 
     begin_gate(contract, "G4", "course-run", "2026-10-18T14:39:00+08:00")
-    pilot_bundle = {"pilot_record": "evidence/pilot-record.json", "asset_manifest": "evidence/asset-manifest.json", "result": "PASS"}
-    write_json(EVIDENCE / "pilot-bundle.json", pilot_bundle)
+    pilot_bundle = {
+        "pilot": pilot,
+        "lesson": lesson_records[2],
+        "asset_manifest": asset_manifest,
+    }
+    pilot_ref = materialize_json_evidence(
+        ROOT, evidence_id="g4-pilot-production", gate_id="G4",
+        kind="pilot_record", relative_path="evidence/pilot-bundle.json",
+        value=pilot_bundle, maturity="EXECUTION_VALIDATED",
+    )
+    g4_accessibility_ref = register_evidence_file(
+        ROOT, evidence_id=g4_accessibility["report_id"], gate_id="G4",
+        kind="accessibility_report", relative_path="evidence/accessibility-g4.json",
+    )
+    g4_trial_ref = materialize_json_evidence(
+        ROOT, evidence_id="g4-independent-trial", gate_id="G4",
+        kind="independent_course_trial", relative_path="trials/g4-representative-unit.json",
+        value=g4_trial, maturity="INDEPENDENT_AI_VERIFIED",
+    )
+    contract["evidence_index"].extend(
+        [pilot_ref, g4_accessibility_ref, *g4_transfer_refs, g4_trial_ref]
+    )
+    g4_receipt_ref = authority_provider.issue(
+        ROOT, contract=contract, gate_id="G4", trial_reference=g4_trial_ref,
+        roster_reference=roster_ref,
+        transition_references=[
+            pilot_ref, g4_accessibility_ref, *g4_transfer_refs, g4_trial_ref, roster_ref
+        ],
+        runner_id=g4_trial["participant"]["id"],
+        session_id=g4_trial["runner_session_id"],
+        issued_at="2026-10-18T15:20:00+08:00", nonce="proof-g4-nonce",
+        receipt_id="g4-independent-trial-receipt",
+        relative_path="evidence/g4-independent-trial-receipt.json",
+    )
+    contract["evidence_index"].append(g4_receipt_ref)
     contract["G4_pilot"] = {"unit_id": "unit-3", "record_path": "evidence/pilot-record.json"}
-    contract["evidence_index"].append({"id": "g4-pilot-production", "gate": "G4", "path": "evidence/pilot-bundle.json", "sha256": sha(EVIDENCE / "pilot-bundle.json")})
-    route_verified_trial_to_gate(contract, "G4", ["g4-pilot-production"], g4_trial, "course-run", "2026-10-18T15:21:00+08:00")
+    route_verified_trial_to_gate(
+        contract, "G4", [pilot_ref["id"], roster_ref["id"]],
+        g4_trial_ref["id"], g4_receipt_ref["id"], "course-validator",
+        "2026-10-18T15:21:00+08:00", workspace_root=ROOT,
+    )
 
     begin_gate(contract, "G5", "course-run", "2026-10-18T15:21:10+08:00")
+    for unit in production["units"]:
+        unit["lesson_sha256"] = sha(
+            EVIDENCE / f"lesson-{unit['unit_id']}.json"
+        )
+    g5_accessibility_ref = register_evidence_file(
+        ROOT, evidence_id=g5_accessibility["report_id"], gate_id="G5",
+        kind="accessibility_report", relative_path="evidence/accessibility-g5.json",
+    )
+    g5_trial_ref = materialize_json_evidence(
+        ROOT, evidence_id="g5-independent-trial", gate_id="G5",
+        kind="independent_course_trial", relative_path="trials/g5-full-course.json",
+        value=g5_trial, maturity="INDEPENDENT_AI_VERIFIED",
+    )
+    contract["evidence_index"].append(g5_trial_ref)
+    production_evidence_specs = []
+    for unit in production["units"]:
+        production_evidence_specs.extend(
+            [
+                {
+                    "id": f"g5-lesson-{unit['unit_id']}", "kind": "lesson_source",
+                    "path": f"evidence/lesson-{unit['unit_id']}.json",
+                    "metadata": {"unit_id": unit["unit_id"]},
+                },
+                {
+                    "id": f"g5-page-{unit['unit_id']}", "kind": "learner_page",
+                    "path": unit["html_path"], "metadata": {"unit_id": unit["unit_id"]},
+                },
+            ]
+        )
+    for asset in asset_manifest["assets"]:
+        production_evidence_specs.append(
+            {
+                "id": f"g5-asset-{asset['id']}", "kind": "course_asset",
+                "path": asset["source"]["uri"], "metadata": {"asset_id": asset["id"]},
+            }
+        )
+    for index, dependency in enumerate(production["dependency_checks"], start=1):
+        dependency_path = ROOT / dependency["artifact"]
+        dependency_path.parent.mkdir(parents=True, exist_ok=True)
+        if not dependency_path.exists():
+            dependency_path.write_text(f"dependency artifact {index}\n", encoding="utf-8")
+        production_evidence_specs.append(
+            {
+                "id": f"g5-dependency-{index}", "kind": "dependency_artifact",
+                "path": dependency["artifact"],
+                "metadata": {"dependency": f"{dependency['from_unit']}->{dependency['to_unit']}"},
+            }
+        )
+    production_evidence_specs.extend(
+        [
+            {"id": "g5-navigation-entry", "kind": "navigation_artifact", "path": production["navigation"]["entry"], "metadata": {"role": "entry"}},
+            {"id": "g5-navigation-completion", "kind": "navigation_artifact", "path": production["navigation"]["completion"], "metadata": {"role": "completion"}},
+            {"id": "g5-final-artifact", "kind": "final_artifact", "path": production["final_artifact"]["path"], "metadata": {"role": "final"}},
+            {"id": g5_accessibility_ref["id"], "kind": "accessibility_report", "path": g5_accessibility_ref["path"]},
+        ]
+    )
+    production_evidence_specs.extend(
+        {
+            "id": item["id"], "kind": "trial_transfer_artifact",
+            "path": item["path"], "metadata": item.get("metadata"),
+        }
+        for item in g5_transfer_refs
+    )
+    preview_refs = [
+        register_evidence_file(
+            ROOT, evidence_id=item["id"], gate_id="G5", kind=item["kind"],
+            relative_path=item["path"], metadata=item.get("metadata"),
+        )
+        for item in production_evidence_specs
+    ]
+    production_bundle = {
+        "record": production,
+        "blueprint": blueprint,
+        "lessons": lesson_records,
+        "assets": asset_manifest,
+        "pilot": pilot,
+    }
+    production_bundle_id = f"g5-full-production-{_canonical_hash(production_bundle)[:12]}"
+    production_bundle_ref = materialize_json_evidence(
+        ROOT,
+        evidence_id=production_bundle_id,
+        gate_id="G5", kind="full_course_production",
+        relative_path="evidence/production-record.json", value=production_bundle,
+        maturity="EXECUTION_VALIDATED",
+    )
+    g5_receipt_ref = authority_provider.issue(
+        ROOT, contract=contract, gate_id="G5", trial_reference=g5_trial_ref,
+        roster_reference=roster_ref,
+        transition_references=[
+            *preview_refs, production_bundle_ref, g5_trial_ref, roster_ref
+        ],
+        runner_id=g5_trial["participant"]["id"],
+        session_id=g5_trial["runner_session_id"],
+        issued_at="2026-10-18T15:21:15+08:00", nonce="proof-g5-nonce",
+        receipt_id="g5-independent-trial-receipt",
+        relative_path="evidence/g5-independent-trial-receipt.json",
+    )
+    contract["evidence_index"].append(g5_receipt_ref)
     contract["G5_production"] = {"record_path": "evidence/production-record.json", "sha256": sha(EVIDENCE / "production-record.json")}
-    route_full_production_to_g5(
-        contract, production,
-        [{"id": "g5-render-integration", "kind": "full_course_production", "path": "evidence/production-record.json"}],
+    g5_result = route_full_production_to_g5(
+        contract, production, production_evidence_specs,
         "course-run", "2026-10-18T15:21:20+08:00", workspace_root=ROOT,
-        blueprint=blueprint, lessons=lesson_summaries, assets=asset_manifest, pilot=pilot,
+        blueprint=blueprint, lessons=lesson_records, assets=asset_manifest, pilot=pilot,
         production_role_evidence_id="g0-production-role-roster",
         production_record_path="evidence/production-record.json",
         trial_evidence_id="g5-independent-trial",
         trial_receipt_evidence_id="g5-independent-trial-receipt",
     )
+    if g5_result != "PASS":
+        raise SystemExit(f"G5 route blocked: {contract['gates']['G5']['risks']}")
 
     begin_gate(contract, "G6", "course-run", "2026-10-18T15:21:30+08:00")
     contract["G6_release_maintenance"] = {"state": "READY_TO_PUBLISH", "record_path": "evidence/release-record.json", "published": False}
-    contract["evidence_index"].append({"id": "g6-release-readiness", "gate": "G6", "path": "evidence/release-record.json", "sha256": sha(EVIDENCE / "release-record.json")})
-    raise SystemExit("PRECONDITION FAILED: Task 8 must supply canonical G6 typed evidence")
+    release_ref = register_evidence_file(
+        ROOT, evidence_id="g6-release-readiness", gate_id="G6",
+        kind="release_record", relative_path="evidence/release-record.json",
+    )
+    release_check_refs = [
+        register_evidence_file(
+            ROOT, evidence_id=f"g6-{check}", gate_id="G6", kind="release_check",
+            relative_path=f"evidence/release-{check}.json", metadata={"check_id": check},
+        )
+        for check in ("technical", "links", "registration", "access", "rollback", "maintenance")
+    ]
+    contract["evidence_index"].extend([release_ref, *release_check_refs])
+    validate_and_transition_gate(
+        contract, "G6", [release_ref["id"], *[item["id"] for item in release_check_refs]],
+        ROOT, "course-ops", "2026-10-18T15:21:40+08:00",
+    )
     propose_external_action(contract, proposal["action_id"], "course-release", "evidence/release-proposal.json", proposal["manifest_sha256"], "course-ops", "2026-10-18T15:21:45+08:00")
     issues = validate_contract(contract)
     if issues:
@@ -942,6 +1284,7 @@ def main(*, authority_provider=None, output_root: Path | None = None) -> None:
         "full_production": "PASS",
         "release_readiness": "PASS",
         "maturity": "INDEPENDENT_AI_VERIFIED",
+        "human_validation": "PENDING_HUMAN",
         "external_publication": "NOT_EXECUTED"
     })
     print(DESIGN / "course-contract.json")

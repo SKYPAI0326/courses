@@ -6,6 +6,7 @@
 
 ## 目前狀態
 
+- 系統版本為 `0.1.0`，需要 Python 3.11 以上；支援 macOS 與 Linux。
 - G0–G6 端到端流程已完成。
 - 16 個課程 Skill 已通過套件與安裝雜湊驗證。
 - 代表單元與完整課程已由不同的獨立 AI 情境完成試學。
@@ -40,7 +41,10 @@
 ```bash
 python3 -m unittest discover -s tests -v
 python3 scripts/install_course_skill_foundation.py --verify-source
+python3 scripts/course_run.py doctor
 ```
+
+`--verify-source` 驗證 clone 內的 16 個 Skill 來源；`--verify-installed` 驗證指定 Skill 目錄的安裝結果；`doctor` 只讀檢查四個 runtime root 與平台鎖。CI 會在 Linux/Python 3.11、Linux/Python 3.12 與 macOS/Python 3.12 執行全套測試、編譯、JSON／shell 檢查、portable path 掃描、clean HOME 安裝、proof replay 與獨立 repo clean clone。Windows 的交易鎖尚未支援，會 fail closed。
 
 安裝前可先預覽差異：
 
@@ -77,8 +81,19 @@ python3 scripts/install_course_skill_foundation.py \
 - `src/`、`scripts/`：Gate、研究、內容、驗證與發行控制程式。
 - `proofs/`：端到端示範課與獨立試學證據。
 - `docs/`：完整設計、操作手冊與驗證報告。
-- `COURSE_DESIGN_STATE_ROOT/operations/`：新產生的安裝備份、manifest 與 rollback 證據；儲存庫內既有 `operations/` 僅保留歷史稽核資料。
+- `COURSE_DESIGN_STATE_ROOT/operations/`：repo 外的安裝備份、manifest 與 rollback 證據。runtime operations、掃描報告與 registry 快照不提交進原始碼。
 
 `manager.py` 是原有的課程資料夾盤點與安全搬移工具，保留為附屬管理能力；它不是 G0–G6 新課程產製入口。
 
 `python3 scripts/course_run.py doctor` 只讀檢查四個 runtime root、必要依賴與平台 lock。支援 macOS／Linux；Windows 交易鎖尚未支援並會 fail closed。
+
+## 獨立儲存庫匯出
+
+目前來源仍可位於既有工作樹的 `course-manager` 子目錄；正式建立獨立 repo 前，先輸出可稽核的 Git 邊界：
+
+```bash
+python3 scripts/export_standalone.py \
+  --destination /absolute/path/to/course-design-system
+```
+
+輸出只包含課程設計系統，不包含 learner-facing `courses`、operations、reports 或個人 registry 快照；程式會建立 Git commit 與逐檔 SHA-256 `EXPORT-MANIFEST.json`。clone 該輸出後執行 `--verify-source`，可重現相同的 16 套 Skill。

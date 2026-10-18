@@ -131,4 +131,17 @@ python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/install_course_skill_foundation.py" 
 
 每個 package 都由 manifest hash 鎖定。安裝前顯示 `ADD`、`UPDATE`、`UNCHANGED`；更新先備份。Recovery 與 rollback 另以呼叫端提供的三個 root 和 operations root 下以 no-follow directory handle 建立的唯讀 authority receipt，核對 operation identity、package set、target、hash 與精確暫存路徑；operation manifest 被改寫或安裝後內容有變更時會 fail closed。
 
-`operations`、registry、report 與 backup 預設寫入 repo 外的 `COURSE_DESIGN_STATE_ROOT`。runtime 與 doctor 支援 POSIX macOS/Linux；Windows 的 lock 語意尚未實作，會 fail closed。`course-repair fix` 也維持 fail closed，直到 Task 8 把 approved plan hash、before hashes、完整 backup 與 isolated restore proof 接入中央 transaction。
+`operations`、registry、report 與 backup 預設寫入 repo 外的 `COURSE_DESIGN_STATE_ROOT`。runtime 與 doctor 支援 POSIX macOS/Linux；Windows 的 lock 語意尚未實作，會 fail closed。
+
+既有課程修復只有在 proof 同時通過 approved plan hash、全部 target before hash、完整 backup hash 與隔離 restore proof 後才會開始寫入；修復交易逐步保存 durable journal。若程序在 target replace 前後中斷，使用 `course_run.py repair-recover --course-root COURSE_ROOT --operation OPERATION_DIR` 回復，不會把部分修改誤報成完成。
+
+## 獨立匯出與 CI
+
+版本 `0.1.0` 需要 Python 3.11 以上，支援 macOS 與 Linux。將系統從既有工作樹輸出為獨立 Git repo：
+
+```bash
+python3 scripts/export_standalone.py \
+  --destination /absolute/path/to/course-design-system
+```
+
+匯出排除 learner-facing courses、runtime operations、reports、backup 與個人 registry 快照，並建立逐檔 SHA-256 manifest。`.github/workflows/verify.yml` 在乾淨 clone 執行全套測試、compile、JSON／shell 檢查、portable path 掃描、16 套 Skill clean HOME 安裝與驗證、doctor、proof replay 及 standalone clean clone。

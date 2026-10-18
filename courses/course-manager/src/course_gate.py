@@ -5,31 +5,11 @@ from typing import Any, Mapping, MutableMapping, Sequence
 from src.course_contract import ContractStateError, block_gate, validate_contract
 from src.course_evidence import ConsumedEvidence, consume_evidence_reference
 from src.course_gate_failure import route_failed_validation
+from src.course_gate_policy import SECURITY_BOUNDARY_CODES
+from src.course_gate_replay import replay_passed_gate as _replay_passed_gate
 from src.course_gate_validators import G5_ARTIFACT_KINDS, GATE_REGISTRY, TRIAL_ARTIFACT_KIND, validated_trial_reference_maturity
 from src.course_governance import governed_dependencies
 from src.course_runner_authority import consume_trial_inputs
-SECURITY_BOUNDARY_CODES = frozenset({
-        "invalid_independent_trial_receipt",
-        "runner_authority_required",
-        "invalid_trial_receipt_context",
-        "invalid_receipt",
-        "invalid_authority_binding",
-        "authority_unavailable",
-        "authority_binding_mismatch",
-        "invalid_receipt_signature",
-        "wrong_receipt_authority",
-        "receipt_replay",
-        "contract_replay",
-        "evidence_set_replay",
-        "receipt_ledger_invalid",
-        "trial_binding_mismatch",
-        "roster_binding_mismatch",
-        "input_binding_mismatch",
-        "participant_binding_mismatch",
-        "runner_binding_mismatch",
-        "runner_not_independent",
-        "pilot_actor_roster_mismatch",
-})
 def _text(value: Any) -> bool:
     return isinstance(value, str) and bool(value.strip())
 def _indexed_references(
@@ -246,3 +226,11 @@ def validate_and_transition_gate(
         event["maturity"] = "INDEPENDENT_AI_VERIFIED"
     record["evidence"].append(event)
     return "PASS"
+
+
+def replay_passed_gate(
+    contract: Mapping[str, Any], gate_id: str, workspace_root: Path | str
+) -> str:
+    return _replay_passed_gate(
+        contract, gate_id, workspace_root, validate_and_transition_gate
+    )

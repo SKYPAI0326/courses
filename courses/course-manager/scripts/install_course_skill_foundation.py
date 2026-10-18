@@ -189,6 +189,8 @@ def tree_hash(root: Path) -> str:
         raise InstallError(f"skill directory does not exist: {root}")
     digest = hashlib.sha256()
     for path in sorted(root.rglob("*"), key=lambda item: item.relative_to(root).as_posix()):
+        if "__pycache__" in path.relative_to(root).parts or path.suffix in {".pyc", ".pyo"}:
+            continue
         relative = path.relative_to(root).as_posix()
         if path.is_symlink():
             digest.update(b"L\\0")
@@ -316,6 +318,8 @@ class RollbackError(RuntimeError):
 def tree_hash(root):
     digest = hashlib.sha256()
     for path in sorted(root.rglob("*"), key=lambda item: item.relative_to(root).as_posix()):
+        if "__pycache__" in path.relative_to(root).parts or path.suffix in {".pyc", ".pyo"}:
+            continue
         relative = path.relative_to(root).as_posix()
         if path.is_symlink():
             digest.update(b"L\\\\0")

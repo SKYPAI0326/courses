@@ -3,7 +3,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import math
-import secrets
+import random
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Mapping, Sequence
@@ -25,7 +25,7 @@ from src.course_runner_authority import (
 _DIGEST_INFO_PREFIX = bytes.fromhex("3031300d060960864801650304020105000420")
 
 
-def _is_probable_prime(candidate: int, rounds: int = 32) -> bool:
+def _is_probable_prime(candidate: int, rng: random.Random, rounds: int = 32) -> bool:
     if candidate < 2:
         return False
     small_primes = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37)
@@ -40,7 +40,7 @@ def _is_probable_prime(candidate: int, rounds: int = 32) -> bool:
         power += 1
         d //= 2
     for _ in range(rounds):
-        base = secrets.randbelow(candidate - 3) + 2
+        base = rng.randrange(2, candidate - 1)
         value = pow(base, d, candidate)
         if value in (1, candidate - 1):
             continue
@@ -53,19 +53,24 @@ def _is_probable_prime(candidate: int, rounds: int = 32) -> bool:
     return True
 
 
-def _prime(bits: int) -> int:
+def _prime(bits: int, rng: random.Random) -> int:
     while True:
-        candidate = secrets.randbits(bits) | (1 << (bits - 1)) | 1
-        if _is_probable_prime(candidate):
+        candidate = rng.getrandbits(bits) | (1 << (bits - 1)) | 1
+        if _is_probable_prime(candidate, rng):
             return candidate
 
 
 @lru_cache(maxsize=4)
 def _keypair(slot: int) -> tuple[int, int, int]:
+    seed = int.from_bytes(
+        hashlib.sha256(f"course-proof-test-key:{slot}".encode("utf-8")).digest(),
+        "big",
+    )
+    rng = random.Random(seed)
     exponent = 65537
     while True:
-        p = _prime(1024)
-        q = _prime(1024)
+        p = _prime(1024, rng)
+        q = _prime(1024, rng)
         if p == q:
             continue
         phi = (p - 1) * (q - 1)

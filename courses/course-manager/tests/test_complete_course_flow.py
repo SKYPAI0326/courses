@@ -1,6 +1,7 @@
 import csv
 import json
 import runpy
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -13,6 +14,7 @@ from src.course_content import validate_lesson_record
 from src.course_requirements import validate_requirements_record
 from src.course_validation import evidence_maturity, validate_trial_record
 from src.course_accessibility import validate_accessibility_report
+from src.course_gate import replay_passed_gate
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -44,6 +46,121 @@ class CompleteCourseFlowTests(unittest.TestCase):
             self.assertNotEqual(completed.returncode, 0)
             self.assertIn("PRECONDITION FAILED", completed.stderr + completed.stdout)
             self.assertFalse(output.exists())
+
+    def test_proof_builder_rebuilds_deterministically_with_external_fixture_authority(self):
+        from tests.proof_authority_fixture import rebuild_proof
+
+        with tempfile.TemporaryDirectory() as temporary:
+            first = Path(temporary) / "first"
+            rebuild_proof(first)
+
+            first_files = {
+                path.relative_to(first): path.read_bytes()
+                for path in first.rglob("*")
+                if path.is_file()
+            }
+            shutil.rmtree(first)
+            rebuild_proof(first)
+            rebuilt_files = {
+                path.relative_to(first): path.read_bytes()
+                for path in first.rglob("*")
+                if path.is_file()
+            }
+            self.assertEqual(first_files, rebuilt_files)
+
+    def test_rebuilt_proof_replays_all_gates_and_remains_unpublished(self):
+        from tests.proof_authority_fixture import rebuild_proof
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "proof"
+            rebuild_proof(root)
+            contract = json.loads(
+                (root / "_design/campaign-performance-brief/course-contract.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual(validate_contract(contract), [])
+            self.assertEqual(
+                [contract["gates"][f"G{i}"]["status"] for i in range(7)],
+                ["PASS"] * 7,
+            )
+            self.assertEqual(
+                {
+                    item.get("maturity")
+                    for item in contract["evidence_index"]
+                    if item.get("kind") == "independent_course_trial"
+                },
+                {"INDEPENDENT_AI_VERIFIED"},
+            )
+            self.assertEqual(
+                contract["external_actions"][0]["status"],
+                "PUBLISH_APPROVAL_REQUIRED",
+            )
+            self.assertIsNone(contract["external_actions"][0]["authorization"])
+            validation = json.loads(
+                (root / "evidence/proof-validation.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(validation["human_validation"], "PENDING_HUMAN")
+            self.assertEqual(validation["external_publication"], "NOT_EXECUTED")
+            for gate_id in (f"G{i}" for i in range(7)):
+                with self.subTest(gate_id=gate_id):
+                    self.assertEqual(replay_passed_gate(contract, gate_id, root), "PASS")
+
+            for reference in contract["evidence_index"]:
+                evidence_path = root / reference["path"]
+                self.assertTrue(evidence_path.is_file(), reference["id"])
+                self.assertEqual(
+                    __import__("hashlib").sha256(evidence_path.read_bytes()).hexdigest(),
+                    reference["sha256"],
+                    reference["id"],
+                )
+
+    def test_rebuilt_proof_rejects_answer_reuse_and_incomplete_coverage(self):
+        from tests.proof_authority_fixture import rebuild_proof
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "proof"
+            rebuild_proof(root)
+            requirements = json.loads((root / "evidence/g0-requirements.json").read_text())
+            blueprint = json.loads((root / "evidence/blueprint.json").read_text())
+            trial = json.loads((root / "trials/g5-full-course.json").read_text())
+            held_out = next(
+                item for item in trial["evidence_bindings"]
+                if item["role"] == "held-out-output"
+            )
+            answer = next(
+                item for item in trial["evidence_bindings"]
+                if item["role"] == "answer-key-output"
+            )
+            answer["sha256"] = held_out["sha256"]
+            issues = validate_trial_record(
+                trial,
+                {"schema_version": 1, "authors": ["course-author-ai"], "validators": ["course-validator"]},
+                "full_course",
+                requirements=requirements,
+                requirements_sha256=__import__("hashlib").sha256(
+                    (root / "evidence/g0-requirements.json").read_bytes()
+                ).hexdigest(),
+                blueprint=blueprint,
+                runner_authority_id="test-proof-runner-authority",
+            )
+            self.assertIn("transfer_hash_reused", {issue.code for issue in issues})
+
+            lessons = [
+                json.loads((root / f"evidence/lesson-unit-{index}.json").read_text())
+                for index in range(1, 4)
+            ]
+            production_bundle = json.loads(
+                (root / "evidence/production-record.json").read_text()
+            )
+            production = production_bundle["record"]
+            production["learning_coverage"].pop()
+            coverage_issues = validate_learning_coverage(
+                requirements, blueprint, lessons, production
+            )
+            self.assertIn(
+                "uncovered_capability", {issue.code for issue in coverage_issues}
+            )
 
     def test_proof_builder_preserves_child_capability_coverage_through_g5(self):
         requirements = PROOF_BUILDER["requirements_record"]()
@@ -111,14 +228,26 @@ class CompleteCourseFlowTests(unittest.TestCase):
             [],
         )
 
-    def test_legacy_snapshot_is_fail_closed_until_task8_rebuild(self):
+    def test_checked_in_snapshot_matches_task8_rebuild(self):
+        from tests.proof_authority_fixture import rebuild_proof
+
+        with tempfile.TemporaryDirectory() as temporary:
+            rebuilt = Path(temporary) / "rebuilt"
+            rebuild_proof(rebuilt)
+            for rebuilt_path in rebuilt.rglob("*"):
+                if not rebuilt_path.is_file():
+                    continue
+                relative = rebuilt_path.relative_to(rebuilt)
+                checked_in = PROOF_ROOT / relative
+                self.assertTrue(checked_in.is_file(), relative.as_posix())
+                self.assertEqual(
+                    checked_in.read_bytes(), rebuilt_path.read_bytes(), relative.as_posix()
+                )
+
         contract = self.load_json(
             "_design/campaign-performance-brief/course-contract.json"
         )
-        self.assertIn(
-            "invalid_pass_evidence_binding",
-            {issue.code for issue in validate_contract(contract)},
-        )
+        self.assertEqual(validate_contract(contract), [])
         self.assertEqual(
             [contract["gates"][f"G{i}"]["status"] for i in range(7)],
             ["PASS"] * 7,
@@ -138,29 +267,11 @@ class CompleteCourseFlowTests(unittest.TestCase):
 
         pilot_trial = self.load_json("trials/g4-representative-unit.json")
         full_trial = self.load_json("trials/g5-full-course.json")
-        self.assertIn(
-            "schema_required",
-            {
-                issue.code
-                for issue in validate_trial_record(
-                    pilot_trial, ["course-author-ai"], "representative_unit"
-                )
-            },
-        )
-        self.assertIn(
-            "schema_required",
-            {
-                issue.code
-                for issue in validate_trial_record(
-                    full_trial, ["course-author-ai"], "full_course"
-                )
-            },
-        )
         self.assertNotEqual(
             pilot_trial["isolated_context_id"], full_trial["isolated_context_id"]
         )
-        self.assertNotEqual(evidence_maturity(pilot_trial), "INDEPENDENT_AI_VERIFIED")
-        self.assertNotEqual(evidence_maturity(full_trial), "INDEPENDENT_AI_VERIFIED")
+        self.assertEqual(evidence_maturity(pilot_trial), "INDEPENDENT_AI_VERIFIED")
+        self.assertEqual(evidence_maturity(full_trial), "INDEPENDENT_AI_VERIFIED")
 
         with (PROOF_ROOT / "course/assets/campaign-data.csv").open(
             encoding="utf-8"
@@ -194,7 +305,7 @@ class CompleteCourseFlowTests(unittest.TestCase):
         self.assertAlmostEqual(expected["Prospecting Social"]["roas"], 2.0)
 
         release_proposal = self.load_json("evidence/release-proposal.json")
-        self.assertEqual(release_proposal["status"], "PENDING_AUTHORIZATION")
+        self.assertEqual(release_proposal["status"], "PUBLISH_APPROVAL_REQUIRED")
         self.assertIsNone(release_proposal["result"])
         release_actions = [
             action

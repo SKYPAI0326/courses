@@ -14,6 +14,8 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.course_orchestrator import (  # noqa: E402
     OrchestrationError,
     complete_gate,
+    dispatch_repair_fix,
+    dispatch_repair_recovery,
     resume_course,
 )
 from src.runtime import (  # noqa: E402
@@ -30,6 +32,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("doctor", help="read-only runtime readiness report")
+
+    repair_fix = commands.add_parser(
+        "repair-fix", help="apply an approved existing-course repair transaction"
+    )
+    repair_fix.add_argument("--course-root", type=Path, required=True)
+    repair_fix.add_argument("--proof", type=Path, required=True)
+    repair_recover = commands.add_parser(
+        "repair-recover", help="resume rollback of an interrupted repair transaction"
+    )
+    repair_recover.add_argument("--course-root", type=Path, required=True)
+    repair_recover.add_argument("--operation", type=Path, required=True)
 
     for name in ("resume", "complete"):
         command = commands.add_parser(name)
@@ -71,6 +84,26 @@ def _contract_within_web_root(contract: Path, web_root: Path) -> Path:
     return path
 
 
+def _course_root_within_web_root(course_root: Path, web_root: Path) -> Path:
+    path = course_root.absolute()
+    try:
+        relative = path.relative_to(web_root)
+    except ValueError as error:
+        raise RuntimeConfigurationError(
+            "repair course root must be inside COURSE_WEB_ROOT"
+        ) from error
+    current = web_root
+    for part in relative.parts:
+        current = current / part
+        if current.is_symlink():
+            raise RuntimeConfigurationError(
+                f"repair course root must not contain a symbolic link: {current}"
+            )
+    if not path.is_dir():
+        raise RuntimeConfigurationError("repair course root must be a directory")
+    return path
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "doctor":
@@ -79,6 +112,16 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if report["status"] == "READY" else 2
     try:
         paths = _runtime_paths()
+        if args.command in {"repair-fix", "repair-recover"}:
+            course_root = _course_root_within_web_root(
+                args.course_root, paths.course_web_root
+            )
+            if args.command == "repair-fix":
+                result = dispatch_repair_fix(args.proof, course_root, paths.state_root)
+            else:
+                result = dispatch_repair_recovery(args.operation, course_root)
+            print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
+            return 0
         contract = _contract_within_web_root(args.contract, paths.course_web_root)
         if args.command == "resume":
             envelope = resume_course(

@@ -336,8 +336,23 @@ def validate_repair_fix_authority(proof: Mapping[str, Any]) -> None:
         raise OrchestrationError("repair restore proof does not match before_hashes")
 
 
-def dispatch_repair_fix(proof: Mapping[str, Any]) -> None:
-    validate_repair_fix_authority(proof)
-    raise OrchestrationError(
-        "repair fix transaction is not implemented; Task 8 integration is BLOCKED"
-    )
+def dispatch_repair_fix(proof_path, course_root, state_root) -> dict[str, Any]:
+    """Apply one existing-course repair through the central durable transaction."""
+
+    from src.course_repair import RepairTransactionError, apply_repair_transaction
+
+    try:
+        return apply_repair_transaction(proof_path, course_root, state_root)
+    except (RepairTransactionError, OSError, ValueError) as error:
+        raise OrchestrationError(str(error)) from error
+
+
+def dispatch_repair_recovery(operation_path, course_root) -> dict[str, Any]:
+    """Resume rollback of an interrupted repair transaction."""
+
+    from src.course_repair import RepairTransactionError, recover_repair_transaction
+
+    try:
+        return recover_repair_transaction(operation_path, course_root)
+    except (RepairTransactionError, OSError, ValueError) as error:
+        raise OrchestrationError(str(error)) from error

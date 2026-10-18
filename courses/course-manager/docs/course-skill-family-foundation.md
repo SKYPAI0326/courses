@@ -130,4 +130,23 @@ python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/install_course_skill_foundation.py" 
 
 ## 既有課程
 
-既有課程使用 `course-repair`，不補造新課 Gate 歷史。修復維持 `scan → plan → backup → fix → verify`；若重新定義學員、核心成果或整門課架構，改開新的 G0 contract。`fix` 目前會 fail closed；approved plan hash、before hashes、完整 backup 與 isolated restore proof 的中央 transaction enforcement 是 Task 8 integration blocker。
+既有課程使用 `course-repair`，不補造新課 Gate 歷史。修復維持 `scan → plan → backup → fix → verify`；若重新定義學員、核心成果或整門課架構，改開新的 G0 contract。
+
+```bash
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/course_run.py" repair-fix \
+  --course-root COURSE_ROOT --proof REPAIR_PROOF
+
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/course_run.py" repair-recover \
+  --course-root COURSE_ROOT --operation OPERATION_DIR
+```
+
+`repair-fix` 在第一次寫入前重驗 approved plan hash、所有 target before hash、完整 backup 與 isolated restore proof；中斷時依 durable journal 回復。任何證據缺失、hash 漂移或路徑越界都會 fail closed。
+
+## 獨立系統匯出
+
+```bash
+python3 "$COURSE_DESIGN_SYSTEM_ROOT/scripts/export_standalone.py" \
+  --destination /absolute/path/to/course-design-system
+```
+
+輸出是只含設計系統的獨立 Git repo，排除 learner-facing courses 與 runtime 個人資料。clone 後先執行 `--verify-source`，再設定四個 root 並安裝 Skill。
