@@ -48,3 +48,14 @@
    - exit 0、errors 0、valid_record_count 3。
    - 狀態仍為 `MACHINE_READY_PENDING_HUMAN`；人員理解／轉移與當日平台實跑並未被靜態結果代替。
 
+## 2026-10-19 整併後瀏覽器複驗
+
+- 範圍：19 個代表頁× 390、430、820、1440px，共 76 組。
+- 方式：本機 HTTP server 與 Google Chrome；每個 viewport 獨立執行，頁面啟動前清除 localStorage。
+- 結果：70 組無例外 PASS、6 組明示例外、0 個非預期失敗。
+- 圖片：所有受測頁在 lazy-load 觸發與 decode 後均無破圖。
+- 連結：未發現失效頁內 anchor；quick card 是獨立列印／下載產物，四種尺寸均無站內導覽，列為預期例外。
+- 版面：CH2-1 的 700px funnel table 在 390px 與 430px viewport 分別造成 83px 與 43px 水平溢位；該既存例外未轉為 PASS。其餘受測頁無非預期溢位。
+- 下載：quick-card HTML 與 PDF 均為 HTTP 200 且內容非空。
+- 完整結果：`full-integration-browser-evidence.json`。
+

@@ -25,3 +25,4 @@
 - Task 2: all 194 manifest paths transferred and committed in `690dea9d`; 193 remain byte-identical to the source snapshot and one source-only poster background received the documented lint fix.
 - Task 3: the image-refresh verifier now treats later versioned assets as valid when their local targets exist, without weakening the closed 59-row legacy migration checks.
 - Task 4: 43/43 structure checks and 36/36 scoped learner-page substance checks passed; lint found 0 BLOCKER and 0 ERROR. Recursive substance findings are limited to one historical backup and one editable image-source HTML, both outside learner-page scope.
+- Task 5: 76 browser checks completed in four viewport batches. Seventy passed without exception, six retained explicit exceptions, and none had an unexpected failure. CH2-1 keeps the documented 83px/43px narrow-viewport funnel-table overflow; the standalone quick card intentionally has no site navigation.
