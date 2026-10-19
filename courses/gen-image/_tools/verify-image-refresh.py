@@ -4,16 +4,44 @@
 from __future__ import annotations
 
 import csv
-import re
 import struct
 import sys
+from html.parser import HTMLParser
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "_repair/2026-10-17-image-refresh/IMAGE-MANIFEST.tsv"
 VERSION_PREFIX = "assets/course-visuals/2026-10/"
-IMG_RE = re.compile(r'<img\b[^>]*\bsrc=["\']([^"\']+)["\']', re.IGNORECASE)
+
+
+class _ImageReferenceParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=False)
+        self.anchor_stack: list[str | None] = []
+        self.references: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        attributes = dict(attrs)
+        if tag.lower() == "a":
+            self.anchor_stack.append(attributes.get("href"))
+        elif tag.lower() == "img":
+            src = attributes.get("src")
+            if src:
+                self.references.append(src)
+            if self.anchor_stack and self.anchor_stack[-1]:
+                self.references.append(self.anchor_stack[-1] or "")
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag.lower() == "a" and self.anchor_stack:
+            self.anchor_stack.pop()
+
+
+def collect_local_references(text: str) -> tuple[str, ...]:
+    """Return image display sources followed by their direct original links."""
+    parser = _ImageReferenceParser()
+    parser.feed(text)
+    return tuple(parser.references)
 
 
 def png_dimensions(path: Path) -> tuple[int, int]:
@@ -54,7 +82,7 @@ def main() -> int:
         if not html.is_file():
             continue
         text = html.read_text(encoding="utf-8")
-        references.extend((html, src) for src in IMG_RE.findall(text))
+        references.extend((html, src) for src in collect_local_references(text))
 
     legacy = [(html.name, src) for html, src in references if src.startswith("img/")]
     if legacy:
