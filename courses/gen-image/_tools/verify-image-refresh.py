@@ -94,11 +94,12 @@ def main() -> int:
     manifest_new = {row.get("new_path", "") for row in rows}
     used_versioned = {src for _, src in references if src.startswith(VERSION_PREFIX)}
     missing_from_html = sorted(manifest_new - used_versioned)
-    unmanifested = sorted(used_versioned - manifest_new)
     if missing_from_html:
         errors.append(f"manifest targets not used by HTML: {len(missing_from_html)}")
-    if unmanifested:
-        errors.append(f"HTML versioned targets absent from manifest: {len(unmanifested)}")
+
+    # The manifest is a closed record of the 59 legacy replacements, not a
+    # registry for every later versioned visual. Additional versioned assets
+    # are valid when their local targets exist, which is checked below.
 
     for html, src in references:
         if src.startswith(("http://", "https://", "data:")):

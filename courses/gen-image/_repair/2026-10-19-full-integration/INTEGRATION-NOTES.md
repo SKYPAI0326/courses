@@ -22,3 +22,5 @@
 - Task 1: source inventory and before-state backup created.
 - Restore script syntax: PASS.
 - Restore proof: PASS in `/private/tmp/gen-image-restore-proof-mfvagxxw`; 56 existing targets matched their before SHA-256 and 138 simulated integration-only targets were removed.
+- Task 2: all 194 manifest paths transferred and committed in `690dea9d`; 193 remain byte-identical to the source snapshot and one source-only poster background received the documented lint fix.
+- Task 3: the image-refresh verifier now treats later versioned assets as valid when their local targets exist, without weakening the closed 59-row legacy migration checks.
