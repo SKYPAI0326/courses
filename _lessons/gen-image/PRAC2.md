@@ -7,7 +7,7 @@ duration: 30 min
 learning_objective: 能從 10 業種主題庫挑 2-3 個最有感的業種各跑 1 張 1:1 商業橫幅；至少 1 張使用非日系 preset（韓系 / 美式 / 歐陸 / 極簡 / 復古任選）體驗「結構不變、表象切換」；產出達到版型正確、字階三層、配色 ≤ 3 色的基本驗收標準
 prerequisites: [CH2-1, CH2-2]
 style_guide: _outlines/gen-image.style-guide.md
-platform_version: Gemini Nano Banana / ChatGPT GPT-image-1（2026-04），Banana Pro / GPT-image-2 進階示範
+platform_version: 2026-10-16 能力導向查核版；易變資訊見 assets/downloads/platform-check-card.md
 ---
 
 <!--
@@ -25,6 +25,7 @@ platform_version: Gemini Nano Banana / ChatGPT GPT-image-1（2026-04），Banana
 - 分享 5 min 要快（2-3 人組 × 2 張 × 30 秒 = 3 分鐘，剩 2 分鐘老師總結）
 -->
 
+<!-- learner-content:start -->
 ## 教學流程（Teaching Flow）
 
 ### 熱身 / Warmup（5 min）
@@ -42,7 +43,7 @@ platform_version: Gemini Nano Banana / ChatGPT GPT-image-1（2026-04），Banana
 
 你現在是**需求判定者**——要決定今天練習要跑哪些案例。
 
-打開 `_sources/gen-image/10-industries-brief-library.md`，從 10 業種中**挑 2-3 個**你：
+打開 `courses/gen-image/assets/downloads/10-industries-brief-library.md`，從 10 業種中**挑 2-3 個**你：
 
 - 最常接案的業種（自家品牌、客戶、副業皆可）
 - 或最想學著做的業種（未來可能接到的）
@@ -67,7 +68,7 @@ platform_version: Gemini Nano Banana / ChatGPT GPT-image-1（2026-04），Banana
 
 **怎麼選非日系 preset？**
 
-直接從 `_sources/gen-image/10-industries-brief-library.md` § 跨風格演練段的 11 種 preset 速查表挑——每種都有具體配色 / 字體 / 調性可以直接複製。
+直接從 `courses/gen-image/assets/downloads/10-industries-brief-library.md` § 跨風格演練段的 11 種 preset 速查表挑——每種都有具體配色 / 字體 / 調性可以直接複製。
 
 > **預期差異**：你選的業種與風格組合跟隔壁同學**完全不會一樣**——這是正常的。本 PRAC 沒有「標準答案組合」，只要每個學員都能體驗 2-3 次跑 AI 的完整工作流就是成功。
 
@@ -91,7 +92,7 @@ platform_version: Gemini Nano Banana / ChatGPT GPT-image-1（2026-04），Banana
 
 **Step 1｜拿現成 brief 或改寫自己版本（1 min）**
 
-從 `_sources/gen-image/10-industries-brief-library.md` 該業種的「brief 六件套」直接複製——或改寫成自己品牌的版本。
+從 `courses/gen-image/assets/downloads/10-industries-brief-library.md` 該業種的「brief 六件套」直接複製——或改寫成自己品牌的版本。
 
 **最小改寫**：業種、商品、客群若已接近你的情境，只改「訴求 + 必要元素 + 風格 preset」即可。
 
@@ -117,7 +118,7 @@ platform_version: Gemini Nano Banana / ChatGPT GPT-image-1（2026-04），Banana
 
 **Step 3｜丟 AI 跑（2-3 min）**
 
-把組好的 prompt 丟 Gemini 或 ChatGPT，產出 1 張 1:1 完稿。等待 20-30 秒。
+把組好的 prompt 丟到已通過開課日檢查的平台，產出 1 張 1:1 候選稿。超過課堂設定上限就切換 fallback 或使用預製候選，不承諾固定秒數。
 
 **Step 4｜初步驗收（1 min，4 項打勾）**
 
@@ -276,11 +277,11 @@ platform_version: Gemini Nano Banana / ChatGPT GPT-image-1（2026-04），Banana
 
 **完成標準**（self-check）：
 
-- [ ] 跑滿 2 張（底線）或 3 張（完整）
+- [ ] 主路徑跑滿 2 張或 3 張；平台不可用時以 OFFLINE-01 P1–P3 完成相同 4 項驗收與差異證據
 - [ ] **至少 1 張用非日系 preset**（硬性要求）
 - [ ] 每張有對應的 brief 六件套（非臨時瞎寫）
 - [ ] 每張做過 4 項驗收打勾（不是跑完就交差）
-- [ ] 能指出 2 個具體「同骨架不同 preset」差異點（如：配色差異、字體氣質差異、整體調性差異）
+- [ ] 能指出 2 個具體「同骨架不同 preset」差異點（如：配色、材質、光線或圖形語彙）
 - [ ] 有參加互評（至少聽 1 位同學的分享）
 
 **預期差異提醒**：
@@ -409,3 +410,4 @@ platform_version: Gemini Nano Banana / ChatGPT GPT-image-1（2026-04），Banana
 **本 PRAC 最後提醒**：
 
 你今天跑的 2-3 張完稿請**全部存檔**——下週 CH3-1 會教「如何把這些完稿反推成 L2 線稿骨架」，這是承接 M2 到 M3 的關鍵轉換。本 PRAC 的產出直接成為 PRAC3 的素材，**好好存、別刪**。
+<!-- learner-content:end -->
