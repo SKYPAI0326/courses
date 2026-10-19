@@ -58,4 +58,3 @@
 - 版面：CH2-1 的 700px funnel table 在 390px 與 430px viewport 分別造成 83px 與 43px 水平溢位；該既存例外未轉為 PASS。其餘受測頁無非預期溢位。
 - 下載：quick-card HTML 與 PDF 均為 HTTP 200 且內容非空。
 - 完整結果：`full-integration-browser-evidence.json`。
-
