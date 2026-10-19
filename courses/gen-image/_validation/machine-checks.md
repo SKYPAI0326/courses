@@ -34,3 +34,17 @@
 - 靜態檢查與本地瀏覽器 smoke test不能證明學員能獨立完成，也不能取代第三方平台當日實跑。
 - 平台介面、方案、權利條款、輸出能力與來源訊號會變動；課程已把這些改為上課當日 capability check。
 
+## 2026-10-19 整併後靜態複驗
+
+1. `python3 _tools/verify-image-refresh.py`
+   - PASS：59 筆舊圖遷移資產、60 個已引用版本化目標、0 個舊路徑參照。
+2. 42 個頂層 HTML 加 `assets/downloads/skeleton-quick-card.html`
+   - 結構：43/43 通過，blocked 0。
+   - lint：BLOCKER 0、ERROR 0、WARN 31。
+3. 學員頁 substance 稽核
+   - 明確範圍 36/36 通過：CH、PRAC、兩小時工作坊頁與 quick card。
+   - 遞迴課程目錄會額外發現 1 個歷史備份與 1 個圖片可編輯來源 HTML；這兩個內部檔案不列入學員頁驗收。
+4. `COURSE_WEB_ROOT=<isolated-worktree> course-validator.sh gen-image all`
+   - exit 0、errors 0、valid_record_count 3。
+   - 狀態仍為 `MACHINE_READY_PENDING_HUMAN`；人員理解／轉移與當日平台實跑並未被靜態結果代替。
+
