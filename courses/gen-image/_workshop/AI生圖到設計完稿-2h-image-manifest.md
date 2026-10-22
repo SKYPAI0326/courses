@@ -1,6 +1,7 @@
 # 兩小時工作坊圖片素材與提示詞紀錄
 
 **建立日期**：2026-10-17  
+**生成紀錄核對**：2026-10-22
 **用途**：`workshop-2h-poster-social.html` 的獨立教學素材  
 **生成方式**：Codex 內建 `image_gen`  
 
@@ -11,6 +12,20 @@
 - 本工作坊使用虛構品牌「島嶼果日」與虛構商品「炙香鳳梨茶果禮盒」。
 - 包裝採霧面象牙白紙盒、茶葉綠飾帶、焦糖橘圓日與葉片圖形；不對應真實品牌。
 - 正式中文、價格、成分與行動按鈕交由 Canva 排版；AI 圖片不承擔可驗證的商品宣稱。
+
+## 生成事件與輸出身分
+
+以下紀錄把 `image_gen` 生成事件輸出與課程 workspace 素材做 SHA-256 比對。七筆均為完全相同檔案；這能證明目前素材對應到本次生成事件，但不取代參考 PDF 的獨立相似度檢查。
+
+| Workspace 素材 | `image_gen` 事件輸出 | SHA-256 | 比對 |
+|---|---|---|---|
+| `island-day-product-anchor.png` | `exec-16917278-437c-498e-ba73-7a2bb20b0f3b.png` | `8a918a4530bf10f99a82ecd41303b0cb8ca28a4669eb4652bf94dd8e638e6ab6` | MATCH |
+| `c1-bento-campaign.png` | `exec-9ffe4437-c025-4f62-b681-64bcd756cdb2.png` | `3f555c94a5ea7b7c920c0de6d55c04ce2d30a536ebe5de42920132e52fdb0f55` | MATCH |
+| `c2-fair-comparison.png` | `exec-016625e8-a8cc-4b84-9a84-34168e178957.png` | `67b8b70da111c51c96e7cd3bf70bfa59d16ee6849404001d54b8dcabeac99651` | MATCH |
+| `c3-process-story.png` | `exec-db6d3517-78c5-4155-8766-a14f6749e879.png` | `b1c0015150d899a05d0807ab71feefa29391a44706dc91538ecf6ca843445dfe` | MATCH |
+| `c4-founder-story.png` | `exec-5f46c47d-04e5-484f-b239-26e8fa76cb59.png` | `f33362ff1da45d3bf7c9b37dcb853ac5cb1c3152756eeeea258158ef4029615d` | MATCH |
+| `c5-mascot-stickers.png` | `exec-3f91bf6e-82e0-4d92-b527-64f763cd628b.png` | `ab8b0d18841e3ffe1d5dfd9337e6d5c4b38b1103efd3bf985da501bdb89c5958` | MATCH |
+| `c6-product-lookbook.png` | `exec-76105652-f0ae-49a5-a1de-cc6b84f56b5f.png` | `c43aa8b6989c5caf7e2fb216b0121d66e7e4e6340ee185d290bbdcea04efc14a` | MATCH |
 
 ## 品牌視覺契約
 
