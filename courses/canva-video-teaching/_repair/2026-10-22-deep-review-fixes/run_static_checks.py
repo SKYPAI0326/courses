@@ -181,7 +181,7 @@ def main() -> None:
                 probe.stdout,
                 probe.stderr,
             ]
-        ).rstrip() + "\n"
+        ).replace(str(REPO_ROOT), "<REPO_ROOT>").rstrip() + "\n"
     (STAGE / "static-output.txt").write_text(output, encoding="utf-8")
     summary = {key: value for key, value in result.items() if key != "fidelity"}
     print(json.dumps(summary, ensure_ascii=False, indent=2))
