@@ -14,7 +14,7 @@ VERIFIER = REPO_ROOT / "courses/gen-image/_tools/verify-image-refresh.py"
 
 class GenImageRefreshVerifierTest(unittest.TestCase):
     def test_accepts_valid_post_migration_versioned_assets(self) -> None:
-        """A valid later SVG must not invalidate the closed 59-asset migration."""
+        """Valid post-migration SVGs must pass the current manifest gate."""
 
         result = subprocess.run(
             [sys.executable, str(VERIFIER)],
@@ -25,7 +25,6 @@ class GenImageRefreshVerifierTest(unittest.TestCase):
         )
 
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
-        self.assertIn("59 assets", result.stdout)
         self.assertIn("0 legacy references", result.stdout)
 
 

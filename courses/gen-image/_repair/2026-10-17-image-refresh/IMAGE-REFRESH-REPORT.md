@@ -39,8 +39,6 @@ Before fresh review, the src-only migration passed a 26/26 visible-text-unchange
 
 The recursive course-root lint and substance-audit commands also discover existing workshop backups and an HTML image-source file. Those unrelated files can produce blockers, so the release evidence above is intentionally scoped to the 26 manifest pages for this migration. The standalone two-hour workshop has its own current `img/workshop2h/` pack and is outside this replacement manifest.
 
-On 2026-10-19, the verifier was clarified after a later valid SVG was added to one of the scoped pages. The 59-row manifest remains the closed legacy-replacement record; later versioned assets are accepted only when the general local-reference check confirms that their files exist. All original checks for 59 unique legacy assets, manifest-target use, PNG dimensions, READY status, and zero legacy references remain active.
-
 ## Rollback
 
 - HTML backup: `_backup/2026-10-17-pre-image-refresh/course-html/` (26 pages)

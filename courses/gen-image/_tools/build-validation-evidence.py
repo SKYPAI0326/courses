@@ -85,20 +85,29 @@ def main() -> None:
             "platform_reason": "" if required else "本單元可用課程內素材完成概念判讀，不要求登入外部平台。",
         })
 
-    content_log = VALIDATION / "fresh-review.md"
+    content_log = VALIDATION / "deep-review-repair-self-check.md"
     fidelity_log = VALIDATION / "fidelity-review.md"
     technical_log = VALIDATION / "machine-checks.md"
     for log in (content_log, fidelity_log, technical_log):
         if not log.is_file() or not log.read_text(encoding="utf-8").strip():
             raise SystemExit(f"missing evidence log: {log}")
 
+    technical_artifacts = full_artifacts | {
+        COURSE / "_repair/2026-10-17-image-refresh/IMAGE-MANIFEST.tsv",
+        COURSE / "_repair/2026-10-17-image-refresh/ASSET-PROVENANCE.tsv",
+        COURSE / "_repair/2026-10-17-image-refresh/IMAGE-PROMPT-SET.md",
+        COURSE / "_tools/verify-image-refresh.py",
+        COURSE / "_tools/test-deep-review-repair.py",
+        COURSE / "_tools/test-learner-record-browser.py",
+    }
+
     records = [
         {
             "layer": "content",
             "unit_ids": unit_ids,
-            "actor": "independent-ai",
+            "actor": "author-self-check",
             "verdict": "PASS",
-            "notes": "Fresh reviewer 依最終穩定快照檢查趨勢、規範、教學可執行性與高風險宣稱；詳見紀錄。",
+            "notes": "Deep Review 修補後由作者逐項重查 8 個已接受問題；這是作者自審，不冒充獨立複審或真人跟做。",
             "log": {"path": rel(content_log), "sha256": sha(content_log)},
             "artifacts": snap(sources),
         },
@@ -116,9 +125,9 @@ def main() -> None:
             "unit_ids": unit_ids,
             "actor": "tool-run",
             "verdict": "PASS",
-            "notes": "42 頁 lint、結構、素材、連結、scoped diff 與桌機/手機瀏覽器 smoke test 均無阻擋錯誤。",
+            "notes": "正式頁結構、變更頁 lint／內容掃描、連結可達性、素材清冊、scoped diff 與三種視窗瀏覽器驗收均無本輪阻擋錯誤。",
             "log": {"path": rel(technical_log), "sha256": sha(technical_log)},
-            "artifacts": snap(full_artifacts),
+            "artifacts": snap(technical_artifacts),
         },
     ]
 

@@ -65,8 +65,8 @@ def main() -> int:
         if not rows or not required.issubset(rows[0]):
             errors.append("manifest headers are incomplete")
         old_paths = [row.get("old_path", "") for row in rows]
-        if len(rows) != 59 or len(set(old_paths)) != 59:
-            errors.append(f"manifest must contain 59 unique old assets; found {len(rows)} rows / {len(set(old_paths))} unique")
+        if len(rows) != 60 or len(set(old_paths)) != 60:
+            errors.append(f"manifest must contain 60 unique source assets; found {len(rows)} rows / {len(set(old_paths))} unique")
 
         for row in rows:
             new_path = row.get("new_path", "")
@@ -94,12 +94,11 @@ def main() -> int:
     manifest_new = {row.get("new_path", "") for row in rows}
     used_versioned = {src for _, src in references if src.startswith(VERSION_PREFIX)}
     missing_from_html = sorted(manifest_new - used_versioned)
+    unmanifested = sorted(used_versioned - manifest_new)
     if missing_from_html:
         errors.append(f"manifest targets not used by HTML: {len(missing_from_html)}")
-
-    # The manifest is a closed record of the 59 legacy replacements, not a
-    # registry for every later versioned visual. Additional versioned assets
-    # are valid when their local targets exist, which is checked below.
+    if unmanifested:
+        errors.append(f"HTML versioned targets absent from manifest: {len(unmanifested)}")
 
     for html, src in references:
         if src.startswith(("http://", "https://", "data:")):

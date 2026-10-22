@@ -45,7 +45,7 @@ The PNG outputs use the original lesson role as the per-asset directive:
 
 ## Deterministic diagrams
 
-`v12`, `v20`, `v21`, and `v34–v37` are course-owned SVG diagrams rather than probabilistic raster generations. They preserve readable structure for the L2 wireframe, PM responsibilities, six-part brief, and four composition variants.
+`v12`, `v20`, `v21`, `v34–v37`, `v63`, and `v64` are course-owned SVG diagrams rather than probabilistic raster generations. They preserve readable structure for the L2 wireframe, PM responsibilities, six-part brief, four composition variants, the three-stage workflow candidate, and the released four-step loop. `v63-three-stage-workflow-2026-10.svg` is retained as an unused candidate for traceability; `v64-four-step-loop-2026-10.svg` is the version referenced by `CH5-1.html`.
 
 ## Release rule
 
