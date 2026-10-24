@@ -146,12 +146,12 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <span class="hero-num">單元 7-3</span>
   </div>
   <h1 class="lesson-title">自訂事件追蹤：按鈕、表單、捲動、連結</h1>
-  <p class="lesson-tagline">增強型評估涵蓋不了所有行為。當你需要追蹤「特定按鈕點擊」「表單成功送出」「50% 捲動深度」這些自訂行為時，就需要在 GTM 手動建立觸發條件和事件代碼。</p>
+  <p class="lesson-tagline">增強型評估涵蓋不了所有業務行為。先確認 GA4 已自動收集什麼，再為真正缺少的「特定按鈕點擊」「表單成功送出」或內容閱讀節點建立自訂追蹤，才能避免重複事件。</p>
   <div class="outcomes">
     <div class="outcomes-label">學習目標 OUTCOMES</div>
-    <div class="outcome-item"><div class="outcome-dot"></div><span>能在 GTM 中建立按鈕點擊追蹤（透過 Click ID 或 Click Text 觸發）</span></div>
-    <div class="outcome-item"><div class="outcome-dot"></div><span>能設定自訂捲動深度追蹤（25%/50%/75%/100%）</span></div>
-    <div class="outcome-item"><div class="outcome-dot"></div><span>能建立事件命名規範，確保 GA4 報告中事件名稱一致且可讀</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>能依實際 dataLayer、穩定屬性或 ID 建立按鈕與表單追蹤，不靠易變的文字猜 selector</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>能依量測問題選擇捲動節點，並先排除 Enhanced Measurement 已收集的事件</span></div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>能先比對 GA4 建議事件與命名限制，再建立一致且可驗證的自訂事件</span></div>
   </div>
 </div>
 
@@ -173,18 +173,18 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
       <div>
         <div class="event-col-label">GTM 設定步驟</div>
         <ul class="event-steps">
-          <li>啟用內建變數：Click ID、Click Classes、Click Text</li>
-          <li>新增觸發條件 <span aria-hidden="true">→</span> 點擊：所有元素</li>
-          <li>加入篩選條件：Click ID 等於 cta-button（或用 Click Text 等於按鈕文字）</li>
-          <li>建立 GA4 事件代碼，事件名稱填 button_click</li>
+          <li>先確認網站是否能在成功互動時推送 dataLayer event；能做到時優先用事件契約</li>
+          <li>若只能監聽 DOM，再用 Preview 讀取實際 Click ID、Classes 與其他穩定屬性</li>
+          <li>建立只命中目標元素與頁面的條件；按鈕文字可能因改版或語系改變，不宜單獨使用</li>
+          <li>建立 GA4 Event tag，事件名稱與參數依團隊事件字典填寫</li>
         </ul>
       </div>
       <div>
         <div class="event-col-label">事件參數建議</div>
         <ul class="event-steps">
-          <li>button_text：{{Click Text}}（記錄按了哪顆按鈕）</li>
-          <li>button_location：手動填入（如 hero_section）</li>
-          <li>在 GA4 自訂維度中新增 button_text，才能在報告看到</li>
+          <li>cta_name：使用不隨畫面文案變動的識別值；若只能取 Click Text，要記錄其易變風險</li>
+          <li>button_location：依實際頁面區域填入一致值，例如 hero_section</li>
+          <li>只有報表分析需要的參數才建立自訂維度，並先確認沒有傳送個人識別資訊</li>
         </ul>
       </div>
     </div>
@@ -204,15 +204,15 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <ul class="event-steps">
           <li>啟用內建變數：Form ID、Form Classes</li>
           <li>新增觸發條件 <span aria-hidden="true">→</span> 表單提交</li>
-          <li>勾選「等待表單提交」確保送出後才觸發</li>
-          <li>加入篩選：Form ID 等於你的表單 ID</li>
+          <li>需要延遲離頁等待 tag 時才啟用 Wait for Tags；需要排除被取消的無效提交時啟用 Check Validation</li>
+          <li>用實際 Form ID／Classes 限定表單，並另查這個事件是否真的代表後端提交成功</li>
         </ul>
       </div>
       <div>
         <div class="event-col-label">常見問題</div>
         <ul class="event-steps">
-          <li>若表單用 AJAX 送出，GTM 的表單觸發不會觸發，需用「感謝頁面 URL」追蹤</li>
-          <li>感謝頁面法：觸發條件 = 頁面瀏覽，URL 包含 /thank-you</li>
+          <li>AJAX 或客製表單不一定會產生 GTM 可用的 Form Submission；應由成功 callback 推送 dataLayer event</li>
+          <li>只有真的成功後會進入唯一感謝頁時，才可用該 URL 作為成功證據，並測試重新整理是否重複計數</li>
         </ul>
       </div>
     </div>
@@ -232,15 +232,15 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
         <ul class="event-steps">
           <li>新增觸發條件 <span aria-hidden="true">→</span> 捲動深度</li>
           <li>勾選「垂直捲動深度」</li>
-          <li>設定觸發時間點：25、50、75、100（百分比）</li>
-          <li>GA4 事件名稱：scroll_depth</li>
+          <li>先寫出要回答的問題，再選少數有意義的百分比或元素可見節點</li>
+          <li>若 Enhanced Measurement 的約 90% scroll 已足夠，就不要另建重複事件</li>
         </ul>
       </div>
       <div>
         <div class="event-col-label">事件參數建議</div>
         <ul class="event-steps">
-          <li>scroll_depth_threshold：{{Scroll Depth Threshold}}（25/50/75/100）</li>
-          <li>比對不同百分比的觸發次數，找出讀者的放棄點</li>
+          <li>scroll_depth_threshold：{{Scroll Depth Threshold}}，值須與本次量測設計一致</li>
+          <li>不同節點的人數差只能描述觀察；要判斷放棄原因，還需分眾、頁面內容或使用者研究證據</li>
         </ul>
       </div>
     </div>
@@ -258,10 +258,10 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
       <div>
         <div class="event-col-label">GTM 設定步驟</div>
         <ul class="event-steps">
-          <li>啟用內建變數：Click URL</li>
-          <li>新增觸發條件 <span aria-hidden="true">→</span> 點擊：僅連結</li>
-          <li>篩選條件：Click URL 不包含 yourdomain.com</li>
-          <li>GA4 事件名稱：outbound_link_click</li>
+          <li>先在 GA4 資料串流確認 Enhanced Measurement 是否已啟用出站點擊</li>
+          <li>用 DebugView 測試既有 `click` 事件及 link_url、link_domain 是否已滿足需求</li>
+          <li>只有需要額外業務分類且既有參數不足時，才建立自訂事件或補參數</li>
+          <li>發布前確認同一次點擊沒有同時送出兩套意義相同的事件</li>
         </ul>
       </div>
       <div>
@@ -279,46 +279,46 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div class="lesson-section">
   <div class="section-eyebrow">NAMING CONVENTION · 事件命名規範</div>
   <h2 class="section-heading">好的命名，<em>讓報告自己說話</em></h2>
-  <p class="body-text">GA4 的事件名稱會直接出現在報告中。如果命名不一致，同一個按鈕點擊可能有三種不同名稱，讓報告難以解讀。以下是標準命名規範：</p>
+  <p class="body-text">GA4 的事件名稱會直接出現在報告中。如果命名不一致，同一個行為可能被拆成多個名稱。命名前先查自動收集與建議事件；都不適用時，再依 GA4 限制與團隊字典建立自訂名稱。</p>
 
   <div class="callout key">
     <div class="callout-icon" aria-hidden="true">📋</div>
-    <div class="callout-body"><strong>命名規則：</strong>全小寫、用底線分隔、動詞_名詞格式。例：button_click、form_submit、video_start、file_download、scroll_depth</div>
+    <div class="callout-body"><strong>命名順序：</strong>先沿用 GA4 規定的建議事件名稱與參數；需要自訂時，名稱以字母開頭，只用英文字母、數字與底線，不含空白，並避開保留名稱與前綴。團隊可再約定小寫與一致語序，但不能覆蓋官方名稱。</div>
   </div>
 
   <div class="naming-list">
     <div class="naming-row">
       <div class="naming-bad">❌ CTA Button Click</div>
-      <div class="naming-good">✓ button_click</div>
+      <div class="naming-good">✓ 待查事件字典與建議事件</div>
     </div>
     <div class="naming-row">
       <div class="naming-bad">❌ Form Submitted</div>
-      <div class="naming-good">✓ form_submit</div>
+      <div class="naming-good">✓ 先查既有 form_submit</div>
     </div>
     <div class="naming-row">
       <div class="naming-bad">❌ PDF download clicked</div>
-      <div class="naming-good">✓ file_download</div>
+      <div class="naming-good">✓ 先查既有 file_download</div>
     </div>
     <div class="naming-row">
       <div class="naming-bad">❌ 電話點擊</div>
-      <div class="naming-good">✓ phone_click</div>
+      <div class="naming-good">✓ phone_click（自訂例）</div>
     </div>
   </div>
 </div>
 
 <div class="lesson-section">
   <div class="section-eyebrow">AI 接口 · 自訂事件 GTM 設定指引</div>
-  <h2 class="section-heading">3 個你最想追蹤的事件 → <em>AI 給你 GTM 逐步設定</em></h2>
-  <p class="body-text">學完自訂事件原理，最痛是「我知道要追蹤這個但不知道在 GTM 點哪」。下面 prompt 讓 AI 寫出逐步操作指引。</p>
+  <h2 class="section-heading">從共同案例完成<em>可驗收的事件規格</em></h2>
+  <p class="body-text">有網站時使用實際頁面；沒有網站或 GTM 權限時，開啟<a href="assets/datasets/measurement-practice-kit.md">GA4 × GTM 共用量測練習包</a> Part 2，沿用「預約體驗」按鈕、Consent 與故障 trace。兩條路都要留下 measurement-decision.md；離線案例只能標 CONFIG REVIEW PASS，不能冒充平台已驗證。</p>
 
   <div class="strategy-steps">
     <div class="strategy-step">
       <div class="ss-num">1</div>
-      <div class="ss-text"><strong>用瀏覽器 DevTools 找到元素的 class 或 ID</strong>到你想追蹤的頁面，對目標按鈕或連結「右鍵 → 檢查（Inspect）」，Elements 面板會高亮顯示對應 HTML。找 class="..." 或 id="..." 屬性值，那就是選擇器。沒有 class/ID？記錄元素的文字內容（Click Text）也可以用。</div>
+      <div class="ss-text"><strong>先找事件來源，再決定 selector</strong>用 DevTools 與 Tag Assistant 檢查互動時是否已有 dataLayer event。若沒有，再查看實際元素的 ID、class 或 data-* 屬性是否唯一且穩定；看到屬性值不代表它天然就是可靠 selector，需用 Preview 做正例與反例測試。</div>
     </div>
     <div class="strategy-step">
       <div class="ss-num">2</div>
-      <div class="ss-text"><strong>決定 GA4 event_name 的命名（參考上方命名規範）</strong>照前一節的命名規則：動詞_名詞、全小寫、底線連接。例：click_buy_button、submit_contact_form、scroll_75_percent。現在把三個事件的名稱先列出來。</div>
+      <div class="ss-text"><strong>決定是否需要自訂 event_name</strong>先查 Enhanced Measurement、自動收集與建議事件，再對照團隊事件字典。只有現有事件無法表達需求時才新增，並記錄名稱、參數、觸發時機與負責人。</div>
     </div>
     <div class="strategy-step">
       <div class="ss-num">3</div>
@@ -330,28 +330,33 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div class="dialog-label">把這段貼進 ChatGPT 或 Claude</div>
 請幫我寫 GTM 自訂事件設定的逐步操作指引。
 
-【要追蹤的 3 個事件】[列出，含對應頁面 URL + 想抓的元素，如：點擊產品頁的「立即購買」按鈕（class="btn-buy"）]
-【GA4 接收事件名稱】[列出對應 GA4 event_name]
+【練習軌】[A 真實環境 / C 離線案例；C 軌使用練習包 Part 2]
+【要追蹤的事件】[列出實際頁面 URL、成功行為與業務用途；C 軌填 generate_lead / 預約體驗]
+【現有證據】[dataLayer event；或 Preview 中實測的 ID／class／data-* 屬性]
+【GA4 現況】[Enhanced Measurement、自動／建議事件與既有事件字典的查核結果]
+【同意需求】[哪些 consent 狀態下可觸發]
 
 請為每個事件輸出：
 (1) GTM 內 4 步驟：建 Variable → 建 Trigger → 建 Tag → Preview 驗證
-(2) 每步該按哪個選單、填什麼欄位
-(3) Preview 模式應該看到的 console 輸出
-(4) Publish 前要做的最後檢查</div>
+(2) 每步要填的實際值；資料不足處標「待查」，不要生成 selector 或參數
+(3) Tag Assistant 與 GA4 DebugView 的正例、反例及同意情境
+(4) Publish 前的停止條件、回復方式與證據截圖清單
+(5) 依練習包 Part 3 格式整理成 measurement-decision.md；A 軌附平台證據，C 軌標 CONFIG REVIEW PASS</div>
   <div class="expected-output">
-    <div class="expected-label">ChatGPT 大概會回（範例：追蹤「立即購買」按鈕點擊）</div>
+    <div class="expected-label">可接受的參考輸出（追蹤「立即購買」按鈕）</div>
     <div class="expected-body">
-      <p><strong>事件 1：buy_button_click</strong></p>
-      <p>1. Variables → New → Auto-Event Variable → Click Classes（命名 ce_click_classes）<br>
-      2. Triggers → New → Click - Just Links（filter: Click Classes contains "btn-buy"）<br>
-      3. Tags → New → GA4 Event（Configuration Tag 選 GA4 Config / Event Name: buy_button_click / Parameters: page_url={{Page URL}}, product_id={{ce_click_classes}}）→ 套上面 Trigger<br>
-      4. Preview → 開 GA4 DebugView → 點該按鈕 → 應看到 buy_button_click 事件帶 product_id 參數</p>
-      <p><strong>Publish 前檢查</strong>：(1) Tag 未誤觸發到其他頁面 (2) 參數值有正確帶入 (3) Variable 沒抓到 undefined</p>
+      <p><strong>先決條件</strong>：先確認既有 GA4 事件沒有表達這個行為。若網站已在成功動作推送 dataLayer event，就直接以該事件建 Trigger；若沒有，selector 先標成待查，不能只從按鈕文案推測。</p>
+      <p>1. Variables → 只啟用本次驗證需要的 Click／Page 變數；商品 ID 只有 dataLayer 已提供時才建立 Data Layer Variable<br>
+      2. Triggers → 用實測的 dataLayer event 或穩定屬性限定頁面與目標元素，並準備一個不應觸發的反例<br>
+      3. Tags → 建立 GA4 Event，套用團隊核准的事件名稱與參數；沒有來源的值留待查<br>
+      4. Preview → 分別做正例、反例與同意情境，在 Tag Assistant 核對觸發次數和參數，再到 DebugView 確認同一事件只出現一次</p>
+      <p><strong>Publish 前檢查</strong>：(1) 接受／拒絕／部分接受符合政策 (2) Tag 未誤觸發到其他頁面 (3) 參數值正確且沒有 undefined (4) 事件未與 Enhanced Measurement 重複</p>
+      <p><strong>C 軌完成結果</strong>：故障 trace 的 Consent default 出現太晚，而且 denied 狀態仍觸發 generate_lead；修復位置分別是 Consent Initialization 與事件 tag 的 consent checks。measurement-decision.md 的狀態填 CONFIG REVIEW PASS，平台證據欄填 PENDING。</p>
     </div>
-    <div class="expected-note">實際輸出每次略有差異，但「4 步驟 + 驗證 + 檢查」結構穩定。AI 給的選擇器（class="btn-buy"）需依你網站 HTML 微調。</div>
+    <div class="expected-note">通過條件是完成檔案能指出來源、正例、反例、同意狀態、修復位置與目前證據等級。若輸入沒有 DOM／dataLayer 證據，正確答案是列出待查資料，不是產生一個看似完整的 selector。</div>
   </div>
 
-  <div class="demo-takeaway">GTM 自訂事件心法：<strong>每次設新事件必先 Preview 驗證、再 Publish。</strong>沒驗證就 publish = 數據可能錯一週你才發現。</div>
+  <div class="demo-takeaway">GTM 自訂事件心法：<strong>先有 Consent default／update，再 Preview 三種同意情境，最後才由核准者 Publish。</strong>沒有來源的參數留白，不讓 AI 猜。</div>
 </div>
 
 </div>
@@ -361,7 +366,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <a href="m7-4-advanced.html" class="nav-btn primary nav-next" aria-label="下一單元" data-nav-role="next">7-4 進階追蹤 <span aria-hidden="true">→</span></a>
 </nav>
 
-<footer class="footer" data-platform-version="2026-04-v3">
+<footer class="footer" data-platform-version="2026-10-v2" data-built-at="2026-10-24">
   <span class="footer-logo">弄一下工作室</span>
   <div class="footer-div"></div>
   <span class="footer-note">數位行銷人才培訓 · Module 7</span>
