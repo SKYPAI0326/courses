@@ -1,5 +1,7 @@
 # Course Manager
 
+PDF 講義另有獨立流程：[操作說明](docs/pdf-pipeline.md)、[講義登錄與取用索引](../output/pdf/INDEX.md)。使用 `python3 scripts/pdf_pipeline.py status` 檢查來源同步狀態；`sync` 預設只列計畫，不產製 PDF。
+
 這是課程資料夾的管理控制平面，不是 learner-facing 課程頁面。
 
 標準流程：

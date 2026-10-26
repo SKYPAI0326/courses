@@ -4,7 +4,7 @@ const { execFileSync } = require('child_process');
 const { chromium } = require('/Users/paichenwei/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 
 const courseDir = path.resolve(__dirname, '..');
-const assetsDir = path.join(courseDir, 'assets');
+const pdfDir = path.join(courseDir, '..', 'output', 'pdf', 'simple-ai');
 const chromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const publicAssetBase = 'https://skypai0326.github.io/courses/courses/simple-ai/assets/';
 const publicEnvironmentContract = 'https://skypai0326.github.io/courses/_outlines/simple-ai.environment.md';
@@ -110,6 +110,7 @@ function handbookHtml() {
     body = body.replace('NotebookLM 只有網頁版，把 <code>notebooklm.google.com</code> 加入手機主畫面當 App 用就好。', 'NotebookLM／Gemini Notebook 的手機入口依裝置與地區而異；若未看到官方 App，改用手機瀏覽器開官方 Notebook 頁面即可。');
     body = body.replace(/\sloading="lazy"/g, '');
     body = body.replace(/href="assets\//g, `href="${publicAssetBase}`);
+    body = body.replace(/href="\.\.\/output\/pdf\/simple-ai\//g, 'href="https://skypai0326.github.io/courses/courses/output/pdf/simple-ai/');
     body = body.replace(/href="\.\.\/\.\/_outlines\/simple-ai\.environment\.md"/g, `href="${publicEnvironmentContract}"`);
     if (file === 'CH2-4.html') body = replaceIncompleteFaq(body);
     return `
@@ -268,9 +269,9 @@ body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif!im
 
 async function renderPdf({ htmlName, pdfName, pageContract, label }) {
   assertAuthorizedBrowserEnvironment();
-  fs.mkdirSync(assetsDir, { recursive: true });
+  fs.mkdirSync(pdfDir, { recursive: true });
   const htmlPath = path.join(courseDir, htmlName);
-  const pdfPath = path.join(assetsDir, pdfName);
+  const pdfPath = path.join(pdfDir, pdfName);
   fs.writeFileSync(htmlPath, (htmlName === 'handbook.html' ? handbookHtml() : quickReferenceHtml()).replace(/[ \t]+$/gm, ''));
   if (!fs.existsSync(chromePath)) throw new Error(`Google Chrome not found: ${chromePath}`);
   const browser = await chromium.launch({ headless: true, executablePath: chromePath });
