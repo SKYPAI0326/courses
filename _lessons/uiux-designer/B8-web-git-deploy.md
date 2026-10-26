@@ -37,6 +37,8 @@ platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體�
 
 下載[studio-tasks-web.zip（HTML／CSS／JS與PNG完整專案）](../../courses/uiux-designer/assets/shared/studio-tasks-web.zip)，解壓縮後要看到 `studio-tasks-web` 資料夾。還沒下載也可先看[完整網站參考](../../courses/uiux-designer/web-starter/index.html)，但請在自己的解壓資料夾修改，不改教師網站。
 
+還沒安裝VS Code時，先到[VS Code官方下載](https://code.visualstudio.com/Download)選擇自己的macOS或Windows版本並完成安裝。首次啟動看到Welcome後，選File → Open Folder開啟解壓後的`studio-tasks-web`資料夾；左側Explorer看見index.html、styles.css、app.js與assets，才繼續修改。若沒有看到Welcome或Open Folder，先不要進入Git步驟，回到安裝檔與作業系統版本核對。
+
 1. 用檔案總管／Finder確認資料夾裡有index.html、styles.css、app.js、README.md與assets/status-badge.png。若看到兩層同名資料夾，進到有index.html那一層。
 2. 直接雙擊index.html，用Chrome或Edge開啟。此專案不用套件安裝、不需要伺服器或資料庫，所有路徑都為相對路徑；正常應先見示範登入。
 3. 點登入→第一筆詳情→標記完成→取消，應仍在詳情；再確認，應到已完成清單且看見Toast與徽章。回待處理捲到底，最後一筆不被底部導覽遮住。
