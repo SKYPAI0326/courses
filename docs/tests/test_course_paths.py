@@ -1,8 +1,11 @@
 """Run: python3 -m unittest discover -s docs/tests -v"""
 import importlib.util
+import os
+import subprocess
 import sys
 import tempfile
 import unittest
+from datetime import datetime
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -40,6 +43,52 @@ class ScopeTests(unittest.TestCase):
     def test_traversal_prunes_internals(self):
         self.assertEqual({str(p.relative_to(self.root)) for p in iter_public_html(self.root, self.root)}, set(self.public))
         self.assertEqual(list(iter_public_html(self.root / "courses/.worktrees", self.root)), [])
+
+    def test_traversal_honors_gitignore_but_keeps_new_pages(self):
+        subprocess.run(["git", "init", "-q"], cwd=self.root, check=True)
+        (self.root / ".gitignore").write_text(
+            "courses/demo/generated/\n* 2.html\n", encoding="utf-8"
+        )
+        tracked = self.root / "courses/demo/CH1.html"
+        untracked = self.root / "courses/demo/CH2.html"
+        ignored_build = self.root / "courses/demo/generated/print-source.html"
+        ignored_copy = self.root / "courses/demo/CH1 2.html"
+        untracked.write_text("<html><body>new</body></html>", encoding="utf-8")
+        ignored_build.parent.mkdir(parents=True, exist_ok=True)
+        ignored_build.write_text("<html><body>generated</body></html>", encoding="utf-8")
+        ignored_copy.write_text("<html><body>conflict</body></html>", encoding="utf-8")
+        subprocess.run(["git", "add", ".gitignore", str(tracked.relative_to(self.root))],
+                       cwd=self.root, check=True)
+
+        found = {str(p.relative_to(self.root)) for p in iter_public_html(self.root, self.root)}
+        self.assertIn("courses/demo/CH1.html", found)
+        self.assertIn("courses/demo/CH2.html", found)
+        self.assertNotIn("courses/demo/generated/print-source.html", found)
+        self.assertNotIn("courses/demo/CH1 2.html", found)
+
+    def test_sitemap_lastmod_uses_git_date_with_untracked_fallback(self):
+        subprocess.run(["git", "init", "-q"], cwd=self.root, check=True)
+        subprocess.run(["git", "config", "user.name", "Test"], cwd=self.root, check=True)
+        subprocess.run(["git", "config", "user.email", "test@example.com"],
+                       cwd=self.root, check=True)
+        tracked = self.root / "courses/demo/CH1.html"
+        subprocess.run(["git", "add", str(tracked.relative_to(self.root))],
+                       cwd=self.root, check=True)
+        commit_env = dict(os.environ, GIT_AUTHOR_DATE="2024-01-02T12:00:00+00:00",
+                          GIT_COMMITTER_DATE="2024-01-02T12:00:00+00:00")
+        subprocess.run(["git", "commit", "-qm", "fixture"], cwd=self.root,
+                       env=commit_env, check=True)
+        os.utime(tracked, (datetime(2025, 2, 3).timestamp(),) * 2)
+
+        untracked = self.root / "courses/demo/CH2.html"
+        untracked.write_text("<html><body>new</body></html>", encoding="utf-8")
+        os.utime(untracked, (datetime(2025, 3, 4).timestamp(),) * 2)
+
+        sitemap = load("stable_sitemap", ROOT / "docs/build-sitemap.py")
+        sitemap.ROOT = self.root
+        sitemap._GIT_LASTMOD_BY_PATH = None
+        self.assertEqual(sitemap.file_lastmod(tracked), "2024-01-02")
+        self.assertEqual(sitemap.file_lastmod(untracked), "2025-03-04")
 
     def test_outside_and_symlink_cannot_escape(self):
         self.assertFalse(is_public_html(self.root.parent / "outside.html", self.root))

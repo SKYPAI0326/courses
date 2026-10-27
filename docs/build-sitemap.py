@@ -13,6 +13,7 @@ build-sitemap.py — 弄一下工作室課程站地圖產生器
   sitemap.xml（站根目錄）
 """
 import re
+import subprocess
 from datetime import date
 from pathlib import Path
 from course_paths import is_public_html, iter_public_html
@@ -32,6 +33,8 @@ PRIORITY = {
     "page": "0.5",       # 其他
 }
 
+_GIT_LASTMOD_BY_PATH = None
+
 def classify(path: Path) -> str:
     name = path.name.lower()
     if name == "index.html":
@@ -45,9 +48,42 @@ def classify(path: Path) -> str:
     return "page"
 
 
+def git_lastmod_by_path() -> dict:
+    """Return the newest commit date for each published source path."""
+    global _GIT_LASTMOD_BY_PATH
+    if _GIT_LASTMOD_BY_PATH is not None:
+        return _GIT_LASTMOD_BY_PATH
+
+    dates = {}
+    try:
+        result = subprocess.run(
+            ["git", "-c", "core.quotepath=false", "log", "--no-renames",
+             "--format=@@DATE@@%cs", "--name-only", "--", "index.html", "courses"],
+            cwd=ROOT, capture_output=True, text=True, check=True,
+        )
+        current_date = None
+        for line in result.stdout.splitlines():
+            if line.startswith("@@DATE@@"):
+                current_date = line.removeprefix("@@DATE@@")
+            elif line and current_date and line not in dates:
+                dates[line] = current_date
+    except (OSError, subprocess.CalledProcessError):
+        pass
+
+    _GIT_LASTMOD_BY_PATH = dates
+    return dates
+
+
 def file_lastmod(path: Path) -> str:
-    """取檔案 mtime 轉 YYYY-MM-DD。"""
+    """Use the Git commit date; fall back to mtime for a new untracked page."""
     import os
+    try:
+        relative = path.resolve().relative_to(ROOT.resolve()).as_posix()
+        committed = git_lastmod_by_path().get(relative)
+        if committed:
+            return committed
+    except ValueError:
+        pass
     ts = os.path.getmtime(path)
     return date.fromtimestamp(ts).isoformat()
 
