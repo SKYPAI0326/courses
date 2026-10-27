@@ -12,12 +12,14 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Preformatte
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "assets" / "downloads"
+HANDOUT_OUT = ROOT.parent / "output" / "pdf" / ROOT.name
+HANDOUT_OUT.mkdir(parents=True, exist_ok=True)
 FONT = "/Library/Fonts/Arial Unicode.ttf"
 pdfmetrics.registerFont(TTFont("CourseCJK", FONT))
 
 SOURCES = [
-    (ROOT / "assets" / "after-class-guide.md", OUT / "回家30分鐘復跑手冊.pdf", "課後操作手冊"),
-    (ROOT / "assets" / "datasets" / "prompts-all.md", OUT / "全課程Prompt工具箱.pdf", "Prompt 參考工具箱"),
+    (ROOT / "assets" / "after-class-guide.md", HANDOUT_OUT / "回家30分鐘復跑手冊.pdf", "課後操作手冊"),
+    (ROOT / "assets" / "datasets" / "prompts-all.md", HANDOUT_OUT / "全課程Prompt工具箱.pdf", "Prompt 參考工具箱"),
     (ROOT / "assets" / "datasets" / "persona-templates.md", OUT / "Persona樣板與練習表.pdf", "Persona 練習素材"),
 ]
 

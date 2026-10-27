@@ -12,7 +12,7 @@ description: "依現有課程 HTML 轉製 PDF 講義，設計紙本版面、核�
 ## 入口與能力檢查
 
 使用 `python3 <本技能目錄>/scripts/run.py doctor` 定位專案與檢查依賴。
-launcher 支援 `--root <courses 絕對路徑>`，缺省時使用 `COURSE_WEB_ROOT/courses`。PDF 引擎必須由 `COURSE_PDF_ENGINE` 指向，或存在於 `COURSE_DESIGN_SYSTEM_ROOT/scripts/pdf_pipeline.py`；缺少設定或檔案就停止。
+launcher 支援 `--root <courses 絕對路徑>`；從目前目錄向上找專案，最後使用本機既有課程路徑。
 使用能載入 BeautifulSoup、Playwright、pypdf 的 Python；doctor 未找到依賴時先回報，不把通用 PDF 套件存在當作轉製環境已完整。
 先前未完成的引擎／配方／驗收缺口如實報告，不虛構命令或引用不存在的成品。
 
@@ -39,7 +39,7 @@ launcher 支援 `--root <courses 絕對路徑>`，缺省時使用 `COURSE_WEB_RO
 
 ## 管理與聯動
 
-成品放 `COURSE_WEB_ROOT/courses/output/pdf/<slug>/`；配方、操作與驗收保存在 `COURSE_DESIGN_STATE_ROOT`。
+成品放 `courses/output/pdf/<slug>/`；配方、操作與驗收保存在 course-manager。
 維持穩定下載名稱；新增網頁入口、變更來源內容或發布依當次授權辦理。
 HTML／CSS／圖片／字型／配方／引擎改動後使用同一套指紋重新判定；自我 PDF 下載目標不作輸入 bytes 依賴。
 網頁 builder 與運維可呼叫 launcher 的 `sync --course <slug>` 作唯讀交接；沒有 watcher／排程時不能宣稱持續自動同步。

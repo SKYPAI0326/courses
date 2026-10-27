@@ -2,6 +2,8 @@
 
 這是課程設計與產製的控制系統，負責從需求確認、外部研究、課程藍圖、教學內容、學員網頁、獨立試學到發布準備的 G0–G6 流程。
 
+PDF 講義另有獨立流程：[操作說明](docs/pdf-pipeline.md)、[講義登錄與取用索引](../output/pdf/INDEX.md)。使用 `python3 scripts/pdf_pipeline.py status` 檢查來源同步狀態；`sync` 預設只列計畫，不產製 PDF。
+
 本儲存庫保存系統程式、Skill、契約、驗證與示範證據；不作為 learner-facing 課程的上架位置。正式課程與公開網頁仍由 [`SKYPAI0326/courses`](https://github.com/SKYPAI0326/courses) 管理。
 
 ## 目前狀態

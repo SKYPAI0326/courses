@@ -14,7 +14,7 @@ build-print-pdf.py — 課程網頁 → 紙本改版 PDF 批次產生器
     產生封面 HTML → Chrome headless → cover.pdf
     for each unit (CH / PRAC):
       clean HTML → temp → Chrome headless → unit.pdf
-    pdfunite cover.pdf unit*.pdf → _pdf/part{N}.pdf
+    pdfunite cover.pdf unit*.pdf → courses/output/pdf/<course>/part{N}.pdf
 
 使用：
   python3 docs/build-print-pdf.py gen-ai-140h          # 產 7 份 Part PDF
@@ -700,7 +700,7 @@ def main():
         print("✗ 需要 pdfunite（brew install poppler）")
         sys.exit(1)
 
-    out_dir = course_dir / "_pdf"
+    out_dir = course_dir.parent / "output" / "pdf" / args.course
     parts = [args.part] if args.part else sorted(COURSE_META[args.course]["parts"].keys())
 
     built = []
