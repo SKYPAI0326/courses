@@ -16,7 +16,7 @@ import re
 import subprocess
 from datetime import date
 from pathlib import Path
-from course_paths import is_public_html, iter_public_html
+from course_paths import clean_git_environment, is_public_html, iter_public_html
 
 ROOT = Path(__file__).resolve().parent.parent
 COURSES_DIR = ROOT / "courses"
@@ -60,6 +60,7 @@ def git_lastmod_by_path() -> dict:
             ["git", "-c", "core.quotepath=false", "log", "--no-renames",
              "--format=@@DATE@@%cs", "--name-only", "--", "index.html", "courses"],
             cwd=ROOT, capture_output=True, text=True, check=True,
+            env=clean_git_environment(),
         )
         current_date = None
         for line in result.stdout.splitlines():

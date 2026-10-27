@@ -11,6 +11,16 @@ ROOT = Path(__file__).resolve().parent.parent
 EXCLUDED = {"node_modules", "tmp", "output"}
 
 
+def clean_git_environment(extra=None):
+    """Return an environment safe for a separate ``git -C`` invocation."""
+    env = os.environ.copy()
+    for name in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR"):
+        env.pop(name, None)
+    if extra:
+        env.update(extra)
+    return env
+
+
 def internal_directory(name):
     return (name.startswith(".") or name in EXCLUDED
             or (name.startswith("_") and name != "_assets"))
@@ -53,6 +63,7 @@ def iter_public_html(start, root=ROOT):
             ["git", "-C", str(root), "ls-files", "--cached", "--others",
              "--exclude-standard", "-z", "--", pathspec],
             stderr=subprocess.DEVNULL,
+            env=clean_git_environment(),
         )
     except (OSError, subprocess.CalledProcessError, ValueError):
         output = None

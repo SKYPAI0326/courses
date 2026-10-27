@@ -12,7 +12,7 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT), str(ROOT / "docs")]
-from course_paths import is_public_html, iter_public_html
+from course_paths import clean_git_environment, is_public_html, iter_public_html
 
 def load(name, path):
     spec = importlib.util.spec_from_file_location(name, path)
@@ -45,7 +45,8 @@ class ScopeTests(unittest.TestCase):
         self.assertEqual(list(iter_public_html(self.root / "courses/.worktrees", self.root)), [])
 
     def test_traversal_honors_gitignore_but_keeps_new_pages(self):
-        subprocess.run(["git", "init", "-q"], cwd=self.root, check=True)
+        git_env = clean_git_environment()
+        subprocess.run(["git", "init", "-q"], cwd=self.root, env=git_env, check=True)
         (self.root / ".gitignore").write_text(
             "courses/demo/generated/\n* 2.html\n", encoding="utf-8"
         )
@@ -58,7 +59,7 @@ class ScopeTests(unittest.TestCase):
         ignored_build.write_text("<html><body>generated</body></html>", encoding="utf-8")
         ignored_copy.write_text("<html><body>conflict</body></html>", encoding="utf-8")
         subprocess.run(["git", "add", ".gitignore", str(tracked.relative_to(self.root))],
-                       cwd=self.root, check=True)
+                       cwd=self.root, env=git_env, check=True)
 
         found = {str(p.relative_to(self.root)) for p in iter_public_html(self.root, self.root)}
         self.assertIn("courses/demo/CH1.html", found)
@@ -67,15 +68,19 @@ class ScopeTests(unittest.TestCase):
         self.assertNotIn("courses/demo/CH1 2.html", found)
 
     def test_sitemap_lastmod_uses_git_date_with_untracked_fallback(self):
-        subprocess.run(["git", "init", "-q"], cwd=self.root, check=True)
-        subprocess.run(["git", "config", "user.name", "Test"], cwd=self.root, check=True)
+        git_env = clean_git_environment()
+        subprocess.run(["git", "init", "-q"], cwd=self.root, env=git_env, check=True)
+        subprocess.run(["git", "config", "user.name", "Test"], cwd=self.root,
+                       env=git_env, check=True)
         subprocess.run(["git", "config", "user.email", "test@example.com"],
-                       cwd=self.root, check=True)
+                       cwd=self.root, env=git_env, check=True)
         tracked = self.root / "courses/demo/CH1.html"
         subprocess.run(["git", "add", str(tracked.relative_to(self.root))],
-                       cwd=self.root, check=True)
-        commit_env = dict(os.environ, GIT_AUTHOR_DATE="2024-01-02T12:00:00+00:00",
-                          GIT_COMMITTER_DATE="2024-01-02T12:00:00+00:00")
+                       cwd=self.root, env=git_env, check=True)
+        commit_env = clean_git_environment({
+            "GIT_AUTHOR_DATE": "2024-01-02T12:00:00+00:00",
+            "GIT_COMMITTER_DATE": "2024-01-02T12:00:00+00:00",
+        })
         subprocess.run(["git", "commit", "-qm", "fixture"], cwd=self.root,
                        env=commit_env, check=True)
         os.utime(tracked, (datetime(2025, 2, 3).timestamp(),) * 2)
