@@ -4,6 +4,7 @@ Underscore *directories* are internal except public _assets. Filenames such
 as _unlock.html are not internal. This is scan policy, not an access control.
 """
 import os
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -31,13 +32,38 @@ def is_public_html(path, root=ROOT):
 
 
 def iter_public_html(start, root=ROOT):
-    """Prune internal trees before descent; never follow directory symlinks."""
+    """Yield bulk-scan HTML, honoring gitignore when ``root`` is a checkout.
+
+    Tracked files and non-ignored untracked files remain visible so new course
+    pages are checked before their first commit. Ignored build artifacts and
+    conflict copies stay out of lint, search, sitemap, and gate bulk scans.
+    Outside a Git checkout (for example unit-test fixtures), fall back to the
+    filesystem traversal used previously.
+    """
     root = Path(root).resolve()
     start = Path(start)
     if not start.is_absolute():
         start = root / start
     if start.is_symlink() or not is_public_html(start / "scope-probe.html", root):
         return
+
+    try:
+        pathspec = start.resolve().relative_to(root).as_posix() or "."
+        output = subprocess.check_output(
+            ["git", "-C", str(root), "ls-files", "--cached", "--others",
+             "--exclude-standard", "-z", "--", pathspec],
+            stderr=subprocess.DEVNULL,
+        )
+    except (OSError, subprocess.CalledProcessError, ValueError):
+        output = None
+
+    if output is not None:
+        for raw in sorted(part for part in output.split(b"\0") if part):
+            path = root / os.fsdecode(raw)
+            if not path.is_symlink() and path.is_file() and is_public_html(path, root):
+                yield path
+        return
+
     for directory, dirs, files in os.walk(start, followlinks=False):
         dirs[:] = sorted(d for d in dirs if not internal_directory(d)
                          and not (Path(directory) / d).is_symlink())
