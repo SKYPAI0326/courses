@@ -1,12 +1,60 @@
 # 課程驗證：uiux-designer
 
-狀態：MACHINE_READY_PENDING_HUMAN
+狀態：BLOCKED
 
 範圍：2026-10-09全部16堂A1–A8/B1–B8，含42h介面、57h原型與Web/打包主線；99h為行政配置。沒有將Figma、Photoshop、GitHub或真人待驗範圍排除。
 
-有效證據：5 筆（不代表真人學會）
+有效證據：0 筆（不代表真人學會）
 
 ## 阻擋項目
+- A1: missing valid content review
+- A1: missing valid fidelity review
+- A1: missing valid technical checks (lint and applicable runtime)
+- A2: missing valid content review
+- A2: missing valid fidelity review
+- A2: missing valid technical checks (lint and applicable runtime)
+- A3: missing valid content review
+- A3: missing valid fidelity review
+- A3: missing valid technical checks (lint and applicable runtime)
+- A4: missing valid content review
+- A4: missing valid fidelity review
+- A4: missing valid technical checks (lint and applicable runtime)
+- A5: missing valid content review
+- A5: missing valid fidelity review
+- A5: missing valid technical checks (lint and applicable runtime)
+- A6: missing valid content review
+- A6: missing valid fidelity review
+- A6: missing valid technical checks (lint and applicable runtime)
+- A7: missing valid content review
+- A7: missing valid fidelity review
+- A7: missing valid technical checks (lint and applicable runtime)
+- A8: missing valid content review
+- A8: missing valid fidelity review
+- A8: missing valid technical checks (lint and applicable runtime)
+- B1: missing valid content review
+- B1: missing valid fidelity review
+- B1: missing valid technical checks (lint and applicable runtime)
+- B2: missing valid content review
+- B2: missing valid fidelity review
+- B2: missing valid technical checks (lint and applicable runtime)
+- B3: missing valid content review
+- B3: missing valid fidelity review
+- B3: missing valid technical checks (lint and applicable runtime)
+- B4: missing valid content review
+- B4: missing valid fidelity review
+- B4: missing valid technical checks (lint and applicable runtime)
+- B5: missing valid content review
+- B5: missing valid fidelity review
+- B5: missing valid technical checks (lint and applicable runtime)
+- B6: missing valid content review
+- B6: missing valid fidelity review
+- B6: missing valid technical checks (lint and applicable runtime)
+- B7: missing valid content review
+- B7: missing valid fidelity review
+- B7: missing valid technical checks (lint and applicable runtime)
+- B8: missing valid content review
+- B8: missing valid fidelity review
+- B8: missing valid technical checks (lint and applicable runtime)
 
 ## 待驗項目
 - A1: actual platform run
@@ -89,7 +137,12 @@
 - B8: human entry
 - B8: human transfer
 - B8: human understanding
+- content/A1,A2,A3,A4,A5,A6,A7,A8,B1,B2,B3,B4,B5,B6,B7,B8/author-self-check
+- entry/A1,A2,A3,A4,A5,A6,A7,A8,B1,B2,B3,B4,B5,B6,B7,B8/tool-run
+- fidelity/A1,A2,A3,A4,A5,A6,A7,A8,B1,B2,B3,B4,B5,B6,B7,B8/author-self-check
 - human sequence test
 - platform/A1,A2,A3,A4,A5,A6,A7,A8,B1,B2,B3,B4,B5,B6,B7,B8/tool-run
+- sequence/A1,A2,A3,A4,A5,A6,A7,A8,B1,B2,B3,B4,B5,B6,B7,B8/author-self-check
+- technical/A1,A2,A3,A4,A5,A6,A7,A8,B1,B2,B3,B4,B5,B6,B7,B8/tool-run
 
 完整機器結果：validation-result.json；原始證據：evidence.json。雜湊只驗版本，語意與受測者身分須如實記錄。
