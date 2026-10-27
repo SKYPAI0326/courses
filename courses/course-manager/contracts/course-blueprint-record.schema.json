@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "course-blueprint-record.schema.json",
+  "title": "Executable G2 course blueprint record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "blueprint_id", "requirements_id", "decision_narrative",
+    "outcomes", "criteria", "units", "duration", "materials", "risks"
+  ],
+  "properties": {
+    "schema_version": {"const": 1}, "blueprint_id": {"$ref": "#/$defs/id"},
+    "course_id": {"$ref": "#/$defs/id"},
+    "requirements_id": {"$ref": "#/$defs/id"},
+    "decision_narrative": {"$ref": "#/$defs/decisionNarrative"},
+    "outcomes": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/outcome"}},
+    "criteria": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/criterion"}},
+    "units": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/unit"}},
+    "duration": {"$ref": "#/$defs/duration"},
+    "materials": {"$ref": "#/$defs/textList"},
+    "risks": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/risk"}},
+    "final_acceptance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["outcome_id", "criteria_ids"],
+      "properties": {"outcome_id": {"$ref": "#/$defs/id"}, "criteria_ids": {"$ref": "#/$defs/idList"}}
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+    "text": {"type": "string", "minLength": 1},
+    "textList": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/text"}},
+    "idList": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+    "decisionNarrative": {
+      "type": "object", "additionalProperties": false,
+      "required": ["recommended_path", "rationale", "constraint_fit", "g1_evidence_refs"],
+      "properties": {"recommended_path": {"$ref": "#/$defs/text"}, "rationale": {"$ref": "#/$defs/text"}, "constraint_fit": {"$ref": "#/$defs/text"}, "g1_evidence_refs": {"$ref": "#/$defs/idList"}}
+    },
+    "outcome": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "statement", "criterion_ids"],
+      "properties": {"id": {"$ref": "#/$defs/id"}, "statement": {"$ref": "#/$defs/text"}, "criterion_ids": {"$ref": "#/$defs/idList"}}
+    },
+    "criterion": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "outcome_id", "g0_criterion_id", "capability_id", "statement", "assessment_evidence"],
+      "properties": {"id": {"$ref": "#/$defs/id"}, "outcome_id": {"$ref": "#/$defs/id"}, "g0_criterion_id": {"$ref": "#/$defs/id"}, "capability_id": {"$ref": "#/$defs/id"}, "statement": {"$ref": "#/$defs/text"}, "assessment_evidence": {"$ref": "#/$defs/text"}}
+    },
+    "workedExample": {
+      "type": "object", "additionalProperties": false,
+      "required": ["input", "rationale", "actions", "result", "verification"],
+      "properties": {"input": {"$ref": "#/$defs/text"}, "rationale": {"$ref": "#/$defs/text"}, "actions": {"$ref": "#/$defs/textList"}, "result": {"$ref": "#/$defs/text"}, "verification": {"$ref": "#/$defs/text"}}
+    },
+    "guided": {
+      "type": "object", "additionalProperties": false,
+      "required": ["activity", "feedback", "check", "recovery"],
+      "properties": {"activity": {"$ref": "#/$defs/text"}, "feedback": {"$ref": "#/$defs/text"}, "check": {"$ref": "#/$defs/text"}, "recovery": {"$ref": "#/$defs/text"}}
+    },
+    "independent": {
+      "type": "object", "additionalProperties": false,
+      "required": ["changed_conditions", "decision", "deliverable", "check", "recovery"],
+      "properties": {"changed_conditions": {"$ref": "#/$defs/textList"}, "decision": {"$ref": "#/$defs/text"}, "deliverable": {"$ref": "#/$defs/text"}, "check": {"$ref": "#/$defs/text"}, "recovery": {"$ref": "#/$defs/text"}}
+    },
+    "assessmentEvidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["criterion_id", "evidence"],
+      "properties": {"criterion_id": {"$ref": "#/$defs/id"}, "evidence": {"$ref": "#/$defs/text"}}
+    },
+    "unit": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "title", "context", "output", "prerequisite_unit_ids", "outcome_ids", "criterion_ids", "capability_ids", "teaching_approach", "worked_example_plan", "guided_practice", "independent_practice", "assessment_evidence", "materials", "duration_minutes", "g1_evidence_refs", "workflow_fingerprint"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"}, "title": {"$ref": "#/$defs/text"}, "context": {"$ref": "#/$defs/text"}, "output": {"$ref": "#/$defs/text"},
+        "outcome": {"$ref": "#/$defs/text"},
+        "prerequisite_unit_ids": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+        "depends_on": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+        "outcome_ids": {"$ref": "#/$defs/idList"}, "criterion_ids": {"$ref": "#/$defs/idList"}, "capability_ids": {"$ref": "#/$defs/idList"},
+        "teaching_approach": {"$ref": "#/$defs/text"}, "worked_example_plan": {"$ref": "#/$defs/workedExample"},
+        "guided_practice": {"$ref": "#/$defs/guided"}, "independent_practice": {"$ref": "#/$defs/independent"},
+        "assessment_evidence": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/assessmentEvidence"}},
+        "materials": {"$ref": "#/$defs/textList"}, "duration_minutes": {"type": "integer", "minimum": 1},
+        "g1_evidence_refs": {"$ref": "#/$defs/idList"}, "workflow_fingerprint": {"$ref": "#/$defs/id"},
+        "asset_ids": {"$ref": "#/$defs/idList"},
+        "risk": {"$ref": "#/$defs/pilotRisk"}
+      }
+    },
+    "duration": {
+      "type": "object", "additionalProperties": false,
+      "required": ["available_minutes", "break_minutes", "buffer_minutes", "policy"],
+      "properties": {"available_minutes": {"type": "integer", "minimum": 1}, "break_minutes": {"type": "integer", "minimum": 0}, "buffer_minutes": {"type": "integer", "minimum": 0}, "policy": {"$ref": "#/$defs/text"}}
+    },
+    "risk": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "description", "owner_gate", "mitigation"],
+      "properties": {"id": {"$ref": "#/$defs/id"}, "description": {"$ref": "#/$defs/text"}, "owner_gate": {"pattern": "^G[0-6]$", "type": "string"}, "mitigation": {"$ref": "#/$defs/text"}}
+    },
+    "pilotRisk": {
+      "type": "object", "additionalProperties": false,
+      "required": ["failure_cost", "tool_uncertainty", "asset_dependency", "layout_complexity", "downstream_dependency"],
+      "properties": {
+        "failure_cost": {"type": "number"}, "tool_uncertainty": {"type": "number"},
+        "asset_dependency": {"type": "number"}, "layout_complexity": {"type": "number"},
+        "downstream_dependency": {"type": "number"}
+      }
+    }
+  }
+}

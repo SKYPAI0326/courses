@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shlex
 from datetime import datetime
 from pathlib import Path
@@ -33,7 +34,13 @@ def build_parser() -> argparse.ArgumentParser:
         "--root",
         type=Path,
         default=None,
-        help="Workspace root; defaults to the parent of course-manager.",
+        help="Managed course root; defaults to COURSE_WEB_ROOT.",
+    )
+    parser.add_argument(
+        "--state-root",
+        type=Path,
+        default=None,
+        help="Runtime catalog/report/proposal root; defaults to COURSE_DESIGN_STATE_ROOT.",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -101,11 +108,33 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 def _workspace_root(namespace: argparse.Namespace) -> Path:
-    return (namespace.root or Path(__file__).resolve().parent.parent).absolute()
+    return _manager_roots(namespace)[0]
 
 
-def _manager_root(root: Path) -> Path:
-    return root / "course-manager"
+def _state_root(namespace: argparse.Namespace) -> Path:
+    return _manager_roots(namespace)[1]
+
+
+def _manager_roots(namespace: argparse.Namespace) -> tuple[Path, Path]:
+    from src.runtime import validate_non_overlapping_roots, validate_root_path
+
+    web_value = namespace.root or os.environ.get("COURSE_WEB_ROOT")
+    if web_value is None:
+        raise RuntimeError("COURSE_WEB_ROOT or --root is required")
+    state_value = namespace.state_root or os.environ.get("COURSE_DESIGN_STATE_ROOT")
+    if state_value is None:
+        raise RuntimeError("COURSE_DESIGN_STATE_ROOT or --state-root is required")
+    web_root = validate_root_path("COURSE_WEB_ROOT", web_value)
+    state_root = validate_root_path(
+        "COURSE_DESIGN_STATE_ROOT", state_value, allow_absent=True
+    )
+    validate_non_overlapping_roots(
+        {
+            "COURSE_WEB_ROOT": web_root,
+            "COURSE_DESIGN_STATE_ROOT": state_root,
+        }
+    )
+    return web_root, state_root
 
 
 def _scan_report(catalog: dict) -> str:
@@ -145,10 +174,10 @@ def _handle_scan(namespace: argparse.Namespace) -> int:
         counts[item["kind"]] = counts.get(item["kind"], 0) + 1
     print(json.dumps({"items": len(catalog["items"]), "counts": counts}, ensure_ascii=False, indent=2))
     if namespace.write:
-        manager_root = _manager_root(root)
-        catalog_path = manager_root / "registry" / "catalog.json"
+        state_root = _state_root(namespace)
+        catalog_path = state_root / "registry" / "catalog.json"
         write_catalog(catalog_path, catalog)
-        report_dir = manager_root / "reports" / "scans"
+        report_dir = state_root / "reports" / "scans"
         report_dir.mkdir(parents=True, exist_ok=True)
         report_path = report_dir / f"scan-{catalog['scanned_at'].replace(':', '').replace('+', '-')}.md"
         report_path.write_text(_scan_report(catalog), encoding="utf-8")
@@ -163,7 +192,7 @@ def _handle_find(namespace: argparse.Namespace) -> int:
     from src.catalog import catalog_is_stale, find_items, load_catalog
 
     root = _workspace_root(namespace)
-    catalog_path = _manager_root(root) / "registry" / "catalog.json"
+    catalog_path = _state_root(namespace) / "registry" / "catalog.json"
     if not catalog_path.exists():
         print(f"CATALOG_MISSING: {catalog_path}")
         return 2
@@ -205,10 +234,10 @@ def _handle_inspect(namespace: argparse.Namespace) -> int:
     return 0
 
 
-def _write_proposal(root: Path, proposal: dict, category: str) -> int:
+def _write_proposal(namespace: argparse.Namespace, proposal: dict, category: str) -> int:
     from src.proposals import write_proposal
 
-    path = _manager_root(root) / "proposals" / category / f"{proposal['proposal_id']}.json"
+    path = _state_root(namespace) / "proposals" / category / f"{proposal['proposal_id']}.json"
     write_proposal(path, proposal)
     print(json.dumps({"status": proposal["status"], "proposal": str(path)}, ensure_ascii=False, indent=2))
     return 0
@@ -223,7 +252,7 @@ def _handle_propose_new(namespace: argparse.Namespace) -> int:
     except (FileNotFoundError, ValueError) as error:
         print(f"PROPOSAL_ERROR: {error}")
         return 2
-    return _write_proposal(root, proposal, "new-courses")
+    return _write_proposal(namespace, proposal, "new-courses")
 
 
 def _handle_propose_move(namespace: argparse.Namespace) -> int:
@@ -235,7 +264,7 @@ def _handle_propose_move(namespace: argparse.Namespace) -> int:
     except (FileNotFoundError, ValueError) as error:
         print(f"PROPOSAL_ERROR: {error}")
         return 2
-    return _write_proposal(root, proposal, "moves")
+    return _write_proposal(namespace, proposal, "moves")
 
 
 def _handle_propose_merge(namespace: argparse.Namespace) -> int:
@@ -247,7 +276,7 @@ def _handle_propose_merge(namespace: argparse.Namespace) -> int:
     except (FileNotFoundError, ValueError) as error:
         print(f"PROPOSAL_ERROR: {error}")
         return 2
-    return _write_proposal(root, proposal, "merges")
+    return _write_proposal(namespace, proposal, "merges")
 
 
 def _handle_apply(namespace: argparse.Namespace) -> int:
@@ -287,7 +316,7 @@ def _handle_verify(namespace: argparse.Namespace) -> int:
             result["status"] = "BLOCK"
             result["unexpected_changes"].extend(manifest_result["unexpected_changes"])
     if namespace.write:
-        report_dir = _manager_root(root) / "reports" / "verifications"
+        report_dir = _state_root(namespace) / "reports" / "verifications"
         report_dir.mkdir(parents=True, exist_ok=True)
         timestamp = datetime.now().astimezone().isoformat().replace(":", "").replace("+", "-")
         report_path = report_dir / f"verify-{timestamp}.json"

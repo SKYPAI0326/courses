@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.course-manager/contracts/course-requirements-support.schema.json",
+  "title": "Course requirements fallback support record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "support_id", "requirements_id", "unknown_id", "fallback_id",
+    "acceptance_criterion_ids", "alternative_path", "verification",
+    "preserved_acceptance_ids", "artifacts"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "support_id": {"$ref": "#/$defs/id"},
+    "requirements_id": {"$ref": "#/$defs/id"},
+    "unknown_id": {"$ref": "#/$defs/id"},
+    "fallback_id": {"$ref": "#/$defs/id"},
+    "acceptance_criterion_ids": {"$ref": "#/$defs/idList"},
+    "alternative_path": {
+      "type": "object", "additionalProperties": false,
+      "required": ["description", "steps", "expected_result"],
+      "properties": {
+        "description": {"$ref": "#/$defs/text"},
+        "steps": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/text"}},
+        "expected_result": {"$ref": "#/$defs/text"}
+      }
+    },
+    "verification": {
+      "type": "object", "additionalProperties": false,
+      "required": ["executed", "verifier_id", "verified_at", "environment", "method", "observed_result"],
+      "properties": {
+        "executed": {"const": true},
+        "verifier_id": {"$ref": "#/$defs/id"},
+        "verified_at": {"type": "string", "minLength": 1},
+        "environment": {"$ref": "#/$defs/text"},
+        "method": {"$ref": "#/$defs/text"},
+        "observed_result": {"$ref": "#/$defs/text"}
+      }
+    },
+    "preserved_acceptance_ids": {"$ref": "#/$defs/idList"},
+    "artifacts": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["evidence_id", "sha256"],
+        "properties": {
+          "evidence_id": {"$ref": "#/$defs/id"},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+    "idList": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+    "text": {"type": "string", "minLength": 8}
+  }
+}

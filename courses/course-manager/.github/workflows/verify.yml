@@ -1,0 +1,56 @@
+name: verify
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: "3.11"
+          - os: ubuntu-latest
+            python: "3.12"
+          - os: macos-latest
+            python: "3.12"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Full test suite
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python3 -m unittest discover -s tests -v
+      - name: Compile and parse versioned data
+        run: |
+          python3 -m compileall -q src scripts tests proofs
+          python3 -c 'import json, pathlib; [json.loads(p.read_text(encoding="utf-8")) for p in pathlib.Path(".").rglob("*.json") if ".git" not in p.parts]'
+          find . -type f -name '*.sh' -print0 | xargs -0 -n1 bash -n
+      - name: Portable source and package integrity
+        run: |
+          ! rg -n '/Users/paichenwei|com~apple~CloudDocs|/private/tmp/' src scripts skill-packages contracts README.md docs/complete-course-design-system.md docs/course-skill-family-foundation.md
+          python3 scripts/install_course_skill_foundation.py --verify-source
+      - name: Clean HOME install and runtime doctor
+        run: |
+          clean_root="$(mktemp -d)"
+          mkdir -p "$clean_root/home" "$clean_root/courses" "$clean_root/skills" "$clean_root/state"
+          export HOME="$clean_root/home"
+          export COURSE_DESIGN_SYSTEM_ROOT="$PWD"
+          export COURSE_WEB_ROOT="$clean_root/courses"
+          export SKILLS_ROOT="$clean_root/skills"
+          export COURSE_DESIGN_STATE_ROOT="$clean_root/state"
+          python3 scripts/install_course_skill_foundation.py --apply --skills-root "$SKILLS_ROOT" --operations-root "$COURSE_DESIGN_STATE_ROOT/operations/course-skill-foundation"
+          python3 scripts/install_course_skill_foundation.py --verify-installed --skills-root "$SKILLS_ROOT"
+          python3 scripts/course_run.py doctor
+      - name: Deterministic proof and standalone clean clone
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python3 -m unittest tests.test_complete_course_flow tests.test_standalone_export -v

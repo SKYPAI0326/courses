@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.course-manager/contracts/course-release-proposal.schema.json",
+  "title": "Crash-safe course release proposal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "revision", "action_id", "status", "manifest", "manifest_sha256", "journal", "result"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "revision": { "type": "integer", "minimum": 0 },
+    "action_id": { "type": "string", "minLength": 1 },
+    "status": {
+      "enum": ["PUBLISH_APPROVAL_REQUIRED", "AUTHORIZED", "EXECUTING", "CONSUMED", "FAILED"]
+    },
+    "manifest_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "course_id", "course_root", "release_record_sha256", "targets", "backup", "rollback"],
+      "properties": {
+        "schema_version": { "const": 1 },
+        "course_id": { "type": "string", "minLength": 1 },
+        "course_root": { "type": "string", "minLength": 1 },
+        "release_record_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "targets": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/target" }
+        },
+        "backup": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["directory", "required", "verify_sha256"],
+          "properties": {
+            "directory": { "$ref": "#/$defs/relativePath" },
+            "required": { "const": true },
+            "verify_sha256": { "const": true }
+          }
+        },
+        "rollback": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["strategy", "targets"],
+          "properties": {
+            "strategy": { "const": "restore_verified_backups_and_remove_new_targets" },
+            "targets": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["target_path", "existed_before", "before_sha256", "backup_path"],
+                "properties": {
+                  "target_path": { "$ref": "#/$defs/relativePath" },
+                  "existed_before": { "type": "boolean" },
+                  "before_sha256": { "$ref": "#/$defs/nullableSha256" },
+                  "backup_path": {
+                    "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/relativePath" }]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "journal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["phase", "targets", "updated_at"],
+      "properties": {
+        "phase": { "enum": ["PENDING", "EXECUTING"] },
+        "targets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["target_path", "before_sha256", "after_sha256", "backup_path", "phase"],
+            "properties": {
+              "target_path": { "$ref": "#/$defs/relativePath" },
+              "before_sha256": { "$ref": "#/$defs/nullableSha256" },
+              "after_sha256": { "$ref": "#/$defs/sha256" },
+              "backup_path": { "$ref": "#/$defs/relativePath" },
+              "phase": { "enum": ["BACKUP_READY", "BEFORE_REPLACE", "AFTER_REPLACE"] }
+            }
+          }
+        },
+        "updated_at": { "type": ["string", "null"] }
+      }
+    },
+    "result": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["outcome", "modified_targets"],
+          "properties": {
+            "outcome": { "enum": ["IN_PROGRESS", "PASS", "FAIL_ROLLED_BACK"] },
+            "modified_targets": { "type": "array", "items": { "$ref": "#/$defs/relativePath" } }
+          }
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?=.*\\S)(?!\\.(?:/+\\.?)*$)(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+    },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "nullableSha256": {
+      "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/sha256" }]
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_path", "target_path", "before_sha256", "after_sha256", "backup_path"],
+      "properties": {
+        "source_path": { "$ref": "#/$defs/relativePath" },
+        "target_path": { "$ref": "#/$defs/relativePath" },
+        "before_sha256": { "$ref": "#/$defs/nullableSha256" },
+        "after_sha256": { "$ref": "#/$defs/sha256" },
+        "backup_path": { "$ref": "#/$defs/relativePath" }
+      }
+    }
+  }
+}

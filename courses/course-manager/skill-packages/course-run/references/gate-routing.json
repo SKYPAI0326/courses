@@ -1,0 +1,184 @@
+{
+  "schema_version": 1,
+  "support_files": [
+    "SKILL.md",
+    "references/course-contract-routing.md",
+    "references/gate-routing.json"
+  ],
+  "project_runtime": {
+    "root_environment": "COURSE_DESIGN_SYSTEM_ROOT",
+    "required_paths": [
+      "contracts/course-contract.schema.json",
+      "scripts/course_contract.py",
+      "scripts/course_run.py",
+      "src/runtime.py",
+      "src/course_orchestrator.py"
+    ]
+  },
+  "runtime_roots": {
+    "design_system_root": "COURSE_DESIGN_SYSTEM_ROOT",
+    "course_web_root": "COURSE_WEB_ROOT",
+    "skills_root": "SKILLS_ROOT",
+    "state_root": "COURSE_DESIGN_STATE_ROOT"
+  },
+  "gate_lifecycle_states": [
+    "NOT_STARTED",
+    "IN_PROGRESS",
+    "PASS",
+    "FAIL",
+    "BLOCKED",
+    "STALE"
+  ],
+  "evidence_maturity_states": [
+    "STATIC_VALIDATED",
+    "EXECUTION_VALIDATED",
+    "INDEPENDENT_AI_VERIFIED",
+    "HUMAN_VERIFIED"
+  ],
+  "gate_status_path": "gates.<gate_id>.status",
+  "evidence_maturity_path": "gates.<gate_id>.evidence[].maturity",
+  "gate_pass_authority": {
+    "role": "course-run",
+    "requires_validated_evidence": true,
+    "requires_explicit_user_approval": false
+  },
+  "external_action_authority": {
+    "role": "user",
+    "requires_explicit_user_approval": true
+  },
+  "child_authority": {
+    "can_return_evidence": true,
+    "can_pass_gate": false
+  },
+  "missing_required_evidence": {
+    "gate_status": "BLOCKED",
+    "preserve_failure_evidence": true
+  },
+  "automatic_dispatch": {
+    "enabled": true,
+    "trigger": "validated_gate_pass",
+    "action": "begin_next_gate",
+    "requires_user_approval": false
+  },
+  "user_decision_triggers": {
+    "design_changing_missing_information": {
+      "ask_user": true,
+      "condition": "missing fact can materially change learner, outcome, scope, sequence, assessment, delivery, or duration"
+    },
+    "material_judgment": {
+      "ask_user": true,
+      "condition": "two or more evidence-supported choices create materially different course results"
+    },
+    "paid_service": {
+      "ask_user": true,
+      "condition": "continuation would purchase, subscribe to, or consume a paid service"
+    },
+    "credentials_or_rights": {
+      "ask_user": true,
+      "condition": "continuation requires credentials, private access, personal data, license, or rights confirmation"
+    },
+    "external_mutation": {
+      "ask_user": true,
+      "condition": "continuation would publish, deploy, register, change access, message others, or mutate an external system"
+    }
+  },
+  "gates": [
+    {
+      "id": "G0",
+      "prerequisite_gates": [],
+      "producer": "course-run",
+      "capability": "adaptive-requirements-interview",
+      "evidence_authority": "producer",
+      "pass_authority": "course-run",
+      "user_approval_required": false,
+      "missing_required_evidence_status": "BLOCKED"
+    },
+    {
+      "id": "G1",
+      "prerequisite_gates": [
+        "G0"
+      ],
+      "producer": "course-researcher",
+      "capability": "external-research-and-hands-on-verification",
+      "evidence_authority": "producer",
+      "pass_authority": "course-run",
+      "user_approval_required": false,
+      "missing_required_evidence_status": "BLOCKED"
+    },
+    {
+      "id": "G2",
+      "prerequisite_gates": [
+        "G0",
+        "G1"
+      ],
+      "producer": "course-pm",
+      "capability": "course-blueprint",
+      "evidence_authority": "producer",
+      "pass_authority": "course-run",
+      "user_approval_required": false,
+      "missing_required_evidence_status": "BLOCKED"
+    },
+    {
+      "id": "G3",
+      "prerequisite_gates": [
+        "G0",
+        "G1",
+        "G2"
+      ],
+      "producer": "course-designer",
+      "capability": "lesson-and-content-design",
+      "evidence_authority": "producer",
+      "pass_authority": "course-run",
+      "user_approval_required": false,
+      "missing_required_evidence_status": "BLOCKED"
+    },
+    {
+      "id": "G4",
+      "prerequisite_gates": [
+        "G0",
+        "G1",
+        "G2",
+        "G3"
+      ],
+      "producer": "build-course-page",
+      "capability": "representative-unit-pilot",
+      "evidence_authority": "producer",
+      "pass_authority": "course-run",
+      "user_approval_required": false,
+      "missing_required_evidence_status": "BLOCKED"
+    },
+    {
+      "id": "G5",
+      "prerequisite_gates": [
+        "G0",
+        "G1",
+        "G2",
+        "G3",
+        "G4"
+      ],
+      "producer": "course-run",
+      "capability": "full-course-production-and-integration",
+      "evidence_authority": "producer",
+      "pass_authority": "course-run",
+      "user_approval_required": false,
+      "missing_required_evidence_status": "BLOCKED"
+    },
+    {
+      "id": "G6",
+      "prerequisite_gates": [
+        "G0",
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5"
+      ],
+      "producer": "course-ops",
+      "capability": "release-and-maintenance",
+      "evidence_authority": "producer",
+      "pass_authority": "course-run",
+      "user_approval_required": false,
+      "missing_required_evidence_status": "BLOCKED"
+    }
+  ]
+}

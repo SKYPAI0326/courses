@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.course-manager/contracts/course-pilot-record.schema.json",
+  "title": "Course Pilot Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "unit_id",
+    "trial_context_id",
+    "production_actor_ids",
+    "lesson_sha256",
+    "html_path",
+    "html_sha256",
+    "asset_ids",
+    "visual_decision",
+    "content_fidelity",
+    "render",
+    "devices",
+    "accessibility_report",
+    "navigation"
+  ],
+  "properties": {
+    "schema_version": { "const": 2 },
+    "unit_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "trial_context_id": { "$ref": "#/$defs/text" },
+    "production_actor_ids": { "$ref": "#/$defs/textList" },
+    "lesson_sha256": { "$ref": "#/$defs/sha256" },
+    "html_path": { "$ref": "#/$defs/text" },
+    "html_sha256": { "$ref": "#/$defs/sha256" },
+    "asset_ids": { "$ref": "#/$defs/textList" },
+    "visual_decision": { "$ref": "#/$defs/visualDecision" },
+    "content_fidelity": { "$ref": "#/$defs/contentFidelity" },
+    "render": { "$ref": "#/$defs/render" },
+    "devices": { "$ref": "#/$defs/devices" },
+    "accessibility_report": { "$ref": "#/$defs/accessibilityReportRef" },
+    "navigation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entry", "previous", "next"],
+      "properties": {
+        "entry": { "$ref": "#/$defs/text" },
+        "previous": { "$ref": "#/$defs/text" },
+        "next": { "$ref": "#/$defs/text" }
+      }
+    }
+  },
+  "$defs": {
+    "text": { "type": "string", "minLength": 1 },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "textList": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/text" }
+    },
+    "accessibilityReportRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence_id", "path", "sha256", "claim_scope"],
+      "properties": {
+        "evidence_id": { "$ref": "#/$defs/text" },
+        "path": { "$ref": "#/$defs/text" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "claim_scope": { "enum": ["basic_accessibility_smoke", "wcag_2_2_aa"] }
+      }
+    },
+    "visualDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inputs", "decisions"],
+      "properties": {
+        "inputs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "topic",
+            "learner",
+            "task",
+            "content_density",
+            "primary_devices"
+          ],
+          "properties": {
+            "topic": { "$ref": "#/$defs/text" },
+            "learner": { "$ref": "#/$defs/text" },
+            "task": { "$ref": "#/$defs/text" },
+            "content_density": { "$ref": "#/$defs/text" },
+            "primary_devices": { "$ref": "#/$defs/textList" }
+          }
+        },
+        "decisions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "layout_rationale",
+            "navigation",
+            "typography",
+            "color",
+            "responsive_strategy"
+          ],
+          "properties": {
+            "layout_rationale": { "$ref": "#/$defs/text" },
+            "navigation": { "$ref": "#/$defs/text" },
+            "typography": { "$ref": "#/$defs/text" },
+            "color": { "$ref": "#/$defs/text" },
+            "responsive_strategy": { "$ref": "#/$defs/text" }
+          }
+        }
+      }
+    },
+    "contentFidelity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_sha256",
+        "rendered_source_sha256",
+        "teaching_atoms",
+        "result"
+      ],
+      "properties": {
+        "source_sha256": { "$ref": "#/$defs/sha256" },
+        "rendered_source_sha256": { "$ref": "#/$defs/sha256" },
+        "teaching_atoms": { "$ref": "#/$defs/textList" },
+        "result": { "const": "PASS" }
+      }
+    },
+    "render": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["browser", "tested_at", "screenshots", "result"],
+      "properties": {
+        "browser": { "$ref": "#/$defs/text" },
+        "tested_at": { "$ref": "#/$defs/text" },
+        "screenshots": { "$ref": "#/$defs/textList" },
+        "result": { "const": "PASS" }
+      }
+    },
+    "deviceResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["viewport", "core_path_result", "horizontal_overflow"],
+      "properties": {
+        "viewport": { "$ref": "#/$defs/text" },
+        "core_path_result": { "const": "PASS" },
+        "horizontal_overflow": { "const": false }
+      }
+    },
+    "devices": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mobile", "tablet", "desktop"],
+      "properties": {
+        "mobile": { "$ref": "#/$defs/deviceResult" },
+        "tablet": { "$ref": "#/$defs/deviceResult" },
+        "desktop": { "$ref": "#/$defs/deviceResult" }
+      }
+    }
+  }
+}

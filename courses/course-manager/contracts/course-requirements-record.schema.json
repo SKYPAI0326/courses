@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "course-requirements-record.schema.json",
+  "title": "Executable G0 course requirements record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "requirements_id", "target_profile", "work_context",
+    "final_artifact", "delivery", "environment", "constraints",
+    "acceptance_criteria", "known_facts", "assumptions", "unknowns", "decisions"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "requirements_id": {"$ref": "#/$defs/id"},
+    "target_profile": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "learner", "baseline", "prerequisites"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"}, "learner": {"$ref": "#/$defs/text"},
+        "baseline": {"$ref": "#/$defs/text"}, "prerequisites": {"$ref": "#/$defs/textList"}
+      }
+    },
+    "work_context": {"$ref": "#/$defs/workContext"},
+    "final_artifact": {"$ref": "#/$defs/finalArtifact"},
+    "delivery": {
+      "type": "object", "additionalProperties": false,
+      "required": ["mode", "available_minutes", "break_buffer_policy"],
+      "properties": {
+        "mode": {"$ref": "#/$defs/text"},
+        "available_minutes": {"type": "integer", "minimum": 1},
+        "break_buffer_policy": {"$ref": "#/$defs/text"}
+      }
+    },
+    "environment": {
+      "type": "object", "additionalProperties": false,
+      "required": ["tools", "accounts", "permissions", "device", "locale"],
+      "properties": {
+        "tools": {"$ref": "#/$defs/textList"}, "accounts": {"$ref": "#/$defs/textList"},
+        "permissions": {"$ref": "#/$defs/textList"}, "device": {"$ref": "#/$defs/text"},
+        "locale": {"$ref": "#/$defs/text"}
+      }
+    },
+    "constraints": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/constraint"}},
+    "acceptance_criteria": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/acceptanceCriterion"}},
+    "known_facts": {"$ref": "#/$defs/textList"},
+    "assumptions": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/assumption"}},
+    "unknowns": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/unknown"}},
+    "decisions": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/decision"}}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+    "idList": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+    "text": {"type": "string", "minLength": 1},
+    "textList": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/text"}},
+    "workContext": {
+      "type": "object", "additionalProperties": false,
+      "required": ["situation", "problem", "use"],
+      "properties": {"situation": {"$ref": "#/$defs/text"}, "problem": {"$ref": "#/$defs/text"}, "use": {"$ref": "#/$defs/text"}}
+    },
+    "finalArtifact": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "format", "observable_result", "use"],
+      "properties": {"name": {"$ref": "#/$defs/text"}, "format": {"$ref": "#/$defs/text"}, "observable_result": {"$ref": "#/$defs/text"}, "use": {"$ref": "#/$defs/text"}}
+    },
+    "constraint": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "description", "impact"],
+      "properties": {"id": {"$ref": "#/$defs/id"}, "description": {"$ref": "#/$defs/text"}, "impact": {"$ref": "#/$defs/text"}}
+    },
+    "capability": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "statement"],
+      "properties": {"id": {"$ref": "#/$defs/id"}, "statement": {"$ref": "#/$defs/text"}}
+    },
+    "acceptanceCriterion": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "statement", "capabilities"],
+      "properties": {"id": {"$ref": "#/$defs/id"}, "statement": {"$ref": "#/$defs/text"}, "capabilities": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/capability"}}}
+    },
+    "assumption": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "statement", "material", "validation_plan"],
+      "properties": {"id": {"$ref": "#/$defs/id"}, "statement": {"$ref": "#/$defs/text"}, "material": {"type": "boolean"}, "validation_plan": {"$ref": "#/$defs/text"}}
+    },
+    "unknown": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "question", "material", "impact_domains", "status", "resolution", "fallback"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"}, "question": {"$ref": "#/$defs/text"},
+        "material": {"type": "boolean"},
+        "impact_domains": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": {"enum": ["tools", "accounts", "permissions", "device", "materials", "artifact", "time", "locale", "non-core"]}
+        },
+        "status": {"enum": ["OPEN", "DEFERRED", "RESOLVED"]}, "resolution": {"$ref": "#/$defs/text"},
+        "fallback": {
+          "type": ["object", "null"], "additionalProperties": false,
+          "required": ["fallback_id", "description", "verification_status", "evidence_ref", "acceptance_criterion_ids", "preserves_acceptance"],
+          "properties": {
+            "fallback_id": {"$ref": "#/$defs/id"},
+            "description": {"$ref": "#/$defs/text"},
+            "verification_status": {"const": "VERIFIED_FALLBACK"},
+            "evidence_ref": {"$ref": "#/$defs/id"},
+            "acceptance_criterion_ids": {"$ref": "#/$defs/idList"},
+            "preserves_acceptance": {"type": "boolean"}
+          }
+        }
+      }
+    },
+    "decision": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "decision", "rationale"],
+      "properties": {"id": {"$ref": "#/$defs/id"}, "decision": {"$ref": "#/$defs/text"}, "rationale": {"$ref": "#/$defs/text"}}
+    }
+  }
+}
