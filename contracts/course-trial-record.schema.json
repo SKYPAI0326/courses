@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "course-trial-record.schema.json",
+  "title": "Independent course learner trial record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "scope",
+    "participant",
+    "isolated_context_id",
+    "allowed_inputs",
+    "forbidden_inputs_accessed",
+    "entry",
+    "actions",
+    "hints",
+    "blocks",
+    "recovery",
+    "artifact",
+    "result"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "scope": {"enum": ["representative_unit", "full_course"]},
+    "participant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "roles"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "type": {"const": "independent-ai"},
+        "roles": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "contains": {"const": "learner-trial"},
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "isolated_context_id": {"type": "string", "minLength": 1},
+    "allowed_inputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "path", "sha256"],
+        "properties": {
+          "kind": {"enum": ["learner-page", "learner-asset"]},
+          "path": {"type": "string", "minLength": 1},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "forbidden_inputs_accessed": {
+      "type": "array",
+      "maxItems": 0,
+      "items": {"type": "string"}
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["started_at", "page", "goal_understood", "materials_found"],
+      "properties": {
+        "started_at": {"type": "string", "format": "date-time"},
+        "page": {"type": "string", "minLength": 1},
+        "goal_understood": {"type": "boolean"},
+        "materials_found": {"type": "boolean"}
+      }
+    },
+    "actions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sequence", "action", "observable_result", "at"],
+        "properties": {
+          "sequence": {"type": "integer", "minimum": 1},
+          "action": {"type": "string", "minLength": 1},
+          "observable_result": {"type": "string", "minLength": 1},
+          "at": {"type": "string", "format": "date-time"}
+        }
+      }
+    },
+    "hints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source", "detail"],
+        "properties": {
+          "source": {"enum": ["learner-page", "learner-asset", "none"]},
+          "detail": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "blocks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "detail", "recovered"],
+        "properties": {
+          "code": {"type": "string", "minLength": 1},
+          "detail": {"type": "string", "minLength": 1},
+          "recovered": {"type": "boolean"}
+        }
+      }
+    },
+    "recovery": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["block_code", "action", "result"],
+        "properties": {
+          "block_code": {"type": "string", "minLength": 1},
+          "action": {"type": "string", "minLength": 1},
+          "result": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "artifact": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256", "complete", "verifiable", "acceptance_result"],
+          "properties": {
+            "path": {"type": "string", "minLength": 1},
+            "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "complete": {"type": "boolean"},
+            "verifiable": {"type": "boolean"},
+            "acceptance_result": {"enum": ["PASS", "BLOCKED"]}
+          }
+        }
+      ]
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "completed_at", "notes"],
+      "properties": {
+        "status": {"enum": ["PASS", "BLOCKED"]},
+        "completed_at": {"type": "string", "format": "date-time"},
+        "notes": {"type": "string", "minLength": 1}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "result": {
+            "properties": {"status": {"const": "PASS"}},
+            "required": ["status"]
+          }
+        },
+        "required": ["result"]
+      },
+      "then": {
+        "properties": {
+          "artifact": {
+            "type": "object",
+            "properties": {
+              "complete": {"const": true},
+              "verifiable": {"const": true},
+              "acceptance_result": {"const": "PASS"}
+            },
+            "required": ["complete", "verifiable", "acceptance_result"]
+          }
+        }
+      }
+    }
+  ]
+}
