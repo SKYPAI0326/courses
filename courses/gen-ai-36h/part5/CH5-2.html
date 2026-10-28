@@ -204,32 +204,32 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <span class="hero-num">CH 5.2 · 2 小時（120 分鐘）</span>
   </div>
   <h1 class="lesson-title">條件、分流與執行紀錄</h1>
-  <p class="lesson-tagline">依四個固定分類分流，核對輸入與每條路徑的結果。</p>
+  <p class="lesson-tagline">把已核對的訊息送到正確分支，也確認不合格資料會停在入口。</p>
   <div class="outcomes"><strong>本節完成物：</strong>四路紀錄與兩筆阻擋證據</div>
-  <div class="agenda"><strong>本節 120 分鐘：依下列任務順序操作，分段時間依進度調整</strong><div class="agenda-row"><div class="agenda-time">01</div><div class="agenda-topic">有分類，流程才知道走哪條路</div></div><div class="agenda-row"><div class="agenda-time">02</div><div class="agenda-topic">示範：覆核通過後才分流</div></div><div class="agenda-row"><div class="agenda-time">03</div><div class="agenda-topic">跟著做：一次新增一列</div></div><div class="agenda-row"><div class="agenda-time">04</div><div class="agenda-topic">自己試：阻擋不合格資料</div></div><div class="agenda-row"><div class="agenda-time">05</div><div class="agenda-topic">選做：n8n的角色</div></div></div>
+  <div class="agenda"><strong>這一節的練習順序</strong><div class="agenda-row"><div class="agenda-time">01</div><div class="agenda-topic">同樣是新訊息，負責處理的人可能不同</div></div><div class="agenda-row"><div class="agenda-time">02</div><div class="agenda-topic">先檢查是否可處理，再依分類分成四路</div></div><div class="agenda-row"><div class="agenda-time">03</div><div class="agenda-topic">一次加一筆，查它實際走到哪裡</div></div><div class="agenda-row"><div class="agenda-time">04</div><div class="agenda-topic">用錯誤資料確認入口真的會擋下來</div></div><div class="agenda-row"><div class="agenda-time">05</div><div class="agenda-topic">其他工具留到主流程熟悉之後再比較</div></div></div>
 </div>
 
 <div class="lesson-body">
-<section class="lesson-section"><div class="section-eyebrow"><span>(01) · 學習與實作</span></div><h2 class="section-heading">有分類，流程才知道走哪條路</h2>
-<p class="body-text">沿用上一節試算表。「Filter」是通過條件；「Router」把資料分成多條路。完成物是四分類各一筆紀錄與執行核對。先讀<a href="../assets/part5-input-contract.md" rel="noopener" target="_blank">九欄規格</a>與<a href="../assets/part5-test-cases.csv" rel="noopener" target="_blank">七個測試案例</a>，分類只有inquiry、complaint、partnership、other。</p>
-<p class="body-text">inquiry到業務；complaint到客服；partnership到合作；other到待處理。分類固定值不能同時用「詢價」與inquiry當相同規則，否則Filter可能不匹配。</p>
+<section class="lesson-section"><div class="section-eyebrow"><span>(01) · 學習與實作</span></div><h2 class="section-heading">同樣是新訊息，負責處理的人可能不同</h2>
+<p class="body-text">上一節讓每筆新資料留下紀錄，現在要依分類交給不同角色。Make 的 Filter 是資料必須通過的條件，Router 則將資料分到不同路線。沿用原試算表，先看<a href="../assets/part5-input-contract.md" rel="noopener" target="_blank">九欄資料規格</a>和<a href="../assets/part5-test-cases.csv" rel="noopener" target="_blank">七個測試案例</a>，確認每種輸入預期去哪裡。</p>
+<p class="body-text">四個分類值固定為 inquiry（詢問）送業務、complaint（抱怨）送客服、partnership（合作）送合作窗口、other（其他）送待處理。顯示名稱可以幫你理解，但條件中要用這些固定值；填「詢價」並不會自動等於 inquiry。</p>
 </section>
-<section class="lesson-section"><div class="section-eyebrow"><span>(02) · 學習與實作</span></div><h2 class="section-heading">示範：覆核通過後才分流</h2>
-<p class="body-text">先保存 S1，再依<a href="../assets/part5-stage-handoff.html#s1-to-s2" rel="noopener" target="_blank">階段指南的 S1→S2 改接</a>，在 Watch New Rows 與原 Add a Row 的連線中插入 Router。原 Add a Row 保留作 inquiry 分支，不留在 Router 前；再新增其餘三路。每路 Add a Row 寫 ProcessingLog，保留 source_key、category、route、status 與 draft_status。</p>
-<p class="body-text">完整映射例：T01的category=inquiry、route=業務、status=已記錄、draft_status=待建立；T02complaint、客服、已記錄、不需要。先不建立草稿，檢查分流本身。</p>
-<p class="body-text">按<a href="../assets/part5-rebuild-guide.html#review-filter" rel="noopener" target="_blank">覆核 Filter 的逐欄設定表</a>，在 Watch New Rows→Router 的連線填入欄位、運算子與右值。九項都用 AND；分類四選一放在同一個 Matches pattern 條件，直接複製表內樣式，不另接四條 OR。再按指南設定四條分支的 category 等於條件。先用 T01 核對路徑，再測待覆核與 unknown；被擋時應連一筆 ProcessingLog 都不新增。</p>
-<p class="body-text">本課完成狀態是 <a href="../assets/part5-stage-handoff.html" rel="noopener" target="_blank">S2 四路紀錄</a>：詢問／合作寫「待建立」，尚無草稿正常。CH5-3 會接著完成防重、草稿與回寫，做完才進故障課。</p>
+<section class="lesson-section"><div class="section-eyebrow"><span>(02) · 學習與實作</span></div><h2 class="section-heading">先檢查是否可處理，再依分類分成四路</h2>
+<p class="body-text">先保存上一節成功版本，再按<a href="../assets/part5-stage-handoff.html#s1-to-s2" rel="noopener" target="_blank">從單一路線改成四路的指南</a>，在 Watch New Rows 後插入 Router。原 Add a Row 移到 inquiry 分支，另外加三個分支；它不能還留在 Router 前，否則資料分流之前就先寫入了。四路都寫 ProcessingLog，保留 source_key、category、route、status、draft_status。</p>
+<p class="body-text">用 T01、T02 先理解結果：T01 的 inquiry 應寫業務、已記錄、待建立；T02 的 complaint 應寫客服、已記錄、不需要。前者之後要產生草稿，後者交由客服人工處理，因此兩路的草稿狀態不同。本節還不建草稿。</p>
+<p class="body-text">按<a href="../assets/part5-rebuild-guide.html#review-filter" rel="noopener" target="_blank">Filter 逐欄設定表</a>，在 Watch New Rows 與 Router 之間檢查人工核准及資料完整性。九個條件用 AND，表示都成立才放行；四個合法分類放在同一個 Matches pattern 條件，直接使用表內樣式，不另外串四個 OR。</p><p class="body-text">再依指南設定各分支的 category 等於條件。先用 T01 查通過和分流，再試待覆核及 unknown；資料被入口擋下時，ProcessingLog 也不應新增。</p>
+<p class="body-text">完成後應是<a href="../assets/part5-stage-handoff.html" rel="noopener" target="_blank">四路各有紀錄的狀態</a>，指南稱為 S2。詢問和合作記「待建立」，但 Drafts 空白是正常的，因為下一節才接草稿與防重複處理。先把這個完成位置記下，避免把還沒建的功能當成故障。</p>
 </section>
-<section class="lesson-section"><div class="section-eyebrow"><span>(03) · 學習與實作</span></div><h2 class="section-heading">跟著做：一次新增一列</h2>
-<p class="body-text">依T01到T04逐一加ReviewedQueue新列，每次Run once並查執行中的資料單位（bundle）、路徑與結果表。理想結果分別是業務、客服、合作、待處理，各一筆。只看綠勾不夠，綠勾說明模組運行，不說明分類或欄位正確。</p>
-<p class="body-text">沒有路徑時檢查實際category有無大小寫或空白；走兩路時檢查Filter是否互斥。修規則後再加新的測試來源鍵，保留舊測試記錄注明錯誤，不擅自刪掉證據。</p>
+<section class="lesson-section"><div class="section-eyebrow"><span>(03) · 學習與實作</span></div><h2 class="section-heading">一次加一筆，查它實際走到哪裡</h2>
+<p class="body-text">T01 到 T04 一次只追加一列 ReviewedQueue，每次 Run once 後打開執行中的資料（bundle），查輸入分類、實際路線和結果列。四筆應分別到業務、客服、合作、待處理。綠勾只表示模組有執行，分類對不對仍要看值。</p>
+<p class="body-text">完全沒走路線時，查 category 的大小寫和多餘空白；同時走兩路時，查分支條件是否重疊。修好後用新的測試來源鍵再試，舊結果註明當時錯誤，留下查錯經過。</p>
 </section>
-<section class="lesson-section"><div class="section-eyebrow"><span>(04) · 學習與實作</span></div><h2 class="section-heading">自己試：阻擋不合格資料</h2>
-<p class="body-text">追加一筆review_status=待覆核；應在Filter被擋，ProcessingLog與Drafts都不新增。再測category=unknown，結果相同。記錄輸入、阻擋條件與結果；如果流程仍走通，回Filter修復後重測，不能靠人不填這類資料來保證。</p>
-<p class="body-text">保存四路結果與阻擋案例，下節加入網頁AI與人工覆核，但仍以固定欄位作為接點。</p>
+<section class="lesson-section"><div class="section-eyebrow"><span>(04) · 學習與實作</span></div><h2 class="section-heading">用錯誤資料確認入口真的會擋下來</h2>
+<p class="body-text">追加一筆 review_status 為待覆核的資料，應在入口被擋，ProcessingLog 和 Drafts 都不新增。再用 category 為 unknown 測一次，預期相同。如果仍被放行，就修 Filter 後重測；這項測試是在確認，即使有人填錯，流程也能停住。</p>
+<p class="body-text">保存四路結果與兩筆阻擋案例。下一節會先讓 AI 協助分類、由人確認，再把合格資料接到這裡；固定九欄就是兩段工作之間交接資料的格式。</p>
 </section>
-<section class="lesson-section"><div class="section-eyebrow"><span>(05) · 學習與實作</span></div><h2 class="section-heading">選做：n8n的角色</h2>
-<p class="body-text">n8n也能連接服務，但需可用環境與維護能力。課程不要求安裝已停止維護的Desktop版，也不使用已終止的LINE Notify。若另有已驗證n8n環境，可以比較觸發、分流與錯誤紀錄，不重印一份未測的全流程。<a href="https://community.n8n.io/t/sunsetting-self-hosted-team-plan-desktop-version/25830">n8n Desktop終止公告</a>及<a href="https://notify-bot.line.me/">LINE Notify公告</a>可供查證。</p>
+<section class="lesson-section"><div class="section-eyebrow"><span>(05) · 學習與實作</span></div><h2 class="section-heading">其他工具留到主流程熟悉之後再比較</h2>
+<p class="body-text">選做比較時，n8n 也能接觸發、分流和錯誤紀錄，但要有可用環境與維護能力。本課不要求安裝已停止維護的 Desktop 版，也不使用已終止的 LINE Notify。相關狀態可查<a href="https://community.n8n.io/t/sunsetting-self-hosted-team-plan-desktop-version/25830">n8n 公告</a>和<a href="https://notify-bot.line.me/">LINE Notify 公告</a>；先把目前這套流程操作清楚即可。</p>
 </section>
 </div>
 
