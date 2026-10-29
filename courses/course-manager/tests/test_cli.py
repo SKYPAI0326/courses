@@ -1,8 +1,10 @@
 import contextlib
 import io
+import os
 import tempfile
 import sys
 import unittest
+from unittest import mock
 from pathlib import Path
 
 
@@ -39,12 +41,15 @@ class CliContractTests(unittest.TestCase):
             project = root / "office-ai"
             project.mkdir(parents=True)
             (project / "README.md").write_text("Office AI course source\n", encoding="utf-8")
-            manager_root = root / "course-manager"
-            write_catalog(manager_root / "registry" / "catalog.json", scan_workspace(root))
+            state_root = Path(temporary) / "external-state"
+            write_catalog(state_root / "registry" / "catalog.json", scan_workspace(root))
             output = io.StringIO()
 
             with contextlib.redirect_stdout(output):
-                result = main(["--root", str(root), "find", "office-ai"])
+                result = main([
+                    "--root", str(root), "--state-root", str(state_root),
+                    "find", "office-ai",
+                ])
 
         self.assertEqual(result, 0)
         resolved_project = project.resolve()
@@ -54,32 +59,80 @@ class CliContractTests(unittest.TestCase):
 
     def test_find_json_contains_copyable_absolute_path(self):
         with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary)
+            root = Path(temporary) / "managed"
+            root.mkdir()
             project = root / "office-ai"
             project.mkdir()
             (project / "README.md").write_text("Office AI course source\n", encoding="utf-8")
-            write_catalog(root / "course-manager" / "registry" / "catalog.json", scan_workspace(root))
+            state_root = Path(temporary) / "external-state"
+            write_catalog(state_root / "registry" / "catalog.json", scan_workspace(root))
             output = io.StringIO()
 
             with contextlib.redirect_stdout(output):
-                result = main(["--root", str(root), "find", "office-ai", "--json"])
+                result = main([
+                    "--root", str(root), "--state-root", str(state_root),
+                    "find", "office-ai", "--json",
+                ])
 
         self.assertEqual(result, 0)
         self.assertIn(f'"open_path": "{project.resolve()}"', output.getvalue())
 
     def test_inspect_includes_copyable_absolute_path(self):
         with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary)
+            root = Path(temporary) / "managed"
+            root.mkdir()
             project = root / "office-ai"
             project.mkdir()
             (project / "README.md").write_text("Office AI course source\n", encoding="utf-8")
             output = io.StringIO()
 
             with contextlib.redirect_stdout(output):
-                result = main(["--root", str(root), "inspect", "office-ai"])
+                result = main([
+                    "--root", str(root), "--state-root", str(Path(temporary) / "state"),
+                    "inspect", "office-ai",
+                ])
 
         self.assertEqual(result, 0)
         self.assertIn(f'"absolute_path": "{project.resolve()}"', output.getvalue())
+
+    def test_scan_writes_catalog_and_report_only_to_external_state_root(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "arbitrary-managed-root"
+            state = Path(temporary) / "runtime-state"
+            (root / "demo").mkdir(parents=True)
+            (root / "demo/README.md").write_text("demo\n", encoding="utf-8")
+            output = io.StringIO()
+
+            with contextlib.redirect_stdout(output):
+                result = main([
+                    "--root", str(root), "--state-root", str(state), "scan", "--write"
+                ])
+
+            self.assertEqual(result, 0)
+            self.assertTrue((state / "registry/catalog.json").is_file())
+            self.assertTrue(any((state / "reports/scans").glob("scan-*.md")))
+            self.assertFalse((root / "course-manager").exists())
+
+    def test_manager_rejects_state_overlap_before_writing(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            for root, state in (
+                (base / "managed", base / "managed/runtime-state"),
+                (base / "state/managed", base / "state"),
+            ):
+                with self.subTest(root=root, state=state):
+                    (root / "demo").mkdir(parents=True, exist_ok=True)
+                    with self.assertRaisesRegex(RuntimeError, "overlap"):
+                        main([
+                            "--root", str(root), "--state-root", str(state),
+                            "scan", "--write",
+                        ])
+                    self.assertFalse((state / "registry/catalog.json").exists())
+
+    def test_missing_workspace_or_state_configuration_fails_closed(self):
+        with mock.patch.dict(os.environ, {}, clear=True):
+            with self.assertRaisesRegex(RuntimeError, "COURSE_WEB_ROOT"):
+                main(["scan"])
 
 
 if __name__ == "__main__":

@@ -1,0 +1,331 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.course-manager/contracts/course-contract.schema.json",
+  "title": "Course Design Contract v3",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "revision",
+    "contract_instance_id",
+    "identity",
+    "governance",
+    "gates",
+    "G0_requirements",
+    "G1_research",
+    "adaptation",
+    "G2_architecture",
+    "G3_lesson_design",
+    "G4_pilot",
+    "G5_production",
+    "G6_release_maintenance",
+    "changes",
+    "evidence_index",
+    "evidence_archive",
+    "external_actions",
+    "maintenance",
+    "consumed_trial_receipts"
+  ],
+  "properties": {
+    "schema_version": { "const": 3 },
+    "revision": { "type": "integer", "minimum": 0 },
+    "contract_instance_id": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "pattern": "^ci-[0-9a-f]{32}$" }
+      ]
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["slug", "title"],
+      "properties": {
+        "slug": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "title": { "type": "string", "minLength": 1 }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "created_by",
+        "created_at",
+        "gate_authority",
+        "external_action_authority",
+        "production_role_roster",
+        "runner_authority"
+      ],
+      "properties": {
+        "created_by": { "type": "string", "minLength": 1 },
+        "created_at": { "type": "string", "minLength": 1 },
+        "gate_authority": {
+          "const": "course-run-with-validated-evidence"
+        },
+        "external_action_authority": {
+          "const": "explicit-user-authorization"
+        },
+        "production_role_roster": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["evidence_id", "sha256"],
+              "properties": {
+                "evidence_id": { "type": "string", "minLength": 1 },
+                "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+              }
+            }
+          ]
+        },
+        "runner_authority": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["authority_id", "algorithm", "public_key", "public_key_fingerprint", "runner_registry_sha256"],
+              "properties": {
+                "authority_id": { "type": "string", "minLength": 1 },
+                "algorithm": { "const": "RSASSA-PKCS1-v1_5-SHA256" },
+                "public_key": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["kty", "n", "e"],
+                  "properties": {
+                    "kty": { "const": "RSA" },
+                    "n": { "type": "string", "pattern": "^[0-9a-f]+$" },
+                    "e": { "const": 65537 }
+                  }
+                },
+                "public_key_fingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+                "runner_registry_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+              }
+            }
+          ]
+        },
+        "approval_authority": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["authority_id", "algorithm", "public_key", "public_key_fingerprint"],
+              "properties": {
+                "authority_id": { "type": "string", "minLength": 1 },
+                "algorithm": { "const": "RSASSA-PKCS1-v1_5-SHA256" },
+                "public_key": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["kty", "n", "e"],
+                  "properties": {
+                    "kty": { "const": "RSA" },
+                    "n": { "type": "string", "pattern": "^[0-9a-f]+$" },
+                    "e": { "const": 65537 }
+                  }
+                },
+                "public_key_fingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["G0", "G1", "G2", "G3", "G4", "G5", "G6"],
+      "properties": {
+        "G0": { "$ref": "#/$defs/gate" },
+        "G1": { "$ref": "#/$defs/gate" },
+        "G2": { "$ref": "#/$defs/gate" },
+        "G3": { "$ref": "#/$defs/gate" },
+        "G4": { "$ref": "#/$defs/gate" },
+        "G5": { "$ref": "#/$defs/gate" },
+        "G6": { "$ref": "#/$defs/gate" }
+      }
+    },
+    "G0_requirements": { "$ref": "#/$defs/payload" },
+    "G1_research": { "$ref": "#/$defs/payload" },
+    "adaptation": { "$ref": "#/$defs/payload" },
+    "G2_architecture": { "$ref": "#/$defs/payload" },
+    "G3_lesson_design": { "$ref": "#/$defs/payload" },
+    "G4_pilot": { "$ref": "#/$defs/payload" },
+    "G5_production": { "$ref": "#/$defs/payload" },
+    "G6_release_maintenance": { "$ref": "#/$defs/payload" },
+    "changes": { "$ref": "#/$defs/recordList" },
+    "evidence_index": {
+      "type": "array",
+      "items": { "$ref": "course-evidence-reference.schema.json" }
+    },
+    "evidence_archive": { "$ref": "#/$defs/recordList" },
+    "external_actions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/externalAction" }
+    },
+    "maintenance": { "$ref": "#/$defs/payload" },
+    "consumed_trial_receipts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/consumedReceipt" }
+    }
+  },
+  "$defs": {
+    "payload": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "recordList": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "consumedReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["receipt_id", "nonce", "gate", "consumed_at"],
+      "properties": {
+        "receipt_id": { "type": "string", "minLength": 1 },
+        "nonce": { "type": "string", "minLength": 1 },
+        "gate": { "enum": ["G4", "G5"] },
+        "consumed_at": { "type": "string", "minLength": 1 }
+      }
+    },
+    "gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "owner",
+        "inputs",
+        "deliverables",
+        "evidence",
+        "risks",
+        "open_questions",
+        "source_revision",
+        "affected_downstream"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "NOT_STARTED",
+            "IN_PROGRESS",
+            "PASS",
+            "FAIL",
+            "BLOCKED",
+            "STALE"
+          ]
+        },
+        "owner": { "type": "string", "minLength": 1 },
+        "inputs": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "deliverables": { "$ref": "#/$defs/recordList" },
+        "evidence": { "$ref": "#/$defs/recordList" },
+        "risks": { "$ref": "#/$defs/recordList" },
+        "open_questions": { "$ref": "#/$defs/recordList" },
+        "source_revision": {
+          "type": ["string", "integer", "null"]
+        },
+        "affected_downstream": {
+          "type": "array",
+          "items": {
+            "enum": ["G0", "G1", "G2", "G3", "G4", "G5", "G6"]
+          }
+        }
+      }
+    },
+    "externalAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "status",
+        "manifest_path",
+        "manifest_sha256",
+        "proposed_by",
+        "proposed_at",
+        "authorization"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "kind": { "type": "string", "minLength": 1 },
+        "status": {
+          "enum": ["PUBLISH_APPROVAL_REQUIRED", "AUTHORIZED", "EXECUTING", "CONSUMED", "FAILED", "INVALIDATED"]
+        },
+        "manifest_path": { "type": "string", "minLength": 1 },
+        "manifest_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "proposed_by": { "type": "string", "minLength": 1 },
+        "proposed_at": { "type": "string", "minLength": 1 },
+        "approval_basis_sha256": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "authorized_revision": { "type": ["integer", "null"], "minimum": 1 },
+        "authorization": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/approvalReceipt" }
+          ]
+        },
+        "execution": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["proposal_revision", "started_at", "finished_at", "outcome", "modified_targets", "error"],
+              "properties": {
+                "proposal_revision": { "type": "integer", "minimum": 0 },
+                "started_at": { "type": "string", "minLength": 1 },
+                "finished_at": { "type": ["string", "null"] },
+                "outcome": { "enum": ["IN_PROGRESS", "PASS", "FAIL_ROLLED_BACK"] },
+                "modified_targets": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+                "error": { "type": ["string", "null"] }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "approvalReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "receipt_id", "authority_id", "algorithm", "contract_instance_id", "contract_revision", "g6_source_revision", "g6_evidence_set_sha256", "action_id", "manifest_sha256", "approval_basis_sha256", "interaction", "nonce", "issued_at", "expires_at", "signature"],
+      "properties": {
+        "schema_version": { "const": 1 },
+        "receipt_id": { "type": "string", "minLength": 1 },
+        "authority_id": { "type": "string", "minLength": 1 },
+        "algorithm": { "const": "RSASSA-PKCS1-v1_5-SHA256" },
+        "contract_instance_id": { "type": "string", "pattern": "^ci-[0-9a-f]{32}$" },
+        "contract_revision": { "type": "integer", "minimum": 0 },
+        "g6_source_revision": { "type": ["integer", "string"] },
+        "g6_evidence_set_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "action_id": { "type": "string", "minLength": 1 },
+        "manifest_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "approval_basis_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "interaction": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "user_id", "session_id", "confirmed_at"],
+          "properties": {
+            "kind": { "const": "explicit_user_approval" },
+            "user_id": { "type": "string", "minLength": 1 },
+            "session_id": { "type": "string", "minLength": 1 },
+            "confirmed_at": { "type": "string", "minLength": 1 }
+          }
+        },
+        "nonce": { "type": "string", "minLength": 1 },
+        "issued_at": { "type": "string", "minLength": 1 },
+        "expires_at": { "type": "string", "minLength": 1 },
+        "signature": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.course-manager/contracts/course-accessibility-report.schema.json",
+  "title": "Course accessibility evidence report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "report_id", "gate_scope", "coverage_scope", "claim",
+    "pages", "applicable_criteria", "automated_checks", "manual_checks", "findings"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "report_id": {"$ref": "#/$defs/id"},
+    "gate_scope": {"enum": ["G4", "G5"]},
+    "coverage_scope": {"enum": ["representative_page", "full_course"]},
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scope", "standard", "version", "level"],
+      "properties": {
+        "scope": {"enum": ["basic_accessibility_smoke", "wcag_2_2_aa"]},
+        "standard": {"enum": ["COURSE_ACCESSIBILITY_SMOKE", "WCAG"]},
+        "version": {"type": "string", "minLength": 1},
+        "level": {"enum": ["basic", "AA"]}
+      }
+    },
+    "pages": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "path"],
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "path": {"$ref": "#/$defs/text"}
+        }
+      }
+    },
+    "applicable_criteria": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["criterion_id", "level"],
+        "properties": {
+          "criterion_id": {"$ref": "#/$defs/criterionId"},
+          "level": {"enum": ["basic", "A", "AA"]}
+        }
+      }
+    },
+    "automated_checks": {
+      "type": "array", "minItems": 1,
+      "items": {"$ref": "#/$defs/automatedCheck"}
+    },
+    "manual_checks": {
+      "type": "array", "minItems": 1,
+      "items": {"$ref": "#/$defs/manualCheck"}
+    },
+    "findings": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/finding"}
+    }
+  },
+  "$defs": {
+    "text": {"type": "string", "minLength": 1},
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+    "criterionId": {"type": "string", "pattern": "^(?:[1-4]\\.[1-9][0-9]*\\.[1-9][0-9]*|[a-z]+(?:-[a-z]+)*)$"},
+    "idList": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+    "automatedCheck": {
+      "type": "object", "additionalProperties": false,
+      "required": ["check_id", "method", "tool", "tool_version", "user_agent", "page_id", "criterion_id", "status", "evidence"],
+      "properties": {
+        "check_id": {"$ref": "#/$defs/id"},
+        "method": {"const": "automated"},
+        "tool": {"$ref": "#/$defs/text"},
+        "tool_version": {"$ref": "#/$defs/text"},
+        "user_agent": {"$ref": "#/$defs/text"},
+        "page_id": {"$ref": "#/$defs/id"},
+        "criterion_id": {"$ref": "#/$defs/criterionId"},
+        "status": {"enum": ["PASS", "FAIL", "NOT_TESTED", "NOT_AUTOMATABLE"]},
+        "evidence": {"$ref": "#/$defs/text"}
+      }
+    },
+    "manualCheck": {
+      "type": "object", "additionalProperties": false,
+      "required": ["check_id", "method", "evaluator_id", "method_description", "user_agent", "assistive_technology", "page_id", "criterion_id", "status", "evidence"],
+      "properties": {
+        "check_id": {"$ref": "#/$defs/id"},
+        "method": {"const": "manual"},
+        "evaluator_id": {"$ref": "#/$defs/id"},
+        "method_description": {"$ref": "#/$defs/text"},
+        "user_agent": {"$ref": "#/$defs/text"},
+        "assistive_technology": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/text"}},
+        "page_id": {"$ref": "#/$defs/id"},
+        "criterion_id": {"$ref": "#/$defs/criterionId"},
+        "status": {"enum": ["PASS", "FAIL", "NOT_TESTED"]},
+        "evidence": {"$ref": "#/$defs/text"}
+      }
+    },
+    "finding": {
+      "type": "object", "additionalProperties": false,
+      "required": ["finding_id", "page_ids", "criterion_ids", "severity", "status", "summary", "resolution"],
+      "properties": {
+        "finding_id": {"$ref": "#/$defs/id"},
+        "page_ids": {"$ref": "#/$defs/idList"},
+        "criterion_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/criterionId"}},
+        "severity": {"enum": ["INFO", "LOW", "MEDIUM", "HIGH", "SERIOUS", "CRITICAL"]},
+        "status": {"enum": ["OPEN", "RESOLVED"]},
+        "summary": {"$ref": "#/$defs/text"},
+        "resolution": {"$ref": "#/$defs/text"}
+      }
+    }
+  }
+}

@@ -5,8 +5,8 @@
 **課程 slug**：uiux-designer  
 **負責人**：課程製作流程  
 **建立**：2026-09-07  
-**目前 Gate**：G1 大綱定位草稿  
-**目前狀態**：`G1_BLOCKED_BY_FIGMA_VALIDATION`
+**目前 Gate**：既有課程修復驗證
+**目前狀態**：`BLOCKED`
 
 ---
 
@@ -233,3 +233,17 @@ B5 先接手 B4 的可預覽原型，產出長清單、Overflow、固定／漂�
 **機器輸出**：`_validation/validation-result.json`、`_validation/FINAL-REPORT.md`
 **原始實測**：`_validation/repair-2026-10-09/`
 **備份／還原**：`_backup/2026-10-09-pre-repair/`（101份原檔）、`_tools/restore-2026-10-09-pre-repair.sh`。還原原檔不刪本輪新檔；含站根索引與正式教案，須在有寫入權限環境執行。
+
+## 2026-10-22：Deep Review 修復
+
+本條取代「2026-10-09 為最新有效狀態」的控制效果，但保留所有歷史紀錄。2026-10-11 內容與素材變更後，舊 hash 的 content、fidelity 與 technical PASS 已失效；2026-10-22 依現行 evidence 重跑 validator，狀態為 `BLOCKED`、有效紀錄 0。
+
+本輪只修正可確定的本機缺口：B6 總覽同步 T01–T08、補 VS Code 官方取得與首次啟動成功判準、重產現行驗證狀態，並對現行頁面重做代表性 browser smoke。以下仍不得放行：
+
+- 16 單元符合 actor 契約的 content review，以及現行 fidelity／technical records。
+- 可編輯且經實測的 Figma `.fig` checkpoint 或乾淨帳號重建證據。
+- Photoshop 授權工作站與 PSD 完整操作。
+- GitHub Pages 權限、push／部署／更新及現行 live hash。
+- 真人 entry、completion、understanding、transfer、三課序列與 99 小時實際時數。
+
+詳細證據：`_repair/2026-10-22-deep-review/REPAIR-REPORT.md`。本條不代表已發布，也不代表 HUMAN_READY。

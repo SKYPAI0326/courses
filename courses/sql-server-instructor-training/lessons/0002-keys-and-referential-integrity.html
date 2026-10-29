@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第 2 課：主鍵、外鍵與資料完整性</title>
+  <style>
+    :root { color-scheme: light; --ink:#202b32; --muted:#53636b; --line:#d8e0e3; --paper:#fbfaf7; --accent:#245b65; --wash:#edf4f2; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.72 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    main { width:min(760px,calc(100% - 36px)); margin:52px auto; }
+    .eyebrow { color:var(--accent); font-weight:700; letter-spacing:.08em; }
+    h1,h2 { line-height:1.25; letter-spacing:-.02em; }
+    h1 { font-size:clamp(2rem,5vw,3rem); margin:.25em 0; }
+    h2 { font-size:1.25rem; margin:2em 0 .5em; }
+    p { margin:.7em 0; }
+    .muted { color:var(--muted); }
+    .panel { border:1px solid var(--line); border-radius:8px; background:white; padding:15px 18px; margin:16px 0; }
+    .callout { padding:15px 18px; border-radius:8px; background:var(--wash); }
+    code { background:#eef1f2; border-radius:4px; padding:.1em .3em; }
+    ol { padding-left:1.4em; }
+    li { margin:.35em 0; }
+    a { color:var(--accent); }
+    footer { margin-top:32px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); font-size:.92rem; }
+    @media print { body { background:#fff; } main { width:auto; margin:0; } }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">SQL SERVER INSTRUCTOR TRAINING · 02</p>
+    <h1>主鍵、外鍵與資料完整性</h1>
+    <p class="muted">本課約 15 分鐘。教材以 Microsoft 官方 AdventureWorks 範例資料庫和官方文件為依據；AdventureWorks 是範例資料，不代表真實客戶資料或生產事故。</p>
+
+    <h2>先抓住兩個不同問題</h2>
+    <div class="panel">
+      <p><strong>主鍵（PRIMARY KEY）</strong>回答：「這一列如何被唯一辨認？」它可以是一個欄位，也可以由多個欄位組成。主鍵約束要求鍵值組合唯一且不可為 NULL。</p>
+      <p><strong>外鍵（FOREIGN KEY）</strong>回答：「這個欄位的值可以參照到哪裡？」它把一個資料表的欄位連到另一個資料表的候選鍵，並由 Database Engine 執行參照完整性檢查。</p>
+    </div>
+    <p>複合主鍵的重點是「組合唯一」，不是要求每個欄位各自唯一。Microsoft 的 AdventureWorks 文件以 <code>Purchasing.ProductVendor</code> 為例，將 <code>ProductID</code> 與 <code>VendorID</code> 合在一起作為複合主鍵。這些是該官方範例資料庫的已記錄結構，不是本課杜撰的企業案例。</p>
+
+    <h2>在真實範例資料庫查證</h2>
+    <ol>
+      <li>先確認已連線到正確的 SQL Server 執行個體，並選取與版本相符的 AdventureWorks 範例資料庫。</li>
+      <li>執行<a href="../labs/01-inspect-adventureworks-keys.sql">鍵約束盤點查詢</a>。它只讀資料庫名稱、中繼資料和鍵欄位，不會修改資料。</li>
+      <li>在結果中找到 <code>Purchasing.ProductVendor</code> 的主鍵欄位，依 <code>ORDINAL_POSITION</code> 看欄位順序；再讀外鍵約束的欄位。</li>
+      <li>最後一個查詢找出重複的 <code>(ProductID, VendorID)</code> 組合。若主鍵存在且啟用，這個查詢應不會列出重複組合；實際輸出仍須由你在環境中執行確認。</li>
+    </ol>
+    <p class="muted">若物件 ID 是 NULL 或 metadata 查詢沒有列出約束，先核對目前資料庫、AdventureWorks 版本、物件名稱和帳號可見性，不要臆測查詢已成功。</p>
+
+    <h2>閉卷講解</h2>
+    <ol>
+      <li>為什麼主鍵可以由多個欄位組成？</li>
+      <li>複合主鍵保證每一欄各自唯一嗎？它真正保證什麼？</li>
+      <li>外鍵由哪一層強制檢查？它保護什麼資料關係？</li>
+      <li>把主鍵約束說成「一種索引」是否完整？還缺了什麼語意？</li>
+    </ol>
+    <div class="callout"><strong>驗收狀態：待本人作答與實機查詢。</strong>讀完教材不算掌握；需由你說明主鍵／外鍵差異，並在 AdventureWorks 上提供實際查詢結果。</div>
+
+    <footer>
+      <p>主要來源：Microsoft Learn 的 <a href="https://learn.microsoft.com/en-us/sql/relational-databases/tables/primary-and-foreign-key-constraints?view=sql-server-ver16">Primary and foreign key constraints</a>、<a href="https://learn.microsoft.com/en-us/sql/relational-databases/system-information-schema-views/system-information-schema-views-transact-sql?view=sql-server-ver17">System information schema views</a>、<a href="https://learn.microsoft.com/en-us/sql/samples/adventureworks-install-configure?view=sql-server-ver17">AdventureWorks sample databases</a>。</p>
+      <p><a href="0001-sql-server-object-hierarchy.html">第 1 課：物件層級</a> · <a href="../reference/sql-server-object-hierarchy.html">物件層級速查</a> · <a href="../ROADMAP.md">12 週訓練路線</a></p>
+    </footer>
+  </main>
+</body>
+</html>

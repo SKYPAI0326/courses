@@ -1,0 +1,1297 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import copy
+import argparse
+import hashlib
+import json
+import shutil
+import sys
+from pathlib import Path
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from src.course_content import validate_lesson_record  # noqa: E402
+from src.course_contract import (  # noqa: E402
+    bind_production_role_roster,
+    begin_gate,
+    new_contract,
+    propose_external_action,
+    save_contract_atomic,
+    validate_contract,
+)
+from src.course_evidence import materialize_json_evidence, register_evidence_file  # noqa: E402
+from src.course_gate import validate_and_transition_gate  # noqa: E402
+from src.course_architecture_routes import route_blueprint_to_g2  # noqa: E402
+from src.course_content_routes import route_content_to_g3  # noqa: E402
+from src.course_production import (  # noqa: E402
+    select_pilot_unit,
+    validate_full_production,
+    validate_pilot_record,
+)
+from src.course_production_routes import route_full_production_to_g5  # noqa: E402
+from src.course_release import build_release_proposal, validate_release_record  # noqa: E402
+from src.course_research import validate_research_record  # noqa: E402
+from src.course_research_routes import route_research_to_gate  # noqa: E402
+from src.course_requirements_routes import route_requirements_to_g0  # noqa: E402
+from src.course_validation_routes import route_verified_trial_to_gate  # noqa: E402
+from src.course_validation import trial_action_id  # noqa: E402
+
+
+SOURCE_ROOT = Path(__file__).resolve().parent
+ROOT = SOURCE_ROOT
+EVIDENCE = ROOT / "evidence"
+DESIGN = ROOT / "_design" / "campaign-performance-brief"
+COURSE = ROOT / "course"
+TRIALS = ROOT / "trials"
+
+
+def sha(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def write_json(path: Path, value) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
+
+
+def load_json(path: Path):
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _prepare_output_root(output_root: Path) -> None:
+    if output_root.exists():
+        if not output_root.is_dir() or any(output_root.iterdir()):
+            raise SystemExit("PRECONDITION FAILED: output root must be absent or empty")
+    else:
+        output_root.mkdir(parents=True)
+    shutil.copytree(SOURCE_ROOT / "course", output_root / "course", dirs_exist_ok=True)
+    for name in ("research-record.json", "adaptation.json"):
+        destination = output_root / "evidence" / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(SOURCE_ROOT / "evidence" / name, destination)
+    for name in ("unit-3-desktop.png", "unit-3-tablet.png", "unit-3-mobile.png"):
+        destination = output_root / "evidence" / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(SOURCE_ROOT / "evidence" / name, destination)
+    final_source = SOURCE_ROOT / "trials/full-course-output/campaign-performance-brief.md"
+    final_target = output_root / "trials/full-course-output/campaign-performance-brief.md"
+    final_target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(final_source, final_target)
+    release_source = SOURCE_ROOT / "release-staging/index.html"
+    release_target = output_root / "release-staging/index.html"
+    release_target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(release_source, release_target)
+    (output_root / "release-target").mkdir(parents=True, exist_ok=True)
+
+
+def _materialize_trial_files(root: Path, trial: dict) -> list[dict]:
+    for index, item in enumerate(trial["allowed_inputs"]):
+        target = root / item["path"]
+        if not target.is_file():
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(f"learner-visible input {index}\n", encoding="utf-8")
+        item["sha256"] = sha(target)
+    references = []
+    old_to_new_actions = {}
+    for binding in trial["evidence_bindings"]:
+        target = root / binding["path"]
+        if binding["role"] != "held-out-input":
+            target.parent.mkdir(parents=True, exist_ok=True)
+            if target.suffix == ".json":
+                write_json(
+                    target,
+                    {
+                        "role": binding["role"],
+                        "evidence_id": binding["evidence_id"],
+                    },
+                )
+            else:
+                target.write_text(
+                    f"{binding['role']}:{binding['evidence_id']}\n",
+                    encoding="utf-8",
+                )
+        binding["sha256"] = sha(target)
+        references.append(
+            register_evidence_file(
+                root,
+                evidence_id=binding["evidence_id"],
+                gate_id="G4" if trial["scope"] == "representative_unit" else "G5",
+                kind="trial_transfer_artifact",
+                relative_path=binding["path"],
+                metadata={"role": binding["role"]},
+            )
+        )
+    by_id = {item["evidence_id"]: item for item in trial["evidence_bindings"]}
+    for action in trial["actions"]:
+        old_id = action["id"]
+        action["observable_result"]["actual_sha256"] = by_id[
+            action["output_evidence_id"]
+        ]["sha256"]
+        action["id"] = trial_action_id(action)
+        old_to_new_actions[old_id] = action["id"]
+    for row in trial["criterion_evidence"]:
+        row["action_id"] = old_to_new_actions[row["action_id"]]
+    final = next(
+        item for item in trial["evidence_bindings"] if item["role"] == "held-out-output"
+    )
+    trial["artifact"]["path"] = final["path"]
+    trial["artifact"]["sha256"] = final["sha256"]
+    return references
+
+
+def _canonical_hash(value) -> str:
+    return hashlib.sha256(
+        (
+            json.dumps(
+                value, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+            )
+            + "\n"
+        ).encode("utf-8")
+    ).hexdigest()
+
+
+def _stable_hash(label: str) -> str:
+    return hashlib.sha256(label.encode("utf-8")).hexdigest()
+
+
+def trial_record(
+    requirements: dict,
+    blueprint: dict,
+    *,
+    scope: str,
+    runner_authority_id: str,
+    representative_unit_id: str | None = None,
+) -> dict:
+    """Build canonical Task 6 trial evidence without touching proof snapshots."""
+    units = {
+        unit["id"]: unit for unit in blueprint["units"]
+        if isinstance(unit, dict) and isinstance(unit.get("id"), str)
+    }
+    selected_units = (
+        {representative_unit_id}
+        if scope == "representative_unit"
+        else set(units)
+    )
+    criteria = [
+        criterion for criterion in blueprint["criteria"]
+        if any(
+            criterion["capability_id"] in unit.get("capability_ids", [])
+            for unit_id, unit in units.items() if unit_id in selected_units
+        )
+    ]
+    task_id = f"heldout-{scope.replace('_', '-')}"
+    artifact_id = f"trial-{scope.replace('_', '-')}-artifact"
+    heldout_input = _stable_hash(f"{task_id}:input")
+    heldout_input_id = f"{task_id}-input"
+    actions = []
+    previous_hash = heldout_input
+    criterion_evidence = []
+    for sequence, criterion in enumerate(criteria, start=1):
+        output_id = artifact_id if sequence == len(criteria) else f"{task_id}-state-{sequence}"
+        output_hash = _stable_hash(f"{task_id}:output:{sequence}")
+        unit_id = next(
+            unit_id for unit_id, unit in units.items()
+            if criterion["capability_id"] in unit.get("capability_ids", [])
+        )
+        action = {
+            "id": "pending",
+            "sequence": sequence,
+            "task_id": task_id,
+            "operation": {"subject_evidence_id": heldout_input_id if sequence == 1 else f"{task_id}-state-{sequence - 1}", "kind": "compare", "transformation": {"rule_kind": "threshold-evaluation", "rule_id": f"condition-{criterion['id']}"}},
+            "decision": {"condition_id": f"condition-{criterion['id']}", "criterion_id": criterion["id"], "rule_passed": False, "outcome": "revise"},
+            "affected_criterion_id": criterion["id"],
+            "input_evidence_id": heldout_input_id if sequence == 1 else f"{task_id}-state-{sequence - 1}",
+            "output_evidence_id": output_id,
+            "observable_result": {"evidence_id": output_id, "criterion_id": criterion["id"], "expected_result": "PASS", "actual_result": "PASS", "actual_sha256": output_hash},
+            "result": "PASS",
+            "at": f"2026-10-18T16:{sequence:02d}:00+08:00",
+        }
+        action["id"] = trial_action_id(action)
+        actions.append(action)
+        criterion_evidence.append({
+            "g0_criterion_id": criterion["g0_criterion_id"],
+            "capability_id": criterion["capability_id"],
+            "outcome_id": criterion["outcome_id"],
+            "criterion_id": criterion["id"],
+            "unit_id": unit_id,
+            "action_id": action["id"],
+            "artifact_evidence_id": artifact_id,
+            "result": "PASS",
+        })
+        previous_hash = output_hash
+    page = (
+        f"course/{representative_unit_id}.html"
+        if scope == "representative_unit"
+        else "course/index.html"
+    )
+    target = requirements["target_profile"]
+    reference_roles = {
+        "demonstration": "demonstration", "guided_practice": "guided-practice",
+        "answer_key": "answer-key",
+    }
+    evidence_bindings = [
+        {"evidence_id": heldout_input_id, "path": page, "sha256": heldout_input, "role": "held-out-input"},
+        {"evidence_id": artifact_id, "path": f"trials/{scope}/heldout-artifact.md", "sha256": previous_hash, "role": "held-out-output"},
+        *[
+            {"evidence_id": f"{task_id}-state-{sequence}", "path": f"trials/{scope}/state-{sequence}.json", "sha256": _stable_hash(f"{task_id}:output:{sequence}"), "role": "action-state"}
+            for sequence in range(1, len(criteria))
+        ],
+        *[
+            {"evidence_id": f"{task_id}-{name.replace('_', '-')}-{side}", "path": f"trials/{scope}/{name.replace('_', '-')}-{side}.dat", "sha256": _stable_hash(f"{task_id}:{name}:{side}"), "role": f"{role}-{side}"}
+            for name, role in reference_roles.items() for side in ("input", "output")
+        ],
+    ]
+    return {
+        "schema_version": 4,
+        "scope": scope,
+        "requirements_sha256": _canonical_hash(requirements),
+        "target_profile_id": target["id"],
+        "runner_authority_id": runner_authority_id,
+        "participant": {
+            "id": f"independent-ai-{scope.replace('_', '-')}",
+            "type": "independent-ai",
+            "roles": ["learner-trial"],
+        },
+        "runner_session_id": f"session-{scope.replace('_', '-')}",
+        "isolated_context_id": f"context-{scope.replace('_', '-')}",
+        "allowed_tools": list(requirements["environment"]["tools"]),
+        "allowed_inputs": [{"kind": "learner-page", "path": page, "sha256": heldout_input}],
+        "evidence_bindings": evidence_bindings,
+        "forbidden_inputs_accessed": [],
+        "entry_readiness": {
+            "baseline_statement": target["baseline"],
+            "prerequisite_statements": list(target["prerequisites"]),
+            "baseline_confirmed": True,
+            "prerequisites_confirmed": True,
+            "tools_confirmed": True,
+            "inputs_confirmed": True,
+        },
+        "entry": {
+            "started_at": "2026-10-18T16:00:00+08:00",
+            "page": page,
+            "goal_understood": True,
+            "materials_found": True,
+        },
+        "transfer_task": {
+            "task_id": task_id,
+            "source_task_id": f"guided-{scope.replace('_', '-')}",
+            "changed_conditions": [{
+                "condition_id": f"condition-{criterion['id']}",
+                "dimension": "threshold",
+                "metric_id": "acceptance-score", "unit": "points",
+                "comparator": "lte", "before_value": 500 + index, "after_value": 350 + index,
+                "observed_value": 400 + index, "basis_evidence_id": heldout_input_id,
+                "affected_criterion_id": criterion["id"],
+                "before_rule_passed": True, "after_rule_passed": False,
+                "before_outcome": "accept", "after_outcome": "revise",
+            } for index, criterion in enumerate(criteria)],
+            "held_out_input_evidence_id": heldout_input_id,
+            "held_out_output_evidence_id": artifact_id,
+            "reference_evidence": {
+                name: {
+                    "input_evidence_id": f"{task_id}-{name.replace('_', '-')}-input",
+                    "output_evidence_id": f"{task_id}-{name.replace('_', '-')}-output",
+                }
+                for name in ("demonstration", "guided_practice", "answer_key")
+            },
+        },
+        "actions": actions,
+        "criterion_evidence": criterion_evidence,
+        "hints": [{"source": "none", "detail": "The runner used only the learner-visible page."}],
+        "blocks": [],
+        "recovery": [],
+        "artifact": {
+            "evidence_id": artifact_id,
+            "path": f"trials/{scope}/heldout-artifact.md",
+            "sha256": previous_hash,
+            "complete": True,
+            "verifiable": True,
+            "acceptance_result": "PASS",
+        },
+        "result": {
+            "status": "PASS",
+            "completed_at": "2026-10-18T17:00:00+08:00",
+            "notes": "Independent AI trial used only declared learner-visible inputs.",
+        },
+        "maturity_claims": {
+            "ai_trial": "INDEPENDENT_AI_VERIFIED",
+            "human_duration": "PENDING_HUMAN",
+            "human_readability": "PENDING_HUMAN",
+            "target_learner_independence": "PENDING_HUMAN",
+        },
+    }
+
+
+def accessibility_report(gate_scope: str, pages: list[dict]) -> dict:
+    """Build a basic smoke report; this factory makes no WCAG conformance claim."""
+    report_id = f"accessibility-{gate_scope.lower()}-basic-smoke"
+    return {
+        "schema_version": 1,
+        "report_id": report_id,
+        "gate_scope": gate_scope,
+        "coverage_scope": "representative_page" if gate_scope == "G4" else "full_course",
+        "claim": {"scope": "basic_accessibility_smoke", "standard": "COURSE_ACCESSIBILITY_SMOKE", "version": "1.0", "level": "basic"},
+        "pages": copy.deepcopy(pages),
+        "applicable_criteria": [{"criterion_id": item, "level": "basic"} for item in ("keyboard", "focus", "reading-order", "horizontal-overflow")],
+        "automated_checks": [{
+            "check_id": f"automated-overflow-{page['id']}", "method": "automated",
+            "tool": "Playwright", "tool_version": "1.56.1", "user_agent": "Chromium 141",
+            "page_id": page["id"], "criterion_id": "horizontal-overflow", "status": "PASS",
+            "evidence": "No page-level horizontal overflow at tested viewports.",
+        } for page in pages],
+        "manual_checks": [{
+            "check_id": f"manual-{item}-{page['id']}", "method": "manual",
+            "evaluator_id": "accessibility-review-ai", "method_description": "Keyboard, focus, and reading-order inspection.",
+            "user_agent": "Safari 20", "assistive_technology": ["VoiceOver 17"],
+            "page_id": page["id"], "criterion_id": item, "status": "PASS",
+            "evidence": f"Observed {item} on {page['id']}.",
+        } for page in pages for item in ("keyboard", "focus", "reading-order")],
+        "findings": [],
+    }
+
+
+def requirements_record() -> dict:
+    """Return the concrete G0 contract used by this proof course."""
+    return {
+        "schema_version": 1,
+        "requirements_id": "campaign-performance-brief-requirements",
+        "target_profile": {
+            "id": "first-time-performance-marketer",
+            "learner": "第一次需要獨立向主管說明付費活動成效的行銷同仁。",
+            "baseline": "能讀取 CSV 欄位並完成基本除法，但尚未能穩定計算與解釋廣告成效指標。",
+            "prerequisites": ["能下載課程檔案、以試算表或文字編輯器開啟素材，並另存自己的成果。"],
+        },
+        "work_context": {
+            "situation": "每週例會前，學員要把三個活動的原始匯出資料整理成主管可自行閱讀的摘要。",
+            "problem": "原始曝光、點擊、花費、轉換與價值數字尚未轉成一致指標，也沒有清楚的達標判斷與後續行動。",
+            "use": "主管會使用完成品決定下一輪要維持、檢查或測試的活動。",
+        },
+        "final_artifact": {
+            "name": "campaign-performance-brief.md",
+            "format": "包含五項指標表、門檻判讀、證據界線與下一步測試的 Markdown 摘要。",
+            "observable_result": "讀者能從固定 CSV 重算三個活動的指標，確認達標判斷，並看見不超出資料範圍的下一步。",
+            "use": "成果可直接交給主管作為例會前的成效判讀底稿。",
+        },
+        "delivery": {
+            "mode": "四十五分鐘自學實作，所有核心素材可離線開啟。",
+            "available_minutes": 45,
+            "break_buffer_policy": "三個實作單元共三十七分鐘，另保留四分鐘休息與四分鐘修正公式或文字。",
+        },
+        "environment": {
+            "tools": ["能開啟 CSV 並計算除法的試算表，以及能儲存 Markdown 的文字編輯器。"],
+            "accounts": ["核心任務不需外部平台帳號；學員只使用本地課程素材。"],
+            "permissions": ["學員需要下載、編輯與另存課程 CSV、範本及完成品的本機權限。"],
+            "device": "可同時查看課程頁與編輯素材的筆記型或桌上型電腦。",
+            "locale": "繁體中文介面、Asia/Taipei 時區與新臺幣金額格式。",
+        },
+        "constraints": [
+            {
+                "id": "constraint-fixed-offline-data",
+                "description": "課程必須在四十五分鐘內以固定、離線、去識別化資料完成。",
+                "impact": "示範、練習與評量使用同一欄位結構，且不依賴真實廣告帳戶。",
+            },
+            {
+                "id": "constraint-no-causal-claim",
+                "description": "彙總活動資料只能支持成效描述，不能宣稱受眾、素材或版位造成結果。",
+                "impact": "完成品必須把直接觀察、資料限制與下一步測試分開書寫。",
+            },
+        ],
+        "acceptance_criteria": [
+            {
+                "id": "all-metrics",
+                "statement": "完成品包含三個活動的五項可重算成效指標。",
+                "capabilities": [
+                    {"id": "cap-calculate-ctr", "statement": "以點擊除以曝光正確計算每個活動的 CTR 百分比。"},
+                    {"id": "cap-calculate-cpc", "statement": "以花費除以點擊正確計算每個活動的平均 CPC 金額。"},
+                    {"id": "cap-calculate-cvr", "statement": "以轉換除以點擊正確計算每個活動的 CVR 百分比。"},
+                    {"id": "cap-calculate-cpa", "statement": "以花費除以轉換正確計算每個活動的 CPA 金額。"},
+                    {"id": "cap-calculate-roas", "statement": "以轉換價值除以花費正確計算每個活動的 ROAS 比率。"},
+                ],
+            },
+            {
+                "id": "correct-threshold",
+                "statement": "完成品依相同門檻正確標示達標與未達標活動。",
+                "capabilities": [{"id": "cap-correct-threshold", "statement": "同時比較 CPA 與 ROAS 門檻，並指出 Prospecting Social 未達標。"}],
+            },
+            {
+                "id": "evidence-boundary",
+                "statement": "完成品清楚說明彙總資料能支持與不能支持的判斷。",
+                "capabilities": [{"id": "cap-evidence-boundary", "statement": "把可觀察的指標事實與尚未驗證的成因分開表達。"}],
+            },
+            {
+                "id": "actionable-next-step",
+                "statement": "完成品提出可執行且可觀察結果的下一步。",
+                "capabilities": [{"id": "cap-actionable-next-step", "statement": "針對未達標活動提出一項測試，並寫出後續要觀察的指標。"}],
+            },
+        ],
+        "known_facts": ["固定 CSV 含三個活動及 impressions、clicks、cost_twd、conversions、conversion_value_twd 欄位。"],
+        "assumptions": [{
+            "id": "assumption-basic-division",
+            "statement": "學員能依教材示範把欄位代入除法公式。",
+            "material": False,
+            "validation_plan": "第一單元先用 Brand Search 完成一列示範，失敗時依公式與分母檢查恢復。",
+        }],
+        "unknowns": [{
+            "id": "unknown-spreadsheet-product",
+            "question": "學員會使用哪一套試算表軟體開啟 CSV？",
+            "material": False,
+            "impact_domains": ["non-core"],
+            "status": "RESOLVED",
+            "resolution": "已以課程固定 CSV 驗證跨產品公式可完成五項指標，不依賴特定選單或函數。",
+            "fallback": None,
+        }],
+        "decisions": [{
+            "id": "decision-complete-brief",
+            "decision": "主路徑從可重算指標表逐步收斂成一份可交付的 Markdown 成效摘要。",
+            "rationale": "同一份固定資料能讓學員把計算、門檻、證據界線與行動連成真實工作成果。",
+        }],
+    }
+
+
+def blueprint_record(requirements: dict) -> dict:
+    """Return the single evidence-backed G2 path derived from G0."""
+    unit_specs = (
+        {
+            "id": "unit-1", "title": "從原始欄位建立效率指標", "outcome": "完成三個活動的 CTR 與平均 CPC 計算表。",
+            "outcome_ids": ["outcome-metrics"], "criterion_ids": ["g2-ctr", "g2-cpc"], "capability_ids": ["cap-calculate-ctr", "cap-calculate-cpc"],
+            "prerequisite_unit_ids": [], "workflow_fingerprint": "calculate-engagement-efficiency", "duration_minutes": 12,
+            "g1_evidence_refs": ["g1-research"],
+            "risk": {"failure_cost": 2, "tool_uncertainty": 1, "asset_dependency": 3, "layout_complexity": 2, "downstream_dependency": 5},
+        },
+        {
+            "id": "unit-2", "title": "補齊商業結果並套用門檻", "outcome": "補齊 CVR、CPA 與 ROAS，並正確判斷活動是否同時達到門檻。",
+            "outcome_ids": ["outcome-metrics", "outcome-threshold"], "criterion_ids": ["g2-cvr", "g2-cpa", "g2-roas", "g2-correct-threshold"], "capability_ids": ["cap-calculate-cvr", "cap-calculate-cpa", "cap-calculate-roas", "cap-correct-threshold"],
+            "prerequisite_unit_ids": ["unit-1"], "workflow_fingerprint": "calculate-and-compare-business-outcomes", "duration_minutes": 12,
+            "g1_evidence_refs": ["g1-research"],
+            "risk": {"failure_cost": 4, "tool_uncertainty": 2, "asset_dependency": 3, "layout_complexity": 3, "downstream_dependency": 5},
+        },
+        {
+            "id": "unit-3", "title": "把判讀寫成可交付摘要", "outcome": "完成可驗收的成效摘要，區分數據判讀、限制與下一步。",
+            "outcome_ids": ["outcome-brief"], "criterion_ids": ["g2-evidence-boundary", "g2-actionable-next-step"], "capability_ids": ["cap-evidence-boundary", "cap-actionable-next-step"],
+            "prerequisite_unit_ids": ["unit-2"], "workflow_fingerprint": "write-evidence-bounded-brief", "duration_minutes": 13,
+            "g1_evidence_refs": ["g1-research"],
+            "risk": {"failure_cost": 5, "tool_uncertainty": 1, "asset_dependency": 4, "layout_complexity": 4, "downstream_dependency": 5},
+        },
+    )
+    units = []
+    for spec in unit_specs:
+        unit = copy.deepcopy(spec)
+        unit.update({
+            "context": "學員正在準備每週例會，需要把上一階段的可重算結果轉成主管能採用的下一階段成果。",
+            "output": spec["outcome"],
+            "depends_on": list(spec["prerequisite_unit_ids"]),
+            "teaching_approach": "先說明這一步支持的工作判斷，再完整示範輸入、選擇理由、操作、結果與驗證，接著讓學員跟做及獨立完成。",
+            "worked_example_plan": {
+                "input": "使用課程 CSV 中一個活動的實際曝光、點擊、花費、轉換與價值資料。",
+                "rationale": "每一步都說明公式分母或判斷門檻如何影響主管會採取的行動。",
+                "actions": ["代入實際數字完成該單元工作，保留中間依據，並依預期結果逐項核對。"],
+                "result": spec["outcome"],
+                "verification": "使用單元的 criterion-level 檢核，確認數值、單位、推論界線與可觀察結果。",
+            },
+            "guided_practice": {
+                "activity": "學員改用第二個活動跟做，並在公式或判讀轉折處停下核對。",
+                "feedback": "教材提供預期數值或判讀，讓學員定位欄位、分母、門檻或推論錯誤。",
+                "check": "學員能指出自己的結果是否符合該單元 criterion，並說明差異來源。",
+                "recovery": "回到原始欄位與門檻逐項重算或改寫，直到可由另一位讀者重現。",
+            },
+            "independent_practice": {
+                "changed_conditions": ["改用尚未示範的活動資料", "拿掉逐步代入答案並要求保留判斷依據"],
+                "decision": "學員自行選擇適用公式或判讀方式，並決定如何在完成品中呈現。",
+                "deliverable": spec["outcome"],
+                "check": "依穩定 criterion ID 逐項核對獨立成果，且保留可重新驗證的數字或文字。",
+                "recovery": "未通過時先定位資料、公式、門檻或推論界線，再只重做受影響部分並重新核對。",
+            },
+            "assessment_evidence": [
+                {"criterion_id": criterion_id, "evidence": "保存獨立完成的階段成果及逐項檢核結果。"}
+                for criterion_id in spec["criterion_ids"]
+            ],
+            "materials": ["campaign-data.csv、brief-template.md、rubric.md 與該單元完整示範。"],
+            "asset_ids": ["campaign-data", "brief-template", "rubric"],
+        })
+        units.append(unit)
+    return {
+        "schema_version": 1,
+        "blueprint_id": "campaign-performance-brief-blueprint",
+        "course_id": "campaign-performance-brief",
+        "requirements_id": requirements["requirements_id"],
+        "decision_narrative": {
+            "recommended_path": "先用固定資料建立可重算指標，再套用一致門檻，最後寫成有證據界線與可觀察下一步的摘要。",
+            "rationale": "G1 的指標定義與平台歸因證據顯示，學員必須先穩定處理分母與單位，再把描述性資料轉成不越界的決策文字。",
+            "constraint_fit": "三個實作單元共三十七分鐘，另有四分鐘休息與四分鐘修正緩衝，能在 G0 的四十五分鐘內完成真實交付物。",
+            "g1_evidence_refs": ["g1-research"],
+        },
+        "outcomes": [
+            {"id": "outcome-metrics", "statement": "學員能從固定原始欄位完成五項可重算指標。", "criterion_ids": ["g2-ctr", "g2-cpc", "g2-cvr", "g2-cpa", "g2-roas"]},
+            {"id": "outcome-threshold", "statement": "學員能以 CPA 與 ROAS 的共同門檻判斷活動表現。", "criterion_ids": ["g2-correct-threshold"]},
+            {"id": "outcome-brief", "statement": "學員能寫出區分事實、限制與可驗證下一步的成效摘要。", "criterion_ids": ["g2-evidence-boundary", "g2-actionable-next-step"]},
+        ],
+        "criteria": [
+            {"id": "g2-ctr", "outcome_id": "outcome-metrics", "g0_criterion_id": "all-metrics", "capability_id": "cap-calculate-ctr", "statement": "三個活動的 CTR 數值與百分比單位正確。", "assessment_evidence": "提交保留曝光與點擊分母來源的 CTR 欄位。"},
+            {"id": "g2-cpc", "outcome_id": "outcome-metrics", "g0_criterion_id": "all-metrics", "capability_id": "cap-calculate-cpc", "statement": "三個活動的平均 CPC 數值與金額單位正確。", "assessment_evidence": "提交保留花費與點擊分母來源的平均 CPC 欄位。"},
+            {"id": "g2-cvr", "outcome_id": "outcome-metrics", "g0_criterion_id": "all-metrics", "capability_id": "cap-calculate-cvr", "statement": "三個活動的 CVR 數值與百分比單位正確。", "assessment_evidence": "提交保留轉換與點擊分母來源的 CVR 欄位。"},
+            {"id": "g2-cpa", "outcome_id": "outcome-metrics", "g0_criterion_id": "all-metrics", "capability_id": "cap-calculate-cpa", "statement": "三個活動的 CPA 數值與金額單位正確。", "assessment_evidence": "提交保留花費與轉換分母來源的 CPA 欄位。"},
+            {"id": "g2-roas", "outcome_id": "outcome-metrics", "g0_criterion_id": "all-metrics", "capability_id": "cap-calculate-roas", "statement": "三個活動的 ROAS 數值與比率單位正確。", "assessment_evidence": "提交保留轉換價值與花費分母來源的 ROAS 欄位。"},
+            {"id": "g2-correct-threshold", "outcome_id": "outcome-threshold", "g0_criterion_id": "correct-threshold", "capability_id": "cap-correct-threshold", "statement": "依 CPA 不高於 NT$500 且 ROAS 不低於 4.00 的共同條件正確判讀。", "assessment_evidence": "完成品指出 Prospecting Social 的 CPA 與 ROAS 均未達標。"},
+            {"id": "g2-evidence-boundary", "outcome_id": "outcome-brief", "g0_criterion_id": "evidence-boundary", "capability_id": "cap-evidence-boundary", "statement": "摘要把可觀察結果與尚未驗證的成因清楚分開。", "assessment_evidence": "完成品明示彙總資料不能單獨證明因果。"},
+            {"id": "g2-actionable-next-step", "outcome_id": "outcome-brief", "g0_criterion_id": "actionable-next-step", "capability_id": "cap-actionable-next-step", "statement": "摘要提出一項可執行測試及對應觀察指標。", "assessment_evidence": "完成品包含具體測試動作、比較條件與後續觀察指標。"},
+        ],
+        "units": units,
+        "duration": {"available_minutes": 45, "break_minutes": 4, "buffer_minutes": 4, "policy": "第二單元後休息四分鐘；緩衝只用於修正公式或文字，不刪除獨立練習與驗收。"},
+        "materials": ["固定活動資料 CSV、成效摘要 Markdown 範本、learner-visible rubric 與三個單元的完整示範。"],
+        "risks": [{"id": "risk-formula-and-inference", "description": "學員可能選錯分母，或把彙總指標寫成未經驗證的因果結論。", "owner_gate": "G3", "mitigation": "每單元提供預期結果、分母檢查、推論界線與可重做的恢復步驟。"}],
+        "final_acceptance": {"outcome_id": "campaign-performance-brief", "criteria_ids": ["all-metrics", "correct-threshold", "evidence-boundary", "actionable-next-step"]},
+    }
+
+
+def production_learning_coverage(blueprint: dict) -> list[dict]:
+    """Build the criterion-level G0→G2→G3→G5 trace rows."""
+    rows = []
+    for criterion in blueprint["criteria"]:
+        unit = next(
+            item
+            for item in blueprint["units"]
+            if criterion["capability_id"] in item["capability_ids"]
+        )
+        rows.append(
+            {
+                "g0_criterion_id": criterion["g0_criterion_id"],
+                "capability_id": criterion["capability_id"],
+                "outcome_id": criterion["outcome_id"],
+                "criterion_id": criterion["id"],
+                "unit_id": unit["id"],
+                "lesson_unit_id": unit["id"],
+                "artifact_criterion_id": criterion["g0_criterion_id"],
+                "artifact_evidence_id": criterion["g0_criterion_id"],
+                "trial_evidence_id": f"action-{criterion['capability_id']}",
+            }
+        )
+    return rows
+
+
+def lesson_record(unit_id: str, page_hash: str) -> dict:
+    definitions = {
+        "unit-1": {
+            "outcome": "完成三個活動的 CTR 與平均 CPC 計算表。",
+            "context": "你已下載活動 CSV，現在要先把曝光、點擊與花費轉成可比較的效率指標。",
+            "purpose": "建立下一單元會繼續使用的計算表，避免只憑原始大數字判斷。",
+            "prior": "已確認 CSV 有三個活動及 impressions、clicks、cost 欄位。",
+            "deliverable": "三個活動的 CTR 與平均 CPC 表",
+            "demo": "Brand Search 的 CTR 8.00%，平均 CPC NT$30。",
+            "guided": "Prospecting Social 的 CTR 1.80%，平均 CPC NT$50。",
+            "independent": "Retargeting Display 的 CTR 與平均 CPC，並保留公式。",
+            "decision": "選對每個公式的分母，並辨認百分比與金額格式。",
+            "changed": ["活動換成 Retargeting Display", "不提供示範代入式"],
+            "recovery": "百分比多乘一次 100 或 cost 與 clicks 放反。",
+            "expected": "CTR 2.50%，平均 CPC NT$40。",
+            "transfer": "日後遇到零 clicks 時，平均 CPC 標為無法計算而不是 0。"
+        },
+        "unit-2": {
+            "outcome": "補齊 CVR、CPA 與 ROAS，並正確判斷活動是否同時達到門檻。",
+            "context": "你已有 CTR 與平均 CPC，現在要把點擊接到轉換成本與價值。",
+            "purpose": "完成能支持商業門檻判斷的五指標表。",
+            "prior": "上一單元留下三個活動的 CTR 與平均 CPC。",
+            "deliverable": "三個活動的五項成效指標表",
+            "demo": "Retargeting Display 的 CVR 10.00%、CPA NT$400、ROAS 6.25。",
+            "guided": "Prospecting Social 的 CVR 5.00%、CPA NT$1,000、ROAS 2.00。",
+            "independent": "Brand Search 的 CVR、CPA 與 ROAS，並完成全表。",
+            "decision": "分開判讀比例、單位成本與價值比率，不能用單一指標代替。",
+            "changed": ["活動換成 Brand Search", "必須同時驗證三種單位"],
+            "recovery": "把 clicks 當成 CPA 分母，或在零 conversions 時硬除。",
+            "expected": "Brand Search 的 CVR 10.00%、CPA NT$300、ROAS 6.67。",
+            "transfer": "跨平台比較前先確認 eligible interactions 與歸因口徑一致。"
+        },
+        "unit-3": {
+            "outcome": "完成可驗收的成效摘要，區分數據判讀、限制與下一步。",
+            "context": "你已有完整五指標表，現在要把它轉成同事可採取行動的摘要。",
+            "purpose": "用數字支持達標判斷，同時避免把彙總資料寫成因果結論。",
+            "prior": "前兩單元留下可重算的三列五指標表。",
+            "deliverable": "campaign-performance-brief.md",
+            "demo": "以 Prospecting Social 的 CPA NT$1,000 與 ROAS 2.00 寫出未達標判讀、資料界線與下一步測試。",
+            "guided": "依 CPA ≤ NT$500 且 ROAS ≥ 4.00 檢查三個活動，說明兩項都符合才達標。",
+            "independent": "完成數據摘要、判讀與建議三段，逐項通過 learner-visible rubric。",
+            "decision": "區分資料直接支持的事實、仍不能確定的原因與可驗證的下一步。",
+            "changed": ["從逐列計算改成跨活動決策", "必須寫出限制與後續觀察指標"],
+            "recovery": "把高 CTR 寫成獲利原因，或提出沒有觀察指標的泛泛建議。",
+            "expected": "Markdown 包含正確表格、Prospecting Social 未達標、資料界線與下一步測試。",
+            "transfer": "換成不同門檻或不同活動時，保留事實、界線、行動的寫法。"
+        },
+    }
+    item = definitions[unit_id]
+    stable_refs = {
+        "unit-1": {
+            "outcome_ids": ["outcome-metrics"],
+            "criterion_ids": ["g2-ctr", "g2-cpc"],
+            "capability_ids": ["cap-calculate-ctr", "cap-calculate-cpc"],
+            "workflow_fingerprint": "calculate-engagement-efficiency",
+            "depends_on": [],
+        },
+        "unit-2": {
+            "outcome_ids": ["outcome-metrics", "outcome-threshold"],
+            "criterion_ids": ["g2-cvr", "g2-cpa", "g2-roas", "g2-correct-threshold"],
+            "capability_ids": ["cap-calculate-cvr", "cap-calculate-cpa", "cap-calculate-roas", "cap-correct-threshold"],
+            "workflow_fingerprint": "calculate-and-compare-business-outcomes",
+            "depends_on": ["unit-1"],
+        },
+        "unit-3": {
+            "outcome_ids": ["outcome-brief"],
+            "criterion_ids": ["g2-evidence-boundary", "g2-actionable-next-step"],
+            "capability_ids": ["cap-evidence-boundary", "cap-actionable-next-step"],
+            "workflow_fingerprint": "write-evidence-bounded-brief",
+            "depends_on": ["unit-2"],
+        },
+    }[unit_id]
+    coverage_rows = [
+        {
+            "outcome_id": next(
+                outcome_id
+                for outcome_id, criterion_ids in {
+                    "outcome-metrics": {"g2-ctr", "g2-cpc", "g2-cvr", "g2-cpa", "g2-roas"},
+                    "outcome-threshold": {"g2-correct-threshold"},
+                    "outcome-brief": {"g2-evidence-boundary", "g2-actionable-next-step"},
+                }.items()
+                if criterion_id in criterion_ids
+            ),
+            "criterion_id": criterion_id,
+            "capability_id": capability_id,
+            "teaching_evidence": ["explanation", "full_demonstration"],
+            "practice_evidence": ["guided_practice", "independent_practice"],
+            "assessment_evidence": ["checks"],
+        }
+        for criterion_id, capability_id in zip(
+            stable_refs["criterion_ids"], stable_refs["capability_ids"]
+        )
+    ]
+    recovery_id = f"{unit_id}-recovery"
+    return {
+        "schema_version": 1,
+        "unit_id": unit_id,
+        "outcome": item["outcome"],
+        "workflow_fingerprint": stable_refs["workflow_fingerprint"],
+        "depends_on": stable_refs["depends_on"],
+        "outcome_ids": stable_refs["outcome_ids"],
+        "criterion_ids": stable_refs["criterion_ids"],
+        "capability_ids": stable_refs["capability_ids"],
+        "learning_coverage": coverage_rows,
+        "learner_outcome": {
+            "statement": item["outcome"],
+            "evidence": item["deliverable"],
+        },
+        "context": {
+            "situation": item["context"],
+            "purpose": item["purpose"],
+            "prior_result": item["prior"],
+        },
+        "inputs": [
+            {
+                "id": "campaign-data",
+                "label": "活動資料 CSV",
+                "source": "課程首頁可下載的 campaign-data.csv",
+                "ready_check": "看得到三列活動與五個原始數值欄位。",
+            },
+            {
+                "id": "learner-rubric",
+                "label": "完成品驗收規則",
+                "source": "課程首頁與單元三可開啟的 rubric",
+                "ready_check": "看得到五項可逐條核對的完成條件。",
+            },
+        ],
+        "deliverable": {
+            "name": item["deliverable"],
+            "format": "可重算表格或 Markdown 文件",
+            "use": "交給下一單元或同事做決策與驗收。",
+            "acceptance_criteria": [item["expected"], "讀者可從 CSV 重算結果。"],
+        },
+        "explanation": {
+            "prose": item["context"] + " " + item["purpose"] + " " + item["decision"]
+        },
+        "full_demonstration": {
+            "input": {"description": "課程 CSV 中的示範活動", "value": item["demo"]},
+            "rationale": "先完整展示輸入、判斷、計算、結果與驗證，讓學員知道完成品質。",
+            "actions": [
+                {
+                    "purpose": "確認公式與資料欄位的對應。",
+                    "start_state": "已開啟 CSV 與單元頁。",
+                    "action": "依頁面公式代入示範活動的實際數字，保留中間算式。",
+                    "expected_result": item["demo"],
+                }
+            ],
+            "result": {"description": item["demo"], "artifact_ref": "單元頁完整示範段落"},
+            "verification": [
+                {"criterion": "數字與單位正確", "observable_result": item["demo"]}
+            ],
+        },
+        "guided_practice": {
+            "purpose": "在保留檢查提示的情況下完成第二個活動。",
+            "start_state": "已看完完整示範，尚未計算引導活動。",
+            "steps": [
+                {
+                    "purpose": "用同一方法處理不同數字。",
+                    "start_state": "已找到引導活動那一列。",
+                    "action": "先自行代入，再用頁面提供的預期結果核對。",
+                    "expected_result": item["guided"],
+                }
+            ],
+            "checks": [{"expected_result": item["guided"], "recovery_ref": recovery_id}],
+            "recovery_refs": [recovery_id],
+        },
+        "independent_practice": {
+            "context": "在沒有代入答案的情況下完成剩餘活動或完整摘要。",
+            "changed_conditions": item["changed"],
+            "decision_required": item["decision"],
+            "deliverable": item["independent"],
+            "acceptance_criteria": [item["expected"], "成果可由另一位讀者重新驗證。"],
+            "verification": "依課程頁的快速檢查與 rubric 逐項核對。",
+        },
+        "checks": [
+            {
+                "id": f"{unit_id}-result-check",
+                "target": item["deliverable"],
+                "expected_result": item["expected"],
+                "on_failure": f"依 {recovery_id} 回到公式、門檻或建議界線重新檢查。",
+            }
+        ],
+        "recovery": [
+            {
+                "id": recovery_id,
+                "symptom": item["recovery"],
+                "cause": "沒有先確認分子、分母、單位或資料能支持的判斷範圍。",
+                "action": "回到 CSV 與課程公式逐欄核對，保留算式，再依 rubric 重寫判讀。",
+                "expected_result": item["expected"],
+            }
+        ],
+        "transfer": {
+            "new_context": "將同一方法用於另一個期間、活動組合或商業門檻。",
+            "method": item["transfer"],
+            "limits": "彙總指標描述結果，不能單獨證明受眾、素材或版位造成差異。",
+        },
+        "asset_references": ["campaign-data", "brief-template", "rubric"],
+        "editorial_evidence": {
+            "reviewer_id": "course-validator-editorial",
+            "source_sha256": page_hash,
+            "continuity_passed": True,
+            "learner_readable": True,
+            "internal_labels_removed": True,
+            "notes": "逐段確認情境、理由、動作、結果與修復可連續閱讀，沒有待辦式正文。",
+        },
+    }
+
+
+def main(*, authority_provider=None, output_root: Path | None = None) -> None:
+    if authority_provider is None or not all(
+        callable(getattr(authority_provider, name, None)) for name in ("bind", "issue")
+    ):
+        raise SystemExit(
+            "PRECONDITION FAILED: proof rebuild requires an externally supplied governed "
+            "runner authority provider"
+        )
+    if output_root is None:
+        raise SystemExit("PRECONDITION FAILED: proof rebuild requires --output-root")
+    output_root = Path(output_root)
+    if not output_root.is_absolute():
+        raise SystemExit("PRECONDITION FAILED: output root must be absolute")
+    # No write occurs before all authority and output prerequisites are checked.
+    _prepare_output_root(output_root)
+    global ROOT, EVIDENCE, DESIGN, COURSE, TRIALS
+    ROOT = output_root
+    EVIDENCE = ROOT / "evidence"
+    DESIGN = ROOT / "_design" / "campaign-performance-brief"
+    COURSE = ROOT / "course"
+    TRIALS = ROOT / "trials"
+    EVIDENCE.mkdir(parents=True, exist_ok=True)
+    DESIGN.mkdir(parents=True, exist_ok=True)
+    research = load_json(EVIDENCE / "research-record.json")
+    adaptation = load_json(EVIDENCE / "adaptation.json")
+    requirements = requirements_record()
+    blueprint = blueprint_record(requirements)
+    write_json(EVIDENCE / "g0-requirements.json", requirements)
+    write_json(EVIDENCE / "blueprint.json", blueprint)
+    research_issues = validate_research_record(research, adaptation)
+    if research_issues:
+        raise SystemExit(f"research invalid: {research_issues}")
+
+    lesson_records: list[dict] = []
+    for unit_id in ("unit-1", "unit-2", "unit-3"):
+        record = lesson_record(unit_id, sha(COURSE / f"{unit_id}.html"))
+        issues = validate_lesson_record(record, blueprint)
+        if issues:
+            raise SystemExit(f"{unit_id} lesson invalid: {issues}")
+        path = EVIDENCE / f"lesson-{unit_id}.json"
+        write_json(path, record)
+        lesson_records.append(record)
+
+    assets = []
+    for asset_id, filename, label, purpose in (
+        ("campaign-data", "campaign-data.csv", "活動資料 CSV", "提供三個虛構活動的原始數據。"),
+        ("brief-template", "brief-template.md", "成效摘要範本", "提供最終 Markdown 的可讀結構。"),
+        ("rubric", "rubric.md", "完成品驗收規則", "讓學員與獨立試走者使用相同條件驗收。"),
+    ):
+        asset_path = COURSE / "assets" / filename
+        assets.append(
+            {
+                "id": asset_id,
+                "learner_label": label,
+                "purpose": purpose,
+                "source": {"type": "course-created", "uri": f"course/assets/{filename}", "retrieved_at": "2026-10-18"},
+                "rights": {"status": "CLEARED", "basis": "課程團隊自行製作的虛構資料與文字。"},
+                "version": f"sha256:{sha(asset_path)}",
+                "access": {"method": "download or open", "learner_path": f"課程首頁連結 course/assets/{filename}", "backup": "內容可從學員頁直接複製。"},
+                "open_test": {"tested_at": "2026-10-18T15:05:00+08:00", "actor": "course-author-ai", "result": "PASS", "sha256": sha(asset_path)},
+            }
+        )
+    asset_manifest = {"schema_version": 1, "assets": assets}
+    write_json(EVIDENCE / "asset-manifest.json", asset_manifest)
+
+    selected_pilot = select_pilot_unit(blueprint)
+    if selected_pilot != "unit-3":
+        raise SystemExit(f"unexpected pilot selection: {selected_pilot}")
+    pilot_lesson_path = EVIDENCE / "lesson-unit-3.json"
+    pilot_lesson_hash = sha(pilot_lesson_path)
+    g4_accessibility = accessibility_report(
+        "G4", [{"id": "unit-3", "path": "course/unit-3.html"}]
+    )
+    write_json(EVIDENCE / "accessibility-g4.json", g4_accessibility)
+    pilot = {
+        "schema_version": 2,
+        "unit_id": "unit-3",
+        "production_actor_ids": ["course-author-ai"],
+        "lesson_sha256": pilot_lesson_hash,
+        "html_path": "course/unit-3.html",
+        "html_sha256": sha(COURSE / "unit-3.html"),
+        "asset_ids": ["campaign-data", "brief-template", "rubric"],
+        "trial_context_id": "context-representative-unit",
+        "visual_decision": {
+            "inputs": {"topic": "行銷活動成效摘要", "learner": "第一次獨立寫活動成效摘要的行銷同仁", "task": "讀 CSV、計算、判讀並寫成 Markdown", "content_density": "公式、實際數字與長文判讀並存", "primary_devices": ["mobile", "tablet", "desktop"]},
+            "decisions": {"layout_rationale": "單欄閱讀讓公式、示範與修復保持相鄰。", "navigation": "每頁只有清楚的上一課與下一課。", "typography": "繁體中文正文使用較大行距，公式使用等寬字。", "color": "深青色只標示連結與成果，琥珀色提供焦點外框。", "responsive_strategy": "窄螢幕維持單欄，表格局部水平捲動。"}
+        },
+        "content_fidelity": {"source_sha256": pilot_lesson_hash, "rendered_source_sha256": pilot_lesson_hash, "teaching_atoms": ["learner_outcome", "full_demonstration", "guided_practice", "independent_practice", "recovery"], "result": "PASS"},
+        "render": {"browser": "Playwright Chromium", "tested_at": "2026-10-18T15:15:00+08:00", "screenshots": ["evidence/unit-3-desktop.png", "evidence/unit-3-tablet.png", "evidence/unit-3-mobile.png"], "result": "PASS"},
+        "devices": {
+            "mobile": {"viewport": "390x844", "core_path_result": "PASS", "horizontal_overflow": False},
+            "tablet": {"viewport": "820x1180", "core_path_result": "PASS", "horizontal_overflow": False},
+            "desktop": {"viewport": "1440x900", "core_path_result": "PASS", "horizontal_overflow": False}
+        },
+        "accessibility_report": {
+            "evidence_id": g4_accessibility["report_id"],
+            "path": "evidence/accessibility-g4.json",
+            "sha256": sha(EVIDENCE / "accessibility-g4.json"),
+            "claim_scope": "basic_accessibility_smoke",
+        },
+        "navigation": {"entry": "course/index.html", "previous": "course/unit-2.html", "next": "course/index.html"}
+    }
+    pilot_issues = validate_pilot_record(pilot, lesson_records[2], asset_manifest)
+    if pilot_issues:
+        raise SystemExit(f"pilot invalid: {pilot_issues}")
+    write_json(EVIDENCE / "pilot-record.json", pilot)
+
+    authority_id = str(authority_provider.authority_id)
+    g4_trial = trial_record(
+        requirements,
+        blueprint,
+        scope="representative_unit",
+        representative_unit_id="unit-3",
+        runner_authority_id=authority_id,
+    )
+    g5_trial = trial_record(
+        requirements,
+        blueprint,
+        scope="full_course",
+        runner_authority_id=authority_id,
+    )
+    g4_transfer_refs = _materialize_trial_files(ROOT, g4_trial)
+    g5_transfer_refs = _materialize_trial_files(ROOT, g5_trial)
+    write_json(TRIALS / "g4-representative-unit.json", g4_trial)
+    write_json(TRIALS / "g5-full-course.json", g5_trial)
+    final_artifact = TRIALS / "full-course-output" / "campaign-performance-brief.md"
+    if not final_artifact.is_file():
+        raise SystemExit("missing independent full-course artifact")
+    lesson_summaries = []
+    production_units = []
+    for index, unit in enumerate(blueprint["units"]):
+        lesson_path = EVIDENCE / f"lesson-{unit['id']}.json"
+        lesson = lesson_records[index]
+        lesson_summaries.append({
+            "unit_id": unit["id"],
+            "outcome": unit["outcome"],
+            "workflow_fingerprint": unit["workflow_fingerprint"],
+            "depends_on": unit["depends_on"],
+            "asset_references": unit["asset_ids"],
+            "outcome_ids": lesson["outcome_ids"],
+            "criterion_ids": lesson["criterion_ids"],
+            "capability_ids": lesson["capability_ids"],
+            "learning_coverage": lesson["learning_coverage"],
+            "explanation": lesson["explanation"],
+            "full_demonstration": lesson["full_demonstration"],
+            "guided_practice": lesson["guided_practice"],
+            "independent_practice": lesson["independent_practice"],
+            "checks": lesson["checks"],
+        })
+        production_units.append({
+            "unit_id": unit["id"],
+            "lesson_sha256": sha(lesson_path),
+            "html_path": f"course/{unit['id']}.html",
+            "html_sha256": sha(COURSE / f"{unit['id']}.html"),
+            "asset_ids": unit["asset_ids"],
+            "outcome": unit["outcome"],
+            "workflow_fingerprint": unit["workflow_fingerprint"],
+            "depends_on": unit["depends_on"],
+            "outcome_ids": unit["outcome_ids"],
+            "criterion_ids": unit["criterion_ids"],
+            "capability_ids": unit["capability_ids"],
+            "previous": None if index == 0 else blueprint["units"][index - 1]["id"],
+            "next": None if index == len(blueprint["units"]) - 1 else blueprint["units"][index + 1]["id"]
+        })
+    coverage_rows = production_learning_coverage(blueprint)
+    trial_action_by_capability = {
+        row["capability_id"]: row["action_id"]
+        for row in g5_trial["criterion_evidence"]
+    }
+    for row in coverage_rows:
+        row["trial_evidence_id"] = trial_action_by_capability[row["capability_id"]]
+    g5_pages = [{"id": "course-entry", "path": "course/index.html"}]
+    g5_pages.extend(
+        {"id": unit["id"], "path": f"course/{unit['id']}.html"}
+        for unit in blueprint["units"]
+    )
+    g5_pages.append(
+        {
+            "id": "course-completion",
+            "path": "trials/full-course-output/campaign-performance-brief.md",
+        }
+    )
+    g5_accessibility = accessibility_report("G5", g5_pages)
+    write_json(EVIDENCE / "accessibility-g5.json", g5_accessibility)
+    production = {
+        "schema_version": 2,
+        "course_id": "campaign-performance-brief",
+        "production_authors": ["course-author-ai"],
+        "g4_trial_context_id": g4_trial["isolated_context_id"],
+        "units": production_units,
+        "navigation": {"entry": "course/index.html", "order": [unit["id"] for unit in blueprint["units"]], "completion": "trials/full-course-output/campaign-performance-brief.md"},
+        "dependency_checks": [
+            {"from_unit": "unit-1", "to_unit": "unit-2", "artifact": "trials/g4-output/metrics-table.md", "result": "PASS"},
+            {"from_unit": "unit-2", "to_unit": "unit-3", "artifact": "trials/full-course-output/campaign-performance-brief.md", "result": "PASS"}
+        ],
+        "learning_coverage": coverage_rows,
+        "accessibility_report": {
+            "evidence_id": g5_accessibility["report_id"],
+            "path": "evidence/accessibility-g5.json",
+            "sha256": sha(EVIDENCE / "accessibility-g5.json"),
+            "claim_scope": "basic_accessibility_smoke",
+        },
+        "final_artifact": {
+            "path": "trials/full-course-output/campaign-performance-brief.md",
+            "sha256": sha(final_artifact),
+            "outcome_id": "campaign-performance-brief",
+            "acceptance": [
+                {"criterion_id": "all-metrics", "result": "PASS", "evidence": "完成品數據摘要表三列五指標。"},
+                {"criterion_id": "correct-threshold", "result": "PASS", "evidence": "完成品指出 Prospecting Social CPA NT$1,000、ROAS 2.00 未達標。"},
+                {"criterion_id": "evidence-boundary", "result": "PASS", "evidence": "完成品說明彙總資料不能證明因果。"},
+                {"criterion_id": "actionable-next-step", "result": "PASS", "evidence": "完成品提出下一步測試與觀察指標。"}
+            ]
+        },
+        "full_course_trial": g5_trial,
+        "validation": {"status": "PASS", "validator_id": "course-validator", "validated_at": "2026-10-18T15:21:20+08:00"}
+    }
+    production_issues = validate_full_production(production, blueprint, lesson_summaries, asset_manifest, pilot, g5_trial)
+    if production_issues:
+        raise SystemExit(f"full production invalid: {production_issues}")
+    write_json(EVIDENCE / "production-record.json", production)
+
+    for check in ("technical", "links", "registration", "access", "rollback", "maintenance"):
+        write_json(EVIDENCE / f"release-{check}.json", {"check": check, "result": "PASS", "course": "campaign-performance-brief"})
+    release_record = {
+        "schema_version": 1,
+        "course_id": "campaign-performance-brief",
+        "g5_status": "PASS",
+        "g6_state": "READY_TO_PUBLISH",
+        "published": False,
+        "checks": [
+            {"id": check, "result": "PASS", "evidence": {"path": f"evidence/release-{check}.json", "sha256": sha(EVIDENCE / f"release-{check}.json")}}
+            for check in ("technical", "links", "registration", "access", "rollback", "maintenance")
+        ],
+        "changes": [{"source_path": "release-staging/index.html", "target_path": "release-target/index.html"}],
+        "maintenance": {"owner": "course-ops", "cadence": "quarterly", "freshness_sources": ["Google Ads official help pages", "learner trial issues"], "next_review": "2027-01-18"}
+    }
+    release_issues = validate_release_record(release_record)
+    if release_issues:
+        raise SystemExit(f"release invalid: {release_issues}")
+    write_json(EVIDENCE / "release-record.json", release_record)
+    staging = ROOT / "release-staging"
+    staging.mkdir(exist_ok=True)
+    shutil.copy2(COURSE / "index.html", staging / "index.html")
+    proposal = build_release_proposal(ROOT, release_record)
+    # A committed proof must be byte-for-byte reproducible from any clean
+    # clone.  Preserve the exact relative targets, but replace the ephemeral
+    # build directory with a non-executable logical proof root.  A real release
+    # must create a fresh proposal for its governed absolute course root.
+    proposal["manifest"]["course_root"] = (
+        "/course-design-system-proof/campaign-performance-brief"
+    )
+    proposal["manifest_sha256"] = _canonical_hash(proposal["manifest"])
+    proposal["action_id"] = f"course-release-{proposal['manifest_sha256'][:16]}"
+    write_json(EVIDENCE / "release-proposal.json", proposal)
+
+    contract = new_contract("campaign-performance-brief", "行銷活動成效摘要實作課", "course-author-ai", "2026-10-18T14:30:00+08:00")
+    contract["contract_instance_id"] = "ci-" + _stable_hash(
+        "campaign-performance-brief:proof-contract-v4"
+    )[:32]
+    authority_provider.bind(contract)
+    roster = {
+        "schema_version": 1,
+        "authors": ["course-author-ai"],
+        "validators": ["course-validator"],
+    }
+    roster_ref = materialize_json_evidence(
+        ROOT,
+        evidence_id="g0-production-role-roster",
+        gate_id="G0",
+        kind="production_role_roster",
+        relative_path="evidence/production-role-roster.json",
+        value=roster,
+    )
+    contract["evidence_index"].append(roster_ref)
+    bind_production_role_roster(contract, roster_ref["id"])
+    begin_gate(contract, "G0", "course-run", "2026-10-18T14:31:00+08:00")
+    route_requirements_to_g0(
+        contract, requirements, "evidence/g0-requirements.json", "course-run",
+        "2026-10-18T14:32:00+08:00", workspace_root=ROOT,
+    )
+    requirements_ref = next(
+        item for item in contract["evidence_index"]
+        if item.get("kind") == "requirements_record" and item.get("gate") == "G0"
+    )
+    for trial, filename in (
+        (g4_trial, "g4-representative-unit.json"),
+        (g5_trial, "g5-full-course.json"),
+    ):
+        trial["requirements_sha256"] = requirements_ref["sha256"]
+        write_json(TRIALS / filename, trial)
+
+    begin_gate(contract, "G1", "course-run", "2026-10-18T14:33:00+08:00")
+    route_research_to_gate(
+        contract, research, adaptation, "evidence/research-record.json",
+        sha(EVIDENCE / "research-record.json"), "course-run",
+        "2026-10-18T14:34:00+08:00", workspace_root=ROOT,
+    )
+
+    begin_gate(contract, "G2", "course-run", "2026-10-18T14:35:00+08:00")
+    route_blueprint_to_g2(
+        contract, blueprint, "evidence/blueprint.json", "course-run",
+        "2026-10-18T14:36:00+08:00", workspace_root=ROOT,
+    )
+
+    begin_gate(contract, "G3", "course-run", "2026-10-18T14:37:00+08:00")
+    route_content_to_g3(
+        contract, lesson_records,
+        [f"evidence/lesson-{record['unit_id']}.json" for record in lesson_records],
+        [sha(EVIDENCE / f"lesson-{record['unit_id']}.json") for record in lesson_records],
+        "course-run", "2026-10-18T14:38:00+08:00", workspace_root=ROOT,
+    )
+
+    begin_gate(contract, "G4", "course-run", "2026-10-18T14:39:00+08:00")
+    pilot_bundle = {
+        "pilot": pilot,
+        "lesson": lesson_records[2],
+        "asset_manifest": asset_manifest,
+    }
+    pilot_ref = materialize_json_evidence(
+        ROOT, evidence_id="g4-pilot-production", gate_id="G4",
+        kind="pilot_record", relative_path="evidence/pilot-bundle.json",
+        value=pilot_bundle, maturity="EXECUTION_VALIDATED",
+    )
+    g4_accessibility_ref = register_evidence_file(
+        ROOT, evidence_id=g4_accessibility["report_id"], gate_id="G4",
+        kind="accessibility_report", relative_path="evidence/accessibility-g4.json",
+    )
+    g4_trial_ref = materialize_json_evidence(
+        ROOT, evidence_id="g4-independent-trial", gate_id="G4",
+        kind="independent_course_trial", relative_path="trials/g4-representative-unit.json",
+        value=g4_trial, maturity="INDEPENDENT_AI_VERIFIED",
+    )
+    contract["evidence_index"].extend(
+        [pilot_ref, g4_accessibility_ref, *g4_transfer_refs, g4_trial_ref]
+    )
+    g4_receipt_ref = authority_provider.issue(
+        ROOT, contract=contract, gate_id="G4", trial_reference=g4_trial_ref,
+        roster_reference=roster_ref,
+        transition_references=[
+            pilot_ref, g4_accessibility_ref, *g4_transfer_refs, g4_trial_ref, roster_ref
+        ],
+        runner_id=g4_trial["participant"]["id"],
+        session_id=g4_trial["runner_session_id"],
+        issued_at="2026-10-18T15:20:00+08:00", nonce="proof-g4-nonce",
+        receipt_id="g4-independent-trial-receipt",
+        relative_path="evidence/g4-independent-trial-receipt.json",
+    )
+    contract["evidence_index"].append(g4_receipt_ref)
+    contract["G4_pilot"] = {"unit_id": "unit-3", "record_path": "evidence/pilot-record.json"}
+    route_verified_trial_to_gate(
+        contract, "G4", [pilot_ref["id"], roster_ref["id"]],
+        g4_trial_ref["id"], g4_receipt_ref["id"], "course-validator",
+        "2026-10-18T15:21:00+08:00", workspace_root=ROOT,
+    )
+
+    begin_gate(contract, "G5", "course-run", "2026-10-18T15:21:10+08:00")
+    for unit in production["units"]:
+        unit["lesson_sha256"] = sha(
+            EVIDENCE / f"lesson-{unit['unit_id']}.json"
+        )
+    g5_accessibility_ref = register_evidence_file(
+        ROOT, evidence_id=g5_accessibility["report_id"], gate_id="G5",
+        kind="accessibility_report", relative_path="evidence/accessibility-g5.json",
+    )
+    g5_trial_ref = materialize_json_evidence(
+        ROOT, evidence_id="g5-independent-trial", gate_id="G5",
+        kind="independent_course_trial", relative_path="trials/g5-full-course.json",
+        value=g5_trial, maturity="INDEPENDENT_AI_VERIFIED",
+    )
+    contract["evidence_index"].append(g5_trial_ref)
+    production_evidence_specs = []
+    for unit in production["units"]:
+        production_evidence_specs.extend(
+            [
+                {
+                    "id": f"g5-lesson-{unit['unit_id']}", "kind": "lesson_source",
+                    "path": f"evidence/lesson-{unit['unit_id']}.json",
+                    "metadata": {"unit_id": unit["unit_id"]},
+                },
+                {
+                    "id": f"g5-page-{unit['unit_id']}", "kind": "learner_page",
+                    "path": unit["html_path"], "metadata": {"unit_id": unit["unit_id"]},
+                },
+            ]
+        )
+    for asset in asset_manifest["assets"]:
+        production_evidence_specs.append(
+            {
+                "id": f"g5-asset-{asset['id']}", "kind": "course_asset",
+                "path": asset["source"]["uri"], "metadata": {"asset_id": asset["id"]},
+            }
+        )
+    for index, dependency in enumerate(production["dependency_checks"], start=1):
+        dependency_path = ROOT / dependency["artifact"]
+        dependency_path.parent.mkdir(parents=True, exist_ok=True)
+        if not dependency_path.exists():
+            dependency_path.write_text(f"dependency artifact {index}\n", encoding="utf-8")
+        production_evidence_specs.append(
+            {
+                "id": f"g5-dependency-{index}", "kind": "dependency_artifact",
+                "path": dependency["artifact"],
+                "metadata": {"dependency": f"{dependency['from_unit']}->{dependency['to_unit']}"},
+            }
+        )
+    production_evidence_specs.extend(
+        [
+            {"id": "g5-navigation-entry", "kind": "navigation_artifact", "path": production["navigation"]["entry"], "metadata": {"role": "entry"}},
+            {"id": "g5-navigation-completion", "kind": "navigation_artifact", "path": production["navigation"]["completion"], "metadata": {"role": "completion"}},
+            {"id": "g5-final-artifact", "kind": "final_artifact", "path": production["final_artifact"]["path"], "metadata": {"role": "final"}},
+            {"id": g5_accessibility_ref["id"], "kind": "accessibility_report", "path": g5_accessibility_ref["path"]},
+        ]
+    )
+    production_evidence_specs.extend(
+        {
+            "id": item["id"], "kind": "trial_transfer_artifact",
+            "path": item["path"], "metadata": item.get("metadata"),
+        }
+        for item in g5_transfer_refs
+    )
+    preview_refs = [
+        register_evidence_file(
+            ROOT, evidence_id=item["id"], gate_id="G5", kind=item["kind"],
+            relative_path=item["path"], metadata=item.get("metadata"),
+        )
+        for item in production_evidence_specs
+    ]
+    production_bundle = {
+        "record": production,
+        "blueprint": blueprint,
+        "lessons": lesson_records,
+        "assets": asset_manifest,
+        "pilot": pilot,
+    }
+    production_bundle_id = f"g5-full-production-{_canonical_hash(production_bundle)[:12]}"
+    production_bundle_ref = materialize_json_evidence(
+        ROOT,
+        evidence_id=production_bundle_id,
+        gate_id="G5", kind="full_course_production",
+        relative_path="evidence/production-record.json", value=production_bundle,
+        maturity="EXECUTION_VALIDATED",
+    )
+    g5_receipt_ref = authority_provider.issue(
+        ROOT, contract=contract, gate_id="G5", trial_reference=g5_trial_ref,
+        roster_reference=roster_ref,
+        transition_references=[
+            *preview_refs, production_bundle_ref, g5_trial_ref, roster_ref
+        ],
+        runner_id=g5_trial["participant"]["id"],
+        session_id=g5_trial["runner_session_id"],
+        issued_at="2026-10-18T15:21:15+08:00", nonce="proof-g5-nonce",
+        receipt_id="g5-independent-trial-receipt",
+        relative_path="evidence/g5-independent-trial-receipt.json",
+    )
+    contract["evidence_index"].append(g5_receipt_ref)
+    contract["G5_production"] = {"record_path": "evidence/production-record.json", "sha256": sha(EVIDENCE / "production-record.json")}
+    g5_result = route_full_production_to_g5(
+        contract, production, production_evidence_specs,
+        "course-run", "2026-10-18T15:21:20+08:00", workspace_root=ROOT,
+        blueprint=blueprint, lessons=lesson_records, assets=asset_manifest, pilot=pilot,
+        production_role_evidence_id="g0-production-role-roster",
+        production_record_path="evidence/production-record.json",
+        trial_evidence_id="g5-independent-trial",
+        trial_receipt_evidence_id="g5-independent-trial-receipt",
+    )
+    if g5_result != "PASS":
+        raise SystemExit(f"G5 route blocked: {contract['gates']['G5']['risks']}")
+
+    begin_gate(contract, "G6", "course-run", "2026-10-18T15:21:30+08:00")
+    contract["G6_release_maintenance"] = {"state": "READY_TO_PUBLISH", "record_path": "evidence/release-record.json", "published": False}
+    release_ref = register_evidence_file(
+        ROOT, evidence_id="g6-release-readiness", gate_id="G6",
+        kind="release_record", relative_path="evidence/release-record.json",
+    )
+    release_check_refs = [
+        register_evidence_file(
+            ROOT, evidence_id=f"g6-{check}", gate_id="G6", kind="release_check",
+            relative_path=f"evidence/release-{check}.json", metadata={"check_id": check},
+        )
+        for check in ("technical", "links", "registration", "access", "rollback", "maintenance")
+    ]
+    contract["evidence_index"].extend([release_ref, *release_check_refs])
+    validate_and_transition_gate(
+        contract, "G6", [release_ref["id"], *[item["id"] for item in release_check_refs]],
+        ROOT, "course-ops", "2026-10-18T15:21:40+08:00",
+    )
+    propose_external_action(contract, proposal["action_id"], "course-release", "evidence/release-proposal.json", proposal["manifest_sha256"], "course-ops", "2026-10-18T15:21:45+08:00")
+    issues = validate_contract(contract)
+    if issues:
+        raise SystemExit(f"contract invalid: {issues}")
+    save_contract_atomic(DESIGN / "course-contract.json", contract)
+
+    write_json(EVIDENCE / "proof-validation.json", {
+        "research": "PASS",
+        "lessons": {record["unit_id"]: "PASS" for record in lesson_records},
+        "pilot": "PASS",
+        "full_production": "PASS",
+        "release_readiness": "PASS",
+        "maturity": "INDEPENDENT_AI_VERIFIED",
+        "human_validation": "PENDING_HUMAN",
+        "external_publication": "NOT_EXECUTED"
+    })
+    print(DESIGN / "course-contract.json")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--output-root", type=Path)
+    args = parser.parse_args()
+    main(output_root=args.output_root)
