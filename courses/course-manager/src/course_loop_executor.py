@@ -9,6 +9,7 @@ from pathlib import Path
 
 from src.course_improvement_loop import LoopError, read_json, require, save
 from src.course_copy_readability import READABILITY_INSTRUCTIONS, readability_fields
+from src.course_copy_reports import reading_blocks, reference_schema
 
 
 def obj(properties):
@@ -16,6 +17,11 @@ def obj(properties):
 
 
 def response_schema(task):
+    if task.get("report_patch"):
+        ref = reference_schema(obj)
+        return obj({"replacements": {"type": "array", "minItems": 1, "items": obj({
+            "passage": {"type": "integer", "minimum": 0}, "quote_ref": ref,
+            "support_refs": {"type": "array", "items": ref, "minItems": 1}})}})
     string = {"type": "string"}
     boolean = {"type": "boolean"}
     strings = {"type": "array", "items": string}
@@ -37,6 +43,10 @@ def response_schema(task):
     if task["phase"] == "rewrite":
         docs["candidate"] = string
     fields = {"documents": obj(docs)}
+    if task.get("citation_contract") == "locations-v1":
+        for collection in ("problems", "questions"):
+            full = evaluation["properties"][collection]["items"]
+            evaluation["properties"][collection]["items"] = {"anyOf": [obj({"id": string, "open": boolean}), full]}
     if task["phase"] != "rewrite":
         fields["evaluation"] = evaluation
     if task.get("profile") == "copy-v0.3" and task["phase"] in ("compare", "review"):
@@ -49,6 +59,11 @@ def response_schema(task):
                       "remaining_gap": string, "problem_id": {"type": ["string", "null"]}}
         if task.get("profile") == "copy-v0.6":
             properties.update(readability_fields(obj))
+        if task.get("citation_contract") == "locations-v1":
+            properties.pop("quote")
+            properties.pop("support_quotes")
+            properties["quote_ref"] = reference_schema(obj)
+            properties["support_refs"] = {"type": "array", "items": reference_schema(obj), "minItems": 1}
         passage = obj(properties)
         fields["reading_decision"] = obj({
             "verdict": {"type": "string", "enum": ["supported", "gap"]},
@@ -84,6 +99,12 @@ def build_prompt(task, max_chars):
     context = {k: task[k] for k in ("id", "phase", "purpose", "instructions", "assignment", "target",
                                    "current_evaluation", "candidate_usage", "candidate_limit")}
     texts = []
+    if task.get("citation_contract") == "locations-v1" or task.get("report_patch"):
+        instructions += "使用reading_blocks的段落ID與字元位置引用，不重抄文字。整段可選start=0、end=length。原文由程式擷取，不得猜位置。既有P/Q只交id與open的更新；未提及則保留原狀態，不代表關閉。新問題才交完整定義；grades仍選擇所屬原則及等級，程式保留身分並清除closed引用，不提高等級。\n"
+        context["citation_contract"] = "locations-v1"
+        context["reading_blocks"] = reading_blocks(task)
+        if task.get("report_patch"):
+            instructions += "本次只按局部更正schema交replacements，不交evaluation、P/Q更新或documents。\n"
     inputs = list(task["allowed_inputs"].items())
     if task.get("profile") in ("copy-v0.4", "copy-v0.5", "copy-v0.6") and task["phase"] in ("compare", "review"):
         inputs.sort(key=lambda item: item[1]["path"] != task["target"]["path"])

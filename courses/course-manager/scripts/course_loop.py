@@ -9,27 +9,27 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from src.course_improvement_loop import LoopError, read_json
 from src.course_loop_executor import doctor
 from src.course_loop_runtime import (activate, finish, human_confirmation, prepare, report,
-                                     recover, retry, status, supply_check, work)
+                                     recover, retry, repair_report, status, supply_check, work)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     subs = parser.add_subparsers(dest="command", required=True)
     subs.add_parser("doctor")
-    for name in ("prepare", "start", "work", "status", "report", "retry", "recover", "confirm-h3", "supply-check", "finish"):
+    for name in ("prepare", "start", "work", "status", "report", "retry", "repair-report", "recover", "confirm-h3", "supply-check", "finish"):
         p = subs.add_parser(name)
         p.add_argument("--run", type=Path, required=True)
         if name == "prepare":
             p.add_argument("--spec", type=Path, required=True)
-        if name in ("start", "confirm-h3", "finish"):
+        if name in ("start", "confirm-h3", "finish", "repair-report"):
             p.add_argument("--actor", required=True)
         if name == "start":
             p.add_argument("--note", required=True)
         if name == "work":
             p.add_argument("--max-tasks", type=int, default=1)
-        if name in ("retry", "recover", "confirm-h3", "supply-check"):
+        if name in ("retry", "repair-report", "recover", "confirm-h3", "supply-check"):
             p.add_argument("--unit", required=True)
-        if name == "retry":
+        if name in ("retry", "repair-report"):
             p.add_argument("--reason", required=True)
         if name == "confirm-h3":
             p.add_argument("--feedback", type=Path, required=True)
@@ -58,6 +58,8 @@ def main():
             result = report(args.run)
         elif args.command == "retry":
             result = retry(args.run, args.unit, args.reason)
+        elif args.command == "repair-report":
+            result = repair_report(args.run, args.unit, args.reason, args.actor)
         elif args.command == "recover":
             result = recover(args.run, args.unit)
         elif args.command == "confirm-h3":

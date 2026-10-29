@@ -13,6 +13,9 @@ READABILITY_INSTRUCTIONS = """落實四項讀者檢查，不只評論自然流�
 每個passage都交上述四項實際結果。后三項各含verdict=supported或gap與具體explanation，不為湊問題而判gap。任何added_background或gap都須反映在remaining_gap及open B問題，整篇不得supported或B L3。若原文已清楚，明確說明支撐，不刻意找碴。選真正承載教學的完整段落，不挑一句轉場；從頭讀完再選證據。"""
 
 
+READABILITY_INSTRUCTIONS += "\n評估範圍以本章用途與既有案例為準。列到某類工作不代表本章必須逐類新增完整示範；先檢查既有解釋與案例是否已足夠理解。若建議需要新素材、新案例或新增教學目標，標明超出文案範圍並回交，不把未教授其他章內容直接判成本章B缺口。"
+
+
 def readability_fields(obj):
     string = {"type": "string"}
     dimension = obj({"verdict": {"type": "string", "enum": ["supported", "gap"]}, "explanation": string})

@@ -82,6 +82,22 @@ python3 scripts/course_loop.py finish --run RUN --evidence INTEGRATION.md --expe
 
 舊 schema 的 `level=L1, cap=L1` 可無損轉為 `cap=null`；只移除冗餘表示，不改等級。原始 answer、response 與 normalization 都保留；其他不合法判級仍拒收。
 
+## 已回交比較報告的格式更正
+
+`retry`仍不得重抽已有答案。若使用者明確要求更正v0.6作者比較報告，且拒收原因是逐字引文不符或引用已關閉P／Q，可使用：
+
+```bash
+python3 scripts/course_loop.py repair-report --run RUN --unit CH1 --actor '紀錄者' --reason '本次明確授權與已確認的格式錯誤'
+```
+
+每份失敗比較報告僅一次，使用原作者模型與low／既有設定，計入同一run原總額，不重置候選或已用呼叫。原任務ID保留；原始答案、response、報告與拒收檔案不動，更正另存`-report-repair`目錄，job保留原檔位置、SHA、原因與紀錄者。
+
+更正不再重交整份報告，只交`replacements`：每項為原passages的零起算索引`passage`、`quote_ref`及`support_refs`。位置包含`block`段落ID、`start`及`end`字元位置；選整段可用0至該段length。控制器從目前候選擷取原文，將局部更正套到原答案副本，保留全部P／Q紀錄、等級、問題狀態、修法與閱讀結論；評級中原已關閉的引用由程式移除，不改高等級。含evaluation等其他欄位的patch直接拒收。
+
+原始patch保留在answer.json，組裝結果另存assembled-answer.json，原拒收答案及報告不動。接收仍核對原答案SHA與不可變欄位，再走原驗證器；格式可接收不等於內容通過。更正仍有問題即停止，不再次重抽。這不重設舊run已經用過的更正次數。
+
+接收後如果原問題仍open，照原控制器決定是否需要第二版；只有實際改稿、比較、必要檢查與新上下文覆核完成才停H3。額度不足、相同缺口再次失敗或其他停止條件照原規則處理，不能因更正報告而直接跳過。
+
 ## 執行與驗證界線
 
 每次以全新 Codex 程序、空工作目錄及唯讀沙箱執行，只接受資料回傳，主控制器負責存檔。覆核不帶作者評分答案；若事件顯示使用未授權工具，拒收結果。這是上下文隔離，不是限制所有檔案讀取的作業系統隔離。完整來源與規範會送往指定模型，應只提供獲准處理的材料。

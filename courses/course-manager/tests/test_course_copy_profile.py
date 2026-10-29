@@ -57,6 +57,7 @@ class CopyProfileTests(unittest.TestCase):
             self.assertEqual((run / "units/CH1/original.html").read_text(), source.read_text())
             config = read_json(run / "units/CH1/config.json")
             self.assertEqual(config["profile"], "copy-v0.6")
+            self.assertEqual(config["citation_contract"], "locations-v1")
             state = run / "units/CH1/state.json"
             create_stage(config, state)
             task = next_task(state)

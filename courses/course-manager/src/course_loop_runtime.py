@@ -11,6 +11,7 @@ from src.course_improvement_loop import LoopError, artifact, digest, read_json, 
 from src.course_improvement_queue import (authorize_dispatch, confirm_integration, dispatch,
                                           initialize_queue, load_queue, queue_status)
 from src.course_loop_executor import build_prompt, collect_result, execute_codex, response_schema
+from src.course_copy_reports import apply_report_patch, hydrate_reading, merge_issue_updates
 from src.course_loop_review import run_checks, validate_policy
 from src.course_loop_stages import (check_inputs, confirm_h3, create_stage, load_stage,
                                     next_task, receive, stage_status, supplement_evidence)
@@ -79,6 +80,9 @@ def prepare(spec, root):
                              "output_root": str(directory), "review_policy": policy, "restrictions": []}
         if profile:
             configs[u["id"]]["profile"] = profile
+        if u.get("citation_contract"):
+            require(profile == "copy-v0.6" and u["citation_contract"] == "locations-v1", "不支援的引文契約")
+            configs[u["id"]]["citation_contract"] = u["citation_contract"]
         units.append({"id": u["id"], "title": u["title"], "purpose": u["purpose"], "source": refs["source"],
                       "stage_state": str(directory / "state.json"), "dependencies": copy.deepcopy(u["dependencies"]),
                       "review_policy": policy})
@@ -148,6 +152,20 @@ def accept_job(root, runtime, job):
     require(provider["model"] == task["assignment"]["model"] and provider["fresh_process"] is True,
             "執行模型或新程序紀錄不符")
     answer = read_json(directory / "answer.json")
+    if job.get("report_repair", {}).get("mode") == "locations-v1":
+        answer = apply_report_patch(task, read_json(job["report_repair"]["original_answer"]), answer)
+        write_once(directory / "assembled-answer.json", json.dumps(answer, ensure_ascii=False, indent=2))
+    elif task.get("citation_contract") == "locations-v1":
+        answer = hydrate_reading(task, answer)
+        answer["evaluation"] = merge_issue_updates(task["current_evaluation"], answer["evaluation"])
+        write_once(directory / "assembled-answer.json", json.dumps(answer, ensure_ascii=False, indent=2))
+    if job.get("report_repair"):
+        require(digest(job["report_repair"]["original_answer"]) == job["report_repair"]["original_answer_sha256"],
+                "原拒收報告已變動，不接收更正")
+        original = read_json(job["report_repair"]["original_answer"])
+        if task.get("citation_contract") == "locations-v1":
+            original["evaluation"] = merge_issue_updates(task["current_evaluation"], original["evaluation"])
+        validate_report_repair(original, answer)
     require(isinstance(answer, dict) and isinstance(answer.get("documents"), dict), "模型回交不是documents物件")
     roles = {"report", "handoff"} if task["phase"] == "assess" else ({"report", "candidate"} if task["phase"] == "rewrite" else {"report"})
     expected = {"documents"} | ({"evaluation"} if task["phase"] != "rewrite" else set()) | ({"check_resolutions"} if task["phase"] == "review" else set())
@@ -276,6 +294,70 @@ def retry(root, uid, reason, transport=execute_codex):
         for name in ("task.json", "prompt.txt", "schema.json"):
             write_once(directory / name, (old / name).read_text())
         job.update(directory=str(directory), status="running", attempts=2, retry_reason=reason, previous_directory=str(old))
+        runtime["model_calls"] += 1
+        save(root / "run.json", runtime)
+        try:
+            provider = transport(directory, task["assignment"]["model"], limits["timeout_seconds"], limits["reasoning_effort"])
+            save(directory / "provider-result.json", provider)
+            accept_job(root, runtime, job)
+        except (LoopError, OSError, ValueError, KeyError, TypeError) as exc:
+            job["status"] = "failed"
+            runtime["last_error"] = str(exc)
+            save(root / "run.json", runtime)
+    return status(root)
+
+
+def validate_report_repair(original, corrected):
+    """只准更正引文與已關閉項目的引用，不准把判斷改成通過。"""
+    expected = copy.deepcopy(original["evaluation"])
+    for principle in expected["grades"].values():
+        for refs, collection in (("problems", "problems"), ("questions", "questions")):
+            closed = {row["id"] for row in expected[collection] if not row["open"]}
+            principle[refs] = [key for key in principle[refs] if key not in closed]
+    require(corrected.get("evaluation") == expected, "報告更正不得改變原判級、問題狀態、修法或新增判斷")
+    before = copy.deepcopy(original.get("reading_decision"))
+    after = copy.deepcopy(corrected.get("reading_decision"))
+    for decision in (before, after):
+        require(isinstance(decision, dict) and isinstance(decision.get("passages"), list), "缺少原閱讀判斷")
+        for row in decision["passages"]:
+            row.pop("quote", None)
+            row.pop("support_quotes", None)
+            row.pop("quote_ref", None)
+            row.pop("support_refs", None)
+    require(before == after, "報告更正只能修引文，不得改變原閱讀結論")
+
+
+def repair_report(root, uid, reason, actor, transport=execute_codex):
+    """明確授權後，一次更正被拒收的比較報告；沿用原任務及總額。"""
+    root = Path(root).resolve()
+    with run_lock(root):
+        runtime = load_run(root)
+        path = unit_path(root, uid)
+        task = next_task(path)
+        require(task.get("phase") == "compare" and task.get("profile") == "copy-v0.6", "僅支援v0.6作者比較報告更正")
+        job = runtime["jobs"].get(task["id"])
+        require(job and job["status"] == "failed" and job["attempts"] == 1 and reason.strip() and actor.strip(),
+                "須明確授權且每份失敗比較報告只更正一次")
+        old = Path(job["directory"])
+        require((old / "provider-result.json").is_file() and (old / "answer.json").is_file(), "須有完整原始回交")
+        require(runtime["last_error"] and any(text in runtime["last_error"] for text in
+                ("重述依據須逐字", "閱讀引文須逐字", "等級引用無效 P", "等級引用無效 Q", "引文段落不存在", "引文範圍越界")), "不是可更正的引文或引用拒收")
+        limits = read_json(root / "spec.json")["limits"]
+        require(runtime["model_calls"] < limits["max_model_calls"], "模型額度已用完")
+        directory = old.parent / (old.name + "-report-repair")
+        directory.mkdir()
+        task = copy.deepcopy(task)
+        task["allowed_inputs"]["rejected-report"] = artifact(old / "answer.json")
+        task["report_patch"] = True
+        task["instructions"] += ("\n本次只交replacements局部更正，不重交報告或evaluation，不重新評估或改稿。"
+            "以原始rejected-report的passages零起算索引指定passage，quote_ref與support_refs選當前正文位置。"
+            "只修有問題的引文。其餘資料由控制器原樣保存，不能輸出評級、P/Q、候選或新示範。")
+        write_once(directory / "task.json", json.dumps(task, ensure_ascii=False, indent=2))
+        write_once(directory / "prompt.txt", build_prompt(task, limits["max_input_chars"]))
+        save(directory / "schema.json", response_schema(task))
+        job.update(directory=str(directory), status="running", attempts=2,
+                   report_repair={"mode": "locations-v1", "original_directory": str(old), "original_answer": str(old / "answer.json"),
+                                  "original_answer_sha256": digest(old / "answer.json"), "reason": reason, "actor": actor})
         runtime["model_calls"] += 1
         save(root / "run.json", runtime)
         try:

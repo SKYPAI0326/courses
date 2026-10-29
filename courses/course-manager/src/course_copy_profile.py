@@ -78,6 +78,7 @@ def copy_spec(source, unit_id, title, purpose, materials=(), keep=()):
                    "max_input_chars": 200000, "reasoning_effort": "low"},
         "units": [{"id": unit_id, "title": title,
                    "profile": "copy-v0.6",
+                   "citation_contract": "locations-v1",
                    "purpose": "文案迭代：" + purpose + "。僅修閱讀脈絡，保留教學事實；不是整章技術驗收。",
                    "source": str(source), "materials": [str(Path(p).resolve()) for p in materials],
                    "dependencies": [], "checks": checks}]

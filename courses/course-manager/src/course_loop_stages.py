@@ -224,6 +224,8 @@ def next_task(path):
                 checks_for_current(s)
                 task["allowed_inputs"], task["current_evaluation"] = reviewer_inputs(s)
                 task["checks"] = s["latest_checks"]
+        if profile == "copy-v0.6" and s["config"].get("citation_contract") == "locations-v1" and s["phase"] in ("compare", "review"):
+            task["citation_contract"] = "locations-v1"
         s["task"] = task
         s["revision"] += 1
         s["history"].append({"event": "dispatch", "task_id": task_id, "phase": s["phase"]})

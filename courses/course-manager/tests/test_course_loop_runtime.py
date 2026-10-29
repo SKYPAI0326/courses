@@ -10,10 +10,95 @@ from unittest.mock import patch
 from src.course_improvement_loop import LoopError, artifact, read_json, save
 from src.course_loop_executor import build_prompt, execute_codex, response_schema
 from src.course_loop_runtime import (activate, finish, human_confirmation, prepare, report,
-                                     recover, retry, status, supply_check, work)
+                                     recover, retry, repair_report, validate_report_repair, status, supply_check, work)
 
 
 class RuntimeTests(unittest.TestCase):
+    def test_new_location_contract_reaches_review_with_controller_owned_issues(self):
+        self.spec['units'][0].update(profile='copy-v0.6', citation_contract='locations-v1')
+        self.start()
+        def located(job, model, timeout, effort):
+            provider = self.transport(job, model, timeout, effort)
+            task = read_json(job / 'task.json')
+            if task['phase'] in ('compare', 'review'):
+                from src.course_copy_reports import reading_blocks
+                self.assertEqual(task['citation_contract'], 'locations-v1')
+                block = reading_blocks(task)[0]
+                ref = {'block':block['id'], 'start':0, 'end':block['length']}
+                answer = read_json(job / 'answer.json')
+                answer['evaluation']['problems'] = [{'id':'P1','open':False}]
+                answer['reading_decision'] = {'verdict':'supported','explanation':'合成流程測試。','passages':[{
+                    'quote_ref':ref,'support_refs':[ref],'reader_understanding':'班數與原因。','remaining_gap':'','problem_id':None,
+                    'plain_restatement':'有兩班。','added_background':'', **{k:{'verdict':'supported','explanation':'僅測流程。'}
+                    for k in ('referents','reason_placement','reading_load')}}]}
+                save(job / 'answer.json',answer)
+            return provider
+        result = work(self.run, 8, located)
+        self.assertIsNone(result['last_error'])
+        self.assertEqual(result['units'][0]['status'],'waiting_human')
+        self.assertEqual(result['model_calls'],4)
+        state = read_json(self.run/'units/CH1/state.json')
+        self.assertEqual(state['unit']['problems'][0]['description'],'缺少原因')
+
+    def test_report_repair_cannot_change_judgment(self):
+        original = {'evaluation': {'problems': [{'id': 'P1', 'open': True}], 'questions': [],
+                    'grades': {'B': {'level': 'L1', 'problems': ['P1'], 'questions': []}}},
+                    'reading_decision': {'verdict': 'gap', 'passages': [{'quote': '錯引文', 'support_quotes': ['錯引文'],
+                                          'remaining_gap': '仍需說明', 'problem_id': 'P1'}]}}
+        corrected = copy.deepcopy(original)
+        corrected['reading_decision']['passages'][0].update(quote='真正引文', support_quotes=['真正引文'])
+        validate_report_repair(original, corrected)
+        corrected['evaluation']['grades']['B']['level'] = 'L3'
+        with self.assertRaisesRegex(LoopError, '不得改變原判級'):
+            validate_report_repair(original, corrected)
+
+    def test_report_repair_keeps_raw_output_candidate_and_call_budget(self):
+        self.spec['units'][0]['profile'] = 'copy-v0.6'
+        self.start()
+        def rejected_compare(job, model, timeout, effort):
+            provider = self.transport(job, model, timeout, effort)
+            task = read_json(job / 'task.json')
+            if task['phase'] == 'compare':
+                answer = read_json(job / 'answer.json')
+                for grade in answer['evaluation']['grades'].values(): grade['problems'] = ['P1']
+                answer['reading_decision'] = {'verdict': 'supported', 'explanation': '合成測試。', 'passages': [{
+                    'quote': '案例班數2。原因已補。', 'reader_understanding': '班數與原因。', 'remaining_gap': '', 'problem_id': None,
+                    'plain_restatement': '有兩班。', 'support_quotes': ['「案例班數2。原因已補。」'], 'added_background': '',
+                    **{k: {'verdict': 'supported', 'explanation': '僅測流程。'} for k in ('referents','reason_placement','reading_load')}}]}
+                save(job / 'answer.json', answer)
+            return provider
+        stopped = work(self.run, 3, rejected_compare)
+        self.assertEqual(stopped['model_calls'], 3)
+        runtime = read_json(self.run / 'run.json'); old = Path(list(runtime['jobs'].values())[-1]['directory'])
+        raw = (old / 'answer.json').read_bytes()
+        def corrected_report(job, model, timeout, effort):
+            from src.course_copy_reports import reading_blocks
+            task = read_json(job / 'task.json'); block = reading_blocks(task)[0]
+            start = block['text'].index('案例班數2。原因已補。')
+            ref = {'block':block['id'], 'start':start, 'end':start+len('案例班數2。原因已補。')}
+            save(job / 'answer.json', {'replacements':[{'passage':0,'quote_ref':ref,'support_refs':[ref]}]})
+            return {'model':model, 'context_id':'repair-context', 'fresh_process':True, 'usage':{}}
+        repaired = repair_report(self.run, 'CH1', '已辨認引文與closed ID格式錯誤', '合成授權', corrected_report)
+        self.assertIsNone(repaired['last_error'])
+        self.assertEqual(repaired['model_calls'], 4)
+        self.assertEqual(repaired['units'][0]['candidate_usage'], '1/2')
+        self.assertEqual((old / 'answer.json').read_bytes(), raw)
+        def reviewed(job, model, timeout, effort):
+            task = read_json(job / 'task.json')
+            self.assertEqual(task['phase'], 'review')
+            self.assertNotIn('grades', task['current_evaluation'])
+            answer = read_json(Path(read_json(self.run / 'run.json')['jobs'][next(
+                k for k in read_json(self.run / 'run.json')['jobs'] if k.endswith('compare'))]['directory']) / 'assembled-answer.json')
+            answer['check_resolutions'] = {}
+            save(job / 'answer.json', answer)
+            return {'model':model, 'context_id':'fresh-review-context', 'fresh_process':True, 'usage':{}}
+        complete = work(self.run, 2, reviewed)
+        self.assertIsNone(complete['last_error'])
+        self.assertEqual(complete['units'][0]['status'], 'waiting_human')
+        self.assertEqual(complete['model_calls'], 5)
+        with self.assertRaises(LoopError):
+            repair_report(self.run, 'CH1', '不能再試', '測試', corrected_report)
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
