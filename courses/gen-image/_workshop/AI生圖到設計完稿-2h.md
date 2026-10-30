@@ -39,7 +39,7 @@ revision: "2026-10-30"
 
 | 材料與用途 | 實檔／取得方式 | 驗證 | 狀態 |
 |---|---|---|---|
-| L4 範例與 L2 線稿對照 | `img/workshop2h/pdf-source/bento.png`、`img/workshop2h/pdf-source/bento-wireframe.svg` | 彩色範例與對應五格線稿；供結構判讀 | READY |
+| L4 範例、L2 線稿與換題材成圖 | `img/workshop2h/pdf-source/bento.png`、`img/workshop2h/bento-wireframe-L2.png`、`img/workshop2h/bento-reuse-soap.png` | 彩色範例、對應五格線稿與植物手工皂成圖；供結構判讀 | READY |
 | 六種視覺形式範例 | `img/workshop2h/pdf-source/` 中的六張 PNG | 六張形式範例圖分別對應六段提示詞；作為課堂範例與無生圖權限備援 | READY |
 | 六種形式的提示詞與工作紙 | 六種形式的完整提示詞；正文與網頁均可直接複製 | 保留完整提示詞內容，將排版標記轉成純文字；未重新生成或驗收成圖 | 完整提示詞已同步；商業發布仍須核實宣稱 |
 
@@ -118,7 +118,11 @@ revision: "2026-10-30"
 
 ![L4 彩色範例：SUN DRIED 便當格](../img/workshop2h/pdf-source/bento.png)
 
-![同一版面的 L2 線稿](../img/workshop2h/pdf-source/bento-wireframe.svg)
+![從完稿反推的同版 L2 線稿](../img/workshop2h/bento-wireframe-L2.png)
+
+同一張線稿也能換成植物手工皂：左側主視覺、右側三格與底部行動入口的相對位置和閱讀順序保留，商品、道具、文案與色彩換成新題材。
+
+![沿用五格結構的植物手工皂成圖](../img/workshop2h/bento-reuse-soap.png)
 
 看任何版面時，依序回答三題：
 
