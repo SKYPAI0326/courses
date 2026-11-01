@@ -36,6 +36,7 @@ def normalize(text):
 
 
 def inline(text):
+    text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", text)
     text = html.escape(normalize(text))
     text = re.sub(r"\*\*(.*?)\*\*", r"<b>\1</b>", text)
     text = re.sub(r"`(.*?)`", r"<font backColor='#F5F3EE'>\1</font>", text)
