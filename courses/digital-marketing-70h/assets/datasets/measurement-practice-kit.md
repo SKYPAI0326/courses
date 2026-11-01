@@ -1,122 +1,137 @@
-# GA4 × GTM 共用量測練習包
+# 山徑咖啡｜GA4 × GTM 共用量測練習包
 
-> 版本：2026-10-24-v1
-> 用途：讓沒有網站、GA4 歷史資料或 GTM 編輯權限的學員，也能完成分析與設定推理。
-> 資料聲明：下列數據與除錯紀錄是課堂合成案例，不是真實客戶資料，也不是 GA4 匯出檔。離線完成不等於已在平台安裝或驗證。
+> 課堂模擬資料，不是真實品牌成效。
+> 版本：2026-11-01-v2。用途：讓沒有網站、GA4 歷史資料或 GTM 編輯權限的學員，也能完成報表判讀、事件設計與驗證推理。離線完成不等於已在平台安裝或確認。
 
-## 先選你的練習軌
+## 先選練習方式
 
-| 軌別 | 你需要的條件 | 能完成 | 不能宣稱 |
+| 練習方式 | 需要的條件 | 能完成 | 不能宣稱 |
 |---|---|---|---|
-| A 真實環境 | 自有網站、GA4 資源權限、GTM 容器編輯權限、已確認的 Consent／CMP 政策 | 建立、Preview、DebugView／Realtime 驗證、核准後發布 | 未實測的瀏覽器、同意情境或轉換仍不能寫成通過 |
-| B Google Demo | 可登入 Google 帳號 | 用 Google Analytics demo account 練習報告與探索、解讀真實商業資料 | 不能在示範資源安裝自己的 GTM 或改管理設定 |
-| C 離線案例 | 本檔即可 | 算指標、找流失、設計事件、判讀 consent／tag firing trace、寫 QA 清單 | 不能寫「GA4／GTM 已安裝」「Tag Assistant／DebugView 已通過」 |
+| 有自己網站的組 | 自有網站、GA4 資源權限、GTM 容器編輯權限、已確認的同意管理政策 | 建立事件、用預覽模式實測、在即時報表或 DebugView 核對，核准後發布 | 沒有實測的瀏覽器、同意情境或關鍵事件不能寫成已確認 |
+| 用 GA4 示範帳戶 | 可登入 Google 帳號 | 用 GA4 示範帳戶練習報表、探索與真實商業資料解讀 | 不能在示範資源安裝自己的 GTM 或改管理設定 |
+| 用山徑咖啡練習頁 | 本檔與 `assets/practice/booking-practice.html` | 算指標、找流失、設計事件、用自己的 GTM 容器預覽三個互動 | 沒有平台畫面證據時，不能寫成正式網站已安裝或已發布 |
 
-Google 官方 Demo Account：<https://support.google.com/analytics/answer/10993011>
+GA4 示範帳戶說明：<https://support.google.com/analytics/answer/10993011>
 
 ## Part 1｜GA4 練習資料
 
-案例：教學電商「日日沖煮」；期間 2026-09-01～2026-09-30；幣別 TWD。
+案例：山徑咖啡；期間：近 30 天。所有數字與品牌包 `MEASURE-03`、第 9 節課堂模擬基線一致。
 
-### 1A. 流量來源
+### 1A｜流量來源
 
-| Session default channel group | Sessions | Engaged sessions | Key events | Purchases | Revenue |
-|---|---:|---:|---:|---:|---:|
-| Organic Search | 6,200 | 3,720 | 620 | 186 | 372,000 |
-| Paid Search | 3,100 | 1,860 | 465 | 155 | 341,000 |
-| Paid Social | 4,400 | 1,980 | 352 | 88 | 167,200 |
-| Email | 1,600 | 1,120 | 272 | 96 | 211,200 |
-| Direct | 2,700 | 1,350 | 216 | 81 | 170,100 |
-
-獨立任務：計算各渠道參與率、購買轉換率與平均訂單金額。只根據表中數字回答「保留、調查、降低」各一個渠道，並註明還缺什麼證據。
-
-### 1B. 電商漏斗
-
-| 步驟 | 事件 | 使用者數 |
-|---|---|---:|
-| 1 | session_start | 5,000 |
-| 2 | view_item | 3,000 |
-| 3 | add_to_cart | 900 |
-| 4 | begin_checkout | 450 |
-| 5 | purchase | 270 |
-
-裝置細分：
-
-| 裝置 | view_item | add_to_cart | begin_checkout | purchase |
+| 預設管道群組 | 工作階段 | 互動工作階段 | 預約完成 | 線上購買 |
 |---|---:|---:|---:|---:|
-| Mobile | 2,100 | 525 | 210 | 105 |
-| Desktop | 900 | 375 | 240 | 165 |
+| 自然搜尋 | 1,350 | 840 | 21 | 14 |
+| 直接 | 900 | 475 | 14 | 10 |
+| 自然社群 | 630 | 370 | 9 | 5 |
+| 推薦 | 330 | 205 | 5 | 3 |
+| Email | 240 | 165 | 4 | 4 |
+| AI Assistant | 50 | 32 | 1 | 0 |
+| **合計** | **3,500** | **2,087** | **54** | **36** |
 
-獨立任務：計算每一步流失率，找出最大流失點；再比較 Mobile／Desktop。提出一個只改單一變因的測試，並寫出主要指標與停止條件。資料不足時寫「待驗證」，不要補數字。
+`AI Assistant` 是 GA4 在 2026-05 新增的預設管道群組，本表占 50／3,500，約 1.4%。
 
-## Part 2｜GTM 設定草案
+獨立任務：計算各渠道的參與率、預約完成率與線上購買率。只根據表中數字提出一個「保留」、一個「調查」與一個「降低或暫緩」的候選，並寫出下決策前還缺什麼證據。
 
-案例需求：追蹤頁面瀏覽與「預約體驗」按鈕。組織採 Basic Consent Mode；未同意前不載入 Google tags。
+### 1B｜商品頁到主要行動
 
-| 元件 | 課堂草案 |
-|---|---|
-| Consent 預設 | `analytics_storage`、`ad_storage`、`ad_user_data`、`ad_personalization` 皆為 `denied` |
-| Consent 更新 | 使用者按「全部接受」才把四項更新為 `granted`；拒絕則維持 `denied` |
-| Google tag | Tag ID：`G-COURSE123`（課堂假 ID，不可發布） |
-| Google tag trigger | `Initialization - All Pages`；仍須遵守 consent checks |
-| CTA 事件 | event name：`generate_lead`；parameter：`cta_name=trial_booking`、`page_type=course_landing` |
-| CTA trigger | Click Text equals `預約體驗`，且 Page Path equals `/course/` |
+| 行為 | 事件 | 次數 |
+|---|---|---:|
+| 瀏覽三款商品頁 | 既有頁面瀏覽資料 | 2,400 |
+| 開啟比較表 | `comparison_open` | 尚無資料：比較表是 90 天內要新做的測試，上線後才開始追蹤 |
+| 開始預約 | `booking_start` | 120 |
+| 完成預約 | `booking_complete` | 54 |
+| 加入 LINE | `line_join` | 80 |
+| 完成線上購買 | `purchase` | 36 |
 
-### 2A. 正常 Preview trace（Basic 模式）
+`加入 LINE` 與 `完成線上購買` 不是預約漏斗的下一步，不能和預約事件串成同一條線性漏斗。
 
-| 順序 | Event／階段 | Consent 狀態 | Tag Assistant 可觀察結果 |
+獨立任務：計算商品頁瀏覽到開啟比較表、開啟比較表到開始預約、開始預約到完成預約的比率。指出最大流失段，提出一個只改單一變因的測試，並寫出主要指標與停止條件。資料不足時寫「待驗證」，不要補數字。
+
+## Part 2｜事件與 GTM 設定草案
+
+### 2A｜事件規格
+
+| 事件名稱 | 觸發時機 | 建議參數 | 旅程階段 | 標為關鍵事件 |
+|---|---|---|---|---|
+| `comparison_open` | 比較表由收合變成展開時 | `page_type`、`product_count` | 考慮 | 否，作為過程事件 |
+| `booking_start` | 預約表單第一個欄位首次取得焦點時 | `form_id`、`page_type` | 決策 | 否，作為漏斗起點 |
+| `booking_complete` | 表單通過必要欄位檢查並送出時 | `form_id`、`preferred_slot` | 決策 | 是 |
+| `line_join` | 加入 LINE 按鈕被點擊時 | `placement`、`page_type` | 決策／留存 | 是 |
+| `purchase` | 訂單完成頁確認交易成功時 | `transaction_id`、`value`、`currency` | 購買 | 是 |
+
+練習頁可以實測前三個事件與 `line_join`。`purchase` 只做規格設計，不在練習頁假造交易。
+
+### 2B｜GTM 設定審查
+
+為 `comparison_open`、`booking_start`、`booking_complete` 各寫一列：
+
+| 事件 | 觸發條件 | 讀取的變數 | GA4 事件名稱與參數 | 預覽模式要看見的證據 |
+|---|---|---|---|---|
+| `comparison_open` |  |  |  |  |
+| `booking_start` |  |  |  |  |
+| `booking_complete` |  |  |  |  |
+
+判讀原則：事件名稱、觸發條件、參數值與預覽模式證據要對得上。只看到點擊，不代表 GA4 事件已送出；只看到事件標籤觸發，也不代表即時報表已收到。
+
+## Part 3｜同意模式集中練習
+
+同意模式只在本節處理。先依網站政策決定基本模式或進階模式，再設定預設狀態、更新時機與各標籤的同意檢查。沒有政策來源時先標「待確認」，不要代替網站決定。
+
+### 正常預覽順序｜基本模式示例
+
+| 順序 | 階段 | 同意狀態 | 預覽模式應觀察到的結果 |
 |---:|---|---|---|
-| 1 | Consent Initialization | 四項 denied | Consent default tag fired |
-| 2 | Initialization | 四項 denied | Google tag blocked；沒有 GA4 event tag fired |
-| 3 | consent_accept | 四項 update 為 granted | Consent update 可見 |
-| 4 | page_view | granted | Google tag 與 page_view 可見 |
-| 5 | click「預約體驗」 | granted | `generate_lead` fired，兩個參數值正確 |
+| 1 | 同意初始化 | 分析與廣告相關同意均為拒絕 | 預設同意狀態先建立 |
+| 2 | 初始化 | 維持拒絕 | Google 標籤與 GA4 事件標籤不載入 |
+| 3 | 使用者選擇全部接受 | 更新為同意 | 同意更新可見 |
+| 4 | 頁面瀏覽 | 已同意 | Google 標籤與頁面瀏覽事件可見 |
+| 5 | 開啟比較表或送出預約 | 已同意 | 對應事件只觸發一次，參數正確 |
 
-### 2B. 故障 trace
+### 故障預覽紀錄
 
-| 順序 | Event／階段 | Consent 狀態 | Tag Assistant 可觀察結果 |
+| 順序 | 階段 | 同意狀態 | 觀察到的問題 |
 |---:|---|---|---|
-| 1 | Initialization | 尚未設定 | Google tag fired |
-| 2 | DOM Ready | 四項 default 為 denied | Consent default 才出現 |
-| 3 | click「預約體驗」 | denied | `generate_lead` 仍 fired |
+| 1 | 初始化 | 尚未設定 | Google 標籤已載入 |
+| 2 | 文件物件模型就緒 | 預設改為拒絕 | 預設狀態設定得太晚 |
+| 3 | 點擊預約 | 仍為拒絕 | `booking_start` 仍觸發 |
 
-獨立任務：指出至少兩個失敗證據、風險與修復位置。最低答案必須包含「default 太晚」與「denied 時事件仍觸發」。修正後重排正確順序；離線作答只標記為 `CONFIG REVIEW PASS`，不能標記為 `PLATFORM VERIFIED`。
+獨立任務：指出至少兩個失敗證據、風險與修復位置。最低答案包含「預設狀態太晚」與「拒絕時事件仍觸發」。修正後重排正確順序；離線作答只能寫「設定草案已審」，不能寫「已在平台確認」。
 
-## Part 3｜繳交與驗收
+## Part 4｜繳交與驗收
 
-請交一份 `measurement-decision.md`。若你已完成 M6-1，先從 `ga4-setup-check.md` 帶入練習軌、GA4 可用條件與平台狀態；若直接從 M7 開始，就把 GA4 readiness 標成 `PENDING`，再使用本檔 Part 2 完成 GTM 設定審查。
+請交一份 `measurement-decision.md`：
 
 ```markdown
-# Measurement Decision
+# 量測決策
 - 版本／日期：
-- 練習軌：A／B／C
+- 練習方式：有自己網站的組／用 GA4 示範帳戶／用山徑咖啡練習頁
 - 使用資料來源與期間：
-- GA4 readiness：已驗證／待處理／不適用（來源：ga4-setup-check.md／本練習包）
+- GA4 可用狀態：已在平台確認／待處理／不適用
 - 一個已確認發現：
 - 一個仍待驗證假設：
 - 決策：保留／調查／降低／修復
-- 依據數字或 trace：
+- 依據數字或預覽紀錄：
 - 下一個驗證動作、負責人、日期：
 
 ## GTM 設定審查
-- Consent 模式與政策來源：Basic／Advanced／待確認
-- Tag／Trigger／Variable／Consent 配對：
-- 正常 trace 的預期順序與依據：
+- 事件、觸發條件、變數與參數配對：
+- 正常預覽順序與依據：
 - 失敗證據與修復：至少兩項
 
 ## 三種同意情境
-| 情境 | 各 consent type 預期狀態 | 預期 tag 行為 | 證據層級 |
+| 情境 | 各項同意的預期狀態 | 預期標籤行為 | 證據層級 |
 |---|---|---|---|
-| 全部接受 |  |  | 課堂 trace／平台證據 |
-| 全部拒絕 |  |  | 課堂 trace／平台證據 |
-| 部分接受 |  |  | 課堂 trace／平台證據 |
+| 全部接受 |  |  | 課堂預覽紀錄／平台證據 |
+| 全部拒絕 |  |  | 課堂預覽紀錄／平台證據 |
+| 部分接受 |  |  | 課堂預覽紀錄／平台證據 |
 
 ## 收集與報表複核
-- 當下用 Tag Assistant、Realtime 或 DebugView 檢查：
-- 需要等待處理的標準報表／探索與複核條件：
+- 當下用預覽模式、即時報表或 DebugView 檢查：
+- 需要等待處理的標準報表與複核條件：
 - 停止發布條件：
-- 設定審查狀態：CONFIG REVIEW PASS／需修訂
-- 平台狀態：PLATFORM VERIFIED／PENDING（附證據連結或截圖編號）
+- 設定審查狀態：設定草案已審／需修訂
+- 平台狀態：已在平台確認／待實測（附證據連結或截圖編號）
 ```
 
-互評者先檢查結論是否有來源、未知是否誠實標示、下一步是否能執行，再抽查 GTM 設定、三種同意情境、失敗修復與平台狀態是否使用同一證據層級。離線軌可以通過 `CONFIG REVIEW PASS`，但平台狀態必須是 `PENDING`；任一不合格就退回修訂。
+講師先檢查結論是否有來源、未知是否誠實標示、下一步是否能執行，再抽查事件設定、三種同意情境、失敗修復與平台狀態是否使用同一證據層級。用示範帳戶或練習頁完成的作業可以通過設定審查，但不得把正式網站平台狀態寫成已確認。
