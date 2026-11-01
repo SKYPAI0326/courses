@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>理解觸發與欄位：先跑最小流程｜生成式 AI 工作應用班</title>
-<meta name="description" content="把試算表的一筆新列，正確寫入另一張紀錄表。">
+<title>讓 AI 把客戶訊息整理成表格列，Make 自動寫進紀錄表｜生成式 AI 工作應用班</title>
+<meta name="description" content="先讓 AI 把散亂訊息整理成固定欄位，再交給 Make 做重複的記錄工作。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
-<meta property="og:title" content="理解觸發與欄位：先跑最小流程">
-<meta property="og:description" content="把試算表的一筆新列，正確寫入另一張紀錄表。">
+<meta property="og:title" content="讓 AI 把客戶訊息整理成表格列，Make 自動寫進紀錄表">
+<meta property="og:description" content="先讓 AI 把散亂訊息整理成固定欄位，再交給 Make 做重複的記錄工作。">
 <meta property="og:url" content="https://skypai0326.github.io/courses/courses/gen-ai-36h/part5/CH5-1.html">
 <meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="理解觸發與欄位：先跑最小流程">
-<meta name="twitter:description" content="把試算表的一筆新列，正確寫入另一張紀錄表。">
+<meta name="twitter:title" content="讓 AI 把客戶訊息整理成表格列，Make 自動寫進紀錄表">
+<meta name="twitter:description" content="先讓 AI 把散亂訊息整理成固定欄位，再交給 Make 做重複的記錄工作。">
 <meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <link rel="canonical" href="https://skypai0326.github.io/courses/courses/gen-ai-36h/part5/CH5-1.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -189,34 +189,337 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div class="lesson-hero" id="main">
   <a class="back-link" href="../index.html"><span aria-hidden="true">←</span> 返回課程總覽</a>
   <div class="hero-meta">
-    <span class="hero-part">Part 5 · 人工覆核與 Make 自動化</span>
+    <span class="hero-part">Part 5 · 用 AI 整理訊息，交給 Make 自動處理</span>
     <div class="hero-divider-v"></div>
     <span class="hero-num">CH 5.1 · 1.5 小時（90 分鐘）</span>
   </div>
-  <h1 class="lesson-title">理解觸發與欄位：先跑最小流程</h1>
-  <p class="lesson-tagline">讓 Make 讀取一筆新資料、寫下一筆紀錄，從表格結果看懂流程怎麼運作。</p>
-  <div class="outcomes"><strong>本節完成物：</strong>來源新列與 ProcessingLog 證據</div>
-  <div class="agenda"><strong>這一節的練習順序</strong><div class="agenda-row"><div class="agenda-time">01</div><div class="agenda-topic">先接起讀資料和寫紀錄兩件事</div></div><div class="agenda-row"><div class="agenda-time">02</div><div class="agenda-topic">把一筆已核對資料送進流程</div></div><div class="agenda-row"><div class="agenda-time">03</div><div class="agenda-topic">打開輸入與結果，確認欄位沒有放錯</div></div><div class="agenda-row"><div class="agenda-time">04</div><div class="agenda-topic">改舊資料與新增一列，會不會觸發相同結果？</div></div></div>
+  <h1 class="lesson-title">讓 AI 把客戶訊息整理成表格列，Make 自動寫進紀錄表</h1>
+  <p class="lesson-tagline">先讓 AI 把散亂訊息整理成固定欄位，再交給 Make 做重複的記錄工作。</p>
+  <div class="outcomes"><strong>本節完成物：</strong>AI 整理的一列客戶訊息，以及 Make 自動寫入的處理紀錄</div>
+  <div class="agenda"><strong>本節 90 分鐘：依下列任務順序操作，分段時間依進度調整</strong><div class="agenda-row"><div class="agenda-time">01</div><div class="agenda-topic">AI 整理內容，Make 接手重複工作</div></div><div class="agenda-row"><div class="agenda-time">02</div><div class="agenda-topic">準備讓 AI 與 Make 共用的試算表</div></div><div class="agenda-row"><div class="agenda-time">03</div><div class="agenda-topic">請 AI 整理一則營業時間詢問</div></div><div class="agenda-row"><div class="agenda-time">04</div><div class="agenda-topic">匯入已準備好的 Make 流程</div></div><div class="agenda-row"><div class="agenda-time">05</div><div class="agenda-topic">讓 Make 寫下第一筆紀錄</div></div><div class="agenda-row"><div class="agenda-time">06</div><div class="agenda-topic">收好第一列，準備處理一批訊息</div></div></div>
 </div>
 
 <div class="lesson-body">
-<section class="lesson-section"><div class="section-eyebrow"><span>(01) · 學習與實作</span></div><h2 class="section-heading">先接起讀資料和寫紀錄兩件事</h2>
-<p class="body-text">前面由你讀資料、整理結果；這一部分開始把其中可重複的動作交給 Make。先只做一件小事：表格出現一筆新資料，就寫下一筆處理紀錄。啟動流程的事件叫「觸發」，流程中的一個動作叫「模組」，把來源欄位放到目的欄位則叫「映射」。本節先不加 AI 或寄信，方便看清楚哪一步出問題。</p>
-<p class="body-text">開<a href="../assets/part5-sheet-layout.md" rel="noopener" target="_blank">試算表配置</a>、<a href="../assets/part5-reviewed-queue.csv" rel="noopener" target="_blank">已由人核對的示例 CSV</a>和<a href="../assets/part5-rebuild-guide.html" rel="noopener" target="_blank">完整建置步驟</a>。你需要 Google、Make 帳號，以及可授權連線的教學試算表。沒有連線權限時，先在表格演練欄位如何對應，並註明自動化尚未實際操作。</p>
-<p class="body-text"><a href="../assets/part5-stage-handoff.html" rel="noopener" target="_blank">四課建置指南</a>把本節稱為 S1，也就是「先留下處理紀錄」的第一步。完成後 ProcessingLog 應有一筆，Drafts 仍空白是正常的。請把最後成功的執行 ID 和試算表位置寫進自己的「Part5-建置紀錄」，下一節會從這個結果繼續加分流。</p>
+<section class="lesson-section"><div class="section-eyebrow"><span>(01) · 學習與實作</span></div><h2 class="section-heading">AI 整理內容，Make 接手重複工作</h2>
+<p class="body-text">客服信箱每天都有不同寫法的訊息。工作人員若一封一封抄進表格，不但花時間，也容易把姓名、主旨或原文抄錯。這一節會請 AI 先整理一則訊息，再讓 Make 在表格出現新的一列時自動留下紀錄。</p>
+<p class="body-text">先把兩個工具的工作分開，後面的流程才容易判斷哪裡需要修正。AI 讀懂訊息，整理出類型、摘要與下一步；你決定資料可以處理後，Make 才把它寫進紀錄表。</p>
+<p class="body-text">這個流程不會寄信。詢問與合作類訊息之後只會存成試算表裡的未寄出草稿。</p>
+<p class="body-text">前四節會使用同一批虛構訊息。之後看到內容稱呼時，直接回來查寄件人與主旨即可。</p>
+<h3>這批訊息</h3>
+<div aria-label="資料表，可水平捲動" class="repair-table" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th>寄件人</th>
+<th>主旨</th>
+<th>內容稱呼</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>陳怡安</td>
+<td>方案費用與回覆延遲</td>
+<td>問月費又抱怨沒回覆那則</td>
+</tr>
+<tr>
+<td>王小明</td>
+<td>週末服務時間</td>
+<td>引用去年週六時間、問今年週末那則</td>
+</tr>
+<tr>
+<td>林可</td>
+<td>合作講座</td>
+<td>邀請參加免費講座、問窗口那則</td>
+</tr>
+<tr>
+<td>林可</td>
+<td>合作講座</td>
+<td>說自己是重複提交的更正信</td>
+</tr>
+<tr>
+<td>（未提供）</td>
+<td>退款進度</td>
+<td>沒留姓名和 email 的退款查詢</td>
+</tr>
+<tr>
+<td>周芸</td>
+<td>服務回饋</td>
+<td>等三天才回覆、表達失望那則</td>
+</tr>
+<tr>
+<td>吳立</td>
+<td>服務時間</td>
+<td>問平日幾點營業那則</td>
+</tr>
+</tbody>
+</table></div>
 </section>
-<section class="lesson-section"><div class="section-eyebrow"><span>(02) · 學習與實作</span></div><h2 class="section-heading">把一筆已核對資料送進流程</h2>
-<p class="body-text">先建四個分頁：Source 保存原始資料，ReviewedQueue 放人工核對通過、等待流程處理的資料，ProcessingLog 留處理紀錄，Drafts 放未寄出的草稿。依配置建立表頭。</p><p class="body-text">從示例 CSV 只取第一筆「小林／詢問方案」，九欄各放一格，分別貼到 Source 和 ReviewedQueue 第 2 列；另兩張表目前只留表頭。先不要貼其餘三筆，這樣等一下就能確認流程只讀到這一筆。</p>
-<p class="body-text">在 Make 建立 Scenario（流程），加入 Google Sheets 的 Watch New Rows（讀取新列），連線後選教學試算表的 ReviewedQueue。Table contains headers 選 Yes，表頭範圍 A1:I1，Limit 設 1。</p><p class="body-text">第一次測試要讀取已貼入的列，起點選 All；之後新增練習改從現在開始，避免重讀舊列。表頭與資料中間不要留空白列，<a href="https://apps.make.com/google-sheets-modules">官方說明</a>指出這會阻止後面資料被處理。</p>
-<p class="body-text">第二個模組用 Add a Row（新增一列），目的分頁選 ProcessingLog。source_key 是辨認同一筆來源的鍵，先依指南用 submitted_at、email、subject 合成；category 接來源分類，route 填「測試」，status 填「已記錄」，draft_status 填「不需要」。按 Run once 執行一次，再打開第一模組的輸出和 ProcessingLog 看結果。</p>
+<section class="lesson-section"><div class="section-eyebrow"><span>(02) · 學習與實作</span></div><h2 class="section-heading">準備讓 AI 與 Make 共用的試算表</h2>
+<p class="body-text">知道兩個工具各做什麼後，現在建立它們共用的工作區。四個分頁把原文、待處理資料、執行結果與草稿分開，出錯時才看得出資料走到哪裡。</p>
+<p class="body-text">建立一份 Google 試算表，再新增下列四個分頁。英文分頁名稱與表頭要照表貼上，因為 Make 會用這些名稱讀取欄位。</p>
+<p class="body-text">原始訊息與待處理的列都使用九個欄位。第一次看到英文表頭時，先用下表確認中文意思與填寫者。前五欄由 AI 照原文填，後三個內容欄由 AI 建議，處理狀態則先由 AI 填成「待覆核」。</p>
+<div aria-label="資料表，可水平捲動" class="repair-table" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th>英文欄名</th>
+<th>中文意思</th>
+<th>誰填</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>submitted_at</td>
+<td>提交時間</td>
+<td>AI 照原文填</td>
+</tr>
+<tr>
+<td>name</td>
+<td>姓名</td>
+<td>AI 照原文填</td>
+</tr>
+<tr>
+<td>email</td>
+<td>email</td>
+<td>AI 照原文填</td>
+</tr>
+<tr>
+<td>subject</td>
+<td>主旨</td>
+<td>AI 照原文填</td>
+</tr>
+<tr>
+<td>message</td>
+<td>訊息內容</td>
+<td>AI 照原文填</td>
+</tr>
+<tr>
+<td>category</td>
+<td>類型</td>
+<td>AI 建議，學員決定</td>
+</tr>
+<tr>
+<td>summary</td>
+<td>摘要</td>
+<td>AI 建議，學員決定</td>
+</tr>
+<tr>
+<td>next_action</td>
+<td>下一步</td>
+<td>AI 建議，學員決定</td>
+</tr>
+<tr>
+<td>review_status</td>
+<td>處理狀態</td>
+<td>AI 先填「待覆核」，學員決定後改成「已覆核」</td>
+</tr>
+</tbody>
+</table></div>
+<h3>試算表要長這樣</h3>
+<div aria-label="資料表，可水平捲動" class="repair-table" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th>中文用途</th>
+<th>分頁名稱</th>
+<th>第一列表頭</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>原始訊息</td>
+<td>Source</td>
+<td>submitted_at, name, email, subject, message, category, summary, next_action, review_status</td>
+</tr>
+<tr>
+<td>待處理的列</td>
+<td>ReviewedQueue</td>
+<td>submitted_at, name, email, subject, message, category, summary, next_action, review_status</td>
+</tr>
+<tr>
+<td>處理紀錄</td>
+<td>ProcessingLog</td>
+<td>source_key, category, route, status, draft_status, error</td>
+</tr>
+<tr>
+<td>草稿</td>
+<td>Drafts</td>
+<td>source_key, recipient, subject, body, status</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">處理紀錄與草稿分頁的英文欄名意思如下：</p>
+<div aria-label="資料表，可水平捲動" class="repair-table" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th>分頁</th>
+<th>英文欄名</th>
+<th>中文意思</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>處理紀錄</td>
+<td>source_key</td>
+<td>來源鍵，用來辨認同一則訊息</td>
+</tr>
+<tr>
+<td>處理紀錄</td>
+<td>category</td>
+<td>類型</td>
+</tr>
+<tr>
+<td>處理紀錄</td>
+<td>route</td>
+<td>路線</td>
+</tr>
+<tr>
+<td>處理紀錄</td>
+<td>status</td>
+<td>處理狀態</td>
+</tr>
+<tr>
+<td>處理紀錄</td>
+<td>draft_status</td>
+<td>草稿狀態</td>
+</tr>
+<tr>
+<td>處理紀錄</td>
+<td>error</td>
+<td>錯誤保留欄；這個流程不會寫入</td>
+</tr>
+<tr>
+<td>草稿</td>
+<td>source_key</td>
+<td>來源鍵</td>
+</tr>
+<tr>
+<td>草稿</td>
+<td>recipient</td>
+<td>收件人</td>
+</tr>
+<tr>
+<td>草稿</td>
+<td>subject</td>
+<td>草稿主旨</td>
+</tr>
+<tr>
+<td>草稿</td>
+<td>body</td>
+<td>草稿本文</td>
+</tr>
+<tr>
+<td>草稿</td>
+<td>status</td>
+<td>草稿狀態</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">處理紀錄的最後一欄 error 是保留欄，這個流程不會寫入。</p>
+<p class="body-text">四個分頁的用途如下：</p>
+<ul>
+<li>原始訊息保存 AI 整理的資料列，作為工作區與原始紀錄；資料先以「待覆核」放在這裡。</li>
+<li>待處理的列只放已經決定可處理、狀態改成「已覆核」的完整新列。</li>
+<li>處理紀錄由 Make 寫下類型、路線與草稿狀態。</li>
+<li>草稿保存詢問與合作類的未寄出內容。</li>
+</ul>
+<p class="body-text">「待覆核」的列先留在「原始訊息」分頁，等人工決定後，再以「已覆核」狀態加入「待處理的列」。Make 讀到一列後就記住它讀過了；如果這列當時還是待覆核，會被篩選擋下，之後改成已覆核也不會再被讀一次。</p>
+<p class="body-text">你也可以直接開啟<a href="../assets/part5-sheet-layout.md" rel="noopener" target="_blank">試算表配置</a>，對照分頁與表頭。這份配置檔是逐步建置版，本課直接匯入完成版流程，不需要放入其中的範例列。請從表頭下方第 2 列接著加入資料，讓監看新增資料時能連續讀取。</p>
 </section>
-<section class="lesson-section"><div class="section-eyebrow"><span>(03) · 學習與實作</span></div><h2 class="section-heading">打開輸入與結果，確認欄位沒有放錯</h2>
-<p class="body-text">本次輸入的 category 應為 inquiry，時間是 2026-10-09T09:00，主旨為詢問方案。輸出紀錄也要保留相同分類和主旨。如果 email 跑進 subject 欄，就回 Add a Row 改欄位對應，再測一次；直接改結果表，無法修好下一筆也會發生的錯誤。</p>
-<p class="body-text">沒有讀到資料時，先查讀取起點、分頁名稱及是否有空白列。連線錯誤則查帳號與權限。保留原始資料，不要反覆刪列重建。這個教學流程只寫紀錄與草稿，沒有對客戶寄信的步驟。</p>
+<section class="lesson-section"><div class="section-eyebrow"><span>(03) · 學習與實作</span></div><h2 class="section-heading">請 AI 整理一則營業時間詢問</h2>
+<p class="body-text">試算表準備好後，先用一則短訊息確認 AI 能不能產出相同的九欄。選「問平日幾點營業那則」，因為原文沒有答案，可以看出 AI 是否會把不知道的營業時間補成事實。本節只處理這一則，其他訊息留待後續。</p>
+<p class="body-text">打開<a href="../assets/part5-unclassified-messages.csv" rel="noopener" target="_blank">前四節使用的訊息批次</a>，複製全部文字。開一個新的 AI 對話，先貼下面的提示詞，再把剛才複製的全部文字貼在「訊息批次」後面。</p>
+<div class="full-prompt-wrap"><pre class="full-prompt"><code class="language-text">整理主旨是「服務時間」、內容是「請問你們平日幾點營業？」的那則客戶訊息，輸出成可以貼進 Google 試算表的一列。
+
+輸出欄位與順序必須是：
+submitted_at（提交時間）, name（姓名）, email（email）, subject（主旨）, message（訊息內容）, category（類型）, summary（摘要）, next_action（下一步）, review_status（處理狀態）
+
+規則：
+1. submitted_at（提交時間）、name（姓名）、email（email）、subject（主旨）、message（訊息內容）必須逐字照抄。
+2. category（類型）只能填 inquiry、complaint、partnership、other 其中一個。
+3. summary（摘要）只整理原文已經說的事。
+4. next_action（下一步）寫接下來要查什麼，不替公司承諾。
+5. review_status（處理狀態）一律填「待覆核」。
+6. 請輸出一個單列九欄表格，讓我可以直接貼進試算表。
+7. 表格後面另列「需要人決定的地方」，最多 3 項；沒有就寫「無」。
+
+訊息批次：
+（把剛才複製的全部文字貼在這裡）
+</code></pre></div>
+<p class="body-text">AI 的結果應接近下面這一列：</p>
+<div aria-label="資料表，可水平捲動" class="repair-table" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th>submitted_at</th>
+<th>name</th>
+<th>email</th>
+<th>subject</th>
+<th>message</th>
+<th>category</th>
+<th>summary</th>
+<th>next_action</th>
+<th>review_status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-10-01 09:30</td>
+<td>吳立</td>
+<td>learner07@example.com</td>
+<td>服務時間</td>
+<td>請問你們平日幾點營業？</td>
+<td>inquiry</td>
+<td>詢問平日營業時間</td>
+<td>查正式營業時間後擬未寄出草稿</td>
+<td>待覆核</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">若 AI 寫出具體時段，請它刪掉並說明原文沒有提供答案。這次只看 AI 標出的地方，再用整理工作訊息那一節學過的三個問題決定是否採用：</p>
+<ul>
+<li>修正後找得到出處嗎？</li>
+<li>有沒有把待確認寫成確定？</li>
+<li>有沒有多出原文沒有的日期、人名或承諾？</li>
+</ul>
 </section>
-<section class="lesson-section"><div class="section-eyebrow"><span>(04) · 學習與實作</span></div><h2 class="section-heading">改舊資料與新增一列，會不會觸發相同結果？</h2>
-<p class="body-text">確認第一筆已寫入 ProcessingLog，ReviewedQueue 也沒有等候的新列後，僅修改 Source 第 2 列，把「請問基礎方案月費」改成「請問基礎方案費用」。再執行一次，應沒有新資料、紀錄筆數不增加，因為流程讀的是 ReviewedQueue，不是 Source。</p><p class="body-text">再將示例第二筆「小安／交期問題」完整貼到 ReviewedQueue 第 3 列。執行後應只多一筆 category 為 complaint 的紀錄；route 仍是本節的「測試」，下一節才改成客服路線。</p>
-<p class="body-text">保存這兩次輸入、執行 ID 或截圖、結果列與遇到的問題。你應能說明哪次沒有新增、哪次新增一筆，以及原因。下一節再加分類條件；目前先確定讀取和寫入這條最短路線是對的。</p>
+<section class="lesson-section"><div class="section-eyebrow"><span>(04) · 學習與實作</span></div><h2 class="section-heading">匯入已準備好的 Make 流程</h2>
+<p class="body-text">有了第一列 AI 資料後，現在把負責記錄的流程接上。課程提供的流程設定檔已包含監看、分流、防重、寫紀錄與存草稿的模組。匯入的是完整流程；這一節先看處理紀錄，分流和草稿會在後兩節說明。</p>
+<ol>
+<li>下載<a href="../assets/reference-make-blueprint.json" rel="noopener" target="_blank">課程提供的 Make 流程設定檔</a>。</li>
+<li>在 Make 建立空白 Scenario，匯入流程設定檔（Blueprint）。</li>
+<li>打開每個 Google Sheets 模組，選自己的 Google 連線。</li>
+<li>把各 Google Sheets 模組的試算表 ID 換成剛才建立的試算表 ID。試算表 ID 是網址中 <code>/d/</code> 與 <code>/edit</code> 之間的文字；尤其確認下面兩個地方都已替換：
+<ul>
+<li>「監看新增的列（Watch New Rows）」模組的 Spreadsheet ID，並確認其餘 Google Sheets 模組也使用同一份試算表。</li>
+<li>打開讀取處理紀錄的模組（Make an API Call），在 URL 欄位裡，把 <code>PASTE_YOUR_SPREADSHEET_ID_HERE</code> 換成你的試算表 ID。
+漏改第二處會讓流程第一次執行就失敗。</li>
+</ul>
+</li>
+<li>每次練習都按「執行一次（Run once）」，並確認排程是停用狀態。</li>
+</ol>
+<p class="body-text">流程第一步是「監看新增的列（Watch New Rows）」。它監看的是「待處理的列」分頁；當這裡多一列，後面的模組才有資料可以處理。完成版流程的每次讀取上限是 1 列，所以每按一次「執行一次」只處理一個新增列。</p>
+<p class="body-text">正式使用時會開啟排程，Make 每隔一段時間自動處理「待處理的列」裡所有新列，不用人按；課程裡每列按一次「執行一次」，是為了一次只看一列的結果，出錯時容易找原因。Make 介面可能更新，畫面以實際為準。</p>
+<p class="body-text">如果想從空白流程看懂每個模組，可以另開<a href="../assets/part5-stage-handoff.html" rel="noopener" target="_blank">逐課建置文件</a>或<a href="../assets/part5-rebuild-guide.html" rel="noopener" target="_blank">手動重建與恢復指南</a>。這兩份只作延伸參考；本課主線直接使用匯入的完成版流程。</p>
+<p class="body-text">沒有 Make 帳號或 Google 連線失敗時，先完成 AI 的部分並保存資料列，Make 的部分看講師示範。</p>
+</section>
+<section class="lesson-section"><div class="section-eyebrow"><span>(05) · 學習與實作</span></div><h2 class="section-heading">讓 Make 寫下第一筆紀錄</h2>
+<p class="body-text">流程連好後，先把 AI 整理的九欄資料貼進「原始訊息」分頁，保留「待覆核」。處理 AI 標出的項目後，在這個工作區把可處理列的狀態改成「已覆核」，再把完整一列複製到「待處理的列」分頁。</p>
+<p class="body-text">在 Make 按「執行一次」。第一次讀取既有練習列時，依畫面選擇從全部資料開始。完整流程會在處理紀錄留下這一列，也會同時在草稿分頁存下一份未寄出草稿。這是正常結果；第三節會再說明草稿怎麼來的。</p>
+<p class="body-text">把處理紀錄與草稿分頁剛新增的列複製到新的 AI 對話，請 AI 對照剛才的分類結果核對。你只需要看 AI 列出的不一致。</p>
+<div class="full-prompt-wrap"><pre class="full-prompt"><code class="language-text">核對下面的 AI 分類結果、Make 處理紀錄與草稿，逐則判斷是否走到應走的路線，以及是否該有草稿。只列出不一致的地方；全部一致就回答「沒有不一致」。
+
+規則：inquiry（詢問）應走業務路線並有一份未寄出草稿；complaint（客訴）應走客服路線且沒有草稿；partnership（合作）應走合作路線並有一份未寄出草稿；other（其他）應走待處理路線且沒有草稿。
+
+AI 整理結果：
+（貼上這一列的九欄資料）
+
+處理紀錄新增列：
+（貼上剛新增的列）
+
+草稿新增列：
+（貼上剛新增的列）
+</code></pre></div>
+<p class="body-text">接著只修改「待處理的列」分頁裡已處理過的舊列，再按一次「執行一次」。處理紀錄不會增加，因為監看新增的列只會在分頁多出新列時觸發，不會把舊列的修改當成新增資料。</p>
+</section>
+<section class="lesson-section"><div class="section-eyebrow"><span>(06) · 學習與實作</span></div><h2 class="section-heading">收好第一列，準備處理一批訊息</h2>
+<p class="body-text">你已經請 AI 把客戶訊息整理成固定資料列，也讓 Make 自動留下處理紀錄與未寄出草稿。下一節會把同一批裡的兩則訊息交給 AI 分類，再看 Make 如何依類型送往不同路線。</p>
 </section>
 </div>
 
@@ -225,11 +528,11 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
     <div><div class="nav-btn-label"><span aria-hidden="true">←</span> 上一節</div><div class="nav-btn-title">交付一個測過的小工具</div></div>
   </a>
   <a class="nav-btn next nav-next" href="CH5-2.html" aria-label="下一單元" data-nav-role="next">
-    <div><div class="nav-btn-label">下一節 <span aria-hidden="true">→</span></div><div class="nav-btn-title">條件、分流與執行紀錄</div></div>
+    <div><div class="nav-btn-label">下一節 <span aria-hidden="true">→</span></div><div class="nav-btn-title">讓 AI 判斷訊息類型，Make 依類型自動分流</div></div>
   </a>
 </div>
 
-<footer class="footer" data-platform-version="2026-10-content-repair" data-built-at="2026-10-09">
+<footer class="footer" data-platform-version="2026-10-content-repair" data-built-at="2026-11-01">
   <div class="footer-logo">弄一下工作室</div>
   <div class="footer-note">CH 5.1 · 生成式 AI 工作應用班（36h）</div>
 </footer>
