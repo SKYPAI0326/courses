@@ -104,6 +104,7 @@ python3 docs/lint-page.py --changed       # 只查 git staged 檔
 | `_規範/course-index-module-landing.html` | **總覽頁** SSOT — Module Landing 家族（landing 性質、含 hero CTA、modules-grid）|
 | `_規範/course-index-lesson-section.html` | **總覽頁** SSOT — Lesson Section 家族（v4 扁平 part + 多色 band + PRAC 區）|
 | `_規範/操作型講義.md` | **內容組織原則** SSOT — 適用「低原理、高操作」商業培訓課程，含對話示範元件家族（dialog-box / expected-output / demo-flow）+ 課後素材包規範 |
+| `_規範/講義改寫SOP.md` | **整課改寫流程** SSOT — PM 規格制（Claude 寫規格與檢查、GPT 承作）、規格書必備規則、精簡驗證、上線步驟 |
 | `docs/lint-page.py` | 機器強制版（BLOCKER/ERROR/WARN 規則）。`python3 docs/lint-page.py <file>` 自動驗 |
 
 **要調整規則？** 改 `design-tokens.md` + `lint-page.py`。**不要**在本檔或 skill 文件追加散文規則。
@@ -111,6 +112,8 @@ python3 docs/lint-page.py --changed       # 只查 git staged 檔
 **新建單元頁？** 複製 `_規範/lesson-template-v3.html` → 填佔位符 → 跑 lint → 跑 `build-search-index.py` + `build-sitemap.py`。
 
 **要做「低原理、高操作」改寫？** 讀 `_規範/操作型講義.md` 走 SOP。觸發詞：「低原理高操作」「操作型講義」「改成適配低講解高操作」「商業培訓改寫」。樣板課程：`courses/office-ai/`。
+
+**要整課或整個 Part 重寫既有講義？** 讀 `_規範/講義改寫SOP.md` 走流程。觸發詞：「整課改寫」「講義重寫」「不說人話／偏離主題／編號太多」「照 gen-ai-36h 的做法改」。樣板課程：`courses/gen-ai-36h/`。
 
 ---
 
