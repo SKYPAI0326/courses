@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>7-4 進階追蹤｜Module 7 GTM｜數位行銷人才培訓</title>
-<meta name="description" content="以 Consent Mode v2、Data Layer、GTM Preview 與 DebugView 建立可驗證、可停止的進階追蹤流程。">
+<title>7-4 隱私與進階：同意模式、Google 代碼閘道、伺服器端與 Meta 轉換 API｜M7 GTM｜數位行銷人才培訓</title>
+<meta name="description" content="事件能送出只是起點，還要依使用者選擇控制傳輸，並避免同一行為被重複計算。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="弄一下工作室">
-<meta property="og:title" content="7-4 進階追蹤｜Module 7 GTM｜數位行銷人才培訓">
-<meta property="og:description" content="以 Consent Mode v2、Data Layer、GTM Preview 與 DebugView 建立可驗證、可停止的進階追蹤流程。">
+<meta property="og:title" content="7-4 隱私與進階：同意模式、Google 代碼閘道、伺服器端與 Meta 轉換 API｜M7 GTM｜數位行銷人才培訓">
+<meta property="og:description" content="事件能送出只是起點，還要依使用者選擇控制傳輸，並避免同一行為被重複計算。">
 <meta property="og:url" content="https://skypai0326.github.io/courses/courses/digital-marketing-70h/m7-4-advanced.html">
 <meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="7-4 進階追蹤｜Module 7 GTM｜數位行銷人才培訓">
-<meta name="twitter:description" content="以 Consent Mode v2、Data Layer、GTM Preview 與 DebugView 建立可驗證、可停止的進階追蹤流程。">
+<meta name="twitter:title" content="7-4 隱私與進階：同意模式、Google 代碼閘道、伺服器端與 Meta 轉換 API｜M7 GTM｜數位行銷人才培訓">
+<meta name="twitter:description" content="事件能送出只是起點，還要依使用者選擇控制傳輸，並避免同一行為被重複計算。">
 <meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
 <link rel="canonical" href="https://skypai0326.github.io/courses/courses/digital-marketing-70h/m7-4-advanced.html">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -125,6 +125,7 @@ a:not([class]):hover{color:#0f5f6c;text-decoration-color:currentColor}
 a:not([class]):focus-visible{color:#0f5f6c}
 </style>
 <link rel="stylesheet" href="assets/prompt-copy.css">
+<link rel="stylesheet" href="assets/lesson-rewrite.css">
 </head>
 <body>
 <style id="_gs">
@@ -157,7 +158,7 @@ a:not([class]):focus-visible{color:#0f5f6c}
   <div class="topbar-divider"></div>
   <span class="topbar-sub">數位行銷人才培訓</span>
   <div class="spacer"></div>
-  <span class="topbar-tag">7-4 · 進階追蹤</span>
+  <span class="topbar-tag">7-4 · 隱私與進階</span>
 </header>
 <div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
 
@@ -168,336 +169,76 @@ a:not([class]):focus-visible{color:#0f5f6c}
     <div class="hero-divider-v"></div>
     <span class="hero-num">單元 7-4</span>
   </div>
-  <h1 class="lesson-title">進階追蹤：同意、Data Layer 與 GTM 除錯</h1>
-  <p class="lesson-tagline">進階追蹤不只是在頁面加更多代碼。你要先確認使用者同意狀態，再讓 Data Layer 把必要資料傳給分析工具，最後用 Preview 與 DebugView 證明「該觸發的有觸發、不該觸發的沒有觸發」。</p>
+  <h1 class="lesson-title">隱私與進階：同意模式、Google 代碼閘道、伺服器端與 Meta 轉換 API</h1>
+  <p class="lesson-tagline">事件能送出只是起點，還要依使用者選擇控制傳輸，並避免同一行為被重複計算。</p>
   <div class="outcomes">
-    <div class="outcomes-label">學習目標 OUTCOMES</div>
-    <div class="outcome-item"><div class="outcome-dot"></div><span>能依目前 Meta 文件、網站條件與同意政策，審查 Pixel 及標準事件的實作方案</span></div>
-    <div class="outcome-item"><div class="outcome-dot"></div><span>理解 Data Layer 的結構與 dataLayer.push() 的電商追蹤應用場景</span></div>
-    <div class="outcome-item"><div class="outcome-dot"></div><span>能使用 GTM Preview、Tag Assistant 與 GA4 DebugView 驗證同意狀態及追蹤流程</span></div>
+    <div class="outcomes-label">本節完成物</div>
+    <div class="outcome-item"><div class="outcome-dot"></div><span>山徑咖啡的同意設定與去重決策</span></div>
   </div>
 </div>
 
 <div class="lesson-body">
-
-<div class="lesson-section">
-  <div class="section-eyebrow">META PIXEL · 安裝與標準事件</div>
-  <h2 class="section-heading">用 GTM 管理 <em>Meta Pixel</em></h2>
-  <p class="body-text">Meta Pixel 可用於量測網站事件與建立符合政策的廣告受眾。GTM 能集中管理標記，但前提是網站已安裝容器，並能提供正確的事件、商品資料與同意狀態；這些工作仍可能需要網站或工程人員配合。</p>
-
-  <div class="pixel-steps">
-    <div class="pixel-step">
-      <div class="step-n">01</div>
-      <div class="step-body">
-        <strong>確認資料來源與存取權</strong><br>
-        在開課當日的 Meta 事件管理工具確認要使用的網站資料來源、Pixel ID、擁有者與可操作權限，並把來源畫面與核准人記入實作單。介面名稱或 ID 格式若與講義不同，以目前帳號顯示為準。
-      </div>
-    </div>
-    <div class="pixel-step">
-      <div class="step-n">02</div>
-      <div class="step-body">
-        <strong>選擇核准的安裝方式</strong><br>
-        先檢查網站平台的官方整合或組織核准的權限受控模板；只有確認沒有合適整合、程式碼來自目前官方文件，且完成安全與效能審查時，才考慮 Custom HTML。<br>
-        <span class="step-path">同時記錄觸發條件與 consent 要求</span>
-      </div>
-    </div>
-    <div class="pixel-step">
-      <div class="step-n">03</div>
-      <div class="step-body">
-        <strong>對應真實事件與參數</strong><br>
-        Purchase 只能在訂單成功且取得實際金額、幣別與訂單識別值時送出；Lead、ViewContent 等事件也要寫明成功條件。缺值時停止發布，不用 0 或範例商品當佔位。<br>
-        <span class="step-path">事件來源：網站成功狀態或已核准的 dataLayer event</span>
-      </div>
-    </div>
-    <div class="pixel-step">
-      <div class="step-n">04</div>
-      <div class="step-body">
-        <strong>用多項證據驗證</strong><br>
-        在 GTM Preview 核對 consent、觸發次數與參數，再用目前 Meta 事件管理工具的測試／診斷功能確認收到的事件。Pixel Helper 可作輔助觀察，但圖示正常不等於金額、幣別、去重與同意狀態都正確。
-      </div>
-    </div>
-  </div>
-
-  <p class="body-text">Meta Pixel 標準事件對應不同轉換目標：</p>
-  <div class="pixel-events">
-    <div class="pe-card">
-      <div class="pe-name">Purchase</div>
-      <div class="pe-desc">完成購買，必須傳入 value 和 currency，用於廣告 ROAS 計算</div>
-    </div>
-    <div class="pe-card">
-      <div class="pe-name">Lead</div>
-      <div class="pe-desc">可代表組織定義的潛在客戶成功行為；必須先說清楚是表單成功、完成訂閱或其他可驗證狀態</div>
-    </div>
-    <div class="pe-card">
-      <div class="pe-name">ViewContent</div>
-      <div class="pe-desc">瀏覽產品頁，建立「對特定商品有興趣」的再行銷受眾</div>
-    </div>
-    <div class="pe-card">
-      <div class="pe-name">AddToCart</div>
-      <div class="pe-desc">商品成功加入購物車時送出，可用來觀察結帳前行為；是否用於受眾或優化由政策與投放需求決定</div>
-    </div>
-    <div class="pe-card">
-      <div class="pe-name">InitiateCheckout</div>
-      <div class="pe-desc">使用者實際進入結帳流程時送出，可與 add_to_cart、Purchase 一起檢查漏斗落差</div>
-    </div>
-    <div class="pe-card">
-      <div class="pe-name">Search</div>
-      <div class="pe-desc">站內搜尋，傳入 search_string 了解用戶需求</div>
-    </div>
-  </div>
+<div class="lesson-section"><div class="section-eyebrow">01</div><h2 class="section-heading">先讓量測遵守使用者選擇</h2>
+<p class="body-text">上一頁完成三個自訂事件，這一頁集中處理同意模式。同意介面把預設與更新狀態傳給 Google 代碼，GTM 據此決定標籤行為；組織仍要確認隱私政策、資料用途與法律。</p>
+<p class="body-text">同意模式 v2 包含 <code>analytics_storage</code>、<code>ad_storage</code>、<code>ad_user_data</code>、<code>ad_personalization</code>。基本模式在同意前不載入 Google 代碼；進階模式先載入並送出無 Cookie 訊號。Google 的歐洲使用者同意政策涵蓋歐洲經濟區、英國與瑞士；其他義務由組織確認。<a href="https://developers.google.com/tag-platform/security/concepts/consent-mode">Google 同意模式概念</a>與 <a href="https://support.google.com/google-ads/answer/16724512">Google Ads 政策說明</a>（2026-11 查證）。</p>
+<p class="body-text">順序是先建立預設狀態，再載入標籤，使用者選擇後更新。練習頁測試「未選擇、接受全部、只保留必要」，記錄四項狀態、預期行為與證據。本節只在這裡處理同意模式。</p>
 </div>
-
-<div class="lesson-section">
-  <div class="section-eyebrow">DATA LAYER · 電商追蹤架構</div>
-  <h2 class="section-heading">Data Layer：<em>讓數據主動推給追蹤工具</em></h2>
-  <p class="body-text">Data Layer 是頁面上的 JavaScript 資料結構。網站在真實互動或交易成功時把事件與資料推入其中，GTM 再依規則讀取並送往核准的分析工具。行銷人不一定親自寫程式，但要能定義事件、欄位、同意條件與驗收證據，並和開發共同完成。</p>
-
-  <div class="callout key">
-    <div class="callout-icon" aria-hidden="true">💡</div>
-    <div class="callout-body"><strong>概念：</strong>把 dataLayer 想成一個傳話站。網站說「有人買了商品 A，金額 NT$1,200」，GTM 聽到後轉告 GA4 和 Meta Pixel，不用每個工具各自撈一次。</div>
-  </div>
-
-  <div class="dl-block">
-    <div class="dl-header">dataLayer.push() — 購買事件範例</div>
-    <div class="dl-code"><span class="dl-key">window</span>.dataLayer = window.dataLayer || [];
-dataLayer.push({
-  <span class="dl-key">'event'</span>: <span class="dl-str">'purchase'</span>,
-  <span class="dl-key">'ecommerce'</span>: {
-    <span class="dl-key">'transaction_id'</span>: <span class="dl-str">'T_12345'</span>,
-    <span class="dl-key">'value'</span>: <span class="dl-num">1200.00</span>,
-    <span class="dl-key">'currency'</span>: <span class="dl-str">'TWD'</span>,
-    <span class="dl-key">'items'</span>: [{
-      <span class="dl-key">'item_id'</span>: <span class="dl-str">'SKU_001'</span>,
-      <span class="dl-key">'item_name'</span>: <span class="dl-str">'數位行銷課程'</span>,
-      <span class="dl-key">'price'</span>: <span class="dl-num">1200.00</span>,
-      <span class="dl-key">'quantity'</span>: <span class="dl-num">1</span>
-    }]
-  }
-});</div>
-  </div>
-
-  <div class="table-scroll"><table class="event-table">
-    <thead>
-      <tr>
-        <th>電商事件</th>
-        <th>觸發時機</th>
-        <th>必要參數</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>view_item</td>
-        <td>瀏覽產品詳細頁</td>
-        <td>item_id、item_name、price</td>
-      </tr>
-      <tr>
-        <td>add_to_cart</td>
-        <td>點擊「加入購物車」</td>
-        <td>item_id、item_name、price、quantity</td>
-      </tr>
-      <tr>
-        <td>begin_checkout</td>
-        <td>進入結帳流程</td>
-        <td>value、currency、items 陣列</td>
-      </tr>
-      <tr>
-        <td>purchase</td>
-        <td>訂單成功且取得可去重的 transaction_id</td>
-        <td>transaction_id、value、currency、items</td>
-      </tr>
-      <tr>
-        <td>refund</td>
-        <td>退款完成</td>
-        <td>transaction_id、實際退款 value、相關 items</td>
-      </tr>
-    </tbody>
-  </table></div>
-
-  <div class="callout info">
-    <div class="callout-icon" aria-hidden="true">📋</div>
-    <div class="callout-body"><strong>與開發溝通：</strong>上方程式碼只是教學範例。正式需求單要列出每個事件的成功時機、欄位名稱、型別、來源、去重方式、consent 條件與測試案例。網站端與 GTM 端要一起核對，不能把責任切成互不驗證的兩段。</div>
-  </div>
+<div class="lesson-section"><div class="section-eyebrow">02</div><h2 class="section-heading">進階傳輸選項解決不同問題</h2>
+<p class="body-text">Google 代碼閘道（Google tag gateway，原名第一方模式）用自有網域載入代碼與傳送量測資料，需要自有網域及 CDN、負載平衡器或網頁伺服器。<a href="https://developers.google.com/tag-platform/tag-manager/gateway">Google 代碼閘道說明</a>（2026-11 查證）。</p>
+<p class="body-text">伺服器端代碼先讓資料進入組織控制的容器，再決定轉送平台；它需要主機、部署與維運。<a href="https://developers.google.com/tag-platform/tag-manager/server-side/intro">GTM 伺服器端代碼介紹</a>（2026-11 查證）。</p>
+<p class="body-text">GTM 自 2025-04 起會在特定 Google Ads／Floodlight 情境先載入完整 Google 代碼；自 2026-10-08 起，設定會以 <code>gtag.config</code> 出現在資料層。萬用自訂事件觸發條件要排除它。<a href="https://support.google.com/tagmanager/answer/4620708">GTM 版本資訊</a>（2026-11 查證）。</p>
 </div>
-
-<div class="lesson-section">
-  <div class="section-eyebrow">DEBUGGING · GTM 除錯流程</div>
-  <h2 class="section-heading">系統性驗證，<em>確保追蹤真的在運作</em></h2>
-  <p class="body-text">代碼設定完不等於正確觸發。每次發布前都需要用 Preview 模式驗證，每次上線後再用 GA4 DebugView 確認數據真的到了。</p>
-
-  <div class="debug-grid">
-    <div class="debug-card">
-      <div class="debug-tool">GTM Preview 模式</div>
-      <div class="debug-when">使用時機：發布前本地驗證</div>
-      <ul class="debug-list">
-        <li>點擊右上角「Preview」，輸入網站網址，開啟除錯視窗</li>
-        <li>左側顯示頁面上觸發的所有事件，點擊可看到觸發了哪些代碼</li>
-        <li>確認代碼狀態為「Fired」，若為「Not Fired」代表觸發條件未達成</li>
-        <li>可在頁面上執行按鈕點擊、表單送出等動作，即時看到事件清單更新</li>
-      </ul>
-    </div>
-    <div class="debug-card">
-      <div class="debug-tool">GA4 DebugView</div>
-      <div class="debug-when">使用時機：驗證數據是否到 GA4</div>
-      <ul class="debug-list">
-        <li>GA4 後台 <span aria-hidden="true">→</span> 管理 <span aria-hidden="true">→</span> DebugView</li>
-        <li>從 GTM Preview／Tag Assistant 連線測試頁面，讓測試流量帶入 debug mode</li>
-        <li>執行追蹤動作後，數秒內在 DebugView 看到事件出現</li>
-        <li>點擊事件名稱可展開看事件參數值，確認參數傳遞正確</li>
-      </ul>
-    </div>
-    <div class="debug-card">
-      <div class="debug-tool">Meta Pixel Helper</div>
-      <div class="debug-when">使用時機：驗證 Pixel 事件</div>
-      <ul class="debug-list">
-        <li>Chrome 擴充套件，安裝後瀏覽目標頁面自動偵測</li>
-        <li>查看偵測到的 Pixel、事件與參數，但不要只以圖示顏色判定通過</li>
-        <li>逐項比對事件名稱、觸發次數、value、currency 與實際操作</li>
-        <li>再回到目前 Meta 事件管理工具的測試／診斷畫面確認接收結果</li>
-      </ul>
-    </div>
-    <div class="debug-card">
-      <div class="debug-tool">Tag Assistant 測試紀錄</div>
-      <div class="debug-when">使用時機：保存可重現的 GTM 證據</div>
-      <ul class="debug-list">
-        <li>記錄容器版本、測試網址、操作步驟與時間</li>
-        <li>依事件串流查看 Fired／Not Fired、Variables 與 Consent 狀態</li>
-        <li>同時保留正例、反例與三種同意情境，讓其他人能重跑</li>
-      </ul>
-    </div>
-  </div>
-
-  <h3 style="font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin:28px 0 14px">常見問題排查</h3>
-  <div class="trouble-list">
-    <div class="trouble-row">
-      <div class="trouble-prob">
-        <div class="trouble-label">問題</div>
-        代碼在 Preview 顯示 Not Fired
-      </div>
-      <div class="trouble-fix">
-        <div class="trouble-label">解法</div>
-        確認觸發條件與頁面範圍；優先核對 dataLayer event 或穩定 ID／屬性。若只靠 Click Text，先確認文案、語系或改版是否已讓條件失效
-      </div>
-    </div>
-    <div class="trouble-row">
-      <div class="trouble-prob">
-        <div class="trouble-label">問題</div>
-        GA4 DebugView 看不到事件
-      </div>
-      <div class="trouble-fix">
-        <div class="trouble-label">解法</div>
-        確認 Tag Assistant Preview 已連線、Google tag ID 正確、事件 tag 符合 consent 狀態，並檢查測試裝置是否被內部流量規則排除；再到 DebugView 重測
-      </div>
-    </div>
-    <div class="trouble-row">
-      <div class="trouble-prob">
-        <div class="trouble-label">問題</div>
-        表單送出代碼未觸發
-      </div>
-      <div class="trouble-fix">
-        <div class="trouble-label">解法</div>
-        先確認表單成功狀態與實作方式。AJAX 或客製表單應由成功 callback 推送 dataLayer event；只有成功後一定到唯一感謝頁時才用該 URL，並測試重新整理不會重複計數
-      </div>
-    </div>
-    <div class="trouble-row">
-      <div class="trouble-prob">
-        <div class="trouble-label">問題</div>
-        同一個事件在 GA4 出現重複
-      </div>
-      <div class="trouble-fix">
-        <div class="trouble-label">解法</div>
-        檢查是否有增強型評估和自訂事件同時追蹤同一行為（如外部連結點擊）；在自訂代碼的觸發條件中加入排除條件
-      </div>
-    </div>
-  </div>
+<div class="lesson-section"><div class="section-eyebrow">03</div><h2 class="section-heading">山徑咖啡示範：同意、資料層與去重</h2>
+<p class="body-text">本頁材料分工如下：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>材料</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>三個事件設定</td>
+<td>測試不同同意狀態的標籤行為</td>
+</tr>
+<tr>
+<td>練習包同意情境</td>
+<td>練習正常順序與故障修復</td>
+</tr>
+<tr>
+<td>品牌包購買事件</td>
+<td>設計瀏覽器端與伺服器端去重</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">先開 <a href="assets/practice/booking-practice.html" rel="noopener" target="_blank">山徑咖啡預約練習頁</a> 與 <a href="assets/datasets/measurement-practice-kit.md" rel="noopener" target="_blank">GA4 × GTM 共用量測練習包</a>。頁面載入時先送 <code>consent default</code>，四項都是 <code>denied</code>；按「接受全部」後送 <code>consent update</code>，四項改為 <code>granted</code>；按「只保留必要」則送更新並維持四項 <code>denied</code>。重新整理會回到尚未選擇的預設狀態。這段固定行為用來觀察同意更新順序，正式網站仍要依實際政策與同意介面設計各用途。</p>
+<p class="body-text">再看購買事件。電商資料層每次送出新物件前，先推送 <code>ecommerce: null</code> 清空舊資料，再推送 <code>purchase</code> 與品牌包定義的 <code>transaction_id</code>、<code>value</code>、<code>currency</code>，避免舊值殘留；<code>items</code> 只示範 GA4 電商格式，不是山徑咖啡品牌包已定義的必填參數。練習頁沒有真實交易，因此只寫契約，不假造購買結果。</p>
+<p class="body-text">Meta Pixel 與轉換 API 同送一筆購買時，瀏覽器端 <code>eventID</code>、伺服器端 <code>event_id</code> 及事件名稱要一致才能去重。<a href="https://developers.facebook.com/docs/marketing-api/conversions-api/deduplicate-pixel-and-server-events">Meta 轉換 API 去重說明</a>（2026-11 查證）。山徑咖啡由訂單系統產生共用唯一 ID；缺少成功訊號與 ID 來源時先寫規格，維持待實測。</p>
 </div>
-
-<div class="lesson-section">
-  <div class="section-eyebrow">CONSENT MODE V2 · 同意先於追蹤</div>
-  <h2 class="section-heading">進階覆核：<em>三種同意情境都要通過</em></h2>
-  <div class="callout key">
-    <div class="callout-icon" aria-hidden="true">!</div>
-    <div class="callout-body"><strong>這不是第一次設定 Consent：</strong>M7-2 已要求在 Google tag 前完成 default／update。本節只做進階政策比較與跨 tag 覆核；若 M7-2 尚未通過，請先返回修正，不得在這裡補做後直接發布。</div>
-  </div>
-  <p class="body-text">Consent Mode 讓 Google 代碼依使用者選擇調整資料儲存與廣告用途。它不能代替同意管理平台、隱私政策或法律判斷；你的責任是取得選擇、把狀態傳給 Google，並確認所有相關代碼遵守該狀態。</p>
-  <div class="table-scroll"><table class="event-table">
-    <thead>
-      <tr><th>Consent type</th><th>控制內容</th><th>課堂最低檢查</th></tr>
-    </thead>
-    <tbody>
-      <tr><td>analytics_storage</td><td>分析用途的 cookie／識別資料儲存</td><td>拒絕分析時，確認 GA4 不會照核准狀態寫入</td></tr>
-      <tr><td>ad_storage</td><td>廣告用途的 cookie／裝置識別資料</td><td>拒絕廣告儲存時，檢查廣告代碼行為已調整</td></tr>
-      <tr><td>ad_user_data</td><td>是否可將使用者資料傳給 Google 作線上廣告用途</td><td>未取得同意時維持 denied</td></tr>
-      <tr><td>ad_personalization</td><td>是否可用於個人化廣告</td><td>拒絕後確認再行銷與個人化用途沒有繼續採用該狀態</td></tr>
-    </tbody>
-  </table></div>
-  <div class="callout key">
-    <div class="callout-icon" aria-hidden="true">!</div>
-    <div class="callout-body"><strong>Basic 與 Advanced 的差別：</strong>Basic 在使用者互動前阻擋 Google 代碼；Advanced 可先載入並以預設 denied 狀態傳送不含 cookie 的量測。選哪一種是政策與技術決策，不能為了報表較完整就自行改成 Advanced。</div>
-  </div>
-  <div class="trouble-list">
-    <div class="trouble-row">
-      <div class="trouble-prob"><div class="trouble-label">第一步</div>在 CMP 或自訂同意介面載入前，設定四種 consent type 的 default 狀態</div>
-      <div class="trouble-fix"><div class="trouble-label">可觀察結果</div>Tag Assistant 顯示預設狀態；在尚未操作同意介面前，不得先出現不符合政策的 granted</div>
-    </div>
-    <div class="trouble-row">
-      <div class="trouble-prob"><div class="trouble-label">第二步</div>分別測試全部接受、全部拒絕與部分接受</div>
-      <div class="trouble-fix"><div class="trouble-label">可觀察結果</div>每次選擇都產生對應 update，重新整理後仍能套用已保存的選擇</div>
-    </div>
-    <div class="trouble-row">
-      <div class="trouble-prob"><div class="trouble-label">停止條件</div>狀態不明、先觸發後更新、或拒絕後仍以 granted 行為送出</div>
-      <div class="trouble-fix"><div class="trouble-label">回復位置</div>停止發布 GTM 版本，回到 CMP／Consent Initialization 與代碼 Consent Settings 修正，再從無痕視窗重跑</div>
-    </div>
-  </div>
-  <div class="callout info">
-    <div class="callout-icon" aria-hidden="true">i</div>
-    <div class="callout-body"><strong>Server-side tagging 是延伸，不是本節必做：</strong>它在瀏覽器與行銷供應商之間增加可控的伺服器層，可改善資料治理與效能，但不能取代 client-side 事件、使用者同意或維運責任。本課只要求能說明用途與導入條件。</div>
-  </div>
+<div class="lesson-section"><div class="section-eyebrow">04</div><h2 class="section-heading">換你做：完成同意與去重決策</h2>
+<p class="body-text">用練習頁填三種同意情境表：重新整理後不選，記錄四項預設拒絕；按「接受全部」，記錄四項同意；再次重新整理後按「只保留必要」，記錄四項拒絕。每列附 Tag Assistant 的狀態、代碼與事件證據，再依故障紀錄重排操作順序。</p>
+<p class="body-text">再為 <code>purchase</code> 寫去重卡：發生時機、唯一 ID 來源、兩端欄位、事件名稱、重複測試、付款失敗反例與資料層清空。常見卡關是把工具當法律結論、兩端各生 ID，或重新整理就再送購買；修法是分開政策與技術責任，由訂單系統提供共用 ID，並以交易狀態控制送出。</p>
 </div>
-
-<div class="module-complete">
-  <div class="mc-label">MODULE 7 CORE CHECKPOINT</div>
-  <div class="mc-title">進入最後一項實作契約</div>
-  <div class="mc-desc">你已完成 GTM 架構、GA4 整合、自訂事件、同意與除錯的核心檢查。最後請把電商事件整理成工程與行銷都能驗收的 Data Layer 契約；完成並重跑證據後，才進入下一個模組。</div>
+<div class="lesson-section rw-assign"><div class="section-eyebrow">模組作業</div><h2 class="section-heading">模組作業：一個點擊的旅程</h2>
+<h3>個人準備</h3>
+<p class="body-text">每人帶上三個事件與追蹤規格。用 10 分鐘選一個事件，補齊觸發條件、變數、事件名稱、參數、正例與反例；另寫可用的網站、容器與 GA4 權限。</p>
+<h3>小組討論</h3>
+<p class="body-text">用 25 分鐘實測一個事件。有網站的組在測試環境預覽；沒有網站的組開啟 <a href="assets/practice/booking-practice.html" rel="noopener" target="_blank">山徑咖啡預約練習頁</a>，在網址加入 <code>?gtm=</code> 與自己的容器 ID。記錄互動、資料層事件、代碼觸發、參數與 GA4 即時報表；再補一個反例。</p>
+<h3>上台分享</h3>
+<p class="body-text">每組 4 分鐘展示「一個點擊的旅程」：使用者操作、網站訊號、GTM 成立條件、GA4 收件與畫面證據。沒有正式網站權限的組要註明成果來自練習頁。</p>
+<h3>回饋</h3>
+<p class="body-text">講師依「事件名稱、觸發條件、驗證證據三者一致」講評。也可在實測完成後，把追蹤規格與驗證紀錄的全部文字貼進新對話，請 AI 依同一判準指出最多三個缺口；平台是否通過仍由小組依實測畫面判定。</p>
+<div class="rw-prompt" data-copy-prompt=""><div class="dialog-label">提示詞</div>
+檢查這份追蹤規格與驗證紀錄。依事件名稱、觸發條件、變數與參數、正反例、預覽證據五項判準，列出最多三個不一致處與需要補的證據；只使用貼上的內容。</div>
+<h3>放進企劃書</h3>
+<p class="body-text">依 <a href="assets/datasets/group-project-guide.md" rel="noopener" target="_blank">小組企劃書範本</a>，把三個事件的追蹤規格、實測的一個事件路徑、同意設定與去重決策放進「成效指標與追蹤」段。下一個廣告模組會使用這些可信事件判斷該不該投、要看哪個關鍵事件；課堂練習頁證據只代表練習環境。</p>
 </div>
-
-<div class="lesson-section">
-  <div class="section-eyebrow">AI 接口 · 電商 Data Layer 設計</div>
-  <h2 class="section-heading">電商 funnel 步驟 → <em>先完成 Data Layer 實作契約</em></h2>
-  <p class="body-text">AI 可以協助整理欄位與測試案例，但它不知道網站真正在哪一刻完成加購、結帳或付款。先提供平台 schema、事件來源與實際欄位，產出才能交給工程與行銷共同審查。</p>
-
-  <div class="dialog-box" data-copy-prompt>
-    <div class="dialog-label">把這段貼進任意生成式AI</div>
-請幫我設計電商網站的 dataLayer 結構。
-
-【電商平台】[Shopify / WordPress + WooCommerce / 自架]
-【需追蹤的事件】view_item / add_to_cart / begin_checkout / purchase
-【目前 schema】[貼平台／網站實際提供的事件與欄位；沒有就填待查]
-【事件成功時機】[每個事件由哪個 callback、系統狀態或確認訊息觸發]
-【商品與交易欄位】[實際欄位名稱、型別、來源與範例值]
-【同意與目的地】[哪些 consent 狀態下送到 GA4／Meta；誰核准]
-
-請輸出：
-(1) 事件契約表：事件、觸發時機、欄位、型別、來源、必填與去重方式
-(2) 只根據已提供 schema 寫 dataLayer.push 草案與 GTM Variable 對照；缺資料一律標待查
-(3) 給工程師的需求單，含正例、反例、重複觸發、consent 與驗收證據；不要建議所有事件都在 page onload 送出</div>
-  <div class="expected-output">
-    <div class="expected-label">可接受的參考輸出</div>
-    <div class="expected-body">
-      <p><strong>先回報缺口</strong>：目前未提供網站實際 schema、purchase 成功來源與 consent 對應，不能產生可上線程式碼。請先由工程確認商品、交易與使用者同意資料從哪裡取得。</p>
-      <p><strong>契約草案</strong>：purchase 在付款成功且取得唯一 transaction_id 後送出；value、currency 與 items 都從訂單系統取值。重新整理或返回成功頁不得重複送出同一筆 transaction_id。</p>
-      <p><strong>GTM 與驗收</strong>：依核准 schema 建立 Data Layer Variables；在 Preview 分別測試成功交易、付款失敗、重複載入與不同 consent 狀態，再到 GA4 DebugView 與目前 Meta 測試工具核對事件名稱、次數與參數。</p>
-    </div>
-    <div class="expected-note">合格輸出會把未知留成待查，並讓工程師與行銷能用相同事件契約重跑測試。只有在實際 schema 與成功時機確認後，程式碼草案才可進入 code review。</div>
-  </div>
-
-  <div class="demo-takeaway">電商 Data Layer 心法：<strong>收益事件必須回到真實交易、唯一訂單與同意狀態。</strong>缺欄位或沒有去重證據時，停止把資料用於報表與廣告優化，先修正事件契約並重測。</div>
-</div>
-
 </div>
 
 <nav class="nav-footer">
-  <a href="m7-3-events.html" class="nav-btn nav-prev" aria-label="上一單元" data-nav-role="prev"><span aria-hidden="true">←</span> 7-3 自訂事件追蹤</a>
-  <a href="module8.html" class="nav-btn primary nav-next" aria-label="下一單元" data-nav-role="next">Module 8 數位廣告 <span aria-hidden="true">→</span></a>
+  <a href="m7-3-events.html" class="nav-btn nav-prev" aria-label="上一單元" data-nav-role="prev"><span aria-hidden="true">←</span> 7-3 自訂事件</a>
+  <a href="module8.html" class="nav-btn primary nav-next" aria-label="下一模組" data-nav-role="next">進入 M8 數位廣告與流量心理學 <span aria-hidden="true">→</span></a>
 </nav>
 
 <footer class="footer" data-platform-version="2026-10-v2" data-built-at="2026-10-24">
