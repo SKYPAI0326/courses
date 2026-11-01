@@ -28,12 +28,14 @@ def render(body):
    current=BeautifulSoup('<section class="lesson-section"><div class="section-eyebrow"><span></span></div></section>','html.parser').section
    current.select_one('span').string=f'({len(sections)+1:02}) · 學習與實作';n['class']='section-heading';current.append(n);sections.append(current)
   elif current is not None: current.append(n)
+ prompt_id=0
  for section in sections:
   for p in section.select('p'):p['class']='body-text'
   for link in section.select('a[href^="../assets/"]'):
    link['target']='_blank'
    link['rel']=sorted(set(link.get('rel', [])) | {'noopener'})
-  for pre in section.select('pre'):pre['class']='full-prompt';wrap=s.new_tag('div',attrs={'class':'full-prompt-wrap'});pre.wrap(wrap)
+  for pre in section.select('pre'):
+   prompt_id+=1;pre['class']='full-prompt';pre['id']=f'p{prompt_id}';wrap=s.new_tag('div',attrs={'class':'full-prompt-wrap'});btn=s.new_tag('button',attrs={'class':'copy-btn-tl','data-target':pre['id'],'type':'button'});btn.string='複製';pre.wrap(wrap);wrap.insert(0,btn)
   for table in section.select('table'):wrap=s.new_tag('div',attrs={'class':'repair-table','tabindex':'0','role':'region','aria-label':'資料表，可水平捲動'});table.wrap(wrap)
  return '\n'.join(str(x) for x in sections)
 def update_nav(page,title):
