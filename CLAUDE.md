@@ -50,7 +50,7 @@ python3 docs/lint-page.py --changed       # 只查 git staged 檔
 
 ## 飛輪規則
 
-錯誤轉規則的累積清單已移至 `_規範/飛輪規則.md`。發生新錯誤時補一條至該檔，不寫在 CLAUDE.md。
+錯誤與學員卡關先依 `_規範/飛輪規則.md` 開頭的「分流」處理；多數只需修正實例，不新增條文，也不寫在 CLAUDE.md。
 
 ---
 
