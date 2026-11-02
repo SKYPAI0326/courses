@@ -60,7 +60,7 @@ def prepare_recipe():
     ordered = []
     for link in index.select('main a.lesson-card[href]'):
         rel = link['href']
-        if rel not in ordered:
+        if rel.endswith('.html') and rel not in ordered:  # 下載包卡片不收
             ordered.append(rel)
     assert len(ordered) == 14 and len([p for p in ordered if p.startswith('ch')]) == 9
     sources = [{'path': 'canva-video-teaching/index.html', 'selectors': ['main > .hero'],
