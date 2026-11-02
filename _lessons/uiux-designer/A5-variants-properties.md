@@ -67,13 +67,28 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 | Label property | 預設值「登入」 | 在使用處直接改按鈕文字 |
 
 1. 在元件區的 `Button / Base` 上按右鍵，選 **Main component → Add variant**。完成後它會變成紫色虛線框住的元件集，裡面有原本的版本和一個新版本，既有的按鈕使用處仍留在測試區。
+
+![右鍵 → Main component → Add variant（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-add-variant-menu.webp)
+
 2. 點虛線框下方的 **＋** 再加兩個版本，直到共有四個。完成後四個版本的結構完全相同。
+
+![元件集外框是紫色虛線，下方 ＋ 可再加版本；右側 Properties 顯示屬性（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-component-set.webp)
+
 3. 依規格表調整四個版本的外觀。完成後會看到主要與次要的層級差異，以及兩種角色各自的停用版本。
 4. 將元件集命名為 `Button`。完成後會在 Layers（圖層面板）與 Assets（元件資產面板）看到一致的家族名稱。
 5. 選取元件集，在 Properties（屬性區塊）點 **＋**，在 Create property 選單選 **Variant**，把新屬性命名為 State。完成後元件集會有兩個可整理的 Variant 屬性。
+
+![Properties 的 ＋ 開啟 Create property 選單：Variant、Text、Boolean、Instance swap、Slot（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-create-property-menu.webp)
+
 6. 將原有屬性（Figma 預設叫 Property 1）命名為 Hierarchy，再逐一選取四個版本，填入規格表中的角色與狀態。完成後每一列組合都只出現一次。
 7. 選取元件集，在 Properties 點 **＋** 選 **Text**，名稱填 Label，預設值填「登入」，再按 **Create property**。完成後元件集會出現一個可編輯的文字屬性。
+
+![Create property 視窗：填 Name 與 Value，按 Create property（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-text-property-dialog.webp)
+
 8. 逐一選取四個版本內的 `Label` 文字層，在右側最上方 Content 欄旁點 **Apply variable/property**（套用變數或屬性）圖示，綁定 Label。完成後四個版本都使用同一個文字欄位。
+
+![選文字層後，Content 欄旁的 Apply variable/property 圖示 → 選 Label（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-apply-property.webp)
+
 9. 從 Assets 拖入一個 Button 使用處，將 Label 改成「標記完成」。完成後按鈕會顯示新文字，元件來源與其他使用處的文字維持原狀。
 10. 依序切換 Hierarchy 與 State。完成後四種外觀都能被選到，而且「標記完成」在切換後仍保留。
 

@@ -87,6 +87,9 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 1. 選取 `Overlay / Confirm`；右側 Design 面板會顯示目前彈窗的實際寬高。
 2. 在 Export 區塊點 `+`；畫面會新增一組匯出設定。
 3. 選 PNG 與 1x；匯出列會顯示格式與倍率。
+
+![Design 面板的 Export：倍率、格式與 Export 按鈕；名稱含「/」時按鈕只顯示最後一段（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-export-panel.webp)
+
 4. 按 Export；下載資料夾會出現這個 Frame 的圖檔。
 5. 將實際檔名改成 `dialog-confirm.png`；檔案名稱會與交付清單一致。
 6. 依序選取 Login、List Long、Detail 與 List Done 畫面匯出 PNG；每個主要畫面都會有一張可直接查看的輸出。
@@ -94,6 +97,8 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 圖層名稱含 `/` 時，Figma 匯出的檔名可能會改變。請查看實際名稱，再依交付清單重新命名。
 
 接著保存可編輯的 Figma 來源。從左上 Main menu 開啟 File，再選 Save local copy，將檔案存為 `studio-tasks.fig`。`.fig` 保存設計內容，但留言與版本紀錄不會一起放進本機副本，因此測試與決策要另外保存在 `tests/` 與接手說明中。
+
+![左上 Main menu → File：Save local copy 另存 .fig（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-file-menu.webp)
 
 存好後，回到 Figma 檔案首頁，點 Import，再選 Import from computer，開啟剛才的 `.fig`；也可以把檔案拖進首頁。匯入位置以畫面為準。開啟新檔後，檢查主要畫面、圖層與「完成一筆任務」流程起點。
 

@@ -98,8 +98,14 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 3. 依任務卡查看詳情、確認彈窗與完成清單。這些畫面先用內容確認角色，讓後續目的地容易辨認。
 4. 從登入按鈕拖出原型連線到清單最外層 Frame。完成連線後，登入畫面旁會出現自動建立的流程起點標籤。
 5. 選取流程起點並把「Flow 1」改名為「完成一筆任務」。完成後，畫布與 Flows 清單都會顯示能辨認內容的中文名稱。
+
+![選起點畫面時，Prototype 分頁上方的 Flow starting point 可以直接改名（上方紅框）](../../courses/uiux-designer/assets/shared/ui/figma-overflow-flow-start.webp)
+
 6. 取消選取所有物件，在右側 Prototype 分頁的 Flows 清單點「完成一筆任務」。你也可以點畫布上起點標籤旁的藍色播放圖示。
 7. 開啟 Preview（編輯器內預覽），快捷鍵是 Shift+Space；也可以點右上角播放鍵旁的小箭頭選 Preview。直接按播放鍵會改用 Present 另開分頁。完成後，預覽的第一張畫面會是正式登入表單。
+
+![播放鍵旁的小箭頭：Present 另開分頁，Preview（⇧Space）在編輯器內預覽（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-preview-menu.webp)
+
 8. 比對線框與正式畫面，記下視覺細節改變了什麼、資訊順序保留了什麼。完成後，你會有一段說明設計決定的短紀錄。
 
 Figma 會自動儲存這些調整。關閉預覽再回到畫布時，流程起點與線框都應留在同一頁；這能讓你下一次打開檔案，直接從「完成一筆任務」繼續工作。

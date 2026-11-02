@@ -44,7 +44,18 @@ def checklist(sections):
 def render(body):
     out = R.render(body)
     out = re.sub(r'<a href="(?!#)([^"]+)">', r'<a href="\1" target="_blank" rel="noopener noreferrer">', out)
-    return out
+    # 截圖把步驟清單切成幾段時，後段清單要接續原本的編號（轉製程式每段都從 1 開始）
+    starts, prev = [], False
+    for line in body.splitlines():
+        m = re.match(r'^\s*(\d+)\. |^\s*[-*] ', line)
+        if m and not prev:
+            starts.append(int(m[1]) if m[1] else None)
+        prev = bool(m)
+    it = iter(starts)
+    def number(m):
+        n = next(it, None)
+        return m[0] if m[1] != 'ol' or not n or n == 1 else f'<ol start="{n}" class="step-list">'
+    return re.sub(r'<(ol|ul) class="step-list">', number, out)
 
 
 def esc(s):

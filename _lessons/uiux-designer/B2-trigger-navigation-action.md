@@ -73,8 +73,18 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 
 1. 在 Layers 展開正式登入畫面，選取 `Button / Login`（登入按鈕）外框。做完會看到整個按鈕被選取，而非只有文字游標。
 2. 切到右側 Prototype 分頁，將按鈕旁的連線節點拖到待處理清單最外層 Frame。做完會出現一條由登入按鈕通往清單的連線。
+
+![Prototype 分頁：Interactions 的 ＋ 新增互動，下方是 Scroll behavior（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-prototype-tab.webp)
+
 3. 打開 Interaction details，將 Trigger 設為 On click。做完會看見這條互動由點擊啟動。
 4. 將 Action 設為 Navigate to，並確認 Destination 是 `Screen / List`。做完會在設定中看到清單的唯一名稱。
+
+![Action 選單：本課用 Navigate to，彈層用 Open／Swap／Close overlay（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-action-list.webp)
+
+
+
+![設好 Destination 後畫布出現連線箭頭，起點畫面左上自動出現 Flow 1（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-navigate-flow.webp)
+
 5. 將 Animation 保持 Instant。做完後，這條連線只檢查操作與目的地，不混入轉場判斷。
 6. 開啟「完成一筆任務」的 Preview，按下登入。做完會從帳號、密碼畫面切到三筆待處理任務。
 7. 回到編輯畫布，選取 `Row / T01`（整理交付包任務列）外框。做完會看到整列標題、期限與進入詳情線索一起被選取。

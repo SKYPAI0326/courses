@@ -35,6 +35,12 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 
 在檔案首頁進入 Drafts（草稿），點右上角那排按鈕中的 **Design**。這份作品會一路增加登入、清單與詳情等畫面，因此所有成果都放在同一個檔案、同一頁。點左上角的檔名，改成「工作室任務清單－你的姓名」。新檔打開時，左側可能先出現對話面板；點最左邊那排圖示裡的 **File**，就會看到 Pages（頁面）與 Layers（圖層面板）。中央是畫布，右側是 Design 與 Prototype 兩個分頁的設定面板，看到這三區就可以開始工作。Figma 會自動儲存，完成每個小段後只要確認畫面仍在檔案中即可。
 
+![草稿頁：左側選 Drafts，右上角點 Design 建立設計檔（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-drafts-design-button.webp)
+
+
+
+![新檔可能先開對話面板；點最左側圖示列的 File（紅框）才會看到 Pages 與 Layers](../../courses/uiux-designer/assets/shared/ui/figma-new-file-left-rail.webp)
+
 ## 先看懂：顏色和文字各自負責什麼
 
 這一節要先建立判斷規則，因為視覺設計的第一步是讓每個訊息都有清楚的工作，挑顏色排在後面。當所有深綠色都代表主要動作、深色粗體都代表頁面標題，使用者就能用很短的時間掃過畫面。若同一個顏色一會兒代表成功、一會兒代表警告，使用者每次都得重新猜意思。
@@ -81,10 +87,19 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 | 輔助文字 | `Type / Supporting` | 14／22、Regular 400 | 提示與錯誤說明 |
 
 1. 按 **F** 畫一個 Frame（畫面容器），再依規格表設定尺寸並命名為 `Screen / Login`（登入畫面）；完成後，Layers 會出現一個可容納其他圖層的 Frame。
+
+![編輯器三區：左側 Layers、右上 Design／Prototype 分頁、Frame 的 W 與 H 欄（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-editor-overview.webp)
+
 2. 選取登入畫面，將 Fill（填色）設成 `Surface`；完成後，手機畫面會呈現淺灰底，和畫布背景分開。
+
+![點 Fill 的色塊開啟取色器，在 Hex 欄輸入色碼（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-fill-hex.webp)
+
 3. 按 **T** 建立「登入工作室」，再到右側 Typography（文字設定區）套用畫面標題規格；完成後，畫面會有最醒目的第一層資訊。
 4. 用文字工具加入「登入後檢視待處理的任務。」與「請輸入工作室帳號」，並分別套用內文與輔助文字規格；完成後，三層文字的大小與行距會形成清楚順序。
 5. 選取「登入工作室」，點 Typography 右上角的樣式圖示，在跳出的 Text styles 面板按 **＋**（Create style），填入名稱後按 **Create style**；完成後，文字設定區會顯示已套用的樣式名稱。
+
+![Typography 右上的樣式圖示 → Text styles 面板的 ＋（Create style）；下方紅框是字型、字重、字級與行高](../../courses/uiux-designer/assets/shared/ui/figma-text-style-create.webp)
+
 6. 依相同方式建立另外兩個文字樣式；完成後，標題、內文與輔助文字都能從樣式清單再次使用。
 7. 在手機畫面旁建立 `Reference / Visual rules`（視覺規則區），放入各角色的小色塊、名稱與色碼；完成後，後續畫面可以直接查同一份色彩規則。
 8. 在登入畫面加入白色卡片區與主要綠色動作區，並放上白色「登入」文字；完成後，主要動作會和內容背景形成明顯層次。

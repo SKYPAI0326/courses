@@ -74,6 +74,9 @@ Overlay 的位置也是訊息的一部分。確認彈窗用 Centered，小型說
 1. 在 Layers 選取詳情中的 `Button / Complete`（標記完成按鈕）外框。做完會看到完整按鈕成為原型熱區。
 2. 切到 Prototype 分頁，將 Trigger 設為 On click。做完會確認點擊啟動這段互動。
 3. 將 Action 設為 Open overlay，Destination 指向 `Overlay / Confirm`（確認彈窗）。做完會看見詳情按鈕連到彈窗 Frame。
+
+![Open overlay 的 Position、Close when clicking outside 與 Background（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-open-overlay.webp)
+
 4. 在 Overlay 設定中把 Position 選成 Centered。做完後，彈窗會以畫面中央為基準出現。
 5. 勾選 **Background**（預設沒有勾），再依規格表設定遮罩顏色與透明度。做完後，詳情仍可辨認，注意力會集中在彈窗內容。
 6. 開啟 Close when clicking outside。做完後，點彈窗外的遮罩區可關閉彈層。
@@ -107,6 +110,9 @@ Overlay 的位置也是訊息的一部分。確認彈窗用 Centered，小型說
 3. 在詳細說明加入「關閉」按鈕。完成後，彈層有明確的結束動作。
 4. 在詳情新增「說明」按鈕，設定 Open overlay 到任務說明選單。完成後，按鈕會先開啟第一個彈層。
 5. 將選單 Position 設為 Top right。完成後，選單會出現在詳情右上區域。
+
+![Position 選單：選單用 Top right，底部面板用 Bottom center（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-overlay-position.webp)
+
 6. 在任務說明選單內，把「檢視說明」設定為 Swap overlay 到詳細說明。完成後，交換動作的來源位於已開啟彈層內。
 7. 將詳細說明的關閉按鈕設定為 Close overlay。完成後，關閉會回到原本的任務詳情。
 8. 在 Preview 依序開啟選單、交換成詳細說明、關閉彈層。完成後，背景始終是整理交付包詳情，兩個彈層位置維持一致。

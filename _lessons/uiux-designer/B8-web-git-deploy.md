@@ -151,6 +151,9 @@ git commit -m "Update long task content"
 
 18. 執行 `git log --oneline`。完成後，資料、色彩、標題與基準各有一筆紀錄。
 19. 從 GitHub 右上「+」選 **New repository**，Repository name 填 `studio-tasks-web`，visibility 維持 **Public**；Add README 保持 Off，.gitignore 與 license 保持 No，再按 **Create repository**。完成後，會得到空白 repo 網址。
+
+![New repository：Repository name、Public、Add README 保持 Off（紅框）](../../courses/uiux-designer/assets/shared/ui/github-new-repository.webp)
+
 20. 加入遠端並推送 `main`。完成後，repo 會顯示檔案與版本紀錄。
 
 ```bash
@@ -161,9 +164,19 @@ git push -u origin main
 
 21. Windows 依首次推送的瀏覽器畫面完成授權。完成後，repo 會收到檔案。
 22. Mac 到 GitHub 頭像 → Settings → Developer settings → Personal access tokens → Fine-grained tokens，按 Generate new token：Token name 自訂，Repository access 選 **Only select repositories** 並選 `studio-tasks-web`，Permissions 按 **Add permissions** 加入 **Contents**，設為 Read and write，最後按 Generate token 並複製。推送時填帳號並把 token 貼到 Password；完成後會顯示推送結果。
+
+![Fine-grained tokens 頁：先填 Token name（紅框）](../../courses/uiux-designer/assets/shared/ui/github-token-new.webp)
+
+
+
+![Repository access 選 Only select repositories，Permissions 按 Add permissions 加入 Contents（紅框）](../../courses/uiux-designer/assets/shared/ui/github-token-access.webp)
+
 23. Windows 若未出現瀏覽器登入，也使用 fine-grained token。完成後，repo 會收到檔案。
 24. 在 repo 開啟 Settings → Pages；窄視窗可從「…」找到 Settings。完成後會出現 Build and deployment。
 25. 選 Deploy from a branch、`main` 與 `/(root)`，再按 Save。完成後會開始部署。
+
+![repo 的 Settings → Pages：Source 選 Deploy from a branch，Branch 選 main 與 /(root)，上線後出現 Visit site（紅框）](../../courses/uiux-designer/assets/shared/ui/github-pages-settings.webp)
+
 26. 到 Actions 查看進度並預留約十分鐘。完成後，Pages 會顯示網址與 Visit site。
 27. 開啟 Pages 顯示的網址。完成後，線上網站可以走完主要流程。
 28. 修改 README 的作品名稱，提交並推送。完成後，Actions 會再次部署。
