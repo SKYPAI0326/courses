@@ -60,7 +60,7 @@ Overlay 的位置也是訊息的一部分。確認彈窗用 Centered，小型說
 
 | 類別 | 圖層或設定 | 本堂值 |
 |---|---|---|
-| 詳情熱區 | `Button / Complete`（標記完成按鈕） | 完整按鈕外框 |
+| 詳情熱區 | `Button / Complete`（標記完成按鈕） | 將既有 On click → Navigate to `Screen / List Done` 改成 Open overlay |
 | 確認彈窗 | `Overlay / Confirm`（確認彈窗） | W320；Hug 高；圓角 8 |
 | 彈窗內容 | Title、Body、Actions | 垂直排列；Gap 16；Padding 24 |
 | 彈窗位置 | Position | Centered |
@@ -72,8 +72,8 @@ Overlay 的位置也是訊息的一部分。確認彈窗用 Centered，小型說
 | 成功提示 | `Toast / Success`（成功提示） | 「任務已完成，已移到完成清單」 |
 
 1. 在 Layers 選取詳情中的 `Button / Complete`（標記完成按鈕）外框。做完會看到完整按鈕成為原型熱區。
-2. 切到 Prototype 分頁，將 Trigger 設為 On click。做完會確認點擊啟動這段互動。
-3. 將 Action 設為 Open overlay，Destination 指向 `Overlay / Confirm`（確認彈窗）。做完會看見詳情按鈕連到彈窗 Frame。
+2. `Button / Complete` 已有一條 On click → Navigate to `Screen / List Done` 的連線。點開它，把 Action 改成 **Open overlay**，不要另加第二條。做完會保留一條點擊互動。
+3. 在 **Overlay** 欄位選 `Overlay / Confirm`（確認彈窗）。做完會看見詳情按鈕連到彈窗 Frame。
 
 ![Open overlay 的 Position、Close when clicking outside 與 Background（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-open-overlay.webp)
 
@@ -82,9 +82,9 @@ Overlay 的位置也是訊息的一部分。確認彈窗用 Centered，小型說
 6. 開啟 Close when clicking outside。做完後，點彈窗外的遮罩區可關閉彈層。
 7. 從「完成一筆任務」流程開啟 Preview，進入整理交付包詳情並按標記完成。做完會在詳情上方看到確認彈窗。
 8. 點擊遮罩，觀察彈窗關閉。做完後，畫面會回到同一筆整理交付包詳情。
-9. 回到編輯畫布，選取 `Button / Cancel`（取消按鈕），設定 On click 與 Close overlay。做完後，取消動作會直接關閉當前彈層。
+9. 回到編輯畫布，依按鈕文字分辨兩顆按鈕，先在 Layers 把取消按鈕命名為 `Button / Cancel`。選取它並設定 On click 與 Close overlay。做完後，取消動作會直接關閉當前彈層。
 10. 再次預覽並按取消。做完後，詳情標題、說明與期限仍保持原內容。
-11. 選取 `Button / Confirm`（確認完成按鈕），設定 On click、Navigate to，目的地選 `Screen / List Done`（完成清單）。做完會看到確認動作前往另一張完整畫面。
+11. 依按鈕文字分辨確認按鈕，先在 Layers 把它命名為 `Button / Confirm`。選取它並設定 On click、Navigate to，目的地選 `Screen / List Done`（完成清單）。做完會看到確認動作前往另一張完整畫面。
 12. 將這條切換保持 Instant。做完後，確認結果會立即出現，便於先核對內容。
 13. 從登入完整操作到確認彈窗，按下確認完成。做完只會看見整理交付包已完成，畫面上方同時顯示成功 `Toast`。
 
@@ -96,19 +96,20 @@ Overlay 的位置也是訊息的一部分。確認彈窗用 Centered，小型說
 
 | 類別 | 名稱或設定 | 本堂值 |
 |---|---|---|
-| 選單 | `Overlay / Menu`（任務說明選單） | W280；Vertical；Padding 20；Gap 12；Hug 高 |
-| 說明 | `Overlay / Help`（詳細說明） | W280；Hug 高 |
+| 選單 | `Overlay / Menu`（任務說明選單） | Frame W 280；Vertical；Padding `Space 16`；Gap `Space 12`；Fill `Card`；1 px `Border` 外框；圓角 8 |
+| 選單內容 | 標題、內文、按鈕 | 標題套 `Type / Section title`；內文套 `Type / Body`、Fill container、Auto height；一顆 `Button` 使用處設為 Secondary，Label「檢視說明」 |
+| 說明 | `Overlay / Help`（詳細說明） | W 280；Hug 高；Fill `Card`；1 px `Border` 外框 |
 | 選單位置 | Position | Top right |
 | 選單交換 | Action | Swap overlay |
-| 排序面板 | `Overlay / Sort`（排序底部面板） | W402；Hug 高；圓角 8 |
+| 排序面板 | `Overlay / Sort`（排序底部面板） | W402；Hug 高；Fill `Card`；1 px `Border` 外框；圓角 8 |
 | 排序內容 | 標題與選項 | 排序方式；期限最近、期限最晚 |
 | 面板位置 | Position | Bottom center |
 | 面板動畫 | Animation | Move in；由下而上 |
 
-1. 建立 `Overlay / Menu`（任務說明選單），加入「任務說明」標題與「檢視說明」按鈕。完成後，選單會依內容維持自動高度。
-2. 複製選單為 `Overlay / Help`（詳細說明），把內文改為「先核對內容與期限，再標記完成。」完成後，較長文字會推高彈層。
+1. 依規格表建立 `Overlay / Menu`（任務說明選單）。加入標題、內文與一顆 `Button` 使用處。完成後，選單會以 `Card` 底色與外框包住自動增高的內容。
+2. 複製選單為 `Overlay / Help`（詳細說明）。直接選取 Menu 內文那一層，把文字改為「先核對內容與期限，再標記完成。」完成後，較長文字會推高彈層。
 3. 在詳細說明加入「關閉」按鈕。完成後，彈層有明確的結束動作。
-4. 在詳情新增「說明」按鈕，設定 Open overlay 到任務說明選單。完成後，按鈕會先開啟第一個彈層。
+4. 在詳情的 `Top Bar` 內，把「說明」按鈕放在標題之後的右側。設定 Open overlay 到任務說明選單。完成後，頁首右側的按鈕會先開啟第一個彈層。
 5. 將選單 Position 設為 Top right。完成後，選單會出現在詳情右上區域。
 
 ![Position 選單：選單用 Top right，底部面板用 Bottom center（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-overlay-position.webp)
@@ -116,19 +117,20 @@ Overlay 的位置也是訊息的一部分。確認彈窗用 Centered，小型說
 6. 在任務說明選單內，把「檢視說明」設定為 Swap overlay 到詳細說明。完成後，交換動作的來源位於已開啟彈層內。
 7. 將詳細說明的關閉按鈕設定為 Close overlay。完成後，關閉會回到原本的任務詳情。
 8. 在 Preview 依序開啟選單、交換成詳細說明、關閉彈層。完成後，背景始終是整理交付包詳情，兩個彈層位置維持一致。
-9. 回到待處理清單，建立一個「排序」按鈕。完成後，清單有明確入口可叫出排序選項。
-10. 建立 `Overlay / Sort`（排序底部面板），加入「排序方式」標題與兩個選項。完成後，面板內容能清楚說明選擇用途。
+9. 回到待處理清單，把「排序」按鈕放在 `Header / Fixed` 右側。若尚未做頁首，先放在清單標題右側。完成後，清單有明確入口可叫出排序選項。
+10. 從新 Frame 建立 `Overlay / Sort`（排序底部面板），避免複製 Menu 時把 Swap 互動一起帶入。依規格表加入「排序方式」標題與兩個選項；若已經複製 Menu，先刪掉一起複製來的互動。完成後，排序面板只保留這一節需要的互動。
 11. 將排序按鈕設定為 Open overlay 到排序底部面板。完成後，按鈕與面板之間會出現原型連線。
 12. 將面板 Position 設為 Bottom center。完成後，面板會貼齊預覽畫面的底部中央。
 13. 將 Animation 設為 Move in，方向選由下而上。方向箭頭的樣子以畫面為準，用 Preview 確認面板從底部進入。
-14. 為面板加入 Close when clicking outside，並讓每個排序選項有清楚的選取狀態。完成後，使用者可以選擇排序，也能點外側回到清單。
-15. 在 Preview 開啟排序面板，觀察清單背景、面板位置與進入方向。完成後，能用「暫時調整清單顯示方式」說明為何使用 Bottom sheet。
+14. 為面板加入 Close when clicking outside。完成後，使用者可以點外側回到清單。
+15. 在目前選取的選項左側放 `Icon / Check` 使用處，未選取的選項不放。排序選項在這個原型裡不需要互動；完成後，面板會清楚顯示目前狀態。
+16. 在 Preview 開啟排序面板，觀察清單背景、面板位置與進入方向。完成後，能用「暫時調整清單顯示方式」說明為何使用 Bottom sheet。
 
 確認彈窗放在中央；任務說明靠近右上入口；排序面板由底部進入。三者都保留原畫面，位置則回應內容用途。
 
 ## 讓成功提示出現後自己收起
 
-完成任務後，行政人員需要知道操作已成功，又不希望一條提示長時間遮住清單。這一節把成功提示做成 Top center 的 Overlay，並把延遲關閉設定在提示 Frame 本身；提示顯示一小段時間後，就會回到可操作的完成清單。
+完成任務後，行政人員需要知道操作已成功，又不希望一條提示長時間遮住清單。這一節先移除完成清單內原本的提示，再把成功提示做成 Top center 的 Overlay，並把延遲關閉設定在提示 Frame 本身；提示顯示一小段時間後，就會回到可操作的完成清單。
 
 | 類別 | 圖層或設定 | 本堂值 |
 |---|---|---|
@@ -137,8 +139,8 @@ Overlay 的位置也是訊息的一部分。確認彈窗用 Centered，小型說
 | 顯示時間 | Trigger | After delay；約 2 秒，單位以畫面為準 |
 | 收起動作 | Action | Close overlay |
 
-1. 從完成清單複製現有成功提示，放到畫布空白處。做完會保留原本的文字、顏色與間距。
-2. 確認最外層 Frame 命名為 `Toast / Success`（成功提示）。做完會有一個可單獨作為彈層目的地的 Frame。
+1. 先把 `Screen / List Done` 上原本那個 `Toast` 使用處刪掉，之後改由彈層出現。做完後，完成清單只保留持續顯示的任務結果。
+2. 再插入一個 `Toast` 使用處放在畫面外，改名為 `Toast / Success`（成功提示）。它是元件使用處，可以直接當 Overlay；做完會有一個可單獨作為彈層目的地的提示。
 3. 回到完成清單，新增一個用來測試提示的「顯示完成訊息」按鈕。做完會有明確的開啟入口。
 4. 選取按鈕，在 Prototype 的 Interactions 按 ＋。做完會新增一條互動。
 5. 把 Action 設為 Open overlay，目的地選成功提示。做完會看到按鈕連到提示 Frame。
@@ -216,7 +218,7 @@ After delay 的互動要放在提示 Frame，而非放在開啟提示的按鈕�
 
 ## 讓暫時決定有清楚的來處與去向
 
-你已經把整理交付包的確認彈窗接成三條可觀察路徑：外側關閉與取消回到原詳情，確認前往有完成狀態的清單。你也完成了從已開啟選單交換說明、由底部進入的排序面板，以及顯示後自己收起的成功提示；四種彈層都保留原工作脈絡，只在完成主要決定時切換完整畫面。
+你已經把整理交付包的確認彈窗接成三條可觀察路徑：外側關閉與取消回到原詳情，確認前往有完成狀態的清單。你也完成了從已開啟選單交換說明、由底部進入的排序面板，以及從畫面外元件使用處顯示後自己收起的成功提示；完成清單不再常駐 `Toast`，四種彈層都保留原工作脈絡，只在完成主要決定時切換完整畫面。
 
 下一頁會把待處理清單加長，讓內容在固定高度內垂直捲動，並處理固定頁首、底部導覽與漂浮按鈕。這一頁建立的排序面板會繼續依附在清單上，因此清單捲動時，開啟面板仍要從畫面底部出現。
 

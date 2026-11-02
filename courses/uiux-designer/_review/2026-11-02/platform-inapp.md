@@ -191,3 +191,16 @@ A1（建立檔案、左側圖示列、文字樣式）、A2（Layout guide 位置
 | 在 Auto layout 容器上方用 F 畫 Frame | 新 Frame 成為畫面的直接子層，不在容器裡，所以沒有 Ignore auto layout；當熱區用仍然可以點 |
 | Move in 方向 | 四個箭頭按鈕；「從右邊進來」選 ←（往左移動） |
 | 矩形 | 不能直接打字，文字要另用 T 疊上 |
+
+## 第十輪：試跑 B4～B6
+
+| 項目 | 實際結果 |
+|---|---|
+| Open overlay 的目的地欄位 | 名稱是 **Overlay**（不是 Destination） |
+| Background 遮罩 | 勾選後預設黑色 000000、25% |
+| After delay | 時間欄單位 ms（2 秒填 2000） |
+| 複製含互動的 Frame | 互動一起複製，要手動刪不需要的 |
+| 還沒有入口連線的 Frame 先加互動 | Figma 自動多建一個「Flow 1」 |
+| 把物件包成 Frame | Cmd+Opt+G（Frame selection）；Ungroup 可拆回 |
+| Fixed 後的 Layers | 出現 FIXED／SCROLLS 分區 |
+| 透明 Frame | F 新建的巢狀 Frame 預設無填色；Sticky 標題若無填色，下面內容會透出來 |
