@@ -60,3 +60,26 @@
 ## 據此修改
 
 A1（建立檔案、左側圖示列、文字樣式）、A2（Layout guide 位置、預設 Grid）、A4（拿掉 Shift+I、Go to main component 位置、Reset instance、複製主元件會得到使用處）、A5（Add variant 取代複製＋合併、Property 1、屬性 ＋、綁定位置、Reset instance）、A6（Add variant、密碼欄做法）、B1（Preview 與 Present）、B2（星形圖示卡住列）、B4（勾 Background）、B7（Save on your computer、Layers、Transparency、Save a Copy 備援）、B8（New repository 表單、token 的 Add permissions）、COURSE-START。
+
+## 第二輪實機（2026-11-02 下午，Figma 示範檔「工作室任務清單－示範」）
+
+| 項目 | 實際畫面 |
+|---|---|
+| Variables 入口 | 左側圖示列 **Variables** → 整頁變數表；空檔時中央 **Create** → Color／Number／String／Boolean／Timing／Easing。第一個變數建立時自動產生「Collection 1」，左欄雙擊可改名 |
+| 變數表 | 欄位 Name、Value；底部 **Create variable**；名稱直接打字，Tab 跳到 Value；顏色值點色塊輸入 Hex |
+| 模式限制 | 表頭右側 ＋ 新增模式會跳升級視窗：Starter「1 mode for variables」「3 files to work in」 |
+| 套用顏色變數 | 選圖層 → Fill 標題列的四點圖示（styles and variables）→ **Libraries** 分頁，最上方是本檔變數，下方另有 Figma 內建的 iOS 套件變數 → 點選後 Fill 欄顯示變數名 |
+| 套用數字變數 | 滑鼠移到 Padding／Gap 數值欄，右端出現變數圖示 → 點開清單選變數 |
+| Constraints | 選非 Auto layout 父層裡的物件 → Position 區 X／Y 右側的小圖示展開 **Constraints**：水平 Left／Right／Left + Right／Center／Scale，垂直 Top 等 |
+| Min／Max | Auto layout 物件 W 欄的下拉箭頭：Fixed width、Hug contents、**Add min width…**、**Add max width…**、Apply variable…（在 Auto layout 父層內的子層另有 Fill container） |
+| Wrap | Auto layout 的 Flow 四個按鈕右邊，tooltip「Wrap」 |
+| 顯示開關屬性 | 選元件內圖層 → Appearance 標題列眼睛旁的圖示（tooltip：Apply variable/property）→ ＋ → 「Create property or variable」視窗：Create＝Property、Name 預設「Show 圖層名」、Value True → Create property |
+| 元件互動 | 選某個 Variant → Prototype 分頁 Interactions ＋ → Trigger 清單：On click、On drag、**While hovering**、While pressing、Key/Gamepad、Mouse enter／leave／down／up、**After delay** → Action **Change to** → 下方出現屬性下拉選目標 Variant；Animation 預設 Instant |
+| Dev Mode | 底部工具列 Dev Mode 圖示 → 「Upgrade to work in Dev Mode」，Starter 不能用；標註改用自製標註元件 |
+| 匯出 | Export 列倍率：0.5x、0.75x、1x、1.5x、2x、3x、4x、512w、512h；格式 PNG、JPEG、SVG、PDF；Export 標題 ＋ 可再加一列（新列預設 2x），按「Export 圖層名」一次輸出 |
+| 形狀工具 | 底部矩形工具旁下拉：Rectangle R、Line L、**Arrow ⇧L**、Ellipse O、Polygon、Star、**Image/video… ⇧⌘K** |
+| Section | Frame 工具旁下拉：Frame F、**Section ⇧S**、Slice S |
+| 圖片填色 | Fill 色塊 → 類型圖示列第四個 **Image** → **Upload from computer**；縮放模式 Fill／Fit／Crop／Tile；同面板有曝光、對比等滑桿。面板中另一個產圖按鈕屬生成功能，本課不用 |
+| 底部工具列 | Draw、Design、Motion（Beta）、Dev Mode；Code（B）等其他圖示本課不用 |
+
+決定：流程圖畫在同一個設計檔（Section＋矩形＋Arrow），不另開 FigJam，避免占用 Starter 的 3 個檔案額度。給工程師的標註用自製「Note」元件＋量測截圖。

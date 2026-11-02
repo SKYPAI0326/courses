@@ -115,6 +115,7 @@ def apply_unit(key, md):
             s2 = s2[:a] + f'<tbody>{rows}</tbody>' + s2[b:]
             s2 = re.sub(r'data-record-key="([^"]+)-\d{4}-\d{2}-\d{2}"', rf'data-record-key="\1-{DATE}"', s2)
             s2 = s2.replace('本堂新條件練習：我的判斷與理由', '換你做（報名確認 App）：我的做法與自我檢查結果')
+            s2 = s2.replace('換你做（報名確認 App）', '換你做（你的題目）')
         if s2 != s:
             f.write_text(s2, encoding='utf-8')
     return unit, page, title, old_title
