@@ -1,12 +1,41 @@
 # 課程驗證：canva-video-teaching
 
-狀態：MACHINE_READY_PENDING_HUMAN
+狀態：BLOCKED
 
-範圍：13單元（CH1-1至CH2-6與EXT1）、12資源、28學員頁、四下載包；2026-10-22 Deep Review修正。內容、來源保真與機器檢查使用現行雜湊；CH2-1平面備援匯入、38秒完整平台路徑、EXT1、真人冷讀與連續跟做仍PENDING；未重新公開發布。
+範圍：13單元（CH1-1至CH2-6與EXT1）、四個下載包；2026-11-01依Canva官方說明與授課帳號補測。Record Voiceover完成錄音實測（2026-10-27）；MP4下載與無痕分享連結已實測（2026-11-01）。本次機器檢查日期為2026-11-02；完整單元平台流程、真人冷讀與連續跟做仍待驗；未重新公開發布。
 
-有效證據：4 筆（不代表真人學會）
+有效證據：3 筆（不代表真人學會）
 
 ## 阻擋項目
+- content/CH1-1,CH1-2,CH1-3,CH1-4,CH1-5,CH1-6,CH2-1,CH2-2,CH2-3,CH2-4,CH2-5,CH2-6,EXT1/author-self-check: stale artifact: _lessons/canva-video-teaching/CH1-1.md
+- fidelity/CH1-1,CH1-2,CH1-3,CH1-4,CH1-5,CH1-6,CH2-1,CH2-2,CH2-3,CH2-4,CH2-5,CH2-6,EXT1/author-self-check: stale artifact: _lessons/canva-video-teaching/CH1-1.md
+- fidelity/CH1-1,CH1-2,CH1-3,CH1-4,CH1-5,CH1-6,CH2-1,CH2-2,CH2-3,CH2-4,CH2-5,CH2-6,EXT1/tool-run: stale artifact: _lessons/canva-video-teaching/CH1-1.md
+- CH1-1: missing valid content review
+- CH1-1: missing valid fidelity review
+- CH1-2: missing valid content review
+- CH1-2: missing valid fidelity review
+- CH1-3: missing valid content review
+- CH1-3: missing valid fidelity review
+- CH1-4: missing valid content review
+- CH1-4: missing valid fidelity review
+- CH1-5: missing valid content review
+- CH1-5: missing valid fidelity review
+- CH1-6: missing valid content review
+- CH1-6: missing valid fidelity review
+- CH2-1: missing valid content review
+- CH2-1: missing valid fidelity review
+- CH2-2: missing valid content review
+- CH2-2: missing valid fidelity review
+- CH2-3: missing valid content review
+- CH2-3: missing valid fidelity review
+- CH2-4: missing valid content review
+- CH2-4: missing valid fidelity review
+- CH2-5: missing valid content review
+- CH2-5: missing valid fidelity review
+- CH2-6: missing valid content review
+- CH2-6: missing valid fidelity review
+- EXT1: missing valid content review
+- EXT1: missing valid fidelity review
 
 ## 待驗項目
 - CH1-1: actual platform run
@@ -44,7 +73,6 @@
 - CH2-1: human entry
 - CH2-1: human transfer
 - CH2-1: human understanding
-- CH2-2: actual platform run
 - CH2-2: human completion
 - CH2-2: human entry
 - CH2-2: human transfer
@@ -64,7 +92,6 @@
 - CH2-5: human entry
 - CH2-5: human transfer
 - CH2-5: human understanding
-- CH2-6: actual platform run
 - CH2-6: human completion
 - CH2-6: human entry
 - CH2-6: human transfer
