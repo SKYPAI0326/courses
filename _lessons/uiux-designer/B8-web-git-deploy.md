@@ -41,7 +41,7 @@ Git 安裝、GitHub 帳號、Email 驗證與 commit Email 已移到[課前準備
 git --version
 ```
 
-下載包已經能執行，讓你先讀懂網站再修改。解壓後會看到 `index.html`、`styles.css`、`app.js`、`README.md` 與 `assets` 資料夾；先用瀏覽器開啟 `index.html`，走過登入、詳情、取消、確認與已完成清單。重新整理會恢復預設資料，因為狀態只留在當次頁面記憶體裡。確認流程後，以 VS Code 的 File → Open Folder 開啟專案，再從 Terminal → New Terminal 開啟終端機。
+下載包已經能執行，讓你先讀懂網站再修改。解壓後會看到 `index.html`、`styles.css`、`app.js`、`README.md`、`my-screen.html` 與 `assets` 資料夾；先用瀏覽器開啟 `index.html`，走過登入、詳情、取消、確認與已完成清單。重新整理會恢復預設資料，因為狀態只留在當次頁面記憶體裡。確認流程後，以 VS Code 的 File → Open Folder 開啟專案，再從 Terminal → New Terminal 開啟終端機。
 
 ## 先分清楚內容、外觀、行為、版本與發布
 
@@ -110,7 +110,7 @@ git status
 6. 用明確檔名加入原始專案。完成後，`git status` 與暫存差異會列出即將提交的內容。
 
 ```bash
-git add index.html styles.css app.js README.md assets/status-badge.png
+git add index.html styles.css app.js README.md my-screen.html assets/status-badge.png
 git status
 git diff --cached
 ```

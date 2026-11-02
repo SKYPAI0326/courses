@@ -67,9 +67,9 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 | 畫面或區塊 | 圖層名 | 尺寸或位置 | 格線與用途 |
 |---|---|---|---|
 | 手機登入畫面 | `Screen / Login` | 402 × 874 | 4 欄、左右邊界 24、溝槽 12 |
-| 手機登入卡片 | `Login / Card` | x 24、y 120、W 354 | 父層是 `Screen / Login`；放標題、說明與主要動作 |
-| 卡片標題 | `Title` | 父層是 `Login / Card` | 登入卡片內的標題 |
-| 畫面上方標題 | `Screen / Heading` | 父層是 `Screen / Login` | 放在卡片外，用來練習 Constraints |
+| 手機登入卡片 | `Login / Card` | x 24、y 120、W 354 | 父層是 `Screen / Login`；開始時放既有標題、說明與主要動作 |
+| 既有標題 | `Title` | 開始時父層是 `Login / Card` | 上次已做好的「登入工作室」；本堂移出卡片後改名 |
+| 畫面上方標題 | `Screen / Heading` | 父層是 `Screen / Login` | 由 `Title` 移出卡片後改名，用來練習 Constraints |
 | 手機半寬區一 | `Reference / Half 1` | x 24、W 171 | 並排內容測試 |
 | 手機半寬區二 | `Reference / Half 2` | x 207、W 171 | 與前區相隔一個溝槽 |
 | 桌面參考畫面 | `Screen / Desktop reference` | 1440 × 900 | 12 欄、左右邊界 120、溝槽 24 |
@@ -133,8 +133,8 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 | 主要按鈕 | `Login / Card` | Center | 按鈕維持原寬並跟著卡片中心移動 |
 | 裝飾插圖 | `Screen / Login` | Scale | 寬高與位置依父層比例一起變化 |
 
-1. 在 Layers 確認 `Title` 位於 `Login / Card` 內；完成後，圖層縮排會顯示它的父層是登入卡片。
-2. 在卡片上方建立「登入工作室」，命名為 `Screen / Heading`（畫面上方標題）；完成後，它會直接位於 `Screen / Login` 內。
+1. 在 Layers 找到 `Login / Card` 裡既有的 `Title`；完成後，你會確認這就是上次做好的「登入工作室」。
+2. 把卡片裡的標題拖到卡片外，讓它成為 `Screen / Login` 的直接子層，再改名為 `Screen / Heading`（畫面上方標題）；完成後，畫面只保留原來那一個「登入工作室」。
 3. 選取畫面上方標題，點 X／Y 右側的小圖示展開 Constraints，把水平設定為 **Left + Right**；完成後，右側會顯示標題同時參考畫面左右兩邊。
 
 ![X／Y 右側的小圖示展開 Constraints，水平方向可選 Left、Right、Left + Right、Center、Scale（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-constraints.webp)

@@ -68,7 +68,7 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 | `Row / Title`（任務標題） | 字級 18、行高 28，字型、字重與填色照設計檔 | 說明主要文字樣式 |
 | 主要按鈕 | 來源 Button、Type Primary、State Default、Label「確認完成」、H 48、圓角 8 | 說明元件狀態與可見文案 |
 | `Overlay / Confirm`（確認彈窗） | W 320、高度依實際內容 | 匯出 `dialog-confirm.png` |
-| 主要畫面 | Login、List Long、Detail、List Done | 各自匯出 PNG |
+| 主要畫面 | Login、List、Detail、List Done | 各自匯出 PNG |
 | Figma 本機副本 | `studio-tasks.fig` | 放入 `source/` |
 | Photoshop 工作檔 | 512×512、Background／Card／Check 三層 | 另存 `status-badge-working.psd` |
 | 透明徽章 | 512×512、PNG、透明背景 | 匯出 `status-badge.png` |
@@ -98,7 +98,7 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 
 4. 按 Export；下載資料夾會出現這個 Frame 的圖檔。
 5. 將實際檔名改成 `dialog-confirm.png`；檔案名稱會與交付清單一致。
-6. 依序選取 Login、List Long、Detail 與 List Done 畫面匯出 PNG；每個主要畫面都會有一張可直接查看的輸出。
+6. 依序選取 Login、List、Detail 與 List Done 畫面匯出 PNG；每個主要畫面都會有一張可直接查看的輸出。
 
 圖層名稱含 `/` 時，Figma 匯出的檔名可能會改變。請查看實際名稱，再依交付清單重新命名。
 

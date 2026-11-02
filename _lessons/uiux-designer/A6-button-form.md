@@ -62,7 +62,7 @@ Placeholder 是尚未輸入時放在輸入區內的示意，它會在輸入內�
 | `Login / Card` | x 24、y 120、寬 354；Vertical；Gap `Space 16`；Padding `Space 16`；Hug 高 | 直接放必填說明、欄位與按鈕使用處 |
 | `Field / Account` | Vertical；Gap `Space 8`；寬 322；Hug 高 | 帳號欄使用處 |
 | `Field / Label` | 套用 `Type / Label`；Auto height | 「工作室帳號＊」 |
-| `Field / Input` | 寬 322、高 48；水平內距 `Space 16`、垂直內距 `Space 12`；圓角 8 | 輸入內容容器 |
+| `Field / Input` | W Fill container、高 48；水平內距 `Space 16`、垂直內距 `Space 12`；圓角 8 | 隨寬 322 的 `Field` 改變寬度 |
 | `Field / Value` | 套用 `Type / Body`；Fill；單行 | 預設「請輸入」 |
 | `Field / Helper` | 套用 `Type / Supporting`；Fill；Auto height | 預設「說明文字」；由 `Show helper` 控制 |
 | State=Default | `Card` 底；`Control Border` 1 px 外框 | 一般狀態 |
@@ -72,7 +72,7 @@ Placeholder 是尚未輸入時放在輸入區內的示意，它會在輸入內�
 
 1. 建立 `Field / Label`（欄位標籤），輸入「帳號」；完成後欄位用途會固定顯示在輸入區上方。
 2. 建立 `Field / Value`（欄位內容），輸入「請輸入」；完成後會看到尚未填寫時的提示。
-3. 選取內容文字按 **Shift+A**，把新外框命名為 `Field / Input`（輸入區），再依規格表設定尺寸與外觀；完成後文字會位於有清楚邊界的輸入容器中。
+3. 選取內容文字按 **Shift+A**，把新外框命名為 `Field / Input`（輸入區），再將寬度設為 W Fill container 並依規格表設定外觀；完成後輸入區會跟著 `Field` 的寬度改變。
 4. 建立 `Field / Helper`（欄位提示），輸入「說明文字」；完成後輸入區下方會有可供使用處改寫的文字層。
 5. 同時選取 Label、Input 與 Helper，按 **Shift+A**，把新外框暫時命名為 `Field / Draft`（欄位草稿）；完成後三個部分會進入同一個垂直容器。
 6. 選取帳號欄，按右鍵選 **Create component**，再命名為 `Field`（文字欄位）；完成後 Default 來源會先保留完整結構。
@@ -96,17 +96,16 @@ Focus 代表目前輸入位置，Error 代表內容需要修正，兩者可能�
 這一節要用同一個 `Field` 完成第二個欄位，並把表單整理成正常、焦點、錯誤與修正後幾種結果。每一步先想要達成的畫面，再到對應元件或使用處找設定。
 
 1. 再插入一個 `Field` 使用處，命名為 `Field / Password`（密碼欄），Label 改成「密碼＊」，Value 改成「••••••••」；完成後密碼欄會沿用同一組 State 與文字屬性。
-2. 將 Helper 改成「至少 8 個字元」，再打開 `Show helper`；完成後密碼條件會留在欄位下方。
-3. 先在 Default Variant 的輸入區右側建立一個 20×20 的圓形暫代眼睛圖示；完成後會看到之後可換成正式圖示的圖層。
-4. 到 `Field` 元件集的四個 Variant（Default、Focus、Error、Disabled），各在輸入區右側放一個 20×20 圓形；完成後四個版本會有相同的圖層結構。
-5. 選取 Default 的暫代圖示，從 Appearance 的 Apply variable/property 圖示建立 Boolean property，命名為 `Show icon`，預設設為 False；完成後帳號欄不會先出現眼睛圖示。
-6. 將四個 Variant 的暫代圖示層都綁定同一個 `Show icon`；完成後切換 State 時會保留使用處的顯示選擇。
-7. 將密碼欄的 `Show icon` 打開，再把密碼欄放入 `Login / Card` 的帳號欄與登入按鈕之間；完成後同一個 `Field` 會呈現密碼用途，而不需要另一個元件集。
-8. 複製登入畫面，讓帳號欄保持 Focus、密碼欄保持 Default；完成後會看到目前輸入位置只有一處。
-9. 再複製一張畫面，把帳號切成 Error，打開 `Show helper`，並在 Helper 輸入「請輸入工作室帳號」；完成後只有出錯欄位呈現自己的錯誤句。
-10. 從錯誤畫面複製修正版，改正值、關閉 `Show helper`，再把兩欄切回 Default；完成後能直接比較修正前後。
-11. 另做一張空白登入畫面，兩欄 Value 都改成「請輸入」，把登入按鈕切到 Disabled，並在附近放「請先填寫帳號與密碼」；完成後停用外觀會配合具體原因。
-12. 把帳號錯誤句加長成兩行，觀察密碼欄與按鈕；完成後兩者會被推開，內容不會重疊。
+2. 將 Helper 改成「密碼不足 8 個字元」。`Show helper` 維持 False；完成後錯誤狀態要用的句子已備妥，正常畫面仍不顯示。
+3. 到 `Field` 元件集的四個 Variant（Default、Focus、Error、Disabled），各在輸入區右側放一個 20×20 圓形暫代眼睛圖示；完成後四個版本會有相同的圖層結構。
+4. 選取 Default 的暫代圖示，從 Appearance 的 Apply variable/property 圖示建立 Boolean property，命名為 `Show icon`，預設設為 False；完成後帳號欄不會先出現眼睛圖示。
+5. 將四個 Variant 的暫代圖示層都綁定同一個 `Show icon`；完成後切換 State 時會保留使用處的顯示選擇。
+6. 將密碼欄的 `Show icon` 打開，再把密碼欄放入 `Login / Card` 的帳號欄與登入按鈕之間；完成後同一個 `Field` 會呈現密碼用途，而不需要另一個元件集。
+7. 複製 `Screen / Login`，命名為 `Screen / Login Focus`，讓帳號欄保持 Focus、密碼欄保持 Default；完成後會看到目前輸入位置只有一處。
+8. 再複製一張畫面，命名為 `Screen / Login Error`，把帳號 Value 改成 `studio` 並切成 Error。打開 `Show helper`，在 Helper 輸入「帳號格式不正確，請輸入完整電子郵件」；完成後只有出錯欄位呈現自己的錯誤句。
+9. 從錯誤畫面複製修正版，命名為 `Screen / Login Fixed`，改正值並關閉 `Show helper`。再把兩欄切回 Default；完成後能直接比較修正前後。
+10. 另做一張空白登入畫面，命名為 `Screen / Login Disabled`，兩欄 Value 都改成「請輸入」。把登入按鈕切到 Disabled，並在附近放「請先填寫帳號與密碼」；完成後停用外觀會配合具體原因。
+11. 把帳號錯誤句加長成兩行，觀察密碼欄與按鈕；完成後兩者會被推開，內容不會重疊。
 
 最後從標題開始順著讀一次：標＊為必填、工作室帳號、輸入值、提示、密碼、輸入值、提示、登入。不同 State 都要保有相同閱讀順序；Helper 留在所屬欄位附近，使用者能直接對照要修改的內容。
 
@@ -153,17 +152,17 @@ Focus 代表目前輸入位置，Error 代表內容需要修正，兩者可能�
 4. 沿用共用規格建立 `Radio`，屬性命名為 Selected，並將外框套用 `Control Border`；完成後會有未選與已選兩種狀態。
 5. 建立 `Toggle`，讓圓形滑塊在 On=false 與 On=true 兩個版本中位於不同側；完成後，底色與滑塊位置會一起說明開關狀態。
 6. 建立 `Select`，收合版顯示目前類別與向下圖示，展開版在下方顯示選項清單；完成後，Open 屬性能切換兩種畫面。
-7. 從 `Field` 複製主元件結構，建立 `Field / Multiline`；完成後會得到固定外框、文字可增高的備註欄。
+7. 選取 `Field` 元件集按 **Cmd／Ctrl+D**，把複製出的新元件集命名為 `Field / Multiline`。再把輸入區高度改成 96；完成後會得到固定外框、文字可增高的備註欄。
 8. 在登入畫面的密碼欄下方插入 Checkbox 使用處，把 Label 保持為「記住我」；完成後，登入表單會多一個可辨識的勾選項。
-9. 建立 `Screen / New Task`，先加入「標＊為必填」、頁面標題、任務名稱、類別、優先順序、提醒設定、備註與按鈕；完成後會看見表單需要的全部內容。
-10. 全選欄位與按鈕按 **Shift+A**，設成垂直 Auto layout；完成後各欄會依固定順序往下排列。
+9. 建立 `Screen / New Task`（空白新增任務畫面），先加入「標＊為必填」、頁面標題、任務名稱欄位與類別 Select 使用處；完成後會看見表單的標題文字與欄位。
+10. 全選目前的標題與欄位按 **Shift+A**，設成垂直 Auto layout；完成後各欄會依固定順序往下排列。
 11. 在「優先順序」Label 下插入三個 Radio 使用處，文字分別為「高」「中」「低」，只讓其中一個 Selected=true；完成後，畫面會清楚表達三選一。
 12. 在表單下方插入 Toggle 使用處，文字改成「提醒我」；完成後，開關會表示提醒設定目前是否開啟。
 13. 插入 `Field / Multiline`，Label 改成「備註（選填）」；完成後長內容會留在固定高度的備註區。
 14. 插入 Primary／Default 的 Button，Label 改成「新增任務」；完成後，表單會有一個清楚的提交動作。
-15. 複製新增任務畫面，把類別 Select 切到 Open=true；完成後，可比較收合與展開時後續欄位是否由 Auto Layout 推開。
-16. 再複製兩張新增任務畫面，分別命名為提醒 Off 與提醒 On；完成後會得到開關前後的比較基礎。
-17. 在提醒 On 畫面多放一個 `Field`，Label 改成「提醒時間＊」；完成後只有開關打開的畫面會顯示條件欄位。
+15. 複製新增任務畫面，命名為 `Screen / New Task Select Open`，把類別 Select 切到 Open=true；完成後，可比較收合與展開時後續欄位是否由 Auto Layout 推開。
+16. 複製 `Screen / New Task`，命名為 `Screen / New Task Filled`（已填新增任務畫面），再填入各欄內容；完成後會得到提醒開關尚未打開的已填狀態。
+17. 複製已填畫面，命名為 `Screen / New Task Reminder`（提醒新增任務畫面），打開提醒開關並多放一個 `Field`。將 Label 改成「提醒時間＊」；完成後只有開關打開的畫面會顯示條件欄位。
 18. 在畫布旁註記後續原型會用 Change to 或 Navigate 切換兩張畫面；完成後條件欄位的出現規則會保留下來。
 19. 複製一個必填 Checkbox 使用處作為錯誤示範，在勾選框列下方加入 Helper「請先同意注意事項」，並把方框外框改成 `Error`；完成後錯誤句與需要修正的控制項會靠在一起。修正後移除 Helper，外框恢復 `Control Border`。
 
@@ -195,7 +194,7 @@ Focus 代表目前輸入位置，Error 代表內容需要修正，兩者可能�
 
 ## 換你做：你的題目
 
-從你的畫面清單挑出這次對應的畫面。接著完成表單、具體錯誤畫面與修正後畫面；Checkbox 與 Radio 都要建立成可重複使用的元件。
+從你的畫面清單挑出這次對應的畫面。接著把主線表單元件複製到題目區並換綁變數，再完成表單、具體錯誤畫面與修正後畫面。
 
 三個題目的建議對應：
 
@@ -208,9 +207,9 @@ Focus 代表目前輸入位置，Error 代表內容需要修正，兩者可能�
 - 這次做的畫面在你的畫面清單上；清單沒有的，先補進清單並寫一句理由。
 - 所有固定 Label 放在欄位上方，必填項目加上「＊」，表單開頭放「標＊為必填」。
 - 依題目需求選用文字欄、Radio、Checkbox、Select 或 Toggle，選項文字完全照需求頁。
-- 把主線的 `Field`、`Checkbox`、`Toggle`、`Select` 與 `Field / Multiline` 複製到題目區；若已做 `Radio Group`，也一起複製。再用元件那一堂的方法，把 `Studio` 變數換綁成題目集合裡的同名變數。
-- 題目畫面寬 360，左右內距各 24；欄位在畫面裡設為 Fill container，完成後欄寬為 312。
-- 建立 Checkbox 與 Radio 元件集，兩種狀態都保有相同文字位置與觸控範圍。
+- 把主線的 `Field`、`Checkbox`、`Radio`、`Toggle`、`Select` 與 `Field / Multiline` 複製到題目區，做法和複製按鈕元件集相同。再把 `Studio` 變數換綁成題目集合裡的同名變數。
+- Selection colors 只會換綁顏色變數。選取各元件集，在 Padding 與 Gap 欄位逐一換成題目的間距變數；題目沒有另建間距變數時，沿用 `Studio` 的間距並在練習裡寫明「間距共用」。
+- 題目畫面寬 360，左右內距各 24；`Field` 在畫面裡設為 Fill container，`Field / Input` 會跟著欄位改變寬度。
 - 做出一張具體錯誤畫面，Helper 說明原因與修正方向。
 - 預約題的日期時段使用看起來像 Select 的欄位並顯示已選時段；整頁的選擇時段畫面留到連接原型那一堂再做，這次只完成靜態表單。
 - 預約題與會員題的必填勾選框在錯誤畫面顯示 Helper 錯誤句，方框外框套用 `Error`；修正後移除錯誤句並恢復 `Control Border`。
@@ -226,7 +225,7 @@ Focus 代表目前輸入位置，Error 代表內容需要修正，兩者可能�
 - 長說明或展開清單會推開後面內容，不會互相重疊。
 - 開關控制條件欄位時，Off 與 On 兩張畫面的差異清楚。
 
-<details><summary>真的卡住再看：提示</summary><p>先逐欄標出「只能選一個、可以選多個、選項較多、立即開關」四種需求，再選控制項；版面卡住時，從文字 Auto height、元件 Hug、表單 Vertical 三層往外檢查。</p></details>
+<details><summary>真的卡住再看：提示</summary><p>先逐欄標出「只能選一個、可以選多個、選項較多、立即開關」四種需求，再選控制項；版面卡住時，從文字 Auto height、元件 Hug、表單 Vertical 三層往外檢查。題目畫面寬 360、左右各留 24 時，Field 設為 Fill container 後欄寬是 312，輸入區會跟著填滿欄位。</p></details>
 
 ## 收回工作室情境，下一步把資料排成清單
 
