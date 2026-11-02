@@ -44,6 +44,8 @@ status: REPAIRED_CONTENT_PENDING_PLATFORM_AND_HUMAN
 
 第三輪修正（同日，依審查員 D 前五項）：B2 加三題關鍵畫面（預約時段選擇含長服務佔多時段、點餐數量與徽章、會員點數餘額與紀錄）與「串成完整流程」；文字樣式改 5 種並統一 Noto Sans TC、Disabled 拆兩變數、文字欄與任務列與提示元件化；A6 控制項規格表、多行欄、必填與 B2 表單互動；需求初稿前移到 A1、B1 改為深化並補缺頁；B6 加三份虛構觀察紀錄（`assets/B6-prototype-task-test/reference/OBSERVATIONS.html`）、六小時排程與檢查方法；評分表加兩項「解決需求」。時數帳本 A2 300 分、A6 420 分。紀錄：`改寫規格書-round3.md`。
 
+第四、五輪（同日，審查員 E）：主線物件總表統一跨堂名稱；無障礙變數 `Control Border`、`Primary Hover`、`Focus Ring` 與按鈕 Focus 狀態；評分表 N1／N2 改必過並加需求追溯、需求頁其他問題決策、設計取捨；A1 需求初稿模板、B1 資訊架構與網站地圖、練習改提示問題；完整流程串接移到 B3；帳本 A4 240、A7 300、B2 480、B6 420、B8 600 分。紀錄：`改寫規格書-round4.md`、`改寫規格書-round5.md`。
+
 ## 學習與環境邊界
 
 Starter同檔可有多個基本互動；同一trigger堆疊多actions與條件邏輯才是付費範圍。本課不用。免費主線從Design面板量測與Export，不要求Dev Mode。Photoshop需要授權工作站；GitHub Pages需要自己的帳號、公開示範repo與管理權限。

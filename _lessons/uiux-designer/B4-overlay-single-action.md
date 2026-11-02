@@ -31,7 +31,7 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 
 工作室行政人員已經能進入「整理交付包」詳情並返回清單。現在要把「標記完成」接上確認步驟：彈窗保留詳情背景，取消回到原處，確認後看見完成狀態與成功提示。
 
-這一頁會用到先前做好的確認彈窗、完成後清單、成功提示與詳情按鈕。沒有上次成果時，先打開[轉場與狀態動畫那一頁](CH3-transition-motion-purpose.html)的本堂規格表補做，約需二十到三十分鐘。接著開啟[本堂起始材料](../../courses/uiux-designer/assets/B4-overlay-single-action/START-HERE.html)，核對這些畫面與圖層；完成互動後，再用[本堂完成檢查表](../../courses/uiux-designer/assets/B4-overlay-single-action/reference/EXPECTED-CHECK.html)分別走過取消、確認與外側關閉。
+這一頁會接著使用[轉場與狀態動畫那一頁](CH3-transition-motion-purpose.html)串好的完整流程，以及先前做好的確認彈窗、完成後清單、成功提示與詳情按鈕。沒有這些成果時，先依該頁的本堂規格表補做，約需二十到三十分鐘。接著開啟[本堂起始材料](../../courses/uiux-designer/assets/B4-overlay-single-action/START-HERE.html)，核對這些畫面與圖層；完成互動後，再用[本堂完成檢查表](../../courses/uiux-designer/assets/B4-overlay-single-action/reference/EXPECTED-CHECK.html)分別走過取消、確認與外側關閉。
 
 本頁還會做三種 Overlay（彈層）：交換內容的說明選單、從清單底部進入的 Bottom sheet（底部面板），以及顯示後自己關閉的成功提示。這三種例子都讓暫時內容疊在原畫面上。
 

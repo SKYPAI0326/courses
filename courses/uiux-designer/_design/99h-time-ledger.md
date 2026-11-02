@@ -30,26 +30,26 @@ total_hours: 99h
 | A1 | 視覺基礎：色彩與字型 | 42-01、42-02 | Stage 2 Visual Foundation | 45 | 30 | 75 | 60 | 60 | 30 | 300 | 色彩 token 表、Typography scale、長文字檢查 |
 | A2 | 格線與版面基準 | 42-03 | Stage 3 Layout System | 50 | 40 | 90 | 50 | 35 | 35 | 300 | 桌機／手機格線規格與套用畫面 |
 | A3 | Auto Layout 與內容壓力 | 42-04 | Stage 3 Layout System | 50 | 40 | 85 | 80 | 70 | 35 | 360 | 可承受長文字、增刪項目與寬度變化的手機畫面 |
-| A4 | Component 基礎與 Instance | 42-05 | Stage 4 Component Foundation | 40 | 35 | 75 | 65 | 55 | 30 | 300 | 一組主元件與可辨識的 Instances |
+| A4 | Component 基礎與 Instance | 42-05 | Stage 4 Component Foundation | 40 | 35 | 75 | 35 | 25 | 30 | 240 | 一組主元件與可辨識的 Instances |
 | A5 | Variants、Properties 與狀態 | 42-12 | Stage 5 Component System | 50 | 45 | 85 | 80 | 65 | 35 | 360 | 元件狀態矩陣、Variants 與同步驗收 |
 | A6 | Button 與 Form | 42-06、42-07 | Stage 6 Core UI Components | 45 | 40 | 115 | 110 | 75 | 35 | 420 | Button／Form 元件、錯誤與修正狀態 |
-| A7 | List 與內容變化 | 42-08 | Stage 6 Core UI Components | 30 | 25 | 55 | 55 | 50 | 25 | 240 | 可增刪、空狀態與長文字列表 |
+| A7 | List 與內容變化 | 42-08 | Stage 6 Core UI Components | 30 | 25 | 85 | 85 | 50 | 25 | 300 | 可增刪、空狀態與長文字列表 |
 | A8 | Toast、Dialog 與 Navigation | 42-09、42-10、42-11 | Stage 7 Navigation & Feedback | 30 | 25 | 55 | 55 | 50 | 25 | 240 | 回饋、彈窗、導航元件與桌機／手機規則 |
-| **Part A subtotal** |  | **12 項** |  | **340** | **280** | **635** | **555** | **460** | **250** | **2520＝42h** |  |
+| **Part A subtotal** |  | **12 項** |  | **340** | **280** | **665** | **555** | **430** | **250** | **2520＝42h** |  |
 
 ## Part B：UI/UX 原型製作與資料打包（57h）
 
 | Unit | 內容邊界 | 對應正式項目 | 候選能力區段 | concept | micro_demo | follow_along | guided_practice | independent | check_debug | 合計 | 主要完成物 |
 |---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---|
 | B1 | 線框、原型、工具與手機介面入口 | 57-01 | Stage 0–1、Stage 8–9 | 60 | 45 | 110 | 90 | 75 | 40 | 420 | 任務流程、畫面清單、手機 Frame 與 Prototype 入口 |
-| B2 | 觸發事件與互動連結 | 57-02 | Stage 9 Prototype Foundation | 45 | 40 | 90 | 75 | 75 | 35 | 360 | 可依固定任務完成的基本 Flow |
+| B2 | 觸發事件與互動連結 | 57-02 | Stage 9 Prototype Foundation | 45 | 40 | 130 | 115 | 115 | 35 | 480 | 可依固定任務完成的基本 Flow |
 | B3 | 常見轉場與動效目的 | 57-03 | Stage 11 Motion & Advanced Interaction | 45 | 40 | 85 | 75 | 80 | 35 | 360 | 兩種有目的的轉場與選擇理由 |
 | B4 | Overlay 與 Swap | 57-04、57-05 | Stage 10 Overlay & Scroll Interaction | 55 | 45 | 105 | 90 | 80 | 45 | 420 | 同檔確認Dialog、Menu／Help Swap及取消／完成結果 |
 | B5 | 滾動、置頂導覽與漂浮按鈕 | 57-06 | Stage 10 Overlay & Scroll Interaction | 45 | 40 | 85 | 75 | 80 | 35 | 360 | Vertical overflow、固定元素與遮擋檢查 |
-| B6 | Prototype 任務測試與修正 | 57-01、57-02、57-03、57-06、57-07 的整合支援 | Stage 12 Prototype Test & Revision | 45 | 35 | 70 | 80 | 90 | 40 | 360 | 測試腳本、錯誤清單、修正版與回歸紀錄 |
+| B6 | Prototype 任務測試與修正 | 57-01、57-02、57-03、57-06、57-07 的整合支援 | Stage 12 Prototype Test & Revision | 45 | 35 | 70 | 110 | 120 | 40 | 420 | 測試腳本、錯誤清單、修正版與回歸紀錄 |
 | B7 | Figma／PS 發布與輸出，重用B3動畫規格 | 57-07、57-08 | Stage 11、Stage 13 Asset & Handoff | 45 | 40 | 80 | 75 | 80 | 40 | 360 | Design量測、Figma／PSD／透明PNG與完整交付包 |
-| B8 | 網頁入門、Git/GitHub 與雲端部署 | 57-09 | Stage 14–15 Delivery & Web | 90 | 60 | 180 | 150 | 190 | 110 | 780 | HTML/CSS 最小網站、必要 JavaScript、Git/GitHub 紀錄與公開部署 |
-| **Part B subtotal** |  | **9 組** |  | **430** | **345** | **805** | **710** | **750** | **380** | **3420＝57h** |  |
+| B8 | 網頁入門、Git/GitHub 與雲端部署 | 57-09 | Stage 14–15 Delivery & Web | 90 | 60 | 150 | 120 | 100 | 80 | 600 | HTML/CSS 最小網站、必要 JavaScript、Git/GitHub 紀錄與公開部署 |
+| **Part B subtotal** |  | **9 組** |  | **430** | **345** | **815** | **750** | **730** | **350** | **3420＝57h** |  |
 
 ## 加總驗證
 
@@ -62,6 +62,7 @@ total_hours: 99h
 ## 能力與重複控制
 
 - A4／A5 首次建立元件、Variants、Properties 與狀態；B2／B4 只使用它們完成互動，不重教元件外觀。
+- 2026-11-02 第五輪：A4 300→240、A7 240→300；B2 360→480、B6 360→420、B8 780→600（獨立審查員 E 依活動量估算；B2 的完整流程串接移到 B3）。各 Part 合計不變。
 - 2026-11-02 第三輪：A2 由 360 分調為 300 分、A6 由 360 分調為 420 分（獨立審查估算 A2 活動量約 240～300 分、A6 表單控制項後約 450～540 分），Part A 合計不變。
 - A2／A3 首次建立格線與 Auto Layout；B5 將已完成手機介面遷移到滾動、固定與漂浮限制，不重播版面教學。
 - A8 首次建立 Dialog／Navigation 的視覺結構與規則；B4／B5 教 Overlay、置頂與返回行為。
