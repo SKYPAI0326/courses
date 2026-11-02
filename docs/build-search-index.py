@@ -46,13 +46,16 @@ COURSE_LABEL = {
     "codex-basic": "Codex 基礎使用（3h）",
     "admin-ai-assistant": "行政 AI 虛擬助理實戰（2h）",
     "ai-beginner-practical": "AI 入門即戰力（12h）",
-    "canva-video-teaching": "Canva 教學短片入門（5h）",
+    "canva-video-teaching": "Canva 影片快速上手",
     "uiux-designer": "UI/UX設計師",
 }
 
 TITLE_RE = re.compile(r"<title>(.*?)</title>", re.IGNORECASE | re.DOTALL)
 DESC_RE = re.compile(
-    r'<meta\s+name=["\']description["\']\s+content=["\'](.*?)["\']',
+    r'<meta\b'
+    r'(?=[^<>]*?\s+name\s*=\s*(["\'])description\1)'
+    r'(?=[^<>]*?\s+content\s*=\s*(["\'])(.*?)\2)'
+    r'[^<>]*',
     re.IGNORECASE | re.DOTALL,
 )
 
@@ -93,7 +96,7 @@ def extract(path: Path):
         title = re.sub(r"\s+", " ", m.group(1)).strip()
     m = DESC_RE.search(html)
     if m:
-        desc = re.sub(r"\s+", " ", m.group(1)).strip()
+        desc = re.sub(r"\s+", " ", m.group(3)).strip()
     return title, desc
 
 

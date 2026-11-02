@@ -192,18 +192,31 @@ def check_main_wrapper(html: str) -> list:
     return []
 
 
+def _has_tag_attribute(
+    html: str, tag: str, attribute: str, value: str, require_content: bool = False
+) -> bool:
+    pattern = (
+        rf'<{tag}\b(?=[^<>]*?\s+{re.escape(attribute)}\s*=\s*(["\'])'
+        rf'{re.escape(value)}\1)'
+    )
+    if require_content:
+        pattern += r'(?=[^<>]*?\s+content\s*=\s*(["\'])(.*?)\2)'
+    match = re.search(pattern + r'[^<>]*', html, re.IGNORECASE | re.DOTALL)
+    return bool(match and (not require_content or match.group(3).strip()))
+
+
 def check_seo_meta(html: str) -> list:
     issues = []
     required = {
-        'description': r'<meta\s+name=["\']description["\']\s+content=["\'][^"\']+["\']',
-        'og:title': r'<meta\s+property=["\']og:title["\']',
-        'og:description': r'<meta\s+property=["\']og:description["\']',
-        'og:url': r'<meta\s+property=["\']og:url["\']',
-        'og:image': r'<meta\s+property=["\']og:image["\']',
-        'canonical': r'<link\s+rel=["\']canonical["\']',
+        'description': ('meta', 'name', 'description', True),
+        'og:title': ('meta', 'property', 'og:title', False),
+        'og:description': ('meta', 'property', 'og:description', False),
+        'og:url': ('meta', 'property', 'og:url', False),
+        'og:image': ('meta', 'property', 'og:image', False),
+        'canonical': ('link', 'rel', 'canonical', False),
     }
-    for key, pattern in required.items():
-        if not re.search(pattern, html, re.IGNORECASE):
+    for key, (tag, attribute, value, require_content) in required.items():
+        if not _has_tag_attribute(html, tag, attribute, value, require_content):
             issues.append(("ERROR", f"缺 SEO meta: {key}"))
     return issues
 
@@ -246,6 +259,80 @@ def check_audience_firewall(html: str) -> list:
     for t in terms:
         if t in body:
             issues.append(("WARN", f"疑似洩漏授課調度（講師視角）：「{t}」——講義須純學員視角，授課調度寫教案『講師授課筆記（不進講義）』"))
+    return issues
+
+
+INTERNAL_COURSE_TERMS = [
+    ("講師端", re.compile(r"講師端")),
+    ("示範素材", re.compile(r"示範素材")),
+    ("速查卡（給學員帶走）", re.compile(r"速查卡\s*[（(]\s*給學員帶走\s*[）)]")),
+    ("course_type = …", re.compile(r"course_type\s*=\s*[^\s<，。；;]+", re.IGNORECASE)),
+    ("skill-operation 類型", re.compile(r"skill-operation\s*類型", re.IGNORECASE)),
+    ("為什麼拆 N 頁", re.compile(r"為什麼拆\s*\d+\s*頁")),
+    ("為什麼這樣設計", re.compile(r"為什麼這樣設計")),
+    ("示範機器準備", re.compile(r"示範機器準備")),
+    ("USB 隨身碟", re.compile(r"USB\s*隨身碟", re.IGNORECASE)),
+    ("離線安裝包", re.compile(r"離線安裝包")),
+    ("Win 學員自行確認", re.compile(r"Win\s*學員自行確認", re.IGNORECASE)),
+]
+
+INTERNAL_ASSET_CONTEXT = re.compile(
+    r"試跑包.{0,24}(?:需求清單|清單)|"
+    r"講師[^<]{0,48}(?:清單|提示|SOP|專區)|"
+    r"課前準備與課後收尾|教學意圖|講師備註|"
+    r"class=[\"'][^\"']*\binstructor-(?:box|note)\b",
+    re.IGNORECASE | re.DOTALL,
+)
+INTERNAL_RATIONALE_CONTEXT = re.compile(
+    r"教學意圖|課程設計理由|教學設計理由|為什麼拆\s*\d+\s*頁",
+    re.IGNORECASE,
+)
+
+
+def check_internal_course_terms(html: str) -> list:
+    """Warn on learner-visible course-planning terms, with contextual exceptions."""
+    body_match = re.search(r'<body\b[^>]*>(.*?)</body>', html, re.DOTALL | re.IGNORECASE)
+    body = body_match.group(1) if body_match else html
+
+    # Ignore comments and non-visible CSS/JavaScript while preserving line numbers.
+    def preserve_lines(match):
+        return "\n" * match.group(0).count("\n")
+
+    for pattern in (r"<!--.*?-->", r"<style\b[^>]*>.*?</style>", r"<script\b[^>]*>.*?</script>"):
+        body = re.sub(pattern, preserve_lines, body, flags=re.DOTALL | re.IGNORECASE)
+
+    section_ranges = []
+    section_stack = []
+    for tag in re.finditer(r"</?section\b[^>]*>", body, re.IGNORECASE):
+        if tag.group(0).startswith("</"):
+            if section_stack:
+                section_ranges.append((section_stack.pop(), tag.end()))
+        else:
+            section_stack.append(tag.start())
+    for start in section_stack:
+        section_ranges.append((start, len(body)))
+
+    issues = []
+    for label, pattern in INTERNAL_COURSE_TERMS:
+        for match in pattern.finditer(body):
+            context = body
+            enclosing = [bounds for bounds in section_ranges if bounds[0] <= match.start() < bounds[1]]
+            if enclosing:
+                start, end = min(enclosing, key=lambda bounds: bounds[1] - bounds[0])
+                context = body[start:end]
+
+            # These phrases also have valid learner-facing uses for actual practice assets
+            # and explanations of the product or workflow being taught.
+            if label == "示範素材" and not INTERNAL_ASSET_CONTEXT.search(context):
+                continue
+            if label == "為什麼這樣設計" and not INTERNAL_RATIONALE_CONTEXT.search(context):
+                continue
+
+            line = body.count("\n", 0, match.start()) + 1
+            issues.append((
+                "WARN",
+                f"學員頁疑似含教案內部內容（「{label}」，body line {line}）",
+            ))
     return issues
 
 
@@ -1045,6 +1132,8 @@ def lint_file(path: Path) -> list:
             issues.extend(rule(path, html))
         except Exception as e:
             issues.append(("WARN", f"規則 {rule.__name__} 執行失敗: {e}"))
+    if is_public_html(path, ROOT):
+        issues.extend(check_internal_course_terms(html))
     return issues
 
 

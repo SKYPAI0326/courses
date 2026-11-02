@@ -18,6 +18,8 @@ import sys
 import xml.etree.ElementTree as ET
 
 from bs4 import BeautifulSoup
+from bs4.dammit import EntitySubstitution
+from bs4.formatter import HTMLFormatter
 from markdown_it import MarkdownIt
 from PIL import Image
 import yaml
@@ -26,7 +28,17 @@ COURSE = Path(__file__).resolve().parents[1]
 REPO = COURSE.parent.parent
 SLUG = "canva-video-teaching"
 MD = MarkdownIt("commonmark", {"html": True, "breaks": True}).enable("table")
-LESSON_IDS = [f"CH{m}-{n}" for m in (1, 2) for n in range(1, 7)]
+LESSON_IDS = [f"CH1-{n}" for n in range(1, 6)] + ["CH2-1", "CH2-2", "CH3-1", "CH3-2"]  # v8（2026-11-02）
+COURSE_NAME = "Canva 影片快速上手"
+
+
+class KeepOrder(HTMLFormatter):
+    def attributes(self, tag):  # 保留原屬性順序，lint 的 SEO meta 檢查依 name／property 在前判斷
+        return tag.attrs.items()
+
+
+def html(soup):
+    return soup.decode(formatter=KeepOrder(entity_substitution=EntitySubstitution.substitute_xml))
 
 
 def unit_source(unit_id):
@@ -186,21 +198,21 @@ def render(unit_id, out_dir=None):
     body = render_body(body_md, unit_source(unit_id), page)
     soup.select_one(".lesson-body").replace_with(body)
     update_toc(soup, body)
-    soup.title.string = f"{title}｜Canva 教學短片製作"
+    soup.title.string = f"{title}｜{COURSE_NAME}"
     soup.select_one(".lesson-title").string = title
     soup.select_one(".outcome-item").string = artifact
     eyebrow = soup.select_one(".hero-eyebrow")
     if eyebrow and minutes:
         eyebrow.string = f"{unit_id} · {minutes} 分鐘"
     for attr, key, value in (("name", "description", subtitle), ("property", "og:description", subtitle), ("name", "twitter:description", subtitle),
-                             ("property", "og:title", f"{unit_id} {title}｜Canva 教學短片製作"), ("name", "twitter:title", f"{unit_id} {title}｜Canva 教學短片製作")):
+                             ("property", "og:title", f"{unit_id} {title}｜{COURSE_NAME}"), ("name", "twitter:title", f"{unit_id} {title}｜{COURSE_NAME}")):
         set_meta(soup, attr, key, value)
-    target.write_text(str(soup))
+    target.write_text(html(soup))
     return title, subtitle, minutes, body_md
 
 
 def update_cards(results, out_dir=None):
-    for filename in ("index.html", "module1.html", "module2.html"):
+    for filename in ("index.html", "module1.html", "module2.html", "module3.html"):
         page = COURSE / filename
         soup = BeautifulSoup(page.read_text(), "html.parser")
         changed = False
@@ -211,7 +223,7 @@ def update_cards(results, out_dir=None):
                 card["data-search"] = f"{title} {minutes} 分鐘 · {subtitle}"
                 changed = True
         if changed:
-            ((out_dir / filename) if out_dir else page).write_text(str(soup))
+            ((out_dir / filename) if out_dir else page).write_text(html(soup))
 
 
 def update_search(results, out_dir=None):

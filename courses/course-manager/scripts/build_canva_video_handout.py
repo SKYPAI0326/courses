@@ -60,9 +60,9 @@ def prepare_recipe():
     ordered = []
     for link in index.select('main a.lesson-card[href]'):
         rel = link['href']
-        if rel not in ordered:
+        if rel.endswith('.html') and rel not in ordered:  # 下載包卡片不收
             ordered.append(rel)
-    assert len(ordered) == 25 and len([p for p in ordered if p.startswith('ch')]) == 12
+    assert len(ordered) == 14 and len([p for p in ordered if p.startswith('ch')]) == 9
     sources = [{'path': 'canva-video-teaching/index.html', 'selectors': ['main > .hero'],
                 'source_url': PUBLIC + 'canva-video-teaching/index.html', 'static_content_confirmed': True}]
     coverage, media, dependencies = [], [], set()
@@ -97,31 +97,34 @@ def prepare_recipe():
                 dependencies.add(poster.relative_to(ROOT).as_posix())
                 entry['poster'] = poster.relative_to(ROOT).as_posix();entry['poster_sha256'] = sha(poster)
             media.append(entry)
-    assert len(media) == 5
-    APPENDIX.parent.mkdir(parents=True, exist_ok=True)
-    html = ['<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><title>影音取用連結</title></head><body><main>',
-            '<h1>影音取用連結</h1>']
-    for entry in media:
-        html.append('<section class="media-link"><h2>' + escape(entry['label']) + '</h2>')
-        if entry.get('poster'):
-            poster = os.path.relpath(ROOT / entry['poster'], APPENDIX.parent)
-            html.append('<a href="' + escape(entry['url'], quote=True) + '"><img src="' + escape(poster, quote=True) + '" alt="' + escape(entry['label'], quote=True) + '"></a>')
-        html.append('<p><a href="' + escape(entry['url'], quote=True) + '">' + escape(entry['label']) + '</a></p></section>')
-    html.append('</main></body></html>')
-    APPENDIX.write_text('\n'.join(html), encoding='utf-8')
+    if media:
+        APPENDIX.parent.mkdir(parents=True, exist_ok=True)
+        html = ['<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><title>影音取用連結</title></head><body><main>',
+                '<h1>影音取用連結</h1>']
+        for entry in media:
+            html.append('<section class="media-link"><h2>' + escape(entry['label']) + '</h2>')
+            if entry.get('poster'):
+                poster = os.path.relpath(ROOT / entry['poster'], APPENDIX.parent)
+                html.append('<a href="' + escape(entry['url'], quote=True) + '"><img src="' + escape(poster, quote=True) + '" alt="' + escape(entry['label'], quote=True) + '"></a>')
+            html.append('<p><a href="' + escape(entry['url'], quote=True) + '">' + escape(entry['label']) + '</a></p></section>')
+        html.append('</main></body></html>')
+        APPENDIX.write_text('\n'.join(html), encoding='utf-8')
+        sources.append({'path': APPENDIX.relative_to(ROOT).as_posix(), 'selectors': ['main'],
+                        'source_url': PUBLIC + 'canva-video-teaching/index.html', 'static_content_confirmed': True})
+    else:
+        APPENDIX.unlink(missing_ok=True)
     write_json(EVIDENCE, {'sources': coverage, 'media_fallbacks': media,
                           'method': 'Exact full body text/image preservation. Empty embedded players use original aria-label/source/poster in an administrative media-link appendix; no media transcript invented.'})
-    sources.append({'path': APPENDIX.relative_to(ROOT).as_posix(), 'selectors': ['main'],
-                    'source_url': PUBLIC + 'canva-video-teaching/index.html', 'static_content_confirmed': True})
     dependencies.update([Path(__file__).resolve().relative_to(ROOT).as_posix(), EVIDENCE.relative_to(ROOT).as_posix(),
-                         'canva-video-teaching/module1.html', 'canva-video-teaching/module2.html'])
+                         'canva-video-teaching/module1.html', 'canva-video-teaching/module2.html',
+                         'canva-video-teaching/module3.html'])
     recipe = {'schema_version': 1, 'artifact_id': 'canva-video-teaching-full', 'course': 'canva-video-teaching',
               'output': 'output/pdf/canva-video-teaching/Canva教學短片製作-完整講義.pdf',
               'profile': 'course-manager/pdf-profiles/canva-video-teaching.css', 'sources': sources,
-              'source_courses': ['canva-video-teaching', 'course-manager'],
+              'source_courses': ['canva-video-teaching', 'course-manager'] if media else ['canva-video-teaching'],
               'font_files': ['/Library/Fonts/Arial Unicode.ttf'], 'exclude': [], 'expand': [],
               'dependencies': sorted(dependencies), 'remote_assets': {},
-              'notes': '完整合冊：依正式 index 順序收錄 12 單元、12 資源頁及 EXT1，含原文 details 補充。封面取自正式首頁 hero。僅省略返回導覽、重複頁內目錄、列印按鈕與空白影音播放器；全部正文與原有圖片完整保留。五個播放器的原有 aria-label、source URL、poster 逐一對照保存在 derived 媒體附錄；course-manager 僅作此管理附錄來源，不混入其他課程。音訊／影片以連結取用，不捏造逐字稿。建置入口 python3.12 course-manager/scripts/build_canva_video_handout.py --create-pdf 會刷新原文對照、附錄及配方，再用標準引擎建候選；原生頁碼 12px（9pt），須逐頁驗收及 promote。'}
+              'notes': '完整合冊：依正式 index 順序收錄 9 單元、4 資源頁及 EXT1，含原文 details 補充。封面取自正式首頁 hero。僅省略返回導覽、重複頁內目錄與列印按鈕；全部正文與原有圖片完整保留。v8 單元頁內沒有影音播放器，因此不產生 derived 媒體附錄。建置入口 python3.12 course-manager/scripts/build_canva_video_handout.py --create-pdf 會刷新原文對照及配方，再用標準引擎建候選；原生頁碼 12px（9pt），須逐頁驗收及 promote。'}
     write_json(RECIPE, recipe)
     prepared = prepare(ROOT, recipe)
     return recipe, prepared
