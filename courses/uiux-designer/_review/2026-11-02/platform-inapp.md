@@ -162,3 +162,20 @@ A1（建立檔案、左側圖示列、文字樣式）、A2（Layout guide 位置
 | 使用處內的描邊 | 選巢狀圖示的 Stroke 區可能是空的（描邊在更內層的 Vector）；從 Selection colors 換色最快 |
 | 巢狀選取 | Cmd＋點擊直接選到內層；Shift+Enter 往上選父層 |
 | 新文字預設 | 可能是 Inter 12（未套樣式時） |
+
+## 第十輪：試跑 A7 後半與 A8
+
+| 項目 | 實際結果 |
+|---|---|
+| Shift+A 方向（修正前一節） | 單純左右一排（圖示＋文字、兩顆按鈕、兩個導覽項）→ **Horizontal**；上下一列 → Vertical；物件散成兩列以上（例如表單欄位左右也錯開）才會變 **Grid** |
+| 父層不同的物件一起按 Shift+A | 會分別在各自父層各包一個 Frame |
+| 元件名稱在 Assets | 只顯示最後一段（`Row / Task` 顯示「Task」、`Icon / Check` 顯示「Check」）；搜尋全名找不到，要搜最後一段 |
+| Assets 點縮圖 | 先跳出 Details，按 Insert instance 才插入；插入位置在視窗中央最上層，連續插入會斜向錯開 |
+| 按 F 點一下 | 沿用上一個 Frame 的名稱與尺寸 |
+| Nav 水平包框 | Gap 顯示 Auto（space between），要改成 0 |
+| Fill 類型圖示列 | 先點色塊打開取色器才看得到 |
+| 換成另一個圖示 | 選使用處，右側元件名稱旁的下拉（Swap instance）；換完原本的描邊覆寫仍保留 |
+| 新增 Stroke 預設 | 黑色 000000 |
+| 底線 | Typography 的 Type settings → Decoration |
+| Cmd+Z | 第一次可能只還原選取狀態 |
+| 從 Layers 選文字按 Enter | 不會進入編輯；在畫布雙擊才會 |

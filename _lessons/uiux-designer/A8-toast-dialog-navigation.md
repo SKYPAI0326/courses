@@ -63,39 +63,40 @@ Dialog 只用在需要決定的時刻。它的順序是「問什麼」「會造�
 | `Toast` | Horizontal；W 354（Fixed）；Fill `Card`；1 px `Control Border` 外框；圓角 8；水平 Padding 16；垂直 Padding 12；Gap 8；Hug 高 | 共用提示元件集 |
 | Variant `Type` | Success／Warning／Error | 切換結果、風險與失敗類型 |
 | Text property `Message` | 套用 `Type / Body`；Fill container；Auto height | 預設值「已完成」；各使用處可改具體訊息，長句會換行 |
-| Toast 圖示 | Success 用 `Icon / Check`；Warning、Error 都用 `Icon / Alert`；Stroke 依 Type 套用 `Success`、`Warning`、`Error` | 用圖示與線條色辨認提示類型 |
-| `Screen / List Done` | 402 × 874 | 標題「已完成」；只顯示「整理交付包」且 Status 為 Done；成功 Toast 顯示在畫面上方 |
-| `Screen / Detail Warning` | 402 × 874；由 `Screen / Detail` 複製 | 顯示 Warning Toast 的詳情測試畫面 |
-| `Screen / Detail Error` | 402 × 874；由 `Screen / Detail` 複製 | 顯示 Error Toast 的詳情測試畫面 |
+| Toast 圖示 | Success 用 `Icon / Check`；Warning、Error 都用 `Icon / Alert`；Stroke 依 Type 套用本檔的 `Success`、`Warning`、`Error` | 用圖示與線條色辨認提示類型 |
+| `Screen / List Done` | 402 × 874；Toast 在畫面最上層、x 24、y 72 | 標題「已完成」；只顯示「整理交付包」且 Status 為 Done；成功 Toast 放在標題下方 |
+| `Screen / Detail Warning` | 402 × 874；由 `Screen / Detail` 複製；Toast 在畫面最上層、x 24、y 72 | 顯示 Warning Toast 的詳情測試畫面；Toast 不放進 `Detail / Content` |
+| `Screen / Detail Error` | 402 × 874；由 `Screen / Detail` 複製；Toast 在畫面最上層、x 24、y 72 | 顯示 Error Toast 的詳情測試畫面；Toast 不放進 `Detail / Content` |
 | `Overlay / Confirm` | Vertical；Gap 16；四邊 Padding 24；寬 320；Hug 高；白底；圓角 8 | 確認完成彈窗 |
 | `Dialog / Title` | 套用 `Type / Section title`；Fill；Auto height | 「確認完成？」 |
 | `Dialog / Body` | 套用 `Type / Body`；Fill；Auto height | 「這筆任務將移到已完成清單。」 |
 | `Dialog / Actions` | Horizontal；Gap 12；寬 272；Hug 高 | 取消與確認按鈕列 |
-| `Button / Cancel` | Secondary／Default；W 130（Fixed）；高 48 | 「取消」 |
-| `Button / Confirm` | Primary／Default；W 130（Fixed）；高 48 | 「確認完成」 |
-| `Nav / Bottom` | Horizontal；W 402；H 64；Gap 0；y 810；Fill `Card` | 手機底部導覽；兩個項目各 W 201、H 64 |
-| `Top Bar` | x 24；W 354（Fixed）；Horizontal；Hug 高 | 詳情頁返回與標題 |
+| `Button / Cancel` | Secondary／Default；W 130（Fixed）；高 48；關閉 `Show icon` | 「取消」 |
+| `Button / Confirm` | Primary／Default；W 130（Fixed）；高 48；關閉 `Show icon` | 「確認完成」 |
+| `Nav / Bottom` | Horizontal；W 402；H 64；Gap 0；y 810；Fill `Card`；目前分頁文字加底線 | 手機底部導覽；兩個項目各 W 201、H 64 |
+| `Top Bar` | x 24、y 16；W 354（Fixed）；Horizontal；垂直置中；Hug 高 | `Screen / Detail` 的直接子層；詳情頁返回與標題 |
+| 檢查用外框 | 新增 Stroke 後改套 `Border`，檢查完移除 | 暫時看出可點 Frame 的範圍 |
 
 1. 從 Assets 插入 `Icon / Check`（勾選圖示），把圖示向量的 Stroke 套用 `Success`。完成後會看到 Success 線條色的勾選圖示。
-2. 建立 `Toast / Message`（提示訊息），輸入「已完成」。完成後勾選圖示旁會顯示這段預設訊息。
-3. 同時選取圖示與文字按 **Shift+A**，命名為 `Toast`（提示），再套用規格表中的 Auto layout。完成後會看到固定寬的卡片提示，勾選圖示在左，成功訊息在右。
+2. 建立 `Toast / Message`（提示訊息），輸入「已完成」，再套用 `Type / Body`。完成後勾選圖示旁會以內文樣式顯示這段預設訊息。
+3. 同時選取圖示與文字按 **Shift+A**，命名為 `Toast`（提示），再套用規格表中的 Auto layout。包好後把 `Toast / Message` 設為 Fill container 與 Auto height。完成後會看到固定寬的卡片提示，勾選圖示在左，成功訊息在右，長句能自動換行。
 4. 選取 Toast 按右鍵選 **Create component**。完成後 Toast 會變成紫色外框的主元件。
 5. 選取主元件，在 Properties 按加號建立 Text property `Message`，預設值填「已完成」。完成後主元件會出現可改訊息的文字屬性。
 6. 選取 `Toast / Message` 文字層，從 Content 旁的 Apply variable/property 圖示綁定 `Message`。完成後右側的 Message 欄位會控制畫面上的「已完成」。
-7. 選取主元件，以 **Main component → Add variant** 增加第二個版本。完成後會得到含兩個版本的紫色虛線元件集。
+7. 在主元件上按右鍵，選 **Main component → Add variant** 增加第二個版本。完成後會得到含兩個版本的紫色虛線元件集。
 8. 點元件集下方的加號建立第三個 Variant。完成後元件集會有三個結構相同的版本，各版本的文字層旁都會顯示 Message 屬性圖示。
-9. 將預設屬性改名為 `Type`，三個值填 Success、Warning、Error。完成後使用處能從右側切換提示類型。
-10. 將 Warning 版本的圖示替換為 `Icon / Alert`，並把圖示向量的 Stroke 套用 `Warning`。完成後會看到 Warning 線條色的警告圖示。
-11. 將 Error 版本的圖示也替換為 `Icon / Alert`，再把圖示向量的 Stroke 套用 `Error`。完成後同一個警示圖示會顯示 Error 線條色。
-12. 從 Assets 插入三個 Toast 使用處，Type 依序選 Success、Warning、Error。完成後三種提示都由同一個元件集產生。
+9. 將預設屬性名 `Property 1` 改成 `Type`，三個值填 Success、Warning、Error。完成後使用處能從右側切換提示類型。
+10. 選取 Warning 版本的圖示使用處，用右側元件名稱旁的下拉換成 `Icon / Alert`。換完原本的 `Success` 描邊會保留，再把 Stroke 改套本檔的 `Warning`。完成後會看到 Warning 線條色的警告圖示。
+11. 選取 Error 版本的圖示使用處，用右側元件名稱旁的下拉換成 `Icon / Alert`。換完原本的 `Success` 描邊會保留，再把 Stroke 改套本檔的 `Error`。完成後同一個警示圖示會顯示 Error 線條色。
+12. 從 Assets 插入三個 Toast 使用處，Type 依序選 Success、Warning、Error。插入後三個使用處會斜向疊在一起，用 X、Y 把它們排開。完成後三種提示都由同一個元件集產生，並能分別查看。
 13. 將三個使用處的 Message 改成規格中的成功、風險與失敗訊息。另用一則超過 18 字的訊息測換行，測完改回。完成後三則訊息完整顯示。
-14. 在手機畫面外建立 Frame，命名為 `Overlay / Confirm`（確認彈窗）。完成後會得到可包含文字與按鈕的父容器。
+14. 在手機畫面外按 **F** 建立 Frame，命名為 `Overlay / Confirm`（確認彈窗），再把 W 改成 320。完成後會得到名稱與寬度正確、可包含文字與按鈕的父容器。
 15. 建立 `Dialog / Title`（彈窗標題）與 `Dialog / Body`（彈窗說明），填入規格表內容。完成後彈窗會先問問題，再解釋結果。
-16. 從 Assets 插入兩個 Button 使用處，分別設定為取消與確認。完成後會看到兩個沿用既有按鈕家族的選擇。
-17. 逐一選取兩個按鈕；若右側曾設過 Min width，先移除。完成後兩個按鈕都不再受最小寬度限制。
+16. 從 Assets 插入兩個 Button 使用處，分別設定為取消與確認，再關掉兩者的 `Show icon`。完成後會看到兩個不帶勾勾、沿用既有按鈕家族的選擇。
+17. 逐一選取兩個按鈕；若右側選單裡有 Min width，先移除，沒有就略過。完成後兩個按鈕都不會受額外的最小寬度限制。
 18. 將兩個按鈕的 W 都設為 130（Fixed）。完成後兩個按鈕會顯示相同的固定寬度。
 19. 同時選取兩個按鈕按 **Shift+A**，命名為 `Dialog / Actions`（彈窗動作列），再套用規格表設定。完成後兩顆 130 寬的按鈕會以 12 的間距並排。
-20. 將 Title、Body、Actions 放入確認彈窗，套用垂直 Auto layout。完成後彈窗會依標題與說明長度自動增高。
+20. 將 Title、Body、Actions 放入確認彈窗，再選取 `Overlay / Confirm` 按 **Shift+A** 套用垂直 Auto layout。W、Gap、Padding 會被推算成別的值。把 W 改回 320。Gap 改回 16，Padding 改回 24。完成後彈窗會保留指定寬度與間距，並依標題與說明長度自動增高。
 
 在動作列寬 272、間距 12 的情況下，兩顆等寬按鈕各占 130。這個算式只用來理解現有版面；如果按鈕文字變長，先比較水平與垂直排列的可讀性，再決定結構。保留文字大小與按鈕高度，比把長文字壓成難讀的一行更穩定。
 
@@ -110,14 +111,14 @@ Dialog 只用在需要決定的時刻。它的順序是「問什麼」「會造�
 3. 把畫面標題改成「已完成」。完成後畫面頂端會顯示目前所在的清單類型。
 4. 刪除其他待處理列，只保留「整理交付包」。完成後完成清單只會顯示這一筆任務。
 5. 把「整理交付包」的 Status 切成 Done。完成後這一筆會顯示已完成外觀。
-6. 插入 Toast 使用處，把 Type 選成 Success，Message 改成「任務已完成，已移到完成清單」。完成後使用者會知道任務已移動。
+6. 插入 Toast 使用處，把 Type 選成 Success，Message 改成「任務已完成，已移到完成清單」。把它放在畫面最上層，設為 x 24、y 72，位於標題下方且不蓋住標題。完成後使用者會在完成清單上方知道任務已移動。
 7. 複製 `Screen / Detail` 兩次，命名為 `Screen / Detail Warning`、`Screen / Detail Error`。完成後會得到兩張可分別檢查警告與錯誤的詳情畫面。
-8. 在 `Screen / Detail Warning` 插入 Toast 使用處，把 Type 選成 Warning，Message 改成「尚有檔名未核對，請確認後再完成」。完成後畫面會在確認前指出尚未核對的內容。
-9. 在 `Screen / Detail Error` 插入 Toast 使用處，把 Type 選成 Error，Message 改成「無法儲存變更，請檢查網路後再試一次」。完成後會清楚說明儲存失敗與重試方向。
+8. 在 `Screen / Detail Warning` 插入 Toast 使用處，把 Type 選成 Warning，Message 改成「尚有檔名未核對，請確認後再完成」。把它放在畫面最上層，設為 x 24、y 72，不放進 `Detail / Content`。完成後標題下方會在確認前指出尚未核對的內容。
+9. 在 `Screen / Detail Error` 插入 Toast 使用處，把 Type 選成 Error，Message 改成「無法儲存變更，請檢查網路後再試一次」。把它放在畫面最上層，設為 x 24、y 72，不放進 `Detail / Content`。完成後標題下方會清楚說明儲存失敗與重試方向。
 10. 建立「待處理」與「已完成」兩個導覽項目，分別包進 W 201、H 64 的小 Frame。完成後會得到兩個等寬的主要區域入口。
-11. 將兩個項目水平排列，命名為 `Nav / Bottom`（手機底部導覽），再套用規格表中的手機值。完成後 `Card` 底的導覽會以 y 810 貼在手機畫面底部。
-12. 在待處理清單用 Primary 文字與底線標示「待處理」。完成後這張畫面會直接顯示目前位於待處理分頁。
-13. 把 `Nav / Bottom` 複製到 `Screen / List Done`，把「已完成」標成目前分頁。完成後完成清單底部會有相同導覽，且選中狀態改到「已完成」。
+11. 將兩個項目水平排列，命名為 `Nav / Bottom`（手機底部導覽），再套用規格表中的手機值。包好後 Gap 若顯示 Auto，改成 0。完成後 `Card` 底的導覽會以 y 810 貼在手機畫面底部，兩個項目之間沒有額外空隙。
+12. 在待處理清單用 Primary 文字與底線標示「待處理」；目前分頁的底線在 Typography → Type settings → Decoration 設定。完成後這張畫面會直接顯示目前位於待處理分頁。
+13. 選 `Nav / Bottom` 按 **Cmd+D**，把副本的 X 改到 `Screen / List Done` 的範圍、Y 810，再在 Layers 確認它在 `Screen / List Done` 底下（若沒有，把它拖進去）。把「已完成」標成目前分頁；完成後完成清單底部會有相同導覽，且選中狀態改到「已完成」。
 14. 複製一份桌面參考，建立 `Nav / Desktop`（桌面導覽）。完成後導覽會位於桌面上方，並能容納工作室名稱與較完整的連結。
 15. 對照手機與桌面兩版，寫下位置與資訊密度的理由。完成後你能說明兩者服務相同目的，但因畫面空間採用不同配置。
 
@@ -133,7 +134,7 @@ Dialog 只用在需要決定的時刻。它的順序是「問什麼」「會造�
 
 | 圖層或元件 | 規格 | 內容或用途 |
 |---|---|---|
-| `Top Bar` | x 24；W 354（Fixed）；Horizontal；Hug 高 | 詳情頁返回與標題 |
+| `Top Bar` | x 24、y 16；W 354（Fixed）；Horizontal；垂直置中；Hug 高 | `Screen / Detail` 的直接子層；詳情頁返回與標題 |
 | `Button / Back` | 44 × 44；透明 Frame | 全課唯一的返回按鈕；返回清單的觸控範圍 |
 | `Icon / Arrow Left` | 24 × 24；置中 | 返回圖示 |
 | `Top Bar / Title` | 套用 `Type / Section title`；Fill | 「任務詳情」 |
@@ -142,12 +143,13 @@ Dialog 只用在需要決定的時刻。它的順序是「問什麼」「會造�
 1. 刪除任務詳情裡原本的「← 返回清單」文字。完成後詳情頂部不再顯示舊的文字返回入口。
 2. 從 Assets 插入 `Icon / Arrow Left`（返回圖示）。完成後會看到二十四像素的向左箭頭。
 3. 選取返回圖示按 **Shift+A**，將 W、H 都設為 44（Fixed），對齊選置中，命名為 `Button / Back`（返回按鈕）。完成後圖示會置中顯示在 44 × 44 的透明觸控範圍內。
-4. 在返回按鈕右側加入 `Top Bar / Title`（頂部標題），輸入「任務詳情」。完成後使用者能同時辨認所在頁與返回方向。
-5. 同時選取返回按鈕與頂部標題按 **Shift+A**，命名為 `Top Bar`（頂部標題列），X 設 24、W 設 354（Fixed）。完成後會看到一個對齊詳情內容寬度的頂部容器。
-6. 把標題設為 Fill container。完成後標題會使用剩餘寬度，返回按鈕維持固定尺寸。
-7. 檢查完成按鈕、彈窗按鈕、底部導覽與頂部返回的外框。完成後每個可點範圍都至少符合相同的觸控基準。
-8. 暫時把透明 Frame 加上淡色外框，比較圖示大小與命中範圍。完成後會看出「看起來的圖示」和「實際可點區」是兩個層次。
-9. 移除檢查用外框，保留透明 Frame。完成後畫面恢復乾淨，觸控範圍仍然存在。
+4. 在返回按鈕右側加入 `Top Bar / Title`（頂部標題），輸入「任務詳情」。若從 Layers 選到文字層，在畫布上雙擊文字再改字。完成後使用者能同時辨認所在頁與返回方向。
+5. 同時選取返回按鈕與頂部標題按 **Shift+A**；若得到 Vertical，點 Horizontal。命名為 `Top Bar`（頂部標題列），對齊選垂直置中，再把 X 設 24、W 設 354（Fixed）。完成後會看到一個水平排列、對齊詳情內容寬度的頂部容器。
+6. 在 Layers 確認 `Top Bar` 是 `Screen / Detail` 的直接子層，位置設為 x 24、y 16，再把 `Detail / Content` 往下移。完成後頂部標題列會固定在詳情內容上方，兩者不會重疊。
+7. 把標題設為 Fill container。完成後標題會使用剩餘寬度，返回按鈕維持固定尺寸。
+8. 檢查完成按鈕、彈窗按鈕、底部導覽與頂部返回的外框。完成後每個可點範圍都至少符合相同的觸控基準。
+9. 暫時替透明 Frame 新增 Stroke；預設會是黑色，把它改套 `Border`，再比較圖示大小與命中範圍。完成後會看出「看起來的圖示」和「實際可點區」是兩個層次。
+10. 移除檢查用外框，保留透明 Frame。完成後畫面恢復乾淨，觸控範圍仍然存在。
 
 Top Bar 標題應描述現在的頁面，而非把返回按鈕寫成模糊的「上一頁」。例如從「整理交付包」詳情返回時，箭頭可搭配「任務詳情」；真正連線時再讓它回到待處理清單。底部導覽的選中狀態則持續指出目前屬於哪個主要區域。
 
