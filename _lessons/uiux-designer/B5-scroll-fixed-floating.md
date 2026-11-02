@@ -59,7 +59,7 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 
 | 圖層或設定 | 主線規格 | 用途 |
 |---|---|---|
-| `Screen / List Long`（長清單畫面） | W 402、H 874、Clip content | 手機視窗與 Vertical Overflow 的設定層 |
+| `Screen / List`（清單畫面） | W 402、H 874、Clip content | 手機視窗與 Vertical Overflow 的設定層 |
 | `List / Content`（清單內容） | x 24、y 110、W 354、高度 Hug、垂直 Auto layout、Gap 12 | 放十二筆以上的任務與底部安全空間 |
 | `Header / Fixed`（固定頁首） | x 0、y 0、W 402、H 80、白底 | 顯示「待處理清單」並固定在上方 |
 | `Nav / Bottom`（底部導覽） | x 0、y 810、W 402、H 64 | 固定在手機底部 |
@@ -69,7 +69,7 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 | `Scroll / Horizontal`（橫向卡片視窗） | W 354、H 160、Clip content | 顯示橫向卡片的一部分 |
 | 橫向卡片內容 | 三張卡片，各 W 200、H 140、Gap 12、總寬 624 | 測試 Horizontal Overflow |
 
-1. 複製原本的清單畫面並命名為 `Screen / List Long`（長清單畫面）；畫布上會同時保留短清單與新畫面。
+1. 選取原本的 `Screen / List`（清單畫面），沿用這個正式名稱並準備加入完整任務資料；做完後，主線仍只有同一張清單畫面。
 2. 將長清單外框設成表中的手機尺寸；右側會顯示固定寬高，畫面比例維持原本的手機視窗。
 3. 在 `List / Content` 增加任務列，直到內容超出外框下緣；畫布上會看見清單延伸到視窗之外。
 4. 在其中兩列填入較長的任務名稱；任務列會依先前的 Auto layout 規則向下增高。

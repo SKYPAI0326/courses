@@ -33,7 +33,7 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 
 這項工作會使用上次完成的 `Screen / List`（待處理清單）、`Screen / List Empty`（空清單）、`Screen / Detail`（任務詳情）與 `Button / Complete`（完成按鈕）。先看[本堂起始材料](../../courses/uiux-designer/assets/A8-toast-dialog-navigation/START-HERE.html)，確認這些畫面與 Button 元件都在同一頁；需要按鈕時從 Assets（元件資產面板）插入。完成 Toast 元件集、彈窗、頂部標題列與導覽後，再用[完成檢查表](../../courses/uiux-designer/assets/A8-toast-dialog-navigation/reference/EXPECTED-CHECK.html)逐項比對。沒有上次成果時，先回到[清單、空狀態與詳情](CH7-list-content.html)依規格表補做，約需二十到三十分鐘。
 
-先把任務流程用一句話寫在畫布旁：「從待處理清單看詳情，確認完成後回到完成清單。」這句話會幫你判斷回饋放在哪個時刻：確認前需要 Dialog，完成後需要 Success Toast，資料有風險時需要 Warning Toast，儲存失敗時需要 Error Toast。頂部返回處理頁面層級，底部導覽則持續告訴使用者目前位於待處理或已完成。
+先把任務流程用一句話寫在畫布旁：「登入 → 待處理清單 → 任務詳情 → 按 `Button / Complete` → `Screen / List Done`，畫面上方顯示成功 Toast。」這句話會幫你判斷回饋放在哪個時刻：確認彈窗先放在旁邊準備，完成結果直接放進完成清單；資料有風險時需要 Warning Toast，儲存失敗時需要 Error Toast。頂部返回處理頁面層級，底部導覽則持續告訴使用者目前位於待處理或已完成。
 
 ## 先選回饋方式，再決定外觀
 
@@ -63,6 +63,7 @@ Dialog 只用在需要決定的時刻。它的順序是「問什麼」「會造�
 | `Toast` | Horizontal；Gap 8；水平 Padding 16；垂直 Padding 12；Hug 寬高 | 共用提示元件集 |
 | Variant `Type` | Success／Warning／Error | 切換結果、風險與失敗類型 |
 | Text property `Message` | 套用 `Type / Body`；Auto height | 各使用處的具體訊息 |
+| `Screen / List Done` | 402 × 874 | 全課完成清單；成功 Toast 顯示在畫面上方 |
 | `Overlay / Confirm` | Vertical；Gap 16；四邊 Padding 24；寬 320；Hug 高；白底；圓角 8 | 確認完成彈窗 |
 | `Dialog / Title` | 套用 `Type / Section title`；Fill；Auto height | 「確認完成？」 |
 | `Dialog / Body` | 套用 `Type / Body`；Fill；Auto height | 「這筆任務將移到已完成清單。」 |
@@ -108,7 +109,7 @@ Dialog 只用在需要決定的時刻。它的順序是「問什麼」「會造�
 
 手機導覽的現稿規格是兩個項目各寬 201、高 64，合起來寬 402、Gap 0，放在畫面底部；桌面導覽寬 1200、高 64，位於上方。此時先完成視覺與內容，後面處理捲動時再決定固定位置。桌面空間較大，可以加入品牌名稱；手機優先保留兩個短而清楚的目的地。
 
-最後把工作室流程排成五個內容節點：登入、待處理清單、任務詳情、確認彈窗、完成清單。取消會回到詳情，確認完成會前往完成清單；目前先用畫布位置與文字說明表達，後面的原型階段再建立實際連線。
+最後把工作室流程排成四個畫面節點：登入、待處理清單、任務詳情、完成清單。確認彈窗放在詳情與完成清單旁，保留給後續插入流程；成功結果直接顯示在 `Screen / List Done` 上方的 Toast。現在先用畫布位置與文字說明表達，後面的原型階段再建立實際連線。
 
 ## 在詳情上方加返回，讓每個可點範圍都按得到
 
@@ -119,14 +120,14 @@ Dialog 只用在需要決定的時刻。它的順序是「問什麼」「會造�
 | 圖層或元件 | 規格 | 內容或用途 |
 |---|---|---|
 | `Top Bar` | Horizontal；寬度 Fill；Hug 高 | 詳情頁返回與標題 |
-| `Button / Back` | 44 × 44；透明 Frame | 返回清單的觸控範圍 |
+| `Button / Back` | 44 × 44；透明 Frame | 全課唯一的返回按鈕；返回清單的觸控範圍 |
 | `Icon / Arrow Left` | 24 × 24；置中 | 返回圖示 |
 | `Top Bar / Title` | 套用 `Type / Section title`；Fill | 「任務詳情」 |
 | 導覽項目 | 觸控範圍至少 44 × 44 | 待處理、已完成 |
 
 1. 在任務詳情頂部建立水平 Auto layout，命名為 `Top Bar`（頂部標題列）。完成後返回與標題會有共同容器。
 2. 從 Assets 插入 `Icon / Arrow Left`（返回圖示）。完成後會看到二十四像素的向左箭頭。
-3. 在圖示外包一個透明 Frame，命名為 `Button / Back`（返回按鈕）。完成後外框會擴大到規格表的觸控尺寸，圖示仍留在中央。
+3. 在圖示外包一個透明 Frame，命名為 `Button / Back`（返回按鈕）。完成後外框會擴大到規格表的觸控尺寸，圖示仍留在中央；這也是全課共用的唯一返回按鈕。
 4. 在返回按鈕右側加入 `Top Bar / Title`（頂部標題），輸入「任務詳情」。完成後使用者能同時辨認所在頁與返回方向。
 5. 把標題設為 Fill container。完成後標題會使用剩餘寬度，返回按鈕維持固定尺寸。
 6. 檢查完成按鈕、彈窗按鈕、底部導覽與頂部返回的外框。完成後每個可點範圍都至少符合相同的觸控基準。

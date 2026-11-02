@@ -33,7 +33,7 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 
 這是整套作品的起點。先開啟[本堂起始材料](../../courses/uiux-designer/assets/A1-visual-foundations/START-HERE.html)，確認登入畫面要放的文案與圖層名稱；完成操作後，再用[完成檢查表](../../courses/uiux-designer/assets/A1-visual-foundations/reference/EXPECTED-CHECK.html)逐項核對。第一次使用 Figma 時，可把[課前準備與操作速查](../../courses/uiux-designer/assets/COURSE-START.html)放在另一個分頁，遇到登入、選取或縮放問題時就回去查。
 
-在檔案首頁進入 Drafts（草稿），點右上角那排按鈕中的 **Design**。這份作品會一路增加登入、清單與詳情等畫面，因此所有成果都放在同一個檔案、同一頁。主線放在畫布左側，自己的題目放在右側，兩邊各用 Section 包起來，之後比較時才不會把元件與畫面混在一起。點左上角的檔名，改成「工作室任務清單－你的姓名」。新檔打開時，左側可能先出現對話面板；點最左邊那排圖示裡的 **File**，就會看到 Pages（頁面）與 Layers（圖層面板）。中央是畫布，右側是 Design 與 Prototype 兩個分頁的設定面板，看到這三區就可以開始工作。選取 Frame 後，尺寸在右側 Design 面板的 **W** 與 **H** 欄位修改；W 是寬度，H 是高度。Figma 會自動儲存，完成每個小段後只要確認畫面仍在檔案中即可。
+在檔案首頁進入 Drafts（草稿），點右上角那排按鈕中的 **Design**。這份作品會一路增加登入、清單與詳情等畫面，因此所有成果都放在同一個檔案、同一頁。主線放在畫布左側，自己的題目放在右側，兩邊各用 Section 包起來，之後比較時才不會把元件與畫面混在一起。按 **⇧S** 拖出一個區，再雙擊區塊名稱改名。點左上角的檔名，改成「工作室任務清單－你的姓名」。新檔打開時，左側可能先出現對話面板；點最左邊那排圖示裡的 **File**，就會看到 Pages（頁面）與 Layers（圖層面板）。中央是畫布，右側是 Design 與 Prototype 兩個分頁的設定面板，看到這三區就可以開始工作。選取 Frame 後，尺寸在右側 Design 面板的 **W** 與 **H** 欄位修改；W 是寬度，H 是高度。Figma 會自動儲存，完成每個小段後只要確認畫面仍在檔案中即可。
 
 ![草稿頁：左側選 Drafts，右上角點 Design 建立設計檔（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-drafts-design-button.webp)
 
@@ -77,19 +77,22 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 | 手機畫面 | `Screen / Login` | 402 × 874 | 工作室登入畫面 |
 | 變數集合 | `Studio` | 1 個模式 | 保存本課所有顏色角色 |
 | 主要動作 | `Primary` | `#245B45` | 登入、確認完成 |
+| 滑過狀態 | `Primary Hover` | `#2F6E55` | 主要按鈕滑過時 |
 | 按下狀態 | `Primary Pressed` | `#1B4535` | 主要按鈕按下時 |
 | 主色淺底 | `Primary Soft` | `#E8F0EC` | 選取區與提示底色 |
 | 主要文字 | `Text` | `#1E293B` | 標題與內文 |
 | 次要文字 | `Muted` | `#5F6C80` | 日期、輔助資訊 |
 | 畫面底色 | `Surface` | `#F5F7FA` | 手機背景 |
 | 卡片底色 | `Card` | `#FFFFFF` | 表單與任務列 |
-| 邊界 | `Border` | `#CBD5E1` | 一般卡片輪廓 |
+| 裝飾邊界 | `Border` | `#CBD5E1` | 卡片與分隔線 |
+| 操作邊界 | `Control Border` | `#76859A` | 輸入框與控制項輪廓 |
+| 焦點環 | `Focus Ring` | `#1E293B` | 鍵盤焦點外框 |
 | 錯誤 | `Error` | `#B91C1C` | 欄位錯誤文字 |
 | 成功 | `Success` | `#15803D` | 完成訊息 |
 | 警告 | `Warning` | `#92400E` | 需要留意的提醒 |
 | 停用底色 | `Disabled` | `#E2E8F0` | 尚未符合條件的動作底色 |
 | 停用文字 | `Disabled Text` | `#5F6C80` | 停用動作的文字 |
-| 登入卡片 | `Login / Card` | W 354、H 116 | 放登入說明與按鈕 |
+| 登入卡片 | `Login / Card` | W 354、H 116 | 放標題、登入說明與按鈕 |
 | 主要按鈕 | `Button / Draft` | W 322、H 48 | 卡片內的登入動作 |
 | 畫面標題 | `Type / Page title` | Noto Sans TC；字級 24、行高 32、Bold | 畫面標題 |
 | 區段標題 | `Type / Section title` | Noto Sans TC；字級 18、行高 28、Bold | 任務名稱、頂部標題列、彈窗標題 |
@@ -110,7 +113,7 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 
 4. 把第一個變數命名為 `Primary`，點 Value 色塊輸入規格表的 Hex；完成後，變數表會顯示名稱與深綠色值。
 
-5. 從表格底部點 **Create variable**，依序建立其餘顏色角色；完成後，`Studio` 會包含主色三階、文字、底色、邊界，以及錯誤、成功、警告和兩個停用色。
+5. 從表格底部點 **Create variable**，依序建立其餘顏色角色；完成後，`Studio` 會包含主色各狀態、文字、底色、裝飾與操作邊界、焦點環，以及錯誤、成功、警告和兩個停用色。
 
 ![集合改名後的變數表：左欄是集合名稱，底部 Create variable 新增下一個變數（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-variables-table.webp)
 
@@ -129,12 +132,15 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 ![Typography 右上的樣式圖示 → Text styles 面板的 ＋（Create style）；下方紅框是字型、字重、字級與行高](../../courses/uiux-designer/assets/shared/ui/figma-text-style-create.webp)
 
 10. 依相同方式建立其餘四個文字樣式；完成後，畫面標題、區段標題、內文、標籤與輔助文字都能從樣式清單再次使用。
-11. 按 **R** 畫白色 `Login / Card`（登入卡片），再按 **F** 畫 `Button / Draft`（主要按鈕底），依規格表設定固定寬高並放上白色「登入」文字；完成後，主要動作會和內容背景形成明顯層次。
-12. 對卡片與按鈕的 Fill 套用 `Card` 與 `Primary`；完成後，這兩個圖層的顏色都由 `Studio` 變數提供。
-13. 加入「帳號格式不正確，請輸入工作室電子郵件。」並套用輔助文字樣式與 `Error`；完成後，錯誤狀態同時具備顏色、原因與修正方向。
-14. 打開[對比檢查器](../../courses/uiux-designer/assets/shared/contrast-checker.html)，輸入主要按鈕的前景色與背景色，再記錄結果；完成後，設計檔旁會留下可以回查的顏色組合與對比值。
+11. 按 **F** 畫白色 `Login / Card`（登入卡片），再按 **F** 畫 `Button / Draft`（主要按鈕底），依規格表設定固定寬高並放上白色「登入」文字；完成後，主要動作會和內容背景形成明顯層次。
+12. 在 Layers 把「登入工作室」、兩段登入說明與 `Button / Draft` 移入登入卡片；完成後，圖層縮排會顯示這些內容都是 `Login / Card` 的子層。
+13. 對卡片與按鈕的 Fill 套用 `Card` 與 `Primary`；完成後，這兩個圖層的顏色都由 `Studio` 變數提供。
+14. 在登入卡片加入「帳號格式不正確，請輸入工作室電子郵件。」，再套用輔助文字樣式與 `Error`；完成後，錯誤狀態同時具備顏色、原因與修正方向。
+15. 打開[對比檢查器](../../courses/uiux-designer/assets/shared/contrast-checker.html)，輸入主要按鈕的前景色與背景色，再記錄結果；完成後，設計檔旁會留下可以回查的顏色組合與對比值。
 
 這次先用固定高度建立登入卡片，下一次學 Auto layout 後會改成隨內容長高。
+
+看得見才能操作的邊界用 `Control Border`，只是分區的線用 `Border`。
 
 變數清單下方會看到 Figma 內建的 iOS 套件變數，本課只使用 `Studio`。Starter 方案的 Variables 只能建立一個模式，這份作品目前只需一個模式；日後若要做深色模式，再依方案與專案需要評估。
 
@@ -150,6 +156,7 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 4. 暫時把主要按鈕改成次要灰色，再比較前後兩版；完成後，記下顏色角色對動作辨識造成的影響。
 5. 將主要按鈕恢復為規格表的角色，接著檢查一般內文在白底與淺灰底上的對比；完成後，規則區會留下第二組前景與背景紀錄。
 6. 關掉對比檢查器，單看設計檔說出 Error、Warning 與 Success 各自應搭配哪一類文字；完成後，你已能用角色而非色碼記憶規則。
+7. 用對比檢查器比較 `Control Border` 與 `Border` 對白底的數值，再寫下為什麼操作邊界與裝飾邊界要分開；完成後，紀錄會顯示前者清楚跨過功能性圖形的門檻。
 
 最後，把畫面縮小再放大各看一次。縮小時檢查層級，放大時檢查行高與邊界；兩種視角都能讀懂，才表示規則兼顧整體與細節。
 
@@ -194,9 +201,9 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 
 ## 換你做：你的題目
 
-從你的畫面清單挑出這次對應的畫面。這是第一次使用畫面清單，因此先開[三題比較頁](../../courses/uiux-designer/assets/shared/practice/CHOOSE-TOPIC.html)比較預約、點餐與會員，選一題作為整門課的練習作品；只需細讀選定的那一份需求頁。開始前也先看[整合作品評分表](../../courses/uiux-designer/assets/B6-prototype-task-test/reference/CAPSTONE-SCORE.html)，知道最後會檢查哪些設計成果。
+先選題，再寫需求初稿。開啟[三題比較頁](../../courses/uiux-designer/assets/shared/practice/CHOOSE-TOPIC.html)比較預約、點餐與會員，選一題作為整門課的練習作品；只需細讀選定的那一份需求頁。開始前也先看[整合作品評分表](../../courses/uiux-designer/assets/B6-prototype-task-test/reference/CAPSTONE-SCORE.html)，知道最後會檢查哪些設計成果。
 
-選定後，先在 Figma 題目區建立一個文字框，寫下「需求初稿」：一句目標、五到八項必做清單，以及畫面名稱與各自要完成事情的畫面清單。這份初稿之後每次都會用到，做需求與流程時會再依完整訪談修正。從你的畫面清單挑出這次對應的畫面，再建立題目的顏色變數、五種文字樣式與開頭畫面。
+選定後，先在 Figma 題目區建立一個文字框，寫下「需求初稿」：一句目標、五到八項必做清單，以及畫面名稱與各自要完成事情的畫面清單。這份初稿之後每次都會用到，做需求與流程時會再依完整訪談修正。接著另建題目的顏色變數集合，文字則沿用同一組五種樣式，完成開頭畫面。題目畫面依需求頁設為 360×800，和主線的 402×874 不同。
 
 三個題目的建議對應：
 
@@ -206,9 +213,9 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 
 要達成的條件：
 
-- 建立主色一般、按下、淺底三階，並替文字、底色、邊界、錯誤、成功與警告建立變數。
-- 在 Variables 另建一個以題目命名的集合，例如 `Booking`；變數名稱可以和 `Studio` 相同，並包含 `Disabled` 與 `Disabled Text`。
-- 建立畫面標題、區段標題、內文、標籤與輔助資訊五種 Noto Sans TC 文字樣式，讓開頭畫面有明確閱讀順序。
+- 建立主色一般、滑過、按下與淺底狀態，並替文字、底色、邊界、錯誤、成功與警告建立變數。
+- 在 Variables 另建一個以題目命名的集合，例如 `Booking`；變數名稱可以和 `Studio` 相同，並包含 `Control Border`、`Focus Ring`、`Disabled` 與 `Disabled Text`。
+- 題目沿用主線的畫面標題、區段標題、內文、標籤與輔助資訊五種 Noto Sans TC 文字樣式，不另建一組。
 - 用對比檢查器檢查主色搭配的按鈕文字，以及一般內文搭配的背景。
 - 需求初稿包含一句目標、五到八項必做清單，以及列出名稱與用途的畫面清單。
 - 依需求頁完成自己題目的開頭畫面，主要動作名稱與題目一致。

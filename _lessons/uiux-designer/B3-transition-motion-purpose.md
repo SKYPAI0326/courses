@@ -62,7 +62,7 @@ Smart Animate 的配對方式不同。Figma 會在兩張 Frame 中尋找名稱�
 |---|---|---|
 | 進入熱區 | `Row / T01`（整理交付包任務列） | 通往整理交付包詳情 |
 | 進入 Animation | Move in | 從右進入 |
-| 返回熱區 | `Button / Back`（返回清單按鈕） | 通往待處理清單 |
+| 返回熱區 | `Button / Back`（返回圖示鈕） | 44 × 44；通往待處理清單 |
 | 返回 Animation | Move out | 往右離開 |
 | Easing | Ease out | 進入與返回一致 |
 | Duration | 200ms | 主線比較值 |

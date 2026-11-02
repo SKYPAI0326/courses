@@ -31,7 +31,7 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 
 工作室的登入畫面已經有共同邊界，但真正使用時，提示文字不會永遠只有一行。密碼規則可能變長，錯誤訊息可能需要補上修正方法，之後也可能加入帳號範例。若標題、訊息與按鈕只是分別放在畫布上，文字增加時就會蓋住下一個物件。這堂要把它們組成能回應內容變化的容器。
 
-先找出上次做好的手機登入內容區，確認卡片可用寬度已對齊格線。開啟[本堂起始材料](../../courses/uiux-designer/assets/A3-auto-layout-pressure/START-HERE.html)，先認識這次要建立的訊息、按鈕與卡片層級；完成操作後，用[完成檢查表](../../courses/uiux-designer/assets/A3-auto-layout-pressure/reference/EXPECTED-CHECK.html)核對長句、增刪子層與窄版測試。若手上沒有格線與響應式比較，先回到[安排格線與 Constraints](CH2-grid-layout.html)，依本堂規格表補做約 20～30 分鐘。這些物件都留在同一份設計檔中，下一次會直接把其中的按鈕轉成共用元件。
+先找出上次做好的手機登入卡片，確認卡片可用寬度已對齊格線。開啟[本堂起始材料](../../courses/uiux-designer/assets/A3-auto-layout-pressure/START-HERE.html)，先認識這次要建立的訊息、按鈕與卡片層級；完成操作後，用[完成檢查表](../../courses/uiux-designer/assets/A3-auto-layout-pressure/reference/EXPECTED-CHECK.html)核對長句、增刪子層與窄版測試。若手上沒有格線與響應式比較，先回到[安排格線與 Constraints](CH2-grid-layout.html)，依本堂規格表補做約 20～30 分鐘。這些物件都留在同一份設計檔中，下一次會直接把其中的按鈕轉成共用元件。
 
 這次會同時處理兩種變化：內容高度改變，以及容器寬度改變。前者檢查文字換行後能否推開按鈕，後者檢查畫面變窄時，子層是否能使用父容器剩餘空間。
 
@@ -72,25 +72,25 @@ Auto Layout 可以把父容器想成一個會排隊的盒子。方向設為 Vert
 | 訊息文字 | `Message` | 套用 `Type / Body`、W 322、Auto height | 「請輸入工作室帳號」 |
 | 按鈕文字 | `Label` | 套用 `Type / Label` | 「登入」 |
 | 練習按鈕 | `Button / Draft` | H 48、水平 Padding 16、垂直 Padding 12 | 水平排列、置中、綠底白字 |
-| 登入卡片 | `Login / Card` | x 24、y 200、W 354、Padding 16、Gap 12 | Vertical、Height Hug、白底 |
+| 登入卡片 | `Login / Card` | x 24、y 200、W 354、Padding 16、Gap 12 | Vertical、Height Hug、白底；內含 Title、Message 與按鈕 |
 | 輔助文字 | `Hint` | 套用 `Type / Supporting` | 「範例：studio@example.test」 |
 | 窄版卡片 | `Login / Card 360` | W 312 | 測試畫面變窄後的換行 |
 
-1. 在 `Screen / Login`（手機登入畫面）中建立 `Title`（畫面標題），套用規格表的標題樣式；完成後，登入畫面會保留清楚的第一層資訊。
+1. 在 `Login / Card`（登入卡片）中確認 `Title`（卡片標題）套用規格表的標題樣式；完成後，Layers 會顯示標題是登入卡片的子層。
 2. 建立 `Message`（訊息文字），輸入短提示並到 Layout 把文字尺寸模式設為 **Auto height**；完成後，文字框具備隨行數增高的能力。
 3. 建立 `Label`（按鈕文字），輸入「登入」後按 **Shift+A**；完成後，Figma 會新增一個包住文字的 Auto Layout Frame。
 
 ![Shift+A 後右側出現 Auto layout：Flow 方向、寬高的 Hug、Gap 與 Padding（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-auto-layout-panel.webp)
 
 4. 把新外框命名為 `Button / Draft`（練習按鈕），依規格表設定排列、對齊、內距與顏色；完成後，白色文字會位在綠色按鈕中央。
-5. 在 Layers 同時選取訊息文字與練習按鈕，再按 **Shift+A**；完成後，兩個物件會進入同一個新的 Auto Layout 父層。
-6. 把父層命名為 `Login / Card`（登入卡片），依規格表設定 Vertical、Gap、Padding、寬度、Height Hug 與白底；完成後，卡片會包住訊息與按鈕。
+5. 選取 `Login / Card` 再按 **Shift+A**；完成後，原本固定高度的登入卡片會成為包住三個子層的 Auto Layout。
+6. 依規格表設定登入卡片的 Vertical、Gap、Padding、寬度、Height Hug 與白底；完成後，卡片會包住標題、訊息與按鈕。
 7. 將登入卡片放到規格表的位置，再把訊息與按鈕寬度設為 **Fill container**；完成後，兩個子層會填滿卡片內側可用寬度。
-8. 在 Layers 展開登入卡片，確認 `Message` 與 `Button / Draft` 是同層子物件，`Label` 則在按鈕裡；完成後，圖層縮排會清楚呈現三層關係。
+8. 在 Layers 展開登入卡片，確認 `Title`、`Message` 與 `Button / Draft` 是同層子物件，`Label` 則在按鈕裡；完成後，圖層縮排會清楚呈現三層關係。
 9. 把訊息改成「密碼至少需要包含一個英文大寫字母與一個數字」；完成後，訊息會換行，卡片跟著長高，按鈕向下移動。
 10. 把訊息改回短句，再切換一次長句；完成後，Gap、左右寬度與底部 Padding 都會保持一致。
 
-短句測試可以用一個高度算式理解容器如何加總：上 Padding、文字高度、Gap、按鈕高度與下 Padding合起來就是卡片高度。依規格表的短句狀態，計算為 `16＋24＋12＋48＋16＝116`。文字若多一行，只替換實際文字高度；其他間距會自動維持。
+短句測試可以用一個高度算式理解容器如何加總：上 Padding、標題高度、訊息高度、兩段 Gap、按鈕高度與下 Padding 合起來就是卡片高度。依規格表的短句狀態，計算為 `16＋32＋12＋24＋12＋48＋16＝160`。文字若多一行，只替換實際文字高度；其他間距會自動維持。
 
 ![Auto Layout 正確層級與尺寸示意圖，不是 Figma 截圖](../../courses/uiux-designer/assets/shared/autolayout-reference.svg)
 
@@ -159,11 +159,12 @@ Fill container 讓卡片使用父層可用空間，但桌面畫面一旦很寬�
 1. 建立五個短文字標籤：「高優先」「客戶」「本週」「交付」「待確認」，每個文字外面用 **Shift+A** 包成有淺底與內距的小 Frame；完成後，五個標籤都能獨立調整內容。
 2. 同時選取五個標籤，再按 **Shift+A** 建立水平 Auto layout，命名為 `Tags`；完成後，標籤會排成一列。
 3. 在 Auto layout 的 Flow 按鈕右側點 **Wrap**；完成後，`Tags` 具備多列排列能力。
-4. 把 `Tags` 的寬度縮窄，直到最後一個標籤移到下一列；完成後，容器會增加高度，標籤之間仍維持設定的 Gap。
-5. 把其中一個標籤改成較長的「等待客戶確認」，再測一次寬版與窄版；完成後，換行由真實內容與可用空間共同決定。
-6. 把 `Tags` 放到一張任務卡片裡，確認父卡片採 Hug contents；完成後，標籤增加一列時，整張卡片也會跟著長高。
+4. 選取 `Tags`，按右鍵選 **Create component**；完成後，它會成為可從 Assets 重複使用的標籤列主元件。
+5. 把 `Tags` 的寬度縮窄，直到最後一個標籤移到下一列；完成後，容器會增加高度，標籤之間仍維持設定的 Gap。
+6. 把其中一個標籤改成較長的「等待客戶確認」，再測一次寬版與窄版；完成後，換行由真實內容與可用空間共同決定。
+7. 從 Assets 把 `Tags` 拖到一張任務卡片裡，將使用處命名為 `Row / Tags`，再確認父卡片採 Hug contents；完成後，標籤增加一列時，整張卡片也會跟著長高。
 
-這排 `Tags` 會在後續清單列中繼續使用。現在先保留文字可改、能換行的結構；標籤的共用元件與狀態會在建立元件後再整理。
+這排 `Tags` 會在後續清單列中繼續使用。主元件保留文字可改、能換行的結構；清單列裡使用 `Row / Tags`，才能讓後續修改從來源同步。
 
 ## 看兩版長訊息，判斷哪一版真的能適應內容
 
