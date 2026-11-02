@@ -57,7 +57,7 @@ for i in {1..30}; do
       # 連續失敗超過 15 秒 → 推測網路擋
       kill $CF_PID 2>/dev/null
       wait $CF_PID 2>/dev/null
-      osascript -e 'display dialog "Cloudflared 連到 Cloudflare 邊緣節點失敗（可能 ISP / 防火牆 / VPN 擋）。\n\n建議改用 ngrok 替代（架構不同，通常能繞開 ISP 限制）：\n\n1. 前往 ngrok.com 依官方當前方案註冊帳號\n2. 下載 ngrok 並解壓\n3. 終端機跑：./ngrok http 5678\n\n詳見講義 1.2 最下方「備用方案 · NGROK FALLBACK」段落。" buttons {"知道了"} default button 1 with icon caution' 2>/dev/null
+      osascript -e 'display dialog "Cloudflared 連到 Cloudflare 邊緣節點失敗（可能 ISP / 防火牆 / VPN 擋）。\n\n建議改用 ngrok 替代（架構不同，通常能繞開 ISP 限制）：\n\n1. 前往 ngrok.com 依官方當前方案註冊帳號\n2. 下載 ngrok 並解壓，終端機輸入 cd 加空格，把解壓出的資料夾拖進終端機後按 Enter\n3. 到 ngrok 後台 Your Authtoken 頁複製 token，終端機跑：./ngrok config add-authtoken 你的token（只需一次）\n4. 終端機跑：./ngrok http 5678\n\n詳見講義 1.2 最下方「備用方案 · NGROK FALLBACK」段落。" buttons {"知道了"} default button 1 with icon caution' 2>/dev/null
       rm -f "$TUNNEL_LOG"
       exit 1
     fi
