@@ -147,3 +147,18 @@ A1（建立檔案、左側圖示列、文字樣式）、A2（Layout guide 位置
 | Instance swap 綁定 | 選圖示使用處，名稱列的第三個圖示（提示 Apply instance swap property） |
 | Selection colors | 預設摺疊成一排色塊加「+N」，點標題展開成清單 |
 | 匯入 SVG | 變成名為 icon-check 1 的 Frame，內含 Vector；單一路徑按 Cmd+E 不會有變化 |
+
+## 第十輪：試跑 A6 後半與 A7 前半
+
+| 項目 | 實際結果 |
+|---|---|
+| 左右並排的多個物件按 Shift+A | 產生 **Grid**（例如 2×Auto）；改成 Vertical 時，子層的 H 可能被改成固定值 |
+| 名稱含斜線的元件 Add variant | 「Row / Task」被拆成元件集「Row」與第一個 Variant 的值「Task」，屬性名為預設 |
+| 一般 Frame 的 H | 只有數字，沒有 Hug contents（Hug 只出現在 Auto layout） |
+| 使用處的屬性面板 | Boolean 關閉時，被它控制的圖層所綁的 Text property 欄位會隱藏；先打開開關才看得到 |
+| Frame 變圓 | 要把圓角設為邊長一半（20×20 → 10） |
+| Detach instance | 原本的 Text property 綁定失效，新元件只剩之後自己建的屬性 |
+| 元件集外框 | 固定大小且裁切；Variant 加高後會互相重疊或被切掉，要手動拉大元件集並調間距 |
+| 使用處內的描邊 | 選巢狀圖示的 Stroke 區可能是空的（描邊在更內層的 Vector）；從 Selection colors 換色最快 |
+| 巢狀選取 | Cmd＋點擊直接選到內層；Shift+Enter 往上選父層 |
+| 新文字預設 | 可能是 Inter 12（未套樣式時） |

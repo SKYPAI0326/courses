@@ -63,10 +63,10 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 |---|---|---|
 | `Screen / List` | 402 × 874；Surface 底色 | 待處理清單畫面 |
 | 畫面標題 | x 24、y 48；套用 `Type / Page title` | 「待處理清單」 |
-| `Row / Task` | Vertical；Gap 8；四邊 Padding 16；寬 354；Hug 高；白底；圓角 8 | 單筆任務元件 |
+| `Row / Task` | Vertical；Gap 8；四邊 Padding 16；寬 354；Hug 高；子層 H 保持 Hug；建立元件前先設白底（`Card`）與圓角 8 | 單筆任務元件 |
 | `Row / Title` | 套用 `Type / Section title`；Fill container；Auto height | 綁定 Text property `Title`；預設值「整理交付包」 |
-| `Row / Due` | Horizontal；Gap `Space 4`；Fill；Hug 高 | `Icon / Clock` 與期限文字；期限文字套用 `Type / Supporting`、Auto height，綁定 Text property `Due`；預設值「今天18:00」 |
-| `Row / Tags` | `Tags` 元件的使用處；Wrap | 隱藏其餘三個子層，只顯示「高優先」與「交付」 |
+| `Row / Due` | Horizontal；Gap `Space 4`；Fill；Hug 高 | `Icon / Clock` 排在期限文字前；期限文字套用 `Type / Supporting`、Auto height，綁定 Text property `Due`；預設值「今天18:00」 |
+| `Row / Tags` | `Tags` 元件的使用處；Wrap | 依「高優先」等子層名稱隱藏其餘三個，只顯示「高優先」與「交付」 |
 | `Row / Link` | 套用 `Type / Supporting`；Primary 色；Fill | 「檢視詳情 →」 |
 | Variant `Status` | Todo／Done | 切換待處理與完成外觀 |
 | `List / Content` | x 24、y 110；Vertical；Gap 12；寬 354；Padding 0；Hug 高 | 多筆任務容器 |
@@ -81,23 +81,23 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 3. 建立 `Row / Title`（任務標題），輸入「整理交付包」。完成後會看到第一筆任務的主要識別文字。
 4. 建立期限文字，輸入「今天18:00」，再套用 `Type / Supporting`。完成後會看到次要文字樣式的任務期限。
 5. 從 Assets 插入 `Icon / Clock`（時間圖示），放在期限前。完成後期限會多一個能快速辨認的視覺線索。
-6. 若標籤曾改字，先在 `Tags` 主元件改回。從 Assets 插入 `Tags` 元件的使用處，命名為 `Row / Tags`（任務標籤列），再到 Layers 關掉其餘三個標籤的眼睛，只顯示「高優先」與「交付」；使用處裡的子層只能隱藏，不能刪除。完成後會只看到兩個標籤，寬度縮小時可以換行。
+6. 若標籤曾改字，先在 `Tags` 主元件改回。從 Assets 插入 `Tags` 元件的使用處，命名為 `Row / Tags`（任務標籤列）。在 Layers 依子層名稱找到「高優先」與「交付」，保持這兩層顯示，再關掉其餘三個標籤的眼睛；使用處裡的子層只能隱藏，不能刪除。完成後 Layers 會以標籤文字顯示子層名稱，畫面只看得到「高優先」與「交付」，寬度縮小時可以換行。
 7. 建立 `Row / Link`（詳情線索），輸入「檢視詳情 →」。完成後這一列會表明還有更完整內容。
-8. 同時選取時間圖示與期限文字按 **Shift+A**，命名為 `Row / Due`（任務期限列），再把 Gap 設為 `Space 4`。完成後時間圖示與「今天18:00」會並排成一列。
-9. 同時選取標題、`Row / Due`、標籤與詳情線索按 **Shift+A**，命名為 `Row / Task`（任務列），再套用規格表中的 Auto layout。把文字子層設為 Fill container 與 Auto height。完成後第一筆資料會被同一個白色容器包住。
+8. 同時選取時間圖示與期限文字按 **Shift+A**，命名為 `Row / Due`（任務期限列），再把 Gap 設為 `Space 4`。若時鐘圖示排到文字後面，在 Layers 把它拖到期限文字前，或選它後按 **Ctrl+Alt+↑**；完成後時間圖示會排在「今天18:00」前面，兩者並排成一列。
+9. 同時選取標題、`Row / Due`、標籤與詳情線索按 **Shift+A**，命名為 `Row / Task`（任務列），再套用規格表中的 Auto layout。若 Flow 顯示 Grid，點 Vertical；再確認每個子層的 H 都是 Hug。把文字子層設為 Fill container 與 Auto height，並在建立元件前先套用白底 `Card` 與圓角 8；完成後第一筆資料會被同一個白色圓角容器包住，標籤或標題換行時子層也能增高。
 10. 選取任務列按右鍵選 **Create component**。完成後任務列會變成紫色外框的主元件。
 11. 選取主元件，在 Properties 按加號建立 Text property `Title`，預設值填「整理交付包」。完成後主元件會出現可改標題的文字屬性。
 12. 選取 `Row / Title` 文字層，從 Content 旁的 Apply variable/property 圖示綁定 `Title`。完成後右側的 Title 欄位會控制畫面上的「整理交付包」。
 13. 回到主元件建立 Text property `Due`，預設值填「今天18:00」。完成後主元件會再出現可改期限的文字屬性。
 14. 選取 `Row / Due` 裡的期限文字，綁定 `Due`。完成後右側的 Due 欄位會控制畫面上的「今天18:00」。
-15. 選取主元件，以 **Main component → Add variant** 增加第二個版本。完成後會得到紫色虛線框住的元件集，兩個版本的文字層旁都會顯示 Title 與 Due 的屬性圖示。
-16. 將預設屬性改名為 `Status`，兩個值填 Todo 與 Done。完成後使用處可以切換待處理與完成外觀。
+15. 選取主元件，以 **Main component → Add variant** 增加第二個版本。名稱含斜線的元件加 Variant 後會被拆開：元件集可能叫 Row，第一個屬性值叫 Task。把元件集改名回 `Row / Task`，屬性改名 `Status`，第一個值改成 `Todo`；完成後會得到名稱正確的紫色虛線元件集，兩個版本的文字層旁都會顯示 Title 與 Due 的屬性圖示。
+16. 將第二個 `Status` 值填成 `Done`，再確認兩個值為 Todo 與 Done。完成後使用處可以從 `Status` 切換待處理與完成外觀，元件集名仍是 `Row / Task`。
 17. 在 Done 版本加入「已完成」文字或勾選圖示。完成後兩個版本會呈現可辨認的不同狀態。
 18. 把 `Row / Task` 元件集移到 `Components`。完成後元件集會和其他主元件集中放在同一區。
 19. 從 Assets 插入十二個 `Row / Task` 使用處，Status 都保持 Todo。完成後十二列會沿用相同結構。
 20. 依 `TASK-DATA.csv` 的編號，把十二個使用處依序命名為 `Row / T01` 至 `Row / T12`。完成後圖層名稱能對回資料編號。
 21. 依資料表填入每個使用處的 Title 與 Due。完成後每一列都能直接讀到自己的任務名稱與期限。
-22. 同時選取十二列按 **Shift+A**，命名為 `List / Content`（清單內容），再套用規格表中的外層排列。完成後十二列會依固定間距垂直排列。
+22. 同時選取十二列按 **Shift+A**，命名為 `List / Content`（清單內容），再套用規格表中的外層排列。若 Flow 顯示 Grid，點 Vertical；再確認每個 Row 子層的 H 都是 Hug。完成後十二列會依固定間距垂直排列，任一列增高都會推開後續資料。
 23. 把清單內容放進清單畫面。完成後它會位於標題下方，標籤換行時列會增高並推開後續資料。
 
 短標題時，一列高度由內距、標題、各段間距、期限、標籤與詳情線索共同決定。暫時在標題後加上「（含客戶名與地點）」測試換行；Auto height 會增加文字高度，Row 的 Hug 會跟著增高，外層 List 再重新排列後續內容。測完把標題改回原文。
@@ -116,8 +116,8 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 6. 複製「整理交付包」的使用處，把 Status 改為 Done，再把副本移到清單外、`Components` 旁。完成後清單仍維持十二筆，元件區旁會多一個已完成範例。
 7. 建立 `Screen / Detail`（任務詳情畫面），加入「← 返回清單」。完成後畫面會提供回到上一層的明確線索。
 8. 在詳情內容放入「整理交付包」、「核對檔名與尺寸，把畫面圖、規格與測試紀錄放進同一個資料夾。」與「今天18:00」。把文字子層設為 Fill container 與 Auto height。完成後這筆任務的完整資訊會集中在同一區；第二筆說明已列在規格表，做原型連線時可直接沿用。
-9. 從 Assets 插入 Primary／Default 的 Button，Label 改為「標記完成」，命名為 `Button / Complete`（完成按鈕）。完成後詳情畫面會有清楚的主要動作。
-10. 將詳情文字與按鈕包成垂直 Auto layout。把文字子層設為 Fill container 與 Auto height。完成後說明變長時，按鈕會隨內容往下排列。
+9. 從 Assets 的 `Components` 裡選 `Button` 元件集，畫面上既有的使用處保持原位。插入 Primary／Default 的 Button，Label 改為「標記完成」，命名為 `Button / Complete`（完成按鈕）。完成後詳情畫面會有來自正確元件集的主要動作。
+10. 將詳情文字與按鈕包成垂直 Auto layout。若 Flow 顯示 Grid，點 Vertical；再確認每個子層的 H 都是 Hug。把文字子層設為 Fill container 與 Auto height；完成後說明變長時，按鈕會隨內容往下排列。
 
 增刪測試完成後，將三張畫面排在畫布上：待處理清單、空清單、任務詳情。這三張圖各回答不同問題：有資料時怎麼掃讀、沒資料時看到什麼、需要更多資訊時去哪裡。互動連線會在後面的原型階段處理，這裡先把內容與層級做完整。
 
@@ -147,7 +147,7 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 8. 刪除複製來的 `List / Content`。完成後載入中畫面會保留頁首，原本十二筆任務不再顯示。
 9. 用灰色矩形排出一列標題、摘要與標籤的輪廓，再包成 `Skeleton / Row`。完成後會看出一筆任務即將出現的大致結構。
 10. 複製骨架列兩份，調整各列灰色矩形的長短。完成後畫面上會有三列不同輪廓的骨架。
-11. 同時選取三列 Skeleton 按 **Shift+A**，命名為 `List / Loading`（載入清單），方向設為 Vertical。完成後三列會由同一個垂直容器排列。
+11. 同時選取三列 Skeleton 按 **Shift+A**，命名為 `List / Loading`（載入清單）。若 Flow 顯示 Grid，點 Vertical；再確認每個 Skeleton 子層的 H 都是 Hug。完成後三列會由同一個垂直容器排列，各列輪廓改變時也會保持彼此間距。
 12. 比較載入中、空清單與正常清單。完成後三種狀態會共用頁首和版面節奏，但各自用文字或輪廓交代目前情況。
 
 Fill 適合固定比例的小縮圖，因為畫面整齊比看見每一個邊角更重要；Fit 適合完整內容不能缺角的附件，例如版面截圖。Crop 則在 Fill 基礎上讓你主動調整保留區域。選擇時先回答「使用者要辨認主體，還是要檢查完整內容」，再決定縮放模式。
@@ -222,7 +222,7 @@ Fill 適合固定比例的小縮圖，因為畫面整齊比看見每一個邊角
 
 完成條件：
 
-- 十二筆工作室任務都由 `Row / Task` 使用處呈現，圖層依資料編號命名，並能改 Title、Due 與 Status。
+- 十二筆工作室任務都由 `Row / Task` 使用處呈現，圖層依資料編號命名，並能改 Title、Due 與 Status；主元件建立前已套用 `Card` 白底與圓角 8，內層 H 保持 Hug，元件集名稱仍為 `Row / Task`。
 - 暫時加長標題或讓標籤換行時，所屬列會增高；新增與刪除資料會讓清單自動重排。
 - 空清單、載入中與詳情畫面各自說清楚目前狀態。
 - 自選題目的十二筆資料都用同一卡片元件，並完成空狀態、長文字詳情、圖片與載入中畫面。
