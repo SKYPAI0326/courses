@@ -5,7 +5,7 @@ title: 用 WhisperDesktop 保存逐字稿與字幕
 course_type: skill-operation
 duration_minutes: 0
 learning_objective: "以既有母片完成本機轉錄、字幕校訂與字幕燒錄，保留來源檔案。"
-prerequisites: ["CH2-6"]
+prerequisites: []
 style_guide: ../../_outlines/canva-video-teaching.style-guide.md
 platform_version: "WhisperDesktop v3.0.1 官方文件 2026-10-11；僅撰寫教案，未實測應用程式"
 revision: 2026-10-11
@@ -63,7 +63,7 @@ It's next to the cafeteria.
 
 序號下方是開始與結束時間，最後一行是顯示文字。你的字幕時間必須對應自己的錄音。若某句提早出現，回到該字幕片段修正時間，再重播確認。
 
-下載[字幕校訂練習.srt](../../courses/canva-video-teaching/downloads/字幕校訂練習.srt)，依[操作與檔案技術卡](../../courses/canva-video-teaching/resources/操作與檔案技術卡.md)修正 cafeteria、繁體字與第三句時間，另存後與完整參考字幕核對。
+下載[字幕校訂練習.srt](../../courses/canva-video-teaching/downloads/字幕校訂練習.srt)，用文字編輯器打開它，修正 cafeteria、繁體字與第三句時間，另存後與完整參考字幕核對。
 
 ## 製作字幕影片
 
