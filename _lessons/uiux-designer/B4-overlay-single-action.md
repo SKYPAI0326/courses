@@ -64,7 +64,7 @@ Overlay 的位置也是訊息的一部分。確認彈窗用 Centered，小型說
 | 確認彈窗 | `Overlay / Confirm`（確認彈窗） | W320；Hug 高；圓角 8 |
 | 彈窗內容 | Title、Body、Actions | 垂直排列；Gap 16；Padding 24 |
 | 彈窗位置 | Position | Centered |
-| 背景遮罩 | Overlay background | 黑色；25% |
+| 背景遮罩 | Background（勾選） | 黑色；25% |
 | 外側關閉 | Close when clicking outside | 開啟 |
 | 取消熱區 | `Button / Cancel`（取消按鈕） | Close overlay |
 | 確認熱區 | `Button / Confirm`（確認完成按鈕） | Navigate to 完成清單 |
@@ -75,7 +75,7 @@ Overlay 的位置也是訊息的一部分。確認彈窗用 Centered，小型說
 2. 切到 Prototype 分頁，將 Trigger 設為 On click。做完會確認點擊啟動這段互動。
 3. 將 Action 設為 Open overlay，Destination 指向 `Overlay / Confirm`（確認彈窗）。做完會看見詳情按鈕連到彈窗 Frame。
 4. 在 Overlay 設定中把 Position 選成 Centered。做完後，彈窗會以畫面中央為基準出現。
-5. 依規格表設定背景遮罩。做完後，詳情仍可辨認，注意力會集中在彈窗內容。
+5. 勾選 **Background**（預設沒有勾），再依規格表設定遮罩顏色與透明度。做完後，詳情仍可辨認，注意力會集中在彈窗內容。
 6. 開啟 Close when clicking outside。做完後，點彈窗外的遮罩區可關閉彈層。
 7. 從「完成一筆任務」流程開啟 Preview，進入整理交付包詳情並按標記完成。做完會在詳情上方看到確認彈窗。
 8. 點擊遮罩，觀察彈窗關閉。做完後，畫面會回到同一筆整理交付包詳情。

@@ -115,6 +115,7 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 
 | 看到的現象 | 通常的原因 | 怎麼修 |
 |---|---|---|
+| 拖曳時跳出一個輸入框 | 拖到物件旁的星形圖示，那是對話輸入，不是連線圓點 | 按 Esc 關掉，改從 Prototype 分頁 Interactions 的 ＋ 建立互動 |
 | 只有文字中央可點 | 互動綁在 Label | 把 Interaction 移到完整 Button 或 Row 外框 |
 | 點登入後回到登入 | Destination 指到同名或錯誤 Frame | 重新指定有三筆任務的待處理清單 |
 | 點第一筆卻看到第二筆內容 | 任務列連到錯誤詳情 | 用中文標題核對 Destination，再改回整理交付包詳情 |

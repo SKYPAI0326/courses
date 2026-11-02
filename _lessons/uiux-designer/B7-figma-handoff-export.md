@@ -104,14 +104,14 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 9. 點 Background 旁的眼睛圖示；四角會顯示透明棋盤格。
 10. 點 Check 旁的眼睛圖示；白色勾號會單獨消失，而 Card 保持可見。
 11. 恢復 Check 可見與 Background 隱藏；畫面會呈現綠色卡片、白色勾號與透明四角。
-12. 選 File → Save As；儲存對話框會讓你選擇檔名與格式。
-13. 將工作檔另存為 `status-badge-working.psd` 並保留 Layers；資料夾會出現新的分層來源。
+12. 選 File → Save As；若先跳出存到雲端或電腦的選擇視窗，點 **Save on your computer**。儲存對話框會讓你選擇檔名與格式。
+13. 將工作檔另存為 `status-badge-working.psd` Format 選 Photoshop，確認 **Layers** 有勾；資料夾會出現新的分層來源。
 14. 關閉工作檔後用 File → Open 重開；三個圖層與可見狀態應完整保留。
 15. 隱藏 Background 後選 File → Export → Export As；匯出對話框會顯示格式、透明與尺寸設定。
-16. 選 PNG、開啟透明背景並設成規格表尺寸；預覽會顯示透明四角。
+16. Format 選 PNG、勾選 **Transparency**，確認 Image Size 是 512×512，再按 **Export**；預覽會顯示透明四角。
 17. 匯出為 `status-badge.png`；`exports/` 會得到網站可用的徽章。
 
-新版 Photoshop 的 Export As 欄位名稱以你看到的畫面為準。把 PNG 放在有顏色的背景上查看四角，再重開 PSD，確認三個圖層仍能分別切換。
+如果 Export As 視窗打不開或出現錯誤（部分 2026 年版本有這個狀況），改用 File → Save a Copy，格式選 PNG；Background 隱藏時同樣保留透明。把 PNG 放在有顏色的背景上查看四角，再重開 PSD，確認三個圖層仍能分別切換。
 
 ## 看兩個交付資料夾，判斷哪一個接得下去
 
