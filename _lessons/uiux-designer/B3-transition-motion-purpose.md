@@ -63,9 +63,9 @@ Smart Animate 不會讓數字一格一格變化；兩個不同數字只會交叉
 | 類別 | 圖層或設定 | 本堂值 |
 |---|---|---|
 | 進入熱區 | `Row / T01`（整理交付包任務列） | 通往整理交付包詳情 |
-| 進入 Animation | Move in | 從右進入 |
+| 進入 Animation | Move in | 從右邊進來選 ← |
 | 返回熱區 | `Button / Back`（返回圖示鈕） | 44 × 44；通往待處理清單 |
-| 返回 Animation | Move out | 往右離開 |
+| 返回 Animation | Move out | 返回選 → |
 | Easing | Ease out | 進入與返回一致 |
 | Duration | 200ms | 主線比較值 |
 | 比較設定 | Dissolve、Instant | 保留內容與目的地不變 |
@@ -77,11 +77,11 @@ Smart Animate 不會讓數字一格一格變化；兩個不同數字只會交叉
 
 ![Move in 的 Direction 四個箭頭、Easing 與 Duration（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-move-in-animation.webp)
 
-4. 依規格表選擇從右進入的方向。方向箭頭的樣子以畫面為準，稍後用 Preview 確認實際起點。
+4. Move in 要從右邊進來，Direction 選 ←。稍後用 Preview 確認詳情由右側進入。
 5. 將 Easing 設為 Ease out。做完會看到速度曲線設定套用在這條轉場。
 6. 將 Duration 設為規格表中的比較值。做完後，進入詳情會有短暫、可觀察的移動。
 7. 選取詳情中的返回連線，把 Animation 改為 Move out。做完後，目的地仍是待處理清單。
-8. 將返回方向設為往右離開，並使用相同 Easing 與 Duration。做完後，進入與返回會形成相反方向。
+8. Move out 返回選 →，並使用相同 Easing 與 Duration。做完後，進入與返回會形成相反方向。
 9. 從登入開始預覽，點整理交付包再返回。做完應能用「向內深入」與「退回總覽」說明兩段動畫。
 10. 將兩條連線暫時改為 Dissolve，再完整走一次。做完會得到一版較少空間暗示的比較結果。
 11. 將主線恢復成你能說明理由的版本，並記錄選擇。做完會留下一段由任務關係支持的動畫決定。
@@ -96,18 +96,19 @@ Smart Animate 不會讓數字一格一格變化；兩個不同數字只會交叉
 |---|---|---|---|
 | 外框 | `Motion / Before`、`Motion / After` | 402 × 300 | 402 × 300 |
 | 狀態標籤 | `Status / Badge`（狀態標籤） | x24、y70、W160、H48 | W280、H48 |
+| 標籤文字 | `Status / Label`（狀態文字） | 「待處理」 | 「已完成」 |
 | 狀態標籤外觀 | 文字與填色 | 「待處理」、主要綠色 | 「已完成」、Success 色 |
-| 完成記號 | `Status / Check`（完成記號） | x312、y85、Opacity 0% | 同位置、Opacity 100% |
-| 測試按鈕 | `Button / Animate`（播放狀態按鈕） | y180 | y180 |
+| 完成記號 | `Status / Check`（完成記號） | `Icon / Check` 使用處；x312、y85、Opacity 0% | 同位置、Opacity 100% |
+| 測試按鈕 | `Button / Animate`（播放狀態按鈕） | `Button` 元件的使用處；y180 | y180 |
 | Animation | Smart animate | Ease out、200ms | 返回同設定 |
 | Flow | 狀態動畫 | Before | — |
 
 1. 在畫布空白處建立 `Motion / Before`，依規格表設定 Frame。做完會得到一張獨立於主線的動畫起始畫面。
-2. 在起始畫面建立 `Status / Badge`（狀態標籤），放入「待處理」。做完會看到固定大小的綠色狀態區塊。
-3. 建立 `Status / Check`（完成記號），依規格表放置並將透明度設為起始值。做完後，Layers 中看得到完成記號，畫面上暫時看不見。
-4. 加入 `Button / Animate`（播放狀態按鈕），文字寫「看看變化」。做完會得到啟動動畫的明確熱區。
+2. 在起始畫面建立 `Status / Badge`（狀態標籤），放入「待處理」，再把標籤文字手動命名為 `Status / Label`（狀態文字）。做完會看到固定大小的綠色狀態區塊。
+3. 從 Assets 放入 `Icon / Check` 使用處，命名為 `Status / Check`（完成記號），依規格表放置並將透明度設為起始值。做完後，Layers 中看得到完成記號，畫面上暫時看不見。
+4. 從 Assets 放入 `Button` 元件的使用處，命名為 `Button / Animate`（播放狀態按鈕），文字寫「看看變化」。做完會得到啟動動畫的明確熱區。
 5. 複製整張起始 Frame，命名為 `Motion / After`。做完後，兩張畫面的內部圖層名稱與層級完全相同。
-6. 在 After 把狀態標籤文字改成「已完成」，再調整寬度並套用 `Success`。做完會看到標籤變寬並呈現成功狀態。
+6. 確認 Before／After 的標籤文字都已手動命名為 `Status / Label`，再在 After 把文字改成「已完成」。若先改字，自動命名的文字圖層會跟著文字改名而配不起來；接著調整寬度並套用 `Success`，做完會看到標籤變寬並呈現成功狀態。
 7. 在 After 將完成記號的透明度調到結束值。做完會看到勾號出現在標籤右側，兩者不會重疊。
 8. 將 Before 的播放按鈕連到 After，設定 On click、Navigate to 與 Smart animate。做完會看到這條互動指向狀態完成畫面。
 9. 將 After 的播放按鈕連回 Before，使用同樣的 Animation、Easing 與 Duration。做完後，兩種狀態可來回比較。

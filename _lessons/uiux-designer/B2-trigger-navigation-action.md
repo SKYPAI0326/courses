@@ -72,13 +72,15 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 | Animation | Instant | 本頁先核對目的地 |
 | Flow | 完成一筆任務 | 正式起點為 `Screen / Login` |
 
+若沒有這條連線（例如做需求那一堂沒做完），照下列設定新增；若已經有，則依相同欄位核對。
+
 1. 在 Layers 展開正式登入畫面，選取 `Button / Login`（登入按鈕）外框。做完會看到整個按鈕被選取，而非只有文字游標。
-2. 切到右側 Prototype 分頁，核對做需求與流程那一堂建立的既有連線。做完會在 Interactions 看見登入按鈕已有一條互動。
+2. 切到右側 Prototype 分頁，核對做需求與流程那一堂建立的既有連線；若沒有，就在 Interactions 點 **＋** 新增。做完會在 Interactions 看見登入按鈕有一條互動。
 
 ![Prototype 分頁：Interactions 的 ＋ 新增互動，下方是 Scroll behavior（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-prototype-tab.webp)
 
-3. 打開 Interaction details，核對 Trigger 是 On click。做完會在觸發欄看見 On click。
-4. 核對 Action 是 Navigate to，並確認 Destination 是 `Screen / List`。做完會在設定中同時看見動作與清單的唯一名稱。
+3. 打開 Interaction details，將 Trigger 設為 On click。做完會在觸發欄看見 On click。
+4. 將 Action 設為 Navigate to，並確認 Destination 是 `Screen / List`。做完會在設定中同時看見動作與清單的唯一名稱。
 
 ![Action 選單：本課用 Navigate to，彈層用 Open／Swap／Close overlay（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-action-list.webp)
 
@@ -86,7 +88,7 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 
 ![設好 Destination 後畫布出現連線箭頭，起點畫面左上自動出現 Flow 1（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-navigate-flow.webp)
 
-5. 核對 Animation 是 Instant。做完會在既有登入連線的 Animation 欄看見 Instant。
+5. 將 Animation 設為 Instant。做完會在登入連線的 Animation 欄看見 Instant。
 6. 從 `Screen / Login` 開啟「完成一筆任務」的 Preview，按下登入。做完會依 `Screen / Login` → `Screen / List` 的流程，從帳號、密碼畫面切到十二筆待處理任務。
 7. 回到編輯畫布，選取 `Row / T01`（整理交付包任務列）外框。做完會看到整列標題、期限與進入詳情線索一起被選取。
 8. 將這一列連到 `Screen / Detail`，使用相同的觸發與動作。做完會看到目的地詳情顯示「整理交付包」。
@@ -103,8 +105,8 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 1. 在待處理清單找到「確認活動報名資料並補上聯絡電話」的完整任務列，確認它有獨立圖層。
 2. 複製 `Screen / Detail`，命名為 `Screen / Detail T02`（確認活動報名資料詳情）。完成後會得到保留相同結構的第二筆詳情畫面。
 3. 把副本內容改成「確認活動報名資料並補上聯絡電話」、說明「逐筆核對報名資料，補齊缺少的聯絡電話後再確認名單。」與期限「明天12:00」。完成後，第二筆詳情會顯示自己的資料。
-4. 為第二筆任務列設定點擊後前往 `Screen / Detail T02`。完成後，預覽時會看到與整理交付包不同的標題。
-5. 將副本中既有的 `Button / Back` 設定為返回待處理清單。完成後，兩張詳情都能回到相同的清單。
+4. 為第二筆任務列設定點擊後前往 `Screen / Detail T02`。複製畫面時 Back 的連線已一起帶過來，完成後預覽會看到與整理交付包不同的標題。
+5. 確認副本中既有的 `Button / Back` 目的地是待處理清單。這條連線已隨畫面副本帶過來，只要確認目的地；完成後，兩張詳情都能回到相同的清單。
 6. 從登入重啟 Preview，依序走「登入 → 整理交付包 → 返回 → 確認活動報名資料並補上聯絡電話 → 返回」。每一步都用畫面標題與期限確認內容。
 7. 點擊每個按鈕與任務列的邊緣。完成後，視覺熱區與實際熱區的範圍應一致。
 8. 找到登入空白狀態中的停用按鈕，查看是否意外帶著互動。停用外觀本身不會自動阻止 Navigate，因此這個使用處應保持沒有切頁行為。
@@ -124,13 +126,18 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 | 類別 | 圖層或資料 | 本次規格 |
 |---|---|---|
 | 關鍵畫面 | `Screen / Select Slot`（選擇時段） | 上方日期列；下方時段格 |
-| 日期列 | `Date Rail`（日期列） | 一排 7 天；超出畫面的部分先保留，做長清單時再加入捲動 |
+| 示範資料 | [BOOKING-DATA.csv](../../courses/uiux-designer/assets/shared/practice/BOOKING-DATA.csv)、[BOOKING-MINE.csv](../../courses/uiux-designer/assets/shared/practice/BOOKING-MINE.csv) | 服務時間與既有預約 |
+| 日期列 | `Date Rail`（日期列） | 一排 7 天；包 Auto layout，子項設為 Hug；超出畫面的部分先保留，做長清單時再加入捲動 |
+| 已選日期 | 11/10（星期二） | `Primary Soft` 底 |
 | 額滿示範資料 | 11/10（星期二） | 11:00、15:00 已額滿；示範資料設定為那兩個時段店裡的美容師都已排滿 |
-| 時段元件 | `Slot`（時段卡） | 10:00～18:00；每小時一格 |
+| 時段元件 | `Slot`（時段卡） | W 96、H 56、圓角 8；10:00～18:00，每小時一格 |
+| 時段文字 | 時間、狀態 | 兩行文字；時間套 `Type / Label`，狀態套 `Type / Supporting` |
 | 示範打烊時間 | 19:00 | 需求頁未說幾點打烊，本次先採用的假設 |
 | 狀態屬性 | `State` | Available／Selected／Full／Unavailable |
-| 額滿外觀 | Full | 灰底並顯示「額滿」；移除點擊互動 |
-| 時間不足外觀 | Unavailable | 顯示「時間不夠」；移除點擊互動 |
+| 可選外觀 | Available | `Card` 底＋`Control Border` 外框 |
+| 已選外觀 | Selected | `Primary` 底＋白字 |
+| 額滿外觀 | Full | `Disabled` 底＋`Disabled Text` 字；顯示「額滿」；移除點擊互動 |
+| 時間不足外觀 | Unavailable | `Card` 底＋`Muted` 字；顯示「時間不夠」；移除點擊互動 |
 | 大型犬可選起點 | 12:00、16:00 | 後面連續三格都空，並在 19:00 前結束 |
 | 大型犬不可選起點 | 10:00、13:00、14:00、17:00、18:00 | 會碰到額滿時段，或服務結束時間超過 19:00 |
 | 長服務範例 | 大型犬全套洗澡美容 | 180 分鐘；時段格下方顯示「12:00～15:00，共 3 小時」 |
@@ -138,13 +145,13 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 
 需求頁只說早上十點開始、最後一個時段是下午六點，沒有說幾點打烊。這次示範先假設 19:00 打烊；實際案子要問店主，先寫進需求初稿「還沒想清楚的」。
 
-1. 開啟 `BOOKING-DATA.csv`，找到大型犬全套洗澡美容的 duration。做完會確認這項服務需要 180 分鐘，時段判斷要看連續空格。
-2. 建立 `Screen / Select Slot`（選擇時段），先排一列 7 天的日期鈕，再排時段格。做完會同時看見日期與當日時間；超出畫面的日期先保留，做長清單時再加入捲動。
-3. 將一張時段卡做成 `Slot`（時段卡）元件，加入 State 的四個 Variant。做完會有可選、已選、額滿與時間不夠四種外觀。
+1. 開啟 [BOOKING-DATA.csv](../../courses/uiux-designer/assets/shared/practice/BOOKING-DATA.csv)，找到大型犬全套洗澡美容的 duration。做完會確認這項服務需要 180 分鐘，時段判斷要看連續空格。
+2. 建立 `Screen / Select Slot`（選擇時段），把一列 7 天的日期鈕包成 Auto layout，再把每個子項改為 Hug。將 11/10 套用 `Primary Soft` 底表示已選日期；超出畫面的日期先保留，做長清單時再加入捲動。
+3. 將一張時段卡做成 `Slot`（時段卡）元件，依規格表設定外觀與兩行文字，再加入 State 的四個 Variant。做完會有可選、已選、額滿與時間不夠四種外觀。
 4. 依規格表設定 11/10 的 Full 與 Unavailable 時段。做完後，額滿與時間不足會用不同文字出現在選擇前；11:00 與 15:00 額滿的原因都是那兩個時段店裡的美容師都已排滿。
 5. 在時段格下方按 T 加入摘要「12:00～15:00，共 3 小時」。做完會在時段格下方看見這段摘要，並能由 12:00 加上三小時核對 15:00 的結束時間。
 6. 複製這張 11/10 的選擇時段畫面，依序將規格表中從 12:00 開始的三個連續時段設為 Selected。做完後，畫面會看見三格 Selected，摘要顯示的結束時間不會被選取。
-7. 開啟 `BOOKING-MINE.csv`，依三筆資料排出我的預約清單。做完會得到後續流程的起始紀錄，稍後可用來核對新送出的預約是否加入。
+7. 開啟 [BOOKING-MINE.csv](../../courses/uiux-designer/assets/shared/practice/BOOKING-MINE.csv)，依三筆資料排出我的預約清單。做完會得到後續流程的起始紀錄，稍後可用來核對新送出的預約是否加入。
 
 你的題目若是預約，這段示範可以照做；但「改時間」「沒到店」等需求頁裡的其他問題，要自己設計（評分表 N4）。
 
@@ -178,13 +185,13 @@ While hovering 與 While pressing 結束後會自動回到原本的 Variant，�
 1. 到元件區選取主要按鈕的 Default Variant。完成後紫色元件集裡只有一般狀態被選取。
 2. 切到 Prototype 分頁，在 Interactions 點 **＋**。完成後會開啟 Trigger 與 Action 設定。
 3. 將 Trigger 設為 **While hovering**。完成後這條互動會等待游標停在按鈕上。
-4. 將 Action 設為 **Change to**。完成後下方會出現目標 Variant 的屬性下拉。
+4. 將 Action 設為 **Change to**。完成後下方會出現 Type 與 State 兩個下拉；Type 保持原值，State 選 Hover。
 
 ![Variant 的互動：Trigger 選 While hovering，Action 選 Change to，下方選目標 Variant（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-hover-change-to.webp)
 
-5. 在屬性下拉選 Hover。完成後 Default 會以元件內部連線指向 Hover。
+5. 確認 State 下拉是 Hover。完成後 Default 會以元件內部連線指向 Hover。
 6. 回到 Default Variant 再新增一條 Interaction。完成後同一個起始狀態會有第二種觸發。
-7. 將第二條 Trigger 設為 **While pressing**，Action 設為 Change to，目標選 Pressed。完成後按住主要按鈕時會進入 Pressed。
+7. 將第二條 Trigger 設為 **While pressing**，Action 設為 Change to。下方會出現 Type 與 State 兩個下拉；Type 保持原值，State 選 Pressed。完成後按住主要按鈕時會進入 Pressed。
 8. 開啟 Preview，把游標移上登入按鈕。完成後所有使用這個主元件的桌面按鈕都會顯示 Hover。
 9. 按住登入按鈕再放開。完成後會短暫看見 Pressed，放開後依原本 On click 連線前往清單。
 
@@ -204,29 +211,29 @@ Change to 只在同一個元件集的 Variant 之間切換。它改變的是按�
 
 | 表單項目 | 起始狀態 | 互動 | 預覽結果 |
 |---|---|---|---|
-| `Checkbox`（勾選框） | Checked false | On click → Change to → Checked true | 方框出現勾選 |
+| `Checkbox`（勾選框） | Checked false | On click → Change to；Checked 開關切到 true | 方框出現勾選 |
 | `Radio Group`（單選群組） | Selected = 高／中／低 | 三個選項各用 On click → Change to → 對應 Variant | 點任一選項時只保留該項已選 |
-| `Toggle`（開關） | On false | On click → Change to → On true | 底色與圓鈕位置改變 |
+| `Toggle`（開關） | On false | On click → Change to；On 開關切到 true | 底色與圓鈕位置改變 |
 | 文字欄 | `Screen / New Task` | On click → Navigate to → `Screen / New Task Filled` | 欄位 Value 顯示範例內容 |
-| 條件欄位 | `Screen / New Task Filled` 表單 Auto layout 容器裡的 `Hotspot / Reminder` | 不加填色；Ignore auto layout；On click → Navigate to → `Screen / New Task Reminder` | 多出提醒時間欄位 |
+| 條件欄位 | `Screen / New Task Filled` 的直接子層 `Hotspot / Reminder` | 不加填色；位於表單之上；On click → Navigate to → `Screen / New Task Reminder` | 多出提醒時間欄位 |
 | 畫面切換 | 模擬填寫 | Animation = Instant | 內容立即換成已填狀態 |
 
 1. 選取 Checkbox 元件的 Checked false Variant，在 Prototype 新增 On click。做完會出現一條等待點擊的互動。
-2. 將 Action 設為 Change to，目標選 Checked true。做完後，所有勾選框使用處都能由空框切到勾選。
-3. 在 Checked true Variant 加入反向的 On click，目標選 Checked false。做完後，再點一次會回到未勾選。
+2. 將 Action 設為 Change to，將 Checked 的開關樣式切到相反值 true。做完後，所有勾選框使用處都能由空框切到勾選。
+3. 在 Checked true Variant 加入反向的 On click，將 Checked 的開關樣式切到相反值 false。做完後，再點一次會回到未勾選。
 4. 在 `Components` 區放入高、中、低三個 Radio 使用處。把三個使用處包進同一個 Frame。將這個 Frame 做成元件，命名為 `Radio Group`（單選群組）。做完會在元件區看到一個管理整組選項的主元件。
 5. 為 `Radio Group` 建立三個 Variant，將屬性設為 Selected = 高、中、低。做完後，每個 Variant 只有對應的選項呈現已選，其他兩個維持未選。
-6. 在每個 Variant 裡，分別為高、中、低三個選項加入 On click。將 Action 設為 Change to，目標依序選對應的 Selected Variant。做完後，三個 Variant 各有三條群組切換互動。
+6. 在 Design 分頁雙擊進入 `Radio Group` 的某個 Variant，選到其中一個選項的使用處，再切到 Prototype 分頁加互動。Change to 的 Selected 下拉會列出高、中、低三個值，選這個選項對應的值。三個 Variant 各三個選項，共 9 條；點自己那一項的也要設，否則點了沒反應。
 7. 回到 `Screen / New Task`，從 Assets 放入一個 `Radio Group` 使用處。移除原本高、中、低三個 Radio 使用處。做完後，畫面裡會保留一組高、中、低選項，主元件仍留在 `Components` 區。
 8. 自己題目裡的單選也照同樣做法另建群組，例如預約題的寵物體型或點餐題的付款方式。選項文字可以綁成 Text property，也可以直接改各 Variant 的文字。
 9. 開啟 Preview，依序點高、中、低。做完後，每次只會保留最後點選的項目，前一個選項會自動取消。
-10. 連接 Toggle 的 On false／true，並在兩個 Variant 之間加入反向的 On click。做完後，開關能在 Preview 切換自己的狀態。
+10. 連接 Toggle 的 On false／true，並在兩個 Variant 之間加入反向的 On click。Change to 的目標是開關樣式，把 On 切到相反值；做完後，開關能在 Preview 切換自己的狀態。
 11. 打開做表單那一堂建好的 `Screen / New Task Filled`（已填新增任務畫面）。做完會看到各欄已有範例內容，提醒開關仍是 Off。
 12. 在 `Screen / New Task` 的文字欄加入 On click，使用 Navigate to 前往 `Screen / New Task Filled`。做完後，點欄位會立刻顯示範例內容。
 13. 將 Animation 設為 Instant。做完後，畫面不會出現容易被誤認成換頁的轉場。
 14. 打開做表單那一堂建好的 `Screen / New Task Reminder`，並檢查提醒開關是 On。做完會在打開的開關下方看到「提醒時間＊」欄位。
-15. 在 `Screen / New Task Filled` 的表單 Auto layout 容器裡建立一個熱區 Frame，不加填色，再命名為 `Hotspot / Reminder`。做完會在 Layers 看見這個無填色熱區位於表單容器裡。
-16. 選取熱區，在右側開啟 Ignore auto layout。把熱區拖到開關列上方。再把熱區移到最上層。設定 On click → Navigate to → `Screen / New Task Reminder`。保留開關元件自己的 Change to。做完會看見熱區覆蓋開關列，表單欄位的位置維持不變。這個設定在做捲動那一堂還會再用到。
+15. 在畫面上用 F 畫一個 Frame 蓋住開關那一列。它會是畫面的直接子層，不會被表單排進去；不加填色，命名為 `Hotspot / Reminder`（提醒開關熱區），再到 Layers 確認它在表單之上。
+16. 選取熱區，設定 On click → Navigate to → `Screen / New Task Reminder`。保留開關元件自己的 Change to。做完會看見熱區覆蓋開關列，表單欄位的位置維持不變。這個設定在做捲動那一堂還會再用到。
 17. 開啟 Preview，依序測試勾選、單選、開關與文字欄。做完後，每次點擊都會產生可觀察的狀態改變，`Screen / New Task Filled` 也能前往 `Screen / New Task Reminder`。
 
 ## 看兩組按鈕互動，找出狀態對應正確的一組

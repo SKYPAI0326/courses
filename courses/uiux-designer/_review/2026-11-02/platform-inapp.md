@@ -179,3 +179,15 @@ A1（建立檔案、左側圖示列、文字樣式）、A2（Layout guide 位置
 | 底線 | Typography 的 Type settings → Decoration |
 | Cmd+Z | 第一次可能只還原選取狀態 |
 | 從 Layers 選文字按 Enter | 不會進入編輯；在畫布雙擊才會 |
+
+## 第十輪：試跑 B1～B3
+
+| 項目 | 實際結果 |
+|---|---|
+| Prototype 的 Flows 清單 | 單擊流程名稱進入改名；要預覽，滑過名稱點右側播放圖示 |
+| Change to 目標 | 依元件屬性出現對應控制：多個 Variant 屬性就有多個下拉（例如 Type、State）；Boolean 型 Variant 顯示成開關樣式 |
+| 複製畫面 | 畫面內物件的原型連線一起帶到副本 |
+| 改文字內容 | 自動命名的文字圖層會跟著改名（影響 Smart Animate 依名稱配對）——先手動命名再改字 |
+| 在 Auto layout 容器上方用 F 畫 Frame | 新 Frame 成為畫面的直接子層，不在容器裡，所以沒有 Ignore auto layout；當熱區用仍然可以點 |
+| Move in 方向 | 四個箭頭按鈕；「從右邊進來」選 ←（往左移動） |
+| 矩形 | 不能直接打字，文字要另用 T 疊上 |
