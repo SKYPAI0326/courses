@@ -62,13 +62,13 @@ Hover 與 Pressed 是短暫回饋。Hover 適合桌面上的滑鼠游標，手�
 | Primary | Default | `Primary` 底、白字 | 可操作的主要動作 |
 | Primary | Hover | `Primary` 底、白字 | `Primary Soft` 2 px 外框，滑鼠移上回饋 |
 | Primary | Pressed | `Primary Pressed` 底、白字 | 按下當下的主要動作 |
-| Primary | Disabled | `Disabled` 底、`Muted` 字 | 條件未完成的主要動作 |
+| Primary | Disabled | `Disabled` 底、`Disabled Text` 字 | 條件未完成的主要動作 |
 | Secondary | Default | `Card` 底、`Text` 字 | `Border` 1 px 外框，可操作的次要動作 |
 | Secondary | Hover | `Card` 底、`Primary` 字 | `Primary` 2 px 外框，滑鼠移上回饋 |
 | Secondary | Pressed | `Primary Soft` 底、`Text` 字 | `Primary` 1 px 外框，按下當下回饋 |
-| Secondary | Disabled | `Disabled` 底、`Muted` 字 | `Border` 1 px 外框，暫時停用 |
+| Secondary | Disabled | `Disabled` 底、`Disabled Text` 字 | `Border` 1 px 外框，暫時停用 |
 
-共同結構：元件集命名為 `Button`；每個版本高度 48、水平內距 16、圓角 8；`Label` 使用字級 16、行高 24；文字屬性預設值為「登入」。Secondary 的一般外框套用 `Border` 變數，與前面建立的色彩規則一致。
+共同結構：元件集命名為 `Button`；每個版本高度 48、水平內距 16、圓角 8；`Label` 套用 `Type / Label`；文字屬性預設值為「登入」。Secondary 的一般外框套用 `Border` 變數，與前面建立的色彩規則一致。
 
 1. 在元件區的 `Button / Primary` 上按右鍵，選 **Main component → Add variant**。完成後它會變成紫色虛線框住的元件集，裡面有原本版本和一個新版本，既有使用處仍留在各自畫面。
 
@@ -166,7 +166,9 @@ Hover 與 Pressed 是短暫回饋。Hover 適合桌面上的滑鼠游標，手�
 
 ## 換你做：你的題目
 
-現在把同一套方法用在你的題目：先把資料裡的狀態做成標籤元件，再讓主要確認按鈕具備四種 State、顯示開關與圖示交換。
+從你的畫面清單挑出這次對應的畫面。接著把資料裡的狀態做成標籤元件，再讓主要確認按鈕具備四種 State、顯示開關與圖示交換。下面三欄提供可採用的狀態與動作對應；若你的畫面清單採用不同名稱或拆法，以自己的需求初稿為準。
+
+### 三個題目的建議對應
 
 | 預約 | 點餐 | 會員 |
 |---|---|---|
@@ -174,6 +176,7 @@ Hover 與 Pressed 是短暫回饋。Hover 適合桌面上的滑鼠游標，手�
 
 要達成的條件：
 
+- 這次做的畫面在你的畫面清單上；清單沒有的，先補進清單並寫一句理由。
 - 狀態標籤的 Variant 值完全照題目資料，文字與顏色一起傳達狀態。
 - 主要確認按鈕具有 Default、Hover、Pressed、Disabled 四種 State。
 - Pressed 使用較深的主色，Hover 有可看見但不改變尺寸的回饋。

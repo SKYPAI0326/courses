@@ -28,14 +28,14 @@ total_hours: 99h
 | Unit | 內容邊界 | 對應正式項目 | 候選能力區段 | concept | micro_demo | follow_along | guided_practice | independent | check_debug | 合計 | 主要完成物 |
 |---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---|
 | A1 | 視覺基礎：色彩與字型 | 42-01、42-02 | Stage 2 Visual Foundation | 45 | 30 | 75 | 60 | 60 | 30 | 300 | 色彩 token 表、Typography scale、長文字檢查 |
-| A2 | 格線與版面基準 | 42-03 | Stage 3 Layout System | 50 | 40 | 90 | 80 | 65 | 35 | 360 | 桌機／手機格線規格與套用畫面 |
+| A2 | 格線與版面基準 | 42-03 | Stage 3 Layout System | 50 | 40 | 90 | 50 | 35 | 35 | 300 | 桌機／手機格線規格與套用畫面 |
 | A3 | Auto Layout 與內容壓力 | 42-04 | Stage 3 Layout System | 50 | 40 | 85 | 80 | 70 | 35 | 360 | 可承受長文字、增刪項目與寬度變化的手機畫面 |
 | A4 | Component 基礎與 Instance | 42-05 | Stage 4 Component Foundation | 40 | 35 | 75 | 65 | 55 | 30 | 300 | 一組主元件與可辨識的 Instances |
 | A5 | Variants、Properties 與狀態 | 42-12 | Stage 5 Component System | 50 | 45 | 85 | 80 | 65 | 35 | 360 | 元件狀態矩陣、Variants 與同步驗收 |
-| A6 | Button 與 Form | 42-06、42-07 | Stage 6 Core UI Components | 45 | 40 | 85 | 80 | 75 | 35 | 360 | Button／Form 元件、錯誤與修正狀態 |
+| A6 | Button 與 Form | 42-06、42-07 | Stage 6 Core UI Components | 45 | 40 | 115 | 110 | 75 | 35 | 420 | Button／Form 元件、錯誤與修正狀態 |
 | A7 | List 與內容變化 | 42-08 | Stage 6 Core UI Components | 30 | 25 | 55 | 55 | 50 | 25 | 240 | 可增刪、空狀態與長文字列表 |
 | A8 | Toast、Dialog 與 Navigation | 42-09、42-10、42-11 | Stage 7 Navigation & Feedback | 30 | 25 | 55 | 55 | 50 | 25 | 240 | 回饋、彈窗、導航元件與桌機／手機規則 |
-| **Part A subtotal** |  | **12 項** |  | **340** | **280** | **605** | **555** | **490** | **250** | **2520＝42h** |  |
+| **Part A subtotal** |  | **12 項** |  | **340** | **280** | **635** | **555** | **460** | **250** | **2520＝42h** |  |
 
 ## Part B：UI/UX 原型製作與資料打包（57h）
 
@@ -62,6 +62,7 @@ total_hours: 99h
 ## 能力與重複控制
 
 - A4／A5 首次建立元件、Variants、Properties 與狀態；B2／B4 只使用它們完成互動，不重教元件外觀。
+- 2026-11-02 第三輪：A2 由 360 分調為 300 分、A6 由 360 分調為 420 分（獨立審查估算 A2 活動量約 240～300 分、A6 表單控制項後約 450～540 分），Part A 合計不變。
 - A2／A3 首次建立格線與 Auto Layout；B5 將已完成手機介面遷移到滾動、固定與漂浮限制，不重播版面教學。
 - A8 首次建立 Dialog／Navigation 的視覺結構與規則；B4／B5 教 Overlay、置頂與返回行為。
 - B6 是正式課綱「原型應用」的品質驗收支援，不宣稱圖片另列一門測試課程。

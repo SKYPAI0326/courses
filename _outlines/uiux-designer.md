@@ -42,6 +42,8 @@ status: REPAIRED_CONTENT_PENDING_PLATFORM_AND_HUMAN
 
 第二輪擴充（同日，依三位獨立審查員建議）：練習線改為學員自選題目（預約／點餐／會員，`assets/shared/practice/`，含訪談紀錄與12筆資料）；補Variables（顏色與4／8間距）、Constraints與Min／Max／Wrap響應式、元件區與巢狀圖示、按鈕State與Show icon／Icon屬性、表單控制項、圖片填色與載入狀態、頂部標題列與觸控尺寸、B1需求訪談→需求摘要→畫面清單→流程圖、元件Hover／Pressed互動、成功提示After delay自動關閉、B6測試計畫與10條走查、B7標註元件／2x與SVG／作品集頁；Git安裝與GitHub註冊移至課前準備，B8自動產生資料改選做。紀錄：`courses/uiux-designer/_review/2026-11-02/改寫規格書-round2.md`。
 
+第三輪修正（同日，依審查員 D 前五項）：B2 加三題關鍵畫面（預約時段選擇含長服務佔多時段、點餐數量與徽章、會員點數餘額與紀錄）與「串成完整流程」；文字樣式改 5 種並統一 Noto Sans TC、Disabled 拆兩變數、文字欄與任務列與提示元件化；A6 控制項規格表、多行欄、必填與 B2 表單互動；需求初稿前移到 A1、B1 改為深化並補缺頁；B6 加三份虛構觀察紀錄（`assets/B6-prototype-task-test/reference/OBSERVATIONS.html`）、六小時排程與檢查方法；評分表加兩項「解決需求」。時數帳本 A2 300 分、A6 420 分。紀錄：`改寫規格書-round3.md`。
+
 ## 學習與環境邊界
 
 Starter同檔可有多個基本互動；同一trigger堆疊多actions與條件邏輯才是付費範圍。本課不用。免費主線從Design面板量測與Export，不要求Dev Mode。Photoshop需要授權工作站；GitHub Pages需要自己的帳號、公開示範repo與管理權限。
