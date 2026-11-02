@@ -192,18 +192,31 @@ def check_main_wrapper(html: str) -> list:
     return []
 
 
+def _has_tag_attribute(
+    html: str, tag: str, attribute: str, value: str, require_content: bool = False
+) -> bool:
+    pattern = (
+        rf'<{tag}\b(?=[^<>]*?\s+{re.escape(attribute)}\s*=\s*(["\'])'
+        rf'{re.escape(value)}\1)'
+    )
+    if require_content:
+        pattern += r'(?=[^<>]*?\s+content\s*=\s*(["\'])(.*?)\2)'
+    match = re.search(pattern + r'[^<>]*', html, re.IGNORECASE | re.DOTALL)
+    return bool(match and (not require_content or match.group(3).strip()))
+
+
 def check_seo_meta(html: str) -> list:
     issues = []
     required = {
-        'description': r'<meta\s+name=["\']description["\']\s+content=["\'][^"\']+["\']',
-        'og:title': r'<meta\s+property=["\']og:title["\']',
-        'og:description': r'<meta\s+property=["\']og:description["\']',
-        'og:url': r'<meta\s+property=["\']og:url["\']',
-        'og:image': r'<meta\s+property=["\']og:image["\']',
-        'canonical': r'<link\s+rel=["\']canonical["\']',
+        'description': ('meta', 'name', 'description', True),
+        'og:title': ('meta', 'property', 'og:title', False),
+        'og:description': ('meta', 'property', 'og:description', False),
+        'og:url': ('meta', 'property', 'og:url', False),
+        'og:image': ('meta', 'property', 'og:image', False),
+        'canonical': ('link', 'rel', 'canonical', False),
     }
-    for key, pattern in required.items():
-        if not re.search(pattern, html, re.IGNORECASE):
+    for key, (tag, attribute, value, require_content) in required.items():
+        if not _has_tag_attribute(html, tag, attribute, value, require_content):
             issues.append(("ERROR", f"缺 SEO meta: {key}"))
     return issues
 

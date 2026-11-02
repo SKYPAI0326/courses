@@ -52,7 +52,10 @@ COURSE_LABEL = {
 
 TITLE_RE = re.compile(r"<title>(.*?)</title>", re.IGNORECASE | re.DOTALL)
 DESC_RE = re.compile(
-    r'<meta\s+name=["\']description["\']\s+content=["\'](.*?)["\']',
+    r'<meta\b'
+    r'(?=[^<>]*?\s+name\s*=\s*(["\'])description\1)'
+    r'(?=[^<>]*?\s+content\s*=\s*(["\'])(.*?)\2)'
+    r'[^<>]*',
     re.IGNORECASE | re.DOTALL,
 )
 
@@ -93,7 +96,7 @@ def extract(path: Path):
         title = re.sub(r"\s+", " ", m.group(1)).strip()
     m = DESC_RE.search(html)
     if m:
-        desc = re.sub(r"\s+", " ", m.group(1)).strip()
+        desc = re.sub(r"\s+", " ", m.group(3)).strip()
     return title, desc
 
 
