@@ -204,3 +204,16 @@ A1（建立檔案、左側圖示列、文字樣式）、A2（Layout guide 位置
 | 把物件包成 Frame | Cmd+Opt+G（Frame selection）；Ungroup 可拆回 |
 | Fixed 後的 Layers | 出現 FIXED／SCROLLS 分區 |
 | 透明 Frame | F 新建的巢狀 Frame 預設無填色；Sticky 標題若無填色，下面內容會透出來 |
+
+## 第十輪：試跑 B7（實際匯出與下載）
+
+| 項目 | 實際結果 |
+|---|---|
+| 圖層名含「/」的 Frame 匯出 | 下載的是 **zip**（例如「檔名 (1).zip」），圖檔在 zip 內依斜線分層的子資料夾（Overlay/Confirm.png）；按鈕顯示「Export Confirm」 |
+| 1x＋2x 一起匯出 | 同一個 zip 內有 Confirm.png 與 Confirm@2x.png（尺寸剛好兩倍） |
+| 新增第二列匯出設定 | 新列出現在原本那列**上方** |
+| Save local copy | 沒有存檔對話框，直接下載成「檔名.fig」 |
+| 檔案首頁 Import | 在右上 **More** 選單裡 → Import → Import from computer；對話框文字列出圖片、Sketch、PowerPoint、PDF，沒寫 .fig |
+| 套樣式文字的字型字重 | 面板只顯示樣式名與字級／行高；要看字型、字重，點樣式 → Edit style（注意不要改到名稱欄） |
+| Section 範圍內按 F 建 Frame | Frame 會被包進 Section |
+| 課程 PSD 素材 | status-badge.psd 的 Background 圖層**預設已隱藏** |
