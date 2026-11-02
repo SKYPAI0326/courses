@@ -73,13 +73,13 @@ Placeholder 是尚未輸入時放在輸入區內的示意，它會在輸入內�
 | State=Error | `Card` 底；`Error` 1 px 外框；Helper 文字色 `Error` | 錯誤外觀，不預寫錯誤句 |
 | State=Disabled | `Disabled` 底；`Control Border` 1 px 外框；`Disabled Text` 字 | 暫時無法編輯 |
 
-1. 建立 `Field / Label`（欄位標籤），輸入「帳號」；完成後欄位用途會固定顯示在輸入區上方。
-2. 建立 `Field / Value`（欄位內容），輸入「請輸入」；完成後會看到尚未填寫時的提示。
+1. 建立 `Field / Label`（欄位標籤），輸入「帳號」，再套用 `Type / Label`。新文字會沿用上次用過的樣式，每次建立後都要確認並換成這一步指定的樣式；完成後欄位用途會以標籤樣式固定顯示在輸入區上方。
+2. 建立 `Field / Value`（欄位內容），輸入「請輸入」，再套用 `Type / Body`；完成後會以內文樣式看到尚未填寫時的提示。
 3. 選取內容文字按 **Shift+A**，把新外框命名為 `Field / Input`（輸入區），再將寬度固定為 322 並依規格表設定外觀；完成後會先看到一個寬 322 的輸入區。
-4. 建立 `Field / Helper`（欄位提示），輸入「說明文字」；完成後輸入區下方會有可供使用處改寫的文字層。
+4. 建立 `Field / Helper`（欄位提示），輸入「說明文字」，再套用 `Type / Supporting`；完成後輸入區下方會有採輔助文字樣式、可供使用處改寫的文字層。
 5. 同時選取 Label、Input 與 Helper，按 **Shift+A**，把新外框暫時命名為 `Field / Draft`（欄位草稿），再把外層 W 設為 322。多選包框的 Padding 會是 0，保持原值即可。把 Gap 改成 8，再綁定 `Space 8`。接著將 `Field / Label`、`Field / Input` 與 `Field / Helper` 改成 Fill container；完成後三個子層會以一致間距垂直排列，標籤、輸入區與提示文字的左右邊緣也會對齊外層欄位。
 6. 選取帳號欄，按右鍵選 **Create component**，再命名為 `Field`（文字欄位）；完成後 Default 來源會先保留完整結構。
-7. 選取主元件，在 Properties 按加號建立 `Label`、`Value`、`Helper` 三個 Text property，預設值依序填「帳號」「請輸入」「說明文字」；完成後元件會有三個可改文字的欄位。
+7. 選取主元件，在 Properties 按加號建立 `Label`、`Value`、`Helper` 三個 Text property，預設值依序填「帳號」「請輸入」「說明文字」。也可以選取各文字層，從 Content 旁的圖示直接建立並綁定對應的 Text property；完成後元件會有三個可改文字的欄位。
 8. 將三個文字層依序綁定同名屬性，再為 Helper 的可見性建立 Boolean property `Show helper`，預設設為 False；完成後一般使用處不會先顯示說明句。
 9. 在 Default 完成文字與顯示屬性綁定後，按右鍵選 **Main component → Add variant**，再用元件集下方的加號建立另外兩個 Variant；完成後四個版本都會帶著相同綁定。
 10. 將預設屬性改名為 State，四個值命名為 Default、Focus、Error、Disabled；完成後使用處能從右側切換完整欄位狀態。

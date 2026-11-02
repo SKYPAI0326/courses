@@ -64,30 +64,30 @@ Hover 與 Pressed 是短暫回饋。Hover 適合桌面上的滑鼠游標，手�
 | Primary | Pressed | `Primary Pressed` 底、白字 | 按下當下的主要動作 |
 | Primary | Focus | `Primary` 底、白字 | 外加 2 px `Focus Ring` 描邊，Stroke 選 Outside |
 | Primary | Disabled | `Disabled` 底、`Disabled Text` 字 | 圖示 Stroke 套用 `Disabled Text`，條件未完成 |
-| Secondary | Default | `Card` 底、`Text` 字 | `Control Border` 1 px 外框，可操作的次要動作 |
-| Secondary | Hover | `Primary Soft` 底、`Primary` 字 | `Control Border` 1 px 外框，滑鼠移上回饋 |
-| Secondary | Pressed | `Primary Soft` 底、`Text` 字 | `Control Border` 1 px 外框，按下當下回饋 |
+| Secondary | Default | `Card` 底、`Text` 字 | `Control Border` 1 px 外框；Inside stroke 設為 Excluded；可操作的次要動作 |
+| Secondary | Hover | `Primary Soft` 底、`Primary` 字 | `Control Border` 1 px 外框；Inside stroke 設為 Excluded；滑鼠移上回饋 |
+| Secondary | Pressed | `Primary Soft` 底、`Text` 字 | `Control Border` 1 px 外框；Inside stroke 設為 Excluded；按下當下回饋 |
 | Secondary | Focus | `Card` 底、`Text` 字 | 外加 2 px `Focus Ring` 描邊，Stroke 選 Outside |
-| Secondary | Disabled | `Disabled` 底、`Disabled Text` 字 | `Control Border` 1 px 外框；圖示 Stroke 套用 `Disabled Text` |
+| Secondary | Disabled | `Disabled` 底、`Disabled Text` 字 | `Control Border` 1 px 外框；Inside stroke 設為 Excluded；圖示 Stroke 套用 `Disabled Text` |
 
 共同結構：元件集命名為 `Button`；每個版本高度 48、水平內距 16、圓角 8；`Label` 套用 `Type / Label`；文字屬性預設值為「登入」。Primary 的 Default、Hover、Pressed、Focus 圖示 Stroke 使用白色 `Card`；Secondary 的四個可操作狀態使用 `Text`。兩種 Type 的 Disabled 圖示 Stroke 都改用 `Disabled Text`：它在 `Disabled` 底色上有 5.18:1 對比，白色圖示在同一底色上只有 1.23:1，看不清。Secondary 的 Default、Hover、Pressed、Disabled 外框都套用 `Control Border` 變數，與表單控制項的邊界規則一致。
 
-1. 在元件區的 `Button / Primary` 上按右鍵，選 **Main component → Add variant**。完成後它會變成紫色虛線框住的元件集，裡面有原本版本和一個新版本，既有使用處仍留在各自畫面。
+1. 在元件區的 `Button / Primary` 上按右鍵，選 **Main component → Add variant**。Figma 會自動把元件集命名為 `Button`，原本版本的屬性值會帶入 Primary；完成後它會變成紫色虛線框住的元件集，裡面有原本版本和一個新版本，既有使用處仍留在各自畫面。
 
 ![右鍵 → Main component → Add variant（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-add-variant-menu.webp)
 
-2. 點虛線框下方的 **＋** 繼續增加版本，直到共有十個。完成後十個版本都從相同結構開始。
+2. 先把元件集旁邊的 `Tags` 移開，替往下新增的版本留出空間。再點虛線框下方的 **＋** 繼續增加版本，直到共有十個；完成後十個版本會往下排列，並從相同結構開始。
 
 ![元件集外框是紫色虛線，下方 ＋ 可再加版本；右側 Properties 顯示屬性（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-component-set.webp)
 
-3. 將元件集命名為 `Button`；完成後，Layers（圖層面板）與 Assets（元件資產面板）會顯示一致的家族名稱。
+3. 確認元件集名稱是 `Button`；完成後，Layers（圖層面板）與 Assets（元件資產面板）會顯示一致的家族名稱。
 4. 選取元件集，在 Properties（屬性區塊）點 **＋**，選 **Variant**，把新屬性命名為 State；完成後，元件集會有兩個可整理的 Variant 屬性。
 
 ![Properties 的 ＋ 開啟 Create property 選單：Variant、Text、Boolean、Instance swap、Slot（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-create-property-menu.webp)
 
 5. 將原有屬性（Figma 預設叫 Property 1）命名為 Type；完成後，右側會以 Type 與 State 描述版本。
-6. 逐一選取十個版本，填入規格表中的角色與狀態；完成後，每一組 Type 與 State 只出現一次。
-7. 依規格表調整十個版本的顏色、圖示與外框，並把兩個 Disabled 版本的圖示向量 Stroke 套用 `Disabled Text`；完成後，主要與次要的層級差異仍清楚，Hover、Pressed、Focus 與 Disabled 也能被辨認。
+6. 逐一選取十個版本，填入規格表中的角色與狀態。屬性值已存在時，從欄位的下拉選單選取，不要直接打字；完成後，每一組 Type 與 State 只出現一次。
+7. 依規格表調整十個版本的顏色、圖示與外框，並把兩個 Disabled 版本的圖示向量 Stroke 套用 `Disabled Text`。Secondary 加上 1 px 外框後，到 Auto layout 進階設定把 **Inside stroke** 改成 **Excluded**；完成後，主要與次要的層級差異仍清楚，Hover、Pressed、Focus 與 Disabled 也能被辨認，按鈕高度會維持 48。
 8. 選取元件集，在 Properties 點 **＋** 選 **Text**，名稱填 Label，預設值填「登入」，再按 **Create property**；完成後，元件集會出現可編輯的文字屬性。
 
 ![Create property 視窗：填 Name 與 Value，按 Create property（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-text-property-dialog.webp)
@@ -131,10 +131,10 @@ Hover 與 Pressed 是短暫回饋。Hover 適合桌面上的滑鼠游標，手�
 
 ![Appearance 標題列的 Apply variable/property 圖示，按 ＋ 開啟 Create property 視窗，預設值 True（紅框）；截圖以文字層示範，圖示層的入口相同](../../courses/uiux-designer/assets/shared/ui/figma-boolean-property.webp)
 
-3. 選 Create 為 Property，把 Name 改成 `Show icon`，Value 保持 True，再按建立；完成後，元件集 Properties 會出現 Boolean 屬性。
+3. 選 Create 為 Property。Boolean 的預設名稱會是「Show 圖層名」；把 Name 改成 `Show icon`，Value 保持 True，再按建立。完成後，元件集 Properties 會出現名稱一致的 Boolean 屬性。
 4. 將其他九個 Variant 的對應圖示層連到同一個 `Show icon`；完成後，切換狀態時會保留使用處的顯示選擇。
 5. 選取元件集，在 Properties 按 **＋** 選 **Instance swap**，名稱填 `Icon`，預設值選 `Icon / Check`，再按 **Create property**；完成後，元件集 Properties 會顯示預設為 `Icon / Check` 的 `Icon` 屬性。
-6. 逐一選取各 Variant 裡的圖示使用處，在右側使用處名稱列的屬性圖示把它綁到 `Icon`，入口位置以畫面為準；完成後，十個版本會共享同一個圖示選擇。
+6. 逐一選取各 Variant 裡的圖示使用處，點右側名稱列上的 **Apply instance swap property** 圖示，再把它綁到 `Icon`；完成後，十個版本會共享同一個圖示選擇。
 7. 從 Assets 插入新的 Button 使用處；完成後，右側會同時出現 `Show icon` 開關與 `Icon` 下拉。
 8. 關閉 `Show icon`；完成後，圖示消失，Auto Layout 會收回圖示與文字之間的 Gap，Label 仍置中。
 9. 再打開 `Show icon`，把 `Icon` 從 `Icon / Check` 換成 `Icon / Plus`；完成後，只有這個使用處換圖示，其他按鈕維持原選擇。
@@ -144,12 +144,12 @@ Hover 與 Pressed 是短暫回饋。Hover 適合桌面上的滑鼠游標，手�
 
 ## 把主線元件複製給自己的題目
 
-按鈕元件集的 `Show icon` 與 `Icon` 屬性完成後，這一節要把同一套結構帶到自己的題目，再把顏色來源換成題目集合。這樣題目副本會帶有兩個圖示屬性，主線改顏色也不會影響題目，題目不必從頭做十個 Variant。
+按鈕元件集的 `Show icon` 與 `Icon` 屬性完成後，這一節要把同一套結構帶到自己的題目，再把顏色來源換成題目集合。題目的顏色集合是在最初建立題目畫面時的「換你做」建立的；還沒建的話，先照那一節建好題目集合再做這一步。這樣題目副本會帶有兩個圖示屬性，主線改顏色也不會影響題目，題目不必從頭做十個 Variant。
 
 1. 在手機畫面外按 **Shift+S** 建立 Section，命名為 `Components / 你的題目名`，例如 `Components / Booking`；完成後，畫布上會看見一個有題目名稱的元件區。先前已有同名元件區時直接沿用。
 2. 在 Layers 選取主線按鈕的**整個元件集**（圖層名 `Button`，選外層的元件集本身），按 **Cmd／Ctrl+D**，再把新的元件集拖進題目元件區；完成後，元件區會看見一份完整的十種組合，選取副本時右側 Properties 會顯示 `Show icon` 與 `Icon`。只選單一主元件按 Cmd／Ctrl+D 得到的是使用處，所以一定要選整個元件集。
 3. 把貼上的新元件集改名，例如將 `Button` 改成 `Booking / Button`；完成後，題目元件會和主線來源分開命名，並在 Assets 收進 `Booking` 這個題目家族。
-4. 選取新的元件集，在右側 **Selection colors** 點一個 `Studio` 變數色塊，進入 **Libraries**，再選題目集合裡的同名變數；完成後，元件集裡使用這個顏色的地方會一起換綁。
+4. 選取新的元件集。**Selection colors** 預設會摺疊成一排色塊，先點標題展開清單。點一個 `Studio` 變數色塊，進入 **Libraries**，再選題目集合裡的同名變數；若搜尋清單同時出現兩個集合的同名變數，看清楚變數旁的集合名稱再選。完成後，元件集裡使用這個顏色的地方會一起換綁。
 
 ![選取元件集後，Selection colors 列出用到的變數；點色塊在 Libraries 換成題目的變數（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-selection-colors-swap.webp)
 

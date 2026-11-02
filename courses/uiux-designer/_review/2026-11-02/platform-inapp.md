@@ -128,3 +128,22 @@ A1（建立檔案、左側圖示列、文字樣式）、A2（Layout guide 位置
 | W 欄 Fixed | 沒有「Fixed」選項字樣；直接輸入一個數字就是固定寬度 |
 | ⇧S Section | 拖出多大就是多大；手機畫面放進去前要先拉大 Section |
 | 用 T 點到既有文字 | 會在那段文字裡插入，不會新建文字層 |
+
+## 第十輪：試跑 A4～A6（A4、A5 完整，A6 做到示範第 9 步）
+
+| 項目 | 實際結果 |
+|---|---|
+| 主元件拖出 Auto layout 父層 | 原本 Fill container 的寬度變成固定值（實測 322） |
+| Assets「Created in this file」 | 先列出頁面名稱，點進頁面才看到元件；網格顯示短名稱（Primary、Check），交換圖示面板才看到 Icon 群組 |
+| 選單一使用處按 Cmd+D | 副本與原本完全重疊 |
+| 套了文字樣式的文字 | 右側只顯示樣式名，沒有字重欄；要 Detach style 才能改 |
+| Reset instance | 文字、填色之外，圖層名與寬度設定也回到主元件 |
+| Go to main component | 「From this file」旁平常是菱形圖示，滑鼠移上去才變箭頭 |
+| Add variant | 元件集自動命名為主元件第一段（Button / Primary → Button），原版本屬性值自動帶 Primary；之後 ＋ 新增的版本往下長 |
+| 填 Variant 屬性值 | 在欄位直接打已存在的值可能掉字，從下拉選單選較穩 |
+| 加 1 px Inside 描邊 | Auto layout 高度從 48 變 50；Auto layout 進階設定裡 **Inside stroke** 改 **Excluded** 才回 48 |
+| 多個 Variant 的文字 | 可一次多選後綁同一個 Text property |
+| Boolean 預設名稱 | 「Show 圖層名」（例如 Show Icon / Check），要自己改 |
+| Instance swap 綁定 | 選圖示使用處，名稱列的第三個圖示（提示 Apply instance swap property） |
+| Selection colors | 預設摺疊成一排色塊加「+N」，點標題展開成清單 |
+| 匯入 SVG | 變成名為 icon-check 1 的 Frame，內含 Vector；單一路徑按 Cmd+E 不會有變化 |
