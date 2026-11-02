@@ -27,6 +27,7 @@ import json
 import re
 import subprocess
 import sys
+from html.parser import HTMLParser
 from pathlib import Path
 from course_paths import is_public_html, iter_public_html, is_explicit_lint_target
 
@@ -362,6 +363,136 @@ def check_font_size_tier(html: str) -> list:
             return [("WARN", f"非 V4 15 階字型值（tokens §2 外）：{', '.join(unique[:3])} 等 {len(unique)} 個")]
         return [("WARN", f"非 V4 15 階字型值（tokens §2 外）：{', '.join(unique)}")]
     return []
+
+
+def check_copy_button_parent_padding(html: str) -> list:
+    """絕對定位的複製按鈕，其直接父容器須保留至少 72px 右側空間。"""
+    css_rules = []
+    absolute_copy_classes = set()
+    for css in re.findall(r'<style\b[^>]*>([\s\S]*?)</style>', html, re.IGNORECASE):
+        css = re.sub(r'/\*[\s\S]*?\*/', '', css)
+        for match in re.finditer(r'([^{}]+)\{([^{}]*)\}', css):
+            selectors, declarations = match.groups()
+            props = []
+            for declaration in declarations.split(';'):
+                if ':' not in declaration:
+                    continue
+                prop, value = declaration.split(':', 1)
+                props.append((prop.strip().lower(), value.strip()))
+            for selector in selectors.split(','):
+                selector = selector.strip()
+                classes = set(re.findall(r'(?<![\w-])\.([\w-]+)', selector))
+                if 'copy' in selector.lower() and any(
+                    prop == 'position' and re.match(r'absolute\b', value, re.I)
+                    for prop, value in props
+                ):
+                    absolute_copy_classes.update(c for c in classes if 'copy' in c.lower())
+                css_rules.append((selector, props))
+
+    class ElementParents(HTMLParser):
+        void_tags = {'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
+                     'link', 'meta', 'param', 'source', 'track', 'wbr'}
+
+        def __init__(self):
+            super().__init__()
+            self.stack = []
+            self.matches = []
+
+        def handle_starttag(self, tag, attrs):
+            attrs = dict(attrs)
+            classes = set(attrs.get('class', '').split())
+            parent = self.stack[-1] if self.stack else None
+            inline_absolute = bool(re.search(
+                r'(?:^|;)\s*position\s*:\s*absolute\b', attrs.get('style', ''), re.I
+            ))
+            if (classes & absolute_copy_classes) or (
+                inline_absolute and any('copy' in c.lower() for c in classes)
+            ):
+                self.matches.append((tag.lower(), classes, parent))
+            if tag.lower() not in self.void_tags:
+                self.stack.append((tag.lower(), classes, attrs.get('id', ''), attrs.get('style', '')))
+
+        def handle_startendtag(self, tag, attrs):
+            self.handle_starttag(tag, attrs)
+            if tag.lower() not in self.void_tags and self.stack:
+                self.stack.pop()
+
+        def handle_endtag(self, tag):
+            tag = tag.lower()
+            for index in range(len(self.stack) - 1, -1, -1):
+                if self.stack[index][0] == tag:
+                    del self.stack[index:]
+                    break
+
+    parser = ElementParents()
+    parser.feed(html)
+    parser.close()
+
+    def selector_matches(selector, tag, classes, element_id):
+        selector = selector.strip()
+        if not selector or any(char in selector for char in '>+~[]') or '(' in selector:
+            return False
+        base = re.sub(r'::?[\w-]+', '', selector).strip()
+        if not base or re.search(r'\s', base):
+            return False
+        tag_match = re.match(r'^([a-zA-Z][\w-]*)', base)
+        expected_tag = tag_match.group(1).lower() if tag_match else None
+        selector_classes = set(re.findall(r'(?<![\w-])\.([\w-]+)', base))
+        selector_ids = set(re.findall(r'(?<![\w-])#([\w-]+)', base))
+        if expected_tag is None and not selector_classes and not selector_ids:
+            return False
+        return (expected_tag is None or expected_tag == tag) and selector_classes <= classes and selector_ids <= {element_id}
+
+    def padding_right_px(value, shorthand=False):
+        value = re.sub(r'\s*!important\s*$', '', value, flags=re.I).strip()
+        values = value.split()
+        if shorthand:
+            if not 1 <= len(values) <= 4:
+                return None
+            value = values[0] if len(values) == 1 else values[1]
+        match = re.fullmatch(r'(\d+(?:\.\d+)?)px', value, re.I)
+        return float(match.group(1)) if match else None
+
+    missing = {}
+    for _, _, parent in parser.matches:
+        if not parent:
+            continue
+        parent_tag, parent_classes, parent_id, parent_style = parent
+        winner = None
+        for order, (selector, props) in enumerate(css_rules):
+            if not selector_matches(selector, parent_tag, parent_classes, parent_id):
+                continue
+            specificity = (len(re.findall(r'(?<![\w-])#[\w-]+', selector)),
+                           len(re.findall(r'(?<![\w-])[.#][\w-]+', selector)),
+                           int(bool(re.match(r'^\s*[a-zA-Z][\w-]*', selector))))
+            for prop, value in props:
+                if prop not in ('padding', 'padding-right'):
+                    continue
+                important = bool(re.search(r'!important\s*$', value, re.I))
+                right = padding_right_px(value, shorthand=(prop == 'padding'))
+                priority = (int(important), 0, *specificity, order)
+                if right is not None and (winner is None or priority >= winner[0]):
+                    winner = (priority, right)
+        for declaration in parent_style.split(';'):
+            if ':' not in declaration:
+                continue
+            prop, value = declaration.split(':', 1)
+            prop = prop.strip().lower()
+            if prop not in ('padding', 'padding-right'):
+                continue
+            important = bool(re.search(r'!important\s*$', value, re.I))
+            right = padding_right_px(value, shorthand=(prop == 'padding'))
+            priority = (int(important), 1, 0, 0, 0, len(css_rules) + 1)
+            if right is not None and (winner is None or priority >= winner[0]):
+                winner = (priority, right)
+        if winner is None or winner[1] < 72:
+            signature = '.' + '.'.join(sorted(parent_classes)) if parent_classes else f'<{parent_tag}>'
+            missing[signature] = missing.get(signature, 0) + 1
+
+    return [
+        ('WARN', f'絕對定位複製按鈕的父容器 {parent_class} 未保留至少 72px 右側 padding（{count} 處）')
+        for parent_class, count in sorted(missing.items())
+    ]
 
 
 # ── v3 規則（2026-04-19 追加，additive 不取代既有）──────────
@@ -885,6 +1016,10 @@ def lint_file(path: Path) -> list:
             issues.extend(rule(html))
         except Exception as e:
             issues.append(("WARN", f"規則 {rule.__name__} 執行失敗: {e}"))
+    try:
+        issues.extend(check_copy_button_parent_padding(html))
+    except Exception as e:
+        issues.append(("WARN", f"規則 check_copy_button_parent_padding 執行失敗: {e}"))
     # gen-ai-140h-specific 規則（path-aware；自帶 scope 篩，不套其他課程）
     for rule in GEN140_RULES:
         try:

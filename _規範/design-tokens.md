@@ -186,6 +186,8 @@ V4 CCS 語彙分為 4 組尺度，每組內有細微階差以支援編輯式節�
 | Inline Code | `.inline-code` | 行內程式碼 |
 | Step Tip | `.step-tip` | 步驟提示 |
 
+**複製按鈕定位**：使用 `position:absolute` 的複製按鈕時，直接父容器需保留至少 `72px` 右側空間（`padding-right:72px`；也可用 `padding:14px 72px 14px 16px`），避免按鈕遮住內容。`docs/lint-page.py` 會檢查此規則。
+
 ### 程式碼語法高亮（`.code-block` 內）
 
 | Class | 顏色 | 用途 |
