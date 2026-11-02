@@ -66,27 +66,27 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 
 | 畫面或區塊 | 圖層名 | 尺寸或位置 | 格線與用途 |
 |---|---|---|---|
-| 手機登入畫面 | `Screen / Login` | 402 × 874 | 4 欄、左右邊界 24、溝槽 12 |
+| 手機登入畫面 | `Screen / Login` | 402 × 874 | 4 欄、Type 維持 Stretch、左右邊界 24、溝槽 12 |
 | 手機登入卡片 | `Login / Card` | x 24、y 120、W 354、H 160 | 父層是 `Screen / Login`；內含說明、提示與主要動作 |
 | 既有標題 | `Title` | 開始時父層是 `Login / Card` | 上次已做好的「登入工作室」；本堂移出卡片後改名 |
 | 畫面上方標題 | `Screen / Heading` | x 24、y 64；父層是 `Screen / Login` | 由 `Title` 移出卡片後改名，用來練習 Constraints |
 | 訊息文字 | `Message` | x 16、y 16 | 從原位置往上移 48 |
 | 輔助提示 | `Hint` | x 16、y 56 | 從原位置往上移 48 |
 | 主要按鈕 | `Button / Draft` | x 16、y 94、W 322、H 48 | 從原位置往上移 48 |
-| 手機半寬區一 | `Reference / Half 1` | x 24、y 914、W 171、H 120 | 主線 Section 內、手機畫面外；並排內容測試 |
-| 手機半寬區二 | `Reference / Half 2` | x 207、y 914、W 171、H 120 | 主線 Section 內、手機畫面外；與前區相隔一個溝槽 |
-| 桌面參考畫面 | `Screen / Desktop reference` | 1440 × 900 | 12 欄、左右邊界 120、溝槽 24 |
+| 手機半寬區一 | `Reference / Half 1` | x 24、y 914、W 171、H 120 | 以 `Screen / Login` 在 Section 內 x 0、y 0 為基準；並排內容測試 |
+| 手機半寬區二 | `Reference / Half 2` | x 207、y 914、W 171、H 120 | 以 `Screen / Login` 在 Section 內 x 0、y 0 為基準；與前區相隔一個溝槽 |
+| 桌面參考畫面 | `Screen / Desktop reference` | 1440 × 900 | 12 欄、Type 維持 Stretch、左右邊界 120、溝槽 24 |
 | 桌面格線算式 | — | 每欄 `(1440－120 × 2－24 × 11) ÷ 12＝78` | 跨 4 欄為 384；跨 8 欄為 792 |
 | 桌面主內容 | `Desktop / Main` | x 120、y 120、W 792、H 540 | 用 Frame（F）建立；跨 8 欄，放待處理清單 |
 | 清單參考卡片 | `Reference / List Card` | x 0、y 56、W 384、H 120 | 位置以 `Desktop / Main` 為基準；跨 4 欄 |
 | 詳情參考卡片 | `Reference / Detail Card` | x 0、y 200、W 792、H 320 | 位置以 `Desktop / Main` 為基準；跨 8 欄 |
-| 桌面側區 | `Desktop / Aside` | x 936、y 120、W 384 | 跨 4 欄，放今日提醒 |
+| 桌面側區 | `Desktop / Aside` | x 936、y 120、W 384、H 540；標題 y 16 | 跨 4 欄，放今日提醒 |
 
 1. 選取 `Screen / Login`（手機登入畫面），在右側 Design 面板最下方的 Layout guide 區塊點 **＋**（Add layout guide）；完成後，畫面上會出現預設的參考格。
 
 ![Layout guide 區塊的 ＋（Add layout guide）；新增後預設類型是 Grid（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-layout-guide-add.webp)
 
-2. 把類型下拉選單從預設的 **Grid** 改成 **Columns**，再輸入手機格線規格；完成後，畫面會被分成四個直向欄位。
+2. 把類型下拉選單從預設的 **Grid** 改成 **Columns**，Type 維持預設的 **Stretch**，再輸入手機格線規格；完成後，畫面會被分成四個直向欄位。
 
 ![類型改成 Columns 後，依序填 Count、Type、Margin、Gutter（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-layout-guide-columns.webp)
 
@@ -95,11 +95,11 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 5. 依規格表設定畫面上方標題的位置；完成後，「登入工作室」會位於畫面 x 24、y 64。
 6. 同時選取卡片裡的 `Message`、`Hint` 與 `Button / Draft`，按 **Shift+↑** 四次，再按 **↑** 八次（共上移 48）；完成後，三個子層的 Y 依序為 16、56、94。
 7. 把登入卡片的 H 改成 160；完成後，白色卡片會縮短並包住說明、提示與主要按鈕。
-8. 在主線 Section 內、手機畫面外的空白處用 **R** 建立兩個半寬參考區，依規格表設定位置與尺寸；完成後，兩區之間會剛好保留一個溝槽，並且不會蓋住登入畫面。
-9. 在手機畫面旁建立 `Screen / Desktop reference`（桌面參考畫面），再加入 Columns 類型的桌面格線；完成後，桌面會有十二欄與更寬的兩側邊界。
+8. 在主線 Section 內、手機畫面外的空白處用 **R** 建立兩個半寬參考區，依規格表設定位置與尺寸。這組座標以 `Screen / Login` 在 Section 內 x 0、y 0 為基準；若你的手機不在左上角，改放在手機框下方 40 的位置。完成後，兩區之間會剛好保留一個溝槽，並且不會蓋住登入畫面。
+9. 先把主線 Section 拉寬到 3000 以上。在手機畫面旁建立 `Screen / Desktop reference`（桌面參考畫面），再加入 Columns 類型、Type 維持 Stretch 的桌面格線；完成後，桌面畫面會完整留在 Section 內，並有十二欄與更寬的兩側邊界。
 10. 按 **F** 建立 `Desktop / Main`（桌面主內容區），依規格表設定位置與尺寸；完成後，桌面左側會出現符合規格表、跨八欄的 Frame。
-11. 在桌面主內容區放入待處理清單標題，再依規格表建立兩張參考卡片；完成後，兩張卡片會位於規格表座標，並對齊主內容區左緣。
-12. 建立 `Desktop / Aside`（桌面側區），放入「今日提醒」與一段短說明；完成後，桌面會形成左主右輔的雙區配置。
+11. 在桌面主內容區放入待處理清單標題，再按 **F** 依規格表建立兩張參考卡片；完成後，兩張卡片會位於規格表座標，並對齊主內容區左緣。
+12. 按 **F** 建立 `Desktop / Aside`（桌面側區），依規格表設為 H 540，再把「今日提醒」標題放在 y 16 並加入一段短說明；完成後，側區高度會與 `Desktop / Main` 一致，桌面形成左主右輔的雙區配置。
 13. 關閉兩個畫面的格線，檢查標題、卡片與區塊邊界；完成後，即使參考線已隱藏，內容仍會呈現一致秩序。
 
 手機計算可以用一個例子確認方法：畫面寬度扣掉左右邊界，再扣掉三個溝槽，剩餘寬度平均分給四欄，因此每欄是 79.5。跨兩欄時要加回中間的一個溝槽，所以得到 171；跨四欄則是完整內容寬 354。這個算式只示範一次，後面的尺寸都回到規格表查。
@@ -114,7 +114,7 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 
 這一節要少看數值、多看內容。你會沿用示範建立好的格線，自行決定三種內容如何占用欄位，再從結果反推理由。
 
-1. 複製手機登入卡片裡的 `Message`，把副本拖到卡片外的空白處，再改成較長的用途說明。用副本判斷內容適合跨滿內容區或只占部分欄位，觀察自然換行後刪除副本；完成後，正式登入卡片仍只包含 `Message`、`Hint` 與 `Button / Draft` 三個子層，原本的短句也會保留。
+1. 複製手機登入卡片裡的 `Message`，把副本拖到卡片外的空白處。先把副本的文字尺寸模式改為 **Auto height**，再把 W 設為 322，並改成較長的用途說明。用副本判斷內容適合跨滿內容區或只占部分欄位，觀察自然換行後刪除副本；完成後，副本曾在 322 px 寬度內完整換行，正式登入卡片仍只包含 `Message`、`Hint` 與 `Button / Draft` 三個子層，原本的短句也會保留。
 2. 在桌面主內容區加入「整理交付包」與一段期限說明，判斷這筆資料應留在主區或移到側區；完成後，資訊密度應符合所選區域的寬度。
 3. 在桌面側區加入兩則短提醒，調整它們的排列，使左緣與側區格線一致；完成後，提醒會形成獨立但整齊的一組。
 4. 把桌面左右兩區想像成手機上下排列，先寫下主區與側區誰在前面；完成後，閱讀順序會有一個和工作任務相關的理由。
@@ -145,7 +145,7 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 
 1. 在 Layers 找到 `Screen / Heading`；完成後，你會確認它是 `Screen / Login` 的直接子層，畫面只保留原來那一個「登入工作室」。
 2. 展開 `Login / Card`，確認裡面只有 `Message`、`Hint` 與 `Button / Draft`；完成後，Layers 會顯示三個子層依序位於卡片內。
-3. 選取畫面上方標題，點 X／Y 右側的小圖示展開 Constraints，把水平設定為 **Left + Right**；完成後，右側會顯示標題同時參考畫面左右兩邊。
+3. 選取畫面上方標題，在 Position 下方的 Constraints 下拉選單把水平設定為 **Left + Right**。若沒看到 Constraints，點 X／Y 右側的小圖示展開；完成後，右側會顯示標題同時參考畫面左右兩邊。
 
 ![X／Y 右側的小圖示展開 Constraints，水平方向可選 Left、Right、Left + Right、Center、Scale（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-constraints.webp)
 
