@@ -31,9 +31,9 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 
 工作室的登入畫面需要醒目的「登入」，確認彈窗需要「確認完成」與「取消」。同一顆按鈕還會經過滑鼠移上、按下和暫時無法操作等狀態；若每遇到一種情況就另做一顆按鈕，外觀很快就會分歧。這堂要把同一家族整理成可選版本，讓設計者能選角色、選狀態，也能決定是否顯示圖示。
 
-這項工作會接著使用上次放在 `Components` 裡的按鈕來源與巢狀圖示。開始前先看[本堂起始材料](../../courses/uiux-designer/assets/A5-variants-properties/START-HERE.html)，確認按鈕仍保有 Auto Layout（自動排版）、`Label` 文字層與圖示使用處；做完後再開[完成檢查表](../../courses/uiux-designer/assets/A5-variants-properties/reference/EXPECTED-CHECK.html)，逐一切換十種組合。沒有上次成果時，先回到[改一次來源，讓多個按鈕一起更新](CH4-component-instance.html)，依該頁規格表補做主要按鈕、兩個使用處與巢狀圖示，約需 20～30 分鐘。
+這項工作會接著使用上次放在 `Components` 裡的按鈕來源與巢狀圖示。開始前先看[本堂起始材料](../../courses/uiux-designer/assets/A5-variants-properties/START-HERE.html)，確認按鈕仍保有 Auto Layout（自動排版）、`Label` 文字層與圖示使用處；做完後再開[完成檢查表](../../courses/uiux-designer/assets/A5-variants-properties/reference/EXPECTED-CHECK.html)，逐一切換十種組合。沒有上次成果時，先回到[改一次來源，讓多個按鈕一起更新](CH4-component-instance.html)，依該頁規格表補做主要按鈕、登入使用處與巢狀圖示，約需 20～30 分鐘。
 
-先選取兩個既有使用處，確認它們仍能跟著主元件的圓角更新。接著回到主元件，檢查按鈕的高度、左右內距、字級、圓角與圖示位置。可靠的來源會成為十個 Variant 的共同結構，避免每個狀態長成不同尺寸。
+先選取既有的登入使用處，確認它仍能跟著主元件的圓角更新。接著回到主元件，檢查按鈕的高度、左右內距、字級、圓角與圖示位置。可靠的來源會成為十個 Variant 的共同結構，避免每個狀態長成不同尺寸。
 
 ## 先分清楚：角色和互動狀態回答不同問題
 
@@ -51,7 +51,7 @@ Variant（變體）把同一元件在不同條件下的版本整理成可選組�
 
 Hover 與 Pressed 是短暫回饋。Hover 適合桌面上的滑鼠游標，手機沒有滑鼠經過的狀態；Pressed 則對桌面和手機都有意義，因為它讓使用者在按下那一刻知道系統收到動作。Focus 服務鍵盤操作；使用者按 Tab 移動時，靠按鈕外的焦點圈辨認目前停在哪裡。之後建立原型時，這些 Variant 會成為互動的目標，現在先把視覺差異與命名準備好。
 
-同一個 State 在兩種 Type 上可以有不同外觀，但回饋強度要一致。Primary 的 Hover 改用 `Primary Hover` 底色，Pressed 改用較深的 `Primary Pressed`；Secondary 的 Hover 使用 `Primary Soft` 底色，Pressed 也以淺底搭配較明顯外框。兩種角色的 Focus 都在按鈕外加 2 px `Focus Ring`，並與按鈕保留 2 px 間隔；可用 Stroke 的 Outside 呈現。所有狀態都保留原本尺寸，使用者不會因滑過、按下或取得焦點看到按鈕跳動。
+同一個 State 在兩種 Type 上可以有不同外觀，但回饋強度要一致。Primary 的 Hover 改用 `Primary Hover` 底色，Pressed 改用較深的 `Primary Pressed`；Secondary 的 Hover 使用 `Primary Soft` 底色，Pressed 使用 `Primary Soft` 底色與 1 px `Control Border` 外框。兩種角色的 Focus 都在按鈕外加 2 px `Focus Ring` 描邊，Stroke 選 **Outside**。所有狀態都保留原本尺寸，使用者不會因滑過、按下或取得焦點看到按鈕跳動。
 
 ## 示範：建立十種按鈕與可改文字
 
@@ -62,15 +62,15 @@ Hover 與 Pressed 是短暫回饋。Hover 適合桌面上的滑鼠游標，手�
 | Primary | Default | `Primary` 底、白字 | 可操作的主要動作 |
 | Primary | Hover | `Primary Hover` 底、白字 | 滑鼠移上回饋 |
 | Primary | Pressed | `Primary Pressed` 底、白字 | 按下當下的主要動作 |
-| Primary | Focus | `Primary` 底、白字 | 外加 2 px `Focus Ring`，與按鈕保留 2 px 間隔 |
-| Primary | Disabled | `Disabled` 底、`Disabled Text` 字 | 條件未完成的主要動作 |
+| Primary | Focus | `Primary` 底、白字 | 外加 2 px `Focus Ring` 描邊，Stroke 選 Outside |
+| Primary | Disabled | `Disabled` 底、`Disabled Text` 字 | 圖示 Stroke 套用 `Disabled Text`，條件未完成 |
 | Secondary | Default | `Card` 底、`Text` 字 | `Control Border` 1 px 外框，可操作的次要動作 |
 | Secondary | Hover | `Primary Soft` 底、`Primary` 字 | `Control Border` 1 px 外框，滑鼠移上回饋 |
 | Secondary | Pressed | `Primary Soft` 底、`Text` 字 | `Control Border` 1 px 外框，按下當下回饋 |
-| Secondary | Focus | `Card` 底、`Text` 字 | 外加 2 px `Focus Ring`，與按鈕保留 2 px 間隔 |
-| Secondary | Disabled | `Disabled` 底、`Disabled Text` 字 | `Control Border` 1 px 外框，暫時停用 |
+| Secondary | Focus | `Card` 底、`Text` 字 | 外加 2 px `Focus Ring` 描邊，Stroke 選 Outside |
+| Secondary | Disabled | `Disabled` 底、`Disabled Text` 字 | `Control Border` 1 px 外框；圖示 Stroke 套用 `Disabled Text` |
 
-共同結構：元件集命名為 `Button`；每個版本高度 48、水平內距 16、圓角 8；`Label` 套用 `Type / Label`；文字屬性預設值為「登入」。Primary 的五個 Variant 都使用白色 `Card` 圖示；Secondary 的圖示維持 `Text`。Secondary 的 Default、Hover、Pressed、Disabled 外框都套用 `Control Border` 變數，與表單控制項的邊界規則一致。
+共同結構：元件集命名為 `Button`；每個版本高度 48、水平內距 16、圓角 8；`Label` 套用 `Type / Label`；文字屬性預設值為「登入」。Primary 的 Default、Hover、Pressed、Focus 圖示 Stroke 使用白色 `Card`；Secondary 的四個可操作狀態使用 `Text`。兩種 Type 的 Disabled 圖示 Stroke 都改用 `Disabled Text`：它在 `Disabled` 底色上有 5.18:1 對比，白色圖示在同一底色上只有 1.23:1，看不清。Secondary 的 Default、Hover、Pressed、Disabled 外框都套用 `Control Border` 變數，與表單控制項的邊界規則一致。
 
 1. 在元件區的 `Button / Primary` 上按右鍵，選 **Main component → Add variant**。完成後它會變成紫色虛線框住的元件集，裡面有原本版本和一個新版本，既有使用處仍留在各自畫面。
 
@@ -87,7 +87,7 @@ Hover 與 Pressed 是短暫回饋。Hover 適合桌面上的滑鼠游標，手�
 
 5. 將原有屬性（Figma 預設叫 Property 1）命名為 Type；完成後，右側會以 Type 與 State 描述版本。
 6. 逐一選取十個版本，填入規格表中的角色與狀態；完成後，每一組 Type 與 State 只出現一次。
-7. 依規格表調整十個版本的顏色、圖示與外框；完成後，主要與次要的層級差異仍清楚，Hover、Pressed 與 Focus 也能被辨認。
+7. 依規格表調整十個版本的顏色、圖示與外框，並把兩個 Disabled 版本的圖示向量 Stroke 套用 `Disabled Text`；完成後，主要與次要的層級差異仍清楚，Hover、Pressed、Focus 與 Disabled 也能被辨認。
 8. 選取元件集，在 Properties 點 **＋** 選 **Text**，名稱填 Label，預設值填「登入」，再按 **Create property**；完成後，元件集會出現可編輯的文字屬性。
 
 ![Create property 視窗：填 Name 與 Value，按 Create property（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-text-property-dialog.webp)
@@ -103,28 +103,15 @@ Hover 與 Pressed 是短暫回饋。Hover 適合桌面上的滑鼠游標，手�
 
 接著製造一次可恢復的組合衝突。把其中一個 Secondary／Default 暫時改成 Primary／Default，Figma 會標示組合衝突，警告文字以你看到的畫面為準。重新填回 Secondary／Default 後，十種組合各自唯一，警告也會消失；這比只看顏色更能確認屬性完整。
 
-## 把主線元件複製給自己的題目
-
-按鈕元件集完成後，這一節要把同一套結構帶到自己的題目，再把顏色來源換成題目集合。這樣主線改顏色不會影響題目，題目也不必從頭做十個 Variant。
-
-1. 在 Layers 選取主線按鈕的**整個元件集**（圖層名 `Button`，選外層的元件集本身），按 **Cmd／Ctrl+D**；完成後會多出一個新的元件集，把它拖到 `Components / 你的題目名` 區，例如 `Components / Booking`。只選單一主元件按 Cmd／Ctrl+D 得到的是使用處，所以一定要選整個元件集。
-2. 把貼上的新元件集改名，例如將 `Button` 改成 `Booking / Button`；完成後，題目元件會和主線來源分開命名，並在 Assets 收進 `Booking` 這個題目家族。
-3. 選取新的元件集，在右側 **Selection colors** 點一個 `Studio` 變數色塊，進入 **Libraries**，再選題目集合裡的同名變數；完成後，元件集裡使用這個顏色的地方會一起換綁。
-
-![選取元件集後，Selection colors 列出用到的變數；點色塊在 Libraries 換成題目的變數（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-selection-colors-swap.webp)
-
-4. 逐一換完後，再看一次 **Selection colors**；清單裡不應再出現 `Studio` 的顏色變數或裸色碼。
-5. 間距變數不會出現在 **Selection colors**。選取題目元件集後，逐一到 Padding 與 Gap 欄位換成題目的間距變數；若題目沒有另建間距變數，就沿用 `Studio` 的間距，並在練習紀錄寫明「間距共用」。
-
 ## 跟著做：用情境選對角色與狀態
 
 這一節把來源用回工作室畫面。每次先說出「角色、狀態、內容」三個答案，再到右側找對設定。
 
-1. 為登入畫面插入一顆按鈕，讓它成為可操作的主要動作；完成後會看到 Primary／Default 的「登入」，並能直接編輯 Label。
-2. 為確認彈窗準備一顆「取消」，讓它保持可操作但視覺次要；完成後會看到 Secondary／Default，外框採用 `Control Border`。
-3. 再準備一顆「確認完成」，讓它成為彈窗中的主要動作；完成後兩顆按鈕的角色有清楚差異。
+1. 選取既有的 `Button / Login`，確認它是 Primary／Default；完成後，右側會顯示這組 Type 與 State，畫面仍只有原本的登入按鈕。
+2. 複製登入按鈕。把副本拖到手機畫面外的空白處。把 Label 改成「取消」。再設定為 Secondary／Default；完成後，外框會採用 `Control Border`，手機畫面維持原狀。
+3. 複製取消按鈕。把副本拖到手機畫面外的空白處。把 Label 改成「確認完成」。再設定為 Primary／Default；完成後，兩顆畫面外副本的角色會有清楚差異。
 4. 依序把確認完成切到 Hover、Pressed 與 Focus；完成後會看到底色、按下與焦點圈回饋，文字和尺寸保持穩定。
-5. 複製登入按鈕，設定成必填資料尚未齊全的狀態，並在旁邊加入原因「請先填寫帳號與密碼」；完成後會同時看見停用外觀與可理解的原因。
+5. 複製登入按鈕。把副本拖到手機畫面外的空白處。把它設定成必填資料尚未齊全的狀態。在副本旁加入原因「請先填寫帳號與密碼」；完成後，手機畫面外會同時呈現停用外觀與可理解的原因。
 6. 將「確認完成」改成較長的「確認這筆任務已完成」，再切換十種組合；完成後文字不會遺失，所有版本高度也維持一致。
 7. 選取其中一個使用處，把 Label 改為「返回清單」，再點右側元件名稱列的 **⋯** 選 **Reset instance**；完成後文字會回到來源預設值。
 
@@ -142,18 +129,32 @@ Hover 與 Pressed 是短暫回饋。Hover 適合桌面上的滑鼠游標，手�
 1. 回到元件集，選取 Primary／Default 裡的圖示使用處；完成後，右側會顯示該圖示的元件名稱與 Appearance（外觀）區塊。
 2. 在 Appearance 標題列找到眼睛旁的 **Apply variable/property** 圖示，點 **＋**；完成後會開啟「Create property or variable」視窗。
 
-![Appearance 標題列的 Apply variable/property 圖示，按 ＋ 開啟 Create property 視窗，預設值 True（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-boolean-property.webp)
+![Appearance 標題列的 Apply variable/property 圖示，按 ＋ 開啟 Create property 視窗，預設值 True（紅框）；截圖以文字層示範，圖示層的入口相同](../../courses/uiux-designer/assets/shared/ui/figma-boolean-property.webp)
 
 3. 選 Create 為 Property，把 Name 改成 `Show icon`，Value 保持 True，再按建立；完成後，元件集 Properties 會出現 Boolean 屬性。
 4. 將其他九個 Variant 的對應圖示層連到同一個 `Show icon`；完成後，切換狀態時會保留使用處的顯示選擇。
-5. 選取其中一個 Variant 的圖示使用處，在 Properties 點 **＋** 選 **Instance swap**，命名為 `Icon`；完成後，按鈕來源會有可交換巢狀元件的屬性。
-6. 將其餘 Variant 的圖示使用處連到同一個 `Icon` 屬性；完成後，十個版本會共享圖示選擇。
+5. 選取元件集，在 Properties 按 **＋** 選 **Instance swap**，名稱填 `Icon`，預設值選 `Icon / Check`，再按 **Create property**；完成後，元件集 Properties 會顯示預設為 `Icon / Check` 的 `Icon` 屬性。
+6. 逐一選取各 Variant 裡的圖示使用處，在右側使用處名稱列的屬性圖示把它綁到 `Icon`，入口位置以畫面為準；完成後，十個版本會共享同一個圖示選擇。
 7. 從 Assets 插入新的 Button 使用處；完成後，右側會同時出現 `Show icon` 開關與 `Icon` 下拉。
 8. 關閉 `Show icon`；完成後，圖示消失，Auto Layout 會收回圖示與文字之間的 Gap，Label 仍置中。
 9. 再打開 `Show icon`，把 `Icon` 從 `Icon / Check` 換成 `Icon / Plus`；完成後，只有這個使用處換圖示，其他按鈕維持原選擇。
 10. 切換 Type 與 State 逐一檢查；完成後，圖示的顯示與來源選擇不會因切換 Variant 而被重設。
 
 若某個狀態切換後圖示突然恢復，先檢查該 Variant 的圖示層是否連到相同屬性。十個版本的層級與命名一致，Boolean 與 Instance swap 才能在使用處維持同一組選擇。
+
+## 把主線元件複製給自己的題目
+
+按鈕元件集的 `Show icon` 與 `Icon` 屬性完成後，這一節要把同一套結構帶到自己的題目，再把顏色來源換成題目集合。這樣題目副本會帶有兩個圖示屬性，主線改顏色也不會影響題目，題目不必從頭做十個 Variant。
+
+1. 在手機畫面外按 **Shift+S** 建立 Section，命名為 `Components / 你的題目名`，例如 `Components / Booking`；完成後，畫布上會看見一個有題目名稱的元件區。先前已有同名元件區時直接沿用。
+2. 在 Layers 選取主線按鈕的**整個元件集**（圖層名 `Button`，選外層的元件集本身），按 **Cmd／Ctrl+D**，再把新的元件集拖進題目元件區；完成後，元件區會看見一份完整的十種組合，選取副本時右側 Properties 會顯示 `Show icon` 與 `Icon`。只選單一主元件按 Cmd／Ctrl+D 得到的是使用處，所以一定要選整個元件集。
+3. 把貼上的新元件集改名，例如將 `Button` 改成 `Booking / Button`；完成後，題目元件會和主線來源分開命名，並在 Assets 收進 `Booking` 這個題目家族。
+4. 選取新的元件集，在右側 **Selection colors** 點一個 `Studio` 變數色塊，進入 **Libraries**，再選題目集合裡的同名變數；完成後，元件集裡使用這個顏色的地方會一起換綁。
+
+![選取元件集後，Selection colors 列出用到的變數；點色塊在 Libraries 換成題目的變數（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-selection-colors-swap.webp)
+
+5. 逐一換完後，再看一次 **Selection colors**；完成後，清單會只顯示題目集合的顏色變數。
+6. 間距變數不會出現在 **Selection colors**。在題目元件集內同時選取所有 Variant。接著到 Padding 與 Gap 綁定題目的間距變數；若題目沒有另建間距變數，就沿用 `Studio` 的間距，並在練習紀錄寫明「間距共用」。完成後，所有 Variant 的內距與間隔會一起維持原本版面。
 
 ## 看兩種圖示策略，判斷各自適合的情境
 
@@ -181,25 +182,41 @@ Hover 與 Pressed 是短暫回饋。Hover 適合桌面上的滑鼠游標，手�
 
 ## 換你做：你的題目
 
-從你的畫面清單挑出這次對應的畫面。沿用前面建立的 `Components / 你的題目名`，把資料裡的狀態做成題目自己的標籤元件，再讓複製並換綁完成的主要確認按鈕具備五種 State、顯示開關與圖示交換。題目元件都以題目名開頭，例如 `Booking / Button` 與 `Booking / Status`；在 Assets 先找到 `Booking` 這個家族，再選其中的按鈕、標籤或圖示。下面三欄提供可採用的狀態與動作對應；若你的畫面清單採用不同名稱或拆法，以自己的需求初稿為準。
+從你的畫面清單挑出這次對應的畫面。沿用前面建立的 `Components / 你的題目名`，使用本堂複製並換綁完成的按鈕元件集。狀態標籤是題目專屬元件，這次直接在題目區自建 `題目名 / Status`（狀態標籤），例如 `Booking / Status`。完成後，Assets 的 `Booking` 家族會同時收納題目按鈕與狀態標籤。下面三欄提供可採用的狀態與動作對應；若你的畫面清單採用不同名稱或拆法，以自己的需求初稿為準。
+
+| 項目 | 規格 |
+|---|---|
+| 結構 | Auto layout；Padding 上下 `Space 4`、左右 `Space 8`；圓角 8 |
+| 文字 | 套用 `Type / Supporting` |
+| 可用狀態 | 可預約／供應中／可兌換：`Primary Soft` 底、`Primary Pressed` 字 |
+| 不可用狀態 | 本週額滿／售完／已兌完：`Disabled` 底、`Disabled Text` 字 |
+| 條件不足 | 點數不足：`Card` 底、`Control Border` 1 px 外框、`Text` 字 |
+
+1. 在題目元件區建立第一個狀態文字，內容使用題目資料中的一個狀態值，再套用 `Type / Supporting`；完成後，畫布會看見符合題目資料的狀態文字。
+2. 選取狀態文字，按 **Shift+A** 轉成 Auto layout，再依規格表設定內距、圓角與顏色；完成後，文字外會出現緊貼內容的標籤底色。
+3. 把狀態標籤建立成主元件，命名為 `題目名 / Status`；完成後，元件區會看見一個紫色外框的狀態標籤主元件。
+4. 依題目資料加入 Variant，將 Variant 屬性命名為 State；完成後，元件區會出現只包含該題目實際狀態的元件集。
+5. 依規格表填入各個 State 值與外觀；完成後，右側可以直接切換每個狀態，畫面會同步顯示對應文字、底色與外框。
+6. 從 Assets 把狀態標籤使用處放進題目畫面，再切換成該筆資料的 State；完成後，題目畫面會看見與資料一致的狀態標籤。
 
 ### 三個題目的建議對應
 
 | 預約 | 點餐 | 會員 |
 |---|---|---|
-| 狀態標籤使用「可預約／本週額滿」；「送出預約」按鈕具備 Default、Hover、Pressed、Focus、Disabled，並可顯示勾選或日期圖示。 | 狀態標籤使用「供應中／售完」；「送出訂單」按鈕具備五種 State，並可顯示勾選或購物車圖示。 | 狀態標籤使用「可兌換／點數不足／已兌完」；「確認兌換」按鈕具備五種 State，並可顯示勾選或星號圖示。 |
+| 狀態標籤使用「可預約／本週額滿」；「送出預約」按鈕具備 Default、Hover、Pressed、Focus、Disabled，並可顯示 `Icon / Check` 或 `Icon / Clock`。 | 狀態標籤使用「供應中／售完」；「送出訂單」按鈕具備五種 State，並可顯示 `Icon / Check` 或 `Icon / Plus`。 | 狀態標籤使用「可兌換／點數不足／已兌完」；「確認兌換」按鈕具備五種 State，並可顯示 `Icon / Check` 或 `Icon / Chevron Right`。 |
 
 要達成的條件：
 
 - 這次做的畫面在你的畫面清單上；清單沒有的，先補進清單並寫一句理由。
 - 狀態標籤的 Variant 值完全照題目資料，文字與顏色一起傳達狀態。
-- 狀態標籤要用複製並換綁的方式做成題目自己的元件；做法同元件那一堂。
+- 狀態標籤在題目區自建為 `題目名 / Status`，採用規格表的 Auto Layout、內距、圓角與文字樣式。
+- 狀態標籤的可用、暫停與條件不足外觀都依規格表套用顏色與外框。
 - 題目元件放在 `Components / 你的題目名`，名稱以題目名開頭，能在 Assets 的題目家族中找到。
 - 主要確認按鈕具有 Default、Hover、Pressed、Focus、Disabled 五種 State。
 - Pressed 使用較深的主色，Hover 有可看見但不改變尺寸的回饋。
 - 按鈕右側可以直接開關 `Show icon`，也能從 `Icon` 下拉交換圖示。
 - 十個按鈕 Variant 的文字層、圖示層與 Auto Layout 階層一致。
-- Padding 與 Gap 已逐一換成題目的間距變數；若沿用 `Studio`，練習紀錄寫明「間距共用」。
+- 已在題目元件集內同時選取所有 Variant，再把 Padding 與 Gap 綁定題目的間距變數；若沿用 `Studio`，練習紀錄寫明「間距共用」。
 
 合格的結果要能通過的自我檢查：
 

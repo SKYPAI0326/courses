@@ -60,47 +60,49 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 | 圖層或設定 | 主線規格 | 用途 |
 |---|---|---|
 | `Screen / List`（清單畫面） | W 402、H 874、Clip content | 手機視窗與 Vertical Overflow 的設定層 |
-| `List / Content`（清單內容） | x 24、y 110、W 354、高度 Hug、垂直 Auto layout、Gap 12 | 放十二筆以上的任務與底部安全空間 |
-| `Header / Fixed`（固定頁首） | x 0、y 0、W 402、H 80、白底 | 顯示「待處理清單」並固定在上方 |
-| `Nav / Bottom`（底部導覽） | x 0、y 810、W 402、H 64 | 固定在手機底部 |
-| `Button / Floating`（漂浮按鈕） | x 330、y 730、W 48、H 48 | 固定在右下並回到清單頂端 |
-| `Spacer / Bottom`（底部安全空間） | W Fill、H 120 | 讓最後一筆能移到遮擋區上方 |
-| `Section / Sticky`（黏頂分類標題） | W 402、H 48、起始 y 180 | 先捲動，再黏在父層頂端 |
+| `List / Content`（清單內容） | x 24、y 110、W 354、高度 Hug、垂直 Auto layout、Gap 12 | 放十二筆任務與底部安全空間 |
+| `Header / Fixed`（固定頁首） | x 0、y 0、W 402、H 80、白底 | 放入原本的「待處理清單」標題並固定在上方 |
+| `Nav / Bottom`（底部導覽） | x 0、y 810、W 402、H 64、Fill `Card` | 固定在手機底部 |
+| `Button / Floating`（漂浮按鈕） | 先在畫布空白處建立，再拖到 `Screen / List` 底下成為直接子層；x 330、y 730、W 48、H 48、圓角 24、Fill `Primary`；`Icon / Chevron Right` 旋轉 90 度、Stroke `Card`、置中 | 固定在右下並回到 `Anchor / Top` |
+| `Anchor / Top`（頂端錨點） | 先在畫布空白處建立透明 Frame，再拖到 `Screen / List` 底下成為直接子層；x 0、y 0、W 402、H 1 | `Button / Floating` 的 Scroll to 目的地 |
+| `Spacer / Bottom`（底部安全空間） | W Fill、H 140 | 讓最後一筆能移到遮擋區上方 |
+| `Section / Sticky`（黏頂分類標題） | 在第一列任務之後按 F 建 H 48 的 Frame（不是 ⇧S 的 Section）；W Fill container，跟隨 `List / Content` 的 354；內放文字「今日任務」 | 先捲動，再黏在父層頂端 |
 | `Scroll / Horizontal`（橫向卡片視窗） | W 354、H 160、Clip content | 顯示橫向卡片的一部分 |
 | 橫向卡片內容 | 三張卡片，各 W 200、H 140、Gap 12、總寬 624 | 測試 Horizontal Overflow |
 
 1. 選取原本的 `Screen / List`（清單畫面），沿用這個正式名稱並準備加入完整任務資料；做完後，主線仍只有同一張清單畫面。
 2. 將長清單外框設成表中的手機尺寸；右側會顯示固定寬高，畫面比例維持原本的手機視窗。
-3. 在 `List / Content` 增加任務列，直到內容超出外框下緣；畫布上會看見清單延伸到視窗之外。
-4. 在其中兩列填入較長的任務名稱；任務列會依先前的 Auto layout 規則向下增高。
-5. 選取長清單最外層並開啟 Clip content；畫布上只顯示手機邊界內的部分。
-6. 切到 Prototype 分頁，在 Scroll behavior 的 Overflow 選 Vertical；右側會顯示垂直捲動設定。
+3. 確認 `List / Content` 已有十二筆並超出外框下緣；畫布上會看見清單延伸到視窗之外，最後一筆維持「寄出月底請款單」。
+4. 選取長清單最外層並開啟 Clip content；畫布上只顯示手機邊界內的部分。
+5. 切到 Prototype 分頁，在 Scroll behavior 的 Overflow 選 Vertical；右側會顯示垂直捲動設定。
 
 ![選最外層畫面，Scroll behavior 的 Overflow 選 Vertical（下方紅框）](../../courses/uiux-designer/assets/shared/ui/figma-overflow-flow-start.webp)
 
-7. 按 Shift+Space 開啟 Preview；預覽會留在編輯器內並顯示手機畫面。
-8. 在清單上向下捲動；後面的任務會依序進入視窗。
-9. 捲到最底部；最後一筆「寄出月底請款單」與期限「下週五17:00」會出現，並且外層手機仍維持原來的高度。
+6. 按 Shift+Space 開啟 Preview；預覽會留在編輯器內並顯示手機畫面。
+7. 在清單上向下捲動；後面的任務會依序進入視窗。
+8. 捲到最底部；最後一筆「寄出月底請款單」與期限「下週五17:00」會出現，並且外層手機仍維持原來的高度。
 
-有了真正的捲動，接著加入固定頁首。選取 `Header / Fixed` 後，在同一區的 Position 選 Fixed。設定完成時，Figma 會把固定物件移到其他圖層上方，Layers 也會出現 Fixed 標示，這是預期的層級變化。再次進入 Preview，頁首應在清單移動時留在視窗頂端。
+有了真正的捲動，接著建立 `Header / Fixed`（固定頁首）。完成後，畫面頂端會出現一個白底頁首。把清單原本的「待處理清單」標題移進固定頁首；完成後，標題只會在頁首裡出現一次。選取 `Header / Fixed` 後，在同一區的 Position 選 Fixed。設定完成時，Figma 會把固定物件移到其他圖層上方，Layers 也會出現 Fixed 標示，這是預期的層級變化。再次進入 Preview，頁首應在清單移動時留在視窗頂端。
 
 ![子層的 Position：Fixed 固定在視窗，Sticky 捲到頂才停（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-scroll-position.webp)
 
+接著在畫布空白處按 F 建立 `Button / Floating`（漂浮按鈕）。到 Layers 把它拖到 `Screen / List` 底下，使它成為清單畫面的直接子層。尺寸依規格表設定。把圓角設為 24。Fill 套用 `Primary`。放入既有的 `Icon / Chevron Right`。把圖示旋轉 90 度。把圖示的 Stroke 套用 `Card`。將圖示在按鈕內置中。完成後，畫布右下會看到深綠底、白色向上箭頭的圓形按鈕。
+
 同樣的方法可以用在 `Nav / Bottom` 與 `Button / Floating`。底部導覽固定後，行政人員捲到任何位置都能看見目前所在頁。漂浮按鈕固定後，長清單中段也保有回到上方的入口。若長清單外層使用 Auto layout，先對固定物件啟用 Ignore auto layout，物件才可以保留獨立位置。
 
-漂浮按鈕還需要一個明確目的地。選取按鈕，建立 On click 互動，Action 選 Scroll to，目的地選 `List / Content`。這個圖層是捲動畫面的直接子層，所以能從目的地下拉選單找到。進入 Preview 並先捲到中段，再按漂浮按鈕；畫面會回到清單內容的起點。
+漂浮按鈕還需要一個明確目的地。先在畫布空白處按 F 建立透明 Frame。命名為 `Anchor / Top`（頂端錨點）。把高度設為 1。到 Layers 把它拖到 `Screen / List` 底下，使它成為清單畫面的直接子層。把 X 設為 0。把 Y 設為 0。再把 W 設為 402；高度維持 1。完成後，Layers 會顯示頂端錨點與 `List / Content` 同層。選取漂浮按鈕。建立 On click 互動。Action 選 Scroll to。目的地選 `Anchor / Top`。完成後，Prototype 的互動設定會顯示頂端錨點。進入 Preview 並先捲到中段，再按漂浮按鈕；畫面會回到頂端錨點，第一列不會被固定頁首蓋住。
 
 最後處理底部遮擋。在 `List / Content` 最後新增 `Spacer / Bottom`，並套用表中的高度。再次捲到底時，安全空間會進入底部遮擋區，最後一筆則停在導覽與漂浮按鈕上方。這時要同時讀完最後一筆文字，也要能點到該列的動作。
 
 ## 跟著做：比較 Fixed、Sticky 與橫向捲動
 
-示範已經完成一條可捲動的長清單，現在用較少提示做三個對照。每完成一個對照，就回 Preview 觀察實際移動，不只看右側設定值。
+示範已經完成一條可捲動的長清單，現在用較少提示做三個對照。每完成一個對照，就回 Preview 觀察實際移動，並用畫面變化核對右側設定值。
 
 1. 先讓固定頁首、底部導覽與漂浮按鈕在長清單中段保持原位；請從 Position 找到適合的設定。
 2. 再捲到最底部檢查最後一列；請調整清單末端的安全空間，直到文字與動作都露出。
 3. 接著複製長清單畫面作為 Sticky 比較；新畫面會保留原本的垂直捲動內容。
 4. 移除比較畫面中的固定頁首；視窗頂端會空出觀察黏頂標題的位置。
-5. 在清單前段加入 `Section / Sticky` 並填入「今日任務」；分類標題會位在一段一般內容之後。
+5. 在 `List / Content` 的第一列任務之後按 F 建 H 48 的 Frame（不是 ⇧S 的 Section）。命名為 `Section / Sticky`。在 Frame 內放入文字「今日任務」。把寬度設為 Fill container。完成後，分類標題會和 354 寬的清單內容對齊，並位在第一列任務之後。
 6. 將分類標題的 Position 改成 Sticky；Layers 與右側會反映新的位置方式。
 7. 進入 Preview 向下捲；分類標題會先移動，碰到視窗上緣後才停住。
 8. 把分類標題移進一個較短的父 Frame；繼續捲動時，它會在父層離開後一起離開。
@@ -108,7 +110,7 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 
 看懂垂直捲動後，再做一個橫向卡片區。建立 `Scroll / Horizontal`，並依規格表設定視窗。把三張卡片放進水平 Auto layout，再將外框的 Overflow 選 Horizontal。Preview 中左右滑動時，第一張與最後一張都要能完整出現；主清單仍維持 Vertical，兩個方向各自服務不同內容。
 
-最後做一次位置說明。請用自己的話記錄：Fixed 從捲動開始就留在視窗原位；Sticky 先隨內容移動，碰到上緣才停；Horizontal 讓寬內容在固定寬度中左右瀏覽。能說出畫面變化，代表你是在判斷行為，而不是只背選單名稱。
+最後做一次位置說明。請用自己的話記錄：Fixed 從捲動開始就留在視窗原位；Sticky 先隨內容移動，碰到上緣才停；Horizontal 讓寬內容在固定寬度中左右瀏覽。能說出畫面變化，代表你能把選單名稱連回實際行為。
 
 ## 看兩種導覽安排，各適合哪一種清單
 

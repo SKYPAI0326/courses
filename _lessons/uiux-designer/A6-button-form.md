@@ -31,9 +31,9 @@ platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*
 
 工作室人員準備登入待處理清單，登入後還要新增任務。若畫面只有白色矩形、幾個圓點和一顆按鈕，使用者看不出欄位名稱，也不知道每一種選擇能選幾個。這堂會先完成登入欄位的狀態，再把文字欄、下拉、單選、開關與勾選組成新增任務表單。
 
-這項工作會使用上次完成的 Button 元件集。先從 Assets（元件資產面板）插入按鈕，確認 Type 可選 Primary、State 可選 Default，而且 Label 能直接改成「登入」。接著開[本堂起始材料](../../courses/uiux-designer/assets/A6-button-form/START-HERE.html)，理解登入情境與既有圖層；完成後用[完成檢查表](../../courses/uiux-designer/assets/A6-button-form/reference/EXPECTED-CHECK.html)逐張核對。沒有上次成果時，先回到[把主次按鈕與狀態做成可選的元件](CH5-variants-properties.html)，依該頁規格表補做 Button 元件集與文字屬性，約需 20～30 分鐘。
+這項工作會使用上次完成的 Button 元件集。先選取登入卡片裡既有的 `Button / Login`，確認 Type 可選 Primary、State 可選 Default，而且 Label 能直接改成「登入」。接著開[本堂起始材料](../../courses/uiux-designer/assets/A6-button-form/START-HERE.html)，理解登入情境與既有圖層；完成後用[完成檢查表](../../courses/uiux-designer/assets/A6-button-form/reference/EXPECTED-CHECK.html)逐張核對。沒有上次成果時，先回到[把主次按鈕與狀態做成可選的元件](CH5-variants-properties.html)，依該頁規格表補做 Button 元件集與文字屬性，約需 20～30 分鐘。
 
-先保留 `Screen / Login`（登入畫面）的手機外框、標題與 `Login / Card`（登入卡片）。接下來先在元件區建好欄位，再把欄位與按鈕的使用處直接放進登入卡片；提示或錯誤說明變長時，下面的內容會跟著移動。
+先保留 `Screen / Login`（登入畫面）的手機外框、卡片外的 `Screen / Heading`（畫面標題），以及 `Login / Card`（登入卡片）裡的 `Message`、`Hint` 與 `Button / Login`。接下來先在元件區建好欄位，再把欄位使用處放進登入卡片；帳號與密碼欄都有固定標籤後，`Hint` 就會由欄位標籤取代。
 
 ## 一個完整欄位要回答三個問題
 
@@ -59,12 +59,15 @@ Placeholder 是尚未輸入時放在輸入區內的示意，它會在輸入內�
 | 圖層或畫面 | 規格 | 內容或用途 |
 |---|---|---|
 | `Screen / Login` | 402 × 874；底色沿用登入畫面 | 正常登入畫面 |
-| `Login / Card` | x 24、y 120、寬 354；Vertical；Gap `Space 16`；Padding `Space 16`；Hug 高 | 直接放必填說明、欄位與按鈕使用處 |
-| `Field / Account` | Vertical；Gap `Space 8`；寬 322；Hug 高 | 帳號欄使用處 |
-| `Field / Label` | 套用 `Type / Label`；Auto height | 「工作室帳號＊」 |
-| `Field / Input` | W Fill container、高 48；水平內距 `Space 16`、垂直內距 `Space 12`；圓角 8 | 隨寬 322 的 `Field` 改變寬度 |
+| `Screen / New Task` | 起始 402 × 874；Fill 套用 `Surface`；內容超過 874 時將 H 改為 Hug contents，或加高到內容完整顯示 | 空白新增任務畫面；做原型捲動時改回手機高度並設垂直捲動 |
+| `Login / Card` | x 24、y 120、寬 354；Vertical；Gap `Space 16`；Padding `Space 16`；Hug 高 | 直接放訊息、必填說明、欄位與按鈕使用處；加入帳號與密碼欄後刪除 `Hint` |
+| `Field / Account` | Vertical；Gap `Space 8`；W 322；Hug 高；內層設為 Fill container | 帳號欄使用處 |
+| `Field / Label` | 套用 `Type / Label`；Fill container；Auto height | 「工作室帳號＊」 |
+| `Field / Input` | Horizontal；垂直置中；W Fill container、高 48；水平內距 `Space 16`、垂直內距 `Space 12`；圓角 8 | 隨寬 322 的 `Field` 改變寬度 |
 | `Field / Value` | 套用 `Type / Body`；Fill；單行 | 預設「請輸入」 |
-| `Field / Helper` | 套用 `Type / Supporting`；Fill；Auto height | 預設「說明文字」；由 `Show helper` 控制 |
+| `Field / Icon` | 20 × 20 圓形；Fill 套用 `Muted` | 暫代眼睛圖示；由 `Show icon` 控制 |
+| `Field / Helper` | 套用 `Type / Supporting`；Fill container；Auto height | 預設「說明文字」；由 `Show helper` 控制 |
+| `Required Note` | 套用 `Type / Supporting`；Auto height | 「標＊為必填」 |
 | State=Default | `Card` 底；`Control Border` 1 px 外框 | 一般狀態 |
 | State=Focus | `Card` 底；`Focus Ring` 2 px 外框 | 游標正在欄位內 |
 | State=Error | `Card` 底；`Error` 1 px 外框；Helper 文字色 `Error` | 錯誤外觀，不預寫錯誤句 |
@@ -72,20 +75,21 @@ Placeholder 是尚未輸入時放在輸入區內的示意，它會在輸入內�
 
 1. 建立 `Field / Label`（欄位標籤），輸入「帳號」；完成後欄位用途會固定顯示在輸入區上方。
 2. 建立 `Field / Value`（欄位內容），輸入「請輸入」；完成後會看到尚未填寫時的提示。
-3. 選取內容文字按 **Shift+A**，把新外框命名為 `Field / Input`（輸入區），再將寬度設為 W Fill container 並依規格表設定外觀；完成後輸入區會跟著 `Field` 的寬度改變。
+3. 選取內容文字按 **Shift+A**，把新外框命名為 `Field / Input`（輸入區），再將寬度固定為 322 並依規格表設定外觀；完成後會先看到一個寬 322 的輸入區。
 4. 建立 `Field / Helper`（欄位提示），輸入「說明文字」；完成後輸入區下方會有可供使用處改寫的文字層。
-5. 同時選取 Label、Input 與 Helper，按 **Shift+A**，把新外框暫時命名為 `Field / Draft`（欄位草稿）；完成後三個部分會進入同一個垂直容器。
+5. 同時選取 Label、Input 與 Helper，按 **Shift+A**，把新外框暫時命名為 `Field / Draft`（欄位草稿），再把外層 W 設為 322。多選包框的 Padding 會是 0，保持原值即可。把 Gap 改成 8，再綁定 `Space 8`。接著將 `Field / Label`、`Field / Input` 與 `Field / Helper` 改成 Fill container；完成後三個子層會以一致間距垂直排列，標籤、輸入區與提示文字的左右邊緣也會對齊外層欄位。
 6. 選取帳號欄，按右鍵選 **Create component**，再命名為 `Field`（文字欄位）；完成後 Default 來源會先保留完整結構。
 7. 選取主元件，在 Properties 按加號建立 `Label`、`Value`、`Helper` 三個 Text property，預設值依序填「帳號」「請輸入」「說明文字」；完成後元件會有三個可改文字的欄位。
 8. 將三個文字層依序綁定同名屬性，再為 Helper 的可見性建立 Boolean property `Show helper`，預設設為 False；完成後一般使用處不會先顯示說明句。
 9. 在 Default 完成文字與顯示屬性綁定後，按右鍵選 **Main component → Add variant**，再用元件集下方的加號建立另外兩個 Variant；完成後四個版本都會帶著相同綁定。
 10. 將預設屬性改名為 State，四個值命名為 Default、Focus、Error、Disabled；完成後使用處能從右側切換完整欄位狀態。
 11. 依規格表設定四個版本；Error 只改外框與 Helper 文字色，內容維持屬性預設值。完成後四種外觀會保有相同層級。
-12. 從 Assets 插入 `Field` 使用處與 Button 使用處，分別命名為 `Field / Account`、`Button / Login`（登入按鈕）；完成後欄位與按鈕會先在登入卡片外備妥。
+12. 從 Assets 插入 `Field` 使用處，命名為 `Field / Account`；完成後帳號欄會先在登入卡片外備妥，卡片裡原有的 `Button / Login` 保持不變。
 13. 將帳號使用處的 Label 改成「工作室帳號＊」，Value 改成 `studio@example.test`；完成後同一個 `Field` 會呈現帳號內容。
 14. 將登入按鈕選成 Primary／Default，Label 改成「登入」，寬度設為 Fill；完成後主要動作會沿用既有 Button 元件集。
-15. 加入欄位後內容變多，登入卡片的 Gap 改用 `Space 16`。在 `Login / Card` 裡依序放入「標＊為必填」、帳號欄與登入按鈕；完成後登入內容會直接由既有卡片垂直排列。
-16. 依序切換四種 State；完成後 Label 與整體寬度保持穩定，Focus 外框加強，Error 保留可輸入的 Helper，Disabled 仍可閱讀。
+15. 按 **T** 建立「標＊為必填」，套用 `Type / Supporting`，再命名為 `Required Note`（必填說明）；完成後畫布上會有一段獨立的必填說明。
+16. 欄位是由 Label、Input 與 Helper 組成的完整群組，因此把登入卡片的 Gap 改用 `Space 16`，讓欄位群組與按鈕清楚分開。在 `Login / Card` 裡依序放入既有 `Message`、`Required Note`、帳號欄與登入按鈕；完成後訊息、必填說明、帳號欄與登入按鈕會在既有卡片內垂直排列。
+17. 依序切換四種 State；完成後 Label 與整體寬度保持穩定，Focus 外框加強，Error 保留可輸入的 Helper，Disabled 仍可閱讀。
 
 打開 `Show helper` 後，欄位高度由上方文字、間距、輸入區與下方提示共同組成。實際排版交給 Hug contents 與 Auto height；當 Helper 變成兩行時，它會增高並把後面的欄位推開。
 
@@ -97,10 +101,10 @@ Focus 代表目前輸入位置，Error 代表內容需要修正，兩者可能�
 
 1. 再插入一個 `Field` 使用處，命名為 `Field / Password`（密碼欄），Label 改成「密碼＊」，Value 改成「••••••••」；完成後密碼欄會沿用同一組 State 與文字屬性。
 2. 將 Helper 改成「密碼不足 8 個字元」。`Show helper` 維持 False；完成後錯誤狀態要用的句子已備妥，正常畫面仍不顯示。
-3. 到 `Field` 元件集的四個 Variant（Default、Focus、Error、Disabled），各在輸入區右側放一個 20×20 圓形暫代眼睛圖示；完成後四個版本會有相同的圖層結構。
+3. 到 `Field` 元件集的四個 Variant（Default、Focus、Error、Disabled），各在輸入區右側放一個 20×20 圓形暫代眼睛圖示，再把 Fill 套用 `Muted`；完成後四個版本會有相同的圖層結構與次要色圖示。
 4. 選取 Default 的暫代圖示，從 Appearance 的 Apply variable/property 圖示建立 Boolean property，命名為 `Show icon`，預設設為 False；完成後帳號欄不會先出現眼睛圖示。
 5. 將四個 Variant 的暫代圖示層都綁定同一個 `Show icon`；完成後切換 State 時會保留使用處的顯示選擇。
-6. 將密碼欄的 `Show icon` 打開，再把密碼欄放入 `Login / Card` 的帳號欄與登入按鈕之間；完成後同一個 `Field` 會呈現密碼用途，而不需要另一個元件集。
+6. 將密碼欄的 `Show icon` 打開，再把密碼欄放入 `Login / Card` 的帳號欄與登入按鈕之間，接著刪除原有的 `Hint`；完成後卡片會以「工作室帳號＊」與「密碼＊」兩個固定標籤說明欄位用途，原本的帳號提示不再顯示。
 7. 複製 `Screen / Login`，命名為 `Screen / Login Focus`，讓帳號欄保持 Focus、密碼欄保持 Default；完成後會看到目前輸入位置只有一處。
 8. 再複製一張畫面，命名為 `Screen / Login Error`，把帳號 Value 改成 `studio` 並切成 Error。打開 `Show helper`，在 Helper 輸入「帳號格式不正確，請輸入完整電子郵件」；完成後只有出錯欄位呈現自己的錯誤句。
 9. 從錯誤畫面複製修正版，命名為 `Screen / Login Fixed`，改正值並關閉 `Show helper`。再把兩欄切回 Default；完成後能直接比較修正前後。
@@ -117,11 +121,11 @@ Focus 代表目前輸入位置，Error 代表內容需要修正，兩者可能�
 
 | 元件 | 尺寸與外觀 | 狀態 |
 |---|---|---|
-| `Checkbox` | 方框 20×20、圓角 4、外框 `Control Border` 2 px；勾選時底色 `Primary`、內放 `Icon / Check`（線條白色）；整列最小高度 44 | Checked true／false |
-| `Radio` | 圓 20×20、外框 `Control Border` 2 px；選取時內點 10×10 `Primary` | Selected true／false |
-| `Toggle` | 44×24、圓角 12；圓鈕 20×20；On 底色 `Primary`、Off 底色 `Control Border` | On true／false |
-| `Select` | 沿用 `Field` 外框並套用 `Control Border`，右側放向下箭頭（可用 `Icon / Chevron Right` 旋轉 90 度）；展開時下方接一個選項清單，每列高 44 | Open true／false |
-| `Field / Multiline` | 寬同 `Field`、高 96，外框用 `Control Border`；文字 Auto height 但外框固定，用於備註 | Default／Focus／Error |
+| `Checkbox` | 用 F 建 20×20 的 Frame 當方框；圓角 4、外框 `Control Border` 2 px；勾選時底色 `Primary`、內放置中的 16×16 `Icon / Check` 使用處（Stroke `Card`）；整列最小高度 44；文字建立 Text property `Label`，預設「記住我」 | Checked true／false |
+| `Radio` | 最小高度 44 的水平 Auto layout；用 F 建 20×20 的 Frame 當圓形控制圖形，與預設「選項」文字放在同一列；外框 `Control Border` 2 px；選取時 Frame 內放 10×10 `Primary` 內點；文字建立 Text property `Label` | Selected true／false |
+| `Toggle` | 最小高度 44 的水平 Auto layout；用 F 建 44×24 的 Frame 當開關控制圖形，與預設「提醒我」文字放在同一列；圓角 12；Frame 內放 20×20、Fill `Card` 的圓鈕；On 底色 `Primary`、Off 底色 `Control Border`；文字建立 Text property `Label` | On true／false |
+| `Select` | 沿用 `Field` 外框並套用 `Control Border`，標籤「類別」、內容「設計」，右側放向下箭頭（可用 `Icon / Chevron Right` 旋轉 -90 度）；展開時下方列出設計、行政、客戶、財務，每列高 44 | Open true／false |
+| `Field / Multiline` | 複製 `Field` 後刪除 Disabled；寬同 `Field`；三個 Variant 的 `Field / Input` 高 96，Auto layout 對齊靠上；外框用 `Control Border` | Default／Focus／Error |
 
 | 控制項 | 適合的選項數 | 可複選嗎 | 選擇後是否立刻生效 | 工作室例子 |
 |---|---|---|---|---|
@@ -140,31 +144,38 @@ Focus 代表目前輸入位置，Error 代表內容需要修正，兩者可能�
 
 | 元件集 | Variant 屬性 | 兩個值 | 主線用途 |
 |---|---|---|---|
-| `Checkbox` | Checked | false／true | 登入畫面的「記住我」 |
+| `Checkbox` | Checked | false／true | 登入畫面的「記住我」與新增任務的「我已確認期限」 |
 | `Radio` | Selected | false／true | 優先順序：高／中／低 |
 | `Toggle` | On | false／true | 「提醒我」設定 |
-| `Select` | Open | false／true | 任務類別的收合與展開 |
+| `Select` | Open | false／true | 任務類別的收合與展開；選項為設計、行政、客戶、財務 |
 | `Field / Multiline` | State | Default／Focus／Error | 任務備註 |
 
-1. 在 `Components` 裡建立最小高度 44 的水平 Auto layout，放入方形勾選框與「記住我」文字；完成後，整列都具備足夠觸控範圍。
-2. 將這列建立為 `Checkbox` 主元件，再用 **Main component → Add variant** 增加第二個版本；完成後會得到結構相同的未勾選與已勾選外觀。
-3. 把預設屬性改名為 Checked，兩個值填 false 與 true；完成後，使用處可以從右側切換勾選狀態。
-4. 沿用共用規格建立 `Radio`，屬性命名為 Selected，並將外框套用 `Control Border`；完成後會有未選與已選兩種狀態。
-5. 建立 `Toggle`，讓圓形滑塊在 On=false 與 On=true 兩個版本中位於不同側；完成後，底色與滑塊位置會一起說明開關狀態。
-6. 建立 `Select`，收合版顯示目前類別與向下圖示，展開版在下方顯示選項清單；完成後，Open 屬性能切換兩種畫面。
-7. 選取 `Field` 元件集按 **Cmd／Ctrl+D**，把複製出的新元件集命名為 `Field / Multiline`。再把輸入區高度改成 96；完成後會得到固定外框、文字可增高的備註欄。
-8. 在登入畫面的密碼欄下方插入 Checkbox 使用處，把 Label 保持為「記住我」；完成後，登入表單會多一個可辨識的勾選項。
-9. 建立 `Screen / New Task`（空白新增任務畫面），先加入「標＊為必填」、頁面標題、任務名稱欄位與類別 Select 使用處；完成後會看見表單的標題文字與欄位。
-10. 全選目前的標題與欄位按 **Shift+A**，設成垂直 Auto layout；完成後各欄會依固定順序往下排列。
-11. 在「優先順序」Label 下插入三個 Radio 使用處，文字分別為「高」「中」「低」，只讓其中一個 Selected=true；完成後，畫面會清楚表達三選一。
-12. 在表單下方插入 Toggle 使用處，文字改成「提醒我」；完成後，開關會表示提醒設定目前是否開啟。
-13. 插入 `Field / Multiline`，Label 改成「備註（選填）」；完成後長內容會留在固定高度的備註區。
-14. 插入 Primary／Default 的 Button，Label 改成「新增任務」；完成後，表單會有一個清楚的提交動作。
-15. 複製新增任務畫面，命名為 `Screen / New Task Select Open`，把類別 Select 切到 Open=true；完成後，可比較收合與展開時後續欄位是否由 Auto Layout 推開。
-16. 複製 `Screen / New Task`，命名為 `Screen / New Task Filled`（已填新增任務畫面），再填入各欄內容；完成後會得到提醒開關尚未打開的已填狀態。
-17. 複製已填畫面，命名為 `Screen / New Task Reminder`（提醒新增任務畫面），打開提醒開關並多放一個 `Field`。將 Label 改成「提醒時間＊」；完成後只有開關打開的畫面會顯示條件欄位。
-18. 在畫布旁註記後續原型會用 Change to 或 Navigate 切換兩張畫面；完成後條件欄位的出現規則會保留下來。
-19. 複製一個必填 Checkbox 使用處作為錯誤示範，在勾選框列下方加入 Helper「請先同意注意事項」，並把方框外框改成 `Error`；完成後錯誤句與需要修正的控制項會靠在一起。修正後移除 Helper，外框恢復 `Control Border`。
+1. 在 `Components` 裡用 **F** 建立 20×20 的 Frame 當勾選控制圖形，再把它與「記住我」文字放進最小高度 44 的水平 Auto layout；完成後勾選圖形會是可容納圖示的 Frame，整列也具備足夠觸控範圍。
+2. 將這列建立為 `Checkbox` 主元件；完成後元件仍會顯示方框與「記住我」。
+3. 選取「記住我」文字，建立並綁定 Text property `Label`，預設值填「記住我」；完成後主元件的 Properties 會顯示可改的 Label。
+4. 用 **Main component → Add variant** 增加第二個版本；完成後會得到結構與 Label 綁定相同的兩個版本。
+5. 把預設屬性改名為 Checked，兩個值填 false 與 true；完成後，使用處可以從右側切換勾選狀態。
+6. 選取 Checkbox 的 true 版本，依共用規格表改外觀：方框底色套用 `Primary`，把 `Icon / Check` 使用處縮成 16×16 並置中放入 Frame，再將圖示 Stroke 套用 `Card`；完成後 true 版本會顯示置中白色勾號的主色方框。
+7. 在 `Components` 裡用 **F** 建立 20×20 的 Frame 當 Radio 控制圖形，再把它與一層「選項」文字放進最小高度 44 的水平 Auto layout。將整列建立為 `Radio` 主元件，再增加第二個 Variant。把屬性命名為 Selected，兩個值設成 false 與 true。最後把文字建立並綁定 Text property `Label`，預設值填「選項」；完成後會看到未選與已選兩種完整文字列，Frame 內也能容納選取內點，使用處可直接改標籤。
+8. 選取 Radio 的 true 版本，依共用規格表改外觀，在圓形控制圖形內加入 10×10 的 `Primary` 內點；完成後 true 版本會顯示主色內點。
+9. 在 `Components` 裡用 **F** 建立 44×24 的 Frame 當 Toggle 控制圖形，在 Frame 內放入 20×20、Fill 套用 `Card` 的圓鈕，再把控制圖形與一層「提醒我」文字放進最小高度 44 的水平 Auto layout。將整列建立為 `Toggle` 主元件，再增加第二個 Variant。把屬性命名為 On，兩個值設成 false 與 true。最後把文字建立並綁定 Text property `Label`，預設值填「提醒我」；完成後兩個版本會保有相同結構，Frame 內會有 Card 色圓鈕，使用處也能直接改標籤。
+10. 選取 Toggle 的 true 版本，依共用規格表改外觀，把底色改成 `Primary`，再將 Fill 為 `Card` 的圓鈕移到右側；完成後 true 版本會顯示主色軌道與靠右的 Card 色圓鈕。
+11. 從 Assets 插入一個 `Field` 使用處，再按右鍵選 **Detach instance**。把標籤改成「類別」，內容改成「設計」。在輸入區右側放入 `Icon / Chevron Right`，並旋轉 -90 度。選取整理好的欄位按右鍵選 **Create component**，再命名為 `Select`。增加第二個 Variant，把屬性命名為 Open，兩個值設成 false 與 true。收合版顯示目前類別，展開版在下方列出「設計」「行政」「客戶」「財務」；完成後會看到含向下圖示的類別欄，Open 屬性能切換目前值與四個可見選項。
+12. 選取 `Field` 元件集按 **Cmd／Ctrl+D**。把複製出的新元件集命名為 `Field / Multiline`。刪除 Disabled Variant。在 Default、Focus、Error 三個 Variant 各選取 `Field / Input`，把 H 設為 96，再將 Auto layout 對齊改為靠上；完成後元件集只保留三個版本，三個輸入區的文字都會從固定高度區域上方開始排列。
+13. 在 `Screen / Login` 與複製出的 Focus、Error、Fixed、Disabled 畫面中，各在密碼欄下方插入 Checkbox 使用處，把 Label 保持為「記住我」；完成後，同組五張登入畫面都會有位置一致的勾選項。
+14. 建立 `Screen / New Task`（空白新增任務畫面），將 W 設為 402、H 設為 874，並把 Fill 套用 `Surface`。先加入「標＊為必填」、頁面標題、任務名稱欄位與類別 Select 使用處；完成後會看見 Surface 底色上的表單標題與欄位。
+15. 全選目前的標題與欄位按 **Shift+A**，設成垂直 Auto layout；完成後各欄會依固定順序往下排列。
+16. 在類別欄下方按 **T** 建立「優先順序」，套用 `Type / Label`。在 Layers 把新 Label 拖進表單 Auto layout，放在前一個欄位之後；完成後類別欄下方會先出現單選群組的名稱。
+17. 在「優先順序」Label 下插入三個 Radio 使用處，透過 `Label` 分別改成「高」「中」「低」，只讓其中一個 Selected=true。在 Layers 把三個使用處依序拖進表單 Auto layout，放在前一個欄位之後；完成後畫面會清楚表達三選一。
+18. 插入 Toggle 使用處，透過 `Label` 把文字改成「提醒我」。在 Layers 把使用處拖進表單 Auto layout，放在前一個欄位之後；完成後開關與文字會在同一列表示提醒設定目前是否開啟。
+19. 插入 `Field / Multiline`，Label 改成「備註（選填）」。在 Layers 把使用處拖進表單 Auto layout，放在前一個欄位之後；完成後長內容會留在固定高度的備註區。
+20. 插入 Primary／Default 的 Button，Label 改成「新增任務」。在 Layers 把使用處拖進表單 Auto layout，放在前一個欄位之後；完成後表單會有一個清楚的提交動作。
+21. 加入必填 Checkbox 使用處，把文字改成「我已確認期限」。在 Layers 把使用處拖進表單 Auto layout，放在前一個欄位之後；完成後空白新增任務畫面會顯示期限確認勾選列，後續副本也會沿用這一列。
+22. 複製新增任務畫面，命名為 `Screen / New Task Select Open`，把類別 Select 切到 Open=true。若表單內容超過 874，把這張畫面的 H 改成 Hug contents，或加高到完整容納內容；完成後會看見設計、行政、客戶、財務四個選項，後續欄位也會由 Auto Layout 往下推開。做原型捲動那一堂會把畫面改回手機高度並設垂直捲動。
+23. 複製 `Screen / New Task`，命名為 `Screen / New Task Filled`（已填新增任務畫面），再填入各欄內容；完成後會得到含期限確認勾選列、提醒開關尚未打開的已填狀態。
+24. 複製已填畫面，命名為 `Screen / New Task Reminder`（提醒新增任務畫面），打開提醒開關並多放一個 `Field`。將 Label 改成「提醒時間＊」，再到 Layers 把新 Field 拖進表單 Auto layout，放在前一個欄位之後。若表單內容超過 874，把這張畫面的 H 改成 Hug contents，或加高到完整容納內容；完成後只有開關打開的畫面會顯示條件欄位，期限確認勾選列仍保留在相同位置。做原型捲動那一堂會把畫面改回手機高度並設垂直捲動。
+25. 在畫布旁註記後續原型會用 Change to 或 Navigate 切換兩張畫面；完成後條件欄位的出現規則會保留下來。
+26. 在 `Screen / New Task Filled` 建立「請先確認期限」，套用 `Type / Supporting` 與 `Error`。在 Layers 把新文字拖進表單 Auto layout，放在前一個欄位之後，再把方框外框改成 `Error`；完成後錯誤句會顯示在勾選列下方，而且不會進入 Checkbox 元件裡。修正後移除這段錯誤文字，外框恢復 `Control Border`。
 
 做完後檢查每個控制項的文字是否描述資料本身。Radio 文字寫優先順序，Toggle 文字寫設定名稱，Select 收合版顯示目前選項。元件的真假屬性只留在設計設定裡，使用者看到的是自然語言。
 
@@ -236,7 +247,7 @@ Focus 代表目前輸入位置，Error 代表內容需要修正，兩者可能�
 完成條件：
 
 - `Field` 元件能改 Label、Value、Helper，以 `Show helper` 控制說明文字，並在四種 State 間切換。
-- `Screen / New Task` 含任務名稱、類別、優先順序、提醒設定、備註與提交動作。
+- 空白 `Screen / New Task` 起始為 402×874 並套用 `Surface`，含任務名稱、四選一的類別、優先順序、提醒設定、備註、必填的期限確認與提交動作；Select 展開版與提醒版內容超過 874 時以 Hug contents 或足夠高度完整顯示。
 - Checkbox、Radio、Toggle、Select 與多行文字欄符合共用控制項規格。
 - 自選題目的表單、錯誤與修正後畫面符合需求頁欄位。
 
