@@ -57,7 +57,7 @@ def main(rd):
     # 3. 主線任務資料筆數
     rows = list(csv.reader((ROOT / 'assets/shared/TASK-DATA.csv').open(encoding='utf-8-sig')))[1:]
     for k, b in lessons.items():
-        for m in re.finditer(r'.{0,8}(?<!前)三筆任務.{0,8}', b):
+        for m in re.finditer(r'.{0,8}(?<![前第])三筆任務.{0,8}', b):
             probs.append(f'講義 {k}：「{m.group(0)}」，TASK-DATA 有 {len(rows)} 筆')
     for m in re.finditer(r'Row / T(\d\d)', alltext):
         if int(m[1]) > len(rows):
