@@ -64,13 +64,13 @@ Hover 與 Pressed 是短暫回饋。Hover 適合桌面上的滑鼠游標，手�
 | Primary | Pressed | `Primary Pressed` 底、白字 | 按下當下的主要動作 |
 | Primary | Focus | `Primary` 底、白字 | 外加 2 px `Focus Ring`，與按鈕保留 2 px 間隔 |
 | Primary | Disabled | `Disabled` 底、`Disabled Text` 字 | 條件未完成的主要動作 |
-| Secondary | Default | `Card` 底、`Text` 字 | `Border` 1 px 外框，可操作的次要動作 |
-| Secondary | Hover | `Primary Soft` 底、`Primary` 字 | 滑鼠移上回饋 |
-| Secondary | Pressed | `Primary Soft` 底、`Text` 字 | `Primary` 1 px 外框，按下當下回饋 |
+| Secondary | Default | `Card` 底、`Text` 字 | `Control Border` 1 px 外框，可操作的次要動作 |
+| Secondary | Hover | `Primary Soft` 底、`Primary` 字 | `Control Border` 1 px 外框，滑鼠移上回饋 |
+| Secondary | Pressed | `Primary Soft` 底、`Text` 字 | `Control Border` 1 px 外框，按下當下回饋 |
 | Secondary | Focus | `Card` 底、`Text` 字 | 外加 2 px `Focus Ring`，與按鈕保留 2 px 間隔 |
-| Secondary | Disabled | `Disabled` 底、`Disabled Text` 字 | `Border` 1 px 外框，暫時停用 |
+| Secondary | Disabled | `Disabled` 底、`Disabled Text` 字 | `Control Border` 1 px 外框，暫時停用 |
 
-共同結構：元件集命名為 `Button`；每個版本高度 48、水平內距 16、圓角 8；`Label` 套用 `Type / Label`；文字屬性預設值為「登入」。Primary 的五個 Variant 都使用白色 `Card` 圖示；Secondary 的圖示維持 `Text`。Secondary 的一般外框套用 `Border` 變數，與前面建立的色彩規則一致。
+共同結構：元件集命名為 `Button`；每個版本高度 48、水平內距 16、圓角 8；`Label` 套用 `Type / Label`；文字屬性預設值為「登入」。Primary 的五個 Variant 都使用白色 `Card` 圖示；Secondary 的圖示維持 `Text`。Secondary 的 Default、Hover、Pressed、Disabled 外框都套用 `Control Border` 變數，與表單控制項的邊界規則一致。
 
 1. 在元件區的 `Button / Primary` 上按右鍵，選 **Main component → Add variant**。完成後它會變成紫色虛線框住的元件集，裡面有原本版本和一個新版本，既有使用處仍留在各自畫面。
 
@@ -108,7 +108,7 @@ Hover 與 Pressed 是短暫回饋。Hover 適合桌面上的滑鼠游標，手�
 這一節把來源用回工作室畫面。每次先說出「角色、狀態、內容」三個答案，再到右側找對設定。
 
 1. 為登入畫面插入一顆按鈕，讓它成為可操作的主要動作；完成後會看到 Primary／Default 的「登入」，並能直接編輯 Label。
-2. 為確認彈窗準備一顆「取消」，讓它保持可操作但視覺次要；完成後會看到 Secondary／Default，外框採用 `Border`。
+2. 為確認彈窗準備一顆「取消」，讓它保持可操作但視覺次要；完成後會看到 Secondary／Default，外框採用 `Control Border`。
 3. 再準備一顆「確認完成」，讓它成為彈窗中的主要動作；完成後兩顆按鈕的角色有清楚差異。
 4. 依序把確認完成切到 Hover、Pressed 與 Focus；完成後會看到底色、按下與焦點圈回饋，文字和尺寸保持穩定。
 5. 複製登入按鈕，設定成必填資料尚未齊全的狀態，並在旁邊加入原因「請先填寫帳號與密碼」；完成後會同時看見停用外觀與可理解的原因。
@@ -159,7 +159,7 @@ Hover 與 Pressed 是短暫回饋。Hover 適合桌面上的滑鼠游標，手�
 | 只看到 Variant 1、2 等預設名稱 | 屬性名稱尚未整理 | 選元件集，把角色命名為 Type，再新增 State |
 | 元件集顯示組合衝突 | 兩個版本使用相同屬性值 | 對照十列表格，補回缺少的組合 |
 | 切換狀態後文字回到「登入」 | 某個版本的文字層尚未綁 Label | 選該版本的 `Label`，用 Apply variable/property 綁定 |
-| Secondary 外框與色彩規則不一致 | 外框仍是手填顏色 | 將 Default 與 Disabled 外框套用 `Border` 變數 |
+| Secondary 外框與色彩規則不一致 | 外框仍是手填顏色 | 將 Default、Hover、Pressed、Disabled 外框套用 `Control Border` 變數 |
 | Hover 時按鈕尺寸跳動 | 外框改變物件尺寸或結構 | 保持相同高度與內距，讓外框效果不推動內容 |
 | 使用處沒有 Show icon | 顯示屬性建在錯誤圖層 | 選元件內的圖示層，從 Appearance 建立 Boolean 屬性 |
 | 換圖示後切狀態又恢復 | 只有部分 Variant 綁定 Instance swap | 把十個對應圖示層連到同一個 `Icon` 屬性 |

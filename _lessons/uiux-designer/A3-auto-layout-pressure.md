@@ -72,7 +72,7 @@ Auto Layout 可以把父容器想成一個會排隊的盒子。方向設為 Vert
 | 訊息文字 | `Message` | 套用 `Type / Body`、W 322、Auto height | 「請輸入工作室帳號」 |
 | 按鈕文字 | `Label` | 套用 `Type / Label` | 「登入」 |
 | 練習按鈕 | `Button / Draft` | H 48、水平 Padding 16、垂直 Padding 12 | 水平排列、置中、綠底白字 |
-| 登入卡片 | `Login / Card` | x 24、y 200、W 354、Padding 16、Gap 12 | Vertical、Height Hug、白底；內含 Title、Message 與按鈕 |
+| 登入卡片 | `Login / Card` | x 24、y 120、W 354、Padding `Space 16`、Gap `Space 12` | Vertical、Height Hug、白底；內含 Title、Message 與按鈕 |
 | 輔助文字 | `Hint` | 套用 `Type / Supporting` | 「範例：studio@example.test」 |
 | 窄版卡片 | `Login / Card 360` | W 312 | 測試畫面變窄後的換行 |
 
@@ -85,6 +85,9 @@ Auto Layout 可以把父容器想成一個會排隊的盒子。方向設為 Vert
 4. 把新外框命名為 `Button / Draft`（練習按鈕），依規格表設定排列、對齊、內距與顏色；完成後，白色文字會位在綠色按鈕中央。
 5. 選取 `Login / Card` 再按 **Shift+A**；完成後，原本固定高度的登入卡片會成為包住三個子層的 Auto Layout。
 6. 依規格表設定登入卡片的 Vertical、Gap、Padding、寬度、Height Hug 與白底；完成後，卡片會包住標題、訊息與按鈕。
+
+這裡把原本固定排列的子層間距改用 `Space 12`，讓標題、訊息與按鈕維持同一組緊密內容；卡片內距則使用 `Space 16`，保留內容與邊緣的空間。
+
 7. 將登入卡片放到規格表的位置，再把訊息與按鈕寬度設為 **Fill container**；完成後，兩個子層會填滿卡片內側可用寬度。
 8. 在 Layers 展開登入卡片，確認 `Title`、`Message` 與 `Button / Draft` 是同層子物件，`Label` 則在按鈕裡；完成後，圖層縮排會清楚呈現三層關係。
 9. 把訊息改成「密碼至少需要包含一個英文大寫字母與一個數字」；完成後，訊息會換行，卡片跟著長高，按鈕向下移動。
