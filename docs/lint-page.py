@@ -368,7 +368,7 @@ def check_font_size_tier(html: str) -> list:
 def check_copy_button_parent_padding(html: str) -> list:
     """絕對定位的複製按鈕，其直接父容器須保留至少 72px 右側空間。"""
     css_rules = []
-    absolute_copy_classes = set()
+    absolute_copy_rules = []  # (按鈕本身需有的 class, 祖先需依序符合的 class 組)
     for css in re.findall(r'<style\b[^>]*>([\s\S]*?)</style>', html, re.IGNORECASE):
         css = re.sub(r'/\*[\s\S]*?\*/', '', css)
         for match in re.finditer(r'([^{}]+)\{([^{}]*)\}', css):
@@ -386,7 +386,12 @@ def check_copy_button_parent_padding(html: str) -> list:
                     prop == 'position' and re.match(r'absolute\b', value, re.I)
                     for prop, value in props
                 ):
-                    absolute_copy_classes.update(c for c in classes if 'copy' in c.lower())
+                    compounds = [
+                        set(re.findall(r'(?<![\w-])\.([\w-]+)', re.sub(r'::?[\w-]+(?:\([^)]*\))?', '', part)))
+                        for part in re.split(r'\s*>\s*|\s+', selector) if part
+                    ]
+                    if compounds and any('copy' in c.lower() for c in compounds[-1]):
+                        absolute_copy_rules.append((compounds[-1], [c for c in compounds[:-1] if c]))
                 css_rules.append((selector, props))
 
     class ElementParents(HTMLParser):
@@ -405,7 +410,21 @@ def check_copy_button_parent_padding(html: str) -> list:
             inline_absolute = bool(re.search(
                 r'(?:^|;)\s*position\s*:\s*absolute\b', attrs.get('style', ''), re.I
             ))
-            if (classes & absolute_copy_classes) or (
+            ancestors = [entry[1] for entry in self.stack]
+
+            def context_matches(contexts):
+                # 祖先 class 組需由外而內依序出現（後代選擇器）
+                index = 0
+                for ancestor in ancestors:
+                    if index < len(contexts) and contexts[index] <= ancestor:
+                        index += 1
+                return index == len(contexts)
+
+            css_absolute = any(
+                own <= classes and context_matches(contexts)
+                for own, contexts in absolute_copy_rules
+            )
+            if css_absolute or (
                 inline_absolute and any('copy' in c.lower() for c in classes)
             ):
                 self.matches.append((tag.lower(), classes, parent))
