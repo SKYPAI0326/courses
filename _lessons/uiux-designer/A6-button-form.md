@@ -5,9 +5,9 @@ title: 完成兩個欄位的登入表單與錯誤修正
 course_type: skill-operation
 duration: 6h
 prerequisites: [A5-variants-properties]
-revision: 2026-10-09
+revision: 2026-11-02
 style_guide: ../../_outlines/uiux-designer.style-guide.md
-platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體另記平台證據
+platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*.md）
 ---
 
 ## 內部設計（不進學員頁）
@@ -24,76 +24,154 @@ platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體�
 
 <!-- learner-content:start -->
 # 完成兩個欄位的登入表單與錯誤修正
+副標：工作室人員登入時，要看得懂每格填什麼，也要在填錯後知道怎麼改。
+本堂完成物：正常、錯誤與修正後的登入畫面；一般與錯誤輸入框元件；可閱讀的錯誤說明
 
-現在把按鈕放進能讀懂、能修正的表單。你會建立帳號與密碼兩個欄位，各有標籤、輸入區、提示或錯誤，完成正常、錯誤、修正後三張畫面。這堂設計外觀與狀態，第10堂才連互動。
+## 把上次整理好的按鈕放進表單
 
-## 開始前，先找到材料與起點
+工作室人員準備登入待處理清單。若畫面只有兩個白色矩形與一顆按鈕，使用者看不出欄位名稱，也無法在輸入有誤時找到修正方向。這堂會把帳號、密碼與登入按鈕組成完整表單，並保留正常、錯誤、修正後三張畫面，讓設計者能比較每次回應是否清楚。
 
-先從Assets插入Button，確認能選Primary／Default並改Label。做不到時回第05堂；若缺手機Frame，用F新建402×874。下面會完整建立Field與Login / Content。
+這項工作會使用上次完成的 Button 元件集。先從 Assets（元件資產面板）插入按鈕，確認 Hierarchy 可選 Primary、State 可選 Default，而且 Label 能直接改成「登入」。接著開[本堂起始材料](../../courses/uiux-designer/assets/A6-button-form/START-HERE.html)，理解登入情境與既有圖層；完成後用[完成檢查表](../../courses/uiux-designer/assets/A6-button-form/reference/EXPECTED-CHECK.html)逐張核對。三張登入畫面、輸入框元件與按鈕來源都放在同一個 Figma 檔案的同一頁。
 
-先開啟[本堂起始材料（HTML）](../../courses/uiux-designer/assets/A6-button-form/START-HERE.html)，讀取輸入與圖層名稱；操作在你的 Figma 檔或本堂指定工具完成。完成後到[本堂完成檢查表（可儲存／下載）](../../courses/uiux-designer/assets/A6-button-form/reference/EXPECTED-CHECK.html)記錄實際結果。
+先保留 `Screen / Login`（登入畫面）的手機外框與標題，再把舊的卡片測試移到畫面外的參考區。這樣既能延續之前的成果，也能為正式表單留下乾淨起點。接下來建立的欄位會用 Auto layout（自動排版）管理高度，錯誤說明變長時，下面的內容才會跟著移動。
 
-## 一個欄位不只是Rectangle
+## 一個完整欄位要回答三個問題
 
-欄位至少要讓人知道「要填什麼」及「填錯怎麼改」。Label是固定標籤；Input是輸入區；Helper是提示或錯誤。Placeholder只是輸入區內的示意，不能取代Label，因為輸入後會消失。
+這一節要先理解欄位的資訊分工。完整欄位至少要讓人知道「這格是什麼」「現在填了什麼」「有問題時怎麼修」。固定的 Label 負責欄位名稱，Input 負責承載輸入內容，Helper 負責平常提示或錯誤說明；三者放在同一個容器，閱讀順序才穩定。
 
-| 欄位 | 正常內容 | 錯誤內容 | 修正後內容 |
+例如，帳號欄的 Label 是「工作室帳號」，Input 內可顯示 `studio@example.test`，Helper 平常寫「請使用工作室電子郵件」。當內容只有 `studio` 時，錯誤版要保留欄位名稱，並把 Helper 改成「帳號格式不正確，請輸入完整電子郵件」。使用者不必從紅色猜問題，文字已經交代原因與下一步。
+
+| 部分 | 平常負責什麼 | 錯誤時負責什麼 | 判斷是否用對 |
 |---|---|---|---|
-| 帳號 | Label「工作室帳號」、值 `studio@example.test`、提示「請使用工作室電子郵件」 | 值 `studio`、錯誤「帳號格式不正確，請輸入完整電子郵件」 | 改為 `studio@example.test`，移除錯誤、恢復提示 |
-| 密碼 | Label「密碼」、示意 `••••••••`、提示「至少8個字元」 | 示意 `•••`、錯誤「密碼不足8個字元」 | 示意 `••••••••`，恢復提示 |
-| 登入按鈕 | Primary／Default | 仍可選Default讓人再次提交；示範未填齊另用Disabled | Primary／Default |
+| Label | 固定說明欄位名稱 | 保持原名稱 | 輸入後仍看得見這格用途 |
+| Input | 顯示輸入值或示意內容 | 保留使用者需要修正的內容 | 內容和欄位名稱相符 |
+| Helper | 補充格式或條件 | 說明原因與修正方向 | 句子能回答「哪裡錯、怎麼改」 |
+| Button | 提交目前表單 | 依表單是否齊全選狀態 | 文字說明按下後的動作 |
 
-本課所有資料均為示範，不在Figma輸入真實密碼。Figma這些文字層不是可輸入的正式登入系統，無須假裝正在驗證帳密。
+Placeholder 是尚未輸入時放在 Input 內的示意，它會在輸入內容後消失，所以固定 Label 仍要保留。顏色也是輔助線索；一般與錯誤狀態要同時在外框和 Helper 文字上呈現差異，讓使用者即使不靠顏色，也能讀到問題。
 
-## 示範：建立第一個完整欄位
+欄位元件的 State 與按鈕元件採用同一種思考方式：一般與錯誤是同一欄位家族的兩種狀態。兩個 Variant 必須保留相同的 Label、Input、Value、Helper 層級，切換時才不會出現文字跳動或尺寸突變。用得對時，設計者能從使用處選 State，而非進入每一層逐一改外框與文字色。
 
-1. 在 `Screen / Login` 保留手機402×874及標題。建立 `Login / Content` 垂直Auto Layout，x24、y120、W354、Hug高、Gap20、無額外內距；放入標題「登入工作室」。舊的卡片測試移到手機外的Reference區，保留作比較。
-2. 建文字 `Field / Label`，內容「工作室帳號」，16／24；另建文字 `Field / Value`，內容 `studio@example.test`，16／24。
-3. 選Value按Shift+A，命名新框 `Field / Input`，水平內距16、垂直12、W354、H48、白底、1px `#5F6C80`外框、圓角8。Value寬Fill，文字保持單行示意。
-4. 建文字 `Field / Helper`，內容「請使用工作室電子郵件」，14／22，寬354、Auto height、次要灰色。
-5. 同時選Label、Input、Helper，按Shift+A命名 `Field / Account`，Vertical、Gap8、W354、Hug高。其子層寬都設Fill；Label與Helper文字Auto height。
-6. 將Field / Account放進Login / Content。短提示時欄位高度應為 `24＋8＋48＋8＋22＝110`；錯誤換成兩行時Helper高44，整個欄位會增加22，後面的密碼與按鈕往下排。
+## 示範：做出能切換狀態的帳號欄
 
-## 跟著做：第二個欄位與真正的按鈕
+這一節先做一個完整帳號欄，再把它整理成一般與錯誤兩種 Variant。規格表集中列出所有名稱與數值，步驟只處理一項設定並觀察結果。
 
-1. 複製Field / Account為 `Field / Password`，改Label「密碼」、Value `••••••••`、Helper「至少8個字元」。不照抄帳號提示，要判斷三個子層各自用途。
-2. 將Password排到Account下方。從Assets插入Button，Hierarchy Primary、State Default、Label「登入」，命名Instance `Button / Login`，W Fill、H48，放在Login / Content最後。
-3. 因為Login / Content有4個子項（標題、Account、Password、Button），Gap20應只出現3次。檢查長Helper不會擋住密碼欄或按鈕。
-4. 複製整張手機為 `Screen / Login Error`。依表格修改兩個Value／Helper，Input外框改Error紅，Helper改紅色。保持外框尺寸，不把一整張表單全部變紅。
-5. 再複製Error為 `Screen / Login Corrected`，把值改正、恢復一般外框與提示。來源畫面仍是正常／錯誤／修正後三張，不要覆蓋掉Error而失去比較。
-6. 建一張 `Screen / Login Empty`練習版，帳號／密碼放示意Placeholder，Button選Disabled，附近加「請先填寫帳號與密碼」。實際元件停用與提示原因需同時出現。
+| 圖層或畫面 | 規格 | 內容或用途 |
+|---|---|---|
+| `Screen / Login` | 402 × 874；底色沿用登入畫面 | 正常登入畫面 |
+| `Login / Content` | x 24、y 120、寬 354；Vertical；Gap 20；Hug 高 | 表單內容容器 |
+| `Field / Account` | Vertical；Gap 8；寬 354；Hug 高 | 帳號欄使用處 |
+| `Field / Label` | 16／24；Auto height | 「工作室帳號」 |
+| `Field / Input` | 寬 354、高 48；水平內距 16、垂直內距 12；圓角 8 | 輸入內容容器 |
+| `Field / Value` | 16／24；Fill；單行 | `studio@example.test` |
+| `Field / Helper` | 14／22；Fill；Auto height | 平常提示或錯誤說明 |
+| State=Default | 白底；`#5F6C80`、1 px 外框；次要灰 Helper | 一般狀態 |
+| State=Error | 白底；Error 紅外框；Error 紅 Helper | 錯誤狀態 |
 
-![登入表單視覺參考：固定標籤、兩個輸入區與主要按鈕](../../courses/uiux-designer/assets/shared/login-reference.svg)
+1. 在 `Screen / Login` 內建立垂直 Auto layout，命名為 `Login / Content`（登入內容）。完成後會看到一個從標題往下排列的表單區。
+2. 建立 `Field / Label`（欄位標籤），輸入「工作室帳號」。完成後欄位用途會固定顯示在輸入區上方。
+3. 建立 `Field / Value`（欄位內容），輸入 `studio@example.test`。完成後會看到一行符合帳號情境的示範值。
+4. 選取內容文字按 **Shift+A**，把新外框命名為 `Field / Input`（輸入區），再依規格表設定尺寸與外觀。完成後文字會置於有邊界的輸入容器中。
+5. 建立 `Field / Helper`（欄位提示），輸入「請使用工作室電子郵件」。完成後輸入區下方會出現格式方向。
+6. 同時選取 Label、Input 與 Helper，按 **Shift+A**，把新外框命名為 `Field / Account`（帳號欄）。完成後三個部分會在同一個垂直容器中。
+7. 選取帳號欄，按右鍵選 **Create component**，把它建成主元件；再複製這個主元件一份，保留相同的名稱與階層。完成後會得到兩個可整理為狀態的主元件。
+8. 將第一個版本設為一般外觀，第二個版本把 Value 改成 `studio`，把 Helper 改成「帳號格式不正確，請輸入完整電子郵件」，再套用 Error 色。完成後會看到結構相同、回饋不同的兩個版本。
+9. 同時選取兩個主元件，在右側點 **Combine as variants**（合併為變體），將元件集命名為 `Field / Text`（文字欄位）。完成後兩個版本會被同一個元件集包住。
+10. 將 Variant 屬性命名為 State，兩個值分別設為 Default 與 Error。完成後使用處能從右側切換一般與錯誤。
+11. 從 Assets 插入元件使用處，命名為 `Field / Account`，放入登入內容。完成後帳號欄會跟著內容容器排列。
+12. 切換 State 檢查兩個版本。完成後 Label 保持原位，錯誤 Helper 會換行，欄位外框也會隨內容增高。
 
-## 檢查表單時，看四個地方
+一般版短提示時，欄位高度可用一個例子理解：上方文字、兩段間距、輸入區、下方提示與上下內容相加，得到 110。這個算式只用來幫你看懂結構；實際排版由 Hug contents 與 Auto height 接手。文字尺寸模式在右側 Layout（版面區塊），當 Helper 變成兩行時，它會增高並把後面的欄位推開。
 
-先看Label是否保留；再看Value是否與欄位對應；接著看Helper能否指出問題及修正；最後看主按鈕是否可辨認。正常、Error與Corrected三版的閱讀順序都應為標題→帳號→密碼→登入。
+完成帳號欄後，先把 State 從 Default 切到 Error，再切回 Default。外框、Helper 內容與顏色應一起改變，Label 與整體寬度則保持穩定。若只有顏色改變而錯誤句沒有出現，兩個版本的資訊仍不完整；回到 Error 來源補上可行的修正方向。
 
-**修復路徑：**如果長錯誤被裁切，先選Helper設文字Auto height／W Fill，再選Field外框Hug，再確認Login / Content為Vertical／Hug。若按鈕仍沒往下移，檢查它是否在同一Auto Layout裡。若手機高度不夠，先記錄內容超出的位置，保留正常字級；第13堂學滾動，不把字縮到10px硬塞。
+## 跟著做：完成密碼欄與三張登入畫面
 
-下一堂新建List畫面與任務列。這堂只需要前堂Button family與本堂新建Field，不依賴尚未存在的List Top。
+這一節要自行完成第二個欄位，並把表單整理成正常、錯誤、修正後三種結果。每一步先想要達成的畫面，再到對應元件或使用處找設定。
 
-## 自己完成：改變條件再檢查
+1. 複製帳號欄的來源，改成密碼欄家族。完成後兩種 State 仍保有 Label、Input、Value、Helper 四個層級。
+2. 將一般版 Label 改成「密碼」，Value 改成八個圓點，Helper 改成「至少8個字元」。完成後三段內容各自符合用途。
+3. 將錯誤版 Value 改成三個圓點，Helper 改成「密碼不足8個字元」。完成後錯誤句會直接指出缺少的條件。
+4. 從 Assets 插入密碼欄使用處，放到帳號欄下方。完成後兩欄會依登入內容的 Gap 自動排列。
+5. 插入 Button 使用處，選 Primary／Default，Label 改成「登入」，命名為 `Button / Login`（登入按鈕），寬度設為 Fill。完成後表單會有一個清楚的主要動作。
+6. 複製整張手機畫面，命名為 `Screen / Login Error`（登入錯誤畫面），把兩欄 State 切到 Error。完成後帳號與密碼都有原因和修正方向。
+7. 再複製錯誤畫面，命名為 `Screen / Login Corrected`（登入修正後畫面），將值改正並把兩欄切回 Default。完成後能直接比較錯誤前後。
+8. 另做一張空白登入畫面，兩欄顯示示意內容，把登入按鈕切到 Disabled，並在附近放「請先填寫帳號與密碼」。完成後停用外觀會配合具體原因。
+9. 把帳號錯誤句加長成兩行，觀察密碼欄與按鈕。完成後兩者會被推開，內容不會重疊。
 
-將帳號提示換成「請使用公司核發的完整電子郵件，若沒有帳號請先聯絡行政人員」，再把手機改360、Login / Content改W312。兩欄與按鈕寬Fill，長Helper應換行並推開後續內容。另挑一個欄位寫更有幫助的錯誤句。交出三個狀態與360版，說明哪個層決定每次高度變化。
+最後從標題開始順著讀一次：登入工作室、工作室帳號、輸入值、提示、密碼、輸入值、提示、登入。正常、錯誤與修正後三版都要保有相同閱讀順序。若某一版把錯誤句移到畫面頂端，使用者就要來回比對是哪一格出錯；把 Helper 留在所屬欄位附近，修正會更直接。
 
-## 完成條件與理解檢查
+## 看兩張錯誤畫面，判斷哪張比較能修
 
-- 正常／錯誤／修正後三張畫面有帳號與密碼兩欄，Label、Input、Helper齊全。
-- Button / Login來自Button元件，Label置中，Default與Disabled皆有文字與明確外觀。
-- 長提示與360寬度下，欄位與按鈕不重疊；錯誤句有原因與修正方向。
+這一節要判斷錯誤回饋是否真的幫得上忙。版本一把帳號 Input 外框改成紅色，欄內只顯示「錯誤」，原本的 Label 消失，畫面底部另放一行「資料有誤」。版本二保留「工作室帳號」Label 與使用者輸入的 `studio`，紅色 Helper 寫「帳號格式不正確，請輸入完整電子郵件」，密碼欄仍維持一般狀態。
 
-**想一想：**錯誤版將Placeholder改成紅字，卻沒有固定Label與Helper，為什麼不夠？
+請先圈出兩版中看得到的 Label、Input、Helper，再回答：哪一版能指出錯誤屬於哪個欄位？哪一版交代了修正方式？哪一版沒有讓未出錯的欄位也一起變紅？
 
-<details><summary>展開參考答案與理由</summary><p>使用者仍可能不知道欄位的正式名稱、出錯原因及修正方式。固定Label讓身分清楚，Helper提供具體回饋；顏色只輔助辨認。</p></details>
+<details><summary>查看判斷理由</summary><p>版本二較好。固定 Label 讓欄位身分保持清楚，原輸入值讓使用者知道要改哪段，Helper 同時說明原因與做法；未出錯的密碼欄保持一般狀態，也減少不必要的警示。版本一主要依賴紅色，且底部訊息與欄位距離太遠。</p></details>
+
+## 卡住時，沿著文字到容器往外查
+
+這一節把常見問題整理成修復順序。先查文字尺寸模式，再查欄位高度，最後查整張表單的排列，通常能找到是哪一層阻止內容增高。
+
+| 看到的現象 | 通常的原因 | 怎麼修 |
+|---|---|---|
+| 長錯誤句被裁切 | Helper 仍是固定高度 | 到 Layout 將文字尺寸模式設為 Auto height |
+| Helper 變高但密碼欄沒下移 | Field 或登入內容不是 Hug／Vertical | 讓欄位 Hug 高，並確認它在垂直 Auto layout 內 |
+| 切換 State 後 Label 跳位 | 兩個 Variant 的名稱或階層不同 | 對齊 Label、Input、Value、Helper 的層級 |
+| 使用處找不到 Error | 元件集的 State 值未整理 | 回主元件確認 Default 與 Error 各出現一次 |
+| 按鈕壓到欄位 | 按鈕在登入內容外手動定位 | 把按鈕移入 `Login / Content` 最後一項 |
+| 整張表單都變紅 | 錯誤色套在外層內容容器 | 只調整出錯 Input 的外框與所屬 Helper |
+
+修完後用最長錯誤句再測一次。短句看起來正常，只能證明短內容能放得下；長句仍能推開後續欄位，才表示 Auto layout 的層級真的能承受內容變化。
+
+## 換你做：報名確認 App
+
+現在把方法移到活動報名情境。行政人員需要新增或修正報名資料，表單包含姓名、電子郵件、備註三欄；備註可能很長，因此畫面要能顯示錯誤與修正後結果。你還要把輸入框做成一般與錯誤兩種狀態的元件，讓三個欄位都能使用同一套規則。
+
+要達成的條件：
+
+- 在 360 寬的報名 App 中建立姓名、電子郵件、備註三個完整欄位。
+- 每欄都有固定 Label、Input 與 Helper，內容與欄位用途相符。
+- 建立輸入框元件集，至少包含 Default 與 Error 兩種 State。
+- 做出一張錯誤畫面，清楚指出一個實際問題與修正方向。
+- 再做一張修正後畫面，保留一致的欄位順序與主要動作。
+- 使用蔡庭安的長備註測試文字換行與容器增高。
+
+合格的結果要能通過以下自我檢查：
+
+- 我能在使用處切換一般與錯誤，不必逐層重做外觀。
+- 錯誤訊息能回答哪裡有問題以及接下來怎麼改。
+- 長備註會讓欄位增高，後面的內容會跟著下移。
+- 正常、錯誤、修正後三版的 Label 都留在原位。
+- 按鈕文字能說明送出或儲存的動作，角色與狀態選擇合理。
+
+<details><summary>真的卡住再看：提示</summary><p>先完成一個具備 Label、Input、Helper 的欄位來源，再整理 Default 與 Error；長備註的問題通常要從文字的 Auto height 和外層的 Hug 逐層檢查。</p></details>
+
+## 收回登入情境，下一步把資料排成清單
+
+這堂讓工作室登入不再只是兩個矩形。正常畫面說清楚要填什麼，錯誤畫面指出原因與修正方向，修正後畫面讓設計者確認回饋已解除；輸入框元件則把一般與錯誤整理成可重複使用的 State。報名 App 也完成三欄表單，並用長備註驗證內容能推開版面。
+
+下一堂會把工作室任務排成可增刪的清單，並建立空清單與詳情畫面。今天練習的 Auto height、Hug contents 與 Fill 會直接用在長任務標題；只要欄位能跟著文字增高，你已具備處理清單內容變化的核心方法。
+
+想一想：錯誤版只把 Placeholder 改成紅色，卻拿掉固定 Label 與 Helper，為什麼仍難以修正？
+
+<details><summary>查看答案</summary><p>Placeholder 會隨輸入消失，無法持續說明欄位身分；紅色只表示有異常，沒有交代原因與做法。固定 Label 加上具體 Helper，才能讓使用者知道哪裡錯以及下一步怎麼改。</p></details>
+
+完成條件：
+
+- 正常、錯誤與修正後三張登入畫面都有完整帳號與密碼欄位。
+- 輸入框元件能在 Default 與 Error 間切換，階層與寬度保持穩定。
+- 長 Helper 會推開後續內容，登入按鈕仍位於表單最後。
+- 報名表單包含三欄與可理解的錯誤、修正後結果。
 
 ## 本堂查證來源
 
-- [W3C：標籤與說明](https://www.w3.org/WAI/WCAG22/Understanding/labels-or-instructions.html)
-- [W3C：錯誤辨識](https://www.w3.org/WAI/WCAG22/Understanding/error-identification.html)
-- [Figma：Auto Layout](https://help.figma.com/hc/en-us/articles/360040451373-Guide-to-auto-layout-in-Figma)
+- [Figma：Auto layout](https://help.figma.com/hc/en-us/articles/360040451373)
+- [Figma：文字尺寸與 Layout](https://help.figma.com/hc/en-us/articles/27378154668951)
+- [Figma：建立與使用 Variants](https://help.figma.com/hc/en-us/articles/360056440594)
+- [Figma：Component properties](https://help.figma.com/hc/en-us/articles/5579474826519)
 
-來源查證：2026-10-09。
+來源查證：2026-11-02。
 <!-- learner-content:end -->
 
 ## 講師授課筆記（不進講義）

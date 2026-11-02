@@ -1,13 +1,13 @@
 ---
 slug: uiux-designer
 unit_id: B3-transition-motion-purpose
-title: 用轉場說明方向，再做出可觀察的Smart Animate
+title: 用轉場說明畫面去向，再做一段 Smart Animate
 course_type: skill-operation
 duration: 6h
 prerequisites: [B2-trigger-navigation-action]
-revision: 2026-10-11
+revision: 2026-11-02
 style_guide: ../../_outlines/uiux-designer.style-guide.md
-platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體另記平台證據
+platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*.md）
 ---
 
 ## 內部設計（不進學員頁）
@@ -23,80 +23,168 @@ platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體�
 素材：正式正文的可複製資料、每課 START-HERE、完成檢查表、共用視覺參考，B7 有 PSD，B8 有下載 ZIP。素材存在／版本由驗證紀錄確認，不以本段自填 PASS。
 
 <!-- learner-content:start -->
-# 用轉場說明方向，再做出可觀察的Smart Animate
+# 用轉場說明畫面去向，再做一段 Smart Animate
+副標：工作室行政人員進入任務詳情、返回清單與更新狀態時，動畫要幫助理解發生了什麼。
+本堂完成物：進入與返回方向一致的主線轉場；一段狀態改變的 Smart Animate；一份動畫版與即時切換版的比較
 
-動畫應幫人理解畫面關係。本堂先比較進入詳情與回清單的方向，再用相同名稱與層級的物件做出真正的Smart Animate。選到動畫名稱只完成設定，看到物件連續變化才算效果成立。
+## 從正確目的地開始談移動
 
-## 開始前，先找到材料與起點
+工作室行政人員已經能從登入進入待處理清單，點「整理交付包」查看詳情，再返回清單。這條流程目前使用 Instant，畫面會立刻切換；操作已經正確，接下來要用動畫補充空間關係，讓人知道自己是往更深一層前進，還是回到上一層。
 
-前堂基本連線能真點成功才開始。先用Instant確認List→Detail→返回；如果Destination錯誤，回第10堂修，動畫不會修好錯的目的地。
+這一頁沿用上次連好的主線，先用[本堂起始材料](../../courses/uiux-designer/assets/B3-transition-motion-purpose/START-HERE.html)核對動畫分支需要的畫面與名稱，再用[本堂完成檢查表](../../courses/uiux-designer/assets/B3-transition-motion-purpose/reference/EXPECTED-CHECK.html)比較實際預覽。開始前先用 Instant 走一次「清單 → 整理交付包詳情 → 返回」，確認標題、內容與目的地都正確；動畫只能說明正確流程，無法替錯誤目的地補救。
 
-先開啟[本堂起始材料（HTML）](../../courses/uiux-designer/assets/B3-transition-motion-purpose/START-HERE.html)，讀取輸入與圖層名稱；操作在你的 Figma 檔或本堂指定工具完成。完成後到[本堂完成檢查表（可儲存／下載）](../../courses/uiux-designer/assets/B3-transition-motion-purpose/reference/EXPECTED-CHECK.html)記錄實際結果。
+本頁會處理兩種不同問題。主線轉場說明整張畫面的去向；Smart Animate 則表現同一個狀態物件如何從前一個外觀連續變成下一個外觀。把兩者分開練習，能避免看到任何移動都叫做同一種動畫。
 
-## 選動畫前，先說要表達什麼
+## 先決定要表達什麼，再選動畫
 
-| 用途 | 本課範例設定 | 要觀察的效果 |
+這一節要建立動畫的判斷順序。先說清楚畫面之間的關係，再選 Move in、Move out、Dissolve 或 Smart animate；最後才調整方向、時間與 Easing（速度變化）。如果先挑最顯眼的效果，動畫容易變成裝飾，反而讓頻繁操作顯得拖延。
+
+例如，從待處理清單進入整理交付包詳情，代表從總覽深入單筆內容。詳情由右側進入，能傳達「向前看下一層」；按返回時讓詳情往右離開，則與進入方向相反，畫面關係比較連貫。若只是兩個沒有空間層級的狀態切換，短暫 Dissolve 或 Instant 往往更清楚。
+
+| 情境 | 適合先比較的 Animation | 要觀察的意義 |
 |---|---|---|
-| 進入較深一層詳情 | Navigate to、Move in、從右進入、Ease out、200ms | Detail從右進來，表示向前深入 |
-| 返回清單 | Navigate to、Move out、往右離開、Ease out、200ms | Detail退出，顯露List；方向與進入相反 |
-| 一般不需空間關係的切換 | Instant或短Dissolve | 資訊清楚、不用每個動作都滑動 |
-| 同物件狀態改變 | Smart animate、Ease out、200ms | 形狀、位置、尺寸或透明度連續變化 |
+| 清單進入詳情 | Move in | 詳情從一側進入，表示向內深入 |
+| 詳情返回清單 | Move out | 詳情向相反方向離開，回到總覽 |
+| 不強調空間關係 | Dissolve 或 Instant | 內容改變，但不暗示左右層級 |
+| 同一物件狀態改變 | Smart animate | 尺寸、位置、填色或透明度連續變化 |
 
-200ms是本例起點，不是通用正確值。Duration控制花多久，Easing控制速度如何變化；Ease out是先快後慢，讓物件較柔和停下。太長會讓頻繁操作等待，太短可能看不出方向。為容易暈動或不需要動畫的使用者，保留Instant比較版。
+Duration（持續時間）控制動畫花多久完成，Easing 控制過程中的速度變化。Ease out 會先快後慢，物件接近終點時柔和停下。本頁用 200ms 作為主線比較值，因為這是現稿的示範起點；它不是所有產品都必須採用的答案。真正的判斷仍要回到操作頻率、方向是否看得懂，以及等待感是否合理。
 
-## 示範：在現有連線比較兩種轉場
+Smart Animate 的配對方式不同。Figma 會在兩張 Frame 中尋找名稱與層級對應的物件，再把可動畫屬性的前後值連起來。若同一個標籤在前後畫面分別放在不同父層，外觀看似一樣，仍可能配對不到；配不到的物件會以淡入淡出處理。這就是為什麼命名與 Layers 結構會直接影響動畫結果。
 
-1. 選List的Row / T01連線，保留On click與Destination Detail，只把Animation改Move in，方向選從右進入，Duration200ms、Easing Ease out。不同UI的箭頭圖示可能不寫方向文字，用Preview確認從哪邊開始。
-2. 在Detail的Button / Back連線選Move out，讓Detail往右退出，Destination仍List。不要同時把Destination改到另一張畫面，才能比較轉場。
-3. Preview從Login進到List再點T01與返回。應能說出「前進進入詳情、返回退回清單」，不是所有畫面都由同一側跳進。
-4. 將這兩條連線各改Dissolve跑一次，記錄感受：哪一種更能表達層級、哪一種較少動態負擔。最終主線保留你能說明理由的版本，不為了展示功能用最花俏設定。
+動畫也需要保留可比較的基準。Instant 版本能讓你確認最終內容與位置是否相同，Smart Animate 版本則用來觀察中間過程。兩版的資訊結果一致，才能把差異歸因於動畫，而非其中一張畫面漏了內容。
 
-## Smart Animate：先準備配對物件
+## 示範：讓詳情進入與返回方向一致
 
-Smart Animate會尋找兩張Frame裡同名且層級對應的物件，把可動畫屬性的前後值連起來。文字內容更換不是所有字形都會平順變形；本堂用尺寸與透明度，結果更容易檢查。
+這一節先在已連好的主線調整 Animation。規格表集中列出方向、時間與物件名稱；實際操作時一次只改一條連線，做完立刻預覽。
 
-1. 在畫布外新建 `Motion / Before` Frame，402×300。裡面建立 `Status / Badge` Frame，x24、y70、W160、H48、主要綠底、圓角8；放文字Label「待處理」。另建文字 `Status / Check`「✓」，放在x300、y85，Opacity0%。
-2. 複製整張Frame為 `Motion / After`，保留內部層名與階層。將Badge W改280、填色改Success；Check Opacity改100%。不要重新畫兩份同樣外觀但名字不同的Badge。
-3. 在Before中建立名為 `Button / Animate` 的測試Button「看看變化」，放y180。複製到After相同位置，保留名字。
-4. Before的Animate Button設On click→Navigate to→After→Smart animate、Ease out、200ms；After的Animate Button連回Before，同樣設定。兩個不同熱區各有一個動作，不需要同trigger多動作。
-5. 給Before單獨Flow起點 `MOTION-01`，Preview來回點。Badge應寬度連續增加／縮小，Check淡入／淡出，沒有整張畫面只瞬間切換。
-
-| 配對檢查 | Before | After |
+| 類別 | 圖層或設定 | 本堂值 |
 |---|---|---|
-| Badge路徑 | Motion / Before → Status / Badge | Motion / After → Status / Badge |
-| Badge尺寸 | W160、H48 | W280、H48 |
-| Check層名 | Status / Check | Status / Check |
-| Check透明度 | 0% | 100% |
-| 動畫 | Smart animate 200ms／Ease out | 返回同設定 |
+| 進入熱區 | `Row / T01`（整理交付包任務列） | 通往整理交付包詳情 |
+| 進入 Animation | Move in | 從右進入 |
+| 返回熱區 | `Button / Back`（返回清單按鈕） | 通往待處理清單 |
+| 返回 Animation | Move out | 往右離開 |
+| Easing | Ease out | 進入與返回一致 |
+| Duration | 200ms | 主線比較值 |
+| 比較設定 | Dissolve、Instant | 保留內容與目的地不變 |
+| 預覽 | Preview | Shift+Space |
 
-## 跟著做：診斷不能配對的效果
+1. 從「完成一筆任務」流程開啟 Preview，先用 Instant 走過整理交付包的進入與返回。做完會確認兩條連線的目的地仍正確。
+2. 回到畫布，選取整理交付包任務列通往詳情的原型連線。做完會看見這條 Interaction 的觸發、動作、目的地與動畫設定。
+3. 保留 On click、Navigate to 與原本目的地，只把 Animation 改為 Move in。做完後，互動內容仍相同，只有進場方式改變。
+4. 依規格表選擇從右進入的方向。方向箭頭的樣子以畫面為準，稍後用 Preview 確認實際起點。
+5. 將 Easing 設為 Ease out。做完會看到速度曲線設定套用在這條轉場。
+6. 將 Duration 設為規格表中的比較值。做完後，進入詳情會有短暫、可觀察的移動。
+7. 選取詳情中的返回連線，把 Animation 改為 Move out。做完後，目的地仍是待處理清單。
+8. 將返回方向設為往右離開，並使用相同 Easing 與 Duration。做完後，進入與返回會形成相反方向。
+9. 從登入開始預覽，點整理交付包再返回。做完應能用「向內深入」與「退回總覽」說明兩段動畫。
+10. 將兩條連線暫時改為 Dissolve，再完整走一次。做完會得到一版較少空間暗示的比較結果。
+11. 將主線恢復成你能說明理由的版本，並記錄選擇。做完會留下一段由任務關係支持的動畫決定。
 
-把After的Status / Badge暫時改名為 `Different / Badge`，再Preview比較。物件可能以淡入淡出替代連續寬度變化。你要先指出是哪一層不匹配，再把名與階層恢復。接著不改名字，只將Duration改600ms，觀察等待時間；最後回200ms。一次只改一個條件，避免把命名與速度問題混在一起。
+比較時請把注意力放在理解，而非喜好。若第一次看到就能判斷詳情是從哪裡來、返回後回到哪一層，動畫完成了說明工作；若目光只追著移動，或每次點擊都在等待效果結束，就應回到更短或更簡單的設定。
 
-**卡住時：**完全沒反應先查連線與起點；畫面會切換但Badge只淡入，查名稱／父層；Badge跳動，確認兩端同一屬性確實有不同值且沒有被另一層蓋住；效果太慢，查Duration；Smart Animate控制元件看得到卻無變化，代表選項存在，尚不能證明配對成功。
+## 跟著做：用同名同層級物件完成 Smart Animate
 
-這個Motion分支用於學動畫，不必把所有動效塞進主線。後面交付仍需說明原型選擇的動畫與不用動畫的理由。
+接下來做一條獨立的狀態動畫。這條分支不改主線任務資料，專門讓你看清楚名稱、層級與前後值如何影響 Smart Animate。
 
-## 自己完成：改變條件再檢查
+| 類別 | 名稱 | Before | After |
+|---|---|---|---|
+| 外框 | `Motion / Before`、`Motion / After` | 402 × 300 | 402 × 300 |
+| 狀態標籤 | `Status / Badge`（狀態標籤） | x24、y70、W160、H48 | W280、H48 |
+| 狀態標籤外觀 | 填色 | 主要綠色 | Success 色 |
+| 完成記號 | `Status / Check`（完成記號） | x300、y85、Opacity 0% | 同位置、Opacity 100% |
+| 測試按鈕 | `Button / Animate`（播放狀態按鈕） | y180 | y180 |
+| Animation | Smart animate | Ease out、200ms | 返回同設定 |
+| Flow | 狀態動畫 | Before | — |
 
-讓Check位置從x300移到x260，同時用Opacity0→100；保留一份同內容的Instant版本。自己在Preview依相同起點各播放一次，記錄動畫版是否從右側移入並淡入、Instant是否直接出現，以及兩版的完成文字與最終位置是否一致。依能否看清狀態變化與設定Duration說明你的選擇，不把200ms引數當成人的實際等待感。有同學時另記他對理解與等待的回饋，未邀請就標待補。交出前後值表、兩版比較、正確配對結果、故意改名失敗與修復，以及主線兩種轉場理由。
+1. 在畫布空白處建立 `Motion / Before`，依規格表設定 Frame。做完會得到一張獨立於主線的動畫起始畫面。
+2. 在起始畫面建立 `Status / Badge`（狀態標籤），放入「待處理」。做完會看到固定大小的綠色狀態區塊。
+3. 建立 `Status / Check`（完成記號），依規格表放置並將透明度設為起始值。做完後，Layers 中看得到完成記號，畫面上暫時看不見。
+4. 加入 `Button / Animate`（播放狀態按鈕），文字寫「看看變化」。做完會得到啟動動畫的明確熱區。
+5. 複製整張起始 Frame，命名為 `Motion / After`。做完後，兩張畫面的內部圖層名稱與層級完全相同。
+6. 在 After 調整狀態標籤的寬度與填色。做完會看到標籤變寬並呈現成功狀態。
+7. 在 After 將完成記號的透明度調到結束值。做完會看到勾號出現在標籤旁。
+8. 將 Before 的播放按鈕連到 After，設定 On click、Navigate to 與 Smart animate。做完會看到這條互動指向狀態完成畫面。
+9. 將 After 的播放按鈕連回 Before，使用同樣的 Animation、Easing 與 Duration。做完後，兩種狀態可來回比較。
+10. 第一次把 Before 連到 After 時，Figma 會自動建立新流程；把它改名為「狀態動畫」。做完後，Flows 清單會出現可辨認的中文入口。
+11. 從「狀態動畫」開啟 Preview，來回點擊播放按鈕。做完應看到標籤連續伸縮，完成記號淡入與淡出。
 
-## 完成條件與理解檢查
+如果畫面只是整張淡入淡出，先把兩張 Frame 並排，沿著 Layers 路徑核對 `Status / Badge` 與 `Status / Check`。名字相同只是第一層，還要確認它們位於對應的父層之下。前後屬性也要真的不同，Figma 才有可補間的變化。
 
-- 主線進入／返回轉場方向與用途明確，200ms及Easing有記錄。
-- Smart Animate的同名同層級物件確實改變尺寸與透明度，Preview可見連續變化。
-- 能用一次改名故障解釋配對條件，修復後重新測試，並保留Instant比較。
+接著做一次單一變因診斷。把 After 的 `Status / Badge` 暫時改成 `Different / Badge`，預覽一次並觀察伸縮是否變成淡入淡出；再把名稱改回原值重測。這次只改名稱，其他位置、尺寸與連線維持原樣，因此你能把結果直接連回配對規則。
 
-**想一想：**兩張Frame都有綠色矩形，為什麼仍可能沒有連續伸縮？
+最後把 Duration 暫時改為 600ms，再與 200ms 比較等待感。做完後調回主線規格值，保留一行觀察紀錄。速度變慢會讓中間狀態更容易看見，也可能讓高頻操作顯得拖延；這個比較能幫你理解「看得清楚」與「回應俐落」之間需要取捨。
 
-<details><summary>展開參考答案與理由</summary><p>外觀相似不等於同一物件配對。Smart Animate需要名稱與層級對應，並且可動畫屬性的前後值有差異；若名稱不同或父層不同，可能以淡入淡出替代。</p></details>
+## 看兩段動畫，判斷哪一段真的在說明狀態
+
+版本一的待處理標籤與完成標籤外觀相同，兩張 Frame 裡的圖層分別叫 `Green Box` 與 `Done Badge`，父層也不同。互動選了 Smart animate，但預覽時舊標籤淡出、新標籤淡入，勾號突然出現。
+
+版本二在兩張 Frame 中都使用 `Status / Badge` 與 `Status / Check`，父層路徑相同。狀態標籤從較窄變寬，顏色轉為成功色，勾號由透明變清楚；Instant 比較版的最終文字與位置相同。請判斷哪一版比較能證明 Smart Animate 配對成功，並說明選項名稱與實際效果的差別。
+
+<details><summary>看完自己的判斷再展開</summary><p>版本二較能證明配對成功。前後物件名稱與層級對應，而且尺寸、填色與透明度都有可觀察的連續變化；Instant 版又證明最終資訊一致。版本一雖選了 Smart animate，物件仍可能因名稱與父層不同而改用淡入淡出。</p></details>
+
+## 卡住時，先分辨是連線、配對還是速度
+
+這一節把動畫問題拆成三類。完全沒切換先看互動；能切換但沒有連續變化時看配對；效果存在但感受不對時再看方向與時間。
+
+| 看到的現象 | 通常的原因 | 怎麼修 |
+|---|---|---|
+| 點按鈕完全沒反應 | 熱區沒有 Interaction 或流程起點選錯 | 核對按鈕連線，再從「狀態動畫」開啟 Preview |
+| 畫面切換但標籤只淡入 | 名稱或父層路徑不同 | 比對兩張 Frame 的 Layers，恢復同名同層級 |
+| 勾號突然出現 | 前後物件未配對，或透明度沒有前後差異 | 核對圖層名稱與 Opacity 起訖值 |
+| 進入與返回都往同一方向 | 兩條連線用了相同方向 | 讓詳情進入與離開形成相反關係 |
+| 動畫看不出變化 | 前後尺寸、位置或透明度相同 | 選一項可觀察屬性建立前後差異 |
+| 操作顯得拖延 | Duration 過長或動畫使用過多 | 與 Instant 比較，再縮短或簡化效果 |
+
+## 換你做：報名確認 App
+
+活動主辦單位的行政人員要把一筆報名從「待確認」更新為「已確認」。你已經做過狀態標籤元件，現在要用 Smart Animate 表現同一個標籤的狀態改變，讓更新結果容易理解。這段練習使用既有報名 App，不另開一份檔案。
+
+要達成的條件：
+
+- 選一筆待確認報名作為操作情境。
+- 準備更新前與更新後兩張對應畫面。
+- 兩張畫面的狀態標籤保持相同名稱與相同父層路徑。
+- 標籤文字由「待確認」變成「已確認」。
+- 至少有一項可動畫的視覺屬性在前後改變。
+- 從明確的「確認報名」動作啟動 Smart Animate。
+- 保留一份 Instant 比較結果，最終資訊與動畫版一致。
+- 用一句話說明動畫如何幫助行政人員理解狀態已更新。
+
+合格的結果要能通過以下自我檢查：
+
+- Preview 中能看見狀態標籤的連續變化，而非只看到整張畫面切換。
+- 更新後的標籤清楚寫「已確認」，不只依靠顏色表達。
+- 前後畫面的姓名與備註一致，改變集中在狀態與必要回饋。
+- Instant 與動畫版的最終內容相同。
+- 關閉動畫仍能讀懂狀態；加入動畫後，變化去向更容易追蹤。
+- 動畫速度不妨礙連續確認多筆報名。
+
+<details><summary>真的卡住再看：提示</summary><p>先沿 Layers 比對更新前後的狀態標籤路徑，再檢查是否至少有一項尺寸、位置、填色或透明度在前後不同。</p></details>
+
+## 用動畫補足關係，不讓動畫取代內容
+
+你已經為工作室主線建立進入與返回方向一致的轉場，也完成一段可觀察的 Smart Animate。前者說明清單與詳情的層級，後者說明同一個狀態如何改變；Instant 比較版則確保最終資訊本身仍然完整。
+
+下一頁會把詳情上的確認彈窗真正開成 Overlay，讓取消、確認與外側關閉各有清楚結果，並加入選單交換與底部面板。屆時動畫仍服務畫面關係：彈窗保留背景，底部面板由下方進入，使用者能從出現方式理解它們是暫時疊在原畫面上的內容。
+
+想一想：兩張 Frame 都有綠色狀態標籤，為什麼 Smart Animate 仍可能只顯示淡入淡出？
+
+<details><summary>看參考答案</summary><p>外觀相似不代表 Figma 能把它們視為同一物件。Smart Animate 需要前後圖層名稱與層級對應，並且可動畫屬性有差異；配對不到時，物件會改用淡入淡出。</p></details>
+
+完成條件：
+
+- 整理交付包詳情的進入與返回轉場能用層級關係說明。
+- 狀態動畫中的標籤與完成記號同名同層級，Preview 可見連續變化。
+- 動畫版與 Instant 版最終資訊一致，並留下速度與理解的比較。
+- 報名確認練習能將待確認標籤轉為已確認，文字與動畫結果都清楚。
 
 ## 本堂查證來源
 
-- [Figma：Smart Animate的名稱與層級配對](https://help.figma.com/hc/en-us/articles/360039818874-Smart-animate-layers-between-frames)
+- [Figma：Smart animate layers between frames](https://help.figma.com/hc/en-us/articles/360039818874-Smart-animate-layers-between-frames)
 - [Figma：Prototype actions](https://help.figma.com/hc/en-us/articles/360040035874-Prototype-actions)
 
-來源查證：2026-10-09。
+來源查證：2026-11-02。
 <!-- learner-content:end -->
 
 ## 講師授課筆記（不進講義）

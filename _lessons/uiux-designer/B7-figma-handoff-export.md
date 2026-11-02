@@ -5,9 +5,9 @@ title: 把設計整理成能重開、能量測的交付包
 course_type: skill-operation
 duration: 6h
 prerequisites: [B6-prototype-task-test]
-revision: 2026-10-11
+revision: 2026-11-02
 style_guide: ../../_outlines/uiux-designer.style-guide.md
-platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體另記平台證據
+platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*.md）
 ---
 
 ## 內部設計（不進學員頁）
@@ -24,83 +24,171 @@ platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體�
 
 <!-- learner-content:start -->
 # 把設計整理成能重開、能量測的交付包
+副標：工作室的任務原型已完成修正，現在要讓接手工作的人從資料夾裡找到來源、讀懂規格、重開檔案並取得正確輸出。
+本堂完成物：一份可查尺寸與狀態的設計規格表；可重開的 Figma 與 Photoshop 來源檔；結構清楚且檔名一致的交付資料夾
 
-接手者需要知道尺寸、色碼、狀態與檔案用途，而不只是看到幾張PNG。本堂以免費Design面板讀規格、完成Figma匯出，再用真正分層PSD練習儲存與透明PNG輸出，整理成完整交付包。
+## 從修正完成的原型接著整理
 
-## 開始前，先找到材料與起點
+工作室的待處理清單已經走過單人任務測試。登入、長清單、詳情、取消、確認與完成結果都有紀錄，最嚴重的問題也已經修正。若只把幾張畫面圖片傳出去，接手工作的人仍然不知道原始尺寸、元件狀態、互動起點與哪些檔案可以繼續編輯。
 
-前堂作品至少主線無阻斷，並有測試紀錄。選一個Row能說出父框和文字層不同即可開始。Photoshop工作站與PSD在第一次使用前取得；無軟體請保留待補操作，不能換成PNG假冒。
+這堂會接著使用修正後的 Figma 檔與測試紀錄，把散落的資訊整理成可重開、可量測、可核對的交付包。先從[本堂起始材料](../../courses/uiux-designer/assets/B7-figma-handoff-export/START-HERE.html)確認來源與目標檔名，再用[交付檢查表](../../courses/uiux-designer/assets/B7-figma-handoff-export/reference/HANDOFF-CHECK.html)逐項重開來源、核對輸出與檢查資料夾。Photoshop 練習會使用本課提供的分層徽章，Figma 則輸出工作室流程的主要畫面。
 
-先開啟[本堂起始材料（HTML）](../../courses/uiux-designer/assets/B7-figma-handoff-export/START-HERE.html)，讀取輸入與圖層名稱；操作在你的 Figma 檔或本堂指定工具完成。完成後到[本堂完成檢查表（可儲存／下載）](../../courses/uiux-designer/assets/B7-figma-handoff-export/reference/HANDOFF-CHECK.html)記錄實際結果。
+## 交付的重點是每個檔案用途清楚
 
-## 先取得PSD與參考輸出
+一份交付包要回答四個問題：原始設計放在哪裡、畫面規格怎麼讀、可直接使用的輸出有哪些、設計曾經怎麼測。來源用來修改，輸出用來直接使用，規格與測試則交代尺寸、狀態、起點與修正結果。
 
-現在下載[status-badge.psd（512×512、三個點陣圖層）](../../courses/uiux-designer/assets/shared/status-badge.psd)，用於Photoshop練習；[status-badge.png（透明背景參考）](../../courses/uiux-designer/assets/shared/status-badge.png)用來核對匯出；[圖層說明](../../courses/uiux-designer/assets/shared/PSD-README.html)說明Background、Card、Check的內容。全部是本課製作的示範素材，不含客戶資料。
+規格也不等於抄一串數字。每個數值都要對應物件、狀態與畫面。按鈕除了高度與圓角，還要寫來源元件、Hierarchy、State、Label 與填色。
 
-第一次使用前先開啟[Photoshop桌面版準備與啟動](../../courses/uiux-designer/assets/shared/PHOTOSHOP-START.html)：已有授權者依Adobe官方入口安裝並開啟；使用教室工作站者須取得實際地點／時段、登入方式與儲存位置，再確認能開啟512×512的三層PSD。沒有軟體仍可檢查PNG尺寸與透明效果，但那不等於完成PSD重開／修改／匯出；在完成檢查表記「Photoshop操作待補」及所缺條件，可先整理Figma輸出，取得可用工作站後回本堂補做。不要把一張扁平PNG改副檔名為.psd來交作業。
+本課從右側 Design 面板讀取 W、H、Padding、Gap、圓角與填色。選到文字層後，再讀字型、字級、行高、字重與文字顏色。量相鄰物件距離時，Windows 按住 Alt，Mac 按住 Option，再把游標指向相鄰物件。Starter 方案沒有 Dev Mode，本堂用 Design 面板完成規格。
 
-## 示範：Starter用Design面板讀規格
+影像來源也有相同原則。PSD 保存 Background、Card 與 Check 圖層；透明 PNG 提供完成後的點陣輸出。
 
-1. 在Figma開啟修正版檔案，選T01 Row外框。用右側Design讀W、H、Padding、Gap、Corner radius與Fill，記Row W354、Padding16、Gap8與當時高度。
-2. 再選Row / Title，記實際字型、字級18、行高28、字重、Fill色碼；不要從匯出圖片猜文字尺寸。
-3. 在可讀取檔案的情況，用Alt（Windows）／Option（Mac）檢視選取層到相鄰層的距離，並與已設定Gap核對。看不到距離先選正確層與Design面板，也可以用本課Auto Layout欄位讀明確值。
-4. Starter沒有Dev Mode，本課不要求點選Inspect／Dev Mode開關。付費且有適合seat的學員可補做Dev Mode，但本堂核心交付仍是Design可讀的規格表。
-5. 記一份Button：來源Button、Hierarchy Primary、State Default、Label「確認完成」、H48、圓角8與填色。需要的是可辨認的規格，不是任意複製CSS後就當工程完成。
-
-## Figma匯出：格式跟用途一起選
-
-| 格式 | 本課用途 | 不包含什麼 |
+| 類型 | 主要用途 | 重開後要確認 |
 |---|---|---|
-| PNG | 確認Dialog／狀態徽章等點陣圖預覽，可有透明背景 | 元件來源與Prototype互動 |
-| SVG | 簡單圖示等向量素材 | 自動保留Figma元件或Prototype，不會 |
-| PDF | 多張畫面供人審閱 | 可點原型或可編輯PSD圖層 |
-| .fig本機副本 | 儲存Figma可編輯內容 | 帳號分享權限；仍要確認接手者能開 |
-| PSD | Photoshop分層原稿 | FigmaAuto Layout或程式互動 |
+| `.fig` | 保存 Figma 可編輯內容 | 圖層、元件、Prototype 起點與互動仍存在 |
+| 畫面 PNG | 快速檢視與直接使用 | 尺寸、檔名、畫面內容與清單一致 |
+| PSD | 保存 Photoshop 分層原稿 | 三個圖層可分別顯示與修改 |
+| 透明 PNG | 網站或文件中的徽章素材 | 尺寸正確，四角呈現透明 |
+| 規格表 | 說明尺寸、間距、文字、顏色與狀態 | 每個數值都能對回具體物件 |
+| 測試 JSON | 保存任務測試與修正紀錄 | 表單可載入，內容能找到對應畫面 |
 
-1. 選Overlay / Confirm的Frame，在Design底部Export按＋，選PNG、1x，Export所選Frame，檔名用 `dialog-confirm.png`。預期W320、高度依當時內容，不能拿舊320×200參考圖當作本次真實匯出。
-2. 選主線Login／List Long／Detail／List Done等Frame匯出PNG，按畫面命名。若做PDF，用檔案選單的Export frames to PDF（當前介面提供時），確認頁序與畫面清單；沒有入口可用PNG附清單作審閱備援。
-3. 用檔案選單Save local copy另存 `studio-tasks.fig`，並儲存Prototype view連結。接手者必須能重開設計與預覽，單有截圖不夠。
+## 示範：量出一張任務卡與一個按鈕的規格
 
-## 跟著做：Photoshop儲存分層與透明PNG
+先看本堂規格表。這裡列的是示範要讀取的主線數值與交付名稱；實際匯出後仍要以目前設計檔顯示的內容為準。
 
-1. 在Photoshop選File → Open，開本堂status-badge.psd。Layers應看到三個獨立圖層Background、Card、Check；檔案512×512、RGB。Card是綠色圓角底，Check是白色勾號，Background是可切換的白底。
-2. 點Background的眼睛隱藏／顯示。隱藏時四角應見透明棋盤格；點Check隱藏，白色勾號消失但Card仍在。這證明可以獨立修改，不能只看扁平預覽。
-3. 還原Check可見、Background隱藏。儲存副本 `status-badge-working.psd`：File → Save As，選Photoshop PSD並保留圖層；若版本入口為Save a Copy，選PSD並確認圖層保留。關閉副本後重新Open，三層和可見性應仍存在。
-4. 要練習修改，選Card圖層，使用Hue/Saturation等適合點陣層的調整改色，或用本課綠色保持規格；只改Card，不把Check一起染色。另存修改版，不覆蓋原素材。
-5. File → Export → Export As，選PNG、Transparency勾選、W512 H512、Scale1x，匯出 `status-badge.png`。這份透明PNG用於網站，PSD用於後續修改；用途不同。
-6. 用瀏覽器或圖片檢視器把PNG放在非白底上，確認四角透明；在Photoshop重開PNG也應見透明區域。JPG不支援同樣透明用途，若出現白底先檢查Background是否隱藏與Transparency選項。
-7. 若需單層輸出，可用File → Export → Layers to Files，設命名字首與格式，但交付清單應說明每張圖屬於哪個層；本課主線只需PSD與一個透明PNG，避免產出一堆不知用途的圖。
+| 物件或檔案 | 主線規格 | 交付用途 |
+|---|---|---|
+| 任務列外框 | W 354、Padding 16、Gap 8、高度依內容 | 說明清單列如何容納長文字 |
+| `Row / Title`（任務標題） | 字級 18、行高 28，字型、字重與填色照設計檔 | 說明主要文字樣式 |
+| 主要按鈕 | 來源 Button、Hierarchy Primary、State Default、Label「確認完成」、H 48、圓角 8 | 說明元件狀態與可見文案 |
+| `Overlay / Confirm`（確認彈窗） | W 320、高度依實際內容 | 匯出 `dialog-confirm.png` |
+| 主要畫面 | Login、List Long、Detail、List Done | 各自匯出 PNG |
+| Figma 本機副本 | `studio-tasks.fig` | 放入 `source/` |
+| Photoshop 工作檔 | 512×512、Background／Card／Check 三層 | 另存 `status-badge-working.psd` |
+| 透明徽章 | 512×512、PNG、透明背景 | 匯出 `status-badge.png` |
 
-## 整理交付資料夾與驗收清單
+1. 在 Figma 開啟修正後的工作室設計檔；畫布會顯示已完成測試的主要流程。
+2. 選取一個任務列外框；右側 Design 面板會顯示 W、H、Padding、Gap、圓角與填色。
+3. 把外框的寬度、內距、間距與目前高度填進規格表；規格列會對應到同一個任務列。
+4. 選取 `Row / Title`（任務標題）；右側會改成顯示文字設定。
+5. 記下字型、字級、行高、字重與填色；文字規格會包含完整的閱讀條件。
+6. 按住 Alt 或 Option，並把游標移到相鄰圖層；畫布上會顯示兩個物件之間的距離。
+7. 選取「確認完成」按鈕；右側會顯示來源與目前元件狀態。
+8. 把 Hierarchy、State、Label、高度、圓角與填色寫入同一列；按鈕規格會同時說明外觀與用途。
 
-在自己的電腦建立 `studio-tasks-handoff`，包含 `source/`、`exports/`、`spec/`、`tests/`。source放.fig與working.psd；exports放畫面PNG、dialog與badge；spec放規則表、畫面清單、元件狀態表；tests放第14堂測試JSON／截圖。下載[交付清單範例（JSON）](../../courses/uiux-designer/assets/shared/handoff-example.json)並照你的實際檔案修改，不交含不存在檔名的清單。
+量測時要選到正確層級。任務列外框提供卡片寬高與內距，標題文字則提供字型與行高。規格表中的「間距 8」也要註明是任務列 Auto layout 的 Gap。
 
-接手說明寫：作品用途、如何開Prototype、哪個Frame為起點、圖檔尺寸／格式、哪些只是模擬狀態、未完成什麼。Smart Animate可附第11堂Before／After層名與引數列，不能只說「有動畫」而不說明如何預覽。
+再量一個長標題的任務列。它的高度會隨文字改變，寬度、內距與 Gap 則沿用同一套規則；規格表要把固定規則與可變高度分開寫。
 
-**驗收方法：**獨讀時先關閉作品編輯分頁與檔案，只照交付資料夾內自己的README重新找到.fig、Prototype連結、PSD及PNG。重開.fig時，回Figma首頁檔案瀏覽器，從Create new選單選Import／匯入並選source/studio-tasks.fig，或將.fig拖進檔案瀏覽器；匯入後開啟新檔，核對Layers及Prototype。入口可依[Figma官方匯入說明](https://help.figma.com/hc/en-us/articles/360041003114-Import-files-to-the-file-browser)定位。分享設計與Preview則開README內的實際連結；PSD在Photoshop用File → Open選source/status-badge-working.psd。再核對起點Login、PSD三層，以及PNG的512×512與透明角落。把exports/dialog-confirm.png暫移到交付資料夾外的missing-test資料夾，再只照清單確認它缺少；記缺檔位置，放回後重查。有同學時可請他依同一清單操作，另記結果；自己核對記「本人重開」，不能當成接手者已驗收。若Photoshop不可用，PSD項仍待補。這個練習測試交付是否真的可用，不是把資料夾截圖當成通過。第16堂網站會使用本堂badge與同一套視覺規則。
+## 跟著做：匯出 Figma、保存 PSD，再重開核對
 
-## 自己完成：改變條件再檢查
+有了可讀的規格，接著建立可開啟的來源與輸出。每完成一個檔案就更新清單。
 
-將badge的Background顯示，先匯出錯誤白底PNG；再隱藏與重新透明匯出，留下兩版比較。將Dialog文字加長並重新匯出，更新清單的實際高度，不沿用舊值。關閉已開檔案後，自己只照README找到Prototype、PSD與徽章，核對實際檔名／路徑及新版Dialog高度，將找不到或數值不符的項目修正後再重開。有同學時另記他的閱讀與重開結果，沒有同學就標「他人交付驗收待補」，不杜撰誤解。Photoshop未可用時，白底／透明匯出練習與PSD核對保留待補。
+1. 選取 `Overlay / Confirm`；右側 Design 面板會顯示目前彈窗的實際寬高。
+2. 在 Export 區塊點 `+`；畫面會新增一組匯出設定。
+3. 選 PNG 與 1x；匯出列會顯示格式與倍率。
+4. 按 Export；下載資料夾會出現這個 Frame 的圖檔。
+5. 將實際檔名改成 `dialog-confirm.png`；檔案名稱會與交付清單一致。
+6. 依序選取 Login、List Long、Detail 與 List Done 畫面匯出 PNG；每個主要畫面都會有一張可直接查看的輸出。
 
-## 完成條件與理解檢查
+圖層名稱含 `/` 時，Figma 匯出的檔名可能會改變。請查看實際名稱，再依交付清單重新命名。
 
-- 免費Design規格表含尺寸、間距、字型、行高、色碼與元件狀態，不依賴Dev Mode。
-- PS原稿可重開且有三個獨立圖層；透明PNG尺寸512×512、檔名與清單一致。
-- 交付包有來源、輸出、規格與測試，缺檔練習已恢復；網站素材可取得。
+接著保存可編輯的 Figma 來源。從左上 Main menu 開啟 File，再選 Save local copy，將檔案存為 `studio-tasks.fig`。`.fig` 保存設計內容，但留言與版本紀錄不會一起放進本機副本，因此測試與決策要另外保存在 `tests/` 與接手說明中。
 
-**想一想：**為什麼PNG匯出成功，仍不能宣稱「PSD交付已完成」？
+存好後，回到 Figma 檔案首頁，點 Import，再選 Import from computer，開啟剛才的 `.fig`；也可以把檔案拖進首頁。匯入位置以畫面為準。開啟新檔後，檢查主要畫面、圖層與「完成一筆任務」流程起點。
 
-<details><summary>展開參考答案與理由</summary><p>PNG是點陣輸出，通常沒有原PSD的獨立圖層。PSD交付需真實分層檔能重開、圖層可分別操作且儲存正確；兩者解決不同用途。</p></details>
+接著處理 Photoshop 素材。Photoshop 需要授權電腦，請先依[Photoshop 桌面版準備](../../courses/uiux-designer/assets/shared/PHOTOSHOP-START.html)安排；目前沒有軟體時先完成 Figma 部分，取得電腦後再做 PSD 操作。素材包含[分層 PSD](../../courses/uiux-designer/assets/shared/status-badge.psd)、[透明 PNG 參考](../../courses/uiux-designer/assets/shared/status-badge.png)與[圖層說明](../../courses/uiux-designer/assets/shared/PSD-README.html)。
+
+7. 在 Photoshop 選 File → Open 並開啟 `status-badge.psd`；文件會顯示正方形徽章。
+8. 查看 Layers 面板；Background、Card 與 Check 會以三個獨立圖層出現。
+9. 點 Background 旁的眼睛圖示；四角會顯示透明棋盤格。
+10. 點 Check 旁的眼睛圖示；白色勾號會單獨消失，而 Card 保持可見。
+11. 恢復 Check 可見與 Background 隱藏；畫面會呈現綠色卡片、白色勾號與透明四角。
+12. 選 File → Save As；儲存對話框會讓你選擇檔名與格式。
+13. 將工作檔另存為 `status-badge-working.psd` 並保留 Layers；資料夾會出現新的分層來源。
+14. 關閉工作檔後用 File → Open 重開；三個圖層與可見狀態應完整保留。
+15. 隱藏 Background 後選 File → Export → Export As；匯出對話框會顯示格式、透明與尺寸設定。
+16. 選 PNG、開啟透明背景並設成規格表尺寸；預覽會顯示透明四角。
+17. 匯出為 `status-badge.png`；`exports/` 會得到網站可用的徽章。
+
+新版 Photoshop 的 Export As 欄位名稱以你看到的畫面為準。把 PNG 放在有顏色的背景上查看四角，再重開 PSD，確認三個圖層仍能分別切換。
+
+## 看兩個交付資料夾，判斷哪一個接得下去
+
+版本一的資料夾裡有 `final.png`、`final2.png`、`最新版.png` 與一張資料夾截圖。圖片可以打開，但檔名沒有說明畫面用途，也找不到可編輯來源、規格、流程起點或測試紀錄。
+
+版本二分成 `source/`、`exports/`、`spec/` 與 `tests/`。來源資料夾有 `.fig` 與分層 PSD，輸出資料夾有依畫面命名的 PNG，規格資料夾說明尺寸與元件狀態，測試資料夾則保存 JSON 與修正前後畫面。README 說明作品用途、開啟方式與流程起點。
+
+哪一版比較適合交接？請從「可修改」「找得到」「讀得懂」「能重開」四個角度判斷。
+
+<details><summary>看判斷理由</summary><p>版本二較好。來源與輸出各自有明確用途，檔名能對回畫面，規格說明數值屬於哪個物件，測試紀錄與 README 則讓接手工作的人知道從哪裡開始並能重新開啟檔案。</p></details>
+
+再比較兩份按鈕規格。版本一只寫「高度 48、圓角 8」。版本二寫「來源 Button，Hierarchy Primary，State Default，Label 確認完成，高度 48、圓角 8，並附目前填色」。哪一份比較能讓接手工作的人找到正確按鈕？
+
+<details><summary>看判斷理由</summary><p>版本二較完整。它除了外觀數值，也說明元件來源、狀態與畫面文案，因此可以在元件集中找到同一個 Variant，並把規格用在正確的操作情境。</p></details>
+
+## 卡住時，回到檔案用途與實際名稱
+
+| 看到的現象 | 通常的原因 | 怎麼修 |
+|---|---|---|
+| Design 面板數值與預期不同 | 選到文字層而非任務列外框，或選到另一個狀態 | 先在 Layers 確認物件層級，再重新讀 W、H、Padding 與 Gap |
+| PNG 檔名和清單對不上 | 圖層名含 `/`，匯出時轉成其他名稱 | 查看匯出後的實際檔名，再依清單重新命名 |
+| `.fig` 匯入後找不到原位置 | 匯入檔案出現在首頁的其他區域 | 以畫面顯示的位置開啟，並核對主要 Frame 與流程起點 |
+| PSD 重開後只剩一層 | 另存時選錯格式或圖層已合併 | 重新開原始 PSD，使用 Save As 或 Save a Copy 保存 Photoshop 格式與 Layers |
+| PNG 四角出現白底 | Background 仍顯示，或透明選項未開 | 隱藏 Background，再從 Export As 開啟透明背景並重新匯出 |
+| 交付清單有檔名但資料夾找不到 | 清單沿用範例，沒有依實際輸出更新 | 逐項對照資料夾，把清單改成目前存在的名稱與路徑 |
+
+## 換你做：報名確認 App
+
+活動主辦單位要把報名確認 App 交給下一位維護者。對方要能重開來源、理解元件狀態、取得畫面 PNG，並讀到測試與評分結果。請建立一份交付資料夾。
+
+要達成的條件：
+
+- 建立來源、輸出、規格與測試四類資料夾，名稱由你決定，但 README 要說清楚每一類用途。
+- 在來源中放入可重開的 `.fig`，並寫明報名 App 的流程起點。
+- 在輸出中放入清單、張家豪詳情、確認彈窗與已確認結果的 PNG。
+- 在規格中記錄一張報名卡片、狀態標籤與「確認報名」按鈕的尺寸、間距、文字、顏色與狀態。
+- 在測試中放入上一堂下載的任務測試 JSON、整合作品評分結果與修正前後畫面。
+- README 說明作品用途、如何重開來源、如何預覽流程、每張輸出的用途與目前設計取捨。
+- 逐項核對交付清單中的檔名，讓每個名稱都能在資料夾中找到。
+
+合格的結果要通過以下自我檢查：
+
+- 關閉原本開著的設計檔後，只依 README 找到並匯入報名 App 的 `.fig`。
+- 匯入後能找到 360×800 的清單、詳情、確認彈窗與完成結果。
+- 規格表的數值能回到正確圖層讀到，狀態標籤也能找到對應 Variant。
+- 張家豪詳情 PNG 顯示完整長備註，檔名與交付清單一致。
+- 任務測試 JSON 能載入原表單，整合作品分數與修正紀錄都找得到。
+- README 中的每一條路徑都能從交付資料夾實際走到目標檔案。
+
+<details><summary>真的卡住再看：提示</summary><p>先從四種用途分類現有檔案，再逐項寫 README；每寫一個檔名就回資料夾實際找一次，最後關閉原分頁，只靠 README 重開。</p></details>
+
+## 讓交付包成為下一段工作的起點
+
+工作室原型現在有可量測的規格、可重開的來源、依用途命名的 PNG 與測試紀錄。接手工作的人可以從 README 找到起點與檔案用途。
+
+下一堂會使用這些畫面與透明徽章，把設計放進網站專案。今天整理的檔名、主色與狀態文字會成為修改來源；網站完成後，公開網址與版本紀錄會再放進交付包。
+
+完成條件：
+
+- 規格表能從 Design 面板對回任務列、文字與按鈕的實際設定。
+- Figma 本機副本可重新匯入，主要 Frame 與流程起點仍存在。
+- Photoshop 工作檔保留三個圖層，透明 PNG 尺寸與檔名正確。
+- 交付資料夾包含來源、輸出、規格、測試與可照著操作的 README。
+
+想一想：為什麼透明 PNG 已經能放進網站，仍要保留分層 PSD？
+
+<details><summary>看參考答案</summary><p>透明 PNG 適合直接顯示，但圖層已經合成；分層 PSD 讓後續工作可以單獨調整背景、卡片或勾號。兩者分別服務使用與修改，因此應在交付清單中標明不同用途。</p></details>
 
 ## 本堂查證來源
 
-- [Figma：Design與檢視規格](https://help.figma.com/hc/en-us/articles/22012921621015-Guide-to-inspecting)
-- [Figma：Starter範圍](https://help.figma.com/hc/en-us/articles/13838684089751-Starter-plan-overview)
-- [Adobe：Export As](https://helpx.adobe.com/photoshop/desktop/save-and-export/export-files-to-different-formats/fine-tune-your-export-settings-using-the-export-as-option.html)
-- [Adobe：PSD與格式](https://helpx.adobe.com/photoshop/desktop/save-and-export/export-files-to-different-formats/photoshop-file-formats-overview.html)
+- [Figma：檢視與量測設計](https://help.figma.com/hc/en-us/articles/22012921621015-Guide-to-inspecting)
+- [Figma：Starter 方案說明](https://help.figma.com/hc/en-us/articles/13838684089751-Starter-plan-overview)
+- [Figma：匯入檔案](https://help.figma.com/hc/en-us/articles/360041003114-Import-files-to-the-file-browser)
+- [Adobe：使用 Export As 設定輸出](https://helpx.adobe.com/photoshop/desktop/save-and-export/export-files-to-different-formats/fine-tune-your-export-settings-using-the-export-as-option.html)
+- [Adobe：Photoshop 檔案格式](https://helpx.adobe.com/photoshop/desktop/save-and-export/export-files-to-different-formats/photoshop-file-formats-overview.html)
 
-來源查證：2026-10-09。
+來源查證：2026-11-02。
 <!-- learner-content:end -->
 
 ## 講師授課筆記（不進講義）

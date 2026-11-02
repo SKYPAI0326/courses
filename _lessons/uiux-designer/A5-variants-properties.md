@@ -5,9 +5,9 @@ title: 把主次按鈕與停用狀態做成可選的元件
 course_type: skill-operation
 duration: 6h
 prerequisites: [A4-component-instance]
-revision: 2026-10-11
+revision: 2026-11-02
 style_guide: ../../_outlines/uiux-designer.style-guide.md
-platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體另記平台證據
+platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*.md）
 ---
 
 ## 內部設計（不進學員頁）
@@ -24,84 +24,147 @@ platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體�
 
 <!-- learner-content:start -->
 # 把主次按鈕與停用狀態做成可選的元件
+副標：登入、取消與確認都要共用按鈕，但每個按鈕仍要清楚表達角色與目前能否操作。
+本堂完成物：四種組合的按鈕元件；可直接改字的按鈕使用處；角色與狀態判斷紀錄
 
-「主要」是按鈕的角色，「停用」是按鈕目前能不能操作。兩者是不同條件。本堂用四種組合建立Variants，並把按鈕文字做成Label欄位，讓後面表單與彈窗可以直接選用。
+## 從上次的按鈕來源接著做
 
-## 開始前，先找到材料與起點
+工作室的登入畫面需要醒目的「登入」，確認彈窗需要「確認完成」與「取消」。如果每遇到一個用途就複製一顆新按鈕，外觀很快就會分歧；如果所有按鈕又都長得一樣，使用者會分不出主要動作與次要動作。這堂要把同一家族的按鈕整理成可選的版本，讓設計者能選角色、選狀態，也能直接換上符合情境的文字。
 
-在前堂元件區選Button / Base，再確認兩個Instance會同步。若尚未完成來源同步測試，回第04堂修好；本堂不要用Detach之後的獨立Frame當元件來源。
+這項工作會接著使用上次做好的 `Button / Base`（按鈕來源）與它的使用處。開始前先看[本堂起始材料](../../courses/uiux-designer/assets/A5-variants-properties/START-HERE.html)，確認按鈕仍保有 Auto layout（自動排版）與文字層；做完後再開[完成檢查表](../../courses/uiux-designer/assets/A5-variants-properties/reference/EXPECTED-CHECK.html)，逐一切換四種組合。這些材料與整門課作品都留在同一個 Figma 檔案的同一頁，元件區放在手機畫面外，後面做表單與彈窗時才能繼續沿用。
 
-先開啟[本堂起始材料（HTML）](../../courses/uiux-designer/assets/A5-variants-properties/START-HERE.html)，讀取輸入與圖層名稱；操作在你的 Figma 檔或本堂指定工具完成。完成後到[本堂完成檢查表（可儲存／下載）](../../courses/uiux-designer/assets/A5-variants-properties/reference/EXPECTED-CHECK.html)記錄實際結果。
+先選取兩個既有使用處，確認它們仍能跟著主元件的圓角更新。接著回到主元件，檢查按鈕的 Auto layout（自動排版）、高度、左右內距、字級與圓角是否完整。這一步確認的是來源關係；有了可靠的來源，今天新增的版本才會成為同一家族，而非四顆互不相干的按鈕。
 
-## 先列組合，避免混淆角色與狀態
+## 先分清楚：角色和狀態是兩件事
 
-Variant是同一元件家族中的一種版本；Property是用來選版本或調整內容的欄位。這堂的Hierarchy表示Primary／Secondary，State表示Default／Disabled；Label是可改的文字。
+這一節要先建立判斷方法，因為 Variant（變體）真正解決的問題並非「把幾顆按鈕框在一起」，而是把同一元件在不同條件下的版本整理成可選的組合。Hierarchy 表示按鈕在畫面中的角色，State 表示它現在是否可使用；Label 則是按鈕顯示的內容。三者分開後，設計者才不會用顏色猜用途。
 
-| Hierarchy角色 | State狀態 | 外觀規則 | 使用例 |
+例如，確認彈窗裡的「確認完成」是主要角色，而且目前可操作，所以選 Primary 與 Default。「取消」是次要角色，但它仍可操作，所以選 Secondary 與 Default。若登入資料尚未填齊，「登入」依舊是主要角色，只是暫時停用，因此是 Primary 與 Disabled。這三顆按鈕的文字、角色、狀態各有自己的答案。
+
+| 要判斷的事 | 可選內容 | 回答的問題 | 判斷線索 |
 |---|---|---|---|
-| Primary | Default | 綠底白字；H48、置中 | 登入、確認完成 |
-| Secondary | Default | 白底深字，深灰1px外框 | 取消、返回 |
-| Primary | Disabled | 淺灰底、灰字；仍維持H48 | 帳號尚未填齊的登入 |
-| Secondary | Disabled | 淺灰底、灰字與灰框 | 目前不能返回的操作 |
+| Hierarchy | Primary、Secondary | 這個動作在目前畫面有多重要？ | 主要任務通常只有一個最醒目的動作 |
+| State | Default、Disabled | 這個動作現在能不能執行？ | 條件尚未完成時才使用停用外觀 |
+| Label | 登入、取消、確認完成等 | 使用者按下後會發生什麼？ | 用動詞與對象說清楚結果 |
 
-不能把Primary與Disabled當成同一欄的二選一：你會需要「主要但停用」和「次要但可用」。樣式的停用也不會自動禁止原型點選；第10堂會檢查停用物件沒有互動連線。
+把 Primary、Secondary、Disabled 放進同一個選單，會漏掉「主要但停用」與「次要且停用」的情況。相反地，把角色與狀態拆成兩個屬性，兩個角色乘上兩個狀態就得到四種明確組合。這也是建立元件集之前先畫組合表的理由：表格能先幫你看見重複與缺口。
 
-## 示範：從來源建立四個Variant
+用得對的 Variant 還有三個線索。第一，四個版本的文字層名稱與階層一致，切換後才不會跳位。第二，每一組屬性值只有一個版本，Figma 才知道該顯示哪一顆。第三，Disabled 保留完整文字與尺寸，讓使用者仍看得懂畫面上原本能做什麼；停用的原因則由鄰近提示說明。
 
-1. 在元件區找到 `Button / Base` 主元件。保留兩個Instance在測試區，不選它們一起合併。
-2. 複製主元件三次，讓四個來源都保有同樣的Label層級與Auto Layout。它們都是主元件版本，不是Instance。
-3. 逐個修改外觀，按表格建立四種組合。Disabled仍有「登入」文字與完整尺寸；不得做成一個沒有文字的灰矩形。
-4. 同時選四個主元件，在右側或右鍵找Combine as variants，將外層Component set命名為 `Button`。
-5. 選Component set檢查屬性。Figma可能先給 `Property 1`／`Variant`等名稱；將第一個屬性改成 `Hierarchy`，建立另一個Variant property叫 `State`。選各子元件，在右側指定其Hierarchy與State值，四組要與表格完全相同。
-6. 若你的介面沒有直接新增欄位入口，可用各子元件名稱 `Hierarchy=Primary, State=Default`、`Hierarchy=Secondary, State=Default`、`Hierarchy=Primary, State=Disabled`、`Hierarchy=Secondary, State=Disabled`建立屬性和值；再確認右側呈現兩個屬性，而不是四個不明意義的Variant數字。
-7. 如果跳出Duplicate variant／相同屬性組合警告，逐個比對兩欄值；同一組只能有一個版本。改名稱或顏色本身不會修好重複組合。
+## 示範：建立四種按鈕與可改文字
 
-## 把Label做成文字欄位
+這一節會把按鈕來源擴成一個元件集。先看完整規格，再依順序處理外觀、屬性與文字；數值集中在表格，操作時只要引用名稱即可。
 
-1. 進入Primary／Default主元件，選Label文字層。在右側文字內容設定旁找Create text property／建立文字屬性入口，命名 `Label`，預設文字「登入」。
-2. 其他Variant的Label也要繫結同一個Label屬性；若選到外層看不到文字入口，回Layers選文字層。繫結後，選Instance應能在屬性區輸入Label，不需要每次鑽進內層。
-3. 從Assets插入新Button Instance，分別切換Hierarchy及State。將Label改「標記完成」，切換四種組合，文字仍要保留、置中，H仍48。
-4. 找不到Text property入口時，先用Instance的Label子層覆寫文字完成視覺測試；這是文字覆寫備援，Text property仍需在可用介面補做並記錄，不能寫成已完成。
-
-## 跟著做：用組合表找出一個錯誤
-
-先不看示範的點選順序，自己插入兩個Button Instance：第一個選Primary／Default、Label「登入」；第二個選Secondary／Default、Label「取消」。把第二個切為Disabled，觀察外觀變化。每一步先說出要改的是角色、狀態或內容，才點屬性。
-
-先複製整個Button元件集到空白區，命名Button / Variant Repair，不改正式來源。在副本把Secondary／Default那個Variant的Hierarchy改成Primary、State維持Default，讓兩個Variant都成為Primary／Default。把副本的四組屬性逐列寫入組合表：此時Primary／Default重複、Secondary／Default缺失。將剛才改動的那個Variant恢復Secondary／Default，核對四列各出現一次，再回正式Instance確認仍可選四種組合。保留副本修復前後紀錄；若只有顏色不同但屬性值重複，仍然不算通過。課堂可由講師植入同一故障，獨讀時自己依此操作。
-
-**檢查點：**4種組合都能選；長Label仍能閱讀；取消是Secondary不是Disabled；Disabled樣式不改變按鈕尺寸；Instance的內容欄位與狀態欄位用途不同。
-
-## 卡住時
-
-| 現象 | 可能原因 | 回修 |
+| 圖層或屬性 | 規格 | 用途 |
 |---|---|---|
-| 只看到Variant 1／2／3 | 沒有把屬性命名成用途 | 在Component set命名Hierarchy與State，再填每個版本值 |
-| 切狀態後文字丟失 | 各版本Label名稱／層級或文字屬性繫結不同 | 對齊Label命名與階層，綁同一Label屬性 |
-| 找不到本檔Button | 選到Instance或一般Frame去合併 | 回來源元件區確認4個主元件在Component set裡 |
-| Disabled點了仍切頁 | Prototype連線仍存在 | 視覺狀態不會自動移除互動，第10堂取消該物件連線 |
+| `Button` | Component set；包含四個主元件 | 按鈕家族 |
+| `Button / Base` | Auto layout；高度 48；水平內距 16；圓角 8 | 四個版本的共同結構 |
+| `Label` | 字級 16；行高 24；置中 | 按鈕文字層 |
+| Hierarchy=Primary, State=Default | 綠底、白字 | 可操作的主要動作 |
+| Hierarchy=Secondary, State=Default | 白底、深色字、深灰 1 px 外框 | 可操作的次要動作 |
+| Hierarchy=Primary, State=Disabled | 淺灰底、灰字 | 暫時停用的主要動作 |
+| Hierarchy=Secondary, State=Disabled | 淺灰底、灰字、灰框 | 暫時停用的次要動作 |
+| Label property | 預設值「登入」 | 在使用處直接改按鈕文字 |
 
-本堂產出Button family，不建立「Screen / List Top」等尚未教過的畫面。下一堂直接使用本堂Button做完整表單。
+1. 在元件區選取 `Button / Base`，複製三份。完成後會看到四個結構相同的主元件，既有的按鈕使用處仍留在測試區。
+2. 依規格表調整四個主元件的外觀。完成後會看到主要與次要的層級差異，以及兩種角色各自的停用版本。
+3. 同時選取四個主元件，在右側點 **Combine as variants**（合併為變體）。完成後會看到一個包住四個版本的元件集。
+4. 將元件集命名為 `Button`。完成後會在 Layers（圖層面板）與 Assets（元件資產面板）看到一致的家族名稱。
+5. 選取元件集，在 Properties（屬性區塊）找到 **Add property** 旁的新增鈕，選 **Variant**，把新屬性命名為 State。完成後元件集會有兩個可整理的 Variant 屬性。
+6. 將原有屬性命名為 Hierarchy，再逐一選取四個版本，填入規格表中的角色與狀態。完成後每一列組合都只出現一次。
+7. 選取元件集，在 Properties 新增 **Text**，名稱填 Label，預設值填「登入」，再按 **Create property**。完成後元件集會出現一個可編輯的文字屬性。
+8. 逐一選取四個版本內的 `Label` 文字層，在文字內容欄點 **Apply variable/property**（套用變數或屬性），綁定 Label。完成後四個版本都使用同一個文字欄位。
+9. 按 **Shift+I** 插入一個 Button 使用處，將 Label 改成「標記完成」。完成後按鈕會顯示新文字，元件來源與其他使用處的文字維持原狀。
+10. 依序切換 Hierarchy 與 State。完成後四種外觀都能被選到，而且「標記完成」在切換後仍保留。
 
-## 自己完成：改變條件再檢查
+做到這裡，先停下來看結果。元件集解決的是版本選擇，文字屬性解決的是內容改寫；兩者同時存在，使用處才會既一致又好用。若切換後文字回到「登入」，就表示至少一個 Variant 的文字層尚未綁定 Label，應回到該版本修正來源。
 
-獨立建立「取消」與「確認完成」兩個按鈕配置：取消為Secondary／Default，確認為Primary／Default。再做「必填資訊尚未齊全」版本，只把確認改Disabled，新增提示原因。把Label改成「確認這筆任務已完成」，檢查左右內距及閱讀。交出四組狀態表、三個Instance與一個重複組合修復。
+接著製造一次可恢復的組合衝突。複製整個元件集到空白區，將副本命名為 `Button / Variant Repair`（按鈕組合修復），再把 Secondary／Default 改成 Primary／Default。Figma 會標示組合衝突，警告文字以你看到的畫面為準。重新填回 Secondary／Default 後，四列各自唯一，警告也會消失；這比只看顏色更能確認屬性完整。
 
-## 完成條件與理解檢查
+## 跟著做：用情境選對按鈕
 
-- 四個Variant有唯一的Hierarchy／State組合，Default與Disabled能辨認。
-- Label是可調文字欄位，切狀態後不丟文字；備援尚未補的項目據實記錄。
-- 主次與停用分開，取消不會因為是次要動作就變成不可用。
+這一節要把剛才的來源用回工作室畫面。提示會比示範少，你要先說出「角色、狀態、內容」三個答案，再到右側找對設定。
 
-**想一想：**把「Primary、Secondary、Disabled」塞在同一個屬性有什麼問題？
+1. 為登入畫面插入一顆按鈕，讓它成為可操作的主要動作。完成後會看到綠底白字的「登入」，並能在右側直接編輯 Label。
+2. 為確認彈窗準備一顆「取消」，讓它保持可操作但視覺次要。完成後會看到白底深色字與外框，且 State 仍是 Default。
+3. 再準備一顆「確認完成」，讓它成為彈窗中的主要動作。完成後兩顆按鈕的角色有清楚差異。
+4. 複製登入按鈕，設定成必填資料尚未齊全的狀態，並在旁邊加入原因「請先填寫帳號與密碼」。完成後會同時看見停用外觀與可理解的原因。
+5. 將「確認完成」改成較長的「確認這筆任務已完成」。完成後文字仍置中，按鈕會依既有 Auto layout 保留左右空間。
+6. 依序切換這顆長文字按鈕的四種組合。完成後文字不會遺失，四個版本的高度也維持一致。
+7. 選取其中一個使用處，將 Label 改為「返回清單」，再從右側執行 **Reset → Reset all changes**（重設全部變更）。完成後文字會回到來源預設值；你也能辨認完整重設與單一屬性重設的差異。
 
-<details><summary>展開參考答案與理由</summary><p>它混合動作角色與可用狀態，無法完整表示Primary＋Disabled。用Hierarchy和State兩個屬性，才能建立四個明確組合。</p></details>
+完成後，用三欄寫一筆判斷紀錄：「情境是什麼」「選了哪個角色與狀態」「使用者從外觀和文字知道什麼」。例如，取消是次要動作，但它能讓人安全離開彈窗，因此 State 保持 Default。這份紀錄是在練習設計判斷，不只是記住屬性名稱。
+
+## 看兩組按鈕，判斷哪一組說得清楚
+
+這一節要練習從畫面結果反推屬性是否合理。版本一的確認彈窗有兩顆同樣綠底的按鈕，左邊寫「取消」，右邊寫「確定」；登入畫面的空白表單仍顯示可操作的綠色「登入」。版本二的彈窗把「取消」設為 Secondary／Default，把「確認完成」設為 Primary／Default；空白表單顯示 Primary／Disabled 的「登入」，旁邊寫著「請先填寫帳號與密碼」。
+
+先回答三題：哪一版更容易看出主要動作？哪一版能分辨「次要」與「停用」？哪一顆按鈕的文字最清楚交代結果？把理由寫成完整句子，至少各提到一次 Hierarchy、State 與 Label。
+
+<details><summary>查看判斷理由</summary><p>版本二較好。取消仍可操作，所以它是次要角色而非停用狀態；確認完成用具體動詞與對象說明結果；空白表單同時呈現停用外觀與原因，使用者知道還缺什麼。版本一把角色與狀態混在顏色裡，也讓兩個彈窗動作互相搶注意力。</p></details>
+
+## 卡住時，先查組合再查外觀
+
+這一節整理最常見的失敗現象。先找到出錯層級，再改對應來源，能避免把四個版本逐顆手動修成不同結果。
+
+| 看到的現象 | 通常的原因 | 怎麼修 |
+|---|---|---|
+| 只看到 Variant 1、2、3、4 | 屬性名稱仍是預設值 | 選元件集，把角色命名為 Hierarchy，再新增 State |
+| 元件集顯示組合衝突 | 兩個版本用了相同的屬性值 | 對照四列表格，補回缺少的角色與狀態組合 |
+| 切換狀態後文字回到「登入」 | 某個版本的文字層尚未綁 Label | 選該版本的 `Label`，用 Apply variable/property 綁定 |
+| 使用處右側沒有 Label 欄位 | Text property 建在錯誤來源或尚未綁定 | 回元件集的 Properties 建立 Label，再連到每個文字層 |
+| 「取消」看起來不可用 | 把 Secondary 誤設成 Disabled | 將 Hierarchy 設為 Secondary，State 保持 Default |
+| 停用按鈕尺寸縮小 | 停用版遺失文字或結構不一致 | 對齊四個版本的 Label、Auto layout、高度與內距 |
+
+修完後再插入一個新的使用處驗證。新的使用處能選到四種組合，代表來源已修好；只把舊使用處修到看似一致，仍可能留下元件集的缺口。
+
+## 換你做：報名確認 App
+
+現在把同一套方法移到活動主辦單位的工作情境。行政人員要在手機上逐筆查看報名，必須一眼分辨「待確認」「已確認」「已取消」。請為報名 App 新做 `Status`（狀態標籤）元件；這是另一個元件家族，重點是用 Variant 切換三種狀態，而非複製三個沒有關係的標籤。
+
+要達成的條件：
+
+- 建立一個狀態標籤元件集，包含待確認、已確認、已取消三種 Variant。
+- 三種狀態保留相同的文字層名稱、內距、圓角與基本結構。
+- 狀態除了顏色，也用清楚的文字直接說明。
+- 插入三個使用處，分別套用三種狀態，切換後內容不裁切。
+- 把元件與報名 App 既有畫面放在同一個檔案的同一頁。
+
+合格的結果要能通過以下自我檢查：
+
+- 我能從右側屬性切換三種狀態，而非進入內層逐字修改。
+- 三種屬性值各出現一次，沒有重複組合。
+- 標籤放在 360 寬的報名畫面中仍能完整閱讀。
+- 只看文字也能知道報名狀態，沒有只靠顏色傳達。
+- 我能說明「已取消」是資料狀態，與按鈕的 Disabled 是不同概念。
+
+<details><summary>真的卡住再看：提示</summary><p>先做一個結構完整的狀態標籤，再複製成三個主元件並合併；屬性可以命名為 Status，值則直接使用三種中文狀態。</p></details>
+
+## 收好這個按鈕家族，下一步做表單
+
+這堂把工作室裡零散的登入、取消與確認動作，整理成四種可選組合的 Button 元件集。你現在能分開判斷角色、狀態與文字，也能用組合表找出重複或缺少的版本；報名 App 則多了一個可切換的狀態標籤來源。
+
+下一堂會把 Button 放進完整登入表單，並建立有一般與錯誤兩種狀態的輸入框元件。今天保持一致的文字階層與 Auto layout，會直接影響輸入框切換狀態時能否穩定；Label property 的做法也會再次用來管理欄位內容。
+
+想一想：一顆「取消」按鈕外觀比較低調，是否代表它應該設成 Disabled？
+
+<details><summary>查看答案</summary><p>不代表。低調描述的是 Secondary 角色；Disabled 描述的是目前無法操作。取消通常是次要但可操作的安全出口，因此應選 Secondary 與 Default。</p></details>
+
+完成條件：
+
+- Button 元件集具有四個唯一的 Hierarchy 與 State 組合。
+- 每個 Variant 的文字層都綁定 Label，使用處可直接改字。
+- 登入、取消與確認完成三種情境都選到合理的角色與狀態。
+- 報名 App 的狀態標籤可在三種中文狀態間切換。
 
 ## 本堂查證來源
 
-- [Figma：Variants](https://help.figma.com/hc/en-us/articles/360056440594-Create-and-use-variants)
-- [Figma：Component properties](https://help.figma.com/hc/en-us/articles/5579474826519-Explore-component-properties)
+- [Figma：建立與使用 Variants](https://help.figma.com/hc/en-us/articles/360056440594)
+- [Figma：Component properties](https://help.figma.com/hc/en-us/articles/5579474826519)
+- [Figma：插入元件使用處](https://help.figma.com/hc/en-us/articles/360039150173)
+- [Figma：重設使用處的變更](https://help.figma.com/hc/en-us/articles/360039150733)
 
-來源查證：2026-10-09。
+來源查證：2026-11-02。
 <!-- learner-content:end -->
 
 ## 講師授課筆記（不進講義）

@@ -5,9 +5,9 @@ title: 把設計做成網站，留下版本與公開網址
 course_type: programming
 duration: 13h
 prerequisites: [B7-figma-handoff-export]
-revision: 2026-10-09
+revision: 2026-11-02
 style_guide: ../../_outlines/uiux-designer.style-guide.md
-platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體另記平台證據
+platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*.md）
 ---
 
 ## 內部設計（不進學員頁）
@@ -24,119 +24,37 @@ platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體�
 
 <!-- learner-content:start -->
 # 把設計做成網站，留下版本與公開網址
+副標：把已整理好的工作室介面交付包轉成能操作的網站，讓接手者能從公開網址查看，也能從版本紀錄理解你改了什麼。
+本堂完成物：一個本機能操作的工作室網站；一段看得出修改順序的版本紀錄；一個完成更新確認的公開網址
 
-你會拿到完整可下載專案，先理解HTML、CSS、JavaScript的分工，再在自己的資料夾修改和驗證。完成Git兩筆版本、GitHub遠端與Pages部署後，交出別人能開啟、能操作、看得見更新的網站。
+## 從設計交付包接到真正能開啟的網站
 
-## 開始前，先找到材料與起點
+工作室準備把待處理清單交給合作夥伴使用。對方需要能登入、查看詳情、取消確認、完成任務，再回到清單查看結果的網站。這次要把既有設計對應到 HTML、CSS 與 JavaScript，並用 Git 留下修改紀錄。
 
-先能說出第15堂交付包的主要色與Button高48，並找到自己透明PNG。如果不會找檔案與副檔名，先按下一節逐步下載解壓。Git／GitHub從零開始，本堂提供安裝檢查與第一筆commit。
+這堂會用到上次整理好的交付資料夾，特別是主要色、按鈕規格、透明 PNG 徽章與畫面操作流程。先打開[網站製作起始材料](../../courses/uiux-designer/assets/B8-web-git-deploy/START-HERE.html)，確認要下載的專案與準備項目，再把[完成檢查表](../../courses/uiux-designer/assets/B8-web-git-deploy/reference/EXPECTED-CHECK.html)留在瀏覽器分頁中。完整專案放在[工作室網站下載包](../../courses/uiux-designer/assets/shared/studio-tasks-web.zip)，想先看成品行為時，也可以開啟[完整網站參考](../web-starter/index.html)。
 
-先開啟[本堂起始材料（HTML）](../../courses/uiux-designer/assets/B8-web-git-deploy/START-HERE.html)，讀取輸入與圖層名稱；操作在你的 Figma 檔或本堂指定工具完成。完成後到[本堂完成檢查表（可儲存／下載）](../../courses/uiux-designer/assets/B8-web-git-deploy/reference/EXPECTED-CHECK.html)記錄實際結果。
+下載包已經能執行，讓你先讀懂網站再修改。解壓後會看到 `index.html`、`styles.css`、`app.js`、`README.md` 與 `assets` 資料夾；先用瀏覽器開啟 `index.html`，走過登入、詳情、取消、確認與已完成清單。重新整理會恢復預設資料，因為狀態只留在當次頁面記憶體裡。確認流程後，以 VS Code 的 File → Open Folder 開啟專案，再從 Terminal → New Terminal 開啟終端機。
 
-## 下載與開啟：先完成本機成功路徑
+## 先想清楚：網站三個檔案與版本紀錄各管一件事
 
-下載[studio-tasks-web.zip（HTML／CSS／JS與PNG完整專案）](../../courses/uiux-designer/assets/shared/studio-tasks-web.zip)，解壓縮後要看到 `studio-tasks-web` 資料夾。還沒下載也可先看[完整網站參考](../../courses/uiux-designer/web-starter/index.html)，但請在自己的解壓資料夾修改，不改教師網站。
+先分清楚內容、外觀、行為、版本與公開網址各由誰負責，後面才能找對檔案並拆開提交。
 
-還沒安裝VS Code時，先到[VS Code官方下載](https://code.visualstudio.com/Download)選擇自己的macOS或Windows版本並完成安裝。首次啟動看到Welcome後，選File → Open Folder開啟解壓後的`studio-tasks-web`資料夾；左側Explorer看見index.html、styles.css、app.js與assets，才繼續修改。若沒有看到Welcome或Open Folder，先不要進入Git步驟，回到安裝檔與作業系統版本核對。
+| 你想改的事情 | 主要位置 | 它負責什麼 | 改完先看哪裡 |
+|---|---|---|---|
+| 頁面標題、按鈕文字、登入與彈窗結構 | `index.html` | 決定頁面有哪些內容，以及內容之間的結構 | 瀏覽器畫面是否出現正確文字與區塊 |
+| 主要色、間距、字級、手機排列 | `styles.css` | 決定相同內容看起來如何，以及窄畫面怎麼重新排列 | 按鈕、導覽、卡片與手機寬度 |
+| 任務資料、畫面切換、確認與清單更新 | `app.js` | 決定資料是什麼，以及按下控制項後發生什麼事 | 登入、詳情、取消、確認與已完成清單 |
+| 修改說明與操作範圍 | `README.md` | 告訴接手者如何開啟、怎麼測、有哪些簡化 | 檔案說明是否和實際成品一致 |
+| 每次可回看的修改節點 | Git commit | 保存某一個清楚目的的檔案狀態 | `git log` 與該次差異 |
+| 遠端檔案與公開網站 | GitHub 與 GitHub Pages | 保存推送上去的版本，並從指定分支發布靜態網站 | repo 檔案、Actions 與 Pages 網址 |
 
-1. 用檔案總管／Finder確認資料夾裡有index.html、styles.css、app.js、README.md與assets/status-badge.png。若看到兩層同名資料夾，進到有index.html那一層。
-2. 直接雙擊index.html，用Chrome或Edge開啟。此專案不用套件安裝、不需要伺服器或資料庫，所有路徑都為相對路徑；正常應先見示範登入。
-3. 點登入→第一筆詳情→標記完成→取消，應仍在詳情；再確認，應到已完成清單且看見Toast與徽章。回待處理捲到底，最後一筆不被底部導覽遮住。
-4. 在VS Code選File → Open Folder開啟這個資料夾。左側Explorer應看到三個程式檔及assets，開啟index.html修改，按Save後回瀏覽器Reload才會看到更新。
-5. 如果HTML直接顯示程式文字，確認副檔名不是.html.txt、用瀏覽器開啟而非文字編輯器；如果Button完全沒反應，確認app.js與HTML在同層，並且script的src沒打錯。徽章破圖先檢查assets/status-badge.png與大小寫。
-
-## 把設計對回程式，而不是憑空做另一個作品
-
-| Figma完成物 | 網站對應 | 本課簡化範圍 |
-|---|---|---|
-| Primary／Text／Muted／Surface色碼 | styles.css的`:root`變數 | 色碼與前課一致 |
-| Button H48、Label置中 | button樣式與padding | HTML按鈕自身包含文字 |
-| List與長Row | task-list／task-card與任務資料 | 實際文字換行與動態列 |
-| Detail、Confirm、List Done | detail-screen、dialog、done-tab | 確認改變記憶體內狀態 |
-| Header／Bottom nav／FAB | sticky／fixed、scroll-top | 瀏覽器實際滾動，底部留160 |
-| Photoshop透明徽章 | assets/status-badge.png | 來自第15堂；更換自己輸出也需同檔名／尺寸 |
-| Login | login-screen的示範帳號 | 不驗證真實密碼；不用後端 |
-| Swap／Smart Animate | Figma測試分支保留 | 這個最小網站不實作全部動畫與選單分支 |
-
-網站的任務狀態只在此次頁面記憶體裡，Reload會恢復預設。你的成品說明應寫清楚這一點，不能向接手者宣稱有登入驗證或長期資料儲存。
-
-## HTML、CSS、JavaScript各負責什麼
-
-HTML描述內容與結構，例如 `<button id="complete-task">標記完成</button>`；CSS用選擇器決定外觀，`#complete-task`找唯一id，`.task-card`找一群相同class；JavaScript接收事件並改狀態。`document.querySelector('#confirm-dialog')`找到Dialog，`showModal()`開啟彈窗，`close()`關掉。id必須唯一且與選擇器一致，改一端不改另一端會找不到物件。
-
-JavaScript中的tasks是資料陣列，每筆有id、title、due、done；selectedTask記住目前點哪一筆，showDone決定看待處理還是已完成。function是可重用的一段動作；renderList先依狀態篩選，再依每筆資料建立Row；addEventListener把按鈕點選和動作繫結。`textContent`更新文字、`hidden`顯示或隱藏一個畫面、`disabled`阻止已完成任務再提交。這些是本作品所需的基礎，不要求先背所有語法。
-
-讀確認事件時，依序找四件事：目前任務done改true→關Dialog→重畫已完成清單→顯示Toast。取消只關Dialog，不改done，所以結果不同。`setTimeout`讓Toast四秒後消失；狀態仍留在列表，不靠短暫提示儲存唯一結果。
-
-下面是完整核心程式，與下載包一致。先在自己的專案比對，再只改本堂指定條件。
-
-範例head的canonical與og:url指向課程參考網站；部署自己的作品時將兩個網址改成你的實際Pages網址，避免搜尋與分享指到教師網站。
-
-### index.html：內容、狀態畫面與連結
+例如，作品名稱在 `index.html`，共用主要色在 `styles.css` 的 `--primary`，任務內容則在 `app.js` 開頭的陣列。HTML 的 `id` 是單一物件名稱，`class` 是可重複使用的分類；CSS 與 JavaScript 會用這些名稱找到正確物件。
 
 ```html
-<!doctype html>
-<html lang="zh-TW">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>工作室待處理清單</title>
-  <meta name="description" content="工作室任務示範：查看詳情、取消或確認完成，並檢查已完成狀態。">
-  <meta property="og:title" content="工作室待處理清單">
-  <meta property="og:description" content="查看、確認與完成工作室任務的示範網站。">
-  <meta property="og:url" content="https://skypai0326.github.io/courses/courses/uiux-designer/web-starter/">
-  <meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="工作室待處理清單">
-  <meta name="twitter:description" content="工作室任務與確認示範網站。">
-  <link rel="canonical" href="https://skypai0326.github.io/courses/courses/uiux-designer/web-starter/">
-  <style>.skip-link{position:absolute;left:-9999px}.skip-link:focus-visible{left:12px;top:12px;z-index:10;background:white;padding:12px}</style>
-  <link rel="stylesheet" href="styles.css">
-  <script src="app.js" defer></script>
-</head>
-<body>
-  <a href="#main" class="skip-link">跳至主要內容</a>
-  <header class="app-header"><h1>工作室任務</h1></header>
-  <main id="main">
-    <section id="login-screen">
-      <h2>登入工作室</h2>
-      <p>用示範帳號查看任務；重新整理後會回到預設資料。</p>
-      <label>工作室帳號<input value="studio@example.test" readonly></label>
-      <label>密碼<input type="password" value="demo-only" readonly></label>
-      <button id="login-button" type="button">登入</button>
-    </section>
-    <section id="list-screen" hidden>
-      <h2 id="list-title">待處理清單</h2>
-      <div id="task-list" class="task-list"></div>
-      <p id="empty-message" hidden>目前沒有這個狀態的任務。</p>
-    </section>
-    <section id="detail-screen" hidden>
-      <button id="back-button" class="secondary" type="button">← 返回清單</button>
-      <h2 id="detail-title"></h2>
-      <p id="detail-due" class="muted"></p>
-      <p>核對內容、期限與交付檔名後，再標記完成。</p>
-      <button id="complete-task" type="button">標記完成</button>
-    </section>
-    <p id="feedback" class="toast" role="status" aria-live="polite"></p>
-  </main>
-  <nav id="bottom-nav" aria-label="任務狀態" hidden>
-    <button id="pending-tab" aria-current="page" type="button">待處理</button>
-    <button id="done-tab" type="button">已完成</button>
-  </nav>
-  <button id="scroll-top" class="floating" type="button" aria-label="回到清單頂部" hidden>↑</button>
-  <dialog id="confirm-dialog" aria-labelledby="dialog-title">
-    <h2 id="dialog-title">確認完成？</h2>
-    <p>這筆任務將移到已完成清單。</p>
-    <div class="actions">
-      <button id="cancel-button" class="secondary" type="button">取消</button>
-      <button id="confirm-button" type="button">確認完成</button>
-    </div>
-  </dialog>
-</body>
-</html>
+<button id="complete-task" type="button">標記完成</button>
 ```
 
-### styles.css：共用規則與手機斷點
+CSS 開頭的 `:root` 集中色彩角色。`--primary` 同時控制主要按鈕與導覽選中狀態，做法與設計檔裡的共用規則相同。
 
 ```css
 :root {
@@ -145,196 +63,95 @@ JavaScript中的tasks是資料陣列，每筆有id、title、due、done；select
   --muted: #5F6C80;
   --surface: #F5F7FA;
 }
-* { box-sizing: border-box; }
-[hidden] { display: none !important; }
-body {
-  margin: 0;
-  background: var(--surface);
-  color: var(--text);
-  font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
-}
-.app-header {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  background: white;
-  border-bottom: 1px solid #CBD5E1;
-  padding: 16px 24px;
-}
-h1 { max-width: 720px; margin: auto; font-size: 24px; line-height: 32px; }
-h2 { font-size: 24px; line-height: 32px; margin: 0 0 20px; }
-main { max-width: 768px; margin: auto; padding: 32px 24px 160px; }
-label { display: block; margin: 16px 0; }
-input { width: 100%; display: block; margin-top: 8px; padding: 12px 16px; font: inherit; border: 1px solid var(--muted); border-radius: 8px; }
-button { min-height: 48px; padding: 12px 16px; font: inherit; color: white; background: var(--primary); border: 1px solid var(--primary); border-radius: 8px; cursor: pointer; }
-button:focus-visible, input:focus-visible { outline: 3px solid #92400E; outline-offset: 3px; }
-button:disabled { background: #E2E8F0; color: var(--muted); border-color: #E2E8F0; cursor: default; }
-.secondary { background: white; color: var(--text); border-color: var(--muted); }
-.muted { color: var(--muted); font-size: 14px; line-height: 22px; }
-.task-list { display: flex; flex-direction: column; gap: 12px; }
-.task-card { background: white; padding: 16px; border-radius: 8px; border: 1px solid #CBD5E1; display: flex; gap: 16px; align-items: center; }
-.task-copy { flex: 1; min-width: 0; overflow-wrap: anywhere; }
-.task-copy h3 { font-size: 18px; line-height: 28px; margin: 0 0 8px; }
-.task-copy p { margin: 0; }
-.badge { width: 32px; height: 32px; }
-#bottom-nav { position: fixed; z-index: 2; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #CBD5E1; display: flex; justify-content: center; }
-#bottom-nav button { flex: 1; max-width: 384px; min-height: 64px; background: white; color: var(--text); border: 0; border-radius: 0; }
-#bottom-nav [aria-current="page"] { color: var(--primary); border-bottom: 4px solid var(--primary); font-weight: 700; }
-.floating { position: fixed; bottom: 88px; right: 24px; width: 48px; padding: 0; z-index: 3; border-radius: 50%; }
-.toast { position: fixed; bottom: 152px; left: 24px; right: 24px; max-width: 720px; margin: 0 auto; padding: 12px 16px; background: var(--text); color: white; border-radius: 8px; z-index: 4; }
-.toast:empty { display: none; }
-dialog { width: min(320px, calc(100% - 48px)); padding: 24px; border: 0; border-radius: 8px; color: var(--text); }
-dialog::backdrop { background: rgba(0, 0, 0, .25); }
-dialog h2 { margin-bottom: 16px; }
-.actions { display: flex; gap: 12px; }
-.actions button { flex: 1; padding-left: 8px; padding-right: 8px; }
-@media (max-width: 560px) {
-  .task-card { flex-direction: column; align-items: stretch; }
-  .task-card button { width: 100%; }
-  #login-button { width: 100%; }
-}
-@media (prefers-reduced-motion: reduce) {
-  * { scroll-behavior: auto !important; }
-}
 ```
 
-`@media (max-width:560px)`是手機斷點：窄畫面將任務列改成上下，Button全寬。`box-sizing:border-box`讓寬度包含內距與邊框；max-width限制桌面閱讀寬；main底部160px給固定導覽、漂浮按鈕留出空間。Breakpoint來自內容需要，不是把Figma402寫成所有手機固定寬。
+JavaScript 開頭的 `tasks` 是任務陣列；`title`、`due` 與 `done` 分別是標題、期限與完成狀態；`due` 的文字會出現在清單卡片的狀態後面，也會出現在詳情畫面。後方迴圈補出長清單，用來檢查捲動與固定導覽。
 
-### app.js：資料、畫面切換與事件
+Git 的工作資料夾放正在編輯的內容，暫存區放下一次準備提交的內容，commit 保存附有說明的版本。`git diff` 看尚未暫存的修改，`git diff --cached` 看即將提交的修改。GitHub 收到推送的版本後，Pages 才能部署公開網站；因此要分別確認 repo、Actions 與公開畫面。
 
-```javascript
-const tasks = [
-  { id: 'T01', title: '整理交付包', due: '今天18:00', done: false },
-  { id: 'T02', title: '確認活動報名資料並補上聯絡電話', due: '明天12:00', done: false },
-  { id: 'T03', title: '更新本週任務說明', due: '星期五17:00', done: false }
-];
-// 增加示範任務，讓清單有足夠長度可測滾動。
-for (let n = 4; n <= 15; n += 1) {
-  tasks.push({ id: `T${String(n).padStart(2, '0')}`, title: `核對工作室任務${n}`, due: '本週17:00', done: false });
-}
-const screens = ['login-screen', 'list-screen', 'detail-screen'];
-const dialog = document.querySelector('#confirm-dialog');
-const feedback = document.querySelector('#feedback');
-let selectedTask = null;
-let showDone = false;
-let toastTimer;
+## 示範：先保存原始網站，再逐項修改與發布
 
-function showScreen(id) {
-  screens.forEach(name => { document.querySelector('#' + name).hidden = name !== id; });
-  document.querySelector('#bottom-nav').hidden = id === 'login-screen';
-  document.querySelector('#scroll-top').hidden = id !== 'list-screen';
-  window.scrollTo(0, 0);
-}
-function renderList() {
-  const list = document.querySelector('#task-list');
-  list.replaceChildren();
-  const visibleTasks = tasks.filter(task => task.done === showDone);
-  document.querySelector('#empty-message').hidden = visibleTasks.length !== 0;
-  document.querySelector('#list-title').textContent = showDone ? '已完成清單' : '待處理清單';
-  document.querySelector('#pending-tab').setAttribute('aria-current', showDone ? 'false' : 'page');
-  document.querySelector('#done-tab').setAttribute('aria-current', showDone ? 'page' : 'false');
-  visibleTasks.forEach(task => {
-    const card = document.createElement('article'); card.className = 'task-card';
-    const copy = document.createElement('div'); copy.className = 'task-copy';
-    const title = document.createElement('h3'); title.textContent = task.title;
-    const meta = document.createElement('p'); meta.className = 'muted';
-    meta.textContent = `${task.done ? '已完成' : '待處理'} · ${task.due}`;
-    copy.append(title, meta); card.append(copy);
-    if (task.done) {
-      const badge = document.createElement('img'); badge.className = 'badge';
-      badge.src = 'assets/status-badge.png'; badge.alt = '已完成'; card.append(badge);
-    }
-    const open = document.createElement('button'); open.type = 'button';
-    open.textContent = '檢視詳情'; open.setAttribute('aria-label', '檢視詳情：' + task.title);
-    open.addEventListener('click', () => {
-      selectedTask = task;
-      document.querySelector('#detail-title').textContent = task.title;
-      document.querySelector('#detail-due').textContent = '期限：' + task.due;
-      const complete = document.querySelector('#complete-task');
-      complete.disabled = task.done; complete.textContent = task.done ? '已完成' : '標記完成';
-      showScreen('detail-screen');
-    });
-    card.append(open); list.append(card);
-  });
-}
-function openList(done) {
-  showDone = done; renderList(); showScreen('list-screen');
-}
-document.querySelector('#login-button').addEventListener('click', () => openList(false));
-document.querySelector('#back-button').addEventListener('click', () => openList(showDone));
-document.querySelector('#pending-tab').addEventListener('click', () => openList(false));
-document.querySelector('#done-tab').addEventListener('click', () => openList(true));
-document.querySelector('#complete-task').addEventListener('click', () => dialog.showModal());
-document.querySelector('#cancel-button').addEventListener('click', () => dialog.close());
-document.querySelector('#confirm-button').addEventListener('click', () => {
-  if (!selectedTask || selectedTask.done) return;
-  selectedTask.done = true; dialog.close(); openList(true);
-  feedback.textContent = '任務已完成，已移到已完成清單。';
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => { feedback.textContent = ''; }, 4000);
-});
-dialog.addEventListener('click', event => {
-  const box = dialog.getBoundingClientRect();
-  if (event.target === dialog && (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom)) dialog.close();
-});
-document.querySelector('#scroll-top').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-showScreen('login-screen');
-```
+先把下載包原封不動保存成基準，再分別修改標題、主要色與長任務資料，最後推到 GitHub Pages 並確認更新。
 
-## 跟著做：三種修改，分別驗證
+| 類型 | 名稱或位置 | 現稿設計值／用途 | 完成時看見的結果 |
+|---|---|---|---|
+| 樣式檔 | `styles.css` | 主要色 `#245B45`；文字色 `#1E293B`；次要文字 `#5F6C80`；表面色 `#F5F7FA` | 內容有清楚層次與共用色彩 |
+| 主要按鈕 | `button` | 最小高度 48；圓角 8 | 點擊範圍與設計稿一致 |
+| 任務卡片 | `.task-card` | 內距 16；間距 16；圓角 8 | 長標題可換行，操作仍清楚 |
+| 清單間距 | `.task-list` | 卡片間距 12 | 相鄰任務保持可辨識 |
+| 狀態徽章 | `.badge` | 32 × 32；檔案 `assets/status-badge.png` | 已完成項目顯示透明徽章 |
+| 確認彈窗 | `#confirm-dialog` | 寬度上限 320；內距 24；圓角 8 | 窄畫面仍保留左右空間 |
+| 底部導覽 | `#bottom-nav` | 最小高度 64；固定在視窗底部 | 長清單捲動時仍可切換狀態 |
+| 主內容 | `main` | 底部留白 160 | 最後一筆資料留在導覽上方 |
+| 漂浮按鈕 | `#scroll-top` | 48 × 48；距底部 88 | 長清單可回到頂端 |
+| 手機排列 | `@media (max-width: 560px)` | 任務卡改為上下排列，卡片按鈕全寬 | 長文字和按鈕各自保有空間 |
 
-1. 在HTML把標題「工作室任務」改為自己的示範工作室名稱；Save與Reload，應只有標題文字改變。
-2. 在CSS把`--primary`改為第01堂你已核對對比的色碼；檢查登入、完成Button與Nav選中狀態同時更新。不要逐個Button加不同顏色。
-3. 在app.js只改T02的title為更長任務：「核對本週活動報名名單並補齊聯絡電話與到場時間」。寬390與430時應換行，不蓋住檢視詳情Button；點進去仍是同一筆資料。
-4. 走完整取消／確認流程，檢查已完成Tab只多該筆、待處理Tab少該筆、徽章清楚。再Reload，說明為什麼預設資料會回來。
-
-## Git安裝與資料夾起點
-
-Git記錄本機版本；GitHub存遠端repo；GitHub Pages把其中的靜態檔公開成網站。它們是不同步驟。先從[Git官方下載](https://git-scm.com/downloads)安裝適合系統版本；macOS看到系統開發工具安裝提示可依教室準備完成，Windows使用Git安裝器並重開VS Code。在VS Code Terminal → New Terminal輸入：
-
-```text
-git --version
-```
-
-應看到版本號；找不到command時先安裝／重開終端機，不繼續init。以下使用支援`git init -b`的Git2.28以上。
-
-終端機是在目前資料夾執行命令。先確認它指向你解壓的獨立專案；不要在這門課整個網站repository根目錄做init。Mac/Linux用`pwd`，Windows PowerShell用`Get-Location`；列檔可用`ls`（PowerShell亦可）。目錄中應看到index.html、styles.css、app.js。最簡單是在VS Code開啟正確資料夾再建立新Terminal；路徑錯就先用`cd`切到實際專案，拖曳資料夾路徑時保留引號。
-
-## 示範：第一個commit先建立基準
-
-下列命令一行一行執行。姓名與email改成你要用於commit的身分；只設本repo，不改全域。Email可使用GitHub設定提供的noreply地址。先在repo外確認你的檔案不含真實密碼或個資。
+1. 解壓下載包並進入含 `index.html` 的資料夾。完成後，主要檔案與 `assets` 會在同一層。
+2. 用瀏覽器走過登入、詳情、取消與確認。完成後，原始流程可以操作。
+3. 用 VS Code 開啟專案，再選 Terminal → New Terminal。完成後，終端機位於專案資料夾。
+4. Windows 從 `git-scm.com` 安裝 Git for Windows，再重開 VS Code。完成後，終端機能辨識 Git。
+5. Mac 執行 `git --version`，依系統視窗安裝開發者工具，也可執行 `xcode-select --install`。重開終端機後會顯示版本。
+6. 到 `github.com` 註冊並驗證 Email。完成後，帳號可建立 repo 與發布網站。
+7. 到 GitHub 頭像 → Settings → Emails，開啟 Keep my email addresses private 並複製 noreply 地址。完成後，你會取得 commit Email。
+8. 初始化專案並設定提交身分。完成後，Git 會使用指定名稱與 Email。
 
 ```bash
 git init -b main
 git config user.name "你的姓名"
-git config user.email "你的Git提交Email"
+git config user.email "你的 noreply 地址"
+git status
+```
+
+9. 用明確檔名加入原始專案。完成後，`git status` 與暫存差異會列出即將提交的內容。
+
+```bash
 git add index.html styles.css app.js README.md assets/status-badge.png
 git status
 git diff --cached
-git commit -m "Create studio task website"
-git log --oneline -1
 ```
 
-第一次尚未add的檔案叫Untracked；普通`git diff`不顯示未追蹤檔的內容，所以先add再用`git diff --cached`檢視準備提交的內容。Commit完成後應有一筆hash與訊息；`git status`應顯示working tree clean。這個commit是基準，不是部署。
+10. 提交原封不動的第一個版本。完成後，紀錄會出現基準版本，工作區會乾淨。
 
-## 跟著做：改一個標題，讀diff再提交
+```bash
+git commit -m "Create studio task website"
+git log --oneline
+git status
+```
+
+11. 分頁底部出現 `:` 或 `(END)` 時按 `q`。完成後，終端機會回到命令列。
+12. 把頁首改成自己的工作室名稱。完成後，瀏覽器只更新標題。
+13. 檢查並提交標題差異。完成後，版本只包含 `index.html` 的文字修改。
 
 ```bash
 git diff -- index.html
 git add index.html
 git diff --cached -- index.html
 git commit -m "Update studio heading"
-git log --oneline -2
 ```
 
-這段前先修改HTML標題並Save；第一個diff應只顯示標題變化。若顯示所有行，檢查編輯器換行或格式化，不把不懂的改動全部提交。兩筆log應分別是建立網站與更新標題。更換CSS或JS同樣只add實際改的檔名。命令沒有變化時先確認檔案Save與目前資料夾，不靠重複commit製造紀錄。
+14. 把 `--primary` 換成已確認的主要色。完成後，主要按鈕與導覽會同步換色。
+15. 檢查並提交樣式差異。完成後，版本只包含主要色修改。
 
-## GitHub：從本機版本送到自己的遠端
+```bash
+git diff -- styles.css
+git add styles.css
+git diff --cached -- styles.css
+git commit -m "Update primary color"
+```
 
-1. 在自己的GitHub帳號建立New repository，名稱 `studio-tasks-web`，選Public作純示範網站；不要在這一步新增README／license／gitignore，因為本機已建立基準。公開前檢查只含示範資料。
-2. 複製該repo的HTTPS URL。下方USERNAME換為自己的GitHub使用者名稱，不要照抄尖括號或教師帳號。
-3. 在同一個專案終端機執行：
+16. 把長任務改成「核對本週活動報名名單並補齊聯絡電話與到場時間」。完成後，清單與詳情顯示同一筆長內容。
+17. 在窄畫面檢查後提交 `app.js`。完成後，版本只包含資料修改。
+
+```bash
+git diff -- app.js
+git add app.js
+git diff --cached -- app.js
+git commit -m "Update long task content"
+```
+
+18. 執行 `git log --oneline`。完成後，資料、色彩、標題與基準各有一筆紀錄。
+19. 從 GitHub 右上「+」建立 Public 的 `studio-tasks-web`，並讓附加檔案選項保持未勾選。完成後，會得到空白 repo 網址。
+20. 加入遠端並推送 `main`。完成後，repo 會顯示檔案與版本紀錄。
 
 ```bash
 git remote add origin https://github.com/USERNAME/studio-tasks-web.git
@@ -342,45 +159,109 @@ git remote -v
 git push -u origin main
 ```
 
-4. 如Git要求驗證，依Git提供的瀏覽器／Credential Manager登入自己的帳號。GitHub不接受直接用帳號密碼當HTTPS Git密碼；不要把密碼寫進命令或貼進講義。
-5. 在GitHub repo頁Reload，應看到index.html、styles.css、app.js與assets；開Commits應看到兩筆。`remote -v`只有證明目的地，不能證明push成功。
+21. Windows 依首次推送的瀏覽器畫面完成授權。完成後，repo 會收到檔案。
+22. Mac 到 Settings → Developer settings → Personal access tokens → Fine-grained tokens，建立只存取此 repo 且 Contents 為 Read and write 的 token。推送時填帳號並把 token 貼到 Password；完成後會顯示推送結果。
+23. Windows 若未出現瀏覽器登入，也使用 fine-grained token。完成後，repo 會收到檔案。
+24. 在 repo 開啟 Settings → Pages；窄視窗可從「…」找到 Settings。完成後會出現 Build and deployment。
+25. 選 Deploy from a branch、`main` 與 `/(root)`，再按 Save。完成後會開始部署。
+26. 到 Actions 查看進度並預留約十分鐘。完成後，Pages 會顯示網址與 Visit site。
+27. 開啟 Pages 顯示的網址。完成後，線上網站可以走完主要流程。
+28. 修改 README 的作品名稱，提交並推送。完成後，Actions 會再次部署。
 
-如果origin已存在，先`git remote -v`確認是不是自己的repo；正確就不重複add。URL錯才用`git remote set-url origin 正確URL`。Push被拒絕，讀錯誤：權限問題改正確帳號／repo；遠端已有README造成history不同，初學主線可改建真正空白的示範repo再繫結，保留本機版本。不要用force push掩蓋不懂的版本衝突。
+```bash
+git add README.md
+git commit -m "Clarify project title"
+git push
+```
 
-## GitHub Pages：公開網址與更新驗收
+29. 等部署完成後比對公開網站與最新提交。完成後，整條更新路徑已接通。
 
-1. 在自己的repo開Settings → Pages。Build and deployment的Source選Deploy from a branch，Branch選main、資料夾選`/(root)`，Save。GitHub Free公開repo可用這條路徑；需有admin或maintainer權限才能設定。
-2. 等部署結果完成，檢視Pages提供的Visit site／網址。通常形式為 `https://USERNAME.github.io/studio-tasks-web/`，使用頁面實際顯示的網址；不能把repo程式頁當網站網址。
-3. 開網站，用無痕或另一個裝置走登入→詳情→取消→確認；檢查CSS有套用、徽章沒破圖、390／430時沒有橫向溢位、長列表最後一筆看得完整。
-4. 回本機再改標題，Save，確認本機畫面，執行`git add index.html`、`git commit -m "Publish updated heading"`、`git push`。等新部署完成，在公開網站Reload確認新標題。這樣才證明後續更新會到網站。
-5. 記錄repo URL、網站URL、最新commit與線上觀察日期，放進第15堂交付包README。沒帳號或離線時本機網站與Git可以先完成，公開URL仍需在有權環境補做，不能用localhost或截圖當公開部署完成。
+## 跟著做：用較少提示重走一輪版本流程
 
-**排錯：**Pages404先查main與root、index.html位於根目錄、部署尚未完成；樣式或圖片404查相對路徑及大小寫（`assets`不是`Assets`）；線上還是舊標題查最新push與部署commit，再Reload或無痕；Button無效開啟瀏覽器Console看錯誤，再查JS路徑和id選擇器。Pages只能提供此靜態網站，不會替你增加正式登入或資料庫。
+示範已走過每個入口，現在請自行判斷檔案位置，完成一個小型更新。
 
+1. 改一段頁面文字。完成後，瀏覽器只出現預期文字變化；提示：從結構檔找原文。
+2. 查看工作區狀態與普通差異。完成後，你能指出修改前後的行。
+3. 加入該檔案並查看暫存差異。完成後，暫存區只含這次修改。
+4. 寫一則說明目的的 commit 訊息。完成後，`git log --oneline` 最上方會出現新版本。
+5. 推送到既有遠端。完成後，repo 顯示相同檔案與版本。
+6. 等 Actions 完成後開啟公開網址。完成後，新文字出現，登入、取消與確認仍可操作。
 
-## 自己完成：改變條件再檢查
+最後讀一次 `git log --oneline`，確認每筆訊息都能回答「這次為什麼改」。
 
-用自己的第15堂透明PNG替換assets/status-badge.png，並將任務換成第14堂「活動報名確認」新情境。獨立修改標題、三筆資料與主要色；在390／430、取消／確認、空狀態與長列進行檢查。以明確檔名提交至少兩筆有意義的修改，並線上驗證新標題與徽章。最後README說明和完整Figma原型哪些一致、哪些簡化、狀態為何會在Reload重置。
+## 看兩種版本紀錄，判斷哪一種容易接手
 
-## 完成條件與理解檢查
+這個判斷練習要檢查你是否真的理解「一項修改一個版本」的價值。先讀兩個版本的畫面描述，再決定哪一版能讓接手者較快找到問題。
 
-- 解壓的獨立專案本機可開，完整取消／確認／清單狀態與長內容正確；理解三檔與id／class分工。
-- Git至少有建立基準與修改兩筆commit，能讀普通diff與staged diff，repo root正確。
-- 自己的GitHub有實際檔案與commit，Pages公開URL可用；後續更新已線上確認，未執行部分據實記錄。
+版本一的網站外觀看起來正確，`git log` 只有一筆「修改網站」。打開那筆差異後，同時看到頁首名稱、主要色、長任務內容、README 與徽章都改了。現在公開網站的主要色顯示錯誤，接手者需要逐一翻找所有變更，才能猜出是哪個檔案造成。
 
-**想一想：**為何第一次把下載檔放進資料夾後，git diff可能什麼都不顯示？
+版本二的網站外觀看起來相同，`git log` 依序列出建立網站、更新標題、更新主要色、更新長任務內容、替換徽章與補充說明。打開「更新主要色」只看到 `styles.css` 的色彩角色變化；若公開網站顏色有問題，接手者能直接檢查那筆差異，也能把問題範圍縮到樣式檔。
 
-<details><summary>展開參考答案與理由</summary><p>未追蹤檔還沒有Git基準，普通diff不顯示它們。先git status看Untracked，用明確檔名git add，再git diff --cached看將提交的完整內容；建立第一筆commit後，普通diff才可比較後續修改。</p></details>
+你會選哪一版作為交付版本？除了「比較整齊」之外，請說出它如何協助找錯、回看與溝通。
+
+<details><summary>看完自己的判斷再展開</summary><p>版本二較容易接手，因為每筆 commit 只回答一個修改目的。顏色出錯時可以直接查看主要色那筆差異，資料出錯時則查看資料版本；版本訊息、檔案差異與畫面結果形成清楚對應。版本一雖然也保存了成品，卻把多種原因混在一起，查找與回復都需要更多判斷。</p></details>
+
+## 卡住時，先看現象落在哪一層
+
+遇到問題時，先用畫面現象判斷是資料夾、瀏覽器、Git、GitHub 登入還是 Pages 部署，再做對應修正。這樣能保留目前已完成的版本，也能避免在不同層重複改同一件事。
+
+| 看到的現象 | 通常的原因 | 怎麼修 |
+|---|---|---|
+| 畫面有內容，但樣式消失或徽章破圖 | 相對路徑、檔名大小寫或資料夾層級改變 | 核對 `styles.css`、`app.js` 與 `assets/status-badge.png` 的位置和引用文字 |
+| `git add` 出現 LF／CRLF 提示 | Windows 與專案使用的換行格式不同 | 把它視為換行提醒，繼續檢查暫存差異與本次檔案即可 |
+| `git diff` 看起來完全沒有內容 | 檔案尚未儲存、修改已進暫存區，或目前資料夾不是專案根目錄 | 先儲存檔案，再用 `git status` 判斷該看普通差異或暫存差異 |
+| `git log` 停在 `(END)`，終端機無法輸入 | 內容正在分頁檢視器中 | 按 `q` 離開分頁畫面，回到命令提示符號 |
+| 第一次 `git push` 要求 Password，輸入時畫面沒有字元 | Mac 或備用登入路徑正在讀取 token，終端機會隱藏敏感輸入 | 貼上具備指定 repo Contents 讀寫權限的 fine-grained token，再送出 |
+| Pages 顯示 404 或舊內容 | 發布來源有誤、部署仍在進行，或最新 commit 尚未 push | 對照 repo 與 Actions，再核對 `main`、`/(root)` 及根目錄的 `index.html` |
+
+## 換你做：報名確認 App
+
+活動主辦單位的行政人員需要用手機逐筆確認報名資料。請把網站改成報名確認情境，並讓公開網址顯示你的資料與設計。
+
+要達成的條件：
+
+- 把標題、登入、清單、詳情、彈窗與完成提示改成一致的報名用詞。
+- 把陣列改成 `SIGNUP-DATA.csv` 的三筆報名；姓名放 `title`，備註放原本寫期限的 `due`，並納入張家豪的長備註。
+- 檢查陣列後方自動產生示範任務的迴圈；選擇把它改成產生「報名者 n」，或移除這段迴圈，並在 README 寫下選擇與理由。
+- 換上自己的透明 PNG 徽章，並把 `--primary` 換成已檢查對比的主色。
+- 資料、透明徽章、主要色各自形成一筆 commit；每筆提交前都先看差異，提交後都能從版本訊息說出修改目的。
+- 推送到 repo，等 Pages 完成，再確認公開網站的資料、徽章、主色與操作。
+
+合格的結果要能通過這些自我檢查：
+
+- 公開網址能走完清單、詳情、取消與確認；張家豪的備註會自然換行。
+- 完成後的狀態、提示與徽章一致，README 說明重新整理後的資料行為。
+- 自動資料與報名情境一致，或迴圈已移除；README 解釋這項選擇。
+- 版本紀錄分得出資料、徽章與主色，Actions 與 Pages 也對應最新版本。
+
+<details><summary>真的卡住再看：提示</summary><p>先按「畫面文字、資料、圖片、色彩」把問題分到 index.html、app.js、assets 或 styles.css。資料換完後若備註沒有出現，檢查它是否放在 due 欄位、引號與逗號是否成對。</p></details>
+
+## 收尾：把一次成品變成可持續更新的交付
+
+回到工作室交付情境，你現在交出的不只是能開啟的頁面。下載包先以原始狀態建立基準，之後的標題、色彩與資料都有各自版本；GitHub repo 保存遠端檔案，Pages 網址讓合作夥伴直接操作，最後一次小更新則確認這條發布路徑能繼續使用。當畫面出現問題時，你也能從檔案分工、commit 差異、Actions 狀態與公開網站逐層找到原因。
+
+這是整套作品從設計走到交付的最後一步。之後再增加新功能或調整內容時，仍沿用同一節奏：先在本機完成一個清楚改變，檢查畫面與差異，提交版本，推送，再確認線上部署。這樣每一次更新都能被理解，也能在需要時回看。
+
+想一想：為什麼下載包解壓後立刻執行普通 `git diff`，可能看不到任何檔案內容；而建立基準版本之後，同一個命令卻能顯示修改？
+
+<details><summary>展開參考答案</summary><p>剛初始化時，下載包裡的檔案仍是未追蹤內容，普通 git diff 沒有已保存基準可供比較。先用明確檔名加入暫存區，以 git diff --cached 檢查並提交原始版本後，Git 就有了基準；接下來的檔案修改可由普通 git diff 顯示。</p></details>
+
+完成條件：
+
+- 本機網站可以走完登入、詳情、取消、確認與已完成清單，長內容和最後一筆資料都能完整查看。
+- 版本紀錄包含原始基準與分項修改，每一筆訊息都能對應實際差異。
+- GitHub repo 收到最新版本，Pages 公開網址可操作，後續更新也已在線上確認。
+- 報名確認 App 的資料、徽章與主色完成遷移，公開畫面與 README 說明一致。
 
 ## 本堂查證來源
 
-- [MDN：網站入門](https://developer.mozilla.org/en-US/docs/Learn_web_development/Getting_started/Your_first_website)
-- [Git：第一次設定](https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup)
-- [Git：紀錄版本](https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository)
-- [GitHub：建立repo](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-new-repository)
-- [GitHub Pages：設定來源](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
+- [Git 官方下載](https://git-scm.com/downloads)
+- [Git：第一次設定提交身分](https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup)
+- [Git：記錄檔案修改與提交](https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository)
+- [GitHub：建立新 repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-new-repository)
+- [GitHub Pages：設定發布來源](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
 
-來源查證：2026-10-09。
+來源查證：2026-11-02。
 <!-- learner-content:end -->
 
 ## 講師授課筆記（不進講義）

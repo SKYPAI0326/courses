@@ -5,9 +5,9 @@ title: 連好登入、清單、詳情與返回
 course_type: skill-operation
 duration: 6h
 prerequisites: [B1-wireframe-prototype-entry]
-revision: 2026-10-11
+revision: 2026-11-02
 style_guide: ../../_outlines/uiux-designer.style-guide.md
-platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體另記平台證據
+platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*.md）
 ---
 
 ## 內部設計（不進學員頁）
@@ -24,83 +24,153 @@ platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體�
 
 <!-- learner-content:start -->
 # 連好登入、清單、詳情與返回
+副標：工作室行政人員要從登入找到正確任務，查看內容後回到清單，每一次點擊都必須抵達符合內容的畫面。
+本堂完成物：從登入走到清單的基本流程；兩筆內容不同的任務詳情；可穩定回到清單的返回動作
 
-現在讓畫面能點。你會在同一份Starter檔案，分別為登入Button、任務Row與返回Button建立基本互動，從Login一路到Detail再返回。每個互動先確認選對物件、觸發與目的地，再開啟Preview真點一次。
+## 從流程地圖變成真的點擊
 
-## 開始前，先找到材料與起點
+工作室行政人員已經有登入、待處理清單與任務詳情，也有一張說明「完成一筆任務」的線框地圖。現在要把地圖變成可操作流程：按下登入看到清單，點「整理交付包」看到它的內容，返回後再打開「確認活動報名資料並補上聯絡電話」，兩筆資料要各自正確。
 
-前堂Preview應從Login開始；Layers找得到Button / Login、Row / T01、Detail與Detail T02。缺T02先依第09堂Solo建好，不能把第2筆連到空白目的地。
+這一頁會沿用上次完成的任務卡、登入與清單線框，以及「完成一筆任務」流程起點。先開啟[本堂起始材料](../../courses/uiux-designer/assets/B2-trigger-navigation-action/START-HERE.html)，確認正式畫面與圖層名稱；完成連線後，再用[本堂完成檢查表](../../courses/uiux-designer/assets/B2-trigger-navigation-action/reference/EXPECTED-CHECK.html)從登入完整走一次。兩個連結都服務同一個目標：前者讓你知道有哪些畫面可用，後者讓你確認實際點擊結果。
 
-先開啟[本堂起始材料（HTML）](../../courses/uiux-designer/assets/B2-trigger-navigation-action/START-HERE.html)，讀取輸入與圖層名稱；操作在你的 Figma 檔或本堂指定工具完成。完成後到[本堂完成檢查表（可儲存／下載）](../../courses/uiux-designer/assets/B2-trigger-navigation-action/reference/EXPECTED-CHECK.html)記錄實際結果。
+先在同一頁找出登入按鈕、清單中的任務列、兩張內容不同的詳情與返回動作。線框箭頭仍留在旁邊當地圖，真正互動則會綁在正式物件上。完成後，你應能只靠 Preview 操作，不必回到編輯畫布指路。
 
-## 一條互動由三件事組成
+## 每條互動都要說清楚何時、做什麼、去哪裡
 
-Trigger是「什麼時候發生」，Action是「發生什麼」，Destination是「去哪裡」。本課先用On click／點選和Navigate to／切換整張畫面。手機預覽點選相當於Tap，不需要另建一份限制一個動作的檔案。
+這一節要建立原型互動的基本讀法。Trigger（觸發）回答「什麼時候發生」，Action（動作）回答「要做什麼」，Destination（目的地）回答「要去哪一張畫面」。只要其中一項選錯，畫布上的連線看起來再完整，預覽結果仍會偏離任務。
 
-| 點選物件 | Trigger | Action | Destination | 預期 |
-|---|---|---|---|---|
-| Login的 `Button / Login` | On click | Navigate to | Screen / List | 看見三筆待處理任務 |
-| List的 `Row / T01` | On click | Navigate to | Screen / Detail | 看見T01內容 |
-| Detail的「返回清單」物件 | On click | Navigate to | Screen / List | 回到任務清單 |
-| List的 `Row / T02` | On click | Navigate to | Screen / Detail T02 | 看見T02的期限與標題 |
+例如，點「整理交付包」這一列時，觸發是 On click，動作是 Navigate to，目的地是顯示整理交付包內容的詳情。若把目的地選成第二筆的詳情，按鈕仍有反應，卻顯示錯誤資料；這種錯誤比完全沒反應更需要逐項核對，因為使用者會以為自己點錯了任務。
 
-Starter可以有上述多個基本互動；付費的Multiple actions指同一個trigger執行多個動作。這裡每個熱區各有一個action，完全不同。確認Dialog開關在第12堂加進這個檔案。
-
-## 示範：連第一個登入Button
-
-1. 開啟原課程檔，Layers展開Screen / Login，選擇Button / Login外框，不只選Label，避免只有文字能點。
-2. 切Prototype，拖該物件旁的連線節點到Screen / List最外層Frame。目標應是整張手機畫面，不是其中的Row。
-3. 在Interaction details設定Trigger On click、Action Navigate to、Destination Screen / List，Animation先用Instant。若用Interactions的＋建立，填相同三個欄位即可。
-4. 回頭點這條連線檢查欄位；Destination如果是None或同名錯誤Frame，現在修正，不等到測試才猜。
-5. 從TASK-01起點開啟Preview，點登入Button。畫面應從帳號／密碼切到三筆清單；不能只憑編輯畫布上的箭頭判斷成功。
-
-此處登入不驗證輸入，點Button只模擬已登入狀態。第06堂的Error與Empty是展示用的分支；真實驗證需要程式，不要告訴測試者在Figma輸入真實帳密。
-
-## 跟著做：連第二步與返回，減少提示
-
-1. 自己找到Row / T01外框並連到Screen / Detail；用表格判斷Trigger、Action與Destination，不照著先前畫布位置猜。
-2. 在Detail將「← 返回清單」文字包入Frame，設為 `Button / Back`，寬120、高48；對齊內容後連到Screen / List。使用明確目的地，可以直接從Detail開始測試也能返回；單純Back依歷史返回，沒有前一步時可能無效。
-3. 將Row / T02連到Detail T02，並建立同樣的Button / Back。現在你應能從清單進入兩筆不同資料，而不是兩列都顯示T01。
-4. Preview重啟TASK-01，執行Login→List→T01→返回→T02→返回。每一步在檢查表寫預期畫面與實際畫面名稱。
-5. 在Screen / Login Empty選擇Disabled Button檢查Interactions，刪除或移除意外保留的點選連線。Disabled樣式本身不會阻止Navigate，必須在原型配置核對。
-
-**檢查點：**點選按鈕邊緣仍能觸發；點選第二筆內容真的改成T02；返回不需要上一頁歷史；Disabled點了不應切頁。動畫目前Instant，避免先混入轉場問題。
-
-## 故意做一個故障，再定位
-
-複製測試用Button，在它的Interaction把Destination設為None。Preview點它不會有目標畫面。你的排錯順序是：選中的熱區對嗎→有On click嗎→Action對嗎→Destination存在嗎→Preview起點對嗎。修好後重新從Login執行整段，不只測試修過的Button。
-
-| 現象 | 回修位置 | 正確結果 |
+| 要問的問題 | 本頁設定 | 預覽時怎麼判斷 |
 |---|---|---|
-| 只有文字中央可點 | 連線綁在Label | 移到Button外框，邊緣也可點 |
-| 點選卻回Login | Destination選錯Frame | 目的地List，預覽見三筆 |
-| 列表兩列同一內容 | 兩熱區都指到T01 Detail | T02指到Detail T02 |
-| 直接從Detail開啟，Back無效 | Back沒有歷史 | 本課返回清單用Navigate to明確目的地 |
-| Disabled仍能跳頁 | 普通Instance複製連線 | 在停用使用處移除互動 |
+| 何時發生 | On click | 點擊熱區後才切換 |
+| 發生什麼 | Navigate to | 原畫面換成另一張完整畫面 |
+| 去哪裡 | 指定的最外層 Frame | 標題、期限與說明都符合所點的任務 |
+| 從哪裡測 | 完成一筆任務 | Preview 第一張是登入畫面 |
+| 如何返回 | Navigate to 清單 | 即使從詳情開始預覽，也能回清單 |
 
-儲存完整基本Flow；下一堂在這些連線上調動畫，不重新建立另一套Login與List。
+裝置設為手機時，On click 可能顯示成 On tap，兩者在這裡代表相同的點擊觸發。介面名稱以你看到的畫面為準。這堂每個熱區只放一個動作，因此 Starter 方案就能完成；同一個觸發疊多個動作、條件判斷或變數，才屬於付費方案開放的範圍。
 
-## 自己完成：改變條件再檢查
+返回動作有兩種常見選擇。Back 依瀏覽紀錄回到上一張畫面，從中間畫面直接開始預覽時可能沒有可用紀錄；Navigate to 則直接指定清單，結果更穩定。本頁的任務要求是「回到待處理清單」，所以用 Navigate to 指定清單，讓測試起點不同時也能得到相同結果。
 
-從List Empty增加「檢視示範任務」Button，連回Screen / List；再建立Detail T03，依第07堂資料表填入T03標題與期限，獨立接上T03及返回。在畫布選最外層Screen / List Empty，依第09堂加入Flow starting point，命名EMPTY-TEST；用Present選EMPTY-TEST，依「檢視示範任務→T03→返回」實際點選，核對期限是星期五17:00、返回Screen / List。若停留原畫面，回Interactions核對所選Button或Row的Destination；若顯示T01資料，改到自己的Detail T03並重跑。有同學時可請他同路徑無提示操作，分開記錄本人與同學結果。交出新增的三條連線、一次故障修復及實際Preview結果，測完確認主線TASK-01起點仍在Login。
+熱區的範圍也會影響操作。若只把連線綁在按鈕文字，使用者點到按鈕邊緣時沒有反應；若把連線綁在完整按鈕外框或整列任務，視覺上看起來可點的區域就會真的可點。判斷原則很簡單：看到多大的互動區，實際上就應有多大的點擊範圍。
 
-## 完成條件與理解檢查
+## 示範：先連通登入、第一筆詳情與返回
 
-- 同一檔案至少完成Login→List→T01 Detail→返回，T02顯示不同內容。
-- 熱區綁在Button／Row外框，Destination不是None或錯誤Frame。
-- Disabled沒有切頁行為，故意Destination故障已修復並跑完整回歸。
+這一節先完成一條最短可測路徑。數值與名稱集中在規格表，操作時依內容核對畫面，不依畫布位置猜目的地。
 
-**想一想：**Starter可以在不同Button上建立多條Navigate，為什麼這不等於付費的Multiple actions？
+| 類別 | 圖層或設定 | 本堂值 |
+|---|---|---|
+| 登入熱區 | `Button / Login`（登入按鈕） | 完整按鈕外框 |
+| 登入目的地 | `Screen / List`（待處理清單） | 三筆主線任務 |
+| 第一筆熱區 | `Row / T01`（整理交付包任務列） | 完整任務列 |
+| 第一筆目的地 | `Screen / Detail`（整理交付包詳情） | 標題、說明、期限與完成按鈕 |
+| 返回熱區 | `Button / Back`（返回清單按鈕） | 寬 120；高 48 |
+| Trigger | On click | 手機裝置可能顯示 On tap |
+| Action | Navigate to | 一個熱區一個動作 |
+| Animation | Instant | 本頁先核對目的地 |
+| Flow | 完成一筆任務 | 起點為登入畫面 |
 
-<details><summary>展開參考答案與理由</summary><p>每個Button的點選各執行一個動作；Multiple actions是在同一個trigger堆疊多個action。本課沒有依賴這種付費堆疊功能。</p></details>
+1. 在 Layers 展開正式登入畫面，選取 `Button / Login`（登入按鈕）外框。做完會看到整個按鈕被選取，而非只有文字游標。
+2. 切到右側 Prototype 分頁，將按鈕旁的連線節點拖到待處理清單最外層 Frame。做完會出現一條由登入按鈕通往清單的連線。
+3. 打開 Interaction details，將 Trigger 設為 On click。做完會看見這條互動由點擊啟動。
+4. 將 Action 設為 Navigate to，並確認 Destination 是 `Screen / List`。做完會在設定中看到清單的唯一名稱。
+5. 將 Animation 保持 Instant。做完後，這條連線只檢查操作與目的地，不混入轉場判斷。
+6. 開啟「完成一筆任務」的 Preview，按下登入。做完會從帳號、密碼畫面切到三筆待處理任務。
+7. 回到編輯畫布，選取 `Row / T01`（整理交付包任務列）外框。做完會看到整列標題、期限與進入詳情線索一起被選取。
+8. 將這一列連到 `Screen / Detail`，使用相同的觸發與動作。做完會看到目的地詳情顯示「整理交付包」。
+9. 在詳情畫面選取「← 返回清單」，用 Frame 包住並命名為 `Button / Back`（返回清單按鈕）。做完會得到符合規格表範圍的完整熱區。
+10. 將返回按鈕設定為 On click、Navigate to、目的地為待處理清單。做完後，即使從詳情直接開始 Preview，也能回到清單。
+11. 從登入重新預覽，依序點登入、整理交付包與返回清單。做完會回到原本的三筆任務，而詳情內容與所點任務一致。
+
+示範最後要核對內容，而非只看畫面有沒有切換。進入詳情後，應看見「整理交付包」、說明「核對檔名、尺寸與透明背景，整理成可重開的交付包。」與期限「今天18:00」。返回後，清單仍保留另外兩筆任務，這才是完整的一來一回。
+
+## 跟著做：讓第二筆任務有自己的詳情
+
+現在把提示減少，自己完成第二條任務路徑。這一步要練的是「同樣的互動設定，目的地隨內容改變」，避免每一列都通往同一張詳情。
+
+1. 在待處理清單找到「確認活動報名資料並補上聯絡電話」的完整任務列，確認它有獨立圖層。
+2. 找到顯示第二筆標題、說明與期限的詳情畫面。先用內容辨認，再看圖層名稱。
+3. 為第二筆任務列設定點擊後前往自己的詳情。完成後，預覽時會看到與整理交付包不同的標題。
+4. 在第二筆詳情建立返回清單動作。完成後，兩張詳情都能回到相同的待處理清單。
+5. 從登入重啟 Preview，依序走「登入 → 整理交付包 → 返回 → 確認活動報名資料並補上聯絡電話 → 返回」。每一步都用畫面標題與期限確認內容。
+6. 點擊每個按鈕與任務列的邊緣。完成後，視覺熱區與實際熱區的範圍應一致。
+7. 找到登入空白狀態中的停用按鈕，查看是否意外帶著互動。停用外觀本身不會自動阻止 Navigate，因此這個使用處應保持沒有切頁行為。
+
+完成兩筆後，你會有四種可觀察結果：登入到清單、第一筆到第一筆詳情、第二筆到第二筆詳情、兩張詳情都回到清單。每一個結果都能用內容說明，代表連線不是只靠 Frame 的相對位置完成。
+
+接著做一次有目的的故障練習。先記下「整理交付包」目前的正確目的地，再把它故意改成第二筆詳情。從登入開始預覽，點第一筆時會看到「確認活動報名資料並補上聯絡電話」的內容。按照「熱區對嗎 → 觸發對嗎 → 動作對嗎 → 目的地對嗎 → 起點對嗎」逐項檢查，找到目的地錯誤後改回整理交付包詳情，再從登入重跑完整路徑。這次練習的重點是看見「有切頁也可能連錯」，並建立固定排查順序。
+
+## 看兩條連線，判斷哪一條值得信任
+
+版本一的清單有兩筆任務。兩列都綁在標題文字上，第一列連到整理交付包詳情，第二列也連到同一張詳情；詳情的返回使用 Back。從登入完整走時，返回有反應，但直接從詳情開始預覽時停在原畫面。
+
+版本二把互動綁在整列任務上，兩列分別前往內容相符的詳情；兩張詳情的返回都以 Navigate to 指向待處理清單。直接從任一詳情開始，返回仍能到清單。請判斷哪一版更適合本頁任務，並分別從熱區、目的地與返回方式說明理由。
+
+<details><summary>看完自己的判斷再展開</summary><p>版本二更適合。整列熱區符合畫面給人的可點範圍，兩筆任務各自顯示正確內容，返回也直接指定清單，因此從不同起點測試都能得到穩定結果。版本一會讓邊緣點擊失敗，第二筆內容錯誤，Back 也依賴先前瀏覽紀錄。</p></details>
+
+## 卡住時，照固定順序排查
+
+這一節把 Preview 的現象對回原型設定。先選發生問題的熱區，再由觸發、動作、目的地與起點一路往下檢查，能避免一次改動多項後失去判斷依據。
+
+| 看到的現象 | 通常的原因 | 怎麼修 |
+|---|---|---|
+| 只有文字中央可點 | 互動綁在 Label | 把 Interaction 移到完整 Button 或 Row 外框 |
+| 點登入後回到登入 | Destination 指到同名或錯誤 Frame | 重新指定有三筆任務的待處理清單 |
+| 點第一筆卻看到第二筆內容 | 任務列連到錯誤詳情 | 用中文標題核對 Destination，再改回整理交付包詳情 |
+| 兩筆任務顯示相同資料 | 兩列共用同一目的地 | 為第二筆指定內容相符的獨立詳情 |
+| 從詳情開始時返回沒反應 | 返回依賴 Back 的瀏覽紀錄 | 改用 Navigate to 指定待處理清單 |
+| 停用按鈕仍會切頁 | 使用處保留了 Interaction | 選停用使用處，移除那條原型互動 |
+
+## 換你做：報名確認 App
+
+活動主辦單位的行政人員要從 360 × 800 的報名清單打開不同報名資料，再回到原清單繼續確認。這次至少要連通兩筆內容，讓姓名、備註與狀態都能證明目的地正確。資料以[報名資料](../../courses/uiux-designer/assets/shared/SIGNUP-DATA.csv)為準。
+
+要達成的條件：
+
+- 從報名清單進入張家豪的詳情，再返回報名清單。
+- 從報名清單進入蔡庭安的詳情，再返回報名清單。
+- 每筆詳情顯示各自的姓名、完整備註與狀態。
+- 點擊範圍涵蓋整張報名卡片，而非只有姓名文字。
+- 返回動作從任一詳情開始預覽時仍能回到清單。
+- 每個熱區只設定一個動作。
+- 從報名 App 的流程起點完整跑過兩筆資料。
+
+合格的結果要能通過以下自我檢查：
+
+- 點張家豪時，看見需要確認下午場、交通安排與無障礙座位的備註。
+- 點蔡庭安時，看見課前準備、報到時間與筆電插座的備註。
+- 兩張詳情的姓名與備註沒有交叉。
+- 從任一詳情按返回，都會回到同一張報名清單。
+- 卡片邊緣可以點擊，畫面給人的熱區與實際操作一致。
+- 從流程起點重跑時，每一步都能用內容辨認目前位置。
+
+<details><summary>真的卡住再看：提示</summary><p>先選一張報名卡片外框，在 Prototype 中核對 Trigger、Action 與 Destination；再打開目的地，用姓名與備註確認是否選對 Frame。</p></details>
+
+## 讓每一次切換都能用內容驗證
+
+你已經把工作室主線連成可點擊的基本流程：登入後看見三筆待處理任務，兩筆任務會進入各自詳情，返回則穩定回到清單。故障練習也證明，畫面有反應只表示互動被觸發，內容正確才表示目的地設定完成。
+
+下一頁會沿用這些正確連線，為進入詳情與返回清單加入方向一致的轉場，再另做一段 Smart Animate，觀察同一個狀態如何連續改變。先把目的地固定，之後看到的移動才有可信的意義。
+
+想一想：為什麼「點了有換畫面」還不足以判定互動正確？
+
+<details><summary>看參考答案</summary><p>互動被觸發只能證明熱區與觸發有效，仍可能使用錯誤動作或目的地。還要核對畫面標題、說明、期限與返回結果，才能確認所點任務和顯示內容一致。</p></details>
+
+完成條件：
+
+- 從「完成一筆任務」起點可由登入進入待處理清單。
+- 整理交付包與第二筆任務各自通往內容相符的詳情。
+- 兩張詳情都能以明確目的地返回待處理清單。
+- 報名確認練習可打開兩筆不同資料並穩定返回。
 
 ## 本堂查證來源
 
-- [Figma：連線原型](https://help.figma.com/hc/en-us/articles/360040315773-Connect-your-prototype)
-- [Figma：同一觸發的多動作與條件](https://help.figma.com/hc/en-us/articles/15253220891799-Multiple-actions-and-conditionals)
+- [Figma：Connect your prototype](https://help.figma.com/hc/en-us/articles/360040315773-Connect-your-prototype)
 - [Figma：Prototype actions](https://help.figma.com/hc/en-us/articles/360040035874-Prototype-actions)
+- [Figma：Multiple actions and conditionals](https://help.figma.com/hc/en-us/articles/15253220891799-Multiple-actions-and-conditionals)
 
-來源查證：2026-10-09。
+來源查證：2026-11-02。
 <!-- learner-content:end -->
 
 ## 講師授課筆記（不進講義）

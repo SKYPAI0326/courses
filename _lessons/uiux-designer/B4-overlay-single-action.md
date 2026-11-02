@@ -5,9 +5,9 @@ title: 讓確認彈窗能開啟、取消、確認與交換
 course_type: skill-operation
 duration: 7h
 prerequisites: [B3-transition-motion-purpose]
-revision: 2026-10-09
+revision: 2026-11-02
 style_guide: ../../_outlines/uiux-designer.style-guide.md
-platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體另記平台證據
+platform_version: 官方文件 2026-11-02 查證（_review/2026-11-02/platform-*.md）
 ---
 
 ## 內部設計（不進學員頁）
@@ -24,82 +24,176 @@ platform_version: 官方檔案 2026-10-09 查證；實際帳號與桌面軟體�
 
 <!-- learner-content:start -->
 # 讓確認彈窗能開啟、取消、確認與交換
+副標：工作室行政人員準備完成任務時，需要在保留詳情背景的情況下確認選擇，並能安全取消或看見完成結果。
+本堂完成物：確認彈窗的開啟、取消與確認路徑；能交換內容的說明選單；由畫面底部出現的排序面板
 
-本堂把第08堂Dialog變成真正Overlay：詳情留在背景，取消回原畫面，確認看到完成結果。另做一條Menu→Help的Swap分支，實際比較「切整張頁」與「交換彈層」。
+## 把做好的彈窗接回任務詳情
 
-## 開始前，先找到材料與起點
+工作室行政人員已經能進入「整理交付包」詳情並返回清單。現在要把「標記完成」接上確認步驟：彈窗保留詳情背景，取消回到原處，確認後看見完成狀態與成功提示。
 
-前堂已能由List進Detail。第08堂的Overlay / Confirm與Screen / List Done都在同一檔，前者必須是真Frame。缺元件先回第08堂重建；這堂不借用只有圖片的Dialog。
+這一頁會用到先前做好的確認彈窗、完成後清單、成功提示與詳情按鈕。先開啟[本堂起始材料](../../courses/uiux-designer/assets/B4-overlay-single-action/START-HERE.html)，核對這些畫面與圖層；完成互動後，再用[本堂完成檢查表](../../courses/uiux-designer/assets/B4-overlay-single-action/reference/EXPECTED-CHECK.html)分別走過取消、確認與外側關閉。起始材料幫你找到現有容器，檢查表則讓每一條路徑都有清楚結果。
 
-先開啟[本堂起始材料（HTML）](../../courses/uiux-designer/assets/B4-overlay-single-action/START-HERE.html)，讀取輸入與圖層名稱；操作在你的 Figma 檔或本堂指定工具完成。完成後到[本堂完成檢查表（可儲存／下載）](../../courses/uiux-designer/assets/B4-overlay-single-action/reference/EXPECTED-CHECK.html)記錄實際結果。
+本頁還會做兩種 Overlay（彈層）：交換內容的說明選單，以及從清單底部進入的 Bottom sheet（底部面板）。三種例子都讓暫時內容疊在原畫面上。
 
-## Overlay與Navigate的差別
+## Overlay 保留背景，Navigate 換掉整張畫面
 
-Navigate to替換整張畫面；Open overlay把一個Frame疊在原畫面上，背景還在。Close overlay關掉當前彈層。Swap overlay從彈層裡的熱區觸發，會用另一個彈層取代目前彈層，保留原設定；在一般畫面觸發時行為接近Navigate，不能叫做已測Overlay交換。
+這一節先分清楚 Open overlay、Close overlay、Swap overlay 與 Navigate to。選擇哪個 Action，取決於使用者是在原工作上暫時處理一件事，還是要前往另一張完整畫面。
 
-| 熱區 | Action | Destination／結果 |
+例如，行政人員在整理交付包詳情按「標記完成」時，仍需要看得出自己正在處理哪一筆任務。Open overlay 會把確認彈窗疊在詳情上，背景仍可辨認；按取消使用 Close overlay，彈窗消失後回到原詳情；按確認則用 Navigate to 前往完成清單，因為這一步代表任務狀態與主要畫面都已改變。
+
+| Action | 解決的工作情境 | 本頁例子 | 預期結果 |
+|---|---|---|---|
+| Open overlay | 在目前畫面上暫時顯示內容 | 開啟確認彈窗、說明選單、排序面板 | 背景保留，彈層出現在指定位置 |
+| Close overlay | 結束目前彈層 | 取消確認、關閉說明 | 回到開啟彈層前的背景 |
+| Swap overlay | 在原位置換成另一個彈層 | 任務說明換成詳細說明 | 背景與彈層位置保留，內容被替換 |
+| Navigate to | 前往另一張完整畫面 | 確認後到完成清單 | 原畫面換成有完成狀態與成功提示的畫面 |
+
+Swap overlay 必須從已開啟的彈層內觸發，才會在原位置交換另一個彈層；從一般畫面觸發時，效果接近整頁切換。它的返回紀錄規則與整頁 Navigate 不同，因此回到前一個彈層時，再用一個 Swap 明確指定。
+
+Overlay 的位置也是訊息的一部分。確認彈窗用 Centered，小型說明選單用 Top right，排序 Bottom sheet 用 Bottom center。Manual 表示相對於觸發按鈕的偏移；本頁直接使用三個預設位置，讓出現位置對應內容用途。
+
+背景遮罩能把注意力集中到彈窗，同時保留原畫面線索。Close when clicking outside 適合可取消的確認情境；使用者點遮罩即可回到詳情。若操作需要強制做出選擇，設計上就應保留清楚的回應按鈕，並說明關閉規則。
+
+## 示範：完成確認彈窗的三條路徑
+
+這一節把詳情、確認彈窗與完成清單接起來。先依規格表核對名稱與設計值，再逐條建立互動；每完成一條就用 Preview 看結果。
+
+| 類別 | 圖層或設定 | 本堂值 |
 |---|---|---|
-| Detail的Button / Complete | Open overlay | Overlay / Confirm |
-| Confirm的Button / Cancel | Close overlay | 原Detail重新可操作 |
-| Confirm的Button / Confirm | Navigate to | Screen / List Done，包含成功Toast |
-| Menu的「檢視說明」Button | Swap overlay | Overlay / Help |
-| Help的「關閉」Button | Close overlay | 回到開Menu前的背景 |
+| 詳情熱區 | `Button / Complete`（標記完成按鈕） | 完整按鈕外框 |
+| 確認彈窗 | `Overlay / Confirm`（確認彈窗） | W320；Hug 高；圓角 8 |
+| 彈窗內容 | Title、Body、Actions | 垂直排列；Gap 16；Padding 24 |
+| 彈窗位置 | Position | Centered |
+| 背景遮罩 | Overlay background | 黑色；25% |
+| 外側關閉 | Close when clicking outside | 開啟 |
+| 取消熱區 | `Button / Cancel`（取消按鈕） | Close overlay |
+| 確認熱區 | `Button / Confirm`（確認完成按鈕） | Navigate to 完成清單 |
+| 完成畫面 | `Screen / List Done`（完成清單） | 整理交付包已完成；成功提示 |
+| 成功提示 | `Toast / Success`（成功提示） | 「任務已完成」 |
 
-確認主線每個trigger只執行一個動作：Button Confirm使用Navigate切到已完成畫面，成功Toast已經在該畫面裡。這不是「同trigger先Close再Navigate」的付費多動作，也不需要拆成多檔。
+1. 在 Layers 選取詳情中的 `Button / Complete`（標記完成按鈕）外框。做完會看到完整按鈕成為原型熱區。
+2. 切到 Prototype 分頁，將 Trigger 設為 On click。做完會確認點擊啟動這段互動。
+3. 將 Action 設為 Open overlay，Destination 指向 `Overlay / Confirm`（確認彈窗）。做完會看見詳情按鈕連到彈窗 Frame。
+4. 在 Overlay 設定中把 Position 選成 Centered。做完後，彈窗會以畫面中央為基準出現。
+5. 依規格表設定背景遮罩。做完後，詳情仍可辨認，注意力會集中在彈窗內容。
+6. 開啟 Close when clicking outside。做完後，點彈窗外的遮罩區可關閉彈層。
+7. 從「完成一筆任務」流程開啟 Preview，進入整理交付包詳情並按標記完成。做完會在詳情上方看到確認彈窗。
+8. 點擊遮罩，觀察彈窗關閉。做完後，畫面會回到同一筆整理交付包詳情。
+9. 回到編輯畫布，選取 `Button / Cancel`（取消按鈕），設定 On click 與 Close overlay。做完後，取消動作會直接關閉當前彈層。
+10. 再次預覽並按取消。做完後，詳情標題、說明與期限仍保持原內容。
+11. 選取 `Button / Confirm`（確認完成按鈕），設定 On click、Navigate to，目的地選完成清單。做完會看到確認動作前往另一張完整畫面。
+12. 將這條切換保持 Instant。做完後，確認結果會立即出現，便於先核對內容。
+13. 從登入完整操作到確認彈窗，按下確認完成。做完會看見整理交付包已完成，以及「任務已完成」成功提示。
 
-## 示範：保留Detail背景，開啟Confirm
+三條路徑的差別要能用結果說明：外側關閉與取消回原詳情，確認則前往完成清單。每個熱區只執行一個動作；成功提示已放在完成畫面中，因此確認按鈕只需要 Navigate to。
 
-1. 在Layers選擇Detail的Button / Complete外框，Prototype設On click、Open overlay、Destination Overlay / Confirm。Confirm應是第08堂的W320、Hug高Frame，包含Title／Body／Actions。
-2. 在Overlay設定選Centered／置中，背景遮罩可用黑色25%。確認畫面後面的Detail仍辨認得出，但注意力集中Confirm；不要把Dialog底色也設成黑色遮罩。
-3. 開啟Close when clicking outside／點外側關閉，作本例可取消確認的設定。Preview點Complete，Dialog應出現；點遮罩應關閉並回Detail。不可取消的情況才不選這個選項，需有明確理由與回應按鈕。
-4. 回編輯畫布，選Confirm內的Button / Cancel，設On click→Close overlay。Preview再開Dialog點取消，背景Detail應維持原內容，不能切回Login。
-5. 選Confirm內Button / Confirm，設On click→Navigate to→Screen / List Done→Instant。預覽確認後T01應顯示已完成，Toast寫「任務已完成」。T01 Detail內容尚未變是真實原型限制，若需要再次檢視已完成Detail可新增對應Frame，不假裝是資料庫同步。
-6. 從Login完整跑到Confirm，分別試取消、外側關閉、確認三條。每次重新開始，記錄現在在哪個Frame與結果。
+## 跟著做：交換說明，再從底部打開排序
 
-**檢查點：**Dialog出現時背景不是空白；取消只關彈層；外側關閉設定與預覽一致；確認到List Done且有文字結果；同一份檔能完成前後步驟。
+現在把提示減少，完成兩種不同位置的彈層。第一段練習 Swap overlay 的來源條件；第二段建立本頁新增的 Bottom sheet，讓排序選項從清單底部出現。
 
-## 跟著做：在已開啟的Overlay裡Swap
-
-1. 新建Frame `Overlay / Menu`，W280、Vertical、Padding20、Gap12、Hug高，放標題「任務說明」與Button「檢視說明」，命名Button / Help。
-2. 複製為 `Overlay / Help`，改Body「先核對內容與期限，再標記完成。」並加Secondary Button「關閉」，命名Button / Close。保持寬280，測長Body自動增高。
-3. 在Detail新增Secondary Button「說明」，設On click→Open overlay→Overlay / Menu，Position選Top right，或用Manual設在手機內x98、y96（右邊留24）。Menu與置中的Confirm有不同用途與位置。不要在Detail直接Swap到Help跳過已開Menu狀態。
-4. Menu裡的Button / Help設On click→Swap overlay→Overlay / Help。Help裡的Button / Close設Close overlay。每個action的來源與目的地應能在Layers指出。
-5. Preview先開Menu，再點檢視說明。你應看到Menu被Help取代、背景仍Detail、位置沿用。再關閉Help應回Detail，而不是回Menu。
-6. 若想讓Help回Menu，用Help內「返回選單」Button設Swap overlay→Menu；不要用Back猜彈層歷史，Swap不會像整頁Navigate一樣加入同樣歷史。
-
-## 修復與回歸
-
-| 現象 | 先檢查 | 回修後測什麼 |
+| 類別 | 名稱或設定 | 本堂值 |
 |---|---|---|
-| Confirm看起來像切頁、背景消失 | Complete的Action | 改Open overlay，確認背景仍Detail |
-| 取消跳到List或Login | Cancel的Action | 改Close overlay，不設定Destination |
-| 外側點了沒關 | Overlay設定／熱區範圍 | 開啟外側關閉；點超出Dialog尺寸的遮罩 |
-| Swap像Navigate | 觸發來自一般Frame | 先Open Menu，再由Menu的Button觸發Swap |
-| Swap後位置意外改變 | 對Overlay設定的理解 | 新彈層沿用原位置；調整初始Menu設定 |
-| 確認沒有結果 | Confirm Destination／List Done內容 | 指到已完成畫面，檢查T01狀態與Toast |
+| 選單 | `Overlay / Menu`（任務說明選單） | W280；Vertical；Padding 20；Gap 12；Hug 高 |
+| 說明 | `Overlay / Help`（詳細說明） | W280；Hug 高 |
+| 選單位置 | Position | Top right |
+| 選單交換 | Action | Swap overlay |
+| 排序面板 | `Overlay / Sort`（排序底部面板） | W402；Hug 高；圓角 8 |
+| 排序內容 | 標題與選項 | 排序方式；期限最近、期限最晚 |
+| 面板位置 | Position | Bottom center |
+| 面板動畫 | Animation | Move in；由下而上 |
 
-儲存主線與Swap分支；下一堂在List加入長內容及固定導航，再由第14堂整合測試。
+1. 建立 `Overlay / Menu`（任務說明選單），加入「任務說明」標題與「檢視說明」按鈕。完成後，選單會依內容維持自動高度。
+2. 複製選單為 `Overlay / Help`（詳細說明），把內文改為「先核對內容與期限，再標記完成。」完成後，較長文字會推高彈層。
+3. 在詳細說明加入「關閉」按鈕。完成後，彈層有明確的結束動作。
+4. 在詳情新增「說明」按鈕，設定 Open overlay 到任務說明選單。完成後，按鈕會先開啟第一個彈層。
+5. 將選單 Position 設為 Top right。完成後，選單會出現在詳情右上區域。
+6. 在任務說明選單內，把「檢視說明」設定為 Swap overlay 到詳細說明。完成後，交換動作的來源位於已開啟彈層內。
+7. 將詳細說明的關閉按鈕設定為 Close overlay。完成後，關閉會回到原本的任務詳情。
+8. 在 Preview 依序開啟選單、交換成詳細說明、關閉彈層。完成後，背景始終是整理交付包詳情，兩個彈層位置維持一致。
+9. 回到待處理清單，建立一個「排序」按鈕。完成後，清單有明確入口可叫出排序選項。
+10. 建立 `Overlay / Sort`（排序底部面板），加入「排序方式」標題與兩個選項。完成後，面板內容能清楚說明選擇用途。
+11. 將排序按鈕設定為 Open overlay 到排序底部面板。完成後，按鈕與面板之間會出現原型連線。
+12. 將面板 Position 設為 Bottom center。完成後，面板會貼齊預覽畫面的底部中央。
+13. 將 Animation 設為 Move in，方向選由下而上。方向箭頭的樣子以畫面為準，用 Preview 確認面板從底部進入。
+14. 為面板加入 Close when clicking outside，並讓每個排序選項有清楚的選取狀態。完成後，使用者可以選擇排序，也能點外側回到清單。
+15. 在 Preview 開啟排序面板，觀察清單背景、面板位置與進入方向。完成後，能用「暫時調整清單顯示方式」說明為何使用 Bottom sheet。
 
-## 自己完成：改變條件再檢查
+確認彈窗放在中央；任務說明靠近右上入口；排序面板由底部進入。三者都保留原畫面，位置則回應內容用途。
 
-複製Confirm為「取消編輯」情境：Title「放棄這次修改？」、Body「尚未儲存的內容會保留在此測試畫面。」取消保留Detail，另一動作回List。自己決定外側是否可關閉，並說明。另把Help說明加長兩倍，驗證Swap位置維持與內容不裁切。交出主線三條結果、Swap完整兩步及選擇理由。
+## 看兩種確認流程，判斷哪一種讓人知道自己在哪裡
 
-## 完成條件與理解檢查
+版本一按「標記完成」後，用 Navigate to 前往一張只有白色彈窗的完整畫面。按取消又 Navigate 回清單，原本的整理交付包詳情消失；按確認則到完成清單。使用者在彈窗出現時看不出正在處理哪一筆任務。
 
-- Open／Cancel／outside／Confirm四種結果都在Preview實際檢查，目的地與表格一致。
-- 從已開啟Menu內Swap到Help，關閉後回Detail，沒有把普通Navigate稱為Swap測試。
-- 結果畫面有T01已完成與Toast，流程在同一份Figma檔，所有元件可重開。
+版本二用 Open overlay 把確認彈窗放在整理交付包詳情上，背景遮罩降低干擾但仍看得到任務。取消與點擊外側都關閉彈層，確認才 Navigate 到完成清單。請判斷哪一版較符合確認情境，並從背景、取消結果與確認結果說明。
 
-**想一想：**從Detail的普通Button直接Swap到Help，為什麼不足以證明「彈層交換」？
+<details><summary>看完自己的判斷再展開</summary><p>版本二較符合。確認是原任務上的暫時決定，保留詳情背景能維持脈絡；取消與外側關閉都回到同一筆詳情，確認後才前往有完成狀態與成功提示的完整畫面。版本一把暫時內容做成整頁，取消又回錯層級。</p></details>
 
-<details><summary>展開參考答案與理由</summary><p>當來源不是已開啟的Overlay，Swap行為接近Navigate。要先開啟Menu，再從Menu內部熱區Swap到Help，才能驗證替換彈層並保留背景及位置。</p></details>
+再比較排序面板。版本一從畫面中央淡入一張窄小卡片，標題只寫「選擇」；版本二從底部向上進入，標題寫「排序方式」，選項是「期限最近」與「期限最晚」，背景仍是待處理清單。哪一版更容易讓人理解這是調整清單排序，而非離開清單？
+
+<details><summary>看參考理由</summary><p>版本二較清楚。底部進入與 Bottom center 位置符合底部面板的空間關係，標題與選項直接說明用途，保留的清單背景也讓人知道選擇會作用在目前清單。</p></details>
+
+## 卡住時，先看 Action 的來源與結果
+
+這一節將常見問題對回 Action、位置與內容。先找出是哪個熱區觸發，再看它目前位於一般畫面或已開啟彈層，通常就能判斷應使用 Open、Close、Swap 或 Navigate。
+
+| 看到的現象 | 通常的原因 | 怎麼修 |
+|---|---|---|
+| 確認彈窗出現時背景消失 | 完成按鈕使用 Navigate to | 改為 Open overlay，目的地選確認彈窗 |
+| 按取消後回到登入或清單 | 取消按鈕設定了頁面目的地 | 改用 Close overlay，讓原詳情重新可操作 |
+| 點彈窗外側沒有關閉 | 外側關閉尚未開啟，或點在彈窗範圍內 | 開啟 Close when clicking outside，再點遮罩區測試 |
+| Swap 看起來像整頁切換 | 交換動作從一般畫面觸發 | 先 Open 任務說明選單，再從選單內觸發 Swap |
+| 交換後彈層位置改變 | 初始彈層的位置設定不合用途 | 回到任務說明選單，把 Position 設為 Top right |
+| 排序面板從錯誤方向進入 | Move in 方向選反 | 在 Preview 觀察起點，再改為由下而上 |
+
+## 換你做：報名確認 App
+
+活動主辦單位的行政人員要確認一筆報名，也要在需要時查看聯絡方式。請把報名 App 的確認彈窗做成三條清楚路徑，並新增一個聯絡方式 Bottom sheet。資料仍以[報名資料](../../courses/uiux-designer/assets/shared/SIGNUP-DATA.csv)為準。
+
+要達成的條件：
+
+- 從一筆報名詳情開啟確認彈窗，背景保留該筆姓名與備註。
+- 取消後回到原報名詳情，資料保持原狀。
+- 確認後前往已確認結果畫面，狀態文字清楚改變。
+- 點擊彈窗外側有一個事先決定且能說明理由的結果。
+- 從報名詳情開啟「聯絡方式」底部面板。
+- 底部面板包含電話、Email 與取消三個選項。
+- 面板位於畫面底部，進入方向與位置一致。
+- 每個熱區只執行一個動作。
+
+合格的結果要能通過以下自我檢查：
+
+- 開啟確認彈窗時，仍能辨認正在處理哪一筆報名。
+- 取消、確認與外側點擊三條路徑各有明確結果。
+- 確認後不只換顏色，畫面文字也寫出「已確認」。
+- 聯絡方式面板從底部進入，背景仍是原報名詳情。
+- 電話與 Email 是可辨認的兩種聯絡選擇，取消能回到原詳情。
+- 從流程起點重跑時，確認彈窗與聯絡方式面板不會互相遮蔽或留在畫面上。
+
+<details><summary>真的卡住再看：提示</summary><p>先分別寫下三個熱區的預期結果，再判斷是暫時疊在原畫面、關閉目前彈層，還是前往新的完整畫面；底部面板則先檢查 Position 與進入方向。</p></details>
+
+## 讓暫時決定有清楚的來處與去向
+
+你已經把整理交付包的確認彈窗接成三條可觀察路徑：外側關閉與取消回到原詳情，確認前往有完成狀態與成功提示的清單。你也完成了從已開啟選單交換說明，以及由底部進入的排序面板；三種彈層都保留原工作脈絡，只在完成主要決定時切換完整畫面。
+
+下一頁會把待處理清單加長，讓內容在固定高度內垂直捲動，並處理固定頁首、底部導覽與漂浮按鈕。這一頁建立的排序面板會繼續依附在清單上，因此清單捲動時，開啟面板仍要從畫面底部出現，而不是跟著某一列跑走。
+
+想一想：為什麼確認彈窗的取消適合 Close overlay，而確認完成適合 Navigate to？
+
+<details><summary>看參考答案</summary><p>取消代表放棄暫時決定，原本的詳情與資料都應保留，所以關閉目前彈層即可；確認完成代表任務狀態與主要內容已改變，前往有完成狀態與成功提示的完整畫面更能交代結果。</p></details>
+
+完成條件：
+
+- 整理交付包的確認彈窗可開啟、取消、外側關閉與確認完成。
+- 任務說明從已開啟選單交換到詳細說明，關閉後回到原詳情。
+- 排序 Bottom sheet 由清單底部進入，位置與用途一致。
+- 報名確認練習完成三條確認路徑與聯絡方式底部面板。
 
 ## 本堂查證來源
 
-- [Figma：建立Overlay與Swap](https://help.figma.com/hc/en-us/articles/360039818254-Create-Overlays-in-your-Prototypes)
+- [Figma：Create overlays in your prototypes](https://help.figma.com/hc/en-us/articles/360039818254-Create-Overlays-in-your-Prototypes)
 - [Figma：Prototype actions](https://help.figma.com/hc/en-us/articles/360040035874-Prototype-actions)
 
-來源查證：2026-10-09。
+來源查證：2026-11-02。
 <!-- learner-content:end -->
 
 ## 講師授課筆記（不進講義）

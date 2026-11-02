@@ -4,7 +4,7 @@ name: 介面元素與設計 × UI/UX 原型製作與資料打包
 audience: 零設計與程式基礎，能使用瀏覽器與下載檔案的成人學員
 duration: 99h
 course_type: skill-operation
-revision: 2026-10-09
+revision: 2026-11-02
 governing_matrix: courses/uiux-designer/_design/99h-coverage-matrix.md
 time_ledger: courses/uiux-designer/_design/99h-time-ledger.md
 blueprint: courses/uiux-designer/_design/COURSE-BLUEPRINT.md
@@ -29,12 +29,16 @@ status: REPAIRED_CONTENT_PENDING_PLATFORM_AND_HUMAN
 | A8 | 設計能讓人知道下一步的回饋、彈窗與導覽 | 依情境選擇回饋，建立能包子層的Dialog與Actions，設計Nav選中規則 |
 | B1 | 把需求畫成線框，再組成可測試的流程 | 從任務規劃低細節線框，對映到真實元件與一致命名，指定Prototype入口 |
 | B2 | 連好登入、清單、詳情與返回 | 建立同檔多步基本Flow，檢查熱區、目的地與返回，分辨方案限制及故障 |
-| B3 | 用轉場說明方向，再做出可觀察的Smart Animate | 依用途選轉場與引數，製作同名同層級的前後狀態並診斷Smart Animate配對 |
+| B3 | 用轉場說明畫面去向，再做一段 Smart Animate | 依用途選轉場與引數，製作同名同層級的前後狀態並診斷Smart Animate配對 |
 | B4 | 讓確認彈窗能開啟、取消、確認與交換 | 完整Overlay開關／確認、可取消規則與在已開彈層內Swap的實際路徑 |
 | B5 | 讓長清單能捲動，導覽與漂浮按鈕不擋內容 | 建立視窗／長內容關係，實測Vertical、Fixed、Sticky及遮擋，在完整Flow使用長列表 |
-| B6 | 讓別人跑完整任務，修正後再測一次 | 用整段任務測內容、導航、Overlay、Scroll及Swap，記錄失敗並回歸，完成新情境capstone |
+| B6 | 用任務測試找出問題，修正後再測一次 | 以任務卡、隔開再測與走查清單單人完成測試，記錄問題、修正並回歸；測試與修正一路做出的報名確認App |
 | B7 | 把設計整理成能重開、能量測的交付包 | 免費Design量測／Figma輸出、真實PSD操作與透明PNG，以及可重開的完整handoff |
 | B8 | 把設計做成網站，留下版本與公開網址 | 從完整可執行程式理解與修改網站，實作獨立Git基準／差異／遠端與公開部署更新 |
+
+## 2026-11-02 改寫
+
+依 `_規範/講義改寫SOP.md` 重寫16頁學員正文（`courses/uiux-designer/_review/2026-11-02/`）：每頁統一骨架、規格值集中規格表、跨頁以內容稱呼；介面名稱依2026-11-02官方文件裁定；新增「練習線」——每堂以 `assets/shared/SIGNUP-DATA.csv` 做報名確認App（360×800），B6整合作品即測試與修正該App；補課綱缺口（輸入框變體、警告／錯誤提示、Bottom sheet、工具分工）；全課單人可完成。
 
 ## 學習與環境邊界
 
