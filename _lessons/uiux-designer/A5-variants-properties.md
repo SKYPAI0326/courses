@@ -180,6 +180,7 @@ Hover 與 Pressed 是短暫回饋。Hover 適合桌面上的滑鼠游標，手�
 
 - 這次做的畫面在你的畫面清單上；清單沒有的，先補進清單並寫一句理由。
 - 狀態標籤的 Variant 值完全照題目資料，文字與顏色一起傳達狀態。
+- 狀態標籤要用複製並換綁的方式做成題目自己的元件；做法同元件那一堂。
 - 主要確認按鈕具有 Default、Hover、Pressed、Focus、Disabled 五種 State。
 - Pressed 使用較深的主色，Hover 有可看見但不改變尺寸的回饋。
 - 按鈕右側可以直接開關 `Show icon`，也能從 `Icon` 下拉交換圖示。

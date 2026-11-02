@@ -184,6 +184,7 @@ Fill 適合固定比例的小縮圖，因為畫面整齊比看見每一個邊角
 - 這次做的畫面在你的畫面清單上；清單沒有的，先補進清單並寫一句理由。
 - 依[預約需求](../../courses/uiux-designer/assets/shared/practice/BOOKING-BRIEF.html)、[點餐需求](../../courses/uiux-designer/assets/shared/practice/ORDER-BRIEF.html)或[會員需求](../../courses/uiux-designer/assets/shared/practice/MEMBER-BRIEF.html)使用對應的十二筆資料。
 - 把題目的清單卡片做成元件，為會改變的名稱、次要資料與狀態建立合適屬性。
+- 清單卡片或狀態標籤若沿用主線元件，要用複製並換綁的方式做成題目自己的元件；做法同元件那一堂。
 - 先完成一個卡片使用處，再複製成十二筆並改文字；這會比逐列重做更快，也能保留相同結構。
 - 每張卡片呈現題目指定的名稱、資料欄位與狀態，並加入合適的圖示或圖片。
 - 外層清單能在新增、刪除或重新排序時自動重排。

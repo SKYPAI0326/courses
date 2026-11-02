@@ -83,3 +83,12 @@ A1（建立檔案、左側圖示列、文字樣式）、A2（Layout guide 位置
 | 底部工具列 | Draw、Design、Motion（Beta）、Dev Mode；Code（B）等其他圖示本課不用 |
 
 決定：流程圖畫在同一個設計檔（Section＋矩形＋Arrow），不另開 FigJam，避免占用 Starter 的 3 個檔案額度。給工程師的標註用自製「Note」元件＋量測截圖。
+
+## 第四、七輪補測（2026-11-02 晚，示範檔）
+
+| 項目 | 實際結果 |
+|---|---|
+| Text property 綁到不同 Variant | 同一個 Text property 綁到 Variant2 的文字層後，Variant2 原本的「錯誤句」被換成屬性預設值「登入」。錯誤句要在使用處的屬性欄輸入 |
+| Selection colors 換綁 | 選元件集，Selection colors 列出變數名（綁了變數）與色碼（沒綁）；點變數色塊 → Libraries → 選另一變數，整個元件集一次換綁 |
+| 複製元件集 | 選取**整個元件集**按 Cmd+D，得到新的元件集（圖層圖示仍是元件集、含 2 Variants 與原屬性）；單一主元件按 Cmd+D 才會得到使用處（第一輪已記） |
+| 外部剪貼簿 | 由瀏覽器擴充送出的 Cmd+C／Cmd+V 不會經過 Figma 剪貼簿（貼上了系統剪貼簿文字，已復原）；講義教學以 Cmd+D 為準 |

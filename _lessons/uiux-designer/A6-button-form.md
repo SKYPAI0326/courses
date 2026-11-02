@@ -208,7 +208,8 @@ Focus 代表目前輸入位置，Error 代表內容需要修正，兩者可能�
 - 這次做的畫面在你的畫面清單上；清單沒有的，先補進清單並寫一句理由。
 - 所有固定 Label 放在欄位上方，必填項目加上「＊」，表單開頭放「標＊為必填」。
 - 依題目需求選用文字欄、Radio、Checkbox、Select 或 Toggle，選項文字完全照需求頁。
-- 文字欄沿用同一個 `Field`，並以 Label、Value、Helper 三個 Text property 改內容。
+- 把主線的 `Field`、`Checkbox`、`Toggle`、`Select` 與 `Field / Multiline` 複製到題目區；若已做 `Radio Group`，也一起複製。再用元件那一堂的方法，把 `Studio` 變數換綁成題目集合裡的同名變數。
+- 題目畫面寬 360，左右內距各 24；欄位在畫面裡設為 Fill container，完成後欄寬為 312。
 - 建立 Checkbox 與 Radio 元件集，兩種狀態都保有相同文字位置與觸控範圍。
 - 做出一張具體錯誤畫面，Helper 說明原因與修正方向。
 - 預約題的日期時段使用看起來像 Select 的欄位並顯示已選時段；整頁的選擇時段畫面留到連接原型那一堂再做，這次只完成靜態表單。

@@ -133,6 +133,18 @@ Override（覆寫）是使用處自己的差異。例如詳情畫面的按鈕把
 
 Section 不會改變元件同步關係。移動主元件後，既有使用處仍連到同一來源；若使用處失去連結，應檢查自己是否搬動了普通 Frame，而非真正的主元件。
 
+## 把主線元件複製給自己的題目
+
+主線按鈕整理好之後，這一節要把同一套結構帶到自己的題目，再把顏色來源換成題目集合。這樣主線改顏色不會影響題目，題目也不必從頭做元件。
+
+1. 在 Layers 選取主線按鈕的**整個元件集**（圖層名 `Button`，選外層的元件集本身），按 **Cmd／Ctrl+D**；完成後會多出一個新的元件集，把它拖到 `Components / 你的題目` 區。只選單一主元件按 Cmd／Ctrl+D 得到的是使用處，所以一定要選整個元件集。
+2. 把貼上的新元件集改名，例如將 `Button` 改成 `Booking / Button`；完成後，題目元件會和主線來源分開命名。
+3. 選取新的元件集，在右側 **Selection colors** 點一個 `Studio` 變數色塊，進入 **Libraries**，再選題目集合裡的同名變數；完成後，元件集裡使用這個顏色的地方會一起換綁。
+
+![選取元件集後，Selection colors 列出用到的變數；點色塊在 Libraries 換成題目的變數（紅框）](../../courses/uiux-designer/assets/shared/ui/figma-selection-colors-swap.webp)
+
+4. 逐一換完後，再看一次 **Selection colors**；清單裡不應再出現 `Studio` 的變數或裸色碼。
+
 ## 把圖示做成元件，再放進按鈕
 
 文字已經能在使用處改寫，圖示也可以採相同方法管理。先開啟[練習用圖示包](../../courses/uiux-designer/assets/shared/icons/README.html)，確認檔名與用途；這次一次建立勾選、加號、返回、時間、警告與向右箭頭六個 SVG。SVG 拖進 Figma 後仍是向量；次要按鈕與一般畫面上的圖示沿用 `Text`，放進 Primary 按鈕的圖示則改用白色 `Card`，確保深綠底上的線條清楚可見。
