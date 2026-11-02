@@ -41,7 +41,7 @@ Git 安裝、GitHub 帳號、Email 驗證與 commit Email 已移到[課前準備
 git --version
 ```
 
-下載包已經能執行，讓你先讀懂網站再修改。解壓後會看到 `index.html`、`styles.css`、`app.js`、`README.md`、`my-screen.html` 與 `assets` 資料夾；先用瀏覽器開啟 `index.html`，走過登入、詳情、取消、確認與已完成清單。重新整理會恢復預設資料，因為狀態只留在當次頁面記憶體裡。確認流程後，以 VS Code 的 File → Open Folder 開啟專案，再從 Terminal → New Terminal 開啟終端機。
+下載包已經能執行，讓你先讀懂網站再修改。解壓後會看到 `index.html`、`styles.css`、`app.js`、`README.md`、`my-screen.html` 與 `assets` 資料夾；在 Finder（或檔案總管）雙擊 `index.html` 用瀏覽器開啟，走過登入、詳情、取消、確認與已完成清單。改完檔案並儲存後，回到瀏覽器按重新整理查看結果。重新整理也會恢復預設資料，因為狀態只留在當次頁面記憶體裡。確認流程後，以 VS Code 的 File → Open Folder 開啟專案，再從 Terminal → New Terminal 開啟終端機。
 
 ## 先分清楚內容、外觀、行為、版本與發布
 
@@ -49,9 +49,10 @@ git --version
 
 | 你想改的事情 | 主要位置 | 它負責什麼 | 改完先看哪裡 |
 |---|---|---|---|
-| 頁面標題、按鈕文字、登入與彈窗結構 | `index.html` | 決定頁面有哪些內容，以及內容之間的結構 | 瀏覽器畫面是否出現正確文字與區塊 |
+| 頁面標題、登入與彈窗結構、固定按鈕文字 | `index.html` | 決定頁面有哪些內容，以及內容之間的結構 | 瀏覽器畫面是否出現正確文字與區塊 |
 | 主要色、間距、字級、手機排列 | `styles.css` | 決定相同內容看起來如何，以及窄畫面怎麼重新排列 | 按鈕、導覽、卡片與手機寬度 |
 | 任務資料、畫面切換、確認與清單更新 | `app.js` | 決定資料是什麼，以及按下控制項後發生什麼事 | 登入、詳情、取消、確認與已完成清單 |
+| 清單標題、狀態字（待處理／已完成）、「期限：」、按鈕切換文字、完成提示（Toast） | `app.js` | 畫面上的這些動態文字由程式依狀態寫入；改用詞時要到 `app.js` 找 | 只改 `index.html` 時這些文字不會變，應回到 `app.js` 核對 |
 | 修改說明與操作範圍 | `README.md` | 告訴接手者如何開啟、怎麼測、有哪些簡化 | 檔案說明是否和實際成品一致 |
 | 每次可回看的修改節點 | Git commit | 保存某一個清楚目的的檔案狀態 | `git log` 與該次差異 |
 | 遠端檔案與公開網站 | GitHub 與 GitHub Pages | 保存推送上去的版本，並從指定分支發布靜態網站 | repo 檔案、Actions 與 Pages 網址 |
@@ -107,7 +108,7 @@ git config user.email "你的 noreply 地址"
 git status
 ```
 
-6. 用明確檔名加入原始專案。完成後，`git status` 與暫存差異會列出即將提交的內容。
+6. 用明確檔名加入原始專案。完成後，`git status` 與暫存差異會列出即將提交的內容。第一次執行 `git diff --cached` 時，若畫面停在 `:` 或 `(END)`，按 `q` 離開並回到命令列。
 
 ```bash
 git add index.html styles.css app.js README.md my-screen.html assets/status-badge.png
@@ -123,9 +124,8 @@ git log --oneline
 git status
 ```
 
-8. 分頁底部出現 `:` 或 `(END)` 時按 `q`。完成後，終端機會回到命令列。
-9. 把頁首改成自己的工作室名稱。完成後，瀏覽器只更新標題。
-10. 檢查並提交標題差異。完成後，版本只包含 `index.html` 的文字修改。
+8. 把頁首改成自己的工作室名稱。完成後，瀏覽器只更新標題。
+9. 檢查並提交標題差異。完成後，版本只包含 `index.html` 的文字修改。
 
 ```bash
 git diff -- index.html
@@ -134,8 +134,8 @@ git diff --cached -- index.html
 git commit -m "Update studio heading"
 ```
 
-11. 把 `--primary` 換成已確認的主要色。完成後，主要按鈕與導覽會同步換色。
-12. 檢查並提交樣式差異。完成後，版本只包含主要色修改。
+10. 把 `--primary` 換成指定練習色 `#1F6F5B`。完成後，主要按鈕與導覽會同步換色。
+11. 檢查並提交樣式差異。完成後，版本只包含指定練習色修改。
 
 ```bash
 git diff -- styles.css
@@ -144,8 +144,8 @@ git diff --cached -- styles.css
 git commit -m "Update primary color"
 ```
 
-13. 把長任務改成「核對本週活動報名名單並補齊聯絡電話與到場時間」。完成後，清單與詳情顯示同一筆長內容。
-14. 在窄畫面檢查後提交 `app.js`。完成後，版本只包含資料修改。
+12. 在 `app.js` 任務陣列的第二筆找到 `T02`，把這筆長任務改成「核對本週活動報名名單並補齊聯絡電話與到場時間」。完成後，清單與詳情顯示同一筆長內容。
+13. 在窄畫面檢查後提交 `app.js`。完成後，版本只包含資料修改。
 
 ```bash
 git diff -- app.js
@@ -154,12 +154,12 @@ git diff --cached -- app.js
 git commit -m "Update long task content"
 ```
 
-15. 執行 `git log --oneline`。完成後，資料、色彩、標題與基準各有一筆紀錄。
-16. 從 GitHub 右上「+」選 **New repository**，Repository name 填 `studio-tasks-web`，visibility 維持 **Public**；Add README 保持 Off，.gitignore 顯示 No .gitignore，license 顯示 No license，再按 **Create repository**。完成後，會得到空白 repo 網址。
+14. 執行 `git log --oneline`。完成後，資料、色彩、標題與基準各有一筆紀錄。
+15. 從 GitHub 右上「+」選 **New repository**，Repository name 填 `studio-tasks-web`，visibility 維持 **Public**；Add README 保持 Off，.gitignore 顯示 No .gitignore，license 顯示 No license，再按 **Create repository**。完成後，會得到空白 repo 網址。
 
 ![New repository：Repository name、Public、Add README 保持 Off（紅框）](../../courses/uiux-designer/assets/shared/ui/github-new-repository.webp)
 
-17. 加入遠端並推送 `main`。完成後，repo 會顯示檔案與版本紀錄。
+16. 加入遠端並推送 `main`。完成後，repo 會顯示檔案與版本紀錄。
 
 ```bash
 git remote add origin https://github.com/USERNAME/studio-tasks-web.git
@@ -167,8 +167,8 @@ git remote -v
 git push -u origin main
 ```
 
-18. Windows 依首次推送的瀏覽器畫面完成授權。完成後，repo 會收到檔案。
-19. Mac 到 GitHub 頭像 → Settings → Developer settings → Personal access tokens → Fine-grained tokens，按 Generate new token：Token name 自訂，Repository access 選 **Only select repositories** 並選 `studio-tasks-web`，Permissions 按 **Add permissions** 加入 **Contents**，設為 Read and write，最後按 Generate token 並複製。推送時填帳號並把 token 貼到 Password；完成後會顯示推送結果。
+17. Windows 依首次推送的瀏覽器畫面完成授權。完成後，repo 會收到檔案。
+18. Mac 到 GitHub 頭像 → Settings → Developer settings → Personal access tokens → Fine-grained tokens，按 Generate new token：Token name 自訂，Repository access 選 **Only select repositories** 並選 `studio-tasks-web`，在 **Repository permissions** 那一組按 **Add permissions** → **Contents** → **Read and write**；截圖裡的 **Account permissions** 不用調整。最後按 Generate token 並複製。推送時填帳號並把 token 貼到 Password；完成後會顯示推送結果。
 
 ![Fine-grained tokens 頁：先填 Token name（紅框）](../../courses/uiux-designer/assets/shared/ui/github-token-new.webp)
 
@@ -176,15 +176,15 @@ git push -u origin main
 
 ![Repository access 選 Only select repositories，Permissions 按 Add permissions 加入 Contents（紅框）](../../courses/uiux-designer/assets/shared/ui/github-token-access.webp)
 
-20. Windows 若未出現瀏覽器登入，也使用 fine-grained token。完成後，repo 會收到檔案。
-21. 在 repo 開啟 Settings → Pages；窄視窗可從「…」找到 Settings。完成後會出現 Build and deployment。
-22. 選 Deploy from a branch、`main` 與 `/(root)`，再按 Save。完成後會開始部署。
+19. Windows 若未出現瀏覽器登入，也使用 fine-grained token。完成後，repo 會收到檔案。
+20. 在 repo 開啟 Settings → Pages；窄視窗可從「…」找到 Settings。完成後會出現 Build and deployment。要先把程式 push 上去，Branch 才會出現 `main` 可選。
+21. 選 Deploy from a branch、`main` 與 `/(root)`，再按 Save。完成後會開始部署。
 
-![repo 的 Settings → Pages：Source 選 Deploy from a branch，Branch 選 main 與 /(root)，上線後出現 Visit site（紅框）](../../courses/uiux-designer/assets/shared/ui/github-pages-settings.webp)
+![repo 的 Settings → Pages：Source 選 Deploy from a branch，Branch 選 main 與 /(root)；圖中是已經上線的畫面，第一次設定時 Save 會是可按的（紅框）](../../courses/uiux-designer/assets/shared/ui/github-pages-settings.webp)
 
-23. 到 Actions 查看進度並預留約十分鐘。完成後，Pages 會顯示網址與 Visit site。
-24. 開啟 Pages 顯示的網址。完成後，線上網站可以走完主要流程。
-25. 修改 README 的作品名稱，提交並推送。完成後，Actions 會再次部署。
+22. 到 Actions 查看進度並預留約十分鐘。完成後，Pages 會顯示網址與 Visit site。
+23. 開啟 Pages 顯示的網址。完成後，線上網站可以走完主要流程。
+24. 修改 README 的作品名稱，提交並推送。完成後，Actions 會再次部署。
 
 ```bash
 git add README.md
@@ -192,7 +192,7 @@ git commit -m "Clarify project title"
 git push
 ```
 
-26. 等部署完成後比對公開網站與最新提交。完成後，整條更新路徑已接通。
+25. 等部署完成後比對公開網站與最新提交。完成後，整條更新路徑已接通。
 
 ## 跟著做：用較少提示重走一輪版本流程
 
@@ -226,7 +226,7 @@ git push
 3. 把瀏覽器視窗慢慢拉窄；寬度跨過斷點時，卡片會從左右排列改成上下排列。
 4. 繼續縮窄並打開長任務；標題會自然換行，按鈕會維持完整寬度。
 5. 再把視窗拉寬；卡片會回到左右排列，資料與完成狀態保持相同。
-6. 開啟瀏覽器開發工具的手機預覽，選一個接近自己設計稿的寬度；主要流程仍可從登入走到完成清單。
+6. 在 Chrome 按 Cmd+Option+I（Windows 為 F12）打開開發工具，點左上角手機圖示，再到上方寬度欄輸入 360；主要流程仍可從登入走到完成清單。
 
 斷點代表版面何時需要改變，選擇依內容是否擁擠，不等於某一款手機型號。這個下載包在 560 像素以下切換排列；若自己的長品名在更寬時已經擠壓按鈕，就要從實際內容觀察是否需要調整規則，並把理由寫進 README。
 
@@ -288,7 +288,7 @@ for (let n = 4; n <= 15; n += 1) {
 }
 ```
 
-4. 從自己的題目 CSV 選三筆資料，把三張卡片的名稱、說明、狀態與按鈕文字換掉。無法選取的那筆要在按鈕加上 `disabled`，讓畫面外觀與實際操作一致。
+4. 從自己的題目 CSV 挑三筆資料，其中一筆是目前無法選用的狀態。預約題可選本週額滿的 `S05` 或 `S07`；點餐題選售完品項；會員題選點數不足或已兌完的品項。把三張卡片的名稱、說明、狀態與按鈕文字換掉，再為這一筆按鈕加上 `disabled`，讓畫面外觀與實際操作一致。
 
 ```html
 <article class="card">
@@ -317,15 +317,15 @@ git push
 
 | 預約 | 點餐 | 會員 |
 |---|---|---|
-| 使用 `BOOKING-DATA.csv` 的前三筆服務：清單顯示服務名，第二行可放所需時間與價格；完成用詞改成預約情境 | 使用 `ORDER-DATA.csv` 的前三筆品項：清單顯示品名，第二行可放價格與說明；完成用詞改成訂單情境 | 使用 `MEMBER-DATA.csv` 的前三筆兌換品：清單顯示品名，第二行可放所需點數與狀態；完成用詞改成兌換情境 |
+| 從 `BOOKING-DATA.csv` 挑三筆服務，包含長名稱 `S06`，並加入本週額滿的 `S05` 或 `S07`；清單顯示服務名，第二行可放所需時間與價格 | 從 `ORDER-DATA.csv` 挑三筆品項，包含一筆長名稱與一筆售完品項；清單顯示品名，第二行可放價格與說明 | 從 `MEMBER-DATA.csv` 挑三筆兌換品，包含一筆長名稱與一筆點數不足或已兌完的品項；清單顯示品名，第二行可放所需點數與狀態 |
 
 要達成的條件：
 
 - 把標題、登入、清單、詳情、彈窗與完成提示改成同一題目的用詞。
-- 把 `app.js` 開頭陣列換成題目 CSV 的前三筆，選擇能在清單與詳情中辨識用途的欄位。
+- 把 `app.js` 開頭陣列換成題目 CSV 的三筆資料，其中一筆使用長名稱，一筆使用不能選的狀態；預約題的長名稱使用 `S06`，這樣才能測長名稱換行。選擇能在清單與詳情中辨識用途的欄位。
 - 讓主要流程只依賴這三筆資料；需要長清單測試時，再使用選做迴圈並在 README 說明資料來源。
 - 把 `assets/status-badge.png` 換成自己從交付包匯出的透明 PNG。
-- 把 `--primary` 換成自己檢查過對比的主要色。
+- 示範的指定練習色完成後，把 `--primary` 換成自己題目檢查過對比的主要色，並單獨提交這項修改。
 - 資料與用詞、透明徽章、主要色各自形成一筆 commit；每次提交前先看差異。
 - 把瀏覽器拉到手機寬度，確認長名稱或說明換行後，卡片按鈕仍保持完整寬度。
 - 完成 `my-screen.html`：套用自己從 Figma 讀出的顏色、間距與圓角，放入題目 CSV 的三筆資料，為無法選取的項目加上 `disabled`，並排比對後至少修正一處不一致。
@@ -334,13 +334,14 @@ git push
 合格的結果要能通過這些自我檢查：
 
 - 公開網址能走完登入、清單、詳情、取消與確認，三筆資料在清單與詳情對得上。
+- `index.html` 的 `<title>` 已改成題目名稱，瀏覽器分頁顯示相同名稱。
 - 360～430 寬度下，長名稱會自然換行，按鈕與底部導覽仍可使用。
 - 完成後的狀態、提示與徽章使用同一題目的語氣，README 說明重新整理後的資料行為。
 - 清單中沒有混入工作室任務；若使用選做迴圈，自動資料的命名與題目一致。
 - 版本紀錄分得出資料與用詞、徽章與主要色，Actions 與 Pages 也對應最新版本。
 - 公開網址加上 `/my-screen.html` 後能開啟自己的清單畫面，三筆資料、無法選取的狀態與修正後的版面都和設計決定一致。
 
-<details><summary>真的卡住再看：提示</summary><p>先按「畫面文字、資料、圖片、色彩」把問題分到 index.html、app.js、assets 或 styles.css。資料換完後若第二行沒出現，回到 renderList 找出讀取 due 的位置，再確認陣列中的欄位和值是否成對。</p></details>
+<details><summary>真的卡住再看：提示</summary><p>先按「畫面文字、資料、圖片、色彩」把問題分到 index.html、app.js、assets 或 styles.css。固定結構與固定文字先看 index.html；清單標題、狀態字、「期限：」、按鈕切換文字與完成提示要到 app.js 找，只改 index.html 不會改變這些動態文字。資料換完後若第二行沒出現，回到 renderList 找出讀取 due 的位置，再確認陣列中的欄位和值是否成對。</p></details>
 
 ## 收尾：把一次成品變成可持續更新的交付
 
