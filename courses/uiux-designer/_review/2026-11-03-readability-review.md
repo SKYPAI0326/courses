@@ -119,3 +119,20 @@
 | L38 | B7 | HANDOFF-CHECK | 「若由同學驗收」違反不設計學員互動 | 刪除 | 素材 |
 | L39 | B8 | CH8:33–34 | 引號保留說明 | 併入 M28 | 文字 |
 | L40 | 全課 | — | 圖片與連結 | 連結全部存在、無轉義 HTML；A1 對比值重算正確 | — |
+
+## Figma 實機驗證（2026-11-03，內建瀏覽器 Figma 網頁版，Starter 草稿檔）
+
+| 項目 | 結果 | 處理 |
+|---|---|---|
+| B4 完成清單 After delay → Open overlay 成功提示 | 通過：確認完成後提示在 Top center 出現，約 2 秒自動收起；之後 8、14 秒都沒有重新彈出 | 講義維持第 13～17 步 |
+| After delay 最短時間 | Delay 欄輸入 0 會自動回到 1ms | 講義「填 1（單位 ms）」正確 |
+| B5 保留捲動位置 | 現行介面是互動面板 State 區的 Reset scroll position（預設勾選），沒有 Preserve scroll position | 改寫成取消勾選 Reset scroll position |
+| A5 Auto layout 進階設定 | 圖示在 Auto layout 區 Gap 欄右側，提示文字是 Auto layout settings；Inside stroke 預設 Included | 改寫入口與名稱 |
+| A5 Stroke Position、Gap Auto | Stroke 區有 Position 下拉（預設 Inside）；Gap 下拉有 Auto | 不需修改 |
+| B5 Layers 拖放 | 把 Frame 拖到 Auto layout 兩列之間，會依 Layers 位置插入；Layers 順序與畫面上下一致 | 不需修改 |
+| A4 Flatten 快捷鍵 | 右鍵選單與 Figma 官方說明皆為 Option+Shift+F／Alt+Shift+F | 已改 |
+| A4 Assets 頁面層 | 單一頁面的檔案點 Created in this file 會直接顯示元件 | 改成「有多個頁面時才先列出頁面」 |
+
+重拍截圖 11 張：figma-open-overlay、figma-flow-start-name（新，B1）、figma-overflow-vertical（新，B5）、figma-file-menu、figma-assets-created-in-file、figma-go-to-main-component、figma-reset-instance、figma-component-set、figma-create-property-menu、figma-hover-change-to、figma-selection-colors-swap。原 figma-overflow-flow-start 由兩張新圖取代後刪除。
+
+未驗證：github-token-access（內建瀏覽器未登入 GitHub，仍以圖說暫解）、B8 VS Code 的 GitHub 登入視窗（需實際在 VS Code 推送）。
