@@ -135,4 +135,6 @@
 
 重拍截圖 11 張：figma-open-overlay、figma-flow-start-name（新，B1）、figma-overflow-vertical（新，B5）、figma-file-menu、figma-assets-created-in-file、figma-go-to-main-component、figma-reset-instance、figma-component-set、figma-create-property-menu、figma-hover-change-to、figma-selection-colors-swap。原 figma-overflow-flow-start 由兩張新圖取代後刪除。
 
-未驗證：github-token-access（內建瀏覽器未登入 GitHub，仍以圖說暫解）、B8 VS Code 的 GitHub 登入視窗（需實際在 VS Code 推送）。
+GitHub 實機確認（同日，只填表單、未按 Generate token）：選 Only select repositories 後，Permissions 區改成 Repositories／Account 兩個分頁；在 Repositories 分頁 Add permissions 勾選 Contents，預設 Read-only，需改成 Read and write，並會自動加入 Required 的 Metadata。B8 步驟文字依此改寫，github-token-access 重拍（示範 repo 為 courses，圖說註明學員選 studio-tasks-web）。
+
+未驗證：B8 VS Code 的 GitHub 登入視窗（需實際從 VS Code 推送到新 repo 才會出現）。
