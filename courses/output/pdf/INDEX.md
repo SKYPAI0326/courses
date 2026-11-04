@@ -2,7 +2,7 @@
 
 由 course-manager PDF 登錄產生。狀態為最後登錄／提升時的紀錄；取用前以 `status` 重新檢查來源。
 
-登錄時間：2026-10-26T14:21:42.252690+08:00
+登錄時間：2026-11-04T09:37:45.891259+08:00
 
 UNVERIFIED 表示來源一致性尚未驗證；檔案存在不代表已與網頁同步。
 
@@ -60,6 +60,14 @@ UNVERIFIED 表示來源一致性尚未驗證；檔案存在不代表已與網頁
 | 講義 | 來源狀態 | 來源類型 |
 | --- | --- | --- |
 | [gemini-ai-class-handout.pdf](gemini-ai/gemini-ai-class-handout.pdf) | CURRENT | confirmed-html-recipe |
+
+## gen-image
+
+| 講義 | 來源狀態 | 來源類型 |
+| --- | --- | --- |
+| [兩小時工作坊-從AI生圖到設計完稿.pdf](gen-image/%E5%85%A9%E5%B0%8F%E6%99%82%E5%B7%A5%E4%BD%9C%E5%9D%8A-%E5%BE%9EAI%E7%94%9F%E5%9C%96%E5%88%B0%E8%A8%AD%E8%A8%88%E5%AE%8C%E7%A8%BF.pdf) | CURRENT | confirmed-html-recipe |
+| [商業用圖片生成-講義上冊-M1至M5.pdf](gen-image/%E5%95%86%E6%A5%AD%E7%94%A8%E5%9C%96%E7%89%87%E7%94%9F%E6%88%90-%E8%AC%9B%E7%BE%A9%E4%B8%8A%E5%86%8A-M1%E8%87%B3M5.pdf) | CURRENT | confirmed-html-recipe |
+| [商業用圖片生成-講義下冊-CH6模板速查站.pdf](gen-image/%E5%95%86%E6%A5%AD%E7%94%A8%E5%9C%96%E7%89%87%E7%94%9F%E6%88%90-%E8%AC%9B%E7%BE%A9%E4%B8%8B%E5%86%8A-CH6%E6%A8%A1%E6%9D%BF%E9%80%9F%E6%9F%A5%E7%AB%99.pdf) | CURRENT | confirmed-html-recipe |
 
 ## office-ai
 
