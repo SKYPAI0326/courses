@@ -1,0 +1,107 @@
+學習目標 OUTCOMES
+能說明 Consent default／update 為何必須先於 Google tag 與事件
+能依練習軌建立或審查 Google tag 與 Initialization - All Pages 設定
+能寫出 Tag Assistant、GA4 DebugView／即時報告的驗證步驟；真實環境軌另須留下平台證據
+INSTALLATION STEPS · 安裝步驟
+### 九步驟規劃並驗證GA4 × GTM 整合
+1
+先選練習軌：有網站、GA4、GTM 與 Consent／CMP 決策者權限才走真實環境軌；沒有權限就使用 GA4 × GTM 共用量測練習包。兩軌都續寫 M7-1 的 measurement-decision.md；真實軌實作並留證，離線軌只審查設定與預期 trace，不能標記為平台已驗證。
+1
+確認政策、權限與練習軌
+先確認組織採 Basic 或 Advanced Consent Mode、誰核准 CMP／同意文案，以及你是否有網站、GA4 與 GTM 所需權限。沒有完整權限就改走離線軌，不借用未授權帳號。
+2
+在 Consent Initialization 設定預設狀態
+使用組織核准的 CMP 範本或 Consent Mode 範本，在任何量測 tag 前設定 analytics_storage、ad_storage、ad_user_data、ad_personalization 的 default；預設值依政策決定，不能由行銷人自行改成 granted。
+GTM → Consent Initialization → default
+3
+取得 GA4 Google tag ID
+在 GA4 中：管理 → 資料串流 → 選擇你的 Web 串流 → 複製 Google tag ID（通常為 G-XXXXXXXXXX）。
+GA4 → 管理 → 資料串流
+4
+在 GTM 建立 Google tag
+GTM 左側選單 → 代碼 → 新增 → 代碼設定 → 選擇「Google tag」。舊介面的「GA4 Configuration tag」已由 Google tag 取代。
+GTM → 代碼 → 新增
+5
+填入 Tag ID，使用 Initialization - All Pages
+貼上 G-XXXXXXXXXX，命名為「Google tag - GA4」。觸發條件選「Initialization - All Pages」，讓基礎 Google tag 早於一般事件 tag；Consent Initialization 仍必須排在它之前。
+6
+設定 consent update
+使用者接受、拒絕或調整選項時，CMP 必須在同一頁更新 consent 狀態並保存選擇。測試全部接受、全部拒絕、部分接受三種情境。
+7
+開啟增強型評估（Enhanced Measurement）
+回到 GA4 資料串流檢查各個自動偵測選項。只開啟適用於網站實作、且不會與自訂事件重複的項目。
+8
+Tag Assistant 預覽：先驗證順序與拒絕情境
+GTM 右上角 → 預覽 → 連線網站。確認 Consent default 最先出現；再測接受／拒絕／部分接受，檢查 update、tag firing 與 consent checks。任何一種不符就停止，不得發布。
+9
+GA4 DebugView／即時報告驗證 → 核准後發布
+先在 DebugView／即時報告核對事件名稱、參數與重複事件，再留下 Preview 證據、版本名稱、變更摘要與核准者。只有真實環境軌通過全部情境才能發布；離線軌維持 PENDING。
+模式先決定，預期行為才有意義：Basic Consent Mode 在使用者互動前阻擋 Google tags；Advanced 模式會以預設 consent 狀態載入，行為不同。預設值與 Basic／Advanced 選擇必須來自組織政策。Google tag 在 GTM 中可使用 Initialization - All Pages，但 consent 設定仍須先處理。核對：Consent mode overview、Set up consent mode、Add the Google tag in Tag Manager。
+ENHANCED MEASUREMENT · 增強型評估
+### 自動偵測選項：逐項確認再啟用
+Enhanced Measurement 提供多種自動偵測選項，但是否觸發仍受網站實作影響，也可能與自訂事件重複。不要把「介面已開啟」當成「資料已驗證」。
+        事件名稱
+        追蹤什麼
+        行銷用途
+        page_view
+        頁面載入；可另設定瀏覽器歷史狀態變更
+        檢查頁面瀏覽與 SPA 路由，不可只看總量
+        scroll
+        用戶捲動到頁面 90%
+        判斷內容完讀率，找出跳脫點
+        click
+        點擊外部連結（離開網站）
+        了解用戶去哪個外部資源
+        view_search_results
+        站內搜尋
+        了解用戶找什麼，補充內容
+        video_start / progress / complete
+        嵌入 YouTube 影片的播放行為
+        影片完看率、影片對轉換的貢獻
+        file_download
+        PDF / Excel 等檔案下載
+        追蹤資源下載的行為，評估 Lead Magnet 效果
+        form_start / form_submit
+        表單互動（部分網站有效）
+        評估表單填寫流程
+⚠️
+注意：增強型評估的 form_submit 並非對所有表單都有效（取決於網站的表單實作方式）。若追蹤重要表單，建議用 GTM 設定自訂觸發條件以確保準確。
+AI 接口 · GA4-GTM 整合驗收清單
+### 3 步驟整合 → 先驗證收集，再等待報表
+GA4 + GTM 第一次整合，最容易把「事件沒有送到」和「標準報表還在處理」混為一談。下面 prompt 先要求 AI 列出當下可查的證據，再安排需要等待的報表複核。
+把這段貼進任意生成式AI
+請幫我做 GA4 + GTM 整合的分階段驗收清單。
+【設定或已完成】[逐項寫 Consent default／update、Google tag trigger 與目前狀態]
+【證據層級】[每項標示課堂草案／平台證據；沒有實機證據不得寫已完成]
+【需要驗證】基本資料是否進入 GA4、增強型評估事件是否觸發
+【未來要加】[列出 3-5 個自訂事件]
+【本次測試資料】[實際網址、Tag ID、測試時間、同意選擇與操作步驟]
+請輸出：
+(1) 全部接受、全部拒絕、部分接受三條 Tag Assistant 路徑，default／update／tag firing 應該看到什麼
+(2) 當下用 GA4 DebugView／即時報告確認什麼，以及標準報表可能需要等待的部分
+(3) 5 個可由證據判斷的常見錯誤 + 對應修法；不要用單一跳出率猜原因
+(4) 停止發布條件、後續複核時機與驗收通過後的下一步；時機要依流量與報表用途決定
+可接受的參考輸出
+Tag Assistant 先看 consent：default 必須先於 Google tag；接受／拒絕／部分接受各自產生正確 update，相關 tag 依組織選定的 Basic／Advanced 模式調整。DebugView 再看事件：(1) page_view（符合頁面／路由設定） (2) session_start (3) first_visit（僅首次訪客）
+      若沒看到 → 先查 Tag ID、Initialization trigger、consent 狀態與 Preview 連線
+5 常見錯誤
+1. DebugView／即時報告有事件，但標準報表尚未出現：記錄測試時間與事件後等待處理；許多標準報表與探索可能需要 24–48 小時
+      2. 同一次操作出現多筆事件：用 Tag Assistant 對照觸發次數、事件名稱與參數，查是否有重複 tag 或過寬的 trigger
+      3. 兩個 page_view 同時觸發：Google tag 重複安裝，或 GTM 與頁面原生代碼雙裝
+      4. 測試 UTM 沒進來：先確認目的頁網址仍保留參數，再核對事件與流量來源報表；不要先假定是渠道群組造成
+      5. DebugView 空白：先確認 Tag Assistant Preview 已連線、事件已送出且測試裝置未被內部流量規則排除；瀏覽器擴充套件不是唯一方法
+驗收通過後：依需求排除內部流量、把真正重要的事件標成關鍵事件，若流程跨網域再設定並重測跨網域量測。後續複核應記錄日期、流量量級與預期報表，不套固定週期。
+判讀重點不是文字是否一樣，而是每個結論都有對應 trace 或畫面、時間與測試步驟。缺少實際 Tag ID、網址或同意情境時，輸出應標成設定審查或待補，不能宣稱整合完成。
+整合驗收心法：先用 Tag Assistant、Realtime 與 DebugView 證明資料正在收集，再依報表處理時間與實際流量安排後續複核。等待報表不能取代當下除錯。
+PRACTICE · 同一完成物的最後驗收
+### 先讀正常 trace，再獨立修復故障版本
+請回到 measurement-decision.md。真實環境軌填入自己的政策、網址、Tag ID、測試時間與證據編號；離線軌使用練習包 Part 2，並在每一列標示「課堂 trace」，不可把預期結果寫成實機畫面。
+老師示範：以 Basic 模式正常 trace 完成「全部接受」一列，依序寫出 consent default、update、Google tag、page_view 與 generate_lead；離線版本的結果標為 CONFIG REVIEW PASS，平台狀態維持 PENDING。
+T
+一起做：補上「全部拒絕」與「部分接受」兩列。先寫各 consent type 的預期狀態，再依選定的 Basic／Advanced 模式判斷哪些 tag 可載入或送出；不確定的實作細節標待查，不用另一種模式的行為代填。
+S
+獨立驗收：使用故障 trace，寫出「default 太晚」與「denied 時事件仍觸發」兩項失敗證據、各自風險、修復位置與修正後順序。最後確認 measurement-decision.md 已包含資料來源、三種同意情境、當下收集驗證、延後報表複核、停止發布條件與平台狀態；缺一就回到對應段補齊。
+交付判準：離線軌完成設定審查，不等於平台安裝。只有真實環境軌在三種情境、Tag Assistant 與 GA4 收集證據都通過，並完成核准流程後，才可把 measurement-decision.md 的狀態升為 PLATFORM VERIFIED。
+  ← 7-1 GTM 核心概念
+  7-3 自訂事件追蹤 →
+  
