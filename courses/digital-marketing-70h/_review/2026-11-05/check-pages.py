@@ -31,7 +31,8 @@ for arg in sys.argv[1:]:
     flat = re.sub(r'\s', '', ''.join(secs))
     n = len(re.sub(r'\s', '', body))
     issues = []
-    if not 2300 <= n <= 3300: issues.append(f'字數 {n}')
+    cap = 3600 if unit == 'm1-4' else 3300  # m1-4 含模組作業，退回意見放寬
+    if not 2300 <= n <= cap: issues.append(f'字數 {n}')
     if not 4 <= len(secs) <= 7: issues.append(f'## 數 {len(secs)}')
     # 案例位置：攔「一開頭就上案例」
     idx = next((i for i, s in enumerate(secs, 1) if CASE.search(s)), None)
