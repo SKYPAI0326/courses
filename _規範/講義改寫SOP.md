@@ -154,7 +154,7 @@
 7. **平台事實裁定**：素材互相矛盾時，以實際跑過的設定為準。介面位置只寫素材或官方說明能支持的部分，其餘標「畫面以實際為準」。
 8. **交付格式**：`# 標題`、副標、`學習目標：…`、`本節完成物：…`、各 `##` 小節；頁尾「## 自我檢查」（逐項對照設計卡的必教內容、每個 `##` 第一段引入了什麼）與「## 事實核對」。只寫指定的輸出檔，不 git add、不 commit、不詢問使用者、不用 course-* 技能。
 
-派工時明確指定承作模型：`codex exec -m gpt-5.6-sol -c model_reasoning_effort=high -s workspace-write`。
+派工時明確指定承作模型：`codex exec -m gpt-5.6-sol -c model_reasoning_effort=high -s workspace-write "<指令>" < /dev/null`。在背景執行時一定要加 `< /dev/null`：沒有關掉輸入，codex 會停在「Reading additional input from stdin」一直等，不會報錯（2026-11-05 卡了 52 分鐘）。
 
 ---
 
