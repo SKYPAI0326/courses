@@ -13,7 +13,13 @@ TERMS = {
     'm1-2': ['Cialdini', '互惠', '承諾', '一致', '社會認同', '社會證明', '喜好', '權威', '稀缺', '團結'],
     'm1-3': ['Tversky', '錨定', '損失趨避', '展望理論', '稀缺', '峰終', '1.96'],
     'm1-4': ['Jobs to Be Done', 'JTBD', 'Christensen', '功能', '情感', '社會', '替代'],
+    'm3-2': ['STP', 'Segmentation', 'Targeting', 'Positioning', '人口', '地理', '心理', '行為', 'Persona', '代表', '發起者', '建議者', '出資者', '使用者', '優先路徑'],
+    'm8-1': ['CTR', 'CPC', 'CVR', 'CPL', 'CPA', 'ROAS', 'Performance Max', 'Demand Gen', '停止條件', '自然流量'],
+    'm7-2': ['資料層', 'dataLayer', 'Tag Assistant', 'DebugView', 'Initialization - All Pages', '<head>', '<body>', 'line_join', '接受'],
+    'm10-1': ['對象', '承諾', '行動', '量測', '不做', '已驗證', '待補'],
 }
+# 型態：操作型允許第一段就提到案例練習頁（SOP 第 4 節）
+TYPE = {'m7-2': '操作型'}
 CASE = re.compile(r'山徑|品牌包|阿傑|麗芬|柏翰')
 STOCK = ['換你做', '常見卡關與修法', '先完成自己的版本']
 CODES = re.compile(r'\bM\d{1,2}[A-D]?\b|(?<![\d,$.])[1-9]0?-[1-9](?![\d,])|INT-0|WEB-0|REV-0|SOCIAL-0|\bPASS\b|PENDING|VERIFIED')
@@ -38,7 +44,7 @@ for arg in sys.argv[1:]:
     idx = next((i for i, s in enumerate(secs, 1) if CASE.search(s)), None)
     m = CASE.search(flat)
     pos = m.start() / len(flat) if m else 1
-    if idx is None or idx < 3 or pos < 0.30:
+    if TYPE.get(unit) != '操作型' and (idx is None or idx < 3 or pos < 0.30):
         issues.append(f'案例太早：第 {idx} 節、全頁 {pos:.0%} 處')
     if CASE.search(re.sub(r'本節完成物：.*', '', pre)): issues.append('標題或副標提到案例')
     missing = [t for t in TERMS.get(unit, []) if t not in body]
@@ -55,7 +61,8 @@ for arg in sys.argv[1:]:
     for s in secs:
         k = len(LIMIT.findall(s))
         if k > 1: issues.append(f'限制語 {k}：{s.splitlines()[0]}')
-    if '（2026-11 查證）' not in body: issues.append('沒有查證標記')
+    if '（2026-11 查證）' not in body and unit not in ('m10-1',): issues.append('沒有查證標記')  # m10-1 的框架是本課自訂，沒有外部理論
+    if body.count('## 用 AI 加速') > 1: issues.append('「用 AI 加速」超過一節')
     for s in secs: heads[s.splitlines()[0]] += 1
     print(f'{unit}: {n} 字、{len(secs)} 節、案例首見第 {idx} 節（{pos:.0%}）')
     for i in issues: print('   ✗', i)
