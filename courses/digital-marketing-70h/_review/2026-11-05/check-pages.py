@@ -29,7 +29,7 @@ for arg in sys.argv[1:]:
     secs = re.split(r'\n(?=## )', body)
     pre, secs = secs[0], secs[1:]
     flat = re.sub(r'\s', '', ''.join(secs))
-    n = len(re.sub(r'\s', '', body))
+    n = len(re.sub(r'\s', '', ''.join(secs)))  # 從第一個 ## 起算，標題區（含學習目標）不計
     issues = []
     cap = 3600 if unit == 'm1-4' else 3300  # m1-4 含模組作業，退回意見放寬
     if not 2300 <= n <= cap: issues.append(f'字數 {n}')

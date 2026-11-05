@@ -3,7 +3,7 @@
 用法（在 repo 根目錄）：python3 courses/digital-marketing-70h/_tools/render-lessons.py [m3-2 m4-1 …]
 不給單元就轉製所有已有 md 的頁面。只替換：lesson-body、標題、副標、本節完成物、頂欄與單元號、
 <title> 與 description 類 meta、上一節／下一節導覽（依 lesson-meta.json 的順序重建）。其餘外殼、密碼閘、頁內 CSS 保留。
-md 格式：`# 標題`、副標一行、`本節完成物：…`、各 `##` 小節；`## 自我檢查` 起的內容不轉製。
+md 格式：`# 標題`、副標一行、`學習目標：…｜…`（選用）、`本節完成物：…`、各 `##` 小節；`## 自我檢查` 起的內容不轉製。
 元件：段落、清單、表格、```提示詞框```、> 提醒（callout）、標題以「模組作業」開頭的小節（作業框）。
 """
 from pathlib import Path
@@ -68,10 +68,22 @@ def parse(text):
     head = text.split('\n## ', 1)[0].splitlines()[1:]
     head = [l.strip() for l in head if l.strip()]
     artifact = next(l for l in head if l.startswith('本節完成物：')).removeprefix('本節完成物：')
-    tagline = next(l for l in head if not l.startswith('本節完成物：'))
+    # 學習目標（2026-11-05 起）：一行，以「｜」分隔多條；沒有這行就只顯示完成物
+    goal_line = next((l for l in head if l.startswith('學習目標：')), '')
+    goals = [g.strip() for g in goal_line.removeprefix('學習目標：').split('｜') if g.strip()]
+    tagline = next(l for l in head if not l.startswith(('本節完成物：', '學習目標：')))
     body = '## ' + text.split('\n## ', 1)[1]
     body = re.split(r'\n## (?:自我檢查|事實核對)', body)[0].strip()
-    return title, tagline, artifact, body
+    return title, tagline, goals, artifact, body
+
+
+def outcomes(goals, artifact):
+    item = '\n    <div class="outcome-item"><div class="outcome-dot"></div><span>{}</span></div>'
+    h = ''
+    if goals:
+        h += '\n    <div class="outcomes-label">學習目標</div>' + ''.join(item.format(escape(g)) for g in goals)
+    h += '\n    <div class="outcomes-label">本節完成物</div>' + item.format(escape(artifact))
+    return h + '\n  '
 
 
 def render(body):
@@ -138,7 +150,7 @@ for u in units:
     i = next(k for k, p in enumerate(pages) if p['unit'] == u)
     p = pages[i]
     f = root / p['file']
-    title, tagline, artifact, body = parse((lessons / f'{u}.md').read_text())
+    title, tagline, goals, artifact, body = parse((lessons / f'{u}.md').read_text())
     for link in re.findall(r'\]\((assets/[^)#\s]+)', body):
         assert (root / link).is_file(), (u, link)
     text = f.read_text()
@@ -148,7 +160,7 @@ for u in units:
     rep.append((n['inner'], n['close'], '\n' + render(body) + '\n'))
     for cls, val in [('lesson-title', escape(title)), ('lesson-tagline', escape(tagline)),
                      ('topbar-tag', f'{p["num"]} · {escape(p["short"])}'), ('hero-num', f'單元 {p["num"]}'),
-                     ('outcomes', f'\n    <div class="outcomes-label">本節完成物</div>\n    <div class="outcome-item"><div class="outcome-dot"></div><span>{escape(artifact)}</span></div>\n  ')]:
+                     ('outcomes', outcomes(goals, artifact))]:
         n = a.find(cls)
         rep.append((n['inner'], n['close'], val))
     navs = a.find('nav-footer', many=True)
