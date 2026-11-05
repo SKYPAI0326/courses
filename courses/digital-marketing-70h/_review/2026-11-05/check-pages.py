@@ -63,6 +63,10 @@ for arg in sys.argv[1:]:
         if k > 1: issues.append(f'限制語 {k}：{s.splitlines()[0]}')
     if '（2026-11 查證）' not in body and unit not in ('m10-1',): issues.append('沒有查證標記')  # m10-1 的框架是本課自訂，沒有外部理論
     if body.count('## 用 AI 加速') > 1: issues.append('「用 AI 加速」超過一節')
+    # 提示詞以動詞開頭：攔「請…」「你是…」「幫我…」「以下是…」開頭的提示詞框（m8-1 樣頁漏過）
+    for blk in re.findall(r'```text\n(.*?)```', body, re.S):
+        first = blk.strip().splitlines()[0] if blk.strip() else ''
+        if re.match(r'(請|你是|幫我|以下是|我是)', first) or re.search(r'(^|\n)(請|幫我)', blk): issues.append(f'提示詞開頭或內含「請／幫我」：{first[:20]}')
     for s in secs: heads[s.splitlines()[0]] += 1
     print(f'{unit}: {n} 字、{len(secs)} 節、案例首見第 {idx} 節（{pos:.0%}）')
     for i in issues: print('   ✗', i)
