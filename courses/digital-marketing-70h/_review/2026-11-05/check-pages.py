@@ -35,9 +35,10 @@ for arg in sys.argv[1:]:
     secs = re.split(r'\n(?=## )', body)
     pre, secs = secs[0], secs[1:]
     flat = re.sub(r'\s', '', ''.join(secs))
-    n = len(re.sub(r'\s', '', ''.join(secs)))  # 從第一個 ## 起算，標題區（含學習目標）不計
+    # 從第一個 ## 起算，標題區（含學習目標）不計；連結網址不計，否則附來源會被字數上限逼著刪掉（m7-2 退回時發生）
+    n = len(re.sub(r'\s', '', re.sub(r'\]\([^)]*\)', ']', ''.join(secs))))
     issues = []
-    cap = 3600 if unit == 'm1-4' else 3300  # m1-4 含模組作業，退回意見放寬
+    cap = 3600 if unit in ('m1-4', 'm7-2') else 3300  # m1-4 含模組作業；m7-2 依決策多了建立 GA4 資源一節
     if not 2300 <= n <= cap: issues.append(f'字數 {n}')
     if not 4 <= len(secs) <= 7: issues.append(f'## 數 {len(secs)}')
     # 案例位置：攔「一開頭就上案例」
