@@ -167,6 +167,12 @@
     }
 
     .event-monitor code { color: #765416; font-weight: 700; }
+    .event-monitor ol { margin: 4px 0 0; padding-left: 0; list-style: none; }
+    .event-monitor li { margin: 2px 0; }
+    @media (max-width: 720px) {
+      /* 手機上同意橫幅固定在左下，監看區改到上方，避免互相蓋住 */
+      .event-monitor { top: 8px; bottom: auto; max-height: 40vh; overflow-y: auto; }
+    }
 
     @media (max-width: 680px) {
       header { padding-top: 40px; }
@@ -243,17 +249,28 @@
     </section>
   </main>
 
-  <div class="event-monitor" aria-live="polite">最近事件：<code id="latest-event">尚未推送</code></div>
+  <div class="event-monitor" aria-live="polite">網站推送的事件（新到舊，最多 5 筆）：<ol id="event-log"><li>尚未推送</li></ol></div>
 
   <script>
     window.dataLayer = window.dataLayer || [];
     const nativePush = Array.prototype.push;
-    const latestEvent = document.getElementById('latest-event');
+    const eventLog = document.getElementById('event-log');
+    let eventCount = 0;
 
+    // 監看區列出網站推送的事件與參數（不含 GTM 內部的 gtm.* 事件），反例才看得出「沒有新增」
     window.dataLayer.push = function (...items) {
       const result = nativePush.apply(this, items);
       items.forEach((item) => {
-        if (item && typeof item.event === 'string') latestEvent.textContent = item.event;
+        if (!item || typeof item.event !== 'string' || item.event.startsWith('gtm.')) return;
+        eventCount += 1;
+        const params = Object.entries(item).filter(([k]) => k !== 'event').map(([k, v]) => `${k}=${v}`).join('、');
+        if (eventCount === 1) eventLog.innerHTML = '';
+        const li = document.createElement('li');
+        const code = document.createElement('code');
+        code.textContent = item.event;
+        li.append(`第 ${eventCount} 筆：`, code, params ? `　${params}` : '');
+        eventLog.prepend(li);
+        while (eventLog.children.length > 5) eventLog.lastElementChild.remove();
       });
       return result;
     };

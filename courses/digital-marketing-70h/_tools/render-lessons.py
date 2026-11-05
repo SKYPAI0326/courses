@@ -4,7 +4,7 @@
 不給單元就轉製所有已有 md 的頁面。只替換：lesson-body、標題、副標、本節完成物、頂欄與單元號、
 <title> 與 description 類 meta、上一節／下一節導覽（依 lesson-meta.json 的順序重建）。其餘外殼、密碼閘、頁內 CSS 保留。
 md 格式：`# 標題`、副標一行、`學習目標：…｜…`（選用）、`本節完成物：…`、各 `##` 小節；`## 自我檢查` 起的內容不轉製。
-元件：段落、清單、表格、```提示詞框```、> 提醒（callout）、標題以「模組作業」開頭的小節（作業框）。
+元件：段落、清單、表格、```提示詞框```、> 提醒（callout）、> 參考方向：…（收合的參考區）、標題以「模組作業」開頭的小節（作業框）。
 """
 from pathlib import Path
 from html.parser import HTMLParser
@@ -117,6 +117,20 @@ def render(body):
             t['class'] = 'rw-table'
             t.wrap(s.new_tag('div', attrs={'class': 'table-scroll', 'tabindex': '0', 'role': 'region', 'aria-label': '資料表，可水平捲動'}))
         for q in sec.find_all('blockquote'):
+            # 「> 參考方向：…」轉成預設收合的參考區，學員做完練習再展開（2026-11-05 試讀：參考答案緊接題目下方）
+            first = q.find('p')
+            if first and first.get_text().startswith(('參考方向', '參考寫法', '參考結果')):
+                d = s.new_tag('details', attrs={'class': 'rw-reference'})
+                sm = s.new_tag('summary')
+                sm.string = '做完再展開：' + first.get_text().split('：', 1)[0]
+                d.append(sm)
+                lead = first.decode_contents().split('：', 1)
+                first.clear()
+                first.append(BeautifulSoup(lead[1] if len(lead) > 1 else lead[0], 'html.parser'))
+                for x in list(q.children):
+                    d.append(x.extract())
+                q.replace_with(d)
+                continue
             c = s.new_tag('div', attrs={'class': 'callout'})
             icon = s.new_tag('span', attrs={'class': 'callout-icon', 'aria-hidden': 'true'})
             icon.string = '→'
