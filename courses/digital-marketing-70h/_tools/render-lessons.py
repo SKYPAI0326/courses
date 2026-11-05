@@ -141,6 +141,10 @@ def render(body):
             q.replace_with(c)
         for a in sec.select('a[href^="assets/"]'):
             a['target'], a['rel'] = '_blank', 'noopener'
+            # 素材有閱讀版（render-materials.py 產生）就連到閱讀版，學員不會看到 Markdown 原始碼
+            h = a['href']
+            if h.startswith('assets/datasets/') and h.endswith('.md') and (root / h).with_suffix('.html').exists():
+                a['href'] = h[:-3] + '.html'
     return '\n'.join(str(x) for x in out)
 
 
