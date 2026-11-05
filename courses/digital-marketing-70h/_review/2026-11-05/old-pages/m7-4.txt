@@ -1,0 +1,165 @@
+學習目標 OUTCOMES
+能依目前 Meta 文件、網站條件與同意政策，審查 Pixel 及標準事件的實作方案
+理解 Data Layer 的結構與 dataLayer.push() 的電商追蹤應用場景
+能使用 GTM Preview、Tag Assistant 與 GA4 DebugView 驗證同意狀態及追蹤流程
+META PIXEL · 安裝與標準事件
+### 用 GTM 管理 Meta Pixel
+Meta Pixel 可用於量測網站事件與建立符合政策的廣告受眾。GTM 能集中管理標記，但前提是網站已安裝容器，並能提供正確的事件、商品資料與同意狀態；這些工作仍可能需要網站或工程人員配合。
+01
+        確認資料來源與存取權
+        在開課當日的 Meta 事件管理工具確認要使用的網站資料來源、Pixel ID、擁有者與可操作權限，並把來源畫面與核准人記入實作單。介面名稱或 ID 格式若與講義不同，以目前帳號顯示為準。
+02
+        選擇核准的安裝方式
+        先檢查網站平台的官方整合或組織核准的權限受控模板；只有確認沒有合適整合、程式碼來自目前官方文件，且完成安全與效能審查時，才考慮 Custom HTML。
+        同時記錄觸發條件與 consent 要求
+03
+        對應真實事件與參數
+        Purchase 只能在訂單成功且取得實際金額、幣別與訂單識別值時送出；Lead、ViewContent 等事件也要寫明成功條件。缺值時停止發布，不用 0 或範例商品當佔位。
+        事件來源：網站成功狀態或已核准的 dataLayer event
+04
+        用多項證據驗證
+        在 GTM Preview 核對 consent、觸發次數與參數，再用目前 Meta 事件管理工具的測試／診斷功能確認收到的事件。Pixel Helper 可作輔助觀察，但圖示正常不等於金額、幣別、去重與同意狀態都正確。
+Meta Pixel 標準事件對應不同轉換目標：
+Purchase
+完成購買，必須傳入 value 和 currency，用於廣告 ROAS 計算
+Lead
+可代表組織定義的潛在客戶成功行為；必須先說清楚是表單成功、完成訂閱或其他可驗證狀態
+ViewContent
+瀏覽產品頁，建立「對特定商品有興趣」的再行銷受眾
+AddToCart
+商品成功加入購物車時送出，可用來觀察結帳前行為；是否用於受眾或優化由政策與投放需求決定
+InitiateCheckout
+使用者實際進入結帳流程時送出，可與 add_to_cart、Purchase 一起檢查漏斗落差
+Search
+站內搜尋，傳入 search_string 了解用戶需求
+DATA LAYER · 電商追蹤架構
+### Data Layer：讓數據主動推給追蹤工具
+Data Layer 是頁面上的 JavaScript 資料結構。網站在真實互動或交易成功時把事件與資料推入其中，GTM 再依規則讀取並送往核准的分析工具。行銷人不一定親自寫程式，但要能定義事件、欄位、同意條件與驗收證據，並和開發共同完成。
+💡
+概念：把 dataLayer 想成一個傳話站。網站說「有人買了商品 A，金額 NT$1,200」，GTM 聽到後轉告 GA4 和 Meta Pixel，不用每個工具各自撈一次。
+dataLayer.push() — 購買事件範例
+window.dataLayer = window.dataLayer || [];
+dataLayer.push({
+  'event': 'purchase',
+  'ecommerce': {
+    'transaction_id': 'T_12345',
+    'value': 1200.00,
+    'currency': 'TWD',
+    'items': [{
+      'item_id': 'SKU_001',
+      'item_name': '數位行銷課程',
+      'price': 1200.00,
+      'quantity': 1
+    }]
+  }
+});
+        電商事件
+        觸發時機
+        必要參數
+        view_item
+        瀏覽產品詳細頁
+        item_id、item_name、price
+        add_to_cart
+        點擊「加入購物車」
+        item_id、item_name、price、quantity
+        begin_checkout
+        進入結帳流程
+        value、currency、items 陣列
+        purchase
+        訂單成功且取得可去重的 transaction_id
+        transaction_id、value、currency、items
+        refund
+        退款完成
+        transaction_id、實際退款 value、相關 items
+📋
+與開發溝通：上方程式碼只是教學範例。正式需求單要列出每個事件的成功時機、欄位名稱、型別、來源、去重方式、consent 條件與測試案例。網站端與 GTM 端要一起核對，不能把責任切成互不驗證的兩段。
+DEBUGGING · GTM 除錯流程
+### 系統性驗證，確保追蹤真的在運作
+代碼設定完不等於正確觸發。每次發布前都需要用 Preview 模式驗證，每次上線後再用 GA4 DebugView 確認數據真的到了。
+GTM Preview 模式
+使用時機：發布前本地驗證
+點擊右上角「Preview」，輸入網站網址，開啟除錯視窗
+左側顯示頁面上觸發的所有事件，點擊可看到觸發了哪些代碼
+確認代碼狀態為「Fired」，若為「Not Fired」代表觸發條件未達成
+可在頁面上執行按鈕點擊、表單送出等動作，即時看到事件清單更新
+GA4 DebugView
+使用時機：驗證數據是否到 GA4
+GA4 後台 → 管理 → DebugView
+從 GTM Preview／Tag Assistant 連線測試頁面，讓測試流量帶入 debug mode
+執行追蹤動作後，數秒內在 DebugView 看到事件出現
+點擊事件名稱可展開看事件參數值，確認參數傳遞正確
+Meta Pixel Helper
+使用時機：驗證 Pixel 事件
+Chrome 擴充套件，安裝後瀏覽目標頁面自動偵測
+查看偵測到的 Pixel、事件與參數，但不要只以圖示顏色判定通過
+逐項比對事件名稱、觸發次數、value、currency 與實際操作
+再回到目前 Meta 事件管理工具的測試／診斷畫面確認接收結果
+Tag Assistant 測試紀錄
+使用時機：保存可重現的 GTM 證據
+記錄容器版本、測試網址、操作步驟與時間
+依事件串流查看 Fired／Not Fired、Variables 與 Consent 狀態
+同時保留正例、反例與三種同意情境，讓其他人能重跑
+### 常見問題排查
+問題
+        代碼在 Preview 顯示 Not Fired
+解法
+        確認觸發條件與頁面範圍；優先核對 dataLayer event 或穩定 ID／屬性。若只靠 Click Text，先確認文案、語系或改版是否已讓條件失效
+問題
+        GA4 DebugView 看不到事件
+解法
+        確認 Tag Assistant Preview 已連線、Google tag ID 正確、事件 tag 符合 consent 狀態，並檢查測試裝置是否被內部流量規則排除；再到 DebugView 重測
+問題
+        表單送出代碼未觸發
+解法
+        先確認表單成功狀態與實作方式。AJAX 或客製表單應由成功 callback 推送 dataLayer event；只有成功後一定到唯一感謝頁時才用該 URL，並測試重新整理不會重複計數
+問題
+        同一個事件在 GA4 出現重複
+解法
+        檢查是否有增強型評估和自訂事件同時追蹤同一行為（如外部連結點擊）；在自訂代碼的觸發條件中加入排除條件
+CONSENT MODE V2 · 同意先於追蹤
+### 進階覆核：三種同意情境都要通過
+!
+這不是第一次設定 Consent：M7-2 已要求在 Google tag 前完成 default／update。本節只做進階政策比較與跨 tag 覆核；若 M7-2 尚未通過，請先返回修正，不得在這裡補做後直接發布。
+Consent Mode 讓 Google 代碼依使用者選擇調整資料儲存與廣告用途。它不能代替同意管理平台、隱私政策或法律判斷；你的責任是取得選擇、把狀態傳給 Google，並確認所有相關代碼遵守該狀態。
+Consent type控制內容課堂最低檢查
+analytics_storage分析用途的 cookie／識別資料儲存拒絕分析時，確認 GA4 不會照核准狀態寫入
+ad_storage廣告用途的 cookie／裝置識別資料拒絕廣告儲存時，檢查廣告代碼行為已調整
+ad_user_data是否可將使用者資料傳給 Google 作線上廣告用途未取得同意時維持 denied
+ad_personalization是否可用於個人化廣告拒絕後確認再行銷與個人化用途沒有繼續採用該狀態
+!
+Basic 與 Advanced 的差別：Basic 在使用者互動前阻擋 Google 代碼；Advanced 可先載入並以預設 denied 狀態傳送不含 cookie 的量測。選哪一種是政策與技術決策，不能為了報表較完整就自行改成 Advanced。
+第一步在 CMP 或自訂同意介面載入前，設定四種 consent type 的 default 狀態
+可觀察結果Tag Assistant 顯示預設狀態；在尚未操作同意介面前，不得先出現不符合政策的 granted
+第二步分別測試全部接受、全部拒絕與部分接受
+可觀察結果每次選擇都產生對應 update，重新整理後仍能套用已保存的選擇
+停止條件狀態不明、先觸發後更新、或拒絕後仍以 granted 行為送出
+回復位置停止發布 GTM 版本，回到 CMP／Consent Initialization 與代碼 Consent Settings 修正，再從無痕視窗重跑
+i
+Server-side tagging 是延伸，不是本節必做：它在瀏覽器與行銷供應商之間增加可控的伺服器層，可改善資料治理與效能，但不能取代 client-side 事件、使用者同意或維運責任。本課只要求能說明用途與導入條件。
+MODULE 7 CORE CHECKPOINT
+進入最後一項實作契約
+你已完成 GTM 架構、GA4 整合、自訂事件、同意與除錯的核心檢查。最後請把電商事件整理成工程與行銷都能驗收的 Data Layer 契約；完成並重跑證據後，才進入下一個模組。
+AI 接口 · 電商 Data Layer 設計
+### 電商 funnel 步驟 → 先完成 Data Layer 實作契約
+AI 可以協助整理欄位與測試案例，但它不知道網站真正在哪一刻完成加購、結帳或付款。先提供平台 schema、事件來源與實際欄位，產出才能交給工程與行銷共同審查。
+把這段貼進任意生成式AI
+請幫我設計電商網站的 dataLayer 結構。
+【電商平台】[Shopify / WordPress + WooCommerce / 自架]
+【需追蹤的事件】view_item / add_to_cart / begin_checkout / purchase
+【目前 schema】[貼平台／網站實際提供的事件與欄位；沒有就填待查]
+【事件成功時機】[每個事件由哪個 callback、系統狀態或確認訊息觸發]
+【商品與交易欄位】[實際欄位名稱、型別、來源與範例值]
+【同意與目的地】[哪些 consent 狀態下送到 GA4／Meta；誰核准]
+請輸出：
+(1) 事件契約表：事件、觸發時機、欄位、型別、來源、必填與去重方式
+(2) 只根據已提供 schema 寫 dataLayer.push 草案與 GTM Variable 對照；缺資料一律標待查
+(3) 給工程師的需求單，含正例、反例、重複觸發、consent 與驗收證據；不要建議所有事件都在 page onload 送出
+可接受的參考輸出
+先回報缺口：目前未提供網站實際 schema、purchase 成功來源與 consent 對應，不能產生可上線程式碼。請先由工程確認商品、交易與使用者同意資料從哪裡取得。
+契約草案：purchase 在付款成功且取得唯一 transaction_id 後送出；value、currency 與 items 都從訂單系統取值。重新整理或返回成功頁不得重複送出同一筆 transaction_id。
+GTM 與驗收：依核准 schema 建立 Data Layer Variables；在 Preview 分別測試成功交易、付款失敗、重複載入與不同 consent 狀態，再到 GA4 DebugView 與目前 Meta 測試工具核對事件名稱、次數與參數。
+合格輸出會把未知留成待查，並讓工程師與行銷能用相同事件契約重跑測試。只有在實際 schema 與成功時機確認後，程式碼草案才可進入 code review。
+電商 Data Layer 心法：收益事件必須回到真實交易、唯一訂單與同意狀態。缺欄位或沒有去重證據時，停止把資料用於報表與廣告優化，先修正事件契約並重測。
+  ← 7-3 自訂事件追蹤
+  Module 8 數位廣告 →
+  
