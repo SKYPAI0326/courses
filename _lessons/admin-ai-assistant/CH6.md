@@ -1,7 +1,7 @@
 ---
 slug: admin-ai-assistant
 unit_id: CH6
-title: 完整方案：把行政虛擬助理建成連結 Gemini Notebook 的 Gem
+title: 完整方案：把行政虛擬助理建成連結 NotebookLM 的 Gem
 course_type: skill-operation
 duration: 25 min
 learning_objective: 能實際建立一個連結 Gemini Notebook 筆記本的 Gem，並說出讓助理隨使用成長的兩條回流路徑（對話「新增至筆記本」、網路資料整併進筆記本）

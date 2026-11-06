@@ -1,4 +1,4 @@
-# 弄一下行銷工作室 · 員工標準作業流程手冊（虛構素材，Gemini Notebook bonus 用）
+# 弄一下行銷工作室 · 員工標準作業流程手冊（虛構素材，NotebookLM bonus 用）
 
 > 本檔為**虛構教學素材**，與真實公司無關。用於 Gemini Notebook（原名 NotebookLM） bonus 演練：上傳本檔 + meeting-notes.md + policy-manual.md → 練習 source-grounded 引用問答、自動產 FAQ、跨文件 cross-reference。
 

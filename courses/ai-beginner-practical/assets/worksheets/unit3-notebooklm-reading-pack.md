@@ -1,4 +1,4 @@
-# 第 3 單元｜Gemini Notebook 閱讀包 Markdown 備援
+# 第 3 單元｜NotebookLM 閱讀包 Markdown 備援
 
 > 主線請使用 CH3-1 頁面的「Gemini Notebook（原名 NotebookLM） 閱讀紀錄台」。這份 Markdown 只作離線、列印或頁面暫時無法使用時的備援；正式完成物可由頁面工作台匯出為 `unit3-notebooklm-reading-pack-complete.md`，並保留 Gemini Notebook 產生的可點擊引用。
 
