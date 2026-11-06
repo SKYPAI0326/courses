@@ -4,7 +4,7 @@ unit_id: CH0
 title: 雙工具環境設定 + 基礎認識
 course_type: skill-operation
 duration: 50 min
-learning_objective: 完成 Gemini + NotebookLM 帳號登入與介面導覽，能說出兩工具的核心差異，並對同一個業務問題各問一次、觀察答案不同。
+learning_objective: 完成 Gemini + Gemini Notebook 帳號登入與介面導覽，能說出兩工具的核心差異，並對同一個業務問題各問一次、觀察答案不同。
 prerequisites: [office-ai-cases]
 style_guide: _outlines/gemini-notebooklm-workshop.style-guide.md
 platform_version: 2026-Q2（Gemini 免費版 / NotebookLM 免費版）
@@ -17,7 +17,7 @@ v2 定位：「信任模式分流 + 6 題切換決策入口（25 min）」
 v3 定位：「雙工具環境確認 + 介面認識 + 基本差異（50 min）」
 主要改變：
 - 從 25 min 擴大到 50 min
-- 加入 Gemini / NotebookLM 各 10 min 介面導覽
+- 加入 Gemini / Gemini Notebook（原名 NotebookLM） 各 10 min 介面導覽
 - 加入常見卡點排除（帳號問題 / 瀏覽器 / 手機版）
 - v2 的 6 題決策樹移至本課課後素材包（不在課堂跑）
 - 情境從跨部門改為個人 / 單部門
@@ -35,7 +35,7 @@ v3 定位：「雙工具環境確認 + 介面認識 + 基本差異（50 min）�
 > 業務副理小李用了兩週 Gemini，每次要問業績數字、或者找公司 SOP 的規定，他發現：
 >
 > - 問 Gemini，答案聽起來很順，但他不確定數字是真的還是 AI 自己編的
-> - 朋友叫他用 NotebookLM，他打開來一看，介面完全不同，不知道從哪裡開始
+> - 朋友叫他用 Gemini Notebook，他打開來一看，介面完全不同，不知道從哪裡開始
 >
 > 他卡在這裡。
 
@@ -80,9 +80,9 @@ v3 定位：「雙工具環境確認 + 介面認識 + 基本差異（50 min）�
 
 ---
 
-#### NotebookLM 環境確認（8 min）
+#### Gemini Notebook 環境確認（8 min）
 
-**Step 1 — 開啟 NotebookLM**
+**Step 1 — 開啟 Gemini Notebook**
 
 網址：`notebooklm.google.com`
 
@@ -92,7 +92,7 @@ v3 定位：「雙工具環境確認 + 介面認識 + 基本差異（50 min）�
 
 **Step 2 — 介面四個區塊認識**
 
-NotebookLM 的介面和 Gemini 完全不同，先看地圖再操作：
+Gemini Notebook 的介面和 Gemini 完全不同，先看地圖再操作：
 
 | 區塊 | 位置 | 做什麼用 |
 |------|------|---------|
@@ -116,8 +116,8 @@ NotebookLM 的介面和 Gemini 完全不同，先看地圖再操作：
 | 帳號登入失敗（公司帳號） | 先換個人 Gmail，課後跟公司資訊部確認 |
 | 在手機上操作 | 這兩個工具在電腦瀏覽器上最好用，今天先切到電腦 |
 | Gemini 一直轉圈不回覆 | 重新整理頁面、確認網路連線、換 Chrome 試試 |
-| NotebookLM 顯示英文介面 | 正常，功能和中文版一樣；若要切換：帳號設定 → 語言 |
-| 看不到 NotebookLM 的中文 | 問題和 Sources 可以用中文輸入，介面語言不影響 |
+| Gemini Notebook 顯示英文介面 | 正常，功能和中文版一樣；若要切換：帳號設定 → 語言 |
+| 看不到 Gemini Notebook 的中文 | 問題和 Sources 可以用中文輸入，介面語言不影響 |
 
 **講師確認**：舉手確認每個人兩個工具都打開了。有卡點先舉手，其他人先繼續。
 
@@ -128,9 +128,9 @@ NotebookLM 的介面和 Gemini 完全不同，先看地圖再操作：
 #### 一句話原則（先記住再看範例）
 
 - **Gemini**：你問什麼，它就回什麼。**沒有資料時，它會自己補充——補充的內容可能不準。**
-- **NotebookLM**：你上傳什麼，它就只根據那些資料回答。**沒上傳，就不答。**
+- **Gemini Notebook**：你上傳什麼，它就只根據那些資料回答。**沒上傳，就不答。**
 
-記住一條判斷原則：**「不確定資料哪來的，先去 NotebookLM。」**
+記住一條判斷原則：**「不確定資料哪來的，先去 Gemini Notebook。」**
 
 ---
 
@@ -139,12 +139,12 @@ NotebookLM 的介面和 Gemini 完全不同，先看地圖再操作：
 不重講 AI 原理，只需要記住這個比喻：
 
 - **Gemini 像一個讀過非常多書的助理**——你問它問題，它從記憶裡找答案，找不到的地方它會「合理推估」。推估聽起來很合理，但不一定是你公司的實際情況。
-- **NotebookLM 像一個只讀你給它的文件的助理**——你不給它文件，它沒東西讀，就說「不知道」。你給它文件，它從那些文件找答案，找到了會標出來源。
+- **Gemini Notebook 像一個只讀你給它的文件的助理**——你不給它文件，它沒東西讀，就說「不知道」。你給它文件，它從那些文件找答案，找到了會標出來源。
 
 哪個比較「聰明」？**不是問題所在。** 問題是：你要的答案，資料在哪裡？
 
 - 資料在 AI 的訓練資料裡（改寫文案、生成初稿、改語氣）→ **用 Gemini**
-- 資料在你上傳的文件裡（查 SOP、核業績數字、找會議決議）→ **用 NotebookLM**
+- 資料在你上傳的文件裡（查 SOP、核業績數字、找會議決議）→ **用 Gemini Notebook**
 
 ---
 
@@ -184,31 +184,31 @@ NotebookLM 的介面和 Gemini 完全不同，先看地圖再操作：
 
 ---
 
-**Demo B — 在 NotebookLM 問（沒有上傳任何 source）**
+**Demo B — 在 Gemini Notebook 問（沒有上傳任何 source）**
 
 <div class="dialog-box">
-  <div class="dialog-label">小李在 NotebookLM（CH0 練習 notebook，無 source）</div>
+  <div class="dialog-label">小李在 Gemini Notebook（CH0 練習 notebook，無 source）</div>
   弄一下精選商行 12 月電商業績是多少？
 </div>
 
 <div class="expected-output">
-  <div class="expected-label">NotebookLM 大概會回</div>
+  <div class="expected-label">Gemini Notebook 大概會回</div>
   <div class="expected-body">
     <p>I'm unable to answer this question. I can only provide information that is directly supported by the sources in this notebook.</p>
     <p>Please add sources related to your query to get an answer.</p>
   </div>
-  <div class="expected-note">NotebookLM 說「沒有來源，所以沒辦法回答」。這不是功能壞了——這是它設計上的保護：不讓你拿到沒有根據的答案。</div>
+  <div class="expected-note">Gemini Notebook 說「沒有來源，所以沒辦法回答」。這不是功能壞了——這是它設計上的保護：不讓你拿到沒有根據的答案。</div>
 </div>
 
 ---
 
 **講師指出重點**：
 
-同一個問題，Gemini 給了一個聽起來合理的數字，NotebookLM 拒絕回答。
+同一個問題，Gemini 給了一個聽起來合理的數字，Gemini Notebook 拒絕回答。
 
 哪個「對」？**取決於你要什麼**：
 - 你要快速了解業界行情、生成初稿 → Gemini 回答的有用
-- 你要知道弄一下精選商行自己的業績 → 那個數字不存在於 Gemini，要去 NotebookLM 上傳訂單資料才有
+- 你要知道弄一下精選商行自己的業績 → 那個數字不存在於 Gemini，要去 Gemini Notebook 上傳訂單資料才有
 
 ---
 
@@ -221,9 +221,9 @@ NotebookLM 的介面和 Gemini 完全不同，先看地圖再操作：
 想一個你上週工作中真的有的問題（例：「我們這個月業績達成率是多少」「採購的付款條件是幾天」「我們的請假流程是什麼」）。
 
 1. 在 Gemini 問一次 → 截圖或記下它給的答案
-2. 在 NotebookLM（沒上傳任何文件）問同一個問題 → 記下它的回應
+2. 在 Gemini Notebook（沒上傳任何文件）問同一個問題 → 記下它的回應
 
-**觀察一件事**：Gemini 給了什麼？NotebookLM 說了什麼？哪個答案你比較能用？
+**觀察一件事**：Gemini 給了什麼？Gemini Notebook 說了什麼？哪個答案你比較能用？
 
 這不是對錯題，沒有標準答案。目的是親眼看到這兩個工具確實不一樣。
 
@@ -241,9 +241,9 @@ NotebookLM 的介面和 Gemini 完全不同，先看地圖再操作：
 | 上傳檔案格式 | 支援 PDF / Google Docs / 圖片 / 部分 Office 格式，不支援 .xls 舊格式 |
 | 每日使用次數 | 免費版有上限，大量使用時可能遇到「今日已達上限」 |
 
-**對策**：超過 30 頁的文件要找資料，改用 NotebookLM。
+**對策**：超過 30 頁的文件要找資料，改用 Gemini Notebook。
 
-**NotebookLM 免費版主要限制**
+**Gemini Notebook 免費版主要限制**
 
 | 限制 | 說明 |
 |------|------|
@@ -253,7 +253,7 @@ NotebookLM 的介面和 Gemini 完全不同，先看地圖再操作：
 
 **對策**：一個 notebook 放一個主題的文件（不要什麼都塞同一個），CH1-3 會教怎麼規劃。
 
-💰 **付費版差異**：Gemini Advanced 有 1M token context；NotebookLM Plus 有更高 source 配額 + 更快回應速度。本課全程用免費版，付費版不做要求。
+💰 **付費版差異**：Gemini Advanced 有 1M token context；Gemini Notebook Plus 有更高 source 配額 + 更快回應速度。本課全程用免費版，付費版不做要求。
 
 ---
 
@@ -262,10 +262,10 @@ NotebookLM 的介面和 Gemini 完全不同，先看地圖再操作：
 **離場自查卡（打勾）**
 
 - [ ] 我已經打開 Gemini，能看到對話框、知道「新對話」在哪裡
-- [ ] 我已經打開 NotebookLM，建立了一個 notebook，看得到 Sources / Chat / Studio 三個區塊
-- [ ] 我能用一句話說出 Gemini 和 NotebookLM 最核心的差異（一個補充、一個只讀你給的）
+- [ ] 我已經打開 Gemini Notebook，建立了一個 notebook，看得到 Sources / Chat / Studio 三個區塊
+- [ ] 我能用一句話說出 Gemini 和 Gemini Notebook 最核心的差異（一個補充、一個只讀你給的）
 - [ ] 我問了同一個問題，看到兩個工具回應不一樣
-- [ ] 我記得「32K token 超過 30 頁改用 NotebookLM」這條實用原則
+- [ ] 我記得「32K token 超過 30 頁改用 Gemini Notebook」這條實用原則
 
 打勾 ≥ 4 條 = 過，可進 CH1-1。
 
@@ -278,7 +278,7 @@ NotebookLM 的介面和 Gemini 完全不同，先看地圖再操作：
 ### 連線設定所需
 
 - Gemini 免費版（任一 Google 帳號，包含個人 Gmail）
-- NotebookLM 免費版（同 Google 帳號）
+- Gemini Notebook 免費版（同 Google 帳號）
 - 建議：開課前 1 週在公司電腦確認兩個工具能打開，若公司帳號被限制，備好個人 Gmail
 
 ### Sample Dataset
@@ -290,13 +290,13 @@ NotebookLM 的介面和 Gemini 完全不同，先看地圖再操作：
 ### Prompt 集
 
 - Demo A 示範 prompt（1 條，小李問業績）
-- Demo B 示範 prompt（同一條，在 NotebookLM 無 source 狀態下問）
+- Demo B 示範 prompt（同一條，在 Gemini Notebook 無 source 狀態下問）
 - 學員動手題引導語（讓學員想到自己工作中的一個問題）
 
 ### 帶走項
 
-- 兩工具核心差異速查卡（1 頁 A4：Gemini vs NotebookLM 對比表 + 免費版限制）
-- 「不確定資料哪來的，先去 NotebookLM」一句話原則卡
+- 兩工具核心差異速查卡（1 頁 A4：Gemini vs Gemini Notebook 對比表 + 免費版限制）
+- 「不確定資料哪來的，先去 Gemini Notebook」一句話原則卡
 - 常見卡點排除表（帳號 / 瀏覽器 / 手機版問題對策）
 
 ---
@@ -305,13 +305,13 @@ NotebookLM 的介面和 Gemini 完全不同，先看地圖再操作：
 
 **主角**：小李（32 歲業務副理 · 弄一下精選商行）
 
-**卡住的事**：上過 office-ai-cases 之後，偶爾用 Gemini 寫提案信，但一遇到要查業績數字或找 SOP 規定，就不確定 Gemini 的回答能不能信。聽說 NotebookLM 可以解決這個問題，但打開來不知道從哪裡開始用。
+**卡住的事**：上過 office-ai-cases 之後，偶爾用 Gemini 寫提案信，但一遇到要查業績數字或找 SOP 規定，就不確定 Gemini 的回答能不能信。聽說 Gemini Notebook 可以解決這個問題，但打開來不知道從哪裡開始用。
 
 **本單元完成後，小李應該能做到**：
 
 1. 打開兩個工具都不再卡關
-2. 知道哪種問題丟 Gemini、哪種問題去 NotebookLM
-3. 能跟同事解釋一句話：「查公司自己的資料，去 NotebookLM；要 AI 幫你寫東西，去 Gemini」
+2. 知道哪種問題丟 Gemini、哪種問題去 Gemini Notebook
+3. 能跟同事解釋一句話：「查公司自己的資料，去 Gemini Notebook；要 AI 幫你寫東西，去 Gemini」
 
 ---
 
@@ -322,18 +322,18 @@ NotebookLM 的介面和 Gemini 完全不同，先看地圖再操作：
 **步驟**：
 
 ① 在 Gemini 問 → 觀察它怎麼回答
-② 在 NotebookLM（不上傳任何文件）問同一個問題 → 觀察它怎麼回答
+② 在 Gemini Notebook（不上傳任何文件）問同一個問題 → 觀察它怎麼回答
 ③ 心裡記住：這個問題，哪個工具的回答對你更有用？
 
 **預期成果**：
 
 - 親眼看到同一個問題，兩個工具回應方式不同
-- 能說出一個「Gemini 的回答有用」或「NotebookLM 拒絕回答、代表我需要上傳資料」的直接感受
+- 能說出一個「Gemini 的回答有用」或「Gemini Notebook 拒絕回答、代表我需要上傳資料」的直接感受
 
 **完成標準**
 
 - [ ] 兩個工具都問過了
-- [ ] 能說出「Gemini 給了什麼 / NotebookLM 說了什麼」
+- [ ] 能說出「Gemini 給了什麼 / Gemini Notebook 說了什麼」
 - [ ] 對接下來的 CH1-1 有一個具體期待：「我想上傳 __ 這份文件，問 __ 這個問題」
 
 ---
@@ -342,7 +342,7 @@ NotebookLM 的介面和 Gemini 完全不同，先看地圖再操作：
 
 ### 1. 以為介面打不開代表工具壞了
 
-**現象**：公司電腦用公司帳號打開 Gemini 或 NotebookLM，看到「無法使用此功能」或「此服務不適用於你的帳戶」，學員以為是工具出問題。
+**現象**：公司電腦用公司帳號打開 Gemini 或 Gemini Notebook，看到「無法使用此功能」或「此服務不適用於你的帳戶」，學員以為是工具出問題。
 
 **原因**：公司 Google Workspace 管理員可能未開放外部 AI 服務。這是公司政策問題，不是工具壞了。
 
@@ -350,19 +350,19 @@ NotebookLM 的介面和 Gemini 完全不同，先看地圖再操作：
 
 ---
 
-### 2. 以為 NotebookLM 不能回答是因為 AI 不夠聰明
+### 2. 以為 Gemini Notebook 不能回答是因為 AI 不夠聰明
 
-**現象**：在 NotebookLM 沒有上傳任何文件就問問題，看到「無法回答」，以為 NotebookLM 比 Gemini 差，不好用。
+**現象**：在 Gemini Notebook 沒有上傳任何文件就問問題，看到「無法回答」，以為 Gemini Notebook 比 Gemini 差，不好用。
 
-**原因**：NotebookLM 設計上就是「只根據你上傳的文件回答」。沒有文件不是功能限制，是它的設計核心——目的是讓你不會拿到沒有根據的答案。
+**原因**：Gemini Notebook 設計上就是「只根據你上傳的文件回答」。沒有文件不是功能限制，是它的設計核心——目的是讓你不會拿到沒有根據的答案。
 
-**解法**：認清這兩個工具是不同設計哲學，不是好不好的問題。上傳文件後，NotebookLM 會有引用標記，這是 Gemini 給不了的東西。CH1-1 上傳文件後就會看到差異。
+**解法**：認清這兩個工具是不同設計哲學，不是好不好的問題。上傳文件後，Gemini Notebook 會有引用標記，這是 Gemini 給不了的東西。CH1-1 上傳文件後就會看到差異。
 
 ---
 
 ### 3. 用手機打開工具
 
-**現象**：學員用手機打開 Gemini 或 NotebookLM。手機版介面和電腦版差很多，上傳文件不順，NotebookLM 的 Sources 側欄預設收起來找不到。
+**現象**：學員用手機打開 Gemini 或 Gemini Notebook。手機版介面和電腦版差很多，上傳文件不順，Gemini Notebook 的 Sources 側欄預設收起來找不到。
 
 **原因**：這兩個工具的完整功能設計都是針對電腦瀏覽器。手機版是簡化版，部分功能位置不同或需要多點幾步。
 
@@ -379,11 +379,11 @@ NotebookLM 的介面和 Gemini 完全不同，先看地圖再操作：
 下面哪個做法**最直接**找到答案？
 
 - A. 用 Gemini 問「一般貿易合約付款條件是幾天」
-- B. 把合約 PDF 上傳到 NotebookLM，問「付款條件是幾天」
+- B. 把合約 PDF 上傳到 Gemini Notebook，問「付款條件是幾天」
 - C. 用 Gemini 問「幫我分析這份合約的付款條件」（沒有上傳合約）
-- D. 用 NotebookLM 問「一般合約付款條件是什麼」（沒有上傳任何文件）
+- D. 用 Gemini Notebook 問「一般合約付款條件是什麼」（沒有上傳任何文件）
 
-**預期答案**：**B**。資料（合約）在你手上 → 上傳到 NotebookLM → 問具體問題 → 得到有來源依據的答案。A 和 C 都是讓 Gemini 在沒有合約的情況下回答，會得到業界慣例而不是你這份合約的條款。D 同樣沒有上傳文件，NotebookLM 會拒絕回答。
+**預期答案**：**B**。資料（合約）在你手上 → 上傳到 Gemini Notebook → 問具體問題 → 得到有來源依據的答案。A 和 C 都是讓 Gemini 在沒有合約的情況下回答，會得到業界慣例而不是你這份合約的條款。D 同樣沒有上傳文件，Gemini Notebook 會拒絕回答。
 
 ---
 
@@ -394,8 +394,8 @@ NotebookLM 的介面和 Gemini 完全不同，先看地圖再操作：
 哪個做法最可能**拿到可靠答案**？
 
 - A. 把整份 PDF 直接複製貼進 Gemini 的對話框
-- B. 把 PDF 上傳到 NotebookLM，問「報價最低的三個供應商是哪些？」
+- B. 把 PDF 上傳到 Gemini Notebook，問「報價最低的三個供應商是哪些？」
 - C. 用 Gemini 問「採購供應商報價通常哪個比較便宜」
 - D. 把 PDF 的前 10 頁複製貼進 Gemini 問問題
 
-**預期答案**：**B**。理由：180 頁已超過 Gemini 免費版 32K token（約 30 頁）上限，直接丟 Gemini 只會讀前段（A 的問題）。NotebookLM 的 source 上限約 500K token / 份，容得下 180 頁 PDF，且引用標記讓你確認哪個供應商的數字是從哪一頁來的。C 得到的是業界均價不是這份報價表的數字。D 只讀了前 10 頁，後段更便宜的供應商可能被漏掉。
+**預期答案**：**B**。理由：180 頁已超過 Gemini 免費版 32K token（約 30 頁）上限，直接丟 Gemini 只會讀前段（A 的問題）。Gemini Notebook 的 source 上限約 500K token / 份，容得下 180 頁 PDF，且引用標記讓你確認哪個供應商的數字是從哪一頁來的。C 得到的是業界均價不是這份報價表的數字。D 只讀了前 10 頁，後段更便宜的供應商可能被漏掉。

@@ -123,7 +123,7 @@
 | 把 outlier 列入平均，導致門檻變高 | 大額異常抓 0 筆 | 追問：「請扣除前 5% 與後 5% outlier 再算平均」|
 | 用 SKU 主檔的「售價」當實際成交價 | 平均單價 = 主檔售價 | 追問：「平均單價請用 銷售額 ÷ 數量，不用主檔售價」|
 | 簡報組裝時把「在手金額」當「已成交業績」| 6 月初業績爆增 | 追問：「在手金額是預估，請與已成交分開列」|
-| 把單次會議決議當公司政策 | NotebookLM 引用 meeting-notes 當規則 | 追問：「meeting-notes 是事件不是政策，請只引用 SOP 和 Policy」|
+| 把單次會議決議當公司政策 | Gemini Notebook（原名 NotebookLM） 引用 meeting-notes 當規則 | 追問：「meeting-notes 是事件不是政策，請只引用 SOP 和 Policy」|
 
 ---
 

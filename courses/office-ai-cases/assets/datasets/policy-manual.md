@@ -1,6 +1,6 @@
-# 弄一下行銷工作室 · 公司政策手冊（虛構素材，NotebookLM bonus 用）
+# 弄一下行銷工作室 · 公司政策手冊（虛構素材，Gemini Notebook bonus 用）
 
-> 本檔為**虛構教學素材**。涵蓋人事 / 財務 / IT / 客戶 4 大政策。用於 NotebookLM bonus 演練：與 company-sop.md + meeting-notes.md 一起上傳，練習跨文件 cross-reference + 引用式 FAQ。
+> 本檔為**虛構教學素材**。涵蓋人事 / 財務 / IT / 客戶 4 大政策。用於 Gemini Notebook（原名 NotebookLM） bonus 演練：與 company-sop.md + meeting-notes.md 一起上傳，練習跨文件 cross-reference + 引用式 FAQ。
 
 ---
 
@@ -49,7 +49,7 @@
 ## §3 IT 與資安政策
 
 ### §3.1 AI 工具使用
-- **核可清單（免費版可用）**：ChatGPT 免費 / Gemini 免費 / Microsoft Copilot Edge 免費 / NotebookLM 免費 / Claude.ai 免費
+- **核可清單（免費版可用）**：ChatGPT 免費 / Gemini 免費 / Microsoft Copilot Edge 免費 / Gemini Notebook 免費 / Claude.ai 免費
 - **核可清單（付費版可用 · 含資料保護承諾）**：Microsoft 365 Copilot 商務、ChatGPT Team、Gemini for Workspace
 - **禁止上傳到免費版 AI 的資料類型**：
   1. 客戶名單 / 聯絡資訊 / 採購金額

@@ -30,7 +30,7 @@
 入門 PDF（mock-project-v1/v2/solo）用於單檔定位；Part3 正式跨來源練習使用 workplace-cases/part3-demo 與 part3-solo，不把同名專案的入門 PDF 混進工作包。舊海岸 PDF 的上限／報價用語已修正；它仍是另一個教學版本，不是新版海岸志工包的來源。
 
 ## 操作指南與獨立變更
-- [NotebookLM 建本與來源選取](notebook-start.md)：CH3-1 首次操作前使用。
+- [Gemini Notebook（原名 NotebookLM） 建本與來源選取](notebook-start.md)：CH3-1 首次操作前使用。
 - [HTML 生成、保存、重開與 README](html-file-workflow.md)：CH4-1 首次存檔前使用。
 - [U07 完整九欄與覆核](part5-candidate-example.md)、[四課建置狀態](part5-stage-handoff.md)、[完整測試列](part5-test-inputs.csv)：Part5 依指定階段完成。
 - [完整七欄流程卡與通知稿](part6-filled-workflow.md)：CH6-2 示範。

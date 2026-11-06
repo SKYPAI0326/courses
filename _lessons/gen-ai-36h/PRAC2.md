@@ -191,7 +191,7 @@ AI 提出修正後，每一處都問三個問題：
 
 更新版交接紀錄完成後，你已經把 Part 2 的做法串起來：讓 AI 整理工作訊息、寫給不同讀者、讀附件與逐字紀錄，再替交接文件校對和局部更新。核對工作交給 AI 先做，你負責用原文出處與三個問題判斷哪些修正可以採用。
 
-需要查看整份示例時，完成自己的版本後再開[完整範例](../assets/workplace-cases/part2/START-HERE.html)。下一個 Part 會使用 NotebookLM 直接從文件找答案，並查看回答引用了哪一段來源。
+需要查看整份示例時，完成自己的版本後再開[完整範例](../assets/workplace-cases/part2/START-HERE.html)。下一個 Part 會使用 Gemini Notebook（原名 NotebookLM） 直接從文件找答案，並查看回答引用了哪一段來源。
 <!-- learner-content:end -->
 
 ## 教師與版本紀錄（不轉製學員正文）

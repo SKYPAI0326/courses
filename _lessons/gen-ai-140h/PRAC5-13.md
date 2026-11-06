@@ -98,7 +98,7 @@ PRAC5-13 教案（一鍵生個人單頁網站演練 — ⑦正式化）
 > 3. 三項技能：
 >    - 跨部門溝通協作（過去主辦 12 場跨國視訊會議）
 >    - Google Ads 操作（個人作品集累積 60+ 廣告組合）
->    - AI 工具應用（ChatGPT / Gemini / NotebookLM 日常工作流）
+>    - AI 工具應用（ChatGPT / Gemini / Gemini Notebook（原名 NotebookLM） 日常工作流）
 > 4. 三個作品：
 >    - 「咖啡店週末活動」Meta 廣告投放案（提案中）
 >    - 「個人轉職 90 天計畫」Notion 公開頁

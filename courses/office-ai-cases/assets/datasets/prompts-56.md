@@ -1,13 +1,13 @@
 # 辦公室 AI 工具案例應用 — 56 套提示詞庫
 
 > **課程**：辦公室 AI 工具案例應用（office-ai-cases）
-> **版本**：2026-05（ChatGPT GPT-5.5 free / Gemini 32K free / Copilot Edge free / NotebookLM free / Claude.ai free）
+> **版本**：2026-05（ChatGPT GPT-5.5 free / Gemini 32K free / Copilot Edge free / Gemini Notebook（原名 NotebookLM） free / Claude.ai free）
 > **授課單位**：弄一下工作室
 
 ---
 
 **總 prompts 數：56**
-**主課 42 + Bonus 9 + NotebookLM 5**
+**主課 42 + Bonus 9 + Gemini Notebook 5**
 
 字數總計：約 12,800 字
 
@@ -16,7 +16,7 @@
 ## 使用說明
 
 - **主課 ①②③④**（P1-x / P2-x）：在任一主流 AI 工具貼上即可跑，不指定平台
-- **NotebookLM 專用**（NB-x）：僅 NotebookLM 可用，因為需要 source-grounded 問答功能
+- **Gemini Notebook 專用**（NB-x）：僅 Gemini Notebook 可用，因為需要 source-grounded 問答功能
 - **Bonus**（B1-x / B2-x / B3-x）：跨案例通用的工具型 prompt，搭配主課 prompt 一起用
 - 💰 標記 = 需付費版才能完整執行，免費版有限制
 - 每個 prompt 用 ` ``` ` 包起來，可直接整段複製貼上
@@ -1658,18 +1658,18 @@
 
 ---
 
-## NotebookLM 專用（5 套 · NB-x）
+## Gemini Notebook 專用（5 套 · NB-x）
 
-> 以下 5 套 prompt 專為 NotebookLM 設計，利用其 source-grounded 問答功能。
-> 這是少數需要指定工具的案例——NotebookLM 的「引用來源」功能是不可替代的，其他主流 AI 工具無法在問答中自動顯示原文引用。
+> 以下 5 套 prompt 專為 Gemini Notebook 設計，利用其 source-grounded 問答功能。
+> 這是少數需要指定工具的案例——Gemini Notebook 的「引用來源」功能是不可替代的，其他主流 AI 工具無法在問答中自動顯示原文引用。
 
-**使用前提**：先在 NotebookLM 建立一個新 Notebook，上傳所需文件後，再把以下 prompt 貼到對話框。
+**使用前提**：先在 Gemini Notebook 建立一個新 Notebook，上傳所需文件後，再把以下 prompt 貼到對話框。
 
 ---
 
 ### NB-1 · 多份文件自動產 FAQ
 
-**用途**：上傳多份公司內部文件（例如：SOP 手冊、公告、會議記錄），讓 NotebookLM 自動產出 FAQ 供同事查詢。
+**用途**：上傳多份公司內部文件（例如：SOP 手冊、公告、會議記錄），讓 Gemini Notebook 自動產出 FAQ 供同事查詢。
 
 **Prompt**：
 ```
@@ -1686,13 +1686,13 @@ A：[答案]（來源：[文件名稱] [頁碼或段落]）
 若某個問題在文件中找不到答案，請說「文件中未提及，建議詢問主管 / 相關部門」，不要自行補充。
 ```
 
-**為何這樣寫**：「引用時請標記來源文件」是 NotebookLM 的核心優勢，這個 prompt 充分利用這個功能；「找不到答案就說沒有」是防止 AI 超出文件範圍回答的關鍵設計。
+**為何這樣寫**：「引用時請標記來源文件」是 Gemini Notebook 的核心優勢，這個 prompt 充分利用這個功能；「找不到答案就說沒有」是防止 AI 超出文件範圍回答的關鍵設計。
 
 ---
 
 ### NB-2 · 會議紀錄的 Source-Grounded 摘要
 
-**用途**：上傳會議紀錄，讓 NotebookLM 做有來源引用的摘要，避免摘要遺漏或曲解會議結論。
+**用途**：上傳會議紀錄，讓 Gemini Notebook 做有來源引用的摘要，避免摘要遺漏或曲解會議結論。
 
 **Prompt**：
 ```
@@ -1712,7 +1712,7 @@ A：[答案]（來源：[文件名稱] [頁碼或段落]）
 -（說明：為何這點尚未有結論，依據文件中的哪段描述）
 ```
 
-**為何這樣寫**：「尚未有結論的討論點」讓 NotebookLM 主動標示出會議中未解決的問題，是後續追蹤最重要的資訊。
+**為何這樣寫**：「尚未有結論的討論點」讓 Gemini Notebook 主動標示出會議中未解決的問題，是後續追蹤最重要的資訊。
 
 ---
 
@@ -1734,13 +1734,13 @@ A：[答案]（來源：[文件名稱] [頁碼或段落]）
 我的第一個問題是：[你的問題]
 ```
 
-**為何這樣寫**：「不要根據你的訓練資料補充答案」是 NotebookLM 使用中最重要的邊界設定，確保問答結果完全來自上傳文件。
+**為何這樣寫**：「不要根據你的訓練資料補充答案」是 Gemini Notebook 使用中最重要的邊界設定，確保問答結果完全來自上傳文件。
 
 ---
 
 ### NB-4 · 跨文件 Cross-Reference 分析
 
-**用途**：上傳多份文件後，讓 NotebookLM 找出文件間的矛盾、差異或一致性，適合政策更新後的版本對照。
+**用途**：上傳多份文件後，讓 Gemini Notebook 找出文件間的矛盾、差異或一致性，適合政策更新後的版本對照。
 
 **Prompt**：
 ```
@@ -1760,20 +1760,20 @@ A：[答案]（來源：[文件名稱] [頁碼或段落]）
 格式要求：每條必須引用原文，不要只給摘要。
 ```
 
-**為何這樣寫**：三個分類（矛盾 / 一致 / 獨特）讓 NotebookLM 做結構化的文件差異分析，而不是只做單份文件摘要。
+**為何這樣寫**：三個分類（矛盾 / 一致 / 獨特）讓 Gemini Notebook 做結構化的文件差異分析，而不是只做單份文件摘要。
 
 ---
 
 ### NB-5 · 產 Audio Overview（通勤聽用）
 
-**用途**：利用 NotebookLM 的 Audio Overview 功能，把上傳文件轉成對話式音頻，適合通勤學習。
+**用途**：利用 Gemini Notebook 的 Audio Overview 功能，把上傳文件轉成對話式音頻，適合通勤學習。
 
 **Prompt**：
 ```
-（注意：這個功能不是在對話框輸入 prompt，而是點擊 NotebookLM 右側面板的「Audio Overview」按鈕直接生成。以下是給學員的操作說明）
+（注意：這個功能不是在對話框輸入 prompt，而是點擊 Gemini Notebook 右側面板的「Audio Overview」按鈕直接生成。以下是給學員的操作說明）
 
 操作步驟：
-1. 在 NotebookLM Notebook 中上傳你的文件（會議記錄 / 報告 / SOP 等）
+1. 在 Gemini Notebook Notebook 中上傳你的文件（會議記錄 / 報告 / SOP 等）
 2. 點擊右側「Audio Overview」面板
 3. 點擊「Generate」按鈕，等待約 2-5 分鐘
 4. 生成完成後，可在瀏覽器直接播放，或下載 MP3
@@ -1794,7 +1794,7 @@ A：[答案]（來源：[文件名稱] [頁碼或段落]）
 注意：Audio Overview 目前（2026-05）支援繁體中文，約 10-15 分鐘音頻，兩位虛擬主持人對話式呈現。
 ```
 
-**為何這樣寫**：Audio Overview 是 NotebookLM 最有差異化的功能，但操作方式和其他 AI 工具不同（不是貼 prompt），需要說明清楚操作步驟和適用情境，避免學員期待錯誤。
+**為何這樣寫**：Audio Overview 是 Gemini Notebook 最有差異化的功能，但操作方式和其他 AI 工具不同（不是貼 prompt），需要說明清楚操作步驟和適用情境，避免學員期待錯誤。
 
 ---
 

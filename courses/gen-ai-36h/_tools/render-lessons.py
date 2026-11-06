@@ -60,7 +60,7 @@ for unit in args.units or meta:
  replacements.append((n['inner'],n['close'],'\n'+rendered+extras+'\n'))
  for cls,value in [('lesson-title',escape(m['title'])),('lesson-tagline',escape(m['goal']))]:
   n=parser.find(cls);replacements.append((n['inner'],n['close'],value))
- part_names={'1':'AI 基礎與提示詞','2':'用 AI 處理辦公文字與附件','3':'用 NotebookLM 從文件找答案','4':'用 AI 做出工作小工具','5':'用 AI 整理訊息，交給 Make 自動處理','6':'建立自己的 AI 工作流程','7':'結業專題：用 AI 完成一件自己的工作'}
+ part_names={'1':'AI 基礎與提示詞','2':'用 AI 處理辦公文字與附件','3':'用 Gemini Notebook 從文件找答案','4':'用 AI 做出工作小工具','5':'用 AI 整理訊息，交給 Make 自動處理','6':'建立自己的 AI 工作流程','7':'結業專題：用 AI 完成一件自己的工作'}
  n=parser.find('hero-part');part=m['path'][4];replacements.append((n['inner'],n['close'],f'Part {part} · '+part_names[part]))
  hero=parser.find('lesson-hero')
  optional=[x for x in parser.nodes if x.get('parent') is hero and set(x['attrs'].get('class','').split())&{'outcomes','howto'}]
