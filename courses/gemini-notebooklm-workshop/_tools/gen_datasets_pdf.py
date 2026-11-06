@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""生成 16 份弄一下精選商行虛構 PDF 文件（NotebookLM 課程練習用）。"""
+"""生成 16 份弄一下精選商行虛構 PDF 文件（Gemini Notebook 課程練習用）。"""
 import os
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm

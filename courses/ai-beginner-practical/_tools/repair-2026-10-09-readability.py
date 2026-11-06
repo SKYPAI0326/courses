@@ -210,9 +210,9 @@ p.p('從下方工作演練','選同一案例的三份文件，做成 FAQ、交�
 p.p('先取得完整來源／資料','<a href="#workplace-practice">選材料，開始加入來源 →</a>　<a href="#lesson-check">完成檢查 →</a>',selector='#lesson-start p')
 p.p('每人獨立選一組','可選教育行政、服務交接，或自己同一件工作中的三份文件。下方新聞、公告與書籍素材供課後選做。')
 setup='<ol><li>展開下方所選案例的第一份文件，按「複製全文」。</li><li>開啟筆記本工具，登入自己的帳號，建立一個新筆記本。</li><li>在來源區選「新增來源」，選擇貼上文字的方式，把剛才的全文貼入。</li><li>將來源命名為材料標題，例如「DA1排課規範」。完成加入後，點開它，確認第一段與原文一致。</li><li>用相同方法加入該案例的第二、三份文件。來源列表應有三個名稱，三份都能讀到原文。</li></ol>'
-p.p('先展開下方A或B','先選下方一組文件，再'+link('https://notebooklm.google.com/','開啟 NotebookLM／Gemini Notebook')+'。加入第一份來源的方法如下：'+setup+paragraph('若來源為空或名稱重複，先回本頁重新複製完整文字，分開加入。尚未能登入或建立筆記本時，請講師協助；三份可讀後才開始提問。'))
+p.p('先展開下方A或B','先選下方一組文件，再'+link('https://notebooklm.google.com/','開啟 Gemini Notebook')+'。加入第一份來源的方法如下：'+setup+paragraph('若來源為空或名稱重複，先回本頁重新複製完整文字，分開加入。尚未能登入或建立筆記本時，請講師協助；三份可讀後才開始提問。'))
 # Replace the preceding paragraph with valid block siblings rather than putting ol inside p.
-p.edits[-1]=(p.edits[-1][0],p.edits[-1][1],paragraph('先選下方一組文件，再'+link('https://notebooklm.google.com/','開啟 NotebookLM／Gemini Notebook')+'。先練習加入第一份來源：')+setup+paragraph('來源列表應有三個可辨認的名稱，三份都能讀到原文。來源為空時回本頁重複製，尚未能登入時請講師協助；確認三份可讀再提問。'),'補來源加入的完整操作橋接')
+p.edits[-1]=(p.edits[-1][0],p.edits[-1][1],paragraph('先選下方一組文件，再'+link('https://notebooklm.google.com/','開啟 Gemini Notebook')+'。先練習加入第一份來源：')+setup+paragraph('來源列表應有三個可辨認的名稱，三份都能讀到原文。來源為空時回本頁重複製，尚未能登入時請講師協助；確認三份可讀再提問。'),'補來源加入的完整操作橋接')
 p.text('#workplace-practice h3','先練一次：回答有沒有原文支持？',prefix='引用支持')
 p.p('來源是加入筆記本','來源就是你加入的原文；引用是回答旁邊可點回原文的標記。要核對的「主張」，就是回答中一句可以查證的話。例如原文寫「1工作天首次回覆」，只能證明回覆期限，不能寫成「1工作天結案」。')
 p.p('先看文件狀態','文件較新不一定能改規定。先看是否正式核准、適用哪個期間與對象。排課案的會議只是建議20人，沒有核准容量變更，不能直接取代公告的18人。')

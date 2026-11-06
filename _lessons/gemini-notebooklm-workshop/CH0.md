@@ -7,7 +7,7 @@ duration: 50 min
 learning_objective: 完成 Gemini + Gemini Notebook 帳號登入與介面導覽，能說出兩工具的核心差異，並對同一個業務問題各問一次、觀察答案不同。
 prerequisites: [office-ai-cases]
 style_guide: _outlines/gemini-notebooklm-workshop.style-guide.md
-platform_version: 2026-Q2（Gemini 免費版 / NotebookLM 免費版）
+platform_version: 2026-Q2（Gemini 免費版 / Gemini Notebook 免費版）
 version: v3（2026-06-02，基礎加強班取代 v2 決策入口版）
 ---
 

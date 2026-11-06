@@ -39,8 +39,8 @@ def clean_document(pdf_path: Path, title: str, source: str) -> None:
     writer.add_metadata({
         "/Title": f"行政 AI 虛擬助理實戰｜{title}｜學員版",
         "/Author": "弄一下工作室",
-        "/Subject": "可列印、可搜尋、NotebookLM Ready 學員講義",
-        "/Keywords": "行政 AI, Gemini, NotebookLM, 學員講義",
+        "/Subject": "可列印、可搜尋、Gemini Notebook Ready 學員講義",
+        "/Keywords": "行政 AI, Gemini, Gemini Notebook, 學員講義",
     })
     temp = pdf_path.with_suffix(".postprocess.pdf")
     with temp.open("wb") as handle:
@@ -65,8 +65,8 @@ def merge_full(pdf_path: Path, cover_pdf: str, chapter_items: list[dict], append
     writer.add_metadata({
         "/Title": "行政 AI 虛擬助理實戰｜全課合併版｜學員版",
         "/Author": "弄一下工作室",
-        "/Subject": "6 章完整內容、章末答案與課程資產庫；可列印、可搜尋、NotebookLM Ready",
-        "/Keywords": "行政 AI, Gemini, NotebookLM, 虛擬助理, 學員講義",
+        "/Subject": "6 章完整內容、章末答案與課程資產庫；可列印、可搜尋、Gemini Notebook Ready",
+        "/Keywords": "行政 AI, Gemini, Gemini Notebook, 虛擬助理, 學員講義",
     })
     with pdf_path.open("wb") as handle:
         writer.write(handle)

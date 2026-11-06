@@ -1,6 +1,6 @@
 ---
 slug: gemini-notebooklm-workshop
-name: Gemini × NotebookLM 跨部門 AI 工作坊
+name: Gemini × Gemini Notebook 跨部門 AI 工作坊
 tagline: 基礎加強班：雙工具環境設定到日常工作流
 color: "#5a7a5a"
 audience: 跨部門上班族（財務 / 業務 / 電商 / 倉儲 / 商品採購）。兩種都適用：**上過 office-ai-cases 但吸收不足**的加強班學員，以及**尚未熟悉生成式 AI 的真 0 基礎新手**——都從零把 Gemini 和 NotebookLM 的基本操作扎實練熟

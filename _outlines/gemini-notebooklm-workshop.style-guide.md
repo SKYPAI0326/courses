@@ -122,7 +122,7 @@ extends: _style_guide_template.md
 
 ## SEO 與 metadata
 
-- 每頁 `<title>` 含「Gemini × NotebookLM 跨部門 AI 工作坊」全名
+- 每頁 `<title>` 含「Gemini × Gemini Notebook 跨部門 AI 工作坊」全名
 - meta description 強調「指定雙工具 / 5 部門變體 / 跨來源整合 / 帶走素材包」
 - footer `data-platform-version`：`2026-Q2（Gemini 免費版 / NotebookLM 免費版）`
 - footer `data-built-at`：今日（產製日）

@@ -41,7 +41,7 @@ COURSE_LABEL = {
     "line-stickers": "AI 自製 LINE 貼圖（12h）",
     "career-pivot-mid": "8 小時轉職實戰",
     "office-ai-cases": "辦公室 AI 工具案例應用",
-    "gemini-notebooklm-workshop": "Gemini × NotebookLM 跨部門 AI 工作坊",
+    "gemini-notebooklm-workshop": "Gemini × Gemini Notebook 跨部門 AI 工作坊",
     "career-guidance": "8 小時職涯定位實戰",
     "codex-basic": "Codex 基礎使用（3h）",
     "admin-ai-assistant": "行政 AI 虛擬助理實戰（2h）",

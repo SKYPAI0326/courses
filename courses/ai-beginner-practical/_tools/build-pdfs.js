@@ -11,7 +11,7 @@ const LAYOUT_CSS = path.join(COURSE_ROOT, 'assets', 'layout-redesign.css');
 const LESSONS = [
   { file: 'CH1-1.html', code: 'CH1-1', title: '第一次與 LLM 對話：把日常問題說清楚', sections: ['lesson-start', 'lesson-concept', 'lesson-example-bank', 'lesson-demo', 'lesson-practice', 'lesson-check'] },
   { file: 'CH2-1.html', code: 'CH2-1', title: '日常溝通：讓 AI 幫你寫 Email、LINE／短訊息與自我介紹', sections: ['lesson-start', 'lesson-concept', 'lesson-demo', 'lesson-practice', 'lesson-check'] },
-  { file: 'CH3-1.html', code: 'CH3-1', title: '來源、主張、證據：用 NotebookLM 建立可回查的閱讀包', sections: ['lesson-start', 'lesson-concept', 'lesson-demo', 'lesson-practice', 'lesson-check', 'lesson-assets'] },
+  { file: 'CH3-1.html', code: 'CH3-1', title: '來源、主張、證據：用 Gemini Notebook 建立可回查的閱讀包', sections: ['lesson-start', 'lesson-concept', 'lesson-demo', 'lesson-practice', 'lesson-check', 'lesson-assets'] },
   { file: 'CH4-1.html', code: 'CH4-1', title: '30 個生活化提示詞：把 LLM 套到自己的情境', sections: ['lesson-start', 'lesson-concept', 'lesson-demo', 'lesson-practice', 'lesson-check'] },
 ];
 
@@ -96,7 +96,7 @@ function assetAppendix() {
       ],
     },
     {
-      title: 'NotebookLM 來源索引與示範來源',
+      title: 'Gemini Notebook 來源索引與示範來源',
       files: [
         'assets/sources/README.md',
         'assets/sources/news-community-fridge.txt',
@@ -130,11 +130,11 @@ function courseMap() {
   return `<section class="print-map">
     <div class="section-eyebrow">閱讀順序</div>
     <h2 class="section-heading">四個單元，從提問到可重做的交付物</h2>
-    <p class="body-text">每個單元都先看完成物，再用一個具體案例跟做，最後留下可保存的紀錄。第 3 單元固定使用 NotebookLM；其餘單元採 LLM 通用方法，不指定聊天平台。</p>
+    <p class="body-text">每個單元都先看完成物，再用一個具體案例跟做，最後留下可保存的紀錄。第 3 單元固定使用 Gemini Notebook；其餘單元採 LLM 通用方法，不指定聊天平台。</p>
     <table class="map-table"><thead><tr><th>單元</th><th>核心任務</th><th>帶走的完成物</th></tr></thead><tbody>
       <tr><td>CH1-1｜3 小時</td><td>五欄提示詞、五題日常對話、缺條件比較</td><td>LLM 實務紀錄</td></tr>
       <tr><td>CH2-1｜3 小時</td><td>Email、LINE／短訊息、自我介紹的讀者與語氣改寫</td><td>日常文書包</td></tr>
-      <tr><td>CH3-1｜3 小時</td><td>NotebookLM 來源、主張台帳、公告卡、書籍筆記與引用回查</td><td>來源閱讀包</td></tr>
+      <tr><td>CH3-1｜3 小時</td><td>Gemini Notebook 來源、主張台帳、公告卡、書籍筆記與引用回查</td><td>來源閱讀包</td></tr>
       <tr><td>CH4-1｜3 小時</td><td>從 30 張生活卡選一張，建立標準、取捨與待確認資料</td><td>生活應用卡</td></tr>
       <tr><td>課後整合｜20–30 分鐘</td><td>把背景、任務、資料、條件、格式與版本紀錄放在一起</td><td>可交接的整合工作表</td></tr>
     </tbody></table>
@@ -175,7 +175,7 @@ function classroomWorksheet(code) {
   if (code === 'CH3-1') {
     return `<section class="print-worksheet">
       <div class="worksheet-kicker">課堂填寫｜CH3-1</div>
-      <h3>NotebookLM 閱讀包紀錄</h3>
+      <h3>Gemini Notebook 閱讀包紀錄</h3>
       <p>每次回答都要能回到來源。先記錄來源名稱，再留下輸出目的與引用核對結果。</p>
       <table class="write-table"><thead><tr><th>任務</th><th>來源名稱</th><th>我要保留的欄位／格式</th><th>引用回查結果</th></tr></thead><tbody>
         <tr><td>新聞主張台帳</td><td></td><td>3 個主張／證據狀態／引用</td><td></td></tr>
@@ -288,7 +288,7 @@ function fullDocument(overview, lessons, styles) {
 function briefDocument(lessons, styles) {
   return `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><title>AI 入門即戰力｜課堂印刷簡易版</title><style>${styles}\n${BRIEF_CSS}</style></head><body class="pdf-document">
   <section class="print-cover"><div class="print-kicker">CLASSROOM PRINT HANDOUT</div><h1>AI 入門即戰力：課堂翻閱版</h1><p>四個單元的必做案例、操作提示、判斷標準與填寫頁。適合 A4 黑白雙面列印，課堂中邊聽邊翻閱、記錄與核對。</p><div class="print-meta">版本：2026-09-16<br>印刷原則：A4｜黑白可讀｜重要區塊避免跨頁<br>建議：每位學員一份，從 CH1-1 開始使用。</div></section>
-  <section class="print-map"><div class="section-eyebrow">課堂地圖</div><h2>今天要留下四份可以重做的完成物</h2><table class="map-table"><thead><tr><th>單元</th><th>課堂必做</th><th>完成物</th></tr></thead><tbody><tr><td>CH1-1</td><td>五題對話＋缺條件比較</td><td>LLM 實務紀錄</td></tr><tr><td>CH2-1</td><td>Email、訊息、三版自我介紹＋讀者轉換</td><td>日常文書包</td></tr><tr><td>CH3-1</td><td>NotebookLM 主張台帳、公告卡、書籍筆記＋引用回查</td><td>來源閱讀包</td></tr><tr><td>CH4-1</td><td>選一張生活卡＋標準、取捨與缺資料</td><td>生活應用卡</td></tr></tbody></table><p class="body-text">每個單元保留第一版與可交接的判斷紀錄；比較方式依單元不同，CH1 看缺條件如何影響回答，CH4 看標準如何造成取捨。</p></section>
+  <section class="print-map"><div class="section-eyebrow">課堂地圖</div><h2>今天要留下四份可以重做的完成物</h2><table class="map-table"><thead><tr><th>單元</th><th>課堂必做</th><th>完成物</th></tr></thead><tbody><tr><td>CH1-1</td><td>五題對話＋缺條件比較</td><td>LLM 實務紀錄</td></tr><tr><td>CH2-1</td><td>Email、訊息、三版自我介紹＋讀者轉換</td><td>日常文書包</td></tr><tr><td>CH3-1</td><td>Gemini Notebook 主張台帳、公告卡、書籍筆記＋引用回查</td><td>來源閱讀包</td></tr><tr><td>CH4-1</td><td>選一張生活卡＋標準、取捨與缺資料</td><td>生活應用卡</td></tr></tbody></table><p class="body-text">每個單元保留第一版與可交接的判斷紀錄；比較方式依單元不同，CH1 看缺條件如何影響回答，CH4 看標準如何造成取捨。</p></section>
   ${lessons.map((lesson, index) => lesson).join('\n')}
   </body></html>`;
 }

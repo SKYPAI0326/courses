@@ -1,13 +1,13 @@
 ---
 slug: gen-ai-36h
 unit_id: PRAC3
-title: 用 NotebookLM 為海岸志工日整理可接手的筆記
+title: 用 Gemini Notebook 為海岸志工日整理可接手的筆記
 course_type: skill-operation
 platform_version: 2026-11-01 依改寫規格書重寫；介面待帳號實跑
 learning_objective: 換一組資料，獨立讓 Gemini Notebook 整理已定事項、還不能採用的說法和待追問事項。
 ---
 
-# 用 NotebookLM 為海岸志工日整理可接手的筆記
+# 用 Gemini Notebook 為海岸志工日整理可接手的筆記
 
 <!-- learner-content:start -->
 ## 接手一個資料分散的志工活動

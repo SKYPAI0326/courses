@@ -19,12 +19,12 @@ for n in parser.nodes:
 for start,end,new in sorted(changes,reverse=True):text=text[:start]+new+text[end:]
 # Replace individual exact prose leaves using parsed text-node boundaries in the small remaining intro.
 old='沒寫過程式、平常以 Office / Google Workspace 為主的上班族。想把 AI 用進日常工作（文書、會議、知識整理），並學會用 Make / n8n 把重複任務變成自動化流程。每個 Part 都帶走一份可立刻套用的 deliverable。'
-new='適合平常使用 Office 或 Google Workspace、尚未用過 AI 的上班族。先使用虛構素材跟著做，再換任務獨立練習。基本對話用 Claude，來源筆記用 NotebookLM，自動化以 Make 為主；n8n 為選做。'
+new='適合平常使用 Office 或 Google Workspace、尚未用過 AI 的上班族。先使用虛構素材跟著做，再換任務獨立練習。基本對話用 Claude，來源筆記用 Gemini Notebook（原名 NotebookLM），自動化以 Make 為主；n8n 為選做。'
 if old in text:text=text.replace(old,new,1)
 text=text.replace('Make + n8n','Make 主線').replace('PRACTICE · 帶走範本','PRACTICE · 獨立練習').replace('每章帶走範本','每章保存成果')
 p.write_text(text)
 outline=(root.parents[1]/'_outlines/gen-ai-36h.md').read_text()
-outline=outline.replace('tools: ChatGPT, Gemini, Claude, NotebookLM, Gemini Canvas, Make.com, n8n','tools: Claude（基本對話）, NotebookLM（來源筆記）, Make（主線）, ChatGPT/Gemini/n8n（選做）').replace('## Part 5：自動化流程設計 Make + n8n（6h）','## Part 5：人工覆核與 Make 自動化（6h）')
+outline=outline.replace('tools: ChatGPT, Gemini, Claude, NotebookLM, Gemini Canvas, Make.com, n8n','tools: Claude（基本對話）, Gemini Notebook（來源筆記）, Make（主線）, ChatGPT/Gemini/n8n（選做）').replace('## Part 5：自動化流程設計 Make + n8n（6h）','## Part 5：人工覆核與 Make 自動化（6h）')
 for unit,m in meta.items():outline=re.sub(r'^- '+re.escape(unit)+r'：.*$', '- '+unit+'：'+m['title'],outline,flags=re.M)
 outline+='''\n## 學習路徑與驗收（2026-10-09修訂）
 
@@ -37,7 +37,7 @@ outline+='''\n## 學習路徑與驗收（2026-10-09修訂）
 7. 文件／来源筆記／小工具／自動化依類型驗收，個人HTML展示真實成果。
 
 所有核心頁保留完整輸入、核對答案、修復與獨立練習。PRAC包含於各Part時數；一件主要成果為最低門檻，選做不加嚴必做。素材索引：courses/gen-ai-36h/assets/START-HERE.md。
-正式開課仍需NotebookLM、Claude、Make目標帳號全路徑及零基礎真人試走。靜態與程式檢查不能取代實跑；未驗項目見課程修訂報告。
+正式開課仍需Gemini Notebook、Claude、Make目標帳號全路徑及零基礎真人試走。靜態與程式檢查不能取代實跑；未驗項目見課程修訂報告。
 '''
 (root/'_repair/2026-10-09/outline-updated.md').write_text(outline)
 # Local governance documentation remains consistent with approved scope.

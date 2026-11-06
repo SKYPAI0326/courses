@@ -1,4 +1,4 @@
-# 弄一下行銷工作室 · 公司政策手冊（虛構素材，NotebookLM bonus 用）
+# 弄一下行銷工作室 · 公司政策手冊（虛構素材，Gemini Notebook bonus 用）
 
 > 本檔為**虛構教學素材**。涵蓋人事 / 財務 / IT / 客戶 4 大政策。用於 Gemini Notebook（原名 NotebookLM） bonus 演練：與 company-sop.md + meeting-notes.md 一起上傳，練習跨文件 cross-reference + 引用式 FAQ。
 

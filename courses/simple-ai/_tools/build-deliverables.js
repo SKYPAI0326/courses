@@ -26,7 +26,7 @@ const chapters = [
   ['CH1-2.html', '第二章｜把會議變成摘要與待辦', '你剛結束一場包裝改版會議，原始對話裡混著數量、交期與誰要負責。本章把完整逐字稿整理成可追蹤的三欄待辦。', [2, 5, 8]],
   ['CH1-3.html', '第三章｜拍照萃取資料，再寫成可寄 Email', '供應商傳來一張報價單，你必須先把數字整理正確，再決定用什麼語氣回信。本章的完成物是一張核對過的表格與一封可寄 Email。', [1, 2, 3, 6, 10]],
   ['CH1-4.html', '第四章｜資安紅線與發佈檢查', '一段讀起來很順的 AI 草稿，可能同時藏著個資、無依據數字與不符合自家語氣的承諾。本章練習在送出前把問題攔下。', [1, 2, 3, 4, 5]],
-  ['CH2-1.html', '第五章｜建立 NotebookLM 品牌知識庫', '咖啡館老闆不需要「一般咖啡館」的答案，而要 AI 先讀自家官網、菜單與評論，再把草稿帶回來源查核。本章完成一份能回指來源的品牌摘要與雙向查核貼文。', [3, 5, 6]],
+  ['CH2-1.html', '第五章｜建立 Gemini Notebook 品牌知識庫', '咖啡館老闆不需要「一般咖啡館」的答案，而要 AI 先讀自家官網、菜單與評論，再把草稿帶回來源查核。本章完成一份能回指來源的品牌摘要與雙向查核貼文。', [3, 5, 6]],
   ['CH2-2.html', '第六章｜從三個角度選出品牌定位', '品牌摘要已完成，下一步不是請 AI 決定答案，而是比較功能、情感、對立三種角度，留下老闆真的做得到的一句定位。', [1, 2, 3, 5, 8]],
   ['CH2-3.html', '第七章｜建立一週社群內容產線', '你已經有品牌定位，現在要把它變成一週七則貼文骨架、A/B 標題與一支 30 秒短影音腳本，同時保持每則內容像同一家店。', [1, 2, 3, 5, 6]],
   ['CH2-4.html', '第八章｜FAQ、檢查清單與結訓行動', '客人反覆詢問停車、訂位與寵物規則。本章一次建立 15 則 FAQ，再用事實、個資與品牌語氣三關完成發佈前修正。', [1, 2, 3, 4, 8, 14]],
@@ -35,14 +35,14 @@ const chapters = [
 const workflows = [
   ['WF-01', '新產品上市', '產品規格、價格、上市日', 'ChatGPT → 人工核對 → Gemini', '定位句、貼文、Email、短影音腳本', '價格與日期逐項對照原資料', '配額不足時先做定位與 Email，其餘隔日完成'],
   ['WF-02', '週末社群內容備稿', '本週事件、主打品、常見問題', 'MK-01 → MK-02 → 發佈三問', '七則骨架與兩組標題', '每則只說一件事且符合品牌定位', '先完成三則最重要貼文'],
-  ['WF-03', '客戶訪談變行銷素材', '逐字稿與受訪同意範圍', 'EF-01 → NotebookLM → MK-03', '重點摘要、客戶原話、短影音腳本', '引言不得超出同意範圍', '無法上傳音檔時貼文字逐字稿'],
+  ['WF-03', '客戶訪談變行銷素材', '逐字稿與受訪同意範圍', 'EF-01 → Gemini Notebook → MK-03', '重點摘要、客戶原話、短影音腳本', '引言不得超出同意範圍', '無法上傳音檔時貼文字逐字稿'],
   ['WF-04', '收到客訴緊急處理', '客訴原文、訂單事實、可補救範圍', 'EF-05 → EF-04 → 人工核准', '問題摘要與可寄回覆', '不承諾做不到的退款或期限', '先用中性短版回覆已收到'],
   ['WF-05', '決定要不要接新案子', '需求、預算、時程、現有工作量', 'EF-05 → TK-01 → 決策表', '接案／婉拒理由與回信', '四項限制都有真實資料', '資料不足先列待確認問題'],
-  ['WF-06', '年度或季度盤整', '訂單摘要、客戶回饋、重大事件', 'NotebookLM → Gemini', '趨勢、問題、下季三項行動', '每個結論能指回來源', '只先上傳一季的去識別資料'],
-  ['WF-07', '競品快速偵察', '三個公開競品頁面與觀察日期', '人工蒐集 → NotebookLM → TK-02', '差異表與定位調整建議', '不把推測寫成競品事實', '無法匯入網頁時貼公開文字摘錄'],
+  ['WF-06', '年度或季度盤整', '訂單摘要、客戶回饋、重大事件', 'Gemini Notebook → Gemini', '趨勢、問題、下季三項行動', '每個結論能指回來源', '只先上傳一季的去識別資料'],
+  ['WF-07', '競品快速偵察', '三個公開競品頁面與觀察日期', '人工蒐集 → Gemini Notebook → TK-02', '差異表與定位調整建議', '不把推測寫成競品事實', '無法匯入網頁時貼公開文字摘錄'],
   ['WF-08', '長文一稿多用', '一篇已核准長文', 'MK-04 → MK-02 → MK-03', '貼文、標題、短影音腳本', '核心主張與原文一致', '先轉一種格式，確認後再擴寫'],
   ['WF-09', '每週 Email 電子報', '本週消息、單一 CTA、截止日', 'MK-01 → EF-04 → 發佈三問', '主旨 A/B 與完整 Email', 'CTA、日期與連結正確', '連結不確定時先存草稿不寄送'],
-  ['WF-10', '年度報告給合作方', '季度資料、里程碑、風險與下步', 'NotebookLM → Gemini → NotebookLM 查核', '有來源的年度摘要與合作提案', '數字與里程碑逐項可追', '資料太多時按季度分批加入'],
+  ['WF-10', '年度報告給合作方', '季度資料、里程碑、風險與下步', 'Gemini Notebook → Gemini → Gemini Notebook 查核', '有來源的年度摘要與合作提案', '數字與里程碑逐項可追', '資料太多時按季度分批加入'],
 ];
 
 const completeFaqOutput = `<div class="complete-example"><p class="body-text"><strong>示範政策卡（AI 只能依這張卡回答）</strong>：店內無專屬車位；民生公園地下停車場步行 4 分鐘。平日現場候位；4 人以上可提前一日 IG 私訊。提供低咖啡因手沖與無咖啡因洋甘菊茶。Wifi 名稱為「松山咖啡」，密碼保留為 [密碼]。店內飲品不外送；咖啡豆可至線上商店下單。</p><p class="body-text"><strong>完整預期輸出：5 題 × 3 語氣 = 15 則</strong></p><div class="code-block">
@@ -107,7 +107,7 @@ function handbookHtml() {
     .replace(/box-shadow\s*:[^;}{]+;?/gi, '');
   const chapterBodies = chapters.map(([file, title, situation, selectedIndexes], index) => {
     let body = extractCuratedMain(pageSources[index], selectedIndexes);
-    body = body.replace('NotebookLM 只有網頁版，把 <code>notebooklm.google.com</code> 加入手機主畫面當 App 用就好。', 'NotebookLM／Gemini Notebook 的手機入口依裝置與地區而異；若未看到官方 App，改用手機瀏覽器開官方 Notebook 頁面即可。');
+    body = body.replace('NotebookLM 只有網頁版，把 <code>notebooklm.google.com</code> 加入手機主畫面當 App 用就好。', 'Gemini Notebook 的手機入口依裝置與地區而異；若未看到官方 App，改用手機瀏覽器開官方 Notebook 頁面即可。');
     body = body.replace(/\sloading="lazy"/g, '');
     body = body.replace(/href="assets\//g, `href="${publicAssetBase}`);
     body = body.replace(/href="\.\.\/output\/pdf\/simple-ai\//g, 'href="https://skypai0326.github.io/courses/courses/output/pdf/simple-ai/');
@@ -181,7 +181,7 @@ a{color:inherit!important;text-decoration:none!important}
   return `<!doctype html>
 <html lang="zh-Hant"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>創業 AI 實戰手冊｜弄一下工作室</title><style>${inheritedStyles}\n${printCss}</style></head>
 <body>
-<section class="print-book-cover"><div class="print-kicker">完整學員手冊</div><h1>創業 AI 實戰手冊</h1><p>手機免費版的三小時入門體驗。從會議、拍照與 Email，到品牌知識庫、社群內容與 FAQ，把每天重複的小事變成可以反覆使用的工作路徑。</p><div class="print-book-meta">弄一下工作室<br>版本：2026-08-25<br>工具：ChatGPT・Gemini・NotebookLM</div></section>
+<section class="print-book-cover"><div class="print-kicker">完整學員手冊</div><h1>創業 AI 實戰手冊</h1><p>手機免費版的三小時入門體驗。從會議、拍照與 Email，到品牌知識庫、社群內容與 FAQ，把每天重複的小事變成可以反覆使用的工作路徑。</p><div class="print-book-meta">弄一下工作室<br>版本：2026-08-25<br>工具：ChatGPT・Gemini・Gemini Notebook（原名 NotebookLM）</div></section>
 <section class="print-contents"><h2>手冊目錄</h2><ol>${chapters.map(([, title]) => `<li>${title}</li>`).join('')}<li>附錄｜十條工作流應用路徑</li></ol><p>使用方式：第一次照章節順序完成；第二次直接翻到你眼前的任務。每章都附起始素材、完整 Prompt、預期輸出、檢查與卡關修復。</p><p>課前先看<a href="${publicEnvironmentContract}">環境契約與課前檢查表</a>；課程結訓先保存一條工作流路徑，再選課後延伸。</p></section>
 ${chapterBodies}
 <section class="workflow-appendix"><header class="workflow-title"><div class="print-kicker">Appendix</div><h1>十條工作流應用路徑</h1><p class="workflow-intro">每條路徑都從你已完成的章節產物出發。不要一次跑完十條；先選現在最常重複的一件事，完成、檢查、存成自己的版本。</p></header><div class="workflow-grid">${workflowBodies}</div></section>
@@ -200,7 +200,7 @@ const quickPromptCodes = [
   ['EF-01', '會議 → 摘要與待辦', '把錄音轉文字或逐字稿整理成可追蹤的會議產物。', '逐字稿、五點摘要與「誰／做什麼／何時前」待辦清單。'],
   ['EF-02', '拍照 → 結構化資料與 Email', '先讀清楚報價單，再產出可核對的回信草稿。', '欄位表格、模糊處標記與 150 字內確認 Email。'],
   ['EF-04', '棘手 Email 三種語氣', '漲價、婉拒或催款時，先比較立場再選語氣。', '正式保守、溫和堅定、友善清楚三版信件。'],
-  ['NB-01', '萃取品牌聲音', '讓 NotebookLM 只根據來源整理品牌語氣，不自行推測。', '五個形容詞、三個句型、避用詞、開場方式與來源引用。'],
+  ['NB-01', '萃取品牌聲音', '讓 Gemini Notebook（原名 NotebookLM） 只根據來源整理品牌語氣，不自行推測。', '五個形容詞、三個句型、避用詞、開場方式與來源引用。'],
   ['TK-02', '品牌定位一句話', '先補齊模糊資料，再比較功能／情感／對立三個角度。', '三句 30 字內定位候選與人工選定的一句版本。'],
   ['MK-01', '一週七則社群貼文', '用同一份品牌定位建立一週內容節奏。', '七則貼文：開頭、150 字內內文、CTA、5–8 個 Hashtag。'],
   ['MK-02', '標題 A/B 測試', '同一篇內文先產不同吸引角度，再由人決定測哪兩個。', '10 個 20 字內標題，含客群類型標註。'],

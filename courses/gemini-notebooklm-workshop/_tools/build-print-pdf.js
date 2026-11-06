@@ -99,7 +99,7 @@ const html = `<!doctype html>
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>Gemini × NotebookLM 跨部門 AI 工作坊｜印刷版講義</title>
+<title>Gemini × Gemini Notebook 跨部門 AI 工作坊｜印刷版講義</title>
 <style>
 ${styleParts.join('\n')}
 ${printCss}
@@ -108,7 +108,7 @@ ${printCss}
 <body>
 <section class="print-cover">
   <div class="print-kicker">Printable Handout</div>
-  <h1>Gemini × NotebookLM 跨部門 AI 工作坊</h1>
+  <h1>Gemini × Gemini Notebook 跨部門 AI 工作坊</h1>
   <p>印刷版講義。互動區塊與檢核答案已展開，版面改為 A4 列印樣式，方便雙面列印與課堂紙本使用。</p>
   <div class="print-meta">來源：gemini-notebooklm-workshop<br>產出：${new Date().toISOString().slice(0, 10)}<br>範圍：${lessons.join(' / ')}</div>
 </section>
