@@ -253,8 +253,6 @@ Gemini Notebook 的介面和 Gemini 完全不同，先看地圖再操作：
 
 **對策**：一個 notebook 放一個主題的文件（不要什麼都塞同一個），CH1-3 會教怎麼規劃。
 
-💰 **付費版差異**：Gemini Advanced 有 1M token context；Gemini Notebook Plus 有更高 source 配額 + 更快回應速度。本課全程用免費版，付費版不做要求。
-
 ---
 
 ### 7. 檢核 / Verification（5 min）
