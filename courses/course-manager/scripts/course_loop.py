@@ -9,28 +9,31 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from src.course_improvement_loop import LoopError, read_json
 from src.course_loop_executor import doctor
 from src.course_loop_runtime import (activate, finish, human_confirmation, prepare, report,
-                                     recover, retry, repair_report, status, supply_check, work)
+                                     recover, retry, repair_assess_plan, repair_no_gap_rows,
+                                     repair_report, status, supply_check, work)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     subs = parser.add_subparsers(dest="command", required=True)
     subs.add_parser("doctor")
-    for name in ("prepare", "start", "work", "status", "report", "retry", "repair-report", "recover", "confirm-h3", "supply-check", "finish"):
+    for name in ("prepare", "start", "work", "status", "report", "retry", "repair-assess-plan", "repair-no-gap-rows", "repair-report", "recover", "confirm-h3", "supply-check", "finish"):
         p = subs.add_parser(name)
         p.add_argument("--run", type=Path, required=True)
         if name == "prepare":
             p.add_argument("--spec", type=Path, required=True)
-        if name in ("start", "confirm-h3", "finish", "repair-report"):
+        if name in ("start", "confirm-h3", "finish", "repair-report", "repair-assess-plan", "repair-no-gap-rows"):
             p.add_argument("--actor", required=True)
         if name == "start":
             p.add_argument("--note", required=True)
         if name == "work":
             p.add_argument("--max-tasks", type=int, default=1)
-        if name in ("retry", "repair-report", "recover", "confirm-h3", "supply-check"):
+        if name in ("retry", "repair-report", "repair-assess-plan", "repair-no-gap-rows", "recover", "confirm-h3", "supply-check"):
             p.add_argument("--unit", required=True)
-        if name in ("retry", "repair-report"):
+        if name in ("retry", "repair-report", "repair-assess-plan", "repair-no-gap-rows"):
             p.add_argument("--reason", required=True)
+        if name == "repair-assess-plan":
+            p.add_argument("--problem", required=True)
         if name == "confirm-h3":
             p.add_argument("--feedback", type=Path, required=True)
         if name in ("confirm-h3", "supply-check"):
@@ -58,6 +61,10 @@ def main():
             result = report(args.run)
         elif args.command == "retry":
             result = retry(args.run, args.unit, args.reason)
+        elif args.command == "repair-assess-plan":
+            result = repair_assess_plan(args.run, args.unit, args.problem, args.reason, args.actor)
+        elif args.command == "repair-no-gap-rows":
+            result = repair_no_gap_rows(args.run, args.unit, args.reason, args.actor)
         elif args.command == "repair-report":
             result = repair_report(args.run, args.unit, args.reason, args.actor)
         elif args.command == "recover":

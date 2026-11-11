@@ -9,6 +9,7 @@ from src.course_improvement_loop import artifact, locked, read_json, require, sa
 
 
 ROLE_FOR_PHASE = {"assess": "assessor", "rewrite": "writer", "compare": "writer", "review": "reviewer"}
+AGY_WRITER_MODEL = "gemini-3.8-flash-low"
 
 
 def enabled(s):
@@ -37,15 +38,22 @@ def validate_policy(policy):
 
 def assignment(s):
     role = ROLE_FOR_PHASE[s["phase"]]
-    return {"role": role, "model": s["config"]["review_policy"]["roles"][role],
-            "fresh_context_required": role == "reviewer"}
+    result = {"role": role, "model": s["config"]["review_policy"]["roles"][role],
+              "fresh_context_required": role == "reviewer"}
+    if s["phase"] == "rewrite" and s["config"].get("rewrite_provider") == "agy":
+        result.update(provider="agy", model=s["config"]["rewrite_model"])
+    return result
 
 
 def validate_execution(s, execution):
     a = assignment(s)
-    require(isinstance(execution, dict) and set(execution) == {"role", "model", "context_id"},
+    required = {"role", "model", "context_id"}
+    require(isinstance(execution, dict) and set(execution) in (required, required | {"provider"}),
             "須由執行端登記role/model/context_id")
     require(execution["role"] == a["role"] and execution["model"] == a["model"], "回交角色或模型與派送不符")
+    expected_provider = a.get("provider", "codex")
+    require(execution.get("provider", "codex") == expected_provider, "回交provider與派送不符")
+    require(expected_provider != "agy" or execution.get("provider") == "agy", "agy改寫須保留provider執行證據")
     require(isinstance(execution["context_id"], str) and execution["context_id"].strip(), "缺少執行上下文識別碼")
     if a["fresh_context_required"]:
         used = [r["execution"]["context_id"] for r in s["receipts"].values()]

@@ -22,14 +22,17 @@ def main():
     p.add_argument("--run", type=Path, required=True)
     p.add_argument("--material", type=Path, action="append", default=[])
     p.add_argument("--keep", action="append", default=[], help="額外必須逐字保留的文字，可重複指定")
+    p.add_argument("--agy-writer", action="store_true", help="只將rewrite派送給Antigravity；評估、比較與覆核沿用既有模型")
     a = p.parse_args()
+    rewrite_provider = "agy" if a.agy_writer else "codex"
     try:
         if a.course_manifest:
             require(not any((a.unit, a.title, a.purpose, a.material, a.keep)), "整課參數請寫入清單，不混用單章參數")
-            spec = copy_course_spec(a.course_manifest)
+            spec = copy_course_spec(a.course_manifest, rewrite_provider=rewrite_provider)
         else:
             require(all((a.unit, a.title, a.purpose)), "單章須指定unit、title及purpose")
-            spec = copy_spec(a.source, a.unit, a.title, a.purpose, a.material, a.keep)
+            spec = copy_spec(a.source, a.unit, a.title, a.purpose, a.material, a.keep,
+                             rewrite_provider=rewrite_provider)
         result = prepare(spec, a.run)
     except (LoopError, OSError, ValueError, KeyError, TypeError) as exc:
         print(json.dumps({"error": str(exc)}, ensure_ascii=False))

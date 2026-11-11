@@ -2,11 +2,11 @@
 
 第一次使用請先看[開始使用教學](course-loop-quickstart.md)，內含對話指令、可複製設定與操作順序。
 
-本入口將既有單章與整課控制器接上 Codex CLI。適用於有人負責補證、閱讀確認的有限範圍改善；以終端前景執行，關閉後不會在背景自動修課。候選稿另存，不會覆蓋正式講義。舊試作不遷移、不重置。
+本入口將既有單章與整課控制器接上 Codex CLI；文案專用run可選擇只把`rewrite`階段接到Antigravity CLI。適用於有人負責補證、閱讀確認的有限範圍改善；以終端前景執行，關閉後不會在背景自動修課。候選稿另存，不會覆蓋正式講義。舊試作不遷移、不重置。
 
 ## 準備課程
 
-在 course-manager 目錄使用 Python 3.11 以上、已安裝並登入的 Codex CLI。先執行 `python3 scripts/course_loop.py doctor`；登入成功不等於指定模型有使用權限。模型名稱依帳戶可用模型設定，無法使用即停止，不自動換模型。
+在 course-manager 目錄使用 Python 3.11 以上、已安裝並登入的Codex CLI。採「文案迭代改」時也須安裝並登入Antigravity CLI。先在與 `work` 相同的執行權限下執行 `python3 scripts/course_loop.py doctor`；它會不呼叫模型地檢查Codex app-server及agy模型清單。登入、程序啟動及模型列在清單中，仍不等於該帳戶一定能生成；模型失敗即停止，不自動換模型。
 
 建立一份 JSON 設定，所有檔案路徑建議使用絕對路徑。下面的路徑須替換為實際檔案；先只放已授權的一章。
 
@@ -42,9 +42,15 @@ python3 scripts/course_loop.py report --run RUN
 
 `work` 每次最多執行指定數量的模型任務，預設一個；再次執行接續同一 run。一般一次候選需要評估、改寫、自查、覆核四次模型呼叫，必要檢查由程式處理。呼叫總上限另由 `limits` 固定，沒有自動加額度；呼叫數不等於費用上限，實際 token 用量保留於各工作紀錄。
 
+每次 CLI 模型任務前會依provider以相同執行權限檢查Codex app-server或agy模型清單；檢查失敗即停止，不建立執行job或增加呼叫計數。這不能保證後續模型必定成功；啟動檢查通過後仍按原規則先記一次呼叫，若結果不明則不自動重送。已發生的失敗與用量不回溯更改。
+
+使用[文案迭代改](course-copy-quickstart.md#文案迭代改)時，`rewrite`任務明確綁定`provider=agy`及`gemini-3.8-flash-low`；assess、compare、review仍依既有角色設定使用Codex。Agy以一次性headless程序、空暫存工作目錄、sandbox、stream-json及schema執行，完整記錄命令、提示與schema雜湊、stderr及事件流。`init.tools`只是可用工具清單，不視為已使用；`step_update.step_type=tool`中唯一允許的是schema綁定的`finish`結構化輸出提交，且仍須通過SUCCESS、單回合及schema核對。其他工具或子代理、模型不符、非SUCCESS或缺少結構化輸出時拒收且不自動重送；原事件完整時`recover`沿用原事件，`retry`沿用原provider及模型。
+
+agy預檢使用`agy models`確認CLI可啟動且固定模型列在清單中，不會產生模型回合；它不保證帳戶有生成權限或額度。請在與`work`相同的執行權限下先執行`doctor`；預檢失敗時不建立執行job、不增加模型呼叫計數。Codex會優先使用Codex Desktop提供的`CODEX_APP_RUNTIME_CLI_PATH`，並清除宿主注入的其他`CODEX_*`環境變數後啟動；找不到該執行檔才使用PATH中的`codex`。
+
 流程為評估與修正交接 → 完整候選 → 作者比較 → 必要檢查 → 新上下文覆核。未改寫的原稿也須檢查及覆核。作者說通過不能直接結案；必要檢查漏做、失敗或未知會阻止放行。候選最多兩版，達標便停改，不為用滿額度而改寫。
 
-`REPORT.md` 提供候選與報告連結。`status` 列出當前狀態、候選雜湊、child_revision、待補證及模型呼叫數；程序回傳錯誤或 `last_error` 不為空時先處理原因。
+`REPORT.md` 提供候選與報告連結。`status` 列出當前狀態、候選雜湊、child_revision、待補證及模型呼叫數，也顯示各模型階段／重試耗時、自動檢查、控制器接收及人工H3等待時間；尚待人工確認時，H3數字是截至查詢當下的經過時間。`run.json`另保存每段計時的毫秒數及UTC起訖時間；模型數值是CLI往返時間，包含本機啟動和接收結果，不代表供應商純生成時間。`REPORT.md`顯示可讀的秒數摘要。舊run沒有計時欄位時標為未量測，不回推或估算。程序回傳錯誤或 `last_error` 不為空時先處理原因。
 
 ## 人工確認與補證
 
@@ -78,7 +84,11 @@ python3 scripts/course_loop.py finish --run RUN --evidence INTEGRATION.md --expe
 
 先 `status`，再對同一 run 執行 `work`。已有完整模型結果會接收快取，不重呼模型或重複計版。若模型已完成、但執行端尚未保存完成紀錄，用 `recover --run RUN --unit CH1` 檢查原事件並接收；這個命令不呼叫模型。
 
-明確失敗且沒有答案的任務，才可使用 `retry --run RUN --unit CH1 --reason "已確認原因及補救"`，最多一次，仍占總呼叫額度。有答案但格式或內容遭拒時不會自動重新生成，須先辨認原因。不要刪 state、另開同章 run 或改 spec 來繞過上限。來源、規範或設定變更會停止，不默默重綁新稿。
+明確失敗且沒有答案的任務，可使用 `retry --run RUN --unit CH1 --reason "已確認原因及補救"` 一次；compare／review雖有答案但遭接收器拒收時，也可在先辨認原因後補跑一次。後者建立獨立 `-retry` 工作目錄，原始答案、事件與報告留在舊目錄，不重寫候選。所有補救均占同一 run 呼叫額度，會立即執行模型，須先在相同權限下通過 `doctor`。不要刪 state、另開同章 run 或改 spec 來繞過上限。來源、規範或設定變更會停止，不默默重綁新稿。
+
+v0.6 評估已完整回傳、但只有 `next_fix.problem` 把多個仍未解的 P 編號合寫而被拒收時，可用 `repair-assess-plan --run RUN --unit CH1 --problem P01 --reason "原因" --actor "紀錄者"` 指定其中一個原有 P。此命令不呼叫模型、不重置用量；它另存原答案雜湊與更正紀錄，只更正修法索引，原評級、問題狀態、修法文字及原始回交不動。其他評估拒收原因不得使用此命令。
+
+v0.6 比較或覆核已完整回傳，且 `remaining_gap` 寫了「無。」等明示沒有缺口的文字、同段 `problem_id` 為 null、三項讀者檢查都為 supported，卻因該欄非空而被拒收時，可用 `repair-no-gap-rows --run RUN --unit CH1 --reason "原因" --actor "紀錄者"` 清空這些段落的 `remaining_gap`。此命令保留原答案並記錄逐段更正，不改真實缺口、評級、問題或模型用量；有實質缺口的段落會拒絕更正。
 
 舊 schema 的 `level=L1, cap=L1` 可無損轉為 `cap=null`；只移除冗餘表示，不改等級。原始 answer、response 與 normalization 都保留；其他不合法判級仍拒收。
 

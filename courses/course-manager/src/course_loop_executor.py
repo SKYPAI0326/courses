@@ -1,4 +1,4 @@
-"""以全新、唯讀的Codex CLI程序執行單一角色；只回傳資料，不直接寫教材。"""
+"""以全新、隔離工作區的Codex或Antigravity CLI程序執行單一角色。"""
 import json
 import os
 import shutil
@@ -7,9 +7,10 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from src.course_improvement_loop import LoopError, read_json, require, save
+from src.course_improvement_loop import LoopError, digest, read_json, require, save
 from src.course_copy_readability import READABILITY_INSTRUCTIONS, readability_fields
 from src.course_copy_reports import reading_blocks, reference_schema
+from src.course_loop_review import AGY_WRITER_MODEL
 
 
 def obj(properties):
@@ -122,20 +123,86 @@ def build_prompt(task, max_chars):
     return prompt
 
 
+def _codex_binary():
+    desktop_binary = os.environ.get("CODEX_APP_RUNTIME_CLI_PATH")
+    if desktop_binary and Path(desktop_binary).is_file() and os.access(desktop_binary, os.X_OK):
+        return desktop_binary
+    return shutil.which("codex")
+
+
+def _codex_environment():
+    env = os.environ.copy()
+    for key in tuple(env):
+        if key.startswith("CODEX_") and key != "CODEX_HOME":
+            env.pop(key)
+    return env
+
+
 def doctor():
-    binary = shutil.which("codex")
-    result = {"codex": binary, "python_supported": True, "authenticated": False,
-              "model_access_verified": False, "runtime": "codex-exec"}
+    binary = _codex_binary()
+    agy_binary = shutil.which("agy")
+    result = {"codex": binary, "agy": agy_binary, "python_supported": True, "authenticated": False,
+              "model_access_verified": False, "app_server_ready": False, "agy_ready": False,
+              "agy_model_available": False, "agy_model_access_verified": False,
+              "runtime": "codex-exec/agy-exec by phase"}
     if binary:
-        p = subprocess.run([binary, "login", "status"], capture_output=True, text=True, timeout=20)
+        p = subprocess.run([binary, "login", "status"], capture_output=True, text=True, timeout=20,
+                           env=_codex_environment())
         result["authenticated"] = p.returncode == 0
         result["auth_status"] = "已登入" if p.returncode == 0 else "請先執行codex login"
+        try:
+            preflight_codex(binary)
+            result["app_server_ready"] = True
+        except LoopError as exc:
+            result["last_error"] = str(exc)
+    if agy_binary:
+        try:
+            preflight_agy(AGY_WRITER_MODEL, agy_binary)
+            result["agy_ready"] = True
+            result["agy_model_available"] = True
+        except LoopError as exc:
+            result["agy_last_error"] = str(exc)
     return result
+
+
+def preflight_codex(binary=None):
+    """在計入模型呼叫前，確認目前權限能啟動 CLI；不送出模型任務。"""
+    binary = binary or _codex_binary()
+    require(binary, "找不到codex；先安裝並登入Codex CLI")
+    try:
+        probe = subprocess.run([binary, "app-server", "--listen", "stdio://"], input="",
+                               capture_output=True, text=True, timeout=20, env=_codex_environment())
+    except subprocess.TimeoutExpired as exc:
+        raise LoopError("Codex app-server 啟動檢查逾時；未呼叫模型，請確認執行環境") from exc
+    except OSError as exc:
+        raise LoopError(f"Codex app-server 無法啟動；未呼叫模型：{exc}") from exc
+    if probe.returncode != 0:
+        detail = next((line for line in reversed(probe.stderr.splitlines()) if line.startswith("Error:")),
+                      f"exit={probe.returncode}")
+        raise LoopError(f"Codex app-server 啟動檢查失敗；未呼叫模型、未使用額度：{detail}")
+
+
+def preflight_agy(model, binary=None):
+    """確認Antigravity CLI及指定模型可啟動；只列模型，不產生模型回合。"""
+    binary = binary or shutil.which("agy")
+    require(binary, "找不到agy；先安裝並完成Antigravity登入")
+    try:
+        with tempfile.TemporaryDirectory(prefix="course-loop-agy-preflight-") as cwd:
+            probe = subprocess.run([binary, "models"], cwd=cwd, capture_output=True, text=True, timeout=30)
+    except subprocess.TimeoutExpired as exc:
+        raise LoopError("agy啟動檢查逾時；未呼叫模型，請確認執行權限") from exc
+    except OSError as exc:
+        raise LoopError(f"agy無法啟動；未呼叫模型：{exc}") from exc
+    listing = probe.stdout + "\n" + probe.stderr
+    if probe.returncode != 0:
+        detail = " ".join(probe.stderr.splitlines()[-3:]) or f"exit={probe.returncode}"
+        raise LoopError(f"agy啟動／登入檢查失敗；未呼叫模型、未使用額度：{detail}")
+    require(model in listing, f"agy目前未列出指定模型{model}；未呼叫模型")
 
 
 def execute_codex(job, model, timeout_seconds, effort):
     job = Path(job).resolve()
-    binary = shutil.which("codex")
+    binary = _codex_binary()
     require(binary, "找不到codex；先安裝並登入Codex CLI")
     require(effort in ("low", "medium"), "本版僅提供low／medium；不自動升級成本配置")
     # 不延用任何聊天。工作目錄為空，提示詞包含所有允許材料；不是作業系統讀取範圍的完整隔離。
@@ -149,7 +216,7 @@ def execute_codex(job, model, timeout_seconds, effort):
                                        "timeout_seconds": timeout_seconds, "fresh_process": True})
         with (job / "events.jsonl").open("w") as output, (job / "stderr.log").open("w") as errors:
             process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=output, stderr=errors,
-                                       text=True, start_new_session=True)
+                                       text=True, start_new_session=True, env=_codex_environment())
             try:
                 process.communicate((job / "prompt.txt").read_text(), timeout=timeout_seconds)
             except (subprocess.TimeoutExpired, KeyboardInterrupt):
@@ -179,6 +246,93 @@ def collect_result(job, model):
             require(item_type not in ("command_execution", "file_change", "mcp_tool_call", "web_search"),
                     "模型使用了本任務未允許的工具；拒收，請查看事件紀錄")
     require(context_id and completed and (job / "answer.json").is_file(), "缺少模型完成事件、上下文id或輸出")
-    result = {"model": model, "context_id": context_id, "usage": usage, "fresh_process": True}
+    result = {"provider": "codex", "model": model, "context_id": context_id,
+              "usage": usage, "fresh_process": True}
     save(job / "provider-result.json", result)
     return result
+
+
+def execute_agy(job, model, timeout_seconds, effort):
+    """以一次性、無課程檔案工作區的Antigravity程序完成結構化改寫。"""
+    job = Path(job).resolve()
+    binary = shutil.which("agy")
+    require(binary, "找不到agy；先安裝並完成Antigravity登入")
+    require(effort in ("low", "medium"), "本流程僅提供low／medium；不自動升級成本配置")
+    require((job / "schema.json").is_file() and (job / "prompt.txt").is_file(), "缺少agy任務提示或schema")
+    with tempfile.TemporaryDirectory(prefix="course-loop-agy-") as cwd:
+        command = [binary, "--sandbox", "--disable-slash-commands", "--model", model,
+                   "--effort", effort, "--print-timeout", f"{timeout_seconds}s",
+                   "--input-format", "stream-json", "--output-format", "stream-json",
+                   "--json-schema", str(job / "schema.json"), "--print", ""]
+        save(job / "invocation.json", {"provider": "agy", "model": model, "command": command,
+                                        "cwd": cwd, "effort": effort, "timeout_seconds": timeout_seconds,
+                                        "prompt_sha256": digest(job / "prompt.txt"),
+                                        "schema_sha256": digest(job / "schema.json"),
+                                        "fresh_process": True})
+        payload = json.dumps({"event": "user", "message": {"content": (job / "prompt.txt").read_text()}},
+                             ensure_ascii=False) + "\n"
+        with (job / "stderr.log").open("w") as errors:
+            process = subprocess.Popen(command, cwd=cwd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                       stderr=errors, text=True, start_new_session=True)
+            try:
+                stdout, _ = process.communicate(payload, timeout=timeout_seconds)
+            except (subprocess.TimeoutExpired, KeyboardInterrupt):
+                os.killpg(process.pid, signal.SIGKILL)
+                stdout, _ = process.communicate()
+                (job / "events.jsonl").write_text(stdout or "", encoding="utf-8")
+                raise LoopError("agy模型執行中斷或逾時；已停止子程序，不自動重送")
+        (job / "events.jsonl").write_text(stdout, encoding="utf-8")
+        require(process.returncode == 0, f"agy執行失敗，exit={process.returncode}；查看{job / 'stderr.log'}")
+    return collect_agy_result(job, model)
+
+
+def collect_agy_result(job, model):
+    """從既有stream事件恢復結果；schema finish提交不算外部工具呼叫。"""
+    job = Path(job)
+    require((job / "invocation.json").is_file() and (job / "events.jsonl").is_file(), "缺少agy執行事件")
+    invocation = read_json(job / "invocation.json")
+    require(invocation.get("provider") == "agy" and invocation["model"] == model
+            and invocation["fresh_process"] is True, "agy原模型執行紀錄不符")
+    require(invocation.get("prompt_sha256") == digest(job / "prompt.txt")
+            and invocation.get("schema_sha256") == digest(job / "schema.json"),
+            "agy任務提示或schema已變更，不接收舊事件")
+    events = []
+    with (job / "events.jsonl").open(encoding="utf-8") as stream:
+        for line in stream:
+            if line.strip():
+                events.append(json.loads(line))
+    init = next((event for event in events if event.get("event") == "init"), None)
+    results = [event["result"] for event in events if event.get("event") == "result"]
+    require(init is not None and init.get("init", {}).get("model") == model,
+            "agy啟動事件未證明使用指定模型")
+    step_events = [event.get("step_update", {}) for event in events if event.get("event") == "step_update"]
+    tool_events = [step for step in step_events if step.get("step_type") == "tool"]
+    subagent_events = [step for step in step_events if step.get("subagent_info")]
+    # agy uses its schema-bound `finish` function to submit structured output.
+    # Accept that terminal event only; any other tool or subagent remains disallowed.
+    finish_events = [step for step in tool_events
+                     if step.get("tool_info", {}).get("name") == "finish"
+                     and isinstance(step.get("tool_info", {}).get("parameters"), dict)]
+    require(not subagent_events and len(finish_events) == len(tool_events) and len(finish_events) <= 1,
+            "agy執行了外部工具或子代理；拒收，請查看事件紀錄")
+    require(len(results) == 1, "agy事件缺少唯一完成結果；不自動重送")
+    result = results[0]
+    require(result.get("status") == "SUCCESS", f"agy回合未成功：{result.get('status', 'unknown')}")
+    require(result.get("conversation_id") == init.get("conversation_id") and result.get("num_turns") == 1,
+            "agy事件上下文或回合數不符")
+    require(result.get("json_schema") == read_json(job / "schema.json"), "agy回傳schema與本次任務不同")
+    structured = result.get("structured_output")
+    require(isinstance(structured, dict), "agy未回傳符合schema的結構化結果")
+    context_id = result.get("conversation_id")
+    require(isinstance(context_id, str) and context_id, "agy完成事件缺少conversation_id")
+    answer_path = job / "answer.json"
+    serialized = json.dumps(structured, ensure_ascii=False, indent=2) + "\n"
+    if answer_path.exists():
+        require(answer_path.read_text(encoding="utf-8") == serialized, "agy已存答案與事件結果不同，不覆寫")
+    else:
+        with answer_path.open("x", encoding="utf-8") as output:
+            output.write(serialized)
+    provider = {"provider": "agy", "model": model, "context_id": context_id,
+                "usage": result.get("usage", {}), "fresh_process": True}
+    save(job / "provider-result.json", provider)
+    return provider

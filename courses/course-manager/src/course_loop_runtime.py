@@ -4,15 +4,18 @@ import fcntl
 import json
 import re
 from contextlib import contextmanager
+from datetime import datetime, timezone
 from pathlib import Path
+from time import monotonic
 from uuid import uuid4
 
 from src.course_improvement_loop import LoopError, artifact, digest, read_json, require, save
 from src.course_improvement_queue import (authorize_dispatch, confirm_integration, dispatch,
                                           initialize_queue, load_queue, queue_status)
-from src.course_loop_executor import build_prompt, collect_result, execute_codex, response_schema
+from src.course_loop_executor import (build_prompt, collect_agy_result, collect_result, execute_agy,
+                                     execute_codex, preflight_agy, preflight_codex, response_schema)
 from src.course_copy_reports import apply_report_patch, hydrate_reading, merge_issue_updates
-from src.course_loop_review import run_checks, validate_policy
+from src.course_loop_review import AGY_WRITER_MODEL, run_checks, validate_policy
 from src.course_loop_stages import (check_inputs, confirm_h3, create_stage, load_stage,
                                     next_task, receive, stage_status, supplement_evidence)
 
@@ -24,6 +27,65 @@ def write_once(path, text):
     else:
         with path.open("x", encoding="utf-8") as stream:
             stream.write(text)
+
+
+def timestamp_utc():
+    return datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+
+def elapsed_since(started):
+    return max(0, int((monotonic() - started) * 1000))
+
+
+def human_gate_elapsed_ms(gate):
+    if isinstance(gate.get("wait_elapsed_ms"), int):
+        return gate["wait_elapsed_ms"]
+    if gate.get("status") != "waiting" or not gate.get("opened_at"):
+        return None
+    try:
+        opened = datetime.fromisoformat(gate["opened_at"].replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return max(0, int((datetime.now(timezone.utc) - opened).total_seconds() * 1000))
+
+
+def run_provider_timed(root, runtime, job, task, transport, limits):
+    """記錄單次模型執行，不把控制器接收或人工等待混入模型耗時。"""
+    timing = {"phase": task["phase"], "attempt": job.get("attempts", 1),
+              "provider": task.get("assignment", {}).get("provider", "codex"),
+              "model": task["assignment"]["model"], "started_at": timestamp_utc(), "status": "running"}
+    job.setdefault("timings", {}).setdefault("model_attempts", []).append(timing)
+    started = monotonic()
+    try:
+        provider = transport(Path(job["directory"]), task["assignment"]["model"],
+                             limits["timeout_seconds"], limits["reasoning_effort"])
+    except Exception as exc:
+        timing.update(finished_at=timestamp_utc(), elapsed_ms=elapsed_since(started), status="failed",
+                      error=str(exc))
+        save(Path(root) / "run.json", runtime)
+        raise
+    timing.update(finished_at=timestamp_utc(), elapsed_ms=elapsed_since(started), status="returned")
+    save(Path(job["directory"]) / "provider-result.json", provider)
+    job["status"] = "returned"
+    save(Path(root) / "run.json", runtime)
+    return provider
+
+
+def run_checks_timed(root, runtime, path, revision, evidence):
+    timing = {"unit": load_stage(path)["config"]["id"], "phase": "checks",
+              "started_at": timestamp_utc(), "status": "running"}
+    runtime.setdefault("stage_timings", []).append(timing)
+    started = monotonic()
+    try:
+        result = run_checks(path, revision, evidence)
+    except Exception as exc:
+        timing.update(finished_at=timestamp_utc(), elapsed_ms=elapsed_since(started),
+                      status="failed", error=str(exc))
+        save(Path(root) / "run.json", runtime)
+        raise
+    timing.update(finished_at=timestamp_utc(), elapsed_ms=elapsed_since(started), status="complete")
+    save(Path(root) / "run.json", runtime)
+    return result
 
 
 @contextmanager
@@ -62,6 +124,13 @@ def prepare(spec, root):
         require(u["title"].strip() and u["purpose"].strip(), "須指定章節標題與用途")
         profile = u.get("profile")
         require(profile in (None, "copy-v0.3", "copy-v0.4", "copy-v0.5", "copy-v0.6"), "不支援的單章流程設定")
+        rewrite_provider = u.get("rewrite_provider")
+        if rewrite_provider is not None:
+            require(profile == "copy-v0.6" and rewrite_provider == "agy"
+                    and u.get("rewrite_model") == AGY_WRITER_MODEL,
+                    "agy改寫僅支援文案v0.6及已核准的Gemini模型")
+        else:
+            require("rewrite_model" not in u, "指定rewrite_model時須同時指定rewrite_provider=agy")
         policy = {"roles": copy.deepcopy(spec["roles"]), "checks": copy.deepcopy(u["checks"])}
         validate_policy(policy)
         refs = {"source": artifact(u["source"]), **rule_refs,
@@ -80,6 +149,8 @@ def prepare(spec, root):
                              "output_root": str(directory), "review_policy": policy, "restrictions": []}
         if profile:
             configs[u["id"]]["profile"] = profile
+        if rewrite_provider:
+            configs[u["id"]].update(rewrite_provider=rewrite_provider, rewrite_model=u["rewrite_model"])
         if u.get("citation_contract"):
             require(profile == "copy-v0.6" and u["citation_contract"] == "locations-v1", "不支援的引文契約")
             configs[u["id"]]["citation_contract"] = u["citation_contract"]
@@ -124,14 +195,64 @@ def status(root):
     result = queue_status(root / "queue.json")
     for row in result["units"]:
         path = unit_path(root, row["id"])
+        config_path = path.parent / "config.json"
+        if config_path.exists():
+            config = read_json(config_path)
+            if config.get("rewrite_provider"):
+                row["rewrite_provider"] = {"provider": config["rewrite_provider"],
+                                            "model": config["rewrite_model"]}
         if path.exists():
             s = load_stage(path)
             row["candidate"] = s["artifacts"][s["candidates"][-1]] if s["candidates"] else None
             row["human"] = s["unit"]["human"] if s["unit"] else None
             row["questions"] = s["unit"]["questions"] if s["unit"] else []
             row["reports"] = [ref["path"] for k, ref in s["artifacts"].items() if k.endswith(":report")]
+        unit_jobs = [job for job in runtime["jobs"].values()
+                     if Path(job["state"]).resolve() == path.resolve()]
+        model_attempts = [attempt for job in unit_jobs
+                          for attempt in job.get("timings", {}).get("model_attempts", [])]
+        acceptance_attempts = [attempt for job in unit_jobs
+                               for attempt in job.get("timings", {}).get("controller_acceptance_attempts", [])]
+        check_attempts = [attempt for attempt in runtime.get("stage_timings", [])
+                          if attempt.get("unit") == row["id"] and attempt.get("phase") == "checks"]
+        gate = runtime.get("human_gates", {}).get(row["id"], {})
+        row["timing"] = {
+            "model_attempts": [{key: attempt.get(key) for key in ("phase", "attempt", "elapsed_ms", "status")}
+                               for attempt in model_attempts],
+            "model_elapsed_ms": (sum(a["elapsed_ms"] for a in model_attempts if isinstance(a.get("elapsed_ms"), int))
+                                 if any(isinstance(a.get("elapsed_ms"), int) for a in model_attempts) else None),
+            "automatic_checks_elapsed_ms": (sum(a["elapsed_ms"] for a in check_attempts if isinstance(a.get("elapsed_ms"), int))
+                                            if any(isinstance(a.get("elapsed_ms"), int) for a in check_attempts) else None),
+            "controller_acceptance_elapsed_ms": (sum(a["elapsed_ms"] for a in acceptance_attempts
+                                                       if isinstance(a.get("elapsed_ms"), int))
+                                                  if any(isinstance(a.get("elapsed_ms"), int) for a in acceptance_attempts) else None),
+            "h3_wait_elapsed_ms": human_gate_elapsed_ms(gate),
+            "h3_timing_status": gate.get("status", "unavailable" if (row.get("human") or {}).get("h3") == "confirmed" else "not_opened"),
+        }
+    all_model_attempts = [attempt for job in runtime["jobs"].values()
+                          for attempt in job.get("timings", {}).get("model_attempts", [])]
+    all_acceptance_attempts = [attempt for job in runtime["jobs"].values()
+                               for attempt in job.get("timings", {}).get("controller_acceptance_attempts", [])]
+    all_check_attempts = runtime.get("stage_timings", [])
+    gates = list(runtime.get("human_gates", {}).values())
+    gate_elapsed = [human_gate_elapsed_ms(gate) for gate in gates]
     result.update(model_calls=runtime["model_calls"], model_call_limit=read_json(root / "spec.json")["limits"]["max_model_calls"],
-                  last_error=runtime["last_error"], execution="codex-exec; foreground only")
+                  last_error=runtime["last_error"], execution="codex-exec/agy-exec by phase; foreground only",
+                  timing_totals={
+                      "model_elapsed_ms": (sum(a["elapsed_ms"] for a in all_model_attempts if isinstance(a.get("elapsed_ms"), int))
+                                           if any(isinstance(a.get("elapsed_ms"), int) for a in all_model_attempts) else None),
+                      "automatic_checks_elapsed_ms": (sum(a["elapsed_ms"] for a in all_check_attempts
+                                                           if isinstance(a.get("elapsed_ms"), int))
+                                                      if any(isinstance(a.get("elapsed_ms"), int) for a in all_check_attempts) else None),
+                      "controller_acceptance_elapsed_ms": (sum(a["elapsed_ms"] for a in all_acceptance_attempts
+                                                                if isinstance(a.get("elapsed_ms"), int))
+                                                           if any(isinstance(a.get("elapsed_ms"), int)
+                                                                  for a in all_acceptance_attempts) else None),
+                      "h3_wait_elapsed_ms": (sum(value for value in gate_elapsed if value is not None)
+                                             if any(value is not None for value in gate_elapsed) else None),
+                      "jobs_without_timing": sum("model_attempts" not in job.get("timings", {})
+                                                  for job in runtime["jobs"].values()),
+                  })
     return result
 
 
@@ -145,7 +266,22 @@ def initialize_child(root, ticket):
     return path
 
 
-def accept_job(root, runtime, job):
+def task_transport(task, transport):
+    if transport is not execute_codex:
+        return transport
+    provider = task.get("assignment", {}).get("provider", "codex")
+    require(provider in ("codex", "agy"), f"不支援模型provider：{provider}")
+    return execute_agy if provider == "agy" else execute_codex
+
+
+def preflight_transport(task, transport):
+    if transport is execute_codex:
+        preflight_codex()
+    elif transport is execute_agy:
+        preflight_agy(task["assignment"]["model"])
+
+
+def _accept_job(root, runtime, job):
     directory = Path(job["directory"])
     task = read_json(directory / "task.json")
     provider = read_json(directory / "provider-result.json")
@@ -185,6 +321,8 @@ def accept_job(root, runtime, job):
         if key in answer:
             response[key] = answer[key]
     execution = {"role": task["assignment"]["role"], "model": provider["model"], "context_id": provider["context_id"]}
+    if provider.get("provider"):
+        execution["provider"] = provider["provider"]
     write_once(directory / "response.json", json.dumps(response, ensure_ascii=False, indent=2))
     if task.get("profile") in ("copy-v0.3", "copy-v0.4", "copy-v0.5", "copy-v0.6") and task["phase"] in ("compare", "review"):
         prior = task["current_evaluation"]
@@ -219,6 +357,31 @@ def accept_job(root, runtime, job):
     save(directory / "receipt.json", receipt)
     job["status"] = "accepted"
     runtime["last_error"] = None
+    if task["phase"] == "review":
+        stage = load_stage(job["state"])
+        if stage["phase"] == "stopped" and stage["unit"]["human"]["h3"] == "pending":
+            uid = stage["config"]["id"]
+            candidate_sha = stage["artifacts"][stage["candidates"][-1]]["sha256"]
+            gate = runtime.setdefault("human_gates", {}).get(uid)
+            if not gate or gate.get("candidate_sha256") != candidate_sha:
+                runtime["human_gates"][uid] = {"candidate_sha256": candidate_sha,
+                                               "opened_at": timestamp_utc(),
+                                               "status": "waiting"}
+    save(Path(root) / "run.json", runtime)
+
+
+def accept_job(root, runtime, job):
+    timing = {"started_at": timestamp_utc(), "status": "running"}
+    job.setdefault("timings", {}).setdefault("controller_acceptance_attempts", []).append(timing)
+    started = monotonic()
+    try:
+        _accept_job(root, runtime, job)
+    except Exception as exc:
+        timing.update(finished_at=timestamp_utc(), elapsed_ms=elapsed_since(started),
+                      status="failed", error=str(exc))
+        save(Path(root) / "run.json", runtime)
+        raise
+    timing.update(finished_at=timestamp_utc(), elapsed_ms=elapsed_since(started), status="accepted")
     save(Path(root) / "run.json", runtime)
 
 
@@ -244,12 +407,15 @@ def work(root, max_tasks=1, transport=execute_codex):
                 s = load_stage(path)
                 if s["phase"] == "checks":
                     evidence_path = path.parent / "check-evidence.json"
-                    run_checks(path, s["revision"], read_json(evidence_path) if evidence_path.exists() else None)
+                    run_checks_timed(root, runtime, path, s["revision"],
+                                     read_json(evidence_path) if evidence_path.exists() else None)
                 task = next_task(path)
                 if task.get("stopped"):
                     continue
                 require(runtime["model_calls"] < limits["max_model_calls"], "本run模型呼叫額度已用完；不自動增加")
                 require(task["id"] not in runtime["jobs"], "工作已有執行紀錄，不能重新計版或重送")
+                selected_transport = task_transport(task, transport)
+                preflight_transport(task, selected_transport)
                 directory = path.parent / "jobs" / task["id"]
                 directory.mkdir(parents=True)
                 write_once(directory / "task.json", json.dumps(task, ensure_ascii=False, indent=2))
@@ -260,10 +426,7 @@ def work(root, max_tasks=1, transport=execute_codex):
                 runtime["model_calls"] += 1
                 save(root / "run.json", runtime)
                 try:
-                    provider = transport(directory, task["assignment"]["model"], limits["timeout_seconds"], limits["reasoning_effort"])
-                    save(directory / "provider-result.json", provider)
-                    job["status"] = "returned"
-                    save(root / "run.json", runtime)
+                    run_provider_timed(root, runtime, job, task, selected_transport, limits)
                     accept_job(root, runtime, job)
                 except Exception:
                     job["status"] = "failed"
@@ -275,7 +438,7 @@ def work(root, max_tasks=1, transport=execute_codex):
 
 
 def retry(root, uid, reason, transport=execute_codex):
-    """只允許已失敗、沒有候選輸出的任務補救一次；未知執行狀態不重送。"""
+    """失敗任務只補救一次；compare／review可保留拒收報告後補跑，未知狀態不重送。"""
     root = Path(root).resolve()
     with run_lock(root):
         runtime = load_run(root)
@@ -285,10 +448,16 @@ def retry(root, uid, reason, transport=execute_codex):
         job = runtime["jobs"][task["id"]]
         old = Path(job["directory"])
         require(job["status"] == "failed" and job["attempts"] == 1 and reason.strip(), "僅允許失敗任務一次明確補救")
-        require(not (old / "provider-result.json").exists(), "已有完整模型結果，請work接收快取，不重新生成")
-        require(not (old / "answer.json").exists(), "已有模型輸出，須先人工辨認，不另生成候選規避計版")
+        has_result = (old / "provider-result.json").exists() or (old / "answer.json").exists()
+        if has_result:
+            failed_task = read_json(old / "task.json")
+            require(failed_task.get("phase") in ("compare", "review")
+                    and not (old / "candidate.md").exists(),
+                    "已有模型輸出的任務不可重跑；compare／review拒收可保留原答案補救一次")
         limits = read_json(root / "spec.json")["limits"]
         require(runtime["model_calls"] < limits["max_model_calls"], "模型額度已用完")
+        selected_transport = task_transport(task, transport)
+        preflight_transport(task, selected_transport)
         directory = old.parent / (old.name + "-retry")
         directory.mkdir()
         for name in ("task.json", "prompt.txt", "schema.json"):
@@ -297,8 +466,114 @@ def retry(root, uid, reason, transport=execute_codex):
         runtime["model_calls"] += 1
         save(root / "run.json", runtime)
         try:
-            provider = transport(directory, task["assignment"]["model"], limits["timeout_seconds"], limits["reasoning_effort"])
-            save(directory / "provider-result.json", provider)
+            run_provider_timed(root, runtime, job, task, selected_transport, limits)
+            accept_job(root, runtime, job)
+        except (LoopError, OSError, ValueError, KeyError, TypeError) as exc:
+            job["status"] = "failed"
+            runtime["last_error"] = str(exc)
+            save(root / "run.json", runtime)
+    return status(root)
+
+
+def repair_assess_plan(root, uid, problem, reason, actor):
+    """接收已回傳的評估；僅把多個未解P的修法索引指定為其中一個P。"""
+    root = Path(root).resolve()
+    with run_lock(root):
+        runtime = load_run(root)
+        path = unit_path(root, uid)
+        task = next_task(path)
+        require(task.get("phase") == "assess" and task.get("profile") == "copy-v0.6",
+                "僅支援v0.6評估修法索引更正")
+        job = runtime["jobs"].get(task["id"])
+        require(job and job["status"] == "failed" and reason.strip() and actor.strip(),
+                "須有失敗評估、原因與紀錄者")
+        require(runtime["last_error"] == "修法須對應未解 P", "不是可更正的修法索引拒收")
+        old = Path(job["directory"])
+        require((old / "answer.json").is_file() and (old / "provider-result.json").is_file(),
+                "缺少完整原始評估回交")
+        check_inputs(load_stage(path))
+        answer = read_json(old / "answer.json")
+        evaluation = answer.get("evaluation", {})
+        plan = evaluation.get("next_fix") or {}
+        raw_problem = plan.get("problem", "")
+        require(isinstance(raw_problem, str) and re.fullmatch(r"P\d+(?:[、,，/+＋]\s*P\d+)+", raw_problem),
+                "原修法索引不是多個P編號")
+        listed = re.split(r"[、,，/+＋]\s*", raw_problem)
+        open_ids = {row["id"] for row in evaluation.get("problems", []) if row.get("open") is True}
+        require(len(set(listed)) == len(listed) and set(listed) <= open_ids and problem in listed,
+                "修法列出的P須全部未解，且所選P須在原索引中")
+        require(isinstance(plan.get("method"), str) and plan["method"].strip(), "原修法缺少具體方法")
+        repaired = copy.deepcopy(answer)
+        repaired["evaluation"]["next_fix"]["problem"] = problem
+        directory = old.parent / (old.name + "-plan-repair")
+        require(not directory.exists(), "評估修法已更正，不重複套用")
+        directory.mkdir()
+        for name in ("task.json", "prompt.txt", "schema.json", "provider-result.json"):
+            write_once(directory / name, (old / name).read_text(encoding="utf-8"))
+        write_once(directory / "answer.json", json.dumps(repaired, ensure_ascii=False, indent=2))
+        record = {"rule": "assess-next-fix-single-open-problem", "original_answer": str(old / "answer.json"),
+                  "original_sha256": digest(old / "answer.json"), "original_problem": raw_problem,
+                  "listed_open_problems": listed, "selected_problem": problem,
+                  "effect": "只更正next_fix.problem；原回交、評級、問題、修法文字與模型用量不變",
+                  "reason": reason, "actor": actor, "recorded_at": timestamp_utc()}
+        write_once(directory / "plan-repair.json", json.dumps(record, ensure_ascii=False, indent=2))
+        job.update(directory=str(directory), status="returned", plan_repair=record)
+        save(root / "run.json", runtime)
+        try:
+            accept_job(root, runtime, job)
+        except (LoopError, OSError, ValueError, KeyError, TypeError) as exc:
+            job["status"] = "failed"
+            runtime["last_error"] = str(exc)
+            save(root / "run.json", runtime)
+    return status(root)
+
+
+def repair_no_gap_rows(root, uid, reason, actor):
+    """把v0.6比較／覆核中明示「無缺口」的欄位改為空字串，不改閱讀判斷。"""
+    root = Path(root).resolve()
+    with run_lock(root):
+        runtime = load_run(root)
+        path = unit_path(root, uid)
+        task = next_task(path)
+        require(task.get("phase") in ("compare", "review") and task.get("profile") == "copy-v0.6",
+                "僅支援v0.6比較或覆核的無缺口欄位更正")
+        job = runtime["jobs"].get(task["id"])
+        require(job and job["status"] == "failed" and reason.strip() and actor.strip(),
+                "須有失敗報告、原因與紀錄者")
+        require(runtime["last_error"] == "閱讀缺口須對應仍open的B問題",
+                "不是可更正的無缺口欄位拒收")
+        old = Path(job["directory"])
+        require((old / "answer.json").is_file() and (old / "provider-result.json").is_file(),
+                "缺少完整原始比較或覆核回交")
+        check_inputs(load_stage(path))
+        answer = read_json(old / "answer.json")
+        repaired = copy.deepcopy(answer)
+        changes = []
+        for index, row in enumerate(repaired.get("reading_decision", {}).get("passages", [])):
+            text = row.get("remaining_gap", "")
+            if row.get("problem_id") is not None or not isinstance(text, str) or not text.strip():
+                continue
+            require(text.strip().startswith(("無", "沒有")) and not row.get("added_background", "").strip()
+                    and all(row[key]["verdict"] == "supported"
+                            for key in ("referents", "reason_placement", "reading_load")),
+                    "無P編號的段落仍有實質閱讀缺口，不能自動更正")
+            changes.append({"passage": index, "original_remaining_gap": text})
+            row["remaining_gap"] = ""
+        require(changes, "沒有可更正的無缺口欄位")
+        directory = old.parent / (old.name + "-no-gap-repair")
+        require(not directory.exists(), "無缺口欄位已更正，不重複套用")
+        directory.mkdir()
+        for name in ("task.json", "prompt.txt", "schema.json", "provider-result.json"):
+            write_once(directory / name, (old / name).read_text(encoding="utf-8"))
+        write_once(directory / "answer.json", json.dumps(repaired, ensure_ascii=False, indent=2))
+        record = {"rule": "reading-no-gap-empty-string", "original_answer": str(old / "answer.json"),
+                  "original_sha256": digest(old / "answer.json"), "changes": changes,
+                  "effect": "只清空明示無缺口段落的remaining_gap；評級、問題、其他閱讀結論與模型用量不變",
+                  "reason": reason, "actor": actor, "recorded_at": timestamp_utc()}
+        write_once(directory / "no-gap-repair.json", json.dumps(record, ensure_ascii=False, indent=2))
+        job.update(directory=str(directory), status="returned", no_gap_repair=record)
+        save(root / "run.json", runtime)
+        try:
             accept_job(root, runtime, job)
         except (LoopError, OSError, ValueError, KeyError, TypeError) as exc:
             job["status"] = "failed"
@@ -344,6 +619,8 @@ def repair_report(root, uid, reason, actor, transport=execute_codex):
                 ("重述依據須逐字", "閱讀引文須逐字", "等級引用無效 P", "等級引用無效 Q", "引文段落不存在", "引文範圍越界")), "不是可更正的引文或引用拒收")
         limits = read_json(root / "spec.json")["limits"]
         require(runtime["model_calls"] < limits["max_model_calls"], "模型額度已用完")
+        if transport is execute_codex:
+            preflight_codex()
         directory = old.parent / (old.name + "-report-repair")
         directory.mkdir()
         task = copy.deepcopy(task)
@@ -361,8 +638,7 @@ def repair_report(root, uid, reason, actor, transport=execute_codex):
         runtime["model_calls"] += 1
         save(root / "run.json", runtime)
         try:
-            provider = transport(directory, task["assignment"]["model"], limits["timeout_seconds"], limits["reasoning_effort"])
-            save(directory / "provider-result.json", provider)
+            run_provider_timed(root, runtime, job, task, transport, limits)
             accept_job(root, runtime, job)
         except (LoopError, OSError, ValueError, KeyError, TypeError) as exc:
             job["status"] = "failed"
@@ -381,7 +657,8 @@ def recover(root, uid):
         job = jobs[0]
         directory = Path(job["directory"])
         task = read_json(directory / "task.json")
-        collect_result(directory, task["assignment"]["model"])
+        collector = collect_agy_result if task.get("assignment", {}).get("provider") == "agy" else collect_result
+        collector(directory, task["assignment"]["model"])
         accept_job(root, runtime, job)
     return status(root)
 
@@ -389,13 +666,32 @@ def recover(root, uid):
 def human_confirmation(root, uid, feedback, sha256, revision, actor):
     root = Path(root).resolve()
     with run_lock(root):
-        load_run(root)
+        runtime = load_run(root)
         path = unit_path(root, uid)
         require(Path(feedback).is_file(), "缺少使用者原話紀錄")
         text = Path(feedback).read_text(encoding="utf-8")
         dest = path.parent / f"human-feedback-{revision}.md"
         write_once(dest, text)
         result = confirm_h3(path, dest, sha256, revision, actor)
+        gate = runtime.setdefault("human_gates", {}).get(uid)
+        if not gate or gate.get("status") == "waiting":
+            confirmed_at = datetime.now(timezone.utc)
+            opened_at = None
+            if gate and gate.get("opened_at"):
+                try:
+                    opened_at = datetime.fromisoformat(gate["opened_at"].replace("Z", "+00:00"))
+                except ValueError:
+                    opened_at = None
+            record = {"candidate_sha256": result["confirmation"]["sha256"],
+                      "confirmed_at": confirmed_at.isoformat(timespec="milliseconds").replace("+00:00", "Z")}
+            if opened_at is not None:
+                record.update(opened_at=gate["opened_at"],
+                              wait_elapsed_ms=max(0, int((confirmed_at - opened_at).total_seconds() * 1000)),
+                              status="measured")
+            else:
+                record.update(wait_elapsed_ms=None, status="open_time_unavailable")
+            runtime["human_gates"][uid] = record
+            save(root / "run.json", runtime)
     return result
 
 
@@ -440,11 +736,26 @@ def report(root):
     root = Path(root).resolve()
     data = status(root)
     rows = ["# 課程改善進度", "", f"狀態：{data['course_status']}；派送：{data['dispatch_enabled']}。",
-            f"模型呼叫：{data['model_calls']}／{data['model_call_limit']}。", ""]
+            f"模型呼叫：{data['model_calls']}／{data['model_call_limit']}。"]
+    totals = data["timing_totals"]
+    fmt = lambda value: "未量測" if value is None else f"{value / 1000:.1f}秒"
+    rows += [f"計時累計：模型CLI往返 {fmt(totals['model_elapsed_ms'])}；自動檢查 {fmt(totals['automatic_checks_elapsed_ms'])}；"
+             f"控制器接收 {fmt(totals['controller_acceptance_elapsed_ms'])}；H3等待 {fmt(totals['h3_wait_elapsed_ms'])}；"
+             f"沒有模型計時的任務 {totals['jobs_without_timing']}筆。", ""]
     if data["last_error"]:
         rows += ["執行停止原因：" + data["last_error"], ""]
     for u in data["units"]:
         rows += [f"## {u['id']} {u['status']}", "", f"候選用量：{u['candidate_usage']}；階段：{u.get('stage_phase', '未開始')}。"]
+        phases = [f"{item['phase']}第{item['attempt']}次 {fmt(item['elapsed_ms'])}"
+                  for item in u["timing"]["model_attempts"]]
+        rows += ["模型階段時間：" + ("；".join(phases) if phases else "尚無模型執行紀錄") + "。",
+                 "自動檢查時間：" + fmt(u["timing"]["automatic_checks_elapsed_ms"]) + "。",
+                 "控制器接收時間：" + fmt(u["timing"]["controller_acceptance_elapsed_ms"]) + "；H3等待："
+                 + (("進行中，已等待" + fmt(u["timing"]["h3_wait_elapsed_ms"]))
+                    if u["timing"]["h3_timing_status"] == "waiting"
+                    else (fmt(u["timing"]["h3_wait_elapsed_ms"])
+                          if u["timing"]["h3_wait_elapsed_ms"] is not None
+                          else u["timing"]["h3_timing_status"])) + "。"]
         if u.get("candidate"):
             rows += [f"[目前完整候選](<{u['candidate']['path']}>)", f"版本：`{u['candidate']['sha256']}`；revision：{u['child_revision']}。"]
         rows += [f"[報告{i + 1}](<{p}>)" for i, p in enumerate(u.get("reports", []))]

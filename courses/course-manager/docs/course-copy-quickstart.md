@@ -10,6 +10,34 @@
 
 不一定要先指出全部問題；原稿與用途足夠時可由評估角色定位。只輸入「文案迭代」時，先依目前課程與既有資料定位，只有章節範圍或用途仍不明時才詢問；不自動把啟動詞當整課改寫授權。若同章已有run，先接續或辨認差異，不自動升級舊版或重開以繞過額度。
 
+## 文案迭代改
+
+明確指定「文案迭代改」時，仍使用相同v0.6流程與單一候選；agy只負責`rewrite`寫作階段。評估由Sol執行、候選比較由Luna執行、新上下文覆核由Sol執行，人工H3與兩版上限不變。不會每次都呼叫Codex與agy各寫一份；舊run也不會因入口名稱不同而切換provider。
+
+先前A/B人工審核選定agy稿為首選，但試稿也出現來源未支持的新情境；compare、review須照常標出這類內容，不能把文句較完整視為事實已證實。
+
+建立新單章run時加上`--agy-writer`：
+
+```bash
+python3 scripts/course_copy_loop.py \
+  --source '/原稿完整路徑/CH1.html' \
+  --unit CH1 --title '章節名稱' \
+  --purpose '給初學者理解這份既有案例的判斷理由' \
+  --agy-writer \
+  --run '/隔離輸出完整路徑/run-agy'
+```
+
+整課清單使用同一旗標：
+
+```bash
+python3 scripts/course_copy_loop.py \
+  --course-manifest '/完整路徑/course.json' \
+  --agy-writer \
+  --run '/隔離輸出完整路徑/run-agy'
+```
+
+`doctor`及每次實際派送前會檢查provider能否啟動；agy預檢只列出指定模型，不產生模型回合。這能攔下CLI啟動權限或模型清單問題，但不保證帳戶額度或後續生成成功。真正改寫仍保留單次執行紀錄、模型／schema雜湊與事件流；schema綁定的`finish`只用來提交結構化輸出，須再通過SUCCESS、回合數與schema核對，不算外部工具。其他工具或子代理事件、模型不符或結構化輸出缺漏時拒收，不自動重送；原事件完整時可用`recover`接收，不重跑模型。
+
 ## 快速反應分工
 
 | 角色 | 責任 |

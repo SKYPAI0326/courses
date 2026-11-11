@@ -1,5 +1,11 @@
 # Course Design System
 
+只需改善既有講義文案時，使用[文案迭代](docs/course-copy-quickstart.md)：單章診斷、改寫、比較及覆核，保留教學事實與原稿。
+
+指定由Antigravity負責改寫時，使用獨立入口[文案迭代改](docs/course-copy-quickstart.md#文案迭代改)：只有改寫階段使用agy，不自動產生A/B雙稿。
+
+既有講義循環改善請從[課程 loop 開始使用教學](docs/course-loop-quickstart.md)進入；[完整操作說明](docs/course-loop-runtime.md)提供準備隔離 run、模型評估與改寫、覆核、補證及人工閱讀確認介面，不覆蓋正式講義。
+
 這是課程設計與產製的控制系統，負責從需求確認、外部研究、課程藍圖、教學內容、學員網頁、獨立試學到發布準備的 G0–G6 流程。
 
 PDF 講義另有獨立流程：[操作說明](docs/pdf-pipeline.md)、[講義登錄與取用索引](../output/pdf/INDEX.md)。使用 `python3 scripts/pdf_pipeline.py status` 檢查來源同步狀態；`sync` 預設只列計畫，不產製 PDF。

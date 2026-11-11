@@ -5,9 +5,10 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 from src.course_improvement_loop import require
+from src.course_loop_review import AGY_WRITER_MODEL
 
 
-def copy_course_spec(manifest_path):
+def copy_course_spec(manifest_path, rewrite_provider="codex"):
     """將明確列齊的授權章節接入既有整課佇列；共用呼叫總額。"""
     path = Path(manifest_path).resolve()
     manifest = json.loads(path.read_text(encoding="utf-8"))
@@ -20,7 +21,8 @@ def copy_course_spec(manifest_path):
     units = []
     for unit in manifest["units"]:
         part = copy_spec(resolve(unit["source"]), unit["id"], unit["title"], unit["purpose"],
-                         [resolve(p) for p in unit.get("materials", [])], unit.get("keep", []))
+                         [resolve(p) for p in unit.get("materials", [])], unit.get("keep", []),
+                         rewrite_provider=rewrite_provider)
         spec = spec or part
         units.extend(part["units"])
     spec.update(id=manifest["id"], units=units)
@@ -49,7 +51,8 @@ class PreBlocks(HTMLParser):
             self.active = False
 
 
-def copy_spec(source, unit_id, title, purpose, materials=(), keep=()):
+def copy_spec(source, unit_id, title, purpose, materials=(), keep=(), rewrite_provider="codex"):
+    require(rewrite_provider in ("codex", "agy"), "改寫provider僅支援codex或agy")
     source = Path(source).resolve()
     require(source.suffix.lower() in (".html", ".htm", ".md"), "文案入口只接受HTML或Markdown")
     text = source.read_text(encoding="utf-8")
@@ -68,6 +71,14 @@ def copy_spec(source, unit_id, title, purpose, materials=(), keep=()):
         checks.append({"id": "protected-text", "kind": "required_text",
                        "description": "原稿程式／提示詞區塊及指定文字逐字保留，不以潤稿改動操作內容",
                        "texts": protected})
+    unit = {"id": unit_id, "title": title,
+            "profile": "copy-v0.6",
+            "citation_contract": "locations-v1",
+            "purpose": "文案迭代：" + purpose + "。僅修閱讀脈絡，保留教學事實；不是整章技術驗收。",
+            "source": str(source), "materials": [str(Path(p).resolve()) for p in materials],
+            "dependencies": [], "checks": checks}
+    if rewrite_provider == "agy":
+        unit.update(rewrite_provider="agy", rewrite_model=AGY_WRITER_MODEL)
     return {
         "id": f"copy-{unit_id}",
         "roles": {"assessor": "gpt-6.1-sol", "writer": "gpt-6-luna", "reviewer": "gpt-6.1-sol"},
@@ -76,10 +87,5 @@ def copy_spec(source, unit_id, title, purpose, materials=(), keep=()):
             + [str(root / "docs/course-copy-profile-v0.6.md")],
         "limits": {"max_model_calls": 8, "timeout_seconds": 180,
                    "max_input_chars": 200000, "reasoning_effort": "low"},
-        "units": [{"id": unit_id, "title": title,
-                   "profile": "copy-v0.6",
-                   "citation_contract": "locations-v1",
-                   "purpose": "文案迭代：" + purpose + "。僅修閱讀脈絡，保留教學事實；不是整章技術驗收。",
-                   "source": str(source), "materials": [str(Path(p).resolve()) for p in materials],
-                   "dependencies": [], "checks": checks}]
+        "units": [unit]
     }

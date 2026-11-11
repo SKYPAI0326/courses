@@ -5,10 +5,12 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
-from src.course_improvement_loop import LoopError, artifact, read_json, save
-from src.course_loop_executor import build_prompt, execute_codex, response_schema
+from src.course_improvement_loop import LoopError, artifact, digest, read_json, save
+from src.course_loop_executor import (build_prompt, collect_agy_result, execute_codex,
+                                     preflight_codex, response_schema)
 from src.course_loop_runtime import (activate, finish, human_confirmation, prepare, report,
                                      recover, retry, repair_report, validate_report_repair, status, supply_check, work)
 
@@ -151,9 +153,22 @@ class RuntimeTests(unittest.TestCase):
                                      ("compare", "test-writer"), ("review", "test-evaluator")])
         row = result["units"][0]
         self.assertEqual(row["status"], "waiting_human")
+        self.assertEqual([item["phase"] for item in row["timing"]["model_attempts"]],
+                         ["assess", "rewrite", "compare", "review"])
+        self.assertIsNotNone(row["timing"]["automatic_checks_elapsed_ms"])
+        self.assertGreaterEqual(row["timing"]["h3_wait_elapsed_ms"], 0)
+        runtime = read_json(self.run / "run.json")
+        attempts = [item for job in runtime["jobs"].values()
+                    for item in job["timings"]["model_attempts"]]
+        self.assertTrue(all(item["elapsed_ms"] >= 0 and item["started_at"].endswith("Z")
+                            and item["finished_at"].endswith("Z") for item in attempts))
+        self.assertEqual(runtime["human_gates"]["CH1"]["status"], "waiting")
         feedback = self.root / "feedback.md"
         feedback.write_text("合成測試回饋，不是實際使用者的教材認可。")
         human_confirmation(self.run, "CH1", feedback, row["candidate"]["sha256"], row["child_revision"], "合成測試")
+        timed = status(self.run)["units"][0]["timing"]
+        self.assertEqual(timed["h3_timing_status"], "measured")
+        self.assertGreaterEqual(timed["h3_wait_elapsed_ms"], 0)
         self.assertEqual(work(self.run, 8, self.transport)["model_calls"], 4)
         integration = self.root / "integration.md"
         integration.write_text("合成課只有一章；測試結案接口。")
@@ -317,10 +332,35 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(result["model_calls"], 1)
         result = work(self.run, 1, broken)
         self.assertEqual(result["model_calls"], 1)
+        with patch("src.course_loop_runtime.preflight_codex", side_effect=LoopError("app-server 權限不足")):
+            with self.assertRaisesRegex(LoopError, "app-server 權限不足"):
+                retry(self.run, "CH1", "先確認啟動權限")
+        self.assertEqual(read_json(self.run / "run.json")["model_calls"], 1)
+        self.assertFalse((self.run / "units/CH1/jobs/CH1-1-assess-retry").exists())
         result = retry(self.run, "CH1", "合成暫時錯誤，補救一次", broken)
         self.assertEqual(result["model_calls"], 2)
         with self.assertRaises(LoopError):
             retry(self.run, "CH1", "不應第三次", broken)
+
+    def test_app_server_preflight_failure_does_not_count_or_create_job(self):
+        self.start()
+        with patch("src.course_loop_runtime.preflight_codex", side_effect=LoopError("app-server 權限不足")):
+            result = work(self.run)
+        self.assertEqual(result["model_calls"], 0)
+        self.assertIn("app-server 權限不足", result["last_error"])
+        self.assertEqual(read_json(self.run / "run.json")["jobs"], {})
+        self.assertFalse((self.run / "units/CH1/jobs/CH1-1-assess").exists())
+        resumed = work(self.run, 1, self.transport)
+        self.assertEqual(resumed["model_calls"], 1)
+        self.assertIsNone(resumed["last_error"])
+
+    def test_app_server_preflight_uses_no_model(self):
+        probe = SimpleNamespace(returncode=1, stderr="Error: Operation not permitted (os error 1)\n")
+        with patch("src.course_loop_executor.subprocess.run", return_value=probe) as run:
+            with self.assertRaisesRegex(LoopError, "Operation not permitted"):
+                preflight_codex("/fake/codex")
+        self.assertEqual(run.call_args.args[0], ["/fake/codex", "app-server", "--listen", "stdio://"])
+        self.assertEqual(run.call_args.kwargs["input"], "")
 
     def test_chapter_specific_checks_and_dependency(self):
         second = self.root / "second.md"
@@ -442,6 +482,33 @@ class RuntimeTests(unittest.TestCase):
             with self.assertRaises(LoopError):
                 execute_codex(job, "test-model", 10, "low")
         self.assertFalse((job / "provider-result.json").exists())
+
+    def test_agy_schema_finish_event_is_accepted_as_structured_submission(self):
+        job = self.root / "agy-job"
+        job.mkdir()
+        model = "gemini-3.8-flash-low"
+        (job / "prompt.txt").write_text("測試提示", encoding="utf-8")
+        schema = {"type": "object", "properties": {"ok": {"type": "boolean"}},
+                  "required": ["ok"], "additionalProperties": False}
+        save(job / "schema.json", schema)
+        save(job / "invocation.json", {"provider": "agy", "model": model, "fresh_process": True,
+                                        "prompt_sha256": digest(job / "prompt.txt"),
+                                        "schema_sha256": digest(job / "schema.json")})
+        events = [
+            {"event": "init", "init": {"model": model}, "conversation_id": "conv-finish-test"},
+            {"event": "step_update", "step_update": {"step_type": "tool",
+             "tool_info": {"name": "finish", "parameters": {"ok": True}}}},
+            {"event": "result", "result": {"status": "SUCCESS", "conversation_id": "conv-finish-test",
+             "num_turns": 1, "json_schema": schema, "structured_output": {"ok": True},
+             "usage": {"input_tokens": 7}}},
+        ]
+        (job / "events.jsonl").write_text("".join(json.dumps(event) + "\n" for event in events), encoding="utf-8")
+
+        result = collect_agy_result(job, model)
+        self.assertEqual(result["provider"], "agy")
+        self.assertEqual(result["context_id"], "conv-finish-test")
+        self.assertEqual(read_json(job / "answer.json"), {"ok": True})
+        self.assertEqual(read_json(job / "provider-result.json")["usage"]["input_tokens"], 7)
 
 
 if __name__ == "__main__":
