@@ -1,5 +1,11 @@
 # course-manager 專案入口
 
+## 講義套用
+
+使用者以「講義套用」啟動時，先讀[套用流程](docs/course-handout-apply.md)及開發進度目前狀態，定位既有run的H3確認候選與原HTML，套用course-html-contract。只有啟動詞先確認課程／章節；有明確授權則直接準備區段映射，使用`scripts/course_handout_apply.py`建立隔離預覽。不得重新潤稿、默默丟棄不支援區塊、修改原run或重算文案版數。
+
+保留原殼層、操作與來源版本，完成內容對應、結構、互動及桌機／手機檢查後交使用者比較。H3不是正式覆寫或發布授權；預設只預覽。來源變更、未確認候選、映射不明或檢查失敗就停止，保留可恢復證據。完成後更新開發紀錄，既有待補證限制不變。
+
 ## 文案迭代
 
 使用者以「文案迭代」啟動時，先讀[文案使用入口](docs/course-copy-quickstart.md)、[專用規範](docs/course-copy-profile-v0.6.md)、[共用控制器說明](docs/course-loop-runtime.md)及[開發紀錄](operations/course-content-scoring/開發進度追蹤.md)目前狀態。套用course-copywriter的事實保留邊界；只處理原稿已有內容的語氣、指涉、承接與完整敘事，不另造案例或操作。

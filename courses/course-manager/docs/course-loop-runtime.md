@@ -56,6 +56,17 @@ agy預檢使用`agy models`確認CLI可啟動且固定模型列在清單中，�
 
 候選通過覆核後停在 `waiting_human`，請人工比較閱讀脈絡、必要解釋與原有優點。收到實際認可後，將原話存成 UTF-8 檔，再以 status 顯示的版本登記：
 
+若來源是HTML且預計沿用該頁版型，在登記H3前先對該候選做唯讀相容性預檢：
+
+```bash
+python3 scripts/course_handout_apply.py --preflight \
+  --source '/完整路徑/原講義.html' \
+  --candidate '/完整路徑/候選.md' \
+  --output '/隔離工作目錄/preflight.json'
+```
+
+`blocked`表示候選不能直接套入這份HTML；若同一版本要同時做H3認可與後續套用，先完成對齊，並讓H3綁定對齊後的檔案。`passed`只表示基本檢查通過。報告會列原頁複合元件與區段數差異，後續仍須建立明確映射並做預覽檢查。預檢只判HTML相容性，不判文案品質、不修改run的H3狀態、不呼叫模型、不產生HTML，也不等於正式套用授權。
+
 ```bash
 python3 scripts/course_loop.py confirm-h3 --run RUN --unit CH1 --feedback FEEDBACK.md --candidate-sha256 SHA --expected-revision N --actor "紀錄者"
 python3 scripts/course_loop.py work --run RUN --max-tasks 1

@@ -1,5 +1,7 @@
 # Course Design System
 
+已確認候選銜接原HTML時，使用[講義套用](docs/course-handout-apply.md)，先產生隔離預覽並核對內容、互動與版面，不自動覆蓋或發布。
+
 只需改善既有講義文案時，使用[文案迭代](docs/course-copy-quickstart.md)：單章診斷、改寫、比較及覆核，保留教學事實與原稿。
 
 指定由Antigravity負責改寫時，使用獨立入口[文案迭代改](docs/course-copy-quickstart.md#文案迭代改)：只有改寫階段使用agy，不自動產生A/B雙稿。
