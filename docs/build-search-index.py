@@ -14,6 +14,7 @@ build-search-index.py — 弄一下工作室課程站內搜尋索引產生器
 """
 import json
 import re
+from html import unescape
 from pathlib import Path
 from course_paths import is_public_html, iter_public_html
 
@@ -96,7 +97,7 @@ def extract(path: Path):
         title = re.sub(r"\s+", " ", m.group(1)).strip()
     m = DESC_RE.search(html)
     if m:
-        desc = re.sub(r"\s+", " ", m.group(3)).strip()
+        desc = unescape(re.sub(r"\s+", " ", m.group(3)).strip())
     return title, desc
 
 

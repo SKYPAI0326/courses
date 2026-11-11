@@ -34,6 +34,16 @@ class ScopeTests(unittest.TestCase):
             p.parent.mkdir(parents=True, exist_ok=True)
             p.write_text("<html><body>fixture</body></html>")
 
+    def test_search_description_ignores_meta_attribute_order(self):
+        search = load("search_meta_order", ROOT / "docs/build-search-index.py")
+        page = self.root / "meta.html"
+        for tag in ('<meta content="內容在前 &amp; 已解碼" name="description">',
+                    '<meta name="description" content="名稱在前"/>'):
+            page.write_text(f"<title>測試頁</title><head>{tag}</head>", encoding="utf-8")
+            title, description = search.extract(page)
+            self.assertEqual(title, "測試頁")
+            self.assertEqual(description, "內容在前 & 已解碼" if "內容在前" in tag else "名稱在前")
+
     def test_root_relative_and_filename_policy(self):
         for rel in self.public:
             self.assertTrue(is_public_html(self.root / rel, self.root), rel)
