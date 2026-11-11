@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>人工覆核後再接自動化｜生成式 AI 工作應用班</title>
+<meta name="description" content="將歧義或缺欄原文轉為待覆核候選列，解釋九欄值、去重和停止條件。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="弄一下工作室">
+<meta property="og:title" content="人工覆核後再接自動化">
+<meta property="og:description" content="將歧義或缺欄原文轉為待覆核候選列，解釋九欄值、去重和停止條件。">
+<meta property="og:url" content="https://skypai0326.github.io/courses/courses/gen-ai-36h/part5/CH5-3.html">
+<meta property="og:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="人工覆核後再接自動化">
+<meta name="twitter:description" content="將歧義或缺欄原文轉為待覆核候選列，解釋九欄值、去重和停止條件。">
+<meta name="twitter:image" content="https://skypai0326.github.io/courses/素材/og-default.png">
+<link rel="canonical" href="https://skypai0326.github.io/courses/courses/gen-ai-36h/part5/CH5-3.html">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f5f3ee;--c-surface:#edeae3;--c-card:#ffffff;--c-border:#d8d4cb;--c-border-soft:#e8e4da;--c-text:#2c2b28;--c-muted:#7a766d;--c-faint:#bcb8ae;--c-a1:#b5703a;--c-a2:#c9963a;--c-a3:#5a7a5a;--c-a4:#6b7fa3;--c-a5:#7a9ea3;--radius:4px;--radius-sm:3px;--content-w:820px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.85;word-break:break-word;overflow-wrap:break-word;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(245,243,238,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:var(--c-a5);border:1px solid rgba(122,158,163,.35);background:rgba(122,158,163,.08);padding:3px 12px;border-radius:99px;font-weight:500}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);width:0%;transition:width .1s;opacity:.75}
+.lesson-hero{max-width:var(--content-w);margin:0 auto;padding:64px 48px 48px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--c-muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--c-a5)}
+.hero-meta{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.hero-part{font-size:.73rem;color:var(--c-muted);letter-spacing:.08em;font-weight:500;font-variant-numeric:tabular-nums}
+.hero-divider-v{width:1px;height:14px;background:var(--c-border)}
+.hero-num{font-size:.73rem;color:var(--c-a5);letter-spacing:1px;font-weight:500}
+.lesson-title{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.35;color:var(--c-text);margin-bottom:18px}
+.lesson-title em{font-style:normal;color:var(--c-a5)}
+.lesson-tagline{font-size:.92rem;color:var(--c-muted);line-height:1.9;max-width:38em;margin-bottom:28px}
+.outcomes{display:flex;flex-direction:column;gap:8px;padding:20px 0;border-top:1px solid var(--c-border-soft);border-bottom:1px solid var(--c-border-soft)}
+.outcomes-label{font-family:'Shippori Mincho',serif;font-style:italic;font-size:.78rem;color:var(--c-muted);letter-spacing:.03em;margin-bottom:2px}
+.outcome-item{display:flex;align-items:flex-start;gap:10px;font-size:.9rem;color:var(--c-text);line-height:1.7}
+.outcome-dot{width:12px;height:1px;background:var(--c-faint);margin-top:14px;flex-shrink:0}
+.agenda{padding:18px 22px;background:var(--c-surface);border-radius:var(--radius);font-size:.8rem;color:var(--c-text);line-height:1.8}
+.agenda strong{color:var(--c-a5);font-weight:700}
+.agenda-row{display:grid;grid-template-columns:90px 1fr;gap:14px;padding:4px 0}
+.agenda-time{font-family:'Shippori Mincho',serif;font-size:.76rem;color:var(--c-a5);font-weight:700}
+.agenda-topic{font-size:.8rem}
+.lesson-body{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px}
+.lesson-section{margin-bottom:48px}
+.section-eyebrow{font-family:'Shippori Mincho',serif;font-style:italic;font-size:.8rem;color:var(--c-muted);letter-spacing:.02em;font-weight:400;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.section-time{font-size:.68rem;color:var(--c-a5);background:rgba(122,158,163,.08);padding:2px 8px;border-radius:99px;letter-spacing:.5px;font-weight:600}
+.section-heading{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;color:var(--c-text);margin-bottom:18px;line-height:1.4}
+.section-heading em{font-family:'Shippori Mincho',serif;font-style:italic;font-weight:500;color:inherit}
+.body-text{font-size:.92rem;color:var(--c-text);line-height:1.95;margin-bottom:14px}
+.body-text strong{font-weight:700}
+.section-rule{border:none;border-top:1px solid var(--c-border);margin:48px 0}
+.subhead{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin:28px 0 14px;padding-left:12px;border-left:3px solid var(--c-a5)}
+.concept-box{padding:18px 22px;background:rgba(122,158,163,.06);border:1px solid rgba(122,158,163,.22);border-radius:var(--radius);margin:14px 0}
+.concept-label{font-size:.7rem;color:var(--c-a5);letter-spacing:1.5px;font-weight:700;margin-bottom:6px}
+.concept-text{font-size:.85rem;color:var(--c-text);line-height:1.8}
+.concept-text strong{color:var(--c-text);font-weight:700}
+.scenario-card{padding:18px 22px;background:var(--c-surface);border-radius:var(--radius);margin:14px 0;line-height:1.8}
+.scenario-label{font-family:'Shippori Mincho',serif;font-size:.73rem;color:var(--c-a5);letter-spacing:1.5px;font-weight:700;margin-bottom:8px}
+.scenario-text{font-size:.9rem;color:var(--c-text)}
+.scenario-text em{font-style:italic;color:var(--c-muted)}
+.flow-diagram{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;margin:20px 0;padding:18px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.flow-node{padding:10px 14px;background:rgba(122,158,163,.08);border:1px solid rgba(122,158,163,.3);border-radius:var(--radius-sm);text-align:center;flex:1;min-width:100px}
+.flow-node-name{font-family:'Shippori Mincho',serif;font-size:.8rem;font-weight:700;color:var(--c-text);margin-bottom:2px}
+.flow-node-sub{font-size:.68rem;color:var(--c-muted);line-height:1.4}
+.flow-arrow{color:var(--c-muted);font-size:.92rem;flex-shrink:0}
+.workflow-block{margin:28px 0;padding:24px 26px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a5);border-radius:var(--radius)}
+.wf-head{margin-bottom:14px}
+.wf-num{font-family:'Shippori Mincho',serif;font-size:.7rem;color:var(--c-a5);letter-spacing:2px;font-weight:500;margin-bottom:6px}
+.wf-name{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--c-text);margin-bottom:4px}
+.wf-pitch{font-size:.85rem;color:var(--c-muted);line-height:1.75}
+.mini-label{font-family:'Shippori Mincho',serif;font-size:.7rem;color:var(--c-a5);letter-spacing:1.5px;font-weight:500;margin:14px 0 8px}
+.spec-row{display:grid;grid-template-columns:120px 1fr;gap:14px;padding:10px 14px;background:var(--c-surface);border-radius:var(--radius-sm);margin-bottom:6px;align-items:start}
+.spec-name{font-family:'Shippori Mincho',serif;font-size:.78rem;font-weight:700;color:var(--c-a5)}
+.spec-text{font-size:.8rem;color:var(--c-text);line-height:1.7}
+.spec-text code{font-family:'Courier New',monospace;background:#fff;padding:1px 6px;border-radius:3px;font-size:.85em}
+.full-prompt-wrap{position:relative;margin:16px 0}
+.full-prompt{padding:20px 72px 20px 24px;background:#2c2b28;color:#e8e4dc;font-family:'Courier New',monospace;font-size:.78rem;border-radius:var(--radius);line-height:1.8;white-space:pre-wrap;overflow-x:auto}
+.full-prompt .lbl{color:#7a9ea3;font-weight:700}
+.full-prompt .var{color:#c9963a}
+.full-prompt .com{color:#8a8a8a;font-style:italic}
+.copy-btn-tl{position:absolute;top:10px;right:10px;padding:5px 12px;background:rgba(122,158,163,.85);color:#fff;border:none;border-radius:var(--radius-sm);font-size:.7rem;font-family:inherit;cursor:pointer;font-weight:500;z-index:2;transition:background .2s}
+.copy-btn-tl:hover{background:rgba(122,158,163,1)}
+.copy-btn-tl.copied{background:var(--c-a3)}
+.principle-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
+.principle-card{padding:16px 18px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+.principle-num{font-family:'Shippori Mincho',serif;font-size:.73rem;color:var(--c-a5);font-weight:700;margin-bottom:4px}
+.principle-name{font-family:'Shippori Mincho',serif;font-size:.92rem;font-weight:700;color:var(--c-text);margin-bottom:6px}
+.principle-desc{font-size:.78rem;color:var(--c-muted);line-height:1.65}
+.pitfall-museum{margin:20px 0}
+.pitfall-item{padding:16px 20px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a1);border-radius:var(--radius);margin-bottom:10px}
+.pitfall-head{font-family:'Shippori Mincho',serif;font-size:.92rem;font-weight:700;color:var(--c-text);margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.pitfall-num{font-size:.68rem;color:var(--c-a1);background:rgba(181,112,58,.1);border:1px solid rgba(181,112,58,.25);padding:2px 8px;border-radius:99px;font-weight:500}
+.pitfall-sym{font-size:.8rem;color:var(--c-text);line-height:1.7;margin-bottom:8px}
+.pitfall-sym strong{color:var(--c-a1);font-weight:700}
+.pitfall-fix{font-size:.8rem;color:var(--c-muted);line-height:1.7;padding:10px 12px;background:var(--c-surface);border-radius:var(--radius-sm);border-left:2px solid var(--c-a3)}
+.pitfall-fix strong{color:var(--c-a3);font-weight:700}
+.pitfall-fix code{font-family:'Courier New',monospace;background:#fff;padding:1px 6px;border-radius:3px;font-size:.88em}
+.practice-box{margin:24px 0;padding:22px 26px;background:rgba(201,150,58,.05);border:1px solid rgba(201,150,58,.3);border-radius:var(--radius)}
+.practice-label{font-family:'Shippori Mincho',serif;font-size:.73rem;color:var(--c-a2);letter-spacing:2px;font-weight:700;margin-bottom:8px}
+.practice-title{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;color:var(--c-text);margin-bottom:12px}
+.practice-task{font-size:.9rem;color:var(--c-text);line-height:1.8;margin-bottom:14px}
+.practice-task strong{color:var(--c-text);font-weight:700}
+.practice-hint{font-size:.8rem;color:var(--c-muted);line-height:1.75;margin-bottom:12px;padding:10px 14px;background:rgba(255,255,255,.5);border-radius:var(--radius-sm)}
+.practice-hint strong{color:var(--c-a2);font-weight:700}
+.practice-answer{border:1px solid rgba(201,150,58,.3);border-radius:var(--radius-sm);overflow:hidden;margin-top:10px}
+.practice-answer summary{padding:10px 14px;font-size:.8rem;color:var(--c-a2);font-weight:700;cursor:pointer;background:rgba(255,255,255,.6);list-style:none}
+.practice-answer summary::-webkit-details-marker{display:none}
+.practice-answer summary:before{content:'&#9656; ';color:var(--c-a2)}
+.practice-answer[open] summary:before{content:'&#9662; '}
+.practice-answer-content{padding:14px 16px;background:#fff;font-size:.8rem;color:var(--c-text);line-height:1.75}
+.callout{display:flex;gap:16px;padding:18px 22px;border-radius:var(--radius);margin:18px 0}
+
+
+
+.callout-icon{font-size:1rem;flex-shrink:0;margin-top:2px}
+.callout-body{font-size:.85rem;line-height:1.85;color:var(--c-text)}
+.callout-body strong{font-weight:700}
+.lesson-nav{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;gap:14px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.85rem;transition:border-color .2s;flex:1}
+.nav-btn:hover{border-color:var(--c-a5)}
+.nav-btn.next{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.7rem;color:var(--c-muted);margin-bottom:2px}
+.nav-btn-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.toast{position:fixed;bottom:28px;right:28px;background:var(--c-text);color:#fff;padding:10px 18px;border-radius:var(--radius-sm);font-size:.8rem;font-weight:500;transform:translateY(60px);opacity:0;transition:all .35s cubic-bezier(.34,1.56,.64,1);z-index:999}
+.toast.show{transform:none;opacity:1}
+@media(prefers-reduced-motion:reduce){.reveal,.section-rule{opacity:1!important;transform:none!important;transition:none!important}*{animation:none!important}}
+@media(max-width:1024px){.topbar{padding:0 32px}.lesson-hero{padding:48px 32px 36px}.lesson-body{padding:0 32px 56px}.lesson-nav{padding:0 32px 56px}}
+@media(max-width:768px){.topbar{padding:0 16px;gap:8px}.topbar-sub,.topbar-divider{display:none}.lesson-hero{padding:36px 20px 28px}.lesson-title{font-size:1.45rem}.lesson-body{padding:0 20px 48px}.lesson-nav{padding:0 20px 48px;flex-direction:column}.nav-btn{flex:none}.flow-diagram{flex-direction:column}.flow-arrow{transform:rotate(90deg)}.principle-grid{grid-template-columns:1fr}.spec-row{grid-template-columns:1fr;gap:4px}.agenda-row{grid-template-columns:1fr;gap:4px}.footer{padding:20px}}
+
+/* a11y: focus-visible ring */
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}.skip-link:focus{left:0}</style>
+<link rel="stylesheet" href="../assets/repair-content.css">
+<link href="../assets/coldtone-reading.css" rel="stylesheet"/>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.35rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.76rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='gen36_auth',H='2eeb336fddc0ac7aa5ce7ff9aa2b3a51db0f7ad83fd07d4e7d877dfc1d2b9089';if(localStorage.getItem(K)==='1')sessionStorage.setItem(K,'1');if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">生成式 AI 工作應用班（36h）</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag">CH 5.3 · Part 5</div>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+
+<div class="lesson-hero" id="main">
+  <a class="back-link" href="../index.html"><span aria-hidden="true">←</span> 返回課程總覽</a>
+  <div class="hero-meta">
+    <span class="hero-part">Part 5 · 人工覆核與 Make 自動化</span>
+    <div class="hero-divider-v"></div>
+    <span class="hero-num">CH 5.3 · 1.5 小時（90 分鐘）</span>
+  </div>
+  <h1 class="lesson-title">人工覆核後再接自動化</h1>
+  <p class="lesson-tagline">讓 AI 協助讀訊息，由人確認分類和資料完整後，才交給 Make 處理。</p>
+  <div class="outcomes"><strong>本節完成物：</strong>九欄候選、人工決定、草稿與防重證據</div>
+  <div class="agenda"><strong>這一節的練習順序</strong><div class="agenda-row"><div class="agenda-time">01</div><div class="agenda-topic">訊息還沒整理好時，先不要交給自動化</div></div><div class="agenda-row"><div class="agenda-time">02</div><div class="agenda-topic">用營業時間詢問，看一筆資料如何獲准處理</div></div><div class="agenda-row"><div class="agenda-time">03</div><div class="agenda-topic">遇到多個意圖或舊引用，先說明判斷理由</div></div><div class="agenda-row"><div class="agenda-time">04</div><div class="agenda-topic">查完整性與重複來源，再決定要不要入列</div></div><div class="agenda-row"><div class="agenda-time">05</div><div class="agenda-topic">接上草稿，並確認同一訊息不會做兩次</div></div></div>
+</div>
+
+<div class="lesson-body">
+<section class="lesson-section"><div class="section-eyebrow"><span>(01) · 學習與實作</span></div><h2 class="section-heading">訊息還沒整理好時，先不要交給自動化</h2>
+<p class="body-text">上一節已能按四分類分流，但原始訊息不一定寫得清楚。現在用<a href="../assets/part5-input-contract.md" rel="noopener" target="_blank">九欄規格</a>整理<a href="../assets/part5-unclassified-messages.csv" rel="noopener" target="_blank">未分類訊息</a>，再由人決定是否放進 ReviewedQueue。遇到缺欄位、引用舊信、重複來源或一句有多個意思，先把問題查清楚；Make 不會替你判斷這些文字是否可信。</p><p class="body-text">先讓生成式 AI 依原文提出九欄候選，再由人查來源、計算來源鍵並決定是否入列。前五欄是原始資料，AI 只能建議 category、summary 和 next_action，不能核准自己產出的列。</p>
+</section>
+<section class="lesson-section"><div class="section-eyebrow"><span>(02) · 學習與實作</span></div><h2 class="section-heading">用營業時間詢問，看一筆資料如何獲准處理</h2>
+<p class="body-text">U07 問「請問你們平日幾點營業？」它是在詢問資訊，可建議 inquiry；摘要只寫詢問平日營業時間，下一步是查正式時間並擬未寄出的草稿。資料沒有提供幾點營業，因此不能先填一個時段。</p><p class="body-text">先用 CH5-3 的提示詞讓 AI 建議候選：</p><div class="full-prompt-wrap"><pre class="full-prompt"><code class="language-text">請把以下虛構教學訊息整理成九欄候選列。
+submitted_at、name、email、subject、message 五欄逐字照抄來源，不改時間、姓名、email、主旨或原句。
+category 只能建議 inquiry、complaint、partnership 或 other。
+summary 只寫原文支持的意思；next_action 寫人接下來要查或處理什麼，不替公司承諾。
+review_status 一律填「待覆核」。未提供的值留空並標出缺漏；不要補營業時間或其他事實。不要判斷來源鍵是否重複，也不要把列送進 ReviewedQueue。
+原文：U07，2026-10-01 09:30，吳立，learner07@example.com，服務時間：「請問你們平日幾點營業？」
+請依九欄表頭輸出一列。</code></pre></div><p class="body-text">開<a href="../assets/part5-candidate-example.html" rel="noopener" target="_blank">U07 完整示範</a>，比較待覆核與核准後的九欄。人可以先核准這個分類，讓它進待查草稿；真正答覆時，仍要取得有效營業時間並審核內容。</p><p class="body-text">連結中的九欄是課程編寫的核對參考，不是一次實際模型輸出。把自己的模型回覆與它逐欄比較，記下正確、需修及來源依據；具體營業時間仍須人工查正式來源。</p>
+</section>
+<section class="lesson-section"><div class="section-eyebrow"><span>(03) · 學習與實作</span></div><h2 class="section-heading">遇到多個意圖或舊引用，先說明判斷理由</h2>
+<p class="body-text">對 U01 和 U02 使用同一提示詞，讓 AI 各提出九欄候選，旁邊留原句。U01 同時問價格、抱怨回覆延遲，要說明你採哪個主要分類，以及是否需要拆分或人工處理。U02 引用的是去年營業時間，今年能不能沿用還要查來源。先完成，再看<a href="../assets/part5-classification-answer-key.md" rel="noopener" target="_blank">逐筆答案</a>比較理由。</p>
+</section>
+<section class="lesson-section"><div class="section-eyebrow"><span>(04) · 學習與實作</span></div><h2 class="section-heading">查完整性與重複來源，再決定要不要入列</h2>
+<p class="body-text">先讓 AI 對 U03、U04、U05、U06 提出候選，再由你計算 U03／U04 的來源鍵、查 U05 九欄完整性及判斷 U06 的主要意圖。語意相似不等於同鍵；U05 缺必要欄位時留在 Source，不猜資料。逐筆寫下是否可入列、依據哪句話、還要補什麼。</p><p class="body-text">候選列先維持「待覆核」，人明確核准後才可入 ReviewedQueue。必要欄位缺值或分類有爭議時，保留在 Source。保存原文、建議值與人工決定；沒有 Sheets／Make 權限，也能手動練這些判斷，並註明自動化未操作（NOT_RUN）。</p><p class="body-text">只有來源鍵未重複、必要欄位完整且人同意分類，才把 review_status 改成「已覆核」並追加 ReviewedQueue。Make 不查證 AI 建議的真偽，只依核准列執行防重、分流和未寄出草稿。</p>
+</section>
+<section class="lesson-section"><div class="section-eyebrow"><span>(05) · 學習與實作</span></div><h2 class="section-heading">接上草稿，並確認同一訊息不會做兩次</h2>
+<p class="body-text">資料確認後，按<a href="../assets/part5-stage-handoff.html" rel="noopener" target="_blank">草稿與防重複建置指南</a>完成後半段，指南稱為 S3。先用 source_key 查是否處理過；沒有重複的詢問與合作資料，才寫進 Drafts；寫入成功後，再把 ProcessingLog 的草稿狀態改為已建立。每接一段就查表，才知道錯誤從哪裡開始。</p>
+<p class="body-text">用新的教學來源鍵跑一筆 inquiry，應得到一筆處理紀錄、一份未寄出草稿，以及「已建立」的草稿狀態。再追加完全相同的九欄資料，兩張結果表都不應增加。保存兩次執行結果。正常處理和重複阻擋都成功後，下一課才能用這套流程練故障恢復。</p>
+</section>
+</div>
+
+<div class="lesson-nav">
+  <a class="nav-btn nav-prev" href="CH5-2.html" aria-label="上一單元" data-nav-role="prev">
+    <div><div class="nav-btn-label"><span aria-hidden="true">←</span> 上一節</div><div class="nav-btn-title">條件、分流與執行紀錄</div></div>
+  </a>
+  <a class="nav-btn next nav-next" href="CH5-4.html" aria-label="下一單元" data-nav-role="next">
+    <div><div class="nav-btn-label">下一節 <span aria-hidden="true">→</span></div><div class="nav-btn-title">流程失敗時：查紀錄，再從失敗處恢復</div></div>
+  </a>
+</div>
+
+<footer class="footer" data-platform-version="2026-10-content-repair" data-built-at="2026-10-09">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">CH 5.3 · 生成式 AI 工作應用班（36h）</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+<script>
+const fill=document.getElementById('prog');
+window.addEventListener('scroll',()=>{const h=document.documentElement;fill.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%'});
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
+document.querySelectorAll('.copy-btn-tl').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const target=document.getElementById(btn.dataset.target);
+    if(!target)return;
+    navigator.clipboard.writeText(target.innerText).then(()=>{
+      const orig=btn.textContent;btn.textContent='✓ 已複製';btn.classList.add('copied');
+      showToast('已複製到剪貼簿');
+      setTimeout(()=>{btn.textContent=orig;btn.classList.remove('copied')},1800);
+    });
+  });
+});
+    (function(){try{var v=JSON.parse(localStorage.getItem('gen36-visited')||'[]');if(v.indexOf('part5/CH5-3.html')===-1){v.push('part5/CH5-3.html');localStorage.setItem('gen36-visited',JSON.stringify(v))}}catch(e){}})();
+</script>
+
+<script>
+// 閱讀進度持久化（localStorage）— 2026-04-16 UI refresh
+(function(){
+  var k='progress:'+location.pathname;
+  var saved=parseInt(localStorage.getItem(k)||'0',10);
+  if(saved>0){window.addEventListener('load',function(){window.scrollTo(0,saved);});}
+  var t;
+  window.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){localStorage.setItem(k,String(window.scrollY));},200);
+  },{passive:true});
+})();
+</script>
+</body>
+</html>
