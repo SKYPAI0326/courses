@@ -29,12 +29,9 @@
 
 ---
 
-## 暫停 / 恢復協議
+## 接續工作
 
-遵循全域協議（`~/.claude/CLAUDE.md`），本專案差異：
-
-- **觸發詞**：「繼續 36h 課程」
-- **恢復額外步驟**：讀 `index.html` 確認哪些 lesson-card 還是 `locked` 狀態
+使用者說「繼續 36h 課程」時，先讀 `index.html` 確認哪些 lesson-card 還是 `locked` 狀態。
 
 ---
 
