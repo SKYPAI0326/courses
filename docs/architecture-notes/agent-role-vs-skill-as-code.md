@@ -31,8 +31,6 @@ consequence: 成本低、可驗證、pre-commit 硬擋；但視覺檢核靠人�
 
 ## 兩種範式對照
 
-（完整理論對比見 Obsidian 知識庫 `01-維基/概念/Multi-Agent 架構範式對比.md`。以下是跟本系統有關的摘要。）
-
 | 維度 | Agent-as-Role（AI 辦公室） | Skill-as-Code（本系統） |
 |------|---------------------------|-----------------------|
 | 載體 | 獨立 LLM 實例 | `~/.claude/skills/course-*/SKILL.md` + `~/.claude/agents/course-*.md` |
