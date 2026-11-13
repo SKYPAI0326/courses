@@ -32,4 +32,4 @@
 
 `{unit}-{task}-{before|after|settings}-{01}.png`
 
-例：`CH3-3-Q29-settings-01.png`、`PRAC1-output-after-01.png`。
+例：`CH3-3-Q29-settings-01.png`、`CH1-1-output-after-01.png`。

@@ -1,6 +1,6 @@
 # ACP-AE 學員下載檔
 
-- `AE-Basic-Title-Animation-Starter.aep`：AE 2026 製作的無外部素材練習專案，供補充講義獨立練習。含 1920 × 1080、25 fps、6 秒 Composition、藍色 Solid 背景、「AE 入門動畫」文字、Position 移動與 Opacity 淡入淡出 Keyframe。開啟後請先另存自己的副本。這份工程不接續正課的 `ACP-AE-Lab` 連續工程；正課 PRAC1 會另建 `PRAC1_Title_6s`，規格為 1080 × 1080、29.97 fps、6 秒。
+- `AE-Basic-Title-Animation-Starter.aep`：AE 2026 製作的無外部素材練習專案，供補充講義獨立練習。含 1920 × 1080、25 fps、6 秒 Composition、藍色 Solid 背景、「AE 入門動畫」文字、Position 移動與 Opacity 淡入淡出 Keyframe。開啟後請先另存自己的副本。這份工程不接續正課 Part 1 的 `EXPO` 連續工程；正課專案一會另建 `Logo_Open`，規格為 1920 × 1080、30 fps、6 秒。
 - `acp-ae-task-cards.md`：讀題與操作空白卡。
 - `acp-ae-evidence-checklist.md`：工程、動畫、圖層與輸出證據清單。
 

@@ -13,14 +13,16 @@ ROOT = Path(__file__).resolve().parents[1]
 REPO = ROOT.parents[1]
 
 LESSONS = [
-    "CH1-1", "CH1-2", "CH1-3", "CH1-4", "CH1-5", "PRAC1",
+    "CH1-1", "CH1-2", "CH1-3", "CH1-4",
     "CH2-1", "CH3-1", "CH3-2", "CH3-3",
 ]
+# Part 1 uses the project-narrative format (2026-11-13 repair); template anchors apply to Part 2/3 only.
+TEMPLATE_ANCHOR_LESSONS = {"CH2-1", "CH3-1", "CH3-2", "CH3-3"}
 HTML_FILES = [
     ROOT / "index.html", ROOT / "module1.html", ROOT / "module2.html", ROOT / "module3.html",
-    *(ROOT / "part1" / f"{name}.html" for name in LESSONS[:6]),
+    *(ROOT / "part1" / f"{name}.html" for name in LESSONS[:4]),
     ROOT / "part2" / "CH2-1.html",
-    *(ROOT / "part3" / f"{name}.html" for name in LESSONS[7:]),
+    *(ROOT / "part3" / f"{name}.html" for name in LESSONS[5:]),
 ]
 
 
@@ -53,8 +55,9 @@ def main() -> int:
             text = path.read_text(encoding="utf-8")
             require("<!-- learner-content:start -->" in text, f"missing learner-content start: {path}", failures)
             require("<!-- learner-content:end -->" in text, f"missing learner-content end: {path}", failures)
-            for anchor in ("第一個動作", "成功訊號", "完成檢查", "修復"):
-                require(anchor in text, f"missing {anchor}: {path}", failures)
+            if name in TEMPLATE_ANCHOR_LESSONS:
+                for anchor in ("第一個動作", "成功訊號", "完成檢查", "修復"):
+                    require(anchor in text, f"missing {anchor}: {path}", failures)
 
     for path in HTML_FILES:
         require(path.is_file(), f"missing HTML: {path}", failures)
