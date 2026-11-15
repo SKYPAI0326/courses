@@ -156,71 +156,863 @@ a:not([class]):focus-visible{color:#0f5f6c}
 </div>
 
 <div class="lesson-body">
-<div class="lesson-section"><div class="section-eyebrow">01</div><h2 class="section-heading">預覽模式要證明三層訊號確實接通</h2>
-<p class="body-text">這一節把自己的 GTM 容器載入<a href="assets/practice/booking-practice.html" rel="noopener" target="_blank">山徑咖啡預約練習頁</a>，留下網站、GTM、GA4 三層正反例紀錄。</p>
-<p class="body-text">資料層（dataLayer）是網站把事件與參數交給 GTM 的資料佇列。Tag Assistant 預覽模式顯示容器收到的事件、變數與代碼觸發結果。GA4 DebugView 顯示開啟除錯模式裝置的事件，位置是「管理 → 資料顯示 → DebugView」；即時報表查看最近活動。<a href="https://support.google.com/analytics/answer/7201382">Monitor events in DebugView</a>（2026-11 查證）。</p>
-<p class="body-text">右下角（手機版在上方）的監看區列出最近 5 筆網站事件、參數與序號；Tag Assistant 證明 GTM 看見；DebugView 或即時報表證明 GA4 收到。一層通過不代表另外兩層通過。</p>
+<div class="lesson-section"><div class="section-eyebrow">01</div><h2 class="section-heading">開始之前</h2>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">第七模組「GTM：數據追蹤工程」第 2 單元
+本節完成物：<strong>預覽模式驗證紀錄</strong>（個人，用自己的 GA4 資源與自己的 GTM 容器實測）</div></div>
 </div>
-<div class="lesson-section"><div class="section-eyebrow">02</div><h2 class="section-heading">先建立 GA4 資源與網頁資料串流</h2>
-<p class="body-text">GA4 資源是練習資料的收件位置；GA4 官方示範帳戶（數據分析模組用過的那個）只能查看既有示範資料，不能接收這張練習頁的事件。完成本步會取得 <code>G-</code> 開頭的評估 ID，再交給 GTM 的 Google 代碼使用。</p>
+<div class="lesson-section"><div class="section-eyebrow">02</div><h2 class="section-heading">這一節做完，你手上會有什麼</h2>
+<p class="body-text">上一節（7-1）你用練習頁的監看區，寫完了四列追蹤規格：<code>comparison_open</code>、<code>booking_start</code>、<code>booking_complete</code>、<code>line_join</code>。那時你只看到「網站有沒有推送事件」，還沒有任何工具真正接住這些事件。</p>
+<p class="body-text">這一節要把線接起來：</p>
 <ol class="body-list">
-<li>到 GA4「管理 → 建立 → 資源」，填資源名稱、報表時區與幣別，再選產業類別和企業規模。<a href="https://support.google.com/analytics/answer/9304153">Set up Analytics for a website and/or app</a>（2026-11 查證）。</li>
-<li>進入新資源的「管理 → 資料收集和修改 → 資料串流 → 新增串流 → 網頁」。網站網址填 <code>skypai0326.github.io</code>，串流名稱自訂，加強型評估保持開啟。</li>
-<li>加強型評估會自動收集 <code>page_view</code>、<code>scroll</code>、外連 <code>click</code>、站內搜尋、影片、<code>file_download</code>、<code>form_start</code>、<code>form_submit</code>。本頁的 <code>comparison_open</code> 等是另外定義的自訂事件；要避免和自動事件重複，重要表單也要自行驗證，因為 <code>form_submit</code> 不一定適用所有表單。</li>
-<li>複製網頁串流中的 <code>G-</code> 評估 ID。再到「管理」的資源欄，按「資料設定 → 資料保留」（畫面以實際為準），把事件資料保留設為 14 個月；一般資源只能選 2 個月或 14 個月，選短的會讓之後的探索報表看不到較早的資料。<a href="https://support.google.com/analytics/answer/7667196">Data retention</a>（2026-11 查證）。</li>
+<li>在 GA4 建立<strong>你自己的</strong>資源，拿到一組 <code>G-</code> 開頭的評估 ID。</li>
+<li>在 GTM 建立<strong>你自己的</strong>網頁容器（<code>GTM-</code> 開頭），在裡面放一個 Google 代碼，連到你的 <code>G-</code> ID。</li>
+<li>把你的容器載入山徑咖啡預約練習頁，用預覽模式（Tag Assistant）逐一核對事件，再到 GA4 確認 <code>page_view</code> 真的收到了。</li>
+<li>把結果寫進一張「預覽模式驗證紀錄」。其中 <code>line_join</code> 這一列由你自己完成。</li>
 </ol>
+<p class="body-text">做完之後，你能說出一句有證據支撐的話：「我自己建了 GA4 和 GTM，接上之後在預覽模式核對過事件與參數，也做了不該出現的反例測試，三層各有截圖。」這句話在模組作業上台、以及之後面試時都用得到（本講義最後一段會教你怎麼講）。</p>
+<p class="body-text">本節<strong>不需要</strong>自己的網站，也不需要廣告預算。巷口晨光沒有網站沒關係，整節都在山徑咖啡練習頁上完成。</p>
 </div>
-<div class="lesson-section"><div class="section-eyebrow">03</div><h2 class="section-heading">建立容器與 Google 代碼</h2>
-<p class="body-text">先把自己的 GTM、GA4 與練習頁連在一起。完成時應有 <code>GTM-</code> 容器 ID、<code>G-</code> Google 代碼 ID，以及使用 Initialization - All Pages 觸發的 Google 代碼。</p>
-<ol class="body-list">
-<li>到 <a href="https://tagmanager.google.com/">Google Tag Manager</a> 建立帳戶，容器平台選「網頁」，複製 <code>GTM-</code> ID。<a href="https://support.google.com/tagmanager/answer/12974036">Get started with Tag Manager</a>（2026-11 查證）。</li>
-<li>在 GTM 按「代碼 → 新增 → 代碼設定 → Google 代碼」，貼上自己的 <code>G-</code> ID。舊的 GA4 設定代碼已由 Google 代碼取代。<a href="https://support.google.com/tagmanager/answer/13543899">GA4 Configuration tag 改為 Google 代碼</a>（2026-11 查證）。</li>
-<li>觸發條件選 Initialization - All Pages，命名後儲存。正式網站的同意預設要比 Google 代碼更早載入，觸發條件用 Consent Initialization - All Pages；練習頁已經內建，本頁只需按接受，完整設定在本模組最後一節。</li>
-<li>練習頁線上網址是 <code>https://skypai0326.github.io/courses/courses/digital-marketing-70h/assets/practice/booking-practice.html</code>；網址後加 <code>?gtm=GTM-自己的ID</code>。頁面上方應顯示自己的容器 ID，範例 <code>GTM-XXXXXXX</code> 會被擋下。</li>
-</ol>
-<p class="body-text">自有網站要把第一段容器程式碼放在 <code>&lt;head&gt;</code> 越前面越好，第二段放在 <code>&lt;body&gt;</code> 開頭；有外掛或設定欄位時依平台說明。<a href="https://support.google.com/tagmanager/answer/2574370">Install the Google Tag Manager container snippet</a>（2026-11 查證）。</p>
+<div class="lesson-section"><div class="section-eyebrow">03</div><h2 class="section-heading">開始前準備</h2>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>項目</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>一個 Google 帳號</td>
+<td>用來建立 GA4 與 GTM。建議用你自己的個人帳號，不要用公司帳號。</td>
+</tr>
+<tr>
+<td>電腦版 Chrome 瀏覽器</td>
+<td>預覽模式要開新視窗或新分頁，用電腦操作比較順。</td>
+</tr>
+<tr>
+<td>練習頁網址</td>
+<td><code>https://skypai0326.github.io/courses/courses/digital-marketing-70h/assets/practice/booking-practice.html</code></td>
+</tr>
+<tr>
+<td>GTM 網址</td>
+<td><code>https://tagmanager.google.com/</code></td>
+</tr>
+<tr>
+<td>GA4 網址</td>
+<td><code>https://analytics.google.com/</code></td>
+</tr>
+<tr>
+<td>7-1 的四列追蹤規格表</td>
+<td>用來對照「預期事件與參數」。</td>
+</tr>
+<tr>
+<td>一個記錄用的試算表或文件</td>
+<td>照本講義後面的範本開好欄位。</td>
+</tr>
+<tr>
+<td>截圖工具</td>
+<td>Mac 用 <code>Shift + Command + 4</code>；Windows 用 <code>Win + Shift + S</code>。每張截圖照順序編號（例如 S01、S02…）。</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text"><strong>介面語言提醒：</strong> GA4 和 GTM 都可以是中文或英文介面，選單名稱會不同。本講義在每個按鈕旁同時標出中文與英文，例如「管理（Admin）」。如果你看到的畫面和講義不一樣，先找括號裡的英文字，Google 偶爾會調整選單位置，以你實際看到的畫面為準。</p>
 </div>
-<div class="lesson-section"><div class="section-eyebrow">04</div><h2 class="section-heading">接受同意後連上 Tag Assistant 與 GA4</h2>
-<p class="body-text">接著驗證容器連線、Google 代碼觸發與 GA4 的 <code>page_view</code> 收件，對象是練習頁、Tag Assistant 與自己的 GA4 資源。</p>
-<ol class="body-list">
-<li>在 GTM 右上按「預覽」，貼上含 <code>?gtm=</code> 的完整網址並按 Connect。系統會開一個新分頁載入練習頁；在新分頁操作，回 Tag Assistant 視窗看事件，成功時顯示 Connected。</li>
-<li>練習頁四項同意預設為「拒絕」。先在左下橫幅按「接受全部」；分析儲存被拒絕時，GA4 資料可能看不到或不完整。<a href="https://support.google.com/tagmanager/answer/10718549">Consent settings in Tag Manager</a>（2026-11 查證）。</li>
-<li>在 Tag Assistant 確認 Google 代碼只觸發一次，代碼 ID 等於自己的 <code>G-</code> ID。</li>
-<li>到 GA4 DebugView 或「報表 → 即時」核對 <code>page_view</code>；DebugView 只顯示開啟除錯模式的裝置事件。驗證紀錄另列「頁面載入」一列，專門記 <code>page_view</code> 的 GA4 收件結果。</li>
-</ol>
+<div class="lesson-section"><div class="section-eyebrow">04</div><h2 class="section-heading">先搞懂一件事：三層證據</h2>
+<p class="body-text">這一節最容易混淆的，是「網站推送」「GTM 看到」「GA4 收到」三件事。它們聽起來很像，其實是<strong>三個不同的地方</strong>，各自要有各自的證據。</p>
+<p class="body-text">想像一份包裹寄送：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>層</th>
+<th>白話</th>
+<th>在哪裡看</th>
+<th>證明了什麼</th>
+<th>沒證明什麼</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第一層：網站推送</td>
+<td>寄件人把包裹交出去</td>
+<td>練習頁右下角的<strong>事件監看區</strong>（「第 N 筆：事件名稱…」）</td>
+<td>網站真的把事件與參數放進資料層（<code>dataLayer</code>）</td>
+<td>GTM 有沒有接到</td>
+</tr>
+<tr>
+<td>第二層：GTM 看到</td>
+<td>物流中心掃到包裹</td>
+<td><strong>Tag Assistant 預覽視窗</strong>左側事件清單與資料層分頁</td>
+<td>你的容器有載入、有讀到這個事件，以及哪些代碼有觸發</td>
+<td>GA4 有沒有收到</td>
+</tr>
+<tr>
+<td>第三層：GA4 收到</td>
+<td>收件人簽收</td>
+<td><strong>GA4 DebugView</strong> 或<strong>即時報表</strong></td>
+<td>資料真的抵達你的 GA4 資源</td>
+<td>（這是最後一關）</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text"><strong>關鍵原則：一層通過，不代表另外兩層通過。</strong>
+監看區有一筆 <code>line_join</code>，只代表網站推送成功；Tag Assistant 看到 <code>line_join</code>，只代表 GTM 看見了。這一節你只建了 Google 代碼，<strong>還沒有建任何 GA4 事件代碼</strong>，所以 <code>line_join</code> 這類資料層事件<strong>不會</strong>送到 GA4。這是正常的，下一節（7-3）才會補上。</p>
+<p class="body-text">所以本節的紀錄有一條硬規定：</p>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">三個示範事件與 <code>line_join</code> 的 GA4 欄，一律寫「<strong>待下一節建立事件代碼</strong>」。
+只有「頁面載入」那一列的 GA4 欄，要記你在 GA4 實際看到的 <code>page_view</code> 結果。</div></div>
+<h3>名詞速查</h3>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>名詞</th>
+<th>一句話說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>資料層（<code>dataLayer</code>）</td>
+<td>網站把事件與參數交給 GTM 的資料佇列。練習頁的按鈕都是把事件「推」進這裡。</td>
+</tr>
+<tr>
+<td>GTM 容器</td>
+<td>你在 GTM 裡的一個「盒子」，裝著所有代碼、觸發條件、變數。ID 是 <code>GTM-</code> 開頭。</td>
+</tr>
+<tr>
+<td>Google 代碼（Google tag）</td>
+<td>讓網頁和你的 GA4 資源連線的基本代碼。裝好後 GA4 會收到 <code>page_view</code> 等自動事件。</td>
+</tr>
+<tr>
+<td><code>G-</code> 評估 ID</td>
+<td>你 GA4 網頁資料串流的身分證號，告訴 Google 代碼資料要送到哪個資源。</td>
+</tr>
+<tr>
+<td>Tag Assistant 預覽模式</td>
+<td>GTM 的測試工具，顯示容器收到哪些事件、變數的值、哪些代碼觸發了。</td>
+</tr>
+<tr>
+<td>GA4 DebugView</td>
+<td>GA4 裡專門顯示「開啟除錯模式的裝置」送來事件的畫面。用預覽模式測試時，你的瀏覽器會自動被標成除錯裝置。</td>
+</tr>
+<tr>
+<td>GA4 即時報表</td>
+<td>查看最近一段時間的網站活動。</td>
+</tr>
+</tbody>
+</table></div>
 </div>
-<div class="lesson-section"><div class="section-eyebrow">05</div><h2 class="section-heading">山徑咖啡示範：三個資料層事件的正反例</h2>
-<p class="body-text">練習頁有四個自訂互動：三個預約事件供示範，<code>line_join</code> 留給練習。示範確認網站與 GTM 的事件、參數及反例；GA4 先用 <code>page_view</code> 驗證收件，自訂事件待下一節建代碼後再驗證。</p>
-<p class="body-text">每列記錄：操作、預期事件與參數、頁面監看序號、Tag Assistant、GA4、反例、證據備註；另加「頁面載入」一列記 <code>page_view</code>。</p>
-<ol class="body-list">
-<li><strong>開啟比較表</strong>：展開時應多一筆 <code>comparison_open</code>，參數 <code>page_type=booking_practice</code>、<code>product_count=3</code>。做反例前記下最後一筆序號，收合後沒有新增就是通過。</li>
-<li><strong>開始預約</strong>：<code>booking_start</code> 只在姓名欄第一次取得焦點時推送，參數 <code>form_id=trial_booking</code>、<code>page_type=booking_practice</code>；先點 Email 欄不會觸發。做反例前記序號，同一次填表再切換其他欄位，沒有新增就是通過。</li>
-<li><strong>完成預約</strong>：填妥姓名、Email、時段並送出，應多一筆 <code>booking_complete</code>，參數 <code>form_id=trial_booking</code>、<code>preferred_slot</code>。<code>preferred_slot</code> 記的是選項英文代碼，例如選「平日晚上」會得到 <code>weekday-evening</code>。反例先記序號，缺任一必填欄位送出後沒有新增就是通過。</li>
-</ol>
-<p class="body-text">GA4 欄中，<code>page_view</code> 寫實際收件結果；三個自訂事件寫「待下一節建立事件代碼」，以免把 GTM 看見誤當 GA4 收到。</p>
+<div class="lesson-section"><div class="section-eyebrow">05</div><h2 class="section-heading">整體流程地圖</h2>
+<p class="body-text">回家複習時，先看這張圖，知道自己做到哪一步：</p>
+<pre class="rw-code"><code class="language-text">[GA4] 1. 建立資源與網頁資料串流 → 複製 G- ID
+      2. 資料保留改成 14 個月
+          ↓
+[GTM] 3. 建立帳戶與網頁容器 → 記下 GTM- ID
+      4. 新增 Google 代碼（貼 G- ID，觸發條件 初始化 - 所有網頁／Initialization - All Pages）
+          ↓
+[預覽] 5. 練習頁網址加上 ?gtm=你的GTM-ID → GTM 按「預覽」→ Connect
+       6. 在練習頁按「接受全部」→ 核對 Google 代碼與 page_view（頁面載入列）
+       7. 跟著示範測三個事件（正例＋反例）
+       8. 自己完成 line_join 一列
+          ↓
+[紀錄] 預覽模式驗證紀錄（7-3 會繼續用）
+</code></pre>
 </div>
-<div class="lesson-section"><div class="section-eyebrow">06</div><h2 class="section-heading">看不到事件時依網站、GTM、GA4 三層排查</h2>
-<p class="body-text">排查要找出訊號在哪一層中斷，再到對應位置修正。</p>
+<div class="lesson-section"><div class="section-eyebrow">06</div><h2 class="section-heading">步驟 1　在 GA4 建立自己的資源與網頁資料串流</h2>
+<h3>為什麼不能用第六模組的示範帳戶？</h3>
+<p class="body-text">第六模組你用的是 GA4 官方示範帳戶，那個帳戶只能<strong>看</strong>既有的示範資料，你也沒有改設定的權限。所以這一節要建一個屬於你的資源。</p>
+<h3>1-1 先確認有沒有帳戶</h3>
+<p class="body-text">打開 <code>https://analytics.google.com/</code>：</p>
 <ul class="body-list">
-<li><strong>網站推送</strong>：看最近 5 筆事件的序號與參數；沒有新增就查操作與必填欄位，有事件但參數錯就查頁面推送。</li>
-<li><strong>GTM 看到</strong>：網站有事件而 Tag Assistant 沒有，就查容器 ID、Connected 狀態與分頁；事件有而代碼未觸發，就查代碼或觸發條件。</li>
-<li><strong>GA4 收到</strong>：代碼已觸發而 <code>page_view</code> 不見，就查 <code>G-</code> ID、預覽連線、同意與資料篩選。</li>
+<li>如果畫面直接出現「開始評估（Start measuring）」之類的歡迎頁，代表你還沒有任何 GA4 帳戶。照畫面先建立帳戶：帳戶名稱可填「周小姐練習帳戶」，資料共用選項依自己意願勾選，再往下就會進到建立資源的畫面（接 1-2 的欄位）。</li>
+<li>如果已經能進到 GA4 首頁，就用下面的路徑建立資源。</li>
 </ul>
-<p class="body-text">兩個 <code>page_view</code> 常表示 GTM 與網站原生程式碼都裝了 Google 代碼。即時報表與 DebugView 幾乎即時；一般資源的當日資料約需 2～6 小時、每日資料約 12 小時。<a href="https://support.google.com/analytics/answer/11198161">Data freshness</a>（2026-11 查證）。</p>
+<h3>1-2 建立資源</h3>
+<p class="body-text">路徑：<strong>左下角齒輪「管理（Admin）」→ 左上「建立（Create）」→「資源（Property）」</strong></p>
+<p class="body-text"><img alt="GA4「管理」頁：左上「建立」、資料收集和修改底下的資料串流與資料保留" src="assets/handouts/m7-2/ga4-%E7%AE%A1%E7%90%86-%E5%BB%BA%E7%AB%8B%E8%88%87%E4%B8%B2%E6%B5%81.png"/></p>
+<p class="body-text"><em>GA4 官方示範帳戶的管理頁，2026-11-12 截圖。你自己的帳戶版面相同；示範帳戶你只有檢視權限。</em></p>
+<p class="body-text">依序填寫：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>欄位</th>
+<th>建議填法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>資源名稱（Property name）</td>
+<td><code>山徑咖啡練習</code>（自訂，看得懂就好）</td>
+</tr>
+<tr>
+<td>報表時區（Reporting time zone）</td>
+<td>台灣（GMT+08:00）</td>
+</tr>
+<tr>
+<td>貨幣（Currency）</td>
+<td>新台幣 TWD</td>
+</tr>
+<tr>
+<td>產業類別（Industry category）</td>
+<td>選最接近的，例如「購物」或「餐飲」，不影響本練習</td>
+</tr>
+<tr>
+<td>商家規模（Business size）</td>
+<td>小型</td>
+</tr>
+<tr>
+<td>使用目的</td>
+<td>依畫面選一項即可，它只影響預設報表的排列</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">按「建立（Create）」。如果這是新帳戶，畫面會要你同意服務條款與資料處理條款，<strong>請自己閱讀後決定是否同意</strong>。</p>
+<h3>1-3 建立網頁資料串流</h3>
+<p class="body-text">建立資源後，GA4 通常會直接問你要從哪個平台收集資料。如果沒有，走這個路徑：</p>
+<p class="body-text"><strong>管理（Admin）→ 資料收集和修改（Data collection and modification）→ 資料串流（Data streams）→ 新增串流（Add stream）→ 網站（Web）</strong></p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>欄位</th>
+<th>填法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>網站網址（Website URL）</td>
+<td><code>skypai0326.github.io</code>（前面的 <code>https://</code> 通常已經預選好，不用重複輸入）【待實機確認】</td>
+</tr>
+<tr>
+<td>串流名稱（Stream name）</td>
+<td><code>預約練習頁</code>（自訂）</td>
+</tr>
+<tr>
+<td>加強型評估（Enhanced measurement）</td>
+<td><strong>保持開啟</strong>（預設就是開的，不要關）</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">按「建立串流（Create stream）」。</p>
+<h3>1-4 複製 <code>G-</code> 評估 ID</h3>
+<p class="body-text">建立完成後會跳出「網頁串流詳細資料（Web stream details）」，右上方有一串 <strong>評估 ID（Measurement ID）</strong>，格式像 <code>G-AB12CD34EF</code>。按旁邊的複製圖示，貼到你的紀錄檔最上方。</p>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">之後如果找不到：管理 → 資料收集和修改 → 資料串流 → 點你的串流 → 串流詳細資料裡的「評估 ID」。</div></div>
+<p class="body-text">畫面可能還會顯示一大段「安裝操作說明」，這一節<strong>不用照它安裝</strong>，我們用 GTM 安裝，直接關掉即可。</p>
+<p class="body-text"><strong>檢查點：</strong> 紀錄檔裡有一個 <code>G-</code> 開頭的 ID。</p>
+<h3>補充：加強型評估會自動收集哪些事件</h3>
+<p class="body-text">加強型評估開著時，Google 代碼一裝好，GA4 就會自動收集這些事件，不用你另外設定：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>自動事件</th>
+<th>什麼時候發生</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>page_view</code></td>
+<td>網頁載入</td>
+</tr>
+<tr>
+<td><code>scroll</code></td>
+<td>捲到頁面底部附近</td>
+</tr>
+<tr>
+<td><code>click</code>（外連）</td>
+<td>點擊連到其他網域的連結</td>
+</tr>
+<tr>
+<td>站內搜尋</td>
+<td>網址帶有搜尋參數時</td>
+</tr>
+<tr>
+<td>影片互動</td>
+<td>網頁內嵌的 YouTube 影片播放等</td>
+</tr>
+<tr>
+<td><code>file_download</code></td>
+<td>點擊下載檔案連結</td>
+</tr>
+<tr>
+<td><code>form_start</code>、<code>form_submit</code></td>
+<td>開始填表單、送出表單</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">這些是 <strong>GA4 自己認得的通用事件</strong>，和練習頁推送的<strong>自訂事件</strong>（如 <code>comparison_open</code>、<code>booking_start</code>）是兩回事。例如你在練習頁的預約表單打字時，GA4 可能收到 <code>form_start</code>，但這<strong>不等於</strong>收到 <code>booking_start</code>，因為 <code>booking_start</code> 是資料層事件，要等 7-3 建了事件代碼才會送到 GA4。</p>
+<p class="body-text">另外，<code>form_submit</code> 不一定適用所有表單（有些表單的送出方式它偵測不到）。真正重要的表單（例如「完成預約」）要自己驗證，不能假設加強型評估一定會抓到。</p>
 </div>
-<div class="lesson-section"><div class="section-eyebrow">07</div><h2 class="section-heading">用 line_join 完成可重跑的驗證紀錄</h2>
-<p class="body-text">練習改測 <code>line_join</code>，欄位與示範相同。先重新整理、確認容器 ID、連上預覽並按「接受全部」。</p>
+<div class="lesson-section"><div class="section-eyebrow">07</div><h2 class="section-heading">步驟 2　把資料保留改成 14 個月</h2>
+<p class="body-text">路徑：<strong>管理（Admin）→ 資料收集和修改（Data collection and modification）→ 資料保留（Data retention）</strong></p>
 <ol class="body-list">
-<li>正例：按「推送加入 LINE 事件」，預期頁面與 Tag Assistant 各出現 <code>line_join</code>，參數 <code>placement=booking_practice_bottom</code>、<code>page_type=booking_practice</code>。</li>
-<li>反例：先記下監看區最後一筆序號，只捲動到 LINE 區塊但不按按鈕；序號沒有新增就是通過，證明觸發時機是點擊，不是看見區塊。</li>
-<li>GA4 欄：本頁先記 <code>page_view</code> 的實際收件；<code>line_join</code> 寫「待下一節建立自訂事件代碼」，不能把資料層事件當成 GA4 已收到。</li>
-<li>重新整理後重做正例，確認事件與參數一致，備註測試時間、容器 ID 後四碼、截圖編號。</li>
+<li>「事件資料保留」選 <strong>14 個月</strong>。</li>
+<li>按「儲存（Save）」。</li>
 </ol>
-<p class="body-text">完成欄位後，再展開參考方向核對證據完整性。</p>
-<details class="rw-reference"><summary>做完再展開：參考方向</summary>
-<p>合格紀錄會保留正例新增的序號、事件與參數，也記下反例操作前後序號沒有增加；網站與 Tag Assistant 分欄，GA4 尚未建立 <code>line_join</code> 事件代碼時如實標示。<code>page_view</code> 則在「頁面載入」列記下 GA4 收件結果。</p>
-</details>
-<p class="body-text">下一節會為自訂事件建立代碼，再補齊 GA4 收件證據。</p>
+<p class="body-text"><strong>為什麼要改？</strong> 一般（免費）資源只能選 2 個月或 14 個月，預設是 2 個月。這個設定會影響「探索」報表與漏斗報表能查多久以前的資料；選短的，之後做探索報表就看不到較早的資料。一般的標準報表不受影響。</p>
+<p class="body-text"><strong>檢查點：</strong> 資料保留畫面顯示 14 個月，且已儲存。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">08</div><h2 class="section-heading">步驟 3　建立 GTM 帳戶與網頁容器</h2>
+<p class="body-text">打開 <code>https://tagmanager.google.com/</code>。</p>
+<ol class="body-list">
+<li>按「建立帳戶（Create Account）」。</li>
+<li><strong>帳戶設定（Account Setup）</strong>
+<ul>
+<li>帳戶名稱：<code>周小姐練習</code>（自訂）</li>
+<li>國家／地區：台灣</li>
+</ul>
+</li>
+<li><strong>容器設定（Container Setup）</strong>
+<ul>
+<li>容器名稱：<code>skypai0326.github.io</code> 或 <code>山徑咖啡練習頁</code>（自訂）</li>
+<li>目標平台（Target platform）：<strong>網頁（Web）</strong>（不要選 iOS、Android、AMP、Server）</li>
+</ul>
+</li>
+<li>按「建立（Create）」，畫面會顯示 GTM 服務條款，<strong>自己閱讀後決定是否同意</strong>。</li>
+</ol>
+<p class="body-text">建立完成後，畫面可能會跳出一個「安裝 Google 代碼管理工具」的視窗。<strong>練習頁不需要你貼程式碼</strong>（下一步用網址參數載入），直接關掉即可。</p>
+<h3>記下容器 ID</h3>
+<p class="body-text">GTM 工作區畫面上方（容器名稱附近）會看到一串 <code>GTM-</code> 開頭的 ID，例如 <code>GTM-AB12CDE</code>。記到紀錄檔，和 <code>G-</code> ID 放在一起。</p>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">兩個 ID 很容易搞混，記法：</div></div>
+<p class="body-text"><strong>檢查點：</strong> 紀錄檔裡同時有 <code>GTM-</code> 與 <code>G-</code> 兩個 ID。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">09</div><h2 class="section-heading">步驟 4　在 GTM 建立 Google 代碼</h2>
+<p class="body-text">在 GTM 工作區：</p>
+<ol class="body-list">
+<li>左側選單點 <strong>代碼（Tags）</strong> → 右上 <strong>新增（New）</strong>。</li>
+<li>左上角把代碼名稱從「未命名代碼」改成 <code>Google 代碼 - GA4</code>（好認就好）。</li>
+<li>點上方 <strong>代碼設定（Tag Configuration）</strong> 區塊 → 在清單的「其他 Google 代碼」分類裡選 <strong>Google 代碼（Google Tag）</strong>。</li>
+<li>「代碼 ID（Tag ID）」欄貼上你的 <strong><code>G-</code> 評估 ID</strong>（不是 <code>GTM-</code>）。</li>
+<li>點下方 <strong>觸發條件（Triggering）</strong> 區塊 → 選 <strong>初始化 - 所有網頁（Initialization - All Pages）</strong>（類型是「初始化／Initialization」的那一個）。
+<ul>
+<li>注意不要選成「All Pages」（類型是「網頁瀏覽」）。Google 建議用 Initialization，讓 Google 代碼比其他代碼更早載入。</li>
+</ul>
+</li>
+<li>右上按 <strong>儲存（Save）</strong>。</li>
+</ol>
+<p class="body-text"><img alt="GTM 工作區：左側代碼、觸發條件、變數，右上預覽與提交" src="assets/handouts/m7-2/gtm-%E5%B7%A5%E4%BD%9C%E5%8D%80.png"/></p>
+<p class="body-text"><img alt="GTM 新增代碼：左上代碼名稱、代碼設定區塊、觸發條件區塊、右上儲存" src="assets/handouts/m7-2/gtm-%E6%96%B0%E5%A2%9E%E4%BB%A3%E7%A2%BC.png"/></p>
+<p class="body-text"><img alt="代碼類型清單的「其他 Google 代碼」分類：第一個就是 Google 代碼" src="assets/handouts/m7-2/gtm-%E9%81%B8Google%E4%BB%A3%E7%A2%BC.png"/></p>
+<p class="body-text"><em>GTM 網頁版，2026-11-12 截圖；容器 ID 與名稱已遮蔽。截圖時只打開新增畫面，沒有儲存。</em></p>
+<h3>你可能在網路教學看到「GA4 設定代碼」</h3>
+<p class="body-text">舊教學會說建立「Google Analytics：GA4 設定（GA4 Configuration）」代碼。這個代碼已經由 <strong>Google 代碼</strong> 取代，舊的會被自動升級。現在照上面的做法即可，看到舊截圖不用慌。</p>
+<h3>關於「同意」，先知道這兩件事</h3>
+<ul class="body-list">
+<li><strong>正式網站</strong>：同意的預設值要比 Google 代碼<strong>更早</strong>載入，所以設定同意預設的代碼要用 <strong>Consent Initialization - All Pages</strong> 觸發條件（它一定比 Initialization 更早觸發）。</li>
+<li><strong>練習頁</strong>：已經內建同意預設（四項都是「拒絕」），你<strong>不用</strong>在 GTM 設定同意代碼。這一節你只要記得在練習頁按「<strong>接受全部</strong>」。完整的同意設定在本模組最後一節（7-4）。</li>
+</ul>
+<p class="body-text">為什麼要按「接受全部」？分析儲存（<code>analytics_storage</code>）被拒絕時，GA4 的資料可能看不到或不完整；Google 官方說明也寫到，在同意模式下使用者沒有同意分析 Cookie 時，DebugView 看不到那些事件。</p>
+<h3>這一節不用按「提交（Submit）」</h3>
+<p class="body-text">預覽模式測的是你工作區裡還沒發布的草稿，所以<strong>不需要提交或發布</strong>就能預覽。本節也不要求發布。</p>
+<p class="body-text"><strong>檢查點：</strong> 代碼清單裡有一個 Google 代碼，代碼 ID 是你的 <code>G-</code>，觸發條件是 初始化 - 所有網頁（Initialization - All Pages）。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">10</div><h2 class="section-heading">步驟 5　把容器載入練習頁，並連上預覽</h2>
+<h3>5-1 組出你的練習頁網址</h3>
+<p class="body-text">在練習頁網址後面加上 <code>?gtm=你的GTM-ID</code>：</p>
+<pre class="rw-code"><code class="language-text">https://skypai0326.github.io/courses/courses/digital-marketing-70h/assets/practice/booking-practice.html?gtm=GTM-你的ID
+</code></pre>
+<p class="body-text">先在一般分頁打開這個網址，看頁首提示：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>頁首顯示</th>
+<th>意思</th>
+<th>怎麼辦</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>「GTM 練習容器：GTM-（你的 ID）。請開啟 GTM 預覽模式後操作下方互動。」</td>
+<td>網址正確</td>
+<td>繼續下一步</td>
+</tr>
+<tr>
+<td>「尚未載入 GTM。請在網址後加入 <code>?gtm=GTM-XXXXXXX</code>…」</td>
+<td>網址沒帶到有效 ID</td>
+<td>檢查：是否用了範例 <code>GTM-XXXXXXX</code>（會被擋）、是否漏了 <code>?gtm=</code>、ID 是否大寫、前面是否是 <code>GTM-</code></td>
+</tr>
+</tbody>
+</table></div>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">在一般分頁裡，頁首雖然顯示了你的 ID，但因為容器還沒發布，裡面的代碼不會運作，這是正常的。要在預覽模式下才會看到你的草稿生效。</div></div>
+<p class="body-text">把整串網址複製起來，下一步要用。</p>
+<h3>5-2 啟動預覽</h3>
+<ol class="body-list">
+<li>回到 GTM 工作區，按右上角 <strong>預覽（Preview）</strong>。</li>
+<li>瀏覽器會開一個新分頁，是 <strong>Tag Assistant</strong>（網址是 <code>tagassistant.google.com</code>）。</li>
+<li>在網址欄位貼上<strong>含 <code>?gtm=</code> 的完整練習頁網址</strong>。</li>
+<li>「在網址中加入偵錯信號（Include debug signal in the URL）」保持勾選。</li>
+<li>按 <strong>Connect（連線）</strong>。</li>
+</ol>
+<h3>5-3 兩個視窗，各管各的</h3>
+<p class="body-text">按下 Connect 後，系統會<strong>另開一個新視窗（或新分頁）載入練習頁</strong>。這時你會有兩個畫面：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>畫面</th>
+<th>你在這裡做什麼</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>練習頁</strong>（新開的那個）</td>
+<td><strong>操作</strong>：按「接受全部」、開比較表、填表單、按 LINE 按鈕；看右下角監看區</td>
+</tr>
+<tr>
+<td><strong>Tag Assistant</strong>（<code>tagassistant.google.com</code> 那個分頁）</td>
+<td><strong>看結果</strong>：左側事件清單、代碼有沒有觸發、資料層內容</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">連線成功時，練習頁右下角會顯示 <strong>Connected（已連結）</strong>。回到 Tag Assistant 分頁按 <strong>Continue（繼續）</strong>，進入偵錯畫面。</p>
+<p class="body-text"><strong>建議擺法：</strong> 把兩個視窗左右並排（Mac 可用視窗拖曳到螢幕邊緣；Windows 用 <code>Win + ←</code>／<code>Win + →</code>）。這樣操作完一個按鈕，眼睛轉過去就能看結果，不容易漏。</p>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body"><strong>重要：</strong> 一定要在<strong>預覽開出來的那個練習頁</strong>上操作。如果你在自己原本開的另一個練習頁分頁按按鈕，Tag Assistant 不會有任何反應。</div></div>
+<p class="body-text"><strong>檢查點：</strong> 練習頁右下角顯示 Connected（已連結），頁首顯示你的容器 ID。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">11</div><h2 class="section-heading">步驟 6　按「接受全部」，核對 Google 代碼與 <code>page_view</code>（頁面載入列）</h2>
+<h3>6-1 在練習頁按「接受全部」</h3>
+<p class="body-text">練習頁左下角有「同意模式練習」橫幅，一開始是預設「全部拒絕」。按 <strong>接受全部</strong>，標題會變成「已選擇：接受全部」。</p>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">同意預設與更新<strong>不會</strong>出現在練習頁的事件監看區，這是正常的。
+重新整理練習頁會回到預設「全部拒絕」，所以<strong>每次重新整理後都要重按一次「接受全部」</strong>。</div></div>
+<h3>6-2 在 Tag Assistant 確認 Google 代碼</h3>
+<p class="body-text">回到 Tag Assistant：</p>
+<ol class="body-list">
+<li>畫面上方應該看到你的容器 ID（<code>GTM-…</code>），可能還有一個 <code>G-…</code> 標籤。確認<strong>容器 ID 是你自己的</strong>。</li>
+<li>左側事件清單點選較前面的 <strong>Initialization</strong>（初始化）事件。</li>
+<li>右側「已觸發的代碼（Tags Fired）」應該出現你的 <strong>Google 代碼 - GA4</strong>。</li>
+<li>點開它，確認代碼 ID 等於<strong>你自己的 <code>G-</code> ID</strong>。</li>
+<li>往下點其他事件看看，確認這個 Google 代碼<strong>只觸發一次</strong>（只在 Initialization 出現，沒有在每個事件都重複觸發）。</li>
+</ol>
+<h3>6-3 到 GA4 確認 <code>page_view</code> 有收到</h3>
+<p class="body-text">切到 GA4（<code>analytics.google.com</code>），確認左上角選的是<strong>你剛建立的資源</strong>，然後擇一查看：</p>
+<p class="body-text"><strong>方法 A：DebugView</strong>
+路徑：<strong>管理（Admin）→ 資料顯示（Data display）→ DebugView</strong></p>
+<p class="body-text"><img alt="GA4 管理頁「資料顯示」區塊最下面的 DebugView" src="assets/handouts/m7-2/ga4-%E7%AE%A1%E7%90%86-DebugView.png"/></p>
+<ul class="body-list">
+<li>左上「偵錯裝置（Debug device）」下拉選單如果有多個裝置，選最新出現的那一個。</li>
+<li>時間軸上應出現 <code>page_view</code>。點它可以看到參數。</li>
+</ul>
+<p class="body-text"><strong>方法 B：即時報表</strong>
+路徑：<strong>報表（Reports）→ 即時（Realtime）</strong>（介面可能顯示為「即時總覽」）</p>
+<ul class="body-list">
+<li>找「按事件名稱劃分事件計數」卡片，看有沒有 <code>page_view</code>。</li>
+</ul>
+<p class="body-text"><strong>關於同意與 <code>page_view</code> 的順序：</strong> 練習頁是先以「拒絕」載入、再由你按「接受全部」。依外部實務測試（Google 官方說明沒有明寫這一點），同一頁內把分析儲存從拒絕改為接受後，GA4 會在標準報表補處理同一頁稍早的資料；這項測試沒有測 DebugView 或即時報表。不管有沒有看到，<strong>都照實記錄</strong>；看不到時用本講義的「三層排查」找原因。</p>
+<h3>6-4 寫下「頁面載入」列</h3>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>欄位</th>
+<th>填什麼</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>操作</td>
+<td>重新整理預覽中的練習頁 → 按「接受全部」</td>
+</tr>
+<tr>
+<td>預期事件與參數</td>
+<td>Google 代碼觸發一次；GA4 收到 <code>page_view</code></td>
+</tr>
+<tr>
+<td>頁面監看序號</td>
+<td>不適用（<code>page_view</code> 不是資料層事件，監看區不會顯示）</td>
+</tr>
+<tr>
+<td>Tag Assistant</td>
+<td>例：Initialization 下 Google 代碼已觸發 1 次，代碼 ID 為自己的 <code>G-…</code></td>
+</tr>
+<tr>
+<td>GA4</td>
+<td><strong>照實寫</strong>：例「DebugView 看到 page_view 1 筆」或「即時報表事件計數 page_view = 1」；沒看到就寫「未看到」與你的排查結果</td>
+</tr>
+<tr>
+<td>反例</td>
+<td>Google 代碼沒有在其他事件重複觸發；GA4 沒有出現兩個 <code>page_view</code></td>
+</tr>
+<tr>
+<td>證據備註</td>
+<td>測試時間、容器 ID 後四碼、截圖編號</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text"><strong>截圖建議：</strong> Tag Assistant 的 Google 代碼詳細資料一張、DebugView 或即時報表一張。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">12</div><h2 class="section-heading">步驟 7　跟著示範測三個資料層事件</h2>
+<p class="body-text">課堂會示範 <code>comparison_open</code>、<code>booking_start</code>、<code>booking_complete</code> 三列。你跟著做，把<strong>你自己畫面上</strong>看到的結果填進紀錄。</p>
+<h3>每一個事件都用同一套動作</h3>
+<p class="body-text"><strong>正例（應該出現）</strong></p>
+<ol class="body-list">
+<li>在練習頁做一次操作。</li>
+<li>看監看區：有沒有<strong>多一筆</strong>？事件名稱對嗎？參數和值對嗎？記下序號。</li>
+<li>切到 Tag Assistant：左側事件清單有沒有多出同名事件？點它 →「資料層（Data Layer）」分頁核對參數。</li>
+</ol>
+<p class="body-text"><strong>反例（不該出現）</strong></p>
+<ol class="body-list">
+<li><strong>先記下監看區最後一筆的序號</strong>（例如「第 4 筆」）。</li>
+<li>做一個「很像、但不該觸發」的操作。</li>
+<li>監看區序號<strong>沒有增加</strong>、Tag Assistant 左側也沒有新增同名事件，就是<strong>通過</strong>。</li>
+</ol>
+<h3>三個示範事件的預期</h3>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>事件</th>
+<th>正例操作</th>
+<th>預期參數</th>
+<th>反例操作（序號應不變）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>comparison_open</code></td>
+<td>按「開啟比較表」（收合 → 展開）</td>
+<td><code>page_type=booking_practice</code>、<code>product_count=3</code></td>
+<td>再按「收合比較表」</td>
+</tr>
+<tr>
+<td><code>booking_start</code></td>
+<td>點一下「姓名」欄（第一次取得焦點）</td>
+<td><code>form_id=trial_booking</code>、<code>page_type=booking_practice</code></td>
+<td>先點 Email 欄；或在同一次填表中再點一次姓名欄</td>
+</tr>
+<tr>
+<td><code>booking_complete</code></td>
+<td>三個欄位都填好，按「完成預約練習」</td>
+<td><code>form_id=trial_booking</code>、<code>preferred_slot=</code>你選的時段代碼（如 <code>weekend-afternoon</code>）</td>
+<td>故意留一個必填欄位空白再按送出（瀏覽器會擋下）</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">小提醒：</p>
+<ul class="body-list">
+<li><code>booking_complete</code> 送出後，頁面會清空表單，並重設 <code>booking_start</code> 的「已推送」狀態，所以再點一次姓名欄又會推送 <code>booking_start</code>，這是設計好的，不是錯誤。</li>
+<li>練習頁不會送出你的姓名或 Email，姓名可以隨便填，例如「測試」。</li>
+<li>這三列的 <strong>GA4 欄一律寫「待下一節建立事件代碼」</strong>。</li>
+</ul>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">13</div><h2 class="section-heading">步驟 8　自己完成 <code>line_join</code> 這一列</h2>
+<p class="body-text">這一列是你的作業。照順序做，每一步做完再往下。</p>
+<h3>8-1 開始前</h3>
+<ul class="body-list">
+<li>[ ] 在<strong>預覽開出來的練習頁</strong>按重新整理。</li>
+<li>[ ] 確認頁首顯示「GTM 練習容器：GTM-（你的 ID）」。</li>
+<li>[ ] 確認練習頁右下角仍顯示 Connected（已連結）（若斷線，回 GTM 再按一次「預覽」重新連線）。</li>
+<li>[ ] 按同意橫幅的「<strong>接受全部</strong>」，標題變成「已選擇：接受全部」。</li>
+</ul>
+<h3>8-2 正例</h3>
+<ol class="body-list">
+<li>捲到頁面最下方的「加入 LINE」區，按 <strong>推送加入 LINE 事件</strong>。</li>
+<li>監看區應出現新的一筆：
+<code>第 N 筆：line_join　placement=booking_practice_bottom、page_type=booking_practice</code></li>
+<li>切到 Tag Assistant：左側應出現 <code>line_join</code>，點它 →「資料層」分頁，核對兩個參數：
+<ul>
+<li><code>placement</code>：<code>booking_practice_bottom</code></li>
+<li><code>page_type</code>：<code>booking_practice</code></li>
+</ul>
+</li>
+<li>截圖：監看區一張、Tag Assistant 資料層一張。</li>
+</ol>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">這個按鈕不會開啟 LINE，也不會真的加入任何帳號，只是把事件推送到 <code>window.dataLayer</code>。</div></div>
+<h3>8-3 反例</h3>
+<ol class="body-list">
+<li><strong>先記下監看區最後一筆的序號。</strong></li>
+<li>捲到頁面上方，再慢慢捲回 LINE 區塊，<strong>只捲動、不按按鈕</strong>。</li>
+<li>看監看區序號有沒有增加；看 Tag Assistant 左側有沒有新的 <code>line_join</code>。</li>
+<li>序號不變、沒有新的 <code>line_join</code> → 通過。</li>
+</ol>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">捲動時，GA4 可能因加強型評估收到 <code>scroll</code> 事件，Tag Assistant 也可能顯示其他非 <code>line_join</code> 的項目。這些不影響反例判斷，反例只看「<code>line_join</code> 有沒有多出來」。</div></div>
+<h3>8-4 重新整理後再做一次正例</h3>
+<ol class="body-list">
+<li>重新整理練習頁 → 重按「接受全部」。</li>
+<li>再按一次「推送加入 LINE 事件」。</li>
+<li>確認事件名稱與兩個參數和第一次<strong>完全一致</strong>。</li>
+</ol>
+<h3>8-5 填寫這一列</h3>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>欄位</th>
+<th>怎麼填</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>操作</td>
+<td>按「推送加入 LINE 事件」；反例：只捲動到 LINE 區不按</td>
+</tr>
+<tr>
+<td>預期事件與參數</td>
+<td><code>line_join</code>；<code>placement=booking_practice_bottom</code>、<code>page_type=booking_practice</code></td>
+</tr>
+<tr>
+<td>頁面監看序號</td>
+<td>你實際看到的序號（例：第 1 筆；重整後再測為第 1 筆）</td>
+</tr>
+<tr>
+<td>Tag Assistant</td>
+<td>是否出現 <code>line_join</code>、兩個參數是否正確</td>
+</tr>
+<tr>
+<td>GA4</td>
+<td><strong>待下一節建立事件代碼</strong></td>
+</tr>
+<tr>
+<td>反例</td>
+<td>記下的序號 → 捲動後的序號，是否通過</td>
+</tr>
+<tr>
+<td>證據備註</td>
+<td>測試時間、容器 ID 後四碼、截圖編號</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text"><strong>注意：</strong> 即使 DebugView 這時出現了 <code>scroll</code> 或其他事件，<code>line_join</code> 的 GA4 欄也<strong>不能</strong>寫成已收到。Tag Assistant 看到 <code>line_join</code>，只證明 GTM 看見了。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">14</div><h2 class="section-heading">預覽模式驗證紀錄範本</h2>
+<p class="body-text">把這張表複製到你的試算表或文件。表頭上方先寫：</p>
+<ul class="body-list">
+<li>我的 GA4 資源名稱：＿＿＿＿　評估 ID：<code>G-＿＿＿＿</code></li>
+<li>我的 GTM 容器 ID：<code>GTM-＿＿＿＿</code></li>
+<li>測試日期：＿＿＿＿　瀏覽器：＿＿＿＿</li>
+</ul>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>操作</th>
+<th>預期事件與參數</th>
+<th>頁面監看序號</th>
+<th>Tag Assistant</th>
+<th>GA4</th>
+<th>反例</th>
+<th>證據備註</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>頁面載入（重新整理 → 接受全部）</td>
+<td>Google 代碼觸發 1 次；GA4 收到 <code>page_view</code></td>
+<td>不適用</td>
+<td></td>
+<td>（照實記錄）</td>
+<td>Google 代碼未重複觸發；無兩個 <code>page_view</code></td>
+<td></td>
+</tr>
+<tr>
+<td>按「開啟比較表」</td>
+<td><code>comparison_open</code>；<code>page_type=booking_practice</code>、<code>product_count=3</code></td>
+<td></td>
+<td></td>
+<td>待下一節建立事件代碼</td>
+<td>按「收合比較表」，序號＿→＿</td>
+<td></td>
+</tr>
+<tr>
+<td>點姓名欄</td>
+<td><code>booking_start</code>；<code>form_id=trial_booking</code>、<code>page_type=booking_practice</code></td>
+<td></td>
+<td></td>
+<td>待下一節建立事件代碼</td>
+<td>先點 Email 欄，序號＿→＿</td>
+<td></td>
+</tr>
+<tr>
+<td>填完三欄按「完成預約練習」</td>
+<td><code>booking_complete</code>；<code>form_id=trial_booking</code>、<code>preferred_slot=＿＿</code></td>
+<td></td>
+<td></td>
+<td>待下一節建立事件代碼</td>
+<td>缺必填欄位送出，序號＿→＿</td>
+<td></td>
+</tr>
+<tr>
+<td>按「推送加入 LINE 事件」</td>
+<td><code>line_join</code>；<code>placement=booking_practice_bottom</code>、<code>page_type=booking_practice</code></td>
+<td></td>
+<td></td>
+<td>待下一節建立事件代碼</td>
+<td>只捲動不按，序號＿→＿</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text"><strong>證據備註寫法範例：</strong> <code>2026-11-12 14:35｜容器 …2CDE｜S07、S08</code></p>
+<p class="body-text"><strong>交件前自我檢查</strong></p>
+<ul class="body-list">
+<li>[ ] 用的是我自己的 <code>G-</code> 與 <code>GTM-</code>，不是範例 ID、不是示範帳戶。</li>
+<li>[ ] 「頁面載入」列的 GA4 欄，寫的是我實際看到的結果。</li>
+<li>[ ] 四個資料層事件的 GA4 欄都寫「待下一節建立事件代碼」。</li>
+<li>[ ] 每一列都有反例，且寫出「前序號 → 後序號」。</li>
+<li>[ ] <code>line_join</code> 列有重新整理後再測一次的結果。</li>
+<li>[ ] 每列都有測試時間、容器 ID 後四碼、截圖編號，截圖檔名和編號對得起來。</li>
+</ul>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">15</div><h2 class="section-heading">看不到事件時：三層排查</h2>
+<p class="body-text">遇到「怎麼沒有？」時，<strong>從第一層往後查</strong>，不要一開始就懷疑 GA4。先確定前一層通過，再查下一層。</p>
+<h3>第一層：網站有沒有推送？（看監看區）</h3>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>檢查</th>
+<th>常見原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>監看區序號有沒有增加</td>
+<td>沒有真的觸發操作：例如比較表本來就是展開的，按的是「收合」；姓名欄這次填表已經推送過</td>
+</tr>
+<tr>
+<td>事件名稱與參數對不對</td>
+<td>對照 7-1 規格表與本講義的預期表</td>
+</tr>
+<tr>
+<td>必填欄位</td>
+<td><code>booking_complete</code> 需要三欄都填，缺一欄瀏覽器會擋下，不會推送</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">監看區沒有新的一筆 → 問題在操作或頁面，<strong>不用往後查</strong>。</p>
+<h3>第二層：GTM 有沒有看到？（看 Tag Assistant）</h3>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>檢查</th>
+<th>常見原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>容器 ID</td>
+<td>Tag Assistant 上方的 <code>GTM-</code> 不是你的；網址的 <code>?gtm=</code> 打錯</td>
+</tr>
+<tr>
+<td>連線狀態</td>
+<td>不是 Connected；或預覽連線逾時。回 GTM 再按一次「預覽」</td>
+</tr>
+<tr>
+<td>分頁</td>
+<td>你在錯的分頁操作。要在<strong>預覽開出來的</strong>練習頁操作</td>
+</tr>
+<tr>
+<td>代碼或觸發條件</td>
+<td>Google 代碼沒觸發：檢查觸發條件是否為 初始化 - 所有網頁（Initialization - All Pages）、代碼是否已儲存；改完設定後要重新按「預覽」才會載入新草稿</td>
+</tr>
+</tbody>
+</table></div>
+<h3>第三層：GA4 有沒有收到？（看 DebugView／即時報表）</h3>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>檢查</th>
+<th>常見原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>G-</code> ID</td>
+<td>Google 代碼裡貼的不是這個資源的 ID（例如貼成 <code>GTM-</code>，或從別的資源複製）</td>
+</tr>
+<tr>
+<td>資源</td>
+<td>GA4 左上角選錯資源，看的是示範帳戶或別的資源</td>
+</tr>
+<tr>
+<td>預覽連線</td>
+<td>不是透過預覽連線的瀏覽，DebugView 不會把它當除錯裝置</td>
+</tr>
+<tr>
+<td>同意</td>
+<td>沒按「接受全部」，或重新整理後忘了重按</td>
+</tr>
+<tr>
+<td>資料篩選</td>
+<td>管理 → 資料收集和修改 → 資料篩選，是否有啟用中的篩選器把測試流量排除</td>
+</tr>
+<tr>
+<td>時間</td>
+<td>DebugView 與即時報表是近乎即時，但有時要等一下；先等一兩分鐘再判斷</td>
+</tr>
+<tr>
+<td>事件本身</td>
+<td>資料層事件（如 <code>line_join</code>）這一節本來就不會到 GA4，不是錯誤</td>
+</tr>
+</tbody>
+</table></div>
+<h3>特別情況：出現兩個 <code>page_view</code></h3>
+<p class="body-text">同一次載入在 GA4 看到兩個 <code>page_view</code>，常見原因是網站上<strong>同時裝了兩次 Google 代碼</strong>：一次透過 GTM，一次是網站原生程式碼直接放的。練習頁不會有這個問題，但之後幫自有網站安裝時要特別注意，只留一種安裝方式。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">16</div><h2 class="section-heading">資料多久看得到</h2>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>地方</th>
+<th>多久</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DebugView</td>
+<td>近乎即時（測試時用它最快）</td>
+</tr>
+<tr>
+<td>即時報表</td>
+<td>通常幾分鐘內</td>
+</tr>
+<tr>
+<td>一般報表當日資料</td>
+<td>一般資源約 2～6 小時</td>
+</tr>
+<tr>
+<td>每日資料</td>
+<td>約 12 小時</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">所以<strong>測試時看 DebugView 或即時報表</strong>。今天測完，一般報表當下看不到資料是正常的，不代表沒裝好。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">17</div><h2 class="section-heading">補充：如果之後要裝到自己的網站</h2>
+<p class="body-text">這一節的實作以練習頁為主。若你之後有自己的網站（或幫公司網站安裝），GTM 容器的安裝方式是：</p>
+<ol class="body-list">
+<li>到 GTM 工作區，點上方的 <code>GTM-</code> 容器 ID，會跳出安裝程式碼。</li>
+<li><strong>第一段</strong>（<code>&lt;script&gt;</code>）：貼在網站每一頁的 <code>&lt;head&gt;</code> 裡，<strong>越前面越好</strong>。</li>
+<li><strong>第二段</strong>（<code>&lt;noscript&gt;</code>，若安裝視窗有提供）：貼在 <code>&lt;body&gt;</code> 開頭。</li>
+<li>如果網站是用網站架設平台或 CMS 建的（有 GTM 外掛或「追蹤代碼」設定欄位），依該平台的說明操作，不一定要自己貼程式碼。</li>
+<li>裝好後一樣用預覽模式驗證，並注意不要和網站原本的 GA4 程式碼重複安裝。</li>
+</ol>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">18</div><h2 class="section-heading">下一節怎麼接</h2>
+<p class="body-text">7-3 會沿用你這一節的<strong>容器、預覽連線與驗證紀錄</strong>：建立資料層變數、自訂事件觸發條件與 GA4 事件代碼之後，再回到這張紀錄，把四列「待下一節建立事件代碼」的 GA4 格子，補上預覽與 DebugView 的實際結果。</p>
+<p class="body-text">所以請把紀錄檔與截圖存好，<strong>不要刪掉 GTM 容器與 GA4 資源</strong>。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">19</div><h2 class="section-heading">練習頁是模擬的，面試怎麼講？</h2>
+<p class="body-text">練習頁和品牌是模擬的，但你做的事是真的：GA4 資源是真的、GTM 容器是真的、Google 代碼送出的 <code>page_view</code> 也是送往你自己的 GA4。面試官想知道的通常不是「你幫哪個品牌裝過」，而是「你知不知道怎麼確認追蹤是對的」。</p>
+<p class="body-text">可以這樣說：</p>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">「我自己建立了 GA4 資源和 GTM 網頁容器，用 Google 代碼把兩者接起來。驗證時我分三層看：網站有沒有推送事件、GTM 預覽模式有沒有看到、GA4 有沒有收到。每個事件除了測『該出現』，也測『不該出現』，例如只捲動不點按鈕時，加入 LINE 事件不應該觸發。我也會分清楚 GTM 看見不等於 GA4 收到，紀錄上不會把還沒送到 GA4 的事件寫成已收到。」</div></div>
+<p class="body-text">接到你們組的巷口晨光：它的主要轉換是「完成隔日早餐預訂」。如果之後巷口晨光有預訂頁，同一套方法可以直接搬過去：先寫規格（事件名稱、觸發時機、參數），再用預覽模式做正例與反例，最後到 GA4 確認收件。模組作業上台時，你要展示的「點擊 → 預覽模式 → GA4 即時報表」路徑，會用到這一節練過的預覽與 GA4 即時報表操作（步驟 5 到步驟 8）。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">20</div><h2 class="section-heading">課後複習：做完這三題，代表你學會了</h2>
+<ol class="body-list">
+<li><strong>不看講義</strong>，說出 <code>GTM-</code> 和 <code>G-</code> 分別貼在哪裡。</li>
+<li>同學說：「Tag Assistant 有看到 <code>line_join</code>，所以 GA4 已經收到了。」你會怎麼回？</li>
+<li>監看區有新增 <code>booking_complete</code>，但 Tag Assistant 左側沒有，你第一個要檢查什麼？</li>
+</ol>
+<p class="body-text">（參考答案：1. <code>GTM-</code> 貼在練習頁網址 <code>?gtm=</code> 後面；<code>G-</code> 貼在 GTM Google 代碼的代碼 ID。2. 那只證明 GTM 看見，這一節還沒建 GA4 事件代碼，GA4 欄要寫「待下一節建立事件代碼」。3. 第二層：是不是在預覽開出來的分頁操作、練習頁右下角是否顯示 Connected（已連結）、容器 ID 是否是自己的。）</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">21</div><h2 class="section-heading">參考資料（Google 官方說明，2026-11 查證）</h2>
+<ul class="body-list">
+<li>Monitor events in DebugView：https://support.google.com/analytics/answer/7201382</li>
+<li>Set up Analytics for a website and/or app：https://support.google.com/analytics/answer/9304153</li>
+<li>Data retention：https://support.google.com/analytics/answer/7667196</li>
+<li>Get started with Tag Manager：https://support.google.com/tagmanager/answer/14842872</li>
+<li>Create an account and container（Tag Manager）：https://support.google.com/tagmanager/answer/14842164</li>
+<li>Google 代碼取代 GA4 設定代碼：https://support.google.com/tagmanager/answer/13543899</li>
+<li>Install a web container（安裝網頁容器）：https://support.google.com/tagmanager/answer/12974036</li>
+<li>Preview and debug containers：https://support.google.com/tagmanager/answer/6107056</li>
+<li>Consent settings in Tag Manager：https://support.google.com/tagmanager/answer/10718549</li>
+<li>Data freshness：https://support.google.com/analytics/answer/11198161</li>
+<li>外部實務測試（非官方）：Simo Ahava，〈Consent Granted Reprocesses Previously Denied Hits〉：https://www.simoahava.com/gtmtips/consent-granted-reprocesses-previously-denied-hits/</li>
+</ul>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">22</div><h2 class="section-heading">卡住時</h2>
+<ul class="body-list">
+<li>Mac 把視窗拖到螢幕邊緣沒有自動並排：這是 macOS 15 Sequoia 起才有的功能，也可能在「系統設定 &gt; 桌面與 Dock」被關掉。手動調整兩個視窗的大小，左右擺好即可。</li>
+</ul>
 </div>
 </div>
 

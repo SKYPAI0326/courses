@@ -168,52 +168,933 @@ a:not([class]):focus-visible{color:#0f5f6c}
 </div>
 
 <div class="lesson-body">
-<div class="lesson-section"><div class="section-eyebrow">01</div><h2 class="section-heading">技術 SEO 先確認頁面能被找到與使用</h2>
-<p class="body-text">技術 SEO 要確認搜尋引擎能否抓取、索引及選對頁面，讀者在手機上能否完成任務。Google 搜尋分成檢索（crawling）、建立索引（indexing）與提供結果（serving）；檢索是下載頁面，索引是分析並儲存內容，最後才依查詢呈現。Google 不保證每頁都會進入各階段，也不接受付費提高自然排名。<a href="https://developers.google.com/search/docs/fundamentals/how-search-works">Google 搜尋運作方式</a>（2026-11 查證）。</p>
-<p class="body-text">行銷人負責診斷、翻譯與驗收：把工具畫面轉成證據，指出受影響的任務，再交給網站管理者或工程師修改。成果是六項健檢與一張可重現工單。</p>
+<div class="lesson-section"><div class="section-eyebrow">01</div><h2 class="section-heading">開始之前</h2>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">用證據分清楚搜尋存取、頁面體驗與內容問題，再交成可驗收的工單。</div></div>
 </div>
-<div class="lesson-section"><div class="section-eyebrow">02</div><h2 class="section-heading">六項健檢各自處理不同技術風險</h2>
-<p class="body-text">第一項是存取與安全。HTTPS 表示瀏覽器與網站之間使用加密連線，需確認憑證有效且 HTTP 會轉到 HTTPS。<code>robots.txt</code> 管理搜尋爬蟲可檢索的路徑；它不是排除索引的方法，若要阻止索引要用 <code>noindex</code>。常見事故是規則誤擋重要頁。<a href="https://developers.google.com/search/docs/crawling-indexing/robots/intro">Google robots.txt 說明</a>（2026-11 查證）。</p>
-<p class="body-text">第二項是索引。有權限時，網址審查（URL Inspection）可看索引狀態、上次檢索、即時測試及兩種 canonical；網頁索引報表則列已索引、未索引數量與原因。是否有問題要回到頁面用途判斷。<a href="https://support.google.com/webmasters/answer/9012289">網址審查說明</a>與<a href="https://support.google.com/webmasters/answer/7440203">網頁索引報表</a>（2026-11 查證）。</p>
-<p class="body-text">第三項是代表網址。canonical 是重複或相似頁面的偏好版本；訊號強度依序為轉址、<code>rel="canonical"</code>、XML Sitemap。Sitemap 幫助發現網址，但不保證檢索或索引；重要頁至少要有一個站內連結。<a href="https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls">canonical 指南</a>與<a href="https://developers.google.com/search/docs/crawling-indexing/sitemaps/overview">Sitemap 指南</a>（2026-11 查證）。</p>
-<p class="body-text">第四項是轉址與錯誤頁。301／308 是永久搬移，目的地會成為代表網址；302／307 是暫時搬移，原網址可能保留。沒有替代頁時回傳 404 或 410，有對應新頁才用 301。軟 404（soft 404）是畫面說找不到，伺服器卻回 200。<a href="https://developers.google.com/search/docs/crawling-indexing/301-redirects">轉址指南</a>與<a href="https://developers.google.com/search/docs/crawling-indexing/troubleshoot-crawling-errors">錯誤排查</a>（2026-11 查證）。</p>
-<p class="body-text">第五項是行動版。行動版內容索引（mobile-first indexing）表示 Google 依行動版內容建立索引與排名，手機與桌機要有相同主要內容。<a href="https://developers.google.com/search/docs/crawling-indexing/mobile/mobile-sites-mobile-first-indexing">Google 行動版指南</a>（2026-11 查證）。已下線的相容性測試改以實際手機、Lighthouse 與網址審查取代。</p>
-<p class="body-text">第六項是網頁體驗與圖片。檢查載入、互動、版面穩定及主要內容。有資訊的圖片用替代文字（alt）描述用途；<code>srcset</code> 搭配 <code>src</code>，可用 WebP 或 AVIF。<a href="https://developers.google.com/search/docs/appearance/google-images">Google 圖片指南</a>（2026-11 查證）。Meta 缺漏轉交內容負責人。</p>
+<div class="lesson-section"><div class="section-eyebrow">02</div><h2 class="section-heading">0. 這一節做完，你手上會有什麼</h2>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>完成物</th>
+<th>內容</th>
+<th>你要用的工具</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>① 六項技術健檢清單</td>
+<td>自選一個<strong>不需登入的公開頁面</strong>，六個項目各寫一列、每列八欄</td>
+<td>PageSpeed Insights、瀏覽器、手機</td>
+</tr>
+<tr>
+<td>② 一張交接工單</td>
+<td>從健檢表裡判為「問題」的列挑一項，寫成六欄工單</td>
+<td>健檢表 + AI（最後才用）</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text"><strong>開始前準備：</strong></p>
+<ul class="body-list">
+<li>一台電腦（用 Chrome 或 Edge 最方便，下面的快捷鍵以這兩個瀏覽器為準）。</li>
+<li>你自己的手機。</li>
+<li>一個試算表（Google 試算表或 Excel），先開好兩個工作表：「健檢表」「工單」。</li>
+<li>一個 AI 帳號（ChatGPT、Claude、Gemini 任一），<strong>最後一步才用</strong>。</li>
+</ul>
+<p class="body-text"><strong>先講好一件事：你不用會寫程式。</strong> 這一節要你做的是「打開某個網址、按 Ctrl＋F 找一個字、把看到的東西照原樣抄下來」。你不修網站，修網站是工程師的事；你的工作是<strong>診斷、翻譯、驗收</strong>——查出哪裡卡住、用對方聽得懂的話寫清楚、修完後確認真的好了。</p>
 </div>
-<div class="lesson-section"><div class="section-eyebrow">03</div><h2 class="section-heading">三項核心網頁指標要分清資料來源</h2>
-<p class="body-text">核心網頁指標（Core Web Vitals）用三項資料描述體驗。LCP（Largest Contentful Paint，最大內容繪製）看載入，良好是 2.5 秒內；常見原因有慢伺服器、大圖與阻擋繪製的資源。INP（Interaction to Next Paint，互動到下一次繪製）看互動回應，良好是 200 毫秒內；它在 2024-03-12 取代 FID，主執行緒長工作常造成延遲。CLS（Cumulative Layout Shift，累積版面配置位移）看視覺穩定，良好是 0.1 以下；媒體未設尺寸、上方插入內容與字型都可能造成位移。判定看第 75 百分位，行動版與桌機版分開。<a href="https://web.dev/articles/vitals">web.dev 指標說明</a>與<a href="https://web.dev/blog/inp-cwv-march-12">INP 更新</a>（2026-11 查證）。</p>
-<p class="body-text">PageSpeed Insights 的欄位資料來自前 28 天真實使用者；網址樣本不足時改顯示整個來源，再不足便沒有資料。實驗室資料是一次模擬，兩者可能不同。Search Console 依網址群組看趨勢；Lighthouse 或 DevTools 用來重現與除錯。<a href="https://developers.google.com/speed/docs/insights/v5/about">PageSpeed Insights 說明</a>（2026-11 查證）。Google 沒有單一網頁體驗分數，達標也不保證排名。<a href="https://developers.google.com/search/docs/appearance/page-experience">網頁體驗指南</a>（2026-11 查證）。</p>
-<p class="body-text">健檢方法是：選頁面與使用者任務；逐項記錄證據並判為正常、問題或未知；先處理會阻止存取或索引、再處理阻礙核心任務的項目；挑一項寫工單；最後訂出修正後驗證方式。工單欄位是標題、已知證據、影響假設、重現步驟、期望結果、驗收標準，證據與推論要分開。</p>
-</div>
-<div class="lesson-section"><div class="section-eyebrow">04</div><h2 class="section-heading">山徑咖啡兩頁技術健檢示範</h2>
-<p class="body-text">示範使用<a href="assets/datasets/seo-practice.html" rel="noopener" target="_blank">SEO 技術健檢與站外信任練習資料</a>中的分類頁與溪線 700 商品頁。每列都填相同八欄：健檢項目、方法與工具、已知證據、判斷、未知時索取資料、影響的使用者任務、建議處理者、驗證方式。</p>
+<div class="lesson-section"><div class="section-eyebrow">03</div><h2 class="section-heading">1. 技術 SEO 在管什麼：先看懂一張地圖</h2>
+<p class="body-text">上一節（5-4）你改寫了溪線 700 商品頁的 Title、Meta、H1，那是<strong>內容 SEO</strong>：頁面寫得好不好。這一節問的是另一件事：<strong>寫好的頁面，Google 拿不拿得到、收不收得進去、選不選得對；讀者用手機打開時，能不能順利做完他要做的事。</strong></p>
+<h3>Google 搜尋的三個階段</h3>
+<p class="body-text">Google 官方把搜尋分成三個階段（來源：Google〈Google 搜尋運作方式〉）：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>階段</th>
+<th>英文</th>
+<th>白話</th>
+<th>卡在這裡會怎樣</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. 檢索</td>
+<td>crawling</td>
+<td>Google 的程式（Googlebot）來你的網站把網頁內容抓回去</td>
+<td>抓不到，Google 就不知道頁面寫了什麼</td>
+</tr>
+<tr>
+<td>2. 建立索引</td>
+<td>indexing</td>
+<td>Google 讀懂內容、決定要不要收進它的資料庫，並在幾個相似頁裡挑一個當代表</td>
+<td>沒收進去，搜尋結果就不會出現這頁</td>
+</tr>
+<tr>
+<td>3. 提供結果</td>
+<td>serving</td>
+<td>有人搜尋時，Google 從資料庫挑出相關頁面排給他看</td>
+<td>收進去了，也不保證排在前面</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">官方同時說明兩件事，請記住：</p>
+<ul class="body-list">
+<li><strong>Google 不保證每一頁都會被檢索、建立索引或顯示。</strong> 所以「沒被索引」不一定是網站壞了，但要查原因。</li>
+<li><strong>Google 不接受付費來提高自然搜尋排名。</strong> 廣告是另一個系統（第六模組會教）。</li>
+</ul>
+<h3>技術 SEO 的範圍，用四個問題記</h3>
 <ol class="body-list">
-<li>存取與安全：用網址列與 <code>robots.txt</code>；兩頁皆為 HTTPS，但規則寫 <code>Disallow: /products/riverline-700</code>；判為商品頁檢索問題；向網站管理者確認封鎖目的；影響搜尋者找到商品頁；由網站管理者處理；修改後重讀檔案並做即時測試。</li>
-<li>索引：用網址審查與索引報表；分類頁已索引，商品頁未索引，且報表有 3 個 canonical 不一致網址；商品頁判為問題，具體原因仍待查；向網站管理者索取即時測試；影響商品頁出現在搜尋結果；修正後重新送出檢索並追蹤狀態。</li>
-<li>代表網址：看兩種 canonical；商品頁宣告自己，Google 卻選分類頁；判為問題；Sitemap 與內部連結狀態未知；向工程師索取設定；影響單一商品版本的辨認；部署後核對原始碼、內部連結與網址審查。</li>
-<li>轉址與錯誤頁：用狀態碼；舊分類網址永久搬移卻回 302，舊商品回 301 到首頁；兩列皆需確認用途；向內容負責人確認是否有對應替代頁；影響舊連結抵達正確內容；由工程師處理；以相同舊網址重測目的地與狀態碼。</li>
-<li>行動版：用手機操作；商品頁平均滑動三個畫面才看見預約入口；判為核心任務受阻；向內容與網站負責人確認版面限制；影響預約試握；調整後以同裝置重跑。</li>
-<li>網頁體驗與圖片：用 PageSpeed Insights；分類頁來源層級 LCP 2.3 秒，但實驗室 LCP 3.8 秒且最大元素是首屏合照；商品頁欄位資料達良好門檻，實驗室 CLS 0.18；判為需重現，圖片 alt 與尺寸設定未知；向工程師索取頁面設定；影響看見主要內容；以相同網址、裝置與工具重測並檢查畫面。</li>
+<li>搜尋引擎<strong>能不能檢索</strong>這頁？</li>
+<li>能不能<strong>建立索引</strong>？</li>
+<li>有好幾個相似網址時，Google <strong>有沒有選對代表頁</strong>？</li>
+<li>讀者用<strong>手機</strong>打開時，<strong>能不能完成任務</strong>（看到內容、找到按鈕、頁面不亂跳）？</li>
 </ol>
-<p class="body-text">分類頁缺 Meta 描述另轉交內容負責人。示範工單如下：標題「商品頁遭 robots.txt 封鎖檢索」；已知證據為 2026-11-05 行動版紀錄及檔案中的封鎖路徑；影響假設為搜尋程式可能無法重新抓取商品內容；重現步驟是開啟檔案並對照商品路徑；期望結果是重要商品頁可被檢索；驗收標準是規則移除後，以即時測試確認允許檢索。工單不估排名損失或工時。</p>
+<p class="body-text">前三個是「搜尋引擎拿不拿得到」，第四個是「讀者用起來順不順」。後面的六項健檢，就是把這四個問題拆成可以一項一項查的步驟。</p>
+<h3>三種問題要分開</h3>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>問題類型</th>
+<th>例子</th>
+<th>交給誰</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>技術問題</td>
+<td>robots.txt 擋住頁面、轉址設錯、手機版預約按鈕被擠到很下面</td>
+<td>網站管理者或工程師</td>
+</tr>
+<tr>
+<td>內容問題</td>
+<td>缺 Meta 描述、標題沒寫到顧客會搜的詞</td>
+<td>內容負責人（5-4 教過的範圍）</td>
+</tr>
+<tr>
+<td>站外問題</td>
+<td>沒有其他網站提到你、評價少</td>
+<td>5-6 會教</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">健檢時看到內容問題（例如原始碼裡找不到 <code>&lt;meta name="description"&gt;</code>），<strong>照實記下來、註明轉交內容負責人，但不寫進技術工單。</strong></p>
 </div>
-<div class="lesson-section"><div class="section-eyebrow">05</div><h2 class="section-heading">實跑一個公開頁面的六項健檢</h2>
-<p class="body-text">練習自選一個不需登入的公開頁面，建議使用小組主題產品官網的一頁。課堂紀錄只寫網站類型與頁面類型，不寫真實網站名稱；實跑工具時仍以實際網址測試。完成與示範相同的八欄，並從問題列挑一項寫同樣六欄的工單。</p>
-<p class="body-text">實作順序：跑 PageSpeed Insights 行動版；開啟「網域/robots.txt」；檢視原始碼找 canonical；看網址列是否為 HTTPS；用手機核對主要內容與行動呼籲；最後處理索引欄。有權限者加做網址審查；無權限者寫「未知，需網站管理者用網址審查提供」。講師先確認工具當天可用。</p>
-<p class="body-text">先完成判斷與工單，再展開參考段落。</p>
-<details class="rw-reference"><summary>做完再展開：參考方向</summary>
-<p>欄位資料與實驗室資料不一致時，分開記錄，不把單次模擬直接當成真實使用者現況。無權限的索引狀態標未知，並寫清楚要向網站管理者索取網址審查的哪個欄位。優先序先看存取與索引，再看是否阻礙頁面的核心任務。</p>
-</details>
-<p class="body-text">完成後保留測試日期、裝置與工具，下一節會把可存取的頁面接到外部信任判斷。</p>
+<div class="lesson-section"><div class="section-eyebrow">04</div><h2 class="section-heading">2. 名詞速查卡：一次出現的英文縮寫，先各記一句話</h2>
+<p class="body-text">不用背定義，記住「它在回答什麼問題」就好。後面每一項健檢都會再用到，用到時回來查這張表。</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>名詞</th>
+<th>它在回答的問題</th>
+<th>一句話比喻</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HTTPS</td>
+<td>連線有沒有加密？</td>
+<td>網址開頭是 <code>https://</code>，像寄掛號信而不是明信片</td>
+</tr>
+<tr>
+<td>robots.txt</td>
+<td>哪些路徑<strong>不准</strong>爬蟲進去抓？</td>
+<td>掛在網站門口的「員工止步」告示牌</td>
+</tr>
+<tr>
+<td>noindex</td>
+<td>這頁<strong>不要</strong>放進搜尋結果</td>
+<td>貼在頁面上的「請勿收錄」貼紙</td>
+</tr>
+<tr>
+<td>XML Sitemap</td>
+<td>網站有哪些網址希望被發現？</td>
+<td>給 Google 的網址清單，只是「推薦」不是「命令」</td>
+</tr>
+<tr>
+<td>canonical（標準網址）</td>
+<td>好幾個很像的網址，哪個是正本？</td>
+<td>在副本上註明「正本在那裡」</td>
+</tr>
+<tr>
+<td>301／308</td>
+<td>這頁<strong>永久</strong>搬家了</td>
+<td>郵局的「永久遷址」登記</td>
+</tr>
+<tr>
+<td>302／307</td>
+<td>這頁<strong>暫時</strong>搬去別處</td>
+<td>「暫時改到隔壁營業」的告示</td>
+</tr>
+<tr>
+<td>404／410</td>
+<td>這頁不存在／已永久移除</td>
+<td>「查無此人」</td>
+</tr>
+<tr>
+<td>軟 404（soft 404）</td>
+<td>畫面說找不到，伺服器卻回報「成功（200）」</td>
+<td>店門口寫「歇業」，但電話答錄說「營業中」</td>
+</tr>
+<tr>
+<td>LCP</td>
+<td>主要內容多久出現？</td>
+<td>打開頁面後，最大那張圖或那段字多久看得到</td>
+</tr>
+<tr>
+<td>INP</td>
+<td>點下去多久有反應？</td>
+<td>按了「預訂」之後，畫面多久給你回應</td>
+</tr>
+<tr>
+<td>CLS</td>
+<td>頁面會不會亂跳？</td>
+<td>正要點按鈕，上面突然插進一張圖把按鈕擠走</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text"><strong>HTTP 狀態碼是什麼？</strong> 每次瀏覽器跟網站要一頁，網站都會先回一個三位數代碼，告訴瀏覽器「結果如何」。<code>200</code> 是成功、<code>3xx</code> 多半是搬家了、<code>4xx</code> 是請求有問題（最常見的是 404 找不到）、<code>5xx</code> 是網站自己出錯。你平常看不到這個數字，它藏在背後，但搜尋引擎很在意。</p>
 </div>
-<div class="lesson-section"><div class="section-eyebrow">06</div><h2 class="section-heading">用 AI 加速：檢查工單中的推論</h2>
-<p class="body-text">完成健檢表與工單後，把表格及 PageSpeed Insights 畫面文字貼入新對話；數值由你回報表確認。</p>
+<div class="lesson-section"><div class="section-eyebrow">05</div><h2 class="section-heading">3. 最常卡住的地方：什麼時候判「正常」「問題」「未知」</h2>
+<p class="body-text">健檢表的「判斷」欄只能填三種之一。用下面這個順序判斷，每一列都照走一次：</p>
+<ol class="body-list">
+<li><strong>我有沒有親眼看到的證據？</strong>（截圖、抄下來的原文、工具上的數字）
+<ul>
+<li>沒有 → <strong>未知</strong>。在「未知時索取資料」欄寫清楚「向誰索取什麼」。</li>
+</ul>
+</li>
+<li><strong>有證據。這個證據有沒有符合官方標準或該項的預期？</strong>
+<ul>
+<li>符合 → <strong>正常</strong>。</li>
+<li>不符合 → <strong>問題</strong>。</li>
+</ul>
+</li>
+<li><strong>有證據，但還缺一個「決定對錯」的事實？</strong>（例如看到 302 暫時轉址，但不知道這次搬家是不是永久的）
+<ul>
+<li>→ <strong>未知</strong>，把缺的那個事實寫進索取資料欄。</li>
+</ul>
+</li>
+</ol>
+<p class="body-text"><strong>三個常見錯誤：</strong></p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>錯誤寫法</th>
+<th>為什麼錯</th>
+<th>改成</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>沒權限看 Search Console，所以索引判「正常」</td>
+<td>沒看到就不能說正常</td>
+<td>判「未知」，寫「需網站管理者用網址審查提供索引狀態與 Google 選擇的標準網址」【待實機確認】</td>
+</tr>
+<tr>
+<td>實驗室 LCP 3.8 秒，判「問題：真實使用者都很慢」</td>
+<td>實驗室只是一次模擬，不代表真實使用者</td>
+<td>欄位資料與實驗室資料<strong>分開寫</strong>，判斷以你實際有的證據為準</td>
+</tr>
+<tr>
+<td>「這頁沒 canonical，排名一定掉」</td>
+<td>推論寫成事實，還估了排名</td>
+<td>證據欄只寫「原始碼未找到 canonical」；影響寫進工單的「影響假設」</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text"><strong>「未知」不是偷懶，是誠實。</strong> 工程師拿到一張寫清楚「哪些已確認、哪些還不知道、要找誰問」的表，比拿到一張全部判「正常」但沒有證據的表有用得多。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">06</div><h2 class="section-heading">4. 核心網頁指標：LCP、INP、CLS 和 PageSpeed Insights</h2>
+<p class="body-text">六項健檢的第⑥項會用到這一段，但 PageSpeed Insights 的畫面數字最多，所以先單獨講。</p>
+<h3>三個指標與良好門檻</h3>
+<p class="body-text">（來源：web.dev〈Web Vitals〉、PageSpeed Insights 說明，2026-11-12 查證）</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>指標</th>
+<th>量什麼</th>
+<th>良好</th>
+<th>需要改善</th>
+<th>不佳</th>
+<th>常見原因（給工程師的線索）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LCP 最大內容繪製</td>
+<td>頁面最大的圖或文字區塊多久出現</td>
+<td><strong>≤ 2.5 秒</strong></td>
+<td>2.5–4 秒</td>
+<td>&gt; 4 秒</td>
+<td>首屏大圖太重、伺服器回應慢、其他檔案卡住載入</td>
+</tr>
+<tr>
+<td>INP 與下一個顯示的互動</td>
+<td>點擊、輸入後，畫面多久有反應</td>
+<td><strong>≤ 200 毫秒</strong></td>
+<td>200–500 毫秒</td>
+<td>&gt; 500 毫秒</td>
+<td>頁面上執行的程式太多太久</td>
+</tr>
+<tr>
+<td>CLS 累計版面配置位移</td>
+<td>載入過程中版面跳動多少（沒有單位）</td>
+<td><strong>≤ 0.1</strong></td>
+<td>0.1–0.25</td>
+<td>&gt; 0.25</td>
+<td>圖片沒先留好空間、廣告或嵌入元件晚插進來、字型換掉造成跳動</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text"><strong>三個規則一定要知道：</strong></p>
+<ol class="body-list">
+<li><strong>INP 在 2024 年 3 月 12 日取代了 FID</strong>，成為核心網頁指標之一。看到舊文章寫 FID，那是舊資訊。</li>
+<li><strong>看第 75 百分位。</strong> 白話：把 100 位訪客的體驗從快排到慢，看第 75 位。這個人的體驗達標，代表大部分人都還不錯。</li>
+<li><strong>行動版和桌機版分開看。</strong> 這一節一律看<strong>行動版</strong>，因為 Google 主要用行動版內容建立索引（第⑤項會說明）。</li>
+</ol>
+<h3>欄位資料 vs. 實驗室資料：PSI 畫面上下兩塊的差別</h3>
+<p class="body-text">PageSpeed Insights（下面簡稱 PSI）的報告分成上下兩大塊，來源完全不同：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th></th>
+<th>欄位資料（field data）</th>
+<th>實驗室資料（lab data）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>在畫面哪裡</td>
+<td><strong>上半部</strong>，英文介面標題是「Discover what your real users are experiencing」（中文介面約為「瞭解實際使用者的體驗」）</td>
+<td><strong>下半部</strong>，英文介面標題是「Diagnose performance issues」（中文介面約為「診斷效能問題」），有一個 0–100 的效能分數</td>
+</tr>
+<tr>
+<td>資料從哪來</td>
+<td>前 28 天、真實 Chrome 使用者的體驗統計</td>
+<td>工具當下用模擬手機與模擬網路跑一次</td>
+</tr>
+<tr>
+<td>有沒有 INP</td>
+<td>有</td>
+<td><strong>沒有</strong>（模擬時沒有真人在點；畫面上會看到 TBT「總封鎖時間」，是另一個指標，不要當成 INP 填）</td>
+</tr>
+<tr>
+<td>適合拿來</td>
+<td>判斷真實使用者的體驗</td>
+<td>重現問題、找原因（例如哪張圖是 LCP 元素）</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text"><strong>資料不夠時會發生什麼：</strong> 如果這個網址的真實使用者樣本不夠，PSI 會改顯示**整個網站（來源，origin）**的資料；連整站也不夠，上半部就沒有真實使用者資料。上半部通常有「這個網址」與「來源」的切換，<strong>請記下你看到的是哪一種</strong>——整站資料不等於這一頁的資料。</p>
+<p class="body-text"><strong>兩者不一致怎麼辦？</strong> 很常見，因為一個是很多真人 28 天的統計，一個是模擬一次。<strong>分開記錄，不要只挑一個寫。</strong> 例如：「欄位資料（網址層級）CLS 0.09；實驗室 CLS 0.18。」</p>
+<p class="body-text"><strong>再補兩個 Google 的官方說法</strong>（來源：Google〈網頁體驗〉指南）：</p>
+<ul class="body-list">
+<li>Google 的排名系統會使用核心網頁指標，但<strong>沒有單一的「網頁體驗分數」</strong>。</li>
+<li>報表全部達標，<strong>也不保證排名會在前面</strong>。所以工單裡不寫「修好後排名會上升多少」。</li>
+</ul>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body"><strong>有 Search Console 權限的人</strong>另外可以看「核心網頁指標」報表：它把相似的網頁分成<strong>網址群組</strong>看一段時間的趨勢，適合確認「這一類頁面」整體是不是變好了。<strong>Lighthouse／DevTools</strong> 則是工程師在自己電腦上重現與除錯用的；本節練習不要求你用。</div></div>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">07</div><h2 class="section-heading">5. 六項健檢：每一項在問什麼、怎麼查、怎麼判</h2>
+<p class="body-text">每一項都用同一個格式：<strong>問什麼 → 免權限怎麼查 → 怎麼判 → 有權限的人多看什麼。</strong></p>
+<h3>① 存取與安全：HTTPS、robots.txt、noindex</h3>
+<p class="body-text"><strong>問什麼：</strong> 這頁是不是加密連線？有沒有被擋在門外（robots.txt）？有沒有貼著「請勿收錄」（noindex）？</p>
+<p class="body-text"><strong>怎麼查：</strong></p>
+<ol class="body-list">
+<li><strong>HTTPS</strong>：看網址列，網址是不是 <code>https://</code> 開頭。再試一次：把網址開頭改成 <code>http://</code>（少一個 s）按 Enter，看會不會自動跳回 <code>https://</code>。</li>
+<li><strong>robots.txt</strong>：在網址列輸入 <code>https://網域/robots.txt</code>（例如受測網址是 <code>https://www.abc.com.tw/order</code>，就輸入 <code>https://www.abc.com.tw/robots.txt</code>）。
+<ul>
+<li>出現一段純文字 → 截圖或複製全文。</li>
+<li>顯示找不到（404）→ 記下「此網站沒有 robots.txt」。依 Google 說明，沒有 robots.txt 等於沒有限制，<strong>這不是問題</strong>。</li>
+</ul>
+</li>
+<li><strong>noindex</strong>：在受測頁面按 <strong>Ctrl＋U</strong>（Mac：<strong>⌘＋Option＋U</strong>）開啟原始碼，按 <strong>Ctrl＋F</strong>（Mac：<strong>⌘＋F</strong>）搜尋 <code>noindex</code>。</li>
+</ol>
+<p class="body-text"><strong>怎麼讀 robots.txt（只要會這四種行）：</strong></p>
+<pre class="rw-code"><code class="language-text">User-agent: *          ← 以下規則適用於誰；* 代表所有爬蟲
+Disallow: /cart/       ← 不准抓「網址路徑以 /cart/ 開頭」的頁面
+Allow: /               ← 准許抓的路徑
+Sitemap: https://...   ← Sitemap 在哪裡
+</code></pre>
+<ul class="body-list">
+<li>比對方法：把受測網址的<strong>網域後面那段路徑</strong>拿出來，看有沒有任何一行 <code>Disallow:</code> 是它的<strong>開頭</strong>。例如路徑 <code>/products/riverline-700</code>，碰到 <code>Disallow: /products/riverline-700</code> 就符合。</li>
+<li>同時符合 <code>Allow</code> 和 <code>Disallow</code> 時，Google 採用<strong>路徑寫得比較長（比較具體）的那一條</strong>。<code>Disallow: /products/riverline-700</code> 比 <code>Allow: /</code> 長，所以這頁被擋。</li>
+</ul>
+<p class="body-text"><strong>一定要分清楚的觀念</strong>（來源：Google〈robots.txt 簡介〉、〈robots meta 標記〉說明）：</p>
+<ul class="body-list">
+<li>robots.txt 是管「<strong>能不能抓</strong>」，<strong>不是</strong>把頁面排除在搜尋結果外的方法。被擋的網址如果別處有連結，Google 仍可能收錄這個網址（只是沒有內容描述）。</li>
+<li>真的不想出現在搜尋結果，要用 <strong>noindex</strong>。</li>
+<li>而且 <strong>noindex 的頁面不能同時被 robots.txt 擋住</strong>——被擋住，Google 根本抓不到頁面，也就看不到上面的 noindex。</li>
+</ul>
+<p class="body-text"><strong>怎麼判：</strong></p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>看到</th>
+<th>判斷</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>https://</code>、robots.txt 沒擋受測路徑、原始碼沒有 noindex</td>
+<td>正常</td>
+</tr>
+<tr>
+<td>robots.txt 有一行擋到受測頁面，而這頁是要給顧客搜到的</td>
+<td>問題</td>
+</tr>
+<tr>
+<td>原始碼出現 <code>noindex</code>，而這頁是要給顧客搜到的</td>
+<td>問題</td>
+</tr>
+<tr>
+<td>網址是 <code>http://</code>，或改成 http 不會跳回 https</td>
+<td>問題</td>
+</tr>
+</tbody>
+</table></div>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">誠實註記：noindex 也可能放在伺服器的回應標頭裡，原始碼看不到。所以沒找到時，證據欄寫「原始碼未見 noindex（回應標頭未檢查）」，不要寫「沒有 noindex」。</div></div>
+<h3>② 索引：網址審查、網頁索引報表</h3>
+<p class="body-text"><strong>問什麼：</strong> 這頁到底有沒有被 Google 收進索引？</p>
+<p class="body-text"><strong>免權限的人：</strong> 這一項<strong>看不到可靠證據</strong>，直接判<strong>未知</strong>，索取資料欄照課程寫法：</p>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">未知，需網站管理者用網址審查提供（索引狀態、上次檢索時間、使用者宣告與 Google 選擇的標準網址）【待實機確認】。</div></div>
+<p class="body-text"><strong>有權限的人</strong>（Search Console）多看兩個地方（來源：Search Console 說明中心）：</p>
+<ul class="body-list">
+<li><strong>網址審查</strong>（中文說明頁目前寫作「網址檢查工具」，英文 URL Inspection）：輸入網址，可看到索引狀態、上次檢索時間，以及<strong>使用者宣告的標準網址</strong>和 <strong>Google 所選的標準網址</strong>；按「測試線上網址」可做即時測試，看現在 Google 能不能抓到【待實機確認】。</li>
+<li><strong>網頁索引報表</strong>：整個網站有多少網址已建立索引、多少沒有，以及每一種「未建立索引」的原因和數量。</li>
+</ul>
+<p class="body-text"><strong>怎麼判：</strong> 已建立索引 → 正常；未建立索引而這頁是要給顧客搜到的 → 問題（原因寫進證據欄，不要自己猜）。</p>
+<h3>③ 代表網址：canonical、Sitemap、內部連結</h3>
+<p class="body-text"><strong>問什麼：</strong> 網站上如果有好幾個內容很像的網址，Google 會挑一個當「正本」（canonical，Search Console 中文叫「標準網址」）。我們要確認：網站有沒有清楚告訴 Google 哪個是正本、Google 有沒有照著選。</p>
+<p class="body-text"><strong>網站告訴 Google「正本是誰」的方法，訊號強弱不同</strong>（來源：Google〈整合重複網址〉指南）：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>方法</th>
+<th>訊號強弱</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>轉址（把舊網址導到正本）</td>
+<td>強</td>
+</tr>
+<tr>
+<td><code>rel="canonical"</code>（在頁面原始碼標註正本）</td>
+<td>強</td>
+</tr>
+<tr>
+<td>列進 XML Sitemap</td>
+<td>弱</td>
+</tr>
+</tbody>
+</table></div>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">簡記：<strong>轉址 ＞ rel="canonical" ＞ XML Sitemap</strong>。這些是「訊號」不是「命令」，Google 仍可能選別的網址當正本。Google 也明說不要用 robots.txt 來處理正本問題。</div></div>
+<p class="body-text"><strong>Sitemap 的作用與限制</strong>（來源：Google〈Sitemap 總覽〉）：它幫 Google <strong>發現</strong>網址，但<strong>不保證</strong>會被檢索或建立索引。重要頁面除了列進 Sitemap，還要<strong>至少有一個站內連結</strong>能點到。</p>
+<p class="body-text"><strong>怎麼查（免權限）：</strong></p>
+<ol class="body-list">
+<li><strong>canonical</strong>：受測頁 Ctrl＋U 開原始碼，Ctrl＋F 搜 <code>canonical</code>，找到類似這行：<pre class="rw-code"><code class="language-html">&lt;link rel="canonical" href="https://www.abc.com.tw/order"&gt;
+</code></pre>
+抄下 <code>href="..."</code> 引號裡的網址，比對：<strong>是不是受測頁自己的網址？</strong></li>
+<li><strong>Sitemap</strong>：打開 robots.txt 裡 <code>Sitemap:</code> 後面那個網址（沒有的話試 <code>網域/sitemap.xml</code>）。Ctrl＋F 搜受測頁網址的一段路徑。
+<ul>
+<li>如果打開後看到的是<strong>一串其他 <code>.xml</code> 網址</strong>，那是「Sitemap 索引」，點進名稱看起來像 page、product 的那份再找。</li>
+</ul>
+</li>
+<li><strong>內部連結</strong>：從網站首頁開始，只用點的（不打網址），看能不能點到受測頁。記下路徑，例如「首頁 → 預訂 → 隔日早餐」。</li>
+</ol>
+<p class="body-text"><strong>怎麼判：</strong></p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>看到</th>
+<th>判斷</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>canonical 指向自己（或沒標，且網站沒有明顯的重複版本）、在 Sitemap 裡、能從首頁點到</td>
+<td>正常</td>
+</tr>
+<tr>
+<td>canonical 指向<strong>別的頁面</strong>，但這頁是要單獨被搜到的</td>
+<td>問題</td>
+</tr>
+<tr>
+<td>從首頁怎麼點都點不到這頁</td>
+<td>問題</td>
+</tr>
+<tr>
+<td>原始碼沒找到 canonical</td>
+<td>不一定是問題。證據欄寫「原始碼未見 canonical」，判斷看其他證據；若同一內容有多個網址版本，判未知並請網站管理者確認</td>
+</tr>
+</tbody>
+</table></div>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">補充：有些網站的 canonical 是網頁載入後才由程式加上的，Ctrl＋U 看到的原始碼可能沒有。所以證據欄寫「原始碼未見」，不寫「網站沒有設定」。</div></div>
+<h3>④ 轉址與錯誤頁：301／308、302／307、404／410、軟 404</h3>
+<p class="body-text"><strong>問什麼：</strong> 搬家的頁面有沒有正確導到新家？不存在的頁面有沒有老實說「不存在」？</p>
+<p class="body-text"><strong>規則</strong>（來源：Google〈重新導向〉指南、〈排解檢索錯誤〉說明）：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>情況</th>
+<th>該用</th>
+<th>Google 怎麼看</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>頁面<strong>永久</strong>搬到新網址</td>
+<td>301 或 308</td>
+<td>強烈訊號：新網址通常會成為正本，搜尋結果改顯示新網址</td>
+</tr>
+<tr>
+<td>頁面<strong>暫時</strong>搬走、之後會回來</td>
+<td>302 或 307</td>
+<td>舊網址通常繼續留在搜尋結果</td>
+</tr>
+<tr>
+<td>頁面移除，<strong>有對應的新頁</strong>（例如新款取代舊款）</td>
+<td>301 導到<strong>那個對應的新頁</strong></td>
+<td></td>
+</tr>
+<tr>
+<td>頁面移除，<strong>沒有替代頁</strong></td>
+<td>回 404 或 410</td>
+<td></td>
+</tr>
+<tr>
+<td>畫面寫「找不到」，伺服器卻回 200</td>
+<td>這叫<strong>軟 404</strong>，要修</td>
+<td>Google 會把它當錯誤</td>
+</tr>
+</tbody>
+</table></div>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">常見錯誤：舊商品下架後一律導到<strong>首頁</strong>。首頁不是那個商品的「對應新頁」——有替代品就導到替代品，沒有就回 404／410。</div></div>
+<p class="body-text"><strong>怎麼查（免權限）：</strong></p>
+<ol class="body-list">
+<li><strong>錯誤頁</strong>：在受測網站網域後面亂打一段不存在的路徑，例如 <code>https://網域/zz-test-page-404</code>。記下畫面：是「找不到頁面」的說明頁？還是直接跳到首頁？</li>
+<li><strong>舊網址</strong>：如果你知道這個網站有改過網址（例如舊活動頁），打開舊網址，看網址列有沒有自動換成新網址、換到哪裡。</li>
+<li><strong>狀態碼</strong>：光看畫面看不出是 301 還是 302、404 還是軟 404。所以：
+<ul>
+<li>沒有其他工具時，判斷寫<strong>未知</strong>，索取資料寫「請網站管理者提供某某網址的回應狀態碼」。</li>
+<li>（選做，不要求）在電腦按 <strong>F12</strong>（Mac：<strong>⌘＋Option＋I</strong>）開 DevTools → 點「Network／網路」分頁 → 按 F5 重新整理 → 看清單<strong>第一列</strong>的「Status／狀態」欄數字【待實機確認】。</li>
+</ul>
+</li>
+</ol>
+<p class="body-text"><strong>怎麼判：</strong> 永久搬家用 301／308、找不到的頁面回 404／410 → 正常；導到不對應的頁面（例如首頁）、找不到頁面卻回 200 → 問題；看到轉址但不知道是不是永久搬家、或看不到狀態碼 → 未知。</p>
+<h3>⑤ 行動版：行動版內容索引</h3>
+<p class="body-text"><strong>問什麼：</strong> 手機上看到的主要內容，和電腦上一樣嗎？顧客在手機上找得到要按的按鈕嗎？</p>
+<p class="body-text"><strong>為什麼重要</strong>（來源：Google〈行動版內容優先索引〉最佳做法）：Google 主要用<strong>行動版</strong>的內容來建立索引與排名。所以手機版和電腦版要有<strong>相同的主要內容</strong>；如果手機版的內容要等使用者點擊、滑動才會載入，Google 不會載入它。</p>
+<p class="body-text"><strong>工具改了：</strong> Google 以前有「行動裝置相容性測試」，<strong>已於 2023 年 12 月停用</strong>（Search Console 的行動裝置可用性報表一併移除，原網址現在導向 Lighthouse 說明）。現在的替代做法是：<strong>用實際手機開頁</strong>、Lighthouse，以及有權限者用網址審查看 Google 實際讀到的畫面。本節練習用<strong>實際手機</strong>即可。</p>
+<p class="body-text"><strong>怎麼查：</strong></p>
+<ol class="body-list">
+<li>用你的手機打開受測頁（行動網路或 Wi-Fi 都可以，記下是哪一種）。</li>
+<li>電腦也開同一頁，並排比對：主要內容（商品、價格、說明）手機上都有嗎？</li>
+<li>從頁面最上方開始，數要<strong>滑幾個畫面</strong>才看到主要行動呼籲（「預訂」「購買」「加入 LINE」這類按鈕）。</li>
+<li>實際點一下那個按鈕，看能不能順利進到下一步（<strong>到填資料之前就停</strong>，不要真的送出）。</li>
+</ol>
+<p class="body-text"><strong>怎麼判：</strong> 主要內容一致、行動呼籲找得到且點得動 → 正常；手機版少了主要內容、按鈕壞掉、或要滑很久才看到而影響顧客完成任務 → 問題。</p>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">「要滑幾個畫面才算問題」沒有官方標準。判斷依據是<strong>顧客的任務</strong>：如果顧客來就是要預訂，預訂入口卻埋在最下面，就寫成問題，並在「影響的使用者任務」欄寫清楚是哪個任務。</div></div>
+<h3>⑥ 網頁體驗與圖片：核心網頁指標、alt、srcset、WebP／AVIF</h3>
+<p class="body-text"><strong>問什麼：</strong> 第 4 段的三個指標達標嗎？頁面上的圖片有沒有替代文字、有沒有用適合的尺寸與格式？</p>
+<p class="body-text"><strong>圖片規則</strong>（來源：Google〈Google 圖片 SEO 最佳做法〉）：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>項目</th>
+<th>做法</th>
+<th>為什麼</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>替代文字 <code>alt</code></td>
+<td>有資訊的圖片，用 <code>alt="..."</code> 描述圖片內容與用途</td>
+<td>看不到圖的人（和搜尋引擎）才知道圖在講什麼</td>
+</tr>
+<tr>
+<td><code>srcset</code> 搭配 <code>src</code></td>
+<td>用 <code>srcset</code> 提供不同尺寸給不同螢幕，同時保留 <code>src</code> 當備用</td>
+<td>手機不用下載電腦尺寸的大圖</td>
+</tr>
+<tr>
+<td>格式</td>
+<td>Google 支援 WebP、AVIF 等格式</td>
+<td>同樣畫質通常檔案較小，載入較快</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text"><strong>怎麼查：</strong></p>
+<ol class="body-list">
+<li><strong>核心網頁指標</strong>：照下面「第 6 段 步驟 B」跑 PSI，抄下欄位資料與實驗室資料。</li>
+<li><strong>LCP 元素</strong>：在 PSI 下半部找名稱含「Largest Contentful Paint」或「LCP」的項目，展開看是哪個元素（通常是一張首屏大圖）。項目名稱會隨工具改版調整，找不到就寫「PSI 未顯示 LCP 元素」。</li>
+<li><strong>alt</strong>：原始碼 Ctrl＋F 搜 <code>&lt;img</code>，逐一看每個 <code>&lt;img</code> 後面有沒有 <code>alt="..."</code>、內容是不是在描述圖片。主要看首屏大圖和商品圖就好。</li>
+<li><strong>srcset</strong>：同樣在原始碼搜 <code>srcset</code>。</li>
+<li><strong>格式</strong>：在圖片上按右鍵 →「在新分頁中開啟圖片」，看網址結尾是 <code>.webp</code>、<code>.avif</code>、<code>.jpg</code> 還是 <code>.png</code>【待實機確認】。
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">副檔名只是線索：有些網站的圖片服務會依瀏覽器換格式。所以證據欄寫「圖片網址結尾為 .jpg」，不寫「網站沒用 WebP」。</div></div>
+</li>
+</ol>
+<p class="body-text"><strong>怎麼判：</strong> 欄位資料三個指標都在良好範圍、主要圖片有 alt → 正常；欄位資料有指標超過良好門檻、主要圖片缺 alt → 問題；只有實驗室資料或只有整站資料 → 這一頁的真實體驗判<strong>未知</strong>，兩種資料分開寫進證據欄，實驗室數字當作給工程師重現的線索。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">08</div><h2 class="section-heading">6. 實作：用你自己選的頁面跑一次</h2>
+<h3>先選頁面（周小姐請特別看這段）</h3>
+<p class="body-text">課程建議用小組主題產品官網的一頁。但「巷口晨光早餐預訂」是課堂模擬的產品卡，<strong>沒有真實網址可以測</strong>。做法：</p>
+<ul class="body-list">
+<li><strong>找一個真實存在、同類型的公開頁面來測</strong>：例如一家實際營業的烘焙坊或早餐店的「線上預訂頁」或「商品介紹頁」。用 Google 搜「麵包 預訂」「早餐 預購 取貨」之類，挑一個<strong>不用登入就能看</strong>的頁面。</li>
+<li><strong>影響的使用者任務</strong>用你們產品卡的顧客原話來定，讓這次健檢接回小組企劃：
+<ul>
+<li>「如果能看見隔天有哪些口味，我才會先預訂。」→ 任務：<strong>在手機上看到隔天供應的品項與價格</strong></li>
+<li>「我想前一天選好，早上不用在櫃前想太久。」→ 任務：<strong>前一天在手機上完成預訂</strong></li>
+</ul>
+</li>
+<li><strong>課堂紀錄只寫網站類型與頁面類型</strong>，例如「社區烘焙坊｜隔日預訂頁」，不寫真實店名。實跑工具時用真實網址，網址留在你自己的筆記裡，工單的重現步驟寫「〔受測網址〕」。</li>
+</ul>
+<p class="body-text">這樣你就不是「停在紙上」：你真的在一個真實網站上跑了工具、讀了數字、寫了工單。面試被問到時可以這樣說：</p>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">「我挑了一個烘焙坊的線上預訂頁，用 PageSpeed Insights 行動版、瀏覽器原始碼和手機實測做了六項技術健檢，把每項證據和判斷分開記錄，沒權限查的索引狀態標成未知並寫明要向誰索取，最後把一個行動版問題寫成可驗收的工單交接給工程師。」</div></div>
+<h3>步驟 A：開好健檢表</h3>
+<p class="body-text">在試算表「健檢表」工作表第一列打上八個欄名：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>健檢項目</th>
+<th>方法與工具</th>
+<th>已知證據</th>
+<th>判斷（正常／問題／未知）</th>
+<th>未知時索取資料（向誰索取什麼）</th>
+<th>影響的使用者任務</th>
+<th>建議處理者</th>
+<th>驗證方式（修正後怎麼驗證）</th>
+</tr>
+</thead>
+</table></div>
+<p class="body-text">第一欄往下填六列：①存取與安全 ②索引 ③代表網址 ④轉址與錯誤頁 ⑤行動版 ⑥網頁體驗與圖片。</p>
+<p class="body-text">表格上方另起一行記：<strong>測試日期、使用裝置（例如：Windows 筆電 Chrome／iPhone Safari、行動網路）、使用工具。</strong> 下一節 5-6 會接著用。</p>
+<h3>步驟 B：跑 PageSpeed Insights（約 5 分鐘）</h3>
+<ol class="body-list">
+<li>打開 <code>https://pagespeed.web.dev/</code>。</li>
+<li>貼上受測網址，按「分析／Analyze」。等一兩分鐘。</li>
+<li>確認上方選的是「<strong>行動裝置／Mobile</strong>」分頁（預設就是）。</li>
+</ol>
+<p class="body-text"><img alt="PageSpeed Insights 上半部：行動裝置分頁、實際使用者資料與三個核心指標" src="assets/handouts/m5-5/psi-%E5%AF%A6%E9%9A%9B%E4%BD%BF%E7%94%A8%E8%80%85.png"/></p>
+<p class="body-text"><img alt="PageSpeed Insights 下半部：實際使用者資料的範圍，以及實驗室的「診斷效能問題」" src="assets/handouts/m5-5/psi-%E5%AF%A6%E9%A9%97%E5%AE%A4.png"/></p>
+<p class="body-text"><em>PageSpeed Insights，以 web.dev 首頁為例，2026-11-12 截圖；數字每次測都會不同。</em></p>
+<ol class="body-list" start="4">
+<li><strong>上半部（真實使用者）</strong>，抄下：
+<ul>
+<li>顯示的是「此網址」還是「來源（整站）」，或沒有資料。</li>
+<li>LCP、INP、CLS 三個數字。</li>
+</ul>
+</li>
+<li><strong>下半部（實驗室／診斷）</strong>，抄下：
+<ul>
+<li>LCP、CLS 兩個數字（實驗室沒有 INP，不要把 TBT 填進 INP）。</li>
+<li>LCP 元素是什麼（見第 5 段⑥）。</li>
+</ul>
+</li>
+<li>整頁截圖，或把畫面上的文字複製到一個文字檔留著——最後 AI 步驟會用到。</li>
+</ol>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">工具當天打不開或一直分析失敗：換個時間再試，或先做其他五項，把⑥的狀況（例如「PSI 分析失敗，訊息為……」）照實寫進證據欄，判未知。</div></div>
+<h3>步驟 C：瀏覽器三件事（約 10 分鐘）</h3>
+<ol class="body-list">
+<li>看網址列 <code>https://</code>，再試 <code>http://</code> 會不會跳回。→ 填①</li>
+<li>打開 <code>網域/robots.txt</code>，複製全文，比對受測路徑。→ 填①</li>
+<li>Ctrl＋U 開原始碼，依序 Ctrl＋F 搜：<code>noindex</code>（填①）、<code>canonical</code>（填③）、<code>&lt;img</code> 與 <code>alt=</code>、<code>srcset</code>（填⑥）。順便搜 <code>description</code>，沒找到就在⑥或備註寫「內容問題：未見 Meta 描述，轉交內容負責人」。</li>
+<li>打開 Sitemap 找受測頁、從首頁點到受測頁。→ 填③</li>
+<li>打一個不存在的網址看錯誤頁。→ 填④</li>
+</ol>
+<h3>步驟 D：手機實測（約 5 分鐘）</h3>
+<p class="body-text">照第 5 段⑤的四個步驟做。→ 填⑤</p>
+<h3>步驟 E：索引欄</h3>
+<p class="body-text">沒有 Search Console 權限，②直接寫：</p>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">判斷：未知｜索取資料：需網站管理者用網址審查提供索引狀態、上次檢索時間、使用者宣告與 Google 選擇的標準網址【待實機確認】</div></div>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">09</div><h2 class="section-heading">7. 示範：山徑咖啡的健檢表怎麼寫</h2>
+<p class="body-text">以下用課程練習資料（<strong>課堂模擬資料，網址都是 example.com，不是真實成效</strong>）示範。資料匯出日期 2026-11-05，PSI 與網址審查都以行動版為對象。示範兩頁：新手升級手沖壺<strong>分類頁</strong>、溪線 700 <strong>商品頁</strong>。顧客的主要任務是「找到適合的手沖壺並預約 20 分鐘試握」。</p>
+<p class="body-text">先看關鍵資料怎麼讀：</p>
+<ul class="body-list">
+<li><strong>robots.txt</strong> 裡有一行 <code>Disallow: /products/riverline-700</code>。溪線 700 商品頁的路徑正是 <code>/products/riverline-700</code>，而且這一條比 <code>Allow: /</code> 長，所以<strong>這頁被擋住不能檢索</strong>。</li>
+<li><strong>網址審查</strong>：溪線 700「未建立索引」；網站宣告的標準網址是它自己，<strong>Google 選的卻是分類頁</strong>。</li>
+<li><strong>PSI</strong>：分類頁的欄位資料是**整站（來源）**層級，不是這一頁；溪線 700 有網址層級資料，三項都在良好範圍內，但實驗室 CLS 0.18 超過 0.1——兩者不一致，分開寫。</li>
+<li><strong>轉址</strong>：舊分類網址用 302（暫時）導到新分類頁；下架的舊商品 <code>old-ridge-500</code> 用 301 導到<strong>首頁</strong>。</li>
+</ul>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>健檢項目</th>
+<th>方法與工具</th>
+<th>已知證據</th>
+<th>判斷</th>
+<th>未知時索取資料</th>
+<th>影響的使用者任務</th>
+<th>建議處理者</th>
+<th>驗證方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>①存取與安全</td>
+<td>網址列；瀏覽器開 robots.txt；原始碼搜 noindex</td>
+<td>兩頁網址列皆 <code>https://</code>。robots.txt 有 <code>Disallow: /products/riverline-700</code>，比 <code>Allow: /</code> 具體，溪線 700 商品頁不可檢索</td>
+<td>問題</td>
+<td>—</td>
+<td>搜尋溪線 700 的人找到商品頁、再預約試握</td>
+<td>網站管理者</td>
+<td>重開 robots.txt 確認該行已移除；網址審查「測試線上網址」顯示可檢索</td>
+</tr>
+<tr>
+<td>②索引</td>
+<td>Search Console 網址審查、網頁索引報表</td>
+<td>分類頁：已建立索引，上次檢索 2026-11-02 09:18。溪線 700：未建立索引，上次檢索 2026-10-29 14:42。全站已索引 42、未索引 13（已發現未索引 6、noindex 排除 4、Google 選擇的標準網址與使用者不同 3）</td>
+<td>問題（溪線 700 未索引）</td>
+<td>那 4 個 noindex 網址是哪些、是否刻意排除——向網站管理者索取清單</td>
+<td>同上</td>
+<td>網站管理者</td>
+<td>修正後用網址審查重看溪線 700 的索引狀態與 Google 選擇的標準網址</td>
+</tr>
+<tr>
+<td>③代表網址</td>
+<td>原始碼搜 canonical；網址審查兩種標準網址</td>
+<td>溪線 700 原始碼可見 canonical，指向自己；Google 選擇的標準網址為分類頁。分類頁兩者一致</td>
+<td>問題</td>
+<td>Sitemap 是否列入溪線 700、站內哪些頁連到它——向網站管理者索取</td>
+<td>搜尋商品名的人直接到商品頁</td>
+<td>網站管理者</td>
+<td>網址審查中 Google 選擇的標準網址改為溪線 700 本身</td>
+</tr>
+<tr>
+<td>④轉址與錯誤頁</td>
+<td>轉址紀錄</td>
+<td><code>/kettles/newbie</code> → 新分類頁，302。<code>/products/old-ridge-500</code> → 首頁，301</td>
+<td>問題（old-ridge-500 導到首頁，不是對應新頁）；<code>/kettles/newbie</code> 未知</td>
+<td>①舊分類網址的搬移是不是永久的 ②old-ridge-500 有沒有後繼商品——向網站管理者／商品負責人確認</td>
+<td>從舊連結進來的人找到想看的商品</td>
+<td>網站管理者</td>
+<td>舊網址回應碼：永久搬移為 301／308；old-ridge-500 導到後繼商品，或無替代時回 404／410</td>
+</tr>
+<tr>
+<td>⑤行動版</td>
+<td>手機實際開頁</td>
+<td>溪線 700 商品頁平均滑動三個畫面後才看見預約入口；預約連結只在頁面底部</td>
+<td>問題</td>
+<td>—</td>
+<td>手機上預約 20 分鐘試握</td>
+<td>網站設計／頁面負責人</td>
+<td>手機重開，記錄看見預約入口前需滑動的畫面數，與修正前比較</td>
+</tr>
+<tr>
+<td>⑥網頁體驗與圖片</td>
+<td>PSI 行動版</td>
+<td>分類頁：欄位資料為<strong>來源層級</strong> LCP 2.3 秒、INP 184 毫秒、CLS 0.07；實驗室 LCP 3.8 秒、CLS 0.04；LCP 元素為首屏合照 <code>img.category-hero</code>。溪線 700：欄位資料<strong>網址層級</strong> LCP 2.4 秒、INP 192 毫秒、CLS 0.09（皆良好）；實驗室 LCP 2.1 秒、CLS 0.18；LCP 元素為商品主圖。練習資料未提供 alt、srcset、圖片格式。<strong>另記：分類頁原始碼未見 Meta 描述（內容問題，轉交內容負責人）</strong></td>
+<td>溪線 700：核心網頁指標正常（以欄位資料判斷；實驗室 CLS 另記）；圖片未知。分類頁：未知</td>
+<td>分類頁所屬網址群組的核心網頁指標趨勢——向網站管理者索取 Search Console 報表；兩頁首屏圖的 alt 與格式</td>
+<td>打開頁面看到三款壺、不被跳動干擾</td>
+<td>工程師</td>
+<td>下次 PSI 行動版重測，欄位資料與實驗室資料分開比對</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text"><strong>為什麼這樣判：</strong></p>
+<ul class="body-list">
+<li>溪線 700 的 INP 192 毫秒、CLS 0.09 都<strong>還在良好範圍內</strong>，所以核心網頁指標判正常；它們離門檻很近，可以在備註提醒持續觀察，但不能因為「快超過」就判問題。</li>
+<li>分類頁的欄位資料是整站的，不是這一頁的，所以這一頁的真實體驗是<strong>未知</strong>；實驗室 LCP 3.8 秒是給工程師的重現線索，不是結論。</li>
+<li>Meta 描述缺漏是內容問題，<strong>記下來、轉交，但不寫進技術工單。</strong></li>
+</ul>
+<p class="body-text"><strong>排優先順序：</strong> 先處理<strong>阻止存取或索引</strong>的（①確定溪線 700 被 robots.txt 擋住檢索，②③可能與此有關），再處理<strong>阻礙核心任務</strong>的（⑤預約入口太深）。所以示範工單挑 robots.txt 這一項。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">10</div><h2 class="section-heading">8. 寫交接工單：證據和推論分開</h2>
+<h3>六個欄位</h3>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>欄位</th>
+<th>寫什麼</th>
+<th>檢查自己</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>標題</td>
+<td>哪一頁、發生什麼事，一句話</td>
+<td>工程師只看標題就知道去哪裡查</td>
+</tr>
+<tr>
+<td>已知證據</td>
+<td>你<strong>親眼看到</strong>的東西：原文、數字、截圖、日期、工具</td>
+<td>每一句都能指出「在哪張截圖或哪個畫面看到」</td>
+</tr>
+<tr>
+<td>影響假設</td>
+<td>你<strong>推測</strong>這會造成什麼影響</td>
+<td>句子裡有「可能」「推測」；不寫排名損失、流量、工時</td>
+</tr>
+<tr>
+<td>重現步驟</td>
+<td>別人照做就能看到同樣狀況的步驟</td>
+<td>寫到「點哪裡、看哪一行」</td>
+</tr>
+<tr>
+<td>期望結果</td>
+<td>修好後應該是什麼樣子</td>
+<td>描述結果，不規定工程師怎麼修</td>
+</tr>
+<tr>
+<td>驗收標準</td>
+<td>用什麼方法、看到什麼，就算修好</td>
+<td>是你自己可以重跑一次確認的</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text"><strong>分辨證據與推論的小測驗：</strong> 把句子拿去問「我能指出這句話在哪個畫面看到嗎？」能 → 證據。不能、或句子裡有「會導致」「應該是因為」→ 推論，放進影響假設。</p>
+<h3>示範工單：溪線 700 商品頁被 robots.txt 擋住</h3>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>欄位</th>
+<th>內容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>標題</td>
+<td>溪線 700 商品頁被 robots.txt 禁止檢索，網址審查顯示未建立索引</td>
+</tr>
+<tr>
+<td>已知證據</td>
+<td>1. <code>https://example.com/robots.txt</code> 含 <code>Disallow: /products/riverline-700</code>，同檔另有 <code>Allow: /</code>。<br/>2. 網址審查（行動版，資料匯出 2026-11-05）：<code>https://example.com/products/riverline-700</code> 未建立索引；上次檢索 2026-10-29 14:42（UTC+8）。<br/>3. 使用者宣告的標準網址為溪線 700 本身；Google 選擇的標準網址為 <code>https://example.com/hand-brew-kettles/beginner-upgrade</code>。<br/>4. 網頁索引報表中「這是重複網頁；Google 選擇的標準網頁和使用者的選擇不同」共 3 個網址（是否包含本頁未確認）。</td>
+</tr>
+<tr>
+<td>影響假設</td>
+<td>1. 推測：Googlebot 目前無法讀取此頁，因此也看不到頁面上的 canonical 標註，這可能是 Google 改選分類頁的原因之一；也可能與商品頁和分類頁內容相似有關，<strong>目前沒有證據能區分</strong>。<br/>2. 推測：搜尋溪線 700 的顧客可能落到分類頁，要多找一步才到商品頁與預約入口。<br/>3. 未知：這行規則何時加入、是否為刻意設定（例如商品即將下架）。</td>
+</tr>
+<tr>
+<td>重現步驟</td>
+<td>1. 瀏覽器開 <code>https://example.com/robots.txt</code>，找到第 4 行 <code>Disallow: /products/riverline-700</code>。<br/>2. Search Console → 網址審查 → 輸入溪線 700 網址，查看索引狀態與兩種標準網址【待實機確認】。<br/>3. 按「測試線上網址」，查看是否顯示因 robots.txt 無法檢索。</td>
+</tr>
+<tr>
+<td>期望結果</td>
+<td>若溪線 700 仍是要給顧客搜到的商品頁：robots.txt 不再禁止這個路徑，Google 可以檢索此頁並讀到它的 canonical。若這行是刻意設定：請回覆原因，本工單改為確認結案。</td>
+</tr>
+<tr>
+<td>驗收標準</td>
+<td>1. 重開 robots.txt，該行已移除，且沒有其他規則擋到 <code>/products/riverline-700</code>。<br/>2. 網址審查「測試線上網址」顯示可以檢索。<br/>3. 後續追蹤（不作為本工單驗收條件，因 Google 不保證建立索引）：之後重看索引狀態與 Google 選擇的標準網址，記錄日期。</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">注意驗收標準第 3 點：Google 不保證每頁都會被索引，所以「已建立索引」不能當成工程師修完就該達成的條件；工程師能保證的是「不再擋住」。</p>
+<h3>輪到你</h3>
+<ol class="body-list">
+<li>從你的健檢表裡挑一列「問題」。有好幾列時，照上面的順序挑：先挑阻止存取或索引的，再挑阻礙核心任務的。
+<ul>
+<li>沒有權限的你，最可能挑到的是⑤行動版（例如隔天口味清單在手機上看不到、預訂按鈕太深）或⑥（例如首屏圖片沒有 alt、欄位資料有指標超標）。</li>
+<li>六列真的都沒有「問題」：換同一網站另一頁（例如商品頁）再跑一次，並告訴講師。</li>
+</ul>
+</li>
+<li>照六欄寫在「工單」工作表。重現步驟裡的網址寫「〔受測網址〕」，並註明裝置與日期。</li>
+<li>寫完先用「分辨證據與推論的小測驗」自己檢查一遍。</li>
+</ol>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">11</div><h2 class="section-heading">9. 最後一步：請 AI 幫你檢查（健檢表與工單都完成後才做）</h2>
+<p class="body-text"><strong>為什麼最後才用：</strong> 數字和證據必須是你自己從工具上讀到的。AI 的角色只是幫你把句子分清楚、挑出「沒證據撐著的推論」。</p>
+<ol class="body-list">
+<li>開一個<strong>新對話</strong>。</li>
+<li>依序貼上：你的六項健檢表、工單、PSI 畫面上複製下來的文字。</li>
+<li>貼上這段指令：</li>
+</ol>
 <div class="rw-prompt" data-copy-prompt=""><div class="dialog-label">提示詞</div>
-改寫這張技術工單，讓已知證據、影響假設、重現步驟、期望結果與驗收標準彼此分開。
-列出最多 3 處沒有證據支持的影響推論，不估排名、流量、工時或投資報酬。
-
-[貼上六項健檢表、工單與 PageSpeed Insights 畫面文字]</div>
-<p class="body-text">只採用有原始紀錄的修改，保留未知欄位。</p>
+以下是我做的技術 SEO 健檢表、一張交接工單，以及 PageSpeed Insights 行動版畫面上的文字。
+請做兩件事：
+1. 改寫工單，讓「已知證據、影響假設、重現步驟、期望結果、驗收標準」彼此分開：
+   已知證據只能放我資料裡實際出現的內容；推測一律移到影響假設。
+2. 列出最多 3 處「沒有證據支持的影響推論」，每處說明缺了什麼證據。
+限制：
+- 不要修改或推算任何指標數值，不要補我沒提供的資料。
+- 不要估計排名、流量、工時或投資報酬。
+- 健檢表中判為「未知」的欄位保持未知，不要替我填答案。</div>
+<ol class="body-list" start="4">
+<li><strong>怎麼採用 AI 的建議：</strong>
+<ul>
+<li>逐條對照你的原始紀錄（截圖、抄下的文字）。<strong>只採用有原始紀錄支持的修改。</strong></li>
+<li>AI 改動了任何數字、或把「未知」改成具體答案 → 不採用。</li>
+<li>AI 指出的「沒證據的推論」→ 要嘛補上證據，要嘛加上「推測」字樣移到影響假設，要嘛刪掉。</li>
+</ul>
+</li>
+</ol>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">12</div><h2 class="section-heading">10. 卡住時查這裡</h2>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>狀況</th>
+<th>怎麼辦</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PSI 上半部寫沒有足夠的真實使用者資料</td>
+<td>很正常，小網站常這樣。證據欄寫「欄位資料：無」，只記實驗室資料，這頁真實體驗判未知</td>
+</tr>
+<tr>
+<td>PSI 上半部顯示的是「來源（整站）」</td>
+<td>記下「來源層級」字樣，不要當成這一頁的數字</td>
+</tr>
+<tr>
+<td>robots.txt 打開是 404</td>
+<td>寫「此網站沒有 robots.txt」，不是問題</td>
+</tr>
+<tr>
+<td>原始碼一大片看不懂</td>
+<td>不用看懂，只用 Ctrl＋F 搜關鍵字，找到後複製那一行</td>
+</tr>
+<tr>
+<td>搜不到 canonical</td>
+<td>寫「原始碼未見 canonical」，依第 5 段③判斷</td>
+</tr>
+<tr>
+<td>不知道某個轉址是 301 還是 302</td>
+<td>判未知，寫向網站管理者索取狀態碼；想試可用 F12（Mac：⌘＋Option＋I）→ Network 看第一列</td>
+</tr>
+<tr>
+<td>分不清是內容問題還是技術問題</td>
+<td>問自己：「修這個要改文字，還是要改網站設定／程式？」改文字 → 內容問題，轉交內容負責人</td>
+</tr>
+<tr>
+<td>數字剛好在門檻上（例如 LCP 2.5 秒）</td>
+<td>良好的定義是「小於或等於」，2.5 秒算良好</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">13</div><h2 class="section-heading">11. 交件前自我檢查</h2>
+<ul class="body-list">
+<li>[ ] 表格上方有<strong>測試日期、裝置、工具</strong>。</li>
+<li>[ ] 六列都有填，每列的「判斷」只用正常／問題／未知。</li>
+<li>[ ] 每個「未知」都寫了<strong>向誰索取什麼</strong>；沒有權限的索引欄寫的是「未知，需網站管理者用網址審查提供」。</li>
+<li>[ ] 欄位資料與實驗室資料<strong>分開寫</strong>，並註明欄位資料是網址層級還是來源層級。</li>
+<li>[ ] 實驗室資料沒有填 INP。</li>
+<li>[ ] 內容問題（例如缺 Meta 描述）有記下並寫明轉交內容負責人，<strong>沒有</strong>寫進技術工單。</li>
+<li>[ ] 課堂紀錄只寫網站類型與頁面類型，沒有寫真實店名。</li>
+<li>[ ] 工單的已知證據每一句都能指出出處；影響假設沒有估排名、流量或工時。</li>
+<li>[ ] 驗收標準是你自己能重跑一次確認的。</li>
+</ul>
+<p class="body-text"><strong>下一節（5-6）</strong>：今天確認「能被存取」的頁面，會接著判斷外部信任——有沒有其他網站提到它、評價與來源可不可信。今天的測試日期、裝置與工具紀錄請保留。小組討論時，今天沒查清楚的「未知」項目，可以寫進企劃書第 4 段「待查技術與站外事項」。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">14</div><h2 class="section-heading">附錄：本講義查證的官方來源（2026-11-12 查證）</h2>
+<ul class="body-list">
+<li>Google Search Central〈Google 搜尋運作方式〉：developers.google.com/search/docs/fundamentals/how-search-works</li>
+<li>Google Search Central〈robots.txt 簡介〉：developers.google.com/search/docs/crawling-indexing/robots/intro</li>
+<li>Google Search Central〈robots meta 標記、data-nosnippet 和 X-Robots-Tag 規格〉：developers.google.com/search/docs/crawling-indexing/robots-meta-tag</li>
+<li>Search Console 說明〈網址檢查工具〉：support.google.com/webmasters/answer/9012289</li>
+<li>Search Console 說明〈網頁索引報表〉：support.google.com/webmasters/answer/7440203</li>
+<li>Google Search Central〈整合重複網址〉：developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls</li>
+<li>Google Search Central〈Sitemap 總覽〉：developers.google.com/search/docs/crawling-indexing/sitemaps/overview</li>
+<li>Google Search Central〈重新導向與 Google 搜尋〉：developers.google.com/search/docs/crawling-indexing/301-redirects</li>
+<li>Google Search Central〈排解檢索錯誤〉：developers.google.com/search/docs/crawling-indexing/troubleshoot-crawling-errors</li>
+<li>Google Search Central〈行動版內容優先索引最佳做法〉：developers.google.com/search/docs/crawling-indexing/mobile/mobile-sites-mobile-first-indexing</li>
+<li>Google Search Central〈Google 圖片 SEO 最佳做法〉：developers.google.com/search/docs/appearance/google-images</li>
+<li>Google Search Central〈網頁體驗〉：developers.google.com/search/docs/appearance/page-experience</li>
+<li>web.dev〈Web Vitals〉：web.dev/articles/vitals</li>
+<li>web.dev〈INP 成為核心網頁指標〉：web.dev/blog/inp-cwv-march-12</li>
+<li>PageSpeed Insights 說明：developers.google.com/speed/docs/insights/v5/about</li>
+</ul>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">行動裝置相容性測試停用時間（2023 年 12 月）：依 Google Search Central 官方部落格 2023 年 4 月文章（developers.google.com/search/blog/2023/04/page-experience-in-search）；PSI 中文介面標題為依官方中文文件的近似譯名，實際畫面以你看到的為準。</div></div>
 </div>
 </div>
 

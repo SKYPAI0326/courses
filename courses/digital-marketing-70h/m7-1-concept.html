@@ -169,114 +169,1018 @@ a:not([class]):focus-visible{color:#0f5f6c}
 </div>
 
 <div class="lesson-body">
-<div class="lesson-section"><div class="section-eyebrow">01</div><h2 class="section-heading">報表收得到資料，起點是一列可執行的追蹤規格</h2>
-<p class="body-text">GA4 報表只有在網站真的送出事件後才會有資料。行銷人因此要先說清楚三件事：收什麼行為、什麼時候收、值從哪裡取得。這份事前約定叫做追蹤規格；完成後，網站人員知道要提供什麼訊號，設定者知道如何收件，驗收者也知道怎樣算通過。</p>
-<p class="body-text">一列完整規格要同時描述使用者操作、網站訊號、觸發條件、變數、送往 GA4 的事件與參數，以及正例與反例。正例是應出現事件的操作；反例是不應出現事件的相近操作。兩者成對，才能抓出漏送與過度觸發。網站還沒有現成訊號時，規格也可成為工程需求單，明列時機、欄位、型別、來源、個資邊界與驗收方式。</p>
+<div class="lesson-section"><div class="section-eyebrow">01</div><h2 class="section-heading">開始之前</h2>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">第七模組「GTM：數據追蹤工程」第 1 單元
+本節完成物：山徑咖啡預約練習頁四個互動的追蹤規格表（課程示範 <code>comparison_open</code>、<code>booking_start</code> 兩列，你自己完成 <code>booking_complete</code>、<code>line_join</code> 兩列）
+本節不需要：GTM 帳號、容器、GA4 資源、自己的網站、預算、AI 工具</div></div>
 </div>
-<div class="lesson-section"><div class="section-eyebrow">02</div><h2 class="section-heading">GTM 四元素把一筆行為送到正確目的地</h2>
-<p class="body-text">Google 代碼管理工具（Google Tag Manager，GTM）是在網站安裝一次容器程式碼後，透過網頁介面集中管理追蹤代碼的工具。<a href="https://support.google.com/tagmanager/answer/6102821">Tag Manager 基本概念</a>（2026-11 查證）。它的四個核心元素可用一家線上書店的「加入購物車」理解：</p>
-<ul class="body-list">
-<li><strong>容器（Container）</strong>：裝在一個網站或 App 上的一整套代碼、觸發條件、變數與設定，容器 ID 以 <code>GTM-</code> 開頭。例：書店官網使用一個網頁容器。</li>
-<li><strong>代碼（Tag）</strong>：決定把什麼資料送到哪裡，例如 Google 代碼（Google tag）、GA4 事件代碼、Google Ads 代碼或 Meta 像素。例：把加入購物車事件送往指定 GA4 資源。</li>
-<li><strong>觸發條件（Trigger）</strong>：決定什麼時候執行代碼。例：網站確認商品加入購物車時才觸發。</li>
-<li><strong>變數（Variable）</strong>：提供判斷或送出時要讀取的值。例：商品分類與商品數量。</li>
-</ul>
-<p class="body-text">四者的關係是：「在這個容器裡，當觸發條件成立時，代碼讀取變數並送出資料。」容器裝錯網站，整套設定不會出現；代碼目的地錯，資料會進錯資源；條件過寬會誤送；變數來源錯則得到空值。</p>
-<p class="body-text">變數分為兩類。內建變數由 GTM 提供，常見的有點擊 ID、點擊 Class、點擊文字、網頁網址、表單 ID 與捲動深度門檻。資料層變數則讀取網站交給 GTM 的值。<a href="https://support.google.com/tagmanager/answer/7182738">內建變數清單</a>（2026-11 查證）。資料層（dataLayer）是網站把事件與參數交給 GTM 的 JavaScript 資料結構；行為發生時可用 <code>dataLayer.push()</code> 推送 <code>{event: 'add_to_cart', product_count: 1}</code>。資料層要在容器程式碼之前宣告。<a href="https://developers.google.com/tag-platform/tag-manager/datalayer">資料層說明</a>（2026-11 查證）。</p>
-<p class="body-text">代碼優先選用 GTM 內建範本；自訂 HTML（Custom HTML）只用在沒有合適範本時，並先檢查程式碼的安全與效能。<a href="https://support.google.com/tagmanager/answer/6107167">自訂代碼說明</a>（2026-11 查證）。</p>
+<div class="lesson-section"><div class="section-eyebrow">02</div><h2 class="section-heading">先看這裡：這一節你要做什麼</h2>
+<p class="body-text">第六模組你在 GA4 報表裡看過很多數字，也和組員選了巷口晨光的三個代表旅程事件。這一節要回答一個你可能還沒想過的問題：<strong>那些數字是誰收進來的？</strong></p>
+<p class="body-text">答案是網站上的「追蹤代碼」。顧客按了一個按鈕，要有一段程式知道「他按了」，再把「按了什麼、在哪裡按」送給 GA4。這一整個模組學的工具叫 GTM，就是用來管理這些追蹤代碼的。</p>
+<p class="body-text">但這一節<strong>還不會打開 GTM</strong>。順序是：</p>
+<ol class="body-list">
+<li>先用白話把「要收什麼行為、什麼時候收、值從哪裡來、怎麼測」寫成一張表，叫做<strong>追蹤規格</strong>。</li>
+<li>下一節（7-2）才建立容器、操作預覽模式，拿這張表逐列檢查。</li>
+<li>再下一節（7-3）才建立 GA4 事件代碼，讓資料真的進到 GA4。</li>
+</ol>
+<p class="body-text">為什麼先寫表？因為 GTM 的設定畫面只會問你「要用哪個觸發條件、讀哪個變數」，不會問你「這樣設對不對」。對不對要靠一張事先寫好、可以拿來比對的規格。沒有規格就動手設定，最常見的結果是：事件有進來，但數字不能用，而且沒人說得出哪裡錯。</p>
+<p class="body-text">這一節結束時，你手上會有一張四列、每列八個欄位的表。下面先把會用到的名詞一個一個講清楚，再示範兩列，最後換你寫兩列。</p>
 </div>
-<div class="lesson-section"><div class="section-eyebrow">03</div><h2 class="section-heading">觸發類型與發布流程決定設定何時生效</h2>
-<p class="body-text">同一個容器會遇到不同互動，因此設定前要先選對觸發條件。網頁瀏覽適合頁面載入；點擊分成所有元素與只限連結；表單提交監看送出；捲動深度監看百分比或像素門檻；自訂事件在資料層出現指定 <code>event</code> 名稱時觸發；初始化（Initialization）讓需提早載入的代碼位於一般頁面觸發之前；同意初始化（Consent Initialization）則早於所有代碼，用來設定同意預設。<a href="https://support.google.com/tagmanager/answer/7679320">點擊觸發條件</a>、<a href="https://support.google.com/tagmanager/answer/7679219">自訂事件觸發條件</a>、<a href="https://support.google.com/tagmanager/answer/10718549">同意初始化</a>（2026-11 查證）。</p>
-<p class="body-text">直接安裝追蹤時，每次調整通常都要修改網站程式碼；GTM 安裝好 <code>&lt;head&gt;</code> 與 <code>&lt;body&gt;</code> 的兩段容器程式碼後，多數代碼與觸發條件可在介面管理。它也提供預覽模式（Preview）：用 Tag Assistant 連線測試分頁，查看事件、代碼觸發狀態與變數值。每次發布會留下版本，可回到舊版本；正式核准流程只屬於 Tag Manager 360，標準版以使用者權限控管，最後由有發布權限的人發布。<a href="https://support.google.com/tagmanager/answer/6107163">版本與核准說明</a>（2026-11 查證）。新增資料層事件與同意管理工具仍會需要工程協作。</p>
-<p class="body-text">完整流程依序是：建立帳戶與容器 → 網站安裝兩段容器程式碼 → 設定同意預設 → 建立代碼與觸發條件 → 使用者選擇後更新同意 → 預覽驗證 → 發布。下一節會建立資源、容器與 Google 代碼並操作預覽；再下一節建立事件代碼；模組最後集中設定同意。</p>
-</div>
-<div class="lesson-section"><div class="section-eyebrow">04</div><h2 class="section-heading">山徑咖啡示範：先寫比較表與預約開始兩列</h2>
-<p class="body-text">示範把同一套八個欄位完整寫兩次，讓後面的個人練習有可對照的格式。先開啟<a href="assets/datasets/simulated-brand-pack.html" rel="noopener" target="_blank">山徑咖啡品牌包</a>第 11 節與<a href="assets/practice/booking-practice.html" rel="noopener" target="_blank">山徑咖啡預約練習頁</a>。</p>
+<div class="lesson-section"><div class="section-eyebrow">03</div><h2 class="section-heading">第一部分：名詞先講清楚</h2>
+<h3>1. GTM 是什麼</h3>
+<p class="body-text"><strong>Google 代碼管理工具（Google Tag Manager，簡稱 GTM）</strong>：Google 官方說明稱它是一套「代碼管理系統」。白話講，就是<strong>網站只要裝一次 GTM 的程式碼，之後要加、改、停用追蹤代碼，都在 GTM 的網頁介面裡做，不必每次請工程師改網站</strong>。</p>
+<p class="body-text">你可以把它想成一台裝在網站上的「追蹤代碼配電箱」：電線（追蹤代碼）全部從這個箱子拉出去，要加一條線、關一條線，打開箱子處理就好，不用敲牆。</p>
+<h3>2. 四元素：每個元素回答一個問題</h3>
+<p class="body-text">周小姐，這四個英文詞很容易聽過就忘。記的時候不要背定義，記它<strong>回答哪一個問題</strong>：</p>
 <div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
 <thead>
 <tr>
-<th>資料</th>
-<th>本頁用途</th>
+<th>元素</th>
+<th>英文</th>
+<th>它回答的問題</th>
+<th>山徑咖啡的例子</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>品牌包的事件規格</td>
-<td>核對事件名稱、觸發時機與建議參數</td>
+<td>容器</td>
+<td>Container</td>
+<td>這一整包設定裝在哪個網站？</td>
+<td>裝在預約練習頁的那一個容器，ID 長得像 <code>GTM-XXXXXXX</code></td>
 </tr>
 <tr>
-<td>練習頁的實際互動</td>
-<td>核對推送值，設計應出現與不應出現的測試</td>
+<td>代碼</td>
+<td>Tag</td>
+<td>要把<strong>什麼資料</strong>送到<strong>哪裡</strong>？</td>
+<td>「送一個叫 <code>line_join</code> 的事件給 GA4」</td>
+</tr>
+<tr>
+<td>觸發條件</td>
+<td>Trigger</td>
+<td><strong>什麼時候</strong>送？</td>
+<td>「資料層出現 <code>line_join</code> 這個事件的時候」</td>
+</tr>
+<tr>
+<td>變數</td>
+<td>Variable</td>
+<td>送出去的<strong>值從哪裡拿</strong>？（也用來判斷條件）</td>
+<td>「<code>placement</code> 的值，從資料層裡的 <code>placement</code> 拿」</td>
 </tr>
 </tbody>
 </table></div>
+<p class="body-text">再把每一個多講兩句：</p>
+<ul class="body-list">
+<li><strong>容器</strong>：Google 說明的定義是「安裝在特定網站上的代碼、觸發條件、變數和相關設定的組合」。一個網站通常一個容器。容器 ID 一律以 <code>GTM-</code> 開頭，後面接英文和數字。你在 7-2 會建立自己的容器並拿到這個 ID。</li>
+<li><strong>代碼</strong>：真正「送資料出去」的那段程式。常見的有：
+<ul>
+<li><strong>Google 代碼</strong>：讓網站和 GA4（或 Google Ads）接上線的基本代碼。7-2 會裝。</li>
+<li><strong>GA4 事件代碼</strong>：送一個特定事件（例如 <code>line_join</code>）給 GA4。7-3 會建。</li>
+<li><strong>Google Ads 代碼</strong>：記錄廣告帶來的轉換。</li>
+<li><strong>Meta 像素</strong>：Facebook／Instagram 廣告用的追蹤代碼。</li>
+</ul>
+</li>
+<li><strong>觸發條件</strong>：決定代碼「什麼時候」動作。代碼本身不會自己跑，一定要掛一個觸發條件。</li>
+<li><strong>變數</strong>：一個「會變的值」的名字。例如「這次點的按鈕上寫什麼字」「這次推送的 <code>placement</code> 是什麼」。變數有兩種用途：放進代碼裡當參數值，或放進觸發條件裡當判斷依據（例如「網頁網址包含 booking 才觸發」）。</li>
+</ul>
+<h3>3. 四者的關係：一句話版</h3>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body"><strong>容器</strong>裡放著<strong>代碼</strong>；<strong>觸發條件</strong>決定代碼什麼時候動作；動作時，代碼用<strong>變數</strong>取得要送出去的值。</div></div>
+<p class="body-text">畫成流程：</p>
+<pre class="rw-code"><code class="language-text">顧客操作 → 網站發出訊號 → GTM 的觸發條件「聽到了」 → 啟動代碼 → 代碼用變數取值 → 送到 GA4
+                       （以上全部發生在網站上裝的那一個容器裡）
+</code></pre>
+<h3>4. 任何一個設錯，會發生什麼</h3>
+<p class="body-text">這張表在 7-2、7-3 除錯時很有用，現在先讀過，知道「症狀」對應到「哪一格」：</p>
 <div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
 <thead>
 <tr>
-<th>規格欄位</th>
-<th><code>comparison_open</code></th>
-<th><code>booking_start</code></th>
+<th>設錯的地方</th>
+<th>你會看到的症狀</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>容器</td>
+<td>什麼都沒有，所有事件都不見</td>
+<td>網站沒裝容器程式碼，或裝的是別的容器 ID</td>
+</tr>
+<tr>
+<td>代碼</td>
+<td>觸發了，但 GA4 收到的東西不對，或送到錯的地方</td>
+<td>事件名稱打成 <code>Line_join</code>（GA4 事件名稱區分大小寫，會變成另一個事件）</td>
+</tr>
+<tr>
+<td>觸發條件</td>
+<td>該出現時沒出現，或不該出現時也出現</td>
+<td>事件名稱比對寫錯 → 永遠不觸發；條件放太寬 → 按收合也算一次</td>
+</tr>
+<tr>
+<td>變數</td>
+<td>事件有進來，但參數是空的或值不對</td>
+<td>資料層變數名稱寫成 <code>Placement</code>，讀不到值，參數變成 undefined</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">注意最後一列：<strong>事件有進來，不代表追蹤是對的</strong>。這就是為什麼規格表裡要寫「讀取的變數」和「參數型別」，之後才能逐項核對。</p>
+<h3>5. 變數的兩類：內建變數與資料層變數</h3>
+<p class="body-text"><strong>內建變數</strong>：GTM 已經幫你做好、勾選啟用就能用的變數。Google 的內建變數清單把網頁容器的內建變數分成幾類，本課會碰到的有：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>類別</th>
+<th>常用的內建變數</th>
+<th>要搭配的觸發條件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>點擊</td>
+<td>點擊 ID、點擊 Class（官方中文介面稱「點擊類別」）、點擊文字、點擊網址</td>
+<td>點擊觸發條件</td>
+</tr>
+<tr>
+<td>表單</td>
+<td>表單 ID、表單類別、表單文字</td>
+<td>表單提交觸發條件</td>
+</tr>
+<tr>
+<td>網頁</td>
+<td>網頁網址、網頁路徑、網頁主機名稱、參照網址</td>
+<td>任何觸發條件都能用</td>
+</tr>
+<tr>
+<td>捲動</td>
+<td>捲動深度門檻、捲動深度單位、捲動方向</td>
+<td>捲動深度觸發條件</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">內建變數讀的是<strong>網頁上看得到的東西</strong>：按鈕的 ID、按鈕上的字、網址。</p>
+<p class="body-text"><strong>資料層變數</strong>：讀的是<strong>網站主動交給 GTM 的資料</strong>（下一段講資料層）。例如練習頁按「推送加入 LINE 事件」時，網站會交出 <code>placement: 'booking_practice_bottom'</code>，你在 GTM 建一個資料層變數，名稱填 <code>placement</code>，就能讀到這個值。</p>
+<p class="body-text">兩者怎麼選？一句話：<strong>網站有主動交出資料，就用資料層變數；網站沒交，才退而求其次用內建變數去「看」頁面。</strong> 原因在第 7 段說明。</p>
+<h3>6. 資料層（dataLayer）：網站和 GTM 之間的交接箱</h3>
+<p class="body-text">這是你第一次看到程式碼。不用會寫，只要<strong>看得懂它在說什麼</strong>。</p>
+<p class="body-text"><strong>資料層</strong>是網站和 GTM 之間的一個「交接箱」。網站把「發生了什麼事、相關的值是什麼」放進箱子，GTM 從箱子裡拿。放進去的動作叫 <code>dataLayer.push()</code>，<code>push</code> 就是「推進去」。</p>
+<p class="body-text">練習頁按下「推送加入 LINE 事件」時，網站做的事情是這一行：</p>
+<pre class="rw-code"><code class="language-js">dataLayer.push({event: 'line_join', placement: 'booking_practice_bottom', page_type: 'booking_practice'});
+</code></pre>
+<p class="body-text">逐段拆開讀：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>片段</th>
+<th>意思</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dataLayer.push(</code></td>
+<td>「往交接箱裡放一筆資料」</td>
+</tr>
+<tr>
+<td><code>{ ... }</code></td>
+<td>大括號裡是這一筆資料的內容，一組一組「名稱: 值」，用逗號隔開</td>
+</tr>
+<tr>
+<td><code>event: 'line_join'</code></td>
+<td>名稱叫 <code>event</code> 的那一組最特別：它代表「發生了一個叫 <code>line_join</code> 的事件」。GTM 的自訂事件觸發條件就是看這一格</td>
+</tr>
+<tr>
+<td><code>placement: 'booking_practice_bottom'</code></td>
+<td>附帶的資料：按鈕位置。值有單引號，代表它是<strong>文字（字串）</strong></td>
+</tr>
+<tr>
+<td><code>page_type: 'booking_practice'</code></td>
+<td>附帶的資料：頁面類型，也是文字</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">再看比較表那一筆：</p>
+<pre class="rw-code"><code class="language-js">dataLayer.push({event: 'comparison_open', page_type: 'booking_practice', product_count: 3});
+</code></pre>
+<p class="body-text"><code>product_count: 3</code> 的 <code>3</code> <strong>沒有單引號</strong>，代表它是<strong>數字</strong>，不是文字。這就是規格表要寫「型別」的原因：數字可以加總、比大小，文字不行；同一個參數這次送數字、下次送文字，後面的報表就會亂。</p>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">用 Excel 來想：一個儲存格裡的 <code>3</code> 和 <code>'3</code>（前面加單引號）看起來一樣，但前者能 SUM、後者不能。資料層也是同樣道理。</div></div>
+<p class="body-text"><strong>兩個要知道的規則（Google 資料層說明）：</strong></p>
+<ol class="body-list">
+<li><strong>資料層要在容器程式碼之前宣告。</strong> 網站的原始碼裡，要先有建立交接箱的這一行，再放 GTM 的容器程式碼：<pre class="rw-code"><code class="language-js">window.dataLayer = window.dataLayer || [];
+</code></pre>
+意思是「如果箱子已經有了就沿用，還沒有就建一個空的」。官方也提醒，GTM 載入後不要再寫 <code>dataLayer = []</code> 把箱子整個換掉，會把已經放進去的東西清掉。</li>
+<li><strong>名稱區分大小寫。</strong> <code>dataLayer</code> 寫成 <code>datalayer</code> 就不會動；<code>placement</code> 和 <code>Placement</code> 也是兩個不同的名稱。</li>
+</ol>
+<h3>7. 為什麼優先用資料層事件，而不是直接聽點擊</h3>
+<p class="body-text">拿「加入 LINE」舉例，有兩種做法：</p>
+<ul class="body-list">
+<li><strong>做法 A（聽點擊）</strong>：觸發條件設「點擊，點擊文字等於『推送加入 LINE 事件』」。</li>
+<li><strong>做法 B（聽資料層事件）</strong>：觸發條件設「自訂事件，事件名稱等於 <code>line_join</code>」。</li>
+</ul>
+<p class="body-text">做法 A 不需要工程師，但很脆弱：行銷改了按鈕文案（例如改成「加 LINE 拿優惠」），追蹤就無聲無息地斷了；頁面上如果有兩個寫一樣字的按鈕，也分不出是哪一個。做法 B 要網站先推送事件，但事件名稱和參數是<strong>雙方約定好的規格</strong>，按鈕怎麼改版都不受影響。</p>
+<p class="body-text">練習頁已經替四個互動都推送了資料層事件，所以本單元四列規格的觸發條件都用<strong>自訂事件</strong>、變數都用<strong>資料層變數</strong>。內建變數你先知道有哪些就好，碰到「網站沒有推送事件，而工程一時排不進來」的情況才會用到。</p>
+<h3>8. 代碼：優先用內建範本，自訂 HTML 最後才用</h3>
+<p class="body-text">在 GTM 新增代碼時，會先選「代碼類型」。GTM 內建了許多範本（Google 代碼、GA4 事件、Google Ads 轉換追蹤等），也有社群範本庫。</p>
+<p class="body-text">另外有一種類型叫<strong>自訂 HTML（Custom HTML）</strong>，可以貼任何一段程式碼進去。Google 的說明是：要避免效能或惡意軟體問題，最好的方法是使用內建範本；自訂 HTML 是用來部署「GTM 尚未支援」的代碼。</p>
+<p class="body-text">所以你的判斷順序是：</p>
+<ol class="body-list">
+<li>有內建範本 → 用範本。</li>
+<li>社群範本庫有 → 確認來源可信再用。</li>
+<li>都沒有，才考慮自訂 HTML，而且貼進去之前要問清楚：這段程式碼是誰提供的？它會把資料送到哪裡？會不會拖慢網頁？</li>
+</ol>
+<p class="body-text">自訂 HTML 等於讓一段程式碼在每位訪客的瀏覽器裡執行，貼錯或貼到來路不明的程式，影響的是整個網站。這也是為什麼「發布權限」不能隨便給（第 10 段）。</p>
+<h3>9. 觸發條件的類型</h3>
+<p class="body-text">GTM 建立觸發條件時要先選類型。本課會用到或要認得的：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>類型</th>
+<th>什麼時候觸發</th>
+<th>本課用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>網頁瀏覽</td>
+<td>網頁載入時</td>
+<td>本單元不用</td>
+</tr>
+<tr>
+<td>點擊：所有元素</td>
+<td>點擊網頁上任何元素（按鈕、圖片、連結）</td>
+<td>網站沒有推送事件時的替代做法</td>
+</tr>
+<tr>
+<td>點擊：僅連結</td>
+<td>只有點擊 <code>&lt;a&gt;</code> 連結時（課程資料寫作「只限連結」，官方中文說明寫作「僅連結」，同一個東西）</td>
+<td>同上，追蹤外連</td>
+</tr>
+<tr>
+<td>表單提交</td>
+<td>表單送出時</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>捲動深度</td>
+<td>頁面捲到設定的百分比或像素時</td>
+<td>練習頁的保養說明區是給這個練習用的，本單元不用</td>
+</tr>
+<tr>
+<td>自訂事件</td>
+<td>資料層出現指定的 <code>event</code> 名稱時</td>
+<td><strong>本單元四列都用這個</strong></td>
+</tr>
+<tr>
+<td>初始化</td>
+<td>比一般網頁瀏覽更早</td>
+<td>需要提早載入、但不是處理同意的代碼；Google 代碼掛「初始化 - 所有網頁」（7-2）</td>
+</tr>
+<tr>
+<td>同意初始化</td>
+<td>最早，早於所有其他代碼，包括初始化</td>
+<td>設定「同意的預設狀態」（模組最後的同意單元）</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">關於最後兩個：Google 說明指出，<strong>同意初始化</strong>（官方中文介面稱「同意聲明初始化」）會在所有其他代碼之前觸發，用來設定同意預設值，每個網站容器都內建一個「同意聲明初始化 - 所有網頁」觸發條件；<strong>初始化</strong>則給需要提早觸發、但不是管理同意的代碼。順序是：同意初始化 → 初始化 → 網頁瀏覽。現在只要記住「同意相關的設定要最早跑」，細節在本模組最後一單元處理。</p>
+<h3>10. 直接安裝 vs. 用 GTM 管理</h3>
+<p class="body-text">不用 GTM 時，每一段追蹤代碼都要由工程師直接寫進網站原始碼。用 GTM 時，網站只裝 GTM 的<strong>一段容器程式碼</strong>，放在網頁的 <code>&lt;head&gt;</code> 裡，越上面越好。</p>
+<p class="body-text">裝好之後，其他代碼都在 GTM 介面管理。兩種做法比較：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>比較項目</th>
+<th>直接安裝在網站</th>
+<th>用 GTM 管理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>新增或修改一個追蹤代碼</td>
+<td>每次都要工程師改原始碼、上線</td>
+<td>在 GTM 介面設定，發布即生效</td>
+</tr>
+<tr>
+<td>上線前測試</td>
+<td>要另外架測試環境或直接上線看</td>
+<td><strong>預覽模式（Preview）</strong>：用 Tag Assistant 連線一個測試分頁，只有你看得到哪些代碼觸發了，一般訪客不受影響</td>
+</tr>
+<tr>
+<td>改壞了怎麼辦</td>
+<td>找工程師改回來</td>
+<td>每次發布都留下<strong>版本</strong>，可以把舊版本設回最新版再發布</td>
+</tr>
+<tr>
+<td>誰能讓修改生效</td>
+<td>有網站部署權限的人</td>
+<td>有 GTM <strong>發布權限</strong>的人；標準版用使用者權限控管，正式的「送審、核准」流程只有付費的 Tag Manager 360 才有</td>
+</tr>
+<tr>
+<td>代碼放在哪裡看得到</td>
+<td>散在網站各頁原始碼</td>
+<td>集中在一個容器</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text"><strong>但用了 GTM，不代表完全不需要工程師。</strong> 以下仍然要網站或工程協作：</p>
+<ul class="body-list">
+<li><strong>安裝容器程式碼</strong>（只需一次）。</li>
+<li><strong>新增資料層事件</strong>：例如網站原本沒有推送 <code>booking_complete</code>，就要請工程加 <code>dataLayer.push()</code>。GTM 只能聽網站「說出來」的事。</li>
+<li><strong>同意管理工具</strong>：跳出「是否同意 Cookie」橫幅、記住使用者選擇的那個元件，通常要網站端導入或設定。</li>
+</ul>
+<p class="body-text">這就是本單元要寫規格的另一個理由：<strong>規格表就是交給工程的需求單。</strong></p>
+<h3>11. 從零到上線的完整流程，以及本模組在哪一步</h3>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>步驟</th>
+<th>做什麼</th>
+<th>本模組哪裡做</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td><strong>寫追蹤規格</strong></td>
+<td><strong>7-1（本單元）</strong></td>
+</tr>
+<tr>
+<td>1</td>
+<td>建立 GTM 帳戶與容器</td>
+<td>7-2</td>
+</tr>
+<tr>
+<td>2</td>
+<td>網站安裝容器程式碼</td>
+<td>7-2（練習頁已經寫好，你只要在網址加上容器 ID）</td>
+</tr>
+<tr>
+<td>3</td>
+<td>設定同意預設（同意初始化）</td>
+<td>模組最後的同意單元（7-4）</td>
+</tr>
+<tr>
+<td>4</td>
+<td>建立代碼與觸發條件</td>
+<td>7-2 建 Google 代碼；7-3 建 GA4 事件代碼</td>
+</tr>
+<tr>
+<td>5</td>
+<td>使用者在同意橫幅做選擇後，更新同意狀態</td>
+<td>7-4</td>
+</tr>
+<tr>
+<td>6</td>
+<td>預覽模式驗證</td>
+<td>7-2 開始操作，7-3 延續</td>
+</tr>
+<tr>
+<td>7</td>
+<td>發布</td>
+<td>7-2、7-3</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">步驟 0 不在 Google 官方的設定步驟裡，但它決定後面每一步「對不對」的判準。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">04</div><h2 class="section-heading">第二部分：追蹤規格怎麼寫</h2>
+<h3>12. 追蹤規格是什麼</h3>
+<p class="body-text"><strong>追蹤規格</strong>是一張表，每一列描述「一個要追蹤的行為」，回答四件事：</p>
+<ol class="body-list">
+<li><strong>收什麼行為</strong>：使用者做了什麼。</li>
+<li><strong>什麼時候收</strong>：哪一個精確的時間點算一次。</li>
+<li><strong>值從哪裡取得</strong>：每個參數的值，來自網站推送的哪一格。</li>
+<li><strong>怎麼證明收對了</strong>：做哪個操作應該出現、做哪個相近操作不應該出現。</li>
+</ol>
+<p class="body-text">第 4 點的兩種測試要特別說明：</p>
+<ul class="body-list">
+<li><strong>正例</strong>：應該出現事件的操作。例如「按『開啟比較表』」。</li>
+<li><strong>反例</strong>：看起來很像、但<strong>不應該</strong>出現事件的操作。例如「按『收合比較表』」。</li>
+</ul>
+<p class="body-text">只寫正例不夠。一個「每次點那個按鈕都送事件」的錯誤設定，正例也會過。反例才能抓出「條件放太寬」的錯。</p>
+<h3>13. 八個欄位，每一格寫什麼</h3>
+<p class="body-text">你擔心「網站訊號、觸發條件、變數」三格分不清。先用一個比喻：</p>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">早餐店櫃台喊「<strong>3 號餐好了</strong>」。</div></div>
+<p class="body-text">判斷口訣：<strong>網站訊號是網站說了什麼；觸發條件是 GTM 聽到什麼就動作；變數是 GTM 從裡面拿出哪個值。</strong></p>
+<p class="body-text">八個欄位的寫法：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>欄位</th>
+<th>寫什麼</th>
+<th>寫法提醒</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. 使用者操作</td>
+<td>使用者在畫面上做了什麼</td>
+<td>用畫面上的字描述，例如「按『開啟比較表』」</td>
+</tr>
+<tr>
+<td>2. 網站訊號</td>
+<td>網站推送的資料層事件名稱、帶哪些值，<strong>在什麼時機推送</strong></td>
+<td>時機要精確到可以被測試，例如「只在由收合變展開時」</td>
+</tr>
+<tr>
+<td>3. 觸發條件</td>
+<td>GTM 用哪一種觸發條件、怎麼比對</td>
+<td>本單元一律是「自訂事件，事件名稱等於 ○○」</td>
+</tr>
+<tr>
+<td>4. 讀取的變數</td>
+<td>GTM 要建哪些變數、各讀資料層的哪一格</td>
+<td>寫「資料層變數 <code>placement</code>」，名稱逐字照網站訊號</td>
+</tr>
+<tr>
+<td>5. GA4 事件名稱與參數（含型別）</td>
+<td>最後送進 GA4 的事件名稱，每個參數的型別（文字／數字）</td>
+<td>名稱逐字照品牌包第 11 節</td>
+</tr>
+<tr>
+<td>6. 應出現的測試</td>
+<td>正例：前置狀態 → 操作 → 預期看到什麼</td>
+<td>寫到「別人照著做就能判斷過或不過」</td>
+</tr>
+<tr>
+<td>7. 不應出現的測試</td>
+<td>反例：相近操作 → 預期<strong>不</strong>新增</td>
+<td>至少寫一個最容易混淆的</td>
+</tr>
+<tr>
+<td>8. 要向網站或工程確認的事</td>
+<td>規格和頁面不一致、或真實網站上線時會出問題的地方</td>
+<td>寫成可以回答的問題</td>
+</tr>
+</tbody>
+</table></div>
+<h3>14. 網站還沒有現成訊號時：規格就是工程需求單</h3>
+<p class="body-text">山徑咖啡練習頁已經推送好四個事件，所以第 2 欄你是「照抄並核對」。但真實工作裡，常常是網站根本沒推送。這時規格表就要多寫清楚六件事，交給工程：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>需求項目</th>
+<th>意思</th>
+<th>以 <code>booking_complete</code> 為例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>時機</td>
+<td>哪一個瞬間推送</td>
+<td>表單通過必填檢查、送出時；不是按鈕被按下時</td>
+</tr>
+<tr>
+<td>欄位</td>
+<td>要推送哪些名稱</td>
+<td><code>event</code>、<code>form_id</code>、<code>preferred_slot</code></td>
+</tr>
+<tr>
+<td>型別</td>
+<td>每個欄位是文字還是數字</td>
+<td>三個都是文字</td>
+</tr>
+<tr>
+<td>來源</td>
+<td>值從哪裡來</td>
+<td><code>form_id</code> 固定寫 <code>trial_booking</code>；<code>preferred_slot</code> 取下拉選單選中項目的 value</td>
+</tr>
+<tr>
+<td>個資邊界</td>
+<td>哪些東西<strong>不能</strong>放進來</td>
+<td>姓名、Email 不可推送</td>
+</tr>
+<tr>
+<td>驗收方式</td>
+<td>怎樣算做好</td>
+<td>列出正例、反例，在預覽模式逐條測</td>
+</tr>
+</tbody>
+</table></div>
+<h3>15. 個資邊界</h3>
+<p class="body-text">事件和參數裡<strong>不放姓名、Email、電話</strong>。Google Analytics 的政策禁止傳送可識別個人的資訊（例如電子郵件地址、手機號碼），官方也點名「使用者輸入內容」，像搜尋框和表單欄位，是常見的無意外洩來源。</p>
+<p class="body-text">實務做法：<strong>自由輸入的內容，改成固定分類或非個人資料的值。</strong></p>
+<ul class="body-list">
+<li>不要送「姓名欄填了什麼」，只送「表單送出了」這件事。</li>
+<li>不要送「客人留言寫了什麼」，改送事先定好的分類，例如 <code>inquiry_type: 'pickup_time'</code>。</li>
+<li>偏好時段用下拉選單的固定值（<code>weekday-afternoon</code>），而不是讓客人自己打字。</li>
+</ul>
+<p class="body-text">練習頁本身也這樣設計：頁面說明寫明不會送出姓名或 Email，所有按鈕只把課堂事件推送到 <code>window.dataLayer</code>。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">05</div><h2 class="section-heading">第三部分：動手做</h2>
+<h3>16. 準備：打開兩份材料</h3>
+<p class="body-text">這一節<strong>只能</strong>從兩份材料取材：</p>
+<ol class="body-list">
+<li><strong>山徑咖啡模擬品牌包第 11 節</strong>（課程網站 <code>assets/datasets/simulated-brand-pack.html</code>）：官方「應該怎麼收」。</li>
+<li><strong>預約練習頁</strong>（課程網站 <code>assets/practice/booking-practice.html</code>）：網站「實際怎麼推送」。</li>
+</ol>
+<p class="body-text">本單元四個事件在品牌包第 11 節的規格：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>事件名稱</th>
+<th>中文說明</th>
+<th>觸發時機</th>
+<th>建議參數</th>
+<th>旅程階段</th>
+<th>標為關鍵事件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>comparison_open</code></td>
+<td>開啟三款手沖壺比較表</td>
+<td>比較表由收合變成展開時</td>
+<td><code>page_type</code>、<code>product_count</code></td>
+<td>考慮</td>
+<td>否，過程事件</td>
+</tr>
+<tr>
+<td><code>booking_start</code></td>
+<td>開始填寫試握預約</td>
+<td>預約表單第一個欄位首次取得焦點時</td>
+<td><code>form_id</code>、<code>page_type</code></td>
+<td>決策</td>
+<td>否，漏斗起點</td>
+</tr>
+<tr>
+<td><code>booking_complete</code></td>
+<td>完成試握預約</td>
+<td>表單通過必要欄位檢查並送出時</td>
+<td><code>form_id</code>、<code>preferred_slot</code></td>
+<td>決策</td>
+<td>是</td>
+</tr>
+<tr>
+<td><code>line_join</code></td>
+<td>點擊加入 LINE</td>
+<td>加入 LINE 按鈕被點擊時</td>
+<td><code>placement</code>、<code>page_type</code></td>
+<td>決策／留存</td>
+<td>是</td>
+</tr>
+</tbody>
+</table></div>
+<h3>17. 先操作練習頁，認識事件監看區</h3>
+<p class="body-text"><strong>步驟 1</strong>：用瀏覽器開啟預約練習頁，網址<strong>不要</strong>加任何 <code>?gtm=</code>。</p>
+<p class="body-text"><strong>步驟 2</strong>：確認頁面頂端顯示「尚未載入 GTM」。這是正常的。本單元不需要容器，按鈕和表單一樣會推送事件。（在網址加上 <code>?gtm=GTM-你的容器ID</code> 是 7-2 的事。）</p>
+<p class="body-text"><strong>步驟 3</strong>：找到畫面角落的<strong>事件監看區</strong>（手機上在畫面上方），標題是「網站推送的事件（新到舊，最多 5 筆）」。現在應該顯示「尚未推送」。</p>
+<p class="body-text"><strong>步驟 4</strong>：按一次「開啟比較表」。監看區應該出現：</p>
+<pre class="rw-code"><code class="language-text">第 1 筆：comparison_open　page_type=booking_practice、product_count=3
+</code></pre>
+<p class="body-text"><img alt="預約練習頁：按「開啟比較表」後，右下角事件監看區出現第 1 筆 comparison_open 與參數" src="assets/handouts/m7-1/%E7%B7%B4%E7%BF%92%E9%A0%81-%E4%BA%8B%E4%BB%B6%E7%9B%A3%E7%9C%8B.png"/></p>
+<p class="body-text"><em>課程的山徑咖啡預約練習頁（電腦版），2026-11-12 截圖。尚未載入 GTM 時，頁面最上方會有黃色提示列。</em></p>
+<p class="body-text"><strong>步驟 5</strong>：按「收合比較表」。監看區<strong>不新增</strong>任何一筆，序號仍停在 1。</p>
+<p class="body-text">讀監看區的三個重點：</p>
+<ul class="body-list">
+<li>最新的在最上面，最多顯示 5 筆。</li>
+<li><strong>序號只在有新事件時才增加</strong>。所以判斷反例時，看「序號有沒有跳」最準。</li>
+<li>監看區顯示 <code>product_count=3</code>，<strong>看不出它是數字還是文字</strong>。型別要回頭看頁面說明或推送的程式碼，不能只看監看區判斷。</li>
+</ul>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">監看區不列 GTM 內部的 <code>gtm.*</code> 事件，所以你看到的每一筆都是網站自己推送的。</div></div>
+<h3>18. 示範第一列：<code>comparison_open</code></h3>
+<p class="body-text">先操作，再對照品牌包，最後填表。</p>
+<p class="body-text"><strong>操作與觀察</strong>：步驟 4、5 已經做過。再補一個：再按一次「開啟比較表」，監看區出現第 2 筆 <code>comparison_open</code>。也就是說，<strong>每次由收合變展開都會推送一次</strong>。</p>
+<p class="body-text"><strong>對照品牌包</strong>：觸發時機「比較表由收合變成展開時」，和頁面行為一致；建議參數 <code>page_type</code>、<code>product_count</code> 也一致。</p>
+<p class="body-text"><strong>填表</strong>：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>欄位</th>
+<th>內容</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>使用者操作</td>
-<td>展開三款手沖壺比較表</td>
-<td>姓名欄第一次取得焦點</td>
+<td>在「三款手沖壺比較」區按「開啟比較表」，表格由收合變成展開</td>
 </tr>
 <tr>
 <td>網站訊號</td>
-<td>比較表由收合變展開時推送同名資料層事件</td>
-<td>同一次填表中，姓名欄第一次取得焦點時推送同名資料層事件</td>
+<td>資料層事件 <code>comparison_open</code>；<strong>只在比較表由收合變展開時</strong>推送，按「收合比較表」不推送；推送內容 <code>{event: 'comparison_open', page_type: 'booking_practice', product_count: 3}</code></td>
 </tr>
 <tr>
 <td>觸發條件</td>
-<td>自訂事件名稱精確等於 <code>comparison_open</code></td>
-<td>自訂事件名稱精確等於 <code>booking_start</code></td>
+<td>自訂事件；事件名稱等於 <code>comparison_open</code>（逐字、不用規則運算式）</td>
 </tr>
 <tr>
 <td>讀取的變數</td>
-<td><code>page_type</code> 固定字串；<code>product_count</code> 數字</td>
-<td><code>form_id</code>、<code>page_type</code> 都是固定字串</td>
+<td>資料層變數 <code>page_type</code>；資料層變數 <code>product_count</code></td>
 </tr>
 <tr>
 <td>GA4 事件名稱與參數</td>
-<td><code>comparison_open</code>；<code>page_type=booking_practice</code>、<code>product_count=3</code></td>
-<td><code>booking_start</code>；<code>form_id=trial_booking</code>、<code>page_type=booking_practice</code></td>
+<td>事件 <code>comparison_open</code>；<code>page_type</code>（文字，值 <code>booking_practice</code>）；<code>product_count</code>（數字，值 3）</td>
 </tr>
 <tr>
 <td>應出現的測試</td>
-<td>從收合狀態按「開啟比較表」，出現一次</td>
-<td>重新整理後第一次進入姓名欄，出現一次</td>
+<td>重新整理頁面 → 按「開啟比較表」一次 → 監看區新增 1 筆 <code>comparison_open</code>，<code>page_type=booking_practice</code>、<code>product_count=3</code></td>
 </tr>
 <tr>
 <td>不應出現的測試</td>
-<td>已展開後按「收合比較表」，事件序號不增加</td>
-<td>先點 Email 欄，或同次填表切到其他欄位，事件序號不增加</td>
+<td>比較表已展開時按「收合比較表」→ 監看區序號不增加；捲動到保養說明區 → 序號不增加</td>
 </tr>
 <tr>
 <td>要向網站或工程確認的事</td>
-<td>商品數量是否由實際清單產生、改版後仍為數字</td>
-<td>「開始」是否固定定義為姓名欄首次取得焦點</td>
+<td>① 同一次瀏覽反覆開關，每次展開都推送一次；報表要算「展開次數」還是「有展開過的人」？要由誰決定？② 真實網站若商品數變動，<code>product_count</code> 是自動計算還是寫死 3？③ <code>product_count</code> 必須維持數字型別，不可改送文字 <code>'3'</code></td>
 </tr>
 </tbody>
 </table></div>
-<p class="body-text">這兩列都用資料層自訂事件，而非按鈕文字或欄位文字，原因是文案可能改動，業務行為名稱仍可保持穩定。比較表把「收合」列為反例，能證明同一按鈕的兩個狀態沒有被混算；預約開始把切換欄位列為反例，能證明同一次流程只記一次。</p>
-</div>
-<div class="lesson-section"><div class="section-eyebrow">05</div><h2 class="section-heading">完成預約與加入 LINE 要沿用同一組欄位</h2>
-<p class="body-text">個人練習要補完另外兩列，完成後四個互動才都有能交給設定者的規格。請只從品牌包第 11 節與練習頁取材；先操作頁面並查看最近五筆事件監看區，再填表。</p>
+<p class="body-text"><strong>為什麼這樣寫：</strong></p>
+<ul class="body-list">
+<li>「網站訊號」寫的是<strong>網站</strong>的行為，所以時機、推送內容都寫在這格。</li>
+<li>「觸發條件」只寫 <strong>GTM</strong> 怎麼聽，不重複網站的時機。</li>
+<li>「讀取的變數」名稱和網站推送的名稱逐字一致，連大小寫都一樣。</li>
+<li>反例選「收合比較表」，因為它是同一顆按鈕、最容易被誤設成也觸發。</li>
+</ul>
+<h3>19. 示範第二列：<code>booking_start</code></h3>
+<p class="body-text"><strong>操作與觀察</strong>：</p>
 <ol class="body-list">
-<li>為 <code>booking_complete</code> 與 <code>line_join</code> 各填一列：使用者操作、網站訊號與推送時機、觸發條件、讀取的變數、GA4 事件名稱與參數（含型別）、應出現的測試、不應出現的測試、要向網站或工程確認的事。</li>
-<li>檢查事件名稱是否逐字一致，參數有沒有來源與固定型別，測試是否能分辨正例和相近反例。</li>
-<li>確認事件與參數沒有姓名、Email、電話；自由輸入內容改以固定分類或非個人資料的值表達。</li>
+<li>重新整理頁面。</li>
+<li>點進「姓名」欄。監看區新增 <code>booking_start　form_id=trial_booking、page_type=booking_practice</code>。</li>
+<li>點別的地方，再點回「姓名」欄。監看區<strong>不新增</strong>（同一次填表只推送一次）。</li>
+<li>點「Email」欄、點「偏好時段」。都<strong>不新增</strong>。</li>
+<li>重新整理頁面，這次<strong>直接點 Email 欄</strong>（先不碰姓名）。監看區<strong>不新增</strong>。</li>
 </ol>
-<p class="body-text">先用自己的操作紀錄完成兩列，再展開下方方向檢查判斷是否完整。</p>
-<details class="rw-reference"><summary>做完再展開：參考方向</summary>
-<p>完成預約要以網站確認必要欄位通過並送出為界線；加入 LINE 要以實際按鈕互動為界線。兩列都應寫出網站推送、GTM 收件與 GA4 命名的關係，並各用一個相近但不成立的操作驗證觸發範圍。</p>
+<p class="body-text"><strong>對照品牌包</strong>：品牌包寫「預約表單<strong>第一個欄位</strong>首次取得焦點時」。頁面行為是「<strong>只聽姓名欄</strong>」。姓名欄確實是第一個欄位，所以一般情況一致。但第 5 步發現：使用者如果跳過姓名、先填 Email，這個漏斗起點就不會被記到。這是規格與實作之間的縫隙，要寫進第 8 欄。</p>
+<p class="body-text"><strong>填表</strong>：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>欄位</th>
+<th>內容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>使用者操作</td>
+<td>在預約表單點進「姓名」欄，開始填寫</td>
+</tr>
+<tr>
+<td>網站訊號</td>
+<td>資料層事件 <code>booking_start</code>；<strong>姓名欄第一次取得焦點時</strong>推送，同一次填表只推送一次（表單送出後重設）；推送內容 <code>{event: 'booking_start', form_id: 'trial_booking', page_type: 'booking_practice'}</code></td>
+</tr>
+<tr>
+<td>觸發條件</td>
+<td>自訂事件；事件名稱等於 <code>booking_start</code></td>
+</tr>
+<tr>
+<td>讀取的變數</td>
+<td>資料層變數 <code>form_id</code>；資料層變數 <code>page_type</code></td>
+</tr>
+<tr>
+<td>GA4 事件名稱與參數</td>
+<td>事件 <code>booking_start</code>；<code>form_id</code>（文字，值 <code>trial_booking</code>）；<code>page_type</code>（文字，值 <code>booking_practice</code>）</td>
+</tr>
+<tr>
+<td>應出現的測試</td>
+<td>重新整理頁面 → 點進姓名欄 → 監看區新增 1 筆 <code>booking_start</code>，<code>form_id=trial_booking</code>、<code>page_type=booking_practice</code></td>
+</tr>
+<tr>
+<td>不應出現的測試</td>
+<td>同一次填表中離開再點回姓名欄 → 序號不增加；點 Email 欄或偏好時段 → 序號不增加；在姓名欄打字 → 序號不增加，且任何參數都不出現所打的姓名</td>
+</tr>
+<tr>
+<td>要向網站或工程確認的事</td>
+<td>① 品牌包寫「第一個欄位」，頁面只聽姓名欄；使用者先點 Email 時不會推送，要不要改成「任一欄位第一次取得焦點」？② 送出後重設，再填一次會再推送一次；漏斗起點要算「次」還是「人」？</td>
+</tr>
+</tbody>
+</table></div>
+<h3>20. 換你：<code>booking_complete</code> 與 <code>line_join</code></h3>
+<p class="body-text"><strong>先操作，再填表。</strong> 照下面的提示做，每一步把監看區看到的寫下來。</p>
+<h4><code>booking_complete</code> 操作提示</h4>
+<ol class="body-list">
+<li>重新整理頁面。</li>
+<li>姓名、Email 都<strong>不填</strong>，直接按「完成預約練習」。觀察：監看區有沒有新增？畫面出現什麼？</li>
+<li>填好姓名、Email，偏好時段維持「請選擇」，按「完成預約練習」。觀察。</li>
+<li>三個欄位都填好（時段選「週末下午」），按「完成預約練習」。觀察：監看區新增哪幾筆？<code>preferred_slot</code> 的值是什麼？畫面出現什麼訊息？表單有沒有清空？</li>
+<li>立刻再點一次姓名欄。觀察：<code>booking_start</code> 有沒有再出現？</li>
+<li>想一想：監看區的參數裡，有沒有出現你剛剛打的姓名或 Email？</li>
+</ol>
+<p class="body-text">填表時想這幾個問題：</p>
+<ul class="body-list">
+<li>「網站訊號」的時機，是「按下按鈕」還是「通過必填檢查並送出」？第 2、3 步的結果就是答案的證據。</li>
+<li><code>preferred_slot</code> 的值是下拉選單的哪一個東西：畫面上的中文，還是 <code>weekend-afternoon</code> 這種英文值？它是文字還是數字？</li>
+<li>反例要選「最像完成、但其實沒完成」的操作。</li>
+<li>第 8 欄：練習頁是「送出就推送」，但真實網站送出後，伺服器還可能失敗（例如時段已額滿）。那時候還該算「完成預約」嗎？連按兩下送出會不會算兩次？</li>
+</ul>
+<h4><code>line_join</code> 操作提示</h4>
+<ol class="body-list">
+<li>重新整理頁面。</li>
+<li>捲到「加入 LINE」區，按「推送加入 LINE 事件」一次。觀察監看區。</li>
+<li>再按一次。觀察：會不會新增第二筆？</li>
+<li>點「加入 LINE」區塊裡按鈕以外的空白處、說明文字。觀察。</li>
+<li>按頁面上其他按鈕（例如「開啟比較表」）。確認新增的不是 <code>line_join</code>。</li>
+</ol>
+<p class="body-text">填表時想這幾個問題：</p>
+<ul class="body-list">
+<li>觸發條件要用「點擊」還是「自訂事件」？回頭看第 7 段。</li>
+<li><code>placement</code> 這個參數是為了什麼存在？如果真實網站在頁首、文章中、頁尾各有一顆加入 LINE 按鈕，<code>placement</code> 的值該怎麼定？</li>
+<li>練習頁不會真的開啟 LINE。真實網站按下去會跳到外部 LINE，事件要在跳轉<strong>之前</strong>推送完成，否則可能來不及送。這屬於哪一欄？</li>
+</ul>
+<h4>你的空白表</h4>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>欄位</th>
+<th><code>booking_complete</code></th>
+<th><code>line_join</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>使用者操作</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>網站訊號</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>觸發條件</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>讀取的變數</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>GA4 事件名稱與參數（含型別）</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>應出現的測試</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>不應出現的測試</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>要向網站或工程確認的事</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3>21. 完成後自我檢查</h3>
+<p class="body-text">寫完兩列，逐條勾：</p>
+<ul class="body-list">
+<li>[ ] <strong>名稱逐字一致</strong>：事件名稱、參數名稱在「網站訊號」「讀取的變數」「GA4 事件與參數」三格裡完全一樣，和品牌包第 11 節也一樣（底線、大小寫都對）。</li>
+<li>[ ] <strong>每個參數都有來源和固定型別</strong>：每個參數都說得出「從資料層哪一格讀」、「是文字還是數字」。</li>
+<li>[ ] <strong>測試分得出正反</strong>：反例是「相近但不該算」的操作，不是隨便一個無關操作；而且寫到別人照做就能判斷過或不過。</li>
+<li>[ ] <strong>沒有個資</strong>：事件與參數裡沒有姓名、Email、電話。</li>
+<li>[ ] <strong>三格沒有混在一起</strong>：網站訊號寫網站做了什麼；觸發條件寫 GTM 聽什麼；變數寫 GTM 拿哪個值。</li>
+</ul>
+<p class="body-text">全部打勾，再看下面的參考答案對照。</p>
+<h3>22. 參考答案（先自己寫完再看）</h3>
+<details>
+<summary>點開看 <code>booking_complete</code> 參考寫法</summary>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>欄位</th>
+<th>內容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>使用者操作</td>
+<td>填完姓名、Email、偏好時段，按「完成預約練習」</td>
+</tr>
+<tr>
+<td>網站訊號</td>
+<td>資料層事件 <code>booking_complete</code>；<strong>表單通過必填檢查並送出時</strong>推送（必填未完成時不推送）；推送內容 <code>{event: 'booking_complete', form_id: 'trial_booking', preferred_slot: &lt;所選時段的值&gt;}</code>；送出後清空表單，並重設 <code>booking_start</code> 的已推送狀態</td>
+</tr>
+<tr>
+<td>觸發條件</td>
+<td>自訂事件；事件名稱等於 <code>booking_complete</code></td>
+</tr>
+<tr>
+<td>讀取的變數</td>
+<td>資料層變數 <code>form_id</code>；資料層變數 <code>preferred_slot</code></td>
+</tr>
+<tr>
+<td>GA4 事件名稱與參數</td>
+<td>事件 <code>booking_complete</code>；<code>form_id</code>（文字，值 <code>trial_booking</code>）；<code>preferred_slot</code>（文字，固定值之一：<code>weekday-afternoon</code>、<code>weekday-evening</code>、<code>weekend-afternoon</code>）</td>
+</tr>
+<tr>
+<td>應出現的測試</td>
+<td>重新整理 → 三欄都填、時段選「週末下午」→ 按「完成預約練習」→ 監看區新增 1 筆 <code>booking_complete</code>，<code>form_id=trial_booking</code>、<code>preferred_slot=weekend-afternoon</code>；畫面顯示已推送、姓名與 Email 沒有送出、表單已清空</td>
+</tr>
+<tr>
+<td>不應出現的測試</td>
+<td>姓名或 Email 空白就按送出 → 不新增 <code>booking_complete</code>；時段維持「請選擇」就按送出 → 不新增；任何參數都不出現所填的姓名或 Email</td>
+</tr>
+<tr>
+<td>要向網站或工程確認的事</td>
+<td>① 真實網站要在「伺服器確認預約成功」後推送，還是按下送出就推送？送出失敗（如時段額滿）不應算完成；② 連按兩下送出會不會推送兩次？③ 若日後時段選項增加，<code>preferred_slot</code> 的值清單由誰維護、要同步通知誰？④ 確認姓名、Email、電話永遠不進資料層</td>
+</tr>
+</tbody>
+</table></div>
+<p>如果你在第 2、3 步觀察到的和「不應出現」不同（例如必填沒填也推送了），<strong>不要改測試去配合頁面</strong>，把觀察到的現象寫進第 8 欄。規格寫的是「應該怎樣」，實測不符就是要回報的問題。</p>
 </details>
+<details>
+<summary>點開看 <code>line_join</code> 參考寫法</summary>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>欄位</th>
+<th>內容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>使用者操作</td>
+<td>在「加入 LINE」區按「推送加入 LINE 事件」</td>
+</tr>
+<tr>
+<td>網站訊號</td>
+<td>資料層事件 <code>line_join</code>；<strong>按鈕被點擊時</strong>推送，每點一次推送一次；推送內容 <code>{event: 'line_join', placement: 'booking_practice_bottom', page_type: 'booking_practice'}</code>；練習頁不會開啟外部網站</td>
+</tr>
+<tr>
+<td>觸發條件</td>
+<td>自訂事件；事件名稱等於 <code>line_join</code>（不用「點擊文字等於……」，避免按鈕改字後失效）</td>
+</tr>
+<tr>
+<td>讀取的變數</td>
+<td>資料層變數 <code>placement</code>；資料層變數 <code>page_type</code></td>
+</tr>
+<tr>
+<td>GA4 事件名稱與參數</td>
+<td>事件 <code>line_join</code>；<code>placement</code>（文字，值 <code>booking_practice_bottom</code>）；<code>page_type</code>（文字，值 <code>booking_practice</code>）</td>
+</tr>
+<tr>
+<td>應出現的測試</td>
+<td>重新整理 → 按「推送加入 LINE 事件」一次 → 監看區新增 1 筆 <code>line_join</code>，<code>placement=booking_practice_bottom</code>、<code>page_type=booking_practice</code></td>
+</tr>
+<tr>
+<td>不應出現的測試</td>
+<td>點「加入 LINE」區的說明文字或空白處 → 序號不增加；按「開啟比較表」→ 新增的是 <code>comparison_open</code>，不是 <code>line_join</code></td>
+</tr>
+<tr>
+<td>要向網站或工程確認的事</td>
+<td>① 真實網站按下後會跳到 LINE，事件要在跳轉前推送完成；② 其他位置的加入 LINE 按鈕，<code>placement</code> 值清單怎麼命名（例如 <code>header</code>、<code>article_inline</code>）；③ 連點兩次會推送兩次，報表算「點擊次數」還是「人數」？④ <code>line_join</code> 只代表「點了按鈕」，不代表真的加入 LINE 好友，報表解讀時要註明</td>
+</tr>
+</tbody>
+</table></div>
+</details>
+<p class="body-text">對照時不用逐字一樣。重點是：<strong>時機寫得可測、名稱逐字一致、型別寫明、反例是相近操作、第 8 欄有真問題</strong>。</p>
 </div>
-<div class="lesson-section"><div class="section-eyebrow">06</div><h2 class="section-heading">四列規格會直接變成下一節的預覽清單</h2>
-<p class="body-text">這一節的完成物是四列追蹤規格，不是已安裝的追蹤。下一節會先建立自己的容器與 Google 代碼，讓練習頁在網站監看區與 Tag Assistant 顯示四個資料層事件；GA4 事件代碼則在後續設定。模組作業選出的三個代表旅程事件，也會沿用這八個欄位寫成工程需求與驗收清單。</p>
+<div class="lesson-section"><div class="section-eyebrow">06</div><h2 class="section-heading">第四部分：這張表接下來怎麼用</h2>
+<h3>23. 下一節（7-2）：它變成預覽清單</h3>
+<p class="body-text">7-2 你會建立自己的容器與 Google 代碼，把容器 ID 加進練習頁網址，打開預覽模式。那時要確認四個資料層事件<strong>同時</strong>出現在兩個地方：練習頁的事件監看區，以及 Tag Assistant。你會照本單元四列的「應出現」「不應出現」逐條測，一條一條打勾。</p>
+<p class="body-text">7-3 建立 GA4 事件代碼時，<code>line_join</code> 這一列會從規格一路追到 GA4 收件，確認第 5 欄寫的事件名稱與參數真的進了 GA4。</p>
+<h3>24. 模組作業：同一套欄位，換成巷口晨光</h3>
+<p class="body-text">模組作業「一個點擊的旅程」，你要替第六模組選出的<strong>巷口晨光三個代表旅程事件</strong>，各寫一列規格，用的就是本單元這八個欄位。</p>
+<p class="body-text">巷口晨光沒有網站，這時規格表的角色會更清楚：它就是第 14 段說的<strong>工程需求單</strong>。例如「完成隔日早餐預訂」這個事件，你要寫清楚：</p>
+<ul class="body-list">
+<li><strong>時機</strong>：預訂成功確認時推送，不是按下按鈕時。</li>
+<li><strong>欄位與型別</strong>：例如麵包盒品項用固定代碼（文字）、盒數（數字）、取貨時段（固定值，文字）。</li>
+<li><strong>個資邊界</strong>：取貨人姓名、電話絕對不放進事件。</li>
+<li><strong>驗收方式</strong>：正例、反例各寫清楚。</li>
+</ul>
+<p class="body-text">（以上只是寫法示範，事件名稱與參數請以你們組在第六模組選定的為準。）</p>
+<p class="body-text">實測時，沒有網站的組改用山徑咖啡練習頁跑一次預覽，展示一個事件從點擊、預覽模式到 GA4 即時報表的路徑。</p>
+<h3>25. 「練習頁是假的」，那這份規格算什麼</h3>
+<p class="body-text">你擔心這只是紙上作業。換個角度看你做了什麼：</p>
+<ul class="body-list">
+<li>你<strong>實際操作</strong>了一個網站，用事件監看區<strong>觀察</strong>它推送了什麼。</li>
+<li>你拿<strong>官方規格</strong>和<strong>實際行為</strong>對照，找到了不一致（例如 <code>booking_start</code> 只聽姓名欄）。</li>
+<li>你為每個事件寫了<strong>可驗收的測試</strong>，包括反例。</li>
+<li>你把真實上線會遇到的風險（送出失敗、跳轉前沒送完、重複計算、個資）寫成<strong>要向工程確認的問題</strong>。</li>
+</ul>
+<p class="body-text">這些正是追蹤工程裡行銷端要負責的工作：定義、驗收、對齊。面試時可以這樣講：</p>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">「我替一個預約頁寫了四個事件的追蹤規格，包括觸發時機、參數型別、正反例測試。過程中發現『開始填表』事件只監聽姓名欄，和規格寫的『第一個欄位』有落差，使用者若先填 Email 會漏記，我把它列成工程確認事項。」</div></div>
+<p class="body-text">具體、有發現、有判斷，比「我會用 GTM」有說服力得多。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">07</div><h2 class="section-heading">回家複習：照這個順序</h2>
+<ol class="body-list">
+<li><strong>先背四個問題，不背定義</strong>：容器＝裝在哪；代碼＝送什麼去哪；觸發條件＝什麼時候送；變數＝值從哪拿。</li>
+<li><strong>再記一個口訣</strong>：網站訊號是網站說了什麼；觸發條件是 GTM 聽到什麼就動作；變數是 GTM 拿出哪個值。</li>
+<li><strong>重開練習頁</strong>，不看講義，把四個互動各做一次正例、一次反例，看監看區序號有沒有跳。</li>
+<li><strong>拿出你的四列規格</strong>，跑一次第 21 段的自我檢查。</li>
+<li><strong>開始寫巷口晨光的三列</strong>，八個欄位照抄表頭。</li>
+</ol>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">08</div><h2 class="section-heading">名詞對照表</h2>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>中文</th>
+<th>英文</th>
+<th>一句話</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Google 代碼管理工具</td>
+<td>Google Tag Manager（GTM）</td>
+<td>網站裝一次，之後在介面管理所有追蹤代碼</td>
+</tr>
+<tr>
+<td>容器</td>
+<td>Container</td>
+<td>一個網站的整包設定，ID 以 <code>GTM-</code> 開頭</td>
+</tr>
+<tr>
+<td>代碼</td>
+<td>Tag</td>
+<td>送資料出去的程式，例如 GA4 事件代碼</td>
+</tr>
+<tr>
+<td>觸發條件</td>
+<td>Trigger</td>
+<td>決定代碼什麼時候動作</td>
+</tr>
+<tr>
+<td>變數</td>
+<td>Variable</td>
+<td>會變的值的名字，供代碼取值或觸發條件判斷</td>
+</tr>
+<tr>
+<td>內建變數</td>
+<td>Built-in Variable</td>
+<td>GTM 現成的變數，如點擊文字、網頁網址</td>
+</tr>
+<tr>
+<td>資料層</td>
+<td>Data Layer（<code>dataLayer</code>）</td>
+<td>網站交資料給 GTM 的交接箱</td>
+</tr>
+<tr>
+<td>推送</td>
+<td><code>dataLayer.push()</code></td>
+<td>網站把一筆事件與值放進資料層</td>
+</tr>
+<tr>
+<td>資料層變數</td>
+<td>Data Layer Variable</td>
+<td>讀資料層裡某一格的值</td>
+</tr>
+<tr>
+<td>自訂事件觸發條件</td>
+<td>Custom Event Trigger</td>
+<td>資料層出現指定 <code>event</code> 名稱時觸發</td>
+</tr>
+<tr>
+<td>自訂 HTML</td>
+<td>Custom HTML</td>
+<td>沒有內建範本時才用的自貼程式碼，先查安全與效能</td>
+</tr>
+<tr>
+<td>初始化／同意初始化</td>
+<td>Initialization／Consent Initialization</td>
+<td>比一般網頁瀏覽更早觸發；同意初始化最早，用來設定同意預設</td>
+</tr>
+<tr>
+<td>預覽模式</td>
+<td>Preview</td>
+<td>發布前在測試分頁檢查哪些代碼觸發</td>
+</tr>
+<tr>
+<td>Tag Assistant</td>
+<td>Tag Assistant</td>
+<td>預覽模式用來連線測試分頁、顯示觸發結果的工具</td>
+</tr>
+<tr>
+<td>版本</td>
+<td>Version</td>
+<td>每次發布留下的設定快照，可回到舊版本</td>
+</tr>
+<tr>
+<td>追蹤規格</td>
+<td>Tracking Spec</td>
+<td>寫清楚收什麼、何時收、值從哪來、怎麼測的表</td>
+</tr>
+<tr>
+<td>正例／反例</td>
+<td>—</td>
+<td>應出現事件的操作／相近但不應出現的操作</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">09</div><h2 class="section-heading">參考資料（Google 官方說明，2026-11 查證）</h2>
+<ul class="body-list">
+<li>Tag Manager 基本概念：https://support.google.com/tagmanager/answer/6102821</li>
+<li>內建變數清單：https://support.google.com/tagmanager/answer/7182738</li>
+<li>資料層說明：https://developers.google.com/tag-platform/tag-manager/datalayer</li>
+<li>自訂代碼說明：https://support.google.com/tagmanager/answer/6107167</li>
+<li>點擊觸發條件：https://support.google.com/tagmanager/answer/7679320</li>
+<li>自訂事件觸發條件：https://support.google.com/tagmanager/answer/7679219</li>
+<li>同意初始化：https://support.google.com/tagmanager/answer/10718549</li>
+<li>版本與核准：https://support.google.com/tagmanager/answer/6107163</li>
+<li>GA4 事件命名規則：https://support.google.com/analytics/answer/13316687</li>
+<li>Google Analytics 個人識別資訊政策：https://support.google.com/analytics/answer/6366371</li>
+</ul>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">10</div><h2 class="section-heading">卡住時</h2>
+<ul class="body-list">
+<li><strong>網站上看到兩段 GTM 容器程式碼（一段在 <code>&lt;head&gt;</code>、一段在 <code>&lt;body&gt;</code> 開頭標記後面）</strong>：那是舊版的安裝方式，已經裝好的網站不必重裝，一樣可以運作。</li>
+</ul>
 </div>
 </div>
 

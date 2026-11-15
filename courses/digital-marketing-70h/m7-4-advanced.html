@@ -182,69 +182,1091 @@ a:not([class]):focus-visible{color:#0f5f6c}
 </div>
 
 <div class="lesson-body">
-<div class="lesson-section"><div class="section-eyebrow">01</div><h2 class="section-heading">量測要同時回答可不可以送與是不是同一筆</h2>
-<p class="body-text">事件送出後，要判斷使用者是否同意分析或廣告用途，以及兩端是否為同一筆。本節留下同意與去重紀錄。</p>
+<div class="lesson-section"><div class="section-eyebrow">01</div><h2 class="section-heading">開始之前</h2>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">第七模組「GTM：數據追蹤工程」第 4 單元（最後一個單元，含模組作業）
+一句話：讓量測照使用者的選擇運作，也讓同一筆轉換只被平台算一次。</div></div>
 </div>
-<div class="lesson-section"><div class="section-eyebrow">02</div><h2 class="section-heading">同意模式把使用者選擇交給 Google 代碼</h2>
-<p class="body-text">同意模式（consent mode）把使用者同意狀態傳給 Google 代碼，讓代碼調整儲存與傳送。<a href="https://developers.google.com/tag-platform/security/concepts/consent-mode">Google 同意模式概念</a>（2026-11 查證）。四種主要項目如下：</p>
+<div class="lesson-section"><div class="section-eyebrow">02</div><h2 class="section-heading">先看這堂要交什麼</h2>
+<p class="body-text">這堂結束，你手上要有三樣東西：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>#</th>
+<th>成果</th>
+<th>個人／小組</th>
+<th>用到什麼</th>
+<th>本講義段落</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>line_join</code> 三種同意情境測試紀錄（八欄表）</td>
+<td>個人</td>
+<td>GTM、Tag Assistant、山徑咖啡預約練習頁</td>
+<td>第 5 節</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>booking_complete</code> 對 Meta <code>Schedule</code> 的去重卡（十一欄表）</td>
+<td>個人</td>
+<td>紙筆或試算表，不用登入 Meta</td>
+<td>第 8 節</td>
+</tr>
+<tr>
+<td>3</td>
+<td>模組作業「一個點擊的旅程」→ 企劃書「成效指標與追蹤」第 3 頁</td>
+<td>小組</td>
+<td>練習頁、GTM、GA4 DebugView、組員分工</td>
+<td>第 10 節</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text"><strong>你需要先準備好的東西（都是 7-2、7-3 做過的）：</strong></p>
 <ul class="body-list">
-<li><code>ad_storage</code>：廣告用途的儲存，例如 Cookie。</li>
-<li><code>analytics_storage</code>：分析用途的儲存，例如造訪時間長度。</li>
-<li><code>ad_user_data</code>：是否把使用者資料送給 Google 作線上廣告用途。</li>
-<li><code>ad_personalization</code>：是否用於個人化廣告，例如再行銷。</li>
+<li>自己的 GTM 容器 ID（<code>GTM-</code> 開頭）。</li>
+<li>7-3 建好的 <code>line_join</code> GA4 事件代碼（代碼名稱以你自己取的為準）。</li>
+<li>練習頁網址，後面加上自己的容器 ID：
+<code>https://skypai0326.github.io/courses/courses/digital-marketing-70h/assets/practice/booking-practice.html?gtm=GTM-你的ID</code></li>
 </ul>
-<p class="body-text"><code>functionality_storage</code>、<code>personalization_storage</code>、<code>security_storage</code> 另管功能、個人化與安全用途。基本模式在回應前不載入 Google 代碼，拒絕便不送資料；進階模式先載入並預設拒絕，拒絕時送無 Cookie 訊號，同意後送完整資料。模式由網站政策決定，不是技術預設。</p>
-<p class="body-text">進階模式下，GA4 可能用行為建模補估拒絕者行為，但須同時達到：拒絕 <code>analytics_storage</code> 的事件每天至少 1,000 筆、連續 7 天；過去 28 天中至少 7 天，每天至少 1,000 位同意分析儲存者。小流量網站多半達不到。<a href="https://support.google.com/analytics/answer/11161109">行為建模資格</a>（2026-11 查證）。</p>
-<p class="body-text">順序是「同意預設 → 載入代碼 → 使用者選擇 → 同意更新」。Consent Initialization 最早觸發；Google 代碼有內建同意檢查，其他代碼可設額外同意檢查，指定項目全為同意才執行；「同意總覽」可集中檢查。<a href="https://support.google.com/tagmanager/answer/10718549">GTM 同意設定</a>（2026-11 查證）。同意模式不能取代同意管理工具（CMP）、隱私政策或法律判斷；Google 政策適用歐洲經濟區、英國與瑞士，台灣義務由組織依法確認。<a href="https://support.google.com/google-ads/answer/16724512">政策說明</a>（2026-11 查證）。</p>
+<p class="body-text"><strong>這堂不需要的東西：</strong> 自己的網站、Meta 廣告帳號、廣告預算。練習頁沒有交易、沒有預約編號，這些地方我們只寫規格，並老實標註「尚未實際驗證」。</p>
+<p class="body-text"><strong>這堂的教學段落不使用 AI。</strong> 只有模組作業最後的回饋段，實測完可以選用 AI 幫你找缺口（第 10 節）。</p>
 </div>
-<div class="lesson-section"><div class="section-eyebrow">03</div><h2 class="section-heading">Meta 事件與共用唯一 ID 避免重複計算</h2>
-<p class="body-text">Meta 像素（Meta Pixel）是網站 JavaScript，用來量測轉換、最佳化廣告及建立自訂受眾。<a href="https://developers.facebook.com/documentation/meta-pixel/get-started">Meta 像素入門</a>（2026-11 查證）。標準事件有 <code>ViewContent</code> 瀏覽頁、<code>Lead</code> 完成註冊、<code>Schedule</code> 預約到門市、<code>Contact</code> 聯絡、<code>AddToCart</code> 加入購物車、<code>InitiateCheckout</code> 開始結帳、<code>Purchase</code> 購買且帶 <code>value</code> 與 <code>currency</code>、<code>Search</code> 站內搜尋；其餘可自訂。<a href="https://developers.facebook.com/docs/meta-pixel/reference">標準事件</a>（2026-11 查證）。</p>
-<p class="body-text">透過 GTM 安裝時，先確認資料來源、像素 ID 與權限，優先用官方整合或審核範本；自訂 HTML 先經審查。事件由成功狀態觸發，並在「測試事件」核對，畫面以實際為準。Meta Ads Data Advisor（原名 Meta Pixel Helper）只作輔助，圖示正常不代表參數與去重正確。</p>
-<p class="body-text">轉換 API（Conversions API）由伺服器把事件送給 Meta。兩端同送時，去重（deduplication）要求像素事件名稱等於 <code>event_name</code>、像素 <code>eventID</code> 等於 <code>event_id</code>；Meta 捨棄 48 小時內的重複事件。唯一 ID 由訂單或預約系統產生並共用，不能各生一個。<a href="https://developers.facebook.com/docs/marketing-api/conversions-api/deduplicate-pixel-and-server-events">Meta 去重</a>（2026-11 查證）。</p>
-<p class="body-text">GA4 電商事件從成功狀態送出：<code>view_item</code> 瀏覽商品、<code>add_to_cart</code> 加入購物車、<code>begin_checkout</code> 進入結帳、<code>purchase</code> 交易成功、<code>refund</code> 退款完成；後兩者要有 <code>transaction_id</code>，送 <code>value</code> 時要有 <code>currency</code>。新電商資料前先送 <code>ecommerce: null</code> 清除舊值；同一交易只送一次。<a href="https://developers.google.com/analytics/devguides/collection/ga4/ecommerce?client_type=gtm">GA4 電商量測</a>（2026-11 查證）。</p>
-<p class="body-text">延伸理解即可：Google 代碼閘道（Google tag gateway for advertisers）用自有網域載入代碼，可透過 CDN（分散內容的網路）、負載平衡器（分配請求的設備）或網頁伺服器設定；伺服器端代碼（server-side tagging）在自有伺服器執行容器再轉送平台。兩者需要工程與主機，不取代同意設定。<a href="https://developers.google.com/tag-platform/tag-manager/gateway">代碼閘道</a>、<a href="https://developers.google.com/tag-platform/tag-manager/server-side/intro">伺服器端代碼</a>（2026-11 查證）。</p>
+<div class="lesson-section"><div class="section-eyebrow">03</div><h2 class="section-heading">1. 起點：事件送出去之後，還有兩個問題</h2>
+<p class="body-text">7-3 你已經做到「按鈕被按 → 資料層出現 <code>line_join</code> → GTM 觸發 → GA4 收到」。你可能注意到，每次在練習頁重新整理後都要先按「接受全部」才操作。這堂要回答那個按鈕背後的事。</p>
+<p class="body-text">事件送得出去之後，還要多判斷兩件事：</p>
+<ol class="body-list">
+<li><strong>使用者同不同意？</strong> 這位訪客有沒有同意「分析用途」或「廣告用途」？沒同意的話，代碼該怎麼做？→ 這是<strong>同意模式</strong>（第 2～6 節）。</li>
+<li><strong>是不是同一筆？</strong> 同一次預約，如果瀏覽器（Meta 像素）送了一次、伺服器（轉換 API）又送了一次，平台會不會算成兩筆？→ 這是<strong>事件去重</strong>（第 7～8 節）。</li>
+</ol>
+<p class="body-text">兩個問題都管「數字可不可信」：第一個讓數字合乎使用者的選擇，第二個讓數字不灌水。</p>
 </div>
-<div class="lesson-section"><div class="section-eyebrow">04</div><h2 class="section-heading">山徑咖啡示範：測試比較表並設計購買去重</h2>
-<p class="body-text">示範使用<a href="assets/practice/booking-practice.html" rel="noopener" target="_blank">預約練習頁</a>、<a href="assets/datasets/measurement-practice-kit.html" rel="noopener" target="_blank">量測練習包</a>與<a href="assets/datasets/simulated-brand-pack.html" rel="noopener" target="_blank">山徑咖啡品牌包</a>：前者測同意，品牌包示範去重；練習頁沒有交易。</p>
-<p class="body-text">替 <code>comparison_open</code> 設定額外同意 <code>analytics_storage</code> 並預覽。每種情境前重新整理，記錄「情境｜操作順序｜四項狀態（預設／更新）｜事件代碼是否觸發｜Google 代碼狀態｜截圖編號｜停止條件是否觸及｜回復位置」。</p>
+<div class="lesson-section"><div class="section-eyebrow">04</div><h2 class="section-heading">2. 同意模式：四個主要項目各管什麼</h2>
+<p class="body-text"><strong>同意模式（consent mode）</strong>：把「使用者同意了什麼」傳給 Google 代碼，讓代碼依此調整「要不要存 Cookie」「要送什麼資料」。它是傳遞同意狀態的機制，不是同意橫幅本身。</p>
+<h3>2.1 四個主要項目</h3>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>項目</th>
+<th>Google 官方說明（意譯）</th>
+<th>白話</th>
+<th>山徑咖啡例子</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ad_storage</code></td>
+<td>啟用與<strong>廣告</strong>相關的儲存，例如 Cookie</td>
+<td>可不可以為了廣告<strong>存</strong> Cookie</td>
+<td>存下「這位訪客是從某則廣告點進來的」</td>
+</tr>
+<tr>
+<td><code>analytics_storage</code></td>
+<td>啟用與<strong>分析</strong>相關的儲存，例如 Cookie，用來算造訪時間長度等</td>
+<td>可不可以為了分析<strong>存</strong> Cookie</td>
+<td>GA4 記住「同一位訪客這次停留多久、第幾次來」</td>
+</tr>
+<tr>
+<td><code>ad_user_data</code></td>
+<td>設定是否同意把<strong>使用者資料送給 Google</strong>，用於線上廣告</td>
+<td>可不可以把資料<strong>送</strong>給 Google 做廣告</td>
+<td>預約轉換的資料能不能送給 Google 廣告</td>
+</tr>
+<tr>
+<td><code>ad_personalization</code></td>
+<td>設定是否同意<strong>個人化廣告</strong></td>
+<td>可不可以拿來做<strong>個人化</strong>廣告，例如再行銷</td>
+<td>看過溪線 700 的人，之後能不能再看到它的廣告</td>
+</tr>
+</tbody>
+</table></div>
+<h3>2.2 分不清楚時，用這個拆法</h3>
+<p class="body-text">四個名稱都是「前半＋後半」：</p>
 <ul class="body-list">
-<li>未選擇：直接展開；四項預設為 <code>denied</code>、無更新；事件代碼不觸發，Google 代碼依內建檢查運作。</li>
-<li>接受全部：按橫幅再展開；四項由 <code>denied</code> 更新為 <code>granted</code>；事件代碼觸發。</li>
-<li>只保留必要：按按鈕再展開；四項更新後仍為 <code>denied</code>；事件代碼不觸發。</li>
+<li><strong>前半說「什麼用途」</strong>：<code>ad_</code> = 廣告；<code>analytics_</code> = 分析。</li>
+<li><strong>後半說「做什麼事」</strong>：
+<ul>
+<li><code>_storage</code> = <strong>存</strong>（在瀏覽器存 Cookie 之類的東西）</li>
+<li><code>_user_data</code> = <strong>送</strong>（把使用者資料送給 Google）</li>
+<li><code>_personalization</code> = <strong>用</strong>（用來做個人化廣告）</li>
 </ul>
-<p class="body-text">練習頁在預設拒絕後仍載入 GTM，屬進階模式。若拒絕時事件代碼仍觸發，或預設晚於代碼載入，就停止發布；回到事件代碼「同意設定」或 Consent Initialization 修正。</p>
-<p class="body-text">去重卡欄位是「網站行為與成功時機｜GA4 事件｜Meta 標準事件｜唯一 ID 來源｜像素欄位｜轉換 API 欄位｜必要參數｜重複測試｜失敗反例｜驗證位置｜目前狀態」。溪線 700 交易成功時，GA4 用 <code>purchase</code>、Meta 用 <code>Purchase</code>；訂單系統產生共用 ID，像素送 <code>eventID</code>，API 送相同 <code>event_id</code>，必要參數是 <code>transaction_id</code>、<code>value=2380</code>、<code>currency=TWD</code>。重新整理不重送，付款失敗不送；到 GA4 DebugView 與 Meta「測試事件」驗證，目前寫「規格已定，尚未實際驗證」。</p>
-<div class="rw-prompt" data-copy-prompt=""><div class="dialog-label">提示詞</div>
-dataLayer.push({ ecommerce: null });
-dataLayer.push({ event: 'purchase', ecommerce: {
-  transaction_id: '[訂單系統產生的唯一編號]', value: 2380, currency: 'TWD',
-  items: [{ item_name: '溪線 700', price: 2380, quantity: 1 }]
-} });</div>
+</li>
+</ul>
+<p class="body-text">所以一口氣念：「<strong>廣告存、分析存、廣告送、廣告用</strong>」。只有一個是分析，其餘三個都是廣告。這堂你實際動手設定的只有 <code>analytics_storage</code>。</p>
+<h3>2.3 另外三個項目（知道就好）</h3>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>項目</th>
+<th>管什麼</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>functionality_storage</code></td>
+<td>網站功能需要的儲存</td>
+<td>記住語言設定</td>
+</tr>
+<tr>
+<td><code>personalization_storage</code></td>
+<td>個人化需要的儲存</td>
+<td>影片推薦</td>
+</tr>
+<tr>
+<td><code>security_storage</code></td>
+<td>安全需要的儲存</td>
+<td>登入驗證、防詐騙</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">練習頁只送前四項，這三項本單元不測。</p>
 </div>
-<div class="lesson-section"><div class="section-eyebrow">05</div><h2 class="section-heading">用加入 LINE 與完成預約建立自己的紀錄</h2>
-<p class="body-text">用 <code>line_join</code> 事件代碼要求額外同意 <code>analytics_storage</code>，在三種情境各按一次加入 LINE，填相同八欄。由 Tag Assistant 判定；觸及停止條件時回到同意設定修正。</p>
-<p class="body-text">把 <code>booking_complete</code> 對應 Meta <code>Schedule</code>，用相同十一欄寫去重卡。練習頁沒有預約編號，要判斷由哪個系統產生唯一 ID；缺少時寫「待系統提供，尚未實際驗證」。重複測試涵蓋重新整理，反例涵蓋缺必填欄位。</p>
-<details class="rw-reference"><summary>做完再展開：參考方向</summary>
-<p>接受全部時，額外要求 <code>analytics_storage</code> 的 <code>line_join</code> 事件代碼才應觸發；另外兩種情境應保留未觸發證據。預約去重卡應把成功送出、共用 ID、<code>Schedule</code>／<code>event_name=Schedule</code>、<code>eventID</code>／<code>event_id</code> 與待實測狀態連成同一條規格。</p>
-</details>
+<div class="lesson-section"><div class="section-eyebrow">05</div><h2 class="section-heading">3. 基本模式與進階模式</h2>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th></th>
+<th>基本模式</th>
+<th>進階模式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>使用者還沒回應橫幅時</td>
+<td>Google 代碼<strong>不載入</strong></td>
+<td>Google 代碼<strong>先載入</strong>，同意狀態預設為拒絕</td>
+</tr>
+<tr>
+<td>使用者拒絕時</td>
+<td><strong>不送任何資料</strong>給 Google</td>
+<td>送出<strong>不使用 Cookie</strong> 的訊號</td>
+</tr>
+<tr>
+<td>使用者同意時</td>
+<td>載入代碼，送完整資料</td>
+<td>送完整資料</td>
+</tr>
+<tr>
+<td>模型補估</td>
+<td>只能用一般模型</td>
+<td>可用針對該廣告主的模型（較細）</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text"><strong>哪一種比較好？沒有標準答案。</strong> 模式由<strong>網站的政策</strong>決定（法務、隱私政策、公司對風險的態度），不是 GTM 的技術預設，也不是你個人可以替網站決定的。量測練習包的原則是：</p>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">先依網站政策決定基本模式或進階模式……沒有政策來源時先標「待確認」，不要代替網站決定。</div></div>
+<p class="body-text"><strong>練習頁用的是進階模式的做法</strong>：一載入就先送出四項預設「拒絕」，接著照樣載入你的 GTM 容器。容器 ID 有效時，不會因為預設拒絕就不載入。</p>
+<h3>3.1 行為建模：小網站多半輪不到</h3>
+<p class="body-text">進階模式下，GA4 有機會用「行為建模」補估拒絕者的行為。但 Google 說明的資格門檻要<strong>同時</strong>達到：</p>
+<ol class="body-list">
+<li>拒絕 <code>analytics_storage</code> 的事件，<strong>每天至少 1,000 筆，至少 7 天</strong>；</li>
+<li>過去 28 天中<strong>至少 7 天</strong>，每天至少有 <strong>1,000 位</strong>同意分析儲存（<code>analytics_storage</code> 為同意）的使用者。</li>
+</ol>
+<p class="body-text">而且 Google 也說，達到門檻不保證一定會套用。山徑咖啡這種在地小店、你們組的巷口晨光，每天大概沒有上千位訪客，所以<strong>別把「進階模式能補估」當成選進階模式的理由</strong>。</p>
 </div>
-<div class="lesson-section rw-assign"><div class="section-eyebrow">模組作業</div><h2 class="section-heading">模組作業：一個點擊的旅程</h2>
-<p class="body-text">作業把量測決策表、追蹤規格與 GA4 收件整合成事件路徑。每組 4～6 人，沿用原組。</p>
-<h3>個人準備</h3>
-<p class="body-text">用約 10 分鐘分配組內三個事件；人數多於三人時可共用。補齊操作、網站訊號、觸發條件、變數、事件名稱、參數、正反例與可用權限。缺席者下次上課前補進簡報附錄，註明姓名與日期。</p>
-<h3>小組討論</h3>
-<p class="body-text">用約 25 分鐘實測一個事件。有網站者用測試環境；其餘在練習頁網址加 <code>?gtm=</code> 與容器 ID。記錄操作、資料層事件、代碼、參數、GA4 收件、一個反例及「只保留必要」結果。</p>
-<h3>上台分享</h3>
-<p class="body-text">依組別編號或講師抽籤，每組 4 分鐘、換場 1 分鐘。展示「使用者操作 → 網站訊號 → GTM 觸發條件 → GA4 收件 → 畫面證據」；使用練習頁者註明練習環境。</p>
-<h3>回饋</h3>
-<p class="body-text">講師依「事件名稱、觸發條件、證據一致，同意情境有記錄」講評，不安排學員互評。實測後可交給 AI 依五項判準指出最多三個缺口；平台是否通過由小組依畫面判定。</p>
+<div class="lesson-section"><div class="section-eyebrow">06</div><h2 class="section-heading">4. 順序與 GTM 裡的四個位置</h2>
+<h3>4.1 正確順序只有一種</h3>
+<pre class="rw-code"><code class="language-text">同意預設（default）→ 載入代碼 → 使用者選擇 → 同意更新（update）
+</code></pre>
+<p class="body-text">預設一定要在任何代碼讀取同意狀態<strong>之前</strong>送出。如果代碼先跑、預設才到，代碼在那一瞬間根本不知道使用者有沒有同意。</p>
+<p class="body-text">練習頁的實際程式就是這個順序：頁面一載入、在載入 GTM 之前，先送</p>
+<pre class="rw-code"><code class="language-js">gtag('consent', 'default', {
+  ad_storage: 'denied',
+  analytics_storage: 'denied',
+  ad_user_data: 'denied',
+  ad_personalization: 'denied'
+})
+</code></pre>
+<p class="body-text">按橫幅按鈕時，再送 <code>gtag('consent', 'update', …)</code>：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>你做的事</th>
+<th>四項狀態</th>
+<th>橫幅標題變成</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>剛打開或重新整理頁面</td>
+<td>四項都是 <code>denied</code>（預設）</td>
+<td>同意模式練習</td>
+</tr>
+<tr>
+<td>按「接受全部」</td>
+<td>四項更新為 <code>granted</code></td>
+<td>已選擇：接受全部</td>
+</tr>
+<tr>
+<td>按「只保留必要」</td>
+<td>四項維持 <code>denied</code>（也會送一次更新）</td>
+<td>已選擇：只保留必要</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">練習頁<strong>沒有「部分接受」</strong>。另外，同意的預設與更新<strong>不會</strong>出現在頁面右下角的事件監看區，要到 Tag Assistant 才看得到。</p>
+<h3>4.2 GTM 裡跟同意有關的四個地方</h3>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>位置</th>
+<th>是什麼</th>
+<th>這堂要不要動手</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Consent Initialization 觸發條件</strong>（同意初始化）</td>
+<td>GTM 裡<strong>最早</strong>觸發的觸發條件，比 Initialization 還早。每個網頁容器都內建一個「Consent Initialization - All Pages」。用來掛「設定同意預設」或同意管理工具（CMP）的代碼。</td>
+<td>不用。練習頁已經自己在 GTM 之前送了預設。你只要知道：真實網站若用 GTM 設預設，就掛在這裡。</td>
+</tr>
+<tr>
+<td><strong>內建同意檢查</strong>（Built-In Consent Checks）</td>
+<td>Google 代碼（含 GA4 事件代碼）本身就會看同意狀態、自動調整行為。代碼的同意設定裡會列出它內建檢查哪些項目。</td>
+<td>只看，不改。</td>
+</tr>
+<tr>
+<td><strong>額外同意檢查</strong>（Additional Consent Checks）</td>
+<td>你另外加的條件：<strong>指定的項目全部為同意，代碼才執行</strong>。</td>
+<td><strong>要動手</strong>：在 <code>line_join</code> 事件代碼加 <code>analytics_storage</code>。</td>
+</tr>
+<tr>
+<td><strong>同意總覽</strong>（Consent Overview）</td>
+<td>在代碼清單集中看「哪些代碼設了同意、哪些沒設」。</td>
+<td>選做：開來看一眼。</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text"><strong>為什麼 Google 代碼不加額外同意，事件代碼要加？</strong> 量測練習包的設計是：Google 代碼保留內建檢查（進階模式下拒絕時仍會以不使用 Cookie 的方式運作），只在事件代碼加「額外同意 <code>analytics_storage</code>」。這樣你在 Tag Assistant 會清楚看到差別：拒絕時，事件代碼<strong>不觸發</strong>；同意時才觸發。這是課堂練習的設計，真實網站要照網站政策決定每支代碼的設定。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">07</div><h2 class="section-heading">5. 實作一：<code>line_join</code> 三種同意情境測試</h2>
+<p class="body-text">預計時間：設定約 10 分鐘、測試與記錄約 20 分鐘。</p>
+<h3>5.1 在事件代碼加額外同意</h3>
+<p class="body-text">GTM 介面語言不同、改版後，選單名稱可能略有差異；以下中文後面附英文原文，畫面以實際為準。</p>
+<ol class="body-list">
+<li>打開 GTM，進入你的容器工作區。</li>
+<li>左側點「<strong>代碼</strong>」（Tags），在清單中點你 7-3 建的 <code>line_join</code> GA4 事件代碼。</li>
+<li>點「<strong>代碼設定</strong>」（Tag Configuration）區塊進入編輯。</li>
+<li>往下找到「<strong>進階設定</strong>」（Advanced Settings），點開。
+<ul>
+<li>這就是你擔心「藏很深」的地方：它在代碼設定的<strong>最下面</strong>，要先點開「進階設定」才看得到。</li>
+</ul>
+</li>
+<li>點開「<strong>同意聲明設定 (BETA)</strong>」（Consent Settings）。你會看到兩區：
+<ul>
+<li>「<strong>內建同意聲明檢查</strong>」（Built-In Consent Checks）：列出這支代碼本身就會看的項目。<strong>不用改</strong>，截圖留著就好。</li>
+<li>「<strong>額外同意聲明檢查</strong>」（Additional Consent Checks），有三個選項：
+<ul>
+<li>未設定（Not set）：預設值，不做額外檢查。</li>
+<li>不需要額外同意聲明（No additional consent required）：表示你檢查過了，這支代碼不需要額外同意。</li>
+<li><strong>需要額外同意聲明才能觸發代碼</strong>（Require additional consent for tag to fire）← 選這個。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<p class="body-text"><img alt="GTM 代碼編輯畫面：進階設定 → 同意聲明設定 (BETA)，內建同意聲明檢查與額外同意聲明檢查三個選項" src="assets/handouts/m7-4/gtm-%E5%90%8C%E6%84%8F%E8%81%B2%E6%98%8E%E8%A8%AD%E5%AE%9A.png"/></p>
+<p class="body-text"><em>GTM 網頁版，以既有的 GA4 事件代碼為例，2026-11-12 截圖；截圖時沒有修改或儲存。</em></p>
+<ol class="body-list" start="6">
+<li>選好後會出現「<strong>新增必要的同意</strong>」（+ Add required consent），點它，輸入或選擇 <code>analytics_storage</code>。
+<ul>
+<li>一個字一個字對：全小寫、中間是底線、<code>analytics</code> 有 s。</li>
+</ul>
+</li>
+<li>按右上角「<strong>儲存</strong>」（Save）。</li>
+<li><strong>Google 代碼不要動</strong>：不加額外同意，保留內建檢查。</li>
+</ol>
+<p class="body-text"><strong>練習 <code>comparison_open</code> 的同學</strong>：課堂示範是對 <code>comparison_open</code> 事件代碼做一模一樣的設定，步驟相同。</p>
+<h3>5.2（選做）打開同意總覽</h3>
+<ol class="body-list">
+<li>左側「<strong>管理</strong>」（Admin）→「<strong>容器設定</strong>」（Container Settings）。</li>
+<li>在其他設定（Additional Settings）勾選「<strong>啟用同意總覽</strong>」（Enable consent overview），儲存。</li>
+<li>回到「代碼」清單，上方會多一個同意總覽的圖示（盾牌形狀），點開可以集中看每支代碼的同意設定。【待實機確認】</li>
+<li>確認 <code>line_join</code> 出現在「已設定同意」那一側，並看到它需要 <code>analytics_storage</code>。</li>
+</ol>
+<h3>5.3 重新開啟預覽</h3>
+<p class="body-text">改完設定一定要<strong>重新按「預覽」</strong>（Preview），舊的預覽視窗不會套用新設定。【待實機確認】</p>
+<ol class="body-list">
+<li>工作區右上角按「<strong>預覽</strong>」。</li>
+<li>在 Tag Assistant 輸入練習頁網址（記得後面有 <code>?gtm=GTM-你的ID</code>），按連結（Connect）。</li>
+<li>練習頁開好後，頁首應顯示「GTM 練習容器：GTM-（你的 ID）……」。如果顯示「尚未載入 GTM」，回去檢查網址：<code>GTM-</code> 後面要接 4～10 個大寫英文或數字，不能是範例的 X。</li>
+</ol>
+<p class="body-text"><strong>本單元只用預覽，不需要發布（提交）容器。</strong></p>
+<h3>5.4 三種情境，各做一次</h3>
+<p class="body-text"><strong>每種情境開始前都要重新整理練習頁。</strong> 重新整理會讓四項回到預設拒絕，這樣三種情境才不會互相干擾。</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>情境</th>
+<th>你要做的事</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A 未選擇</td>
+<td>重新整理 → <strong>不要按</strong>橫幅任何按鈕 → 按「推送加入 LINE 事件」一次 → 到 Tag Assistant 看結果、截圖</td>
+</tr>
+<tr>
+<td>B 接受全部</td>
+<td>重新整理 → 按「接受全部」→ 按「推送加入 LINE 事件」一次 → 看結果、截圖</td>
+</tr>
+<tr>
+<td>C 只保留必要</td>
+<td>重新整理 → 按「只保留必要」→ 按「推送加入 LINE 事件」一次 → 看結果、截圖</td>
+</tr>
+</tbody>
+</table></div>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">小提醒：情境 A 做完，<strong>直接重新整理</strong>再進情境 B。不要在 A 的頁面上補按「接受全部」，否則同一頁面裡混了兩種狀態，紀錄會看不清楚。</div></div>
+<h3>5.5 在 Tag Assistant 看哪裡</h3>
+<p class="body-text">每個情境看三個地方：</p>
+<ol class="body-list">
+<li><strong>同意狀態</strong>：左側事件清單裡，名稱含「<strong>Consent</strong>」的事件就是同意的預設或更新。
+<ul>
+<li>最早那筆 Consent → 點開看「API 呼叫」（API Call），四項應該都是 <code>denied</code>。這是<strong>預設</strong>。</li>
+<li>情境 B、C 會多一筆較晚的 Consent → 那是<strong>更新</strong>。</li>
+<li>另一個看法：點開任一 Google 代碼，在輸出（Output）區選「<strong>Consent</strong>」分頁，「<strong>On-page Default</strong>」欄是預設、「<strong>On-page Update</strong>」欄是更新。</li>
+<li>如果 Consent 分頁整個是空的，表示頁面沒有實作同意模式（檢查網址或預覽有沒有連上）。</li>
+</ul>
+</li>
+<li><strong>事件代碼是否觸發</strong>：左側點 <code>line_join</code> 那一筆事件 → 看「<strong>代碼</strong>」（Tags）分頁：
+<ul>
+<li>出現在「<strong>已觸發的代碼</strong>」（Tags Fired）→ 有觸發。</li>
+<li>出現在「<strong>未觸發的代碼</strong>」（Tags Not Fired）→ 沒觸發。點開可以看原因，應該跟同意有關。</li>
+</ul>
+</li>
+<li><strong>Google 代碼狀態</strong>：點較早的事件（頁面載入時那幾筆），看 Google 代碼是否在「已觸發的代碼」。</li>
+</ol>
+<p class="body-text"><strong>預期結果：</strong></p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>情境</th>
+<th><code>analytics_storage</code></th>
+<th><code>line_join</code> 事件代碼</th>
+<th>Google 代碼</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A 未選擇</td>
+<td>預設 <code>denied</code>，沒有更新</td>
+<td><strong>不觸發</strong></td>
+<td>已觸發（依內建檢查，拒絕時不使用 Cookie）</td>
+</tr>
+<tr>
+<td>B 接受全部</td>
+<td>預設 <code>denied</code> → 更新 <code>granted</code></td>
+<td><strong>觸發</strong></td>
+<td>已觸發</td>
+</tr>
+<tr>
+<td>C 只保留必要</td>
+<td>預設 <code>denied</code> → 更新仍是 <code>denied</code></td>
+<td><strong>不觸發</strong></td>
+<td>已觸發（同 A）</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">情境 B 觸發後，也可以到 GA4 <strong>DebugView</strong> 看 <code>line_join</code> 有沒有收到；A、C 不應出現新的 <code>line_join</code>。</p>
+<h3>5.6 停止條件與回復位置</h3>
+<p class="body-text">出現下面任一狀況，<strong>這份設定就不能發布</strong>，要回去修：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>停止條件</th>
+<th>代表什麼</th>
+<th>回復位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>情境 A 或 C（拒絕）時，<code>line_join</code> 事件代碼<strong>仍然觸發</strong></td>
+<td>額外同意沒設好（沒選「需要額外同意」、項目打錯字、或忘了儲存／重開預覽）</td>
+<td><code>line_join</code> 事件代碼 → 進階設定 → <strong>同意設定</strong></td>
+</tr>
+<tr>
+<td>同意預設<strong>晚於</strong>代碼載入（Consent 事件出現在代碼觸發之後，或 Tag Assistant 提示代碼在預設設定前就讀了同意狀態）</td>
+<td>預設送得太晚</td>
+<td>真實網站：把設定預設的代碼掛到 <strong>Consent Initialization</strong> 觸發條件；練習頁本身已先送預設，若在練習頁看到這狀況，先確認網址正確、重開預覽，仍然發生就截圖請講師看</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">修完 → 儲存 → 重新按「預覽」→ 三種情境<strong>全部重測</strong>，不是只重測出錯那一個。</p>
+<h3>5.7 紀錄表</h3>
+<p class="body-text"><strong>課堂示範：<code>comparison_open</code>（同樣設額外同意 <code>analytics_storage</code>）</strong></p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>情境</th>
+<th>操作順序</th>
+<th>四項狀態（預設／更新）</th>
+<th>事件代碼是否觸發</th>
+<th>Google 代碼狀態</th>
+<th>截圖編號</th>
+<th>停止條件是否觸及</th>
+<th>回復位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A 未選擇</td>
+<td>重新整理 → 不按橫幅 → 按「開啟比較表」</td>
+<td>預設：四項 <code>denied</code>／更新：無</td>
+<td>否（列在 Tags Not Fired）</td>
+<td>已觸發，依內建檢查運作</td>
+<td>C-A1 同意預設、C-A2 代碼分頁</td>
+<td>否</td>
+<td>不需要</td>
+</tr>
+<tr>
+<td>B 接受全部</td>
+<td>重新整理 → 按「接受全部」→ 按「開啟比較表」</td>
+<td>預設：四項 <code>denied</code>／更新：四項 <code>granted</code></td>
+<td>是（列在 Tags Fired）</td>
+<td>已觸發</td>
+<td>C-B1 同意更新、C-B2 代碼分頁</td>
+<td>否</td>
+<td>不需要</td>
+</tr>
+<tr>
+<td>C 只保留必要</td>
+<td>重新整理 → 按「只保留必要」→ 按「開啟比較表」</td>
+<td>預設：四項 <code>denied</code>／更新：四項 <code>denied</code></td>
+<td>否</td>
+<td>已觸發，依內建檢查運作</td>
+<td>C-C1、C-C2</td>
+<td>否</td>
+<td>不需要</td>
+</tr>
+</tbody>
+</table></div>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">注意 <code>comparison_open</code> 只在比較表「由收合變展開」時推送。如果表已經展開，要先收合再展開；重新整理後它會回到收合。</div></div>
+<p class="body-text"><strong>你的作業：<code>line_join</code>（複製這張空白表來填）</strong></p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>情境</th>
+<th>操作順序</th>
+<th>四項狀態（預設／更新）</th>
+<th>事件代碼是否觸發</th>
+<th>Google 代碼狀態</th>
+<th>截圖編號</th>
+<th>停止條件是否觸及</th>
+<th>回復位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A 未選擇</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>L-A1、L-A2</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>B 接受全部</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>L-B1、L-B2</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>C 只保留必要</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>L-C1、L-C2</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text"><strong>填寫原則：</strong></p>
+<ul class="body-list">
+<li>「四項狀態」照 Tag Assistant 畫面抄，不要照預期結果抄。畫面跟預期不同時，寫畫面的，再到「停止條件」那欄寫「是」。</li>
+<li>截圖檔名用表上的編號，例如 <code>L-A1.png</code>，放進同一個資料夾，之後放企劃書時才找得到。</li>
+<li>「回復位置」：沒觸及停止條件寫「不需要」；觸及時寫實際要回去改的位置，例如「<code>line_join</code> 代碼 → 同意設定」。</li>
+</ul>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">08</div><h2 class="section-heading">6. 同意模式不是法律答案</h2>
+<p class="body-text">這段直接回應你的擔心：<strong>這份紀錄是技術測試，不是法律意見。</strong></p>
+<ul class="body-list">
+<li>同意模式只負責「把同意狀態傳給 Google 代碼」。它<strong>不能取代</strong>：
+<ul>
+<li><strong>同意管理工具（CMP）</strong>：真正顯示橫幅、記住使用者選擇的工具；</li>
+<li><strong>隱私政策</strong>：網站對使用者說明蒐集什麼、做什麼；</li>
+<li><strong>法律判斷</strong>：哪些用途需要同意、要用基本還是進階模式。</li>
+</ul>
+</li>
+<li>Google 的歐盟使用者同意政策，適用對象是<strong>歐洲經濟區、英國與瑞士</strong>的使用者。</li>
+<li><strong>台灣的義務由組織依法確認</strong>（例如諮詢法務或依個資相關法規判斷），講義與你的紀錄都不下這個判斷。</li>
+</ul>
+<p class="body-text"><strong>寫報告或上台時的安全說法：</strong></p>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">「我們依練習頁的設定測試了三種同意情境，確認事件代碼在拒絕時不觸發。實際網站採用哪一種模式、需要哪些同意，要依網站政策與法律意見決定，這部分標記為待確認。」</div></div>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">09</div><h2 class="section-heading">7. Meta 像素、轉換 API 與去重</h2>
+<h3>7.1 Meta 像素是什麼</h3>
+<p class="body-text"><strong>Meta 像素（Meta Pixel）</strong>：放在網站上的一段 JavaScript，用來做三件事：<strong>量測轉換</strong>、<strong>最佳化廣告投放</strong>、<strong>建立自訂受眾</strong>（例如「預約過試握的人」）。第八模組 8-4 做 Meta 廣告時，網站來源的自訂受眾就靠它或轉換 API。</p>
+<h3>7.2 標準事件</h3>
+<p class="body-text">Meta 預先定義了一批事件名稱，叫<strong>標準事件</strong>。用標準名稱，Meta 才看得懂這是什麼行為。本單元要認得這八個：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>標準事件</th>
+<th>Meta 說明（意譯）</th>
+<th>山徑咖啡可能對應</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ViewContent</code></td>
+<td>瀏覽你在意的頁面（商品頁、到達頁）</td>
+<td>看溪線 700 商品頁</td>
+</tr>
+<tr>
+<td><code>Search</code></td>
+<td>進行搜尋</td>
+<td>站內搜尋「手沖壺」</td>
+</tr>
+<tr>
+<td><code>AddToCart</code></td>
+<td>商品加入購物車</td>
+<td>溪線 700 加入購物車</td>
+</tr>
+<tr>
+<td><code>InitiateCheckout</code></td>
+<td>進入結帳流程（尚未完成）</td>
+<td>按「前往結帳」</td>
+</tr>
+<tr>
+<td><code>Purchase</code></td>
+<td>完成購買或結帳流程；<strong>必填 <code>value</code> 與 <code>currency</code></strong></td>
+<td>溪線 700 付款成功</td>
+</tr>
+<tr>
+<td><code>Lead</code></td>
+<td>完成註冊</td>
+<td>留下資料索取型錄</td>
+</tr>
+<tr>
+<td><code>Contact</code></td>
+<td>透過電話、簡訊、Email、聊天等聯絡商家</td>
+<td>按「LINE 詢問」</td>
+</tr>
+<tr>
+<td><code>Schedule</code></td>
+<td>預約到你的門市</td>
+<td><strong>完成 20 分鐘試握預約</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">不在清單裡的行為，可以用<strong>自訂事件</strong>。但能對到標準事件就先用標準事件。</p>
+<p class="body-text"><strong>名稱一個字都不能錯</strong>：<code>Schedule</code> 開頭大寫 S，不是 <code>schedule</code>，也不是 GA4 的 <code>booking_complete</code>。兩邊是<strong>兩套名稱</strong>，你的去重卡就是把它們對起來的那張表。</p>
+<h3>7.3 透過 GTM 安裝像素的五個原則</h3>
+<p class="body-text">這堂不實際安裝，但去重卡和企劃書要寫得出原則：</p>
+<ol class="body-list">
+<li><strong>先確認</strong>：資料來源（哪個網站、哪個事件）、<strong>像素 ID</strong>、誰有權限。沒有權限就停在規格。</li>
+<li><strong>優先用官方整合或審核過的範本</strong>（例如 GTM 社群範本庫中經過檢查的），少用自己貼的程式碼。</li>
+<li><strong>自訂 HTML 代碼要先經審查</strong>：自訂 HTML 可以執行任何程式，貼之前要有人看過內容與來源。</li>
+<li><strong>事件由「成功狀態」觸發</strong>：預約完成、付款成功才送；不是按下按鈕就送。並在 Meta 事件管理工具的「<strong>測試事件</strong>」（Test Events）核對有沒有收到（畫面以實際為準）。</li>
+<li><strong>Meta Ads Data Advisor 只是輔助</strong>：這是 Chrome 擴充功能，原名 <strong>Meta Pixel Helper</strong>，Meta 已改名。它的圖示亮了，只代表「頁面上有像素在跑」，<strong>不代表參數正確、也不代表去重正確</strong>。</li>
+</ol>
+<h3>7.4 轉換 API：伺服器那一頭</h3>
+<p class="body-text"><strong>轉換 API（Conversions API）</strong>：由<strong>伺服器</strong>把事件直接送給 Meta，不經過使用者的瀏覽器。瀏覽器可能被擋廣告工具擋、網路斷掉，伺服器端比較穩，所以很多網站兩端都送。</p>
+<p class="body-text">問題來了：同一筆預約，像素送一次、伺服器送一次 → 如果 Meta 不知道是同一筆，就會算成<strong>兩筆預約</strong>，成效被灌水。</p>
+<h3>7.5 去重的規則</h3>
+<p class="body-text"><strong>去重（deduplication）</strong>：讓 Meta 認出「這兩筆是同一件事」，只算一次。Meta 建議的做法要<strong>兩組都對上</strong>：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>要相等的東西</th>
+<th>像素（瀏覽器端）</th>
+<th>轉換 API（伺服器端）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>事件名稱</td>
+<td>事件名稱，例如 <code>Schedule</code></td>
+<td><code>event_name</code>，例如 <code>"Schedule"</code></td>
+</tr>
+<tr>
+<td>事件 ID</td>
+<td><code>eventID</code></td>
+<td><code>event_id</code></td>
+</tr>
+</tbody>
+</table></div>
+<ul class="body-list">
+<li>兩端送到<strong>同一個像素 ID</strong>，且在第一筆送達後 <strong>48 小時內</strong>，Meta 會捨棄後到的重複事件。</li>
+<li><strong><code>eventID</code> 和 <code>event_id</code> 是同一個值的兩種寫法</strong>：瀏覽器端 JavaScript 習慣「駝峰」（<code>eventID</code>，大寫 ID、沒有底線），伺服器端習慣「底線」（<code>event_id</code>，全小寫）。欄位名不同，<strong>裡面填的值必須一模一樣</strong>。</li>
+</ul>
+<p class="body-text">像素端長這樣（<code>eventID</code> 放在第四個位置，跟事件參數分開）：</p>
+<pre class="rw-code"><code class="language-js">fbq('track', 'Schedule', {}, {eventID: 'BK-20261112-0042'});
+</code></pre>
+<p class="body-text">伺服器端送的事件裡則有：</p>
+<pre class="rw-code"><code class="language-text">event_name: "Schedule"
+event_id:   "BK-20261112-0042"
+</code></pre>
+<h3>7.6 唯一 ID 從哪裡來：最重要的一條</h3>
+<p class="body-text"><strong>唯一 ID 要由「預約系統」或「訂單系統」產生，兩端共用同一個；不能讓像素和伺服器各自產生一個。</strong></p>
+<p class="body-text">為什麼？如果瀏覽器自己亂數產生 <code>A123</code>、伺服器又自己產生 <code>B456</code>，兩個 ID 不同，Meta 會當成兩件事，去重完全失效。</p>
+<p class="body-text">只有「真正完成這筆預約的系統」知道「這是第幾號預約」，它產生的編號（預約編號、訂單編號）才能同時交給頁面上的像素和伺服器。</p>
+<p class="body-text"><strong>練習頁沒有預約編號</strong>，所以在去重卡上這一格要寫：「預約系統應產生預約編號；<strong>待系統提供，尚未實際驗證</strong>」。這不是偷懶，是正確的判斷。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">10</div><h2 class="section-heading">8. 實作二：去重卡</h2>
+<h3>8.1 先看示範卡：山徑咖啡溪線 700 線上購買</h3>
+<p class="body-text">練習頁沒有交易，所以這張示範<strong>只做規格</strong>。順便看 GA4 電商事件的規則，因為 <code>purchase</code> 兩邊都要送。</p>
+<p class="body-text"><strong>GA4 電商事件的規則（GTM 版）：</strong></p>
+<ul class="body-list">
+<li>五個常用電商事件：<code>view_item</code>（看商品）、<code>add_to_cart</code>（加入購物車）、<code>begin_checkout</code>（開始結帳）、<code>purchase</code>（購買）、<code>refund</code>（退款）。都要從「<strong>成功狀態</strong>」送出。</li>
+<li><code>purchase</code> 和 <code>refund</code> <strong>必須有 <code>transaction_id</code></strong>（交易編號）。</li>
+<li>有送 <code>value</code>（金額）就要一起送 <code>currency</code>（幣別）。</li>
+<li>用資料層推送新的電商資料前，先推一次 <code>ecommerce: null</code>，清掉上一筆殘留的值。</li>
+<li><strong>同一筆交易只送一次</strong>（例如使用者重新整理感謝頁，不能再送一次 <code>purchase</code>）。</li>
+</ul>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>欄位</th>
+<th>示範：溪線 700 線上購買</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>網站行為與成功時機</td>
+<td>顧客買溪線 700；<strong>訂單完成頁確認交易成功時</strong>（不是按「付款」按鈕時）</td>
+</tr>
+<tr>
+<td>GA4 事件</td>
+<td><code>purchase</code>（推送前先送 <code>ecommerce: null</code>）</td>
+</tr>
+<tr>
+<td>Meta 標準事件</td>
+<td><code>Purchase</code></td>
+</tr>
+<tr>
+<td>唯一 ID 來源</td>
+<td><strong>訂單系統</strong>產生的訂單編號；GA4 <code>transaction_id</code>、像素 <code>eventID</code>、轉換 API <code>event_id</code> 三處共用同一個值</td>
+</tr>
+<tr>
+<td>像素欄位</td>
+<td><code>fbq('track', 'Purchase', {value: 2380, currency: 'TWD'}, {eventID: 訂單編號})</code></td>
+</tr>
+<tr>
+<td>轉換 API 欄位</td>
+<td><code>event_name: "Purchase"</code>、<code>event_id: 訂單編號</code>、<code>event_time</code>、<code>action_source: "website"</code>、<code>event_source_url</code>、<code>user_data</code>、<code>custom_data</code>（<code>value</code>、<code>currency</code>）</td>
+</tr>
+<tr>
+<td>必要參數</td>
+<td>GA4：<code>transaction_id</code>、<code>value: 2380</code>、<code>currency: "TWD"</code>；Meta <code>Purchase</code>：<code>value</code>、<code>currency</code></td>
+</tr>
+<tr>
+<td>重複測試</td>
+<td>① 在訂單完成頁重新整理 → GA4 不應多一筆 <code>purchase</code>；② 同一訂單兩端各送一次 → Meta 只算一次</td>
+</tr>
+<tr>
+<td>失敗反例</td>
+<td>① 缺 <code>currency</code> 只有 <code>value</code>；② 缺 <code>transaction_id</code>；③ 像素和伺服器各自產生 ID，Meta 算成兩筆；④ 按下付款鈕就送、付款失敗也被算成購買</td>
+</tr>
+<tr>
+<td>驗證位置</td>
+<td>GTM 預覽／Tag Assistant（資料層與參數）、GA4 DebugView（<code>purchase</code>）、Meta 事件管理工具「測試事件」（<code>Purchase</code> 與去重）；Meta Ads Data Advisor 輔助</td>
+</tr>
+<tr>
+<td>目前狀態</td>
+<td><strong>規格已定，尚未實際驗證</strong>（練習頁沒有交易）</td>
+</tr>
+</tbody>
+</table></div>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">轉換 API 欄位那一格：Meta 對網站事件要求 <code>event_name</code>、<code>event_time</code>、<code>user_data</code>、<code>action_source</code>，網站事件還要 <code>event_source_url</code>，<code>user_data</code> 裡還必須有 <code>client_user_agent</code>；<code>event_id</code> 官方列為選填，但<strong>要去重就一定要送</strong>。<code>user_data</code> 牽涉個人資料如何處理，由工程與法務決定，你在卡上寫欄位名即可。</div></div>
+<h3>8.2 換你：<code>booking_complete</code> → <code>Schedule</code></h3>
+<p class="body-text">先回答下面幾個問題，答案就是卡片的內容。每題下面附提示。</p>
+<p class="body-text"><strong>Q1. 預約「成功」是哪一刻？</strong>
+提示：練習頁的 <code>booking_complete</code> 是「三個必填欄位（姓名、Email、偏好時段）都通過檢查、表單送出時」推送。練習頁不換頁、沒有感謝頁。真實網站則應該是「預約系統回報預約成功時」。</p>
+<p class="body-text"><strong>Q2. GA4 事件和參數？</strong>
+提示：品牌包第 11 節的事件規格寫的是 <code>booking_complete</code>（完成試握預約，標為關鍵事件），參數 <code>form_id</code>（練習頁值為 <code>trial_booking</code>）、<code>preferred_slot</code>（<code>weekday-afternoon</code>、<code>weekday-evening</code>、<code>weekend-afternoon</code> 三選一）。</p>
+<p class="body-text"><strong>Q3. Meta 標準事件？</strong>
+提示：Meta 說明裡「預約到你的門市」是哪一個？（答案是 <code>Schedule</code>，注意大小寫。）</p>
+<p class="body-text"><strong>Q4. 唯一 ID 由哪個系統產生？</strong>
+提示：不是 GTM、不是瀏覽器、不是 Meta。是「接收預約、知道這是第幾號預約」的那個系統。練習頁沒有。</p>
+<p class="body-text"><strong>Q5. 重新整理會怎樣？少填一欄會怎樣？</strong>
+提示：自己在練習頁試。送出後頁面顯示「練習事件已推送；姓名與 Email 沒有送出。表單已清空，可以再練一次。」此時按重新整理，看右下角事件監看區有沒有多一筆 <code>booking_complete</code>。再故意不選時段按「完成預約練習」，看瀏覽器是不是擋下、監看區有沒有出現事件。</p>
+<h3>8.3 去重卡空白表</h3>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>欄位</th>
+<th>你的內容</th>
+<th>自我檢查</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>網站行為與成功時機</td>
+<td></td>
+<td>寫的是「成功之後」而不是「按下按鈕」？</td>
+</tr>
+<tr>
+<td>GA4 事件</td>
+<td></td>
+<td><code>booking_complete</code> 拼對？有寫參數嗎？</td>
+</tr>
+<tr>
+<td>Meta 標準事件</td>
+<td></td>
+<td><code>Schedule</code>，S 大寫？</td>
+</tr>
+<tr>
+<td>唯一 ID 來源</td>
+<td></td>
+<td>寫了「預約系統」？有寫「待系統提供，尚未實際驗證」？</td>
+</tr>
+<tr>
+<td>像素欄位</td>
+<td></td>
+<td>事件名稱 <code>Schedule</code>＋<code>eventID</code>（駝峰）＝預約編號？</td>
+</tr>
+<tr>
+<td>轉換 API 欄位</td>
+<td></td>
+<td><code>event_name: "Schedule"</code>＋<code>event_id</code>（底線）＝同一個預約編號？</td>
+</tr>
+<tr>
+<td>必要參數</td>
+<td></td>
+<td>GA4 的 <code>form_id</code>、<code>preferred_slot</code>；Meta 兩端的事件名稱與 ID 一致</td>
+</tr>
+<tr>
+<td>重複測試</td>
+<td></td>
+<td>有涵蓋「重新整理」？</td>
+</tr>
+<tr>
+<td>失敗反例</td>
+<td></td>
+<td>有涵蓋「缺必填欄位」？</td>
+</tr>
+<tr>
+<td>驗證位置</td>
+<td></td>
+<td>GA4 側和 Meta 側都有寫？</td>
+</tr>
+<tr>
+<td>目前狀態</td>
+<td></td>
+<td>有分開寫「哪些實測過、哪些只是規格」？</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text"><strong>寫好後對照這幾點：</strong></p>
+<ul class="body-list">
+<li>「目前狀態」建議拆兩段寫，誠實又清楚：
+<ul>
+<li>GA4／資料層：練習頁可以實測 <code>booking_complete</code> 的推送與參數（寫你實際看到的）。</li>
+<li>Meta 像素與轉換 API：<strong>規格已定，唯一 ID 待系統提供，尚未實際驗證</strong>。</li>
+</ul>
+</li>
+<li>「失敗反例」至少兩個：缺必填欄位（瀏覽器擋下，不應有 <code>booking_complete</code>，也不應有 <code>Schedule</code>）；兩端各自產生 ID（去重失敗，算兩筆）。</li>
+<li>「像素欄位」可以多寫一句同意條件：Meta 像素屬於廣告用途，在 GTM 上應依網站政策設定額外同意（例如 <code>ad_storage</code>）。這呼應 8-4 的示範：「事件只含接受廣告用途 Cookie 且成功送達者」。</li>
+</ul>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">11</div><h2 class="section-heading">9. 延伸理解（不用練習）</h2>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>名稱</th>
+<th>做什麼</th>
+<th>為什麼這堂不做</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Google 代碼閘道</strong>（Google tag gateway for advertisers）</td>
+<td>改用<strong>自己的網域</strong>載入 Google 代碼，可以透過 CDN、負載平衡器或網頁伺服器設定</td>
+<td>需要網域與主機設定權限</td>
+</tr>
+<tr>
+<td><strong>伺服器端代碼</strong>（server-side tagging）</td>
+<td>在<strong>自己的伺服器</strong>執行一個 GTM 容器，再由它轉送資料給各平台</td>
+<td>需要工程人力與主機費用</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">兩者都<strong>不取代同意設定</strong>。改成伺服器端，同意狀態一樣要處理。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">12</div><h2 class="section-heading">10. 模組作業「一個點擊的旅程」</h2>
+<p class="body-text">每組 4～6 人，沿用原組。目標：把量測決策表、追蹤規格與 GA4 收件，串成一條看得見的事件路徑。</p>
+<h3>10.1 個人準備（約 10 分鐘）</h3>
+<p class="body-text">組內分配三個事件（人數多於三人可共用一個）。你負責的事件要補齊這九項：</p>
+<p class="body-text">操作｜網站訊號｜觸發條件｜變數｜事件名稱｜參數｜正例｜反例｜可用權限</p>
+<p class="body-text"><strong>你們組的情況：</strong> 巷口晨光是課堂模擬產品，沒有可裝 GTM 的網站，所以：</p>
+<ul class="body-list">
+<li><strong>實測</strong>：用山徑咖啡練習頁（例如 <code>line_join</code> 或 <code>booking_complete</code>）。</li>
+<li><strong>企劃書第 3 頁的規格</strong>：寫巷口晨光自己的三個事件（用你們第六模組定下的事件名稱）。</li>
+<li>巷口晨光的「完成隔日早餐預訂」若要寫去重卡，唯一 ID 來源同樣是「預訂系統產生的預訂編號」；卡上沒有預訂系統，就寫「待系統提供，尚未實際驗證」。</li>
+</ul>
+<p class="body-text">下面是巷口晨光一個事件的<strong>示範寫法</strong>（事件名稱請換成你們組定的）：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>項目</th>
+<th>示範</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>操作</td>
+<td>顧客在預訂頁選好麵包盒、取貨時段，按送出</td>
+</tr>
+<tr>
+<td>網站訊號</td>
+<td>預訂成功後，資料層推送 <code>preorder_complete</code></td>
+</tr>
+<tr>
+<td>觸發條件</td>
+<td>自訂事件 <code>preorder_complete</code></td>
+</tr>
+<tr>
+<td>變數</td>
+<td>資料層變數 <code>pickup_slot</code>、<code>box_count</code></td>
+</tr>
+<tr>
+<td>事件名稱</td>
+<td><code>preorder_complete</code></td>
+</tr>
+<tr>
+<td>參數</td>
+<td><code>pickup_slot</code>、<code>box_count</code></td>
+</tr>
+<tr>
+<td>正例</td>
+<td>必填都填好、送出成功 → 推送一次</td>
+</tr>
+<tr>
+<td>反例</td>
+<td>沒選取貨時段 → 不推送；重新整理成功畫面 → 不再推送</td>
+</tr>
+<tr>
+<td>可用權限</td>
+<td>無網站，規格待預訂系統提供；實測改用練習頁</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">缺席的組員：下次上課前把個人準備補進簡報附錄，註明姓名與日期。</p>
+<h3>10.2 小組討論（約 25 分鐘）：實測一個事件</h3>
+<p class="body-text">在練習頁網址後加 <code>?gtm=</code> 與某位組員的容器 ID，打開該組員的 GTM 預覽。記錄六樣東西：</p>
+<ol class="body-list">
+<li>操作（按了什麼）</li>
+<li>資料層事件（Tag Assistant 左側看到的事件名稱與參數）</li>
+<li>代碼（哪支代碼觸發）</li>
+<li>參數（代碼送出的參數值）</li>
+<li>GA4 收件（DebugView 截圖）</li>
+<li>一個反例（例如缺必填不送出），以及**「只保留必要」的結果**（代碼有沒有被擋下）</li>
+</ol>
+<h3>10.3 上台分享（每組 4 分鐘＋換場 1 分鐘）</h3>
+<p class="body-text">依組別編號或講師抽籤。照這條線講，一個環節一張圖：</p>
+<pre class="rw-code"><code class="language-text">使用者操作 → 網站訊號 → GTM 觸發條件 → GA4 收件 → 畫面證據
+</code></pre>
+<p class="body-text">四分鐘的分配建議：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>時間</th>
+<th>誰</th>
+<th>講什麼</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0:00–0:30</td>
+<td>組員 1</td>
+<td>我們的產品與這次測的事件；<strong>註明「使用山徑咖啡練習頁，練習環境」</strong></td>
+</tr>
+<tr>
+<td>0:30–2:30</td>
+<td>組員 2、3</td>
+<td>沿著那條線走一次，每格指著截圖</td>
+</tr>
+<tr>
+<td>2:30–3:30</td>
+<td>組員 4</td>
+<td>反例與「只保留必要」的結果</td>
+</tr>
+<tr>
+<td>3:30–4:00</td>
+<td>組員 1</td>
+<td>還沒驗證的部分（例如 Meta、唯一 ID）與下一步</td>
+</tr>
+</tbody>
+</table></div>
+<h3>10.4 回饋</h3>
+<p class="body-text">講師依「<strong>事件名稱、觸發條件、證據一致，同意情境有記錄</strong>」講評，不安排學員互評。</p>
+<p class="body-text"><strong>（選用）實測後請 AI 找缺口。</strong> 把你們的追蹤規格與驗證紀錄<strong>全文</strong>貼給 ChatGPT、Claude 或 Gemini（任一），用這段提示：</p>
 <div class="rw-prompt" data-copy-prompt=""><div class="dialog-label">提示詞</div>
-檢查這份追蹤規格與驗證紀錄。
-依事件名稱、觸發條件、變數與參數、正反例、預覽證據五項判準，列出最多三個不一致處與待補證據；只使用提供內容。
+以下是我們小組的追蹤規格與驗證紀錄。請只使用我提供的內容，
+依「事件名稱、觸發條件、變數與參數、正反例、預覽證據」五項判準，
+列出最多三個不一致的地方或待補的證據，並指出出現在哪一行。
+不要推測平台是否會通過，也不要補寫我沒提供的內容。
 
-[貼上追蹤規格與驗證紀錄全文]</div>
-<h3>放進企劃書</h3>
-<p class="body-text">更新企劃書「成效指標與追蹤」第 3 頁：放三個事件規格、實測路徑與證據、同意情境結果；規劃付費廣告者另附去重卡。格式依<a href="assets/datasets/group-project-guide.html" rel="noopener" target="_blank">企劃書指南</a>整理。</p>
+（貼上規格與紀錄全文）</div>
+<p class="body-text">AI 只幫你找缺口；<strong>平台是否通過，由你們依實際畫面判定。</strong></p>
+<h3>10.5 放進企劃書「成效指標與追蹤」第 3 頁</h3>
+<p class="body-text">第 5 段「成效指標與追蹤」：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>頁</th>
+<th>內容</th>
+<th>本單元動到嗎</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第 1 頁</td>
+<td>三個代表旅程的事件（標出關鍵事件，附一個待驗證假設）</td>
+<td>不動</td>
+</tr>
+<tr>
+<td>第 2 頁</td>
+<td>UTM 命名表</td>
+<td>不動</td>
+</tr>
+<tr>
+<td>第 3 頁</td>
+<td><strong>事件、觸發條件、參數與驗證證據</strong></td>
+<td><strong>本單元更新</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">第 3 頁要放：</p>
+<ul class="body-list">
+<li>巷口晨光三個事件的規格；</li>
+<li>練習頁的實測路徑與證據截圖（標註練習環境）；</li>
+<li>同意情境結果（三種情境，一句話＋截圖編號即可）；</li>
+<li>規劃付費廣告的組：另附去重卡。</li>
+</ul>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">13</div><h2 class="section-heading">11. 面試時怎麼說「我做過什麼」</h2>
+<p class="body-text">你擔心去重卡只是紙上作業。分清楚「做過」和「規格」，反而是加分：</p>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">「我在 GTM 幫 GA4 事件代碼設了額外同意 <code>analytics_storage</code>，用 Tag Assistant 測三種同意情境，確認使用者拒絕時事件代碼不觸發、同意後才觸發，每個情境都有截圖紀錄。
+Meta 那邊我沒有實際帳號，所以我寫的是去重規格：把 GA4 的 <code>booking_complete</code> 對到 Meta 的 <code>Schedule</code>，像素的 <code>eventID</code> 和轉換 API 的 <code>event_id</code> 要用預約系統產生的同一個編號。卡片上我標了哪些已驗證、哪些還沒，等拿到預約系統就能照卡驗證。」</div></div>
+<p class="body-text"><strong>實際做過的</strong>：同意設定、三情境測試、資料層事件與 GA4 收件、去重規格判斷。
+<strong>規格未驗證的</strong>：Meta 像素安裝、轉換 API、Meta 測試事件裡的去重結果。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">14</div><h2 class="section-heading">12. 卡住時查這裡</h2>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>狀況</th>
+<th>可能原因</th>
+<th>怎麼做</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>找不到「同意聲明設定」</td>
+<td>沒展開「進階設定」</td>
+<td>代碼設定最下方 → 進階設定 → 同意聲明設定</td>
+</tr>
+<tr>
+<td>改了設定，結果沒變</td>
+<td>沒儲存，或沒重新按「預覽」【待實機確認】</td>
+<td>儲存 → 工作區重按「預覽」→ 重新連練習頁</td>
+</tr>
+<tr>
+<td>拒絕時事件代碼還是觸發</td>
+<td>選成「不需要額外同意」或「未設定」；<code>analytics_storage</code> 打錯</td>
+<td>回同意設定逐字檢查 → 重開預覽 → 三情境全部重測</td>
+</tr>
+<tr>
+<td>接受全部後事件代碼還是不觸發</td>
+<td>先按了 LINE 才按接受；或觸發條件本身有問題</td>
+<td>照順序：重新整理 → 接受全部 → 再按 LINE；並確認 7-3 的觸發條件仍正常</td>
+</tr>
+<tr>
+<td>Tag Assistant 看不到 Consent 事件</td>
+<td>練習頁沒載入你的容器</td>
+<td>看頁首是否顯示你的容器 ID；檢查 <code>?gtm=</code> 網址</td>
+</tr>
+<tr>
+<td>頁面事件監看區看不到同意更新</td>
+<td>正常，練習頁本來就不列</td>
+<td>改到 Tag Assistant 看</td>
+</tr>
+<tr>
+<td><code>comparison_open</code> 沒出現</td>
+<td>比較表原本就展開</td>
+<td>先收合再展開，或重新整理</td>
+</tr>
+<tr>
+<td>重新整理後預覽斷線</td>
+<td>Tag Assistant 連線中斷</td>
+<td>回 GTM 重按「預覽」</td>
+</tr>
+<tr>
+<td>組員 5～6 人，有人沒分到上台段落</td>
+<td>四分鐘分配表以 4 人排</td>
+<td>多的組員分擔沿線講解的其中幾格，或接手「還沒驗證的部分與下一步」</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">15</div><h2 class="section-heading">13. 交件前自我檢核</h2>
+<p class="body-text"><strong>同意情境測試紀錄</strong></p>
+<ul class="body-list">
+<li>[ ] <code>line_join</code> 事件代碼設了「需要額外同意」＋<code>analytics_storage</code>；Google 代碼沒加額外同意</li>
+<li>[ ] 三種情境前都有重新整理</li>
+<li>[ ] 八欄都有填，四項狀態照畫面抄</li>
+<li>[ ] 情境 A、C 的事件代碼「不觸發」，情境 B「觸發」；若不是，停止條件寫「是」並寫回復位置</li>
+<li>[ ] 截圖編號對得上檔名</li>
+</ul>
+<p class="body-text"><strong>去重卡</strong></p>
+<ul class="body-list">
+<li>[ ] <code>booking_complete</code> → <code>Schedule</code>，大小寫正確</li>
+<li>[ ] 像素 <code>eventID</code>＝轉換 API <code>event_id</code>＝預約系統產生的同一個編號</li>
+<li>[ ] 唯一 ID 寫「待系統提供，尚未實際驗證」</li>
+<li>[ ] 重複測試有重新整理；失敗反例有缺必填欄位</li>
+<li>[ ] 目前狀態分開寫已驗證與未驗證</li>
+</ul>
+<p class="body-text"><strong>模組作業</strong></p>
+<ul class="body-list">
+<li>[ ] 個人準備九項補齊</li>
+<li>[ ] 實測記錄六樣（含反例與「只保留必要」）</li>
+<li>[ ] 上台註明練習環境</li>
+<li>[ ] 企劃書第 3 頁更新</li>
+</ul>
+<p class="body-text"><strong>說得出來（不看講義）</strong></p>
+<ul class="body-list">
+<li>[ ] 四個同意項目各管什麼（廣告存、分析存、廣告送、廣告用）</li>
+<li>[ ] 基本模式和進階模式差在哪、由誰決定</li>
+<li>[ ] 為什麼唯一 ID 不能兩端各生一個</li>
+</ul>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">16</div><h2 class="section-heading">參考來源（2026-11 查證）</h2>
+<ul class="body-list">
+<li>Google，同意模式概念：<a href="https://developers.google.com/tag-platform/security/concepts/consent-mode">https://developers.google.com/tag-platform/security/concepts/consent-mode</a></li>
+<li>Google Analytics 說明，行為建模資格：<a href="https://support.google.com/analytics/answer/11161109">https://support.google.com/analytics/answer/11161109</a></li>
+<li>Google Tag Manager 說明，同意設定（Consent Initialization、內建與額外同意檢查、同意總覽）：<a href="https://support.google.com/tagmanager/answer/10718549">https://support.google.com/tagmanager/answer/10718549</a></li>
+<li>Google，用 Tag Assistant 排查同意模式：<a href="https://developers.google.com/tag-platform/security/guides/consent-debugging">https://developers.google.com/tag-platform/security/guides/consent-debugging</a></li>
+<li>Google Ads 說明，歐盟使用者同意政策：<a href="https://support.google.com/google-ads/answer/16724512">https://support.google.com/google-ads/answer/16724512</a></li>
+<li>Meta，像素入門：<a href="https://developers.facebook.com/documentation/meta-pixel/get-started">https://developers.facebook.com/documentation/meta-pixel/get-started</a></li>
+<li>Meta，像素標準事件參考：<a href="https://developers.facebook.com/docs/meta-pixel/reference">https://developers.facebook.com/docs/meta-pixel/reference</a></li>
+<li>Meta，像素與轉換 API 事件去重：<a href="https://developers.facebook.com/docs/marketing-api/conversions-api/deduplicate-pixel-and-server-events">https://developers.facebook.com/docs/marketing-api/conversions-api/deduplicate-pixel-and-server-events</a></li>
+<li>Meta，轉換 API 伺服器事件參數：<a href="https://developers.facebook.com/docs/marketing-api/conversions-api/parameters/server-event">https://developers.facebook.com/docs/marketing-api/conversions-api/parameters/server-event</a></li>
+<li>Meta，Meta Ads Data Advisor（原 Meta Pixel Helper）：<a href="https://developers.facebook.com/documentation/meta-pixel/support/meta-ads-data-advisor">https://developers.facebook.com/documentation/meta-pixel/support/meta-ads-data-advisor</a></li>
+<li>Google，GA4 電子商務量測（GTM）：<a href="https://developers.google.com/analytics/devguides/collection/ga4/ecommerce?client_type=gtm">https://developers.google.com/analytics/devguides/collection/ga4/ecommerce?client_type=gtm</a></li>
+<li>Google，Google 代碼閘道：<a href="https://developers.google.com/tag-platform/tag-manager/gateway">https://developers.google.com/tag-platform/tag-manager/gateway</a></li>
+<li>Google，伺服器端代碼簡介：<a href="https://developers.google.com/tag-platform/tag-manager/server-side/intro">https://developers.google.com/tag-platform/tag-manager/server-side/intro</a></li>
+</ul>
 </div>
 </div>
 

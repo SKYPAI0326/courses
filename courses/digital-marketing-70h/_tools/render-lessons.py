@@ -4,7 +4,7 @@
 不給單元就轉製所有已有 md 的頁面。只替換：lesson-body、標題、副標、本節完成物、頂欄與單元號、
 <title> 與 description 類 meta、上一節／下一節導覽（依 lesson-meta.json 的順序重建）。其餘外殼、密碼閘、頁內 CSS 保留。
 md 格式：`# 標題`、副標一行、`學習目標：…｜…`（選用）、`本節完成物：…`、各 `##` 小節；`## 自我檢查` 起的內容不轉製。
-元件：段落、清單、表格、```提示詞框```、> 提醒（callout）、> 參考方向：…（收合的參考區）、標題以「模組作業」開頭的小節（作業框）。
+元件：段落、清單、表格、```提示詞框```（無語言標記；有標記如 ```text 則為一般程式碼框）、> 提醒（callout）、> 參考方向：…（收合的參考區）、標題以「模組作業」開頭的小節（作業框）。
 """
 from pathlib import Path
 from html.parser import HTMLParser
@@ -107,6 +107,10 @@ def render(body):
         for l in sec.find_all(['ul', 'ol'], recursive=False):
             l['class'] = 'body-list'
         for pre in sec.find_all('pre'):
+            # 有語言標記的程式碼框（```text、```js…）是流程圖、程式碼、範本，不是提示詞：保留 <pre>
+            if pre.code and any(c.startswith('language-') for c in pre.code.get('class', [])):
+                pre['class'] = 'rw-code'
+                continue
             box = s.new_tag('div', attrs={'class': 'rw-prompt', 'data-copy-prompt': ''})
             lab = s.new_tag('div', attrs={'class': 'dialog-label'})
             lab.string = '提示詞'

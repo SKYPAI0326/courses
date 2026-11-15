@@ -166,49 +166,1078 @@ a:not([class]):focus-visible{color:#0f5f6c}
 </div>
 
 <div class="lesson-body">
-<div class="lesson-section"><div class="section-eyebrow">01</div><h2 class="section-heading">自動化用觸發器與動作重複固定步驟</h2>
-<p class="body-text">自動化要解決的問題，是每週重複取資料、檢查、整理與起草時，如何減少手動搬運又讓錯誤停在可處理的位置。觸發器（Trigger）是讓流程開始的事件；動作（Action）是觸發後依序執行的步驟。「收到新的表單回覆後，新增試算表列、寄確認信、通知團隊」就是一個觸發器接三個動作。</p>
-<p class="body-text">一條流程要說清五個元件：觸發回答何時開始；輸入說明檔案與必填欄位；處理區分規則、公式、AI 與人工；輸出交代產物格式與位置；停止條件定義遇到缺欄、格式錯誤或未核准時停在哪裡。後一步要引用前一步的欄位，因此每一步都要寫收到什麼與交出什麼。</p>
-<p class="body-text">平台名稱不同，核心邏輯相同。Make 把一條流程稱為情境（scenario），流程中的一步稱模組（module），觸發模組只有一個且放在第一步；Run once 是手動執行一次測試。<a href="https://help.make.com/types-of-modules">Make 模組類型</a>、<a href="https://help.make.com/scenario-settings">Make 情境設定</a>（2026-11 查證）。Zapier 把一條流程稱為 Zap，由 trigger 啟動，再接一個或多個 action。<a href="https://help.zapier.com/hc/en-us/articles/8496181725453-Learn-key-concepts-in-Zap-workflows">Zapier 工作流程概念</a>（2026-11 查證）。實際欄位對應位置依上課當日官方畫面確認。</p>
+<div class="lesson-section"><div class="section-eyebrow">01</div><h2 class="section-heading">開始之前</h2>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">數位行銷人才培訓｜第二模組 生成式 AI 完整體系｜M2D 從重複操作到可運行的系統｜1 小時</div></div>
 </div>
-<div class="lesson-section"><div class="section-eyebrow">02</div><h2 class="section-heading">穩定輸入、固定格式、可觀察結果才適合自動化</h2>
-<p class="body-text">判斷一項工作是否適合自動化，先看三個條件：輸入是否穩定、格式是否固定、結果是否可觀察並判斷對錯。固定格式的資料整理、表單確認通知與定期彙整通常較適合；涉及品牌立場的決策、危機回應、重要對外文案與合作關係溝通，保留人工判斷較安全。</p>
-<p class="body-text">人在迴路（Human-in-the-loop）是把人工核准刻意放進流程。核准點要寫負責人、核准後去哪裡、退回哪一步、未核准時保留什麼。例如內容發布流程可以先讀取排程表主題，由 AI 起草並存成待審草稿；只有負責人把草稿改為「已核准」，排程才取得發布資格。AI 直接公開的風險通常高於省下的一次審核。</p>
-<p class="body-text">規則步驟與判斷步驟也要分開。檢查空白、日期格式與負數由固定規則做；計數與加總由公式做；AI 只把通過驗證的內容整理成指定格式；採用與送出由人決定。這種分工讓錯誤發生時，團隊知道該修資料、公式、提示詞或核准決定。</p>
-<p class="body-text">非行銷例子是費用報支：表單送出後先檢查日期、金額、憑證連結與部門，再由公式加總，AI 只能整理說明，主管核准後才進付款清單。缺憑證時停在驗證，避免文字整理掩蓋資料缺口。</p>
-</div>
-<div class="lesson-section"><div class="section-eyebrow">03</div><h2 class="section-heading">資料契約與六步流程把錯誤擋在 AI 前</h2>
-<p class="body-text">資料契約是流程雙方約定的欄位名稱、格式與必填條件。CSV 是逗號分隔的純文字表格，第一列是欄位名稱，之後每列一筆資料。本頁輸入共有六欄：<code>brand</code>、<code>published_at</code>、<code>url</code>、<code>caption</code>、<code>likes</code>、<code>comments</code>；日期格式是 <code>YYYY-MM-DD</code>，網址必填，按讚與留言必須是非負整數。</p>
-<p class="body-text">六步可控流程依序是手動觸發、讀取 CSV、驗證、彙整、AI 起草、人工核准。流程表用六欄記錄：步驟、收到的欄位、做什麼、交出什麼、失敗去向、由誰做。驗證失敗就停止主流程，錯誤清單記列號、欄位、原因與停在哪一步；壞資料不進彙整或 AI。</p>
-<p class="body-text">彙整只計算通過驗證的貼文數，並以按讚加留言找出各品牌互動合計最高的貼文。十筆資料可先人工計數，公式留到下一節教。AI 收到的是彙整後資料與有效貼文原文，用來起草摘要：</p>
-<div class="rw-prompt" data-copy-prompt=""><div class="dialog-label">提示詞</div>
-整理下列已通過驗證的貼文彙整資料，為每個品牌起草 100 字內摘要。
-輸出：品牌｜有效筆數｜互動合計最高貼文與網址｜一項有原文支持的觀察。
-限制：不推測觸及、轉換、受眾、成效原因或資料沒有的趨勢；資料不足時列出缺少欄位。
-[貼上通過驗證的品牌、有效貼文數、貼文原文、網址與互動合計]</div>
-<p class="body-text">人工核准點記錄負責人、核准後去向、退回步驟與未核准狀態。重跑起點依錯誤分開：資料修正後從讀取與驗證開始；數字正確但摘要錯誤，從 AI 起草開始；未核准就保留草稿。設計圖只能證明流程已規劃，真實執行紀錄才可證明平台路徑跑過。</p>
-</div>
-<div class="lesson-section"><div class="section-eyebrow">04</div><h2 class="section-heading">山徑咖啡示範：兩筆壞資料停在驗證</h2>
-<p class="body-text">示範打開<a href="assets/datasets/competitor-posts-practice.csv" rel="noopener" target="_blank">競品貼文練習資料</a>查看欄位，不把整份原始 CSV 直接貼給 AI。以試算表列號計算，第 1 列是欄位名：第 10 列的日常手沖資料缺少網址，第 11 列的按讚數是 -3，兩列都停在驗證。錯誤清單分別寫「第 10 列｜url｜必填欄位空白｜驗證」與「第 11 列｜likes｜不是非負整數｜驗證」。</p>
-<p class="body-text">其餘八筆進彙整。山徑咖啡有 3 筆有效貼文，互動合計最高的是 trail-103，184＋27＝211；拾光咖啡有 3 筆，最高是 time-203，245＋31＝276；日常手沖有 2 筆，最高是 daily-301，142＋18＝160。AI 只收到這些彙整值、有效貼文原文與網址，再依固定格式起草；人工逐筆回查數字、網址與觀察。</p>
-<p class="body-text">示範流程表的六步依序標「人／系統／規則／人工計數／AI／人」。讀取失敗回到檔案來源；驗證失敗進錯誤清單；彙整錯誤回到有效資料；AI 草稿錯誤退回起草；人工未核准保留草稿。核准點負責人是內容負責人，核准後才進後續排程，退回時附具體修改原因。</p>
-<p class="body-text">本頁沒有在平台執行，因此平台狀態寫「尚未在平台執行」。若有 Make 帳號，可用 Run once 載入同一批測試資料，確認兩筆壞資料真的走錯誤路徑、正確資料只到草稿，再由帳號負責人決定是否啟用排程。</p>
-</div>
-<div class="lesson-section"><div class="section-eyebrow">05</div><h2 class="section-heading">用第二份 CSV 設計失敗去向與重跑點</h2>
-<p class="body-text">練習改用<a href="assets/datasets/competitor-posts-practice-b.csv" rel="noopener" target="_blank">第二份競品貼文資料</a>。這批資料有相同六欄，但錯誤樣式與示範不同。先自行驗證，再交出：</p>
+<div class="lesson-section"><div class="section-eyebrow">02</div><h2 class="section-heading">這一節做完，你手上會有什麼</h2>
+<p class="body-text">一張「自動化流程設計圖」，從觸發一路畫到停止條件，旁邊附上：</p>
 <ol class="body-list">
-<li>六步流程表：步驟、收到的欄位、做什麼、交出什麼、失敗去向、由誰做。</li>
-<li>錯誤清單：列號、欄位、原因、停在哪一步。</li>
-<li>AI 起草提示詞，只接收通過驗證的資料。</li>
-<li>人工核准點：負責人、核准後、退回到、未核准時。</li>
-<li>重跑起點：不同錯誤各從哪一步重跑。</li>
-<li>平台狀態：「尚未在平台執行」或「已用 Run once 測試」。</li>
+<li><strong>六步流程表</strong>：每一步收到哪些欄位、做什麼、交出什麼、失敗時去哪裡、由誰做。</li>
+<li><strong>錯誤清單</strong>：哪一列、哪個欄位、為什麼錯、停在哪一步。</li>
+<li><strong>AI 起草提示詞</strong>：只餵給 AI 通過檢查的資料。</li>
+<li><strong>人工核准點</strong>：誰核准、核准後去哪裡、退回哪一步、沒核准時留下什麼。</li>
+<li><strong>重跑起點</strong>：不同的錯誤，各從哪一步重跑。</li>
+<li><strong>平台狀態</strong>：「尚未在平台執行」或「已用 Run once 測試」。</li>
 </ol>
-<p class="body-text">先依資料契約逐列檢查，再展開參考方向。</p>
-<details class="rw-reference"><summary>做完再展開：參考方向</summary>
-<p>日期斜線、空白留言數與 <code>1.2k</code> 都不符合本頁契約，應停在驗證；其餘有效列才進彙整。資料錯誤從讀取與驗證重跑，摘要錯誤從 AI 起草重跑，人工核准前維持草稿。</p>
+<p class="body-text"><strong>沒有 Make 或 Zapier 帳號也能完成。</strong> 這一節的重點是「設計」，平台只是之後把設計跑起來的地方。沒有帳號時，平台狀態寫「尚未在平台執行」，就算做完。第 5 節會說明面試時怎麼誠實地介紹這份作品。</p>
+<h3>先準備</h3>
+<ul class="body-list">
+<li>試算表工具（Excel 或 Google 試算表），以及電腦內建的純文字編輯器（Windows 的「記事本」、Mac 的「文字編輯」）。</li>
+<li>兩份課堂 CSV：示範用 <code>competitor-posts-practice.csv</code>、練習用 <code>competitor-posts-practice-b.csv</code>。兩份裡的品牌和網址（example.com）都是<strong>課堂模擬資料</strong>，不是真實品牌的貼文或成效。</li>
+<li>一個能用的 AI 帳號（ChatGPT、Claude 或 Gemini 任一）。</li>
+<li>紙筆或計算機。這一節的數字只有十來筆，用手算；試算表公式下一節（2D-3）才教。</li>
+</ul>
+<h3>一小時怎麼分配（自學時可參考）</h3>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>時間</th>
+<th>做什麼</th>
+<th>對應段落</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10 分鐘</td>
+<td>搞懂流程由哪些零件組成、哪些事該交給誰</td>
+<td>第 1、2 節</td>
+</tr>
+<tr>
+<td>10 分鐘</td>
+<td>認識 CSV 和資料契約，學會數列號</td>
+<td>第 3 節</td>
+</tr>
+<tr>
+<td>15 分鐘</td>
+<td>跟著山徑咖啡示範走完六步</td>
+<td>第 4、5 節</td>
+</tr>
+<tr>
+<td>25 分鐘</td>
+<td>用練習資料自己做一份，對照自我檢查</td>
+<td>第 7、8 節</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">03</div><h2 class="section-heading">1. 自動化在解決什麼問題</h2>
+<p class="body-text">先看一個你可能很熟的場景。山徑咖啡的社群企劃每週一早上都做同一件事：</p>
+<ol class="body-list">
+<li>把自家和兩個競品的貼文整理成一張表。</li>
+<li>檢查有沒有漏抄網址、數字有沒有抄錯。</li>
+<li>數每個品牌發了幾篇、哪一篇互動最高。</li>
+<li>寫一段摘要給店長。</li>
+</ol>
+<p class="body-text">每週的步驟一樣、資料長得一樣，只有內容不同。這種「<strong>每週重複取資料、檢查、整理、起草</strong>」的工作，就是自動化最適合接手的。你在公司每週整理報價單、彙整同事交來的資料，也是同一類工作。</p>
+<p class="body-text">但自動化不是「把整件事丟給機器」。這一節的單元摘要只有一句話，請記住它：</p>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body"><strong>先畫清楚資料、規則、失敗去向與人工核准，再決定是否上平台。</strong></div></div>
+<p class="body-text">順序是先設計、後上平台。設計沒畫清楚就上平台，只是讓錯誤跑得更快。</p>
+<h3>1.1 兩個最基本的詞：觸發器與動作</h3>
+<ul class="body-list">
+<li><strong>觸發器（Trigger）</strong>：讓流程「開始跑」的那件事。例如「每週一早上 9 點到了」、「有人上傳了一個新檔案」、「有人按下執行」。</li>
+<li><strong>動作（Action）</strong>：流程開始後「要做的事」。例如「讀取檔案」、「把資料寫進試算表」、「寄一封信」。</li>
+</ul>
+<p class="body-text">一條流程 = <strong>一個觸發器 + 後面一個或多個動作</strong>。</p>
+<h3>1.2 一條流程的五個元件</h3>
+<p class="body-text">光有觸發和動作還不夠，設計時要把五件事都寫出來：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>元件</th>
+<th>問自己的問題</th>
+<th>山徑咖啡的例子</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>觸發</td>
+<td>什麼事情發生時開始？</td>
+<td>負責人每週一手動按下執行</td>
+</tr>
+<tr>
+<td>輸入</td>
+<td>流程拿到什麼資料？</td>
+<td>一份競品貼文 CSV</td>
+</tr>
+<tr>
+<td>處理</td>
+<td>拿到之後做什麼？</td>
+<td>檢查、彙整、請 AI 起草</td>
+</tr>
+<tr>
+<td>輸出</td>
+<td>最後交出什麼？</td>
+<td>一份待核准的摘要草稿＋錯誤清單</td>
+</tr>
+<tr>
+<td>停止條件</td>
+<td>什麼時候結束、什麼時候該停下來？</td>
+<td>草稿交到核准者手上就結束；檔案讀不到就停</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">「停止條件」你在 2A-2（代理）和 2D-1（深度研究）都碰過：開始前就先講好什麼時候停。自動化流程也一樣，<strong>沒寫停止條件的流程，碰到壞資料（例如 -3、空白網址）不會自己停，會一路往下走</strong>。</p>
+<p class="body-text">設計時還有一個習慣要養成：<strong>每一步都寫「收到什麼」和「交出什麼」</strong>。上一步交出的東西，就是下一步收到的東西。寫得出來，流程才接得起來；寫不出來，就代表那一步還沒想清楚。</p>
+<h3>1.3 平台上的叫法（介面是英文，對照著看）</h3>
+<p class="body-text">Make 和 Zapier 是兩個常見的自動化平台，不用寫程式，用拖拉方塊的方式把步驟串起來。它們用的詞不一樣，但對應的是同樣的概念：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>概念</th>
+<th>Make 的叫法</th>
+<th>Zapier 的叫法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>一整條流程</td>
+<td>情境（Scenario）</td>
+<td>Zap</td>
+</tr>
+<tr>
+<td>流程中的一步</td>
+<td>模組（Module）</td>
+<td>步驟（Step）</td>
+</tr>
+<tr>
+<td>讓流程開始的那一步</td>
+<td>觸發模組（Trigger）：一個情境只能有一個，而且要放在第一步</td>
+<td>Trigger：每個 Zap 由一個 trigger 開始</td>
+</tr>
+<tr>
+<td>開始後要做的事</td>
+<td>動作模組（Action）：可以放很多個</td>
+<td>Action：一個或多個</td>
+</tr>
+<tr>
+<td>手動跑一次來測試</td>
+<td>Run once（按一次，只跑一次）</td>
+<td>設定時用一筆範例資料測試（test）</td>
+</tr>
+<tr>
+<td>讓它自動跑</td>
+<td>設定排程（Scheduling）</td>
+<td>開啟 Zap（turn on），之後每次觸發事件發生就自動執行</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">不用背英文介面的位置。<strong>選單位置、按鈕名稱會改版，實際位置以你操作當天的官方畫面為準</strong>；你要帶走的是左邊那一欄的概念。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">04</div><h2 class="section-heading">2. 哪些工作適合自動化，哪些要留給人</h2>
+<h3>2.1 三個條件都符合，才適合自動化</h3>
+<ol class="body-list">
+<li><strong>輸入穩定</strong>：每次都會有、來源固定。（每週都有競品貼文資料）</li>
+<li><strong>格式固定</strong>：每次的欄位都一樣。（每次都是同樣六欄）</li>
+<li><strong>結果可觀察、可判斷對錯</strong>：做完之後，看得出來對不對。（「有效貼文 8 篇」可以回頭數一次確認）</li>
+</ol>
+<p class="body-text">缺一個就先別自動化。例如「這篇貼文的語氣適不適合我們品牌」——每次情況不同、沒有固定對錯，這類工作要<strong>留給人判斷</strong>。其他典型要留給人的：要不要對外發布、跟錢或客戶承諾有關的決定、例外情況怎麼處理。</p>
+<h3>2.2 每一步交給誰：規則、公式、AI、人</h3>
+<p class="body-text">設計流程時，每一步都要決定「由誰做」。四種做事的角色，分工如下：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>由誰做</th>
+<th>適合做的事</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>規則</td>
+<td>有明確對錯的檢查</td>
+<td>「網址不能空白」、「日期要長這樣 YYYY-MM-DD」</td>
+</tr>
+<tr>
+<td>公式</td>
+<td>計算</td>
+<td>按讚＋留言＝互動合計</td>
+</tr>
+<tr>
+<td>AI</td>
+<td>跟語言有關的事：起草、摘要、改寫</td>
+<td>把彙整結果寫成一段給店長看的文字</td>
+</tr>
+<tr>
+<td>人</td>
+<td>判斷與決定</td>
+<td>核准這份摘要能不能寄出</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">最重要的一條：<strong>檢查和計算不交給 AI。</strong> AI 擅長寫字，但它可能把數字算錯、或把有問題的資料當成正常的寫進去。所以檢查用規則、計算用公式，<strong>驗證放在 AI 之前</strong>，AI 只拿到已經確認過的資料。</p>
+<h3>2.3 換個情境也通：費用報支</h3>
+<p class="body-text">這套想法不只用在行銷。拿你熟悉的行政工作「費用報支」來套：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>元件</th>
+<th>內容</th>
+<th>由誰做</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>觸發</td>
+<td>同事上傳一張報支單</td>
+<td>—</td>
+</tr>
+<tr>
+<td>輸入</td>
+<td>日期、金額、類別、單據照片</td>
+<td>—</td>
+</tr>
+<tr>
+<td>處理 1：驗證</td>
+<td>金額是數字、日期在本月、類別在公司清單內</td>
+<td>規則</td>
+</tr>
+<tr>
+<td>處理 2：彙整</td>
+<td>每人本月合計</td>
+<td>公式</td>
+</tr>
+<tr>
+<td>處理 3：起草</td>
+<td>寫一段報支摘要給主管</td>
+<td>AI</td>
+</tr>
+<tr>
+<td>處理 4：核准</td>
+<td>主管核准或退回</td>
+<td>人</td>
+</tr>
+<tr>
+<td>輸出</td>
+<td>核准後送會計；退回時通知同事補件</td>
+<td>—</td>
+</tr>
+<tr>
+<td>停止條件</td>
+<td>送到會計或退回給同事就結束</td>
+<td>—</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">只要你能把一件工作拆成這張表，你就有能力設計它的自動化，不論是什麼產業。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">05</div><h2 class="section-heading">3. 先看懂資料：CSV 與資料契約</h2>
+<h3>3.1 CSV 是什麼</h3>
+<p class="body-text">CSV 是一種最單純的表格檔：<strong>每一行是一筆資料，同一行裡的欄位用半形逗號 <code>,</code> 隔開</strong>。第一行通常是欄位名。很多系統（社群後台、電商後台、表單）都能匯出 CSV，自動化平台也很常讀它。</p>
+<p class="body-text">示範檔的前兩行長這樣：</p>
+<pre class="rw-code"><code class="language-text">brand,published_at,url,caption,likes,comments
+山徑咖啡,2026-10-13,https://example.com/posts/trail-101,"新手升級手沖壺前，先看出水穩定度。",128,14
+</code></pre>
+<ul class="body-list">
+<li>第一行是六個欄位名：brand（品牌）、published_at（發布日期）、url（網址）、caption（貼文文字）、likes（按讚數）、comments（留言數）。</li>
+<li>第二行是第一筆資料。caption 外面的雙引號，是為了讓文字裡就算有逗號也不會被切開。</li>
+<li>兩個逗號中間什麼都沒有（例如 <code>,,</code>），或最後一個逗號後面沒東西，代表那一格是<strong>空白</strong>。</li>
+</ul>
+<h3>3.2 打開 CSV 的兩個小陷阱</h3>
+<p class="body-text"><strong>陷阱一：試算表會「自作主張」改格式。</strong> 用 Excel 直接雙擊打開時，<code>2026-10-13</code> 這種日期可能被自動轉成日期格式，畫面上顯示成 <code>2026/10/13</code>。這樣一來，原本格式正確和格式錯誤的日期，在畫面上可能長得一模一樣，你就檢查不出來了。</p>
+<p class="body-text"><strong>檢查格式時，請用純文字編輯器（記事本／文字編輯）打開 CSV</strong>，看到的才是檔案裡真正的字。用 Google 試算表的話，可以從「檔案 → 匯入」上傳，匯入時取消勾選「把文字轉換成數字、日期」的那個選項（選項文字以畫面為準）。【待實機確認】</p>
+<p class="body-text"><strong>陷阱二：中文變亂碼。</strong> 如果 Excel 打開後中文變成亂碼，Windows 版 Excel 可改用「資料 → 從文字/CSV」匯入，或改用 Google 試算表匯入。</p>
+<h3>3.3 列號怎麼數（最容易寫錯的地方）</h3>
+<p class="body-text">本課規定：<strong>列號以試算表的列號為準，第 1 列是欄位名。</strong> 所以第一筆資料在第 2 列，不是第 1 列。</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>試算表列號</th>
+<th>內容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>brand,published_at,url,…（欄位名，不是資料）</td>
+</tr>
+<tr>
+<td>2</td>
+<td>第 1 筆資料</td>
+</tr>
+<tr>
+<td>3</td>
+<td>第 2 筆資料</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+</tr>
+<tr>
+<td>11</td>
+<td>第 10 筆資料</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">最保險的做法：在試算表裡打開，<strong>直接看最左邊灰色的列號</strong>，不要自己從 1 開始數。Mac 的文字編輯沒有行號，Windows 記事本的行號只在下方狀態列（游標所在的「行」），所以列號請看試算表。</p>
+<h3>3.4 資料契約：事先講好「什麼樣的資料算合格」</h3>
+<p class="body-text"><strong>資料契約</strong>就是流程和資料之間事先講好的規矩：資料要有哪些欄位、每個欄位要長什麼樣子。符合的才往下走，不符合的就是<strong>壞資料</strong>。</p>
+<p class="body-text">本單元的資料契約：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>欄位</th>
+<th>規矩</th>
+<th>合格例子</th>
+<th>不合格例子</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>全部</td>
+<td>一定要剛好六欄：brand、published_at、url、caption、likes、comments</td>
+<td>—</td>
+<td>少一欄、欄位名拼錯</td>
+</tr>
+<tr>
+<td>published_at</td>
+<td>格式是 YYYY-MM-DD（年-月-日，用半形減號）</td>
+<td>2026-10-13</td>
+<td>2026/10/13、10-13</td>
+</tr>
+<tr>
+<td>url</td>
+<td>必填，不能空白</td>
+<td>https://example.com/posts/trail-101</td>
+<td>（空白）</td>
+</tr>
+<tr>
+<td>likes</td>
+<td>非負整數：0、1、2……</td>
+<td>128、0</td>
+<td>-3、1.2k、空白</td>
+</tr>
+<tr>
+<td>comments</td>
+<td>非負整數</td>
+<td>14、0</td>
+<td>-1、空白、12.5</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text"><strong>拿著契約逐列檢查，這個動作就叫驗證。</strong> 有幾個判斷原則：</p>
+<ul class="body-list">
+<li><strong>只看契約，不猜。</strong> 看到 <code>1.2k</code>，你可能會想「大概是 1200 吧」，但流程不能猜。它不符合「整數」，就是壞資料，要回到原始貼文查證後再修。</li>
+<li><strong>空白也是錯。</strong> 留言數空白不等於 0；可能是漏抄，也可能真的是 0，流程無法判斷。</li>
+<li><strong>一列可能有不只一個錯。</strong> 每個錯的欄位都要分開記一行。</li>
+<li><strong>caption 契約沒有規定</strong>，內容寫什麼都不算錯。</li>
+</ul>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">06</div><h2 class="section-heading">4. 示範：山徑咖啡的六步可控流程</h2>
+<p class="body-text">接下來用示範資料 <code>competitor-posts-practice.csv</code> 走一遍。這份資料有 10 筆貼文（試算表第 2～11 列），其中藏了兩筆壞資料。示範<strong>沒有在平台上執行</strong>，是用「紙上試跑」的方式，把資料一列一列走過流程。</p>
+<h3>4.1 先看設計圖</h3>
+<pre class="rw-code"><code class="language-text">【觸發】負責人每週一手動執行（不開自動排程）
+   │
+   ▼
+步驟1 手動觸發 ─→ 步驟2 讀取 CSV ──讀不到／欄位不對──→ 【停止】通知負責人
+                      │
+                      ▼
+                 步驟3 驗證 ──壞資料──→ 錯誤清單（不進彙整、不進 AI）
+                      │ 通過驗證的資料
+                      ▼
+                 步驟4 彙整（有效貼文數、各品牌互動最高貼文）
+                      │ 只有彙整值＋各品牌最高貼文原文與網址
+                      ▼
+                 步驟5 AI 起草
+                      │ 草稿
+                      ▼
+                 步驟6 人工核准 ──退回──→ 依原因回到步驟 2／4／5
+                      │ 核准
+                      ▼
+【停止條件】核准後的摘要存檔並寄給店長，本次執行結束
+           （流程只到草稿與核准，永遠不自動對外發布）
+</code></pre>
+<h3>4.2 六步流程表</h3>
+<p class="body-text">流程表固定六欄：步驟、收到的欄位、做什麼、交出什麼、失敗去向、由誰做。</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>步驟</th>
+<th>收到的欄位</th>
+<th>做什麼</th>
+<th>交出什麼</th>
+<th>失敗去向</th>
+<th>由誰做</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 手動觸發</td>
+<td>本週的 CSV 檔名</td>
+<td>負責人確認檔案已放好，按下執行</td>
+<td>「開始執行」＋檔名</td>
+<td>檔案還沒到：不執行，等檔案</td>
+<td>人</td>
+</tr>
+<tr>
+<td>2 讀取 CSV</td>
+<td>檔名</td>
+<td>打開檔案，確認欄位剛好是那六欄，逐列讀出</td>
+<td>每一列的六個欄位＋列號</td>
+<td>檔案讀不到、欄位不是那六欄：整個流程停止，通知負責人</td>
+<td>規則（平台模組）</td>
+</tr>
+<tr>
+<td>3 驗證</td>
+<td>每一列的 brand、published_at、url、caption、likes、comments＋列號</td>
+<td>依資料契約逐列檢查</td>
+<td>通過的列；錯誤清單</td>
+<td>壞資料寫進錯誤清單，停在這一步，不進彙整、不進 AI</td>
+<td>規則</td>
+</tr>
+<tr>
+<td>4 彙整</td>
+<td>通過驗證的列：brand、url、caption、likes、comments</td>
+<td>算每個品牌的有效貼文數；每篇算按讚＋留言，找出各品牌互動合計最高的一篇</td>
+<td>彙整表：品牌、有效貼文數、最高貼文的網址、原文、互動合計；以及「本批共幾列、幾列未通過」</td>
+<td>數字對不起來：停止，回步驟 4 重算</td>
+<td>公式（本節先人工計算）</td>
+</tr>
+<tr>
+<td>5 AI 起草</td>
+<td>彙整表＋各品牌最高貼文的原文與網址＋未通過列數</td>
+<td>用固定的提示詞請 AI 寫摘要草稿</td>
+<td>摘要草稿</td>
+<td>草稿出現沒給它的數字或內容：退回步驟 5 重寫</td>
+<td>AI</td>
+</tr>
+<tr>
+<td>6 人工核准</td>
+<td>摘要草稿＋彙整表＋錯誤清單</td>
+<td>對照彙整表檢查草稿，決定核准或退回</td>
+<td>核准後的摘要</td>
+<td>退回：依原因回到步驟 2、4 或 5（見 4.6）</td>
+<td>人</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">注意第 3 步：<strong>壞資料停下來，好資料繼續走。</strong> 這批 10 筆有 2 筆壞的，另外 8 筆照樣進彙整和 AI 起草；壞的那 2 筆只會出現在錯誤清單裡。</p>
+<h3>4.3 步驟 3 驗證：逐列檢查，寫出錯誤清單</h3>
+<p class="body-text">用純文字編輯器打開示範檔，逐列對照資料契約。大部分列都沒問題，有兩列有狀況：</p>
+<pre class="rw-code"><code class="language-text">日常手沖,2026-10-18,,"新款濾杯開箱，留言告訴我們最想測哪種豆。",173,24
+日常手沖,2026-10-19,https://example.com/posts/daily-304,"週日直播：新手器具問答。",-3,12
+</code></pre>
+<p class="body-text">第一行的日期後面緊接兩個逗號 <code>,,</code>，代表網址是空白的；第二行的按讚數是 -3。對照試算表左邊的列號，它們分別在第 10 列和第 11 列。</p>
+<p class="body-text"><strong>錯誤清單</strong>（四欄：列號、欄位、原因、停在哪一步）：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>列號</th>
+<th>欄位</th>
+<th>原因</th>
+<th>停在哪一步</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10</td>
+<td>url</td>
+<td>空白；網址為必填</td>
+<td>步驟 3 驗證</td>
+</tr>
+<tr>
+<td>11</td>
+<td>likes</td>
+<td>值為 -3，不是非負整數</td>
+<td>步驟 3 驗證</td>
+</tr>
+</tbody>
+</table></div>
+<h3>4.4 步驟 4 彙整：只算通過驗證的 8 篇</h3>
+<p class="body-text">公式下一節才教，這裡用計算機算，<strong>每一格都寫出算式</strong>，方便自己和別人回頭驗算。</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>列號</th>
+<th>品牌</th>
+<th>網址結尾</th>
+<th>按讚＋留言</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2</td>
+<td>山徑咖啡</td>
+<td>trail-101</td>
+<td>128＋14＝142</td>
+</tr>
+<tr>
+<td>3</td>
+<td>山徑咖啡</td>
+<td>trail-102</td>
+<td>96＋11＝107</td>
+</tr>
+<tr>
+<td>4</td>
+<td>山徑咖啡</td>
+<td>trail-103</td>
+<td>184＋27＝<strong>211</strong></td>
+</tr>
+<tr>
+<td>5</td>
+<td>拾光咖啡</td>
+<td>time-201</td>
+<td>210＋19＝229</td>
+</tr>
+<tr>
+<td>6</td>
+<td>拾光咖啡</td>
+<td>time-202</td>
+<td>167＋22＝189</td>
+</tr>
+<tr>
+<td>7</td>
+<td>拾光咖啡</td>
+<td>time-203</td>
+<td>245＋31＝<strong>276</strong></td>
+</tr>
+<tr>
+<td>8</td>
+<td>日常手沖</td>
+<td>daily-301</td>
+<td>142＋18＝<strong>160</strong></td>
+</tr>
+<tr>
+<td>9</td>
+<td>日常手沖</td>
+<td>daily-302</td>
+<td>119＋16＝135</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text"><strong>彙整結果：</strong></p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>品牌</th>
+<th>有效貼文數</th>
+<th>互動合計最高的貼文</th>
+<th>互動合計</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>山徑咖啡</td>
+<td>3</td>
+<td>https://example.com/posts/trail-103「三種注水速度對風味的影響。」</td>
+<td>211</td>
+</tr>
+<tr>
+<td>拾光咖啡</td>
+<td>3</td>
+<td>https://example.com/posts/time-203「本週會員日第二杯半價。」</td>
+<td>276</td>
+</tr>
+<tr>
+<td>日常手沖</td>
+<td>2</td>
+<td>https://example.com/posts/daily-301「辦公室也能完成的五分鐘手沖流程。」</td>
+<td>160</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">本批共 10 列，有效 8 列，未通過驗證 2 列（皆為日常手沖）。</p>
+<p class="body-text"><strong>手算防錯：</strong> 算完後換個順序再加一次（先加留言再加按讚），兩次一樣才填。有效貼文數也再數一次：3＋3＋2＝8，加上錯誤清單的 2 列，剛好等於 10 列資料。這個「有效＋錯誤＝全部」的對帳，是最簡單也最有用的檢查。</p>
+<h3>4.5 步驟 5 AI 起草：只給通過驗證的資料</h3>
+<p class="body-text"><strong>不要把整份 CSV 直接貼給 AI。</strong> AI 只收到彙整值，以及各品牌互動最高那篇有效貼文的原文與網址。理由有兩個：壞資料不能混進去；AI 拿到原始數字可能會自己亂算。</p>
+<p class="body-text">示範提示詞（直接複製到 AI 工具使用）：</p>
+<div class="rw-prompt" data-copy-prompt=""><div class="dialog-label">提示詞</div>
+你是咖啡器具選品店「山徑咖啡」的社群企劃助理。
+請根據下面的自家與競品貼文彙整，寫一段給店長看的每週競品摘要。
+
+【資料說明】
+- 資料期間：2026-10-13 至 2026-10-19 的競品貼文
+- 這是已經檢查過的資料：本批共 10 列，8 列通過檢查，2 列未通過（日常手沖 2 列），未通過的資料沒有放進下面的彙整
+- 互動合計＝按讚數＋留言數
+
+【彙整】
+1. 山徑咖啡：有效貼文 3 篇。互動最高：「三種注水速度對風味的影響。」互動合計 211，網址 https://example.com/posts/trail-103
+2. 拾光咖啡：有效貼文 3 篇。互動最高：「本週會員日第二杯半價。」互動合計 276，網址 https://example.com/posts/time-203
+3. 日常手沖：有效貼文 2 篇。互動最高：「辦公室也能完成的五分鐘手沖流程。」互動合計 160，網址 https://example.com/posts/daily-301
+
+【要求】
+- 用繁體中文，200 字以內，分成「本週重點」和「可以參考的做法」兩段
+- 只能使用上面提供的數字，不要自行計算新數字，也不要推測沒有提供的資料
+- 提到日常手沖時，要註明「有 2 列資料未通過檢查，排名可能不完整」
+- 每提到一篇貼文，附上它的網址
+- 這是內部參考草稿，不要寫成對外發布的貼文</div>
+<p class="body-text">這個提示詞裡<strong>沒有任何一個沒檢查過的數字</strong>。AI 寫完後，核准者只要拿草稿對照彙整表，就能看出它有沒有亂寫。</p>
+<h3>4.6 步驟 6 人工核准點</h3>
+<p class="body-text">人在迴路（Human-in-the-loop）的意思是：流程中間留一個位置給人做決定，<strong>人沒點頭，流程就不往下走</strong>。核准點要寫清楚四件事：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>項目</th>
+<th>山徑咖啡的寫法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>負責人</td>
+<td>社群企劃（本流程的負責人）</td>
+</tr>
+<tr>
+<td>核准後</td>
+<td>摘要存進共用資料夾「每週競品摘要」，並寄給店長</td>
+</tr>
+<tr>
+<td>退回到</td>
+<td>草稿寫錯或語氣不對 → 步驟 5；數字對不上彙整表 → 步驟 4；懷疑原始資料有問題 → 步驟 2</td>
+</tr>
+<tr>
+<td>未核准時</td>
+<td>草稿、彙整表、錯誤清單都保留，標「未核准」；不寄出、不發布</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text"><strong>另一個常見的核准點：內容發布流程。</strong> 如果你設計「AI 寫貼文 → 自動發到粉專」，中間一定要有人工核准：AI 起草 → 人核准 → 才排程發布。退回時回到起草那一步；沒核准時草稿留著、不發。粉專一旦發出去就收不回來，所以「發布」這個動作永遠留給人決定。</p>
+<h3>4.7 重跑起點：錯在哪，從哪裡重來</h3>
+<p class="body-text">流程出錯後，不用每次都從頭跑。原則是：<strong>從「第一個需要改變結果的步驟」開始重跑</strong>，前面已經確認沒問題的步驟不用重做。</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>錯誤類型</th>
+<th>例子</th>
+<th>怎麼處理</th>
+<th>重跑起點</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>資料錯誤</td>
+<td>第 10 列網址空白、第 11 列按讚 -3</td>
+<td>回原始貼文查證，修正 CSV 來源檔</td>
+<td>步驟 2 讀取 CSV（檔案變了，要重讀、重新驗證）</td>
+</tr>
+<tr>
+<td>檔案錯誤</td>
+<td>讀不到檔案、欄位名不對</td>
+<td>重新匯出或放對檔案</td>
+<td>步驟 2 讀取 CSV</td>
+</tr>
+<tr>
+<td>計算錯誤</td>
+<td>互動合計加錯</td>
+<td>重算</td>
+<td>步驟 4 彙整（驗證結果沒變，不用重驗）</td>
+</tr>
+<tr>
+<td>起草錯誤</td>
+<td>AI 寫了沒提供的數字、語氣不對</td>
+<td>調整提示詞，重新起草</td>
+<td>步驟 5 AI 起草</td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">為什麼要分開？如果只是 AI 語氣不對，卻從頭讀檔、驗證、彙整，既浪費時間，又可能在重做時引入新的錯誤。反過來，如果是資料改了，卻只從步驟 5 重跑，AI 用的就還是舊的彙整，結果會是錯的。</p>
+<p class="body-text">（小提醒：因為這條流程由人手動觸發，「從步驟 2 重跑」實際操作上就是負責人再按一次執行，讓流程讀取修正後的檔案。）</p>
+<h3>4.8 平台狀態</h3>
+<p class="body-text">示範沒有在平台上跑，所以平台狀態寫：<strong>尚未在平台執行</strong>。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">07</div><h2 class="section-heading">5. 設計圖能證明什麼，執行紀錄能證明什麼</h2>
+<p class="body-text">這兩樣東西證明的事情不一樣，請分清楚：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th></th>
+<th>能證明</th>
+<th>不能證明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>流程設計圖（你今天交的）</td>
+<td>流程已經規劃好：步驟、欄位、錯誤去向、核准點都想清楚了</td>
+<td>平台上真的照這樣跑過</td>
+</tr>
+<tr>
+<td>平台的真實執行紀錄</td>
+<td>這條路徑在平台上實際跑過，壞資料真的走到錯誤路徑</td>
+<td>設計本身是否周全</td>
+</tr>
+</tbody>
+</table></div>
+<h3>如果你有 Make 帳號：用 Run once 測試</h3>
+<p class="body-text">Run once 是在情境（scenario）編輯畫面上<strong>手動執行一次</strong>的按鈕，按一次只跑一次，適合用來測試。測試方法：</p>
+<ol class="body-list">
+<li>照你的六步流程表，在 Make 建好對應的模組。</li>
+<li>用<strong>同一份測試資料</strong>（示範 CSV 或練習 CSV）按 Run once。</li>
+<li>確認兩件事：<strong>壞資料有走到錯誤路徑</strong>，以及<strong>正確資料只走到「草稿」</strong>，沒有被寄出或發布。</li>
+<li>確認無誤後，平台狀態改寫為「已用 Run once 測試」，並保留執行紀錄的畫面。</li>
+</ol>
+<p class="body-text">各模組的欄位要怎麼對應、按鈕在畫面哪裡，<strong>請以你操作當天的 Make 官方畫面為準</strong>，這一節不教點擊位置。</p>
+<p class="body-text"><strong>要不要開啟排程（讓它每週自動跑），由帳號負責人決定。</strong> 測試通過不等於可以自動上線。</p>
+<h3>面試時怎麼講</h3>
+<p class="body-text">沒有帳號、只交設計圖，一樣是完整的作品，關鍵是<strong>講清楚做到哪裡</strong>。例如：</p>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body">「我設計了一條競品貼文週報流程，六個步驟，驗證放在 AI 之前。我用一份 11 列的測試資料逐列走過，抓出 3 筆不符合資料契約的資料，並為不同錯誤設定了重跑起點和人工核准點。這份設計目前尚未在平台執行。」</div></div>
+<p class="body-text">誠實說「尚未在平台執行」，比說「我做過自動化」更可信。面試官要看的，是你能不能把一件工作拆成可控的流程。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">08</div><h2 class="section-heading">6. 練習前的一句話整理</h2>
+<p class="body-text">開始練習前，把整套做法縮成一句話：</p>
+<div class="callout"><span aria-hidden="true" class="callout-icon">→</span><div class="callout-body"><strong>人按開始 → 讀檔 → 照契約檢查（壞的記下來、停住）→ 只算好的 → AI 只拿算好的去寫 → 人看過才放行。</strong></div></div>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">09</div><h2 class="section-heading">7. 練習：用第二份資料自己做一份</h2>
+<p class="body-text"><strong>資料：</strong> <code>competitor-posts-practice-b.csv</code>。欄位一樣是六欄，但錯誤的樣式跟示範不同，頁面不會告訴你哪幾列錯。</p>
+<p class="body-text"><strong>規定：先依資料契約逐列自己檢查，做完再看第 9 節的參考答案。</strong></p>
+<h3>第 1 步：打開檔案，確認列號（約 3 分鐘）</h3>
+<ul class="body-list">
+<li>用純文字編輯器打開，看原始內容；再用試算表打開，看左邊的列號。</li>
+<li>確認第 1 列是欄位名，最後一筆資料在第幾列。</li>
+<li>寫下：本批共 ___ 列資料（不含欄位名）。</li>
+</ul>
+<h3>第 2 步：逐列驗證，寫錯誤清單（約 8 分鐘）</h3>
+<p class="body-text">每一列都對照第 3.4 節的契約表，依序問五個問題：</p>
+<ol class="body-list">
+<li>日期是不是 YYYY-MM-DD，用半形減號？</li>
+<li>網址有沒有填？</li>
+<li>按讚是不是 0 或正整數（沒有負號、小數點、英文字母，也不是空白）？</li>
+<li>留言是不是 0 或正整數？（行尾多一個逗號、後面沒東西，代表最後一欄空白）</li>
+<li>欄位數對不對？</li>
+</ol>
+<p class="body-text">發現錯誤就填進這張表：</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>列號</th>
+<th>欄位</th>
+<th>原因</th>
+<th>停在哪一步</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p class="body-text">做完對帳：<strong>有效列數＋錯誤列數＝全部資料列數</strong>（如果同一列有兩個錯，錯誤清單會多一行，但錯誤「列數」只算一次）。</p>
+<h3>第 3 步：手算彙整（約 5 分鐘）</h3>
+<p class="body-text">只用通過驗證的列，照 4.4 節的格式，每篇寫出「按讚＋留言＝合計」，再找出每個品牌最高的一篇。算兩次。</p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>品牌</th>
+<th>有效貼文數</th>
+<th>互動合計最高的貼文（網址＋原文）</th>
+<th>互動合計</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3>第 4 步：寫六步流程表（約 4 分鐘）</h3>
+<p class="body-text">可以直接沿用 4.2 節的六步，但要改成這份資料的實際狀況。六欄缺一不可：步驟、收到的欄位、做什麼、交出什麼、失敗去向、由誰做。</p>
+<h3>第 5 步：寫 AI 起草提示詞（約 3 分鐘）</h3>
+<p class="body-text">複製 4.5 節的提示詞，換成你算出來的彙整值。寫完用三個問題檢查：</p>
+<ul class="body-list">
+<li>提示詞裡有沒有出現錯誤清單上的任何一列資料？（應該沒有）</li>
+<li>有沒有寫明本批共幾列、幾列未通過、哪些品牌受影響？</li>
+<li>有沒有要求 AI 不能自己算新數字？</li>
+</ul>
+<p class="body-text">寫好後可以貼到 AI 工具試一次，再拿草稿對照你的彙整表，看 AI 有沒有亂加數字。</p>
+<h3>第 6 步：寫核准點、重跑起點、平台狀態（約 2 分鐘）</h3>
+<ul class="body-list">
+<li>核准點四項：負責人、核准後、退回到、未核准時。</li>
+<li>重跑起點：這份資料裡的每一種錯誤，各從哪一步重跑？再加上計算錯誤和起草錯誤。</li>
+<li>平台狀態：沒用 Make 跑過，就寫「尚未在平台執行」。</li>
+</ul>
+<h3>最後：畫成一張設計圖</h3>
+<p class="body-text">把觸發 → 六個步驟 → 停止條件畫成一張圖（手畫拍照、簡報軟體、試算表都可以），六份表格附在旁邊，就是本節完成物。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">10</div><h2 class="section-heading">8. 交件前自我檢查</h2>
+<ul class="body-list">
+<li>[ ] 錯誤清單的列號是用試算表列號（第 1 列是欄位名）。</li>
+<li>[ ] 每一筆錯誤都寫了欄位和「停在步驟 3 驗證」。</li>
+<li>[ ] 有效列數＋錯誤列數＝全部資料列數。</li>
+<li>[ ] 彙整只用通過驗證的列，每格都寫了算式。</li>
+<li>[ ] 六步流程表六欄都填了，每一步「交出什麼」接得上下一步「收到什麼」。</li>
+<li>[ ] 每一步都標了由規則、公式、AI 或人做；檢查與計算沒有交給 AI。</li>
+<li>[ ] AI 提示詞裡沒有任何未通過驗證的資料，也沒有貼整份 CSV。</li>
+<li>[ ] 核准點寫了四項，而且流程不會在沒人核准時自動寄出或發布。</li>
+<li>[ ] 重跑起點至少分出：資料錯誤、計算錯誤、起草錯誤三種。</li>
+<li>[ ] 平台狀態只寫了兩種之一，而且跟事實相符。</li>
+</ul>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">11</div><h2 class="section-heading">9. 參考答案（自己做完再看）</h2>
+<details>
+<summary>點開看練習資料的參考答案</summary>
+<p><strong>資料列數：</strong> 第 2～12 列，共 11 列。</p>
+<p><strong>錯誤清單：</strong></p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>列號</th>
+<th>欄位</th>
+<th>原因</th>
+<th>停在哪一步</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3</td>
+<td>published_at</td>
+<td>2026/10/23 用了斜線，不是 YYYY-MM-DD</td>
+<td>步驟 3 驗證</td>
+</tr>
+<tr>
+<td>5</td>
+<td>likes</td>
+<td>1.2k 不是整數（不能自行猜成 1200）</td>
+<td>步驟 3 驗證</td>
+</tr>
+<tr>
+<td>8</td>
+<td>comments</td>
+<td>空白（行尾逗號後沒有值），不是非負整數</td>
+<td>步驟 3 驗證</td>
+</tr>
+</tbody>
+</table></div>
+<p>如果你在 Excel 裡看不出第 3 列有錯，多半是 Excel 把日期都轉成同一種顯示格式了，請回到純文字編輯器確認。</p>
+<p><strong>對帳：</strong> 有效 8 列＋錯誤 3 列＝11 列。</p>
+<p><strong>彙整（算式）：</strong></p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>列號</th>
+<th>品牌</th>
+<th>網址結尾</th>
+<th>按讚＋留言</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2</td>
+<td>日常手沖</td>
+<td>daily-401</td>
+<td>156＋21＝177</td>
+</tr>
+<tr>
+<td>4</td>
+<td>日常手沖</td>
+<td>daily-403</td>
+<td>188＋26＝<strong>214</strong></td>
+</tr>
+<tr>
+<td>6</td>
+<td>拾光咖啡</td>
+<td>time-301</td>
+<td>226＋28＝<strong>254</strong></td>
+</tr>
+<tr>
+<td>7</td>
+<td>拾光咖啡</td>
+<td>time-302</td>
+<td>174＋19＝193</td>
+</tr>
+<tr>
+<td>9</td>
+<td>平價壺選</td>
+<td>value-501</td>
+<td>98＋12＝110</td>
+</tr>
+<tr>
+<td>10</td>
+<td>平價壺選</td>
+<td>value-502</td>
+<td>143＋17＝160</td>
+</tr>
+<tr>
+<td>11</td>
+<td>平價壺選</td>
+<td>value-503</td>
+<td>121＋15＝136</td>
+</tr>
+<tr>
+<td>12</td>
+<td>平價壺選</td>
+<td>value-504</td>
+<td>165＋20＝<strong>185</strong></td>
+</tr>
+</tbody>
+</table></div>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>品牌</th>
+<th>有效貼文數</th>
+<th>互動合計最高的貼文</th>
+<th>互動合計</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>日常手沖</td>
+<td>2</td>
+<td>https://example.com/posts/daily-403「辦公室手沖：五分鐘內完成秤豆、注水與清潔。」</td>
+<td>214</td>
+</tr>
+<tr>
+<td>拾光咖啡</td>
+<td>2</td>
+<td>https://example.com/posts/time-301「秋季配方豆的柑橘香，搭配十五克粉沖煮示範。」</td>
+<td>254</td>
+</tr>
+<tr>
+<td>平價壺選</td>
+<td>4</td>
+<td>https://example.com/posts/value-504「六款商品頁新增出水影片。」</td>
+<td>185</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>值得注意：</strong> 日常手沖第 5 列的按讚寫著 1.2k，如果真的是一千多，那篇才是日常手沖互動最高的貼文。這正是為什麼 AI 提示詞要寫明「日常手沖有 2 列、拾光咖啡有 1 列未通過檢查，排名可能不完整」，讓看摘要的人知道結論有缺口。</p>
+<p><strong>AI 提示詞的【資料說明】與【彙整】參考寫法：</strong></p>
+<div class="rw-prompt" data-copy-prompt=""><div class="dialog-label">提示詞</div>
+【資料說明】
+- 資料期間：2026-10-21 至 2026-10-29 的競品貼文
+- 這是已經檢查過的資料：本批共 11 列，8 列通過檢查，3 列未通過（日常手沖 2 列、拾光咖啡 1 列），未通過的資料沒有放進下面的彙整
+- 互動合計＝按讚數＋留言數
+
+【彙整】
+1. 日常手沖：有效貼文 2 篇。互動最高：「辦公室手沖：五分鐘內完成秤豆、注水與清潔。」互動合計 214，網址 https://example.com/posts/daily-403
+2. 拾光咖啡：有效貼文 2 篇。互動最高：「秋季配方豆的柑橘香，搭配十五克粉沖煮示範。」互動合計 254，網址 https://example.com/posts/time-301
+3. 平價壺選：有效貼文 4 篇。互動最高：「六款商品頁新增出水影片。」互動合計 185，網址 https://example.com/posts/value-504</div>
+<p>【要求】段沿用示範，把「提到日常手沖時」改成「提到日常手沖與拾光咖啡時，要註明有資料未通過檢查，排名可能不完整」。</p>
+<p><strong>重跑起點：</strong></p>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>錯誤</th>
+<th>處理</th>
+<th>重跑起點</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第 3 列日期格式</td>
+<td>改成 2026-10-23</td>
+<td>步驟 2 讀取 CSV</td>
+</tr>
+<tr>
+<td>第 5 列 1.2k</td>
+<td>回原貼文查實際按讚數，改成整數</td>
+<td>步驟 2 讀取 CSV</td>
+</tr>
+<tr>
+<td>第 8 列留言空白</td>
+<td>回原貼文查實際留言數補上</td>
+<td>步驟 2 讀取 CSV</td>
+</tr>
+<tr>
+<td>互動合計加錯</td>
+<td>重算</td>
+<td>步驟 4 彙整</td>
+</tr>
+<tr>
+<td>AI 草稿出現沒提供的數字</td>
+<td>調整提示詞</td>
+<td>步驟 5 AI 起草</td>
+</tr>
+</tbody>
+</table></div>
+<p>三種資料錯誤的樣子不同，但都是「來源檔要改」，所以重跑起點相同。</p>
+<p><strong>核准點</strong>、<strong>流程表</strong>的寫法跟示範相同即可，負責人、核准後的去處可以依你設定的情境改寫（例如負責人寫「行銷助理（我）」、核准後「寄給主管」）。</p>
+<p><strong>平台狀態：</strong> 尚未在平台執行（除非你真的用 Run once 跑過）。</p>
 </details>
-<p class="body-text">完成的資料契約與驗證觀念，下一節會用在表格欄位確認與數字驗算。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">12</div><h2 class="section-heading">10. 名詞速查（複習用）</h2>
+<div aria-label="資料表，可水平捲動" class="table-scroll" role="region" tabindex="0"><table class="rw-table">
+<thead>
+<tr>
+<th>名詞</th>
+<th>一句話</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>觸發器（Trigger）</td>
+<td>讓流程開始的事件</td>
+</tr>
+<tr>
+<td>動作（Action）</td>
+<td>流程開始後要做的事</td>
+</tr>
+<tr>
+<td>停止條件</td>
+<td>什麼時候結束、什麼時候該停下來</td>
+</tr>
+<tr>
+<td>情境（Scenario）</td>
+<td>Make 對「一條流程」的叫法</td>
+</tr>
+<tr>
+<td>模組（Module）</td>
+<td>Make 對「流程中一步」的叫法；觸發模組只能有一個，放第一步</td>
+</tr>
+<tr>
+<td>Zap</td>
+<td>Zapier 對「一條流程」的叫法，由一個 trigger 開始，再接一個或多個 action</td>
+</tr>
+<tr>
+<td>Run once</td>
+<td>Make 裡手動執行一次的按鈕，用來測試</td>
+</tr>
+<tr>
+<td>CSV</td>
+<td>用逗號分隔欄位的純文字表格檔，第一行通常是欄位名</td>
+</tr>
+<tr>
+<td>資料契約</td>
+<td>事先講好資料要有哪些欄位、每欄長什麼樣</td>
+</tr>
+<tr>
+<td>驗證</td>
+<td>拿資料契約逐列檢查資料</td>
+</tr>
+<tr>
+<td>彙整</td>
+<td>把通過驗證的資料算成摘要數字</td>
+</tr>
+<tr>
+<td>人在迴路（Human-in-the-loop）</td>
+<td>流程中留位置給人決定，人沒點頭就不往下走</td>
+</tr>
+<tr>
+<td>人工核准點</td>
+<td>人做決定的那一步：誰核准、核准後去哪、退回哪、沒核准留下什麼</td>
+</tr>
+<tr>
+<td>重跑起點</td>
+<td>出錯後從哪一步重新跑；從第一個需要改變結果的步驟開始</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">13</div><h2 class="section-heading">下一節會用到</h2>
+<p class="body-text">這一節的<strong>資料契約</strong>和<strong>驗證</strong>觀念，下一節 2D-3「把表格交給 AI」會直接用上：先確認表格欄位，再讓 AI 計算，最後用試算表公式驗算數字。今天你用手算寫下的那些算式，下一節會換成公式。</p>
+<h3>本講義參考的官方說明（2026-11 查閱）</h3>
+<ul class="body-list">
+<li>Make，Types of modules：https://help.make.com/types-of-modules（一個情境只能有一個觸發模組，且須放在第一個；動作模組可以有多個、放在任何位置）</li>
+<li>Make，Scenario settings：https://help.make.com/scenario-settings（用 Run once 手動執行時，只會執行一個循環）</li>
+<li>Zapier，Learn key concepts in Zap workflows：https://help.zapier.com/hc/en-us/articles/8496181725453-Learn-key-concepts-in-Zap-workflows（Zap 是連接應用程式的自動化流程；trigger 是啟動 Zap 的事件；action 是觸發後執行的事件）</li>
+</ul>
+<p class="body-text">工具介面變動快，本講義教的是用法與判斷，按鈕名稱與位置以你操作當天的官方畫面為準。</p>
+</div>
+<div class="lesson-section"><div class="section-eyebrow">14</div><h2 class="section-heading">卡住時</h2>
+<ul class="body-list">
+<li><strong>Mac 版 Excel 找不到「從文字/CSV」：</strong> Mac 版 Microsoft 365 要走「資料 → 取得資料（Power Query）→ Text/CSV」，16.57 以上版本才有；找不到就改用 Google 試算表匯入。</li>
+<li><strong>用「從文字/CSV」匯入後中文還是亂碼：</strong> 在匯入畫面的「檔案原點（File Origin）」選「65001：Unicode (UTF-8)」。</li>
+</ul>
 </div>
 </div><!-- end lesson-body -->
 
