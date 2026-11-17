@@ -38,7 +38,7 @@ COURSES = {
     "admin-ai-assistant": ("adminai_auth", "1e51cd64a905ed891bdfd0d7afab4c131fb2db96195db0da0ee5c3899c69d8be"),
     "ai-beginner-practical": ("aibeginner_auth", "f4e1ded44f5b488c907b18bb3fbc0180ecb86635a08fb4e99590ff57516ca9d7"),
     "canva-video-teaching": ("canvavideo_auth", "de29936f17855f7eea443b687c8a8be31261364b382bd662a7dc8429b1e32dac"),
-    "uiux-designer":   ("uiux_auth",    "b237df7188aa69d1b92aa59a225ff85c60c7c1616292dcef3a4bd23fd1700bc8"),
+    "uiux-designer":   ("uiux_auth",    "df0e9e450c9c887ecd486a45a676911404cf86518b0589ef6ad3b0537a86a95a"),
 }
 
 GATE_TEMPLATE = '''\
