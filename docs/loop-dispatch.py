@@ -21,6 +21,11 @@ from pathlib import Path
 
 CARD_ID = re.compile(r"\b[A-Z]-\d+(?:-[A-Z])?\b")
 
+# 2026-11-18 使用者決定：課程內容一律走共學制度（01-PROJECTS/共學專案/，入口 /colearning），
+# 不開夜班卡、不交給 Codex。夜班只做不碰內容的工作（連結、lint 規則、產生器、部署前檢查等）。
+CONTENT_TYPE = re.compile(r"講義|學員能否完成|教學內容|文案")
+CONTENT_SCOPE = re.compile(r"courses/[^/\s]+/(?!_)[^\s，、]*\.html|講義|學員頁")
+
 
 def main_checkout() -> Path:
     out = subprocess.run(["git", "worktree", "list", "--porcelain"], capture_output=True,
@@ -37,7 +42,7 @@ def parse_queue(path: Path) -> dict:
             continue
         fields = {}
         for line in lines[1:]:
-            m = re.match(r"- (類型|證據要求|相依|狀態)：(.*)", line)
+            m = re.match(r"- (類型|範圍|證據要求|相依|狀態)：(.*)", line)
             if m and m.group(1) not in fields:
                 fields[m.group(1)] = m.group(2).strip()
         cards[match.group(0)] = {"title": lines[0], **fields}
@@ -47,6 +52,8 @@ def parse_queue(path: Path) -> dict:
 def dispatchable(card: dict, cards: dict) -> tuple[bool, str]:
     if not card.get("狀態", "").startswith("todo"):
         return False, "狀態非 todo"
+    if CONTENT_TYPE.search(card.get("類型", "")) or CONTENT_SCOPE.search(card.get("範圍", "")):
+        return False, "課程內容一律走共學（/colearning），不派夜班"
     evidence = card.get("證據要求", "")
     night = "夜班" in card.get("類型", "") or re.match(r"(M|A)(?![A-Za-z])", evidence)
     if not night or re.search(r"\b[HE]\b|加 ?[HE]", evidence):
