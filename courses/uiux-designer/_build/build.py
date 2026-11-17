@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""UI/UX 共學講義：把 UIUX共學講義/<章>/_src/*.tpl 套上冷色調外殼，產出課程網頁。
+"""UI/UX 共學講義：把 UIUX共學講義/<章>/ 的講義套上冷色調外殼，產出課程網頁。
+
+講義來源有兩種，以「篇」為單位判斷（同一章可以混用）：
+  - .tpl：<章>/_src/<篇>.tpl（第一章全部、第二章開場）
+  - 定稿：<章>/定稿/<篇>.v<N>.html（第二章起的新篇；格式見 共學專案/範本/定稿格式.md），取 N 最大的一版
+  同一篇兩種都有就失敗。目錄一律是 _src/目錄.tpl（導覽，不在定稿範圍）。
 
 用法（在課程 repo 根目錄執行）：
   python3 courses/uiux-designer/_build/build.py                 # 輸出到 courses/uiux-designer/
@@ -11,7 +16,11 @@
   3. 講義 <main> 內容原封不動，只做兩件事：{{IMG:路徑}} 換成內嵌 JPEG（與 UIUX共學講義/工具/build_page.py
      同參數：寬 >1200 縮到 1200、JPEG 品質 82），以及站內連結改成新檔名。
   4. 各頁 <style> 裡的示意圖、複製框等專屬規則保留；通用外觀規則改由 theme.css 提供。
-  5. 建完自動比對每頁 <main>（去掉圖片資料、還原連結後）和 .tpl 完全相同，不同就失敗。
+  5. 建完自動比對每頁 <main>（去掉圖片資料、還原連結後）和來源完全相同，不同就失敗。
+  6. 每頁寫出後，只對這一頁注入密碼關卡（inject_gate.inject，key 與雜湊取自 inject_gate.COURSES），
+     並確認每頁剛好一個關卡；不會掃描或改動其他頁面與其他課程。
+定稿頁另外：正文原樣放進 <main id="main" data-正文>；<img src="圖/…"> 換成內嵌 JPEG（路徑相對於章資料夾）；
+色票依 data-value 產生樣式；互動元件依名稱附上執行時的 script。正文不加任何字。
 不會修改 UIUX共學講義 資料夾內任何檔案。
 """
 import argparse, base64, datetime, html, io, json, re, sys, unicodedata
@@ -21,6 +30,9 @@ from PIL import Image
 HERE = Path(__file__).resolve().parent
 COURSE_DIR = HERE.parent
 REPO = COURSE_DIR.parent.parent
+sys.path.insert(0, str(REPO))
+from inject_gate import inject as inject_gate, COURSES as GATE_COURSES  # noqa: E402
+GATE_KEY, GATE_HASH = GATE_COURSES[COURSE_DIR.name]
 CN = "零一二三四五六七八九十"
 
 # 講義原始 CSS 中，改由 theme.css 統一提供的規則（選擇器正規化後比對）
@@ -31,6 +43,15 @@ BASE_SELECTORS = {
     "summary", ".btn", ".btn:hover", ".btn:active", ".btn::after",
 }
 CHROME_PREFIXES = (".toc", ".stage", ".checker")  # 整組由 theme.css 重新定義
+
+# 定稿：模板畫得出來的 data-kind（標籤 → 可用的種類）。長條沒有做，用到就擋下。
+DRAFT_KINDS = {
+    "p": {"位置", "眉標", "註", "導言", "段", "看到", "範例", "圖說"},
+    "section": {"讀完之後", "步驟", "重點"},
+    "pre": {"複製"}, "code": {"複製"}, "a": {"按鈕"}, "span": {"色票"},
+    "figure": {"互動", "示意"},
+}
+INTERACTIVE = {"對比檢查器": "contrast-checker.js"}  # 互動名稱 → _build 裡的執行時 script
 
 
 def nfc(s):
@@ -153,6 +174,75 @@ def parse_tpl(path):
     return {"title": title, "style": style, "main": m2.group(2), "scripts": scripts}
 
 
+def parse_draft(path, theme):
+    """讀定稿片段。回傳和 parse_tpl 相同的欄位，另加 css（色票）與 desc。"""
+    where = f"定稿/{path.name}"
+    t = nfc(path.read_text(encoding="utf-8"))
+    if re.search(r"<(html|head|body|main|style)\b", t, re.I):
+        fail(f"{where} 應該是正文片段，不能有 html/head/body/main/style")
+    h1 = re.findall(r"<h1>(.*?)</h1>", t, re.S)
+    if len(h1) != 1:
+        fail(f"{where} 要剛好一個 <h1>，找到 {len(h1)} 個")
+    # 示意以外不能有 script／事件屬性（示意也不行）
+    if re.search(r"<script\b", t, re.I) or re.search(r"\son[a-z]+\s*=", t, re.I):
+        fail(f"{where} 有 script 或事件屬性")
+    for tag, kind in re.findall(r"<([a-z0-9]+)\b[^>]*\sdata-kind=\"([^\"]*)\"", t):
+        if kind not in DRAFT_KINDS.get(tag, set()):
+            fail(f"{where} 用了模板還沒畫的區塊：<{tag} data-kind=\"{kind}\">（先在 theme.css 補樣式並登記到 DRAFT_KINDS）")
+    # 示意裡的 class 都要在 theme.css 的 figure[data-kind="示意"] 規則裡定義過
+    known = set()
+    for pre, body in split_rules(theme):
+        for p in ([pre] if not pre.startswith("@") else [p for p, _ in split_rules(body)]):
+            if '[data-kind="示意"]' in p:
+                known.update(re.findall(r"\.([A-Za-z_][\w-]*)", p))
+    for fig in re.findall(r'<figure data-kind="示意">(.*?)</figure>', t, re.S):
+        for cls in re.findall(r'class="([^"]*)"', fig):
+            for c in cls.split():
+                if c not in known:
+                    fail(f"{where} 的示意用了 theme.css 沒定義的 class「{c}」（寫成 figure[data-kind=\"示意\"] .{c}）")
+    # 色票：data-value 必須是色碼，產生上色規則（不往正文加字）
+    css = []
+    for v in sorted(set(re.findall(r'<span data-kind="色票" data-value="([^"]*)"', t))):
+        if not re.fullmatch(r"[0-9A-Fa-f]{6}|[0-9A-Fa-f]{3}", v):
+            fail(f"{where} 的色票 data-value 不是色碼：{v}")
+        css.append(f'main[data-正文] span[data-kind="色票"][data-value="{v}"]{{background:#{v}}}')
+    if t.count('data-kind="色票"') != len(re.findall(r'<span data-kind="色票" data-value="[^"]*"', t)):
+        fail(f"{where} 的色票要寫成 <span data-kind=\"色票\" data-value=\"色碼\">")
+    scripts = []
+    for name in sorted(set(re.findall(r'<figure data-kind="互動" data-value="([^"]*)"', t))):
+        if name not in INTERACTIVE:
+            fail(f"{where} 的互動元件「{name}」還沒有對應的 script（可用：{sorted(INTERACTIVE)}）")
+        scripts.append("<script>\n" + (HERE / INTERACTIVE[name]).read_text(encoding="utf-8") + "</script>")
+    if t.count('data-kind="互動"') != len(re.findall(r'<figure data-kind="互動" data-value="[^"]*"', t)):
+        fail(f"{where} 的互動要寫成 <figure data-kind=\"互動\" data-value=\"元件名\">")
+    lead = re.search(r'<p data-kind="導言">(.*?)</p>', t, re.S) or re.search(r"<p>(.*?)</p>", t, re.S)
+    title = text_of(h1[0])
+    return {"title": title, "style": "", "main": t, "scripts": scripts, "css": "\n".join(css),
+            "desc": text_of(lead.group(1))[:150] if lead else title}
+
+
+def find_sources(chap_dir):
+    """每一篇的來源：{stem: ("tpl"|"定稿", path)}。同一篇兩種都有、或定稿檔名不合規則，就失敗。"""
+    src = {nfc(p.stem): ("tpl", p) for p in (chap_dir / "_src").glob("*.tpl")}
+    drafts = {}
+    d = chap_dir / "定稿"
+    if d.is_dir():
+        for p in d.glob("*.html"):
+            m = re.fullmatch(r"(.+)\.v(\d+)\.html", nfc(p.name))
+            if not m:
+                fail(f"定稿檔名要是 <篇>.v<版本>.html：{p.name}")
+            stem, ver = m.group(1), int(m.group(2))
+            if stem not in drafts or ver > drafts[stem][0]:
+                drafts[stem] = (ver, p)
+    for stem, (_, p) in drafts.items():
+        if stem == "目錄":
+            fail("目錄是導覽，不寫成定稿；請用 _src/目錄.tpl")
+        if stem in src:
+            fail(f"「{stem}」同時有 _src/{stem}.tpl 和 定稿/{p.name}，只能留一種")
+        src[stem] = ("定稿", p)
+    return src
+
+
 def parse_toc(main):
     items, stage = [], None
     for m in re.finditer(r'<p class="stage">(.*?)</p>|<li><a href="([^"]+)"><span class="no">(.*?)</span><span><span class="t">(.*?)</span>', main):
@@ -253,10 +343,10 @@ def build_chapter(cfg, ch, src_root, out_dir, theme, built, report):
     chap_dir = src_root / ch["src"]
     if not src.is_dir():
         fail(f"找不到章節來源：{src}")
-    tpls = {nfc(p.stem): p for p in src.glob("*.tpl")}
-    if "目錄" not in tpls:
+    tpls = find_sources(chap_dir)
+    if tpls.get("目錄", ("",))[0] != "tpl":
         fail(f"{src} 缺 目錄.tpl")
-    toc_tpl = parse_tpl(tpls["目錄"])
+    toc_tpl = parse_tpl(tpls["目錄"][1])
     toc = parse_toc(toc_tpl["main"])
     name_map = {"目錄.html": "index.html"}
     for stem in tpls:
@@ -274,17 +364,31 @@ def build_chapter(cfg, ch, src_root, out_dir, theme, built, report):
     dest.mkdir(parents=True, exist_ok=True)
     order = ["目錄"] + toc_stems
     for idx, stem in enumerate(order):
-        tpl = parse_tpl(tpls[stem])
-        where = f"{ch['src']}/{stem}.tpl"
+        kind, path = tpls[stem]
+        if kind == "tpl":
+            tpl = parse_tpl(path)
+            where = f"{ch['src']}/{stem}.tpl"
+        else:
+            tpl = parse_draft(path, theme)
+            where = f"{ch['src']}/定稿/{path.name}"
         main = rewrite_links(tpl["main"], name_map, where)
-        imgs = re.findall(r"\{\{IMG:([^}]+)\}\}", main)
-        main = re.sub(r"\{\{IMG:([^}]+)\}\}", lambda m: embed(chap_dir / m.group(1)), main)
-        left = re.findall(r"\{\{[^}]+\}\}", main)
-        if left:
-            fail(f"{where} 有沒替換的佔位符：{left}")
-        css = minify(theme + "\n/* page */\n" + page_css(tpl["style"], where))
-        lead = re.search(r'<p class="lead">(.*?)</p>', tpl["main"], re.S)
-        desc = text_of(lead.group(1))[:150] if lead else tpl["title"]
+        if kind == "tpl":
+            imgs = re.findall(r"\{\{IMG:([^}]+)\}\}", main)
+            main = re.sub(r"\{\{IMG:([^}]+)\}\}", lambda m: embed(chap_dir / m.group(1)), main)
+            left = re.findall(r"\{\{[^}]+\}\}", main)
+            if left:
+                fail(f"{where} 有沒替換的佔位符：{left}")
+            css = minify(theme + "\n/* page */\n" + page_css(tpl["style"], where))
+            lead = re.search(r'<p class="lead">(.*?)</p>', tpl["main"], re.S)
+            desc = text_of(lead.group(1))[:150] if lead else tpl["title"]
+        else:
+            imgs = re.findall(DRAFT_IMG, main)
+            for rel in imgs:
+                if re.match(r"^(https?:|data:)", rel):
+                    fail(f"{where} 的圖片要用相對路徑（圖/…）：{rel[:60]}")
+            main = re.sub(DRAFT_IMG, lambda m: m.group(0).replace(m.group(1), embed(chap_dir / m.group(1))), main)
+            css = minify(theme + "\n/* page */\n" + tpl["css"])
+            desc = tpl["desc"]
         fname = name_map[f"{stem}.html"]
         url = f"{cfg['site_url']}{ch['dir']}/{'' if fname == 'index.html' else fname}"
         title = f"{tpl['title']}｜{cfg['short']}"
@@ -306,21 +410,36 @@ def build_chapter(cfg, ch, src_root, out_dir, theme, built, report):
                 nxt = (name_map[q["href"]], f"下一份：{q['t']}")
             else:
                 nxt = ("index.html", f"這一章做完了，回到{ch_label}目錄")
+        main_open = '<main id="main">' if kind == "tpl" else '<main id="main" data-正文>'
         page = (head(cfg, title, desc, url, css) + topbar("../../../index.html", "../index.html", cfg, tag)
-                + f'<main id="main">{main}</main>\n' + pager(prev, nxt) + foot(cfg, built, "共學講義")
+                + f'{main_open}{main}</main>\n' + pager(prev, nxt) + foot(cfg, built, "共學講義")
                 + "".join(s + "\n" for s in tpl["scripts"]) + "</body>\n</html>\n")
         out = dest / fname
         out.write_text(page, encoding="utf-8")
+        add_gate(out)
         verify_main(out, tpl["main"], name_map, where)
-        report.append((f"{ch['dir']}/{fname}", stem, len(imgs), out.stat().st_size))
+        report.append((f"{ch['dir']}/{fname}", f"{stem}（{'定稿 ' + path.name if kind != 'tpl' else 'tpl'}）",
+                       len(imgs), out.stat().st_size))
     lead = re.search(r'<p class="lead">(.*?)</p>', toc_tpl["main"], re.S)
     return (lead.group(1).strip() if lead else ""), [(name_map[it["href"]], it) for it in toc]
 
 
+DRAFT_IMG = r'<img\b[^>]*?\ssrc="([^"]+)"'
+
+
+def add_gate(out):
+    """只對剛寫出的這一頁注入本課的密碼關卡，並確認剛好一個。"""
+    inject_gate(out, GATE_KEY, GATE_HASH)
+    n = out.read_text(encoding="utf-8").count('<div id="_gate">')
+    if n != 1:
+        fail(f"{out.name} 的密碼關卡應該剛好 1 個，現在 {n} 個")
+
+
 def verify_main(out, tpl_main, name_map, where):
-    got = re.search(r'<main id="main">(.*)</main>', out.read_text(encoding="utf-8"), re.S).group(1)
+    got = re.search(r'<main id="main"(?: data-正文)?>(.*)</main>', out.read_text(encoding="utf-8"), re.S).group(1)
     got = re.sub(r"data:image/jpeg;base64,[A-Za-z0-9+/=]+", "{{IMG}}", got)
     exp = re.sub(r"\{\{IMG:[^}]+\}\}", "{{IMG}}", tpl_main)
+    exp = re.sub(DRAFT_IMG, lambda m: m.group(0).replace(m.group(1), "{{IMG}}"), exp)
     exp = re.sub(r'href="([^"]*)"', lambda m: f'href="{name_map.get(nfc(m.group(1)), m.group(1))}"', exp)
     if got != exp:
         i = next(k for k in range(min(len(got), len(exp))) if got[k] != exp[k]) if got[:len(exp)] != exp[:len(got)] else min(len(got), len(exp))
@@ -372,6 +491,7 @@ def build_home(cfg, manifest, out_dir, theme, built, opened):
             + topbar("../../index.html", None, cfg, f"{n_open}／{len(chapters)} 章已開放")
             + f'<main id="main" class="home">{main}</main>\n' + foot(cfg, built, "課程總目錄") + "</body>\n</html>\n")
     (out_dir / "index.html").write_text(page, encoding="utf-8")
+    add_gate(out_dir / "index.html")
 
 
 def main():
@@ -396,11 +516,12 @@ def main():
         fail("至少要有一章 status=open")
     build_home(cfg, manifest, out_dir, theme, built, opened)
     print(f"輸出到：{out_dir}")
-    print(f"{'檔案':<22}{'圖片':>4}{'大小':>10}  來源")
+    print(f"{'檔案':<22}{'圖片':>4}{'大小':>10}  來源")  # 每頁都已注入本課密碼關卡
     for f, stem, nimg, size in report:
         print(f"{f:<22}{nimg:>4}{size/1024:>8.0f}KB  {stem}")
     print(f"index.html（課程首頁）")
-    print(f"共 {len(report)} 頁，{sum(r[2] for r in report)} 張圖，<main> 內容逐頁比對與來源一致。")
+    print(f"共 {len(report)} 頁，{sum(r[2] for r in report)} 張圖，<main> 內容逐頁比對與來源一致；"
+          f"含首頁 {len(report) + 1} 頁各注入 1 個密碼關卡（{GATE_KEY}）。")
 
 
 if __name__ == "__main__":
