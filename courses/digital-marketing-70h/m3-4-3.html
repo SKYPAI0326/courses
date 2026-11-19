@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模組 3 作業：我們的產品往哪個方向推</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* 數位行銷 70h 共學講義模板。外觀沿用線上講義（m3-1-environment.html、assets/lesson-rewrite.css、assets/prompt-copy.css）的冷色版面；
+   定稿沒有 class，正文一律用元素與 data-kind 選擇器。 */
+:root{
+  --c-bg:#f7fafc;--c-surface:#eef3f9;--c-card:#fcfdfe;--c-border:#dee7ef;--c-border-soft:#e8eef4;
+  --c-text:#344552;--c-muted:#586c80;--c-faint:#5d7083;--c-a2:#147685;--c-a2-dark:#0f5f6c;--c-visited:#2d5669;
+  --radius:4px;--content-w:780px;
+  /* 定稿示意圖（SVG）用的變數名稱，對到本課色票，示意圖本身不改 */
+  --text:var(--c-text);--muted:var(--c-muted);--accent:var(--c-a2);--line:var(--c-border);--soft:var(--c-surface);--card:var(--c-card);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:'Noto Sans TC',-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;word-break:break-word;overflow-wrap:break-word;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+[id]{scroll-margin-top:72px}
+
+/* 頂部列、閱讀進度、頁尾（線上 .topbar / .progress-strip / .footer） */
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(247,250,252,.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.progress-strip{height:2px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);width:0%;transition:width .1s;opacity:.75}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+
+/* 導覽：返回模組頁、上一篇／下一篇（線上舊頁 .back-link / .nav-footer / .nav-btn）。
+   連結由下方腳本依檔名查表產生；查不到就整塊不顯示。 */
+.back-bar{max-width:var(--content-w);margin:0 auto;padding:72px 48px 0}
+.back-bar[hidden],.nav-footer[hidden]{display:none}
+.back-bar:not([hidden])+main{padding-top:0}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px}
+.back-link:hover{color:var(--c-a2)}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a2);text-decoration:none;padding:10px 20px;border:1px solid rgba(20,118,133,.3);border-radius:var(--radius);transition:background .2s}
+.nav-btn:hover{background:rgba(20,118,133,.07)}
+.nav-btn.primary{background:var(--c-a2);color:#fff;border-color:var(--c-a2)}
+.nav-btn.primary:hover{background:#0f5f6c}
+
+/* 正文欄（線上 .lesson-hero ＋ .lesson-body） */
+main{display:block;max-width:var(--content-w);margin:0 auto;padding:72px 48px 80px}
+main p{font-size:.92rem;line-height:1.95;margin:0 0 16px}
+main p[data-kind="位置"]{font-size:.73rem;color:var(--c-muted);letter-spacing:.08em;font-weight:500;line-height:1.7;margin:0 0 20px}
+main h1{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;letter-spacing:-.005em;color:var(--c-text);margin:0 0 36px}
+main p[data-kind="眉標"]{font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-a2);letter-spacing:.1em;font-weight:500;line-height:1.6;margin:64px 0 10px}
+main h2{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;line-height:1.4;color:var(--c-text);margin:64px 0 18px}
+main p[data-kind="眉標"]+h2{margin-top:0}
+main h3{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;line-height:1.5;color:var(--c-text);margin:28px 0 10px}
+main strong{font-weight:700}
+main em{font-style:normal;font-weight:500;color:var(--c-a2)}
+main ul,main ol{margin:0 0 16px 1.4em;padding:0;line-height:1.9}
+main li{font-size:.92rem;margin:0 0 6px}
+main li>p{margin-bottom:6px}
+main a{color:var(--c-a2);font-weight:600;text-decoration-color:rgba(20,118,133,.45);text-decoration-thickness:1px;text-underline-offset:.18em}
+main a:visited{color:var(--c-visited);text-decoration-color:rgba(45,86,105,.45)}
+main a:hover{color:var(--c-a2-dark);text-decoration-color:currentColor}
+main code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:.88em;background:var(--c-surface);border:1px solid var(--c-border-soft);border-radius:2px;padding:1px 5px}
+
+/* 註：資料限制、參考來源（線上 .rw-source） */
+main p[data-kind="註"]{font-size:.8rem;color:var(--c-muted);line-height:1.75;margin:0 0 8px}
+main section[data-kind="讀完之後"]~p[data-kind="註"]{margin-top:0}
+main section[data-kind="讀完之後"]+p[data-kind="註"]{margin-top:40px}
+
+/* 引用原話（線上 .callout.key） */
+main blockquote{margin:20px 0;padding:18px 22px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a2);border-radius:var(--radius)}
+main blockquote p{margin:0 0 8px}
+main blockquote>:last-child{margin-bottom:0}
+main cite{display:block;font-style:normal;font-size:.8rem;color:var(--c-muted);line-height:1.7;margin-top:8px}
+
+/* 表格（線上 .table-scroll ＋ .rw-table）；捲動外層由下方腳本執行時加上 */
+main .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:20px 0 24px}
+main .table-scroll>table{margin:0;min-width:100%}
+main table{width:100%;border-collapse:collapse;font-size:.9rem;line-height:1.7;background:var(--c-card);margin:20px 0 24px}
+main th,main td{border:1px solid var(--c-border);padding:8px 12px;text-align:left;vertical-align:top}
+main th{background:var(--c-surface);font-weight:700}
+
+/* 複製框（線上 .rw-prompt ＋ prompt-copy.css）；按鈕由下方腳本執行時加在框的上方 */
+main pre[data-kind="複製"]{background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a2);border-radius:var(--radius);padding:14px 18px;margin:0 0 18px;white-space:pre-wrap;overflow-wrap:anywhere;font-family:inherit;font-size:.9rem;line-height:1.85;color:var(--c-text)}
+main code[data-kind="複製"]{cursor:pointer}
+.copy-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin:12px 0 8px}
+.copy-button{min-height:40px;padding:8px 13px;border:1px solid rgba(20,118,133,.36);border-radius:4px;background:var(--c-card);color:var(--c-a2);font:600 .78rem/1.2 'Noto Sans TC',sans-serif;letter-spacing:.02em;cursor:pointer;transition:background-color .18s ease,color .18s ease,border-color .18s ease}
+.copy-button:hover{background:rgba(20,118,133,.08);border-color:var(--c-a2)}
+.copy-button.is-copied{background:var(--c-a2);border-color:var(--c-a2);color:var(--c-card)}
+.copy-button.is-error{border-color:#9a463d;color:#9a463d}
+.copy-status{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* 先想再看的解答（線上 .rw-reference） */
+main details{margin:20px 0;border:1px dashed var(--c-border);border-radius:var(--radius);background:var(--c-surface);padding:.8rem 1rem}
+main summary{cursor:pointer;font-weight:600;font-size:.92rem;color:var(--c-a2)}
+main details[open]>summary{margin-bottom:.6rem}
+main details>:last-child{margin-bottom:0}
+
+/* 讀完之後：結尾自我檢查卡（線上 .rw-assign） */
+main section[data-kind="讀完之後"]{margin:64px 0 0;padding:24px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius)}
+main section[data-kind="讀完之後"]>:last-child{margin-bottom:0}
+main section[data-kind="讀完之後"] p[data-kind="註"]{margin-top:16px;padding-top:12px;border-top:1px dashed var(--c-border)}
+
+/* 圖、示意圖、長條 */
+main figure{margin:28px 0}
+main img{display:block;max-width:100%;height:auto;border:1px solid var(--c-border);border-radius:var(--radius)}
+main figcaption{font-size:.8rem;color:var(--c-muted);line-height:1.75;margin-top:10px}
+main figure[data-kind="示意"]{max-width:100%;overflow-x:auto;--line:#a9b8c6}
+/* 示意圖裡用 --line 的只有「訪談沒提到」那條點線；本課 --c-border 在淺底上幾乎看不到，只在示意圖內加深 */
+main figure[data-kind="示意"] svg{max-width:100%;height:auto}
+main figure[data-kind="長條"]{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px}
+main figure[data-kind="長條"] ol{list-style:none;margin:0;padding:0}
+main figure[data-kind="長條"] li{margin:10px 0;font-size:.88rem}
+main figure[data-kind="長條"] li::before{content:"";display:block;height:20px;background:var(--c-a2);border-radius:2px;width:var(--w,0);margin-bottom:4px}
+
+@media(max-width:1024px){.topbar{padding:0 32px}main,.back-bar,.nav-footer{padding-left:32px;padding-right:32px}}
+@media(max-width:600px){
+  .topbar{padding:0 16px}.topbar-sub,.topbar-divider{display:none}
+  main{padding:40px 20px 64px}
+  .back-bar{padding:40px 20px 0}
+  .nav-footer{flex-direction:column;padding:0 20px 48px}
+  .nav-btn{width:100%;justify-content:center}
+  main h1{font-size:1.45rem;margin-bottom:28px}
+  main h2{font-size:1.25rem}
+  main p[data-kind="眉標"]{margin-top:48px}
+  main h2{margin-top:48px}
+  main section[data-kind="讀完之後"]{padding:18px 16px}
+  main th,main td{padding:8px 10px}
+  main table:has(tr>:nth-child(4)){min-width:32em}
+  .copy-button{min-height:44px;padding:9px 14px}
+  .footer{padding:20px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+@media print{.topbar,.progress-strip,.copy-toolbar,.skip-link,.back-bar,.nav-footer{display:none}body{background:#fff}}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.45rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.75rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='digimkt_auth',H='6d9278e29c0d1ab888cfabe6a73a06f54c124fb0a4bb3dfccd7720d3e80d9eb7';if(localStorage.getItem(K)==='1')sessionStorage.setItem(K,'1');if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+<header class="topbar">
+  <a href="https://skypai0326.github.io/courses/" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">數位行銷人才培訓</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-fill" id="prog"></div></div>
+
+<div class="back-bar" hidden></div>
+<main id="main" data-正文>
+<p data-kind="位置">數位行銷人才培訓｜模組 3 市場洞察與策略定位｜3-4 品牌定位（三）模組作業</p>
+<h1>模組 3 作業：我們的產品往哪個方向推</h1>
+<p>模組 3 的四課走完了。回頭看，你們組在每一篇的最後，都替自己的產品寫過一段：3-1 寫了三方、機會和兩個方向；3-2 分了群、寫了 Persona、畫了信任關係圖；3-3 畫了旅程圖、找到最大缺口和第一個修補動作；3-4 找到顧客選你們的理由，寫成定位聲明和核心訊息。</p>
+<p>這份作業，要把這些零件組成一份四頁的組合報告，說出你們的產品往哪個方向推、為什麼。做好之後上台分享，再放進小組企劃書的第二段。這一篇會一步一步帶你們做：先看報告長什麼樣，再用山徑咖啡從攤開零件做到排好四頁，中間用學英文的 App 示範一次接錯了怎麼修。</p>
+<p data-kind="眉標">先想一個經驗</p>
+<h2>每一樣都訂好了，行程還是走不通</h2>
+<p>想一下你規劃過的一趟旅行。機票訂好了，是最便宜的那一班；飯店訂好了，是評價最高的那一間；第二天要去的景點也查好了，大家都說一定要去。每一樣，單獨看都沒問題。</p>
+<p>可是排成行程那一刻，問題才出現：最便宜的那班機半夜才到，評價最高的那間飯店在城的另一頭，而那個一定要去的景點，從飯店過去要兩個小時。每一樣都對，接起來卻走不通。你只好回頭，換掉其中一樣，讓整趟行程接得上。</p>
+<p>模組 3 的成果也是這樣。每一篇寫的東西，單獨看都說得通；可是要變成一份報告、一個決定，得把它們排在一起，看看接不接得上。</p>
+<p data-kind="眉標">報告長什麼樣</p>
+<h2>四頁，回答五個問題</h2>
+<p>組合報告一共四頁，加上附錄。四頁要回答五個問題：我們要對誰說？他聽誰的？他在哪裡走掉？所以我們往哪個方向推？為什麼是我們？第 1 頁回答前兩題，後面三頁各回答一題。山徑咖啡做好的樣子是這樣：</p>
+<figure data-kind="示意"><svg viewBox="0 0 540 444" width="100%" role="img" aria-label="山徑咖啡組合報告的樣子：第 1 頁對誰與信任關係圖、第 2 頁旅程圖與最大缺口、第 3 頁第一個修補動作、第 4 頁定位聲明與核心訊息，加上附錄" xmlns="http://www.w3.org/2000/svg" style="max-width:540px;display:block;margin:0 auto;font-family:inherit"><rect x="10" y="10" width="250" height="160" rx="8" style="fill:var(--card,#fff);stroke:var(--text,#2b2a27);stroke-width:1.5"></rect><rect x="10" y="10" width="250" height="34" rx="8" style="fill:var(--soft,#f1eadb)"></rect><text x="22" y="33" font-size="14" font-weight="700" style="fill:var(--accent,#8a6a2f)">第 1 頁｜對誰、他聽誰的</text><text x="22" y="68" font-size="13" style="fill:var(--text,#2b2a27)">Persona 一句：阿傑型，</text><text x="22" y="90" font-size="13" style="fill:var(--muted,#6d695f)">想升級又怕買錯</text><text x="22" y="112" font-size="13" style="fill:var(--text,#2b2a27)">信任關係圖，粗線是優先路徑：</text><text x="22" y="134" font-size="13" style="fill:var(--muted,#6d695f)">試握過、買過的顧客 → 阿傑型</text><rect x="280" y="10" width="250" height="160" rx="8" style="fill:var(--card,#fff);stroke:var(--text,#2b2a27);stroke-width:1.5"></rect><rect x="280" y="10" width="250" height="34" rx="8" style="fill:var(--soft,#f1eadb)"></rect><text x="292" y="33" font-size="14" font-weight="700" style="fill:var(--accent,#8a6a2f)">第 2 頁｜他在哪裡走掉</text><text x="292" y="68" font-size="13" style="fill:var(--text,#2b2a27)">旅程圖：六站</text><text x="292" y="90" font-size="13" style="fill:var(--muted,#6d695f)">框出最大缺口：</text><text x="292" y="112" font-size="13" style="fill:var(--text,#2b2a27)">從比較到決定，中間斷掉了</text><rect x="10" y="190" width="250" height="160" rx="8" style="fill:var(--card,#fff);stroke:var(--text,#2b2a27);stroke-width:1.5"></rect><rect x="10" y="190" width="250" height="34" rx="8" style="fill:var(--soft,#f1eadb)"></rect><text x="22" y="213" font-size="14" font-weight="700" style="fill:var(--accent,#8a6a2f)">第 3 頁｜往哪個方向推</text><text x="22" y="248" font-size="13" style="fill:var(--text,#2b2a27)">商品頁第一個畫面：</text><text x="22" y="270" font-size="13" style="fill:var(--muted,#6d695f)">三款並排比較＋顧客心得</text><text x="22" y="292" font-size="13" style="fill:var(--text,#2b2a27)">正下方：試握說明、</text><text x="22" y="314" font-size="13" style="fill:var(--muted,#6d695f)">預約按鈕、收不收費</text><rect x="280" y="190" width="250" height="160" rx="8" style="fill:var(--card,#fff);stroke:var(--text,#2b2a27);stroke-width:1.5"></rect><rect x="280" y="190" width="250" height="34" rx="8" style="fill:var(--soft,#f1eadb)"></rect><text x="292" y="213" font-size="14" font-weight="700" style="fill:var(--accent,#8a6a2f)">第 4 頁｜為什麼是我們</text><text x="292" y="248" font-size="13" style="fill:var(--text,#2b2a27)">定位聲明（一句）</text><text x="292" y="270" font-size="13" style="fill:var(--muted,#6d695f)">核心訊息：</text><text x="292" y="292" font-size="13" style="fill:var(--text,#2b2a27)">先比較使用差異，再決定是否升級。</text><text x="292" y="314" font-size="13" style="fill:var(--muted,#6d695f)">不用的空話：職人精神……</text><rect x="10" y="370" width="520" height="64" rx="8" style="fill:var(--soft,#f1eadb);stroke:var(--line,#dcd7cc);stroke-width:1.5" stroke-dasharray="5 4"></rect><text x="22" y="390" font-size="13" font-weight="700" style="fill:var(--text,#2b2a27)">附錄</text><text x="22" y="408" font-size="12" style="fill:var(--muted,#6d695f)">3-1 三方與機會、SWOT；3-2-1 分群；</text><text x="22" y="426" font-size="12" style="fill:var(--muted,#6d695f)">3-4-1 理由的篩選；模組 2 競品資料表</text></svg><figcaption>山徑咖啡組合報告的四頁加附錄。每一頁回答一兩個問題；第 1 頁就是上台時指著講的那一頁。</figcaption></figure>
+<p>下面就照順序，從零件做到這四頁。</p>
+<p data-kind="眉標">第一步</p>
+<h2>把零件攤開，分到每一頁</h2>
+<p>先把小組在各篇最後寫的東西全部找出來，一片一片分到報告的頁面。山徑咖啡分起來是這樣，你們組照同一張表分：</p>
+<table>
+<tr><th>零件</th><th>在哪一篇寫的</th><th>放進報告哪裡</th></tr>
+<tr><td>Persona</td><td>3-2-2</td><td>第 1 頁</td></tr>
+<tr><td>信任關係圖、優先路徑</td><td>3-2-3</td><td>第 1 頁</td></tr>
+<tr><td>旅程圖、最大缺口</td><td>3-3-1、3-3-2</td><td>第 2 頁</td></tr>
+<tr><td>第一個修補動作、兩個方向</td><td>3-3-2、3-1-3</td><td>第 3 頁</td></tr>
+<tr><td>定位聲明、核心訊息、不用的空話</td><td>3-4-2</td><td>第 4 頁</td></tr>
+<tr><td>三方與機會、SWOT、分群、理由的篩選、競品資料表</td><td>3-1-2、3-1-3、3-2-1、3-4-1、模組 2</td><td>附錄</td></tr>
+</table>
+<p>附錄裡的東西不是不重要，前四頁的理由，都是從它們來的；上台不講，有人問的時候翻得到就好。</p>
+<p data-kind="眉標">第二步</p>
+<h2>每一片，修成一句話</h2>
+<p>前四頁要回答的五個問題，每一題先寫成一句話。零件原本都比一句話長，要修：只留下回答那一題需要的部分。山徑咖啡一片一片修：</p>
+<p><strong>對誰。</strong>3-2-2 的阿傑型寫了六件事。回答「對誰」，只要「他是誰」和「卡在哪裡」兩樣，修成：用入門壺一陣子、想升級又怕買錯的人，看規格不知道差在哪，怕買錯壺嘴和重量。</p>
+<p><strong>他聽誰的。</strong>3-2-3 的表列了四種人。回答「他聽誰的」，只留選出來的那一條路，再加一句為什麼：試握過、買過的顧客 → 阿傑型，因為他們真的拿過、倒過水，談的正是壺嘴和重量。</p>
+<p><strong>他在哪裡走掉。</strong>3-3-2 六站都有缺口。只留最大的那一個，再加上它缺了什麼：從比較到決定，中間斷掉了，他比不出三款差別，又看不到、找不到試握。</p>
+<p><strong>往哪個方向推。</strong>這一題有兩片零件：3-1-3 的兩個方向，和 3-3-2 的第一個修補動作。兩片說的不一樣時，以 3-3-2 為準，因為它是對著最大缺口寫的。修成：在三款商品頁的第一個畫面，把三款並排比較，旁邊放用過的顧客留下的心得，正下方放試握說明和預約按鈕，也寫清楚試握收不收費。</p>
+<p><strong>為什麼是我們。</strong>3-4-2 的定位聲明和核心訊息，本來就是寫好的句子，照搬，不用再修。</p>
+<p data-kind="眉標">第三步</p>
+<h2>照順序接一次，每一題接上前面的某一題</h2>
+<p>五句寫好，照順序接一次。每一題都要和前面指定的那一題接得上：第二題和第三題接第一題，第四題接第二題和第三題，第五題接第四題。山徑咖啡接一次：</p>
+<p>第二題接第一題：阿傑型怕買錯壺嘴和重量，用過的顧客談的正是這件事。接得上。第三題接第一題：他看規格不知道差在哪，所以在比較那一站比不出來；他要先拿在手上試，可是在決定那一站找不到試握。接得上。第四題接第二題和第三題：用過的顧客的心得，出現在他比較的那一刻；整個畫面，補的正是比較到決定之間那一段。接得上。第五題接第四題：商品頁那個畫面做好了，定位聲明裡的「讓你先在網路上比得出三款差別」才成立，核心訊息「先比較使用差異，再決定是否升級」才能對外說。接得上。</p>
+<p>山徑咖啡每一題都接得上，因為前面每一課，本來就是照著上一課寫的。你們組不一定：寫到後面，常常改了前面的想法，或某一片寫的時候沒對著前面那一片。這時候就要做第四步。</p>
+<p data-kind="眉標">第四步</p>
+<h2>接不上，就修那一片</h2>
+<p>用學英文的 App 看一次接不上的樣子。它是 3-1-3 那個三個人開發的 App，前面各篇的零件修成一句話，是這樣：</p>
+<p>對誰：小安，下個月要開英文會議、下班很累，最怕講到一半卡住的上班族。他聽誰的：App 評論裡已經用過的人。他在哪裡走掉：決定那一站，想免費試上第一課，得先填一長串資料。往哪個方向推：把第一次要填的資料縮到只剩一頁，讓人當天就上完第一課。為什麼是我們：練的是你開會真的會說的那幾句；核心訊息是「開會要說的那幾句，每天 5 分鐘練熟。」</p>
+<p>照順序接。第二題接第一題：小安會看評論裡有沒有人說「練完真的比較敢講」，接得上。第三題接第一題：他下班很累，要先填一長串資料，他就關掉了，接得上。第四題接第三題：補的正是那一長串資料，接得上；接第二題：用過的人沒有出現在這一站，補一句：在資料那一頁旁邊放用過的人寫的「練完之後，開會比較敢講了」，接上了。</p>
+<p>第五題接第四題，就接不上了。第四題做的是「資料縮短，當天上完第一課」，可是那第一課練的是什麼？如果是一般的自我介紹，「練的是你開會真的會說的那幾句」就沒有因為這個方向而更站得住。</p>
+<p>要修哪一片？先找出最不能動的那一片。第五題的理由，是 3-4-1 用三個問題篩出來的，是這個 App 跟別家不一樣的地方，不能隨便換。所以改第四題：資料一樣縮到一頁，再讓當天上完的那第一課，就是「開會開場的那幾句」。改完，從第一題重新接一次，五題都接上了。</p>
+<p>修的原則就是這樣：接不上時，先想哪一片最不能動，通常是用三個問題篩過的理由，或是 Persona，然後改其他片去配合它。也有可能是你們刻意的選擇，例如第一個修補動作沒有用 3-1 的方向；3-3-2 說過，這時候在報告裡寫下為什麼就好。</p>
+<p data-kind="眉標">第五步</p>
+<h2>排成四頁</h2>
+<p>五句都接上了，就照最前面那張圖，排成四頁。每一頁放什麼，山徑咖啡是這樣排的：</p>
+<p><strong>第 1 頁，對誰、他聽誰的。</strong>最上面是第一題那一句；下面放 3-2-3 畫的信任關係圖，把優先路徑那條線畫粗，旁邊寫第二題那一句。上台時，指著這一頁講。</p>
+<p><strong>第 2 頁，他在哪裡走掉。</strong>放 3-3-1 的旅程圖，把最大缺口那一段框起來，旁邊寫第三題那一句。</p>
+<p><strong>第 3 頁，往哪個方向推。</strong>寫第四題那一句；可以的話，畫一個簡單的示意，例如商品頁第一個畫面上，比較、心得、試握按鈕各放在哪裡。</p>
+<p><strong>第 4 頁，為什麼是我們。</strong>放定位聲明、核心訊息，以及全組約定不用的空話。</p>
+<p>附錄，把第一步分到附錄的那些零件，原樣放進去就好。</p>
+<p data-kind="眉標">第六步</p>
+<h2>上台分享</h2>
+<p>報告做好，依組別順序或抽籤上台。上台不用把四頁唸完，照下面的順序講：</p>
+<pre data-kind="複製">上台講稿：
+1. 我們要對誰說：［第一題那一句］
+2. 他聽誰的：［指著第 1 頁的信任關係圖，說出優先路徑，以及為什麼選這條］
+3. 他在哪裡走掉：［指著第 2 頁的旅程圖，說出最大缺口］
+4. 所以我們往這個方向推：［第四題那一句，說明它怎麼補上缺口、怎麼讓優先路徑上的人出現］
+5. 這就是我們跟別家不一樣的地方：［唸出核心訊息，再用一句話說定位聲明裡的理由］</pre>
+<p>你們組做報告時，可以照下面這個格式，先把五句和接的關係寫下來，再排成四頁：</p>
+<pre data-kind="複製">我們的五句：
+第 1 題　對誰（3-2-2）：［他是誰＋卡在哪裡］
+第 2 題　他聽誰的（3-2-3）：［優先路徑＋為什麼］｜接第 1 題：［說得出什麼關係］
+第 3 題　他在哪裡走掉（3-3-2）：［最大缺口＋缺了什麼］｜接第 1 題：［說得出什麼關係］
+第 4 題　往哪個方向推（3-3-2 為準，參考 3-1-3）：［在哪一站、做什麼］｜接第 2、3 題：［……］
+第 5 題　為什麼是我們（3-4-2）：［定位聲明；核心訊息］｜接第 4 題：［方向做到了，理由怎麼更站得住］
+接不上的地方，我們改了：［哪一片、改成什麼，或為什麼刻意不改］</pre>
+<p data-kind="眉標">怎麼得到回饋</p>
+<h2>講師講評，或請 AI 照判準給建議</h2>
+<p>這份作業不做同學之間的互評。回饋有兩種：講師在每組講完之後講評；或是小組另外開一個對話，請 AI 照同一組判準給建議。判準有三個，都是模組 3 用過的問題：</p>
+<p>第一，<strong>優先路徑選得好不好</strong>：受眾聽不聽這個人的？我們碰不碰得到這個人？這是 3-2-3 的兩個問題。第二，<strong>方向接不接得住最大缺口</strong>：第一個修補動作，補的是不是旅程上最大的那個缺口？第三，<strong>理由站不站得住</strong>：不一樣嗎？他在乎嗎？做得到嗎？這是 3-4-1 的三個問題。</p>
+<p>請 AI 給建議的時候，用下面這段提示詞。和前面每一篇一樣，AI 只提問題、不替你們改，要不要改由小組決定。</p>
+<pre data-kind="複製">我們在練習替一個模擬產品，整合出「往哪個方向推」的決定。下面是我們的產品介紹、設定的人手預算時間、我們設定的對手，以及我們接好的五句。請你當我們的陪練，不要替我們改寫，也不要替我們做決定。
+
+請照下面三個判準，各提出一個最影響我們決定的問題，問之前先用一句話說你看到的優點：
+1. 優先路徑：受眾聽不聽這個人的？我們碰不碰得到這個人？
+2. 方向：第一個修補動作，接不接得住我們找到的最大缺口？
+3. 理由：不一樣嗎？他在乎嗎？做得到嗎？
+最後，指出五句裡哪一題和它該接的那一題最接不上。照我們寫的設定判斷，設定沒寫到的，請說「這一點你們沒寫」。
+
+【我們的產品】（用一句話介紹）
+【我們設定的人手、預算、時間】（貼上）
+【我們設定的對手】（貼上 3-1 寫的直接對手、間接對手）
+【我們的五句】（貼上）</pre>
+<p data-kind="眉標">放進企劃書</p>
+<h2>這份報告，就是小組企劃書的第二段</h2>
+<p>照講評或 AI 的問題修過一次，這四頁加附錄，就是小組企劃書的第二段。第一段是模組 1 寫的顧客心理；第二段，就是你們的產品往哪個方向推。</p>
+<p>從模組 4 開始，你們會學社群、搜尋、廣告、Email 這些工具。每一個工具，都會用到這一段：要讓誰停下來，看第 1 頁的第一題；該請誰幫你說話，看第 1 頁的信任關係圖；要在哪一站出現，看第 2 頁；先做什麼，看第 3 頁；說什麼，看第 4 頁的核心訊息。模組 3 做的，就是讓後面每一個工具，都知道自己在替哪一件事出力。</p>
+<section data-kind="讀完之後"><p><strong>讀完之後，用自己的話試著回答：</strong></p><p>第一，旅行的每一樣都訂好了，為什麼行程還是走不通？這和這份作業有什麼關係？</p><p>第二，組合報告的四頁各放什麼？各回答哪一題？</p><p>第三，把零件修成一句話，要留下什麼、拿掉什麼？用山徑咖啡的 Persona 說說看。</p><p>第四，學英文的 App 哪一題接不上？為什麼改的是第四題，而不是第五題？</p><p>答不出來的那一題，回到對應的段落再讀一次就好。</p><p data-kind="註">模組 3 到這裡結束。接下來是模組 4 社群行銷：在 IG 這類地方，怎麼讓滑過去的人停下來？</p></section>
+<p data-kind="註">山徑咖啡、阿傑型，以及文中的人物、對手與數字，都是課程模擬資料，不是真實品牌的成效；旅行、學英文的 App 與小安是舉例用的情境。</p>
+
+</main>
+<nav class="nav-footer" aria-label="上一篇與下一篇" hidden></nav>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">數位行銷人才培訓</span>
+</footer>
+
+<script>
+(function(){
+  'use strict';
+  var main=document.getElementById('main');
+
+  // 導覽：依上線檔名查表。查不到（例如工作區預覽的中文檔名）就不顯示。
+  var NAV_ORDER=[
+    {file:'module3.html',label:'模組 3 市場洞察與策略定位'},
+    {file:'m3-1-1.html',label:'3-1 環境分析（一）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-1-2.html',label:'3-1 環境分析（二）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-1-3.html',label:'3-1 環境分析（三）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-2-1.html',label:'3-2 受眾研究（一）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-2-2.html',label:'3-2 受眾研究（二）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-2-3.html',label:'3-2 受眾研究（三）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-3-1.html',label:'3-3 消費者旅程（一）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-3-2.html',label:'3-3 消費者旅程（二）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-4-1.html',label:'3-4 品牌定位（一）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-4-2.html',label:'3-4 品牌定位（二）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-4-3.html',label:'3-4 品牌定位（三）模組作業',module:'module3.html',back:'返回模組 3'},
+    {file:'module4.html',label:'模組 4 社群行銷'}
+  ];
+  function arrow(ch){var s=document.createElement('span');s.setAttribute('aria-hidden','true');s.textContent=ch;return s}
+  function buildNav(){
+    var name='';
+    try{name=decodeURIComponent(location.pathname.split('/').pop()||'')}catch(e){return}
+    if(name&&!/\.html?$/.test(name))name+='.html';
+    var idx=-1;
+    for(var i=0;i<NAV_ORDER.length;i++){if(NAV_ORDER[i].file===name&&NAV_ORDER[i].module){idx=i;break}}
+    if(idx<0)return;
+    var cur=NAV_ORDER[idx],prev=NAV_ORDER[idx-1],next=NAV_ORDER[idx+1];
+    var bar=document.querySelector('.back-bar');
+    if(bar){
+      var b=document.createElement('a');b.href=cur.module;b.className='back-link';
+      b.appendChild(arrow('←'));b.appendChild(document.createTextNode(' '+cur.back));
+      bar.appendChild(b);bar.hidden=false;
+    }
+    var nav=document.querySelector('.nav-footer');
+    if(nav&&(prev||next)){
+      if(prev){
+        var a=document.createElement('a');a.href=prev.file;a.className='nav-btn nav-prev';
+        a.setAttribute('aria-label','上一單元：'+prev.label);a.setAttribute('data-nav-role','prev');
+        a.appendChild(arrow('←'));a.appendChild(document.createTextNode(' '+prev.label));nav.appendChild(a);
+      }
+      if(next){
+        var n=document.createElement('a');n.href=next.file;n.className='nav-btn primary nav-next';
+        n.setAttribute('aria-label','下一單元：'+next.label);n.setAttribute('data-nav-role','next');
+        n.appendChild(document.createTextNode(next.label+' '));n.appendChild(arrow('→'));nav.appendChild(n);
+      }
+      nav.hidden=false;
+    }
+  }
+  try{buildNav()}catch(e){}
+
+  // 閱讀進度
+  var strip=document.querySelector('.progress-strip'),prog=document.getElementById('prog');
+  function onScroll(){
+    var h=document.documentElement,max=h.scrollHeight-h.clientHeight;
+    var pct=max>0?Math.min(100,Math.max(0,h.scrollTop/max*100)):0;
+    prog.style.width=pct+'%';strip.setAttribute('aria-valuenow',String(Math.round(pct)));
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+
+  // 表格：包一層可橫向捲動的外層，窄螢幕只在表格內捲動
+  main.querySelectorAll('table').forEach(function(t){
+    if(t.parentNode.classList&&t.parentNode.classList.contains('table-scroll'))return;
+    var w=document.createElement('div');
+    w.className='table-scroll';w.setAttribute('role','region');w.setAttribute('tabindex','0');
+    w.setAttribute('aria-label','資料表，可水平捲動');
+    t.parentNode.insertBefore(w,t);w.appendChild(t);
+  });
+
+  // 長條：依 data-value 畫相對長度。數字只從定稿讀，模板不寫任何數字。
+  main.querySelectorAll('figure[data-kind="長條"]').forEach(function(fig){
+    var items=[].slice.call(fig.querySelectorAll('li[data-value]'));
+    var max=Math.max.apply(null,items.map(function(li){return +li.dataset.value||0}));
+    if(!(max>0))return;
+    items.forEach(function(li){var v=+li.dataset.value||0;li.style.setProperty('--w',Math.max(v/max*100,1.5)+'%')});
+  });
+
+  // 複製框：按鈕加在框的上方，複製框內原文（不動正文）
+  var LABEL='複製',DONE='已複製',FAIL='複製失敗';
+  function fallbackCopy(text){
+    var f=document.createElement('textarea');
+    f.value=text;f.setAttribute('readonly','');f.style.position='fixed';f.style.left='-9999px';f.style.top='0';
+    document.body.appendChild(f);f.select();f.setSelectionRange(0,f.value.length);
+    var ok=document.execCommand('copy');f.remove();
+    if(!ok)throw new Error('copy failed');
+  }
+  function copyText(text){
+    if(navigator.clipboard&&window.isSecureContext){
+      return navigator.clipboard.writeText(text).catch(function(){fallbackCopy(text)});
+    }
+    return new Promise(function(resolve){fallbackCopy(text);resolve()});
+  }
+  function setState(btn,status,state){
+    clearTimeout(btn._t);
+    btn.textContent=state==='copied'?DONE:FAIL;
+    btn.classList.toggle('is-copied',state==='copied');
+    btn.classList.toggle('is-error',state==='error');
+    status.textContent=state==='copied'?'已複製到剪貼簿':'複製失敗，請手動選取文字';
+    btn._t=setTimeout(function(){btn.textContent=LABEL;btn.classList.remove('is-copied','is-error');status.textContent=''},1800);
+  }
+  main.querySelectorAll('pre[data-kind="複製"]').forEach(function(pre,i){
+    var bar=document.createElement('div');bar.className='copy-toolbar';
+    var btn=document.createElement('button');btn.type='button';btn.className='copy-button';btn.textContent=LABEL;
+    btn.setAttribute('aria-label','複製這段文字');
+    var status=document.createElement('span');status.className='copy-status';status.id='copy-status-'+i;
+    status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+    btn.setAttribute('aria-describedby',status.id);
+    btn.addEventListener('click',function(){
+      var text=pre.textContent.replace(/\r\n?/g,'\n').replace(/^\n+|\s+$/g,'');
+      if(!text){setState(btn,status,'error');return}
+      copyText(text).then(function(){setState(btn,status,'copied')},function(){setState(btn,status,'error')});
+    });
+    bar.appendChild(btn);bar.appendChild(status);
+    pre.parentNode.insertBefore(bar,pre);
+  });
+  // 單行複製字：點一下複製
+  main.querySelectorAll('code[data-kind="複製"]').forEach(function(c){
+    c.setAttribute('role','button');c.setAttribute('tabindex','0');c.setAttribute('title','點一下複製');
+    function go(){copyText(c.textContent).then(function(){c.setAttribute('title','已複製')},function(){c.setAttribute('title','複製失敗')})}
+    c.addEventListener('click',go);
+    c.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}});
+  });
+})();
+</script>
+</body>
+</html>
