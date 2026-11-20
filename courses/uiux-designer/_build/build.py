@@ -19,7 +19,7 @@
   5. 建完自動比對每頁 <main>（去掉圖片資料、還原連結後）和來源完全相同，不同就失敗。
   6. 每頁寫出後，只對這一頁注入密碼關卡（inject_gate.inject，key 與雜湊取自 inject_gate.COURSES），
      並確認每頁剛好一個關卡；不會掃描或改動其他頁面與其他課程。
-定稿頁另外：正文原樣放進 <main id="main" data-正文>；<img src="圖/…"> 換成內嵌 JPEG（路徑相對於章資料夾）；
+定稿頁另外：開頭的審核註解拿掉，其餘正文原樣放進 <main id="main" data-正文>；<img src="圖/…"> 換成內嵌 JPEG（路徑相對於章資料夾）；
 色票依 data-value 產生樣式；互動元件依名稱附上執行時的 script。正文不加任何字。
 不會修改 UIUX共學講義 資料夾內任何檔案。
 """
@@ -52,6 +52,7 @@ DRAFT_KINDS = {
     "figure": {"互動", "示意"},
 }
 INTERACTIVE = {"對比檢查器": "contrast-checker.js"}  # 互動名稱 → _build 裡的執行時 script
+DRAFT_HEADER = re.compile(r"\A\s*<!--\s*定稿.*?-->[ \t]*\r?\n?", re.S)  # 定稿檔開頭那一個審核註解
 
 
 def nfc(s):
@@ -177,7 +178,8 @@ def parse_tpl(path):
 def parse_draft(path, theme):
     """讀定稿片段。回傳和 parse_tpl 相同的欄位，另加 css（色票）與 desc。"""
     where = f"定稿/{path.name}"
-    t = nfc(path.read_text(encoding="utf-8"))
+    # 開頭的審核註解（<!-- 定稿｜…｜通過:… -->）是共學紀錄，不上架；比照 共學專案/工具/建置.py 拿掉
+    t = DRAFT_HEADER.sub("", nfc(path.read_text(encoding="utf-8")), count=1)
     if re.search(r"<(html|head|body|main|style)\b", t, re.I):
         fail(f"{where} 應該是正文片段，不能有 html/head/body/main/style")
     h1 = re.findall(r"<h1>(.*?)</h1>", t, re.S)

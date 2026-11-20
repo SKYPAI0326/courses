@@ -70,7 +70,7 @@ python3 "../共學專案/工具/網頁比對.py" "../UIUX共學講義/CH02-A2/�
 
 ## 定稿頁怎麼畫
 
-正文原樣放進 `<main id="main" data-正文>`，**不加任何字**（`網頁比對.py` 要逐字一致）：
+定稿檔開頭的審核註解（`<!-- 定稿｜…｜通過:… -->`）是共學紀錄，建置時拿掉、不上架；其餘正文原樣放進 `<main id="main" data-正文>`，**不加任何字**（`網頁比對.py` 要逐字一致）：
 
 - 步驟編號：`section[data-kind="步驟"]::before{content:attr(data-label)}`。
 - 色票：建置掃 `data-value`，在該頁 `<style>` 產生 `[data-value="E8F0EC"]{background:#E8F0EC}`。
