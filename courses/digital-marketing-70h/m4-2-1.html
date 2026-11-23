@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>同一句話，放在不同平台，為什麼結果不一樣？</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* 數位行銷 70h 共學講義模板。外觀沿用線上講義（m3-1-environment.html、assets/lesson-rewrite.css、assets/prompt-copy.css）的冷色版面；
+   定稿沒有 class，正文一律用元素與 data-kind 選擇器。 */
+:root{
+  --c-bg:#f7fafc;--c-surface:#e4ecf3;--c-card:#ffffff;--c-border:#d2dce6;--c-border-soft:#e8eef4;
+  --c-text:#2b3d4c;--c-muted:#586c80;--c-faint:#5d7083;--c-a2:#147685;--c-a2-dark:#0f5f6c;--c-a2-light:rgba(20,118,133,.08);--c-visited:#2d5669;
+  --radius:4px;--content-w:780px;
+  /* 定稿示意圖（SVG）用的變數名稱，對到本課色票，示意圖本身不改 */
+  --text:var(--c-text);--muted:var(--c-muted);--accent:var(--c-a2);--line:var(--c-border);--soft:var(--c-surface);--card:var(--c-card);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:'Noto Sans TC',-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;word-break:break-word;overflow-wrap:break-word;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+[id]{scroll-margin-top:72px}
+
+/* 頂部列、閱讀進度、頁尾（線上 .topbar / .progress-strip / .footer） */
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(247,250,252,.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.progress-strip{height:3px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-a2);width:0%;transition:width .1s;opacity:.6}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+
+/* 導覽：返回模組頁、上一篇／下一篇（線上舊頁 .back-link / .nav-footer / .nav-btn）。
+   連結由下方腳本依檔名查表產生；查不到就整塊不顯示。 */
+.back-bar{max-width:var(--content-w);margin:0 auto;padding:72px 48px 0}
+.back-bar[hidden],.nav-footer[hidden]{display:none}
+.back-bar:not([hidden])+main{padding-top:0}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px}
+.back-link:hover{color:var(--c-a2)}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a2);text-decoration:none;padding:10px 20px;border:1px solid rgba(20,118,133,.3);border-radius:var(--radius);transition:background .2s}
+.nav-btn:hover{background:rgba(20,118,133,.07)}
+.nav-btn.primary{background:var(--c-a2);color:#fff;border-color:var(--c-a2)}
+.nav-btn.primary:hover{background:#0f5f6c}
+
+/* 正文欄（線上 .lesson-hero ＋ .lesson-body） */
+main{display:block;max-width:100%;margin:0 auto;padding:0}
+main p{font-size:.92rem;line-height:1.95;margin:0 0 16px}
+main p[data-kind="位置"]{font-size:.73rem;color:var(--c-muted);letter-spacing:.08em;font-weight:500;line-height:1.7;margin:0 0 20px}
+main h1{font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;line-height:1.3;letter-spacing:-.005em;color:var(--c-text);margin:0 0 36px}
+main p[data-kind="眉標"]{font-family:'Shippori Mincho',serif;font-size:.8rem;color:var(--c-a2);letter-spacing:.1em;font-weight:500;line-height:1.6;margin:64px 0 10px}
+main h2{font-family:'Shippori Mincho',serif;font-size:1.45rem;font-weight:700;line-height:1.4;color:var(--c-text);margin:64px 0 18px}
+main p[data-kind="眉標"]+h2{margin-top:0}
+main h3{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:700;line-height:1.5;color:var(--c-text);margin:28px 0 10px}
+main strong{font-weight:700}
+main em{font-style:normal;font-weight:500;color:var(--c-a2)}
+main ul,main ol{margin:0 0 16px 1.4em;padding:0;line-height:1.9}
+main li{font-size:.92rem;margin:0 0 6px}
+main li>p{margin-bottom:6px}
+main a{color:var(--c-a2);font-weight:600;text-decoration-color:rgba(20,118,133,.45);text-decoration-thickness:1px;text-underline-offset:.18em}
+main a:visited{color:var(--c-visited);text-decoration-color:rgba(45,86,105,.45)}
+main a:hover{color:var(--c-a2-dark);text-decoration-color:currentColor}
+main code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:.88em;background:var(--c-surface);border:1px solid var(--c-border-soft);border-radius:2px;padding:1px 5px}
+
+/* 註：資料限制、參考來源（線上 .rw-source） */
+/* 範例（定稿格式：灰底；模組 4 起用到） */
+main p[data-kind="範例"]{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);padding:14px 18px;margin:0 0 14px;font-size:.92rem;line-height:1.85}
+main p[data-kind="註"]{font-size:.8rem;color:var(--c-muted);line-height:1.75;margin:0 0 8px}
+main section[data-kind="讀完之後"]~p[data-kind="註"]{margin-top:0}
+main section[data-kind="讀完之後"]+p[data-kind="註"]{margin-top:40px}
+
+/* 引用原話（線上 .callout.key） */
+main blockquote{margin:20px 0;padding:18px 22px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a2);border-radius:var(--radius)}
+main blockquote p{margin:0 0 8px}
+main blockquote>:last-child{margin-bottom:0}
+main cite{display:block;font-style:normal;font-size:.8rem;color:var(--c-muted);line-height:1.7;margin-top:8px}
+
+/* 表格（線上 .table-scroll ＋ .rw-table）；捲動外層由下方腳本執行時加上 */
+main .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:20px 0 24px}
+main .table-scroll>table{margin:0;min-width:100%}
+main table{width:100%;border-collapse:collapse;font-size:.9rem;line-height:1.7;background:var(--c-card);margin:20px 0 24px}
+main th,main td{border:1px solid var(--c-border);padding:8px 12px;text-align:left;vertical-align:top}
+main th{background:var(--c-surface);font-weight:700}
+
+/* 複製框（線上 .rw-prompt ＋ prompt-copy.css）；按鈕由下方腳本執行時加在框的上方 */
+main pre[data-kind="複製"]{background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a2);border-radius:var(--radius);padding:14px 18px;margin:0 0 18px;white-space:pre-wrap;overflow-wrap:anywhere;font-family:inherit;font-size:.9rem;line-height:1.85;color:var(--c-text)}
+main code[data-kind="複製"]{cursor:pointer}
+.copy-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin:12px 0 8px}
+.copy-button{min-height:40px;padding:8px 13px;border:1px solid rgba(20,118,133,.36);border-radius:4px;background:var(--c-card);color:var(--c-a2);font:600 .78rem/1.2 'Noto Sans TC',sans-serif;letter-spacing:.02em;cursor:pointer;transition:background-color .18s ease,color .18s ease,border-color .18s ease}
+.copy-button:hover{background:rgba(20,118,133,.08);border-color:var(--c-a2)}
+.copy-button.is-copied{background:var(--c-a2);border-color:var(--c-a2);color:var(--c-card)}
+.copy-button.is-error{border-color:#9a463d;color:#9a463d}
+.copy-status{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* 先想再看的解答（線上 .rw-reference） */
+main details{margin:20px 0;border:1px dashed var(--c-border);border-radius:var(--radius);background:var(--c-surface);padding:.8rem 1rem}
+main summary{cursor:pointer;font-weight:600;font-size:.92rem;color:var(--c-a2)}
+main details[open]>summary{margin-bottom:.6rem}
+main details>:last-child{margin-bottom:0}
+
+/* 讀完之後：結尾自我檢查卡（線上 .rw-assign）— 全寬區塊 */
+main section[data-kind="讀完之後"]{max-width:100%;margin:0;padding:64px 0 56px;background:var(--c-surface);border:none;border-top:3px solid var(--c-a2);border-radius:0}
+main section[data-kind="讀完之後"] > *{max-width:var(--content-w);margin-left:auto;margin-right:auto;padding-left:48px;padding-right:48px}
+main section[data-kind="讀完之後"]>:last-child{margin-bottom:0}
+main section[data-kind="讀完之後"] > p:first-child{font-family:'Shippori Mincho',serif;font-size:1.2rem;font-weight:700;margin-bottom:28px;text-align:center}
+main section[data-kind="讀完之後"] > p:first-child strong{font-size:inherit}
+main section[data-kind="讀完之後"] > p:not(:first-child):not([data-kind]){background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:16px 20px;margin-bottom:12px;font-size:.92rem;line-height:1.85}
+main section[data-kind="讀完之後"] p[data-kind="註"]{margin-top:20px;padding-top:16px;border-top:1px dashed var(--c-border);background:transparent;border-left:none;border-right:none;border-bottom:none;border-radius:0}
+
+/* 圖、示意圖、長條 */
+main figure{margin:28px 0}
+main img{display:block;max-width:100%;height:auto;border:1px solid var(--c-border);border-radius:var(--radius)}
+main figcaption{font-size:.8rem;color:var(--c-muted);line-height:1.75;margin-top:10px}
+main figure[data-kind="示意"]{max-width:100%;overflow-x:auto;--line:#a9b8c6}
+/* 示意圖裡用 --line 的只有「訪談沒提到」那條點線；本課 --c-border 在淺底上幾乎看不到，只在示意圖內加深 */
+main figure[data-kind="示意"] svg{max-width:100%;height:auto}
+main figure[data-kind="長條"]{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px}
+main figure[data-kind="長條"] ol{list-style:none;margin:0;padding:0}
+main figure[data-kind="長條"] li{margin:10px 0;font-size:.88rem}
+main figure[data-kind="長條"] li::before{content:"";display:block;height:20px;background:var(--c-a2);border-radius:2px;width:var(--w,0);margin-bottom:4px}
+
+/* 英雄區 — 大面積留白 + 大標題 */
+main .hero-zone{max-width:100%;margin:0;padding:100px 0 80px;background:var(--c-surface);border-bottom:3px solid var(--c-a2);text-align:center}
+main .hero-zone > *{max-width:var(--content-w);margin-left:auto;margin-right:auto;padding-left:48px;padding-right:48px}
+main .hero-zone p[data-kind="位置"]{margin-bottom:28px;letter-spacing:.12em}
+main .hero-zone h1{font-size:2.4rem;line-height:1.35;margin-bottom:28px;letter-spacing:-.01em}
+main .hero-zone .lead{font-size:1rem;line-height:2.1;color:var(--c-muted);text-align:left;margin-bottom:0}
+
+/* 章節區塊 — 交替白底/灰底 + 寬間距 */
+main .section-block{max-width:100%;padding:80px 0 64px;position:relative}
+main .section-block > *{max-width:var(--content-w);margin-left:auto;margin-right:auto;padding-left:48px;padding-right:48px}
+main .section-block:nth-child(odd of .section-block){background:var(--c-card)}
+main .section-block:nth-child(even of .section-block){background:var(--c-surface)}
+main .section-block::before{content:"";display:block;width:48px;height:3px;background:var(--c-a2);margin:0 auto 40px;max-width:var(--content-w);padding:0}
+main .section-block p[data-kind="眉標"]{margin-top:0;font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:var(--c-a2);font-weight:600}
+main .section-block h2{margin-top:10px;margin-bottom:28px;font-size:1.85rem;line-height:1.3}
+main .section-block > p.section-lead{font-size:1rem;line-height:2.1;color:var(--c-text);margin-bottom:24px}
+
+/* 路線圖卡片 */
+main .roadmap-table{border:none;background:transparent;border-collapse:separate;border-spacing:0;width:100%}
+main .roadmap-table thead{display:none}
+main .roadmap-table tr{display:flex;flex-direction:column;background:var(--c-card);border:1px solid var(--c-border);border-left:4px solid var(--c-a2);border-radius:var(--radius);padding:20px 24px;margin-bottom:12px;position:relative}
+main .section-block:nth-child(even of .section-block) .roadmap-table tr{background:var(--c-bg)}
+main .roadmap-table td{border:none;padding:0;display:block}
+main .roadmap-table td:first-child{font-family:'Shippori Mincho',serif;font-weight:700;font-size:.85rem;color:var(--c-a2);letter-spacing:.06em;margin-bottom:8px}
+main .roadmap-table td:last-child{font-size:.92rem;line-height:1.8}
+main .roadmap-table tr:not(:last-child)::after{content:"";position:absolute;left:22px;bottom:-14px;width:2px;height:14px;background:var(--c-a2);opacity:.4}
+
+/* 章節淡入 */
+main .section-block{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
+main .section-block.visible{opacity:1;transform:translateY(0)}
+
+/* 註腳區 */
+main .footnotes-zone{max-width:var(--content-w);margin:0 auto;padding:32px 48px 48px}
+main .footnotes-zone p[data-kind="註"]{margin-top:0}
+
+@media(max-width:1024px){
+  .topbar{padding:0 32px}
+  .back-bar,.nav-footer{padding-left:32px;padding-right:32px}
+  main .hero-zone > *,
+  main .section-block > *,
+  main section[data-kind="讀完之後"] > *,
+  main .footnotes-zone{padding-left:32px;padding-right:32px}
+}
+@media(max-width:600px){
+  .topbar{padding:0 16px}.topbar-sub,.topbar-divider{display:none}
+  .back-bar{padding:40px 20px 0}
+  .nav-footer{flex-direction:column;padding:0 20px 48px}
+  .nav-btn{width:100%;justify-content:center}
+  main .hero-zone{padding:60px 0 48px}
+  main .hero-zone > *{padding-left:20px;padding-right:20px}
+  main .hero-zone h1{font-size:1.6rem}
+  main .section-block{padding:48px 0 40px}
+  main .section-block > *{padding-left:20px;padding-right:20px}
+  main .section-block h2{font-size:1.4rem}
+  main .section-block::before{margin-bottom:24px}
+  main section[data-kind="讀完之後"]{padding:40px 0 36px}
+  main section[data-kind="讀完之後"] > *{padding-left:20px;padding-right:20px}
+  main .footnotes-zone{padding:24px 20px 36px}
+  main th,main td{padding:8px 10px}
+  main table:has(tr>:nth-child(4)){min-width:32em}
+  .copy-button{min-height:44px;padding:9px 14px}
+  .footer{padding:20px}
+  main .roadmap-table tr::after{left:16px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+@media print{.topbar,.progress-strip,.copy-toolbar,.skip-link,.back-bar,.nav-footer{display:none}body{background:#fff}main .hero-zone,main .section-block{background:transparent!important}main .section-block{opacity:1!important;transform:none!important}}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.45rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.75rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='digimkt_auth',H='6d9278e29c0d1ab888cfabe6a73a06f54c124fb0a4bb3dfccd7720d3e80d9eb7';if(localStorage.getItem(K)==='1')sessionStorage.setItem(K,'1');if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+<header class="topbar">
+  <a href="https://skypai0326.github.io/courses/" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">數位行銷人才培訓</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-fill" id="prog"></div></div>
+
+<div class="back-bar" hidden></div>
+<main id="main" data-正文>
+<p data-kind="位置">數位行銷人才培訓｜模組 4 社群行銷｜4-2 平台策略（一）</p>
+<h1>同一句話，放在不同平台，為什麼結果不一樣？</h1>
+<p>先回頭看看：4-1 結束的時候，你們組手上有三個 Hook，還有一段前三秒的設計。那麼，下一個問題就是：這些要放在哪裡？4-1-1 最後那張模組 4 的表上，列了五個平台：Instagram、Threads、Facebook、YouTube、TikTok。看起來，最省事的做法，就是同一則內容五個平台都貼一次。可是仔細想想，同一句話，放在不同的平台，會被不同的人、用不同的方式看到；有的平台，你要說話的那個人根本不在那裡。</p>
+<p>所以，這一篇要回答的是：社群上，要先在哪裡說？先看五個平台各自怎麼讓人看到一則內容，再用三個問題替山徑咖啡選平台，最後，就換你們組來選。至於選好之後，怎麼知道選對了沒，那是下一篇的事。你現在讀的是 4-2 的第一篇，大約 30 分鐘。</p>
+<p data-kind="眉標">先想一個經驗</p>
+<h2>同一個你，在不同的平台上做的事不一樣</h2>
+<p>先來想一下你自己。你打開 YouTube，常常是因為想找一件事怎麼做，就在搜尋欄打「怎麼……」，看看別人怎麼示範。打開 Instagram 呢？常常是想放空，手指往上一推，一支接一支的 Reels，是平台替你挑的。打開 Facebook 的時候，可能是想看看朋友最近怎麼了，或是到某個社團問一句「有沒有人用過……」。打開 Threads，則可能是想看看大家這兩天在聊什麼，順手回一句。</p>
+<p>你看，同一個你，在不同平台上，有時候是自己去找，有時候是等平台送上門，有時候則是在問人。你在那裡做的事不一樣，願意停下來看的東西也不一樣：在搜尋欄打了字的你，想看的，是答案；在 Reels 放空的你，給一支影片的時間，只有一兩秒。而對品牌來說，這就是同一句話放在不同的平台，結果會不一樣的原因。</p>
+<p data-kind="眉標">五條路</p>
+<h2>一則內容，會從哪幾條路被人看到</h2>
+<p>說起來，一則貼文或一支影片，大致有五條路被人看到。第一條是<strong>追蹤</strong>：已經追蹤你的人，在自己的動態裡看到。第二條是<strong>推薦</strong>：平台把它推給還沒追蹤你的人，因為它猜，這個人會有興趣。第三條是<strong>搜尋</strong>：有人自己打字去找，就找到了你。第四條是<strong>社團</strong>：一群因為同一個興趣聚在一起的人，在社團裡互相轉、互相問。第五條是<strong>轉傳</strong>：看到的人轉給朋友，用私訊、LINE，或分享到自己的限時動態；比方說，4-1-1 那支讓你想到某個人的貓咪影片，走的就是這一條。</p>
+<p>再看看山徑咖啡。4-1-1 說過，它的貼文會被兩種人滑到：追蹤者，以及平台推給他、還不認識山徑的人。前一種人，走的是追蹤這條路；後一種人，走的是推薦這條路。其實五個平台，這幾條路都有，只是比重不一樣。下面這張表，是各平台官方自己的說明，最右邊一欄則是講義的整理：</p>
+<table>
+<thead><tr><th>平台</th><th>官方怎麼說</th><th>講義的整理：主要靠哪條路</th></tr></thead>
+<tbody>
+<tr><td>Instagram</td><td>2023 年，Instagram 負責人 Adam Mosseri 說，Instagram 沒有單一一套演算法，首頁動態、探索、Reels 各有各的排序；探索和 Reels 裡看到的，大多來自你沒追蹤的帳號。2024 年推出的「試用 Reels」，可以先只給沒追蹤你的人看</td><td>首頁動態以追蹤為主，也有推薦；Reels、探索以推薦為主</td></tr>
+<tr><td>Threads</td><td>預設的動態，是你追蹤的人加上推薦內容混在一起；切到「追蹤中」，就只剩追蹤的人，照時間排</td><td>追蹤和推薦混在一起</td></tr>
+<tr><td>Facebook</td><td>動態消息放的是你追蹤或有連結的人、粉絲專頁、社團的內容，也會放你沒追蹤的粉專或社團；社團另外有自己的動態。Meta 在 2023 年說，臉書和 Instagram 的動態裡，超過兩成來自沒追蹤的人或帳號</td><td>追蹤、社團，加上一部分推薦</td></tr>
+<tr><td>YouTube</td><td>2021 年，YouTube 說推薦帶來的觀看，比訂閱和搜尋都多；搜尋則看影片的標題、說明、內容，和搜尋的字合不合</td><td>推薦和搜尋</td></tr>
+<tr><td>TikTok</td><td>2020 年，TikTok 說粉絲數不是推薦的直接因素；現在的透明中心寫，追蹤關係只是推薦時參考的其中一項</td><td>推薦為主</td></tr>
+</tbody>
+</table>
+<p>看這張表，重點不是哪個平台比較好，而是每個平台，讓人看到內容的方式不一樣。比方說，一個還不認識山徑的人，比較可能在 Reels 或 TikTok 的推薦裡滑到它；而一個已經在比手沖壺的人，比較可能在 YouTube 搜尋裡找到它。另外，年份要記得看：平台改得很快，上面每一句，都是當年官方的說法。</p>
+<p>讀到這裡，也許你會想：那挑最多人用的平台就好了吧？以台灣來說，DataReportal 的報告估計，2026 年底各平台的廣告觸及得到的人數，YouTube 約 1,910 萬、Facebook 約 1,710 萬、Instagram 約 1,260 萬、18 歲以上的 TikTok 約 996 萬、Threads 約 895 萬。不過，這是各平台廣告工具算出來能觸及的人數，不等於每個月都在用的人。另一份台灣網路資訊中心（TWNIC）2025 年的調查，問的則是「最常用哪一個」，Facebook 約五成，Instagram 約兩成，Threads 4.57%，第一次排到第三。你看，兩份數字問的事不一樣，不能放在一起比。而更重要的是：它們說的，是全台灣，不是你要說話的那個人。很多人用的平台，你的 Persona 不一定在；你的 Persona 常去的地方，也不一定是最多人用的那一個。</p>
+<p data-kind="眉標">真實的品牌怎麼做</p>
+<h2>同一個品牌，在不同平台說話的方式不一樣</h2>
+<p>台灣達美樂同時經營 Facebook 和 Threads。2026 年《經理人》採訪時寫到，它在 Facebook 用比較正式的語氣宣傳活動；到了 Threads，則像朋友聊天。有一次，網友在 Threads 抱怨披薩上的美乃滋擠得很醜，小編先回了一句「抱歉，這個美乃滋今天很有自己的想法」，再私訊處理。達美樂的行銷團隊說：「絕對不能這個平台做什麼，就原封不動複製到另一個平台。」</p>
+<p>再來看國外的例子：愛爾蘭的瑞安航空 Ryanair。它的社群負責人 2023 年受訪時說，多數平台上要說的事是一樣的，只是形式跟著平台換：在 TikTok 上，它用很誇張、很搞笑的短片出現。他自己也說，Ryanair 這種語氣是特例，不是每個品牌都適用。</p>
+<p>另外，平台也會跟著想說話的人來選。故宮南院開 Threads 帳號，是因為學生畢業之後，未必還對文物有興趣；它想跟這些年輕人繼續說話，所以口吻很親民。它的小編，時常「海巡」，在跟故宮南院有關的貼文底下留言；2026 年 7 月，有網友在 Threads 寫下「故宮南院」四個字，小編在底下回了一句「幹嘛」，那則回覆，拿到了 9.5 萬個讚。不過，這不代表 Threads 上都是年輕人，而是它先想好了要對誰說，才去了那裡。這樣看下來，達美樂和 Ryanair 換的，是說話的語氣和形式；故宮南院則是先想好對誰說，才選了平台、選了說話的方式。</p>
+<p data-kind="眉標">選平台的三個問題</p>
+<h2>他在不在那裡？他在那裡做什麼？我們做不做得出來？</h2>
+<p>那麼，選平台時，可以照順序問三個問題。</p>
+<p><strong>第一，你要說話的那個人，平常會用這個平台嗎？</strong>要回答這一題，就得有根據：你們訪談時聽他說過，或是 3-2-2 的 Persona 裡，「怎麼找資訊」那一格有寫到。「台灣很多人用這個平台」，不算根據，因為那說的，是全台灣，不是他。</p>
+<p>那訪談時沒問到的呢？就跟模組 3 一樣，小組先設定一個說得通的答案，也就是先合理地猜一個，並且寫明「這是設定」。設定的地方，下一篇會用 30 天實際試試看，看看猜得對不對。</p>
+<p><strong>第二，他在那裡做什麼？聽誰說？</strong>他是在滑、在搜尋，還是在問人？再來，他在那裡願意聽的，是品牌自己說，還是別人說？其實 3-3-1 說過，顧客在旅程的哪一站，看的是他心裡在問哪一句話。比方說，在 Reels 滑到的人，多半還在問「這是什麼？跟我有關嗎？」；而在 YouTube 搜尋評測的人，問的已經是「這幾個差在哪？」。而他在那裡做的事，要接得上你要他做的下一步，也就是 4-1-1 說的，停下來的理由要接得上下一步。</p>
+<p><strong>第三，我們做不做得出那裡要的東西？</strong>你看，每個平台要的形式不一樣：短影音、圖文、文字、長影片。要看團隊每週做得出多少，也要看那條路你碰不碰得到。另外，還要看是不是從零開始：已經有帳號、有一些追蹤者，和完全從零開一個新帳號，花的力氣差很多。</p>
+<p>三個問題問完，每個平台就會落在四種結論之一：三題都過的，<strong>先做</strong>；第一或第二題答不出來、只能先設定，可是做得出來、花的力氣不大，就<strong>試 30 天</strong>，下一篇會講怎麼試；他在那裡或可能在那裡，可是我們現在做不出來、碰不到，或要花的力氣太大，就<strong>之後再考慮</strong>，寫下要等什麼條件；他不在那裡，或在那裡做的事接不回下一步，就<strong>先不做</strong>。</p>
+<figure data-kind="示意"><svg viewBox="0 0 600 360" width="100%" role="img" aria-label="選平台的三個問題：第一，他在不在那裡，不在就先不做，訪談沒問到就先設定、往下問；第二，他在那裡做什麼，接得上下一步嗎，接不上就先不做；第三，我們做不做得出來，做不出來或太花力氣就之後再考慮；三題都過就先做；第一或第二題只能先設定、但做得出來，就試 30 天" xmlns="http://www.w3.org/2000/svg" style="max-width:600px;display:block;margin:0 auto;font-family:inherit"><defs><marker id="a421" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" style="fill:var(--muted,#6d695f)"></path></marker></defs><rect x="20" y="10" width="300" height="40" rx="10" style="fill:var(--soft,#f1eadb);stroke:var(--text,#2b2a27);stroke-width:1.5"></rect><text x="170" y="36" text-anchor="middle" font-size="15" style="fill:var(--text,#2b2a27)">一個平台</text><line x1="170" y1="50" x2="170" y2="72" style="stroke:var(--muted,#6d695f);stroke-width:2" marker-end="url(#a421)"></line><rect x="20" y="74" width="300" height="52" rx="10" style="fill:var(--card,#fff);stroke:var(--accent,#8a6a2f);stroke-width:2"></rect><text x="170" y="97" text-anchor="middle" font-size="14" font-weight="700" style="fill:var(--text,#2b2a27)">一、他在不在那裡？</text><text x="170" y="116" text-anchor="middle" font-size="12" style="fill:var(--muted,#6d695f)">根據：訪談、Persona</text><line x1="320" y1="100" x2="408" y2="100" style="stroke:var(--muted,#6d695f);stroke-width:2" marker-end="url(#a421)"></line><text x="364" y="92" text-anchor="middle" font-size="12" style="fill:var(--muted,#6d695f)">不在</text><rect x="410" y="80" width="170" height="40" rx="10" style="fill:var(--soft,#f1eadb);stroke:var(--muted,#6d695f);stroke-width:1.5;stroke-dasharray:5 4"></rect><text x="495" y="105" text-anchor="middle" font-size="14" style="fill:var(--muted,#6d695f)">先不做</text><line x1="170" y1="126" x2="170" y2="148" style="stroke:var(--muted,#6d695f);stroke-width:2" marker-end="url(#a421)"></line><text x="182" y="142" font-size="12" style="fill:var(--muted,#6d695f)">在，或先設定</text><rect x="20" y="150" width="300" height="52" rx="10" style="fill:var(--card,#fff);stroke:var(--accent,#8a6a2f);stroke-width:2"></rect><text x="170" y="173" text-anchor="middle" font-size="14" font-weight="700" style="fill:var(--text,#2b2a27)">二、他在那裡做什麼？</text><text x="170" y="192" text-anchor="middle" font-size="12" style="fill:var(--muted,#6d695f)">滑、搜尋、問人；聽誰說；接得上嗎</text><line x1="320" y1="176" x2="408" y2="176" style="stroke:var(--muted,#6d695f);stroke-width:2" marker-end="url(#a421)"></line><text x="364" y="168" text-anchor="middle" font-size="12" style="fill:var(--muted,#6d695f)">接不上</text><rect x="410" y="156" width="170" height="40" rx="10" style="fill:var(--soft,#f1eadb);stroke:var(--muted,#6d695f);stroke-width:1.5;stroke-dasharray:5 4"></rect><text x="495" y="181" text-anchor="middle" font-size="14" style="fill:var(--muted,#6d695f)">先不做</text><line x1="170" y1="202" x2="170" y2="224" style="stroke:var(--muted,#6d695f);stroke-width:2" marker-end="url(#a421)"></line><text x="182" y="218" font-size="12" style="fill:var(--muted,#6d695f)">接得上，或先設定</text><rect x="20" y="226" width="300" height="52" rx="10" style="fill:var(--card,#fff);stroke:var(--accent,#8a6a2f);stroke-width:2"></rect><text x="170" y="249" text-anchor="middle" font-size="14" font-weight="700" style="fill:var(--text,#2b2a27)">三、我們做不做得出來？</text><text x="170" y="268" text-anchor="middle" font-size="12" style="fill:var(--muted,#6d695f)">形式、每週產能、碰不碰得到</text><line x1="320" y1="252" x2="408" y2="252" style="stroke:var(--muted,#6d695f);stroke-width:2" marker-end="url(#a421)"></line><text x="364" y="244" text-anchor="middle" font-size="12" style="fill:var(--muted,#6d695f)">做不出來、太花力氣</text><rect x="410" y="232" width="170" height="40" rx="10" style="fill:var(--soft,#f1eadb);stroke:var(--muted,#6d695f);stroke-width:1.5;stroke-dasharray:5 4"></rect><text x="495" y="257" text-anchor="middle" font-size="14" style="fill:var(--muted,#6d695f)">之後再考慮</text><line x1="120" y1="278" x2="120" y2="300" style="stroke:var(--muted,#6d695f);stroke-width:2" marker-end="url(#a421)"></line><line x1="240" y1="278" x2="240" y2="300" style="stroke:var(--muted,#6d695f);stroke-width:2" marker-end="url(#a421)"></line><rect x="20" y="302" width="180" height="48" rx="10" style="fill:var(--soft,#f1eadb);stroke:var(--accent,#8a6a2f);stroke-width:2"></rect><text x="110" y="323" text-anchor="middle" font-size="14" font-weight="700" style="fill:var(--text,#2b2a27)">先做</text><text x="110" y="341" text-anchor="middle" font-size="12" style="fill:var(--muted,#6d695f)">三題都過</text><rect x="210" y="302" width="180" height="48" rx="10" style="fill:var(--soft,#f1eadb);stroke:var(--accent,#8a6a2f);stroke-width:2"></rect><text x="300" y="323" text-anchor="middle" font-size="14" font-weight="700" style="fill:var(--text,#2b2a27)">試 30 天</text><text x="300" y="341" text-anchor="middle" font-size="12" style="fill:var(--muted,#6d695f)">有先設定的，但做得出來</text></svg><figcaption>選平台的三個問題。第一題的根據要來自 Persona，不是平台有多少人用；訪談沒問到、先設定的，做得出來的話，用下一篇的 30 天去試。</figcaption></figure>
+<p data-kind="眉標">山徑咖啡</p>
+<h2>五個平台，一個一個問</h2>
+<p>回到山徑咖啡。它的行銷團隊，已經先寫好一份社群規劃：要經營 Instagram 和 Threads 這兩個。可是寫好了，不代表想清楚了。這一節，就用三個問題，替這個決定做一次檢查：這兩個，各站不站得住？另外三個，又為什麼不做？</p>
+<p>先把手上的材料攤開來看看。3-2-2 的阿傑型，「怎麼找資訊」那一格寫的是：先看 YouTube 評測影片、到電商比價，再找可以拿在手上試的地方。團隊替阿傑型整理資料時，還另外記下了他常用的平台：YouTube、Instagram、Facebook 咖啡社團。這一行是新的資料，和前面幾篇接得起來：比較的時候，他去 YouTube 看評測；平常滑手機，他用的是 Instagram，1-1-1 那支讓他兩秒就按愛心的沖煮影片，就是在 IG 上滑到的；3-2-3 也說過，他會到咖啡社團看看。團隊這邊呢？每週做得出 2 則圖文、1 支短影音；Instagram 近四週發了 12 則；Threads 也有帳號、有一些追蹤者，可是沒有發文和互動的紀錄。再來，4-1-1 也定好了社群要他做的下一步：先去比較表比三款。</p>
+<p><strong>Instagram。</strong>第一題，在：他常用的平台裡，就有 Instagram。第二題，他在 Instagram 多半是在滑；而 Reels 大多推給還沒追蹤的人，正好就是 4-1 那支比較短片要碰的人；他在那裡看的，本來就有品牌自己的貼文：1-1-1 他按愛心的，就是山徑的影片。停下來之後，下一步就帶去比較表，接得上。第三題，做得出來：山徑已經在 Instagram 發文，每週的 1 支短影音就放 Reels，2 則圖文則放貼文。三題都有根據，所以先做。</p>
+<p><strong>YouTube。</strong>第一題，在，而且很確定：他比較的時候，第一個去的就是 YouTube。第二題，他在那裡做的，是搜尋評測，心裡問的是「這幾個差在哪」；而 3-2-3 說過，他在 YouTube 聽的是拍評測影片的人，不是店家自己說。山徑把那支比較短片放上去，做得到；可是他在那裡想聽的不是店家：山徑自己發，接不上；換成評測者來比，就接得上。第三題，會讓他相信的評測者，這一期碰不到：山徑這一期沒有和創作者合作的計畫。所以，YouTube 之後再考慮，等之後有機會請評測者照實比較；至於怎麼找、怎麼合作，4-5 會講。</p>
+<p><strong>Facebook。</strong>第一題，他在的，其實是 Facebook 的咖啡社團，不是品牌的粉絲專頁，也沒有任何資料說他會去看店家的粉專。第二題，他在社團裡看的是其他用過的人怎麼說；到了做決定的時候，最後靠的還是評測和拿在手上試。第三題，開一個粉專做得出來；可是第一題就沒有根據，就算開了，也碰不到他。社團呢？店家當然也能到社團裡說話，3-2-3 說過這條路碰得到；可是，社團是一群人圍起來的地方，店家發文很容易被當成廣告，所以 3-2-3 把它當成一條「讓用過的人去說」的路，不是店家自己經營的平台。這樣看下來，粉專先不做；社團，就照 3-2-3 的路處理。</p>
+<p><strong>Threads。</strong>第一題，答不出來：他常用的平台裡沒有 Threads，訪談裡也沒提到。這時候，就照自己的規則，先設定：他可能在 Threads 上看看大家在聊什麼，並標明這是設定。第二題，也只能先設定：如果他在，他會在那裡問「升級手沖壺要挑哪一把」這類問題。第三題，就要多想一步：其實在 Threads 上，品牌做得起來的，不一定是自己一直發文。台灣不少品牌在 Threads 上會「海巡」：找到跟自家有關的討論，到網友的串文底下留言；故宮南院的「幹嘛」，就是回在網友提到它的串文底下。換成山徑來做，就是用山徑自己的帳號，固定搜尋「手沖壺」「升級手沖壺」「山徑咖啡」這些字，找到正在問怎麼挑壺的人，像朋友聊天一樣回答他問的事；真的用得上的時候，才說一句「我們把三把手沖壺放在同一張表上比過」，附上比較表。至於已經追蹤的人，每週的圖文也一起放上去；不過重點，還是在回覆。這樣做，不用另外做內容，花的是時間；而團隊每週要撥得出幾個小時，這一點也是設定。</p>
+<p>不過，海巡也有代價。《經理人》寫，海巡相當耗費時間與人力。《數位時代》報導過，台灣的手搖飲品牌八曜和茶有專人做 Threads 海巡，帳號還曾經因為留言太多，被平台禁言。另外，也有品牌小編覺得，到處留言是在打擾別人，刻意不這樣做。所以，山徑只回真的在問手沖壺的串文，不到每個熱門話題底下刷存在感。整理起來，第一、二題都是設定，第三題花的是時間，所以 Threads 試 30 天：要看這些回覆，有沒有帶來想升級的人的回應、有沒有人點去比較表，也看設定的那兩件事對不對。</p>
+<p><strong>TikTok。</strong>第一題，資料裡沒有線索說他在 TikTok，也沒有線索說他不在，先當作可能在，並標明這是設定。第二題，答不出來。第三題，同一支短影音其實放得上去；可是，山徑在 TikTok 沒有帳號，要從零開始經營一個新帳號，和 Threads 已經有帳號、花的只是時間，差很多。結論是之後再考慮：等 Threads 試完，或是找到阿傑型在 TikTok 的線索。</p>
+<table>
+<thead><tr><th>平台</th><th>他在不在那裡</th><th>他在那裡做什麼</th><th>我們做不做得出來</th><th>結論</th></tr></thead>
+<tbody>
+<tr><td>Instagram</td><td>在（常用平台）</td><td>滑；Reels 碰得到還不認識山徑的人，接得上比較表</td><td>做得出來（已在發文）</td><td>先做</td></tr>
+<tr><td>Threads</td><td>設定：可能在</td><td>設定：可能在問怎麼挑</td><td>已有帳號；海巡花的是時間（設定：每週撥得出時間）</td><td>試 30 天</td></tr>
+<tr><td>YouTube</td><td>在（比較時先看評測）</td><td>搜尋評測；聽的是評測者，不是店家</td><td>評測者這一期碰不到</td><td>之後再考慮</td></tr>
+<tr><td>TikTok</td><td>設定：可能在（沒有線索）</td><td>答不出來</td><td>要從零開帳號</td><td>之後再考慮</td></tr>
+<tr><td>Facebook</td><td>在社團，不在粉專</td><td>看用過的人怎麼說</td><td>粉專碰不到他；社團照 3-2-3 的路</td><td>粉專先不做</td></tr>
+</tbody>
+</table>
+<p>這樣檢查完，你會發現，規劃裡的兩個平台，份量不一樣。Instagram 三題都有根據，所以先做；接下來的 30 天，要看的，是它做得好不好，有沒有把人帶到比較表。Threads 有兩題是設定，所以是試；30 天要看的，則是它值不值得留下來。同時，這張表也讓團隊知道 YouTube 和 TikTok 為什麼現在不做、要等什麼。下一篇，就替 Instagram 和 Threads 寫 30 天的測試。</p>
+<p>還有一件事要說清楚。在社群上，也看得到另一種做法：開一堆假帳號、找暗樁，假裝一般顧客發心得，甚至用假帳號攻擊對手。這不是方法，不能做。Meta 的社群守則寫明，不允許建立用來欺騙他人的帳號，Threads 也適用。在台灣，這還可能違法：2013 年，公平交易委員會認定台灣三星找人在網路上「隱匿事業身分，佯裝一般大眾行銷自身商品」，罰了 1,000 萬元。公平會的規範也說，在社群推文、論壇發言推薦，沒說出自己和業者的關係，可能違反公平交易法。所以，山徑去海巡，用的是山徑自己的帳號，看得出是店家在說話。至於社群上的心得要有份量，正當的做法，3-2-3 已經說過了：請真的試握過、買過的顧客，照實留下心得。</p>
+<p data-kind="眉標">換一個產品看看</p>
+<h2>同樣三個問題，答案可能完全不同</h2>
+<p>說完山徑咖啡，再換個角度看：三個問題不是用來選出 Instagram 的。其實換一個產品，答案就不一樣。下面，是前面幾篇用過的兩個例子，一樣三題一題一題問：</p>
+<table>
+<thead><tr><th>產品</th><th>他在不在那裡</th><th>他在那裡做什麼</th><th>我們做不做得出來</th><th>結論</th></tr></thead>
+<tbody>
+<tr><td>客製蛋糕工作室</td><td>3-2-2 說，決定找哪一家的，常常是在家長群組裡問人的媽媽；五個平台裡她在哪，資料沒寫</td><td>在群組問「哪一家客製蛋糕比較好」</td><td>群組是別人的地方，工作室進不去；3-2-2 也說，要讓她看得到價格、尺寸、取貨時間</td><td>先做的是她聽到推薦之後，查得到這些的地方；她會去哪裡查，小組先設定一個合理的情況，例如搜尋店名、看 Instagram 作品，標明是設定，用 30 天去試；再讓做過蛋糕的家長，方便把作品轉進群組，走的是第五條路：轉傳</td></tr>
+<tr><td>學英文的 App</td><td>3-2-2 的小安，會在通勤的捷運上滑手機找方法；滑的是哪個平台，資料沒寫</td><td>在滑，還在問「這是什麼？跟我有關嗎？」；3-2-3 說他下班很累，不太會坐下來看長影片</td><td>三人團隊，長影片做不太出來</td><td>YouTube 長影片先不做；短影音的平台先設定一個、標明是設定，用 30 天去試</td></tr>
+</tbody>
+</table>
+<p>你看，蛋糕工作室的答案，重點根本不在五個平台，而在它進不去的群組；至於學英文的 App，第一題就答不出來，要先設定、再去試。而這兩種情況，你們組都可能遇到。</p>
+<p data-kind="眉標">換到你們組的產品</p>
+<h2>替你們的產品，五個平台各問一次</h2>
+<p>現在，換你們組上場了。先把 Persona、要他做的下一步、團隊每週做得出多少寫下來，再把五個平台，一個一個問過。</p>
+<pre data-kind="複製">我們的 Persona：［……］（3-2-2；特別是「怎麼找資訊」那一格）
+我們的 Persona 平常用哪些平台：［……］（訪談；沒問到的，小組設定並標明「設定」）
+五個平台以外，他最常在哪裡看這類東西：［……］（例如應用程式商店的評論、LINE 群組）
+我們要他做的下一步：［……］（4-1-1）
+我們每週做得出：［幾則圖文、幾支短影音、其他］
+
+Instagram
+　他在不在那裡（根據）：［……］
+　他在那裡做什麼（滑／搜尋／問人），接得上下一步嗎：［……］
+　我們做不做得出來：［……］
+　結論：［先做／試 30 天／之後再考慮，要等什麼／先不做］
+Threads
+　（同上四行）
+Facebook
+　（同上四行）
+YouTube
+　（同上四行）
+TikTok
+　（同上四行）
+
+我們的結論：先做［……］；試 30 天［……］；之後再考慮［……，等……］
+試 30 天的平台，我們在上面打算怎麼做（自己發文、回覆別人的串文，或其他）：［……］</pre>
+<p>寫的時候，有三個提醒。第一，「他在不在那裡」的根據，要來自你們的訪談或 Persona；寫「台灣很多人用」的，就要改掉。至於訪談沒問到的，就照模組 3 的做法先設定、標明「設定」；那正是下一篇 30 天要去試的地方。第二，要試的平台，也要想想在上面實際怎麼做：像 Threads，台灣不少品牌做的是到別人的串文底下回覆，不只是自己發文；先做的平台上，每週怎麼排內容，4-3、4-4 會講。而假帳號、暗樁、不說出自己身分的推薦，不能寫進來。第三，先做的平台不用多，做得出來最重要；每週做不出來的平台，就算選了，也只會斷斷續續。</p>
+<p data-kind="眉標">寫完之後</p>
+<h2>讓 AI 幫你們找出沒有根據的那一格</h2>
+<p>記得先自己寫完，再交給 AI。這一次，AI 不扮 Persona：它不知道你們的顧客平常在哪裡，請它扮，只會編出看起來很像的答案。請它當陪練，找出你們的表裡，哪一格的理由站不住。</p>
+<pre data-kind="複製">我們在練習替一個產品選社群平台。請你當我們的陪練，不要替我們選平台，也不要補我們沒寫的顧客資料。
+
+【我們的產品】（用一句話介紹）
+【我們的 Persona】（貼上）
+【我們要他做的下一步】（貼上）
+【我們每週做得出的內容】（貼上）
+【我們五個平台的判斷】（貼上）
+
+請逐個平台告訴我們：
+1. 「他在不在那裡」這一格，根據是來自我們的 Persona，還是只是「這個平台很多人用」？
+2. 「他在那裡做什麼」，接得上我們寫的下一步嗎？哪裡接不上？
+3. 「做不做得出來」，對得上我們每週做得出的內容嗎？
+4. 有沒有哪個平台，我們寫了「先做」，可是上面三題其實有一題答不出來？
+5. 試 30 天的平台，「打算怎麼做」那一格，有沒有只寫「發文」，沒想過那個平台上品牌實際怎麼做？有沒有哪一種做法，是用假帳號，或沒說出自己是業者？
+
+照我們寫的資料說，資料沒寫到的，請說「這一點你們沒寫」。</pre>
+<p>拿到回覆之後，小組一起看兩件事。第一，AI 說「只是很多人用」的那幾格，你們手上，有沒有 Persona 的根據？如果沒有，就改成小組的設定，並標明「設定」。第二，AI 說接不上下一步的平台，想想看，是停下來的理由錯了，還是這個平台本來就不適合？要不要改、改哪一個，就由你們決定。</p>
+<section data-kind="讀完之後"><p><strong>讀完之後，用自己的話試著回答：</strong></p><p>第一，一則內容有哪五條路被人看到？山徑咖啡的追蹤者，和還不認識山徑的人，各走哪一條？</p><p>第二，台灣某個平台用的人很多，為什麼不能直接當成「我們的顧客在那裡」？</p><p>第三，達美樂說「絕對不能這個平台做什麼，就原封不動複製到另一個平台」，它在 Facebook 和 Threads 上，說話的方式差在哪裡？</p><p>第四，阿傑型比較的時候先去 YouTube，為什麼山徑咖啡還是把 YouTube 放在「之後再考慮」？要等什麼條件？</p><p>第五，山徑在 Threads 上打算怎麼試？「海巡」有什麼代價？為什麼不能開假帳號、找暗樁？</p><p>答不出來的那一題，回到對應的段落再讀一次就好。</p><p data-kind="註">接下來是 4-2 的第二篇：選好平台之後，怎麼用 30 天知道選對了沒。</p></section>
+<p data-kind="註">山徑咖啡、阿傑型，以及文中的常用平台、每週內容產能、IG 貼文數、Threads 帳號、行銷團隊的社群規劃、海巡關鍵字與海巡時間，都是課程模擬資料，不是真實品牌的成效；客製蛋糕工作室、小安與學英文的 App 是舉例用的情境；Instagram、Threads、Facebook、YouTube、TikTok 的官方說明、DataReportal 與 TWNIC 的台灣數據、台灣達美樂、Ryanair、故宮南院、八曜和茶與品牌海巡的報導、Meta 社群守則、公平會的台灣三星處分與薦證廣告規範是真實資料與案例。平台的運作會改，引用時以文中寫的年份為準；英文的中文是講義的翻譯。</p>
+<p data-kind="註">參考來源：Instagram, Instagram Ranking Explained（2023）；Meta Newsroom, Trial Reels（2024）；Meta 透明中心，Threads、Facebook 動態與社團的排序說明（2025–2026）；Meta AI, AI-driven recommendations on Facebook and Instagram（2023）；YouTube 官方部落格，On YouTube's recommendation system（2021）；YouTube 說明中心〈YouTube 搜尋的運作方式〉；TikTok, How TikTok recommends videos #ForYou（2020）；DataReportal, Digital 2027: Taiwan（2026）；TWNIC《2025 台灣網路報告》；《經理人》台灣達美樂、故宮南院、品牌 Threads 海巡報導（2026）；《數位時代》八曜和茶報導；Meta《社群守則》〈真實身分代表〉；公平交易委員會公處字第 102184 號處分書（2013）、〈薦證廣告之規範說明〉；Marketing Beat, Ryanair 訪談（2023）。</p>
+
+</main>
+<nav class="nav-footer" aria-label="上一篇與下一篇" hidden></nav>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">數位行銷人才培訓</span>
+</footer>
+
+<script>
+(function(){
+  'use strict';
+  var main=document.getElementById('main');
+
+  // 簡報感版面：英雄區、章節區塊、路線圖、淡入、註腳
+  (function buildHero(){
+    var pos=main.querySelector('p[data-kind="位置"]');
+    var h1=main.querySelector('h1');
+    if(!pos||!h1)return;
+    var hero=document.createElement('div');hero.className='hero-zone';
+    var items=[pos,h1];
+    var sib=h1.nextElementSibling;
+    while(sib&&!(sib.tagName==='P'&&sib.dataset.kind==='眉標')){items.push(sib);sib=sib.nextElementSibling}
+    pos.parentNode.insertBefore(hero,pos);
+    items.forEach(function(el){if(el.tagName==='P'&&!el.dataset.kind&&el!==pos)el.classList.add('lead');hero.appendChild(el)});
+  })();
+  (function buildSections(){
+    var eyebrows=main.querySelectorAll('p[data-kind="眉標"]');
+    eyebrows.forEach(function(eb){
+      var block=document.createElement('div');block.className='section-block';
+      var items=[eb];var sib=eb.nextElementSibling;
+      while(sib){
+        if(sib.tagName==='P'&&sib.dataset.kind==='眉標')break;
+        if(sib.tagName==='SECTION'&&sib.dataset.kind==='讀完之後')break;
+        if(sib.tagName==='P'&&sib.dataset.kind==='註')break;
+        items.push(sib);sib=sib.nextElementSibling;
+      }
+      eb.parentNode.insertBefore(block,eb);
+      items.forEach(function(el,i){
+        if(i>1&&el.tagName==='P'&&!el.dataset.kind){var prev=items[i-1];if(prev&&prev.tagName==='H2')el.classList.add('section-lead')}
+        block.appendChild(el);
+      });
+    });
+  })();
+  (function upgradeTable(){
+    var blocks=main.querySelectorAll('.section-block');
+    if(!blocks.length)return;
+    var last=blocks[blocks.length-1];
+    var t=last.querySelector('table');
+    if(t)t.classList.add('roadmap-table');
+  })();
+  (function animateSections(){
+    var blocks=main.querySelectorAll('.section-block');
+    if(!blocks.length)return;
+    if(!('IntersectionObserver' in window)){blocks.forEach(function(b){b.classList.add('visible')});return}
+    var obs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}})},{threshold:0.05,rootMargin:'0px 0px -60px 0px'});
+    blocks.forEach(function(b){obs.observe(b)});
+  })();
+  (function buildFootnotes(){
+    var sec=main.querySelector('section[data-kind="讀完之後"]');
+    if(!sec)return;
+    var notes=[];var sib=sec.nextElementSibling;
+    while(sib&&sib.tagName==='P'&&sib.dataset.kind==='註'){notes.push(sib);sib=sib.nextElementSibling}
+    if(!notes.length)return;
+    var zone=document.createElement('div');zone.className='footnotes-zone';
+    notes[0].parentNode.insertBefore(zone,notes[0]);
+    notes.forEach(function(n){zone.appendChild(n)});
+  })();
+
+  // 導覽：依上線檔名查表。查不到（例如工作區預覽的中文檔名）就不顯示。
+  var NAV_ORDER=[
+    {file:'module3.html',label:'模組 3 市場洞察與策略定位'},
+    {file:'m3-1-1.html',label:'3-1 環境分析（一）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-1-2.html',label:'3-1 環境分析（二）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-1-3.html',label:'3-1 環境分析（三）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-2-1.html',label:'3-2 受眾研究（一）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-2-2.html',label:'3-2 受眾研究（二）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-2-3.html',label:'3-2 受眾研究（三）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-3-1.html',label:'3-3 消費者旅程（一）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-3-2.html',label:'3-3 消費者旅程（二）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-4-1.html',label:'3-4 品牌定位（一）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-4-2.html',label:'3-4 品牌定位（二）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-4-3.html',label:'3-4 品牌定位（三）模組作業',module:'module3.html',back:'返回模組 3'},
+    {file:'module4.html',label:'模組 4 社群行銷'},
+    {file:'m4-1-1.html',label:'4-1 注意力（一）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-1-2.html',label:'4-1 注意力（二）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-1-3.html',label:'4-1 注意力（三）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-2-1.html',label:'4-2 平台策略（一）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-2-2.html',label:'4-2 平台策略（二）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-3-shortform.html',label:'4-3 短影音腳本'}
+  ];
+  function arrow(ch){var s=document.createElement('span');s.setAttribute('aria-hidden','true');s.textContent=ch;return s}
+  function buildNav(){
+    var name='';
+    try{name=decodeURIComponent(location.pathname.split('/').pop()||'')}catch(e){return}
+    if(name&&!/\.html?$/.test(name))name+='.html';
+    var idx=-1;
+    for(var i=0;i<NAV_ORDER.length;i++){if(NAV_ORDER[i].file===name&&NAV_ORDER[i].module){idx=i;break}}
+    if(idx<0)return;
+    var cur=NAV_ORDER[idx],prev=NAV_ORDER[idx-1],next=NAV_ORDER[idx+1];
+    var bar=document.querySelector('.back-bar');
+    if(bar){
+      var b=document.createElement('a');b.href=cur.module;b.className='back-link';
+      b.appendChild(arrow('←'));b.appendChild(document.createTextNode(' '+cur.back));
+      bar.appendChild(b);bar.hidden=false;
+    }
+    var nav=document.querySelector('.nav-footer');
+    if(nav&&(prev||next)){
+      if(prev){
+        var a=document.createElement('a');a.href=prev.file;a.className='nav-btn nav-prev';
+        a.setAttribute('aria-label','上一單元：'+prev.label);a.setAttribute('data-nav-role','prev');
+        a.appendChild(arrow('←'));a.appendChild(document.createTextNode(' '+prev.label));nav.appendChild(a);
+      }
+      if(next){
+        var n=document.createElement('a');n.href=next.file;n.className='nav-btn primary nav-next';
+        n.setAttribute('aria-label','下一單元：'+next.label);n.setAttribute('data-nav-role','next');
+        n.appendChild(document.createTextNode(next.label+' '));n.appendChild(arrow('→'));nav.appendChild(n);
+      }
+      nav.hidden=false;
+    }
+  }
+  try{buildNav()}catch(e){}
+
+  // 閱讀進度
+  var strip=document.querySelector('.progress-strip'),prog=document.getElementById('prog');
+  function onScroll(){
+    var h=document.documentElement,max=h.scrollHeight-h.clientHeight;
+    var pct=max>0?Math.min(100,Math.max(0,h.scrollTop/max*100)):0;
+    prog.style.width=pct+'%';strip.setAttribute('aria-valuenow',String(Math.round(pct)));
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+
+  // 表格：包一層可橫向捲動的外層，窄螢幕只在表格內捲動（路線圖卡片除外）
+  main.querySelectorAll('table:not(.roadmap-table)').forEach(function(t){
+    if(t.parentNode.classList&&t.parentNode.classList.contains('table-scroll'))return;
+    var w=document.createElement('div');
+    w.className='table-scroll';w.setAttribute('role','region');w.setAttribute('tabindex','0');
+    w.setAttribute('aria-label','資料表，可水平捲動');
+    t.parentNode.insertBefore(w,t);w.appendChild(t);
+  });
+
+  // 長條：依 data-value 畫相對長度。數字只從定稿讀，模板不寫任何數字。
+  main.querySelectorAll('figure[data-kind="長條"]').forEach(function(fig){
+    var items=[].slice.call(fig.querySelectorAll('li[data-value]'));
+    var max=Math.max.apply(null,items.map(function(li){return +li.dataset.value||0}));
+    if(!(max>0))return;
+    items.forEach(function(li){var v=+li.dataset.value||0;li.style.setProperty('--w',Math.max(v/max*100,1.5)+'%')});
+  });
+
+  // 複製框：按鈕加在框的上方，複製框內原文（不動正文）
+  var LABEL='複製',DONE='已複製',FAIL='複製失敗';
+  function fallbackCopy(text){
+    var f=document.createElement('textarea');
+    f.value=text;f.setAttribute('readonly','');f.style.position='fixed';f.style.left='-9999px';f.style.top='0';
+    document.body.appendChild(f);f.select();f.setSelectionRange(0,f.value.length);
+    var ok=document.execCommand('copy');f.remove();
+    if(!ok)throw new Error('copy failed');
+  }
+  function copyText(text){
+    if(navigator.clipboard&&window.isSecureContext){
+      return navigator.clipboard.writeText(text).catch(function(){fallbackCopy(text)});
+    }
+    return new Promise(function(resolve){fallbackCopy(text);resolve()});
+  }
+  function setState(btn,status,state){
+    clearTimeout(btn._t);
+    btn.textContent=state==='copied'?DONE:FAIL;
+    btn.classList.toggle('is-copied',state==='copied');
+    btn.classList.toggle('is-error',state==='error');
+    status.textContent=state==='copied'?'已複製到剪貼簿':'複製失敗，請手動選取文字';
+    btn._t=setTimeout(function(){btn.textContent=LABEL;btn.classList.remove('is-copied','is-error');status.textContent=''},1800);
+  }
+  main.querySelectorAll('pre[data-kind="複製"]').forEach(function(pre,i){
+    var bar=document.createElement('div');bar.className='copy-toolbar';
+    var btn=document.createElement('button');btn.type='button';btn.className='copy-button';btn.textContent=LABEL;
+    btn.setAttribute('aria-label','複製這段文字');
+    var status=document.createElement('span');status.className='copy-status';status.id='copy-status-'+i;
+    status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+    btn.setAttribute('aria-describedby',status.id);
+    btn.addEventListener('click',function(){
+      var text=pre.textContent.replace(/\r\n?/g,'\n').replace(/^\n+|\s+$/g,'');
+      if(!text){setState(btn,status,'error');return}
+      copyText(text).then(function(){setState(btn,status,'copied')},function(){setState(btn,status,'error')});
+    });
+    bar.appendChild(btn);bar.appendChild(status);
+    pre.parentNode.insertBefore(bar,pre);
+  });
+  // 單行複製字：點一下複製
+  main.querySelectorAll('code[data-kind="複製"]').forEach(function(c){
+    c.setAttribute('role','button');c.setAttribute('tabindex','0');c.setAttribute('title','點一下複製');
+    function go(){copyText(c.textContent).then(function(){c.setAttribute('title','已複製')},function(){c.setAttribute('title','複製失敗')})}
+    c.addEventListener('click',go);
+    c.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}});
+  });
+})();
+</script>
+</body>
+</html>
