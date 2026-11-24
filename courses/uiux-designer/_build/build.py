@@ -4,6 +4,8 @@
 講義來源有兩種，以「篇」為單位判斷（同一章可以混用）：
   - .tpl：<章>/_src/<篇>.tpl（第一章全部、第二章開場）
   - 定稿：<章>/定稿/<篇>.v<N>.html（第二章起的新篇；格式見 共學專案/範本/定稿格式.md），取 N 最大的一版
+    該章在 chapters.json 有 "pin"（{篇: 版本}）時，定稿只取 pin 列出的篇與版本，其餘不上架。
+    該章只開放一部分時設 "partial": true，最後一份的下一頁按鈕不說「這一章做完了」。
   同一篇兩種都有就失敗。目錄一律是 _src/目錄.tpl（導覽，不在定稿範圍）。
 
 用法（在課程 repo 根目錄執行）：
@@ -223,10 +225,12 @@ def parse_draft(path, theme):
             "desc": text_of(lead.group(1))[:150] if lead else title}
 
 
-def find_sources(chap_dir):
-    """每一篇的來源：{stem: ("tpl"|"定稿", path)}。同一篇兩種都有、或定稿檔名不合規則，就失敗。"""
+def find_sources(chap_dir, pin=None):
+    """每一篇的來源：{stem: ("tpl"|"定稿", path)}。同一篇兩種都有、或定稿檔名不合規則，就失敗。
+    pin（chapters.json 的 "pin"，{篇: 版本}）：有設定時，定稿只取 pin 列出的篇、且只取那一版，
+    其餘定稿（審核中的新篇或新版）不上架；pin 列的版本不存在就失敗。沒設定時取 N 最大的一版。"""
     src = {nfc(p.stem): ("tpl", p) for p in (chap_dir / "_src").glob("*.tpl")}
-    drafts = {}
+    drafts, found = {}, set()
     d = chap_dir / "定稿"
     if d.is_dir():
         for p in d.glob("*.html"):
@@ -234,8 +238,15 @@ def find_sources(chap_dir):
             if not m:
                 fail(f"定稿檔名要是 <篇>.v<版本>.html：{p.name}")
             stem, ver = m.group(1), int(m.group(2))
+            found.add((stem, ver))
+            if pin is not None and pin.get(stem) != ver:
+                continue
             if stem not in drafts or ver > drafts[stem][0]:
                 drafts[stem] = (ver, p)
+    if pin is not None:
+        lost = [f"{k}.v{v}" for k, v in pin.items() if (nfc(k), v) not in found]
+        if lost:
+            fail(f"chapters.json 的 pin 指定的定稿不存在：{lost}")
     for stem, (_, p) in drafts.items():
         if stem == "目錄":
             fail("目錄是導覽，不寫成定稿；請用 _src/目錄.tpl")
@@ -345,7 +356,8 @@ def build_chapter(cfg, ch, src_root, out_dir, theme, built, report):
     chap_dir = src_root / ch["src"]
     if not src.is_dir():
         fail(f"找不到章節來源：{src}")
-    tpls = find_sources(chap_dir)
+    pin = {nfc(k): v for k, v in ch["pin"].items()} if "pin" in ch else None
+    tpls = find_sources(chap_dir, pin)
     if tpls.get("目錄", ("",))[0] != "tpl":
         fail(f"{src} 缺 目錄.tpl")
     toc_tpl = parse_tpl(tpls["目錄"][1])
@@ -411,7 +423,8 @@ def build_chapter(cfg, ch, src_root, out_dir, theme, built, report):
                 q = toc[idx]
                 nxt = (name_map[q["href"]], f"下一份：{q['t']}")
             else:
-                nxt = ("index.html", f"這一章做完了，回到{ch_label}目錄")
+                nxt = ("index.html", f"目前開放到這一份，回到{ch_label}目錄" if ch.get("partial")
+                       else f"這一章做完了，回到{ch_label}目錄")
         main_open = '<main id="main">' if kind == "tpl" else '<main id="main" data-正文>'
         page = (head(cfg, title, desc, url, css) + topbar("../../../index.html", "../index.html", cfg, tag)
                 + f'{main_open}{main}</main>\n' + pager(prev, nxt) + foot(cfg, built, "共學講義")
