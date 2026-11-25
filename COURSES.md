@@ -86,7 +86,7 @@
 | `codex-basic/` | Codex 基礎使用：辦公與財會的 AI 工作助理（3h） | 完成（已註冊） | 11 頁（index + 10 單元：CH1-1~3 / CH2-1~2 / PRAC2 / CH3-1~2 / CH4-1~2）；會計/財務/行政受眾，零代碼；Codex 桌面 App + GPT-5.5；主色陶土橘；G2 教案 + G3 內審 + Codex L3 三輪審核；Part 4 為能力地圖示範；⚠️ B 類官方文件改寫（Sites/Skill/權限）待課前實機驗證 |
 | `admin-ai-assistant/` | 行政 AI 虛擬助理實戰（2h） | 完成（已註冊） | 8 頁（index + CH1~CH6 + prompt-library 資產頁）；行政/總務/助理/幕僚受眾，零代碼；Gemini（Gem）+ Gemini Notebook；主色灰藍綠；核心機制：規則進 Gem 系統提示詞（八條）+ 資料與《規範｜…》文檔進 Gemini Notebook 筆記本 + Gem 掛載自動同步 + 一句話派工 + 兩條回流路徑；Codex L3 審核 57fbaa72 actionable 已全修（CH6 降承諾+fallback+最小完成線） |
 | `ai-beginner-practical/` | AI 入門即戰力：零基礎的 AI 入門應用（12h） | 完成（已註冊） | 4 單元（CH1–CH4）＋課程導覽；零基礎成人，平台中立 LLM 方法，第 3 單元固定 Gemini Notebook；主色霧藍 |
-| `uiux-designer/` | UI/UX 設計師：從需求到可交付的介面（99h） | 2026-11-17 改用共學講義，逐章開放（目前第一章，第二章開放到第 5 份，其餘陸續開放中）；舊版 16 堂已下架 | 零基礎；16 章；講義真相源 `01-PROJECTS/UIUX共學講義/`，用 `courses/uiux-designer/_build/` 建置；沿用舊版冷色版面（主色 #167D8D）；2026-11-18 起有密碼關卡（`inject_gate.py`，key `uiux_auth`）；`_build/build.py` 每次重建會洗掉關卡，重建後要只對本課重新注入（不要直接跑 `inject_gate.py`，它會改到其他課程約 700 頁；做法見 `01-PROJECTS/共學專案/製作流程.md`「八之二」第 5 步） |
+| `uiux-designer/` | UI/UX 設計師：從需求到可交付的介面（99h） | 2026-11-17 改用共學講義，逐章開放（目前開放第一、二章，其餘陸續開放中）；舊版 16 堂已下架 | 零基礎；16 章；講義真相源 `01-PROJECTS/UIUX共學講義/`，用 `courses/uiux-designer/_build/` 建置；沿用舊版冷色版面（主色 #167D8D）；2026-11-18 起有密碼關卡（`inject_gate.py`，key `uiux_auth`）；`_build/build.py` 每次重建會洗掉關卡，重建後要只對本課重新注入（不要直接跑 `inject_gate.py`，它會改到其他課程約 700 頁；做法見 `01-PROJECTS/共學專案/製作流程.md`「八之二」第 5 步） |
 | `canva-video-teaching/` | Canva 教學短片入門：從教材到學生作品（5h） | 講義上架；部分平台流程待課前確認 | 28 個公開頁；兩場各 150 分鐘，從實拍剪輯、講解與字幕到學生製作任務；應用英語系教師、影音零基礎；主色陶土橘；已註冊密碼關卡 |
 
 > 上述「狀態」「主色」可能未即時反映實況。「結構描述」一律以 `ls courses/<slug>/` 為準。
