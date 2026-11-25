@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>請人幫忙說，要說清楚哪些事？</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* 數位行銷 70h 共學講義模板。外觀沿用線上講義（m3-1-environment.html、assets/lesson-rewrite.css、assets/prompt-copy.css）的冷色版面；
+   定稿沒有 class，正文一律用元素與 data-kind 選擇器。 */
+:root{
+  --c-bg:#f7fafc;--c-surface:#e4ecf3;--c-card:#ffffff;--c-border:#d2dce6;--c-border-soft:#e8eef4;
+  --c-text:#2b3d4c;--c-muted:#586c80;--c-faint:#5d7083;--c-a2:#147685;--c-a2-dark:#0f5f6c;--c-a2-light:rgba(20,118,133,.08);--c-visited:#2d5669;
+  --radius:4px;--content-w:780px;
+  /* 定稿示意圖（SVG）用的變數名稱，對到本課色票，示意圖本身不改 */
+  --text:var(--c-text);--muted:var(--c-muted);--accent:var(--c-a2);--line:var(--c-border);--soft:var(--c-surface);--card:var(--c-card);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:'Noto Sans TC',-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;word-break:break-word;overflow-wrap:break-word;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+[id]{scroll-margin-top:72px}
+
+/* 頂部列、閱讀進度、頁尾（線上 .topbar / .progress-strip / .footer） */
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(247,250,252,.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Noto Serif TC',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.progress-strip{height:3px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-a2);width:0%;transition:width .1s;opacity:.6}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Noto Serif TC',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+
+/* 導覽：返回模組頁、上一篇／下一篇（線上舊頁 .back-link / .nav-footer / .nav-btn）。
+   連結由下方腳本依檔名查表產生；查不到就整塊不顯示。 */
+.back-bar{max-width:var(--content-w);margin:0 auto;padding:72px 48px 0}
+.back-bar[hidden],.nav-footer[hidden]{display:none}
+.back-bar:not([hidden])+main{padding-top:0}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px}
+.back-link:hover{color:var(--c-a2)}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a2);text-decoration:none;padding:10px 20px;border:1px solid rgba(20,118,133,.3);border-radius:var(--radius);transition:background .2s}
+.nav-btn:hover{background:rgba(20,118,133,.07)}
+.nav-btn.primary{background:var(--c-a2);color:#fff;border-color:var(--c-a2)}
+.nav-btn.primary:hover{background:#0f5f6c}
+
+/* 正文欄（線上 .lesson-hero ＋ .lesson-body） */
+main{display:block;max-width:100%;margin:0 auto;padding:0}
+main p{font-size:.92rem;line-height:1.85;margin:0 0 16px}
+main p[data-kind="位置"]{font-size:.73rem;color:var(--c-muted);letter-spacing:.08em;font-weight:500;line-height:1.7;margin:0 0 20px}
+main h1{font-family:'Noto Serif TC',serif;font-size:2rem;font-weight:700;line-height:1.3;letter-spacing:-.005em;color:var(--c-text);margin:0 0 36px}
+main p[data-kind="眉標"]{font-family:'Noto Serif TC',serif;font-size:.8rem;color:var(--c-a2);letter-spacing:.1em;font-weight:500;line-height:1.6;margin:64px 0 10px}
+main h2{font-family:'Noto Serif TC',serif;font-size:1.45rem;font-weight:700;line-height:1.4;color:var(--c-text);margin:64px 0 18px}
+main p[data-kind="眉標"]+h2{margin-top:0}
+main h3{font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700;line-height:1.5;color:var(--c-text);margin:28px 0 10px}
+main strong{font-weight:700;color:var(--c-text);text-decoration:underline;text-decoration-color:rgba(20,118,133,.18);text-decoration-thickness:.4em;text-underline-offset:-.22em;text-decoration-skip-ink:none;padding:0 1px}
+main h1,main h2{text-wrap:balance}
+main em{font-style:normal;font-weight:500;color:var(--c-a2)}
+main ul,main ol{margin:0 0 16px 1.4em;padding:0;line-height:1.9}
+main li{font-size:.92rem;margin:0 0 6px}
+main li>p{margin-bottom:6px}
+main a{color:var(--c-a2);font-weight:600;text-decoration-color:rgba(20,118,133,.45);text-decoration-thickness:1px;text-underline-offset:.18em}
+main a:visited{color:var(--c-visited);text-decoration-color:rgba(45,86,105,.45)}
+main a:hover{color:var(--c-a2-dark);text-decoration-color:currentColor}
+main code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:.88em;background:var(--c-surface);border:1px solid var(--c-border-soft);border-radius:2px;padding:1px 5px}
+
+/* 註：資料限制、參考來源（線上 .rw-source） */
+/* 範例（定稿格式：灰底；模組 4 起用到） */
+main p[data-kind="範例"]{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);padding:14px 18px;margin:0 0 14px;font-size:.92rem;line-height:1.85}
+main p[data-kind="註"]{font-size:.8rem;color:var(--c-muted);line-height:1.75;margin:0 0 8px}
+main section[data-kind="讀完之後"]~p[data-kind="註"]{margin-top:0}
+main section[data-kind="讀完之後"]+p[data-kind="註"]{margin-top:40px}
+
+/* 引用原話（線上 .callout.key） */
+main blockquote{margin:20px 0;padding:18px 22px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a2);border-radius:var(--radius)}
+main blockquote p{margin:0 0 8px}
+main blockquote>:last-child{margin-bottom:0}
+main cite{display:block;font-style:normal;font-size:.8rem;color:var(--c-muted);line-height:1.7;margin-top:8px}
+
+/* 表格（線上 .table-scroll ＋ .rw-table）；捲動外層由下方腳本執行時加上 */
+main .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:20px 0 24px}
+main .table-scroll>table{margin:0;min-width:100%}
+main table{width:100%;border-collapse:collapse;font-size:.9rem;line-height:1.7;background:var(--c-card);margin:20px 0 24px}
+main th,main td{border:1px solid var(--c-border);padding:8px 12px;text-align:left;vertical-align:top}
+main th{background:var(--c-surface);font-weight:700}
+main table:not(.roadmap-table) th,main table:not(.roadmap-table) td{word-break:normal;overflow-wrap:normal}
+main table:not(.roadmap-table) th:first-child,main table:not(.roadmap-table) td:first-child{min-width:6.5em}
+
+/* 複製框（線上 .rw-prompt ＋ prompt-copy.css）；按鈕由下方腳本執行時加在框的上方 */
+main pre[data-kind="複製"]{background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a2);border-radius:var(--radius);padding:14px 18px;margin:0 0 18px;white-space:pre-wrap;overflow-wrap:anywhere;font-family:inherit;font-size:.9rem;line-height:1.85;color:var(--c-text)}
+main code[data-kind="複製"]{cursor:pointer}
+.copy-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin:12px 0 8px}
+.copy-button{min-height:40px;padding:8px 13px;border:1px solid rgba(20,118,133,.36);border-radius:4px;background:var(--c-card);color:var(--c-a2);font:600 .78rem/1.2 'Noto Sans TC',sans-serif;letter-spacing:.02em;cursor:pointer;transition:background-color .18s ease,color .18s ease,border-color .18s ease}
+.copy-button:hover{background:rgba(20,118,133,.08);border-color:var(--c-a2)}
+.copy-button.is-copied{background:var(--c-a2);border-color:var(--c-a2);color:var(--c-card)}
+.copy-button.is-error{border-color:#9a463d;color:#9a463d}
+.copy-status{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* 先想再看的解答（線上 .rw-reference） */
+main details{margin:20px 0;border:1px dashed var(--c-border);border-radius:var(--radius);background:var(--c-surface);padding:.8rem 1rem}
+main summary{cursor:pointer;font-weight:600;font-size:.92rem;color:var(--c-a2)}
+main details[open]>summary{margin-bottom:.6rem}
+main details>:last-child{margin-bottom:0}
+
+/* 讀完之後：結尾自我檢查卡（線上 .rw-assign）— 全寬區塊 */
+main section[data-kind="讀完之後"]{max-width:100%;margin:0;padding:64px 48px 56px;background:var(--c-surface);border:none;border-top:3px solid var(--c-a2);border-radius:0}
+main section[data-kind="讀完之後"] > *{max-width:calc(var(--content-w) - 96px)!important;margin-left:auto!important;margin-right:auto!important}
+main section[data-kind="讀完之後"]>:last-child{margin-bottom:0}
+main section[data-kind="讀完之後"] > p:first-child{font-family:'Noto Serif TC',serif;font-size:1.2rem;font-weight:700;margin-bottom:28px;text-align:center}
+main section[data-kind="讀完之後"] > p:first-child strong{font-size:inherit;background:none;text-decoration:none;padding:0}
+main section[data-kind="讀完之後"] > p:not(:first-child):not([data-kind]){background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:16px 20px;margin-bottom:12px;font-size:.92rem;line-height:1.85}
+main section[data-kind="讀完之後"] p[data-kind="註"]{margin-top:20px;padding-top:16px;border-top:1px dashed var(--c-border);background:transparent;border-left:none;border-right:none;border-bottom:none;border-radius:0}
+
+/* 圖、示意圖、長條 */
+main figure{margin:28px 0}
+main img{display:block;max-width:100%;height:auto;border:1px solid var(--c-border);border-radius:var(--radius)}
+main figcaption{font-size:.8rem;color:var(--c-muted);line-height:1.75;margin-top:10px}
+main figure[data-kind="示意"]{max-width:100%;overflow-x:auto;--line:#a9b8c6}
+/* 示意圖裡用 --line 的只有「訪談沒提到」那條點線；本課 --c-border 在淺底上幾乎看不到，只在示意圖內加深 */
+main figure[data-kind="示意"] svg{max-width:100%;height:auto}
+main figure[data-kind="長條"]{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px}
+main figure[data-kind="長條"] ol{list-style:none;margin:0;padding:0}
+main figure[data-kind="長條"] li{margin:10px 0;font-size:.88rem}
+main figure[data-kind="長條"] li::before{content:"";display:block;height:20px;background:var(--c-a2);border-radius:2px;width:var(--w,0);margin-bottom:4px}
+
+/* 英雄區 — 大面積留白 + 大標題 */
+main .hero-zone{max-width:100%;margin:0;padding:100px 48px 80px;background:var(--c-surface);border-bottom:3px solid var(--c-a2);text-align:center}
+main .hero-zone > *{max-width:calc(var(--content-w) - 96px)!important;margin-left:auto!important;margin-right:auto!important}
+main .hero-zone p[data-kind="位置"]{margin-bottom:28px;letter-spacing:.12em}
+main .hero-zone h1{font-size:2.1rem;line-height:1.4;margin-bottom:28px;letter-spacing:-.01em}
+main .hero-zone .lead{font-size:1rem;line-height:1.9;color:var(--c-text);text-align:left;margin-bottom:16px}
+main .hero-zone > :last-child{margin-bottom:0}
+
+/* 章節區塊 — 交替白底/灰底 + 寬間距 */
+main .section-block{max-width:100%;padding:80px 48px 64px;position:relative}
+/* 區塊本身留左右邊距；裡面每個元素一律置中在正文欄，元素自己的 padding、margin 上下不受影響（2026-11-23 修跑位：眉標、複製框、範例、示意圖曾因自身規則權重較高而跳出正文欄） */
+main .section-block > *{max-width:calc(var(--content-w) - 96px)!important;margin-left:auto!important;margin-right:auto!important}
+main .section-block:nth-child(odd of .section-block){background:var(--c-card)}
+main .section-block:nth-child(even of .section-block){background:var(--c-surface)}
+main .section-block::before{content:"";display:block;width:48px;height:3px;background:var(--c-a2);margin:0 auto 40px;max-width:var(--content-w);padding:0}
+main .section-block p[data-kind="眉標"]{margin-top:0;font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:var(--c-a2);font-weight:600}
+main .section-block h2{margin-top:10px;margin-bottom:28px;font-size:1.85rem;line-height:1.3}
+main .section-block > p.section-lead{font-size:1rem;line-height:2.1;color:var(--c-text);margin-bottom:24px}
+
+/* 路線圖卡片 */
+main .roadmap-table{border:none;background:transparent;border-collapse:separate;border-spacing:0;width:100%}
+main .roadmap-table thead{display:none}
+main .roadmap-table tr{display:flex;flex-direction:column;background:var(--c-card);border:1px solid var(--c-border);border-left:4px solid var(--c-a2);border-radius:var(--radius);padding:20px 24px;margin-bottom:12px;position:relative}
+main .section-block:nth-child(even of .section-block) .roadmap-table tr{background:var(--c-bg)}
+main .roadmap-table td{border:none;padding:0;display:block}
+main .roadmap-table td:first-child{font-family:'Noto Serif TC',serif;font-weight:700;font-size:.85rem;color:var(--c-a2);letter-spacing:.06em;margin-bottom:8px}
+main .roadmap-table td:last-child{font-size:.92rem;line-height:1.8}
+main .roadmap-table tr:not(:last-child)::after{content:"";position:absolute;left:22px;bottom:-14px;width:2px;height:14px;background:var(--c-a2);opacity:.4}
+
+/* 章節淡入 */
+main .section-block{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
+main .section-block.visible{opacity:1;transform:translateY(0)}
+
+/* 註腳區 */
+main .footnotes-zone{max-width:var(--content-w);margin:0 auto;padding:32px 48px 48px}
+main .footnotes-zone p[data-kind="註"]{margin-top:0}
+
+@media(max-width:1024px){
+  .topbar{padding:0 32px}
+  .back-bar,.nav-footer{padding-left:32px;padding-right:32px}
+  main .hero-zone,
+  main .section-block,
+  main section[data-kind="讀完之後"],
+  main .footnotes-zone{padding-left:32px;padding-right:32px}
+}
+@media(max-width:600px){
+  .topbar{padding:0 16px}.topbar-sub,.topbar-divider{display:none}
+  .back-bar{padding:40px 20px 0}
+  .nav-footer{flex-direction:column;padding:0 20px 48px}
+  .nav-btn{width:100%;justify-content:center}
+  main .hero-zone{padding:60px 20px 48px}
+  main .hero-zone h1{font-size:1.55rem}
+  main .section-block{padding:48px 20px 40px}
+  main .section-block h2{font-size:1.4rem}
+  main .section-block::before{margin-bottom:24px}
+  main section[data-kind="讀完之後"]{padding:40px 20px 36px}
+  main .footnotes-zone{padding:24px 20px 36px}
+  main th,main td{padding:8px 10px}
+  main table:has(tr>:nth-child(4)){min-width:32em}
+  .copy-button{min-height:44px;padding:9px 14px}
+  .footer{padding:20px}
+  main .roadmap-table tr::after{left:16px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+@media print{.topbar,.progress-strip,.copy-toolbar,.skip-link,.back-bar,.nav-footer{display:none}body{background:#fff}main .hero-zone,main .section-block{background:transparent!important}main .section-block{opacity:1!important;transform:none!important}}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.45rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.75rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='digimkt_auth',H='6d9278e29c0d1ab888cfabe6a73a06f54c124fb0a4bb3dfccd7720d3e80d9eb7';if(localStorage.getItem(K)==='1')sessionStorage.setItem(K,'1');if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+<header class="topbar">
+  <a href="https://skypai0326.github.io/courses/" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">數位行銷人才培訓</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-fill" id="prog"></div></div>
+
+<div class="back-bar" hidden></div>
+<main id="main" data-正文>
+<p data-kind="位置">數位行銷人才培訓｜模組 4 社群行銷｜4-5 KOL／KOC（二）</p>
+<h1>請人幫忙說，要說清楚哪些事？</h1>
+<p>回頭看，上一篇，山徑咖啡已經排好了兩張初選表：KOC 先找試握後買了杉影的阿凱，小葵也請；KOL 等條件到了，第一個找專拍器具比較的「注水筆記」。找到人之後，下一步，就是寫給他們：要請他做什麼、哪些事一定要寫清楚、哪些交給他自己決定，還有他和山徑的關係，要怎麼讓看的人知道。</p>
+<p><strong>這一篇要回答的是：請人幫忙說，要說清楚哪些事？</strong>先看寫給創作者的東西裡，哪些要寫清楚、哪些不要寫死；再看合作關係，什麼時候一定要說出來，平台上又有哪些工具；接著看真實的例子，再替山徑寫給阿凱的邀請、給注水筆記的合作說明，最後，換你們組。讀完，你會學會一個判斷：寫給創作者的東西裡，哪些是一定要對的事、要寫清楚，哪些是他自己的話、要交給他；以及什麼時候，合作關係一定要說出來。</p>
+<p data-kind="眉標">先想一個經驗</p>
+<h2>同一支推薦，你是什麼時候知道它是業配的？</h2>
+<p>先來想一下，你看過的推薦影片。有一種是這樣的：你看到最後，才在說明欄最底下，看到一行小字「本影片由某某贊助」；又或者，留言區有人問「業配嗎？」，作者才回「對」。到了那一刻，前面聽到的每一句好話，好像都要重新想一遍。</p>
+<p>很多人看到「業配」兩個字，就想滑走了。可是，也有另一種：作者一開頭就說，「這支是某某借我三台吹風機拍的，但哪一台好用，我照實說。」然後，他真的說了其中一台太吵。你知道他拿了東西，可是，你還是聽完了。上一篇看過，古娃娃把自己接業配的流程都公開了，HowHow 被叫作業配之王，還是有很多人信；也有研究發現，看到有標示合作的小帳號時，購買意願比看到沒標示的大帳號還高。其實，說出來，不等於沒人信；最後才被發現，才是最傷的。</p>
+<p>還有一種，你說不出是哪裡怪，就是覺得不像他。平常講話很隨便的人，突然一字不差地，念出一串產品特色，連語氣都變了。後來你才知道，原來那是廠商寫好給他的稿。</p>
+<p>仔細想想，這三種差的，是兩件事：品牌給他的東西，有沒有讓他用自己的話說；他和品牌的關係，有沒有一開始就讓看的人知道。而這一篇，就是要把這兩件事寫清楚。</p>
+<p data-kind="眉標">撐起判斷的觀念（一）</p>
+<h2>合作說明：要提到、要對的事寫清楚，怎麼說交給他</h2>
+<p>品牌寫給創作者的合作說明，業界常把它叫作 Brief，就是「簡要說明」的意思。社群排程工具 Later、開網店的平台 Shopify、整理網紅行銷資料的 Influencer Marketing Hub 都整理過該寫什麼；合起來，大致是這些：品牌和產品是什麼、這次想達成什麼、想讓誰看到、一定要說到的事、要交什麼（幾支影片、哪個平台、什麼時候）、上線前誰看過、報酬怎麼算、合作關係怎麼標示。而台灣的網紅資料平台 KOL Radar，在數位時代寫的合作指南裡，還提醒要寫清楚作品能不能拿去別的地方再用、要不要投廣告、什麼時候回覆。</p>
+<p>欄位本身不難，難的是要寫多細。而各家講得最一致的，就是不要寫成腳本。Later 說，寫得太像腳本，真實的感受就被抽掉了；Shopify 也說，腳本式的說明，會做出不真實、生硬的內容。Influencer Marketing Hub 建議，把一定要說到的事和可以補充的點分開寫，給開場的方向，不指定台詞。台灣一篇談網紅合作的投稿也說，不要逐字改網紅的文案，而是要給他表現自己風格的空間。</p>
+<p>那創作者自己又怎麼看？Later 在 2025 年調查了自家平台上的 403 位創作者，結果只有 10% 覺得在品牌合作裡，真的能決定怎麼做內容。可是，也不是完全放手就好：行銷產業媒體 Marketing Brew 報導，一家網紅行銷代理商問了 500 位創作者，多在英國和北美，只有大約五分之一想要完全自由，58% 希望品牌給一些準則，幫他們定方向。</p>
+<p>把這些合起來看，品牌要寫清楚的，有三種事。<strong>一定要提到的事</strong>：看的人不知道就會出問題的事，例如產品要保養、有什麼限制。<strong>提到就要對的事</strong>：數字、規格、價格，他可以不提，但提了就不能錯。<strong>不要說的事</strong>：沒有根據的話、不能保證的效果。除了這三種，<strong>怎麼說，交給他</strong>：怎麼拍、用什麼語氣、喜不喜歡、推不推薦。上一篇說過，看的人信他，是因為他懂、他會說實話、他跟看的人是同一種人；要是把他的話換成品牌的稿，這些就沒了。</p>
+<p>還有一種東西，看起來像是在管他怎麼拍，其實是規則。像山徑要的「同一個人、同樣裝 500 ml 水、看同一組欄位」，是讓三把壺公平比的規則，不是畫面怎麼拍；規則寫清楚了，鏡頭怎麼擺、話怎麼講，還是他的事。至於報酬、時程、能不能再使用、品牌上線前看什麼，也要寫清楚；不過，那是為了不起爭執，和看的人會不會被誤導無關。</p>
+<figure data-kind="示意"><svg viewBox="0 0 600 350" width="100%" role="img" aria-label="合作說明的界線：左邊是品牌要寫清楚的，包括一定要提到的事、提到就要對的數字、比較或示範的規則、不要說的話、合作關係怎麼說出來；右邊是交給創作者的，包括怎麼拍怎麼剪、用什麼語氣、喜不喜歡哪裡不好、推不推薦適合誰、最後的結論。下方另外要寫清楚的是報酬、時程、能不能再使用、品牌上線前只看什麼，沒寫清楚會起爭執" xmlns="http://www.w3.org/2000/svg" style="max-width:600px;display:block;margin:0 auto;font-family:inherit"><text x="300" y="28" text-anchor="middle" font-size="14" font-weight="700" style="fill:var(--text,#2b2a27)">要提到、要對的寫清楚，怎麼說交給他</text><rect x="20" y="50" width="265" height="210" rx="10" style="fill:var(--soft,#f1eadb);stroke:var(--text,#2b2a27);stroke-width:1.5"></rect><text x="152" y="80" text-anchor="middle" font-size="13" font-weight="700" style="fill:var(--text,#2b2a27)">品牌寫清楚</text><text x="40" y="112" font-size="12" style="fill:var(--text,#2b2a27)">・一定要提到的事</text><text x="40" y="140" font-size="12" style="fill:var(--text,#2b2a27)">・提到就要對的數字、規格</text><text x="40" y="168" font-size="12" style="fill:var(--text,#2b2a27)">・比較或示範的規則</text><text x="40" y="196" font-size="12" style="fill:var(--text,#2b2a27)">・不要說的話</text><text x="40" y="224" font-size="12" style="fill:var(--text,#2b2a27)">・合作關係怎麼說出來</text><rect x="315" y="50" width="265" height="210" rx="10" style="fill:var(--card,#ffffff);stroke:var(--accent,#147685);stroke-width:2"></rect><text x="447" y="80" text-anchor="middle" font-size="13" font-weight="700" style="fill:var(--accent,#147685)">交給創作者</text><text x="335" y="112" font-size="12" style="fill:var(--text,#2b2a27)">・怎麼拍、怎麼剪</text><text x="335" y="140" font-size="12" style="fill:var(--text,#2b2a27)">・用什麼語氣、說什麼話</text><text x="335" y="168" font-size="12" style="fill:var(--text,#2b2a27)">・喜不喜歡、哪裡不好</text><text x="335" y="196" font-size="12" style="fill:var(--text,#2b2a27)">・推不推薦、適合誰</text><text x="335" y="224" font-size="12" style="fill:var(--text,#2b2a27)">・最後的結論</text><rect x="20" y="280" width="560" height="56" rx="10" style="fill:none;stroke:var(--muted,#8a8578);stroke-width:1;stroke-dasharray:4 3"></rect><text x="300" y="303" text-anchor="middle" font-size="12" style="fill:var(--text,#2b2a27)">另外寫清楚：報酬、時程、能不能再使用、品牌上線前只看什麼</text><text x="300" y="324" text-anchor="middle" font-size="12" style="fill:var(--muted,#8a8578)">（沒寫清楚會起爭執，和看的人會不會被誤導無關）</text></svg><figcaption>合作說明的界線。左邊沒寫清楚，看的人可能被誤導；右邊被品牌拿走，看的人就不信他了。</figcaption></figure>
+<p data-kind="眉標">撐起判斷的觀念（二）</p>
+<h2>合作關係，什麼時候一定要說出來</h2>
+<p>4-2-1 說過，在社群推薦，沒說出自己和業者的關係，可能違反公平交易法；4-4-2 山徑門市那位同事，就是沒說出自己在山徑工作。這一篇，就再往下講清楚：什麼樣的關係要說。</p>
+<p>在台灣，規定寫在公平交易委員會的《薦證廣告之規範說明》裡。所謂薦證，就是推薦、作證：在廣告裡說自己對商品的意見或用過的經驗。規範說明寫，說這些話的人，可以是名人、專業人士，也可以是<strong>一般消費者</strong>。他和廠商之間如果有「利益關係」，而且是一般人想不到的，就要在廣告裡充分揭露，也就是說清楚。利益關係包括：僱用、贈與、拿了報酬，或其他有代價的關係。<strong>贈與也算</strong>，所以廠商免費送的東西，一樣要說。</p>
+<p>規範說明裡舉了兩個例子，剛好一正一反。明星拿錢代言，大家本來就想得到他有拿報酬，不用另外說。一位部落客收到廠商免費寄來的遊戲機，被請去寫評論，讀者想不到他是收了東西才寫的，就要清楚說出來；而且廠商在寄東西的時候，要提醒並監督他說出來。很多網紅、部落客的推薦文，屬於第二種：看的人以為那是他自己買來用的心得。那網紅拿錢業配，算不算「大家都想得到」？規範說明沒有替每一種人畫線；拿不準的時候，說出來最穩。</p>
+<p>還有幾種常見的做法，其實也是拿了東西。推薦碼、分潤連結：別人用你的碼或點你的連結買東西，你就分到錢或點數，這是有代價的關係；Instagram 也把這種「聯盟行銷連結」，列在要標示品牌合作的情況裡。</p>
+<p>沒說出來會怎麼樣？規範說明寫，在社群推文、部落客文章、論壇發言裡沒揭露利益關係，足以影響交易秩序的，可能違反公平交易法第 25 條。至於說得不實，則是另一條規定：公平交易法第 21 條，推薦的人如果明知或可以知道內容會讓人誤解，還是去推薦，要和廠商一起負賠償責任。2023 年，公平會修正網路廣告的處理原則，也把網紅納入規範，網紅說得不實，也可能被罰。</p>
+<p>在台灣，實際因為沒說出關係而被罰的案子，其實不多。公平會出版的一篇研究論文整理過：到它寫成時為止，這類問題公平會處理過的，只有 4-2-1 說的 2013 年台灣三星案。可是，沒被罰，不代表沒事。回頭看 4-4-2 山徑的情境：沒有任何人被罰，一則截圖，就讓整家店被懷疑。</p>
+<p>反過來說，什麼時候不用說？規範說明列的利益關係，是僱用、贈與、報酬和其他有代價的關係；什麼都沒拿、自己買來用、自己想分享的顧客，不在這幾種裡。美國的規定，則講得更白：顧客自己花錢買、自己分享，不算品牌的推薦；可是品牌把這則心得挑出來放到自己的首頁，就算品牌在推薦了。上一篇陳先生的心得要照實放，就是這個道理：放到山徑的頁面上，看的人會當成山徑在說話。</p>
+<p>再來，平台也有自己的規定和工具。下面是官方說明寫的；說明常改，以你們 App 裡看到的為準：</p>
+<table>
+<thead><tr><th>平台</th><th>官方說明</th><th>什麼時候要用</th></tr></thead>
+<tbody>
+<tr><td>Instagram、Facebook</td><td>「品牌合作」標籤，貼文會顯示「品牌合作對象」加上品牌名稱；第一次標某個品牌，會先送出請求，品牌核准前只顯示「品牌合作」</td><td>品牌付錢、送或借產品、聯盟行銷連結，都要標</td></tr>
+<tr><td>Threads</td><td>發串文時，在選項裡點「標示為品牌合作」，並在文中標出品牌；品牌沒辦法把這個標示移除</td><td>品牌合作的串文</td></tr>
+<tr><td>YouTube</td><td>在影片的詳細資料裡，勾選含有付費宣傳內容，影片開頭會顯示揭露訊息</td><td>有付費的商品置入、贊助、代言</td></tr>
+<tr><td>TikTok</td><td>開啟商業內容揭露的設定；TikTok 說，揭露不影響推薦，沒揭露的，反而可能不會出現在「為你推薦」</td><td>推廣品牌、產品或服務的內容</td></tr>
+</tbody>
+</table>
+<p>注意 Instagram 的說明：不只付錢，品牌送的、借的產品，也要標。公平會的規範說明，沒有直接寫到「借」；可是借來拍、拍完歸還，看的人一樣想不到；拿不準的時候，一樣是說出來最穩。還有，平台的標籤，是平台的規定，不等於法律上的說清楚；YouTube 自己都寫了，要自己遵守當地法律。所以，最穩的做法，是兩個都做：用平台的標示，也在內容一開頭用自己的話說出來，例如「這三把壺是山徑借我的」。而開頭那種看到最後，才在說明欄最底下看到一行小字的做法，就是沒有讓人一開始就知道。</p>
+<p>最後還有一件小事，但實體店很容易踩到。Google 地圖的評論政策寫明，不能用金錢、折扣、免費商品或服務，換顧客留評論。所以，「留五星評論送一杯咖啡」這種做法，不只是要說出來的問題，在 Google 地圖上，是直接不允許的。</p>
+<p data-kind="眉標">真實的例子</p>
+<h2>稿寫太死、關係沒說，會怎麼樣</h2>
+<p>2016 年，美國的 Scott Disick 在 Instagram 發了一則 Bootea 的業配，結果，連廠商給他的指示，也一起貼了出去；開頭寫著「給你，美東下午 4 點，照寫下面這段」。截圖被大量流傳。那段推薦到底是誰的話，大家一看就知道了。這是稿寫得太死、而且整段照貼的極端例子。</p>
+<p>台灣的創作者，也公開抱怨過。2022 年，YouTuber Hello Catie 發影片，批評美妝業配越來越規格化：指定用詞、指定衣服顏色和場景，連要不要笑，都規定好了。她說：「我們是創作者，我們不是演員。」上一篇賴鴻麟指控的那些手遊業配，被說成照稿念，問題其實也出在這裡：品牌把每一句都寫好，得到的，就是一個在念稿的人。</p>
+<p>至於關係沒說的例子，在美國。2015 年 3 月，百貨公司 Lord &amp; Taylor 付錢請 50 位時尚網紅，在 Instagram 穿同一件洋裝發文，卻沒要求她們說出這是業配。美國聯邦貿易委員會指控它欺騙消費者，2016 年雙方和解：新聞稿沒有提到罰款，但要求它之後要確保合作的網紅清楚揭露，還要建立一套監督、審查合作內容的做法。台灣規範說明裡的「廠商要提醒並監督」，說的其實是同一件事：說出來，不只是創作者的事，品牌也要負責。</p>
+<p data-kind="眉標">山徑咖啡</p>
+<h2>給阿凱的邀請，給注水筆記的合作說明</h2>
+<p>現在，回到山徑。兩條路要寫的東西不一樣，因為山徑和他們的關係不一樣：阿凱什麼都沒拿，注水筆記會借到三把樣品。</p>
+<p>先來看阿凱。上一篇，他在試握結束時已經說願意分享，也留了聯絡方式。山徑不給他報酬、贈品或折扣，也不借東西；他的杉影，是自己買的。照前面的規定，他和山徑之間沒有利益關係，所以不用標「品牌合作」。要寫清楚的，是他會擔心的事：山徑想請他說什麼、能不能說不好的地方、山徑會不會拿他的話去用。山徑是這樣私訊他的：</p>
+<p data-kind="範例">「阿凱你好，我是山徑咖啡。謝謝你上次試握完說願意分享。想請你在平常發手沖紀錄的時候，聊聊用了一陣子的感覺：壺嘴好不好控制、裝了水拿起來重不重、適合什麼樣的沖法。好的、不好的都可以說，怎麼寫由你決定；我們不會給報酬或贈品，也不會改你的話。如果你願意，我們也想把你的心得原文放在商品頁比較表的旁邊，放之前會先問你。」</p>
+<p>這則邀請，一句一句來看它放了什麼。第一句，說出山徑是誰、接上他上次說的話，這樣他才不會以為是陌生人推銷。三個問題，是 3-2-3 說好要請用過的人回答的那三題，好讓不同的人寫的心得，能放在一起比。「好的、不好的都可以說」「怎麼寫由你決定」，則是把他的話交給他。把「不會給報酬或贈品」寫出來，是為了讓他知道這不是業配，他也不用標示什麼。最後，放到山徑自己的頁面，要另外問：到了那時候，他的話就變成山徑在說了，要經過他同意、照原文放。</p>
+<p>至於給小葵的邀請，前面都一樣；上一篇說過，她分享時要讓看的人知道三款是給誰的，所以多寫一句事實：「這三款是給已經有入門壺、想升級的人用的。」這是事實，就寫清楚；至於她要怎麼說、推不推薦給新手，還是交給她。</p>
+<p>那如果之後，山徑想送阿凱一包豆子，謝謝他呢？那就有了贈與，他之後再談山徑的壺，就要說出來，山徑也要提醒他。這一期，山徑選擇不送，好讓這件事保持單純。</p>
+<p>再來看注水筆記。上一篇，山徑寫下了什麼條件到了才寄合作說明，其中一條是「他同意照同樣條件拍、可以說缺點、說出合作關係」。可是仔細想想，他要先看到山徑要什麼，才能同意。所以實際的順序是：他的觀眾資料和報價問到了、樣品準備好，就把這份合作說明寄給他；他看完同意，才借樣品開拍。合作說明，現在就要寫好；因為寄出去的時候，裡面寫的，就是他要同意的事。</p>
+<p>山徑會借他三款各一把。照前面說的，借來拍、拍完歸還，看的人一樣想不到，拿不準就說出來；Instagram 也寫明借的要標。所以合作關係一定要說出來。</p>
+<p>先來示範三格怎麼寫。</p>
+<p>「一定要提到的事」這一格，就從山徑自己知道、看的人不知道會出問題的事找。4-4-2 的客訴，就是這一件：有人買了稜峰，沒有人說銅壺要一直擦，等到變色了，才知道。所以，這一格寫：「稜峰是銅製，表面會氧化變色，要定期擦拭」。再加上合作關係：三把壺是山徑借的。</p>
+<p>「提到就要對的事」這一格，就從比較表拿：三款的容量、材質、價格、壺嘴口徑、裝 500 ml 水後的重量。數字照抄，不換說法；他可以不提，但提了就不能錯；錯了，看的人就會被誤導。至於比較表沒寫的，例如控流效果排名、耐用年限，山徑也沒有資料，所以放進「不要說的」。</p>
+<p>「怎麼說出合作關係」這一格，則從規範說明和平台規定拿：借了樣品，要說；影片一開頭，用他自己的話說三把是山徑借的；如果最後有報酬，也要說出來，並在 YouTube 勾選付費宣傳；另發 Instagram、Threads 時用「品牌合作」標籤，山徑收到請求會核准。最後，再加一句山徑自己要做的事：影片上線後，山徑會回頭看有沒有說出來；這就是「提醒並監督」。</p>
+<p>山徑第一次寫的時候，其實在「想請你做什麼」裡，寫了這麼一句：「請在影片中強調稜峰的質感，說它最適合追求沉穩手感的人。」你讀一遍就知道，這是台詞。把這句拆開來看：「稜峰是銅製、裝 500 ml 水約 1,250 g」是事實，放進提到就要對的那一格；「最適合追求沉穩手感的人」是結論，交給他。比較表本來就不替三款寫適合誰，合作說明也不該替他寫。</p>
+<p>至於其他格的來源，前面幾篇都有。「我們是誰，為什麼找你」，從上一篇初選表注水筆記那一列拿；「上線前我們看什麼」，從上一篇寫下的條件拿：只核對事實，不改評價；「看完可以去哪裡」，照 4-3-2，先確定點得到：YouTube 的連結，放在影片的說明欄。整份合作說明，分成兩半；前一半是內容：</p>
+<table>
+<thead><tr><th>欄位</th><th>山徑寫給注水筆記</th></tr></thead>
+<tbody>
+<tr><td>我們是誰，為什麼找你</td><td>山徑咖啡，台北的咖啡器具選品店。找你，是因為你每支都用同一個人、同樣水量、同一台秤比，也會說器具的缺點；想升級手沖壺的人在比較時，會看你的影片</td></tr>
+<tr><td>想請你做什麼</td><td>一支比較杉影 600、溪線 700、稜峰 600 的 YouTube 影片；三款各借一把樣品，拍完歸還</td></tr>
+<tr><td>一定要提到的事</td><td>稜峰是銅製，表面會氧化變色，要定期擦拭；三把壺是山徑借的</td></tr>
+<tr><td>提到就要對的事</td><td>容量、材質、價格、壺嘴口徑、裝 500 ml 水後的重量，照附上的比較表</td></tr>
+<tr><td>比較的規則</td><td>同一個人、同樣裝 500 ml 熱水、看同一組欄位；這是讓三把公平比的規則，鏡頭怎麼拍由你決定；拍到失敗的那一次也沒關係</td></tr>
+<tr><td>不要說的</td><td>沒有資料的事，例如控流效果排名、耐用年限</td></tr>
+<tr><td>交給你的</td><td>怎麼拍、怎麼說、喜不喜歡、推不推薦、適合誰、哪裡不好，都由你決定</td></tr>
+</tbody>
+</table>
+<p>後一半，則是合作關係和流程：</p>
+<table>
+<thead><tr><th>欄位</th><th>山徑寫給注水筆記</th></tr></thead>
+<tbody>
+<tr><td>怎麼說出合作關係</td><td>影片一開頭，用你自己的話說出三把壺是山徑借的；如果有報酬，也說出來，並在 YouTube 勾選付費宣傳；另發 Instagram、Threads 時用「品牌合作」標籤，我們收到請求會核准。上線後，我們會回頭看</td></tr>
+<tr><td>上線前我們看什麼</td><td>只核對事實：重量、容量、價格有沒有寫錯。不改你的評價和說法</td></tr>
+<tr><td>看完可以去哪裡</td><td>說明欄放山徑商品頁的比較表連結；要不要在影片裡提，由你決定</td></tr>
+<tr><td>報酬、時程、再使用</td><td>報酬：看過你的報價，由我們的專案負責人決定；時程：你同意之後再一起訂；影片能不能放在山徑自己的頁面、要不要投廣告，另外談，談好才用</td></tr>
+</tbody>
+</table>
+<p>注意看，這份說明裡沒有的東西：沒有台詞，沒有「一定要說溪線最好」，也沒有「請強調稜峰的質感」。山徑要的，是讓阿傑型在比較時，看到一支條件一樣、會說缺點的影片；結論是什麼，交給注水筆記。如果他最後說「稜峰太重，我不推薦給手小的人」，那其實也是這份說明要的結果；因為那正是阿傑型怕買錯的事。</p>
+<p data-kind="眉標">換一個產品看看</p>
+<h2>不是 KOC 不用說、KOL 要說，是拿了東西就要說</h2>
+<p>山徑的情況，剛好是 KOC 什麼都沒拿、KOL 借了樣品；可是，這不代表 KOC 都不用說。</p>
+<p>先看客製蛋糕工作室。上一篇的親子 IG 創作者，如果工作室送她一個蛋糕，請她分享孩子生日的過程，這就是贈與，她要說出蛋糕是工作室送的，也要用「品牌合作」標籤，工作室要提醒她。至於家長群組裡那位自己訂過蛋糕的媽媽，原本什麼都沒拿，不用說；可是如果工作室送她一盒餅乾，謝謝她在群組分享，她也拿了東西，之後再分享，一樣要說出來。合作說明裡一定要提到的事，是工作室自己知道、家長不知道會出問題的：要提前幾天訂、含不含堅果這類過敏原、怎麼保存。而交給她的，是孩子喜不喜歡、她覺得值不值得。</p>
+<p>再看學英文的 App。上一篇先找那位在公司教同事英文的上班族，如果團隊送他一年的付費方案，請他試用後分享，這就是贈與：他的貼文要說出方案是 App 送的，Threads 上用「標示為品牌合作」。再看 KOC：如果 App 給每位使用者一個推薦碼，朋友用碼註冊，他就多一個月免費，那他在 Threads 分享時，其實也拿了東西，就要說出貼文裡有他的推薦碼。合作說明裡提到就要對的事，是價格、免費試用幾天、有哪些功能；至於交給他的，是他通勤時到底有沒有用、用了覺得怎樣。</p>
+<p>三個產品看下來，判斷都一樣：有沒有拿東西、拿了什麼，決定要不要說，和他是 KOC 還是 KOL 無關；哪些是一定要提到、提到要對的事，哪些是他的感受，決定寫清楚還是交給他。</p>
+<p data-kind="眉標">換到你們組的產品</p>
+<h2>寫你們的邀請和合作說明</h2>
+<p>現在，換你們組了。你們手上要有上一篇的創作者初選表；每條路，寫給你們決定先找的那一位。先決定用哪一份：什麼都沒拿的人，寫「邀請」；拿了任何東西的人，不管是 KOC 還是 KOL，寫「合作說明」。</p>
+<p>寫邀請，照下面的步驟做：</p>
+<ol>
+<li>寫一句你們是誰、怎麼認識他。</li>
+<li>寫下想請他分享的幾個問題，每個人都問一樣的。</li>
+<li>寫「好的、不好的都可以說，怎麼寫由你決定」。</li>
+<li>寫「我們不會給報酬或贈品」。</li>
+<li>如果想把他的話放到你們自己的頁面，就寫「放之前會先問你，照原文放」。</li>
+<li>如果他的受眾需要知道一件事實才不會誤會（像小葵那樣），就多寫那一句事實。</li>
+</ol>
+<p>寫合作說明，照下面的步驟做：</p>
+<ol>
+<li>寫你們是誰、為什麼找他，從初選表那一列拿。</li>
+<li>寫想請他做什麼：幾支、哪個平台、送或借什麼。</li>
+<li>寫一定要提到的事：你們知道、看的人不知道會出問題的事。</li>
+<li>寫提到就要對的事：從產品資料抄數字。如果你們是服務，就寫價格、流程、要提前多久這類事實。</li>
+<li>寫比較或示範的規則。如果不是比較型的內容，就寫他要真的用過多久、示範哪一段。</li>
+<li>寫不要說的：沒有資料的事、不能保證的效果。</li>
+<li>寫交給他的：怎麼拍、怎麼說、喜不喜歡、推不推薦。</li>
+<li>寫怎麼說出合作關係：內容一開頭用自己的話說，加上平台的標示；寫你們會核准標籤請求、上線後會回頭看。</li>
+<li>寫上線前你們只看什麼、看完可以去哪裡。</li>
+<li>寫報酬、時程、能不能再使用；不知道的，寫由誰決定，不要編數字。</li>
+<li>從頭讀一遍，如果有一句像台詞，就把它拆成事實和結論：事實放回要對的那一格，結論交給他。</li>
+</ol>
+<pre data-kind="複製">給什麼都沒拿的人：邀請
+　我們是誰、怎麼認識你：［……］
+　想請你分享什麼（每個人都問一樣的問題）：［……］
+　好的、不好的都可以說，怎麼寫由你決定
+　我們不會給報酬或贈品
+　要不要放到我們自己的頁面：［放之前先問你，照原文放］
+　（需要的話）一句事實：［……］
+
+給拿了東西的人：合作說明
+　我們是誰，為什麼找你：［……］
+　想請你做什麼：［幾支、哪個平台、送或借什麼］
+　一定要提到的事：［……］
+　提到就要對的事：［數字照抄］
+　比較或示範的規則：［……］
+　不要說的：［沒有資料的事、不能保證的效果］
+　交給你的：［怎麼拍、怎麼說、喜不喜歡、推不推薦］
+　怎麼說出合作關係：［一開頭用自己的話說；平台的標示是哪一個；我們會核准標籤、上線後回頭看］
+　上線前我們看什麼：［只核對事實］
+　看完可以去哪裡：［連結放哪裡］
+　報酬、時程、再使用：［由誰決定；不編數字］</pre>
+<p>寫的時候，有三個提醒。第一，送的、借的、推薦碼分到的，都算拿了東西；「只是借他用一下」，不是不說的理由。第二，「交給你的」那一格如果寫不出幾項，就表示你們寫太多了，回頭看看哪些其實是他的話。第三，最後看到內容的，是你們的 Persona；寫完之後，想一下，Persona 看到這支內容時，會不會一開始就知道他和你們的關係，而不是最後才在說明欄底下看到。</p>
+<p data-kind="眉標">寫完之後</p>
+<h2>讓 AI 扮成收到說明的創作者</h2>
+<p>記得先自己寫完，再交給 AI。這一次，就讓 AI 扮成收到你們邀請或合作說明的創作者，說說他看了會不會想接、哪裡讓他覺得被綁住、哪裡沒寫清楚。它不替你們改寫，也不判斷你們有沒有違法；法律上的問題，要問專業的人。</p>
+<pre data-kind="複製">我們在練習寫給創作者的邀請和合作說明。下面是我們的產品介紹、我們和這位創作者的關係，以及我們寫的內容。請你當我們的陪練，不要替我們改寫。
+
+請做三件事：
+1. 扮成收到這份說明的創作者，用第一人稱說：我看了想不想接？哪一句讓我覺得是在叫我念稿？哪一件事我看完還是不知道？照我們寫的內容回答，沒寫到的，請說「這一點你們沒寫」。
+2. 再扮成看到這支內容的一般觀眾，說說：我會在什麼時候知道他和這個品牌有關係？知道之後，我還信不信他？
+3. 對「怎麼說出合作關係」那一格（邀請的話，對「我們不會給報酬或贈品」那一句），問我們一個問題。
+
+【我們的產品】（用一句話介紹）
+【我們和這位創作者的關係】（什麼都沒拿，或送、借、付了什麼）
+【我們的邀請或合作說明】（貼上）</pre>
+<p>拿到回覆之後，小組一起來看：AI 扮的創作者說像念稿的那一句，是不是真的該交給他？AI 扮的觀眾說「最後才知道」的話，你們的「怎麼說出合作關係」要怎麼改？要不要改，由你們決定。</p>
+<section data-kind="讀完之後"><p><strong>讀完之後，用自己的話試著回答：</strong></p><p>第一，一份合作說明裡，品牌要寫清楚哪三種事？哪些要交給創作者？為什麼不能寫成腳本？</p><p>第二，照公平會的規範說明，什麼樣的關係要說出來？明星代言和部落客收遊戲機，為什麼一個不用說、一個要說？</p><p>第三，山徑借三把樣品給注水筆記，為什麼也要說出來？平台的標籤用了，為什麼還要在影片一開頭說？</p><p>第四，山徑給阿凱的邀請，為什麼要寫「不會給報酬或贈品」？如果之後送他一包豆子，會有什麼不同？為什麼說「不是 KOC 不用說、KOL 要說」？</p><p>第五，Lord &amp; Taylor 的例子，和「廠商要提醒並監督」有什麼關係？</p><p>答不出來的那一題，回到對應的段落再讀一次就好。</p></section>
+<p data-kind="註">4-5 到這裡結束：你們組手上有創作者初選表，和寫給先找的那一位的邀請或合作說明。模組 4 的五課也都走完了，接下來是模組 4 的作業。</p>
+<p data-kind="註">山徑咖啡、阿傑型，以及文中的三款手沖壺、比較表、顧客阿凱與小葵、帳號「注水筆記」、借樣品的做法、邀請與合作說明的內容，都是課程模擬資料，不是真實的品牌、人物或帳號。客製蛋糕工作室、親子創作者、學英文的 App 與教同事英文的上班族是舉例用的情境。TikTok 設定的中文名稱是講義的翻譯。這一篇談到的法規，是讓你們知道有哪些規定；實際合作時，以主管機關最新的規定為準。</p>
+<p data-kind="註">參考來源：公平交易委員會《對於薦證廣告之規範說明》（2017 修正）、《對於網路廣告案件之處理原則》（2023 修正）、新聞稿〈打擊網路不實廣告，網紅推銷已納入規範〉（2023）；公平交易法第 21、25 條；楊智傑等〈公平交易法對新興薦證廣告之適用與因應〉（公平會研討會論文集）；美國 16 CFR Part 255（FTC Endorsement Guides，2023）；Instagram 說明中心〈品牌置入內容政策〉〈哪些內容被視為品牌置入內容〉〈How to use the paid partnership label to tag organic branded content on Instagram〉〈關於品牌合作貼文的標籤〉〈使用品牌合作工具在 Threads 上標註自主品牌置入內容〉；YouTube 說明中心〈新增付費商品置入、贊助和代言內容〉；TikTok Business Help Center〈About the Commercial Content Disclosure setting for creators〉（2026）；Google 地圖使用者內容政策〈禁止和受限的內容〉；Later〈How to Write Influencer Briefs〉（2025）、〈Why creator autonomy drives better campaign results〉（2025）；Shopify〈How To Write a Successful Influencer Brief〉（2026）；Influencer Marketing Hub〈How to Create an Influencer Campaign Brief〉（2025）；數位時代〈網紅合作懶人包〉（KOL Radar，2021）、〈如何敲開網紅合作的大門〉（2022）；Marketing Brew 轉述 Influencer 創作者調查（2025）；Refinery29 Scott Disick 報導（2016）；自由時報 Hello Catie 報導（2022）；美國聯邦貿易委員會 Lord &amp; Taylor 和解新聞稿、CNBC 報導（2016）。</p>
+
+</main>
+<nav class="nav-footer" aria-label="上一篇與下一篇" hidden></nav>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">數位行銷人才培訓</span>
+</footer>
+
+<script>
+(function(){
+  'use strict';
+  var main=document.getElementById('main');
+
+  // 簡報感版面：英雄區、章節區塊、路線圖、淡入、註腳
+  (function buildHero(){
+    var pos=main.querySelector('p[data-kind="位置"]');
+    var h1=main.querySelector('h1');
+    if(!pos||!h1)return;
+    var hero=document.createElement('div');hero.className='hero-zone';
+    var items=[pos,h1];
+    var sib=h1.nextElementSibling;
+    while(sib&&!(sib.tagName==='P'&&sib.dataset.kind==='眉標')){items.push(sib);sib=sib.nextElementSibling}
+    pos.parentNode.insertBefore(hero,pos);
+    items.forEach(function(el){if(el.tagName==='P'&&!el.dataset.kind&&el!==pos)el.classList.add('lead');hero.appendChild(el)});
+  })();
+  (function buildSections(){
+    var eyebrows=main.querySelectorAll('p[data-kind="眉標"]');
+    eyebrows.forEach(function(eb){
+      var block=document.createElement('div');block.className='section-block';
+      var items=[eb];var sib=eb.nextElementSibling;
+      while(sib){
+        if(sib.tagName==='P'&&sib.dataset.kind==='眉標')break;
+        if(sib.tagName==='SECTION'&&sib.dataset.kind==='讀完之後')break;
+        if(sib.tagName==='P'&&sib.dataset.kind==='註')break;
+        items.push(sib);sib=sib.nextElementSibling;
+      }
+      eb.parentNode.insertBefore(block,eb);
+      items.forEach(function(el,i){
+        if(i>1&&el.tagName==='P'&&!el.dataset.kind){var prev=items[i-1];if(prev&&prev.tagName==='H2')el.classList.add('section-lead')}
+        block.appendChild(el);
+      });
+    });
+  })();
+  (function upgradeTable(){
+    var blocks=main.querySelectorAll('.section-block');
+    if(!blocks.length)return;
+    var last=blocks[blocks.length-1];
+    var t=last.querySelector('table');
+    if(t)t.classList.add('roadmap-table');
+  })();
+  (function animateSections(){
+    var blocks=main.querySelectorAll('.section-block');
+    if(!blocks.length)return;
+    if(!('IntersectionObserver' in window)){blocks.forEach(function(b){b.classList.add('visible')});return}
+    var obs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}})},{threshold:0.05,rootMargin:'0px 0px -60px 0px'});
+    blocks.forEach(function(b){obs.observe(b)});
+  })();
+  (function buildFootnotes(){
+    var sec=main.querySelector('section[data-kind="讀完之後"]');
+    if(!sec)return;
+    var notes=[];var sib=sec.nextElementSibling;
+    while(sib&&sib.tagName==='P'&&sib.dataset.kind==='註'){notes.push(sib);sib=sib.nextElementSibling}
+    if(!notes.length)return;
+    var zone=document.createElement('div');zone.className='footnotes-zone';
+    notes[0].parentNode.insertBefore(zone,notes[0]);
+    notes.forEach(function(n){zone.appendChild(n)});
+  })();
+
+  // 導覽：依上線檔名查表。查不到（例如工作區預覽的中文檔名）就不顯示。
+  var NAV_ORDER=[
+    {file:'module3.html',label:'模組 3 市場洞察與策略定位'},
+    {file:'m3-1-1.html',label:'3-1 環境分析（一）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-1-2.html',label:'3-1 環境分析（二）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-1-3.html',label:'3-1 環境分析（三）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-2-1.html',label:'3-2 受眾研究（一）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-2-2.html',label:'3-2 受眾研究（二）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-2-3.html',label:'3-2 受眾研究（三）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-3-1.html',label:'3-3 消費者旅程（一）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-3-2.html',label:'3-3 消費者旅程（二）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-4-1.html',label:'3-4 品牌定位（一）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-4-2.html',label:'3-4 品牌定位（二）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-4-3.html',label:'3-4 品牌定位（三）模組作業',module:'module3.html',back:'返回模組 3'},
+    {file:'module4.html',label:'模組 4 社群行銷'},
+    {file:'m4-1-1.html',label:'4-1 注意力（一）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-1-2.html',label:'4-1 注意力（二）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-1-3.html',label:'4-1 注意力（三）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-2-1.html',label:'4-2 平台策略（一）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-2-2.html',label:'4-2 平台策略（二）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-3-1.html',label:'4-3 短影音腳本（一）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-3-2.html',label:'4-3 短影音腳本（二）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-4-1.html',label:'4-4 社群經營（一）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-4-2.html',label:'4-4 社群經營（二）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-5-1.html',label:'4-5 KOL／KOC（一）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-5-2.html',label:'4-5 KOL／KOC（二）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-homework.html',label:'模組 4 作業',module:'module4.html',back:'返回模組 4'},
+    {file:'module5.html',label:'模組 5 SEO'}
+  ];
+  function arrow(ch){var s=document.createElement('span');s.setAttribute('aria-hidden','true');s.textContent=ch;return s}
+  function buildNav(){
+    var name='';
+    try{name=decodeURIComponent(location.pathname.split('/').pop()||'')}catch(e){return}
+    if(name&&!/\.html?$/.test(name))name+='.html';
+    var idx=-1;
+    for(var i=0;i<NAV_ORDER.length;i++){if(NAV_ORDER[i].file===name&&NAV_ORDER[i].module){idx=i;break}}
+    if(idx<0)return;
+    var cur=NAV_ORDER[idx],prev=NAV_ORDER[idx-1],next=NAV_ORDER[idx+1];
+    var bar=document.querySelector('.back-bar');
+    if(bar){
+      var b=document.createElement('a');b.href=cur.module;b.className='back-link';
+      b.appendChild(arrow('←'));b.appendChild(document.createTextNode(' '+cur.back));
+      bar.appendChild(b);bar.hidden=false;
+    }
+    var nav=document.querySelector('.nav-footer');
+    if(nav&&(prev||next)){
+      if(prev){
+        var a=document.createElement('a');a.href=prev.file;a.className='nav-btn nav-prev';
+        a.setAttribute('aria-label','上一單元：'+prev.label);a.setAttribute('data-nav-role','prev');
+        a.appendChild(arrow('←'));a.appendChild(document.createTextNode(' '+prev.label));nav.appendChild(a);
+      }
+      if(next){
+        var n=document.createElement('a');n.href=next.file;n.className='nav-btn primary nav-next';
+        n.setAttribute('aria-label','下一單元：'+next.label);n.setAttribute('data-nav-role','next');
+        n.appendChild(document.createTextNode(next.label+' '));n.appendChild(arrow('→'));nav.appendChild(n);
+      }
+      nav.hidden=false;
+    }
+  }
+  try{buildNav()}catch(e){}
+
+  // 閱讀進度
+  var strip=document.querySelector('.progress-strip'),prog=document.getElementById('prog');
+  function onScroll(){
+    var h=document.documentElement,max=h.scrollHeight-h.clientHeight;
+    var pct=max>0?Math.min(100,Math.max(0,h.scrollTop/max*100)):0;
+    prog.style.width=pct+'%';strip.setAttribute('aria-valuenow',String(Math.round(pct)));
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+
+  // 表格：包一層可橫向捲動的外層，窄螢幕只在表格內捲動（路線圖卡片除外）
+  main.querySelectorAll('table:not(.roadmap-table)').forEach(function(t){
+    if(t.parentNode.classList&&t.parentNode.classList.contains('table-scroll'))return;
+    var w=document.createElement('div');
+    w.className='table-scroll';w.setAttribute('role','region');w.setAttribute('tabindex','0');
+    w.setAttribute('aria-label','資料表，可水平捲動');
+    t.parentNode.insertBefore(w,t);w.appendChild(t);
+  });
+
+  // 長條：依 data-value 畫相對長度。數字只從定稿讀，模板不寫任何數字。
+  main.querySelectorAll('figure[data-kind="長條"]').forEach(function(fig){
+    var items=[].slice.call(fig.querySelectorAll('li[data-value]'));
+    var max=Math.max.apply(null,items.map(function(li){return +li.dataset.value||0}));
+    if(!(max>0))return;
+    items.forEach(function(li){var v=+li.dataset.value||0;li.style.setProperty('--w',Math.max(v/max*100,1.5)+'%')});
+  });
+
+  // 複製框：按鈕加在框的上方，複製框內原文（不動正文）
+  var LABEL='複製',DONE='已複製',FAIL='複製失敗';
+  function fallbackCopy(text){
+    var f=document.createElement('textarea');
+    f.value=text;f.setAttribute('readonly','');f.style.position='fixed';f.style.left='-9999px';f.style.top='0';
+    document.body.appendChild(f);f.select();f.setSelectionRange(0,f.value.length);
+    var ok=document.execCommand('copy');f.remove();
+    if(!ok)throw new Error('copy failed');
+  }
+  function copyText(text){
+    if(navigator.clipboard&&window.isSecureContext){
+      return navigator.clipboard.writeText(text).catch(function(){fallbackCopy(text)});
+    }
+    return new Promise(function(resolve){fallbackCopy(text);resolve()});
+  }
+  function setState(btn,status,state){
+    clearTimeout(btn._t);
+    btn.textContent=state==='copied'?DONE:FAIL;
+    btn.classList.toggle('is-copied',state==='copied');
+    btn.classList.toggle('is-error',state==='error');
+    status.textContent=state==='copied'?'已複製到剪貼簿':'複製失敗，請手動選取文字';
+    btn._t=setTimeout(function(){btn.textContent=LABEL;btn.classList.remove('is-copied','is-error');status.textContent=''},1800);
+  }
+  main.querySelectorAll('pre[data-kind="複製"]').forEach(function(pre,i){
+    var bar=document.createElement('div');bar.className='copy-toolbar';
+    var btn=document.createElement('button');btn.type='button';btn.className='copy-button';btn.textContent=LABEL;
+    btn.setAttribute('aria-label','複製這段文字');
+    var status=document.createElement('span');status.className='copy-status';status.id='copy-status-'+i;
+    status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+    btn.setAttribute('aria-describedby',status.id);
+    btn.addEventListener('click',function(){
+      var text=pre.textContent.replace(/\r\n?/g,'\n').replace(/^\n+|\s+$/g,'');
+      if(!text){setState(btn,status,'error');return}
+      copyText(text).then(function(){setState(btn,status,'copied')},function(){setState(btn,status,'error')});
+    });
+    bar.appendChild(btn);bar.appendChild(status);
+    pre.parentNode.insertBefore(bar,pre);
+  });
+  // 單行複製字：點一下複製
+  main.querySelectorAll('code[data-kind="複製"]').forEach(function(c){
+    c.setAttribute('role','button');c.setAttribute('tabindex','0');c.setAttribute('title','點一下複製');
+    function go(){copyText(c.textContent).then(function(){c.setAttribute('title','已複製')},function(){c.setAttribute('title','複製失敗')})}
+    c.addEventListener('click',go);
+    c.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}});
+  });
+})();
+</script>
+</body>
+</html>

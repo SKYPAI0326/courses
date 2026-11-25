@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模組 4 作業：三秒定生死</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* 數位行銷 70h 共學講義模板。外觀沿用線上講義（m3-1-environment.html、assets/lesson-rewrite.css、assets/prompt-copy.css）的冷色版面；
+   定稿沒有 class，正文一律用元素與 data-kind 選擇器。 */
+:root{
+  --c-bg:#f7fafc;--c-surface:#e4ecf3;--c-card:#ffffff;--c-border:#d2dce6;--c-border-soft:#e8eef4;
+  --c-text:#2b3d4c;--c-muted:#586c80;--c-faint:#5d7083;--c-a2:#147685;--c-a2-dark:#0f5f6c;--c-a2-light:rgba(20,118,133,.08);--c-visited:#2d5669;
+  --radius:4px;--content-w:780px;
+  /* 定稿示意圖（SVG）用的變數名稱，對到本課色票，示意圖本身不改 */
+  --text:var(--c-text);--muted:var(--c-muted);--accent:var(--c-a2);--line:var(--c-border);--soft:var(--c-surface);--card:var(--c-card);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:'Noto Sans TC',-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;word-break:break-word;overflow-wrap:break-word;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+[id]{scroll-margin-top:72px}
+
+/* 頂部列、閱讀進度、頁尾（線上 .topbar / .progress-strip / .footer） */
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(247,250,252,.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Noto Serif TC',serif;font-weight:700;font-size:1.05rem;color:var(--c-text);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.progress-strip{height:3px;background:transparent;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-a2);width:0%;transition:width .1s;opacity:.6}
+.footer{border-top:1px solid var(--c-border);padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Noto Serif TC',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-div{width:1px;height:14px;background:var(--c-border)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+
+/* 導覽：返回模組頁、上一篇／下一篇（線上舊頁 .back-link / .nav-footer / .nav-btn）。
+   連結由下方腳本依檔名查表產生；查不到就整塊不顯示。 */
+.back-bar{max-width:var(--content-w);margin:0 auto;padding:72px 48px 0}
+.back-bar[hidden],.nav-footer[hidden]{display:none}
+.back-bar:not([hidden])+main{padding-top:0}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--c-muted);text-decoration:none;margin-bottom:32px}
+.back-link:hover{color:var(--c-a2)}
+.nav-footer{max-width:var(--content-w);margin:0 auto;padding:0 48px 64px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--c-a2);text-decoration:none;padding:10px 20px;border:1px solid rgba(20,118,133,.3);border-radius:var(--radius);transition:background .2s}
+.nav-btn:hover{background:rgba(20,118,133,.07)}
+.nav-btn.primary{background:var(--c-a2);color:#fff;border-color:var(--c-a2)}
+.nav-btn.primary:hover{background:#0f5f6c}
+
+/* 正文欄（線上 .lesson-hero ＋ .lesson-body） */
+main{display:block;max-width:100%;margin:0 auto;padding:0}
+main p{font-size:.92rem;line-height:1.85;margin:0 0 16px}
+main p[data-kind="位置"]{font-size:.73rem;color:var(--c-muted);letter-spacing:.08em;font-weight:500;line-height:1.7;margin:0 0 20px}
+main h1{font-family:'Noto Serif TC',serif;font-size:2rem;font-weight:700;line-height:1.3;letter-spacing:-.005em;color:var(--c-text);margin:0 0 36px}
+main p[data-kind="眉標"]{font-family:'Noto Serif TC',serif;font-size:.8rem;color:var(--c-a2);letter-spacing:.1em;font-weight:500;line-height:1.6;margin:64px 0 10px}
+main h2{font-family:'Noto Serif TC',serif;font-size:1.45rem;font-weight:700;line-height:1.4;color:var(--c-text);margin:64px 0 18px}
+main p[data-kind="眉標"]+h2{margin-top:0}
+main h3{font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700;line-height:1.5;color:var(--c-text);margin:28px 0 10px}
+main strong{font-weight:700;color:var(--c-text);text-decoration:underline;text-decoration-color:rgba(20,118,133,.18);text-decoration-thickness:.4em;text-underline-offset:-.22em;text-decoration-skip-ink:none;padding:0 1px}
+main h1,main h2{text-wrap:balance}
+main em{font-style:normal;font-weight:500;color:var(--c-a2)}
+main ul,main ol{margin:0 0 16px 1.4em;padding:0;line-height:1.9}
+main li{font-size:.92rem;margin:0 0 6px}
+main li>p{margin-bottom:6px}
+main a{color:var(--c-a2);font-weight:600;text-decoration-color:rgba(20,118,133,.45);text-decoration-thickness:1px;text-underline-offset:.18em}
+main a:visited{color:var(--c-visited);text-decoration-color:rgba(45,86,105,.45)}
+main a:hover{color:var(--c-a2-dark);text-decoration-color:currentColor}
+main code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:.88em;background:var(--c-surface);border:1px solid var(--c-border-soft);border-radius:2px;padding:1px 5px}
+
+/* 註：資料限制、參考來源（線上 .rw-source） */
+/* 範例（定稿格式：灰底；模組 4 起用到） */
+main p[data-kind="範例"]{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius);padding:14px 18px;margin:0 0 14px;font-size:.92rem;line-height:1.85}
+main p[data-kind="註"]{font-size:.8rem;color:var(--c-muted);line-height:1.75;margin:0 0 8px}
+main section[data-kind="讀完之後"]~p[data-kind="註"]{margin-top:0}
+main section[data-kind="讀完之後"]+p[data-kind="註"]{margin-top:40px}
+
+/* 引用原話（線上 .callout.key） */
+main blockquote{margin:20px 0;padding:18px 22px;background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a2);border-radius:var(--radius)}
+main blockquote p{margin:0 0 8px}
+main blockquote>:last-child{margin-bottom:0}
+main cite{display:block;font-style:normal;font-size:.8rem;color:var(--c-muted);line-height:1.7;margin-top:8px}
+
+/* 表格（線上 .table-scroll ＋ .rw-table）；捲動外層由下方腳本執行時加上 */
+main .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:20px 0 24px}
+main .table-scroll>table{margin:0;min-width:100%}
+main table{width:100%;border-collapse:collapse;font-size:.9rem;line-height:1.7;background:var(--c-card);margin:20px 0 24px}
+main th,main td{border:1px solid var(--c-border);padding:8px 12px;text-align:left;vertical-align:top}
+main th{background:var(--c-surface);font-weight:700}
+main table:not(.roadmap-table) th,main table:not(.roadmap-table) td{word-break:normal;overflow-wrap:normal}
+main table:not(.roadmap-table) th:first-child,main table:not(.roadmap-table) td:first-child{min-width:6.5em}
+
+/* 複製框（線上 .rw-prompt ＋ prompt-copy.css）；按鈕由下方腳本執行時加在框的上方 */
+main pre[data-kind="複製"]{background:var(--c-card);border:1px solid var(--c-border);border-left:3px solid var(--c-a2);border-radius:var(--radius);padding:14px 18px;margin:0 0 18px;white-space:pre-wrap;overflow-wrap:anywhere;font-family:inherit;font-size:.9rem;line-height:1.85;color:var(--c-text)}
+main code[data-kind="複製"]{cursor:pointer}
+.copy-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin:12px 0 8px}
+.copy-button{min-height:40px;padding:8px 13px;border:1px solid rgba(20,118,133,.36);border-radius:4px;background:var(--c-card);color:var(--c-a2);font:600 .78rem/1.2 'Noto Sans TC',sans-serif;letter-spacing:.02em;cursor:pointer;transition:background-color .18s ease,color .18s ease,border-color .18s ease}
+.copy-button:hover{background:rgba(20,118,133,.08);border-color:var(--c-a2)}
+.copy-button.is-copied{background:var(--c-a2);border-color:var(--c-a2);color:var(--c-card)}
+.copy-button.is-error{border-color:#9a463d;color:#9a463d}
+.copy-status{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* 先想再看的解答（線上 .rw-reference） */
+main details{margin:20px 0;border:1px dashed var(--c-border);border-radius:var(--radius);background:var(--c-surface);padding:.8rem 1rem}
+main summary{cursor:pointer;font-weight:600;font-size:.92rem;color:var(--c-a2)}
+main details[open]>summary{margin-bottom:.6rem}
+main details>:last-child{margin-bottom:0}
+
+/* 讀完之後：結尾自我檢查卡（線上 .rw-assign）— 全寬區塊 */
+main section[data-kind="讀完之後"]{max-width:100%;margin:0;padding:64px 48px 56px;background:var(--c-surface);border:none;border-top:3px solid var(--c-a2);border-radius:0}
+main section[data-kind="讀完之後"] > *{max-width:calc(var(--content-w) - 96px)!important;margin-left:auto!important;margin-right:auto!important}
+main section[data-kind="讀完之後"]>:last-child{margin-bottom:0}
+main section[data-kind="讀完之後"] > p:first-child{font-family:'Noto Serif TC',serif;font-size:1.2rem;font-weight:700;margin-bottom:28px;text-align:center}
+main section[data-kind="讀完之後"] > p:first-child strong{font-size:inherit;background:none;text-decoration:none;padding:0}
+main section[data-kind="讀完之後"] > p:not(:first-child):not([data-kind]){background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:16px 20px;margin-bottom:12px;font-size:.92rem;line-height:1.85}
+main section[data-kind="讀完之後"] p[data-kind="註"]{margin-top:20px;padding-top:16px;border-top:1px dashed var(--c-border);background:transparent;border-left:none;border-right:none;border-bottom:none;border-radius:0}
+
+/* 圖、示意圖、長條 */
+main figure{margin:28px 0}
+main img{display:block;max-width:100%;height:auto;border:1px solid var(--c-border);border-radius:var(--radius)}
+main figcaption{font-size:.8rem;color:var(--c-muted);line-height:1.75;margin-top:10px}
+main figure[data-kind="示意"]{max-width:100%;overflow-x:auto;--line:#a9b8c6}
+/* 示意圖裡用 --line 的只有「訪談沒提到」那條點線；本課 --c-border 在淺底上幾乎看不到，只在示意圖內加深 */
+main figure[data-kind="示意"] svg{max-width:100%;height:auto}
+main figure[data-kind="長條"]{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px}
+main figure[data-kind="長條"] ol{list-style:none;margin:0;padding:0}
+main figure[data-kind="長條"] li{margin:10px 0;font-size:.88rem}
+main figure[data-kind="長條"] li::before{content:"";display:block;height:20px;background:var(--c-a2);border-radius:2px;width:var(--w,0);margin-bottom:4px}
+
+/* 英雄區 — 大面積留白 + 大標題 */
+main .hero-zone{max-width:100%;margin:0;padding:100px 48px 80px;background:var(--c-surface);border-bottom:3px solid var(--c-a2);text-align:center}
+main .hero-zone > *{max-width:calc(var(--content-w) - 96px)!important;margin-left:auto!important;margin-right:auto!important}
+main .hero-zone p[data-kind="位置"]{margin-bottom:28px;letter-spacing:.12em}
+main .hero-zone h1{font-size:2.1rem;line-height:1.4;margin-bottom:28px;letter-spacing:-.01em}
+main .hero-zone .lead{font-size:1rem;line-height:1.9;color:var(--c-text);text-align:left;margin-bottom:16px}
+main .hero-zone > :last-child{margin-bottom:0}
+
+/* 章節區塊 — 交替白底/灰底 + 寬間距 */
+main .section-block{max-width:100%;padding:80px 48px 64px;position:relative}
+/* 區塊本身留左右邊距；裡面每個元素一律置中在正文欄，元素自己的 padding、margin 上下不受影響（2026-11-23 修跑位：眉標、複製框、範例、示意圖曾因自身規則權重較高而跳出正文欄） */
+main .section-block > *{max-width:calc(var(--content-w) - 96px)!important;margin-left:auto!important;margin-right:auto!important}
+main .section-block:nth-child(odd of .section-block){background:var(--c-card)}
+main .section-block:nth-child(even of .section-block){background:var(--c-surface)}
+main .section-block::before{content:"";display:block;width:48px;height:3px;background:var(--c-a2);margin:0 auto 40px;max-width:var(--content-w);padding:0}
+main .section-block p[data-kind="眉標"]{margin-top:0;font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:var(--c-a2);font-weight:600}
+main .section-block h2{margin-top:10px;margin-bottom:28px;font-size:1.85rem;line-height:1.3}
+main .section-block > p.section-lead{font-size:1rem;line-height:2.1;color:var(--c-text);margin-bottom:24px}
+
+/* 路線圖卡片 */
+main .roadmap-table{border:none;background:transparent;border-collapse:separate;border-spacing:0;width:100%}
+main .roadmap-table thead{display:none}
+main .roadmap-table tr{display:flex;flex-direction:column;background:var(--c-card);border:1px solid var(--c-border);border-left:4px solid var(--c-a2);border-radius:var(--radius);padding:20px 24px;margin-bottom:12px;position:relative}
+main .section-block:nth-child(even of .section-block) .roadmap-table tr{background:var(--c-bg)}
+main .roadmap-table td{border:none;padding:0;display:block}
+main .roadmap-table td:first-child{font-family:'Noto Serif TC',serif;font-weight:700;font-size:.85rem;color:var(--c-a2);letter-spacing:.06em;margin-bottom:8px}
+main .roadmap-table td:last-child{font-size:.92rem;line-height:1.8}
+main .roadmap-table tr:not(:last-child)::after{content:"";position:absolute;left:22px;bottom:-14px;width:2px;height:14px;background:var(--c-a2);opacity:.4}
+
+/* 章節淡入 */
+main .section-block{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
+main .section-block.visible{opacity:1;transform:translateY(0)}
+
+/* 註腳區 */
+main .footnotes-zone{max-width:var(--content-w);margin:0 auto;padding:32px 48px 48px}
+main .footnotes-zone p[data-kind="註"]{margin-top:0}
+
+@media(max-width:1024px){
+  .topbar{padding:0 32px}
+  .back-bar,.nav-footer{padding-left:32px;padding-right:32px}
+  main .hero-zone,
+  main .section-block,
+  main section[data-kind="讀完之後"],
+  main .footnotes-zone{padding-left:32px;padding-right:32px}
+}
+@media(max-width:600px){
+  .topbar{padding:0 16px}.topbar-sub,.topbar-divider{display:none}
+  .back-bar{padding:40px 20px 0}
+  .nav-footer{flex-direction:column;padding:0 20px 48px}
+  .nav-btn{width:100%;justify-content:center}
+  main .hero-zone{padding:60px 20px 48px}
+  main .hero-zone h1{font-size:1.55rem}
+  main .section-block{padding:48px 20px 40px}
+  main .section-block h2{font-size:1.4rem}
+  main .section-block::before{margin-bottom:24px}
+  main section[data-kind="讀完之後"]{padding:40px 20px 36px}
+  main .footnotes-zone{padding:24px 20px 36px}
+  main th,main td{padding:8px 10px}
+  main table:has(tr>:nth-child(4)){min-width:32em}
+  .copy-button{min-height:44px;padding:9px 14px}
+  .footer{padding:20px}
+  main .roadmap-table tr::after{left:16px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+@media print{.topbar,.progress-strip,.copy-toolbar,.skip-link,.back-bar,.nav-footer{display:none}body{background:#fff}main .hero-zone,main .section-block{background:transparent!important}main .section-block{opacity:1!important;transform:none!important}}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.45rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.75rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='digimkt_auth',H='6d9278e29c0d1ab888cfabe6a73a06f54c124fb0a4bb3dfccd7720d3e80d9eb7';if(localStorage.getItem(K)==='1')sessionStorage.setItem(K,'1');if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+<header class="topbar">
+  <a href="https://skypai0326.github.io/courses/" class="logo">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">數位行銷人才培訓</span>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-fill" id="prog"></div></div>
+
+<div class="back-bar" hidden></div>
+<main id="main" data-正文>
+<p data-kind="位置">數位行銷人才培訓｜模組 4 社群行銷｜模組作業</p>
+<h1>模組 4 作業：三秒定生死</h1>
+<p>到這裡，模組 4 的五課都走完了。回頭看看，除了 4-1-1 只要讀，你們組在每一篇的最後，都替自己的產品做過東西，一共十樣：4-1 寫了三個 Hook、設計了前三秒、想好放出去之後要看觀看曲線的哪裡；4-2 選了平台，寫了 30 天測試計畫；4-3 寫了一支 60 秒的腳本，結尾請人做下一步；4-4 排了兩週的內容月曆，寫了危機回應判斷表；4-5 排了創作者初選表，寫了邀請或合作說明。</p>
+<p>這份作業，要做兩件事。第一，把這十樣放進小組企劃書的第三段：社群。第二，上台演出你們的前三秒，念出 Hook，說明為什麼先在這個平台。這兩件事的背後，其實是同一個判斷，也是這份作業要你們學會的：<strong>讓人停下來的那個理由，有沒有一路接到你要他做的下一步。</strong>前面每一篇，只看自己那一樣東西；這一次，則要把十樣排在一起看。</p>
+<p>這一篇會先講這個判斷，再跟著山徑咖啡，從攤開十樣東西一路做到上台；中間會換成學英文的 App，看一次理由在哪裡斷掉、怎麼修；最後，換你們組。</p>
+
+<p data-kind="眉標">先想一個經驗</p>
+<h2>停下來了，後來卻沒有然後</h2>
+<p>先來想一下，你最近點過的一則標題：寫得讓你很想點，可是點進去，卻發現內容跟標題沒什麼關係。第一次，你看完了，覺得被騙；等之後再看到同一個帳號，手指一推，就滑過去了。</p>
+<p>再想一下另一種：你最近看過、覺得很好笑的一支廣告。你可能轉給朋友看過，也跟別人講過那個梗。現在試著說說看：那是哪個牌子？在賣什麼？其實，很多人說得出劇情，卻說不出牌子。</p>
+<p>還有一種，是這樣的：朋友傳來一個優惠碼，說下載就送折扣。你下載了，也用了折扣，可是之後，那個 App 就再也沒打開過。說穿了，你停下來的理由是折扣，不是它本身。</p>
+<p>你看，三種情況，開頭都成功了：你停下來了。可是，讓你停下來的那個理由，後來就斷了。第一種，斷在內容：開頭答應你的，後面沒有給。第二種，斷在品牌：你記住的是梗，不是它。第三種，理由被換掉了：你是為了別的事停下來的，那件事一結束，你就走了。</p>
+
+<p data-kind="眉標">撐起這份作業的觀念</p>
+<h2>停下來的理由，要一路接到下一步</h2>
+<p>4-1-1 說過：每一則發出去之前，先替那一兩秒問三件事：滑到的人，認得出這是在說他嗎？他知道看下去會得到什麼嗎？他停下來的理由，接得上我們要他做的下一步嗎？至於第三件，前面各篇，是在自己那一樣東西裡問的：4-2-1 選平台時，問的是停下來之後接不接得上比較表；4-3-2 寫結尾時，問的是接不接得住他剛看完的。而這一次，要把所有東西排在一起問。</p>
+<p>原因是，一個人遇到你的地方，不只一處。他可能從那支影片停下來，看完前三秒、看完中間、聽到結尾；也可能是從別的地方停下來的：月曆上的另一則貼文、Threads 上你回他的一則留言、他抱怨之後你的回覆、某位創作者的影片。每一處，都是模組 4 某一課做的東西；每一處讓他停下來的事，也不太一樣。這份作業要問的，就是：<strong>不管他從哪裡停下來，帶到的是不是同一個下一步？一路上說的，還是同一件事嗎？</strong></p>
+<figure data-kind="示意"><svg viewBox="0 0 540 510" width="100%" role="img" aria-label="同一支影片的前三秒、中間、結尾，和其他讓他停下來的地方：月曆上的其他貼文、海巡的回覆、抱怨時的回覆、創作者的影片，都要帶到同一個下一步；斷掉有三種：斷在內容、斷在品牌、理由被換掉" xmlns="http://www.w3.org/2000/svg" style="max-width:540px;display:block;margin:0 auto;font-family:inherit">
+<text x="20" y="30" font-size="14" font-weight="700" style="fill:var(--accent,#8a6a2f)">同一支影片</text>
+<text x="280" y="30" font-size="14" font-weight="700" style="fill:var(--accent,#8a6a2f)">其他讓他停下來的地方</text>
+<line x1="140" y1="60" x2="140" y2="320" style="stroke:var(--accent,#8a6a2f);stroke-width:4"></line>
+<line x1="400" y1="60" x2="400" y2="320" style="stroke:var(--accent,#8a6a2f);stroke-width:4"></line>
+<rect x="20" y="45" width="240" height="50" rx="8" style="fill:var(--card,#fff);stroke:var(--text,#2b2a27);stroke-width:1.5"></rect>
+<text x="34" y="66" font-size="14" font-weight="700" style="fill:var(--text,#2b2a27)">前三秒</text>
+<text x="34" y="85" font-size="12" style="fill:var(--text,#2b2a27)">讓他停下來的理由</text>
+<rect x="20" y="107" width="240" height="50" rx="8" style="fill:var(--card,#fff);stroke:var(--text,#2b2a27);stroke-width:1.5"></rect>
+<text x="34" y="128" font-size="14" font-weight="700" style="fill:var(--text,#2b2a27)">中間</text>
+<text x="34" y="147" font-size="12" style="fill:var(--text,#2b2a27)">開頭答應的，有沒有給</text>
+<rect x="20" y="169" width="240" height="50" rx="8" style="fill:var(--card,#fff);stroke:var(--text,#2b2a27);stroke-width:1.5"></rect>
+<text x="34" y="190" font-size="14" font-weight="700" style="fill:var(--text,#2b2a27)">結尾</text>
+<text x="34" y="209" font-size="12" style="fill:var(--text,#2b2a27)">請他做的那一件事</text>
+<rect x="280" y="45" width="240" height="50" rx="8" style="fill:var(--card,#fff);stroke:var(--text,#2b2a27);stroke-width:1.5"></rect>
+<text x="294" y="66" font-size="14" font-weight="700" style="fill:var(--text,#2b2a27)">月曆上的其他貼文</text>
+<text x="294" y="85" font-size="12" style="fill:var(--text,#2b2a27)">各自讓他停下來的事</text>
+<rect x="280" y="107" width="240" height="50" rx="8" style="fill:var(--card,#fff);stroke:var(--text,#2b2a27);stroke-width:1.5"></rect>
+<text x="294" y="128" font-size="14" font-weight="700" style="fill:var(--text,#2b2a27)">海巡的回覆</text>
+<text x="294" y="147" font-size="12" style="fill:var(--text,#2b2a27)">回答他正在問的</text>
+<rect x="280" y="169" width="240" height="50" rx="8" style="fill:var(--card,#fff);stroke:var(--text,#2b2a27);stroke-width:1.5"></rect>
+<text x="294" y="190" font-size="14" font-weight="700" style="fill:var(--text,#2b2a27)">抱怨時的回覆</text>
+<text x="294" y="209" font-size="12" style="fill:var(--text,#2b2a27)">接住出了問題的人</text>
+<rect x="280" y="231" width="240" height="50" rx="8" style="fill:var(--card,#fff);stroke:var(--text,#2b2a27);stroke-width:1.5"></rect>
+<text x="294" y="252" font-size="14" font-weight="700" style="fill:var(--text,#2b2a27)">創作者的影片</text>
+<text x="294" y="271" font-size="12" style="fill:var(--text,#2b2a27)">別人替你說</text>
+<rect x="20" y="320" width="500" height="50" rx="8" style="fill:var(--soft,#f1eadb);stroke:var(--text,#2b2a27);stroke-width:1.5"></rect>
+<text x="34" y="341" font-size="14" font-weight="700" style="fill:var(--text,#2b2a27)">下一步</text>
+<text x="34" y="360" font-size="12" style="fill:var(--text,#2b2a27)">品牌真正要他做的事；每一處都帶到這裡</text>
+<text x="20" y="402" font-size="13" font-weight="700" style="fill:var(--text,#2b2a27)">每一處都問：說的還是他停下來的那件事嗎？</text>
+<rect x="20" y="418" width="160" height="78" rx="8" style="fill:none;stroke:var(--text,#2b2a27);stroke-width:1.5;stroke-dasharray:5 4"></rect>
+<text x="32" y="442" font-size="13" font-weight="700" style="fill:var(--text,#2b2a27)">斷在內容</text>
+<text x="32" y="463" font-size="12" style="fill:var(--text,#2b2a27)">開頭答應的，</text>
+<text x="32" y="481" font-size="12" style="fill:var(--text,#2b2a27)">後面沒有給</text>
+<rect x="190" y="418" width="160" height="78" rx="8" style="fill:none;stroke:var(--text,#2b2a27);stroke-width:1.5;stroke-dasharray:5 4"></rect>
+<text x="202" y="442" font-size="13" font-weight="700" style="fill:var(--text,#2b2a27)">斷在品牌</text>
+<text x="202" y="463" font-size="12" style="fill:var(--text,#2b2a27)">記得那個梗，</text>
+<text x="202" y="481" font-size="12" style="fill:var(--text,#2b2a27)">想不起是誰</text>
+<rect x="360" y="418" width="160" height="78" rx="8" style="fill:none;stroke:var(--text,#2b2a27);stroke-width:1.5;stroke-dasharray:5 4"></rect>
+<text x="372" y="442" font-size="13" font-weight="700" style="fill:var(--text,#2b2a27)">理由被換掉</text>
+<text x="372" y="463" font-size="12" style="fill:var(--text,#2b2a27)">停下來，</text>
+<text x="372" y="481" font-size="12" style="fill:var(--text,#2b2a27)">是為了別的事</text>
+</svg><figcaption>一個人可能從影片停下來，也可能從別的地方停下來；不管從哪裡進來，都要帶到同一個下一步。哪一處說的不再是那件事，就是斷在那裡，斷法有三種。</figcaption></figure>
+<p>其實，這不只是講義的說法，平台自己也是這樣看的。先說斷在內容，平台看得出來。2014 年，Facebook 宣布要降低「點擊誘餌」標題的排序；它看的一個訊號是：有人點進連結，又馬上回到 Facebook，代表他沒找到想要的東西。2016 年，它把判準寫得更清楚：標題藏起了理解內容需要的資訊；標題誇大了內容，讓人有誤導的期待。一直用這種標題的粉專，連結會被排得更後面。2024 年，YouTube 也先從印度開始，移除特別誇張的點擊誘餌，以新聞、時事為主；它的定義是：標題或縮圖答應的，影片裡沒有給。</p>
+<p>再來是斷在品牌，它比想像中常見。市調公司 Ipsos 2026 年的報告說，在認得某支廣告的人裡，大約三分之二說得出是哪個品牌；而且這幾年，既注意到廣告、又記對品牌的人，變少了。你看，開頭那個梗被記住了、被說出去了，卻不一定替品牌帶走任何東西。</p>
+<p>至於理由被換掉，最極端的例子，是 2021 年英國漢堡王在婦女節發的推文。第一則只有一句「Women belong in the kitchen」，意思是「女人屬於廚房」；後面幾則才說明，它要推的是資助女性念廚藝的獎學金。加拿大的 Global News 報導，開頭那一則被分享的次數，是後面說明的 20 倍；將近 12 小時後，品牌道歉，之後刪掉了推文。說起來，停下來的人很多，可是讓他們停下來的那句話，和品牌想說的方向相反；傳出去的，只有那一句。台灣也有比較溫和的例子，就是 2021 年的「鮭魚之亂」。TVBS 報導，一家連鎖壽司店推出名字裡有「鮭魚」兩個字就能免費吃的活動，全台有 331 人去改名；一位連鎖迴轉壽司的行銷課組長受訪時說（報導沒有寫是哪一家），迴響這麼大，「並非本公司的原意」。數位時代則從網路聲量看，說壽司郎發出「愛的迴鮭，尋人啟事」那天的聲量，比先前老鼠爬上輸送帶的事件還高出近 8 倍。聲量很大，可是說穿了，讓人來的理由是免費、是改名好玩，不是壽司。</p>
+<p>反過來，接得上的樣子，台灣也有。IKEA 台灣和奧美做過一本「低價目錄」。奧美在作品頁上說，背景是在台灣，70% 的人都以為 IKEA 很貴；所以他們做了一本照價格排序的電子型錄，從 1 元到 100 元，頁數就是價格，看了就能直接連去買。你看，讓人停下來的，是「頁數就是價格」這個沒見過的做法；停下來之後看到的，是一頁一頁的低價商品；下一步，是把它買下來。三處說的，都是同一件事：IKEA 有便宜的東西。奧美自己公布的成效是，不到兩週，網頁瀏覽超過 1,000 萬次。</p>
+<p>所以，這份作業要做的檢查，就是一處一處看；每一處，問同一個問題：這裡說的，還是他當初停下來的那件事嗎？帶到的，是同一個下一步嗎？而且，斷掉的地方，不一定是那一處寫得不好；常常是每一樣單獨看都很好，排在一起，才發現各說各話。</p>
+
+<p data-kind="眉標">第三段長什麼樣</p>
+<h2>三頁上台講，附錄有人問再翻</h2>
+<p>企劃書的第三段，一共三頁，再加上附錄。十樣東西，都在裡面：三頁放上台要講的；附錄，則放有人問的時候翻得到的。</p>
+<table>
+<thead><tr><th>頁</th><th>回答什麼</th><th>放什麼</th></tr></thead>
+<tbody>
+<tr><td>第 1 頁｜三秒</td><td>他為什麼會停下來？</td><td>上台演的那一個 Hook 和它的前三秒；另外兩個 Hook 列在下面</td></tr>
+<tr><td>第 2 頁｜在哪裡</td><td>為什麼先在這個平台？怎麼知道選對了？</td><td>平台選擇表的結論，和 30 天測試裡「怎樣算」的那幾格</td></tr>
+<tr><td>第 3 頁｜一路接到下一步</td><td>不管從哪裡停下來，帶到的是同一個下一步嗎？</td><td>停下來的理由一句、下一步一句，加上每一處一句</td></tr>
+<tr><td>附錄</td><td>有人問的時候翻得到</td><td>觀看曲線要看哪裡、60 秒腳本、兩週月曆、危機回應判斷表、創作者初選表、邀請或合作說明</td></tr>
+</tbody>
+</table>
+<p>第 1、2 頁回答的，就是上台要做的三件事：演出前三秒、念出 Hook、說明為什麼選這個平台。至於第 3 頁，是這份作業新做的東西，也是整段的骨架。下面，就跟著山徑咖啡，從攤開零件開始，做到這三頁。</p>
+
+<p data-kind="眉標">第一步</p>
+<h2>把十樣攤開，分到每一頁</h2>
+<p>先把各篇最後做的東西，全部找出來，再分到三頁和附錄。山徑咖啡分起來是這樣，你們組就照同一張表來分：</p>
+<table>
+<thead><tr><th>零件</th><th>在哪一篇做的</th><th>放進哪裡</th></tr></thead>
+<tbody>
+<tr><td>三個 Hook、前三秒</td><td>4-1-2、4-1-3</td><td>第 1 頁</td></tr>
+<tr><td>平台選擇表、30 天測試計畫</td><td>4-2-1、4-2-2</td><td>第 2 頁</td></tr>
+<tr><td>觀看曲線要看哪裡</td><td>4-1-3</td><td>附錄</td></tr>
+<tr><td>60 秒腳本</td><td>4-3-1、4-3-2</td><td>附錄</td></tr>
+<tr><td>兩週內容月曆</td><td>4-4-1</td><td>附錄</td></tr>
+<tr><td>危機回應判斷表</td><td>4-4-2</td><td>附錄</td></tr>
+<tr><td>創作者初選表、邀請或合作說明</td><td>4-5-1、4-5-2</td><td>附錄</td></tr>
+</tbody>
+</table>
+<p>附錄裡的東西，原樣放進去就好，不用重寫。至於第 3 頁，它不是新的零件，而是從上面每一樣各拿一句。</p>
+
+<p data-kind="眉標">第二步</p>
+<h2>寫下停下來的理由，和要他做的下一步</h2>
+<p>在第 3 頁的最上面，先寫兩句話：他為什麼停下來，和我們要他做的下一步。這兩句，不用新想，從前面拿。</p>
+<p>停下來的理由，就從上台要演的那一個 Hook 拿。山徑上台演的，是問題型那一個；4-1-2 寫好的是：</p>
+<p data-kind="範例">想升級手沖壺，卻不知道怎麼挑選？我們用同一個人、同一個水量，先比三把壺的壺嘴出水和拿起來的重量。</p>
+<p>把它修成一句「理由」：只留 4-1-1 那兩件事，他認出的是什麼、他以為會得到什麼。修成的樣子是：<strong>想升級、卻不知道怎麼挑的人，停下來是因為這裡會用同樣的條件，比出壺嘴出水和裝了水的重量。</strong>至於下一步，就從 4-3-2 的結尾拿：到商品頁看完整的比較表。</p>
+<p>為什麼上台演問題型？因為 4-4-1 的月曆裡，第 1 週的短片用的就是它；而上台演的，最好是你們真的打算先放出去的那一個。至於另外兩個 Hook：具體細節型的「300 公克」排在第 2 週，反直覺型的「貴一點的壺，不一定比較適合你」排在第 3 週，也就是下一次的月曆；在第 1 頁下面，各寫一句就好。</p>
+
+<p data-kind="眉標">第三步</p>
+<h2>一處一處接，每一處寫一句</h2>
+<p>接的時候，先接同一支影片，再接其他讓他停下來的地方。每一處，從那一樣東西裡拿最關鍵的一句，問兩件事：說的還是那件事嗎？帶到的是同一個下一步嗎？來看山徑咖啡怎麼接一次。</p>
+<p><strong>同一支影片。</strong>先看前三秒：三把裝好水的壺並排，字和聲音都在說「想升級，怎麼挑？先比出水和重量」，說的就是那個理由。到了中間，三把一把一把拿起來，各打出重量、各倒一次，最後最輕和最重差了 300 公克：開頭答應的，真的給了，沒有斷在內容。「山徑咖啡」四個字，在第 3 秒之後小小出現在畫面角落；看完的人知道是誰比的，也沒有斷在品牌。結尾說「壺嘴和重量，只是其中兩欄」，請他點個人檔案的連結，看完整的比較表，接住他心裡那句「那其他欄呢」。</p>
+<p><strong>其他讓他停下來的地方。</strong>先看月曆上的圖文：四件事的輪播、三把的壺嘴口徑、銅壺的保養，每一則讓人停下來的事不一樣，可是結尾都請他到比較表上對一欄。再來是 Threads 的海巡：他停下來，是因為自己正在問怎麼挑壺；山徑答完他問的，用得上才附比較表。至於請人幫忙說，KOC 先找試握後買了杉影的阿凱，他說的，是自己拿在手上、倒過水的感覺；KOL 則等條件到了，第一個找「注水筆記」：他每支影片都由同一個人、同樣的水量、同一台秤測，和山徑 Hook 說的「同樣的條件」，是同一件事。</p>
+<p><strong>有人抱怨的時候。</strong>這一處，最值得看。4-4-2 的情境一：有人在銅壺保養那則圖文底下留言，說網路上買的稜峰，收到只有一封訂單通知，也沒人說銅壺要一直擦，現在已經變色了。山徑當天的回覆，是先道歉沒把保養說清楚，再說稜峰是銅製的、要定期擦拭。回覆本身，是接上了。可是，這則留言露出了一條縫：比較表上有寫保養，影片只比壺嘴和重量，結尾提的是容量、價格、材質；看完影片、直接在網路上買的人，買完之後也沒有使用說明，從頭到尾，可能沒有人提醒他。4-4-2 把這件事記下來，交給專案負責人；4-5-2 給注水筆記的合作說明，也把稜峰要定期擦拭寫進「一定要提到的事」。可是，線上買完的說明還沒決定，注水筆記那條路也還沒啟動；所以這一處，第 3 頁要照實寫：還沒完全接上，誰在處理。</p>
+<p>把每一處寫成一句，就是第 3 頁。山徑填好的樣子是這樣：</p>
+<p data-kind="範例">停下來的理由：想升級、卻不知道怎麼挑的人，停下來是因為這裡會用同樣的條件，比出壺嘴出水和裝了水的重量。　下一步：到商品頁看完整的比較表。</p>
+<p>同一支影片：</p>
+<table>
+<thead><tr><th>哪一處</th><th>那一句</th><th>接上了嗎</th></tr></thead>
+<tbody>
+<tr><td>前三秒（4-1-3）</td><td>三把裝好水的壺並排；「想升級，怎麼挑？先比出水和重量」</td><td>接上</td></tr>
+<tr><td>中間（4-3-1）</td><td>三把各打重量、各倒一次，最多差 300 公克；店名在第 3 秒後出現在角落</td><td>接上：答應的給了，也知道是誰比的</td></tr>
+<tr><td>結尾（4-3-2）</td><td>壺嘴和重量只是其中兩欄，點個人檔案的連結看完整比較表</td><td>接上</td></tr>
+</tbody>
+</table>
+<p>其他讓他停下來的地方：</p>
+<table>
+<thead><tr><th>哪一處</th><th>那一句</th><th>接上了嗎</th></tr></thead>
+<tbody>
+<tr><td>月曆上的圖文（4-4-1）</td><td>四件事、壺嘴口徑、銅壺保養，結尾都到比較表對一欄</td><td>接上：停下來的事不同，下一步相同</td></tr>
+<tr><td>Threads 海巡（4-2-2、4-4-1）</td><td>回答正在問怎麼挑壺的人，用得上才附比較表</td><td>接上</td></tr>
+<tr><td>有人抱怨（4-4-2）</td><td>線上買稜峰沒人提醒保養；回覆先道歉、給保養方式</td><td>回覆接上；還有縫：線上買完沒有使用說明，交給專案負責人</td></tr>
+<tr><td>請人幫忙說（4-5-1、4-5-2）</td><td>阿凱說自己試握、倒水的感覺；注水筆記同一人、同水量、同一台秤，合作說明寫了稜峰要定期擦拭</td><td>阿凱接上；注水筆記等條件到了才寄</td></tr>
+</tbody>
+</table>
+<p>你看，山徑大部分都接得上，因為前面每一課，本來就是照著上一課寫的；至於接不上的那一處，也不用藏，照實寫出誰在處理。可是你們組，不一定這麼順：寫到後面，常常改了想法，或是某一樣寫的時候，沒對著前面那一樣。這時候，就要做第四步。</p>
+
+<p data-kind="眉標">第四步</p>
+<h2>斷掉了，就修那一處</h2>
+<p>換成學英文的 App，看一次斷掉的樣子。在前面幾篇裡，它的 Persona 是小安：下個月要開英文會議、下班很累、最怕講到一半卡住的上班族。4-1-2 替它改好的共鳴型 Hook 是：「開會輪到你用英文發言，腦袋突然一片空白？下次接得下去的那幾句，每天 5 分鐘練熟」。把停下來的理由，修成一句：<strong>怕開會時用英文卡住的上班族，停下來是因為這裡會給他接得下去的那幾句。</strong>下一步，則是先試一課。</p>
+<p>現在，一處一處接。影片中間，一句一句出現會議上用得到的開場、發言、接話，接上了；結尾請他點個人檔案的連結先試一課，也接上了；月曆上每週兩支短影音，演的都是一幕一幕的開會處境，同樣接上了。</p>
+<p>可是到了請人幫忙說，就斷了。4-5-2 說過：如果 App 給每位使用者一個推薦碼，朋友用他的碼註冊，他就多一個月免費；拿了東西，就要寫合作說明，也要一開頭說出來。假設團隊給那位在 Threads 分享通勤練口說的上班族的合作說明裡，「想請你分享的」只寫了一句：「歡迎附上你的推薦碼。」他照實在開頭說了有推薦碼，這一點沒錯；可是，整則串文卻寫成「用我的碼註冊，我就多一個月免費，拜託大家幫個忙」。你看，在這裡停下來的人，理由變成了幫朋友一個忙，不是開會卡住。問題是，這些人點去試一課，未必是小安這樣的人；而 4-2-2 替 App 寫的 30 天，看的又是留言裡有沒有說出開會處境的人，數字就會混在一起，看不出是誰來了。這就是理由被換掉。</p>
+<p>那要修哪一處？3-4-3 說過：接不上時，先找最不能動的那一片，改別的去配合它。這裡最不能動的，是小安和他怕的那件事；那是整個 Hook 的根。所以，要改的是合作說明：在「想請你分享的」寫清楚，想聽他說自己開會時用上的哪一句、那時候的情況；至於推薦碼，照樣一開頭說出來，那是要說清楚的關係；只是，不要讓它變成請大家來的理由。改完，從第一處重新接一次；每一處，都在說開會卡住的那幾秒。</p>
+<p>不過，也有不用接上的時候。4-4-1 說過：讓人笑、讓人轉傳的貼文也可以排，任務寫「讓更多人看到」，並想好它接得上什麼。這一類，在第 3 頁那一格寫下它的任務和接到哪裡就好；要是你們刻意要碰另一種人，也在旁邊寫下為什麼。</p>
+
+<p data-kind="眉標">第五步</p>
+<h2>排成三頁</h2>
+<p>等每一處都接上了，或沒接上的都寫清楚了，就排成三頁。來看山徑咖啡是怎麼排的：</p>
+<p><strong>第 1 頁，三秒。</strong>最上面，是問題型那個 Hook；下面，是 4-1-3 的前三秒表，三秒、三欄：第一個畫面、畫面上的字、聽到的聲音。最下面，列另外兩個 Hook，各寫一句排在哪一週。</p>
+<p><strong>第 2 頁，在哪裡。</strong>放平台選擇表的結論：Instagram 先做、Threads 試 30 天、YouTube 和 TikTok 之後再考慮、Facebook 粉專先不做，每一列各一句理由。下面，再放兩個平台 30 天的「怎樣算」：Instagram 看開頭和結尾哪一個最需要改；Threads 看搜不搜得到可以回的串文、接不接得上話、每週撥不撥得出 3 個小時，以及什麼情況下停。</p>
+<p><strong>第 3 頁，一路接到下一步。</strong>放的，就是第三步那兩句和那兩張表。</p>
+<p><strong>附錄。</strong>把第一步分到附錄的那幾樣，原樣放進去。</p>
+
+<p data-kind="眉標">第六步</p>
+<h2>上台：三秒定生死</h2>
+<p>報告做好之後，依組別順序或抽籤上台。上台時，不從第 1 頁唸起，而是先演。演的方法，4-1-3 已經練過了：拍好了，就播那三秒；要是還沒拍，就把三格分鏡一格一格翻出來。至於順序，也照 4-1-3：先只演畫面和字，不出聲音，就像靜音滑手機；再加上聲音演一次，由一位組員照「聽到的聲音」那一欄念；最後才念出整句 Hook。要是先念了整句，看的人就會自己把三秒裡沒演出來的部分補上。</p>
+<p>4-1-3 請你們拿給別組的同學看；這一次，則搬到台上。第一次演完，請台下兩位同學各說一句：這在說誰？看下去會得到什麼？他們不用打分數，只說看到什麼。如果說得出來，三秒就過了；要是說不出來，或說的跟你們想的不一樣，回去要改的，就是第一個畫面和字。「三秒定生死」，說的就是這一刻：滑手機的人，不會等你解釋。演完之後，再翻到第 2、3 頁講。</p>
+<pre data-kind="複製">上台講稿：
+1. 演前三秒（靜音）：［播放或翻分鏡，不說話］
+2. 請台下兩位說：這在說誰？看下去會得到什麼？
+3. 再演一次（加聲音），念出整句 Hook：［第 1 頁的 Hook］
+4. 為什麼先在這個平台：［指著第 2 頁，說三個問題的答案，和 30 天後看什麼決定留不留］
+5. 這個理由一路接到下一步：［指著第 3 頁，說停下來的理由、下一步，以及最容易斷的那一處怎麼接上，或還沒接上、誰在處理］</pre>
+
+<p data-kind="眉標">換你們組</p>
+<h2>照這個順序做</h2>
+<p>輪到你們組做的時候，就照下面的順序，一步一個動作。要是做到一半，想看看怎麼寫，回到上面山徑對應的那一步看就好。</p>
+<ol>
+<li>把各篇最後做的十樣東西找出來，照第一步的表，分到三頁和附錄。</li>
+<li>從要上台的那個 Hook，寫一句停下來的理由：他認出的是什麼、他以為會得到什麼。</li>
+<li>從 4-3-2 的結尾，寫一句要他做的下一步。</li>
+<li>從前三秒、中間、結尾，各拿一句，填進第 3 頁的表。</li>
+<li>從月曆、海巡或回覆、抱怨時的回覆、創作者，各拿一句，填進同一張表。</li>
+<li>每一列問：說的還是停下來的那件事嗎？帶到的是同一個下一步嗎？是，就寫「接上」。</li>
+<li>如果某一列接不上，就先找最不能動的那一片，通常是 Persona 和他怕的那件事，再改那一列的東西。</li>
+<li>如果某一列一時改不了，就照實寫「還沒接上」和誰在處理。</li>
+<li>如果某一列是好笑、轉傳的貼文，或刻意碰另一種人，就寫下它的任務和為什麼。</li>
+<li>改了任何一列，就從第一列重新接一次。</li>
+<li>照第五步排成三頁，附錄原樣放進去。</li>
+<li>把前三秒排練一次：先靜音播影片或翻分鏡，再加聲音。</li>
+<li>照上台講稿的五段，決定每一段誰講。</li>
+</ol>
+<p>第 3 頁可以照這個格式寫：</p>
+<pre data-kind="複製">停下來的理由（從上台的 Hook）：［他認出的是什麼＋他以為會得到什麼］
+要他做的下一步（從 4-3-2 的結尾）：［做什麼、去哪裡］
+
+哪一處｜那一句｜接上了嗎
+前三秒（4-1-3）｜［……］｜［接上／還沒接上，為什麼］
+中間（4-3-1）｜［……］｜［……］
+結尾（4-3-2）｜［……］｜［……］
+月曆上的其他貼文（4-4-1）｜［……］｜［……］
+海巡或回覆（4-2-2、4-4-1）｜［……］｜［……］
+有人抱怨（4-4-2）｜［……］｜［……］
+請人幫忙說（4-5-1、4-5-2）｜［……］｜［……］
+
+接不上的地方，我們改了：［哪一處、改成什麼；還沒接上的，誰在處理；刻意不接的，為什麼］</pre>
+
+<p data-kind="眉標">怎麼得到回饋</p>
+<h2>講師講評，或請 AI 照判準給建議</h2>
+<p>和模組 3 一樣，這份作業不做同學之間的互評；上台時請台下說的那兩句，是讓你們知道三秒有沒有說清楚，不是評分。回饋有兩種：講師在每組講完之後講評；或是小組另外開一個對話，請 AI 照同一組判準給建議。判準有三個，都是模組 4 用過的問題：</p>
+<p>第一，停得下來嗎：滑到的人認得出這是在說他嗎？他知道看下去會得到什麼嗎？這是 4-1-1 的前兩件事。第二，平台站得住嗎：他在不在那裡？他在那裡做什麼，停下來之後接得上下一步嗎？我們做不做得出來？30 天後怎樣算，開始前寫好了嗎？這是 4-2-1 的三個問題，和 4-2-2 的「先寫好怎樣算」。第三，理由一路接到下一步了嗎：不管從哪裡停下來，說的還是那件事、帶到的是同一個下一步嗎？這是 4-1-1 的第三件事，拉到所有東西上。</p>
+<p>請 AI 給建議的時候，就用下面這段提示詞。和前面每一篇一樣，AI 只提問題、不替你們改，要不要改由小組決定。</p>
+<pre data-kind="複製">我們在練習替一個模擬產品，整理社群的企劃。下面是我們的產品介紹、Persona、核心訊息，以及我們整理好的三頁。請你當我們的陪練，不要替我們改寫，也不要替我們做決定。
+
+請照下面三個判準，各提出一個最影響我們決定的問題，問之前先用一句話說你看到的優點：
+1. 停得下來嗎：滑到的人認得出這是在說他嗎？他知道看下去會得到什麼嗎？
+2. 平台站得住嗎：他在不在那裡？他在那裡做什麼，停下來之後接得上下一步嗎？我們做不做得出來？30 天後怎樣算，寫好了嗎？
+3. 理由一路接到下一步了嗎：第 3 頁的每一列，說的還是他當初停下來的那件事嗎？帶到的是同一個下一步嗎？
+
+最後，指出第 3 頁裡最可能斷掉的那一列，說說是斷在內容、斷在品牌，還是理由被換掉，為什麼。照我們寫的內容判斷，我們沒寫到的，請說「這一點你們沒寫」。
+
+【我們的產品】（用一句話介紹）
+【我們的 Persona】（貼上 3-2-2 寫的）
+【我們的核心訊息】（貼上 3-4-2 寫的）
+【我們的三頁】（貼上）</pre>
+
+<p data-kind="眉標">放進企劃書</p>
+<h2>這三頁加附錄，就是小組企劃書的第三段</h2>
+<p>照講評或 AI 的問題修過一次之後，這三頁加附錄，就是小組企劃書的第三段：社群。回頭看，第一段是模組 1 寫的顧客心理，第二段是模組 3 寫的往哪個方向推；而第三段，是在社群上，讓誰為了什麼停下來、在哪裡停下來，又怎麼一路走到下一步。</p>
+<p>第 3 頁那張表，後面還會一直用到。到了模組 5，要問的是：有人主動搜尋「手沖壺怎麼選」的時候，找不找得到你？那時候，他不是滑到你，而是自己來找；可是他找的那件事，和社群上讓他停下來的那件事，應該是同一件。每多學一個工具，第 3 頁就多一列。</p>
+
+<section data-kind="讀完之後">
+<p><strong>讀完之後，用自己的話試著回答：</strong></p>
+<p>第一，標題吸引人點進去卻不是那回事、記得廣告的梗卻想不起牌子、為了折扣下載卻再也沒打開，三種情況各斷在哪裡？第二，4-1-1 的第三件事，在這份作業裡為什麼要拉到所有東西上問？第三，企劃書第三段的三頁各放什麼？十樣東西裡，哪些放在附錄？第四，山徑咖啡在「有人抱怨」那一處，露出了什麼縫？為什麼第 3 頁照實寫「還沒完全接上」？第五，學英文的 App 在哪一處斷了？是哪一種斷？為什麼改的是合作說明，不是 Hook？第六，上台為什麼先靜音演、最後才念出整句 Hook？</p>
+<p>答不出來的那一題，回到對應的段落再讀一次就好。模組 4 到這裡結束。接下來是模組 5 搜尋：有人主動搜尋「手沖壺怎麼選」時，找不找得到山徑咖啡？</p>
+</section>
+<p data-kind="註">山徑咖啡，以及文中的三款手沖壺、比較表、60 秒腳本、平台規劃、30 天測試計畫、兩週月曆、社群狀況、顧客阿凱、帳號「注水筆記」與合作說明，都是課程模擬資料，不是真實的品牌、人物或成效。學英文的 App、小安與分享推薦碼的上班族是舉例用的情境；記不得牌子、被標題騙進去、為了折扣下載的經驗是舉例。Facebook 與 YouTube 的平台說明、Ipsos 的報告、英國漢堡王推文、鮭魚之亂、IKEA 台灣低價目錄是真實資料與案例；英文的中文是講義的翻譯。</p>
+<p data-kind="註">參考來源：Facebook Newsroom〈News Feed FYI: Click-baiting〉（2014）、〈Further Reducing Clickbait in Feed〉（2016）；YouTube 官方部落格〈Strengthening enforcement against egregious clickbait on YouTube〉（2024，Google India）；Ipsos Views〈From Noise to Noteworthy〉（2026）；Global News 報導英國漢堡王婦女節推文（Josh K. Elliott，2021-03-08）；TVBS 新聞〈回顧2021全台鮭魚之亂！331人改名為吃免錢〉（2022-01-01）；數位時代〈鮭魚之亂洗掉「料理鼠王」危機？〉（2021-03-19）；奧美台灣作品頁〈低價目錄 宜家家居 IKEA〉。</p>
+
+</main>
+<nav class="nav-footer" aria-label="上一篇與下一篇" hidden></nav>
+
+<footer class="footer">
+  <span class="footer-logo">弄一下工作室</span>
+  <div class="footer-div"></div>
+  <span class="footer-note">數位行銷人才培訓</span>
+</footer>
+
+<script>
+(function(){
+  'use strict';
+  var main=document.getElementById('main');
+
+  // 簡報感版面：英雄區、章節區塊、路線圖、淡入、註腳
+  (function buildHero(){
+    var pos=main.querySelector('p[data-kind="位置"]');
+    var h1=main.querySelector('h1');
+    if(!pos||!h1)return;
+    var hero=document.createElement('div');hero.className='hero-zone';
+    var items=[pos,h1];
+    var sib=h1.nextElementSibling;
+    while(sib&&!(sib.tagName==='P'&&sib.dataset.kind==='眉標')){items.push(sib);sib=sib.nextElementSibling}
+    pos.parentNode.insertBefore(hero,pos);
+    items.forEach(function(el){if(el.tagName==='P'&&!el.dataset.kind&&el!==pos)el.classList.add('lead');hero.appendChild(el)});
+  })();
+  (function buildSections(){
+    var eyebrows=main.querySelectorAll('p[data-kind="眉標"]');
+    eyebrows.forEach(function(eb){
+      var block=document.createElement('div');block.className='section-block';
+      var items=[eb];var sib=eb.nextElementSibling;
+      while(sib){
+        if(sib.tagName==='P'&&sib.dataset.kind==='眉標')break;
+        if(sib.tagName==='SECTION'&&sib.dataset.kind==='讀完之後')break;
+        if(sib.tagName==='P'&&sib.dataset.kind==='註')break;
+        items.push(sib);sib=sib.nextElementSibling;
+      }
+      eb.parentNode.insertBefore(block,eb);
+      items.forEach(function(el,i){
+        if(i>1&&el.tagName==='P'&&!el.dataset.kind){var prev=items[i-1];if(prev&&prev.tagName==='H2')el.classList.add('section-lead')}
+        block.appendChild(el);
+      });
+    });
+  })();
+  (function upgradeTable(){
+    var blocks=main.querySelectorAll('.section-block');
+    if(!blocks.length)return;
+    var last=blocks[blocks.length-1];
+    var t=last.querySelector('table');
+    if(t)t.classList.add('roadmap-table');
+  })();
+  (function animateSections(){
+    var blocks=main.querySelectorAll('.section-block');
+    if(!blocks.length)return;
+    if(!('IntersectionObserver' in window)){blocks.forEach(function(b){b.classList.add('visible')});return}
+    var obs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}})},{threshold:0.05,rootMargin:'0px 0px -60px 0px'});
+    blocks.forEach(function(b){obs.observe(b)});
+  })();
+  (function buildFootnotes(){
+    var sec=main.querySelector('section[data-kind="讀完之後"]');
+    if(!sec)return;
+    var notes=[];var sib=sec.nextElementSibling;
+    while(sib&&sib.tagName==='P'&&sib.dataset.kind==='註'){notes.push(sib);sib=sib.nextElementSibling}
+    if(!notes.length)return;
+    var zone=document.createElement('div');zone.className='footnotes-zone';
+    notes[0].parentNode.insertBefore(zone,notes[0]);
+    notes.forEach(function(n){zone.appendChild(n)});
+  })();
+
+  // 導覽：依上線檔名查表。查不到（例如工作區預覽的中文檔名）就不顯示。
+  var NAV_ORDER=[
+    {file:'module3.html',label:'模組 3 市場洞察與策略定位'},
+    {file:'m3-1-1.html',label:'3-1 環境分析（一）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-1-2.html',label:'3-1 環境分析（二）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-1-3.html',label:'3-1 環境分析（三）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-2-1.html',label:'3-2 受眾研究（一）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-2-2.html',label:'3-2 受眾研究（二）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-2-3.html',label:'3-2 受眾研究（三）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-3-1.html',label:'3-3 消費者旅程（一）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-3-2.html',label:'3-3 消費者旅程（二）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-4-1.html',label:'3-4 品牌定位（一）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-4-2.html',label:'3-4 品牌定位（二）',module:'module3.html',back:'返回模組 3'},
+    {file:'m3-4-3.html',label:'3-4 品牌定位（三）模組作業',module:'module3.html',back:'返回模組 3'},
+    {file:'module4.html',label:'模組 4 社群行銷'},
+    {file:'m4-1-1.html',label:'4-1 注意力（一）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-1-2.html',label:'4-1 注意力（二）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-1-3.html',label:'4-1 注意力（三）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-2-1.html',label:'4-2 平台策略（一）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-2-2.html',label:'4-2 平台策略（二）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-3-1.html',label:'4-3 短影音腳本（一）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-3-2.html',label:'4-3 短影音腳本（二）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-4-1.html',label:'4-4 社群經營（一）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-4-2.html',label:'4-4 社群經營（二）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-5-1.html',label:'4-5 KOL／KOC（一）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-5-2.html',label:'4-5 KOL／KOC（二）',module:'module4.html',back:'返回模組 4'},
+    {file:'m4-homework.html',label:'模組 4 作業',module:'module4.html',back:'返回模組 4'},
+    {file:'module5.html',label:'模組 5 SEO'}
+  ];
+  function arrow(ch){var s=document.createElement('span');s.setAttribute('aria-hidden','true');s.textContent=ch;return s}
+  function buildNav(){
+    var name='';
+    try{name=decodeURIComponent(location.pathname.split('/').pop()||'')}catch(e){return}
+    if(name&&!/\.html?$/.test(name))name+='.html';
+    var idx=-1;
+    for(var i=0;i<NAV_ORDER.length;i++){if(NAV_ORDER[i].file===name&&NAV_ORDER[i].module){idx=i;break}}
+    if(idx<0)return;
+    var cur=NAV_ORDER[idx],prev=NAV_ORDER[idx-1],next=NAV_ORDER[idx+1];
+    var bar=document.querySelector('.back-bar');
+    if(bar){
+      var b=document.createElement('a');b.href=cur.module;b.className='back-link';
+      b.appendChild(arrow('←'));b.appendChild(document.createTextNode(' '+cur.back));
+      bar.appendChild(b);bar.hidden=false;
+    }
+    var nav=document.querySelector('.nav-footer');
+    if(nav&&(prev||next)){
+      if(prev){
+        var a=document.createElement('a');a.href=prev.file;a.className='nav-btn nav-prev';
+        a.setAttribute('aria-label','上一單元：'+prev.label);a.setAttribute('data-nav-role','prev');
+        a.appendChild(arrow('←'));a.appendChild(document.createTextNode(' '+prev.label));nav.appendChild(a);
+      }
+      if(next){
+        var n=document.createElement('a');n.href=next.file;n.className='nav-btn primary nav-next';
+        n.setAttribute('aria-label','下一單元：'+next.label);n.setAttribute('data-nav-role','next');
+        n.appendChild(document.createTextNode(next.label+' '));n.appendChild(arrow('→'));nav.appendChild(n);
+      }
+      nav.hidden=false;
+    }
+  }
+  try{buildNav()}catch(e){}
+
+  // 閱讀進度
+  var strip=document.querySelector('.progress-strip'),prog=document.getElementById('prog');
+  function onScroll(){
+    var h=document.documentElement,max=h.scrollHeight-h.clientHeight;
+    var pct=max>0?Math.min(100,Math.max(0,h.scrollTop/max*100)):0;
+    prog.style.width=pct+'%';strip.setAttribute('aria-valuenow',String(Math.round(pct)));
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+
+  // 表格：包一層可橫向捲動的外層，窄螢幕只在表格內捲動（路線圖卡片除外）
+  main.querySelectorAll('table:not(.roadmap-table)').forEach(function(t){
+    if(t.parentNode.classList&&t.parentNode.classList.contains('table-scroll'))return;
+    var w=document.createElement('div');
+    w.className='table-scroll';w.setAttribute('role','region');w.setAttribute('tabindex','0');
+    w.setAttribute('aria-label','資料表，可水平捲動');
+    t.parentNode.insertBefore(w,t);w.appendChild(t);
+  });
+
+  // 長條：依 data-value 畫相對長度。數字只從定稿讀，模板不寫任何數字。
+  main.querySelectorAll('figure[data-kind="長條"]').forEach(function(fig){
+    var items=[].slice.call(fig.querySelectorAll('li[data-value]'));
+    var max=Math.max.apply(null,items.map(function(li){return +li.dataset.value||0}));
+    if(!(max>0))return;
+    items.forEach(function(li){var v=+li.dataset.value||0;li.style.setProperty('--w',Math.max(v/max*100,1.5)+'%')});
+  });
+
+  // 複製框：按鈕加在框的上方，複製框內原文（不動正文）
+  var LABEL='複製',DONE='已複製',FAIL='複製失敗';
+  function fallbackCopy(text){
+    var f=document.createElement('textarea');
+    f.value=text;f.setAttribute('readonly','');f.style.position='fixed';f.style.left='-9999px';f.style.top='0';
+    document.body.appendChild(f);f.select();f.setSelectionRange(0,f.value.length);
+    var ok=document.execCommand('copy');f.remove();
+    if(!ok)throw new Error('copy failed');
+  }
+  function copyText(text){
+    if(navigator.clipboard&&window.isSecureContext){
+      return navigator.clipboard.writeText(text).catch(function(){fallbackCopy(text)});
+    }
+    return new Promise(function(resolve){fallbackCopy(text);resolve()});
+  }
+  function setState(btn,status,state){
+    clearTimeout(btn._t);
+    btn.textContent=state==='copied'?DONE:FAIL;
+    btn.classList.toggle('is-copied',state==='copied');
+    btn.classList.toggle('is-error',state==='error');
+    status.textContent=state==='copied'?'已複製到剪貼簿':'複製失敗，請手動選取文字';
+    btn._t=setTimeout(function(){btn.textContent=LABEL;btn.classList.remove('is-copied','is-error');status.textContent=''},1800);
+  }
+  main.querySelectorAll('pre[data-kind="複製"]').forEach(function(pre,i){
+    var bar=document.createElement('div');bar.className='copy-toolbar';
+    var btn=document.createElement('button');btn.type='button';btn.className='copy-button';btn.textContent=LABEL;
+    btn.setAttribute('aria-label','複製這段文字');
+    var status=document.createElement('span');status.className='copy-status';status.id='copy-status-'+i;
+    status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+    btn.setAttribute('aria-describedby',status.id);
+    btn.addEventListener('click',function(){
+      var text=pre.textContent.replace(/\r\n?/g,'\n').replace(/^\n+|\s+$/g,'');
+      if(!text){setState(btn,status,'error');return}
+      copyText(text).then(function(){setState(btn,status,'copied')},function(){setState(btn,status,'error')});
+    });
+    bar.appendChild(btn);bar.appendChild(status);
+    pre.parentNode.insertBefore(bar,pre);
+  });
+  // 單行複製字：點一下複製
+  main.querySelectorAll('code[data-kind="複製"]').forEach(function(c){
+    c.setAttribute('role','button');c.setAttribute('tabindex','0');c.setAttribute('title','點一下複製');
+    function go(){copyText(c.textContent).then(function(){c.setAttribute('title','已複製')},function(){c.setAttribute('title','複製失敗')})}
+    c.addEventListener('click',go);
+    c.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}});
+  });
+})();
+</script>
+</body>
+</html>
