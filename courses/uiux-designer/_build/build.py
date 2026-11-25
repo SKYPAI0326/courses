@@ -5,6 +5,7 @@
   - .tpl：<章>/_src/<篇>.tpl（第一章全部、第二章開場）
   - 定稿：<章>/定稿/<篇>.v<N>.html（第二章起的新篇；格式見 共學專案/範本/定稿格式.md），取 N 最大的一版
     該章在 chapters.json 有 "pin"（{篇: 版本}）時，定稿只取 pin 列出的篇與版本，其餘不上架。
+    選定的版本若有文案修飾稿 <章>/修飾/<篇>.v<N>.m<M>.html（同一個 N），改用 M 最大的修飾稿（格式同定稿）。
     該章只開放一部分時設 "partial": true，最後一份的下一頁按鈕不說「這一章做完了」。
   同一篇兩種都有就失敗。目錄一律是 _src/目錄.tpl（導覽，不在定稿範圍）。
 
@@ -179,7 +180,7 @@ def parse_tpl(path):
 
 def parse_draft(path, theme):
     """讀定稿片段。回傳和 parse_tpl 相同的欄位，另加 css（色票）與 desc。"""
-    where = f"定稿/{path.name}"
+    where = f"{path.parent.name}/{path.name}"
     # 開頭的審核註解（<!-- 定稿｜…｜通過:… -->）是共學紀錄，不上架；比照 共學專案/工具/建置.py 拿掉
     t = DRAFT_HEADER.sub("", nfc(path.read_text(encoding="utf-8")), count=1)
     if re.search(r"<(html|head|body|main|style)\b", t, re.I):
@@ -242,12 +243,22 @@ def find_sources(chap_dir, pin=None):
             if pin is not None and pin.get(stem) != ver:
                 continue
             if stem not in drafts or ver > drafts[stem][0]:
-                drafts[stem] = (ver, p)
+                drafts[stem] = (ver, p, 0)
     if pin is not None:
         lost = [f"{k}.v{v}" for k, v in pin.items() if (nfc(k), v) not in found]
         if lost:
             fail(f"chapters.json 的 pin 指定的定稿不存在：{lost}")
-    for stem, (_, p) in drafts.items():
+    # 選定的版本若有文案修飾稿（<章>/修飾/<篇>.v<N>.m<M>.html，同一個 N），改用 M 最大的修飾稿
+    m_dir = chap_dir / "修飾"
+    if m_dir.is_dir():
+        for p in m_dir.glob("*.html"):
+            m = re.fullmatch(r"(.+)\.v(\d+)\.m(\d+)\.html", nfc(p.name))
+            if not m:
+                fail(f"修飾稿檔名要是 <篇>.v<版本>.m<修飾版>.html：{p.name}")
+            stem, ver, mv = m.group(1), int(m.group(2)), int(m.group(3))
+            if stem in drafts and drafts[stem][0] == ver and mv > drafts[stem][2]:
+                drafts[stem] = (ver, p, mv)
+    for stem, (_, p, _) in drafts.items():
         if stem == "目錄":
             fail("目錄是導覽，不寫成定稿；請用 _src/目錄.tpl")
         if stem in src:
@@ -384,7 +395,7 @@ def build_chapter(cfg, ch, src_root, out_dir, theme, built, report):
             where = f"{ch['src']}/{stem}.tpl"
         else:
             tpl = parse_draft(path, theme)
-            where = f"{ch['src']}/定稿/{path.name}"
+            where = f"{ch['src']}/{path.parent.name}/{path.name}"
         main = rewrite_links(tpl["main"], name_map, where)
         if kind == "tpl":
             imgs = re.findall(r"\{\{IMG:([^}]+)\}\}", main)
@@ -433,7 +444,7 @@ def build_chapter(cfg, ch, src_root, out_dir, theme, built, report):
         out.write_text(page, encoding="utf-8")
         add_gate(out)
         verify_main(out, tpl["main"], name_map, where)
-        report.append((f"{ch['dir']}/{fname}", f"{stem}（{'定稿 ' + path.name if kind != 'tpl' else 'tpl'}）",
+        report.append((f"{ch['dir']}/{fname}", f"{stem}（{path.parent.name + ' ' + path.name if kind != 'tpl' else 'tpl'}）",
                        len(imgs), out.stat().st_size))
     lead = re.search(r'<p class="lead">(.*?)</p>', toc_tpl["main"], re.S)
     return (lead.group(1).strip() if lead else ""), [(name_map[it["href"]], it) for it in toc]
