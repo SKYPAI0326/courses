@@ -351,7 +351,7 @@ def pager(prev, nxt):
     """舊版 .nav：左邊外框按鈕回上一份，右邊實心按鈕到下一份。prev/nxt = (href, 文字)。"""
     if not prev and not nxt:
         return ""
-    out = ['<nav class="nav" aria-label="上一份與下一份">']
+    out = ['<nav class="nav" aria-label="上一節與下一節">']
     if prev:
         out.append(f'<a href="{prev[0]}">← {prev[1]}</a>')
     if nxt:
@@ -429,12 +429,12 @@ def build_chapter(cfg, ch, src_root, out_dir, theme, built, report):
                 prev = ("index.html", f"{ch_label}目錄")
             else:
                 p = toc[idx - 2]
-                prev = (name_map[p["href"]], f"上一份：{p['t']}")
+                prev = (name_map[p["href"]], f"上一節：{p['t']}")
             if idx < len(order) - 1:
                 q = toc[idx]
-                nxt = (name_map[q["href"]], f"下一份：{q['t']}")
+                nxt = (name_map[q["href"]], f"下一節：{q['t']}")
             else:
-                nxt = ("index.html", f"目前開放到這一份，回到{ch_label}目錄" if ch.get("partial")
+                nxt = ("index.html", f"目前開放到這一節，回到{ch_label}目錄" if ch.get("partial")
                        else f"這一章做完了，回到{ch_label}目錄")
         main_open = '<main id="main">' if kind == "tpl" else '<main id="main" data-正文>'
         page = (head(cfg, title, desc, url, css) + topbar("../../../index.html", "../index.html", cfg, tag)
