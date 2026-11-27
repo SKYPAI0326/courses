@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>把指示放進 Make：AI 判斷部門，流程分成四條路</title>
+<!-- 參考模板：示範「內容和畫面分開」。網頁角色可以整份重做，但要保留標題與正文兩個替換位置，以及有 data-正文 屬性的 main。 -->
+<!-- 來源：5-2-2-依部門分流 v1 -->
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--text:#2b2a27;--muted:#6d695f;--line:#dcd7cc;--accent:#8a6a2f;--soft:#f1eadb}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;font-size:17px;line-height:1.9}
+main{max-width:760px;margin:0 auto;padding:40px 20px 80px}
+main p[data-kind="位置"]{color:var(--muted);font-size:14px;letter-spacing:.05em;margin:0}
+main h1{font-size:30px;line-height:1.4;margin:6px 0 24px}
+main h2{font-size:23px;margin:2px 0 4px;line-height:1.5}
+main p[data-kind="眉標"]{color:var(--accent);font-size:14px;font-weight:700;letter-spacing:.08em;margin:56px 0 0}
+main p{margin:0 0 18px}
+main blockquote{margin:22px 0;padding:14px 20px;background:var(--card);border-left:4px solid var(--accent);border-radius:4px}
+main blockquote p{margin:0}
+main blockquote cite{display:block;color:var(--muted);font-size:14px;margin-top:6px;font-style:normal}
+main figure[data-kind="長條"]{margin:22px 0;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px 20px}
+main figure[data-kind="長條"] ol{list-style:none;margin:0;padding:0}
+main figure[data-kind="長條"] li{margin:10px 0;font-size:15px}
+main figure[data-kind="長條"] li::before{content:"";display:block;height:22px;background:var(--accent);border-radius:3px;width:var(--w,0);margin-bottom:4px}
+main figcaption,main p[data-kind="註"]{color:var(--muted);font-size:15px}
+main table{width:100%;border-collapse:collapse;margin:20px 0;background:var(--card);font-size:15.5px;line-height:1.7}
+main th,main td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
+main th{background:var(--soft)}
+main details{margin:18px 0;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 18px}
+main summary{cursor:pointer;font-weight:700;color:var(--accent)}
+main section[data-kind="讀完之後"]{margin-top:56px;padding:22px 24px;background:var(--card);border:1px solid var(--line);border-radius:8px}
+main section[data-kind="讀完之後"] p:last-child{margin-bottom:0}
+main pre[data-kind="複製"]{white-space:pre-wrap;background:#2b2a27;color:#f6f4ef;padding:16px;border-radius:8px;font-size:15px}
+/* 操作型講義的區塊（定稿格式「操作型講義」一節）。編號、色塊都從屬性畫，不往正文加字。 */
+main p[data-kind="導言"]{font-size:19px;line-height:1.85;color:var(--text);margin-bottom:26px}
+main p[data-kind="段"]{margin:52px 0 14px;padding-top:12px;border-top:2px solid var(--line);color:var(--accent);font-size:14px;font-weight:700;letter-spacing:.08em}
+main section[data-kind="步驟"]{position:relative;margin:22px 0;padding:18px 20px 6px 64px;background:var(--card);border:1px solid var(--line);border-radius:8px}
+main section[data-kind="步驟"]::before{content:attr(data-label);position:absolute;left:18px;top:18px;width:32px;height:32px;line-height:32px;text-align:center;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:15px}
+main section[data-kind="步驟"] h3{margin:0 0 10px;font-size:19px;line-height:1.6}
+main figure{margin:16px 0}
+main figure img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px}
+main p[data-kind="看到"]{background:var(--soft);border-left:4px solid var(--accent);padding:8px 14px;border-radius:4px;font-size:15.5px}
+main section[data-kind="重點"]{margin:22px 0;padding:16px 20px 2px;background:var(--soft);border:1px solid var(--line);border-radius:8px}
+main p[data-kind="範例"]{background:var(--card);border:1px dashed var(--line);padding:12px 16px;border-radius:6px;font-size:15.5px}
+main p[data-kind="圖說"]{color:var(--muted);font-size:15px;margin-top:-6px}
+main a[data-kind="按鈕"]{display:inline-block;padding:8px 18px;background:var(--accent);color:#fff;border-radius:6px;text-decoration:none;font-weight:700}
+main code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92em;background:var(--soft);padding:1px 5px;border-radius:3px}
+main code[data-kind="複製"]{border:1px solid var(--line)}
+main span[data-kind="色票"]{display:inline-block;width:1em;height:1em;vertical-align:-.12em;margin-right:4px;border:1px solid var(--line);border-radius:3px;background:var(--sw,transparent)}
+main figure[data-kind="互動"]{padding:14px 18px;background:var(--card);border:2px dashed var(--line);border-radius:8px}
+@media (max-width:560px){body{font-size:16px}main h1{font-size:25px}main table{font-size:14.5px}main th,main td{padding:8px}main section[data-kind="步驟"]{padding:56px 16px 4px}main section[data-kind="步驟"]::before{left:16px;top:14px}}
+.topnav,.pagenav{max-width:760px;margin:0 auto;padding:16px 20px 0;font-size:15px}
+.topnav a,.pagenav a{color:var(--accent);text-decoration:none;font-weight:700}
+.pagenav{display:flex;justify-content:space-between;gap:12px;padding:0 20px 48px}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.45rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.75rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='gen36_auth',H='2eeb336fddc0ac7aa5ce7ff9aa2b3a51db0f7ad83fd07d4e7d877dfc1d2b9089';if(localStorage.getItem(K)==='1')sessionStorage.setItem(K,'1');if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<nav class="topnav" id="topnav"></nav>
+<main id="main" data-正文>
+<p data-kind="位置">生成式 AI 工作應用班｜Part 5 用 AI 整理訊息，交給 Make 自動處理｜5-2（第二篇）</p>
+<h1>把指示放進 Make：AI 判斷部門，流程分成四條路</h1>
+<p data-kind="導言">上一篇，你在 AI 對話工具裡把「判斷部門」的指示試到穩定，存在自己的文件裡。這一篇要把它交給流程：每收到一張需求單，Make 就把需求內容連同這段指示送給 AI，拿到「行政」「設計」「行銷」「其他」其中一個詞，再依這個詞把單子送往不同的路，在處理紀錄寫下「交給哪個部門」。</p>
+<p>做完以後，禾光的需求單會這樣流動：同事送出 → 流程讀到新的一列 → AI 判斷部門 → 流程依部門分開走 → 處理紀錄寫下「交給行政」或「交給設計」。這是 5-1-1 拆出來的第 2 步，第一次由 AI 和流程一起完成。</p>
+<p><strong>讀完這一篇，你會學會</strong>：申請一把 Gemini 金鑰，讓 Make 能使用 AI；把試好的指示放進 Make 的 AI 模組，並指定它讀哪一欄；用 Router 和篩選，讓流程依 AI 的回答分成幾條路；放進流程後，再用同一批單驗一次，判錯了就補規則。</p>
+
+<p data-kind="段">Make 要怎麼使用 AI：金鑰</p>
+<p>上一篇是你自己打開 AI 對話工具、貼上指示。放進流程以後，換成 Make 替你去問 AI。這門課讓 Make 使用的是 Google 的 AI「Gemini」：Make 每問一次，Google 都要知道是誰在用，所以你要先向 Google 申請一把<strong>金鑰</strong>（英文是 API Key），再交給 Make。</p>
+<p>金鑰就像一組密碼：一長串英文和數字，誰拿到它，就能用你的名義使用 Gemini。所以只把它貼在 Make 的連線設定裡，不要傳給別人，也不要貼在公開的地方。申請金鑰的地方叫 <strong>Google AI Studio</strong>，用你的 Google 帳號登入就能申請；免費方案不需要綁信用卡，練習用的量也不會產生費用。</p>
+
+<p data-kind="段">Make 怎麼依 AI 的回答分路：Router 和篩選</p>
+<p>到目前為止，你的流程都是一條直線：觸發 → 動作。這一篇要讓它在 AI 判斷完以後分岔，用到兩樣新東西。</p>
+<p><strong>Router</strong>（分流器）是一個把一條路分成好幾條路的模組。資料走到 Router，會被送往後面每一條路的路口。</p>
+<p><strong>篩選</strong>（filter）是每條路口的檢查站，只放行符合條件的資料。這一篇的條件都是同一種寫法：「AI 的回答包含『行政』這兩個字」。一張判斷成「設計」的單走到行政那條路的路口，不符合條件，就被擋下；走到設計那條路的路口，符合條件，就放行。</p>
+<table>
+<thead><tr><th>路</th><th>篩選條件：AI 的回答包含</th><th>這條路做什麼</th></tr></thead>
+<tbody>
+<tr><td>第 1 條</td><td>行政</td><td>在處理紀錄寫一列，處理狀態「交給行政」</td></tr>
+<tr><td>第 2 條</td><td>設計</td><td>在處理紀錄寫一列，處理狀態「交給設計」</td></tr>
+<tr><td>第 3 條</td><td>行銷</td><td>在處理紀錄寫一列，處理狀態「交給行銷」</td></tr>
+<tr><td>第 4 條</td><td>其他</td><td>在處理紀錄寫一列，處理狀態「交給其他」</td></tr>
+</tbody>
+</table>
+<p>這也是 5-2-1 要你把指示試穩的原因：AI 只回一個詞，一張單就只會通過一個檢查站；如果 AI 回了一大段，裡面同時寫到「行政」和「設計」，這張單就會同時走進兩條路。</p>
+
+<p data-kind="段">開始動手</p>
+<p>動手前先知道三件事。</p>
+<ul>
+<li><strong>這一篇建一條新流程</strong>：5-1-2 那條「需求單自動記錄（練習）」不用改，保持原樣。新流程叫「需求單依部門分流（練習）」，同樣監看「表單回覆 1」。</li>
+<li><strong>先多準備兩張單</strong>：目前表單回覆只有王小美一張，只會走行政那條路。先多填兩張，才看得出流程真的分開走。</li>
+<li><strong>點數</strong>：這條流程每處理一張單，大約用掉 2 點（AI 一次、寫入一次）。</li>
+</ul>
+
+<section data-kind="步驟" data-label="1">
+<h3>多填兩張需求單</h3>
+<ul>
+<li>打開 5-1-1 建的需求單（用「複製作答者連結」開的那個網址）。</li>
+<li>照下面填第一張，按 <strong>提交</strong>。</li>
+<li>再打開一次表單，照下面填第二張，按 <strong>提交</strong>。</li>
+</ul>
+<p data-kind="範例">第一張｜申請人姓名：陳志明｜申請人 Email：zhiming.chen@example.com｜需求內容：12 月 AI 入門講座需要一張 IG 宣傳圖，尺寸 1080×1080，標題「AI 入門：從聊天到自動化」。｜希望完成日期：2026-12-05<br>第二張｜申請人姓名：許文傑｜申請人 Email：wenjie.xu@example.com｜需求內容：我的筆電一直當機，可以找人幫我看一下嗎？｜希望完成日期：2026-11-30</p>
+<p data-kind="看到">做完會看到：「表單回覆 1」有三列：王小美、陳志明、許文傑。</p>
+</section>
+
+<section data-kind="步驟" data-label="2">
+<h3>申請 Gemini 金鑰</h3>
+<ul>
+<li>在瀏覽器網址列輸入 <code>aistudio.google.com/apikey</code>，按 Enter，用你的 Google 帳號登入。</li>
+<li>如果頁面上已經有一把金鑰，就用它；Google 會替第一次使用的人自動建好一把。</li>
+<li>如果頁面上沒有金鑰，按右上角的 <strong>Create API key</strong>（建立金鑰），照畫面完成建立。</li>
+<li>按金鑰旁邊的複製圖示，把金鑰複製下來。</li>
+</ul>
+<p data-kind="看到">做完會看到：「API Keys」頁面上有一把金鑰，下方標著「Free tier」（免費方案）。</p>
+</section>
+
+<section data-kind="步驟" data-label="3">
+<h3>建新流程，加上監看新增的列</h3>
+<ul>
+<li>在 Make 左邊選單點 <strong>Scenarios</strong>，再點 <strong>Create scenario</strong>。</li>
+<li>加 Google Sheets 的 <strong>Watch New Rows</strong>，選「Google 連線（練習）」、你的「(回覆)」試算表、分頁「表單回覆 1」，按 <strong>Save</strong>。</li>
+<li>「Choose where to start」選 <strong>All</strong>，按 <strong>Save</strong>。</li>
+</ul>
+<p>這一步和 5-1-2 建觸發的做法一樣。選 All 是為了讓三張單都被讀到。</p>
+</section>
+
+<section data-kind="步驟" data-label="4">
+<h3>加 AI 模組，連上 Gemini</h3>
+<ul>
+<li>把滑鼠移到觸發模組右邊，按冒出來的 <strong>＋</strong>。</li>
+<li>搜尋 <code>Google Gemini AI</code>，點 <strong>Generate a response</strong>（產生回答）。</li>
+<li>點一下這個新模組，在 <strong>Connection</strong> 那一欄按 <strong>Create a connection</strong> 或 <strong>Add</strong>。</li>
+<li>連線名稱改成 <code>Gemini 連線（練習）</code>。</li>
+<li>在 <strong>API Key</strong> 那一欄貼上第 2 步複製的金鑰，按 <strong>Save</strong>。</li>
+</ul>
+<figure><img src="圖/5-2-2-Gemini連線.jpg" alt="Google Gemini AI 模組的設定，Connection 已選好一個 Gemini 連線"></figure>
+<p data-kind="看到">做完會看到：Connection 顯示「Gemini 連線（練習）」，下面多出 AI Model、Messages 等欄位。</p>
+</section>
+
+<section data-kind="步驟" data-label="5">
+<h3>把試好的指示放進 AI 模組</h3>
+<ul>
+<li>在 <strong>AI Model</strong>（AI 模型）選 <strong>Gemini 3.5 Flash Lite</strong>。</li>
+<li>在 <strong>Messages</strong>（訊息）的 Item 1，<strong>Role</strong>（角色）選 <strong>User</strong>。</li>
+<li>在 <strong>Parts</strong> 的 Item 1，<strong>Message Type</strong>（訊息類型）選 <strong>Text</strong>（文字）。</li>
+<li>在下方出現的文字框，貼上你在 5-2-1 存好的指示。</li>
+<li>把游標放在最後一行「需求內容：」後面，點旁邊跳出的清單裡的 <strong>需求內容 (D)</strong>。</li>
+<li>按 <strong>Save</strong>。</li>
+</ul>
+<p>最後一步和 5-1-2 的對應是同一件事：在 5-2-1，你每次手動把一張單的需求內容貼在「需求內容：」後面；放進流程以後，改成告訴 Make「這裡放表單回覆的需求內容那一欄」，每張單就會自動換成那張單的內容。</p>
+</section>
+
+<section data-kind="步驟" data-label="6">
+<h3>加 Router</h3>
+<ul>
+<li>把滑鼠移到 AI 模組右邊，按 <strong>＋</strong>。</li>
+<li>搜尋 <code>Router</code>，點 <strong>Router</strong>。</li>
+</ul>
+<p data-kind="看到">做完會看到：AI 模組後面多了一個綠色、帶箭頭的圓形模組，就是 Router。</p>
+</section>
+
+<section data-kind="步驟" data-label="7">
+<h3>建四條路</h3>
+<p>四條路的做法都一樣，只差在下表的三個值。每一條路都照下面的清單做一次。</p>
+<table>
+<thead><tr><th>路</th><th>篩選的名稱</th><th>篩選條件：包含</th><th>處理狀態填</th></tr></thead>
+<tbody>
+<tr><td>第 1 條</td><td>部門：行政</td><td>行政</td><td>交給行政</td></tr>
+<tr><td>第 2 條</td><td>部門：設計</td><td>設計</td><td>交給設計</td></tr>
+<tr><td>第 3 條</td><td>部門：行銷</td><td>行銷</td><td>交給行銷</td></tr>
+<tr><td>第 4 條</td><td>部門：其他</td><td>其他</td><td>交給其他</td></tr>
+</tbody>
+</table>
+<ul>
+<li>按 Router 右邊的 <strong>＋</strong>，加 Google Sheets 的 <strong>Add a Row</strong>。</li>
+<li>選同一份「(回覆)」試算表、分頁 <strong>處理紀錄</strong>。</li>
+<li>對應欄位：收到時間 ← <strong>時間戳記 (A)</strong>，申請人姓名 ← <strong>申請人姓名 (B)</strong>，需求內容 ← <strong>需求內容 (D)</strong>，處理狀態打表上那一條路的「處理狀態填」。按 <strong>Save</strong>。</li>
+<li>點 Router 和這個模組之間的連線，選 <strong>Set up a filter</strong>（設定篩選）。</li>
+<li>在 <strong>Label</strong>（名稱）打表上的「篩選的名稱」。</li>
+<li>在 <strong>Condition</strong>（條件）的第一個空格，從清單點 AI 模組底下的 <strong>Result</strong>，也就是 AI 的回答。</li>
+<li>中間的比較方式選 <strong>Text operators</strong> 裡的 <strong>Contains</strong>（包含）。</li>
+<li>第二個空格打表上的「篩選條件：包含」那個詞，按 <strong>OK</strong>。</li>
+</ul>
+<figure><img src="圖/5-2-2-完成的流程.jpg" alt="完成的流程：監看新增的列、Google Gemini AI、Router，Router 後面分出四條路，路上分別標著部門：行政、部門：設計、部門：行銷、部門：其他"></figure>
+<p data-kind="看到">做完會看到：Router 後面分出四條路，每條路的連線上標著篩選的名稱，例如「部門：行政」，路的盡頭各有一個 Add a Row。</p>
+</section>
+
+<section data-kind="步驟" data-label="8">
+<h3>取名、存檔、執行一次</h3>
+<ul>
+<li>點左上角的流程名稱，改成 <code>需求單依部門分流（練習）</code>。</li>
+<li>按下方的 <strong>Save</strong>。</li>
+<li>按 <strong>Run once</strong>。</li>
+<li>打開試算表的「處理紀錄」分頁。</li>
+</ul>
+<p data-kind="看到">做完會看到：處理紀錄多了三列。王小美「交給行政」、陳志明「交給設計」；許文傑那張，大概也會是「交給行政」。王小美在 5-1-2 已經記過一筆「已收到」，這是新流程替她記的第二筆。</p>
+</section>
+
+<p data-kind="段">換了 AI，要用同幾張單再驗一次</p>
+<p>許文傑的筆電當機，不是行政負責的事，為什麼會被判成行政？講師用同一段指示測過：在 AI 對話工具裡，這張單判成「其他」；放進 Make，換成 Gemini 來判，卻判成「行政」。推測是部門表寫了「行政：設備借用」，Gemini 把筆電也當成了設備。</p>
+<p>這就是上一篇沒辦法替你測到的地方：你在對話工具裡用的 AI，和 Make 裡用的 Gemini，不一定是同一個。同一段指示交給不同的 AI，讀法可能不一樣。所以在對話工具裡試穩只是第一關；放進流程以後，還要用同幾張單再驗一次，判錯的就回頭補規則。</p>
+
+<section data-kind="步驟" data-label="9">
+<h3>補一句規則</h3>
+<ul>
+<li>點 AI 模組，打開設定。</li>
+<li>在文字框裡找到「其他：」那一行，改成：<code>其他：判斷不出部門、一張單裡有好幾件事，或不屬於以上任何部門的事（例如電腦、網路故障）</code></li>
+<li>按 <strong>Save</strong>，再按下方的 <strong>Save</strong> 存檔。</li>
+<li>打開你在 5-2-1 存指示的文件，把這一行也改成一樣。</li>
+</ul>
+</section>
+
+<section data-kind="步驟" data-label="10">
+<h3>再驗一次</h3>
+<ul>
+<li>打開需求單，再填一次許文傑那張（內容和第 1 步一樣），按 <strong>提交</strong>。</li>
+<li>回到 Make，按 <strong>Run once</strong>。</li>
+<li>打開「處理紀錄」。</li>
+</ul>
+<p>為什麼要再填一次：5-1-2 說過，Make 會記得自己讀到哪一列。前三張這條流程已經讀過，再按 Run once 也不會重讀，所以要送一張新的單，讓流程用改好的指示判斷。</p>
+<p data-kind="看到">做完會看到：處理紀錄最下面多了一列，許文傑「交給其他」。</p>
+</section>
+
+<p>四張單、三個部門加上「其他」，你沒有替任何一張判斷部門。判斷交給了 AI，分路交給了流程，你做的是把指示寫清楚、放進去之後再驗一次：這就是 5-1-1 那張表上的第 2 步。要確認每張單走了哪條路，也可以點畫面下方的 History（執行紀錄），每條路會標出這張單有沒有通過篩選。</p>
+
+<h3>常見問題</h3>
+<details><summary>處理紀錄一列都沒有多</summary><p>可能是 AI 的回答沒有被任何一條路放行。打開執行紀錄，點 AI 模組看它回了什麼；如果回答多了字或和四個詞都不一樣，回到 5-2-1 的指示檢查規則那一行。也可能是金鑰沒有貼對，AI 模組會顯示錯誤，重新複製一次金鑰，再到 Connection 建一次連線。</p></details>
+<details><summary>同一張單在處理紀錄出現兩列，兩個部門</summary><p>AI 的回答裡同時出現兩個部門的名字。回到 5-2-1，用這張單的內容再試一次指示，必要時在規則加一句，讓它只回一個詞。</p></details>
+
+<section data-kind="讀完之後">
+<p>不看講義，試著用自己的話回答：</p>
+<ol>
+<li>Make 為什麼需要 Gemini 金鑰？拿到金鑰要注意什麼？</li>
+<li>Router 和篩選各做什麼？一張判斷成「行銷」的單，走到行政那條路的路口會發生什麼事？</li>
+<li>AI 模組指示最後的「需求內容：」後面，為什麼要放「需求內容 (D)」，而不是貼一張單的內容？</li>
+<li>指示已經在 AI 對話工具裡試穩了，為什麼放進 Make 之後還要再驗一次？</li>
+</ol>
+</section>
+
+<h3>接下來</h3>
+<p>現在每張單都知道該交給誰了，但負責的人還不知道有新的單。5-3 要做第 3 到第 6 步：請 AI 寫摘要、看出缺了什麼資料，再用 Gmail 通知負責的人；資料不夠時，存一封請申請人補件的草稿。</p>
+
+</main>
+<script>
+// 長條：依 data-value 畫相對長度。數字只從定稿讀，模板不寫任何數字。
+document.querySelectorAll('figure[data-kind="長條"]').forEach(function(fig){
+  var items=[].slice.call(fig.querySelectorAll('li[data-value]'));
+  var max=Math.max.apply(null,items.map(function(li){return +li.dataset.value||0}));
+  items.forEach(function(li){var v=+li.dataset.value||0;li.style.setProperty('--w',Math.max(v/max*100,1.5)+'%')});
+});
+// 色票：依 data-value（6 碼色碼，不含 #）上色。
+document.querySelectorAll('span[data-kind="色票"]').forEach(function(s){
+  var v=s.dataset.value||'';if(/^[0-9A-Fa-f]{6}$/.test(v))s.style.setProperty('--sw','#'+v);
+});
+// 互動元件要由各課模板依 data-value 的名稱放入；參考模板只顯示框與說明。
+</script>
+<nav class="pagenav" id="pagenav"></nav>
+<script>
+(function(){
+var P=[["CH5-1-1.html","5-1（第一篇）"],["CH5-1-2.html","5-1（第二篇）"],["CH5-2-1.html","5-2（第一篇）"],["CH5-2-2.html","5-2（第二篇）"]];
+var f=location.pathname.split("/").pop();var i=P.findIndex(function(x){return x[0]===f;});
+var t=document.getElementById("topnav");var a=document.createElement("a");a.href="../index.html";a.textContent="← 返回課程總覽";t.appendChild(a);
+var n=document.getElementById("pagenav");if(i<0)return;
+var l=document.createElement("span"),r=document.createElement("span");
+if(i>0){var p=document.createElement("a");p.href=P[i-1][0];p.textContent="← 上一篇："+P[i-1][1];l.appendChild(p);}
+if(i<P.length-1){var q=document.createElement("a");q.href=P[i+1][0];q.textContent="下一篇："+P[i+1][1]+" →";r.appendChild(q);}
+n.appendChild(l);n.appendChild(r);
+})();
+</script>
+</body>
+</html>

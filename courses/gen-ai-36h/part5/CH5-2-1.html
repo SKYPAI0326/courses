@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>交給流程之前，先用 AI 對話工具把指示試穩</title>
+<!-- 參考模板：示範「內容和畫面分開」。網頁角色可以整份重做，但要保留標題與正文兩個替換位置，以及有 data-正文 屬性的 main。 -->
+<!-- 來源：5-2-1-試穩判斷部門的指示 v2 -->
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--text:#2b2a27;--muted:#6d695f;--line:#dcd7cc;--accent:#8a6a2f;--soft:#f1eadb}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;font-size:17px;line-height:1.9}
+main{max-width:760px;margin:0 auto;padding:40px 20px 80px}
+main p[data-kind="位置"]{color:var(--muted);font-size:14px;letter-spacing:.05em;margin:0}
+main h1{font-size:30px;line-height:1.4;margin:6px 0 24px}
+main h2{font-size:23px;margin:2px 0 4px;line-height:1.5}
+main p[data-kind="眉標"]{color:var(--accent);font-size:14px;font-weight:700;letter-spacing:.08em;margin:56px 0 0}
+main p{margin:0 0 18px}
+main blockquote{margin:22px 0;padding:14px 20px;background:var(--card);border-left:4px solid var(--accent);border-radius:4px}
+main blockquote p{margin:0}
+main blockquote cite{display:block;color:var(--muted);font-size:14px;margin-top:6px;font-style:normal}
+main figure[data-kind="長條"]{margin:22px 0;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px 20px}
+main figure[data-kind="長條"] ol{list-style:none;margin:0;padding:0}
+main figure[data-kind="長條"] li{margin:10px 0;font-size:15px}
+main figure[data-kind="長條"] li::before{content:"";display:block;height:22px;background:var(--accent);border-radius:3px;width:var(--w,0);margin-bottom:4px}
+main figcaption,main p[data-kind="註"]{color:var(--muted);font-size:15px}
+main table{width:100%;border-collapse:collapse;margin:20px 0;background:var(--card);font-size:15.5px;line-height:1.7}
+main th,main td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
+main th{background:var(--soft)}
+main details{margin:18px 0;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 18px}
+main summary{cursor:pointer;font-weight:700;color:var(--accent)}
+main section[data-kind="讀完之後"]{margin-top:56px;padding:22px 24px;background:var(--card);border:1px solid var(--line);border-radius:8px}
+main section[data-kind="讀完之後"] p:last-child{margin-bottom:0}
+main pre[data-kind="複製"]{white-space:pre-wrap;background:#2b2a27;color:#f6f4ef;padding:16px;border-radius:8px;font-size:15px}
+/* 操作型講義的區塊（定稿格式「操作型講義」一節）。編號、色塊都從屬性畫，不往正文加字。 */
+main p[data-kind="導言"]{font-size:19px;line-height:1.85;color:var(--text);margin-bottom:26px}
+main p[data-kind="段"]{margin:52px 0 14px;padding-top:12px;border-top:2px solid var(--line);color:var(--accent);font-size:14px;font-weight:700;letter-spacing:.08em}
+main section[data-kind="步驟"]{position:relative;margin:22px 0;padding:18px 20px 6px 64px;background:var(--card);border:1px solid var(--line);border-radius:8px}
+main section[data-kind="步驟"]::before{content:attr(data-label);position:absolute;left:18px;top:18px;width:32px;height:32px;line-height:32px;text-align:center;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:15px}
+main section[data-kind="步驟"] h3{margin:0 0 10px;font-size:19px;line-height:1.6}
+main figure{margin:16px 0}
+main figure img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px}
+main p[data-kind="看到"]{background:var(--soft);border-left:4px solid var(--accent);padding:8px 14px;border-radius:4px;font-size:15.5px}
+main section[data-kind="重點"]{margin:22px 0;padding:16px 20px 2px;background:var(--soft);border:1px solid var(--line);border-radius:8px}
+main p[data-kind="範例"]{background:var(--card);border:1px dashed var(--line);padding:12px 16px;border-radius:6px;font-size:15.5px}
+main p[data-kind="圖說"]{color:var(--muted);font-size:15px;margin-top:-6px}
+main a[data-kind="按鈕"]{display:inline-block;padding:8px 18px;background:var(--accent);color:#fff;border-radius:6px;text-decoration:none;font-weight:700}
+main code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92em;background:var(--soft);padding:1px 5px;border-radius:3px}
+main code[data-kind="複製"]{border:1px solid var(--line)}
+main span[data-kind="色票"]{display:inline-block;width:1em;height:1em;vertical-align:-.12em;margin-right:4px;border:1px solid var(--line);border-radius:3px;background:var(--sw,transparent)}
+main figure[data-kind="互動"]{padding:14px 18px;background:var(--card);border:2px dashed var(--line);border-radius:8px}
+@media (max-width:560px){body{font-size:16px}main h1{font-size:25px}main table{font-size:14.5px}main th,main td{padding:8px}main section[data-kind="步驟"]{padding:56px 16px 4px}main section[data-kind="步驟"]::before{left:16px;top:14px}}
+.topnav,.pagenav{max-width:760px;margin:0 auto;padding:16px 20px 0;font-size:15px}
+.topnav a,.pagenav a{color:var(--accent);text-decoration:none;font-weight:700}
+.pagenav{display:flex;justify-content:space-between;gap:12px;padding:0 20px 48px}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.45rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.75rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='gen36_auth',H='2eeb336fddc0ac7aa5ce7ff9aa2b3a51db0f7ad83fd07d4e7d877dfc1d2b9089';if(localStorage.getItem(K)==='1')sessionStorage.setItem(K,'1');if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<nav class="topnav" id="topnav"></nav>
+<main id="main" data-正文>
+<p data-kind="位置">生成式 AI 工作應用班｜Part 5 用 AI 整理訊息，交給 Make 自動處理｜5-2（第一篇）</p>
+<h1>交給流程之前，先用 AI 對話工具把指示試穩</h1>
+<p data-kind="導言">5-1 做完，禾光每收到一張需求單，處理紀錄就會記一筆「已收到」。可是還沒有人知道這張單該交給行政、設計還是行銷。這是 5-1-1 拆出來的第 2 步：要讀懂需求內容才判斷得了，寫不成「只要……就……」，所以交給 AI。</p>
+<p>5-2 分成兩篇。你現在讀的是第一篇：先在 AI 對話工具裡，把「判斷部門」的指示寫好、試到穩定。下一篇，再把這段指示放進 Make，讓流程每收到一張單就請 AI 判斷一次，並依部門分開走。</p>
+<p><strong>讀完這一篇，你會學會</strong>：寫一段讓 AI 只回固定答案的指示，用一批真實的需求單測試，找出不穩的地方再改，直到它可以交給流程。</p>
+
+<p data-kind="段">為什麼先在 AI 對話工具裡試</p>
+<p>Part 1～4 你和 AI 一來一回時，答案不合用，你當場就看得到，可以追問、可以改。放進流程以後就不一樣了：每來一張單，流程都照同一段指示請 AI 判斷，沒有人在旁邊看。指示有漏洞，同一種錯就會一張接一張地發生，等你發現時，可能已經有好幾張單轉錯部門。</p>
+<p>在 AI 對話工具裡試，改一次、問一次，幾秒鐘就看到結果；在 Make 裡試，每改一次就要跑一次流程，還會用掉點數。所以先在 AI 對話工具裡把指示試穩，再交給流程，這也是一般人建自動化時常見的做法。</p>
+
+<p data-kind="段">給流程用的指示，和平常聊天不一樣</p>
+<p>平常你問 AI：「這張需求單該交給哪個部門？」它會回你一段話。對你來說這樣很好，有結論也有理由。可是流程看不懂一段話：下一篇，Make 要拿 AI 的回答去選路，它只會比對「回答裡有沒有『行政』這兩個字」。</p>
+<p>實際試一次就看得出差別。拿禾光第 7 張單「尾牙要訂餐廳，也需要一張活動海報」，只問一個 AI 對話工具「這張需求單該交給哪個部門？」，它回了好幾段：建議拆成兩張，訂餐廳交給「行政／總務」，海報交給「設計」，還提醒要先定好餐廳再做海報，最後說它不確定你們實際的部門名稱與分工。</p>
+<p>這段回答對人很有用，對流程卻是麻煩。裡面同時出現「行政」和「設計」，Make 比對時兩條路都會走，同一張單會被交給兩個部門。最後那句「不確定部門分工」也說明了另一件事：AI 不知道禾光有哪些部門、各管什麼，只能照一般公司的分法猜。</p>
+<p>所以給流程用的指示，要多寫清楚四件事：</p>
+<ol>
+<li><strong>答案只能是哪幾個</strong>：行政、設計、行銷、其他，四選一。</li>
+<li><strong>每個答案管什麼</strong>：把各部門負責的範圍寫出來。AI 不知道禾光的行政管不管訂便當，你不寫，它就只能猜。</li>
+<li><strong>判斷不出來時去哪</strong>：給一個「其他」，讓拿不準的單交給人看，不要硬猜一個部門。</li>
+<li><strong>不要多說</strong>：不加標點、不解釋，只回那一個詞。</li>
+</ol>
+<p>這四件事，其實就是 Part 1 學過的「把要求說清楚」，只是這次讀答案的不是你，是流程。</p>
+
+<p data-kind="段">開始動手</p>
+<p>動手前先知道兩件事。</p>
+<ul>
+<li><strong>要用的指示</strong>：下面複製框裡就是一段照四件事寫好的指示。最後一行的「需求內容：」後面，每次換成一張單的內容。</li>
+<li><strong>要測的單</strong>：用禾光的 8 張練習需求單。它們有的一看就知道部門，有的故意寫得模糊，測得出指示穩不穩。</li>
+</ul>
+<pre data-kind="複製">你是禾光教育顧問的需求單分派助理。讀下面這張需求單的需求內容，判斷要交給哪個部門。
+
+部門與負責範圍：
+行政：場地、設備借用、訂餐、文具與用品
+設計：海報、社群圖、簡報版面、印刷檔
+行銷：活動宣傳、官網與電子報、社群貼文企劃
+其他：判斷不出部門，或一張單裡有好幾件事
+
+規則：只回答「行政」「設計」「行銷」「其他」其中一個詞，不要加標點，不要解釋。
+
+需求內容：</pre>
+
+<section data-kind="步驟" data-label="1">
+<h3>用第 1 張單試一次</h3>
+<ul>
+<li>打開你平常用的 AI 對話工具，開一個新對話。</li>
+<li>按上面複製框的「複製」，貼進輸入框。</li>
+<li>在最後一行「需求內容：」後面，接著貼第 1 張單：<code>下週三下午兩點的部門會議要借投影機和兩條延長線，地點在 7 樓會議室。</code></li>
+<li>按送出。</li>
+</ul>
+<p data-kind="看到">做完會看到：AI 大概只會回一個詞「行政」，沒有其他字。</p>
+</section>
+
+<section data-kind="步驟" data-label="2">
+<h3>把其他 7 張單逐一試完</h3>
+<ul>
+<li>每試一張，就開一個新對話，貼上同一段指示，最後換成下一張的需求內容。</li>
+<li>把 AI 的回答記在下表右邊那一欄。</li>
+</ul>
+<table>
+<thead><tr><th>#</th><th>需求內容</th><th>AI 的回答</th></tr></thead>
+<tbody>
+<tr><td>2</td><td>12 月 AI 入門講座需要一張 IG 宣傳圖，尺寸 1080×1080，標題「AI 入門：從聊天到自動化」。</td><td></td></tr>
+<tr><td>3</td><td>想在官網和電子報宣傳新課程，請協助。</td><td></td></tr>
+<tr><td>4</td><td>下個月新課上架，想要一組社群貼文，大概三到四則。</td><td></td></tr>
+<tr><td>5</td><td>幫忙訂下週五中午的便當。</td><td></td></tr>
+<tr><td>6</td><td>我的筆電一直當機，可以找人幫我看一下嗎？</td><td></td></tr>
+<tr><td>7</td><td>尾牙要訂餐廳，也需要一張活動海報。</td><td></td></tr>
+<tr><td>8</td><td>客戶下週來訪，要準備公司簡介簡報，並把封面換成新版 logo。</td><td></td></tr>
+</tbody>
+</table>
+<p>為什麼每張都開新對話：放進流程後，每張單都是單獨送給 AI，AI 不會記得上一張判斷成什麼。在同一個對話裡連續問，AI 可能被前面的答案影響，測出來就不準。</p>
+</section>
+
+<section data-kind="步驟" data-label="3">
+<h3>對照部門表，檢查每一個回答</h3>
+<ul>
+<li>拿每一張的回答，對照指示裡的「部門與負責範圍」。</li>
+<li>如果回答不只一個詞，例如多了說明，或同時出現好幾個部門的名字，記下來：這張單送進流程，可能會走錯路，或同時走進好幾條路。</li>
+<li>如果你覺得某張判錯了，在同一個對話接著問：<code>為什麼判成這個部門？</code></li>
+</ul>
+<p data-kind="看到">做完會看到：你知道 8 張裡哪幾張判得和你想的一樣、哪幾張不一樣，以及 AI 的理由。</p>
+</section>
+
+<section data-kind="步驟" data-label="4">
+<h3>判斷不穩的，改指示再試</h3>
+<ul>
+<li>如果某張判錯，是因為部門範圍沒寫到，就在「部門與負責範圍」補上。例如 AI 不知道社群貼文歸誰，就在那個部門後面加上「社群貼文」。</li>
+<li>如果同一張單換新對話再問一次，答案變了，表示指示不夠明確，就在「規則」加一句，把那種情況講清楚。</li>
+<li>改完之後，把 8 張全部重試一次，不只試改到的那一張。</li>
+</ul>
+<p>為什麼改完要全部重試：補一句規則，可能讓原本對的單變錯。例如你寫「有提到圖就交給設計」，第 4 張社群貼文就可能從行銷變成設計。</p>
+</section>
+
+<section data-kind="步驟" data-label="5">
+<h3>把最後的指示存起來</h3>
+<ul>
+<li>8 張都判得合理、每次都只回一個詞之後，把最後版本的指示複製下來。</li>
+<li>貼到你自己的文件裡存好，檔名例如 <code>判斷部門的指示</code>。</li>
+</ul>
+<p data-kind="看到">做完會看到：你的文件裡有一段試過 8 張單的指示，下一篇要原封不動貼進 Make。</p>
+</section>
+
+<section data-kind="讀完之後">
+<p>不看講義，試著用自己的話回答：</p>
+<ol>
+<li>給流程用的指示，為什麼要限定答案只能是幾個固定的詞？</li>
+<li>為什麼要有「其他」這個選項，而不是讓 AI 一定選一個部門？</li>
+<li>改了指示之後，為什麼要把所有的單重試一次？</li>
+</ol>
+</section>
+
+<h3>接下來</h3>
+<p>5-2 的第二篇，要把你存好的指示放進 Make：先申請一把讓 Make 使用 Gemini 的金鑰，在流程裡加上 Gemini，再讓流程依 AI 的回答分成四條路，每條路在處理紀錄寫下「交給哪個部門」。</p>
+
+</main>
+<script>
+// 長條：依 data-value 畫相對長度。數字只從定稿讀，模板不寫任何數字。
+document.querySelectorAll('figure[data-kind="長條"]').forEach(function(fig){
+  var items=[].slice.call(fig.querySelectorAll('li[data-value]'));
+  var max=Math.max.apply(null,items.map(function(li){return +li.dataset.value||0}));
+  items.forEach(function(li){var v=+li.dataset.value||0;li.style.setProperty('--w',Math.max(v/max*100,1.5)+'%')});
+});
+// 色票：依 data-value（6 碼色碼，不含 #）上色。
+document.querySelectorAll('span[data-kind="色票"]').forEach(function(s){
+  var v=s.dataset.value||'';if(/^[0-9A-Fa-f]{6}$/.test(v))s.style.setProperty('--sw','#'+v);
+});
+// 互動元件要由各課模板依 data-value 的名稱放入；參考模板只顯示框與說明。
+</script>
+<nav class="pagenav" id="pagenav"></nav>
+<script>
+(function(){
+var P=[["CH5-1-1.html","5-1（第一篇）"],["CH5-1-2.html","5-1（第二篇）"],["CH5-2-1.html","5-2（第一篇）"],["CH5-2-2.html","5-2（第二篇）"]];
+var f=location.pathname.split("/").pop();var i=P.findIndex(function(x){return x[0]===f;});
+var t=document.getElementById("topnav");var a=document.createElement("a");a.href="../index.html";a.textContent="← 返回課程總覽";t.appendChild(a);
+var n=document.getElementById("pagenav");if(i<0)return;
+var l=document.createElement("span"),r=document.createElement("span");
+if(i>0){var p=document.createElement("a");p.href=P[i-1][0];p.textContent="← 上一篇："+P[i-1][1];l.appendChild(p);}
+if(i<P.length-1){var q=document.createElement("a");q.href=P[i+1][0];q.textContent="下一篇："+P[i+1][1]+" →";r.appendChild(q);}
+n.appendChild(l);n.appendChild(r);
+})();
+</script>
+</body>
+</html>

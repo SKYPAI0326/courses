@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>讓 Make 接手：多一張需求單，就記一筆處理紀錄</title>
+<!-- 參考模板：示範「內容和畫面分開」。網頁角色可以整份重做，但要保留標題與正文兩個替換位置，以及有 data-正文 屬性的 main。 -->
+<!-- 來源：5-1-2-第一條Make流程 v4 -->
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--text:#2b2a27;--muted:#6d695f;--line:#dcd7cc;--accent:#8a6a2f;--soft:#f1eadb}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;font-size:17px;line-height:1.9}
+main{max-width:760px;margin:0 auto;padding:40px 20px 80px}
+main p[data-kind="位置"]{color:var(--muted);font-size:14px;letter-spacing:.05em;margin:0}
+main h1{font-size:30px;line-height:1.4;margin:6px 0 24px}
+main h2{font-size:23px;margin:2px 0 4px;line-height:1.5}
+main p[data-kind="眉標"]{color:var(--accent);font-size:14px;font-weight:700;letter-spacing:.08em;margin:56px 0 0}
+main p{margin:0 0 18px}
+main blockquote{margin:22px 0;padding:14px 20px;background:var(--card);border-left:4px solid var(--accent);border-radius:4px}
+main blockquote p{margin:0}
+main blockquote cite{display:block;color:var(--muted);font-size:14px;margin-top:6px;font-style:normal}
+main figure[data-kind="長條"]{margin:22px 0;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px 20px}
+main figure[data-kind="長條"] ol{list-style:none;margin:0;padding:0}
+main figure[data-kind="長條"] li{margin:10px 0;font-size:15px}
+main figure[data-kind="長條"] li::before{content:"";display:block;height:22px;background:var(--accent);border-radius:3px;width:var(--w,0);margin-bottom:4px}
+main figcaption,main p[data-kind="註"]{color:var(--muted);font-size:15px}
+main table{width:100%;border-collapse:collapse;margin:20px 0;background:var(--card);font-size:15.5px;line-height:1.7}
+main th,main td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
+main th{background:var(--soft)}
+main details{margin:18px 0;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 18px}
+main summary{cursor:pointer;font-weight:700;color:var(--accent)}
+main section[data-kind="讀完之後"]{margin-top:56px;padding:22px 24px;background:var(--card);border:1px solid var(--line);border-radius:8px}
+main section[data-kind="讀完之後"] p:last-child{margin-bottom:0}
+main pre[data-kind="複製"]{white-space:pre-wrap;background:#2b2a27;color:#f6f4ef;padding:16px;border-radius:8px;font-size:15px}
+/* 操作型講義的區塊（定稿格式「操作型講義」一節）。編號、色塊都從屬性畫，不往正文加字。 */
+main p[data-kind="導言"]{font-size:19px;line-height:1.85;color:var(--text);margin-bottom:26px}
+main p[data-kind="段"]{margin:52px 0 14px;padding-top:12px;border-top:2px solid var(--line);color:var(--accent);font-size:14px;font-weight:700;letter-spacing:.08em}
+main section[data-kind="步驟"]{position:relative;margin:22px 0;padding:18px 20px 6px 64px;background:var(--card);border:1px solid var(--line);border-radius:8px}
+main section[data-kind="步驟"]::before{content:attr(data-label);position:absolute;left:18px;top:18px;width:32px;height:32px;line-height:32px;text-align:center;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:15px}
+main section[data-kind="步驟"] h3{margin:0 0 10px;font-size:19px;line-height:1.6}
+main figure{margin:16px 0}
+main figure img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px}
+main p[data-kind="看到"]{background:var(--soft);border-left:4px solid var(--accent);padding:8px 14px;border-radius:4px;font-size:15.5px}
+main section[data-kind="重點"]{margin:22px 0;padding:16px 20px 2px;background:var(--soft);border:1px solid var(--line);border-radius:8px}
+main p[data-kind="範例"]{background:var(--card);border:1px dashed var(--line);padding:12px 16px;border-radius:6px;font-size:15.5px}
+main p[data-kind="圖說"]{color:var(--muted);font-size:15px;margin-top:-6px}
+main a[data-kind="按鈕"]{display:inline-block;padding:8px 18px;background:var(--accent);color:#fff;border-radius:6px;text-decoration:none;font-weight:700}
+main code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92em;background:var(--soft);padding:1px 5px;border-radius:3px}
+main code[data-kind="複製"]{border:1px solid var(--line)}
+main span[data-kind="色票"]{display:inline-block;width:1em;height:1em;vertical-align:-.12em;margin-right:4px;border:1px solid var(--line);border-radius:3px;background:var(--sw,transparent)}
+main figure[data-kind="互動"]{padding:14px 18px;background:var(--card);border:2px dashed var(--line);border-radius:8px}
+@media (max-width:560px){body{font-size:16px}main h1{font-size:25px}main table{font-size:14.5px}main th,main td{padding:8px}main section[data-kind="步驟"]{padding:56px 16px 4px}main section[data-kind="步驟"]::before{left:16px;top:14px}}
+.topnav,.pagenav{max-width:760px;margin:0 auto;padding:16px 20px 0;font-size:15px}
+.topnav a,.pagenav a{color:var(--accent);text-decoration:none;font-weight:700}
+.pagenav{display:flex;justify-content:space-between;gap:12px;padding:0 20px 48px}
+</style>
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.45rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.75rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='gen36_auth',H='2eeb336fddc0ac7aa5ce7ff9aa2b3a51db0f7ad83fd07d4e7d877dfc1d2b9089';if(localStorage.getItem(K)==='1')sessionStorage.setItem(K,'1');if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<nav class="topnav" id="topnav"></nav>
+<main id="main" data-正文>
+<p data-kind="位置">生成式 AI 工作應用班｜Part 5 用 AI 整理訊息，交給 Make 自動處理｜5-1（第二篇）</p>
+<h1>讓 Make 接手：多一張需求單，就記一筆處理紀錄</h1>
+<p data-kind="導言">上一篇，你替禾光建好了跨部門需求單：同事一送出，試算表就自己多一列。那是 Google 表單內建的流程，它只會做這一件事。需求單接下來還要判斷部門、寫摘要、通知負責的人，這些步驟要靠一個能讓你自己決定「接著做什麼」的工具，也就是 Make。</p>
+<p>這一篇先讓 Make 做最簡單的一步：每收到一張需求單，就在另一個分頁「處理紀錄」記下一筆，寫上誰送的、要什麼、處理到哪了。為什麼要另外記？因為「表單回覆」只是同事填了什麼，「處理紀錄」才是禾光這邊處理到哪裡。後面幾課，判斷好的部門、寄出的通知，都會寫進這裡；負責的人打開它，就知道哪些單已經有人接手。</p>
+<p><strong>讀完這一篇，你會學會</strong>：在 Make 建一條「只要……就……」的流程：選好觸發、選好動作、把欄位對應過去，執行一次並看懂結果；也知道 Make 為什麼不會把同一張單記兩次。</p>
+
+<p data-kind="段">先看需求單的資料放在哪裡</p>
+<p>動手建流程之前，先打開上一篇連到表單的那份試算表，看看王小美那張單變成了什麼樣子。等一下 Make 要讀的，就是這張表。</p>
+<p>Google 表單會照你設的題目，在試算表裡排好欄：每一題變成一欄，題目就是那一欄最上面的表頭；最前面再自動多加一欄「時間戳記」，記下送出的時間。這張表放在一個叫「表單回覆 1」的分頁裡，分頁名稱是 Google 自動取的。每有人送出一張單，下面就多一列。</p>
+<table>
+<thead><tr><th></th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>時間戳記</td><td>申請人姓名</td><td>申請人 Email</td><td>需求內容</td><td>希望完成日期</td></tr>
+<tr><td>2</td><td>（你送出的時間）</td><td>王小美</td><td>xiaomei.wang@example.com</td><td>下週三下午兩點的部門會議要借投影機和兩條延長線，地點在 7 樓會議室。</td><td>（你填的日期）</td></tr>
+</tbody>
+</table>
+<figure><img src="圖/5-1-2-01-表單回覆分頁.jpg" alt="回覆試算表的「表單回覆 1」分頁：第 1 列是時間戳記、申請人姓名、申請人 Email、需求內容，下面每一列是一張需求單"></figure>
+<p data-kind="圖說">講師的練習檔多填了幾張測試單；你的表單回覆只會有王小美那一列。</p>
+<p>最上面的 A、B、C、D、E 是試算表的欄位字母。等一下 Make 讀這張表時，會把第 1 列的表頭當成欄位名稱，後面加上欄位字母，例如「申請人姓名 (B)」；第 2 列以下的每一列，就是 Make 讀進來的一筆資料，也就是一張需求單。所以 Make 裡會出現的那些欄位，不是 Make 自己想出來的，就是你上一篇設的表單題目。</p>
+
+<p data-kind="段">Make 怎麼把「只要……就……」排出來</p>
+<p>上一篇說過，能寫成「只要……就……」的步驟，交給流程。這一篇要做的那一步是：<strong>只要「表單回覆」多一列，就在「處理紀錄」寫一列。</strong></p>
+<p>在 Make 裡，一條流程叫做一個 <strong>scenario</strong>，由幾個<strong>模組</strong>排成一排，每個模組只做一件事。排在最前面的模組叫<strong>觸發</strong>，負責「只要……」：它一直盯著某個地方，有新東西出現就開始；後面的模組是<strong>動作</strong>，負責「就……」。這一篇的流程只有兩個模組：</p>
+<table>
+<thead><tr><th>句子裡的哪一段</th><th>Make 的模組</th><th>它做什麼</th></tr></thead>
+<tbody>
+<tr><td>只要「表單回覆」多一列</td><td>Google Sheets 的 Watch New Rows（監看新增的列）</td><td>盯著「表單回覆 1」這個分頁，有新的一列就把它讀進來</td></tr>
+<tr><td>就在「處理紀錄」寫一列</td><td>Google Sheets 的 Add a Row（新增一列）</td><td>在「處理紀錄」最下面加一列</td></tr>
+</tbody>
+</table>
+<p>兩個模組中間，還要告訴 Make「寫什麼」：處理紀錄的「申請人姓名」要填表單回覆的哪一欄、「需求內容」要填哪一欄。這叫<strong>對應</strong>。就像你平常從一張表抄到另一張表，眼睛看左邊、手寫右邊；對應好之後，Make 每一次都照這樣抄，不會抄錯欄。</p>
+<p>還有一件事要先知道：Make 會記得自己讀到哪一列。第一次執行時，它會問你要從哪裡開始讀；讀過的列，下一次就不會再讀。所以同一張需求單不會被記兩次。這一點你會在最後一步親眼看到。</p>
+
+<p data-kind="段">開始動手</p>
+<p>動手前先知道三件事。</p>
+<ul>
+<li><strong>Make 的畫面是英文</strong>：按鈕第一次出現時，講義會附上中文意思。</li>
+<li><strong>登入</strong>：用你建需求單的那個 Google 帳號登入 Make，第一次登入就會建好免費帳號。</li>
+<li><strong>截圖</strong>：圖裡的試算表、連線名稱是講師的練習檔，和你取的名字可能差幾個字，按鈕和欄位的位置是一樣的。</li>
+<li><strong>點數</strong>：免費方案每月有 1,000 點，流程每跑一次都會用掉一些；這一篇的流程每處理一張單，大約用掉 2 點。練習時都用「Run once」（執行一次）手動跑，流程的自動排程保持關著。</li>
+</ul>
+
+<section data-kind="步驟" data-label="1">
+<h3>在試算表加一個「處理紀錄」分頁</h3>
+<ul>
+<li>打開上一篇連到表單的試算表，就是名稱後面有「(回覆)」的那一份。</li>
+<li>按左下角的 <strong>＋</strong>，新增一個分頁。</li>
+<li>在新分頁的名稱上按右鍵，選「重新命名」，改成 <code>處理紀錄</code>。</li>
+<li>在第 1 列，從 A1 開始依序打：<code>收到時間</code>、<code>申請人姓名</code>、<code>需求內容</code>、<code>處理狀態</code>。</li>
+</ul>
+<p data-kind="看到">做完會看到：下方有兩個分頁「表單回覆 1」和「處理紀錄」，處理紀錄的第 1 列有四個表頭。</p>
+</section>
+
+<section data-kind="步驟" data-label="2">
+<h3>登入 Make</h3>
+<ul>
+<li>在瀏覽器網址列輸入 <code>make.com</code>，按 Enter。</li>
+<li>按 <strong>Sign in</strong>（登入）。</li>
+<li>按 <strong>Continue with Google</strong>（用 Google 繼續），選你的 Google 帳號。</li>
+</ul>
+<figure><img src="圖/5-1-2-02-登入頁.jpg" alt="Make 的登入頁，左邊有 Sign in 按鈕，下方有 Continue with Google"></figure>
+<p data-kind="看到">做完會看到：Make 的首頁，左邊有一排紫色的選單。</p>
+</section>
+
+<section data-kind="步驟" data-label="3">
+<h3>建一條新流程</h3>
+<ul>
+<li>點左邊選單的 <strong>Scenarios</strong>（流程）。</li>
+<li>點右上角紫色的 <strong>Create scenario</strong>（建立流程）。視窗比較窄時，這個按鈕只會顯示一個「＋」。</li>
+</ul>
+<figure><img src="圖/5-1-2-03-選App.jpg" alt="空白流程的畫布，中間是大大的＋，左邊跳出選 App 的視窗，清單裡有 Google Sheets"></figure>
+<p data-kind="看到">做完會看到：一張空白的畫布，中間有一個大大的「＋」，旁邊已經跳出選 App 的視窗。</p>
+</section>
+
+<section data-kind="步驟" data-label="4">
+<h3>加第一個模組：監看新增的列</h3>
+<ul>
+<li>在選 App 的視窗點 <strong>Google Sheets</strong>。清單裡沒看到的話，在上方搜尋框打 <code>Google Sheets</code>。</li>
+<li>在模組清單點 <strong>Watch New Rows</strong>（監看新增的列）。</li>
+</ul>
+<figure><img src="圖/5-1-2-04-GoogleSheets模組.jpg" alt="Google Sheets 的模組清單，第一個是 Watch New Rows"></figure>
+<figure><img src="圖/5-1-2-04-觸發模組.jpg" alt="畫布上一個綠色的 Google Sheets 模組，左下角有小時鐘，下面寫 Watch New Rows"></figure>
+<p data-kind="看到">做完會看到：畫布上出現一個綠色的 Google Sheets 圓形模組，下面寫著 Watch New Rows，左下角有一個小時鐘：這就是觸發。</p>
+</section>
+
+<section data-kind="步驟" data-label="5">
+<h3>讓 Make 連上你的 Google 帳號</h3>
+<ul>
+<li>點一下這個模組，打開它的設定。</li>
+<li>在 <strong>Connection</strong>（連線）那一欄，按 <strong>Create a connection</strong> 或 <strong>Add</strong>（新增連線）。</li>
+<li>把 <strong>Connection name</strong>（連線名稱）改成 <code>Google 連線（練習）</code>。</li>
+<li>按 <strong>Sign in with Google</strong>（用 Google 登入）。</li>
+<li>在跳出的 Google 視窗選你的帳號，按「允許」。</li>
+</ul>
+<figure><img src="圖/5-1-2-05-連線與欄位.jpg" alt="模組設定：Connection 已選好 Google 連線，下面有 Search Method、Drive、Spreadsheet ID 等欄位"></figure>
+<p data-kind="看到">做完會看到：Connection 那一欄顯示「Google 連線（練習）」，下面多出幾個欄位。</p>
+</section>
+
+<section data-kind="步驟" data-label="6">
+<h3>選要監看的試算表和分頁</h3>
+<ul>
+<li>在 <strong>Spreadsheet ID</strong>（試算表）那一欄，按 <strong>Click here to choose file</strong>（點這裡選檔案）。</li>
+<li>從清單點名稱後面有「(回覆)」的那一份試算表。</li>
+<li>在 <strong>Sheet Name</strong>（分頁名稱）選 <strong>表單回覆 1</strong>。</li>
+<li>其他欄位不用動，按右下角的 <strong>Save</strong>（儲存）。</li>
+</ul>
+<figure><img src="圖/5-1-2-06-選分頁.jpg" alt="Spreadsheet ID 已選好回覆試算表，Sheet Name 選了表單回覆 1"></figure>
+<p data-kind="看到">做完會看到：跳出一個「Choose where to start」（選擇從哪裡開始）的小視窗。</p>
+</section>
+
+<section data-kind="步驟" data-label="7">
+<h3>選從哪裡開始讀</h3>
+<ul>
+<li>選 <strong>All</strong>（全部）。</li>
+<li>按 <strong>Save</strong>。</li>
+</ul>
+<p>為什麼選 All：上一篇你已經填了王小美那一張，它現在就在表單回覆裡。選 All，Make 會從第一張開始讀，才讀得到它；如果選了只讀之後的新資料，這張就會被跳過。</p>
+<figure><img src="圖/5-1-2-07-選All.jpg" alt="Choose where to start 小視窗，選了 All"></figure>
+</section>
+
+<section data-kind="步驟" data-label="8">
+<h3>加第二個模組：新增一列</h3>
+<ul>
+<li>把滑鼠移到第一個模組右邊，按冒出來的 <strong>＋</strong>。</li>
+<li>點 <strong>Google Sheets</strong>。</li>
+<li>點 <strong>Add a Row</strong>（新增一列）。</li>
+<li>點一下這個新模組，打開它的設定。</li>
+</ul>
+<figure><img src="圖/5-1-2-08-兩個模組.jpg" alt="畫布上兩個綠色模組：Watch New Rows 和 Add a Row，中間用點點線連起來"></figure>
+<p data-kind="看到">做完會看到：兩個綠色模組之間有一條點點連起來的線；Connection 已經自動帶入「Google 連線（練習）」。</p>
+</section>
+
+<section data-kind="步驟" data-label="9">
+<h3>選要寫進去的分頁</h3>
+<ul>
+<li>在 <strong>Spreadsheet Name</strong>（試算表）按 <strong>Click here to choose file</strong>，選同一份「(回覆)」試算表。</li>
+<li>在 <strong>Sheet Name</strong> 選 <strong>處理紀錄</strong>。</li>
+</ul>
+<figure><img src="圖/5-1-2-09-處理紀錄.jpg" alt="Add a Row 的設定：Spreadsheet Name 是回覆試算表，Sheet Name 是處理紀錄"></figure>
+<p data-kind="看到">做完會看到：設定下方出現 <strong>Values in columns</strong>（各欄的值），列出「收到時間 (A)、申請人姓名 (B)、需求內容 (C)、處理狀態 (D)」，就是你在第 1 步打的表頭。</p>
+</section>
+
+<section data-kind="步驟" data-label="10">
+<h3>把欄位對應過去</h3>
+<p>點一個欄位的空格時，旁邊會跳出一個清單，列出第一個模組從「表單回覆 1」讀到的欄位：時間戳記 (A)、申請人姓名 (B)、申請人 Email (C)、需求內容 (D)、希望完成日期 (E)，就是前面那張表的表頭。點清單裡的項目，就會放進空格。</p>
+<p>要對的是名稱，不是字母。兩張表的欄位順序不一樣：「需求內容」在處理紀錄是 C 欄，在表單回覆是 D 欄，所以處理紀錄的「需求內容 (C)」要放清單裡的「需求內容 (D)」。</p>
+<ul>
+<li>點「收到時間 (A)」的空格，在清單點 <strong>時間戳記 (A)</strong>。</li>
+<li>點「申請人姓名 (B)」的空格，在清單點 <strong>申請人姓名 (B)</strong>。</li>
+<li>點「需求內容 (C)」的空格，在清單點 <strong>需求內容 (D)</strong>。</li>
+<li>點「處理狀態 (D)」的空格，直接打 <code>已收到</code>。</li>
+<li>按 <strong>Save</strong>。</li>
+</ul>
+<figure><img src="圖/5-1-2-10-對應清單.jpg" alt="點了收到時間的空格後，左邊跳出清單：時間戳記 (A)、申請人姓名 (B)、申請人 Email (C)、需求內容 (D)、希望完成日期 (E)"></figure>
+<figure><img src="圖/5-1-2-10-四個欄位.jpg" alt="Values in columns 下有收到時間、申請人姓名、需求內容、處理狀態四欄，收到時間已放入「1. 時間戳記 (A)」"></figure>
+<p data-kind="看到">做完會看到：前三個空格裡各有一個綠色小標籤，例如「1. 時間戳記 (A)」，前面的 1 表示它來自第一個模組；處理狀態裡是你打的「已收到」。</p>
+</section>
+
+<section data-kind="步驟" data-label="11">
+<h3>幫流程取名字、存檔</h3>
+<ul>
+<li>點畫面左上角的流程名稱（一開始是「New scenario」或「Integration Google Sheets」）。</li>
+<li>改成 <code>需求單自動記錄（練習）</code>，按 Enter。</li>
+<li>按畫面下方工具列的 <strong>Save</strong>。</li>
+</ul>
+<p data-kind="看到">做完會看到：畫面跳出「The scenario was saved.」（流程已儲存）。</p>
+</section>
+
+<section data-kind="步驟" data-label="12">
+<h3>執行一次</h3>
+<ul>
+<li>按畫面左下角的 <strong>Run once</strong>（執行一次）。</li>
+<li>回到試算表，打開「處理紀錄」分頁。</li>
+</ul>
+<p data-kind="看到">做完會看到：Make 畫面上兩個模組都出現綠色勾和一個小圓圈「1」，表示各處理了一筆；處理紀錄的第 2 列寫著王小美那張單的時間、「王小美」、她的需求內容和「已收到」。</p>
+</section>
+
+<section data-kind="步驟" data-label="13">
+<h3>再執行一次，看它會不會重複記</h3>
+<ul>
+<li>回到 Make，再按一次 <strong>Run once</strong>。</li>
+<li>再看一次「處理紀錄」。</li>
+</ul>
+<p data-kind="看到">做完會看到：第一個模組照樣跑了，第二個模組沒有動；處理紀錄還是只有王小美那一列。</p>
+</section>
+
+<p>第 13 步就是前面說的「Make 記得自己讀到哪一列」：王小美那一列上次已經讀過，這次沒有新的列，所以後面的動作不會做。等有人再送出一張需求單，下一次執行時，處理紀錄才會多一列。</p>
+<p>到這裡，每收到一張需求單，就有一條你自己建的流程接手，替禾光記下處理進度。現在它還是你按一次才跑一次。畫面右上角寫著「Every 15 minutes」（每 15 分鐘）和「Inactive」（未啟用）：把開關打開，Make 就會每 15 分鐘自己檢查一次，這是免費方案最短的間隔。練習階段先讓它關著，免得點數在你沒注意時一直用掉。</p>
+
+<h3>常見問題</h3>
+<details><summary>處理紀錄一次多了好幾列</summary><p>如果你在上一篇多填過幾張需求單，Make 第一次執行時會把它們一起讀進來，處理紀錄就會一次多好幾列，這是正常的。之後沒有新的單，再執行也不會再多。</p></details>
+<details><summary>按了 Run once，處理紀錄沒有多一列</summary><p>多半是第 7 步沒有選 All。在第一個模組上按右鍵，選「Choose where to start」，改選 All 再存檔，然後重新執行一次。</p></details>
+<details><summary>第 10 步點了空格，旁邊的清單沒有「時間戳記」這些欄位</summary><p>第一個模組選錯分頁了。點第一個模組，確認 Sheet Name 是「表單回覆 1」，不是「處理紀錄」。</p></details>
+<details><summary>第 9 步沒有出現「收到時間、申請人姓名……」這些欄位</summary><p>處理紀錄的第 1 列可能還沒打表頭，或 Sheet Name 選錯。回到第 1 步確認表頭，再到第二個模組的設定裡按 Values in columns 上方的 <strong>Refresh</strong>（重新整理）。</p></details>
+
+<section data-kind="讀完之後">
+<p>不看講義，試著用自己的話回答：</p>
+<ol>
+<li>這一篇的流程，哪一個模組是「只要……」，哪一個是「就……」？</li>
+<li>「對應」是在做什麼？如果把「需求內容」對應到了「申請人 Email」，處理紀錄會變成什麼樣子？</li>
+<li>第二次按 Run once，為什麼處理紀錄沒有多一列？</li>
+</ol>
+</section>
+
+<h3>接下來</h3>
+<p>處理紀錄裡現在只寫著「已收到」，還沒有人知道這張單該交給行政、設計還是行銷。5-2 要做第 2 步：先在 AI 對話工具裡把「判斷部門」的指示試到穩定，再放進這條流程，讓 Make 每收到一張單，就請 AI 判斷一次。放進流程的那一篇，會帶你申請一把讓 Make 使用 Gemini 的金鑰。</p>
+
+</main>
+<script>
+// 長條：依 data-value 畫相對長度。數字只從定稿讀，模板不寫任何數字。
+document.querySelectorAll('figure[data-kind="長條"]').forEach(function(fig){
+  var items=[].slice.call(fig.querySelectorAll('li[data-value]'));
+  var max=Math.max.apply(null,items.map(function(li){return +li.dataset.value||0}));
+  items.forEach(function(li){var v=+li.dataset.value||0;li.style.setProperty('--w',Math.max(v/max*100,1.5)+'%')});
+});
+// 色票：依 data-value（6 碼色碼，不含 #）上色。
+document.querySelectorAll('span[data-kind="色票"]').forEach(function(s){
+  var v=s.dataset.value||'';if(/^[0-9A-Fa-f]{6}$/.test(v))s.style.setProperty('--sw','#'+v);
+});
+// 互動元件要由各課模板依 data-value 的名稱放入；參考模板只顯示框與說明。
+</script>
+<nav class="pagenav" id="pagenav"></nav>
+<script>
+(function(){
+var P=[["CH5-1-1.html","5-1（第一篇）"],["CH5-1-2.html","5-1（第二篇）"],["CH5-2-1.html","5-2（第一篇）"],["CH5-2-2.html","5-2（第二篇）"]];
+var f=location.pathname.split("/").pop();var i=P.findIndex(function(x){return x[0]===f;});
+var t=document.getElementById("topnav");var a=document.createElement("a");a.href="../index.html";a.textContent="← 返回課程總覽";t.appendChild(a);
+var n=document.getElementById("pagenav");if(i<0)return;
+var l=document.createElement("span"),r=document.createElement("span");
+if(i>0){var p=document.createElement("a");p.href=P[i-1][0];p.textContent="← 上一篇："+P[i-1][1];l.appendChild(p);}
+if(i<P.length-1){var q=document.createElement("a");q.href=P[i+1][0];q.textContent="下一篇："+P[i+1][1]+" →";r.appendChild(q);}
+n.appendChild(l);n.appendChild(r);
+})();
+</script>
+</body>
+</html>
