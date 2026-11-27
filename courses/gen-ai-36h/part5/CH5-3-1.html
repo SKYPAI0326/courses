@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>讓 AI 寫摘要、找出缺的資料：先在 AI 對話工具把指示試穩</title>
+<!-- gen-ai-36h 共學頁模板：外觀比照本課既有頁面（頂欄、進度條、上下篇卡片、頁尾、coldtone 配色）。正文只放在 main，模板不寫內容。 -->
+<!-- 來源：5-3-1-試穩摘要與缺的資料的指示 v1 -->
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--c-bg:#f7fafc;--c-surface:#eef3f9;--c-card:#fcfdfe;--c-border:#dee7ef;--c-border-soft:#e9eff5;--c-text:#344552;--c-muted:#586c80;--c-faint:#91a0ae;--c-head:#294f63;--c-title:#234b60;--c-main:#167d8d;--c-main-dark:#116775;--c-tint:#e7f5f4;--c-tint2:#f0f7f8;--c-tint-line:#d3e7e8;--c-bar:#46a2a9;--c-code:#203440;--radius:8px;--radius-sm:6px;--page-w:820px}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:'Noto Sans TC',"PingFang TC","Microsoft JhengHei",sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;word-break:break-word;overflow-wrap:break-word;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+a{color:#126f80;text-decoration-thickness:1px;text-underline-offset:.18em}
+a:hover{color:#0e5c69}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+
+/* 頂欄與閱讀進度：比照本課既有頁面 */
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(247,250,252,.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-title);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:#126775;border:1px solid rgba(22,125,141,.28);background:var(--c-tint);padding:3px 12px;border-radius:99px;font-weight:500;white-space:nowrap}
+.topbar-tag:empty{display:none}
+.progress-strip{height:2px;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);width:0;opacity:.75;transition:width .1s}
+.page-head{max-width:var(--page-w);margin:0 auto;padding:48px 32px 0}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--c-muted);text-decoration:none}
+.back-link:hover{color:var(--c-main)}
+
+/* 正文 */
+main{max-width:var(--page-w);margin:0 auto;padding:24px 32px 64px}
+main p{margin:0 0 1.1em;font-size:1rem;line-height:2}
+main strong{font-weight:700}
+main p[data-kind="位置"]{color:var(--c-muted);font-size:.76rem;letter-spacing:.08em;font-weight:500;line-height:1.7;margin:0 0 14px}
+main h1{font-family:'Shippori Mincho',serif;font-size:2.15rem;line-height:1.4;font-weight:700;color:var(--c-title);margin:0 0 24px}
+main h2{font-family:'Shippori Mincho',serif;font-size:1.5rem;line-height:1.5;color:var(--c-head);margin:40px 0 16px}
+main p[data-kind="眉標"]{color:var(--c-main);font-size:.78rem;font-weight:700;letter-spacing:.08em;margin:56px 0 4px}
+main p[data-kind="導言"]{font-size:1.04rem;line-height:2;margin-bottom:1.2em}
+main p[data-kind="段"]{position:relative;margin:64px 0 20px;padding:28px 0 0 16px;border-top:1px solid var(--c-border);font-family:'Shippori Mincho',serif;font-size:1.45rem;line-height:1.5;font-weight:700;color:var(--c-head)}
+main p[data-kind="段"]::before{content:"";position:absolute;left:0;top:34px;width:3px;height:1.1em;background:var(--c-bar);border-radius:0 3px 3px 0}
+main ul,main ol{margin:14px 0 18px;padding-left:1.6em;line-height:1.9}
+main li{margin:6px 0}
+main li::marker{color:var(--c-main);font-weight:700}
+main blockquote{margin:22px 0;padding:14px 20px;background:var(--c-card);border-left:3px solid var(--c-bar);border-radius:var(--radius)}
+main blockquote p{margin:0}
+main blockquote cite{display:block;color:var(--c-muted);font-size:.88rem;margin-top:6px;font-style:normal}
+main table{display:block;max-width:100%;overflow-x:auto;border-collapse:collapse;margin:22px 0;background:var(--c-card);font-size:.92rem;line-height:1.7;border-radius:var(--radius)}
+main th,main td{border:1px solid var(--c-border);padding:11px 13px;text-align:left;vertical-align:top;overflow-wrap:anywhere;min-width:5em}
+main th{background:var(--c-surface);color:var(--c-head);font-weight:700}
+main figure{margin:18px 0}
+main figure img{display:block;max-width:100%;height:auto;border:1px solid var(--c-border);border-radius:var(--radius)}
+main figcaption,main p[data-kind="註"],main p[data-kind="圖說"]{color:var(--c-muted);font-size:.88rem;line-height:1.8}
+main p[data-kind="圖說"]{margin-top:-6px}
+main details{margin:16px 0;background:var(--c-tint2);border:1px solid var(--c-tint-line);border-radius:var(--radius);overflow:hidden}
+main summary{cursor:pointer;padding:12px 18px;font-weight:700;color:#126775;list-style:none}
+main summary::-webkit-details-marker{display:none}
+main summary::before{content:"▸";display:inline-block;width:1.1em;color:var(--c-main);transition:transform .2s}
+main details[open] summary::before{transform:rotate(90deg)}
+main details>*:not(summary){margin-left:18px;margin-right:18px}
+main details>*:last-child{margin-bottom:16px}
+main details[open]{background:var(--c-card)}
+
+/* 操作型講義的區塊：編號、色塊都從屬性畫，不往正文加字 */
+main section[data-kind="步驟"]{position:relative;margin:20px 0;padding:24px 28px 8px 76px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+main section[data-kind="步驟"]::before{content:attr(data-label);position:absolute;left:24px;top:24px;width:34px;height:34px;line-height:34px;text-align:center;border-radius:50%;background:var(--c-main);color:#fff;font-weight:700;font-size:.95rem;font-variant-numeric:tabular-nums}
+main section[data-kind="步驟"] h3{font-family:'Shippori Mincho',serif;margin:2px 0 12px;font-size:1.15rem;line-height:1.6;color:var(--c-head)}
+main p[data-kind="看到"]{background:#eef7f7;border:1px solid #cae2e3;border-left:3px solid var(--c-bar);padding:10px 16px;border-radius:var(--radius);font-size:.95rem;line-height:1.85}
+main section[data-kind="重點"]{margin:22px 0;padding:18px 22px 4px;background:var(--c-tint2);border:1px solid var(--c-tint-line);border-radius:var(--radius)}
+main p[data-kind="範例"]{background:var(--c-surface);border:1px dashed #cfdce7;padding:12px 16px;border-radius:var(--radius);font-size:.95rem;line-height:1.85}
+main section[data-kind="讀完之後"]{margin-top:64px;padding:26px 30px 10px;background:var(--c-tint2);border:1px solid var(--c-tint-line);border-radius:var(--radius)}
+main pre[data-kind="複製"]{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--c-code);color:#edf4f7;padding:20px 24px;border-radius:var(--radius);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88rem;line-height:1.8;margin:0}
+.full-prompt-wrap{position:relative;margin:16px 0}
+.full-prompt-wrap pre[data-kind="複製"]{padding-top:44px}
+.copy-btn-tl{position:absolute;top:10px;right:10px;padding:5px 12px;background:var(--c-main);color:#fff;border:none;border-radius:var(--radius-sm);font-size:.75rem;font-family:inherit;cursor:pointer;font-weight:500;z-index:2;transition:background .2s}
+.copy-btn-tl:hover{background:var(--c-main-dark)}
+.copy-btn-tl.copied{background:#42766f}
+main a[data-kind="按鈕"]{display:inline-block;padding:9px 20px;background:var(--c-main);color:#fff;border-radius:var(--radius-sm);text-decoration:none;font-weight:700}
+main a[data-kind="按鈕"]:hover{background:var(--c-main-dark);color:#fff}
+main code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em;background:var(--c-surface);padding:1px 6px;border-radius:3px}
+main pre code{background:none;padding:0}
+main code[data-kind="複製"]{border:1px solid var(--c-border)}
+main span[data-kind="色票"]{display:inline-block;width:1em;height:1em;vertical-align:-.12em;margin-right:4px;border:1px solid var(--c-border);border-radius:3px;background:var(--sw,transparent)}
+main figure[data-kind="長條"]{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px}
+main figure[data-kind="長條"] ol{list-style:none;margin:0;padding:0}
+main figure[data-kind="長條"] li{margin:10px 0;font-size:.92rem}
+main figure[data-kind="長條"] li::before{content:"";display:block;height:22px;background:var(--c-main);border-radius:3px;width:var(--w,0);margin-bottom:4px}
+main figure[data-kind="互動"]{padding:14px 18px;background:var(--c-card);border:2px dashed var(--c-border);border-radius:var(--radius)}
+
+/* 上一篇／下一篇與頁尾：比照本課既有頁面 */
+.lesson-nav{max-width:var(--page-w);margin:0 auto;padding:0 32px 64px;display:flex;gap:14px}
+.lesson-nav:empty{display:none}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.9rem;transition:border-color .2s;flex:1;min-width:0}
+.nav-btn:hover{border-color:var(--c-main);color:var(--c-text)}
+.nav-btn.next{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.72rem;color:var(--c-muted);margin-bottom:2px}
+.nav-btn-title{font-weight:500}
+.nav-gap{flex:1}
+.footer{border-top:1px solid var(--c-border);background:#f2f6f9;padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.toast{position:fixed;bottom:28px;right:28px;background:var(--c-text);color:#fff;padding:10px 18px;border-radius:var(--radius-sm);font-size:.8rem;font-weight:500;transform:translateY(60px);opacity:0;transition:all .35s cubic-bezier(.34,1.56,.64,1);z-index:999;pointer-events:none}
+.toast.show{transform:none;opacity:1}
+
+@media(max-width:1024px){.topbar{padding:0 32px}}
+@media(max-width:768px){
+.topbar{padding:0 16px;gap:8px}.topbar-sub,.topbar-divider{display:none}
+.page-head{padding:32px 20px 0}
+main{padding:20px 20px 48px}
+main h1{font-size:1.65rem}
+main p{font-size:.96rem;line-height:1.9}
+main p[data-kind="段"]{font-size:1.25rem;margin-top:52px;padding-top:24px}
+main p[data-kind="段"]::before{top:29px}
+main section[data-kind="步驟"]{padding:62px 18px 6px}
+main section[data-kind="步驟"]::before{left:18px;top:18px}
+main section[data-kind="讀完之後"]{padding:22px 20px 6px}
+main th,main td{padding:8px}
+main pre[data-kind="複製"]{padding:44px 14px 14px}
+.lesson-nav{padding:0 20px 48px;flex-direction:column}.nav-btn{flex:none}.nav-gap{display:none}
+.footer{padding:20px;flex-wrap:wrap;gap:8px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+@media print{.topbar,.progress-strip,.lesson-nav,.copy-btn-tl,.toast,.back-link{display:none!important}body{background:#fff}main section[data-kind="步驟"]{break-inside:avoid}}
+</style>
+<link href="../assets/coldtone-reading.css" rel="stylesheet">
+</head>
+<body>
+<style id="_gs">
+#_gate{position:fixed;inset:0;z-index:9999;background:#f5f3ee;display:flex;align-items:center;justify-content:center;font-family:'Noto Sans TC',sans-serif}
+#_gate-box{width:100%;max-width:340px;padding:48px 36px;background:#fff;border:1px solid #d8d4cb;border-radius:6px;text-align:center}
+#_gate-title{font-family:'Noto Serif TC',serif;font-size:1.45rem;font-weight:700;color:#2c2b28;margin-bottom:8px}
+#_gate-sub{font-size:.8rem;color:#8c8880;margin-bottom:28px;line-height:1.7}
+#_gate-input{width:100%;padding:10px 14px;border:1px solid #d8d4cb;border-radius:6px;font-size:.95rem;font-family:inherit;background:#f5f3ee;color:#2c2b28;outline:none;text-align:center;letter-spacing:.15em;box-sizing:border-box}
+#_gate-input:focus{border-color:#6b7fa3;background:#fff}
+#_gate-btn{margin-top:12px;width:100%;padding:11px;background:#6b7fa3;color:#fff;border:none;border-radius:6px;font-size:.85rem;font-family:inherit;cursor:pointer;transition:background .2s}
+#_gate-btn:hover{background:#5c6f91}
+#_gate-err{font-size:.75rem;color:#b5703a;margin-top:10px;min-height:16px}
+</style>
+<div id="_gate">
+  <div id="_gate-box">
+    <div id="_gate-title">弄一下工作室</div>
+    <div id="_gate-sub">課程專屬講義<br>請輸入課程密碼</div>
+    <input id="_gate-input" type="password" placeholder="••••••••" autocomplete="off">
+    <button id="_gate-btn" onclick="_gc()">進入課程</button>
+    <div id="_gate-err"></div>
+  </div>
+</div>
+<script>
+(function(){const K='gen36_auth',H='2eeb336fddc0ac7aa5ce7ff9aa2b3a51db0f7ad83fd07d4e7d877dfc1d2b9089';if(localStorage.getItem(K)==='1')sessionStorage.setItem(K,'1');if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
+
+<a href="#main" class="skip-link">跳至主要內容</a>
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">生成式 AI 工作應用班（36h）</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag" id="navtag"></div>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+<div class="page-head"><a class="back-link" href="../index.html"><span aria-hidden="true">←</span> 返回課程總覽</a></div>
+<main id="main" data-正文>
+<p data-kind="位置">生成式 AI 工作應用班｜Part 5 用 AI 整理訊息，交給 Make 自動處理｜5-3（第一篇）</p>
+<h1>讓 AI 寫摘要、找出缺的資料：先在 AI 對話工具把指示試穩</h1>
+<p data-kind="導言">5-2 做完，每張需求單都知道該交給哪個部門。可是負責的人還不知道有新的單；就算知道了，周子涵打開李宜蓁那張「幫忙訂下週五中午的便當」，還是得回頭問：幾個人？預算多少？有沒有人吃素？這是 5-1-1 拆出來的第 3、4 步：寫一段摘要給負責的人、看出缺了什麼資料。兩件事都要讀懂需求內容，所以交給 AI。</p>
+<p>5-3 分成三篇。你現在讀的是第一篇：先在 AI 對話工具裡，把「摘要與缺的資料」的指示寫好、試到穩定。第二篇把這段指示放進 Make，讓四條路各寄一封 Gmail 通知負責的人；第三篇讓缺資料的單，由 AI 寫一封請申請人補資料的信，存成草稿，等人看過再寄。</p>
+<p><strong>讀完這一篇，你會學會</strong>：寫一段讓 AI 照固定格式回答、照你給的標準判斷的指示，並用同一批需求單測出 AI 自己加標準的地方。</p>
+
+<p data-kind="段">這次的回答，人要讀，流程也要讀</p>
+<p>5-2 的回答只有一個詞，Make 拿它比對、選路，讀它的只有流程。這次不一樣，AI 的回答有兩種讀者。</p>
+<p>摘要是給人讀的：周子涵收到通知，看一句話就知道誰要什麼、什麼時候要，不用打開整張單。缺的資料是人和流程都要讀的：負責的人要知道該問申請人什麼；流程要知道這張單到底缺不缺，第三篇才能決定要不要存一封補件信。</p>
+<p>所以這次的指示要 AI 照固定的兩行回答：</p>
+<pre>摘要：李宜蓁要訂下週五中午的便當，沒有寫希望完成日期。
+缺的資料：人數、預算、葷素</pre>
+<p>不缺的單，第二行就只寫「缺的資料：無」。流程不用讀懂整段回答，只要看裡面有沒有「缺的資料：無」這幾個字：有，就是不缺；沒有，就是缺了什麼。這和 5-2 讓 AI 只回一個詞是同一個道理：流程只會比對固定的字，所以要比對的那幾個字，每次都要一字不差。</p>
+
+<p data-kind="段">什麼叫「缺」，要由禾光來定</p>
+<p>你報過帳就知道：會計退件時，不會憑感覺說「這張好像少了什麼」，而是對照公司的規定，少了發票、少了主管簽名，才退回來。哪些東西一定要有，是公司先訂好的；會計做的是拿每一張單去對照。</p>
+<p>找缺的資料也一樣。指示裡如果只寫「列出一定得先問申請人的資料」，AI 就只能用自己的標準去想。它列出來的東西，單看都有道理：</p>
+<ul>
+<li>許文傑的「筆電一直當機」，會被列出筆電型號、所在位置、當機的狀況。</li>
+<li>鄭家豪的「公司簡介簡報，封面換成新版 logo」，會被列出現有簡報檔、新版 logo 檔案。</li>
+<li>蔡宛如的「尾牙訂餐廳，也要一張海報」，可能一口氣列出六項。</li>
+</ul>
+<p>可是許文傑那張根本不歸任何部門管，用不著先問型號；換一次對話、換一個 AI，列出來的又會不一樣。流程照這樣跑，本來什麼都不缺的許文傑也會收到一封補件信，其他人的補件信裡，則會出現負責的人根本用不著的問題，申請人收到也不知道為什麼要補這些。</p>
+<p>所以標準要寫進指示：每一類需求，列出負責的人一定要有的資料。什麼算「一定要有」？沒有它，負責的人就沒辦法開始做。例如訂便當不知道人數，就訂不下去；海報要用什麼顏色、筆電是哪個型號，接手之後再問也來得及。這和 5-2-1 把各部門負責範圍寫進去是同一件事，AI 不知道禾光的規定，你不寫，它就只能猜。寫進去之後，AI 做的就是會計的工作：讀一段需求內容，對照清單，找出清單上沒寫到的項目。</p>
+<p>分類還要說清楚一件事：一張單兩類都沾得上時，歸哪一類。陳志明的「IG 宣傳圖」是要做一張圖，也是拿來宣傳。如果 AI 把它歸成「宣傳」，就會回頭問日期、想給誰看；可是做圖的黃柏翰要的是尺寸和圖上的字，這兩樣他都寫了。所以規則要寫明：要做圖或簡報的單，一律用「做圖或簡報」那一類。</p>
+
+<p data-kind="段">開始動手</p>
+<p>動手前先知道兩件事。</p>
+<ul>
+<li><strong>要用的指示</strong>：下面複製框裡是一段寫好的指示，包含兩行的回答格式、四類需求一定要有的資料，和幾條規則。最後三行的「申請人：」「需求內容：」「希望完成日期：」後面，每次換成一張單的內容。</li>
+<li><strong>要測的單</strong>：用 5-2-1 那 8 張練習需求單，這次連申請人和希望完成日期一起貼。第 3、5 張沒有寫希望完成日期，那一行就空著。</li>
+</ul>
+<pre data-kind="複製">你是禾光教育顧問的需求單助理。讀下面這張需求單，寫給負責同仁看的通知內容。
+
+照下面的格式輸出兩行，不要多寫其他字：
+摘要：用一句話說清楚申請人要什麼、什麼時候要。
+缺的資料：對照下面的「每類需求一定要有的資料」，列出需求單裡沒寫到的項目，用頓號分開；都有寫到，或不屬於下面任何一類，就只寫「無」。
+
+每類需求一定要有的資料：
+借場地或設備：使用的日期時間、地點、要借的東西
+訂餐：用餐日期、人數、預算、葷素
+做圖或簡報（海報、社群圖、簡報）：用途、尺寸或頁數、上面要放的文字
+宣傳或貼文企劃（不用做圖）：課程或活動名稱、課程或活動日期、想給誰看
+
+規則：
+- 只列上面清單裡的項目，不要自己加其他問題。
+- 一張單要做圖或簡報，就用「做圖或簡報」那一類，即使圖是拿來宣傳的。
+- 只根據需求單的內容，不要自己補日期、數量，也不要答應任何事。
+- 希望完成日期是申請人希望做完的期限，不能當成使用、用餐或活動的日期；希望完成日期空白，也不算缺的資料。
+- 用繁體中文（台灣）。
+
+申請人：
+需求內容：
+希望完成日期：</pre>
+
+<section data-kind="步驟" data-label="1">
+<h3>用第 5 張單試一次</h3>
+<ul>
+<li>打開你平常用的 AI 對話工具，開一個新對話。</li>
+<li>按上面複製框的「複製」，貼進輸入框。</li>
+<li>在「申請人：」後面打 <code>李宜蓁</code>。</li>
+<li>在「需求內容：」後面貼 <code>幫忙訂下週五中午的便當。</code></li>
+<li>「希望完成日期：」後面保持空白。</li>
+<li>按送出。</li>
+</ul>
+<p data-kind="看到">做完會看到：AI 回了兩行。第一行以「摘要：」開頭；第二行大概是「缺的資料：人數、預算、葷素」。用餐日期不在裡面，因為需求內容已經寫了「下週五中午」。</p>
+</section>
+
+<section data-kind="步驟" data-label="2">
+<h3>把其他 7 張單逐一試完</h3>
+<ul>
+<li>每試一張，就開一個新對話，貼上同一段指示，最後三行換成下一張單的內容。</li>
+<li>把 AI 回的「缺的資料」那一行，記在下表右邊那一欄。</li>
+</ul>
+<table>
+<thead><tr><th>#</th><th>申請人</th><th>需求內容</th><th>希望完成日期</th><th>AI 回的缺的資料</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>王小美</td><td>下週三下午兩點的部門會議要借投影機和兩條延長線，地點在 7 樓會議室。</td><td>2026-12-02</td><td></td></tr>
+<tr><td>2</td><td>陳志明</td><td>12 月 AI 入門講座需要一張 IG 宣傳圖，尺寸 1080×1080，標題「AI 入門：從聊天到自動化」。</td><td>2026-12-05</td><td></td></tr>
+<tr><td>3</td><td>林佳穎</td><td>想在官網和電子報宣傳新課程，請協助。</td><td>（空白）</td><td></td></tr>
+<tr><td>4</td><td>張書豪</td><td>下個月新課上架，想要一組社群貼文，大概三到四則。</td><td>2026-12-15</td><td></td></tr>
+<tr><td>6</td><td>許文傑</td><td>我的筆電一直當機，可以找人幫我看一下嗎？</td><td>2026-11-30</td><td></td></tr>
+<tr><td>7</td><td>蔡宛如</td><td>尾牙要訂餐廳，也需要一張活動海報。</td><td>2026-12-20</td><td></td></tr>
+<tr><td>8</td><td>鄭家豪</td><td>客戶下週來訪，要準備公司簡介簡報，並把封面換成新版 logo。</td><td>2026-12-03</td><td></td></tr>
+</tbody>
+</table>
+</section>
+
+<section data-kind="步驟" data-label="3">
+<h3>檢查每一個回答</h3>
+<ul>
+<li>看格式：每個回答都只有兩行，開頭是「摘要：」和「缺的資料：」。</li>
+<li>看不缺的單：如果覺得某張單什麼都不缺，它的第二行要一字不差是「缺的資料：無」。</li>
+<li>看缺的項目：每一項都要找得到在指示的清單裡。</li>
+<li>如果某一項你不同意，在同一個對話接著問：<code>為什麼這張單缺這一項？</code></li>
+</ul>
+<p>為什麼「無」要一字不差：第三篇的流程只會看回答裡有沒有「缺的資料：無」。AI 如果寫成「缺的資料：沒有」或「缺的資料：無缺漏」，流程就會以為這張單缺了東西，替一張完整的單存一封補件信。</p>
+<p data-kind="看到">做完會看到：你知道 8 張裡哪幾張不缺、哪幾張缺了什麼，以及有沒有 AI 自己加進去、清單上沒有的項目。</p>
+</section>
+
+<section data-kind="步驟" data-label="4">
+<h3>不穩的地方，改指示再試</h3>
+<ul>
+<li>如果不缺的單，AI 寫成「缺的資料：沒有」，或在「無」後面加了句號，就在「規則」加一句：<code>不缺時只寫「無」，後面不加任何字。</code></li>
+<li>如果某張單兩類都沾得上，AI 每次歸的類不一樣，就在「規則」加一句，說清楚這種單歸哪一類。</li>
+<li>如果你覺得某一類少了一定要有的資料，就加進那一類的清單。</li>
+<li>改完之後，把 8 張全部重試一次。</li>
+</ul>
+<p>為什麼改清單要特別小心：清單上每多一項，就有更多單會被判成「缺資料」，多存一封補件信。加之前先問：這一項，是不是負責的人沒有它就沒辦法開始做？</p>
+</section>
+
+<section data-kind="步驟" data-label="5">
+<h3>把最後的指示存起來</h3>
+<ul>
+<li>8 張都照格式回答、缺的項目都在清單裡之後，把最後版本的指示複製下來。</li>
+<li>貼到 5-2-1 存指示的那份文件，放在「判斷部門」的指示下面，標題打 <code>摘要與缺的資料</code>。</li>
+</ul>
+<p data-kind="看到">做完會看到：你的文件裡有兩段試過 8 張單的指示：判斷部門，以及摘要與缺的資料。下一篇要把第二段貼進 Make。</p>
+</section>
+
+<section data-kind="讀完之後">
+<p>不看講義，試著用自己的話回答：</p>
+<ol>
+<li>這次 AI 的回答為什麼要固定成兩行？兩行各是給誰讀的？</li>
+<li>指示裡為什麼要寫「每類需求一定要有的資料」，而不是讓 AI 自己判斷缺什麼？</li>
+<li>AI 把「缺的資料：無」寫成「缺的資料：沒有」，流程會出什麼事？</li>
+</ol>
+</section>
+
+<h3>接下來</h3>
+<p>把這段指示留在文件裡。5-3 的第二篇，要回到 5-2-2 建的流程，在判斷部門和分路之間插進一個 AI 模組，貼上這段指示；再讓四條路各寄一封 Gmail，把摘要和缺的資料送到負責的人手上。</p>
+
+</main>
+<nav class="lesson-nav" id="pagenav" aria-label="上一篇與下一篇"></nav>
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">生成式 AI 工作應用班（36h）</div>
+</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+// 長條：依 data-value 畫相對長度。數字只從定稿讀，模板不寫任何數字。
+document.querySelectorAll('figure[data-kind="長條"]').forEach(function(fig){
+  var items=[].slice.call(fig.querySelectorAll('li[data-value]'));
+  var max=Math.max.apply(null,items.map(function(li){return +li.dataset.value||0}));
+  items.forEach(function(li){var v=+li.dataset.value||0;li.style.setProperty('--w',Math.max(v/max*100,1.5)+'%')});
+});
+// 色票：依 data-value（6 碼色碼，不含 #）上色。
+document.querySelectorAll('span[data-kind="色票"]').forEach(function(s){
+  var v=s.dataset.value||'';if(/^[0-9A-Fa-f]{6}$/.test(v))s.style.setProperty('--sw','#'+v);
+});
+// 閱讀進度條
+(function(){
+  var fill=document.getElementById('prog');
+  window.addEventListener('scroll',function(){var h=document.documentElement,m=h.scrollHeight-h.clientHeight;fill.style.width=(m>0?h.scrollTop/m*100:0)+'%'},{passive:true});
+})();
+// 提示訊息
+function showToast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2000)}
+// 複製區塊：執行時包一層並加上複製鈕（原始檔正文不變）
+document.querySelectorAll('main pre[data-kind="複製"]').forEach(function(pre){
+  var wrap=document.createElement('div');wrap.className='full-prompt-wrap';
+  pre.parentNode.insertBefore(wrap,pre);wrap.appendChild(pre);
+  var btn=document.createElement('button');btn.type='button';btn.className='copy-btn-tl';btn.textContent='複製';
+  btn.addEventListener('click',function(){
+    if(!navigator.clipboard)return;
+    navigator.clipboard.writeText(pre.innerText).then(function(){
+      btn.textContent='✓ 已複製';btn.classList.add('copied');showToast('已複製到剪貼簿');
+      setTimeout(function(){btn.textContent='複製';btn.classList.remove('copied')},1800);
+    });
+  });
+  wrap.appendChild(btn);
+});
+</script>
+<script>
+// 導覽表：上架檔名、按鈕名稱（照抄定稿位置字最後一段）。查不到檔名就不顯示。
+(function(){
+var P=[["CH5-1-1.html","5-1（第一篇）"],["CH5-1-2.html","5-1（第二篇）"],["CH5-2-1.html","5-2（第一篇）"],["CH5-2-2.html","5-2（第二篇）"],["CH5-3-1.html","5-3（第一篇）"],["CH5-3-2.html","5-3（第二篇）"],["CH5-3-3.html","5-3（第三篇）"]];
+var f=location.pathname.split("/").pop();
+var i=P.findIndex(function(x){return x[0]===f;});
+if(i<0)return;
+document.getElementById("navtag").textContent=P[i][1];
+// 已讀紀錄：與本課其他頁相同的 gen36-visited，供課程總覽計算進度
+try{var k="gen36-visited",d=location.pathname.split("/").slice(-2).join("/"),v=JSON.parse(localStorage.getItem(k)||"[]");if(v.indexOf(d)===-1){v.push(d);localStorage.setItem(k,JSON.stringify(v));}}catch(e){}
+function btn(x,next){
+  var a=document.createElement("a");a.className="nav-btn"+(next?" next nav-next":" nav-prev");a.href=x[0];
+  a.setAttribute("data-nav-role",next?"next":"prev");
+  var box=document.createElement("div"),lb=document.createElement("div"),tt=document.createElement("div");
+  lb.className="nav-btn-label";lb.textContent=next?"下一篇 →":"← 上一篇";
+  tt.className="nav-btn-title";tt.textContent=x[1];
+  box.appendChild(lb);box.appendChild(tt);a.appendChild(box);return a;
+}
+function gap(){var s=document.createElement("div");s.className="nav-gap";return s;}
+var n=document.getElementById("pagenav");
+n.appendChild(i>0?btn(P[i-1],false):gap());
+n.appendChild(i<P.length-1?btn(P[i+1],true):gap());
+})();
+</script>
+</body>
+</html>
