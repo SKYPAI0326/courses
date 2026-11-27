@@ -4,56 +4,129 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>交給流程之前，先用 AI 對話工具把指示試穩</title>
-<!-- 參考模板：示範「內容和畫面分開」。網頁角色可以整份重做，但要保留標題與正文兩個替換位置，以及有 data-正文 屬性的 main。 -->
+<!-- gen-ai-36h 共學頁模板：外觀比照本課既有頁面（頂欄、進度條、上下篇卡片、頁尾、coldtone 配色）。正文只放在 main，模板不寫內容。 -->
 <!-- 來源：5-2-1-試穩判斷部門的指示 v2 -->
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f6f4ef;--card:#fff;--text:#2b2a27;--muted:#6d695f;--line:#dcd7cc;--accent:#8a6a2f;--soft:#f1eadb}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;font-size:17px;line-height:1.9}
-main{max-width:760px;margin:0 auto;padding:40px 20px 80px}
-main p[data-kind="位置"]{color:var(--muted);font-size:14px;letter-spacing:.05em;margin:0}
-main h1{font-size:30px;line-height:1.4;margin:6px 0 24px}
-main h2{font-size:23px;margin:2px 0 4px;line-height:1.5}
-main p[data-kind="眉標"]{color:var(--accent);font-size:14px;font-weight:700;letter-spacing:.08em;margin:56px 0 0}
-main p{margin:0 0 18px}
-main blockquote{margin:22px 0;padding:14px 20px;background:var(--card);border-left:4px solid var(--accent);border-radius:4px}
+:root{--c-bg:#f7fafc;--c-surface:#eef3f9;--c-card:#fcfdfe;--c-border:#dee7ef;--c-border-soft:#e9eff5;--c-text:#344552;--c-muted:#586c80;--c-faint:#91a0ae;--c-head:#294f63;--c-title:#234b60;--c-main:#167d8d;--c-main-dark:#116775;--c-tint:#e7f5f4;--c-tint2:#f0f7f8;--c-tint-line:#d3e7e8;--c-bar:#46a2a9;--c-code:#203440;--radius:8px;--radius-sm:6px;--page-w:820px}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:'Noto Sans TC',"PingFang TC","Microsoft JhengHei",sans-serif;background:var(--c-bg);color:var(--c-text);line-height:1.8;word-break:break-word;overflow-wrap:break-word;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+a{color:#126f80;text-decoration-thickness:1px;text-underline-offset:.18em}
+a:hover{color:#0e5c69}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--c-text);outline-offset:2px;border-radius:4px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:0 0 6px 0;font-size:.85rem;text-decoration:none}
+.skip-link:focus{left:0}
+
+/* 頂欄與閱讀進度：比照本課既有頁面 */
+.topbar{position:sticky;top:0;z-index:50;height:56px;background:rgba(247,250,252,.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 48px;gap:16px}
+.logo{font-family:'Shippori Mincho',serif;font-weight:700;font-size:1.05rem;color:var(--c-title);letter-spacing:.05em;text-decoration:none}
+.topbar-divider{width:1px;height:18px;background:var(--c-border)}
+.topbar-sub{font-size:.8rem;color:var(--c-muted)}
+.spacer{flex:1}
+.topbar-tag{font-size:.75rem;color:#126775;border:1px solid rgba(22,125,141,.28);background:var(--c-tint);padding:3px 12px;border-radius:99px;font-weight:500;white-space:nowrap}
+.topbar-tag:empty{display:none}
+.progress-strip{height:2px;position:sticky;top:56px;z-index:49}
+.progress-fill{height:100%;background:var(--c-text);width:0;opacity:.75;transition:width .1s}
+.page-head{max-width:var(--page-w);margin:0 auto;padding:48px 32px 0}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--c-muted);text-decoration:none}
+.back-link:hover{color:var(--c-main)}
+
+/* 正文 */
+main{max-width:var(--page-w);margin:0 auto;padding:24px 32px 64px}
+main p{margin:0 0 1.1em;font-size:1rem;line-height:2}
+main strong{font-weight:700}
+main p[data-kind="位置"]{color:var(--c-muted);font-size:.76rem;letter-spacing:.08em;font-weight:500;line-height:1.7;margin:0 0 14px}
+main h1{font-family:'Shippori Mincho',serif;font-size:2.15rem;line-height:1.4;font-weight:700;color:var(--c-title);margin:0 0 24px}
+main h2{font-family:'Shippori Mincho',serif;font-size:1.5rem;line-height:1.5;color:var(--c-head);margin:40px 0 16px}
+main p[data-kind="眉標"]{color:var(--c-main);font-size:.78rem;font-weight:700;letter-spacing:.08em;margin:56px 0 4px}
+main p[data-kind="導言"]{font-size:1.04rem;line-height:2;margin-bottom:1.2em}
+main p[data-kind="段"]{position:relative;margin:64px 0 20px;padding:28px 0 0 16px;border-top:1px solid var(--c-border);font-family:'Shippori Mincho',serif;font-size:1.45rem;line-height:1.5;font-weight:700;color:var(--c-head)}
+main p[data-kind="段"]::before{content:"";position:absolute;left:0;top:34px;width:3px;height:1.1em;background:var(--c-bar);border-radius:0 3px 3px 0}
+main ul,main ol{margin:14px 0 18px;padding-left:1.6em;line-height:1.9}
+main li{margin:6px 0}
+main li::marker{color:var(--c-main);font-weight:700}
+main blockquote{margin:22px 0;padding:14px 20px;background:var(--c-card);border-left:3px solid var(--c-bar);border-radius:var(--radius)}
 main blockquote p{margin:0}
-main blockquote cite{display:block;color:var(--muted);font-size:14px;margin-top:6px;font-style:normal}
-main figure[data-kind="長條"]{margin:22px 0;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px 20px}
+main blockquote cite{display:block;color:var(--c-muted);font-size:.88rem;margin-top:6px;font-style:normal}
+main table{display:block;max-width:100%;overflow-x:auto;border-collapse:collapse;margin:22px 0;background:var(--c-card);font-size:.92rem;line-height:1.7;border-radius:var(--radius)}
+main th,main td{border:1px solid var(--c-border);padding:11px 13px;text-align:left;vertical-align:top;overflow-wrap:anywhere;min-width:5em}
+main th{background:var(--c-surface);color:var(--c-head);font-weight:700}
+main figure{margin:18px 0}
+main figure img{display:block;max-width:100%;height:auto;border:1px solid var(--c-border);border-radius:var(--radius)}
+main figcaption,main p[data-kind="註"],main p[data-kind="圖說"]{color:var(--c-muted);font-size:.88rem;line-height:1.8}
+main p[data-kind="圖說"]{margin-top:-6px}
+main details{margin:16px 0;background:var(--c-tint2);border:1px solid var(--c-tint-line);border-radius:var(--radius);overflow:hidden}
+main summary{cursor:pointer;padding:12px 18px;font-weight:700;color:#126775;list-style:none}
+main summary::-webkit-details-marker{display:none}
+main summary::before{content:"▸";display:inline-block;width:1.1em;color:var(--c-main);transition:transform .2s}
+main details[open] summary::before{transform:rotate(90deg)}
+main details>*:not(summary){margin-left:18px;margin-right:18px}
+main details>*:last-child{margin-bottom:16px}
+main details[open]{background:var(--c-card)}
+
+/* 操作型講義的區塊：編號、色塊都從屬性畫，不往正文加字 */
+main section[data-kind="步驟"]{position:relative;margin:20px 0;padding:24px 28px 8px 76px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius)}
+main section[data-kind="步驟"]::before{content:attr(data-label);position:absolute;left:24px;top:24px;width:34px;height:34px;line-height:34px;text-align:center;border-radius:50%;background:var(--c-main);color:#fff;font-weight:700;font-size:.95rem;font-variant-numeric:tabular-nums}
+main section[data-kind="步驟"] h3{font-family:'Shippori Mincho',serif;margin:2px 0 12px;font-size:1.15rem;line-height:1.6;color:var(--c-head)}
+main p[data-kind="看到"]{background:#eef7f7;border:1px solid #cae2e3;border-left:3px solid var(--c-bar);padding:10px 16px;border-radius:var(--radius);font-size:.95rem;line-height:1.85}
+main section[data-kind="重點"]{margin:22px 0;padding:18px 22px 4px;background:var(--c-tint2);border:1px solid var(--c-tint-line);border-radius:var(--radius)}
+main p[data-kind="範例"]{background:var(--c-surface);border:1px dashed #cfdce7;padding:12px 16px;border-radius:var(--radius);font-size:.95rem;line-height:1.85}
+main section[data-kind="讀完之後"]{margin-top:64px;padding:26px 30px 10px;background:var(--c-tint2);border:1px solid var(--c-tint-line);border-radius:var(--radius)}
+main pre[data-kind="複製"]{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--c-code);color:#edf4f7;padding:20px 24px;border-radius:var(--radius);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88rem;line-height:1.8;margin:0}
+.full-prompt-wrap{position:relative;margin:16px 0}
+.full-prompt-wrap pre[data-kind="複製"]{padding-top:44px}
+.copy-btn-tl{position:absolute;top:10px;right:10px;padding:5px 12px;background:var(--c-main);color:#fff;border:none;border-radius:var(--radius-sm);font-size:.75rem;font-family:inherit;cursor:pointer;font-weight:500;z-index:2;transition:background .2s}
+.copy-btn-tl:hover{background:var(--c-main-dark)}
+.copy-btn-tl.copied{background:#42766f}
+main a[data-kind="按鈕"]{display:inline-block;padding:9px 20px;background:var(--c-main);color:#fff;border-radius:var(--radius-sm);text-decoration:none;font-weight:700}
+main a[data-kind="按鈕"]:hover{background:var(--c-main-dark);color:#fff}
+main code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em;background:var(--c-surface);padding:1px 6px;border-radius:3px}
+main pre code{background:none;padding:0}
+main code[data-kind="複製"]{border:1px solid var(--c-border)}
+main span[data-kind="色票"]{display:inline-block;width:1em;height:1em;vertical-align:-.12em;margin-right:4px;border:1px solid var(--c-border);border-radius:3px;background:var(--sw,transparent)}
+main figure[data-kind="長條"]{background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);padding:18px 20px}
 main figure[data-kind="長條"] ol{list-style:none;margin:0;padding:0}
-main figure[data-kind="長條"] li{margin:10px 0;font-size:15px}
-main figure[data-kind="長條"] li::before{content:"";display:block;height:22px;background:var(--accent);border-radius:3px;width:var(--w,0);margin-bottom:4px}
-main figcaption,main p[data-kind="註"]{color:var(--muted);font-size:15px}
-main table{width:100%;border-collapse:collapse;margin:20px 0;background:var(--card);font-size:15.5px;line-height:1.7}
-main th,main td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
-main th{background:var(--soft)}
-main details{margin:18px 0;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 18px}
-main summary{cursor:pointer;font-weight:700;color:var(--accent)}
-main section[data-kind="讀完之後"]{margin-top:56px;padding:22px 24px;background:var(--card);border:1px solid var(--line);border-radius:8px}
-main section[data-kind="讀完之後"] p:last-child{margin-bottom:0}
-main pre[data-kind="複製"]{white-space:pre-wrap;background:#2b2a27;color:#f6f4ef;padding:16px;border-radius:8px;font-size:15px}
-/* 操作型講義的區塊（定稿格式「操作型講義」一節）。編號、色塊都從屬性畫，不往正文加字。 */
-main p[data-kind="導言"]{font-size:19px;line-height:1.85;color:var(--text);margin-bottom:26px}
-main p[data-kind="段"]{margin:52px 0 14px;padding-top:12px;border-top:2px solid var(--line);color:var(--accent);font-size:14px;font-weight:700;letter-spacing:.08em}
-main section[data-kind="步驟"]{position:relative;margin:22px 0;padding:18px 20px 6px 64px;background:var(--card);border:1px solid var(--line);border-radius:8px}
-main section[data-kind="步驟"]::before{content:attr(data-label);position:absolute;left:18px;top:18px;width:32px;height:32px;line-height:32px;text-align:center;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:15px}
-main section[data-kind="步驟"] h3{margin:0 0 10px;font-size:19px;line-height:1.6}
-main figure{margin:16px 0}
-main figure img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px}
-main p[data-kind="看到"]{background:var(--soft);border-left:4px solid var(--accent);padding:8px 14px;border-radius:4px;font-size:15.5px}
-main section[data-kind="重點"]{margin:22px 0;padding:16px 20px 2px;background:var(--soft);border:1px solid var(--line);border-radius:8px}
-main p[data-kind="範例"]{background:var(--card);border:1px dashed var(--line);padding:12px 16px;border-radius:6px;font-size:15.5px}
-main p[data-kind="圖說"]{color:var(--muted);font-size:15px;margin-top:-6px}
-main a[data-kind="按鈕"]{display:inline-block;padding:8px 18px;background:var(--accent);color:#fff;border-radius:6px;text-decoration:none;font-weight:700}
-main code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92em;background:var(--soft);padding:1px 5px;border-radius:3px}
-main code[data-kind="複製"]{border:1px solid var(--line)}
-main span[data-kind="色票"]{display:inline-block;width:1em;height:1em;vertical-align:-.12em;margin-right:4px;border:1px solid var(--line);border-radius:3px;background:var(--sw,transparent)}
-main figure[data-kind="互動"]{padding:14px 18px;background:var(--card);border:2px dashed var(--line);border-radius:8px}
-@media (max-width:560px){body{font-size:16px}main h1{font-size:25px}main table{font-size:14.5px}main th,main td{padding:8px}main section[data-kind="步驟"]{padding:56px 16px 4px}main section[data-kind="步驟"]::before{left:16px;top:14px}}
-.topnav,.pagenav{max-width:760px;margin:0 auto;padding:16px 20px 0;font-size:15px}
-.topnav a,.pagenav a{color:var(--accent);text-decoration:none;font-weight:700}
-.pagenav{display:flex;justify-content:space-between;gap:12px;padding:0 20px 48px}
+main figure[data-kind="長條"] li{margin:10px 0;font-size:.92rem}
+main figure[data-kind="長條"] li::before{content:"";display:block;height:22px;background:var(--c-main);border-radius:3px;width:var(--w,0);margin-bottom:4px}
+main figure[data-kind="互動"]{padding:14px 18px;background:var(--c-card);border:2px dashed var(--c-border);border-radius:var(--radius)}
+
+/* 上一篇／下一篇與頁尾：比照本課既有頁面 */
+.lesson-nav{max-width:var(--page-w);margin:0 auto;padding:0 32px 64px;display:flex;gap:14px}
+.lesson-nav:empty{display:none}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:14px 20px;background:var(--c-card);border:1px solid var(--c-border);border-radius:var(--radius);text-decoration:none;color:var(--c-text);font-size:.9rem;transition:border-color .2s;flex:1;min-width:0}
+.nav-btn:hover{border-color:var(--c-main);color:var(--c-text)}
+.nav-btn.next{justify-content:flex-end;text-align:right}
+.nav-btn-label{font-size:.72rem;color:var(--c-muted);margin-bottom:2px}
+.nav-btn-title{font-weight:500}
+.nav-gap{flex:1}
+.footer{border-top:1px solid var(--c-border);background:#f2f6f9;padding:24px 48px;display:flex;align-items:center;gap:16px}
+.footer-logo{font-family:'Shippori Mincho',serif;font-size:.9rem;font-weight:700;color:var(--c-muted)}
+.footer-note{font-size:.75rem;color:var(--c-muted)}
+.toast{position:fixed;bottom:28px;right:28px;background:var(--c-text);color:#fff;padding:10px 18px;border-radius:var(--radius-sm);font-size:.8rem;font-weight:500;transform:translateY(60px);opacity:0;transition:all .35s cubic-bezier(.34,1.56,.64,1);z-index:999;pointer-events:none}
+.toast.show{transform:none;opacity:1}
+
+@media(max-width:1024px){.topbar{padding:0 32px}}
+@media(max-width:768px){
+.topbar{padding:0 16px;gap:8px}.topbar-sub,.topbar-divider{display:none}
+.page-head{padding:32px 20px 0}
+main{padding:20px 20px 48px}
+main h1{font-size:1.65rem}
+main p{font-size:.96rem;line-height:1.9}
+main p[data-kind="段"]{font-size:1.25rem;margin-top:52px;padding-top:24px}
+main p[data-kind="段"]::before{top:29px}
+main section[data-kind="步驟"]{padding:62px 18px 6px}
+main section[data-kind="步驟"]::before{left:18px;top:18px}
+main section[data-kind="讀完之後"]{padding:22px 20px 6px}
+main th,main td{padding:8px}
+main pre[data-kind="複製"]{padding:44px 14px 14px}
+.lesson-nav{padding:0 20px 48px;flex-direction:column}.nav-btn{flex:none}.nav-gap{display:none}
+.footer{padding:20px;flex-wrap:wrap;gap:8px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+@media print{.topbar,.progress-strip,.lesson-nav,.copy-btn-tl,.toast,.back-link{display:none!important}body{background:#fff}main section[data-kind="步驟"]{break-inside:avoid}}
 </style>
+<link href="../assets/coldtone-reading.css" rel="stylesheet">
 </head>
 <body>
 <style id="_gs">
@@ -79,7 +152,16 @@ main figure[data-kind="互動"]{padding:14px 18px;background:var(--card);border:
 <script>
 (function(){const K='gen36_auth',H='2eeb336fddc0ac7aa5ce7ff9aa2b3a51db0f7ad83fd07d4e7d877dfc1d2b9089';if(localStorage.getItem(K)==='1')sessionStorage.setItem(K,'1');if(sessionStorage.getItem(K)==='1'){var g=document.getElementById('_gate');if(g)g.style.display='none';return}async function _gc(){var v=document.getElementById('_gate-input').value,buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)),hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===H){sessionStorage.setItem(K,'1');document.getElementById('_gate').style.display='none'}else{document.getElementById('_gate-err').textContent='密碼錯誤，請再試一次'}}window._gc=_gc;document.getElementById('_gate-input').addEventListener('keydown',function(e){if(e.key==='Enter')_gc()})})()</script>
 
-<nav class="topnav" id="topnav"></nav>
+<a href="#main" class="skip-link">跳至主要內容</a>
+<header class="topbar">
+  <a class="logo" href="../../../index.html">弄一下工作室</a>
+  <div class="topbar-divider"></div>
+  <div class="topbar-sub">生成式 AI 工作應用班（36h）</div>
+  <div class="spacer"></div>
+  <div class="topbar-tag" id="navtag"></div>
+</header>
+<div class="progress-strip" role="progressbar" aria-label="閱讀進度" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="prog"></div></div>
+<div class="page-head"><a class="back-link" href="../index.html"><span aria-hidden="true">←</span> 返回課程總覽</a></div>
 <main id="main" data-正文>
 <p data-kind="位置">生成式 AI 工作應用班｜Part 5 用 AI 整理訊息，交給 Make 自動處理｜5-2（第一篇）</p>
 <h1>交給流程之前，先用 AI 對話工具把指示試穩</h1>
@@ -196,6 +278,12 @@ main figure[data-kind="互動"]{padding:14px 18px;background:var(--card);border:
 <p>5-2 的第二篇，要把你存好的指示放進 Make：先申請一把讓 Make 使用 Gemini 的金鑰，在流程裡加上 Gemini，再讓流程依 AI 的回答分成四條路，每條路在處理紀錄寫下「交給哪個部門」。</p>
 
 </main>
+<nav class="lesson-nav" id="pagenav" aria-label="上一篇與下一篇"></nav>
+<footer class="footer">
+  <div class="footer-logo">弄一下工作室</div>
+  <div class="footer-note">生成式 AI 工作應用班（36h）</div>
+</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
 // 長條：依 data-value 畫相對長度。數字只從定稿讀，模板不寫任何數字。
 document.querySelectorAll('figure[data-kind="長條"]').forEach(function(fig){
@@ -207,19 +295,50 @@ document.querySelectorAll('figure[data-kind="長條"]').forEach(function(fig){
 document.querySelectorAll('span[data-kind="色票"]').forEach(function(s){
   var v=s.dataset.value||'';if(/^[0-9A-Fa-f]{6}$/.test(v))s.style.setProperty('--sw','#'+v);
 });
-// 互動元件要由各課模板依 data-value 的名稱放入；參考模板只顯示框與說明。
+// 閱讀進度條
+(function(){
+  var fill=document.getElementById('prog');
+  window.addEventListener('scroll',function(){var h=document.documentElement,m=h.scrollHeight-h.clientHeight;fill.style.width=(m>0?h.scrollTop/m*100:0)+'%'},{passive:true});
+})();
+// 提示訊息
+function showToast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2000)}
+// 複製區塊：執行時包一層並加上複製鈕（原始檔正文不變）
+document.querySelectorAll('main pre[data-kind="複製"]').forEach(function(pre){
+  var wrap=document.createElement('div');wrap.className='full-prompt-wrap';
+  pre.parentNode.insertBefore(wrap,pre);wrap.appendChild(pre);
+  var btn=document.createElement('button');btn.type='button';btn.className='copy-btn-tl';btn.textContent='複製';
+  btn.addEventListener('click',function(){
+    if(!navigator.clipboard)return;
+    navigator.clipboard.writeText(pre.innerText).then(function(){
+      btn.textContent='✓ 已複製';btn.classList.add('copied');showToast('已複製到剪貼簿');
+      setTimeout(function(){btn.textContent='複製';btn.classList.remove('copied')},1800);
+    });
+  });
+  wrap.appendChild(btn);
+});
 </script>
-<nav class="pagenav" id="pagenav"></nav>
 <script>
+// 導覽表：上架檔名、按鈕名稱（照抄定稿位置字最後一段）。查不到檔名就不顯示。
 (function(){
 var P=[["CH5-1-1.html","5-1（第一篇）"],["CH5-1-2.html","5-1（第二篇）"],["CH5-2-1.html","5-2（第一篇）"],["CH5-2-2.html","5-2（第二篇）"]];
-var f=location.pathname.split("/").pop();var i=P.findIndex(function(x){return x[0]===f;});
-var t=document.getElementById("topnav");var a=document.createElement("a");a.href="../index.html";a.textContent="← 返回課程總覽";t.appendChild(a);
-var n=document.getElementById("pagenav");if(i<0)return;
-var l=document.createElement("span"),r=document.createElement("span");
-if(i>0){var p=document.createElement("a");p.href=P[i-1][0];p.textContent="← 上一篇："+P[i-1][1];l.appendChild(p);}
-if(i<P.length-1){var q=document.createElement("a");q.href=P[i+1][0];q.textContent="下一篇："+P[i+1][1]+" →";r.appendChild(q);}
-n.appendChild(l);n.appendChild(r);
+var f=location.pathname.split("/").pop();
+var i=P.findIndex(function(x){return x[0]===f;});
+if(i<0)return;
+document.getElementById("navtag").textContent=P[i][1];
+// 已讀紀錄：與本課其他頁相同的 gen36-visited，供課程總覽計算進度
+try{var k="gen36-visited",d=location.pathname.split("/").slice(-2).join("/"),v=JSON.parse(localStorage.getItem(k)||"[]");if(v.indexOf(d)===-1){v.push(d);localStorage.setItem(k,JSON.stringify(v));}}catch(e){}
+function btn(x,next){
+  var a=document.createElement("a");a.className="nav-btn"+(next?" next nav-next":" nav-prev");a.href=x[0];
+  a.setAttribute("data-nav-role",next?"next":"prev");
+  var box=document.createElement("div"),lb=document.createElement("div"),tt=document.createElement("div");
+  lb.className="nav-btn-label";lb.textContent=next?"下一篇 →":"← 上一篇";
+  tt.className="nav-btn-title";tt.textContent=x[1];
+  box.appendChild(lb);box.appendChild(tt);a.appendChild(box);return a;
+}
+function gap(){var s=document.createElement("div");s.className="nav-gap";return s;}
+var n=document.getElementById("pagenav");
+n.appendChild(i>0?btn(P[i-1],false):gap());
+n.appendChild(i<P.length-1?btn(P[i+1],true):gap());
 })();
 </script>
 </body>
